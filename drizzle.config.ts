@@ -1,6 +1,19 @@
+import { loadEnvConfig } from "@next/env";
 import { defineConfig } from "drizzle-kit";
 
-import { env } from "@/lib/env";
+// drizzle-kit runs as a standalone CLI; it doesn't go through Next.js, so we
+// have to load `.env.local` (and any `.env*` files) ourselves before reading
+// process.env. @next/env is the same loader Next.js uses internally, so the
+// precedence rules (`.env.local` wins) match runtime exactly.
+loadEnvConfig(process.cwd());
+
+const url = process.env.DATABASE_DIRECT_URL;
+if (!url) {
+  throw new Error(
+    "DATABASE_DIRECT_URL is required for drizzle-kit. " +
+      "Populate .env.local (see .env.example) before running db:* scripts.",
+  );
+}
 
 /**
  * Drizzle Kit configuration.
@@ -17,9 +30,7 @@ export default defineConfig({
   schema: "./db/schema/*",
   out: "./supabase/migrations",
   schemaFilter: ["public"],
-  dbCredentials: {
-    url: env.DATABASE_DIRECT_URL,
-  },
+  dbCredentials: { url },
   verbose: true,
   strict: true,
 });

@@ -12,6 +12,7 @@ Each ADR is immutable once accepted. To revise, write a new ADR that supersedes 
 | [0002](./0002-design-system.md)         | Design system adoption (warm-palette pivot to teal monochrome) | Accepted (no-dark-mode part superseded by [ADR-0003](./0003-dark-mode.md)) | 2026-05-21 | 0.2      |
 | [0003](./0003-dark-mode.md)             | Dark mode adoption                                             | Accepted                                                                   | 2026-05-21 | 0.2-dark |
 | [0004](./0004-env-and-drizzle-setup.md) | Environment validation, Supabase clients, Drizzle setup        | Accepted                                                                   | 2026-05-21 | 0.3      |
+| [0005](./0005-phase-0-schema.md)        | Phase 0 schema + pooler-friendly migrator                      | Accepted                                                                   | 2026-05-22 | 0.4      |
 
 ## Template
 
