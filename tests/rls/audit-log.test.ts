@@ -19,7 +19,7 @@ describe("RLS: public.audit_log", () => {
   }, 60_000);
 
   afterAll(async () => {
-    await serviceSql`DELETE FROM public.audit_log WHERE table_name = 'rls_audit_test'`;
+    // audit_log is append-only post-0.6 — DELETE raises. Leak the seed rows.
     await deleteUser(regular.id).catch(() => {});
     await deleteUser(superAdmin.id).catch(() => {});
   }, 30_000);
