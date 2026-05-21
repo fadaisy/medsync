@@ -61,7 +61,7 @@ Key rules baked into the file headers:
 
 ### 5. Dev-only health endpoint as the smoke test
 
-[`app/api/_health/route.ts`](../../app/api/_health/route.ts) runs three checks on GET:
+[`app/api/health/route.ts`](../../app/api/health/route.ts) runs three checks on GET:
 
 1. `db.execute(sql\`SELECT now(), current_database()\`)` — proves the Drizzle/postgres pool reaches the pooler.
 2. `createClient` (server, anon) → `getUser()` — proves the SSR client reaches Supabase auth.
@@ -86,7 +86,7 @@ Gated to non-production (`env.NODE_ENV !== "production"`). For real production h
 - Three import paths make auth posture explicit. Code review can flag any service-role usage outside of Edge Functions / Edge Function helpers.
 - Env validation cannot be bypassed accidentally (build fails clearly without it; the escape hatch is named and documented).
 - `prepare: false` on the pooler avoids the most common "works locally, breaks in prod" Supabase failure.
-- `/api/_health` route gives the user a one-click verification that all three integrations work.
+- `/api/health` route gives the user a one-click verification that all three integrations work. (Originally proposed as `/api/_health`; Next.js App Router treats underscore-prefixed folders as private and excludes them from routing — bug caught on first smoke test, route renamed.)
 
 **Negative / trade-offs**
 

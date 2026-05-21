@@ -61,11 +61,17 @@ export default function HomePage() {
           </div>
 
           <div className="flex items-center gap-3">
-            <Button render={<Link href="/styleguide" />} variant="primary" size="md">
+            <Button
+              render={<Link href="/styleguide" />}
+              nativeButton={false}
+              variant="primary"
+              size="md"
+            >
               View design system
             </Button>
             <Button
               render={<a href="https://github.com/medsync-ug" target="_blank" rel="noreferrer" />}
+              nativeButton={false}
               variant="secondary"
               size="md"
             >

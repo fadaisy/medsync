@@ -25,7 +25,9 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
     <button
       type="button"
       role="switch"
-      aria-checked={resolvedTheme === undefined ? undefined : isDark}
+      // Always render a boolean so SSR matches the first client render and
+      // hydration succeeds. The real value flips once next-themes resolves.
+      aria-checked={isDark}
       aria-label="Toggle light / dark theme"
       onClick={() => setTheme(isDark ? "light" : "dark")}
       className={cn(
