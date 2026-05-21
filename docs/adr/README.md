@@ -6,11 +6,12 @@ Each ADR is immutable once accepted. To revise, write a new ADR that supersedes 
 
 ## Index
 
-| #                               | Title                                                          | Status                                                                     | Date       | Phase    |
-| ------------------------------- | -------------------------------------------------------------- | -------------------------------------------------------------------------- | ---------- | -------- |
-| [0001](./0001-stack-choice.md)  | Stack choice                                                   | Accepted                                                                   | 2026-05-21 | 0.1      |
-| [0002](./0002-design-system.md) | Design system adoption (warm-palette pivot to teal monochrome) | Accepted (no-dark-mode part superseded by [ADR-0003](./0003-dark-mode.md)) | 2026-05-21 | 0.2      |
-| [0003](./0003-dark-mode.md)     | Dark mode adoption                                             | Accepted                                                                   | 2026-05-21 | 0.2-dark |
+| #                                       | Title                                                          | Status                                                                     | Date       | Phase    |
+| --------------------------------------- | -------------------------------------------------------------- | -------------------------------------------------------------------------- | ---------- | -------- |
+| [0001](./0001-stack-choice.md)          | Stack choice                                                   | Accepted                                                                   | 2026-05-21 | 0.1      |
+| [0002](./0002-design-system.md)         | Design system adoption (warm-palette pivot to teal monochrome) | Accepted (no-dark-mode part superseded by [ADR-0003](./0003-dark-mode.md)) | 2026-05-21 | 0.2      |
+| [0003](./0003-dark-mode.md)             | Dark mode adoption                                             | Accepted                                                                   | 2026-05-21 | 0.2-dark |
+| [0004](./0004-env-and-drizzle-setup.md) | Environment validation, Supabase clients, Drizzle setup        | Accepted                                                                   | 2026-05-21 | 0.3      |
 
 ## Template
 
