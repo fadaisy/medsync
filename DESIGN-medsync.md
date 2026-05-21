@@ -379,7 +379,7 @@ Monospace falls through SF Mono → Menlo → Consolas → generic monospace. No
 
 ### Dark mode
 
-Not in scope for Phase 0.2. Clinical UIs typically don't ship dark mode (reading-comfort regressions in low-light wards). Tokens are structured so we could add it later via `prefers-color-scheme`, but no `.dark` variant ships yet.
+Dark mode IS shipped — see the dedicated dark-mode section below. Toggle is in the styleguide header. The "no dark mode" decision recorded in ADR-0002 is superseded by ADR-0003.
 
 ### Spacing
 
@@ -387,4 +387,200 @@ Tailwind v4's spacing scale is anchored to `--spacing: 0.25rem` (4px), matching 
 
 ### Live preview
 
-[`/styleguide`](app/styleguide/) renders the full token set, typography scale, button gallery, input states, clinical status badges, vital-stat strip, card variants, and section numbering. This page is the visual contract — review it whenever tokens change.
+[`/styleguide`](app/styleguide/) renders the full token set, typography scale, button gallery, input states, clinical status badges, vital-stat strip, card variants, and section numbering. This page is the visual contract — review it whenever tokens change. The header has a theme toggle for switching between light and dark.
+
+---
+
+# Dark Mode
+
+> Adapted verbatim from the dark-mode handoff. Dark mode is not a simple inversion — surfaces layer, colors brighten selectively, and contrast is carefully managed for low-light clinical environments.
+
+## Core Philosophy (dark)
+
+- **Clinical Precision.** Pixel-perfect alignment, tight letter-spacing, engineered for trust — especially critical in low-light ward contexts.
+- **Calm Authority.** Dark surfaces reduce eye strain during night shifts. Teal glows softly as a calm clinical signal.
+- **Data Density.** Compact vitals, labs, patient rows. High contrast where it matters, receding where it doesn't.
+- **Compassionate UX.** Warm dark grays (never pure black). Soft teal over harsh green. Never clinical-cold.
+- **Progressive Disclosure.** Dark mode enhances focus — surfaces recede, content advances.
+- **Systematic Scale.** Same 4px grid, same spacing tokens, same type scale — only colors flip.
+
+## Surface Mapping — Light → Dark
+
+This is the most important section. Dark mode is built by remapping surfaces, not inverting hex values.
+
+| Surface          | Light Mode        | Dark Mode         |
+| ---------------- | ----------------- | ----------------- |
+| Page background  | `#FFFFFF`         | `#0A0A0A`         |
+| Raised / sidebar | `#FAFAFA`         | `#111111`         |
+| Card surface     | `#FFFFFF`         | `#171717`         |
+| Hover state      | `#F5F5F5`         | `#1E1E1E`         |
+| Active / pressed | `#EFEFEF`         | `#262626`         |
+| Teal hover       | `#F0FDFA`         | `#042F2E`         |
+| Border default   | `#E5E5E5`         | `#262626`         |
+| Border strong    | `#D4D4D4`         | `#404040`         |
+| Border subtle    | `#EFEFEF`         | `#1E1E1E`         |
+| Overlay          | `rgba(0,0,0,0.5)` | `rgba(0,0,0,0.7)` |
+
+**CRITICAL:** Never use pure `#000000` as a background. The minimum is `#0A0A0A`. Pure black creates harsh contrast and is uncomfortable under prolonged use.
+
+## Dark Neutral Scale
+
+| Token         | Hex       | Role                          |
+| ------------- | --------- | ----------------------------- |
+| `neutral-0`   | `#0A0A0A` | Page background               |
+| `neutral-50`  | `#111111` | Raised surfaces, sidebar      |
+| `neutral-100` | `#171717` | Card surfaces                 |
+| `neutral-150` | `#1E1E1E` | Hover state, subtle borders   |
+| `neutral-200` | `#262626` | Active state, default borders |
+| `neutral-300` | `#404040` | Strong borders, dividers      |
+| `neutral-400` | `#525252` | Disabled text, timestamps     |
+| `neutral-500` | `#737373` | Tertiary text, MRNs           |
+| `neutral-600` | `#A3A3A3` | Secondary text                |
+| `neutral-700` | `#D4D4D4` | Body text                     |
+| `neutral-800` | `#E5E5E5` | Primary text                  |
+| `neutral-900` | `#F5F5F5` | Emphasized text, headings     |
+| `neutral-950` | `#FAFAFA` | Maximum emphasis (rare)       |
+
+### Text colors (dark)
+
+- **Primary text:** `#E5E5E5` (neutral-800)
+- **Secondary text:** `#A3A3A3` (neutral-600)
+- **Tertiary/muted text:** `#737373` (neutral-500)
+- **Disabled text:** `#525252` (neutral-400)
+- **Placeholder text:** `#525252`
+- **Maximum emphasis:** `#F5F5F5` (neutral-900) — headings, patient names
+
+**CRITICAL:** Never use pure `#FFFFFF` for text. Cap at `#F5F5F5`.
+
+## Primary Teal (dark — brightened)
+
+| Token      | Hex       | Usage                                            |
+| ---------- | --------- | ------------------------------------------------ |
+| `teal-50`  | `#042F2E` | Dark teal backgrounds, hover fills               |
+| `teal-100` | `#064E45` | Teal borders in dark mode                        |
+| `teal-200` | `#0F766E` | Subtle accents                                   |
+| `teal-300` | `#0D9488` | Secondary teal (was primary in light)            |
+| `teal-400` | `#14B8A6` | Focus rings                                      |
+| `teal-500` | `#2DD4BF` | **Primary CTA, links, active nav** ← dark anchor |
+| `teal-600` | `#5EEAD4` | Emphasis, highlighted values                     |
+| `teal-700` | `#99F6E4` | Bright accents (rare)                            |
+| `teal-800` | `#CCFBF1` | Very bright (use sparingly)                      |
+| `teal-900` | `#F0FDFA` | Near-white teal tint (avoid)                     |
+
+**Key shift:** Primary accent moves from teal-600 (light) to teal-500 (dark) to maintain contrast. teal-50 (#042F2E) becomes the soft fill background.
+
+## Clinical Status (dark)
+
+Ultra-dark saturated backgrounds with bright text — visible without being glaring.
+
+| Status         | Background | Text      | When to use                        |
+| -------------- | ---------- | --------- | ---------------------------------- |
+| **Stable**     | `#052E16`  | `#4ADE80` | Patient stable, vitals normal      |
+| **Critical**   | `#450A0A`  | `#FCA5A5` | Emergency, critical vitals, alerts |
+| **Caution**    | `#451A03`  | `#FCD34D` | Warning, borderline vitals         |
+| **Admitted**   | `#042F2E`  | `#5EEAD4` | Currently admitted patients        |
+| **Discharged** | `#2E1065`  | `#C4B5FD` | Discharged patients                |
+| **Pending**    | `#262626`  | `#A3A3A3` | Awaiting action, unconfirmed       |
+
+**CRITICAL:** Red softens. Never use harsh `#DC2626` — use `#FCA5A5` for text and `#450A0A` for backgrounds. Still unmistakably alert, not retina-searing at 3am.
+
+## Typography (unchanged sizes / weights / tracking)
+
+Same families, same scale, same weights. Only colours flip.
+
+### Medical data typography (dark adjustments)
+
+- **Vital signs:** Monospace, `tabular-nums`, 20–28px, weight 500, color `#E5E5E5`
+- **Lab values out-of-range:** Soft red `#FCA5A5`, bold (700), monospace — NOT harsh `#DC2626`
+- **Lab values normal:** `#E5E5E5` or green `#4ADE80`
+- **Patient IDs (MRN):** Monospace, gray-500 `#737373`
+- **Timestamps:** 24h format, monospace, gray-400 `#525252`
+- **Units:** Smaller than value, color `#404040`
+- **Overlines:** Teal-500 `#5EEAD4` for section labels (in dark mode, teal overlines pop better than gray)
+
+## Spacing & Layout (unchanged)
+
+Same 4px grid, same scale, same layout constants.
+
+## Shadows / Elevation (heavier in dark)
+
+Dark shadows are significantly stronger than light, plus a faint white inner border for edge definition.
+
+| Token     | Value                                                                |
+| --------- | -------------------------------------------------------------------- |
+| `xs`      | `0 1px 2px rgba(0,0,0,0.3)`                                          |
+| `sm`      | `0 1px 3px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3)`               |
+| `md`      | `0 4px 6px -1px rgba(0,0,0,0.4), 0 2px 4px -2px rgba(0,0,0,0.3)`     |
+| `lg`      | `0 10px 15px -3px rgba(0,0,0,0.5), 0 4px 6px -4px rgba(0,0,0,0.3)`   |
+| `card`    | `0 0 0 1px rgba(255,255,255,0.06), 0 1px 3px rgba(0,0,0,0.4)`        |
+| `popover` | `0 0 0 1px rgba(255,255,255,0.08), 0 12px 24px -4px rgba(0,0,0,0.6)` |
+
+**Key difference:** Card and popover use `rgba(255,255,255,0.06–0.08)` for a subtle light edge — what makes elements feel lifted off the dark background.
+
+## Components (dark)
+
+### Buttons (dark)
+
+- **Primary (teal):** bg `#2DD4BF`, text `#042F2E`, radius 8px
+- **Secondary:** bg `#262626`, border `1px solid #404040`, text `#E5E5E5`
+- **Ghost:** bg transparent, text `#737373`
+- **Teal Soft:** bg `#042F2E`, border `1px solid #064E45`, text `#5EEAD4`
+- **Emergency:** bg `#450A0A`, border `1px solid #7F1D1D`, text `#FCA5A5`
+- **Alert (outline):** bg transparent, border `1px solid #7F1D1D`, text `#FCA5A5`
+
+**Key shift:** Primary button inverts — bright teal bg with dark teal text (opposite of light mode).
+
+### Inputs (dark)
+
+- Background: `#171717`
+- Border: `1px solid #262626`
+- Text: `#E5E5E5`
+- **Focus:** border `#14B8A6`, box-shadow `0 0 0 2px rgba(45,212,191,0.2)`
+- **Error:** border `#7F1D1D`, bg `#1C1111`, text `#FCA5A5`
+- Labels: 11px, weight 500, color `#737373`
+
+### Cards (dark)
+
+- **Standard:** bg `#171717`, border `1px solid #262626`, shadow `card`, radius 12px
+- **Muted:** bg `#111111`, border `1px solid #1E1E1E`, radius 12px
+- **Teal-tinted:** bg `#042F2E`, border `1px solid #064E45`, radius 12px
+
+## Interaction & Motion (dark)
+
+### Hover (dark)
+
+- **Cards/rows:** bg shifts to `#111111`, border to `#404040`
+- **Clinical elements:** bg shifts to `#042F2E`, border to `#064E45`
+- **Primary button:** teal-500 → teal-600 (`#5EEAD4`)
+- **Links:** Underline on hover, color `#2DD4BF`
+
+### Focus ring (dark)
+
+`box-shadow: 0 0 0 2px rgba(45,212,191,0.3)` — brighter opacity than light to remain visible.
+
+## Patterns & Conventions (dark)
+
+- **Section numbering:** teal-500 (`#2DD4BF`), bg teal-50 (`#042F2E`), border teal-100 (`#064E45`).
+- **Clinical separators:** Monospace, teal-500 (`#2DD4BF`).
+- **Iconography:** Teal-500 for medical icons, `#A3A3A3` for general UI.
+- **CTA blocks:** bg `#042F2E` (teal-50), border `1px solid #064E45`. Optional subtle glow `box-shadow: 0 0 40px rgba(13,148,136,0.08)`.
+- **Code blocks:** bg `#111111`, border `1px solid #262626`, text `#5EEAD4`.
+- **Overline labels:** `#5EEAD4` (teal-600) — teal pops better than gray on dark.
+
+## Anti-patterns (NEVER in dark)
+
+- ❌ Pure `#000000` backgrounds — use `#0A0A0A` minimum
+- ❌ Harsh red `#DC2626` for text — use soft red `#FCA5A5`
+- ❌ Pure white `#FFFFFF` for text — cap at `#F5F5F5`
+- ❌ Light-mode shadow values — shadows must be 3–5× stronger in dark
+- ❌ Teal-600 (`#0D9488`) as primary CTA — too dim on dark; use teal-500 (`#2DD4BF`)
+- ❌ Bright borders above `#404040` — they look like glowing lines
+- ❌ Decorative glow effects — only subtle functional emphasis
+
+## Dark-mode implementation notes (Phase 0.2-dark)
+
+- Theme switching uses [`next-themes`](https://github.com/pacocoursey/next-themes) with `attribute="class"`, `defaultTheme="system"`, `enableSystem`, storage key `medsync-theme`. The `<ThemeProvider>` wraps the tree in [`app/providers.tsx`](app/providers.tsx). `<html suppressHydrationWarning>` prevents the SSR/CSR class mismatch warning.
+- Token strategy: every semantic, status, and shadow token lives in `:root` (light) and `.dark` (dark) blocks in [`app/globals.css`](app/globals.css); `@theme inline` declares those tokens to Tailwind v4 so utilities like `bg-primary` resolve to the right colour at runtime per theme.
+- Scale tokens (`gray-*`, `teal-*`) also flip — components that use `bg-gray-50` or `border-teal-100` end up rendering the dark-spec equivalent in dark mode. Palette swatches in `/styleguide` use static inline `style={{backgroundColor: hex}}` so the reference display stays accurate regardless of active theme.
+- `<meta name="theme-color">` is set per `prefers-color-scheme` so mobile browser chrome matches.
+- The `ThemeToggle` component is a controlled switch with a Sun/Moon icon crossfade; it cycles light ↔ dark only (system preference still wins on first paint).

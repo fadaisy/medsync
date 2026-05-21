@@ -20,19 +20,19 @@ export function ClinicalPath({
       data-slot="clinical-path"
       aria-label="Path"
       className={cn(
-        "inline-flex items-center gap-1.5 font-mono text-[13px] leading-none text-teal-600",
+        "text-primary inline-flex items-center gap-1.5 font-mono text-[13px] leading-none",
         className,
       )}
       {...props}
     >
-      <span aria-hidden className="text-gray-400">
+      <span aria-hidden className="text-muted-foreground">
         /
       </span>
       {segments.map((segment, index) => (
         <span key={`${segment}-${index}`} className="inline-flex items-center gap-1.5">
           <span>{segment}</span>
           {index < segments.length - 1 ? (
-            <span aria-hidden className="text-gray-400">
+            <span aria-hidden className="text-muted-foreground">
               {separator}
             </span>
           ) : null}

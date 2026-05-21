@@ -1,6 +1,6 @@
 # ADR-0002: Design system adoption (warm-palette pivot to teal monochrome)
 
-- **Status:** Accepted
+- **Status:** Accepted (the "no dark mode" decision is superseded by [ADR-0003](./0003-dark-mode.md); the rest stands)
 - **Date:** 2026-05-21
 - **Phase:** 0.2
 - **Deciders:** Usama Fadhul

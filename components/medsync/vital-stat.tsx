@@ -18,7 +18,7 @@ interface VitalStatProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const valueTone: Record<Required<VitalStatProps>["tone"], string> = {
-  normal: "text-gray-900 font-medium",
+  normal: "text-foreground font-medium",
   critical: "text-status-critical-fg font-bold",
   success: "text-status-stable-fg font-medium",
 };
@@ -39,7 +39,9 @@ export function VitalStat({
       className={cn("flex flex-col gap-1", className)}
       {...props}
     >
-      <span className="text-overline text-gray-400 uppercase">{label}</span>
+      <span className="text-overline text-muted-foreground uppercase dark:text-teal-500">
+        {label}
+      </span>
       <div className="flex items-baseline gap-1">
         <span className={cn("font-mono text-[20px] leading-tight tabular-nums", valueTone[tone])}>
           {value}

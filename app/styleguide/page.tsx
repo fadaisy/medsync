@@ -6,6 +6,7 @@ import { ClinicalBadge } from "@/components/medsync/clinical-badge";
 import { ClinicalPath } from "@/components/medsync/clinical-path";
 import { SectionNumber } from "@/components/medsync/section-number";
 import { VitalStat } from "@/components/medsync/vital-stat";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -20,40 +21,71 @@ export const metadata: Metadata = {
 
 // ─── Data ────────────────────────────────────────────────────────────────
 
-const neutralScale = [
-  { name: "black", hex: "#000000", swatchClass: "bg-black", textOnLight: false },
-  { name: "gray-950", hex: "#0A0A0A", swatchClass: "bg-gray-950", textOnLight: false },
-  { name: "gray-900", hex: "#171717", swatchClass: "bg-gray-900", textOnLight: false },
-  { name: "gray-800", hex: "#262626", swatchClass: "bg-gray-800", textOnLight: false },
-  { name: "gray-700", hex: "#404040", swatchClass: "bg-gray-700", textOnLight: false },
-  { name: "gray-600", hex: "#525252", swatchClass: "bg-gray-600", textOnLight: false },
-  { name: "gray-500", hex: "#737373", swatchClass: "bg-gray-500", textOnLight: false },
-  { name: "gray-400", hex: "#A3A3A3", swatchClass: "bg-gray-400", textOnLight: true },
-  { name: "gray-300", hex: "#D4D4D4", swatchClass: "bg-gray-300", textOnLight: true },
-  { name: "gray-200", hex: "#E5E5E5", swatchClass: "bg-gray-200", textOnLight: true },
-  { name: "gray-150", hex: "#EFEFEF", swatchClass: "bg-gray-150", textOnLight: true },
-  { name: "gray-100", hex: "#F5F5F5", swatchClass: "bg-gray-100", textOnLight: true },
-  { name: "gray-50", hex: "#FAFAFA", swatchClass: "bg-gray-50", textOnLight: true },
-  {
-    name: "white",
-    hex: "#FFFFFF",
-    swatchClass: "bg-white border border-gray-200",
-    textOnLight: true,
-  },
-] as const;
+type SwatchSpec = {
+  name: string;
+  hex: string;
+  /** Whether to use dark text on this swatch (true = bg is light enough). */
+  textOnLight: boolean;
+};
 
-const tealScale = [
-  { name: "teal-50", hex: "#F0FDFA", swatchClass: "bg-teal-50", textOnLight: true },
-  { name: "teal-100", hex: "#CCFBF1", swatchClass: "bg-teal-100", textOnLight: true },
-  { name: "teal-200", hex: "#99F6E4", swatchClass: "bg-teal-200", textOnLight: true },
-  { name: "teal-300", hex: "#5EEAD4", swatchClass: "bg-teal-300", textOnLight: true },
-  { name: "teal-400", hex: "#2DD4BF", swatchClass: "bg-teal-400", textOnLight: true },
-  { name: "teal-500", hex: "#14B8A6", swatchClass: "bg-teal-500", textOnLight: false },
-  { name: "teal-600", hex: "#0D9488", swatchClass: "bg-teal-600", textOnLight: false },
-  { name: "teal-700", hex: "#0F766E", swatchClass: "bg-teal-700", textOnLight: false },
-  { name: "teal-800", hex: "#115E59", swatchClass: "bg-teal-800", textOnLight: false },
-  { name: "teal-900", hex: "#134E4A", swatchClass: "bg-teal-900", textOnLight: false },
-] as const;
+const lightNeutralScale: ReadonlyArray<SwatchSpec> = [
+  { name: "black", hex: "#000000", textOnLight: false },
+  { name: "gray-950", hex: "#0A0A0A", textOnLight: false },
+  { name: "gray-900", hex: "#171717", textOnLight: false },
+  { name: "gray-800", hex: "#262626", textOnLight: false },
+  { name: "gray-700", hex: "#404040", textOnLight: false },
+  { name: "gray-600", hex: "#525252", textOnLight: false },
+  { name: "gray-500", hex: "#737373", textOnLight: false },
+  { name: "gray-400", hex: "#A3A3A3", textOnLight: true },
+  { name: "gray-300", hex: "#D4D4D4", textOnLight: true },
+  { name: "gray-200", hex: "#E5E5E5", textOnLight: true },
+  { name: "gray-150", hex: "#EFEFEF", textOnLight: true },
+  { name: "gray-100", hex: "#F5F5F5", textOnLight: true },
+  { name: "gray-50", hex: "#FAFAFA", textOnLight: true },
+  { name: "white", hex: "#FFFFFF", textOnLight: true },
+];
+
+const darkNeutralScale: ReadonlyArray<SwatchSpec> = [
+  { name: "neutral-0", hex: "#0A0A0A", textOnLight: false },
+  { name: "neutral-50", hex: "#111111", textOnLight: false },
+  { name: "neutral-100", hex: "#171717", textOnLight: false },
+  { name: "neutral-150", hex: "#1E1E1E", textOnLight: false },
+  { name: "neutral-200", hex: "#262626", textOnLight: false },
+  { name: "neutral-300", hex: "#404040", textOnLight: false },
+  { name: "neutral-400", hex: "#525252", textOnLight: false },
+  { name: "neutral-500", hex: "#737373", textOnLight: false },
+  { name: "neutral-600", hex: "#A3A3A3", textOnLight: true },
+  { name: "neutral-700", hex: "#D4D4D4", textOnLight: true },
+  { name: "neutral-800", hex: "#E5E5E5", textOnLight: true },
+  { name: "neutral-900", hex: "#F5F5F5", textOnLight: true },
+  { name: "neutral-950", hex: "#FAFAFA", textOnLight: true },
+];
+
+const lightTealScale: ReadonlyArray<SwatchSpec> = [
+  { name: "teal-50", hex: "#F0FDFA", textOnLight: true },
+  { name: "teal-100", hex: "#CCFBF1", textOnLight: true },
+  { name: "teal-200", hex: "#99F6E4", textOnLight: true },
+  { name: "teal-300", hex: "#5EEAD4", textOnLight: true },
+  { name: "teal-400", hex: "#2DD4BF", textOnLight: true },
+  { name: "teal-500", hex: "#14B8A6", textOnLight: false },
+  { name: "teal-600", hex: "#0D9488", textOnLight: false },
+  { name: "teal-700", hex: "#0F766E", textOnLight: false },
+  { name: "teal-800", hex: "#115E59", textOnLight: false },
+  { name: "teal-900", hex: "#134E4A", textOnLight: false },
+];
+
+const darkTealScale: ReadonlyArray<SwatchSpec> = [
+  { name: "teal-50", hex: "#042F2E", textOnLight: false },
+  { name: "teal-100", hex: "#064E45", textOnLight: false },
+  { name: "teal-200", hex: "#0F766E", textOnLight: false },
+  { name: "teal-300", hex: "#0D9488", textOnLight: false },
+  { name: "teal-400", hex: "#14B8A6", textOnLight: false },
+  { name: "teal-500", hex: "#2DD4BF", textOnLight: true },
+  { name: "teal-600", hex: "#5EEAD4", textOnLight: true },
+  { name: "teal-700", hex: "#99F6E4", textOnLight: true },
+  { name: "teal-800", hex: "#CCFBF1", textOnLight: true },
+  { name: "teal-900", hex: "#F0FDFA", textOnLight: true },
+];
 
 const clinicalStatuses: Array<{ status: ClinicalStatus; label: string; usage: string }> = [
   { status: "stable", label: "Stable", usage: "Patient stable, vitals normal" },
@@ -117,38 +149,39 @@ function Section({ n, title, subtitle, children }: SectionProps) {
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-3">
           <SectionNumber n={n} />
-          <span className="text-caption font-mono text-gray-400 uppercase">{title}</span>
+          <span className="text-caption text-muted-foreground font-mono uppercase dark:text-teal-500">
+            {title}
+          </span>
         </div>
-        {subtitle ? <p className="text-body-m max-w-2xl text-gray-600">{subtitle}</p> : null}
+        {subtitle ? (
+          <p className="text-body-m text-muted-foreground max-w-2xl">{subtitle}</p>
+        ) : null}
       </div>
       <div>{children}</div>
     </section>
   );
 }
 
-function Swatch({
-  name,
-  hex,
-  swatchClass,
-  textOnLight,
-}: {
-  name: string;
-  hex: string;
-  swatchClass: string;
-  textOnLight: boolean;
-}) {
+/**
+ * Static palette swatch — uses inline style so the rendered hex always
+ * matches the spec, regardless of which theme is active.
+ */
+function Swatch({ name, hex, textOnLight }: SwatchSpec) {
+  const isWhite = hex.toUpperCase() === "#FFFFFF";
   return (
     <div className="flex flex-col gap-1.5">
       <div
-        className={`h-16 w-full rounded-md ${swatchClass} flex items-end justify-between p-2 transition-shadow duration-150 hover:shadow-md`}
+        style={{ backgroundColor: hex }}
+        className={`flex h-16 w-full items-end justify-between rounded-md p-2 transition-shadow duration-150 hover:shadow-md ${isWhite ? "border border-gray-200" : ""}`}
       >
         <span
-          className={`font-mono text-[10px] ${textOnLight ? "text-gray-700" : "text-white/80"}`}
+          style={{ color: textOnLight ? "#404040" : "rgba(255,255,255,0.8)" }}
+          className="font-mono text-[10px]"
         >
           {hex}
         </span>
       </div>
-      <span className="font-mono text-[11px] text-gray-500">{name}</span>
+      <span className="text-muted-foreground font-mono text-[11px]">{name}</span>
     </div>
   );
 }
@@ -162,19 +195,22 @@ export default function StyleguidePage() {
       <header className="border-gray-150 border-b">
         <div className="mx-auto flex w-full max-w-300 items-center justify-between px-8 py-4">
           <Link href="/" className="flex items-center gap-3">
-            <span className="font-display text-heading-s tracking-tight text-gray-900">
+            <span className="font-display text-heading-s text-foreground tracking-tight">
               MedSync
             </span>
-            <span className="font-mono text-[11px] tracking-wider text-gray-400 uppercase">
+            <span className="text-muted-foreground font-mono text-[11px] tracking-wider uppercase">
               Design system
             </span>
           </Link>
-          <Link
-            href="/"
-            className="text-[13px] text-gray-500 transition-colors duration-150 hover:text-gray-900"
-          >
-            ← Back home
-          </Link>
+          <div className="flex items-center gap-5">
+            <Link
+              href="/"
+              className="text-muted-foreground hover:text-foreground text-[13px] transition-colors duration-150"
+            >
+              ← Back home
+            </Link>
+            <ThemeToggle />
+          </div>
         </div>
       </header>
 
@@ -182,67 +218,98 @@ export default function StyleguidePage() {
         {/* Title block */}
         <div className="mb-20 flex flex-col gap-6">
           <ClinicalPath segments={["docs", "design system"]} />
-          <h1 className="font-display text-display-l text-gray-900">The visual contract.</h1>
-          <p className="text-body-l max-w-2xl text-gray-500">
-            Every token, primitive, and clinical pattern that defines MedSync. Mirror this page
-            whenever you build a new view. Disagreements with{" "}
-            <code className="text-body-s font-mono text-teal-600">DESIGN-medsync.md</code> are
+          <h1 className="font-display text-display-l text-foreground">The visual contract.</h1>
+          <p className="text-body-l text-muted-foreground max-w-2xl">
+            Every token, primitive, and clinical pattern that defines MedSync. Toggle the theme in
+            the header — components flip automatically; palette swatches stay static so you can read
+            both scales at once. Disagreements with{" "}
+            <code className="text-body-s text-primary font-mono">DESIGN-medsync.md</code> are
             resolved by the document.
           </p>
         </div>
 
         <div className="flex flex-col gap-24">
-          {/* 01 — Neutrals */}
+          {/* 01 — Neutrals (light) */}
           <Section
             n={1}
-            title="Neutrals"
-            subtitle="90% of the UI lives here. Backgrounds, borders, text — monochrome by default."
+            title="Neutrals (light mode)"
+            subtitle="Light palette. 90% of UI lives here when the theme is light."
           >
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
-              {neutralScale.map((s) => (
-                <Swatch key={s.name} {...s} />
+              {lightNeutralScale.map((s) => (
+                <Swatch key={`l-${s.name}`} {...s} />
               ))}
             </div>
           </Section>
 
-          {/* 02 — Teal */}
+          {/* 02 — Neutrals (dark) */}
           <Section
             n={2}
-            title="Teal (clinical accent)"
-            subtitle="Trust, calm, medical authority. teal-600 is the anchor — primary CTAs, links, active nav."
+            title="Neutrals (dark mode)"
+            subtitle="Dark palette — surfaces layer rather than invert. Never pure black; cap at #0A0A0A."
           >
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-5 lg:grid-cols-10">
-              {tealScale.map((s) => (
-                <Swatch key={s.name} {...s} />
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
+              {darkNeutralScale.map((s) => (
+                <Swatch key={`d-${s.name}`} {...s} />
               ))}
             </div>
           </Section>
 
-          {/* 03 — Clinical status */}
+          {/* 03 — Teal scales */}
           <Section
             n={3}
-            title="Clinical status"
-            subtitle="Six patient/data states. Red is reserved for clinical emergencies only — never decoration."
+            title="Teal — clinical accent"
+            subtitle="Light anchor is teal-600 (#0D9488); dark anchor brightens to teal-500 (#2DD4BF). Both scales shown."
+          >
+            <div className="flex flex-col gap-6">
+              <div>
+                <span className="text-caption text-muted-foreground mb-3 inline-block font-mono uppercase">
+                  Light
+                </span>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-5 lg:grid-cols-10">
+                  {lightTealScale.map((s) => (
+                    <Swatch key={`lt-${s.name}`} {...s} />
+                  ))}
+                </div>
+              </div>
+              <div>
+                <span className="text-caption text-muted-foreground mb-3 inline-block font-mono uppercase">
+                  Dark
+                </span>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-5 lg:grid-cols-10">
+                  {darkTealScale.map((s) => (
+                    <Swatch key={`dt-${s.name}`} {...s} />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </Section>
+
+          {/* 04 — Clinical status (auto-flips) */}
+          <Section
+            n={4}
+            title="Clinical status (auto-flips)"
+            subtitle="Six states with mode-aware bg/fg pairs. Red softens to #FCA5A5 in dark — visible without being retina-searing at 3am."
           >
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {clinicalStatuses.map(({ status, label, usage }) => (
                 <div
                   key={status}
-                  className="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-4"
+                  className="border-border bg-card flex items-center justify-between rounded-lg border p-4"
                 >
                   <div className="flex flex-col gap-1.5">
                     <ClinicalBadge status={status}>{label}</ClinicalBadge>
-                    <span className="text-body-s text-gray-500">{usage}</span>
+                    <span className="text-body-s text-muted-foreground">{usage}</span>
                   </div>
-                  <code className="font-mono text-[10px] text-gray-400">{status}</code>
+                  <code className="text-muted-foreground font-mono text-[10px]">{status}</code>
                 </div>
               ))}
             </div>
           </Section>
 
-          {/* 04 — Typography */}
+          {/* 05 — Typography */}
           <Section
-            n={4}
+            n={5}
             title="Typography"
             subtitle="Neue Haas Grotesk for UI, fallback chain through Helvetica Neue. SF Mono / Fira Code for clinical data."
           >
@@ -252,10 +319,10 @@ export default function StyleguidePage() {
                   key={t.name}
                   className="border-gray-150 flex flex-wrap items-baseline justify-between gap-4 border-b py-5 last:border-b-0"
                 >
-                  <div className={`${t.className} text-gray-900`}>{t.name}</div>
+                  <div className={`${t.className} text-foreground`}>{t.name}</div>
                   <div className="flex items-baseline gap-3">
-                    <code className="font-mono text-[11px] text-gray-400">{t.spec}</code>
-                    <code className="font-mono text-[11px] text-teal-600">
+                    <code className="text-muted-foreground font-mono text-[11px]">{t.spec}</code>
+                    <code className="text-primary font-mono text-[11px]">
                       .{t.className.split(" ")[0]}
                     </code>
                   </div>
@@ -264,11 +331,11 @@ export default function StyleguidePage() {
             </div>
           </Section>
 
-          {/* 05 — Buttons */}
+          {/* 06 — Buttons */}
           <Section
-            n={5}
+            n={6}
             title="Buttons"
-            subtitle="Six variants, three sizes. All transition with the expo-out easing at 150ms. Emergency is clinical-only."
+            subtitle="Six variants, three sizes. Primary teal flips its anchor across modes; emergency softens its red palette in dark."
           >
             <div className="flex flex-col gap-12">
               {(["primary", "secondary", "ghost", "tealSoft", "emergency", "alert"] as const).map(
@@ -277,7 +344,7 @@ export default function StyleguidePage() {
                     key={variant}
                     className="border-gray-150 grid grid-cols-1 items-center gap-6 border-b pb-8 last:border-b-0 last:pb-0 sm:grid-cols-[120px_1fr]"
                   >
-                    <code className="font-mono text-[11px] text-gray-500">{variant}</code>
+                    <code className="text-muted-foreground font-mono text-[11px]">{variant}</code>
                     <div className="flex flex-wrap items-center gap-3">
                       <Button variant={variant} size="sm">
                         Small
@@ -298,11 +365,11 @@ export default function StyleguidePage() {
             </div>
           </Section>
 
-          {/* 06 — Inputs */}
+          {/* 07 — Inputs */}
           <Section
-            n={6}
+            n={7}
             title="Inputs"
-            subtitle="Compact for data density. Focus ring is teal-tinted."
+            subtitle="Compact for data density. Focus ring is teal-tinted; error state pulls the alert palette."
           >
             <div className="grid max-w-2xl grid-cols-1 gap-6 sm:grid-cols-2">
               <div>
@@ -324,22 +391,22 @@ export default function StyleguidePage() {
             </div>
           </Section>
 
-          {/* 07 — Cards */}
+          {/* 08 — Cards */}
           <Section
-            n={7}
+            n={8}
             title="Cards"
-            subtitle="Three tones: standard for default surfaces, muted for grouped data, teal-tinted for clinical highlights."
+            subtitle="Three tones flip surfaces and borders per mode automatically."
           >
             <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               <Card tone="standard">
                 <CardHeader>
                   <CardTitle>Standard</CardTitle>
                   <CardDescription>
-                    White surface with 1px gray-200 border + card shadow.
+                    Card surface (#FFFFFF / #171717) with default border + card shadow.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-body-s text-gray-600">
+                  <p className="text-body-s text-muted-foreground">
                     Default container for forms, modules, and most layouts.
                   </p>
                 </CardContent>
@@ -348,11 +415,11 @@ export default function StyleguidePage() {
                 <CardHeader>
                   <CardTitle>Muted</CardTitle>
                   <CardDescription>
-                    gray-50 surface, no shadow. For grouped sub-sections.
+                    Muted surface (#FAFAFA / #111111), no shadow. For grouped sub-sections.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-body-s text-gray-600">
+                  <p className="text-body-s text-muted-foreground">
                     Reduces visual weight when nested inside a standard card.
                   </p>
                 </CardContent>
@@ -360,12 +427,10 @@ export default function StyleguidePage() {
               <Card tone="tealTinted">
                 <CardHeader>
                   <CardTitle>Teal-tinted</CardTitle>
-                  <CardDescription>
-                    For clinical highlights — current admission, active alert, focus context.
-                  </CardDescription>
+                  <CardDescription>Clinical highlight surface (#F0FDFA / #042F2E).</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-body-s text-gray-600">
+                  <p className="text-body-s text-muted-foreground">
                     Pair with a clinical-bracket label, never used decoratively.
                   </p>
                 </CardContent>
@@ -373,11 +438,11 @@ export default function StyleguidePage() {
             </div>
           </Section>
 
-          {/* 08 — Vital stat strip */}
+          {/* 09 — Vital stat strip */}
           <Section
-            n={8}
+            n={9}
             title="Vital stat strip"
-            subtitle="The clinical primitive. Monospace, tabular-nums, large. Critical vitals snap to red + bold."
+            subtitle="The clinical primitive. Monospace, tabular-nums, large. Critical vitals snap to red + bold (softened in dark)."
           >
             <Card tone="standard">
               <CardHeader>
@@ -403,9 +468,9 @@ export default function StyleguidePage() {
             </Card>
           </Section>
 
-          {/* 09 — Section numbers + clinical paths */}
+          {/* 10 — Section numbers + clinical paths */}
           <Section
-            n={9}
+            n={10}
             title="Section numbers & clinical paths"
             subtitle="Bracket numbers anchor the eye through dense layouts. Path notation locates the clinician in the IA."
           >
@@ -437,9 +502,9 @@ export default function StyleguidePage() {
             </div>
           </Section>
 
-          {/* 10 — Spacing */}
+          {/* 11 — Spacing */}
           <Section
-            n={10}
+            n={11}
             title="Spacing"
             subtitle="4px base grid. Tailwind utilities map 1-to-1 (8px = p-2, 16px = p-4, …)."
           >
@@ -447,57 +512,60 @@ export default function StyleguidePage() {
               {spacingScale.map((px) => (
                 <div key={px} className="flex flex-col items-center gap-2">
                   <div
-                    className="bg-teal-600"
+                    className="bg-primary"
                     style={{ width: `${px}px`, height: `${px}px` }}
                     aria-hidden
                   />
-                  <code className="font-mono text-[10px] text-gray-500">{px}</code>
+                  <code className="text-muted-foreground font-mono text-[10px]">{px}</code>
                 </div>
               ))}
             </div>
           </Section>
 
-          {/* 11 — Radii */}
+          {/* 12 — Radii */}
           <Section
-            n={11}
+            n={12}
             title="Radii"
             subtitle="Six steps. xs for badges, sm for inputs, md for buttons, lg for cards."
           >
             <div className="flex flex-wrap items-center gap-6">
               {radiiScale.map((r) => (
                 <div key={r.name} className="flex flex-col items-center gap-2">
-                  <div className={`size-20 border border-teal-200 bg-teal-50 ${r.className}`} />
+                  <div
+                    className={`bg-accent size-20 border border-teal-100 ${r.className}`}
+                    aria-hidden
+                  />
                   <div className="flex flex-col items-center">
-                    <code className="font-mono text-[11px] text-gray-900">{r.name}</code>
-                    <code className="font-mono text-[10px] text-gray-400">{r.value}</code>
+                    <code className="text-foreground font-mono text-[11px]">{r.name}</code>
+                    <code className="text-muted-foreground font-mono text-[10px]">{r.value}</code>
                   </div>
                 </div>
               ))}
             </div>
           </Section>
 
-          {/* 12 — Shadows */}
+          {/* 13 — Shadows */}
           <Section
-            n={12}
+            n={13}
             title="Shadows"
-            subtitle="Restrained elevation. card is the workhorse — paired with a 1px border."
+            subtitle="Restrained elevation. Dark mode adds a faint white inner edge for definition."
           >
             <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-6">
               {shadowsScale.map((s) => (
                 <div key={s.name} className="flex flex-col items-center gap-3">
-                  <div className={`size-24 rounded-lg bg-white ${s.className}`} />
-                  <code className="font-mono text-[11px] text-gray-500">{s.name}</code>
+                  <div className={`bg-card size-24 rounded-lg ${s.className}`} aria-hidden />
+                  <code className="text-muted-foreground font-mono text-[11px]">{s.name}</code>
                 </div>
               ))}
             </div>
           </Section>
         </div>
 
-        <footer className="border-gray-150 mt-32 flex items-center justify-between border-t pt-8 text-[11px] text-gray-400">
+        <footer className="border-gray-150 text-muted-foreground mt-32 flex items-center justify-between border-t pt-8 text-[11px]">
           <span>
-            Source of truth: <code className="font-mono text-teal-600">DESIGN-medsync.md</code>
+            Source of truth: <code className="text-primary font-mono">DESIGN-medsync.md</code>
           </span>
-          <span>Phase 0.2 · 2026-05-21</span>
+          <span>Phase 0.2-dark · 2026-05-21</span>
         </footer>
       </main>
     </div>

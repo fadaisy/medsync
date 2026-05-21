@@ -10,9 +10,9 @@ function Card({
   ...props
 }: React.ComponentProps<"div"> & { tone?: CardTone }) {
   const toneClasses: Record<CardTone, string> = {
-    standard: "bg-card text-card-foreground border border-gray-200 shadow-card",
-    muted: "bg-gray-50 text-card-foreground border border-gray-150",
-    tealTinted: "bg-teal-50 text-card-foreground border border-teal-100",
+    standard: "bg-card text-card-foreground border border-border shadow-card",
+    muted: "bg-muted text-card-foreground border border-gray-150",
+    tealTinted: "bg-accent text-card-foreground border border-teal-100",
   };
 
   return (

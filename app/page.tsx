@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { ClinicalPath } from "@/components/medsync/clinical-path";
 import { SectionNumber } from "@/components/medsync/section-number";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 
 export default function HomePage() {
@@ -11,25 +12,29 @@ export default function HomePage() {
       <header className="border-gray-150 border-b">
         <div className="mx-auto flex w-full max-w-300 items-center justify-between px-8 py-4">
           <div className="flex items-center gap-3">
-            <span className="font-display text-heading-s tracking-tight text-gray-900">
+            <span className="font-display text-heading-s text-foreground tracking-tight">
               MedSync
             </span>
-            <span className="font-mono text-[11px] tracking-wider text-gray-400 uppercase">
+            <span className="text-muted-foreground font-mono text-[11px] tracking-wider uppercase">
               v0.0
             </span>
           </div>
-          <nav className="flex items-center gap-6 text-[13px] text-gray-500">
-            <Link href="/styleguide" className="transition-colors duration-150 hover:text-gray-900">
+          <nav className="text-muted-foreground flex items-center gap-5 text-[13px]">
+            <Link
+              href="/styleguide"
+              className="hover:text-foreground transition-colors duration-150"
+            >
               Design system
             </Link>
             <a
               href="https://github.com/anthropics/claude-code"
-              className="transition-colors duration-150 hover:text-gray-900"
+              className="hover:text-foreground transition-colors duration-150"
               target="_blank"
               rel="noreferrer"
             >
               Docs
             </a>
+            <ThemeToggle />
           </nav>
         </div>
       </header>
@@ -43,11 +48,11 @@ export default function HomePage() {
               <ClinicalPath segments={["foundation", "scaffold", "design system"]} />
             </div>
 
-            <h1 className="font-display text-display-m text-gray-900">
+            <h1 className="font-display text-display-m text-foreground">
               A digital hospital operating system, built for&nbsp;Uganda.
             </h1>
 
-            <p className="text-body-l max-w-xl text-gray-600">
+            <p className="text-body-l text-muted-foreground max-w-xl">
               MedSync is the platform we&apos;re building to run a Mulago-scale national referral
               hospital — internal medicine first, then radiating outward. This page is intentionally
               empty: Phase&nbsp;0 ships the foundation (security, auditability, design system)
@@ -72,7 +77,7 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer className="border-gray-150 border-t">
-        <div className="mx-auto flex w-full max-w-300 items-center justify-between gap-4 px-8 py-5 text-[11px] text-gray-400">
+        <div className="text-muted-foreground mx-auto flex w-full max-w-300 items-center justify-between gap-4 px-8 py-5 text-[11px]">
           <div className="flex items-center gap-3">
             <span className="font-mono">2026</span>
             <span aria-hidden>·</span>
@@ -81,7 +86,7 @@ export default function HomePage() {
           <div className="flex items-center gap-3">
             <span>Clinical Safety Officer</span>
             <span aria-hidden>·</span>
-            <span className="text-gray-600">Usama Fadhul</span>
+            <span className="text-foreground">Usama Fadhul</span>
           </div>
         </div>
       </footer>

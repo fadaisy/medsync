@@ -9,7 +9,7 @@ const buttonVariants = cva(
     "inline-flex shrink-0 items-center justify-center gap-2 whitespace-nowrap",
     "font-medium [letter-spacing:-0.01em] outline-none select-none",
     "transition-all duration-150 ease-expo-out",
-    "focus-visible:shadow-[0_0_0_2px_rgba(20,184,166,0.4)]",
+    "focus-visible:shadow-focus",
     "disabled:pointer-events-none disabled:opacity-50",
     "active:not(:disabled):translate-y-px",
     "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
@@ -17,16 +17,23 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        primary: "bg-teal-600 text-white hover:bg-teal-700 active:bg-teal-800",
+        primary:
+          "bg-primary text-primary-foreground hover:bg-primary-hover active:bg-primary-active",
         secondary:
-          "bg-white text-gray-900 border border-gray-200 hover:bg-gray-50 hover:border-gray-300 active:bg-gray-150",
+          "bg-secondary text-secondary-foreground border border-gray-200 dark:border-gray-300 hover:bg-muted hover:border-gray-300 active:bg-gray-150",
         ghost:
-          "bg-transparent text-gray-500 hover:bg-gray-100 hover:text-gray-700 active:bg-gray-150",
+          "bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground active:bg-gray-150",
         tealSoft:
-          "bg-teal-50 border border-teal-100 text-teal-600 hover:bg-teal-100/70 hover:border-teal-200",
-        emergency: "bg-destructive text-white hover:bg-red-700 active:bg-red-800",
-        alert: "bg-alert-bg border border-alert-border text-destructive hover:bg-red-50",
-        link: "text-teal-600 underline-offset-4 hover:underline px-0",
+          "bg-accent text-accent-foreground border border-teal-100 hover:bg-teal-100/70 hover:border-teal-200 dark:hover:bg-teal-100/40",
+        emergency: [
+          "bg-destructive text-white",
+          "hover:bg-red-700 active:bg-red-800",
+          "dark:bg-status-critical-bg dark:text-status-critical-fg",
+          "dark:border dark:border-[#7f1d1d] dark:hover:bg-status-critical-bg/70",
+        ].join(" "),
+        alert:
+          "bg-alert-bg border border-alert-border text-alert-fg hover:bg-red-50 dark:hover:bg-status-critical-bg/40",
+        link: "text-primary underline-offset-4 hover:underline px-0",
       },
       size: {
         sm: "px-2.5 py-[5px] text-[11px] rounded-sm gap-1.5 [&_svg:not([class*='size-'])]:size-3",
