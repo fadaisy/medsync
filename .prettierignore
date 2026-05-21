@@ -1,0 +1,15 @@
+.next
+node_modules
+dist
+build
+out
+coverage
+public
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+*.log
+.env*
+.vercel
+.git
+next-env.d.ts

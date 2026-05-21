@@ -1,36 +1,86 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# MedSync
 
-## Getting Started
+> Digital hospital operating system for Uganda. Built to run a Mulago-scale national referral hospital.
 
-First, run the development server:
+**Status:** Phase 0 — foundation rebuild. No clinical features yet; this is the empty, audited, secured shell that everything else lands on. Phase 1 begins after Phase 0 sign-off.
+
+**Designated Clinical Safety Officer:** Usama Fadhul (founder).
+
+---
+
+## Stack
+
+- **Next.js 16** (App Router, Turbopack, React 19.2)
+- **TypeScript strict** — `any` banned via ESLint
+- **Supabase** (Postgres, Auth, Edge Functions) + **Drizzle ORM**
+- **Tailwind CSS v4** + **shadcn/ui** (Nova preset, `@base-ui/react` primitives)
+- **React Hook Form** + **Zod 4** for forms and runtime validation
+- **Framer Motion** for animation
+- **Sentry + Vercel Analytics** for monitoring (wired in Phase 0.8)
+- **Africa's Talking** for SMS (wired in Phase 0, exercised Phase 5+)
+- **Vercel** hosting + CI/CD; production domain `medsync.health` (live in Phase 0.12)
+
+See [`docs/adr/0001-stack-choice.md`](docs/adr/0001-stack-choice.md) for rationale and trade-offs.
+
+## Local development
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env.local      # fill in your local values
+npm run dev                     # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Scripts
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Script                 | Purpose                        |
+| ---------------------- | ------------------------------ |
+| `npm run dev`          | Next.js dev server (Turbopack) |
+| `npm run build`        | Production build               |
+| `npm run start`        | Production server              |
+| `npm run lint`         | ESLint                         |
+| `npm run lint:fix`     | ESLint with `--fix`            |
+| `npm run typecheck`    | `tsc --noEmit`                 |
+| `npm run format`       | Prettier write                 |
+| `npm run format:check` | Prettier check                 |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Pre-commit hook (Husky) runs `lint-staged` (eslint + prettier on changed files). `commit-msg` hook enforces Conventional Commits via commitlint.
 
-## Learn More
+## Project structure
 
-To learn more about Next.js, take a look at the following resources:
+```
+app/                    Next.js App Router (routes, layouts, route handlers)
+components/             Shared UI; shadcn primitives in components/ui/
+lib/                    App utilities, Supabase clients, encryption, logger
+db/                     Drizzle schema + typed queries
+supabase/
+  migrations/           Postgres migrations (Drizzle-generated)
+  functions/            Edge Functions
+    _shared/            cors, auth, logger, errors helpers
+docs/
+  adr/                  Architecture Decision Records
+prompts/                Prompt templates (AI-assisted features, future)
+tests/
+  rls/                  RLS policy test suite (Phase 0.5)
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Security posture (all in from Phase 0 — non-negotiable)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **RLS on every table**, deny-by-default. App-level enforcement is a second layer, never the only one.
+- **App-level PHI encryption** (`lib/encryption.ts`, AES-256-GCM) for highest-sensitivity fields.
+- **Append-only `audit_log`** — DB triggers + revoked privileges, tamper-evident.
+- **MFA mandatory** for clinical/admin roles (TOTP, AAL2 enforced).
+- **Edge Functions for sensitive writes** — Zod input → authn → role authz → action → PII-redacted log → audit entry → typed response.
+- **PII-redacted structured logging** + Sentry `beforeSend` scrubbing.
 
-## Deploy on Vercel
+Target: HIPAA-equivalent technical controls + Uganda Data Protection and Privacy Act 2019 compliance. Not pursuing formal HIPAA certification.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Contributing
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Conventional commits are required (enforced by commitlint on `commit-msg`):
+
+- `feat:`, `fix:`, `chore:`, `docs:`, `security:`, `style:`, `refactor:`, `test:`, `perf:`, `build:`, `ci:`, `revert:`
+
+## Documentation
+
+- Decisions: [`docs/adr/`](docs/adr/)
+- Sub-phase progress: [`CHANGELOG.md`](CHANGELOG.md)
