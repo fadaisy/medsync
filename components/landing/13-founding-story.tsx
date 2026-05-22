@@ -28,16 +28,18 @@ export function FoundingStory() {
             </span>
 
             <figure className="flex flex-col gap-4">
-              {/* Portrait. 3:4 crop. No container frame — the photo's
-                  studio background blends straight into the section so
-                  there are no visible borders around the image. */}
+              {/* Portrait. 3:4 crop with a centered zoom that clips the
+                  vignetted studio edges out of the source JPG. The
+                  container's overflow-hidden handles the clip. If the
+                  source photo is ever re-exported without the dark
+                  borders, drop the scale-[1.2] class. */}
               <div className="relative aspect-[3/4] w-full max-w-xs overflow-hidden rounded-xl">
                 <Image
                   src="/founder-usama-fadhul.jpg"
                   alt="Dr. Usama Fadhul, MedSync founder and Clinical Safety Officer, in a white coat with a stethoscope."
                   fill
                   sizes="(min-width: 1024px) 320px, (min-width: 768px) 30vw, 80vw"
-                  className="object-cover"
+                  className="origin-center scale-[1.2] object-cover"
                   priority={false}
                 />
               </div>
