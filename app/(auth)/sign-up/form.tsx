@@ -1,0 +1,80 @@
+"use client";
+
+import type { SignUpState } from "./actions";
+import Link from "next/link";
+import { useActionState } from "react";
+
+import { AuthCard, FieldError, FormError } from "@/components/medsync/auth-card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { signUpAction } from "./actions";
+
+const initial: SignUpState = {};
+
+export function SignUpForm() {
+  const [state, formAction, pending] = useActionState(signUpAction, initial);
+
+  return (
+    <AuthCard
+      title="Create your account"
+      subtitle="Patients sign up here. Clinical staff are invited by an administrator."
+      footer={
+        <p className="text-body-s text-muted-foreground">
+          Already have an account?{" "}
+          <Link href="/sign-in" className="text-primary hover:underline">
+            Sign in
+          </Link>
+        </p>
+      }
+    >
+      <form action={formAction} className="flex flex-col gap-4">
+        <FormError message={state.errors?._form} />
+
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="full_name">Full name</Label>
+          <Input
+            id="full_name"
+            name="full_name"
+            type="text"
+            autoComplete="name"
+            required
+            aria-invalid={!!state.errors?.full_name}
+          />
+          <FieldError message={state.errors?.full_name} />
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            name="email"
+            type="email"
+            autoComplete="email"
+            required
+            aria-invalid={!!state.errors?.email}
+          />
+          <FieldError message={state.errors?.email} />
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="password">Password</Label>
+          <Input
+            id="password"
+            name="password"
+            type="password"
+            autoComplete="new-password"
+            minLength={12}
+            required
+            aria-invalid={!!state.errors?.password}
+          />
+          <FieldError message={state.errors?.password ?? "At least 12 characters."} />
+        </div>
+
+        <Button type="submit" disabled={pending} variant="primary" size="md">
+          {pending ? "Creating account…" : "Create account"}
+        </Button>
+      </form>
+    </AuthCard>
+  );
+}

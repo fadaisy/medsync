@@ -1,0 +1,89 @@
+import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
+
+import { getAuthState } from "@/lib/auth";
+import { updateSession } from "@/lib/supabase/proxy";
+
+/**
+ * Next.js 16 proxy (formerly middleware). Runs on every matched request.
+ *
+ * Responsibilities, in order:
+ *   1. Refresh the Supabase session cookie (mandatory; the SSR client's
+ *      `setAll` no-op fallback depends on this happening here).
+ *   2. Gate routes:
+ *        - public routes — always allowed
+ *        - protected routes — require an authenticated user
+ *        - clinical/admin routes — additionally require AAL2 (TOTP MFA)
+ *        - users with a clinical/admin role who haven't enrolled MFA
+ *          are sent to /onboarding/mfa-setup
+ *
+ * Matcher (bottom of file) excludes static assets, the Sentry tunnel, and
+ * Next internals so we don't pay the cost on every chunk request.
+ */
+
+const PUBLIC_PREFIXES = [
+  "/sign-up",
+  "/sign-in", // includes /sign-in/mfa
+  "/styleguide",
+  "/api/health",
+];
+
+const PUBLIC_EXACT = new Set(["/", "/sign-out"]);
+
+const ALWAYS_AUTH_REQUIRED_PREFIXES = ["/dashboard", "/onboarding", "/admin"];
+
+function isPublic(pathname: string): boolean {
+  if (PUBLIC_EXACT.has(pathname)) return true;
+  return PUBLIC_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+}
+
+function isProtected(pathname: string): boolean {
+  return ALWAYS_AUTH_REQUIRED_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
+}
+
+export async function proxy(request: NextRequest): Promise<NextResponse> {
+  const { pathname } = request.nextUrl;
+
+  // Refresh cookies first — must happen for both public and protected so an
+  // expiring session on a public page (e.g. /styleguide) gets a new token.
+  const { response, userId } = await updateSession(request);
+
+  if (isPublic(pathname)) return response;
+  if (!isProtected(pathname)) return response;
+
+  // Protected path from here on.
+  if (!userId) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/sign-in";
+    url.searchParams.set("redirect", pathname);
+    return NextResponse.redirect(url);
+  }
+
+  // For role-gated MFA enforcement we need the auth helper. It calls into
+  // the DB so we only run it for the routes that actually require it.
+  const state = await getAuthState();
+
+  // Case 1: user has MFA enrolled but hasn't passed the challenge this session.
+  if (state.nextAal === "aal2" && state.aal !== "aal2") {
+    const url = request.nextUrl.clone();
+    url.pathname = "/sign-in/mfa";
+    url.searchParams.set("redirect", pathname);
+    return NextResponse.redirect(url);
+  }
+
+  // Case 2: user holds a clinical/admin role but hasn't enrolled MFA yet.
+  if (state.mfaRequired && state.nextAal !== "aal2") {
+    if (!pathname.startsWith("/onboarding/mfa-setup")) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/onboarding/mfa-setup";
+      return NextResponse.redirect(url);
+    }
+  }
+
+  return response;
+}
+
+export const config = {
+  // Skip static assets, _next internals, the Sentry tunnel, and favicon.
+  matcher: ["/((?!_next|monitoring|favicon|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
+};

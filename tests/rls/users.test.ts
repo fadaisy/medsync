@@ -8,12 +8,13 @@ describe("RLS: public.users", () => {
   let bob: TestUser;
 
   beforeAll(async () => {
+    // After Phase 0.9 the auth.users INSERT trigger auto-mirrors into
+    // public.users with metadata.full_name as the source of truth.
     alice = await createTestUser("users", "alice");
     bob = await createTestUser("users", "bob");
-    await serviceSql`
-      INSERT INTO public.users (id, email, full_name)
-      VALUES (${alice.id}, ${alice.email}, 'Alice'), (${bob.id}, ${bob.email}, 'Bob')
-    `;
+    // Overwrite full_name so assertions below can rely on stable values.
+    await serviceSql`UPDATE public.users SET full_name = 'Alice' WHERE id = ${alice.id}`;
+    await serviceSql`UPDATE public.users SET full_name = 'Bob' WHERE id = ${bob.id}`;
   }, 60_000);
 
   afterAll(async () => {
