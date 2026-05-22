@@ -11,7 +11,7 @@ export function CtaBandMid() {
   return (
     <section
       aria-labelledby="cta-band-mid-headline"
-      className="relative w-full overflow-hidden bg-teal-950 text-teal-50 dark:bg-teal-50/[0.02] dark:text-teal-50"
+      className="medsync-forced-dark relative w-full overflow-hidden bg-teal-950 text-teal-50"
     >
       {/* Atmosphere: faint angled gradient + grain */}
       <div

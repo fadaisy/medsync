@@ -426,6 +426,32 @@
   animation: medsync-fade-in 800ms var(--ease-expo-out) both;
 }
 
+/* ─── Forced-dark sections ───────────────────────────────────────────────
+   The mid-band (§08) and final-CTA (§16) are intentionally always-dark
+   surfaces regardless of theme — they want light teal text on dark teal
+   ground in both light and dark modes. But our teal token scale flips
+   between modes (teal-50 = #f0fdfa light, #042f2e dark), so any teal
+   utility on these sections gets inverted in dark mode and the text
+   disappears.
+
+   This utility locks every teal variable to its light-mode value within
+   the scoped element + its descendants, so `text-teal-50` etc. always
+   resolves to the light shade we designed for these dark surfaces.
+   The `bg-teal-950` outer background is a Tailwind built-in (not in our
+   custom scale) and stays dark naturally. */
+@utility medsync-forced-dark {
+  --teal-50: #f0fdfa;
+  --teal-100: #ccfbf1;
+  --teal-200: #99f6e4;
+  --teal-300: #5eead4;
+  --teal-400: #2dd4bf;
+  --teal-500: #14b8a6;
+  --teal-600: #0d9488;
+  --teal-700: #0f766e;
+  --teal-800: #115e59;
+  --teal-900: #134e4a;
+}
+
 /* Base layer — minimal global rules. Components own their styles. */
 @layer base {
   *,

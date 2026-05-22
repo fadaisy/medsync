@@ -12,7 +12,7 @@ export function FinalCta() {
   return (
     <section
       aria-labelledby="final-cta-headline"
-      className="relative w-full overflow-hidden bg-teal-950 text-teal-50 dark:bg-black dark:text-teal-50"
+      className="medsync-forced-dark relative w-full overflow-hidden bg-teal-950 text-teal-50 dark:bg-black"
     >
       {/* Atmosphere — wider, softer than the mid-band */}
       <div
