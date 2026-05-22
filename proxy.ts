@@ -33,9 +33,12 @@ const PUBLIC_PREFIXES = [
   "/onboarding/patient",
   "/onboarding/clinical",
   "/onboarding/hospital",
+  // Phase 1 onboarding — intent selector + the three role-specific
+  // signup flows. All public (signup pages run unauth by definition).
+  "/signup", // covers /signup/{patient,clinical,hospital}
 ];
 
-const PUBLIC_EXACT = new Set(["/", "/sign-out"]);
+const PUBLIC_EXACT = new Set(["/", "/sign-out", "/get-started"]);
 
 const ALWAYS_AUTH_REQUIRED_PREFIXES = ["/dashboard", "/onboarding/mfa-setup", "/admin"];
 
