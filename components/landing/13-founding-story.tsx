@@ -1,14 +1,14 @@
+import Image from "next/image";
+
 import { cn } from "@/lib/utils";
 
 /**
  * §13 — Founding story.
  *
- * Quiet credibility anchor. No stock photo, no founder portrait we don't
- * have. A typographic block in Fraunces that names the founder, the role,
- * and the two gaps MedSync exists to close. Attribution matches the §03
- * floating quote so the page reads as one voice end-to-end.
- *
- * Per GATE A decision: Usama Fadhul, Founder + Clinical Safety Officer.
+ * Anchor of the page. Uses Usama Fadhul's actual portrait + the
+ * verbatim founding story he wrote (the diabetic amputee patient whose
+ * notebook held two months of >11 mmol/L readings nobody acted on).
+ * Photo lives at /public/founder-usama-fadhul.jpg.
  */
 
 export function FoundingStory() {
@@ -19,78 +19,94 @@ export function FoundingStory() {
       className="border-border bg-background relative w-full border-y"
     >
       <div className="mx-auto w-full max-w-300 px-5 py-20 sm:px-8 sm:py-28">
-        <div className="grid gap-10 md:grid-cols-12 md:gap-16">
-          {/* Left — section label + signature block */}
-          <aside className="flex flex-col gap-6 md:col-span-4">
+        <div className="grid gap-10 md:grid-cols-12 md:gap-12 lg:gap-16">
+          {/* Left — portrait + signature */}
+          <aside className="flex flex-col gap-5 md:col-span-4">
             <span className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
               <span className="size-1 rounded-full bg-teal-500" />
               Why MedSync exists
             </span>
 
-            {/* Avatar abstraction: an initial-monogram tile rather than a
-                stock portrait. Honest about not having a marketing photo. */}
-            <div className="flex items-center gap-3">
-              <span
-                aria-hidden
+            <figure className="flex flex-col gap-4">
+              {/* Portrait. 3:4 portrait crop; muted background blends into
+                  the section. Uses next/image for AVIF/WebP optimisation
+                  and responsive srcset. */}
+              <div
                 className={cn(
-                  "font-display flex size-14 items-center justify-center rounded-xl",
-                  "bg-teal-50 text-teal-800 dark:bg-teal-50/15 dark:text-teal-200",
-                  "text-[20px] font-medium",
+                  "border-border bg-muted/40 relative aspect-[3/4] w-full overflow-hidden rounded-xl border",
+                  "max-w-xs",
                 )}
               >
-                UF
-              </span>
-              <div className="flex flex-col">
-                <span className="font-display text-foreground text-[16px] font-medium">
-                  Usama Fadhul
-                </span>
-                <span className="text-muted-foreground text-[12px]">
-                  Founder &amp; Clinical Safety Officer
-                </span>
+                <Image
+                  src="/founder-usama-fadhul.jpg"
+                  alt="Dr. Usama Fadhul, MedSync founder and Clinical Safety Officer, in a white coat with a stethoscope."
+                  fill
+                  sizes="(min-width: 1024px) 320px, (min-width: 768px) 30vw, 80vw"
+                  className="object-cover"
+                  priority={false}
+                />
               </div>
-            </div>
 
-            <p className="text-muted-foreground text-[12.5px] italic">
+              <figcaption className="flex flex-col gap-0.5">
+                <span className="font-display text-foreground text-[17px] font-medium">
+                  Dr. Usama Fadhul
+                </span>
+                <span className="text-muted-foreground text-[12.5px]">
+                  Founder &amp; Clinical Safety Officer, MedSync
+                </span>
+              </figcaption>
+            </figure>
+
+            <p className="text-muted-foreground text-[12px] italic">
               Built with the MedSync founding team in Kampala, Uganda.
             </p>
           </aside>
 
-          {/* Right — narrative */}
+          {/* Right — story */}
           <div className="flex flex-col gap-5 md:col-span-8">
             <h2
               id="founding-story-headline"
-              className="font-display text-foreground max-w-[24ch] text-[34px] leading-[1.08] tracking-[-0.025em] text-balance sm:text-[48px]"
+              className="font-display text-foreground max-w-[28ch] text-[34px] leading-[1.08] tracking-[-0.025em] text-balance sm:text-[48px]"
               style={{ fontWeight: 400 }}
             >
-              We kept hitting the same{" "}
-              <span className="text-teal-700 italic dark:text-teal-300">two gaps</span>.
+              A patient&rsquo;s notebook held two months of warnings.{" "}
+              <span className="text-teal-700 italic dark:text-teal-300">Nobody saw them.</span>
             </h2>
 
             <div className="text-foreground/85 flex flex-col gap-4 text-[15.5px] leading-[1.65] sm:text-[16.5px]">
               <p>
-                MedSync started in Mulago&rsquo;s wards. Specifically: the moment a patient walked
-                out, and the moment the next clinician walked in. Two doors, both with the same
-                problem &mdash; the record didn&rsquo;t come through them.
+                The idea for MedSync came to me during my first week on the wards as a fifth-year
+                medical student. I was clerking an elderly woman, an amputee with long-standing
+                diabetes and hypertension. Her left leg had already been amputated below the knee,
+                and now her symptoms, signs, and investigations all pointed to peripheral artery
+                disease in her remaining limb. As I reviewed her management plan, I saw what was
+                coming: amputation of the right leg, alongside efforts to finally control her blood
+                sugar.
               </p>
               <p>
-                On the way out, a patient with a five-day antibiotic course stopped after two good
-                days, and nobody found out. On the way in, a Cardiology consult asked the patient
-                what Diabetology had said, because the chart hadn&rsquo;t made it across the
-                corridor yet.
+                What struck me most was her notebook. In it, she had faithfully recorded her
+                pre-breakfast and pre-supper blood sugar readings for two months. Every single one
+                was above <span className="tabular font-mono">11 mmol/L</span>. She had been doing
+                everything asked of her, yet no one had been alerted to act on those numbers.
               </p>
               <p>
-                We had spreadsheets to paper over both. WhatsApp groups, paper notebooks in
-                white-coat pockets, an Excel tab for appointment reminders. They were everywhere and
-                they were lying to us; they were almost always out of date.
+                I couldn&rsquo;t stop thinking that if something had flagged those readings in time,
+                this second amputation might never have made it onto her treatment plan. Perhaps she
+                would simply be coming in for a routine quarterly review to check her HbA1c.
+                Instead, she was also losing her vision, and her kidney function was failing.
               </p>
               <p>
-                MedSync is the answer we wished existed: one record that doesn&rsquo;t care which
-                door you came through &mdash; the hospital gate, the home, the clinic, the pharmacy,
-                the phone number on file. One adaptive object model, one audit log, one truth.
+                These are preventable complications of diabetes. With proper follow-up, they can be
+                caught early, but once they take hold, they change a person&rsquo;s life forever.
               </p>
-              <p className="text-muted-foreground italic">
-                Built quietly. Shipped honestly. No fake testimonials, no fake logos, no badges we
-                haven&rsquo;t earned. The page you are reading is the receipt.
+              <p
+                className={cn(
+                  "border-l-2 border-teal-500/70 pl-4 italic",
+                  "text-foreground text-[16.5px] leading-[1.55] sm:text-[18px]",
+                )}
+              >
+                MedSync exists so that no patient&rsquo;s data sits silent in a notebook while their
+                health quietly slips away.
               </p>
             </div>
           </div>
