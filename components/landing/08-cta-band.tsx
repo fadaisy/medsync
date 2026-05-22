@@ -13,10 +13,16 @@ export function CtaBandMid() {
       aria-labelledby="cta-band-mid-headline"
       className="medsync-forced-dark relative w-full overflow-hidden bg-teal-950 text-teal-50"
     >
-      {/* Atmosphere: faint angled gradient + grain */}
+      {/* Atmosphere — base linear sweep (lighter top → deeper bottom) so
+          the surface reads with depth even before the radial glows on top. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 [background:radial-gradient(ellipse_at_top_left,oklch(0.45_0.08_180/0.5),transparent_55%)]"
+        className="pointer-events-none absolute inset-0 [background:linear-gradient(180deg,oklch(0.32_0.08_180),oklch(0.18_0.05_180)_55%,oklch(0.14_0.04_180))]"
+      />
+      {/* Atmosphere — pronounced radial glow from top-left */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 [background:radial-gradient(ellipse_at_top_left,oklch(0.55_0.13_180/0.55),transparent_55%),radial-gradient(ellipse_at_bottom_right,oklch(0.28_0.06_180/0.6),transparent_65%)]"
       />
       <div
         aria-hidden

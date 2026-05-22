@@ -14,10 +14,16 @@ export function FinalCta() {
       aria-labelledby="final-cta-headline"
       className="medsync-forced-dark relative w-full overflow-hidden bg-teal-950 text-teal-50 dark:bg-black"
     >
-      {/* Atmosphere — wider, softer than the mid-band */}
+      {/* Atmosphere — deeper than the mid-band. Base linear sweep
+          (top→bottom) under a wide centered radial glow + a soft
+          bottom-edge fade so the section eases into the footer. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 [background:radial-gradient(ellipse_at_center,oklch(0.50_0.10_180/0.55),transparent_65%)]"
+        className="pointer-events-none absolute inset-0 [background:linear-gradient(180deg,oklch(0.22_0.06_180),oklch(0.12_0.04_180)_60%,oklch(0.08_0.03_180))]"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 [background:radial-gradient(ellipse_at_center,oklch(0.55_0.12_180/0.55),transparent_60%)]"
       />
       <div
         aria-hidden
