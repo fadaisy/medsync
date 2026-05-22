@@ -1,24 +1,34 @@
+"use client";
+
 import Image from "next/image";
+import { useState } from "react";
 
 import { cn } from "@/lib/utils";
 
 /**
  * §13 — Founding story.
  *
- * Two cofounders, two clinical encounters that gave MedSync its mandate.
- * Each FounderBlock is a portrait + a verbatim story written by that
- * founder, with a closing pull-quote that sets out their specific belief.
+ * Single section, tabbed switcher between cofounders. Each founder gets
+ * the full portrait + story + pull-quote layout but only one shows at a
+ * time — clicking the tab cross-fades to the other.
  *
- * Add more founders by appending to the FOUNDERS array. Layout repeats
- * deliberately so the page reads as one voice, not two competing bios.
+ * Why tabs over a horizontal carousel: each story is 4–5 paragraphs, so
+ * a swipe-through would fight vertical scrolling. Tabs let the reader
+ * pick a founder, then read uninterrupted in normal page flow.
  *
- * Photos live in /public/founder-<slug>.jpg. Same scale-[1.2] origin-top
- * crop applied to handle studio-vignette edges on the source JPGs.
+ * Both founder blocks are grid-stacked (col-start-1 row-start-1) so the
+ * container sizes to the longer story and there are no layout jumps on
+ * swap. Inactive block carries aria-hidden so screen readers don't read
+ * both at once. Keyboard arrows cycle between tabs.
+ *
+ * Add more cofounders by appending to FOUNDERS — tabs + cross-fade pick
+ * up automatically.
  */
 
 interface Founder {
   slug: string;
   name: string;
+  shortName: string;
   title: string;
   portraitSrc: string;
   portraitAlt: string;
@@ -32,6 +42,7 @@ const FOUNDERS: Founder[] = [
   {
     slug: "usama-fadhul",
     name: "Dr. Usama Fadhul",
+    shortName: "Usama",
     title: "Co-founder & Clinical Safety Officer, MedSync",
     portraitSrc: "/founder-usama-fadhul.jpg",
     portraitAlt:
@@ -72,6 +83,7 @@ const FOUNDERS: Founder[] = [
   {
     slug: "nelson-nuwagira",
     name: "Dr. Nelson Nuwagira",
+    shortName: "Nelson",
     title: "Co-founder, MedSync",
     portraitSrc: "/founder-nelson-nuwagira.jpg",
     portraitAlt: "Dr. Nelson Nuwagira, MedSync co-founder, portrait.",
@@ -116,6 +128,25 @@ const FOUNDERS: Founder[] = [
 ];
 
 export function FoundingStory() {
+  const [active, setActive] = useState(0);
+
+  // Arrow-key navigation across the tablist (WAI-ARIA tabs pattern).
+  function onTabKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
+    if (e.key === "ArrowRight") {
+      e.preventDefault();
+      setActive((p) => (p + 1) % FOUNDERS.length);
+    } else if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      setActive((p) => (p - 1 + FOUNDERS.length) % FOUNDERS.length);
+    } else if (e.key === "Home") {
+      e.preventDefault();
+      setActive(0);
+    } else if (e.key === "End") {
+      e.preventDefault();
+      setActive(FOUNDERS.length - 1);
+    }
+  }
+
   return (
     <section
       id="founding-story"
@@ -124,7 +155,7 @@ export function FoundingStory() {
     >
       <div className="mx-auto w-full max-w-300 px-5 py-20 sm:px-8 sm:py-28">
         {/* Section header */}
-        <header className="mb-14 flex flex-col gap-5 sm:mb-20">
+        <header className="mb-10 flex flex-col gap-5">
           <span className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
             <span className="size-1 rounded-full bg-teal-500" />
             Why MedSync exists
@@ -141,21 +172,98 @@ export function FoundingStory() {
           <p className="text-muted-foreground max-w-[60ch] text-[15px] leading-[1.55] sm:text-[16.5px]">
             MedSync didn&rsquo;t start in a deck. It started in two ward encounters &mdash; one with
             a notebook full of warnings nobody had read, one with a digital BP monitor full of
-            warnings nobody had ever opened. These are the stories we wrote on the way home.
+            warnings nobody had ever opened.
           </p>
         </header>
 
-        {/* Founder blocks */}
-        <ol role="list" className="flex flex-col">
-          {FOUNDERS.map((founder, i) => (
-            <li key={founder.slug}>
-              {i > 0 ? <div aria-hidden className="border-border my-14 border-t sm:my-20" /> : null}
-              <FounderBlock founder={founder} />
-            </li>
-          ))}
-        </ol>
+        {/* Tab strip */}
+        <div
+          role="tablist"
+          aria-label="Switch cofounder story"
+          onKeyDown={onTabKeyDown}
+          className="border-border mb-8 flex flex-wrap gap-1 border-b sm:gap-2"
+        >
+          {FOUNDERS.map((founder, i) => {
+            const isActive = active === i;
+            return (
+              <button
+                key={founder.slug}
+                type="button"
+                role="tab"
+                aria-selected={isActive}
+                aria-controls={`founder-panel-${founder.slug}`}
+                id={`founder-tab-${founder.slug}`}
+                tabIndex={isActive ? 0 : -1}
+                onClick={() => setActive(i)}
+                className={cn(
+                  "group relative flex items-center gap-3 px-3 py-3 text-left",
+                  "transition-colors duration-150",
+                  isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground/80",
+                )}
+              >
+                {/* Active underline — animated via translate/scale */}
+                <span
+                  aria-hidden
+                  className={cn(
+                    "absolute bottom-[-1px] left-0 h-[2px] bg-teal-500",
+                    "transition-all duration-300 ease-out",
+                    isActive ? "right-0 opacity-100" : "right-full opacity-0",
+                  )}
+                />
+                <span
+                  className={cn(
+                    "tabular inline-flex size-6 items-center justify-center rounded-full font-mono text-[10px]",
+                    "transition-colors duration-200",
+                    isActive
+                      ? "bg-teal-100 text-teal-800 dark:bg-teal-50/15 dark:text-teal-200"
+                      : "bg-muted text-muted-foreground",
+                  )}
+                >
+                  0{i + 1}
+                </span>
+                <span className="flex flex-col">
+                  <span className="font-display text-[14px] leading-tight font-medium">
+                    {founder.name}
+                  </span>
+                  <span className="text-muted-foreground hidden text-[11.5px] leading-tight sm:inline">
+                    {founder.title.split(",")[0]}
+                  </span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
 
-        <p className="text-muted-foreground mt-14 text-center text-[12.5px] italic sm:mt-20">
+        {/* Stacked founder panels — only active one is visible (opacity)
+            but both stay in the grid so the parent sizes to the longer
+            story. Inactive panel gets aria-hidden + pointer-events-none. */}
+        <div className="grid">
+          {FOUNDERS.map((founder, i) => {
+            const isActive = active === i;
+            return (
+              <div
+                key={founder.slug}
+                role="tabpanel"
+                id={`founder-panel-${founder.slug}`}
+                aria-labelledby={`founder-tab-${founder.slug}`}
+                aria-hidden={!isActive}
+                className={cn(
+                  "col-start-1 row-start-1",
+                  "transition-[opacity,transform] duration-500",
+                  "[transition-timing-function:cubic-bezier(0.4,0,0.2,1)]",
+                  "motion-reduce:transition-none",
+                  isActive
+                    ? "translate-y-0 opacity-100"
+                    : "pointer-events-none translate-y-1 opacity-0",
+                )}
+              >
+                <FounderBlock founder={founder} />
+              </div>
+            );
+          })}
+        </div>
+
+        <p className="text-muted-foreground mt-14 text-center text-[12.5px] italic sm:mt-16">
           Built with the MedSync founding team in Kampala, Uganda.
         </p>
       </div>
