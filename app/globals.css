@@ -452,6 +452,16 @@
     color: var(--color-foreground);
   }
 
+  /* Uniform keyboard-focus ring for any interactive element that doesn't
+     opt out (links, bare buttons, summary, etc.). Pointer/touch focus is
+     left alone via :focus-visible. Components that own their own focus
+     ring (e.g. components/ui/button.tsx) cancel the default and re-style. */
+  :where(a, button, summary, [role="button"], [tabindex]):focus-visible {
+    outline: 2px solid var(--color-ring);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
   .tabular {
     font-variant-numeric: tabular-nums;
   }

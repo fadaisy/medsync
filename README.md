@@ -2,7 +2,7 @@
 
 > Digital hospital operating system for Uganda. Built to run a Mulago-scale national referral hospital.
 
-**Status:** Phase 0 — foundation rebuild. No clinical features yet; this is the empty, audited, secured shell that everything else lands on. Phase 1 begins after Phase 0 sign-off.
+**Status:** Phase 0 — foundation rebuild. The empty, audited, secured shell that clinical features will land on. Plus the public landing page at `/` (17-section Attio-archetype rebuild, see [`components/landing/`](components/landing/)), audience-funnel routes at `/onboarding/{patient,clinical,hospital}`, and authentication scaffold with mandatory MFA for clinical roles. No clinical features yet — Phase 1 begins after Phase 0 sign-off.
 
 **Designated Clinical Safety Officer:** Usama Fadhul (founder).
 
@@ -14,8 +14,9 @@
 - **TypeScript strict** — `any` banned via ESLint
 - **Supabase** (Postgres, Auth, Edge Functions) + **Drizzle ORM**
 - **Tailwind CSS v4** + **shadcn/ui** (Nova preset, `@base-ui/react` primitives)
+- **Fraunces** (display) + **Geist Sans** (body) + **Geist Mono** (tabular labs/vitals) via `next/font/google`
 - **React Hook Form** + **Zod 4** for forms and runtime validation
-- **Framer Motion** for animation
+- **Framer Motion** for animation (landing uses CSS-only motion + `IntersectionObserver`; reserved for app-shell animation in Phase 1+)
 - **Sentry + Vercel Analytics** for monitoring (wired in Phase 0.8)
 - **Africa's Talking** for SMS (wired in Phase 0, exercised Phase 5+)
 - **Vercel** hosting + CI/CD; production domain `medsync.health` (live in Phase 0.12)
