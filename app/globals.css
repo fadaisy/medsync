@@ -101,11 +101,14 @@
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
 
-  /* ─── Fonts ───────────────────────────────────────────────────────────── */
-  --font-sans: "Neue Haas Grotesk Text Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --font-display: "Neue Haas Grotesk Display Pro", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  /* ─── Fonts (next/font/google variables set in app/layout.tsx) ──────────
+     - --font-medsync-display → Fraunces (serif, opsz axis for editorial H1)
+     - --font-medsync-sans    → Geist Sans (clinical body)
+     - --font-medsync-mono    → Geist Mono (tabular labs / vitals / IDs) */
+  --font-sans: var(--font-medsync-sans), ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+  --font-display: var(--font-medsync-display), "Iowan Old Style", "Apple Garamond", Georgia, serif;
   --font-heading: var(--font-display);
-  --font-mono: "SF Mono", "Fira Code", Menlo, Consolas, monospace;
+  --font-mono: var(--font-medsync-mono), ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
   /* ─── Type scale ──────────────────────────────────────────────────────── */
   --text-display-xl: 72px;
@@ -389,6 +392,38 @@
   --shadow-card-value: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 1px 3px rgba(0, 0, 0, 0.4);
   --shadow-popover-value: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 12px 24px -4px rgba(0, 0, 0, 0.6);
   --shadow-focus-value: 0 0 0 2px rgba(45, 212, 191, 0.3);
+}
+
+/* ─── Landing-page animations ─────────────────────────────────────────────
+   Used by the hero, floating quote, and trust strip for staggered reveals.
+   Reduced-motion users get the final state instantly via the motion-reduce
+   utility variants applied at the call site. */
+@keyframes medsync-reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes medsync-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@utility reveal-up {
+  animation: medsync-reveal-up var(--duration-reveal) var(--ease-expo-out) both;
+}
+
+@utility fade-in-slow {
+  animation: medsync-fade-in 800ms var(--ease-expo-out) both;
 }
 
 /* Base layer — minimal global rules. Components own their styles. */

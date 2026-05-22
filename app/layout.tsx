@@ -1,10 +1,36 @@
 import type { Metadata, Viewport } from "next";
+import { Fraunces, Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 
 import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL } from "@/lib/site-config";
 import { Providers } from "./providers";
 
 import "./globals.css";
+
+/**
+ * Editorial-clinical type system:
+ *   - Fraunces: serif display for headlines + pull quotes. Calligraphic
+ *     warmth keeps a healthcare site from reading cold; opsz=144 lets the
+ *     hero H1 use the optical-size axis so the giant size reads correctly.
+ *   - Geist Sans: body. Modern, clinical, optimized for data-dense UIs.
+ *   - Geist Mono: tabular figures for labs, dosing, vitals, IDs.
+ */
+const fontDisplay = Fraunces({
+  subsets: ["latin"],
+  variable: "--font-medsync-display",
+  axes: ["opsz", "SOFT", "WONK"],
+  display: "swap",
+});
+const fontSans = Geist({
+  subsets: ["latin"],
+  variable: "--font-medsync-sans",
+  display: "swap",
+});
+const fontMono = Geist_Mono({
+  subsets: ["latin"],
+  variable: "--font-medsync-mono",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -82,7 +108,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="h-full antialiased" suppressHydrationWarning>
+    <html
+      lang="en"
+      className={`${fontDisplay.variable} ${fontSans.variable} ${fontMono.variable} h-full antialiased`}
+      suppressHydrationWarning
+    >
       <body className="bg-background text-foreground flex min-h-full flex-col font-sans">
         <Providers>{children}</Providers>
         <Analytics />
