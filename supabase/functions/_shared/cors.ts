@@ -1,0 +1,44 @@
+/**
+ * Shared CORS for MedSync Edge Functions.
+ *
+ * Browsers won't call our Edge Functions directly in Phase 0 (everything goes
+ * via the Next server). But Supabase's Studio + curl examples preflight with
+ * OPTIONS, so we accept them. Origins are intentionally locked to MedSync
+ * surfaces; widen here when (if) we expose functions to third parties.
+ */
+
+const ALLOWED_ORIGINS = new Set<string>([
+  "http://localhost:3000",
+  "https://medsync.health",
+  // Vercel preview deploys land at *.vercel.app; allow at the matcher level.
+]);
+
+function isAllowedOrigin(origin: string | null): boolean {
+  if (!origin) return false;
+  if (ALLOWED_ORIGINS.has(origin)) return true;
+  try {
+    const url = new URL(origin);
+    return url.hostname.endsWith(".vercel.app");
+  } catch {
+    return false;
+  }
+}
+
+export function corsHeaders(origin: string | null): HeadersInit {
+  const allowed = isAllowedOrigin(origin);
+  return {
+    "Access-Control-Allow-Origin": allowed ? origin! : "null",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "authorization, content-type, x-request-id",
+    "Access-Control-Max-Age": "86400",
+    Vary: "Origin",
+  };
+}
+
+export function preflight(request: Request): Response | null {
+  if (request.method !== "OPTIONS") return null;
+  return new Response(null, {
+    status: 204,
+    headers: corsHeaders(request.headers.get("origin")),
+  });
+}

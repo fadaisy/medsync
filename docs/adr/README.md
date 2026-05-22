@@ -18,6 +18,7 @@ Each ADR is immutable once accepted. To revise, write a new ADR that supersedes 
 | [0008](./0008-phi-encryption.md)        | PHI encryption — AES-256-GCM, `iv:authTag:ciphertext` format      | Accepted                                                                   | 2026-05-22 | 0.7      |
 | [0009](./0009-logging-sentry.md)        | PII-redacted logging + Sentry wiring                              | Accepted                                                                   | 2026-05-22 | 0.8      |
 | [0010](./0010-auth-mfa-proxy.md)        | Auth + MFA + Next.js 16 proxy route protection                    | Accepted                                                                   | 2026-05-22 | 0.9      |
+| [0011](./0011-edge-functions.md)        | Edge Functions foundation + `assign-role` reference               | Accepted                                                                   | 2026-05-22 | 0.10     |
 
 ## Template
 
