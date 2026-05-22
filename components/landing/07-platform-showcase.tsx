@@ -204,23 +204,33 @@ export function PlatformShowcase() {
             </ol>
           </div>
 
-          {/* Right column — sticky surface (md+, always rendered). The
-              cross-fade transition is gated on motion-safe so reduced-motion
-              users get an instant swap; layout itself doesn't change. */}
+          {/* Right column — sticky surface (md+, always rendered). All
+              surfaces are absolutely positioned and layered so cross-fades
+              don't reflow the wrapper height (the source of the glitchy
+              jump in earlier versions). Reduced-motion users get an
+              instant swap via motion-reduce:transition-none. */}
           <div aria-hidden className="hidden md:col-span-6 md:block lg:col-span-5">
             <div className="sticky top-24 flex h-[calc(100vh-12rem)] max-h-[640px] min-h-[420px] items-center">
-              <div className="relative w-full">
+              <div className="relative h-full w-full">
                 {SCENES.map((scene) => (
                   <div
                     key={scene.index}
                     className={cn(
-                      "ease-expo-out transition-all duration-500 motion-reduce:transition-none",
+                      // Absolute on every scene — wrapper height stays
+                      // constant, transitions only animate opacity + a
+                      // tiny vertical slide.
+                      "absolute inset-0 flex items-center motion-reduce:transition-none",
+                      "transition-[opacity,transform] duration-700",
+                      // Custom cubic-bezier: glides in, doesn't snap.
+                      "[transition-timing-function:cubic-bezier(0.4,0,0.2,1)]",
                       active === scene.index
                         ? "translate-y-0 opacity-100"
-                        : "pointer-events-none absolute inset-0 translate-y-2 opacity-0",
+                        : "pointer-events-none translate-y-1 opacity-0",
                     )}
                   >
-                    <SurfaceForScene scene={scene.index} />
+                    <div className="w-full">
+                      <SurfaceForScene scene={scene.index} />
+                    </div>
                   </div>
                 ))}
               </div>

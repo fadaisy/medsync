@@ -28,15 +28,10 @@ export function FoundingStory() {
             </span>
 
             <figure className="flex flex-col gap-4">
-              {/* Portrait. 3:4 portrait crop; muted background blends into
-                  the section. Uses next/image for AVIF/WebP optimisation
-                  and responsive srcset. */}
-              <div
-                className={cn(
-                  "border-border bg-muted/40 relative aspect-[3/4] w-full overflow-hidden rounded-xl border",
-                  "max-w-xs",
-                )}
-              >
+              {/* Portrait. 3:4 crop. No container frame — the photo's
+                  studio background blends straight into the section so
+                  there are no visible borders around the image. */}
+              <div className="relative aspect-[3/4] w-full max-w-xs overflow-hidden rounded-xl">
                 <Image
                   src="/founder-usama-fadhul.jpg"
                   alt="Dr. Usama Fadhul, MedSync founder and Clinical Safety Officer, in a white coat with a stethoscope."
