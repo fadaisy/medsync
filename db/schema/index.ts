@@ -10,3 +10,4 @@ export * from "./hospital-departments";
 export * from "./user-roles";
 export * from "./consent-records";
 export * from "./audit-log";
+export * from "./interest-signups";

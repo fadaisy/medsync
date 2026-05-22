@@ -26,11 +26,18 @@ const PUBLIC_PREFIXES = [
   "/sign-in", // includes /sign-in/mfa
   "/styleguide",
   "/api/health",
+  // Landing-page audience funnels — anonymous interest capture (RLS allows
+  // anon INSERT into interest_signups). /onboarding/mfa-setup stays protected
+  // because it is matched by ALWAYS_AUTH_REQUIRED_PREFIXES below and is not
+  // listed here.
+  "/onboarding/patient",
+  "/onboarding/clinical",
+  "/onboarding/hospital",
 ];
 
 const PUBLIC_EXACT = new Set(["/", "/sign-out"]);
 
-const ALWAYS_AUTH_REQUIRED_PREFIXES = ["/dashboard", "/onboarding", "/admin"];
+const ALWAYS_AUTH_REQUIRED_PREFIXES = ["/dashboard", "/onboarding/mfa-setup", "/admin"];
 
 function isPublic(pathname: string): boolean {
   if (PUBLIC_EXACT.has(pathname)) return true;

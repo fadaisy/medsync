@@ -1,3 +1,4 @@
+/* eslint-disable no-console -- CLI script: console output is the UI. */
 /**
  * One-off: read .env.local (via @next/env to handle quirky lines) and push
  * each variable to Vercel (production + preview + development).
@@ -38,6 +39,8 @@ const VARS = [
   "SENTRY_DSN",
   "NEXT_PUBLIC_SENTRY_DSN",
   "SENTRY_AUTH_TOKEN",
+  "SENTRY_ORG",
+  "SENTRY_PROJECT",
   "AFRICASTALKING_USERNAME",
   "AFRICASTALKING_API_KEY",
   "AFRICASTALKING_SENDER_ID",

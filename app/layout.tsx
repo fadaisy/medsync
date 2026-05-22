@@ -1,22 +1,53 @@
 import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
 
+import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL } from "@/lib/site-config";
 import { Providers } from "./providers";
 
 import "./globals.css";
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
-    default: "MedSync — Digital Hospital OS",
+    default: SITE_TITLE,
     template: "%s · MedSync",
   },
-  description:
-    "Digital hospital operating system for Uganda. Built to run Mulago-scale national referral hospitals.",
-  applicationName: "MedSync",
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
   authors: [{ name: "Usama Fadhul" }],
+  creator: "MedSync founding team",
+  publisher: "MedSync",
   category: "health",
-  keywords: ["hospital", "EHR", "Uganda", "Mulago", "clinical", "MedSync"],
+  keywords: [
+    "hospital operating system",
+    "EHR",
+    "Uganda",
+    "Mulago",
+    "clinical workflow",
+    "patient record",
+    "digital health Africa",
+    "MedSync",
+  ],
   formatDetection: { telephone: false, email: false, address: false },
+  alternates: { canonical: "/" },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large" },
+  },
+  openGraph: {
+    type: "website",
+    siteName: SITE_NAME,
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+    url: SITE_URL,
+    locale: "en_UG",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: SITE_TITLE,
+    description: SITE_DESCRIPTION,
+  },
 };
 
 export const viewport: Viewport = {
@@ -29,6 +60,22 @@ export const viewport: Viewport = {
   maximumScale: 5,
 };
 
+const ORGANIZATION_JSONLD = {
+  "@context": "https://schema.org",
+  "@type": "MedicalOrganization",
+  name: "MedSync",
+  url: SITE_URL,
+  description: SITE_DESCRIPTION,
+  founder: { "@type": "Person", name: "Usama Fadhul" },
+  areaServed: { "@type": "Country", name: "Uganda" },
+  knowsAbout: [
+    "Hospital operating system",
+    "Electronic health records",
+    "Care coordination",
+    "Home patient monitoring",
+  ],
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -39,6 +86,12 @@ export default function RootLayout({
       <body className="bg-background text-foreground flex min-h-full flex-col font-sans">
         <Providers>{children}</Providers>
         <Analytics />
+        <script
+          type="application/ld+json"
+          // schema.org JSON-LD — payload is a literal object we control,
+          // no user input is ever interpolated.
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(ORGANIZATION_JSONLD) }}
+        />
       </body>
     </html>
   );
