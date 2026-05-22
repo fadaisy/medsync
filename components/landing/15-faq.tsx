@@ -40,8 +40,9 @@ const FAQS: FaqEntry[] = [
         <p>Three audiences, in this order:</p>
         <ol className="mt-2 list-decimal pl-5">
           <li>
-            <strong>Hospitals</strong> &mdash; Mulago-scale referral hospitals first, then regional
-            referrals and large mission hospitals.
+            <strong>Hospitals</strong> &mdash; built to run any Ugandan hospital up to
+            national-referral scale: regional referrals, large mission hospitals, and national
+            referrals all sit on the same product.
           </li>
           <li>
             <strong>Clinicians</strong> &mdash; doctors, nurses, pharmacists, CHWs who work inside

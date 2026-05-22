@@ -193,9 +193,10 @@ export function PlatformShowcase() {
                     {scene.body}
                   </p>
 
-                  {/* Stacked-view surface (mobile + reduced-motion).
-                      Hidden at md+ where the sticky surface takes over. */}
-                  <div className="motion-reduce:block md:hidden">
+                  {/* Mobile-only inline surface. At md+ the right sticky
+                      pane takes over; reduced-motion users still see the
+                      sticky pane (just without the cross-fade). */}
+                  <div className="md:hidden">
                     <SurfaceForScene scene={scene.index} />
                   </div>
                 </li>
@@ -203,18 +204,17 @@ export function PlatformShowcase() {
             </ol>
           </div>
 
-          {/* Right column — sticky surface (desktop only, motion-safe) */}
-          <div
-            aria-hidden
-            className="hidden md:col-span-6 md:block motion-reduce:md:hidden lg:col-span-5"
-          >
+          {/* Right column — sticky surface (md+, always rendered). The
+              cross-fade transition is gated on motion-safe so reduced-motion
+              users get an instant swap; layout itself doesn't change. */}
+          <div aria-hidden className="hidden md:col-span-6 md:block lg:col-span-5">
             <div className="sticky top-24 flex h-[calc(100vh-12rem)] max-h-[640px] min-h-[420px] items-center">
               <div className="relative w-full">
                 {SCENES.map((scene) => (
                   <div
                     key={scene.index}
                     className={cn(
-                      "ease-expo-out transition-all duration-500",
+                      "ease-expo-out transition-all duration-500 motion-reduce:transition-none",
                       active === scene.index
                         ? "translate-y-0 opacity-100"
                         : "pointer-events-none absolute inset-0 translate-y-2 opacity-0",

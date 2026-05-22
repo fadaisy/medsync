@@ -1,6 +1,6 @@
 # MedSync
 
-> Digital hospital operating system for Uganda. Built to run a Mulago-scale national referral hospital.
+> Digital hospital operating system for Uganda. Built for hospitals up to national-referral scale.
 
 **Status:** Phase 0 — foundation rebuild. The empty, audited, secured shell that clinical features will land on. Plus the public landing page at `/` (17-section Attio-archetype rebuild, see [`components/landing/`](components/landing/)), audience-funnel routes at `/onboarding/{patient,clinical,hospital}`, and authentication scaffold with mandatory MFA for clinical roles. No clinical features yet — Phase 1 begins after Phase 0 sign-off.
 

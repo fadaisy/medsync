@@ -55,8 +55,9 @@ export function Hero() {
             className="text-muted-foreground motion-safe:reveal-up max-w-[58ch] text-[16px] leading-[1.55] text-balance sm:text-[18px]"
             style={{ animationDelay: "180ms" }}
           >
-            MedSync is the operating system for Mulago-scale care &mdash; running the wards,
-            supporting the clinicians, and keeping a record open after patients go home.
+            MedSync is the operating system for Ugandan hospitals up to national-referral scale
+            &mdash; running the wards, supporting the clinicians, and keeping a record open after
+            patients go home.
           </p>
 
           <div className="motion-safe:reveal-up w-full pt-2" style={{ animationDelay: "300ms" }}>

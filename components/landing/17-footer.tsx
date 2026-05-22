@@ -82,8 +82,8 @@ export function Footer() {
               <span className="size-1.5 translate-y-[-2px] rounded-full bg-teal-500 dark:bg-teal-400" />
             </Link>
             <p className="text-muted-foreground max-w-[44ch] text-[13px] leading-[1.55]">
-              A digital hospital operating system for Uganda. Built to run Mulago-scale referral
-              hospitals and to keep care going after patients leave the gate.
+              A digital hospital operating system for Uganda. Built for hospitals up to
+              national-referral scale, and to keep care going after patients leave the gate.
             </p>
             <p className="text-muted-foreground tabular inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
               <span className="size-1 rounded-full bg-teal-500" />

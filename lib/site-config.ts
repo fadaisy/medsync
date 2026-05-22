@@ -11,4 +11,4 @@ export const SITE_URL = "https://medsync-fadhulusama-gmailcoms-projects.vercel.a
 export const SITE_NAME = "MedSync" as const;
 export const SITE_TITLE = "MedSync — A digital hospital that doesn't stop at the gate" as const;
 export const SITE_DESCRIPTION =
-  "MedSync is the digital hospital operating system for Uganda — built to run Mulago-scale referrals and to keep care going after patients leave the gate." as const;
+  "MedSync is the digital hospital operating system for Uganda — built for hospitals up to national-referral scale, keeping care going after patients leave the gate." as const;

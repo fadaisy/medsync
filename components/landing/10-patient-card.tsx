@@ -512,48 +512,81 @@ function CarePlanTimeline() {
         <HistoryIcon className="size-3" strokeWidth={1.75} />
         Care-plan timeline
       </span>
-      <ol className="grid grid-cols-2 gap-y-3 sm:grid-cols-3 lg:grid-cols-6">
-        {steps.map((step, i) => {
-          const isLast = i === steps.length - 1;
-          return (
-            <li key={step.label} className="relative flex items-start gap-2">
-              <span
-                className={cn(
-                  "z-10 mt-0.5 inline-flex size-3 shrink-0 items-center justify-center rounded-full",
-                  step.state === "done" && "bg-teal-500 text-white",
-                  step.state === "active" && "bg-background ring-2 ring-teal-500",
-                  step.state === "future" && "bg-muted ring-border ring-1",
-                )}
-              >
-                {step.state === "active" ? (
-                  <span className="size-1.5 animate-pulse rounded-full bg-teal-500 motion-reduce:animate-none" />
-                ) : null}
-              </span>
-              <div className="flex flex-col">
-                <span
-                  className={cn(
-                    "text-[12px] leading-tight",
-                    step.state === "future" ? "text-muted-foreground" : "text-foreground",
-                    step.state === "active" ? "font-medium" : "",
-                  )}
-                >
-                  {step.label}
-                </span>
-                <span className="text-muted-foreground tabular font-mono text-[10px]">
-                  {step.date}
-                </span>
-              </div>
-              {!isLast ? (
-                <span
-                  aria-hidden
-                  className="bg-border absolute top-[7px] left-3 hidden h-px w-[calc(100%-12px)] lg:block"
-                />
-              ) : null}
-            </li>
-          );
-        })}
+
+      {/* Mobile / tablet: vertical-stacked rows (dot inline with label, no
+          horizontal connector — it doesn't make sense across wrapped rows). */}
+      <ol className="grid grid-cols-2 gap-y-3 sm:grid-cols-3 lg:hidden">
+        {steps.map((step) => (
+          <li key={step.label} className="flex items-start gap-2">
+            <TimelineDot state={step.state} />
+            <TimelineLabel step={step} />
+          </li>
+        ))}
       </ol>
+
+      {/* Desktop (lg+): horizontal stepper. The dots sit on a single
+          baseline with a connector line behind them; labels stack below. */}
+      <div className="hidden lg:block">
+        <ol className="relative grid grid-cols-6 gap-x-2">
+          {/* Connector line — runs from the first dot's center to the last
+              dot's center. cx(first) = (col_width / 2); we approximate by
+              inset = 1/12th of total width. */}
+          <span
+            aria-hidden
+            className="bg-border absolute top-1.5 hidden h-px lg:block"
+            style={{ left: "calc(100% / 12)", right: "calc(100% / 12)" }}
+          />
+          {steps.map((step) => (
+            <li key={step.label} className="relative flex flex-col items-center gap-2 text-center">
+              <span className="bg-card relative z-10 inline-flex">
+                <TimelineDot state={step.state} />
+              </span>
+              <TimelineLabel step={step} centered />
+            </li>
+          ))}
+        </ol>
+      </div>
     </section>
+  );
+}
+
+function TimelineDot({ state }: { state: "done" | "active" | "future" }) {
+  return (
+    <span
+      className={cn(
+        "mt-0.5 inline-flex size-3 shrink-0 items-center justify-center rounded-full",
+        state === "done" && "bg-teal-500 text-white",
+        state === "active" && "bg-background ring-2 ring-teal-500",
+        state === "future" && "bg-muted ring-border ring-1",
+      )}
+    >
+      {state === "active" ? (
+        <span className="size-1.5 animate-pulse rounded-full bg-teal-500 motion-reduce:animate-none" />
+      ) : null}
+    </span>
+  );
+}
+
+function TimelineLabel({
+  step,
+  centered,
+}: {
+  step: { label: string; date: string; state: "done" | "active" | "future" };
+  centered?: boolean;
+}) {
+  return (
+    <div className={cn("flex flex-col", centered ? "items-center" : "")}>
+      <span
+        className={cn(
+          "text-[12px] leading-tight",
+          step.state === "future" ? "text-muted-foreground" : "text-foreground",
+          step.state === "active" ? "font-medium" : "",
+        )}
+      >
+        {step.label}
+      </span>
+      <span className="text-muted-foreground tabular font-mono text-[10px]">{step.date}</span>
+    </div>
   );
 }
 
