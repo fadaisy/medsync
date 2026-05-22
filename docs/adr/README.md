@@ -15,6 +15,7 @@ Each ADR is immutable once accepted. To revise, write a new ADR that supersedes 
 | [0005](./0005-phase-0-schema.md)        | Phase 0 schema + pooler-friendly migrator                         | Accepted                                                                   | 2026-05-22 | 0.4      |
 | [0006](./0006-rls-and-tests.md)         | RLS strategy + test infrastructure                                | Accepted                                                                   | 2026-05-22 | 0.5      |
 | [0007](./0007-audit-infrastructure.md)  | Audit infrastructure (log_changes trigger + append-only lockdown) | Accepted                                                                   | 2026-05-22 | 0.6      |
+| [0008](./0008-phi-encryption.md)        | PHI encryption — AES-256-GCM, `iv:authTag:ciphertext` format      | Accepted                                                                   | 2026-05-22 | 0.7      |
 
 ## Template
 
