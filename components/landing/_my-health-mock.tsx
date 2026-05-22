@@ -66,6 +66,19 @@ export function MyHealthMock({ fragment = "full", withHeader, className }: MyHea
   );
 }
 
+/* Individual card primitives — exposed so the new §07b PatientChapter
+   can compose custom card combinations per sub-point without forcing
+   new fragment enum values into MyHealthMock. Additive export, no
+   behaviour change. */
+export {
+  LogReadingCard as MyHealthLogReadingCard,
+  TodayMedsCard as MyHealthTodayMedsCard,
+  AdherenceStrip as MyHealthAdherenceStrip,
+  SmsReminderChip as MyHealthSmsReminderChip,
+  ReportConcernCard as MyHealthReportConcernCard,
+  ReassuranceLine as MyHealthReassuranceLine,
+};
+
 /* ─── Patient view header (replaces the old phone-bezel + status bar) ── */
 
 function PatientHeader() {

@@ -12,6 +12,7 @@ import {
   Hero,
   Nav,
   PatientCard,
+  PatientChapter,
   PlatformShowcase,
   SubBanner,
   TrustGovernance,
@@ -45,6 +46,11 @@ export default function HomePage() {
         <TrustStrip />
 
         <PlatformShowcase />
+        {/* Patient-experience addendum (Edit 3): the patient-POV
+            chapter, inserted between the [01] platform loop and the
+            mid-band CTA so the narrative reads:
+              platform / clinician loop → patient view → CTA → team. */}
+        <PatientChapter />
         <CtaBandMid />
 
         <AdaptiveModel />
