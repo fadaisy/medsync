@@ -39,7 +39,7 @@ export function FoundingStory() {
                   alt="Dr. Usama Fadhul, MedSync founder and Clinical Safety Officer, in a white coat with a stethoscope."
                   fill
                   sizes="(min-width: 1024px) 320px, (min-width: 768px) 30vw, 80vw"
-                  className="origin-center scale-[1.2] object-cover"
+                  className="origin-top scale-[1.2] object-cover"
                   priority={false}
                 />
               </div>
