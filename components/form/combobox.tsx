@@ -80,6 +80,12 @@ export function Combobox({
   return (
     <ComboboxPrimitive.Root
       items={items.map((it) => it.value)}
+      // ComboboxRoot remaps `value` / `onValueChange` onto
+      // AriaCombobox.selectedValue / onSelectedValueChange (see
+      // ComboboxRoot.js). Pass "" instead of null when nothing is
+      // selected — Base UI's internal serializer handles strings
+      // cleanly, but stringifies null as the literal text "null".
+      // Our own hidden input below carries the actual form value.
       value={value ?? ""}
       onValueChange={(next) => {
         const nextStr = typeof next === "string" ? next : "";

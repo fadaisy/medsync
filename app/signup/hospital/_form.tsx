@@ -158,7 +158,22 @@ export function HospitalSignupForm({ districts, subcounties }: HospitalSignupFor
         </>
       }
       form={
-        <form action={formAction} className="flex flex-col gap-5" noValidate>
+        <form
+          action={formAction}
+          className="flex flex-col gap-5"
+          noValidate
+          // Enter inside any text input would otherwise submit the form
+          // from the wrong step (we render every step in the DOM and
+          // CSS-hide the inactive ones, so the submit button on step 3
+          // is reachable from a stray Enter on step 1 or 2). Block it
+          // unless the user is actually on the final step.
+          onKeyDown={(e) => {
+            if (e.key !== "Enter") return;
+            const target = e.target as HTMLElement;
+            if (target.tagName === "TEXTAREA" || target.tagName === "BUTTON") return;
+            if (step !== 2) e.preventDefault();
+          }}
+        >
           <StepPills<StepIndex> steps={STEPS} current={step} onChange={setStep} />
 
           <FormError message={errors?._form} />
