@@ -140,18 +140,6 @@ export async function submitSignupAction(
   formData: FormData,
 ): Promise<SignupState> {
   const raw = Object.fromEntries(formData.entries());
-  // TEMPORARY DEBUG: log every field that arrives so we can see what
-  // the form actually submits. Remove after the multi-step regression
-  // is resolved (see scripts/apply-phase-1.sql notes).
-  logger.info("patient.signup.debug.formdata", {
-    keys: Array.from(formData.keys()),
-    district_id: raw.district_id,
-    subcounty_id: raw.subcounty_id,
-    sex: raw.sex,
-    id_type: raw.id_type,
-    has_date_of_birth: typeof raw.date_of_birth === "string" && raw.date_of_birth.length > 0,
-    has_consent: typeof raw.consent === "string",
-  });
   const parsed = SubmitSchema.safeParse(raw);
   if (!parsed.success) {
     const flat = parsed.error.flatten().fieldErrors;
