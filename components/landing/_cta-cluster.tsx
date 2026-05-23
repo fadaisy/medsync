@@ -8,8 +8,10 @@ import { cn } from "@/lib/utils";
  * Single source of truth for the three audience doors. Edit copy here and
  * every CTA on the page updates: hero, mid-band, final CTA band, footer.
  *
- * Routes match app/onboarding/{patient,clinical,hospital}. The proxy keeps
- * them public (see proxy.ts:24-37).
+ * Routes match app/signup/{patient,clinical,hospital} — the Phase 1
+ * multi-step signup flow. The older /onboarding/{path} email-capture
+ * forms remain reachable as a softer ask (linked from a few specific
+ * sub-banner / FAQ surfaces) but are no longer the primary CTAs.
  */
 export const ONBOARDING_DOORS: ReadonlyArray<{
   audience: "patient" | "clinical" | "hospital";
@@ -20,23 +22,23 @@ export const ONBOARDING_DOORS: ReadonlyArray<{
 }> = [
   {
     audience: "patient",
-    label: "For patients",
-    sub: "Join the waitlist",
-    href: "/onboarding/patient",
+    label: "I'm a patient",
+    sub: "Sign up · ~3 minutes",
+    href: "/signup/patient",
     Icon: UserIcon,
   },
   {
     audience: "clinical",
-    label: "For clinicians",
-    sub: "Request access",
-    href: "/onboarding/clinical",
+    label: "I'm a clinician",
+    sub: "Sign up · approval-gated",
+    href: "/signup/clinical",
     Icon: StethoscopeIcon,
   },
   {
     audience: "hospital",
-    label: "Request a pilot",
-    sub: "For hospitals",
-    href: "/onboarding/hospital",
+    label: "I represent a hospital",
+    sub: "Apply for a pilot",
+    href: "/signup/hospital",
     Icon: BuildingIcon,
   },
 ];
