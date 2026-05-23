@@ -186,6 +186,12 @@ export function ClinicalSignupForm({ refData }: { refData: ClinicalRefData }) {
             if (target.tagName === "TEXTAREA" || target.tagName === "BUTTON") return;
             if (step !== 2) e.preventDefault();
           }}
+          // Final defence: block submission unless we're on the last
+          // step, in case React reused a button DOM node when
+          // Continue → Submit re-renders mid-click.
+          onSubmit={(e) => {
+            if (step !== 2) e.preventDefault();
+          }}
         >
           <StepPills<StepIndex> steps={STEPS} current={step} onChange={setStep} />
 
@@ -585,11 +591,20 @@ function Footer({
         &larr; Back
       </Button>
       {step < 2 ? (
-        <Button type="button" variant="primary" size="md" onClick={onNext}>
+        <Button
+          key="continue"
+          type="button"
+          variant="primary"
+          size="md"
+          onClick={(e) => {
+            e.currentTarget.blur();
+            onNext();
+          }}
+        >
           Continue
         </Button>
       ) : (
-        <Button type="submit" variant="primary" size="md" disabled={pending}>
+        <Button key="submit" type="submit" variant="primary" size="md" disabled={pending}>
           {submitLabel}
         </Button>
       )}

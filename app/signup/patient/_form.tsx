@@ -140,6 +140,16 @@ export function PatientSignupForm({ districts, subcounties }: PatientSignupFormP
             if (target.tagName === "TEXTAREA" || target.tagName === "BUTTON") return;
             if (step !== 2) e.preventDefault();
           }}
+          // Final defence: even if React reuses a button DOM node when
+          // Continue → Submit re-renders mid-click and the in-flight
+          // event lands on the freshly-mounted submit button, block
+          // submission unless we're actually on the last step. Without
+          // this guard the user was getting silently bounced back from
+          // step 3 with empty step-3 fields (email / password / consent),
+          // and our error-jump pattern was hiding the cause.
+          onSubmit={(e) => {
+            if (step !== 2) e.preventDefault();
+          }}
         >
           <StepPills<StepIndex> steps={STEPS} current={step} onChange={setStep} />
 
@@ -471,11 +481,22 @@ function Footer({
         &larr; Back
       </Button>
       {step < 2 ? (
-        <Button type="button" variant="primary" size="md" onClick={onNext}>
+        <Button
+          key="continue"
+          type="button"
+          variant="primary"
+          size="md"
+          onClick={(e) => {
+            // Drop focus so a subsequent Enter can't land on the
+            // freshly-mounted Submit button after the re-render.
+            e.currentTarget.blur();
+            onNext();
+          }}
+        >
           Continue
         </Button>
       ) : (
-        <Button type="submit" variant="primary" size="md" disabled={pending}>
+        <Button key="submit" type="submit" variant="primary" size="md" disabled={pending}>
           {submitLabel}
         </Button>
       )}
