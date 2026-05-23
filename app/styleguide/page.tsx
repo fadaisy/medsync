@@ -2,6 +2,7 @@ import type { ClinicalStatus } from "@/components/medsync/clinical-badge";
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { MyHealthMock } from "@/components/landing/_my-health-mock";
 import { ClinicalBadge } from "@/components/medsync/clinical-badge";
 import { ClinicalPath } from "@/components/medsync/clinical-path";
 import { SectionNumber } from "@/components/medsync/section-number";
@@ -558,6 +559,46 @@ export default function StyleguidePage() {
                 </div>
               ))}
             </div>
+          </Section>
+
+          {/* 14 — Landing patient mock (addendum GATE PA review) */}
+          <Section
+            n={14}
+            title="Patient-experience mock — “MedSync · My Health”"
+            subtitle="Patient-end twin of the §05b Clinician Home. Static composition; same Amina N. (MS-00184), same date/time, same medications, same glucose values. Renderable as the full device or as fragments for embedding inside §07 scenes and the new patient chapter."
+          >
+            <div className="grid gap-12 lg:grid-cols-12 lg:gap-10">
+              {/* Full device */}
+              <div className="lg:col-span-5">
+                <p className="text-muted-foreground mb-3 font-mono text-[10px] tracking-[0.18em] uppercase">
+                  fragment = full
+                </p>
+                <MyHealthMock />
+              </div>
+
+              {/* Fragments column */}
+              <div className="flex flex-col gap-10 lg:col-span-7">
+                {[
+                  { label: "fragment = log-reading", value: "log-reading" as const },
+                  { label: "fragment = today-meds", value: "today-meds" as const },
+                  { label: "fragment = sms-offline", value: "sms-offline" as const },
+                  { label: "fragment = report-concern", value: "report-concern" as const },
+                ].map((f) => (
+                  <div key={f.value}>
+                    <p className="text-muted-foreground mb-3 font-mono text-[10px] tracking-[0.18em] uppercase">
+                      {f.label}
+                    </p>
+                    <MyHealthMock fragment={f.value} />
+                  </div>
+                ))}
+              </div>
+            </div>
+            <p className="text-muted-foreground mt-8 max-w-prose text-[12px] italic">
+              Tone (addendum §C): encouraging never shaming, calm never alarming. The held
+              medication is labelled “held by your care team” — never a patient failure. Streak text
+              is “X days on track” (not “% compliant”). “Something feels off?” is a calm channel,
+              not an emergency button.
+            </p>
           </Section>
         </div>
 

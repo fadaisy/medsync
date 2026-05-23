@@ -140,7 +140,7 @@ function CardHeader() {
           Admitted
         </span>
         <p className="text-muted-foreground text-right text-[11px]">
-          Primary &middot; Dr. M. Okello
+          Primary &middot; Dr. Usama Fadhul
         </p>
         <p className="text-muted-foreground inline-flex items-center gap-1 text-right text-[11px]">
           <PhoneIcon className="size-3" strokeWidth={1.75} />
@@ -604,12 +604,23 @@ function CareTeamAndAudit() {
 function CareTeam() {
   const people = [
     {
-      initials: "MO",
-      name: "Dr. M. Okello",
+      initials: "UF",
+      name: "Dr. Usama Fadhul",
       role: "MD · Diabetology · primary",
       tone: "teal" as const,
     },
-    { initials: "SA", name: "Dr. S. Akello", role: "Cardiology consult", tone: "violet" as const },
+    {
+      initials: "NN",
+      name: "Dr. Nuwagira Nelson",
+      role: "Cardiology consult",
+      tone: "violet" as const,
+    },
+    {
+      initials: "SV",
+      name: "Dr. Ssebuliba Victor",
+      role: "Endocrinology consult",
+      tone: "teal" as const,
+    },
     { initials: "RN", name: "R. Namuli", role: "Nurse · ward IM-A", tone: "amber" as const },
     { initials: "JP", name: "J. Ponsiano", role: "Pharmacist", tone: "neutral" as const },
     { initials: "EM", name: "E. Musoke", role: "Community CHW", tone: "neutral" as const },
@@ -648,7 +659,7 @@ function CareTeam() {
 
 function AuditTrail() {
   const entries = [
-    { ts: "Today 07:42", who: "Dr. M. Okello", what: "Signed insulin sliding-scale order" },
+    { ts: "Today 07:42", who: "Dr. Usama Fadhul", what: "Signed insulin sliding-scale order" },
     { ts: "Today 06:15", who: "Lab system", what: "Uploaded HbA1c · 9.8 %" },
     {
       ts: "Yesterday 23:55",
@@ -660,13 +671,18 @@ function AuditTrail() {
       who: "Routing rule",
       what: "Critical alert escalated to on-call diabetology",
     },
-    { ts: "Yesterday 14:30", who: "Dr. M. Okello", what: "Held morning glibenclamide" },
+    {
+      ts: "Yesterday 18:05",
+      who: "Dr. Ahabwe Alvin",
+      what: "Cross-checked microalbumin trend with nephrology",
+    },
+    { ts: "Yesterday 14:30", who: "Dr. Usama Fadhul", what: "Held morning glibenclamide" },
   ];
   return (
     <div className="flex flex-col gap-3 p-5 sm:p-6">
       <span className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
         <StethoscopeIcon className="size-3" strokeWidth={1.75} />
-        Audit trail &middot; last 5
+        Audit trail &middot; last 6
       </span>
       <ol className="flex flex-col gap-2">
         {entries.map((e) => (

@@ -147,7 +147,7 @@ function HomeMonitoringSurface() {
         </div>
       </div>
       <div className="border-border text-muted-foreground flex items-center justify-between border-t pt-2 text-[10.5px]">
-        <span>Acknowledged by Dr. M. Okello · 22:15</span>
+        <span>Acknowledged by Dr. Usama Fadhul · 22:15</span>
         <span className="bg-status-stable-bg text-status-stable-fg inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 font-mono tracking-[0.15em] uppercase">
           <CheckCircle2Icon className="size-2.5" strokeWidth={2} />
           Closed

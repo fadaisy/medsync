@@ -1,7 +1,6 @@
 import {
   AdaptiveModel,
   AnnouncementBar,
-  ClinicianHomeMock,
   CtaBandMid,
   Ecosystem,
   Enrichment,
@@ -13,6 +12,7 @@ import {
   Hero,
   Nav,
   PatientCard,
+  PatientChapter,
   PlatformShowcase,
   SubBanner,
   TrustGovernance,
@@ -21,6 +21,7 @@ import {
   Vision,
   Voices,
 } from "@/components/landing";
+import { HeroSurfaces } from "@/components/landing/_hero-surfaces";
 
 /**
  * Landing page composition — mirrors Attio.com's section order, repurposed
@@ -38,10 +39,18 @@ export default function HomePage() {
         <FloatingQuote />
         <SubBanner />
         <Hero />
-        <ClinicianHomeMock />
+        {/* Patient-experience addendum (Edit 1): paired clinician
+            dashboard + patient phone so the hero shows both ends of
+            one loop. ClinicianHomeMock itself is unchanged. */}
+        <HeroSurfaces />
         <TrustStrip />
 
         <PlatformShowcase />
+        {/* Patient-experience addendum (Edit 3): the patient-POV
+            chapter, inserted between the [01] platform loop and the
+            mid-band CTA so the narrative reads:
+              platform / clinician loop → patient view → CTA → team. */}
+        <PatientChapter />
         <CtaBandMid />
 
         <AdaptiveModel />

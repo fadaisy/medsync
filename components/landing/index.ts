@@ -6,6 +6,7 @@ export { Hero } from "./05-hero";
 export { ClinicianHomeMock } from "./05-clinician-home-mock";
 export { TrustStrip } from "./06-trust-strip";
 export { PlatformShowcase } from "./07-platform-showcase";
+export { PatientChapter } from "./07b-patient-chapter";
 export { CtaBandMid } from "./08-cta-band";
 export { AdaptiveModel } from "./09-adaptive-model";
 export { Voices } from "./09-voices";

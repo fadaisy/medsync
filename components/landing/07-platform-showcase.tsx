@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { MyHealthMock } from "./_my-health-mock";
 
 /**
  * §07 — [01] Platform showcase (5-scene scroll-pin).
@@ -256,12 +257,51 @@ function SurfaceForScene({ scene }: { scene: number }) {
     case 2:
       return <TreatSurface />;
     case 3:
-      return <DischargeSurface />;
+      // Patient-experience addendum (Edit 2): the discharge scene now
+      // shows the patient end too — Amina seeing the meds list +
+      // tomorrow's reading prompt on her phone — paired with the
+      // discharge plan from the ward side. The loop, not just its
+      // output.
+      return (
+        <DualSurface
+          patient={<MyHealthMock fragment="log-reading" />}
+          clinician={<DischargeSurface />}
+        />
+      );
     case 4:
-      return <LoopSurface />;
+      // Patient-experience addendum (Edit 2): the loop-closes scene
+      // shows the SMS reminder arriving on the patient's phone +
+      // the care-team booking that the system triggered in response.
+      return (
+        <DualSurface
+          patient={<MyHealthMock fragment="sms-offline" />}
+          clinician={<LoopSurface />}
+        />
+      );
     default:
       return <AdmitSurface />;
   }
+}
+
+/**
+ * Compose a patient-side phone fragment with a clinician-side surface
+ * card for the two home-care scenes. Phone scales down at smaller widths
+ * so both stay legible inside the sticky pane without forcing a layout
+ * change to the showcase grid itself.
+ */
+function DualSurface({
+  patient,
+  clinician,
+}: {
+  patient: React.ReactNode;
+  clinician: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="mx-auto -my-8 origin-top scale-[0.7] sm:-my-6 sm:scale-[0.8]">{patient}</div>
+      {clinician}
+    </div>
+  );
 }
 
 function SurfaceShell({ children }: { children: React.ReactNode }) {
@@ -425,7 +465,7 @@ function TreatSurface() {
             <span className="font-medium">
               Allergy check passed &middot; no penicillin / sulpha conflict
             </span>
-            <span className="opacity-80">Signed: Dr. M. Okello &middot; 07:42</span>
+            <span className="opacity-80">Signed: Dr. Usama Fadhul &middot; 07:42</span>
           </div>
         </div>
       </div>
@@ -503,7 +543,7 @@ function LoopSurface() {
             Booked automatically
           </p>
           <p className="text-foreground tabular mt-1 text-[12px] font-medium">
-            Today 14:30 &middot; Tele follow-up &middot; Dr. M. Okello
+            Today 14:30 &middot; Tele follow-up &middot; Dr. Usama Fadhul
           </p>
           <p className="text-muted-foreground mt-0.5 text-[11px]">
             The next clinic visit starts with this reading already on screen.

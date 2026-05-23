@@ -164,7 +164,7 @@ function MainColumn() {
             Tuesday &middot; 22 May 2026 &middot; 07:42
           </p>
           <h3 className="font-display text-foreground text-[20px] leading-tight font-medium sm:text-[24px]">
-            Good morning, Dr. Okello.
+            Good morning, Dr. Fadhul.
           </h3>
         </div>
         <div className="flex items-center gap-2">
@@ -299,7 +299,7 @@ function PatientDetail() {
             Suggested slot
           </span>
           <span className="text-foreground tabular text-[12.5px] font-medium">
-            Today 14:30 &middot; with Dr. Okello
+            Today 14:30 &middot; with Dr. Fadhul
           </span>
         </div>
         <div className="flex items-center gap-1.5">
