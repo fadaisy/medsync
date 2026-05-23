@@ -23,3 +23,4 @@ export * from "./reference-clinical-catalog";
 export * from "./staff-affiliations";
 export * from "./signup-drafts";
 export * from "./patient-profiles";
+export * from "./hospital-applications";
