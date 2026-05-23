@@ -1,5 +1,6 @@
 "use client";
 
+import type { StepDef } from "../_components/step-list";
 import type { ClinicalSignupState } from "./actions";
 import type { PickedFile } from "@/components/form/file-upload";
 import * as React from "react";
@@ -15,6 +16,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { ChecklistCard, ReassuranceCard, SupportLine } from "../_components/aside-cards";
+import { SignupColumns } from "../_components/signup-columns";
+import { StepList, StepPills } from "../_components/step-list";
 import { submitClinicalSignupAction } from "./actions";
 
 export interface ClinicalRefItem {
@@ -36,7 +40,12 @@ export interface ClinicalRefData {
   roles: ReadonlyArray<ClinicalRefChildItem>;
 }
 
-const STEPS = ["Account", "Professional identity", "Affiliation"] as const;
+const STEPS: ReadonlyArray<StepDef> = [
+  { label: "Account", hint: "Name, email, password, phone" },
+  { label: "Professional identity", hint: "Council, registration, licence" },
+  { label: "Affiliation", hint: "Hospital, department, role" },
+];
+
 type StepIndex = 0 | 1 | 2;
 
 const EMPLOYMENT_OPTIONS = [
@@ -64,7 +73,6 @@ export function ClinicalSignupForm({ refData }: { refData: ClinicalRefData }) {
 
   const [step, setStep] = React.useState<StepIndex>(0);
 
-  // Controlled values for non-native widgets.
   const [councilId, setCouncilId] = React.useState<string | null>(initialValues.council_id || null);
   const [expiry, setExpiry] = React.useState<Date | null>(
     initialValues.registration_expiry ? new Date(initialValues.registration_expiry) : null,
@@ -88,8 +96,6 @@ export function ClinicalSignupForm({ refData }: { refData: ClinicalRefData }) {
     initialValues.primary_role ?? null,
   );
 
-  // Bubble licence file selection into a hidden <input type="file"> for
-  // FormData submission. We re-mirror onto a real file input via a ref.
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   React.useEffect(() => {
     if (!fileInputRef.current) return;
@@ -98,7 +104,6 @@ export function ClinicalSignupForm({ refData }: { refData: ClinicalRefData }) {
     fileInputRef.current.files = dt.files;
   }, [licenceFiles]);
 
-  // Jump to the step holding a server-side error.
   const { errors } = state;
   const [prevErrors, setPrevErrors] = React.useState(errors);
   if (errors !== prevErrors) {
@@ -138,350 +143,358 @@ export function ClinicalSignupForm({ refData }: { refData: ClinicalRefData }) {
   }
 
   return (
-    <form
-      action={formAction}
-      encType="multipart/form-data"
-      className="flex flex-col gap-6"
-      noValidate
-    >
-      <ol className="flex items-center gap-1.5" aria-label="Signup progress">
-        {STEPS.map((label, i) => {
-          const active = i === step;
-          const visited = i < step;
-          return (
-            <li key={label} className="flex flex-1 items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setStep(i as StepIndex)}
-                className={cn(
-                  "flex flex-1 items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-[12px] transition-colors",
-                  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500",
-                  active
-                    ? "text-foreground bg-teal-500/10"
-                    : visited
-                      ? "text-foreground hover:bg-muted"
-                      : "text-muted-foreground hover:bg-muted",
-                )}
-                aria-current={active ? "step" : undefined}
-              >
-                <span
-                  className={cn(
-                    "inline-flex size-5 shrink-0 items-center justify-center rounded-full font-mono text-[10px]",
-                    active
-                      ? "bg-teal-500 text-white"
-                      : visited
-                        ? "bg-teal-500/20 text-teal-700 dark:text-teal-300"
-                        : "border-border text-muted-foreground border",
-                  )}
-                >
-                  {i + 1}
-                </span>
-                <span className="truncate font-medium">{label}</span>
-              </button>
-            </li>
-          );
-        })}
-      </ol>
-
-      <FormError message={errors?._form} />
-
-      {/* ── Step 1 — Account ───────────────────────────────────────── */}
-      <Section visible={step === 0}>
-        <Field label="Full name" htmlFor="full_name" error={errors?.full_name}>
-          <Input
-            id="full_name"
-            name="full_name"
-            type="text"
-            autoComplete="name"
-            required
-            defaultValue={initialValues.full_name}
-            aria-invalid={!!errors?.full_name}
+    <SignupColumns
+      aside={
+        <>
+          <StepList<StepIndex> steps={STEPS} current={step} onChange={setStep} />
+          <ChecklistCard
+            title="You'll need"
+            tone="tealTinted"
+            items={[
+              "Your council registration number (UMDPC / UNMC / AHPC / PSU)",
+              "A scan of your practising licence (PDF, JPG or PNG · up to 5 MB)",
+              "The hospital + department you're joining",
+            ]}
           />
-        </Field>
-
-        <Field
-          label="Institutional email"
-          htmlFor="email"
-          error={errors?.email}
-          hint="Use the email your hospital uses for your account."
-        >
-          <Input
-            id="email"
-            name="email"
-            type="email"
-            autoComplete="email"
-            required
-            defaultValue={initialValues.email}
-            aria-invalid={!!errors?.email}
+          <ChecklistCard
+            title="After you submit"
+            items={[
+              "Email OTP to confirm your address (~1 min)",
+              "MFA enrolment — mandatory for clinical roles",
+              "Hospital admin approves your affiliation — usually within a working day",
+            ]}
           />
-        </Field>
+          <ReassuranceCard />
+          <SupportLine />
+        </>
+      }
+      form={
+        <form action={formAction} className="flex flex-col gap-5" noValidate>
+          <StepPills<StepIndex> steps={STEPS} current={step} onChange={setStep} />
 
-        <Field
-          label="Password"
-          htmlFor="password"
-          error={errors?.password}
-          hint="At least 12 characters."
-        >
-          <Input
-            id="password"
-            name="password"
-            type="password"
-            autoComplete="new-password"
-            minLength={12}
-            required
-            aria-invalid={!!errors?.password}
-          />
-        </Field>
+          <FormError message={errors?._form} />
 
-        <Field label="Phone" htmlFor="phone" error={errors?.phone}>
-          <Input
-            id="phone"
-            name="phone"
-            type="tel"
-            inputMode="tel"
-            autoComplete="tel"
-            placeholder="+256 700 000 000"
-            required
-            defaultValue={initialValues.phone}
-            aria-invalid={!!errors?.phone}
-          />
-        </Field>
+          {/* ── Step 1 — Account ───────────────────────────────────── */}
+          <StepCard
+            visible={step === 0}
+            number="01"
+            title="Account basics"
+            description="Your work email and a strong password."
+          >
+            <Field label="Full name" htmlFor="full_name" error={errors?.full_name}>
+              <Input
+                id="full_name"
+                name="full_name"
+                type="text"
+                autoComplete="name"
+                required
+                defaultValue={initialValues.full_name}
+                aria-invalid={!!errors?.full_name}
+              />
+            </Field>
 
-        <Footer>
-          <Button type="button" variant="primary" size="md" onClick={next}>
-            Next: professional identity
-          </Button>
-        </Footer>
-      </Section>
+            <Field
+              label="Institutional email"
+              htmlFor="email"
+              error={errors?.email}
+              hint="Use the email your hospital uses for your account."
+            >
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                defaultValue={initialValues.email}
+                aria-invalid={!!errors?.email}
+              />
+            </Field>
 
-      {/* ── Step 2 — Professional identity ─────────────────────────── */}
-      <Section visible={step === 1}>
-        <Field label="Council" htmlFor="council_id" error={errors?.council_id}>
-          <Combobox
-            id="council_id"
-            items={refData.councils}
-            value={councilId}
-            onValueChange={(v) => {
-              setCouncilId(v);
-              setCadreId(null);
-              setRoleId(null);
-            }}
-            name="council_id"
-            placeholder="Pick a regulator"
-            searchPlaceholder="UMDPC, UNMC, AHPC, PSU…"
-          />
-        </Field>
+            <Field
+              label="Password"
+              htmlFor="password"
+              error={errors?.password}
+              hint="At least 12 characters."
+            >
+              <Input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="new-password"
+                minLength={12}
+                required
+                aria-invalid={!!errors?.password}
+              />
+            </Field>
 
-        <Field
-          label="Council registration number"
-          htmlFor="registration_number"
-          error={errors?.registration_number}
-        >
-          <Input
-            id="registration_number"
-            name="registration_number"
-            type="text"
-            autoComplete="off"
-            required
-            defaultValue={initialValues.registration_number}
-            aria-invalid={!!errors?.registration_number}
-            className="font-mono tracking-wider"
-          />
-        </Field>
+            <Field label="Phone" htmlFor="phone" error={errors?.phone}>
+              <Input
+                id="phone"
+                name="phone"
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                placeholder="+256 700 000 000"
+                required
+                defaultValue={initialValues.phone}
+                aria-invalid={!!errors?.phone}
+              />
+            </Field>
+          </StepCard>
 
-        <Field
-          label="Registration expiry (optional)"
-          htmlFor="registration_expiry"
-          error={errors?.registration_expiry}
-          hint="Practising certificate expiry, if you have it."
-        >
-          <DatePicker
-            id="registration_expiry"
-            mode="single"
-            value={expiry}
-            onValueChange={setExpiry}
-            placeholder="Pick expiry date"
-            withDropdownCaption={false}
-            fromDate={new Date()}
-          />
-          <input
-            type="hidden"
-            name="registration_expiry"
-            value={expiry ? expiry.toISOString().slice(0, 10) : ""}
-          />
-        </Field>
+          {/* ── Step 2 — Professional identity ─────────────────────── */}
+          <StepCard
+            visible={step === 1}
+            number="02"
+            title="Professional identity"
+            description="Council registration + your current practising licence."
+          >
+            <Field label="Council" htmlFor="council_id" error={errors?.council_id}>
+              <Combobox
+                id="council_id"
+                items={refData.councils}
+                value={councilId}
+                onValueChange={(v) => {
+                  setCouncilId(v);
+                  setCadreId(null);
+                  setRoleId(null);
+                }}
+                name="council_id"
+                placeholder="Pick a regulator"
+                searchPlaceholder="UMDPC, UNMC, AHPC, PSU…"
+              />
+            </Field>
 
-        <Field
-          label="Licence document"
-          htmlFor="licence_document"
-          error={errors?.licence_document}
-          hint="PDF, JPG or PNG up to 5 MB. Stored encrypted; only your hospital admin and a superadmin can open it."
-        >
-          <FileUpload
-            id="licence_document_picker"
-            value={licenceFiles}
-            onFilesChange={setLicenceFiles}
-            accept=".pdf,image/jpeg,image/png"
-            maxSize={5 * 1024 * 1024}
-            aria-label="Licence document"
-          />
-          <input
-            ref={fileInputRef}
-            type="file"
-            name="licence_document"
-            accept=".pdf,image/jpeg,image/png"
-            className="hidden"
-            tabIndex={-1}
-            aria-hidden
-          />
-        </Field>
+            <Field
+              label="Council registration number"
+              htmlFor="registration_number"
+              error={errors?.registration_number}
+            >
+              <Input
+                id="registration_number"
+                name="registration_number"
+                type="text"
+                autoComplete="off"
+                required
+                defaultValue={initialValues.registration_number}
+                aria-invalid={!!errors?.registration_number}
+                className="font-mono tracking-wider"
+              />
+            </Field>
 
-        <Field label="Primary role" htmlFor="primary_role" error={errors?.primary_role}>
-          <SegmentedControl
-            options={PRIMARY_ROLE_OPTIONS}
-            value={primaryRole as (typeof PRIMARY_ROLE_OPTIONS)[number]["value"] | null}
-            onValueChange={(v) => setPrimaryRole(v)}
-            name="primary_role"
-            size="sm"
-            aria-label="Primary role"
-          />
-        </Field>
+            <Field
+              label="Registration expiry (optional)"
+              htmlFor="registration_expiry"
+              error={errors?.registration_expiry}
+              hint="Practising certificate expiry, if you have it."
+            >
+              <DatePicker
+                id="registration_expiry"
+                mode="single"
+                value={expiry}
+                onValueChange={setExpiry}
+                placeholder="Pick expiry date"
+                withDropdownCaption={false}
+                fromDate={new Date()}
+              />
+              <input
+                type="hidden"
+                name="registration_expiry"
+                value={expiry ? expiry.toISOString().slice(0, 10) : ""}
+              />
+            </Field>
 
-        <Footer>
-          <Button type="button" variant="secondary" size="md" onClick={prev}>
-            Back
-          </Button>
-          <Button type="button" variant="primary" size="md" onClick={next}>
-            Next: affiliation
-          </Button>
-        </Footer>
-      </Section>
+            <Field
+              label="Licence document"
+              htmlFor="licence_document"
+              error={errors?.licence_document}
+              hint="PDF, JPG or PNG up to 5 MB. Stored encrypted; only your hospital admin and a superadmin can open it."
+            >
+              <FileUpload
+                id="licence_document_picker"
+                value={licenceFiles}
+                onFilesChange={setLicenceFiles}
+                accept=".pdf,image/jpeg,image/png"
+                maxSize={5 * 1024 * 1024}
+                aria-label="Licence document"
+              />
+              <input
+                ref={fileInputRef}
+                type="file"
+                name="licence_document"
+                accept=".pdf,image/jpeg,image/png"
+                className="hidden"
+                tabIndex={-1}
+                aria-hidden
+              />
+            </Field>
 
-      {/* ── Step 3 — Affiliation ───────────────────────────────────── */}
-      <Section visible={step === 2}>
-        <Field label="Hospital" htmlFor="hospital_id" error={errors?.hospital_id}>
-          <Combobox
-            id="hospital_id"
-            items={refData.hospitals}
-            value={hospitalId}
-            onValueChange={(v) => {
-              setHospitalId(v);
-              setDepartmentId(null);
-            }}
-            name="hospital_id"
-            placeholder="Pick a hospital"
-            searchPlaceholder="Search hospitals…"
-          />
-        </Field>
+            <Field label="Primary role" htmlFor="primary_role" error={errors?.primary_role}>
+              <SegmentedControl
+                options={PRIMARY_ROLE_OPTIONS}
+                value={primaryRole as (typeof PRIMARY_ROLE_OPTIONS)[number]["value"] | null}
+                onValueChange={(v) => setPrimaryRole(v)}
+                name="primary_role"
+                size="sm"
+                aria-label="Primary role"
+              />
+            </Field>
+          </StepCard>
 
-        <Field label="Department" htmlFor="department_id" error={errors?.department_id}>
-          <CascadingCombobox
-            id="department_id"
-            items={refData.departments}
-            parentValue={hospitalId}
-            value={departmentId}
-            onValueChange={setDepartmentId}
-            name="department_id"
-            placeholder="Pick a department"
-            placeholderEmptyParent="Pick a hospital first"
-          />
-        </Field>
+          {/* ── Step 3 — Affiliation ───────────────────────────────── */}
+          <StepCard
+            visible={step === 2}
+            number="03"
+            title="First affiliation"
+            description="Pick where you'll be practising. You can add more after approval."
+          >
+            <Field label="Hospital" htmlFor="hospital_id" error={errors?.hospital_id}>
+              <Combobox
+                id="hospital_id"
+                items={refData.hospitals}
+                value={hospitalId}
+                onValueChange={(v) => {
+                  setHospitalId(v);
+                  setDepartmentId(null);
+                }}
+                name="hospital_id"
+                placeholder="Pick a hospital"
+                searchPlaceholder="Search hospitals…"
+              />
+            </Field>
 
-        <Field label="Cadre" htmlFor="cadre_id" error={errors?.cadre_id}>
-          <CascadingCombobox
-            id="cadre_id"
-            items={refData.cadres}
-            parentValue={councilId}
-            value={cadreId}
-            onValueChange={(v) => {
-              setCadreId(v);
-              setRoleId(null);
-            }}
-            name="cadre_id"
-            placeholder="Pick a cadre"
-            placeholderEmptyParent="Pick a council in step 2 first"
-          />
-        </Field>
+            <Field label="Department" htmlFor="department_id" error={errors?.department_id}>
+              <CascadingCombobox
+                id="department_id"
+                items={refData.departments}
+                parentValue={hospitalId}
+                value={departmentId}
+                onValueChange={setDepartmentId}
+                name="department_id"
+                placeholder="Pick a department"
+                placeholderEmptyParent="Pick a hospital first"
+              />
+            </Field>
 
-        <Field label="Role" htmlFor="role_id" error={errors?.role_id}>
-          <CascadingCombobox
-            id="role_id"
-            items={refData.roles}
-            parentValue={cadreId}
-            value={roleId}
-            onValueChange={setRoleId}
-            name="role_id"
-            placeholder="Pick a role"
-            placeholderEmptyParent="Pick a cadre first"
-          />
-        </Field>
+            <Field label="Cadre" htmlFor="cadre_id" error={errors?.cadre_id}>
+              <CascadingCombobox
+                id="cadre_id"
+                items={refData.cadres}
+                parentValue={councilId}
+                value={cadreId}
+                onValueChange={(v) => {
+                  setCadreId(v);
+                  setRoleId(null);
+                }}
+                name="cadre_id"
+                placeholder="Pick a cadre"
+                placeholderEmptyParent="Pick a council in step 2 first"
+              />
+            </Field>
 
-        <Field label="Specialty (optional)" htmlFor="specialty_id" error={errors?.specialty_id}>
-          <Combobox
-            id="specialty_id"
-            items={refData.specialties}
-            value={specialtyId}
-            onValueChange={setSpecialtyId}
-            name="specialty_id"
-            placeholder="Search specialties…"
-            searchPlaceholder="Cardiology, Nephrology…"
-          />
-        </Field>
+            <Field label="Role" htmlFor="role_id" error={errors?.role_id}>
+              <CascadingCombobox
+                id="role_id"
+                items={refData.roles}
+                parentValue={cadreId}
+                value={roleId}
+                onValueChange={setRoleId}
+                name="role_id"
+                placeholder="Pick a role"
+                placeholderEmptyParent="Pick a cadre first"
+              />
+            </Field>
 
-        <Field label="Employment type" htmlFor="employment_type" error={errors?.employment_type}>
-          <SegmentedControl
-            options={EMPLOYMENT_OPTIONS}
-            value={employmentType as (typeof EMPLOYMENT_OPTIONS)[number]["value"] | null}
-            onValueChange={(v) => setEmploymentType(v)}
-            name="employment_type"
-            size="sm"
-            aria-label="Employment type"
-          />
-        </Field>
+            <Field label="Specialty (optional)" htmlFor="specialty_id" error={errors?.specialty_id}>
+              <Combobox
+                id="specialty_id"
+                items={refData.specialties}
+                value={specialtyId}
+                onValueChange={setSpecialtyId}
+                name="specialty_id"
+                placeholder="Search specialties…"
+                searchPlaceholder="Cardiology, Nephrology…"
+              />
+            </Field>
 
-        <div className="border-border bg-muted/30 flex flex-col gap-2 rounded-md border p-3">
-          <label htmlFor="consent" className="flex items-start gap-2 text-[13px]">
-            <input
-              id="consent"
-              name="consent"
-              type="checkbox"
-              required
-              className="border-border mt-0.5 size-4 shrink-0 rounded-sm text-teal-500 focus-visible:ring-teal-500"
-            />
-            <span className="text-foreground/90">
+            <Field
+              label="Employment type"
+              htmlFor="employment_type"
+              error={errors?.employment_type}
+            >
+              <SegmentedControl
+                options={EMPLOYMENT_OPTIONS}
+                value={employmentType as (typeof EMPLOYMENT_OPTIONS)[number]["value"] | null}
+                onValueChange={(v) => setEmploymentType(v)}
+                name="employment_type"
+                size="sm"
+                aria-label="Employment type"
+              />
+            </Field>
+
+            <ConsentBox error={errors?.consent}>
               I confirm I&apos;m the holder of the council registration above. I agree to
               MedSync&apos;s clinical-staff terms — including MFA on every session and that my
               affiliation is inert until my hospital admin approves it.
-            </span>
-          </label>
-          {errors?.consent ? <FieldError message={errors.consent} /> : null}
-        </div>
+            </ConsentBox>
 
-        <Footer>
-          <Button type="button" variant="secondary" size="md" onClick={prev}>
-            Back
-          </Button>
-          <Button type="submit" variant="primary" size="md" disabled={pending}>
-            {pending ? "Submitting…" : "Submit for verification"}
-          </Button>
-        </Footer>
+            <p className="text-muted-foreground -mt-1 text-[11.5px]">
+              We&apos;ll email you a 6-digit code to confirm your address. After that you land in
+              your hospital admin&apos;s approval queue.
+            </p>
+          </StepCard>
 
-        <p className="text-muted-foreground mt-2 text-[11.5px]">
-          We&apos;ll email you a 6-digit code to confirm your address. After that you&apos;ll land
-          in a pending-approval queue for your hospital admin to review.
-        </p>
-      </Section>
-    </form>
+          <Footer
+            step={step}
+            onPrev={prev}
+            onNext={next}
+            pending={pending}
+            submitLabel={pending ? "Submitting…" : "Submit for verification"}
+          />
+        </form>
+      }
+    />
   );
 }
 
-// ─── Layout helpers ─────────────────────────────────────────────────────
+// ─── Shared chrome (same as patient form) ───────────────────────────────
 
-function Section({ visible, children }: { visible: boolean; children: React.ReactNode }) {
+function StepCard({
+  visible,
+  number,
+  title,
+  description,
+  children,
+}: {
+  visible: boolean;
+  number: string;
+  title: string;
+  description: string;
+  children: React.ReactNode;
+}) {
   return (
-    <div className={cn("flex flex-col gap-5", visible ? "block" : "hidden")} aria-hidden={!visible}>
-      {children}
-    </div>
+    <section
+      className={cn(
+        "border-border bg-card flex flex-col gap-5 rounded-xl border p-5 shadow-xs sm:p-6",
+        visible ? "block" : "hidden",
+      )}
+      aria-hidden={!visible}
+    >
+      <header className="flex items-start gap-3">
+        <span
+          aria-hidden
+          className="border-border bg-muted text-muted-foreground inline-flex h-6 items-center rounded-xs border px-1.5 font-mono text-[11px] leading-none font-semibold tabular-nums"
+        >
+          [{number}]
+        </span>
+        <div className="flex min-w-0 flex-col gap-0.5">
+          <h2 className="text-foreground text-[16px] leading-tight font-medium">{title}</h2>
+          <p className="text-muted-foreground text-[12.5px] leading-snug">{description}</p>
+        </div>
+      </header>
+      <div className="border-border -mx-5 border-t sm:-mx-6" />
+      <div className="flex flex-col gap-5">{children}</div>
+    </section>
   );
 }
 
@@ -511,10 +524,58 @@ function Field({
   );
 }
 
-function Footer({ children }: { children: React.ReactNode }) {
+function ConsentBox({ error, children }: { error?: string; children: React.ReactNode }) {
   return (
-    <div className="border-gray-150 mt-2 flex items-center justify-end gap-2 border-t pt-4">
-      {children}
+    <div className="border-border bg-muted/40 flex flex-col gap-2 rounded-md border p-3">
+      <label htmlFor="consent" className="flex items-start gap-2 text-[13px]">
+        <input
+          id="consent"
+          name="consent"
+          type="checkbox"
+          required
+          className="border-border mt-0.5 size-4 shrink-0 rounded-sm text-teal-500 focus-visible:ring-teal-500"
+        />
+        <span className="text-foreground/90 leading-snug">{children}</span>
+      </label>
+      {error ? <FieldError message={error} /> : null}
+    </div>
+  );
+}
+
+function Footer({
+  step,
+  onPrev,
+  onNext,
+  pending,
+  submitLabel,
+}: {
+  step: StepIndex;
+  onPrev: () => void;
+  onNext: () => void;
+  pending: boolean;
+  submitLabel: string;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-2 pt-1">
+      <Button
+        type="button"
+        variant="ghost"
+        size="md"
+        onClick={onPrev}
+        disabled={step === 0}
+        className={cn(step === 0 && "invisible")}
+      >
+        &larr; Back
+      </Button>
+      {step < 2 ? (
+        <Button type="button" variant="primary" size="md" onClick={onNext}>
+          Continue
+        </Button>
+      ) : (
+        <Button type="submit" variant="primary" size="md" disabled={pending}>
+          {submitLabel}
+        </Button>
+      )}
     </div>
   );
 }

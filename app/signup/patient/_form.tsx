@@ -1,5 +1,6 @@
 "use client";
 
+import type { StepDef } from "../_components/step-list";
 import type { SignupState } from "./actions";
 import * as React from "react";
 import { useActionState } from "react";
@@ -13,6 +14,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { ChecklistCard, ReassuranceCard, SupportLine } from "../_components/aside-cards";
+import { SignupColumns } from "../_components/signup-columns";
+import { StepList, StepPills } from "../_components/step-list";
 import { submitSignupAction } from "./actions";
 
 export interface DistrictOption {
@@ -32,7 +36,12 @@ interface PatientSignupFormProps {
   subcounties: ReadonlyArray<SubcountyOption>;
 }
 
-const STEPS = ["About you", "ID & location", "Account & consent"] as const;
+const STEPS: ReadonlyArray<StepDef> = [
+  { label: "About you", hint: "Name, sex, date of birth, phone" },
+  { label: "ID & location", hint: "NIN or passport, district, language" },
+  { label: "Account & consent", hint: "Email, password, terms" },
+];
+
 type StepIndex = 0 | 1 | 2;
 
 const SEX_OPTIONS = [
@@ -56,14 +65,10 @@ function isStepIndex(n: number): n is StepIndex {
 
 export function PatientSignupForm({ districts, subcounties }: PatientSignupFormProps) {
   const [state, formAction, pending] = useActionState(submitSignupAction, initialState);
-
-  // Controlled fields: things that need a non-native widget. Everything
-  // else (text/email/password) is uncontrolled — its value persists in
-  // the DOM across step navigation because we render every step's
-  // inputs and only toggle CSS display.
   const initialValues = state.values ?? {};
 
   const [step, setStep] = React.useState<StepIndex>(0);
+
   const [sex, setSex] = React.useState<string | null>(initialValues.sex ?? null);
   const [dob, setDob] = React.useState<Date | null>(
     initialValues.date_of_birth ? new Date(initialValues.date_of_birth) : null,
@@ -76,11 +81,7 @@ export function PatientSignupForm({ districts, subcounties }: PatientSignupFormP
     initialValues.subcounty_id || null,
   );
 
-  // When the server returns an error, jump to the first step that
-  // contains an errored field so the user sees the message. We detect
-  // the change by comparing the `errors` reference against the prior
-  // render's value — React's recommended "store prior values" pattern
-  // (lets us setState during render, conditionally, without an effect).
+  // Jump to the step holding a server-side error (store-prior-values pattern).
   const { errors } = state;
   const [prevErrors, setPrevErrors] = React.useState(errors);
   if (errors !== prevErrors) {
@@ -106,280 +107,282 @@ export function PatientSignupForm({ districts, subcounties }: PatientSignupFormP
   }
 
   return (
-    <form action={formAction} className="flex flex-col gap-6" noValidate>
-      {/* Step tabs — clickable so the user can hop sections */}
-      <ol className="flex items-center gap-1.5" aria-label="Signup progress">
-        {STEPS.map((label, i) => {
-          const active = i === step;
-          const visited = i < step;
-          return (
-            <li key={label} className="flex flex-1 items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setStep(i as StepIndex)}
-                className={cn(
-                  "flex flex-1 items-center gap-2 rounded-md px-2.5 py-1.5 text-left text-[12px] transition-colors",
-                  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-500",
-                  active
-                    ? "text-foreground bg-teal-500/10"
-                    : visited
-                      ? "text-foreground hover:bg-muted"
-                      : "text-muted-foreground hover:bg-muted",
-                )}
-                aria-current={active ? "step" : undefined}
-              >
-                <span
-                  className={cn(
-                    "inline-flex size-5 shrink-0 items-center justify-center rounded-full font-mono text-[10px]",
-                    active
-                      ? "bg-teal-500 text-white"
-                      : visited
-                        ? "bg-teal-500/20 text-teal-700 dark:text-teal-300"
-                        : "border-border text-muted-foreground border",
-                  )}
-                >
-                  {i + 1}
-                </span>
-                <span className="truncate font-medium">{label}</span>
-              </button>
-            </li>
-          );
-        })}
-      </ol>
-
-      <FormError message={errors?._form} />
-
-      {/* ── Step 1 — About you ─────────────────────────────────────── */}
-      <Section visible={step === 0}>
-        <Field label="Full name" htmlFor="full_name" error={errors?.full_name}>
-          <Input
-            id="full_name"
-            name="full_name"
-            type="text"
-            autoComplete="name"
-            required
-            defaultValue={initialValues.full_name}
-            aria-invalid={!!errors?.full_name}
+    <SignupColumns
+      aside={
+        <>
+          <StepList<StepIndex> steps={STEPS} current={step} onChange={setStep} />
+          <ChecklistCard
+            title="What you'll get"
+            tone="tealTinted"
+            items={[
+              "A patient ID (MS-2026-XXXXX) for any MedSync hospital",
+              "Encrypted record only you and your care team can read",
+              "SMS reminders for medications and follow-ups",
+            ]}
           />
-        </Field>
+          <ReassuranceCard />
+          <SupportLine />
+        </>
+      }
+      form={
+        <form action={formAction} className="flex flex-col gap-5" noValidate>
+          <StepPills<StepIndex> steps={STEPS} current={step} onChange={setStep} />
 
-        <Field label="Sex" htmlFor="sex" error={errors?.sex}>
-          <SegmentedControl
-            options={SEX_OPTIONS}
-            value={sex as (typeof SEX_OPTIONS)[number]["value"] | null}
-            onValueChange={(v) => setSex(v)}
-            name="sex"
-            aria-label="Sex"
-          />
-        </Field>
+          <FormError message={errors?._form} />
 
-        <Field label="Date of birth" htmlFor="date_of_birth" error={errors?.date_of_birth}>
-          <DatePicker
-            id="date_of_birth"
-            mode="single"
-            value={dob}
-            onValueChange={setDob}
-            placeholder="Pick your date of birth"
-            fromDate={new Date(1900, 0, 1)}
-            toDate={new Date()}
-            aria-invalid={!!errors?.date_of_birth}
-          />
-          {/* Hidden ISO date for form submission. */}
-          <input
-            type="hidden"
-            name="date_of_birth"
-            value={dob ? dob.toISOString().slice(0, 10) : ""}
-          />
-        </Field>
+          {/* ── Step 1 — About you ─────────────────────────────────── */}
+          <StepCard
+            visible={step === 0}
+            number="01"
+            title="About you"
+            description="Basics your care team uses to find your record."
+          >
+            <Field label="Full name" htmlFor="full_name" error={errors?.full_name}>
+              <Input
+                id="full_name"
+                name="full_name"
+                type="text"
+                autoComplete="name"
+                required
+                defaultValue={initialValues.full_name}
+                aria-invalid={!!errors?.full_name}
+              />
+            </Field>
 
-        <Field label="Phone (with country code)" htmlFor="phone" error={errors?.phone}>
-          <Input
-            id="phone"
-            name="phone"
-            type="tel"
-            inputMode="tel"
-            autoComplete="tel"
-            placeholder="+256 700 000 000"
-            required
-            defaultValue={initialValues.phone}
-            aria-invalid={!!errors?.phone}
-          />
-        </Field>
+            <Field label="Sex" htmlFor="sex" error={errors?.sex}>
+              <SegmentedControl
+                options={SEX_OPTIONS}
+                value={sex as (typeof SEX_OPTIONS)[number]["value"] | null}
+                onValueChange={(v) => setSex(v)}
+                name="sex"
+                aria-label="Sex"
+              />
+            </Field>
 
-        <Footer>
-          <Button type="button" variant="primary" size="md" onClick={next}>
-            Next: ID &amp; location
-          </Button>
-        </Footer>
-      </Section>
+            <Field label="Date of birth" htmlFor="date_of_birth" error={errors?.date_of_birth}>
+              <DatePicker
+                id="date_of_birth"
+                mode="single"
+                value={dob}
+                onValueChange={setDob}
+                placeholder="Pick your date of birth"
+                fromDate={new Date(1900, 0, 1)}
+                toDate={new Date()}
+                aria-invalid={!!errors?.date_of_birth}
+              />
+              <input
+                type="hidden"
+                name="date_of_birth"
+                value={dob ? dob.toISOString().slice(0, 10) : ""}
+              />
+            </Field>
 
-      {/* ── Step 2 — ID & location ─────────────────────────────────── */}
-      <Section visible={step === 1}>
-        <Field label="ID type" htmlFor="id_type" error={errors?.id_type}>
-          <SegmentedControl
-            options={ID_OPTIONS}
-            value={idType as (typeof ID_OPTIONS)[number]["value"] | null}
-            onValueChange={(v) => setIdType(v)}
-            name="id_type"
-            size="sm"
-            aria-label="ID type"
-          />
-        </Field>
+            <Field label="Phone (with country code)" htmlFor="phone" error={errors?.phone}>
+              <Input
+                id="phone"
+                name="phone"
+                type="tel"
+                inputMode="tel"
+                autoComplete="tel"
+                placeholder="+256 700 000 000"
+                required
+                defaultValue={initialValues.phone}
+                aria-invalid={!!errors?.phone}
+              />
+            </Field>
+          </StepCard>
 
-        <Field
-          label={idType === "none" ? "ID number (not applicable)" : "ID number"}
-          htmlFor="id_number"
-          error={errors?.id_number}
-          hint="Encrypted at rest. Only you and your care team can read it."
-        >
-          <Input
-            id="id_number"
-            name="id_number"
-            type="text"
-            autoComplete="off"
-            disabled={idType === "none"}
-            defaultValue={initialValues.id_number}
-            aria-invalid={!!errors?.id_number}
-            className="font-mono tracking-wider"
-          />
-        </Field>
+          {/* ── Step 2 — ID & location ─────────────────────────────── */}
+          <StepCard
+            visible={step === 1}
+            number="02"
+            title="ID & location"
+            description="What we encrypt and where to route your follow-ups."
+          >
+            <Field label="ID type" htmlFor="id_type" error={errors?.id_type}>
+              <SegmentedControl
+                options={ID_OPTIONS}
+                value={idType as (typeof ID_OPTIONS)[number]["value"] | null}
+                onValueChange={(v) => setIdType(v)}
+                name="id_type"
+                size="sm"
+                aria-label="ID type"
+              />
+            </Field>
 
-        <Field label="District" htmlFor="district_id" error={errors?.district_id}>
-          <Combobox
-            id="district_id"
-            items={districts}
-            value={districtId}
-            onValueChange={(v) => {
-              setDistrictId(v);
-              setSubcountyId(null);
-            }}
-            name="district_id"
-            placeholder="Search districts…"
-            searchPlaceholder="Type a district name"
-            emptyMessage="No matches in this list."
-          />
-        </Field>
+            <Field
+              label={idType === "none" ? "ID number (not applicable)" : "ID number"}
+              htmlFor="id_number"
+              error={errors?.id_number}
+              hint="Encrypted at rest. Only you and your care team can read it."
+            >
+              <Input
+                id="id_number"
+                name="id_number"
+                type="text"
+                autoComplete="off"
+                disabled={idType === "none"}
+                defaultValue={initialValues.id_number}
+                aria-invalid={!!errors?.id_number}
+                className="font-mono tracking-wider"
+              />
+            </Field>
 
-        <Field
-          label="Subcounty / division"
-          htmlFor="subcounty_id"
-          error={errors?.subcounty_id}
-          hint={
-            districtId && !subcounties.some((s) => s.parentValue === districtId)
-              ? "Subcounty list isn't loaded for this district yet — leave blank for now."
-              : undefined
-          }
-        >
-          <CascadingCombobox
-            id="subcounty_id"
-            items={subcounties}
-            parentValue={districtId}
-            value={subcountyId}
-            onValueChange={setSubcountyId}
-            name="subcounty_id"
-            placeholder="Pick a subcounty"
-            placeholderEmptyParent="Pick a district first"
-          />
-        </Field>
+            <Field label="District" htmlFor="district_id" error={errors?.district_id}>
+              <Combobox
+                id="district_id"
+                items={districts}
+                value={districtId}
+                onValueChange={(v) => {
+                  setDistrictId(v);
+                  setSubcountyId(null);
+                }}
+                name="district_id"
+                placeholder="Search districts…"
+                searchPlaceholder="Type a district name"
+                emptyMessage="No matches in this list."
+              />
+            </Field>
 
-        <Field
-          label="Preferred language (optional)"
-          htmlFor="preferred_language"
-          error={errors?.preferred_language}
-          hint="English, Luganda, Runyankole, Luo… free-form for now."
-        >
-          <Input
-            id="preferred_language"
-            name="preferred_language"
-            type="text"
-            autoComplete="off"
-            defaultValue={initialValues.preferred_language}
-          />
-        </Field>
+            <Field
+              label="Subcounty / division"
+              htmlFor="subcounty_id"
+              error={errors?.subcounty_id}
+              hint={
+                districtId && !subcounties.some((s) => s.parentValue === districtId)
+                  ? "Subcounty list isn't loaded for this district yet — leave blank for now."
+                  : undefined
+              }
+            >
+              <CascadingCombobox
+                id="subcounty_id"
+                items={subcounties}
+                parentValue={districtId}
+                value={subcountyId}
+                onValueChange={setSubcountyId}
+                name="subcounty_id"
+                placeholder="Pick a subcounty"
+                placeholderEmptyParent="Pick a district first"
+              />
+            </Field>
 
-        <Footer>
-          <Button type="button" variant="secondary" size="md" onClick={prev}>
-            Back
-          </Button>
-          <Button type="button" variant="primary" size="md" onClick={next}>
-            Next: account &amp; consent
-          </Button>
-        </Footer>
-      </Section>
+            <Field
+              label="Preferred language (optional)"
+              htmlFor="preferred_language"
+              error={errors?.preferred_language}
+              hint="English, Luganda, Runyankole, Luo… free-form for now."
+            >
+              <Input
+                id="preferred_language"
+                name="preferred_language"
+                type="text"
+                autoComplete="off"
+                defaultValue={initialValues.preferred_language}
+              />
+            </Field>
+          </StepCard>
 
-      {/* ── Step 3 — account & consent ─────────────────────────────── */}
-      <Section visible={step === 2}>
-        <Field label="Email" htmlFor="email" error={errors?.email}>
-          <Input
-            id="email"
-            name="email"
-            type="email"
-            autoComplete="email"
-            required
-            defaultValue={initialValues.email}
-            aria-invalid={!!errors?.email}
-          />
-        </Field>
+          {/* ── Step 3 — account & consent ─────────────────────────── */}
+          <StepCard
+            visible={step === 2}
+            number="03"
+            title="Account & consent"
+            description="One last step before we email your verification code."
+          >
+            <Field label="Email" htmlFor="email" error={errors?.email}>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                defaultValue={initialValues.email}
+                aria-invalid={!!errors?.email}
+              />
+            </Field>
 
-        <Field
-          label="Password"
-          htmlFor="password"
-          error={errors?.password}
-          hint="At least 12 characters. Use something you can remember."
-        >
-          <Input
-            id="password"
-            name="password"
-            type="password"
-            autoComplete="new-password"
-            minLength={12}
-            required
-            aria-invalid={!!errors?.password}
-          />
-        </Field>
+            <Field
+              label="Password"
+              htmlFor="password"
+              error={errors?.password}
+              hint="At least 12 characters. Use something you can remember."
+            >
+              <Input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="new-password"
+                minLength={12}
+                required
+                aria-invalid={!!errors?.password}
+              />
+            </Field>
 
-        <div className="border-border bg-muted/30 flex flex-col gap-2 rounded-md border p-3">
-          <label htmlFor="consent" className="flex items-start gap-2 text-[13px]">
-            <input
-              id="consent"
-              name="consent"
-              type="checkbox"
-              required
-              className="border-border mt-0.5 size-4 shrink-0 rounded-sm text-teal-500 focus-visible:ring-teal-500"
-            />
-            <span className="text-foreground/90">
+            <ConsentBox error={errors?.consent}>
               I confirm I&apos;m signing up for my own care record. I agree to MedSync&apos;s
               patient terms — my data stays in Uganda, and only my care team can read my clinical
               record.
-            </span>
-          </label>
-          {errors?.consent ? <FieldError message={errors.consent} /> : null}
-        </div>
+            </ConsentBox>
 
-        <Footer>
-          <Button type="button" variant="secondary" size="md" onClick={prev}>
-            Back
-          </Button>
-          <Button type="submit" variant="primary" size="md" disabled={pending}>
-            {pending ? "Creating account…" : "Create account"}
-          </Button>
-        </Footer>
+            <p className="text-muted-foreground -mt-1 text-[11.5px]">
+              We&apos;ll email you a 6-digit code to confirm your address. After that, you&apos;re
+              in.
+            </p>
+          </StepCard>
 
-        <p className="text-muted-foreground mt-2 text-[11.5px]">
-          We&apos;ll email you a 6-digit code to confirm your address. After that, you&apos;re in.
-        </p>
-      </Section>
-    </form>
+          {/* Footer — sticky on small screens for thumb reach */}
+          <Footer
+            step={step}
+            onPrev={prev}
+            onNext={next}
+            pending={pending}
+            submitLabel={pending ? "Creating account…" : "Create account"}
+          />
+        </form>
+      }
+    />
   );
 }
 
-// ─── Layout helpers ─────────────────────────────────────────────────────
+// ─── Layout / chrome primitives ─────────────────────────────────────────
 
-function Section({ visible, children }: { visible: boolean; children: React.ReactNode }) {
+function StepCard({
+  visible,
+  number,
+  title,
+  description,
+  children,
+}: {
+  visible: boolean;
+  number: string;
+  title: string;
+  description: string;
+  children: React.ReactNode;
+}) {
   return (
-    <div className={cn("flex flex-col gap-5", visible ? "block" : "hidden")} aria-hidden={!visible}>
-      {children}
-    </div>
+    <section
+      className={cn(
+        "border-border bg-card flex flex-col gap-5 rounded-xl border p-5 sm:p-6",
+        "shadow-xs",
+        visible ? "block" : "hidden",
+      )}
+      aria-hidden={!visible}
+    >
+      <header className="flex items-start gap-3">
+        <span
+          aria-hidden
+          className="border-border bg-muted text-muted-foreground inline-flex h-6 items-center rounded-xs border px-1.5 font-mono text-[11px] leading-none font-semibold tabular-nums"
+        >
+          [{number}]
+        </span>
+        <div className="flex min-w-0 flex-col gap-0.5">
+          <h2 className="text-foreground text-[16px] leading-tight font-medium">{title}</h2>
+          <p className="text-muted-foreground text-[12.5px] leading-snug">{description}</p>
+        </div>
+      </header>
+      <div className="border-border -mx-5 border-t sm:-mx-6" />
+      <div className="flex flex-col gap-5">{children}</div>
+    </section>
   );
 }
 
@@ -409,10 +412,58 @@ function Field({
   );
 }
 
-function Footer({ children }: { children: React.ReactNode }) {
+function ConsentBox({ error, children }: { error?: string; children: React.ReactNode }) {
   return (
-    <div className="border-gray-150 mt-2 flex items-center justify-end gap-2 border-t pt-4">
-      {children}
+    <div className="border-border bg-muted/40 flex flex-col gap-2 rounded-md border p-3">
+      <label htmlFor="consent" className="flex items-start gap-2 text-[13px]">
+        <input
+          id="consent"
+          name="consent"
+          type="checkbox"
+          required
+          className="border-border mt-0.5 size-4 shrink-0 rounded-sm text-teal-500 focus-visible:ring-teal-500"
+        />
+        <span className="text-foreground/90 leading-snug">{children}</span>
+      </label>
+      {error ? <FieldError message={error} /> : null}
+    </div>
+  );
+}
+
+function Footer({
+  step,
+  onPrev,
+  onNext,
+  pending,
+  submitLabel,
+}: {
+  step: StepIndex;
+  onPrev: () => void;
+  onNext: () => void;
+  pending: boolean;
+  submitLabel: string;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-2 pt-1">
+      <Button
+        type="button"
+        variant="ghost"
+        size="md"
+        onClick={onPrev}
+        disabled={step === 0}
+        className={cn(step === 0 && "invisible")}
+      >
+        &larr; Back
+      </Button>
+      {step < 2 ? (
+        <Button type="button" variant="primary" size="md" onClick={onNext}>
+          Continue
+        </Button>
+      ) : (
+        <Button type="submit" variant="primary" size="md" disabled={pending}>
+          {submitLabel}
+        </Button>
+      )}
     </div>
   );
 }

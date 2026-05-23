@@ -2,6 +2,7 @@ import type { DistrictOption, SubcountyOption } from "./_form";
 import type { Metadata } from "next";
 
 import { listDistricts, listSubcounties } from "@/lib/reference-data";
+import { SignupShell } from "../_components/signup-shell";
 import { PatientSignupForm } from "./_form";
 
 export const metadata: Metadata = {
@@ -23,10 +24,6 @@ export default async function PatientSignupPage() {
     description: d.isCity ? "City" : undefined,
   }));
 
-  // Until the full UBOS subcounty pull lands (GATE G), only Kampala's
-  // divisions are seeded — load those eagerly so the cascading combobox
-  // has data without an extra round-trip. Other districts fall back to
-  // a single "Subcounty list coming soon — leave blank" combobox state.
   const kampala = districts.find((d) => d.code === "KAMPALA");
   let subcountyOptions: SubcountyOption[] = [];
   if (kampala) {
@@ -39,25 +36,23 @@ export default async function PatientSignupPage() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-200 flex-col gap-7 px-5 py-14 sm:px-8 sm:py-20">
-      <div className="flex flex-col gap-3">
-        <span className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
-          <span className="size-1 rounded-full bg-teal-500" />
-          Patient signup
-        </span>
-        <h1
-          className="font-display text-foreground text-[30px] leading-[1.1] tracking-[-0.025em] text-balance sm:text-[42px]"
-          style={{ fontWeight: 400 }}
-        >
-          Create your account.
-        </h1>
-        <p className="text-muted-foreground max-w-[58ch] text-[15px] leading-[1.55] sm:text-[16.5px]">
-          A few details so your hospital and care team can find your record. You can update
-          everything else from the dashboard later.
-        </p>
-      </div>
-
+    <SignupShell
+      pathSegments={["signup", "patient"]}
+      eyebrow="Patient signup · ~3 minutes"
+      title={
+        <>
+          Your record,{" "}
+          <span className="text-teal-700 italic dark:text-teal-300">in your hands.</span>
+        </>
+      }
+      subtitle={
+        <>
+          A few details so your hospital and care team can find you. Everything else lives on the
+          dashboard you&apos;ll land on in a minute.
+        </>
+      }
+    >
       <PatientSignupForm districts={districtOptions} subcounties={subcountyOptions} />
-    </div>
+    </SignupShell>
   );
 }

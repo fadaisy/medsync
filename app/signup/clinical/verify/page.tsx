@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { readPendingClinicalEmail } from "@/app/signup/clinical/actions";
+import { SignupShell } from "../../_components/signup-shell";
 import { ClinicalVerifyForm } from "./_form";
 
 export const metadata: Metadata = {
@@ -14,25 +15,24 @@ export default async function ClinicalVerifyPage() {
   if (!email) redirect("/signup/clinical");
 
   return (
-    <div className="mx-auto flex w-full max-w-150 flex-col gap-7 px-5 py-14 sm:px-8 sm:py-20">
-      <div className="flex flex-col gap-3">
-        <span className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
-          <span className="size-1 rounded-full bg-teal-500" />
-          Step 4 &middot; Verify email
-        </span>
-        <h1
-          className="font-display text-foreground text-[28px] leading-[1.1] tracking-[-0.025em] text-balance sm:text-[36px]"
-          style={{ fontWeight: 400 }}
-        >
-          One more step.
-        </h1>
-        <p className="text-muted-foreground max-w-[58ch] text-[15px] leading-[1.55]">
-          We sent a 6-digit code to <span className="text-foreground font-medium">{email}</span>.
-          After you enter it, you&apos;ll land in your hospital admin&apos;s approval queue.
-        </p>
-      </div>
-
+    <SignupShell
+      pathSegments={["signup", "clinical", "verify"]}
+      eyebrow="Step 4 · Verify email"
+      title={
+        <>
+          One <span className="text-teal-700 italic dark:text-teal-300">more step.</span>
+        </>
+      }
+      subtitle={
+        <>
+          We sent a 6-digit code to{" "}
+          <span className="text-foreground font-mono text-[14px]">{email}</span>. After you enter
+          it, you land in your hospital admin&apos;s approval queue.
+        </>
+      }
+      maxWidth={150}
+    >
       <ClinicalVerifyForm />
-    </div>
+    </SignupShell>
   );
 }
