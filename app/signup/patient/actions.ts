@@ -143,6 +143,24 @@ export async function submitSignupAction(
   const parsed = SubmitSchema.safeParse(raw);
   if (!parsed.success) {
     const flat = parsed.error.flatten().fieldErrors;
+    // TEMPORARY DEBUG: log what arrived + which fields failed, so we
+    // can correlate the user's "back to step 2" report with the
+    // actual Zod errors. Remove after this regression is resolved.
+    logger.info("patient.signup.debug.submit", {
+      full_name_len: typeof raw.full_name === "string" ? raw.full_name.length : null,
+      sex: raw.sex,
+      date_of_birth: raw.date_of_birth,
+      phone_len: typeof raw.phone === "string" ? raw.phone.length : null,
+      id_type: raw.id_type,
+      id_number_len: typeof raw.id_number === "string" ? raw.id_number.length : null,
+      district_id: raw.district_id,
+      subcounty_id: raw.subcounty_id,
+      email_len: typeof raw.email === "string" ? raw.email.length : null,
+      password_len: typeof raw.password === "string" ? raw.password.length : null,
+      has_consent: typeof raw.consent === "string",
+      errored_fields: Object.keys(flat),
+      errors_summary: flat,
+    });
     const errors: SignupState["errors"] = {};
     const values: SignupState["values"] = {};
     for (const key of [
