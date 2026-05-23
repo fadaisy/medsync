@@ -1,3 +1,6 @@
+import { ArrowDownIcon, CheckIcon, PlusIcon } from "lucide-react";
+
+import { cn } from "@/lib/utils";
 import { OnboardingCtaCluster } from "./_cta-cluster";
 
 /**
@@ -7,6 +10,12 @@ import { OnboardingCtaCluster } from "./_cta-cluster";
  * is the page's emotional payoff. We deliberately keep the surface darker
  * than the mid-band so the visual rhythm reads: hero (light) → mid-CTA
  * (dark) → … → final CTA (deeper dark) → footer.
+ *
+ * Addendum Edit 6: a small "patient view, day one" preview sits between
+ * the closer line and the doors, with an arrow pointing at the patient
+ * door. Gives the patient route a concrete visual destination at the
+ * moment of conversion without breaking the equal-doors cluster
+ * symmetry (the preview is a sibling, not part of the cluster).
  */
 export function FinalCta() {
   return (
@@ -53,6 +62,8 @@ export function FinalCta() {
           And the patients are waiting.
         </p>
 
+        <PatientGlimpse />
+
         <div className="w-full max-w-3xl">
           <OnboardingCtaCluster layout="doors" tone="dark" />
         </div>
@@ -66,5 +77,65 @@ export function FinalCta() {
         </div>
       </div>
     </section>
+  );
+}
+
+/* ─── Patient glimpse (addendum Edit 6) ─────────────────────────────────
+   Small "this is what a patient sees on day one" preview rendered just
+   above the door cluster. The dark-on-dark frame uses bg-white/[0.04]
+   so it reads as a panel without fighting the §16 atmosphere; teal
+   numerals echo the rest of the page's clinical-data styling. */
+
+function PatientGlimpse() {
+  return (
+    <div className="flex flex-col items-center gap-2">
+      <span className="inline-flex items-center gap-2 font-mono text-[9.5px] tracking-[0.18em] text-teal-200/80 uppercase">
+        <span className="h-px w-6 bg-teal-300/40" />
+        Patient view, day one
+        <span className="h-px w-6 bg-teal-300/40" />
+      </span>
+
+      <div
+        className={cn(
+          "flex w-full max-w-sm flex-col gap-2 rounded-xl border border-teal-300/15 bg-white/[0.04] p-3 text-left backdrop-blur",
+        )}
+      >
+        <div className="flex items-baseline justify-between">
+          <span className="font-mono text-[9.5px] tracking-[0.16em] text-teal-200/70 uppercase">
+            Fasting glucose
+          </span>
+          <span className="tabular font-mono text-[9.5px] text-teal-200/70">mmol/L</span>
+        </div>
+        <div className="flex items-end justify-between gap-3">
+          <p className="font-display tabular text-[22px] leading-none font-medium text-white">
+            11.6
+          </p>
+          <div
+            className={cn(
+              "inline-flex items-center gap-1 rounded-md px-2 py-1 text-[10px]",
+              "bg-teal-300/15 text-teal-100",
+            )}
+          >
+            <CheckIcon className="size-2.5" strokeWidth={2.5} />
+            Logged from home
+          </div>
+        </div>
+        <div className="border-t border-teal-300/15" aria-hidden />
+        <div
+          className={cn(
+            "inline-flex items-center justify-center gap-1.5 rounded-md py-1.5 text-[11px] font-medium",
+            "bg-teal-100 text-teal-900",
+          )}
+        >
+          <PlusIcon className="size-3" strokeWidth={2} />
+          Log this morning&rsquo;s reading
+        </div>
+      </div>
+
+      <span className="inline-flex items-center gap-1 text-[10.5px] text-teal-200/70 italic">
+        Sign up below as a patient and this is in your hand
+        <ArrowDownIcon className="size-3" strokeWidth={1.75} />
+      </span>
+    </div>
   );
 }
