@@ -207,7 +207,7 @@ function DestinationCard() {
             { k: "Vitals", v: "Glucose 14.2 mmol/L · 3 min ago" },
             { k: "Medications", v: "5 active · 1 held" },
             { k: "Lab results", v: "HbA1c 9.8 %" },
-            { k: "Appointments", v: "Today 14:30 · Dr. Okello" },
+            { k: "Appointments", v: "Today 14:30 · Dr. Fadhul" },
           ].map((row) => (
             <li
               key={row.k}

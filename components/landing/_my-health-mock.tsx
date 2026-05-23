@@ -110,36 +110,37 @@ function PatientHeader() {
 
 function LogReadingCard() {
   return (
-    <div className="border-border bg-card flex flex-col gap-2 rounded-xl border p-3 shadow-sm">
+    <div className="border-border bg-card flex flex-col gap-3.5 rounded-xl border p-4 shadow-sm">
       <div className="flex items-baseline justify-between">
-        <span className="text-muted-foreground font-mono text-[9.5px] tracking-[0.16em] uppercase">
+        <span className="text-muted-foreground font-mono text-[10px] tracking-[0.18em] uppercase">
           Fasting glucose
         </span>
-        <span className="text-muted-foreground tabular font-mono text-[9.5px]">mmol/L</span>
+        <span className="text-muted-foreground tabular font-mono text-[10px]">mmol/L</span>
       </div>
 
-      <div className="flex items-end justify-between gap-2">
-        <div>
-          <p className="font-display text-foreground tabular text-[26px] leading-none font-medium">
+      <div className="flex items-end justify-between gap-4">
+        <div className="flex flex-col">
+          <span className="font-display text-foreground tabular text-[34px] leading-none font-medium">
             11.6
-          </p>
-          <p className="text-muted-foreground mt-0.5 text-[10px]">Yesterday &middot; 06:08</p>
+          </span>
+          <span className="text-muted-foreground mt-1.5 text-[10.5px]">
+            Yesterday &middot; 06:08
+          </span>
         </div>
         <ReadingSparkline />
       </div>
-
-      <div className="border-border my-1 border-t" aria-hidden />
 
       <button
         type="button"
         tabIndex={-1}
         className={cn(
-          "inline-flex items-center justify-center gap-1.5 rounded-md py-2 text-[12px] font-medium",
-          "bg-teal-600 text-white",
-          "dark:bg-teal-500 dark:text-teal-950",
+          "inline-flex w-full items-center justify-center gap-1.5 rounded-md py-2 text-[12px] font-medium",
+          "border-border bg-background text-foreground border hover:border-teal-300 hover:bg-teal-50/40",
+          "dark:hover:bg-teal-50/[0.04]",
+          "transition-colors duration-150",
         )}
       >
-        <PlusIcon className="size-3.5" strokeWidth={2} />
+        <PlusIcon className="size-3.5 text-teal-600 dark:text-teal-400" strokeWidth={1.75} />
         Log this morning&rsquo;s reading
       </button>
     </div>
@@ -377,7 +378,7 @@ function ReassuranceLine() {
         <LockIcon className="size-2.5" strokeWidth={1.75} />
         Your care team can see this.
       </span>
-      <span className="text-muted-foreground tabular font-mono text-[9.5px]">Dr. M. Okello</span>
+      <span className="text-muted-foreground tabular font-mono text-[9.5px]">Dr. Usama Fadhul</span>
     </div>
   );
 }

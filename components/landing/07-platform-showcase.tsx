@@ -465,7 +465,7 @@ function TreatSurface() {
             <span className="font-medium">
               Allergy check passed &middot; no penicillin / sulpha conflict
             </span>
-            <span className="opacity-80">Signed: Dr. M. Okello &middot; 07:42</span>
+            <span className="opacity-80">Signed: Dr. Usama Fadhul &middot; 07:42</span>
           </div>
         </div>
       </div>
@@ -543,7 +543,7 @@ function LoopSurface() {
             Booked automatically
           </p>
           <p className="text-foreground tabular mt-1 text-[12px] font-medium">
-            Today 14:30 &middot; Tele follow-up &middot; Dr. M. Okello
+            Today 14:30 &middot; Tele follow-up &middot; Dr. Usama Fadhul
           </p>
           <p className="text-muted-foreground mt-0.5 text-[11px]">
             The next clinic visit starts with this reading already on screen.

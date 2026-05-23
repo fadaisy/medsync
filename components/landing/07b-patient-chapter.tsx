@@ -268,8 +268,8 @@ function PatientSurfaceColumn({ children }: { children: React.ReactNode }) {
 }
 
 /* ─── Sub-point d's bespoke surface ──────────────────────────────────────
-   "Your reading just landed on Dr. Okello's screen." Small static
-   confirmation card — Dr. Okello acknowledged, tele-follow-up booked.
+   "Your reading just landed on Dr. Fadhul's screen." Small static
+   confirmation card — Dr. Fadhul acknowledged, tele-follow-up booked.
    Same Amina, same data, same clinician as everywhere else on the page.
    Lives here (not in the mock) because it's specific to this chapter's
    reassurance beat. */
@@ -296,7 +296,7 @@ function CareTeamReplyCard() {
         </span>
         <div className="flex flex-col">
           <span className="text-foreground text-[12.5px] leading-tight font-medium">
-            Dr. M. Okello
+            Dr. Usama Fadhul
           </span>
           <span className="text-muted-foreground inline-flex items-center gap-1 text-[10px]">
             <CheckCircle2Icon className="size-2.5" strokeWidth={2} />

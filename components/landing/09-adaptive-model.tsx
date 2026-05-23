@@ -79,7 +79,7 @@ const SPECIALTIES: Record<
         moreAttributes: 6,
       },
       note: {
-        author: "Dr. M. Okello · Diabetology",
+        author: "Dr. Usama Fadhul · Diabetology",
         ts: "07:42",
         body: "Glycaemic excursion overnight. Held morning glibenclamide. Sliding scale insulin continued; review HbA1c trend.",
         moreAttributes: 4,
@@ -88,7 +88,7 @@ const SPECIALTIES: Record<
       appointment: {
         kind: "Diabetology clinic",
         when: "Today · 14:30",
-        with: "Dr. M. Okello",
+        with: "Dr. Usama Fadhul",
         moreAttributes: 3,
       },
       signature: [
@@ -126,7 +126,7 @@ const SPECIALTIES: Record<
         moreAttributes: 7,
       },
       note: {
-        author: "Dr. S. Akello · Cardiology",
+        author: "Dr. Nuwagira Nelson · Cardiology",
         ts: "08:10",
         body: "NYHA II → III. Up-titrate bisoprolol once HR stable. Continue furosemide; recheck K+ in 48h.",
         moreAttributes: 5,
@@ -174,7 +174,7 @@ const SPECIALTIES: Record<
         moreAttributes: 5,
       },
       note: {
-        author: "Dr. R. Nakato · Nephrology",
+        author: "Dr. Mirembe Joselyn Nayiga · Nephrology",
         ts: "09:05",
         body: "eGFR trending down 4 mL/min over 3 months. Discuss AV-fistula formation; refer vascular access clinic.",
         moreAttributes: 6,
@@ -222,7 +222,7 @@ const SPECIALTIES: Record<
         moreAttributes: 4,
       },
       note: {
-        author: "Dr. C. Lubega · Pulmonology",
+        author: "Dr. Murizihiwe Caroline · Pulmonology",
         ts: "11:20",
         body: "Exacerbation. Step up ICS; review oxygen titration at home. Pulmonary rehab referral pending.",
         moreAttributes: 4,
