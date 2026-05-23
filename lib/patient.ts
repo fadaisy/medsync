@@ -40,7 +40,7 @@ import { logger } from "@/lib/logger";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 
-const sql = postgres(env.DATABASE_URL, { prepare: false, max: 1 });
+const sql = postgres(env.DATABASE_URL, { prepare: false, max: 3, idle_timeout: 20 });
 const db = drizzle(sql);
 
 // ─── Phase 1 — account creation ─────────────────────────────────────────

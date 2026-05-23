@@ -16,6 +16,8 @@
 import "server-only";
 
 import type {
+  Hospital,
+  HospitalDepartment,
   RefCadre,
   RefCouncil,
   RefDistrict,
@@ -29,6 +31,8 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 
 import {
+  hospitalDepartments,
+  hospitals,
   refCadres,
   refCouncils,
   refDistricts,
@@ -39,7 +43,12 @@ import {
 } from "@/db/schema";
 import { env } from "@/lib/env";
 
-const sql = postgres(env.DATABASE_URL, { prepare: false, max: 1 });
+// Pool 5 connections so onboarding pages (which fan out 6+ Promise.all
+// queries — see /signup/clinical) don't serialize through a single
+// socket. Supabase Free pooler caps at 15 concurrent connections, so
+// staying well under that for the ref-data path keeps headroom for
+// the auth and service clients.
+const sql = postgres(env.DATABASE_URL, { prepare: false, max: 5, idle_timeout: 20 });
 const db = drizzle(sql);
 
 /* ─── Geography ────────────────────────────────────────────────────────── */
@@ -110,4 +119,20 @@ export async function listRoles(opts?: {
 
   if (wheres.length === 0) return q;
   return q.where(wheres.length === 1 ? wheres[0]! : and(...wheres));
+}
+
+/* ─── Hospitals ────────────────────────────────────────────────────────── */
+
+export async function listHospitals(): Promise<Hospital[]> {
+  return db.select().from(hospitals).orderBy(asc(hospitals.name));
+}
+
+export async function listHospitalDepartments(opts?: {
+  hospitalId?: string;
+}): Promise<HospitalDepartment[]> {
+  const q = db.select().from(hospitalDepartments).orderBy(asc(hospitalDepartments.name));
+  if (opts?.hospitalId) {
+    return q.where(eq(hospitalDepartments.hospitalId, opts.hospitalId));
+  }
+  return q;
 }
