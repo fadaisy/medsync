@@ -86,7 +86,6 @@ export function Combobox({
         onValueChange(nextStr === "" ? null : nextStr);
       }}
       disabled={disabled}
-      name={name}
     >
       <ComboboxPrimitive.Trigger
         id={id}
@@ -170,6 +169,12 @@ export function Combobox({
           </ComboboxPrimitive.Popup>
         </ComboboxPrimitive.Positioner>
       </ComboboxPrimitive.Portal>
+      {/* Own the form-submission value rather than relying on Base UI's
+       * internal hidden input, which became unreliable inside multi-step
+       * forms where some steps are CSS-hidden (caused "Pick a council"
+       * after step 2 in /signup/clinical even though the user had
+       * selected one). */}
+      {name ? <input type="hidden" name={name} value={value ?? ""} /> : null}
     </ComboboxPrimitive.Root>
   );
 }
