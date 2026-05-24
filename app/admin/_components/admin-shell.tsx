@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { AdminSidebarActiveMarker } from "./admin-sidebar-active";
+import { AdminSidebarItem } from "./admin-sidebar-active";
 import { CommandPaletteRoot } from "./command-palette";
 
 /**
@@ -101,50 +101,13 @@ export function AdminShell({
           <ul className="flex flex-col gap-px">
             {items.map((item) => (
               <li key={item.href}>
-                <AdminSidebarActiveMarker href={item.href}>
-                  {(isActive) => (
-                    <Link
-                      href={item.href}
-                      aria-current={isActive ? "page" : undefined}
-                      className={cn(
-                        "group flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-[13px] transition-colors outline-none",
-                        "focus-visible:ring-2 focus-visible:ring-teal-500/40",
-                        isActive
-                          ? "bg-teal-50 text-teal-700 dark:bg-teal-950/40 dark:text-teal-300"
-                          : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                        item.sensitive &&
-                          !isActive &&
-                          "text-amber-700/90 hover:bg-amber-50 hover:text-amber-800 dark:text-amber-300 dark:hover:bg-amber-950/30",
-                      )}
-                    >
-                      <item.icon
-                        className={cn(
-                          "size-4 shrink-0",
-                          isActive
-                            ? "text-teal-600 dark:text-teal-400"
-                            : "text-muted-foreground/80 group-hover:text-foreground",
-                          item.sensitive && !isActive && "text-amber-700 dark:text-amber-400",
-                        )}
-                        aria-hidden
-                      />
-                      <span className="flex-1 truncate font-medium">{item.label}</span>
-
-                      {item.href === "/admin" && approvalsCount > 0 ? (
-                        <span
-                          aria-label={`${approvalsCount} pending`}
-                          className={cn(
-                            "rounded-full px-1.5 py-0.5 font-mono text-[10px] font-semibold tabular-nums",
-                            isActive
-                              ? "bg-teal-600 text-white"
-                              : "bg-teal-100 text-teal-800 dark:bg-teal-900/60 dark:text-teal-200",
-                          )}
-                        >
-                          {approvalsCount}
-                        </span>
-                      ) : null}
-                    </Link>
-                  )}
-                </AdminSidebarActiveMarker>
+                <AdminSidebarItem
+                  href={item.href}
+                  label={item.label}
+                  Icon={item.icon}
+                  sensitive={item.sensitive}
+                  badgeCount={item.href === "/admin" ? approvalsCount : undefined}
+                />
               </li>
             ))}
           </ul>

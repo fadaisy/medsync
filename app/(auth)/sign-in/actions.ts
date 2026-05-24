@@ -34,7 +34,7 @@ export async function signInAction(_prev: SignInState, formData: FormData): Prom
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword({
+  const { data: signInData, error } = await supabase.auth.signInWithPassword({
     email: parsed.data.email,
     password: parsed.data.password,
   });
@@ -45,12 +45,27 @@ export async function signInAction(_prev: SignInState, formData: FormData): Prom
     return { errors: { _form: "Invalid email or password." } };
   }
 
-  // proxy.ts will route the user further (MFA challenge, MFA setup, or
-  // straight to /dashboard) based on AAL + role state.
+  // Default landing depends on role: superadmins go straight to /admin
+  // (their workspace is the dashboard); everyone else lands on
+  // /dashboard. An explicit ?redirect= param always wins.
+  //
+  // proxy.ts will still route through MFA challenge / setup if needed
+  // on the next request — this just picks the *intended* destination.
+  let defaultTarget = "/dashboard";
+  if (signInData.user) {
+    const { data: roles } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", signInData.user.id);
+    if (roles?.some((r) => r.role === "superadmin")) {
+      defaultTarget = "/admin";
+    }
+  }
+
   const target =
     parsed.data.redirect && parsed.data.redirect.startsWith("/")
       ? parsed.data.redirect
-      : "/dashboard";
+      : defaultTarget;
 
   logger.info("sign-in succeeded");
   redirect(target);
