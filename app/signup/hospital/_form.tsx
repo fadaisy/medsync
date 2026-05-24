@@ -377,8 +377,11 @@ export function HospitalApplicationForm({
       action={formAction}
       className={cn("mx-auto flex w-full max-w-3xl flex-col gap-7 px-5 py-12 sm:px-8 sm:py-16")}
       noValidate
-      encType="multipart/form-data"
     >
+      {/* React Server Actions automatically set the multipart encoding
+       * when the form contains a file input. Setting encType manually
+       * here was conflicting with React's wire format and the action
+       * received an empty FormData. */}
       <MultiStepForm flowLabel="Hospital application" steps={steps} />
     </form>
   );
