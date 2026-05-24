@@ -1,35 +1,66 @@
 "use client";
 
-import type { ComponentType, SVGProps } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import {
+  BoxesIcon,
+  ClipboardCheckIcon,
+  GaugeIcon,
+  KeyIcon,
+  ScrollTextIcon,
+  ShieldAlertIcon,
+  UserCogIcon,
+} from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
 /**
  * A single nav row in the sidebar — fully client because it reads
- * the pathname to decide its active state.
+ * pathname for the active state, and because the icon components
+ * (lucide-react) can't be serialised from server → client.
  *
- * The parent shell stays server-rendered and just passes plain props
- * (no render-props / functions, which can't cross the server/client
- * boundary in React 19 + Next 16).
+ * The parent shell stays server-rendered and passes only primitives:
+ * href, label, an `iconKey` string, and optional flags. The icon map
+ * lives here so the actual component references never cross the
+ * boundary.
  */
+
+export type SidebarIconKey =
+  | "approvals"
+  | "tenants"
+  | "people"
+  | "catalog"
+  | "audit"
+  | "health"
+  | "break-glass";
+
+const ICONS: Record<SidebarIconKey, typeof ClipboardCheckIcon> = {
+  approvals: ClipboardCheckIcon,
+  tenants: BoxesIcon,
+  people: UserCogIcon,
+  catalog: KeyIcon,
+  audit: ScrollTextIcon,
+  health: GaugeIcon,
+  "break-glass": ShieldAlertIcon,
+};
+
 interface Props {
   href: string;
   label: string;
-  Icon: ComponentType<SVGProps<SVGSVGElement>>;
+  iconKey: SidebarIconKey;
   /** Marks the item as a sensitive surface — distinct chip + colour. */
   sensitive?: boolean;
   /** Optional badge count (shown only when > 0). */
   badgeCount?: number;
 }
 
-export function AdminSidebarItem({ href, label, Icon, sensitive, badgeCount }: Props) {
+export function AdminSidebarItem({ href, label, iconKey, sensitive, badgeCount }: Props) {
   const pathname = usePathname();
   const isActive =
     href === "/admin"
       ? pathname === "/admin"
       : pathname === href || pathname.startsWith(`${href}/`);
+  const Icon = ICONS[iconKey];
 
   return (
     <Link

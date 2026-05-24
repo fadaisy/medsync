@@ -1,15 +1,7 @@
+import type { SidebarIconKey } from "./admin-sidebar-active";
 import type { ReactNode } from "react";
 import Link from "next/link";
-import {
-  BoxesIcon,
-  ClipboardCheckIcon,
-  GaugeIcon,
-  KeyIcon,
-  ScrollTextIcon,
-  ShieldAlertIcon,
-  ShieldCheckIcon,
-  UserCogIcon,
-} from "lucide-react";
+import { ShieldCheckIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { AdminSidebarItem } from "./admin-sidebar-active";
@@ -44,7 +36,9 @@ interface AdminShellProps {
 interface NavItem {
   href: string;
   label: string;
-  icon: typeof ClipboardCheckIcon;
+  /** Resolved by the client AdminSidebarItem's icon map. Strings cross
+   * the server/client boundary cleanly; component refs do not. */
+  iconKey: SidebarIconKey;
   /** Hidden from non-superadmins (hospital_admin lite view). */
   superadminOnly?: boolean;
   /** Marks the item as a sensitive surface — distinct chip + colour. */
@@ -52,16 +46,16 @@ interface NavItem {
 }
 
 const NAV_ITEMS: ReadonlyArray<NavItem> = [
-  { href: "/admin", label: "Approvals", icon: ClipboardCheckIcon },
-  { href: "/admin/tenants", label: "Tenants", icon: BoxesIcon, superadminOnly: true },
-  { href: "/admin/people", label: "People", icon: UserCogIcon, superadminOnly: true },
-  { href: "/admin/catalog", label: "Catalog", icon: KeyIcon, superadminOnly: true },
-  { href: "/admin/audit", label: "Audit", icon: ScrollTextIcon, superadminOnly: true },
-  { href: "/admin/health", label: "Health", icon: GaugeIcon },
+  { href: "/admin", label: "Approvals", iconKey: "approvals" },
+  { href: "/admin/tenants", label: "Tenants", iconKey: "tenants", superadminOnly: true },
+  { href: "/admin/people", label: "People", iconKey: "people", superadminOnly: true },
+  { href: "/admin/catalog", label: "Catalog", iconKey: "catalog", superadminOnly: true },
+  { href: "/admin/audit", label: "Audit", iconKey: "audit", superadminOnly: true },
+  { href: "/admin/health", label: "Health", iconKey: "health" },
   {
     href: "/admin/break-glass",
     label: "Break-glass",
-    icon: ShieldAlertIcon,
+    iconKey: "break-glass",
     superadminOnly: true,
     sensitive: true,
   },
@@ -104,7 +98,7 @@ export function AdminShell({
                 <AdminSidebarItem
                   href={item.href}
                   label={item.label}
-                  Icon={item.icon}
+                  iconKey={item.iconKey}
                   sensitive={item.sensitive}
                   badgeCount={item.href === "/admin" ? approvalsCount : undefined}
                 />
