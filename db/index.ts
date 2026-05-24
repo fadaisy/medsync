@@ -25,7 +25,17 @@ const pgClient =
   globalForDb.pgClient ??
   postgres(env.DATABASE_URL, {
     prepare: false,
-    max: env.NODE_ENV === "production" ? 10 : 1,
+    // Dev: max 3 so one hung connection doesn't block every page render
+    // (we used to run max:1 and a single stalled request would jam
+    // every subsequent query for the whole session).
+    // Prod: max 10 matches Fluid Compute's typical per-instance budget.
+    max: env.NODE_ENV === "production" ? 10 : 3,
+    // Reap connections idle longer than 20s so a stuck handle doesn't
+    // sit forever — postgres-js' default is to keep them open.
+    idle_timeout: 20,
+    // Fail fast on initial connect (10s) instead of letting a hung
+    // pooler swallow the entire request.
+    connect_timeout: 10,
   });
 
 if (env.NODE_ENV !== "production") {
