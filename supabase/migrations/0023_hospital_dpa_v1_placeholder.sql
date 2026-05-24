@@ -29,7 +29,11 @@ SELECT
   'v0.placeholder',
   CURRENT_DATE,
   body_text,
-  encode(digest(body_text, 'sha256'), 'hex'),
+  -- Postgres 14+ ships sha256() as a built-in operating on bytea.
+  -- encode(..., 'hex') gives the canonical hex form used everywhere
+  -- in the codebase (see consent_versions.body_sha256 for the same
+  -- pattern). pgcrypto is NOT required; only convert_to() to bytea.
+  encode(sha256(convert_to(body_text, 'UTF8')), 'hex'),
   'placeholder'
 FROM (
   SELECT
@@ -50,8 +54,3 @@ FROM (
     AS body_text
 ) AS computed
 ON CONFLICT (version) DO NOTHING;
-
--- Requires pgcrypto for digest(). Supabase enables this extension by
--- default; if a fresh project errors, the operator must:
---   CREATE EXTENSION IF NOT EXISTS pgcrypto;
--- before re-running.
