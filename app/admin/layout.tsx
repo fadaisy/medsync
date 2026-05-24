@@ -6,6 +6,7 @@ import { getAuthState } from "@/lib/auth";
 import { createServiceClient } from "@/lib/supabase/service";
 import { AdminShell } from "./_components/admin-shell";
 import { getApprovalsCount } from "./_lib/approvals-count";
+import { getPaletteEntities } from "./_lib/palette-entities";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -70,8 +71,12 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     redirect("/");
   }
 
-  // Live count for the sidebar pin. Failures degrade to 0 silently.
-  const approvalsCount = await getApprovalsCount();
+  // Live count + palette entities. Both failure-tolerant — degrade
+  // to 0 / empty so the shell still renders.
+  const [approvalsCount, paletteEntities] = await Promise.all([
+    getApprovalsCount(),
+    getPaletteEntities(),
+  ]);
 
   return (
     <AdminShell
@@ -79,6 +84,8 @@ export default async function AdminLayout({ children }: { children: ReactNode })
       operatorEmail={state.user.email ?? "operator"}
       mfaActive={state.aal === "aal2"}
       approvalsCount={approvalsCount}
+      paletteHospitals={paletteEntities.hospitals}
+      palettePeople={paletteEntities.people}
     >
       {children}
     </AdminShell>

@@ -1,4 +1,5 @@
 import type { SidebarIconKey } from "./admin-sidebar-active";
+import type { PaletteHospitalProp, PalettePersonProp } from "./command-palette";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { ShieldCheckIcon } from "lucide-react";
@@ -30,6 +31,9 @@ interface AdminShellProps {
   mfaActive: boolean;
   /** Live count of items waiting for the operator. Rendered as a chip on Approvals. */
   approvalsCount: number;
+  /** Pre-fetched palette entities for ⌘K entity search. */
+  paletteHospitals: ReadonlyArray<PaletteHospitalProp>;
+  palettePeople: ReadonlyArray<PalettePersonProp>;
   children: ReactNode;
 }
 
@@ -66,6 +70,8 @@ export function AdminShell({
   operatorEmail,
   mfaActive,
   approvalsCount,
+  paletteHospitals,
+  palettePeople,
   children,
 }: AdminShellProps) {
   const items = NAV_ITEMS.filter((item) => !item.superadminOnly || isSuperadmin);
@@ -170,7 +176,11 @@ export function AdminShell({
 
           {/* ⌘K trigger + palette (single root — owns its open state) */}
           <div className="flex flex-1 items-center justify-end gap-3">
-            <CommandPaletteRoot isSuperadmin={isSuperadmin} />
+            <CommandPaletteRoot
+              isSuperadmin={isSuperadmin}
+              hospitals={paletteHospitals}
+              people={palettePeople}
+            />
             <Link
               href="/sign-out"
               className="text-muted-foreground hover:text-foreground text-[12px] transition-colors"
