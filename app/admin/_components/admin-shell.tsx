@@ -7,6 +7,7 @@ import { ShieldCheckIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { AdminSidebarItem } from "./admin-sidebar-active";
 import { CommandPaletteRoot } from "./command-palette";
+import { MobileSidebar } from "./mobile-sidebar";
 
 /**
  * Admin shell — persistent sidebar + top bar + main region.
@@ -151,14 +152,26 @@ export function AdminShell({
       {/* ── Main column ──────────────────────────────────────────── */}
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Top bar */}
-        <header className="border-border bg-background/95 supports-backdrop-filter:bg-background/80 sticky top-0 z-30 flex h-[52px] items-center justify-between gap-4 border-b px-4 supports-backdrop-filter:backdrop-blur sm:px-6">
-          {/* Mobile brand (sidebar is hidden < lg) */}
-          <Link
-            href="/admin"
-            className="font-display text-foreground text-[15px] font-medium tracking-[-0.01em] lg:hidden"
-          >
-            MedSync
-          </Link>
+        <header className="border-border bg-background/95 supports-backdrop-filter:bg-background/80 sticky top-0 z-30 flex h-[52px] items-center justify-between gap-3 border-b px-4 supports-backdrop-filter:backdrop-blur sm:px-6">
+          {/* Mobile-only: hamburger → sidebar sheet + brand mark */}
+          <div className="flex items-center gap-2.5 lg:hidden">
+            <MobileSidebar
+              items={items.map((item) => ({
+                href: item.href,
+                label: item.label,
+                iconKey: item.iconKey,
+                sensitive: item.sensitive,
+                badgeCount: item.href === "/admin" ? approvalsCount : undefined,
+              }))}
+              operatorEmail={operatorEmail}
+            />
+            <Link
+              href="/admin"
+              className="font-display text-foreground text-[15px] font-medium tracking-[-0.01em]"
+            >
+              MedSync
+            </Link>
+          </div>
 
           {/* Environment / god-mode indicator — operator always knows */}
           <div className="hidden items-center gap-2 lg:flex">

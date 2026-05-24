@@ -1,3 +1,4 @@
+import type { CatalogSection } from "../_components/catalog/browser";
 import type { Metadata } from "next";
 
 import {
@@ -10,6 +11,7 @@ import {
 } from "@/lib/reference-data";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
+import { CatalogBrowser } from "../_components/catalog/browser";
 
 export const metadata: Metadata = {
   title: "Catalog · Superadmin · MedSync",
@@ -19,19 +21,17 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 /**
- * GATE E — Catalog viewer (READ-ONLY).
+ * Catalog viewer (READ-ONLY). Browse the seeded reference data —
+ * councils → cadres → roles + the regions / districts / specialties
+ * lookup. Editing is deferred until preview + four-eyes + audit
+ * safeguards are all in place (per kickoff Area 4).
  *
- * Browse councils → cadres → roles + the regions / districts / specialties
- * seed. Editing is deferred until preview + four-eyes + audit safeguards
- * are all in place (per kickoff Area 4): a careless role→permission
- * mapping change is the quietest catastrophic risk in the system.
- *
- * Every list reads from `lib/reference-data` which is already
- * unstable_cache-wrapped (1h TTL, tagged "reference-data") — so this
- * page is cheap to load even if hit often.
+ * Server fetches each section via the unstable_cache-wrapped helpers
+ * in `lib/reference-data` (1h TTL, tagged "reference-data"), then
+ * hands the data to the client browser which owns the segmented
+ * control + filter input.
  */
 export default async function CatalogPage() {
-  // Re-gate at the page level.
   const supabase = await createClient();
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) return null;
@@ -53,116 +53,57 @@ export default async function CatalogPage() {
     listSpecialties(),
   ]);
 
+  const sections: CatalogSection[] = [
+    {
+      key: "councils",
+      label: "Councils",
+      entries: councils.map((c) => ({ id: c.id, name: c.name, code: c.code })),
+    },
+    {
+      key: "cadres",
+      label: "Cadres",
+      entries: allCadres.map((c) => ({ id: c.id, name: c.name, code: c.code })),
+    },
+    {
+      key: "roles",
+      label: "Roles",
+      entries: allRoles.map((r) => ({ id: r.id, name: r.name, code: r.code })),
+    },
+    {
+      key: "specialties",
+      label: "Specialties",
+      entries: specialties.map((s) => ({ id: s.id, name: s.name, code: s.code })),
+    },
+    {
+      key: "regions",
+      label: "Regions",
+      entries: regions.map((r) => ({ id: r.id, name: r.name })),
+    },
+    {
+      key: "districts",
+      label: "Districts",
+      entries: districts.map((d) => ({ id: d.id, name: d.name })),
+    },
+  ];
+
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-7 px-5 py-10 sm:px-8 sm:py-14">
-      <header className="flex flex-col gap-2">
-        <span className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
-          <span className="size-1 rounded-full bg-teal-500" />
-          Area 4 · Catalog
-          <span aria-hidden="true">&middot;</span>
-          <span className="text-amber-700 dark:text-amber-300">read-only</span>
-        </span>
-        <h1
-          className="font-display text-foreground text-[28px] leading-[1.1] tracking-[-0.02em] sm:text-[36px]"
-          style={{ fontWeight: 400 }}
-        >
-          Catalog
-        </h1>
-        <p className="text-muted-foreground max-w-[60ch] text-[13.5px]">
-          Seeded reference data. Editing is deferred behind preview + four-eyes + audit (per kickoff
-          Area 4) — role → permission edits are the quietest catastrophic risk in the system and
-          never surface as a UI affordance without the safeguards.
-        </p>
+    <div className="flex flex-col">
+      <header className="border-border border-b px-4 py-6 sm:px-8 sm:py-8">
+        <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-1">
+          <h1 className="font-display text-foreground text-[24px] leading-tight font-medium tracking-[-0.018em] sm:text-[28px]">
+            Catalog
+          </h1>
+          <p className="text-muted-foreground max-w-[60ch] text-[13.5px]">
+            Seeded reference data — read-only. Editing is deferred behind preview + four-eyes +
+            audit (per kickoff Area 4); role → permission edits are the quietest catastrophic risk
+            in the system and never surface as a UI affordance without the safeguards.
+          </p>
+        </div>
       </header>
 
-      <CatalogSection title="Councils" count={councils.length}>
-        <ul className="flex flex-col gap-1">
-          {councils.map((c) => (
-            <li key={c.id} className="flex items-baseline justify-between gap-3 text-[13px]">
-              <span className="text-foreground">{c.name}</span>
-              <span className="text-muted-foreground font-mono text-[11px]">{c.code}</span>
-            </li>
-          ))}
-        </ul>
-      </CatalogSection>
-
-      <CatalogSection title="Cadres" count={allCadres.length}>
-        <ul className="flex flex-col gap-1">
-          {allCadres.map((c) => (
-            <li key={c.id} className="flex items-baseline justify-between gap-3 text-[13px]">
-              <span className="text-foreground">{c.name}</span>
-              <span className="text-muted-foreground font-mono text-[11px]">{c.code}</span>
-            </li>
-          ))}
-        </ul>
-      </CatalogSection>
-
-      <CatalogSection title="Roles" count={allRoles.length}>
-        <ul className="flex flex-col gap-1">
-          {allRoles.map((r) => (
-            <li key={r.id} className="flex items-baseline justify-between gap-3 text-[13px]">
-              <span className="text-foreground">{r.name}</span>
-              <span className="text-muted-foreground font-mono text-[11px]">{r.code}</span>
-            </li>
-          ))}
-        </ul>
-      </CatalogSection>
-
-      <CatalogSection title="Specialties" count={specialties.length}>
-        <ul className="flex flex-col gap-1">
-          {specialties.map((s) => (
-            <li key={s.id} className="flex items-baseline justify-between gap-3 text-[13px]">
-              <span className="text-foreground">{s.name}</span>
-              <span className="text-muted-foreground font-mono text-[11px]">{s.code}</span>
-            </li>
-          ))}
-        </ul>
-      </CatalogSection>
-
-      <CatalogSection title="Regions" count={regions.length}>
-        <ul className="flex flex-wrap gap-2">
-          {regions.map((r) => (
-            <li
-              key={r.id}
-              className="border-border text-foreground rounded-sm border px-2 py-1 text-[12px]"
-            >
-              {r.name}
-            </li>
-          ))}
-        </ul>
-      </CatalogSection>
-
-      <CatalogSection title="Districts" count={districts.length}>
-        <ul className="grid grid-cols-2 gap-x-4 gap-y-1 sm:grid-cols-3">
-          {districts.map((d) => (
-            <li key={d.id} className="text-foreground/85 text-[12.5px]">
-              {d.name}
-            </li>
-          ))}
-        </ul>
-      </CatalogSection>
+      <div className="mx-auto w-full max-w-[1200px] flex-1 px-4 py-6 sm:px-8 sm:py-8">
+        <CatalogBrowser sections={sections} />
+      </div>
     </div>
-  );
-}
-
-function CatalogSection({
-  title,
-  count,
-  children,
-}: {
-  title: string;
-  count: number;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="border-border bg-card flex flex-col gap-3 rounded-lg border p-5">
-      <header className="flex items-baseline justify-between">
-        <h2 className="text-foreground text-[16px] font-medium tracking-tight">{title}</h2>
-        <span className="text-muted-foreground font-mono text-[10px] tracking-[0.16em] uppercase">
-          {count} rows
-        </span>
-      </header>
-      {children}
-    </section>
   );
 }
