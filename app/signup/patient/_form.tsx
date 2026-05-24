@@ -80,7 +80,8 @@ export function PatientSignupForm({
 
   const [idType, setIdType] = useState<string>("nin");
   const errors: PatientSignupErrors = state.errors ?? {};
-  const v = state.values ?? {};
+  // state.values intentionally unused — user input persists across
+  // action error re-renders via native DOM / base-ui internal state.
 
   const steps: MultiStepStep[] = [
     {
@@ -92,12 +93,7 @@ export function PatientSignupForm({
       render: () => (
         <>
           <Field name="title_code" label="Title">
-            <SegmentedControl
-              name="title_code"
-              ariaLabel="Title"
-              defaultValue={typeof v.title_code === "string" ? v.title_code : undefined}
-              options={TITLE_OPTIONS}
-            />
+            <SegmentedControl name="title_code" ariaLabel="Title" options={TITLE_OPTIONS} />
           </Field>
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -105,7 +101,6 @@ export function PatientSignupForm({
               <Input
                 name="first_name"
                 autoComplete="given-name"
-                defaultValue={v.first_name ?? ""}
                 aria-invalid={!!errors.first_name || undefined}
               />
             </Field>
@@ -113,7 +108,6 @@ export function PatientSignupForm({
               <Input
                 name="surname"
                 autoComplete="family-name"
-                defaultValue={v.surname ?? ""}
                 aria-invalid={!!errors.surname || undefined}
               />
             </Field>
@@ -123,7 +117,6 @@ export function PatientSignupForm({
             <SegmentedControl
               name="sex"
               ariaLabel="Sex at birth"
-              defaultValue={typeof v.sex === "string" ? v.sex : undefined}
               options={SEX_OPTIONS}
               invalid={!!errors.sex}
             />
@@ -140,7 +133,6 @@ export function PatientSignupForm({
               name="date_of_birth"
               minAge={0}
               maxAge={120}
-              defaultValue={v.date_of_birth}
               invalid={!!errors.date_of_birth}
             />
           </Field>
@@ -149,7 +141,7 @@ export function PatientSignupForm({
             <SegmentedControl
               name="id_type"
               ariaLabel="ID type"
-              defaultValue={typeof v.id_type === "string" ? v.id_type : "nin"}
+              defaultValue={"nin"}
               options={ID_TYPE_OPTIONS}
               onValueChange={(next) => setIdType(next)}
               invalid={!!errors.id_type}
@@ -168,7 +160,6 @@ export function PatientSignupForm({
                 name="id_number"
                 autoComplete="off"
                 inputMode="text"
-                defaultValue={v.id_number ?? ""}
                 aria-invalid={!!errors.id_number || undefined}
               />
             </Field>
@@ -181,12 +172,7 @@ export function PatientSignupForm({
             required
             serverError={errors.phone_e164}
           >
-            <PhoneInput
-              name="phone_e164"
-              defaultValue={v.phone_e164}
-              invalid={!!errors.phone_e164}
-              mobileOnly
-            />
+            <PhoneInput name="phone_e164" invalid={!!errors.phone_e164} mobileOnly />
           </Field>
         </>
       ),
@@ -204,12 +190,10 @@ export function PatientSignupForm({
             parentLabel="District"
             parentItems={districts}
             parentPlaceholder="Search districts…"
-            parentDefaultValue={v.district_id}
             parentInvalid={!!errors.district_id}
             childName="subcounty_id"
             childLabel="Subcounty"
             childPlaceholder="Search subcounties…"
-            childDefaultValue={v.subcounty_id}
             childInvalid={!!errors.subcounty_id}
             loadChildren={loadSubcounties}
           />
@@ -219,11 +203,7 @@ export function PatientSignupForm({
             label="Village or street address (optional)"
             description="Free-text. Encrypted at rest."
           >
-            <Input
-              name="village_address"
-              autoComplete="address-level3"
-              defaultValue={v.village_address ?? ""}
-            />
+            <Input name="village_address" autoComplete="address-level3" />
           </Field>
 
           <Field name="preferred_language" label="Preferred language for communications (optional)">
@@ -231,7 +211,6 @@ export function PatientSignupForm({
               name="preferred_language"
               autoComplete="off"
               placeholder="e.g. English, Luganda, Runyoro"
-              defaultValue={v.preferred_language ?? ""}
             />
           </Field>
         </>
@@ -248,7 +227,6 @@ export function PatientSignupForm({
             <Input
               name="full_name"
               autoComplete="name"
-              defaultValue={v.full_name ?? ""}
               aria-invalid={!!errors.full_name || undefined}
             />
           </Field>
@@ -258,7 +236,6 @@ export function PatientSignupForm({
               type="email"
               name="email"
               autoComplete="email"
-              defaultValue={v.email ?? ""}
               aria-invalid={!!errors.email || undefined}
             />
           </Field>

@@ -99,7 +99,8 @@ export function ClinicalSignupForm({
   const roles = cadreId ? loadedRoles : [];
 
   const errors: ClinicalSignupErrors = state.errors ?? {};
-  const v = state.values ?? {};
+  // state.values intentionally unused — user input persists across
+  // action error re-renders via native DOM / base-ui internal state.
 
   const steps: MultiStepStep[] = [
     {
@@ -113,7 +114,6 @@ export function ClinicalSignupForm({
             <Input
               name="full_name"
               autoComplete="name"
-              defaultValue={v.full_name ?? ""}
               aria-invalid={!!errors.full_name || undefined}
             />
           </Field>
@@ -122,17 +122,11 @@ export function ClinicalSignupForm({
               type="email"
               name="email"
               autoComplete="email"
-              defaultValue={v.email ?? ""}
               aria-invalid={!!errors.email || undefined}
             />
           </Field>
           <Field name="phone_e164" label="Mobile phone" required serverError={errors.phone_e164}>
-            <PhoneInput
-              name="phone_e164"
-              defaultValue={v.phone_e164}
-              invalid={!!errors.phone_e164}
-              mobileOnly
-            />
+            <PhoneInput name="phone_e164" invalid={!!errors.phone_e164} mobileOnly />
           </Field>
         </>
       ),
@@ -150,12 +144,10 @@ export function ClinicalSignupForm({
             parentLabel="Regulatory council"
             parentItems={councils}
             parentPlaceholder="Search councils…"
-            parentDefaultValue={v.council_id}
             parentInvalid={!!errors.council_id}
             childName="cadre_id"
             childLabel="Cadre"
             childPlaceholder="Search cadres…"
-            childDefaultValue={v.cadre_id}
             childInvalid={!!errors.cadre_id}
             loadChildren={loadCadres}
             onParentChange={() => setCadreId(null)}
@@ -167,7 +159,10 @@ export function ClinicalSignupForm({
            * track cadre selection in React state with a hidden Combobox
            * subscriber. Simpler than threading another cascade level.
            */}
-          <CadreSubscriber onCadreChange={setCadreId} defaultValue={v.cadre_id ?? null} />
+          {/* CadreSubscriber observes the hidden cadre_id input via
+              MutationObserver — it bootstraps from whatever value is
+              already in the DOM, so no defaultValue prop needed. */}
+          <CadreSubscriber onCadreChange={setCadreId} />
 
           <Field name="cadre_grade_id" label="Cadre grade (optional)">
             <Combobox
@@ -180,7 +175,6 @@ export function ClinicalSignupForm({
                     ? "Loading…"
                     : "Search grades…"
               }
-              defaultValue={v.cadre_grade_id}
               disabled={!cadreId}
             />
           </Field>
@@ -192,7 +186,6 @@ export function ClinicalSignupForm({
               placeholder={
                 !cadreId ? "Pick a cadre first" : roles.length === 0 ? "Loading…" : "Search roles…"
               }
-              defaultValue={v.role_id}
               disabled={!cadreId}
               invalid={!!errors.role_id}
             />
@@ -208,7 +201,6 @@ export function ClinicalSignupForm({
             <Input
               name="registration_number"
               autoComplete="off"
-              defaultValue={v.registration_number ?? ""}
               aria-invalid={!!errors.registration_number || undefined}
             />
           </Field>
@@ -219,11 +211,7 @@ export function ClinicalSignupForm({
             description="If your practising certificate has an expiry, we'll prompt you to re-upload before it lapses."
             serverError={errors.registration_expiry}
           >
-            <Input
-              name="registration_expiry"
-              type="date"
-              defaultValue={v.registration_expiry ?? ""}
-            />
+            <Input name="registration_expiry" type="date" />
           </Field>
 
           <Field
@@ -255,12 +243,10 @@ export function ClinicalSignupForm({
             parentLabel="Hospital"
             parentItems={hospitals}
             parentPlaceholder="Search hospitals…"
-            parentDefaultValue={v.hospital_id}
             parentInvalid={!!errors.hospital_id}
             childName="department_id"
             childLabel="Department"
             childPlaceholder="Search departments…"
-            childDefaultValue={v.department_id}
             childInvalid={!!errors.department_id}
             loadChildren={loadDepartments}
           />
@@ -274,7 +260,7 @@ export function ClinicalSignupForm({
             <SegmentedControl
               name="employment_type"
               ariaLabel="Employment type"
-              defaultValue={typeof v.employment_type === "string" ? v.employment_type : "full_time"}
+              defaultValue={"full_time"}
               options={EMPLOYMENT_TYPE_OPTIONS}
               invalid={!!errors.employment_type}
             />
@@ -364,24 +350,18 @@ export function ClinicalSignupForm({
  * (its `value` attribute reflects the selected item's stringified
  * value).
  */
-function CadreSubscriber({
-  onCadreChange,
-  defaultValue,
-}: {
-  onCadreChange: (id: string | null) => void;
-  defaultValue: string | null;
-}) {
+function CadreSubscriber({ onCadreChange }: { onCadreChange: (id: string | null) => void }) {
   useEffect(() => {
-    if (defaultValue) onCadreChange(defaultValue);
     const node = document.querySelector<HTMLInputElement>('input[name="cadre_id"]');
     if (!node) return;
     const observer = new MutationObserver(() => {
       onCadreChange(node.value || null);
     });
     observer.observe(node, { attributes: true, attributeFilter: ["value"] });
-    // Initial sync in case the node carried a value at mount.
+    // Initial sync in case the node carried a value at mount (e.g. the
+    // base-ui Combobox already had a selection from a prior submission).
     onCadreChange(node.value || null);
     return () => observer.disconnect();
-  }, [onCadreChange, defaultValue]);
+  }, [onCadreChange]);
   return null;
 }

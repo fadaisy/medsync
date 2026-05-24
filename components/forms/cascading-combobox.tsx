@@ -135,7 +135,11 @@ export function CascadingCombobox({
           placeholder={
             !parent ? childAwaitingParentText : isPending ? "Loading…" : childPlaceholder
           }
-          value={childValue ?? undefined}
+          // Always pass a string (never undefined) so base-ui locks the
+          // child as controlled at first render. Without this, the value
+          // flips from undefined → "uuid" the moment the user picks a
+          // subcounty, and base-ui warns about uncontrolled-→-controlled.
+          value={childValue ?? ""}
           invalid={childInvalid}
           disabled={!parent || isPending}
           onValueChange={(v) => setChildValue(v)}

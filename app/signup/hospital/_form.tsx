@@ -103,7 +103,11 @@ export function HospitalApplicationForm({
     {},
   );
   const errors: HospitalApplicationErrors = state.errors ?? {};
-  const v = state.values ?? {};
+  // state.values is intentionally not consumed here — user input
+  // persists across action error re-renders via native DOM state
+  // (uncontrolled inputs) and base-ui internal state (Comboboxes,
+  // RadioCards). Re-seeding from state.values would cause base-ui
+  // controlled/uncontrolled flips.
 
   const steps: MultiStepStep[] = [
     {
@@ -120,11 +124,7 @@ export function HospitalApplicationForm({
             required
             serverError={errors.hospital_name}
           >
-            <Input
-              name="hospital_name"
-              defaultValue={v.hospital_name ?? ""}
-              aria-invalid={!!errors.hospital_name || undefined}
-            />
+            <Input name="hospital_name" aria-invalid={!!errors.hospital_name || undefined} />
           </Field>
 
           <Field
@@ -136,7 +136,6 @@ export function HospitalApplicationForm({
             <Combobox
               name="facility_level"
               items={FACILITY_LEVEL_OPTIONS}
-              defaultValue={v.facility_level}
               invalid={!!errors.facility_level}
               placeholder="Pick the MoH level"
             />
@@ -146,7 +145,6 @@ export function HospitalApplicationForm({
             <RadioCards
               name="ownership"
               ariaLabel="Ownership"
-              defaultValue={typeof v.ownership === "string" ? v.ownership : undefined}
               options={OWNERSHIP_OPTIONS}
               invalid={!!errors.ownership}
             />
@@ -157,12 +155,10 @@ export function HospitalApplicationForm({
             parentLabel="District"
             parentItems={districts}
             parentPlaceholder="Search districts…"
-            parentDefaultValue={v.district_id}
             parentInvalid={!!errors.district_id}
             childName="subcounty_id"
             childLabel="Subcounty (optional)"
             childPlaceholder="Search subcounties…"
-            childDefaultValue={v.subcounty_id}
             childInvalid={!!errors.subcounty_id}
             loadChildren={loadSubcounties}
           />
@@ -174,11 +170,7 @@ export function HospitalApplicationForm({
             required
             serverError={errors.physical_address}
           >
-            <Input
-              name="physical_address"
-              defaultValue={v.physical_address ?? ""}
-              aria-invalid={!!errors.physical_address || undefined}
-            />
+            <Input name="physical_address" aria-invalid={!!errors.physical_address || undefined} />
           </Field>
 
           <Field
@@ -190,7 +182,6 @@ export function HospitalApplicationForm({
           >
             <Input
               name="registration_number"
-              defaultValue={v.registration_number ?? ""}
               aria-invalid={!!errors.registration_number || undefined}
             />
           </Field>
@@ -200,7 +191,7 @@ export function HospitalApplicationForm({
             label="Issuing authority (optional)"
             description="e.g. MoH Facility List, UMDPC."
           >
-            <Input name="registration_authority" defaultValue={v.registration_authority ?? ""} />
+            <Input name="registration_authority" />
           </Field>
 
           <Field
@@ -214,7 +205,6 @@ export function HospitalApplicationForm({
               name="institutional_email_domain"
               autoComplete="off"
               placeholder="mulago.go.ug"
-              defaultValue={v.institutional_email_domain ?? ""}
               aria-invalid={!!errors.institutional_email_domain || undefined}
             />
           </Field>
@@ -260,7 +250,6 @@ export function HospitalApplicationForm({
             <Input
               name="applicant_full_name"
               autoComplete="name"
-              defaultValue={v.applicant_full_name ?? ""}
               aria-invalid={!!errors.applicant_full_name || undefined}
             />
           </Field>
@@ -272,11 +261,7 @@ export function HospitalApplicationForm({
             required
             serverError={errors.applicant_role}
           >
-            <Input
-              name="applicant_role"
-              defaultValue={v.applicant_role ?? ""}
-              aria-invalid={!!errors.applicant_role || undefined}
-            />
+            <Input name="applicant_role" aria-invalid={!!errors.applicant_role || undefined} />
           </Field>
 
           <Field
@@ -287,7 +272,6 @@ export function HospitalApplicationForm({
           >
             <PhoneInput
               name="applicant_phone_e164"
-              defaultValue={v.applicant_phone_e164}
               invalid={!!errors.applicant_phone_e164}
               mobileOnly
             />
@@ -314,7 +298,6 @@ export function HospitalApplicationForm({
               type="email"
               name="applicant_email"
               autoComplete="email"
-              defaultValue={v.applicant_email ?? ""}
               aria-invalid={!!errors.applicant_email || undefined}
             />
           </Field>
