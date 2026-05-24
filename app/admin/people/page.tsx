@@ -1,3 +1,4 @@
+import type { PeopleItem } from "../_components/people/types";
 import type { Metadata } from "next";
 import { asc, ilike, or, sql } from "drizzle-orm";
 
@@ -6,7 +7,7 @@ import { userRoles } from "@/db/schema/user-roles";
 import { users } from "@/db/schema/users";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
-import { PeopleRow } from "./_row";
+import { PeopleTable } from "../_components/people/table";
 
 export const metadata: Metadata = {
   title: "People · Superadmin · MedSync",
@@ -22,13 +23,10 @@ interface SearchParams {
 }
 
 /**
- * GATE D — People &amp; access.
- *
- * Search + manage users across tenants. Every action runs on
- * operational fields only (no decrypted PHI ever appears here).
- * Sensitive actions (Create superadmin) wire through the four-eyes
- * helper — auto-satisfies today, will enforce a second approval
- * once a 2nd real superadmin exists.
+ * People — search + manage users across tenants. Server runs the
+ * (server-controlled) search, normalises to PeopleItem[], and hands
+ * off to the client PeopleTable which renders the DataTable + slide-
+ * out multi-action detail panel.
  */
 export default async function PeoplePage({
   searchParams,
@@ -38,7 +36,6 @@ export default async function PeoplePage({
   const sp = await searchParams;
   const q = (sp.q ?? "").trim();
 
-  // Re-gate at the page level.
   const supabase = await createClient();
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) return null;
@@ -67,7 +64,6 @@ export default async function PeoplePage({
     ? await baseQuery.where(or(ilike(users.email, `%${q}%`), ilike(users.fullName, `%${q}%`)))
     : await baseQuery;
 
-  // Resolve roles for the returned users in one batched query.
   const ids = list.map((u) => u.id);
   const rolesRows =
     ids.length === 0
@@ -87,58 +83,14 @@ export default async function PeoplePage({
     rolesByUser.set(r.userId, arr);
   }
 
-  return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-7 px-5 py-10 sm:px-8 sm:py-14">
-      <header className="flex flex-col gap-2">
-        <span className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
-          <span className="size-1 rounded-full bg-teal-500" />
-          Area 3 · People &amp; access
-        </span>
-        <h1
-          className="font-display text-foreground text-[28px] leading-[1.1] tracking-[-0.02em] sm:text-[36px]"
-          style={{ fontWeight: 400 }}
-        >
-          People &amp; access
-        </h1>
-        <p className="text-muted-foreground text-[13.5px]">
-          Operational fields only — no PHI. Every action is audited.
-        </p>
-      </header>
+  const items: PeopleItem[] = list.map((u) => ({
+    id: u.id,
+    email: u.email,
+    fullName: u.fullName,
+    state: u.state,
+    createdAtIso: u.createdAt.toISOString(),
+    roles: rolesByUser.get(u.id) ?? [],
+  }));
 
-      <form className="border-border bg-card flex items-center gap-2 rounded-lg border p-3">
-        <input
-          type="search"
-          name="q"
-          defaultValue={q}
-          placeholder="Search by email or name…"
-          className="border-input bg-background flex-1 rounded-sm border px-2.5 py-1.5 text-[13px] outline-none focus-visible:border-teal-500"
-        />
-        <button
-          type="submit"
-          className="rounded-md bg-teal-600 px-3 py-1.5 text-[12.5px] font-medium text-white dark:bg-teal-500"
-        >
-          Search
-        </button>
-      </form>
-
-      <section className="border-border bg-card overflow-hidden rounded-lg border">
-        {list.length === 0 ? (
-          <div className="text-muted-foreground p-6 text-center text-[13.5px]">No users match.</div>
-        ) : (
-          <ul className="divide-border divide-y">
-            {list.map((u) => (
-              <PeopleRow
-                key={u.id}
-                userId={u.id}
-                email={u.email}
-                fullName={u.fullName}
-                state={u.state}
-                roles={rolesByUser.get(u.id) ?? []}
-              />
-            ))}
-          </ul>
-        )}
-      </section>
-    </div>
-  );
+  return <PeopleTable items={items} currentUserId={userData.user.id} initialQuery={q} />;
 }

@@ -40,7 +40,7 @@ const PUBLIC_PREFIXES = [
 
 const PUBLIC_EXACT = new Set(["/", "/sign-out", "/get-started"]);
 
-const ALWAYS_AUTH_REQUIRED_PREFIXES = ["/dashboard", "/onboarding/mfa-setup", "/admin"];
+const ALWAYS_AUTH_REQUIRED_PREFIXES = ["/onboarding/mfa-setup", "/admin"];
 
 function isPublic(pathname: string): boolean {
   if (PUBLIC_EXACT.has(pathname)) return true;

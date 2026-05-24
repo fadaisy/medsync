@@ -279,6 +279,6 @@ export async function submitClinicalSignupAction(
     licence_uploaded: licencePath !== null,
   });
 
-  revalidatePath("/dashboard");
-  redirect("/dashboard?welcomed=clinical-pending");
+  revalidatePath("/");
+  redirect("/?welcomed=clinical-pending");
 }

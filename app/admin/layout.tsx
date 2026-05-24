@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { getAuthState } from "@/lib/auth";
 import { createServiceClient } from "@/lib/supabase/service";
-import { AdminNavClient } from "./_components/admin-nav-client";
+import { AdminShell } from "./_components/admin-shell";
+import { getApprovalsCount } from "./_lib/approvals-count";
+import { getPaletteEntities } from "./_lib/palette-entities";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -31,7 +32,11 @@ export const metadata: Metadata = {
  *   2. Authenticated? Else /sign-in?next=/admin.
  *   3. MFA-required role + nextLevel != aal2 → /onboarding/mfa-setup.
  *   4. AAL != aal2 → /sign-in/mfa.
- *   5. Holds superadmin OR scoped hospital_admin? Else /dashboard.
+ *   5. Holds superadmin OR scoped hospital_admin? Else / (landing).
+ *
+ * Once the checks pass, hands off to <AdminShell /> which renders the
+ * persistent sidebar, top bar (with ⌘K palette + secure-session
+ * indicator), and the slot for the active route.
  */
 export default async function AdminLayout({ children }: { children: ReactNode }) {
   const state = await getAuthState();
@@ -47,8 +52,6 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     redirect("/sign-in/mfa?next=/admin");
   }
 
-  // Pull the same role rows the page bodies will use so we know which
-  // nav items to surface and pass the bit down to the client nav.
   const service = createServiceClient();
   const { data: rolesData } = await service
     .from("user_roles")
@@ -61,53 +64,30 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     .map((r) => r.hospital_id as string);
 
   if (!isSuperadmin && hospitalAdminHospitalIds.length === 0) {
-    // Authenticated but not an admin — bounce to dashboard rather
-    // than leaking the existence of /admin via a 403 page.
-    redirect("/dashboard");
+    // Authenticated but not an admin — bounce to the landing page
+    // rather than leaking the existence of /admin via a 403 page.
+    // Phase 0 has no clinical/patient surfaces yet; the landing page
+    // is the honest "you have nothing to do here" destination.
+    redirect("/");
   }
 
+  // Live count + palette entities. Both failure-tolerant — degrade
+  // to 0 / empty so the shell still renders.
+  const [approvalsCount, paletteEntities] = await Promise.all([
+    getApprovalsCount(),
+    getPaletteEntities(),
+  ]);
+
   return (
-    <div className="bg-background flex min-h-svh w-full flex-col">
-      <header className="border-border/60 supports-[backdrop-filter]:bg-background/80 sticky top-0 z-30 w-full border-b backdrop-blur">
-        <div className="mx-auto flex w-full max-w-300 flex-col gap-3 px-5 py-3 sm:px-8 md:flex-row md:items-center md:justify-between md:gap-6">
-          <div className="flex items-center gap-5">
-            <Link
-              href="/"
-              className="font-display text-foreground text-[16px] tracking-tight transition-opacity hover:opacity-80"
-            >
-              MedSync
-            </Link>
-            <span
-              className={cn(
-                "inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase",
-                isSuperadmin ? "text-teal-700 dark:text-teal-300" : "text-muted-foreground",
-              )}
-            >
-              <span
-                aria-hidden="true"
-                className="size-1 rounded-full bg-teal-500 dark:bg-teal-400"
-              />
-              {isSuperadmin ? "Superadmin workspace" : "Hospital admin"}
-            </span>
-          </div>
-
-          <AdminNavClient isSuperadmin={isSuperadmin} />
-
-          <Link
-            href="/sign-out"
-            className="text-muted-foreground hover:text-foreground text-[12.5px] transition-colors"
-          >
-            Sign out
-          </Link>
-        </div>
-      </header>
-      <main className="flex-1">{children}</main>
-    </div>
+    <AdminShell
+      isSuperadmin={isSuperadmin}
+      operatorEmail={state.user.email ?? "operator"}
+      mfaActive={state.aal === "aal2"}
+      approvalsCount={approvalsCount}
+      paletteHospitals={paletteEntities.hospitals}
+      palettePeople={paletteEntities.people}
+    >
+      {children}
+    </AdminShell>
   );
-}
-
-// Local cn helper — keeps the layout self-contained for the import-
-// graph minimisation pattern used elsewhere in /admin.
-function cn(...classes: Array<string | false | null | undefined>): string {
-  return classes.filter(Boolean).join(" ");
 }

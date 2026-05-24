@@ -1,0 +1,31 @@
+/**
+ * Shared types for the Approvals queue. Server fetches + normalises
+ * into the unified ApprovalItem shape, then hands off to the client.
+ */
+
+export type ApprovalKind = "staff" | "hospital";
+
+export interface ApprovalEvidence {
+  label: string;
+  value: string;
+  /** Render the value in monospace + tabular-nums (IDs, numbers). */
+  mono?: boolean;
+  /** Tone for inline pills (e.g. "missing" → critical). */
+  tone?: "neutral" | "warning" | "critical" | "ok";
+}
+
+export interface ApprovalItem {
+  id: string;
+  kind: ApprovalKind;
+  /** Primary line — clinician name or hospital name. */
+  title: string;
+  /** Secondary context — hospital name for staff, facility level for hospital. */
+  subtitle: string;
+  /** ISO timestamp (string-safe across server/client boundary). */
+  createdAtIso: string;
+  /** Detail-panel evidence rows, in render order. */
+  evidence: ReadonlyArray<ApprovalEvidence>;
+  /** Storage path + bucket for the supporting document (optional). */
+  documentBucket?: "clinician-licences" | "hospital-authorisations";
+  documentPath?: string;
+}

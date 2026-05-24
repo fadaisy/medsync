@@ -25,7 +25,7 @@ export default async function MfaSetupPage() {
   // (Supabase's listFactors().totp is pre-filtered to verified-only;
   // unverified factors live in .all.)
   const { data: factors } = await supabase.auth.mfa.listFactors();
-  if (factors?.totp?.[0]) redirect("/dashboard");
+  if (factors?.totp?.[0]) redirect("/admin");
 
   // Clean up any stale unverified factor from a previous attempt.
   const unverified =
