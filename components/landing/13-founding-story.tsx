@@ -32,6 +32,8 @@ interface Founder {
   title: string;
   portraitSrc: string;
   portraitAlt: string;
+  /** Object-position override when the face sits high in the source image. */
+  portraitPosition?: "center" | "top";
   headlineLead: string;
   headlineEnd: string;
   story: React.ReactNode;
@@ -165,6 +167,7 @@ const FOUNDERS: Founder[] = [
     title: "Co-founder, MedSync",
     portraitSrc: "/founder-nayiga-joselyn-mirembe.jpeg",
     portraitAlt: "Dr. Nayiga Joselyn Mirembe, MedSync co-founder, portrait.",
+    portraitPosition: "top",
     headlineLead: "Healthcare shouldn’t begin",
     headlineEnd: "when things fall apart.",
     story: (
@@ -362,7 +365,10 @@ function FounderBlock({ founder }: { founder: Founder }) {
               alt={founder.portraitAlt}
               fill
               sizes="(min-width: 1024px) 320px, (min-width: 768px) 30vw, 80vw"
-              className="origin-top scale-[1.2] object-cover"
+              className={cn(
+                "origin-top scale-[1.2] object-cover",
+                founder.portraitPosition === "top" ? "object-top" : "object-center",
+              )}
               priority={false}
             />
           </div>
