@@ -13,6 +13,7 @@ import { logger } from "@/lib/logger";
 import { listCadreGrades, listCadres, listDepartments, listRoles } from "@/lib/reference-data";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
+import { looseUuid, pickFromList } from "@/lib/zod-helpers";
 
 const UUID_RE = /^[0-9a-f-]{36}$/i;
 
@@ -84,9 +85,9 @@ const ClinicalSignupSchema = z.object({
   phone_e164: z.string().regex(PHONE_E164_UG, "Enter a Ugandan phone number."),
 
   // Professional
-  council_id: z.string().uuid("Pick a council."),
-  cadre_id: z.string().uuid("Pick a cadre."),
-  cadre_grade_id: z.string().uuid().optional(),
+  council_id: pickFromList("council"),
+  cadre_id: pickFromList("cadre"),
+  cadre_grade_id: looseUuid("Pick a cadre grade from the list.").optional(),
   registration_number: z.string().min(1, "Required.").max(60),
   registration_expiry: z
     .string()
@@ -94,10 +95,10 @@ const ClinicalSignupSchema = z.object({
     .optional(),
 
   // Affiliation
-  hospital_id: z.string().uuid("Pick a hospital."),
-  department_id: z.string().uuid("Pick a department."),
-  role_id: z.string().uuid("Pick a role."),
-  specialty_id: z.string().uuid().optional(),
+  hospital_id: pickFromList("hospital"),
+  department_id: pickFromList("department"),
+  role_id: pickFromList("role"),
+  specialty_id: looseUuid("Pick a specialty from the list.").optional(),
   employment_type: z.enum(["full_time", "visiting", "locum"]),
 
   // Consent

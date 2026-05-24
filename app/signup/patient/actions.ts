@@ -15,6 +15,7 @@ import { listSubcounties } from "@/lib/reference-data";
 import { clearDraft } from "@/lib/signup-drafts";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
+import { looseUuid, pickFromList } from "@/lib/zod-helpers";
 
 /**
  * Server-Action loader for the district → subcounty cascade. Returns a
@@ -79,12 +80,12 @@ const PatientSignupSchema = z.object({
   phone_e164: z.string().regex(PHONE_E164_UG, "Enter a Ugandan phone number."),
 
   // Geography
-  district_id: z.string().uuid("Pick a district."),
-  subcounty_id: z.string().uuid().optional(),
+  district_id: pickFromList("district"),
+  subcounty_id: looseUuid("Pick a subcounty from the list.").optional(),
   village_address: z.string().max(200).optional(),
   preferred_language: z.string().max(60).optional(),
 
-  primary_facility_id: z.string().uuid().optional(),
+  primary_facility_id: looseUuid("Pick a facility from the list.").optional(),
 
   // Next-of-kin (optional in this build; the form may collect later)
   nok_name: z.string().max(120).optional(),

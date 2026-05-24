@@ -13,6 +13,7 @@ import { logger } from "@/lib/logger";
 import { listSubcounties } from "@/lib/reference-data";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
+import { looseUuid, pickFromList } from "@/lib/zod-helpers";
 
 const UUID_RE = /^[0-9a-f-]{36}$/i;
 const PHONE_E164_UG = /^\+2567\d{8}$|^\+256[23489]\d{7,8}$/;
@@ -41,7 +42,7 @@ const HospitalLeadSchema = z.object({
     "other",
   ]),
   ownership: z.enum(["public_moh", "private", "pnfp", "private_clinic"]),
-  district_id: z.string().uuid(),
+  district_id: pickFromList("district"),
   contact_name: z.string().min(1).max(120),
   contact_role: z.string().min(1).max(80),
   contact_email: z.string().email(),
@@ -138,8 +139,8 @@ const HospitalApplicationSchema = z.object({
   ownership: z.enum(["public_moh", "private", "pnfp", "private_clinic"]),
   registration_number: z.string().min(1, "Required.").max(120),
   registration_authority: z.string().max(160).optional(),
-  district_id: z.string().uuid("Pick a district."),
-  subcounty_id: z.string().uuid().optional(),
+  district_id: pickFromList("district"),
+  subcounty_id: looseUuid("Pick a subcounty from the list.").optional(),
   physical_address: z.string().min(1, "Required.").max(400),
   institutional_email_domain: z
     .string()
@@ -184,15 +185,6 @@ export async function submitHospitalApplicationAction(
 
   const parsed = HospitalApplicationSchema.safeParse(cleaned);
   if (!parsed.success) {
-    // TEMPORARY debug: dump what cleaned looks like so we can pin down
-    // why ownership/district_id are not matching the schema. Strip the
-    // password before logging.
-    const { applicant_password: _pw, ...debugView } = cleaned;
-    logger.warn("hospital-application.zod.failed", {
-      cleaned_keys_count: Object.keys(cleaned).length,
-      cleaned_minus_password: debugView,
-      field_errors: parsed.error.flatten().fieldErrors,
-    });
     const fieldErrors = parsed.error.flatten().fieldErrors;
     return {
       errors: Object.fromEntries(
