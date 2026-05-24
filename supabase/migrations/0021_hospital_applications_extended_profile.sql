@@ -194,30 +194,24 @@ ALTER TABLE public.hospital_applications
   ADD COLUMN IF NOT EXISTS agreement_accepted_version uuid,
   ADD COLUMN IF NOT EXISTS agreement_accepted_at      timestamptz;
 
--- ─── State CHECK extension ──────────────────────────────────────────────
--- The text-typed `state` column carries an implicit CHECK list. Drop +
--- re-add with the extended values. 'pending_approval' kept as alias
--- for 'applied' so existing rows + Edge Functions need no backfill.
-
+-- ─── State CHECK extension (no-op — column is enum-typed) ──────────────
+-- hospital_applications.state is typed as public.lifecycle_state (the
+-- enum), not as plain text. The enum itself is the value constraint —
+-- migration 0020 already extended the enum with under_review,
+-- agreement_signed, provisioning, offboarded, and agreement_expired,
+-- so no additional CHECK is needed (or possible without breaking the
+-- enum cast).
+--
+-- The kickoff's `applied` is a NARRATIVE alias for the canonical
+-- `pending_approval` enum value — the lifecycle.ts comments document
+-- the equivalence. We do not add `applied` to the enum because:
+--   - it would create two values with the same semantics, and
+--   - existing rows + every Edge Function already use 'pending_approval'.
+--
+-- A defensive DROP of any pre-existing legacy CHECK keeps the migration
+-- idempotent on environments that may have had a hand-applied check.
 ALTER TABLE public.hospital_applications
   DROP CONSTRAINT IF EXISTS hospital_applications_state_check;
-ALTER TABLE public.hospital_applications
-  ADD CONSTRAINT hospital_applications_state_check CHECK (
-    state IN (
-      'pending_approval',  -- legacy alias for 'applied' (kept for back-compat)
-      'applied',
-      'under_review',
-      'verified',
-      'agreement_signed',
-      'provisioning',
-      'active',
-      'rejected',
-      'suspended',
-      'deactivated',
-      'offboarded',
-      'agreement_expired'
-    )
-  );
 
 -- ─── Junction: application ↔ departments (ref-data-anchored) ────────────
 
