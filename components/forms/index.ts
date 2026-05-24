@@ -23,6 +23,7 @@ export { Checkbox, type CheckboxProps } from "./checkbox";
 export { ConsentCheckbox, type ConsentCheckboxProps } from "./consent-checkbox";
 export { PhoneInput, type PhoneInputProps } from "./phone-input";
 export { DatePicker, type DatePickerProps } from "./date-picker";
+export { DateRangePicker, type DateRangePickerProps } from "./date-range-picker";
 export { OtpInput, type OtpInputProps } from "./otp-input";
 export { FileUpload, type FileUploadProps } from "./file-upload";
 export {

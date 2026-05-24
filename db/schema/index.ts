@@ -33,3 +33,8 @@ export * from "./hospital-applications";
 
 // ─── Onboarding GATE F (approvals + superadmin audit) ───────────────────
 export * from "./sa-audit-log";
+
+// ─── Superadmin workspace (migration 0018) ──────────────────────────────
+export * from "./sa-pending-approvals";
+export * from "./sa-break-glass-grants";
+export * from "./sa-notifications";

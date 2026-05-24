@@ -47,6 +47,15 @@ export const ADMIN_NAV_ITEMS: ReadonlyArray<AdminNavItem> = [
     badge: "Read-only",
   },
   { href: "/admin/audit", label: "Audit", superadminOnly: true },
+  // Break-glass is its own nav entry because it's the single PHI-bearing
+  // path in the workspace. Surfacing it directly (vs. burying it under
+  // People or a contextual button) makes the action loud + intentional —
+  // it's never invoked by mistake from a routine workflow.
+  {
+    href: "/admin/break-glass",
+    label: "Break-glass",
+    superadminOnly: true,
+  },
   { href: "/admin/health", label: "Health" },
 ];
 
