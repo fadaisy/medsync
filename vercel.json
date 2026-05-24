@@ -7,7 +7,7 @@
     },
     {
       "path": "/api/cron/sweep-break-glass",
-      "schedule": "*/5 * * * *"
+      "schedule": "0 3 * * *"
     }
   ]
 }

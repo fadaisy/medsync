@@ -12,12 +12,16 @@ export const dynamic = "force-dynamic";
  * Sweep expired `sa_break_glass_grants` rows — marks `revoked_at`,
  * leaves `revoked_by` NULL (system), `revocation_reason='auto-expired'`.
  *
- * Wired to Vercel Cron via `vercel.json`. Same `CRON_SECRET` Bearer
- * auth as the drafts sweeper. Idempotent.
+ * Wired to Vercel Cron via `vercel.json` (daily at 03:00 UTC; Hobby
+ * plan caps cron to daily granularity). This is COSMETIC cleanup
+ * only — the real PHI gate reads `expires_at` live on every access,
+ * so a grant whose timer ran out is non-functional immediately, not
+ * when this sweep runs. Worst case the operator's "active grants"
+ * UI shows an expired row for up to ~24h before it gets revoked_at-
+ * stamped. When the project moves to Pro this can drop back to
+ * `*∕5 * * * *` for near-real-time UI freshness.
  *
- * Why not a DB trigger / cron extension: keeping all sweeps in one
- * place (the Next.js cron routes) makes observability + Sentry
- * coverage uniform.
+ * Same `CRON_SECRET` Bearer auth as the drafts sweeper. Idempotent.
  */
 export async function GET(request: Request) {
   const authHeader = request.headers.get("authorization") ?? "";
