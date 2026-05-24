@@ -9,7 +9,7 @@ import { cn } from "@/lib/utils";
  *
  * Honest substitute for Attio's customer testimonial. Now carries one
  * mission line from each cofounder, cross-fading on a slow cycle so
- * both voices land before the reader scrolls past.
+ * all three voices land before the reader scrolls past.
  *
  * Accessibility:
  *   - Auto-cycle pauses on hover/focus (WCAG 2.2.2 pause control).
@@ -45,6 +45,16 @@ const QUOTES: FounderQuote[] = [
       </>
     ),
     author: "Dr. Nelson Nuwagira",
+    role: "Co-founder, MedSync",
+  },
+  {
+    body: (
+      <>
+        Far too many Ugandans present late to healthcare facilities, often after preventable damage
+        has already occurred.
+      </>
+    ),
+    author: "Dr. Caroline Murizihiwe",
     role: "Co-founder, MedSync",
   },
 ];
