@@ -25,17 +25,27 @@ const pgClient =
   globalForDb.pgClient ??
   postgres(env.DATABASE_URL, {
     prepare: false,
-    // Dev: max 3 so one hung connection doesn't block every page render
-    // (we used to run max:1 and a single stalled request would jam
-    // every subsequent query for the whole session).
-    // Prod: max 10 matches Fluid Compute's typical per-instance budget.
+    // Dev: max 3 so one hung connection doesn't block every render
+    // (we used to run max:1 and a single stall would jam the whole
+    // session). Prod: max 10 matches Fluid Compute per-instance budget.
     max: env.NODE_ENV === "production" ? 10 : 3,
-    // Reap connections idle longer than 20s so a stuck handle doesn't
-    // sit forever — postgres-js' default is to keep them open.
-    idle_timeout: 20,
-    // Fail fast on initial connect (10s) instead of letting a hung
-    // pooler swallow the entire request.
-    connect_timeout: 10,
+    // Reap connections idle longer than 30s so stuck handles get
+    // recycled. Longer than 20s tolerates mobile networks where the
+    // cold TCP+TLS handshake to the EU pooler can eat ~2–3s.
+    idle_timeout: 30,
+    // DO NOT set connect_timeout — high-latency networks (Uganda → EU
+    // pooler) can need 5–10s for a fresh handshake. Failing fast there
+    // produced 57014 "canceling statement" errors on the first query
+    // because postgres-js cancelled the half-open connection mid-flight.
+    // Server-side statement timeout (below) is what actually protects
+    // us from runaway queries.
+    connection: {
+      // Generous 30s cap on any single statement at the server side.
+      // Reference-data queries should finish in <50ms; this just stops
+      // a pathological query from holding a connection forever.
+      // postgres-js sends this as a SET command after connect.
+      statement_timeout: 30_000,
+    },
   });
 
 if (env.NODE_ENV !== "production") {
