@@ -28,6 +28,17 @@ export const users = pgTable("users", {
    * sees it as text; runtime validation lives in lib/lifecycle.ts.
    */
   state: text("state").notNull().default("unverified"),
+  /**
+   * Suspension trio (migration 0018). Populated together when a
+   * superadmin suspends an account; cleared together on reactivate.
+   * A CHECK constraint enforces "all set when state=suspended,
+   * all null otherwise" at the DB level.
+   */
+  suspendedBy: uuid("suspended_by").references(() => authUsers.id, {
+    onDelete: "set null",
+  }),
+  suspendedAt: timestamp("suspended_at", { withTimezone: true }),
+  suspensionReason: text("suspension_reason"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });

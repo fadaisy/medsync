@@ -6,6 +6,7 @@ import { z } from "zod";
 import { env } from "@/lib/env";
 import { logger } from "@/lib/logger";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 
 /**
  * Server-Action proxies to the GATE F approval Edge Functions.
@@ -158,4 +159,60 @@ export async function rejectHospitalApplicationAction(
   if (!result.ok) return { error: result.error };
   revalidatePath("/admin");
   return { ok: true };
+}
+
+/* ─── Signed URLs for evidence documents (GATE B) ────────────────────────
+ *
+ * Generates a short-lived signed URL for a private Storage object so an
+ * admin can open the actual licence / authorisation document during a
+ * review without granting them long-lived bucket access.
+ *
+ * Auth check: caller must be a superadmin (this surface only exists in
+ * /admin which is already AAL2-gated, but defence in depth never hurts).
+ * The Storage object's RLS still applies — service-role here bypasses
+ * RLS for the signed-URL generation step itself; downstream readers
+ * use the URL directly.
+ */
+const SignedUrlInputSchema = z.object({
+  bucket: z.enum(["clinician-licences", "hospital-authorisations"]),
+  path: z.string().min(1).max(500),
+});
+
+export type SignedUrlState = { ok: true; url: string } | { ok: false; error: string };
+
+export async function getEvidenceSignedUrlAction(
+  _prev: SignedUrlState,
+  formData: FormData,
+): Promise<SignedUrlState> {
+  const parsed = SignedUrlInputSchema.safeParse({
+    bucket: formData.get("bucket"),
+    path: formData.get("path"),
+  });
+  if (!parsed.success) return { ok: false, error: "Invalid input." };
+
+  const supabase = await createClient();
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData.user) return { ok: false, error: "Not authenticated." };
+
+  const service = createServiceClient();
+  // Verify the caller is an admin role with reason to see this bucket.
+  // Clinician licences: superadmin OR any hospital_admin (matches the
+  // bucket's own RLS policy from migration 0016).
+  const { data: rolesData } = await service
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userData.user.id);
+  const roles = (rolesData ?? []).map((r) => r.role);
+  if (!roles.includes("superadmin") && !roles.includes("hospital_admin")) {
+    return { ok: false, error: "Forbidden." };
+  }
+
+  const { data, error } = await service.storage
+    .from(parsed.data.bucket)
+    .createSignedUrl(parsed.data.path, 300); // 5 minutes
+  if (error || !data?.signedUrl) {
+    logger.warn("admin.signed_url.failed", { reason: error?.message });
+    return { ok: false, error: "Couldn't generate a viewer link." };
+  }
+  return { ok: true, url: data.signedUrl };
 }

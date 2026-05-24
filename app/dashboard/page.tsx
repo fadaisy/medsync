@@ -14,6 +14,8 @@ export default async function DashboardPage() {
   const state = await getAuthState();
   if (!state.user) redirect("/sign-in?redirect=/dashboard");
 
+  const isSuperadmin = state.roles.includes("superadmin");
+
   return (
     <div className="bg-background min-h-svh">
       <header className="border-gray-150 border-b">
@@ -52,6 +54,24 @@ export default async function DashboardPage() {
             ward, vitals, follow-up) start landing in Phase 1.
           </p>
         </div>
+
+        {isSuperadmin ? (
+          <Card tone="tealTinted" className="mb-8">
+            <CardHeader>
+              <CardTitle>Admin workspace</CardTitle>
+              <CardDescription>
+                Platform operator surfaces — audit log, tenants, people, catalog, health, and
+                break-glass. Every action is recorded; break-glass also notifies the affected
+                hospital&apos;s administrators.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button render={<a href="/admin" />} nativeButton={false} variant="primary" size="sm">
+                Open admin workspace
+              </Button>
+            </CardContent>
+          </Card>
+        ) : null}
 
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <Card tone="standard">

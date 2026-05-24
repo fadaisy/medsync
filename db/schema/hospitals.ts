@@ -15,6 +15,12 @@ export const hospitals = pgTable(
     region: text("region"),
     district: text("district"),
     level: text("level").notNull(),
+    /**
+     * Tenant lifecycle state. Added in migration 0018 to support the
+     * superadmin workspace's tenant-management surface. Drizzle sees
+     * the value as text; the underlying type is `public.lifecycle_state`.
+     */
+    state: text("state").notNull().default("active"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
