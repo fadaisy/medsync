@@ -85,7 +85,7 @@ const FOUNDERS: Founder[] = [
     name: "Dr. Nelson Nuwagira",
     shortName: "Nelson",
     title: "Co-founder, MedSync",
-    portraitSrc: "/founder-nelson-nuwagira.jpg",
+    portraitSrc: "/founder-nuwagira-nelson.jpeg",
     portraitAlt: "Dr. Nelson Nuwagira, MedSync co-founder, portrait.",
     headlineLead: "Four years of blind refills.",
     headlineEnd: "A lifetime of paralysis.",
@@ -157,6 +157,52 @@ const FOUNDERS: Founder[] = [
     ),
     pullQuote:
       "More than a technological innovation, this platform is a commitment to advancing preventive healthcare and protecting the health and future of Ugandans.",
+  },
+  {
+    slug: "nayiga-joselyn-mirembe",
+    name: "Dr. Nayiga Joselyn Mirembe",
+    shortName: "Joselyn",
+    title: "Co-founder, MedSync",
+    portraitSrc: "/founder-nayiga-joselyn-mirembe.jpeg",
+    portraitAlt: "Dr. Nayiga Joselyn Mirembe, MedSync co-founder, portrait.",
+    headlineLead: "Healthcare shouldn’t begin",
+    headlineEnd: "when things fall apart.",
+    story: (
+      <>
+        <p>
+          Healthcare was never meant to start at crisis or end at treatment. It was meant to stay
+          connected to people &mdash; before disease, before complications, between visits, and
+          throughout life. MedSync exists to rebuild that continuity.
+        </p>
+        <p>
+          Every day, people living with chronic illnesses leave hospitals carrying more than
+          prescriptions. They leave carrying uncertainty. They miss follow-ups. They stop
+          medications silently. They get lost between clinics, pharmacies, finances, and everyday
+          life. By the time many return, the complications have already begun.
+        </p>
+        <p>Not because nobody cared. But because the system was never built to stay with them.</p>
+        <p>
+          Healthcare today is still largely reactive. We wait for the blood pressure crisis. The
+          blindness. The diabetic foot. The stroke. The kidney failure. Then we mobilise everything
+          at once. Yet so much suffering could be reduced if care stayed connected before things
+          escalated.
+        </p>
+        <p>That is the gap MedSync exists to close.</p>
+        <p>
+          We are building more than a health platform. We are building a community of continuity
+          &mdash; a system where prevention, monitoring, follow-up, education, treatment, and human
+          support do not exist separately, but move together around the patient. A system that helps
+          healthcare feel less fragmented and more present in people&rsquo;s actual lives.
+        </p>
+        <p>
+          Because chronic illness is not managed in hospitals alone. It is managed in the days
+          between appointments. In whether someone remembered their medication. In whether warning
+          signs were noticed early. In whether someone felt supported enough to keep going.
+        </p>
+      </>
+    ),
+    pullQuote:
+      "The future of healthcare will not belong to systems that only respond to emergencies. It will belong to systems that remain connected long before complications begin.",
   },
 ];
 

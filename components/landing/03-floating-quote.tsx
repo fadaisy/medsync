@@ -57,6 +57,16 @@ const QUOTES: FounderQuote[] = [
     author: "Dr. Caroline Murizihiwe",
     role: "Co-founder, MedSync",
   },
+  {
+    body: (
+      <>
+        Healthcare was never meant to start at crisis or end at treatment. It was meant to stay
+        connected to people &mdash; before disease, between visits, and throughout life.
+      </>
+    ),
+    author: "Dr. Nayiga Joselyn Mirembe",
+    role: "Co-founder, MedSync",
+  },
 ];
 
 const CYCLE_MS = 9000;
