@@ -305,6 +305,6 @@ export async function submitHospitalApplicationAction(
     doc_uploaded: authPath !== null,
   });
 
-  revalidatePath("/dashboard");
-  redirect("/dashboard?welcomed=hospital-pending");
+  revalidatePath("/");
+  redirect("/?welcomed=hospital-pending");
 }

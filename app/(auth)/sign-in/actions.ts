@@ -46,26 +46,28 @@ export async function signInAction(_prev: SignInState, formData: FormData): Prom
     return { errors: { _form: "Invalid email or password." } };
   }
 
-  // Default landing depends on role: superadmins go straight to /admin
-  // (their workspace IS the dashboard); everyone else lands on
-  // /dashboard. An explicit ?redirect= param always wins.
+  // Default landing depends on role: superadmins / hospital_admins go
+  // to /admin (the workspace IS their dashboard). Everyone else lands
+  // on the landing page — Phase 0 has no clinical/patient surfaces
+  // yet, so the landing page is the honest "you have nothing to do
+  // here" destination. An explicit ?redirect= param always wins.
   //
   // Uses the service client to bypass RLS — the user-context session
   // cookie isn't reliably applied to the same request's downstream
   // queries, so user_roles SELECT would intermittently return empty
-  // and silently default to /dashboard. The service client matches
-  // the same pattern /admin/layout.tsx uses for role lookup.
+  // and silently default away from /admin. Matches the pattern
+  // /admin/layout.tsx uses for role lookup.
   //
   // proxy.ts will still route through MFA challenge / setup if needed
   // on the next request — this just picks the *intended* destination.
-  let defaultTarget = "/dashboard";
+  let defaultTarget = "/";
   if (signInData.user) {
     const service = createServiceClient();
     const { data: roles } = await service
       .from("user_roles")
       .select("role")
       .eq("user_id", signInData.user.id);
-    if (roles?.some((r) => r.role === "superadmin")) {
+    if (roles?.some((r) => r.role === "superadmin" || r.role === "hospital_admin")) {
       defaultTarget = "/admin";
     }
   }

@@ -31,7 +31,7 @@ export const metadata: Metadata = {
  *   2. Authenticated? Else /sign-in?next=/admin.
  *   3. MFA-required role + nextLevel != aal2 → /onboarding/mfa-setup.
  *   4. AAL != aal2 → /sign-in/mfa.
- *   5. Holds superadmin OR scoped hospital_admin? Else /dashboard.
+ *   5. Holds superadmin OR scoped hospital_admin? Else / (landing).
  *
  * Once the checks pass, hands off to <AdminShell /> which renders the
  * persistent sidebar, top bar (with ⌘K palette + secure-session
@@ -63,9 +63,11 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     .map((r) => r.hospital_id as string);
 
   if (!isSuperadmin && hospitalAdminHospitalIds.length === 0) {
-    // Authenticated but not an admin — bounce to dashboard rather
-    // than leaking the existence of /admin via a 403 page.
-    redirect("/dashboard");
+    // Authenticated but not an admin — bounce to the landing page
+    // rather than leaking the existence of /admin via a 403 page.
+    // Phase 0 has no clinical/patient surfaces yet; the landing page
+    // is the honest "you have nothing to do here" destination.
+    redirect("/");
   }
 
   // Live count for the sidebar pin. Failures degrade to 0 silently.

@@ -47,7 +47,7 @@ export async function verifyEnrollmentAction(
   }
 
   logger.info("mfa enrollment complete");
-  redirect("/dashboard");
+  redirect("/admin");
 }
 
 export async function unenrollAction(factorId: string): Promise<void> {

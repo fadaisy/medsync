@@ -289,6 +289,6 @@ export async function submitPatientSignupAction(
     patient_code_issued: true,
   });
 
-  revalidatePath("/dashboard");
-  redirect("/dashboard?welcomed=patient");
+  revalidatePath("/");
+  redirect("/?welcomed=patient");
 }

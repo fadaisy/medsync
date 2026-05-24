@@ -10,8 +10,8 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        // Auth, dashboard, internal routes shouldn't be indexed.
-        disallow: ["/dashboard", "/api/", "/sign-in/mfa", "/onboarding/mfa-setup", "/monitoring"],
+        // Admin, MFA, and internal routes shouldn't be indexed.
+        disallow: ["/admin", "/api/", "/sign-in/mfa", "/onboarding/mfa-setup", "/monitoring"],
       },
     ],
     sitemap: `${BASE}/sitemap.xml`,

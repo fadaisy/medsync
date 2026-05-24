@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { logger } from "@/lib/logger";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 
 const ChallengeSchema = z.object({
   code: z.string().regex(/^\d{6}$/, "Enter the 6-digit code from your authenticator."),
@@ -56,10 +57,25 @@ export async function challengeMfaAction(
     return { errors: { code: "That code didn't work. Try the next one your app shows." } };
   }
 
+  // Same default-by-role logic as the sign-in action: admins go to
+  // /admin, everyone else to /. Explicit ?redirect= always wins.
+  let defaultTarget = "/";
+  const { data: userData } = await supabase.auth.getUser();
+  if (userData.user) {
+    const service = createServiceClient();
+    const { data: roles } = await service
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userData.user.id);
+    if (roles?.some((r) => r.role === "superadmin" || r.role === "hospital_admin")) {
+      defaultTarget = "/admin";
+    }
+  }
+
   const target =
     parsed.data.redirect && parsed.data.redirect.startsWith("/")
       ? parsed.data.redirect
-      : "/dashboard";
+      : defaultTarget;
 
   logger.info("mfa challenge passed; session elevated to AAL2");
   redirect(target);
