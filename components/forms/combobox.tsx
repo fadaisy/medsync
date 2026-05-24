@@ -88,6 +88,11 @@ export function Combobox({
       }}
       filter={filter as never}
       disabled={disabled}
+      // Auto-highlight the first matching item so users who type "Kam"
+      // and tab/Enter away commit a real selection — without this,
+      // typing without clicking leaves the hidden form input empty
+      // and the action sees the field as missing.
+      autoHighlight
     >
       <ComboboxPrimitive.Trigger
         className={cn(

@@ -129,8 +129,14 @@ export async function submitClinicalSignupAction(
     if (typeof v === "string") rawEntries.push([k, v]);
   }
   const raw = Object.fromEntries(rawEntries) as Record<string, string>;
+  // Strip empty strings so Zod .optional() actually skips unfilled
+  // optional UUID / regex fields (cadre_grade_id, registration_expiry, etc.).
+  const cleaned: Record<string, string> = {};
+  for (const [k, v] of Object.entries(raw)) {
+    if (v !== "") cleaned[k] = v;
+  }
 
-  const parsed = ClinicalSignupSchema.safeParse(raw);
+  const parsed = ClinicalSignupSchema.safeParse(cleaned);
   if (!parsed.success) {
     const fieldErrors = parsed.error.flatten().fieldErrors;
     return {

@@ -123,7 +123,13 @@ export async function submitPatientSignupAction(
   formData: FormData,
 ): Promise<PatientSignupState> {
   const raw = Object.fromEntries(formData.entries()) as Record<string, string>;
-  const parsed = PatientSignupSchema.safeParse(raw);
+  // Strip empty strings so Zod .optional() actually skips unfilled
+  // optional UUID / regex fields (subcounty, primary_facility, NOK, etc.).
+  const cleaned: Record<string, string> = {};
+  for (const [k, v] of Object.entries(raw)) {
+    if (typeof v === "string" && v !== "") cleaned[k] = v;
+  }
+  const parsed = PatientSignupSchema.safeParse(cleaned);
 
   if (!parsed.success) {
     const fieldErrors = parsed.error.flatten().fieldErrors;

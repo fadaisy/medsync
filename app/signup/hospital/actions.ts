@@ -171,8 +171,18 @@ export async function submitHospitalApplicationAction(
     if (typeof v === "string") rawEntries.push([k, v]);
   }
   const raw = Object.fromEntries(rawEntries) as Record<string, string>;
+  // Strip empty strings before Zod sees them. Unfilled optional fields
+  // (subcounty, registration_authority, etc.) submit as "" from the
+  // controls; Zod's .optional() only accepts undefined, so "" would
+  // run through .uuid() / .regex() and fail validation despite the
+  // user not having to fill that field. Stripping here keeps each
+  // schema clean.
+  const cleaned: Record<string, string> = {};
+  for (const [k, v] of Object.entries(raw)) {
+    if (v !== "") cleaned[k] = v;
+  }
 
-  const parsed = HospitalApplicationSchema.safeParse(raw);
+  const parsed = HospitalApplicationSchema.safeParse(cleaned);
   if (!parsed.success) {
     const fieldErrors = parsed.error.flatten().fieldErrors;
     return {
