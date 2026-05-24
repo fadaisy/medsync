@@ -8,9 +8,11 @@ export const metadata: Metadata = {
 };
 
 /**
- * Shared signup layout — the actual flow lives in /signup/{patient,
- * clinical,hospital}/page.tsx (each one wrapped in <SignupShell>).
- * This wrapper provides the slim global header and is robots: noindex.
+ * Shared signup layout — wraps the per-path stubs at /signup/*. The
+ * real multi-step flows replace the stubs in gates C / D / E.
+ *
+ * robots: noindex (signup pages shouldn't appear in search results
+ * during the build phase).
  */
 export default function SignupLayout({ children }: { children: ReactNode }) {
   return (

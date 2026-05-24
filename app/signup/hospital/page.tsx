@@ -1,54 +1,55 @@
-import type { DistrictOption, SubcountyOption } from "./_form";
 import type { Metadata } from "next";
+import { desc, eq } from "drizzle-orm";
 
-import { listDistricts, listSubcounties } from "@/lib/reference-data";
-import { SignupShell } from "../_components/signup-shell";
-import { HospitalSignupForm } from "./_form";
+import { db } from "@/db";
+import { consentVersions } from "@/db/schema/consent-versions";
+import { listDistricts } from "@/lib/reference-data";
+import { HospitalApplicationForm } from "./_form";
+import {
+  loadSubcountiesForDistrictActionHospital,
+  submitHospitalApplicationAction,
+} from "./actions";
 
 export const metadata: Metadata = {
-  title: "Hospital application",
+  title: "Hospital application · MedSync",
   robots: { index: false, follow: false },
 };
 
 export const dynamic = "force-dynamic";
 
 export default async function HospitalSignupPage() {
-  const districts = await listDistricts();
-  const districtOptions: DistrictOption[] = districts.map((d) => ({
-    value: d.id,
-    label: d.name,
-    description: d.isCity ? "City" : undefined,
-  }));
+  const [districts, [activeConsent]] = await Promise.all([
+    listDistricts(),
+    db
+      .select()
+      .from(consentVersions)
+      .where(eq(consentVersions.consentType, "data_processing"))
+      .orderBy(desc(consentVersions.effectiveDate))
+      .limit(1),
+  ]);
 
-  const kampala = districts.find((d) => d.code === "KAMPALA");
-  let subcountyOptions: SubcountyOption[] = [];
-  if (kampala) {
-    const subs = await listSubcounties({ districtId: kampala.id });
-    subcountyOptions = subs.map((s) => ({
-      value: s.id,
-      label: s.name,
-      parentValue: kampala.id,
-    }));
+  if (!activeConsent) {
+    return (
+      <div className="mx-auto max-w-2xl px-5 py-20 text-center">
+        <h1 className="text-foreground font-display text-3xl">Applications unavailable</h1>
+        <p className="text-muted-foreground mt-3 text-sm">
+          The current consent text isn&apos;t ready yet. Please check back shortly.
+        </p>
+      </div>
+    );
   }
 
   return (
-    <SignupShell
-      pathSegments={["signup", "hospital"]}
-      eyebrow="Hospital application · reviewed by MedSync"
-      title={
-        <>
-          Apply for <span className="text-teal-700 italic dark:text-teal-300">a pilot.</span>
-        </>
-      }
-      subtitle={
-        <>
-          Submit your facility for review. We confirm registration with the relevant authority and
-          your role at the institution. On approval you become hospital admin scoped to your
-          facility — clinicians sign up separately and you approve their affiliations.
-        </>
-      }
-    >
-      <HospitalSignupForm districts={districtOptions} subcounties={subcountyOptions} />
-    </SignupShell>
+    <HospitalApplicationForm
+      districts={districts.map((d) => ({ value: d.id, label: d.name }))}
+      consent={{
+        version: activeConsent.version,
+        bodySha256: activeConsent.bodySha256,
+        body: activeConsent.body,
+        effectiveDate: activeConsent.effectiveDate,
+      }}
+      loadSubcounties={loadSubcountiesForDistrictActionHospital}
+      submit={submitHospitalApplicationAction}
+    />
   );
 }

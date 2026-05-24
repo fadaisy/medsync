@@ -1,58 +1,65 @@
-import type { DistrictOption, SubcountyOption } from "./_form";
 import type { Metadata } from "next";
+import { desc, eq } from "drizzle-orm";
 
-import { listDistricts, listSubcounties } from "@/lib/reference-data";
-import { SignupShell } from "../_components/signup-shell";
+import { db } from "@/db";
+import { consentVersions } from "@/db/schema/consent-versions";
+import { listDistricts } from "@/lib/reference-data";
 import { PatientSignupForm } from "./_form";
+import { loadSubcountiesForDistrictAction, submitPatientSignupAction } from "./actions";
 
 export const metadata: Metadata = {
-  title: "Patient signup",
+  title: "Patient signup · MedSync",
   robots: { index: false, follow: false },
 };
 
+// Districts + consent text are read from the DB at request time, so the
+// page can't be statically prerendered at build (the build environment
+// doesn't carry the production-DB connection / migrations).
+export const dynamic = "force-dynamic";
+
 /**
- * /signup/patient — server entry. Loads reference data (districts + the
- * Kampala-division subcounty subset that's seeded today) and hands it
- * to the client form. No PHI passes through the server here; only
- * public reference data.
+ * GATE C entry — patient signup.
+ *
+ * Server Component: hydrates the static reference data (districts) and
+ * the live `data_processing` consent text + hash before handing off to
+ * the Client Component multi-step form. The active consent row's body
+ * + sha256 are rendered into the page so the user can SEE the text
+ * they're agreeing to, and the sha256 round-trips back through
+ * `<ConsentCheckbox />` for cross-validation in the Server Action.
  */
 export default async function PatientSignupPage() {
   const districts = await listDistricts();
-  const districtOptions: DistrictOption[] = districts.map((d) => ({
-    value: d.id,
-    label: d.name,
-    description: d.isCity ? "City" : undefined,
-  }));
+  const districtItems = districts.map((d) => ({ value: d.id, label: d.name }));
 
-  const kampala = districts.find((d) => d.code === "KAMPALA");
-  let subcountyOptions: SubcountyOption[] = [];
-  if (kampala) {
-    const subs = await listSubcounties({ districtId: kampala.id });
-    subcountyOptions = subs.map((s) => ({
-      value: s.id,
-      label: s.name,
-      parentValue: kampala.id,
-    }));
+  const [activeConsent] = await db
+    .select()
+    .from(consentVersions)
+    .where(eq(consentVersions.consentType, "data_processing"))
+    .orderBy(desc(consentVersions.effectiveDate))
+    .limit(1);
+
+  if (!activeConsent) {
+    return (
+      <div className="mx-auto max-w-2xl px-5 py-20 text-center">
+        <h1 className="text-foreground font-display text-3xl">Signup unavailable</h1>
+        <p className="text-muted-foreground mt-3 text-sm">
+          The current consent text isn&apos;t ready yet. Please check back shortly.
+        </p>
+      </div>
+    );
   }
 
   return (
-    <SignupShell
-      pathSegments={["signup", "patient"]}
-      eyebrow="Patient signup · ~3 minutes"
-      title={
-        <>
-          Your record,{" "}
-          <span className="text-teal-700 italic dark:text-teal-300">in your hands.</span>
-        </>
-      }
-      subtitle={
-        <>
-          A few details so your hospital and care team can find you. Everything else lives on the
-          dashboard you&apos;ll land on in a minute.
-        </>
-      }
-    >
-      <PatientSignupForm districts={districtOptions} subcounties={subcountyOptions} />
-    </SignupShell>
+    <PatientSignupForm
+      districts={districtItems}
+      consent={{
+        version: activeConsent.version,
+        bodySha256: activeConsent.bodySha256,
+        body: activeConsent.body,
+        effectiveDate: activeConsent.effectiveDate,
+      }}
+      loadSubcounties={loadSubcountiesForDistrictAction}
+      submit={submitPatientSignupAction}
+    />
   );
 }

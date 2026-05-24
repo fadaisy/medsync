@@ -359,22 +359,6 @@ function MobileDrawer({ open, onClose }: { open: boolean; onClose: () => void })
           >
             Get started
           </Link>
-          <div className="grid grid-cols-2 gap-2">
-            <Link
-              href="/signup/patient"
-              onClick={onClose}
-              className="border-border rounded-md border px-3 py-2 text-center text-[13px]"
-            >
-              I&apos;m a patient
-            </Link>
-            <Link
-              href="/signup/clinical"
-              onClick={onClose}
-              className="border-border rounded-md border px-3 py-2 text-center text-[13px]"
-            >
-              I&apos;m a clinician
-            </Link>
-          </div>
           <Link
             href="/sign-in"
             onClick={onClose}

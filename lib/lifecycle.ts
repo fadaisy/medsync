@@ -1,125 +1,99 @@
 /**
- * Lifecycle state transitions — server-side mutator with audit.
+ * Lifecycle state machine — applies to users, staff_affiliations,
+ * and hospital_applications.
  *
- * The Postgres `public.lifecycle_state` enum (migration 0008) is the
- * source of truth for valid states. `canTransition()` checks the TS
- * union (db/schema/lifecycle.ts) against the same transition table.
+ * Per the onboarding kickoff section C:
  *
- * For real state transitions (not just reads), always go through
- * `transitionUserState()` / `transitionAffiliationState()` so:
- *   1. The from→to is checked against the validity table.
- *   2. The Phase 0.6 audit trigger captures the change.
- *   3. PII-redacted log line records who initiated it + reason.
+ *   unverified → (contact verified) → verified
+ *   verified → patients: active
+ *            → staff/hospital: pending_approval → approved → active
  *
- * NEVER mutate state columns from a route handler or server action
- * directly — always through these wrappers.
+ *   side states: rejected · suspended · deactivated (terminal-ish)
+ *
+ * Rules enforced by `canTransition`:
+ *   - no clinical access before `active`
+ *   - clinical / admin require MFA enrolled before `active` (the MFA
+ *     gate is enforced at the proxy / Edge Function layer, not here)
+ *   - rejection captures a reason (caller responsibility)
+ *   - for staff the state lives on the affiliation row — a user can
+ *     hold one `active` and one `pending_approval` simultaneously
+ *
+ * This module is pure TS — no DB writes. The matching Postgres ENUM
+ * (`public.lifecycle_state`) and the service-role wrappers that
+ * actually flip state columns will land in the GATE A migration
+ * after the schema proposal is approved.
  */
 
-import "server-only";
+export const LIFECYCLE_STATES = [
+  "unverified",
+  "verified",
+  "pending_approval",
+  "approved",
+  "active",
+  "rejected",
+  "suspended",
+  "deactivated",
+] as const;
 
-import type { LifecycleState } from "@/db/schema/lifecycle";
-
-import { canTransition } from "@/db/schema/lifecycle";
-import { createServiceClient } from "@/lib/supabase/service";
-
-export { canTransition, LIFECYCLE_STATES, LIFECYCLE_TRANSITIONS } from "@/db/schema/lifecycle";
-export type { LifecycleState } from "@/db/schema/lifecycle";
-
-interface TransitionResult {
-  ok: boolean;
-  from?: LifecycleState;
-  to?: LifecycleState;
-  reason?: string;
-  error?: string;
-}
+export type LifecycleState = (typeof LIFECYCLE_STATES)[number];
 
 /**
- * Transition a user's `state` column. Returns the prior + new state on
- * success, or an error string. The Phase 0.6 audit trigger fires on
- * the UPDATE so we don't write an explicit audit row here.
+ * Valid forward transitions. Anything not listed is rejected.
  *
- * Caller must be service-role (Edge Function or admin tool).
+ * `rejected` allows a reset back to `pending_approval` so a hospital
+ * applicant can re-apply after fixing their authorisation letter,
+ * and so a clinical affiliation can be re-reviewed after the
+ * clinician resubmits a corrected licence.
  */
-export async function transitionUserState({
-  userId,
-  to,
-  reason,
-}: {
-  userId: string;
-  to: LifecycleState;
-  reason?: string;
-}): Promise<TransitionResult> {
-  const sb = createServiceClient();
-  const { data: current, error: fetchErr } = await sb
-    .from("users")
-    .select("state")
-    .eq("id", userId)
-    .single<{ state: LifecycleState }>();
+export const LIFECYCLE_TRANSITIONS: Readonly<
+  Record<LifecycleState, ReadonlyArray<LifecycleState>>
+> = {
+  unverified: ["verified", "deactivated"],
+  verified: ["active", "pending_approval", "deactivated"],
+  pending_approval: ["approved", "rejected", "deactivated"],
+  approved: ["active", "suspended", "deactivated"],
+  active: ["suspended", "deactivated"],
+  rejected: ["pending_approval", "deactivated"],
+  suspended: ["active", "deactivated"],
+  deactivated: [],
+} as const;
 
-  if (fetchErr || !current) {
-    return { ok: false, error: `user not found: ${fetchErr?.message ?? "unknown"}` };
-  }
-  if (!canTransition(current.state, to)) {
-    return {
-      ok: false,
-      from: current.state,
-      to,
-      error: `invalid transition: ${current.state} → ${to}`,
-    };
-  }
-  const { error: updateErr } = await sb
-    .from("users")
-    .update({ state: to, updated_at: new Date().toISOString() })
-    .eq("id", userId);
-  if (updateErr) return { ok: false, error: updateErr.message };
-  return { ok: true, from: current.state, to, reason };
+/** Validate a forward transition against the table above. */
+export function canTransition(from: LifecycleState, to: LifecycleState): boolean {
+  return LIFECYCLE_TRANSITIONS[from].includes(to);
 }
 
-/**
- * Transition a staff_affiliations row. Same contract as user state.
- */
-export async function transitionAffiliationState({
-  affiliationId,
-  to,
-  reason,
-  approvedBy,
-}: {
-  affiliationId: string;
-  to: LifecycleState;
-  reason?: string;
-  approvedBy?: string;
-}): Promise<TransitionResult> {
-  const sb = createServiceClient();
-  const { data: current, error: fetchErr } = await sb
-    .from("staff_affiliations")
-    .select("state")
-    .eq("id", affiliationId)
-    .single<{ state: LifecycleState }>();
+/** States that indicate the holder may use the system. */
+export const ACTIVE_STATES: ReadonlySet<LifecycleState> = new Set<LifecycleState>(["active"]);
 
-  if (fetchErr || !current) {
-    return { ok: false, error: `affiliation not found: ${fetchErr?.message ?? "unknown"}` };
+/** States that block clinical access. Used by the proxy + Edge Function guards. */
+export const BLOCKS_CLINICAL: ReadonlySet<LifecycleState> = new Set<LifecycleState>([
+  "unverified",
+  "verified",
+  "pending_approval",
+  "rejected",
+  "suspended",
+  "deactivated",
+]);
+
+/** Human-readable label for UI surfaces (kept here so copy stays consistent). */
+export function describeState(state: LifecycleState): string {
+  switch (state) {
+    case "unverified":
+      return "Unverified";
+    case "verified":
+      return "Verified";
+    case "pending_approval":
+      return "Pending approval";
+    case "approved":
+      return "Approved";
+    case "active":
+      return "Active";
+    case "rejected":
+      return "Rejected";
+    case "suspended":
+      return "Suspended";
+    case "deactivated":
+      return "Deactivated";
   }
-  if (!canTransition(current.state, to)) {
-    return {
-      ok: false,
-      from: current.state,
-      to,
-      error: `invalid transition: ${current.state} → ${to}`,
-    };
-  }
-  const patch: Record<string, unknown> = {
-    state: to,
-    updated_at: new Date().toISOString(),
-  };
-  if (to === "rejected" && reason) patch.rejection_reason = reason;
-  if (to === "approved" || to === "active") {
-    patch.approved_at = new Date().toISOString();
-    if (approvedBy) patch.approved_by = approvedBy;
-  }
-  const { error: updateErr } = await sb
-    .from("staff_affiliations")
-    .update(patch)
-    .eq("id", affiliationId);
-  if (updateErr) return { ok: false, error: updateErr.message };
-  return { ok: true, from: current.state, to, reason };
 }

@@ -1,105 +1,107 @@
 /**
  * Typed reference-data loaders for onboarding forms.
  *
- * These hit the public ref_* tables which carry public-read RLS
- * policies (0009_onboarding_rls.sql) — so they work from both anon
- * (signup pages before login) and authenticated contexts.
+ * Hits the public ref tables (regions, districts, subcounties,
+ * councils, cadres, cadre_grades, specialties, roles) which carry
+ * public-read RLS policies (migration 0008) — so they work from
+ * both anon (signup pages before login) and authenticated contexts.
  *
  * Each loader returns a stable, sorted list ready to drop into a
- * combobox/select. Cascading filters (district → subcounty, council
- * → cadres, cadre → roles) are passed as optional args.
+ * Combobox / CascadingCombobox. Cascading filters (district →
+ * subcounty, council → cadres, cadre → roles, etc.) are passed as
+ * optional args.
  *
- * All loaders are server-only. The forms call them in a server
- * component, then pass the resulting options to the client combobox.
+ * Uses the shared singleton db client at `@/db` so we don't fan
+ * out connections per helper.
  */
 
 import "server-only";
 
+import type { HospitalDepartment } from "@/db/schema/hospital-departments";
+import type { Hospital } from "@/db/schema/hospitals";
 import type {
-  Hospital,
-  HospitalDepartment,
-  RefCadre,
-  RefCouncil,
-  RefDistrict,
-  RefRegion,
-  RefRole,
-  RefSpecialty,
-  RefSubcounty,
-} from "@/db/schema";
+  Cadre,
+  CadreGrade,
+  Council,
+  District,
+  Region,
+  Role,
+  Specialty,
+  Subcounty,
+} from "@/db/schema/reference-data";
 import { and, asc, eq, isNull } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
 
+import { db } from "@/db";
+import { hospitalDepartments } from "@/db/schema/hospital-departments";
+import { hospitals } from "@/db/schema/hospitals";
 import {
-  hospitalDepartments,
-  hospitals,
-  refCadres,
-  refCouncils,
-  refDistricts,
-  refRegions,
-  refRoles,
-  refSpecialties,
-  refSubcounties,
-} from "@/db/schema";
-import { env } from "@/lib/env";
+  cadreGrades,
+  cadres,
+  councils,
+  districts,
+  regions,
+  roles,
+  specialties,
+  subcounties,
+} from "@/db/schema/reference-data";
 
-// Pool 5 connections so onboarding pages (which fan out 6+ Promise.all
-// queries — see /signup/clinical) don't serialize through a single
-// socket. Supabase Free pooler caps at 15 concurrent connections, so
-// staying well under that for the ref-data path keeps headroom for
-// the auth and service clients.
-const sql = postgres(env.DATABASE_URL, { prepare: false, max: 5, idle_timeout: 20 });
-const db = drizzle(sql);
+// ─── Geography ─────────────────────────────────────────────────────────
 
-/* ─── Geography ────────────────────────────────────────────────────────── */
-
-export async function listRegions(): Promise<RefRegion[]> {
-  return db.select().from(refRegions).orderBy(asc(refRegions.name));
+export async function listRegions(): Promise<Region[]> {
+  return db.select().from(regions).orderBy(asc(regions.name));
 }
 
-export async function listDistricts(opts?: { regionId?: string }): Promise<RefDistrict[]> {
-  const q = db.select().from(refDistricts).orderBy(asc(refDistricts.name));
+export async function listDistricts(opts?: { regionId?: string }): Promise<District[]> {
+  const q = db.select().from(districts).orderBy(asc(districts.name));
   if (opts?.regionId) {
-    return q.where(eq(refDistricts.regionId, opts.regionId));
+    return q.where(eq(districts.regionId, opts.regionId));
   }
   return q;
 }
 
-export async function listSubcounties(opts: { districtId: string }): Promise<RefSubcounty[]> {
+export async function listSubcounties(opts: { districtId: string }): Promise<Subcounty[]> {
   return db
     .select()
-    .from(refSubcounties)
-    .where(eq(refSubcounties.districtId, opts.districtId))
-    .orderBy(asc(refSubcounties.name));
+    .from(subcounties)
+    .where(eq(subcounties.districtId, opts.districtId))
+    .orderBy(asc(subcounties.name));
 }
 
-/* ─── Clinical catalog ─────────────────────────────────────────────────── */
+// ─── Clinical catalog ──────────────────────────────────────────────────
 
-export async function listCouncils(): Promise<RefCouncil[]> {
-  return db.select().from(refCouncils).orderBy(asc(refCouncils.name));
+export async function listCouncils(): Promise<Council[]> {
+  return db.select().from(councils).orderBy(asc(councils.name));
 }
 
-export async function listCadres(opts?: { councilId?: string }): Promise<RefCadre[]> {
-  const q = db.select().from(refCadres).orderBy(asc(refCadres.sortOrder), asc(refCadres.name));
+export async function listCadres(opts?: { councilId?: string }): Promise<Cadre[]> {
+  const q = db.select().from(cadres).orderBy(asc(cadres.sortOrder), asc(cadres.name));
   if (opts?.councilId) {
-    return q.where(eq(refCadres.councilId, opts.councilId));
+    return q.where(eq(cadres.councilId, opts.councilId));
   }
   return q;
+}
+
+export async function listCadreGrades(opts: { cadreId: string }): Promise<CadreGrade[]> {
+  return db
+    .select()
+    .from(cadreGrades)
+    .where(eq(cadreGrades.cadreId, opts.cadreId))
+    .orderBy(asc(cadreGrades.sortOrder), asc(cadreGrades.name));
 }
 
 /**
- * Specialties — by default returns only top-level (parent_id IS NULL).
- * Pass `{ parentId }` to fetch sub-specialties of a given parent.
+ * Specialties. By default returns only top-level rows
+ * (`parent_id IS NULL`). Pass `parentId` to fetch sub-specialties of
+ * a given parent; pass `null` explicitly to force the top-level
+ * filter; omit `parentId` entirely to fetch all.
  */
-export async function listSpecialties(opts?: {
-  parentId?: string | null;
-}): Promise<RefSpecialty[]> {
-  const q = db.select().from(refSpecialties).orderBy(asc(refSpecialties.name));
+export async function listSpecialties(opts?: { parentId?: string | null }): Promise<Specialty[]> {
+  const q = db.select().from(specialties).orderBy(asc(specialties.name));
   if (opts && opts.parentId !== undefined) {
     return q.where(
       opts.parentId === null
-        ? isNull(refSpecialties.parentId)
-        : eq(refSpecialties.parentId, opts.parentId),
+        ? isNull(specialties.parentId)
+        : eq(specialties.parentId, opts.parentId),
     );
   }
   return q;
@@ -109,30 +111,45 @@ export async function listRoles(opts?: {
   cadreId?: string;
   specialtyId?: string;
   departmentFamily?: string;
-}): Promise<RefRole[]> {
+}): Promise<Role[]> {
   const wheres = [];
-  if (opts?.cadreId) wheres.push(eq(refRoles.cadreId, opts.cadreId));
-  if (opts?.specialtyId) wheres.push(eq(refRoles.specialtyId, opts.specialtyId));
-  if (opts?.departmentFamily) wheres.push(eq(refRoles.departmentFamily, opts.departmentFamily));
+  if (opts?.cadreId) wheres.push(eq(roles.cadreId, opts.cadreId));
+  if (opts?.specialtyId) wheres.push(eq(roles.specialtyId, opts.specialtyId));
+  if (opts?.departmentFamily) wheres.push(eq(roles.departmentFamily, opts.departmentFamily));
 
-  const q = db.select().from(refRoles).orderBy(asc(refRoles.sortOrder), asc(refRoles.name));
+  const q = db.select().from(roles).orderBy(asc(roles.sortOrder), asc(roles.name));
 
   if (wheres.length === 0) return q;
   return q.where(wheres.length === 1 ? wheres[0]! : and(...wheres));
 }
 
-/* ─── Hospitals ────────────────────────────────────────────────────────── */
+// ─── Hospitals + departments ───────────────────────────────────────────
 
+/**
+ * Hospitals listed for the staff-affiliation step (GATE D) and the
+ * patient primary-facility chooser (GATE C). No filter today — Phase 1
+ * has a small list (Mulago + onboarded pilots). Add a state filter
+ * here once `hospitals.state` lands.
+ */
 export async function listHospitals(): Promise<Hospital[]> {
   return db.select().from(hospitals).orderBy(asc(hospitals.name));
 }
 
-export async function listHospitalDepartments(opts?: {
-  hospitalId?: string;
-}): Promise<HospitalDepartment[]> {
-  const q = db.select().from(hospitalDepartments).orderBy(asc(hospitalDepartments.name));
-  if (opts?.hospitalId) {
-    return q.where(eq(hospitalDepartments.hospitalId, opts.hospitalId));
-  }
-  return q;
+/**
+ * Top-level departments at a hospital. Sub-departments hang off
+ * `parent_id` (Phase 0.11 seeded e.g. Cardiology under Internal
+ * Medicine at Mulago). For the affiliation form we surface the
+ * top-level only and let the role combobox carry the sub-specialty.
+ */
+export async function listDepartments(opts: { hospitalId: string }): Promise<HospitalDepartment[]> {
+  return db
+    .select()
+    .from(hospitalDepartments)
+    .where(
+      and(
+        eq(hospitalDepartments.hospitalId, opts.hospitalId),
+        isNull(hospitalDepartments.parentId),
+      ),
+    )
+    .orderBy(asc(hospitalDepartments.name));
 }

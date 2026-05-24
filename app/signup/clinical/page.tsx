@@ -1,81 +1,67 @@
-import type { ClinicalRefData } from "./_form";
 import type { Metadata } from "next";
+import { desc, eq } from "drizzle-orm";
 
-import {
-  listCadres,
-  listCouncils,
-  listHospitalDepartments,
-  listHospitals,
-  listRoles,
-  listSpecialties,
-} from "@/lib/reference-data";
-import { SignupShell } from "../_components/signup-shell";
+import { db } from "@/db";
+import { consentVersions } from "@/db/schema/consent-versions";
+import { listCouncils, listHospitals } from "@/lib/reference-data";
 import { ClinicalSignupForm } from "./_form";
+import {
+  loadCadreGradesForCadreAction,
+  loadCadresForCouncilAction,
+  loadDepartmentsForHospitalAction,
+  loadRolesForCadreAction,
+  submitClinicalSignupAction,
+} from "./actions";
 
 export const metadata: Metadata = {
-  title: "Medical-staff signup",
+  title: "Clinical staff signup · MedSync",
   robots: { index: false, follow: false },
 };
 
 export const dynamic = "force-dynamic";
 
 export default async function ClinicalSignupPage() {
-  const [councils, cadres, hospitals, departments, allSpecialties, roles] = await Promise.all([
+  const [councils, hospitals, [activeConsent]] = await Promise.all([
     listCouncils(),
-    listCadres(),
     listHospitals(),
-    listHospitalDepartments(),
-    listSpecialties(),
-    listRoles(),
+    db
+      .select()
+      .from(consentVersions)
+      .where(eq(consentVersions.consentType, "data_processing"))
+      .orderBy(desc(consentVersions.effectiveDate))
+      .limit(1),
   ]);
 
-  const refData: ClinicalRefData = {
-    councils: councils.map((c) => ({ value: c.id, label: c.name, description: c.shortName })),
-    cadres: cadres.map((c) => ({
-      value: c.id,
-      label: c.name,
-      parentValue: c.councilId,
-    })),
-    hospitals: hospitals.map((h) => ({
-      value: h.id,
-      label: h.name,
-      description: h.level.replace(/_/g, " "),
-    })),
-    departments: departments.map((d) => ({
-      value: d.id,
-      label: d.name,
-      parentValue: d.hospitalId,
-    })),
-    specialties: allSpecialties.map((s) => ({
-      value: s.id,
-      label: s.name,
-    })),
-    roles: roles.map((r) => ({
-      value: r.id,
-      label: r.name,
-      parentValue: r.cadreId,
-    })),
-  };
+  if (!activeConsent) {
+    return (
+      <div className="mx-auto max-w-2xl px-5 py-20 text-center">
+        <h1 className="text-foreground font-display text-3xl">Signup unavailable</h1>
+        <p className="text-muted-foreground mt-3 text-sm">
+          The current consent text isn&apos;t ready yet. Please check back shortly.
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <SignupShell
-      pathSegments={["signup", "clinical"]}
-      eyebrow="Medical staff · approval-gated"
-      title={
-        <>
-          Council registration{" "}
-          <span className="text-teal-700 italic dark:text-teal-300">is the anchor.</span>
-        </>
-      }
-      subtitle={
-        <>
-          We verify against UMDPC, UNMC, AHPC, or PSU. Every hospital affiliation is approved
-          separately by that hospital&apos;s admin. MFA is mandatory before any clinical access
-          opens up.
-        </>
-      }
-    >
-      <ClinicalSignupForm refData={refData} />
-    </SignupShell>
+    <ClinicalSignupForm
+      councils={councils.map((c) => ({
+        value: c.id,
+        label: c.name,
+        searchText: c.code,
+      }))}
+      hospitals={hospitals.map((h) => ({ value: h.id, label: h.name }))}
+      consent={{
+        version: activeConsent.version,
+        bodySha256: activeConsent.bodySha256,
+        body: activeConsent.body,
+        effectiveDate: activeConsent.effectiveDate,
+      }}
+      loadCadres={loadCadresForCouncilAction}
+      loadCadreGrades={loadCadreGradesForCadreAction}
+      loadRoles={loadRolesForCadreAction}
+      loadDepartments={loadDepartmentsForHospitalAction}
+      submit={submitClinicalSignupAction}
+    />
   );
 }

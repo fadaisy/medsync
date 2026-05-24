@@ -13,24 +13,22 @@ import {
 /**
  * Server-side draft persistence for multi-step onboarding forms.
  *
- * Why server-side and not localStorage: forms collect identifiers that
- * may be encrypted (NIN, phone), and the user may resume on a different
- * device after a dropped connection. localStorage can't handle either.
+ * Why server-side (not localStorage): mobile-first / variable
+ * bandwidth means users may resume on a different device after a
+ * dropped connection; PHI fields inside `payload` are encrypted
+ * via `lib/encryption.ts` before write, so localStorage would
+ * defeat the encryption boundary.
  *
- * Records are keyed by `(draft_kind, owner_key)`:
- *   - `draft_kind` = "patient" | "clinical" | "hospital"
- *   - `owner_key` = lowercase email of the in-flight signup (pre-account)
- *     OR the user_id once an account exists (mid-flow)
+ * Owner-key contract:
+ *   - Pre-account: lowercased email (the form's first collected
+ *     field).
+ *   - Mid-flow with account: `auth.uid()::text`.
  *
- * Payload is JSONB. Sensitive fields inside the payload should be
- * encrypted via lib/encryption.ts BEFORE writing — drafts table itself
- * doesn't enforce encryption.
+ * TTL: 14 days from last touch. Sweeper cron in GATE G.
  *
- * TTL: 14 days from last touch. Cron/scheduled function cleans up
- * expired rows in GATE F.
- *
- * RLS: pre-account drafts are keyed by email + a server-side rotating
- * token (no RLS path for anon); once an account exists, owner-only.
+ * RLS: authenticated own-only; pre-account access via service-role
+ * + signed cookie containing the rotating access_token. NOT audited
+ * (transient form state, not system-of-record).
  */
 
 export const DRAFT_KINDS = ["patient", "clinical", "hospital"] as const;
@@ -41,15 +39,10 @@ export const signupDrafts = pgTable(
   {
     id: uuid("id").primaryKey().defaultRandom(),
     draftKind: text("draft_kind").notNull(),
-    // Either the email (lowercased) for pre-account drafts, or the
-    // user_id string once an account exists. Indexed for lookup.
     ownerKey: text("owner_key").notNull(),
-    // Server-only rotating token used to authorise pre-account access
-    // to this draft (signed cookie or one-time link). Null once the
-    // draft is owned by an authenticated user.
+    /** Server-issued rotating token; signed-cookie-carried for pre-account resume. */
     accessToken: text("access_token"),
     payload: jsonb("payload").notNull(),
-    // Last step the user reached (UI restores them there on resume).
     currentStep: text("current_step"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),

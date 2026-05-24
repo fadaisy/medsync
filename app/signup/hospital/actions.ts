@@ -1,357 +1,299 @@
 "use server";
 
-import { cookies } from "next/headers";
+import type { ComboboxItem } from "@/components/forms";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 
-import { HOSPITAL_LEVEL_VALUES, HOSPITAL_OWNERSHIP_VALUES } from "@/db/schema";
-import {
-  createHospitalAccount,
-  resendHospitalOtp,
-  uploadHospitalAuthorisation,
-  verifyHospitalApplication,
-} from "@/lib/hospital";
+import { db } from "@/db";
+import { consentVersions } from "@/db/schema/consent-versions";
+import { encrypt } from "@/lib/encryption";
 import { logger } from "@/lib/logger";
+import { listSubcounties } from "@/lib/reference-data";
+import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
+
+const UUID_RE = /^[0-9a-f-]{36}$/i;
+const PHONE_E164_UG = /^\+2567\d{8}$|^\+256[23489]\d{7,8}$/;
+const EMAIL_DOMAIN_RE = /^[a-z0-9.-]+\.[a-z]{2,}$/i;
+
+export async function loadSubcountiesForDistrictActionHospital(
+  districtId: string,
+): Promise<ComboboxItem[]> {
+  if (!UUID_RE.test(districtId)) return [];
+  const rows = await listSubcounties({ districtId });
+  return rows.map((s) => ({ value: s.id, label: s.name }));
+}
+
+/* ─── Lightweight lead capture (anon) ───────────────────────────────── */
+
+const HospitalLeadSchema = z.object({
+  hospital_name: z.string().min(1, "Required.").max(160),
+  facility_level: z.enum([
+    "hc_ii",
+    "hc_iii",
+    "hc_iv",
+    "general",
+    "regional_referral",
+    "national_referral",
+    "private",
+    "other",
+  ]),
+  ownership: z.enum(["public_moh", "private", "pnfp", "private_clinic"]),
+  district_id: z.string().uuid(),
+  contact_name: z.string().min(1).max(120),
+  contact_role: z.string().min(1).max(80),
+  contact_email: z.string().email(),
+  contact_phone: z.string().regex(PHONE_E164_UG, "Enter a Ugandan phone number."),
+  notes: z.string().max(2000).optional(),
+  source: z.string().max(60).optional(),
+});
+
+export type HospitalLeadErrors = Partial<
+  Record<keyof z.infer<typeof HospitalLeadSchema> | "_form", string>
+>;
+export type HospitalLeadState = {
+  ok?: boolean;
+  errors?: HospitalLeadErrors;
+  values?: Record<string, string | undefined>;
+};
 
 /**
- * Server actions powering /signup/hospital.
+ * Anon lead capture (kickoff §E lighter footprint).
  *
- * Identical shape to GATE D (clinical):
- *
- *   submitHospitalSignupAction
- *     → validate full form (incl. authorisation file)
- *     → createHospitalAccount → emailed OTP
- *     → uploadHospitalAuthorisation (service role, before email confirmed)
- *     → cookie-stash metadata + Storage path
- *     → redirect to /signup/hospital/verify
- *
- *   verifyHospitalOtpAction
- *     → verifyOtp → insert hospital_applications row
- *     → transition lifecycle unverified → verified → pending_approval
- *     → redirect to /signup/hospital/pending
- *
- *   resendHospitalOtpAction
+ * Anti-spam: tag with the source CTA so a sudden burst from one
+ * surface is visible in superadmin triage. Production should wrap
+ * with Cloudflare Turnstile per kickoff Q4; the verification step
+ * lands in GATE G ops setup. The RLS policy already restricts new
+ * rows to state='new' so even bypassing the action can't smuggle a
+ * lead in as "contacted".
  */
+export async function submitHospitalLeadAction(
+  _prev: HospitalLeadState,
+  formData: FormData,
+): Promise<HospitalLeadState> {
+  const raw = Object.fromEntries(formData.entries()) as Record<string, string>;
+  const parsed = HospitalLeadSchema.safeParse(raw);
+  if (!parsed.success) {
+    const fieldErrors = parsed.error.flatten().fieldErrors;
+    return {
+      errors: Object.fromEntries(
+        Object.entries(fieldErrors).map(([k, v]) => [k, v?.[0]]),
+      ) as HospitalLeadErrors,
+      values: raw,
+    };
+  }
+  const input = parsed.data;
 
-const PENDING_COOKIE = "msc_pending_hospital";
-const PENDING_TTL_SECONDS = 30 * 60;
-const MAX_AUTH_BYTES = 5 * 1024 * 1024;
+  const service = createServiceClient();
+  const { error } = await service.from("hospital_leads").insert({
+    hospital_name: input.hospital_name,
+    facility_level: input.facility_level,
+    ownership: input.ownership,
+    district_id: input.district_id,
+    contact_name: input.contact_name,
+    contact_role: input.contact_role,
+    contact_email: input.contact_email.toLowerCase(),
+    contact_phone: input.contact_phone,
+    notes: input.notes ?? null,
+    source: input.source ?? null,
+  });
+  if (error) {
+    logger.error("hospital-lead.insert_failed", { reason: error.message });
+    return {
+      errors: { _form: "Couldn't save your interest right now. Please try again." },
+      values: raw,
+    };
+  }
+  logger.info("hospital-lead.captured", { source: input.source ?? null });
+  return { ok: true };
+}
 
-const PhoneSchema = z
-  .string()
-  .min(7)
-  .max(20)
-  .regex(/^\+?[0-9 ()-]+$/, "Phone must be digits, spaces, dashes, parentheses, optionally with +");
+/* ─── Full pilot application (authenticated) ────────────────────────── */
 
-const DomainSchema = z
-  .string()
-  .trim()
-  .toLowerCase()
-  .max(120)
-  .regex(/^[a-z0-9.-]+\.[a-z]{2,}$/, "Use a bare domain (e.g. mulago.go.ug — no @, no scheme)")
-  .optional()
-  .or(z.literal(""));
-
-const SubmitSchema = z.object({
-  // Account
-  full_name: z.string().trim().min(1, "Required.").max(120),
-  email: z.string().trim().toLowerCase().email("Enter a valid email."),
-  password: z
+const HospitalApplicationSchema = z.object({
+  // Applicant account
+  applicant_full_name: z.string().min(1, "Required.").max(120),
+  applicant_role: z.string().min(1, "Required.").max(80),
+  applicant_email: z.string().email("Enter a valid email."),
+  applicant_password: z
     .string()
     .min(12, "Password must be at least 12 characters.")
     .max(72, "Password must be 72 characters or fewer."),
-  phone: PhoneSchema,
-  applicant_role: z.string().trim().min(1, "Required.").max(120),
+  applicant_phone_e164: z.string().regex(PHONE_E164_UG, "Enter a Ugandan phone number."),
 
-  // Hospital
-  hospital_name: z.string().trim().min(1, "Required.").max(200),
-  level: z.enum(HOSPITAL_LEVEL_VALUES),
-  ownership: z.enum(HOSPITAL_OWNERSHIP_VALUES),
-  registration_number: z.string().trim().min(1, "Required.").max(120),
-  registration_authority: z.string().trim().max(200).optional().or(z.literal("")),
+  // Facility
+  hospital_name: z.string().min(1, "Required.").max(160),
+  facility_level: z.enum([
+    "hc_ii",
+    "hc_iii",
+    "hc_iv",
+    "general",
+    "regional_referral",
+    "national_referral",
+    "private",
+    "other",
+  ]),
+  ownership: z.enum(["public_moh", "private", "pnfp", "private_clinic"]),
+  registration_number: z.string().min(1, "Required.").max(120),
+  registration_authority: z.string().max(160).optional(),
   district_id: z.string().uuid("Pick a district."),
-  subcounty_id: z.string().uuid().optional().or(z.literal("")),
-  physical_address: z.string().trim().min(1, "Required.").max(400),
-  institutional_email_domain: DomainSchema,
-
-  consent: z
+  subcounty_id: z.string().uuid().optional(),
+  physical_address: z.string().min(1, "Required.").max(400),
+  institutional_email_domain: z
     .string()
-    .optional()
-    .refine((v) => v === "on", "You must confirm you have authority to submit this application."),
+    .regex(EMAIL_DOMAIN_RE, "Enter a domain like mulago.go.ug."),
+
+  // Consent
+  data_processing_consent: z.literal("on", {
+    message: "Consent is required.",
+  }),
+  data_processing_consent_version: z.string().min(1),
+  data_processing_consent_body_sha256: z.string().regex(/^[a-f0-9]{64}$/i),
 });
 
-export type HospitalFieldKey =
-  | "full_name"
-  | "email"
-  | "password"
-  | "phone"
-  | "applicant_role"
-  | "authorisation_document"
-  | "hospital_name"
-  | "level"
-  | "ownership"
-  | "registration_number"
-  | "registration_authority"
-  | "district_id"
-  | "subcounty_id"
-  | "physical_address"
-  | "institutional_email_domain"
-  | "consent";
-
-export type HospitalSignupState = {
-  errors?: Partial<Record<HospitalFieldKey | "_form", string>>;
-  values?: Partial<Record<HospitalFieldKey, string>>;
+export type HospitalApplicationErrors = Partial<
+  Record<keyof z.infer<typeof HospitalApplicationSchema> | "_form", string>
+>;
+export type HospitalApplicationState = {
+  errors?: HospitalApplicationErrors;
+  values?: Record<string, string | undefined>;
 };
 
-interface PendingHospitalCookie {
-  email: string;
-  fullName: string;
-  phone: string;
-  applicantRole: string;
-  hospitalName: string;
-  level: (typeof HOSPITAL_LEVEL_VALUES)[number];
-  ownership: (typeof HOSPITAL_OWNERSHIP_VALUES)[number];
-  registrationNumber: string;
-  registrationAuthority: string | null;
-  districtId: string;
-  subcountyId: string | null;
-  physicalAddress: string;
-  institutionalEmailDomain: string | null;
-  authorisationDocumentPath: string | null;
-}
-
-function decodeCookieValue(raw: string | undefined): PendingHospitalCookie | null {
-  if (!raw) return null;
-  try {
-    return JSON.parse(Buffer.from(raw, "base64url").toString("utf8")) as PendingHospitalCookie;
-  } catch {
-    return null;
-  }
-}
-
-function encodeCookieValue(payload: PendingHospitalCookie): string {
-  return Buffer.from(JSON.stringify(payload), "utf8").toString("base64url");
-}
-
-function emptyToNull(s: string | undefined): string | null {
-  return s && s !== "" ? s : null;
-}
-
-const HOSPITAL_FIELD_KEYS: HospitalFieldKey[] = [
-  "full_name",
-  "email",
-  "phone",
-  "applicant_role",
-  "hospital_name",
-  "level",
-  "ownership",
-  "registration_number",
-  "registration_authority",
-  "district_id",
-  "subcounty_id",
-  "physical_address",
-  "institutional_email_domain",
-  "consent",
-];
-
-// ─── Action 1 — submit ─────────────────────────────────────────────────
-
-export async function submitHospitalSignupAction(
-  _prev: HospitalSignupState,
+export async function submitHospitalApplicationAction(
+  _prev: HospitalApplicationState,
   formData: FormData,
-): Promise<HospitalSignupState> {
-  const raw = Object.fromEntries(formData.entries());
-  const parsed = SubmitSchema.safeParse(raw);
+): Promise<HospitalApplicationState> {
+  const authDoc = formData.get("authorisation_document");
+  const rawEntries: Array<[string, string]> = [];
+  for (const [k, v] of formData.entries()) {
+    if (typeof v === "string") rawEntries.push([k, v]);
+  }
+  const raw = Object.fromEntries(rawEntries) as Record<string, string>;
 
+  const parsed = HospitalApplicationSchema.safeParse(raw);
   if (!parsed.success) {
-    const flat = parsed.error.flatten().fieldErrors as Record<string, string[] | undefined>;
-    const errors: HospitalSignupState["errors"] = {};
-    const values: HospitalSignupState["values"] = {};
-    for (const key of HOSPITAL_FIELD_KEYS) {
-      const v = formData.get(key);
-      if (typeof v === "string") values[key] = v;
-      const fieldErr = flat[key]?.[0];
-      if (fieldErr) errors[key] = fieldErr;
-    }
-    return { errors, values };
-  }
-
-  const v = parsed.data;
-
-  // Validate authorisation file.
-  const authFile = formData.get("authorisation_document");
-  let authMeta: { bytes: ArrayBuffer; contentType: string; filename: string } | null = null;
-  if (authFile instanceof File && authFile.size > 0) {
-    if (authFile.size > MAX_AUTH_BYTES) {
-      return {
-        errors: { authorisation_document: "Document is too large (5 MB max)." },
-        values: stripFormData(raw),
-      };
-    }
-    if (
-      authFile.type !== "application/pdf" &&
-      authFile.type !== "image/jpeg" &&
-      authFile.type !== "image/png"
-    ) {
-      return {
-        errors: { authorisation_document: "Document must be PDF, JPG, or PNG." },
-        values: stripFormData(raw),
-      };
-    }
-    authMeta = {
-      bytes: await authFile.arrayBuffer(),
-      contentType: authFile.type,
-      filename: authFile.name,
-    };
-  } else {
+    const fieldErrors = parsed.error.flatten().fieldErrors;
     return {
-      errors: { authorisation_document: "Upload your letter of authority to continue." },
-      values: stripFormData(raw),
+      errors: Object.fromEntries(
+        Object.entries(fieldErrors).map(([k, v]) => [k, v?.[0]]),
+      ) as HospitalApplicationErrors,
+      values: raw,
     };
   }
+  const input = parsed.data;
 
-  // Create the auth user.
-  const acct = await createHospitalAccount({
-    fullName: v.full_name,
-    email: v.email,
-    password: v.password,
-  });
-  if (!acct.ok) {
-    return { errors: { _form: acct.error }, values: stripFormData(raw) };
-  }
-
-  // Upload authorisation letter (service role, pre-verify).
-  const uploaded = await uploadHospitalAuthorisation({
-    userId: acct.userId,
-    bytes: authMeta.bytes,
-    contentType: authMeta.contentType,
-    filename: authMeta.filename,
-  });
-  if (!uploaded.ok) {
+  // Consent hash cross-check.
+  const [activeConsent] = await db
+    .select()
+    .from(consentVersions)
+    .where(
+      and(
+        eq(consentVersions.consentType, "data_processing"),
+        eq(consentVersions.version, input.data_processing_consent_version),
+      ),
+    )
+    .limit(1);
+  if (
+    !activeConsent ||
+    activeConsent.bodySha256.toLowerCase() !==
+      input.data_processing_consent_body_sha256.toLowerCase()
+  ) {
+    logger.warn("hospital-application.consent.mismatch");
     return {
-      errors: { _form: `Document upload failed: ${uploaded.error}` },
-      values: stripFormData(raw),
+      errors: {
+        _form:
+          "The consent text on this page is out of date. Please reload to see the current version and accept again.",
+      },
+      values: raw,
     };
   }
 
-  const payload: PendingHospitalCookie = {
-    email: v.email,
-    fullName: v.full_name,
-    phone: v.phone,
-    applicantRole: v.applicant_role,
-    hospitalName: v.hospital_name,
-    level: v.level,
-    ownership: v.ownership,
-    registrationNumber: v.registration_number,
-    registrationAuthority: emptyToNull(v.registration_authority),
-    districtId: v.district_id,
-    subcountyId: emptyToNull(v.subcounty_id),
-    physicalAddress: v.physical_address,
-    institutionalEmailDomain: emptyToNull(v.institutional_email_domain),
-    authorisationDocumentPath: uploaded.path,
-  };
+  // Create the applicant account.
+  const supabase = await createClient();
+  const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+    email: input.applicant_email.toLowerCase(),
+    password: input.applicant_password,
+    options: { data: { full_name: input.applicant_full_name } },
+  });
+  if (signUpError || !signUpData.user) {
+    logger.warn("hospital-application.auth.failed", { reason: signUpError?.message });
+    return {
+      errors: { _form: signUpError?.message ?? "Couldn't create your account." },
+      values: raw,
+    };
+  }
+  const userId = signUpData.user.id;
 
-  const jar = await cookies();
-  jar.set(PENDING_COOKIE, encodeCookieValue(payload), {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
-    path: "/signup/hospital",
-    maxAge: PENDING_TTL_SECONDS,
+  const service = createServiceClient();
+
+  // Upload authorisation document to private Storage bucket
+  // `hospital-authorisations` (GATE G provisions; skip-with-warning
+  // if missing in dev).
+  let authPath: string | null = null;
+  if (authDoc instanceof File && authDoc.size > 0) {
+    const ext = (authDoc.name.split(".").pop() ?? "bin").toLowerCase().slice(0, 5);
+    const objectKey = `${userId}/${crypto.randomUUID()}.${ext}`;
+    const { error: uploadError } = await service.storage
+      .from("hospital-authorisations")
+      .upload(objectKey, authDoc, {
+        contentType: authDoc.type || "application/octet-stream",
+        upsert: false,
+      });
+    if (uploadError) {
+      logger.warn("hospital-application.doc.upload_skipped", {
+        reason: uploadError.message,
+      });
+    } else {
+      authPath = objectKey;
+    }
+  }
+
+  // INSERT hospital_applications.
+  const { error: insertError } = await service.from("hospital_applications").insert({
+    applicant_user_id: userId,
+    hospital_name: input.hospital_name,
+    facility_level: input.facility_level,
+    ownership: input.ownership,
+    registration_number: input.registration_number,
+    registration_authority: input.registration_authority ?? null,
+    district_id: input.district_id,
+    subcounty_id: input.subcounty_id ?? null,
+    physical_address: input.physical_address,
+    institutional_email_domain: input.institutional_email_domain.toLowerCase(),
+    applicant_role: input.applicant_role,
+    authorisation_document_path: authPath,
+  });
+  if (insertError) {
+    logger.error("hospital-application.insert_failed", {
+      reason: insertError.message,
+    });
+    await service.auth.admin.deleteUser(userId).catch(() => undefined);
+    return {
+      errors: { _form: "Couldn't save your application. Please try again." },
+      values: raw,
+    };
+  }
+
+  // consent_records + encrypted phone on users mirror + state bump.
+  const phoneCt = encrypt(input.applicant_phone_e164);
+  await service.from("consent_records").insert({
+    user_id: userId,
+    consent_type: "data_processing",
+    consent_text_sha256: activeConsent.bodySha256,
+    granted_at: new Date().toISOString(),
+  });
+  await service
+    .from("users")
+    .update({ state: "pending_approval", phone: phoneCt })
+    .eq("id", userId);
+
+  logger.info("hospital-application.submitted", {
+    facility_level: input.facility_level,
+    doc_uploaded: authPath !== null,
   });
 
-  logger.info("hospital.signup.submit-ok");
-  redirect("/signup/hospital/verify");
-}
-
-function stripFormData(raw: Record<string, FormDataEntryValue>): HospitalSignupState["values"] {
-  const out: HospitalSignupState["values"] = {};
-  for (const k of HOSPITAL_FIELD_KEYS) {
-    const v = raw[k];
-    if (typeof v === "string") out[k] = v;
-  }
-  return out;
-}
-
-// ─── Action 2 — verify OTP ─────────────────────────────────────────────
-
-const VerifySchema = z.object({
-  token: z.string().regex(/^\d{6}$/, "Enter the 6-digit code from your email."),
-});
-
-export type HospitalVerifyState = {
-  error?: string;
-};
-
-export async function verifyHospitalOtpAction(
-  _prev: HospitalVerifyState,
-  formData: FormData,
-): Promise<HospitalVerifyState> {
-  const parsed = VerifySchema.safeParse({ token: formData.get("token") });
-  if (!parsed.success) {
-    return { error: parsed.error.flatten().fieldErrors.token?.[0] ?? "Invalid code." };
-  }
-
-  const jar = await cookies();
-  const pending = decodeCookieValue(jar.get(PENDING_COOKIE)?.value);
-  if (!pending) {
-    return { error: "Your pending application has expired. Please start over." };
-  }
-
-  const result = await verifyHospitalApplication({
-    email: pending.email,
-    token: parsed.data.token,
-    phone: pending.phone,
-    hospital: {
-      name: pending.hospitalName,
-      level: pending.level,
-      ownership: pending.ownership,
-      registrationNumber: pending.registrationNumber,
-      registrationAuthority: pending.registrationAuthority,
-      districtId: pending.districtId,
-      subcountyId: pending.subcountyId,
-      physicalAddress: pending.physicalAddress,
-      institutionalEmailDomain: pending.institutionalEmailDomain,
-    },
-    applicant: {
-      role: pending.applicantRole,
-      authorisationDocumentPath: pending.authorisationDocumentPath,
-    },
-  });
-
-  if (!result.ok) {
-    return { error: result.error };
-  }
-
-  jar.delete(PENDING_COOKIE);
-  redirect("/signup/hospital/pending");
-}
-
-// ─── Action 3 — resend ─────────────────────────────────────────────────
-
-export type HospitalResendState = {
-  status: "idle" | "sent" | "error";
-  message?: string;
-};
-
-export async function resendHospitalOtpAction(
-  _prev: HospitalResendState,
-  _formData: FormData,
-): Promise<HospitalResendState> {
-  const jar = await cookies();
-  const pending = decodeCookieValue(jar.get(PENDING_COOKIE)?.value);
-  if (!pending) {
-    return { status: "error", message: "Your pending application has expired. Please start over." };
-  }
-  const result = await resendHospitalOtp(pending.email);
-  if (!result.ok) return { status: "error", message: result.error };
-  return { status: "sent", message: "A new code has been emailed." };
-}
-
-// ─── Server-side cookie peek for the /verify page header ────────────────
-
-export async function readPendingHospitalEmail(): Promise<string | null> {
-  const jar = await cookies();
-  const pending = decodeCookieValue(jar.get(PENDING_COOKIE)?.value);
-  return pending?.email ?? null;
+  revalidatePath("/dashboard");
+  redirect("/dashboard?welcomed=hospital-pending");
 }

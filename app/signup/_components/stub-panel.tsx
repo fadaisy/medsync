@@ -3,11 +3,15 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 /**
- * GATE A stub panel for the three signup routes. Replaced by the real
- * multi-step flow at the gate indicated by `gate`. Renders a quiet
- * "coming next" panel with the actual form fields the build will
- * eventually surface — so visitors get a preview of the shape, not
- * a 404.
+ * GATE A stub panel for the three signup routes. Replaced by the
+ * real multi-step flow at the gate indicated by `gate`. Renders a
+ * quiet "coming next" panel with the actual form fields the build
+ * will eventually surface — so reviewers get a preview of the shape,
+ * not a 404.
+ *
+ * Per the onboarding kickoff §E, this lists the controls the real
+ * form will use (combobox / segmented / radio-cards / etc.) — the
+ * primitives themselves land in GATE B.
  */
 export function StubPanel({
   title,
@@ -18,14 +22,14 @@ export function StubPanel({
   title: string;
   intro: string;
   gate: "C" | "D" | "E";
-  bullets: string[];
+  bullets: ReadonlyArray<string>;
 }) {
   return (
     <div className="mx-auto flex w-full max-w-200 flex-col gap-7 px-5 py-14 sm:px-8 sm:py-20">
       <div className="flex flex-col gap-3">
         <span className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
           <span className="size-1 rounded-full bg-teal-500" />
-          Onboarding &middot; in build
+          Onboarding &middot; GATE {gate} (scaffold)
         </span>
         <h1
           className="font-display text-foreground text-[30px] leading-[1.1] tracking-[-0.025em] text-balance sm:text-[42px]"
@@ -51,8 +55,16 @@ export function StubPanel({
           ))}
         </ul>
         <p className="text-muted-foreground border-border mt-2 border-t pt-3 text-[11.5px] italic">
-          Coming in GATE {gate}. The full multi-step flow with searchable combobox, file upload, OTP
-          verify, and progress-save will land there.
+          The real multi-step form lands in GATE {gate}. Shared form primitives (Combobox,
+          SegmentedControl, RadioCards, ConsentCheckbox, PhoneInput, DatePicker, OtpInput,
+          FileUpload, MultiStepForm) shipped in GATE B —{" "}
+          <Link
+            href="/signup/preview/primitives"
+            className="text-foreground underline-offset-4 hover:underline"
+          >
+            preview them here
+          </Link>
+          .
         </p>
       </div>
 

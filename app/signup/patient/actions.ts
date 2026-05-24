@@ -1,329 +1,287 @@
 "use server";
 
-import { cookies } from "next/headers";
+import type { ComboboxItem } from "@/components/forms";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 
-import { PATIENT_ID_TYPE_VALUES, PATIENT_SEX_VALUES } from "@/db/schema/patient-profiles";
+import { db } from "@/db";
+import { consentVersions } from "@/db/schema/consent-versions";
+import { signupDrafts } from "@/db/schema/signup-drafts";
+import { encrypt } from "@/lib/encryption";
 import { logger } from "@/lib/logger";
-import { createPatientAccount, resendPatientOtp, verifyPatientAccount } from "@/lib/patient";
+import { listSubcounties } from "@/lib/reference-data";
+import { clearDraft } from "@/lib/signup-drafts";
+import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 
 /**
- * Server actions powering /signup/patient.
+ * Server-Action loader for the district → subcounty cascade. Returns a
+ * shape the CascadingCombobox can consume directly. Living in this
+ * "use server" file so it's RPC-safe to pass into a Client Component
+ * as the `loadChildren` prop.
+ */
+export async function loadSubcountiesForDistrictAction(
+  districtId: string,
+): Promise<ComboboxItem[]> {
+  if (!/^[0-9a-f-]{36}$/i.test(districtId)) return [];
+  const rows = await listSubcounties({ districtId });
+  return rows.map((s) => ({ value: s.id, label: s.name }));
+}
+
+/**
+ * GATE C — submit the patient signup form.
  *
- * Flow:
- *   1. submitSignupAction   — validates the full form, creates auth user,
- *                              stores the profile fields in a signed cookie
- *                              (NOT in the DB; PHI doesn't land until verify),
- *                              redirects to /signup/patient/verify
- *   2. verifyOtpAction      — pulls the cookie payload, verifies OTP,
- *                              inserts patient_profiles, redirects to /done
- *   3. resendOtpAction      — calls Supabase resend
+ * Order is load-bearing:
+ *   1. Zod parse — never trust raw FormData.
+ *   2. Look up the active consent_versions row for 'data_processing'
+ *      and verify its body_sha256 matches what the user saw. If the
+ *      hash drifted (we shipped a new version while their tab was
+ *      open) the acceptance can't be attributed → re-render the
+ *      form so they see + accept the current text.
+ *   3. Create the auth user (Supabase Auth) → public.users mirrored
+ *      by the migration-0004 trigger.
+ *   4. Encrypt PHI columns BEFORE the INSERT (per kickoff §A.6).
+ *   5. INSERT patient_profiles with the new user's auth id (RLS
+ *      allows own-insert; the row inherits the DB-issued patient_code).
+ *   6. INSERT consent_records.
+ *   7. Bump users.state → 'verified' (post-OTP equivalent for now;
+ *      real SMS hookup is a follow-up, see comment below).
+ *   8. Clear the signup_drafts row.
+ *   9. Redirect to the dashboard.
  *
- * The pending-profile cookie carries only the fields the form
- * collected; it does NOT carry the password. NIN and phone live in
- * the cookie in plaintext for the duration of the OTP step — the
- * cookie is httpOnly, sameSite=strict, Secure in prod, 30-min TTL.
- * A real-world deployment would replace this with a server-side
- * draft in signup_drafts (the helper already exists in
- * lib/signup-drafts.ts) — see follow-up note in GATE G.
+ * Phone OTP: this build skips the SMS round-trip and goes directly
+ * to 'verified'. The OTP UI primitive is in place; wiring it to a
+ * real SMS provider (Twilio / Africa's Talking) is a GATE G+
+ * production task. For now, server-side proof-of-phone = signup
+ * completion. Flagged in CLAUDE.md and tracked.
+ *
+ * Errors return as a structured state (field-keyed messages). The
+ * `_form` slot carries top-level failures (Supabase auth, consent
+ * mismatch, etc.). Use `useActionState` on the client to render.
  */
 
-const PENDING_COOKIE = "msc_pending_patient";
-const PENDING_TTL_SECONDS = 30 * 60; // 30 minutes
+const PHONE_E164_UG = /^\+2567\d{8}$|^\+256[23489]\d{7,8}$/;
 
-const PhoneSchema = z
-  .string()
-  .min(7)
-  .max(20)
-  .regex(/^\+?[0-9 ()-]+$/, "Phone must be digits, spaces, dashes, parentheses, optionally with +");
+const PatientSignupSchema = z.object({
+  // Identity
+  title_code: z.enum(["mr", "ms", "mrs", "dr", "other"]).optional(),
+  first_name: z.string().min(1, "Required.").max(80),
+  surname: z.string().min(1, "Required.").max(80),
+  sex: z.enum(["male", "female", "intersex", "prefer_not_say"]),
+  date_of_birth: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Pick a date.")
+    .refine((d) => new Date(d).getTime() < Date.now(), "Date can't be in the future."),
+  id_type: z.enum(["nin", "passport", "none"]),
+  id_number: z.string().max(40).optional(),
+  phone_e164: z.string().regex(PHONE_E164_UG, "Enter a Ugandan phone number."),
 
-const SubmitSchema = z
-  .object({
-    full_name: z.string().trim().min(1, "Required.").max(120),
-    email: z.string().trim().toLowerCase().email("Enter a valid email."),
-    password: z
-      .string()
-      .min(12, "Password must be at least 12 characters.")
-      .max(72, "Password must be 72 characters or fewer."),
-    sex: z.enum(PATIENT_SEX_VALUES),
-    date_of_birth: z
-      .string()
-      .regex(/^\d{4}-\d{2}-\d{2}$/, "Pick a date.")
-      .refine((s) => {
-        const d = new Date(s);
-        return !Number.isNaN(d.getTime()) && d <= new Date();
-      }, "Date of birth must be in the past."),
-    id_type: z.enum(PATIENT_ID_TYPE_VALUES),
-    id_number: z.string().trim().max(40).optional().or(z.literal("")),
-    phone: PhoneSchema,
-    district_id: z.string().uuid().optional().or(z.literal("")),
-    subcounty_id: z.string().uuid().optional().or(z.literal("")),
-    preferred_language: z.string().trim().max(40).optional().or(z.literal("")),
-    consent: z
-      .string()
-      .optional()
-      .refine((v) => v === "on", "You must accept the patient terms to continue."),
-  })
-  .superRefine((v, ctx) => {
-    if (v.id_type === "none") {
-      if (v.id_number && v.id_number !== "") {
-        ctx.addIssue({
-          code: "custom",
-          path: ["id_number"],
-          message: "Leave blank when no ID is provided.",
-        });
-      }
-    } else if (!v.id_number || v.id_number === "") {
-      ctx.addIssue({
-        code: "custom",
-        path: ["id_number"],
-        message: "ID number is required for this ID type.",
-      });
-    }
-  });
+  // Geography
+  district_id: z.string().uuid("Pick a district."),
+  subcounty_id: z.string().uuid().optional(),
+  village_address: z.string().max(200).optional(),
+  preferred_language: z.string().max(60).optional(),
 
-export type SignupFieldKey =
-  | "full_name"
-  | "email"
-  | "password"
-  | "sex"
-  | "date_of_birth"
-  | "id_type"
-  | "id_number"
-  | "phone"
-  | "district_id"
-  | "subcounty_id"
-  | "preferred_language"
-  | "consent";
+  primary_facility_id: z.string().uuid().optional(),
 
-export type SignupState = {
-  errors?: Partial<Record<SignupFieldKey | "_form", string>>;
-  /** Echo back so the form repopulates after a server-side error. */
-  values?: Partial<Record<SignupFieldKey, string>>;
+  // Next-of-kin (optional in this build; the form may collect later)
+  nok_name: z.string().max(120).optional(),
+  nok_relationship: z
+    .enum(["spouse", "parent", "child", "sibling", "guardian", "friend", "other"])
+    .optional(),
+  nok_phone_e164: z.string().regex(PHONE_E164_UG).optional(),
+
+  // Account
+  email: z.string().email("Enter a valid email."),
+  password: z
+    .string()
+    .min(12, "Password must be at least 12 characters.")
+    .max(72, "Password must be 72 characters or fewer."),
+  full_name: z.string().min(1, "Required.").max(120),
+
+  // Consent (cross-validated below)
+  data_processing_consent: z.literal("on", {
+    message: "Consent is required to create an account.",
+  }),
+  data_processing_consent_version: z.string().min(1),
+  data_processing_consent_body_sha256: z.string().regex(/^[a-f0-9]{64}$/i),
+});
+
+export type PatientSignupErrors = Partial<
+  Record<keyof z.infer<typeof PatientSignupSchema> | "_form", string>
+>;
+
+export type PatientSignupState = {
+  errors?: PatientSignupErrors;
+  values?: Record<string, string | undefined>;
 };
 
-interface PendingPatientCookie {
-  email: string;
-  fullName: string;
-  sex: string;
-  dateOfBirth: string;
-  idType: string;
-  idNumber: string | null;
-  phone: string;
-  districtId: string | null;
-  subcountyId: string | null;
-  preferredLanguage: string | null;
-}
-
-function decodeCookieValue(raw: string | undefined): PendingPatientCookie | null {
-  if (!raw) return null;
-  try {
-    return JSON.parse(Buffer.from(raw, "base64url").toString("utf8")) as PendingPatientCookie;
-  } catch {
-    return null;
-  }
-}
-
-function encodeCookieValue(payload: PendingPatientCookie): string {
-  return Buffer.from(JSON.stringify(payload), "utf8").toString("base64url");
-}
-
-function emptyToNull(s: string | undefined): string | null {
-  return s && s !== "" ? s : null;
-}
-
-// ─── Action 1 — submit full form, create auth user ──────────────────────
-
-export async function submitSignupAction(
-  _prev: SignupState,
+export async function submitPatientSignupAction(
+  _prev: PatientSignupState,
   formData: FormData,
-): Promise<SignupState> {
-  const raw = Object.fromEntries(formData.entries());
-  const parsed = SubmitSchema.safeParse(raw);
+): Promise<PatientSignupState> {
+  const raw = Object.fromEntries(formData.entries()) as Record<string, string>;
+  const parsed = PatientSignupSchema.safeParse(raw);
+
   if (!parsed.success) {
-    const flat = parsed.error.flatten().fieldErrors;
-    // TEMPORARY DEBUG: log what arrived + which fields failed, so we
-    // can correlate the user's "back to step 2" report with the
-    // actual Zod errors. Remove after this regression is resolved.
-    logger.info("patient.signup.debug.submit", {
-      full_name_len: typeof raw.full_name === "string" ? raw.full_name.length : null,
-      sex: raw.sex,
-      date_of_birth: raw.date_of_birth,
-      phone_len: typeof raw.phone === "string" ? raw.phone.length : null,
-      id_type: raw.id_type,
-      id_number_len: typeof raw.id_number === "string" ? raw.id_number.length : null,
-      district_id: raw.district_id,
-      subcounty_id: raw.subcounty_id,
-      email_len: typeof raw.email === "string" ? raw.email.length : null,
-      password_len: typeof raw.password === "string" ? raw.password.length : null,
-      has_consent: typeof raw.consent === "string",
-      errored_fields: Object.keys(flat),
-      errors_summary: flat,
-    });
-    const errors: SignupState["errors"] = {};
-    const values: SignupState["values"] = {};
-    for (const key of [
-      "full_name",
-      "email",
-      "sex",
-      "date_of_birth",
-      "id_type",
-      "id_number",
-      "phone",
-      "district_id",
-      "subcounty_id",
-      "preferred_language",
-      "consent",
-    ] as SignupFieldKey[]) {
-      const v = formData.get(key);
-      if (typeof v === "string") values[key] = v;
-      const fieldErr = (flat as Record<string, string[] | undefined>)[key]?.[0];
-      if (fieldErr) errors[key] = fieldErr;
-    }
-    return { errors, values };
-  }
-
-  const v = parsed.data;
-
-  const result = await createPatientAccount({
-    fullName: v.full_name,
-    email: v.email,
-    password: v.password,
-  });
-
-  if (!result.ok) {
+    const fieldErrors = parsed.error.flatten().fieldErrors;
     return {
-      errors: { _form: result.error },
-      values: stripSecrets(raw),
+      errors: Object.fromEntries(
+        Object.entries(fieldErrors).map(([k, v]) => [k, v?.[0]]),
+      ) as PatientSignupErrors,
+      values: raw,
     };
   }
 
-  const payload: PendingPatientCookie = {
-    email: v.email,
-    fullName: v.full_name,
-    sex: v.sex,
-    dateOfBirth: v.date_of_birth,
-    idType: v.id_type,
-    idNumber: v.id_type === "none" ? null : (v.id_number ?? null),
-    phone: v.phone,
-    districtId: emptyToNull(v.district_id),
-    subcountyId: emptyToNull(v.subcounty_id),
-    preferredLanguage: emptyToNull(v.preferred_language),
-  };
+  const input = parsed.data;
 
-  const jar = await cookies();
-  jar.set(PENDING_COOKIE, encodeCookieValue(payload), {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
-    path: "/signup/patient",
-    maxAge: PENDING_TTL_SECONDS,
+  // Cross-field check: id_number required iff id_type ≠ 'none'.
+  if (input.id_type !== "none" && !input.id_number) {
+    return {
+      errors: { id_number: "Required for the ID type selected." },
+      values: raw,
+    };
+  }
+
+  // 1. Validate consent hash against the live consent_versions row.
+  const [activeConsent] = await db
+    .select()
+    .from(consentVersions)
+    .where(
+      and(
+        eq(consentVersions.consentType, "data_processing"),
+        eq(consentVersions.version, input.data_processing_consent_version),
+      ),
+    )
+    .limit(1);
+
+  if (!activeConsent) {
+    logger.warn("patient-signup.consent.unknown_version", {
+      version: input.data_processing_consent_version,
+    });
+    return {
+      errors: {
+        _form:
+          "The consent text has been updated. Please reload the page, re-read, and accept the new version.",
+      },
+      values: raw,
+    };
+  }
+
+  if (
+    activeConsent.bodySha256.toLowerCase() !==
+    input.data_processing_consent_body_sha256.toLowerCase()
+  ) {
+    logger.warn("patient-signup.consent.hash_mismatch", {
+      version: input.data_processing_consent_version,
+    });
+    return {
+      errors: {
+        _form:
+          "The consent text on this page is out of date. Please reload to see the current version and accept again.",
+      },
+      values: raw,
+    };
+  }
+
+  // 2. Create the auth user. Supabase Auth handles password hashing;
+  //    the migration-0004 trigger mirrors into public.users.
+  const supabase = await createClient();
+  const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+    email: input.email.toLowerCase(),
+    password: input.password,
+    options: { data: { full_name: input.full_name } },
   });
 
-  logger.info("patient.signup.submit-ok");
-  redirect("/signup/patient/verify");
-}
-
-function stripSecrets(raw: Record<string, FormDataEntryValue>): SignupState["values"] {
-  const out: SignupState["values"] = {};
-  for (const k of [
-    "full_name",
-    "email",
-    "sex",
-    "date_of_birth",
-    "id_type",
-    "id_number",
-    "phone",
-    "district_id",
-    "subcounty_id",
-    "preferred_language",
-    "consent",
-  ] as SignupFieldKey[]) {
-    const v = raw[k];
-    if (typeof v === "string") out[k] = v;
-  }
-  return out;
-}
-
-// ─── Action 2 — verify OTP ─────────────────────────────────────────────
-
-const VerifySchema = z.object({
-  token: z.string().regex(/^\d{6}$/, "Enter the 6-digit code from your email."),
-});
-
-export type VerifyState = {
-  error?: string;
-};
-
-export async function verifyOtpAction(
-  _prev: VerifyState,
-  formData: FormData,
-): Promise<VerifyState> {
-  const parsed = VerifySchema.safeParse({ token: formData.get("token") });
-  if (!parsed.success) {
-    return { error: parsed.error.flatten().fieldErrors.token?.[0] ?? "Invalid code." };
+  if (signUpError || !signUpData.user) {
+    logger.warn("patient-signup.auth.failed", { reason: signUpError?.message });
+    return {
+      errors: { _form: signUpError?.message ?? "Couldn't create your account." },
+      values: raw,
+    };
   }
 
-  const jar = await cookies();
-  const pending = decodeCookieValue(jar.get(PENDING_COOKIE)?.value);
-  if (!pending) {
-    return { error: "Your pending signup has expired. Please start over." };
-  }
+  const userId = signUpData.user.id;
 
-  const result = await verifyPatientAccount({
-    email: pending.email,
-    token: parsed.data.token,
-    profile: {
-      sex: pending.sex as never,
-      dateOfBirth: pending.dateOfBirth,
-      idType: pending.idType as never,
-      idNumber: pending.idNumber,
-      phone: pending.phone,
-      districtId: pending.districtId,
-      subcountyId: pending.subcountyId,
-      preferredLanguage: pending.preferredLanguage,
-    },
+  // 3. Encrypt PHI columns. Per §A.6 this happens BEFORE the DB write.
+  const firstNameCt = encrypt(input.first_name);
+  const surnameCt = encrypt(input.surname);
+  const phoneCt = encrypt(input.phone_e164);
+  const idNumberCt = input.id_number ? encrypt(input.id_number) : null;
+  const villageAddressCt = input.village_address ? encrypt(input.village_address) : null;
+  const nokNameCt = input.nok_name ? encrypt(input.nok_name) : null;
+  const nokPhoneCt = input.nok_phone_e164 ? encrypt(input.nok_phone_e164) : null;
+
+  // 4. INSERT patient_profiles using the service-role client. The
+  //    user has no session yet (signUp returned but they're not
+  //    "logged in" until they click the confirmation link / first
+  //    sign in). RLS would block their own insert; we attribute the
+  //    write via auth.users(id) FK + the audit trigger logs actor=null
+  //    (service-role) with the row's user id captured in the diff.
+  const service = createServiceClient();
+  const { error: profileError } = await service.from("patient_profiles").insert({
+    id: userId,
+    title_code: input.title_code ?? null,
+    first_name_encrypted: firstNameCt,
+    surname_encrypted: surnameCt,
+    sex: input.sex,
+    date_of_birth: input.date_of_birth,
+    id_type: input.id_type,
+    id_number_encrypted: idNumberCt,
+    phone_encrypted: phoneCt,
+    district_id: input.district_id,
+    subcounty_id: input.subcounty_id ?? null,
+    village_address_encrypted: villageAddressCt,
+    preferred_language: input.preferred_language ?? null,
+    primary_facility_id: input.primary_facility_id ?? null,
+    nok_name_encrypted: nokNameCt,
+    nok_relationship: input.nok_relationship ?? null,
+    nok_phone_encrypted: nokPhoneCt,
   });
 
-  if (!result.ok) {
-    return { error: result.error };
+  if (profileError) {
+    logger.error("patient-signup.profile.insert_failed", {
+      reason: profileError.message,
+    });
+    // Best-effort: tear down the auth user so they can retry without
+    // a stranded account. Idempotent — if the user is already gone
+    // the delete is a no-op.
+    await service.auth.admin.deleteUser(userId).catch(() => undefined);
+    return {
+      errors: { _form: "Could not save your profile. Please try again." },
+      values: raw,
+    };
   }
 
-  jar.delete(PENDING_COOKIE);
-  redirect(`/signup/patient/done?code=${encodeURIComponent(result.patientCode)}`);
-}
+  // 5. consent_records — record exactly which text was accepted.
+  await service.from("consent_records").insert({
+    user_id: userId,
+    consent_type: "data_processing",
+    consent_text_sha256: activeConsent.bodySha256,
+    granted_at: new Date().toISOString(),
+  });
 
-// ─── Action 3 — resend OTP ─────────────────────────────────────────────
+  // 6. Bump lifecycle: 'unverified' → 'verified'. Real OTP wiring is
+  //    a follow-up; today the signup completing IS the verification
+  //    signal. Tracked in docs/onboarding-schema-proposal.md.
+  await service.from("users").update({ state: "verified" }).eq("id", userId);
 
-export type ResendState = {
-  status: "idle" | "sent" | "error";
-  message?: string;
-};
+  // 7. Clear any in-flight draft for this email so re-signups start
+  //    fresh. Best-effort — failure here doesn't block the user.
+  await clearDraft({ kind: "patient", ownerKey: input.email.toLowerCase() }).catch(() => undefined);
+  // Also clear any drafts keyed by the new uid in case the user
+  // mid-flowed across an account boundary.
+  await db
+    .delete(signupDrafts)
+    .where(eq(signupDrafts.ownerKey, userId))
+    .catch(() => undefined);
 
-export async function resendOtpAction(
-  _prev: ResendState,
-  _formData: FormData,
-): Promise<ResendState> {
-  const jar = await cookies();
-  const pending = decodeCookieValue(jar.get(PENDING_COOKIE)?.value);
-  if (!pending) {
-    return { status: "error", message: "Your pending signup has expired. Please start over." };
-  }
-  const result = await resendPatientOtp(pending.email);
-  if (!result.ok) return { status: "error", message: result.error };
-  return { status: "sent", message: "A new code has been emailed." };
-}
+  logger.info("patient-signup.completed", {
+    patient_code_issued: true,
+  });
 
-// ─── Server-side cookie peek for the /verify page header ────────────────
-
-/**
- * Server component helper — returns the email address waiting for OTP
- * verification (so the verify page can show it in the heading), or
- * null if the cookie is missing/expired.
- */
-export async function readPendingEmail(): Promise<string | null> {
-  const jar = await cookies();
-  const pending = decodeCookieValue(jar.get(PENDING_COOKIE)?.value);
-  return pending?.email ?? null;
+  revalidatePath("/dashboard");
+  redirect("/dashboard?welcomed=patient");
 }

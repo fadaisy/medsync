@@ -8,10 +8,10 @@ import { cn } from "@/lib/utils";
  * Single source of truth for the three audience doors. Edit copy here and
  * every CTA on the page updates: hero, mid-band, final CTA band, footer.
  *
- * Routes match app/signup/{patient,clinical,hospital} — the Phase 1
- * multi-step signup flow. The older /onboarding/{path} email-capture
- * forms remain reachable as a softer ask (linked from a few specific
- * sub-banner / FAQ surfaces) but are no longer the primary CTAs.
+ * Routes to the per-path signup stubs at /signup/{patient,clinical,
+ * hospital} (GATE A scaffold). The real multi-step forms ship in
+ * gates C / D / E. The intent selector at /get-started exists for
+ * users who arrive without a chosen audience.
  */
 export const ONBOARDING_DOORS: ReadonlyArray<{
   audience: "patient" | "clinical" | "hospital";
@@ -23,14 +23,14 @@ export const ONBOARDING_DOORS: ReadonlyArray<{
   {
     audience: "patient",
     label: "I'm a patient",
-    sub: "Sign up · ~3 minutes",
+    sub: "Sign up — active immediately",
     href: "/signup/patient",
     Icon: UserIcon,
   },
   {
     audience: "clinical",
     label: "I'm a clinician",
-    sub: "Sign up · approval-gated",
+    sub: "Sign up — approval-gated",
     href: "/signup/clinical",
     Icon: StethoscopeIcon,
   },
