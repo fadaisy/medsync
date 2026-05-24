@@ -184,6 +184,15 @@ export async function submitHospitalApplicationAction(
 
   const parsed = HospitalApplicationSchema.safeParse(cleaned);
   if (!parsed.success) {
+    // TEMPORARY debug: dump what cleaned looks like so we can pin down
+    // why ownership/district_id are not matching the schema. Strip the
+    // password before logging.
+    const { applicant_password: _pw, ...debugView } = cleaned;
+    logger.warn("hospital-application.zod.failed", {
+      cleaned_keys_count: Object.keys(cleaned).length,
+      cleaned_minus_password: debugView,
+      field_errors: parsed.error.flatten().fieldErrors,
+    });
     const fieldErrors = parsed.error.flatten().fieldErrors;
     return {
       errors: Object.fromEntries(
