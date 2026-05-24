@@ -254,7 +254,7 @@ CREATE POLICY hospital_app_depts_insert_applicant
       SELECT 1 FROM public.hospital_applications a
       WHERE a.id = application_id
         AND a.applicant_user_id = auth.uid()
-        AND a.state IN ('pending_approval','applied')
+        AND a.state = 'pending_approval'
     )
   );
 
@@ -267,7 +267,7 @@ CREATE POLICY hospital_app_depts_delete_applicant
       SELECT 1 FROM public.hospital_applications a
       WHERE a.id = application_id
         AND a.applicant_user_id = auth.uid()
-        AND a.state IN ('pending_approval','applied')
+        AND a.state = 'pending_approval'
     )
   );
 
@@ -308,7 +308,7 @@ CREATE POLICY hospital_app_specs_insert_applicant
       SELECT 1 FROM public.hospital_applications a
       WHERE a.id = application_id
         AND a.applicant_user_id = auth.uid()
-        AND a.state IN ('pending_approval','applied')
+        AND a.state = 'pending_approval'
     )
   );
 
@@ -321,6 +321,6 @@ CREATE POLICY hospital_app_specs_delete_applicant
       SELECT 1 FROM public.hospital_applications a
       WHERE a.id = application_id
         AND a.applicant_user_id = auth.uid()
-        AND a.state IN ('pending_approval','applied')
+        AND a.state = 'pending_approval'
     )
   );
