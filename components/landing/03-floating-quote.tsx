@@ -27,6 +27,13 @@ interface FounderQuote {
   role: string;
   portraitSrc: string;
   portraitAlt: string;
+  /**
+   * Object-position override for the circular portrait crop. Default
+   * `center` works for headshots framed tight; use `top` when the
+   * subject's face sits high in the source image and the centred crop
+   * would land on shoulders/torso instead.
+   */
+  portraitPosition?: "center" | "top";
 }
 
 const QUOTES: FounderQuote[] = [
@@ -77,6 +84,7 @@ const QUOTES: FounderQuote[] = [
     role: "Co-founder, MedSync",
     portraitSrc: "/founder-nayiga-joselyn-mirembe.jpeg",
     portraitAlt: "Dr. Nayiga Joselyn Mirembe, MedSync co-founder.",
+    portraitPosition: "top",
   },
 ];
 
@@ -135,14 +143,19 @@ export function FloatingQuote() {
               )}
             >
               {/* Portrait — small circular crop, scaled slightly to
-                  centre the face within the round mask. */}
+                  centre the face within the round mask. Per-founder
+                  `portraitPosition` biases the crop when the face
+                  sits high in the source image. */}
               <div className="border-border ring-background bg-muted relative size-16 overflow-hidden rounded-full border ring-4 sm:size-20">
                 <Image
                   src={quote.portraitSrc}
                   alt={quote.portraitAlt}
                   fill
                   sizes="80px"
-                  className="origin-top scale-[1.15] object-cover"
+                  className={cn(
+                    "origin-top scale-[1.15] object-cover",
+                    quote.portraitPosition === "top" ? "object-top" : "object-center",
+                  )}
                   priority={i === 0}
                 />
               </div>
