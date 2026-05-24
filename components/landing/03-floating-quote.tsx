@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 
 import { cn } from "@/lib/utils";
@@ -24,6 +25,8 @@ interface FounderQuote {
   body: React.ReactNode;
   author: string;
   role: string;
+  portraitSrc: string;
+  portraitAlt: string;
 }
 
 const QUOTES: FounderQuote[] = [
@@ -36,6 +39,8 @@ const QUOTES: FounderQuote[] = [
     ),
     author: "Dr. Usama Fadhul",
     role: "Co-founder & Clinical Safety Officer, MedSync",
+    portraitSrc: "/founder-usama-fadhul.jpg",
+    portraitAlt: "Dr. Usama Fadhul, MedSync co-founder and Clinical Safety Officer.",
   },
   {
     body: (
@@ -46,6 +51,8 @@ const QUOTES: FounderQuote[] = [
     ),
     author: "Dr. Nelson Nuwagira",
     role: "Co-founder, MedSync",
+    portraitSrc: "/founder-nuwagira-nelson.jpeg",
+    portraitAlt: "Dr. Nelson Nuwagira, MedSync co-founder.",
   },
   {
     body: (
@@ -56,6 +63,8 @@ const QUOTES: FounderQuote[] = [
     ),
     author: "Dr. Caroline Murizihiwe",
     role: "Co-founder, MedSync",
+    portraitSrc: "/founder-caroline-murizihiwe.jpg",
+    portraitAlt: "Dr. Caroline Murizihiwe, MedSync co-founder.",
   },
   {
     body: (
@@ -66,6 +75,8 @@ const QUOTES: FounderQuote[] = [
     ),
     author: "Dr. Nayiga Joselyn Mirembe",
     role: "Co-founder, MedSync",
+    portraitSrc: "/founder-nayiga-joselyn-mirembe.jpeg",
+    portraitAlt: "Dr. Nayiga Joselyn Mirembe, MedSync co-founder.",
   },
 ];
 
@@ -123,6 +134,19 @@ export function FloatingQuote() {
                   : "pointer-events-none translate-y-1 opacity-0",
               )}
             >
+              {/* Portrait — small circular crop, scaled slightly to
+                  centre the face within the round mask. */}
+              <div className="border-border ring-background bg-muted relative size-16 overflow-hidden rounded-full border ring-4 sm:size-20">
+                <Image
+                  src={quote.portraitSrc}
+                  alt={quote.portraitAlt}
+                  fill
+                  sizes="80px"
+                  className="origin-top scale-[1.15] object-cover"
+                  priority={i === 0}
+                />
+              </div>
+
               <blockquote
                 className={cn(
                   "font-display text-foreground text-balance",
