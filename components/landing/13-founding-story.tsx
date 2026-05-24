@@ -125,6 +125,39 @@ const FOUNDERS: Founder[] = [
     pullQuote:
       "The future of global chronic disease management isn't just digital — it is entirely synchronized.",
   },
+  {
+    slug: "caroline-murizihiwe",
+    name: "Dr. Caroline Murizihiwe",
+    shortName: "Caroline",
+    title: "Co-founder, MedSync",
+    portraitSrc: "/founder-caroline-murizihiwe.jpg",
+    portraitAlt:
+      "Dr. Caroline Murizihiwe, MedSync co-founder, in a white coat with a stethoscope, holding a copy of Davidson's Principles and Practice of Medicine.",
+    headlineLead: "Far too many Ugandans presented late —",
+    headlineEnd: "after the damage had already happened.",
+    story: (
+      <>
+        <p>
+          As a young doctor who conceived this vision while still in medical school, I became
+          increasingly concerned by the growing burden of non-communicable diseases in Uganda
+          &mdash; particularly hypertension and diabetes, and the alarming rise in their
+          life-threatening complications: stroke, kidney failure, heart disease, blindness, and
+          amputations.
+        </p>
+        <p>
+          I witnessed far too many Ugandans present late to healthcare facilities, often after
+          preventable damage had already occurred due to delayed monitoring and follow-up care.
+        </p>
+        <p>
+          MedSync empowers patients to conveniently track their blood pressure and blood glucose,
+          while enabling healthcare professionals to monitor results in real time and intervene
+          early when necessary.
+        </p>
+      </>
+    ),
+    pullQuote:
+      "More than a technological innovation, this platform is a commitment to advancing preventive healthcare and protecting the health and future of Ugandans.",
+  },
 ];
 
 export function FoundingStory() {
@@ -165,14 +198,14 @@ export function FoundingStory() {
             className="font-display text-foreground max-w-[26ch] text-[34px] leading-[1.08] tracking-[-0.025em] text-balance sm:text-[48px]"
             style={{ fontWeight: 400 }}
           >
-            Two cofounders.{" "}
-            <span className="text-teal-700 italic dark:text-teal-300">Two patients</span> we
+            Three cofounders.{" "}
+            <span className="text-teal-700 italic dark:text-teal-300">The patients</span> we
             couldn&rsquo;t unsee.
           </h2>
           <p className="text-muted-foreground max-w-[60ch] text-[15px] leading-[1.55] sm:text-[16.5px]">
-            MedSync didn&rsquo;t start in a deck. It started in two ward encounters &mdash; one with
-            a notebook full of warnings nobody had read, one with a digital BP monitor full of
-            warnings nobody had ever opened.
+            MedSync didn&rsquo;t start in a deck. It started on the wards &mdash; notebooks full of
+            warnings nobody had read, digital monitors full of readings nobody had ever opened, and
+            patients arriving with preventable damage already done.
           </p>
         </header>
 
