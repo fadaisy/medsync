@@ -36,18 +36,27 @@ ALTER TABLE public.users
 -- Defence: if state isn't 'suspended' the trio should stay null. CHECK
 -- enforces the pairing so a bug can't write suspended_by without a
 -- matching state, or leave a stale suspended_by after re-activation.
-ALTER TABLE public.users
-  ADD CONSTRAINT users_suspension_pair CHECK (
-    (state = 'suspended'
-      AND suspended_by IS NOT NULL
-      AND suspended_at IS NOT NULL
-      AND suspension_reason IS NOT NULL)
-    OR
-    (state <> 'suspended'
-      AND suspended_by IS NULL
-      AND suspended_at IS NULL
-      AND suspension_reason IS NULL)
-  );
+-- Postgres has no ADD CONSTRAINT IF NOT EXISTS for CHECKs, so guard
+-- by name lookup in pg_constraint.
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'users_suspension_pair'
+  ) THEN
+    ALTER TABLE public.users
+      ADD CONSTRAINT users_suspension_pair CHECK (
+        (state = 'suspended'
+          AND suspended_by IS NOT NULL
+          AND suspended_at IS NOT NULL
+          AND suspension_reason IS NOT NULL)
+        OR
+        (state <> 'suspended'
+          AND suspended_by IS NULL
+          AND suspended_at IS NULL
+          AND suspension_reason IS NULL)
+      );
+  END IF;
+END$$;
 
 -- ─── sa_audit_log.action enum extension ─────────────────────────────────
 -- The CHECK in migration 0015 hard-codes the allowed action strings.
