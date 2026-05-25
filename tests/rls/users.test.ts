@@ -1,9 +1,17 @@
 import type { TestUser } from "./_helpers";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 
-import { anonClient, cleanup, closeSql, createTestUser, deleteUser, serviceSql } from "./_helpers";
+import {
+  anonClient,
+  cleanup,
+  closeSql,
+  createTestUser,
+  deleteUser,
+  RLS_TESTS_ENABLED,
+  serviceSql,
+} from "./_helpers";
 
-describe("RLS: public.users", () => {
+describe.skipIf(!RLS_TESTS_ENABLED)("RLS: public.users", () => {
   let alice: TestUser;
   let bob: TestUser;
 

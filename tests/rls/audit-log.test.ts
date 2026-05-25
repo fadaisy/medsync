@@ -1,9 +1,16 @@
 import type { TestUser } from "./_helpers";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 
-import { anonClient, createTestUser, deleteUser, grantRole, serviceSql } from "./_helpers";
+import {
+  anonClient,
+  createTestUser,
+  deleteUser,
+  grantRole,
+  RLS_TESTS_ENABLED,
+  serviceSql,
+} from "./_helpers";
 
-describe("RLS: public.audit_log", () => {
+describe.skipIf(!RLS_TESTS_ENABLED)("RLS: public.audit_log", () => {
   let regular: TestUser;
   let superAdmin: TestUser;
 

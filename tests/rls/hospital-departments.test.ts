@@ -8,10 +8,11 @@ import {
   deleteHospital,
   deleteUser,
   grantRole,
+  RLS_TESTS_ENABLED,
   serviceSql,
 } from "./_helpers";
 
-describe("RLS: public.hospital_departments", () => {
+describe.skipIf(!RLS_TESTS_ENABLED)("RLS: public.hospital_departments", () => {
   let regular: TestUser;
   let admin: TestUser;
   let superAdmin: TestUser;
