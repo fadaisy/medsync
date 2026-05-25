@@ -21,24 +21,51 @@ import { serviceClient } from "./auth.ts";
  * Never log this from app-server code paths; this table is gated to
  * service-role writes so app-side INSERT would fail on RLS anyway.
  */
+/**
+ * Allowed action / targetKind values — kept in sync with the
+ * sa_audit_log CHECK constraint (currently set by migration 0025).
+ * When you add a value here, ALSO add it to the migration; the union
+ * is here so typecheck catches typos before they hit the DB.
+ */
+export type SaAuditAction =
+  | "approve_staff_affiliation"
+  | "reject_staff_affiliation"
+  | "approve_hospital_application"
+  | "reject_hospital_application"
+  | "cross_tenant_read"
+  | "cross_tenant_export"
+  | "elevate_admin"
+  | "create_superadmin"
+  | "demote_admin"
+  | "break_glass_open"
+  | "break_glass_close"
+  | "four_eyes_request"
+  | "four_eyes_confirm"
+  | "four_eyes_cancel"
+  | "activate_hospital"
+  | "suspend_user"
+  | "reset_user_mfa"
+  | "deactivate_user"
+  | "reactivate_user"
+  | "export_audit_log"
+  | "sa_create_hospital"
+  | "sa_invite_hospital_admin"
+  | "hospital_admin_claimed";
+
+export type SaAuditTargetKind =
+  | "staff_affiliation"
+  | "hospital_application"
+  | "hospital"
+  | "user"
+  | "patient_profile"
+  | "break_glass_grant"
+  | "audit_log_export"
+  | "hospital_admin_invitation";
+
 export async function recordSaAudit(params: {
   actorId: string;
-  action:
-    | "approve_staff_affiliation"
-    | "reject_staff_affiliation"
-    | "approve_hospital_application"
-    | "reject_hospital_application"
-    | "cross_tenant_read"
-    | "cross_tenant_export"
-    | "elevate_admin"
-    | "create_superadmin"
-    | "demote_admin";
-  targetKind:
-    | "staff_affiliation"
-    | "hospital_application"
-    | "hospital"
-    | "user"
-    | "patient_profile";
+  action: SaAuditAction;
+  targetKind: SaAuditTargetKind;
   targetId: string;
   reason: string;
   requestId?: string;
