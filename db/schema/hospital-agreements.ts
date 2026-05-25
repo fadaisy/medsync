@@ -34,9 +34,12 @@ export const hospitalAgreements = pgTable(
       .notNull()
       .references(() => hospitalDpaVersions.id, { onDelete: "restrict" }),
     signedAt: timestamp("signed_at", { withTimezone: true }).notNull().defaultNow(),
-    signedByUserId: uuid("signed_by_user_id")
-      .notNull()
-      .references(() => authUsers.id, { onDelete: "restrict" }),
+    /** Nullable only for source='grandfathered' rows (migration 0024).
+     * applicant_flow + superadmin_offline always carry a user id; a
+     * CHECK constraint enforces this. */
+    signedByUserId: uuid("signed_by_user_id").references(() => authUsers.id, {
+      onDelete: "restrict",
+    }),
     signatoryName: text("signatory_name").notNull(),
     signatoryTitle: text("signatory_title").notNull(),
     source: text("source").notNull(),
@@ -50,7 +53,11 @@ export const hospitalAgreements = pgTable(
   (t) => [
     check(
       "hospital_agreements_source_check",
-      sql`${t.source} IN ('applicant_flow','superadmin_offline')`,
+      sql`${t.source} IN ('applicant_flow','superadmin_offline','grandfathered')`,
+    ),
+    check(
+      "hospital_agreements_signed_by_pair",
+      sql`${t.source} = 'grandfathered' OR ${t.signedByUserId} IS NOT NULL`,
     ),
     check(
       "hospital_agreements_superadmin_evidence",
