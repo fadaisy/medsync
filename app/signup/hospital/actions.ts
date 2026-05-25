@@ -532,6 +532,6 @@ export async function submitHospitalApplicationAction(
     domain_mismatch: domainMismatch,
   });
 
-  revalidatePath("/");
-  redirect("/?welcomed=hospital-pending");
+  revalidatePath("/onboarding/hospital-pending");
+  redirect("/onboarding/hospital-pending");
 }
