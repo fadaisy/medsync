@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { activateHospitalAction } from "../../tenants/actions";
+import { CreateHospitalButton } from "./create-hospital-button";
 
 /**
  * Tenants table — every hospital on the platform with its lifecycle
@@ -144,14 +145,17 @@ export function TenantsTable({ items }: TableProps) {
   return (
     <div className="flex flex-col">
       <header className="border-border border-b px-4 py-6 sm:px-8 sm:py-8">
-        <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-1">
-          <h1 className="font-display text-foreground text-[24px] leading-tight font-medium tracking-[-0.018em] sm:text-[28px]">
-            Tenants
-          </h1>
-          <p className="text-muted-foreground text-[13.5px]">
-            {items.length} hospital{items.length === 1 ? "" : "s"} on the platform. Suspend /
-            deactivate are four-eyes-class and currently deferred.
-          </p>
+        <div className="mx-auto flex w-full max-w-[1200px] items-start justify-between gap-4">
+          <div className="flex flex-col gap-1">
+            <h1 className="font-display text-foreground text-[24px] leading-tight font-medium tracking-[-0.018em] sm:text-[28px]">
+              Tenants
+            </h1>
+            <p className="text-muted-foreground text-[13.5px]">
+              {items.length} hospital{items.length === 1 ? "" : "s"} on the platform. Suspend /
+              deactivate are four-eyes-class and currently deferred.
+            </p>
+          </div>
+          <CreateHospitalButton />
         </div>
       </header>
 
