@@ -1,6 +1,6 @@
 # MedSync Edge Functions
 
-Supabase Edge Functions run on Deno, not Node. Imports use `https://esm.sh/...` or `https://deno.land/std/...`; they cannot see the Next-side `@/lib/...` modules.
+Supabase Edge Functions run on Deno, not Node. Imports use `npm:` specifiers (e.g. `npm:zod@4.4.3`, `npm:@supabase/supabase-js@2.106.1`) which the Edge runtime caches reliably. Avoid `https://esm.sh/...` URL imports — they re-fetch on cold start and cause intermittent `BOOT_ERROR` when the CDN hiccups. These functions cannot see the Next-side `@/lib/...` modules; share code via `_shared/`.
 
 ## Structure
 

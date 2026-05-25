@@ -21,7 +21,7 @@
  * polish item; for now the superadmin manually communicates the URL.
  */
 
-import { z } from "https://esm.sh/zod@4.4.3";
+import { z } from "npm:zod@4.4.3";
 
 import { getCaller, hasRole, serviceClient } from "../_shared/auth.ts";
 import { preflight } from "../_shared/cors.ts";

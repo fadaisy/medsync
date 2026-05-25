@@ -1,5 +1,5 @@
-import type { SupabaseClient, User } from "https://esm.sh/@supabase/supabase-js@2.106.1";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.106.1";
+import type { SupabaseClient, User } from "npm:@supabase/supabase-js@2.106.1";
+import { createClient } from "npm:@supabase/supabase-js@2.106.1";
 
 /**
  * Auth helpers for Edge Functions.

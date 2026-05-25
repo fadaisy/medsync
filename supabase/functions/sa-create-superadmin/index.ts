@@ -11,7 +11,7 @@
  * Refuses to elevate the caller (no self-elevation).
  */
 
-import { z } from "https://esm.sh/zod@4.4.3";
+import { z } from "npm:zod@4.4.3";
 
 import { getCaller, hasRole, serviceClient } from "../_shared/auth.ts";
 import { preflight } from "../_shared/cors.ts";

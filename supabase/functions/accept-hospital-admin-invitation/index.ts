@@ -30,7 +30,7 @@
  * this Edge Function is called directly so it must guard itself.
  */
 
-import { z } from "https://esm.sh/zod@4.4.3";
+import { z } from "npm:zod@4.4.3";
 
 import { getCaller, serviceClient } from "../_shared/auth.ts";
 import { preflight } from "../_shared/cors.ts";
