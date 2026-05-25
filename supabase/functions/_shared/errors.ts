@@ -45,6 +45,10 @@ export function conflict(message: string, init: ResponseInit): Response {
   return jsonResponse({ ok: false, error: { code: "conflict", message } }, 409, init);
 }
 
+export function notFound(init: ResponseInit, message = "Not found"): Response {
+  return jsonResponse({ ok: false, error: { code: "not_found", message } }, 404, init);
+}
+
 export function serverError(message: string, init: ResponseInit): Response {
   return jsonResponse({ ok: false, error: { code: "server_error", message } }, 500, init);
 }
