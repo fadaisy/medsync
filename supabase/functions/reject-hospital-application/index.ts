@@ -69,8 +69,17 @@ Deno.serve(async (request: Request) => {
     .eq("id", input.application_id)
     .single();
   if (fetchError || !app) return notFound(init, "application not found");
-  if (app.state !== "pending_approval") {
-    return badRequest("application is not pending approval", init);
+
+  // Mirrors approve-hospital-application: both pending_approval and
+  // under_review are valid starting states. under_review means a
+  // superadmin has begun review; rejecting from there is the same
+  // operator finalising their decision.
+  const ALLOWED_STARTING_STATES = new Set(["pending_approval", "under_review"]);
+  if (!ALLOWED_STARTING_STATES.has(app.state)) {
+    return badRequest(
+      `Application is in state '${app.state}'; must be pending_approval or under_review.`,
+      init,
+    );
   }
 
   const { ipAddress, userAgent } = networkContext(request);
