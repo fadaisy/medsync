@@ -1,23 +1,15 @@
 "use client";
 
 import type { ReviewState, SignedUrlState } from "../../actions";
-import type { ApprovalItem } from "./types";
+import type { ApprovalEvidence, ApprovalItem } from "./types";
 import { useActionState, useEffect, useState } from "react";
-import { CheckIcon, ExternalLinkIcon, XIcon } from "lucide-react";
+import { AlertTriangleIcon, CheckIcon, ExternalLinkIcon, FileTextIcon, XIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Pill } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Sheet,
-  SheetBody,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import { Sheet, SheetBody, SheetContent, SheetFooter, SheetHeader } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import {
   approveHospitalApplicationAction,
@@ -28,14 +20,22 @@ import {
 } from "../../actions";
 
 /**
- * Detail panel for an approval item. Right-anchored Sheet that
- * shows evidence and exposes Approve / Reject in the footer with
- * inline reason capture (≥ 8 chars enforced by the Server Action).
+ * Right-anchored case-file panel for an approval item.
  *
- * Pattern note: the Sheet wraps a content component that's keyed on
- * the item id. When the operator picks a different row, the content
- * fully remounts and local state (view/approve/reject mode) resets
- * naturally — no useEffect reset hooks, no stale form state.
+ * Layout:
+ *   - Hero: kind + status chips, big Fraunces name, supporting line,
+ *     compact meta strip (submitted relative + application id), with a
+ *     1px teal hairline accent — the recurring landing-page motif.
+ *   - Sections: numbered "01 / Institution" headers with a hairline rule.
+ *     Each evidence row is a label/value pair; tone-coded rows get a 2px
+ *     left bar so warnings/critical/ok read at a glance.
+ *   - Documents: per-doc cards with a file-type chip, label, and mono path.
+ *   - Footer: Approve / Reject flips to an inline reason form (≥ 8 chars,
+ *     enforced server-side).
+ *
+ * The Sheet wraps a content component keyed on item id so picking a
+ * different row fully remounts and resets local state (no useEffect
+ * reset hooks needed).
  */
 
 interface SheetProps {
@@ -48,7 +48,7 @@ type Mode = "view" | "approve" | "reject";
 export function ApprovalDetailSheet({ item, onOpenChange }: SheetProps) {
   return (
     <Sheet open={!!item} onOpenChange={onOpenChange}>
-      <SheetContent widthClassName="w-full sm:max-w-[560px]">
+      <SheetContent widthClassName="w-full sm:max-w-[600px]">
         {item ? (
           <ApprovalDetailContent
             key={`${item.kind}-${item.id}`}
@@ -63,39 +63,68 @@ export function ApprovalDetailSheet({ item, onOpenChange }: SheetProps) {
 
 function ApprovalDetailContent({ item, onClose }: { item: ApprovalItem; onClose: () => void }) {
   const [mode, setMode] = useState<Mode>("view");
+  const isHospital = item.kind === "hospital";
+  const flaggedSubtitle = item.subtitle.includes("⚠");
 
   return (
     <>
-      <SheetHeader>
-        <div className="flex items-center gap-2">
-          <Pill tone={item.kind === "hospital" ? "admitted" : "neutral"}>
-            {item.kind === "hospital" ? "Hospital application" : "Staff affiliation"}
-          </Pill>
-          <Pill tone="pending">Pending</Pill>
+      <SheetHeader className="gap-0 px-6 pt-6 pb-5">
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-2">
+            <Pill tone={isHospital ? "admitted" : "neutral"}>
+              {isHospital ? "Hospital application" : "Staff affiliation"}
+            </Pill>
+            <Pill tone="pending">Pending review</Pill>
+            {flaggedSubtitle ? (
+              <Pill tone="caution">
+                <AlertTriangleIcon className="mr-0.5 -ml-0.5 size-3" aria-hidden />
+                Flag
+              </Pill>
+            ) : null}
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <h2 className="font-display text-foreground text-[24px] leading-[1.15] font-medium tracking-[-0.015em]">
+              {item.title}
+            </h2>
+            <p className="text-muted-foreground text-[13px] leading-snug">{item.subtitle}</p>
+          </div>
+
+          {/* Hairline teal accent — the recurring motif from the landing surface. */}
+          <div className="h-px w-10 bg-teal-500/60 dark:bg-teal-400/50" aria-hidden />
+
+          <dl className="flex flex-wrap items-baseline gap-x-6 gap-y-1.5 text-[11.5px]">
+            <div className="flex items-baseline gap-1.5">
+              <dt className="text-muted-foreground font-mono text-[10px] tracking-[0.08em] uppercase">
+                Received
+              </dt>
+              <dd className="text-foreground font-mono tabular-nums">
+                {formatRelative(item.createdAtIso)}
+              </dd>
+            </div>
+            <div className="flex min-w-0 items-baseline gap-1.5">
+              <dt className="text-muted-foreground font-mono text-[10px] tracking-[0.08em] uppercase">
+                ID
+              </dt>
+              <dd className="text-muted-foreground truncate font-mono tabular-nums" title={item.id}>
+                {item.id.slice(0, 8)}…
+              </dd>
+            </div>
+          </dl>
         </div>
-        <SheetTitle>{item.title}</SheetTitle>
-        <SheetDescription>{item.subtitle}</SheetDescription>
       </SheetHeader>
 
-      <SheetBody>
+      <SheetBody className="px-0 py-0">
         <EvidenceGrouped evidence={item.evidence} />
 
         {item.documents && item.documents.length > 0 ? (
-          <section className="mt-8 flex flex-col gap-2">
-            <h3 className="text-muted-foreground font-mono text-[10.5px] font-semibold tracking-[0.14em] uppercase">
-              Documents
-            </h3>
-            <div className="flex flex-col gap-2">
+          <SectionBlock index={countSections(item.evidence) + 1} title="Documents">
+            <div className="flex flex-col gap-2.5">
               {item.documents.map((doc, i) => (
-                <div
-                  key={i}
-                  className="border-border rounded-md border bg-gray-50 p-3 dark:bg-gray-900/40"
-                >
-                  <EvidenceDocLink label={doc.label} bucket={doc.bucket} path={doc.path} />
-                </div>
+                <EvidenceDocCard key={i} label={doc.label} bucket={doc.bucket} path={doc.path} />
               ))}
             </div>
-          </section>
+          </SectionBlock>
         ) : null}
       </SheetBody>
 
@@ -143,9 +172,8 @@ function ReasonForm({
   const action = pickAction(item.kind, mode);
   const [state, formAction, pending] = useActionState<ReviewState, FormData>(action, {});
 
-  // onSuccess is a prop (parent callback), not direct local setState, so
-  // calling it from an effect is the canonical "react to async result"
-  // pattern with useActionState.
+  // onSuccess is a parent callback, so calling it from an effect is the
+  // canonical "react to async result" pattern with useActionState.
   useEffect(() => {
     if (state.ok) onSuccess();
   }, [state.ok, onSuccess]);
@@ -211,67 +239,129 @@ function pickAction(kind: ApprovalItem["kind"], mode: "approve" | "reject") {
 /* ────────────────────────────────────────────────────────────────── */
 
 /**
- * Renders the evidence rows grouped by their `section` field. Rows
- * with the same section land under a shared section header; rows
- * with no section are rendered ungrouped at the top.
+ * Renders the evidence rows grouped by their `section` field with
+ * numbered section headers. Rows without a section render in an
+ * "Overview" block at the top.
  */
-function EvidenceGrouped({
-  evidence,
-}: {
-  evidence: ReadonlyArray<ApprovalItem["evidence"][number]>;
-}) {
+function EvidenceGrouped({ evidence }: { evidence: ReadonlyArray<ApprovalEvidence> }) {
   const ungrouped = evidence.filter((e) => !e.section);
-  const grouped = new Map<string, typeof evidence>();
+  const sectionOrder: string[] = [];
+  const grouped = new Map<string, ApprovalEvidence[]>();
   for (const row of evidence) {
     if (!row.section) continue;
-    const list = (grouped.get(row.section) ?? []) as typeof evidence;
-    grouped.set(row.section, [...list, row]);
+    if (!grouped.has(row.section)) {
+      grouped.set(row.section, []);
+      sectionOrder.push(row.section);
+    }
+    grouped.get(row.section)!.push(row);
   }
 
+  let index = 0;
   return (
-    <div className="flex flex-col gap-6">
-      {ungrouped.length > 0 ? <EvidenceList rows={ungrouped} /> : null}
-      {Array.from(grouped.entries()).map(([section, rows]) => (
-        <section key={section} className="flex flex-col gap-2">
-          <h3 className="text-muted-foreground font-mono text-[10.5px] font-semibold tracking-[0.14em] uppercase">
-            {section}
-          </h3>
-          <EvidenceList rows={rows} />
-        </section>
+    <div className="flex flex-col">
+      {ungrouped.length > 0 ? (
+        <SectionBlock index={++index} title="Overview">
+          <EvidenceList rows={ungrouped} />
+        </SectionBlock>
+      ) : null}
+      {sectionOrder.map((name) => (
+        <SectionBlock key={name} index={++index} title={name}>
+          <EvidenceList rows={grouped.get(name)!} />
+        </SectionBlock>
       ))}
     </div>
   );
 }
 
-function EvidenceList({ rows }: { rows: ReadonlyArray<ApprovalItem["evidence"][number]> }) {
+function countSections(evidence: ReadonlyArray<ApprovalEvidence>): number {
+  const seen = new Set<string>();
+  let count = evidence.some((e) => !e.section) ? 1 : 0;
+  for (const row of evidence) {
+    if (row.section && !seen.has(row.section)) {
+      seen.add(row.section);
+      count++;
+    }
+  }
+  return count;
+}
+
+function SectionBlock({
+  index,
+  title,
+  children,
+}: {
+  index: number;
+  title: string;
+  children: React.ReactNode;
+}) {
   return (
-    <dl className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-[140px_1fr]">
+    <section className="border-border/70 flex flex-col gap-3 px-6 py-5 [&:not(:first-child)]:border-t">
+      <header className="flex items-baseline gap-3">
+        <span className="text-muted-foreground/70 font-mono text-[10px] tracking-[0.1em] tabular-nums">
+          {index.toString().padStart(2, "0")}
+        </span>
+        <h3 className="text-foreground text-[12.5px] font-medium tracking-[-0.005em]">{title}</h3>
+        <span
+          className="from-border/80 ml-2 h-px flex-1 bg-gradient-to-r to-transparent"
+          aria-hidden
+        />
+      </header>
+      {children}
+    </section>
+  );
+}
+
+function EvidenceList({ rows }: { rows: ReadonlyArray<ApprovalEvidence> }) {
+  return (
+    <dl className="flex flex-col">
       {rows.map((row, i) => (
-        <div key={i} className="sm:contents">
-          <dt className="text-muted-foreground text-[11.5px] font-medium">{row.label}</dt>
-          <dd
-            className={cn(
-              "text-foreground text-[13px] wrap-break-word",
-              row.mono && "font-mono tabular-nums",
-              row.tone === "warning" && "text-amber-700 dark:text-amber-300",
-              row.tone === "critical" && "text-red-700 dark:text-red-300",
-              row.tone === "ok" && "text-emerald-700 dark:text-emerald-300",
-            )}
-          >
-            {row.value}
-          </dd>
-        </div>
+        <EvidenceRow key={i} row={row} />
       ))}
     </dl>
   );
 }
 
+function EvidenceRow({ row }: { row: ApprovalEvidence }) {
+  // Tone treatment: 2px left bar via border-l so the row reads as
+  // "needs attention" without relying on text color alone.
+  const toneBorder =
+    row.tone === "critical"
+      ? "border-l-red-500/70 dark:border-l-red-400/60"
+      : row.tone === "warning"
+        ? "border-l-amber-500/70 dark:border-l-amber-400/60"
+        : row.tone === "ok"
+          ? "border-l-emerald-500/70 dark:border-l-emerald-400/60"
+          : "border-l-transparent";
+
+  return (
+    <div
+      className={cn(
+        "border-border/40 grid grid-cols-[140px_1fr] gap-x-5 border-l-2 py-2 pl-2.5 sm:py-1.5 [&:not(:first-child)]:border-t",
+        toneBorder,
+      )}
+    >
+      <dt className="text-muted-foreground self-baseline text-[11.5px] font-medium">{row.label}</dt>
+      <dd
+        className={cn(
+          "text-foreground self-baseline text-[13px] leading-relaxed wrap-break-word",
+          row.mono && "font-mono text-[12.5px] tabular-nums",
+          row.tone === "warning" && "text-amber-800 dark:text-amber-200",
+          row.tone === "critical" && "text-red-800 dark:text-red-200",
+          row.tone === "ok" && "text-emerald-800 dark:text-emerald-200",
+        )}
+      >
+        {row.value}
+      </dd>
+    </div>
+  );
+}
+
 /**
- * Evidence document opener — lazily requests a short-lived signed
- * URL when the operator clicks "Open" so the link never appears in
- * the initial server-rendered HTML.
+ * Per-document card. Lazily fetches a short-lived signed URL on click
+ * so the link never appears in server-rendered HTML. The file-type chip
+ * is inferred from the path extension; falls back to "DOC".
  */
-function EvidenceDocLink({
+function EvidenceDocCard({
   label,
   bucket,
   path,
@@ -291,22 +381,65 @@ function EvidenceDocLink({
     }
   }, [state]);
 
+  const ext = path.split(".").pop()?.toUpperCase() ?? "";
+  const kind =
+    ext === "PDF" ? "PDF" : ext === "JPG" || ext === "JPEG" || ext === "PNG" ? "IMG" : "DOC";
+
   return (
-    <form action={formAction} className="flex items-center justify-between gap-3">
+    <form
+      action={formAction}
+      className="border-border bg-card hover:border-border/80 hover:bg-muted/30 group flex items-center gap-3 rounded-md border p-3 transition-colors"
+    >
       <input type="hidden" name="bucket" value={bucket} />
       <input type="hidden" name="path" value={path} />
-      <div className="flex min-w-0 flex-col">
-        <span className="text-foreground text-[12.5px] font-medium">
-          {label ?? "Supporting document"}
-        </span>
-        <span className="text-muted-foreground truncate font-mono text-[10.5px]">
+
+      <div className="flex size-9 shrink-0 items-center justify-center rounded bg-teal-50 text-teal-700 ring-1 ring-teal-200/70 dark:bg-teal-950/40 dark:text-teal-300 dark:ring-teal-800/40">
+        <FileTextIcon className="size-4" aria-hidden />
+      </div>
+
+      <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex items-center gap-2">
+          <span className="text-foreground truncate text-[13px] font-medium">
+            {label ?? "Supporting document"}
+          </span>
+          <span className="text-muted-foreground bg-muted shrink-0 rounded px-1.5 py-px font-mono text-[9.5px] tracking-wide tabular-nums">
+            {kind}
+          </span>
+        </div>
+        <span
+          className="text-muted-foreground truncate font-mono text-[10.5px] leading-tight"
+          title={`${bucket} · ${path}`}
+        >
           {bucket} · {path}
         </span>
       </div>
+
       <Button type="submit" variant="secondary" size="sm" disabled={pending}>
         <ExternalLinkIcon className="size-3" />
         {pending ? "Opening…" : "Open"}
       </Button>
     </form>
   );
+}
+
+/* ────────────────────────────────────────────────────────────────── */
+
+function formatRelative(iso: string): string {
+  const then = new Date(iso).getTime();
+  const now = Date.now();
+  const diffMs = now - then;
+  const min = Math.round(diffMs / 60_000);
+  if (min < 1) return "just now";
+  if (min < 60) return `${min} min ago`;
+  const hr = Math.round(min / 60);
+  if (hr < 24) return `${hr} hr ago`;
+  const day = Math.round(hr / 24);
+  if (day < 14) return `${day} day${day === 1 ? "" : "s"} ago`;
+  const wk = Math.round(day / 7);
+  if (wk < 8) return `${wk} wk ago`;
+  return new Date(iso).toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 }
