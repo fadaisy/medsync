@@ -11,7 +11,7 @@
  * sa-deactivate-superadmin, four-eyes-class, currently deferred).
  */
 
-import { z } from "https://esm.sh/zod@4.4.3";
+import { z } from "npm:zod@4.4.3";
 
 import { getCaller, hasRole, serviceClient } from "../_shared/auth.ts";
 import { preflight } from "../_shared/cors.ts";
