@@ -1,5 +1,6 @@
 "use client";
 
+import type { ImSpecialty } from "./_im-subspecialty-picker";
 import type {
   HospitalApplicationErrors,
   HospitalApplicationState,
@@ -11,6 +12,7 @@ import { useActionState } from "react";
 
 import {
   CascadingCombobox,
+  Checkbox,
   Combobox,
   ConsentCheckbox,
   Field,
@@ -23,32 +25,60 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import {
+  APPLICANT_ROLE_CHOICES,
+  AUTHORITY_TITLE_CHOICES,
+  BED_CAPACITY_BANDS,
+  CALLBACK_KIND_CHOICES,
+  CONNECTIVITY_CHOICES,
+  DEPARTMENT_GROUPS,
+  DIAGNOSTIC_CHOICES,
+  EMR_CHOICES,
+  LICENSING_BODY_CHOICES,
+  OPD_BANDS,
+  POWER_CHOICES,
+  SERVICE_OFFERED_CHOICES,
+  SIGNATORY_TITLE_CHOICES,
+  SPECIALISED_CLINIC_CHOICES,
+  STAFF_BANDS,
+  SUPPORT_SERVICE_CHOICES,
+} from "./_catalog";
+import { ImSubspecialtyPicker } from "./_im-subspecialty-picker";
 
 /**
- * GATE E — hospital application form (Client Component).
+ * Hospital application form — upgraded for the registration-upgrade
+ * spec (kickoff §B–§E, GATE B). Seven steps matching the kickoff
+ * section structure:
  *
- * Five steps:
- *   1. Facility — name, level, ownership, district → subcounty,
- *      registration number + authority, physical address,
- *      institutional email domain
- *   2. Authorisation document upload
- *   3. Applicant identity (full name, role at facility, phone)
- *   4. Account credentials
- *   5. Consent + submit
+ *   1. Institution        (§B)
+ *   2. Departments        (§C; nested IM sub-specialties revealed when
+ *                          Internal Medicine is ticked)
+ *   3. Clinical services  (§D part 1 — clinics + diagnostics + support)
+ *   4. Operating profile  (§D part 2 — bands + connectivity + EMR)
+ *   5. Verification       (§E6 — licence, applicant, authority, callback)
+ *   6. Agreement          (§E7 — DPA, signatory, toggles)
+ *   7. Account + consent  (applicant credentials + personal consent)
  *
- * Once submitted, the applicant lands at `pending_approval` and the
- * application is in `pending_approval`. A superadmin review (GATE F
- * Edge Function `approve-hospital-application`) creates the
- * public.hospitals row, sets approved_hospital_id, and elevates the
- * applicant to hospital_admin scoped to the new hospital.
+ * After submit the applicant lands at `state='pending_approval'` and
+ * the application enters `pending_approval`. Superadmin review (GATE
+ * C of the upgrade — extended Edge Functions) advances through
+ * `under_review → verified → agreement_signed → provisioning → active`.
  */
 export interface HospitalApplicationFormProps {
   districts: ReadonlyArray<ComboboxItem>;
+  regions: ReadonlyArray<ComboboxItem>;
+  imSubspecialties: ReadonlyArray<ImSpecialty>;
+  dpa: {
+    id: string;
+    version: string;
+    bodySha256: string;
+    body: string;
+    isPlaceholder: boolean;
+  };
   consent: {
     version: string;
     bodySha256: string;
     body: string;
-    effectiveDate: string;
   };
   loadSubcounties: typeof loadSubcountiesForDistrictActionHospital;
   submit: typeof submitHospitalApplicationAction;
@@ -69,31 +99,45 @@ const OWNERSHIP_OPTIONS = [
   {
     value: "public_moh",
     caption: "Government",
-    label: "Public — Ministry of Health",
-    description: "Government-owned facility under MoH.",
+    label: "Public — MoH",
+    description: "Government-owned.",
   },
   {
     value: "private",
     caption: "Private",
     label: "Private for-profit",
-    description: "Privately-owned, fee-for-service.",
+    description: "Fee-for-service.",
   },
   {
     value: "pnfp",
     caption: "PNFP",
     label: "Private not-for-profit",
-    description: "Faith-based or community-owned, mission-led.",
+    description: "Faith / mission-led.",
   },
   {
     value: "private_clinic",
     caption: "Clinic",
     label: "Private clinic",
-    description: "Solo / small group practice.",
+    description: "Solo / small group.",
   },
 ];
 
+const PHARMACY_SEGMENTS = [
+  { value: "yes", label: "Yes" },
+  { value: "no", label: "No" },
+];
+
+function asComboItems<T extends { code: string; label: string }>(
+  list: ReadonlyArray<T>,
+): ComboboxItem[] {
+  return list.map((c) => ({ value: c.code, label: c.label }));
+}
+
 export function HospitalApplicationForm({
   districts,
+  regions,
+  imSubspecialties,
+  dpa,
   consent,
   loadSubcounties,
   submit,
@@ -103,30 +147,27 @@ export function HospitalApplicationForm({
     {},
   );
   const errors: HospitalApplicationErrors = state.errors ?? {};
-  // state.values is intentionally not consumed here — user input
-  // persists across action error re-renders via native DOM state
-  // (uncontrolled inputs) and base-ui internal state (Comboboxes,
-  // RadioCards). Re-seeding from state.values would cause base-ui
-  // controlled/uncontrolled flips.
 
   const steps: MultiStepStep[] = [
+    /* ─── Step 1 — Institution (§B) ────────────────────────────── */
     {
-      key: "facility",
-      label: "Facility",
+      key: "institution",
+      label: "Institution",
       heading: "About the hospital",
-      intro:
-        "Tell us about the facility you're applying on behalf of. We'll cross-check the registration number with the MoH facility list before approval.",
+      intro: "We'll cross-check this against the MoH facility list during verification.",
       render: () => (
         <>
           <Field
             name="hospital_name"
-            label="Hospital name"
+            label="Official hospital name"
             required
             serverError={errors.hospital_name}
           >
             <Input name="hospital_name" aria-invalid={!!errors.hospital_name || undefined} />
           </Field>
-
+          <Field name="hospital_aka" label="Also known as (optional)">
+            <Input name="hospital_aka" />
+          </Field>
           <Field
             name="facility_level"
             label="Facility level"
@@ -140,7 +181,6 @@ export function HospitalApplicationForm({
               placeholder="Pick the MoH level"
             />
           </Field>
-
           <Field name="ownership" label="Ownership model" required serverError={errors.ownership}>
             <RadioCards
               name="ownership"
@@ -149,7 +189,32 @@ export function HospitalApplicationForm({
               invalid={!!errors.ownership}
             />
           </Field>
-
+          <Field
+            name="year_established"
+            label="Year established (optional)"
+            description="Year between 1900 and now."
+            serverError={errors.year_established}
+          >
+            <Input
+              name="year_established"
+              type="number"
+              min={1900}
+              max={new Date().getFullYear()}
+              inputMode="numeric"
+            />
+          </Field>
+          <Field
+            name="region_id"
+            label="Region (optional)"
+            description="Auto-fills from district where possible."
+          >
+            <Combobox
+              name="region_id"
+              items={regions}
+              invalid={!!errors.region_id}
+              placeholder="Pick the region"
+            />
+          </Field>
           <CascadingCombobox
             parentName="district_id"
             parentLabel="District"
@@ -162,21 +227,237 @@ export function HospitalApplicationForm({
             childInvalid={!!errors.subcounty_id}
             loadChildren={loadSubcounties}
           />
-
           <Field
             name="physical_address"
             label="Physical address"
-            description="Street / plot / village as it appears on registration documents."
             required
             serverError={errors.physical_address}
           >
             <Input name="physical_address" aria-invalid={!!errors.physical_address || undefined} />
           </Field>
+          <Field name="main_phone" label="Main phone" required serverError={errors.main_phone}>
+            <PhoneInput name="main_phone" invalid={!!errors.main_phone} />
+          </Field>
+          <Field
+            name="official_email"
+            label="Official email"
+            required
+            serverError={errors.official_email}
+          >
+            <Input
+              name="official_email"
+              type="email"
+              autoComplete="off"
+              aria-invalid={!!errors.official_email || undefined}
+            />
+          </Field>
+          <Field name="website" label="Website (optional)" serverError={errors.website}>
+            <Input name="website" type="url" placeholder="https://" />
+          </Field>
+        </>
+      ),
+    },
+
+    /* ─── Step 2 — Departments (§C) ────────────────────────────── */
+    {
+      key: "departments",
+      label: "Departments",
+      heading: "Clinical departments",
+      intro: "Tick the departments you actively run. Pick the one to launch MedSync in first.",
+      render: () => (
+        <>
+          {DEPARTMENT_GROUPS.map((group) => (
+            <fieldset key={group.groupLabel} className="border-border rounded-md border p-3">
+              <legend className="text-foreground px-1 text-[12px] font-medium">
+                {group.groupLabel}
+              </legend>
+              <div className="grid grid-cols-1 gap-1.5 pt-1 sm:grid-cols-2">
+                {group.items.map((d) => (
+                  <Checkbox key={d.code} name="departments" value={d.code} label={d.label} />
+                ))}
+              </div>
+              {group.nested === "im_subspecialties" ? (
+                <ImSubspecialtyPicker
+                  specialties={imSubspecialties}
+                  internalMedicineCheckboxName="departments"
+                />
+              ) : null}
+            </fieldset>
+          ))}
+          {errors.departments ? (
+            <p role="alert" className="text-[12px] text-red-700 dark:text-red-300">
+              {errors.departments}
+            </p>
+          ) : null}
 
           <Field
+            name="primary_department"
+            label="Primary department for MedSync rollout"
+            description="The first deployable slice."
+            required
+            serverError={errors.primary_department}
+          >
+            <Combobox
+              name="primary_department"
+              items={DEPARTMENT_GROUPS.flatMap((g) =>
+                g.items.map((i) => ({ value: i.code, label: i.label })),
+              )}
+              invalid={!!errors.primary_department}
+              placeholder="Pick one of your ticked departments"
+            />
+          </Field>
+        </>
+      ),
+    },
+
+    /* ─── Step 3 — Clinical services (§D part 1) ────────────────── */
+    {
+      key: "clinical",
+      label: "Clinical services",
+      heading: "Specialised clinics & diagnostics",
+      intro: "Selection only — these become the basis for clinic / lab modules later.",
+      render: () => (
+        <>
+          <fieldset className="border-border rounded-md border p-3">
+            <legend className="text-foreground px-1 text-[12px] font-medium">
+              Specialised clinics / programs
+            </legend>
+            <div className="grid grid-cols-1 gap-1.5 pt-1 sm:grid-cols-2">
+              {SPECIALISED_CLINIC_CHOICES.map((c) => (
+                <Checkbox key={c.code} name="specialised_clinics" value={c.code} label={c.label} />
+              ))}
+            </div>
+          </fieldset>
+
+          <fieldset className="border-border rounded-md border p-3">
+            <legend className="text-foreground px-1 text-[12px] font-medium">
+              Diagnostic services
+            </legend>
+            <div className="grid grid-cols-1 gap-1.5 pt-1 sm:grid-cols-2">
+              {DIAGNOSTIC_CHOICES.map((c) => (
+                <Checkbox key={c.code} name="diagnostic_services" value={c.code} label={c.label} />
+              ))}
+            </div>
+          </fieldset>
+
+          <fieldset className="border-border rounded-md border p-3">
+            <legend className="text-foreground px-1 text-[12px] font-medium">
+              Support services
+            </legend>
+            <div className="grid grid-cols-1 gap-1.5 pt-1 sm:grid-cols-2">
+              {SUPPORT_SERVICE_CHOICES.map((c) => (
+                <Checkbox key={c.code} name="support_services" value={c.code} label={c.label} />
+              ))}
+            </div>
+          </fieldset>
+
+          <Field
+            name="has_onsite_pharmacy"
+            label="On-site pharmacy?"
+            required
+            serverError={errors.has_onsite_pharmacy}
+          >
+            <SegmentedControl
+              name="has_onsite_pharmacy"
+              ariaLabel="On-site pharmacy"
+              options={PHARMACY_SEGMENTS}
+              invalid={!!errors.has_onsite_pharmacy}
+            />
+          </Field>
+        </>
+      ),
+    },
+
+    /* ─── Step 4 — Operating profile (§D part 2) ────────────────── */
+    {
+      key: "operating",
+      label: "Operating",
+      heading: "Operating profile",
+      intro: "Capacity bands + infrastructure — drives offline-first / SMS configuration later.",
+      render: () => (
+        <>
+          <fieldset className="border-border rounded-md border p-3">
+            <legend className="text-foreground px-1 text-[12px] font-medium">
+              Services offered
+            </legend>
+            <div className="grid grid-cols-1 gap-1.5 pt-1 sm:grid-cols-2">
+              {SERVICE_OFFERED_CHOICES.map((c) => (
+                <Checkbox key={c.code} name="services_offered" value={c.code} label={c.label} />
+              ))}
+            </div>
+          </fieldset>
+
+          <Field name="bed_capacity_band" label="Bed capacity">
+            <Combobox
+              name="bed_capacity_band"
+              items={asComboItems(BED_CAPACITY_BANDS)}
+              placeholder="Pick a range"
+            />
+          </Field>
+          <Field name="clinical_staff_band" label="Clinical staff count">
+            <Combobox
+              name="clinical_staff_band"
+              items={asComboItems(STAFF_BANDS)}
+              placeholder="Pick a range"
+            />
+          </Field>
+          <Field name="daily_opd_band" label="Daily OPD volume">
+            <Combobox
+              name="daily_opd_band"
+              items={asComboItems(OPD_BANDS)}
+              placeholder="Pick a range"
+            />
+          </Field>
+          <Field
+            name="internet_connectivity"
+            label="Internet connectivity"
+            required
+            serverError={errors.internet_connectivity}
+          >
+            <SegmentedControl
+              name="internet_connectivity"
+              ariaLabel="Internet connectivity"
+              options={CONNECTIVITY_CHOICES.map((c) => ({ value: c.code, label: c.label }))}
+              invalid={!!errors.internet_connectivity}
+            />
+          </Field>
+          <Field name="power_backup" label="Power / backup">
+            <SegmentedControl
+              name="power_backup"
+              ariaLabel="Power / backup"
+              options={POWER_CHOICES.map((c) => ({ value: c.code, label: c.label }))}
+            />
+          </Field>
+          <Field name="existing_emr" label="Existing EMR">
+            <Combobox
+              name="existing_emr"
+              items={asComboItems(EMR_CHOICES)}
+              placeholder="None / Paper / Existing"
+            />
+          </Field>
+          <Field
+            name="existing_emr_name"
+            label="Existing EMR name (if Existing)"
+            description="Skip if you don't run an EMR today."
+          >
+            <Input name="existing_emr_name" />
+          </Field>
+        </>
+      ),
+    },
+
+    /* ─── Step 5 — Verification & authority (§E6) ────────────────── */
+    {
+      key: "verification",
+      label: "Verification",
+      heading: "Verification & authority",
+      intro:
+        "This is the trust anchor — superadmin uses the callback contact to confirm you have authority to apply.",
+      render: () => (
+        <>
+          <Field
             name="registration_number"
-            label="Registration / licence number"
-            description="As issued by the MoH facility registry or relevant council."
+            label="Facility licence / registration number"
             required
             serverError={errors.registration_number}
           >
@@ -185,123 +466,243 @@ export function HospitalApplicationForm({
               aria-invalid={!!errors.registration_number || undefined}
             />
           </Field>
-
-          <Field
-            name="registration_authority"
-            label="Issuing authority (optional)"
-            description="e.g. MoH Facility List, UMDPC."
-          >
-            <Input name="registration_authority" />
+          <Field name="registration_authority" label="Issuing authority (optional, free text)">
+            <Input name="registration_authority" placeholder="e.g. MoH Facility List, UMDPC" />
           </Field>
-
+          <Field
+            name="licensing_body"
+            label="Licensing body"
+            required
+            serverError={errors.licensing_body}
+          >
+            <Combobox
+              name="licensing_body"
+              items={asComboItems(LICENSING_BODY_CHOICES)}
+              invalid={!!errors.licensing_body}
+            />
+          </Field>
+          <Field
+            name="facility_licence_document"
+            label="Facility licence document"
+            description="PDF / JPG / PNG, ≤ 5 MB. Stored privately."
+            required
+          >
+            <FileUpload
+              name="facility_licence_document"
+              accept="application/pdf,image/jpeg,image/png"
+              maxMb={5}
+              capture="environment"
+              hint="Licence / registration certificate"
+            />
+          </Field>
           <Field
             name="institutional_email_domain"
             label="Institutional email domain"
-            description="e.g. mulago.go.ug. We use this as a verification signal."
+            description="e.g. mulago.go.ug — your work email below must match this."
             required
             serverError={errors.institutional_email_domain}
           >
-            <Input
-              name="institutional_email_domain"
-              autoComplete="off"
-              placeholder="mulago.go.ug"
-              aria-invalid={!!errors.institutional_email_domain || undefined}
-            />
+            <Input name="institutional_email_domain" placeholder="mulago.go.ug" />
           </Field>
-        </>
-      ),
-    },
-    {
-      key: "document",
-      label: "Authorisation",
-      heading: "Upload your authorisation",
-      intro:
-        "A signed letter or registration certificate from the facility leadership authorising you to apply on their behalf. Stored privately; only superadmin reviewers see it.",
-      render: () => (
-        <Field
-          name="authorisation_document"
-          label="Authorisation document"
-          description="PDF, JPG or PNG. ≤ 5 MB."
-        >
-          <FileUpload
-            name="authorisation_document"
-            accept="application/pdf,image/jpeg,image/png"
-            maxMb={5}
-            capture="environment"
-            hint="Letter of authorisation, registration certificate, etc."
-          />
-        </Field>
-      ),
-    },
-    {
-      key: "applicant",
-      label: "You",
-      heading: "About you",
-      intro:
-        "You'll be the primary contact and the first hospital admin for this facility on MedSync.",
-      render: () => (
-        <>
+
+          <hr className="border-border my-2" />
+          <p className="text-muted-foreground text-[12px]">About you (the applicant):</p>
+
           <Field
             name="applicant_full_name"
-            label="Your name"
+            label="Your full name"
             required
             serverError={errors.applicant_full_name}
           >
-            <Input
-              name="applicant_full_name"
-              autoComplete="name"
-              aria-invalid={!!errors.applicant_full_name || undefined}
-            />
+            <Input name="applicant_full_name" autoComplete="name" />
           </Field>
-
           <Field
             name="applicant_role"
-            label="Your role at the facility"
-            description="e.g. Hospital Director, Administrator, IT Lead."
+            label="Your role / title"
             required
             serverError={errors.applicant_role}
           >
-            <Input name="applicant_role" aria-invalid={!!errors.applicant_role || undefined} />
+            <Combobox
+              name="applicant_role"
+              items={asComboItems(APPLICANT_ROLE_CHOICES)}
+              invalid={!!errors.applicant_role}
+              placeholder="Pick your role"
+            />
+          </Field>
+          <Field
+            name="applicant_work_email"
+            label="Your work email"
+            description="Must use the institutional domain above (mismatch is flagged for stricter review, never silently rejected)."
+            required
+            serverError={errors.applicant_work_email}
+          >
+            <Input name="applicant_work_email" type="email" autoComplete="email" />
+          </Field>
+          <Field
+            name="applicant_phone"
+            label="Your phone"
+            required
+            serverError={errors.applicant_phone}
+          >
+            <PhoneInput name="applicant_phone" invalid={!!errors.applicant_phone} />
+          </Field>
+          <Field
+            name="applicant_council_number"
+            label="Professional council number (optional, adds weight)"
+            description="UMDPC / nursing / pharmacy council, etc."
+          >
+            <Input name="applicant_council_number" />
           </Field>
 
+          <hr className="border-border my-2" />
+          <p className="text-muted-foreground text-[12px]">
+            Independent callback contact — a senior officer (NOT you) who can confirm your authority
+            by phone or email.
+          </p>
+
           <Field
-            name="applicant_phone_e164"
-            label="Mobile phone"
+            name="authority_officer_name"
+            label="Senior officer's name"
             required
-            serverError={errors.applicant_phone_e164}
+            serverError={errors.authority_officer_name}
           >
-            <PhoneInput
-              name="applicant_phone_e164"
-              invalid={!!errors.applicant_phone_e164}
-              mobileOnly
+            <Input name="authority_officer_name" />
+          </Field>
+          <Field
+            name="authority_officer_title"
+            label="Senior officer's title"
+            required
+            serverError={errors.authority_officer_title}
+          >
+            <Combobox
+              name="authority_officer_title"
+              items={asComboItems(AUTHORITY_TITLE_CHOICES)}
+              invalid={!!errors.authority_officer_title}
             />
+          </Field>
+          <Field
+            name="authority_letter_document"
+            label="Signed authorisation letter"
+            description="On letterhead, naming you as the authorised applicant. PDF / JPG / PNG, ≤ 5 MB."
+            required
+          >
+            <FileUpload
+              name="authority_letter_document"
+              accept="application/pdf,image/jpeg,image/png"
+              maxMb={5}
+              capture="environment"
+              hint="Letter on letterhead"
+            />
+          </Field>
+          <Field
+            name="callback_contact_kind"
+            label="Callback channel"
+            required
+            serverError={errors.callback_contact_kind}
+          >
+            <SegmentedControl
+              name="callback_contact_kind"
+              ariaLabel="Callback channel"
+              options={CALLBACK_KIND_CHOICES.map((c) => ({ value: c.code, label: c.label }))}
+              invalid={!!errors.callback_contact_kind}
+            />
+          </Field>
+          <Field
+            name="callback_contact_value"
+            label="Callback contact"
+            description="Phone (Ugandan E.164) or email — the officer's, not yours. Encrypted at rest."
+            required
+            serverError={errors.callback_contact_value}
+          >
+            <Input name="callback_contact_value" />
           </Field>
         </>
       ),
     },
+
+    /* ─── Step 6 — Agreement (§E7) ──────────────────────────────── */
     {
-      key: "account",
-      label: "Account & consent",
-      heading: "Create your account",
+      key: "agreement",
+      label: "Agreement",
+      heading: "Data-Processing Agreement",
       intro:
-        "You'll review your hospital's invite link and onboard your first clinicians once approved.",
+        "An authorised signatory accepts on behalf of the institution. Acceptance is recorded with the SHA-256 of the exact text shown.",
       render: () => (
         <>
+          {dpa.isPlaceholder ? (
+            <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2.5 text-[12.5px] text-amber-900 dark:border-amber-800/60 dark:bg-amber-950/40 dark:text-amber-200">
+              ⚠ This is a placeholder DPA pending Ugandan-counsel review. Acceptance is recorded;
+              hospitals on the placeholder will be re-prompted when the approved version lands.
+            </div>
+          ) : null}
+
+          <article className="border-border bg-card max-h-[40svh] overflow-y-auto rounded-md border p-4 text-[12.5px] leading-relaxed whitespace-pre-wrap">
+            {dpa.body}
+          </article>
+          <p className="text-muted-foreground font-mono text-[10px]">
+            Version: {dpa.version} · SHA-256 (first 12): {dpa.bodySha256.slice(0, 12)}…
+          </p>
+          <input type="hidden" name="agreement_version_id" value={dpa.id} />
+          <input type="hidden" name="agreement_body_sha256" value={dpa.bodySha256} />
+
           <Field
-            name="applicant_email"
-            label="Email"
-            description="Ideally on your institutional domain."
+            name="signatory_name"
+            label="Authorised signatory — full name"
             required
-            serverError={errors.applicant_email}
+            serverError={errors.signatory_name}
           >
-            <Input
-              type="email"
-              name="applicant_email"
-              autoComplete="email"
-              aria-invalid={!!errors.applicant_email || undefined}
+            <Input name="signatory_name" />
+          </Field>
+          <Field
+            name="signatory_title"
+            label="Signatory title"
+            required
+            serverError={errors.signatory_title}
+          >
+            <Combobox
+              name="signatory_title"
+              items={asComboItems(SIGNATORY_TITLE_CHOICES)}
+              invalid={!!errors.signatory_title}
             />
           </Field>
+          <Checkbox
+            name="authorised_to_bind"
+            label="I am authorised to bind this institution to this agreement."
+            required
+            invalid={!!errors.authorised_to_bind}
+          />
+          {errors.authorised_to_bind ? (
+            <p role="alert" className="text-[12px] text-red-700 dark:text-red-300">
+              {errors.authorised_to_bind}
+            </p>
+          ) : null}
+          <Checkbox
+            name="accept_agreement"
+            label="I accept the Data-Processing Agreement above."
+            required
+            invalid={!!errors.accept_agreement}
+          />
+          {errors.accept_agreement ? (
+            <p role="alert" className="text-[12px] text-red-700 dark:text-red-300">
+              {errors.accept_agreement}
+            </p>
+          ) : null}
+        </>
+      ),
+    },
 
+    /* ─── Step 7 — Account + consent ────────────────────────────── */
+    {
+      key: "account",
+      label: "Account",
+      heading: "Create your account",
+      intro:
+        "Your account becomes the first hospital admin after approval. The work email + password sign you in.",
+      render: () => (
+        <>
+          <p className="text-muted-foreground text-[12px]">
+            We&apos;ll create the account with the work email you entered on the Verification step.
+          </p>
           <Field
             name="applicant_password"
             label="Password"
@@ -310,33 +711,25 @@ export function HospitalApplicationForm({
             serverError={errors.applicant_password}
           >
             <Input
-              type="password"
               name="applicant_password"
+              type="password"
               autoComplete="new-password"
               minLength={12}
-              maxLength={72}
-              aria-invalid={!!errors.applicant_password || undefined}
             />
           </Field>
 
-          <details className="border-border bg-card rounded-md border p-4 text-[12.5px]">
-            <summary className="text-foreground cursor-pointer font-medium">
-              Read the consent text (v{consent.version}, effective {consent.effectiveDate})
-            </summary>
-            <p className="text-muted-foreground mt-3 leading-snug whitespace-pre-line">
-              {consent.body}
-            </p>
-          </details>
-
           <ConsentCheckbox
             name="data_processing_consent"
-            required
-            invalid={!!errors.data_processing_consent}
+            label="I consent to MedSync processing my personal data as described in the privacy notice."
             version={consent.version}
             bodySha256={consent.bodySha256}
-            label="I agree to MedSync's data-processing notice"
-            description={`v${consent.version} · effective ${consent.effectiveDate}.`}
+            invalid={!!errors.data_processing_consent}
           />
+          {errors.data_processing_consent ? (
+            <p role="alert" className="text-[12px] text-red-700 dark:text-red-300">
+              {errors.data_processing_consent}
+            </p>
+          ) : null}
 
           {errors._form ? (
             <p
@@ -348,7 +741,7 @@ export function HospitalApplicationForm({
           ) : null}
 
           <Button type="submit" variant="primary" size="lg" disabled={isPending}>
-            {isPending ? "Submitting for review…" : "Submit application"}
+            {isPending ? "Submitting application…" : "Submit application"}
           </Button>
         </>
       ),
@@ -361,15 +754,7 @@ export function HospitalApplicationForm({
       className={cn("mx-auto flex w-full max-w-3xl flex-col gap-7 px-5 py-12 sm:px-8 sm:py-16")}
       noValidate
     >
-      {/* React Server Actions automatically set the multipart encoding
-       * when the form contains a file input. Setting encType manually
-       * here was conflicting with React's wire format and the action
-       * received an empty FormData. */}
       <MultiStepForm flowLabel="Hospital application" steps={steps} />
     </form>
   );
 }
-
-/* SegmentedControl unused for now — kept imported so the field
- * primitive set is visible if reviewers swap representations. */
-void SegmentedControl;

@@ -2,29 +2,32 @@
  * Lifecycle state machine — applies to users, staff_affiliations,
  * and hospital_applications.
  *
- * Per the onboarding kickoff section C:
+ * Original (onboarding GATE A):
  *
  *   unverified → (contact verified) → verified
  *   verified → patients: active
  *            → staff/hospital: pending_approval → approved → active
+ *   side states: rejected · suspended · deactivated
  *
- *   side states: rejected · suspended · deactivated (terminal-ish)
+ * Hospital-registration-upgrade extension (this iteration):
  *
- * Rules enforced by `canTransition`:
- *   - no clinical access before `active`
- *   - clinical / admin require MFA enrolled before `active` (the MFA
- *     gate is enforced at the proxy / Edge Function layer, not here)
- *   - rejection captures a reason (caller responsibility)
- *   - for staff the state lives on the affiliation row — a user can
- *     hold one `active` and one `pending_approval` simultaneously
+ *   hospital_applications now goes through a richer machine:
+ *     pending_approval (alias 'applied') → under_review → verified
+ *       → agreement_signed → provisioning → active
  *
- * This module is pure TS — no DB writes. The matching Postgres ENUM
- * (`public.lifecycle_state`) and the service-role wrappers that
- * actually flip state columns will land in the GATE A migration
- * after the schema proposal is approved.
+ *   …plus the side states `offboarded` and `agreement_expired`.
+ *
+ * The enum is shared across row types; the transition table is
+ * permissive enough to cover every legitimate path. Callers always
+ * have row-context (it's a hospital, not a patient) and only invoke
+ * `canTransition(currentState, requestedState)` — the structural check
+ * is "is this edge in the graph at all?", not "is it valid for this
+ * specific row type?". Row-specific guards (e.g. agreement-gate)
+ * remain in the Edge Functions.
  */
 
 export const LIFECYCLE_STATES = [
+  // Original
   "unverified",
   "verified",
   "pending_approval",
@@ -33,6 +36,12 @@ export const LIFECYCLE_STATES = [
   "rejected",
   "suspended",
   "deactivated",
+  // Hospital-registration-upgrade additions
+  "under_review",
+  "agreement_signed",
+  "provisioning",
+  "offboarded",
+  "agreement_expired",
 ] as const;
 
 export type LifecycleState = (typeof LIFECYCLE_STATES)[number];
@@ -40,22 +49,44 @@ export type LifecycleState = (typeof LIFECYCLE_STATES)[number];
 /**
  * Valid forward transitions. Anything not listed is rejected.
  *
- * `rejected` allows a reset back to `pending_approval` so a hospital
- * applicant can re-apply after fixing their authorisation letter,
- * and so a clinical affiliation can be re-reviewed after the
- * clinician resubmits a corrected licence.
+ * Aliases:
+ *   - `pending_approval` is the canonical existing value; the
+ *     hospital-upgrade spec also names this state `applied`. They are
+ *     the same state. New rows continue to use `pending_approval` so
+ *     existing data + Edge Functions keep working unchanged.
+ *
+ * Notes on additions:
+ *   - `pending_approval → under_review` is the new institution-level
+ *     triage step (a hospital application sits here while the
+ *     superadmin gathers callback / document verification).
+ *   - `verified → agreement_signed` only fires for hospital
+ *     applications. Patients go `verified → active` directly (no
+ *     agreement required of a patient). The transition is allowed
+ *     globally; the caller picks which one.
+ *   - `active → offboarded` is the explicit hospital-leaves-the-
+ *     platform terminal state (distinct from operator-driven
+ *     `deactivated` and temporary `suspended`).
+ *   - `active → agreement_expired` flags a renewal-required state;
+ *     the renewal Edge Function (deferred) accepts a new DPA version
+ *     and transitions back to `agreement_signed`.
  */
 export const LIFECYCLE_TRANSITIONS: Readonly<
   Record<LifecycleState, ReadonlyArray<LifecycleState>>
 > = {
   unverified: ["verified", "deactivated"],
-  verified: ["active", "pending_approval", "deactivated"],
-  pending_approval: ["approved", "rejected", "deactivated"],
+  verified: ["active", "pending_approval", "agreement_signed", "deactivated"],
+  pending_approval: ["under_review", "approved", "rejected", "deactivated"],
   approved: ["active", "suspended", "deactivated"],
-  active: ["suspended", "deactivated"],
+  active: ["suspended", "deactivated", "offboarded", "agreement_expired"],
   rejected: ["pending_approval", "deactivated"],
-  suspended: ["active", "deactivated"],
+  suspended: ["active", "deactivated", "offboarded"],
   deactivated: [],
+  // Hospital-upgrade additions
+  under_review: ["verified", "rejected", "deactivated"],
+  agreement_signed: ["provisioning", "suspended", "deactivated", "offboarded"],
+  provisioning: ["active", "suspended", "deactivated"],
+  offboarded: [],
+  agreement_expired: ["agreement_signed", "offboarded", "deactivated"],
 } as const;
 
 /** Validate a forward transition against the table above. */
@@ -74,7 +105,40 @@ export const BLOCKS_CLINICAL: ReadonlySet<LifecycleState> = new Set<LifecycleSta
   "rejected",
   "suspended",
   "deactivated",
+  "under_review",
+  "agreement_signed",
+  "provisioning",
+  "offboarded",
+  "agreement_expired",
 ]);
+
+/**
+ * Hospital-application-specific helpers — narrow the global state set
+ * to the ones a hospital application can actually be in. Useful for
+ * UI affordances ("show me the agreement-gate banner") and for
+ * server-side guards that need to reject transitions belonging to
+ * other row types (e.g. patient-only `verified → active`).
+ */
+export const HOSPITAL_APPLICATION_STATES: ReadonlySet<LifecycleState> = new Set<LifecycleState>([
+  "pending_approval", // alias 'applied'
+  "under_review",
+  "verified",
+  "agreement_signed",
+  "provisioning",
+  "active",
+  "rejected",
+  "suspended",
+  "deactivated",
+  "offboarded",
+  "agreement_expired",
+]);
+
+/**
+ * The single state that requires a signed `hospital_agreements` row
+ * to exit toward `provisioning`. Surfaced for the Edge Function
+ * guard and the UI banner.
+ */
+export const HOSPITAL_AGREEMENT_GATE_STATE: LifecycleState = "verified";
 
 /** Human-readable label for UI surfaces (kept here so copy stays consistent). */
 export function describeState(state: LifecycleState): string {
@@ -95,5 +159,15 @@ export function describeState(state: LifecycleState): string {
       return "Suspended";
     case "deactivated":
       return "Deactivated";
+    case "under_review":
+      return "Under review";
+    case "agreement_signed":
+      return "Agreement signed";
+    case "provisioning":
+      return "Provisioning";
+    case "offboarded":
+      return "Offboarded";
+    case "agreement_expired":
+      return "Agreement expired";
   }
 }

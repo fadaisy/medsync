@@ -1,9 +1,19 @@
 import { sql } from "drizzle-orm";
-import { check, index, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  check,
+  index,
+  integer,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+} from "drizzle-orm/pg-core";
 
 import { authUsers } from "./_auth";
+import { hospitalDpaVersions } from "./hospital-dpa-versions";
 import { hospitals } from "./hospitals";
-import { districts, subcounties } from "./reference-data";
+import { districts, regions, subcounties } from "./reference-data";
 
 /**
  * Anon landing-page captures (GATE E). Lighter than a full
@@ -45,10 +55,18 @@ export const hospitalLeads = pgTable(
 );
 
 /**
- * Full pilot application (GATE E). One per applicant (UNIQUE on
- * applicant_user_id). On superadmin approval (GATE F), a row lands
- * in public.hospitals and the applicant's user_roles is elevated to
- * hospital_admin scoped to the new hospital.
+ * Full pilot application — extended in the hospital-registration-
+ * upgrade (migrations 0021 + 0022) with institution profile, clinical
+ * profile, verification, authority, and agreement metadata.
+ *
+ * State CHECK now accepts both the legacy `pending_approval` and the
+ * upgrade-spec `applied` (same state, kept as alias). Forward states
+ * are `under_review → verified → agreement_signed → provisioning →
+ * active` plus the side states from `lib/lifecycle.ts`.
+ *
+ * Multi-value selections live in two junction tables:
+ *   - hospital_application_departments (ref-data-anchored)
+ *   - hospital_application_specialties (FK to specialties)
  */
 export const hospitalApplications = pgTable(
   "hospital_applications",
@@ -58,6 +76,8 @@ export const hospitalApplications = pgTable(
       .notNull()
       .unique()
       .references(() => authUsers.id, { onDelete: "cascade" }),
+
+    // Original Phase 0 columns ────────────────────────────────────
     hospitalName: text("hospital_name").notNull(),
     facilityLevel: text("facility_level").notNull(),
     ownership: text("ownership").notNull(),
@@ -84,6 +104,70 @@ export const hospitalApplications = pgTable(
     }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+
+    // Hospital-registration-upgrade additions (migrations 0021, 0022)
+
+    // §B Institution profile
+    hospitalAka: text("hospital_aka"),
+    yearEstablished: integer("year_established"),
+    mainPhone: text("main_phone").notNull().default(""),
+    officialEmail: text("official_email").notNull().default(""),
+    website: text("website"),
+    regionId: uuid("region_id").references(() => regions.id, { onDelete: "restrict" }),
+
+    // §C–§E5 Clinical & operating profile
+    specialisedClinics: text("specialised_clinics")
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
+    specialisedClinicsOther: text("specialised_clinics_other")
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
+    diagnosticServices: text("diagnostic_services")
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
+    supportServices: text("support_services")
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
+    servicesOffered: text("services_offered")
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
+    hasOnsitePharmacy: boolean("has_onsite_pharmacy"),
+    bedCapacityBand: text("bed_capacity_band"),
+    clinicalStaffBand: text("clinical_staff_band"),
+    dailyOpdBand: text("daily_opd_band"),
+    internetConnectivity: text("internet_connectivity"),
+    powerBackup: text("power_backup"),
+    existingEmr: text("existing_emr"),
+    existingEmrName: text("existing_emr_name"),
+
+    // §E6 Verification & authority
+    licensingBody: text("licensing_body"),
+    facilityLicencePath: text("facility_licence_path"),
+    applicantFullName: text("applicant_full_name"),
+    applicantWorkEmail: text("applicant_work_email"),
+    applicantPhone: text("applicant_phone"),
+    applicantCouncilNumber: text("applicant_council_number"),
+    authorityOfficerName: text("authority_officer_name"),
+    authorityOfficerTitle: text("authority_officer_title"),
+    authorityLetterPath: text("authority_letter_path"),
+    callbackContactValue: text("callback_contact_value"),
+    callbackContactKind: text("callback_contact_kind"),
+    emailDomainMismatch: boolean("email_domain_mismatch").notNull().default(false),
+
+    // §E7 Agreement metadata (acceptance row lives in hospital_agreements)
+    signatoryName: text("signatory_name"),
+    signatoryTitle: text("signatory_title"),
+    authorisedToBind: boolean("authorised_to_bind").notNull().default(false),
+    agreementAcceptedVersion: uuid("agreement_accepted_version").references(
+      () => hospitalDpaVersions.id,
+      { onDelete: "restrict" },
+    ),
+    agreementAcceptedAt: timestamp("agreement_accepted_at", { withTimezone: true }),
   },
   (t) => [
     check(

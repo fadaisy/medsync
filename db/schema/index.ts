@@ -38,3 +38,12 @@ export * from "./sa-audit-log";
 export * from "./sa-pending-approvals";
 export * from "./sa-break-glass-grants";
 export * from "./sa-notifications";
+
+// ─── Hospital registration upgrade (migrations 0020–0023) ──────────────
+export * from "./hospital-dpa-versions";
+export * from "./hospital-agreements";
+export * from "./hospital-wards";
+export * from "./hospital-admin-roster";
+export * from "./hospital-staff-invitations";
+export * from "./hospital-application-departments";
+export * from "./hospital-application-specialties";

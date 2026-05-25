@@ -5,6 +5,52 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Hospital registration upgrade (gates A–F) — 2026-05-25
+
+Upgrades hospital onboarding from a thin account-creation flow into a full institution-onboarding system, per [`prompts/hospital-registration-upgrade-kickoff.md`](prompts/hospital-registration-upgrade-kickoff.md). Six gates landed end-to-end on `feat/hospital-registration-upgrade`. Closeout inventory: [`docs/hospital-registration-upgrade-closeout.md`](docs/hospital-registration-upgrade-closeout.md).
+
+**Lifecycle state machine extension** — `public.lifecycle_state` enum gains `under_review`, `agreement_signed`, `provisioning`, `offboarded`, `agreement_expired`. The richer hospital path is `pending_approval → under_review → verified → agreement_signed → provisioning → active`; existing user-scoped paths (patient → active, clinician → pending → active) untouched.
+
+**Schema additions (migrations 0020–0025):**
+
+- `hospital_applications`: 25 additive columns covering institution profile (§B), clinical profile (§C–§E5 arrays + CHECKs + capacity bands), verification (§E6: licence + applicant + authority + callback contact), agreement metadata (§E7). Two junction tables for departments + IM sub-specialties.
+- `hospital_dpa_versions` — versioned DPA text, SHA-256 anchored, append-only. Seeded with `v0.placeholder` carrying `{{LEGAL REVIEW — PLACEHOLDER}}` body until Ugandan counsel signs off on v1.
+- `hospital_agreements` — per-hospital signings. `source` ∈ `applicant_flow | superadmin_offline | grandfathered`. The agreement gate is enforced server-side via EXISTS check, not FK.
+- `hospital_wards` — name + bed_count + optional department FK.
+- `hospital_admin_roster` — primary + backup designations with full succession trail. Partial UNIQUE ensures exactly one current primary per hospital.
+- `hospital_staff_invitations` — single-use token hash; rows never grant access, only pre-fill + track intent.
+- Migration 0024 grandfathers pre-existing hospitals into agreement-gate compliance (honest sentinels, no faked human names).
+
+**Edge Functions (new + extended):**
+
+- `approve-hospital-application` (extended) — creates hospital in `provisioning`, writes `hospital_agreements` row from the application's §E7 metadata, inserts applicant into `hospital_admin_roster` as primary. Rollback chain on partial failure.
+- `sa-activate-hospital` (extended) — calls `requireCurrentAgreement` (the gate) before any state flip. Refuses 400 if no current agreement.
+- `sa-create-hospital` (new) — superadmin-initiated hospital creation. Atomic chain: audit → hospital → agreement (offline) → invitation. Returns plaintext invitation token for the superadmin to share out-of-band.
+- `accept-hospital-admin-invitation` (new) — invitee-only. Token + email + AAL2 + verified-TOTP checks. Writes user_roles + roster row + audits as `hospital_admin_claimed`.
+
+**Routes added:**
+
+- `/signup/hospital` rewritten — 7-step MultiStepForm for the expanded application (institution / departments+IM / clinical / operating / verification / agreement / account).
+- `/admin/setup` — hospital_admin's 6-step post-approval setup wizard. Refuses superadmin sessions (ADR 0018 Q3). Final step calls `sa-activate-hospital` → fires the gate.
+- `/admin/claim-invitation?token=…` — invitee landing for accepting the hospital_admin invitation.
+- `/admin/tenants` now hosts a "Create hospital" button → superadmin-initiated create flow (Sheet).
+
+**ADRs:**
+
+- [0016 — Hospital verification model](docs/adr/0016-hospital-verification-model.md) — three concentric trust anchors; callback contact REQUIRED for applicant path.
+- [0017 — Hospital agreement gate](docs/adr/0017-hospital-agreement-gate.md) — `hospital_agreements` is the activation gate; server-side EXISTS check; both onboarding paths feed it.
+- [0018 — Superadmin-initiated hospital create path](docs/adr/0018-superadmin-hospital-create-path.md) — superadmin creates tenant not admin; wizard rejects superadmin sessions.
+
+**Tests:** +48 (26 lifecycle, 17 RLS on new tables, 5 agreement-gate regression). Total 119/119 passing. Phase 0 + onboarding suites unchanged.
+
+**Deferred (documented in closeout):** saved-drafts autosave/resume on the 7-step form; bulk staff invitation CSV ingest; admin succession transfer Edge Function; hospital_admin self-activation from the wizard; email delivery for invitations (currently the URL is shared out-of-band); agreement renewal flow when the lawyer-approved DPA arrives.
+
+**Operator actions after merge:**
+
+1. `npx supabase db push` — applies migrations 0020–0025.
+2. `npx supabase functions deploy approve-hospital-application sa-activate-hospital sa-create-hospital accept-hospital-admin-invitation`.
+3. When the counsel-approved DPA text arrives, insert a v1 row in `hospital_dpa_versions` with `legal_review_status='approved'` + `supersedes_id` pointing at the placeholder.
+
 ### Removed — Phase 1 onboarding rollback — 2026-05-23
 
 The Phase 1 onboarding pass (gates A–G below) was rolled back to redesign the flow from scratch. All Phase 1 routes (`/get-started`, `/signup/*`, `/admin/*`), the seven shared form primitives, the lib helpers (`patient`, `clinician`, `hospital`, `approvals`, `lifecycle`, `reference-data`, `signup-drafts`), the Phase 1 schemas + migrations (`0006`–`0015`), `lib/auth.ts` extensions, ADR-0013, and `docs/reference-data-sources.md` were deleted. The older Phase 0 `/onboarding/{patient,clinical,hospital}` email-capture forms went with them.
