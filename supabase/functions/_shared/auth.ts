@@ -1,10 +1,5 @@
-// supabase-js stays on the esm.sh URL: the npm: specifier hits
-// Node-polyfill issues in the Supabase Edge runtime that surface as
-// 503 mid-execution (function boots fine, then crashes when the client
-// is constructed). esm.sh's bundle is widely cached because so many
-// Edge Functions use it. Zod and other pure-ESM deps prefer npm:.
-import type { SupabaseClient, User } from "https://esm.sh/@supabase/supabase-js@2.106.1";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.106.1";
+import type { SupabaseClient, User } from "npm:@supabase/supabase-js@2.106.1";
+import { createClient } from "npm:@supabase/supabase-js@2.106.1";
 
 /**
  * Auth helpers for Edge Functions.
