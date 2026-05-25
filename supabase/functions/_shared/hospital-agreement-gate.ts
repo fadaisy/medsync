@@ -20,7 +20,8 @@
  * the user-facing error ("Hospital has no current agreement…").
  */
 
-import type { SupabaseClient } from "npm:@supabase/supabase-js@2.106.1";
+// See `_shared/auth.ts` for why supabase-js stays on esm.sh.
+import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.106.1";
 
 export type AgreementGateResult =
   | { ok: true; agreementId: string; dpaVersionId: string }
