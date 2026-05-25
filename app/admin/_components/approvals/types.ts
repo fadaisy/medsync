@@ -12,6 +12,15 @@ export interface ApprovalEvidence {
   mono?: boolean;
   /** Tone for inline pills (e.g. "missing" → critical). */
   tone?: "neutral" | "warning" | "critical" | "ok";
+  /** Optional grouping — adjacent rows with the same section render
+   * under a shared section header in the detail panel. */
+  section?: string;
+}
+
+export interface ApprovalDocument {
+  label: string;
+  bucket: "clinician-licences" | "hospital-authorisations";
+  path: string;
 }
 
 export interface ApprovalItem {
@@ -25,7 +34,7 @@ export interface ApprovalItem {
   createdAtIso: string;
   /** Detail-panel evidence rows, in render order. */
   evidence: ReadonlyArray<ApprovalEvidence>;
-  /** Storage path + bucket for the supporting document (optional). */
-  documentBucket?: "clinician-licences" | "hospital-authorisations";
-  documentPath?: string;
+  /** Supporting documents (one or many). Replaces the single
+   * documentBucket+documentPath pair. */
+  documents?: ReadonlyArray<ApprovalDocument>;
 }
