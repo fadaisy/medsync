@@ -33,6 +33,26 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !SUPABASE_SERVICE_ROLE_KEY || !DATABA
   throw new Error("Test env not loaded — tests/_setup.ts should have loaded .env.local");
 }
 
+/**
+ * SAFETY GUARD — RLS tests provision real auth.users + hospitals +
+ * agreements rows. Without an opt-in flag they SKIP so a stray
+ * `npx vitest run` against a `.env.local` pointed at production
+ * doesn't leak rows. The cleanup helpers can't fully roll back when
+ * a test crashes mid-flight, and the audit_log is append-only.
+ *
+ * To allow RLS tests to run, set the env var:
+ *   MEDSYNC_ALLOW_RLS_DB_WRITES=1
+ *
+ * Ideally point .env.local at a separate test Supabase project when
+ * doing this; running against prod leaves audit-log rows that can't
+ * be cleaned up.
+ *
+ * Test files use `describe.skipIf(!RLS_TESTS_ENABLED)(...)` so the
+ * suites report SKIPPED (green ⊘) instead of ERROR when the flag
+ * isn't set.
+ */
+export const RLS_TESTS_ENABLED = process.env.MEDSYNC_ALLOW_RLS_DB_WRITES === "1";
+
 const TEST_PASSWORD = "test-password-rls-only-1234567";
 
 export function serviceSupabase(): SupabaseClient {
@@ -116,8 +136,20 @@ export async function deleteHospital(id: string): Promise<void> {
 }
 
 /** Tear down any leftover test rows after the suite. */
+/**
+ * Sweeps test rows. Catches anything created by `createTestHospital`
+ * (slug pattern `<slug>-<6char-rand>`) and `createTestUser` (email
+ * `rls-<suite>-<role>-<rand>@medsync.local`). The hospital sweep is
+ * keyed off the `Test ` name prefix the helper applies, which is
+ * broader than the old `slug LIKE 'test-%-%'` rule and catches the
+ * GATE-C+ suite slugs (`agree-*`, `wards-*`, `gate-*`).
+ *
+ * Safe against the audit-log-prevent-modification trigger because
+ * we don't try to update audit rows directly; we delete via cascade
+ * (audit row stays — append-only — but the live row is gone).
+ */
 export async function cleanup(): Promise<void> {
-  await serviceSql`DELETE FROM public.hospitals WHERE slug LIKE 'test-%-%'`;
+  await serviceSql`DELETE FROM public.hospitals WHERE name LIKE 'Test %'`;
   const admin = serviceSupabase();
   const { data } = await admin.auth.admin.listUsers({ perPage: 200 });
   for (const u of data?.users ?? []) {

@@ -8,6 +8,7 @@ import {
   deleteHospital,
   deleteUser,
   grantRole,
+  RLS_TESTS_ENABLED,
   serviceSql,
   serviceSupabase,
 } from "./_helpers";
@@ -25,7 +26,7 @@ import {
  *   - hospital_staff_invitations  — scoped SELECT, service-role-only writes
  */
 
-describe("RLS: hospital_dpa_versions", () => {
+describe.skipIf(!RLS_TESTS_ENABLED)("RLS: hospital_dpa_versions", () => {
   let nonAdmin: TestUser;
   let superAdmin: TestUser;
 
@@ -63,7 +64,7 @@ describe("RLS: hospital_dpa_versions", () => {
   });
 });
 
-describe("RLS: hospital_agreements", () => {
+describe.skipIf(!RLS_TESTS_ENABLED)("RLS: hospital_agreements", () => {
   let alphaAdmin: TestUser;
   let betaAdmin: TestUser;
   let nobody: TestUser;
@@ -167,7 +168,7 @@ describe("RLS: hospital_agreements", () => {
   });
 });
 
-describe("RLS: hospital_wards", () => {
+describe.skipIf(!RLS_TESTS_ENABLED)("RLS: hospital_wards", () => {
   let alphaAdmin: TestUser;
   let betaAdmin: TestUser;
   let superAdmin: TestUser;
@@ -238,85 +239,88 @@ describe("RLS: hospital_wards", () => {
   });
 });
 
-describe("RLS: hospital_admin_roster + hospital_staff_invitations", () => {
-  let alphaAdmin: TestUser;
-  let nobody: TestUser;
-  let superAdmin: TestUser;
-  let alphaHospital: { id: string };
+describe.skipIf(!RLS_TESTS_ENABLED)(
+  "RLS: hospital_admin_roster + hospital_staff_invitations",
+  () => {
+    let alphaAdmin: TestUser;
+    let nobody: TestUser;
+    let superAdmin: TestUser;
+    let alphaHospital: { id: string };
 
-  beforeAll(async () => {
-    alphaAdmin = await createTestUser("roster", "alpha");
-    nobody = await createTestUser("roster", "nobody");
-    superAdmin = await createTestUser("roster", "super");
-    alphaHospital = await createTestHospital("roster-alpha");
-    await grantRole(alphaAdmin.id, "hospital_admin", alphaHospital.id);
-    await grantRole(superAdmin.id, "superadmin", null);
+    beforeAll(async () => {
+      alphaAdmin = await createTestUser("roster", "alpha");
+      nobody = await createTestUser("roster", "nobody");
+      superAdmin = await createTestUser("roster", "super");
+      alphaHospital = await createTestHospital("roster-alpha");
+      await grantRole(alphaAdmin.id, "hospital_admin", alphaHospital.id);
+      await grantRole(superAdmin.id, "superadmin", null);
 
-    // Seed a roster row + an invitation via service-role.
-    const sb = serviceSupabase();
-    await sb.from("hospital_admin_roster").insert({
-      hospital_id: alphaHospital.id,
-      user_id: alphaAdmin.id,
-      designation: "primary",
-      designated_by: superAdmin.id,
+      // Seed a roster row + an invitation via service-role.
+      const sb = serviceSupabase();
+      await sb.from("hospital_admin_roster").insert({
+        hospital_id: alphaHospital.id,
+        user_id: alphaAdmin.id,
+        designation: "primary",
+        designated_by: superAdmin.id,
+      });
+      await sb.from("hospital_staff_invitations").insert({
+        hospital_id: alphaHospital.id,
+        invited_email: "invitee@test.local",
+        invitation_token_hash: "fake-hash",
+        invited_by: alphaAdmin.id,
+      });
+    }, 60_000);
+
+    afterAll(async () => {
+      await serviceSql`DELETE FROM public.hospital_admin_roster WHERE hospital_id = ${alphaHospital.id}`;
+      await serviceSql`DELETE FROM public.hospital_staff_invitations WHERE hospital_id = ${alphaHospital.id}`;
+      await deleteHospital(alphaHospital.id).catch(() => {});
+      await deleteUser(alphaAdmin.id).catch(() => {});
+      await deleteUser(nobody.id).catch(() => {});
+      await deleteUser(superAdmin.id).catch(() => {});
+    }, 30_000);
+
+    test("hospital_admin CAN SELECT own roster", async () => {
+      const { data, error } = await alphaAdmin.client
+        .from("hospital_admin_roster")
+        .select("id")
+        .eq("hospital_id", alphaHospital.id);
+      expect(error).toBeNull();
+      expect(data?.length ?? 0).toBeGreaterThan(0);
     });
-    await sb.from("hospital_staff_invitations").insert({
-      hospital_id: alphaHospital.id,
-      invited_email: "invitee@test.local",
-      invitation_token_hash: "fake-hash",
-      invited_by: alphaAdmin.id,
+
+    test("user with no role CANNOT SELECT roster", async () => {
+      const { data } = await nobody.client.from("hospital_admin_roster").select("id");
+      expect(data?.length ?? 0).toBe(0);
     });
-  }, 60_000);
 
-  afterAll(async () => {
-    await serviceSql`DELETE FROM public.hospital_admin_roster WHERE hospital_id = ${alphaHospital.id}`;
-    await serviceSql`DELETE FROM public.hospital_staff_invitations WHERE hospital_id = ${alphaHospital.id}`;
-    await deleteHospital(alphaHospital.id).catch(() => {});
-    await deleteUser(alphaAdmin.id).catch(() => {});
-    await deleteUser(nobody.id).catch(() => {});
-    await deleteUser(superAdmin.id).catch(() => {});
-  }, 30_000);
-
-  test("hospital_admin CAN SELECT own roster", async () => {
-    const { data, error } = await alphaAdmin.client
-      .from("hospital_admin_roster")
-      .select("id")
-      .eq("hospital_id", alphaHospital.id);
-    expect(error).toBeNull();
-    expect(data?.length ?? 0).toBeGreaterThan(0);
-  });
-
-  test("user with no role CANNOT SELECT roster", async () => {
-    const { data } = await nobody.client.from("hospital_admin_roster").select("id");
-    expect(data?.length ?? 0).toBe(0);
-  });
-
-  test("hospital_admin CANNOT INSERT roster row directly (service-role only)", async () => {
-    const { error } = await alphaAdmin.client.from("hospital_admin_roster").insert({
-      hospital_id: alphaHospital.id,
-      user_id: alphaAdmin.id,
-      designation: "backup",
-      designated_by: alphaAdmin.id,
+    test("hospital_admin CANNOT INSERT roster row directly (service-role only)", async () => {
+      const { error } = await alphaAdmin.client.from("hospital_admin_roster").insert({
+        hospital_id: alphaHospital.id,
+        user_id: alphaAdmin.id,
+        designation: "backup",
+        designated_by: alphaAdmin.id,
+      });
+      expect(error).not.toBeNull();
     });
-    expect(error).not.toBeNull();
-  });
 
-  test("hospital_admin CAN SELECT own invitations", async () => {
-    const { data, error } = await alphaAdmin.client
-      .from("hospital_staff_invitations")
-      .select("id")
-      .eq("hospital_id", alphaHospital.id);
-    expect(error).toBeNull();
-    expect(data?.length ?? 0).toBeGreaterThan(0);
-  });
-
-  test("hospital_admin CANNOT INSERT invitation directly (service-role only)", async () => {
-    const { error } = await alphaAdmin.client.from("hospital_staff_invitations").insert({
-      hospital_id: alphaHospital.id,
-      invited_email: "spoof@test.local",
-      invitation_token_hash: "fake",
-      invited_by: alphaAdmin.id,
+    test("hospital_admin CAN SELECT own invitations", async () => {
+      const { data, error } = await alphaAdmin.client
+        .from("hospital_staff_invitations")
+        .select("id")
+        .eq("hospital_id", alphaHospital.id);
+      expect(error).toBeNull();
+      expect(data?.length ?? 0).toBeGreaterThan(0);
     });
-    expect(error).not.toBeNull();
-  });
-});
+
+    test("hospital_admin CANNOT INSERT invitation directly (service-role only)", async () => {
+      const { error } = await alphaAdmin.client.from("hospital_staff_invitations").insert({
+        hospital_id: alphaHospital.id,
+        invited_email: "spoof@test.local",
+        invitation_token_hash: "fake",
+        invited_by: alphaAdmin.id,
+      });
+      expect(error).not.toBeNull();
+    });
+  },
+);

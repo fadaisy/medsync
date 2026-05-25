@@ -1,9 +1,9 @@
 import type { TestUser } from "./_helpers";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 
-import { anonClient, createTestUser, deleteUser, serviceSql } from "./_helpers";
+import { anonClient, createTestUser, deleteUser, RLS_TESTS_ENABLED, serviceSql } from "./_helpers";
 
-describe("RLS: public.consent_records", () => {
+describe.skipIf(!RLS_TESTS_ENABLED)("RLS: public.consent_records", () => {
   let alice: TestUser;
   let bob: TestUser;
 
