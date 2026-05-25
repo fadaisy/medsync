@@ -46,20 +46,19 @@ export async function signInAction(_prev: SignInState, formData: FormData): Prom
     return { errors: { _form: "Invalid email or password." } };
   }
 
-  // Default landing depends on role: superadmins / hospital_admins go
-  // to /admin (the workspace IS their dashboard). Everyone else lands
-  // on the landing page — Phase 0 has no clinical/patient surfaces
-  // yet, so the landing page is the honest "you have nothing to do
-  // here" destination. An explicit ?redirect= param always wins.
+  // Role-aware default landing. Resolution order:
+  //   1. superadmin / hospital_admin → /admin
+  //   2. hospital applicant with a not-yet-approved application →
+  //      /onboarding/hospital-pending (their status page)
+  //   3. everyone else → /  (landing — Phase 0 has no clinical/patient
+  //      surfaces yet)
+  // An explicit ?redirect= param always wins over this default.
   //
   // Uses the service client to bypass RLS — the user-context session
   // cookie isn't reliably applied to the same request's downstream
-  // queries, so user_roles SELECT would intermittently return empty
-  // and silently default away from /admin. Matches the pattern
+  // queries, so a user-context query would intermittently return
+  // empty and silently default away. Matches the pattern
   // /admin/layout.tsx uses for role lookup.
-  //
-  // proxy.ts will still route through MFA challenge / setup if needed
-  // on the next request — this just picks the *intended* destination.
   let defaultTarget = "/";
   if (signInData.user) {
     const service = createServiceClient();
@@ -69,6 +68,22 @@ export async function signInAction(_prev: SignInState, formData: FormData): Prom
       .eq("user_id", signInData.user.id);
     if (roles?.some((r) => r.role === "superadmin" || r.role === "hospital_admin")) {
       defaultTarget = "/admin";
+    } else {
+      // Check for a pending hospital application — these users have
+      // an account but no admin role yet. The pending page shows
+      // their application status; once the superadmin approves, they
+      // get the hospital_admin role and this branch falls through
+      // to the /admin path above.
+      const { data: app } = await service
+        .from("hospital_applications")
+        .select("state")
+        .eq("applicant_user_id", signInData.user.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (app && ["pending_approval", "under_review", "rejected"].includes(app.state)) {
+        defaultTarget = "/onboarding/hospital-pending";
+      }
     }
   }
 
