@@ -74,7 +74,7 @@ export async function countRealSuperadmins(): Promise<number> {
   // Drizzle-style join through PostgREST returns nested user data.
   // Filter out fixture emails on the application side so the SQL stays
   // simple and the rule is unmistakable in the code.
-  const real = (data ?? []).filter((row) => {
+  const real = (data ?? []).filter((row: { users: { email?: string } | { email?: string }[] }) => {
     // PostgREST returns the joined row as an object (or array of one).
     const user = Array.isArray(row.users) ? row.users[0] : row.users;
     const email = user?.email ?? "";

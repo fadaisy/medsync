@@ -122,7 +122,8 @@ Deno.serve(async (request: Request) => {
       data: null,
     }));
   const hasVerifiedTotp = !!factors?.factors?.some(
-    (f) => f.factor_type === "totp" && f.status === "verified",
+    (f: { factor_type: string; status: string }) =>
+      f.factor_type === "totp" && f.status === "verified",
   );
   if (!hasVerifiedTotp) {
     return forbidden(init, "Enrol MFA (TOTP) before accepting this invitation.");

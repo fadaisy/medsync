@@ -145,7 +145,7 @@ Deno.serve(async (request: Request) => {
       .eq("role", "hospital_admin")
       .eq("hospital_id", hospitalId);
     if (admins && admins.length > 0) {
-      const notificationRows = admins.map((a) => ({
+      const notificationRows = admins.map((a: { user_id: string }) => ({
         recipient_user_id: a.user_id,
         kind: "break_glass_access",
         subject: "Platform-level access to a patient record at your hospital",
