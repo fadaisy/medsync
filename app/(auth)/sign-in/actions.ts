@@ -92,6 +92,11 @@ export async function signInAction(_prev: SignInState, formData: FormData): Prom
       // page that lands at /clinician — is scoped per affiliation.)
       defaultTarget = "/clinician";
       routeReason = "clinician-role";
+    } else if (roles?.some((r) => r.role === "patient")) {
+      // Patient role granted — straight to the patient workspace.
+      // Active state + primary hospital are checked inside the layout.
+      defaultTarget = "/patient";
+      routeReason = "patient-role";
     } else {
       // Check for a pending hospital application — these users have
       // an account but no admin role yet. The pending page shows
