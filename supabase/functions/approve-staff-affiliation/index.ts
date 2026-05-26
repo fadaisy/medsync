@@ -116,6 +116,7 @@ Deno.serve(async (request: Request) => {
       approved_at: nowIso,
       approved_by: caller.id,
       rejection_reason: null,
+      review_note: null,
     })
     .eq("id", aff.id);
   if (updateError) {

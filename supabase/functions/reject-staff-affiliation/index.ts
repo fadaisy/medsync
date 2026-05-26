@@ -102,7 +102,7 @@ Deno.serve(async (request: Request) => {
 
   const { error: updateError } = await sb
     .from("staff_affiliations")
-    .update({ state: "rejected", rejection_reason: input.reason })
+    .update({ state: "rejected", rejection_reason: input.reason, review_note: null })
     .eq("id", aff.id);
   if (updateError) {
     log.error("affiliation update failed", { requestId, reason: updateError.message });

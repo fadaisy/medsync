@@ -54,6 +54,12 @@ const NAV_ITEMS: ReadonlyArray<NavItem> = [
   { href: "/admin", label: "Approvals", iconKey: "approvals" },
   { href: "/admin/tenants", label: "Tenants", iconKey: "tenants", superadminOnly: true },
   { href: "/admin/people", label: "People", iconKey: "people", superadminOnly: true },
+  {
+    href: "/admin/staff-rollup",
+    label: "Staff rollup",
+    iconKey: "staff-rollup",
+    superadminOnly: true,
+  },
   { href: "/admin/catalog", label: "Catalog", iconKey: "catalog", superadminOnly: true },
   { href: "/admin/audit", label: "Audit", iconKey: "audit", superadminOnly: true },
   { href: "/admin/health", label: "Health", iconKey: "health" },
