@@ -50,7 +50,16 @@ export type SaAuditAction =
   | "export_audit_log"
   | "sa_create_hospital"
   | "sa_invite_hospital_admin"
-  | "hospital_admin_claimed";
+  | "hospital_admin_claimed"
+  // Hospital-admin staff-management actions (migration 0027).
+  | "request_staff_info"
+  | "suspend_staff_affiliation"
+  | "deactivate_staff_affiliation"
+  | "reactivate_staff_affiliation"
+  | "reset_staff_mfa"
+  | "assign_staff_role"
+  | "invite_staff"
+  | "revoke_staff_invitation";
 
 export type SaAuditTargetKind =
   | "staff_affiliation"
@@ -60,7 +69,9 @@ export type SaAuditTargetKind =
   | "patient_profile"
   | "break_glass_grant"
   | "audit_log_export"
-  | "hospital_admin_invitation";
+  | "hospital_admin_invitation"
+  // Hospital-admin staff-management target (migration 0027).
+  | "staff_invitation";
 
 export async function recordSaAudit(params: {
   actorId: string;

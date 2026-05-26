@@ -86,6 +86,11 @@ export const staffAffiliations = pgTable(
     employmentType: text("employment_type").notNull(),
     state: text("state").notNull().default("pending_approval"),
     rejectionReason: text("rejection_reason"),
+    // Hospital-admin "request more info" note. Optional. The applicant
+    // sees it on their /onboarding/clinical-pending page; cleared when
+    // the admin moves the row off pending_approval (approve / reject).
+    // Added by migration 0027.
+    reviewNote: text("review_note"),
     approvedBy: uuid("approved_by").references(() => authUsers.id, {
       onDelete: "set null",
     }),

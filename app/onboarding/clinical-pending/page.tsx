@@ -59,6 +59,7 @@ export default async function ClinicalPendingPage() {
       id: staffAffiliations.id,
       state: staffAffiliations.state,
       rejectionReason: staffAffiliations.rejectionReason,
+      reviewNote: staffAffiliations.reviewNote,
       employmentType: staffAffiliations.employmentType,
       createdAt: staffAffiliations.createdAt,
       hospitalName: hospitals.name,
@@ -86,6 +87,7 @@ export default async function ClinicalPendingPage() {
   const isUnderReview = aff.state === "pending_approval" || aff.state === "under_review";
   const isRejected = aff.state === "rejected";
   const isApproved = aff.state === "approved" || aff.state === "active";
+  const hasReviewNote = isUnderReview && !!aff.reviewNote;
 
   // Detect whether the clinician already has a verified TOTP factor —
   // the MFA CTA flips between "Set up two-factor" and "Two-factor on file".
@@ -247,7 +249,32 @@ export default async function ClinicalPendingPage() {
           </dl>
         </section>
 
-        {isUnderReview ? (
+        {hasReviewNote ? (
+          <section className="flex flex-col gap-2 rounded-lg border border-amber-200 bg-amber-50/60 p-5 dark:border-amber-800/40 dark:bg-amber-950/20">
+            <p className="inline-flex items-center gap-2 text-[13px] font-medium text-amber-900 dark:text-amber-200">
+              <span
+                aria-hidden
+                className="size-1.5 rounded-full bg-amber-500 ring-2 ring-amber-500/20"
+              />
+              The hospital admin needs more information
+            </p>
+            <p className="text-[13px] leading-relaxed text-amber-900/90 italic dark:text-amber-100/80">
+              &ldquo;{aff.reviewNote}&rdquo;
+            </p>
+            <p className="text-[12px] leading-relaxed text-amber-900/70 dark:text-amber-200/70">
+              Update what they asked for and email{" "}
+              <a
+                href="mailto:support@medsync.health"
+                className="underline-offset-2 hover:underline"
+              >
+                support@medsync.health
+              </a>{" "}
+              when ready — they&apos;ll re-open the queue. Your affiliation is still on file.
+            </p>
+          </section>
+        ) : null}
+
+        {isUnderReview && !hasReviewNote ? (
           <section className="border-border bg-muted/30 flex flex-col gap-2 rounded-lg border p-5 text-[12.5px] leading-relaxed">
             <p className="text-foreground font-medium">What happens next</p>
             <ol className="text-muted-foreground flex flex-col gap-1.5 pl-4">

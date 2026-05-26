@@ -70,7 +70,7 @@ export const FEATURE_AREAS: ReadonlyArray<FeatureArea> = [
     label: "Staff",
     hint: "Pending approvals · directory · roles · onboarding",
     iconKey: "staff",
-    placeholder: true,
+    placeholder: false,
   },
   {
     slug: "departments",
