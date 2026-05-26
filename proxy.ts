@@ -49,6 +49,9 @@ const ALWAYS_AUTH_REQUIRED_PREFIXES = [
   // top — that lives there, not here, because middleware can't talk
   // to the DB cheaply on every request.
   "/hospital-admin",
+  // Clinician workspace — same auth + AAL2 + MFA gate. Per-clinician
+  // affiliation scope resolves in app/clinician/layout.tsx.
+  "/clinician",
 ];
 
 function isPublic(pathname: string): boolean {
