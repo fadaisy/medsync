@@ -40,7 +40,16 @@ const PUBLIC_PREFIXES = [
 
 const PUBLIC_EXACT = new Set(["/", "/sign-out", "/get-started"]);
 
-const ALWAYS_AUTH_REQUIRED_PREFIXES = ["/onboarding/mfa-setup", "/admin"];
+const ALWAYS_AUTH_REQUIRED_PREFIXES = [
+  "/onboarding/mfa-setup",
+  "/admin",
+  // Hospital-admin workspace. Same gate shape as /admin (auth + AAL2 +
+  // MFA enrolment). The layout-level guard in
+  // app/hospital-admin/layout.tsx adds the tenant-scope resolution on
+  // top — that lives there, not here, because middleware can't talk
+  // to the DB cheaply on every request.
+  "/hospital-admin",
+];
 
 function isPublic(pathname: string): boolean {
   if (PUBLIC_EXACT.has(pathname)) return true;
