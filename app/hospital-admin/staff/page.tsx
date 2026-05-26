@@ -1,6 +1,6 @@
 import type { StaffTab } from "./_components/staff-tabs";
 import type { Metadata } from "next";
-import { and, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, inArray } from "drizzle-orm";
 
 import { db } from "@/db";
 import { clinicianProfiles, staffAffiliations } from "@/db/schema/clinician-profiles";
@@ -8,6 +8,7 @@ import { hospitalDepartments } from "@/db/schema/hospital-departments";
 import { cadreGrades, cadres, councils, roles, specialties } from "@/db/schema/reference-data";
 import { users } from "@/db/schema/users";
 import { requireHospitalAdminScope } from "@/lib/hospital-admin/scope";
+import { DirectoryTable } from "./_components/directory-table";
 import { PendingQueue } from "./_components/pending-queue";
 import { StaffTabs } from "./_components/staff-tabs";
 
@@ -46,7 +47,12 @@ export default async function StaffPage({ searchParams }: PageProps) {
   const activeTab: StaffTab =
     params.tab === "directory" || params.tab === "invites" ? params.tab : "pending";
 
-  const pendingRows = await fetchPendingAffiliations(scope.hospitalId);
+  const [pendingRows, directoryRows, departments, hospitalRoles] = await Promise.all([
+    fetchPendingAffiliations(scope.hospitalId),
+    activeTab === "directory" ? fetchDirectoryAffiliations(scope.hospitalId) : Promise.resolve([]),
+    activeTab === "directory" ? fetchHospitalDepartments(scope.hospitalId) : Promise.resolve([]),
+    activeTab === "directory" ? fetchHospitalRoles() : Promise.resolve([]),
+  ]);
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8">
@@ -72,9 +78,12 @@ export default async function StaffPage({ searchParams }: PageProps) {
       ) : null}
 
       {activeTab === "directory" ? (
-        <p className="text-muted-foreground text-[13px]">
-          Directory lands in GATE C — table, filters, per-staff slide-out detail.
-        </p>
+        <DirectoryTable
+          rows={directoryRows}
+          selectedAffiliationId={params.aff ?? null}
+          allDepartments={departments}
+          allRoles={hospitalRoles}
+        />
       ) : null}
 
       {activeTab === "invites" ? (
@@ -166,4 +175,112 @@ async function fetchPendingAffiliations(hospitalId: string): Promise<PendingAffi
     createdAtIso: r.createdAt.toISOString(),
     daysSinceSubmission: Math.floor((nowMs - r.createdAt.getTime()) / 86_400_000),
   }));
+}
+
+/* ─── Directory ────────────────────────────────────────────────────── */
+
+export interface DirectoryAffiliationRow {
+  id: string;
+  userId: string;
+  fullName: string;
+  email: string;
+  cadreName: string;
+  roleId: string;
+  roleName: string;
+  departmentId: string;
+  departmentName: string;
+  employmentType: string;
+  state: string;
+  councilName: string;
+  /** Council registration number — operationally queryable, intentionally
+   * plaintext, but the UI keeps it masked-until-expanded. */
+  registrationNumber: string;
+}
+
+const DIRECTORY_STATES = ["approved", "active", "suspended", "deactivated"] as const;
+
+async function fetchDirectoryAffiliations(hospitalId: string): Promise<DirectoryAffiliationRow[]> {
+  const rows = await db
+    .select({
+      id: staffAffiliations.id,
+      userId: staffAffiliations.userId,
+      roleId: staffAffiliations.roleId,
+      departmentId: staffAffiliations.departmentId,
+      employmentType: staffAffiliations.employmentType,
+      state: staffAffiliations.state,
+      fullName: users.fullName,
+      email: users.email,
+      cadreName: cadres.name,
+      roleName: roles.name,
+      departmentName: hospitalDepartments.name,
+      councilName: councils.name,
+      registrationNumber: clinicianProfiles.registrationNumber,
+    })
+    .from(staffAffiliations)
+    .innerJoin(users, eq(users.id, staffAffiliations.userId))
+    .innerJoin(clinicianProfiles, eq(clinicianProfiles.id, staffAffiliations.userId))
+    .innerJoin(councils, eq(councils.id, clinicianProfiles.councilId))
+    .innerJoin(cadres, eq(cadres.id, staffAffiliations.cadreId))
+    .innerJoin(roles, eq(roles.id, staffAffiliations.roleId))
+    .innerJoin(hospitalDepartments, eq(hospitalDepartments.id, staffAffiliations.departmentId))
+    .where(
+      and(
+        eq(staffAffiliations.hospitalId, hospitalId),
+        inArray(staffAffiliations.state, [...DIRECTORY_STATES]),
+      ),
+    )
+    .orderBy(asc(users.fullName));
+
+  return rows.map((r) => ({
+    id: r.id,
+    userId: r.userId,
+    fullName: r.fullName,
+    email: r.email,
+    cadreName: r.cadreName,
+    roleId: r.roleId,
+    roleName: r.roleName,
+    departmentId: r.departmentId,
+    departmentName: r.departmentName,
+    employmentType: r.employmentType,
+    state: r.state,
+    councilName: r.councilName,
+    registrationNumber: r.registrationNumber,
+  }));
+}
+
+export interface DirectoryDepartmentOption {
+  id: string;
+  name: string;
+}
+
+async function fetchHospitalDepartments(hospitalId: string): Promise<DirectoryDepartmentOption[]> {
+  const rows = await db
+    .select({ id: hospitalDepartments.id, name: hospitalDepartments.name })
+    .from(hospitalDepartments)
+    .where(eq(hospitalDepartments.hospitalId, hospitalId))
+    .orderBy(asc(hospitalDepartments.name));
+  return rows;
+}
+
+export interface DirectoryRoleOption {
+  id: string;
+  name: string;
+  cadreName: string;
+}
+
+async function fetchHospitalRoles(): Promise<DirectoryRoleOption[]> {
+  // Roles are catalog-wide, not hospital-scoped. The admin sees the
+  // full catalog when picking a new role (filtered client-side by
+  // search). The role row carries cadre_id; we join to surface the
+  // cadre label so the admin doesn't pick a nurse role for a doctor.
+  const rows = await db
+    .select({
+      id: roles.id,
+      name: roles.name,
+      cadreName: cadres.name,
+    })
+    .from(roles)
+    .innerJoin(cadres, eq(cadres.id, roles.cadreId))
+    .orderBy(asc(cadres.name), asc(roles.name));
+  return rows;
 }

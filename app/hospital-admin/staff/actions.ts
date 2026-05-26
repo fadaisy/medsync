@@ -144,6 +144,91 @@ export async function requestStaffInfoAction(
   return { ok: true };
 }
 
+/* ─── Status transitions (suspend / deactivate / reactivate) ───────── */
+
+const SetStatusArgs = z.object({
+  affiliation_id: z.string().uuid(),
+  target_state: z.enum(["suspended", "deactivated", "approved"]),
+  reason: z.string().min(8, "Reason ≥ 8 chars required."),
+});
+
+export async function setStaffStatusAction(
+  _prev: StaffActionState,
+  formData: FormData,
+): Promise<StaffActionState> {
+  const parsed = SetStatusArgs.safeParse({
+    affiliation_id: formData.get("affiliation_id"),
+    target_state: formData.get("target_state"),
+    reason: formData.get("reason"),
+  });
+  if (!parsed.success) {
+    const fe = parsed.error.flatten().fieldErrors;
+    return { error: fe.reason?.[0] ?? fe.target_state?.[0] ?? "Invalid input." };
+  }
+  await guardScope(parsed.data.affiliation_id);
+  const result = await callEdgeFunction("ha-set-staff-status", parsed.data);
+  if (!result.ok) return { error: result.error };
+  revalidatePath("/hospital-admin/staff");
+  return { ok: true };
+}
+
+/* ─── MFA reset ─────────────────────────────────────────────────────── */
+
+const MfaResetArgs = z.object({
+  affiliation_id: z.string().uuid(),
+  reason: z.string().min(8, "Reason ≥ 8 chars required."),
+});
+
+export async function resetStaffMfaAction(
+  _prev: StaffActionState,
+  formData: FormData,
+): Promise<StaffActionState> {
+  const parsed = MfaResetArgs.safeParse({
+    affiliation_id: formData.get("affiliation_id"),
+    reason: formData.get("reason"),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.flatten().fieldErrors.reason?.[0] ?? "Invalid input." };
+  }
+  await guardScope(parsed.data.affiliation_id);
+  const result = await callEdgeFunction("ha-reset-staff-mfa", parsed.data);
+  if (!result.ok) return { error: result.error };
+  revalidatePath("/hospital-admin/staff");
+  return { ok: true };
+}
+
+/* ─── Role / department assignment ──────────────────────────────────── */
+
+const AssignRoleArgs = z.object({
+  affiliation_id: z.string().uuid(),
+  new_role_id: z.string().uuid("Pick a role from the list."),
+  new_department_id: z.string().uuid("Pick a department from the list."),
+  reason: z.string().min(8, "Reason ≥ 8 chars required."),
+});
+
+export async function assignStaffRoleAction(
+  _prev: StaffActionState,
+  formData: FormData,
+): Promise<StaffActionState> {
+  const parsed = AssignRoleArgs.safeParse({
+    affiliation_id: formData.get("affiliation_id"),
+    new_role_id: formData.get("new_role_id"),
+    new_department_id: formData.get("new_department_id"),
+    reason: formData.get("reason"),
+  });
+  if (!parsed.success) {
+    const fe = parsed.error.flatten().fieldErrors;
+    return {
+      error: fe.reason?.[0] ?? fe.new_role_id?.[0] ?? fe.new_department_id?.[0] ?? "Invalid input.",
+    };
+  }
+  await guardScope(parsed.data.affiliation_id);
+  const result = await callEdgeFunction("ha-assign-staff-role", parsed.data);
+  if (!result.ok) return { error: result.error };
+  revalidatePath("/hospital-admin/staff");
+  return { ok: true };
+}
+
 /* ─── Per-affiliation safety net ───────────────────────────────────── */
 
 /**
