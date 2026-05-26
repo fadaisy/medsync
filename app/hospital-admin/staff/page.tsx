@@ -5,10 +5,12 @@ import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import { clinicianProfiles, staffAffiliations } from "@/db/schema/clinician-profiles";
 import { hospitalDepartments } from "@/db/schema/hospital-departments";
+import { hospitalStaffInvitations } from "@/db/schema/hospital-staff-invitations";
 import { cadreGrades, cadres, councils, roles, specialties } from "@/db/schema/reference-data";
 import { users } from "@/db/schema/users";
 import { requireHospitalAdminScope } from "@/lib/hospital-admin/scope";
 import { DirectoryTable } from "./_components/directory-table";
+import { InvitationsPanel } from "./_components/invitations-panel";
 import { PendingQueue } from "./_components/pending-queue";
 import { StaffTabs } from "./_components/staff-tabs";
 
@@ -47,11 +49,12 @@ export default async function StaffPage({ searchParams }: PageProps) {
   const activeTab: StaffTab =
     params.tab === "directory" || params.tab === "invites" ? params.tab : "pending";
 
-  const [pendingRows, directoryRows, departments, hospitalRoles] = await Promise.all([
+  const [pendingRows, directoryRows, departments, hospitalRoles, invitations] = await Promise.all([
     fetchPendingAffiliations(scope.hospitalId),
     activeTab === "directory" ? fetchDirectoryAffiliations(scope.hospitalId) : Promise.resolve([]),
     activeTab === "directory" ? fetchHospitalDepartments(scope.hospitalId) : Promise.resolve([]),
     activeTab === "directory" ? fetchHospitalRoles() : Promise.resolve([]),
+    activeTab === "invites" ? fetchInvitations(scope.hospitalId) : Promise.resolve([]),
   ]);
 
   return (
@@ -86,11 +89,7 @@ export default async function StaffPage({ searchParams }: PageProps) {
         />
       ) : null}
 
-      {activeTab === "invites" ? (
-        <p className="text-muted-foreground text-[13px]">
-          Invitations land in GATE D — single + bulk invite, claim-URL list.
-        </p>
-      ) : null}
+      {activeTab === "invites" ? <InvitationsPanel rows={invitations} /> : null}
     </div>
   );
 }
@@ -266,6 +265,66 @@ export interface DirectoryRoleOption {
   id: string;
   name: string;
   cadreName: string;
+}
+
+/* ─── Invitations ──────────────────────────────────────────────────── */
+
+export interface InvitationRow {
+  id: string;
+  email: string;
+  name: string | null;
+  source: string;
+  invitedAtIso: string;
+  expiresAtIso: string;
+  acceptedAtIso: string | null;
+  revokedAtIso: string | null;
+  revocationReason: string | null;
+  status: "pending" | "accepted" | "revoked" | "expired";
+}
+
+async function fetchInvitations(hospitalId: string): Promise<InvitationRow[]> {
+  const rows = await db
+    .select({
+      id: hospitalStaffInvitations.id,
+      email: hospitalStaffInvitations.invitedEmail,
+      name: hospitalStaffInvitations.invitedName,
+      source: hospitalStaffInvitations.source,
+      invitedAt: hospitalStaffInvitations.invitedAt,
+      expiresAt: hospitalStaffInvitations.expiresAt,
+      acceptedAt: hospitalStaffInvitations.acceptedAt,
+      revokedAt: hospitalStaffInvitations.revokedAt,
+      revocationReason: hospitalStaffInvitations.revocationReason,
+    })
+    .from(hospitalStaffInvitations)
+    .where(eq(hospitalStaffInvitations.hospitalId, hospitalId))
+    .orderBy(desc(hospitalStaffInvitations.invitedAt));
+
+  const nowMs = Date.now();
+  return rows.map((r) => {
+    const acceptedAtIso = r.acceptedAt?.toISOString() ?? null;
+    const revokedAtIso = r.revokedAt?.toISOString() ?? null;
+    const expiresAtIso = r.expiresAt.toISOString();
+    const expired = !acceptedAtIso && !revokedAtIso && r.expiresAt.getTime() < nowMs;
+    const status: InvitationRow["status"] = acceptedAtIso
+      ? "accepted"
+      : revokedAtIso
+        ? "revoked"
+        : expired
+          ? "expired"
+          : "pending";
+    return {
+      id: r.id,
+      email: r.email,
+      name: r.name,
+      source: r.source,
+      invitedAtIso: r.invitedAt.toISOString(),
+      expiresAtIso,
+      acceptedAtIso,
+      revokedAtIso,
+      revocationReason: r.revocationReason,
+      status,
+    };
+  });
 }
 
 async function fetchHospitalRoles(): Promise<DirectoryRoleOption[]> {

@@ -43,6 +43,15 @@ async function callEdgeFunction(
   name: string,
   body: Record<string, unknown>,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
+  const result = await callEdgeFunctionForData<unknown>(name, body);
+  if (!result.ok) return result;
+  return { ok: true };
+}
+
+async function callEdgeFunctionForData<T>(
+  name: string,
+  body: Record<string, unknown>,
+): Promise<{ ok: true; data: T } | { ok: false; error: string }> {
   const supabase = await createClient();
   const { data: session } = await supabase.auth.getSession();
   const token = session.session?.access_token;
@@ -58,10 +67,11 @@ async function callEdgeFunction(
       },
       body: JSON.stringify(body),
     });
+    const text = await res.text();
     if (!res.ok) {
-      let detail = await res.text();
+      let detail = text;
       try {
-        const parsed = JSON.parse(detail) as { error?: { message?: string } | string };
+        const parsed = JSON.parse(text) as { error?: { message?: string } | string };
         if (typeof parsed.error === "string") detail = parsed.error;
         else if (parsed.error?.message) detail = parsed.error.message;
       } catch {
@@ -70,7 +80,12 @@ async function callEdgeFunction(
       logger.warn(`hospital-admin.staff.${name}.failed`, { status: res.status });
       return { ok: false, error: detail || `Edge Function returned ${res.status}.` };
     }
-    return { ok: true };
+    try {
+      const parsed = JSON.parse(text) as { data?: T };
+      return { ok: true, data: (parsed.data ?? (parsed as unknown)) as T };
+    } catch {
+      return { ok: true, data: undefined as T };
+    }
   } catch (e) {
     logger.error(`hospital-admin.staff.${name}.network`, { reason: String(e) });
     return {
@@ -224,6 +239,106 @@ export async function assignStaffRoleAction(
   }
   await guardScope(parsed.data.affiliation_id);
   const result = await callEdgeFunction("ha-assign-staff-role", parsed.data);
+  if (!result.ok) return { error: result.error };
+  revalidatePath("/hospital-admin/staff");
+  return { ok: true };
+}
+
+/* ─── Invitations ──────────────────────────────────────────────────── */
+
+const InviteArgs = z.object({
+  reason: z.string().min(8, "Reason ≥ 8 chars required."),
+  /** One email per line; empty lines + duplicates dropped. */
+  emails_blob: z.string().min(1, "At least one email required."),
+});
+
+export interface IssuedInvitation {
+  id: string;
+  email: string;
+  claim_token: string;
+  claim_url: string;
+  expires_at: string;
+}
+
+export type InviteStaffState =
+  | { ok?: false; error?: string }
+  | { ok: true; invitations: ReadonlyArray<IssuedInvitation>; source: "individual" | "bulk" };
+
+export async function inviteStaffAction(
+  _prev: InviteStaffState,
+  formData: FormData,
+): Promise<InviteStaffState> {
+  const parsed = InviteArgs.safeParse({
+    reason: formData.get("reason"),
+    emails_blob: formData.get("emails_blob"),
+  });
+  if (!parsed.success) {
+    const fe = parsed.error.flatten().fieldErrors;
+    return { error: fe.reason?.[0] ?? fe.emails_blob?.[0] ?? "Invalid input." };
+  }
+
+  // Parse the blob: one email per line, trim, dedupe, drop blanks.
+  const seen = new Set<string>();
+  const invites: Array<{ email: string }> = [];
+  for (const line of parsed.data.emails_blob.split(/\r?\n/)) {
+    const email = line.trim().toLowerCase();
+    if (!email || seen.has(email)) continue;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return { error: `'${email}' isn't a valid email — fix or remove the line and try again.` };
+    }
+    seen.add(email);
+    invites.push({ email });
+  }
+  if (invites.length === 0) return { error: "At least one email required." };
+  if (invites.length > 100) return { error: "Cap is 100 invitees per send. Split the list." };
+
+  const scope = await requireHospitalAdminScope();
+  const result = await callEdgeFunctionForData<{
+    invitations: IssuedInvitation[];
+    source: "individual" | "bulk";
+  }>("ha-invite-staff", {
+    hospital_id: scope.hospitalId,
+    invites,
+    reason: parsed.data.reason,
+  });
+  if (!result.ok) return { error: result.error };
+
+  revalidatePath("/hospital-admin/staff");
+  return { ok: true, invitations: result.data.invitations, source: result.data.source };
+}
+
+const RevokeArgs = z.object({
+  invitation_id: z.string().uuid(),
+  reason: z.string().min(8, "Reason ≥ 8 chars required."),
+});
+
+export async function revokeStaffInvitationAction(
+  _prev: StaffActionState,
+  formData: FormData,
+): Promise<StaffActionState> {
+  const parsed = RevokeArgs.safeParse({
+    invitation_id: formData.get("invitation_id"),
+    reason: formData.get("reason"),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.flatten().fieldErrors.reason?.[0] ?? "Invalid input." };
+  }
+
+  const scope = await requireHospitalAdminScope();
+  // The Edge Function does the cross-tenant safety check, but we
+  // pre-check here too so a misbehaving client gets a clean error.
+  const supabase = await createClient();
+  const { data: inv } = await supabase
+    .from("hospital_staff_invitations")
+    .select("hospital_id")
+    .eq("id", parsed.data.invitation_id)
+    .maybeSingle();
+  if (!inv) {
+    throw new ScopeViolationError("Invitation does not exist for this admin's scope.");
+  }
+  assertScopeOwnsHospital(scope, inv.hospital_id as string);
+
+  const result = await callEdgeFunction("ha-revoke-staff-invitation", parsed.data);
   if (!result.ok) return { error: result.error };
   revalidatePath("/hospital-admin/staff");
   return { ok: true };
