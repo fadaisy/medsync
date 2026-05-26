@@ -75,9 +75,15 @@ export async function signInAction(_prev: SignInState, formData: FormData): Prom
       logger.warn("sign-in.routing.user_roles_query_failed", { reason: rolesError.message });
     }
 
-    if (roles?.some((r) => r.role === "superadmin" || r.role === "hospital_admin")) {
+    if (roles?.some((r) => r.role === "superadmin")) {
       defaultTarget = "/admin";
-      routeReason = "admin-role";
+      routeReason = "superadmin-role";
+    } else if (roles?.some((r) => r.role === "hospital_admin")) {
+      // Hospital admins get their own scoped workspace — never /admin,
+      // which is now superadmin-only chrome. The /hospital-admin layout
+      // resolves the tenant scope via requireHospitalAdminScope().
+      defaultTarget = "/hospital-admin";
+      routeReason = "hospital-admin-role";
     } else {
       // Check for a pending hospital application — these users have
       // an account but no admin role yet. The pending page shows

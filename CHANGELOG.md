@@ -5,6 +5,45 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Hospital-admin workspace shell (overlay) — 2026-05-26
+
+Builds the **shell** of the hospital-admin workspace per the hospital-admin shell kickoff. Not the features — those land in their own prompts. What ships here is the frame every feature plugs into: tenant-scope boundary, route guard, navigation, ⌘K palette, and the integration contract.
+
+**New routes** under `/hospital-admin/*`. The seven feature areas (Overview, Staff, Departments, Scheduling, Admins, Audit, Profile) are reserved as routed placeholders that render the empty shell correctly. Sign-in routes `hospital_admin` users here; `/admin/*` is now superadmin-only and bounces hospital admins to `/hospital-admin` if they bookmark it.
+
+**Tenant scope** — single source of truth:
+
+- `lib/hospital-admin/scope.ts` → `requireHospitalAdminScope()` server-side helper. Validates auth + AAL2, resolves the admin's hospital from `user_roles` + `hospital_admin_roster`, refuses non-reachable lifecycle states (suspended / offboarded / agreement_expired). Redirects on no-scope rather than returning null.
+- `app/hospital-admin/_components/scope-provider.tsx` → `useHospitalScope()` client hook. Throws when called outside the provider (programmer-error, not runtime).
+- `supabase/functions/_shared/hospital-admin-scope.ts` → `requireHospitalAdminScope(callerId, hospitalId)` Edge Function helper. Re-pins the role check and refuses non-reachable hospitals at the wire.
+
+**Shell composition** (reuses superadmin Attio primitives — re-themed via tokens, not forked):
+
+- `app/hospital-admin/_components/hospital-shell.tsx` — 240px sidebar + 52px top bar + main slot, wrapped in `<HospitalScopeProvider>` so client features read scope without re-fetching.
+- `HospitalSidebarItem` — same architecture as `AdminSidebarItem` (server passes primitives, client resolves icons + active state). Separate icon set scoped to this workspace's vocabulary.
+- `MobileSidebar` — sheet-based hamburger nav for `<lg`. Sheet primitive reused as-is from `components/ui/sheet.tsx`.
+- `HospitalCommandPalette` — ⌘K palette, nav-only for now. Hospital identity displayed in the modal footer so the operator can never forget the active tenant. Entry-registration contract for features to extend is documented in `docs/hospital-admin-integration-contract.md`.
+
+**Hospital identity is ever-present** in the top bar — name + facility level + lifecycle state pill (only shown when not `active`). Replaces the superadmin's "Superadmin console · Production" strip with the tenant the admin operates on.
+
+**Feature registration** — `app/hospital-admin/_lib/features.ts` carries the single `FEATURE_AREAS` array. The shell consumes it to build the sidebar, mobile sheet, and palette. Adding a feature is one entry; the shell doesn't change.
+
+**Sidebar pending-staff badge** — `_lib/staff-pending-count.ts` wires the count from `staff_affiliations.state = 'pending_approval'` filtered to THIS hospital. The Staff feature prompt inherits a working badge from day one.
+
+**Empty-state polish** — `PlaceholderSurface` component renders each reserved area as a credible page (eyebrow chip, Fraunces section title, hairline teal accent, "coming next" list) so the shell already feels Attio-grade before a single feature lands.
+
+**Integration contract** documented in `docs/hospital-admin-integration-contract.md`. Covers: tenant scope accessors (server + client + Edge), feature registration, slide-out panel API, the Edge Function action pattern (CORS → method → Zod → caller → role → scope → audit → mutation → log → typed response), and the audit / no-decrypted-PHI rules.
+
+**Hardened sign-in routing** — `app/(auth)/sign-in/actions.ts` now logs `routeReason: superadmin-role` / `hospital-admin-role` / `staff-affiliation-…` / `default-landing` on every successful sign-in. The `/admin` layout refuses hospital admins by bouncing them to `/hospital-admin`, never silently downgrading them.
+
+**Regression guard** — `tests/hospital-admin/tenant-isolation.test.ts` proves the security boundary at the RLS layer: a hospital_admin scoped to A cannot SELECT, UPDATE, or probe any row in B (staff affiliations, hospitals). Skipped by default behind `MEDSYNC_ALLOW_RLS_DB_WRITES=1` — same opt-in pattern as the existing RLS suite.
+
+**ADRs:** [`0019-hospital-admin-workspace-shell.md`](docs/adr/0019-hospital-admin-workspace-shell.md) (why `/hospital-admin` is structurally separate from `/admin`), [`0020-tenant-scope-resolution.md`](docs/adr/0020-tenant-scope-resolution.md) (why scope is helper-derived, not URL-derived).
+
+**Out of scope (each lands in its own prompt):** Overview KPIs, Staff approvals UI, Departments + wards management, Scheduling, Admin succession transfer, Audit views, Profile edit forms, workspace switcher for multi-hospital admins, `/clinical` workspace.
+
+---
+
 ### Added — Hospital registration upgrade (gates A–F) — 2026-05-25
 
 Upgrades hospital onboarding from a thin account-creation flow into a full institution-onboarding system, per [`prompts/hospital-registration-upgrade-kickoff.md`](prompts/hospital-registration-upgrade-kickoff.md). Six gates landed end-to-end on `feat/hospital-registration-upgrade`. Closeout inventory: [`docs/hospital-registration-upgrade-closeout.md`](docs/hospital-registration-upgrade-closeout.md).

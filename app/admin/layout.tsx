@@ -59,15 +59,18 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     .eq("user_id", state.user.id);
 
   const isSuperadmin = !!rolesData?.some((r) => r.role === "superadmin");
-  const hospitalAdminHospitalIds = (rolesData ?? [])
-    .filter((r) => r.role === "hospital_admin" && r.hospital_id)
-    .map((r) => r.hospital_id as string);
+  const isHospitalAdmin = !!rolesData?.some((r) => r.role === "hospital_admin" && r.hospital_id);
 
-  if (!isSuperadmin && hospitalAdminHospitalIds.length === 0) {
-    // Authenticated but not an admin — bounce to the landing page
-    // rather than leaking the existence of /admin via a 403 page.
-    // Phase 0 has no clinical/patient surfaces yet; the landing page
-    // is the honest "you have nothing to do here" destination.
+  if (!isSuperadmin) {
+    if (isHospitalAdmin) {
+      // /admin is the superadmin god-mode console. Hospital admins have
+      // their own tenant-scoped workspace at /hospital-admin — bounce
+      // them there instead of leaking superadmin chrome.
+      redirect("/hospital-admin");
+    }
+    // Authenticated but neither superadmin nor hospital_admin — bounce
+    // to the landing page rather than leaking the existence of /admin
+    // via a 403 page.
     redirect("/");
   }
 
