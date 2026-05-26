@@ -20,19 +20,25 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 /**
- * Holding page for clinical-staff signups between submission and approval.
+ * Clinician-side status surface across the affiliation lifecycle.
  *
  * Reached:
- *   - immediately after the clinical signup form (the success redirect)
- *   - on every subsequent sign-in for users whose only relationship to
- *     the platform is a pending staff_affiliation (no superadmin /
- *     hospital_admin / pending hospital application).
+ *   - immediately after the clinical signup form (success redirect)
+ *   - on every subsequent sign-in for any user whose primary
+ *     relationship is a staff_affiliation row (the sign-in action
+ *     routes them here regardless of state).
  *
- * Once a superadmin approves the affiliation:
- *   - clinician role is granted (Edge Function approve-staff-affiliation)
- *   - users.state flips to approved
- *   - sign-in routing falls through this branch and goes to / (Phase 0
- *     has no clinical workspace yet; revisit when /clinical lands).
+ * Renders four shapes based on `staff_affiliations.state`:
+ *   - pending_approval / under_review → "verifying your affiliation"
+ *     + what-happens-next checklist
+ *   - rejected                        → "wasn't approved" + reason
+ *   - approved / active               → "you're approved" + MFA CTA,
+ *     and a Phase-0 note that the /clinical workspace lands later.
+ *
+ * Why this page handles "approved" too: Phase 0 has no /clinical
+ * workspace yet, so an approved clinician has nowhere else to go.
+ * Until /clinical ships, sign-in routes them here and this page
+ * acts as their "you're set up, just waiting for the product" landing.
  */
 export default async function ClinicalPendingPage() {
   const supabase = await createClient();
@@ -62,15 +68,7 @@ export default async function ClinicalPendingPage() {
     .orderBy(desc(staffAffiliations.createdAt))
     .limit(1);
 
-  // No affiliation on file — they reached this page in error. Bounce home.
   if (!aff) redirect("/");
-
-  // Once approved, they shouldn't be here. The sign-in action skips this
-  // branch automatically; this is a defence-in-depth bounce for anyone
-  // who navigates here directly.
-  if (aff.state === "approved" || aff.state === "active") {
-    redirect("/");
-  }
 
   const [me] = await db
     .select({ fullName: users.fullName })
@@ -80,6 +78,28 @@ export default async function ClinicalPendingPage() {
 
   const isUnderReview = aff.state === "pending_approval" || aff.state === "under_review";
   const isRejected = aff.state === "rejected";
+  const isApproved = aff.state === "approved" || aff.state === "active";
+
+  // Detect whether the clinician already has a verified TOTP factor —
+  // the MFA CTA flips between "Set up two-factor" and "Two-factor on file".
+  let mfaEnrolled = false;
+  if (isApproved) {
+    const { data: factors } = await supabase.auth.mfa.listFactors();
+    mfaEnrolled = !!factors?.totp?.[0];
+  }
+
+  const dotColor = isRejected ? "bg-red-500" : isApproved ? "bg-emerald-500" : "bg-amber-500";
+  const statusColor = isRejected
+    ? "text-red-700 dark:text-red-300"
+    : isApproved
+      ? "text-emerald-700 dark:text-emerald-300"
+      : "text-amber-700 dark:text-amber-300";
+
+  const headline = isRejected
+    ? "Your affiliation wasn't approved"
+    : isApproved
+      ? "Your affiliation is approved"
+      : "We're verifying your affiliation";
 
   return (
     <div className="bg-background min-h-svh">
@@ -105,13 +125,11 @@ export default async function ClinicalPendingPage() {
       <main className="mx-auto flex w-full max-w-[720px] flex-col gap-8 px-5 py-16 sm:px-8 sm:py-24">
         <div className="flex flex-col gap-3">
           <span className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
-            <span
-              className={"size-1 rounded-full " + (isRejected ? "bg-red-500" : "bg-amber-500")}
-            />
+            <span className={"size-1 rounded-full " + dotColor} />
             {describeState(aff.state as Parameters<typeof describeState>[0])}
           </span>
           <h1 className="font-display text-foreground text-[32px] leading-tight font-medium tracking-[-0.02em] sm:text-[40px]">
-            {isRejected ? "Your affiliation wasn't approved" : "We're verifying your affiliation"}
+            {headline}
           </h1>
           <p className="text-muted-foreground text-[15px] leading-relaxed">
             {isRejected ? (
@@ -122,6 +140,14 @@ export default async function ClinicalPendingPage() {
                 </span>
                 . Reach out to your hospital admin or to MedSync support if you&apos;d like to
                 discuss next steps.
+              </>
+            ) : isApproved ? (
+              <>
+                Welcome{me?.fullName ? `, ${me.fullName.split(" ")[0]}` : ""}. Your {aff.roleName}{" "}
+                affiliation with{" "}
+                <span className="text-foreground font-medium">{aff.hospitalName}</span> has been
+                verified. Finish setting up two-factor below — clinical features are landing in the
+                next release and will be available here when they do.
               </>
             ) : (
               <>
@@ -134,6 +160,37 @@ export default async function ClinicalPendingPage() {
             )}
           </p>
         </div>
+
+        {isApproved ? (
+          <section className="border-border bg-card flex flex-col gap-3 rounded-lg border p-5">
+            <div className="flex items-baseline justify-between gap-3">
+              <h2 className="text-foreground text-[14px] font-medium">Two-factor</h2>
+              <span
+                className={
+                  "font-mono text-[10.5px] tracking-[0.06em] uppercase " +
+                  (mfaEnrolled
+                    ? "text-emerald-700 dark:text-emerald-300"
+                    : "text-amber-700 dark:text-amber-300")
+                }
+              >
+                {mfaEnrolled ? "On file" : "Required"}
+              </span>
+            </div>
+            <p className="text-muted-foreground text-[12.5px] leading-relaxed">
+              {mfaEnrolled
+                ? "An authenticator app is enrolled on your account. You'll use it whenever you sign in."
+                : "Add an authenticator app (1Password, Google Authenticator, Authy, etc.) so clinical actions can be tied back to you with confidence."}
+            </p>
+            {!mfaEnrolled ? (
+              <Link
+                href="/onboarding/mfa-setup"
+                className="border-border hover:bg-muted/40 inline-flex w-fit items-center gap-2 rounded-md border px-3 py-1.5 text-[12.5px] font-medium transition-colors"
+              >
+                Set up two-factor →
+              </Link>
+            ) : null}
+          </section>
+        ) : null}
 
         <section className="border-border bg-card flex flex-col gap-3 rounded-lg border p-5">
           <h2 className="text-foreground text-[14px] font-medium">Affiliation on file</h2>
@@ -170,14 +227,7 @@ export default async function ClinicalPendingPage() {
             <dt className="text-muted-foreground font-mono text-[10.5px] tracking-[0.06em] uppercase">
               Status
             </dt>
-            <dd
-              className={
-                "font-medium " +
-                (isRejected
-                  ? "text-red-700 dark:text-red-300"
-                  : "text-amber-700 dark:text-amber-300")
-              }
-            >
+            <dd className={"font-medium " + statusColor}>
               {describeState(aff.state as Parameters<typeof describeState>[0])}
             </dd>
           </dl>
@@ -200,7 +250,9 @@ export default async function ClinicalPendingPage() {
         ) : null}
 
         <p className="text-muted-foreground text-center text-[11.5px]">
-          You can close this tab — we&apos;ll notify you by email.
+          {isApproved
+            ? "We'll email you the moment the clinical workspace is available."
+            : "You can close this tab — we'll notify you by email."}
         </p>
       </main>
     </div>

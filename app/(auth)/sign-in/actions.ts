@@ -117,11 +117,16 @@ export async function signInAction(_prev: SignInState, formData: FormData): Prom
           });
         }
 
-        if (aff && ["pending_approval", "under_review", "rejected"].includes(aff.state)) {
+        if (aff) {
+          // Any clinician with a staff_affiliation lands on the
+          // clinical-pending page. The page itself decides what to
+          // render based on state (pending / approved / rejected /
+          // active) — Phase 0 has no /clinical workspace yet, so an
+          // approved clinician with nowhere else to go sees an
+          // "Approved" view with an MFA-setup CTA. Replace this with
+          // /clinical when that workspace ships.
           defaultTarget = "/onboarding/clinical-pending";
           routeReason = `staff-affiliation-${aff.state}`;
-        } else if (aff) {
-          routeReason = `staff-affiliation-state-${aff.state}-not-routed`;
         } else {
           routeReason = "no-staff-affiliation-found";
         }
