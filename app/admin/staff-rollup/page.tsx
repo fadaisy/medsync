@@ -10,6 +10,7 @@ import { db } from "@/db";
 import { staffAffiliations } from "@/db/schema/clinician-profiles";
 import { hospitals } from "@/db/schema/hospitals";
 import { getAuthState } from "@/lib/auth";
+import { logger } from "@/lib/logger";
 import { createServiceClient } from "@/lib/supabase/service";
 import { cn } from "@/lib/utils";
 
@@ -65,7 +66,7 @@ export default async function StaffRollupPage() {
   const isSuperadmin = !!rolesData?.some((r) => r.role === "superadmin");
   if (!isSuperadmin) redirect("/");
 
-  const { perHospital, totals } = await fetchRollup();
+  const { perHospital, totals, errored } = await fetchRollup();
   const staleHospitals = perHospital.filter((h) => h.oldestPendingDays >= STALE_DAYS_THRESHOLD);
 
   return (
@@ -88,6 +89,19 @@ export default async function StaffRollupPage() {
         </p>
         <div className="h-px w-10 bg-teal-500/60 dark:bg-teal-400/50" aria-hidden />
       </header>
+
+      {errored ? (
+        <section
+          role="alert"
+          className="flex flex-col gap-1 rounded-lg border border-red-200 bg-red-50/60 p-4 text-[12.5px] leading-relaxed text-red-900 dark:border-red-800/40 dark:bg-red-950/20 dark:text-red-200"
+        >
+          <p className="font-medium">One of the rollup queries failed.</p>
+          <p className="text-red-900/80 dark:text-red-200/80">
+            The numbers below are partial. Check the function logs (Vercel dashboard → Logs → this
+            route) for the underlying error.
+          </p>
+        </section>
+      ) : null}
 
       <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <KpiCard label="Active staff" value={totals.active} />
@@ -253,30 +267,55 @@ interface Totals {
 async function fetchRollup(): Promise<{
   perHospital: HospitalRollupRow[];
   totals: Totals;
+  errored: boolean;
 }> {
-  // One pass over staff_affiliations grouped by hospital_id + state.
-  const breakdown = await db
-    .select({
-      hospitalId: staffAffiliations.hospitalId,
-      state: staffAffiliations.state,
-      count: sql<number>`count(*)`.as("count"),
-      oldest: sql<Date | null>`min(${staffAffiliations.createdAt})`.as("oldest"),
-    })
-    .from(staffAffiliations)
-    .where(inArray(staffAffiliations.state, [...VISIBLE_AFFILIATION_STATES]))
-    .groupBy(staffAffiliations.hospitalId, staffAffiliations.state);
+  let breakdown: Array<{
+    hospitalId: string;
+    state: string;
+    count: unknown;
+    oldest: unknown;
+  }> = [];
+  let hospitalRows: Array<{
+    id: string;
+    name: string;
+    level: string;
+    state: string;
+  }> = [];
+  let errored = false;
 
-  // Hospital roster (so we list zero-staff hospitals too — silence
-  // is a signal worth showing).
-  const hospitalRows = await db
-    .select({
-      id: hospitals.id,
-      name: hospitals.name,
-      level: hospitals.level,
-      state: hospitals.state,
-    })
-    .from(hospitals)
-    .where(inArray(hospitals.state, ["active", "provisioning"]));
+  try {
+    // One pass over staff_affiliations grouped by hospital_id + state.
+    breakdown = await db
+      .select({
+        hospitalId: staffAffiliations.hospitalId,
+        state: staffAffiliations.state,
+        count: sql<number>`count(*)`.as("count"),
+        oldest: sql<unknown>`min(${staffAffiliations.createdAt})`.as("oldest"),
+      })
+      .from(staffAffiliations)
+      .where(inArray(staffAffiliations.state, [...VISIBLE_AFFILIATION_STATES]))
+      .groupBy(staffAffiliations.hospitalId, staffAffiliations.state);
+  } catch (e) {
+    errored = true;
+    logger.error("admin.staff-rollup.breakdown_query_failed", { reason: String(e) });
+  }
+
+  try {
+    // Hospital roster (so we list zero-staff hospitals too — silence
+    // is a signal worth showing).
+    hospitalRows = await db
+      .select({
+        id: hospitals.id,
+        name: hospitals.name,
+        level: hospitals.level,
+        state: hospitals.state,
+      })
+      .from(hospitals)
+      .where(inArray(hospitals.state, ["active", "provisioning"]));
+  } catch (e) {
+    errored = true;
+    logger.error("admin.staff-rollup.hospitals_query_failed", { reason: String(e) });
+  }
 
   const byHospital = new Map<string, HospitalRollupRow>();
   for (const h of hospitalRows) {
@@ -299,8 +338,13 @@ async function fetchRollup(): Promise<{
     if (row.state === "active" || row.state === "approved") bucket.active += c;
     else if (row.state === "pending_approval") {
       bucket.pending += c;
-      if (row.oldest) {
-        const days = Math.floor((nowMs - row.oldest.getTime()) / 86_400_000);
+      // Defensive coerce: postgres-js may return aggregate timestamps
+      // as a string (not a Date) when wrapped in `sql<...>`. new Date()
+      // accepts both Date and ISO string and turns null/undefined into
+      // an Invalid Date whose getTime() is NaN — guarded below.
+      const oldestMs = row.oldest ? new Date(row.oldest as string | Date).getTime() : NaN;
+      if (!Number.isNaN(oldestMs)) {
+        const days = Math.floor((nowMs - oldestMs) / 86_400_000);
         if (days > bucket.oldestPendingDays) bucket.oldestPendingDays = days;
       }
     } else if (row.state === "suspended") bucket.suspended += c;
@@ -323,7 +367,7 @@ async function fetchRollup(): Promise<{
     { active: 0, pending: 0, suspended: 0 },
   );
 
-  return { perHospital, totals };
+  return { perHospital, totals, errored };
 }
 
 /* ─── UI primitives ────────────────────────────────────────────────── */
