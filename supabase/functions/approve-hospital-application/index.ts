@@ -63,6 +63,53 @@ function slugify(name: string): string {
     .slice(0, 60);
 }
 
+/**
+ * Map a department_family code → human label. Mirror of
+ * app/signup/hospital/_catalog.ts (see migration 0026 for the SQL
+ * mirror used in the historical backfill). Update all three when the
+ * catalog grows. Codes not in the map fall back to a humanise() pass.
+ */
+const DEPARTMENT_LABELS: Record<string, string> = {
+  INTERNAL_MEDICINE: "Internal Medicine",
+  FAMILY_MEDICINE: "Family Medicine",
+  GENERAL_SURGERY: "General Surgery",
+  ORTHOPAEDICS: "Orthopaedics",
+  UROLOGY: "Urology",
+  NEUROSURGERY: "Neurosurgery",
+  CARDIOTHORACIC: "Cardiothoracic",
+  PAEDIATRIC_SURGERY: "Paediatric Surgery",
+  PLASTIC_RECONSTRUCTIVE: "Plastic / Reconstructive",
+  ENT: "ENT",
+  MAXILLOFACIAL: "Maxillofacial",
+  OBSTETRICS_GYNAECOLOGY: "Obstetrics & Gynaecology",
+  PAEDIATRICS_CHILD_HEALTH: "Paediatrics & Child Health",
+  NEONATOLOGY: "Neonatology",
+  EMERGENCY: "Emergency / Casualty",
+  ANAESTHESIA: "Anaesthesia",
+  INTENSIVE_CARE: "Intensive Care (ICU/HDU)",
+  PSYCHIATRY: "Psychiatry / Mental Health",
+  PHYSIOTHERAPY_REHAB: "Physiotherapy & Rehabilitation",
+  PALLIATIVE_CARE: "Palliative Care",
+  DENTAL_ORAL: "Dental / Oral Health",
+  PUBLIC_HEALTH: "Public / Community Health",
+  OPHTHALMOLOGY: "Ophthalmology",
+};
+
+function departmentLabel(code: string): string {
+  return (
+    DEPARTMENT_LABELS[code] ??
+    code
+      .toLowerCase()
+      .split("_")
+      .map((p) => (p.length > 0 ? p[0]!.toUpperCase() + p.slice(1) : p))
+      .join(" ")
+  );
+}
+
+function departmentSlug(code: string): string {
+  return code.toLowerCase().replace(/_/g, "-");
+}
+
 Deno.serve(async (request: Request) => {
   const origin = request.headers.get("origin");
   const requestId = request.headers.get("x-request-id") ?? crypto.randomUUID();
@@ -201,6 +248,41 @@ Deno.serve(async (request: Request) => {
     });
     await sb.from("hospitals").delete().eq("id", hospitalRow.id);
     return serverError("agreement insert failed", init);
+  }
+
+  // 2b. Materialise hospital_departments from the application's
+  //     department picks. Without this, clinicians can't pick a
+  //     department for this hospital at /signup/clinical (the dropdown
+  //     reads from hospital_departments, not the application junction).
+  //     Failure is logged but doesn't roll back — the agreement is
+  //     legally load-bearing; departments are operational and can be
+  //     added later via the admin setup wizard.
+  const { data: deptPicks, error: deptPicksError } = await sb
+    .from("hospital_application_departments")
+    .select("department_family")
+    .eq("application_id", app.id);
+  if (deptPicksError) {
+    log.warn("could not fetch department picks (continuing)", {
+      requestId,
+      reason: deptPicksError.message,
+    });
+  } else if (deptPicks && deptPicks.length > 0) {
+    const deptRows = deptPicks.map((d: { department_family: string }) => ({
+      hospital_id: hospitalRow.id,
+      parent_id: null,
+      name: departmentLabel(d.department_family),
+      slug: departmentSlug(d.department_family),
+    }));
+    const { error: deptInsertError } = await sb.from("hospital_departments").insert(deptRows);
+    if (deptInsertError) {
+      log.warn("hospital_departments insert failed (continuing)", {
+        requestId,
+        reason: deptInsertError.message,
+        count: deptRows.length,
+      });
+    } else {
+      log.info("hospital_departments materialised", { requestId, count: deptRows.length });
+    }
   }
 
   // 3. Update the application row.
