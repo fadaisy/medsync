@@ -16,6 +16,7 @@ import {
   ShieldAlertIcon,
   UserCogIcon,
   UserIcon,
+  UsersRoundIcon,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -91,6 +92,16 @@ const NAV_ITEMS: ReadonlyArray<CommandNavItem> = [
     hint: "Operators + clinicians",
     href: "/admin/people",
     icon: UserCogIcon,
+    group: "Navigate",
+    superadminOnly: true,
+  },
+  {
+    kind: "nav",
+    id: "nav-staff-rollup",
+    label: "Staff rollup",
+    hint: "Cross-tenant staff totals · stale-queue health",
+    href: "/admin/staff-rollup",
+    icon: UsersRoundIcon,
     group: "Navigate",
     superadminOnly: true,
   },
