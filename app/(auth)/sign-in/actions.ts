@@ -63,42 +63,67 @@ export async function signInAction(_prev: SignInState, formData: FormData): Prom
   // empty and silently default away. Matches the pattern
   // /admin/layout.tsx uses for role lookup.
   let defaultTarget = "/";
+  let routeReason = "default-landing";
   if (signInData.user) {
     const service = createServiceClient();
-    const { data: roles } = await service
+
+    const { data: roles, error: rolesError } = await service
       .from("user_roles")
       .select("role")
       .eq("user_id", signInData.user.id);
+    if (rolesError) {
+      logger.warn("sign-in.routing.user_roles_query_failed", { reason: rolesError.message });
+    }
+
     if (roles?.some((r) => r.role === "superadmin" || r.role === "hospital_admin")) {
       defaultTarget = "/admin";
+      routeReason = "admin-role";
     } else {
       // Check for a pending hospital application — these users have
       // an account but no admin role yet. The pending page shows
       // their application status; once the superadmin approves, they
       // get the hospital_admin role and this branch falls through
       // to the /admin path above.
-      const { data: app } = await service
+      const { data: app, error: appError } = await service
         .from("hospital_applications")
         .select("state")
         .eq("applicant_user_id", signInData.user.id)
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
+      if (appError) {
+        logger.warn("sign-in.routing.hospital_applications_query_failed", {
+          reason: appError.message,
+        });
+      }
+
       if (app && ["pending_approval", "under_review", "rejected"].includes(app.state)) {
         defaultTarget = "/onboarding/hospital-pending";
+        routeReason = `hospital-application-${app.state}`;
       } else {
         // Check for a not-yet-approved staff_affiliation. Same shape as
         // the hospital case — until the affiliation lands `approved`,
         // the clinician sees their status page rather than the landing.
-        const { data: aff } = await service
+        const { data: aff, error: affError } = await service
           .from("staff_affiliations")
           .select("state")
           .eq("user_id", signInData.user.id)
           .order("created_at", { ascending: false })
           .limit(1)
           .maybeSingle();
+        if (affError) {
+          logger.warn("sign-in.routing.staff_affiliations_query_failed", {
+            reason: affError.message,
+          });
+        }
+
         if (aff && ["pending_approval", "under_review", "rejected"].includes(aff.state)) {
           defaultTarget = "/onboarding/clinical-pending";
+          routeReason = `staff-affiliation-${aff.state}`;
+        } else if (aff) {
+          routeReason = `staff-affiliation-state-${aff.state}-not-routed`;
+        } else {
+          routeReason = "no-staff-affiliation-found";
         }
       }
     }
@@ -109,6 +134,6 @@ export async function signInAction(_prev: SignInState, formData: FormData): Prom
       ? parsed.data.redirect
       : defaultTarget;
 
-  logger.info("sign-in succeeded");
+  logger.info("sign-in succeeded", { target, routeReason });
   redirect(target);
 }
