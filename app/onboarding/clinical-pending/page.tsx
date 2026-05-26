@@ -42,8 +42,15 @@ export const dynamic = "force-dynamic";
  */
 export default async function ClinicalPendingPage() {
   const supabase = await createClient();
-  const { data: userData } = await supabase.auth.getUser();
-  if (!userData.user) {
+  // Use getSession (cookie-only, no network) instead of getUser
+  // (server round-trip). The session cookie was just minted by sign-in
+  // and signed by Supabase; we can trust it locally. getUser was
+  // bouncing this page back to /sign-in on flaky networks because the
+  // verification call timed out and returned null — creating an
+  // infinite redirect loop.
+  const { data: sessionData } = await supabase.auth.getSession();
+  const user = sessionData.session?.user;
+  if (!user) {
     redirect("/sign-in?redirect=/onboarding/clinical-pending");
   }
 
@@ -64,7 +71,7 @@ export default async function ClinicalPendingPage() {
     .innerJoin(hospitalDepartments, eq(hospitalDepartments.id, staffAffiliations.departmentId))
     .innerJoin(roles, eq(roles.id, staffAffiliations.roleId))
     .innerJoin(cadres, eq(cadres.id, staffAffiliations.cadreId))
-    .where(eq(staffAffiliations.userId, userData.user.id))
+    .where(eq(staffAffiliations.userId, user.id))
     .orderBy(desc(staffAffiliations.createdAt))
     .limit(1);
 
@@ -73,7 +80,7 @@ export default async function ClinicalPendingPage() {
   const [me] = await db
     .select({ fullName: users.fullName })
     .from(users)
-    .where(eq(users.id, userData.user.id))
+    .where(eq(users.id, user.id))
     .limit(1);
 
   const isUnderReview = aff.state === "pending_approval" || aff.state === "under_review";
@@ -82,10 +89,17 @@ export default async function ClinicalPendingPage() {
 
   // Detect whether the clinician already has a verified TOTP factor —
   // the MFA CTA flips between "Set up two-factor" and "Two-factor on file".
+  // Wrapped in try/catch because listFactors is a network call and we
+  // never want it to take the whole page down. On failure we render
+  // the "Required" state — worst case the user re-confirms enrolment.
   let mfaEnrolled = false;
   if (isApproved) {
-    const { data: factors } = await supabase.auth.mfa.listFactors();
-    mfaEnrolled = !!factors?.totp?.[0];
+    try {
+      const { data: factors } = await supabase.auth.mfa.listFactors();
+      mfaEnrolled = !!factors?.totp?.[0];
+    } catch {
+      mfaEnrolled = false;
+    }
   }
 
   const dotColor = isRejected ? "bg-red-500" : isApproved ? "bg-emerald-500" : "bg-amber-500";

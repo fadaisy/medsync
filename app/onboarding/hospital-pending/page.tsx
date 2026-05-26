@@ -35,15 +35,20 @@ export const dynamic = "force-dynamic";
  */
 export default async function HospitalPendingPage() {
   const supabase = await createClient();
-  const { data: userData } = await supabase.auth.getUser();
-  if (!userData.user) {
+  // Cookie-only check (no network round-trip). getUser would bounce
+  // this page back to /sign-in on flaky networks, creating an infinite
+  // redirect loop. The session cookie is signed by Supabase; trusting
+  // it here is fine because the page reads only the user's own row.
+  const { data: sessionData } = await supabase.auth.getSession();
+  const user = sessionData.session?.user;
+  if (!user) {
     redirect("/sign-in?redirect=/onboarding/hospital-pending");
   }
 
   const [app] = await db
     .select()
     .from(hospitalApplications)
-    .where(eq(hospitalApplications.applicantUserId, userData.user.id))
+    .where(eq(hospitalApplications.applicantUserId, user.id))
     .orderBy(desc(hospitalApplications.createdAt))
     .limit(1);
 
