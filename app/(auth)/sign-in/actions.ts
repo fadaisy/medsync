@@ -50,8 +50,11 @@ export async function signInAction(_prev: SignInState, formData: FormData): Prom
   //   1. superadmin / hospital_admin → /admin
   //   2. hospital applicant with a not-yet-approved application →
   //      /onboarding/hospital-pending (their status page)
-  //   3. everyone else → /  (landing — Phase 0 has no clinical/patient
-  //      surfaces yet)
+  //   3. clinician with a not-yet-approved staff_affiliation →
+  //      /onboarding/clinical-pending (their status page)
+  //   4. everyone else → /  (landing — Phase 0 has no clinical/patient
+  //      workspace yet for approved users; that lands when /clinical
+  //      ships).
   // An explicit ?redirect= param always wins over this default.
   //
   // Uses the service client to bypass RLS — the user-context session
@@ -83,6 +86,20 @@ export async function signInAction(_prev: SignInState, formData: FormData): Prom
         .maybeSingle();
       if (app && ["pending_approval", "under_review", "rejected"].includes(app.state)) {
         defaultTarget = "/onboarding/hospital-pending";
+      } else {
+        // Check for a not-yet-approved staff_affiliation. Same shape as
+        // the hospital case — until the affiliation lands `approved`,
+        // the clinician sees their status page rather than the landing.
+        const { data: aff } = await service
+          .from("staff_affiliations")
+          .select("state")
+          .eq("user_id", signInData.user.id)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (aff && ["pending_approval", "under_review", "rejected"].includes(aff.state)) {
+          defaultTarget = "/onboarding/clinical-pending";
+        }
       }
     }
   }

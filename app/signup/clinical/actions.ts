@@ -280,5 +280,5 @@ export async function submitClinicalSignupAction(
   });
 
   revalidatePath("/");
-  redirect("/?welcomed=clinical-pending");
+  redirect("/onboarding/clinical-pending");
 }
