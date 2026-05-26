@@ -5,6 +5,67 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Hospital-admin Staff Management feature — 2026-05-27
+
+First feature plugged into the hospital-admin shell. Tenant-scoped via the shell's `requireHospitalAdminScope()` accessor; every mutation through an Edge Function that re-pins the scope check + writes `sa_audit_log`.
+
+**New routes / surfaces**
+
+- `/hospital-admin/staff` — three tabs (Pending / Directory / Invitations) driven by `?tab=…`; row deep-link via `?aff=…` so the slide-out panel survives revalidation.
+- `/admin/staff-rollup` — superadmin's cross-tenant aggregate view (counts + stale-queue health signal, no individual-row data). Added to the superadmin sidebar + ⌘K palette as a superadminOnly entry.
+
+**Migration 0027**
+
+- `staff_affiliations.review_note text` (nullable) for "request more info" without rejecting. Cleared on the next approve/reject so a stale note doesn't survive the decision.
+- Widens `sa_audit_log.action` + `target_kind` CHECK constraints with the new staff-management actions (`request_staff_info`, `suspend/deactivate/reactivate_staff_affiliation`, `reset_staff_mfa`, `assign_staff_role`, `invite_staff`, `revoke_staff_invitation`) and `staff_invitation` target.
+
+**Edge Functions (6 new, 2 extended)**
+
+- `ha-request-staff-info` — writes the review_note, state stays `pending_approval`.
+- `ha-set-staff-status` — single function handling the (active|approved) ↔ (suspended | deactivated) transitions plus reactivation. Allowed transitions are explicit; anything else returns 400. Audit action varies by transition.
+- `ha-reset-staff-mfa` — unenrols every Supabase MFA factor on the staff user (per-user, not per-affiliation; the reason ceremony surfaces this).
+- `ha-assign-staff-role` — re-assigns role + department; validates target department belongs to THIS hospital (cross-tenant defence) and dedupes against the unique `(user, hospital, dept, role)` index.
+- `ha-invite-staff` — 1–100 invitees per call (source=individual or bulk). 256-bit token per invite, SHA-256 hashed for storage, plaintext returned ONCE in the response. One audit row per invite.
+- `ha-revoke-staff-invitation` — pulls an outstanding invitation; refuses to re-revoke or to revoke an accepted one.
+- `approve-staff-affiliation` + `reject-staff-affiliation` — extended to clear `review_note` so the applicant's pending page never shows a stale note after the decision.
+
+**Pending queue (GATE B)**
+Evidence-in-panel slide-out with applicant identity, council + registration number, claimed role / department, the licence document (opened via the existing signed-URL flow against the `clinician-licences` bucket), and approve / reject / request-info actions. Aging chip with thresholds matching the rollup's stale-queue signal. "Info requested" pill on rows with an open review note. The applicant's `/onboarding/clinical-pending` page surfaces the note as an amber "we need more info" section.
+
+**Directory (GATE C)**
+Dense filterable table over every active/suspended/deactivated affiliation. Filter chips for status + a department select + a search input. Council registration numbers are stored plaintext (operational lookup) but rendered masked-until-expanded; click reveals per row. Per-row slide-out exposes Change role / Reset MFA / Suspend / Deactivate (active rows) or Change role / Reset MFA / Reactivate (suspended) or Reactivate (deactivated). Sensitive actions carry an amber warning banner explaining blast radius.
+
+**Bulk invite (GATE D)**
+One-textarea form (one email per line). On submit, the response's plaintext claim URLs render inline with a copy-to-clipboard button — the admin shares them out-of-band (no SMS integration yet; the kickoff's stub-or-build choice landed on build-the-DB-side, defer SMS). Invitations list shows pending / accepted / revoked / expired, sent/expires dates, inline reason-then-confirm Revoke flow.
+
+**Overview snippet**
+`StaffOverviewCard` server component: standalone, takes `hospitalId`, fetches 3 counts + renders a 3-stat grid with deep links into the Staff tabs. Already wired into `/hospital-admin` so the placeholder Overview shows real staff numbers immediately; the Overview feature prompt drops it into its KPI grid when it lands.
+
+**Superadmin rollup (GATE E)**
+KPI row + per-hospital totals table + stale-queue health-signal banner. Hospitals with `oldest_pending_days >= 14` get an amber row tint + appear in the banner. Zero-staff hospitals are listed too (silence is signal). No new mutation path: the rollup links into the existing `/admin` Approvals queue for action — the superadmin's role-check + audit there already handles the cross-tenant act.
+
+**Tests (GATE F)**
+
+- `tests/hospital-admin/staff-per-affiliation.test.ts` — RLS-layer regression proving (a) an admin-A anon client sees the same-clinician affiliation at A but not at B; (b) update of the B affiliation from A's session is refused; (c) suspending the A affiliation leaves B's state unchanged; (d) `review_note` clears when the affiliation leaves `pending_approval`. Skipped by default behind `MEDSYNC_ALLOW_RLS_DB_WRITES=1` (same opt-in as the rest of the RLS suite).
+
+**ADRs**
+
+- `0021-hospital-admin-staff-action-model.md` — per-affiliation, never per-user; reactivation lands at `approved` not `active`; MFA reset is the lone documented multi-tenant side effect.
+- `0022-superadmin-staff-rollup-aggregate-only.md` — aggregate-only, no individual-row data, no new god-mode path; stale threshold = 14 days; rejects an explicit "escalation" flag in favour of the existing cross-tenant queue.
+
+**Operator actions required**
+
+- `npx supabase db push` to apply migration 0027.
+- `npx supabase functions deploy ha-request-staff-info ha-set-staff-status ha-reset-staff-mfa ha-assign-staff-role ha-invite-staff ha-revoke-staff-invitation approve-staff-affiliation reject-staff-affiliation` to deploy the new + extended Edge Functions.
+
+**Out of scope (explicitly)**
+
+- SMS delivery for invitations (Africa's Talking integration is its own scope).
+- Bulk CSV upload (the textarea handles ≤ 100 emails; CSV is a polish item).
+- Workspace switcher for multi-hospital admins (shell ADR 0019 already deferred this; multi-hospital admins still pin to their most-recently-designated primary).
+
+---
+
 ### Added — Hospital-admin workspace shell (overlay) — 2026-05-26
 
 Builds the **shell** of the hospital-admin workspace per the hospital-admin shell kickoff. Not the features — those land in their own prompts. What ships here is the frame every feature plugs into: tenant-scope boundary, route guard, navigation, ⌘K palette, and the integration contract.
