@@ -1,7 +1,7 @@
 "use client";
 
 import type { LogReadingState } from "../actions";
-import type { NumericReadingKind } from "@/lib/patient/self-tracking";
+import type { NumericReadingKind } from "@/lib/patient/self-tracking-constants";
 import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useState, useTransition } from "react";
 
@@ -13,7 +13,7 @@ import {
   READING_KIND_HINT,
   READING_KIND_LABEL,
   READING_UNIT_OPTIONS,
-} from "@/lib/patient/self-tracking";
+} from "@/lib/patient/self-tracking-constants";
 import { logReadingAction } from "../actions";
 
 const ALL_KINDS = [

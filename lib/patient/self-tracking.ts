@@ -11,6 +11,26 @@ import {
 } from "@/db/schema/patient-self-tracking";
 
 /**
+ * Server-side queries for patient self-tracking. Constants + types
+ * that are also needed by client components (the log-reading form,
+ * the mark-taken button) live in `./self-tracking-constants.ts` so
+ * the Drizzle / postgres driver imported here stays out of the
+ * browser bundle. Re-export them from here so existing server-side
+ * consumers don't need to change their import paths.
+ */
+
+export {
+  READING_KIND_LABEL,
+  READING_KIND_HINT,
+  READING_UNIT_OPTIONS,
+  NUMERIC_READING_KINDS,
+  SCHEDULE_PATTERN_LABEL,
+  expectedDosesPerDay,
+  formatReadingValue,
+  type NumericReadingKind,
+} from "./self-tracking-constants";
+
+/**
  * Today's tracking glance — used on the patient home.
  *
  * Returns the most recent reading (any kind) + a count of today's
@@ -90,64 +110,6 @@ export async function fetchTrackingGlance(patientUserId: string): Promise<Tracki
     takesToday: takesTodayRows.length,
   };
 }
-
-/**
- * Pretty-print a reading for compact display ("128/82 mmHg" or
- * "6.4 mmol/L"). Returns null for kinds that don't have a numeric
- * value (notes, symptoms without numbers).
- */
-export function formatReadingValue(r: {
-  kind: string;
-  numericValue1: string | null;
-  numericValue2: string | null;
-  unit: string | null;
-}): string | null {
-  if (r.kind === "bp") {
-    if (!r.numericValue1 || !r.numericValue2) return null;
-    return `${trimZeros(r.numericValue1)}/${trimZeros(r.numericValue2)} ${r.unit ?? "mmHg"}`;
-  }
-  if (!r.numericValue1) return null;
-  return `${trimZeros(r.numericValue1)}${r.unit ? ` ${r.unit}` : ""}`;
-}
-
-function trimZeros(value: string): string {
-  if (!value.includes(".")) return value;
-  return value.replace(/\.?0+$/, "");
-}
-
-export const READING_KIND_LABEL: Record<string, string> = {
-  glucose: "Glucose",
-  bp: "Blood pressure",
-  weight: "Weight",
-  spo2: "SpO₂",
-  temperature: "Temperature",
-  symptom: "Symptom",
-  note: "Note",
-  other: "Reading",
-};
-
-/** Numeric reading kinds (excludes symptom/note/other). */
-export const NUMERIC_READING_KINDS = ["glucose", "bp", "weight", "spo2", "temperature"] as const;
-export type NumericReadingKind = (typeof NUMERIC_READING_KINDS)[number];
-
-export const READING_UNIT_OPTIONS: Record<NumericReadingKind, ReadonlyArray<string>> = {
-  glucose: ["mg/dL", "mmol/L"],
-  bp: ["mmHg"],
-  weight: ["kg", "lb"],
-  spo2: ["%"],
-  temperature: ["°C", "°F"],
-};
-
-export const READING_KIND_HINT: Record<string, string> = {
-  glucose: "Fasting, post-meal, or random — your call.",
-  bp: "Systolic over diastolic. Sit still for a minute first.",
-  weight: "Same time of day works best for trends.",
-  spo2: "Pulse oximeter reading on a finger.",
-  temperature: "Oral, ear, or forehead — note it if you'd like.",
-  symptom: "Describe what you're feeling. Severity is optional.",
-  note: "Anything you want to remember.",
-  other: "Something else worth tracking.",
-};
 
 /**
  * Suggest reading kinds to default into the log sheet, derived from
@@ -289,19 +251,4 @@ export async function listTakesToday(
     .orderBy(desc(selfMedicationTakes.takenAt));
 
   return rows.map((r) => ({ medicationId: r.medicationId, takenAtIso: r.takenAt.toISOString() }));
-}
-
-export const SCHEDULE_PATTERN_LABEL: Record<string, string> = {
-  as_needed: "As needed",
-  once_daily: "Once daily",
-  twice_daily: "Twice daily",
-  thrice_daily: "Three times daily",
-  custom: "Custom schedule",
-};
-
-export function expectedDosesPerDay(pattern: string): number {
-  if (pattern === "once_daily") return 1;
-  if (pattern === "twice_daily") return 2;
-  if (pattern === "thrice_daily") return 3;
-  return 0; // as_needed + custom — don't auto-score adherence
 }
