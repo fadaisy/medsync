@@ -70,13 +70,31 @@ Deno.serve(async (request: Request) => {
     const scope = await requireHospitalAdminScope(caller.id, input.hospital_id);
     if (!scope.ok) return forbidden(init, scope.reason);
   }
+  const sb = serviceClient();
+
   if (isSelf && !isSuperadmin) {
-    if (!(await hasRole(caller.id, "clinician", input.hospital_id))) {
+    // The role-based check first — the canonical path once user_roles
+    // has been granted on affiliation approval.
+    let allowed = await hasRole(caller.id, "clinician", input.hospital_id);
+    // Fallback: an active/approved staff_affiliation is the canonical
+    // signal that this user is a working clinician here, even when the
+    // role grant hasn't propagated. Mirrors the sign-in routing
+    // fallback (see app/(auth)/sign-in/actions.ts).
+    if (!allowed) {
+      const { data: aff } = await sb
+        .from("staff_affiliations")
+        .select("id")
+        .eq("user_id", caller.id)
+        .eq("hospital_id", input.hospital_id)
+        .in("state", ["active", "approved"])
+        .limit(1)
+        .maybeSingle();
+      allowed = !!aff;
+    }
+    if (!allowed) {
       return forbidden(init, "you are not an active clinician at this hospital");
     }
   }
-
-  const sb = serviceClient();
 
   // Read the existing row for the audit before/after.
   const { data: existing } = await sb

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { CalendarClockIcon } from "lucide-react";
 
 import { requireDoctorScope } from "@/lib/doctor/scope";
 import { fetchClinicianCalendarEvents } from "@/lib/scheduling/calendar";
@@ -64,16 +65,25 @@ export default async function DoctorSchedulePage() {
             <span aria-hidden className="size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20" />
             {scope.hospitalName} · {scope.departmentName} · Schedule
           </span>
-          <SchedulingSettingsSheet
-            defaults={{
-              autoConfirm: settings.autoConfirm,
-              defaultSlotMinutes: settings.defaultSlotMinutes,
-              bufferMinutes: settings.bufferMinutes,
-              allowVirtual: settings.allowVirtual,
-              allowOutOfHoursOverride: settings.allowOutOfHoursOverride,
-              usingDefaults: settings.usingDefaults,
-            }}
-          />
+          <div className="flex items-center gap-1.5">
+            <Link
+              href="/clinician/availability"
+              className="border-border bg-card text-foreground hover:bg-muted/30 hover:border-foreground/15 inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-[12px] font-medium transition-colors"
+            >
+              <CalendarClockIcon className="size-3.5" aria-hidden />
+              Edit availability
+            </Link>
+            <SchedulingSettingsSheet
+              defaults={{
+                autoConfirm: settings.autoConfirm,
+                defaultSlotMinutes: settings.defaultSlotMinutes,
+                bufferMinutes: settings.bufferMinutes,
+                allowVirtual: settings.allowVirtual,
+                allowOutOfHoursOverride: settings.allowOutOfHoursOverride,
+                usingDefaults: settings.usingDefaults,
+              }}
+            />
+          </div>
         </div>
         <h1 className="font-display text-foreground text-[28px] leading-[1.15] font-medium tracking-[-0.015em]">
           Your week
