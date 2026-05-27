@@ -5,6 +5,50 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Scheduling, Appointments & Booking — 2026-05-27
+
+Per [`docs/scheduling-gate-a-proposal.md`](docs/scheduling-gate-a-proposal.md) (signed off). Seven gates landed end-to-end on `feat/scheduling` — the connective tissue between patient and care team.
+
+**Migration 0028** (additive only): 7 new tables — `availability_blocks`, `clinician_scheduling_settings`, `department_scheduling_policy`, `appointments`, `encounters`, `queue_entries`, `appointment_reminders` — plus widened `sa_audit_log` CHECKs with 16 new scheduling actions.
+
+**11 new Edge Functions** covering the full appointment state machine (requested → pending_approval → confirmed → arrived → in_progress → completed + side states cancelled / declined / no_show / rescheduled), plus the urgent-from-alert producer interface and the arrival → queue → encounter handoff:
+
+- `pt-request-appointment`, `ha-confirm-appointment-request`, `ha-decline-appointment-request`, `cancel-appointment`, `reschedule-appointment`, `ha-mark-no-show`, `ha-mark-arrived`, `ha-start-encounter`, `ha-set-clinician-availability`, `ha-cancel-clinician-availability`, `ha-set-clinician-settings`, `system-propose-urgent-appointment`
+
+All follow the integration contract: Zod → getCaller → role → scope → audit → mutation → log. Every mutation requires a ≥ 8-char operator reason.
+
+**Two new workspaces:**
+
+- `/clinician/*` — availability editor + schedule view. `lib/clinician/scope.ts` resolves the signed-in clinician's most-recent-active affiliation. Sign-in routing sends `clinician|nurse|pharmacist|lab_tech` roles here.
+- `/patient/*` — home + booking wizard + appointments list. `lib/patient/scope.ts` (MFA-optional). Sign-in routing sends the `patient` role here.
+
+**Booking wizard** (`/patient/book`): four steps — Reason → Clinician → Date+Slot → Confirm. Server fetches clinicians + bookable blocks + live appointments for 14 days; client derives slots from the data with per-clinician slot_minutes + buffer_minutes. Virtual toggle appears only when the clinician opts in.
+
+**Responsive primitives** (`components/responsive/`): `ResponsiveSheet`, `BottomActionBar`, `MobileTabBar`, `StepWizardShell`. One codebase, mobile-first, reflow at `md:+`. Per [ADR 0025](docs/adr/0025-responsive-patient-primitives.md).
+
+**Urgent-from-alert seam** (`system-propose-urgent-appointment`): widening fallback (preferred department → any clinician at the hospital), picks the earliest slot across candidates, status lands at `confirmed` (urgent skips manual approval). `triggered_by_alert_id` stored as text — upgrades to FK when monitoring lands. Per [ADR 0024](docs/adr/0024-urgent-appointment-fallback.md).
+
+**Arrival → queue → encounter handoff**: `ha-mark-arrived` flips the appointment to `arrived` and inserts a `queue_entries` row with the next `sequence_number` for (hospital, department, today). Virtual appointments skip the queue entry. `ha-start-encounter` flips to `in_progress` and creates the minimal `encounters` row — scheduling hands off there; the clinical module enriches the encounter later.
+
+**Hospital-admin scheduling**: `SchedulingOverviewCard` self-contained server component drops into the hospital-admin overview. `/hospital-admin/scheduling` page renders the same card + a placeholder for the department-policy editor.
+
+**Superadmin scheduling rollup** at `/admin/scheduling-rollup`: aggregate-only cross-tenant view (confirmed today / pending platform-wide / urgent today / no-shows 7d) + per-hospital table with a stale-pending column (pending ≥ 48h — safety net for "routing broken"). No PHI, no new god-mode path. Sidebar + ⌘K palette entry added.
+
+**Lifecycle pattern documented in [ADR 0023](docs/adr/0023-appointment-lifecycle.md)** — every state transition is a dedicated Edge Function (rejected the single mega-function approach for role-rule + side-effect clarity).
+
+**Tenant-isolation regression** at `tests/scheduling/tenant-isolation.test.ts` — proves patient-A sees only their own appointments, clinician-A sees only theirs, authenticated UPDATE on `appointments` / `availability_blocks` is refused. Skipped behind `MEDSYNC_ALLOW_RLS_DB_WRITES=1`.
+
+**Operator actions required:**
+
+```
+npx supabase db push
+npx supabase functions deploy pt-request-appointment ha-confirm-appointment-request ha-decline-appointment-request cancel-appointment reschedule-appointment ha-mark-no-show ha-mark-arrived ha-start-encounter ha-set-clinician-availability ha-cancel-clinician-availability ha-set-clinician-settings system-propose-urgent-appointment
+```
+
+**Explicit out of scope** (per GATE A proposal): Africa's Talking SMS / push dispatcher (reminders queue but don't send); tele-consult video tooling (`type=virtual` flag only); cross-hospital booking / referrals; care-team-based clinician suggestions; full clinical encounter UI; patient-punitive no-show automation; department policy editor + utilisation analytics.
+
+---
+
 ### Added — Hospital-admin Staff Management feature — 2026-05-27
 
 First feature plugged into the hospital-admin shell. Tenant-scoped via the shell's `requireHospitalAdminScope()` accessor; every mutation through an Edge Function that re-pins the scope check + writes `sa_audit_log`.
