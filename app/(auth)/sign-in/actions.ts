@@ -140,12 +140,18 @@ export async function signInAction(_prev: SignInState, formData: FormData): Prom
         defaultTarget = "/onboarding/hospital-pending";
         routeReason = `hospital-application-${app.state}`;
       } else {
-        // Check for a not-yet-approved staff_affiliation. Same shape as
-        // the hospital case — until the affiliation lands `approved`,
-        // the clinician sees their status page rather than the landing.
+        // Check the most-recent staff_affiliation. Three branches:
+        //   1. approved/active + doctor cadre → /doctor
+        //   2. approved/active + any other clinical cadre → /clinician
+        //   3. pending / under_review / rejected → /onboarding/clinical-pending
+        //
+        // The affiliation-approval flow doesn't grant a `clinician`
+        // role in `user_roles` today, so we can't rely on the earlier
+        // role-based branch — the affiliation row itself is the
+        // signal that this user belongs in a clinical workspace.
         const { data: aff, error: affError } = await service
           .from("staff_affiliations")
-          .select("state")
+          .select("state, cadres!inner(code)")
           .eq("user_id", signInData.user.id)
           .order("created_at", { ascending: false })
           .limit(1)
@@ -157,15 +163,30 @@ export async function signInAction(_prev: SignInState, formData: FormData): Prom
         }
 
         if (aff) {
-          // Any clinician with a staff_affiliation lands on the
-          // clinical-pending page. The page itself decides what to
-          // render based on state (pending / approved / rejected /
-          // active) — Phase 0 has no /clinical workspace yet, so an
-          // approved clinician with nowhere else to go sees an
-          // "Approved" view with an MFA-setup CTA. Replace this with
-          // /clinical when that workspace ships.
-          defaultTarget = "/onboarding/clinical-pending";
-          routeReason = `staff-affiliation-${aff.state}`;
+          const cadreCode = (aff as unknown as { cadres?: { code?: string } }).cadres?.code;
+          const isDoctorCadre =
+            cadreCode != null &&
+            [
+              "INTERN_DOCTOR",
+              "MEDICAL_OFFICER",
+              "MEDICAL_OFFICER_SG",
+              "CONSULTANT",
+              "SENIOR_CONSULTANT",
+            ].includes(cadreCode);
+          if (["approved", "active"].includes(aff.state)) {
+            if (isDoctorCadre) {
+              defaultTarget = "/doctor";
+              routeReason = `staff-affiliation-${aff.state}-doctor-cadre`;
+            } else {
+              defaultTarget = "/clinician";
+              routeReason = `staff-affiliation-${aff.state}-non-doctor`;
+            }
+          } else {
+            // pending_approval / under_review / rejected — the
+            // status page handles each state's framing.
+            defaultTarget = "/onboarding/clinical-pending";
+            routeReason = `staff-affiliation-${aff.state}`;
+          }
         } else {
           // Patient detection: presence of a patient_profiles row.
           // The patient signup flow doesn't grant a 'patient' role
