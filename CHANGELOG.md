@@ -5,6 +5,37 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Doctor Scheduling Rework (calendar-native + queue rail) — 2026-05-27
+
+Per [`docs/doctor-scheduling-gate-a-proposal.md`](docs/doctor-scheduling-gate-a-proposal.md). Re-expresses the doctor's scheduling life so the calendar (PR #33) is the primary canvas, with stat rail / pending-approvals rail / live queue beside it. **Presentation + orchestration only** — no engine, schema, lifecycle, scope, or audit behaviour changed beyond the single flagged addition (the walk-in producer).
+
+**One new Edge Function** — `ha-record-walkin` (the `record_walkin` audit verb was reserved in migration 0028 but no producer existed). Creates a `queue_entries` row in state `waiting` for a department, computes `sequence_number` per (hospital, department, today), audited with operator-reason ≥ 8 chars. Callable by reception / nurse / clinician / hospital_admin at the hospital.
+
+**Net-new doctor surface at `/doctor/schedule`:**
+
+- **Stat rail** — Total / Confirmed / Pending / Urgent / Completed / Cancelled for the visible range. Real counts; honest zero state.
+- **Pending-approvals rail** (manual-confirm doctors only) — inline Accept / Decline with audited reason via existing `ha-confirm-appointment-request` + `ha-decline-appointment-request`.
+- **Department queue rail** beside the calendar — today's `queue_entries` (waiting + being_seen) for the doctor's department. Call → start encounter via `ha-start-encounter`. "Record walk-in" sheet calls the new Edge Function. Urgent walk-ins flagged rose.
+- **Settings sheet** opened from the calendar top bar — auto-confirm / slot length / buffer / virtual / out-of-hours-override. Reads the **effective settings** (clinician override → dept policy → hard default); inline `(dept default)` hint shows which fields the doctor hasn't overridden. Saves via existing `ha-set-clinician-settings`.
+- **"Now seeing" line** in the header — derived from the queue's `being_seen` state.
+
+**Library:** [lib/scheduling/doctor.ts](lib/scheduling/doctor.ts) — stat counts, pending requests, dept queue today, currently-being-seen, effective settings resolver.
+
+**Docs:** [ADR 0029 — origins-on-calendar + dept-policy resolution](docs/adr/0029-doctor-scheduling-rework.md). Notes the cadre call (NOT a gate on availability edits — operational, not clinical-safety; co-sign path additive if a future hospital insists).
+
+**Deferred** (called out in the proposal §7):
+
+- Card-grid + view switcher alternate browse — the calendar is sufficient for the working doctor surface; the card-grid lands as a polish pass.
+- Book-on-behalf wizard — wraps `/patient/book` with a patient picker, separate ticket.
+- Walk-in patient picker (currently UUID input) — lands with the patient-directory surface.
+- HOD department calendar overlay — the HOD surface doesn't exist yet.
+- Real monitoring engine + alerts table (the seam is in place).
+- Notification dispatcher (SMS / push) — queue stays accurate.
+
+### Added — Scheduling: Reusable Calendar (month/week/day/agenda) — 2026-05-27
+
+Pure-UI presentation primitive per [`docs/scheduling-ui-calendar-addendum.md`](docs/scheduling-ui-calendar-addendum.md) GATE A. New [components/scheduling/calendar/](components/scheduling/calendar/): `MedSyncCalendar` orchestrator + view switcher (month / week / day / agenda); week + day share a time-grid primitive (07:00–20:00, current-time indicator, urgent ring per DESIGN-medsync.md). Availability blocks render as hatched / muted background; appointments stack on top. Click an appointment → opens the existing `AppointmentDetailSheet` (full reuse). Query helper at [lib/scheduling/calendar.ts](lib/scheduling/calendar.ts). Wired at `/doctor/schedule` + demo at `/styleguide` §14. **No engine behaviour changed.**
+
 ### Added — Doctor Workspace — 2026-05-27
 
 Per [`docs/doctor-workspace-gate-a-proposal.md`](docs/doctor-workspace-gate-a-proposal.md). Six gates landed on `feat/doctor-workspace`. The defining feature: **cadre tailoring**, grounded in Uganda's UMDPC/AHPC hierarchy — an intern, MO, and consultant genuinely do different work, with different scope and supervision, and the workspace reflects that server-side, not cosmetically.
