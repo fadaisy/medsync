@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   BoxesIcon,
+  CalendarClockIcon,
   ClipboardCheckIcon,
   GaugeIcon,
   KeyIcon,
@@ -31,6 +32,7 @@ export type SidebarIconKey =
   | "tenants"
   | "people"
   | "staff-rollup"
+  | "scheduling-rollup"
   | "catalog"
   | "audit"
   | "health"
@@ -41,6 +43,7 @@ const ICONS: Record<SidebarIconKey, typeof ClipboardCheckIcon> = {
   tenants: BoxesIcon,
   people: UserCogIcon,
   "staff-rollup": UsersRoundIcon,
+  "scheduling-rollup": CalendarClockIcon,
   catalog: KeyIcon,
   audit: ScrollTextIcon,
   health: GaugeIcon,
