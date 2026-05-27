@@ -5,6 +5,48 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Doctor Workspace — 2026-05-27
+
+Per [`docs/doctor-workspace-gate-a-proposal.md`](docs/doctor-workspace-gate-a-proposal.md). Six gates landed on `feat/doctor-workspace`. The defining feature: **cadre tailoring**, grounded in Uganda's UMDPC/AHPC hierarchy — an intern, MO, and consultant genuinely do different work, with different scope and supervision, and the workspace reflects that server-side, not cosmetically.
+
+**Migration 0030** (additive only): four new tables —
+
+- `clinical_supervision` — intern → consultant pairings, time-bounded; primary + backup relationship kinds.
+- `clinical_cosign_policies` — per-hospital (optional per-department) policy matrix: which cadre × action requires `allowed` / `cosign_required` / `blocked`. Seeded with the default safety matrix for every active hospital.
+- `clinical_cosign_requests` — workflow object for flagged actions; `pending_review` → `approved`/`returned` with a JSONB action payload snapshot.
+- `clinical_phi_access_log` — append-only "who viewed which patient" log, distinct from `audit_log` (which is row-mutation). Patient-discoverable via RLS.
+
+Plus widening of `sa_audit_log` actions: `assign_supervision`, `end_supervision`, `cosign_request`, `cosign_approve`, `cosign_return`, `cosign_cancel`, `cosign_expire`, `update_cosign_policy`, `phi_access_break_glass`.
+
+**Cadre-shaped enforcement** (per [ADR 0027](docs/adr/0027-doctor-cadre-capability-mapping.md), clinical-safety artifact):
+
+- Intern / Clinical Officer: routine prescription, high-cost imaging, admit, discharge → `cosign_required`. Controlled substances → `blocked`.
+- Medical Officer: routine independent; controlled substances → `cosign_required`.
+- Medical Officer Special Grade / Consultant / Senior Consultant: full independent scope.
+- Enforced at three layers: **policy table** (hospital-configurable) → **server-side** capability resolver gating every action → **UI** rendering different framing per requirement. Clients cannot bypass.
+
+**Patient access basis** (per [ADR 0028](docs/adr/0028-patient-access-basis.md)): legitimate clinical relationship required for PHI decrypt — `care_team` (stubbed for the future module), `active_encounter`, or `department_recent` (last 30 days). Audited on every read via `clinical_phi_access_log`.
+
+**New `/doctor/*` workspace** — net-new sibling to `/clinician/*`; sign-in routing detects UMDPC doctor cadres on a `staff_affiliations` × `cadres` join and sends them to `/doctor`:
+
+- Shell — sidebar + top bar with persistent **hospital + cadre indicators** (a doctor must never be ambiguous about scope). Sidebar items filter by cadre (Review queue → MO+; Supervisees → Consultant-level).
+- **Overview** — cadre-shaped: junior cadres see their named supervisor + pending self-requests; senior cadres see their review-queue count.
+- **Patient panel** + **patient summary** — RLS-respecting list (panel = no PHI; summary = audited decrypt). "Above your access" screen when basis fails.
+- **Prescribe / order** — the cadre-enforcement proof: routine + controlled prescription forms; cap-resolved on the server; `allowed` records the action, `cosign_required` files a review request, `blocked` shows a respectful refusal.
+- **Review queue** (`/doctor/cosign-queue`) — senior cadres only; approve / return-with-feedback with audited transitions.
+- **Supervisees** (`/doctor/supervisees`) — consultant-level only; lists juniors paired to them.
+- **Schedule** — directional landing → reuses existing `/clinician/{schedule,availability}` surfaces.
+- **Alerts** — honest "monitoring connects here" stub against the future engine interface ([lib/doctor/alerts.ts](lib/doctor/alerts.ts)).
+- **Care team**, **Encounters**, **Tasks** — placeholder cards on the overview; full surfaces land with the clinical module.
+
+**Server actions** — `proposeClinicalAction` (cap-resolved at request time; routes to execute / queue / block) and `reviewCosignRequestAction` (senior-only; approve / return). Both audited.
+
+**Library:** `lib/doctor/{scope,capabilities,patient-access,cosign,alerts}.ts` — single sources of truth, all `server-only`.
+
+**Out of scope** (deliberate, per the proposal §8):
+
+- SOAP notes / clinical documentation engine, real prescribing form + drug catalog, lab / imaging order forms, monitoring engine, care-team coordination tables + threading, pharmacy queue, break-glass / four-eyes access (enum reserved), HOD / department-leadership surfaces, multi-affiliation workspace switcher.
+
 ### Added — Patient Workspace — 2026-05-27
 
 Per [`docs/patient-workspace-gate-a-proposal.md`](docs/patient-workspace-gate-a-proposal.md) (signed off). Seven gates landed on `feat/patient-workspace`. The defining case: the self-registered patient with no hospital connection — the workspace is useful and non-empty in that state, with a clear path to connect.
