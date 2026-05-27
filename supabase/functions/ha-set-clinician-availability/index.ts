@@ -94,16 +94,31 @@ Deno.serve(async (request: Request) => {
     const scope = await requireHospitalAdminScope(caller.id, input.hospital_id);
     if (!scope.ok) return forbidden(init, scope.reason);
   }
+  const sb = serviceClient();
+
   // Self acting: confirm the affiliation actually belongs to caller +
   // hospital pair — defence against URL-tampering across hospitals.
   if (isSelf && !isSuperadmin) {
-    const hasClinicianRole = await hasRole(caller.id, "clinician", input.hospital_id);
-    if (!hasClinicianRole) {
+    let allowed = await hasRole(caller.id, "clinician", input.hospital_id);
+    // Fallback: an active/approved staff_affiliations row is the
+    // canonical signal even when user_roles hasn't been granted on
+    // approval. Mirrors the sign-in routing + ha-set-clinician-settings
+    // fallbacks.
+    if (!allowed) {
+      const { data: aff } = await sb
+        .from("staff_affiliations")
+        .select("id")
+        .eq("user_id", caller.id)
+        .eq("hospital_id", input.hospital_id)
+        .in("state", ["active", "approved"])
+        .limit(1)
+        .maybeSingle();
+      allowed = !!aff;
+    }
+    if (!allowed) {
       return forbidden(init, "you are not an active clinician at this hospital");
     }
   }
-
-  const sb = serviceClient();
 
   // If block_id supplied, verify the row exists at the right hospital
   // and the clinician owns it.

@@ -1,16 +1,16 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { CalendarClockIcon } from "lucide-react";
 
 import { requireDoctorScope } from "@/lib/doctor/scope";
 import { fetchClinicianCalendarEvents } from "@/lib/scheduling/calendar";
 import {
+  fetchClinicianAvailabilityBlocks,
   fetchCurrentlyBeingSeen,
   fetchDepartmentQueueToday,
   fetchEffectiveSchedulingSettings,
   fetchPendingApprovals,
   fetchSchedulingStats,
 } from "@/lib/scheduling/doctor";
+import { AvailabilitySheetButton } from "./_components/availability-sheet";
 import { DoctorCalendar } from "./_components/doctor-calendar";
 import { PendingApprovalsRail } from "./_components/pending-rail";
 import { QueueRail } from "./_components/queue-rail";
@@ -30,32 +30,38 @@ export default async function DoctorSchedulePage() {
   rangeEnd.setDate(rangeEnd.getDate() + 14);
   rangeEnd.setHours(0, 0, 0, 0);
 
-  const [events, stats, pending, queue, settings, beingSeen] = await Promise.all([
-    fetchClinicianCalendarEvents({
-      clinicianUserId: scope.userId,
-      hospitalId: scope.hospitalId,
-      rangeStart,
-      rangeEnd,
-    }),
-    fetchSchedulingStats({
-      clinicianUserId: scope.userId,
-      hospitalId: scope.hospitalId,
-      rangeStart,
-      rangeEnd,
-    }),
-    fetchPendingApprovals({
-      clinicianUserId: scope.userId,
-      hospitalId: scope.hospitalId,
-      limit: 20,
-    }),
-    fetchDepartmentQueueToday({ departmentId: scope.departmentId }),
-    fetchEffectiveSchedulingSettings({
-      clinicianUserId: scope.userId,
-      hospitalId: scope.hospitalId,
-      departmentId: scope.departmentId,
-    }),
-    fetchCurrentlyBeingSeen({ departmentId: scope.departmentId }),
-  ]);
+  const [events, stats, pending, queue, settings, beingSeen, availabilityBlocks] =
+    await Promise.all([
+      fetchClinicianCalendarEvents({
+        clinicianUserId: scope.userId,
+        hospitalId: scope.hospitalId,
+        rangeStart,
+        rangeEnd,
+      }),
+      fetchSchedulingStats({
+        clinicianUserId: scope.userId,
+        hospitalId: scope.hospitalId,
+        rangeStart,
+        rangeEnd,
+      }),
+      fetchPendingApprovals({
+        clinicianUserId: scope.userId,
+        hospitalId: scope.hospitalId,
+        limit: 20,
+      }),
+      fetchDepartmentQueueToday({ departmentId: scope.departmentId }),
+      fetchEffectiveSchedulingSettings({
+        clinicianUserId: scope.userId,
+        hospitalId: scope.hospitalId,
+        departmentId: scope.departmentId,
+      }),
+      fetchCurrentlyBeingSeen({ departmentId: scope.departmentId }),
+      fetchClinicianAvailabilityBlocks({
+        clinicianUserId: scope.userId,
+        hospitalId: scope.hospitalId,
+        limit: 50,
+      }),
+    ]);
 
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 lg:px-6 lg:py-9">
@@ -66,13 +72,7 @@ export default async function DoctorSchedulePage() {
             {scope.hospitalName} · {scope.departmentName} · Schedule
           </span>
           <div className="flex items-center gap-1.5">
-            <Link
-              href="/clinician/availability"
-              className="border-border bg-card text-foreground hover:bg-muted/30 hover:border-foreground/15 inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-[12px] font-medium transition-colors"
-            >
-              <CalendarClockIcon className="size-3.5" aria-hidden />
-              Edit availability
-            </Link>
+            <AvailabilitySheetButton blocks={availabilityBlocks} />
             <SchedulingSettingsSheet
               defaults={{
                 autoConfirm: settings.autoConfirm,
@@ -93,11 +93,8 @@ export default async function DoctorSchedulePage() {
           {settings.autoConfirm
             ? "Auto-confirm is on — patient requests confirm immediately."
             : "Manual approval is on — patient requests land in the rail on the right."}{" "}
-          Editing availability blocks lives under{" "}
-          <Link href="/clinician/availability" className="underline-offset-2 hover:underline">
-            /clinician/availability
-          </Link>
-          .
+          Open <span className="font-mono">Availability</span> in the top bar to add or edit your
+          bookable + non-bookable blocks.
         </p>
         {beingSeen?.patientCode ? (
           <p className="text-muted-foreground text-[12px]">

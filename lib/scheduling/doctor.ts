@@ -6,6 +6,7 @@ import { db } from "@/db";
 import { patientProfiles } from "@/db/schema/patient-profiles";
 import {
   appointments,
+  availabilityBlocks,
   clinicianSchedulingSettings,
   departmentSchedulingPolicy,
   queueEntries,
@@ -308,4 +309,62 @@ export async function fetchCurrentlyBeingSeen(args: {
 
   if (!row) return null;
   return { patientCode: row.patientCode, calledAtIso: row.calledAt?.toISOString() ?? null };
+}
+
+/* ─── Availability blocks (for inline editing on /doctor/schedule) ─── */
+
+export interface AvailabilityRow {
+  id: string;
+  kind: string;
+  startsAtIso: string;
+  endsAtIso: string;
+  recurrence: string;
+  recurrenceWeekday: number | null;
+  recurrenceUntilIso: string | null;
+  location: string | null;
+  notes: string | null;
+}
+
+export async function fetchClinicianAvailabilityBlocks(args: {
+  clinicianUserId: string;
+  hospitalId: string;
+  limit?: number;
+}): Promise<AvailabilityRow[]> {
+  const since = new Date();
+  since.setHours(0, 0, 0, 0);
+  const rows = await db
+    .select({
+      id: availabilityBlocks.id,
+      kind: availabilityBlocks.kind,
+      startsAt: availabilityBlocks.startsAt,
+      endsAt: availabilityBlocks.endsAt,
+      recurrence: availabilityBlocks.recurrence,
+      recurrenceWeekday: availabilityBlocks.recurrenceWeekday,
+      recurrenceUntil: availabilityBlocks.recurrenceUntil,
+      location: availabilityBlocks.location,
+      notes: availabilityBlocks.notes,
+    })
+    .from(availabilityBlocks)
+    .where(
+      and(
+        eq(availabilityBlocks.clinicianUserId, args.clinicianUserId),
+        eq(availabilityBlocks.hospitalId, args.hospitalId),
+        eq(availabilityBlocks.state, "active"),
+        gte(availabilityBlocks.endsAt, since),
+      ),
+    )
+    .orderBy(asc(availabilityBlocks.startsAt))
+    .limit(args.limit ?? 50);
+
+  return rows.map((r) => ({
+    id: r.id,
+    kind: r.kind,
+    startsAtIso: r.startsAt.toISOString(),
+    endsAtIso: r.endsAt.toISOString(),
+    recurrence: r.recurrence,
+    recurrenceWeekday: r.recurrenceWeekday,
+    recurrenceUntilIso: r.recurrenceUntil?.toISOString() ?? null,
+    location: r.location,
+    notes: r.notes,
+  }));
 }
