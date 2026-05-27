@@ -5,6 +5,49 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Patient Workspace — 2026-05-27
+
+Per [`docs/patient-workspace-gate-a-proposal.md`](docs/patient-workspace-gate-a-proposal.md) (signed off). Seven gates landed on `feat/patient-workspace`. The defining case: the self-registered patient with no hospital connection — the workspace is useful and non-empty in that state, with a clear path to connect.
+
+**Migration 0029** (additive only): three new patient-owned tables —
+
+- `personal_health_logs` (single table; `kind` discriminator covering glucose / BP / weight / SpO₂ / temperature / symptom / note / other; two numeric slots cover BP-style two-number readings without JSONB).
+- `self_medications` + `self_medication_takes` (patient-managed med list with `schedule_pattern` and confirmed-taken events; "today's doses" + adherence derived live).
+
+RLS: patient owns SELECT/INSERT/UPDATE/DELETE on own rows; superadmin SELECT for support; no clinician policy (the elevation seam lives in a future `clinical_observations` table when the clinical module ships). Per [ADR 0026](docs/adr/0026-patient-workspace-self-tracking.md).
+
+**Care-relationship intent reuses `patient_profiles.primary_facility_id`.** The hospital directory's "Set as primary" action UPDATEs that column. No new join table; multi-hospital intent is a deliberate future migration.
+
+**Redesigned `/patient/*` shell + home:**
+
+- New tab bar: Home · Track · Visits · More (replaces the prior Home · Book · Visits · More). The unaffiliated patient never lands on a CTA that can't work.
+- Home shows: greeting + connection-state banner (inviting "Connect to a hospital" when unaffiliated, primary-name chip when affiliated) · today's tracking glance (latest reading + today's doses, calm empty state when nothing logged) · 4-slot quick action grid · upcoming visits (affiliated only).
+
+**New surfaces:**
+
+- `/patient/track` — self-tracking hub (active medications + recent readings + quick actions).
+- `/patient/track/log` — log a reading (kind picker, default-seeded from `patient_profiles.known_conditions`; per-kind value fields; severity for symptoms; optional note + when).
+- `/patient/track/medications` — list + add + stop + mark-taken; today's adherence count per med.
+- `/patient/hospitals` — MedSync directory (search by name / district / region; `Set as primary` / `Your primary` states; deep-link to `/patient/book`).
+- `/patient/menu` — More tab landing (links to hospitals · profile · consent · settings · my care).
+- `/patient/profile` — identity locked (read-only); editable contact / language / known conditions / next-of-kin. Encrypted PII round-trips via `lib/encryption`.
+- `/patient/care` — "Available once you connect" panel when unaffiliated; framed placeholder for the clinical view when affiliated.
+- `/patient/consent`, `/patient/settings` — inviting placeholders; full surfaces ship with the clinical module + notification dispatcher respectively.
+
+**Server actions (no Edge Function — patient owns the data end-to-end):**
+
+- `app/patient/track/actions.ts`: `logReadingAction`, `deleteReadingAction`, `addMedicationAction`, `markMedicationTakenAction`, `setMedicationStateAction`.
+- `app/patient/hospitals/actions.ts`: `selectPrimaryHospitalAction`, `clearPrimaryHospitalAction`.
+- `app/patient/profile/actions.ts`: `updatePatientProfileAction` (encrypts on the server before write).
+
+**Out of scope (kicked to follow-up tickets):**
+
+- Africa's Talking SMS / push dispatcher (reminder times stored on `self_medications.schedule_times`, not sent).
+- Clinician-prescribed monitoring (`clinical_observations` + "elevate self-tracking" flow — clinical module).
+- Multi-hospital care intent (single `primary_facility_id` for now).
+- Patient-side encounter detail, prescriptions, lab results (clinical module).
+- Tele-consult video for `type=virtual` appointments.
+
 ### Added — Scheduling, Appointments & Booking — 2026-05-27
 
 Per [`docs/scheduling-gate-a-proposal.md`](docs/scheduling-gate-a-proposal.md) (signed off). Seven gates landed end-to-end on `feat/scheduling` — the connective tissue between patient and care team.
