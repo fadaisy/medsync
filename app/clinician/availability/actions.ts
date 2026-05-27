@@ -129,6 +129,7 @@ export async function setAvailabilityBlockAction(
   });
   if (!result.ok) return { error: result.error };
   revalidatePath("/clinician/availability");
+  revalidatePath("/doctor/schedule");
   return { ok: true };
 }
 
@@ -147,6 +148,7 @@ export async function cancelAvailabilityBlockAction(
   const result = await callEdgeFunction("ha-cancel-clinician-availability", parsed.data);
   if (!result.ok) return { error: result.error };
   revalidatePath("/clinician/availability");
+  revalidatePath("/doctor/schedule");
   return { ok: true };
 }
 
@@ -176,5 +178,6 @@ export async function setClinicianSettingsAction(
   });
   if (!result.ok) return { error: result.error };
   revalidatePath("/clinician/availability");
+  revalidatePath("/doctor/schedule");
   return { ok: true };
 }
