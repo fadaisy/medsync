@@ -1,10 +1,30 @@
 "use client";
 
-import type { ComponentType } from "react";
+import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { CalendarPlusIcon, FileTextIcon, HomeIcon, MenuIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+
+/**
+ * Why string keys for icons (not component refs):
+ *
+ * The patient layout is a Server Component. Passing a function
+ * reference (a lucide icon IS a function) from server → client tripped
+ * React's "Functions cannot be passed directly to Client Components"
+ * error. The string-key + ICONS-map pattern is the same one the
+ * Attio shell sidebars use. To add a new icon: import it above, add
+ * its key to the union, add the value to the map.
+ */
+export type MobileTabIconKey = "home" | "calendar-plus" | "file-text" | "menu";
+
+const ICONS: Record<MobileTabIconKey, LucideIcon> = {
+  home: HomeIcon,
+  "calendar-plus": CalendarPlusIcon,
+  "file-text": FileTextIcon,
+  menu: MenuIcon,
+};
 
 /**
  * Bottom tab bar for patient surfaces on phones.
@@ -20,7 +40,9 @@ import { cn } from "@/lib/utils";
 export interface MobileTabBarItem {
   href: string;
   label: string;
-  icon: ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
+  /** Resolves to a lucide icon via the ICONS map. Passing a
+   * component reference here would break the server→client boundary. */
+  iconKey: MobileTabIconKey;
   /** Optional badge count (small chip on top-right of the icon). */
   badgeCount?: number;
   /** Match the active state on exact href only, not prefix. Useful
@@ -50,7 +72,7 @@ export function MobileTabBar({
       <ul className="mx-auto flex w-full max-w-xl items-stretch justify-around gap-1 px-2">
         {items.map((item) => {
           const isActive = item.exact ? pathname === item.href : pathname.startsWith(item.href);
-          const Icon = item.icon;
+          const Icon = ICONS[item.iconKey];
           return (
             <li key={item.href} className="flex-1">
               <Link

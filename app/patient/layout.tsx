@@ -1,7 +1,8 @@
+import type { MobileTabBarItem } from "@/components/responsive/mobile-tab-bar";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { CalendarPlusIcon, FileTextIcon, HomeIcon, MenuIcon } from "lucide-react";
+import { CalendarPlusIcon, FileTextIcon, HomeIcon } from "lucide-react";
 
 import { MobileTabBar } from "@/components/responsive/mobile-tab-bar";
 import { requirePatientScope } from "@/lib/patient/scope";
@@ -10,11 +11,23 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-const TAB_ITEMS = [
-  { href: "/patient", label: "Home", icon: HomeIcon, exact: true },
-  { href: "/patient/book", label: "Book", icon: CalendarPlusIcon },
-  { href: "/patient/appointments", label: "Visits", icon: FileTextIcon },
-  { href: "/patient/menu", label: "More", icon: MenuIcon },
+// String iconKey on each row — lucide functions can't cross the
+// server → client boundary, so we hand the bar string keys and let
+// it resolve to the actual component internally.
+const TAB_ITEMS: ReadonlyArray<MobileTabBarItem> = [
+  { href: "/patient", label: "Home", iconKey: "home", exact: true },
+  { href: "/patient/book", label: "Book", iconKey: "calendar-plus" },
+  { href: "/patient/appointments", label: "Visits", iconKey: "file-text" },
+  { href: "/patient/menu", label: "More", iconKey: "menu" },
+];
+
+// Lucide components used by the desktop nav stay here (this file is
+// a Server Component but the icons render inline in JSX, so they
+// aren't passed across a boundary).
+const DESKTOP_NAV = [
+  { href: "/patient", label: "Home", Icon: HomeIcon },
+  { href: "/patient/book", label: "Book", Icon: CalendarPlusIcon },
+  { href: "/patient/appointments", label: "Visits", Icon: FileTextIcon },
 ];
 
 /**
@@ -57,14 +70,14 @@ export default async function PatientLayout({ children }: { children: ReactNode 
 
         {/* Desktop nav — visible from md up. Tab bar handles mobile. */}
         <nav aria-label="Patient navigation" className="hidden items-center gap-1 md:flex">
-          {TAB_ITEMS.filter((t) => t.label !== "More").map((item) => (
+          {DESKTOP_NAV.map(({ href, label, Icon }) => (
             <Link
-              key={item.href}
-              href={item.href}
+              key={href}
+              href={href}
               className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[12.5px] font-medium transition-colors"
             >
-              <item.icon className="size-3.5" aria-hidden />
-              {item.label}
+              <Icon className="size-3.5" aria-hidden />
+              {label}
             </Link>
           ))}
           <Link
