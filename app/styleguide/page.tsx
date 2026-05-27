@@ -13,6 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { CalendarDemo } from "./_components/calendar-demo";
 
 export const metadata: Metadata = {
   title: "Design system",
@@ -561,9 +562,18 @@ export default function StyleguidePage() {
             </div>
           </Section>
 
-          {/* 14 — Landing patient mock (addendum GATE PA review) */}
+          {/* 14a — Scheduling calendar (addendum GATE A) */}
           <Section
             n={14}
+            title="Scheduling calendar — month · week · day · agenda"
+            subtitle="Reusable MedSync calendar (see components/scheduling/calendar/). Week is the workhorse for clinicians; current-time indicator on today; availability blocks render as hatched / muted background; urgent appointments carry the red ring (clinical-emergency colour only). Click any appointment to open the existing AppointmentDetailSheet."
+          >
+            <CalendarDemo />
+          </Section>
+
+          {/* 14 — Landing patient mock (addendum GATE PA review) */}
+          <Section
+            n={15}
             title="Patient-experience mock — “MedSync · My Health”"
             subtitle="Patient-end twin of the §05b Clinician Home. Static composition; same Amina N. (MS-00184), same date/time, same medications, same glucose values. Renderable as the full device or as fragments for embedding inside §07 scenes and the new patient chapter."
           >
