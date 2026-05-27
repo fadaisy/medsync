@@ -60,11 +60,14 @@ export async function requirePatientScope(): Promise<PatientScope> {
     logger.warn("patient.scope.no_user_row", { user_id: state.user.id });
     redirect("/");
   }
-  if (me.userState !== "active") {
-    // Pending / suspended / deactivated — they have no patient
-    // surface today. Bounce to landing; their own flow (clinical-
-    // pending equivalent for patients) will land in its own ticket.
-    logger.warn("patient.scope.user_not_active", {
+  // Patient signup currently lands at 'verified' (the post-OTP /
+  // phone-verification bump that takes verified → active hasn't shipped
+  // yet — patient/actions.ts:276 sets state='verified'). Both states
+  // are "can use the patient app" for now. unverified / suspended /
+  // deactivated bounce.
+  const REACHABLE_PATIENT_STATES = new Set(["verified", "active"]);
+  if (!REACHABLE_PATIENT_STATES.has(me.userState)) {
+    logger.warn("patient.scope.user_state_unreachable", {
       user_id: state.user.id,
       user_state: me.userState,
     });

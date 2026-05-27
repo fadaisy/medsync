@@ -92,11 +92,6 @@ export async function signInAction(_prev: SignInState, formData: FormData): Prom
       // page that lands at /clinician — is scoped per affiliation.)
       defaultTarget = "/clinician";
       routeReason = "clinician-role";
-    } else if (roles?.some((r) => r.role === "patient")) {
-      // Patient role granted — straight to the patient workspace.
-      // Active state + primary hospital are checked inside the layout.
-      defaultTarget = "/patient";
-      routeReason = "patient-role";
     } else {
       // Check for a pending hospital application — these users have
       // an account but no admin role yet. The pending page shows
@@ -147,7 +142,25 @@ export async function signInAction(_prev: SignInState, formData: FormData): Prom
           defaultTarget = "/onboarding/clinical-pending";
           routeReason = `staff-affiliation-${aff.state}`;
         } else {
-          routeReason = "no-staff-affiliation-found";
+          // Patient detection: presence of a patient_profiles row.
+          // The patient signup flow doesn't grant a 'patient' role
+          // in user_roles (yet) — the row itself is the signal.
+          const { data: patientProfile, error: patientError } = await service
+            .from("patient_profiles")
+            .select("id")
+            .eq("id", signInData.user.id)
+            .maybeSingle();
+          if (patientError) {
+            logger.warn("sign-in.routing.patient_profiles_query_failed", {
+              reason: patientError.message,
+            });
+          }
+          if (patientProfile) {
+            defaultTarget = "/patient";
+            routeReason = "patient-profile";
+          } else {
+            routeReason = "no-affiliation-or-patient-profile";
+          }
         }
       }
     }
