@@ -84,6 +84,19 @@ export async function signInAction(_prev: SignInState, formData: FormData): Prom
       // resolves the tenant scope via requireHospitalAdminScope().
       defaultTarget = "/hospital-admin";
       routeReason = "hospital-admin-role";
+    } else if (
+      roles?.some((r) => ["clinician", "nurse", "pharmacist", "lab_tech"].includes(r.role))
+    ) {
+      // Active clinical staff with the role granted go to the clinician
+      // workspace. (The clinician scheduling availability editor — first
+      // page that lands at /clinician — is scoped per affiliation.)
+      defaultTarget = "/clinician";
+      routeReason = "clinician-role";
+    } else if (roles?.some((r) => r.role === "patient")) {
+      // Patient role granted — straight to the patient workspace.
+      // Active state + primary hospital are checked inside the layout.
+      defaultTarget = "/patient";
+      routeReason = "patient-role";
     } else {
       // Check for a pending hospital application — these users have
       // an account but no admin role yet. The pending page shows

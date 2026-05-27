@@ -47,3 +47,6 @@ export * from "./hospital-admin-roster";
 export * from "./hospital-staff-invitations";
 export * from "./hospital-application-departments";
 export * from "./hospital-application-specialties";
+
+// ─── Scheduling, Appointments & Booking (migration 0028) ───────────────
+export * from "./scheduling";

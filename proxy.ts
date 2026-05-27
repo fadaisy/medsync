@@ -49,6 +49,13 @@ const ALWAYS_AUTH_REQUIRED_PREFIXES = [
   // top — that lives there, not here, because middleware can't talk
   // to the DB cheaply on every request.
   "/hospital-admin",
+  // Clinician workspace — same auth + AAL2 + MFA gate. Per-clinician
+  // affiliation scope resolves in app/clinician/layout.tsx.
+  "/clinician",
+  // Patient workspace — requires auth. Patients are MFA-optional
+  // (per kickoff), so the MFA branches in proxy.ts don't fire for
+  // pure patients; a clinician-also-patient still gets MFA.
+  "/patient",
 ];
 
 function isPublic(pathname: string): boolean {

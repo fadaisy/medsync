@@ -1,5 +1,6 @@
 import { requireHospitalAdminScope } from "@/lib/hospital-admin/scope";
 import { PlaceholderSurface } from "./_components/placeholder-surface";
+import { SchedulingOverviewCard } from "./_components/scheduling-overview-card";
 import { StaffOverviewCard } from "./_components/staff-overview-card";
 
 /**
@@ -47,6 +48,7 @@ export default async function HospitalAdminOverviewPage() {
       </header>
 
       <StaffOverviewCard hospitalId={scope.hospitalId} variant="panel" />
+      <SchedulingOverviewCard hospitalId={scope.hospitalId} variant="panel" />
 
       <PlaceholderSurface
         title="The rest of the overview"

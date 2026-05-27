@@ -59,7 +59,24 @@ export type SaAuditAction =
   | "reset_staff_mfa"
   | "assign_staff_role"
   | "invite_staff"
-  | "revoke_staff_invitation";
+  | "revoke_staff_invitation"
+  // Scheduling actions (migration 0028).
+  | "book_appointment"
+  | "confirm_appointment_request"
+  | "decline_appointment_request"
+  | "cancel_appointment"
+  | "reschedule_appointment"
+  | "mark_no_show"
+  | "mark_arrived"
+  | "start_encounter"
+  | "complete_encounter"
+  | "propose_urgent_appointment"
+  | "record_walkin"
+  | "set_clinician_availability"
+  | "cancel_clinician_availability"
+  | "update_clinician_settings"
+  | "update_department_policy"
+  | "override_out_of_hours_booking";
 
 export type SaAuditTargetKind =
   | "staff_affiliation"
@@ -71,7 +88,14 @@ export type SaAuditTargetKind =
   | "audit_log_export"
   | "hospital_admin_invitation"
   // Hospital-admin staff-management target (migration 0027).
-  | "staff_invitation";
+  | "staff_invitation"
+  // Scheduling targets (migration 0028).
+  | "appointment"
+  | "availability_block"
+  | "queue_entry"
+  | "encounter"
+  | "clinician_scheduling_settings"
+  | "department_scheduling_policy";
 
 export async function recordSaAudit(params: {
   actorId: string;
