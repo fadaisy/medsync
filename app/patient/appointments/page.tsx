@@ -10,6 +10,9 @@ import { hospitals } from "@/db/schema/hospitals";
 import { appointments } from "@/db/schema/scheduling";
 import { users } from "@/db/schema/users";
 import { requirePatientScope } from "@/lib/patient/scope";
+import { CancelButton } from "./_components/cancel-button";
+
+const CANCELLABLE = new Set(["requested", "pending_approval", "confirmed", "arrived"]);
 
 export const metadata: Metadata = { title: "Appointments · MedSync" };
 export const dynamic = "force-dynamic";
@@ -55,8 +58,7 @@ export default async function PatientAppointments() {
           Your appointments
         </h1>
         <p className="text-muted-foreground text-[12.5px]">
-          Cancel + reschedule controls land in the next release. For now, contact your hospital
-          directly to change anything.
+          Cancel any upcoming appointment below. Need to reschedule? Cancel and book again.
         </p>
       </header>
 
@@ -114,6 +116,11 @@ function Section({
                 <p className="text-muted-foreground border-l-2 border-l-teal-500/50 pl-2 text-[12px] italic">
                   &ldquo;{r.reasonNote}&rdquo;
                 </p>
+              ) : null}
+              {CANCELLABLE.has(r.status) ? (
+                <div className="border-border/60 mt-1 border-t pt-2">
+                  <CancelButton appointmentId={r.id} />
+                </div>
               ) : null}
             </li>
           ))}
