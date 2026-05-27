@@ -87,11 +87,36 @@ export async function signInAction(_prev: SignInState, formData: FormData): Prom
     } else if (
       roles?.some((r) => ["clinician", "nurse", "pharmacist", "lab_tech"].includes(r.role))
     ) {
-      // Active clinical staff with the role granted go to the clinician
-      // workspace. (The clinician scheduling availability editor — first
-      // page that lands at /clinician — is scoped per affiliation.)
-      defaultTarget = "/clinician";
-      routeReason = "clinician-role";
+      // Active clinical staff. Doctors (UMDPC cadres) get the
+      // cadre-tailored /doctor workspace; everyone else stays on the
+      // generic /clinician shell (scheduling availability for now).
+      // We detect doctor-cadre membership via a join through
+      // staff_affiliations → cadres on the catalog `code`.
+      const { data: doctorAff, error: doctorAffError } = await service
+        .from("staff_affiliations")
+        .select("id, cadres!inner(code)")
+        .eq("user_id", signInData.user.id)
+        .in("state", ["active", "approved"])
+        .in("cadres.code", [
+          "INTERN_DOCTOR",
+          "MEDICAL_OFFICER",
+          "MEDICAL_OFFICER_SG",
+          "CONSULTANT",
+          "SENIOR_CONSULTANT",
+        ])
+        .limit(1);
+      if (doctorAffError) {
+        logger.warn("sign-in.routing.doctor_cadre_query_failed", {
+          reason: doctorAffError.message,
+        });
+      }
+      if (doctorAff && doctorAff.length > 0) {
+        defaultTarget = "/doctor";
+        routeReason = "doctor-cadre";
+      } else {
+        defaultTarget = "/clinician";
+        routeReason = "clinician-role";
+      }
     } else {
       // Check for a pending hospital application — these users have
       // an account but no admin role yet. The pending page shows
