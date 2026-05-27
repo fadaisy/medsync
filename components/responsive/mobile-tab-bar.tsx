@@ -3,7 +3,7 @@
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { CalendarPlusIcon, FileTextIcon, HomeIcon, MenuIcon } from "lucide-react";
+import { ActivityIcon, CalendarPlusIcon, FileTextIcon, HomeIcon, MenuIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -17,13 +17,14 @@ import { cn } from "@/lib/utils";
  * Attio shell sidebars use. To add a new icon: import it above, add
  * its key to the union, add the value to the map.
  */
-export type MobileTabIconKey = "home" | "calendar-plus" | "file-text" | "menu";
+export type MobileTabIconKey = "home" | "calendar-plus" | "file-text" | "menu" | "activity";
 
 const ICONS: Record<MobileTabIconKey, LucideIcon> = {
   home: HomeIcon,
   "calendar-plus": CalendarPlusIcon,
   "file-text": FileTextIcon,
   menu: MenuIcon,
+  activity: ActivityIcon,
 };
 
 /**

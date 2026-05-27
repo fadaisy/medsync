@@ -1,8 +1,9 @@
 import type { PillTone } from "@/components/ui/data-table";
+import type { TrackingGlance } from "@/lib/patient/self-tracking";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { and, asc, eq, gte, inArray } from "drizzle-orm";
-import { CalendarPlusIcon } from "lucide-react";
+import { ActivityIcon, BuildingIcon, CalendarPlusIcon, HospitalIcon, PlusIcon } from "lucide-react";
 
 import { Pill } from "@/components/ui/data-table";
 import { db } from "@/db";
@@ -10,6 +11,11 @@ import { hospitalDepartments } from "@/db/schema/hospital-departments";
 import { appointments } from "@/db/schema/scheduling";
 import { users } from "@/db/schema/users";
 import { requirePatientScope } from "@/lib/patient/scope";
+import {
+  fetchTrackingGlance,
+  formatReadingValue,
+  READING_KIND_LABEL,
+} from "@/lib/patient/self-tracking";
 
 export const metadata: Metadata = { title: "Home · MedSync" };
 export const dynamic = "force-dynamic";
@@ -42,93 +48,355 @@ const STATUS_LABEL: Record<string, string> = {
 
 export default async function PatientHome() {
   const scope = await requirePatientScope();
-  const upcoming = await fetchUpcoming(scope.userId);
+  const [upcoming, glance] = await Promise.all([
+    scope.primaryHospitalId ? fetchUpcoming(scope.userId) : Promise.resolve([]),
+    fetchTrackingGlance(scope.userId),
+  ]);
+
+  const firstName = scope.fullName?.split(" ")[0];
 
   return (
-    <div className="mx-auto flex w-full max-w-xl flex-col gap-5 px-4 py-5 sm:px-6 sm:py-8">
-      <section className="flex flex-col gap-1">
-        <p className="text-muted-foreground text-[12.5px]">
-          Good to see you{scope.fullName ? `, ${scope.fullName.split(" ")[0]}` : ""}.
-        </p>
-        <h1 className="font-display text-foreground text-[24px] leading-tight font-medium tracking-[-0.015em] sm:text-[28px]">
-          {scope.primaryHospitalName ? scope.primaryHospitalName : "Your MedSync"}
+    <div className="mx-auto flex w-full max-w-xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-9">
+      {/* ── Greeting ───────────────────────────────────────────── */}
+      <section className="flex flex-col gap-1.5">
+        <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
+          <span aria-hidden className="size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20" />
+          MedSync · Your space
+        </span>
+        <h1 className="font-display text-foreground text-[26px] leading-[1.15] font-medium tracking-[-0.015em] sm:text-[30px]">
+          {firstName ? `Hello, ${firstName}.` : "Hello."}
         </h1>
-        {!scope.primaryHospitalId ? (
-          <p className="text-[12.5px] leading-relaxed text-amber-700 dark:text-amber-300">
-            Set your primary hospital from your profile before booking.
-          </p>
-        ) : null}
+        <p className="text-muted-foreground max-w-[44ch] text-[13px] leading-relaxed">
+          {scope.primaryHospitalName
+            ? `${scope.primaryHospitalName} is your primary hospital. Track how you're doing, see your visits, and book when you need to.`
+            : "This is your private workspace. Track how you're doing day to day; when you're ready, connect to a hospital."}
+        </p>
       </section>
 
-      {scope.primaryHospitalId ? (
-        <Link
-          href="/patient/book"
-          className="border-border bg-card hover:bg-muted/30 flex items-center gap-3 rounded-xl border p-4 transition-colors hover:border-teal-500/40"
-        >
-          <span
-            aria-hidden
-            className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-teal-50 text-teal-700 ring-1 ring-teal-200/70 dark:bg-teal-950/40 dark:text-teal-300 dark:ring-teal-800/40"
-          >
-            <CalendarPlusIcon className="size-5" />
-          </span>
-          <span className="flex min-w-0 flex-1 flex-col">
-            <span className="text-foreground text-[14.5px] font-medium">Book an appointment</span>
-            <span className="text-muted-foreground text-[12px]">
-              Pick a reason, clinician, and time.
-            </span>
-          </span>
-          <span className="text-muted-foreground text-[12.5px]">→</span>
-        </Link>
-      ) : null}
+      {/* ── Connection-state banner ───────────────────────────── */}
+      <ConnectionBanner
+        primaryHospitalName={scope.primaryHospitalName}
+        primaryHospitalSlug={scope.primaryHospitalSlug}
+      />
 
+      {/* ── Today's tracking glance ───────────────────────────── */}
+      <TrackingGlanceCard glance={glance} />
+
+      {/* ── Quick actions ─────────────────────────────────────── */}
       <section className="flex flex-col gap-2">
         <h2 className="text-muted-foreground font-mono text-[10.5px] tracking-[0.14em] uppercase">
-          Upcoming
+          Quick actions
         </h2>
-        {upcoming.length === 0 ? (
-          <p className="text-muted-foreground border-border bg-card rounded-lg border p-4 text-[12.5px] leading-relaxed">
-            Nothing on your schedule. When you book, the next visit lands here.
-          </p>
-        ) : (
-          <ul className="flex flex-col gap-2">
-            {upcoming.map((a) => (
-              <li key={a.id}>
-                <Link
-                  href={`/patient/appointments`}
-                  className="border-border bg-card hover:bg-muted/30 flex flex-col gap-2 rounded-xl border p-4 transition-colors"
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-foreground text-[14px] font-medium">
-                      {a.clinicianName}
-                    </span>
-                    <Pill tone={STATUS_TONES[a.status] ?? "neutral"}>
-                      {STATUS_LABEL[a.status] ?? a.status}
-                    </Pill>
-                  </div>
-                  <p className="text-muted-foreground text-[12.5px]">
-                    {a.departmentName} · {a.type === "virtual" ? "Virtual" : "In-person"}
-                  </p>
-                  <p className="text-foreground font-mono text-[12px] tabular-nums">
-                    {formatWhen(a.startsAtIso)}
-                  </p>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
+        <ul className="grid grid-cols-2 gap-2">
+          <QuickAction
+            href="/patient/track/log"
+            label="Log a reading"
+            sub="Glucose, BP, weight…"
+            Icon={PlusIcon}
+            tone="primary"
+          />
+          <QuickAction
+            href="/patient/track"
+            label="See trends"
+            sub="Your readings over time"
+            Icon={ActivityIcon}
+            tone="muted"
+          />
+          {scope.primaryHospitalId ? (
+            <QuickAction
+              href="/patient/book"
+              label="Book a visit"
+              sub={scope.primaryHospitalName ?? "Your hospital"}
+              Icon={CalendarPlusIcon}
+              tone="muted"
+            />
+          ) : (
+            <QuickAction
+              href="/patient/hospitals"
+              label="Browse hospitals"
+              sub="Find one near you"
+              Icon={BuildingIcon}
+              tone="muted"
+            />
+          )}
+          <QuickAction
+            href={scope.primaryHospitalId ? "/patient/hospitals" : "/patient/track/medications"}
+            label={scope.primaryHospitalId ? "Switch hospital" : "My medications"}
+            sub={scope.primaryHospitalId ? "Change your primary" : "Self-managed list"}
+            Icon={scope.primaryHospitalId ? HospitalIcon : ActivityIcon}
+            tone="muted"
+          />
+        </ul>
       </section>
 
-      {!scope.primaryHospitalId ? null : (
-        <Link
-          href="/patient/appointments"
-          className="text-muted-foreground hover:text-foreground self-center text-[12.5px] transition-colors"
-        >
-          See all appointments →
-        </Link>
-      )}
+      {/* ── Upcoming visits (affiliated only) ─────────────────── */}
+      {scope.primaryHospitalId ? (
+        <section className="flex flex-col gap-2">
+          <div className="flex items-baseline justify-between gap-2">
+            <h2 className="text-muted-foreground font-mono text-[10.5px] tracking-[0.14em] uppercase">
+              Upcoming
+            </h2>
+            {upcoming.length > 0 ? (
+              <Link
+                href="/patient/appointments"
+                className="text-muted-foreground hover:text-foreground text-[11.5px] transition-colors"
+              >
+                See all →
+              </Link>
+            ) : null}
+          </div>
+          {upcoming.length === 0 ? (
+            <p className="text-muted-foreground border-border bg-card rounded-xl border p-4 text-[12.5px] leading-relaxed">
+              Nothing on your schedule. When you book, the next visit lands here.
+            </p>
+          ) : (
+            <ul className="flex flex-col gap-2">
+              {upcoming.map((a) => (
+                <li key={a.id}>
+                  <Link
+                    href="/patient/appointments"
+                    className="border-border bg-card hover:bg-muted/30 flex flex-col gap-2 rounded-xl border p-4 transition-colors hover:border-teal-500/40"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-foreground text-[14px] font-medium">
+                        {a.clinicianName}
+                      </span>
+                      <Pill tone={STATUS_TONES[a.status] ?? "neutral"}>
+                        {STATUS_LABEL[a.status] ?? a.status}
+                      </Pill>
+                    </div>
+                    <p className="text-muted-foreground text-[12.5px]">
+                      {a.departmentName} · {a.type === "virtual" ? "Virtual" : "In-person"}
+                    </p>
+                    <p className="text-foreground font-mono text-[12px] tabular-nums">
+                      {formatWhen(a.startsAtIso)}
+                    </p>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      ) : null}
     </div>
   );
 }
+
+/* ── Connection-state banner ──────────────────────────────────── */
+
+function ConnectionBanner({
+  primaryHospitalName,
+}: {
+  primaryHospitalName: string | null;
+  primaryHospitalSlug: string | null;
+}) {
+  if (primaryHospitalName) {
+    return (
+      <div className="border-border bg-card flex items-center justify-between gap-3 rounded-xl border p-3.5">
+        <div className="flex min-w-0 items-center gap-3">
+          <span
+            aria-hidden
+            className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-teal-50 text-teal-700 ring-1 ring-teal-200/70 dark:bg-teal-950/40 dark:text-teal-300 dark:ring-teal-800/40"
+          >
+            <HospitalIcon className="size-4" />
+          </span>
+          <div className="flex min-w-0 flex-col">
+            <span className="text-muted-foreground font-mono text-[9.5px] tracking-[0.14em] uppercase">
+              Connected to
+            </span>
+            <span className="text-foreground truncate text-[13.5px] font-medium">
+              {primaryHospitalName}
+            </span>
+          </div>
+        </div>
+        <Link
+          href="/patient/hospitals"
+          className="text-muted-foreground hover:text-foreground rounded-md px-2 py-1 text-[11.5px] transition-colors"
+        >
+          Change
+        </Link>
+      </div>
+    );
+  }
+
+  // Unaffiliated — invite, not warn. The kickoff calls for "calm
+  // wellbeing tone, encouraging not shaming." A teal-tinted card with
+  // a single primary CTA carries the weight without an alert chrome.
+  return (
+    <Link
+      href="/patient/hospitals"
+      className="group relative overflow-hidden rounded-xl border border-teal-500/30 bg-gradient-to-br from-teal-50/80 via-teal-50/40 to-transparent p-4 transition-colors hover:border-teal-500/60 dark:border-teal-400/20 dark:from-teal-950/30 dark:via-teal-950/15 dark:to-transparent"
+    >
+      <div
+        aria-hidden
+        className="absolute -top-12 -right-12 size-32 rounded-full bg-teal-500/10 blur-2xl transition-opacity group-hover:opacity-80 dark:bg-teal-400/10"
+      />
+      <div className="relative flex items-start gap-3">
+        <span
+          aria-hidden
+          className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-white/80 text-teal-700 ring-1 ring-teal-200/80 dark:bg-teal-950/60 dark:text-teal-300 dark:ring-teal-800/40"
+        >
+          <HospitalIcon className="size-5" />
+        </span>
+        <div className="flex min-w-0 flex-1 flex-col gap-1">
+          <span className="font-display text-foreground text-[16px] font-medium tracking-[-0.005em]">
+            Connect to a hospital
+          </span>
+          <span className="text-muted-foreground max-w-[44ch] text-[12.5px] leading-relaxed">
+            Pick a MedSync hospital as your primary. You can book appointments and, when a clinician
+            connects, see your records here.
+          </span>
+          <span className="mt-1 inline-flex items-center gap-1 text-[12px] font-medium text-teal-700 dark:text-teal-300">
+            Browse hospitals
+            <span aria-hidden className="transition-transform group-hover:translate-x-0.5">
+              →
+            </span>
+          </span>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+/* ── Today's tracking glance ───────────────────────────────────── */
+
+function TrackingGlanceCard({ glance }: { glance: TrackingGlance }) {
+  const hasReading = !!glance.latestReading;
+  const hasMeds = glance.activeMedicationCount > 0;
+
+  if (!hasReading && !hasMeds) {
+    // Calm, honest empty state. The kickoff is explicit that the
+    // home must be useful in the unaffiliated/empty state — so we
+    // make logging feel like the natural next step, not a chore.
+    return (
+      <section className="border-border bg-card relative overflow-hidden rounded-xl border p-4">
+        <div className="flex items-start gap-3">
+          <span
+            aria-hidden
+            className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-teal-50 text-teal-700 ring-1 ring-teal-200/70 dark:bg-teal-950/40 dark:text-teal-300 dark:ring-teal-800/40"
+          >
+            <ActivityIcon className="size-4" />
+          </span>
+          <div className="flex flex-col gap-1">
+            <span className="text-foreground text-[13.5px] font-medium">Nothing logged yet</span>
+            <span className="text-muted-foreground max-w-[44ch] text-[12px] leading-relaxed">
+              When you log a reading or add a medicine, today&rsquo;s snapshot will live here. It
+              stays private until you decide otherwise.
+            </span>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="border-border bg-card flex flex-col gap-3 rounded-xl border p-4">
+      <div className="flex items-baseline justify-between gap-2">
+        <span className="text-muted-foreground font-mono text-[10.5px] tracking-[0.14em] uppercase">
+          Today
+        </span>
+        <Link
+          href="/patient/track"
+          className="text-muted-foreground hover:text-foreground text-[11.5px] transition-colors"
+        >
+          Full view →
+        </Link>
+      </div>
+
+      {hasReading ? <LatestReadingRow latest={glance.latestReading!} /> : null}
+
+      {hasMeds ? (
+        <div className="border-border/60 flex items-center justify-between gap-3 border-t pt-3">
+          <div className="flex flex-col">
+            <span className="text-muted-foreground text-[11.5px]">Medications</span>
+            <span className="text-foreground text-[13px] font-medium">
+              {glance.takesToday > 0
+                ? `${glance.takesToday} dose${glance.takesToday === 1 ? "" : "s"} taken today`
+                : "Nothing taken yet today"}
+            </span>
+          </div>
+          <span className="text-muted-foreground font-mono text-[11px] tabular-nums">
+            {glance.activeMedicationCount} active
+          </span>
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
+function LatestReadingRow({ latest }: { latest: NonNullable<TrackingGlance["latestReading"]> }) {
+  const label = READING_KIND_LABEL[latest.kind] ?? "Reading";
+  const value = formatReadingValue(latest);
+  const when = formatRelative(latest.recordedAtIso);
+
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <div className="flex min-w-0 flex-col">
+        <span className="text-muted-foreground text-[11.5px]">{label}</span>
+        <span className="text-foreground text-[16px] font-medium tracking-[-0.005em] tabular-nums">
+          {value ?? (latest.note ? truncate(latest.note, 40) : "—")}
+        </span>
+      </div>
+      <span className="text-muted-foreground shrink-0 font-mono text-[11px] tabular-nums">
+        {when}
+      </span>
+    </div>
+  );
+}
+
+/* ── Quick action card ─────────────────────────────────────────── */
+
+function QuickAction({
+  href,
+  label,
+  sub,
+  Icon,
+  tone,
+}: {
+  href: string;
+  label: string;
+  sub: string;
+  Icon: typeof PlusIcon;
+  tone: "primary" | "muted";
+}) {
+  return (
+    <li>
+      <Link
+        href={href}
+        className={
+          tone === "primary"
+            ? "group bg-foreground text-background hover:bg-foreground/90 flex h-full flex-col gap-2 rounded-xl p-3.5 transition-colors"
+            : "group border-border bg-card hover:bg-muted/30 hover:border-foreground/15 flex h-full flex-col gap-2 rounded-xl border p-3.5 transition-colors"
+        }
+      >
+        <span
+          aria-hidden
+          className={
+            tone === "primary"
+              ? "bg-background/15 text-background inline-flex size-7 items-center justify-center rounded-full"
+              : "bg-muted text-foreground/80 inline-flex size-7 items-center justify-center rounded-full"
+          }
+        >
+          <Icon className="size-3.5" />
+        </span>
+        <span className="flex flex-col gap-0.5">
+          <span className="text-[13px] font-medium">{label}</span>
+          <span
+            className={
+              tone === "primary"
+                ? "text-background/70 text-[11px] leading-tight"
+                : "text-muted-foreground text-[11px] leading-tight"
+            }
+          >
+            {sub}
+          </span>
+        </span>
+      </Link>
+    </li>
+  );
+}
+
+/* ── Data fetchers + format helpers ────────────────────────────── */
 
 interface UpcomingRow {
   id: string;
@@ -187,4 +455,21 @@ function formatWhen(iso: string): string {
   });
   const time = d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
   return `${date} · ${time}`;
+}
+
+function formatRelative(iso: string): string {
+  const then = new Date(iso).getTime();
+  const now = Date.now();
+  const diffMin = Math.round((now - then) / 60_000);
+  if (diffMin < 1) return "just now";
+  if (diffMin < 60) return `${diffMin} min ago`;
+  const diffH = Math.round(diffMin / 60);
+  if (diffH < 24) return `${diffH}h ago`;
+  const diffD = Math.round(diffH / 24);
+  if (diffD < 7) return `${diffD}d ago`;
+  return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
+function truncate(s: string, max: number): string {
+  return s.length <= max ? s : s.slice(0, max - 1).trimEnd() + "…";
 }

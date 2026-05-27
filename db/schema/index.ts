@@ -50,3 +50,6 @@ export * from "./hospital-application-specialties";
 
 // ─── Scheduling, Appointments & Booking (migration 0028) ───────────────
 export * from "./scheduling";
+
+// ─── Patient self-tracking (migration 0029) ────────────────────────────
+export * from "./patient-self-tracking";

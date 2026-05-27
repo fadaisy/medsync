@@ -2,7 +2,7 @@ import type { MobileTabBarItem } from "@/components/responsive/mobile-tab-bar";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { CalendarPlusIcon, FileTextIcon, HomeIcon } from "lucide-react";
+import { ActivityIcon, FileTextIcon, HomeIcon } from "lucide-react";
 
 import { MobileTabBar } from "@/components/responsive/mobile-tab-bar";
 import { requirePatientScope } from "@/lib/patient/scope";
@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 // it resolve to the actual component internally.
 const TAB_ITEMS: ReadonlyArray<MobileTabBarItem> = [
   { href: "/patient", label: "Home", iconKey: "home", exact: true },
-  { href: "/patient/book", label: "Book", iconKey: "calendar-plus" },
+  { href: "/patient/track", label: "Track", iconKey: "activity" },
   { href: "/patient/appointments", label: "Visits", iconKey: "file-text" },
   { href: "/patient/menu", label: "More", iconKey: "menu" },
 ];
@@ -26,7 +26,7 @@ const TAB_ITEMS: ReadonlyArray<MobileTabBarItem> = [
 // aren't passed across a boundary).
 const DESKTOP_NAV = [
   { href: "/patient", label: "Home", Icon: HomeIcon },
-  { href: "/patient/book", label: "Book", Icon: CalendarPlusIcon },
+  { href: "/patient/track", label: "Track", Icon: ActivityIcon },
   { href: "/patient/appointments", label: "Visits", Icon: FileTextIcon },
 ];
 
