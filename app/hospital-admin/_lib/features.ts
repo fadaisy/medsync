@@ -30,6 +30,7 @@ export type FeatureIconKey =
   | "staff"
   | "departments"
   | "scheduling"
+  | "intake"
   | "admins"
   | "audit"
   | "profile";
@@ -39,6 +40,7 @@ export type FeatureSlug =
   | "staff"
   | "departments"
   | "scheduling"
+  | "intake"
   | "admins"
   | "audit"
   | "profile";
@@ -85,6 +87,13 @@ export const FEATURE_AREAS: ReadonlyArray<FeatureArea> = [
     hint: "Department scheduling policy · walk-in queues",
     iconKey: "scheduling",
     placeholder: true,
+  },
+  {
+    slug: "intake",
+    label: "Intake",
+    hint: "Register patient arrivals — walk-in, referral, emergency, transfer",
+    iconKey: "intake",
+    placeholder: false,
   },
   {
     slug: "admins",

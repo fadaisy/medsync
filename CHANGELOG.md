@@ -5,6 +5,41 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Patient Entry Points (front-door intake + triage seam) — 2026-05-29
+
+Per [`docs/patient-entry-points-gate-a-proposal.md`](docs/patient-entry-points-gate-a-proposal.md). The unified front door to the clinical system — 11-entry-type taxonomy, intake/encounter-precursor record, never-block-emergency rule encoded in the schema, clean handoff to the next-build triage.
+
+**Migration 0032** (additive only, already pushed): two new tables —
+
+- `entry_types` — reference data; 11 rows seeded (booked_arrival, walk_in, external_referral_routine, external_referral_emergency, emergency_self_presentation, self_referral_bypass, internal_transfer, inter_facility_transfer, program_visit, follow_up, virtual). Per-type flags drive routing + validation.
+- `patient_intakes` — the unified intake row. Patient linkage via `patient_user_id` OR `patient_unknown_label` (the `patient_or_unknown` CHECK is the never-block-emergency rule encoded in the schema — an unconscious patient brought by ambulance lands as `entry_type='emergency_self_presentation'` + an unknown label + nothing else required).
+
+Plus `sa_audit_log` widening (3 new verbs: `register_intake`, `update_intake`, `cancel_intake` + `patient_intake` target kind).
+
+**One new Edge Function** (already deployed):
+
+- `ha-register-intake` — audited create path. Enforces per-type validation (routine referrals require a referring facility; emergency types skip everything). Auth accepts any active clinical affiliation, hospital_admin (scoped), or superadmin — no new role needed.
+
+**New `/hospital-admin/intake`** surface in the hospital-admin shell (sidebar entry "Intake"):
+
+- Today's awaiting-triage count + emergency-awaiting count.
+- Full intake capture form — entry-type picker (emergency types styled rose), known-patient-or-unknown-patient toggle (the unknown branch only appears for entry types that allow it), conditional referral block, presenting complaint, brought-by, priority hint override.
+- Awaiting-triage list panel beside the form (oldest-first within priority).
+
+**Docs:** [ADR 0031 — entry-point taxonomy + intake model + triage seam](docs/adr/0031-patient-entry-points-intake.md).
+
+**Deferred** (called out in proposal §7):
+
+- Triage logic / acuity scoring / post-triage encounter creation — the next build.
+- Notifications dispatcher (emergency-arrival alerts) — flag is set; dispatcher consumes it.
+- Admin aggregate metrics snippet (entry-point breakdown / time-to-triage on `/hospital-admin/overview`) — polish ticket.
+- Superadmin cross-tenant aggregates.
+- Referral document upload (the schema reserves `referral_document_url`; widget + Storage bucket ship separately).
+- Dedicated reception role + workspace.
+- Patient pre-queue from `/patient/appointments`.
+- Incoming-intake panel on nurse + doctor home (the data exists; surfacing it inline is a polish ticket).
+- `update_intake` flow that backfills `patient_user_id` after the unknown-patient is identified.
+
 ### Added — Nurse Workspace (cadre-tailored, MAR safety scaffold, in-charge assignment board) — 2026-05-27
 
 Per [`docs/nurse-workspace-gate-a-proposal.md`](docs/nurse-workspace-gate-a-proposal.md). UNMC-anchored nursing workspace — cadre tailoring (ENROLLED / REGISTERED / SPECIALIST × NURSE / MIDWIFE / SPECIALIST_NURSE), in-charge overlay (not a cadre), four legitimate patient access bases, audited PHI decrypt, MAR with 5-rights + high-alert cosign routing.

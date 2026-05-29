@@ -1,0 +1,151 @@
+import type { Metadata } from "next";
+import { AlertTriangleIcon, UserPlusIcon } from "lucide-react";
+
+import { requireHospitalAdminScope } from "@/lib/hospital-admin/scope";
+import {
+  fetchHospitalIncomingIntakes,
+  fetchTodayIntakeCount,
+  listActiveHospitals,
+  listEntryTypes,
+  listHospitalDepartments,
+} from "@/lib/intake/queries";
+import { IntakeForm } from "./_components/intake-form";
+
+export const metadata: Metadata = { title: "Intake · Hospital admin · MedSync" };
+export const dynamic = "force-dynamic";
+
+export default async function HospitalAdminIntakePage() {
+  const scope = await requireHospitalAdminScope();
+  const [entryTypes, departments, hospitals, today, awaiting] = await Promise.all([
+    listEntryTypes(),
+    listHospitalDepartments(scope.hospitalId),
+    listActiveHospitals(),
+    fetchTodayIntakeCount({ hospitalId: scope.hospitalId }),
+    fetchHospitalIncomingIntakes({ hospitalId: scope.hospitalId, limit: 30 }),
+  ]);
+
+  return (
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-8 lg:py-10">
+      <header className="flex flex-col gap-2">
+        <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
+          <span aria-hidden className="size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20" />
+          {scope.hospitalName} · Intake
+        </span>
+        <h1 className="font-display text-foreground text-[28px] leading-[1.15] font-medium tracking-[-0.015em]">
+          Front door
+        </h1>
+        <p className="text-muted-foreground max-w-[60ch] text-[12.5px] leading-relaxed">
+          Register a patient arriving at the hospital — walk-in, booked appointment, referral,
+          emergency, transfer, or follow-up. Emergency entries skip required fields: capture fast,
+          complete later.
+        </p>
+      </header>
+
+      {/* Today's count rail */}
+      <ul className="grid grid-cols-2 gap-2">
+        <li className="border-border bg-card flex flex-col gap-1 rounded-xl border p-3">
+          <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.14em] uppercase">
+            <UserPlusIcon className="size-3" aria-hidden />
+            Awaiting triage
+          </span>
+          <span className="font-display text-foreground text-[28px] leading-none font-medium tabular-nums">
+            {today.awaitingTriage}
+          </span>
+        </li>
+        <li
+          className={
+            today.emergencyAwaiting > 0
+              ? "flex flex-col gap-1 rounded-xl border border-rose-500/40 bg-rose-50/40 p-3 dark:bg-rose-950/15"
+              : "border-border bg-card flex flex-col gap-1 rounded-xl border p-3"
+          }
+        >
+          <span
+            className={
+              today.emergencyAwaiting > 0
+                ? "inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.14em] text-rose-700 uppercase dark:text-rose-300"
+                : "text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.14em] uppercase"
+            }
+          >
+            <AlertTriangleIcon className="size-3" aria-hidden />
+            Emergency awaiting
+          </span>
+          <span
+            className={
+              today.emergencyAwaiting > 0
+                ? "font-display text-[28px] leading-none font-medium text-rose-700 tabular-nums dark:text-rose-300"
+                : "font-display text-foreground text-[28px] leading-none font-medium tabular-nums"
+            }
+          >
+            {today.emergencyAwaiting}
+          </span>
+        </li>
+      </ul>
+
+      <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
+        {/* Capture form */}
+        <section className="border-border bg-card flex flex-col gap-4 rounded-xl border p-5">
+          <h2 className="text-muted-foreground font-mono text-[10.5px] tracking-[0.14em] uppercase">
+            Register a new intake
+          </h2>
+          <IntakeForm
+            entryTypes={entryTypes}
+            departments={departments}
+            hospitals={hospitals.filter((h) => h.id !== scope.hospitalId)}
+          />
+        </section>
+
+        {/* Awaiting-triage list */}
+        <aside className="border-border bg-card flex flex-col gap-2 rounded-xl border p-4">
+          <h2 className="text-muted-foreground font-mono text-[10.5px] tracking-[0.14em] uppercase">
+            Awaiting triage · {awaiting.length}
+          </h2>
+          {awaiting.length === 0 ? (
+            <p className="text-muted-foreground text-[12.5px]">No one waiting right now.</p>
+          ) : (
+            <ul className="divide-border/60 -mx-2 divide-y">
+              {awaiting.map((i) => (
+                <li
+                  key={i.id}
+                  className={
+                    i.isEmergency
+                      ? "flex flex-col gap-1 border-l-2 border-l-rose-500/60 px-2 py-2"
+                      : "flex flex-col gap-1 px-2 py-2"
+                  }
+                >
+                  <div className="flex items-baseline justify-between gap-2">
+                    <span className="text-foreground inline-flex items-center gap-1 text-[12.5px] font-medium">
+                      {i.patientCode ?? i.patientUnknownLabel ?? "Patient"}
+                      {i.isEmergency ? (
+                        <AlertTriangleIcon className="size-3 text-rose-600" aria-hidden />
+                      ) : null}
+                    </span>
+                    <span className="text-muted-foreground font-mono text-[10px] tabular-nums">
+                      {formatRelative(i.arrivedAtIso)}
+                    </span>
+                  </div>
+                  <span className="text-muted-foreground text-[11.5px]">
+                    {i.entryTypeName}
+                    {i.receivingDepartmentName ? ` · ${i.receivingDepartmentName}` : ""}
+                  </span>
+                  {i.presentingComplaint ? (
+                    <span className="text-muted-foreground/90 line-clamp-1 text-[11.5px] italic">
+                      {i.presentingComplaint}
+                    </span>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          )}
+        </aside>
+      </div>
+    </div>
+  );
+}
+
+function formatRelative(iso: string): string {
+  const diffMin = Math.round((Date.now() - new Date(iso).getTime()) / 60_000);
+  if (diffMin < 1) return "just now";
+  if (diffMin < 60) return `${diffMin}m`;
+  const diffH = Math.round(diffMin / 60);
+  return `${diffH}h`;
+}
