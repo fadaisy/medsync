@@ -173,9 +173,8 @@ const FOUNDERS: Founder[] = [
     story: (
       <>
         <p>
-          Healthcare was never meant to start at crisis or end at treatment. It was meant to stay
-          connected to people &mdash; before disease, before complications, between visits, and
-          throughout life. MedSync exists to rebuild that continuity.
+          The future of healthcare will not belong to systems that only respond to emergencies. It
+          will belong to systems that remain connected long before complications begin.
         </p>
         <p>
           Every day, people living with chronic illnesses leave hospitals carrying more than
@@ -205,7 +204,7 @@ const FOUNDERS: Founder[] = [
       </>
     ),
     pullQuote:
-      "The future of healthcare will not belong to systems that only respond to emergencies. It will belong to systems that remain connected long before complications begin.",
+      "Healthcare was never meant to start at crisis or end at treatment. It was meant to stay connected to people — before disease, before complications, between visits, and throughout life. MedSync exists to rebuild that continuity.",
   },
 ];
 
