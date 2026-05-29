@@ -5,6 +5,54 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Nurse Workspace (cadre-tailored, MAR safety scaffold, in-charge assignment board) — 2026-05-27
+
+Per [`docs/nurse-workspace-gate-a-proposal.md`](docs/nurse-workspace-gate-a-proposal.md). UNMC-anchored nursing workspace — cadre tailoring (ENROLLED / REGISTERED / SPECIALIST × NURSE / MIDWIFE / SPECIALIST_NURSE), in-charge overlay (not a cadre), four legitimate patient access bases, audited PHI decrypt, MAR with 5-rights + high-alert cosign routing.
+
+**Migration 0031** (additive only, already pushed): five new tables —
+
+- `nursing_assignments` — patient ↔ nurse pairing per shift; the canonical access basis.
+- `ward_in_charge_assignments` — who is ward sister right now (time-bounded, one-active-per-ward partial unique).
+- `clinical_observations` — vitals/obs records; **the landing zone reserved in ADR 0026** for clinician-recorded observations (distinct from patient-self-tracked `personal_health_logs`).
+- `medication_administration_records` (MAR) — administer + document; `prescription_id` as TEXT seam until the prescribing engine ships.
+- `shift_handovers` — structured between-shift handover, per ward, audited.
+
+Plus: `clinical_cosign_policies` + `clinical_cosign_requests` action_kind CHECK widening (`high_alert_med_administration`, `independent_complex_procedure`) + seeded default policy for the three nursing cadres × every active hospital. `sa_audit_log` widened with 10 new nursing verbs.
+
+**Four new Edge Functions** (already deployed):
+
+- `ha-record-observation` — write a clinical_observations row, audited; affiliation check.
+- `ha-administer-medication` — MAR row + cadre/grade-driven high-alert cosign routing. ENROLLED nurses administering high-alert meds file a `clinical_cosign_requests` row instead of the MAR row directly — the MAR write waits for a senior approval.
+- `ha-submit-handover` — shift handover row, audited.
+- `ha-assign-patient-to-nurse` — in-charge (or admin) pairs a patient with a nurse; closes the prior pair if any.
+
+**New `/nurse/*` workspace** (sibling to `/doctor/*` and `/clinician/*`; sign-in routing detects UNMC nursing cadres):
+
+- Shell with **persistent hospital + cadre + grade + in-charge pills**.
+- **Cadre-shaped sidebar** — Assignment board only visible to current in-charge holders; Supervisees + Review queue visible to REGISTERED+.
+- **Patient panel + summary** — four OR-combined access bases (`assigned` / `ward_census` / `in_charge` / `care_team` stub). PHI decrypts only via the audited `fetchNursePatientSummaryAudited` helper; refusals show a respectful "above your current access" screen.
+- **Record vitals** at `/nurse/observations?patient=X` — kind-driven form (BP / HR / temp / SpO₂ / glucose / pain / I/O / GCS / etc.); single + dual numeric inputs.
+- **MAR** at `/nurse/mar?patient=X` — drug / dose / route / outcome (administered / withheld / refused / wasted) + reason, 5-rights confirmation gate, high-alert checkbox that routes ENROLLED administrations for senior cosign.
+- **Shift handover** at `/nurse/handover` — submit per-ward; recent handovers panel beside the form.
+- **Assignment board** at `/nurse/assignments` (in-charge only) — list active pairings + assign form.
+
+**Library:** [lib/nurse/scope.ts](lib/nurse/scope.ts) (with in-charge overlay), [capabilities.ts](lib/nurse/capabilities.ts) (cadre + grade resolver), [patient-access.ts](lib/nurse/patient-access.ts) (four-basis resolver + audited decrypt mirroring the doctor's helper).
+
+**Docs:** [ADR 0030 — nursing cadre→capability mapping](docs/adr/0030-nurse-cadre-capability-mapping.md). Captures the in-charge-as-overlay decision, grade-level downgrade in application layer, high-alert-list deferred to prescribing engine, single-RN-check vs cosign defaults.
+
+**Deferred** (called out in proposal §9):
+
+- High-alert formulary (`high_alert_medications` reference list) — lands with the prescribing engine.
+- Real prescriptions / orders — clinical module. MAR's `prescription_id` is TEXT seam until then.
+- Per-procedure granularity on complex-procedure cosign — needs a procedures catalogue.
+- Real ward shift / rostering system (today assignment IS the shift signal).
+- Care-team coordination tables — clinical module.
+- Real monitoring engine + alerts.
+- Notification dispatcher.
+- Walk-in patient picker (UUID input today).
+- HOD-of-nursing surfaces.
+- Cosign-approve flow consuming queued `high_alert_med_administration` payloads → real MAR insert. (Currently the cosign request lands but the post-approval administration is the next ticket.)
+
 ### Added — Doctor Scheduling Rework (calendar-native + queue rail) — 2026-05-27
 
 Per [`docs/doctor-scheduling-gate-a-proposal.md`](docs/doctor-scheduling-gate-a-proposal.md). Re-expresses the doctor's scheduling life so the calendar (PR #33) is the primary canvas, with stat rail / pending-approvals rail / live queue beside it. **Presentation + orchestration only** — no engine, schema, lifecycle, scope, or audit behaviour changed beyond the single flagged addition (the walk-in producer).

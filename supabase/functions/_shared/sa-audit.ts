@@ -76,7 +76,28 @@ export type SaAuditAction =
   | "cancel_clinician_availability"
   | "update_clinician_settings"
   | "update_department_policy"
-  | "override_out_of_hours_booking";
+  | "override_out_of_hours_booking"
+  // Doctor workspace (migration 0030).
+  | "assign_supervision"
+  | "end_supervision"
+  | "cosign_request"
+  | "cosign_approve"
+  | "cosign_return"
+  | "cosign_cancel"
+  | "cosign_expire"
+  | "update_cosign_policy"
+  | "phi_access_break_glass"
+  // Nurse workspace (migration 0031).
+  | "record_observation"
+  | "correct_observation"
+  | "administer_medication"
+  | "withhold_medication"
+  | "submit_handover"
+  | "assign_patient_to_nurse"
+  | "unassign_patient_from_nurse"
+  | "assign_ward_in_charge"
+  | "end_ward_in_charge"
+  | "escalate_to_medical_team";
 
 export type SaAuditTargetKind =
   | "staff_affiliation"
@@ -95,7 +116,18 @@ export type SaAuditTargetKind =
   | "queue_entry"
   | "encounter"
   | "clinician_scheduling_settings"
-  | "department_scheduling_policy";
+  | "department_scheduling_policy"
+  // Doctor workspace (migration 0030).
+  | "clinical_supervision"
+  | "clinical_cosign_request"
+  | "clinical_cosign_policy"
+  | "clinical_phi_access"
+  // Nurse workspace (migration 0031).
+  | "nursing_assignment"
+  | "ward_in_charge_assignment"
+  | "clinical_observation"
+  | "medication_administration_record"
+  | "shift_handover";
 
 export async function recordSaAudit(params: {
   actorId: string;
