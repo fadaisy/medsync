@@ -97,7 +97,11 @@ export type SaAuditAction =
   | "unassign_patient_from_nurse"
   | "assign_ward_in_charge"
   | "end_ward_in_charge"
-  | "escalate_to_medical_team";
+  | "escalate_to_medical_team"
+  // Patient entry points (migration 0032).
+  | "register_intake"
+  | "update_intake"
+  | "cancel_intake";
 
 export type SaAuditTargetKind =
   | "staff_affiliation"
@@ -127,7 +131,9 @@ export type SaAuditTargetKind =
   | "ward_in_charge_assignment"
   | "clinical_observation"
   | "medication_administration_record"
-  | "shift_handover";
+  | "shift_handover"
+  // Patient entry points (migration 0032).
+  | "patient_intake";
 
 export async function recordSaAudit(params: {
   actorId: string;

@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import {
   Building2Icon,
   CalendarClockIcon,
+  DoorOpenIcon,
   FileTextIcon,
   LayoutDashboardIcon,
   ScrollTextIcon,
@@ -29,6 +30,7 @@ const ICONS: Record<FeatureIconKey, typeof LayoutDashboardIcon> = {
   staff: UsersIcon,
   departments: Building2Icon,
   scheduling: CalendarClockIcon,
+  intake: DoorOpenIcon,
   admins: ShieldCheckIcon,
   audit: ScrollTextIcon,
   profile: FileTextIcon,

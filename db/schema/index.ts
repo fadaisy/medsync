@@ -59,3 +59,6 @@ export * from "./doctor-workspace";
 
 // ─── Nurse workspace (migration 0031) ──────────────────────────────────
 export * from "./nurse-workspace";
+
+// ─── Patient entry points (migration 0032) ─────────────────────────────
+export * from "./patient-intakes";
