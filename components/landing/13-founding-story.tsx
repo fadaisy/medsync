@@ -173,33 +173,37 @@ const FOUNDERS: Founder[] = [
     story: (
       <>
         <p>
-          The future of healthcare will not belong to systems that only respond to emergencies. It
-          will belong to systems that remain connected long before complications begin.
-        </p>
-        <p>
           Every day, people living with chronic illnesses leave hospitals carrying more than
           prescriptions. They leave carrying uncertainty. They miss follow-ups. They stop
           medications silently. They get lost between clinics, pharmacies, finances, and everyday
           life. By the time many return, the complications have already begun.
         </p>
-        <p>Not because nobody cared. But because the system was never built to stay with them.</p>
+        <p>
+          Not because nobody cared.
+          <br />
+          But because the system was never built to stay with them.
+        </p>
         <p>
           Healthcare today is still largely reactive. We wait for the blood pressure crisis. The
-          blindness. The diabetic foot. The stroke. The kidney failure. Then we mobilise everything
+          blindness. The diabetic foot. The stroke. The kidney failure. Then we mobilize everything
           at once. Yet so much suffering could be reduced if care stayed connected before things
           escalated.
         </p>
         <p>That is the gap MedSync exists to close.</p>
         <p>
-          We are building more than a health platform. We are building a community of continuity
-          &mdash; a system where prevention, monitoring, follow-up, education, treatment, and human
-          support do not exist separately, but move together around the patient. A system that helps
-          healthcare feel less fragmented and more present in people&rsquo;s actual lives.
+          We are building more than a health platform. We are building a community of continuity; a
+          system where prevention, monitoring, follow-up, education, treatment, and human support do
+          not exist separately, but move together around the patient. A system that helps healthcare
+          feel less fragmented and more present in people&rsquo;s actual lives.
         </p>
         <p>
           Because chronic illness is not managed in hospitals alone. It is managed in the days
           between appointments. In whether someone remembered their medication. In whether warning
           signs were noticed early. In whether someone felt supported enough to keep going.
+        </p>
+        <p>
+          The future of healthcare will not belong to systems that only respond to emergencies. It
+          will belong to systems that remain connected long before complications begin.
         </p>
       </>
     ),
