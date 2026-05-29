@@ -1,0 +1,184 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { and, asc, desc, eq, inArray, isNull } from "drizzle-orm";
+
+import { db } from "@/db";
+import { staffAffiliations } from "@/db/schema/clinician-profiles";
+import { hospitalWards } from "@/db/schema/hospital-wards";
+import { nursingAssignments } from "@/db/schema/nurse-workspace";
+import { patientProfiles } from "@/db/schema/patient-profiles";
+import { cadres } from "@/db/schema/reference-data";
+import { users } from "@/db/schema/users";
+import { NURSE_CADRE_CODES, requireNurseScope } from "@/lib/nurse/scope";
+import { AssignForm } from "./_components/assign-form";
+
+export const metadata: Metadata = { title: "Assignments · Nurse · MedSync" };
+export const dynamic = "force-dynamic";
+
+export default async function NurseAssignmentsPage() {
+  const scope = await requireNurseScope();
+
+  // The page is only useful for the ward in-charge (sidebar already
+  // filters; this is a defence-in-depth read).
+  if (!scope.isInCharge) {
+    return (
+      <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 px-6 py-10">
+        <h1 className="font-display text-foreground text-[22px] font-medium">Assignment board</h1>
+        <p className="text-muted-foreground text-[12.5px]">
+          The assignment board is for the ward in-charge. Your nurse-in-charge can pair you with
+          patients for today&rsquo;s shift.
+        </p>
+      </div>
+    );
+  }
+
+  // Nurses on shift at this hospital (active staff_affiliations + nurse cadre).
+  const nurses = await db
+    .select({
+      id: users.id,
+      fullName: users.fullName,
+      email: users.email,
+      cadreCode: cadres.code,
+    })
+    .from(staffAffiliations)
+    .innerJoin(users, eq(users.id, staffAffiliations.userId))
+    .innerJoin(cadres, eq(cadres.id, staffAffiliations.cadreId))
+    .where(
+      and(
+        eq(staffAffiliations.hospitalId, scope.hospitalId),
+        inArray(staffAffiliations.state, ["active", "approved"]),
+        inArray(cadres.code, NURSE_CADRE_CODES as unknown as string[]),
+      ),
+    )
+    .orderBy(asc(users.fullName))
+    .limit(200);
+
+  // Wards at this hospital.
+  const wards = await db
+    .select({ id: hospitalWards.id, name: hospitalWards.name })
+    .from(hospitalWards)
+    .where(and(eq(hospitalWards.hospitalId, scope.hospitalId), eq(hospitalWards.state, "active")))
+    .orderBy(asc(hospitalWards.name));
+
+  // Current active assignments (this hospital).
+  const active = await db
+    .select({
+      id: nursingAssignments.id,
+      nurseId: nursingAssignments.nurseUserId,
+      nurseName: users.fullName,
+      patientId: nursingAssignments.patientUserId,
+      patientCode: patientProfiles.patientCode,
+      wardId: nursingAssignments.wardId,
+      wardName: hospitalWards.name,
+      startsAt: nursingAssignments.startsAt,
+      kind: nursingAssignments.relationshipKind,
+    })
+    .from(nursingAssignments)
+    .leftJoin(users, eq(users.id, nursingAssignments.nurseUserId))
+    .leftJoin(patientProfiles, eq(patientProfiles.id, nursingAssignments.patientUserId))
+    .leftJoin(hospitalWards, eq(hospitalWards.id, nursingAssignments.wardId))
+    .where(
+      and(eq(nursingAssignments.hospitalId, scope.hospitalId), isNull(nursingAssignments.endsAt)),
+    )
+    .orderBy(desc(nursingAssignments.startsAt))
+    .limit(200);
+
+  const nurseOptions = nurses.map((n) => ({
+    id: n.id,
+    label: `${n.fullName ?? n.email ?? "Nurse"} · ${n.cadreCode}`,
+  }));
+
+  return (
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-8 lg:py-10">
+      <header className="flex flex-col gap-2">
+        <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
+          <span aria-hidden className="size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20" />
+          {scope.hospitalName} · Assignment board
+        </span>
+        <h1 className="font-display text-foreground text-[26px] leading-tight font-medium tracking-[-0.015em]">
+          Patients ↔ nurses
+        </h1>
+        <p className="text-muted-foreground max-w-[60ch] text-[12.5px]">
+          Pair patients with nurses on shift. As ward in-charge you can re-pair any time — previous
+          pairings get an end-time and the new one becomes the active row.
+        </p>
+      </header>
+
+      <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+        {/* Active assignments table */}
+        <section className="border-border bg-card overflow-hidden rounded-xl border">
+          <div className="border-border flex items-center justify-between border-b px-4 py-2.5">
+            <h2 className="text-muted-foreground font-mono text-[10.5px] tracking-[0.14em] uppercase">
+              Active · {active.length}
+            </h2>
+          </div>
+          {active.length === 0 ? (
+            <p className="text-muted-foreground p-4 text-[12.5px]">No active assignments.</p>
+          ) : (
+            <table className="w-full border-collapse text-left">
+              <thead className="bg-muted/30">
+                <tr className="text-muted-foreground font-mono text-[10px] tracking-[0.14em] uppercase">
+                  <th scope="col" className="px-4 py-2 font-normal">
+                    Patient
+                  </th>
+                  <th scope="col" className="px-4 py-2 font-normal">
+                    Nurse
+                  </th>
+                  <th scope="col" className="px-4 py-2 font-normal">
+                    Ward
+                  </th>
+                  <th scope="col" className="px-4 py-2 font-normal">
+                    Since
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-border/60 divide-y">
+                {active.map((r) => (
+                  <tr key={r.id} className="hover:bg-muted/30 transition-colors">
+                    <td className="px-4 py-2 font-mono text-[12px] tabular-nums">
+                      <Link
+                        href={`/nurse/patients/${r.patientId}`}
+                        className="text-foreground transition-colors hover:text-teal-700"
+                      >
+                        {r.patientCode ?? "—"}
+                      </Link>
+                    </td>
+                    <td className="text-foreground px-4 py-2 text-[12.5px]">
+                      {r.nurseName ?? "—"}
+                      <span className="text-muted-foreground/80 ml-1 font-mono text-[10px] uppercase">
+                        {r.kind}
+                      </span>
+                    </td>
+                    <td className="text-muted-foreground px-4 py-2 text-[12px]">
+                      {r.wardName ?? "—"}
+                    </td>
+                    <td className="text-muted-foreground px-4 py-2 font-mono text-[11px] tabular-nums">
+                      {formatRelative(r.startsAt.toISOString())}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </section>
+
+        {/* Assign form */}
+        <aside className="border-border bg-card flex flex-col gap-3 rounded-xl border p-4">
+          <h2 className="text-muted-foreground font-mono text-[10.5px] tracking-[0.14em] uppercase">
+            Assign a patient
+          </h2>
+          <AssignForm nurses={nurseOptions} wards={wards} />
+        </aside>
+      </div>
+    </div>
+  );
+}
+
+function formatRelative(iso: string): string {
+  const diffMin = Math.round((Date.now() - new Date(iso).getTime()) / 60_000);
+  if (diffMin < 1) return "just now";
+  if (diffMin < 60) return `${diffMin}m`;
+  const diffH = Math.round(diffMin / 60);
+  if (diffH < 24) return `${diffH}h`;
+  return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}

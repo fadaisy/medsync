@@ -1,0 +1,376 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { and, desc, eq } from "drizzle-orm";
+import { ArrowLeftIcon, HeartPulseIcon, PhoneIcon, PillIcon, ShieldAlertIcon } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { db } from "@/db";
+import { clinicalObservations, medicationAdministrationRecords } from "@/db/schema/nurse-workspace";
+import { fetchNursePatientSummaryAudited } from "@/lib/nurse/patient-access";
+import { requireNurseScope } from "@/lib/nurse/scope";
+
+export const metadata: Metadata = { title: "Patient · Nurse · MedSync" };
+export const dynamic = "force-dynamic";
+
+interface PageProps {
+  params: Promise<{ patientId: string }>;
+}
+
+const BASIS_LABEL: Record<string, string> = {
+  assigned: "Assigned to you",
+  ward_census: "Ward census (today)",
+  in_charge: "Ward in-charge",
+  care_team: "Care team",
+};
+
+const SEX_LABEL: Record<string, string> = {
+  male: "Male",
+  female: "Female",
+  intersex: "Intersex",
+  prefer_not_say: "Prefer not to say",
+};
+
+const OBS_LABEL: Record<string, string> = {
+  bp: "Blood pressure",
+  hr: "Heart rate",
+  temperature: "Temperature",
+  rr: "Respiratory rate",
+  spo2: "SpO₂",
+  glucose: "Glucose",
+  pain: "Pain",
+  weight: "Weight",
+  height: "Height",
+  intake: "Intake",
+  output: "Output",
+  gcs: "GCS",
+  other: "Observation",
+};
+
+export default async function NursePatientSummaryPage({ params }: PageProps) {
+  const { patientId } = await params;
+  const scope = await requireNurseScope();
+
+  const summary = await fetchNursePatientSummaryAudited({
+    nurse: {
+      userId: scope.userId,
+      hospitalId: scope.hospitalId,
+      inChargeWardIds: scope.inChargeWardIds,
+    },
+    patientUserId: patientId,
+    surface: "patient_summary_panel",
+  });
+
+  if (summary === null) {
+    return <NoAccessScreen />;
+  }
+
+  // Pull recent obs + MAR in parallel (read-side; both tables have
+  // broad-clinical SELECT policies so we can read with the user-context
+  // db without extra audit — the AUDITED PHI read happened above).
+  const [recentObs, recentMar] = await Promise.all([
+    db
+      .select({
+        id: clinicalObservations.id,
+        kind: clinicalObservations.observationKind,
+        recordedAt: clinicalObservations.recordedAt,
+        numericValue1: clinicalObservations.numericValue1,
+        numericValue2: clinicalObservations.numericValue2,
+        unit: clinicalObservations.unit,
+        notes: clinicalObservations.notes,
+      })
+      .from(clinicalObservations)
+      .where(
+        and(
+          eq(clinicalObservations.patientUserId, summary.patientUserId),
+          eq(clinicalObservations.state, "active"),
+        ),
+      )
+      .orderBy(desc(clinicalObservations.recordedAt))
+      .limit(10),
+    db
+      .select({
+        id: medicationAdministrationRecords.id,
+        drugName: medicationAdministrationRecords.drugName,
+        dose: medicationAdministrationRecords.dose,
+        route: medicationAdministrationRecords.route,
+        state: medicationAdministrationRecords.state,
+        isHighAlert: medicationAdministrationRecords.isHighAlert,
+        administeredAt: medicationAdministrationRecords.administeredAt,
+      })
+      .from(medicationAdministrationRecords)
+      .where(eq(medicationAdministrationRecords.patientUserId, summary.patientUserId))
+      .orderBy(desc(medicationAdministrationRecords.administeredAt))
+      .limit(10),
+  ]);
+
+  const ageYears = computeAgeYears(summary.dateOfBirth);
+
+  return (
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-6 py-8 lg:py-10">
+      <Link
+        href="/nurse/patients"
+        className="text-muted-foreground hover:text-foreground inline-flex w-fit items-center gap-1 text-[12.5px] transition-colors"
+      >
+        <ArrowLeftIcon className="size-3.5" aria-hidden />
+        Patient panel
+      </Link>
+
+      <header className="flex flex-col gap-2">
+        <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
+          <span aria-hidden className="size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20" />
+          Patient summary
+        </span>
+        <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+          <h1 className="font-display text-foreground text-[28px] leading-[1.1] font-medium tracking-[-0.015em]">
+            {summary.firstName} {summary.surname}
+          </h1>
+          <span className="text-muted-foreground font-mono text-[12px] tabular-nums">
+            {summary.patientCode}
+          </span>
+        </div>
+        <p className="text-muted-foreground text-[12.5px]">
+          {SEX_LABEL[summary.sex] ?? summary.sex}
+          {ageYears !== null ? ` · ${ageYears}y` : ""}
+          {summary.dateOfBirth ? ` · DoB ${summary.dateOfBirth}` : ""}
+        </p>
+      </header>
+
+      <div className="border-border bg-card flex items-center gap-3 rounded-xl border px-4 py-2.5">
+        <ShieldAlertIcon className="size-4 shrink-0 text-teal-600 dark:text-teal-400" aria-hidden />
+        <div className="flex min-w-0 flex-1 flex-col">
+          <span className="text-muted-foreground font-mono text-[9.5px] tracking-[0.12em] uppercase">
+            Access basis · this read was logged
+          </span>
+          <span className="text-foreground text-[12.5px]">
+            {BASIS_LABEL[summary.accessBasis] ?? summary.accessBasis}
+          </span>
+        </div>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-3">
+        <section className="border-border bg-card flex flex-col gap-3 rounded-xl border p-4 lg:col-span-1">
+          <h2 className="text-muted-foreground font-mono text-[10.5px] tracking-[0.14em] uppercase">
+            Contact
+          </h2>
+          <Field label="Phone" value={summary.phone} icon={PhoneIcon} mono />
+          <Field label="Address" value={summary.villageAddress ?? "—"} />
+          <Field label="Preferred language" value={summary.preferredLanguage ?? "—"} />
+        </section>
+
+        <section className="border-border bg-card flex flex-col gap-3 rounded-xl border p-4 lg:col-span-2">
+          <h2 className="text-muted-foreground font-mono text-[10.5px] tracking-[0.14em] uppercase">
+            Known conditions
+          </h2>
+          {summary.knownConditions.length === 0 ? (
+            <p className="text-muted-foreground text-[12.5px]">None on file.</p>
+          ) : (
+            <ul className="flex flex-wrap gap-1.5">
+              {summary.knownConditions.map((c) => (
+                <li
+                  key={c}
+                  className="border-border bg-muted/40 text-foreground rounded-full border px-2.5 py-1 text-[12px]"
+                >
+                  {c}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        {/* Recent observations */}
+        <section className="border-border bg-card flex flex-col gap-3 rounded-xl border p-4 lg:col-span-2">
+          <div className="flex items-baseline justify-between gap-2">
+            <h2 className="text-muted-foreground font-mono text-[10.5px] tracking-[0.14em] uppercase">
+              Recent vitals
+            </h2>
+            <Link
+              href={`/nurse/observations?patient=${summary.patientUserId}`}
+              className="text-muted-foreground hover:text-foreground text-[11.5px] transition-colors"
+            >
+              Record →
+            </Link>
+          </div>
+          {recentObs.length === 0 ? (
+            <p className="text-muted-foreground text-[12.5px]">
+              No observations recorded yet.{" "}
+              <Link
+                href={`/nurse/observations?patient=${summary.patientUserId}`}
+                className="text-foreground underline-offset-2 hover:underline"
+              >
+                Record one
+              </Link>
+              .
+            </p>
+          ) : (
+            <ul className="divide-border/60 -mx-2 divide-y">
+              {recentObs.map((o) => (
+                <li key={o.id} className="flex items-baseline justify-between gap-2 px-2 py-1.5">
+                  <span className="text-foreground text-[12.5px]">
+                    <span className="text-muted-foreground inline-block w-[110px] font-mono text-[10.5px] tracking-[0.06em] uppercase">
+                      {OBS_LABEL[o.kind] ?? o.kind}
+                    </span>{" "}
+                    <span className="font-mono tabular-nums">{formatObsValue(o)}</span>
+                  </span>
+                  <span className="text-muted-foreground font-mono text-[10.5px] tabular-nums">
+                    {formatRelative(o.recordedAt.toISOString())}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        {/* Recent MAR */}
+        <section className="border-border bg-card flex flex-col gap-3 rounded-xl border p-4 lg:col-span-1">
+          <div className="flex items-baseline justify-between gap-2">
+            <h2 className="text-muted-foreground font-mono text-[10.5px] tracking-[0.14em] uppercase">
+              Recent meds
+            </h2>
+            <Link
+              href={`/nurse/mar?patient=${summary.patientUserId}`}
+              className="text-muted-foreground hover:text-foreground text-[11.5px] transition-colors"
+            >
+              MAR →
+            </Link>
+          </div>
+          {recentMar.length === 0 ? (
+            <p className="text-muted-foreground text-[12.5px]">No doses logged yet.</p>
+          ) : (
+            <ul className="flex flex-col gap-2">
+              {recentMar.map((m) => (
+                <li key={m.id} className="flex flex-col gap-0.5">
+                  <span className="text-foreground inline-flex items-center gap-1.5 text-[12.5px] font-medium">
+                    {m.drugName} {m.dose}
+                    {m.isHighAlert ? (
+                      <span className="rounded-full bg-rose-100 px-1.5 py-0 font-mono text-[9px] font-medium text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">
+                        HIGH-ALERT
+                      </span>
+                    ) : null}
+                  </span>
+                  <span className="text-muted-foreground font-mono text-[10.5px] tabular-nums">
+                    {m.state} · {m.route} · {formatRelative(m.administeredAt.toISOString())}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
+
+      {/* Bottom action — quick-record */}
+      <div className="flex flex-wrap items-center gap-2">
+        <Link href={`/nurse/observations?patient=${summary.patientUserId}`}>
+          <Button type="button">
+            <HeartPulseIcon className="size-3.5" aria-hidden />
+            Record vitals
+          </Button>
+        </Link>
+        <Link href={`/nurse/mar?patient=${summary.patientUserId}`}>
+          <Button type="button" variant="secondary">
+            <PillIcon className="size-3.5" aria-hidden />
+            Administer medication
+          </Button>
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+function Field({
+  label,
+  value,
+  icon: Icon,
+  mono = false,
+}: {
+  label: string;
+  value: string;
+  icon?: typeof PhoneIcon;
+  mono?: boolean;
+}) {
+  return (
+    <div className="flex flex-col gap-0.5">
+      <span className="text-muted-foreground inline-flex items-center gap-1 text-[10.5px] tracking-tight uppercase">
+        {Icon ? <Icon className="size-3" aria-hidden /> : null}
+        {label}
+      </span>
+      <span
+        className={
+          mono
+            ? "text-foreground font-mono text-[13px] tabular-nums"
+            : "text-foreground text-[13px]"
+        }
+      >
+        {value}
+      </span>
+    </div>
+  );
+}
+
+function NoAccessScreen() {
+  return (
+    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-6 py-10">
+      <Link
+        href="/nurse/patients"
+        className="text-muted-foreground hover:text-foreground inline-flex w-fit items-center gap-1 text-[12.5px] transition-colors"
+      >
+        <ArrowLeftIcon className="size-3.5" aria-hidden />
+        Patient panel
+      </Link>
+
+      <div className="border-border bg-card flex flex-col items-start gap-3 rounded-xl border p-6">
+        <span
+          aria-hidden
+          className="inline-flex size-10 items-center justify-center rounded-full bg-amber-50 text-amber-700 ring-1 ring-amber-200/70 dark:bg-amber-950/40 dark:text-amber-300 dark:ring-amber-800/40"
+        >
+          <ShieldAlertIcon className="size-5" />
+        </span>
+        <div className="flex flex-col gap-1.5">
+          <span className="text-foreground text-[15px] font-medium">Above your current access</span>
+          <p className="text-muted-foreground max-w-[56ch] text-[12.5px] leading-relaxed">
+            You don&rsquo;t have a current clinical relationship with this patient — no assignment,
+            no ward-census activity today, no in-charge basis. If you need access for legitimate
+            care, your ward in-charge can pair you.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function formatObsValue(o: {
+  kind: string;
+  numericValue1: string | null;
+  numericValue2: string | null;
+  unit: string | null;
+}): string {
+  if (o.kind === "bp" && o.numericValue1 && o.numericValue2) {
+    return `${trimZero(o.numericValue1)}/${trimZero(o.numericValue2)} ${o.unit ?? "mmHg"}`;
+  }
+  if (!o.numericValue1) return "—";
+  return `${trimZero(o.numericValue1)}${o.unit ? ` ${o.unit}` : ""}`;
+}
+
+function trimZero(v: string): string {
+  if (!v.includes(".")) return v;
+  return v.replace(/\.?0+$/, "");
+}
+
+function computeAgeYears(dobIso: string | null): number | null {
+  if (!dobIso) return null;
+  const dob = new Date(dobIso);
+  if (Number.isNaN(dob.getTime())) return null;
+  const now = new Date();
+  let age = now.getFullYear() - dob.getFullYear();
+  const m = now.getMonth() - dob.getMonth();
+  if (m < 0 || (m === 0 && now.getDate() < dob.getDate())) age--;
+  return age;
+}
+
+function formatRelative(iso: string): string {
+  const diffMin = Math.round((Date.now() - new Date(iso).getTime()) / 60_000);
+  if (diffMin < 1) return "just now";
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffH = Math.round(diffMin / 60);
+  if (diffH < 24) return `${diffH}h ago`;
+  return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}

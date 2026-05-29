@@ -56,3 +56,6 @@ export * from "./patient-self-tracking";
 
 // ─── Doctor workspace (migration 0030) ─────────────────────────────────
 export * from "./doctor-workspace";
+
+// ─── Nurse workspace (migration 0031) ──────────────────────────────────
+export * from "./nurse-workspace";
