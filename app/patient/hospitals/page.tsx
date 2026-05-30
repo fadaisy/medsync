@@ -6,6 +6,7 @@ import {
   HospitalIcon,
   MapPinIcon,
   SearchIcon,
+  TicketIcon,
 } from "lucide-react";
 
 import { HOSPITAL_LEVEL_LABEL, listDirectoryHospitals } from "@/lib/patient/hospitals";
@@ -130,13 +131,31 @@ export default async function PatientHospitalsPage({ searchParams }: PageProps) 
                     <SelectHospitalButton hospitalId={h.id} isPrimary={isPrimary} />
                   </div>
                   {isPrimary ? (
-                    <div className="mt-3 flex items-center justify-end gap-2 border-t border-teal-500/20 pt-3 dark:border-teal-400/20">
+                    <div className="mt-3 flex flex-col gap-2.5 border-t border-teal-500/20 pt-3 dark:border-teal-400/20">
+                      <p className="text-muted-foreground text-[11.5px] leading-snug">
+                        What would you like to do?
+                      </p>
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
+                        <Link
+                          href="/patient/queue"
+                          className="border-border bg-card inline-flex flex-1 items-center justify-center gap-1.5 rounded-full border px-3 py-2 text-[12.5px] font-medium text-teal-700 transition-colors hover:border-teal-300 hover:bg-teal-50/30 dark:text-teal-300 dark:hover:bg-teal-50/5"
+                        >
+                          <TicketIcon className="size-3.5" aria-hidden />
+                          Join today&rsquo;s queue
+                        </Link>
+                        <Link
+                          href="/patient/book"
+                          className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full bg-teal-600 px-3 py-2 text-[12.5px] font-medium text-white shadow-xs transition-colors hover:bg-teal-700"
+                        >
+                          <CalendarPlusIcon className="size-3.5" aria-hidden />
+                          Book a future visit
+                        </Link>
+                      </div>
                       <Link
-                        href="/patient/book"
-                        className="inline-flex items-center gap-1.5 rounded-full bg-teal-600 px-3 py-1.5 text-[12px] font-medium text-white shadow-xs transition-colors hover:bg-teal-700"
+                        href="/patient"
+                        className="text-muted-foreground hover:text-foreground self-center text-[11.5px] transition-colors"
                       >
-                        <CalendarPlusIcon className="size-3.5" aria-hidden />
-                        Book a visit here
+                        Not now — back to home
                       </Link>
                     </div>
                   ) : null}

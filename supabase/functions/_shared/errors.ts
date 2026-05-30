@@ -41,8 +41,8 @@ export function forbidden(init: ResponseInit, message = "Forbidden"): Response {
   return jsonResponse({ ok: false, error: { code: "forbidden", message } }, 403, init);
 }
 
-export function conflict(message: string, init: ResponseInit): Response {
-  return jsonResponse({ ok: false, error: { code: "conflict", message } }, 409, init);
+export function conflict(message: string, init: ResponseInit, details?: unknown): Response {
+  return jsonResponse({ ok: false, error: { code: "conflict", message, details } }, 409, init);
 }
 
 export function notFound(init: ResponseInit, message = "Not found"): Response {

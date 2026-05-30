@@ -32,6 +32,10 @@ export interface ReceptionTodayCounts {
   arrivedToday: number;
   awaitingTriage: number;
   noShowsToday: number;
+  /** Patient-declared intakes that haven't been checked in yet
+   * (status='declared', book-or-queue migration 0035). Reception's
+   * cue that someone said "I'm coming today" but isn't here yet. */
+  declaredToday: number;
 }
 
 export async function fetchReceptionTodayCounts(args: {
@@ -42,7 +46,7 @@ export async function fetchReceptionTodayCounts(args: {
   const end = new Date(start);
   end.setDate(end.getDate() + 1);
 
-  const [expected, arrived, awaiting, noShows] = await Promise.all([
+  const [expected, arrived, awaiting, noShows, declared] = await Promise.all([
     db
       .select({ n: count() })
       .from(appointments)
@@ -85,6 +89,17 @@ export async function fetchReceptionTodayCounts(args: {
           eq(appointments.status, "no_show"),
         ),
       ),
+    db
+      .select({ n: count() })
+      .from(patientIntakes)
+      .where(
+        and(
+          eq(patientIntakes.hospitalId, args.hospitalId),
+          eq(patientIntakes.status, "declared"),
+          gte(patientIntakes.arrivedAt, start),
+          lt(patientIntakes.arrivedAt, end),
+        ),
+      ),
   ]);
 
   return {
@@ -92,6 +107,7 @@ export async function fetchReceptionTodayCounts(args: {
     arrivedToday: Number(arrived[0]?.n ?? 0),
     awaitingTriage: Number(awaiting[0]?.n ?? 0),
     noShowsToday: Number(noShows[0]?.n ?? 0),
+    declaredToday: Number(declared[0]?.n ?? 0),
   };
 }
 
@@ -220,16 +236,84 @@ export async function searchPatientsByCode(args: {
   }));
 }
 
+/* ─── Today's declared queue tickets (book-or-queue, mig 0035) ──── */
+
+export interface DeclaredIntakeRow {
+  id: string;
+  patientCode: string | null;
+  patientUserId: string | null;
+  declaredAtIso: string;
+  departmentId: string | null;
+  departmentName: string | null;
+  presentingComplaint: string | null;
+}
+
+/**
+ * Patient-initiated intakes that are still in 'declared' (haven't been
+ * checked in). Reception's "we know they're on their way" list — feeds
+ * the Check-in affordance on /reception/expected.
+ */
+export async function fetchDeclaredIntakesToday(args: {
+  hospitalId: string;
+  limit?: number;
+}): Promise<DeclaredIntakeRow[]> {
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(start);
+  end.setDate(end.getDate() + 1);
+
+  const rows = await db
+    .select({
+      id: patientIntakes.id,
+      patientUserId: patientIntakes.patientUserId,
+      patientCode: patientProfiles.patientCode,
+      declaredAt: patientIntakes.arrivedAt,
+      departmentId: patientIntakes.receivingDepartmentId,
+      departmentName: hospitalDepartments.name,
+      presentingComplaint: patientIntakes.presentingComplaint,
+    })
+    .from(patientIntakes)
+    .leftJoin(patientProfiles, eq(patientProfiles.id, patientIntakes.patientUserId))
+    .leftJoin(hospitalDepartments, eq(hospitalDepartments.id, patientIntakes.receivingDepartmentId))
+    .where(
+      and(
+        eq(patientIntakes.hospitalId, args.hospitalId),
+        eq(patientIntakes.status, "declared"),
+        gte(patientIntakes.arrivedAt, start),
+        lt(patientIntakes.arrivedAt, end),
+      ),
+    )
+    .orderBy(desc(patientIntakes.arrivedAt))
+    .limit(args.limit ?? 100);
+
+  return rows.map((r) => ({
+    id: r.id,
+    patientCode: r.patientCode,
+    patientUserId: r.patientUserId,
+    declaredAtIso: r.declaredAt.toISOString(),
+    departmentId: r.departmentId,
+    departmentName: r.departmentName,
+    presentingComplaint: r.presentingComplaint,
+  }));
+}
+
 /* ─── Today's flow status board (operational only) ──────────────── */
 
 export interface FlowRow {
   patientUserId: string | null;
   patientCode: string | null;
   patientUnknownLabel: string | null;
-  stage: "expected" | "arrived" | "in_queue" | "awaiting_triage";
+  /** `declared` = patient-initiated queue ticket, not yet physically
+   * present. Distinct from `expected` (booked appointment, not yet
+   * arrived) and `arrived` (here, not yet in a triage queue).
+   * Migration 0035. */
+  stage: "declared" | "expected" | "arrived" | "in_queue" | "awaiting_triage";
   departmentName: string | null;
   whenIso: string;
   detail: string;
+  /** Set when this row came from a patient_intakes row in 'declared'
+   * status — gives the reception UI an ID to wire a Check-in button. */
+  declaredIntakeId: string | null;
 }
 
 export async function fetchTodayFlow(args: {
@@ -263,14 +347,16 @@ export async function fetchTodayFlow(args: {
     .orderBy(asc(appointments.startsAt))
     .limit(args.limit ?? 200);
 
-  // Walk-ins / referrals via intake (no underlying appointment).
+  // Walk-ins / referrals / patient declarations via intake.
   const intakeRows = await db
     .select({
+      id: patientIntakes.id,
       patientUserId: patientIntakes.patientUserId,
       patientCode: patientProfiles.patientCode,
       patientUnknownLabel: patientIntakes.patientUnknownLabel,
       status: patientIntakes.status,
       arrivedAt: patientIntakes.arrivedAt,
+      declaredByPatient: patientIntakes.declaredByPatient,
       departmentName: hospitalDepartments.name,
     })
     .from(patientIntakes)
@@ -303,22 +389,28 @@ export async function fetchTodayFlow(args: {
       departmentName: r.departmentName,
       whenIso: r.startsAt.toISOString(),
       detail: `Booked · ${r.status}`,
+      declaredIntakeId: null,
     });
   }
   for (const r of intakeRows) {
+    const stage: FlowRow["stage"] =
+      r.status === "declared"
+        ? "declared"
+        : r.status === "awaiting_triage"
+          ? "awaiting_triage"
+          : r.status === "triaged"
+            ? "in_queue"
+            : "arrived";
+    const source = r.declaredByPatient ? "Self-declared" : "Intake";
     out.push({
       patientUserId: r.patientUserId,
       patientCode: r.patientCode,
       patientUnknownLabel: r.patientUnknownLabel,
-      stage:
-        r.status === "awaiting_triage"
-          ? "awaiting_triage"
-          : r.status === "triaged"
-            ? "in_queue"
-            : "arrived",
+      stage,
       departmentName: r.departmentName,
       whenIso: r.arrivedAt.toISOString(),
-      detail: `Intake · ${r.status}`,
+      detail: `${source} · ${r.status}`,
+      declaredIntakeId: r.status === "declared" ? r.id : null,
     });
   }
 

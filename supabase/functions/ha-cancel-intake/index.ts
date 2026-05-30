@@ -62,7 +62,7 @@ Deno.serve(async (request: Request) => {
 
   const { data: intake, error: ie } = await sb
     .from("patient_intakes")
-    .select("id, hospital_id, status")
+    .select("id, hospital_id, status, patient_user_id")
     .eq("id", input.intake_id)
     .maybeSingle();
   if (ie) return serverError(ie.message, init);
@@ -77,15 +77,23 @@ Deno.serve(async (request: Request) => {
       const scope = await requireHospitalAdminScope(caller.id, intake.hospital_id);
       if (!scope.ok) return forbidden(init, scope.reason);
     } else {
-      const { data: aff } = await sb
-        .from("staff_affiliations")
-        .select("id")
-        .eq("user_id", caller.id)
-        .eq("hospital_id", intake.hospital_id)
-        .in("state", ["active", "approved"])
-        .limit(1)
-        .maybeSingle();
-      if (!aff) return forbidden(init);
+      // Patient self-cancel (migration 0035, book-or-queue): the
+      // patient may cancel their OWN intake only while it's still in
+      // 'declared' (they haven't checked in yet). Once arrived, only
+      // staff can close it — the patient walking away after check-in
+      // is operationally a no-show, which is reception's call.
+      const isOwnDeclared = intake.patient_user_id === caller.id && intake.status === "declared";
+      if (!isOwnDeclared) {
+        const { data: aff } = await sb
+          .from("staff_affiliations")
+          .select("id")
+          .eq("user_id", caller.id)
+          .eq("hospital_id", intake.hospital_id)
+          .in("state", ["active", "approved"])
+          .limit(1)
+          .maybeSingle();
+        if (!aff) return forbidden(init);
+      }
     }
   }
 

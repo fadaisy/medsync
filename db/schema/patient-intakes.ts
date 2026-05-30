@@ -97,6 +97,17 @@ export const patientIntakes = pgTable(
     status: text("status").notNull().default("awaiting_triage"),
     arrivedAt: timestamp("arrived_at", { withTimezone: true }).notNull().defaultNow(),
 
+    // Set at declared→arrived transition (migration 0035). NULL on
+    // staff-created arrived rows — they were physically here at row
+    // creation, so arrived_at already carries that timestamp.
+    checkedInAt: timestamp("checked_in_at", { withTimezone: true }),
+
+    // True when the patient created this intake themselves via the
+    // book-or-queue choice point (migration 0035). False on
+    // staff-registered intakes. Drives the "Declared · not here yet"
+    // chip on staff boards.
+    declaredByPatient: boolean("declared_by_patient").notNull().default(false),
+
     registeredByUserId: uuid("registered_by_user_id").references(() => authUsers.id, {
       onDelete: "set null",
     }),
@@ -109,7 +120,7 @@ export const patientIntakes = pgTable(
     check("intakes_priority_check", sql`${t.priorityHint} IN ('routine','high','urgent')`),
     check(
       "intakes_status_check",
-      sql`${t.status} IN ('arrived','awaiting_triage','triaged','completed','cancelled')`,
+      sql`${t.status} IN ('declared','arrived','awaiting_triage','triaged','completed','cancelled')`,
     ),
     check(
       "intakes_patient_or_unknown",

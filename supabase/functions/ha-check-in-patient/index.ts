@@ -1,20 +1,22 @@
 /**
- * ha-check-in-patient — reception checks in a patient with a booked
- * appointment. The convenience wrapper that reconciles the
- * disjointness between scheduling (queue) and patient_intakes:
+ * ha-check-in-patient — reception flips an inbound patient to
+ * physically-present state. Two modes (exactly one required):
  *
- *   1. Flip appointment status confirmed → arrived.
- *   2. Insert queue_entries row (kind = scheduled_arrival, state = waiting).
- *      Skipped for virtual appointments.
- *   3. Insert patient_intakes row (entry_type = booked_arrival,
- *      appointment_id, status = awaiting_triage). Reception now sees a
- *      checked-in patient on every awaiting-triage panel.
+ *   A) appointment_id — booked-arrival check-in (the original path):
+ *      1. appointment.status confirmed → arrived
+ *      2. queue_entries row (scheduled_arrival, waiting)  — skip virtual
+ *      3. patient_intakes row (booked_arrival, awaiting_triage)
+ *
+ *   B) intake_id — patient-declared check-in (book-or-queue, mig 0035):
+ *      1. patient_intakes.status declared → arrived + checked_in_at=now()
+ *      2. queue_entries row (walk_in, waiting) — same boundary as (A2)
+ *      No new intake row; the patient's declared row IS the intake.
  *
  * Auth: reception or hospital_admin at the hospital, or superadmin.
  *
- * Note: ha-mark-arrived already does step 1+2 — this Edge Function
- * adds step 3 + relaxes auth so a non-clinical reception user (with
- * the new RECEPTION cadre) can call it. Mirrors ha-register-intake's
+ * Note: ha-mark-arrived already does step (A1)+(A2). This Edge Function
+ * adds (A3) + (B), and relaxes auth so a non-clinical reception user
+ * (RECEPTION cadre) can call it. Mirrors ha-register-intake's
  * broad-staff auth.
  */
 import { z } from "npm:zod@4.4.3";
@@ -36,13 +38,18 @@ import { networkContext, recordSaAudit } from "../_shared/sa-audit.ts";
 
 const log = makeLogger("ha-check-in-patient");
 
-const InputSchema = z.object({
-  appointment_id: z.string().uuid(),
-  reason: z
-    .string()
-    .min(8, "Reason ≥ 8 chars required (audited).")
-    .default("Booked patient checked in at front desk."),
-});
+const InputSchema = z
+  .object({
+    appointment_id: z.string().uuid().optional(),
+    intake_id: z.string().uuid().optional(),
+    reason: z
+      .string()
+      .min(8, "Reason ≥ 8 chars required (audited).")
+      .default("Patient checked in at front desk."),
+  })
+  .refine((v) => !!v.appointment_id !== !!v.intake_id, {
+    message: "Provide exactly one of appointment_id or intake_id.",
+  });
 
 Deno.serve(async (request: Request) => {
   const origin = request.headers.get("origin");
@@ -66,50 +73,128 @@ Deno.serve(async (request: Request) => {
   if (!caller) return unauthorized(init);
 
   const sb = serviceClient();
-
-  const { data: appt, error: apptErr } = await sb
-    .from("appointments")
-    .select("id, hospital_id, department_id, patient_user_id, status, type")
-    .eq("id", input.appointment_id)
-    .maybeSingle();
-  if (apptErr) return serverError(apptErr.message, init);
-  if (!appt) return notFound(init, "appointment not found");
-  if (appt.status !== "confirmed") {
-    return badRequest(`Appointment is in '${appt.status}' — only confirmed can check in.`, init);
-  }
-
-  // Authorise: superadmin / hospital_admin / any active staff
-  // affiliation at the hospital (reception + clinical both qualify).
-  const isSuperadmin = await hasRole(caller.id, "superadmin");
-  if (!isSuperadmin) {
-    if (await hasRole(caller.id, "hospital_admin", appt.hospital_id)) {
-      const scope = await requireHospitalAdminScope(caller.id, appt.hospital_id);
-      if (!scope.ok) return forbidden(init, scope.reason);
-    } else {
-      const { data: aff } = await sb
-        .from("staff_affiliations")
-        .select("id")
-        .eq("user_id", caller.id)
-        .eq("hospital_id", appt.hospital_id)
-        .in("state", ["active", "approved"])
-        .limit(1)
-        .maybeSingle();
-      if (!aff) return forbidden(init);
-    }
-  }
-
   const { ipAddress, userAgent } = networkContext(request);
+
+  /* ─── Mode A: appointment_id (booked-arrival path) ───────────── */
+  if (input.appointment_id) {
+    const { data: appt, error: apptErr } = await sb
+      .from("appointments")
+      .select("id, hospital_id, department_id, patient_user_id, status, type")
+      .eq("id", input.appointment_id)
+      .maybeSingle();
+    if (apptErr) return serverError(apptErr.message, init);
+    if (!appt) return notFound(init, "appointment not found");
+    if (appt.status !== "confirmed") {
+      return badRequest(`Appointment is in '${appt.status}' — only confirmed can check in.`, init);
+    }
+
+    const authError = await authoriseAtHospital(sb, caller.id, appt.hospital_id);
+    if (authError) return forbidden(init, authError);
+
+    try {
+      await recordSaAudit({
+        actorId: caller.id,
+        action: "check_in_patient",
+        targetKind: "appointment",
+        targetId: appt.id,
+        reason: input.reason,
+        requestId,
+        ipAddress,
+        userAgent,
+        beforeData: { status: appt.status },
+        afterData: { status: "arrived" },
+      });
+    } catch (e) {
+      log.error("sa_audit failed; aborting", { requestId, reason: String(e) });
+      return serverError("audit write failed", init);
+    }
+
+    const { error: updateError } = await sb
+      .from("appointments")
+      .update({ status: "arrived" })
+      .eq("id", appt.id);
+    if (updateError) {
+      log.error("status update failed", { requestId, reason: updateError.message });
+      return serverError("check-in failed", init);
+    }
+
+    const queueEntryId =
+      appt.type === "virtual"
+        ? null
+        : await insertQueueRow(sb, {
+            hospital_id: appt.hospital_id,
+            department_id: appt.department_id,
+            patient_user_id: appt.patient_user_id,
+            appointment_id: appt.id,
+            kind: "scheduled_arrival",
+            requestId,
+          });
+
+    const { data: intakeRow, error: intakeError } = await sb
+      .from("patient_intakes")
+      .insert({
+        hospital_id: appt.hospital_id,
+        entry_type_code: "booked_arrival",
+        entry_point: appt.type === "virtual" ? "virtual" : "opd",
+        receiving_department_id: appt.department_id,
+        patient_user_id: appt.patient_user_id,
+        appointment_id: appt.id,
+        priority_hint: "routine",
+        status: "awaiting_triage",
+        registered_by_user_id: caller.id,
+      })
+      .select("id")
+      .single();
+    if (intakeError) {
+      log.warn("intake insert failed (continuing)", { requestId, reason: intakeError.message });
+    }
+
+    log.info("checked in (booked)", {
+      requestId,
+      appointment_id: appt.id,
+      queue_entry_id: queueEntryId,
+      intake_id: intakeRow?.id ?? null,
+    });
+    return ok(
+      {
+        appointment_id: appt.id,
+        queue_entry_id: queueEntryId,
+        intake_id: intakeRow?.id ?? null,
+      },
+      init,
+    );
+  }
+
+  /* ─── Mode B: intake_id (declared → arrived) ─────────────────── */
+  const intakeId = input.intake_id!;
+  const { data: intake, error: intakeErr } = await sb
+    .from("patient_intakes")
+    .select("id, hospital_id, receiving_department_id, patient_user_id, status")
+    .eq("id", intakeId)
+    .maybeSingle();
+  if (intakeErr) return serverError(intakeErr.message, init);
+  if (!intake) return notFound(init, "intake not found");
+  if (intake.status !== "declared") {
+    return badRequest(
+      `Intake is in '${intake.status}' — only declared intakes need check-in.`,
+      init,
+    );
+  }
+
+  const authError = await authoriseAtHospital(sb, caller.id, intake.hospital_id);
+  if (authError) return forbidden(init, authError);
+
   try {
     await recordSaAudit({
       actorId: caller.id,
       action: "check_in_patient",
-      targetKind: "appointment",
-      targetId: appt.id,
+      targetKind: "patient_intake",
+      targetId: intake.id,
       reason: input.reason,
       requestId,
       ipAddress,
       userAgent,
-      beforeData: { status: appt.status },
+      beforeData: { status: intake.status },
       afterData: { status: "arrived" },
     });
   } catch (e) {
@@ -117,81 +202,106 @@ Deno.serve(async (request: Request) => {
     return serverError("audit write failed", init);
   }
 
-  // 1. Flip status.
-  const { error: updateError } = await sb
-    .from("appointments")
-    .update({ status: "arrived" })
-    .eq("id", appt.id);
-  if (updateError) {
-    log.error("status update failed", { requestId, reason: updateError.message });
+  const checkedInAt = new Date().toISOString();
+  const { error: flipErr } = await sb
+    .from("patient_intakes")
+    .update({ status: "arrived", checked_in_at: checkedInAt })
+    .eq("id", intake.id);
+  if (flipErr) {
+    log.error("intake flip failed", { requestId, reason: flipErr.message });
     return serverError("check-in failed", init);
   }
 
-  // 2. Queue row (skip virtual).
-  let queueEntryId: string | null = null;
-  if (appt.type !== "virtual") {
-    const startOfDay = new Date();
-    startOfDay.setUTCHours(0, 0, 0, 0);
-    const { count } = await sb
-      .from("queue_entries")
-      .select("id", { count: "exact", head: true })
-      .eq("hospital_id", appt.hospital_id)
-      .eq("department_id", appt.department_id)
-      .gte("arrived_at", startOfDay.toISOString());
-    const sequenceNumber = (count ?? 0) + 1;
-
-    const { data: queueRow, error: queueError } = await sb
-      .from("queue_entries")
-      .insert({
-        hospital_id: appt.hospital_id,
-        department_id: appt.department_id,
-        appointment_id: appt.id,
-        patient_user_id: appt.patient_user_id,
-        kind: "scheduled_arrival",
-        state: "waiting",
-        sequence_number: sequenceNumber,
+  const queueEntryId = intake.receiving_department_id
+    ? await insertQueueRow(sb, {
+        hospital_id: intake.hospital_id,
+        department_id: intake.receiving_department_id,
+        patient_user_id: intake.patient_user_id,
+        appointment_id: null,
+        kind: "walk_in",
+        requestId,
       })
-      .select("id")
-      .single();
-    if (queueError) {
-      log.warn("queue insert failed (continuing)", { requestId, reason: queueError.message });
-    } else {
-      queueEntryId = queueRow?.id ?? null;
-    }
-  }
+    : null;
 
-  // 3. Intake row — the front-desk record of the arrival.
-  const { data: intakeRow, error: intakeError } = await sb
-    .from("patient_intakes")
-    .insert({
-      hospital_id: appt.hospital_id,
-      entry_type_code: "booked_arrival",
-      entry_point: appt.type === "virtual" ? "virtual" : "opd",
-      receiving_department_id: appt.department_id,
-      patient_user_id: appt.patient_user_id,
-      appointment_id: appt.id,
-      priority_hint: "routine",
-      status: "awaiting_triage",
-      registered_by_user_id: caller.id,
-    })
-    .select("id")
-    .single();
-  if (intakeError) {
-    log.warn("intake insert failed (continuing)", { requestId, reason: intakeError.message });
-  }
-
-  log.info("checked in", {
+  log.info("checked in (declared)", {
     requestId,
-    appointment_id: appt.id,
+    intake_id: intake.id,
     queue_entry_id: queueEntryId,
-    intake_id: intakeRow?.id ?? null,
   });
   return ok(
     {
-      appointment_id: appt.id,
+      intake_id: intake.id,
       queue_entry_id: queueEntryId,
-      intake_id: intakeRow?.id ?? null,
     },
     init,
   );
 });
+
+/* ─── helpers ─────────────────────────────────────────────────────── */
+
+async function authoriseAtHospital(
+  sb: ReturnType<typeof serviceClient>,
+  callerId: string,
+  hospitalId: string,
+): Promise<string | null> {
+  const isSuperadmin = await hasRole(callerId, "superadmin");
+  if (isSuperadmin) return null;
+  if (await hasRole(callerId, "hospital_admin", hospitalId)) {
+    const scope = await requireHospitalAdminScope(callerId, hospitalId);
+    return scope.ok ? null : scope.reason;
+  }
+  const { data: aff } = await sb
+    .from("staff_affiliations")
+    .select("id")
+    .eq("user_id", callerId)
+    .eq("hospital_id", hospitalId)
+    .in("state", ["active", "approved"])
+    .limit(1)
+    .maybeSingle();
+  return aff ? null : "no active affiliation at this hospital";
+}
+
+async function insertQueueRow(
+  sb: ReturnType<typeof serviceClient>,
+  args: {
+    hospital_id: string;
+    department_id: string | null;
+    patient_user_id: string | null;
+    appointment_id: string | null;
+    kind: "scheduled_arrival" | "walk_in";
+    requestId: string;
+  },
+): Promise<string | null> {
+  if (!args.department_id) return null;
+  const startOfDay = new Date();
+  startOfDay.setUTCHours(0, 0, 0, 0);
+  const { count } = await sb
+    .from("queue_entries")
+    .select("id", { count: "exact", head: true })
+    .eq("hospital_id", args.hospital_id)
+    .eq("department_id", args.department_id)
+    .gte("arrived_at", startOfDay.toISOString());
+  const sequenceNumber = (count ?? 0) + 1;
+
+  const { data: row, error } = await sb
+    .from("queue_entries")
+    .insert({
+      hospital_id: args.hospital_id,
+      department_id: args.department_id,
+      appointment_id: args.appointment_id,
+      patient_user_id: args.patient_user_id,
+      kind: args.kind,
+      state: "waiting",
+      sequence_number: sequenceNumber,
+    })
+    .select("id")
+    .single();
+  if (error) {
+    log.warn("queue insert failed (continuing)", {
+      requestId: args.requestId,
+      reason: error.message,
+    });
+    return null;
+  }
+  return row?.id ?? null;
+}
