@@ -103,7 +103,9 @@ export type SaAuditAction =
   | "update_intake"
   | "cancel_intake"
   // Reception + lifecycle (migration 0033)
-  | "check_in_patient";
+  | "check_in_patient"
+  // Book-or-queue: patient-declared intake (migration 0035)
+  | "patient_declare_intake";
 
 export type SaAuditTargetKind =
   | "staff_affiliation"

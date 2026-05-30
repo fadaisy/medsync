@@ -3,7 +3,14 @@ import type { TrackingGlance } from "@/lib/patient/self-tracking";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { and, asc, eq, gte, inArray } from "drizzle-orm";
-import { ActivityIcon, BuildingIcon, CalendarPlusIcon, HospitalIcon, PlusIcon } from "lucide-react";
+import {
+  ActivityIcon,
+  BuildingIcon,
+  CalendarPlusIcon,
+  HospitalIcon,
+  PlusIcon,
+  TicketIcon,
+} from "lucide-react";
 
 import { Pill } from "@/components/ui/data-table";
 import { db } from "@/db";
@@ -103,29 +110,40 @@ export default async function PatientHome() {
             tone="muted"
           />
           {scope.primaryHospitalId ? (
-            <QuickAction
-              href="/patient/book"
-              label="Book a visit"
-              sub={scope.primaryHospitalName ?? "Your hospital"}
-              Icon={CalendarPlusIcon}
-              tone="muted"
-            />
+            <>
+              <QuickAction
+                href="/patient/book"
+                label="Book a visit"
+                sub="Pick a future date"
+                Icon={CalendarPlusIcon}
+                tone="muted"
+              />
+              <QuickAction
+                href="/patient/queue"
+                label="Join today's queue"
+                sub="You're coming in today"
+                Icon={TicketIcon}
+                tone="muted"
+              />
+            </>
           ) : (
-            <QuickAction
-              href="/patient/hospitals"
-              label="Browse hospitals"
-              sub="Find one near you"
-              Icon={BuildingIcon}
-              tone="muted"
-            />
+            <>
+              <QuickAction
+                href="/patient/hospitals"
+                label="Browse hospitals"
+                sub="Find one near you"
+                Icon={BuildingIcon}
+                tone="muted"
+              />
+              <QuickAction
+                href="/patient/track/medications"
+                label="My medications"
+                sub="Self-managed list"
+                Icon={ActivityIcon}
+                tone="muted"
+              />
+            </>
           )}
-          <QuickAction
-            href={scope.primaryHospitalId ? "/patient/hospitals" : "/patient/track/medications"}
-            label={scope.primaryHospitalId ? "Switch hospital" : "My medications"}
-            sub={scope.primaryHospitalId ? "Change your primary" : "Self-managed list"}
-            Icon={scope.primaryHospitalId ? HospitalIcon : ActivityIcon}
-            tone="muted"
-          />
         </ul>
       </section>
 
