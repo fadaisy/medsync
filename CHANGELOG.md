@@ -5,6 +5,48 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Reception / Records Workspace (non-clinical, RLS-enforced) — 2026-05-30
+
+Per [`docs/patient-handling-flow-gate-a-proposal.md`](docs/patient-handling-flow-gate-a-proposal.md) §4 + the receptionist-workspace kickoff. A deliberately thin front-desk console + the lifecycle write paths that close board-rot. **Non-clinical by design** — RLS at the database, not just hiding in the UI.
+
+**Migration 0033** (additive only, pushed to remote):
+
+- `cadres.is_clinical boolean NOT NULL DEFAULT true` + `cadres.council_id` nullable. Non-clinical cadres now coexist with the council-anchored clinical ones.
+- Seeded `RECEPTION` cadre + `RECEPTION_OFFICER` role. **No fake regulator.**
+- `user_roles_role_check` widened to include `'reception'`.
+- `patient_intakes.encounter_id` (back-link FK) + status enum widened with `'completed'` — closes the intake→encounter chain for visit-history + drop-off.
+- `encounters.completion_reason` text — the "why it ended" line.
+- **Clinical-content SELECT policies tightened**: `clinical_observations`, `medication_administration_records`, `shift_handovers`, `encounters` now require `cadres.is_clinical = true` on the calling user's active affiliation. Reception (`is_clinical = false`) cannot read clinical content — the boundary holds at the DB.
+- `sa_audit_log` widened with `check_in_patient` verb.
+
+**Three new Edge Functions** (deployed):
+
+- `ha-complete-encounter` — closes the encounter + cascades: queue row → `done`, intake row → `completed` with `encounter_id` set, active nursing assignments → `ends_at = now()`. **One write, four boards updated.** The end of the long-standing lifecycle leak.
+- `ha-check-in-patient` — convenience wrapper for booked arrivals. Flips appointment to `arrived`, creates the queue entry, AND inserts a `patient_intakes` row of type `booked_arrival`. Reconciles the scheduling/intake disjointness that the recon flagged.
+- `ha-cancel-intake` — terminal close on an intake (patient left, mis-registered, transferred). Audited with operator reason.
+
+**New `/reception/*` workspace** (sibling to `/doctor`, `/nurse`, `/clinician`):
+
+- Sign-in routing: RECEPTION cadre on active/approved affiliation → `/reception`.
+- **Today** — front-desk stat rail (expected · arrived · awaiting-triage · no-shows), quick actions, awaiting-triage panel.
+- **Expected** — today's bookings with one-click **Check in** (calls `ha-check-in-patient`).
+- **Register** — the full intake flow. Reuses the existing `IntakeForm` component (now action-pluggable) wired to a reception-scoped `receptionRegisterIntakeAction`.
+- **Find** — operational patient search by `patient_code` (audited name-search deferred).
+- **Flow** — today's operational status board (expected / arrived / in-queue / awaiting-triage), no clinical content.
+
+The shell's cadre pill reads **"Reception · non-clinical"** in muted neutral tone — the chrome carries the boundary signal.
+
+**Docs:** [ADR 0032 — reception non-clinical boundary (RLS-enforced)](docs/adr/0032-reception-non-clinical-boundary.md). Captures the cadre/`is_clinical`/policy-widening decisions + the four clinical-content tables that now check cadre clinicality.
+
+**Deferred** (called out in proposal §11):
+
+- `/signup/reception` (admin-invite-driven signup path) — today reception users are seeded manually.
+- `/hospital-admin/patients` Layer-1 directory + `FlowOverviewCard` admin snippet.
+- `lib/handling/presence.ts` typed helper centralising the staggered-presence rules (today the rules live inside each surface's query).
+- `/patient/care` visit-history aggregator (`lib/patient/visit-history.ts`).
+- Audited name + phone search Edge Function (`searchPatientsByCode` is code-prefix only today).
+- Cron auto-decay for stale `awaiting_triage` intakes.
+
 ### Added — Patient Entry Points (front-door intake + triage seam) — 2026-05-29
 
 Per [`docs/patient-entry-points-gate-a-proposal.md`](docs/patient-entry-points-gate-a-proposal.md). The unified front door to the clinical system — 11-entry-type taxonomy, intake/encounter-precursor record, never-block-emergency rule encoded in the schema, clean handoff to the next-build triage.

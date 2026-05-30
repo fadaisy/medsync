@@ -235,6 +235,10 @@ export const encounters = pgTable(
     startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
     endedAt: timestamp("ended_at", { withTimezone: true }),
     state: text("state").notNull().default("in_progress"),
+    // Free-text "why the encounter ended" — discharged / referred-out
+    // / left-without-being-seen / admitted / completed-routine. Added
+    // in migration 0033 alongside ha-complete-encounter.
+    completionReason: text("completion_reason"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },

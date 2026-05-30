@@ -77,6 +77,10 @@ export const patientIntakes = pgTable(
     appointmentId: uuid("appointment_id").references(() => appointments.id, {
       onDelete: "set null",
     }),
+    // Encounter back-link (migration 0033). NULL until triage hands
+    // off to an encounter; set by ha-complete-encounter so visit
+    // history can traverse intake → encounter.
+    encounterId: uuid("encounter_id"),
 
     referringHospitalId: uuid("referring_hospital_id").references(() => hospitals.id, {
       onDelete: "set null",
@@ -105,7 +109,7 @@ export const patientIntakes = pgTable(
     check("intakes_priority_check", sql`${t.priorityHint} IN ('routine','high','urgent')`),
     check(
       "intakes_status_check",
-      sql`${t.status} IN ('arrived','awaiting_triage','triaged','cancelled')`,
+      sql`${t.status} IN ('arrived','awaiting_triage','triaged','completed','cancelled')`,
     ),
     check(
       "intakes_patient_or_unknown",
