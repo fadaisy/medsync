@@ -1,6 +1,6 @@
 import type { IntakeRow } from "@/lib/intake/queries";
 import Link from "next/link";
-import { AlertTriangleIcon, DoorOpenIcon } from "lucide-react";
+import { AlertTriangleIcon, ClockIcon, DoorOpenIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -12,10 +12,14 @@ import { cn } from "@/lib/utils";
  * rows get the rose ring + ALERT pill; the list orders emergency-first
  * already via fetchHospitalIncomingIntakes.
  *
+ * Declared (patient-initiated, not-yet-arrived) rows are sorted to the
+ * tail by fetchHospitalIncomingIntakes and rendered with a muted
+ * "Declared · not here yet" chip — they shouldn't be confused with
+ * actually-waiting patients. This is the boundary the kickoff calls
+ * out: pre-queued vs present must read at a glance.
+ *
  * The panel is read-only — triage doesn't exist yet, so there's no
- * "start triage" action. Tapping a row opens the hospital-admin intake
- * surface scrolled to that row (the awaiting list there is the
- * canonical detail view today; per-intake routes land with triage).
+ * "start triage" action.
  */
 export function IncomingIntakesPanel({
   rows,
@@ -64,12 +68,14 @@ export function IncomingIntakesPanel({
 function IntakeRowItem({ row }: { row: IntakeRow }) {
   const who = row.patientCode ?? row.patientUnknownLabel ?? "Unknown patient";
   const referrer = row.referringHospitalName ?? row.referringFacilityOther;
+  const isDeclared = row.status === "declared";
 
   return (
     <div
       className={cn(
         "-mx-2 flex flex-col gap-1 rounded-md p-2",
         row.isEmergency && "bg-rose-50/30 ring-1 ring-rose-500/40 dark:bg-rose-950/15",
+        isDeclared && !row.isEmergency && "opacity-75",
       )}
     >
       <div className="flex items-baseline justify-between gap-2">
@@ -81,15 +87,26 @@ function IntakeRowItem({ row }: { row: IntakeRow }) {
               ALERT
             </span>
           ) : null}
+          {isDeclared ? (
+            <span
+              className="inline-flex items-center gap-0.5 rounded-full bg-teal-50 px-1.5 py-0.5 font-mono text-[9px] font-medium text-teal-700 ring-1 ring-teal-200/60 dark:bg-teal-950/30 dark:text-teal-300 dark:ring-teal-800/40"
+              title="Patient said they're coming today — not checked in yet"
+            >
+              <ClockIcon className="size-2.5" aria-hidden />
+              DECLARED
+            </span>
+          ) : null}
         </span>
         <span className="text-muted-foreground font-mono text-[10.5px] tabular-nums">
           {formatRelative(row.arrivedAtIso)}
         </span>
       </div>
       <span className="text-muted-foreground text-[11.5px] leading-snug">
-        {row.entryTypeName}
-        {referrer ? ` · from ${referrer}` : ""}
-        {row.broughtBy ? ` · brought by ${row.broughtBy}` : ""}
+        {isDeclared
+          ? "Self-declared · awaiting check-in"
+          : `${row.entryTypeName}${referrer ? ` · from ${referrer}` : ""}${
+              row.broughtBy ? ` · brought by ${row.broughtBy}` : ""
+            }`}
       </span>
       {row.presentingComplaint ? (
         <span className="text-foreground/90 text-[12px] leading-snug">

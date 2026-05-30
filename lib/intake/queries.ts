@@ -22,6 +22,11 @@ export interface IntakeRow {
   priorityHint: string;
   status: string;
   arrivedAtIso: string;
+  /** True when this intake was patient-initiated via book-or-queue
+   * (migration 0035). When also status='declared', the patient hasn't
+   * physically arrived yet — surface a "Declared · not here yet" chip
+   * and rank below present-and-waiting rows. */
+  declaredByPatient: boolean;
   patientCode: string | null;
   patientUnknownLabel: string | null;
   presentingComplaint: string | null;
@@ -38,7 +43,9 @@ export async function fetchHospitalIncomingIntakes(args: {
   statuses?: ReadonlyArray<string>;
   limit?: number;
 }): Promise<IntakeRow[]> {
-  const statuses = args.statuses ?? ["arrived", "awaiting_triage"];
+  // Default widened to include 'declared' (patient-initiated, not
+  // physically here yet). Callers can still override.
+  const statuses = args.statuses ?? ["declared", "arrived", "awaiting_triage"];
   const conditions = [
     eq(patientIntakes.hospitalId, args.hospitalId),
     inArray(patientIntakes.status, statuses as string[]),
@@ -56,6 +63,7 @@ export async function fetchHospitalIncomingIntakes(args: {
       priorityHint: patientIntakes.priorityHint,
       status: patientIntakes.status,
       arrivedAt: patientIntakes.arrivedAt,
+      declaredByPatient: patientIntakes.declaredByPatient,
       patientCode: patientProfiles.patientCode,
       patientUnknownLabel: patientIntakes.patientUnknownLabel,
       presentingComplaint: patientIntakes.presentingComplaint,
@@ -72,10 +80,12 @@ export async function fetchHospitalIncomingIntakes(args: {
     .leftJoin(hospitals, eq(hospitals.id, patientIntakes.referringHospitalId))
     .where(and(...conditions))
     // Emergency first (priority desc by hint), then oldest-waiting first.
+    // Declared-but-not-here rows get sorted to the tail in JS below,
+    // since they shouldn't push present-and-waiting patients down.
     .orderBy(desc(patientIntakes.priorityHint), asc(patientIntakes.arrivedAt))
     .limit(args.limit ?? 50);
 
-  return rows.map((r) => ({
+  const mapped: IntakeRow[] = rows.map((r) => ({
     id: r.id,
     entryTypeCode: r.entryTypeCode,
     entryTypeName: r.entryTypeName,
@@ -83,6 +93,7 @@ export async function fetchHospitalIncomingIntakes(args: {
     priorityHint: r.priorityHint,
     status: r.status,
     arrivedAtIso: r.arrivedAt.toISOString(),
+    declaredByPatient: r.declaredByPatient,
     patientCode: r.patientCode,
     patientUnknownLabel: r.patientUnknownLabel,
     presentingComplaint: r.presentingComplaint,
@@ -92,6 +103,15 @@ export async function fetchHospitalIncomingIntakes(args: {
     referringFacilityOther: r.referringFacilityOther,
     broughtBy: r.broughtBy,
   }));
+
+  // Stable rank: present rows first (current SQL order preserved),
+  // declared rows after (most-recent declaration first, since they're
+  // really a pre-queue, not a triage queue).
+  const present = mapped.filter((r) => r.status !== "declared");
+  const declared = mapped
+    .filter((r) => r.status === "declared")
+    .sort((a, b) => b.arrivedAtIso.localeCompare(a.arrivedAtIso));
+  return [...present, ...declared];
 }
 
 export interface EntryTypeRow {

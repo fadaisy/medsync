@@ -9,6 +9,7 @@ export const metadata: Metadata = { title: "Flow · Reception · MedSync" };
 export const dynamic = "force-dynamic";
 
 const STAGE_LABEL: Record<string, string> = {
+  declared: "Declared",
   expected: "Expected",
   arrived: "Arrived",
   in_queue: "In queue",
@@ -16,6 +17,11 @@ const STAGE_LABEL: Record<string, string> = {
 };
 
 const STAGE_TONE: Record<string, string> = {
+  // 'declared' = patient said they're coming, not here yet. Muted
+  // teal so it's visibly different from 'arrived' (solid teal) — the
+  // pre-queued/arrived distinction must be unmistakable.
+  declared:
+    "bg-teal-50/60 text-teal-700 ring-1 ring-teal-200/60 dark:bg-teal-950/30 dark:text-teal-300 dark:ring-teal-800/40",
   expected: "bg-muted text-muted-foreground",
   arrived: "bg-teal-50 text-teal-700 dark:bg-teal-950/40 dark:text-teal-300",
   in_queue: "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300",

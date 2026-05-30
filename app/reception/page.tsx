@@ -34,9 +34,15 @@ export default async function ReceptionTodayPage() {
         </p>
       </header>
 
-      {/* Stat rail */}
-      <section aria-label="Today counts" className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+      {/* Stat rail. "Declared" = patient-initiated queue tickets that
+          haven't been checked in yet (migration 0035). Surfaced as its
+          own tile so it doesn't get conflated with "Arrived". */}
+      <section
+        aria-label="Today counts"
+        className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5"
+      >
         <StatTile label="Expected" value={counts.expectedToday} />
+        <StatTile label="Declared" value={counts.declaredToday} tone="muted" />
         <StatTile label="Arrived" value={counts.arrivedToday} tone="teal" />
         <StatTile label="Awaiting triage" value={counts.awaitingTriage} tone="amber" />
         <StatTile label="No-shows" value={counts.noShowsToday} tone="muted" />
