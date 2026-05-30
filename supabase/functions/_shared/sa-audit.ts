@@ -101,7 +101,9 @@ export type SaAuditAction =
   // Patient entry points (migration 0032).
   | "register_intake"
   | "update_intake"
-  | "cancel_intake";
+  | "cancel_intake"
+  // Reception + lifecycle (migration 0033)
+  | "check_in_patient";
 
 export type SaAuditTargetKind =
   | "staff_affiliation"

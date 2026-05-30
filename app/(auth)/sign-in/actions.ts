@@ -175,6 +175,7 @@ export async function signInAction(_prev: SignInState, formData: FormData): Prom
             ].includes(cadreCode);
           const isNurseCadre =
             cadreCode != null && ["NURSE", "MIDWIFE", "SPECIALIST_NURSE"].includes(cadreCode);
+          const isReceptionCadre = cadreCode === "RECEPTION";
           if (["approved", "active"].includes(aff.state)) {
             if (isDoctorCadre) {
               defaultTarget = "/doctor";
@@ -182,6 +183,9 @@ export async function signInAction(_prev: SignInState, formData: FormData): Prom
             } else if (isNurseCadre) {
               defaultTarget = "/nurse";
               routeReason = `staff-affiliation-${aff.state}-nurse-cadre`;
+            } else if (isReceptionCadre) {
+              defaultTarget = "/reception";
+              routeReason = `staff-affiliation-${aff.state}-reception-cadre`;
             } else {
               defaultTarget = "/clinician";
               routeReason = `staff-affiliation-${aff.state}-non-doctor`;

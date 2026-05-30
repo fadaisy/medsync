@@ -10,6 +10,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { registerIntakeAction } from "../actions";
 
+/**
+ * Submit-action prop type so the form can be reused by /reception/intake
+ * (which uses requireReceptionScope instead of requireHospitalAdminScope).
+ * Default keeps the hospital-admin path working unchanged.
+ */
+export type IntakeSubmitAction = (
+  prev: RegisterIntakeState,
+  formData: FormData,
+) => Promise<RegisterIntakeState>;
+
 interface EntryTypeOption {
   code: string;
   name: string;
@@ -46,16 +56,18 @@ export function IntakeForm({
   entryTypes,
   departments,
   hospitals,
+  submitAction,
 }: {
   entryTypes: ReadonlyArray<EntryTypeOption>;
   departments: ReadonlyArray<DeptOption>;
   hospitals: ReadonlyArray<HospitalOption>;
+  /** Pluggable so the same form can be used by /hospital-admin/intake
+   * (hospital_admin scope) and /reception/intake (reception scope). */
+  submitAction?: IntakeSubmitAction;
 }) {
   const router = useRouter();
-  const [state, formAction, pending] = useActionState<RegisterIntakeState, FormData>(
-    registerIntakeAction,
-    {},
-  );
+  const action = submitAction ?? registerIntakeAction;
+  const [state, formAction, pending] = useActionState<RegisterIntakeState, FormData>(action, {});
 
   const [typeCode, setTypeCode] = useState<string>(entryTypes[0]?.code ?? "walk_in");
   const [patientMode, setPatientMode] = useState<"known" | "unknown">("known");

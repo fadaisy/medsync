@@ -124,12 +124,18 @@ export const cadres = pgTable(
   "cadres",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    councilId: uuid("council_id")
-      .notNull()
-      .references(() => councils.id, { onDelete: "restrict" }),
+    // Nullable since migration 0033 — non-clinical cadres (reception)
+    // have no national regulator.
+    councilId: uuid("council_id").references(() => councils.id, { onDelete: "restrict" }),
     code: text("code").notNull(),
     name: text("name").notNull(),
     description: text("description"),
+    // is_clinical added in migration 0033. Defaults true for existing
+    // 19 clinical cadres; reception cadre is false. The clinical-
+    // content RLS policies require cadres.is_clinical = true on the
+    // active affiliation, so non-clinical cadres cannot read clinical
+    // tables even with a valid hospital affiliation.
+    isClinical: boolean("is_clinical").notNull().default(true),
     sortOrder: integer("sort_order").notNull().default(0),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
