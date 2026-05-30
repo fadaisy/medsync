@@ -11,6 +11,8 @@ import {
   UsersIcon,
 } from "lucide-react";
 
+import { IncomingIntakesPanel } from "@/components/intake/incoming-panel";
+import { fetchHospitalIncomingIntakes } from "@/lib/intake/queries";
 import { requireNurseScope } from "@/lib/nurse/scope";
 
 export const metadata: Metadata = { title: "Overview · Nurse · MedSync" };
@@ -24,6 +26,12 @@ export const dynamic = "force-dynamic";
 export default async function NurseOverviewPage() {
   const scope = await requireNurseScope();
   const firstName = scope.fullName?.split(" ")[0];
+
+  const incoming = await fetchHospitalIncomingIntakes({
+    hospitalId: scope.hospitalId,
+    departmentId: scope.departmentId,
+    limit: 10,
+  });
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-6 py-8 lg:py-10">
@@ -41,6 +49,9 @@ export default async function NurseOverviewPage() {
           care-team, prescribing) ship.
         </p>
       </header>
+
+      {/* Incoming intakes for this department */}
+      <IncomingIntakesPanel rows={incoming} departmentName={scope.departmentName} />
 
       <section className="grid gap-3 sm:grid-cols-2">
         <DirectionCard
