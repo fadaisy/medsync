@@ -250,7 +250,7 @@ export function FoundingStory() {
             className="font-display text-foreground max-w-[26ch] text-[34px] leading-[1.08] tracking-[-0.025em] text-balance sm:text-[48px]"
             style={{ fontWeight: 400 }}
           >
-            Three cofounders.{" "}
+            Four cofounders.{" "}
             <span className="text-teal-700 italic dark:text-teal-300">The patients</span> we
             couldn&rsquo;t unsee.
           </h2>
