@@ -11,12 +11,14 @@ import {
   UsersIcon,
 } from "lucide-react";
 
+import { IncomingIntakesPanel } from "@/components/intake/incoming-panel";
 import {
   getMySupervisor,
   listMyCosignRequests,
   listPendingCosignRequests,
 } from "@/lib/doctor/cosign";
 import { requireDoctorScope } from "@/lib/doctor/scope";
+import { fetchHospitalIncomingIntakes } from "@/lib/intake/queries";
 
 export const metadata: Metadata = { title: "Overview · Doctor · MedSync" };
 export const dynamic = "force-dynamic";
@@ -41,8 +43,8 @@ export default async function DoctorOverviewPage() {
   const scope = await requireDoctorScope();
   const firstName = scope.fullName?.split(" ")[0];
 
-  // Cadre-conditional fetches.
-  const [supervisor, myRequests, pendingForMe] = await Promise.all([
+  // Cadre-conditional fetches + the dept incoming-intake list.
+  const [supervisor, myRequests, pendingForMe, incoming] = await Promise.all([
     scope.isJunior ? getMySupervisor({ superviseeAffiliationId: scope.affiliationId }) : null,
     scope.isJunior
       ? listMyCosignRequests({
@@ -52,6 +54,11 @@ export default async function DoctorOverviewPage() {
         })
       : [],
     scope.isSenior ? listPendingCosignRequests({ hospitalId: scope.hospitalId }) : [],
+    fetchHospitalIncomingIntakes({
+      hospitalId: scope.hospitalId,
+      departmentId: scope.departmentId,
+      limit: 10,
+    }),
   ]);
 
   return (
@@ -78,6 +85,9 @@ export default async function DoctorOverviewPage() {
       ) : null}
 
       {scope.isSenior ? <SeniorReviewCard pendingCount={pendingForMe.length} /> : null}
+
+      {/* ── Incoming intakes for this department ─────────────── */}
+      <IncomingIntakesPanel rows={incoming} departmentName={scope.departmentName} />
 
       {/* ── Directional surface cards ────────────────────────── */}
       <section className="grid gap-3 sm:grid-cols-2">
