@@ -107,10 +107,18 @@ export const listCouncils = cached(
 
 export const listCadres = cached(
   "listCadres",
-  async (opts?: { councilId?: string }): Promise<Cadre[]> => {
+  async (opts?: { councilId?: string; isClinical?: boolean }): Promise<Cadre[]> => {
     const q = db.select().from(cadres).orderBy(asc(cadres.sortOrder), asc(cadres.name));
+    if (opts?.councilId && opts?.isClinical !== undefined) {
+      return q.where(
+        and(eq(cadres.councilId, opts.councilId), eq(cadres.isClinical, opts.isClinical))!,
+      );
+    }
     if (opts?.councilId) {
       return q.where(eq(cadres.councilId, opts.councilId));
+    }
+    if (opts?.isClinical !== undefined) {
+      return q.where(eq(cadres.isClinical, opts.isClinical));
     }
     return q;
   },

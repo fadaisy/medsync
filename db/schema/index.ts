@@ -62,3 +62,6 @@ export * from "./nurse-workspace";
 
 // ─── Patient entry points (migration 0032) ─────────────────────────────
 export * from "./patient-intakes";
+
+// ─── Non-clinical staff identity (migration 0034) ──────────────────────
+export * from "./staff-identity-profiles";
