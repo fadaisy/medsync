@@ -5,6 +5,53 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Book-or-Queue: patient choice point after primary-hospital selection — 2026-05-30
+
+Per [`prompts/book-or-queue-kickoff.md`](prompts/book-or-queue-kickoff.md) + [`docs/book-or-queue-gate-a-proposal.md`](docs/book-or-queue-gate-a-proposal.md). The post–primary-hospital-selection moment is now a clear two-door step: **Book a future visit** (existing scheduling flow) or **Join today's queue** (new same-day pre-queue). No new engines — wires the patient's choice into the existing scheduling + entry-points systems.
+
+**Migration 0035** (additive only, pushed):
+
+- `patient_intakes.status` widened with `'declared'` — patient-initiated queue ticket, not physically present yet. Reception flips to `'arrived'` at check-in.
+- `patient_intakes.checked_in_at timestamptz` — stamped at the declared→arrived transition. `arrived_at` keeps its row-created-at semantics.
+- `patient_intakes.declared_by_patient boolean` — explicit flag (not inferred) so staff boards distinguish patient-initiated declarations from staff-registered intakes.
+- `patient_intakes_hospital_status_idx` partial predicate widened to include `'declared'` — keeps today-board queries on the hot path.
+- `sa_audit_log` action widened with `'patient_declare_intake'`.
+
+**Edge Functions:**
+
+- `pt-declare-intake` (new, deployed): patient creates the `status='declared'` intake. Validates: caller is the patient; `hospital_id` matches `patient_profiles.primary_facility_id` (no cross-hospital declarations); department exists at this hospital; department is "open for walk-in today" per `departmentSchedulingPolicy` (no new flag — same heuristic as the patient UI); 409 if a same-dept booking exists today; 409 if a live queue ticket already exists today. Audited as `patient_declare_intake`.
+- `ha-check-in-patient` (extended, deployed): now accepts **either** `appointment_id` (original path) **or** `intake_id`. The new branch flips a declared intake to `arrived` + stamps `checked_in_at` + inserts the dept queue row. Reception's single check-in surface handles both booked-arrival and patient-declared flows; no duplicate row.
+- `ha-cancel-intake` (extended, deployed): patient may cancel their **own** intake while it's still `declared`. Once arrived, staff-only (a walkaway is a no-show — reception's call).
+- Shared `conflict()` error helper extended to carry structured `details` so 409s can ship `existing_appointment_id` / `existing_intake_id` for the UI to link to.
+
+**Patient UI:**
+
+- [`/patient`](app/patient/page.tsx) — quick-actions render **Book a visit** + **Join today's queue** as a pair when a primary hospital is set.
+- [`/patient/hospitals`](app/patient/hospitals/page.tsx) — primary-hospital tile renders the **"What would you like to do?"** choice point with Book / Join today's queue / Not now (mobile-stacked, thumb-reachable).
+- [`/patient/queue`](app/patient/queue/page.tsx) — dept picker for same-day declarations; mirrors the Edge Function's open-today heuristic; shows count-ahead per dept; **surfaces existing booking-today / live-intake-today before letting the patient try**, so the user lands in the right place instead of bouncing off a 409. Honest emergency banner ("don't use this — go straight to emergency").
+- [`/patient/queue/[intakeId]`](app/patient/queue/[intakeId]/page.tsx) — live status (declared → arrived → awaiting_triage → triaged → completed); stage card + ticket details + 30s `meta http-equiv="refresh"` polling. Patient self-cancel while declared.
+- Honest copy throughout: no fake wait estimates ("12 ahead right now"), no guarantee of a specific clinician or time, no clinical chrome.
+
+**Staff surfacing:**
+
+- Reception home stat rail adds **Declared** tile between Expected and Arrived (grid bumped to `lg:5` cols). [`lib/reception/queries.ts`](lib/reception/queries.ts) `ReceptionTodayCounts` gains `declaredToday`; `FlowRow` adds `declared` stage + `declaredIntakeId`.
+- [`/reception/expected`](app/reception/expected/page.tsx) — new **"Declared today · awaiting check-in"** section above the booked-arrivals table. Each row gets a one-tap **Check in** button (calls `ha-check-in-patient` via the new `intake_id` branch).
+- [`/reception/flow`](app/reception/flow/page.tsx) — `declared` stage chip + tone (muted teal with ring, visibly distinct from solid-teal `arrived`).
+- [`fetchHospitalIncomingIntakes`](lib/intake/queries.ts) default widened to `[declared, arrived, awaiting_triage]`; declared rows tail-sorted so they never push present-and-waiting patients down. `IntakeRow` carries `declaredByPatient`.
+- [`IncomingIntakesPanel`](components/intake/incoming-panel.tsx) (nurse + doctor home) renders a muted **DECLARED** chip + _"Self-declared · awaiting check-in"_ sub-line + lower opacity for declared rows. Emergency override still applies.
+
+The pre-queued/arrived boundary reads at a glance everywhere: chips, counts, ordering. No surface lets a not-yet-here patient look like they're waiting in the room.
+
+**Docs:** [ADR 0034 — Book-or-Queue: patient-initiated intake is a status, not an entry type](docs/adr/0034-book-or-queue-choice-point.md). Captures: why we widened status instead of adding an entry type; why we reused `departmentSchedulingPolicy` for capacity (and the trade-off accepted); why patient writes go through a `pt-*` Edge Function with the same audit/scope shape as `pt-request-appointment`; the same-dept-today-booking reconciliation rule; why position-in-line is the only honest count.
+
+**Deferred** (explicit, out of this gate):
+
+- `accepting_walkins` / `closed_today` flag on `departmentSchedulingPolicy` — only if pilot exposes a genuine need for divergence from booking hours.
+- Estimated wait time — no signal today; we surface count-ahead only.
+- Websocket-pushed queue updates — `meta refresh` is the honest minimum until then.
+- Auto-decay of stale `declared` intakes at EOD — cron, separate ticket.
+- Push / SMS queue-position notifications — separate ticket.
+
 ### Added — Reception / Records Registration (non-clinical signup path) — 2026-05-30
 
 Per [`docs/reception-registration-gate-a-proposal.md`](docs/reception-registration-gate-a-proposal.md). The signup-side completion of the reception/records workspace: a parallel `/signup/non-clinical` route, an admin pending-queue panel that branches by cadre clinicality, and a verification-by-attestation policy that's honest about who the verifying authority is. Closes the "today reception users are seeded manually" deferred item from the previous changelog entry.
