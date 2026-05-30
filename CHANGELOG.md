@@ -5,6 +5,39 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Reception / Records Registration (non-clinical signup path) — 2026-05-30
+
+Per [`docs/reception-registration-gate-a-proposal.md`](docs/reception-registration-gate-a-proposal.md). The signup-side completion of the reception/records workspace: a parallel `/signup/non-clinical` route, an admin pending-queue panel that branches by cadre clinicality, and a verification-by-attestation policy that's honest about who the verifying authority is. Closes the "today reception users are seeded manually" deferred item from the previous changelog entry.
+
+**Migration 0034** (additive only, pushed to remote):
+
+- `staff_identity_profiles` table — non-clinical mirror of `clinician_profiles`. PK references `auth.users(id)`; columns: `nin_encrypted` (required), `staff_number`, `appointment_letter_url`, `authorising_officer_name`, `authorising_officer_role`. RLS: own row + scoped hospital_admin (via existing affiliation) + superadmin. `audit_log_changes()` trigger attached.
+- `staff-identity-documents` Storage bucket — private; RLS mirrors `clinician-licences` (hospital_admin SELECT only when the applicant has an affiliation at their hospital).
+
+**New `/signup/non-clinical` route** (sibling to `/signup/clinical`):
+
+- Single-page native form — Account / Identity / Where you work / Consent. No council/licence section.
+- **NIN required** (encrypted via `lib/encryption`); staff number / authorising officer / appointment letter optional.
+- Reuses the existing `staff_affiliations.pending_approval → approved → active` lifecycle. No bespoke approval path.
+- Same MFA / consent-version-mismatch handling as the clinical path.
+
+**`/get-started` tile** added — "Reception, records or non-clinical staff" routes here. Headline updated to "Four doors in." Grid bumped to `sm:2 / xl:4` for the new tile.
+
+**Admin pending queue** — `fetchPendingAffiliations` switched from inner-join → left-join on `clinician_profiles` + `councils` and now joins `staff_identity_profiles`. Non-clinical applicants previously wouldn't have surfaced in the queue at all. The pending-detail sheet branches by `cadres.is_clinical`:
+
+- Clinical: council + reg # in the header chips; "Council licence" evidence card.
+- Non-clinical: "Non-clinical" path chip; NIN-on-file + staff # + authorising officer rows; "Appointment letter" card (optional, amber note if missing). An italic note inside the panel reads _"your approval IS the employer attestation."_
+
+`getEvidenceSignedUrlAction` allowlist widened to include `staff-identity-documents`.
+
+**Docs:** [ADR 0033 — non-clinical verification is by hospital-admin attestation](docs/adr/0033-non-clinical-verification-by-attestation.md). Captures the decision to make NIN the identity anchor and the admin's approval the verification anchor, with optional supporting evidence that never gates signup.
+
+**Deferred** (explicit, per proposal §6):
+
+- Admin-invite-driven signup path (tokenised email link). The current signup is applicant-driven; admin-driven onboarding is a separate ticket.
+- Operational NIN-decrypt UI surfacing the decrypted value in the panel. Today the panel shows "On file (encrypted)"; decryption flows through the existing audited operational-decrypt helper used for patient PII.
+- Government NIN-verification API integration — no API integrated today; the admin matches NIN to person on day one.
+
 ### Added — Reception / Records Workspace (non-clinical, RLS-enforced) — 2026-05-30
 
 Per [`docs/patient-handling-flow-gate-a-proposal.md`](docs/patient-handling-flow-gate-a-proposal.md) §4 + the receptionist-workspace kickoff. A deliberately thin front-desk console + the lifecycle write paths that close board-rot. **Non-clinical by design** — RLS at the database, not just hiding in the UI.

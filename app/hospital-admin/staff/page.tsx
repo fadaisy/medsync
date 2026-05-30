@@ -7,6 +7,7 @@ import { clinicianProfiles, staffAffiliations } from "@/db/schema/clinician-prof
 import { hospitalDepartments } from "@/db/schema/hospital-departments";
 import { hospitalStaffInvitations } from "@/db/schema/hospital-staff-invitations";
 import { cadreGrades, cadres, councils, roles, specialties } from "@/db/schema/reference-data";
+import { staffIdentityProfiles } from "@/db/schema/staff-identity-profiles";
 import { users } from "@/db/schema/users";
 import { requireHospitalAdminScope } from "@/lib/hospital-admin/scope";
 import { DirectoryTable } from "./_components/directory-table";
@@ -100,15 +101,16 @@ export interface PendingAffiliationRow {
   id: string;
   fullName: string;
   email: string;
+  /** Drives which evidence block the panel renders. Clinical → council
+   * + licence. Non-clinical → NIN-on-file + appointment letter +
+   * authorising officer. Migration 0033 added cadres.is_clinical for
+   * this. */
+  isClinical: boolean;
   cadreName: string;
   cadreGradeName: string | null;
   roleName: string;
   departmentName: string;
   specialtyName: string | null;
-  councilName: string;
-  registrationNumber: string;
-  registrationExpiry: string | null;
-  licenceDocumentPath: string | null;
   employmentType: string;
   reviewNote: string | null;
   createdAtIso: string;
@@ -116,9 +118,25 @@ export interface PendingAffiliationRow {
    * The client renders this as the aging chip without calling
    * Date.now() during render (which React's new purity rules flag). */
   daysSinceSubmission: number;
+
+  // Clinical-only fields (null for non-clinical applicants).
+  councilName: string | null;
+  registrationNumber: string | null;
+  registrationExpiry: string | null;
+  licenceDocumentPath: string | null;
+
+  // Non-clinical-only fields (null for clinical applicants).
+  ninOnFile: boolean;
+  staffNumber: string | null;
+  appointmentLetterPath: string | null;
+  authorisingOfficerName: string | null;
+  authorisingOfficerRole: string | null;
 }
 
 async function fetchPendingAffiliations(hospitalId: string): Promise<PendingAffiliationRow[]> {
+  // LEFT joins on the cadre-conditional rows so non-clinical applicants
+  // (no clinician_profiles row, no council on cadre, but has a
+  // staff_identity_profiles row) still surface in this queue.
   const rows = await db
     .select({
       id: staffAffiliations.id,
@@ -128,6 +146,7 @@ async function fetchPendingAffiliations(hospitalId: string): Promise<PendingAffi
       fullName: users.fullName,
       email: users.email,
       cadreName: cadres.name,
+      isClinical: cadres.isClinical,
       cadreGradeName: cadreGrades.name,
       roleName: roles.name,
       departmentName: hospitalDepartments.name,
@@ -136,12 +155,18 @@ async function fetchPendingAffiliations(hospitalId: string): Promise<PendingAffi
       registrationNumber: clinicianProfiles.registrationNumber,
       registrationExpiry: clinicianProfiles.registrationExpiry,
       licenceDocumentPath: clinicianProfiles.licenceDocumentPath,
+      identityProfileId: staffIdentityProfiles.id,
+      staffNumber: staffIdentityProfiles.staffNumber,
+      appointmentLetterPath: staffIdentityProfiles.appointmentLetterUrl,
+      authorisingOfficerName: staffIdentityProfiles.authorisingOfficerName,
+      authorisingOfficerRole: staffIdentityProfiles.authorisingOfficerRole,
     })
     .from(staffAffiliations)
     .innerJoin(users, eq(users.id, staffAffiliations.userId))
-    .innerJoin(clinicianProfiles, eq(clinicianProfiles.id, staffAffiliations.userId))
-    .innerJoin(councils, eq(councils.id, clinicianProfiles.councilId))
     .innerJoin(cadres, eq(cadres.id, staffAffiliations.cadreId))
+    .leftJoin(clinicianProfiles, eq(clinicianProfiles.id, staffAffiliations.userId))
+    .leftJoin(councils, eq(councils.id, clinicianProfiles.councilId))
+    .leftJoin(staffIdentityProfiles, eq(staffIdentityProfiles.id, staffAffiliations.userId))
     .leftJoin(cadreGrades, eq(cadreGrades.id, staffAffiliations.cadreGradeId))
     .innerJoin(roles, eq(roles.id, staffAffiliations.roleId))
     .innerJoin(hospitalDepartments, eq(hospitalDepartments.id, staffAffiliations.departmentId))
@@ -160,19 +185,25 @@ async function fetchPendingAffiliations(hospitalId: string): Promise<PendingAffi
     id: r.id,
     fullName: r.fullName,
     email: r.email,
+    isClinical: r.isClinical,
     cadreName: r.cadreName,
     cadreGradeName: r.cadreGradeName,
     roleName: r.roleName,
     departmentName: r.departmentName,
     specialtyName: r.specialtyName,
-    councilName: r.councilName,
-    registrationNumber: r.registrationNumber,
-    registrationExpiry: r.registrationExpiry ? r.registrationExpiry.toString() : null,
-    licenceDocumentPath: r.licenceDocumentPath,
     employmentType: r.employmentType,
     reviewNote: r.reviewNote,
     createdAtIso: r.createdAt.toISOString(),
     daysSinceSubmission: Math.floor((nowMs - r.createdAt.getTime()) / 86_400_000),
+    councilName: r.councilName,
+    registrationNumber: r.registrationNumber,
+    registrationExpiry: r.registrationExpiry ? r.registrationExpiry.toString() : null,
+    licenceDocumentPath: r.licenceDocumentPath,
+    ninOnFile: r.identityProfileId !== null,
+    staffNumber: r.staffNumber,
+    appointmentLetterPath: r.appointmentLetterPath,
+    authorisingOfficerName: r.authorisingOfficerName,
+    authorisingOfficerRole: r.authorisingOfficerRole,
   }));
 }
 

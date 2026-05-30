@@ -21,18 +21,21 @@ import {
 /**
  * Evidence-in-panel slide-out for a pending staff_affiliations row.
  *
- * Same case-file shape as the superadmin Approvals detail (matches
- * the muscle memory the admin built there if they were ever a
- * superadmin). Three actions, each with its own reason-capture form:
+ * Same case-file shape as the superadmin Approvals detail. Three
+ * actions (Approve / Reject / Request info), each with its own
+ * reason-capture form (≥ 8 chars, audited).
  *
- *   - Approve … (≥ 8 chars audit reason; grants the role)
- *   - Reject  … (≥ 8 chars rejection reason; visible to applicant)
- *   - Request info (≥ 8 chars note; stays in queue, applicant sees it)
+ * Verification section branches on cadre.is_clinical:
  *
- * The licence document opens via the existing
- * `getEvidenceSignedUrlAction` — same signed-URL flow as the
- * superadmin's approvals sheet. The bucket `clinician-licences` RLS
- * grants SELECT to hospital_admins (migration 0016).
+ *   Clinical → council registration + licence document
+ *              (anchor = council registry).
+ *   Non-clinical → NIN-on-file flag + optional appointment letter +
+ *                  optional authorising officer
+ *                  (anchor = the admin's attestation here).
+ *
+ * Storage opens via the shared `getEvidenceSignedUrlAction`. Buckets:
+ *   - clinician-licences (migration 0016)
+ *   - staff-identity-documents (migration 0034)
  */
 
 type Mode = "view" | "approve" | "reject" | "request_info";
@@ -81,8 +84,13 @@ function DetailContent({ item, onClose }: { item: PendingAffiliationRow; onClose
 
           <dl className="flex flex-wrap items-baseline gap-x-6 gap-y-1.5 text-[11.5px]">
             <Meta label="Received" value={`${days} day${days === 1 ? "" : "s"} ago`} mono />
-            <Meta label="Council" value={item.councilName} />
-            <Meta label="Reg. #" value={item.registrationNumber} mono />
+            <Meta label="Path" value={item.isClinical ? "Clinical" : "Non-clinical"} />
+            {item.isClinical && item.councilName ? (
+              <Meta label="Council" value={item.councilName} />
+            ) : null}
+            {item.isClinical && item.registrationNumber ? (
+              <Meta label="Reg. #" value={item.registrationNumber} mono />
+            ) : null}
           </dl>
         </div>
       </SheetHeader>
@@ -99,17 +107,54 @@ function DetailContent({ item, onClose }: { item: PendingAffiliationRow; onClose
         ) : null}
 
         <Section index={item.reviewNote ? 2 : 1} title="Verification">
-          <Rows
-            rows={[
-              { label: "Full name", value: item.fullName },
-              { label: "Email", value: item.email, mono: true },
-              { label: "Council", value: item.councilName },
-              { label: "Registration #", value: item.registrationNumber, mono: true },
-              ...(item.registrationExpiry
-                ? [{ label: "Expires", value: item.registrationExpiry, mono: true }]
-                : []),
-            ]}
-          />
+          {item.isClinical ? (
+            <Rows
+              rows={[
+                { label: "Full name", value: item.fullName },
+                { label: "Email", value: item.email, mono: true },
+                { label: "Council", value: item.councilName ?? "—" },
+                {
+                  label: "Registration #",
+                  value: item.registrationNumber ?? "—",
+                  mono: true,
+                },
+                ...(item.registrationExpiry
+                  ? [{ label: "Expires", value: item.registrationExpiry, mono: true }]
+                  : []),
+              ]}
+            />
+          ) : (
+            <Rows
+              rows={[
+                { label: "Full name", value: item.fullName },
+                { label: "Email", value: item.email, mono: true },
+                {
+                  label: "National ID",
+                  value: item.ninOnFile ? "On file (encrypted)" : "Not provided",
+                },
+                ...(item.staffNumber
+                  ? [{ label: "Staff #", value: item.staffNumber, mono: true }]
+                  : []),
+                ...(item.authorisingOfficerName
+                  ? [
+                      {
+                        label: "Authorising",
+                        value: item.authorisingOfficerRole
+                          ? `${item.authorisingOfficerName} · ${item.authorisingOfficerRole}`
+                          : item.authorisingOfficerName,
+                      },
+                    ]
+                  : []),
+              ]}
+            />
+          )}
+          {!item.isClinical ? (
+            <p className="text-muted-foreground border-l-2 border-l-teal-500/60 px-2.5 py-2 text-[11.5px] leading-relaxed italic dark:border-l-teal-400/60">
+              Non-clinical path — your approval IS the employer attestation. There is no external
+              council to check. Confirm the applicant is a current employee in this role before
+              approving.
+            </p>
+          ) : null}
         </Section>
 
         <Section index={item.reviewNote ? 3 : 2} title="Claimed role">
@@ -130,15 +175,36 @@ function DetailContent({ item, onClose }: { item: PendingAffiliationRow; onClose
           />
         </Section>
 
-        {item.licenceDocumentPath ? (
-          <Section index={item.reviewNote ? 4 : 3} title="Licence document">
-            <LicenceCard path={item.licenceDocumentPath} />
-          </Section>
+        {item.isClinical ? (
+          item.licenceDocumentPath ? (
+            <Section index={item.reviewNote ? 4 : 3} title="Licence document">
+              <LicenceCard
+                bucket="clinician-licences"
+                path={item.licenceDocumentPath}
+                label="Council licence"
+              />
+            </Section>
+          ) : (
+            <Section index={item.reviewNote ? 4 : 3} title="Licence document">
+              <p className="text-muted-foreground border-l-2 border-l-red-500/70 px-2.5 py-2 text-[12.5px] dark:border-l-red-400/60">
+                No licence document on file — request one before approving.
+              </p>
+            </Section>
+          )
         ) : (
-          <Section index={item.reviewNote ? 4 : 3} title="Licence document">
-            <p className="text-muted-foreground border-l-2 border-l-red-500/70 px-2.5 py-2 text-[12.5px] dark:border-l-red-400/60">
-              No licence document on file — request one before approving.
-            </p>
+          <Section index={item.reviewNote ? 4 : 3} title="Appointment letter">
+            {item.appointmentLetterPath ? (
+              <LicenceCard
+                bucket="staff-identity-documents"
+                path={item.appointmentLetterPath}
+                label="Appointment letter"
+              />
+            ) : (
+              <p className="text-muted-foreground border-l-2 border-l-amber-500/70 px-2.5 py-2 text-[12.5px] dark:border-l-amber-400/60">
+                None uploaded — optional, but consider requesting one if you can&rsquo;t place this
+                applicant.
+              </p>
+            )}
           </Section>
         )}
       </SheetBody>
@@ -268,7 +334,15 @@ function ActionForm({
 
 /* ─── Licence card ────────────────────────────────────────────────── */
 
-function LicenceCard({ path }: { path: string }) {
+function LicenceCard({
+  bucket,
+  path,
+  label,
+}: {
+  bucket: "clinician-licences" | "staff-identity-documents";
+  path: string;
+  label: string;
+}) {
   const [state, formAction, pending] = useActionState(getEvidenceSignedUrlAction, {
     ok: false as const,
     error: "",
@@ -289,23 +363,23 @@ function LicenceCard({ path }: { path: string }) {
       action={formAction}
       className="border-border bg-card hover:border-border/80 hover:bg-muted/30 group flex items-center gap-3 rounded-md border p-3 transition-colors"
     >
-      <input type="hidden" name="bucket" value="clinician-licences" />
+      <input type="hidden" name="bucket" value={bucket} />
       <input type="hidden" name="path" value={path} />
       <div className="flex size-9 shrink-0 items-center justify-center rounded bg-teal-50 text-teal-700 ring-1 ring-teal-200/70 dark:bg-teal-950/40 dark:text-teal-300 dark:ring-teal-800/40">
         <FileTextIcon className="size-4" aria-hidden />
       </div>
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex items-center gap-2">
-          <span className="text-foreground truncate text-[13px] font-medium">Council licence</span>
+          <span className="text-foreground truncate text-[13px] font-medium">{label}</span>
           <span className="text-muted-foreground bg-muted shrink-0 rounded px-1.5 py-px font-mono text-[9.5px] tracking-wide tabular-nums">
             {kind}
           </span>
         </div>
         <span
           className="text-muted-foreground truncate font-mono text-[10.5px] leading-tight"
-          title={`clinician-licences · ${path}`}
+          title={`${bucket} · ${path}`}
         >
-          clinician-licences · {path}
+          {bucket} · {path}
         </span>
       </div>
       <Button type="submit" variant="secondary" size="sm" disabled={pending}>

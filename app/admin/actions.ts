@@ -174,7 +174,15 @@ export async function rejectHospitalApplicationAction(
  * use the URL directly.
  */
 const SignedUrlInputSchema = z.object({
-  bucket: z.enum(["clinician-licences", "hospital-authorisations"]),
+  bucket: z.enum([
+    "clinician-licences",
+    "hospital-authorisations",
+    // Migration 0034: non-clinical staff identity evidence
+    // (appointment letters). RLS on the bucket itself mirrors
+    // clinician-licences — hospital_admin SELECT only when the
+    // applicant has an affiliation at their hospital.
+    "staff-identity-documents",
+  ]),
   path: z.string().min(1).max(500),
 });
 

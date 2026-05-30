@@ -1,6 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowUpRightIcon, BuildingIcon, StethoscopeIcon, UserIcon } from "lucide-react";
+import {
+  ArrowUpRightIcon,
+  BuildingIcon,
+  ClipboardListIcon,
+  StethoscopeIcon,
+  UserIcon,
+} from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -26,7 +32,7 @@ export const metadata: Metadata = {
  */
 
 interface IntentTile {
-  audience: "patient" | "clinical" | "hospital";
+  audience: "patient" | "clinical" | "non_clinical" | "hospital";
   label: string;
   sub: string;
   details: string;
@@ -48,13 +54,23 @@ const TILES: ReadonlyArray<IntentTile> = [
   },
   {
     audience: "clinical",
-    label: "I'm a medical staff member",
-    sub: "Doctor, nurse, midwife, pharmacist, allied health, admin.",
+    label: "I'm a clinician",
+    sub: "Doctor, nurse, midwife, pharmacist, allied health.",
     details:
       "Council registration + licence upload (UMDPC, UNMC, AHPC, Pharmacy Board) is the verification anchor. One affiliation per hospital × department × role, each approved separately by the hospital's admin. MFA mandatory before any clinical access.",
     approvalNote: "Approval-gated, per affiliation. MFA required.",
     href: "/signup/clinical",
     Icon: StethoscopeIcon,
+  },
+  {
+    audience: "non_clinical",
+    label: "Reception, records or non-clinical staff",
+    sub: "Front desk, records, admin — no clinical access.",
+    details:
+      "No professional council. Your hospital admin verifies you against your appointment and NIN. You get the reception workspace — bookings, intake, queue and demographics — but not clinical content.",
+    approvalNote: "Hospital-admin approval. No clinical access.",
+    href: "/signup/non-clinical",
+    Icon: ClipboardListIcon,
   },
   {
     audience: "hospital",
@@ -94,7 +110,7 @@ export default function GetStartedPage() {
             style={{ fontWeight: 400 }}
           >
             One record.{" "}
-            <span className="text-teal-700 italic dark:text-teal-300">Three doors in.</span>
+            <span className="text-teal-700 italic dark:text-teal-300">Four doors in.</span>
           </h1>
           <p className="text-muted-foreground max-w-[60ch] text-[15px] leading-[1.55] sm:text-[16.5px]">
             Pick the door that matches you. Patients get an account immediately; clinicians and
@@ -102,7 +118,7 @@ export default function GetStartedPage() {
           </p>
         </header>
 
-        <ul role="list" className="grid gap-4 md:grid-cols-3">
+        <ul role="list" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {TILES.map((tile) => (
             <li key={tile.audience} className="flex">
               <Link
