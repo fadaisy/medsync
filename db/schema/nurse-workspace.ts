@@ -140,6 +140,9 @@ export const clinicalObservations = pgTable(
     correctedByObservationId: uuid("corrected_by_observation_id").references(
       (): AnyPgColumn => clinicalObservations.id,
     ),
+    // Set when this observation was captured during a triage event
+    // (migration 0036) — distinguishes triage vitals from routine obs.
+    triageRecordId: uuid("triage_record_id"),
 
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
@@ -147,7 +150,7 @@ export const clinicalObservations = pgTable(
   (t) => [
     check(
       "obs_kind_check",
-      sql`${t.observationKind} IN ('bp','hr','temperature','rr','spo2','glucose','pain','weight','height','intake','output','gcs','other')`,
+      sql`${t.observationKind} IN ('bp','hr','temperature','rr','spo2','glucose','pain','weight','height','intake','output','gcs','other','acvpu')`,
     ),
     check("obs_state_check", sql`${t.state} IN ('active','corrected')`),
     index("clinical_observations_patient_kind_idx").on(

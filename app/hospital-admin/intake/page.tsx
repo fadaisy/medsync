@@ -9,19 +9,22 @@ import {
   listEntryTypes,
   listHospitalDepartments,
 } from "@/lib/intake/queries";
+import { fetchTriageMetricsToday } from "@/lib/triage/worklist";
 import { IntakeForm } from "./_components/intake-form";
+import { TriageAcuitySnippet } from "./_components/triage-acuity-snippet";
 
 export const metadata: Metadata = { title: "Intake · Hospital admin · MedSync" };
 export const dynamic = "force-dynamic";
 
 export default async function HospitalAdminIntakePage() {
   const scope = await requireHospitalAdminScope();
-  const [entryTypes, departments, hospitals, today, awaiting] = await Promise.all([
+  const [entryTypes, departments, hospitals, today, awaiting, triageMetrics] = await Promise.all([
     listEntryTypes(),
     listHospitalDepartments(scope.hospitalId),
     listActiveHospitals(),
     fetchTodayIntakeCount({ hospitalId: scope.hospitalId }),
     fetchHospitalIncomingIntakes({ hospitalId: scope.hospitalId, limit: 30 }),
+    fetchTriageMetricsToday({ hospitalId: scope.hospitalId }),
   ]);
 
   return (
@@ -80,6 +83,9 @@ export default async function HospitalAdminIntakePage() {
           </span>
         </li>
       </ul>
+
+      {/* Triage acuity snippet (GATE E) — aggregate, scoped, no PHI. */}
+      <TriageAcuitySnippet metrics={triageMetrics} />
 
       <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
         {/* Capture form */}

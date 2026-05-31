@@ -65,3 +65,6 @@ export * from "./patient-intakes";
 
 // ─── Non-clinical staff identity (migration 0034) ──────────────────────
 export * from "./staff-identity-profiles";
+
+// ─── Smart triage engine (migration 0036) ──────────────────────────────
+export * from "./triage";

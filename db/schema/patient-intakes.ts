@@ -6,6 +6,7 @@ import {
   index,
   integer,
   pgTable,
+  smallint,
   text,
   timestamp,
   uuid,
@@ -108,6 +109,12 @@ export const patientIntakes = pgTable(
     // chip on staff boards.
     declaredByPatient: boolean("declared_by_patient").notNull().default(false),
 
+    // Denormalized triage outcome (migration 0036) — the cheap acuity
+    // sort key the worklist/board need. The full record lives in
+    // triage_records; these mirror its assigned level + time.
+    triageLevel: smallint("triage_level"),
+    triagedAt: timestamp("triaged_at", { withTimezone: true }),
+
     registeredByUserId: uuid("registered_by_user_id").references(() => authUsers.id, {
       onDelete: "set null",
     }),
@@ -125,6 +132,10 @@ export const patientIntakes = pgTable(
     check(
       "intakes_patient_or_unknown",
       sql`${t.patientUserId} IS NOT NULL OR ${t.patientUnknownLabel} IS NOT NULL`,
+    ),
+    check(
+      "intakes_triage_level_check",
+      sql`${t.triageLevel} IS NULL OR ${t.triageLevel} BETWEEN 1 AND 5`,
     ),
     index("patient_intakes_hospital_status_idx").on(t.hospitalId, t.status, t.arrivedAt),
     index("patient_intakes_patient_idx").on(t.patientUserId, t.arrivedAt),

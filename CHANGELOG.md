@@ -5,6 +5,32 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Smart Triage Engine (clinical-safety artifact) — 2026-05-31
+
+Per [`prompts/triage-engine-kickoff.md`](prompts/triage-engine-kickoff.md), grounded in the authoritative clinical source [`docs/clinical/triage-medical-research.md`](docs/clinical/triage-medical-research.md). The clinical core that takes a patient in `awaiting_triage` and assigns an acuity level — transparently, reproducibly, and always overridable by a clinician. Built across gates A–F with CSO sign-off discipline.
+
+**The three architectural commitments:** deterministic (same inputs → same output, medico-legally reproducible), transparent (every output shows the parameters + red-flags that drove it — no black box), clinician-overridable (the engine advises; the human decides; the system biases UP on uncertainty).
+
+**Deterministic scoring core** ([`lib/triage/`](lib/triage/)) — pure, side-effect-free, thresholds transcribed verbatim from the research doc as named constants:
+
+- NEWS2 (§3): 6 parameters + ACVPU + supplemental-O₂ +2 + single-parameter-3 "red score", clinician-enabled SpO₂ Scale 2, provisional on any missing vital (a gap is never a reassuring 0).
+- Derived "smart" metrics (§5/§6/§11): shock index, pulse pressure, MAP, qSOFA overlay, glucose flags — the occult-instability layer.
+- Paediatric age-band flagging (§7). **95 boundary unit tests; 154 triage tests total; determinism proven.**
+
+**The engine flow** (Steps 0–6, research doc §9): life-threat screen → population routing (adult NEWS2 / paeds PEWS / obstetric MEOWS; unknown-pregnancy flags-not-blocks; <16 → paeds) → score → discriminators → **worse-of (never averaged)** → trend escalation (never auto-improves) → clinician-gated baseline temper with an **absolute floor** (can never pull below a fired red-flag or a life-threat).
+
+**Migration 0036** (additive, applied): `triage_records` (medico-legal, PHI, RLS clinical-only — reception excluded at the DB), `triage_discriminators` (the ratified §A.2 red-flag list as reference data), `triage_config`; + `triage_level`/`triaged_at` on intakes, `priority_order` on queue, `acvpu`+`triage_record_id` on observations. **Migration 0037**: `sa_notifications.kind` widened for triage alerts. DB-level safety CHECKs: a down-override requires a reason; a baseline adjustment requires a reason.
+
+**Authority (R1):** every triage is overridable up/down with a logged reason; **only doctors/clinical-officers may down-triage** (nurses triage + escalate freely). Rides the existing `clinical_cosign_policies` mechanism; defence-in-depth (UI + server action + DB CHECK + RLS).
+
+**Transparent UI** ([`/nurse/triage`](app/nurse/triage/)): worklist → slide-out panel where the **pure engine runs live in-browser** as vitals are entered (reasoning builds visibly before commit), then the **same function re-runs authoritatively server-side** (one engine, zero drift).
+
+**Integrations:** Red/Orange → in-app alert to the receiving department's clinical staff (SMS/push behind a stubbed `NotificationSink` until a dispatcher build — R2); triaged acuity chip + acuity-sort on the shared incoming-intake board; aggregate triage-acuity snippet for hospital admin (no PHI — seeds the §10 over/under-triage validation dataset).
+
+**Docs:** ADR [0035](docs/adr/0035-triage-deterministic-scoring.md) (deterministic scoring), [0036](docs/adr/0036-triage-two-track-worse-of.md) (two-track worse-of model), [0037](docs/adr/0037-triage-override-authority.md) (override + cadre-gated authority) — all marked clinical-safety artifacts pending CSO sign-off.
+
+**Honest scope (flagged, not faked):** the research doc does not specify the full Brighton PEWS per-point sub-rubric or MEOWS per-parameter colour cutoffs — these were **not** fabricated. Adult patients get full NEWS2; paediatric/obstetric are driven by the life-threat screen + discriminators + derived metrics and marked **provisional** with an "assess against the chart manually" flag, pending the CSO supplying those rubrics (they slot into Step 2 behind the same pure interface). The monitoring-alert→urgent-appointment path is left as a clean seam (no alerts table exists yet); the encounter seam is untouched (triage sets `status='triaged'` + disposition; the next clinical build owns the encounter).
+
 ### Added — Book-or-Queue: patient choice point after primary-hospital selection — 2026-05-30
 
 Per [`prompts/book-or-queue-kickoff.md`](prompts/book-or-queue-kickoff.md) + [`docs/book-or-queue-gate-a-proposal.md`](docs/book-or-queue-gate-a-proposal.md). The post–primary-hospital-selection moment is now a clear two-door step: **Book a future visit** (existing scheduling flow) or **Join today's queue** (new same-day pre-queue). No new engines — wires the patient's choice into the existing scheduling + entry-points systems.

@@ -27,6 +27,9 @@ export interface IntakeRow {
    * physically arrived yet — surface a "Declared · not here yet" chip
    * and rank below present-and-waiting rows. */
   declaredByPatient: boolean;
+  /** Triage acuity once assigned (migration 0036). Null = not yet
+   * triaged. Drives the acuity chip + sort on staff boards. */
+  triageLevel: number | null;
   patientCode: string | null;
   patientUnknownLabel: string | null;
   presentingComplaint: string | null;
@@ -64,6 +67,7 @@ export async function fetchHospitalIncomingIntakes(args: {
       status: patientIntakes.status,
       arrivedAt: patientIntakes.arrivedAt,
       declaredByPatient: patientIntakes.declaredByPatient,
+      triageLevel: patientIntakes.triageLevel,
       patientCode: patientProfiles.patientCode,
       patientUnknownLabel: patientIntakes.patientUnknownLabel,
       presentingComplaint: patientIntakes.presentingComplaint,
@@ -94,6 +98,7 @@ export async function fetchHospitalIncomingIntakes(args: {
     status: r.status,
     arrivedAtIso: r.arrivedAt.toISOString(),
     declaredByPatient: r.declaredByPatient,
+    triageLevel: r.triageLevel,
     patientCode: r.patientCode,
     patientUnknownLabel: r.patientUnknownLabel,
     presentingComplaint: r.presentingComplaint,

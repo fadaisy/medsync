@@ -65,6 +65,31 @@ export function IncomingIntakesPanel({
   );
 }
 
+/** Triage acuity chip (migration 0036). Colour matches the 5-tier model. */
+const ACUITY_CHIP: Record<number, { label: string; cls: string }> = {
+  1: { label: "L1 RED", cls: "bg-rose-600 text-white" },
+  2: { label: "L2 ORANGE", cls: "bg-orange-500 text-white" },
+  3: { label: "L3 YELLOW", cls: "bg-amber-400 text-amber-950" },
+  4: { label: "L4 GREEN", cls: "bg-teal-600 text-white" },
+  5: { label: "L5 BLUE", cls: "bg-slate-400 text-white" },
+};
+
+function AcuityChip({ level }: { level: number }) {
+  const tier = ACUITY_CHIP[level];
+  if (!tier) return null;
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center rounded-full px-1.5 py-0.5 font-mono text-[9px] font-semibold",
+        tier.cls,
+      )}
+      title={`Triaged acuity level ${level}`}
+    >
+      {tier.label}
+    </span>
+  );
+}
+
 function IntakeRowItem({ row }: { row: IntakeRow }) {
   const who = row.patientCode ?? row.patientUnknownLabel ?? "Unknown patient";
   const referrer = row.referringHospitalName ?? row.referringFacilityOther;
@@ -96,6 +121,7 @@ function IntakeRowItem({ row }: { row: IntakeRow }) {
               DECLARED
             </span>
           ) : null}
+          {row.triageLevel ? <AcuityChip level={row.triageLevel} /> : null}
         </span>
         <span className="text-muted-foreground font-mono text-[10.5px] tabular-nums">
           {formatRelative(row.arrivedAtIso)}
