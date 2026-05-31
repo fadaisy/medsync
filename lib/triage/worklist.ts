@@ -1,17 +1,28 @@
 import "server-only";
 
-import { and, desc, eq, gte, inArray, lt } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, lt, sql } from "drizzle-orm";
 
 import { db } from "@/db";
+import { clinicalPhiAccessLog } from "@/db/schema/doctor-workspace";
 import { clinicalObservations } from "@/db/schema/nurse-workspace";
 import { entryTypes, patientIntakes } from "@/db/schema/patient-intakes";
 import { patientProfiles } from "@/db/schema/patient-profiles";
 import { triageRecords } from "@/db/schema/triage";
+import { computeAgeYears } from "@/lib/age";
+import { decrypt } from "@/lib/encryption";
+import { logger } from "@/lib/logger";
 
 /**
- * Triage worklist + trend reads. Operational + demographic only —
- * the panel decrypts named PHI through the existing audited path, not
- * here. All reads are RLS-safe (the caller is a scoped clinician).
+ * Triage worklist + trend reads.
+ *
+ * Patient NAMES are decrypted here on the worklist — a deliberate,
+ * audited deviation from the code-only default (see ADR 0038): triage
+ * is a clinical act and the nurse must identify the patient they are
+ * assessing. The legitimate access basis is "the patient has an open
+ * intake in the triaging clinician's department" (department_recent);
+ * every reveal writes one clinical_phi_access_log row. The caller has
+ * already passed requireTriageScope, so access is gated before we ever
+ * decrypt.
  */
 
 export interface TriageWorklistRow {
@@ -19,24 +30,35 @@ export interface TriageWorklistRow {
   patientUserId: string | null;
   patientCode: string | null;
   patientUnknownLabel: string | null;
+  /** Decrypted "First Surname" — null when the patient is unidentified
+   * (emergency unknown) or decrypt is unavailable. */
+  displayName: string | null;
+  /** Auto-computed from the patient's date of birth (server time). */
+  ageYears: number | null;
+  sex: string | null;
   entryTypeName: string;
   isEmergency: boolean;
   priorityHint: string;
   presentingComplaint: string | null;
   arrivedAtIso: string;
-  /** Already-triaged this visit? (re-triage allowed; shows prior level.) */
+  status: string;
+  /** Set once triaged — drives the "re-triage" affordance + prior chip. */
   priorLevel: number | null;
 }
 
-/** The awaiting-triage queue for a department, emergency + oldest first. */
+/** The triage queue for a department: awaiting + already-triaged (retriage). */
 export async function fetchTriageWorklist(args: {
   hospitalId: string;
   departmentId?: string | null;
+  /** The scoped triaging clinician — required to audit name reveals. */
+  clinicianUserId: string;
   limit?: number;
 }): Promise<TriageWorklistRow[]> {
   const conditions = [
     eq(patientIntakes.hospitalId, args.hospitalId),
-    inArray(patientIntakes.status, ["arrived", "awaiting_triage"]),
+    // Includes 'triaged' so an already-triaged patient stays visible for
+    // re-triage (deterioration / correction).
+    inArray(patientIntakes.status, ["arrived", "awaiting_triage", "triaged"]),
   ];
   if (args.departmentId) {
     conditions.push(eq(patientIntakes.receivingDepartmentId, args.departmentId));
@@ -48,32 +70,83 @@ export async function fetchTriageWorklist(args: {
       patientUserId: patientIntakes.patientUserId,
       patientCode: patientProfiles.patientCode,
       patientUnknownLabel: patientIntakes.patientUnknownLabel,
+      firstNameEncrypted: patientProfiles.firstNameEncrypted,
+      surnameEncrypted: patientProfiles.surnameEncrypted,
+      dateOfBirth: patientProfiles.dateOfBirth,
+      sex: patientProfiles.sex,
       entryTypeName: entryTypes.name,
       isEmergency: entryTypes.isEmergency,
       priorityHint: patientIntakes.priorityHint,
       presentingComplaint: patientIntakes.presentingComplaint,
       arrivedAt: patientIntakes.arrivedAt,
+      status: patientIntakes.status,
       triageLevel: patientIntakes.triageLevel,
     })
     .from(patientIntakes)
     .innerJoin(entryTypes, eq(entryTypes.code, patientIntakes.entryTypeCode))
     .leftJoin(patientProfiles, eq(patientProfiles.id, patientIntakes.patientUserId))
     .where(and(...conditions))
-    .orderBy(desc(patientIntakes.priorityHint), patientIntakes.arrivedAt)
+    // Un-triaged first (they NEED assessment): `triage_level IS NOT NULL`
+    // sorts false→true, so nulls (un-triaged) lead. Within each group:
+    // higher priority hint, then oldest-waiting.
+    .orderBy(
+      sql`${patientIntakes.triageLevel} IS NOT NULL`,
+      desc(patientIntakes.priorityHint),
+      patientIntakes.arrivedAt,
+    )
     .limit(args.limit ?? 100);
 
-  return rows.map((r) => ({
-    intakeId: r.intakeId,
-    patientUserId: r.patientUserId,
-    patientCode: r.patientCode,
-    patientUnknownLabel: r.patientUnknownLabel,
-    entryTypeName: r.entryTypeName,
-    isEmergency: r.isEmergency,
-    priorityHint: r.priorityHint,
-    presentingComplaint: r.presentingComplaint,
-    arrivedAtIso: r.arrivedAt.toISOString(),
-    priorLevel: r.triageLevel,
-  }));
+  const now = new Date();
+  const mapped = rows.map((r) => {
+    let displayName: string | null = null;
+    if (r.patientUserId && r.firstNameEncrypted && r.surnameEncrypted) {
+      try {
+        displayName = `${decrypt(r.firstNameEncrypted)} ${decrypt(r.surnameEncrypted)}`.trim();
+      } catch (e) {
+        logger.warn("triage.worklist.decrypt_failed", { reason: String(e) });
+        displayName = null;
+      }
+    }
+    return {
+      intakeId: r.intakeId,
+      patientUserId: r.patientUserId,
+      patientCode: r.patientCode,
+      patientUnknownLabel: r.patientUnknownLabel,
+      displayName,
+      ageYears: r.dateOfBirth ? computeAgeYears(r.dateOfBirth.toString(), now) : null,
+      sex: r.sex,
+      entryTypeName: r.entryTypeName,
+      isEmergency: r.isEmergency,
+      priorityHint: r.priorityHint,
+      presentingComplaint: r.presentingComplaint,
+      arrivedAtIso: r.arrivedAt.toISOString(),
+      status: r.status,
+      priorLevel: r.triageLevel,
+    };
+  });
+
+  // Audit every name reveal — one clinical_phi_access_log row per
+  // identified patient shown, basis 'department_recent', surface
+  // 'triage_worklist'. Best-effort (a failed audit must not crash the
+  // worklist, but is logged loudly).
+  const revealed = mapped.filter((r) => r.displayName && r.patientUserId);
+  if (revealed.length > 0) {
+    try {
+      await db.insert(clinicalPhiAccessLog).values(
+        revealed.map((r) => ({
+          hospitalId: args.hospitalId,
+          clinicianUserId: args.clinicianUserId,
+          patientUserId: r.patientUserId!,
+          accessBasis: "department_recent" as const,
+          surface: "triage_worklist",
+        })),
+      );
+    } catch (e) {
+      logger.error("triage.worklist.phi_audit_failed", { reason: String(e) });
+    }
+  }
+
+  return mapped;
 }
 
 export interface RecentVital {
@@ -86,8 +159,7 @@ export interface RecentVital {
 
 /**
  * The patient's recent clinician-recorded observations (last 14 days),
- * for the trend view + auto-populating the triage vital set. Returns
- * newest-first per kind; the panel picks the latest of each.
+ * for the trend view + auto-populating the triage vital set.
  */
 export async function fetchRecentVitals(args: {
   patientUserId: string;
@@ -124,13 +196,8 @@ export async function fetchRecentVitals(args: {
   }));
 }
 
-/**
- * Aggregate triage metrics for a hospital today (admin snippet, §4).
- * Aggregate + scoped — no patient-level data crosses the boundary.
- * "Over/under-triage rate" needs outcome data (a later build); today
- * we surface the acuity mix + how many were clinician-overridden, both
- * measurable now and the seed of the validation dataset (§6/§10).
- */
+/* ─── Aggregate triage metrics (admin snippet, §4) ──────────────── */
+
 export interface TriageMetrics {
   total: number;
   byLevel: Record<1 | 2 | 3 | 4 | 5, number>;

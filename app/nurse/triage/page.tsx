@@ -22,6 +22,7 @@ export default async function TriagePage() {
   const rows = await fetchTriageWorklist({
     hospitalId: scope.hospitalId,
     departmentId: scope.departmentId,
+    clinicianUserId: scope.userId,
     limit: 100,
   });
 
