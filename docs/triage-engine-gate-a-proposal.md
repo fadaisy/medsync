@@ -1,6 +1,6 @@
 # Smart Triage Engine — GATE A proposal (clinical sign-off)
 
-**Status:** Awaiting Clinical Safety Officer sign-off (2026-05-31)
+**Status:** CSO-approved as written, 2026-05-31 — proceed through gates; defaults ratified, PEWS/MEOWS gaps to flag-and-compose; consolidated clinical manual pass + regression deferred to GATE F. (R1–R4 locked; §A.1/§A.2/§A.5/§B approved as written.)
 **Branch:** `feat/triage-engine`
 **Clinical source:** [`docs/clinical/triage-medical-research.md`](clinical/triage-medical-research.md) (committed verbatim; authoritative)
 **This gate is a clinical sign-off, not just technical.** Nothing in §§B–F is built until Fadhul signs §A.

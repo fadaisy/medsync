@@ -92,3 +92,96 @@ export interface QsofaResult {
   alteredMentationPoint: boolean;
   hypotensionPoint: boolean;
 }
+
+/* ─── Engine I/O (Steps 0–6, research doc §9) ─────────────────────── */
+
+/** How the patient's pregnancy status is known (drives routing — R3). */
+export type PregnancyStatus = "pregnant" | "postpartum_6wk" | "not_pregnant" | "unknown";
+
+/** Patient context that drives population routing + scale selection. */
+export interface TriageContext {
+  ageYears: number | null;
+  pregnancy: PregnancyStatus;
+  /** Female of reproductive age — used for the unknown-pregnancy flag. */
+  reproductiveAgeFemale: boolean;
+  /** Clinician explicitly enabled NEWS2 SpO₂ Scale 2 (COPD/hypercapnic). */
+  spo2Scale2Enabled: boolean;
+}
+
+/** The full vital set the engine consumes (superset of NEWS2 inputs). */
+export interface TriageVitals {
+  respiratoryRate: number | null;
+  spo2: number | null;
+  oxygen: OxygenStatus | null;
+  systolicBp: number | null;
+  diastolicBp: number | null;
+  pulse: number | null;
+  consciousness: Acvpu | null;
+  temperature: number | null;
+  bloodGlucose: number | null;
+}
+
+/** Clinician-observed Step-0 life-threat flags (manual). */
+export interface LifeThreatFlags {
+  airwayCompromise?: boolean;
+  absentAgonalBreathing?: boolean;
+  cardiacArrestNoPulse?: boolean;
+  unresponsive?: boolean;
+  activeSeizure?: boolean;
+  exsanguinatingHaemorrhage?: boolean;
+}
+
+/** A discriminator that fired, with why — for transparent reasoning. */
+export interface FiredDiscriminator {
+  code: string;
+  label: string;
+  minAcuity: AcuityLevel;
+  source: "manual" | "derived";
+}
+
+/** Optional trend + clinician-gated baseline adjustment (Step 5). */
+export interface TriageContextAdjustments {
+  /** Prior triage level for this patient (trend). A worsening trend escalates. */
+  priorLevel?: AcuityLevel | null;
+  /**
+   * Clinician-gated baseline temper (research doc §0). May raise the
+   * level number (less acute) but NEVER past the floor: a life-threat
+   * or a fired red-flag. Must carry a reason.
+   */
+  baselineAdjustment?: { temperToLevel: AcuityLevel; reason: string } | null;
+}
+
+export interface TriageInput {
+  context: TriageContext;
+  vitals: TriageVitals;
+  lifeThreatFlags?: LifeThreatFlags;
+  /** Manual discriminator codes the clinician ticked. */
+  presentDiscriminators?: string[];
+  adjustments?: TriageContextAdjustments;
+}
+
+export interface TriageResult {
+  ruleset: TriageRuleset;
+  lifeThreat: boolean;
+  lifeThreatReasons: string[];
+  /** Final acuity after worse-of + trend + (floored) baseline. 1 = most acute. */
+  level: AcuityLevel;
+  colour: AcuityColour;
+  targetMinutes: number;
+  disposition: string;
+  /** Acuity implied by the physiological score alone (null if no numeric score). */
+  scoreAcuity: AcuityLevel | null;
+  news2: News2Result | null;
+  derived: DerivedMetrics;
+  firedDiscriminators: FiredDiscriminator[];
+  /** Acuity implied by the worst fired discriminator (null if none fired). */
+  discriminatorAcuity: AcuityLevel | null;
+  trendEscalated: boolean;
+  baselineApplied: boolean;
+  /** Score is provisional — some vitals missing (research doc §10). */
+  provisional: boolean;
+  /** Human-readable contributions — the transparency requirement (kickoff §0.2). */
+  reasoning: string[];
+  /** Non-blocking flags for the clinician (e.g. confirm pregnancy). */
+  flags: string[];
+}
