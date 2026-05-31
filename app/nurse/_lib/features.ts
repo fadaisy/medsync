@@ -15,6 +15,7 @@ import "server-only";
 
 export type NurseIconKey =
   | "overview"
+  | "triage"
   | "patients"
   | "observations"
   | "mar"
@@ -28,6 +29,7 @@ export type NurseIconKey =
 
 export type NurseFeatureSlug =
   | ""
+  | "triage"
   | "patients"
   | "observations"
   | "mar"
@@ -55,6 +57,14 @@ export const NURSE_FEATURE_AREAS: ReadonlyArray<NurseFeatureArea> = [
     hint: "Today's panel + due meds + alerts at a glance",
     iconKey: "overview",
     placeholder: true,
+    visibleTo: "all",
+  },
+  {
+    slug: "triage",
+    label: "Triage",
+    hint: "Assess waiting patients + assign acuity",
+    iconKey: "triage",
+    placeholder: false,
     visibleTo: "all",
   },
   {

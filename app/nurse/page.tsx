@@ -51,7 +51,11 @@ export default async function NurseOverviewPage() {
       </header>
 
       {/* Incoming intakes for this department */}
-      <IncomingIntakesPanel rows={incoming} departmentName={scope.departmentName} />
+      <IncomingIntakesPanel
+        rows={incoming}
+        departmentName={scope.departmentName}
+        triageHref="/nurse/triage"
+      />
 
       <section className="grid gap-3 sm:grid-cols-2">
         <DirectionCard

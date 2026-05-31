@@ -9,6 +9,7 @@ import {
   CalendarClockIcon,
   CheckSquareIcon,
   ClipboardPenIcon,
+  ClipboardPlusIcon,
   GraduationCapIcon,
   HeartPulseIcon,
   LayoutDashboardIcon,
@@ -22,6 +23,7 @@ import { cn } from "@/lib/utils";
 
 const ICONS: Record<NurseIconKey, LucideIcon> = {
   overview: LayoutDashboardIcon,
+  triage: ClipboardPlusIcon,
   patients: UsersIcon,
   observations: HeartPulseIcon,
   mar: PillIcon,
