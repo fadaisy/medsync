@@ -98,8 +98,15 @@ Deno.serve(async (request: Request) => {
     return notFound(init, "department not found at this hospital");
   }
 
-  // 3. "Open for walk-in today?" — reuse departmentSchedulingPolicy
-  //    (no separate accepting_walkins flag in this gate; see proposal §4).
+  // 3. "Open for walk-in today?"
+  //    Walk-ins are open by DEFAULT — showing up in person is the most
+  //    basic thing a hospital does, so the ABSENCE of a scheduling
+  //    policy means "no restriction", not "closed". A
+  //    departmentSchedulingPolicy, when present, narrows the walk-in
+  //    window to its booking hours (an optional restriction the
+  //    hospital opts into). Without one, reception manages arrivals.
+  //    (Revises proposal §4 / ADR 0034 §2: policy-as-gate made the
+  //    feature unusable for any hospital without booking policies set.)
   const now = new Date();
   const weekday = now.getDay(); // 0 = Sunday … 6 = Saturday
   const minutesLocal = now.getHours() * 60 + now.getMinutes();
@@ -108,22 +115,18 @@ Deno.serve(async (request: Request) => {
     .select("bookable_weekdays, bookable_start_minutes_local, bookable_end_minutes_local")
     .eq("department_id", input.receiving_department_id)
     .maybeSingle();
-  if (!policy) {
-    return conflict(
-      "This department isn't accepting same-day visits today — you can book a future appointment instead.",
-      init,
-    );
-  }
-  const openToday =
-    Array.isArray(policy.bookable_weekdays) &&
-    policy.bookable_weekdays.includes(weekday) &&
-    minutesLocal >= (policy.bookable_start_minutes_local ?? 0) &&
-    minutesLocal < (policy.bookable_end_minutes_local ?? 0);
-  if (!openToday) {
-    return conflict(
-      "This department isn't open for same-day visits right now — you can book a future appointment instead.",
-      init,
-    );
+  if (policy) {
+    const openToday =
+      Array.isArray(policy.bookable_weekdays) &&
+      policy.bookable_weekdays.includes(weekday) &&
+      minutesLocal >= (policy.bookable_start_minutes_local ?? 0) &&
+      minutesLocal < (policy.bookable_end_minutes_local ?? 0);
+    if (!openToday) {
+      return conflict(
+        "This department isn't open for same-day visits right now — you can book a future appointment instead.",
+        init,
+      );
+    }
   }
 
   // 4. Reconcile against today's bookings (same dept). If the patient
