@@ -7,6 +7,7 @@ import { z } from "zod";
 import { logger } from "@/lib/logger";
 import { createServiceClient } from "@/lib/supabase/service";
 import { runTriage } from "@/lib/triage/engine";
+import { notifyTriageOutcome } from "@/lib/triage/notify";
 import { requireTriageScope } from "@/lib/triage/scope";
 
 /**
@@ -206,6 +207,19 @@ export async function submitTriageAction(
   });
   if (auditErr) {
     logger.warn("triage.audit.failed", { reason: auditErr.message });
+  }
+
+  // 8. Red/Orange → in-app alert to the receiving department's clinical
+  //    staff (R2). Best-effort; never blocks the saved triage.
+  if (assignedLevel <= 2) {
+    await notifyTriageOutcome({
+      service,
+      hospitalId: scope.hospitalId,
+      departmentId: scope.departmentId,
+      assignedLevel,
+      patientLabel: input.patient_user_id ? "a patient" : "an unidentified patient",
+      triageRecordId: record.id,
+    }).catch((e) => logger.warn("triage.notify.failed", { reason: String(e) }));
   }
 
   revalidatePath("/nurse/triage");

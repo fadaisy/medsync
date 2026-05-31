@@ -124,6 +124,47 @@ export async function fetchRecentVitals(args: {
   }));
 }
 
+/**
+ * Aggregate triage metrics for a hospital today (admin snippet, §4).
+ * Aggregate + scoped — no patient-level data crosses the boundary.
+ * "Over/under-triage rate" needs outcome data (a later build); today
+ * we surface the acuity mix + how many were clinician-overridden, both
+ * measurable now and the seed of the validation dataset (§6/§10).
+ */
+export interface TriageMetrics {
+  total: number;
+  byLevel: Record<1 | 2 | 3 | 4 | 5, number>;
+  overrides: number;
+  baselineAdjustments: number;
+}
+
+export async function fetchTriageMetricsToday(args: {
+  hospitalId: string;
+}): Promise<TriageMetrics> {
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+
+  const rows = await db
+    .select({
+      assignedLevel: triageRecords.assignedLevel,
+      overrideDirection: triageRecords.overrideDirection,
+      baselineAdjusted: triageRecords.baselineAdjusted,
+    })
+    .from(triageRecords)
+    .where(and(eq(triageRecords.hospitalId, args.hospitalId), gte(triageRecords.triagedAt, start)));
+
+  const byLevel: Record<1 | 2 | 3 | 4 | 5, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+  let overrides = 0;
+  let baselineAdjustments = 0;
+  for (const r of rows) {
+    const lvl = r.assignedLevel as 1 | 2 | 3 | 4 | 5;
+    if (lvl >= 1 && lvl <= 5) byLevel[lvl]++;
+    if (r.overrideDirection !== "none") overrides++;
+    if (r.baselineAdjusted) baselineAdjustments++;
+  }
+  return { total: rows.length, byLevel, overrides, baselineAdjustments };
+}
+
 /** The most-recent prior triage level for a patient (trend input). */
 export async function fetchPriorTriageLevel(args: {
   patientUserId: string;
