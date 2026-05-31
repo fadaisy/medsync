@@ -1,0 +1,59 @@
+import type { Metadata } from "next";
+
+import { requireTriageScope } from "@/lib/triage/scope";
+import { fetchTriageWorklist } from "@/lib/triage/worklist";
+import { TriageWorklist } from "./_components/triage-worklist";
+
+export const metadata: Metadata = {
+  title: "Triage · MedSync",
+  robots: { index: false, follow: false },
+};
+export const dynamic = "force-dynamic";
+
+/**
+ * /nurse/triage — the triage worklist. Consumes the awaiting_triage
+ * queue for the clinician's department; each row opens the transparent
+ * triage panel. Authority (R1) is resolved in requireTriageScope and
+ * passed to the panel so the override control reflects what this cadre
+ * may do.
+ */
+export default async function TriagePage() {
+  const scope = await requireTriageScope();
+  const rows = await fetchTriageWorklist({
+    hospitalId: scope.hospitalId,
+    departmentId: scope.departmentId,
+    limit: 100,
+  });
+
+  return (
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-9">
+      <header className="flex flex-col gap-1.5">
+        <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
+          <span aria-hidden className="size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20" />
+          {scope.hospitalName} · {scope.departmentName} · Triage
+        </span>
+        <h1 className="font-display text-foreground text-[24px] leading-[1.15] font-medium tracking-[-0.015em] sm:text-[28px]">
+          Triage worklist
+        </h1>
+        <p className="text-muted-foreground max-w-2xl text-[13px] leading-relaxed">
+          Assess each waiting patient and assign an acuity. The score is decision-support — you
+          confirm or override every result, and the engine biases up when uncertain.
+          {scope.authority.mayDownTriage ? null : (
+            <>
+              {" "}
+              As a {scope.cadreName.toLowerCase()}, you may confirm or escalate; only a doctor or
+              clinical officer may assign a lower acuity than computed.
+            </>
+          )}
+        </p>
+        <div className="h-px w-10 bg-teal-500/60 dark:bg-teal-400/50" aria-hidden />
+      </header>
+
+      <TriageWorklist
+        rows={rows}
+        mayDownTriage={scope.authority.mayDownTriage}
+        departmentName={scope.departmentName}
+      />
+    </div>
+  );
+}
