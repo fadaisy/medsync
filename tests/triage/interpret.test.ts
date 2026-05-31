@@ -37,68 +37,67 @@ function input(o: Partial<TriageInput["vitals"]> = {}): TriageInput {
 
 describe("interpretVitals — NEWS2 vitals track engine points → tone", () => {
   it("normal vitals all read 'normal'", () => {
-    const r = runTriage(input());
-    const i = interpretVitals(input().vitals, r);
+    const i = interpretVitals(input().vitals, runTriage(input()));
     expect(i.respiratoryRate.tone).toBe("normal");
     expect(i.pulse.tone).toBe("normal");
     expect(i.temperature.tone).toBe("normal");
     expect(i.consciousness.tone).toBe("normal");
   });
 
-  it("RR 26 (NEWS2 +3) reads critical with the points in the label", () => {
+  it("RR 26 (NEWS2 +3) reads critical with the points", () => {
     const v = input({ respiratoryRate: 26 }).vitals;
-    const r = runTriage(input({ respiratoryRate: 26 }));
-    const i = interpretVitals(v, r);
+    const i = interpretVitals(v, runTriage(input({ respiratoryRate: 26 })));
     expect(i.respiratoryRate.tone).toBe("critical");
     expect(i.respiratoryRate.points).toBe(3);
   });
 
   it("SpO2 93 (+2) reads abnormal", () => {
     const v = input({ spo2: 93 }).vitals;
-    const r = runTriage(input({ spo2: 93 }));
-    expect(interpretVitals(v, r).spo2.tone).toBe("abnormal");
+    expect(interpretVitals(v, runTriage(input({ spo2: 93 }))).spo2.tone).toBe("abnormal");
   });
 
   it("pulse 95 (+1) reads borderline", () => {
     const v = input({ pulse: 95 }).vitals;
-    const r = runTriage(input({ pulse: 95 }));
-    expect(interpretVitals(v, r).pulse.tone).toBe("borderline");
+    expect(interpretVitals(v, runTriage(input({ pulse: 95 }))).pulse.tone).toBe("borderline");
   });
 });
 
 describe("interpretVitals — non-NEWS2 vitals", () => {
   it("glucose < 3.0 reads critical (hypoglycaemia)", () => {
     const v = input({ bloodGlucose: 2.5 }).vitals;
-    const r = runTriage(input({ bloodGlucose: 2.5 }));
-    // Note: glucose<3 is also a Step-0 life threat; interpretation still applies.
-    expect(interpretVitals(v, r).bloodGlucose.tone).toBe("critical");
+    expect(interpretVitals(v, runTriage(input({ bloodGlucose: 2.5 }))).bloodGlucose.tone).toBe(
+      "critical",
+    );
   });
 
   it("glucose > 15 reads abnormal (DKA screen)", () => {
     const v = input({ bloodGlucose: 18 }).vitals;
-    const r = runTriage(input({ bloodGlucose: 18 }));
-    expect(interpretVitals(v, r).bloodGlucose.tone).toBe("abnormal");
-    expect(interpretVitals(v, r).bloodGlucose.label.toLowerCase()).toContain("dka");
+    const i = interpretVitals(v, runTriage(input({ bloodGlucose: 18 })));
+    expect(i.bloodGlucose.tone).toBe("abnormal");
+    expect(i.bloodGlucose.label.toLowerCase()).toContain("dka");
   });
 
   it("oxygen on O2 is noted", () => {
     const v = input({ oxygen: "oxygen" }).vitals;
-    const r = runTriage(input({ oxygen: "oxygen" }));
-    expect(interpretVitals(v, r).oxygen.label.toLowerCase()).toContain("o");
+    expect(
+      interpretVitals(v, runTriage(input({ oxygen: "oxygen" }))).oxygen.label.toLowerCase(),
+    ).toContain("o");
   });
 
   it("diastolic ≥110 reads abnormal (severe hypertension range)", () => {
     const v = input({ diastolicBp: 115 }).vitals;
-    const r = runTriage(input({ diastolicBp: 115 }));
-    expect(interpretVitals(v, r).diastolicBp.tone).toBe("abnormal");
+    expect(interpretVitals(v, runTriage(input({ diastolicBp: 115 }))).diastolicBp.tone).toBe(
+      "abnormal",
+    );
   });
 });
 
 describe("interpretVitals — missing vitals", () => {
   it("a missing vital reads 'missing', never 'normal'", () => {
     const v = input({ respiratoryRate: null }).vitals;
-    const r = runTriage(input({ respiratoryRate: null }));
-    expect(interpretVitals(v, r).respiratoryRate.tone).toBe("missing");
+    expect(
+      interpretVitals(v, runTriage(input({ respiratoryRate: null }))).respiratoryRate.tone,
+    ).toBe("missing");
   });
 });
 
