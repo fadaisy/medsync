@@ -152,6 +152,9 @@ export default async function PatientQueuePage() {
   const liveAppt = existingAppointment[0] ?? null;
 
   const items = departments.map((d) => {
+    // Open for walk-ins by DEFAULT. A scheduling policy, when present,
+    // narrows the window to its hours; its absence means "no
+    // restriction", not "closed". Mirrors the pt-declare-intake gate.
     const hasPolicy = d.bookableWeekdays !== null;
     const inWeekday = hasPolicy && (d.bookableWeekdays ?? []).includes(nowWeekday);
     const inWindow =
@@ -160,18 +163,12 @@ export default async function PatientQueuePage() {
       d.bookableEnd !== null &&
       nowMinutes >= d.bookableStart &&
       nowMinutes < d.bookableEnd;
-    const openNow = hasPolicy && inWeekday && inWindow;
+    const openNow = !hasPolicy || (inWeekday && inWindow);
     return {
       id: d.id,
       name: d.name,
       openNow,
-      reason: !hasPolicy
-        ? "no walk-in hours set"
-        : !inWeekday
-          ? "closed today"
-          : !inWindow
-            ? "outside walk-in hours"
-            : null,
+      reason: openNow ? null : !inWeekday ? "closed today" : "outside walk-in hours",
       ahead: aheadByDept.get(d.id) ?? 0,
     };
   });
