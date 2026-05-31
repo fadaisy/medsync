@@ -1,0 +1,111 @@
+import type { TriageInput } from "@/lib/triage/types";
+import { describe, expect, it } from "vitest";
+
+import { runTriage } from "@/lib/triage/engine";
+import { interpretVitals } from "@/lib/triage/interpret";
+
+/**
+ * Per-vital interpretation is a PRESENTATION layer over the engine's
+ * already-validated output (News2Result.parameters + derived metrics).
+ * It invents no thresholds — these tests pin that each vital's
+ * interpretation tracks the engine, and that severity tone maps from
+ * NEWS2 points.
+ */
+
+function input(o: Partial<TriageInput["vitals"]> = {}): TriageInput {
+  return {
+    context: {
+      ageYears: 40,
+      pregnancy: "not_pregnant",
+      reproductiveAgeFemale: false,
+      spo2Scale2Enabled: false,
+    },
+    vitals: {
+      respiratoryRate: 16,
+      spo2: 98,
+      oxygen: "air",
+      systolicBp: 120,
+      diastolicBp: 80,
+      pulse: 70,
+      consciousness: "A",
+      temperature: 37,
+      bloodGlucose: 6,
+      ...o,
+    },
+  };
+}
+
+describe("interpretVitals — NEWS2 vitals track engine points → tone", () => {
+  it("normal vitals all read 'normal'", () => {
+    const r = runTriage(input());
+    const i = interpretVitals(input().vitals, r);
+    expect(i.respiratoryRate.tone).toBe("normal");
+    expect(i.pulse.tone).toBe("normal");
+    expect(i.temperature.tone).toBe("normal");
+    expect(i.consciousness.tone).toBe("normal");
+  });
+
+  it("RR 26 (NEWS2 +3) reads critical with the points in the label", () => {
+    const v = input({ respiratoryRate: 26 }).vitals;
+    const r = runTriage(input({ respiratoryRate: 26 }));
+    const i = interpretVitals(v, r);
+    expect(i.respiratoryRate.tone).toBe("critical");
+    expect(i.respiratoryRate.points).toBe(3);
+  });
+
+  it("SpO2 93 (+2) reads abnormal", () => {
+    const v = input({ spo2: 93 }).vitals;
+    const r = runTriage(input({ spo2: 93 }));
+    expect(interpretVitals(v, r).spo2.tone).toBe("abnormal");
+  });
+
+  it("pulse 95 (+1) reads borderline", () => {
+    const v = input({ pulse: 95 }).vitals;
+    const r = runTriage(input({ pulse: 95 }));
+    expect(interpretVitals(v, r).pulse.tone).toBe("borderline");
+  });
+});
+
+describe("interpretVitals — non-NEWS2 vitals", () => {
+  it("glucose < 3.0 reads critical (hypoglycaemia)", () => {
+    const v = input({ bloodGlucose: 2.5 }).vitals;
+    const r = runTriage(input({ bloodGlucose: 2.5 }));
+    // Note: glucose<3 is also a Step-0 life threat; interpretation still applies.
+    expect(interpretVitals(v, r).bloodGlucose.tone).toBe("critical");
+  });
+
+  it("glucose > 15 reads abnormal (DKA screen)", () => {
+    const v = input({ bloodGlucose: 18 }).vitals;
+    const r = runTriage(input({ bloodGlucose: 18 }));
+    expect(interpretVitals(v, r).bloodGlucose.tone).toBe("abnormal");
+    expect(interpretVitals(v, r).bloodGlucose.label.toLowerCase()).toContain("dka");
+  });
+
+  it("oxygen on O2 is noted", () => {
+    const v = input({ oxygen: "oxygen" }).vitals;
+    const r = runTriage(input({ oxygen: "oxygen" }));
+    expect(interpretVitals(v, r).oxygen.label.toLowerCase()).toContain("o");
+  });
+
+  it("diastolic ≥110 reads abnormal (severe hypertension range)", () => {
+    const v = input({ diastolicBp: 115 }).vitals;
+    const r = runTriage(input({ diastolicBp: 115 }));
+    expect(interpretVitals(v, r).diastolicBp.tone).toBe("abnormal");
+  });
+});
+
+describe("interpretVitals — missing vitals", () => {
+  it("a missing vital reads 'missing', never 'normal'", () => {
+    const v = input({ respiratoryRate: null }).vitals;
+    const r = runTriage(input({ respiratoryRate: null }));
+    expect(interpretVitals(v, r).respiratoryRate.tone).toBe("missing");
+  });
+});
+
+describe("interpretVitals — determinism", () => {
+  it("identical inputs → identical interpretation", () => {
+    const v = input({ respiratoryRate: 22, spo2: 93, pulse: 115 }).vitals;
+    const r = runTriage(input({ respiratoryRate: 22, spo2: 93, pulse: 115 }));
+    expect(interpretVitals(v, r)).toEqual(interpretVitals(v, r));
+  });
+});
