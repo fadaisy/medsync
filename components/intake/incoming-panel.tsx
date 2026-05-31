@@ -24,9 +24,14 @@ import { cn } from "@/lib/utils";
 export function IncomingIntakesPanel({
   rows,
   departmentName,
+  triageHref,
 }: {
   rows: ReadonlyArray<IntakeRow>;
   departmentName: string;
+  /** When set, the footer links to the triage worklist. Passed by
+   * surfaces whose viewer can triage (nurse/doctor); omitted for
+   * reception/admin, who can't. */
+  triageHref?: string;
 }) {
   return (
     <section
@@ -57,10 +62,19 @@ export function IncomingIntakesPanel({
         </ul>
       )}
 
-      <p className="text-muted-foreground/80 text-[11px] leading-relaxed">
-        Triage is the next build. Today these arrivals sit in{" "}
-        <span className="font-mono">awaiting_triage</span> until the triage surface ships.
-      </p>
+      {triageHref ? (
+        <Link
+          href={triageHref}
+          className="inline-flex w-fit items-center gap-1.5 rounded-md bg-teal-600 px-3 py-1.5 text-[12px] font-medium text-white shadow-xs transition-colors hover:bg-teal-700"
+        >
+          Open triage worklist →
+        </Link>
+      ) : (
+        <p className="text-muted-foreground/80 text-[11px] leading-relaxed">
+          These arrivals are assessed on the triage worklist; clinical staff assign each an acuity
+          there.
+        </p>
+      )}
     </section>
   );
 }
