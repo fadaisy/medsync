@@ -785,14 +785,15 @@ export function TriageDesk({
         {compactAcuity}
       </div>
 
-      {/* THREE ZONES (lg+): left context · centre assessment · right
-          score+next-steps. The right rail holds BOTH the score and the
-          live Next Steps, co-visible, scrolling independently — the core
-          loop (enter vital → score moves → next steps update) needs no
-          page scroll. */}
-      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[14rem_minmax(0,1fr)_19rem] xl:grid-cols-[16rem_minmax(0,1fr)_21rem]">
-        {/* LEFT — patient & context */}
-        <aside className="flex flex-col gap-3 lg:sticky lg:top-[68px] lg:self-start">
+      {/* THREE ZONES (lg+): left context+next-steps · centre assessment ·
+          right score. The left rail holds identity + live acuity + Resus
+          + the live Next Steps (below the acuity anchor); the right rail
+          is the live score. Both rails are sticky and scroll
+          independently, so the core loop (enter vital → score moves →
+          next steps update) needs no page scroll. */}
+      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[17rem_minmax(0,1fr)_19rem] xl:grid-cols-[19rem_minmax(0,1fr)_21rem]">
+        {/* LEFT — patient & context + Next Steps */}
+        <aside className="flex flex-col gap-3 lg:sticky lg:top-[68px] lg:max-h-[calc(100vh-84px)] lg:self-start lg:overflow-y-auto">
           {identity}
           {/* The persistent live-acuity anchor (the sticky header already
               shows it below lg, so only render it in the rail at lg+). */}
@@ -802,6 +803,8 @@ export function TriageDesk({
             patientUserId={row.patientUserId}
             patientLabel={name}
           />
+          {/* Next Steps — beside the acuity/Resus, live (lg+). */}
+          <div className="hidden lg:block">{nextSteps}</div>
         </aside>
 
         {/* CENTRE — the assessment (vitals + red-flags) + assign */}
@@ -809,7 +812,7 @@ export function TriageDesk({
           {triageForm}
           {/* Below lg the score + next steps stack here, in the live loop
               order (score first, then guidance); at lg+ they live in the
-              right rail instead. */}
+              rails instead. */}
           <div className="flex flex-col gap-4 lg:hidden">
             {scores}
             {nextSteps}
@@ -817,11 +820,9 @@ export function TriageDesk({
           {actionBar}
         </div>
 
-        {/* RIGHT — live intelligence: score + Next Steps, co-visible,
-            independently scrolling (lg+). */}
-        <aside className="hidden lg:sticky lg:top-[68px] lg:flex lg:max-h-[calc(100vh-84px)] lg:flex-col lg:gap-4 lg:self-start lg:overflow-y-auto">
+        {/* RIGHT — live intelligence: the score (lg+). */}
+        <aside className="hidden lg:sticky lg:top-[68px] lg:block lg:max-h-[calc(100vh-84px)] lg:self-start lg:overflow-y-auto">
           {scores}
-          {nextSteps}
         </aside>
       </div>
     </div>
@@ -949,22 +950,22 @@ function WorseOf({
         </span>
       </div>
 
-      {/* Details — full engine reasoning */}
+      {/* Details — full engine reasoning, structured for readability:
+          the NEWS2 per-parameter lines (engine-indented) nest as
+          sub-rows; discriminator / worse-of lines get a marker. */}
       <details className="group mt-3">
         <summary className="text-muted-foreground hover:text-foreground flex cursor-pointer items-center gap-1 font-mono text-[10px] tracking-[0.14em] uppercase">
           <ChevronRightIcon
             className="size-3 transition-transform group-open:rotate-90"
             aria-hidden
           />
-          Details
+          Details · why this level
         </summary>
-        <ul className="mt-2 flex flex-col gap-1 pl-4">
+        <div className="border-border/60 bg-muted/20 mt-2 flex flex-col gap-1.5 rounded-xl border p-3">
           {result.reasoning.map((line, i) => (
-            <li key={i} className="text-foreground/80 font-mono text-[11px] leading-relaxed">
-              {line}
-            </li>
+            <ReasoningLine key={i} line={line} />
           ))}
-        </ul>
+        </div>
       </details>
 
       {/* Non-blocking clinician flags */}
@@ -978,6 +979,43 @@ function WorseOf({
         </div>
       ) : null}
     </Section>
+  );
+}
+
+/**
+ * One line of the engine's reasoning, rendered structurally:
+ *  - engine-indented lines (NEWS2 per-parameter contributions) → a
+ *    nested, dimmer sub-row with a hairline rail;
+ *  - discriminator / worse-of / "raised"/"trend" lines → a marker dot;
+ *  - everything else → a plain row. Pure formatting of an opaque string.
+ */
+function ReasoningLine({ line }: { line: string }) {
+  const indented = /^\s{2,}/.test(line);
+  const text = line.trim();
+  if (indented) {
+    return (
+      <div className="border-border/50 ml-1.5 flex items-start gap-2 border-l pl-3">
+        <span className="text-muted-foreground/80 font-mono text-[10.5px] leading-relaxed">
+          {text}
+        </span>
+      </div>
+    );
+  }
+  const isDecision =
+    /^(worse-of|discriminator|raised|trend|baseline|esi v5|news2|meows|paediatric|cushing|modified shock|shock index|qsofa|glucose)/i.test(
+      text,
+    );
+  return (
+    <div className="flex items-start gap-2">
+      <span
+        aria-hidden
+        className={cn(
+          "mt-[5px] size-1.5 shrink-0 rounded-full",
+          isDecision ? "bg-teal-500/70" : "bg-border",
+        )}
+      />
+      <span className="text-foreground/85 text-[11.5px] leading-relaxed">{text}</span>
+    </div>
   );
 }
 
