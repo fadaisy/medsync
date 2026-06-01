@@ -5,6 +5,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Changed — Smart Triage Engine v2: guideline-verified + ESI v5 + rapid mode — 2026-05-31
+
+Reworks the shipped triage engine to top-tier standard on medical accuracy (current verified guidelines), operative UX, and craft. Engine stays pure + deterministic; **no migration** (reuses the v1 `triage_records` schema). Built on the centred-dialog rework.
+
+- **Guideline currency verified at build** ([docs/triage-v2-gate-a-proposal.md](docs/triage-v2-gate-a-proposal.md) §1): NEWS2 2017 (RCP 2023 review confirmed no revision), **ESI v5 (ENA 2023)**, SATS/TEWS, Sepsis-3 + **SSC-2021 (qSOFA is an overlay, NOT a screen)**, NHS National PEWS v3 (2023, supersedes Brighton), MEOWS. Each tool's version, primary source, and confidence recorded for CSO sign-off. Paeds/obstetric per-point rubrics are paywalled → kept **provisional, not fabricated**.
+- **ESI v5 mandatory-vitals + reassess-up** (the v1 miss; [ADR 0039](docs/adr/0039-triage-esi-v5-mandatory-vitals.md)): HR+RR+SpO₂ required for any non-L1/L2 patient → a missing one floors acuity to L3 + marks the result provisional with an "assessment incomplete" flag (no falsely-reassuring Green on incomplete data); a danger-zone vital (adult HR>100, RR>20, SpO₂<92) reassesses **up** to a minimum L2. Folded into the engine's worse-of as a third track; the danger floor is absolute (a baseline temper can't cross it), the incomplete floor is a needs-assessment default a reasoned temper may cross. `lib/triage/scoring/esi-v5.ts`, 14 boundary tests.
+- **Rapid 1-tap Red mode** ([ADR 0040](docs/adr/0040-triage-rapid-mode.md)): a "Resus" button on every worklist row → confirm the Step-0 life-threat → a Level-1 resus record without the full form, through the same authorised + audited path (`requireTriageScope`, `sa_audit_log`, `notifyTriageOutcome`, queue re-rank). Can only over-triage (assigns L1), never under-triage.
+- **ESI-v5 transparency**: the incomplete-vitals flag, the danger-zone reasoning line, and the provisional badge surface automatically in the dialog (the transparent design renders `result.flags` / `result.reasoning` / `result.provisional` — no panel change).
+- **GATE E integration verification** (adversarial, 6 seams): `triage_records` + `sa_audit_log` inserts use only DB-valid columns + enum/check literals; queue/intake status values valid; `notifyTriageOutcome` in-app fan-out to `sa_notifications` is **real** (SMS/push honestly stubbed pending a dispatcher); ESI-v5 worse-of + thresholds correct both sides. Fixed one pre-existing Drizzle drift — `queue_entries.priority_order` (in migration 0036, missing from `db/schema/scheduling.ts`).
+
+Verification: 182 triage tests (incl. +14 ESI-v5) pass; full regression green; typecheck + lint clean; no shipped migration altered. Engine remains medico-legally reproducible (same inputs → same output).
+
 ### Added — Smart Triage Engine (clinical-safety artifact) — 2026-05-31
 
 Per [`prompts/triage-engine-kickoff.md`](prompts/triage-engine-kickoff.md), grounded in the authoritative clinical source [`docs/clinical/triage-medical-research.md`](docs/clinical/triage-medical-research.md). The clinical core that takes a patient in `awaiting_triage` and assigns an acuity level — transparently, reproducibly, and always overridable by a clinician. Built across gates A–F with CSO sign-off discipline.
