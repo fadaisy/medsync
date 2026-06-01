@@ -6,6 +6,7 @@ import { assessEsiV5 } from "./scoring/esi-v5";
 import { evaluateDiscriminators } from "./scoring/evaluate-discriminators";
 import { screenLifeThreat } from "./scoring/life-threat";
 import { scoreNews2 } from "./scoring/news2";
+import { scorePaediatric } from "./scoring/paeds-scorer";
 import { routePopulation } from "./scoring/routing";
 
 /**
@@ -130,11 +131,29 @@ export function runTriage(input: TriageInput): TriageResult {
     for (const p of news2.parameters) {
       if (p.points > 0) reasoning.push(`  ${p.parameter}: ${p.band}`);
     }
+  } else if (routing.ruleset === "paediatric_pews") {
+    // Paediatric: age-banded scorer from the CSO catalog (Part C).
+    const paeds = scorePaediatric({
+      ageYears: input.context.ageYears ?? 0,
+      respiratoryRate: input.vitals.respiratoryRate,
+      heartRate: input.vitals.pulse,
+      systolicBp: input.vitals.systolicBp,
+      spo2: input.vitals.spo2,
+      temperature: input.vitals.temperature,
+      bloodGlucose: input.vitals.bloodGlucose,
+    });
+    scoreAcuity = paeds.acuity;
+    provisional = paeds.provisional;
+    reasoning.push(`Paediatric (age-banded) → acuity ${scoreAcuity}.`);
+    for (const r of paeds.reasons) reasoning.push(`  ${r}`);
+    if (paeds.missing.length > 0) {
+      flags.push(`Paediatric assessment incomplete — obtain ${paeds.missing.join(", ")}.`);
+    }
   } else {
-    // Paeds/obstetric: no fabricated numeric score (scope note).
+    // Obstetric: scorer lands in GATE C; provisional until then.
     provisional = true;
     flags.push(
-      `${routing.ruleset === "paediatric_pews" ? "Paediatric" : "Obstetric"} score not auto-computed — assess against the ${routing.ruleset === "paediatric_pews" ? "PEWS" : "MEOWS"} chart manually; red-flags + derived metrics applied.`,
+      "Obstetric score not auto-computed — assess against the MEOWS chart manually; red-flags + derived metrics applied.",
     );
   }
 
