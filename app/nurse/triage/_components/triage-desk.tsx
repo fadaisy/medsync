@@ -36,9 +36,12 @@ import { RapidRedButton } from "./rapid-red-button";
  * authoritatively server-side under authority + audit (no drift).
  * Down-overrides are cadre-gated (R1).
  *
- * Layout (the wireframe): a triage-local rail (identity + live acuity +
- * rapid-Red), a center Triage Form (inputs) + Next Steps seam + sticky
- * assign bar, and a sticky right Scores column (the live read-out).
+ * Layout (three co-visible zones, ADR 0043): a left rail (identity +
+ * live acuity + rapid-Red), a centre Triage Form (vitals + red-flags) +
+ * sticky assign bar, and a right rail holding the live Scores AND the
+ * Next Steps together — so the loop (enter vital → score moves → next
+ * steps update) needs no scrolling. Below lg, a sticky live header keeps
+ * the acuity + score visible above the vitals.
  *
  * Visual language (an analytics-dashboard idiom): the verdict is the
  * hero; the vitals ARE the metric tiles (value = the number, NEWS2
@@ -257,6 +260,21 @@ export function TriageDesk({
   );
   const firedCount = scopedDiscriminators.filter((d) => discriminators.has(d.code)).length;
 
+  // Completeness journey (ESI v5 mandatory HR/RR/SpO₂). A quiet,
+  // ever-present affordance so "provisional because X, Y missing" is
+  // obvious without hunting. Reads the engine's own missing list — no
+  // new clinical logic.
+  const PARAM_SHORT: Record<string, string> = {
+    respiratory_rate: "RR",
+    pulse: "HR",
+    spo2: "SpO₂",
+  };
+  const missingMandatory = result.missingRequiredVitals.map((p) => PARAM_SHORT[p] ?? p);
+  const vitalsHint =
+    missingMandatory.length > 0
+      ? `provisional — need ${missingMandatory.join(", ")}`
+      : "complete · updates live";
+
   const name = row.displayName ?? row.patientUnknownLabel ?? "Unidentified patient";
   const metaBits = [
     row.patientCode,
@@ -394,7 +412,7 @@ export function TriageDesk({
       {/* Vitals */}
       <Section
         title="Vital signs"
-        hint="updates live"
+        hint={vitalsHint}
         control={
           <PillToggle
             active={scale2}
@@ -753,11 +771,32 @@ export function TriageDesk({
         Back to worklist
       </Link>
 
-      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[15rem_minmax(0,1fr)] xl:grid-cols-[16rem_minmax(0,1fr)_20rem]">
-        {/* LEFT RAIL */}
+      {/* a11y: announce the live level/disposition as vitals change so a
+          screen-reader user follows the loop without seeing the rail. */}
+      <p className="sr-only" aria-live="polite" role="status">
+        {`Acuity level ${tier.level}, ${tier.colour}, ${result.disposition}${result.provisional ? ", provisional" : ""}.`}
+      </p>
+
+      {/* Mobile/narrow (<lg): a STICKY LIVE HEADER so acuity + the score
+          stay visible above the vitals — the loop survives without
+          scrolling away from the result. Hidden once the right rail
+          appears (lg+). */}
+      <div className="bg-background/95 supports-[backdrop-filter]:bg-background/80 border-border sticky top-0 z-20 -mx-4 mb-3 border-b px-4 py-2 backdrop-blur sm:-mx-6 sm:px-6 lg:hidden">
+        {compactAcuity}
+      </div>
+
+      {/* THREE ZONES (lg+): left context · centre assessment · right
+          score+next-steps. The right rail holds BOTH the score and the
+          live Next Steps, co-visible, scrolling independently — the core
+          loop (enter vital → score moves → next steps update) needs no
+          page scroll. */}
+      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[14rem_minmax(0,1fr)_19rem] xl:grid-cols-[16rem_minmax(0,1fr)_21rem]">
+        {/* LEFT — patient & context */}
         <aside className="flex flex-col gap-3 lg:sticky lg:top-[68px] lg:self-start">
           {identity}
-          {compactAcuity}
+          {/* The persistent live-acuity anchor (the sticky header already
+              shows it below lg, so only render it in the rail at lg+). */}
+          <div className="hidden lg:block">{compactAcuity}</div>
           <RapidRedButton
             intakeId={row.intakeId}
             patientUserId={row.patientUserId}
@@ -765,18 +804,24 @@ export function TriageDesk({
           />
         </aside>
 
-        {/* CENTER: form + next steps + action bar */}
+        {/* CENTRE — the assessment (vitals + red-flags) + assign */}
         <div className="flex min-w-0 flex-col gap-4">
           {triageForm}
-          {/* Scores re-flow here below xl (hidden on xl where the right column shows them) */}
-          <div className="xl:hidden">{scores}</div>
-          {nextSteps}
+          {/* Below lg the score + next steps stack here, in the live loop
+              order (score first, then guidance); at lg+ they live in the
+              right rail instead. */}
+          <div className="flex flex-col gap-4 lg:hidden">
+            {scores}
+            {nextSteps}
+          </div>
           {actionBar}
         </div>
 
-        {/* RIGHT: sticky live scores (xl+ only) */}
-        <aside className="hidden xl:sticky xl:top-[68px] xl:block xl:max-h-[calc(100vh-84px)] xl:self-start xl:overflow-y-auto">
+        {/* RIGHT — live intelligence: score + Next Steps, co-visible,
+            independently scrolling (lg+). */}
+        <aside className="hidden lg:sticky lg:top-[68px] lg:flex lg:max-h-[calc(100vh-84px)] lg:flex-col lg:gap-4 lg:self-start lg:overflow-y-auto">
           {scores}
+          {nextSteps}
         </aside>
       </div>
     </div>
