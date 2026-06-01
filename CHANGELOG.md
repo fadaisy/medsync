@@ -5,6 +5,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Triage as a full page + recommendations layer — 2026-06-01
+
+- **Triage is now its own page** (`/nurse/triage/[intakeId]`), not a dialog. Per the requested wireframe: a triage-local rail (identity + live-acuity mirror + Resus fast path), a centre Triage Form (patient + vital metric tiles + red-flags) with a sticky Assign bar, and a sticky right **Scores** column (acuity hero + NEWS2 KPI + derived tiles + worse-of) that updates live as vitals are typed. Worklist rows navigate to it. Same engine + behaviours; no migration.
+- **Recommendations / suggested next actions** ([ADR 0041](docs/adr/0041-triage-recommendations.md); mapping in [docs/triage-recommendations-gate-a.md](docs/triage-recommendations-gate-a.md)): the triage finding now surfaces guideline-derived suggestions across 7 categories (disposition · immediate measures · monitoring · escalation · pathway flags · onward routing · investigations) in the page's **Next Steps** panel.
+  - **Suggestions, NOT orders** — each has accept / modify / dismiss; nothing auto-executes; the clinician's decisions are recorded with the triage record (in `computed_breakdown`, no migration).
+  - **Category-level only** — no doses/volumes/agents; a unit test fails the build on any dose-token in a suggestion string.
+  - **Transparent** — every suggestion cites its guideline + threshold; nothing fabricated.
+  - **Bias-up** — the L4/L5 down-disposition gate holds at standard while vitals are incomplete or a flag fired; **recompute on override** (suggestions follow the clinician's assigned level).
+  - **Honest seams** — only care-team-notify + urgent-appointment are live; everything else is "workflow to follow", recorded not dropped. Paeds/obstetric stay provisional (`needs_cso_input`), not fabricated.
+
+  Verification: `lib/triage/recommend.ts` is pure + deterministic with 20 unit tests (no-dosing guard, recompute, sepsis/DKA/stroke/obstetric/paeds, down-gate); 202 triage tests pass overall; production build compiles; panels rendered to pixels before ship.
+
 ### Changed — Smart Triage Engine v2: guideline-verified + ESI v5 + rapid mode — 2026-05-31
 
 Reworks the shipped triage engine to top-tier standard on medical accuracy (current verified guidelines), operative UX, and craft. Engine stays pure + deterministic; **no migration** (reuses the v1 `triage_records` schema). Built on the centred-dialog rework.
