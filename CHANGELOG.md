@@ -5,6 +5,19 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Triage vitals catalog: paediatric + obstetric scoring now real — 2026-06-01
+
+Built the engine against the CSO-supplied Vitals-Interpretation Catalog ([ADR 0042](docs/adr/0042-triage-vitals-catalog.md); verified mapping in [docs/triage-catalog-build-specs.md](docs/triage-catalog-build-specs.md)). Paediatric (PEWS) and obstetric (MEOWS) patients — previously routed but marked "provisional, assess manually" — now get a **real, computed, cited acuity**. Every threshold traces to the catalog verbatim; nothing fabricated. Pure + deterministic; no migration.
+
+- **Versioned vitals reference data** (`lib/triage/reference/`): the catalog as data with provenance (age-banded paeds norms, MEOWS thresholds) — updates without code changes.
+- **Paediatric age-banded scorer**: per-vital severity vs the age band → acuity, honouring the over-flagging caveat (a lone out-of-band HR/RR → L3, a single mild blip never auto-alarms) with absolute red lines (decompensated shock → L1, SpO₂<92 → L2, infant <3mo fever → L2). The `70+2×age` hypotension formula on exact age.
+- **Obstetric MEOWS scorer**: hypertension-as-emergency (≥160/110 → Red), the new **Modified Shock Index** (HR/MAP>1.7) concealed-haemorrhage catch; no over-call of physiological pregnancy shifts.
+- **Cross-vital "smart layer"**: Cushing's reflex (triad → L1), temp+HR sepsis overlay (widens an already-ticked suspicion), pulse-pressure interpretation, SpO₂+RR "will fail" raise-only floor — paediatric bounds use the age band, never adult numbers.
+- **Special-population cautions** (elderly / beta-blocker / athlete / chronic baseline): confounder warnings only — they never change acuity.
+- **Two safety fixes**: gated the adult ESI-v5 HR/RR danger-zone off for children (it was over-flagging a normal infant to L2); `ageYears=0` resolves to the infant band (hypotension <70, not newborn <60) to avoid under-triage.
+
+Honest scope: numeric rate-of-change + peri-arrest are **deferred** (the engine carries only `priorLevel`, not timestamped prior vitals — a real rate signal would be fabricated). 333 tests pass (incl. +66 new across reference/paeds/meows/cross-vital/special-pop); typecheck + lint clean; production build compiles.
+
 ### Added — Triage as a full page + recommendations layer — 2026-06-01
 
 - **Triage is now its own page** (`/nurse/triage/[intakeId]`), not a dialog. Per the requested wireframe: a triage-local rail (identity + live-acuity mirror + Resus fast path), a centre Triage Form (patient + vital metric tiles + red-flags) with a sticky Assign bar, and a sticky right **Scores** column (acuity hero + NEWS2 KPI + derived tiles + worse-of) that updates live as vitals are typed. Worklist rows navigate to it. Same engine + behaviours; no migration.
