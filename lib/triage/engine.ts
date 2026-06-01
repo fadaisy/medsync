@@ -10,6 +10,7 @@ import { scoreMeows } from "./scoring/meows";
 import { scoreNews2 } from "./scoring/news2";
 import { scorePaediatric } from "./scoring/paeds-scorer";
 import { routePopulation } from "./scoring/routing";
+import { specialPopulationCautions } from "./scoring/special-populations";
 
 /**
  * The smart-triage engine — pure, deterministic orchestration of
@@ -261,6 +262,13 @@ export function runTriage(input: TriageInput): TriageResult {
   const floor = floorCandidates.length > 0 ? (Math.min(...floorCandidates) as AcuityLevel) : null;
 
   // ── Step 5 — trend escalation (never auto-improve). ───────────────
+  // NOTE (catalog Part G): numeric rate-of-change (vitals worsening over
+  // minutes–hours) is DEFERRED — the engine receives only priorLevel,
+  // not timestamped prior vitals, so a real rate signal can't be derived
+  // without fabricating one. The direction-of-trend safety net below
+  // (prior level worse than snapshot → escalate, never auto-improve) is
+  // in place; rate-of-change lands when timestamped prior vitals are
+  // plumbed through.
   let trendEscalated = false;
   const prior = input.adjustments?.priorLevel ?? null;
   if (prior !== null && prior < level) {
@@ -269,6 +277,13 @@ export function runTriage(input: TriageInput): TriageResult {
     );
     level = prior;
     trendEscalated = true;
+  }
+
+  // Special-population cautions (catalog Part E) — confounder warnings
+  // only; they never change the acuity, just guard against false
+  // reassurance (elderly, beta-blocker, athlete, chronic baseline).
+  for (const caution of specialPopulationCautions(input.context.modifiers, input.vitals)) {
+    flags.push(caution);
   }
 
   // ── Step 5 — clinician-gated baseline temper (floored). ───────────

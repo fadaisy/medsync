@@ -109,6 +109,25 @@ export interface TriageContext {
   reproductiveAgeFemale: boolean;
   /** Clinician explicitly enabled NEWS2 SpO₂ Scale 2 (COPD/hypercapnic). */
   spo2Scale2Enabled: boolean;
+  /**
+   * Special-population context modifiers (catalog Part E). These are
+   * confounders the clinician weighs — they surface CAUTION strings only,
+   * never change a computed acuity (no fabricated thresholds). All
+   * optional; default false/absent.
+   */
+  modifiers?: SpecialPopulationModifiers;
+}
+
+/** Clinician-supplied context that modulates how vitals are READ (Part E). */
+export interface SpecialPopulationModifiers {
+  /** Elderly / frail — may not mount fever/tachycardia; confusion may be the only sign. */
+  elderlyFrail?: boolean;
+  /** On a beta-blocker — a blunted heart rate may mask compensation. */
+  betaBlocker?: boolean;
+  /** Fit athlete — resting bradycardia can be normal in a well, asymptomatic person. */
+  athlete?: boolean;
+  /** Known abnormal chronic baseline (HIV/TB etc.) — see clinician baseline adjustment. */
+  chronicAbnormalBaseline?: boolean;
 }
 
 /** The full vital set the engine consumes (superset of NEWS2 inputs). */
