@@ -36,9 +36,12 @@ import { RapidRedButton } from "./rapid-red-button";
  * authoritatively server-side under authority + audit (no drift).
  * Down-overrides are cadre-gated (R1).
  *
- * Layout (the wireframe): a triage-local rail (identity + live acuity +
- * rapid-Red), a center Triage Form (inputs) + Next Steps seam + sticky
- * assign bar, and a sticky right Scores column (the live read-out).
+ * Layout (three co-visible zones, ADR 0043): a left rail (identity +
+ * live acuity + rapid-Red), a centre Triage Form (vitals + red-flags) +
+ * sticky assign bar, and a right rail holding the live Scores AND the
+ * Next Steps together — so the loop (enter vital → score moves → next
+ * steps update) needs no scrolling. Below lg, a sticky live header keeps
+ * the acuity + score visible above the vitals.
  *
  * Visual language (an analytics-dashboard idiom): the verdict is the
  * hero; the vitals ARE the metric tiles (value = the number, NEWS2
