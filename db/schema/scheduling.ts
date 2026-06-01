@@ -281,6 +281,10 @@ export const queueEntries = pgTable(
       onDelete: "set null",
     }),
     sequenceNumber: integer("sequence_number").notNull(),
+    // Triage re-rank key (migration 0036). Nullable: untriaged entries
+    // keep their FIFO sequence_number; once triaged, priority_order = the
+    // assigned acuity (lower = seen sooner), sequence_number is the tiebreak.
+    priorityOrder: integer("priority_order"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
