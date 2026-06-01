@@ -8,7 +8,7 @@ import type {
 
 import { NEWS2_RISK, QSOFA } from "../constants";
 import { TRIAGE_DISCRIMINATORS } from "../discriminators";
-import { ADULT_BP_CLINICAL } from "../reference";
+import { ADULT_BP_CLINICAL, MAP_PERFUSION_MIN } from "../reference";
 
 /**
  * Discriminator evaluation (Step 3) — pure, deterministic (research
@@ -113,6 +113,14 @@ function evalDerived(code: string, input: EvaluateInput): boolean {
       return (
         (vitals.systolicBp !== null && vitals.systolicBp >= ADULT_BP_CLINICAL.severeSysGte) ||
         (vitals.diastolicBp !== null && vitals.diastolicBp >= ADULT_BP_CLINICAL.severeDiaGte)
+      );
+    case "low_diastolic_perfusion":
+      // DBP Reference §1 — very low diastolic threatens coronary perfusion.
+      return vitals.diastolicBp !== null && vitals.diastolicBp < ADULT_BP_CLINICAL.veryLowDiaLt;
+    case "map_below_65":
+      // DBP Reference §2 — MAP < 65 is inadequate organ perfusion.
+      return (
+        derived.meanArterialPressure !== null && derived.meanArterialPressure < MAP_PERFUSION_MIN
       );
     default:
       return false;
