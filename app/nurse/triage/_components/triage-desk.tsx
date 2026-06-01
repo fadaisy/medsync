@@ -88,22 +88,21 @@ const TONE_CHIP: Record<VitalTone, string> = {
 };
 
 /**
- * Tile warning treatment by tone — a deranged vital must JUMP OUT. A
- * coloured left-edge accent (before:) + a soft tinted ground + a ring
- * scale up with severity; normal/info tiles stay calm so the abnormal
- * ones pop by contrast. Critical adds a gentle pulse (reduced-motion
- * disables it). The left accent is a 3px bar via before:.
+ * Tile warning treatment by tone — a deranged vital must JUMP OUT, via a
+ * coloured BORDER + soft tinted ground + a ring that scale up with
+ * severity (NO left-edge accent bar — user preference). Normal/info
+ * tiles stay calm so the abnormal ones pop by contrast. Critical adds a
+ * gentle pulse (reduced-motion disables it).
  */
 const TILE_TONE: Record<VitalTone, string> = {
-  normal: "border-border bg-card before:bg-transparent",
-  info: "border-border bg-card before:bg-transparent",
-  missing: "border-dashed border-border/70 bg-muted/20 before:bg-transparent",
-  borderline:
-    "border-amber-300/70 bg-amber-50/50 before:bg-amber-400 dark:border-amber-500/40 dark:bg-amber-950/20",
+  normal: "border-border bg-card",
+  info: "border-border bg-card",
+  missing: "border-dashed border-border/70 bg-muted/20",
+  borderline: "border-amber-300/70 bg-amber-50/50 dark:border-amber-500/40 dark:bg-amber-950/20",
   abnormal:
-    "border-orange-400/70 bg-orange-50/60 ring-1 ring-orange-400/30 before:bg-orange-500 dark:border-orange-500/50 dark:bg-orange-950/25",
+    "border-orange-400/70 bg-orange-50/60 ring-1 ring-orange-400/30 dark:border-orange-500/50 dark:bg-orange-950/25",
   critical:
-    "border-rose-500/80 bg-rose-50/70 ring-1 ring-rose-500/40 before:bg-rose-500 motion-safe:animate-pulse dark:border-rose-500/60 dark:bg-rose-950/30",
+    "border-rose-500/80 bg-rose-50/70 ring-1 ring-rose-500/40 motion-safe:animate-pulse dark:border-rose-500/60 dark:bg-rose-950/30",
 };
 
 /** Big-number colour — the value itself warns on deviation, not just the sub-label. */
@@ -1114,14 +1113,12 @@ function Section({
   );
 }
 
-/** The shared tile shell — calm when normal, loudly tinted (ground +
- *  ring + a 3px left-edge accent bar) when the tone deviates, so a
- *  warning is unmistakable. The accent is a before: bar pinned to the
- *  left edge; pl is widened to clear it. */
+/** The shared tile shell — calm when normal, loudly tinted (coloured
+ *  border + ground + ring) when the tone deviates, so a warning is
+ *  unmistakable. No left-edge accent bar (user preference). */
 function tileShell(tone: VitalTone, extra?: string): string {
   return cn(
-    "relative flex min-h-[68px] flex-col gap-0.5 overflow-hidden rounded-xl border pr-3 pt-2 pb-2 pl-3.5 transition-colors duration-150",
-    "before:absolute before:inset-y-0 before:left-0 before:w-[3px] before:content-['']",
+    "relative flex min-h-[68px] flex-col gap-0.5 rounded-xl border px-3 pt-2 pb-2 transition-colors duration-150",
     TILE_TONE[tone],
     extra,
   );
