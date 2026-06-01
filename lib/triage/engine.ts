@@ -1,6 +1,7 @@
 import type { AcuityColour, AcuityLevel, News2Result, TriageInput, TriageResult } from "./types";
 
 import { ACUITY_TIERS, meowsToAcuity, news2ToAcuity } from "./constants";
+import { computeCrossVitalRules } from "./scoring/cross-vital-rules";
 import { computeDerivedMetrics } from "./scoring/derived";
 import { assessEsiV5 } from "./scoring/esi-v5";
 import { evaluateDiscriminators } from "./scoring/evaluate-discriminators";
@@ -184,6 +185,26 @@ export function runTriage(input: TriageInput): TriageResult {
     reasoning.push(`Glucose flag: ${derived.glucoseFlag}.`);
   }
 
+  // ── Cross-vital "smart layer" rules (catalog Part F). ─────────────
+  //   Patterns that only mean something read together: Cushing's reflex
+  //   (→ L1 floor), temp+HR sepsis overlay, pulse-pressure strings, and
+  //   the SpO₂+RR "will fail" raise-only floor. Pure; null-guarded.
+  //   Computed before discriminators so the temp+HR overlay can widen
+  //   the sepsis gate.
+  const crossVital = computeCrossVitalRules(
+    input.vitals,
+    derived,
+    input.lifeThreatFlags ?? {},
+    routing.ruleset,
+    input.context.ageYears,
+  );
+  for (const c of crossVital) {
+    if (c.interpretation) reasoning.push(c.interpretation);
+  }
+  const cushings = crossVital.find((c) => c.code === "cushings_reflex");
+  const willFail = crossVital.find((c) => c.code === "spo2_rr_will_fail");
+  const tempHrSepsis = crossVital.some((c) => c.code === "temp_hr_sepsis");
+
   // ── Step 3 — discriminators. ──────────────────────────────────────
   const disc = evaluateDiscriminators({
     ruleset: routing.ruleset,
@@ -191,18 +212,20 @@ export function runTriage(input: TriageInput): TriageResult {
     derived,
     news2Total: news2?.total ?? 0,
     presentCodes: input.presentDiscriminators ?? [],
+    tempHrSepsisOverlay: tempHrSepsis,
   });
   for (const f of disc.fired) {
     reasoning.push(`Discriminator: ${f.label} → minimum acuity ${f.minAcuity} (${f.source}).`);
   }
 
-  // ── Step 4 — WORSE-OF (lowest number wins; three tracks). ─────────
+  // ── Step 4 — WORSE-OF (lowest number wins). ───────────────────────
   //   (a) physiological score, (b) discriminator red-flag, (c) ESI v5
-  //   mandatory-vitals/danger-zone floor. Take the most acute.
+  //   mandatory-vitals/danger-zone floor, (d) cross-vital escalations.
   const candidates: AcuityLevel[] = [];
   if (scoreAcuity !== null) candidates.push(scoreAcuity);
   if (disc.minAcuity !== null) candidates.push(disc.minAcuity);
   if (esi.acuityFloor !== null) candidates.push(esi.acuityFloor);
+  if (cushings?.acuityImplication != null) candidates.push(cushings.acuityImplication);
   // No signal at all (paeds/obstetric, nothing fired) → provisional Yellow,
   // bias-up default pending manual assessment.
   let level: AcuityLevel = candidates.length > 0 ? (Math.min(...candidates) as AcuityLevel) : 3;
@@ -212,6 +235,14 @@ export function runTriage(input: TriageInput): TriageResult {
     reasoning.push(
       `Worse-of(score ${scoreAcuity ?? "—"}, discriminator ${disc.minAcuity ?? "—"}, ESI-v5 ${esi.acuityFloor ?? "—"}) → ${level}.`,
     );
+  }
+
+  // SpO₂+RR "will fail": a raise-only floor — a normal SpO₂ masking a
+  // high RR may not read reassuring (L4/L5), but it never overwrites a
+  // more-acute level from another track.
+  if (willFail?.acuityImplication != null && level > willFail.acuityImplication) {
+    level = willFail.acuityImplication;
+    reasoning.push(`Raised to L${level}: normal SpO₂ with high RR cannot read reassuring.`);
   }
 
   // The absolute floor a baseline temper can never cross: a fired
@@ -224,6 +255,9 @@ export function runTriage(input: TriageInput): TriageResult {
   // does not block a clinician-reasoned baseline temper.
   if (esi.dangerVitals.length > 0 && esi.acuityFloor !== null)
     floorCandidates.push(esi.acuityFloor);
+  // Cushing's reflex (raised ICP) is an absolute floor — a baseline
+  // temper can never soften it.
+  if (cushings?.acuityImplication != null) floorCandidates.push(cushings.acuityImplication);
   const floor = floorCandidates.length > 0 ? (Math.min(...floorCandidates) as AcuityLevel) : null;
 
   // ── Step 5 — trend escalation (never auto-improve). ───────────────

@@ -132,6 +132,17 @@ export interface LifeThreatFlags {
   unresponsive?: boolean;
   activeSeizure?: boolean;
   exsanguinatingHaemorrhage?: boolean;
+  /** Manual clinician observation — part of the Cushing's-reflex triad (raised ICP). */
+  irregularBreathing?: boolean;
+}
+
+/** A cross-vital "smart-layer" rule outcome (catalog Part F). */
+export interface CrossVitalRuleResult {
+  code: string;
+  fired: boolean;
+  /** Acuity this pattern implies (a worse-of floor), or null for overlay/string-only. */
+  acuityImplication: AcuityLevel | null;
+  interpretation: string;
 }
 
 /** A discriminator that fired, with why — for transparent reasoning. */

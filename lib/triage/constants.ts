@@ -294,3 +294,29 @@ export function meowsToAcuity(reds: number, yellows: number): 1 | 2 | 3 | 4 | 5 
   if (yellows >= 2) return 3;
   return 4;
 }
+
+/* ─── Cross-vital rules — the "smart layer" (catalog Part F) ───────── */
+/**
+ * Patterns that only mean something when vitals are read TOGETHER. Each
+ * number is either verbatim-from-catalog or an explicit reuse of an
+ * existing in-engine NEWS2 band (labelled INFERRED) — none invented.
+ */
+export const CUSHING_REFLEX = {
+  // INFERRED: Part F gives no Cushing HR; reuses NEWS2_PULSE (≤50 abnormal). Triad-gated.
+  BRADYCARDIA_HR_LTE: 50,
+  // INFERRED: Part F says only "hypertension"; reuses the Part D obstetric def 140/90.
+  HYPERTENSION_SBP_GTE: 140,
+  HYPERTENSION_DBP_GTE: 90,
+} as const;
+
+export const TEMP_HR_SEPSIS = {
+  HYPOTHERMIA_TEMP_LTE: 36, // verbatim Part F "(≤36)"
+  FEVER_TEMP_GTE: 38.0, // verbatim Part C/D
+  TACHYCARDIA_HR_GTE: 91, // INFERRED from NEWS2_PULSE 91–110 = +1
+} as const;
+
+export const SPO2_RR_PATTERN = {
+  SPO2_NORMAL_GTE: 96, // verbatim Part C
+  RR_HIGH_GTE: 21, // INFERRED from NEWS2_RESP_RATE 21–24 = +2
+  WILL_FAIL_FLOOR_LEVEL: 3, // raise-only floor: a normal SpO₂ masking high RR can't read reassuring
+} as const;
