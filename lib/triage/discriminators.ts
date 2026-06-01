@@ -141,6 +141,19 @@ export const TRIAGE_DISCRIMINATORS: readonly Discriminator[] = [
     source: "derived",
     lifeThreat: false,
   },
+  {
+    // The "scores 0 ≠ normal" red-flag: NEWS2 adds no BP points until
+    // ≥220, so severe hypertension is invisible to the score. This
+    // derived flag escalates it to high-acuity (L2); a hypertensive
+    // EMERGENCY (with chest pain / focal deficit / breathlessness)
+    // reaches L1 via those end-organ discriminators in the worse-of.
+    code: "severe_hypertension",
+    label: "SBP ≥ 180 or DBP ≥ 110 (severe hypertension — NEWS2 scores 0)",
+    minAcuity: 2,
+    appliesTo: "adult",
+    source: "derived",
+    lifeThreat: false,
+  },
 
   // ── Obstetric discriminators ──────────────────────────────────────
   {
