@@ -50,6 +50,22 @@ const SubmitSchema = z.object({
   /** The clinician's final assigned level (confirm or override). */
   assigned_level: z.number().int().min(1).max(5),
   override_reason: z.string().max(500).optional(),
+  /**
+   * Clinician decisions on the suggested next actions (GATE C). Recorded
+   * with the triage record for QI + medico-legal trail. Suggestions
+   * never auto-execute; this only captures accept/modify/dismiss.
+   */
+  recommendation_decisions: z
+    .array(
+      z.object({
+        code: z.string().max(64),
+        category: z.string().max(32),
+        decision: z.enum(["pending", "accepted", "modified", "dismissed"]),
+        note: z.string().max(500).optional(),
+      }),
+    )
+    .max(40)
+    .optional(),
 });
 
 export type TriageSubmitState = {
@@ -141,6 +157,10 @@ export async function submitTriageAction(
         scoreAcuity: result.scoreAcuity,
         discriminatorAcuity: result.discriminatorAcuity,
         flags: result.flags,
+        // Suggested next actions + the clinician's accept/modify/dismiss
+        // (GATE C). Recorded here on the existing jsonb — no migration.
+        // Suggestions never auto-execute; this is the decision trail only.
+        recommendationDecisions: input.recommendation_decisions ?? [],
       },
       assigned_level: assignedLevel,
       override_direction: verdict.direction,

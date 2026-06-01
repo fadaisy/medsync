@@ -1,6 +1,7 @@
 "use client";
 
 import type { TriageSubmitState } from "../actions";
+import type { RecDecisionRecord } from "./next-steps";
 import type { VitalInterpretation, VitalTone } from "@/lib/triage/interpret";
 import type { AcuityColour, AcuityLevel, Acvpu, TriageInput } from "@/lib/triage/types";
 import type { TriageWorklistRow } from "@/lib/triage/worklist";
@@ -14,7 +15,6 @@ import {
   InfoIcon,
   RotateCwIcon,
   ShieldIcon,
-  SparklesIcon,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,7 @@ import { runTriage } from "@/lib/triage/engine";
 import { interpretVitals } from "@/lib/triage/interpret";
 import { cn } from "@/lib/utils";
 import { submitTriageAction } from "../actions";
+import { NextSteps } from "./next-steps";
 import { RapidRedButton } from "./rapid-red-button";
 
 /**
@@ -191,6 +192,7 @@ export function TriageDesk({
   const [discriminators, setDiscriminators] = useState<Set<string>>(new Set());
   const [assigned, setAssigned] = useState<AcuityLevel | null>(null);
   const [overrideReason, setOverrideReason] = useState("");
+  const [recDecisions, setRecDecisions] = useState<RecDecisionRecord[]>([]);
 
   const [state, formAction, pending] = useActionState<TriageSubmitState, FormData>(
     submitTriageAction,
@@ -274,6 +276,7 @@ export function TriageDesk({
     prior_level: row.priorLevel ?? null,
     assigned_level: effectiveAssigned,
     override_reason: overrideReason.trim() || undefined,
+    recommendation_decisions: recDecisions.length > 0 ? recDecisions : undefined,
   });
 
   const derived = result.derived;
@@ -653,7 +656,9 @@ export function TriageDesk({
   );
 
   // ── Next Steps seam (placeholder for the recommendations layer) ──
-  const nextSteps = <NextSteps />;
+  const nextSteps = (
+    <NextSteps result={result} assignedLevel={effectiveAssigned} onChange={setRecDecisions} />
+  );
 
   // ── Assign / submit action bar ──────────────────────────────────
   const actionBar = (
@@ -775,36 +780,6 @@ export function TriageDesk({
         </aside>
       </div>
     </div>
-  );
-}
-
-/* ─── Next Steps seam — placeholder for the recommendations layer ── */
-
-/**
- * The wireframe's "Next Steps" region. Today a calm coming-soon panel;
- * the GATE-A-signed recommendations layer (disposition · monitoring ·
- * escalation · pathway flags) drops into this same shell later.
- */
-function NextSteps() {
-  return (
-    <Section title="Next steps" hint="suggested actions">
-      <div className="border-border text-muted-foreground flex flex-col items-center gap-2 rounded-2xl border border-dashed px-4 py-8 text-center">
-        <span className="bg-muted/50 text-muted-foreground flex size-9 items-center justify-center rounded-full">
-          <SparklesIcon className="size-4" aria-hidden />
-        </span>
-        <span className="inline-flex items-center rounded-full bg-teal-50 px-2 py-0.5 font-mono text-[9.5px] font-semibold tracking-wide text-teal-700 uppercase dark:bg-teal-950/30 dark:text-teal-300">
-          coming soon
-        </span>
-        <p className="text-foreground/80 max-w-sm text-[12.5px] font-medium">
-          Suggested next actions
-        </p>
-        <p className="text-muted-foreground max-w-sm text-[11.5px] leading-relaxed">
-          Guideline-derived suggestions — disposition, monitoring frequency, escalation, and pathway
-          flags — will surface here once the recommendations layer is signed off. They will always
-          be suggestions you accept, modify, or dismiss — never orders.
-        </p>
-      </div>
-    </Section>
   );
 }
 
