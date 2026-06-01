@@ -117,3 +117,40 @@ export const OBSTETRIC_REF: ObstetricRef = {
   spo2ConcernLt: 95,
   msiHaemorrhageGt: 1.7,
 };
+
+/**
+ * ADULT clinical BP classification (BP & Temperature Reference §1b).
+ *
+ * THIS IS SEPARATE FROM the NEWS2 score. NEWS2 scores systolic 111–219
+ * as 0 points — but 180 systolic is severe hypertension, NOT normal.
+ * The engine computes the NEWS2 score for the aggregate AND classifies
+ * the actual value clinically for display; a NEWS2-0 high BP must never
+ * read "normal". Hypertensive emergencies are caught by the red-flag
+ * layer (engine Step 3), which the physiological score is blind to.
+ */
+export const ADULT_BP_CLINICAL = {
+  hypotensionSysLte: 90,
+  normalSys: { min: 110, max: 120 },
+  normalDia: { min: 70, max: 80 },
+  elevatedSysGte: 121, // 121–139 elevated / high-normal
+  elevatedDiaGte: 81, // 81–89
+  htnSysGte: 140, // 140–179 stage 1–2 hypertension
+  htnDiaGte: 90, // 90–109
+  severeSysGte: 180, // ≥180 severe hypertension
+  severeDiaGte: 110, // ≥110
+} as const;
+
+/**
+ * ADULT clinical temperature classification (BP & Temperature Reference
+ * §4b). Temperature's NEWS2 banding is more clinically aligned than BP,
+ * but the clinical fever threshold is 38.0 and hyperpyrexia (≥41) is a
+ * red-flag the score under-weights.
+ */
+export const ADULT_TEMP_CLINICAL = {
+  severeHypothermiaLte: 35.0,
+  lowMax: 36.0, // 35.1–36.0 sub-normal
+  normal: { min: 36.1, max: 37.5 }, // 37.5–38.0 borderline/low-grade
+  feverGte: 38.0,
+  highFeverGte: 39.1,
+  hyperpyrexiaGte: 41.0,
+} as const;

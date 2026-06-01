@@ -189,6 +189,31 @@ describe("Step 5 — baseline adjustment floor (absolute)", () => {
   });
 });
 
+describe("severe hypertension — the 'NEWS2 scores 0' red-flag", () => {
+  it("severe HTN (SBP ≥180) escalates via the red-flag even though NEWS2 scores it 0", () => {
+    // SBP 200 is NEWS2 0 points → would be L4 on score alone; the
+    // severe_hypertension discriminator floors it to high-acuity.
+    const r = runTriage(input({ vitals: { ...input().vitals, systolicBp: 200 } }));
+    expect(r.firedDiscriminators.some((d) => d.code === "severe_hypertension")).toBe(true);
+    expect(r.level).toBeLessThanOrEqual(2);
+  });
+
+  it("a hypertensive emergency (severe HTN + chest pain) reaches L1/L2 via the worse-of", () => {
+    const r = runTriage(
+      input({
+        vitals: { ...input().vitals, systolicBp: 200, diastolicBp: 115 },
+        presentDiscriminators: ["cardiac_chest_pain"],
+      }),
+    );
+    expect(r.level).toBeLessThanOrEqual(2);
+  });
+
+  it("does not fire for a non-severe BP", () => {
+    const r = runTriage(input({ vitals: { ...input().vitals, systolicBp: 150 } }));
+    expect(r.firedDiscriminators.some((d) => d.code === "severe_hypertension")).toBe(false);
+  });
+});
+
 describe("transparency + determinism", () => {
   it("always returns human-readable reasoning", () => {
     const r = runTriage(input({ presentDiscriminators: ["cardiac_chest_pain"] }));

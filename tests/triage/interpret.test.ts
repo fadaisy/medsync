@@ -92,6 +92,51 @@ describe("interpretVitals — non-NEWS2 vitals", () => {
   });
 });
 
+describe("interpretVitals — 'scores 0 ≠ normal' BP/temp correction", () => {
+  it("systolic 200 (NEWS2 = 0) is NEVER 'Normal' — reads severe hypertension", () => {
+    const v = input({ systolicBp: 200 }).vitals;
+    const i = interpretVitals(v, runTriage(input({ systolicBp: 200 })));
+    expect(i.systolicBp.label.toLowerCase()).not.toContain("normal");
+    expect(i.systolicBp.label.toLowerCase()).toContain("severe hypertension");
+    expect(i.systolicBp.tone).toBe("critical");
+  });
+
+  it("systolic 150 (NEWS2 = 0) reads hypertension (abnormal), not normal", () => {
+    const v = input({ systolicBp: 150 }).vitals;
+    const i = interpretVitals(v, runTriage(input({ systolicBp: 150 })));
+    expect(i.systolicBp.tone).toBe("abnormal");
+    expect(i.systolicBp.label.toLowerCase()).toContain("hypertension");
+  });
+
+  it("systolic 125 (NEWS2 = 0) reads elevated/high-normal (borderline)", () => {
+    const v = input({ systolicBp: 125 }).vitals;
+    expect(interpretVitals(v, runTriage(input({ systolicBp: 125 }))).systolicBp.tone).toBe(
+      "borderline",
+    );
+  });
+
+  it("a genuinely normal systolic (115) still reads Normal", () => {
+    const v = input({ systolicBp: 115 }).vitals;
+    expect(interpretVitals(v, runTriage(input({ systolicBp: 115 }))).systolicBp.tone).toBe(
+      "normal",
+    );
+  });
+
+  it("hypotension (NEWS2-scored) is never softened by the clinical overlay", () => {
+    const v = input({ systolicBp: 88 }).vitals;
+    expect(interpretVitals(v, runTriage(input({ systolicBp: 88 }))).systolicBp.tone).toBe(
+      "critical",
+    );
+  });
+
+  it("hyperpyrexia ≥41 reads critical (NEWS2 caps temp at +2)", () => {
+    const v = input({ temperature: 41.5 }).vitals;
+    const i = interpretVitals(v, runTriage(input({ temperature: 41.5 })));
+    expect(i.temperature.tone).toBe("critical");
+    expect(i.temperature.label.toLowerCase()).toContain("hyperpyrexia");
+  });
+});
+
 describe("interpretVitals — missing vitals", () => {
   it("a missing vital reads 'missing', never 'normal'", () => {
     const v = input({ respiratoryRate: null }).vitals;

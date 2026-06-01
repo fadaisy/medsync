@@ -8,6 +8,7 @@ import type {
 
 import { NEWS2_RISK, QSOFA } from "../constants";
 import { TRIAGE_DISCRIMINATORS } from "../discriminators";
+import { ADULT_BP_CLINICAL } from "../reference";
 
 /**
  * Discriminator evaluation (Step 3) — pure, deterministic (research
@@ -104,6 +105,14 @@ function evalDerived(code: string, input: EvaluateInput): boolean {
       return (
         (vitals.systolicBp !== null && vitals.systolicBp >= 160) ||
         (vitals.diastolicBp !== null && vitals.diastolicBp >= 110)
+      );
+    case "severe_hypertension":
+      // Adult severe HTN (BP & Temperature Reference §1b/§1c) — NEWS2 is
+      // blind to it (no BP points until ≥220), so the red-flag layer
+      // catches it.
+      return (
+        (vitals.systolicBp !== null && vitals.systolicBp >= ADULT_BP_CLINICAL.severeSysGte) ||
+        (vitals.diastolicBp !== null && vitals.diastolicBp >= ADULT_BP_CLINICAL.severeDiaGte)
       );
     default:
       return false;

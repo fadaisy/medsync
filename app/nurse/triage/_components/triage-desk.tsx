@@ -340,7 +340,7 @@ export function TriageDesk({
 
   // ── Triage Form (center inputs) ─────────────────────────────────
   const triageForm = (
-    <div className="border-border bg-card flex flex-col gap-5 rounded-2xl border p-5">
+    <div className="border-border bg-card flex flex-col gap-3.5 rounded-2xl border p-4">
       {result.lifeThreat ? (
         <div className="rounded-2xl border border-rose-500/40 bg-rose-50/60 px-4 py-3 dark:bg-rose-950/20">
           <p className="text-[12.5px] font-semibold text-rose-700 dark:text-rose-300">
@@ -354,7 +354,7 @@ export function TriageDesk({
 
       {/* Patient */}
       <Section title="Patient">
-        <div className="grid grid-cols-2 gap-2.5">
+        <div className="grid grid-cols-2 gap-2">
           <ReadTile
             label="Age"
             value={row.ageYears != null ? `${row.ageYears}` : "—"}
@@ -404,7 +404,7 @@ export function TriageDesk({
           />
         }
       >
-        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
           <VitalTile
             label="Resp. rate"
             unit="/min"
@@ -519,15 +519,15 @@ export function TriageDesk({
 
   // ── Scores (right read-out column) ──────────────────────────────
   const scores = (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-3">
       {/* Acuity decision hero */}
-      <div className={cn("rounded-2xl border p-5", HERO_TINT[tier.colour])}>
+      <div className={cn("rounded-2xl border p-4", HERO_TINT[tier.colour])}>
         <div className="flex flex-col gap-1.5">
           <span className="text-muted-foreground font-mono text-[10px] tracking-[0.14em] uppercase">
             Final acuity
           </span>
           <div className="flex items-end gap-2.5">
-            <span className="text-foreground font-mono text-[44px] leading-[0.85] font-semibold tabular-nums">
+            <span className="text-foreground font-mono text-[32px] leading-[0.85] font-semibold tabular-nums">
               L{tier.level}
             </span>
             <span
@@ -573,7 +573,7 @@ export function TriageDesk({
                 ) : null}
               </div>
               <div className="flex items-end gap-2">
-                <span className="text-foreground -ml-0.5 font-mono text-[40px] leading-[0.85] font-semibold tabular-nums">
+                <span className="text-foreground -ml-0.5 font-mono text-[30px] leading-[0.85] font-semibold tabular-nums">
                   {result.news2.total}
                 </span>
                 <span
@@ -601,7 +601,7 @@ export function TriageDesk({
             </div>
           ) : null}
 
-          <div className="grid grid-cols-3 gap-2.5">
+          <div className="grid grid-cols-3 gap-2">
             <DerivedTile
               label="Shock index"
               value={derived.shockIndex != null ? derived.shockIndex.toFixed(2) : null}
@@ -743,7 +743,7 @@ export function TriageDesk({
   );
 
   return (
-    <div className="mx-auto w-full max-w-[1440px] px-4 py-5 sm:px-6">
+    <div className="mx-auto w-full max-w-[1440px] px-4 py-4 sm:px-6">
       {/* Back nav */}
       <Link
         href="/nurse/triage"
@@ -753,9 +753,9 @@ export function TriageDesk({
         Back to worklist
       </Link>
 
-      <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[15rem_minmax(0,1fr)] xl:grid-cols-[16rem_minmax(0,1fr)_20rem]">
+      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[15rem_minmax(0,1fr)] xl:grid-cols-[16rem_minmax(0,1fr)_20rem]">
         {/* LEFT RAIL */}
-        <aside className="flex flex-col gap-4 lg:sticky lg:top-[68px] lg:self-start">
+        <aside className="flex flex-col gap-3 lg:sticky lg:top-[68px] lg:self-start">
           {identity}
           {compactAcuity}
           <RapidRedButton
@@ -766,7 +766,7 @@ export function TriageDesk({
         </aside>
 
         {/* CENTER: form + next steps + action bar */}
-        <div className="flex min-w-0 flex-col gap-5">
+        <div className="flex min-w-0 flex-col gap-4">
           {triageForm}
           {/* Scores re-flow here below xl (hidden on xl where the right column shows them) */}
           <div className="xl:hidden">{scores}</div>
@@ -957,7 +957,7 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="flex flex-col gap-2.5">
+    <section className="flex flex-col gap-2">
       <div className="flex items-center justify-between gap-3">
         <h3 className="text-foreground/80 flex items-center gap-1 text-[12px] font-medium">
           {title}
@@ -981,8 +981,8 @@ function Section({
  *  top-edge "lift" that appears only on a deviating tone. */
 function tileShell(tone: VitalTone, extra?: string): string {
   return cn(
-    "relative flex min-h-[92px] flex-col gap-1 rounded-2xl border bg-card px-4 pt-3.5 pb-3",
-    "before:absolute before:inset-x-4 before:top-0 before:h-px before:rounded-full before:content-['']",
+    "relative flex min-h-[68px] flex-col gap-0.5 rounded-xl border bg-card px-3 pt-2 pb-2",
+    "before:absolute before:inset-x-3 before:top-0 before:h-px before:rounded-full before:content-['']",
     tone === "missing" ? "border-dashed border-border/70 bg-muted/20" : "border-border",
     TILE_EDGE[tone],
     extra,
@@ -1045,11 +1045,13 @@ function VitalTile({
           onChange={(e) => set(e.target.value)}
           placeholder="—"
           aria-label={label}
-          className="text-foreground placeholder:text-muted-foreground/40 -ml-0.5 w-full min-w-0 bg-transparent font-mono text-[30px] leading-none font-semibold tracking-[-0.02em] tabular-nums outline-none"
+          className="text-foreground placeholder:text-muted-foreground/40 -ml-0.5 w-full min-w-0 bg-transparent font-mono text-[22px] leading-none font-semibold tracking-[-0.02em] tabular-nums outline-none"
         />
         <span className="text-muted-foreground/70 shrink-0 font-mono text-[10px]">{unit}</span>
       </div>
-      <span className={cn("line-clamp-1 text-[11px]", TONE_CHIP[i.tone])}>{subLabel(i.label)}</span>
+      <span className={cn("line-clamp-1 text-[10.5px]", TONE_CHIP[i.tone])}>
+        {subLabel(i.label)}
+      </span>
     </div>
   );
 }
@@ -1083,7 +1085,7 @@ function SelectTile({
         <DeltaPill i={i} mod={isMod} />
       </div>
       <div className="relative flex items-center">
-        <span className="text-foreground font-mono text-[20px] leading-none font-semibold">
+        <span className="text-foreground font-mono text-[16px] leading-none font-semibold">
           {display}
         </span>
         <ChevronDownIcon className="text-muted-foreground/50 ml-1 size-3.5" aria-hidden />
@@ -1130,7 +1132,7 @@ function DerivedTile({
         <span className="text-muted-foreground/60 font-mono text-[15px] italic">Not recorded</span>
       ) : (
         <div className="flex items-baseline gap-1">
-          <span className="text-foreground font-mono text-[24px] leading-none font-semibold tabular-nums">
+          <span className="text-foreground font-mono text-[18px] leading-none font-semibold tabular-nums">
             {value}
           </span>
           {unit ? (
@@ -1149,7 +1151,7 @@ function ReadTile({ label, value, unit }: { label: string; value: string; unit?:
     <div className={tileShell("normal")}>
       <TileLabel>{label}</TileLabel>
       <div className="flex items-baseline gap-1">
-        <span className="text-foreground font-mono text-[24px] leading-none font-semibold tabular-nums">
+        <span className="text-foreground font-mono text-[18px] leading-none font-semibold tabular-nums">
           {value}
         </span>
       </div>
