@@ -1,12 +1,16 @@
 import type { AcuityColour, AcuityLevel, News2Result, TriageInput, TriageResult } from "./types";
 
-import { ACUITY_TIERS, news2ToAcuity } from "./constants";
+import { ACUITY_TIERS, meowsToAcuity, news2ToAcuity } from "./constants";
+import { computeCrossVitalRules } from "./scoring/cross-vital-rules";
 import { computeDerivedMetrics } from "./scoring/derived";
 import { assessEsiV5 } from "./scoring/esi-v5";
 import { evaluateDiscriminators } from "./scoring/evaluate-discriminators";
 import { screenLifeThreat } from "./scoring/life-threat";
+import { scoreMeows } from "./scoring/meows";
 import { scoreNews2 } from "./scoring/news2";
+import { scorePaediatric } from "./scoring/paeds-scorer";
 import { routePopulation } from "./scoring/routing";
+import { specialPopulationCautions } from "./scoring/special-populations";
 
 /**
  * The smart-triage engine — pure, deterministic orchestration of
@@ -94,6 +98,9 @@ export function runTriage(input: TriageInput): TriageResult {
     respiratoryRate: input.vitals.respiratoryRate,
     pulse: input.vitals.pulse,
     spo2: input.vitals.spo2,
+    // ESI adult HR/RR danger-zone (HR>100, RR>20) over-flags children —
+    // gate it to adults. SpO₂<92 + the mandatory-vitals floor stay on.
+    adultDangerZone: routing.ruleset === "adult_news2",
   });
   if (esi.dangerVitals.length > 0) {
     reasoning.push(`ESI v5 danger-zone vital(s): ${esi.dangerVitals.join(", ")} → minimum L2.`);
@@ -127,17 +134,50 @@ export function runTriage(input: TriageInput): TriageResult {
     for (const p of news2.parameters) {
       if (p.points > 0) reasoning.push(`  ${p.parameter}: ${p.band}`);
     }
+  } else if (routing.ruleset === "paediatric_pews") {
+    // Paediatric: age-banded scorer from the CSO catalog (Part C).
+    const paeds = scorePaediatric({
+      ageYears: input.context.ageYears ?? 0,
+      respiratoryRate: input.vitals.respiratoryRate,
+      heartRate: input.vitals.pulse,
+      systolicBp: input.vitals.systolicBp,
+      spo2: input.vitals.spo2,
+      temperature: input.vitals.temperature,
+      bloodGlucose: input.vitals.bloodGlucose,
+    });
+    scoreAcuity = paeds.acuity;
+    provisional = paeds.provisional;
+    reasoning.push(`Paediatric (age-banded) → acuity ${scoreAcuity}.`);
+    for (const r of paeds.reasons) reasoning.push(`  ${r}`);
+    if (paeds.missing.length > 0) {
+      flags.push(`Paediatric assessment incomplete — obtain ${paeds.missing.join(", ")}.`);
+    }
   } else {
-    // Paeds/obstetric: no fabricated numeric score (scope note).
-    provisional = true;
-    flags.push(
-      `${routing.ruleset === "paediatric_pews" ? "Paediatric" : "Obstetric"} score not auto-computed — assess against the ${routing.ruleset === "paediatric_pews" ? "PEWS" : "MEOWS"} chart manually; red-flags + derived metrics applied.`,
-    );
+    // Obstetric: MEOWS scorer from the CSO catalog (Part D).
+    const meows = scoreMeows({
+      systolicBp: input.vitals.systolicBp,
+      diastolicBp: input.vitals.diastolicBp,
+      temperature: input.vitals.temperature,
+      spo2: input.vitals.spo2,
+      modifiedShockIndexFlag: derived.modifiedShockIndexFlag,
+    });
+    scoreAcuity = meowsToAcuity(meows.redCount, meows.yellowCount);
+    provisional = meows.provisional;
+    reasoning.push(`MEOWS ${meows.redCount}R/${meows.yellowCount}Y → acuity ${scoreAcuity}.`);
+    for (const r of meows.reasons) reasoning.push(`  ${r}`);
+    if (meows.missing.length > 0) {
+      flags.push(`Obstetric MEOWS provisional — obtain ${meows.missing.join(", ")}.`);
+    }
   }
 
   // Surface derived "smart" metrics in the reasoning (transparency).
   if (derived.shockIndexFlag && derived.shockIndexFlag !== "normal") {
     reasoning.push(`Shock Index ${derived.shockIndex?.toFixed(2)} (${derived.shockIndexFlag}).`);
+  }
+  if (derived.modifiedShockIndexFlag === "haemorrhage") {
+    reasoning.push(
+      `Modified Shock Index ${derived.modifiedShockIndex?.toFixed(2)} (haemorrhage — concealed-bleed catch).`,
+    );
   }
   if (derived.qsofa && derived.qsofa.score >= 2) {
     reasoning.push(`qSOFA ${derived.qsofa.score} — sepsis overlay positive.`);
@@ -146,6 +186,26 @@ export function runTriage(input: TriageInput): TriageResult {
     reasoning.push(`Glucose flag: ${derived.glucoseFlag}.`);
   }
 
+  // ── Cross-vital "smart layer" rules (catalog Part F). ─────────────
+  //   Patterns that only mean something read together: Cushing's reflex
+  //   (→ L1 floor), temp+HR sepsis overlay, pulse-pressure strings, and
+  //   the SpO₂+RR "will fail" raise-only floor. Pure; null-guarded.
+  //   Computed before discriminators so the temp+HR overlay can widen
+  //   the sepsis gate.
+  const crossVital = computeCrossVitalRules(
+    input.vitals,
+    derived,
+    input.lifeThreatFlags ?? {},
+    routing.ruleset,
+    input.context.ageYears,
+  );
+  for (const c of crossVital) {
+    if (c.interpretation) reasoning.push(c.interpretation);
+  }
+  const cushings = crossVital.find((c) => c.code === "cushings_reflex");
+  const willFail = crossVital.find((c) => c.code === "spo2_rr_will_fail");
+  const tempHrSepsis = crossVital.some((c) => c.code === "temp_hr_sepsis");
+
   // ── Step 3 — discriminators. ──────────────────────────────────────
   const disc = evaluateDiscriminators({
     ruleset: routing.ruleset,
@@ -153,18 +213,20 @@ export function runTriage(input: TriageInput): TriageResult {
     derived,
     news2Total: news2?.total ?? 0,
     presentCodes: input.presentDiscriminators ?? [],
+    tempHrSepsisOverlay: tempHrSepsis,
   });
   for (const f of disc.fired) {
     reasoning.push(`Discriminator: ${f.label} → minimum acuity ${f.minAcuity} (${f.source}).`);
   }
 
-  // ── Step 4 — WORSE-OF (lowest number wins; three tracks). ─────────
+  // ── Step 4 — WORSE-OF (lowest number wins). ───────────────────────
   //   (a) physiological score, (b) discriminator red-flag, (c) ESI v5
-  //   mandatory-vitals/danger-zone floor. Take the most acute.
+  //   mandatory-vitals/danger-zone floor, (d) cross-vital escalations.
   const candidates: AcuityLevel[] = [];
   if (scoreAcuity !== null) candidates.push(scoreAcuity);
   if (disc.minAcuity !== null) candidates.push(disc.minAcuity);
   if (esi.acuityFloor !== null) candidates.push(esi.acuityFloor);
+  if (cushings?.acuityImplication != null) candidates.push(cushings.acuityImplication);
   // No signal at all (paeds/obstetric, nothing fired) → provisional Yellow,
   // bias-up default pending manual assessment.
   let level: AcuityLevel = candidates.length > 0 ? (Math.min(...candidates) as AcuityLevel) : 3;
@@ -174,6 +236,14 @@ export function runTriage(input: TriageInput): TriageResult {
     reasoning.push(
       `Worse-of(score ${scoreAcuity ?? "—"}, discriminator ${disc.minAcuity ?? "—"}, ESI-v5 ${esi.acuityFloor ?? "—"}) → ${level}.`,
     );
+  }
+
+  // SpO₂+RR "will fail": a raise-only floor — a normal SpO₂ masking a
+  // high RR may not read reassuring (L4/L5), but it never overwrites a
+  // more-acute level from another track.
+  if (willFail?.acuityImplication != null && level > willFail.acuityImplication) {
+    level = willFail.acuityImplication;
+    reasoning.push(`Raised to L${level}: normal SpO₂ with high RR cannot read reassuring.`);
   }
 
   // The absolute floor a baseline temper can never cross: a fired
@@ -186,9 +256,19 @@ export function runTriage(input: TriageInput): TriageResult {
   // does not block a clinician-reasoned baseline temper.
   if (esi.dangerVitals.length > 0 && esi.acuityFloor !== null)
     floorCandidates.push(esi.acuityFloor);
+  // Cushing's reflex (raised ICP) is an absolute floor — a baseline
+  // temper can never soften it.
+  if (cushings?.acuityImplication != null) floorCandidates.push(cushings.acuityImplication);
   const floor = floorCandidates.length > 0 ? (Math.min(...floorCandidates) as AcuityLevel) : null;
 
   // ── Step 5 — trend escalation (never auto-improve). ───────────────
+  // NOTE (catalog Part G): numeric rate-of-change (vitals worsening over
+  // minutes–hours) is DEFERRED — the engine receives only priorLevel,
+  // not timestamped prior vitals, so a real rate signal can't be derived
+  // without fabricating one. The direction-of-trend safety net below
+  // (prior level worse than snapshot → escalate, never auto-improve) is
+  // in place; rate-of-change lands when timestamped prior vitals are
+  // plumbed through.
   let trendEscalated = false;
   const prior = input.adjustments?.priorLevel ?? null;
   if (prior !== null && prior < level) {
@@ -197,6 +277,13 @@ export function runTriage(input: TriageInput): TriageResult {
     );
     level = prior;
     trendEscalated = true;
+  }
+
+  // Special-population cautions (catalog Part E) — confounder warnings
+  // only; they never change the acuity, just guard against false
+  // reassurance (elderly, beta-blocker, athlete, chronic baseline).
+  for (const caution of specialPopulationCautions(input.context.modifiers, input.vitals)) {
+    flags.push(caution);
   }
 
   // ── Step 5 — clinician-gated baseline temper (floored). ───────────

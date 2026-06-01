@@ -261,3 +261,62 @@ export function news2ToAcuity(total: number, hasSingleThree: boolean): 1 | 2 | 3
   if (hasSingleThree) return 3; // single-3 red score → at least Yellow w/ review
   return 4; // 0–4 → Green
 }
+
+/* ─── MEOWS — obstetric thresholds (CSO catalog Part D, verbatim) ──── */
+/**
+ * Modified Obstetric Early Warning. Pregnancy changes baseline
+ * physiology — HR runs +10–20 bpm and BP falls in 2nd trimester — so
+ * hypertension (not hypotension) is the classic obstetric emergency, and
+ * there is deliberately NO low-BP / standalone-tachycardia trigger here
+ * (tachycardia only contributes via the Modified Shock Index, which also
+ * needs a low MAP). SpO₂ Red reuses ESI_V5_ADULT_DANGER.SPO2_LT (=92).
+ */
+export const MEOWS = {
+  HTN_SYS_GTE: 140, // ≥140 systolic → hypertension (Yellow)
+  HTN_DIA_GTE: 90, // ≥90 diastolic → hypertension (Yellow)
+  SEVERE_HTN_SYS_GTE: 160, // ≥160 → SEVERE emergency (Red)
+  SEVERE_HTN_DIA_GTE: 110, // ≥110 → SEVERE emergency (Red)
+  TEMP_SEPSIS_GTE: 38.0, // ≥38 → chorioamnionitis/sepsis (Red)
+  SPO2_CONCERN_LT: 95, // <95 → reduced reserve / PE risk (Yellow)
+  MSI_HAEMORRHAGE_GT: 1.7, // MSI = HR/MAP > 1.7 → obstetric haemorrhage (Red)
+} as const;
+
+/**
+ * MEOWS trigger → acuity (catalog Part D): any Red parameter →
+ * immediate senior/obstetric call = L2 (Orange; L1/resus is reserved for
+ * Step-0 life-threats — eclamptic seizure, exsanguinating haemorrhage —
+ * and the obstetric_severe_htn discriminator independently reaches L1).
+ * Two Yellow → L3. One Yellow or none → L4 (biased up from L5: pregnancy
+ * = reduced reserve; a single mild deviation never auto-alarms).
+ */
+export function meowsToAcuity(reds: number, yellows: number): 1 | 2 | 3 | 4 | 5 {
+  if (reds >= 1) return 2;
+  if (yellows >= 2) return 3;
+  return 4;
+}
+
+/* ─── Cross-vital rules — the "smart layer" (catalog Part F) ───────── */
+/**
+ * Patterns that only mean something when vitals are read TOGETHER. Each
+ * number is either verbatim-from-catalog or an explicit reuse of an
+ * existing in-engine NEWS2 band (labelled INFERRED) — none invented.
+ */
+export const CUSHING_REFLEX = {
+  // INFERRED: Part F gives no Cushing HR; reuses NEWS2_PULSE (≤50 abnormal). Triad-gated.
+  BRADYCARDIA_HR_LTE: 50,
+  // INFERRED: Part F says only "hypertension"; reuses the Part D obstetric def 140/90.
+  HYPERTENSION_SBP_GTE: 140,
+  HYPERTENSION_DBP_GTE: 90,
+} as const;
+
+export const TEMP_HR_SEPSIS = {
+  HYPOTHERMIA_TEMP_LTE: 36, // verbatim Part F "(≤36)"
+  FEVER_TEMP_GTE: 38.0, // verbatim Part C/D
+  TACHYCARDIA_HR_GTE: 91, // INFERRED from NEWS2_PULSE 91–110 = +1
+} as const;
+
+export const SPO2_RR_PATTERN = {
+  SPO2_NORMAL_GTE: 96, // verbatim Part C
+  RR_HIGH_GTE: 21, // INFERRED from NEWS2_RESP_RATE 21–24 = +2
+  WILL_FAIL_FLOOR_LEVEL: 3, // raise-only floor: a normal SpO₂ masking high RR can't read reassuring
+} as const;

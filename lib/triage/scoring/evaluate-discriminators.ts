@@ -34,6 +34,12 @@ export interface EvaluateInput {
   news2Total: number;
   /** Manual discriminator codes the clinician ticked. */
   presentCodes: string[];
+  /**
+   * Cross-vital temp+HR sepsis overlay (catalog Part F). When true it
+   * WIDENS the sepsis_suspicion gate — but only when the clinician has
+   * already ticked sepsis_suspicion; it never auto-creates suspicion.
+   */
+  tempHrSepsisOverlay?: boolean;
 }
 
 export interface EvaluateResult {
@@ -77,7 +83,10 @@ function evalManual(code: string, present: Set<string>, input: EvaluateInput): b
   if (code === "sepsis_suspicion") {
     const qsofaHigh = (input.derived.qsofa?.score ?? 0) >= QSOFA.POSITIVE_THRESHOLD;
     const news2High = input.news2Total >= NEWS2_RISK.MEDIUM_MIN;
-    return qsofaHigh || news2High;
+    // Cross-vital temp+HR pattern widens the gate (catalog Part F) — but
+    // only here, where the clinician has already ticked an infection
+    // source; it never creates suspicion on its own.
+    return qsofaHigh || news2High || input.tempHrSepsisOverlay === true;
   }
   return true;
 }

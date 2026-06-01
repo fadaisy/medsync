@@ -81,6 +81,9 @@ export interface DerivedMetrics {
   pulsePressure: number | null;
   pulsePressureFlag: "narrow" | "normal" | "wide" | null;
   meanArterialPressure: number | null;
+  /** Modified Shock Index = HR / MAP. >1.7 flags obstetric haemorrhage early (catalog Part D/F). */
+  modifiedShockIndex: number | null;
+  modifiedShockIndexFlag: "haemorrhage" | "normal" | null;
   qsofa: QsofaResult | null;
   glucoseFlag: "hypoglycaemia" | "normal" | "hyperglycaemia_dka_screen" | null;
 }
@@ -106,6 +109,25 @@ export interface TriageContext {
   reproductiveAgeFemale: boolean;
   /** Clinician explicitly enabled NEWS2 SpO₂ Scale 2 (COPD/hypercapnic). */
   spo2Scale2Enabled: boolean;
+  /**
+   * Special-population context modifiers (catalog Part E). These are
+   * confounders the clinician weighs — they surface CAUTION strings only,
+   * never change a computed acuity (no fabricated thresholds). All
+   * optional; default false/absent.
+   */
+  modifiers?: SpecialPopulationModifiers;
+}
+
+/** Clinician-supplied context that modulates how vitals are READ (Part E). */
+export interface SpecialPopulationModifiers {
+  /** Elderly / frail — may not mount fever/tachycardia; confusion may be the only sign. */
+  elderlyFrail?: boolean;
+  /** On a beta-blocker — a blunted heart rate may mask compensation. */
+  betaBlocker?: boolean;
+  /** Fit athlete — resting bradycardia can be normal in a well, asymptomatic person. */
+  athlete?: boolean;
+  /** Known abnormal chronic baseline (HIV/TB etc.) — see clinician baseline adjustment. */
+  chronicAbnormalBaseline?: boolean;
 }
 
 /** The full vital set the engine consumes (superset of NEWS2 inputs). */
@@ -129,6 +151,17 @@ export interface LifeThreatFlags {
   unresponsive?: boolean;
   activeSeizure?: boolean;
   exsanguinatingHaemorrhage?: boolean;
+  /** Manual clinician observation — part of the Cushing's-reflex triad (raised ICP). */
+  irregularBreathing?: boolean;
+}
+
+/** A cross-vital "smart-layer" rule outcome (catalog Part F). */
+export interface CrossVitalRuleResult {
+  code: string;
+  fired: boolean;
+  /** Acuity this pattern implies (a worse-of floor), or null for overlay/string-only. */
+  acuityImplication: AcuityLevel | null;
+  interpretation: string;
 }
 
 /** A discriminator that fired, with why — for transparent reasoning. */

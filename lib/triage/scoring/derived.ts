@@ -1,6 +1,6 @@
 import type { DerivedMetrics, QsofaResult } from "../types";
 
-import { GLUCOSE, PULSE_PRESSURE_NARROW_FRACTION, QSOFA, SHOCK_INDEX } from "../constants";
+import { GLUCOSE, MEOWS, PULSE_PRESSURE_NARROW_FRACTION, QSOFA, SHOCK_INDEX } from "../constants";
 
 /**
  * Derived "smart" metrics — pure, deterministic (kickoff §0.1).
@@ -58,6 +58,17 @@ export function computeDerivedMetrics(input: DerivedInput): DerivedMetrics {
     meanArterialPressure = dbp + (sbp - dbp) / 3;
   }
 
+  // Modified Shock Index = HR / MAP (catalog Part D/F). >1.7 flags
+  // obstetric haemorrhage early — catches concealed bleeds a normal BP
+  // hides. Guarded like shockIndex (MAP must be > 0).
+  let modifiedShockIndex: number | null = null;
+  let modifiedShockIndexFlag: DerivedMetrics["modifiedShockIndexFlag"] = null;
+  if (pulse !== null && meanArterialPressure !== null && meanArterialPressure > 0) {
+    modifiedShockIndex = pulse / meanArterialPressure;
+    modifiedShockIndexFlag =
+      modifiedShockIndex > MEOWS.MSI_HAEMORRHAGE_GT ? "haemorrhage" : "normal";
+  }
+
   // qSOFA (research doc §5)
   let qsofa: QsofaResult | null = null;
   if (rr !== null || sbp !== null || acvpu !== null) {
@@ -92,6 +103,8 @@ export function computeDerivedMetrics(input: DerivedInput): DerivedMetrics {
     pulsePressure,
     pulsePressureFlag,
     meanArterialPressure,
+    modifiedShockIndex,
+    modifiedShockIndexFlag,
     qsofa,
     glucoseFlag,
   };
