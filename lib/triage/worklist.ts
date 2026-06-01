@@ -149,6 +149,90 @@ export async function fetchTriageWorklist(args: {
   return mapped;
 }
 
+/**
+ * One intake row for the full-page triage desk (/nurse/triage/[intakeId]).
+ * Same shape + audited name-reveal as the worklist, scoped to a single
+ * intake in the clinician's hospital. Returns null if not found / not in
+ * scope so the page can notFound() rather than leak existence.
+ */
+export async function fetchTriageWorklistRow(args: {
+  intakeId: string;
+  hospitalId: string;
+  clinicianUserId: string;
+}): Promise<TriageWorklistRow | null> {
+  const rows = await db
+    .select({
+      intakeId: patientIntakes.id,
+      patientUserId: patientIntakes.patientUserId,
+      patientCode: patientProfiles.patientCode,
+      patientUnknownLabel: patientIntakes.patientUnknownLabel,
+      firstNameEncrypted: patientProfiles.firstNameEncrypted,
+      surnameEncrypted: patientProfiles.surnameEncrypted,
+      dateOfBirth: patientProfiles.dateOfBirth,
+      sex: patientProfiles.sex,
+      entryTypeName: entryTypes.name,
+      isEmergency: entryTypes.isEmergency,
+      priorityHint: patientIntakes.priorityHint,
+      presentingComplaint: patientIntakes.presentingComplaint,
+      arrivedAt: patientIntakes.arrivedAt,
+      status: patientIntakes.status,
+      triageLevel: patientIntakes.triageLevel,
+    })
+    .from(patientIntakes)
+    .innerJoin(entryTypes, eq(entryTypes.code, patientIntakes.entryTypeCode))
+    .leftJoin(patientProfiles, eq(patientProfiles.id, patientIntakes.patientUserId))
+    .where(
+      and(eq(patientIntakes.id, args.intakeId), eq(patientIntakes.hospitalId, args.hospitalId)),
+    )
+    .limit(1);
+
+  const r = rows[0];
+  if (!r) return null;
+
+  let displayName: string | null = null;
+  if (r.patientUserId && r.firstNameEncrypted && r.surnameEncrypted) {
+    try {
+      displayName = `${decrypt(r.firstNameEncrypted)} ${decrypt(r.surnameEncrypted)}`.trim();
+    } catch (e) {
+      logger.warn("triage.desk.decrypt_failed", { reason: String(e) });
+      displayName = null;
+    }
+  }
+
+  // Audit the name reveal (one row, basis department_recent, surface triage_desk).
+  if (displayName && r.patientUserId) {
+    try {
+      await db.insert(clinicalPhiAccessLog).values({
+        hospitalId: args.hospitalId,
+        clinicianUserId: args.clinicianUserId,
+        patientUserId: r.patientUserId,
+        accessBasis: "department_recent" as const,
+        surface: "triage_desk",
+      });
+    } catch (e) {
+      logger.error("triage.desk.phi_audit_failed", { reason: String(e) });
+    }
+  }
+
+  const now = new Date();
+  return {
+    intakeId: r.intakeId,
+    patientUserId: r.patientUserId,
+    patientCode: r.patientCode,
+    patientUnknownLabel: r.patientUnknownLabel,
+    displayName,
+    ageYears: r.dateOfBirth ? computeAgeYears(r.dateOfBirth.toString(), now) : null,
+    sex: r.sex,
+    entryTypeName: r.entryTypeName,
+    isEmergency: r.isEmergency,
+    priorityHint: r.priorityHint,
+    presentingComplaint: r.presentingComplaint,
+    arrivedAtIso: r.arrivedAt.toISOString(),
+    status: r.status,
+    priorLevel: r.triageLevel,
+  };
+}
+
 export interface RecentVital {
   kind: string;
   value1: number | null;
