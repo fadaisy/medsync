@@ -2,14 +2,19 @@
 
 import type { TriageSubmitState } from "../actions";
 import type { VitalInterpretation, VitalTone } from "@/lib/triage/interpret";
-import type { AcuityLevel, Acvpu, TriageInput } from "@/lib/triage/types";
+import type {
+  AcuityColour,
+  AcuityLevel,
+  Acvpu,
+  ParameterScore,
+  TriageInput,
+} from "@/lib/triage/types";
 import type { TriageWorklistRow } from "@/lib/triage/worklist";
 import { useActionState, useEffect, useMemo, useState } from "react";
-import { RotateCwIcon } from "lucide-react";
+import { ChevronRightIcon, RotateCwIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { ACUITY_TIERS } from "@/lib/triage/constants";
 import { TRIAGE_DISCRIMINATORS } from "@/lib/triage/discriminators";
 import { runTriage } from "@/lib/triage/engine";
@@ -50,6 +55,49 @@ const TONE_RING: Record<VitalTone, string> = {
   missing: "",
   info: "",
 };
+
+/* ── Score-breakdown helpers (NEWS2 contribution + worse-of rollup) ── */
+
+const PARAM_LABEL: Record<string, string> = {
+  respiratory_rate: "Resp. rate",
+  spo2: "SpO₂",
+  systolic_bp: "Systolic BP",
+  pulse: "Pulse",
+  temperature: "Temperature",
+  consciousness: "Consciousness",
+  supplemental_oxygen: "Suppl. O₂",
+};
+
+/** A parameter's tone = its NEWS2 points, mirroring interpret.ts POINTS_TONE. */
+function paramTone(p: ParameterScore): VitalTone {
+  if (!p.present) return "missing";
+  return (["normal", "borderline", "abnormal", "critical"][p.points] ?? "abnormal") as VitalTone;
+}
+
+/** Pip fill per tone — the filled cells of a parameter's contribution bar. */
+const PIP_FILL: Record<VitalTone, string> = {
+  normal: "border-transparent bg-muted-foreground/40",
+  borderline: "border-transparent bg-amber-400",
+  abnormal: "border-transparent bg-orange-500",
+  critical: "border-transparent bg-rose-600",
+  missing: "border-dashed border-border/60 bg-transparent",
+  info: "border-transparent bg-muted-foreground/40",
+};
+
+/** Ring colour for the winning worse-of lane, by acuity colour. */
+const RING_FOR: Record<AcuityColour, string> = {
+  red: "ring-rose-500/70",
+  orange: "ring-orange-500/70",
+  yellow: "ring-amber-400/80",
+  green: "ring-teal-600/70",
+  blue: "ring-slate-400/70",
+};
+
+function riskWord(total: number): string {
+  if (total >= 7) return "high · urgent response";
+  if (total >= 5) return "medium · escalate";
+  return "low";
+}
 
 interface VitalsState {
   respiratoryRate: string;
@@ -113,8 +161,12 @@ function PanelBody({
   mayDownTriage: boolean;
   onClose: () => void;
 }) {
+  const isMale = row.sex?.toLowerCase().startsWith("m") ?? false;
   const [vitals, setVitals] = useState<VitalsState>(EMPTY_VITALS);
+  // A male patient can never be pregnant — pin the context so the
+  // engine + payload never carry a stray pregnancy state.
   const [pregnancy, setPregnancy] = useState<TriageInput["context"]["pregnancy"]>("not_pregnant");
+  const effectivePregnancy = isMale ? "not_pregnant" : pregnancy;
   // Reproductive-age female is auto-seeded from sex + age (drives the
   // unknown-pregnancy flag); the clinician can still toggle it.
   const autoReproFemale =
@@ -155,8 +207,8 @@ function PanelBody({
     const input: TriageInput = {
       context: {
         ageYears: row.ageYears,
-        pregnancy,
-        reproductiveAgeFemale: reproFemale,
+        pregnancy: effectivePregnancy,
+        reproductiveAgeFemale: isMale ? false : reproFemale,
         spo2Scale2Enabled: scale2,
       },
       vitals: liveVitals,
@@ -164,7 +216,16 @@ function PanelBody({
       adjustments: { priorLevel: (row.priorLevel as AcuityLevel | null) ?? null },
     };
     return runTriage(input);
-  }, [liveVitals, row.ageYears, row.priorLevel, pregnancy, reproFemale, scale2, discriminators]);
+  }, [
+    liveVitals,
+    row.ageYears,
+    row.priorLevel,
+    effectivePregnancy,
+    isMale,
+    reproFemale,
+    scale2,
+    discriminators,
+  ]);
 
   const interp = useMemo(() => interpretVitals(liveVitals, result), [liveVitals, result]);
 
@@ -192,8 +253,8 @@ function PanelBody({
     intake_id: row.intakeId,
     patient_user_id: row.patientUserId,
     age_years: row.ageYears,
-    pregnancy,
-    reproductive_age_female: reproFemale,
+    pregnancy: effectivePregnancy,
+    reproductive_age_female: isMale ? false : reproFemale,
     spo2_scale2_enabled: scale2,
     vitals: liveVitals,
     present_discriminators: [...discriminators],
@@ -227,7 +288,7 @@ function PanelBody({
           </span>
         </div>
 
-        {/* Live computed acuity — the prominent result */}
+        {/* Live computed acuity — the prominent result + what to do */}
         <div className="flex shrink-0 flex-col items-end gap-1">
           <span
             className={cn(
@@ -237,9 +298,17 @@ function PanelBody({
           >
             L{tier.level} · {tier.colour.toUpperCase()}
           </span>
-          <span className="text-muted-foreground font-mono text-[10px]">
-            target {tier.targetMinutes}m{result.provisional ? " · provisional" : ""}
-          </span>
+          <span className="text-foreground/80 text-[11px] font-medium">{result.disposition}</span>
+          <div className="flex items-center gap-1.5">
+            <span className="text-muted-foreground font-mono text-[10px] tabular-nums">
+              target {tier.targetMinutes}m
+            </span>
+            {result.provisional ? (
+              <span className="inline-flex items-center rounded-full bg-amber-50 px-1.5 py-0.5 font-mono text-[8.5px] font-semibold tracking-wide text-amber-700 uppercase dark:bg-amber-950/30 dark:text-amber-300">
+                provisional
+              </span>
+            ) : null}
+          </div>
         </div>
       </header>
 
@@ -265,20 +334,27 @@ function PanelBody({
                 value={row.ageYears != null ? `${row.ageYears} years` : "Unknown — confirm"}
                 mono
               />
-              <Field label="Pregnancy">
-                <Select
-                  value={pregnancy}
-                  onChange={(v) => setPregnancy(v as typeof pregnancy)}
-                  options={[
-                    ["not_pregnant", "Not pregnant"],
-                    ["pregnant", "Pregnant"],
-                    ["postpartum_6wk", "≤6wk postpartum"],
-                    ["unknown", "Unknown"],
-                  ]}
-                />
-              </Field>
+              {/* Pregnancy is meaningless for a male patient — the obstetric
+                  pathway can never apply, so we hide it entirely and keep
+                  the engine on not_pregnant. */}
+              {isMale ? (
+                <Readout label="Pregnancy" value="Not applicable" />
+              ) : (
+                <Field label="Pregnancy">
+                  <Select
+                    value={pregnancy}
+                    onChange={(v) => setPregnancy(v as typeof pregnancy)}
+                    options={[
+                      ["not_pregnant", "Not pregnant"],
+                      ["pregnant", "Pregnant"],
+                      ["postpartum_6wk", "≤6wk postpartum"],
+                      ["unknown", "Unknown"],
+                    ]}
+                  />
+                </Field>
+              )}
             </div>
-            {pregnancy === "unknown" ? (
+            {!isMale && pregnancy === "unknown" ? (
               <Check checked={reproFemale} onChange={setReproFemale}>
                 Female of reproductive age (flags confirm-pregnancy)
               </Check>
@@ -386,25 +462,8 @@ function PanelBody({
             </div>
           </Section>
 
-          {/* Why this level */}
-          <Section title="Why this level">
-            <ul className="border-border bg-muted/30 flex flex-col gap-1 rounded-lg border p-3">
-              {result.reasoning.map((line, i) => (
-                <li key={i} className="text-foreground/80 font-mono text-[11px] leading-relaxed">
-                  {line}
-                </li>
-              ))}
-            </ul>
-            {result.flags.length > 0 ? (
-              <div className="mt-2 flex flex-col gap-1">
-                {result.flags.map((f, i) => (
-                  <p key={i} className="text-[11.5px] text-amber-700 dark:text-amber-300">
-                    ⚑ {f}
-                  </p>
-                ))}
-              </div>
-            ) : null}
-          </Section>
+          {/* Score breakdown — what each parameter contributes + worse-of */}
+          <ScoreBreakdown result={result} finalTier={tier} />
         </div>
       </div>
 
@@ -501,6 +560,258 @@ function ruleToPop(ruleset: string): "adult" | "paediatric" | "obstetric" {
   return "adult";
 }
 
+/**
+ * Score breakdown — makes the level legible: each NEWS2 parameter's
+ * contribution (drivers first), then the three independent worse-of lanes
+ * (score · red-flag · ESI-v5) resolving to the final acuity. The winning
+ * lane is computed independently of result.level (via the most-acute fired
+ * lane), so it still lights up when trend escalation or a baseline temper
+ * moved the final level off every track — the long-form reasoning for that
+ * lives in the Details disclosure.
+ */
+function ScoreBreakdown({
+  result,
+  finalTier,
+}: {
+  result: ReturnType<typeof runTriage>;
+  finalTier: (typeof ACUITY_TIERS)[number];
+}) {
+  const lanes = [
+    {
+      key: "score",
+      label: "NEWS2 score",
+      acuity: result.scoreAcuity,
+      note: result.news2 ? `total ${result.news2.total}` : null,
+    },
+    {
+      key: "flag",
+      label: "Red-flag",
+      acuity: result.discriminatorAcuity,
+      note: result.firedDiscriminators[0]?.label ?? null,
+    },
+    {
+      key: "esi",
+      label: "ESI-v5",
+      acuity: result.esiV5Acuity,
+      note: result.incompleteVitals ? "incomplete vitals" : (result.dangerVitals[0] ?? null),
+    },
+  ] as const;
+  const winner = lanes.reduce<number | null>(
+    (best, l) => (l.acuity != null && (best == null || l.acuity < best) ? l.acuity : best),
+    null,
+  );
+
+  return (
+    <Section title={result.news2 ? "Score breakdown · NEWS2" : "Why this level"}>
+      {result.news2 ? (
+        <>
+          {/* 1 — Aggregate strip */}
+          <div className="border-border bg-muted/30 flex items-center gap-4 rounded-lg border px-3.5 py-2.5">
+            <div className="flex flex-col">
+              <span className="text-muted-foreground font-mono text-[9.5px] tracking-[0.14em] uppercase">
+                NEWS2 total
+              </span>
+              <span className="text-foreground text-[26px] leading-none font-semibold tabular-nums">
+                {result.news2.total}
+              </span>
+            </div>
+            <span className="text-muted-foreground text-[12.5px]">
+              {riskWord(result.news2.total)}
+            </span>
+            <div className="ml-auto flex flex-col items-end gap-1">
+              {result.news2.hasSingleParameterThree ? (
+                <span className="inline-flex items-center rounded-full bg-rose-50 px-2 py-0.5 font-mono text-[9.5px] font-semibold tracking-wide text-rose-700 uppercase dark:bg-rose-950/30 dark:text-rose-300">
+                  single +3 · red score
+                </span>
+              ) : null}
+              {result.news2.provisional ? (
+                <span className="text-muted-foreground/70 font-mono text-[10px] italic">
+                  provisional — missing shown as not recorded, never scored 0
+                </span>
+              ) : null}
+            </div>
+          </div>
+
+          {/* 2 — Contribution ledger (drivers first, missing sinks) */}
+          <div className="mt-3 flex flex-col gap-1">
+            <div className="text-muted-foreground/80 grid grid-cols-[104px_auto_1fr] gap-3 font-mono text-[9.5px] tracking-[0.14em] uppercase">
+              <span>Contribution</span>
+              <span />
+              <span className="text-right">drivers first</span>
+            </div>
+            {[...result.news2.parameters]
+              .map((p) => ({ p, tone: paramTone(p) }))
+              .sort((a, b) =>
+                a.p.present === b.p.present ? b.p.points - a.p.points : a.p.present ? -1 : 1,
+              )
+              .map(({ p, tone }) => {
+                const isMod = p.parameter === "supplemental_oxygen";
+                const cap = isMod ? 2 : 3;
+                return (
+                  <div
+                    key={p.parameter}
+                    title={p.band}
+                    className={cn(
+                      "grid grid-cols-[104px_auto_1fr] items-center gap-3 rounded-md py-0.5",
+                      !p.present && "opacity-60",
+                    )}
+                  >
+                    <span className="text-foreground/90 text-[12px]">
+                      {PARAM_LABEL[p.parameter] ?? p.parameter}
+                    </span>
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: cap }).map((_, i) => (
+                        <span
+                          key={i}
+                          aria-hidden
+                          className={cn(
+                            "h-2.5 w-3 rounded-[2px] border",
+                            !p.present
+                              ? "border-border/60 border-dashed bg-transparent"
+                              : i < p.points
+                                ? PIP_FILL[tone]
+                                : "border-border/50 bg-muted/40",
+                          )}
+                        />
+                      ))}
+                      {isMod ? (
+                        <span className="text-muted-foreground/60 font-mono text-[8.5px] tracking-wide uppercase">
+                          mod
+                        </span>
+                      ) : null}
+                    </div>
+                    <span
+                      className={cn(
+                        "text-right font-mono text-[11px] tabular-nums",
+                        p.present
+                          ? TONE_CHIP[tone]
+                          : "text-muted-foreground/60 italic line-through",
+                      )}
+                    >
+                      {p.band}
+                    </span>
+                  </div>
+                );
+              })}
+          </div>
+        </>
+      ) : null}
+
+      {/* 3 — Worse-of rollup (renders for all rulesets) */}
+      <div className="border-border/70 mt-4 border-t pt-3">
+        <span className="text-muted-foreground font-mono text-[9.5px] tracking-[0.14em] uppercase">
+          Worse-of · most acute lane wins
+        </span>
+        <div className="mt-2 flex items-stretch gap-2">
+          <div className="grid flex-1 grid-cols-3 gap-2">
+            {lanes.map((l) => {
+              const fired = l.acuity != null;
+              const laneTier = fired ? ACUITY_TIERS.find((t) => t.level === l.acuity) : undefined;
+              const isWinner = fired && l.acuity === winner;
+              return (
+                <div
+                  key={l.key}
+                  title={
+                    l.key === "esi" && result.dangerVitals.length
+                      ? result.dangerVitals.join(" · ")
+                      : undefined
+                  }
+                  className={cn(
+                    "border-border bg-muted/30 flex flex-col items-center gap-1 rounded-lg border px-2 py-2",
+                    !fired && "opacity-45",
+                    isWinner &&
+                      laneTier &&
+                      cn(
+                        "ring-offset-background ring-2 ring-offset-1",
+                        RING_FOR[laneTier.colour as AcuityColour],
+                      ),
+                  )}
+                >
+                  <span className="text-muted-foreground font-mono text-[9px] tracking-[0.12em] uppercase">
+                    {l.label}
+                  </span>
+                  <span
+                    className={cn(
+                      "inline-flex items-center rounded-md px-2 py-0.5 text-[12px] font-semibold tabular-nums",
+                      fired && laneTier
+                        ? COLOUR_CLASS[laneTier.colour]
+                        : "text-muted-foreground/60",
+                    )}
+                  >
+                    {fired ? `L${l.acuity}` : "—"}
+                  </span>
+                  {l.note ? (
+                    <span className="text-muted-foreground/80 line-clamp-1 text-center text-[10px]">
+                      {l.note}
+                    </span>
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="text-muted-foreground flex items-center px-0.5">
+            <ChevronRightIcon className="size-5" aria-hidden />
+          </div>
+
+          <div
+            className={cn(
+              "flex w-[84px] flex-col items-center justify-center gap-0.5 rounded-lg px-2 py-2",
+              COLOUR_CLASS[finalTier.colour],
+            )}
+          >
+            <span className="font-mono text-[9px] tracking-[0.12em] uppercase opacity-80">
+              Final
+            </span>
+            <span className="text-[15px] font-semibold tabular-nums">L{finalTier.level}</span>
+            <span className="text-[9.5px] opacity-80">{finalTier.targetMinutes}m target</span>
+          </div>
+        </div>
+
+        {/* Worse-of equation — null-safe operands, true final level */}
+        <p className="text-muted-foreground mt-2 text-[11px]">
+          worse-of(
+          <span className="font-mono tabular-nums">{result.scoreAcuity ?? "—"}</span>,{" "}
+          <span className="font-mono tabular-nums">{result.discriminatorAcuity ?? "—"}</span>,{" "}
+          <span className="font-mono tabular-nums">{result.esiV5Acuity ?? "—"}</span>) →{" "}
+          <span className="text-foreground font-mono font-semibold tabular-nums">
+            L{result.level}
+          </span>
+        </p>
+      </div>
+
+      {/* 4 — Details disclosure: full engine reasoning (trend/baseline/qSOFA) */}
+      <details className="group mt-3">
+        <summary className="text-muted-foreground hover:text-foreground flex cursor-pointer items-center gap-1 font-mono text-[10px] tracking-[0.14em] uppercase">
+          <ChevronRightIcon
+            className="size-3 transition-transform group-open:rotate-90"
+            aria-hidden
+          />
+          Details
+        </summary>
+        <ul className="mt-2 flex flex-col gap-1 pl-4">
+          {result.reasoning.map((line, i) => (
+            <li key={i} className="text-foreground/80 font-mono text-[11px] leading-relaxed">
+              {line}
+            </li>
+          ))}
+        </ul>
+      </details>
+
+      {/* 5 — Non-blocking clinician flags */}
+      {result.flags.length > 0 ? (
+        <div className="mt-3 flex flex-col gap-1">
+          {result.flags.map((f, i) => (
+            <p key={i} className="text-[11.5px] text-amber-700 dark:text-amber-300">
+              ⚑ {f}
+            </p>
+          ))}
+        </div>
+      ) : null}
+    </Section>
+  );
+}
+
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="flex flex-col gap-2.5">
@@ -576,16 +887,26 @@ function VitalRow({
   i: VitalInterpretation;
 }) {
   return (
-    <div className="grid grid-cols-[1fr_92px_1fr] items-center gap-3">
+    <div className="grid grid-cols-[1fr_104px_1fr] items-center gap-3">
       <span className="text-foreground text-[12.5px]">{label}</span>
-      <div className="relative">
-        <Input
+      {/* Input + unit as separate columns so the typed value never sits
+          under the unit suffix. The unit has its own reserved width. */}
+      <div
+        className={cn(
+          "border-input bg-card flex h-8 items-center rounded-sm border transition-all duration-150",
+          "focus-within:border-teal-500 focus-within:shadow-[0_0_0_2px_rgba(20,184,166,0.15)]",
+          "dark:focus-within:border-teal-400",
+          TONE_RING[i.tone],
+        )}
+      >
+        <input
           inputMode="decimal"
           value={v}
           onChange={(e) => set(e.target.value)}
-          className={cn("h-8 pr-1 text-right font-mono tabular-nums", TONE_RING[i.tone])}
+          placeholder="—"
+          className="text-foreground placeholder:text-muted-foreground/40 h-full min-w-0 flex-1 bg-transparent px-2 text-right font-mono text-[13px] tabular-nums outline-none"
         />
-        <span className="text-muted-foreground/60 pointer-events-none absolute top-1/2 right-2 -translate-y-1/2 font-mono text-[9px]">
+        <span className="text-muted-foreground/70 border-border/60 pointer-events-none border-l px-2 font-mono text-[9.5px] whitespace-nowrap">
           {unit}
         </span>
       </div>
@@ -608,12 +929,12 @@ function SelectRow({
   i: VitalInterpretation;
 }) {
   return (
-    <div className="grid grid-cols-[1fr_92px_1fr] items-center gap-3">
+    <div className="grid grid-cols-[1fr_104px_1fr] items-center gap-3">
       <span className="text-foreground text-[12.5px]">{label}</span>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="border-input bg-background text-foreground focus-visible:ring-ring/50 h-8 rounded-md border px-1.5 text-[12px] outline-none focus-visible:ring-[3px]"
+        className="border-input bg-card text-foreground h-8 rounded-sm border px-1.5 text-[12px] outline-none focus-visible:border-teal-500 focus-visible:shadow-[0_0_0_2px_rgba(20,184,166,0.15)]"
       >
         {options.map(([v, lbl]) => (
           <option key={v} value={v}>
