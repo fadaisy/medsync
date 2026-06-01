@@ -887,8 +887,10 @@ function WorseOf({
         })}
       </div>
 
-      {/* Legend */}
-      <div className="mt-3 grid gap-1.5 sm:grid-cols-3">
+      {/* Legend — one lane per row (no cramped 3-up truncation): a dot +
+          label on the left, the lane's acuity chip on the right, the
+          winner marked, and any note on its own muted sub-line. */}
+      <div className="mt-3 flex flex-col gap-1">
         {lanes.map((l) => {
           const fired = l.acuity != null;
           const laneTier = fired ? ACUITY_TIERS.find((t) => t.level === l.acuity) : undefined;
@@ -901,27 +903,40 @@ function WorseOf({
                   ? result.dangerVitals.join(" · ")
                   : undefined
               }
-              className={cn("flex items-center gap-1.5", !fired && "opacity-45")}
+              className={cn(
+                "flex flex-col gap-0.5 rounded-md px-1.5 py-1",
+                isWinner && "bg-muted/40",
+                !fired && "opacity-45",
+              )}
             >
-              <span
-                aria-hidden
-                className={cn(
-                  "size-2 shrink-0 rounded-full",
-                  laneTier ? SEG_FILL[laneTier.colour] : "bg-muted-foreground/40",
-                )}
-              />
-              <span className="text-foreground/80 text-[11px]">{l.label}</span>
-              <span className="text-muted-foreground font-mono text-[11px] font-semibold tabular-nums">
-                {fired ? `L${l.acuity}` : "—"}
-              </span>
-              {isWinner ? (
-                <span className="text-muted-foreground/70 font-mono text-[9px] tracking-wide uppercase">
-                  wins
+              <div className="flex items-center gap-1.5">
+                <span
+                  aria-hidden
+                  className={cn(
+                    "size-2 shrink-0 rounded-full",
+                    laneTier ? SEG_FILL[laneTier.colour] : "bg-muted-foreground/40",
+                  )}
+                />
+                <span className="text-foreground/80 flex-1 text-[11.5px]">{l.label}</span>
+                {isWinner ? (
+                  <span className="text-muted-foreground/70 font-mono text-[8.5px] tracking-[0.1em] uppercase">
+                    wins
+                  </span>
+                ) : null}
+                <span
+                  className={cn(
+                    "inline-flex min-w-[26px] justify-center rounded-md px-1.5 py-0.5 font-mono text-[10.5px] font-semibold tabular-nums",
+                    fired && laneTier
+                      ? COLOUR_CLASS[laneTier.colour]
+                      : "text-muted-foreground/60 bg-muted/50",
+                  )}
+                >
+                  {fired ? `L${l.acuity}` : "—"}
                 </span>
-              ) : null}
+              </div>
               {l.note ? (
-                <span className="text-muted-foreground/70 line-clamp-1 text-[10px]">
-                  · {l.note}
+                <span className="text-muted-foreground/70 line-clamp-1 pl-3.5 text-[10px]">
+                  {l.note}
                 </span>
               ) : null}
             </div>
@@ -929,24 +944,19 @@ function WorseOf({
         })}
       </div>
 
-      {/* Equation — null-safe operands, true final level */}
-      <div className="mt-3 flex items-center justify-between gap-3">
-        <p className="text-muted-foreground text-[11px]">
-          worse-of(
-          <span className="font-mono tabular-nums">{result.scoreAcuity ?? "—"}</span>,{" "}
-          <span className="font-mono tabular-nums">{result.discriminatorAcuity ?? "—"}</span>,{" "}
-          <span className="font-mono tabular-nums">{result.esiV5Acuity ?? "—"}</span>) →{" "}
-          <span className="text-foreground font-mono font-semibold tabular-nums">
-            L{result.level}
-          </span>
+      {/* Equation — null-safe operands → the true final level. */}
+      <div className="border-border/60 mt-3 flex items-center justify-between gap-3 border-t pt-2.5">
+        <p className="text-muted-foreground font-mono text-[10.5px] tabular-nums">
+          worse-of({result.scoreAcuity ?? "—"}, {result.discriminatorAcuity ?? "—"},{" "}
+          {result.esiV5Acuity ?? "—"})
         </p>
         <span
           className={cn(
-            "inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold tabular-nums",
+            "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold tabular-nums",
             COLOUR_CLASS[finalTier.colour],
           )}
         >
-          L{finalTier.level}
+          → L{finalTier.level}
         </span>
       </div>
 
