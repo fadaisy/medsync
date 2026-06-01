@@ -81,6 +81,9 @@ export interface DerivedMetrics {
   pulsePressure: number | null;
   pulsePressureFlag: "narrow" | "normal" | "wide" | null;
   meanArterialPressure: number | null;
+  /** Modified Shock Index = HR / MAP. >1.7 flags obstetric haemorrhage early (catalog Part D/F). */
+  modifiedShockIndex: number | null;
+  modifiedShockIndexFlag: "haemorrhage" | "normal" | null;
   qsofa: QsofaResult | null;
   glucoseFlag: "hypoglycaemia" | "normal" | "hyperglycaemia_dka_screen" | null;
 }

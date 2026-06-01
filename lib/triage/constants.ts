@@ -261,3 +261,36 @@ export function news2ToAcuity(total: number, hasSingleThree: boolean): 1 | 2 | 3
   if (hasSingleThree) return 3; // single-3 red score → at least Yellow w/ review
   return 4; // 0–4 → Green
 }
+
+/* ─── MEOWS — obstetric thresholds (CSO catalog Part D, verbatim) ──── */
+/**
+ * Modified Obstetric Early Warning. Pregnancy changes baseline
+ * physiology — HR runs +10–20 bpm and BP falls in 2nd trimester — so
+ * hypertension (not hypotension) is the classic obstetric emergency, and
+ * there is deliberately NO low-BP / standalone-tachycardia trigger here
+ * (tachycardia only contributes via the Modified Shock Index, which also
+ * needs a low MAP). SpO₂ Red reuses ESI_V5_ADULT_DANGER.SPO2_LT (=92).
+ */
+export const MEOWS = {
+  HTN_SYS_GTE: 140, // ≥140 systolic → hypertension (Yellow)
+  HTN_DIA_GTE: 90, // ≥90 diastolic → hypertension (Yellow)
+  SEVERE_HTN_SYS_GTE: 160, // ≥160 → SEVERE emergency (Red)
+  SEVERE_HTN_DIA_GTE: 110, // ≥110 → SEVERE emergency (Red)
+  TEMP_SEPSIS_GTE: 38.0, // ≥38 → chorioamnionitis/sepsis (Red)
+  SPO2_CONCERN_LT: 95, // <95 → reduced reserve / PE risk (Yellow)
+  MSI_HAEMORRHAGE_GT: 1.7, // MSI = HR/MAP > 1.7 → obstetric haemorrhage (Red)
+} as const;
+
+/**
+ * MEOWS trigger → acuity (catalog Part D): any Red parameter →
+ * immediate senior/obstetric call = L2 (Orange; L1/resus is reserved for
+ * Step-0 life-threats — eclamptic seizure, exsanguinating haemorrhage —
+ * and the obstetric_severe_htn discriminator independently reaches L1).
+ * Two Yellow → L3. One Yellow or none → L4 (biased up from L5: pregnancy
+ * = reduced reserve; a single mild deviation never auto-alarms).
+ */
+export function meowsToAcuity(reds: number, yellows: number): 1 | 2 | 3 | 4 | 5 {
+  if (reds >= 1) return 2;
+  if (yellows >= 2) return 3;
+  return 4;
+}

@@ -30,6 +30,8 @@ const NO_DERIVED: DerivedMetrics = {
   pulsePressure: null,
   pulsePressureFlag: null,
   meanArterialPressure: null,
+  modifiedShockIndex: null,
+  modifiedShockIndexFlag: null,
   qsofa: null,
   glucoseFlag: null,
 };

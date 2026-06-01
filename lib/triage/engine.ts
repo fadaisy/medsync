@@ -1,10 +1,11 @@
 import type { AcuityColour, AcuityLevel, News2Result, TriageInput, TriageResult } from "./types";
 
-import { ACUITY_TIERS, news2ToAcuity } from "./constants";
+import { ACUITY_TIERS, meowsToAcuity, news2ToAcuity } from "./constants";
 import { computeDerivedMetrics } from "./scoring/derived";
 import { assessEsiV5 } from "./scoring/esi-v5";
 import { evaluateDiscriminators } from "./scoring/evaluate-discriminators";
 import { screenLifeThreat } from "./scoring/life-threat";
+import { scoreMeows } from "./scoring/meows";
 import { scoreNews2 } from "./scoring/news2";
 import { scorePaediatric } from "./scoring/paeds-scorer";
 import { routePopulation } from "./scoring/routing";
@@ -150,16 +151,31 @@ export function runTriage(input: TriageInput): TriageResult {
       flags.push(`Paediatric assessment incomplete — obtain ${paeds.missing.join(", ")}.`);
     }
   } else {
-    // Obstetric: scorer lands in GATE C; provisional until then.
-    provisional = true;
-    flags.push(
-      "Obstetric score not auto-computed — assess against the MEOWS chart manually; red-flags + derived metrics applied.",
-    );
+    // Obstetric: MEOWS scorer from the CSO catalog (Part D).
+    const meows = scoreMeows({
+      systolicBp: input.vitals.systolicBp,
+      diastolicBp: input.vitals.diastolicBp,
+      temperature: input.vitals.temperature,
+      spo2: input.vitals.spo2,
+      modifiedShockIndexFlag: derived.modifiedShockIndexFlag,
+    });
+    scoreAcuity = meowsToAcuity(meows.redCount, meows.yellowCount);
+    provisional = meows.provisional;
+    reasoning.push(`MEOWS ${meows.redCount}R/${meows.yellowCount}Y → acuity ${scoreAcuity}.`);
+    for (const r of meows.reasons) reasoning.push(`  ${r}`);
+    if (meows.missing.length > 0) {
+      flags.push(`Obstetric MEOWS provisional — obtain ${meows.missing.join(", ")}.`);
+    }
   }
 
   // Surface derived "smart" metrics in the reasoning (transparency).
   if (derived.shockIndexFlag && derived.shockIndexFlag !== "normal") {
     reasoning.push(`Shock Index ${derived.shockIndex?.toFixed(2)} (${derived.shockIndexFlag}).`);
+  }
+  if (derived.modifiedShockIndexFlag === "haemorrhage") {
+    reasoning.push(
+      `Modified Shock Index ${derived.modifiedShockIndex?.toFixed(2)} (haemorrhage — concealed-bleed catch).`,
+    );
   }
   if (derived.qsofa && derived.qsofa.score >= 2) {
     reasoning.push(`qSOFA ${derived.qsofa.score} — sepsis overlay positive.`);
