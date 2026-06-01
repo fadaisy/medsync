@@ -87,14 +87,33 @@ const TONE_CHIP: Record<VitalTone, string> = {
   info: "text-muted-foreground",
 };
 
-/** Tinted top-edge hairline — the quiet "lift" on a deviating tile. */
-const TILE_EDGE: Record<VitalTone, string> = {
-  normal: "before:bg-transparent",
-  borderline: "before:bg-amber-400/70",
-  abnormal: "before:bg-orange-500/70",
-  critical: "before:bg-rose-500/80",
-  missing: "before:bg-transparent",
-  info: "before:bg-transparent",
+/**
+ * Tile warning treatment by tone — a deranged vital must JUMP OUT. A
+ * coloured left-edge accent (before:) + a soft tinted ground + a ring
+ * scale up with severity; normal/info tiles stay calm so the abnormal
+ * ones pop by contrast. Critical adds a gentle pulse (reduced-motion
+ * disables it). The left accent is a 3px bar via before:.
+ */
+const TILE_TONE: Record<VitalTone, string> = {
+  normal: "border-border bg-card before:bg-transparent",
+  info: "border-border bg-card before:bg-transparent",
+  missing: "border-dashed border-border/70 bg-muted/20 before:bg-transparent",
+  borderline:
+    "border-amber-300/70 bg-amber-50/50 before:bg-amber-400 dark:border-amber-500/40 dark:bg-amber-950/20",
+  abnormal:
+    "border-orange-400/70 bg-orange-50/60 ring-1 ring-orange-400/30 before:bg-orange-500 dark:border-orange-500/50 dark:bg-orange-950/25",
+  critical:
+    "border-rose-500/80 bg-rose-50/70 ring-1 ring-rose-500/40 before:bg-rose-500 motion-safe:animate-pulse dark:border-rose-500/60 dark:bg-rose-950/30",
+};
+
+/** Big-number colour — the value itself warns on deviation, not just the sub-label. */
+const VALUE_TONE: Record<VitalTone, string> = {
+  normal: "text-foreground",
+  info: "text-foreground",
+  missing: "text-muted-foreground/40",
+  borderline: "text-amber-700 dark:text-amber-300",
+  abnormal: "text-orange-700 dark:text-orange-300",
+  critical: "text-rose-700 dark:text-rose-300",
 };
 
 /** Delta-pill tint — only ever shown for a positive NEWS2 contribution. */
@@ -515,20 +534,45 @@ export function TriageDesk({
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
-            {scopedDiscriminators.map((d) => (
-              <Check
-                key={d.code}
-                checked={discriminators.has(d.code)}
-                onChange={(on) => {
-                  const next = new Set(discriminators);
-                  if (on) next.add(d.code);
-                  else next.delete(d.code);
-                  setDiscriminators(next);
-                }}
-              >
-                {d.label} <span className="text-muted-foreground">· min L{d.minAcuity}</span>
-              </Check>
-            ))}
+            {scopedDiscriminators.map((d) => {
+              const fired = discriminators.has(d.code);
+              return (
+                <label
+                  key={d.code}
+                  className={cn(
+                    "flex cursor-pointer items-start gap-2 rounded-lg border px-2.5 py-2 text-[12px] transition-colors",
+                    fired
+                      ? "border-rose-500/60 bg-rose-50/70 dark:border-rose-500/50 dark:bg-rose-950/25"
+                      : "border-border hover:border-border hover:bg-muted/40",
+                  )}
+                >
+                  <input
+                    type="checkbox"
+                    checked={fired}
+                    onChange={(e) => {
+                      const next = new Set(discriminators);
+                      if (e.target.checked) next.add(d.code);
+                      else next.delete(d.code);
+                      setDiscriminators(next);
+                    }}
+                    className="mt-0.5 size-3.5 accent-rose-600"
+                  />
+                  <span className="flex-1">
+                    <span className={cn(fired && "font-medium text-rose-800 dark:text-rose-200")}>
+                      {d.label}
+                    </span>{" "}
+                    <span
+                      className={cn(
+                        "inline-flex items-center rounded-full px-1.5 py-px font-mono text-[9.5px] font-semibold tabular-nums",
+                        fired ? "bg-rose-600 text-white" : "text-muted-foreground bg-muted/60",
+                      )}
+                    >
+                      L{d.minAcuity}
+                    </span>
+                  </span>
+                </label>
+              );
+            })}
           </div>
         )}
       </Section>
@@ -1070,14 +1114,15 @@ function Section({
   );
 }
 
-/** The shared tile shell — flat, airy, hairline-bordered, with a tinted
- *  top-edge "lift" that appears only on a deviating tone. */
+/** The shared tile shell — calm when normal, loudly tinted (ground +
+ *  ring + a 3px left-edge accent bar) when the tone deviates, so a
+ *  warning is unmistakable. The accent is a before: bar pinned to the
+ *  left edge; pl is widened to clear it. */
 function tileShell(tone: VitalTone, extra?: string): string {
   return cn(
-    "relative flex min-h-[68px] flex-col gap-0.5 rounded-xl border bg-card px-3 pt-2 pb-2",
-    "before:absolute before:inset-x-3 before:top-0 before:h-px before:rounded-full before:content-['']",
-    tone === "missing" ? "border-dashed border-border/70 bg-muted/20" : "border-border",
-    TILE_EDGE[tone],
+    "relative flex min-h-[68px] flex-col gap-0.5 overflow-hidden rounded-xl border pr-3 pt-2 pb-2 pl-3.5 transition-colors duration-150",
+    "before:absolute before:inset-y-0 before:left-0 before:w-[3px] before:content-['']",
+    TILE_TONE[tone],
     extra,
   );
 }
@@ -1124,7 +1169,7 @@ function VitalTile({
     <div
       className={cn(
         tileShell(i.tone),
-        "transition-colors duration-150 focus-within:border-teal-500 focus-within:ring-2 focus-within:ring-teal-500/15 dark:focus-within:border-teal-400",
+        "focus-within:border-teal-500 focus-within:ring-2 focus-within:ring-teal-500/20 dark:focus-within:border-teal-400",
       )}
     >
       <div className="flex items-start justify-between gap-2">
@@ -1138,15 +1183,27 @@ function VitalTile({
           onChange={(e) => set(e.target.value)}
           placeholder="—"
           aria-label={label}
-          className="text-foreground placeholder:text-muted-foreground/40 -ml-0.5 w-full min-w-0 bg-transparent font-mono text-[22px] leading-none font-semibold tracking-[-0.02em] tabular-nums outline-none"
+          className={cn(
+            "placeholder:text-muted-foreground/40 -ml-0.5 w-full min-w-0 bg-transparent font-mono text-[22px] leading-none font-semibold tracking-[-0.02em] tabular-nums outline-none",
+            VALUE_TONE[i.tone],
+          )}
         />
         <span className="text-muted-foreground/70 shrink-0 font-mono text-[10px]">{unit}</span>
       </div>
-      <span className={cn("line-clamp-1 text-[10.5px]", TONE_CHIP[i.tone])}>
+      <span className={cn("line-clamp-1 text-[10.5px] font-medium", TONE_CHIP[i.tone])}>
+        {toneGlyph(i.tone)}
         {subLabel(i.label)}
       </span>
     </div>
   );
+}
+
+/** A leading warning glyph for a deviating tone (none when normal). */
+function toneGlyph(tone: VitalTone): string {
+  if (tone === "critical") return "▲ ";
+  if (tone === "abnormal") return "▲ ";
+  if (tone === "borderline") return "△ ";
+  return "";
 }
 
 /** A select-backed tile (oxygen / consciousness) — same skin, chevron pill. */
