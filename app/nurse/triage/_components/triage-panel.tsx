@@ -2,16 +2,16 @@
 
 import type { TriageSubmitState } from "../actions";
 import type { VitalInterpretation, VitalTone } from "@/lib/triage/interpret";
-import type {
-  AcuityColour,
-  AcuityLevel,
-  Acvpu,
-  ParameterScore,
-  TriageInput,
-} from "@/lib/triage/types";
+import type { AcuityColour, AcuityLevel, Acvpu, TriageInput } from "@/lib/triage/types";
 import type { TriageWorklistRow } from "@/lib/triage/worklist";
 import { useActionState, useEffect, useMemo, useState } from "react";
-import { ChevronRightIcon, RotateCwIcon } from "lucide-react";
+import {
+  ChevronDownIcon,
+  ChevronRightIcon,
+  InfoIcon,
+  RotateCwIcon,
+  ShieldIcon,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -23,11 +23,21 @@ import { cn } from "@/lib/utils";
 import { submitTriageAction } from "../actions";
 
 /**
- * The centered triage dialog. The pure engine (lib/triage) runs LIVE in
- * the browser as vitals are entered — so the acuity + every vital's
- * interpretation update visibly before commit (kickoff §0.2). On submit
- * the SAME function re-runs authoritatively server-side under authority
- * + audit (no drift). Down-overrides are cadre-gated (R1).
+ * The centered triage dialog — dashboard-grade.
+ *
+ * The pure engine (lib/triage) runs LIVE in the browser as vitals are
+ * entered, so the acuity + every vital's interpretation update visibly
+ * before commit (kickoff §0.2). On submit the SAME function re-runs
+ * authoritatively server-side under authority + audit (no drift).
+ * Down-overrides are cadre-gated (R1).
+ *
+ * Visual language (an analytics-dashboard idiom): the verdict is the
+ * hero; the vitals ARE the metric tiles (value = the number, NEWS2
+ * contribution = a delta pill, band = the context sub-line); derived
+ * "smart" metrics get first-class tiles; the worse-of is a segmented
+ * distribution bar. COLOUR IS INFORMATION — a normal/measured-0 vital is
+ * monochrome; colour appears only on deviation; a MISSING vital is a
+ * dashed ghost ("—" / "Not recorded"), never a reassuring zero.
  */
 
 const COLOUR_CLASS: Record<string, string> = {
@@ -36,6 +46,24 @@ const COLOUR_CLASS: Record<string, string> = {
   yellow: "bg-amber-400 text-amber-950",
   green: "bg-teal-600 text-white",
   blue: "bg-slate-400 text-white",
+};
+
+/** Solid fill per acuity colour — for the segmented worse-of bar + dots. */
+const SEG_FILL: Record<AcuityColour, string> = {
+  red: "bg-rose-600",
+  orange: "bg-orange-500",
+  yellow: "bg-amber-400",
+  green: "bg-teal-600",
+  blue: "bg-slate-400",
+};
+
+/** Faint acuity-tinted ground — used ONLY on the verdict hero. */
+const HERO_TINT: Record<AcuityColour, string> = {
+  red: "border-rose-500/40 bg-rose-50/60 dark:border-rose-500/30 dark:bg-rose-950/20",
+  orange: "border-orange-400/40 bg-orange-50/60 dark:border-orange-500/30 dark:bg-orange-950/20",
+  yellow: "border-amber-300/50 bg-amber-50/60 dark:border-amber-500/30 dark:bg-amber-950/20",
+  green: "border-teal-500/30 bg-teal-50/50 dark:border-teal-500/30 dark:bg-teal-950/20",
+  blue: "border-slate-300/50 bg-slate-50/60 dark:border-slate-500/30 dark:bg-slate-950/20",
 };
 
 const TONE_CHIP: Record<VitalTone, string> = {
@@ -47,56 +75,43 @@ const TONE_CHIP: Record<VitalTone, string> = {
   info: "text-muted-foreground",
 };
 
-const TONE_RING: Record<VitalTone, string> = {
+/** Tinted top-edge hairline — the quiet "lift" on a deviating tile. */
+const TILE_EDGE: Record<VitalTone, string> = {
+  normal: "before:bg-transparent",
+  borderline: "before:bg-amber-400/70",
+  abnormal: "before:bg-orange-500/70",
+  critical: "before:bg-rose-500/80",
+  missing: "before:bg-transparent",
+  info: "before:bg-transparent",
+};
+
+/** Delta-pill tint — only ever shown for a positive NEWS2 contribution. */
+const PILL_TINT: Record<VitalTone, string> = {
   normal: "",
-  borderline: "ring-1 ring-amber-300/60 dark:ring-amber-500/30",
-  abnormal: "ring-1 ring-orange-400/60 dark:ring-orange-500/40",
-  critical: "ring-1 ring-rose-500/60 dark:ring-rose-500/50",
+  borderline: "bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-300",
+  abnormal: "bg-orange-50 text-orange-700 dark:bg-orange-950/30 dark:text-orange-300",
+  critical: "bg-rose-50 text-rose-700 dark:bg-rose-950/30 dark:text-rose-300",
   missing: "",
   info: "",
 };
 
-/* ── Score-breakdown helpers (NEWS2 contribution + worse-of rollup) ── */
-
-const PARAM_LABEL: Record<string, string> = {
-  respiratory_rate: "Resp. rate",
-  spo2: "SpO₂",
-  systolic_bp: "Systolic BP",
-  pulse: "Pulse",
-  temperature: "Temperature",
-  consciousness: "Consciousness",
-  supplemental_oxygen: "Suppl. O₂",
-};
-
-/** A parameter's tone = its NEWS2 points, mirroring interpret.ts POINTS_TONE. */
-function paramTone(p: ParameterScore): VitalTone {
-  if (!p.present) return "missing";
-  return (["normal", "borderline", "abnormal", "critical"][p.points] ?? "abnormal") as VitalTone;
-}
-
-/** Pip fill per tone — the filled cells of a parameter's contribution bar. */
-const PIP_FILL: Record<VitalTone, string> = {
-  normal: "border-transparent bg-muted-foreground/40",
-  borderline: "border-transparent bg-amber-400",
-  abnormal: "border-transparent bg-orange-500",
-  critical: "border-transparent bg-rose-600",
-  missing: "border-dashed border-border/60 bg-transparent",
-  info: "border-transparent bg-muted-foreground/40",
-};
-
-/** Ring colour for the winning worse-of lane, by acuity colour. */
-const RING_FOR: Record<AcuityColour, string> = {
-  red: "ring-rose-500/70",
-  orange: "ring-orange-500/70",
-  yellow: "ring-amber-400/80",
-  green: "ring-teal-600/70",
-  blue: "ring-slate-400/70",
-};
-
 function riskWord(total: number): string {
-  if (total >= 7) return "high · urgent response";
+  if (total >= 7) return "high · urgent";
   if (total >= 5) return "medium · escalate";
   return "low";
+}
+
+function riskTone(total: number): VitalTone {
+  if (total >= 7) return "critical";
+  if (total >= 5) return "abnormal";
+  return "normal";
+}
+
+function riskBarFill(total: number): string {
+  if (total >= 7) return "bg-rose-500";
+  if (total >= 5) return "bg-orange-500";
+  if (total >= 1) return "bg-amber-400";
+  return "bg-teal-600";
 }
 
 interface VitalsState {
@@ -127,6 +142,11 @@ function num(s: string): number | null {
   if (s.trim() === "") return null;
   const n = Number(s);
   return Number.isFinite(n) ? n : null;
+}
+
+/** Strip the engine's " · NEWS +n" suffix — the delta pill already carries it. */
+function subLabel(label: string): string {
+  return label.replace(/\s·\sNEWS\s\+\d/, "");
 }
 
 export function TriagePanel({
@@ -241,6 +261,7 @@ function PanelBody({
     (d) =>
       d.source === "manual" && (d.appliesTo === "all" || d.appliesTo === ruleToPop(result.ruleset)),
   );
+  const firedCount = scopedDiscriminators.filter((d) => discriminators.has(d.code)).length;
 
   const name = row.displayName ?? row.patientUnknownLabel ?? "Unidentified patient";
   const metaBits = [
@@ -263,12 +284,12 @@ function PanelBody({
     override_reason: overrideReason.trim() || undefined,
   });
 
+  const derived = result.derived;
+
   return (
     <>
-      {/* ── Header: identity + live acuity ─────────────────────── */}
-      <header
-        className={cn("flex items-start justify-between gap-4 border-b px-6 py-5", "border-border")}
-      >
+      {/* ── Header: identity + compact live acuity ─────────────── */}
+      <header className="border-border flex items-start justify-between gap-4 border-b px-6 py-5">
         <div className="flex min-w-0 flex-col gap-1">
           {row.priorLevel != null ? (
             <span className="inline-flex w-fit items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 font-mono text-[9.5px] font-semibold tracking-wide text-amber-700 uppercase dark:bg-amber-950/30 dark:text-amber-300">
@@ -288,7 +309,6 @@ function PanelBody({
           </span>
         </div>
 
-        {/* Live computed acuity — the prominent result + what to do */}
         <div className="flex shrink-0 flex-col items-end gap-1">
           <span
             className={cn(
@@ -314,9 +334,9 @@ function PanelBody({
 
       {/* ── Scrollable body ────────────────────────────────────── */}
       <div className="flex-1 overflow-y-auto px-6 py-5">
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-5">
           {result.lifeThreat ? (
-            <div className="rounded-lg border border-rose-500/40 bg-rose-50/60 px-3.5 py-2.5 dark:bg-rose-950/20">
+            <div className="rounded-2xl border border-rose-500/40 bg-rose-50/60 px-4 py-3 dark:bg-rose-950/20">
               <p className="text-[12.5px] font-semibold text-rose-700 dark:text-rose-300">
                 Immediate life threat — Level 1, resuscitate now.
               </p>
@@ -326,32 +346,78 @@ function PanelBody({
             </div>
           ) : null}
 
-          {/* Population */}
+          {/* 1 — Acuity decision hero */}
+          <div className={cn("rounded-2xl border p-5", HERO_TINT[tier.colour])}>
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex flex-col gap-1.5">
+                <span className="text-muted-foreground font-mono text-[10px] tracking-[0.14em] uppercase">
+                  Final acuity
+                </span>
+                <div className="flex items-end gap-2.5">
+                  <span className="text-foreground font-mono text-[44px] leading-[0.85] font-semibold tabular-nums">
+                    L{tier.level}
+                  </span>
+                  <span
+                    className={cn(
+                      "mb-1 inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold tracking-wide uppercase",
+                      COLOUR_CLASS[tier.colour],
+                    )}
+                  >
+                    {tier.colour}
+                  </span>
+                </div>
+              </div>
+              <div className="flex flex-col items-end gap-1 text-right">
+                <span className="text-foreground text-[13px] font-semibold">
+                  {result.disposition}
+                </span>
+                <span className="text-muted-foreground font-mono text-[11px] tabular-nums">
+                  target {tier.targetMinutes}m
+                </span>
+                <span className="text-muted-foreground/80 text-[11px]">
+                  {result.news2
+                    ? `driver: NEWS2 ${result.news2.total}`
+                    : (result.firedDiscriminators[0]?.label ?? "clinical assessment")}
+                </span>
+                {result.provisional ? (
+                  <span className="text-muted-foreground/70 text-[10.5px] italic">
+                    provisional — pending vitals
+                  </span>
+                ) : null}
+              </div>
+            </div>
+          </div>
+
+          {/* 2 — Patient */}
           <Section title="Patient">
-            <div className="grid grid-cols-2 gap-3">
-              <Readout
+            <div className="grid grid-cols-2 gap-2.5">
+              <ReadTile
                 label="Age"
-                value={row.ageYears != null ? `${row.ageYears} years` : "Unknown — confirm"}
-                mono
+                value={row.ageYears != null ? `${row.ageYears}` : "—"}
+                unit={row.ageYears != null ? "years" : "confirm age"}
               />
-              {/* Pregnancy is meaningless for a male patient — the obstetric
-                  pathway can never apply, so we hide it entirely and keep
-                  the engine on not_pregnant. */}
               {isMale ? (
-                <Readout label="Pregnancy" value="Not applicable" />
+                <ReadTile label="Pregnancy" value="N/A" unit="not applicable (male)" />
               ) : (
-                <Field label="Pregnancy">
-                  <Select
-                    value={pregnancy}
-                    onChange={(v) => setPregnancy(v as typeof pregnancy)}
-                    options={[
-                      ["not_pregnant", "Not pregnant"],
-                      ["pregnant", "Pregnant"],
-                      ["postpartum_6wk", "≤6wk postpartum"],
-                      ["unknown", "Unknown"],
-                    ]}
-                  />
-                </Field>
+                <PillSelectTile
+                  label="Pregnancy"
+                  value={pregnancy}
+                  display={
+                    {
+                      not_pregnant: "Not pregnant",
+                      pregnant: "Pregnant",
+                      postpartum_6wk: "≤6wk postpartum",
+                      unknown: "Unknown",
+                    }[pregnancy]
+                  }
+                  onChange={(v) => setPregnancy(v as typeof pregnancy)}
+                  options={[
+                    ["not_pregnant", "Not pregnant"],
+                    ["pregnant", "Pregnant"],
+                    ["postpartum_6wk", "≤6wk postpartum"],
+                    ["unknown", "Unknown"],
+                  ]}
+                />
               )}
             </div>
             {!isMale && pregnancy === "unknown" ? (
@@ -361,26 +427,75 @@ function PanelBody({
             ) : null}
           </Section>
 
-          {/* Vitals with live interpretation */}
-          <Section title="Vitals · interpretation updates live">
-            <div className="flex flex-col gap-2">
-              <VitalRow
+          {/* 3 — Vitals (metric tiles) */}
+          <Section
+            title="Vital signs"
+            hint="updates live"
+            control={
+              <div className="flex items-center gap-1.5">
+                <PillToggle
+                  active={scale2}
+                  onClick={() => setScale2(!scale2)}
+                  on="Scale 2"
+                  off="Scale 1"
+                />
+              </div>
+            }
+          >
+            <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
+              <VitalTile
                 label="Resp. rate"
                 unit="/min"
                 v={vitals.respiratoryRate}
                 set={(x) => setVitals({ ...vitals, respiratoryRate: x })}
                 i={interp.respiratoryRate}
               />
-              <VitalRow
+              <VitalTile
                 label="SpO₂"
                 unit="%"
                 v={vitals.spo2}
                 set={(x) => setVitals({ ...vitals, spo2: x })}
                 i={interp.spo2}
               />
-              <SelectRow
-                label="Air / oxygen"
+              <VitalTile
+                label="Pulse"
+                unit="/min"
+                v={vitals.pulse}
+                set={(x) => setVitals({ ...vitals, pulse: x })}
+                i={interp.pulse}
+              />
+              <VitalTile
+                label="Systolic BP"
+                unit="mmHg"
+                v={vitals.systolicBp}
+                set={(x) => setVitals({ ...vitals, systolicBp: x })}
+                i={interp.systolicBp}
+              />
+              <VitalTile
+                label="Diastolic BP"
+                unit="mmHg"
+                v={vitals.diastolicBp}
+                set={(x) => setVitals({ ...vitals, diastolicBp: x })}
+                i={interp.diastolicBp}
+              />
+              <VitalTile
+                label="Temp"
+                unit="°C"
+                v={vitals.temperature}
+                set={(x) => setVitals({ ...vitals, temperature: x })}
+                i={interp.temperature}
+              />
+              <VitalTile
+                label="Glucose"
+                unit="mmol/L"
+                v={vitals.bloodGlucose}
+                set={(x) => setVitals({ ...vitals, bloodGlucose: x })}
+                i={interp.bloodGlucose}
+              />
+              <SelectTile
+                label="Air / O₂"
                 value={vitals.oxygen}
+                display={vitals.oxygen === "oxygen" ? "On O₂" : "Room air"}
                 onChange={(v) => setVitals({ ...vitals, oxygen: v as "air" | "oxygen" })}
                 options={[
                   ["air", "Room air"],
@@ -388,30 +503,14 @@ function PanelBody({
                 ]}
                 i={interp.oxygen}
               />
-              <VitalRow
-                label="Systolic BP"
-                unit="mmHg"
-                v={vitals.systolicBp}
-                set={(x) => setVitals({ ...vitals, systolicBp: x })}
-                i={interp.systolicBp}
-              />
-              <VitalRow
-                label="Diastolic BP"
-                unit="mmHg"
-                v={vitals.diastolicBp}
-                set={(x) => setVitals({ ...vitals, diastolicBp: x })}
-                i={interp.diastolicBp}
-              />
-              <VitalRow
-                label="Pulse"
-                unit="/min"
-                v={vitals.pulse}
-                set={(x) => setVitals({ ...vitals, pulse: x })}
-                i={interp.pulse}
-              />
-              <SelectRow
+              <SelectTile
                 label="Consciousness"
                 value={vitals.consciousness}
+                display={
+                  { A: "Alert", C: "Confusion", V: "Voice", P: "Pain", U: "Unresp." }[
+                    vitals.consciousness
+                  ]
+                }
                 onChange={(v) => setVitals({ ...vitals, consciousness: v as Acvpu })}
                 options={[
                   ["A", "Alert"],
@@ -422,48 +521,134 @@ function PanelBody({
                 ]}
                 i={interp.consciousness}
               />
-              <VitalRow
-                label="Temperature"
-                unit="°C"
-                v={vitals.temperature}
-                set={(x) => setVitals({ ...vitals, temperature: x })}
-                i={interp.temperature}
-              />
-              <VitalRow
-                label="Glucose"
-                unit="mmol/L"
-                v={vitals.bloodGlucose}
-                set={(x) => setVitals({ ...vitals, bloodGlucose: x })}
-                i={interp.bloodGlucose}
-              />
-            </div>
-            <Check checked={scale2} onChange={setScale2}>
-              Use SpO₂ Scale 2 (confirmed hypercapnic / COPD target 88–92%)
-            </Check>
-          </Section>
-
-          {/* Red flags */}
-          <Section title="Red-flags">
-            <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
-              {scopedDiscriminators.map((d) => (
-                <Check
-                  key={d.code}
-                  checked={discriminators.has(d.code)}
-                  onChange={(on) => {
-                    const next = new Set(discriminators);
-                    if (on) next.add(d.code);
-                    else next.delete(d.code);
-                    setDiscriminators(next);
-                  }}
-                >
-                  {d.label} <span className="text-muted-foreground">· min L{d.minAcuity}</span>
-                </Check>
-              ))}
             </div>
           </Section>
 
-          {/* Score breakdown — what each parameter contributes + worse-of */}
-          <ScoreBreakdown result={result} finalTier={tier} />
+          {/* 4 — NEWS2 KPI + derived metrics */}
+          <Section title="Score" hint={result.news2 ? "NEWS2 + physiology" : "physiology"}>
+            <div className="flex flex-col gap-2.5">
+              {result.news2 ? (
+                <div className="border-border bg-card flex flex-col gap-1.5 rounded-2xl border px-4 pt-3.5 pb-3.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground font-mono text-[10px] tracking-[0.14em] uppercase">
+                      NEWS2 total
+                    </span>
+                    {result.news2.hasSingleParameterThree ? (
+                      <span className="inline-flex items-center rounded-full bg-rose-50 px-1.5 py-0.5 font-mono text-[9px] font-semibold tracking-wide text-rose-700 uppercase dark:bg-rose-950/30 dark:text-rose-300">
+                        single +3 · red score
+                      </span>
+                    ) : null}
+                  </div>
+                  <div className="flex items-end gap-2">
+                    <span className="text-foreground -ml-0.5 font-mono text-[40px] leading-[0.85] font-semibold tabular-nums">
+                      {result.news2.total}
+                    </span>
+                    <span
+                      className={cn(
+                        "mb-1 inline-flex items-center rounded-full px-1.5 py-0.5 font-mono text-[10px] font-semibold tracking-wide",
+                        result.news2.total >= 5
+                          ? PILL_TINT[riskTone(result.news2.total)]
+                          : "text-muted-foreground",
+                      )}
+                    >
+                      {riskWord(result.news2.total)}
+                    </span>
+                  </div>
+                  {/* out-of-20 progress bar */}
+                  <div className="bg-muted/50 mt-0.5 h-1.5 w-full overflow-hidden rounded-full">
+                    <div
+                      className={cn("h-full rounded-full", riskBarFill(result.news2.total))}
+                      style={{ width: `${Math.min(100, (result.news2.total / 20) * 100)}%` }}
+                    />
+                  </div>
+                  <span className="text-muted-foreground/70 text-[10.5px]">
+                    {result.news2.provisional
+                      ? "provisional — gaps shown, never scored 0"
+                      : "of 20 aggregate"}
+                  </span>
+                </div>
+              ) : null}
+
+              <div className="grid grid-cols-3 gap-2.5">
+                <DerivedTile
+                  label="Shock index"
+                  value={derived.shockIndex != null ? derived.shockIndex.toFixed(2) : null}
+                  sub="HR / SBP · watch > 0.90"
+                  tone={
+                    derived.shockIndexFlag === "shock"
+                      ? "critical"
+                      : derived.shockIndexFlag === "occult_shock"
+                        ? "abnormal"
+                        : "normal"
+                  }
+                />
+                <DerivedTile
+                  label="qSOFA"
+                  value={derived.qsofa ? `${derived.qsofa.score}` : null}
+                  unit="/3"
+                  sub={
+                    derived.qsofa
+                      ? [
+                          derived.qsofa.respiratoryRatePoint ? "RR≥22" : null,
+                          derived.qsofa.hypotensionPoint ? "SBP≤100" : null,
+                          derived.qsofa.alteredMentationPoint ? "altered" : null,
+                        ]
+                          .filter(Boolean)
+                          .join(" · ") || "no points"
+                      : "needs RR / SBP / ACVPU"
+                  }
+                  tone={derived.qsofa && derived.qsofa.score >= 2 ? "critical" : "normal"}
+                />
+                <DerivedTile
+                  label="MAP"
+                  value={
+                    derived.meanArterialPressure != null
+                      ? derived.meanArterialPressure.toFixed(0)
+                      : null
+                  }
+                  unit="mmHg"
+                  sub="perfusion · low < 65"
+                  tone={
+                    derived.meanArterialPressure != null && derived.meanArterialPressure < 65
+                      ? "abnormal"
+                      : "normal"
+                  }
+                />
+              </div>
+            </div>
+          </Section>
+
+          {/* 5 — Red-flags */}
+          <Section title="Red-flags" hint={`${firedCount} of ${scopedDiscriminators.length} fired`}>
+            {scopedDiscriminators.length === 0 ? (
+              <div className="border-border text-muted-foreground flex flex-col items-center gap-2 rounded-2xl border border-dashed px-4 py-6 text-center">
+                <span className="bg-muted/50 flex size-8 items-center justify-center rounded-full">
+                  <ShieldIcon className="size-4" aria-hidden />
+                </span>
+                <span className="text-[12px]">No red-flags apply to this population.</span>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-1.5 sm:grid-cols-2">
+                {scopedDiscriminators.map((d) => (
+                  <Check
+                    key={d.code}
+                    checked={discriminators.has(d.code)}
+                    onChange={(on) => {
+                      const next = new Set(discriminators);
+                      if (on) next.add(d.code);
+                      else next.delete(d.code);
+                      setDiscriminators(next);
+                    }}
+                  >
+                    {d.label} <span className="text-muted-foreground">· min L{d.minAcuity}</span>
+                  </Check>
+                ))}
+              </div>
+            )}
+          </Section>
+
+          {/* 6 — Worse-of distribution */}
+          <WorseOf result={result} finalTier={tier} />
         </div>
       </div>
 
@@ -552,24 +737,9 @@ function PanelBody({
   );
 }
 
-/* ─── small presentational primitives ─────────────────────────── */
+/* ─── worse-of distribution (segmented bar + legend) ──────────── */
 
-function ruleToPop(ruleset: string): "adult" | "paediatric" | "obstetric" {
-  if (ruleset === "paediatric_pews") return "paediatric";
-  if (ruleset === "obstetric_meows") return "obstetric";
-  return "adult";
-}
-
-/**
- * Score breakdown — makes the level legible: each NEWS2 parameter's
- * contribution (drivers first), then the three independent worse-of lanes
- * (score · red-flag · ESI-v5) resolving to the final acuity. The winning
- * lane is computed independently of result.level (via the most-acute fired
- * lane), so it still lights up when trend escalation or a baseline temper
- * moved the final level off every track — the long-form reasoning for that
- * lives in the Details disclosure.
- */
-function ScoreBreakdown({
+function WorseOf({
   result,
   finalTier,
 }: {
@@ -579,7 +749,7 @@ function ScoreBreakdown({
   const lanes = [
     {
       key: "score",
-      label: "NEWS2 score",
+      label: "NEWS2",
       acuity: result.scoreAcuity,
       note: result.news2 ? `total ${result.news2.total}` : null,
     },
@@ -596,180 +766,80 @@ function ScoreBreakdown({
       note: result.incompleteVitals ? "incomplete vitals" : (result.dangerVitals[0] ?? null),
     },
   ] as const;
+  // The winning lane is the most-acute fired track, computed independently
+  // of result.level — so it still lights up when trend escalation or a
+  // baseline temper moved the final level off every track.
   const winner = lanes.reduce<number | null>(
     (best, l) => (l.acuity != null && (best == null || l.acuity < best) ? l.acuity : best),
     null,
   );
 
   return (
-    <Section title={result.news2 ? "Score breakdown · NEWS2" : "Why this level"}>
-      {result.news2 ? (
-        <>
-          {/* 1 — Aggregate strip */}
-          <div className="border-border bg-muted/30 flex items-center gap-4 rounded-lg border px-3.5 py-2.5">
-            <div className="flex flex-col">
-              <span className="text-muted-foreground font-mono text-[9.5px] tracking-[0.14em] uppercase">
-                NEWS2 total
+    <Section title="Worse-of" hint="most acute lane wins">
+      {/* Segmented distribution bar */}
+      <div className="flex h-2.5 w-full gap-1 overflow-hidden rounded-full">
+        {lanes.map((l) => {
+          const laneTier =
+            l.acuity != null ? ACUITY_TIERS.find((t) => t.level === l.acuity) : undefined;
+          const isWinner = l.acuity != null && l.acuity === winner;
+          return (
+            <div
+              key={l.key}
+              className={cn(
+                "h-full flex-1 rounded-full",
+                laneTier ? SEG_FILL[laneTier.colour] : "bg-muted",
+                laneTier && !isWinner && "opacity-30",
+              )}
+            />
+          );
+        })}
+      </div>
+
+      {/* Legend */}
+      <div className="mt-3 grid gap-1.5 sm:grid-cols-3">
+        {lanes.map((l) => {
+          const fired = l.acuity != null;
+          const laneTier = fired ? ACUITY_TIERS.find((t) => t.level === l.acuity) : undefined;
+          const isWinner = fired && l.acuity === winner;
+          return (
+            <div
+              key={l.key}
+              title={
+                l.key === "esi" && result.dangerVitals.length
+                  ? result.dangerVitals.join(" · ")
+                  : undefined
+              }
+              className={cn("flex items-center gap-1.5", !fired && "opacity-45")}
+            >
+              <span
+                aria-hidden
+                className={cn(
+                  "size-2 shrink-0 rounded-full",
+                  laneTier ? SEG_FILL[laneTier.colour] : "bg-muted-foreground/40",
+                )}
+              />
+              <span className="text-foreground/80 text-[11px]">{l.label}</span>
+              <span className="text-muted-foreground font-mono text-[11px] font-semibold tabular-nums">
+                {fired ? `L${l.acuity}` : "—"}
               </span>
-              <span className="text-foreground text-[26px] leading-none font-semibold tabular-nums">
-                {result.news2.total}
-              </span>
-            </div>
-            <span className="text-muted-foreground text-[12.5px]">
-              {riskWord(result.news2.total)}
-            </span>
-            <div className="ml-auto flex flex-col items-end gap-1">
-              {result.news2.hasSingleParameterThree ? (
-                <span className="inline-flex items-center rounded-full bg-rose-50 px-2 py-0.5 font-mono text-[9.5px] font-semibold tracking-wide text-rose-700 uppercase dark:bg-rose-950/30 dark:text-rose-300">
-                  single +3 · red score
+              {isWinner ? (
+                <span className="text-muted-foreground/70 font-mono text-[9px] tracking-wide uppercase">
+                  wins
                 </span>
               ) : null}
-              {result.news2.provisional ? (
-                <span className="text-muted-foreground/70 font-mono text-[10px] italic">
-                  provisional — missing shown as not recorded, never scored 0
+              {l.note ? (
+                <span className="text-muted-foreground/70 line-clamp-1 text-[10px]">
+                  · {l.note}
                 </span>
               ) : null}
             </div>
-          </div>
+          );
+        })}
+      </div>
 
-          {/* 2 — Contribution ledger (drivers first, missing sinks) */}
-          <div className="mt-3 flex flex-col gap-1">
-            <div className="text-muted-foreground/80 grid grid-cols-[104px_auto_1fr] gap-3 font-mono text-[9.5px] tracking-[0.14em] uppercase">
-              <span>Contribution</span>
-              <span />
-              <span className="text-right">drivers first</span>
-            </div>
-            {[...result.news2.parameters]
-              .map((p) => ({ p, tone: paramTone(p) }))
-              .sort((a, b) =>
-                a.p.present === b.p.present ? b.p.points - a.p.points : a.p.present ? -1 : 1,
-              )
-              .map(({ p, tone }) => {
-                const isMod = p.parameter === "supplemental_oxygen";
-                const cap = isMod ? 2 : 3;
-                return (
-                  <div
-                    key={p.parameter}
-                    title={p.band}
-                    className={cn(
-                      "grid grid-cols-[104px_auto_1fr] items-center gap-3 rounded-md py-0.5",
-                      !p.present && "opacity-60",
-                    )}
-                  >
-                    <span className="text-foreground/90 text-[12px]">
-                      {PARAM_LABEL[p.parameter] ?? p.parameter}
-                    </span>
-                    <div className="flex items-center gap-1">
-                      {Array.from({ length: cap }).map((_, i) => (
-                        <span
-                          key={i}
-                          aria-hidden
-                          className={cn(
-                            "h-2.5 w-3 rounded-[2px] border",
-                            !p.present
-                              ? "border-border/60 border-dashed bg-transparent"
-                              : i < p.points
-                                ? PIP_FILL[tone]
-                                : "border-border/50 bg-muted/40",
-                          )}
-                        />
-                      ))}
-                      {isMod ? (
-                        <span className="text-muted-foreground/60 font-mono text-[8.5px] tracking-wide uppercase">
-                          mod
-                        </span>
-                      ) : null}
-                    </div>
-                    <span
-                      className={cn(
-                        "text-right font-mono text-[11px] tabular-nums",
-                        p.present
-                          ? TONE_CHIP[tone]
-                          : "text-muted-foreground/60 italic line-through",
-                      )}
-                    >
-                      {p.band}
-                    </span>
-                  </div>
-                );
-              })}
-          </div>
-        </>
-      ) : null}
-
-      {/* 3 — Worse-of rollup (renders for all rulesets) */}
-      <div className="border-border/70 mt-4 border-t pt-3">
-        <span className="text-muted-foreground font-mono text-[9.5px] tracking-[0.14em] uppercase">
-          Worse-of · most acute lane wins
-        </span>
-        <div className="mt-2 flex items-stretch gap-2">
-          <div className="grid flex-1 grid-cols-3 gap-2">
-            {lanes.map((l) => {
-              const fired = l.acuity != null;
-              const laneTier = fired ? ACUITY_TIERS.find((t) => t.level === l.acuity) : undefined;
-              const isWinner = fired && l.acuity === winner;
-              return (
-                <div
-                  key={l.key}
-                  title={
-                    l.key === "esi" && result.dangerVitals.length
-                      ? result.dangerVitals.join(" · ")
-                      : undefined
-                  }
-                  className={cn(
-                    "border-border bg-muted/30 flex flex-col items-center gap-1 rounded-lg border px-2 py-2",
-                    !fired && "opacity-45",
-                    isWinner &&
-                      laneTier &&
-                      cn(
-                        "ring-offset-background ring-2 ring-offset-1",
-                        RING_FOR[laneTier.colour as AcuityColour],
-                      ),
-                  )}
-                >
-                  <span className="text-muted-foreground font-mono text-[9px] tracking-[0.12em] uppercase">
-                    {l.label}
-                  </span>
-                  <span
-                    className={cn(
-                      "inline-flex items-center rounded-md px-2 py-0.5 text-[12px] font-semibold tabular-nums",
-                      fired && laneTier
-                        ? COLOUR_CLASS[laneTier.colour]
-                        : "text-muted-foreground/60",
-                    )}
-                  >
-                    {fired ? `L${l.acuity}` : "—"}
-                  </span>
-                  {l.note ? (
-                    <span className="text-muted-foreground/80 line-clamp-1 text-center text-[10px]">
-                      {l.note}
-                    </span>
-                  ) : null}
-                </div>
-              );
-            })}
-          </div>
-
-          <div className="text-muted-foreground flex items-center px-0.5">
-            <ChevronRightIcon className="size-5" aria-hidden />
-          </div>
-
-          <div
-            className={cn(
-              "flex w-[84px] flex-col items-center justify-center gap-0.5 rounded-lg px-2 py-2",
-              COLOUR_CLASS[finalTier.colour],
-            )}
-          >
-            <span className="font-mono text-[9px] tracking-[0.12em] uppercase opacity-80">
-              Final
-            </span>
-            <span className="text-[15px] font-semibold tabular-nums">L{finalTier.level}</span>
-            <span className="text-[9.5px] opacity-80">{finalTier.targetMinutes}m target</span>
-          </div>
-        </div>
-
-        {/* Worse-of equation — null-safe operands, true final level */}
-        <p className="text-muted-foreground mt-2 text-[11px]">
+      {/* Equation — null-safe operands, true final level */}
+      <div className="mt-3 flex items-center justify-between gap-3">
+        <p className="text-muted-foreground text-[11px]">
           worse-of(
           <span className="font-mono tabular-nums">{result.scoreAcuity ?? "—"}</span>,{" "}
           <span className="font-mono tabular-nums">{result.discriminatorAcuity ?? "—"}</span>,{" "}
@@ -778,9 +848,17 @@ function ScoreBreakdown({
             L{result.level}
           </span>
         </p>
+        <span
+          className={cn(
+            "inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold tabular-nums",
+            COLOUR_CLASS[finalTier.colour],
+          )}
+        >
+          L{finalTier.level}
+        </span>
       </div>
 
-      {/* 4 — Details disclosure: full engine reasoning (trend/baseline/qSOFA) */}
+      {/* Details — full engine reasoning */}
       <details className="group mt-3">
         <summary className="text-muted-foreground hover:text-foreground flex cursor-pointer items-center gap-1 font-mono text-[10px] tracking-[0.14em] uppercase">
           <ChevronRightIcon
@@ -798,7 +876,7 @@ function ScoreBreakdown({
         </ul>
       </details>
 
-      {/* 5 — Non-blocking clinician flags */}
+      {/* Non-blocking clinician flags */}
       {result.flags.length > 0 ? (
         <div className="mt-3 flex flex-col gap-1">
           {result.flags.map((f, i) => (
@@ -812,68 +890,85 @@ function ScoreBreakdown({
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+/* ─── presentational primitives ───────────────────────────────── */
+
+function ruleToPop(ruleset: string): "adult" | "paediatric" | "obstetric" {
+  if (ruleset === "paediatric_pews") return "paediatric";
+  if (ruleset === "obstetric_meows") return "obstetric";
+  return "adult";
+}
+
+/** ⓘ-headed section, reference-style, with optional hint + control. */
+function Section({
+  title,
+  hint,
+  control,
+  children,
+}: {
+  title: string;
+  hint?: string;
+  control?: React.ReactNode;
+  children: React.ReactNode;
+}) {
   return (
     <section className="flex flex-col gap-2.5">
-      <h3 className="text-muted-foreground font-mono text-[10px] tracking-[0.14em] uppercase">
-        {title}
-      </h3>
+      <div className="flex items-center justify-between gap-3">
+        <h3 className="text-foreground/80 flex items-center gap-1 text-[12px] font-medium">
+          {title}
+          <InfoIcon className="text-muted-foreground/50 size-3" aria-hidden />
+        </h3>
+        <div className="flex items-center gap-2">
+          {hint ? (
+            <span className="text-muted-foreground/70 font-mono text-[10px] tracking-wide">
+              {hint}
+            </span>
+          ) : null}
+          {control}
+        </div>
+      </div>
       {children}
     </section>
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+/** The shared tile shell — flat, airy, hairline-bordered, with a tinted
+ *  top-edge "lift" that appears only on a deviating tone. */
+function tileShell(tone: VitalTone, extra?: string): string {
+  return cn(
+    "relative flex min-h-[92px] flex-col gap-1 rounded-2xl border bg-card px-4 pt-3.5 pb-3",
+    "before:absolute before:inset-x-4 before:top-0 before:h-px before:rounded-full before:content-['']",
+    tone === "missing" ? "border-dashed border-border/70 bg-muted/20" : "border-border",
+    TILE_EDGE[tone],
+    extra,
+  );
+}
+
+function TileLabel({ children }: { children: React.ReactNode }) {
   return (
-    <label className="flex flex-col gap-1">
-      <span className="text-muted-foreground text-[11px]">{label}</span>
+    <span className="text-muted-foreground font-mono text-[10px] tracking-[0.14em] uppercase">
       {children}
-    </label>
+    </span>
   );
 }
 
-function Readout({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
+/** A delta pill — shown only for a positive NEWS2 contribution. */
+function DeltaPill({ i, mod }: { i: VitalInterpretation; mod?: boolean }) {
+  if (i.points == null || i.points <= 0) return null;
   return (
-    <div className="flex flex-col gap-1">
-      <span className="text-muted-foreground text-[11px]">{label}</span>
-      <span
-        className={cn(
-          "border-border bg-muted/40 text-foreground rounded-md border px-3 py-2 text-[13px]",
-          mono && "font-mono tabular-nums",
-        )}
-      >
-        {value}
-      </span>
-    </div>
-  );
-}
-
-function Select({
-  value,
-  onChange,
-  options,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  options: ReadonlyArray<readonly [string, string]>;
-}) {
-  return (
-    <select
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className="border-input bg-background text-foreground focus-visible:ring-ring/50 rounded-md border px-3 py-2 text-[13px] outline-none focus-visible:ring-[3px]"
+    <span
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 font-mono text-[10px] font-semibold tabular-nums",
+        PILL_TINT[i.tone],
+      )}
     >
-      {options.map(([v, label]) => (
-        <option key={v} value={v}>
-          {label}
-        </option>
-      ))}
-    </select>
+      +{i.points}
+      {mod ? <span className="opacity-70">mod</span> : null}
+    </span>
   );
 }
 
-/** A vital row: label · numeric input · live interpretation chip. */
-function VitalRow({
+/** An editable vital metric tile. */
+function VitalTile({
   label,
   unit,
   v,
@@ -887,69 +982,207 @@ function VitalRow({
   i: VitalInterpretation;
 }) {
   return (
-    <div className="grid grid-cols-[1fr_104px_1fr] items-center gap-3">
-      <span className="text-foreground text-[12.5px]">{label}</span>
-      {/* Input + unit as separate columns so the typed value never sits
-          under the unit suffix. The unit has its own reserved width. */}
-      <div
-        className={cn(
-          "border-input bg-card flex h-8 items-center rounded-sm border transition-all duration-150",
-          "focus-within:border-teal-500 focus-within:shadow-[0_0_0_2px_rgba(20,184,166,0.15)]",
-          "dark:focus-within:border-teal-400",
-          TONE_RING[i.tone],
-        )}
-      >
+    <div
+      className={cn(
+        tileShell(i.tone),
+        "transition-colors duration-150 focus-within:border-teal-500 focus-within:ring-2 focus-within:ring-teal-500/15 dark:focus-within:border-teal-400",
+      )}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <TileLabel>{label}</TileLabel>
+        <DeltaPill i={i} />
+      </div>
+      <div className="flex items-baseline gap-1">
         <input
           inputMode="decimal"
           value={v}
           onChange={(e) => set(e.target.value)}
           placeholder="—"
-          className="text-foreground placeholder:text-muted-foreground/40 h-full min-w-0 flex-1 bg-transparent px-2 text-right font-mono text-[13px] tabular-nums outline-none"
+          aria-label={label}
+          className="text-foreground placeholder:text-muted-foreground/40 -ml-0.5 w-full min-w-0 bg-transparent font-mono text-[30px] leading-none font-semibold tracking-[-0.02em] tabular-nums outline-none"
         />
-        <span className="text-muted-foreground/70 border-border/60 pointer-events-none border-l px-2 font-mono text-[9.5px] whitespace-nowrap">
-          {unit}
-        </span>
+        <span className="text-muted-foreground/70 shrink-0 font-mono text-[10px]">{unit}</span>
       </div>
-      <InterpChip i={i} />
+      <span className={cn("line-clamp-1 text-[11px]", TONE_CHIP[i.tone])}>{subLabel(i.label)}</span>
     </div>
   );
 }
 
-function SelectRow({
+/** A select-backed tile (oxygen / consciousness) — same skin, chevron pill. */
+function SelectTile({
   label,
   value,
+  display,
   onChange,
   options,
   i,
 }: {
   label: string;
   value: string;
+  display: string;
   onChange: (v: string) => void;
   options: ReadonlyArray<readonly [string, string]>;
   i: VitalInterpretation;
 }) {
+  const isMod = label.startsWith("Air");
   return (
-    <div className="grid grid-cols-[1fr_104px_1fr] items-center gap-3">
-      <span className="text-foreground text-[12.5px]">{label}</span>
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="border-input bg-card text-foreground h-8 rounded-sm border px-1.5 text-[12px] outline-none focus-visible:border-teal-500 focus-visible:shadow-[0_0_0_2px_rgba(20,184,166,0.15)]"
-      >
-        {options.map(([v, lbl]) => (
-          <option key={v} value={v}>
-            {lbl}
-          </option>
-        ))}
-      </select>
-      <InterpChip i={i} />
+    <div
+      className={cn(
+        tileShell(i.tone),
+        "focus-within:border-teal-500 dark:focus-within:border-teal-400",
+      )}
+    >
+      <div className="flex items-start justify-between gap-2">
+        <TileLabel>{label}</TileLabel>
+        <DeltaPill i={i} mod={isMod} />
+      </div>
+      <div className="relative flex items-center">
+        <span className="text-foreground font-mono text-[20px] leading-none font-semibold">
+          {display}
+        </span>
+        <ChevronDownIcon className="text-muted-foreground/50 ml-1 size-3.5" aria-hidden />
+        <select
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          aria-label={label}
+          className="absolute inset-0 cursor-pointer opacity-0"
+        >
+          {options.map(([val, lbl]) => (
+            <option key={val} value={val}>
+              {lbl}
+            </option>
+          ))}
+        </select>
+      </div>
+      <span className={cn("line-clamp-1 text-[11px]", TONE_CHIP[i.tone])}>{subLabel(i.label)}</span>
     </div>
   );
 }
 
-function InterpChip({ i }: { i: VitalInterpretation }) {
+/** A read-only derived-metric tile (shock index / qSOFA / MAP). */
+function DerivedTile({
+  label,
+  value,
+  unit,
+  sub,
+  tone,
+}: {
+  label: string;
+  value: string | null;
+  unit?: string;
+  sub: string;
+  tone: VitalTone;
+}) {
+  const missing = value == null;
+  const t: VitalTone = missing ? "missing" : tone;
   return (
-    <span className={cn("text-[11px] leading-tight", TONE_CHIP[i.tone])}>{i.label || "—"}</span>
+    <div className={tileShell(t)}>
+      <div className="flex items-start justify-between gap-2">
+        <TileLabel>{label}</TileLabel>
+      </div>
+      {missing ? (
+        <span className="text-muted-foreground/60 font-mono text-[15px] italic">Not recorded</span>
+      ) : (
+        <div className="flex items-baseline gap-1">
+          <span className="text-foreground font-mono text-[24px] leading-none font-semibold tabular-nums">
+            {value}
+          </span>
+          {unit ? (
+            <span className="text-muted-foreground/70 shrink-0 font-mono text-[10px]">{unit}</span>
+          ) : null}
+        </div>
+      )}
+      <span className={cn("line-clamp-1 text-[11px]", TONE_CHIP[t])}>{sub}</span>
+    </div>
+  );
+}
+
+/** A read-only info tile (age, pregnancy-N/A). */
+function ReadTile({ label, value, unit }: { label: string; value: string; unit?: string }) {
+  return (
+    <div className={tileShell("normal")}>
+      <TileLabel>{label}</TileLabel>
+      <div className="flex items-baseline gap-1">
+        <span className="text-foreground font-mono text-[24px] leading-none font-semibold tabular-nums">
+          {value}
+        </span>
+      </div>
+      {unit ? <span className="text-muted-foreground/70 text-[11px]">{unit}</span> : null}
+    </div>
+  );
+}
+
+/** A select-backed tile styled as a pill control (pregnancy). */
+function PillSelectTile({
+  label,
+  value,
+  display,
+  onChange,
+  options,
+}: {
+  label: string;
+  value: string;
+  display: string;
+  onChange: (v: string) => void;
+  options: ReadonlyArray<readonly [string, string]>;
+}) {
+  return (
+    <div
+      className={cn(
+        tileShell("normal"),
+        "focus-within:border-teal-500 dark:focus-within:border-teal-400",
+      )}
+    >
+      <TileLabel>{label}</TileLabel>
+      <div className="relative flex items-center">
+        <span className="text-foreground font-mono text-[18px] leading-none font-semibold">
+          {display}
+        </span>
+        <ChevronDownIcon className="text-muted-foreground/50 ml-1 size-3.5" aria-hidden />
+        <select
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          aria-label={label}
+          className="absolute inset-0 cursor-pointer opacity-0"
+        >
+          {options.map(([val, lbl]) => (
+            <option key={val} value={val}>
+              {lbl}
+            </option>
+          ))}
+        </select>
+      </div>
+    </div>
+  );
+}
+
+/** Pill toggle control (SpO₂ scale). */
+function PillToggle({
+  active,
+  onClick,
+  on,
+  off,
+}: {
+  active: boolean;
+  onClick: () => void;
+  on: string;
+  off: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 font-mono text-[10px] tracking-wide transition-colors",
+        active
+          ? "border-teal-500/50 bg-teal-50 text-teal-700 dark:bg-teal-950/30 dark:text-teal-300"
+          : "border-border text-muted-foreground hover:text-foreground",
+      )}
+      title="SpO₂ Scale 2 — confirmed hypercapnic / COPD target 88–92%"
+    >
+      {active ? on : off}
+      <ChevronDownIcon className="size-3" aria-hidden />
+    </button>
   );
 }
 
