@@ -5,6 +5,7 @@ import { useState } from "react";
 import { AlertTriangleIcon, DoorOpenIcon, RotateCwIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { RapidRedButton } from "./rapid-red-button";
 import { TriagePanel } from "./triage-panel";
 
 /**
@@ -60,14 +61,17 @@ export function TriageWorklist({
             .join(" · ");
 
           return (
-            <li key={r.intakeId}>
+            <li
+              key={r.intakeId}
+              className={cn(
+                "flex items-stretch",
+                r.isEmergency && "bg-rose-50/40 dark:bg-rose-950/15",
+              )}
+            >
               <button
                 type="button"
                 onClick={() => setActive(r)}
-                className={cn(
-                  "group flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-teal-50/40 dark:hover:bg-teal-50/[0.04]",
-                  r.isEmergency && "bg-rose-50/40 dark:bg-rose-950/15",
-                )}
+                className="group flex min-w-0 flex-1 items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-teal-50/40 dark:hover:bg-teal-50/[0.04]"
               >
                 {/* Acuity dot rail */}
                 <span
@@ -112,6 +116,12 @@ export function TriageWorklist({
                   </span>
                 )}
               </button>
+
+              <RapidRedButton
+                intakeId={r.intakeId}
+                patientUserId={r.patientUserId}
+                patientLabel={name}
+              />
             </li>
           );
         })}
