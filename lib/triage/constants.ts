@@ -203,6 +203,34 @@ export const PAED_AGE_BANDS: PaedAgeBand[] = [
   },
 ];
 
+/* ─── ESI v5 mandatory vitals + danger-zone (ENA 2023) ────────────── */
+/**
+ * ESI 5th Edition (ENA, 2023-03-28) — verified current at build
+ * (docs/triage-v2-gate-a-proposal.md §1; ena.org ESI v5).
+ *
+ * Two v5 rules v4 lacked:
+ *   1. HR + RR + SpO₂ are MANDATORY for every patient not already
+ *      Level 1/2 — a reassuring level may NOT be issued without them.
+ *   2. A high-risk ("danger-zone") vital reassesses acuity UPWARD →
+ *      minimum Level 2, regardless of the aggregate score.
+ *
+ * Adult danger-zone thresholds (verified ESI v5): HR > 100, RR > 20,
+ * SpO₂ < 92. Paediatric numeric cutoffs live in the paid ENA handbook
+ * and are NOT encoded here (not fabricated) — paeds stays provisional.
+ */
+export const ESI_V5_REQUIRED_VITALS = ["respiratory_rate", "pulse", "spo2"] as const;
+
+export const ESI_V5_ADULT_DANGER = {
+  PULSE_GT: 100,
+  RESP_RATE_GT: 20,
+  SPO2_LT: 92,
+} as const;
+
+/** Where an incomplete required-vital set floors acuity (biased up from Green). */
+export const ESI_V5_INCOMPLETE_FLOOR_LEVEL = 3;
+/** Where a danger-zone vital floors acuity (reassess-up). */
+export const ESI_V5_DANGER_FLOOR_LEVEL = 2;
+
 /* ─── 5-tier acuity model (research doc §1) ───────────────────────── */
 
 export interface AcuityTier {

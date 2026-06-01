@@ -231,3 +231,110 @@ export async function submitTriageAction(
     assignedLevel,
   };
 }
+
+/* ─── Rapid mode — 1-tap Level 1 / resus (GATE D, kickoff §4) ──────── */
+
+const RapidRedSchema = z.object({
+  intake_id: z.string().uuid(),
+  patient_user_id: z.string().uuid().nullable(),
+  /** Which Step-0 life-threat the clinician is declaring. */
+  reason: z.string().min(3).max(200),
+});
+
+export type RapidRedState = { ok?: boolean; error?: string; triageRecordId?: string };
+
+/**
+ * The obvious-sick fast path (kickoff §4): one confirm → a Level-1
+ * triage record, resus disposition, no full form. You don't fill a form
+ * for a patient in arrest. Same authorised + audited path as
+ * submitTriageAction; the record is life_threat_fast_tracked with
+ * computed == assigned == 1 and override "none", so it can only ever
+ * over-triage (never under-triage) and reads honestly in the trail.
+ */
+export async function rapidRedAction(
+  _prev: RapidRedState,
+  formData: FormData,
+): Promise<RapidRedState> {
+  const parsed = RapidRedSchema.safeParse({
+    intake_id: formData.get("intake_id"),
+    patient_user_id: formData.get("patient_user_id") || null,
+    reason: formData.get("reason"),
+  });
+  if (!parsed.success) {
+    return { error: "Please confirm the life-threat reason." };
+  }
+  const input = parsed.data;
+
+  // Authorise — clinical cadre, this hospital, may triage (redirects if not).
+  const scope = await requireTriageScope();
+
+  const service = createServiceClient();
+  const { data: record, error: insErr } = await service
+    .from("triage_records")
+    .insert({
+      intake_id: input.intake_id,
+      patient_user_id: input.patient_user_id,
+      hospital_id: scope.hospitalId,
+      department_id: scope.departmentId,
+      ruleset: "adult_news2",
+      vitals_snapshot: { rapid: true },
+      computed_level: 1,
+      computed_score: null,
+      computed_breakdown: {
+        reasoning: [`Rapid Step-0 life threat: ${input.reason} → Level 1, resus now.`],
+        rapid: true,
+        lifeThreatReason: input.reason,
+      },
+      assigned_level: 1,
+      override_direction: "none",
+      override_reason: null,
+      baseline_adjusted: false,
+      baseline_reason: null,
+      life_threat_fast_tracked: true,
+      provisional: false,
+      triaged_by_user_id: scope.userId,
+    })
+    .select("id")
+    .single();
+  if (insErr || !record) {
+    logger.error("triage.rapid_red.insert_failed", { reason: insErr?.message });
+    return { error: "Could not record the resus triage. Please try again." };
+  }
+
+  await service
+    .from("patient_intakes")
+    .update({ triage_level: 1, triaged_at: new Date().toISOString(), status: "triaged" })
+    .eq("id", input.intake_id);
+
+  if (input.patient_user_id) {
+    await service
+      .from("queue_entries")
+      .update({ priority_order: 1 })
+      .eq("patient_user_id", input.patient_user_id)
+      .eq("hospital_id", scope.hospitalId)
+      .eq("state", "waiting");
+  }
+
+  await service.from("sa_audit_log").insert({
+    actor_id: scope.userId,
+    action: "assign_triage",
+    target_kind: "triage_record",
+    target_id: record.id,
+    reason: `Rapid Level 1 (resus): ${input.reason}`,
+    before_data: null,
+    after_data: { rapid: true, computed_level: 1, assigned_level: 1 },
+  });
+
+  await notifyTriageOutcome({
+    service,
+    hospitalId: scope.hospitalId,
+    departmentId: scope.departmentId,
+    assignedLevel: 1 as AcuityLevel,
+    patientLabel: input.patient_user_id ? "a patient" : "an unidentified patient",
+    triageRecordId: record.id,
+  }).catch((e) => logger.warn("triage.rapid_red.notify_failed", { reason: String(e) }));
+
+  revalidatePath("/nurse/triage");
+  revalidatePath("/nurse");
+  return { ok: true, triageRecordId: record.id };
+}

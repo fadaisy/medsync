@@ -2,6 +2,7 @@ import type { AcuityColour, AcuityLevel, News2Result, TriageInput, TriageResult 
 
 import { ACUITY_TIERS, news2ToAcuity } from "./constants";
 import { computeDerivedMetrics } from "./scoring/derived";
+import { assessEsiV5 } from "./scoring/esi-v5";
 import { evaluateDiscriminators } from "./scoring/evaluate-discriminators";
 import { screenLifeThreat } from "./scoring/life-threat";
 import { scoreNews2 } from "./scoring/news2";
@@ -76,10 +77,31 @@ export function runTriage(input: TriageInput): TriageResult {
       discriminatorAcuity: null,
       trendEscalated: false,
       baselineApplied: false,
+      incompleteVitals: false,
+      missingRequiredVitals: [],
+      dangerVitals: [],
+      esiV5Acuity: null,
       provisional: false,
       reasoning,
       flags,
     });
+  }
+
+  // ── ESI v5 — mandatory vitals + danger-zone reassess-up (ENA 2023).
+  //    Required HR/RR/SpO₂ for any non-L1/L2 patient; a danger-zone
+  //    vital floors acuity up. Folds into the worse-of below.
+  const esi = assessEsiV5({
+    respiratoryRate: input.vitals.respiratoryRate,
+    pulse: input.vitals.pulse,
+    spo2: input.vitals.spo2,
+  });
+  if (esi.dangerVitals.length > 0) {
+    reasoning.push(`ESI v5 danger-zone vital(s): ${esi.dangerVitals.join(", ")} → minimum L2.`);
+  }
+  if (esi.incompleteVitals) {
+    flags.push(
+      `Assessment incomplete — obtain ${esi.missingRequired.join(", ")} (ESI v5 requires HR/RR/SpO₂).`,
+    );
   }
 
   // ── Step 2 — objective score (adult only; see scope note). ────────
@@ -136,10 +158,13 @@ export function runTriage(input: TriageInput): TriageResult {
     reasoning.push(`Discriminator: ${f.label} → minimum acuity ${f.minAcuity} (${f.source}).`);
   }
 
-  // ── Step 4 — WORSE-OF (lowest number wins). ───────────────────────
+  // ── Step 4 — WORSE-OF (lowest number wins; three tracks). ─────────
+  //   (a) physiological score, (b) discriminator red-flag, (c) ESI v5
+  //   mandatory-vitals/danger-zone floor. Take the most acute.
   const candidates: AcuityLevel[] = [];
   if (scoreAcuity !== null) candidates.push(scoreAcuity);
   if (disc.minAcuity !== null) candidates.push(disc.minAcuity);
+  if (esi.acuityFloor !== null) candidates.push(esi.acuityFloor);
   // No signal at all (paeds/obstetric, nothing fired) → provisional Yellow,
   // bias-up default pending manual assessment.
   let level: AcuityLevel = candidates.length > 0 ? (Math.min(...candidates) as AcuityLevel) : 3;
@@ -147,13 +172,21 @@ export function runTriage(input: TriageInput): TriageResult {
     reasoning.push("No numeric score or red-flag — provisional Yellow pending manual assessment.");
   } else {
     reasoning.push(
-      `Worse-of(score ${scoreAcuity ?? "—"}, discriminator ${disc.minAcuity ?? "—"}) → ${level}.`,
+      `Worse-of(score ${scoreAcuity ?? "—"}, discriminator ${disc.minAcuity ?? "—"}, ESI-v5 ${esi.acuityFloor ?? "—"}) → ${level}.`,
     );
   }
 
   // The absolute floor a baseline temper can never cross: a fired
-  // red-flag discriminator (Step-0 life-threat already returned above).
-  const floor = disc.minAcuity;
+  // red-flag discriminator OR an ESI-v5 danger-zone vital (Step-0
+  // life-threat already returned above). Take the most acute of the two.
+  const floorCandidates: AcuityLevel[] = [];
+  if (disc.minAcuity !== null) floorCandidates.push(disc.minAcuity);
+  // Only the DANGER floor (L2) is absolute; an incomplete-vitals floor
+  // (L3) is a "needs assessment" default, not a hard red-flag, so it
+  // does not block a clinician-reasoned baseline temper.
+  if (esi.dangerVitals.length > 0 && esi.acuityFloor !== null)
+    floorCandidates.push(esi.acuityFloor);
+  const floor = floorCandidates.length > 0 ? (Math.min(...floorCandidates) as AcuityLevel) : null;
 
   // ── Step 5 — trend escalation (never auto-improve). ───────────────
   let trendEscalated = false;
@@ -195,7 +228,11 @@ export function runTriage(input: TriageInput): TriageResult {
     discriminatorAcuity: disc.minAcuity,
     trendEscalated,
     baselineApplied,
-    provisional,
+    incompleteVitals: esi.incompleteVitals,
+    missingRequiredVitals: esi.missingRequired,
+    dangerVitals: esi.dangerVitals,
+    esiV5Acuity: esi.acuityFloor,
+    provisional: provisional || esi.incompleteVitals,
     reasoning,
     flags,
   });

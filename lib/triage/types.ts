@@ -178,6 +178,15 @@ export interface TriageResult {
   discriminatorAcuity: AcuityLevel | null;
   trendEscalated: boolean;
   baselineApplied: boolean;
+  /** ESI v5: a required vital (HR/RR/SpO₂) is missing → cannot issue a
+   * reassuring level; floored to L3 + banner (ENA 2023). */
+  incompleteVitals: boolean;
+  /** ESI v5: required vitals still missing (engine parameter codes). */
+  missingRequiredVitals: string[];
+  /** ESI v5: high-risk "danger-zone" vitals that reassessed acuity up. */
+  dangerVitals: string[];
+  /** Acuity implied by the ESI-v5 mandatory-vitals/danger rule (or null). */
+  esiV5Acuity: AcuityLevel | null;
   /** Score is provisional — some vitals missing (research doc §10). */
   provisional: boolean;
   /** Human-readable contributions — the transparency requirement (kickoff §0.2). */
