@@ -37,11 +37,11 @@ import { RapidRedButton } from "./rapid-red-button";
  * Down-overrides are cadre-gated (R1).
  *
  * Layout (three co-visible zones, ADR 0043): a left rail (identity +
- * live acuity + rapid-Red), a centre Triage Form (vitals + red-flags) +
- * sticky assign bar, and a right rail holding the live Scores AND the
- * Next Steps together — so the loop (enter vital → score moves → next
- * steps update) needs no scrolling. Below lg, a sticky live header keeps
- * the acuity + score visible above the vitals.
+ * live acuity + rapid-Red + the live Next Steps), a centre Triage Form
+ * (vitals + red-flags) + sticky assign bar, and a right rail holding the
+ * live Score — so the loop (enter vital → score moves → next steps
+ * update) needs no scrolling. Both rails scroll independently. Below lg,
+ * a sticky live header keeps the acuity + score visible above the vitals.
  *
  * Visual language (an analytics-dashboard idiom): the verdict is the
  * hero; the vitals ARE the metric tiles (value = the number, NEWS2
