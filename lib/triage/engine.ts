@@ -94,6 +94,9 @@ export function runTriage(input: TriageInput): TriageResult {
     respiratoryRate: input.vitals.respiratoryRate,
     pulse: input.vitals.pulse,
     spo2: input.vitals.spo2,
+    // ESI adult HR/RR danger-zone (HR>100, RR>20) over-flags children —
+    // gate it to adults. SpO₂<92 + the mandatory-vitals floor stay on.
+    adultDangerZone: routing.ruleset === "adult_news2",
   });
   if (esi.dangerVitals.length > 0) {
     reasoning.push(`ESI v5 danger-zone vital(s): ${esi.dangerVitals.join(", ")} → minimum L2.`);

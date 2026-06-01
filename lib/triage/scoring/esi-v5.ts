@@ -29,6 +29,15 @@ export interface EsiV5Vitals {
   respiratoryRate: number | null;
   pulse: number | null;
   spo2: number | null;
+  /**
+   * Whether the ADULT HR/RR danger-zone thresholds (HR>100, RR>20)
+   * apply. These are adult numbers — applied to a child they over-flag a
+   * normal infant (HR 130 / RR 35) to L2. Set false for paediatric
+   * patients; SpO₂<92 stays universal (it matches the paed catalog's
+   * significant-hypoxaemia line) and the mandatory-vitals floor is
+   * always enforced. Defaults true (adult).
+   */
+  adultDangerZone?: boolean;
 }
 
 export interface EsiV5Assessment {
@@ -49,12 +58,18 @@ export function assessEsiV5(v: EsiV5Vitals): EsiV5Assessment {
   if (v.spo2 === null) missingRequired.push("spo2");
   const incompleteVitals = missingRequired.length > 0;
 
+  const adultDangerZone = v.adultDangerZone ?? true;
   const dangerVitals: string[] = [];
-  if (v.pulse !== null && v.pulse > ESI_V5_ADULT_DANGER.PULSE_GT) {
-    dangerVitals.push(`Pulse ${v.pulse} > ${ESI_V5_ADULT_DANGER.PULSE_GT}`);
-  }
-  if (v.respiratoryRate !== null && v.respiratoryRate > ESI_V5_ADULT_DANGER.RESP_RATE_GT) {
-    dangerVitals.push(`Resp rate ${v.respiratoryRate} > ${ESI_V5_ADULT_DANGER.RESP_RATE_GT}`);
+  // HR/RR danger-zone are ADULT thresholds — skip for paediatric
+  // patients (they over-flag a normal child). SpO₂<92 is population-
+  // agnostic (matches the paed catalog's significant-hypoxaemia line).
+  if (adultDangerZone) {
+    if (v.pulse !== null && v.pulse > ESI_V5_ADULT_DANGER.PULSE_GT) {
+      dangerVitals.push(`Pulse ${v.pulse} > ${ESI_V5_ADULT_DANGER.PULSE_GT}`);
+    }
+    if (v.respiratoryRate !== null && v.respiratoryRate > ESI_V5_ADULT_DANGER.RESP_RATE_GT) {
+      dangerVitals.push(`Resp rate ${v.respiratoryRate} > ${ESI_V5_ADULT_DANGER.RESP_RATE_GT}`);
+    }
   }
   if (v.spo2 !== null && v.spo2 < ESI_V5_ADULT_DANGER.SPO2_LT) {
     dangerVitals.push(`SpO₂ ${v.spo2} < ${ESI_V5_ADULT_DANGER.SPO2_LT}`);
