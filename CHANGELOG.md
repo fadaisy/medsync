@@ -5,6 +5,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Changed — Triage page: three-zone live working surface — 2026-06-01
+
+Reflows the triage page so the score AND the suggested next steps update live beside the vitals — **no scrolling to reach them** ([ADR 0043](docs/adr/0043-triage-layout-live-flow.md)). Layout + reactivity only; the engine, scoring, thresholds, routing, worse-of, recommendation mapping, override, and audit are all **unchanged** (diff touches only the two UI components; 282 triage tests pass byte-for-byte).
+
+- **Next Steps moved from below-the-fold into the right rail, beside the score** — visible from load, updating as vitals are entered (the core complaint fixed).
+- Three co-visible zones: left patient/context + live acuity + Resus · centre vitals **with red-flags co-visible** + Assign · right score + Next Steps (rail scrolls independently).
+- Live affordances: a completeness hint on the Vitals header ("provisional — need RR, SpO₂"), "obtain missing vitals" pinned to the top of Next Steps when incomplete, and an aria-live region announcing the level/disposition for screen readers.
+- Responsive: below `lg`, a **sticky live header** keeps the acuity + score visible above the vitals; Next Steps never below the fold.
+
 ### Added — Triage vitals catalog: paediatric + obstetric scoring now real — 2026-06-01
 
 Built the engine against the CSO-supplied Vitals-Interpretation Catalog ([ADR 0042](docs/adr/0042-triage-vitals-catalog.md); verified mapping in [docs/triage-catalog-build-specs.md](docs/triage-catalog-build-specs.md)). Paediatric (PEWS) and obstetric (MEOWS) patients — previously routed but marked "provisional, assess manually" — now get a **real, computed, cited acuity**. Every threshold traces to the catalog verbatim; nothing fabricated. Pure + deterministic; no migration.

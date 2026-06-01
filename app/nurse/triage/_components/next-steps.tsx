@@ -64,7 +64,18 @@ export function NextSteps({
   /** Lifts the full decision set to the parent for storage with the record. */
   onChange?: (decisions: RecDecisionRecord[]) => void;
 }) {
-  const recs = useMemo(() => recommend(result, assignedLevel), [result, assignedLevel]);
+  // The recommendation set is unchanged (clinical logic); the panel only
+  // PINS "obtain missing vitals" to the top when the assessment is
+  // incomplete — it's the most important action when data is missing
+  // (layout addendum §3). Stable order otherwise.
+  const recs = useMemo(() => {
+    const list = recommend(result, assignedLevel);
+    return [...list].sort((a, b) => {
+      const pa = a.code === "measure_complete_vitals" ? 0 : 1;
+      const pb = b.code === "measure_complete_vitals" ? 0 : 1;
+      return pa - pb;
+    });
+  }, [result, assignedLevel]);
 
   return (
     <section className="flex flex-col gap-2.5">
