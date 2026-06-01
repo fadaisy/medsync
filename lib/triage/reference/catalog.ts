@@ -138,7 +138,18 @@ export const ADULT_BP_CLINICAL = {
   htnDiaGte: 90, // 90–109
   severeSysGte: 180, // ≥180 severe hypertension
   severeDiaGte: 110, // ≥110
+  // Diastolic-specific (DBP Reference §1): NEWS2 scores systolic ONLY,
+  // so diastolic is classified + red-flagged independently.
+  veryLowDiaLt: 40, // <40 threatens coronary perfusion (coronaries fill in diastole)
+  lowDiaLt: 60, // 40–59 low (interpret with shock index / pulse pressure)
 } as const;
+
+/**
+ * Mean arterial pressure target (DBP Reference §2). MAP ≥65 for organ
+ * perfusion; <65 = inadequate perfusion → escalate. A low diastolic
+ * pulls MAP down fast (MAP weights DBP more than SBP).
+ */
+export const MAP_PERFUSION_MIN = 65;
 
 /**
  * ADULT clinical temperature classification (BP & Temperature Reference

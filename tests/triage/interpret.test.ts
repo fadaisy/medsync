@@ -84,10 +84,40 @@ describe("interpretVitals — non-NEWS2 vitals", () => {
     ).toContain("o");
   });
 
-  it("diastolic ≥110 reads abnormal (severe hypertension range)", () => {
+  it("diastolic ≥110 reads critical (severe diastolic hypertension)", () => {
     const v = input({ diastolicBp: 115 }).vitals;
     expect(interpretVitals(v, runTriage(input({ diastolicBp: 115 }))).diastolicBp.tone).toBe(
-      "abnormal",
+      "critical",
+    );
+  });
+});
+
+describe("interpretVitals — diastolic is classified independently (NEWS2 ignores it)", () => {
+  it("DBP 100 (NEWS2 sees nothing) reads hypertension, NOT normal", () => {
+    const v = input({ diastolicBp: 100 }).vitals;
+    const i = interpretVitals(v, runTriage(input({ diastolicBp: 100 })));
+    expect(i.diastolicBp.label.toLowerCase()).not.toContain("normal");
+    expect(i.diastolicBp.tone).toBe("abnormal");
+  });
+
+  it("DBP 85 reads elevated/high-normal (borderline)", () => {
+    const v = input({ diastolicBp: 85 }).vitals;
+    expect(interpretVitals(v, runTriage(input({ diastolicBp: 85 }))).diastolicBp.tone).toBe(
+      "borderline",
+    );
+  });
+
+  it("very low DBP (<40) reads critical — threatens coronary perfusion", () => {
+    const v = input({ diastolicBp: 35 }).vitals;
+    const i = interpretVitals(v, runTriage(input({ diastolicBp: 35 })));
+    expect(i.diastolicBp.tone).toBe("critical");
+    expect(i.diastolicBp.label.toLowerCase()).toContain("perfusion");
+  });
+
+  it("a genuinely normal DBP (75) still reads Normal", () => {
+    const v = input({ diastolicBp: 75 }).vitals;
+    expect(interpretVitals(v, runTriage(input({ diastolicBp: 75 }))).diastolicBp.tone).toBe(
+      "normal",
     );
   });
 });

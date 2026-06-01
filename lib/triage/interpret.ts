@@ -1,4 +1,4 @@
-import type { TriageResult, TriageVitals } from "./types";
+import type { DerivedMetrics, TriageResult, TriageVitals } from "./types";
 
 import { ADULT_BP_CLINICAL, ADULT_TEMP_CLINICAL } from "./reference";
 
@@ -138,6 +138,34 @@ function withClinical(
   return { label, tone, points: base.points };
 }
 
+/**
+ * Diastolic interpretation (DBP Reference §1) — NEWS2 doesn't score
+ * diastolic at all, so it's classified independently with graded bands.
+ * The DBP-driven category wins the label; when the DBP is itself normal
+ * but the pulse pressure is narrow, that's surfaced instead.
+ */
+function interpretDiastolic(
+  dia: number | null,
+  pulsePressureFlag: DerivedMetrics["pulsePressureFlag"],
+): VitalInterpretation {
+  if (dia === null) return { label: TONE_WORD.missing, tone: "missing", points: null };
+  const c = ADULT_BP_CLINICAL;
+  if (dia < c.veryLowDiaLt)
+    return { label: "Very low — threatens coronary perfusion", tone: "critical", points: null };
+  if (dia >= c.severeDiaGte)
+    return { label: "Severe diastolic hypertension", tone: "critical", points: null };
+  if (dia >= c.htnDiaGte)
+    return { label: "Hypertension (NEWS2 ignores diastolic)", tone: "abnormal", points: null };
+  if (dia >= c.elevatedDiaGte)
+    return { label: "Elevated / high-normal", tone: "borderline", points: null };
+  if (dia < c.lowDiaLt)
+    return { label: "Low — interpret with shock index", tone: "borderline", points: null };
+  // Normal-range DBP — surface a narrow pulse pressure if present.
+  if (pulsePressureFlag === "narrow")
+    return { label: "Narrow pulse pressure", tone: "borderline", points: null };
+  return { label: "Normal", tone: "normal", points: null };
+}
+
 export function interpretVitals(vitals: TriageVitals, result: TriageResult): VitalInterpretations {
   // NEWS2-scored vitals read straight from the engine.
   const respiratoryRate = fromNews2(result, "respiratory_rate", vitals.respiratoryRate);
@@ -181,18 +209,11 @@ export function interpretVitals(vitals: TriageVitals, result: TriageResult): Vit
     bloodGlucose = { label: "Normal", tone: "normal", points: null };
   }
 
-  // Diastolic — not a NEWS2 row; anchored to the §8 severe-HTN threshold
-  // and the engine's pulse-pressure flag.
-  let diastolicBp: VitalInterpretation;
-  if (vitals.diastolicBp === null) {
-    diastolicBp = { label: TONE_WORD.missing, tone: "missing", points: null };
-  } else if (vitals.diastolicBp >= 110) {
-    diastolicBp = { label: "Severe hypertension range", tone: "abnormal", points: null };
-  } else if (result.derived.pulsePressureFlag === "narrow") {
-    diastolicBp = { label: "Narrow pulse pressure", tone: "borderline", points: null };
-  } else {
-    diastolicBp = { label: "Normal", tone: "normal", points: null };
-  }
+  // Diastolic — NEWS2 scores systolic ONLY, so DBP is classified
+  // independently (DBP Reference §1). A high DBP must never read
+  // "Normal"; very low DBP threatens coronary perfusion. Pulse-pressure
+  // is surfaced when the DBP itself isn't the headline.
+  const diastolicBp = interpretDiastolic(vitals.diastolicBp, result.derived.pulsePressureFlag);
 
   return {
     respiratoryRate,

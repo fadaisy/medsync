@@ -7,6 +7,7 @@ export * from "./types";
 export {
   ADULT_BP_CLINICAL,
   ADULT_TEMP_CLINICAL,
+  MAP_PERFUSION_MIN,
   CATALOG_META,
   CSO_PAED_BANDS,
   OBSTETRIC_REF,

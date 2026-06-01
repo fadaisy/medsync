@@ -154,6 +154,28 @@ export const TRIAGE_DISCRIMINATORS: readonly Discriminator[] = [
     source: "derived",
     lifeThreat: false,
   },
+  {
+    // DBP Reference §1: NEWS2 ignores diastolic entirely. A very low
+    // diastolic threatens coronary perfusion (coronaries fill in
+    // diastole) — invisible to the score, caught here.
+    code: "low_diastolic_perfusion",
+    label: "DBP < 40 (threatens coronary perfusion — NEWS2 ignores diastolic)",
+    minAcuity: 2,
+    appliesTo: "adult",
+    source: "derived",
+    lifeThreat: false,
+  },
+  {
+    // DBP Reference §2: MAP < 65 = inadequate organ perfusion. A low
+    // diastolic pulls MAP down fast; the physiological score doesn't
+    // compute MAP, so escalate via the red-flag layer.
+    code: "map_below_65",
+    label: "MAP < 65 (inadequate organ perfusion)",
+    minAcuity: 2,
+    appliesTo: "adult",
+    source: "derived",
+    lifeThreat: false,
+  },
 
   // ── Obstetric discriminators ──────────────────────────────────────
   {

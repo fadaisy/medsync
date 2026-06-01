@@ -214,6 +214,33 @@ describe("severe hypertension — the 'NEWS2 scores 0' red-flag", () => {
   });
 });
 
+describe("diastolic red-flags — NEWS2 ignores diastolic entirely", () => {
+  it("very low DBP (<40) fires the coronary-perfusion red-flag → high-acuity", () => {
+    const r = runTriage(input({ vitals: { ...input().vitals, systolicBp: 105, diastolicBp: 35 } }));
+    expect(r.firedDiscriminators.some((d) => d.code === "low_diastolic_perfusion")).toBe(true);
+    expect(r.level).toBeLessThanOrEqual(2);
+  });
+
+  it("MAP < 65 fires the inadequate-perfusion red-flag", () => {
+    // 100/45 → MAP = 45 + (55/3) ≈ 63.3 < 65.
+    const r = runTriage(input({ vitals: { ...input().vitals, systolicBp: 100, diastolicBp: 45 } }));
+    expect(r.firedDiscriminators.some((d) => d.code === "map_below_65")).toBe(true);
+  });
+
+  it("isolated severe diastolic HTN (135/115) still escalates via severe_hypertension", () => {
+    const r = runTriage(
+      input({ vitals: { ...input().vitals, systolicBp: 135, diastolicBp: 115 } }),
+    );
+    expect(r.firedDiscriminators.some((d) => d.code === "severe_hypertension")).toBe(true);
+    expect(r.level).toBeLessThanOrEqual(2);
+  });
+
+  it("a normal MAP does not fire the perfusion flag", () => {
+    const r = runTriage(input({ vitals: { ...input().vitals, systolicBp: 120, diastolicBp: 80 } }));
+    expect(r.firedDiscriminators.some((d) => d.code === "map_below_65")).toBe(false);
+  });
+});
+
 describe("transparency + determinism", () => {
   it("always returns human-readable reasoning", () => {
     const r = runTriage(input({ presentDiscriminators: ["cardiac_chest_pain"] }));
