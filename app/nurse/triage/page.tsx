@@ -50,11 +50,7 @@ export default async function TriagePage() {
         <div className="h-px w-10 bg-teal-500/60 dark:bg-teal-400/50" aria-hidden />
       </header>
 
-      <TriageWorklist
-        rows={rows}
-        mayDownTriage={scope.authority.mayDownTriage}
-        departmentName={scope.departmentName}
-      />
+      <TriageWorklist rows={rows} departmentName={scope.departmentName} />
     </div>
   );
 }
