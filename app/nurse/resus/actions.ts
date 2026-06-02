@@ -11,6 +11,7 @@ import { db } from "@/db";
 import { resusEpisodes } from "@/db/schema/resus";
 import { triageRecords } from "@/db/schema/triage";
 import { logger } from "@/lib/logger";
+import { getEmergencyDrug } from "@/lib/prescribing/reference/emergency-drug-catalog";
 import { AIRWAY_ACTION_STATES, classifyAirway } from "@/lib/resus/airway";
 import { detectArrest } from "@/lib/resus/arrest";
 import { BREATHING_ACTION_STATES, classifyBreathing } from "@/lib/resus/breathing";
@@ -573,6 +574,115 @@ export async function setBreathingActionState(
   });
   if ("error" in ev) return { error: ev.error };
 
+  revalidatePath(`/nurse/resus/${parsed.data.episodeId}`);
+  return { ok: true };
+}
+
+/* ─── Smart prescribing — emergency administration (grab-and-give) ───── */
+
+const ResusAllergiesSchema = z.object({
+  episodeId: z.string().uuid(),
+  substances: z.array(z.string().max(80)).max(30),
+  nkda: z.boolean().optional(),
+});
+
+/**
+ * Capture the patient's drug allergies onto the immutable timeline (in-episode
+ * source for the prescribe-time allergy check, until the persistent cross-
+ * encounter allergies table lands). Decision-support: surfaced before confirm.
+ */
+export async function recordResusAllergies(
+  input: z.infer<typeof ResusAllergiesSchema>,
+): Promise<{ ok?: true; error?: string }> {
+  const parsed = ResusAllergiesSchema.safeParse(input);
+  if (!parsed.success) return { error: "Invalid allergies." };
+  const scope = await requireResusScope();
+  const nkda = parsed.data.nkda ?? parsed.data.substances.length === 0;
+
+  const ev = await appendResusEvent({
+    scopeUserId: scope.userId,
+    episodeId: parsed.data.episodeId,
+    kind: "note",
+    step: null,
+    payload: {
+      allergyCapture: { substances: nkda ? [] : parsed.data.substances, nkda },
+      label: nkda
+        ? "Allergies: none known (NKDA)"
+        : `Allergies: ${parsed.data.substances.join(", ")}`,
+    },
+  });
+  if ("error" in ev) return { error: ev.error };
+  revalidatePath(`/nurse/resus/${parsed.data.episodeId}`);
+  return { ok: true };
+}
+
+const EmergencyAdminSchema = z.object({
+  episodeId: z.string().uuid(),
+  drugId: z.string().max(64),
+  route: z.string().max(24).optional(),
+  amountMg: z.number().nonnegative().optional(),
+  cart: z.string().max(48).optional(),
+  witnessUserId: z.string().uuid().optional(),
+  /** Required when a `block` safety flag was overridden (recorded + audited). */
+  overrideReason: z.string().max(500).optional(),
+  overriddenFlags: z.array(z.string().max(40)).max(10).optional(),
+});
+
+/**
+ * Record an emergency drug administration (the prescription IS the
+ * administration — grab-and-give) onto the immutable, audited resus timeline,
+ * with the full accountability + pharmacy-reconciliation payload (drug, dose,
+ * concentration, route, giver, time, patient, encounter, cart, amount,
+ * controlled-flag, override). Decision-support: the clinician has confirmed;
+ * the app records. Never auto-administers.
+ */
+export async function recordEmergencyAdministration(
+  input: z.infer<typeof EmergencyAdminSchema>,
+): Promise<{ ok?: true; error?: string }> {
+  const parsed = EmergencyAdminSchema.safeParse(input);
+  if (!parsed.success) return { error: "Invalid administration." };
+  const drug = getEmergencyDrug(parsed.data.drugId);
+  if (!drug) return { error: "Unknown drug." };
+  const scope = await requireResusScope();
+
+  // Controlled drugs require a witness even in an emergency (stricter capture).
+  if (drug.controlled && !parsed.data.witnessUserId)
+    return { error: "Controlled drug — a witness is required." };
+
+  const step: AbcdeStep | null =
+    drug.abcdeStep === "cross_cutting" ? "B" : (drug.abcdeStep as AbcdeStep);
+  const route = parsed.data.route ?? drug.adult?.route[0] ?? null;
+  const dose = drug.adult?.dose ?? (drug.recordOnly ? "operator-dosed (record-only)" : "—");
+
+  const ev = await appendResusEvent({
+    scopeUserId: scope.userId,
+    episodeId: parsed.data.episodeId,
+    kind: "drug",
+    step,
+    payload: {
+      prescribing: {
+        drugId: drug.id,
+        drugKey: drug.drugKey,
+        drugName: drug.name,
+        dose,
+        concentration: drug.adult?.concentration ?? null,
+        route,
+        indication: drug.indications[0] ?? null,
+        amountMg: parsed.data.amountMg ?? drug.unitDoseMg ?? null,
+        cart: parsed.data.cart ?? null,
+        giverUserId: scope.userId,
+        witnessUserId: parsed.data.witnessUserId ?? null,
+        controlled: drug.controlled,
+        overrideReason: parsed.data.overrideReason ?? null,
+        overriddenFlags: parsed.data.overriddenFlags ?? [],
+        source: drug.source,
+      },
+      state: "performed",
+      dose: drug.adult?.concentration ? `${dose} (${drug.adult.concentration})` : dose,
+      label: `${drug.name} ${dose}${route ? ` ${route.toUpperCase()}` : ""} — administered`,
+    },
+  });
+  if ("error" in ev) return { error: ev.error };
   revalidatePath(`/nurse/resus/${parsed.data.episodeId}`);
   return { ok: true };
 }
