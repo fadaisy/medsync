@@ -1,7 +1,7 @@
 # ABCDE Resuscitation Surface — GATE A proposal (clinical sign-off)
 
-**Status:** ⛔ **DRAFT — awaiting CSO (Fadhul) sign-off. Nothing in GATE B–F is built, and no dose constant lands in code, until §A is signed.**
-**Branch:** `feat/resus-abcde` (not yet cut — this doc precedes code)
+**Status:** ✅ **CSO-approved 2026-06-02 ("go through all gates") — built GATE B→F on `feat/resus-abcde`. Defaults ratified per §H recommendations: only Tier-1 web-verified doses are constants; TXA timing-only; status-benzo/naloxone/neb category-level; paediatrics banded/deferred; roster = all active clinical dept staff + ward-in-charge; leader recommended-not-gated. ADRs [0044](adr/0044-resus-record-immutability.md)–[0047](adr/0047-resus-arrest-seam.md).**
+**Branch:** `feat/resus-abcde`
 **Scope (Option A):** the ABCDE primary-assessment engine (each step's assessment paired with guideline-linked actions) + continuous monitoring throughout + team mobilisation. **The full cardiac-arrest ALS algorithm is the NEXT module** — this surface only _detects_ arrest and _routes_ to it (stub).
 **Clinical source:** [`resuscitation-abcde-clinical-reference.md`](../resuscitation-abcde-clinical-reference.md) (authoritative medicine) + the web-verification pass below.
 **This gate is a clinical sign-off, not just technical.** The assessment→action mappings and the dose constants are a clinical-safety artifact.
