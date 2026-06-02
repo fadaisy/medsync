@@ -1,0 +1,593 @@
+"use client";
+
+import type { ResusPatientView } from "@/lib/resus/board";
+import type { StepStatus } from "@/lib/resus/engine";
+import type { LinkedAction } from "@/lib/resus/reference/abcde-catalog";
+import type { ResusDoseId } from "@/lib/resus/reference/doses";
+import type { AbcdeLetter, ResusEventKind, TimelineEvent } from "@/lib/resus/types";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState, useTransition } from "react";
+import { ArrowLeftIcon, RotateCcwIcon } from "lucide-react";
+
+import {
+  deriveProgress,
+  openLifeThreats,
+  reassessPromptFor,
+  recommendedNextStep,
+  stepStatus,
+} from "@/lib/resus/engine";
+import { ABCDE_CATALOG, ANAPHYLAXIS_PROTOCOL } from "@/lib/resus/reference/abcde-catalog";
+import { getResusDose } from "@/lib/resus/reference/doses";
+import { ABCDE_LETTERS } from "@/lib/resus/types";
+import { cn } from "@/lib/utils";
+import { logResusEvent } from "../../actions";
+
+interface DeskEpisode {
+  id: string;
+  state: string;
+  triggerKind: string;
+  triggerReason: string | null;
+  startedAtIso: string;
+  arrestDetected: boolean;
+  disposition: string | null;
+}
+
+interface DeskScope {
+  userId: string;
+  fullName: string | null;
+  cadreName: string;
+  hospitalName: string;
+  departmentName: string;
+  leaderRecommended: boolean;
+}
+
+const STATUS_TONE: Record<StepStatus, string> = {
+  pending: "border-border bg-muted/30 text-muted-foreground",
+  clear: "border-teal-300/70 bg-teal-50/60 text-teal-700 dark:bg-teal-950/25 dark:text-teal-200",
+  open: "border-rose-500/80 bg-rose-50/70 text-rose-700 ring-1 ring-rose-500/40 motion-safe:animate-pulse dark:bg-rose-950/30 dark:text-rose-200",
+  addressed:
+    "border-amber-300/70 bg-amber-50/60 text-amber-800 dark:bg-amber-950/25 dark:text-amber-200",
+};
+
+const STATUS_LABEL: Record<StepStatus, string> = {
+  pending: "Pending",
+  clear: "Clear",
+  open: "Life-threat open",
+  addressed: "Addressed",
+};
+
+function useElapsed(startIso: string): string {
+  // Initialise from the prop (pure); the interval drives the live tick.
+  // Date.now() is only ever called inside the interval callback — never
+  // during render — so the component stays pure.
+  const [now, setNow] = useState(() => new Date(startIso).getTime());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  const secs = Math.max(0, Math.floor((now - new Date(startIso).getTime()) / 1000));
+  const m = Math.floor(secs / 60);
+  const s = secs % 60;
+  const h = Math.floor(m / 60);
+  return h > 0
+    ? `${h}:${String(m % 60).padStart(2, "0")}:${String(s).padStart(2, "0")}`
+    : `${m}:${String(s).padStart(2, "0")}`;
+}
+
+function clockOf(iso: string): string {
+  const d = new Date(iso);
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}:${String(
+    d.getSeconds(),
+  ).padStart(2, "0")}`;
+}
+
+export function ResusDesk({
+  episode,
+  patient,
+  timeline,
+  scope,
+}: {
+  episode: DeskEpisode;
+  patient: ResusPatientView;
+  timeline: TimelineEvent[];
+  scope: DeskScope;
+}) {
+  const router = useRouter();
+  const [pending, startTransition] = useTransition();
+  const [activeStep, setActiveStep] = useState<AbcdeLetter>("A");
+  const [pendingLabel, setPendingLabel] = useState<string | null>(null);
+  const elapsed = useElapsed(episode.startedAtIso);
+  const active = episode.state === "active";
+
+  const progress = useMemo(
+    () => deriveProgress(timeline.map((e) => ({ kind: e.kind, step: e.step, payload: e.payload }))),
+    [timeline],
+  );
+  const open = openLifeThreats(progress);
+  const nextStep = recommendedNextStep(progress);
+
+  function log(
+    kind: ResusEventKind,
+    step: AbcdeLetter | "pre" | null,
+    payload: Record<string, unknown>,
+  ) {
+    if (!active) return;
+    setPendingLabel(String(payload.label ?? payload.item ?? kind));
+    startTransition(async () => {
+      await logResusEvent({ episodeId: episode.id, kind, step, payload });
+      setPendingLabel(null);
+      router.refresh();
+    });
+  }
+
+  const patientName = patient.displayName ?? "Unidentified patient";
+
+  return (
+    <div className="bg-background flex min-h-svh flex-col">
+      {/* ── Sticky command header ─────────────────────────────────── */}
+      <header className="border-border bg-background/95 supports-backdrop-filter:bg-background/80 sticky top-0 z-30 border-b supports-backdrop-filter:backdrop-blur">
+        <div className="mx-auto flex w-full max-w-6xl flex-col gap-2.5 px-4 py-2.5 sm:px-6">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-3">
+              <Link
+                href="/nurse/resus"
+                className="text-muted-foreground hover:text-foreground inline-flex shrink-0 items-center gap-1 text-[12px] transition-colors"
+              >
+                <ArrowLeftIcon className="size-3.5" aria-hidden /> Board
+              </Link>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <span
+                    aria-hidden
+                    className="inline-flex shrink-0 items-center rounded-full bg-rose-600 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-white"
+                  >
+                    RESUS
+                  </span>
+                  <h1 className="text-foreground truncate text-[15px] font-semibold">
+                    {patientName}
+                  </h1>
+                  {patient.ageYears != null ? (
+                    <span className="text-muted-foreground/70 font-mono text-[11px]">
+                      {patient.ageYears}y {patient.sex ?? ""}
+                    </span>
+                  ) : null}
+                </div>
+                <p className="text-muted-foreground truncate font-mono text-[10.5px]">
+                  {episode.triggerReason ?? episode.triggerKind.replace(/_/g, " ")} ·{" "}
+                  {scope.hospitalName} · {scope.departmentName}
+                </p>
+              </div>
+            </div>
+            <div className="flex shrink-0 items-center gap-3">
+              <div className="text-right">
+                <p className="text-foreground font-mono text-[18px] leading-none font-semibold tabular-nums">
+                  {elapsed}
+                </p>
+                <p className="text-muted-foreground/70 font-mono text-[9px] tracking-[0.14em] uppercase">
+                  elapsed
+                </p>
+              </div>
+              {!active ? (
+                <span className="bg-muted text-muted-foreground inline-flex items-center rounded-full px-2.5 py-1 font-mono text-[10px] font-semibold tracking-[0.1em] uppercase">
+                  {episode.state}
+                  {episode.disposition ? ` · ${episode.disposition}` : ""}
+                </span>
+              ) : null}
+            </div>
+          </div>
+
+          {/* Open-life-threats tracker + return to A */}
+          <div className="flex items-center gap-2">
+            <span className="text-muted-foreground/70 hidden font-mono text-[9px] tracking-[0.14em] uppercase sm:inline">
+              ABCDE
+            </span>
+            <div className="flex flex-1 items-center gap-1.5">
+              {ABCDE_LETTERS.map((letter) => {
+                const p = progress.find((x) => x.step === letter)!;
+                const st = stepStatus(p);
+                return (
+                  <button
+                    key={letter}
+                    type="button"
+                    onClick={() => setActiveStep(letter)}
+                    className={cn(
+                      "flex flex-1 items-center justify-center gap-1.5 rounded-lg border px-2 py-1.5 text-[12px] font-semibold transition-colors",
+                      STATUS_TONE[st],
+                      activeStep === letter ? "ring-foreground/20 ring-2 ring-offset-1" : "",
+                      nextStep === letter && active
+                        ? "outline outline-2 outline-offset-1 outline-rose-400/60"
+                        : "",
+                    )}
+                    aria-label={`${letter} — ${STATUS_LABEL[st]}`}
+                    title={`${ABCDE_CATALOG[letter].title} — ${STATUS_LABEL[st]}`}
+                  >
+                    <span className="font-mono">{letter}</span>
+                    <span className="hidden font-normal md:inline">{STATUS_LABEL[st]}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setActiveStep("A");
+                if (active)
+                  log("decision", "pre", { label: "Returned to A (reassess from the top)" });
+              }}
+              className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-rose-300/70 bg-rose-50/60 px-2.5 py-1.5 text-[12px] font-semibold text-rose-700 transition-colors hover:bg-rose-100/70 disabled:opacity-50 dark:bg-rose-950/25 dark:text-rose-200"
+              disabled={!active}
+            >
+              <RotateCcwIcon className="size-3.5" aria-hidden /> Return to A
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <div className="mx-auto grid w-full max-w-6xl flex-1 grid-cols-1 gap-4 px-4 py-4 sm:px-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+        {/* ── CENTRE: ABCDE step + anaphylaxis cross-cut ──────────── */}
+        <div className="flex flex-col gap-4">
+          {open.length > 0 ? (
+            <div className="rounded-xl border border-rose-500/70 bg-rose-50/70 px-4 py-2.5 ring-1 ring-rose-500/30 dark:bg-rose-950/30">
+              <p className="text-[12.5px] font-semibold text-rose-800 dark:text-rose-200">
+                ▲ Open life-threat{open.length > 1 ? "s" : ""}: {open.join(", ")} — treat before
+                proceeding.
+              </p>
+            </div>
+          ) : null}
+
+          <AnaphylaxisBar disabled={!active || pending} onLog={log} activeStep={activeStep} />
+
+          <StepPanel key={activeStep} step={activeStep} disabled={!active || pending} onLog={log} />
+        </div>
+
+        {/* ── RIGHT: the live immutable record ────────────────────── */}
+        <aside className="flex flex-col gap-2 lg:sticky lg:top-[112px] lg:max-h-[calc(100svh-128px)]">
+          <div className="flex items-baseline justify-between">
+            <h2 className="text-foreground/80 text-[12px] font-medium">
+              Resus record{" "}
+              <span className="text-muted-foreground/70 font-mono text-[10px]">
+                {timeline.length} entr{timeline.length === 1 ? "y" : "ies"} · append-only
+              </span>
+            </h2>
+            {pending ? (
+              <span className="text-muted-foreground/70 font-mono text-[10px]">saving…</span>
+            ) : null}
+          </div>
+          <Timeline timeline={timeline} pendingLabel={pendingLabel} />
+        </aside>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Anaphylaxis cross-cut (A/B/C/E) ─────────────────────────────── */
+function AnaphylaxisBar({
+  disabled,
+  onLog,
+  activeStep,
+}: {
+  disabled: boolean;
+  onLog: (k: ResusEventKind, s: AbcdeLetter, p: Record<string, unknown>) => void;
+  activeStep: AbcdeLetter;
+}) {
+  const [open, setOpen] = useState(false);
+  const dose = getResusDose(ANAPHYLAXIS_PROTOCOL.firstLineDoseId);
+  return (
+    <div className="border-border bg-card rounded-xl border">
+      <div className="flex items-center justify-between gap-2 px-3.5 py-2">
+        <div className="min-w-0">
+          <p className="text-foreground/80 text-[12px] font-medium">
+            Anaphylaxis — first-line everywhere{" "}
+            <span className="text-muted-foreground/70 font-mono text-[10px]">A · B · C · E</span>
+          </p>
+          <p className="text-muted-foreground/80 truncate text-[11px]">{dose.adultDose}</p>
+        </div>
+        <div className="flex shrink-0 items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => setOpen((o) => !o)}
+            className="text-muted-foreground hover:text-foreground rounded-md px-1.5 py-1 font-mono text-[10px] tracking-[0.1em] uppercase"
+          >
+            {open ? "Hide" : "Detail"}
+          </button>
+          <button
+            type="button"
+            disabled={disabled}
+            onClick={() =>
+              onLog("drug", activeStep, {
+                label: "IM adrenaline (anaphylaxis)",
+                doseId: dose.id,
+                dose: dose.adultDose,
+                source: dose.source,
+              })
+            }
+            className="inline-flex items-center gap-1.5 rounded-lg bg-rose-600 px-2.5 py-1.5 text-[12px] font-semibold text-white transition-colors hover:bg-rose-700 disabled:opacity-50"
+          >
+            Log IM adrenaline
+          </button>
+        </div>
+      </div>
+      {open ? (
+        <div className="border-border/60 text-muted-foreground flex flex-col gap-1.5 border-t px-3.5 py-2.5 text-[11.5px]">
+          <p>{ANAPHYLAXIS_PROTOCOL.recognition}</p>
+          <p>
+            <span className="text-foreground/70 font-medium">Adjuncts:</span>{" "}
+            {ANAPHYLAXIS_PROTOCOL.adjuncts.join(" · ")}
+          </p>
+          <p className="text-amber-700 dark:text-amber-300">
+            {ANAPHYLAXIS_PROTOCOL.notRecommended}
+          </p>
+          <p>{ANAPHYLAXIS_PROTOCOL.refractory}</p>
+          <p className="text-muted-foreground/60 font-mono text-[10px]">{dose.source}</p>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+/* ─── One ABCDE step ──────────────────────────────────────────────── */
+function StepPanel({
+  step,
+  disabled,
+  onLog,
+}: {
+  step: AbcdeLetter;
+  disabled: boolean;
+  onLog: (k: ResusEventKind, s: AbcdeLetter, p: Record<string, unknown>) => void;
+}) {
+  // Mounted fresh per step (key={step} at the call site), so `reassessed`
+  // resets naturally on step change — no reset-in-effect.
+  const cat = ABCDE_CATALOG[step];
+  const [reassessed, setReassessed] = useState(false);
+
+  return (
+    <div className="border-border bg-card flex flex-col gap-3 rounded-2xl border p-4">
+      <div className="flex items-center gap-2.5">
+        <span className="bg-foreground/90 text-background flex size-8 items-center justify-center rounded-lg font-mono text-[15px] font-semibold">
+          {step}
+        </span>
+        <h2 className="font-display text-foreground text-[18px] font-medium tracking-[-0.01em]">
+          {cat.title}
+        </h2>
+      </div>
+
+      {/* Assess */}
+      <section className="flex flex-col gap-1.5">
+        <h3 className="text-muted-foreground font-mono text-[10px] tracking-[0.14em] uppercase">
+          Assess
+        </h3>
+        <div className="flex flex-wrap gap-1.5">
+          {cat.assess.map((item, i) => (
+            <button
+              key={i}
+              type="button"
+              disabled={disabled}
+              onClick={() => onLog("assessment", step, { label: item.split(" — ")[0], item })}
+              className="border-border bg-muted/30 text-foreground/80 hover:bg-muted/60 rounded-lg border px-2.5 py-1.5 text-left text-[11.5px] transition-colors disabled:opacity-50"
+              title={item}
+            >
+              {item.length > 64 ? item.slice(0, 62) + "…" : item}
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* Danger signs */}
+      <section className="flex flex-col gap-1.5">
+        <h3 className="font-mono text-[10px] tracking-[0.14em] text-rose-600 uppercase dark:text-rose-300">
+          Danger signs — tap to flag a life-threat
+        </h3>
+        <div className="flex flex-col gap-1.5">
+          {cat.dangerSigns.map((sign, i) => (
+            <button
+              key={i}
+              type="button"
+              disabled={disabled}
+              onClick={() => onLog("assessment", step, { label: sign, item: sign, danger: true })}
+              className="flex items-start gap-2 rounded-lg border border-rose-300/60 bg-rose-50/40 px-2.5 py-2 text-left text-[12px] text-rose-800 transition-colors hover:bg-rose-100/60 disabled:opacity-50 dark:border-rose-500/30 dark:bg-rose-950/20 dark:text-rose-200"
+            >
+              <span aria-hidden className="mt-px">
+                ▲
+              </span>
+              <span className="flex-1">{sign}</span>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* Linked actions */}
+      <section className="flex flex-col gap-1.5">
+        <h3 className="text-muted-foreground font-mono text-[10px] tracking-[0.14em] uppercase">
+          Actions — tap to log as performed
+        </h3>
+        <div className="flex flex-col gap-1.5">
+          {cat.actions.map((a) => (
+            <ActionRow key={a.id} action={a} step={step} disabled={disabled} onLog={onLog} />
+          ))}
+        </div>
+      </section>
+
+      {/* Reassess */}
+      <section className="border-border/60 flex flex-col gap-1.5 border-t pt-3">
+        <h3 className="text-muted-foreground font-mono text-[10px] tracking-[0.14em] uppercase">
+          Reassess after every intervention
+        </h3>
+        <p className="text-muted-foreground text-[11.5px] leading-relaxed">
+          {reassessPromptFor(step)}
+        </p>
+        <button
+          type="button"
+          disabled={disabled || reassessed}
+          onClick={() => {
+            onLog("reassessment", step, { label: `Reassessed ${step}` });
+            setReassessed(true);
+          }}
+          className="border-border text-foreground/80 hover:bg-muted/50 self-start rounded-lg border px-2.5 py-1 text-[11.5px] transition-colors disabled:opacity-50"
+        >
+          {reassessed ? "✓ Reassessment logged" : "Log reassessment"}
+        </button>
+      </section>
+    </div>
+  );
+}
+
+function ActionRow({
+  action,
+  step,
+  disabled,
+  onLog,
+}: {
+  action: LinkedAction;
+  step: AbcdeLetter;
+  disabled: boolean;
+  onLog: (k: ResusEventKind, s: AbcdeLetter, p: Record<string, unknown>) => void;
+}) {
+  const [show, setShow] = useState(false);
+  const dose = action.doseId ? getResusDose(action.doseId as ResusDoseId) : null;
+  const kind: ResusEventKind = dose ? "drug" : "action";
+
+  return (
+    <div
+      className={cn(
+        "bg-card rounded-lg border",
+        action.emergency ? "border-rose-400/60" : "border-border",
+      )}
+    >
+      <div className="flex items-center justify-between gap-2 px-2.5 py-1.5">
+        <button
+          type="button"
+          disabled={disabled}
+          onClick={() =>
+            onLog(kind, step, {
+              label: action.label,
+              actionId: action.id,
+              doseId: action.doseId ?? null,
+              dose: dose?.adultDose ?? null,
+              source: action.source,
+            })
+          }
+          className="flex min-w-0 flex-1 items-center gap-2 text-left disabled:opacity-50"
+        >
+          {action.emergency ? (
+            <span aria-hidden className="text-rose-600">
+              ▲
+            </span>
+          ) : null}
+          <span className="text-foreground/90 truncate text-[12.5px] font-medium">
+            {action.label}
+          </span>
+        </button>
+        {dose || action.whenIndicated ? (
+          <button
+            type="button"
+            onClick={() => setShow((s) => !s)}
+            className="text-muted-foreground hover:text-foreground shrink-0 rounded-md px-1.5 font-mono text-[10px] tracking-[0.1em] uppercase"
+          >
+            {show ? "−" : "i"}
+          </button>
+        ) : null}
+      </div>
+      {show ? (
+        <div className="border-border/60 text-muted-foreground flex flex-col gap-1 border-t px-2.5 py-2 text-[11px]">
+          <p>
+            <span className="text-foreground/60">When:</span> {action.whenIndicated}
+          </p>
+          {dose ? (
+            <p>
+              <span className="text-foreground/60">Dose:</span>{" "}
+              {dose.adultDose ? (
+                <span className="text-foreground/90 font-medium">{dose.adultDose}</span>
+              ) : (
+                <span className="italic">Category-level — clinician doses</span>
+              )}
+              {dose.timing ? ` · ${dose.timing}` : ""}
+            </p>
+          ) : null}
+          <p className="text-muted-foreground/60 font-mono text-[10px]">{action.source}</p>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+/* ─── The live immutable record ───────────────────────────────────── */
+const KIND_GLYPH: Partial<Record<ResusEventKind, string>> = {
+  drug: "💉",
+  fluid: "💧",
+  procedure: "✚",
+  vital: "♥",
+  assessment: "◔",
+  reassessment: "↻",
+  decision: "◆",
+  action: "▸",
+  arrest_detected: "⚠",
+  cpr_started: "⚠",
+  mobilisation: "📣",
+  role_change: "⇄",
+  handover: "⇉",
+  note: "✎",
+};
+
+function Timeline({
+  timeline,
+  pendingLabel,
+}: {
+  timeline: TimelineEvent[];
+  pendingLabel: string | null;
+}) {
+  // Newest first for the live view.
+  const ordered = [...timeline].reverse();
+  return (
+    <ol className="border-border/60 bg-muted/20 flex flex-1 flex-col gap-px overflow-y-auto rounded-xl border p-1.5">
+      {pendingLabel ? (
+        <li className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-[11.5px] opacity-60">
+          <span className="font-mono text-[10px]">··:··</span>
+          <span className="text-foreground/80 flex-1">{pendingLabel}</span>
+        </li>
+      ) : null}
+      {ordered.length === 0 && !pendingLabel ? (
+        <li className="text-muted-foreground/70 px-2 py-6 text-center text-[11.5px]">
+          No entries yet. Tapping an assessment, danger sign, or action logs it here.
+        </li>
+      ) : null}
+      {ordered.map((e) => {
+        const label = String(e.payload.label ?? e.payload.item ?? e.kind);
+        const danger = e.payload.danger === true;
+        return (
+          <li
+            key={e.id}
+            className={cn(
+              "flex items-start gap-2 rounded-lg px-2 py-1.5 text-[11.5px]",
+              danger ? "bg-rose-50/60 dark:bg-rose-950/20" : "",
+            )}
+          >
+            <span className="text-muted-foreground/70 mt-px shrink-0 font-mono text-[10px] tabular-nums">
+              {clockOf(e.recordedAt)}
+            </span>
+            <span aria-hidden className="shrink-0">
+              {KIND_GLYPH[e.kind] ?? "•"}
+            </span>
+            <span className="min-w-0 flex-1">
+              {e.step && e.step !== "pre" && e.step !== "arrest" ? (
+                <span className="text-muted-foreground/70 mr-1 font-mono text-[9.5px]">
+                  [{e.step}]
+                </span>
+              ) : null}
+              <span
+                className={cn(
+                  danger ? "font-medium text-rose-800 dark:text-rose-200" : "text-foreground/80",
+                )}
+              >
+                {label}
+              </span>
+              {e.payload.dose ? (
+                <span className="text-muted-foreground/70"> — {String(e.payload.dose)}</span>
+              ) : null}
+            </span>
+          </li>
+        );
+      })}
+    </ol>
+  );
+}

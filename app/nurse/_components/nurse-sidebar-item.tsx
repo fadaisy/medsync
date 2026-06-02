@@ -16,6 +16,7 @@ import {
   ListChecksIcon,
   PillIcon,
   ScrollTextIcon,
+  SirenIcon,
   UsersIcon,
 } from "lucide-react";
 
@@ -24,6 +25,7 @@ import { cn } from "@/lib/utils";
 const ICONS: Record<NurseIconKey, LucideIcon> = {
   overview: LayoutDashboardIcon,
   triage: ClipboardPlusIcon,
+  resus: SirenIcon,
   patients: UsersIcon,
   observations: HeartPulseIcon,
   mar: PillIcon,
