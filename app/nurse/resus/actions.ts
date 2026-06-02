@@ -1,10 +1,10 @@
 "use server";
 
-import type { AbcdeStep, ResusEventKind } from "@/lib/resus/types";
-import type { ResusRole } from "@/lib/resus/types";
+import type { ResusScope } from "@/lib/resus/scope";
+import type { AbcdeStep, ResusEventKind, ResusRole } from "@/lib/resus/types";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { and, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { db } from "@/db";
@@ -23,6 +23,7 @@ import {
 } from "@/lib/resus/record";
 import { requireResusScope } from "@/lib/resus/scope";
 import { RESUS_ROLES } from "@/lib/resus/types";
+import { vitalsFromTriageSnapshot } from "@/lib/resus/vitals";
 import { createServiceClient } from "@/lib/supabase/service";
 
 /**
@@ -49,28 +50,39 @@ const KIND_VALUES = [
   "note",
 ] as const;
 
-/** Open a resus episode from a Red/L1 triage record, then go to the desk. */
-export async function openResusFromTriage(triageRecordId: string): Promise<{ error: string }> {
-  const parsed = z.string().uuid().safeParse(triageRecordId);
-  if (!parsed.success) return { error: "Invalid triage record." };
+/** The triage-record fields needed to open + seed a resus. */
+const TRIAGE_OPEN_SELECT = {
+  id: triageRecords.id,
+  intakeId: triageRecords.intakeId,
+  patientUserId: triageRecords.patientUserId,
+  departmentId: triageRecords.departmentId,
+  assignedLevel: triageRecords.assignedLevel,
+  fastTracked: triageRecords.lifeThreatFastTracked,
+  breakdown: triageRecords.computedBreakdown,
+  vitalsSnapshot: triageRecords.vitalsSnapshot,
+  triagedAt: triageRecords.triagedAt,
+};
+type TriageOpenSource = {
+  id: string;
+  intakeId: string | null;
+  patientUserId: string | null;
+  departmentId: string | null;
+  fastTracked: boolean;
+  breakdown: unknown;
+  vitalsSnapshot: unknown;
+  triagedAt: Date;
+};
 
-  const scope = await requireResusScope();
-
-  const [tr] = await db
-    .select({
-      id: triageRecords.id,
-      intakeId: triageRecords.intakeId,
-      patientUserId: triageRecords.patientUserId,
-      departmentId: triageRecords.departmentId,
-      fastTracked: triageRecords.lifeThreatFastTracked,
-      breakdown: triageRecords.computedBreakdown,
-    })
-    .from(triageRecords)
-    .where(and(eq(triageRecords.id, parsed.data), eq(triageRecords.hospitalId, scope.hospitalId)))
-    .limit(1);
-
-  if (!tr) return { error: "Triage record not found in your hospital." };
-
+/**
+ * Open (or resume) a resus episode for a Red/L1 triage record, carry the
+ * triage vitals in as the FIRST resus reading, fire team mobilisation,
+ * and redirect to the desk. Shared by both triage entry points. Returns
+ * only on error (success redirects).
+ */
+async function openResusForTriageRecord(
+  scope: ResusScope,
+  tr: TriageOpenSource,
+): Promise<{ error: string }> {
   // Reuse an existing active episode for this triage record (idempotent open).
   const [existing] = await db
     .select({ id: resusEpisodes.id })
@@ -92,6 +104,21 @@ export async function openResusFromTriage(triageRecordId: string): Promise<{ err
   });
   if ("error" in result) return { error: result.error };
 
+  // Carry the triage vitals in as the first resus reading (best-effort;
+  // recorded at the triage time so the trend starts where measurement did).
+  const seed = vitalsFromTriageSnapshot(tr.vitalsSnapshot);
+  if (seed) {
+    const ev = await appendResusEvent({
+      scopeUserId: scope.userId,
+      episodeId: result.episodeId,
+      kind: "vital",
+      step: "C",
+      payload: { label: "Vitals carried from triage", snapshot: seed, carriedFromTriage: true },
+      recordedAt: tr.triagedAt.toISOString(),
+    });
+    if ("error" in ev) logger.warn("resus.open.seed_vitals_failed", { episode: result.episodeId });
+  }
+
   // Fire team mobilisation (recognition → call → response).
   await mobiliseResusTeam({
     service: createServiceClient(),
@@ -104,6 +131,49 @@ export async function openResusFromTriage(triageRecordId: string): Promise<{ err
 
   revalidatePath("/nurse/resus");
   redirect(`/nurse/resus/${result.episodeId}`);
+}
+
+/** Open a resus from a specific triage record (the resus board path). */
+export async function openResusFromTriage(triageRecordId: string): Promise<{ error: string }> {
+  const parsed = z.string().uuid().safeParse(triageRecordId);
+  if (!parsed.success) return { error: "Invalid triage record." };
+  const scope = await requireResusScope();
+
+  const [tr] = await db
+    .select(TRIAGE_OPEN_SELECT)
+    .from(triageRecords)
+    .where(and(eq(triageRecords.id, parsed.data), eq(triageRecords.hospitalId, scope.hospitalId)))
+    .limit(1);
+  if (!tr) return { error: "Triage record not found in your hospital." };
+
+  return openResusForTriageRecord(scope, tr);
+}
+
+/**
+ * Open a resus straight from the triage board for an intake — resolves
+ * the latest Red/L1 triage record for that patient. Returns an error if
+ * the patient has no resus-level triage.
+ */
+export async function openResusFromIntake(intakeId: string): Promise<{ error: string }> {
+  const parsed = z.string().uuid().safeParse(intakeId);
+  if (!parsed.success) return { error: "Invalid intake." };
+  const scope = await requireResusScope();
+
+  const [tr] = await db
+    .select(TRIAGE_OPEN_SELECT)
+    .from(triageRecords)
+    .where(
+      and(
+        eq(triageRecords.intakeId, parsed.data),
+        eq(triageRecords.hospitalId, scope.hospitalId),
+        eq(triageRecords.assignedLevel, 1),
+      ),
+    )
+    .orderBy(desc(triageRecords.triagedAt))
+    .limit(1);
+  if (!tr) return { error: "This patient has no Red/L1 triage to open a resus from." };
+
+  return openResusForTriageRecord(scope, tr);
 }
 
 /** Open an ad-hoc resus for an in-resus deterioration (no triage record). */

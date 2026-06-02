@@ -66,6 +66,38 @@ function num(v: unknown): number | null {
   return typeof v === "number" && Number.isFinite(v) ? v : null;
 }
 
+/**
+ * Map a triage `vitals_snapshot` (the raw TriageVitals stored on a
+ * triage_record) into a resus VitalSnapshot, so the triage vitals can be
+ * carried into the resus as the first reading. Returns null when there is
+ * nothing measured to carry (a rapid-Red snapshot is `{rapid:true}`).
+ */
+export function vitalsFromTriageSnapshot(snapshot: unknown): VitalSnapshot | null {
+  if (!snapshot || typeof snapshot !== "object") return null;
+  const s = snapshot as Record<string, unknown>;
+  if (s.rapid === true) return null;
+
+  const out: VitalSnapshot = {};
+  const numericMap: Record<string, keyof VitalSnapshot> = {
+    respiratoryRate: "rr",
+    spo2: "spo2",
+    systolicBp: "systolicBp",
+    diastolicBp: "diastolicBp",
+    pulse: "hr",
+    temperature: "temperature",
+    bloodGlucose: "glucose",
+  };
+  for (const [src, dest] of Object.entries(numericMap)) {
+    const v = num(s[src]);
+    if (v !== null) (out as Record<string, unknown>)[dest] = v;
+  }
+  if (s.consciousness && typeof s.consciousness === "string")
+    out.consciousness = s.consciousness as VitalSnapshot["consciousness"];
+  if (s.oxygen === "air" || s.oxygen === "oxygen") out.oxygen = s.oxygen;
+
+  return Object.keys(out).length > 0 ? out : null;
+}
+
 export function buildResusVitals(events: readonly TimelineEvent[]): ResusVitalsView {
   const snapshots = events
     .filter((e) => e.kind === "vital")

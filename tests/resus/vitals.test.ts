@@ -1,7 +1,7 @@
 import type { TimelineEvent } from "@/lib/resus/types";
 import { describe, expect, it } from "vitest";
 
-import { buildResusVitals } from "@/lib/resus/vitals";
+import { buildResusVitals, vitalsFromTriageSnapshot } from "@/lib/resus/vitals";
 
 /**
  * Resus continuous monitoring (GATE D). buildResusVitals reconstructs the
@@ -75,5 +75,46 @@ describe("buildResusVitals", () => {
     expect(si.points).toHaveLength(2);
     expect(si.points[0]!.value).toBeCloseTo(1.0, 5);
     expect(si.points[1]!.value).toBeCloseTo(1.5, 5);
+  });
+});
+
+describe("vitalsFromTriageSnapshot — carry triage vitals into resus", () => {
+  it("maps a full triage vitals snapshot to a resus VitalSnapshot", () => {
+    const out = vitalsFromTriageSnapshot({
+      respiratoryRate: 28,
+      spo2: 90,
+      oxygen: "oxygen",
+      systolicBp: 88,
+      diastolicBp: 60,
+      pulse: 124,
+      consciousness: "V",
+      temperature: 38.4,
+      bloodGlucose: 5.2,
+    });
+    expect(out).toEqual({
+      rr: 28,
+      spo2: 90,
+      oxygen: "oxygen",
+      systolicBp: 88,
+      diastolicBp: 60,
+      hr: 124,
+      consciousness: "V",
+      temperature: 38.4,
+      glucose: 5.2,
+    });
+  });
+
+  it("returns null for a rapid-Red snapshot (no measured vitals)", () => {
+    expect(vitalsFromTriageSnapshot({ rapid: true })).toBeNull();
+  });
+
+  it("returns null for empty / missing / non-object input", () => {
+    expect(vitalsFromTriageSnapshot(null)).toBeNull();
+    expect(vitalsFromTriageSnapshot({})).toBeNull();
+    expect(vitalsFromTriageSnapshot({ respiratoryRate: null, pulse: null })).toBeNull();
+  });
+
+  it("carries only the fields that are present", () => {
+    expect(vitalsFromTriageSnapshot({ pulse: 130, spo2: 91 })).toEqual({ hr: 130, spo2: 91 });
   });
 });

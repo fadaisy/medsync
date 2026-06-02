@@ -3,6 +3,7 @@ import Link from "next/link";
 import { AlertTriangleIcon, DoorOpenIcon, RotateCwIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { OpenResusButton } from "./open-resus-button";
 import { RapidRedButton } from "./rapid-red-button";
 
 /**
@@ -109,11 +110,15 @@ export function TriageWorklist({
               )}
             </Link>
 
-            <RapidRedButton
-              intakeId={r.intakeId}
-              patientUserId={r.patientUserId}
-              patientLabel={name}
-            />
+            {r.priorLevel === 1 ? (
+              <OpenResusButton intakeId={r.intakeId} />
+            ) : (
+              <RapidRedButton
+                intakeId={r.intakeId}
+                patientUserId={r.patientUserId}
+                patientLabel={name}
+              />
+            )}
           </li>
         );
       })}
