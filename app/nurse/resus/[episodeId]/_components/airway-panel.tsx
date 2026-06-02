@@ -199,7 +199,7 @@ export function AirwayPanel({
         </div>
       ) : null}
 
-      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 lg:items-start">
         {/* ── Findings capture ── */}
         <section className="flex flex-col gap-2.5">
           <h3 className="text-muted-foreground font-mono text-[10px] tracking-[0.14em] uppercase">
@@ -311,8 +311,9 @@ export function AirwayPanel({
           </button>
         </section>
 
-        {/* ── Triggered actions (co-visible, live) ── */}
-        <section className="flex flex-col gap-2">
+        {/* ── Triggered actions — a floating card that stays beside the
+            findings as you scroll through what's being assessed (lg+). ── */}
+        <section className="border-border bg-card/95 lg:ring-border/50 flex flex-col gap-2 rounded-xl border p-3 lg:sticky lg:top-30 lg:max-h-[calc(100svh-136px)] lg:overflow-y-auto lg:shadow-md lg:ring-1 lg:backdrop-blur">
           <h3 className="text-muted-foreground font-mono text-[10px] tracking-[0.14em] uppercase">
             Indicated actions — finding → why → do
           </h3>
