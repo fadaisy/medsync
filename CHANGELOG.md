@@ -5,6 +5,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Resus · AIRWAY step (findings→action→state engine) — 2026-06-02
+
+The first ABCDE step built in depth inside the resus surface, and the **reusable pattern for B–E**: the clinician records **findings**, findings **trigger candidate actions** (with the _why_ shown), and **each action carries a state**. Decision-support — records what the team does; never performs/auto-administers. CSO-signed ([docs/resus-airway-gate-a-proposal.md](docs/resus-airway-gate-a-proposal.md) + committed catalog [docs/clinical/resus-airway-clinical-catalog.md](docs/clinical/resus-airway-clinical-catalog.md); [ADR 0048](docs/adr/0048-resus-airway-findings-action-engine.md)). Guideline-anchored to **DAS 2025** (confirmed verbatim from the BJA full text, supersedes 2015) + RCUK/ERC-AHA 2025; doses web-verified 2026-06-02. **No new migration** — built on the existing immutable timeline + pure projections.
+
+- **Finding capture + classification** ([lib/resus/airway.ts](lib/resus/airway.ts), pure, TDD): patency state + LOOK/LISTEN/FEEL + LEMON/MOANS/RODS difficulty screen; `classifyAirway` — **worst finding wins** (an optimistic patency never masks a danger finding) → secure → threatened → partially/completely obstructed → apnoeic-arrest. Reassessment = a versioned finding-set on the timeline.
+- **Findings→action engine**: `triggeredActions` — single findings + the **8 combination/trajectory clusters** (complete obstruction, epiglottitis [do-not-instrument], burns/inhalation, anaphylaxis, reduced-GCS, expanding haematoma, progression/fatiguing, difficulty-flags), each with its rationale, least-invasive-first/emergencies-prominent; trauma→jaw-thrust; apnoea+no-signs → the existing arrest seam.
+- **Action-state lifecycle**: `indicated / in_progress / performed / not_indicated / deferred / failed`; a **`failed`** action surfaces its **next-tier escalation** inline (the DAS Plan A→B→C→D ladder). `buildAirwayActions` folds state changes by action; `airwayProceedGuard` enforces treat-before-proceeding to B.
+- **Doses**: only anaphylaxis adrenaline + O₂ are fixed cited constants; nebulised adrenaline (airway oedema) + airway-oedema corticosteroids are **category-level** (no authoritative adult dose). Wording flags honoured (capnography "most reliable"/≥2 variables not "gold standard"; NPA "caution" not "contraindicated").
+- **Airway panel UX** ([airway-panel.tsx](app/nurse/resus/[episodeId]/_components/airway-panel.tsx)): findings co-visible with the live indicated actions; glanceable action states; airway-state + proceed-to-B indicator; reassess nudge; one-tap escalation; apnoea→CPR/ALS route. Bedside-first; no left-edge accents; reduced-motion-safe.
+- **Deferred** (record-capable + escalation only, flagged): full RSI/videolaryngoscopy/eFONA procedural tooling; paediatric airway depth.
+
 ### Added — Resus straight from the triage board + triage vitals carried in — 2026-06-02
 
 Closes the gap between triage and resus. A patient triaged **Red/L1** now shows an **"Open resus"** button on the triage worklist (replacing the rapid-declare control once they're already L1) that opens — or resumes — their ABCDE resus desk in one tap. So the flow is: assign L1 (or rapid-declare) → back on the board → Open resus. No engine/scoring change.

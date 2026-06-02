@@ -35,6 +35,7 @@ import {
   logResusEvent,
   logResusVitals,
 } from "../../actions";
+import { AirwayPanel } from "./airway-panel";
 
 interface DeskEpisode {
   id: string;
@@ -317,7 +318,21 @@ export function ResusDesk({
 
           <AnaphylaxisBar disabled={!active || pending} onLog={log} activeStep={activeStep} />
 
-          <StepPanel key={activeStep} step={activeStep} disabled={!active || pending} onLog={log} />
+          {activeStep === "A" ? (
+            <AirwayPanel
+              episodeId={episode.id}
+              timeline={timeline}
+              active={active}
+              onChanged={() => router.refresh()}
+            />
+          ) : (
+            <StepPanel
+              key={activeStep}
+              step={activeStep}
+              disabled={!active || pending}
+              onLog={log}
+            />
+          )}
         </div>
 
         {/* ── RIGHT: team + the live immutable record ─────────────── */}
