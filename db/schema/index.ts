@@ -71,3 +71,6 @@ export * from "./triage";
 
 // ─── ABCDE resuscitation surface (migration 0038) ──────────────────────
 export * from "./resus";
+
+// ─── Smart prescribing (migration 0039 — GATED, see prescribing.ts) ────
+export * from "./prescribing";

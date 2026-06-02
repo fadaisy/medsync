@@ -400,6 +400,7 @@ export function ResusDesk({
               episodeId={episode.id}
               timeline={timeline}
               active={active}
+              patientAgeYears={patient.ageYears ?? null}
               onChanged={() => router.refresh()}
             />
           ) : (
