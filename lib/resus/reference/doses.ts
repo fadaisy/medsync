@@ -155,6 +155,70 @@ export const RESUS_DOSES = {
     confidence: "verified-web",
   },
 
+  /* ── Breathing step (B) — acute asthma (web-verified 2026-06-02) ── */
+  asthma_salbutamol_neb: {
+    id: "asthma_salbutamol_neb",
+    drug: "Salbutamol, nebulised",
+    indication: "Acute asthma / bronchospasm — first-line bronchodilator (B)",
+    tier: "fixed",
+    adultDose: "5 mg nebulised, oxygen-driven",
+    timing:
+      "Repeat / back-to-back / continuous (5–10 mg/h) in acute severe or life-threatening asthma; reassess after each",
+    paediatricNote:
+      "Age-banded (e.g. 2.5 mg <5 yr; 5 mg ≥5 yr) per BTS/SIGN & APLS — verify the band at build; never reuse an adult number for a small child.",
+    cautions: [
+      "Oxygen-driven in acute asthma (air-driven risks hypoxaemia).",
+      "In anaphylaxis it is an ADJUNCT — IM adrenaline FIRST.",
+      "Monitor for hypokalaemia + tachycardia with repeated/continuous dosing.",
+    ],
+    source: "BTS/SIGN 158 (2019) acute asthma pathway + GINA 2025.",
+    confidence: "verified-web",
+  },
+  asthma_ipratropium_neb: {
+    id: "asthma_ipratropium_neb",
+    drug: "Ipratropium bromide, nebulised",
+    indication: "Acute severe / life-threatening asthma — add-on antimuscarinic (B)",
+    tier: "fixed",
+    adultDose: "500 micrograms (0.5 mg) nebulised, oxygen-driven",
+    timing: "4–6 hourly; add to salbutamol in acute severe / life-threatening asthma",
+    paediatricNote: "Age-banded (e.g. 250 µg) per BTS/SIGN & APLS — verify at build.",
+    cautions: ["Add-on to the β2-agonist in severe/life-threatening attacks, not a substitute."],
+    source: "BTS/SIGN 158 (2019); GINA 2025.",
+    confidence: "verified-web",
+  },
+  asthma_steroid: {
+    id: "asthma_steroid",
+    drug: "Systemic corticosteroid",
+    indication: "Acute asthma — give early to all (B)",
+    tier: "fixed",
+    adultDose: "Prednisolone 40–50 mg PO OR hydrocortisone 100 mg IV",
+    timing: "Give early in every acute attack; continue for ≥5 days or until recovery",
+    paediatricNote:
+      "Weight/age-banded prednisolone (e.g. 1–2 mg/kg, max per band) per BTS/SIGN & APLS — verify at build.",
+    cautions: [
+      "Oral and IV routes are equally effective — use IV only if the patient can't swallow.",
+    ],
+    source: "BTS/SIGN 158 (2019); GINA 2025.",
+    confidence: "verified-web",
+  },
+  asthma_magnesium_iv: {
+    id: "asthma_magnesium_iv",
+    drug: "Magnesium sulphate, IV",
+    indication: "Life-threatening / poor-response acute severe asthma (B)",
+    tier: "fixed",
+    adultDose: "1.2–2 g IV over 20 min, single dose",
+    timing:
+      "Single dose in life-threatening asthma or poor initial response — get senior + ICU help",
+    paediatricNote: "Weight-based (40 mg/kg, max 2 g) per APLS — separate protocol.",
+    cautions: [
+      "Single dose only; senior/ICU decision.",
+      "Nebulised magnesium is NOT recommended (GINA 2025).",
+      "Monitor for hypotension + flushing.",
+    ],
+    source: "BTS/SIGN 158 (2019); GINA 2025 (2 g over 20 min).",
+    confidence: "verified-web",
+  },
+
   /* ── TIER 1b: protocol-surfaced (value real; dose not hard-coded) ─ */
   txa_trauma: {
     id: "txa_trauma",

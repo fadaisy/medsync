@@ -14,6 +14,11 @@ import { ArrowLeftIcon, RotateCcwIcon } from "lucide-react";
 
 import { classifyAirway, latestAirwayAssessment } from "@/lib/resus/airway";
 import {
+  triggeredActions as breathingTriggeredActions,
+  classifyBreathing,
+  latestBreathingAssessment,
+} from "@/lib/resus/breathing";
+import {
   deriveProgress,
   openLifeThreats,
   reassessPromptFor,
@@ -37,6 +42,7 @@ import {
   logResusVitals,
 } from "../../actions";
 import { AirwayPanel } from "./airway-panel";
+import { BreathingPanel } from "./breathing-panel";
 
 interface DeskEpisode {
   id: string;
@@ -166,6 +172,18 @@ export function ResusDesk({
     return s === "completely_obstructed" || s === "apnoeic_ventilate" || s === "apnoeic_arrest";
   }, [timeline, episode.arrestDetected]);
 
+  // Breathing letter (B) escalates to red `active_threat` on a genuine
+  // life-threat-now: peri-arrest / apnoea, or a p0 emergency action (tension
+  // decompression, massive haemothorax, life-threatening asthma, anaphylaxis).
+  const bActiveThreat = useMemo(() => {
+    if (episode.arrestDetected) return true;
+    const last = latestBreathingAssessment(timeline);
+    if (!last) return false;
+    const s = classifyBreathing(last);
+    if (s === "peri_arrest" || s === "apnoeic") return true;
+    return breathingTriggeredActions(last).some((t) => t.priority === 0 && t.emergency);
+  }, [timeline, episode.arrestDetected]);
+
   // Post-intervention reassessment nudge: an action-class event newer than
   // the last vital snapshot means vitals are due (reassess-after-intervention).
   const vitalsDue = useMemo(() => {
@@ -257,7 +275,9 @@ export function ResusDesk({
             <div className="flex flex-1 items-center gap-1.5">
               {ABCDE_LETTERS.map((letter) => {
                 const p = progress.find((x) => x.step === letter)!;
-                const vis = stepVisual(stepStatus(p), letter === "A" && aActiveThreat);
+                const activeThreat =
+                  letter === "A" ? aActiveThreat : letter === "B" ? bActiveThreat : false;
+                const vis = stepVisual(stepStatus(p), activeThreat);
                 const focused = activeStep === letter;
                 return (
                   <button
@@ -370,6 +390,13 @@ export function ResusDesk({
 
           {activeStep === "A" ? (
             <AirwayPanel
+              episodeId={episode.id}
+              timeline={timeline}
+              active={active}
+              onChanged={() => router.refresh()}
+            />
+          ) : activeStep === "B" ? (
+            <BreathingPanel
               episodeId={episode.id}
               timeline={timeline}
               active={active}
