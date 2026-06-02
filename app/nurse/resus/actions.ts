@@ -1,6 +1,7 @@
 "use server";
 
 import type { AbcdeStep, ResusEventKind } from "@/lib/resus/types";
+import type { ResusRole } from "@/lib/resus/types";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { and, eq } from "drizzle-orm";
@@ -10,8 +11,19 @@ import { db } from "@/db";
 import { resusEpisodes } from "@/db/schema/resus";
 import { triageRecords } from "@/db/schema/triage";
 import { logger } from "@/lib/logger";
-import { appendResusEvent, concludeResusEpisode, openResusEpisode } from "@/lib/resus/record";
+import { detectArrest } from "@/lib/resus/arrest";
+import { mobiliseResusTeam } from "@/lib/resus/mobilise";
+import {
+  acknowledgeResusAlert,
+  appendResusEvent,
+  assignResusRole,
+  concludeResusEpisode,
+  markResusArrest,
+  openResusEpisode,
+} from "@/lib/resus/record";
 import { requireResusScope } from "@/lib/resus/scope";
+import { RESUS_ROLES } from "@/lib/resus/types";
+import { createServiceClient } from "@/lib/supabase/service";
 
 /**
  * Resus server actions (GATE C). Decision-support: these RECORD what the
@@ -80,6 +92,16 @@ export async function openResusFromTriage(triageRecordId: string): Promise<{ err
   });
   if ("error" in result) return { error: result.error };
 
+  // Fire team mobilisation (recognition → call → response).
+  await mobiliseResusTeam({
+    service: createServiceClient(),
+    episodeId: result.episodeId,
+    hospitalId: scope.hospitalId,
+    departmentId: tr.departmentId ?? scope.departmentId,
+    patientLabel: tr.patientUserId ? "a Red/L1 patient" : "an unidentified patient",
+    triggerReason: reason,
+  }).catch((e) => logger.warn("resus.open.mobilise_failed", { reason: String(e) }));
+
   revalidatePath("/nurse/resus");
   redirect(`/nurse/resus/${result.episodeId}`);
 }
@@ -95,6 +117,14 @@ export async function openBlankResus(): Promise<{ error: string }> {
     triggerReason: "Opened directly (in-resus deterioration / unlinked)",
   });
   if ("error" in result) return { error: result.error };
+  await mobiliseResusTeam({
+    service: createServiceClient(),
+    episodeId: result.episodeId,
+    hospitalId: scope.hospitalId,
+    departmentId: scope.departmentId,
+    patientLabel: "a patient",
+    triggerReason: "in-resus deterioration",
+  }).catch((e) => logger.warn("resus.open.mobilise_failed", { reason: String(e) }));
   revalidatePath("/nurse/resus");
   redirect(`/nurse/resus/${result.episodeId}`);
 }
@@ -270,6 +300,93 @@ export async function logResusVitals(
 
   revalidatePath(`/nurse/resus/${parsed.data.episodeId}`);
   return { ok: true };
+}
+
+/* ─── Team roles, responders, arrest (GATE E) ───────────────────────── */
+
+const AssignRoleSchema = z.object({
+  episodeId: z.string().uuid(),
+  userId: z.string().uuid(),
+  role: z.enum(RESUS_ROLES),
+});
+
+export async function assignResusRoleAction(
+  input: z.infer<typeof AssignRoleSchema>,
+): Promise<{ ok?: true; error?: string }> {
+  const parsed = AssignRoleSchema.safeParse(input);
+  if (!parsed.success) return { error: "Invalid role assignment." };
+  const scope = await requireResusScope();
+  const result = await assignResusRole({
+    scopeUserId: scope.userId,
+    episodeId: parsed.data.episodeId,
+    userId: parsed.data.userId,
+    role: parsed.data.role as ResusRole,
+  });
+  if ("error" in result) return { error: result.error };
+  revalidatePath(`/nurse/resus/${parsed.data.episodeId}`);
+  return { ok: true };
+}
+
+/** Claim a role for yourself (open assignment) — the common bedside case. */
+export async function claimResusRoleAction(input: {
+  episodeId: string;
+  role: ResusRole;
+}): Promise<{ ok?: true; error?: string }> {
+  const scope = await requireResusScope();
+  return assignResusRoleAction({
+    episodeId: input.episodeId,
+    userId: scope.userId,
+    role: input.role,
+  });
+}
+
+export async function acknowledgeResusAlertAction(
+  episodeId: string,
+): Promise<{ ok?: true; error?: string }> {
+  if (!z.string().uuid().safeParse(episodeId).success) return { error: "Invalid episode." };
+  const scope = await requireResusScope();
+  const result = await acknowledgeResusAlert({ scopeUserId: scope.userId, episodeId });
+  if ("error" in result) return { error: result.error };
+  revalidatePath(`/nurse/resus/${episodeId}`);
+  return { ok: true };
+}
+
+const ArrestSchema = z.object({
+  episodeId: z.string().uuid(),
+  responsive: z.boolean().nullable().optional(),
+  breathingNormally: z.boolean().nullable().optional(),
+  centralPulse: z.boolean().nullable().optional(),
+});
+
+/**
+ * Detect arrest → flag the episode + log arrest/CPR events + route to the
+ * ALS module (stub). Builds NO arrest algorithm. Returns isArrest so the UI
+ * can surface the CPR prompt; if the signs do not meet the criterion it
+ * records nothing and tells the caller why.
+ */
+export async function detectResusArrestAction(
+  input: z.infer<typeof ArrestSchema>,
+): Promise<{ ok?: true; isArrest?: boolean; reason?: string | null; error?: string }> {
+  const parsed = ArrestSchema.safeParse(input);
+  if (!parsed.success) return { error: "Invalid arrest check." };
+  const scope = await requireResusScope();
+
+  const verdict = detectArrest({
+    responsive: parsed.data.responsive ?? null,
+    breathingNormally: parsed.data.breathingNormally ?? null,
+    centralPulse: parsed.data.centralPulse ?? null,
+  });
+  if (!verdict.isArrest) return { ok: true, isArrest: false, reason: verdict.reason };
+
+  const result = await markResusArrest({
+    scopeUserId: scope.userId,
+    episodeId: parsed.data.episodeId,
+    reason: verdict.reason ?? "arrest criteria met",
+  });
+  if ("error" in result) return { error: result.error };
+  revalidatePath(`/nurse/resus/${parsed.data.episodeId}`);
+  revalidatePath("/nurse/resus");
+  return { ok: true, isArrest: true, reason: verdict.reason };
 }
 
 const ConcludeSchema = z.object({

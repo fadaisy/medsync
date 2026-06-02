@@ -2,9 +2,10 @@
 
 import type { ResusPatientView } from "@/lib/resus/board";
 import type { StepStatus } from "@/lib/resus/engine";
+import type { ResponderEntry, RosterEntry } from "@/lib/resus/record";
 import type { LinkedAction } from "@/lib/resus/reference/abcde-catalog";
 import type { ResusDoseId } from "@/lib/resus/reference/doses";
-import type { AbcdeLetter, ResusEventKind, TimelineEvent } from "@/lib/resus/types";
+import type { AbcdeLetter, ResusEventKind, ResusRole, TimelineEvent } from "@/lib/resus/types";
 import type { ResusVitalsView, TrendSeries, VitalSnapshot } from "@/lib/resus/vitals";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -18,12 +19,22 @@ import {
   recommendedNextStep,
   stepStatus,
 } from "@/lib/resus/engine";
-import { ABCDE_CATALOG, ANAPHYLAXIS_PROTOCOL } from "@/lib/resus/reference/abcde-catalog";
+import {
+  ABCDE_CATALOG,
+  ANAPHYLAXIS_PROTOCOL,
+  ARREST_SEAM,
+} from "@/lib/resus/reference/abcde-catalog";
 import { getResusDose } from "@/lib/resus/reference/doses";
-import { ABCDE_LETTERS } from "@/lib/resus/types";
+import { ABCDE_LETTERS, RESUS_ROLES } from "@/lib/resus/types";
 import { buildResusVitals, TREND_VITALS } from "@/lib/resus/vitals";
 import { cn } from "@/lib/utils";
-import { logResusEvent, logResusVitals } from "../../actions";
+import {
+  acknowledgeResusAlertAction,
+  claimResusRoleAction,
+  detectResusArrestAction,
+  logResusEvent,
+  logResusVitals,
+} from "../../actions";
 
 interface DeskEpisode {
   id: string;
@@ -88,11 +99,15 @@ export function ResusDesk({
   episode,
   patient,
   timeline,
+  roster,
+  responders,
   scope,
 }: {
   episode: DeskEpisode;
   patient: ResusPatientView;
   timeline: TimelineEvent[];
+  roster: RosterEntry[];
+  responders: ResponderEntry[];
   scope: DeskScope;
 }) {
   const router = useRouter();
@@ -236,9 +251,41 @@ export function ResusDesk({
             >
               <RotateCcwIcon className="size-3.5" aria-hidden /> Return to A
             </button>
+            {active && !episode.arrestDetected ? (
+              <button
+                type="button"
+                onClick={() =>
+                  startTransition(async () => {
+                    await detectResusArrestAction({
+                      episodeId: episode.id,
+                      responsive: false,
+                      breathingNormally: false,
+                      centralPulse: false,
+                    });
+                    router.refresh();
+                  })
+                }
+                disabled={pending}
+                className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-rose-600 px-2.5 py-1.5 text-[12px] font-bold text-white transition-colors hover:bg-rose-700 disabled:opacity-50"
+                title="Declare cardiac arrest — unresponsive + not breathing normally / no pulse"
+              >
+                ⚠ Arrest
+              </button>
+            ) : null}
           </div>
         </div>
       </header>
+
+      {episode.arrestDetected ? (
+        <div className="border-b border-rose-500/70 bg-rose-600 px-4 py-2.5 text-white sm:px-6">
+          <div className="mx-auto flex w-full max-w-6xl flex-col gap-0.5">
+            <p className="text-[13.5px] font-bold">⚠ CARDIAC ARREST — {ARREST_SEAM.cprPrompt}</p>
+            <p className="font-mono text-[10.5px] text-white/85">
+              Routed to: {ARREST_SEAM.routeLabel}. {ARREST_SEAM.deferred}
+            </p>
+          </div>
+        </div>
+      ) : null}
 
       {/* ── Continuous monitoring band (GATE D) ─────────────────────── */}
       <VitalsBand
@@ -273,8 +320,16 @@ export function ResusDesk({
           <StepPanel key={activeStep} step={activeStep} disabled={!active || pending} onLog={log} />
         </div>
 
-        {/* ── RIGHT: the live immutable record ────────────────────── */}
-        <aside className="flex flex-col gap-2 lg:sticky lg:top-[112px] lg:max-h-[calc(100svh-128px)]">
+        {/* ── RIGHT: team + the live immutable record ─────────────── */}
+        <aside className="flex flex-col gap-3 lg:sticky lg:top-[112px] lg:max-h-[calc(100svh-128px)]">
+          <TeamPanel
+            episodeId={episode.id}
+            roster={roster}
+            responders={responders}
+            scope={scope}
+            disabled={!active || pending}
+            onChange={() => router.refresh()}
+          />
           <div className="flex items-baseline justify-between">
             <h2 className="text-foreground/80 text-[12px] font-medium">
               Resus record{" "}
@@ -784,6 +839,119 @@ function ActionRow({
           ) : null}
           <p className="text-muted-foreground/60 font-mono text-[10px]">{action.source}</p>
         </div>
+      ) : null}
+    </div>
+  );
+}
+
+/* ─── Team: roles + who's responding ──────────────────────────────── */
+const ROLE_LABEL: Record<ResusRole, string> = {
+  leader: "Leader",
+  airway: "Airway",
+  circulation: "Circulation",
+  scribe: "Scribe",
+  runner: "Runner",
+  cpr_provider: "CPR",
+  family_liaison: "Family",
+};
+
+function TeamPanel({
+  episodeId,
+  roster,
+  responders,
+  scope,
+  disabled,
+  onChange,
+}: {
+  episodeId: string;
+  roster: RosterEntry[];
+  responders: ResponderEntry[];
+  scope: DeskScope;
+  disabled: boolean;
+  onChange: () => void;
+}) {
+  const [pending, startTransition] = useTransition();
+  const byRole = new Map(roster.map((r) => [r.role, r]));
+  const respondingCount = responders.filter((r) => r.responding).length;
+  const me = responders.find((r) => r.userId === scope.userId);
+  const iAmResponding = me?.responding ?? false;
+  const meHasRole = roster.some((r) => r.userId === scope.userId);
+
+  function claim(role: ResusRole) {
+    startTransition(async () => {
+      await claimResusRoleAction({ episodeId, role });
+      onChange();
+    });
+  }
+
+  return (
+    <div className="border-border bg-card rounded-xl border p-3">
+      <div className="mb-2 flex items-baseline justify-between">
+        <h2 className="text-foreground/80 text-[12px] font-medium">Team</h2>
+        <span className="text-muted-foreground/70 font-mono text-[10px]">
+          {respondingCount}/{responders.length} responding
+        </span>
+      </div>
+
+      <div className="flex flex-col gap-1">
+        {RESUS_ROLES.map((role) => {
+          const holder = byRole.get(role);
+          const isMine = holder?.userId === scope.userId;
+          return (
+            <div key={role} className="flex items-center gap-2 text-[11.5px]">
+              <span className="text-muted-foreground/70 w-[68px] shrink-0 font-mono text-[10px] tracking-[0.06em] uppercase">
+                {ROLE_LABEL[role]}
+                {role === "leader" && !holder ? (
+                  <span className="text-muted-foreground/40"> ★</span>
+                ) : null}
+              </span>
+              <span
+                className={cn(
+                  "min-w-0 flex-1 truncate",
+                  holder ? "text-foreground/85" : "text-muted-foreground/50",
+                )}
+              >
+                {holder ? (isMine ? "You" : (holder.fullName ?? "Assigned")) : "—"}
+              </span>
+              {!isMine ? (
+                <button
+                  type="button"
+                  disabled={disabled || pending}
+                  onClick={() => claim(role)}
+                  className="text-muted-foreground hover:text-foreground border-border shrink-0 rounded-md border px-1.5 py-0.5 text-[10.5px] transition-colors disabled:opacity-40"
+                >
+                  {holder ? "Take" : "Claim"}
+                </button>
+              ) : null}
+            </div>
+          );
+        })}
+      </div>
+
+      <p className="text-muted-foreground/60 mt-2 text-[10px] leading-snug">
+        {scope.leaderRecommended
+          ? "★ Leader recommended for your cadre. Roles never block — claim what you're doing."
+          : "★ Leader is usually a doctor / clinical officer. Roles never block — claim what you're doing."}
+      </p>
+
+      {me && !iAmResponding ? (
+        <button
+          type="button"
+          disabled={pending}
+          onClick={() =>
+            startTransition(async () => {
+              await acknowledgeResusAlertAction(episodeId);
+              onChange();
+            })
+          }
+          className="mt-2 w-full rounded-lg bg-teal-600 px-2.5 py-1.5 text-[12px] font-semibold text-white transition-colors hover:bg-teal-700 disabled:opacity-50"
+        >
+          {"I'm responding"}
+        </button>
+      ) : iAmResponding ? (
+        <p className="mt-2 text-center text-[11px] font-medium text-teal-700 dark:text-teal-300">
+          {`✓ You're responding${meHasRole ? "" : " — claim a role above"}`}
+        </p>
       ) : null}
     </div>
   );
