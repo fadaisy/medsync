@@ -5,6 +5,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Resus straight from the triage board + triage vitals carried in — 2026-06-02
+
+Closes the gap between triage and resus. A patient triaged **Red/L1** now shows an **"Open resus"** button on the triage worklist (replacing the rapid-declare control once they're already L1) that opens — or resumes — their ABCDE resus desk in one tap. So the flow is: assign L1 (or rapid-declare) → back on the board → Open resus. No engine/scoring change.
+
+- **Vitals carried from triage as the first resus reading.** Opening a resus from a triage record maps that record's `vitals_snapshot` (RR/SpO₂/O₂/BP/pulse/ACVPU/temp/glucose) into the first `vital` timeline event, **recorded at the triage time** so the resus trend starts where measurement actually began. Pure mapping `vitalsFromTriageSnapshot` (4 tests); rapid-Red snapshots carry nothing (no measured vitals). No migration — reuses the existing triage record + resus tables.
+- `openResusFromIntake` resolves the latest Red/L1 triage record for an intake; both triage entry points share one open→seed-vitals→mobilise→redirect path (idempotent — re-opening resumes the existing active episode).
+
 ### Added — ABCDE Resuscitation surface (Option A) — 2026-06-02
 
 The highest-acuity surface: a decision-support **ABCDE primary-assessment engine + continuous monitoring + team mobilisation** for any patient at Red/L1 or a Step-0 life-threat. Records what the team does — it never acts, orders, or auto-administers; the clinician leads. CSO-signed ([docs/resus-abcde-gate-a-proposal.md](docs/resus-abcde-gate-a-proposal.md); ADRs [0044](docs/adr/0044-resus-record-immutability.md)–[0047](docs/adr/0047-resus-arrest-seam.md)). Guideline-anchored to the **2025** cycle (AHA/ERC + ILCOR 2025 CoSTR + Resus Council UK ABCDE + ATLS + Surviving Sepsis 2021 + NEWS2); every drug dose web-verified against its primary source on 2026-06-01. The full ALS cardiac-arrest algorithm is a **separate later module** — this surface detects arrest and routes to it.
