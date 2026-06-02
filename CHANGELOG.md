@@ -5,6 +5,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — ABCDE Resuscitation surface (Option A) — 2026-06-02
+
+The highest-acuity surface: a decision-support **ABCDE primary-assessment engine + continuous monitoring + team mobilisation** for any patient at Red/L1 or a Step-0 life-threat. Records what the team does — it never acts, orders, or auto-administers; the clinician leads. CSO-signed ([docs/resus-abcde-gate-a-proposal.md](docs/resus-abcde-gate-a-proposal.md); ADRs [0044](docs/adr/0044-resus-record-immutability.md)–[0047](docs/adr/0047-resus-arrest-seam.md)). Guideline-anchored to the **2025** cycle (AHA/ERC + ILCOR 2025 CoSTR + Resus Council UK ABCDE + ATLS + Surviving Sepsis 2021 + NEWS2); every drug dose web-verified against its primary source on 2026-06-01. The full ALS cardiac-arrest algorithm is a **separate later module** — this surface detects arrest and routes to it.
+
+- **Immutable record** (migration 0038): `resus_episodes` (header) + `resus_timeline_events` (hard append-only — block trigger + REVOKE UPDATE/DELETE; corrections are new events via `supersedes_event_id`) + `resus_role_assignments` + `resus_mobilisation_alerts`. RLS scoped to the clinical team + patient + superadmin; PHI encrypted; fully audited. Reconstruction is pure + reproducible to any past instant ([ADR 0044](docs/adr/0044-resus-record-immutability.md)).
+- **ABCDE engine** (pure, TDD): open-life-threats tracker, treat-before-proceeding, recommended next step, reassess-after-intervention, return-to-A; A–E assess→danger→action catalog with the anaphylaxis cross-cut (one source of truth across A/B/C/E). Dose constants tiered by confidence — only web-verified values are fixed; TXA protocol-surfaced; status-benzo/naloxone/neb/flumazenil category-level (no fixed mg); paediatrics banded/deferred. "Never a remembered dose" is test-enforced ([ADR 0045](docs/adr/0045-resus-abcde-engine.md)).
+- **Continuous monitoring**: live vitals band + per-vital sparkline trends + derived metrics (shock index/MAP/pulse-pressure/qSOFA, reusing the triage scorer) + a post-intervention "re-check vitals" nudge; mirrors to the longitudinal `clinical_observations` store (etco2/urine_output kinds added).
+- **Team mobilisation + shared view**: opening a resus alerts all active clinical dept staff + the ward-in-charge in-app now (SMS/push stubbed behind the existing `NotificationSink`); a "who's responding" view + open role assignment (leader recommended, never blocked) ([ADR 0046](docs/adr/0046-resus-team-mobilisation.md)).
+- **Arrest seam**: one-tap declare → flags the episode, logs arrest+CPR, prompts "Start CPR", routes to the ALS module (to follow). No rhythm/defib/arrest-drug/4Hs-4Ts logic built ([ADR 0047](docs/adr/0047-resus-arrest-seam.md)).
+- **Surface**: full-bleed `/nurse/resus` board + `/nurse/resus/[episodeId]` desk (sidebar hidden), bedside-first, large tap targets, mono numerals, red used purposefully, no left-edge accent bars, reduced-motion-safe.
+
 ### Changed — Triage page: three-zone live working surface — 2026-06-01
 
 Reflows the triage page so the score AND the suggested next steps update live beside the vitals — **no scrolling to reach them** ([ADR 0043](docs/adr/0043-triage-layout-live-flow.md)). Layout + reactivity only; the engine, scoring, thresholds, routing, worse-of, recommendation mapping, override, and audit are all **unchanged** (diff touches only the two UI components; 282 triage tests pass byte-for-byte).

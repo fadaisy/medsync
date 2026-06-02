@@ -68,3 +68,6 @@ export * from "./staff-identity-profiles";
 
 // ─── Smart triage engine (migration 0036) ──────────────────────────────
 export * from "./triage";
+
+// ─── ABCDE resuscitation surface (migration 0038) ──────────────────────
+export * from "./resus";
