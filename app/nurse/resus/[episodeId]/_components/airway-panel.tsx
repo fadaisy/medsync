@@ -4,7 +4,16 @@ import type { AirwayActionState, AirwayFindingSet } from "@/lib/resus/airway";
 import type { AirwayPatency } from "@/lib/resus/reference/airway-catalog";
 import type { ResusDoseId } from "@/lib/resus/reference/doses";
 import type { TimelineEvent } from "@/lib/resus/types";
+import type { LucideIcon } from "lucide-react";
 import { useMemo, useState, useTransition } from "react";
+import {
+  CheckIcon,
+  CircleDotIcon,
+  LoaderCircleIcon,
+  MinusIcon,
+  PauseIcon,
+  TriangleAlertIcon,
+} from "lucide-react";
 
 import {
   airwayProceedGuard,
@@ -52,12 +61,63 @@ const STATE_LABEL: Record<string, string> = {
   unknown: "Not yet assessed",
 };
 
-const ACTION_STATES: { value: AirwayActionState; label: string }[] = [
-  { value: "in_progress", label: "Doing" },
-  { value: "performed", label: "Done" },
-  { value: "failed", label: "Failed" },
-  { value: "deferred", label: "Defer" },
-  { value: "not_indicated", label: "N/A" },
+/**
+ * Action-state colour identities (DESIGN-medsync "Resus state colour
+ * system"). The CURRENT state shows as a filled coloured token (icon +
+ * word); the others are quieter controls. Alarm scarcity — only `failed`
+ * is red. `indicated` (amber) = the recommended next thing. Never colour
+ * alone (every token carries an icon + word).
+ */
+const ACTION_STATE_STYLE: Record<
+  AirwayActionState,
+  { label: string; short: string; token: string; icon: LucideIcon }
+> = {
+  indicated: {
+    label: "Indicated",
+    short: "Indicated",
+    token: "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200",
+    icon: CircleDotIcon,
+  },
+  in_progress: {
+    label: "In progress",
+    short: "Doing",
+    token:
+      "bg-blue-100 text-blue-800 motion-safe:animate-pulse dark:bg-blue-900/40 dark:text-blue-200",
+    icon: LoaderCircleIcon,
+  },
+  performed: {
+    label: "Performed",
+    short: "Done",
+    token: "bg-teal-100 text-teal-800 dark:bg-teal-900/50 dark:text-teal-200",
+    icon: CheckIcon,
+  },
+  failed: {
+    label: "Failed",
+    short: "Failed",
+    token: "bg-rose-100 text-rose-700 dark:bg-rose-900/50 dark:text-rose-200",
+    icon: TriangleAlertIcon,
+  },
+  deferred: {
+    label: "Deferred",
+    short: "Defer",
+    token: "bg-muted text-muted-foreground",
+    icon: PauseIcon,
+  },
+  not_indicated: {
+    label: "Not indicated",
+    short: "N/A",
+    token: "border border-border text-muted-foreground/70",
+    icon: MinusIcon,
+  },
+};
+
+/** The states a clinician can SET (indicated is the default, not a target). */
+const SETTABLE_STATES: AirwayActionState[] = [
+  "in_progress",
+  "performed",
+  "failed",
+  "deferred",
+  "not_indicated",
 ];
 
 export function AirwayPanel({
@@ -459,12 +519,30 @@ function ActionCard({
   const escalation = failed ? escalationFor(code) : null;
   const escAction = escalation ? airwayAction(escalation) : null;
 
+  // The active state drives the filled token + a subtle full-card tint
+  // (never a left-edge accent). `indicated` is the default until recorded.
+  const effective: AirwayActionState = currentState ?? "indicated";
+  const style = ACTION_STATE_STYLE[effective];
+  const StateIcon = style.icon;
+  const cardTint =
+    currentState === "failed"
+      ? "border-rose-400/60 bg-rose-50/40 dark:bg-rose-950/15"
+      : currentState === "in_progress"
+        ? "border-blue-300/60 bg-blue-50/40 dark:bg-blue-950/15"
+        : currentState === "performed"
+          ? "border-teal-300/60 bg-teal-50/30 dark:bg-teal-950/15"
+          : currentState === "deferred" || currentState === "not_indicated"
+            ? "border-border"
+            : emergency
+              ? "border-rose-400/60"
+              : "border-amber-300/55 bg-amber-50/25 dark:border-amber-500/30 dark:bg-amber-950/10";
+
   return (
     <div
       className={cn(
         "bg-card rounded-lg border px-2.5 py-2",
-        emergency ? "border-rose-400/60" : "border-border",
-        currentState === "performed" ? "opacity-70" : "",
+        cardTint,
+        currentState === "performed" ? "opacity-75" : "",
       )}
     >
       <div className="flex items-start justify-between gap-2">
@@ -491,43 +569,41 @@ function ActionCard({
             </p>
           ) : null}
         </div>
-        {currentState ? (
-          <span
-            className={cn(
-              "shrink-0 rounded-full px-1.5 py-0.5 font-mono text-[9.5px] font-semibold",
-              currentState === "performed"
-                ? "bg-teal-100 text-teal-700 dark:bg-teal-900/50 dark:text-teal-200"
-                : currentState === "failed"
-                  ? "bg-rose-100 text-rose-700 dark:bg-rose-900/50 dark:text-rose-200"
-                  : "bg-muted text-muted-foreground",
-            )}
-          >
-            {currentState.replace(/_/g, " ")}
-          </span>
-        ) : (
-          <span className="text-muted-foreground/60 shrink-0 font-mono text-[9.5px]">
-            indicated
-          </span>
-        )}
+        <span
+          className={cn(
+            "inline-flex shrink-0 items-center gap-1 rounded-full px-1.5 py-0.5 text-[9.5px] font-semibold",
+            style.token,
+          )}
+        >
+          <StateIcon className="size-3" aria-hidden />
+          {style.label}
+        </span>
       </div>
 
       <div className="mt-1.5 flex flex-wrap gap-1">
-        {ACTION_STATES.map((s) => (
-          <button
-            key={s.value}
-            type="button"
-            disabled={disabled}
-            onClick={() => onSetState(code, s.value)}
-            className={cn(
-              "rounded-md border px-1.5 py-0.5 text-[10.5px] transition-colors disabled:opacity-40",
-              currentState === s.value
-                ? "border-foreground/40 bg-foreground/85 text-background"
-                : "border-border text-muted-foreground hover:bg-muted/50",
-            )}
-          >
-            {s.label}
-          </button>
-        ))}
+        {SETTABLE_STATES.map((s) => {
+          const sStyle = ACTION_STATE_STYLE[s];
+          const SIcon = sStyle.icon;
+          const isCurrent = currentState === s;
+          return (
+            <button
+              key={s}
+              type="button"
+              disabled={disabled}
+              onClick={() => onSetState(code, s)}
+              aria-pressed={isCurrent}
+              className={cn(
+                "inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[10.5px] transition-colors disabled:opacity-40",
+                isCurrent
+                  ? cn(sStyle.token, "ring-foreground/15 border-transparent font-semibold ring-1")
+                  : "border-border text-muted-foreground hover:bg-muted/50",
+              )}
+            >
+              <SIcon className="size-3" aria-hidden />
+              {sStyle.short}
+            </button>
+          );
+        })}
       </div>
 
       {failed && escAction ? (
