@@ -152,6 +152,126 @@ export async function correctResusEvent(
   return { ok: true, eventId: result.eventId };
 }
 
+const VitalsSchema = z.object({
+  episodeId: z.string().uuid(),
+  snapshot: z.object({
+    hr: z.number().nullable().optional(),
+    rr: z.number().nullable().optional(),
+    spo2: z.number().nullable().optional(),
+    systolicBp: z.number().nullable().optional(),
+    diastolicBp: z.number().nullable().optional(),
+    temperature: z.number().nullable().optional(),
+    glucose: z.number().nullable().optional(),
+    gcs: z.number().nullable().optional(),
+    etco2: z.number().nullable().optional(),
+    urineOutput: z.number().nullable().optional(),
+    consciousness: z.enum(["A", "C", "V", "P", "U"]).nullable().optional(),
+    oxygen: z.enum(["air", "oxygen"]).nullable().optional(),
+  }),
+});
+
+/** Map a snapshot to clinical_observations rows (longitudinal mirror). */
+function observationRows(
+  snap: z.infer<typeof VitalsSchema>["snapshot"],
+  base: { hospital_id: string; patient_user_id: string; recorded_by_user_id: string },
+) {
+  const rows: Record<string, unknown>[] = [];
+  const push = (kind: string, v1: number | null | undefined, unit: string) => {
+    if (v1 == null) return;
+    rows.push({
+      ...base,
+      observation_kind: kind,
+      numeric_value_1: v1,
+      numeric_value_2: null,
+      unit,
+    });
+  };
+  push("hr", snap.hr, "/min");
+  push("rr", snap.rr, "/min");
+  push("spo2", snap.spo2, "%");
+  if (snap.systolicBp != null || snap.diastolicBp != null)
+    rows.push({
+      ...base,
+      observation_kind: "bp",
+      numeric_value_1: snap.systolicBp ?? null,
+      numeric_value_2: snap.diastolicBp ?? null,
+      unit: "mmHg",
+    });
+  push("temperature", snap.temperature, "°C");
+  push("glucose", snap.glucose, "mmol/L");
+  push("gcs", snap.gcs, "/15");
+  push("etco2", snap.etco2, "kPa");
+  push("urine_output", snap.urineOutput, "mL");
+  return rows;
+}
+
+export async function logResusVitals(
+  input: z.infer<typeof VitalsSchema>,
+): Promise<{ ok?: true; error?: string }> {
+  const parsed = VitalsSchema.safeParse(input);
+  if (!parsed.success) return { error: "Invalid vitals." };
+  const scope = await requireResusScope();
+
+  const [ep] = await db
+    .select({ patientUserId: resusEpisodes.patientUserId, hospitalId: resusEpisodes.hospitalId })
+    .from(resusEpisodes)
+    .where(
+      and(
+        eq(resusEpisodes.id, parsed.data.episodeId),
+        eq(resusEpisodes.hospitalId, scope.hospitalId),
+      ),
+    )
+    .limit(1);
+  if (!ep) return { error: "Resus episode not found." };
+
+  const snap = parsed.data.snapshot;
+  const recorded = Object.entries(snap)
+    .filter(([, v]) => v != null)
+    .map(([k]) => k);
+  if (recorded.length === 0) return { error: "Enter at least one vital." };
+
+  // Primary, immutable record: a resus timeline 'vital' event.
+  const ev = await appendResusEvent({
+    scopeUserId: scope.userId,
+    episodeId: parsed.data.episodeId,
+    kind: "vital",
+    step: "C",
+    payload: { label: `Vitals: ${recorded.join(", ")}`, snapshot: snap },
+  });
+  if ("error" in ev) return { error: ev.error };
+
+  // Best-effort mirror into the longitudinal vitals store (only when the
+  // patient is identified — clinical_observations is patient-keyed).
+  if (ep.patientUserId) {
+    try {
+      const rows = observationRows(snap, {
+        hospital_id: ep.hospitalId,
+        patient_user_id: ep.patientUserId,
+        recorded_by_user_id: scope.userId,
+      });
+      if (rows.length > 0) {
+        const { createServiceClient } = await import("@/lib/supabase/service");
+        const service = createServiceClient();
+        await service.from("clinical_observations").insert(rows);
+        await service.from("sa_audit_log").insert({
+          actor_id: scope.userId,
+          action: "record_observation",
+          target_kind: "resus_episode",
+          target_id: parsed.data.episodeId,
+          reason: `Resus vitals mirrored to record: ${recorded.join(", ")}`,
+          before_data: null,
+          after_data: { kinds: recorded },
+        });
+      }
+    } catch (e) {
+      logger.warn("resus.vitals.observation_mirror_failed", { reason: String(e) });
+    }
+  }
+
+  revalidatePath(`/nurse/resus/${parsed.data.episodeId}`);
+  return { ok: true };
+}
+
 const ConcludeSchema = z.object({
   episodeId: z.string().uuid(),
   state: z.enum(["concluded", "cancelled"]),

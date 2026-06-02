@@ -5,6 +5,7 @@ import type { StepStatus } from "@/lib/resus/engine";
 import type { LinkedAction } from "@/lib/resus/reference/abcde-catalog";
 import type { ResusDoseId } from "@/lib/resus/reference/doses";
 import type { AbcdeLetter, ResusEventKind, TimelineEvent } from "@/lib/resus/types";
+import type { ResusVitalsView, TrendSeries, VitalSnapshot } from "@/lib/resus/vitals";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, useTransition } from "react";
@@ -20,8 +21,9 @@ import {
 import { ABCDE_CATALOG, ANAPHYLAXIS_PROTOCOL } from "@/lib/resus/reference/abcde-catalog";
 import { getResusDose } from "@/lib/resus/reference/doses";
 import { ABCDE_LETTERS } from "@/lib/resus/types";
+import { buildResusVitals, TREND_VITALS } from "@/lib/resus/vitals";
 import { cn } from "@/lib/utils";
-import { logResusEvent } from "../../actions";
+import { logResusEvent, logResusVitals } from "../../actions";
 
 interface DeskEpisode {
   id: string;
@@ -106,6 +108,20 @@ export function ResusDesk({
   );
   const open = openLifeThreats(progress);
   const nextStep = recommendedNextStep(progress);
+  const vitals = useMemo(() => buildResusVitals(timeline), [timeline]);
+
+  // Post-intervention reassessment nudge: an action-class event newer than
+  // the last vital snapshot means vitals are due (reassess-after-intervention).
+  const vitalsDue = useMemo(() => {
+    const lastVital = vitals.lastAt;
+    const lastAction = timeline
+      .filter((e) => ["drug", "fluid", "procedure", "action"].includes(e.kind))
+      .reduce<
+        string | null
+      >((acc, e) => (acc === null || e.recordedAt > acc ? e.recordedAt : acc), null);
+    if (!lastAction) return false;
+    return lastVital === null || lastAction > lastVital;
+  }, [timeline, vitals.lastAt]);
 
   function log(
     kind: ResusEventKind,
@@ -224,6 +240,22 @@ export function ResusDesk({
         </div>
       </header>
 
+      {/* ── Continuous monitoring band (GATE D) ─────────────────────── */}
+      <VitalsBand
+        vitals={vitals}
+        due={vitalsDue && active}
+        disabled={!active || pending}
+        onSave={(snap) => {
+          if (!active) return;
+          setPendingLabel("Vitals");
+          startTransition(async () => {
+            await logResusVitals({ episodeId: episode.id, snapshot: snap });
+            setPendingLabel(null);
+            router.refresh();
+          });
+        }}
+      />
+
       <div className="mx-auto grid w-full max-w-6xl flex-1 grid-cols-1 gap-4 px-4 py-4 sm:px-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
         {/* ── CENTRE: ABCDE step + anaphylaxis cross-cut ──────────── */}
         <div className="flex flex-col gap-4">
@@ -256,6 +288,252 @@ export function ResusDesk({
           </div>
           <Timeline timeline={timeline} pendingLabel={pendingLabel} />
         </aside>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Continuous monitoring band ──────────────────────────────────── */
+type VitalTone = "normal" | "borderline" | "abnormal" | "critical" | "missing";
+
+const VITAL_TONE_CLASS: Record<VitalTone, string> = {
+  normal: "border-border bg-card text-foreground",
+  borderline:
+    "border-amber-300/70 bg-amber-50/50 text-amber-800 dark:bg-amber-950/20 dark:text-amber-200",
+  abnormal:
+    "border-orange-400/70 bg-orange-50/60 text-orange-700 dark:bg-orange-950/25 dark:text-orange-200",
+  critical:
+    "border-rose-500/80 bg-rose-50/70 text-rose-700 ring-1 ring-rose-500/30 dark:bg-rose-950/30 dark:text-rose-200",
+  missing: "border-dashed border-border/70 bg-muted/20 text-muted-foreground/50",
+};
+
+/** Conservative display tone — matches the catalog danger-sign cutoffs. */
+function vitalTone(key: string, v: number | null | undefined): VitalTone {
+  if (v == null) return "missing";
+  switch (key) {
+    case "hr":
+      return v <= 40 || v >= 131 ? "critical" : v < 50 || v > 110 ? "abnormal" : "normal";
+    case "rr":
+      return v <= 8 || v >= 25 ? "critical" : v > 20 ? "abnormal" : "normal";
+    case "spo2":
+      return v < 92 ? "critical" : v < 94 ? "borderline" : "normal";
+    case "systolicBp":
+      return v <= 90 ? "critical" : v < 100 ? "abnormal" : "normal";
+    case "temperature":
+      return v < 35 || v >= 39.1 ? "abnormal" : "normal";
+    case "glucose":
+      return v < 4 ? "critical" : v > 11 ? "borderline" : "normal";
+    default:
+      return "normal";
+  }
+}
+
+function Sparkline({ series }: { series: TrendSeries }) {
+  const pts = series.points;
+  if (pts.length < 2) return null;
+  const vals = pts.map((p) => p.value);
+  const min = Math.min(...vals);
+  const max = Math.max(...vals);
+  const span = max - min || 1;
+  const w = 56;
+  const h = 16;
+  const d = pts
+    .map((p, i) => {
+      const x = (i / (pts.length - 1)) * w;
+      const y = h - ((p.value - min) / span) * h;
+      return `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(" ");
+  return (
+    <svg width={w} height={h} className="text-muted-foreground/60 mt-0.5" aria-hidden>
+      <path d={d} fill="none" stroke="currentColor" strokeWidth="1" />
+    </svg>
+  );
+}
+
+const CAPTURE_FIELDS = [
+  { key: "hr", label: "HR", step: "1" },
+  { key: "rr", label: "RR", step: "1" },
+  { key: "spo2", label: "SpO₂", step: "1" },
+  { key: "systolicBp", label: "SBP", step: "1" },
+  { key: "diastolicBp", label: "DBP", step: "1" },
+  { key: "temperature", label: "Temp", step: "0.1" },
+  { key: "glucose", label: "Gluc", step: "0.1" },
+  { key: "gcs", label: "GCS", step: "1" },
+  { key: "etco2", label: "EtCO₂", step: "0.1" },
+  { key: "urineOutput", label: "Urine", step: "1" },
+] as const;
+
+function VitalsBand({
+  vitals,
+  due,
+  disabled,
+  onSave,
+}: {
+  vitals: ResusVitalsView;
+  due: boolean;
+  disabled: boolean;
+  onSave: (snap: VitalSnapshot) => void;
+}) {
+  const [capture, setCapture] = useState(false);
+  const [form, setForm] = useState<Record<string, string>>({});
+
+  const tiles = TREND_VITALS;
+  const d = vitals.derived;
+  const derivedChips: { label: string; value: string; tone: VitalTone }[] = [];
+  if (d.shockIndex != null)
+    derivedChips.push({
+      label: "Shock idx",
+      value: d.shockIndex.toFixed(2),
+      tone:
+        d.shockIndexFlag === "shock"
+          ? "critical"
+          : d.shockIndexFlag === "occult_shock"
+            ? "abnormal"
+            : "normal",
+    });
+  if (d.meanArterialPressure != null)
+    derivedChips.push({
+      label: "MAP",
+      value: String(Math.round(d.meanArterialPressure)),
+      tone: d.meanArterialPressure < 65 ? "abnormal" : "normal",
+    });
+  if (d.pulsePressure != null)
+    derivedChips.push({
+      label: "Pulse press",
+      value: String(d.pulsePressure),
+      tone: d.pulsePressureFlag === "narrow" ? "abnormal" : "normal",
+    });
+  if (d.qsofa)
+    derivedChips.push({
+      label: "qSOFA",
+      value: String(d.qsofa.score),
+      tone: d.qsofa.score >= 2 ? "abnormal" : "normal",
+    });
+
+  function save() {
+    const snap: VitalSnapshot = {};
+    for (const f of CAPTURE_FIELDS) {
+      const raw = form[f.key];
+      if (raw != null && raw !== "") {
+        const n = Number(raw);
+        if (Number.isFinite(n)) (snap as Record<string, unknown>)[f.key] = n;
+      }
+    }
+    if (form.consciousness)
+      snap.consciousness = form.consciousness as VitalSnapshot["consciousness"];
+    onSave(snap);
+    setForm({});
+    setCapture(false);
+  }
+
+  return (
+    <div className="border-border bg-muted/20 border-b">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-2 px-4 py-2 sm:px-6">
+        <div className="flex items-center gap-2 overflow-x-auto">
+          <span className="text-muted-foreground/70 hidden shrink-0 font-mono text-[9px] tracking-[0.14em] uppercase sm:inline">
+            Vitals
+          </span>
+          {tiles.map((t) => {
+            const value = vitals.latest[t.key] as number | null | undefined;
+            const tone = vitalTone(t.key, value);
+            const seriesForKey = vitals.series.find((s) => s.key === t.key);
+            return (
+              <div
+                key={t.key}
+                className={cn(
+                  "flex shrink-0 flex-col rounded-lg border px-2 py-1",
+                  VITAL_TONE_CLASS[tone],
+                )}
+              >
+                <span className="font-mono text-[9px] tracking-[0.1em] uppercase opacity-70">
+                  {t.label}
+                </span>
+                <span className="font-mono text-[15px] leading-none font-semibold tabular-nums">
+                  {value == null ? "—" : value}
+                  {t.key === "systolicBp" && vitals.latest.diastolicBp != null
+                    ? `/${vitals.latest.diastolicBp}`
+                    : ""}
+                </span>
+                {seriesForKey ? <Sparkline series={seriesForKey} /> : null}
+              </div>
+            );
+          })}
+          {derivedChips.map((c) => (
+            <div
+              key={c.label}
+              className={cn(
+                "flex shrink-0 flex-col rounded-lg border px-2 py-1",
+                VITAL_TONE_CLASS[c.tone],
+              )}
+            >
+              <span className="font-mono text-[9px] tracking-[0.1em] uppercase opacity-70">
+                {c.label}
+              </span>
+              <span className="font-mono text-[15px] leading-none font-semibold tabular-nums">
+                {c.value}
+              </span>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() => setCapture((c) => !c)}
+            disabled={disabled}
+            className={cn(
+              "ml-auto shrink-0 self-stretch rounded-lg border px-3 text-[12px] font-medium transition-colors disabled:opacity-50",
+              due
+                ? "border-rose-400/70 bg-rose-50/60 text-rose-700 motion-safe:animate-pulse dark:bg-rose-950/25 dark:text-rose-200"
+                : "border-border bg-card text-foreground/80 hover:bg-muted/50",
+            )}
+          >
+            {due ? "↻ Re-check vitals" : capture ? "Close" : "Record vitals"}
+          </button>
+        </div>
+
+        {capture ? (
+          <div className="flex flex-wrap items-end gap-2 pt-1">
+            {CAPTURE_FIELDS.map((f) => (
+              <label key={f.key} className="flex flex-col gap-0.5">
+                <span className="text-muted-foreground/70 font-mono text-[9px] tracking-[0.1em] uppercase">
+                  {f.label}
+                </span>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  step={f.step}
+                  value={form[f.key] ?? ""}
+                  onChange={(e) => setForm((s) => ({ ...s, [f.key]: e.target.value }))}
+                  className="border-border bg-card text-foreground focus:ring-foreground/20 w-16 rounded-md border px-1.5 py-1 font-mono text-[13px] tabular-nums outline-none focus:ring-2"
+                />
+              </label>
+            ))}
+            <label className="flex flex-col gap-0.5">
+              <span className="text-muted-foreground/70 font-mono text-[9px] tracking-[0.1em] uppercase">
+                ACVPU
+              </span>
+              <select
+                value={form.consciousness ?? ""}
+                onChange={(e) => setForm((s) => ({ ...s, consciousness: e.target.value }))}
+                className="border-border bg-card text-foreground w-16 rounded-md border px-1.5 py-1 font-mono text-[13px] outline-none"
+              >
+                <option value="">—</option>
+                {["A", "C", "V", "P", "U"].map((o) => (
+                  <option key={o} value={o}>
+                    {o}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button
+              type="button"
+              onClick={save}
+              disabled={disabled}
+              className="rounded-lg bg-teal-600 px-3 py-1.5 text-[12.5px] font-semibold text-white transition-colors hover:bg-teal-700 disabled:opacity-50"
+            >
+              Save vitals
+            </button>
+          </div>
+        ) : null}
       </div>
     </div>
   );

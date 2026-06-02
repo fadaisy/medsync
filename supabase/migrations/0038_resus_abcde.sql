@@ -362,3 +362,17 @@ ALTER TABLE public.sa_notifications
       'clinical_resus_mobilisation'
     )
   );
+
+
+-- ─── 7. clinical_observations: continuous-monitoring kinds (GATE D) ──
+-- Device-ready additions for the resus surface: end-tidal CO2 (capnography)
+-- and urine output. Additive — existing kinds preserved.
+ALTER TABLE public.clinical_observations
+  DROP CONSTRAINT IF EXISTS obs_kind_check;
+ALTER TABLE public.clinical_observations
+  ADD CONSTRAINT obs_kind_check CHECK (observation_kind IN (
+    'bp','hr','temperature','rr','spo2','glucose','pain',
+    'weight','height','intake','output','gcs','other','acvpu',
+    -- New (resus monitoring, migration 0038)
+    'etco2','urine_output'
+  ));
