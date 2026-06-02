@@ -330,3 +330,18 @@ export function buildAirwayActions(events: readonly TimelineEvent[]): AirwayActi
   }
   return [...byId.values()];
 }
+
+/**
+ * Treat-before-proceeding gate to Breathing. An open airway threat flags
+ * (does not hard-block — a resus is non-linear; the UX informs) advancing
+ * to B until addressed.
+ */
+export function airwayProceedGuard(state: AirwayState | null): { ok: boolean; warning?: string } {
+  if (state === "apnoeic_arrest")
+    return { ok: false, warning: "Apnoea / arrest — start CPR (do not proceed to B)." };
+  if (state === "completely_obstructed" || state === "partially_obstructed")
+    return { ok: false, warning: "Open airway obstruction — treat before proceeding to B." };
+  if (state === "threatened")
+    return { ok: false, warning: "Airway threatened — secure / escalate before proceeding to B." };
+  return { ok: true };
+}

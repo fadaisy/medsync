@@ -3,6 +3,7 @@ import type { TimelineEvent } from "@/lib/resus/types";
 import { describe, expect, it } from "vitest";
 
 import {
+  airwayProceedGuard,
   buildAirwayActions,
   classifyAirway,
   escalationFor,
@@ -299,5 +300,18 @@ describe("buildAirwayActions — fold state changes by actionId", () => {
       actEvent("2", "2026-06-02T10:01:00.000Z", "inst-2", "a_opa", "indicated"),
     ]);
     expect(out).toHaveLength(2);
+  });
+});
+
+describe("airwayProceedGuard — treat-before-proceeding to B", () => {
+  it("blocks while an airway obstruction is open", () => {
+    expect(airwayProceedGuard("completely_obstructed").ok).toBe(false);
+    expect(airwayProceedGuard("partially_obstructed").ok).toBe(false);
+  });
+  it("flags a threatened airway", () => {
+    expect(airwayProceedGuard("threatened").ok).toBe(false);
+  });
+  it("allows proceeding once secure", () => {
+    expect(airwayProceedGuard("secure").ok).toBe(true);
   });
 });
