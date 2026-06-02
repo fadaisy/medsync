@@ -1,4 +1,5 @@
 import type { AirwayFindingSet } from "@/lib/resus/airway";
+import type { AirwayAction } from "@/lib/resus/reference/airway-catalog";
 import type { TimelineEvent } from "@/lib/resus/types";
 import { describe, expect, it } from "vitest";
 
@@ -29,12 +30,18 @@ describe("classifyAirway — worst finding wins", () => {
     expect(classifyAirway(fs())).toBeNull();
   });
 
-  it("apnoeic patency → apnoeic_arrest", () => {
-    expect(classifyAirway(fs({ patency: "apnoeic" }))).toBe("apnoeic_arrest");
+  it("apnoeic patency WITH signs of life → apnoeic_ventilate (peri-arrest resp failure, NOT CPR)", () => {
+    expect(classifyAirway(fs({ patency: "apnoeic" }))).toBe("apnoeic_ventilate");
   });
 
-  it("silence + no effort → apnoeic_arrest", () => {
-    expect(classifyAirway(fs({ present: ["silence_no_effort"] }))).toBe("apnoeic_arrest");
+  it("silence + no effort (signs of life) → apnoeic_ventilate", () => {
+    expect(classifyAirway(fs({ present: ["silence_no_effort"] }))).toBe("apnoeic_ventilate");
+  });
+
+  it("apnoea + no signs of life (pulseless) → apnoeic_arrest", () => {
+    expect(classifyAirway(fs({ patency: "apnoeic", context: { noSignsOfLife: true } }))).toBe(
+      "apnoeic_arrest",
+    );
   });
 
   it("no signs of life (context) → apnoeic_arrest (overrides everything)", () => {
@@ -313,5 +320,113 @@ describe("airwayProceedGuard — treat-before-proceeding to B", () => {
   });
   it("allows proceeding once secure", () => {
     expect(airwayProceedGuard("secure").ok).toBe(true);
+  });
+});
+
+describe("triggeredActions — more clusters (GATE E adversarial)", () => {
+  it("expanding neck haematoma + voice change → threatened, call skilled + surgical help", () => {
+    const c = codes(fs({ present: ["swelling_neck", "hoarse_muffled_voice"] }));
+    expect(c).toContain("a_call_skilled_help");
+  });
+  it("progression (weakening cough + stridor) → escalate (call skilled help), do not wait for desat", () => {
+    expect(codes(fs({ present: ["weakening_cough", "stridor_inspiratory"] }))).toContain(
+      "a_call_skilled_help",
+    );
+  });
+  it("isolated stridor → call skilled help (laryngeal obstruction)", () => {
+    expect(codes(fs({ present: ["stridor_inspiratory"] }))).toContain("a_call_skilled_help");
+  });
+  it("simple gurgling does NOT, by itself, summon the airway operator", () => {
+    expect(codes(fs({ present: ["gurgling"] }))).not.toContain("a_call_skilled_help");
+  });
+});
+
+describe("catalog integrity (clinical-safety)", () => {
+  it("every action's escalatesTo + doseId references a real catalog/dose entry", () => {
+    for (const a of Object.values(AIRWAY_ACTIONS) as AirwayAction[]) {
+      if (a.escalatesTo)
+        expect(AIRWAY_ACTIONS, `${a.code}.escalatesTo`).toHaveProperty(a.escalatesTo);
+    }
+  });
+});
+
+/* ─── GATE E: adversarial-review must-fix regressions ────────────────── */
+
+describe("apnoea routing — pulse-dependent (must-fix)", () => {
+  it("apnoea WITH a pulse → ventilation actions (BVM), NOT an empty CPR list", () => {
+    const c = codes(fs({ patency: "apnoeic" }));
+    expect(c).toContain("a_bag_mask_ventilation");
+    expect(c.length).toBeGreaterThan(0);
+    expect(isArrestPattern(fs({ patency: "apnoeic" }))).toBe(false);
+  });
+  it("apnoea + no signs of life → arrest (empty airway list, route to CPR)", () => {
+    const f = fs({ patency: "apnoeic", context: { noSignsOfLife: true } });
+    expect(triggeredActions(f)).toEqual([]);
+    expect(isArrestPattern(f)).toBe(true);
+  });
+});
+
+describe("see-saw is complete obstruction (must-fix)", () => {
+  it("see-saw alone → completely_obstructed + open airway + call skilled help (not O₂-only)", () => {
+    expect(classifyAirway(fs({ present: ["see_saw"] }))).toBe("completely_obstructed");
+    const c = codes(fs({ present: ["see_saw"] }));
+    expect(c).toContain("a_head_tilt_chin_lift");
+    expect(c).toContain("a_call_skilled_help");
+  });
+});
+
+describe("adrenaline gated on anaphylaxis features (must-fix)", () => {
+  it("facial swelling AFTER a trigger → IM adrenaline as the top (p0) emergency", () => {
+    const t = triggeredActions(
+      fs({ present: ["swelling_face"], context: { allergenTrigger: true } }),
+    );
+    const adr = t.find((x) => x.code === "a_anaphylaxis_adrenaline")!;
+    expect(adr.priority).toBe(0);
+  });
+  it("isolated facial swelling (no trigger) → airway protection first; adrenaline only conditional (not p0)", () => {
+    const t = triggeredActions(fs({ present: ["swelling_face"] }));
+    const adr = t.find((x) => x.code === "a_anaphylaxis_adrenaline")!;
+    expect(adr.priority).toBeGreaterThan(0);
+    expect(t.some((x) => x.code === "a_call_skilled_help")).toBe(true);
+  });
+});
+
+describe("epiglottitis trigger + do-not-instrument (must-fix)", () => {
+  it("drooling + muffled voice (pre-stridor) → epiglottitis pathway fires EARLY", () => {
+    expect(codes(fs({ present: ["drooling_tripod", "hoarse_muffled_voice"] }))).toContain(
+      "a_epiglottitis_pathway",
+    );
+  });
+  it("stridor + hoarse withOUT drooling → laryngeal oedema (NOT epiglottitis do-not-touch)", () => {
+    const c = codes(fs({ present: ["stridor_inspiratory", "hoarse_muffled_voice"] }));
+    expect(c).not.toContain("a_epiglottitis_pathway");
+    expect(c).toContain("a_neb_adrenaline_oedema");
+  });
+  it("suspected epiglottitis with co-present gurgling/snoring/GCS → NO instrumentation surfaced", () => {
+    const c = codes(
+      fs({
+        present: ["drooling_tripod", "hoarse_muffled_voice", "gurgling", "snoring", "gcs_le8"],
+      }),
+    );
+    expect(c).toContain("a_epiglottitis_pathway");
+    expect(c).toContain("a_call_skilled_help");
+    for (const instrument of ["a_suction", "a_head_tilt_chin_lift", "a_jaw_thrust", "a_opa"]) {
+      expect(c, `must not instrument: ${instrument}`).not.toContain(instrument);
+    }
+  });
+});
+
+describe("C-spine + danger-finding fixes (should-fix)", () => {
+  it("facial/neck trauma finding implies jaw-thrust (not head-tilt)", () => {
+    const c = codes(fs({ present: ["facial_neck_trauma", "snoring"] }));
+    expect(c).toContain("a_jaw_thrust");
+    expect(c).not.toContain("a_head_tilt_chin_lift");
+  });
+  it("central cyanosis is not inert → threatened + call skilled help", () => {
+    expect(classifyAirway(fs({ present: ["central_cyanosis"] }))).toBe("threatened");
+    expect(codes(fs({ present: ["central_cyanosis"] }))).toContain("a_call_skilled_help");
+  });
+  it("an unassessed airway is NOT declared safe to proceed to B", () => {
+    expect(airwayProceedGuard(null).ok).toBe(false);
   });
 });

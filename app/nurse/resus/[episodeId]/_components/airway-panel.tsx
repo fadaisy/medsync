@@ -36,6 +36,8 @@ const STATE_TONE: Record<string, string> = {
     "border-orange-400/70 bg-orange-50/60 text-orange-700 dark:bg-orange-950/25 dark:text-orange-200",
   completely_obstructed:
     "border-rose-500/80 bg-rose-50/70 text-rose-700 ring-1 ring-rose-500/40 motion-safe:animate-pulse dark:bg-rose-950/30 dark:text-rose-200",
+  apnoeic_ventilate:
+    "border-rose-500/80 bg-rose-50/70 text-rose-700 ring-1 ring-rose-500/40 motion-safe:animate-pulse dark:bg-rose-950/30 dark:text-rose-200",
   apnoeic_arrest: "border-rose-600 bg-rose-600 text-white motion-safe:animate-pulse",
   unknown: "border-border bg-muted/30 text-muted-foreground",
 };
@@ -45,6 +47,7 @@ const STATE_LABEL: Record<string, string> = {
   threatened: "Threatened",
   partially_obstructed: "Partially obstructed",
   completely_obstructed: "Completely obstructed",
+  apnoeic_ventilate: "Apnoea — ventilate",
   apnoeic_arrest: "Apnoeic — arrest",
   unknown: "Not yet assessed",
 };
@@ -153,9 +156,9 @@ export function AirwayPanel({
             STATE_TONE[state ?? "unknown"],
           )}
         >
-          {(state === "completely_obstructed" || state === "apnoeic_arrest") && (
-            <span aria-hidden>▲</span>
-          )}
+          {(state === "completely_obstructed" ||
+            state === "apnoeic_ventilate" ||
+            state === "apnoeic_arrest") && <span aria-hidden>▲</span>}
           {STATE_LABEL[state ?? "unknown"]}
         </span>
       </div>
@@ -172,11 +175,11 @@ export function AirwayPanel({
         {guard.ok ? "✓ Airway secure — safe to proceed to B." : `⚠ ${guard.warning}`}
       </div>
 
-      {/* Arrest route */}
+      {/* Arrest route — confirmed pulselessness only */}
       {arrest ? (
         <div className="flex items-center justify-between gap-2 rounded-lg border border-rose-600 bg-rose-600 px-3 py-2 text-white">
           <p className="text-[12.5px] font-bold">
-            ⚠ Apnoea / no signs of life — this is cardiac arrest, not an airway problem.
+            ⚠ Apnoea + no signs of life — cardiac arrest, not an airway problem.
           </p>
           <button
             type="button"
@@ -186,6 +189,13 @@ export function AirwayPanel({
           >
             Start CPR → ALS
           </button>
+        </div>
+      ) : state === "apnoeic_ventilate" ? (
+        <div className="rounded-lg border border-rose-500/80 bg-rose-50/70 px-3 py-2 text-rose-800 ring-1 ring-rose-500/30 dark:bg-rose-950/30 dark:text-rose-200">
+          <p className="text-[12.5px] font-bold">
+            ⚠ Apnoea WITH a pulse — open airway + ventilate (bag-mask). Confirm the pulse — if none,
+            tick &ldquo;No signs of life&rdquo; → cardiac arrest.
+          </p>
         </div>
       ) : null}
 
@@ -228,6 +238,12 @@ export function AirwayPanel({
               onClick={() => setCtx({ ...ctx, allergenTrigger: !ctx.allergenTrigger })}
             />
             <ContextToggle
+              label="Gag / clenched jaw"
+              on={!!ctx.gagPresent}
+              disabled={!active}
+              onClick={() => setCtx({ ...ctx, gagPresent: !ctx.gagPresent })}
+            />
+            <ContextToggle
               label="No signs of life"
               danger
               on={!!ctx.noSignsOfLife}
@@ -261,6 +277,10 @@ export function AirwayPanel({
           <h3 className="text-muted-foreground font-mono text-[10px] tracking-[0.14em] uppercase">
             Difficulty screen (anticipate)
           </h3>
+          <p className="text-muted-foreground/70 -mt-1 text-[10px] leading-snug">
+            Anticipation prompts only — limited sensitivity (esp. Mallampati alone); not pass/fail
+            gates.
+          </p>
           <div className="flex flex-wrap gap-1.5">
             {AIRWAY_DIFFICULTY.map((d) => (
               <button

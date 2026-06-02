@@ -193,10 +193,18 @@ export const AIRWAY_DIFFICULTY: DifficultyFlag[] = [
 ];
 
 /* ─── Classifier code-groups (used by classifyAirway) ───────────────── */
-/** Apnoea / no effort → arrest pathway. */
+/** Apnoea / no effort → arrest (if pulseless) or ventilation emergency. */
 export const AIRWAY_APNOEA_FINDINGS = ["silence_no_effort"] as const;
-/** Complete obstruction (silent with effort, or no airflow). */
-export const AIRWAY_COMPLETE_FINDINGS = ["silence_with_effort", "airflow_absent"] as const;
+/**
+ * Complete obstruction — silent with effort, no airflow, OR see-saw /
+ * paradoxical chest-abdomen movement (a defining sign of complete
+ * obstruction; catalog §1.1/§3 — bias to over-triage, never O₂-only).
+ */
+export const AIRWAY_COMPLETE_FINDINGS = [
+  "silence_with_effort",
+  "airflow_absent",
+  "see_saw",
+] as const;
 /** Partial obstruction (noisy breathing / reduced airflow / fatiguing). */
 export const AIRWAY_PARTIAL_FINDINGS = [
   "stridor_inspiratory",
@@ -205,7 +213,6 @@ export const AIRWAY_PARTIAL_FINDINGS = [
   "crowing",
   "airflow_reduced",
   "weakening_cough",
-  "see_saw",
 ] as const;
 /** Threatened airway (patent now, but the trajectory/pathology threatens it). */
 export const AIRWAY_THREATENED_FINDINGS = [
@@ -216,6 +223,8 @@ export const AIRWAY_THREATENED_FINDINGS = [
   "gcs_le8",
   "drooling_tripod",
   "facial_neck_trauma",
+  "central_cyanosis",
+  "accessory_muscles",
 ] as const;
 
 export function airwayFindingLabel(code: string): string {
@@ -296,6 +305,14 @@ export const AIRWAY_ACTIONS = {
     label: "Recovery position",
     tier: 1,
     source: RCUK,
+  },
+  a_bag_mask_ventilation: {
+    code: "a_bag_mask_ventilation",
+    label: "Assisted ventilation (bag-mask) + airway adjunct + 15 L O₂",
+    tier: 2,
+    emergency: true,
+    escalatesTo: "a_call_skilled_help",
+    source: "ERC 2025 / RCUK ABCDE",
   },
   a_remove_foreign_body: {
     code: "a_remove_foreign_body",

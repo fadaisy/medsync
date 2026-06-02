@@ -387,6 +387,7 @@ const AirwayFindingsSchema = z.object({
         trauma: z.boolean().optional(),
         allergenTrigger: z.boolean().optional(),
         noSignsOfLife: z.boolean().optional(),
+        gagPresent: z.boolean().optional(),
       })
       .optional(),
   }),

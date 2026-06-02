@@ -22,12 +22,18 @@ import {
  * new migration is needed.
  */
 
-/** secure → ... → apnoeic_arrest. Null = not yet assessed. */
+/**
+ * secure → ... → apnoeic_arrest. Null = not yet assessed.
+ * `apnoeic_ventilate` = apnoea WITH signs of life (peri-arrest respiratory
+ * failure / opioid toxicity) — open airway + ventilate, NOT chest
+ * compressions. Only `apnoeic_arrest` (pulseless) routes to CPR/ALS.
+ */
 export const AIRWAY_STATES = [
   "secure",
   "threatened",
   "partially_obstructed",
   "completely_obstructed",
+  "apnoeic_ventilate",
   "apnoeic_arrest",
 ] as const;
 export type AirwayState = (typeof AIRWAY_STATES)[number];
@@ -47,8 +53,10 @@ export interface AirwayFindingSet {
     trauma?: boolean;
     /** Likely allergen trigger — supports the anaphylaxis cluster. */
     allergenTrigger?: boolean;
-    /** No signs of life — routes apnoea to the arrest pathway. */
+    /** No signs of life (pulseless) — routes apnoea to the arrest pathway. */
     noSignsOfLife?: boolean;
+    /** Gag present / clenched jaw — an OPA is unsuitable; prefer an NPA. */
+    gagPresent?: boolean;
   };
 }
 
@@ -65,9 +73,11 @@ function hasAny(present: readonly string[], group: readonly string[]): boolean {
 export function classifyAirway(fs: AirwayFindingSet): AirwayState | null {
   const { patency, present, context } = fs;
 
-  // Apnoea / arrest (highest).
+  // Cardiac arrest (pulseless) — the ONLY airway state that routes to CPR.
   if (context.noSignsOfLife) return "apnoeic_arrest";
-  if (patency === "apnoeic" || hasAny(present, AIRWAY_APNOEA_FINDINGS)) return "apnoeic_arrest";
+  // Apnoea WITH signs of life = peri-arrest respiratory failure → open
+  // airway + ventilate (BVM), NOT chest compressions. Confirm the pulse.
+  if (patency === "apnoeic" || hasAny(present, AIRWAY_APNOEA_FINDINGS)) return "apnoeic_ventilate";
 
   // Complete obstruction.
   if (patency === "completely_obstructed" || hasAny(present, AIRWAY_COMPLETE_FINDINGS))
@@ -158,35 +168,61 @@ const has = (fs: AirwayFindingSet, code: string) => fs.present.includes(code);
  * not the airway engine.
  */
 export function triggeredActions(fs: AirwayFindingSet): TriggeredAction[] {
-  if (isArrestPattern(fs)) return [];
-
   const state = classifyAirway(fs);
-  const manoeuvre = fs.context.trauma ? "a_jaw_thrust" : "a_head_tilt_chin_lift";
+  // Pulseless arrest → CPR / ALS module, not the airway engine.
+  if (state === "apnoeic_arrest") return [];
+
+  const manoeuvre =
+    fs.context.trauma || has(fs, "facial_neck_trauma") ? "a_jaw_thrust" : "a_head_tilt_chin_lift";
+  const adjunct = fs.context.gagPresent ? "a_npa" : "a_opa";
   const out: TriggeredAction[] = [];
   const add = (code: string, rationale: string, priority: number) => {
     const emergency = airwayAction(code)?.emergency ?? false;
     out.push({ code, rationale, priority, emergency });
   };
 
-  // ── Combination clusters (catalog §3) — most urgent first ──
-  // Complete obstruction.
+  // Epiglottitis / supraglottic obstruction — anchored on DROOLING (present
+  // before stridor, which is a late sign). Drives the do-not-instrument
+  // suppression at the end (catalog §3 cluster 2).
+  const epiglottitis =
+    has(fs, "drooling_tripod") &&
+    (has(fs, "hoarse_muffled_voice") || has(fs, "stridor_inspiratory"));
+
+  // ── Apnoea WITH a pulse — peri-arrest respiratory failure → ventilate ──
+  if (state === "apnoeic_ventilate") {
+    add(
+      "a_bag_mask_ventilation",
+      "Apnoea WITH a pulse — open airway + ventilate (BVM); confirm the pulse — if none, start CPR",
+      0,
+    );
+    add(manoeuvre, "Open the airway", 1);
+    add(adjunct, "Airway adjunct to support ventilation", 1);
+    add(
+      "a_call_skilled_help",
+      "Respiratory arrest — call skilled help + prepare advanced airway",
+      1,
+    );
+  }
+
+  // ── Complete obstruction ──
   if (state === "completely_obstructed") {
+    add(manoeuvre, "Open the airway", 0);
     add(
       "a_call_skilled_help",
       "Complete obstruction — call skilled help now + prepare advanced airway",
       0,
     );
-    add(manoeuvre, "Open the airway", 1);
     add("a_suction", "Clear the airway", 1);
+    add(adjunct, "Airway adjunct", 1);
+    if (has(fs, "foreign_body"))
+      add("a_choking_algorithm", "Foreign body + complete obstruction → choking algorithm", 0);
   }
-  // Supraglottic / epiglottitis — do NOT distress or instrument.
-  if (
-    has(fs, "stridor_inspiratory") &&
-    (has(fs, "drooling_tripod") || has(fs, "hoarse_muffled_voice"))
-  ) {
+
+  // ── Supraglottic / epiglottitis (do NOT distress or instrument) ──
+  if (epiglottitis) {
     add(
       "a_epiglottitis_pathway",
-      "Stridor + drooling/muffled voice → supraglottic obstruction (epiglottitis): do not distress/instrument; senior anaesthetic + ENT; theatre",
+      "Drooling + muffled voice/stridor → supraglottic obstruction (epiglottitis): do NOT distress or instrument; senior anaesthetic + ENT; controlled airway in theatre",
       0,
     );
     add("a_call_skilled_help", "Senior anaesthetic + ENT immediately", 1);
@@ -196,8 +232,23 @@ export function triggeredActions(fs: AirwayFindingSet): TriggeredAction[] {
       "Nebulised adrenaline for upper-airway oedema (cause-dependent)",
       2,
     );
+  } else if (has(fs, "stridor_inspiratory") && has(fs, "hoarse_muffled_voice")) {
+    // Laryngeal oedema (stridor + hoarse, no drooling) — adrenaline-responsive;
+    // NOT the do-not-touch epiglottitis pathway. Consider anaphylaxis.
+    add(
+      "a_neb_adrenaline_oedema",
+      "Stridor + hoarse voice → laryngeal oedema: nebulised adrenaline (cause-dependent)",
+      1,
+    );
+    add("a_steroids_oedema", "Inflammatory oedema (cause-dependent)", 2);
+    add(
+      "a_call_skilled_help",
+      "Laryngeal oedema — call skilled help; consider anaphylaxis (IM adrenaline) if features present",
+      1,
+    );
   }
-  // Burns / inhalation — closing airway.
+
+  // ── Burns / inhalation — closing airway ──
   if (has(fs, "burns_soot")) {
     add(
       "a_burns_early_intubation",
@@ -206,26 +257,51 @@ export function triggeredActions(fs: AirwayFindingSet): TriggeredAction[] {
     );
     add("a_call_skilled_help", "Closing-airway window — escalate now", 1);
   }
-  // Anaphylaxis / angioedema with airway swelling.
+
+  // ── Facial/airway swelling — anaphylaxis vs non-allergic angioedema ──
   if (has(fs, "swelling_face")) {
-    const why = fs.context.allergenTrigger
-      ? "Facial/lip/tongue swelling after a trigger → anaphylaxis: IM adrenaline first"
-      : "Angioedema with airway swelling → IM adrenaline";
-    add("a_anaphylaxis_adrenaline", why, 0);
-    add("a_call_skilled_help", "Prepare advanced airway + senior/ICU", 1);
+    if (fs.context.allergenTrigger) {
+      add(
+        "a_anaphylaxis_adrenaline",
+        "Facial/lip/tongue swelling after a trigger → anaphylaxis: IM adrenaline first",
+        0,
+      );
+      add("a_call_skilled_help", "Prepare advanced airway + senior/ICU", 1);
+    } else {
+      add(
+        "a_call_skilled_help",
+        "Facial/airway swelling — airway protection + senior/ENT; adrenaline may be INEFFECTIVE in ACE-inhibitor / hereditary (bradykinin) angioedema",
+        1,
+      );
+      add(
+        "a_anaphylaxis_adrenaline",
+        "IF anaphylaxis suspected (urticaria / wheeze / hypotension after a trigger) → IM adrenaline",
+        2,
+      );
+    }
   }
-  // Reduced GCS — cannot protect the airway.
+
+  // ── Reduced GCS — cannot protect the airway ──
   if (has(fs, "gcs_le8")) {
     add(
       "a_call_skilled_help",
       "GCS ≤ 8 — cannot protect the airway → definitive airway for protection",
       1,
     );
-    add("a_opa", "Adjunct for the unconscious/no-gag patient", 2);
+    add(
+      adjunct,
+      fs.context.gagPresent
+        ? "Gag present / clenched jaw — nasopharyngeal adjunct (OPA unsuitable)"
+        : "Adjunct for the unconscious / no-gag patient",
+      2,
+    );
     add(manoeuvre, "Open the airway", 2);
     add("a_suction", "Protect against aspiration", 2);
+    if (!fs.context.trauma && !has(fs, "facial_neck_trauma"))
+      add("a_recovery_position", "Unconscious + breathing + no trauma → recovery position", 3);
   }
-  // Expanding neck haematoma — threatened airway.
+
+  // ── Expanding neck haematoma ──
   if (has(fs, "swelling_neck")) {
     add(
       "a_call_skilled_help",
@@ -233,17 +309,35 @@ export function triggeredActions(fs: AirwayFindingSet): TriggeredAction[] {
       1,
     );
   }
-  // Laryngospasm.
-  if (has(fs, "crowing")) {
-    add("a_laryngospasm_management", "Crowing → laryngospasm", 2);
+  // ── Laryngospasm ──
+  if (has(fs, "crowing")) add("a_laryngospasm_management", "Crowing → laryngospasm", 2);
+
+  // ── Stridor / laryngeal / fatiguing (progression) — escalate early ──
+  if (has(fs, "stridor_inspiratory") || has(fs, "crowing") || has(fs, "weakening_cough")) {
+    add(
+      "a_call_skilled_help",
+      "Stridor / laryngeal / fatiguing airway — call skilled help early (don't wait for desaturation)",
+      1,
+    );
+  }
+  // ── Central cyanosis — severe hypoxaemia (late sign) → escalate ──
+  if (has(fs, "central_cyanosis")) {
+    add("a_call_skilled_help", "Central cyanosis — severe hypoxaemia (late sign): escalate", 1);
   }
 
   // ── Single findings (Tier 1) ──
   if (has(fs, "foreign_body")) {
     add("a_remove_foreign_body", "Visible foreign body / secretions — remove under vision", 1);
     add("a_suction", "Clear secretions/blood/vomit", 2);
-    if (state === "completely_obstructed")
-      add("a_choking_algorithm", "Choking with severe/complete obstruction", 0);
+    if (
+      state === "completely_obstructed" ||
+      (state === "partially_obstructed" && has(fs, "weakening_cough"))
+    )
+      add(
+        "a_choking_algorithm",
+        "Foreign body + severe/ineffective-cough obstruction → choking algorithm (5 back blows / 5 abdominal thrusts)",
+        0,
+      );
   }
   if (has(fs, "gurgling")) add("a_suction", "Gurgling — liquid in the airway → suction", 2);
   if (has(fs, "snoring"))
@@ -265,19 +359,40 @@ export function triggeredActions(fs: AirwayFindingSet): TriggeredAction[] {
     );
   }
 
-  // ── Supportive O₂ (always, for any compromised/critically-ill airway) ──
-  add("a_high_flow_o2", "High-flow O₂ for the critically ill patient; target SpO₂ 94–98%", 3);
+  // ── Supportive O₂ (critically ill) ──
+  add(
+    "a_high_flow_o2",
+    "High-flow O₂ for the critically ill; target SpO₂ 94–98% (88–92% if COPD / type-2 RF risk)",
+    3,
+  );
+
+  // Epiglottitis: suppress instrumentation UNLESS the airway is already
+  // complete/apnoeic (then you must act) — avoid precipitating total
+  // obstruction (catalog §3 cluster 2 / §2 Tier 2).
+  let result = out;
+  if (epiglottitis && state !== "completely_obstructed" && state !== "apnoeic_ventilate") {
+    const INSTRUMENT = new Set([
+      "a_suction",
+      "a_head_tilt_chin_lift",
+      "a_jaw_thrust",
+      "a_opa",
+      "a_npa",
+      "a_remove_foreign_body",
+      "a_choking_algorithm",
+    ]);
+    result = out.filter((t) => !INSTRUMENT.has(t.code));
+  }
 
   // De-duplicate by code (keep the most urgent rationale), then sort.
   const byCode = new Map<string, TriggeredAction>();
-  for (const t of out) {
+  for (const t of result) {
     const held = byCode.get(t.code);
     if (!held || t.priority < held.priority) byCode.set(t.code, t);
   }
   return [...byCode.values()].sort((a, b) => a.priority - b.priority);
 }
 
-/** Apnoea + no signs of life → route to the arrest pathway, not airway. */
+/** Confirmed cardiac arrest (pulseless) → route to CPR/ALS, not the airway engine. */
 export function isArrestPattern(fs: AirwayFindingSet): boolean {
   return classifyAirway(fs) === "apnoeic_arrest";
 }
@@ -337,8 +452,12 @@ export function buildAirwayActions(events: readonly TimelineEvent[]): AirwayActi
  * to B until addressed.
  */
 export function airwayProceedGuard(state: AirwayState | null): { ok: boolean; warning?: string } {
+  if (state === null)
+    return { ok: false, warning: "Airway not yet assessed — assess A before proceeding to B." };
   if (state === "apnoeic_arrest")
-    return { ok: false, warning: "Apnoea / arrest — start CPR (do not proceed to B)." };
+    return { ok: false, warning: "Apnoea + no signs of life — start CPR (do not proceed to B)." };
+  if (state === "apnoeic_ventilate")
+    return { ok: false, warning: "Apnoea — open airway + ventilate (BVM); confirm the pulse." };
   if (state === "completely_obstructed" || state === "partially_obstructed")
     return { ok: false, warning: "Open airway obstruction — treat before proceeding to B." };
   if (state === "threatened")
