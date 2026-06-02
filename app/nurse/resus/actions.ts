@@ -11,6 +11,7 @@ import { db } from "@/db";
 import { resusEpisodes } from "@/db/schema/resus";
 import { triageRecords } from "@/db/schema/triage";
 import { logger } from "@/lib/logger";
+import { classifyAirway } from "@/lib/resus/airway";
 import { detectArrest } from "@/lib/resus/arrest";
 import { mobiliseResusTeam } from "@/lib/resus/mobilise";
 import {
@@ -21,6 +22,7 @@ import {
   markResusArrest,
   openResusEpisode,
 } from "@/lib/resus/record";
+import { AIRWAY_PATENCY } from "@/lib/resus/reference/airway-catalog";
 import { requireResusScope } from "@/lib/resus/scope";
 import { RESUS_ROLES } from "@/lib/resus/types";
 import { vitalsFromTriageSnapshot } from "@/lib/resus/vitals";
@@ -370,6 +372,61 @@ export async function logResusVitals(
 
   revalidatePath(`/nurse/resus/${parsed.data.episodeId}`);
   return { ok: true };
+}
+
+/* ─── Airway step (A) — findings (GATE B) ───────────────────────────── */
+
+const AirwayFindingsSchema = z.object({
+  episodeId: z.string().uuid(),
+  findingSet: z.object({
+    patency: z.enum(AIRWAY_PATENCY).nullable(),
+    present: z.array(z.string().max(64)).max(40),
+    difficulty: z.array(z.string().max(64)).max(20),
+    context: z
+      .object({
+        trauma: z.boolean().optional(),
+        allergenTrigger: z.boolean().optional(),
+        noSignsOfLife: z.boolean().optional(),
+      })
+      .optional(),
+  }),
+});
+
+/**
+ * Record an airway finding-set (assessment) onto the immutable timeline.
+ * Reassessment appends a new event; the latest is current. The classified
+ * airway-state is stored alongside for the medico-legal record.
+ */
+export async function recordAirwayFindings(
+  input: z.infer<typeof AirwayFindingsSchema>,
+): Promise<{ ok?: true; airwayState?: string | null; error?: string }> {
+  const parsed = AirwayFindingsSchema.safeParse(input);
+  if (!parsed.success) return { error: "Invalid airway findings." };
+  const scope = await requireResusScope();
+
+  const findingSet = { ...parsed.data.findingSet, context: parsed.data.findingSet.context ?? {} };
+  const state = classifyAirway(findingSet);
+
+  const ev = await appendResusEvent({
+    scopeUserId: scope.userId,
+    episodeId: parsed.data.episodeId,
+    kind: "assessment",
+    step: "A",
+    payload: {
+      airway: findingSet,
+      airwayState: state,
+      label: `Airway findings${state ? ` → ${state.replace(/_/g, " ")}` : ""}`,
+      danger:
+        state === "completely_obstructed" ||
+        state === "apnoeic_arrest" ||
+        state === "threatened" ||
+        state === "partially_obstructed",
+    },
+  });
+  if ("error" in ev) return { error: ev.error };
+
+  revalidatePath(`/nurse/resus/${parsed.data.episodeId}`);
+  return { ok: true, airwayState: state };
 }
 
 /* ─── Team roles, responders, arrest (GATE E) ───────────────────────── */
