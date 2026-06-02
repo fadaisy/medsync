@@ -484,8 +484,11 @@ function FindingGroup({
               onClick={() => onToggle(f.code)}
               className={cn(
                 "rounded-lg border px-2 py-1 text-[11px] transition-colors disabled:opacity-50",
+                // Findings describe — keep them CALMER than actions: a selected
+                // finding uses the brand teal selected-state; urgency is carried
+                // by the airway-STATE indicator, not the individual chips.
                 on
-                  ? "border-rose-400/70 bg-rose-50/60 text-rose-700 dark:bg-rose-950/25 dark:text-rose-200"
+                  ? "border-teal-400/70 bg-teal-50/70 text-teal-800 dark:border-teal-500/40 dark:bg-teal-950/25 dark:text-teal-200"
                   : "border-border bg-muted/30 text-foreground/70 hover:bg-muted/60",
               )}
             >

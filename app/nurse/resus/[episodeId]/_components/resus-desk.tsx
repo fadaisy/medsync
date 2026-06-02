@@ -1065,13 +1065,21 @@ function Timeline({
       {ordered.map((e) => {
         const label = String(e.payload.label ?? e.payload.item ?? e.kind);
         const danger = e.payload.danger === true;
+        // Subtle state tint so the running record is scannable by state
+        // (failed → faint rose, performed → faint teal) — tint, don't shout.
+        const evState = e.payload.state;
+        const tint =
+          danger || evState === "failed"
+            ? "bg-rose-50/60 dark:bg-rose-950/20"
+            : evState === "performed"
+              ? "bg-teal-50/50 dark:bg-teal-950/20"
+              : evState === "in_progress"
+                ? "bg-blue-50/40 dark:bg-blue-950/15"
+                : "";
         return (
           <li
             key={e.id}
-            className={cn(
-              "flex items-start gap-2 rounded-lg px-2 py-1.5 text-[11.5px]",
-              danger ? "bg-rose-50/60 dark:bg-rose-950/20" : "",
-            )}
+            className={cn("flex items-start gap-2 rounded-lg px-2 py-1.5 text-[11.5px]", tint)}
           >
             <span className="text-muted-foreground/70 mt-px shrink-0 font-mono text-[10px] tabular-nums">
               {clockOf(e.recordedAt)}
