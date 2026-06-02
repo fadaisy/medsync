@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { ArrowLeftIcon, RotateCcwIcon } from "lucide-react";
 
+import { classifyAirway, latestAirwayAssessment } from "@/lib/resus/airway";
 import {
   deriveProgress,
   openLifeThreats,
@@ -56,20 +57,50 @@ interface DeskScope {
   leaderRecommended: boolean;
 }
 
-const STATUS_TONE: Record<StepStatus, string> = {
+/**
+ * The glanceable step-bar visual state (visual rework — DESIGN-medsync
+ * "Resus state colour system"). Derived from the engine status (no engine
+ * change); `open` splits into amber `threatened` vs red `active_threat`
+ * only when a life-threat-now is present (alarm scarcity — red is precious).
+ * State is conveyed by border + fill + ring + coloured letter chip + word
+ * (never a left-edge accent; never colour alone).
+ */
+type StepVisual = "pending" | "clear" | "addressed" | "threatened" | "active_threat";
+
+const STEP_TONE: Record<StepVisual, string> = {
   pending: "border-border bg-muted/30 text-muted-foreground",
   clear: "border-teal-300/70 bg-teal-50/60 text-teal-700 dark:bg-teal-950/25 dark:text-teal-200",
-  open: "border-rose-500/80 bg-rose-50/70 text-rose-700 ring-1 ring-rose-500/40 motion-safe:animate-pulse dark:bg-rose-950/30 dark:text-rose-200",
   addressed:
-    "border-amber-300/70 bg-amber-50/60 text-amber-800 dark:bg-amber-950/25 dark:text-amber-200",
+    "border-teal-600/60 bg-teal-600/10 text-teal-800 dark:bg-teal-900/30 dark:text-teal-200",
+  threatened:
+    "border-amber-300/80 bg-amber-50/70 text-amber-800 dark:bg-amber-950/25 dark:text-amber-200",
+  active_threat: "border-rose-600 bg-rose-600 text-white ring-1 ring-rose-500/50",
 };
 
-const STATUS_LABEL: Record<StepStatus, string> = {
+const STEP_CHIP: Record<StepVisual, string> = {
+  pending: "bg-muted text-muted-foreground",
+  clear: "bg-teal-100 text-teal-700 dark:bg-teal-900/60 dark:text-teal-200",
+  addressed: "bg-teal-700 text-white",
+  threatened: "bg-amber-400 text-amber-950 dark:bg-amber-500/80 dark:text-amber-950",
+  active_threat: "bg-white text-rose-700",
+};
+
+const STEP_WORD: Record<StepVisual, string> = {
   pending: "Pending",
   clear: "Clear",
-  open: "Life-threat open",
   addressed: "Addressed",
+  threatened: "Threatened",
+  active_threat: "Active threat",
 };
+
+/** Engine status → visual state. `open` is amber `threatened` unless a
+ * life-threat-now is present (then red `active_threat`). No engine change. */
+function stepVisual(status: StepStatus, activeThreat: boolean): StepVisual {
+  if (status === "open") return activeThreat ? "active_threat" : "threatened";
+  if (status === "clear") return "clear";
+  if (status === "addressed") return "addressed";
+  return "pending";
+}
 
 function useElapsed(startIso: string): string {
   // Initialise from the prop (pure); the interval drives the live tick.
@@ -125,6 +156,15 @@ export function ResusDesk({
   const open = openLifeThreats(progress);
   const nextStep = recommendedNextStep(progress);
   const vitals = useMemo(() => buildResusVitals(timeline), [timeline]);
+
+  // Airway letter (A) escalates to red `active_threat` only on a genuine
+  // life-threat-now (airway complete/apnoea, or arrest) — alarm scarcity.
+  const aActiveThreat = useMemo(() => {
+    if (episode.arrestDetected) return true;
+    const last = latestAirwayAssessment(timeline);
+    const s = last ? classifyAirway(last) : null;
+    return s === "completely_obstructed" || s === "apnoeic_ventilate" || s === "apnoeic_arrest";
+  }, [timeline, episode.arrestDetected]);
 
   // Post-intervention reassessment nudge: an action-class event newer than
   // the last vital snapshot means vitals are due (reassess-after-intervention).
@@ -217,25 +257,35 @@ export function ResusDesk({
             <div className="flex flex-1 items-center gap-1.5">
               {ABCDE_LETTERS.map((letter) => {
                 const p = progress.find((x) => x.step === letter)!;
-                const st = stepStatus(p);
+                const vis = stepVisual(stepStatus(p), letter === "A" && aActiveThreat);
+                const focused = activeStep === letter;
                 return (
                   <button
                     key={letter}
                     type="button"
                     onClick={() => setActiveStep(letter)}
+                    aria-current={focused ? "step" : undefined}
                     className={cn(
                       "flex flex-1 items-center justify-center gap-1.5 rounded-lg border px-2 py-1.5 text-[12px] font-semibold transition-colors",
-                      STATUS_TONE[st],
-                      activeStep === letter ? "ring-foreground/20 ring-2 ring-offset-1" : "",
-                      nextStep === letter && active
-                        ? "outline outline-2 outline-offset-1 outline-rose-400/60"
+                      STEP_TONE[vis],
+                      focused ? "ring-2 ring-teal-500/70 ring-offset-1" : "",
+                      nextStep === letter && active && !focused
+                        ? "outline-1 outline-offset-1 outline-teal-400/60 outline-dashed"
                         : "",
                     )}
-                    aria-label={`${letter} — ${STATUS_LABEL[st]}`}
-                    title={`${ABCDE_CATALOG[letter].title} — ${STATUS_LABEL[st]}`}
+                    aria-label={`${letter} — ${STEP_WORD[vis]}${focused ? " (current step)" : ""}`}
+                    title={`${ABCDE_CATALOG[letter].title} — ${STEP_WORD[vis]}`}
                   >
-                    <span className="font-mono">{letter}</span>
-                    <span className="hidden font-normal md:inline">{STATUS_LABEL[st]}</span>
+                    <span
+                      aria-hidden
+                      className={cn(
+                        "flex size-4.5 items-center justify-center rounded font-mono text-[11px] font-semibold",
+                        STEP_CHIP[vis],
+                      )}
+                    >
+                      {letter}
+                    </span>
+                    <span className="hidden font-normal md:inline">{STEP_WORD[vis]}</span>
                   </button>
                 );
               })}
@@ -1015,13 +1065,21 @@ function Timeline({
       {ordered.map((e) => {
         const label = String(e.payload.label ?? e.payload.item ?? e.kind);
         const danger = e.payload.danger === true;
+        // Subtle state tint so the running record is scannable by state
+        // (failed → faint rose, performed → faint teal) — tint, don't shout.
+        const evState = e.payload.state;
+        const tint =
+          danger || evState === "failed"
+            ? "bg-rose-50/60 dark:bg-rose-950/20"
+            : evState === "performed"
+              ? "bg-teal-50/50 dark:bg-teal-950/20"
+              : evState === "in_progress"
+                ? "bg-blue-50/40 dark:bg-blue-950/15"
+                : "";
         return (
           <li
             key={e.id}
-            className={cn(
-              "flex items-start gap-2 rounded-lg px-2 py-1.5 text-[11.5px]",
-              danger ? "bg-rose-50/60 dark:bg-rose-950/20" : "",
-            )}
+            className={cn("flex items-start gap-2 rounded-lg px-2 py-1.5 text-[11.5px]", tint)}
           >
             <span className="text-muted-foreground/70 mt-px shrink-0 font-mono text-[10px] tabular-nums">
               {clockOf(e.recordedAt)}

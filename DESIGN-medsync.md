@@ -584,3 +584,46 @@ Dark shadows are significantly stronger than light, plus a faint white inner bor
 - Scale tokens (`gray-*`, `teal-*`) also flip — components that use `bg-gray-50` or `border-teal-100` end up rendering the dark-spec equivalent in dark mode. Palette swatches in `/styleguide` use static inline `style={{backgroundColor: hex}}` so the reference display stays accurate regardless of active theme.
 - `<meta name="theme-color">` is set per `prefers-color-scheme` so mobile browser chrome matches.
 - The `ThemeToggle` component is a controlled switch with a Sun/Moon icon crossfade; it cycles light ↔ dark only (system preference still wins on first paint).
+
+---
+
+## Resus state colour system (resus surface — GATE A of the visual rework)
+
+Semantic, glanceable state colour for the ABCDE resus surface — colour **means state**, not decoration. Discipline: **alarm scarcity** — red (`rose`) is reserved for a genuine life threat (active-threat step) or a **failed** action. Everything else uses the calm ramp (teal = good/done, amber = open/recommended, grey = pending/parked). **Never colour alone** — every state also carries a word + (for actions) a Lucide icon, and meets WCAG 2.2 AA in light/dark.
+
+> **No left-edge accent bars** (standing project rule): state is conveyed by **full border + tinted fill + ring + a coloured letter/state chip + icon + word** — never a coloured left stripe.
+
+### ABCDE step-bar states (`lib/resus/engine` status → visual)
+
+| Visual state      | Engine source                                                                                  | Card                                                                                       | Letter chip                         |
+| ----------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ | ----------------------------------- |
+| **Pending**       | `stepStatus = pending`                                                                         | neutral grey — `border-border bg-muted/30`                                                 | `bg-muted text-muted-foreground`    |
+| **Clear**         | `stepStatus = clear`                                                                           | teal — `border-teal-300/70 bg-teal-50/60` (dark `bg-teal-950/25`)                          | `bg-teal-100 text-teal-700`         |
+| **Addressed**     | `stepStatus = addressed`                                                                       | deep teal, settled — `border-teal-600/60 bg-teal-600/10`                                   | **filled** `bg-teal-700 text-white` |
+| **Threatened**    | `stepStatus = open` (no life-threat-now)                                                       | amber — `border-amber-300/80 bg-amber-50/70` (dark `bg-amber-950/25`)                      | `bg-amber-400 text-amber-950`       |
+| **Active threat** | `open` + life-threat-now (e.g. airway `completely_obstructed`/`apnoeic_*`, or arrest detected) | **filled red, loudest** — `border-rose-600 bg-rose-600 text-white ring-1 ring-rose-500/50` | `bg-white text-rose-700`            |
+
+- **Focus vs state are separate:** the _current/focused_ step gets a brand **teal focus ring** (`ring-2 ring-teal-500/70 ring-offset-1`) — a step can be focused AND threatened. The recommended-next step gets a subtle teal dashed outline (not red).
+- Active-threat is **calm-but-unmissable** — filled + ring, **no flashing** (reduced-motion-safe by construction; any pulse is `motion-safe:` only).
+
+### Action-state tokens (`indicated / in_progress / performed / not_indicated / deferred / failed`)
+
+| State                    | Meaning                           | Token (fill / text)                                                                        | Icon (Lucide)   |
+| ------------------------ | --------------------------------- | ------------------------------------------------------------------------------------------ | --------------- |
+| **Indicated**            | recommended, not yet done         | amber `bg-amber-100 text-amber-800`                                                        | `CircleDot`     |
+| **In progress**          | being performed now               | blue `bg-blue-100 text-blue-800` (subtle `motion-safe` pulse)                              | `LoaderCircle`  |
+| **Performed**            | done                              | teal/green `bg-teal-100 text-teal-800`                                                     | `Check`         |
+| **Failed / ineffective** | tried, didn't work → **escalate** | red `bg-rose-100 text-rose-700` (the only action alarm; surfaces the next-tier escalation) | `TriangleAlert` |
+| **Deferred**             | consciously postponed             | muted grey `bg-muted text-muted-foreground`                                                | `Pause`         |
+| **Not indicated (N/A)**  | not applicable                    | outline only, recessive `text-muted-foreground/60`                                         | `Minus`         |
+
+- The **active** state is a **filled coloured token** (icon + word); the other states are quieter controls to change it.
+- **Failed** is the action alarm — it tints the card and highlights the `escalatesTo` next-tier action.
+- Indicated (amber) is the "do this next" cue; the clinician's eye is drawn to **amber (do)** and **red (failed → escalate)**.
+
+### Timeline + findings
+
+- The immutable record (right rail) tints each entry subtly by state (`failed` → faint rose, `performed` → faint teal, danger assessment → faint rose) — scannable by state, never shouting.
+- **Findings stay calmer than actions** (findings _describe_; actions are where colour-as-state matters): a selected finding uses the brand **teal** selected state; the airway-STATE indicator carries the urgency, not the individual chips.
+
+Reused by every ABCDE step (B/C/D/E) so the whole resus surface stays consistent.

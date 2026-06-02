@@ -5,6 +5,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Changed — Resus surface: state colour system (step bar + action states) — 2026-06-02
+
+A **visual/UX rework** so the resus surface is glanceable under pressure — which letter is the live threat and what state each action is in, without reading text. **No engine, state-model, record, or clinical-behaviour change** — `git diff main` touches only `DESIGN-medsync.md` and the two resus UI components ([ADR 0049](docs/adr/0049-resus-state-colour-system.md)). Governing rule: **alarm scarcity** — red only for an active-threat step or a `failed` action; **never colour alone** (word + icon, WCAG AA, greyscale-legible); **no left-edge accent bars** (state via border + fill + ring + chip + icon + word).
+
+- **ABCDE step bar** is now a state-styled triage+progress strip — pending grey / clear teal / addressed deep-teal / threatened amber / **active-threat red-filled** (the loudest element), each with a coloured letter chip + state word. `open` is amber by default and only escalates to red on a genuine life-threat-now (for A, derived from `classifyAirway` / a detected arrest — a UI-only derivation over the existing engine). The current step gets a brand **teal focus ring** (distinct from state); calm-but-unmissable, reduced-motion-safe, `aria-current`.
+- **Action states** have distinct colour identities — indicated amber / in-progress blue / performed teal / failed red / deferred grey / N/A outline — each icon + word; the current state is a **filled token**, the others quieter controls; a **failed** action surfaces its next-tier escalation inline; amber draws the eye to the recommended next action.
+- **Consistency:** the timeline tints entries subtly by state (failed→rose, performed→teal); findings stay calmer than actions (selected = brand teal); tokens documented in `DESIGN-medsync.md` for B/C/D/E reuse.
+
 ### Added — Resus · AIRWAY step (findings→action→state engine) — 2026-06-02
 
 The first ABCDE step built in depth inside the resus surface, and the **reusable pattern for B–E**: the clinician records **findings**, findings **trigger candidate actions** (with the _why_ shown), and **each action carries a state**. Decision-support — records what the team does; never performs/auto-administers. CSO-signed ([docs/resus-airway-gate-a-proposal.md](docs/resus-airway-gate-a-proposal.md) + committed catalog [docs/clinical/resus-airway-clinical-catalog.md](docs/clinical/resus-airway-clinical-catalog.md); [ADR 0048](docs/adr/0048-resus-airway-findings-action-engine.md)). Guideline-anchored to **DAS 2025** (confirmed verbatim from the BJA full text, supersedes 2015) + RCUK/ERC-AHA 2025; doses web-verified 2026-06-02. **No new migration** — built on the existing immutable timeline + pure projections.
