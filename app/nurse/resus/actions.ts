@@ -11,7 +11,7 @@ import { db } from "@/db";
 import { resusEpisodes } from "@/db/schema/resus";
 import { triageRecords } from "@/db/schema/triage";
 import { logger } from "@/lib/logger";
-import { classifyAirway } from "@/lib/resus/airway";
+import { AIRWAY_ACTION_STATES, classifyAirway } from "@/lib/resus/airway";
 import { detectArrest } from "@/lib/resus/arrest";
 import { mobiliseResusTeam } from "@/lib/resus/mobilise";
 import {
@@ -22,7 +22,7 @@ import {
   markResusArrest,
   openResusEpisode,
 } from "@/lib/resus/record";
-import { AIRWAY_PATENCY } from "@/lib/resus/reference/airway-catalog";
+import { AIRWAY_PATENCY, airwayAction } from "@/lib/resus/reference/airway-catalog";
 import { requireResusScope } from "@/lib/resus/scope";
 import { RESUS_ROLES } from "@/lib/resus/types";
 import { vitalsFromTriageSnapshot } from "@/lib/resus/vitals";
@@ -427,6 +427,52 @@ export async function recordAirwayFindings(
 
   revalidatePath(`/nurse/resus/${parsed.data.episodeId}`);
   return { ok: true, airwayState: state };
+}
+
+const AirwayActionStateSchema = z.object({
+  episodeId: z.string().uuid(),
+  /** Stable id for this action instance (client-generated; same id across state changes). */
+  actionId: z.string().min(1).max(64),
+  actionCode: z.string().max(64),
+  state: z.enum(AIRWAY_ACTION_STATES),
+  reason: z.string().max(500).optional(),
+});
+
+/**
+ * Record an airway action's state (indicated → in_progress → performed /
+ * failed / deferred / not_indicated) onto the timeline. Decision-support:
+ * the clinician performs/confirms; the app records. A `failed` state is
+ * what the UI uses to surface the next-tier escalation (the DAS ladder).
+ */
+export async function setAirwayActionState(
+  input: z.infer<typeof AirwayActionStateSchema>,
+): Promise<{ ok?: true; error?: string }> {
+  const parsed = AirwayActionStateSchema.safeParse(input);
+  if (!parsed.success) return { error: "Invalid airway action." };
+  const action = airwayAction(parsed.data.actionCode);
+  if (!action) return { error: "Unknown airway action." };
+  const scope = await requireResusScope();
+
+  const kind: ResusEventKind = action.doseId ? "drug" : action.tier === 3 ? "procedure" : "action";
+  const ev = await appendResusEvent({
+    scopeUserId: scope.userId,
+    episodeId: parsed.data.episodeId,
+    kind,
+    step: "A",
+    payload: {
+      actionId: parsed.data.actionId,
+      actionCode: action.code,
+      tier: action.tier,
+      state: parsed.data.state,
+      doseId: action.doseId ?? null,
+      reason: parsed.data.reason ?? null,
+      label: `${action.label} — ${parsed.data.state.replace(/_/g, " ")}`,
+    },
+  });
+  if ("error" in ev) return { error: ev.error };
+
+  revalidatePath(`/nurse/resus/${parsed.data.episodeId}`);
+  return { ok: true };
 }
 
 /* ─── Team roles, responders, arrest (GATE E) ───────────────────────── */

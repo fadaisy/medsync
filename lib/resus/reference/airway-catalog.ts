@@ -222,3 +222,200 @@ export function airwayFindingLabel(code: string): string {
   const all = [...AIRWAY_LOOK, ...AIRWAY_LISTEN, ...AIRWAY_FEEL];
   return all.find((f) => f.code === code)?.label ?? code;
 }
+
+/* ─── Action catalog (GATE C; catalog §2) ───────────────────────────── */
+/**
+ * Each action is decision-support the clinician performs/confirms — the
+ * app records, never acts. `doseId` references a cited constant in
+ * doses.ts (no dose duplicated as a string). `escalatesTo` is the action
+ * surfaced when this one is recorded `failed` (the DAS A→B→C→D ladder /
+ * least-invasive-first escalation). `emergency` actions surface
+ * prominently. Advanced (Tier 3) acts are by a skilled operator.
+ */
+export interface AirwayAction {
+  code: string;
+  label: string;
+  tier: 1 | 2 | 3;
+  doseId?: string;
+  /** Action surfaced when this one is recorded `failed`. */
+  escalatesTo?: string;
+  emergency?: boolean;
+  source: string;
+}
+
+const RCUK = "Resuscitation Council UK — ABCDE/Airway (2025)";
+const DAS = "DAS 2025 (Br J Anaesth) — Plan A→B→C→D";
+
+export const AIRWAY_ACTIONS = {
+  // Tier 1 — basic / always-available
+  a_high_flow_o2: {
+    code: "a_high_flow_o2",
+    label: "High-flow O₂ 15 L/min (reservoir)",
+    tier: 1,
+    doseId: "oxygen_critically_ill",
+    escalatesTo: "a_call_skilled_help",
+    source: `${RCUK} + BTS 2017`,
+  },
+  a_head_tilt_chin_lift: {
+    code: "a_head_tilt_chin_lift",
+    label: "Head-tilt / chin-lift",
+    tier: 1,
+    escalatesTo: "a_opa",
+    source: RCUK,
+  },
+  a_jaw_thrust: {
+    code: "a_jaw_thrust",
+    label: "Jaw thrust (C-spine-sparing)",
+    tier: 1,
+    escalatesTo: "a_opa",
+    source: `${RCUK} (airway patency takes precedence)`,
+  },
+  a_suction: {
+    code: "a_suction",
+    label: "Suction (rigid Yankauer)",
+    tier: 1,
+    escalatesTo: "a_call_skilled_help",
+    source: RCUK,
+  },
+  a_opa: {
+    code: "a_opa",
+    label: "Oropharyngeal (Guedel) airway",
+    tier: 1,
+    escalatesTo: "a_call_skilled_help",
+    source: RCUK,
+  },
+  a_npa: {
+    code: "a_npa",
+    label: "Nasopharyngeal airway (caution in base-of-skull fracture)",
+    tier: 1,
+    escalatesTo: "a_call_skilled_help",
+    source: RCUK,
+  },
+  a_recovery_position: {
+    code: "a_recovery_position",
+    label: "Recovery position",
+    tier: 1,
+    source: RCUK,
+  },
+  a_remove_foreign_body: {
+    code: "a_remove_foreign_body",
+    label: "Remove visible foreign body (suction / Magill under vision)",
+    tier: 1,
+    escalatesTo: "a_choking_algorithm",
+    source: RCUK,
+  },
+  a_choking_algorithm: {
+    code: "a_choking_algorithm",
+    label: "Choking: 5 back blows → 5 abdominal thrusts (alternate); CPR if unresponsive",
+    tier: 1,
+    emergency: true,
+    escalatesTo: "a_call_skilled_help",
+    source: "RCUK 2025 First Aid (FBAO)",
+  },
+
+  // Tier 2 — pharmacological / cause-specific
+  a_anaphylaxis_adrenaline: {
+    code: "a_anaphylaxis_adrenaline",
+    label: "Anaphylaxis → IM adrenaline",
+    tier: 2,
+    doseId: "anaphylaxis_adrenaline_im",
+    emergency: true,
+    escalatesTo: "a_call_skilled_help",
+    source: "RCUK Anaphylaxis / ERC 2025",
+  },
+  a_neb_adrenaline_oedema: {
+    code: "a_neb_adrenaline_oedema",
+    label: "Nebulised adrenaline (upper-airway oedema)",
+    tier: 2,
+    doseId: "neb_adrenaline_airway_oedema",
+    escalatesTo: "a_call_skilled_help",
+    source: "Upper-airway-obstruction literature (category-level)",
+  },
+  a_steroids_oedema: {
+    code: "a_steroids_oedema",
+    label: "Corticosteroid (inflammatory airway oedema — start early)",
+    tier: 2,
+    doseId: "airway_oedema_corticosteroid",
+    source: "DAS 2025 (structural)",
+  },
+  a_epiglottitis_pathway: {
+    code: "a_epiglottitis_pathway",
+    label:
+      "Epiglottitis → DO NOT distress/instrument; senior anaesthetic + ENT; controlled airway in theatre",
+    tier: 2,
+    emergency: true,
+    escalatesTo: "a_call_skilled_help",
+    source: RCUK,
+  },
+  a_burns_early_intubation: {
+    code: "a_burns_early_intubation",
+    label: "Burns/inhalation → early definitive airway before oedema closes it",
+    tier: 2,
+    emergency: true,
+    escalatesTo: "a_call_skilled_help",
+    source: RCUK,
+  },
+  a_laryngospasm_management: {
+    code: "a_laryngospasm_management",
+    label: "Laryngospasm → O₂ + jaw-thrust/CPAP ± deepen anaesthesia / NMB",
+    tier: 2,
+    escalatesTo: "a_call_skilled_help",
+    source: RCUK,
+  },
+
+  // Tier 3 — advanced (skilled operator; DAS 2025 ladder)
+  a_call_skilled_help: {
+    code: "a_call_skilled_help",
+    label: "Call skilled airway operator (anaesthetics/ICU) + prepare advanced airway",
+    tier: 3,
+    emergency: true,
+    escalatesTo: "a_plan_a_intubation",
+    source: DAS,
+  },
+  a_plan_a_intubation: {
+    code: "a_plan_a_intubation",
+    label: "Plan A — tracheal intubation (videolaryngoscopy; first-pass; 3+1 attempt limit)",
+    tier: 3,
+    escalatesTo: "a_plan_b_supraglottic",
+    source: DAS,
+  },
+  a_plan_b_supraglottic: {
+    code: "a_plan_b_supraglottic",
+    label: "Plan B — supraglottic airway device ventilation",
+    tier: 3,
+    escalatesTo: "a_plan_c_facemask",
+    source: DAS,
+  },
+  a_plan_c_facemask: {
+    code: "a_plan_c_facemask",
+    label: "Plan C — facemask ventilation",
+    tier: 3,
+    escalatesTo: "a_plan_d_efona",
+    source: DAS,
+  },
+  a_plan_d_efona: {
+    code: "a_plan_d_efona",
+    label: "Plan D — CICO → emergency front-of-neck airway (eFONA) without delay",
+    tier: 3,
+    emergency: true,
+    source: DAS,
+  },
+  a_peroxygenation: {
+    code: "a_peroxygenation",
+    label: "Peroxygenation + haemodynamic optimisation (physiologically difficult airway)",
+    tier: 3,
+    source: DAS,
+  },
+  a_capnography_confirm: {
+    code: "a_capnography_confirm",
+    label: "Confirm advanced airway with waveform capnography (+ visualise tube — ≥2 variables)",
+    tier: 3,
+    source: DAS,
+  },
+} as const satisfies Record<string, AirwayAction>;
+
+export type AirwayActionCode = keyof typeof AIRWAY_ACTIONS;
+
+export function airwayAction(code: string): AirwayAction | null {
+  return (AIRWAY_ACTIONS as Record<string, AirwayAction>)[code] ?? null;
+}

@@ -2,7 +2,15 @@ import type { AirwayFindingSet } from "@/lib/resus/airway";
 import type { TimelineEvent } from "@/lib/resus/types";
 import { describe, expect, it } from "vitest";
 
-import { classifyAirway, latestAirwayAssessment } from "@/lib/resus/airway";
+import {
+  buildAirwayActions,
+  classifyAirway,
+  escalationFor,
+  isArrestPattern,
+  latestAirwayAssessment,
+  triggeredActions,
+} from "@/lib/resus/airway";
+import { AIRWAY_ACTIONS } from "@/lib/resus/reference/airway-catalog";
 
 /**
  * Airway step — finding capture + state classification (GATE B). Pure +
@@ -127,5 +135,169 @@ describe("latestAirwayAssessment — reconstruct from the timeline", () => {
     };
     const airway = aEvent("a", "2026-06-02T10:00:00.000Z", fs({ patency: "patent_talking" }));
     expect(latestAirwayAssessment([other, airway])?.patency).toBe("patent_talking");
+  });
+});
+
+/* ─── GATE C: findings → action engine + action-state lifecycle ──────── */
+
+function codes(fs: AirwayFindingSet): string[] {
+  return triggeredActions(fs).map((t) => t.code);
+}
+
+describe("triggeredActions — single findings", () => {
+  it("secure + talking → high-flow O₂ + monitor", () => {
+    expect(codes(fs({ patency: "patent_talking", present: ["normal_speech"] }))).toContain(
+      "a_high_flow_o2",
+    );
+  });
+  it("gurgling → suction", () => {
+    expect(codes(fs({ present: ["gurgling"] }))).toContain("a_suction");
+  });
+  it("snoring without trauma → head-tilt/chin-lift (not jaw-thrust)", () => {
+    const c = codes(fs({ present: ["snoring"] }));
+    expect(c).toContain("a_head_tilt_chin_lift");
+    expect(c).not.toContain("a_jaw_thrust");
+  });
+  it("snoring WITH trauma → jaw-thrust (not head-tilt)", () => {
+    const c = codes(fs({ present: ["snoring"], context: { trauma: true } }));
+    expect(c).toContain("a_jaw_thrust");
+    expect(c).not.toContain("a_head_tilt_chin_lift");
+  });
+  it("foreign body → remove / choking algorithm", () => {
+    const c = codes(fs({ present: ["foreign_body"] }));
+    expect(c.some((x) => x === "a_remove_foreign_body" || x === "a_choking_algorithm")).toBe(true);
+  });
+});
+
+describe("triggeredActions — combination clusters", () => {
+  it("complete obstruction → call skilled help (emergency) + open/suction", () => {
+    const t = triggeredActions(fs({ present: ["silence_with_effort", "see_saw"] }));
+    const c = t.map((x) => x.code);
+    expect(c).toContain("a_call_skilled_help");
+    expect(t.find((x) => x.code === "a_call_skilled_help")?.emergency).toBe(true);
+  });
+  it("epiglottitis cluster (stridor + drooling + muffled voice) → epiglottitis pathway, NOT instrumentation (no OPA)", () => {
+    const c = codes(
+      fs({ present: ["stridor_inspiratory", "drooling_tripod", "hoarse_muffled_voice"] }),
+    );
+    expect(c).toContain("a_epiglottitis_pathway");
+    expect(c).not.toContain("a_opa");
+  });
+  it("anaphylaxis cluster (facial swelling + allergen trigger) → IM adrenaline", () => {
+    expect(codes(fs({ present: ["swelling_face"], context: { allergenTrigger: true } }))).toContain(
+      "a_anaphylaxis_adrenaline",
+    );
+  });
+  it("burns/inhalation cluster → early intubation", () => {
+    expect(codes(fs({ present: ["burns_soot", "hoarse_muffled_voice"] }))).toContain(
+      "a_burns_early_intubation",
+    );
+  });
+  it("reduced GCS + snoring → adjunct + skilled help (definitive airway)", () => {
+    const c = codes(fs({ present: ["gcs_le8", "snoring"] }));
+    expect(c).toContain("a_opa");
+    expect(c).toContain("a_call_skilled_help");
+  });
+  it("difficulty flag + a compromised airway → anticipate difficulty (call skilled help)", () => {
+    expect(codes(fs({ present: ["stridor_inspiratory"], difficulty: ["lemon"] }))).toContain(
+      "a_call_skilled_help",
+    );
+  });
+  it("every triggered action code exists in the catalog", () => {
+    const samples: AirwayFindingSet[] = [
+      fs({ patency: "patent_talking", present: ["normal_speech"] }),
+      fs({ present: ["gurgling", "snoring"] }),
+      fs({ present: ["silence_with_effort"] }),
+      fs({ present: ["stridor_inspiratory", "drooling_tripod", "hoarse_muffled_voice"] }),
+      fs({ present: ["swelling_face"], context: { allergenTrigger: true } }),
+      fs({ present: ["burns_soot", "hoarse_muffled_voice"] }),
+      fs({ present: ["gcs_le8", "snoring"] }),
+    ];
+    for (const s of samples) {
+      for (const t of triggeredActions(s)) {
+        expect(AIRWAY_ACTIONS, `${t.code} must be a catalog action`).toHaveProperty(t.code);
+        expect(t.rationale, `${t.code} must state why`).toBeTruthy();
+      }
+    }
+  });
+  it("most-urgent action sorts before supportive O₂", () => {
+    const t = triggeredActions(fs({ present: ["silence_with_effort"] }));
+    const help = t.findIndex((x) => x.code === "a_call_skilled_help");
+    const o2 = t.findIndex((x) => x.code === "a_high_flow_o2");
+    if (help !== -1 && o2 !== -1) expect(help).toBeLessThan(o2);
+  });
+});
+
+describe("isArrestPattern", () => {
+  it("apnoea + no signs of life → arrest pattern (route to arrest, not airway)", () => {
+    expect(isArrestPattern(fs({ patency: "apnoeic", context: { noSignsOfLife: true } }))).toBe(
+      true,
+    );
+  });
+  it("a partially obstructed airway is NOT an arrest pattern", () => {
+    expect(isArrestPattern(fs({ present: ["stridor_inspiratory"] }))).toBe(false);
+  });
+});
+
+describe("escalationFor — failed action → next tier (DAS ladder)", () => {
+  it("Plan A failed → Plan B", () => {
+    expect(escalationFor("a_plan_a_intubation")).toBe("a_plan_b_supraglottic");
+  });
+  it("a failed basic measure → call skilled help", () => {
+    expect(escalationFor("a_suction")).toBe("a_call_skilled_help");
+  });
+  it("Plan D (eFONA) has no further escalation", () => {
+    expect(escalationFor("a_plan_d_efona")).toBeNull();
+  });
+  it("unknown action → null", () => {
+    expect(escalationFor("nope")).toBeNull();
+  });
+});
+
+describe("buildAirwayActions — fold state changes by actionId", () => {
+  function actEvent(
+    id: string,
+    recordedAt: string,
+    actionId: string,
+    actionCode: string,
+    state: string,
+  ): TimelineEvent {
+    return {
+      id,
+      episodeId: "epi-1",
+      kind: "action",
+      step: "A",
+      recordedByUserId: "u-1",
+      recordedAt,
+      createdAt: recordedAt,
+      payload: { actionId, actionCode, tier: 1, state, label: actionCode },
+      supersedesEventId: null,
+    };
+  }
+
+  it("folds an action's state history; latest state is current", () => {
+    const out = buildAirwayActions([
+      actEvent("1", "2026-06-02T10:00:00.000Z", "inst-1", "a_suction", "indicated"),
+      actEvent("2", "2026-06-02T10:01:00.000Z", "inst-1", "a_suction", "performed"),
+    ]);
+    expect(out).toHaveLength(1);
+    expect(out[0]!.state).toBe("performed");
+    expect(out[0]!.history).toHaveLength(2);
+  });
+
+  it("a failed action is reflected as the current state", () => {
+    const out = buildAirwayActions([
+      actEvent("1", "2026-06-02T10:00:00.000Z", "inst-2", "a_opa", "in_progress"),
+      actEvent("2", "2026-06-02T10:02:00.000Z", "inst-2", "a_opa", "failed"),
+    ]);
+    expect(out[0]!.state).toBe("failed");
+  });
+
+  it("separate actionIds → separate instances", () => {
+    const out = buildAirwayActions([
+      actEvent("1", "2026-06-02T10:00:00.000Z", "inst-1", "a_suction", "performed"),
+      actEvent("2", "2026-06-02T10:01:00.000Z", "inst-2", "a_opa", "indicated"),
+    ]);
+    expect(out).toHaveLength(2);
   });
 });

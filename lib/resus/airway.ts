@@ -1,11 +1,12 @@
 import type { AirwayPatency } from "@/lib/resus/reference/airway-catalog";
-import type { TimelineEvent } from "@/lib/resus/types";
+import type { ResusEventKind, TimelineEvent } from "@/lib/resus/types";
 
 import {
   AIRWAY_APNOEA_FINDINGS,
   AIRWAY_COMPLETE_FINDINGS,
   AIRWAY_PARTIAL_FINDINGS,
   AIRWAY_THREATENED_FINDINGS,
+  airwayAction,
 } from "@/lib/resus/reference/airway-catalog";
 
 /**
@@ -113,4 +114,219 @@ export function latestAirwayAssessment(events: readonly TimelineEvent[]): Airway
     if (!latest || e.recordedAt > latest.at) latest = { at: e.recordedAt, fs };
   }
   return latest?.fs ?? null;
+}
+
+/* ─── GATE C: findings → action engine + action-state lifecycle ──────── */
+
+/** The action-state vocabulary (CSO-ratified). `failed` drives escalation. */
+export const AIRWAY_ACTION_STATES = [
+  "indicated",
+  "in_progress",
+  "performed",
+  "not_indicated",
+  "deferred",
+  "failed",
+] as const;
+export type AirwayActionState = (typeof AIRWAY_ACTION_STATES)[number];
+
+export interface TriggeredAction {
+  code: string;
+  rationale: string;
+  /** Lower = more urgent / surfaced first. */
+  priority: number;
+  emergency: boolean;
+}
+
+export interface AirwayActionInstance {
+  actionId: string;
+  actionCode: string;
+  tier: number;
+  state: AirwayActionState;
+  doseId?: string | null;
+  label: string;
+  history: { state: AirwayActionState; at: string }[];
+}
+
+const has = (fs: AirwayFindingSet, code: string) => fs.present.includes(code);
+
+/**
+ * The deterministic, transparent findings→action mapping (catalog §2–§3):
+ * single findings + the combination/trajectory clusters. Every entry
+ * carries its rationale (the "why"). Returns a de-duplicated list ordered
+ * most-urgent-first (least-invasive shown, emergencies prominent). Apnoea
+ * with no signs of life returns [] — that routes to the arrest pathway,
+ * not the airway engine.
+ */
+export function triggeredActions(fs: AirwayFindingSet): TriggeredAction[] {
+  if (isArrestPattern(fs)) return [];
+
+  const state = classifyAirway(fs);
+  const manoeuvre = fs.context.trauma ? "a_jaw_thrust" : "a_head_tilt_chin_lift";
+  const out: TriggeredAction[] = [];
+  const add = (code: string, rationale: string, priority: number) => {
+    const emergency = airwayAction(code)?.emergency ?? false;
+    out.push({ code, rationale, priority, emergency });
+  };
+
+  // ── Combination clusters (catalog §3) — most urgent first ──
+  // Complete obstruction.
+  if (state === "completely_obstructed") {
+    add(
+      "a_call_skilled_help",
+      "Complete obstruction — call skilled help now + prepare advanced airway",
+      0,
+    );
+    add(manoeuvre, "Open the airway", 1);
+    add("a_suction", "Clear the airway", 1);
+  }
+  // Supraglottic / epiglottitis — do NOT distress or instrument.
+  if (
+    has(fs, "stridor_inspiratory") &&
+    (has(fs, "drooling_tripod") || has(fs, "hoarse_muffled_voice"))
+  ) {
+    add(
+      "a_epiglottitis_pathway",
+      "Stridor + drooling/muffled voice → supraglottic obstruction (epiglottitis): do not distress/instrument; senior anaesthetic + ENT; theatre",
+      0,
+    );
+    add("a_call_skilled_help", "Senior anaesthetic + ENT immediately", 1);
+    add("a_steroids_oedema", "Inflammatory oedema (cause-dependent)", 2);
+    add(
+      "a_neb_adrenaline_oedema",
+      "Nebulised adrenaline for upper-airway oedema (cause-dependent)",
+      2,
+    );
+  }
+  // Burns / inhalation — closing airway.
+  if (has(fs, "burns_soot")) {
+    add(
+      "a_burns_early_intubation",
+      "Burns/soot/singed hair — inhalation injury: early definitive airway before oedema closes it",
+      0,
+    );
+    add("a_call_skilled_help", "Closing-airway window — escalate now", 1);
+  }
+  // Anaphylaxis / angioedema with airway swelling.
+  if (has(fs, "swelling_face")) {
+    const why = fs.context.allergenTrigger
+      ? "Facial/lip/tongue swelling after a trigger → anaphylaxis: IM adrenaline first"
+      : "Angioedema with airway swelling → IM adrenaline";
+    add("a_anaphylaxis_adrenaline", why, 0);
+    add("a_call_skilled_help", "Prepare advanced airway + senior/ICU", 1);
+  }
+  // Reduced GCS — cannot protect the airway.
+  if (has(fs, "gcs_le8")) {
+    add(
+      "a_call_skilled_help",
+      "GCS ≤ 8 — cannot protect the airway → definitive airway for protection",
+      1,
+    );
+    add("a_opa", "Adjunct for the unconscious/no-gag patient", 2);
+    add(manoeuvre, "Open the airway", 2);
+    add("a_suction", "Protect against aspiration", 2);
+  }
+  // Expanding neck haematoma — threatened airway.
+  if (has(fs, "swelling_neck")) {
+    add(
+      "a_call_skilled_help",
+      "Expanding neck swelling/haematoma — threatened airway: senior airway + surgical help",
+      1,
+    );
+  }
+  // Laryngospasm.
+  if (has(fs, "crowing")) {
+    add("a_laryngospasm_management", "Crowing → laryngospasm", 2);
+  }
+
+  // ── Single findings (Tier 1) ──
+  if (has(fs, "foreign_body")) {
+    add("a_remove_foreign_body", "Visible foreign body / secretions — remove under vision", 1);
+    add("a_suction", "Clear secretions/blood/vomit", 2);
+    if (state === "completely_obstructed")
+      add("a_choking_algorithm", "Choking with severe/complete obstruction", 0);
+  }
+  if (has(fs, "gurgling")) add("a_suction", "Gurgling — liquid in the airway → suction", 2);
+  if (has(fs, "snoring"))
+    add(manoeuvre, "Snoring (tongue obstruction) → airway-opening manoeuvre", 2);
+
+  // ── Difficulty anticipation + pre-emptive escalation ──
+  if (fs.difficulty.length > 0 && state && state !== "secure") {
+    add(
+      "a_call_skilled_help",
+      "Difficulty flag(s) present — anticipate a difficult airway: most-skilled operator + adjuncts + eFONA kit + plan A→D",
+      1,
+    );
+  }
+  if (state === "threatened") {
+    add(
+      "a_call_skilled_help",
+      "Threatened airway — escalate pre-emptively (late rescue is harder)",
+      1,
+    );
+  }
+
+  // ── Supportive O₂ (always, for any compromised/critically-ill airway) ──
+  add("a_high_flow_o2", "High-flow O₂ for the critically ill patient; target SpO₂ 94–98%", 3);
+
+  // De-duplicate by code (keep the most urgent rationale), then sort.
+  const byCode = new Map<string, TriggeredAction>();
+  for (const t of out) {
+    const held = byCode.get(t.code);
+    if (!held || t.priority < held.priority) byCode.set(t.code, t);
+  }
+  return [...byCode.values()].sort((a, b) => a.priority - b.priority);
+}
+
+/** Apnoea + no signs of life → route to the arrest pathway, not airway. */
+export function isArrestPattern(fs: AirwayFindingSet): boolean {
+  return classifyAirway(fs) === "apnoeic_arrest";
+}
+
+/** The action surfaced when `code` is recorded `failed` (the DAS ladder). */
+export function escalationFor(code: string): string | null {
+  return airwayAction(code)?.escalatesTo ?? null;
+}
+
+const AIRWAY_ACTION_KINDS: ReadonlySet<ResusEventKind> = new Set(["action", "drug", "procedure"]);
+
+/**
+ * Fold the timeline's airway action events (by `payload.actionId`) into the
+ * current action list: each instance's latest state is current, with its
+ * full state history. Pure — derives from the immutable record.
+ */
+export function buildAirwayActions(events: readonly TimelineEvent[]): AirwayActionInstance[] {
+  const byId = new Map<string, AirwayActionInstance>();
+  const ordered = [...events]
+    .filter((e) => e.step === "A" && AIRWAY_ACTION_KINDS.has(e.kind) && e.payload.actionId)
+    .sort((a, b) => (a.recordedAt < b.recordedAt ? -1 : a.recordedAt > b.recordedAt ? 1 : 0));
+
+  for (const e of ordered) {
+    const p = e.payload as {
+      actionId: string;
+      actionCode?: string;
+      tier?: number;
+      state?: AirwayActionState;
+      doseId?: string | null;
+      label?: string;
+    };
+    const state = (p.state ?? "indicated") as AirwayActionState;
+    const existing = byId.get(p.actionId);
+    if (existing) {
+      existing.state = state;
+      existing.history.push({ state, at: e.recordedAt });
+      if (p.actionCode) existing.actionCode = p.actionCode;
+      if (p.label) existing.label = p.label;
+    } else {
+      byId.set(p.actionId, {
+        actionId: p.actionId,
+        actionCode: p.actionCode ?? "",
+        tier: p.tier ?? 0,
+        state,
+        doseId: p.doseId ?? null,
+        label: p.label ?? p.actionCode ?? "",
+        history: [{ state, at: e.recordedAt }],
+      });
+    }
+  }
+  return [...byId.values()];
 }

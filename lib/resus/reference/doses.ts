@@ -235,6 +235,40 @@ export const RESUS_DOSES = {
     source: "Toxicology/EM consensus (Medscape benzodiazepine toxicity).",
     confidence: "reference-doc-only",
   },
+
+  /* ── Airway step (A) — category-level only (no authoritative fixed adult dose) ── */
+  neb_adrenaline_airway_oedema: {
+    id: "neb_adrenaline_airway_oedema",
+    drug: "Nebulised adrenaline (upper-airway oedema)",
+    indication: "Upper-airway oedema / stridor — post-extubation, croup-type, angioedema (A)",
+    tier: "category",
+    adultDose: null,
+    paediatricNote:
+      "Paediatric croup neb adrenaline is weight/age-banded — separate protocol; do not reuse an adult number.",
+    cautions: [
+      "NO authoritative resus body (RCUK/ERC/DAS) fixes an adult dose; adult evidence is weak/extrapolated from paediatric croup; literature doses conflict.",
+      "Distinct from systemic IM adrenaline for anaphylaxis, and from the asthma/COPD nebulised bronchodilator. Clinician-/cause-dependent.",
+    ],
+    source:
+      "Upper-airway-obstruction literature (no guideline-fixed adult dose); web-verified 2026-06-02.",
+    confidence: "needs-CSO-verification",
+  },
+  airway_oedema_corticosteroid: {
+    id: "airway_oedema_corticosteroid",
+    drug: "Corticosteroid (airway oedema)",
+    indication: "Inflammatory airway oedema — start early in high-risk patients (A)",
+    tier: "category",
+    adultDose: null,
+    paediatricNote:
+      "Paediatric airway-oedema/croup steroid dosing is weight-based — separate protocol.",
+    cautions: [
+      "NO RCUK/ERC/DAS algorithm fixes an adult airway dose; doses are trial/ICU-protocol and timing/cause-dependent.",
+      "Kept SEPARATE from the anaphylaxis pathway — routine corticosteroids are NO LONGER recommended in acute anaphylaxis (2025).",
+    ],
+    source:
+      "DAS 2025 (structural: start early in high-risk inflammatory oedema); no guideline-fixed adult dose; web-verified 2026-06-02.",
+    confidence: "needs-CSO-verification",
+  },
 } as const satisfies Record<string, ResusDose>;
 
 export type ResusDoseId = keyof typeof RESUS_DOSES;
