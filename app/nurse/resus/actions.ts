@@ -13,6 +13,7 @@ import { triageRecords } from "@/db/schema/triage";
 import { logger } from "@/lib/logger";
 import { AIRWAY_ACTION_STATES, classifyAirway } from "@/lib/resus/airway";
 import { detectArrest } from "@/lib/resus/arrest";
+import { BREATHING_ACTION_STATES, classifyBreathing } from "@/lib/resus/breathing";
 import { mobiliseResusTeam } from "@/lib/resus/mobilise";
 import {
   acknowledgeResusAlert,
@@ -23,6 +24,7 @@ import {
   openResusEpisode,
 } from "@/lib/resus/record";
 import { AIRWAY_PATENCY, airwayAction } from "@/lib/resus/reference/airway-catalog";
+import { BREATHING_STATES, breathingAction } from "@/lib/resus/reference/breathing-catalog";
 import { requireResusScope } from "@/lib/resus/scope";
 import { RESUS_ROLES } from "@/lib/resus/types";
 import { vitalsFromTriageSnapshot } from "@/lib/resus/vitals";
@@ -460,6 +462,105 @@ export async function setAirwayActionState(
     episodeId: parsed.data.episodeId,
     kind,
     step: "A",
+    payload: {
+      actionId: parsed.data.actionId,
+      actionCode: action.code,
+      tier: action.tier,
+      state: parsed.data.state,
+      doseId: action.doseId ?? null,
+      reason: parsed.data.reason ?? null,
+      label: `${action.label} — ${parsed.data.state.replace(/_/g, " ")}`,
+    },
+  });
+  if ("error" in ev) return { error: ev.error };
+
+  revalidatePath(`/nurse/resus/${parsed.data.episodeId}`);
+  return { ok: true };
+}
+
+/* ─── Breathing step (B) — findings (GATE B) ────────────────────────── */
+
+const BreathingFindingsSchema = z.object({
+  episodeId: z.string().uuid(),
+  findingSet: z.object({
+    state: z.enum(BREATHING_STATES).nullable(),
+    present: z.array(z.string().max(64)).max(48),
+    context: z
+      .object({
+        trauma: z.boolean().optional(),
+        allergenTrigger: z.boolean().optional(),
+        knownAsthma: z.boolean().optional(),
+        copdRisk: z.boolean().optional(),
+        peSuspected: z.boolean().optional(),
+        noSignsOfLife: z.boolean().optional(),
+      })
+      .optional(),
+  }),
+});
+
+/**
+ * Record a breathing finding-set (assessment) onto the immutable timeline.
+ * Reassessment appends a new event; the latest is current. The classified
+ * breathing-state is stored alongside for the medico-legal record.
+ */
+export async function recordBreathingFindings(
+  input: z.infer<typeof BreathingFindingsSchema>,
+): Promise<{ ok?: true; breathingState?: string | null; error?: string }> {
+  const parsed = BreathingFindingsSchema.safeParse(input);
+  if (!parsed.success) return { error: "Invalid breathing findings." };
+  const scope = await requireResusScope();
+
+  const findingSet = { ...parsed.data.findingSet, context: parsed.data.findingSet.context ?? {} };
+  const state = classifyBreathing(findingSet);
+
+  const ev = await appendResusEvent({
+    scopeUserId: scope.userId,
+    episodeId: parsed.data.episodeId,
+    kind: "assessment",
+    step: "B",
+    payload: {
+      breathing: findingSet,
+      breathingState: state,
+      label: `Breathing findings${state ? ` → ${state.replace(/_/g, " ")}` : ""}`,
+      danger: state === "apnoeic" || state === "peri_arrest" || state === "failure_decompensating",
+    },
+  });
+  if ("error" in ev) return { error: ev.error };
+
+  revalidatePath(`/nurse/resus/${parsed.data.episodeId}`);
+  return { ok: true, breathingState: state };
+}
+
+const BreathingActionStateSchema = z.object({
+  episodeId: z.string().uuid(),
+  /** Stable id for this action instance (client-generated; same id across state changes). */
+  actionId: z.string().min(1).max(64),
+  actionCode: z.string().max(64),
+  state: z.enum(BREATHING_ACTION_STATES),
+  reason: z.string().max(500).optional(),
+});
+
+/**
+ * Record a breathing action's state (indicated → in_progress → performed /
+ * failed / deferred / not_indicated) onto the timeline. Decision-support:
+ * the clinician performs/confirms; the app records. A `failed` state is what
+ * the UI uses to surface the next-step escalation.
+ */
+export async function setBreathingActionState(
+  input: z.infer<typeof BreathingActionStateSchema>,
+): Promise<{ ok?: true; error?: string }> {
+  const parsed = BreathingActionStateSchema.safeParse(input);
+  if (!parsed.success) return { error: "Invalid breathing action." };
+  const action = breathingAction(parsed.data.actionCode);
+  if (!action) return { error: "Unknown breathing action." };
+  const scope = await requireResusScope();
+
+  const kind: ResusEventKind = action.doseId ? "drug" : action.tier === 3 ? "procedure" : "action";
+  const ev = await appendResusEvent({
+    scopeUserId: scope.userId,
+    episodeId: parsed.data.episodeId,
+    kind,
+    step: "B",
     payload: {
       actionId: parsed.data.actionId,
       actionCode: action.code,
