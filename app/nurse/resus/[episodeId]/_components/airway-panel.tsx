@@ -15,6 +15,7 @@ import {
   TriangleAlertIcon,
 } from "lucide-react";
 
+import { RECOMMENDATION_DRUG_MAP } from "@/lib/prescribing/reference/emergency-drug-catalog";
 import {
   airwayProceedGuard,
   buildAirwayActions,
@@ -36,6 +37,9 @@ import {
 import { getResusDose } from "@/lib/resus/reference/doses";
 import { cn } from "@/lib/utils";
 import { detectResusArrestAction, recordAirwayFindings, setAirwayActionState } from "../../actions";
+import { PrescribeDialog } from "./prescribe-dialog";
+
+const PRESCRIBABLE = new Set(Object.keys(RECOMMENDATION_DRUG_MAP));
 
 const STATE_TONE: Record<string, string> = {
   secure: "border-teal-300/70 bg-teal-50/60 text-teal-700 dark:bg-teal-950/25 dark:text-teal-200",
@@ -124,14 +128,17 @@ export function AirwayPanel({
   episodeId,
   timeline,
   active,
+  patientAgeYears,
   onChanged,
 }: {
   episodeId: string;
   timeline: TimelineEvent[];
   active: boolean;
+  patientAgeYears: number | null;
   onChanged: () => void;
 }) {
   const [pending, startTransition] = useTransition();
+  const [prescribeFor, setPrescribeFor] = useState<{ code: string; label: string } | null>(null);
 
   // Working finding-set draft, seeded from the last recorded airway assessment.
   const seeded = useMemo(() => latestAirwayAssessment(timeline), [timeline]);
@@ -393,6 +400,10 @@ export function AirwayPanel({
                 currentState={recordedByCode.get(t.code)?.state}
                 disabled={!active || pending}
                 onSetState={setActionState}
+                prescribable={PRESCRIBABLE.has(t.code)}
+                onPrescribe={() =>
+                  setPrescribeFor({ code: t.code, label: airwayAction(t.code)?.label ?? t.code })
+                }
               />
             ))
           )}
@@ -411,12 +422,31 @@ export function AirwayPanel({
                   currentState={a.state}
                   disabled={!active || pending}
                   onSetState={setActionState}
+                  prescribable={PRESCRIBABLE.has(a.actionCode)}
+                  onPrescribe={() =>
+                    setPrescribeFor({
+                      code: a.actionCode,
+                      label: airwayAction(a.actionCode)?.label ?? a.actionCode,
+                    })
+                  }
                 />
               ))}
             </>
           ) : null}
         </section>
       </div>
+
+      {prescribeFor ? (
+        <PrescribeDialog
+          episodeId={episodeId}
+          recCode={prescribeFor.code}
+          recLabel={prescribeFor.label}
+          patientAgeYears={patientAgeYears}
+          timeline={timeline}
+          onClose={() => setPrescribeFor(null)}
+          onDone={onChanged}
+        />
+      ) : null}
     </div>
   );
 }
@@ -508,6 +538,8 @@ function ActionCard({
   currentState,
   disabled,
   onSetState,
+  prescribable,
+  onPrescribe,
 }: {
   code: string;
   rationale: string;
@@ -515,6 +547,8 @@ function ActionCard({
   currentState?: AirwayActionState;
   disabled: boolean;
   onSetState: (code: string, s: AirwayActionState) => void;
+  prescribable?: boolean;
+  onPrescribe?: () => void;
 }) {
   const action = airwayAction(code);
   const dose = action?.doseId ? getResusDose(action.doseId as ResusDoseId) : null;
@@ -583,7 +617,7 @@ function ActionCard({
         </span>
       </div>
 
-      <div className="mt-1.5 flex flex-wrap gap-1">
+      <div className="mt-1.5 flex flex-wrap items-center gap-1">
         {SETTABLE_STATES.map((s) => {
           const sStyle = ACTION_STATE_STYLE[s];
           const SIcon = sStyle.icon;
@@ -607,6 +641,16 @@ function ActionCard({
             </button>
           );
         })}
+        {prescribable && onPrescribe ? (
+          <button
+            type="button"
+            disabled={disabled}
+            onClick={onPrescribe}
+            className="ml-auto inline-flex items-center gap-1 rounded-md bg-teal-600 px-2 py-0.5 text-[10.5px] font-semibold text-white transition-colors hover:bg-teal-700 disabled:opacity-40"
+          >
+            Prescribe / record
+          </button>
+        ) : null}
       </div>
 
       {failed && escAction ? (

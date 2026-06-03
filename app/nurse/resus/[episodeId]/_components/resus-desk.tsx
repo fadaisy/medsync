@@ -43,6 +43,7 @@ import {
 } from "../../actions";
 import { AirwayPanel } from "./airway-panel";
 import { BreathingPanel } from "./breathing-panel";
+import { PrescribeDialog } from "./prescribe-dialog";
 
 interface DeskEpisode {
   id: string;
@@ -386,13 +387,20 @@ export function ResusDesk({
             </div>
           ) : null}
 
-          <AnaphylaxisBar disabled={!active || pending} onLog={log} activeStep={activeStep} />
+          <AnaphylaxisBar
+            disabled={!active || pending}
+            episodeId={episode.id}
+            timeline={timeline}
+            patientAgeYears={patient.ageYears ?? null}
+            onChanged={() => router.refresh()}
+          />
 
           {activeStep === "A" ? (
             <AirwayPanel
               episodeId={episode.id}
               timeline={timeline}
               active={active}
+              patientAgeYears={patient.ageYears ?? null}
               onChanged={() => router.refresh()}
             />
           ) : activeStep === "B" ? (
@@ -690,14 +698,19 @@ function VitalsBand({
 /* ─── Anaphylaxis cross-cut (A/B/C/E) ─────────────────────────────── */
 function AnaphylaxisBar({
   disabled,
-  onLog,
-  activeStep,
+  episodeId,
+  timeline,
+  patientAgeYears,
+  onChanged,
 }: {
   disabled: boolean;
-  onLog: (k: ResusEventKind, s: AbcdeLetter, p: Record<string, unknown>) => void;
-  activeStep: AbcdeLetter;
+  episodeId: string;
+  timeline: TimelineEvent[];
+  patientAgeYears: number | null;
+  onChanged: () => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [prescribeOpen, setPrescribeOpen] = useState(false);
   const dose = getResusDose(ANAPHYLAXIS_PROTOCOL.firstLineDoseId);
   return (
     <div className="border-border bg-card rounded-xl border">
@@ -720,17 +733,10 @@ function AnaphylaxisBar({
           <button
             type="button"
             disabled={disabled}
-            onClick={() =>
-              onLog("drug", activeStep, {
-                label: "IM adrenaline (anaphylaxis)",
-                doseId: dose.id,
-                dose: dose.adultDose,
-                source: dose.source,
-              })
-            }
+            onClick={() => setPrescribeOpen(true)}
             className="inline-flex items-center gap-1.5 rounded-lg bg-rose-600 px-2.5 py-1.5 text-[12px] font-semibold text-white transition-colors hover:bg-rose-700 disabled:opacity-50"
           >
-            Log IM adrenaline
+            Prescribe / record
           </button>
         </div>
       </div>
@@ -747,6 +753,18 @@ function AnaphylaxisBar({
           <p>{ANAPHYLAXIS_PROTOCOL.refractory}</p>
           <p className="text-muted-foreground/60 font-mono text-[10px]">{dose.source}</p>
         </div>
+      ) : null}
+
+      {prescribeOpen ? (
+        <PrescribeDialog
+          episodeId={episodeId}
+          recCode="anaphylaxis_im_adrenaline"
+          recLabel="Anaphylaxis — IM adrenaline"
+          patientAgeYears={patientAgeYears}
+          timeline={timeline}
+          onClose={() => setPrescribeOpen(false)}
+          onDone={onChanged}
+        />
       ) : null}
     </div>
   );
