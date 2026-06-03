@@ -250,10 +250,15 @@ export function runSafetyChecks(input: SafetyCheckInput): SafetyFlag[] {
   }
 
   // ── 7. Out-of-range / plausibility guard on an EDITED dose (addendum A2).
-  //    Compares the edited dose to the catalog reference (unitDoseMg). A normal
-  //    clinical adjustment (≈0.5–2×, e.g. renal dose-halving) raises nothing;
-  //    further out warns; far out blocks (override-with-reason); egregiously out
-  //    additionally requires a typed dose confirmation. NEVER a hard block. ──
+  //    Compares the edited dose to the catalog reference. A normal clinical
+  //    adjustment raises nothing; further out warns; far out blocks (override-
+  //    with-reason); egregiously out additionally requires a typed dose
+  //    confirmation. NEVER a hard block. Two reference shapes:
+  //      • doseRangeMg [low,high] — fixed-regimen drugs with an escalating/ranged
+  //        dose (adenosine 6→18, amiodarone 150/300): inside the band is silent.
+  //      • unitDoseMg — single-reference drugs: a ratio band (≈0.5–2× silent,
+  //        covering e.g. renal dose-halving) around the standard dose.
+  //    A range takes precedence when both exist (it is the more specific bound).
   // An invalid (non-finite) edited dose must NOT silently skip the checks
   // (NaN passes `!= null` but fails every comparison) — block it explicitly.
   if (edit?.doseMg != null && !Number.isFinite(edit.doseMg)) {
@@ -263,6 +268,38 @@ export function runSafetyChecks(input: SafetyCheckInput): SafetyFlag[] {
       message: "Edited dose is not a valid number — enter a numeric dose.",
       overrideable: false,
     });
+  } else if (edit?.doseMg != null && drug.doseRangeMg != null && drug.doseRangeMg.low > 0) {
+    const { low, high } = drug.doseRangeMg;
+    const d = edit.doseMg;
+    const band = low === high ? `${low} mg` : `${low}–${high} mg`;
+    // Distance OUTSIDE the band, expressed as a multiple of the nearer edge.
+    const factor = d > high ? d / high : d < low ? d / low : 1;
+    if (d > high || d < low) {
+      const xfmt = factor >= 1 ? `${factor.toFixed(1)}×` : `${factor.toFixed(2)}×`;
+      if (factor >= 3 || factor <= 1 / 3) {
+        flags.push({
+          code: "dose_range",
+          severity: "block",
+          egregious: true,
+          message: `Edited dose ${d} mg is ${xfmt} the ${d > high ? "top" : "floor"} of the usual ${band} for ${drug.name} — dangerously outside range. Type the dose to confirm; override + reason are recorded.`,
+          overrideable: true,
+        });
+      } else if (factor > 1.5 || factor < 2 / 3) {
+        flags.push({
+          code: "dose_range",
+          severity: "block",
+          message: `Edited dose ${d} mg is outside the usual ${band} for ${drug.name} (${xfmt}) — confirm; override + reason are recorded.`,
+          overrideable: true,
+        });
+      } else {
+        flags.push({
+          code: "dose_range",
+          severity: "warn",
+          message: `Edited dose ${d} mg is just outside the usual ${band} for ${drug.name} (${xfmt}) — check it is intended.`,
+          overrideable: true,
+        });
+      }
+    }
   } else if (edit?.doseMg != null && drug.unitDoseMg != null && drug.unitDoseMg > 0) {
     const ref = drug.unitDoseMg;
     const ratio = edit.doseMg / ref;

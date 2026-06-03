@@ -307,9 +307,9 @@ describe("editable dose — review fixes", () => {
     });
     expect(flags.some((f) => f.code === "concentration")).toBe(true);
   });
-  it("a free-text-dose drug (no unitDoseMg) has no numeric range guard — documented gap (#3)", () => {
+  it("a volume-dosed drug (crystalloid, mL not mg) has no numeric mg range guard — documented gap", () => {
     const flags = runSafetyChecks({
-      drug: getEmergencyDrug("salbutamol_neb")!, // no unitDoseMg
+      drug: getEmergencyDrug("crystalloid_bolus")!, // dosed in mL, no unitDoseMg / doseRangeMg
       patient: adult,
       priorAdministrations: [],
       edit: { doseMg: 99 },
@@ -336,5 +336,84 @@ describe("editable dose — review fixes", () => {
       edit: { doseMg: 8 },
     });
     expect(flags.find((f) => f.code === "max_cumulative")?.severity).toBe("block");
+  });
+});
+
+/* ─── explicit reference ranges (doseRangeMg) — closes the free-text gap for
+ *     fixed-regimen drugs that have no single unitDoseMg reference ──────────── */
+
+describe("editable dose — explicit reference range (doseRangeMg)", () => {
+  const dr = (id: string, doseMg: number) =>
+    runSafetyChecks({
+      drug: getEmergencyDrug(id)!,
+      patient: adult,
+      priorAdministrations: [],
+      edit: { doseMg },
+    }).find((f) => f.code === "dose_range");
+
+  it("a dose inside the range raises NO dose_range flag (salbutamol 5 mg in 2.5–10)", () => {
+    expect(dr("salbutamol_neb", 5)).toBeUndefined();
+  });
+  it("the range endpoints are inclusive (salbutamol 2.5 and 10 mg are in-range)", () => {
+    expect(dr("salbutamol_neb", 2.5)).toBeUndefined();
+    expect(dr("salbutamol_neb", 10)).toBeUndefined();
+  });
+  it("modestly above range warns (salbutamol 14 mg, 1.4× the 10 mg top)", () => {
+    expect(dr("salbutamol_neb", 14)?.severity).toBe("warn");
+  });
+  it("clearly above range blocks (salbutamol 20 mg, 2× the top)", () => {
+    const f = dr("salbutamol_neb", 20);
+    expect(f?.severity).toBe("block");
+    expect(f?.egregious).toBeFalsy();
+  });
+  it("egregiously above range → block + egregious typed-confirm (salbutamol 40 mg, 4× the top)", () => {
+    expect(dr("salbutamol_neb", 40)?.egregious).toBe(true);
+  });
+  it("clearly below range blocks (salbutamol 1 mg, 0.4× the 2.5 mg floor)", () => {
+    expect(dr("salbutamol_neb", 1)?.severity).toBe("block");
+  });
+  it("egregiously below range → egregious (salbutamol 0.5 mg, 0.2× the floor)", () => {
+    expect(dr("salbutamol_neb", 0.5)?.egregious).toBe(true);
+  });
+
+  it("amiodarone's escalating arrest doses are both in-range (300 and 150 mg)", () => {
+    expect(dr("amiodarone_arrest_iv", 300)).toBeUndefined();
+    expect(dr("amiodarone_arrest_iv", 150)).toBeUndefined();
+  });
+  it("the amiodarone fat-finger (300 → 3000 mg) is egregious", () => {
+    expect(dr("amiodarone_arrest_iv", 3000)?.egregious).toBe(true);
+  });
+  it("adenosine's escalating SVT doses are all in-range (6, 12, 18 mg)", () => {
+    expect(dr("adenosine_svt_iv", 6)).toBeUndefined();
+    expect(dr("adenosine_svt_iv", 12)).toBeUndefined();
+    expect(dr("adenosine_svt_iv", 18)).toBeUndefined();
+  });
+  it("an adenosine single dose above the escalation ceiling blocks (30 mg)", () => {
+    expect(dr("adenosine_svt_iv", 30)?.severity).toBe("block");
+  });
+  it("a non-finite edited dose is still blocked for a range drug (salbutamol NaN)", () => {
+    expect(dr("salbutamol_neb", Number("x"))?.severity).toBe("block");
+  });
+});
+
+describe("catalog — doseRangeMg integrity", () => {
+  const RANGED = [
+    "amiodarone_arrest_iv",
+    "lidocaine_arrest_iv",
+    "magnesium_arrest_iv",
+    "adenosine_svt_iv",
+    "salbutamol_neb",
+    "ipratropium_neb",
+    "prednisolone_po",
+    "magnesium_asthma_iv",
+    "txa_trauma",
+  ];
+  it("every targeted fixed-regimen drug carries a valid doseRangeMg (0 < low ≤ high)", () => {
+    for (const id of RANGED) {
+      const r = getEmergencyDrug(id)!.doseRangeMg;
+      expect(r, id).toBeTruthy();
+      expect(r!.low, id).toBeGreaterThan(0);
+      expect(r!.high, id).toBeGreaterThanOrEqual(r!.low);
+    }
   });
 });

@@ -96,6 +96,19 @@ export interface EmergencyDrug {
   cumulativeMaxMg?: number;
   /** The standard single-dose in mg — for cumulative math (not display). */
   unitDoseMg?: number;
+  /** Verified plausibility bounds (mg) for the out-of-range guard on an EDITED
+   *  dose, for fixed-regimen drugs that have a defined dose but NO single
+   *  unitDoseMg reference (escalating or ranged regimens — e.g. adenosine
+   *  6→12→18, amiodarone 150/300). Endpoints are derived from THIS entry's own
+   *  already-web-verified fields — `adult.dose`/`adult.max`, and where the
+   *  plausible single-administration span is wider, the `adult.interval`
+   *  (e.g. salbutamol "up to 10 mg/h" continuous) and the `paediatric` band
+   *  (e.g. salbutamol 2.5 mg, ipratropium 250 µg) — NOT a remembered number; the
+   *  per-entry comment names each endpoint's source. The band width is the
+   *  CSO-ratifiable judgment. An edit inside [low, high] is silent; modestly
+   *  outside warns; far outside blocks (override + reason); egregiously outside
+   *  additionally requires a typed dose confirmation. Never a hard block. */
+  doseRangeMg?: { low: number; high: number };
   /** Concentration / look-alike do-not-confuse warning, where one exists. */
   lookAlikeGuard?: string;
   /** No fixed surface dose — the clinician doses (GTN/furosemide/vasopressors). */
@@ -172,6 +185,8 @@ export const EMERGENCY_DRUGS = [
     contraindications: [],
     monitoring: ["Rhythm", "Post-ROSC BP + heart rate"],
     controlled: false,
+    // Single-administration plausibility: 150 mg (2nd dose) … 300 mg (1st dose).
+    doseRangeMg: { low: 150, high: 300 },
     lookAlikeGuard:
       "First arrest dose is 300 mg (not 150 mg). Confirm total mg, not volume — the 300 mg/10 mL syringe and 150 mg/3 mL ampoule differ.",
     source: "RCUK Adult ALS 2025; ERC 2025; SmPC amiodarone 30 mg/mL prefilled.",
@@ -207,6 +222,8 @@ export const EMERGENCY_DRUGS = [
     contraindications: ["Severe AV block (non-arrest antiarrhythmic context)"],
     monitoring: ["Rhythm", "Post-ROSC neuro (seizure risk) + BP"],
     controlled: false,
+    // Single-administration plausibility: 50 mg (further) … 100 mg (first ≈1.5 mg/kg).
+    doseRangeMg: { low: 50, high: 100 },
     lookAlikeGuard:
       "Confirm strength: 2% = 20 mg/mL (100 mg in 5 mL). NEVER use a lidocaine-WITH-adrenaline preparation IV.",
     source: "RCUK Adult ALS 2025; ERC 2025; SmPC lidocaine 20 mg/mL.",
@@ -238,6 +255,8 @@ export const EMERGENCY_DRUGS = [
     contraindications: [],
     monitoring: ["Rhythm", "BP"],
     controlled: false,
+    // Fixed arrest bolus: 2 g (= 2000 mg); the asthma 1.2–2 g dose is a separate entry.
+    doseRangeMg: { low: 2000, high: 2000 },
     source: "RCUK Adult ALS 2025; ERC 2025.",
     confidence: "verified-web",
   },
@@ -361,6 +380,8 @@ export const EMERGENCY_DRUGS = [
     ],
     monitoring: ["Continuous ECG rhythm strip through administration"],
     controlled: false,
+    // Escalating single doses: 6 mg → 12 mg → 12–18 mg (total typically ≤ 30 mg).
+    doseRangeMg: { low: 6, high: 18 },
     source: "RCUK Adult ALS 2025 tachycardia algorithm; BNF adenosine.",
     confidence: "verified-web",
   },
@@ -451,6 +472,8 @@ export const EMERGENCY_DRUGS = [
     contraindications: [],
     monitoring: ["SpO₂ + work of breathing", "K⁺ + heart rate with repeated dosing"],
     controlled: false,
+    // Nebulised single dose: 2.5 mg (paed/min) … 5 mg (adult), up to ~10 mg in continuous.
+    doseRangeMg: { low: 2.5, high: 10 },
     source: "BTS/SIGN 158 (2019)/SIGN 244 (2024); GINA 2025.",
     confidence: "verified-web",
   },
@@ -474,6 +497,8 @@ export const EMERGENCY_DRUGS = [
     contraindications: [],
     monitoring: ["Work of breathing"],
     controlled: false,
+    // Nebulised single dose: 250 µg (paed band) … 500 µg (adult) = 0.25–0.5 mg.
+    doseRangeMg: { low: 0.25, high: 0.5 },
     source: "BTS/SIGN 158 (2019); GINA 2025.",
     confidence: "verified-web",
   },
@@ -530,6 +555,8 @@ export const EMERGENCY_DRUGS = [
     contraindications: [],
     monitoring: [],
     controlled: false,
+    // Adult course dose: 40–50 mg once daily.
+    doseRangeMg: { low: 40, high: 50 },
     source: "BTS/SIGN 158 (2019); GINA 2025.",
     confidence: "verified-web",
   },
@@ -553,6 +580,8 @@ export const EMERGENCY_DRUGS = [
     contraindications: [],
     monitoring: ["BP", "Reflexes with repeated dosing"],
     controlled: false,
+    // Single IV asthma dose: 1.2–2 g (= 1200–2000 mg) over 20 min.
+    doseRangeMg: { low: 1200, high: 2000 },
     source: "BTS/SIGN 158 (2019); GINA 2025 (2 g over 20 min).",
     confidence: "verified-web",
   },
@@ -643,6 +672,8 @@ export const EMERGENCY_DRUGS = [
     contraindications: [],
     monitoring: ["Haemodynamics"],
     controlled: false,
+    // Each administration is a fixed 1 g (= 1000 mg): loading bolus, then the 8 h dose.
+    doseRangeMg: { low: 1000, high: 1000 },
     source: "CRASH-2 (Lancet 2010/2011); CRASH-3 (2019).",
     confidence: "verified-web",
   },
