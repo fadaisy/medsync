@@ -5,6 +5,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Smart prescribing: editable prescription parameters (safety re-runs on every edit) — 2026-06-03
+
+The prescriber can now **edit a prescription's parameters** — dose, route, concentration, frequency/interval, duration, volume/rate, PRN, notes — instead of only accepting the guideline default, because the right prescription depends on the patient (renal/hepatic function, weight, the clinical picture). The hard rule: **editing is NOT a bypass — the safety checks re-run live against the edited values.** Built on the existing engine + record ([ADRs 0051–0052](docs/adr/0051-smart-prescribing-catalog-and-engine.md); [ADR 0054](docs/adr/0054-prescribing-editable-parameters.md)). Decision-support, never autonomous.
+
+- **Edit-aware engine** ([engine.ts](lib/prescribing/engine.ts)): `runSafetyChecks` takes an `edit` — the edited dose drives the **out-of-range** + **max/cumulative** checks; an edited route re-validates **concentration/route**. New `dose_range` guard: ~0.5–2× (e.g. renal dose-halving) raises nothing; further out **warns**; far out **blocks** (override + reason); egregiously out (≥5×/≤0.2×) needs a **typed dose confirmation** — never a hard block in a resus.
+- **Inline editor** ([prescribe-dialog.tsx](app/nurse/resus/[episodeId]/_components/prescribe-dialog.tsx)): an "Adjust" expander; flags recompute live as values change; the **guideline default is shown alongside the edited value** (struck-through), so deviation is visible; defaults stay one-tap-accept; edits are scoped to the selected drug (no leakage when switching option).
+- **First-class edit history** ([recordEmergencyAdministration](app/nurse/resus/actions.ts)): the record stores the **edited values** (what's given + reconciled), the **guideline default**, the **field-level edit log** (`{field, from, to}`), and any **override + reason** — append-only/versioned; controlled-drug edits keep the witness requirement.
+
 ### Added — Resus · CIRCULATION step (findings→shock-type→action engine) — 2026-06-03
 
 The third ABCDE step, built by **reusing** the airway/breathing findings→action→state engine + the state colour system ([ADRs 0048–0050](docs/adr/0050-resus-breathing-findings-action-engine.md)) with circulation medicine, and routing its drugs through the **smart prescribing tool** ([ADRs 0051–0052](docs/adr/0051-smart-prescribing-catalog-and-engine.md)). Decision-support — records what the team does; never auto-administers. CSO-signed ([docs/resus-circulation-gate-a-proposal.md](docs/resus-circulation-gate-a-proposal.md) + committed catalog [docs/clinical/resus-circulation-clinical-catalog.md](docs/clinical/resus-circulation-clinical-catalog.md); [ADR 0053](docs/adr/0053-resus-circulation-findings-action-engine.md)). Anchors web cross-verified 2026-06-03. **No new migration** (step-`C` timeline events + pure projections).
