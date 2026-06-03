@@ -88,6 +88,7 @@ type TriageOpenSource = {
 async function openResusForTriageRecord(
   scope: ResusScope,
   tr: TriageOpenSource,
+  resusBase = "/nurse/resus",
 ): Promise<{ error: string }> {
   // Reuse an existing active episode for this triage record (idempotent open).
   const [existing] = await db
@@ -95,7 +96,7 @@ async function openResusForTriageRecord(
     .from(resusEpisodes)
     .where(and(eq(resusEpisodes.triageRecordId, tr.id), eq(resusEpisodes.state, "active")))
     .limit(1);
-  if (existing) redirect(`/nurse/resus/${existing.id}`);
+  if (existing) redirect(`${resusBase}/${existing.id}`);
 
   const reason = (tr.breakdown as { lifeThreatReason?: string })?.lifeThreatReason ?? null;
   const result = await openResusEpisode({
@@ -135,12 +136,15 @@ async function openResusForTriageRecord(
     triggerReason: reason,
   }).catch((e) => logger.warn("resus.open.mobilise_failed", { reason: String(e) }));
 
-  revalidatePath("/nurse/resus");
-  redirect(`/nurse/resus/${result.episodeId}`);
+  revalidatePath(resusBase);
+  redirect(`${resusBase}/${result.episodeId}`);
 }
 
 /** Open a resus from a specific triage record (the resus board path). */
-export async function openResusFromTriage(triageRecordId: string): Promise<{ error: string }> {
+export async function openResusFromTriage(
+  triageRecordId: string,
+  resusBase = "/nurse/resus",
+): Promise<{ error: string }> {
   const parsed = z.string().uuid().safeParse(triageRecordId);
   if (!parsed.success) return { error: "Invalid triage record." };
   const scope = await requireResusScope();
@@ -152,7 +156,7 @@ export async function openResusFromTriage(triageRecordId: string): Promise<{ err
     .limit(1);
   if (!tr) return { error: "Triage record not found in your hospital." };
 
-  return openResusForTriageRecord(scope, tr);
+  return openResusForTriageRecord(scope, tr, resusBase);
 }
 
 /**
@@ -160,7 +164,10 @@ export async function openResusFromTriage(triageRecordId: string): Promise<{ err
  * the latest Red/L1 triage record for that patient. Returns an error if
  * the patient has no resus-level triage.
  */
-export async function openResusFromIntake(intakeId: string): Promise<{ error: string }> {
+export async function openResusFromIntake(
+  intakeId: string,
+  resusBase = "/nurse/resus",
+): Promise<{ error: string }> {
   const parsed = z.string().uuid().safeParse(intakeId);
   if (!parsed.success) return { error: "Invalid intake." };
   const scope = await requireResusScope();
@@ -179,11 +186,11 @@ export async function openResusFromIntake(intakeId: string): Promise<{ error: st
     .limit(1);
   if (!tr) return { error: "This patient has no Red/L1 triage to open a resus from." };
 
-  return openResusForTriageRecord(scope, tr);
+  return openResusForTriageRecord(scope, tr, resusBase);
 }
 
 /** Open an ad-hoc resus for an in-resus deterioration (no triage record). */
-export async function openBlankResus(): Promise<{ error: string }> {
+export async function openBlankResus(resusBase = "/nurse/resus"): Promise<{ error: string }> {
   const scope = await requireResusScope();
   const result = await openResusEpisode({
     scopeUserId: scope.userId,
@@ -201,8 +208,8 @@ export async function openBlankResus(): Promise<{ error: string }> {
     patientLabel: "a patient",
     triggerReason: "in-resus deterioration",
   }).catch((e) => logger.warn("resus.open.mobilise_failed", { reason: String(e) }));
-  revalidatePath("/nurse/resus");
-  redirect(`/nurse/resus/${result.episodeId}`);
+  revalidatePath(resusBase);
+  redirect(`${resusBase}/${result.episodeId}`);
 }
 
 const LogSchema = z.object({

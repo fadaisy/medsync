@@ -10,8 +10,10 @@ import {
   CheckSquareIcon,
   ClipboardListIcon,
   GraduationCapIcon,
+  HeartPulseIcon,
   LayoutDashboardIcon,
   ListChecksIcon,
+  SirenIcon,
   StethoscopeIcon,
   UsersIcon,
 } from "lucide-react";
@@ -28,6 +30,8 @@ const ICONS: Record<DoctorIconKey, LucideIcon> = {
   tasks: CheckSquareIcon,
   supervisees: GraduationCapIcon,
   cosign_queue: ListChecksIcon,
+  triage: HeartPulseIcon,
+  resus: SirenIcon,
 };
 
 interface Props {

@@ -12,7 +12,13 @@ import { openResusFromIntake } from "../../resus/actions";
  * patient, carrying their triage vitals in as the first reading. Success
  * redirects server-side; we only land back here on an error.
  */
-export function OpenResusButton({ intakeId }: { intakeId: string }) {
+export function OpenResusButton({
+  intakeId,
+  resusBase = "/nurse/resus",
+}: {
+  intakeId: string;
+  resusBase?: string;
+}) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -25,7 +31,7 @@ export function OpenResusButton({ intakeId }: { intakeId: string }) {
       onClick={() =>
         startTransition(async () => {
           setError(null);
-          const r = await openResusFromIntake(intakeId);
+          const r = await openResusFromIntake(intakeId, resusBase);
           if (r?.error) setError(r.error);
         })
       }

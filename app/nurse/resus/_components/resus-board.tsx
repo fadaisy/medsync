@@ -23,9 +23,12 @@ function patientLabel(name: string | null): string {
 export function ResusBoard({
   board,
   leaderRecommended,
+  basePath = "/nurse/resus",
 }: {
   board: ResusBoardData;
   leaderRecommended: boolean;
+  /** Workspace base for desk links + the open-resus redirect target. */
+  basePath?: string;
 }) {
   const [pending, startTransition] = useTransition();
 
@@ -51,7 +54,7 @@ export function ResusBoard({
             {board.active.map((e) => (
               <li key={e.episodeId}>
                 <Link
-                  href={`/nurse/resus/${e.episodeId}`}
+                  href={`${basePath}/${e.episodeId}`}
                   className={cn(
                     "group flex items-center gap-3 rounded-xl border px-4 py-3 transition-colors",
                     e.arrestDetected
@@ -132,7 +135,7 @@ export function ResusBoard({
                   disabled={pending}
                   onClick={() =>
                     startTransition(async () => {
-                      await openResusFromTriage(o.triageRecordId);
+                      await openResusFromTriage(o.triageRecordId, basePath);
                     })
                   }
                   className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-rose-600 px-3 py-1.5 text-[12.5px] font-semibold text-white transition-colors hover:bg-rose-700 disabled:opacity-50"
@@ -155,7 +158,7 @@ export function ResusBoard({
         <button
           type="button"
           disabled={pending}
-          onClick={() => startTransition(async () => void (await openBlankResus()))}
+          onClick={() => startTransition(async () => void (await openBlankResus(basePath)))}
           className="text-muted-foreground hover:text-foreground border-border inline-flex shrink-0 items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[12px] transition-colors disabled:opacity-50"
         >
           Start ad-hoc resus

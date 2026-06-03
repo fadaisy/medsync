@@ -147,6 +147,7 @@ export function ResusDesk({
   roster,
   responders,
   scope,
+  basePath = "/nurse/resus",
 }: {
   episode: DeskEpisode;
   patient: ResusPatientView;
@@ -154,6 +155,8 @@ export function ResusDesk({
   roster: RosterEntry[];
   responders: ResponderEntry[];
   scope: DeskScope;
+  /** Workspace base for the "Board" back-link (/nurse/resus or /doctor/resus). */
+  basePath?: string;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -228,7 +231,7 @@ export function ResusDesk({
           <div className="flex items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
               <Link
-                href="/nurse/resus"
+                href={basePath}
                 className="text-muted-foreground hover:text-foreground inline-flex shrink-0 items-center gap-1 text-[12px] transition-colors"
               >
                 <ArrowLeftIcon className="size-3.5" aria-hidden /> Board
