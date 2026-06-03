@@ -19,7 +19,9 @@ export type DoctorIconKey =
   | "encounters"
   | "tasks"
   | "supervisees"
-  | "cosign_queue";
+  | "cosign_queue"
+  | "triage"
+  | "resus";
 
 export type DoctorFeatureSlug =
   | ""
@@ -28,6 +30,8 @@ export type DoctorFeatureSlug =
   | "care-team"
   | "schedule"
   | "encounters"
+  | "triage"
+  | "resus"
   | "tasks"
   | "supervisees"
   | "cosign-queue";
@@ -82,6 +86,22 @@ export const DOCTOR_FEATURE_AREAS: ReadonlyArray<DoctorFeatureArea> = [
     hint: "Open + recent encounters; notes & orders entry",
     iconKey: "encounters",
     placeholder: true,
+    visibleTo: "all",
+  },
+  {
+    slug: "triage",
+    label: "Triage",
+    hint: "Assess + assign acuity for waiting patients (you may down-triage)",
+    iconKey: "triage",
+    placeholder: false,
+    visibleTo: "all",
+  },
+  {
+    slug: "resus",
+    label: "Resus",
+    hint: "The ABCDE resuscitation board — lead or join an active resus",
+    iconKey: "resus",
+    placeholder: false,
     visibleTo: "all",
   },
   {

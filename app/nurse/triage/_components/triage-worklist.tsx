@@ -24,9 +24,15 @@ const ACUITY: Record<number, { label: string; dot: string; text: string }> = {
 export function TriageWorklist({
   rows,
   departmentName,
+  basePath = "/nurse/triage",
+  resusBasePath = "/nurse/resus",
 }: {
   rows: ReadonlyArray<TriageWorklistRow>;
   departmentName: string;
+  /** Workspace base for triage-desk links (/nurse/triage or /doctor/triage). */
+  basePath?: string;
+  /** Workspace base for the open-resus redirect target. */
+  resusBasePath?: string;
 }) {
   if (rows.length === 0) {
     return (
@@ -63,7 +69,7 @@ export function TriageWorklist({
             )}
           >
             <Link
-              href={`/nurse/triage/${r.intakeId}`}
+              href={`${basePath}/${r.intakeId}`}
               className="group flex min-w-0 flex-1 items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-teal-50/40 dark:hover:bg-teal-50/[0.04]"
             >
               {/* Acuity dot rail */}
@@ -111,7 +117,7 @@ export function TriageWorklist({
             </Link>
 
             {r.priorLevel === 1 ? (
-              <OpenResusButton intakeId={r.intakeId} />
+              <OpenResusButton intakeId={r.intakeId} resusBase={resusBasePath} />
             ) : (
               <RapidRedButton
                 intakeId={r.intakeId}

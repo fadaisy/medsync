@@ -189,12 +189,15 @@ function subLabel(label: string): string {
 export function TriageDesk({
   row,
   mayDownTriage,
+  basePath = "/nurse/triage",
 }: {
   row: TriageWorklistRow;
   mayDownTriage: boolean;
+  /** Workspace base for the back-to-worklist nav (/nurse/triage or /doctor/triage). */
+  basePath?: string;
 }) {
   const router = useRouter();
-  const onClose = useCallback(() => router.push("/nurse/triage"), [router]);
+  const onClose = useCallback(() => router.push(basePath), [router, basePath]);
   const isMale = row.sex?.toLowerCase().startsWith("m") ?? false;
   const [vitals, setVitals] = useState<VitalsState>(EMPTY_VITALS);
   // A male patient can never be pregnant — pin the context so the
@@ -807,7 +810,7 @@ export function TriageDesk({
     <div className="mx-auto w-full max-w-[1440px] px-4 py-4 sm:px-6">
       {/* Back nav */}
       <Link
-        href="/nurse/triage"
+        href={basePath}
         className="text-muted-foreground hover:text-foreground mb-4 inline-flex items-center gap-1.5 text-[12px] transition-colors"
       >
         <ArrowLeftIcon className="size-3.5" aria-hidden />

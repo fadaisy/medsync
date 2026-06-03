@@ -1,5 +1,6 @@
 "use client";
 
+import type { PrescribeAuthority } from "./prescribe-dialog";
 import type { ResusPatientView } from "@/lib/resus/board";
 import type { StepStatus } from "@/lib/resus/engine";
 import type { ResponderEntry, RosterEntry } from "@/lib/resus/record";
@@ -43,6 +44,7 @@ import {
 } from "../../actions";
 import { AirwayPanel } from "./airway-panel";
 import { BreathingPanel } from "./breathing-panel";
+import { PrescribeDialog } from "./prescribe-dialog";
 
 interface DeskEpisode {
   id: string;
@@ -57,10 +59,15 @@ interface DeskEpisode {
 interface DeskScope {
   userId: string;
   fullName: string | null;
+  cadreCode: string;
   cadreName: string;
   hospitalName: string;
   departmentName: string;
   leaderRecommended: boolean;
+  /** This cadre's prescribing authority (cosign policy) — surfaced in the
+   *  prescribe dialog. In an emergency it never hard-blocks; it flags
+   *  "administering under resus protocol" for a non-prescriber. */
+  prescribeAuthority: PrescribeAuthority;
 }
 
 /**
@@ -140,6 +147,7 @@ export function ResusDesk({
   roster,
   responders,
   scope,
+  basePath = "/nurse/resus",
 }: {
   episode: DeskEpisode;
   patient: ResusPatientView;
@@ -147,6 +155,8 @@ export function ResusDesk({
   roster: RosterEntry[];
   responders: ResponderEntry[];
   scope: DeskScope;
+  /** Workspace base for the "Board" back-link (/nurse/resus or /doctor/resus). */
+  basePath?: string;
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -221,7 +231,7 @@ export function ResusDesk({
           <div className="flex items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
               <Link
-                href="/nurse/resus"
+                href={basePath}
                 className="text-muted-foreground hover:text-foreground inline-flex shrink-0 items-center gap-1 text-[12px] transition-colors"
               >
                 <ArrowLeftIcon className="size-3.5" aria-hidden /> Board
@@ -386,13 +396,22 @@ export function ResusDesk({
             </div>
           ) : null}
 
-          <AnaphylaxisBar disabled={!active || pending} onLog={log} activeStep={activeStep} />
+          <AnaphylaxisBar
+            disabled={!active || pending}
+            episodeId={episode.id}
+            timeline={timeline}
+            patientAgeYears={patient.ageYears ?? null}
+            prescribeAuthority={scope.prescribeAuthority}
+            onChanged={() => router.refresh()}
+          />
 
           {activeStep === "A" ? (
             <AirwayPanel
               episodeId={episode.id}
               timeline={timeline}
               active={active}
+              patientAgeYears={patient.ageYears ?? null}
+              prescribeAuthority={scope.prescribeAuthority}
               onChanged={() => router.refresh()}
             />
           ) : activeStep === "B" ? (
@@ -401,6 +420,7 @@ export function ResusDesk({
               timeline={timeline}
               active={active}
               patientAgeYears={patient.ageYears ?? null}
+              prescribeAuthority={scope.prescribeAuthority}
               onChanged={() => router.refresh()}
             />
           ) : (
@@ -690,14 +710,21 @@ function VitalsBand({
 /* ─── Anaphylaxis cross-cut (A/B/C/E) ─────────────────────────────── */
 function AnaphylaxisBar({
   disabled,
-  onLog,
-  activeStep,
+  episodeId,
+  timeline,
+  patientAgeYears,
+  prescribeAuthority,
+  onChanged,
 }: {
   disabled: boolean;
-  onLog: (k: ResusEventKind, s: AbcdeLetter, p: Record<string, unknown>) => void;
-  activeStep: AbcdeLetter;
+  episodeId: string;
+  timeline: TimelineEvent[];
+  patientAgeYears: number | null;
+  prescribeAuthority: PrescribeAuthority;
+  onChanged: () => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [prescribeOpen, setPrescribeOpen] = useState(false);
   const dose = getResusDose(ANAPHYLAXIS_PROTOCOL.firstLineDoseId);
   return (
     <div className="border-border bg-card rounded-xl border">
@@ -720,17 +747,10 @@ function AnaphylaxisBar({
           <button
             type="button"
             disabled={disabled}
-            onClick={() =>
-              onLog("drug", activeStep, {
-                label: "IM adrenaline (anaphylaxis)",
-                doseId: dose.id,
-                dose: dose.adultDose,
-                source: dose.source,
-              })
-            }
+            onClick={() => setPrescribeOpen(true)}
             className="inline-flex items-center gap-1.5 rounded-lg bg-rose-600 px-2.5 py-1.5 text-[12px] font-semibold text-white transition-colors hover:bg-rose-700 disabled:opacity-50"
           >
-            Log IM adrenaline
+            Prescribe / record
           </button>
         </div>
       </div>
@@ -747,6 +767,19 @@ function AnaphylaxisBar({
           <p>{ANAPHYLAXIS_PROTOCOL.refractory}</p>
           <p className="text-muted-foreground/60 font-mono text-[10px]">{dose.source}</p>
         </div>
+      ) : null}
+
+      {prescribeOpen ? (
+        <PrescribeDialog
+          episodeId={episodeId}
+          recCode="anaphylaxis_im_adrenaline"
+          recLabel="Anaphylaxis — IM adrenaline"
+          patientAgeYears={patientAgeYears}
+          prescribeAuthority={prescribeAuthority}
+          timeline={timeline}
+          onClose={() => setPrescribeOpen(false)}
+          onDone={onChanged}
+        />
       ) : null}
     </div>
   );

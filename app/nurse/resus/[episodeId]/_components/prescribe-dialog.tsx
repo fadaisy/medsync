@@ -1,5 +1,6 @@
 "use client";
 
+import type { Requirement } from "@/lib/doctor/capabilities";
 import type { PrescriptionOption, SafetyFlag } from "@/lib/prescribing/engine";
 import type { TimelineEvent } from "@/lib/resus/types";
 import { useMemo, useState, useTransition } from "react";
@@ -12,6 +13,14 @@ import {
 import { resolvePrescriptionOptions } from "@/lib/prescribing/engine";
 import { cn } from "@/lib/utils";
 import { recordEmergencyAdministration, recordResusAllergies } from "../../actions";
+
+/** This cadre's prescribing authority (cosign policy) for the two prescription
+ *  kinds. In an emergency it NEVER hard-blocks — a non-prescriber administers
+ *  under the resus protocol; the dialog flags it + the record attributes it. */
+export interface PrescribeAuthority {
+  routine: Requirement;
+  controlled: Requirement;
+}
 
 const SEVERITY_STYLE: Record<
   SafetyFlag["severity"],
@@ -48,6 +57,7 @@ export function PrescribeDialog({
   recCode,
   recLabel,
   patientAgeYears,
+  prescribeAuthority,
   timeline,
   onClose,
   onDone,
@@ -56,6 +66,7 @@ export function PrescribeDialog({
   recCode: string;
   recLabel: string;
   patientAgeYears: number | null;
+  prescribeAuthority: PrescribeAuthority;
   timeline: TimelineEvent[];
   onClose: () => void;
   onDone: () => void;
@@ -92,6 +103,31 @@ export function PrescribeDialog({
   if (options.length === 0) return null;
   const opt = options[Math.min(selected, options.length - 1)]!;
   const drug = opt.drug;
+
+  // Cadre prescribing authority for THIS drug (controlled vs routine). Never a
+  // hard block in an emergency — a non-prescriber administers under the resus
+  // protocol; this flags it (and the server records the attribution).
+  const authReq = drug.controlled ? prescribeAuthority.controlled : prescribeAuthority.routine;
+  const authorityFlag: SafetyFlag | null =
+    authReq === "blocked"
+      ? {
+          code: "controlled",
+          severity: "warn",
+          message:
+            "You are not an authorised prescriber for this drug — recording as administered under the resus protocol. A prescriber should authorise / witness.",
+          overrideable: true,
+        }
+      : authReq === "cosign_required"
+        ? {
+            code: "controlled",
+            severity: "info",
+            message:
+              "This prescription needs a prescriber co-sign — record the prescriber as witness.",
+            overrideable: true,
+          }
+        : null;
+  const displayFlags = authorityFlag ? [...opt.flags, authorityFlag] : opt.flags;
+
   const blockFlags = opt.flags.filter((f) => f.severity === "block");
   const needsOverride = blockFlags.length > 0;
   const needsWitness = drug.controlled;
@@ -270,9 +306,9 @@ export function PrescribeDialog({
           ) : null}
 
           {/* Safety flags */}
-          {opt.flags.length > 0 ? (
+          {displayFlags.length > 0 ? (
             <div className="flex flex-col gap-1.5">
-              {opt.flags.map((f, i) => {
+              {displayFlags.map((f, i) => {
                 const s = SEVERITY_STYLE[f.severity];
                 const Icon = s.icon;
                 return (

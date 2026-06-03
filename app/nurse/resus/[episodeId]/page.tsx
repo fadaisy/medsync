@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
+import { resolveCapabilities } from "@/lib/doctor/capabilities";
 import { fetchResusPatient } from "@/lib/resus/board";
 import {
   fetchResusEpisode,
@@ -33,7 +34,7 @@ export default async function ResusDeskPage({
   const episode = await fetchResusEpisode({ episodeId, hospitalId: scope.hospitalId });
   if (!episode) notFound();
 
-  const [patient, timeline, roster, responders] = await Promise.all([
+  const [patient, timeline, roster, responders, caps] = await Promise.all([
     fetchResusPatient({
       patientUserId: episode.patientUserId,
       hospitalId: scope.hospitalId,
@@ -42,6 +43,11 @@ export default async function ResusDeskPage({
     fetchResusTimeline(episodeId),
     fetchResusRoster(episodeId),
     fetchResusResponders(episodeId),
+    resolveCapabilities({
+      hospitalId: scope.hospitalId,
+      departmentId: scope.departmentId,
+      cadreCode: scope.cadreCode,
+    }),
   ]);
 
   return (
@@ -62,10 +68,15 @@ export default async function ResusDeskPage({
       scope={{
         userId: scope.userId,
         fullName: scope.fullName,
+        cadreCode: scope.cadreCode,
         cadreName: scope.cadreName,
         hospitalName: scope.hospitalName,
         departmentName: scope.departmentName,
         leaderRecommended: scope.leaderRecommended,
+        prescribeAuthority: {
+          routine: caps.prescription_routine,
+          controlled: caps.prescription_controlled,
+        },
       }}
     />
   );
