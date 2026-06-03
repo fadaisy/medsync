@@ -871,6 +871,47 @@ export const EMERGENCY_DRUGS = [
     source: "NICE NG217; BNF midazolam.",
     confidence: "verified-web",
   },
+  {
+    id: "magnesium_eclampsia_iv",
+    name: "Magnesium sulfate",
+    drugKey: "magnesium",
+    drugClass: "Electrolyte / anticonvulsant (eclampsia)",
+    indications: ["Eclampsia / severe pre-eclampsia seizure prophylaxis (obstetric emergency)"],
+    tier: "disability_metabolic",
+    abcdeStep: "D",
+    adult: {
+      dose: "4 g IV loading over 5–15 min, then 1 g/hour IV infusion for 24 h",
+      concentration:
+        "magnesium sulfate — e.g. 4 g diluted in 100 mL over 5–15 min (loading); 1 g/h maintenance infusion",
+      route: ["iv", "infusion"],
+      interval:
+        "loading then maintenance for 24 h after last seizure/delivery; recurrent seizure → further 2–4 g IV over 5 min",
+      max: "loading 4–6 g; maintenance 1–2 g/h (1 g/h standard); recurrent-seizure bolus 2–4 g",
+    },
+    paediatric: {
+      note: "Eclampsia is an obstetric emergency; adolescent/peripartum per obstetric protocol + APLS — weight-based, not an adult flat number.",
+      weightBased: true,
+    },
+    cautions: [
+      "Magnesium toxicity — monitor deep tendon reflexes, respiratory rate, urine output; CALCIUM GLUCONATE is the antidote.",
+      "Eclampsia LOADING is 4 g — distinct from the 2 g arrest and 1.2–2 g asthma magnesium doses.",
+    ],
+    contraindications: [],
+    monitoring: [
+      "Deep tendon reflexes",
+      "Respiratory rate",
+      "Urine output",
+      "BP",
+      "Fetal monitoring",
+    ],
+    controlled: false,
+    doseRangeMg: { low: 4000, high: 6000 },
+    lookAlikeGuard:
+      "ECLAMPSIA loading = 4 g (4–6 g) IV. Do NOT give the 2 g arrest or 1.2–2 g asthma magnesium dose — those UNDERDOSE eclampsia. Maintenance 1 g/h; recurrent seizure → 2–4 g over 5 min. Calcium gluconate is the toxicity antidote.",
+    source:
+      "Collaborative Eclampsia Trial (Lancet 1995); Magpie (2002); RCOG/NICE NG133; ObG consensus bundle. Web-verified 2026-06-03.",
+    confidence: "verified-web",
+  },
 
   /* ───────────── Circulation (C) additions — category/record-only ─────────── */
   {
@@ -1053,6 +1094,12 @@ export const RECOMMENDATION_DRUG_MAP: Record<string, EmergencyDrugId[]> = {
   c_atropine: ["atropine_bradycardia_iv"],
   c_inotrope: ["dobutamine_inotrope"],
   c_hydrocortisone: ["hydrocortisone_iv"],
+  // Disability (D) — drugs route through the prescribing tool
+  d_glucose: ["glucose_iv", "glucagon_im"],
+  d_naloxone: ["naloxone_iv"],
+  d_benzodiazepine: ["lorazepam_seizure_iv", "midazolam_seizure_buccal"],
+  d_eclampsia_magnesium: ["magnesium_eclampsia_iv"],
+  d_flumazenil: ["flumazenil_iv"],
 };
 
 export function drugsForRecommendation(recCode: string): EmergencyDrug[] {

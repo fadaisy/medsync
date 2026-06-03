@@ -21,6 +21,13 @@ import {
   classifyCirculation,
   identifyShockType,
 } from "@/lib/resus/circulation";
+import {
+  classifyDisability,
+  DISABILITY_ACTION_STATES,
+  gcsTotal,
+  identifyNeuroSyndrome,
+  mandatoryGlucoseMissing,
+} from "@/lib/resus/disability";
 import { mobiliseResusTeam } from "@/lib/resus/mobilise";
 import {
   acknowledgeResusAlert,
@@ -33,6 +40,11 @@ import {
 import { AIRWAY_PATENCY, airwayAction } from "@/lib/resus/reference/airway-catalog";
 import { BREATHING_STATES, breathingAction } from "@/lib/resus/reference/breathing-catalog";
 import { circulationAction, CIRCULATORY_STATES } from "@/lib/resus/reference/circulation-catalog";
+import {
+  DISABILITY_FINDING_CODE_SET,
+  DISABILITY_STATES,
+  disabilityAction,
+} from "@/lib/resus/reference/disability-catalog";
 import { requireResusScope } from "@/lib/resus/scope";
 import { RESUS_ROLES } from "@/lib/resus/types";
 import { vitalsFromTriageSnapshot } from "@/lib/resus/vitals";
@@ -685,6 +697,139 @@ export async function setCirculationActionState(
     episodeId: parsed.data.episodeId,
     kind,
     step: "C",
+    payload: {
+      actionId: parsed.data.actionId,
+      actionCode: action.code,
+      tier: action.tier,
+      state: parsed.data.state,
+      reason: parsed.data.reason ?? null,
+      label: `${action.label} — ${parsed.data.state.replace(/_/g, " ")}`,
+    },
+  });
+  if ("error" in ev) return { error: ev.error };
+
+  revalidatePath(`/nurse/resus/${parsed.data.episodeId}`);
+  return { ok: true };
+}
+
+/* ─── Disability (D) — findings + action-state (mirrors A/B/C) ──────── */
+
+const DisabilityFindingsSchema = z.object({
+  episodeId: z.string().uuid(),
+  findingSet: z.object({
+    state: z.enum(DISABILITY_STATES).nullable(),
+    gcs: z
+      .object({
+        eye: z.number().int().min(1).max(4),
+        verbal: z.number().int().min(1).max(5),
+        motor: z.number().int().min(1).max(6),
+        intubated: z.boolean().optional(),
+      })
+      .nullable(),
+    avpu: z.enum(["A", "V", "P", "U"]).nullable(),
+    glucoseMmol: z.number().min(0.5).max(100).nullable(),
+    present: z
+      .array(z.string().max(64))
+      .max(60)
+      .refine((codes) => codes.every((c) => DISABILITY_FINDING_CODE_SET.has(c)), {
+        message: "Unknown disability finding code.",
+      }),
+    focalOnset: z.string().max(120).nullable().optional(),
+    seizureDurationMin: z.number().min(0).max(600).nullable().optional(),
+    context: z
+      .object({
+        opioidsSuspected: z.boolean().optional(),
+        lowRespRate: z.boolean().optional(),
+        pregnancyPostpartum: z.boolean().optional(),
+        headInjury: z.boolean().optional(),
+        alcoholMalnourished: z.boolean().optional(),
+        feverMeningism: z.boolean().optional(),
+        abcAbnormal: z.boolean().optional(),
+        noPulse: z.boolean().optional(),
+      })
+      .optional(),
+  }),
+});
+
+/**
+ * Record a disability finding-set (assessment) onto the immutable timeline.
+ * Reassessment appends a new event (the serial-GCS trend is the record). The
+ * classified neuro-state, the suspected neuro-syndrome, the GCS total, and the
+ * mandatory-glucose flag are stored alongside for the medico-legal record (and
+ * to drive the syndrome-specific actions).
+ */
+export async function recordDisabilityFindings(
+  input: z.infer<typeof DisabilityFindingsSchema>,
+): Promise<{
+  ok?: true;
+  neuroState?: string | null;
+  suspectedCause?: string | null;
+  gcsTotal?: number | null;
+  error?: string;
+}> {
+  const parsed = DisabilityFindingsSchema.safeParse(input);
+  if (!parsed.success) return { error: "Invalid disability findings." };
+  const scope = await requireResusScope();
+
+  const findingSet = { ...parsed.data.findingSet, context: parsed.data.findingSet.context ?? {} };
+  const state = classifyDisability(findingSet);
+  const suspectedCause = identifyNeuroSyndrome(findingSet);
+  const total = gcsTotal(findingSet.gcs);
+  const glucoseMissing = mandatoryGlucoseMissing(findingSet);
+
+  const ev = await appendResusEvent({
+    scopeUserId: scope.userId,
+    episodeId: parsed.data.episodeId,
+    kind: "assessment",
+    step: "D",
+    payload: {
+      disability: findingSet,
+      neuroState: state,
+      suspectedCause,
+      gcsTotal: total,
+      mandatoryGlucoseMissing: glucoseMissing,
+      label: `Disability findings${state ? ` → ${state.replace(/_/g, " ")}` : ""}${total != null ? ` (GCS ${total})` : ""}${glucoseMissing ? " — ⚠ glucose not checked" : ""}`,
+      danger:
+        state === "raised_icp_herniation" ||
+        state === "active_seizure_status" ||
+        state === "severe_impairment_coma",
+    },
+  });
+  if ("error" in ev) return { error: ev.error };
+
+  revalidatePath(`/nurse/resus/${parsed.data.episodeId}`);
+  return { ok: true, neuroState: state, suspectedCause, gcsTotal: total };
+}
+
+const DisabilityActionStateSchema = z.object({
+  episodeId: z.string().uuid(),
+  actionId: z.string().min(1).max(64),
+  actionCode: z.string().max(64),
+  state: z.enum(DISABILITY_ACTION_STATES),
+  reason: z.string().max(500).optional(),
+});
+
+/**
+ * Record a disability action's state onto the timeline. Decision-support: the
+ * clinician performs/confirms; the app records. Disability DRUGS are recorded
+ * via the prescribing tool (recordEmergencyAdministration); this records the
+ * action/procedure state (check-glucose, back-to-A, neurosurgery referral, etc.).
+ */
+export async function setDisabilityActionState(
+  input: z.infer<typeof DisabilityActionStateSchema>,
+): Promise<{ ok?: true; error?: string }> {
+  const parsed = DisabilityActionStateSchema.safeParse(input);
+  if (!parsed.success) return { error: "Invalid disability action." };
+  const action = disabilityAction(parsed.data.actionCode);
+  if (!action) return { error: "Unknown disability action." };
+  const scope = await requireResusScope();
+
+  const kind: ResusEventKind = action.tier === 3 ? "procedure" : "action";
+  const ev = await appendResusEvent({
+    scopeUserId: scope.userId,
+    episodeId: parsed.data.episodeId,
+    kind,
+    step: "D",
     payload: {
       actionId: parsed.data.actionId,
       actionCode: action.code,
