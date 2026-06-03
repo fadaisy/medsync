@@ -17,6 +17,11 @@ import {
 
 import { RECOMMENDATION_DRUG_MAP } from "@/lib/prescribing/reference/emergency-drug-catalog";
 import {
+  mostUrgentAction,
+  orderResusActions,
+  outstandingActionCount,
+} from "@/lib/resus/action-order";
+import {
   buildCirculationActions,
   circulationProceedGuard,
   classifyCirculation,
@@ -43,6 +48,7 @@ import {
   setCirculationActionState,
 } from "../../actions";
 import { PrescribeDialog } from "./prescribe-dialog";
+import { ResusActionsHeading } from "./resus-actions-heading";
 
 const PRESCRIBABLE = new Set(Object.keys(RECOMMENDATION_DRUG_MAP));
 
@@ -197,8 +203,30 @@ export function CirculationPanel({
     });
   }
 
-  const shownCodes = new Set(triggered.map((t) => t.code));
-  const extraRecorded = recorded.filter((a) => !shownCodes.has(a.actionCode));
+  // Merge triggered (indicated, with recorded state) + recorded-only actions
+  // into ONE urgency-ordered board (failed→top … performed/N-A→receded).
+  // Surfacing ≠ filtering — nothing is removed; ordering only.
+  const triggeredCodes = new Set(triggered.map((t) => t.code));
+  const boardItems = orderResusActions([
+    ...triggered.map((t) => ({
+      code: t.code,
+      rationale: t.rationale,
+      emergency: t.emergency,
+      priority: t.priority,
+      state: recordedByCode.get(t.code)?.state,
+    })),
+    ...recorded
+      .filter((a) => !triggeredCodes.has(a.actionCode))
+      .map((a) => ({
+        code: a.actionCode,
+        rationale: "",
+        emergency: circulationAction(a.actionCode)?.emergency ?? false,
+        priority: undefined,
+        state: a.state,
+      })),
+  ]);
+  const outstanding = outstandingActionCount(boardItems);
+  const top = mostUrgentAction(boardItems);
 
   return (
     <div className="border-border bg-card flex flex-col gap-3 rounded-2xl border p-4">
@@ -373,61 +401,38 @@ export function CirculationPanel({
 
         {/* ── Triggered actions (urgency order; drug actions → prescribe tool) ── */}
         <section className="border-border bg-card/95 lg:ring-border/50 flex flex-col gap-2 rounded-xl border p-3 lg:sticky lg:top-30 lg:max-h-[calc(100svh-136px)] lg:overflow-y-auto lg:shadow-md lg:ring-1 lg:backdrop-blur">
-          <h3 className="text-muted-foreground font-mono text-[10px] tracking-[0.14em] uppercase">
-            Indicated actions — finding → type → do
-          </h3>
-          {triggered.length === 0 ? (
+          <ResusActionsHeading
+            heading="Indicated actions — finding → type → do"
+            outstanding={outstanding}
+            topLabel={top ? (circulationAction(top.code)?.label ?? top.code) : null}
+            topState={top ? (top.state ?? "indicated") : null}
+          />
+          {boardItems.length === 0 ? (
             <p className="text-muted-foreground/70 border-border/70 bg-muted/20 rounded-lg border border-dashed px-3 py-4 text-center text-[11.5px]">
               {arrest
                 ? "Arrest pathway — start CPR."
                 : "Record findings to see the matched actions appear here."}
             </p>
           ) : (
-            triggered.map((t) => (
+            boardItems.map((item) => (
               <ActionCard
-                key={t.code}
-                code={t.code}
-                rationale={t.rationale}
-                emergency={t.emergency}
-                currentState={recordedByCode.get(t.code)?.state}
+                key={item.code}
+                code={item.code}
+                rationale={item.rationale}
+                emergency={item.emergency}
+                currentState={item.state}
                 disabled={!active || pending}
                 onSetState={setActionState}
-                prescribable={PRESCRIBABLE.has(t.code)}
+                prescribable={PRESCRIBABLE.has(item.code)}
                 onPrescribe={() =>
                   setPrescribeFor({
-                    code: t.code,
-                    label: circulationAction(t.code)?.label ?? t.code,
+                    code: item.code,
+                    label: circulationAction(item.code)?.label ?? item.code,
                   })
                 }
               />
             ))
           )}
-
-          {extraRecorded.length > 0 ? (
-            <>
-              <h3 className="text-muted-foreground mt-1 font-mono text-[10px] tracking-[0.14em] uppercase">
-                Also recorded
-              </h3>
-              {extraRecorded.map((a) => (
-                <ActionCard
-                  key={a.actionCode}
-                  code={a.actionCode}
-                  rationale=""
-                  emergency={circulationAction(a.actionCode)?.emergency ?? false}
-                  currentState={a.state}
-                  disabled={!active || pending}
-                  onSetState={setActionState}
-                  prescribable={PRESCRIBABLE.has(a.actionCode)}
-                  onPrescribe={() =>
-                    setPrescribeFor({
-                      code: a.actionCode,
-                      label: circulationAction(a.actionCode)?.label ?? a.actionCode,
-                    })
-                  }
-                />
-              ))}
-            </>
-          ) : null}
         </section>
       </div>
 
