@@ -152,13 +152,19 @@ export function PrescribeDialog({
   const defConc = drug.adult?.concentration ?? null;
   const defRoute = drug.adult?.route[0] ?? null;
   const defInterval = drug.adult?.interval ?? null;
+  // A numeric mg dose field is shown for drugs with a single unitDoseMg AND for
+  // fixed-regimen drugs carrying a doseRangeMg (so an edited mg reaches the
+  // engine's range guard — without it the dose stays free text and is unchecked).
+  const doseRange = drug.doseRangeMg ?? null;
+  const numericDose = defDoseMg != null || doseRange != null;
 
   const effDoseMg = isEd && ed.doseMg != null ? ed.doseMg : defDoseMg;
   const effRoute = (isEd && ed.route) || defRoute;
   const effConc = (isEd && ed.concentration != null ? ed.concentration : defConc) || null;
   const effInterval = (isEd && ed.interval != null ? ed.interval : defInterval) || null;
-  // The recorded dose string: numeric-mg drugs render "<mg> mg"; others free text.
-  const effDose = defDoseMg != null ? `${effDoseMg ?? defDoseMg} mg` : (isEd && ed.dose) || defDose;
+  // The recorded dose string: an entered mg renders "<mg> mg"; otherwise the
+  // drug's free-text default (range drugs default to free text until a mg is typed).
+  const effDose = effDoseMg != null ? `${effDoseMg} mg` : (isEd && ed.dose) || defDose;
 
   // Live safety re-check against the EDITED values (editing ≠ bypass).
   const edit: PrescriptionEdit | undefined = isEd
@@ -213,7 +219,11 @@ export function PrescribeDialog({
     const out: { field: string; from: string; to: string }[] = [];
     if (defDoseMg != null && ed.doseMg != null && ed.doseMg !== defDoseMg)
       out.push({ field: "dose", from: `${defDoseMg} mg`, to: `${ed.doseMg} mg` });
-    if (defDoseMg == null && ed.dose && ed.dose !== defDose)
+    // Range drug (no single default mg): a typed mg is itself a deviation from the
+    // free-text guideline default — log it from the default dose string.
+    if (defDoseMg == null && doseRange != null && ed.doseMg != null)
+      out.push({ field: "dose", from: defDose, to: `${ed.doseMg} mg` });
+    if (defDoseMg == null && doseRange == null && ed.dose && ed.dose !== defDose)
       out.push({ field: "dose", from: defDose, to: ed.dose });
     if (ed.route && ed.route !== defRoute)
       out.push({ field: "route", from: defRoute ?? "—", to: ed.route });
@@ -396,13 +406,31 @@ export function PrescribeDialog({
                 Adjust parameters — safety re-checks live
               </p>
               <div className="grid grid-cols-2 gap-2">
-                {defDoseMg != null ? (
+                {numericDose ? (
                   <label className="flex flex-col gap-0.5">
-                    <span className="text-muted-foreground text-[10.5px]">Dose (mg)</span>
+                    <span className="text-muted-foreground text-[10.5px]">
+                      Dose (mg)
+                      {doseRange ? (
+                        <span className="text-muted-foreground/60">
+                          {" "}
+                          · usual{" "}
+                          {doseRange.low === doseRange.high
+                            ? doseRange.low
+                            : `${doseRange.low}–${doseRange.high}`}
+                        </span>
+                      ) : null}
+                    </span>
                     <input
                       type="number"
                       inputMode="decimal"
                       value={effDoseMg ?? ""}
+                      placeholder={
+                        doseRange
+                          ? doseRange.low === doseRange.high
+                            ? String(doseRange.low)
+                            : `${doseRange.low}–${doseRange.high}`
+                          : undefined
+                      }
                       onChange={(e) => {
                         const n = Number(e.target.value);
                         setField(
