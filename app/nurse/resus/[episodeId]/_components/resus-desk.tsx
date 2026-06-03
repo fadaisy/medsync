@@ -1,5 +1,6 @@
 "use client";
 
+import type { PrescribeAuthority } from "./prescribe-dialog";
 import type { ResusPatientView } from "@/lib/resus/board";
 import type { StepStatus } from "@/lib/resus/engine";
 import type { ResponderEntry, RosterEntry } from "@/lib/resus/record";
@@ -58,10 +59,15 @@ interface DeskEpisode {
 interface DeskScope {
   userId: string;
   fullName: string | null;
+  cadreCode: string;
   cadreName: string;
   hospitalName: string;
   departmentName: string;
   leaderRecommended: boolean;
+  /** This cadre's prescribing authority (cosign policy) — surfaced in the
+   *  prescribe dialog. In an emergency it never hard-blocks; it flags
+   *  "administering under resus protocol" for a non-prescriber. */
+  prescribeAuthority: PrescribeAuthority;
 }
 
 /**
@@ -392,6 +398,7 @@ export function ResusDesk({
             episodeId={episode.id}
             timeline={timeline}
             patientAgeYears={patient.ageYears ?? null}
+            prescribeAuthority={scope.prescribeAuthority}
             onChanged={() => router.refresh()}
           />
 
@@ -401,6 +408,7 @@ export function ResusDesk({
               timeline={timeline}
               active={active}
               patientAgeYears={patient.ageYears ?? null}
+              prescribeAuthority={scope.prescribeAuthority}
               onChanged={() => router.refresh()}
             />
           ) : activeStep === "B" ? (
@@ -409,6 +417,7 @@ export function ResusDesk({
               timeline={timeline}
               active={active}
               patientAgeYears={patient.ageYears ?? null}
+              prescribeAuthority={scope.prescribeAuthority}
               onChanged={() => router.refresh()}
             />
           ) : (
@@ -701,12 +710,14 @@ function AnaphylaxisBar({
   episodeId,
   timeline,
   patientAgeYears,
+  prescribeAuthority,
   onChanged,
 }: {
   disabled: boolean;
   episodeId: string;
   timeline: TimelineEvent[];
   patientAgeYears: number | null;
+  prescribeAuthority: PrescribeAuthority;
   onChanged: () => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -761,6 +772,7 @@ function AnaphylaxisBar({
           recCode="anaphylaxis_im_adrenaline"
           recLabel="Anaphylaxis — IM adrenaline"
           patientAgeYears={patientAgeYears}
+          prescribeAuthority={prescribeAuthority}
           timeline={timeline}
           onClose={() => setPrescribeOpen(false)}
           onDone={onChanged}

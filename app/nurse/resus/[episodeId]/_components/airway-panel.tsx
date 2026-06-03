@@ -1,5 +1,6 @@
 "use client";
 
+import type { PrescribeAuthority } from "./prescribe-dialog";
 import type { AirwayActionState, AirwayFindingSet } from "@/lib/resus/airway";
 import type { AirwayPatency } from "@/lib/resus/reference/airway-catalog";
 import type { ResusDoseId } from "@/lib/resus/reference/doses";
@@ -129,12 +130,14 @@ export function AirwayPanel({
   timeline,
   active,
   patientAgeYears,
+  prescribeAuthority,
   onChanged,
 }: {
   episodeId: string;
   timeline: TimelineEvent[];
   active: boolean;
   patientAgeYears: number | null;
+  prescribeAuthority: PrescribeAuthority;
   onChanged: () => void;
 }) {
   const [pending, startTransition] = useTransition();
@@ -442,6 +445,7 @@ export function AirwayPanel({
           recCode={prescribeFor.code}
           recLabel={prescribeFor.label}
           patientAgeYears={patientAgeYears}
+          prescribeAuthority={prescribeAuthority}
           timeline={timeline}
           onClose={() => setPrescribeFor(null)}
           onDone={onChanged}

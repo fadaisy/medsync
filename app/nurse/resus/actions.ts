@@ -10,6 +10,7 @@ import { z } from "zod";
 import { db } from "@/db";
 import { resusEpisodes } from "@/db/schema/resus";
 import { triageRecords } from "@/db/schema/triage";
+import { resolveCapabilities } from "@/lib/doctor/capabilities";
 import { logger } from "@/lib/logger";
 import { getEmergencyDrug } from "@/lib/prescribing/reference/emergency-drug-catalog";
 import { AIRWAY_ACTION_STATES, classifyAirway } from "@/lib/resus/airway";
@@ -654,6 +655,19 @@ export async function recordEmergencyAdministration(
   const route = parsed.data.route ?? drug.adult?.route[0] ?? null;
   const dose = drug.adult?.dose ?? (drug.recordOnly ? "operator-dosed (record-only)" : "—");
 
+  // Attribute the giver's prescribing authority (cosign policy), re-resolved
+  // server-side — NOT trusted from the client. In an emergency this never
+  // blocks (grab-and-give); it records whether the giver is an authorised
+  // prescriber for this drug kind, or administered under the resus protocol.
+  const caps = await resolveCapabilities({
+    hospitalId: scope.hospitalId,
+    departmentId: scope.departmentId,
+    cadreCode: scope.cadreCode,
+  });
+  const prescribeAuthority = drug.controlled
+    ? caps.prescription_controlled
+    : caps.prescription_routine;
+
   const ev = await appendResusEvent({
     scopeUserId: scope.userId,
     episodeId: parsed.data.episodeId,
@@ -671,6 +685,9 @@ export async function recordEmergencyAdministration(
         amountMg: parsed.data.amountMg ?? drug.unitDoseMg ?? null,
         cart: parsed.data.cart ?? null,
         giverUserId: scope.userId,
+        giverCadre: scope.cadreCode,
+        prescribeAuthority,
+        underResusProtocol: prescribeAuthority !== "allowed",
         witnessUserId: parsed.data.witnessUserId ?? null,
         controlled: drug.controlled,
         overrideReason: parsed.data.overrideReason ?? null,
