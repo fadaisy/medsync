@@ -1,0 +1,26 @@
+# ADR 0053 — Circulation step: a findings→shock-type→action engine reusing the airway/breathing pattern
+
+**Status:** Accepted — CLINICAL-SAFETY artifact (CSO authorised the GATE-A model 2026-06-03; "go through all gates")
+**Context:** The Circulation (C) step is the third concrete ABCDE step, built by **reusing the Airway/Breathing findings→action→state pattern + visual system** (ADRs 0048–0050) with circulation medicine. C is assessed only once A + B are secure. Its defining reasoning is **shock-type identification** — because the type determines whether fluids help or harm — and its content is full of counter-intuitive, lethal traps. Decision-support only; drugs route through the verified smart prescribing tool (ADRs 0051–0052).
+
+## Decision
+
+1. **Reuse, don't rebuild — on the existing immutable timeline, no new migration.** Findings are `assessment` events (step `C`); actions + state changes are `action`/`drug`/`fluid`/`procedure` events; the current finding-set, circulatory-state, shock-type, and action list are **pure projections** over the timeline. The action-state lifecycle, severity colour + action-state tokens, step bar, and urgency ordering are all reused.
+2. **The clinical content is reference data** (`lib/resus/reference/circulation-catalog.ts`), transcribed from the CSO catalog (`docs/clinical/resus-circulation-clinical-catalog.md`): the five-level circulatory-state, the LOOK/FEEL/MEASURE findings (incl. the MEASURE banded codes — SBP/MAP, shock index, pulse pressure, lactate, ECG, β-hCG, ultrasound), the shock-type vocabulary + per-type strategy, and the Tier 1/2/3 action catalog.
+3. **The engine is pure + TDD** (`lib/resus/circulation.ts`, 44 tests). **Two axes:** `classifyCirculation` (WORST finding wins → well_perfused → compensated → decompensated → peri_arrest → arrest; a normal BP NEVER downgrades a shock state — the occult/compensated-shock trap) and **`identifyShockType`** (the core C reasoning — hypovolaemic-haemorrhagic/non-haemorrhagic, distributive-septic/anaphylactic/neurogenic, cardiogenic, obstructive-tamponade/PE/tension, undifferentiated; ordered most-time-critical first). `triggeredActions` is **shock-type-driven** and enforces the traps; `isCirculationArrest` (no pulse → the arrest seam); `buildCirculationActions`, `escalationFor`, `circulationProceedGuard` (compensated shock still gates D — treat NOW).
+4. **The traps are enforced, not just documented:** crystalloid is **never surfaced** for cardiogenic / obstructive / haemorrhagic; haemorrhagic → stop-bleed + blood/MHP + TXA + permissive hypotension (TBI exception MAP ≥ 80); **FEAST** — a febrile child's crystalloid action carries the no-flooding caution; β-hCG/ectopic for reproductive-age shock; obstructive → relieve-the-obstruction.
+5. **Drugs route through the prescribing tool.** Drug actions (`c_txa`, `c_noradrenaline`, `c_crystalloid_bolus`, `c_blood_mhp`, `c_anaphylaxis_adrenaline`, `c_atropine`, `c_inotrope`, `c_hydrocortisone`, `c_vasopressin`, `c_sepsis_antibiotics`) are keys in `RECOMMENDATION_DRUG_MAP` → the pre-filled, dose-verified prescribe dialog; doses are NOT duplicated in the C catalog. Four category/record-only drugs (vasopressin, dobutamine, sepsis antibiotics, blood/MHP) were added to the prescribing catalog so C's drugs all route through the tool.
+6. **Currency (5-agent verification 2026-06-03):** SSC **2026** (norepinephrine first-line + MAP ≥ 65 strong; 60–65 if ≥ 65y); ATLS **11th ed** + **whole-blood-first-line**; lethal diamond incl. **hypocalcaemia**; TBI exception **MAP ≥ 80**; FEAST current — folded into the action rationales + the catalog META + the GATE-A proposal §A.5 for CSO ratification.
+
+## Scope / deferred
+
+Record + decision-support + escalation now. **Deferred** (record-capable + escalation only, flagged): full MHP workflow, vasopressor-infusion titration, central-line/pericardiocentesis/REBOA procedural tooling, detailed arrhythmia algorithms; paediatric (weight-based + FEAST) + obstetric depth.
+
+## Consequences
+
+**Positive:** a clinically-correct, transparent circulation engine where finding → shock-type → action is explicit, the counter-intuitive lethal traps (fluids-by-type, FEAST, normal-BP, obstructive, β-hCG) are enforced by construction, and drugs go through the verified prescribing tool; no schema change; A/B/C now share one engine + visual system (D/E follow). **Negative:** the shock-type identifier picks a single most-specific/most-time-critical type for an undifferentiated patient (decision-support — the clinician confirms, and the UX prompts bedside ultrasound for the undifferentiated case); procedural/infusion depth is deferred.
+
+## Related
+
+- `lib/resus/circulation.ts`, `lib/resus/reference/circulation-catalog.ts`, `app/nurse/resus/[episodeId]/_components/circulation-panel.tsx` + `resus-desk.tsx`, `app/nurse/resus/actions.ts`, `tests/resus/circulation.test.ts`, `lib/prescribing/reference/emergency-drug-catalog.ts` (the `c_*` mappings + 4 added drugs)
+- `docs/resus-circulation-gate-a-proposal.md`, `docs/clinical/resus-circulation-clinical-catalog.md`; ADRs 0048/0050 (the airway/breathing pattern reused), 0049 (the colour system), 0051/0052 (the prescribing tool C uses)

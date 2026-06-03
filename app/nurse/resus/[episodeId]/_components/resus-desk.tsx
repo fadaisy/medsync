@@ -20,6 +20,11 @@ import {
   latestBreathingAssessment,
 } from "@/lib/resus/breathing";
 import {
+  triggeredActions as circulationTriggeredActions,
+  classifyCirculation,
+  latestCirculationAssessment,
+} from "@/lib/resus/circulation";
+import {
   deriveProgress,
   openLifeThreats,
   reassessPromptFor,
@@ -44,6 +49,7 @@ import {
 } from "../../actions";
 import { AirwayPanel } from "./airway-panel";
 import { BreathingPanel } from "./breathing-panel";
+import { CirculationPanel } from "./circulation-panel";
 import { PrescribeDialog } from "./prescribe-dialog";
 
 interface DeskEpisode {
@@ -194,6 +200,18 @@ export function ResusDesk({
     return breathingTriggeredActions(last).some((t) => t.priority === 0 && t.emergency);
   }, [timeline, episode.arrestDetected]);
 
+  // Circulation letter (C) escalates to red `active_threat` on a genuine
+  // life-threat-now: peri-arrest/arrest/decompensated, or a p0 emergency action
+  // (haemorrhage control, decompression, pericardiocentesis, blood/MHP).
+  const cActiveThreat = useMemo(() => {
+    if (episode.arrestDetected) return true;
+    const last = latestCirculationAssessment(timeline);
+    if (!last) return false;
+    const s = classifyCirculation(last);
+    if (s === "peri_arrest" || s === "arrest" || s === "decompensated_shock") return true;
+    return circulationTriggeredActions(last).some((t) => t.priority === 0 && t.emergency);
+  }, [timeline, episode.arrestDetected]);
+
   // Post-intervention reassessment nudge: an action-class event newer than
   // the last vital snapshot means vitals are due (reassess-after-intervention).
   const vitalsDue = useMemo(() => {
@@ -286,7 +304,13 @@ export function ResusDesk({
               {ABCDE_LETTERS.map((letter) => {
                 const p = progress.find((x) => x.step === letter)!;
                 const activeThreat =
-                  letter === "A" ? aActiveThreat : letter === "B" ? bActiveThreat : false;
+                  letter === "A"
+                    ? aActiveThreat
+                    : letter === "B"
+                      ? bActiveThreat
+                      : letter === "C"
+                        ? cActiveThreat
+                        : false;
                 const vis = stepVisual(stepStatus(p), activeThreat);
                 const focused = activeStep === letter;
                 return (
@@ -416,6 +440,15 @@ export function ResusDesk({
             />
           ) : activeStep === "B" ? (
             <BreathingPanel
+              episodeId={episode.id}
+              timeline={timeline}
+              active={active}
+              patientAgeYears={patient.ageYears ?? null}
+              prescribeAuthority={scope.prescribeAuthority}
+              onChanged={() => router.refresh()}
+            />
+          ) : activeStep === "C" ? (
+            <CirculationPanel
               episodeId={episode.id}
               timeline={timeline}
               active={active}
