@@ -39,6 +39,11 @@ import {
   stepStatus,
 } from "@/lib/resus/engine";
 import {
+  classifyExposure,
+  triggeredActions as exposureTriggeredActions,
+  latestExposureAssessment,
+} from "@/lib/resus/exposure";
+import {
   ABCDE_CATALOG,
   ANAPHYLAXIS_PROTOCOL,
   ARREST_SEAM,
@@ -58,6 +63,7 @@ import { AirwayPanel } from "./airway-panel";
 import { BreathingPanel } from "./breathing-panel";
 import { CirculationPanel } from "./circulation-panel";
 import { DisabilityPanel } from "./disability-panel";
+import { ExposurePanel } from "./exposure-panel";
 import { PrescribeDialog } from "./prescribe-dialog";
 
 interface DeskEpisode {
@@ -236,7 +242,26 @@ export function ResusDesk({
     )
       return true;
     if (isGcsFalling(timeline)) return true;
-    return disabilityTriggeredActions(last).some((t) => t.priority <= 0 && t.emergency);
+    // Exclude the always-pinned check-glucose prompt — a missing glucose alone
+    // is not a life-threat-now (alarm scarcity; the mandatory-glucose flag lives
+    // in the panel, not the step-bar red).
+    return disabilityTriggeredActions(last).some(
+      (t) => t.priority <= 0 && t.emergency && t.code !== "d_check_glucose",
+    );
+  }, [timeline, episode.arrestDetected]);
+
+  // life-threat-now for E: a critical finding (rash/haemorrhage/anaphylaxis/
+  // limb-threat), a temperature extreme, or a p0 emergency action.
+  const eActiveThreat = useMemo(() => {
+    if (episode.arrestDetected) return true;
+    const last = latestExposureAssessment(timeline);
+    if (!last) return false;
+    const s = classifyExposure(last);
+    if (s === "critical_finding" || s === "temperature_extreme") return true;
+    // Exclude the always-pinned measure-temperature prompt (alarm scarcity).
+    return exposureTriggeredActions(last).some(
+      (t) => t.priority <= 0 && t.emergency && t.code !== "e_measure_temp",
+    );
   }, [timeline, episode.arrestDetected]);
 
   // Post-intervention reassessment nudge: an action-class event newer than
@@ -339,7 +364,9 @@ export function ResusDesk({
                         ? cActiveThreat
                         : letter === "D"
                           ? dActiveThreat
-                          : false;
+                          : letter === "E"
+                            ? eActiveThreat
+                            : false;
                 const vis = stepVisual(stepStatus(p), activeThreat);
                 const focused = activeStep === letter;
                 return (
@@ -493,6 +520,16 @@ export function ResusDesk({
               patientAgeYears={patient.ageYears ?? null}
               prescribeAuthority={scope.prescribeAuthority}
               onChanged={() => router.refresh()}
+            />
+          ) : activeStep === "E" ? (
+            <ExposurePanel
+              episodeId={episode.id}
+              timeline={timeline}
+              active={active}
+              patientAgeYears={patient.ageYears ?? null}
+              prescribeAuthority={scope.prescribeAuthority}
+              onChanged={() => router.refresh()}
+              onReturnToA={() => setActiveStep("A")}
             />
           ) : (
             <StepPanel
