@@ -66,7 +66,8 @@ export type SafetyCode =
   | "paediatric_routing"
   | "max_cumulative"
   | "contraindication"
-  | "controlled";
+  | "controlled"
+  | "dose_range";
 
 export interface SafetyFlag {
   code: SafetyCode;
@@ -74,12 +75,31 @@ export interface SafetyFlag {
   message: string;
   /** A block can be overridden-with-reason in an emergency (and recorded). */
   overrideable: boolean;
+  /** Dangerously far out of range — the UI requires a typed dose confirmation. */
+  egregious?: boolean;
+}
+
+/**
+ * Editable prescription parameters (the addendum) — the prescriber's overrides
+ * of the catalog defaults. Passing these RE-RUNS the safety checks against the
+ * edited values (editing is NOT a bypass): the edited dose drives the range +
+ * cumulative checks, and an edited route re-validates concentration/route.
+ */
+export interface PrescriptionEdit {
+  /** Edited numeric dose in mg — for the out-of-range + cumulative checks. */
+  doseMg?: number;
+  /** Edited route — re-validated against the presentation's listed routes. */
+  route?: string;
+  /** Edited concentration/presentation (free text). */
+  concentration?: string;
 }
 
 export interface SafetyCheckInput {
   drug: EmergencyDrug;
   patient: PrescribePatient;
   priorAdministrations: PriorAdministration[];
+  /** Prescriber edits — when present the checks run against the EDITED values. */
+  edit?: PrescriptionEdit;
 }
 
 function norm(s: string): string {
@@ -91,7 +111,7 @@ function norm(s: string): string {
  * decision-support flag. Ordered most-severe-first for display.
  */
 export function runSafetyChecks(input: SafetyCheckInput): SafetyFlag[] {
-  const { drug, patient, priorAdministrations } = input;
+  const { drug, patient, priorAdministrations, edit } = input;
   const flags: SafetyFlag[] = [];
 
   // ── 1. Allergy (hard block on a match) — name/brand/key/class, NOT the
@@ -122,6 +142,16 @@ export function runSafetyChecks(input: SafetyCheckInput): SafetyFlag[] {
       overrideable: true,
     });
   }
+  // ── 2b. Edited route — re-validate concentration/route correctness (addendum:
+  //    editing the route must not bypass the concentration check). ──
+  if (edit?.route && drug.adult && !drug.adult.route.includes(edit.route as never)) {
+    flags.push({
+      code: "concentration",
+      severity: "warn",
+      message: `Route "${edit.route.toUpperCase()}" is not a listed route for this presentation (${drug.adult.route.join("/").toUpperCase()}) — confirm the concentration + volume are correct for the chosen route.`,
+      overrideable: true,
+    });
+  }
 
   // ── 3. Weight / age (paediatric) routing — never an adult flat dose ──
   const isPaediatric = patient.ageYears != null && patient.ageYears < PAEDIATRIC_AGE_THRESHOLD;
@@ -143,11 +173,15 @@ export function runSafetyChecks(input: SafetyCheckInput): SafetyFlag[] {
     }
   }
 
+  // The dose this administration would give — the EDITED value when present,
+  // else the catalog default (addendum: the edited value drives the checks).
+  const thisDoseMg = edit?.doseMg ?? drug.unitDoseMg ?? 0;
+
   // ── 4a. Max / cumulative dose (mg cap, e.g. atropine 3 mg) ──
   const samePrior = priorAdministrations.filter((p) => p.drugKey === drug.drugKey);
   if (drug.cumulativeMaxMg != null) {
     const priorMg = samePrior.reduce((sum, p) => sum + (p.amountMg ?? 0), 0);
-    const projected = priorMg + (drug.unitDoseMg ?? 0);
+    const projected = priorMg + thisDoseMg;
     if (projected > drug.cumulativeMaxMg) {
       flags.push({
         code: "max_cumulative",
@@ -211,6 +245,60 @@ export function runSafetyChecks(input: SafetyCheckInput): SafetyFlag[] {
       code: "controlled",
       severity: "info",
       message: `Controlled drug — witnessed administration + stricter capture required.`,
+      overrideable: true,
+    });
+  }
+
+  // ── 7. Out-of-range / plausibility guard on an EDITED dose (addendum A2).
+  //    Compares the edited dose to the catalog reference (unitDoseMg). A normal
+  //    clinical adjustment (≈0.5–2×, e.g. renal dose-halving) raises nothing;
+  //    further out warns; far out blocks (override-with-reason); egregiously out
+  //    additionally requires a typed dose confirmation. NEVER a hard block. ──
+  // An invalid (non-finite) edited dose must NOT silently skip the checks
+  // (NaN passes `!= null` but fails every comparison) — block it explicitly.
+  if (edit?.doseMg != null && !Number.isFinite(edit.doseMg)) {
+    flags.push({
+      code: "dose_range",
+      severity: "block",
+      message: "Edited dose is not a valid number — enter a numeric dose.",
+      overrideable: false,
+    });
+  } else if (edit?.doseMg != null && drug.unitDoseMg != null && drug.unitDoseMg > 0) {
+    const ref = drug.unitDoseMg;
+    const ratio = edit.doseMg / ref;
+    const xfmt = ratio >= 1 ? `${ratio.toFixed(1)}×` : `${ratio.toFixed(2)}×`;
+    if (ratio >= 5 || ratio <= 0.2) {
+      flags.push({
+        code: "dose_range",
+        severity: "block",
+        egregious: true,
+        message: `Edited dose ${edit.doseMg} mg is ${xfmt} the usual ${ref} mg for ${drug.name} — dangerously outside range. Type the dose to confirm; override + reason are recorded.`,
+        overrideable: true,
+      });
+    } else if (ratio > 3 || ratio < 0.34) {
+      flags.push({
+        code: "dose_range",
+        severity: "block",
+        message: `Edited dose ${edit.doseMg} mg is outside the usual ~${ref} mg for ${drug.name} (${xfmt}) — confirm; override + reason are recorded.`,
+        overrideable: true,
+      });
+    } else if (ratio > 2 || ratio < 0.5) {
+      flags.push({
+        code: "dose_range",
+        severity: "warn",
+        message: `Edited dose ${edit.doseMg} mg differs from the usual ~${ref} mg (${xfmt}) — check it is intended.`,
+        overrideable: true,
+      });
+    }
+  }
+
+  // ── 8. A numerically edited dose may no longer match the default concentration
+  //    / volume — nudge the prescriber to confirm it (addendum should-fix). ──
+  if (edit?.doseMg != null && Number.isFinite(edit.doseMg) && edit.concentration == null) {
+    flags.push({
+      code: "concentration",
+      severity: "warn",
+      message: "Dose edited — confirm the concentration + volume match the new dose.",
       overrideable: true,
     });
   }

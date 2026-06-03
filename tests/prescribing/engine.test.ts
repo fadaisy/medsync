@@ -215,3 +215,126 @@ describe("resolvePrescriptionOptions — the smart link", () => {
     expect(resolvePrescriptionOptions("nonexistent_code", adult)).toEqual([]);
   });
 });
+
+/* ─── ADDENDUM: editable parameters — safety re-runs on every edit ─────── */
+
+describe("editable dose — out-of-range guard (editing is NOT a bypass)", () => {
+  it("a legitimate adjustment (hydrocortisone 100 → 50 mg, renal) raises NO dose_range flag", () => {
+    const flags = runSafetyChecks({
+      drug: getEmergencyDrug("hydrocortisone_iv")!,
+      patient: adult,
+      priorAdministrations: [],
+      edit: { doseMg: 50 },
+    });
+    expect(flags.some((f) => f.code === "dose_range")).toBe(false);
+  });
+  it("a clearly out-of-range edit (hydrocortisone 100 → 400 mg) → block (override-with-reason)", () => {
+    const flags = runSafetyChecks({
+      drug: getEmergencyDrug("hydrocortisone_iv")!,
+      patient: adult,
+      priorAdministrations: [],
+      edit: { doseMg: 400 },
+    });
+    const f = flags.find((x) => x.code === "dose_range");
+    expect(f?.severity).toBe("block");
+  });
+  it("an egregious edit (atropine 0.5 → 10 mg) → block + egregious (typed confirm)", () => {
+    const flags = runSafetyChecks({
+      drug: getEmergencyDrug("atropine_bradycardia_iv")!,
+      patient: adult,
+      priorAdministrations: [],
+      edit: { doseMg: 10 },
+    });
+    const f = flags.find((x) => x.code === "dose_range");
+    expect(f?.severity).toBe("block");
+    expect(f?.egregious).toBe(true);
+    expect(prescriptionRequiresOverride(flags)).toBe(true);
+  });
+});
+
+describe("editable dose — the edited value (not the default) drives the cumulative check", () => {
+  it("atropine prior 2.5 mg + an EDITED 1 mg dose → cumulative block (3.5 > 3 mg)", () => {
+    const flags = runSafetyChecks({
+      drug: getEmergencyDrug("atropine_bradycardia_iv")!,
+      patient: adult,
+      priorAdministrations: [{ drugKey: "atropine", amountMg: 2.5 }],
+      edit: { doseMg: 1 },
+    });
+    expect(flags.find((f) => f.code === "max_cumulative")?.severity).toBe("block");
+  });
+});
+
+describe("editable route — concentration/route correctness re-validated on edit", () => {
+  it("editing to a route not listed for the presentation raises a concentration check", () => {
+    const flags = runSafetyChecks({
+      drug: getEmergencyDrug("salbutamol_neb")!, // route: ["nebulised"]
+      patient: adult,
+      priorAdministrations: [],
+      edit: { route: "iv" },
+    });
+    expect(flags.some((f) => f.code === "concentration")).toBe(true);
+  });
+});
+
+/* ─── editable-params review fixes (NaN / low-egregious / free-text gap) ── */
+
+describe("editable dose — review fixes", () => {
+  it("a non-finite (NaN) edited dose is BLOCKED, not silently skipped (must-fix #1)", () => {
+    const flags = runSafetyChecks({
+      drug: getEmergencyDrug("hydrocortisone_iv")!,
+      patient: adult,
+      priorAdministrations: [],
+      edit: { doseMg: Number("abc") }, // NaN
+    });
+    const f = flags.find((x) => x.code === "dose_range");
+    expect(f?.severity).toBe("block");
+  });
+  it("a far-LOW edited dose is egregious too (atropine 0.5 → 0.05 mg)", () => {
+    const flags = runSafetyChecks({
+      drug: getEmergencyDrug("atropine_bradycardia_iv")!,
+      patient: adult,
+      priorAdministrations: [],
+      edit: { doseMg: 0.05 },
+    });
+    expect(flags.find((x) => x.code === "dose_range")?.egregious).toBe(true);
+  });
+  it("a numerically edited dose nudges a concentration re-check (should-fix #4)", () => {
+    const flags = runSafetyChecks({
+      drug: getEmergencyDrug("hydrocortisone_iv")!,
+      patient: adult,
+      priorAdministrations: [],
+      edit: { doseMg: 100 }, // == default, but dose field was touched
+    });
+    expect(flags.some((f) => f.code === "concentration")).toBe(true);
+  });
+  it("a free-text-dose drug (no unitDoseMg) has no numeric range guard — documented gap (#3)", () => {
+    const flags = runSafetyChecks({
+      drug: getEmergencyDrug("salbutamol_neb")!, // no unitDoseMg
+      patient: adult,
+      priorAdministrations: [],
+      edit: { doseMg: 99 },
+    });
+    expect(flags.some((f) => f.code === "dose_range")).toBe(false);
+  });
+  it("editing to a LISTED route raises no route/concentration mismatch", () => {
+    const flags = runSafetyChecks({
+      drug: getEmergencyDrug("salbutamol_neb")!,
+      patient: adult,
+      priorAdministrations: [],
+      edit: { route: "nebulised" },
+    });
+    expect(flags.some((f) => f.code === "concentration")).toBe(false);
+  });
+  it("the benzodiazepine 2-dose count cap is dose-independent under an edit", () => {
+    const flags = runSafetyChecks({
+      drug: getEmergencyDrug("lorazepam_seizure_iv")!,
+      patient: adult,
+      priorAdministrations: [
+        { drugKey: "benzodiazepine_seizure", amountMg: 4 },
+        { drugKey: "benzodiazepine_seizure", amountMg: 4 },
+      ],
+      edit: { doseMg: 8 },
+    });
+    expect(flags.find((f) => f.code === "max_cumulative")?.severity).toBe("block");
+  });
+});

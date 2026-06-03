@@ -738,6 +738,12 @@ export async function recordResusAllergies(
   return { ok: true };
 }
 
+const PrescriptionEditSchema = z.object({
+  field: z.string().max(24),
+  from: z.string().max(160),
+  to: z.string().max(160),
+});
+
 const EmergencyAdminSchema = z.object({
   episodeId: z.string().uuid(),
   drugId: z.string().max(64),
@@ -745,9 +751,24 @@ const EmergencyAdminSchema = z.object({
   amountMg: z.number().nonnegative().optional(),
   cart: z.string().max(48).optional(),
   witnessUserId: z.string().uuid().optional(),
+  /** Free-text witnessing-clinician name (controlled drugs) — captured at the
+   *  bedside; either this or a resolved witnessUserId satisfies the witness. */
+  witnessName: z.string().max(120).optional(),
   /** Required when a `block` safety flag was overridden (recorded + audited). */
   overrideReason: z.string().max(500).optional(),
   overriddenFlags: z.array(z.string().max(40)).max(10).optional(),
+  // ── Editable parameters (addendum) — the prescriber's adjusted values + the
+  //    field-level edit log. The EDITED values are recorded (not the default). ──
+  dose: z.string().max(120).optional(),
+  concentration: z.string().max(160).optional(),
+  interval: z.string().max(120).optional(),
+  duration: z.string().max(120).optional(),
+  volume: z.string().max(60).optional(),
+  rate: z.string().max(60).optional(),
+  prn: z.boolean().optional(),
+  startTime: z.string().max(40).optional(),
+  notes: z.string().max(500).optional(),
+  edits: z.array(PrescriptionEditSchema).max(20).optional(),
 });
 
 /**
@@ -767,14 +788,25 @@ export async function recordEmergencyAdministration(
   if (!drug) return { error: "Unknown drug." };
   const scope = await requireResusScope();
 
-  // Controlled drugs require a witness even in an emergency (stricter capture).
-  if (drug.controlled && !parsed.data.witnessUserId)
+  // Controlled drugs require a witness even in an emergency (stricter capture) —
+  // a resolved user id OR a bedside-captured witness name satisfies it.
+  if (drug.controlled && !parsed.data.witnessUserId && !parsed.data.witnessName?.trim())
     return { error: "Controlled drug — a witness is required." };
 
   const step: AbcdeStep | null =
     drug.abcdeStep === "cross_cutting" ? "B" : (drug.abcdeStep as AbcdeStep);
-  const route = parsed.data.route ?? drug.adult?.route[0] ?? null;
-  const dose = drug.adult?.dose ?? (drug.recordOnly ? "operator-dosed (record-only)" : "—");
+
+  // The guideline DEFAULTS (catalog) + the EDITED values (prescriber). Both are
+  // recorded so any deviation is visible, not hidden (addendum A2/A4).
+  const defaultDose = drug.adult?.dose ?? (drug.recordOnly ? "operator-dosed (record-only)" : "—");
+  const defaultConcentration = drug.adult?.concentration ?? null;
+  const defaultRoute = drug.adult?.route[0] ?? null;
+  const defaultInterval = drug.adult?.interval ?? null;
+  const route = parsed.data.route ?? defaultRoute;
+  const dose = parsed.data.dose ?? defaultDose;
+  const concentration = parsed.data.concentration ?? defaultConcentration;
+  const edits = parsed.data.edits ?? [];
+  const edited = edits.length > 0;
 
   // Attribute the giver's prescribing authority (cosign policy), re-resolved
   // server-side — NOT trusted from the client. In an emergency this never
@@ -800,8 +832,15 @@ export async function recordEmergencyAdministration(
         drugKey: drug.drugKey,
         drugName: drug.name,
         dose,
-        concentration: drug.adult?.concentration ?? null,
+        concentration,
         route,
+        interval: parsed.data.interval ?? defaultInterval,
+        duration: parsed.data.duration ?? null,
+        volume: parsed.data.volume ?? null,
+        rate: parsed.data.rate ?? null,
+        prn: parsed.data.prn ?? false,
+        startTime: parsed.data.startTime ?? null,
+        notes: parsed.data.notes ?? null,
         indication: drug.indications[0] ?? null,
         amountMg: parsed.data.amountMg ?? drug.unitDoseMg ?? null,
         cart: parsed.data.cart ?? null,
@@ -810,14 +849,24 @@ export async function recordEmergencyAdministration(
         prescribeAuthority,
         underResusProtocol: prescribeAuthority !== "allowed",
         witnessUserId: parsed.data.witnessUserId ?? null,
+        witnessName: parsed.data.witnessName ?? null,
         controlled: drug.controlled,
         overrideReason: parsed.data.overrideReason ?? null,
         overriddenFlags: parsed.data.overriddenFlags ?? [],
+        // Edit provenance — the guideline default, the edited values, + the log.
+        edited,
+        edits,
+        default: {
+          dose: defaultDose,
+          concentration: defaultConcentration,
+          route: defaultRoute,
+          interval: defaultInterval,
+        },
         source: drug.source,
       },
       state: "performed",
-      dose: drug.adult?.concentration ? `${dose} (${drug.adult.concentration})` : dose,
-      label: `${drug.name} ${dose}${route ? ` ${route.toUpperCase()}` : ""} — administered`,
+      dose: concentration ? `${dose} (${concentration})` : dose,
+      label: `${drug.name} ${dose}${route ? ` ${route.toUpperCase()}` : ""} — administered${edited ? " (edited)" : ""}`,
     },
   });
   if ("error" in ev) return { error: ev.error };

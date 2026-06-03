@@ -1,16 +1,20 @@
 "use client";
 
 import type { Requirement } from "@/lib/doctor/capabilities";
-import type { PrescriptionOption, SafetyFlag } from "@/lib/prescribing/engine";
+import type { PrescriptionEdit, PrescriptionOption, SafetyFlag } from "@/lib/prescribing/engine";
 import type { TimelineEvent } from "@/lib/resus/types";
 import { useMemo, useState, useTransition } from "react";
-import { AlertTriangleIcon, InfoIcon, ShieldAlertIcon, XIcon } from "lucide-react";
+import { AlertTriangleIcon, InfoIcon, PencilIcon, ShieldAlertIcon, XIcon } from "lucide-react";
 
 import {
   priorAdministrationsFromTimeline,
   recordedAllergiesFromTimeline,
 } from "@/lib/prescribing/administration";
-import { resolvePrescriptionOptions } from "@/lib/prescribing/engine";
+import {
+  prescriptionRequiresOverride,
+  resolvePrescriptionOptions,
+  runSafetyChecks,
+} from "@/lib/prescribing/engine";
 import { cn } from "@/lib/utils";
 import { recordEmergencyAdministration, recordResusAllergies } from "../../actions";
 
@@ -21,6 +25,22 @@ export interface PrescribeAuthority {
   routine: Requirement;
   controlled: Requirement;
 }
+
+const ROUTE_OPTIONS = [
+  "iv",
+  "io",
+  "im",
+  "sc",
+  "oral",
+  "inhaled",
+  "nebulised",
+  "pr",
+  "buccal",
+  "sublingual",
+  "intranasal",
+  "infusion",
+  "ett",
+] as const;
 
 const SEVERITY_STYLE: Record<
   SafetyFlag["severity"],
@@ -44,13 +64,30 @@ const SEVERITY_STYLE: Record<
   },
 };
 
+/** A field the prescriber can edit, with its current value, default, and setter. */
+interface EditState {
+  drugId: string;
+  doseMg?: number;
+  dose?: string;
+  route?: string;
+  concentration?: string;
+  interval?: string;
+  duration?: string;
+  volume?: string;
+  rate?: string;
+  prn?: boolean;
+  notes?: string;
+}
+
 /**
- * Bedside smart-prescribing dialog (GATE D). A resus recommendation resolves
- * to pre-filled option(s); the clinician reviews the dose/concentration + the
- * safety flags → confirms (record). Emergency mode = the prescription IS the
- * administration (grab-and-give), recorded to the immutable timeline. The
- * indication-appropriate concentration is unmistakable; a `block` flag needs
- * an override reason; controlled drugs need a witness. Decision-support only.
+ * Bedside smart-prescribing dialog (GATE D + the editable-parameters addendum).
+ * A resus recommendation resolves to pre-filled option(s); the clinician reviews
+ * the dose/concentration + the safety flags → optionally EDITS the parameters
+ * (dose/route/concentration/frequency/duration/volume/rate/PRN) → confirms. The
+ * safety checks RE-RUN live on every edit (editing is NOT a bypass): an out-of-
+ * range dose warns, far-out blocks (override + reason), egregiously-out needs a
+ * typed confirmation — never a hard block in a time-critical resus. The
+ * guideline default, the edited values, every edit + any override are recorded.
  */
 export function PrescribeDialog({
   episodeId,
@@ -77,6 +114,10 @@ export function PrescribeDialog({
   const [overrideReason, setOverrideReason] = useState("");
   const [witness, setWitness] = useState("");
   const [allergyDraft, setAllergyDraft] = useState("");
+  const [adjusting, setAdjusting] = useState(false);
+  const [ed, setEd] = useState<EditState>({ drugId: "" });
+  const [typedConfirm, setTypedConfirm] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   const allergies = useMemo(() => recordedAllergiesFromTimeline(timeline), [timeline]);
   const priors = useMemo(() => priorAdministrationsFromTimeline(timeline), [timeline]);
@@ -85,28 +126,53 @@ export function PrescribeDialog({
     [timeline],
   );
 
+  const patient = useMemo(
+    () => ({
+      ageYears: patientAgeYears,
+      weightKg: weightKg ? Number(weightKg) : null,
+      allergies,
+      conditions: [] as string[],
+    }),
+    [patientAgeYears, weightKg, allergies],
+  );
+
   const options: PrescriptionOption[] = useMemo(
-    () =>
-      resolvePrescriptionOptions(
-        recCode,
-        {
-          ageYears: patientAgeYears,
-          weightKg: weightKg ? Number(weightKg) : null,
-          allergies,
-          conditions: [],
-        },
-        priors,
-      ),
-    [recCode, patientAgeYears, weightKg, allergies, priors],
+    () => resolvePrescriptionOptions(recCode, patient, priors),
+    [recCode, patient, priors],
   );
 
   if (options.length === 0) return null;
   const opt = options[Math.min(selected, options.length - 1)]!;
   const drug = opt.drug;
+  const isEd = ed.drugId === drug.id; // edits belong to the selected drug only
 
-  // Cadre prescribing authority for THIS drug (controlled vs routine). Never a
-  // hard block in an emergency — a non-prescriber administers under the resus
-  // protocol; this flags it (and the server records the attribution).
+  // Effective (edited-or-default) values.
+  const defDoseMg = drug.unitDoseMg ?? null;
+  const defDose = drug.adult?.dose ?? (drug.recordOnly ? "operator-dosed (record-only)" : "—");
+  const defConc = drug.adult?.concentration ?? null;
+  const defRoute = drug.adult?.route[0] ?? null;
+  const defInterval = drug.adult?.interval ?? null;
+
+  const effDoseMg = isEd && ed.doseMg != null ? ed.doseMg : defDoseMg;
+  const effRoute = (isEd && ed.route) || defRoute;
+  const effConc = (isEd && ed.concentration != null ? ed.concentration : defConc) || null;
+  const effInterval = (isEd && ed.interval != null ? ed.interval : defInterval) || null;
+  // The recorded dose string: numeric-mg drugs render "<mg> mg"; others free text.
+  const effDose = defDoseMg != null ? `${effDoseMg ?? defDoseMg} mg` : (isEd && ed.dose) || defDose;
+
+  // Live safety re-check against the EDITED values (editing ≠ bypass).
+  const edit: PrescriptionEdit | undefined = isEd
+    ? {
+        doseMg: ed.doseMg != null && ed.doseMg !== defDoseMg ? ed.doseMg : undefined,
+        route: ed.route && ed.route !== defRoute ? ed.route : undefined,
+        concentration:
+          ed.concentration != null && ed.concentration !== defConc ? ed.concentration : undefined,
+      }
+    : undefined;
+  // Live re-check (pure + cheap) — recomputed every render so edits re-run the
+  // checks immediately. Plain const (after the early return) to keep hook order.
+  const liveFlags = runSafetyChecks({ drug, patient, priorAdministrations: priors, edit });
+
   const authReq = drug.controlled ? prescribeAuthority.controlled : prescribeAuthority.routine;
   const authorityFlag: SafetyFlag | null =
     authReq === "blocked"
@@ -126,15 +192,49 @@ export function PrescribeDialog({
             overrideable: true,
           }
         : null;
-  const displayFlags = authorityFlag ? [...opt.flags, authorityFlag] : opt.flags;
+  const displayFlags = authorityFlag ? [...liveFlags, authorityFlag] : liveFlags;
 
-  const blockFlags = opt.flags.filter((f) => f.severity === "block");
-  const needsOverride = blockFlags.length > 0;
+  const blockFlags = liveFlags.filter((f) => f.severity === "block");
+  const needsOverride = prescriptionRequiresOverride(liveFlags);
+  const egregious = liveFlags.some((f) => f.egregious);
   const needsWitness = drug.controlled;
+  const typedOk =
+    !egregious ||
+    (effDoseMg != null && typedConfirm.trim() !== "" && Number(typedConfirm) === effDoseMg);
   const canConfirm =
     !pending &&
+    typedOk &&
     (!needsOverride || overrideReason.trim().length >= 3) &&
     (!needsWitness || witness.trim().length >= 2);
+
+  // Build the field-level edit log (edited → default) for the record.
+  function buildEdits(): { field: string; from: string; to: string }[] {
+    if (!isEd) return [];
+    const out: { field: string; from: string; to: string }[] = [];
+    if (defDoseMg != null && ed.doseMg != null && ed.doseMg !== defDoseMg)
+      out.push({ field: "dose", from: `${defDoseMg} mg`, to: `${ed.doseMg} mg` });
+    if (defDoseMg == null && ed.dose && ed.dose !== defDose)
+      out.push({ field: "dose", from: defDose, to: ed.dose });
+    if (ed.route && ed.route !== defRoute)
+      out.push({ field: "route", from: defRoute ?? "—", to: ed.route });
+    if (ed.concentration != null && ed.concentration !== (defConc ?? ""))
+      out.push({ field: "concentration", from: defConc ?? "—", to: ed.concentration });
+    if (ed.interval != null && ed.interval !== (defInterval ?? ""))
+      out.push({ field: "interval", from: defInterval ?? "—", to: ed.interval });
+    if (ed.duration) out.push({ field: "duration", from: "—", to: ed.duration });
+    if (ed.volume) out.push({ field: "volume", from: "—", to: ed.volume });
+    if (ed.rate) out.push({ field: "rate", from: "—", to: ed.rate });
+    if (ed.prn) out.push({ field: "prn", from: "scheduled", to: "PRN" });
+    if (ed.notes) out.push({ field: "notes", from: "—", to: ed.notes });
+    return out;
+  }
+
+  function setField<K extends keyof EditState>(field: K, value: EditState[K]) {
+    setEd((prev) => {
+      const base = prev.drugId === drug.id ? prev : { drugId: drug.id };
+      return { ...base, drugId: drug.id, [field]: value };
+    });
+  }
 
   function captureAllergies(nkda: boolean) {
     startTransition(async () => {
@@ -152,22 +252,36 @@ export function PrescribeDialog({
 
   function confirm() {
     if (!canConfirm) return;
+    const edits = buildEdits();
     startTransition(async () => {
       const res = await recordEmergencyAdministration({
         episodeId,
         drugId: drug.id,
-        route: drug.adult?.route[0],
-        amountMg: drug.unitDoseMg,
-        witnessUserId: undefined, // witness captured as a note below; UUID lookup is out of scope here
+        route: effRoute ?? undefined,
+        amountMg: effDoseMg ?? undefined,
+        dose: effDose,
+        concentration: effConc ?? undefined,
+        interval: effInterval ?? undefined,
+        duration: isEd ? ed.duration : undefined,
+        volume: isEd ? ed.volume : undefined,
+        rate: isEd ? ed.rate : undefined,
+        prn: isEd ? ed.prn : undefined,
+        notes: isEd ? ed.notes : undefined,
+        edits,
+        witnessName: needsWitness ? witness.trim() : undefined,
         overrideReason: needsOverride ? overrideReason.trim() : undefined,
         overriddenFlags: needsOverride ? blockFlags.map((f) => f.code) : undefined,
       });
-      if (!("error" in res)) {
+      if ("error" in res) {
+        setError(res.error ?? "Failed to record — please retry.");
+      } else {
         onDone();
         onClose();
       }
     });
   }
+
+  const fieldEdited = (field: keyof EditState) => isEd && ed[field] != null && ed[field] !== "";
 
   return (
     <div
@@ -203,7 +317,10 @@ export function PrescribeDialog({
                 <button
                   key={o.drug.id}
                   type="button"
-                  onClick={() => setSelected(i)}
+                  onClick={() => {
+                    setSelected(i);
+                    setTypedConfirm("");
+                  }}
                   className={cn(
                     "rounded-lg border px-2.5 py-1.5 text-[12px] transition-colors",
                     i === selected
@@ -217,9 +334,21 @@ export function PrescribeDialog({
             </div>
           ) : null}
 
-          {/* The resolved drug — dose + concentration unmistakable */}
+          {/* The resolved drug — effective dose/concentration (edited shown vs default) */}
           <div className="border-border bg-muted/20 rounded-xl border p-3">
-            <p className="text-foreground text-[14px] font-semibold">{drug.name}</p>
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-foreground text-[14px] font-semibold">{drug.name}</p>
+              {drug.adult ? (
+                <button
+                  type="button"
+                  onClick={() => setAdjusting((a) => !a)}
+                  className="text-muted-foreground hover:text-foreground border-border inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[10.5px]"
+                >
+                  <PencilIcon className="size-3" aria-hidden />
+                  {adjusting ? "Done" : "Adjust"}
+                </button>
+              ) : null}
+            </div>
             <p className="text-muted-foreground text-[11px]">
               {drug.drugClass} · T-{drug.tier.replace(/_/g, " ")}
             </p>
@@ -227,18 +356,26 @@ export function PrescribeDialog({
               <dl className="mt-2 grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-[12.5px]">
                 <dt className="text-muted-foreground/70">Dose</dt>
                 <dd className="text-foreground font-mono font-semibold tabular-nums">
-                  {drug.adult.dose}
+                  {effDose}
+                  {(fieldEdited("doseMg") || fieldEdited("dose")) && (
+                    <span className="text-muted-foreground/60 ml-1.5 font-sans text-[10.5px] font-normal line-through">
+                      {defDose}
+                    </span>
+                  )}
                 </dd>
                 <dt className="text-muted-foreground/70">Concentration</dt>
-                <dd className="text-foreground font-mono tabular-nums">
-                  {drug.adult.concentration}
-                </dd>
+                <dd className="text-foreground font-mono tabular-nums">{effConc ?? "—"}</dd>
                 <dt className="text-muted-foreground/70">Route</dt>
                 <dd className="text-foreground font-mono uppercase">
-                  {drug.adult.route.join(" / ")}
+                  {effRoute ?? "—"}
+                  {fieldEdited("route") && defRoute ? (
+                    <span className="text-muted-foreground/60 ml-1.5 lowercase line-through">
+                      {defRoute}
+                    </span>
+                  ) : null}
                 </dd>
                 <dt className="text-muted-foreground/70">Interval</dt>
-                <dd className="text-foreground/90">{drug.adult.interval}</dd>
+                <dd className="text-foreground/90">{effInterval ?? "—"}</dd>
                 <dt className="text-muted-foreground/70">Max</dt>
                 <dd className="text-foreground/90">{drug.adult.max}</dd>
               </dl>
@@ -251,6 +388,117 @@ export function PrescribeDialog({
             )}
             <p className="text-muted-foreground/60 mt-2 font-mono text-[10px]">{drug.source}</p>
           </div>
+
+          {/* Adjust parameters — safety checks re-run live on every edit */}
+          {adjusting && drug.adult ? (
+            <div className="border-border bg-card flex flex-col gap-2 rounded-xl border p-3">
+              <p className="text-muted-foreground/70 font-mono text-[10px] tracking-[0.14em] uppercase">
+                Adjust parameters — safety re-checks live
+              </p>
+              <div className="grid grid-cols-2 gap-2">
+                {defDoseMg != null ? (
+                  <label className="flex flex-col gap-0.5">
+                    <span className="text-muted-foreground text-[10.5px]">Dose (mg)</span>
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      value={effDoseMg ?? ""}
+                      onChange={(e) => {
+                        const n = Number(e.target.value);
+                        setField(
+                          "doseMg",
+                          e.target.value === "" || !Number.isFinite(n) ? undefined : n,
+                        );
+                      }}
+                      className="border-border bg-card text-foreground rounded-md border px-2 py-1 font-mono text-[12.5px] tabular-nums outline-none"
+                    />
+                  </label>
+                ) : (
+                  <label className="flex flex-col gap-0.5">
+                    <span className="text-muted-foreground text-[10.5px]">Dose</span>
+                    <input
+                      value={effDose === defDose ? (ed.dose ?? "") : effDose}
+                      placeholder={defDose}
+                      onChange={(e) => setField("dose", e.target.value)}
+                      className="border-border bg-card text-foreground rounded-md border px-2 py-1 text-[12.5px] outline-none"
+                    />
+                  </label>
+                )}
+                <label className="flex flex-col gap-0.5">
+                  <span className="text-muted-foreground text-[10.5px]">Route</span>
+                  <select
+                    value={effRoute ?? ""}
+                    onChange={(e) => setField("route", e.target.value)}
+                    className="border-border bg-card text-foreground rounded-md border px-2 py-1 text-[12.5px] uppercase outline-none"
+                  >
+                    {ROUTE_OPTIONS.map((r) => (
+                      <option key={r} value={r}>
+                        {r.toUpperCase()}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="col-span-2 flex flex-col gap-0.5">
+                  <span className="text-muted-foreground text-[10.5px]">Concentration</span>
+                  <input
+                    value={effConc ?? ""}
+                    onChange={(e) => setField("concentration", e.target.value)}
+                    className="border-border bg-card text-foreground rounded-md border px-2 py-1 text-[12px] outline-none"
+                  />
+                </label>
+                <label className="flex flex-col gap-0.5">
+                  <span className="text-muted-foreground text-[10.5px]">Frequency / interval</span>
+                  <input
+                    value={effInterval ?? ""}
+                    onChange={(e) => setField("interval", e.target.value)}
+                    className="border-border bg-card text-foreground rounded-md border px-2 py-1 text-[12px] outline-none"
+                  />
+                </label>
+                <label className="flex flex-col gap-0.5">
+                  <span className="text-muted-foreground text-[10.5px]">Duration / course</span>
+                  <input
+                    value={ed.duration ?? ""}
+                    onChange={(e) => setField("duration", e.target.value)}
+                    className="border-border bg-card text-foreground rounded-md border px-2 py-1 text-[12px] outline-none"
+                  />
+                </label>
+                <label className="flex flex-col gap-0.5">
+                  <span className="text-muted-foreground text-[10.5px]">Volume</span>
+                  <input
+                    value={ed.volume ?? ""}
+                    onChange={(e) => setField("volume", e.target.value)}
+                    className="border-border bg-card text-foreground rounded-md border px-2 py-1 text-[12px] outline-none"
+                  />
+                </label>
+                <label className="flex flex-col gap-0.5">
+                  <span className="text-muted-foreground text-[10.5px]">Rate</span>
+                  <input
+                    value={ed.rate ?? ""}
+                    onChange={(e) => setField("rate", e.target.value)}
+                    className="border-border bg-card text-foreground rounded-md border px-2 py-1 text-[12px] outline-none"
+                  />
+                </label>
+                <label className="col-span-2 flex items-center gap-2 text-[12px]">
+                  <input
+                    type="checkbox"
+                    checked={ed.prn ?? false}
+                    onChange={(e) => setField("prn", e.target.checked)}
+                  />
+                  <span className="text-muted-foreground">
+                    PRN (as required) instead of scheduled
+                  </span>
+                </label>
+                <label className="col-span-2 flex flex-col gap-0.5">
+                  <span className="text-muted-foreground text-[10.5px]">Notes</span>
+                  <input
+                    value={ed.notes ?? ""}
+                    onChange={(e) => setField("notes", e.target.value)}
+                    className="border-border bg-card text-foreground rounded-md border px-2 py-1 text-[12px] outline-none"
+                  />
+                </label>
+              </div>
+            </div>
+          ) : null}
 
           {/* Allergy gate — must be surfaced before confirm */}
           {!allergyKnown ? (
@@ -305,7 +553,7 @@ export function PrescribeDialog({
             </label>
           ) : null}
 
-          {/* Safety flags */}
+          {/* Safety flags (re-computed live against edits) */}
           {displayFlags.length > 0 ? (
             <div className="flex flex-col gap-1.5">
               {displayFlags.map((f, i) => {
@@ -327,6 +575,22 @@ export function PrescribeDialog({
                 );
               })}
             </div>
+          ) : null}
+
+          {/* Typed confirmation for an egregiously out-of-range edited dose */}
+          {egregious && effDoseMg != null ? (
+            <label className="flex flex-col gap-1">
+              <span className="text-[11.5px] font-semibold text-rose-700 dark:text-rose-300">
+                Dangerously out of range — type the dose ({effDoseMg}) to confirm you intend it
+              </span>
+              <input
+                value={typedConfirm}
+                onChange={(e) => setTypedConfirm(e.target.value)}
+                inputMode="decimal"
+                className="border-border bg-card text-foreground w-32 rounded-md border px-2 py-1 font-mono tabular-nums outline-none"
+                placeholder={String(effDoseMg)}
+              />
+            </label>
           ) : null}
 
           {/* Override reason (required if a blocker) */}
@@ -363,9 +627,13 @@ export function PrescribeDialog({
 
         {/* Footer */}
         <div className="border-border flex items-center justify-between gap-2 border-t px-4 py-3">
-          <p className="text-muted-foreground/70 text-[10.5px]">
-            Records as administered (grab-and-give) on the resus timeline.
-          </p>
+          {error ? (
+            <p className="text-[10.5px] font-medium text-rose-700 dark:text-rose-300">⚠ {error}</p>
+          ) : (
+            <p className="text-muted-foreground/70 text-[10.5px]">
+              Records as administered (grab-and-give) on the resus timeline.
+            </p>
+          )}
           <div className="flex shrink-0 gap-2">
             <button
               type="button"
