@@ -28,6 +28,12 @@ import {
   identifyNeuroSyndrome,
   mandatoryGlucoseMissing,
 } from "@/lib/resus/disability";
+import {
+  classifyExposure,
+  EXPOSURE_ACTION_STATES,
+  identifyExposureDiagnosis,
+  tempStage,
+} from "@/lib/resus/exposure";
 import { mobiliseResusTeam } from "@/lib/resus/mobilise";
 import {
   acknowledgeResusAlert,
@@ -45,6 +51,11 @@ import {
   DISABILITY_STATES,
   disabilityAction,
 } from "@/lib/resus/reference/disability-catalog";
+import {
+  EXPOSURE_FINDING_CODE_SET,
+  EXPOSURE_STATES,
+  exposureAction,
+} from "@/lib/resus/reference/exposure-catalog";
 import { requireResusScope } from "@/lib/resus/scope";
 import { RESUS_ROLES } from "@/lib/resus/types";
 import { vitalsFromTriageSnapshot } from "@/lib/resus/vitals";
@@ -837,6 +848,173 @@ export async function setDisabilityActionState(
       state: parsed.data.state,
       reason: parsed.data.reason ?? null,
       label: `${action.label} — ${parsed.data.state.replace(/_/g, " ")}`,
+    },
+  });
+  if ("error" in ev) return { error: ev.error };
+
+  revalidatePath(`/nurse/resus/${parsed.data.episodeId}`);
+  return { ok: true };
+}
+
+/* ─── Exposure (E) — findings + action-state + the return-to-A loop ──── */
+
+const ExposureFindingsSchema = z.object({
+  episodeId: z.string().uuid(),
+  findingSet: z.object({
+    state: z.enum(EXPOSURE_STATES).nullable(),
+    present: z
+      .array(z.string().max(64))
+      .max(60)
+      .refine((codes) => codes.every((c) => EXPOSURE_FINDING_CODE_SET.has(c)), {
+        message: "Unknown exposure finding code.",
+      }),
+    coreTempC: z.number().min(8).max(45).nullable(),
+    ample: z
+      .object({
+        allergies: z.array(z.string().max(80)).max(30),
+        medications: z.string().max(500).optional(),
+        past: z.string().max(500).optional(),
+        lastMeal: z.string().max(200).optional(),
+        events: z.string().max(500).optional(),
+      })
+      .nullable()
+      .optional(),
+    context: z
+      .object({
+        trauma: z.boolean().optional(),
+        exposureEnvironment: z.boolean().optional(),
+        serotonergicOrNeuroleptic: z.boolean().optional(),
+        notRecovered: z.boolean().optional(),
+        noPulse: z.boolean().optional(),
+      })
+      .optional(),
+  }),
+});
+
+/**
+ * Record an exposure finding-set (assessment) onto the immutable timeline.
+ * Reassessment appends a new event; the latest is current. The classified
+ * exposure-state, the suspected diagnosis, and the temperature stage are stored
+ * alongside for the medico-legal record (and to drive the actions).
+ */
+export async function recordExposureFindings(
+  input: z.infer<typeof ExposureFindingsSchema>,
+): Promise<{
+  ok?: true;
+  exposureState?: string | null;
+  suspectedDiagnosis?: string | null;
+  tempStage?: string | null;
+  error?: string;
+}> {
+  const parsed = ExposureFindingsSchema.safeParse(input);
+  if (!parsed.success) return { error: "Invalid exposure findings." };
+  const scope = await requireResusScope();
+
+  const findingSet = { ...parsed.data.findingSet, context: parsed.data.findingSet.context ?? {} };
+  const state = classifyExposure(findingSet);
+  const diagnosis = identifyExposureDiagnosis(findingSet);
+  const stage = tempStage(findingSet.coreTempC);
+
+  const ev = await appendResusEvent({
+    scopeUserId: scope.userId,
+    episodeId: parsed.data.episodeId,
+    kind: "assessment",
+    step: "E",
+    payload: {
+      exposure: findingSet,
+      exposureState: state,
+      suspectedDiagnosis: diagnosis,
+      tempStage: stage,
+      label: `Exposure findings${state ? ` → ${state.replace(/_/g, " ")}` : ""}${findingSet.coreTempC != null ? ` (${findingSet.coreTempC} °C)` : ""}`,
+      danger: state === "critical_finding" || state === "temperature_extreme",
+    },
+  });
+  if ("error" in ev) return { error: ev.error };
+
+  // AMPLE allergies feed the prescribe-time allergy check + the record.
+  const allergies = parsed.data.findingSet.ample?.allergies ?? [];
+  if (allergies.length > 0) {
+    await appendResusEvent({
+      scopeUserId: scope.userId,
+      episodeId: parsed.data.episodeId,
+      kind: "note",
+      step: null,
+      payload: {
+        allergyCapture: { substances: allergies, nkda: false },
+        label: `Allergies (AMPLE): ${allergies.join(", ")}`,
+      },
+    });
+  }
+
+  revalidatePath(`/nurse/resus/${parsed.data.episodeId}`);
+  return { ok: true, exposureState: state, suspectedDiagnosis: diagnosis, tempStage: stage };
+}
+
+const ExposureActionStateSchema = z.object({
+  episodeId: z.string().uuid(),
+  actionId: z.string().min(1).max(64),
+  actionCode: z.string().max(64),
+  state: z.enum(EXPOSURE_ACTION_STATES),
+  reason: z.string().max(500).optional(),
+});
+
+/**
+ * Record an exposure action's state onto the timeline. Decision-support: the
+ * clinician performs/confirms; the app records. Exposure DRUGS are recorded via
+ * the prescribing tool (recordEmergencyAdministration); this records the
+ * action/procedure state (expose, measure-temp, re-cover, log-roll, rewarming,
+ * the return-to-A loop, etc.).
+ */
+export async function setExposureActionState(
+  input: z.infer<typeof ExposureActionStateSchema>,
+): Promise<{ ok?: true; error?: string }> {
+  const parsed = ExposureActionStateSchema.safeParse(input);
+  if (!parsed.success) return { error: "Invalid exposure action." };
+  const action = exposureAction(parsed.data.actionCode);
+  if (!action) return { error: "Unknown exposure action." };
+  const scope = await requireResusScope();
+
+  const kind: ResusEventKind = action.tier === 3 ? "procedure" : "action";
+  const ev = await appendResusEvent({
+    scopeUserId: scope.userId,
+    episodeId: parsed.data.episodeId,
+    kind,
+    step: "E",
+    payload: {
+      actionId: parsed.data.actionId,
+      actionCode: action.code,
+      tier: action.tier,
+      state: parsed.data.state,
+      reason: parsed.data.reason ?? null,
+      label: `${action.label} — ${parsed.data.state.replace(/_/g, " ")}`,
+    },
+  });
+  if ("error" in ev) return { error: ev.error };
+
+  revalidatePath(`/nurse/resus/${parsed.data.episodeId}`);
+  return { ok: true };
+}
+
+/**
+ * Close the primary-survey loop — record the "return to A and reassess" event.
+ * E is not a dead-end; the ABCDE cycles. Decision-support: the clinician chooses
+ * to cycle; the desk navigates back to A.
+ */
+export async function recordResusReturnToA(input: {
+  episodeId: string;
+}): Promise<{ ok?: true; error?: string }> {
+  const parsed = z.object({ episodeId: z.string().uuid() }).safeParse(input);
+  if (!parsed.success) return { error: "Invalid episode." };
+  const scope = await requireResusScope();
+
+  const ev = await appendResusEvent({
+    scopeUserId: scope.userId,
+    episodeId: parsed.data.episodeId,
+    kind: "reassessment",
+    step: "A",
+    payload: {
+      returnToA: true,
+      label: "Primary survey complete → returning to A (reassess — the ABCDE cycles)",
     },
   });
   if ("error" in ev) return { error: ev.error };

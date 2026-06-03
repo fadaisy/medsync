@@ -1100,6 +1100,11 @@ export const RECOMMENDATION_DRUG_MAP: Record<string, EmergencyDrugId[]> = {
   d_benzodiazepine: ["lorazepam_seizure_iv", "midazolam_seizure_buccal"],
   d_eclampsia_magnesium: ["magnesium_eclampsia_iv"],
   d_flumazenil: ["flumazenil_iv"],
+  // Exposure (E) — all already-verified drugs (no new dose); route through the tool
+  e_antibiotics: ["sepsis_antibiotics"],
+  e_anaphylaxis_adrenaline: ["adrenaline_anaphylaxis_im"],
+  e_warmed_fluids: ["crystalloid_bolus"],
+  e_naloxone: ["naloxone_iv"],
 };
 
 export function drugsForRecommendation(recCode: string): EmergencyDrug[] {
