@@ -7,6 +7,7 @@ import { z } from "zod";
 
 import { DOCTOR_CADRE_CODES } from "@/lib/doctor/scope";
 import { assignDoctorFromIntake, listAssignableDoctors } from "@/lib/encounter/assignment";
+import { encounterEngineLive } from "@/lib/encounter/feature";
 import { logger } from "@/lib/logger";
 import { createServiceClient } from "@/lib/supabase/service";
 import { runTriage } from "@/lib/triage/engine";
@@ -249,6 +250,7 @@ export async function submitTriageAction(
   //    encounter) — they can then reassign or start it. Best-effort; the saved
   //    triage never fails because of this.
   if (
+    encounterEngineLive() &&
     input.patient_user_id &&
     (DOCTOR_CADRE_CODES as readonly string[]).includes(scope.cadreCode)
   ) {
@@ -406,6 +408,9 @@ export async function assignDoctorAction(
   intakeId: string,
   doctorUserId: string,
 ): Promise<AssignDoctorResult> {
+  if (!encounterEngineLive()) {
+    return { ok: false, error: "The clinical module is not active yet." };
+  }
   const parsed = z
     .object({ intakeId: z.string().uuid(), doctorUserId: z.string().uuid() })
     .safeParse({ intakeId, doctorUserId });
