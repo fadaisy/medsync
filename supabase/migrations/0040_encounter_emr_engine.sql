@@ -59,23 +59,50 @@ ALTER TABLE public.encounters ADD CONSTRAINT encounters_state_check CHECK (
   state IN ('planned','in_progress','completed','cancelled')
 );
 
--- ─── helper: legitimate clinical relationship to a patient ──────────────
--- A clinical staff member has a legitimate relationship with a patient if they
--- are active clinical staff (is_clinical=true) at a hospital where the patient
--- has an encounter. Reception (is_clinical=false) never matches. Break-glass
--- (sa_break_glass_grants) is the audited emergency out-of-relationship read.
+-- ─── helper: legitimate-access basis to a patient (kickoff §2) ───────────
+-- Mirrors the application resolver (lib/encounter/scope.ts → resolveEncounterAccess)
+-- and the doctor/nurse workspaces — "never any clinician sees any patient":
+--   active_encounter  — caller is the clinician on an in-progress encounter
+--   department_recent — patient seen in the caller's department (appt OR
+--                       encounter) within 30 days (caller must be clinical staff)
+--   break_glass       — an unrevoked, unexpired emergency grant (audited)
+--   care_team         — SEAM (care-team table arrives later; not included yet)
+-- Reception (is_clinical=false) never matches the department_recent arm, and
+-- holds no encounters as a clinician, so it is excluded.
 CREATE OR REPLACE FUNCTION public.has_clinical_relationship(p_patient uuid)
 RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
+  -- active_encounter
   SELECT EXISTS (
+    SELECT 1 FROM public.encounters e
+    WHERE e.clinician_user_id = auth.uid()
+      AND e.patient_user_id = p_patient
+      AND e.state = 'in_progress'
+  )
+  -- department_recent (appointment in the caller's department within 30 days)
+  OR EXISTS (
     SELECT 1
     FROM public.staff_affiliations sa
     JOIN public.cadres c ON c.id = sa.cadre_id
-    JOIN public.encounters e ON e.hospital_id = sa.hospital_id
+    JOIN public.appointments a ON a.department_id = sa.department_id
+    WHERE sa.user_id = auth.uid()
+      AND sa.state IN ('active','approved')
+      AND c.is_clinical = true
+      AND a.patient_user_id = p_patient
+      AND a.starts_at >= now() - interval '30 days'
+  )
+  -- department_recent (encounter in the caller's department within 30 days)
+  OR EXISTS (
+    SELECT 1
+    FROM public.staff_affiliations sa
+    JOIN public.cadres c ON c.id = sa.cadre_id
+    JOIN public.encounters e ON e.department_id = sa.department_id
     WHERE sa.user_id = auth.uid()
       AND sa.state IN ('active','approved')
       AND c.is_clinical = true
       AND e.patient_user_id = p_patient
+      AND e.started_at >= now() - interval '30 days'
   )
+  -- break_glass
   OR EXISTS (
     SELECT 1 FROM public.sa_break_glass_grants g
     WHERE g.actor_id = auth.uid()
