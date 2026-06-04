@@ -153,7 +153,11 @@ export default async function DoctorPatientSummaryPage({ params }: PageProps) {
 
       {/* Longitudinal clinical record (encounter / EMR engine). Gated until the
           schema is applied; renders an honest state until then. */}
-      <PatientClinicalRecordPanel scope={toEncounterScope(scope)} patientUserId={patientId} />
+      <PatientClinicalRecordPanel
+        scope={toEncounterScope(scope)}
+        patientUserId={patientId}
+        encounterHrefBase="/doctor/encounters"
+      />
     </div>
   );
 }

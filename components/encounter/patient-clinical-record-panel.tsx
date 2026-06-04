@@ -1,4 +1,5 @@
 import type { EncounterScope } from "@/lib/encounter/record";
+import Link from "next/link";
 import { AlertTriangleIcon, FileTextIcon, PillIcon, StethoscopeIcon } from "lucide-react";
 
 import { encounterEngineLive } from "@/lib/encounter/feature";
@@ -16,9 +17,12 @@ import { loadPatientClinicalRecord } from "@/lib/encounter/record";
 export async function PatientClinicalRecordPanel({
   scope,
   patientUserId,
+  encounterHrefBase,
 }: {
   scope: EncounterScope;
   patientUserId: string;
+  /** If set (e.g. "/doctor/encounters"), encounter rows link to the per-encounter view. */
+  encounterHrefBase?: string;
 }) {
   // Gated until migration 0040 is applied (see lib/encounter/feature.ts).
   if (!encounterEngineLive()) {
@@ -121,6 +125,7 @@ export async function PatientClinicalRecordPanel({
             key: e.id,
             primary: `${e.encounterType} · ${e.state}`,
             secondary: [formatDate(e.startedAt), e.disposition].filter(Boolean).join(" · "),
+            href: encounterHrefBase ? `${encounterHrefBase}/${e.id}` : undefined,
           }))}
         />
       </div>
@@ -150,7 +155,7 @@ function ListCard({
 }: {
   title: string;
   Icon: typeof PillIcon;
-  items: { key: string; primary: string; secondary?: string }[];
+  items: { key: string; primary: string; secondary?: string; href?: string }[];
   empty: string;
 }) {
   return (
@@ -163,14 +168,30 @@ function ListCard({
         <p className="text-muted-foreground text-[12.5px]">{empty}</p>
       ) : (
         <ul className="flex flex-col gap-1.5">
-          {items.map((it) => (
-            <li key={it.key} className="flex flex-col">
-              <span className="text-foreground text-[12.5px]">{it.primary}</span>
-              {it.secondary ? (
-                <span className="text-muted-foreground text-[11px]">{it.secondary}</span>
-              ) : null}
-            </li>
-          ))}
+          {items.map((it) => {
+            const body = (
+              <>
+                <span className="text-foreground text-[12.5px]">{it.primary}</span>
+                {it.secondary ? (
+                  <span className="text-muted-foreground text-[11px]">{it.secondary}</span>
+                ) : null}
+              </>
+            );
+            return (
+              <li key={it.key} className="flex flex-col">
+                {it.href ? (
+                  <Link
+                    href={it.href}
+                    className="hover:bg-muted/30 -mx-1 flex flex-col rounded px-1"
+                  >
+                    {body}
+                  </Link>
+                ) : (
+                  body
+                )}
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>
