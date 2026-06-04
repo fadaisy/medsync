@@ -8,9 +8,11 @@ import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { db } from "@/db";
+import { patientAllergies } from "@/db/schema/prescribing";
 import { resusEpisodes } from "@/db/schema/resus";
 import { triageRecords } from "@/db/schema/triage";
 import { resolveCapabilities } from "@/lib/doctor/capabilities";
+import { encounterEngineLive } from "@/lib/encounter/feature";
 import { logger } from "@/lib/logger";
 import { getEmergencyDrug } from "@/lib/prescribing/reference/emergency-drug-catalog";
 import { AIRWAY_ACTION_STATES, classifyAirway } from "@/lib/resus/airway";
@@ -1315,4 +1317,29 @@ export async function concludeResus(
   revalidatePath(`/nurse/resus/${parsed.data.episodeId}`);
   revalidatePath("/nurse/resus");
   return { ok: true };
+}
+
+/**
+ * Persistent (clerked) allergies for the episode's patient — the encounter
+ * engine's `patient_allergies`, unioned into the resus prescribing safety check
+ * so a clerked allergy gates emergency prescribing (the kickoff's launch-blocker).
+ *
+ * Guarded by encounterEngineLive(): returns [] WITHOUT querying until migration
+ * 0040 is applied (the table doesn't exist before then), so resus prescribing is
+ * byte-for-byte unchanged pre-launch. Authorised by the resus scope.
+ */
+export async function loadPersistentAllergiesForEpisode(episodeId: string): Promise<string[]> {
+  if (!encounterEngineLive()) return [];
+  await requireResusScope();
+  const [ep] = await db
+    .select({ patientUserId: resusEpisodes.patientUserId })
+    .from(resusEpisodes)
+    .where(eq(resusEpisodes.id, episodeId))
+    .limit(1);
+  if (!ep?.patientUserId) return [];
+  const rows = await db
+    .select({ substance: patientAllergies.substance })
+    .from(patientAllergies)
+    .where(eq(patientAllergies.patientUserId, ep.patientUserId));
+  return rows.map((r) => r.substance);
 }

@@ -1,16 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import {
-  ArrowLeftIcon,
-  CalendarIcon,
-  HeartPulseIcon,
-  PhoneIcon,
-  ShieldAlertIcon,
-} from "lucide-react";
+import { ArrowLeftIcon, HeartPulseIcon, PhoneIcon, ShieldAlertIcon } from "lucide-react";
 
+import { PatientClinicalRecordPanel } from "@/components/encounter/patient-clinical-record-panel";
 import { fetchPatientSummaryAudited } from "@/lib/doctor/patient-access";
 import { requireDoctorScope } from "@/lib/doctor/scope";
+import { toEncounterScope } from "@/lib/encounter/workspace-scope";
 
 export const metadata: Metadata = { title: "Patient · Doctor · MedSync" };
 export const dynamic = "force-dynamic";
@@ -149,16 +145,19 @@ export default async function DoctorPatientSummaryPage({ params }: PageProps) {
           Icon={HeartPulseIcon}
         />
         <PlaceholderSection
-          title="Encounters + medications"
-          subtitle="Lands with the clinical module."
-          Icon={CalendarIcon}
-        />
-        <PlaceholderSection
           title="Care team"
           subtitle="Lands with the care-team workspace."
           Icon={ShieldAlertIcon}
         />
       </div>
+
+      {/* Longitudinal clinical record (encounter / EMR engine). Gated until the
+          schema is applied; renders an honest state until then. */}
+      <PatientClinicalRecordPanel
+        scope={toEncounterScope(scope)}
+        patientUserId={patientId}
+        encounterHrefBase="/doctor/encounters"
+      />
     </div>
   );
 }

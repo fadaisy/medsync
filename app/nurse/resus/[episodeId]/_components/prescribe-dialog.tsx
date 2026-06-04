@@ -3,20 +3,25 @@
 import type { Requirement } from "@/lib/doctor/capabilities";
 import type { PrescriptionEdit, PrescriptionOption, SafetyFlag } from "@/lib/prescribing/engine";
 import type { TimelineEvent } from "@/lib/resus/types";
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { AlertTriangleIcon, InfoIcon, PencilIcon, ShieldAlertIcon, XIcon } from "lucide-react";
 
 import {
   priorAdministrationsFromTimeline,
   recordedAllergiesFromTimeline,
 } from "@/lib/prescribing/administration";
+import { mergeAllergyLists } from "@/lib/prescribing/allergy-merge";
 import {
   prescriptionRequiresOverride,
   resolvePrescriptionOptions,
   runSafetyChecks,
 } from "@/lib/prescribing/engine";
 import { cn } from "@/lib/utils";
-import { recordEmergencyAdministration, recordResusAllergies } from "../../actions";
+import {
+  loadPersistentAllergiesForEpisode,
+  recordEmergencyAdministration,
+  recordResusAllergies,
+} from "../../actions";
 
 /** This cadre's prescribing authority (cosign policy) for the two prescription
  *  kinds. In an emergency it NEVER hard-blocks — a non-prescriber administers
@@ -119,11 +124,33 @@ export function PrescribeDialog({
   const [typedConfirm, setTypedConfirm] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  const allergies = useMemo(() => recordedAllergiesFromTimeline(timeline), [timeline]);
+  // Persistent (clerked) allergies from the encounter engine — guarded server
+  // side, so [] until the engine is live (behaviour unchanged pre-launch).
+  const [persistentAllergies, setPersistentAllergies] = useState<string[]>([]);
+  useEffect(() => {
+    let active = true;
+    loadPersistentAllergiesForEpisode(episodeId)
+      .then((a) => {
+        if (active) setPersistentAllergies(a);
+      })
+      .catch(() => {
+        /* non-fatal — fall back to the timeline capture */
+      });
+    return () => {
+      active = false;
+    };
+  }, [episodeId]);
+
+  const allergies = useMemo(
+    () => mergeAllergyLists(recordedAllergiesFromTimeline(timeline), persistentAllergies),
+    [timeline, persistentAllergies],
+  );
   const priors = useMemo(() => priorAdministrationsFromTimeline(timeline), [timeline]);
   const allergyKnown = useMemo(
-    () => timeline.some((e) => (e.payload as { allergyCapture?: unknown }).allergyCapture),
-    [timeline],
+    () =>
+      persistentAllergies.length > 0 ||
+      timeline.some((e) => (e.payload as { allergyCapture?: unknown }).allergyCapture),
+    [timeline, persistentAllergies],
   );
 
   const patient = useMemo(
