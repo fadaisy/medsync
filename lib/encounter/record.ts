@@ -4,6 +4,7 @@ import type { Clerkship } from "@/lib/encounter/clerkship";
 import { and, desc, eq } from "drizzle-orm";
 
 import { db } from "@/db";
+import { clinicalPhiAccessLog } from "@/db/schema/doctor-workspace";
 import {
   clinicalDocumentation,
   encounterDiagnoses,
@@ -16,19 +17,19 @@ import { patientAllergies } from "@/db/schema/prescribing";
 import { encounters } from "@/db/schema/scheduling";
 import { clerkshipWriteAuthority } from "@/lib/encounter/access";
 import { deriveClinicalObjects } from "@/lib/encounter/clerkship";
-import { hasClinicalRelationship } from "@/lib/encounter/scope";
+import { resolveEncounterAccess } from "@/lib/encounter/scope";
 import { logger } from "@/lib/logger";
 
 /**
  * Encounter engine — the write/read/AUDIT orchestration (service-role; server
- * only). This is where the access model the GATE-A proposal describes is
- * ENFORCED concretely: cadre-write rules (clerkshipWriteAuthority), the
- * legitimate-relationship gate (hasClinicalRelationship — re-checked in app code
- * because the service-role client BYPASSES RLS), versioned/append-only
- * documentation, the clerkship→objects derivation, and AUDIT-ON-READ (a read of
- * clinical data writes an access event AFTER a successful authorised fetch — the
- * addendum's explicit requirement; reads don't fire DB triggers, so it lives
- * here in the read path).
+ * only). This is where the access model the kickoff (§2) describes is ENFORCED
+ * concretely: cadre-write rules (clerkshipWriteAuthority), the legitimate-access
+ * basis (resolveEncounterAccess — active_encounter / department_recent /
+ * break_glass / care_team-seam, re-checked in app code because the service-role
+ * client BYPASSES RLS), versioned/append-only documentation, the
+ * clerkship→objects derivation, and AUDIT-ON-READ (a PHI read writes a
+ * clinical_phi_access_log row AFTER a successful authorised fetch — the canonical
+ * "who viewed which patient" table the doctor/nurse workspaces already use).
  *
  * ⚠️ GATED: the tables are created by migration 0040, which is NOT applied to
  * prod (see the migration header). This module compiles against the schema and
@@ -41,6 +42,8 @@ import { logger } from "@/lib/logger";
 export interface EncounterScope {
   userId: string;
   hospitalId: string;
+  /** The clinician's department — drives the `department_recent` access basis. */
+  departmentId: string | null;
   cadreCode: string | null;
   isClinical: boolean;
 }
@@ -71,10 +74,14 @@ export async function recordClerkshipVersion(
   if (!authority.canClerk)
     return { error: "This cadre records a nursing assessment, not a full clerking." };
 
-  // Relationship gate — service-role writes bypass RLS, so re-check here that the
-  // clinician has a legitimate relationship with THIS patient (or break-glass).
-  if (!(await hasClinicalRelationship(scope.userId, patientUserId)))
-    return { error: "No legitimate clinical relationship with this patient." };
+  // Legitimate-access gate — service-role writes bypass RLS, so re-check the
+  // access basis (active_encounter / department_recent / break_glass) here.
+  const access = await resolveEncounterAccess({
+    userId: scope.userId,
+    departmentId: scope.departmentId,
+    patientUserId,
+  });
+  if (!access.allowed) return { error: "No legitimate clinical access to this patient." };
 
   const derived = deriveClinicalObjects(clerkship);
 
@@ -200,15 +207,16 @@ export type LoadEncounterRecord =
     };
 
 /**
- * Load the encounter's current clinical record AND write the AUDIT-ON-READ
- * event (who read which patient's record, when) — clinical reads are audited,
- * per the access model. Returns the latest documentation version + the derived
- * objects + the timeline.
+ * Load the encounter's current clinical record AND write the AUDIT-ON-READ row
+ * to clinical_phi_access_log (who read which patient's record, on what basis,
+ * when) — the canonical "who viewed which patient" table the doctor/nurse
+ * workspaces use. Returns the latest documentation version + the derived objects
+ * + the timeline.
  *
- * AUTHORISES FIRST: service-role reads bypass RLS, so the relationship is
- * re-checked here (RLS is necessary-but-not-sufficient for this path). The audit
- * event is written ONLY AFTER a successful authorised fetch — an access that
- * never delivered data is not recorded as a legitimate read.
+ * AUTHORISES FIRST: service-role reads bypass RLS, so the access basis is
+ * resolved here (RLS is necessary-but-not-sufficient for this path). The
+ * access-log row is written ONLY AFTER a successful authorised fetch — an access
+ * that never delivered data is not recorded as a legitimate read.
  */
 export async function loadEncounterRecord(
   encounterId: string,
@@ -216,9 +224,14 @@ export async function loadEncounterRecord(
   scope: EncounterScope,
 ): Promise<LoadEncounterRecord> {
   if (!scope.isClinical) return { ok: false, error: "Not authorised to read clinical records." };
-  if (!(await hasClinicalRelationship(scope.userId, patientUserId))) {
+  const access = await resolveEncounterAccess({
+    userId: scope.userId,
+    departmentId: scope.departmentId,
+    patientUserId,
+  });
+  if (!access.allowed || !access.basis) {
     logger.warn("encounter.record.read_denied", { encounterId, readerUserId: scope.userId });
-    return { ok: false, error: "No legitimate clinical relationship with this patient." };
+    return { ok: false, error: "No legitimate clinical access to this patient." };
   }
 
   try {
@@ -245,16 +258,20 @@ export async function loadEncounterRecord(
       .from(problemList)
       .where(and(eq(problemList.patientUserId, patientUserId), eq(problemList.active, true)));
 
-    // AUDIT-ON-READ — recorded only after the authorised fetch succeeds, so a
-    // failed/denied read never leaves a false "record read" event.
-    await db.insert(encounterEvents).values({
-      encounterId,
-      kind: "access",
-      label: `Clinical record read by ${scope.cadreCode ?? "clinician"}`,
-      actorUserId: scope.userId,
+    // AUDIT-ON-READ — the canonical PHI-access row, written only after the
+    // authorised fetch succeeds (a failed/denied read leaves no "record read").
+    await db.insert(clinicalPhiAccessLog).values({
+      hospitalId: scope.hospitalId,
+      clinicianUserId: scope.userId,
+      patientUserId,
+      accessBasis: access.basis,
+      surface: "encounter_record",
     });
-    // No PHI in the breadcrumb — the encounter_events row carries the linkage.
-    logger.info("encounter.record.read", { encounterId, readerUserId: scope.userId });
+    logger.info("encounter.record.read", {
+      encounterId,
+      readerUserId: scope.userId,
+      basis: access.basis,
+    });
 
     const timeline = await db
       .select()
