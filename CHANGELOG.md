@@ -5,6 +5,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Changed — Resus · actions board: one shared urgency-ordering across the whole surface — 2026-06-03
+
+The actions board now displays indicated actions in **clinical-urgency order** — a deterministic composite of **time-criticality × state** — **consistently across all five ABCDE steps** from one shared function (formalises/extends the airway Addendum-2 ordering). **Presentation/ordering only — the engine, findings→action mappings, action-state lifecycle, severity, escalation, and the record are byte-for-byte unchanged** ([ADR 0057](docs/adr/0057-resus-actions-urgency-ordering.md)).
+
+- **One shared, pure function** ([lib/resus/action-order.ts](lib/resus/action-order.ts), TDD): `orderResusActions` sorts by the **state band** (failed → indicated → in_progress → deferred → performed → not_indicated) then **time-criticality** (engine `priority`) within the band, stable + non-mutating. Each board reads top→bottom: **must-escalate → recommended → underway → parked → done → N/A**; colour + position reinforce the same priority.
+- **Surfacing ≠ filtering (safety guardrail):** the function sorts, never removes — a regression test asserts every input action returns. Each panel merges triggered ∪ recorded into one ordered list; **no failed/indicated/in_progress/deferred action is ever hidden** (performed/N-A recede via the sort but stay auditable).
+- **Persistent outstanding-actions indicator** ([resus-actions-heading.tsx](app/nurse/resus/[episodeId]/_components/resus-actions-heading.tsx)): a shared "N outstanding" badge (failed+indicated+in_progress) in every board header + an `aria-live="polite"`/`role="status"` region announcing the most-urgent action (so a jump-to-top on `failed` reaches screen-reader users). Deterministic; reduced-motion-safe.
+- **Whole-surface consistency:** applied in airway/breathing/circulation/disability/exposure (no cross-step actions tab exists yet; the function is ready for one). Each panel keeps its own `ActionCard` (airway renders a dose line the others don't) — only the ordering + the heading/indicator are shared; the per-card duplication is a noted, deferred cleanup.
+- **9 ordering unit tests** (full suite **719 passing**); tsc / eslint / prettier / build clean. No migration touched.
+
 ### Added — Resus · EXPOSURE step (findings→diagnosis→action engine + the return-to-A loop) — completes ABCDE — 2026-06-03
 
 The **fifth and final** ABCDE step, built by **reusing** the A/B/C/D findings→action→state engine + the state colour system ([ADRs 0048–0050, 0053, 0055](docs/adr/0055-resus-disability-findings-action-engine.md)) with "what got missed" emergency medicine, and routing its drugs through the **smart prescribing tool** ([ADRs 0051–0052, 0054](docs/adr/0054-prescribing-editable-parameters.md)). Decision-support — records what the team does; never auto-administers. CSO-signed ([proposal](docs/resus-exposure-gate-a-proposal.md) + committed catalog [docs/clinical/resus-exposure-clinical-catalog.md](docs/clinical/resus-exposure-clinical-catalog.md); [ADR 0056](docs/adr/0056-resus-exposure-findings-action-engine.md)). **No new migration** (step-`E` timeline events) and **no new drug dose** (every E drug was already verified). **A/B/C/D/E now share one engine — the primary survey is complete.**
