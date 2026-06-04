@@ -4,6 +4,7 @@ import type { EncounterScope } from "@/lib/encounter/record";
 import { eq } from "drizzle-orm";
 
 import { db } from "@/db";
+import { clinicalDocumentation } from "@/db/schema/encounter";
 import { patientIntakes } from "@/db/schema/patient-intakes";
 import { encounters } from "@/db/schema/scheduling";
 import { triageRecords } from "@/db/schema/triage";
@@ -64,27 +65,53 @@ export async function openEncounterFromTriage(
   const patientUserId = tr.patientUserId;
 
   try {
-    // Idempotent: reuse the encounter already linked to this triage.
+    // The encounter already linked to this triage may be a `planned` ASSIGNMENT
+    // (assign-a-doctor step) or already started. Start the planned one; treat an
+    // already-started one as idempotent; otherwise create a fresh in-progress one
+    // (direct start without a prior assignment).
     const [existing] = await db
-      .select({ id: encounters.id })
+      .select({ id: encounters.id, state: encounters.state })
       .from(encounters)
       .where(eq(encounters.triageRecordId, triageRecordId))
       .limit(1);
-    if (existing) return { ok: true, encounterId: existing.id, created: false };
 
-    const [enc] = await db
-      .insert(encounters)
-      .values({
-        hospitalId: tr.hospitalId,
-        patientUserId,
-        clinicianUserId: scope.userId,
-        departmentId: scope.departmentId ?? tr.departmentId ?? null,
-        encounterType: "emergency",
-        triageRecordId,
-        state: "in_progress",
-      })
-      .returning({ id: encounters.id });
-    const encounterId = enc!.id;
+    let encounterId: string;
+    let created: boolean;
+    if (existing && existing.state === "planned") {
+      // Start the assignment — the doctor opening it becomes the clinician.
+      await db
+        .update(encounters)
+        .set({ state: "in_progress", clinicianUserId: scope.userId })
+        .where(eq(encounters.id, existing.id));
+      encounterId = existing.id;
+      created = false;
+    } else if (existing) {
+      return { ok: true, encounterId: existing.id, created: false };
+    } else {
+      const [enc] = await db
+        .insert(encounters)
+        .values({
+          hospitalId: tr.hospitalId,
+          patientUserId,
+          clinicianUserId: scope.userId,
+          departmentId: scope.departmentId ?? tr.departmentId ?? null,
+          encounterType: "emergency",
+          triageRecordId,
+          state: "in_progress",
+        })
+        .returning({ id: encounters.id });
+      encounterId = enc!.id;
+      created = true;
+    }
+
+    // Seed the clerkship ONLY if there's no documentation yet (don't double-seed
+    // when starting a previously-assigned encounter).
+    const [hasDoc] = await db
+      .select({ id: clinicalDocumentation.id })
+      .from(clinicalDocumentation)
+      .where(eq(clinicalDocumentation.encounterId, encounterId))
+      .limit(1);
+    if (hasDoc) return { ok: true, encounterId, created };
 
     // Presenting complaint comes from the linked intake (if any).
     let presentingComplaint: string | null = null;
@@ -114,7 +141,7 @@ export async function openEncounterFromTriage(
       logger.warn("openEncounterFromTriage: seed clerkship failed", { encounterId });
     }
 
-    return { ok: true, encounterId, created: true };
+    return { ok: true, encounterId, created };
   } catch (e) {
     logger.error("openEncounterFromTriage failed", { error: String(e) });
     return { ok: false, error: "Failed to open the encounter." };

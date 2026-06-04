@@ -5,6 +5,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Triage → doctor assignment (assign / reassign / start) — 2026-06-04
+
+After triage, a patient is routed to a doctor before the encounter begins — the connective layer between the triage worklist and the (now-live) clerkship.
+
+- **The assignment IS a `planned` encounter** (clinician = the assigned doctor, linked to the triage) — no new migration; reuses the encounter lifecycle (`planned → in_progress`). [lib/encounter/assignment.ts](lib/encounter/assignment.ts).
+- **Nurse assigns** from the triage worklist: a compact "Assign Dr" picker on each triaged, identified patient (L2–L5; L1 stays the resus path) — department doctors first, widening to the hospital. [assign-doctor-button.tsx](app/nurse/triage/_components/assign-doctor-button.tsx).
+- **Doctor-triager auto-assign:** when a doctor does the triage, the patient is auto-assigned to them (best-effort; never blocks the triage).
+- **Doctor "Assigned to you" queue** ([/doctor/assigned](app/doctor/assigned/page.tsx)): the planned encounters assigned to them, with **Start** (→ flips to in_progress, seeds the clerkship from triage, opens the clerking) and **Reassign** (hand to a colleague). Patient shown by code + acuity + reason — name revealed only when they start (audited).
+- **Reassignment** allowed only while `planned` (once started, care has begun). Nurses + the assigned doctor can reassign.
+- Gated behind `ENCOUNTER_ENGINE_LIVE` (same flag as the engine). tsc / eslint / build clean; full suite 766 passing.
+
 ### Added — Encounter / EMR engine + structured clerkship — the clinical-data spine (GATED) — 2026-06-04
 
 The clinical-data spine: the encounter engine with its clinical documentation realised as a **structured Hutchison CLERKSHIP** (history → examination → differential → initial management), not a free-text note. **The DB migration (0040) is GATED — NOT applied to prod; awaiting CSO sign-off** of the access model + schema + clerkship structure ([ADR 0059](docs/adr/0059-encounter-emr-engine-clerkship.md); proposal [docs/encounter-emr-engine-gate-a-proposal.md](docs/encounter-emr-engine-gate-a-proposal.md); clinical source [docs/clinical/clerkship-clinical-reference.md](docs/clinical/clerkship-clinical-reference.md)). **Reconciled (2026-06-04) against the now-provided primary spec `encounter-emr-engine-kickoff.md`** — the spine holds; the access basis was corrected to the kickoff's legitimate-access model (below). Remaining kickoff gaps tracked toward GATEs C–E (ICD-10/LOINC versioned reference data; care plan + encounter type vocab + vitals-link interface; triage→encounter handoff; thin surfaces + workspace wiring).

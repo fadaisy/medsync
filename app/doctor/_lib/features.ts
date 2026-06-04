@@ -26,6 +26,7 @@ export type DoctorIconKey =
 export type DoctorFeatureSlug =
   | ""
   | "patients"
+  | "assigned"
   | "alerts"
   | "care-team"
   | "schedule"
@@ -61,6 +62,14 @@ export const DOCTOR_FEATURE_AREAS: ReadonlyArray<DoctorFeatureArea> = [
     label: "Patients",
     hint: "Your patient panel — care-team, encounters, department",
     iconKey: "patients",
+    placeholder: false,
+    visibleTo: "all",
+  },
+  {
+    slug: "assigned",
+    label: "Assigned",
+    hint: "Triaged patients assigned to you — start the encounter or reassign",
+    iconKey: "encounters",
     placeholder: false,
     visibleTo: "all",
   },
