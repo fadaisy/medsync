@@ -11,7 +11,7 @@ import type { ClinicalDirection, VitalTrend } from "@/lib/resus/vital-trend";
 import type { ResusVitalsView, VitalSnapshot } from "@/lib/resus/vitals";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { ArrowLeftIcon, RotateCcwIcon } from "lucide-react";
 
 import { classifyAirway, latestAirwayAssessment } from "@/lib/resus/airway";
@@ -600,6 +600,29 @@ const TREND_DIR_CLASS: Record<ClinicalDirection, string> = {
 };
 const TREND_GLYPH: Record<"up" | "down" | "same", string> = { up: "↑", down: "↓", same: "→" };
 
+/** Trend-coloured CELL tones — deteriorating (rose) / improving (teal). */
+const TREND_CELL_CLASS: Record<"deteriorating" | "improving", string> = {
+  deteriorating:
+    "border-rose-400/70 bg-rose-50/60 text-rose-700 dark:border-rose-500/40 dark:bg-rose-950/25 dark:text-rose-200",
+  improving:
+    "border-teal-300/70 bg-teal-50/60 text-teal-700 dark:border-teal-500/40 dark:bg-teal-950/25 dark:text-teal-200",
+};
+
+/**
+ * The vitals CELL colour — coloured by the TREND (deteriorating → rose,
+ * improving → teal), falling back to the band tone when the trend is neutral /
+ * absent (so a stable value still shows its severity). A CRITICAL value is
+ * sticky-red regardless of trend — a critical reading must always look critical
+ * (an improving-but-still-critical SpO₂ must not look reassuringly green).
+ */
+function cellTrendClass(tone: VitalTone, trend: VitalTrend | null): string {
+  if (tone === "critical") return VITAL_TONE_CLASS.critical;
+  const dir = trend?.clinicalDirection;
+  if (dir === "deteriorating") return TREND_CELL_CLASS.deteriorating;
+  if (dir === "improving") return TREND_CELL_CLASS.improving;
+  return VITAL_TONE_CLASS[tone];
+}
+
 /** The at-a-glance trend arrow — glyph = raw direction, colour = clinical
  *  meaning (improving/deteriorating/neutral). Never colour alone. */
 function TrendArrow({ trend, decimals }: { trend: VitalTrend; decimals?: number }) {
@@ -766,7 +789,6 @@ function VitalTrendGraph({
 function VitalCell({
   tile,
   value,
-  combined,
   tone,
   trend,
   points,
@@ -775,7 +797,6 @@ function VitalCell({
 }: {
   tile: { key: string; label: string; unit: string };
   value: number | null | undefined;
-  combined: string;
   tone: VitalTone;
   trend: VitalTrend | null;
   points: GraphPoints[];
@@ -783,34 +804,73 @@ function VitalCell({
   /** Decimal places for fine-grained metrics (e.g. shock index → 2). */
   decimals?: number;
 }) {
+  const cellRef = useRef<HTMLDivElement>(null);
+  const touchRef = useRef(false);
   const [open, setOpen] = useState(false);
+  // The popover is position:FIXED (anchored to the cell rect) so the strip's
+  // `overflow-x-auto` can't clip it — that clipping is why hover showed nothing.
+  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
   const canGraph = points.length >= 2 || (secondary?.points.length ?? 0) >= 2;
   const fmt = (n: number) => (decimals != null ? n.toFixed(decimals) : String(n));
   const valueText = value == null ? "—" : fmt(value);
-  const prevText =
-    trend?.hasTrend && trend.previous != null
-      ? tile.key === "systolicBp" && secondary && secondary.points.length >= 2
-        ? `was ${fmt(trend.previous)}/${secondary.points[secondary.points.length - 2]!.value}`
-        : `was ${fmt(trend.previous)}`
-      : null;
+  const prevText = trend?.hasTrend && trend.previous != null ? `was ${fmt(trend.previous)}` : null;
+
+  function show() {
+    if (!canGraph) return;
+    const r = cellRef.current?.getBoundingClientRect();
+    if (r) {
+      const width = 224; // w-56
+      setPos({
+        top: r.bottom + 4,
+        left: Math.max(8, Math.min(r.left, window.innerWidth - width - 8)),
+      });
+    }
+    setOpen(true);
+  }
+  const hide = () => setOpen(false);
+
+  // Close on Escape / scroll (the strip scrolls horizontally → stale position).
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    const onScroll = () => setOpen(false);
+    window.addEventListener("keydown", onKey);
+    window.addEventListener("scroll", onScroll, true);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("scroll", onScroll, true);
+    };
+  }, [open]);
 
   return (
-    <div
-      className={cn("group relative shrink-0", canGraph && "cursor-pointer")}
-      onMouseLeave={() => setOpen(false)}
-    >
+    <div className="shrink-0">
       <div
-        className={cn("flex flex-col rounded-lg border px-2 py-1", VITAL_TONE_CLASS[tone])}
+        ref={cellRef}
+        className={cn(
+          "flex flex-col rounded-lg border px-2 py-1",
+          cellTrendClass(tone, trend),
+          canGraph && "cursor-pointer",
+        )}
         role={canGraph ? "button" : undefined}
         tabIndex={canGraph ? 0 : undefined}
         aria-label={
           trend ? vitalTrendLabel(tile.label, tile.unit, trend) : `${tile.label} not recorded`
         }
-        onClick={() => canGraph && setOpen((o) => !o)}
+        onTouchStart={() => {
+          touchRef.current = true;
+        }}
+        onMouseEnter={() => {
+          if (!touchRef.current) show();
+        }}
+        onMouseLeave={() => {
+          if (!touchRef.current) hide();
+        }}
+        onClick={() => (open ? hide() : show())}
         onKeyDown={(e) => {
           if (canGraph && (e.key === "Enter" || e.key === " ")) {
             e.preventDefault();
-            setOpen((o) => !o);
+            if (open) hide();
+            else show();
           }
         }}
       >
@@ -820,7 +880,6 @@ function VitalCell({
         <span className="flex items-baseline gap-1">
           <span className="font-mono text-[15px] leading-none font-semibold tabular-nums">
             {valueText}
-            {combined}
           </span>
           {trend ? <TrendArrow trend={trend} decimals={decimals} /> : null}
         </span>
@@ -830,12 +889,10 @@ function VitalCell({
           </span>
         ) : null}
       </div>
-      {canGraph ? (
+      {canGraph && open && pos ? (
         <div
-          className={cn(
-            "border-border bg-popover absolute top-full left-0 z-30 mt-1 w-56 rounded-lg border p-2 shadow-lg",
-            open ? "block" : "hidden group-hover:block",
-          )}
+          style={{ position: "fixed", top: pos.top, left: pos.left }}
+          className="border-border bg-popover z-50 w-56 rounded-lg border p-2 shadow-lg"
         >
           <VitalTrendGraph
             seriesKey={tile.key}
@@ -937,9 +994,6 @@ function VitalsBand({
                 key={t.key}
                 tile={t}
                 value={value}
-                combined={
-                  isBp && vitals.latest.diastolicBp != null ? `/${vitals.latest.diastolicBp}` : ""
-                }
                 tone={vitalTone(t.key, value)}
                 trend={points.length ? vitalTrend(t.key, points) : null}
                 points={points}
@@ -956,7 +1010,6 @@ function VitalsBand({
                 key={t.key}
                 tile={t}
                 value={value}
-                combined=""
                 tone={vitalTone(t.key, value)}
                 trend={vitalTrend(t.key, series.points)}
                 points={series.points}
