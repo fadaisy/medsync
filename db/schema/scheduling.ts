@@ -239,11 +239,22 @@ export const encounters = pgTable(
     // / left-without-being-seen / admitted / completed-routine. Added
     // in migration 0033 alongside ha-complete-encounter.
     completionReason: text("completion_reason"),
+    // ── Encounter / EMR engine (migration 0040, GATED) ──
+    // The clinical disposition the clerking produces (the admission slice
+    // consumes this). FK enforced in SQL (avoids a triage↔scheduling import cycle).
+    disposition: text("disposition"),
+    triageRecordId: uuid("triage_record_id"),
+    /** What kind of encounter this is (clerkship / scheduled / resus / …). */
+    encounterClass: text("encounter_class").notNull().default("scheduled"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
     check("encounters_state_check", sql`${t.state} IN ('in_progress','completed','cancelled')`),
+    check(
+      "encounters_disposition_check",
+      sql`${t.disposition} IS NULL OR ${t.disposition} IN ('admit','discharge','refer','observe','transfer','deceased')`,
+    ),
     check("encounters_time_order", sql`${t.endedAt} IS NULL OR ${t.endedAt} >= ${t.startedAt}`),
     index("encounters_patient_idx").on(t.patientUserId, t.startedAt),
     index("encounters_clinician_idx").on(t.clinicianUserId, t.startedAt),
