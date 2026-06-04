@@ -133,7 +133,10 @@ export function buildResusVitals(events: readonly TimelineEvent[]): ResusVitalsV
     if (points.length > 0) series.push({ key, label, unit, points });
   }
 
-  // Derived trend series (shock index, MAP) computed per snapshot.
+  // Derived trend series (shock index, MAP) computed per snapshot — plotting
+  // the existing derived data, no new maths. (Pulse pressure is NOT trended as a
+  // line: its "narrow" interpretation is SBP-relative, so a context-free pulse-
+  // pressure value/graph would drop that flag — it stays a flag-toned chip.)
   const siPoints: TrendPoint[] = [];
   const mapPoints: TrendPoint[] = [];
   for (const { t, snap } of snapshots) {
