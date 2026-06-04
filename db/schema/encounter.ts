@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import {
   boolean,
   check,
+  date,
   index,
   integer,
   jsonb,
@@ -242,3 +243,41 @@ export const encounterEvents = pgTable(
     index("enc_event_encounter_idx").on(t.encounterId, t.recordedAt),
   ],
 );
+
+/** Care plan — goals/plan spanning encounters (kickoff §1.10). Editable (goals
+ *  evolve) → audited + updated_at-stamped, not append-only. */
+export const carePlan = pgTable(
+  "care_plan",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    patientUserId: uuid("patient_user_id")
+      .notNull()
+      .references(() => authUsers.id, { onDelete: "cascade" }),
+    hospitalId: uuid("hospital_id")
+      .notNull()
+      .references(() => hospitals.id, { onDelete: "cascade" }),
+    sourceEncounterId: uuid("source_encounter_id").references(() => encounters.id, {
+      onDelete: "set null",
+    }),
+    goal: text("goal").notNull(),
+    detail: text("detail"),
+    status: text("status").notNull().default("active"),
+    targetDate: date("target_date"),
+    authoredByUserId: uuid("authored_by_user_id").references(() => authUsers.id, {
+      onDelete: "set null",
+    }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    check("care_plan_status_check", sql`${t.status} IN ('active','met','cancelled')`),
+    index("care_plan_patient_idx").on(t.patientUserId, t.status),
+  ],
+);
+
+// NOTE: the VITALS-LINK INTERFACE (kickoff §1.9) is the EXISTING
+// `clinical_observations` table (db/schema/nurse-workspace.ts; created by
+// migration 0031, extended for triage in 0036). It already links to
+// encounters + patients, carries observation kinds (bp/hr/temp/rr/spo2/…), and
+// has a correction model. The monitoring engine (later) writes there. We REUSE
+// it as the interface rather than declaring a duplicate.

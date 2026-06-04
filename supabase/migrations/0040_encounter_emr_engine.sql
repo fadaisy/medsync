@@ -11,7 +11,8 @@
 -- CSO ratify) + docs/clinical/clerkship-clinical-reference.md (Hutchison).
 --
 -- Additive only. Schema deltas:
---   1. encounters (ALTER)        + disposition, triage_record_id, encounter_class
+--   1. encounters (ALTER)        + disposition, triage_record_id, encounter_type
+--      (opd/inpatient/emergency/follow_up/tele) + 'planned' lifecycle state
 --   2. clinical_documentation    versioned, append-only clerkship documentation
 --   3. encounter_diagnoses       the differential (working/final/excluded)
 --   4. problem_list              patient-level problem list (acute + chronic)
@@ -20,7 +21,10 @@
 --   6. encounter_medications     meds elicited/recorded in the clerking
 --   7. encounter_orders/results  investigations (LOINC) — execution is a seam
 --   8. encounter_events          the append-only encounter timeline
---   9. has_clinical_relationship() helper for the patient-level RLS predicate
+--   9. care_plan                 goals/plan spanning encounters (kickoff §1.10)
+--  10. (vitals-link §1.9)         REUSES the existing clinical_observations table
+--      (0031/0036) — no new table; the monitoring engine writes there later
+--  11. has_clinical_relationship() helper for the patient-level RLS predicate
 --
 -- CLINICAL-SAFETY + PDPO-CRITICAL. Documentation + the timeline are HARD
 -- append-only (block trigger) — corrections are NEW versions that supersede an
@@ -30,14 +34,29 @@
 -- is excluded at the DB. Decision-support, not autonomous — no auto-diagnosis.
 
 -- ─── 1. encounters (ALTER) ──────────────────────────────────────────────
+-- encounter_type = the clinical setting (kickoff §1.1: OPD / inpatient /
+-- emergency / follow-up / tele). disposition = how the encounter resolved.
+-- triage_record_id = the triage hand-off that opened it (GATE D wires this).
 ALTER TABLE public.encounters
   ADD COLUMN IF NOT EXISTS disposition text,
   ADD COLUMN IF NOT EXISTS triage_record_id uuid REFERENCES public.triage_records(id) ON DELETE SET NULL,
-  ADD COLUMN IF NOT EXISTS encounter_class text NOT NULL DEFAULT 'scheduled';
+  ADD COLUMN IF NOT EXISTS encounter_type text NOT NULL DEFAULT 'opd';
+
+ALTER TABLE public.encounters DROP CONSTRAINT IF EXISTS encounters_type_check;
+ALTER TABLE public.encounters ADD CONSTRAINT encounters_type_check CHECK (
+  encounter_type IN ('opd','inpatient','emergency','follow_up','tele')
+);
 
 ALTER TABLE public.encounters DROP CONSTRAINT IF EXISTS encounters_disposition_check;
 ALTER TABLE public.encounters ADD CONSTRAINT encounters_disposition_check CHECK (
   disposition IS NULL OR disposition IN ('admit','discharge','refer','observe','transfer','deceased')
+);
+
+-- Widen the lifecycle to include 'planned' (a booked-but-not-started encounter)
+-- per kickoff §1.1: planned → in_progress → completed (+ cancelled).
+ALTER TABLE public.encounters DROP CONSTRAINT IF EXISTS encounters_state_check;
+ALTER TABLE public.encounters ADD CONSTRAINT encounters_state_check CHECK (
+  state IN ('planned','in_progress','completed','cancelled')
 );
 
 -- ─── helper: legitimate clinical relationship to a patient ──────────────
@@ -297,3 +316,45 @@ CREATE TRIGGER enc_event_no_update BEFORE UPDATE ON public.encounter_events
   FOR EACH ROW EXECUTE FUNCTION public.block_modify_append_only();
 CREATE TRIGGER enc_event_no_delete BEFORE DELETE ON public.encounter_events
   FOR EACH ROW EXECUTE FUNCTION public.block_modify_append_only();
+
+-- ─── 9. care_plan (kickoff §1.10 — goals/plan spanning encounters) ──────
+-- Patient-level care plan items (goals + plan). Editable (goals evolve) so it
+-- is NOT append-only — it is audited (audit_log_changes) + updated_at-stamped.
+-- Ties to the care-team shared goals later (care-team module is a seam).
+CREATE TABLE public.care_plan (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  patient_user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  hospital_id uuid NOT NULL REFERENCES public.hospitals(id) ON DELETE CASCADE,
+  source_encounter_id uuid REFERENCES public.encounters(id) ON DELETE SET NULL,
+  goal text NOT NULL,
+  detail text,
+  status text NOT NULL DEFAULT 'active',
+  target_date date,
+  authored_by_user_id uuid REFERENCES auth.users(id) ON DELETE SET NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT care_plan_status_check CHECK (status IN ('active','met','cancelled'))
+);
+CREATE INDEX care_plan_patient_idx ON public.care_plan (patient_user_id, status);
+ALTER TABLE public.care_plan ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.care_plan FORCE ROW LEVEL SECURITY;
+CREATE POLICY care_plan_select_scoped ON public.care_plan
+  FOR SELECT TO authenticated USING (
+    patient_user_id = auth.uid() OR public.user_has_role('superadmin')
+    OR public.has_clinical_relationship(patient_user_id)
+  );
+DROP TRIGGER IF EXISTS care_plan_updated_at ON public.care_plan;
+CREATE TRIGGER care_plan_updated_at BEFORE UPDATE ON public.care_plan
+  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+DROP TRIGGER IF EXISTS audit_care_plan ON public.care_plan;
+CREATE TRIGGER audit_care_plan
+  AFTER INSERT OR UPDATE OR DELETE ON public.care_plan
+  FOR EACH ROW EXECUTE FUNCTION public.audit_log_changes();
+
+-- ─── 10. vitals-link interface (kickoff §1.9) — REUSES clinical_observations ─
+-- The VITALS-LINK INTERFACE is the EXISTING `clinical_observations` table
+-- (created by migration 0031 nurse-workspace, extended for triage in 0036). It
+-- already links observations/vitals to encounters + patients and carries the
+-- observation kinds; the monitoring engine (later) writes there. This migration
+-- creates NO new observations table — it reuses that one as the interface. (Same
+-- reuse posture as patient_allergies above.)

@@ -244,13 +244,20 @@ export const encounters = pgTable(
     // consumes this). FK enforced in SQL (avoids a triage↔scheduling import cycle).
     disposition: text("disposition"),
     triageRecordId: uuid("triage_record_id"),
-    /** What kind of encounter this is (clerkship / scheduled / resus / …). */
-    encounterClass: text("encounter_class").notNull().default("scheduled"),
+    /** Clinical setting (kickoff §1.1): opd / inpatient / emergency / follow_up / tele. */
+    encounterType: text("encounter_type").notNull().default("opd"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
-    check("encounters_state_check", sql`${t.state} IN ('in_progress','completed','cancelled')`),
+    check(
+      "encounters_state_check",
+      sql`${t.state} IN ('planned','in_progress','completed','cancelled')`,
+    ),
+    check(
+      "encounters_type_check",
+      sql`${t.encounterType} IN ('opd','inpatient','emergency','follow_up','tele')`,
+    ),
     check(
       "encounters_disposition_check",
       sql`${t.disposition} IS NULL OR ${t.disposition} IN ('admit','discharge','refer','observe','transfer','deceased')`,

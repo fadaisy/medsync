@@ -32,11 +32,11 @@ The engine's clinical data is readable only on a **legitimate care relationship*
 4. **Audit-on-READ** — every read of the clinical record writes a row to the canonical **`clinical_phi_access_log`** (hospital, clinician, patient, **basis**, surface) — the same "who viewed which patient" table the doctor/nurse workspaces write. It is written **after** a successful authorised fetch (no false "record read"); reads don't fire DB triggers, so it lives in the engine's read path.
 5. **PHI encryption** — free-text clinical fields (the clerking narrative) are encrypted at rest (the project's existing PHI-encryption approach for note bodies); coded/structured fields (codes, flags, enums) are queryable.
 
-## C. Schema (INFERRED — CSO ratify) — additive migration `0040`, GATED
+## C. Schema (CSO ratify) — additive migration `0040`, GATED
 
-Extends `encounters`; adds the clinical objects. All `FORCE RLS`; clinical writes via service role; documentation + timeline are **append-only** (block triggers; corrections supersede).
+Extends `encounters`; adds the clinical objects. All `FORCE RLS`; clinical writes via service role; documentation + timeline + observations are **append-only** (block triggers; corrections supersede).
 
-1. **`encounters` (ALTER)** — add `disposition` (admit/discharge/refer/observe/…), `triage_record_id`, `encounter_class` (`clerkship` | `scheduled` | `resus` | …) so a clerkship encounter is distinguishable. (Keep the existing columns/RLS.)
+1. **`encounters` (ALTER)** — add `disposition` (admit/discharge/refer/observe/…), `triage_record_id`, and **`encounter_type`** (kickoff §1.1: `opd` | `inpatient` | `emergency` | `follow_up` | `tele`, default `opd`); widen `state` to include **`planned`** (planned → in_progress → completed, + cancelled). (Keep the existing columns/RLS.)
 2. **`clinical_documentation`** — the **versioned, append-only clerkship**. One row per **version** of the clerking for an encounter: `encounter_id, patient_user_id, version, supersedes_id, section_data jsonb` (the structured Hutchison sections — history/exam/synthesis, see §D; PHI free-text encrypted), `soap` derived, `authored_by_user_id, author_cadre_code, cosigned_by_user_id, status (draft|final), created_at`. Append-only (no UPDATE/DELETE); a correction is a new version.
 3. **`encounter_diagnoses`** — `encounter_id, patient_user_id, icd10_code?, text, rank, must_not_miss bool, status (working|final|excluded), authored_by, created_at`. (From the differential.)
 4. **`problem_list`** — patient-level: `patient_user_id, hospital_id, item, icd10_code?, active bool, onset?, resolved_at?, source_encounter_id, authored_by`. (Acute + chronic.)
@@ -44,7 +44,9 @@ Extends `encounters`; adds the clinical objects. All `FORCE RLS`; clinical write
 6. **`encounter_medications`** — `encounter_id, patient_user_id, name, dose, route, frequency, status (active|stopped|suspended), source (clerking|prescribed), authored_by`.
 7. **`encounter_orders`** — `encounter_id, patient_user_id, kind (bloods|imaging|bedside|special), loinc_code?, text, justification, status (ordered|collected|resulted|cancelled), authored_by` + **`encounter_results`** — `order_id, value, unit, abnormal_flag?, loinc_code?, resulted_at` (the execution is a later seam; the record exists now).
 8. **`encounter_events`** — the **append-only encounter timeline**: `encounter_id, kind (documentation|diagnosis|order|result|medication|allergy|disposition|note|access), ref_id, label, actor_user_id, recorded_at`. Mirrors the resus-timeline append-only model.
-9. **`clinical_access_log`** (or reuse `sa_audit_log`) — audit-on-read rows.
+9. **`care_plan`** (kickoff §1.10) — patient-level goals/plan spanning encounters: `patient_user_id, hospital_id, source_encounter_id?, goal, detail?, status (active|met|cancelled), target_date?, authored_by`. Editable (goals evolve) → **audited + `updated_at`**, not append-only. Ties to the care-team module (seam) later.
+10. **Vitals-link interface** (kickoff §1.9) — **reuses the EXISTING `clinical_observations`** table (migration 0031 nurse-workspace, extended for triage in 0036), which already links observations/vitals to encounters + patients and carries the observation kinds. The **monitoring engine (later) writes there**; results/trend reads consume there. **Interface only — no new table, monitoring NOT built here** (same reuse posture as `patient_allergies`).
+11. **`clinical_access_log`** (or reuse `sa_audit_log`) — audit-on-read rows.
 
 **SOAP mapping** (interoperability): the clerking persists structured but is projected to SOAP — **S** = history sections; **O** = examination + results; **A** = differential/diagnoses; **P** = orders + management/disposition.
 
