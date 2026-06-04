@@ -77,3 +77,6 @@ export * from "./prescribing";
 
 // ─── Encounter / EMR engine + clerkship (migration 0040 — GATED) ───────
 export * from "./encounter";
+
+// ─── Clinical code reference: ICD-10 + LOINC (migration 0041 — GATED) ───
+export * from "./clinical-codes";
