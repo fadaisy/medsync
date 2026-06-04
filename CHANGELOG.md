@@ -5,6 +5,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Changed — Resus · vitals strip: previous→current + clinical trend arrow + hover trend graph — 2026-06-04
+
+The resus board's vitals strip now shows, per vital, **the previous reading, the current reading, and an up/down trend arrow coloured by clinical meaning**, and **on hover/tap reveals a clean trend graph** against the normal band — surfacing the serial vitals the resus already records (the trajectory is the story in a resus). **Display only — vitals capture, the derived-metric maths, the interpretation thresholds, population routing, and the engine are byte-for-byte unchanged** ([ADR 0058](docs/adr/0058-resus-vitals-trend-display.md)).
+
+- **One shared classifier** ([lib/resus/vital-trend.ts](lib/resus/vital-trend.ts), TDD): `vitalBand` is the board's **existing** `vitalTone` cutoffs relocated verbatim + derived bands reusing the triage `SHOCK_INDEX`/MAP thresholds — it drives the cell tone, the trend direction, and the graph reference bands (one source; no new thresholds). `vitalTone` now delegates to it (identical output).
+- **The cell**: current (prominent mono) + **previous (secondary "was N")** + a **trend arrow** whose glyph is the raw direction (↑/↓/→) and whose **colour is clinical** — a band change = improving/deteriorating, and **within an unchanged non-normal band, movement toward the danger edge = deteriorating** (so a still-critical SBP 85→80 reads deteriorating, not calm), within normal = neutral. So a **rising SpO₂ reads improving, a falling SpO₂ deteriorating** — by meaning, not raw direction. Shock index shows 2 dp. Colour + glyph + value (never colour alone); aria-label gives screen-reader users the trend; arrow only with ≥ 2 readings (honest single-reading state).
+- **The hover/tap graph**: an SVG line over the resus with the **clinical-normal band shaded** + **danger thresholds** dashed (clinical-normal, respecting scores-0-≠-normal), a **time-aware x-axis** (actual reading times; irregular intervals honest), the latest point emphasised; **BP shown as a SBP+DBP pair** (two-line); the self-contained derived metrics (shock index, MAP) plotted the same way; reduced-motion-safe; tap-toggle popover on touch. **Pulse pressure + qSOFA stay flag-toned chips** (pulse pressure's "narrow" flag is SBP-relative, so a context-free line would drop that signal; qSOFA is a categorical score).
+- **Read-model only**: plots the existing shock-index + MAP derived series (no new maths). No fabricated previous/trend; honest empty + missing states.
+- **12 read-model tests** (full suite **722 passing**); tsc / eslint / prettier / build clean. No migration touched.
+
 ### Changed — Resus · actions board: one shared urgency-ordering across the whole surface — 2026-06-03
 
 The actions board now displays indicated actions in **clinical-urgency order** — a deterministic composite of **time-criticality × state** — **consistently across all five ABCDE steps** from one shared function (formalises/extends the airway Addendum-2 ordering). **Presentation/ordering only — the engine, findings→action mappings, action-state lifecycle, severity, escalation, and the record are byte-for-byte unchanged** ([ADR 0057](docs/adr/0057-resus-actions-urgency-ordering.md)).

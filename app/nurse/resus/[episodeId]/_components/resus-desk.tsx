@@ -7,7 +7,8 @@ import type { ResponderEntry, RosterEntry } from "@/lib/resus/record";
 import type { LinkedAction } from "@/lib/resus/reference/abcde-catalog";
 import type { ResusDoseId } from "@/lib/resus/reference/doses";
 import type { AbcdeLetter, ResusEventKind, ResusRole, TimelineEvent } from "@/lib/resus/types";
-import type { ResusVitalsView, TrendSeries, VitalSnapshot } from "@/lib/resus/vitals";
+import type { ClinicalDirection, VitalTrend } from "@/lib/resus/vital-trend";
+import type { ResusVitalsView, VitalSnapshot } from "@/lib/resus/vitals";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, useTransition } from "react";
@@ -50,6 +51,7 @@ import {
 } from "@/lib/resus/reference/abcde-catalog";
 import { getResusDose } from "@/lib/resus/reference/doses";
 import { ABCDE_LETTERS, RESUS_ROLES } from "@/lib/resus/types";
+import { VITAL_REFERENCE, vitalBand, vitalTrend, vitalTrendLabel } from "@/lib/resus/vital-trend";
 import { buildResusVitals, TREND_VITALS } from "@/lib/resus/vitals";
 import { cn } from "@/lib/utils";
 import {
@@ -583,49 +585,278 @@ const VITAL_TONE_CLASS: Record<VitalTone, string> = {
   missing: "border-dashed border-border/70 bg-muted/20 text-muted-foreground/50",
 };
 
-/** Conservative display tone — matches the catalog danger-sign cutoffs. */
+/** Display tone — the single shared classifier (lib/resus/vital-trend), the
+ *  resus board's existing cutoffs relocated; cell tone + trend + graph agree. */
 function vitalTone(key: string, v: number | null | undefined): VitalTone {
-  if (v == null) return "missing";
-  switch (key) {
-    case "hr":
-      return v <= 40 || v >= 131 ? "critical" : v < 50 || v > 110 ? "abnormal" : "normal";
-    case "rr":
-      return v <= 8 || v >= 25 ? "critical" : v > 20 ? "abnormal" : "normal";
-    case "spo2":
-      return v < 92 ? "critical" : v < 94 ? "borderline" : "normal";
-    case "systolicBp":
-      return v <= 90 ? "critical" : v < 100 ? "abnormal" : "normal";
-    case "temperature":
-      return v < 35 || v >= 39.1 ? "abnormal" : "normal";
-    case "glucose":
-      return v < 4 ? "critical" : v > 11 ? "borderline" : "normal";
-    default:
-      return "normal";
-  }
+  return vitalBand(key, v);
 }
 
-function Sparkline({ series }: { series: TrendSeries }) {
-  const pts = series.points;
-  if (pts.length < 2) return null;
-  const vals = pts.map((p) => p.value);
-  const min = Math.min(...vals);
-  const max = Math.max(...vals);
-  const span = max - min || 1;
-  const w = 56;
-  const h = 16;
-  const d = pts
-    .map((p, i) => {
-      const x = (i / (pts.length - 1)) * w;
-      const y = h - ((p.value - min) / span) * h;
-      return `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
-    })
-    .join(" ");
+/** The trend arrow/delta colour — by CLINICAL meaning for this vital (not raw
+ *  direction). Never colour alone (always paired with the glyph + value). */
+const TREND_DIR_CLASS: Record<ClinicalDirection, string> = {
+  improving: "text-teal-700 dark:text-teal-300",
+  deteriorating: "text-rose-700 dark:text-rose-300",
+  neutral: "text-muted-foreground",
+};
+const TREND_GLYPH: Record<"up" | "down" | "same", string> = { up: "↑", down: "↓", same: "→" };
+
+/** The at-a-glance trend arrow — glyph = raw direction, colour = clinical
+ *  meaning (improving/deteriorating/neutral). Never colour alone. */
+function TrendArrow({ trend, decimals }: { trend: VitalTrend; decimals?: number }) {
+  if (!trend.hasTrend || trend.rawDirection == null || trend.clinicalDirection == null) return null;
+  const deltaText =
+    trend.delta != null && trend.delta !== 0
+      ? decimals != null
+        ? Math.abs(trend.delta).toFixed(decimals)
+        : Math.abs(trend.delta)
+      : "";
   return (
-    <svg width={w} height={h} className="text-muted-foreground/60 mt-0.5" aria-hidden>
-      <path d={d} fill="none" stroke="currentColor" strokeWidth="1" />
-    </svg>
+    <span
+      className={cn(
+        "font-mono text-[11px] leading-none font-semibold",
+        TREND_DIR_CLASS[trend.clinicalDirection],
+      )}
+      aria-hidden
+    >
+      {TREND_GLYPH[trend.rawDirection]}
+      {deltaText}
+    </span>
   );
 }
+
+interface GraphPoints {
+  t: string;
+  value: number;
+}
+
+/**
+ * The hover/tap trend graph — a clean time-aware line over the resus, with the
+ * NORMAL band shaded + the danger threshold(s) marked (clinical-normal, from the
+ * shared `vitalBand` cutoffs). BP plots SBP + DBP as a two-line pair. Latest
+ * point emphasised. Reduced-motion-safe (it appears without animation).
+ */
+function VitalTrendGraph({
+  seriesKey,
+  label,
+  unit,
+  points,
+  secondary,
+}: {
+  seriesKey: string;
+  label: string;
+  unit: string;
+  points: GraphPoints[];
+  secondary?: { label: string; points: GraphPoints[] } | null;
+}) {
+  const all = [...points, ...(secondary?.points ?? [])];
+  if (all.length < 2) {
+    return (
+      <p className="text-muted-foreground/70 px-1 py-2 text-center text-[10.5px]">
+        Needs ≥ 2 readings to trend.
+      </p>
+    );
+  }
+  const ref = VITAL_REFERENCE[seriesKey] ?? {};
+  const w = 208;
+  const h = 92;
+  const padX = 6;
+  const padY = 10;
+
+  const times = all.map((p) => new Date(p.t).getTime());
+  const t0 = Math.min(...times);
+  const tN = Math.max(...times);
+  const tSpan = tN - t0 || 1;
+
+  const refVals = [ref.normalLow, ref.normalHigh, ref.dangerLow, ref.dangerHigh].filter(
+    (n): n is number => typeof n === "number",
+  );
+  const lo = Math.min(...all.map((p) => p.value), ...refVals);
+  const hi = Math.max(...all.map((p) => p.value), ...refVals);
+  const span = hi - lo || 1;
+  const x = (t: string) => padX + ((new Date(t).getTime() - t0) / tSpan) * (w - 2 * padX);
+  const y = (v: number) => padY + (1 - (v - lo) / span) * (h - 2 * padY);
+
+  const path = (pp: GraphPoints[]) =>
+    pp
+      .map((p, i) => `${i === 0 ? "M" : "L"}${x(p.t).toFixed(1)},${y(p.value).toFixed(1)}`)
+      .join(" ");
+
+  const last = points[points.length - 1]!;
+
+  return (
+    <div className="flex flex-col gap-1">
+      <div className="flex items-baseline justify-between gap-2">
+        <span className="text-foreground text-[11px] font-semibold">
+          {label} <span className="text-muted-foreground/70 font-normal">{unit}</span>
+        </span>
+        <span className="text-muted-foreground/70 font-mono text-[9px]">{all.length} readings</span>
+      </div>
+      <svg
+        width={w}
+        height={h}
+        className="overflow-visible"
+        role="img"
+        aria-label={`${label} trend graph`}
+      >
+        {/* Normal band (clinical-normal) shaded */}
+        {ref.normalLow != null || ref.normalHigh != null ? (
+          <rect
+            x={padX}
+            width={w - 2 * padX}
+            y={y(ref.normalHigh ?? hi)}
+            height={Math.max(0, y(ref.normalLow ?? lo) - y(ref.normalHigh ?? hi))}
+            className="fill-teal-500/10"
+          />
+        ) : null}
+        {/* Danger threshold lines */}
+        {[ref.dangerLow, ref.dangerHigh]
+          .filter((n): n is number => typeof n === "number")
+          .map((n) => (
+            <line
+              key={n}
+              x1={padX}
+              x2={w - padX}
+              y1={y(n)}
+              y2={y(n)}
+              className="stroke-rose-500/40"
+              strokeWidth="1"
+              strokeDasharray="3 2"
+            />
+          ))}
+        {/* DBP (secondary) line for BP */}
+        {secondary && secondary.points.length >= 2 ? (
+          <path
+            d={path(secondary.points)}
+            fill="none"
+            className="stroke-muted-foreground/50"
+            strokeWidth="1.25"
+          />
+        ) : null}
+        {/* Primary line + points */}
+        <path d={path(points)} fill="none" className="stroke-foreground/70" strokeWidth="1.5" />
+        {points.map((p) => (
+          <circle key={p.t} cx={x(p.t)} cy={y(p.value)} r={1.6} className="fill-foreground/50" />
+        ))}
+        {/* Latest point emphasised */}
+        <circle cx={x(last.t)} cy={y(last.value)} r={3} className="fill-foreground" />
+      </svg>
+      <div className="text-muted-foreground/80 flex items-center justify-between font-mono text-[9px] tabular-nums">
+        <span>now {last.value}</span>
+        {secondary && secondary.points.length > 0 ? (
+          <span>
+            {secondary.label} {secondary.points[secondary.points.length - 1]!.value}
+          </span>
+        ) : null}
+        {ref.normalLow != null || ref.normalHigh != null ? (
+          <span className="text-teal-700/70 dark:text-teal-300/70">
+            normal {ref.normalLow ?? "≤"}
+            {ref.normalLow != null && ref.normalHigh != null ? "–" : ""}
+            {ref.normalHigh ?? (ref.normalLow != null ? "+" : "")}
+          </span>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * A vitals-strip cell — current + previous (secondary) + the clinically-coloured
+ * trend arrow; on HOVER (desktop) or TAP (touch) it reveals the trend graph.
+ */
+function VitalCell({
+  tile,
+  value,
+  combined,
+  tone,
+  trend,
+  points,
+  secondary,
+  decimals,
+}: {
+  tile: { key: string; label: string; unit: string };
+  value: number | null | undefined;
+  combined: string;
+  tone: VitalTone;
+  trend: VitalTrend | null;
+  points: GraphPoints[];
+  secondary?: { label: string; points: GraphPoints[] } | null;
+  /** Decimal places for fine-grained metrics (e.g. shock index → 2). */
+  decimals?: number;
+}) {
+  const [open, setOpen] = useState(false);
+  const canGraph = points.length >= 2 || (secondary?.points.length ?? 0) >= 2;
+  const fmt = (n: number) => (decimals != null ? n.toFixed(decimals) : String(n));
+  const valueText = value == null ? "—" : fmt(value);
+  const prevText =
+    trend?.hasTrend && trend.previous != null
+      ? tile.key === "systolicBp" && secondary && secondary.points.length >= 2
+        ? `was ${fmt(trend.previous)}/${secondary.points[secondary.points.length - 2]!.value}`
+        : `was ${fmt(trend.previous)}`
+      : null;
+
+  return (
+    <div
+      className={cn("group relative shrink-0", canGraph && "cursor-pointer")}
+      onMouseLeave={() => setOpen(false)}
+    >
+      <div
+        className={cn("flex flex-col rounded-lg border px-2 py-1", VITAL_TONE_CLASS[tone])}
+        role={canGraph ? "button" : undefined}
+        tabIndex={canGraph ? 0 : undefined}
+        aria-label={
+          trend ? vitalTrendLabel(tile.label, tile.unit, trend) : `${tile.label} not recorded`
+        }
+        onClick={() => canGraph && setOpen((o) => !o)}
+        onKeyDown={(e) => {
+          if (canGraph && (e.key === "Enter" || e.key === " ")) {
+            e.preventDefault();
+            setOpen((o) => !o);
+          }
+        }}
+      >
+        <span className="font-mono text-[9px] tracking-[0.1em] uppercase opacity-70">
+          {tile.label}
+        </span>
+        <span className="flex items-baseline gap-1">
+          <span className="font-mono text-[15px] leading-none font-semibold tabular-nums">
+            {valueText}
+            {combined}
+          </span>
+          {trend ? <TrendArrow trend={trend} decimals={decimals} /> : null}
+        </span>
+        {prevText ? (
+          <span className="text-muted-foreground/60 font-mono text-[9px] tabular-nums">
+            {prevText}
+          </span>
+        ) : null}
+      </div>
+      {canGraph ? (
+        <div
+          className={cn(
+            "border-border bg-popover absolute top-full left-0 z-30 mt-1 w-56 rounded-lg border p-2 shadow-lg",
+            open ? "block" : "hidden group-hover:block",
+          )}
+        >
+          <VitalTrendGraph
+            seriesKey={tile.key}
+            label={tile.label}
+            unit={tile.unit}
+            points={points}
+            secondary={secondary}
+          />
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+/** Series-backed derived metrics with a self-contained (SBP-independent) band
+ *  that get the prev→current + trend-graph cell. Shock index shows 2 dp.
+ *  (Pulse pressure + qSOFA are flag-toned chips — see below.) */
+const DERIVED_TREND_TILES = [
+  { key: "shockIndex", label: "Shock idx", unit: "", decimals: 2 },
+  { key: "meanArterialPressure", label: "MAP", unit: "mmHg" },
+] as const;
 
 const CAPTURE_FIELDS = [
   { key: "hr", label: "HR", step: "1" },
@@ -656,32 +887,17 @@ function VitalsBand({
 
   const tiles = TREND_VITALS;
   const d = vitals.derived;
-  const derivedChips: { label: string; value: string; tone: VitalTone }[] = [];
-  if (d.shockIndex != null)
-    derivedChips.push({
-      label: "Shock idx",
-      value: d.shockIndex.toFixed(2),
-      tone:
-        d.shockIndexFlag === "shock"
-          ? "critical"
-          : d.shockIndexFlag === "occult_shock"
-            ? "abnormal"
-            : "normal",
-    });
-  if (d.meanArterialPressure != null)
-    derivedChips.push({
-      label: "MAP",
-      value: String(Math.round(d.meanArterialPressure)),
-      tone: d.meanArterialPressure < 65 ? "abnormal" : "normal",
-    });
+  // Flag-toned chips (no continuous trend): pulse pressure (its "narrow" flag is
+  // SBP-relative, not a fixed band) + qSOFA (a categorical 0–3 score).
+  const flagChips: { label: string; value: string; tone: VitalTone }[] = [];
   if (d.pulsePressure != null)
-    derivedChips.push({
+    flagChips.push({
       label: "Pulse press",
       value: String(d.pulsePressure),
       tone: d.pulsePressureFlag === "narrow" ? "abnormal" : "normal",
     });
   if (d.qsofa)
-    derivedChips.push({
+    flagChips.push({
       label: "qSOFA",
       value: String(d.qsofa.score),
       tone: d.qsofa.score >= 2 ? "abnormal" : "normal",
@@ -711,31 +927,46 @@ function VitalsBand({
             Vitals
           </span>
           {tiles.map((t) => {
+            const series = vitals.series.find((s) => s.key === t.key);
+            const points = series?.points ?? [];
             const value = vitals.latest[t.key] as number | null | undefined;
-            const tone = vitalTone(t.key, value);
-            const seriesForKey = vitals.series.find((s) => s.key === t.key);
+            const isBp = t.key === "systolicBp";
+            const dbp = vitals.series.find((s) => s.key === "diastolicBp");
             return (
-              <div
+              <VitalCell
                 key={t.key}
-                className={cn(
-                  "flex shrink-0 flex-col rounded-lg border px-2 py-1",
-                  VITAL_TONE_CLASS[tone],
-                )}
-              >
-                <span className="font-mono text-[9px] tracking-[0.1em] uppercase opacity-70">
-                  {t.label}
-                </span>
-                <span className="font-mono text-[15px] leading-none font-semibold tabular-nums">
-                  {value == null ? "—" : value}
-                  {t.key === "systolicBp" && vitals.latest.diastolicBp != null
-                    ? `/${vitals.latest.diastolicBp}`
-                    : ""}
-                </span>
-                {seriesForKey ? <Sparkline series={seriesForKey} /> : null}
-              </div>
+                tile={t}
+                value={value}
+                combined={
+                  isBp && vitals.latest.diastolicBp != null ? `/${vitals.latest.diastolicBp}` : ""
+                }
+                tone={vitalTone(t.key, value)}
+                trend={points.length ? vitalTrend(t.key, points) : null}
+                points={points}
+                secondary={isBp && dbp ? { label: "DBP", points: dbp.points } : null}
+              />
             );
           })}
-          {derivedChips.map((c) => (
+          {DERIVED_TREND_TILES.map((t) => {
+            const series = vitals.series.find((s) => s.key === t.key);
+            if (!series || series.points.length === 0) return null;
+            const value = series.points[series.points.length - 1]!.value;
+            return (
+              <VitalCell
+                key={t.key}
+                tile={t}
+                value={value}
+                combined=""
+                tone={vitalTone(t.key, value)}
+                trend={vitalTrend(t.key, series.points)}
+                points={series.points}
+                secondary={null}
+                decimals={"decimals" in t ? t.decimals : undefined}
+              />
+            );
+          })}
+          {/* Flag-toned chips — pulse pressure (SBP-relative flag) + qSOFA. */}
+          {flagChips.map((c) => (
             <div
               key={c.label}
               className={cn(
