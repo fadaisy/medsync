@@ -3,6 +3,7 @@ import Link from "next/link";
 import { AlertTriangleIcon, DoorOpenIcon, RotateCwIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { AssignDoctorButton } from "./assign-doctor-button";
 import { OpenResusButton } from "./open-resus-button";
 import { RapidRedButton } from "./rapid-red-button";
 
@@ -118,6 +119,8 @@ export function TriageWorklist({
 
             {r.priorLevel === 1 ? (
               <OpenResusButton intakeId={r.intakeId} resusBase={resusBasePath} />
+            ) : triaged && r.patientUserId ? (
+              <AssignDoctorButton intakeId={r.intakeId} />
             ) : (
               <RapidRedButton
                 intakeId={r.intakeId}

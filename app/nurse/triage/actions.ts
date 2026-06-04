@@ -1,9 +1,12 @@
 "use server";
 
+import type { AssignableDoctor } from "@/lib/encounter/assignment";
 import type { AcuityLevel, PregnancyStatus, TriageInput } from "@/lib/triage/types";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import { DOCTOR_CADRE_CODES } from "@/lib/doctor/scope";
+import { assignDoctorFromIntake, listAssignableDoctors } from "@/lib/encounter/assignment";
 import { logger } from "@/lib/logger";
 import { createServiceClient } from "@/lib/supabase/service";
 import { runTriage } from "@/lib/triage/engine";
@@ -242,6 +245,26 @@ export async function submitTriageAction(
     }).catch((e) => logger.warn("triage.notify.failed", { reason: String(e) }));
   }
 
+  // 9. If a DOCTOR did the triage, auto-assign the patient to them (a `planned`
+  //    encounter) — they can then reassign or start it. Best-effort; the saved
+  //    triage never fails because of this.
+  if (
+    input.patient_user_id &&
+    (DOCTOR_CADRE_CODES as readonly string[]).includes(scope.cadreCode)
+  ) {
+    const assigned = await assignDoctorFromIntake({
+      intakeId: input.intake_id,
+      doctorUserId: scope.userId,
+      assignerHospitalId: scope.hospitalId,
+    }).catch((e) => {
+      logger.warn("triage.auto_assign.failed", { reason: String(e) });
+      return null;
+    });
+    if (assigned && !assigned.ok) {
+      logger.warn("triage.auto_assign.rejected", { reason: assigned.error });
+    }
+  }
+
   revalidatePath("/nurse/triage");
   revalidatePath("/nurse");
   return {
@@ -357,4 +380,46 @@ export async function rapidRedAction(
   revalidatePath("/nurse/triage");
   revalidatePath("/nurse");
   return { ok: true, triageRecordId: record.id };
+}
+
+/* ── Doctor assignment (post-triage) ──────────────────────────────────────
+ * After triage, a clinician assigns the patient to a doctor. The assignment is
+ * a `planned` encounter (see lib/encounter/assignment.ts); the doctor starts it
+ * to drop into the clerkship. Authorised by the triage scope (nurses + doctors).
+ */
+
+export async function listAssignableDoctorsAction(
+  departmentId?: string | null,
+): Promise<AssignableDoctor[]> {
+  const scope = await requireTriageScope();
+  return listAssignableDoctors({
+    hospitalId: scope.hospitalId,
+    departmentId: departmentId ?? scope.departmentId ?? null,
+  });
+}
+
+export type AssignDoctorResult =
+  | { ok: true; action: "assigned" | "reassigned" }
+  | { ok: false; error: string };
+
+export async function assignDoctorAction(
+  intakeId: string,
+  doctorUserId: string,
+): Promise<AssignDoctorResult> {
+  const parsed = z
+    .object({ intakeId: z.string().uuid(), doctorUserId: z.string().uuid() })
+    .safeParse({ intakeId, doctorUserId });
+  if (!parsed.success) return { ok: false, error: "Invalid assignment." };
+
+  const scope = await requireTriageScope();
+  const res = await assignDoctorFromIntake({
+    intakeId: parsed.data.intakeId,
+    doctorUserId: parsed.data.doctorUserId,
+    assignerHospitalId: scope.hospitalId,
+  });
+  if (!res.ok) return { ok: false, error: res.error };
+
+  revalidatePath("/nurse/triage");
+  revalidatePath("/doctor/assigned");
+  return { ok: true, action: res.action };
 }
