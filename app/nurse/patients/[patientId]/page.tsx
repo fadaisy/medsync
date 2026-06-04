@@ -3,9 +3,11 @@ import Link from "next/link";
 import { and, desc, eq } from "drizzle-orm";
 import { ArrowLeftIcon, HeartPulseIcon, PhoneIcon, PillIcon, ShieldAlertIcon } from "lucide-react";
 
+import { PatientClinicalRecordPanel } from "@/components/encounter/patient-clinical-record-panel";
 import { Button } from "@/components/ui/button";
 import { db } from "@/db";
 import { clinicalObservations, medicationAdministrationRecords } from "@/db/schema/nurse-workspace";
+import { toEncounterScope } from "@/lib/encounter/workspace-scope";
 import { fetchNursePatientSummaryAudited } from "@/lib/nurse/patient-access";
 import { requireNurseScope } from "@/lib/nurse/scope";
 
@@ -256,6 +258,10 @@ export default async function NursePatientSummaryPage({ params }: PageProps) {
           )}
         </section>
       </div>
+
+      {/* Longitudinal clinical record (encounter / EMR engine). Gated until the
+          schema is applied; renders an honest state until then. */}
+      <PatientClinicalRecordPanel scope={toEncounterScope(scope)} patientUserId={patientId} />
 
       {/* Bottom action — quick-record */}
       <div className="flex flex-wrap items-center gap-2">

@@ -293,3 +293,120 @@ export async function loadEncounterRecord(
     return { ok: false, error: "Failed to load the clinical record." };
   }
 }
+
+export interface PatientEncounterSummaryRow {
+  id: string;
+  startedAt: Date;
+  state: string;
+  encounterType: string;
+  disposition: string | null;
+}
+
+export type PatientClinicalRecord =
+  | { ok: false; error: string }
+  | {
+      ok: true;
+      basis: string;
+      allergies: (typeof patientAllergies.$inferSelect)[];
+      problems: (typeof problemList.$inferSelect)[];
+      medications: (typeof encounterMedications.$inferSelect)[];
+      diagnoses: (typeof encounterDiagnoses.$inferSelect)[];
+      encounters: PatientEncounterSummaryRow[];
+    };
+
+/**
+ * The patient's LONGITUDINAL clinical record (kickoff §4 "patient clinical record
+ * view") — across encounters: active problems, allergies (safety-first), active
+ * medications, recent diagnoses, and the encounter history. Authorises on the
+ * legitimate-access basis and writes the audit-on-read row, same as
+ * loadEncounterRecord. Patient-level, not encounter-scoped.
+ */
+export async function loadPatientClinicalRecord(
+  patientUserId: string,
+  scope: EncounterScope,
+): Promise<PatientClinicalRecord> {
+  if (!scope.isClinical) return { ok: false, error: "Not authorised to read clinical records." };
+  const access = await resolveEncounterAccess({
+    userId: scope.userId,
+    departmentId: scope.departmentId,
+    patientUserId,
+  });
+  if (!access.allowed || !access.basis) {
+    logger.warn("encounter.patient_record.read_denied", {
+      readerUserId: scope.userId,
+    });
+    return { ok: false, error: "No legitimate clinical access to this patient." };
+  }
+
+  try {
+    const allergies = await db
+      .select()
+      .from(patientAllergies)
+      .where(eq(patientAllergies.patientUserId, patientUserId))
+      .orderBy(desc(patientAllergies.recordedAt));
+
+    const problems = await db
+      .select()
+      .from(problemList)
+      .where(and(eq(problemList.patientUserId, patientUserId), eq(problemList.active, true)))
+      .orderBy(desc(problemList.createdAt));
+
+    const medications = await db
+      .select()
+      .from(encounterMedications)
+      .where(
+        and(
+          eq(encounterMedications.patientUserId, patientUserId),
+          eq(encounterMedications.status, "active"),
+        ),
+      )
+      .orderBy(desc(encounterMedications.createdAt))
+      .limit(50);
+
+    const diagnoses = await db
+      .select()
+      .from(encounterDiagnoses)
+      .where(eq(encounterDiagnoses.patientUserId, patientUserId))
+      .orderBy(desc(encounterDiagnoses.createdAt))
+      .limit(50);
+
+    const encounterRows = await db
+      .select({
+        id: encounters.id,
+        startedAt: encounters.startedAt,
+        state: encounters.state,
+        encounterType: encounters.encounterType,
+        disposition: encounters.disposition,
+      })
+      .from(encounters)
+      .where(eq(encounters.patientUserId, patientUserId))
+      .orderBy(desc(encounters.startedAt))
+      .limit(50);
+
+    // AUDIT-ON-READ — canonical PHI-access row, after the authorised fetch.
+    await db.insert(clinicalPhiAccessLog).values({
+      hospitalId: scope.hospitalId,
+      clinicianUserId: scope.userId,
+      patientUserId,
+      accessBasis: access.basis,
+      surface: "patient_clinical_record",
+    });
+    logger.info("encounter.patient_record.read", {
+      readerUserId: scope.userId,
+      basis: access.basis,
+    });
+
+    return {
+      ok: true,
+      basis: access.basis,
+      allergies,
+      problems,
+      medications,
+      diagnoses,
+      encounters: encounterRows,
+    };
+  } catch (e) {
+    logger.error("loadPatientClinicalRecord failed", { error: String(e) });
+    return { ok: false, error: "Failed to load the clinical record." };
+  }
+}
