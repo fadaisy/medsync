@@ -80,3 +80,6 @@ export * from "./encounter";
 
 // ─── Clinical code reference: ICD-10 + LOINC (migration 0041 — GATED) ───
 export * from "./clinical-codes";
+
+// ─── Clerkship symptom-capture engine (migration 0042 — GATED) ─────────
+export * from "./symptom-catalog";

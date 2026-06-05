@@ -1,10 +1,13 @@
 "use server";
 
+import type { CatalogProperty, CatalogSymptom } from "@/lib/clerkship/catalog";
 import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 
 import { db } from "@/db";
 import { encounters } from "@/db/schema/scheduling";
+import { loadPropertiesForSymptom, loadSymptomCatalog } from "@/lib/clerkship/catalog";
+import { proposeCatalogItem } from "@/lib/clerkship/governance";
 import { requireDoctorScope } from "@/lib/doctor/scope";
 import { ClerkshipInputSchema, clerkshipInputToClerkship } from "@/lib/encounter/clerkship-input";
 import { encounterEngineLive } from "@/lib/encounter/feature";
@@ -57,4 +60,38 @@ export async function submitClerkshipAction(
 
   revalidatePath(`/doctor/encounters/${encounterId}`);
   return { ok: true, documentationId: res.documentationId };
+}
+
+/** Tap-first capture: the symptom list (for search) + a symptom's properties. */
+export async function loadSymptomCatalogAction(): Promise<CatalogSymptom[]> {
+  await requireDoctorScope();
+  return loadSymptomCatalog();
+}
+
+export async function loadSymptomPropertiesAction(symptomCode: string): Promise<CatalogProperty[]> {
+  await requireDoctorScope();
+  return loadPropertiesForSymptom(symptomCode);
+}
+
+export type ProposeResult = { ok: true } | { ok: false; error: string };
+
+/**
+ * Propose an ad-hoc symptom to the SHARED catalog (governed). Routes to CSO/SA
+ * review — it does NOT mutate the shared catalog. The clinician keeps the symptom
+ * locally on the encounter regardless.
+ */
+export async function proposeSymptomAction(
+  payload: { code: string; display: string; system: string },
+  note?: string,
+): Promise<ProposeResult> {
+  if (!encounterEngineLive()) return { ok: false, error: "The clinical module is not active yet." };
+  const scope = await requireDoctorScope();
+  const res = await proposeCatalogItem({
+    proposerUserId: scope.userId,
+    hospitalId: scope.hospitalId,
+    kind: "symptom",
+    payload,
+    note,
+  });
+  return res.ok ? { ok: true } : { ok: false, error: res.error };
 }

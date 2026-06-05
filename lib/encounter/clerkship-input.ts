@@ -1,5 +1,8 @@
+import type { CapturedSymptom } from "@/lib/clerkship/symptom-engine";
 import type { Clerkship } from "@/lib/encounter/clerkship";
 import { z } from "zod";
+
+import { renderSymptomProse } from "@/lib/clerkship/symptom-engine";
 
 /**
  * The documentation-entry form's submission shape (v1: essential structured
@@ -14,10 +17,33 @@ import { z } from "zod";
 const severity = z.enum(["mild", "moderate", "severe", "anaphylaxis", "unknown"]);
 const orderKind = z.enum(["bloods", "imaging", "bedside", "special", "other"]);
 const disposition = z.enum(["admit", "discharge", "refer", "observe", "transfer", "deceased"]);
+const valueType = z.enum(["single_select", "multi_select", "scale", "duration", "boolean", "text"]);
+
+/** Tap-first structured HPC — a symptom + its tapped property values. */
+const capturedProperty = z.object({
+  propertyCode: z.string().max(64),
+  propertyDisplay: z.string().max(120),
+  valueType,
+  labels: z.array(z.string().max(160)).max(30).optional(),
+  num: z.number().min(0).max(100).optional(),
+  durationValue: z.number().min(0).max(100000).optional(),
+  durationUnit: z.string().max(20).optional(),
+  bool: z.boolean().optional(),
+  text: z.string().max(1000).optional(),
+});
+const capturedSymptom = z.object({
+  symptomCode: z.string().max(80),
+  symptomDisplay: z.string().max(160),
+  adHoc: z.boolean().optional(),
+  properties: z.array(capturedProperty).max(40),
+  note: z.string().max(1000).optional(),
+});
 
 export const ClerkshipInputSchema = z.object({
   presentingComplaint: z.string().max(2000).optional(),
   hpc: z.string().max(8000).optional(),
+  /** Tap-first structured HPC; when present, `hpc` prose is generated from it. */
+  hpcItems: z.array(capturedSymptom).max(30).optional(),
   socrates: z
     .object({
       site: z.string().max(240).optional(),
@@ -97,9 +123,17 @@ const prune = <T extends object>(o: T): T | undefined =>
 
 /** Build the engine's nested Clerkship from the validated form input. Pure. */
 export function clerkshipInputToClerkship(input: ClerkshipInput): Clerkship {
+  // Tap-first structured HPC: keep symptoms that have a code, and render the
+  // prose from them (the generated prose wins over any free-typed hpc).
+  const hpcItems = (input.hpcItems ?? [])
+    .filter((s) => s.symptomCode.trim().length > 0)
+    .map((s) => ({ ...s }) as CapturedSymptom);
+  const hpcProse = hpcItems.length > 0 ? renderSymptomProse(hpcItems) : clean(input.hpc);
+
   const history = prune({
     presentingComplaint: clean(input.presentingComplaint),
-    hpc: clean(input.hpc),
+    hpc: hpcProse,
+    hpcItems: hpcItems.length > 0 ? hpcItems : undefined,
     socrates: input.socrates ? prune({ ...input.socrates }) : undefined,
     pmh: clean(input.pmh),
     drugHistory: clean(input.drugHistory),

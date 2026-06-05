@@ -8,6 +8,33 @@ import { ClerkshipInputSchema, clerkshipInputToClerkship } from "@/lib/encounter
  * fabricates (empty in → empty clerking out).
  */
 describe("clerkship-input", () => {
+  it("maps tap-first hpcItems into history + generates the hpc prose", () => {
+    const c = clerkshipInputToClerkship(
+      ClerkshipInputSchema.parse({
+        hpc: "ignored when items present",
+        hpcItems: [
+          {
+            symptomCode: "chest_pain",
+            symptomDisplay: "Chest pain",
+            properties: [
+              {
+                propertyCode: "character",
+                propertyDisplay: "Character",
+                valueType: "single_select",
+                labels: ["Crushing"],
+              },
+              { propertyCode: "severity", propertyDisplay: "Severity", valueType: "scale", num: 8 },
+            ],
+          },
+        ],
+      }),
+    );
+    expect(c.history?.hpcItems?.[0]!.symptomCode).toBe("chest_pain");
+    expect(c.history?.hpc).toContain("Crushing chest pain");
+    expect(c.history?.hpc).toContain("severity 8/10");
+    expect(c.history?.hpc).not.toContain("ignored");
+  });
+
   it("validates + maps the essential sections into the nested Clerkship", () => {
     const parsed = ClerkshipInputSchema.parse({
       presentingComplaint: "chest pain",
