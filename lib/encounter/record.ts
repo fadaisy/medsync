@@ -180,23 +180,30 @@ export async function recordClerkshipVersion(
       }
       // Structured HPC → the queryable symptom-observation projection (on
       // finalise only, so drafts don't duplicate rows). Prose stays in the doc.
-      const hpcItems = clerkship.history?.hpcItems ?? [];
-      for (const item of hpcItems) {
-        for (const row of symptomObservationRows(item)) {
-          await db.insert(encounterSymptomObservations).values({
-            encounterId,
-            patientUserId,
-            symptomCode: row.symptomCode,
-            symptomDisplay: row.symptomDisplay,
-            adHoc: row.adHoc,
-            propertyCode: row.propertyCode,
-            propertyDisplay: row.propertyDisplay,
-            valueType: row.valueType,
-            valueText: row.valueText,
-            valueNum: row.valueNum != null ? String(row.valueNum) : null,
-            recordedByUserId: scope.userId,
-          });
+      // BEST-EFFORT: this is an analytics projection — a failure here (e.g. the
+      // 0042 catalog tables not yet applied) must never fail the clinician's
+      // documentation save. The structured items are already safe in section_data.
+      try {
+        const hpcItems = clerkship.history?.hpcItems ?? [];
+        for (const item of hpcItems) {
+          for (const row of symptomObservationRows(item)) {
+            await db.insert(encounterSymptomObservations).values({
+              encounterId,
+              patientUserId,
+              symptomCode: row.symptomCode,
+              symptomDisplay: row.symptomDisplay,
+              adHoc: row.adHoc,
+              propertyCode: row.propertyCode,
+              propertyDisplay: row.propertyDisplay,
+              valueType: row.valueType,
+              valueText: row.valueText,
+              valueNum: row.valueNum != null ? String(row.valueNum) : null,
+              recordedByUserId: scope.userId,
+            });
+          }
         }
+      } catch (e) {
+        logger.warn("encounter.symptom_obs.fan_out_failed", { error: String(e) });
       }
     }
 
