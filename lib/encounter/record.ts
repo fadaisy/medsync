@@ -15,6 +15,8 @@ import {
 } from "@/db/schema/encounter";
 import { patientAllergies } from "@/db/schema/prescribing";
 import { encounters } from "@/db/schema/scheduling";
+import { encounterSymptomObservations } from "@/db/schema/symptom-catalog";
+import { symptomObservationRows } from "@/lib/clerkship/symptom-engine";
 import { clerkshipWriteAuthority } from "@/lib/encounter/access";
 import { deriveClinicalObjects } from "@/lib/encounter/clerkship";
 import { resolveEncounterAccess } from "@/lib/encounter/scope";
@@ -175,6 +177,26 @@ export async function recordClerkshipVersion(
           .update(encounters)
           .set({ disposition: derived.disposition })
           .where(eq(encounters.id, encounterId));
+      }
+      // Structured HPC → the queryable symptom-observation projection (on
+      // finalise only, so drafts don't duplicate rows). Prose stays in the doc.
+      const hpcItems = clerkship.history?.hpcItems ?? [];
+      for (const item of hpcItems) {
+        for (const row of symptomObservationRows(item)) {
+          await db.insert(encounterSymptomObservations).values({
+            encounterId,
+            patientUserId,
+            symptomCode: row.symptomCode,
+            symptomDisplay: row.symptomDisplay,
+            adHoc: row.adHoc,
+            propertyCode: row.propertyCode,
+            propertyDisplay: row.propertyDisplay,
+            valueType: row.valueType,
+            valueText: row.valueText,
+            valueNum: row.valueNum != null ? String(row.valueNum) : null,
+            recordedByUserId: scope.userId,
+          });
+        }
       }
     }
 

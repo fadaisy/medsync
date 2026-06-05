@@ -12,6 +12,8 @@
  * may be skipped/deferred (emergency: focused history, resus first).
  */
 
+import type { CapturedSymptom } from "@/lib/clerkship/symptom-engine";
+
 // Mirrors the DB CHECK on patient_allergies (migration 0040 / prescribing.ts).
 // `anaphylaxis` is the band the prescribing allergy guard cares about most — it
 // MUST be representable from the clerkship or it can never be persisted.
@@ -74,6 +76,13 @@ export interface ClerkHistory {
   presentingComplaint?: string;
   hpc?: string;
   socrates?: Socrates;
+  /**
+   * Tap-first structured HPC (symptom-capture engine). Each item is a symptom +
+   * its tapped property values; `hpc` carries the rendered prose. See
+   * lib/clerkship/symptom-engine.ts. The clerking stays SOCRATES-compatible —
+   * `socrates` remains for the free-form pain analysis.
+   */
+  hpcItems?: CapturedSymptom[];
   pmh?: string;
   /** Hutchison "retrospective history" prompt actioned. */
   retrospectiveChecked?: boolean;

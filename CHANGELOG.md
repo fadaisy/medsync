@@ -5,6 +5,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Clerkship: tap-first structured symptom-capture engine (GATED) — 2026-06-05
+
+History capture restructured to be **tap-first, minimal-typing** — symptoms, their properties, and each property's values are tapped, not typed ([ADR 0060](docs/adr/0060-clerkship-symptom-capture-engine.md); proposal [docs/clerkship-symptom-engine-gate-a-proposal.md](docs/clerkship-symptom-engine-gate-a-proposal.md)). **Migration 0042 is GATED — awaiting CSO sign-off** of the catalogs + the symptom→property mapping (it encodes _what to ask_).
+
+- **Three catalogs + a relevance mapping** as versioned reference data (migration 0042): `symptom_catalog`, `symptom_property` (value_type drives the tap UI), `symptom_property_option` (value-sets), `symptom_property_map` (which properties per symptom; common ones auto-apply). **Internal-Medicine-first seed** (16 symptoms / 20 properties / mappings; Hutchison + SOCRATES, CSO-signed).
+- **Patient info pulled, read-only** — a patient header (name/age/sex + allergies-first) on the clerking surface; no re-typing; audited.
+- **Tap-first capture → dual output** ([lib/clerkship/symptom-engine.ts](lib/clerkship/symptom-engine.ts), pure/TDD): search/tap a symptom → its relevant properties appear → tap values (chips / 0–10 scale / duration; free text last-resort) → live prose. Writes **readable prose** (`history.hpc`) **and** structured data (`history.hpcItems` + the queryable `encounter_symptom_observations` projection). Wired into the clerkship form at `/doctor/encounters/[id]`.
+- **Governed edit/create:** per-encounter **ad-hoc** symptoms are free + local (never touch the shared catalog); **propose-to-shared** → `catalog_proposals` → **CSO/superadmin review** ([/admin/catalog-proposals](app/admin/catalog-proposals/page.tsx)) → approve is the only governed catalog insert. Clerkers propose; CSO/SA review.
+- Decision-support, not autonomous (no auto-diagnosis); reuses the encounter documentation (no parallel store); reusable for the systematic enquiry later. Gated behind `ENCOUNTER_ENGINE_LIVE`. tsc / eslint / build clean; full suite **773 passing** (+7 engine/mapper tests).
+
 ### Added — Triage → doctor assignment (assign / reassign / start) — 2026-06-04
 
 After triage, a patient is routed to a doctor before the encounter begins — the connective layer between the triage worklist and the (now-live) clerkship.

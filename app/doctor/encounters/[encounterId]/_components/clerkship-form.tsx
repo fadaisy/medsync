@@ -1,6 +1,7 @@
 "use client";
 
 import type { SubmitClerkshipResult } from "../actions";
+import type { CapturedSymptom } from "@/lib/clerkship/symptom-engine";
 import type { Clerkship } from "@/lib/encounter/clerkship";
 import { useState, useTransition } from "react";
 import { PlusIcon, XIcon } from "lucide-react";
@@ -10,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ICD10_CODES, LOINC_CODES } from "@/lib/encounter/reference-codes";
 import { submitClerkshipAction } from "../actions";
+import { SymptomCapture } from "./symptom-capture";
 
 /**
  * Clerkship documentation entry (v1: essential structured sections). Structured-
@@ -39,6 +41,7 @@ export function ClerkshipForm({
   const s = initial?.synthesis;
 
   const [presentingComplaint, setPC] = useState(h?.presentingComplaint ?? "");
+  const [hpcItems, setHpcItems] = useState<CapturedSymptom[]>(h?.hpcItems ?? []);
   const [hpc, setHpc] = useState(h?.hpc ?? "");
   const [soc, setSoc] = useState({
     site: h?.socrates?.site ?? "",
@@ -104,6 +107,7 @@ export function ClerkshipForm({
     };
     return {
       presentingComplaint,
+      hpcItems,
       hpc,
       socrates: soc,
       pmh,
@@ -168,14 +172,19 @@ export function ClerkshipForm({
         <Field label="Presenting complaint">
           <Input value={presentingComplaint} onChange={(ev) => setPC(ev.target.value)} />
         </Field>
-        <Field label="History of presenting complaint">
-          <textarea
-            className={TEXTAREA}
-            rows={3}
-            value={hpc}
-            onChange={(ev) => setHpc(ev.target.value)}
-          />
+        <Field label="History of presenting complaint — tap to capture">
+          <SymptomCapture value={hpcItems} onChange={setHpcItems} />
         </Field>
+        {hpcItems.length === 0 ? (
+          <Field label="Or write it (narrative — used only if no symptoms tapped)">
+            <textarea
+              className={TEXTAREA}
+              rows={3}
+              value={hpc}
+              onChange={(ev) => setHpc(ev.target.value)}
+            />
+          </Field>
+        ) : null}
         <Field label="SOCRATES">
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {(

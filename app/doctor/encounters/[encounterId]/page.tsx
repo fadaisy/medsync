@@ -1,3 +1,4 @@
+import type { PatientSummary } from "@/lib/doctor/patient-access";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { eq } from "drizzle-orm";
@@ -5,6 +6,7 @@ import { ArrowLeftIcon, ClockIcon } from "lucide-react";
 
 import { db } from "@/db";
 import { encounters } from "@/db/schema/scheduling";
+import { fetchPatientSummaryAudited } from "@/lib/doctor/patient-access";
 import { requireDoctorScope } from "@/lib/doctor/scope";
 import { encounterEngineLive } from "@/lib/encounter/feature";
 import { loadEncounterRecord } from "@/lib/encounter/record";
@@ -65,10 +67,23 @@ export default async function DoctorEncounterPage({ params }: PageProps) {
     );
   }
 
+  // Patient info — pulled, not typed (read-only header). Audited PHI read.
+  const patient = await fetchPatientSummaryAudited({
+    doctor: {
+      userId: scope.userId,
+      hospitalId: scope.hospitalId,
+      departmentId: scope.departmentId,
+    },
+    patientUserId: enc.patientUserId,
+    surface: "encounter_clerking_header",
+  });
+
   const doc = record.documentation;
 
   return (
     <Wrap>
+      {patient ? <PatientHeader patient={patient} allergies={record.allergies} /> : null}
+
       <header className="flex flex-col gap-2">
         <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
           <span aria-hidden className="size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20" />
@@ -138,4 +153,80 @@ function Note({ title, body }: { title: string; body: string }) {
       <p className="mt-1 text-[12px] leading-relaxed">{body}</p>
     </div>
   );
+}
+
+const SEX_LABEL: Record<string, string> = {
+  male: "Male",
+  female: "Female",
+  intersex: "Intersex",
+  prefer_not_say: "—",
+};
+
+/**
+ * Patient info — PULLED from the record, shown read-only (no re-typing). Allergies
+ * surfaced first (safety). Corrections happen on the patient record, not here.
+ */
+function PatientHeader({
+  patient,
+  allergies,
+}: {
+  patient: PatientSummary;
+  allergies: { id: string; substance: string; severity: string | null }[];
+}) {
+  const age = computeAgeYears(patient.dateOfBirth);
+  const anaphylaxis = allergies.some((a) => a.severity === "anaphylaxis");
+  return (
+    <div className="border-border bg-card flex flex-col gap-2 rounded-xl border p-4">
+      <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+        <span className="text-foreground text-[15px] font-medium">
+          {patient.firstName} {patient.surname}
+        </span>
+        <span className="text-muted-foreground font-mono text-[11.5px] tabular-nums">
+          {patient.patientCode}
+        </span>
+        <span className="text-muted-foreground text-[12px]">
+          {SEX_LABEL[patient.sex] ?? patient.sex}
+          {age !== null ? ` · ${age}y` : ""}
+        </span>
+        <span className="text-muted-foreground/70 ml-auto font-mono text-[9.5px] tracking-[0.12em] uppercase">
+          pulled · read-only
+        </span>
+      </div>
+      <div
+        className={
+          allergies.length > 0
+            ? "flex flex-wrap items-center gap-1.5 rounded-lg bg-amber-50 px-2.5 py-1.5 ring-1 ring-amber-200/70 dark:bg-amber-950/30 dark:ring-amber-800/40"
+            : "text-muted-foreground text-[12px]"
+        }
+      >
+        <span className="font-mono text-[10px] tracking-[0.12em] text-amber-700 uppercase dark:text-amber-300">
+          Allergies{anaphylaxis ? " · anaphylaxis" : ""}
+        </span>
+        {allergies.length === 0 ? (
+          <span className="text-[12px]">None recorded</span>
+        ) : (
+          allergies.map((a) => (
+            <span
+              key={a.id}
+              className="rounded-full bg-amber-100 px-2 py-0.5 text-[11.5px] text-amber-900 dark:bg-amber-900/40 dark:text-amber-100"
+            >
+              {a.substance}
+              {a.severity ? ` (${a.severity})` : ""}
+            </span>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
+function computeAgeYears(dobIso: string | null): number | null {
+  if (!dobIso) return null;
+  const dob = new Date(dobIso);
+  if (Number.isNaN(dob.getTime())) return null;
+  const now = new Date();
+  let age = now.getFullYear() - dob.getFullYear();
+  const m = now.getMonth() - dob.getMonth();
+  if (m < 0 || (m === 0 && now.getDate() < dob.getDate())) age--;
+  return age;
 }
