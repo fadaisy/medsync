@@ -160,7 +160,7 @@ export function ClerkshipForm({
   }
 
   return (
-    <form className="flex flex-col gap-6" onSubmit={(ev) => ev.preventDefault()}>
+    <form className="flex flex-col gap-10" onSubmit={(ev) => ev.preventDefault()}>
       <datalist id="icd10-codes">
         {ICD10_CODES.map((c) => (
           <option key={c.code} value={c.code}>
@@ -449,9 +449,9 @@ export function ClerkshipForm({
         </Field>
       </Section>
 
-      {/* Floating action bar — always reachable while scrolling the form. */}
+      {/* Action bar — quiet, sticky, always reachable while scrolling. */}
       <div className="sticky bottom-4 z-10">
-        <div className="border-border bg-card/90 supports-backdrop-filter:bg-card/75 flex flex-wrap items-center gap-3 rounded-xl border p-3 shadow-lg backdrop-blur">
+        <div className="border-border/70 bg-card/85 supports-backdrop-filter:bg-card/70 flex flex-wrap items-center gap-3 rounded-lg border px-3 py-2.5 shadow-sm backdrop-blur">
           <Button type="button" variant="secondary" disabled={pending} onClick={() => save(false)}>
             {pending ? "Saving…" : "Save draft"}
           </Button>
@@ -498,34 +498,29 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="border-border bg-card overflow-hidden rounded-xl border">
-      <div className="border-border/70 flex items-center gap-3 border-b px-4 py-3">
-        <span
-          className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-teal-50 text-teal-600 ring-1 ring-teal-100 dark:bg-teal-950/40 dark:text-teal-300 dark:ring-teal-900/50"
-          aria-hidden
-        >
-          <Icon className="size-4" />
+    <section className="flex flex-col gap-6">
+      <div className="border-border/60 flex items-center gap-2.5 border-b pb-2.5">
+        <Icon className="text-muted-foreground size-4 shrink-0" aria-hidden />
+        <h3 className="text-foreground text-[13px] font-semibold tracking-tight">{title}</h3>
+        {description ? (
+          <span className="text-muted-foreground hidden text-[11.5px] sm:inline">
+            · {description}
+          </span>
+        ) : null}
+        <span className="text-muted-foreground ml-auto font-mono text-[10px] tabular-nums">
+          {step}
         </span>
-        <div className="flex-1">
-          <h3 className="text-foreground text-sm leading-tight font-semibold">{title}</h3>
-          {description ? (
-            <p className="text-muted-foreground text-[11.5px] leading-tight">{description}</p>
-          ) : null}
-        </div>
-        <span className="text-muted-foreground font-mono text-[11px] tabular-nums">{step}</span>
       </div>
-      <div className="flex flex-col gap-4 p-4">{children}</div>
+      <div className="flex flex-col gap-5">{children}</div>
     </section>
   );
 }
 
 function SubHead({ children }: { children: React.ReactNode }) {
   return (
-    <div className="border-border/60 mt-1 border-t pt-3">
-      <span className="text-muted-foreground text-[10px] font-medium tracking-[0.1em] uppercase">
-        {children}
-      </span>
-    </div>
+    <span className="text-muted-foreground mt-1 text-[10px] font-medium tracking-[0.12em] uppercase">
+      {children}
+    </span>
   );
 }
 
