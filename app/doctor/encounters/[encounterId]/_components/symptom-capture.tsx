@@ -2,10 +2,11 @@
 
 import type { CatalogProperty, CatalogSymptom } from "@/lib/clerkship/catalog";
 import type { CapturedPropertyValue, CapturedSymptom } from "@/lib/clerkship/symptom-engine";
+import type { ReactNode } from "react";
 import { useEffect, useMemo, useState, useTransition } from "react";
-import { ChevronRightIcon, PlusIcon, SearchIcon, SlidersHorizontalIcon, XIcon } from "lucide-react";
+import { CheckIcon, PlusIcon, SearchIcon, SlidersHorizontalIcon, XIcon } from "lucide-react";
 
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogClose, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { renderSymptomProse } from "@/lib/clerkship/symptom-engine";
 import {
@@ -33,16 +34,42 @@ const DURATION_LABEL: Record<string, string> = {
 };
 
 const EASE =
-  "transition-[color,background-color,border-color,box-shadow] duration-150 ease-expo-out";
+  "transition-[color,background-color,border-color,box-shadow,transform] duration-150 ease-expo-out";
 
-function chipClass(active: boolean) {
+const SECTION_LABEL = "text-muted-foreground text-[10px] font-medium tracking-[0.1em] uppercase";
+
+function pillClass(active: boolean) {
   return [
-    "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[12px]",
+    "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12.5px] font-medium",
     EASE,
     active
-      ? "border-teal-500 bg-teal-50 text-teal-800 dark:border-teal-400/60 dark:bg-teal-950/40 dark:text-teal-200"
-      : "border-border bg-card text-foreground/80 hover:border-teal-300 hover:bg-teal-50/50 dark:hover:bg-teal-950/20",
+      ? "border-teal-500/60 bg-teal-50 text-teal-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.55)] dark:border-teal-400/40 dark:bg-teal-950/40 dark:text-teal-200"
+      : "border-border bg-card text-foreground/70 shadow-sm hover:border-teal-300 hover:bg-teal-50/50 hover:text-foreground dark:hover:bg-teal-950/20",
   ].join(" ");
+}
+
+/** Attio-style soft pill: a check leads when selected, an optional glyph otherwise. */
+function Pill({
+  active = false,
+  leadingIcon,
+  onClick,
+  children,
+}: {
+  active?: boolean;
+  leadingIcon?: ReactNode;
+  onClick: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <button type="button" onClick={onClick} className={pillClass(active)}>
+      {active ? (
+        <CheckIcon className="-ml-0.5 size-3.5 shrink-0" aria-hidden />
+      ) : leadingIcon ? (
+        <span className="text-muted-foreground -ml-0.5 shrink-0">{leadingIcon}</span>
+      ) : null}
+      <span>{children}</span>
+    </button>
+  );
 }
 
 export function SymptomCapture({
@@ -128,7 +155,7 @@ export function SymptomCapture({
             return (
               <span
                 key={s.symptomCode}
-                className={`group border-border bg-card inline-flex items-center gap-1.5 rounded-lg border py-1 pr-1 pl-2.5 ${EASE} hover:border-teal-300`}
+                className={`group border-border bg-card inline-flex items-center gap-2 rounded-full border py-1 pr-1 pl-3 shadow-sm ${EASE} hover:border-teal-300 hover:shadow`}
               >
                 <button
                   type="button"
@@ -143,10 +170,13 @@ export function SymptomCapture({
                       new
                     </span>
                   ) : null}
-                  <span className="text-muted-foreground inline-flex items-center gap-0.5 font-mono text-[10px] tabular-nums">
-                    {count > 0 ? `${count} detail${count > 1 ? "s" : ""}` : "add detail"}
-                    <ChevronRightIcon className="size-3" aria-hidden />
-                  </span>
+                  {count > 0 ? (
+                    <span className="inline-flex items-center rounded-full bg-teal-100 px-1.5 py-0.5 font-mono text-[9.5px] font-medium text-teal-700 tabular-nums dark:bg-teal-950/50 dark:text-teal-300">
+                      {count}
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground text-[10.5px]">add detail</span>
+                  )}
                 </button>
                 <button
                   type="button"
@@ -155,7 +185,7 @@ export function SymptomCapture({
                     onChange(value.filter((_, i) => i !== idx));
                     setOpenIdx(null);
                   }}
-                  className="text-muted-foreground hover:bg-muted hover:text-destructive rounded-md p-0.5"
+                  className="text-muted-foreground hover:bg-muted hover:text-destructive rounded-full p-1"
                 >
                   <XIcon className="size-3.5" aria-hidden />
                 </button>
@@ -166,14 +196,14 @@ export function SymptomCapture({
       ) : null}
 
       {/* Search / add */}
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2.5">
         <div className="relative">
           <SearchIcon
-            className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2"
+            className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-3.5 -translate-y-1/2"
             aria-hidden
           />
           <Input
-            className="pl-8"
+            className="pl-9"
             placeholder={
               value.length ? "Add another symptom…" : "Search symptoms — chest pain, SOB, fever…"
             }
@@ -181,42 +211,45 @@ export function SymptomCapture({
             onChange={(e) => setQuery(e.target.value)}
           />
         </div>
-        <div className="flex flex-wrap gap-1.5">
-          {catalog === null ? (
-            <span className="text-muted-foreground text-[12px]">Loading catalog…</span>
-          ) : (
-            matches.map((s) => (
-              <button
-                key={s.code}
-                type="button"
-                className={chipClass(false)}
-                onClick={() => addSymptom(s)}
-              >
-                <PlusIcon className="size-3" aria-hidden />
-                {s.display}
-              </button>
-            ))
-          )}
-          {canAddAdHoc ? (
-            <button
-              type="button"
-              onClick={addAdHoc}
-              className={`inline-flex items-center gap-1 rounded-full border border-dashed border-amber-400/70 bg-amber-50 px-2.5 py-1 text-[12px] text-amber-800 ${EASE} hover:bg-amber-100 dark:bg-amber-950/30 dark:text-amber-200`}
-            >
-              <PlusIcon className="size-3" aria-hidden />
-              Add “{query.trim()}”
-            </button>
-          ) : null}
-        </div>
+        {catalog === null ? (
+          <span className="text-muted-foreground text-[12px]">Loading catalog…</span>
+        ) : matches.length || canAddAdHoc ? (
+          <div className="flex flex-col gap-1.5">
+            <span className={SECTION_LABEL}>{query.trim() ? "Matches" : "Common"}</span>
+            <div className="flex flex-wrap gap-1.5">
+              {matches.map((s) => (
+                <Pill
+                  key={s.code}
+                  leadingIcon={<PlusIcon className="size-3" aria-hidden />}
+                  onClick={() => addSymptom(s)}
+                >
+                  {s.display}
+                </Pill>
+              ))}
+              {canAddAdHoc ? (
+                <button
+                  type="button"
+                  onClick={addAdHoc}
+                  className={`inline-flex items-center gap-1.5 rounded-full border border-dashed border-amber-400/70 bg-amber-50 px-3 py-1.5 text-[12.5px] font-medium text-amber-800 ${EASE} hover:bg-amber-100 dark:bg-amber-950/30 dark:text-amber-200`}
+                >
+                  <PlusIcon className="size-3" aria-hidden />
+                  Add “{query.trim()}”
+                </button>
+              ) : null}
+            </div>
+          </div>
+        ) : (
+          <span className="text-muted-foreground text-[12px]">
+            No match — keep typing to add it.
+          </span>
+        )}
       </div>
 
       {/* Generated prose */}
       {value.length > 0 ? (
         <div className="border-border/70 bg-muted/30 rounded-lg border px-3 py-2">
-          <span className="text-muted-foreground font-mono text-[9.5px] tracking-[0.14em] uppercase">
-            Reads as
-          </span>
-          <p className="text-foreground mt-0.5 text-[12.5px] leading-relaxed">
+          <span className={SECTION_LABEL}>Reads as</span>
+          <p className="text-foreground mt-1 text-[12.5px] leading-relaxed">
             {renderSymptomProse(value)}
           </p>
         </div>
@@ -254,22 +287,42 @@ function PropertiesDialog({
     onChange({ ...symptom, properties: [...others, build(prev)] });
   }
   const get = (code: string) => symptom.properties.find((p) => p.propertyCode === code);
+  const count = symptom.properties.length + (symptom.note?.trim() ? 1 : 0);
 
   return (
-    <DialogContent className="sm:max-w-md">
-      <DialogTitle className="flex items-center gap-2 text-[15px]">
-        <SlidersHorizontalIcon className="size-4 text-teal-600 dark:text-teal-400" aria-hidden />
-        {symptom.symptomDisplay}
-        {symptom.adHoc ? <ProposeAdHoc symptom={symptom} /> : null}
-      </DialogTitle>
+    <DialogContent
+      showCloseButton={false}
+      className="gap-0 overflow-hidden rounded-2xl p-0 shadow-2xl shadow-black/10 sm:max-w-md"
+    >
+      {/* Header */}
+      <div className="border-border/70 flex items-center gap-3 border-b px-4 py-3.5">
+        <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-teal-50 text-teal-600 ring-1 ring-teal-100 dark:bg-teal-950/40 dark:text-teal-300 dark:ring-teal-900/50">
+          <SlidersHorizontalIcon className="size-4" aria-hidden />
+        </span>
+        <div className="min-w-0 flex-1">
+          <DialogTitle className="truncate text-[15px] leading-tight">
+            {symptom.symptomDisplay}
+          </DialogTitle>
+          <p className="text-muted-foreground mt-0.5 text-[11px] leading-tight">
+            {symptom.adHoc ? <ProposeAdHoc symptom={symptom} /> : "Tap the details that apply"}
+          </p>
+        </div>
+        <DialogClose
+          aria-label="Close"
+          className="text-muted-foreground hover:bg-muted hover:text-foreground rounded-md p-1.5"
+        >
+          <XIcon className="size-4" aria-hidden />
+        </DialogClose>
+      </div>
 
-      <div className="-mx-1 flex max-h-[60vh] flex-col gap-3.5 overflow-y-auto px-1 py-1">
+      {/* Body */}
+      <div className="flex max-h-[58vh] flex-col gap-4 overflow-y-auto px-4 py-4">
         {properties === null ? (
           <span className="text-muted-foreground text-[12px]">Loading properties…</span>
         ) : properties.length === 0 ? (
-          <span className="text-muted-foreground text-[12px]">
-            No catalog properties — use the note below.
-          </span>
+          <p className="text-muted-foreground rounded-lg border border-dashed px-3 py-4 text-center text-[12px]">
+            No catalog properties for this symptom yet — use the note below.
+          </p>
         ) : (
           properties.map((prop) => (
             <PropertyControl
@@ -281,16 +334,27 @@ function PropertiesDialog({
           ))
         )}
 
-        <label className="flex flex-col gap-1">
-          <span className="text-muted-foreground text-[10.5px] tracking-[0.08em] uppercase">
-            Note (optional)
-          </span>
+        <label className="flex flex-col gap-1.5">
+          <span className={SECTION_LABEL}>Note (optional)</span>
           <Input
             placeholder="Anything not captured above…"
             value={symptom.note ?? ""}
             onChange={(e) => onChange({ ...symptom, note: e.target.value })}
           />
         </label>
+      </div>
+
+      {/* Footer */}
+      <div className="border-border/70 bg-muted/40 flex items-center justify-between border-t px-4 py-3">
+        <span className="text-muted-foreground font-mono text-[11px] tabular-nums">
+          {count > 0 ? `${count} detail${count > 1 ? "s" : ""} captured` : "No details yet"}
+        </span>
+        <DialogClose
+          className={`inline-flex items-center gap-1.5 rounded-lg bg-teal-600 px-3.5 py-1.5 text-[12.5px] font-medium text-white shadow-sm ${EASE} hover:bg-teal-700`}
+        >
+          <CheckIcon className="size-3.5" aria-hidden />
+          Done
+        </DialogClose>
       </div>
     </DialogContent>
   );
@@ -312,8 +376,8 @@ function PropertyControl({
   };
 
   return (
-    <div className="flex flex-col gap-1.5">
-      <span className="text-muted-foreground text-[10.5px] tracking-[0.08em] uppercase">
+    <div className="flex flex-col gap-2">
+      <span className={SECTION_LABEL}>
         {prop.display}
         {prop.required ? <span className="text-teal-600 dark:text-teal-400"> *</span> : null}
       </span>
@@ -324,10 +388,9 @@ function PropertyControl({
             const labels = current?.labels ?? [];
             const active = labels.includes(o.display);
             return (
-              <button
+              <Pill
                 key={o.value}
-                type="button"
-                className={chipClass(active)}
+                active={active}
                 onClick={() =>
                   setProp(prop.code, (prev) => {
                     const cur = prev?.labels ?? [];
@@ -344,28 +407,34 @@ function PropertyControl({
                 }
               >
                 {o.display}
-              </button>
+              </Pill>
             );
           })}
         </div>
       )}
 
       {prop.valueType === "scale" && (
-        <div className="flex flex-wrap gap-1">
-          {Array.from({ length: 11 }, (_, n) => (
-            <button
-              key={n}
-              type="button"
-              className={`size-7 rounded-md border text-[11px] tabular-nums ${EASE} ${
-                current?.num === n
-                  ? "border-teal-500 bg-teal-500 text-white"
-                  : "border-border bg-card text-muted-foreground hover:text-foreground hover:border-teal-300"
-              }`}
-              onClick={() => setProp(prop.code, () => ({ ...base, num: n }))}
-            >
-              {n}
-            </button>
-          ))}
+        <div className="flex flex-col gap-1">
+          <div className="flex flex-wrap gap-1">
+            {Array.from({ length: 11 }, (_, n) => (
+              <button
+                key={n}
+                type="button"
+                className={`size-8 rounded-lg border text-[12px] font-medium tabular-nums ${EASE} ${
+                  current?.num === n
+                    ? "border-teal-600 bg-teal-600 text-white shadow-sm"
+                    : "border-border bg-card text-muted-foreground hover:text-foreground hover:border-teal-300"
+                }`}
+                onClick={() => setProp(prop.code, () => ({ ...base, num: n }))}
+              >
+                {n}
+              </button>
+            ))}
+          </div>
+          <div className="text-muted-foreground flex justify-between px-0.5 text-[9.5px]">
+            <span>None</span>
+            <span>Worst</span>
+          </div>
         </div>
       )}
 
@@ -375,6 +444,7 @@ function PropertyControl({
             type="number"
             min={0}
             inputMode="numeric"
+            placeholder="0"
             value={current?.durationValue ?? ""}
             onChange={(e) =>
               setProp(prop.code, (prev) => ({
@@ -383,24 +453,31 @@ function PropertyControl({
                 durationUnit: prev?.durationUnit,
               }))
             }
-            className={`border-input bg-card w-16 rounded-md border px-2 py-1 text-[12.5px] tabular-nums outline-none ${EASE} focus-visible:border-teal-500`}
+            className={`border-input bg-card focus-visible:ring-ring/40 w-16 rounded-lg border px-2.5 py-1.5 text-[12.5px] tabular-nums outline-none ${EASE} focus-visible:border-teal-500 focus-visible:ring-2`}
           />
-          {DURATION_UNITS.map((u) => (
-            <button
-              key={u}
-              type="button"
-              className={chipClass(current?.durationUnit === DURATION_LABEL[u])}
-              onClick={() =>
-                setProp(prop.code, (prev) => ({
-                  ...base,
-                  durationValue: prev?.durationValue,
-                  durationUnit: DURATION_LABEL[u],
-                }))
-              }
-            >
-              {u}
-            </button>
-          ))}
+          {DURATION_UNITS.map((u) => {
+            const active = current?.durationUnit === DURATION_LABEL[u];
+            return (
+              <button
+                key={u}
+                type="button"
+                className={`rounded-full border px-2.5 py-1 text-[11.5px] font-medium ${EASE} ${
+                  active
+                    ? "border-teal-500/60 bg-teal-50 text-teal-700 dark:border-teal-400/40 dark:bg-teal-950/40 dark:text-teal-200"
+                    : "border-border bg-card text-muted-foreground hover:text-foreground hover:border-teal-300"
+                }`}
+                onClick={() =>
+                  setProp(prop.code, (prev) => ({
+                    ...base,
+                    durationValue: prev?.durationValue,
+                    durationUnit: DURATION_LABEL[u],
+                  }))
+                }
+              >
+                {u}
+              </button>
+            );
+          })}
         </div>
       )}
 
@@ -410,10 +487,9 @@ function PropertyControl({
             { label: "Yes", v: true },
             { label: "No", v: false },
           ].map((opt) => (
-            <button
+            <Pill
               key={opt.label}
-              type="button"
-              className={chipClass(current?.bool === opt.v)}
+              active={current?.bool === opt.v}
               onClick={() =>
                 setProp(prop.code, (prev) => ({
                   ...base,
@@ -422,7 +498,7 @@ function PropertyControl({
               }
             >
               {opt.label}
-            </button>
+            </Pill>
           ))}
         </div>
       )}
@@ -443,7 +519,7 @@ function ProposeAdHoc({ symptom }: { symptom: CapturedSymptom }) {
   const [done, setDone] = useState(false);
   const [err, setErr] = useState(false);
   if (done) {
-    return <span className="ml-1 text-[10.5px] text-teal-700 dark:text-teal-400">proposed ✓</span>;
+    return <span className="text-teal-700 dark:text-teal-400">Proposed to catalog ✓</span>;
   }
   return (
     <button
@@ -461,9 +537,13 @@ function ProposeAdHoc({ symptom }: { symptom: CapturedSymptom }) {
           else setErr(true);
         })
       }
-      className="text-muted-foreground hover:text-foreground ml-1 text-[10.5px] font-normal disabled:opacity-50"
+      className="text-teal-600 underline decoration-dotted underline-offset-2 hover:text-teal-700 disabled:opacity-50 dark:text-teal-400"
     >
-      {pending ? "…" : err ? "retry" : "propose to catalog"}
+      {pending
+        ? "Proposing…"
+        : err
+          ? "Retry — propose to catalog"
+          : "New symptom · propose to catalog"}
     </button>
   );
 }
