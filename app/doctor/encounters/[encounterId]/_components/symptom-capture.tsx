@@ -441,33 +441,7 @@ function PropertyControl({
       )}
 
       {prop.valueType === "scale" && (
-        <div className="flex flex-col gap-2">
-          <div className="flex items-center gap-3">
-            <input
-              type="range"
-              min={0}
-              max={10}
-              step={1}
-              aria-label={prop.display}
-              value={current?.num ?? 0}
-              onChange={(e) => setProp(prop.code, () => ({ ...base, num: Number(e.target.value) }))}
-              className="h-1.5 flex-1 cursor-pointer accent-teal-600"
-            />
-            <span
-              className={`flex h-7 w-9 shrink-0 items-center justify-center rounded-md border text-[13px] font-semibold tabular-nums ${
-                current?.num !== undefined
-                  ? "border-teal-500 bg-teal-50 text-teal-700 dark:border-teal-400/50 dark:bg-teal-950/40 dark:text-teal-200"
-                  : "border-border text-muted-foreground"
-              }`}
-            >
-              {current?.num ?? "–"}
-            </span>
-          </div>
-          <div className="text-muted-foreground flex justify-between px-0.5 text-[9.5px]">
-            <span>0 · None</span>
-            <span>10 · Worst</span>
-          </div>
-        </div>
+        <ScaleControl prop={prop} current={current} setProp={setProp} />
       )}
 
       {prop.valueType === "duration" && (
@@ -533,6 +507,76 @@ function PropertyControl({
           onChange={(e) => setProp(prop.code, () => ({ ...base, text: e.target.value }))}
         />
       )}
+    </div>
+  );
+}
+
+/**
+ * Severity slider whose colour tracks the value — teal (mild) → amber (moderate)
+ * → red (severe). The band is a clinical signal (intensity), not decoration.
+ */
+function ScaleControl({
+  prop,
+  current,
+  setProp,
+}: {
+  prop: CatalogProperty;
+  current?: CapturedPropertyValue;
+  setProp: (code: string, build: (prev?: CapturedPropertyValue) => CapturedPropertyValue) => void;
+}) {
+  const base = {
+    propertyCode: prop.code,
+    propertyDisplay: prop.display,
+    valueType: prop.valueType,
+  };
+  const num = current?.num;
+  const band = num === undefined ? "none" : num <= 3 ? "low" : num <= 6 ? "mid" : "high";
+
+  const accent =
+    band === "high" ? "accent-red-600" : band === "mid" ? "accent-amber-500" : "accent-teal-600";
+  const badge =
+    band === "none"
+      ? "border-border text-muted-foreground"
+      : band === "high"
+        ? "border-red-500 bg-red-50 text-red-700 dark:border-red-400/50 dark:bg-red-950/40 dark:text-red-200"
+        : band === "mid"
+          ? "border-amber-500 bg-amber-50 text-amber-700 dark:border-amber-400/50 dark:bg-amber-950/40 dark:text-amber-200"
+          : "border-teal-500 bg-teal-50 text-teal-700 dark:border-teal-400/50 dark:bg-teal-950/40 dark:text-teal-200";
+  const word =
+    band === "high" ? "Severe" : band === "mid" ? "Moderate" : band === "low" ? "Mild" : "Not set";
+  const wordColour =
+    band === "high"
+      ? "text-red-600 dark:text-red-400"
+      : band === "mid"
+        ? "text-amber-600 dark:text-amber-400"
+        : band === "low"
+          ? "text-teal-600 dark:text-teal-400"
+          : "text-muted-foreground";
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center gap-3">
+        <input
+          type="range"
+          min={0}
+          max={10}
+          step={1}
+          aria-label={prop.display}
+          value={num ?? 0}
+          onChange={(e) => setProp(prop.code, () => ({ ...base, num: Number(e.target.value) }))}
+          className={`h-1.5 flex-1 cursor-pointer ${accent}`}
+        />
+        <span
+          className={`flex h-7 w-9 shrink-0 items-center justify-center rounded-md border text-[13px] font-semibold tabular-nums ${badge}`}
+        >
+          {num ?? "–"}
+        </span>
+      </div>
+      <div className="flex items-center justify-between px-0.5 text-[9.5px]">
+        <span className="text-muted-foreground">0 · None</span>
+        <span className={`font-medium ${wordColour}`}>{word}</span>
+        <span className="text-muted-foreground">10 · Worst</span>
+      </div>
     </div>
   );
 }
