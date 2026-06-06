@@ -3,8 +3,16 @@
 import type { SubmitClerkshipResult } from "../actions";
 import type { CapturedSymptom } from "@/lib/clerkship/symptom-engine";
 import type { Clerkship } from "@/lib/encounter/clerkship";
+import type { ComponentType } from "react";
 import { useState, useTransition } from "react";
-import { PlusIcon, XIcon } from "lucide-react";
+import {
+  CheckIcon,
+  ClipboardCheckIcon,
+  ClipboardListIcon,
+  PlusIcon,
+  StethoscopeIcon,
+  XIcon,
+} from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -169,19 +177,29 @@ export function ClerkshipForm({
       </datalist>
 
       {/* History */}
-      <Section title="History">
-        <Field label="Presenting complaint — tap to capture">
+      <Section
+        step="01"
+        title="History"
+        description="Presenting complaint, background & risk"
+        icon={ClipboardListIcon}
+      >
+        <div className="flex flex-col gap-1.5">
+          <Label className="text-[12.5px] font-medium">Presenting complaint</Label>
+          <p className="text-muted-foreground -mt-0.5 text-[11px] leading-snug">
+            Search, or tap from the body-system palette — it builds the complaint and the HPC prose.
+          </p>
           <SymptomCapture value={hpcItems} onChange={setHpcItems} />
-        </Field>
-        {hpcItems.length === 0 ? (
-          <Field label="Or write it free-hand (optional)">
+          {hpcItems.length === 0 ? (
             <Input
-              placeholder="e.g. central chest pain"
+              className="mt-1"
+              placeholder="…or write it free-hand (e.g. central chest pain)"
               value={presentingComplaint}
               onChange={(ev) => setPC(ev.target.value)}
             />
-          </Field>
-        ) : null}
+          ) : null}
+        </div>
+
+        <SubHead>Background</SubHead>
         <Field label="SOCRATES (free-text — optional)">
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {(
@@ -284,7 +302,12 @@ export function ClerkshipForm({
       </Section>
 
       {/* Examination */}
-      <Section title="Examination">
+      <Section
+        step="02"
+        title="Examination"
+        description="General inspection & systems"
+        icon={StethoscopeIcon}
+      >
         <Field label="General">
           <textarea
             className={TEXTAREA}
@@ -313,7 +336,12 @@ export function ClerkshipForm({
       </Section>
 
       {/* Synthesis */}
-      <Section title="Assessment & plan">
+      <Section
+        step="03"
+        title="Assessment & plan"
+        description="Impression, differential, orders & disposition"
+        icon={ClipboardCheckIcon}
+      >
         <Field label="Summary / problem representation">
           <textarea
             className={TEXTAREA}
@@ -421,27 +449,34 @@ export function ClerkshipForm({
         </Field>
       </Section>
 
-      {result && !result.ok ? (
-        <p className="text-destructive text-[12.5px]" role="alert">
-          {result.error}
-        </p>
-      ) : null}
-      {result && result.ok ? (
-        <p className="text-[12.5px] text-teal-700 dark:text-teal-400" role="status">
-          Saved.
-        </p>
-      ) : null}
-
-      <div className="flex flex-wrap items-center gap-2">
-        <Button type="button" variant="secondary" disabled={pending} onClick={() => save(false)}>
-          {pending ? "Saving…" : "Save draft"}
-        </Button>
-        <Button type="button" disabled={pending} onClick={() => save(true)}>
-          Finalise
-        </Button>
-        <span className="text-muted-foreground text-[11px]">
-          A correction is a new version — nothing is overwritten.
-        </span>
+      {/* Floating action bar — always reachable while scrolling the form. */}
+      <div className="sticky bottom-4 z-10">
+        <div className="border-border bg-card/90 supports-backdrop-filter:bg-card/75 flex flex-wrap items-center gap-3 rounded-xl border p-3 shadow-lg backdrop-blur">
+          <Button type="button" variant="secondary" disabled={pending} onClick={() => save(false)}>
+            {pending ? "Saving…" : "Save draft"}
+          </Button>
+          <Button type="button" disabled={pending} onClick={() => save(true)}>
+            <CheckIcon className="size-4" aria-hidden />
+            Finalise
+          </Button>
+          {result && !result.ok ? (
+            <span className="text-destructive text-[12px]" role="alert">
+              {result.error}
+            </span>
+          ) : result && result.ok ? (
+            <span
+              className="inline-flex items-center gap-1 text-[12px] text-teal-700 dark:text-teal-400"
+              role="status"
+            >
+              <CheckIcon className="size-3.5" aria-hidden />
+              Saved
+            </span>
+          ) : (
+            <span className="text-muted-foreground ml-auto text-[11px]">
+              A correction is a new version — nothing is overwritten.
+            </span>
+          )}
+        </div>
       </div>
     </form>
   );
@@ -449,14 +484,48 @@ export function ClerkshipForm({
 
 /* ── small presentational helpers ── */
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({
+  step,
+  title,
+  description,
+  icon: Icon,
+  children,
+}: {
+  step: string;
+  title: string;
+  description?: string;
+  icon: ComponentType<{ className?: string }>;
+  children: React.ReactNode;
+}) {
   return (
-    <section className="border-border bg-card flex flex-col gap-3 rounded-xl border p-4">
-      <h3 className="text-muted-foreground font-mono text-[10.5px] tracking-[0.14em] uppercase">
-        {title}
-      </h3>
-      {children}
+    <section className="border-border bg-card overflow-hidden rounded-xl border">
+      <div className="border-border/70 flex items-center gap-3 border-b px-4 py-3">
+        <span
+          className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-teal-50 text-teal-600 ring-1 ring-teal-100 dark:bg-teal-950/40 dark:text-teal-300 dark:ring-teal-900/50"
+          aria-hidden
+        >
+          <Icon className="size-4" />
+        </span>
+        <div className="flex-1">
+          <h3 className="text-foreground text-sm leading-tight font-semibold">{title}</h3>
+          {description ? (
+            <p className="text-muted-foreground text-[11.5px] leading-tight">{description}</p>
+          ) : null}
+        </div>
+        <span className="text-muted-foreground font-mono text-[11px] tabular-nums">{step}</span>
+      </div>
+      <div className="flex flex-col gap-4 p-4">{children}</div>
     </section>
+  );
+}
+
+function SubHead({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="border-border/60 mt-1 border-t pt-3">
+      <span className="text-muted-foreground text-[10px] font-medium tracking-[0.1em] uppercase">
+        {children}
+      </span>
+    </div>
   );
 }
 

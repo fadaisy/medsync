@@ -110,6 +110,81 @@ describe("renderSymptomProse", () => {
     expect(prose).toContain("Chest pain".toLowerCase());
     expect(prose).toContain("Fever.");
   });
+
+  it("reads the per-symptom (Hutchison) catalog codes by role, red flags last", () => {
+    const prose = renderSymptomProse([
+      {
+        symptomCode: "chest_pain",
+        symptomDisplay: "Chest pain",
+        properties: [
+          {
+            propertyCode: "cp_character",
+            propertyDisplay: "Character",
+            valueType: "single_select",
+            labels: ["Crushing / pressing"],
+          },
+          {
+            propertyCode: "cp_site",
+            propertyDisplay: "Site",
+            valueType: "single_select",
+            labels: ["Central / retrosternal"],
+          },
+          {
+            propertyCode: "cp_radiation",
+            propertyDisplay: "Radiation",
+            valueType: "multi_select",
+            labels: ["Left arm"],
+          },
+          { propertyCode: "severity", propertyDisplay: "Severity", valueType: "scale", num: 7 },
+          {
+            propertyCode: "cp_redflags",
+            propertyDisplay: "Red flags",
+            valueType: "multi_select",
+            labels: ["Tearing pain to back"],
+          },
+        ],
+      },
+    ]);
+    expect(prose).toContain("Crushing / pressing chest pain");
+    expect(prose).toContain("at the central / retrosternal");
+    expect(prose).toContain("radiating to left arm");
+    expect(prose).toContain("severity 7/10");
+    expect(prose).toContain("red flags: tearing pain to back");
+    // red flags come last in the sentence
+    expect(prose.indexOf("severity 7/10")).toBeLessThan(prose.indexOf("red flags"));
+  });
+
+  it("reads breathlessness pattern / MRC / associated by role", () => {
+    const prose = renderSymptomProse([
+      {
+        symptomCode: "dyspnoea",
+        symptomDisplay: "Breathlessness",
+        properties: [
+          {
+            propertyCode: "dysp_pattern",
+            propertyDisplay: "Pattern",
+            valueType: "multi_select",
+            labels: ["Orthopnoea"],
+          },
+          {
+            propertyCode: "dysp_mrc",
+            propertyDisplay: "Exertional limit (MRC)",
+            valueType: "single_select",
+            labels: ["MRC 3 - slower than peers"],
+          },
+          {
+            propertyCode: "dysp_assoc",
+            propertyDisplay: "Associated features",
+            valueType: "multi_select",
+            labels: ["Cough"],
+          },
+        ],
+      },
+    ]);
+    expect(prose).toContain("orthopnoea");
+    expect(prose).toContain("MRC 3 - slower than peers");
+    expect(prose).toContain("associated with cough");
+  });
 });
 
 describe("symptomObservationRows — the queryable projection", () => {
