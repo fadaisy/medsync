@@ -42,7 +42,6 @@ export function ClerkshipForm({
 
   const [presentingComplaint, setPC] = useState(h?.presentingComplaint ?? "");
   const [hpcItems, setHpcItems] = useState<CapturedSymptom[]>(h?.hpcItems ?? []);
-  const [hpc, setHpc] = useState(h?.hpc ?? "");
   const [soc, setSoc] = useState({
     site: h?.socrates?.site ?? "",
     onset: h?.socrates?.onset ?? "",
@@ -106,9 +105,11 @@ export function ClerkshipForm({
       return v.trim() !== "" && Number.isFinite(n) ? n : undefined;
     };
     return {
-      presentingComplaint,
+      // The tapped symptoms ARE the presenting complaint; fall back to free-text.
+      presentingComplaint: hpcItems.length
+        ? hpcItems.map((s) => s.symptomDisplay).join(", ")
+        : presentingComplaint,
       hpcItems,
-      hpc,
       socrates: soc,
       pmh,
       drugHistory,
@@ -169,23 +170,19 @@ export function ClerkshipForm({
 
       {/* History */}
       <Section title="History">
-        <Field label="Presenting complaint">
-          <Input value={presentingComplaint} onChange={(ev) => setPC(ev.target.value)} />
-        </Field>
-        <Field label="History of presenting complaint — tap to capture">
+        <Field label="Presenting complaint — tap to capture">
           <SymptomCapture value={hpcItems} onChange={setHpcItems} />
         </Field>
         {hpcItems.length === 0 ? (
-          <Field label="Or write it (narrative — used only if no symptoms tapped)">
-            <textarea
-              className={TEXTAREA}
-              rows={3}
-              value={hpc}
-              onChange={(ev) => setHpc(ev.target.value)}
+          <Field label="Or write it free-hand (optional)">
+            <Input
+              placeholder="e.g. central chest pain"
+              value={presentingComplaint}
+              onChange={(ev) => setPC(ev.target.value)}
             />
           </Field>
         ) : null}
-        <Field label="SOCRATES">
+        <Field label="SOCRATES (free-text — optional)">
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {(
               [
