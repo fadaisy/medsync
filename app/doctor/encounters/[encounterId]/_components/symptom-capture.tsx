@@ -277,6 +277,22 @@ function PropertiesDialog({
   }
   const get = (code: string) => symptom.properties.find((p) => p.propertyCode === code);
 
+  // Organise by shape: short quick-tap fields pack into a 2-col grid, the 0–10
+  // scale becomes a full-width slider, and long option lists run full width.
+  const real = properties ?? [];
+  const isSelect = (p: CatalogProperty) =>
+    p.valueType === "single_select" || p.valueType === "multi_select";
+  const compactProps = real.filter(
+    (p) =>
+      p.valueType === "boolean" ||
+      p.valueType === "duration" ||
+      (isSelect(p) && p.options.length <= 5),
+  );
+  const sliderProps = real.filter((p) => p.valueType === "scale");
+  const wideProps = real.filter(
+    (p) => p.valueType === "text" || (isSelect(p) && p.options.length > 5),
+  );
+
   return (
     <DialogContent
       showCloseButton={false}
@@ -298,31 +314,56 @@ function PropertiesDialog({
         </DialogClose>
       </div>
 
-      {/* Body — properties in columns */}
-      <div className="max-h-[70vh] overflow-y-auto px-4 py-3.5">
+      {/* Body — organised sections */}
+      <div className="max-h-[70vh] overflow-y-auto px-4 py-4">
         {properties === null ? (
           <span className="text-muted-foreground text-[12px]">Loading properties…</span>
         ) : (
-          <div className="grid grid-cols-1 gap-x-6 gap-y-3.5 sm:grid-cols-2">
+          <div className="flex flex-col gap-5">
             {properties.length === 0 ? (
-              <p className="text-muted-foreground text-[12px] sm:col-span-2">
+              <p className="text-muted-foreground text-[12px]">
                 No catalog properties for this symptom yet — use the note below.
               </p>
             ) : (
-              properties.map((prop) => {
-                const wide =
-                  prop.valueType === "scale" ||
-                  ((prop.valueType === "single_select" || prop.valueType === "multi_select") &&
-                    prop.options.length > 6);
-                return (
-                  <div key={prop.code} className={wide ? "sm:col-span-2" : undefined}>
-                    <PropertyControl prop={prop} current={get(prop.code)} setProp={setProp} />
+              <>
+                {compactProps.length ? (
+                  <div className="grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2">
+                    {compactProps.map((prop) => (
+                      <PropertyControl
+                        key={prop.code}
+                        prop={prop}
+                        current={get(prop.code)}
+                        setProp={setProp}
+                      />
+                    ))}
                   </div>
-                );
-              })
+                ) : null}
+
+                {sliderProps.map((prop) => (
+                  <PropertyControl
+                    key={prop.code}
+                    prop={prop}
+                    current={get(prop.code)}
+                    setProp={setProp}
+                  />
+                ))}
+
+                {wideProps.length ? (
+                  <div className="border-border/60 flex flex-col gap-4 border-t pt-4">
+                    {wideProps.map((prop) => (
+                      <PropertyControl
+                        key={prop.code}
+                        prop={prop}
+                        current={get(prop.code)}
+                        setProp={setProp}
+                      />
+                    ))}
+                  </div>
+                ) : null}
+              </>
             )}
 
-            <label className="flex flex-col gap-1.5 sm:col-span-2">
+            <label className="border-border/60 flex flex-col gap-1.5 border-t pt-4">
               <span className={SECTION_LABEL}>Note (optional)</span>
               <Input
                 placeholder="Anything not captured above…"
@@ -400,21 +441,32 @@ function PropertyControl({
       )}
 
       {prop.valueType === "scale" && (
-        <div className="flex flex-wrap gap-1">
-          {Array.from({ length: 11 }, (_, n) => (
-            <button
-              key={n}
-              type="button"
-              className={`size-7 rounded-md border text-[12px] tabular-nums ${EASE} ${
-                current?.num === n
-                  ? "border-teal-600 bg-teal-600 text-white"
-                  : "border-border bg-card text-muted-foreground hover:text-foreground hover:border-teal-300"
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center gap-3">
+            <input
+              type="range"
+              min={0}
+              max={10}
+              step={1}
+              aria-label={prop.display}
+              value={current?.num ?? 0}
+              onChange={(e) => setProp(prop.code, () => ({ ...base, num: Number(e.target.value) }))}
+              className="h-1.5 flex-1 cursor-pointer accent-teal-600"
+            />
+            <span
+              className={`flex h-7 w-9 shrink-0 items-center justify-center rounded-md border text-[13px] font-semibold tabular-nums ${
+                current?.num !== undefined
+                  ? "border-teal-500 bg-teal-50 text-teal-700 dark:border-teal-400/50 dark:bg-teal-950/40 dark:text-teal-200"
+                  : "border-border text-muted-foreground"
               }`}
-              onClick={() => setProp(prop.code, () => ({ ...base, num: n }))}
             >
-              {n}
-            </button>
-          ))}
+              {current?.num ?? "–"}
+            </span>
+          </div>
+          <div className="text-muted-foreground flex justify-between px-0.5 text-[9.5px]">
+            <span>0 · None</span>
+            <span>10 · Worst</span>
+          </div>
         </div>
       )}
 
