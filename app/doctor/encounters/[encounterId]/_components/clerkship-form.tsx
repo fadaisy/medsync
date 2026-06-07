@@ -22,6 +22,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { renderSymptomProse } from "@/lib/clerkship/symptom-engine";
 import { ICD10_CODES, LOINC_CODES } from "@/lib/encounter/reference-codes";
 import { submitClerkshipAction } from "../actions";
 import { RichTextEditor } from "./rich-text";
@@ -55,6 +56,7 @@ type OrderRow = { kind: string; text: string; loinc: string; justification: stri
 type FormState = {
   presentingComplaint: string;
   hpcItems: CapturedSymptom[];
+  hpcNarrative: string;
   soc: Record<
     | "site"
     | "onset"
@@ -95,6 +97,7 @@ function buildClerkshipInput(f: FormState): unknown {
       ? f.hpcItems.map((x) => x.symptomDisplay).join(", ")
       : f.presentingComplaint,
     hpcItems: f.hpcItems,
+    hpcNarrative: f.hpcNarrative,
     socrates: f.soc,
     pmh: f.pmh,
     drugHistory: f.drugHistory,
@@ -140,8 +143,9 @@ export function ClerkshipForm({
   const e = initial?.examination;
   const s = initial?.synthesis;
 
-  const [presentingComplaint, setPC] = useState(h?.presentingComplaint ?? "");
+  const [presentingComplaint] = useState(h?.presentingComplaint ?? "");
   const [hpcItems, setHpcItems] = useState<CapturedSymptom[]>(h?.hpcItems ?? []);
+  const [hpcNarrative, setHpcNarrative] = useState(h?.hpcNarrative ?? "");
   const [soc, setSoc] = useState({
     site: h?.socrates?.site ?? "",
     onset: h?.socrates?.onset ?? "",
@@ -202,6 +206,7 @@ export function ClerkshipForm({
   const state: FormState = {
     presentingComplaint,
     hpcItems,
+    hpcNarrative,
     soc,
     pmh,
     drugHistory,
@@ -300,21 +305,42 @@ export function ClerkshipForm({
         {/* Body */}
         <div className="min-h-[26rem] px-4 py-5 sm:px-6 sm:py-6">
           {step === 0 ? (
-            <div className="flex flex-col gap-2">
-              <Label className="text-[12.5px] font-medium">Presenting complaint</Label>
-              <p className="text-muted-foreground -mt-1 text-[11px] leading-snug">
-                Search, or tap from the body-system palette — it builds the complaint and the HPC
-                prose.
-              </p>
-              <SymptomCapture value={hpcItems} onChange={setHpcItems} />
-              {hpcItems.length === 0 ? (
-                <Input
-                  className="mt-1"
-                  placeholder="…or write it free-hand (e.g. central chest pain)"
-                  value={presentingComplaint}
-                  onChange={(ev) => setPC(ev.target.value)}
+            <div className="flex flex-col gap-6">
+              <div className="flex flex-col gap-2">
+                <Label className="text-[12.5px] font-medium">Presenting complaint</Label>
+                <p className="text-muted-foreground -mt-1 text-[11px] leading-snug">
+                  Click the field to choose a symptom, then open it to add the details.
+                </p>
+                <SymptomCapture value={hpcItems} onChange={setHpcItems} />
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <Label className="text-[12.5px] font-medium">History of presenting complaint</Label>
+                {hpcItems.length > 0 ? (
+                  <div className="rounded-lg border border-teal-200/70 bg-teal-50/60 px-3 py-2 dark:border-teal-900/50 dark:bg-teal-950/20">
+                    <span className="inline-flex items-center gap-1 text-[10px] font-medium tracking-[0.1em] text-teal-700 uppercase dark:text-teal-400">
+                      Auto-generated from the symptoms above
+                    </span>
+                    <p className="mt-0.5 text-[12.5px] leading-relaxed text-teal-900/90 italic dark:text-teal-100/80">
+                      {renderSymptomProse(hpcItems)}
+                    </p>
+                  </div>
+                ) : null}
+                <RichTextEditor
+                  value={hpcNarrative}
+                  onChange={setHpcNarrative}
+                  placeholder={
+                    hpcItems.length
+                      ? "Add the narrative in your own words — onset, course, context, ICE… (this is added to the generated summary)"
+                      : "Write the history of the presenting complaint…"
+                  }
+                  rows={6}
                 />
-              ) : null}
+                <p className="text-muted-foreground text-[11px]">
+                  The teal summary is generated from the symptoms; your typed narrative is saved
+                  with it.
+                </p>
+              </div>
             </div>
           ) : null}
 
