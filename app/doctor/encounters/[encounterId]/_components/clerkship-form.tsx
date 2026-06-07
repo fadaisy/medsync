@@ -6,10 +6,15 @@ import type { Clerkship } from "@/lib/encounter/clerkship";
 import type { ComponentType } from "react";
 import { useState, useTransition } from "react";
 import {
+  ActivityIcon,
+  BrainIcon,
   CheckIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
   ClipboardCheckIcon,
-  ClipboardListIcon,
+  NotebookPenIcon,
   PlusIcon,
+  RefreshCwIcon,
   StethoscopeIcon,
   XIcon,
 } from "lucide-react";
@@ -19,23 +24,110 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ICD10_CODES, LOINC_CODES } from "@/lib/encounter/reference-codes";
 import { submitClerkshipAction } from "../actions";
+import { RichTextEditor } from "./rich-text";
 import { SymptomCapture } from "./symptom-capture";
 
 /**
- * Clerkship documentation entry (v1: essential structured sections). Structured-
- * but-flexible — every field optional; save a draft any time, finalise when
- * complete. Decision-support: it records what the clinician writes; the engine
- * enforces cadre rules (a junior's diagnosis stays "working" until co-signed),
- * append-only versioning, and audit. No fabrication — blanks are dropped.
+ * Clerkship documentation entry — a tabbed, stepwise "window": each part of the
+ * clerking is its own tab (Complaint → History → Examination → Assessment →
+ * Plan), with Back / Next paging and a live saved/unsaved indicator. Free-text
+ * fields use a Markdown rich-text editor. Structured-but-flexible — every field
+ * optional; save a draft any time, finalise when complete. Decision-support: it
+ * records what the clinician writes; the engine enforces cadre rules, append-only
+ * versioning, and audit. No fabrication — blanks are dropped.
  */
 
-const TEXTAREA =
-  "border-input bg-card text-foreground w-full rounded-sm border px-2.5 py-2 text-[13px] outline-none transition-all duration-150 focus-visible:border-teal-500 focus-visible:shadow-[0_0_0_2px_rgba(20,184,166,0.15)] placeholder:text-gray-400";
-const SELECT = TEXTAREA;
+const FIELD =
+  "border-input bg-card text-foreground focus-visible:ring-ring/25 w-full rounded-lg border px-3 py-2 text-[13px] outline-none transition-colors focus-visible:border-teal-500 focus-visible:ring-2 placeholder:text-gray-400";
+
+const TABS: { label: string; icon: ComponentType<{ className?: string }> }[] = [
+  { label: "Complaint", icon: ActivityIcon },
+  { label: "History", icon: NotebookPenIcon },
+  { label: "Examination", icon: StethoscopeIcon },
+  { label: "Assessment", icon: BrainIcon },
+  { label: "Plan", icon: ClipboardCheckIcon },
+];
 
 type AllergyRow = { substance: string; reaction: string; severity: string };
 type DxRow = { text: string; icd10: string; mustNotMiss: boolean };
 type OrderRow = { kind: string; text: string; loinc: string; justification: string };
+
+type FormState = {
+  presentingComplaint: string;
+  hpcItems: CapturedSymptom[];
+  soc: Record<
+    | "site"
+    | "onset"
+    | "character"
+    | "radiation"
+    | "associated"
+    | "timing"
+    | "exacerbating"
+    | "severity",
+    string
+  >;
+  pmh: string;
+  drugHistory: string;
+  allergies: AllergyRow[];
+  social: Record<
+    "occupation" | "smokingPackYears" | "alcoholUnitsPerWeek" | "recreationalDrugs",
+    string
+  >;
+  examGeneral: string;
+  examSystems: Record<"cardiovascular" | "respiratory" | "abdominal" | "neurological", string>;
+  summary: string;
+  differential: DxRow[];
+  investigations: OrderRow[];
+  managementPlan: string;
+  disposition: string;
+  safetyNetting: string;
+};
+
+// Pure: flat form state → the plain object the server re-validates (Zod safeParse).
+// Module-level so it can seed the dirty-tracking baseline without an effect.
+function buildClerkshipInput(f: FormState): unknown {
+  const num = (v: string) => {
+    const n = Number(v);
+    return v.trim() !== "" && Number.isFinite(n) ? n : undefined;
+  };
+  return {
+    presentingComplaint: f.hpcItems.length
+      ? f.hpcItems.map((x) => x.symptomDisplay).join(", ")
+      : f.presentingComplaint,
+    hpcItems: f.hpcItems,
+    socrates: f.soc,
+    pmh: f.pmh,
+    drugHistory: f.drugHistory,
+    allergies: f.allergies.map((a) => ({
+      substance: a.substance,
+      reaction: a.reaction || undefined,
+      severity: a.severity || undefined,
+    })),
+    social: {
+      occupation: f.social.occupation,
+      smokingPackYears: num(f.social.smokingPackYears),
+      alcoholUnitsPerWeek: num(f.social.alcoholUnitsPerWeek),
+      recreationalDrugs: f.social.recreationalDrugs,
+    },
+    examGeneral: f.examGeneral,
+    examSystems: f.examSystems,
+    summary: f.summary,
+    differential: f.differential.map((d) => ({
+      text: d.text,
+      icd10: d.icd10 || undefined,
+      mustNotMiss: d.mustNotMiss,
+    })),
+    investigations: f.investigations.map((o) => ({
+      kind: o.kind,
+      text: o.text,
+      loinc: o.loinc || undefined,
+      justification: o.justification || undefined,
+    })),
+    managementPlan: f.managementPlan,
+    disposition: f.disposition || undefined,
+    safetyNetting: f.safetyNetting,
+  };
+}
 
 export function ClerkshipForm({
   encounterId,
@@ -102,65 +194,50 @@ export function ClerkshipForm({
   const [disposition, setDisposition] = useState(s?.disposition ?? "");
   const [safetyNetting, setSafetyNetting] = useState(s?.safetyNetting ?? "");
 
+  const [step, setStep] = useState(0);
+  const [finalised, setFinalised] = useState(false);
   const [pending, startTransition] = useTransition();
   const [result, setResult] = useState<SubmitClerkshipResult | null>(null);
 
-  // Returns a plain object; the server action re-validates it with the Zod
-  // schema (safeParse), so the client doesn't need the strict enum types.
-  function buildInput(): unknown {
-    const num = (v: string) => {
-      const n = Number(v);
-      return v.trim() !== "" && Number.isFinite(n) ? n : undefined;
-    };
-    return {
-      // The tapped symptoms ARE the presenting complaint; fall back to free-text.
-      presentingComplaint: hpcItems.length
-        ? hpcItems.map((s) => s.symptomDisplay).join(", ")
-        : presentingComplaint,
-      hpcItems,
-      socrates: soc,
-      pmh,
-      drugHistory,
-      allergies: allergies.map((a) => ({
-        substance: a.substance,
-        reaction: a.reaction || undefined,
-        severity: a.severity || undefined,
-      })),
-      social: {
-        occupation: social.occupation,
-        smokingPackYears: num(social.smokingPackYears),
-        alcoholUnitsPerWeek: num(social.alcoholUnitsPerWeek),
-        recreationalDrugs: social.recreationalDrugs,
-      },
-      examGeneral,
-      examSystems,
-      summary,
-      differential: differential.map((d) => ({
-        text: d.text,
-        icd10: d.icd10 || undefined,
-        mustNotMiss: d.mustNotMiss,
-      })),
-      investigations: investigations.map((o) => ({
-        kind: o.kind,
-        text: o.text,
-        loinc: o.loinc || undefined,
-        justification: o.justification || undefined,
-      })),
-      managementPlan,
-      disposition: disposition || undefined,
-      safetyNetting,
-    };
-  }
+  const state: FormState = {
+    presentingComplaint,
+    hpcItems,
+    soc,
+    pmh,
+    drugHistory,
+    allergies,
+    social,
+    examGeneral,
+    examSystems,
+    summary,
+    differential,
+    investigations,
+    managementPlan,
+    disposition,
+    safetyNetting,
+  };
+  const buildInput = () => buildClerkshipInput(state);
+
+  // Lazy-init baseline = the clean snapshot; the dirty indicator diffs against it.
+  const [baseline, setBaseline] = useState(() => JSON.stringify(buildClerkshipInput(state)));
+  const dirty = JSON.stringify(buildInput()) !== baseline;
 
   function save(finalise: boolean) {
     setResult(null);
     startTransition(async () => {
-      setResult(await submitClerkshipAction(encounterId, buildInput(), finalise));
+      const r = await submitClerkshipAction(encounterId, buildInput(), finalise);
+      setResult(r);
+      if (r.ok) {
+        setBaseline(JSON.stringify(buildInput()));
+        if (finalise) setFinalised(true);
+      }
     });
   }
 
+  const last = TABS.length - 1;
+
   return (
-    <form className="flex flex-col gap-10" onSubmit={(ev) => ev.preventDefault()}>
+    <form onSubmit={(ev) => ev.preventDefault()}>
       <datalist id="icd10-codes">
         {ICD10_CODES.map((c) => (
           <option key={c.code} value={c.code}>
@@ -176,357 +253,385 @@ export function ClerkshipForm({
         ))}
       </datalist>
 
-      {/* History */}
-      <Section
-        step="01"
-        title="History"
-        description="Presenting complaint, background & risk"
-        icon={ClipboardListIcon}
-      >
-        <div className="flex flex-col gap-1.5">
-          <Label className="text-[12.5px] font-medium">Presenting complaint</Label>
-          <p className="text-muted-foreground -mt-0.5 text-[11px] leading-snug">
-            Search, or tap from the body-system palette — it builds the complaint and the HPC prose.
-          </p>
-          <SymptomCapture value={hpcItems} onChange={setHpcItems} />
-          {hpcItems.length === 0 ? (
-            <Input
-              className="mt-1"
-              placeholder="…or write it free-hand (e.g. central chest pain)"
-              value={presentingComplaint}
-              onChange={(ev) => setPC(ev.target.value)}
-            />
+      <div className="border-border bg-card overflow-hidden rounded-xl border shadow-sm">
+        {/* Window header — breadcrumb + status */}
+        <div className="border-border/60 flex items-center gap-3 border-b px-4 py-3 sm:px-5">
+          <div className="flex items-center gap-1.5 text-[12px]">
+            <span className="text-muted-foreground">Encounter</span>
+            <span className="text-muted-foreground/50">/</span>
+            <span className="text-foreground font-medium">Clerking</span>
+          </div>
+          <span
+            className={`rounded px-1.5 py-0.5 text-[10px] font-semibold tracking-[0.08em] uppercase ${
+              finalised
+                ? "bg-teal-100 text-teal-800 dark:bg-teal-950/50 dark:text-teal-300"
+                : "bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300"
+            }`}
+          >
+            {finalised ? "Finalised" : "Draft"}
+          </span>
+          <span className="text-muted-foreground ml-auto font-mono text-[11px] tabular-nums">
+            Step {step + 1} of {TABS.length}
+          </span>
+        </div>
+
+        {/* Tab bar */}
+        <div className="border-border/60 flex gap-1 overflow-x-auto border-b px-2 sm:px-3">
+          {TABS.map((t, i) => {
+            const active = i === step;
+            return (
+              <button
+                key={t.label}
+                type="button"
+                onClick={() => setStep(i)}
+                className={`-mb-px inline-flex items-center gap-1.5 border-b-2 px-3 py-2.5 text-[13px] font-medium whitespace-nowrap transition-colors ${
+                  active
+                    ? "border-teal-600 text-teal-700 dark:border-teal-400 dark:text-teal-300"
+                    : "text-muted-foreground hover:text-foreground border-transparent"
+                }`}
+              >
+                <t.icon className="size-3.5" aria-hidden />
+                {t.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Body */}
+        <div className="min-h-[26rem] px-4 py-5 sm:px-6 sm:py-6">
+          {step === 0 ? (
+            <div className="flex flex-col gap-2">
+              <Label className="text-[12.5px] font-medium">Presenting complaint</Label>
+              <p className="text-muted-foreground -mt-1 text-[11px] leading-snug">
+                Search, or tap from the body-system palette — it builds the complaint and the HPC
+                prose.
+              </p>
+              <SymptomCapture value={hpcItems} onChange={setHpcItems} />
+              {hpcItems.length === 0 ? (
+                <Input
+                  className="mt-1"
+                  placeholder="…or write it free-hand (e.g. central chest pain)"
+                  value={presentingComplaint}
+                  onChange={(ev) => setPC(ev.target.value)}
+                />
+              ) : null}
+            </div>
+          ) : null}
+
+          {step === 1 ? (
+            <div className="flex flex-col gap-5">
+              <Field label="SOCRATES">
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  {(
+                    [
+                      ["site", "Site"],
+                      ["onset", "Onset"],
+                      ["character", "Character"],
+                      ["radiation", "Radiation"],
+                      ["associated", "Associated"],
+                      ["timing", "Timing"],
+                      ["exacerbating", "Exac./reliev."],
+                      ["severity", "Severity"],
+                    ] as const
+                  ).map(([k, lbl]) => (
+                    <Input
+                      key={k}
+                      placeholder={lbl}
+                      value={soc[k]}
+                      onChange={(ev) => setSoc({ ...soc, [k]: ev.target.value })}
+                    />
+                  ))}
+                </div>
+              </Field>
+              <Field label="Past medical & surgical history">
+                <RichTextEditor
+                  value={pmh}
+                  onChange={setPmh}
+                  placeholder="Conditions, operations…"
+                />
+              </Field>
+              <Field label="Drug history">
+                <RichTextEditor
+                  value={drugHistory}
+                  onChange={setDrugHistory}
+                  placeholder="Regular & PRN medications, adherence…"
+                />
+              </Field>
+              <Field label="Allergies">
+                <RepeatList
+                  rows={allergies}
+                  onChange={setAllergies}
+                  blank={{ substance: "", reaction: "", severity: "" }}
+                  addLabel="Add allergy"
+                  render={(row, set) => (
+                    <>
+                      <Input
+                        placeholder="Substance"
+                        value={row.substance}
+                        onChange={(ev) => set({ ...row, substance: ev.target.value })}
+                      />
+                      <Input
+                        placeholder="Reaction"
+                        value={row.reaction}
+                        onChange={(ev) => set({ ...row, reaction: ev.target.value })}
+                      />
+                      <select
+                        className={FIELD}
+                        value={row.severity}
+                        onChange={(ev) => set({ ...row, severity: ev.target.value })}
+                      >
+                        <option value="">Severity…</option>
+                        {["mild", "moderate", "severe", "anaphylaxis", "unknown"].map((o) => (
+                          <option key={o} value={o}>
+                            {o}
+                          </option>
+                        ))}
+                      </select>
+                    </>
+                  )}
+                />
+              </Field>
+              <Field label="Social">
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+                  <Input
+                    placeholder="Occupation"
+                    value={social.occupation}
+                    onChange={(ev) => setSocial({ ...social, occupation: ev.target.value })}
+                  />
+                  <Input
+                    type="number"
+                    placeholder="Smoking (pack-yrs)"
+                    value={social.smokingPackYears}
+                    onChange={(ev) => setSocial({ ...social, smokingPackYears: ev.target.value })}
+                  />
+                  <Input
+                    type="number"
+                    placeholder="Alcohol (units/wk)"
+                    value={social.alcoholUnitsPerWeek}
+                    onChange={(ev) =>
+                      setSocial({ ...social, alcoholUnitsPerWeek: ev.target.value })
+                    }
+                  />
+                  <Input
+                    placeholder="Recreational drugs"
+                    value={social.recreationalDrugs}
+                    onChange={(ev) => setSocial({ ...social, recreationalDrugs: ev.target.value })}
+                  />
+                </div>
+              </Field>
+            </div>
+          ) : null}
+
+          {step === 2 ? (
+            <div className="flex flex-col gap-5">
+              <Field label="General inspection">
+                <RichTextEditor
+                  value={examGeneral}
+                  onChange={setExamGeneral}
+                  placeholder="Well/unwell, vitals impression, hands → face → neck…"
+                />
+              </Field>
+              <div className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
+                {(
+                  [
+                    ["cardiovascular", "Cardiovascular"],
+                    ["respiratory", "Respiratory"],
+                    ["abdominal", "Abdominal"],
+                    ["neurological", "Neurological"],
+                  ] as const
+                ).map(([k, lbl]) => (
+                  <Field key={k} label={lbl}>
+                    <Input
+                      value={examSystems[k]}
+                      onChange={(ev) => setExamSystems({ ...examSystems, [k]: ev.target.value })}
+                    />
+                  </Field>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {step === 3 ? (
+            <div className="flex flex-col gap-5">
+              <Field label="Summary / problem representation">
+                <RichTextEditor
+                  value={summary}
+                  onChange={setSummary}
+                  placeholder="One-liner: age, salient features, working impression…"
+                />
+              </Field>
+              <Field label="Differential (mark must-not-miss)">
+                <RepeatList
+                  rows={differential}
+                  onChange={setDifferential}
+                  blank={{ text: "", icd10: "", mustNotMiss: false }}
+                  addLabel="Add diagnosis"
+                  render={(row, set) => (
+                    <>
+                      <Input
+                        placeholder="Diagnosis"
+                        value={row.text}
+                        onChange={(ev) => set({ ...row, text: ev.target.value })}
+                      />
+                      <Input
+                        list="icd10-codes"
+                        placeholder="ICD-10"
+                        value={row.icd10}
+                        onChange={(ev) => set({ ...row, icd10: ev.target.value })}
+                      />
+                      <label className="text-muted-foreground inline-flex items-center gap-1.5 text-[11.5px]">
+                        <input
+                          type="checkbox"
+                          checked={row.mustNotMiss}
+                          onChange={(ev) => set({ ...row, mustNotMiss: ev.target.checked })}
+                        />
+                        must-not-miss
+                      </label>
+                    </>
+                  )}
+                />
+              </Field>
+            </div>
+          ) : null}
+
+          {step === 4 ? (
+            <div className="flex flex-col gap-5">
+              <Field label="Investigations">
+                <RepeatList
+                  rows={investigations}
+                  onChange={setInvestigations}
+                  blank={{ kind: "bloods", text: "", loinc: "", justification: "" }}
+                  addLabel="Add investigation"
+                  render={(row, set) => (
+                    <>
+                      <select
+                        className={FIELD}
+                        value={row.kind}
+                        onChange={(ev) => set({ ...row, kind: ev.target.value })}
+                      >
+                        {["bloods", "imaging", "bedside", "special", "other"].map((o) => (
+                          <option key={o} value={o}>
+                            {o}
+                          </option>
+                        ))}
+                      </select>
+                      <Input
+                        placeholder="Test"
+                        value={row.text}
+                        onChange={(ev) => set({ ...row, text: ev.target.value })}
+                      />
+                      <Input
+                        list="loinc-codes"
+                        placeholder="LOINC"
+                        value={row.loinc}
+                        onChange={(ev) => set({ ...row, loinc: ev.target.value })}
+                      />
+                      <Input
+                        placeholder="Justification"
+                        value={row.justification}
+                        onChange={(ev) => set({ ...row, justification: ev.target.value })}
+                      />
+                    </>
+                  )}
+                />
+              </Field>
+              <Field label="Management plan">
+                <RichTextEditor
+                  value={managementPlan}
+                  onChange={setPlan}
+                  placeholder="Immediate, ongoing, referrals, monitoring…"
+                />
+              </Field>
+              <div className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
+                <Field label="Disposition">
+                  <select
+                    className={FIELD}
+                    value={disposition}
+                    onChange={(ev) => setDisposition(ev.target.value)}
+                  >
+                    <option value="">—</option>
+                    {["admit", "discharge", "refer", "observe", "transfer", "deceased"].map((o) => (
+                      <option key={o} value={o}>
+                        {o}
+                      </option>
+                    ))}
+                  </select>
+                </Field>
+                <Field label="Safety-netting">
+                  <Input
+                    value={safetyNetting}
+                    onChange={(ev) => setSafetyNetting(ev.target.value)}
+                    placeholder="What to watch for, when to return…"
+                  />
+                </Field>
+              </div>
+            </div>
           ) : null}
         </div>
 
-        <SubHead>Background</SubHead>
-        <Field label="SOCRATES (free-text — optional)">
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-            {(
-              [
-                ["site", "Site"],
-                ["onset", "Onset"],
-                ["character", "Character"],
-                ["radiation", "Radiation"],
-                ["associated", "Associated"],
-                ["timing", "Timing"],
-                ["exacerbating", "Exac./reliev."],
-                ["severity", "Severity"],
-              ] as const
-            ).map(([k, lbl]) => (
-              <Input
-                key={k}
-                placeholder={lbl}
-                value={soc[k]}
-                onChange={(ev) => setSoc({ ...soc, [k]: ev.target.value })}
-              />
-            ))}
-          </div>
-        </Field>
-        <Field label="Past medical & surgical history">
-          <textarea
-            className={TEXTAREA}
-            rows={2}
-            value={pmh}
-            onChange={(ev) => setPmh(ev.target.value)}
-          />
-        </Field>
-        <Field label="Drug history">
-          <textarea
-            className={TEXTAREA}
-            rows={2}
-            value={drugHistory}
-            onChange={(ev) => setDrugHistory(ev.target.value)}
-          />
-        </Field>
-        <Field label="Allergies">
-          <RepeatList
-            rows={allergies}
-            onChange={setAllergies}
-            blank={{ substance: "", reaction: "", severity: "" }}
-            addLabel="Add allergy"
-            render={(row, set) => (
-              <>
-                <Input
-                  placeholder="Substance"
-                  value={row.substance}
-                  onChange={(ev) => set({ ...row, substance: ev.target.value })}
-                />
-                <Input
-                  placeholder="Reaction"
-                  value={row.reaction}
-                  onChange={(ev) => set({ ...row, reaction: ev.target.value })}
-                />
-                <select
-                  className={SELECT}
-                  value={row.severity}
-                  onChange={(ev) => set({ ...row, severity: ev.target.value })}
-                >
-                  <option value="">Severity…</option>
-                  {["mild", "moderate", "severe", "anaphylaxis", "unknown"].map((o) => (
-                    <option key={o} value={o}>
-                      {o}
-                    </option>
-                  ))}
-                </select>
-              </>
-            )}
-          />
-        </Field>
-        <Field label="Social">
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-            <Input
-              placeholder="Occupation"
-              value={social.occupation}
-              onChange={(ev) => setSocial({ ...social, occupation: ev.target.value })}
-            />
-            <Input
-              type="number"
-              placeholder="Smoking (pack-yrs)"
-              value={social.smokingPackYears}
-              onChange={(ev) => setSocial({ ...social, smokingPackYears: ev.target.value })}
-            />
-            <Input
-              type="number"
-              placeholder="Alcohol (units/wk)"
-              value={social.alcoholUnitsPerWeek}
-              onChange={(ev) => setSocial({ ...social, alcoholUnitsPerWeek: ev.target.value })}
-            />
-            <Input
-              placeholder="Recreational drugs"
-              value={social.recreationalDrugs}
-              onChange={(ev) => setSocial({ ...social, recreationalDrugs: ev.target.value })}
-            />
-          </div>
-        </Field>
-      </Section>
-
-      {/* Examination */}
-      <Section
-        step="02"
-        title="Examination"
-        description="General inspection & systems"
-        icon={StethoscopeIcon}
-      >
-        <Field label="General">
-          <textarea
-            className={TEXTAREA}
-            rows={2}
-            value={examGeneral}
-            onChange={(ev) => setExamGeneral(ev.target.value)}
-          />
-        </Field>
-        <div className="grid gap-2 sm:grid-cols-2">
-          {(
-            [
-              ["cardiovascular", "Cardiovascular"],
-              ["respiratory", "Respiratory"],
-              ["abdominal", "Abdominal"],
-              ["neurological", "Neurological"],
-            ] as const
-          ).map(([k, lbl]) => (
-            <Field key={k} label={lbl}>
-              <Input
-                value={examSystems[k]}
-                onChange={(ev) => setExamSystems({ ...examSystems, [k]: ev.target.value })}
-              />
-            </Field>
-          ))}
-        </div>
-      </Section>
-
-      {/* Synthesis */}
-      <Section
-        step="03"
-        title="Assessment & plan"
-        description="Impression, differential, orders & disposition"
-        icon={ClipboardCheckIcon}
-      >
-        <Field label="Summary / problem representation">
-          <textarea
-            className={TEXTAREA}
-            rows={2}
-            value={summary}
-            onChange={(ev) => setSummary(ev.target.value)}
-          />
-        </Field>
-        <Field label="Differential (mark must-not-miss)">
-          <RepeatList
-            rows={differential}
-            onChange={setDifferential}
-            blank={{ text: "", icd10: "", mustNotMiss: false }}
-            addLabel="Add diagnosis"
-            render={(row, set) => (
-              <>
-                <Input
-                  placeholder="Diagnosis"
-                  value={row.text}
-                  onChange={(ev) => set({ ...row, text: ev.target.value })}
-                />
-                <Input
-                  list="icd10-codes"
-                  placeholder="ICD-10"
-                  value={row.icd10}
-                  onChange={(ev) => set({ ...row, icd10: ev.target.value })}
-                />
-                <label className="text-muted-foreground inline-flex items-center gap-1.5 text-[11.5px]">
-                  <input
-                    type="checkbox"
-                    checked={row.mustNotMiss}
-                    onChange={(ev) => set({ ...row, mustNotMiss: ev.target.checked })}
-                  />
-                  must-not-miss
-                </label>
-              </>
-            )}
-          />
-        </Field>
-        <Field label="Investigations">
-          <RepeatList
-            rows={investigations}
-            onChange={setInvestigations}
-            blank={{ kind: "bloods", text: "", loinc: "", justification: "" }}
-            addLabel="Add investigation"
-            render={(row, set) => (
-              <>
-                <select
-                  className={SELECT}
-                  value={row.kind}
-                  onChange={(ev) => set({ ...row, kind: ev.target.value })}
-                >
-                  {["bloods", "imaging", "bedside", "special", "other"].map((o) => (
-                    <option key={o} value={o}>
-                      {o}
-                    </option>
-                  ))}
-                </select>
-                <Input
-                  placeholder="Test"
-                  value={row.text}
-                  onChange={(ev) => set({ ...row, text: ev.target.value })}
-                />
-                <Input
-                  list="loinc-codes"
-                  placeholder="LOINC"
-                  value={row.loinc}
-                  onChange={(ev) => set({ ...row, loinc: ev.target.value })}
-                />
-                <Input
-                  placeholder="Justification"
-                  value={row.justification}
-                  onChange={(ev) => set({ ...row, justification: ev.target.value })}
-                />
-              </>
-            )}
-          />
-        </Field>
-        <div className="grid gap-2 sm:grid-cols-2">
-          <Field label="Management plan">
-            <textarea
-              className={TEXTAREA}
-              rows={2}
-              value={managementPlan}
-              onChange={(ev) => setPlan(ev.target.value)}
-            />
-          </Field>
-          <Field label="Disposition">
-            <select
-              className={SELECT}
-              value={disposition}
-              onChange={(ev) => setDisposition(ev.target.value)}
-            >
-              <option value="">—</option>
-              {["admit", "discharge", "refer", "observe", "transfer", "deceased"].map((o) => (
-                <option key={o} value={o}>
-                  {o}
-                </option>
-              ))}
-            </select>
-          </Field>
-        </div>
-        <Field label="Safety-netting">
-          <Input value={safetyNetting} onChange={(ev) => setSafetyNetting(ev.target.value)} />
-        </Field>
-      </Section>
-
-      {/* Action bar — quiet, sticky, always reachable while scrolling. */}
-      <div className="sticky bottom-4 z-10">
-        <div className="border-border/70 bg-card/85 supports-backdrop-filter:bg-card/70 flex flex-wrap items-center gap-3 rounded-lg border px-3 py-2.5 shadow-sm backdrop-blur">
-          <Button type="button" variant="secondary" disabled={pending} onClick={() => save(false)}>
-            {pending ? "Saving…" : "Save draft"}
-          </Button>
-          <Button type="button" disabled={pending} onClick={() => save(true)}>
-            <CheckIcon className="size-4" aria-hidden />
-            Finalise
-          </Button>
+        {/* Footer — status + paging */}
+        <div className="border-border/60 bg-muted/30 flex flex-wrap items-center gap-3 border-t px-4 py-3 sm:px-5">
           {result && !result.ok ? (
             <span className="text-destructive text-[12px]" role="alert">
               {result.error}
             </span>
-          ) : result && result.ok ? (
-            <span
-              className="inline-flex items-center gap-1 text-[12px] text-teal-700 dark:text-teal-400"
-              role="status"
-            >
-              <CheckIcon className="size-3.5" aria-hidden />
-              Saved
+          ) : dirty ? (
+            <span className="text-muted-foreground inline-flex items-center gap-1.5 text-[12px]">
+              <RefreshCwIcon className="size-3.5" aria-hidden />
+              Unsaved changes
             </span>
           ) : (
-            <span className="text-muted-foreground ml-auto text-[11px]">
-              A correction is a new version — nothing is overwritten.
+            <span className="inline-flex items-center gap-1.5 text-[12px] text-teal-700 dark:text-teal-400">
+              <CheckIcon className="size-3.5" aria-hidden />
+              All changes saved
             </span>
           )}
+
+          <div className="ml-auto flex items-center gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              disabled={step === 0}
+              onClick={() => setStep((n) => Math.max(0, n - 1))}
+            >
+              <ChevronLeftIcon className="size-4" aria-hidden />
+              Back
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={pending}
+              onClick={() => save(false)}
+            >
+              {pending ? "Saving…" : "Save draft"}
+            </Button>
+            {step < last ? (
+              <Button type="button" onClick={() => setStep((n) => Math.min(last, n + 1))}>
+                Next
+                <ChevronRightIcon className="size-4" aria-hidden />
+              </Button>
+            ) : (
+              <Button type="button" disabled={pending} onClick={() => save(true)}>
+                <CheckIcon className="size-4" aria-hidden />
+                Finalise
+              </Button>
+            )}
+          </div>
         </div>
       </div>
+
+      <p className="text-muted-foreground mt-2 px-1 text-[11px]">
+        A correction is a new version — nothing is overwritten.
+      </p>
     </form>
   );
 }
 
 /* ── small presentational helpers ── */
 
-function Section({
-  step,
-  title,
-  description,
-  icon: Icon,
-  children,
-}: {
-  step: string;
-  title: string;
-  description?: string;
-  icon: ComponentType<{ className?: string }>;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className="flex flex-col gap-6">
-      <div className="border-border/60 flex items-center gap-2.5 border-b pb-2.5">
-        <Icon className="text-muted-foreground size-4 shrink-0" aria-hidden />
-        <h3 className="text-foreground text-[13px] font-semibold tracking-tight">{title}</h3>
-        {description ? (
-          <span className="text-muted-foreground hidden text-[11.5px] sm:inline">
-            · {description}
-          </span>
-        ) : null}
-        <span className="text-muted-foreground ml-auto font-mono text-[10px] tabular-nums">
-          {step}
-        </span>
-      </div>
-      <div className="flex flex-col gap-5">{children}</div>
-    </section>
-  );
-}
-
-function SubHead({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="text-muted-foreground mt-1 text-[10px] font-medium tracking-[0.12em] uppercase">
-      {children}
-    </span>
-  );
-}
-
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex flex-col gap-1.5">
       <Label className="text-[11.5px]">{label}</Label>
       {children}
     </div>
