@@ -257,19 +257,19 @@ export function SymptomCapture({
 
       {/* Selected symptoms — compact list with inline properties */}
       {value.length > 0 ? (
-        <div className="border-border/60 divide-border/60 flex flex-col divide-y rounded-lg border">
+        <div className="border-border/60 divide-border/60 flex flex-col divide-y overflow-hidden rounded-lg border">
           {value.map((s, idx) => {
             const sev = s.properties.find((p) => p.valueType === "scale" && p.num != null)?.num;
             const redFlags = s.properties.filter(isRedFlagValue).flatMap((p) => p.labels ?? []);
             const summary = summarise(s);
             const isOpen = expanded === idx;
             return (
-              <div key={s.symptomCode}>
-                <div className="flex items-center gap-2">
+              <div key={s.symptomCode} className={isOpen ? "bg-muted/20" : ""}>
+                <div className="hover:bg-muted/30 group flex items-center gap-2 transition-colors">
                   <button
                     type="button"
                     onClick={() => setExpanded(isOpen ? null : idx)}
-                    className="hover:bg-muted/40 flex min-w-0 flex-1 items-center gap-2 rounded-md px-3 py-2 text-left"
+                    className="flex min-w-0 flex-1 items-center gap-2 px-3 py-2.5 text-left"
                   >
                     <ChevronDownIcon
                       className={`text-muted-foreground size-3.5 shrink-0 transition-transform ${isOpen ? "" : "-rotate-90"}`}
@@ -309,13 +309,13 @@ export function SymptomCapture({
                       onChange(value.filter((_, i) => i !== idx));
                       setExpanded(null);
                     }}
-                    className="text-muted-foreground hover:text-destructive mr-1.5 shrink-0 rounded-md p-1"
+                    className="text-muted-foreground hover:text-destructive hover:bg-muted/60 mr-2 shrink-0 rounded-md p-1 opacity-60 transition-all group-hover:opacity-100"
                   >
                     <XIcon className="size-3.5" aria-hidden />
                   </button>
                 </div>
                 {isOpen ? (
-                  <div className="border-border/50 border-t px-3 py-3">
+                  <div className="border-border/50 border-t px-3 py-1.5">
                     <CompactProps
                       symptom={s}
                       properties={propsBySymptom[s.symptomCode] ?? null}
@@ -337,7 +337,7 @@ function MenuItem({ onClick, children }: { onClick: () => void; children: React.
     <button
       type="button"
       onClick={onClick}
-      className="hover:bg-muted/70 text-foreground flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[12.5px]"
+      className="hover:bg-muted/70 text-foreground flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[12.5px] transition-colors"
     >
       {children}
     </button>
@@ -378,7 +378,7 @@ function CompactProps({
   }
 
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="divide-border/50 flex flex-col divide-y">
       {properties.map((prop) => (
         <Row key={prop.code} label={prop.display} danger={isRedFlagProp(prop)}>
           <PropControl prop={prop} current={get(prop.code)} setProp={setProp} />
@@ -411,7 +411,7 @@ function Row({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 py-2">
       <span
         className={`w-24 shrink-0 text-[10px] font-medium tracking-[0.08em] uppercase ${
           danger
