@@ -8,10 +8,10 @@ import { ClerkshipInputSchema, clerkshipInputToClerkship } from "@/lib/encounter
  * fabricates (empty in → empty clerking out).
  */
 describe("clerkship-input", () => {
-  it("maps tap-first hpcItems into history + generates the hpc prose", () => {
+  it("maps tap-first hpcItems into history and appends the doctor's narrative", () => {
     const c = clerkshipInputToClerkship(
       ClerkshipInputSchema.parse({
-        hpc: "ignored when items present",
+        hpcNarrative: "Worse since this morning, came by boda.",
         hpcItems: [
           {
             symptomCode: "chest_pain",
@@ -30,9 +30,12 @@ describe("clerkship-input", () => {
       }),
     );
     expect(c.history?.hpcItems?.[0]!.symptomCode).toBe("chest_pain");
+    // generated prose AND the typed narrative both land in the HPC
     expect(c.history?.hpc).toContain("Crushing chest pain");
     expect(c.history?.hpc).toContain("severity 8/10");
-    expect(c.history?.hpc).not.toContain("ignored");
+    expect(c.history?.hpc).toContain("Worse since this morning, came by boda.");
+    // the raw narrative is kept separately for clean re-editing
+    expect(c.history?.hpcNarrative).toBe("Worse since this morning, came by boda.");
   });
 
   it("validates + maps the essential sections into the nested Clerkship", () => {

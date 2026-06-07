@@ -42,7 +42,10 @@ const capturedSymptom = z.object({
 export const ClerkshipInputSchema = z.object({
   presentingComplaint: z.string().max(2000).optional(),
   hpc: z.string().max(8000).optional(),
-  /** Tap-first structured HPC; when present, `hpc` prose is generated from it. */
+  /** The clinician's own free-typed HPC narrative (kept separate from the
+   * auto-generated symptom prose; the two are combined for display). */
+  hpcNarrative: z.string().max(8000).optional(),
+  /** Tap-first structured HPC; its prose is combined with the narrative. */
   hpcItems: z.array(capturedSymptom).max(30).optional(),
   socrates: z
     .object({
@@ -123,16 +126,21 @@ const prune = <T extends object>(o: T): T | undefined =>
 
 /** Build the engine's nested Clerkship from the validated form input. Pure. */
 export function clerkshipInputToClerkship(input: ClerkshipInput): Clerkship {
-  // Tap-first structured HPC: keep symptoms that have a code, and render the
-  // prose from them (the generated prose wins over any free-typed hpc).
+  // Tap-first structured HPC: keep symptoms that have a code, render their prose,
+  // and COMBINE it with the clinician's own narrative (both are preserved — the
+  // generated prose first, the typed narrative after).
   const hpcItems = (input.hpcItems ?? [])
     .filter((s) => s.symptomCode.trim().length > 0)
     .map((s) => ({ ...s }) as CapturedSymptom);
-  const hpcProse = hpcItems.length > 0 ? renderSymptomProse(hpcItems) : clean(input.hpc);
+  const generated = hpcItems.length > 0 ? renderSymptomProse(hpcItems) : undefined;
+  const narrative =
+    clean(input.hpcNarrative) ?? (hpcItems.length > 0 ? undefined : clean(input.hpc));
+  const hpcProse = [generated, narrative].filter(Boolean).join("\n\n") || undefined;
 
   const history = prune({
     presentingComplaint: clean(input.presentingComplaint),
     hpc: hpcProse,
+    hpcNarrative: narrative,
     hpcItems: hpcItems.length > 0 ? hpcItems : undefined,
     socrates: input.socrates ? prune({ ...input.socrates }) : undefined,
     pmh: clean(input.pmh),

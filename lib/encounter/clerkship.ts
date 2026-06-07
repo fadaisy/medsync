@@ -74,7 +74,11 @@ export interface ClerkHistory {
   /** The single open-ended opening / reason for presentation. */
   opening?: string;
   presentingComplaint?: string;
+  /** Full rendered HPC for display = auto-generated symptom prose + narrative. */
   hpc?: string;
+  /** The clinician's own free-typed HPC narrative (Markdown), kept separate from
+   * the auto-generated symptom prose so editing reloads without duplication. */
+  hpcNarrative?: string;
   socrates?: Socrates;
   /**
    * Tap-first structured HPC (symptom-capture engine). Each item is a symptom +
