@@ -51,9 +51,23 @@ export const symptomCatalog = pgTable(
     sortOrder: integer("sort_order").notNull().default(0),
     version: text("version").notNull(),
     source: text("source").notNull(),
+    /** Attribution (migration 0044) — immutable; denormalized creator name. */
+    createdByUserId: uuid("created_by_user_id").references(() => authUsers.id, {
+      onDelete: "set null",
+    }),
+    createdByName: text("created_by_name"),
+    /** 'shared' = base catalog (seeded/approved); 'personal' = doctor-created, creator-only. */
+    scope: text("scope").notNull().default("shared"),
+    /** 'seed' | 'doctor' | 'approved' — provenance. */
+    origin: text("origin").notNull().default("seed"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [index("symptom_catalog_system_idx").on(t.system, t.sortOrder)],
+  (t) => [
+    index("symptom_catalog_system_idx").on(t.system, t.sortOrder),
+    index("symptom_catalog_scope_creator_idx").on(t.scope, t.createdByUserId),
+    check("symptom_catalog_scope_check", sql`${t.scope} IN ('shared','personal')`),
+    check("symptom_catalog_origin_check", sql`${t.origin} IN ('seed','doctor','approved')`),
+  ],
 );
 
 /* ── Catalog: properties (qualifiers) ──────────────────────────────── */

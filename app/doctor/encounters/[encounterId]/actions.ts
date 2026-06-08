@@ -1,12 +1,21 @@
 "use server";
 
-import type { CatalogProperty, CatalogSymptom } from "@/lib/clerkship/catalog";
+import type {
+  CatalogProperty,
+  CatalogPropertySummary,
+  CatalogSymptom,
+} from "@/lib/clerkship/catalog";
 import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 
 import { db } from "@/db";
 import { encounters } from "@/db/schema/scheduling";
-import { loadPropertiesForSymptom, loadSymptomCatalog } from "@/lib/clerkship/catalog";
+import {
+  loadPropertiesForSymptom,
+  loadPropertyCatalog,
+  loadSymptomCatalog,
+} from "@/lib/clerkship/catalog";
+import { createDoctorComplaint, proposeComplaintToShared } from "@/lib/clerkship/create-complaint";
 import { proposeCatalogItem } from "@/lib/clerkship/governance";
 import { requireDoctorScope } from "@/lib/doctor/scope";
 import { ClerkshipInputSchema, clerkshipInputToClerkship } from "@/lib/encounter/clerkship-input";
@@ -62,10 +71,10 @@ export async function submitClerkshipAction(
   return { ok: true, documentationId: res.documentationId };
 }
 
-/** Tap-first capture: the symptom list (for search) + a symptom's properties. */
+/** Tap-first capture: the symptom list (shared + my personal) + a symptom's properties. */
 export async function loadSymptomCatalogAction(): Promise<CatalogSymptom[]> {
-  await requireDoctorScope();
-  return loadSymptomCatalog();
+  const scope = await requireDoctorScope();
+  return loadSymptomCatalog(scope.userId);
 }
 
 export async function loadSymptomPropertiesAction(symptomCode: string): Promise<CatalogProperty[]> {
@@ -73,7 +82,71 @@ export async function loadSymptomPropertiesAction(symptomCode: string): Promise<
   return loadPropertiesForSymptom(symptomCode);
 }
 
+/** The property catalog — for the create-complaint mapping picker (reuse-only). */
+export async function loadPropertyCatalogAction(): Promise<CatalogPropertySummary[]> {
+  await requireDoctorScope();
+  return loadPropertyCatalog();
+}
+
+export type CreateComplaintResult =
+  | { ok: true; symptom: CatalogSymptom }
+  | { ok: false; error: string };
+
+/**
+ * Create a doctor-defined complaint (a reusable, attributed catalog TEMPLATE):
+ * name + system + synonyms + a mapping of EXISTING properties. Saves the
+ * STRUCTURE ONLY — never the patient values (those persist to the encounter as
+ * normal). Personal to the creator (usable immediately); attributed + audited.
+ */
+export async function createComplaintAction(input: {
+  display: string;
+  system: string;
+  synonyms: string[];
+  propertyCodes: string[];
+}): Promise<CreateComplaintResult> {
+  if (!encounterEngineLive()) return { ok: false, error: "The clinical module is not active yet." };
+  const scope = await requireDoctorScope();
+  const res = await createDoctorComplaint({
+    creatorUserId: scope.userId,
+    creatorName: scope.fullName,
+    display: input.display,
+    system: input.system,
+    synonyms: input.synonyms ?? [],
+    propertyCodes: input.propertyCodes ?? [],
+  });
+  if (!res.ok) return { ok: false, error: res.error };
+  return {
+    ok: true,
+    symptom: {
+      code: res.code,
+      display: input.display.trim(),
+      synonyms: input.synonyms ?? [],
+      system: input.system.trim(),
+      createdByName: scope.fullName,
+      createdAtIso: null,
+      scope: "personal",
+    },
+  };
+}
+
 export type ProposeResult = { ok: true } | { ok: false; error: string };
+
+/**
+ * Propose a personal doctor-created complaint (+ its mapping) for the SHARED
+ * catalog. Routes to CSO/SA review → approval promotes it. Never mutates the
+ * shared catalog directly.
+ */
+export async function proposeComplaintAction(code: string, note?: string): Promise<ProposeResult> {
+  if (!encounterEngineLive()) return { ok: false, error: "The clinical module is not active yet." };
+  const scope = await requireDoctorScope();
+  const res = await proposeComplaintToShared({
+    code,
+    proposerUserId: scope.userId,
+    hospitalId: scope.hospitalId,
+    note,
+  });
+  return res.ok ? { ok: true } : { ok: false, error: res.error };
+}
 
 /**
  * Propose an ad-hoc symptom to the SHARED catalog (governed). Routes to CSO/SA

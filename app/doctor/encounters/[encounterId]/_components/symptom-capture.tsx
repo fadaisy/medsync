@@ -1,14 +1,22 @@
 "use client";
 
-import type { CatalogProperty, CatalogSymptom } from "@/lib/clerkship/catalog";
+import type {
+  CatalogProperty,
+  CatalogPropertySummary,
+  CatalogSymptom,
+} from "@/lib/clerkship/catalog";
 import type { CapturedPropertyValue, CapturedSymptom } from "@/lib/clerkship/symptom-engine";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { AlertTriangleIcon, ChevronDownIcon, SearchIcon, XIcon } from "lucide-react";
+import { AlertTriangleIcon, ChevronDownIcon, SearchIcon, SparklesIcon, XIcon } from "lucide-react";
 
+import { Dialog, DialogClose, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import {
+  createComplaintAction,
+  loadPropertyCatalogAction,
   loadSymptomCatalogAction,
   loadSymptomPropertiesAction,
+  proposeComplaintAction,
   proposeSymptomAction,
 } from "../actions";
 
@@ -97,6 +105,8 @@ export function SymptomCapture({
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState<number | null>(null);
+  /** When non-null, the create-complaint dialog is open (string = name prefill). */
+  const [creating, setCreating] = useState<string | null>(null);
   const [, startTransition] = useTransition();
   const blurTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -119,6 +129,7 @@ export function SymptomCapture({
   }, [value, propsBySymptom]);
 
   const chosen = useMemo(() => new Set(value.map((v) => v.symptomCode)), [value]);
+  const catalogByCode = useMemo(() => new Map((catalog ?? []).map((c) => [c.code, c])), [catalog]);
 
   const matches = useMemo(() => {
     if (!catalog) return [];
@@ -169,6 +180,20 @@ export function SymptomCapture({
     addSymptom(slug, name, true);
   }
 
+  // A doctor-created template was saved → make it first-class immediately
+  // (append to the catalog so it surfaces in search) and add it to this clerking.
+  function onCreated(created: CatalogSymptom) {
+    setCatalog((prev) => [...(prev ?? []), created]);
+    setCreating(null);
+    onChange([
+      ...value,
+      { symptomCode: created.code, symptomDisplay: created.display, properties: [] },
+    ]);
+    setExpanded(value.length);
+    setQuery("");
+    setOpen(false);
+  }
+
   function updateSymptom(idx: number, next: CapturedSymptom) {
     onChange(value.map((s, i) => (i === idx ? next : s)));
   }
@@ -216,18 +241,33 @@ export function SymptomCapture({
                 {matches.map((s) => (
                   <MenuItem key={s.code} onClick={() => addSymptom(s.code, s.display)}>
                     {s.display}
+                    {s.createdByName ? (
+                      <span className="rounded bg-teal-50 px-1 text-[9.5px] text-teal-700 dark:bg-teal-950/40 dark:text-teal-300">
+                        yours
+                      </span>
+                    ) : null}
                     <span className="text-muted-foreground ml-auto text-[10px]">
                       {SYSTEM_LABEL[s.system] ?? s.system}
                     </span>
                   </MenuItem>
                 ))}
                 {canAddAdHoc ? (
-                  <MenuItem onClick={addAdHoc}>
-                    <span className="text-amber-700 dark:text-amber-300">Add “{query.trim()}”</span>
-                    <span className="text-muted-foreground ml-auto text-[10px]">
-                      not in catalog
-                    </span>
-                  </MenuItem>
+                  <>
+                    <MenuItem onClick={() => setCreating(query.trim())}>
+                      <SparklesIcon
+                        className="size-3.5 text-teal-600 dark:text-teal-400"
+                        aria-hidden
+                      />
+                      <span className="text-teal-700 dark:text-teal-300">
+                        Create “{query.trim()}” as a reusable complaint
+                      </span>
+                    </MenuItem>
+                    <MenuItem onClick={addAdHoc}>
+                      <span className="text-muted-foreground">
+                        Add “{query.trim()}” for this visit only
+                      </span>
+                    </MenuItem>
+                  </>
                 ) : null}
                 {matches.length === 0 && !canAddAdHoc ? (
                   <p className="text-muted-foreground px-2 py-1.5 text-[12px]">No match.</p>
@@ -251,9 +291,25 @@ export function SymptomCapture({
                 );
               })
             )}
+            <div className="border-border/50 mt-1 border-t pt-1">
+              <MenuItem onClick={() => setCreating(query.trim())}>
+                <SparklesIcon className="size-3.5 text-teal-600 dark:text-teal-400" aria-hidden />
+                <span className="text-teal-700 dark:text-teal-300">Create a complaint…</span>
+                <span className="text-muted-foreground ml-auto text-[10px]">
+                  not in the catalog?
+                </span>
+              </MenuItem>
+            </div>
           </div>
         ) : null}
       </div>
+
+      {/* Create-complaint dialog (a reusable, attributed template) */}
+      <Dialog open={creating !== null} onOpenChange={(o) => !o && setCreating(null)}>
+        {creating !== null ? (
+          <CreateComplaintDialog prefill={creating} onCreated={onCreated} />
+        ) : null}
+      </Dialog>
 
       {/* Selected symptoms — compact list with inline properties */}
       {value.length > 0 ? (
@@ -263,6 +319,8 @@ export function SymptomCapture({
             const redFlags = s.properties.filter(isRedFlagValue).flatMap((p) => p.labels ?? []);
             const summary = summarise(s);
             const isOpen = expanded === idx;
+            const meta = catalogByCode.get(s.symptomCode);
+            const personal = meta?.scope === "personal";
             return (
               <div key={s.symptomCode} className={isOpen ? "bg-muted/20" : ""}>
                 <div className="hover:bg-muted/30 group flex items-center gap-2 transition-colors">
@@ -279,7 +337,12 @@ export function SymptomCapture({
                       {s.symptomDisplay}
                     </span>
                     {s.adHoc ? (
-                      <span className="text-muted-foreground text-[10px]">new</span>
+                      <span className="text-muted-foreground text-[10px]">visit-only</span>
+                    ) : null}
+                    {personal ? (
+                      <span className="rounded bg-teal-50 px-1 text-[9.5px] font-medium text-teal-700 dark:bg-teal-950/40 dark:text-teal-300">
+                        template
+                      </span>
                     ) : null}
                     {sev != null ? (
                       <span className="text-muted-foreground inline-flex items-center gap-1 text-[11px] tabular-nums">
@@ -316,9 +379,16 @@ export function SymptomCapture({
                 </div>
                 {isOpen ? (
                   <div className="border-border/50 border-t px-3 py-1.5">
+                    {meta?.createdByName ? (
+                      <p className="text-muted-foreground border-border/50 mb-1 border-b pb-1.5 text-[10.5px]">
+                        Created by {meta.createdByName}
+                        {meta.createdAtIso ? ` · ${meta.createdAtIso.slice(0, 10)}` : ""}
+                      </p>
+                    ) : null}
                     <CompactProps
                       symptom={s}
                       properties={propsBySymptom[s.symptomCode] ?? null}
+                      personal={personal}
                       onChange={(next) => updateSymptom(idx, next)}
                     />
                   </div>
@@ -348,10 +418,12 @@ function MenuItem({ onClick, children }: { onClick: () => void; children: React.
 function CompactProps({
   symptom,
   properties,
+  personal,
   onChange,
 }: {
   symptom: CapturedSymptom;
   properties: CatalogProperty[] | null;
+  personal?: boolean;
   onChange: (next: CapturedSymptom) => void;
 }) {
   function setProp(code: string, build: (prev?: CapturedPropertyValue) => CapturedPropertyValue) {
@@ -395,6 +467,10 @@ function CompactProps({
       {symptom.adHoc ? (
         <Row label="Catalog">
           <ProposeAdHoc symptom={symptom} />
+        </Row>
+      ) : personal ? (
+        <Row label="Catalog">
+          <ProposeComplaint code={symptom.symptomCode} />
         </Row>
       ) : null}
     </div>
@@ -598,5 +674,209 @@ function ProposeAdHoc({ symptom }: { symptom: CapturedSymptom }) {
     >
       {pending ? "proposing…" : err ? "retry" : "propose to catalog"}
     </button>
+  );
+}
+
+/** Propose a personal doctor-created template (+ its mapping) for the shared catalog. */
+function ProposeComplaint({ code }: { code: string }) {
+  const [pending, start] = useTransition();
+  const [done, setDone] = useState(false);
+  const [err, setErr] = useState(false);
+  if (done)
+    return (
+      <span className="text-[11px] text-teal-700 dark:text-teal-400">proposed to shared ✓</span>
+    );
+  return (
+    <button
+      type="button"
+      disabled={pending}
+      title="Propose this complaint for the shared catalog (CSO reviews)"
+      onClick={() =>
+        start(async () => {
+          const res = await proposeComplaintAction(code);
+          if (res.ok) setDone(true);
+          else setErr(true);
+        })
+      }
+      className="text-[11px] text-teal-600 underline decoration-dotted underline-offset-2 hover:text-teal-700 disabled:opacity-50 dark:text-teal-400"
+    >
+      {pending ? "proposing…" : err ? "retry" : "propose to shared catalog"}
+    </button>
+  );
+}
+
+/**
+ * Create-complaint dialog — name + system + synonyms + tap to map EXISTING
+ * properties. Saves the STRUCTURE only (the template); the patient's tapped
+ * values are never part of it.
+ */
+function CreateComplaintDialog({
+  prefill,
+  onCreated,
+}: {
+  prefill: string;
+  onCreated: (s: CatalogSymptom) => void;
+}) {
+  const lbl = "text-muted-foreground text-[10px] font-medium tracking-[0.1em] uppercase";
+  const [display, setDisplay] = useState(prefill);
+  const [system, setSystem] = useState<string>("general");
+  const [synonyms, setSynonyms] = useState<string[]>([]);
+  const [synInput, setSynInput] = useState("");
+  const [picked, setPicked] = useState<Set<string>>(new Set());
+  const [props, setProps] = useState<CatalogPropertySummary[] | null>(null);
+  const [pending, start] = useTransition();
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    loadPropertyCatalogAction()
+      .then(setProps)
+      .catch(() => setProps([]));
+  }, []);
+
+  const mappable = (props ?? []).filter((p) => !p.common);
+
+  function addSyn() {
+    const v = synInput.trim();
+    if (v && !synonyms.includes(v)) setSynonyms([...synonyms, v]);
+    setSynInput("");
+  }
+  function toggle(code: string) {
+    setPicked((prev) => {
+      const n = new Set(prev);
+      if (n.has(code)) n.delete(code);
+      else n.add(code);
+      return n;
+    });
+  }
+  function save() {
+    setErr(null);
+    start(async () => {
+      const res = await createComplaintAction({
+        display,
+        system,
+        synonyms,
+        propertyCodes: [...picked],
+      });
+      if (res.ok) onCreated(res.symptom);
+      else setErr(res.error);
+    });
+  }
+
+  return (
+    <DialogContent
+      showCloseButton={false}
+      className="gap-0 overflow-hidden rounded-lg p-0 sm:max-w-lg"
+    >
+      <div className="border-border/60 border-b px-5 py-4">
+        <DialogTitle className="flex items-center gap-2 text-[15px] font-semibold">
+          <SparklesIcon className="size-4 text-teal-600 dark:text-teal-400" aria-hidden />
+          Create a complaint
+        </DialogTitle>
+        <p className="text-muted-foreground mt-1 text-[11px] leading-snug">
+          Saved as a reusable template — its <strong>structure only</strong>. The values you tap for
+          this patient are recorded on the encounter, never baked into the template.
+        </p>
+      </div>
+
+      <div className="flex max-h-[64vh] flex-col gap-4 overflow-y-auto px-5 py-4">
+        <label className="flex flex-col gap-1.5">
+          <span className={lbl}>Name</span>
+          <Input
+            value={display}
+            onChange={(e) => setDisplay(e.target.value)}
+            placeholder="e.g. Knee swelling"
+          />
+        </label>
+
+        <div className="flex flex-col gap-1.5">
+          <span className={lbl}>Body system</span>
+          <div className="flex flex-wrap gap-1.5">
+            {SYSTEM_ORDER.map((sys) => (
+              <button
+                key={sys}
+                type="button"
+                className={chipClass(system === sys)}
+                onClick={() => setSystem(sys)}
+              >
+                {SYSTEM_LABEL[sys]}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <span className={lbl}>Synonyms (optional)</span>
+          <div className="flex flex-wrap items-center gap-1.5">
+            {synonyms.map((s) => (
+              <span
+                key={s}
+                className="bg-muted inline-flex items-center gap-1 rounded px-2 py-0.5 text-[11.5px]"
+              >
+                {s}
+                <button
+                  type="button"
+                  aria-label={`Remove ${s}`}
+                  onClick={() => setSynonyms(synonyms.filter((x) => x !== s))}
+                  className="text-muted-foreground hover:text-destructive"
+                >
+                  <XIcon className="size-3" aria-hidden />
+                </button>
+              </span>
+            ))}
+            <input
+              value={synInput}
+              onChange={(e) => setSynInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  addSyn();
+                }
+              }}
+              placeholder="type + Enter"
+              className="border-input bg-card min-w-[8rem] flex-1 rounded-md border px-2 py-1 text-[12px] outline-none focus-visible:border-teal-500"
+            />
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <span className={lbl}>Map properties</span>
+          <p className="text-muted-foreground -mt-0.5 text-[11px]">
+            Onset, duration & progression apply automatically — tap the other relevant ones.
+          </p>
+          {props === null ? (
+            <span className="text-muted-foreground text-[12px]">Loading…</span>
+          ) : (
+            <div className="flex flex-wrap gap-1.5">
+              {mappable.map((p) => (
+                <button
+                  key={p.code}
+                  type="button"
+                  className={chipClass(picked.has(p.code))}
+                  onClick={() => toggle(p.code)}
+                >
+                  {p.display}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {err ? <p className="text-destructive text-[12px]">{err}</p> : null}
+      </div>
+
+      <div className="border-border/60 bg-muted/30 flex items-center justify-end gap-2 border-t px-5 py-3">
+        <DialogClose className="text-muted-foreground hover:text-foreground rounded-md px-3 py-1.5 text-[12.5px]">
+          Cancel
+        </DialogClose>
+        <button
+          type="button"
+          disabled={pending || !display.trim()}
+          onClick={save}
+          className="rounded-md bg-teal-600 px-4 py-1.5 text-[12.5px] font-medium text-white transition-colors hover:bg-teal-700 disabled:opacity-50"
+        >
+          {pending ? "Saving…" : "Save & use"}
+        </button>
+      </div>
+    </DialogContent>
   );
 }

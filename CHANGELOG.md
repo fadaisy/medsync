@@ -5,6 +5,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Clerkship: doctor-created complaint = attributed catalog template (GATED) — 2026-06-07
+
+A clerking doctor can **create a complaint not in the catalog** — name + body system + synonyms + a **mapping of existing properties** — and save it as a **reusable, attributed template** ([ADR 0061](docs/adr/0061-doctor-created-complaint-template.md)). **Migration 0044 is GATED.**
+
+- **Template = structure only.** Saving stores the symptom DEFINITION + property MAPPING — **never** the patient's tapped values (those persist to the encounter as before). Enforced at one pure choke-point ([lib/clerkship/complaint-template.ts](lib/clerkship/complaint-template.ts) `templateStructure`), unit-tested (usefulness + privacy).
+- **Attribution, immutable.** Records + displays **"Created by Dr X · date"** wherever the complaint appears (`symptom_catalog.created_by_user_id` / `created_by_name` / `created_at`, locked by a `BEFORE UPDATE` trigger); proposal/approval trail via `catalog_proposals`.
+- **Two-tier governance.** Created complaints are `scope='personal'` (usable immediately by the creator; RLS hides them from others). A **"propose to shared catalog"** action → CSO/superadmin review → **approval promotes** the row to `scope='shared'` + applies the mapping (`reviewProposal`). The shared catalog is never directly user-mutated.
+- **Reuse-only properties (v1):** map from the existing property catalog; new properties go via the propose path. `loadSymptomCatalog(viewerUserId)` now returns shared ∪ the viewer's personal templates.
+- Migration 0044: `symptom_catalog` += `created_by_user_id` / `created_by_name` / `scope` / `origin`, scope-aware RLS, attribution-immutability trigger. Decision-support, not autonomous. Gated behind `ENCOUNTER_ENGINE_LIVE`. tsc / eslint / build clean; full suite **778 passing** (+3 template tests).
+
 ### Added — Clerkship: tap-first structured symptom-capture engine (GATED) — 2026-06-05
 
 History capture restructured to be **tap-first, minimal-typing** — symptoms, their properties, and each property's values are tapped, not typed ([ADR 0060](docs/adr/0060-clerkship-symptom-capture-engine.md); proposal [docs/clerkship-symptom-engine-gate-a-proposal.md](docs/clerkship-symptom-engine-gate-a-proposal.md)). **Migration 0042 is GATED — awaiting CSO sign-off** of the catalogs + the symptom→property mapping (it encodes _what to ask_).

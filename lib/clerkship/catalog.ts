@@ -23,6 +23,19 @@ export interface CatalogSymptom {
   display: string;
   synonyms: string[];
   system: string;
+  /** Attribution for doctor-created (personal/approved) entries; null for seeds. */
+  createdByName?: string | null;
+  createdAtIso?: string | null;
+  /** 'shared' (base catalog) | 'personal' (this doctor's own template). */
+  scope?: string;
+}
+
+/** A property the doctor can tap to map onto a new complaint (mapping picker). */
+export interface CatalogPropertySummary {
+  code: string;
+  display: string;
+  valueType: PropertyValueType;
+  common: boolean;
 }
 
 export interface CatalogPropertyOption {
@@ -39,19 +52,56 @@ export interface CatalogProperty {
   options: CatalogPropertyOption[];
 }
 
-/** The full active symptom list for the search/scroll picker. */
-export async function loadSymptomCatalog(): Promise<CatalogSymptom[]> {
+/**
+ * The active symptom list for the search/scroll picker — the SHARED base catalog
+ * plus the viewer's own PERSONAL doctor-created templates (migration 0044). A
+ * personal entry is never visible to other clinicians (RLS backs this too).
+ */
+export async function loadSymptomCatalog(viewerUserId?: string): Promise<CatalogSymptom[]> {
+  const visible = viewerUserId
+    ? or(eq(symptomCatalog.scope, "shared"), eq(symptomCatalog.createdByUserId, viewerUserId))
+    : eq(symptomCatalog.scope, "shared");
   const rows = await db
     .select({
       code: symptomCatalog.code,
       display: symptomCatalog.display,
       synonyms: symptomCatalog.synonyms,
       system: symptomCatalog.system,
+      createdByName: symptomCatalog.createdByName,
+      scope: symptomCatalog.scope,
+      createdAt: symptomCatalog.createdAt,
     })
     .from(symptomCatalog)
-    .where(eq(symptomCatalog.active, true))
+    .where(and(eq(symptomCatalog.active, true), visible))
     .orderBy(asc(symptomCatalog.sortOrder));
-  return rows.map((r) => ({ ...r, synonyms: r.synonyms ?? [] }));
+  return rows.map((r) => ({
+    code: r.code,
+    display: r.display,
+    synonyms: r.synonyms ?? [],
+    system: r.system,
+    createdByName: r.createdByName ?? null,
+    createdAtIso: r.createdAt ? r.createdAt.toISOString() : null,
+    scope: r.scope,
+  }));
+}
+
+/** Every property in the catalog — for the create-complaint mapping picker. */
+export async function loadPropertyCatalog(): Promise<CatalogPropertySummary[]> {
+  const rows = await db
+    .select({
+      code: symptomProperty.code,
+      display: symptomProperty.display,
+      valueType: symptomProperty.valueType,
+      common: symptomProperty.common,
+    })
+    .from(symptomProperty)
+    .orderBy(asc(symptomProperty.sortOrder));
+  return rows.map((r) => ({
+    code: r.code,
+    display: r.display,
+    valueType: r.valueType as PropertyValueType,
+    common: r.common,
+  }));
 }
 
 /**

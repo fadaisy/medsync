@@ -3,7 +3,7 @@ import "server-only";
 import { and, desc, eq } from "drizzle-orm";
 
 import { db } from "@/db";
-import { catalogProposals, symptomCatalog } from "@/db/schema/symptom-catalog";
+import { catalogProposals, symptomCatalog, symptomPropertyMap } from "@/db/schema/symptom-catalog";
 import { logger } from "@/lib/logger";
 
 /**
@@ -97,9 +97,12 @@ export async function reviewProposal(args: {
         display?: string;
         system?: string;
         synonyms?: string[];
+        mapping?: { propertyCode?: string; required?: boolean; sortOrder?: number }[];
       };
       if (payload.code && payload.display && payload.system) {
-        // Governed insert into the shared catalog (versioned). Idempotent.
+        // Governed PROMOTION: a doctor's personal template becomes shared (or a
+        // brand-new one is inserted shared). created_by_* are immutable (DB
+        // trigger) and untouched here, so the creator's attribution is preserved.
         await db
           .insert(symptomCatalog)
           .values({
@@ -107,10 +110,30 @@ export async function reviewProposal(args: {
             display: payload.display,
             system: payload.system,
             synonyms: payload.synonyms ?? [],
-            version: "proposed",
+            version: "shared",
             source: "clinician proposal (approved)",
+            scope: "shared",
+            origin: "approved",
           })
-          .onConflictDoNothing();
+          .onConflictDoUpdate({
+            target: symptomCatalog.code,
+            set: { scope: "shared", origin: "approved", active: true },
+          });
+        // Apply the proposed property mapping (structure only — never values).
+        const mapping = (payload.mapping ?? []).filter((m) => m.propertyCode);
+        if (mapping.length) {
+          await db
+            .insert(symptomPropertyMap)
+            .values(
+              mapping.map((m) => ({
+                symptomCode: payload.code!,
+                propertyCode: m.propertyCode!,
+                required: !!m.required,
+                sortOrder: m.sortOrder ?? 0,
+              })),
+            )
+            .onConflictDoNothing();
+        }
       }
     }
     await db
