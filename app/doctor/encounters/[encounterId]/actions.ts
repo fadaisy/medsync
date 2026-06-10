@@ -24,7 +24,7 @@ import { proposeCatalogItem } from "@/lib/clerkship/governance";
 import { requireDoctorScope } from "@/lib/doctor/scope";
 import { ClerkshipInputSchema, clerkshipInputToClerkship } from "@/lib/encounter/clerkship-input";
 import { encounterEngineLive } from "@/lib/encounter/feature";
-import { recordClerkshipVersion } from "@/lib/encounter/record";
+import { loadPatientClinicalRecord, recordClerkshipVersion } from "@/lib/encounter/record";
 import { toEncounterScope } from "@/lib/encounter/workspace-scope";
 
 export type SubmitClerkshipResult =
@@ -102,6 +102,45 @@ export async function loadRosCatalogAction(): Promise<RosScreenSymptom[]> {
 export async function loadClerkshipPicklistsAction(): Promise<Record<string, PicklistItem[]>> {
   await requireDoctorScope();
   return loadClerkshipPicklists();
+}
+
+export interface CarryForward {
+  allergies: { substance: string; reaction: string | null; severity: string | null }[];
+  problems: { item: string }[];
+  medications: {
+    name: string;
+    dose: string | null;
+    route: string | null;
+    frequency: string | null;
+  }[];
+}
+
+/** A returning patient's stored record — surfaced to review/confirm, not re-enter. */
+export async function loadCarryForwardAction(encounterId: string): Promise<CarryForward> {
+  const scope = await requireDoctorScope();
+  const empty: CarryForward = { allergies: [], problems: [], medications: [] };
+  const [enc] = await db
+    .select({ patientUserId: encounters.patientUserId })
+    .from(encounters)
+    .where(eq(encounters.id, encounterId))
+    .limit(1);
+  if (!enc?.patientUserId) return empty;
+  const rec = await loadPatientClinicalRecord(enc.patientUserId, toEncounterScope(scope));
+  if (!rec.ok) return empty;
+  return {
+    allergies: rec.allergies.map((a) => ({
+      substance: a.substance,
+      reaction: a.reaction,
+      severity: a.severity,
+    })),
+    problems: rec.problems.map((p) => ({ item: p.item })),
+    medications: rec.medications.map((m) => ({
+      name: m.name,
+      dose: m.dose,
+      route: m.route,
+      frequency: m.frequency,
+    })),
+  };
 }
 
 export type CreateComplaintResult =

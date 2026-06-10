@@ -448,6 +448,7 @@ export function ClerkshipForm({
                 </div>
               </Field>
               <HistorySections
+                encounterId={encounterId}
                 pmhItems={pmhItems}
                 setPmhItems={setPmhItems}
                 pmhScreen={pmhScreen}

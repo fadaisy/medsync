@@ -1,5 +1,6 @@
 "use client";
 
+import type { CarryForward } from "../actions";
 import type { PicklistItem } from "@/lib/clerkship/catalog";
 import type {
   ClerkAllergy,
@@ -11,7 +12,7 @@ import { useEffect, useMemo, useState } from "react";
 import { CheckIcon, PlusIcon, XIcon } from "lucide-react";
 
 import { PMH_SCREEN } from "@/lib/clerkship/history";
-import { loadClerkshipPicklistsAction } from "../actions";
+import { loadCarryForwardAction, loadClerkshipPicklistsAction } from "../actions";
 
 /**
  * Tap-first history sections — Past Medical, Past Surgical, Drug & Allergies.
@@ -43,20 +44,117 @@ type Props = {
   setAllergies: (v: ClerkAllergy[]) => void;
   negatives: Record<string, boolean>;
   setNegatives: (v: Record<string, boolean>) => void;
+  encounterId: string;
 };
 
 export function HistorySections(p: Props) {
   const [lists, setLists] = useState<Record<string, PicklistItem[]> | null>(null);
+  const [carry, setCarry] = useState<CarryForward | null>(null);
   useEffect(() => {
     loadClerkshipPicklistsAction()
       .then(setLists)
       .catch(() => setLists({}));
-  }, []);
+    loadCarryForwardAction(p.encounterId)
+      .then(setCarry)
+      .catch(() => setCarry(null));
+  }, [p.encounterId]);
 
   const setNeg = (key: string, on: boolean) => p.setNegatives({ ...p.negatives, [key]: on });
 
+  // Carry-forward: surface the patient's stored record to CONFIRM/import — not re-enter.
+  const newAllergies = (carry?.allergies ?? []).filter(
+    (a) => !p.allergies.some((x) => x.substance.toLowerCase() === a.substance.toLowerCase()),
+  );
+  const newProblems = (carry?.problems ?? []).filter(
+    (pr) => !p.pmhItems.some((x) => x.display.toLowerCase() === pr.item.toLowerCase()),
+  );
+  const newMeds = (carry?.medications ?? []).filter(
+    (m) => !p.medications.some((x) => x.name.toLowerCase() === m.name.toLowerCase()),
+  );
+  const hasCarry = newAllergies.length || newProblems.length || newMeds.length;
+
   return (
     <div className="flex flex-col gap-4">
+      {/* ── Carry-forward: confirm/import from the patient's record (not re-enter) ── */}
+      {hasCarry ? (
+        <div className="rounded-xl border border-teal-200/70 bg-teal-50/50 p-3 dark:border-teal-900/50 dark:bg-teal-950/20">
+          <span className="inline-flex items-center gap-1 text-[10px] font-medium tracking-[0.1em] text-teal-700 uppercase dark:text-teal-400">
+            From this patient&apos;s record — tap to confirm into this encounter
+          </span>
+          <div className="mt-1.5 flex flex-col gap-1.5">
+            {newAllergies.length ? (
+              <CarryRow label="Allergies">
+                {newAllergies.map((a, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    className={chip(false)}
+                    onClick={() => {
+                      setNeg("nkda", false);
+                      p.setAllergies([
+                        ...p.allergies,
+                        {
+                          substance: a.substance,
+                          reaction: a.reaction ?? undefined,
+                          severity: (a.severity as ClerkAllergy["severity"]) ?? undefined,
+                        },
+                      ]);
+                    }}
+                  >
+                    <PlusIcon className="mr-0.5 inline size-3" aria-hidden />
+                    {a.substance}
+                  </button>
+                ))}
+              </CarryRow>
+            ) : null}
+            {newProblems.length ? (
+              <CarryRow label="Problems">
+                {newProblems.map((pr, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    className={chip(false)}
+                    onClick={() => {
+                      setNeg("no_pmh", false);
+                      p.setPmhItems([...p.pmhItems, { code: `record_${i}`, display: pr.item }]);
+                    }}
+                  >
+                    <PlusIcon className="mr-0.5 inline size-3" aria-hidden />
+                    {pr.item}
+                  </button>
+                ))}
+              </CarryRow>
+            ) : null}
+            {newMeds.length ? (
+              <CarryRow label="Medications">
+                {newMeds.map((m, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    className={chip(false)}
+                    onClick={() => {
+                      setNeg("no_meds", false);
+                      p.setMedications([
+                        ...p.medications,
+                        {
+                          name: m.name,
+                          dose: m.dose ?? undefined,
+                          route: m.route ?? undefined,
+                          frequency: m.frequency ?? undefined,
+                        },
+                      ]);
+                    }}
+                  >
+                    <PlusIcon className="mr-0.5 inline size-3" aria-hidden />
+                    {m.name}
+                  </button>
+                ))}
+              </CarryRow>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
+
       {/* ── Past Medical History ── */}
       <section className={SECTION}>
         <div className="flex items-center justify-between">
@@ -455,6 +553,17 @@ function toggleReaction(allergies: ClerkAllergy[], i: number, r: string): ClerkA
     const next = cur.includes(r) ? cur.filter((y) => y !== r) : [...cur, r];
     return { ...x, reaction: next.join(", ") || undefined };
   });
+}
+
+function CarryRow({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex flex-wrap items-center gap-1">
+      <span className="text-muted-foreground w-24 shrink-0 text-[10px] tracking-wide uppercase">
+        {label}
+      </span>
+      {children}
+    </div>
+  );
 }
 
 function NilTap({
