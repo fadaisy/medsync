@@ -7,11 +7,13 @@ import type {
   PicklistItem,
   RosScreenSymptom,
 } from "@/lib/clerkship/catalog";
+import type { AdultVitals } from "@/lib/triage/types";
 import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 
 import { db } from "@/db";
 import { encounters } from "@/db/schema/scheduling";
+import { triageRecords } from "@/db/schema/triage";
 import {
   loadClerkshipPicklists,
   loadPropertiesForSymptom,
@@ -102,6 +104,32 @@ export async function loadRosCatalogAction(): Promise<RosScreenSymptom[]> {
 export async function loadClerkshipPicklistsAction(): Promise<Record<string, PicklistItem[]>> {
   await requireDoctorScope();
   return loadClerkshipPicklists();
+}
+
+export interface CarriedVitals {
+  vitals: AdultVitals | null;
+  triagedAtIso: string | null;
+}
+
+/** The triage vitals snapshot to CARRY FORWARD into the general exam (read-only). */
+export async function loadTriageVitalsAction(encounterId: string): Promise<CarriedVitals> {
+  await requireDoctorScope();
+  const [enc] = await db
+    .select({ triageRecordId: encounters.triageRecordId })
+    .from(encounters)
+    .where(eq(encounters.id, encounterId))
+    .limit(1);
+  if (!enc?.triageRecordId) return { vitals: null, triagedAtIso: null };
+  const [tr] = await db
+    .select({ snapshot: triageRecords.vitalsSnapshot, triagedAt: triageRecords.triagedAt })
+    .from(triageRecords)
+    .where(eq(triageRecords.id, enc.triageRecordId))
+    .limit(1);
+  if (!tr) return { vitals: null, triagedAtIso: null };
+  return {
+    vitals: (tr.snapshot ?? null) as AdultVitals | null,
+    triagedAtIso: tr.triagedAt ? tr.triagedAt.toISOString() : null,
+  };
 }
 
 export interface CarryForward {

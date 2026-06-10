@@ -5,6 +5,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Clerkship: General Examination (tap-first findings + vitals + reasoning) — 2026-06-10
+
+The Examination tab's general survey as **tap-first** capture ([ADR 0066](docs/adr/0066-clerkship-general-examination.md)). **No migration** — code-module catalog; ships on deploy.
+
+- **Three-state findings** (present / absent / **not-examined**; not-examined ≠ normal) + value-set chips, finding-grouped (inspection · spot-diagnosis · hands · face/eyes/mouth · neck · lymphoreticular/peripheral) with a **"normal general exam" fast path**. Catalog `lib/clerkship/exam/catalog.ts` (CSO-signed, Hutchison Ch 2); engine pure/TDD (8 tests).
+- **Vitals** — carry the triage set forward read-only (`loadTriageVitalsAction` → triage `vitalsSnapshot`) + **record new**; interpretation **reuses NEWS2** (`scoreNews2`, no new thresholds) with the **scores-0-≠-normal** discipline + trend arrows. Monitoring engine not built → honest "not yet attached" state; capture not rebuilt.
+- **Reasoning thread** — the differential's exam targets surface in the panel; recorded findings **feed back** (present → positives, absent → negatives) so it re-weights live. Never predicts/auto-records/auto-diagnoses.
+- General-first; system exams (CVS/resp/abdo/neuro) stay free-text, flagged as later focused modules. tsc/eslint/build clean; **818 tests**.
+
 ### Added — Clerkship: reasoning discriminator tap-options (GATED) — 2026-06-10
 
 Migration **0047** (GATED) makes the live reasoning re-ranking match **exactly**, not just by keyword. An audit found only **34 genuine gaps** (the other flagged features already keyword-match curated options); 0047 adds a per-PC **"Discriminating features"** multi-select seeded with those gaps (31 options across 12 PCs), mapped to the symptom(s) the clinician taps — additive, does not touch the curated 0043 SOCRATES properties; reuses `symptom_property`/`_option`/`_map` (no new tables). Enriched maps (113 differentials, 65 must-not-miss) + cross-system support/refute already shipped. Artifact: `docs/clinical/enriched-reasoning-maps.json`.

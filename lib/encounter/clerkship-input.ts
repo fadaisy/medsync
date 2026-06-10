@@ -225,6 +225,34 @@ export const ClerkshipInputSchema = z.object({
     })
     .optional(),
   examGeneral: z.string().max(8000).optional(),
+  /** Tap-first general-exam findings (three-state + value-sets). */
+  examGeneralFindings: z
+    .array(
+      z.object({
+        code: z.string().max(80),
+        group: z.string().max(40),
+        display: z.string().max(160),
+        state: z.enum(["present", "absent", "not_examined"]),
+        values: z.array(z.string().max(120)).max(20).optional(),
+        note: z.string().max(1000).optional(),
+      }),
+    )
+    .max(120)
+    .optional(),
+  /** A vitals set recorded at this exam (triage set is carried, not re-entered). */
+  examVitals: z
+    .object({
+      hr: z.number().min(0).max(400).optional(),
+      rr: z.number().min(0).max(120).optional(),
+      spo2: z.number().min(0).max(100).optional(),
+      sbp: z.number().min(0).max(320).optional(),
+      dbp: z.number().min(0).max(260).optional(),
+      tempC: z.number().min(20).max(45).optional(),
+      glucose: z.number().min(0).max(60).optional(),
+      gcs: z.number().min(3).max(15).optional(),
+      recordedAtIso: z.string().max(40).optional(),
+    })
+    .optional(),
   examSystems: z
     .object({
       cardiovascular: z.string().max(2000).optional(),
@@ -320,6 +348,11 @@ export function clerkshipInputToClerkship(input: ClerkshipInput): Clerkship {
 
   const examination = prune({
     general: clean(input.examGeneral),
+    generalFindings: input.examGeneralFindings?.filter((x) => x.state !== "not_examined"),
+    vitals:
+      input.examVitals && Object.values(input.examVitals).some((v) => v !== undefined)
+        ? input.examVitals
+        : undefined,
     systems: input.examSystems ? prune({ ...input.examSystems }) : undefined,
   });
 
