@@ -91,21 +91,22 @@ export function ReasoningPanel({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="fixed right-3 bottom-3 z-40 inline-flex items-center gap-1.5 rounded-full bg-teal-600 px-3 py-2 text-[12px] font-medium text-white shadow-lg"
+        className="border-border bg-card inline-flex w-full items-center gap-1.5 rounded-2xl border px-3.5 py-2.5 text-[12px] font-medium text-teal-700 shadow-sm xl:sticky xl:top-20 dark:text-teal-300"
       >
         <BrainCircuitIcon className="size-4" aria-hidden />
-        Reasoning
+        Clinical reasoning
         {mnmCount ? (
-          <span className="rounded-full bg-amber-400 px-1.5 text-[10px] font-semibold text-amber-950">
+          <span className="rounded-full bg-amber-100 px-1.5 text-[10px] font-semibold text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
             {mnmCount}
           </span>
         ) : null}
+        <span className="text-muted-foreground ml-auto text-[10px]">show</span>
       </button>
     );
   }
 
   return (
-    <aside className="border-border bg-card/95 fixed top-20 right-3 bottom-3 z-40 flex w-[21rem] max-w-[calc(100vw-1.5rem)] flex-col overflow-hidden rounded-2xl border shadow-xl backdrop-blur">
+    <aside className="border-border bg-card flex flex-col overflow-hidden rounded-2xl border shadow-sm xl:sticky xl:top-20 xl:max-h-[calc(100vh-6rem)]">
       <div className="border-border/60 flex items-center gap-2 border-b px-3.5 py-2.5">
         <BrainCircuitIcon
           className="size-4 shrink-0 text-teal-600 dark:text-teal-400"
