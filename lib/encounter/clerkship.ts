@@ -30,6 +30,37 @@ export interface ClerkMedication {
   dose?: string;
   route?: string;
   frequency?: string;
+  /** Indication — links to a PMH condition code where known. */
+  indication?: string;
+  adherence?: "good" | "occasional_miss" | "frequent_miss" | "stopped";
+  category?: "prescribed" | "otc" | "herbal" | "contraceptive";
+  /** Ad-hoc (not from the shared drug pick-list). */
+  adHoc?: boolean;
+}
+
+/** Tap-first PMH entry (condition pick-list + structured attributes). */
+export interface ClerkPmhItem {
+  code: string;
+  display: string;
+  year?: string;
+  status?: "well_controlled" | "poorly_controlled" | "remission" | "resolved" | "newly_diagnosed";
+  onTreatment?: boolean;
+  complications?: string[];
+  note?: string;
+  adHoc?: boolean;
+}
+
+/** Tap-first PSH entry (operation pick-list + attributes). */
+export interface ClerkPshItem {
+  code: string;
+  display: string;
+  year?: string;
+  indication?: string;
+  anaesthetic?: "ga" | "spinal" | "local" | "unsure";
+  anaestheticComplication?: boolean;
+  complications?: string;
+  note?: string;
+  adHoc?: boolean;
 }
 export interface ClerkDifferential {
   text: string;
@@ -96,6 +127,15 @@ export interface ClerkHistory {
   rosScope?: RosScope;
   /** Clinician's free-text ROS narrative — saved alongside the generated sweep summary. */
   rosNarrative?: string;
+  /** Tap-first PMH (condition pick-list + attributes). Chronic/active → problem list. */
+  pmhItems?: ClerkPmhItem[];
+  /** Always-screen toggles (diabetes/HTN/TB/HIV/sickle/…) → yes/no/unsure. */
+  pmhScreen?: Record<string, "yes" | "no" | "unsure">;
+  /** Tap-first PSH (operation pick-list + attributes). */
+  pshItems?: ClerkPshItem[];
+  /** Explicit recorded negatives per section (nkda / no_meds / no_pmh / no_psh /
+   * no_fh / non_smoker / …) — a recorded negative, not blank. */
+  negatives?: Record<string, boolean>;
   pmh?: string;
   /** Hutchison "retrospective history" prompt actioned. */
   retrospectiveChecked?: boolean;
@@ -280,7 +320,19 @@ export function deriveClinicalObjects(c: Clerkship): DerivedClinicalObjects {
   const allergies = (c.history?.allergies ?? []).filter((a) => a.substance?.trim());
   const medications = (c.history?.medications ?? []).filter((m) => m.name?.trim());
   const diagnoses = (c.synthesis?.differential ?? []).filter((d) => d.text?.trim());
-  const problems = (c.synthesis?.problems ?? []).filter((p) => p.item?.trim());
+  // PMH chronic/active conditions are part of the problem list (single source of
+  // truth) — resolved ones are history only. Merge with the synthesis problems.
+  const pmhProblems: ClerkProblem[] = (c.history?.pmhItems ?? [])
+    .filter((p) => p.display?.trim() && p.status !== "resolved")
+    .map((p) => ({ item: p.display, active: true }));
+  const synthProblems = (c.synthesis?.problems ?? []).filter((p) => p.item?.trim());
+  const seen = new Set<string>();
+  const problems = [...pmhProblems, ...synthProblems].filter((p) => {
+    const k = p.item.trim().toLowerCase();
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
   const orders = (c.synthesis?.investigations ?? []).filter((o) => o.text?.trim());
   return {
     allergies,

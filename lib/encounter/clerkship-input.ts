@@ -93,6 +93,67 @@ export const ClerkshipInputSchema = z.object({
     )
     .max(50)
     .optional(),
+  /** Tap-first PMH conditions (pick-list + attributes). → problem list. */
+  pmhItems: z
+    .array(
+      z.object({
+        code: z.string().max(80),
+        display: z.string().max(160),
+        year: z.string().max(20).optional(),
+        status: z
+          .enum([
+            "well_controlled",
+            "poorly_controlled",
+            "remission",
+            "resolved",
+            "newly_diagnosed",
+          ])
+          .optional(),
+        onTreatment: z.boolean().optional(),
+        complications: z.array(z.string().max(80)).max(20).optional(),
+        note: z.string().max(1000).optional(),
+        adHoc: z.boolean().optional(),
+      }),
+    )
+    .max(50)
+    .optional(),
+  /** Always-screen "ever had?" toggles (yes/no/unsure). */
+  pmhScreen: z.record(z.string().max(60), z.enum(["yes", "no", "unsure"])).optional(),
+  /** Tap-first PSH operations (pick-list + attributes). */
+  pshItems: z
+    .array(
+      z.object({
+        code: z.string().max(80),
+        display: z.string().max(160),
+        year: z.string().max(20).optional(),
+        indication: z.string().max(240).optional(),
+        anaesthetic: z.enum(["ga", "spinal", "local", "unsure"]).optional(),
+        anaestheticComplication: z.boolean().optional(),
+        complications: z.string().max(500).optional(),
+        note: z.string().max(1000).optional(),
+        adHoc: z.boolean().optional(),
+      }),
+    )
+    .max(50)
+    .optional(),
+  /** Tap-first current medications (drug pick-list + attributes). → medications. */
+  medications: z
+    .array(
+      z.object({
+        name: z.string().max(160),
+        dose: z.string().max(80).optional(),
+        route: z.string().max(40).optional(),
+        frequency: z.string().max(40).optional(),
+        indication: z.string().max(160).optional(),
+        adherence: z.enum(["good", "occasional_miss", "frequent_miss", "stopped"]).optional(),
+        category: z.enum(["prescribed", "otc", "herbal", "contraceptive"]).optional(),
+        adHoc: z.boolean().optional(),
+      }),
+    )
+    .max(50)
+    .optional(),
+  /** Explicit recorded negatives per section (nkda / no_meds / no_pmh / …). */
+  negatives: z.record(z.string().max(40), z.boolean()).optional(),
   social: z
     .object({
       occupation: z.string().max(240).optional(),
@@ -175,6 +236,13 @@ export function clerkshipInputToClerkship(input: ClerkshipInput): Clerkship {
     socrates: input.socrates ? prune({ ...input.socrates }) : undefined,
     pmh: clean(input.pmh),
     drugHistory: clean(input.drugHistory),
+    pmhItems: input.pmhItems?.filter((x) => x.display.trim().length > 0),
+    pmhScreen: input.pmhScreen && Object.keys(input.pmhScreen).length ? input.pmhScreen : undefined,
+    pshItems: input.pshItems?.filter((x) => x.display.trim().length > 0),
+    medications: input.medications
+      ?.filter((m) => m.name.trim().length > 0)
+      .map((m) => ({ ...m, name: m.name.trim() })),
+    negatives: input.negatives && Object.keys(input.negatives).length ? input.negatives : undefined,
     allergies: input.allergies
       ?.filter((a) => a.substance.trim().length > 0)
       .map((a) => ({ substance: a.substance.trim(), reaction: a.reaction, severity: a.severity })),

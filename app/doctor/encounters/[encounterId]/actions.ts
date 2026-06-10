@@ -4,6 +4,7 @@ import type {
   CatalogProperty,
   CatalogPropertySummary,
   CatalogSymptom,
+  PicklistItem,
   RosScreenSymptom,
 } from "@/lib/clerkship/catalog";
 import { revalidatePath } from "next/cache";
@@ -12,6 +13,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { encounters } from "@/db/schema/scheduling";
 import {
+  loadClerkshipPicklists,
   loadPropertiesForSymptom,
   loadPropertyCatalog,
   loadRosCatalog,
@@ -94,6 +96,12 @@ export async function loadPropertyCatalogAction(): Promise<CatalogPropertySummar
 export async function loadRosCatalogAction(): Promise<RosScreenSymptom[]> {
   await requireDoctorScope();
   return loadRosCatalog();
+}
+
+/** The clerkship history-section pick-lists (condition/operation/allergen/drug/…). */
+export async function loadClerkshipPicklistsAction(): Promise<Record<string, PicklistItem[]>> {
+  await requireDoctorScope();
+  return loadClerkshipPicklists();
 }
 
 export type CreateComplaintResult =

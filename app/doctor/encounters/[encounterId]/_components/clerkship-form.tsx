@@ -3,7 +3,13 @@
 import type { SubmitClerkshipResult } from "../actions";
 import type { RosObservation, RosScope } from "@/lib/clerkship/ros";
 import type { CapturedSymptom } from "@/lib/clerkship/symptom-engine";
-import type { Clerkship } from "@/lib/encounter/clerkship";
+import type {
+  ClerkAllergy,
+  ClerkMedication,
+  ClerkPmhItem,
+  ClerkPshItem,
+  Clerkship,
+} from "@/lib/encounter/clerkship";
 import type { ComponentType } from "react";
 import { useState, useTransition } from "react";
 import {
@@ -28,6 +34,7 @@ import { renderRosProse } from "@/lib/clerkship/ros";
 import { renderSymptomProse } from "@/lib/clerkship/symptom-engine";
 import { ICD10_CODES, LOINC_CODES } from "@/lib/encounter/reference-codes";
 import { submitClerkshipAction } from "../actions";
+import { HistorySections } from "./history-sections";
 import { RichTextEditor } from "./rich-text";
 import { RosReview } from "./ros-review";
 import { SymptomCapture } from "./symptom-capture";
@@ -54,7 +61,6 @@ const TABS: { label: string; icon: ComponentType<{ className?: string }> }[] = [
   { label: "Plan", icon: ClipboardCheckIcon },
 ];
 
-type AllergyRow = { substance: string; reaction: string; severity: string };
 type DxRow = { text: string; icd10: string; mustNotMiss: boolean };
 type OrderRow = { kind: string; text: string; loinc: string; justification: string };
 
@@ -77,8 +83,12 @@ type FormState = {
     string
   >;
   pmh: string;
-  drugHistory: string;
-  allergies: AllergyRow[];
+  pmhItems: ClerkPmhItem[];
+  pmhScreen: Record<string, "yes" | "no" | "unsure">;
+  pshItems: ClerkPshItem[];
+  medications: ClerkMedication[];
+  allergies: ClerkAllergy[];
+  negatives: Record<string, boolean>;
   social: Record<
     "occupation" | "smokingPackYears" | "alcoholUnitsPerWeek" | "recreationalDrugs",
     string
@@ -111,7 +121,11 @@ function buildClerkshipInput(f: FormState): unknown {
     rosNarrative: f.rosNarrative,
     socrates: f.soc,
     pmh: f.pmh,
-    drugHistory: f.drugHistory,
+    pmhItems: f.pmhItems,
+    pmhScreen: f.pmhScreen,
+    pshItems: f.pshItems,
+    medications: f.medications,
+    negatives: f.negatives,
     allergies: f.allergies.map((a) => ({
       substance: a.substance,
       reaction: a.reaction || undefined,
@@ -173,14 +187,14 @@ export function ClerkshipForm({
     severity: h?.socrates?.severity ?? "",
   });
   const [pmh, setPmh] = useState(h?.pmh ?? "");
-  const [drugHistory, setDrugHistory] = useState(h?.drugHistory ?? "");
-  const [allergies, setAllergies] = useState<AllergyRow[]>(
-    (h?.allergies ?? []).map((a) => ({
-      substance: a.substance,
-      reaction: a.reaction ?? "",
-      severity: a.severity ?? "",
-    })),
+  const [pmhItems, setPmhItems] = useState<ClerkPmhItem[]>(h?.pmhItems ?? []);
+  const [pmhScreen, setPmhScreen] = useState<Record<string, "yes" | "no" | "unsure">>(
+    h?.pmhScreen ?? {},
   );
+  const [pshItems, setPshItems] = useState<ClerkPshItem[]>(h?.pshItems ?? []);
+  const [medications, setMedications] = useState<ClerkMedication[]>(h?.medications ?? []);
+  const [allergies, setAllergies] = useState<ClerkAllergy[]>(h?.allergies ?? []);
+  const [negatives, setNegatives] = useState<Record<string, boolean>>(h?.negatives ?? {});
   const [social, setSocial] = useState({
     occupation: h?.social?.occupation ?? "",
     smokingPackYears: h?.social?.smokingPackYears?.toString() ?? "",
@@ -228,8 +242,12 @@ export function ClerkshipForm({
     rosNarrative,
     soc,
     pmh,
-    drugHistory,
+    pmhItems,
+    pmhScreen,
+    pshItems,
+    medications,
     allergies,
+    negatives,
     social,
     examGeneral,
     examSystems,
@@ -428,52 +446,25 @@ export function ClerkshipForm({
                   ))}
                 </div>
               </Field>
-              <Field label="Past medical & surgical history">
+              <HistorySections
+                pmhItems={pmhItems}
+                setPmhItems={setPmhItems}
+                pmhScreen={pmhScreen}
+                setPmhScreen={setPmhScreen}
+                pshItems={pshItems}
+                setPshItems={setPshItems}
+                medications={medications}
+                setMedications={setMedications}
+                allergies={allergies}
+                setAllergies={setAllergies}
+                negatives={negatives}
+                setNegatives={setNegatives}
+              />
+              <Field label="Other background notes">
                 <RichTextEditor
                   value={pmh}
                   onChange={setPmh}
-                  placeholder="Conditions, operations…"
-                />
-              </Field>
-              <Field label="Drug history">
-                <RichTextEditor
-                  value={drugHistory}
-                  onChange={setDrugHistory}
-                  placeholder="Regular & PRN medications, adherence…"
-                />
-              </Field>
-              <Field label="Allergies">
-                <RepeatList
-                  rows={allergies}
-                  onChange={setAllergies}
-                  blank={{ substance: "", reaction: "", severity: "" }}
-                  addLabel="Add allergy"
-                  render={(row, set) => (
-                    <>
-                      <Input
-                        placeholder="Substance"
-                        value={row.substance}
-                        onChange={(ev) => set({ ...row, substance: ev.target.value })}
-                      />
-                      <Input
-                        placeholder="Reaction"
-                        value={row.reaction}
-                        onChange={(ev) => set({ ...row, reaction: ev.target.value })}
-                      />
-                      <select
-                        className={FIELD}
-                        value={row.severity}
-                        onChange={(ev) => set({ ...row, severity: ev.target.value })}
-                      >
-                        <option value="">Severity…</option>
-                        {["mild", "moderate", "severe", "anaphylaxis", "unknown"].map((o) => (
-                          <option key={o} value={o}>
-                            {o}
-                          </option>
-                        ))}
-                      </select>
-                    </>
-                  )}
+                  placeholder="Admissions, immunisations, anything not captured above…"
                 />
               </Field>
               <Field label="Social">
