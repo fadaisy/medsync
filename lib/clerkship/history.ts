@@ -5,7 +5,14 @@
  * ("nil", "NKDA"), never blank-implied. No fabrication. Decision-support.
  */
 
-import type { ClerkMedication, ClerkPmhItem, ClerkPshItem } from "@/lib/encounter/clerkship";
+import type {
+  Cage,
+  ClerkFamilyItem,
+  ClerkMedication,
+  ClerkPmhItem,
+  ClerkPshItem,
+  ClerkSocial,
+} from "@/lib/encounter/clerkship";
 
 /** Always-screen "ever had?" toggles (PMH §1c) — high-yield, Uganda-relevant. CSO-signed. */
 export const PMH_SCREEN: { key: string; label: string }[] = [
@@ -104,6 +111,97 @@ function pshPhrase(p: ClerkPshItem): string {
 export function renderPshSummary(items: ClerkPshItem[]): string {
   const ops = items.filter((p) => p.display?.trim());
   return ops.length ? ops.map(pshPhrase).join("; ") + "." : "No previous operations recorded.";
+}
+
+/** CAGE score = number of "yes" (≥2 is a supportive prompt to explore — not a label). */
+export function cageScore(cage: Cage | undefined): number {
+  if (!cage) return 0;
+  return [cage.cutDown, cage.annoyed, cage.guilty, cage.eyeOpener].filter(Boolean).length;
+}
+
+const RELATIVE_LABEL: Record<string, string> = {
+  mother: "Mother",
+  father: "Father",
+  sibling: "Sibling",
+  child: "Child",
+  grandparent: "Grandparent",
+  aunt_uncle: "Aunt/uncle",
+  other: "Relative",
+};
+
+/** Family-history documentation; explicit "no significant FH" when empty. */
+export function renderFamilySummary(
+  items: ClerkFamilyItem[],
+  screen: Record<string, "yes" | "no" | "unsure">,
+): string {
+  const parts: string[] = [];
+  const entries = items.filter((f) => f.conditionDisplay?.trim());
+  if (entries.length) {
+    parts.push(
+      entries
+        .map((f) => {
+          const who = RELATIVE_LABEL[f.relative] ?? "Relative";
+          const bits = [
+            f.ageOnset?.trim() && `onset ${f.ageOnset.trim()}`,
+            f.deceased && "deceased",
+            f.causeOfDeath?.trim(),
+          ].filter(Boolean);
+          return `${who}: ${f.conditionDisplay}${bits.length ? ` (${bits.join(", ")})` : ""}`;
+        })
+        .join("; ") + ".",
+    );
+  }
+  const scr = Object.entries(screen ?? {});
+  if (scr.length) {
+    const pos = scr.filter(([, v]) => v === "yes").map(([k]) => k);
+    const neg = scr.filter(([, v]) => v === "no").map(([k]) => k);
+    const clauses: string[] = [];
+    if (pos.length) clauses.push("reports " + pos.join(", "));
+    if (neg.length) clauses.push("denies " + neg.join(", "));
+    if (clauses.length) parts.push("Family screen: " + clauses.join("; ") + ".");
+  }
+  return parts.length ? parts.join(" ") : "No significant family history recorded.";
+}
+
+/** Social-history documentation — pack-years auto-calc, CAGE, occupation, function. */
+export function renderSocialSummary(s: ClerkSocial | undefined): string {
+  if (!s) return "";
+  const parts: string[] = [];
+  if (s.smokingStatus === "never") parts.push("Non-smoker.");
+  else if (s.smokingStatus) {
+    const py = packYears(s.cigsPerDay, s.smokingYears);
+    const bits = [
+      py != null && `${py} pack-years`,
+      s.smokingStatus === "ex" && s.quitYear?.trim() && `quit ${s.quitYear.trim()}`,
+    ].filter(Boolean);
+    parts.push(`Smoking: ${s.smokingStatus}${bits.length ? ` (${bits.join(", ")})` : ""}.`);
+  }
+  if (s.alcoholStatus === "never") parts.push("No alcohol.");
+  else if (s.alcoholStatus) {
+    const score = cageScore(s.cage);
+    const bits = [
+      s.alcoholUnitsPerWeek != null && `${s.alcoholUnitsPerWeek} units/wk`,
+      score > 0 && `CAGE ${score}/4`,
+    ].filter(Boolean);
+    parts.push(`Alcohol: ${s.alcoholStatus}${bits.length ? ` (${bits.join(", ")})` : ""}.`);
+  }
+  if (s.drugUse && s.drugUse !== "never")
+    parts.push(
+      `Recreational drugs: ${s.drugUse}${s.drugDetail?.trim() ? ` (${s.drugDetail.trim()})` : ""}.`,
+    );
+  if (s.occupation?.trim())
+    parts.push(
+      `Occupation: ${s.occupation.trim()}${s.exposures?.length ? ` (exposures: ${s.exposures.join(", ")})` : ""}.`,
+    );
+  if (s.living || s.func || s.mobility) {
+    const bits = [
+      s.living && `lives ${s.living.replace(/_/g, " ")}`,
+      s.func && s.func.replace(/_/g, " "),
+      s.mobility && `mobility ${s.mobility}`,
+    ].filter(Boolean);
+    parts.push(`${bits.join(", ")}.`);
+  }
+  return parts.join(" ");
 }
 
 /** Drug history documentation — current medications; explicit "no regular meds" when empty. */

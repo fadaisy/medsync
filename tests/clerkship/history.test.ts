@@ -1,7 +1,14 @@
 import type { ClerkPmhItem, ClerkPshItem } from "@/lib/encounter/clerkship";
 import { describe, expect, it } from "vitest";
 
-import { packYears, renderPmhSummary, renderPshSummary } from "@/lib/clerkship/history";
+import {
+  cageScore,
+  packYears,
+  renderFamilySummary,
+  renderPmhSummary,
+  renderPshSummary,
+  renderSocialSummary,
+} from "@/lib/clerkship/history";
 
 describe("packYears", () => {
   it("computes (cigs/day ÷ 20) × years, 1dp", () => {
@@ -50,5 +57,47 @@ describe("renderPshSummary", () => {
   });
   it("empty → recorded nil", () => {
     expect(renderPshSummary([])).toBe("No previous operations recorded.");
+  });
+});
+
+describe("cageScore", () => {
+  it("counts the yes answers", () => {
+    expect(cageScore({ cutDown: true, annoyed: true, guilty: false, eyeOpener: true })).toBe(3);
+    expect(cageScore(undefined)).toBe(0);
+  });
+});
+
+describe("renderSocialSummary", () => {
+  it("auto-calcs pack-years + surfaces CAGE (never types the maths)", () => {
+    const s = renderSocialSummary({
+      smokingStatus: "current",
+      cigsPerDay: 20,
+      smokingYears: 15,
+      alcoholStatus: "regular",
+      alcoholUnitsPerWeek: 40,
+      cage: { cutDown: true, eyeOpener: true },
+    });
+    expect(s).toContain("Smoking: current (15 pack-years)");
+    expect(s).toContain("Alcohol: regular (40 units/wk, CAGE 2/4)");
+  });
+  it("records non-smoker / no-alcohol explicitly", () => {
+    expect(renderSocialSummary({ smokingStatus: "never", alcoholStatus: "never" })).toBe(
+      "Non-smoker. No alcohol.",
+    );
+  });
+});
+
+describe("renderFamilySummary", () => {
+  it("renders relative + condition; honest screen negatives", () => {
+    const s = renderFamilySummary(
+      [{ relative: "father", conditionDisplay: "IHD", ageOnset: "55", deceased: true }],
+      { diabetes: "yes", cancer: "no" },
+    );
+    expect(s).toContain("Father: IHD (onset 55, deceased)");
+    expect(s).toContain("reports diabetes");
+    expect(s).toContain("denies cancer");
+  });
+  it("empty → recorded nil", () => {
+    expect(renderFamilySummary([], {})).toBe("No significant family history recorded.");
   });
 });

@@ -50,6 +50,46 @@ export interface ClerkPmhItem {
   adHoc?: boolean;
 }
 
+/** Tap-first Family-history entry (relative + condition, reusing the condition list). */
+export interface ClerkFamilyItem {
+  relative: "mother" | "father" | "sibling" | "child" | "grandparent" | "aunt_uncle" | "other";
+  conditionCode?: string;
+  conditionDisplay: string;
+  ageOnset?: string;
+  deceased?: boolean;
+  causeOfDeath?: string;
+  adHoc?: boolean;
+}
+
+/** Structured social / personal history (tap-first; pack-years auto-calc, CAGE). */
+export interface ClerkSocial {
+  smokingStatus?: "never" | "current" | "ex";
+  cigsPerDay?: number;
+  smokingYears?: number;
+  quitYear?: string;
+  alcoholStatus?: "never" | "occasional" | "regular" | "ex";
+  alcoholUnitsPerWeek?: number;
+  cage?: Cage;
+  drugUse?: "never" | "past" | "current";
+  drugDetail?: string;
+  occupationCode?: string;
+  occupation?: string;
+  exposures?: string[];
+  living?: "alone" | "with_family" | "with_spouse" | "institution";
+  func?: "independent" | "some_help" | "dependent";
+  mobility?: "independent" | "aid" | "wheelchair" | "bedbound";
+  diet?: string;
+  activity?: "sedentary" | "moderate" | "active";
+  recentTravel?: string;
+}
+
+/** Ideas / Concerns / Expectations — the patient-centred layer (Hutchison). */
+export interface ClerkIce {
+  ideas?: string;
+  concerns?: string;
+  expectations?: string;
+}
+
 /** Tap-first PSH entry (operation pick-list + attributes). */
 export interface ClerkPshItem {
   code: string;
@@ -136,6 +176,13 @@ export interface ClerkHistory {
   /** Explicit recorded negatives per section (nkda / no_meds / no_pmh / no_psh /
    * no_fh / non_smoker / …) — a recorded negative, not blank. */
   negatives?: Record<string, boolean>;
+  /** Tap-first family history (relative + condition) + quick family screens. */
+  familyHistory?: ClerkFamilyItem[];
+  fhScreen?: Record<string, "yes" | "no" | "unsure">;
+  /** Structured social / personal history (smoking pack-years, alcohol/CAGE, …). */
+  socialHx?: ClerkSocial;
+  /** Ideas / concerns / expectations. */
+  ice?: ClerkIce;
   pmh?: string;
   /** Hutchison "retrospective history" prompt actioned. */
   retrospectiveChecked?: boolean;
@@ -144,7 +191,6 @@ export interface ClerkHistory {
   drugHistory?: string;
   allergies?: ClerkAllergy[];
   medications?: ClerkMedication[];
-  familyHistory?: string;
   social?: {
     occupation?: string;
     smokingPackYears?: number;
@@ -374,14 +420,17 @@ function historyFilled(h: ClerkHistory | undefined, id: string): boolean {
         (h.medications?.length ?? 0) > 0
       );
     case "familyHistory":
-      return !!h.familyHistory?.trim();
+      return (h.familyHistory?.length ?? 0) > 0 || !!(h.fhScreen && Object.keys(h.fhScreen).length);
     case "social":
       return !!(
-        h.social &&
-        (h.social.occupation?.trim() ||
-          h.social.smokingPackYears != null ||
-          h.social.alcoholUnitsPerWeek != null ||
-          h.social.functionContext?.trim())
+        (h.socialHx && Object.values(h.socialHx).some((v) => v !== undefined)) ||
+        (h.familyHistory?.length ?? 0) > 0 ||
+        (h.fhScreen && Object.keys(h.fhScreen).length > 0) ||
+        (h.social &&
+          (h.social.occupation?.trim() ||
+            h.social.smokingPackYears != null ||
+            h.social.alcoholUnitsPerWeek != null ||
+            h.social.functionContext?.trim()))
       );
     case "systematicEnquiry":
       return !!(h.systematicEnquiry && Object.values(h.systematicEnquiry).some((v) => v?.trim()));
