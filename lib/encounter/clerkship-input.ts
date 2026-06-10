@@ -60,6 +60,13 @@ export const ClerkshipInputSchema = z.object({
   hpcItems: z.array(capturedSymptom).max(30).optional(),
   /** Review-of-Systems screen (system-grouped three-state sweep). */
   ros: z.array(rosObservation).max(200).optional(),
+  /** ROS scope (complete/focused) — truthful coverage; PC systems are HPC-covered. */
+  rosScope: z
+    .object({
+      mode: z.enum(["complete", "focused"]),
+      reviewedSystems: z.array(z.string().max(40)).max(20),
+    })
+    .optional(),
   socrates: z
     .object({
       site: z.string().max(240).optional(),
@@ -161,6 +168,7 @@ export function clerkshipInputToClerkship(input: ClerkshipInput): Clerkship {
     hpcNarrative: narrative,
     hpcItems: hpcItems.length > 0 ? hpcItems : undefined,
     ros: ros.length > 0 ? ros : undefined,
+    rosScope: input.rosScope,
     socrates: input.socrates ? prune({ ...input.socrates }) : undefined,
     pmh: clean(input.pmh),
     drugHistory: clean(input.drugHistory),

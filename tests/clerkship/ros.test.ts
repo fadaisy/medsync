@@ -1,7 +1,13 @@
 import type { RosObservation } from "@/lib/clerkship/ros";
 import { describe, expect, it } from "vitest";
 
-import { renderRosProse, rosObservationRows, rosProgress } from "@/lib/clerkship/ros";
+import {
+  renderRosProse,
+  renderRosSummary,
+  rosCoverage,
+  rosObservationRows,
+  rosProgress,
+} from "@/lib/clerkship/ros";
 
 /**
  * The ROS sweep → readable documentation + queryable rows incl. pertinent
@@ -47,6 +53,40 @@ describe("renderRosProse", () => {
 describe("rosProgress", () => {
   it("counts systems reviewed + positives", () => {
     expect(rosProgress(ros)).toMatchObject({ reviewed: 2, total: 12, positives: 1 });
+  });
+});
+
+describe("rosCoverage + renderRosSummary — PC-suppression + honesty", () => {
+  const systems = ["cardiovascular", "respiratory", "gastrointestinal", "neurological"];
+  it("PC system → HPC-covered; reviewed → findings/all-negative; rest → not-reviewed (never negative)", () => {
+    const cover = rosCoverage({ observations: ros, pcSystems: ["cardiovascular"], systems });
+    expect(cover.cardiovascular).toBe("hpc"); // owned by the complaint
+    expect(cover.respiratory).toBe("all_negative"); // cough denied
+    expect(cover.gastrointestinal).toBe("not_reviewed"); // untouched ≠ negative
+    expect(cover.neurological).toBe("not_reviewed");
+  });
+  it("findings when a reviewed system has a positive", () => {
+    const cover = rosCoverage({
+      observations: [
+        { symptomCode: "x", symptomDisplay: "X", system: "gastrointestinal", status: "present" },
+      ],
+      pcSystems: [],
+      systems,
+    });
+    expect(cover.gastrointestinal).toBe("findings");
+  });
+  it("summary is honest: HPC line, findings, and not-reviewed (focused)", () => {
+    const s = renderRosSummary({
+      observations: ros,
+      pcSystems: ["cardiovascular"],
+      scope: { mode: "focused", reviewedSystems: ["respiratory"] },
+      systems,
+    });
+    expect(s).toContain("Cardiovascular: see History of Presenting Complaint.");
+    expect(s).toContain("Respiratory: denies cough.");
+    expect(s).toContain("Not reviewed: Gastrointestinal, Neurological (focused assessment).");
+    // a not-reviewed system is never rendered as negative/normal
+    expect(s).not.toMatch(/Gastrointestinal:.*denies/);
   });
 });
 

@@ -89,6 +89,78 @@ export function renderRosProse(ros: RosObservation[]): string {
   return out.join(" ");
 }
 
+/**
+ * ROS scope (clinician's choice). Complete = screen all non-suppressed systems;
+ * focused = only `reviewedSystems`. PC-owned systems are HPC-covered in both.
+ */
+export interface RosScope {
+  mode: "complete" | "focused";
+  /** Systems explicitly chosen in focused mode (ignored in complete mode). */
+  reviewedSystems: string[];
+}
+
+/** Truthful per-system coverage — never imply a system was screened when it wasn't. */
+export type RosCoverageState =
+  | "findings" // reviewed — ≥1 positive
+  | "all_negative" // reviewed — all denials
+  | "hpc" // owned by the presenting complaint → covered in the HPC
+  | "not_reviewed"; // focused-out or simply not screened — NOT the same as negative
+
+/**
+ * Per-system coverage from the observations + PC-owned systems. Coverage is
+ * driven by what was actually answered (findings/all-negative) or HPC ownership;
+ * anything else is honestly `not_reviewed` (never auto-negative). Pure.
+ */
+export function rosCoverage(args: {
+  observations: RosObservation[];
+  pcSystems: string[];
+  systems: readonly string[];
+}): Record<string, RosCoverageState> {
+  const pc = new Set(args.pcSystems);
+  const out: Record<string, RosCoverageState> = {};
+  for (const sys of args.systems) {
+    if (pc.has(sys)) {
+      out[sys] = "hpc";
+      continue;
+    }
+    const obs = args.observations.filter((o) => o.system === sys);
+    if (obs.some((o) => o.status === "present")) out[sys] = "findings";
+    else if (obs.length) out[sys] = "all_negative";
+    else out[sys] = "not_reviewed";
+  }
+  return out;
+}
+
+/** The honest ROS documentation: HPC-covered, reviewed findings/negatives, not-reviewed. */
+export function renderRosSummary(args: {
+  observations: RosObservation[];
+  pcSystems: string[];
+  scope: RosScope;
+  systems?: readonly string[];
+}): string {
+  const systems = args.systems ?? ROS_SYSTEM_ORDER;
+  const cover = rosCoverage({
+    observations: args.observations,
+    pcSystems: args.pcSystems,
+    systems,
+  });
+  const label = (s: string) => ROS_SYSTEM_LABEL[s] ?? s;
+  const parts: string[] = [];
+
+  const hpc = systems.filter((s) => cover[s] === "hpc");
+  if (hpc.length) parts.push(`${hpc.map(label).join(", ")}: see History of Presenting Complaint.`);
+
+  const findings = renderRosProse(args.observations); // per-system positives + denials
+  if (findings) parts.push(findings);
+
+  const notReviewed = systems.filter((s) => cover[s] === "not_reviewed");
+  if (notReviewed.length) {
+    const tail = args.scope.mode === "focused" ? " (focused assessment)" : "";
+    parts.push(`Not reviewed: ${notReviewed.map(label).join(", ")}${tail}.`);
+  }
+  return parts.join(" ");
+}
+
 export interface RosProgress {
   /** Systems with ≥1 reviewed symptom. */
   reviewed: number;

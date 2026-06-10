@@ -5,6 +5,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Clerkship: ROS system logic — PC-suppression + focused/complete — 2026-06-10
+
+Two pieces of clinical logic on the Review of Systems + a UI pass ([ADR 0063](docs/adr/0063-ros-pc-suppression-focused-complete.md)). **No migration** — coverage lives in `section_data`.
+
+- **PC-system suppression** — the presenting complaint's owning system(s) (derived from all HPC symptoms' `system`; multi-system, bias to include) are **covered in the HPC** and not re-screened in the routine ROS — shown with a "covered in HPC" chip, **still openable**.
+- **Focused vs Complete** — scope selector: Complete (all non-suppressed systems, default) or Focused (tap which systems to review); switch anytime; PC-suppression applies in both.
+- **Coverage honesty** — per system the record distinguishes **findings / all-negative / HPC-covered / not-reviewed**, and **not-reviewed is never auto-marked negative**. Honest summary via `renderRosSummary`.
+- **Engine** (pure/TDD): `RosScope`, `rosCoverage`, `renderRosSummary` (+3 tests). `history.rosScope` carried through the input/mapper. **UI** reworked: scope selector, honest roll-up (reviewed / covered-in-HPC / not-reviewed), per-system covered-in-HPC + focused-out + sweep states. Assists, never hides; nothing auto-marked. tsc/eslint/build clean; **785 tests**.
+
 ### Added — Clerkship: Review of Systems (ROS) engine (GATED) — 2026-06-07
 
 A system-grouped, tap-first **screening sweep** replaces the clerkship's History segment, built as an **upgrade of the existing symptom catalog** ([ADR 0062](docs/adr/0062-review-of-systems-engine.md)). **Migration 0045 is GATED.**
