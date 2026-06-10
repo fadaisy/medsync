@@ -269,3 +269,49 @@ export async function listAssignedEncountersForDoctor(args: {
     assignedAtIso: r.createdAt.toISOString(),
   }));
 }
+
+export interface DoctorEncounterRow {
+  encounterId: string;
+  patientCode: string | null;
+  state: string;
+  encounterType: string;
+  startedAtIso: string;
+}
+
+/**
+ * The doctor's OPEN + RECENT encounters (already started — in_progress or
+ * completed), most-recent first. Distinct from the `planned` assigned queue
+ * (those live on /doctor/assigned). Patient CODE only — no name decrypt until
+ * the audited record is opened. Server-only.
+ */
+export async function listDoctorEncounters(args: {
+  doctorUserId: string;
+  hospitalId: string;
+}): Promise<DoctorEncounterRow[]> {
+  const rows = await db
+    .select({
+      encounterId: encounters.id,
+      patientCode: patientProfiles.patientCode,
+      state: encounters.state,
+      encounterType: encounters.encounterType,
+      startedAt: encounters.startedAt,
+    })
+    .from(encounters)
+    .leftJoin(patientProfiles, eq(patientProfiles.id, encounters.patientUserId))
+    .where(
+      and(
+        eq(encounters.clinicianUserId, args.doctorUserId),
+        eq(encounters.hospitalId, args.hospitalId),
+        inArray(encounters.state, ["in_progress", "completed"]),
+      ),
+    )
+    .orderBy(desc(encounters.startedAt))
+    .limit(50);
+  return rows.map((r) => ({
+    encounterId: r.encounterId,
+    patientCode: r.patientCode,
+    state: r.state,
+    encounterType: r.encounterType,
+    startedAtIso: r.startedAt.toISOString(),
+  }));
+}
