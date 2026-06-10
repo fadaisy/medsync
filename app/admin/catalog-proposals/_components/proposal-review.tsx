@@ -34,6 +34,18 @@ export function ProposalReview({ proposal }: { proposal: PendingProposalRow }) {
           {proposal.createdAtIso.slice(0, 10)}
         </span>
       </div>
+      {Array.isArray(payload.mapping) && payload.mapping.length ? (
+        <p className="text-muted-foreground text-[11.5px]">
+          Maps {payload.mapping.length} propert
+          {payload.mapping.length === 1 ? "y" : "ies"}:{" "}
+          <span className="text-foreground">
+            {(payload.mapping as { propertyCode?: string }[])
+              .map((m) => m.propertyCode)
+              .filter(Boolean)
+              .join(", ")}
+          </span>
+        </p>
+      ) : null}
       <pre className="bg-muted/40 text-muted-foreground overflow-x-auto rounded-md p-2 text-[11px]">
         {JSON.stringify(payload, null, 2)}
       </pre>
