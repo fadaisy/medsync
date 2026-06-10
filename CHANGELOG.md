@@ -5,6 +5,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Clerkship: Review of Systems (ROS) engine (GATED) — 2026-06-07
+
+A system-grouped, tap-first **screening sweep** replaces the clerkship's History segment, built as an **upgrade of the existing symptom catalog** ([ADR 0062](docs/adr/0062-review-of-systems-engine.md)). **Migration 0045 is GATED.**
+
+- **Three-state model** — every screening symptom is **not-asked / denies / present**; not-asked = no row (never persisted), so **pertinent negatives are captured + queryable**. Distinct treatments (icon + label + tone, never colour alone).
+- **Catalog upgrade (0045)** — `symptom_catalog` += `ros_screen` / `is_pain` / `must_not_miss` / `uganda_flag`, body-system vocab expanded to B1–B12; `encounter_symptom_observations` += `status`. Seed from Hutchison Box 1.7: **81 ROS screens** (16 existing upgraded, 65 new), 204 properties, 341 options, 298 maps. One catalog now serves HPC capture + doctor-created complaints + the ROS.
+- **Engine** ([lib/clerkship/ros.ts](lib/clerkship/ros.ts), pure/TDD) — `renderRosProse` (per-system: positives reported, negatives as denials), `rosProgress`, `rosObservationRows` (status rows incl. denies). Stored in `history.ros` (versioned) + fanned to the projection (best-effort).
+- **UI** ([ros-review.tsx](app/doctor/encounters/[encounterId]/_components/ros-review.tsx)) — collapsible per-system sections, persistent progress bar, per-system roll-up chips, one-tap **All negative**, present → optional tap-first property capture, carried-over presenting complaint shown already-positive, `must_not_miss` = amber attention (red reserved). aria/keyboard accessible.
+- **Form** — tabs now Complaint · Review of Systems · Background · Examination · Assessment · Plan; PMH/drugs/allergies/social/SOCRATES moved to Background. Decision-support, not autonomous — nothing auto-marked. tsc/eslint/build clean; **782 tests** (+4 ROS).
+
 ### Added — Clerkship: doctor-created complaint = attributed catalog template (GATED) — 2026-06-07
 
 A clerking doctor can **create a complaint not in the catalog** — name + body system + synonyms + a **mapping of existing properties** — and save it as a **reusable, attributed template** ([ADR 0061](docs/adr/0061-doctor-created-complaint-template.md)). **Migration 0044 is GATED.**
