@@ -4,6 +4,7 @@ import type { PropertyValueType } from "@/lib/clerkship/symptom-engine";
 import { and, asc, eq, or } from "drizzle-orm";
 
 import { db } from "@/db";
+import { clerkshipPicklist } from "@/db/schema/clerkship-picklist";
 import {
   symptomCatalog,
   symptomProperty,
@@ -102,6 +103,45 @@ export async function loadPropertyCatalog(): Promise<CatalogPropertySummary[]> {
     valueType: r.valueType as PropertyValueType,
     common: r.common,
   }));
+}
+
+/** A clerkship history-section pick-list item (migration 0046). */
+export interface PicklistItem {
+  code: string;
+  listType: string;
+  display: string;
+  synonyms: string[];
+  /** list-specific extras (e.g. { complications: string[] }). */
+  meta: Record<string, unknown>;
+  ugandaFlag: string | null;
+}
+
+/** All active clerkship pick-lists, grouped by list_type (one query). */
+export async function loadClerkshipPicklists(): Promise<Record<string, PicklistItem[]>> {
+  const rows = await db
+    .select({
+      code: clerkshipPicklist.code,
+      listType: clerkshipPicklist.listType,
+      display: clerkshipPicklist.display,
+      synonyms: clerkshipPicklist.synonyms,
+      meta: clerkshipPicklist.meta,
+      ugandaFlag: clerkshipPicklist.ugandaFlag,
+    })
+    .from(clerkshipPicklist)
+    .where(eq(clerkshipPicklist.active, true))
+    .orderBy(asc(clerkshipPicklist.listType), asc(clerkshipPicklist.sortOrder));
+  const grouped: Record<string, PicklistItem[]> = {};
+  for (const r of rows) {
+    (grouped[r.listType] ??= []).push({
+      code: r.code,
+      listType: r.listType,
+      display: r.display,
+      synonyms: r.synonyms ?? [],
+      meta: (r.meta ?? {}) as Record<string, unknown>,
+      ugandaFlag: r.ugandaFlag ?? null,
+    });
+  }
+  return grouped;
 }
 
 /** A screening symptom for the Review-of-Systems sweep (migration 0045). */

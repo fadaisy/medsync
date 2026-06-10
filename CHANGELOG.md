@@ -5,6 +5,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Clerkship: remaining history sections (PMH/PSH/Drug/Family/Social/ICE), tap-first (GATED) — 2026-06-10
+
+The rest of the clerkship history as **tap-first** structured capture ([ADR 0064](docs/adr/0064-clerkship-history-sections.md)) — a normal full history with little or no typing. **Migration 0046 is GATED.**
+
+- **Pick-lists** — one governed `clerkship_picklist` (condition[shared PMH+FH]/operation/allergen/drug/occupation/exposure/immunisation), RLS + immutable attribution. Seed: **117 CSO-signed items**.
+- **PMH** (conditions + status/year/complications + always-screen toggles) → **problem_list**; **PSH** (operations + anaesthetic); **Drug Hx** (drug pick-list + dose/freq/adherence) → **encounter_medications**; **Allergies** (allergen + reaction/severity, **NKDA** tap) → **patient_allergies** (surface at prescribing).
+- **Family Hx** (relative + condition + quick screens); **Social** — smoking → **pack-years auto-calc**, alcohol → **CAGE** 4-tap, drugs (sensitive), occupation + exposures, living/function/mobility, lifestyle; **ICE**.
+- **Explicit recorded negatives** (NKDA / none / non-smoker), never blank. **Carry-forward** — a returning patient's record surfaced to confirm/import, not re-enter. **Governed ad-hoc** "Other (specify)" stays per-encounter local.
+- Structured entries live in `section_data` (no migration); engine `lib/clerkship/history.ts` (pure/TDD, 12 tests). Sensitive sections wellbeing-framed; CAGE = prompt, not label. tsc/eslint/build clean; **797 tests**.
+
 ### Added — Clerkship: ROS system logic — PC-suppression + focused/complete — 2026-06-10
 
 Two pieces of clinical logic on the Review of Systems + a UI pass ([ADR 0063](docs/adr/0063-ros-pc-suppression-focused-complete.md)). **No migration** — coverage lives in `section_data`.

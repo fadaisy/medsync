@@ -83,3 +83,6 @@ export * from "./clinical-codes";
 
 // ─── Clerkship symptom-capture engine (migration 0042 — GATED) ─────────
 export * from "./symptom-catalog";
+
+// ─── Clerkship history-section pick-lists (migration 0046 — GATED) ──────
+export * from "./clerkship-picklist";

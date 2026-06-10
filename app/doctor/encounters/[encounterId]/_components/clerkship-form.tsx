@@ -3,7 +3,16 @@
 import type { SubmitClerkshipResult } from "../actions";
 import type { RosObservation, RosScope } from "@/lib/clerkship/ros";
 import type { CapturedSymptom } from "@/lib/clerkship/symptom-engine";
-import type { Clerkship } from "@/lib/encounter/clerkship";
+import type {
+  ClerkAllergy,
+  ClerkFamilyItem,
+  ClerkIce,
+  ClerkMedication,
+  ClerkPmhItem,
+  ClerkPshItem,
+  Clerkship,
+  ClerkSocial,
+} from "@/lib/encounter/clerkship";
 import type { ComponentType } from "react";
 import { useState, useTransition } from "react";
 import {
@@ -28,6 +37,8 @@ import { renderRosProse } from "@/lib/clerkship/ros";
 import { renderSymptomProse } from "@/lib/clerkship/symptom-engine";
 import { ICD10_CODES, LOINC_CODES } from "@/lib/encounter/reference-codes";
 import { submitClerkshipAction } from "../actions";
+import { FamilySocialSections } from "./family-social-sections";
+import { HistorySections } from "./history-sections";
 import { RichTextEditor } from "./rich-text";
 import { RosReview } from "./ros-review";
 import { SymptomCapture } from "./symptom-capture";
@@ -54,7 +65,6 @@ const TABS: { label: string; icon: ComponentType<{ className?: string }> }[] = [
   { label: "Plan", icon: ClipboardCheckIcon },
 ];
 
-type AllergyRow = { substance: string; reaction: string; severity: string };
 type DxRow = { text: string; icd10: string; mustNotMiss: boolean };
 type OrderRow = { kind: string; text: string; loinc: string; justification: string };
 
@@ -77,12 +87,16 @@ type FormState = {
     string
   >;
   pmh: string;
-  drugHistory: string;
-  allergies: AllergyRow[];
-  social: Record<
-    "occupation" | "smokingPackYears" | "alcoholUnitsPerWeek" | "recreationalDrugs",
-    string
-  >;
+  pmhItems: ClerkPmhItem[];
+  pmhScreen: Record<string, "yes" | "no" | "unsure">;
+  pshItems: ClerkPshItem[];
+  medications: ClerkMedication[];
+  allergies: ClerkAllergy[];
+  negatives: Record<string, boolean>;
+  familyHistory: ClerkFamilyItem[];
+  fhScreen: Record<string, "yes" | "no" | "unsure">;
+  socialHx: ClerkSocial;
+  ice: ClerkIce;
   examGeneral: string;
   examSystems: Record<"cardiovascular" | "respiratory" | "abdominal" | "neurological", string>;
   summary: string;
@@ -96,10 +110,6 @@ type FormState = {
 // Pure: flat form state → the plain object the server re-validates (Zod safeParse).
 // Module-level so it can seed the dirty-tracking baseline without an effect.
 function buildClerkshipInput(f: FormState): unknown {
-  const num = (v: string) => {
-    const n = Number(v);
-    return v.trim() !== "" && Number.isFinite(n) ? n : undefined;
-  };
   return {
     presentingComplaint: f.hpcItems.length
       ? f.hpcItems.map((x) => x.symptomDisplay).join(", ")
@@ -111,18 +121,20 @@ function buildClerkshipInput(f: FormState): unknown {
     rosNarrative: f.rosNarrative,
     socrates: f.soc,
     pmh: f.pmh,
-    drugHistory: f.drugHistory,
+    pmhItems: f.pmhItems,
+    pmhScreen: f.pmhScreen,
+    pshItems: f.pshItems,
+    medications: f.medications,
+    negatives: f.negatives,
     allergies: f.allergies.map((a) => ({
       substance: a.substance,
       reaction: a.reaction || undefined,
       severity: a.severity || undefined,
     })),
-    social: {
-      occupation: f.social.occupation,
-      smokingPackYears: num(f.social.smokingPackYears),
-      alcoholUnitsPerWeek: num(f.social.alcoholUnitsPerWeek),
-      recreationalDrugs: f.social.recreationalDrugs,
-    },
+    familyHistory: f.familyHistory,
+    fhScreen: f.fhScreen,
+    socialHx: f.socialHx,
+    ice: f.ice,
     examGeneral: f.examGeneral,
     examSystems: f.examSystems,
     summary: f.summary,
@@ -173,20 +185,20 @@ export function ClerkshipForm({
     severity: h?.socrates?.severity ?? "",
   });
   const [pmh, setPmh] = useState(h?.pmh ?? "");
-  const [drugHistory, setDrugHistory] = useState(h?.drugHistory ?? "");
-  const [allergies, setAllergies] = useState<AllergyRow[]>(
-    (h?.allergies ?? []).map((a) => ({
-      substance: a.substance,
-      reaction: a.reaction ?? "",
-      severity: a.severity ?? "",
-    })),
+  const [pmhItems, setPmhItems] = useState<ClerkPmhItem[]>(h?.pmhItems ?? []);
+  const [pmhScreen, setPmhScreen] = useState<Record<string, "yes" | "no" | "unsure">>(
+    h?.pmhScreen ?? {},
   );
-  const [social, setSocial] = useState({
-    occupation: h?.social?.occupation ?? "",
-    smokingPackYears: h?.social?.smokingPackYears?.toString() ?? "",
-    alcoholUnitsPerWeek: h?.social?.alcoholUnitsPerWeek?.toString() ?? "",
-    recreationalDrugs: h?.social?.recreationalDrugs ?? "",
-  });
+  const [pshItems, setPshItems] = useState<ClerkPshItem[]>(h?.pshItems ?? []);
+  const [medications, setMedications] = useState<ClerkMedication[]>(h?.medications ?? []);
+  const [allergies, setAllergies] = useState<ClerkAllergy[]>(h?.allergies ?? []);
+  const [negatives, setNegatives] = useState<Record<string, boolean>>(h?.negatives ?? {});
+  const [familyHistory, setFamilyHistory] = useState<ClerkFamilyItem[]>(h?.familyHistory ?? []);
+  const [fhScreen, setFhScreen] = useState<Record<string, "yes" | "no" | "unsure">>(
+    h?.fhScreen ?? {},
+  );
+  const [socialHx, setSocialHx] = useState<ClerkSocial>(h?.socialHx ?? {});
+  const [ice, setIce] = useState<ClerkIce>(h?.ice ?? {});
   const [examGeneral, setExamGeneral] = useState(e?.general ?? "");
   const [examSystems, setExamSystems] = useState({
     cardiovascular: e?.systems?.cardiovascular ?? "",
@@ -228,9 +240,16 @@ export function ClerkshipForm({
     rosNarrative,
     soc,
     pmh,
-    drugHistory,
+    pmhItems,
+    pmhScreen,
+    pshItems,
+    medications,
     allergies,
-    social,
+    negatives,
+    familyHistory,
+    fhScreen,
+    socialHx,
+    ice,
     examGeneral,
     examSystems,
     summary,
@@ -428,82 +447,40 @@ export function ClerkshipForm({
                   ))}
                 </div>
               </Field>
-              <Field label="Past medical & surgical history">
+              <HistorySections
+                encounterId={encounterId}
+                pmhItems={pmhItems}
+                setPmhItems={setPmhItems}
+                pmhScreen={pmhScreen}
+                setPmhScreen={setPmhScreen}
+                pshItems={pshItems}
+                setPshItems={setPshItems}
+                medications={medications}
+                setMedications={setMedications}
+                allergies={allergies}
+                setAllergies={setAllergies}
+                negatives={negatives}
+                setNegatives={setNegatives}
+              />
+              <Field label="Other background notes">
                 <RichTextEditor
                   value={pmh}
                   onChange={setPmh}
-                  placeholder="Conditions, operations…"
+                  placeholder="Admissions, immunisations, anything not captured above…"
                 />
               </Field>
-              <Field label="Drug history">
-                <RichTextEditor
-                  value={drugHistory}
-                  onChange={setDrugHistory}
-                  placeholder="Regular & PRN medications, adherence…"
-                />
-              </Field>
-              <Field label="Allergies">
-                <RepeatList
-                  rows={allergies}
-                  onChange={setAllergies}
-                  blank={{ substance: "", reaction: "", severity: "" }}
-                  addLabel="Add allergy"
-                  render={(row, set) => (
-                    <>
-                      <Input
-                        placeholder="Substance"
-                        value={row.substance}
-                        onChange={(ev) => set({ ...row, substance: ev.target.value })}
-                      />
-                      <Input
-                        placeholder="Reaction"
-                        value={row.reaction}
-                        onChange={(ev) => set({ ...row, reaction: ev.target.value })}
-                      />
-                      <select
-                        className={FIELD}
-                        value={row.severity}
-                        onChange={(ev) => set({ ...row, severity: ev.target.value })}
-                      >
-                        <option value="">Severity…</option>
-                        {["mild", "moderate", "severe", "anaphylaxis", "unknown"].map((o) => (
-                          <option key={o} value={o}>
-                            {o}
-                          </option>
-                        ))}
-                      </select>
-                    </>
-                  )}
-                />
-              </Field>
-              <Field label="Social">
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                  <Input
-                    placeholder="Occupation"
-                    value={social.occupation}
-                    onChange={(ev) => setSocial({ ...social, occupation: ev.target.value })}
-                  />
-                  <Input
-                    type="number"
-                    placeholder="Smoking (pack-yrs)"
-                    value={social.smokingPackYears}
-                    onChange={(ev) => setSocial({ ...social, smokingPackYears: ev.target.value })}
-                  />
-                  <Input
-                    type="number"
-                    placeholder="Alcohol (units/wk)"
-                    value={social.alcoholUnitsPerWeek}
-                    onChange={(ev) =>
-                      setSocial({ ...social, alcoholUnitsPerWeek: ev.target.value })
-                    }
-                  />
-                  <Input
-                    placeholder="Recreational drugs"
-                    value={social.recreationalDrugs}
-                    onChange={(ev) => setSocial({ ...social, recreationalDrugs: ev.target.value })}
-                  />
-                </div>
-              </Field>
+              <FamilySocialSections
+                familyHistory={familyHistory}
+                setFamilyHistory={setFamilyHistory}
+                fhScreen={fhScreen}
+                setFhScreen={setFhScreen}
+                social={socialHx}
+                setSocial={setSocialHx}
+                ice={ice}
+                setIce={setIce}
+                negatives={negatives}
+                setNegatives={setNegatives}
+              />
             </div>
           ) : null}
 

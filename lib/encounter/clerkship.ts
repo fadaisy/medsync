@@ -30,6 +30,77 @@ export interface ClerkMedication {
   dose?: string;
   route?: string;
   frequency?: string;
+  /** Indication — links to a PMH condition code where known. */
+  indication?: string;
+  adherence?: "good" | "occasional_miss" | "frequent_miss" | "stopped";
+  category?: "prescribed" | "otc" | "herbal" | "contraceptive";
+  /** Ad-hoc (not from the shared drug pick-list). */
+  adHoc?: boolean;
+}
+
+/** Tap-first PMH entry (condition pick-list + structured attributes). */
+export interface ClerkPmhItem {
+  code: string;
+  display: string;
+  year?: string;
+  status?: "well_controlled" | "poorly_controlled" | "remission" | "resolved" | "newly_diagnosed";
+  onTreatment?: boolean;
+  complications?: string[];
+  note?: string;
+  adHoc?: boolean;
+}
+
+/** Tap-first Family-history entry (relative + condition, reusing the condition list). */
+export interface ClerkFamilyItem {
+  relative: "mother" | "father" | "sibling" | "child" | "grandparent" | "aunt_uncle" | "other";
+  conditionCode?: string;
+  conditionDisplay: string;
+  ageOnset?: string;
+  deceased?: boolean;
+  causeOfDeath?: string;
+  adHoc?: boolean;
+}
+
+/** Structured social / personal history (tap-first; pack-years auto-calc, CAGE). */
+export interface ClerkSocial {
+  smokingStatus?: "never" | "current" | "ex";
+  cigsPerDay?: number;
+  smokingYears?: number;
+  quitYear?: string;
+  alcoholStatus?: "never" | "occasional" | "regular" | "ex";
+  alcoholUnitsPerWeek?: number;
+  cage?: Cage;
+  drugUse?: "never" | "past" | "current";
+  drugDetail?: string;
+  occupationCode?: string;
+  occupation?: string;
+  exposures?: string[];
+  living?: "alone" | "with_family" | "with_spouse" | "institution";
+  func?: "independent" | "some_help" | "dependent";
+  mobility?: "independent" | "aid" | "wheelchair" | "bedbound";
+  diet?: string;
+  activity?: "sedentary" | "moderate" | "active";
+  recentTravel?: string;
+}
+
+/** Ideas / Concerns / Expectations — the patient-centred layer (Hutchison). */
+export interface ClerkIce {
+  ideas?: string;
+  concerns?: string;
+  expectations?: string;
+}
+
+/** Tap-first PSH entry (operation pick-list + attributes). */
+export interface ClerkPshItem {
+  code: string;
+  display: string;
+  year?: string;
+  indication?: string;
+  anaesthetic?: "ga" | "spinal" | "local" | "unsure";
+  anaestheticComplication?: boolean;
+  complications?: string;
+  note?: string;
+  adHoc?: boolean;
 }
 export interface ClerkDifferential {
   text: string;
@@ -96,6 +167,22 @@ export interface ClerkHistory {
   rosScope?: RosScope;
   /** Clinician's free-text ROS narrative — saved alongside the generated sweep summary. */
   rosNarrative?: string;
+  /** Tap-first PMH (condition pick-list + attributes). Chronic/active → problem list. */
+  pmhItems?: ClerkPmhItem[];
+  /** Always-screen toggles (diabetes/HTN/TB/HIV/sickle/…) → yes/no/unsure. */
+  pmhScreen?: Record<string, "yes" | "no" | "unsure">;
+  /** Tap-first PSH (operation pick-list + attributes). */
+  pshItems?: ClerkPshItem[];
+  /** Explicit recorded negatives per section (nkda / no_meds / no_pmh / no_psh /
+   * no_fh / non_smoker / …) — a recorded negative, not blank. */
+  negatives?: Record<string, boolean>;
+  /** Tap-first family history (relative + condition) + quick family screens. */
+  familyHistory?: ClerkFamilyItem[];
+  fhScreen?: Record<string, "yes" | "no" | "unsure">;
+  /** Structured social / personal history (smoking pack-years, alcohol/CAGE, …). */
+  socialHx?: ClerkSocial;
+  /** Ideas / concerns / expectations. */
+  ice?: ClerkIce;
   pmh?: string;
   /** Hutchison "retrospective history" prompt actioned. */
   retrospectiveChecked?: boolean;
@@ -104,7 +191,6 @@ export interface ClerkHistory {
   drugHistory?: string;
   allergies?: ClerkAllergy[];
   medications?: ClerkMedication[];
-  familyHistory?: string;
   social?: {
     occupation?: string;
     smokingPackYears?: number;
@@ -280,7 +366,19 @@ export function deriveClinicalObjects(c: Clerkship): DerivedClinicalObjects {
   const allergies = (c.history?.allergies ?? []).filter((a) => a.substance?.trim());
   const medications = (c.history?.medications ?? []).filter((m) => m.name?.trim());
   const diagnoses = (c.synthesis?.differential ?? []).filter((d) => d.text?.trim());
-  const problems = (c.synthesis?.problems ?? []).filter((p) => p.item?.trim());
+  // PMH chronic/active conditions are part of the problem list (single source of
+  // truth) — resolved ones are history only. Merge with the synthesis problems.
+  const pmhProblems: ClerkProblem[] = (c.history?.pmhItems ?? [])
+    .filter((p) => p.display?.trim() && p.status !== "resolved")
+    .map((p) => ({ item: p.display, active: true }));
+  const synthProblems = (c.synthesis?.problems ?? []).filter((p) => p.item?.trim());
+  const seen = new Set<string>();
+  const problems = [...pmhProblems, ...synthProblems].filter((p) => {
+    const k = p.item.trim().toLowerCase();
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
   const orders = (c.synthesis?.investigations ?? []).filter((o) => o.text?.trim());
   return {
     allergies,
@@ -322,14 +420,17 @@ function historyFilled(h: ClerkHistory | undefined, id: string): boolean {
         (h.medications?.length ?? 0) > 0
       );
     case "familyHistory":
-      return !!h.familyHistory?.trim();
+      return (h.familyHistory?.length ?? 0) > 0 || !!(h.fhScreen && Object.keys(h.fhScreen).length);
     case "social":
       return !!(
-        h.social &&
-        (h.social.occupation?.trim() ||
-          h.social.smokingPackYears != null ||
-          h.social.alcoholUnitsPerWeek != null ||
-          h.social.functionContext?.trim())
+        (h.socialHx && Object.values(h.socialHx).some((v) => v !== undefined)) ||
+        (h.familyHistory?.length ?? 0) > 0 ||
+        (h.fhScreen && Object.keys(h.fhScreen).length > 0) ||
+        (h.social &&
+          (h.social.occupation?.trim() ||
+            h.social.smokingPackYears != null ||
+            h.social.alcoholUnitsPerWeek != null ||
+            h.social.functionContext?.trim()))
       );
     case "systematicEnquiry":
       return !!(h.systematicEnquiry && Object.values(h.systematicEnquiry).some((v) => v?.trim()));
