@@ -11,14 +11,25 @@ import { loadTriageVitalsAction } from "../actions";
 
 /**
  * Vitals — carry the triage set forward (read-only) + record a new set. Interp
- * REUSES the triage NEWS2 scorer (no new thresholds); the "scores 0 ≠ normal"
- * discipline is held (the score is shown, never conflated with "clinically
- * well"). Recorded sets attach to the encounter; the monitoring engine isn't
- * built yet (honest state). Decision-support, not autonomous.
+ * REUSES the triage NEWS2 scorer (no new thresholds) and COLOUR-CODES each vital
+ * by its NEWS2 parameter points (0 normal · 1–2 borderline · 3 critical). The
+ * "scores 0 ≠ normal" discipline holds. Recorded sets attach to the encounter;
+ * the monitoring engine isn't built (honest state). Decision-support.
  */
 
-const NUM =
-  "border-input bg-card w-16 rounded px-1.5 py-1 text-[12px] tabular-nums outline-none focus-visible:border-teal-500";
+/** Per-NEWS2-points colour (value text). */
+function tone(points: number | undefined): string {
+  if (points == null) return "text-foreground/80";
+  if (points >= 3) return "text-red-700 dark:text-red-400";
+  if (points >= 1) return "text-amber-700 dark:text-amber-400";
+  return "text-teal-700 dark:text-teal-400";
+}
+function inputTone(points: number | undefined): string {
+  if (points == null) return "border-input";
+  if (points >= 3) return "border-red-400 dark:border-red-700";
+  if (points >= 1) return "border-amber-400 dark:border-amber-600";
+  return "border-teal-400 dark:border-teal-700";
+}
 
 /** RecordedVitals → AdultVitals for the NEWS2 scorer (defaults: scale 1, air). */
 function toAdult(v: RecordedVitals): AdultVitals {
@@ -29,10 +40,16 @@ function toAdult(v: RecordedVitals): AdultVitals {
     oxygen: "air",
     systolicBp: v.sbp ?? null,
     pulse: v.hr ?? null,
-    // NEWS2 only distinguishes Alert vs not — map GCS<15 → non-alert (3 pts).
     consciousness: v.gcs == null ? null : v.gcs >= 15 ? "A" : "V",
     temperature: v.tempC ?? null,
   };
+}
+
+/** parameter-key → points from a NEWS2 result. */
+function pointsMap(adult: AdultVitals): Record<string, number> {
+  const out: Record<string, number> = {};
+  for (const p of scoreNews2(adult).parameters) if (p.present) out[p.parameter] = p.points;
+  return out;
 }
 
 export function VitalsPanel({
@@ -53,80 +70,105 @@ export function VitalsPanel({
 
   const hasNew = Object.values(value).some((x) => x !== undefined && x !== "");
   const news = useMemo(() => (hasNew ? scoreNews2(toAdult(value)) : null), [value, hasNew]);
-  const num = (v: number | undefined) => (v == null ? undefined : v);
+  const pts = useMemo(() => (hasNew ? pointsMap(toAdult(value)) : {}), [value, hasNew]);
+  const carriedPts = useMemo(() => (carried?.vitals ? pointsMap(carried.vitals) : {}), [carried]);
   const set = (patch: Partial<RecordedVitals>) => onChange({ ...value, ...patch });
 
+  const totalTone = !news
+    ? "bg-muted text-foreground"
+    : news.hasSingleParameterThree || news.total >= 7
+      ? "bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-300"
+      : news.total >= 5
+        ? "bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300"
+        : "bg-teal-100 text-teal-800 dark:bg-teal-950/40 dark:text-teal-300";
+
   return (
-    <div className="border-border/70 flex flex-col gap-3 rounded-xl border p-3.5">
-      <span className="text-foreground inline-flex items-center gap-1.5 text-[13px] font-semibold">
-        <ActivityIcon className="size-4 text-teal-600 dark:text-teal-400" aria-hidden />
-        Vital signs
-      </span>
-
-      {/* Carried from triage */}
-      {carried?.vitals ? (
-        <div className="bg-muted/30 rounded-lg px-3 py-2">
-          <span className="text-muted-foreground text-[10px] font-medium tracking-wide uppercase">
-            Carried from triage
-            {carried.triagedAtIso
-              ? ` · ${carried.triagedAtIso.slice(0, 16).replace("T", " ")}`
-              : ""}
-          </span>
-          <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 font-mono text-[11.5px] tabular-nums">
-            <Carried label="RR" v={carried.vitals.respiratoryRate} cur={value.rr} />
-            <Carried label="SpO₂" v={carried.vitals.spo2} cur={value.spo2} suffix="%" />
-            <Carried label="HR" v={carried.vitals.pulse} cur={value.hr} />
-            <Carried label="SBP" v={carried.vitals.systolicBp} cur={value.sbp} />
-            <Carried label="Temp" v={carried.vitals.temperature} cur={value.tempC} suffix="°C" />
-            {carried.vitals.consciousness ? (
-              <span className="text-muted-foreground">ACVPU {carried.vitals.consciousness}</span>
-            ) : null}
-          </div>
-        </div>
-      ) : (
-        <p className="text-muted-foreground text-[11.5px]">No triage vitals to carry forward.</p>
-      )}
-
-      {/* Record new */}
-      <div className="flex flex-col gap-1.5">
-        <span className="text-muted-foreground text-[10px] font-medium tracking-wide uppercase">
-          Record new set
+    <div className="border-border/70 flex flex-col gap-2.5 rounded-xl border p-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="text-foreground inline-flex items-center gap-1.5 text-[13px] font-semibold">
+          <ActivityIcon className="size-4 text-teal-600 dark:text-teal-400" aria-hidden />
+          Vital signs
         </span>
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
-          <Field label="HR" v={value.hr} onV={(n) => set({ hr: n })} />
-          <Field label="RR" v={value.rr} onV={(n) => set({ rr: n })} />
-          <Field label="SpO₂" v={value.spo2} onV={(n) => set({ spo2: n })} />
-          <Field label="SBP" v={value.sbp} onV={(n) => set({ sbp: n })} />
-          <Field label="DBP" v={value.dbp} onV={(n) => set({ dbp: n })} />
-          <Field label="Temp" v={value.tempC} onV={(n) => set({ tempC: n })} step="0.1" />
-          <Field label="Glucose" v={value.glucose} onV={(n) => set({ glucose: n })} step="0.1" />
-          <Field label="GCS" v={value.gcs} onV={(n) => set({ gcs: n })} />
-        </div>
-      </div>
-
-      {/* NEWS2 — score shown; a low score is NOT "normal" */}
-      {news ? (
-        <div className="flex flex-wrap items-center gap-2 text-[11.5px]">
+        {news ? (
           <span
-            className={`rounded px-1.5 py-0.5 font-mono font-semibold ${news.total >= 5 || news.hasSingleParameterThree ? "bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300" : "bg-muted text-foreground"}`}
+            className={`rounded px-1.5 py-0.5 font-mono text-[11px] font-semibold ${totalTone}`}
           >
             NEWS2 {news.total}
-            {news.hasSingleParameterThree ? " · red score" : ""}
-            {news.provisional ? " · provisional" : ""}
+            {news.hasSingleParameterThree ? " · red" : ""}
+            {news.provisional ? " · prov" : ""}
           </span>
-          <span className="text-muted-foreground text-[10.5px]">
-            a low/0 score is not “normal” — interpret clinically.
+        ) : null}
+        <span className="text-muted-foreground text-[10px]">a low/0 score ≠ “normal”</span>
+      </div>
+
+      {/* Carried from triage — colour-coded */}
+      {carried?.vitals ? (
+        <div className="bg-muted/30 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg px-2.5 py-1.5 font-mono text-[11px] tabular-nums">
+          <span className="text-muted-foreground mr-1 font-sans text-[10px] tracking-wide uppercase">
+            Triage
+            {carried.triagedAtIso ? ` ${carried.triagedAtIso.slice(5, 16).replace("T", " ")}` : ""}
           </span>
-          {num(value.glucose) != null && (value.glucose! < 4 || value.glucose! > 11) ? (
-            <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10.5px] text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
-              glucose {value.glucose} — check
-            </span>
+          <Carried
+            label="RR"
+            v={carried.vitals.respiratoryRate}
+            cur={value.rr}
+            pts={carriedPts.respiratory_rate}
+          />
+          <Carried
+            label="SpO₂"
+            v={carried.vitals.spo2}
+            cur={value.spo2}
+            pts={carriedPts.spo2}
+            suffix="%"
+          />
+          <Carried label="HR" v={carried.vitals.pulse} cur={value.hr} pts={carriedPts.pulse} />
+          <Carried
+            label="SBP"
+            v={carried.vitals.systolicBp}
+            cur={value.sbp}
+            pts={carriedPts.systolic_bp}
+          />
+          <Carried
+            label="T"
+            v={carried.vitals.temperature}
+            cur={value.tempC}
+            pts={carriedPts.temperature}
+            suffix="°"
+          />
+          {carried.vitals.consciousness ? (
+            <span className={tone(carriedPts.consciousness)}>{carried.vitals.consciousness}</span>
           ) : null}
         </div>
       ) : null}
 
+      {/* Record new — colour-coded inputs */}
+      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
+        <span className="text-muted-foreground text-[10px] tracking-wide uppercase">New set</span>
+        <Field label="HR" v={value.hr} onV={(n) => set({ hr: n })} pts={pts.pulse} />
+        <Field label="RR" v={value.rr} onV={(n) => set({ rr: n })} pts={pts.respiratory_rate} />
+        <Field label="SpO₂" v={value.spo2} onV={(n) => set({ spo2: n })} pts={pts.spo2} />
+        <Field label="SBP" v={value.sbp} onV={(n) => set({ sbp: n })} pts={pts.systolic_bp} />
+        <Field label="DBP" v={value.dbp} onV={(n) => set({ dbp: n })} />
+        <Field
+          label="T°"
+          v={value.tempC}
+          onV={(n) => set({ tempC: n })}
+          pts={pts.temperature}
+          step="0.1"
+        />
+        <Field
+          label="Gluc"
+          v={value.glucose}
+          onV={(n) => set({ glucose: n })}
+          step="0.1"
+          tone={
+            value.glucose != null && (value.glucose < 4 || value.glucose > 11) ? "amber" : undefined
+          }
+        />
+        <Field label="GCS" v={value.gcs} onV={(n) => set({ gcs: n })} pts={pts.consciousness} />
+      </div>
       <p className="text-muted-foreground text-[10px]">
-        Recorded on the encounter; the monitoring engine isn’t attached yet.
+        Recorded on the encounter; monitoring engine not attached yet.
       </p>
     </div>
   );
@@ -136,20 +178,22 @@ function Carried({
   label,
   v,
   cur,
+  pts,
   suffix,
 }: {
   label: string;
   v: number | null;
   cur?: number;
+  pts?: number;
   suffix?: string;
 }) {
   if (v == null) return null;
   const Arrow = cur == null ? null : cur > v ? ArrowUpIcon : cur < v ? ArrowDownIcon : null;
   return (
-    <span className="text-foreground/80">
+    <span className={tone(pts)}>
       {label} {v}
       {suffix ?? ""}
-      {Arrow ? <Arrow className="text-muted-foreground ml-0.5 inline size-3" aria-hidden /> : null}
+      {Arrow ? <Arrow className="ml-0.5 inline size-3 opacity-70" aria-hidden /> : null}
     </span>
   );
 }
@@ -158,20 +202,26 @@ function Field({
   label,
   v,
   onV,
+  pts,
   step,
+  tone: toneOverride,
 }: {
   label: string;
   v: number | undefined;
   onV: (n: number | undefined) => void;
+  pts?: number;
   step?: string;
+  tone?: "amber";
 }) {
+  const border =
+    toneOverride === "amber" ? "border-amber-400 dark:border-amber-600" : inputTone(pts);
   return (
     <label className="inline-flex items-center gap-1">
       <span className="text-muted-foreground text-[10px]">{label}</span>
       <input
         type="number"
         step={step}
-        className={NUM}
+        className={`bg-card w-14 rounded border px-1.5 py-1 text-[12px] tabular-nums outline-none focus-visible:border-teal-500 ${border}`}
         value={v ?? ""}
         onChange={(e) => {
           const n = Number(e.target.value);
