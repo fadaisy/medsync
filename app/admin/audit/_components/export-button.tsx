@@ -1,6 +1,6 @@
 "use client";
 
-import type { AuditFiltersState } from "./_filters";
+import type { AuditFiltersState } from "./filters";
 import { useState, useTransition } from "react";
 import { DownloadIcon } from "lucide-react";
 

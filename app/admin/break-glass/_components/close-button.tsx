@@ -1,11 +1,11 @@
 "use client";
 
-import type { BreakGlassState } from "./actions";
+import type { BreakGlassState } from "../actions";
 import { useActionState, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { closeBreakGlassAction } from "./actions";
+import { closeBreakGlassAction } from "../actions";
 
 export function CloseBreakGlassButton({ grantId }: { grantId: string }) {
   const [open, setOpen] = useState(false);

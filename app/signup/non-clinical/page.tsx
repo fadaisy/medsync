@@ -5,7 +5,7 @@ import { desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { consentVersions } from "@/db/schema/consent-versions";
 import { listHospitals } from "@/lib/reference-data";
-import { NonClinicalSignupForm } from "./_form";
+import { NonClinicalSignupForm } from "./_components/form";
 import {
   loadDepartmentsForHospitalAction,
   loadNonClinicalCadresAction,

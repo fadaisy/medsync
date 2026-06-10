@@ -13,7 +13,7 @@ import { hospitals } from "@/db/schema/hospitals";
 import { users } from "@/db/schema/users";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
-import { SetupWizard } from "./_wizard";
+import { SetupWizard } from "./_components/wizard";
 
 export const metadata: Metadata = {
   title: "Set up your hospital · MedSync",

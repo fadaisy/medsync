@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { getAuthState } from "@/lib/auth";
-import { ClaimInvitationForm } from "./_form";
+import { ClaimInvitationForm } from "./_components/form";
 
 export const metadata: Metadata = {
   title: "Claim hospital admin role · MedSync",

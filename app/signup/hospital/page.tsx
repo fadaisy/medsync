@@ -6,7 +6,7 @@ import { consentVersions } from "@/db/schema/consent-versions";
 import { hospitalDpaVersions } from "@/db/schema/hospital-dpa-versions";
 import { specialties } from "@/db/schema/reference-data";
 import { listDistricts, listRegions } from "@/lib/reference-data";
-import { HospitalApplicationForm } from "./_form";
+import { HospitalApplicationForm } from "./_components/form";
 import {
   loadSubcountiesForDistrictActionHospital,
   submitHospitalApplicationAction,

@@ -4,7 +4,7 @@ import { desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { consentVersions } from "@/db/schema/consent-versions";
 import { listCouncils, listHospitals } from "@/lib/reference-data";
-import { ClinicalSignupForm } from "./_form";
+import { ClinicalSignupForm } from "./_components/form";
 import {
   loadCadreGradesForCadreAction,
   loadCadresForCouncilAction,

@@ -4,7 +4,7 @@ import { desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { consentVersions } from "@/db/schema/consent-versions";
 import { listDistricts } from "@/lib/reference-data";
-import { PatientSignupForm } from "./_form";
+import { PatientSignupForm } from "./_components/form";
 import { loadSubcountiesForDistrictAction, submitPatientSignupAction } from "./actions";
 
 export const metadata: Metadata = {

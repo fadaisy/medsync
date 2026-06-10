@@ -1,12 +1,12 @@
 "use client";
 
-import type { ImSpecialty } from "./_im-subspecialty-picker";
 import type {
   HospitalApplicationErrors,
   HospitalApplicationState,
   loadSubcountiesForDistrictActionHospital,
   submitHospitalApplicationAction,
-} from "./actions";
+} from "../actions";
+import type { ImSpecialty } from "./im-subspecialty-picker";
 import type { ComboboxItem, MultiStepStep } from "@/components/forms";
 import { useActionState } from "react";
 
@@ -42,8 +42,8 @@ import {
   SPECIALISED_CLINIC_CHOICES,
   STAFF_BANDS,
   SUPPORT_SERVICE_CHOICES,
-} from "./_catalog";
-import { ImSubspecialtyPicker } from "./_im-subspecialty-picker";
+} from "../_lib/catalog";
+import { ImSubspecialtyPicker } from "./im-subspecialty-picker";
 
 /**
  * Hospital application form — upgraded for the registration-upgrade

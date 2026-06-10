@@ -7,7 +7,7 @@ import type {
   NonClinicalSignupErrors,
   NonClinicalSignupState,
   submitNonClinicalSignupAction,
-} from "./actions";
+} from "../actions";
 import type { ComboboxItem } from "@/components/forms";
 import { useActionState, useEffect, useState, useTransition } from "react";
 

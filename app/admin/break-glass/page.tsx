@@ -7,8 +7,8 @@ import { saBreakGlassGrants } from "@/db/schema/sa-break-glass-grants";
 import { users } from "@/db/schema/users";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
-import { CloseBreakGlassButton } from "./_close-button";
-import { OpenBreakGlassForm } from "./_open-form";
+import { CloseBreakGlassButton } from "./_components/close-button";
+import { OpenBreakGlassForm } from "./_components/open-form";
 
 export const metadata: Metadata = {
   title: "Break-glass · Superadmin · MedSync",
