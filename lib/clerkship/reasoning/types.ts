@@ -9,6 +9,12 @@
 /** Qualitative likelihood ONLY — never false-precision probabilities. */
 export type Likelihood = "likely" | "less_likely" | "must_not_miss";
 
+/** A cross-system symptom reference (ROS vocabulary) that supports/refutes a candidate. */
+export interface CrossSystemRef {
+  system: string;
+  symptom: string;
+}
+
 export interface DifferentialItem {
   dx: string;
   likelihood: Likelihood;
@@ -16,6 +22,12 @@ export interface DifferentialItem {
   ruleIn?: string[];
   /** Pertinent negatives / features that lower or exclude it (rule-out). */
   ruleOut?: string[];
+  /** Symptoms in OTHER systems that support this candidate (present → confirm). */
+  supportingSymptoms?: CrossSystemRef[];
+  /** Symptoms whose presence argues AGAINST this candidate. */
+  refutingSymptoms?: CrossSystemRef[];
+  /** PMH/FH/social risk factors that raise this candidate's pre-test probability. */
+  riskFactors?: string[];
 }
 
 /** A hypothesis-driven examination target (system/area + the sign + what it discriminates). */
@@ -72,11 +84,19 @@ export interface CapturedContext {
 
 /** A differential candidate re-weighted by the captured features. */
 export interface ScoredDifferential extends DifferentialItem {
-  /** +rule-in hits − rule-out hits from the captured features. */
+  /** +rule-in/support/risk hits − rule-out/refute hits from the captured data. */
   score: number;
   status: "supported" | "lowered" | "open";
   matchedRuleIn: string[];
   matchedRuleOut: string[];
+  /** Cross-system supporting symptoms the clinician has recorded PRESENT. */
+  supportPresent: string[];
+  /** Cross-system supporting symptoms recorded DENIED (argue against). */
+  supportDenied: string[];
+  /** Refuting symptoms recorded present (argue against). */
+  refutePresent: string[];
+  /** This candidate's risk factors present in the captured history. */
+  riskPresent: string[];
 }
 
 /** Live reasoning — the differential re-ranked + what to do next + risk factors. */

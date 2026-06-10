@@ -270,7 +270,11 @@ function DxRow({ d }: { d: ScoredDifferential }) {
       : d.status === "lowered"
         ? "text-muted-foreground/60"
         : "text-muted-foreground";
-  const hasDetail = d.matchedRuleIn.length + d.matchedRuleOut.length > 0;
+  const supportIn = [...d.matchedRuleIn, ...d.supportPresent, ...d.riskPresent];
+  const against = [...d.matchedRuleOut, ...d.supportDenied, ...d.refutePresent];
+  const hasDetail = supportIn.length + against.length > 0;
+  // small inline count of confirming cross-system findings present
+  const crossN = d.supportPresent.length;
   return (
     <div className={`rounded-md px-2 py-1 ${d.status === "lowered" ? "opacity-55" : ""}`}>
       <button
@@ -280,6 +284,11 @@ function DxRow({ d }: { d: ScoredDifferential }) {
       >
         <Icon className={`size-3.5 shrink-0 ${iconColor}`} aria-hidden />
         <span className="text-foreground min-w-0 flex-1 truncate text-[12px]">{d.dx}</span>
+        {crossN ? (
+          <span className="shrink-0 rounded bg-teal-100 px-1 text-[9px] font-semibold text-teal-800 dark:bg-teal-950/40 dark:text-teal-300">
+            +{crossN}
+          </span>
+        ) : null}
         {mnm ? (
           <span className="shrink-0 rounded bg-amber-100 px-1 text-[9px] font-semibold tracking-wide text-amber-800 uppercase dark:bg-amber-950/40 dark:text-amber-300">
             must not miss
@@ -287,12 +296,32 @@ function DxRow({ d }: { d: ScoredDifferential }) {
         ) : null}
       </button>
       {open ? (
-        <div className="mt-0.5 pl-5 text-[10.5px] leading-snug">
+        <div className="mt-0.5 flex flex-col gap-0.5 pl-5 text-[10.5px] leading-snug">
           {d.matchedRuleIn.length ? (
             <p className="text-teal-700 dark:text-teal-400">+ {d.matchedRuleIn.join(", ")}</p>
           ) : null}
+          {d.supportPresent.length ? (
+            <p className="text-teal-700 dark:text-teal-400">
+              ✓ supports (other systems): {d.supportPresent.join(", ")}
+            </p>
+          ) : null}
+          {d.riskPresent.length ? (
+            <p className="text-teal-700/80 dark:text-teal-400/80">
+              risk: {d.riskPresent.join(", ")}
+            </p>
+          ) : null}
           {d.matchedRuleOut.length ? (
             <p className="text-muted-foreground">− {d.matchedRuleOut.join(", ")}</p>
+          ) : null}
+          {d.supportDenied.length ? (
+            <p className="text-muted-foreground line-through decoration-1">
+              {d.supportDenied.join(", ")} (denied)
+            </p>
+          ) : null}
+          {d.refutePresent.length ? (
+            <p className="text-amber-700 dark:text-amber-400">
+              ▼ against: {d.refutePresent.join(", ")}
+            </p>
           ) : null}
         </div>
       ) : null}

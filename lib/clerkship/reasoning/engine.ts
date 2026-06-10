@@ -171,6 +171,11 @@ export function scoreReasoning(maps: ReasoningMap[], ctx: CapturedContext): Live
   const captured = featureSet([...ctx.features, ...ctx.positives]);
   const refuted = featureSet(ctx.negatives);
 
+  const posSet = featureSet(ctx.positives);
+  const negSet = featureSet(ctx.negatives);
+  const histSet = featureSet(ctx.history);
+  const refLabel = (c: { system: string; symptom: string }) => c.symptom;
+
   const scored: ScoredDifferential[] = merged.differential
     .map((d) => {
       const matchedRuleIn = (d.ruleIn ?? []).filter((f) => phraseHits(f, captured));
@@ -180,7 +185,26 @@ export function scoreReasoning(maps: ReasoningMap[], ctx: CapturedContext): Live
         ...(d.ruleOut ?? []).filter((f) => phraseHits(f, captured)),
         ...(d.ruleIn ?? []).filter((f) => phraseHits(f, refuted)),
       ];
-      const score = matchedRuleIn.length - matchedRuleOut.length;
+      // Cross-system: a supporting symptom recorded PRESENT confirms; recorded
+      // DENIED argues against; a refuting symptom present argues against.
+      const supportPresent = (d.supportingSymptoms ?? [])
+        .filter((c) => phraseHits(c.symptom, posSet))
+        .map(refLabel);
+      const supportDenied = (d.supportingSymptoms ?? [])
+        .filter((c) => phraseHits(c.symptom, negSet))
+        .map(refLabel);
+      const refutePresent = (d.refutingSymptoms ?? [])
+        .filter((c) => phraseHits(c.symptom, posSet))
+        .map(refLabel);
+      const riskPresent = (d.riskFactors ?? []).filter((f) => phraseHits(f, histSet));
+
+      const score =
+        matchedRuleIn.length +
+        supportPresent.length +
+        riskPresent.length -
+        matchedRuleOut.length -
+        supportDenied.length -
+        refutePresent.length;
       const status: ScoredDifferential["status"] =
         score > 0 ? "supported" : score < 0 ? "lowered" : "open";
       return {
@@ -189,6 +213,10 @@ export function scoreReasoning(maps: ReasoningMap[], ctx: CapturedContext): Live
         status,
         matchedRuleIn,
         matchedRuleOut: Array.from(new Set(matchedRuleOut)),
+        supportPresent: Array.from(new Set(supportPresent)),
+        supportDenied: Array.from(new Set(supportDenied)),
+        refutePresent: Array.from(new Set(refutePresent)),
+        riskPresent,
       };
     })
     // most-cautious first within score: must-not-miss outranks ties, then score.
