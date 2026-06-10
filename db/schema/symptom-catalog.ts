@@ -60,11 +60,20 @@ export const symptomCatalog = pgTable(
     scope: text("scope").notNull().default("shared"),
     /** 'seed' | 'doctor' | 'approved' — provenance. */
     origin: text("origin").notNull().default("seed"),
+    /** Review-of-Systems screening symptom (migration 0045) — surfaced in the ROS sweep. */
+    rosScreen: boolean("ros_screen").notNull().default(false),
+    /** Pain symptom → auto-maps the SOCRATES property set. */
+    isPain: boolean("is_pain").notNull().default(false),
+    /** Must-not-miss — drives a decision-support prompt (NOT auto-diagnosis). */
+    mustNotMiss: boolean("must_not_miss").notNull().default(false),
+    /** Uganda-relevant screen tag (e.g. 'tb','malaria','hiv','sickle') — nullable. */
+    ugandaFlag: text("uganda_flag"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
     index("symptom_catalog_system_idx").on(t.system, t.sortOrder),
     index("symptom_catalog_scope_creator_idx").on(t.scope, t.createdByUserId),
+    index("symptom_catalog_ros_idx").on(t.rosScreen, t.system, t.sortOrder),
     check("symptom_catalog_scope_check", sql`${t.scope} IN ('shared','personal')`),
     check("symptom_catalog_origin_check", sql`${t.origin} IN ('seed','doctor','approved')`),
   ],
@@ -179,6 +188,9 @@ export const encounterSymptomObservations = pgTable(
     symptomCode: text("symptom_code").notNull(),
     symptomDisplay: text("symptom_display").notNull(),
     adHoc: boolean("ad_hoc").notNull().default(false),
+    /** ROS three-state (migration 0045): 'present' | 'denies' (pertinent negative).
+     * Null for HPC capture rows; 'not_asked' is never persisted (it's the absence of a row). */
+    status: text("status"),
     /** Null for the symptom-presence row; set for each property value. */
     propertyCode: text("property_code"),
     propertyDisplay: text("property_display"),

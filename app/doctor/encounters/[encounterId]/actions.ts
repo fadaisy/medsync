@@ -4,6 +4,7 @@ import type {
   CatalogProperty,
   CatalogPropertySummary,
   CatalogSymptom,
+  RosScreenSymptom,
 } from "@/lib/clerkship/catalog";
 import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
@@ -13,6 +14,7 @@ import { encounters } from "@/db/schema/scheduling";
 import {
   loadPropertiesForSymptom,
   loadPropertyCatalog,
+  loadRosCatalog,
   loadSymptomCatalog,
 } from "@/lib/clerkship/catalog";
 import { createDoctorComplaint, proposeComplaintToShared } from "@/lib/clerkship/create-complaint";
@@ -86,6 +88,12 @@ export async function loadSymptomPropertiesAction(symptomCode: string): Promise<
 export async function loadPropertyCatalogAction(): Promise<CatalogPropertySummary[]> {
   await requireDoctorScope();
   return loadPropertyCatalog();
+}
+
+/** The Review-of-Systems screening symptoms (grouped by system in the UI). */
+export async function loadRosCatalogAction(): Promise<RosScreenSymptom[]> {
+  await requireDoctorScope();
+  return loadRosCatalog();
 }
 
 export type CreateComplaintResult =

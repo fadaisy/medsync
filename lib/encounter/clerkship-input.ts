@@ -1,3 +1,4 @@
+import type { RosObservation } from "@/lib/clerkship/ros";
 import type { CapturedSymptom } from "@/lib/clerkship/symptom-engine";
 import type { Clerkship } from "@/lib/encounter/clerkship";
 import { z } from "zod";
@@ -39,6 +40,16 @@ const capturedSymptom = z.object({
   note: z.string().max(1000).optional(),
 });
 
+/** Review-of-Systems three-state screen entry (present/denies; not-asked omitted). */
+const rosObservation = z.object({
+  symptomCode: z.string().max(80),
+  symptomDisplay: z.string().max(160),
+  system: z.string().max(40),
+  status: z.enum(["present", "denies"]),
+  properties: z.array(capturedProperty).max(40).optional(),
+  note: z.string().max(1000).optional(),
+});
+
 export const ClerkshipInputSchema = z.object({
   presentingComplaint: z.string().max(2000).optional(),
   hpc: z.string().max(8000).optional(),
@@ -47,6 +58,8 @@ export const ClerkshipInputSchema = z.object({
   hpcNarrative: z.string().max(8000).optional(),
   /** Tap-first structured HPC; its prose is combined with the narrative. */
   hpcItems: z.array(capturedSymptom).max(30).optional(),
+  /** Review-of-Systems screen (system-grouped three-state sweep). */
+  ros: z.array(rosObservation).max(200).optional(),
   socrates: z
     .object({
       site: z.string().max(240).optional(),
@@ -137,11 +150,17 @@ export function clerkshipInputToClerkship(input: ClerkshipInput): Clerkship {
     clean(input.hpcNarrative) ?? (hpcItems.length > 0 ? undefined : clean(input.hpc));
   const hpcProse = [generated, narrative].filter(Boolean).join("\n\n") || undefined;
 
+  // Review of Systems: keep present/denies entries (not-asked is already omitted).
+  const ros = (input.ros ?? [])
+    .filter((o) => o.symptomCode.trim().length > 0)
+    .map((o) => ({ ...o }) as RosObservation);
+
   const history = prune({
     presentingComplaint: clean(input.presentingComplaint),
     hpc: hpcProse,
     hpcNarrative: narrative,
     hpcItems: hpcItems.length > 0 ? hpcItems : undefined,
+    ros: ros.length > 0 ? ros : undefined,
     socrates: input.socrates ? prune({ ...input.socrates }) : undefined,
     pmh: clean(input.pmh),
     drugHistory: clean(input.drugHistory),

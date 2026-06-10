@@ -16,6 +16,7 @@ import {
 import { patientAllergies } from "@/db/schema/prescribing";
 import { encounters } from "@/db/schema/scheduling";
 import { encounterSymptomObservations } from "@/db/schema/symptom-catalog";
+import { rosObservationRows } from "@/lib/clerkship/ros";
 import { symptomObservationRows } from "@/lib/clerkship/symptom-engine";
 import { clerkshipWriteAuthority } from "@/lib/encounter/access";
 import { deriveClinicalObjects } from "@/lib/encounter/clerkship";
@@ -201,6 +202,22 @@ export async function recordClerkshipVersion(
               recordedByUserId: scope.userId,
             });
           }
+        }
+        // Review-of-Systems screen → projection rows incl. pertinent NEGATIVES.
+        for (const row of rosObservationRows(clerkship.history?.ros ?? [])) {
+          await db.insert(encounterSymptomObservations).values({
+            encounterId,
+            patientUserId,
+            symptomCode: row.symptomCode,
+            symptomDisplay: row.symptomDisplay,
+            status: row.status,
+            propertyCode: row.propertyCode,
+            propertyDisplay: row.propertyDisplay,
+            valueType: row.valueType,
+            valueText: row.valueText,
+            valueNum: row.valueNum != null ? String(row.valueNum) : null,
+            recordedByUserId: scope.userId,
+          });
         }
       } catch (e) {
         logger.warn("encounter.symptom_obs.fan_out_failed", { error: String(e) });
