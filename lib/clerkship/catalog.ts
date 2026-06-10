@@ -104,6 +104,40 @@ export async function loadPropertyCatalog(): Promise<CatalogPropertySummary[]> {
   }));
 }
 
+/** A screening symptom for the Review-of-Systems sweep (migration 0045). */
+export interface RosScreenSymptom {
+  code: string;
+  display: string;
+  system: string;
+  isPain: boolean;
+  mustNotMiss: boolean;
+  ugandaFlag: string | null;
+}
+
+/** The ROS screening symptoms (ros_screen = true), ordered by system + sort. */
+export async function loadRosCatalog(): Promise<RosScreenSymptom[]> {
+  const rows = await db
+    .select({
+      code: symptomCatalog.code,
+      display: symptomCatalog.display,
+      system: symptomCatalog.system,
+      isPain: symptomCatalog.isPain,
+      mustNotMiss: symptomCatalog.mustNotMiss,
+      ugandaFlag: symptomCatalog.ugandaFlag,
+    })
+    .from(symptomCatalog)
+    .where(and(eq(symptomCatalog.active, true), eq(symptomCatalog.rosScreen, true)))
+    .orderBy(asc(symptomCatalog.system), asc(symptomCatalog.sortOrder));
+  return rows.map((r) => ({
+    code: r.code,
+    display: r.display,
+    system: r.system,
+    isPain: r.isPain,
+    mustNotMiss: r.mustNotMiss,
+    ugandaFlag: r.ugandaFlag ?? null,
+  }));
+}
+
 /**
  * The properties relevant to a symptom: the COMMON properties (apply to all) +
  * the symptom-specific mapped ones, each with its tappable value-set. Ordered.

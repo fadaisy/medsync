@@ -12,6 +12,7 @@
  * may be skipped/deferred (emergency: focused history, resus first).
  */
 
+import type { RosObservation } from "@/lib/clerkship/ros";
 import type { CapturedSymptom } from "@/lib/clerkship/symptom-engine";
 
 // Mirrors the DB CHECK on patient_allergies (migration 0040 / prescribing.ts).
@@ -87,6 +88,9 @@ export interface ClerkHistory {
    * `socrates` remains for the free-form pain analysis.
    */
   hpcItems?: CapturedSymptom[];
+  /** Review-of-Systems screen — three-state (present/denies) per screening symptom
+   * across body systems; not-asked = absent. See lib/clerkship/ros.ts. */
+  ros?: RosObservation[];
   pmh?: string;
   /** Hutchison "retrospective history" prompt actioned. */
   retrospectiveChecked?: boolean;
