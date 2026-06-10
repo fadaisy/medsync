@@ -5,7 +5,7 @@ import type {
   PatientSignupErrors,
   PatientSignupState,
   submitPatientSignupAction,
-} from "./actions";
+} from "../actions";
 import type { ComboboxItem, MultiStepStep } from "@/components/forms";
 import { useActionState, useState } from "react";
 

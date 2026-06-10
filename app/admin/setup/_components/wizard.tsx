@@ -1,10 +1,10 @@
 "use client";
 
-import type { StepState } from "./actions";
+import type { StepState } from "../actions";
 import { useActionState } from "react";
 import { CheckIcon, PlusIcon, TrashIcon } from "lucide-react";
 
-import { DEPARTMENT_GROUPS } from "@/app/signup/hospital/_catalog";
+import { DEPARTMENT_GROUPS } from "@/app/signup/hospital/_lib/catalog";
 import { Button } from "@/components/ui/button";
 import { Pill } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
@@ -17,7 +17,7 @@ import {
   inviteBackupAdminAction,
   inviteStaffAction,
   removeWardAction,
-} from "./actions";
+} from "../actions";
 
 /**
  * Setup wizard — six steps per kickoff §F.

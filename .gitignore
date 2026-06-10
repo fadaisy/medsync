@@ -46,3 +46,7 @@ next-env.d.ts
 
 # supabase CLI local cache (project-ref / linked-project / version files)
 supabase/.temp/
+
+# editor swap files
+*.swp
+*.swo

@@ -1,10 +1,10 @@
 "use client";
 
-import type { ClaimState } from "./actions";
+import type { ClaimState } from "../actions";
 import { useActionState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { claimInvitationAction } from "./actions";
+import { claimInvitationAction } from "../actions";
 
 export function ClaimInvitationForm({ token }: { token: string }) {
   const [state, action, pending] = useActionState<ClaimState, FormData>(claimInvitationAction, {});

@@ -1,7 +1,7 @@
 import { ClipboardListIcon, LayersIcon, UsersIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { ClinicianHomeMock } from "./05-clinician-home-mock";
+import { ClinicianHomeMock } from "./clinician-home-mock";
 
 /**
  * Landing v2 — "For care teams & hospitals" section.

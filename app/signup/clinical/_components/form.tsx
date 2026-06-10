@@ -8,7 +8,7 @@ import type {
   loadDepartmentsForHospitalAction,
   loadRolesForCadreAction,
   submitClinicalSignupAction,
-} from "./actions";
+} from "../actions";
 import type { ComboboxItem, MultiStepStep } from "@/components/forms";
 import { useActionState, useEffect, useState } from "react";
 

@@ -28,7 +28,7 @@ import {
   SPECIALISED_CLINIC_CHOICES,
   STAFF_BANDS,
   SUPPORT_SERVICE_CHOICES,
-} from "./_catalog";
+} from "./_lib/catalog";
 
 const UUID_RE = /^[0-9a-f-]{36}$/i;
 const PHONE_E164_UG = /^\+2567\d{8}$|^\+256[23489]\d{7,8}$/;

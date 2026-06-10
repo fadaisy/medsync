@@ -1,5 +1,5 @@
 import type { AuditRow as AuditTableRow } from "../_components/audit/types";
-import type { AuditFiltersState } from "./_filters";
+import type { AuditFiltersState } from "./_components/filters";
 import type { Metadata } from "next";
 import { and, desc, eq, gte, inArray, lt } from "drizzle-orm";
 
@@ -9,8 +9,8 @@ import { users } from "@/db/schema/users";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { AuditTable } from "../_components/audit/table";
-import { AuditExportButton } from "./_export-button";
-import { AuditFilters } from "./_filters";
+import { AuditExportButton } from "./_components/export-button";
+import { AuditFilters } from "./_components/filters";
 
 export const metadata: Metadata = {
   title: "Audit · Superadmin · MedSync",

@@ -1,12 +1,12 @@
 "use client";
 
-import type { BreakGlassState } from "./actions";
+import type { BreakGlassState } from "../actions";
 import type { ComboboxItem } from "@/components/forms";
 import { useActionState, useState } from "react";
 
 import { Combobox, Field, SegmentedControl } from "@/components/forms";
 import { Button } from "@/components/ui/button";
-import { openBreakGlassAction } from "./actions";
+import { openBreakGlassAction } from "../actions";
 
 const CATEGORY_OPTIONS = [
   { value: "emergency", label: "Emergency" },

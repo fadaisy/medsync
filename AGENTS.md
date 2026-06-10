@@ -5,3 +5,77 @@
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
 
 <!-- END:nextjs-agent-rules -->
+
+# MedSync — project map
+
+A role-based digital-hospital platform for Ugandan hospitals (IM-first, Mulago beachhead). Clinical workflows: triage → encounter/clerkship → resus → prescribing, with hospital-admin, reception, nurse, doctor, patient, and super-admin surfaces.
+
+## Tech stack
+
+- **Next.js 16** App Router (React Server Components, Server Actions). Request interception is **`proxy.ts`** at the repo root (Next 16's replacement for `middleware.ts`) — auth gating, public-prefix + AAL2 (MFA) enforcement.
+- **TypeScript** (strict). Path alias `@/*` → repo root.
+- **Supabase** Postgres + Auth (SSR via `@supabase/ssr`), **Row-Level Security** on every table, plus Deno **Edge Functions** for privileged mutations.
+- **Drizzle ORM** (`db/schema/*`, `drizzle.config.ts`) — schema is the source of truth; SQL migrations live in `supabase/migrations/`.
+- **Tailwind v4** + shadcn/ui (`@base-ui/react` primitives, `components/ui/`). Design system: `DESIGN-medsync.md`.
+- **Vitest** for tests. **Husky** + lint-staged pre-commit (typecheck + eslint --fix + prettier). Conventional Commits (commitlint).
+
+## Directory layout
+
+### `app/` — route areas (one per role/surface)
+
+- `(auth)/` — `sign-in` (+ `mfa`), `sign-up` (invited-staff account creation), `onboarding/mfa-setup`. Route group → no URL segment.
+- `get-started/` — public funnel that branches users into the right `signup/*` flow.
+- `signup/` — public self-service onboarding: `patient`, `clinical`, `hospital`, `non-clinical`.
+- `onboarding/` — post-signup awaiting-approval pages (`clinical-pending`, `hospital-pending`, public funnels).
+- `admin/` — super-admin (audit, break-glass, claim-invitation, setup, catalog-proposals review).
+- `hospital-admin/` — hospital operations (roster, intake, assignments, observations).
+- `reception/`, `nurse/`, `doctor/`, `clinician/`, `patient/` — role workspaces. `clinician/` is the **generic fallback** for non-doctor clinical staff (doctor/nurse scopes redirect here); `doctor/` is the cadre-specific workspace (and reuses some `clinician/` components).
+- `api/` — route handlers. `sign-out/`, `styleguide/`, `page.tsx` (landing), `not-found.tsx`, `robots.ts`, `sitemap.ts`, `instrumentation*.ts`.
+
+### `lib/` — domain logic (server-only where it touches the DB)
+
+`auth` · `clerkship` (symptom engine, catalogs, governance) · `encounter` (EMR engine, clerkship mapper, records) · `resus` (ABCDE) · `prescribing` · `triage` · `intake` · `scheduling` · `doctor` / `nurse` / `clinician` / `reception` / `hospital-admin` / `patient` (per-area scope + queries) · `supabase` (clients) · `logger`. Scope helpers (`requireDoctorScope`, `requireNurseScope`, `requireClinicianScope`) gate every workspace.
+
+### `components/`
+
+- `ui/` — shadcn primitives. `landing/` — homepage sections (barrel `index.ts`; `v2-*` = wayfinding chrome; `_`-prefixed = internal helpers/mocks). `forms/` — shared multi-step form primitives. `medsync/`, `intake/`, etc.
+
+### `db/schema/` — Drizzle tables (⚠️ do not hand-edit migrations; see below)
+
+Auth/users/roles, hospitals + departments/wards, staff affiliations & invitations, scheduling, encounter, resus, triage, prescribing, patient intakes/profiles/self-tracking, clinical codes, `symptom-catalog`, audit logs, super-admin (break-glass/notifications/approvals). Barrel: `index.ts`.
+
+### `supabase/`
+
+- `migrations/` — ordered SQL (`0001…`). **Immutable once shipped.** Some are **GATED** (clinical reference data / RLS) — applied by the owner via `npm run db:migrate`, never auto-run.
+- `functions/` — Deno Edge Functions for privileged mutations: `ha-*` (hospital-admin), `sa-*` (super-admin), `pt-*` (patient), `approve-*`/`reject-*` (governance), plus `_shared`/`_types`. Typechecked separately (`supabase/functions/tsconfig.json`).
+
+### `tests/` — Vitest
+
+`rls/` (row-level-security policies) · `encounter` · `clerkship` · `resus` · `prescribing` · `triage` · `scheduling` · `auth` · `audit` · `encryption` · `lifecycle` · `hospital-admin` · `logger` · `_stubs`.
+
+### `docs/adr/` — Architecture Decision Records (numbered, immutable; see below).
+
+## npm scripts
+
+| Script                                  | Purpose                                                            |
+| --------------------------------------- | ------------------------------------------------------------------ |
+| `dev` / `build` / `start`               | Next dev / production build / serve                                |
+| `lint` / `lint:fix`                     | ESLint                                                             |
+| `typecheck`                             | `tsc --noEmit` for the app **and** the Edge Functions              |
+| `typecheck:app` / `typecheck:functions` | each half individually                                             |
+| `format` / `format:check`               | Prettier write / check                                             |
+| `test` / `test:watch`                   | Vitest run / watch                                                 |
+| `db:generate`                           | Drizzle: generate SQL from schema changes                          |
+| `db:migrate`                            | Apply pending migrations (`scripts/migrate.ts`) — **owner action** |
+| `db:push` / `db:studio` / `db:check`    | Drizzle push / studio / drift check                                |
+
+After any change run `npm run typecheck && npm run lint && npm run test`, and `npm run build` before shipping. (Note: deleting routes leaves stale `.next/types` — `rm -rf .next` before `typecheck` if you see validator errors for removed pages.)
+
+## Conventions
+
+- **Route-private code** lives in `_components/` (UI) and `_lib/` (logic) inside the route folder. A leading `_` makes Next ignore the file/folder as a route — files _inside_ a `_` folder don't need their own underscore.
+- **ADR process** — every significant decision gets a numbered record in `docs/adr/` (`NNNN-title.md`). ADRs are immutable history; new decisions supersede old ones with a new file. Mirrored in `CHANGELOG.md`.
+- **Migration immutability** — never edit a shipped file in `supabase/migrations/` or the corresponding `db/schema/` intent; add a new migration. GATED migrations carry a header and are applied deliberately by the owner.
+- **RLS-first** — every table enables RLS; privileged writes go through Edge Functions, not the client.
+- **Feature flags** gate not-yet-live clinical modules (e.g. `ENCOUNTER_ENGINE_LIVE`).
+- **Clinical safety** — decision-support, never autonomous; clinical records are append-only + audited; drug doses are web-verified + CSO-signed; no fabricated data.
