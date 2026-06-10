@@ -8,11 +8,12 @@ import type {
   ClerkPmhItem,
   ClerkPshItem,
 } from "@/lib/encounter/clerkship";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { CheckIcon, PlusIcon, XIcon } from "lucide-react";
 
 import { PMH_SCREEN } from "@/lib/clerkship/history";
 import { loadCarryForwardAction, loadClerkshipPicklistsAction } from "../actions";
+import { AddSelect, DoseSelect, YearSelect } from "./tap-controls";
 
 /**
  * Tap-first history sections — Past Medical, Past Surgical, Drug & Allergies.
@@ -28,8 +29,6 @@ const H = "text-foreground text-[13px] font-semibold";
 const chip = (active: boolean) =>
   `rounded-md px-2 py-0.5 text-[11.5px] ring-1 ring-inset ${EASE} ${active ? "bg-teal-50 text-teal-700 ring-teal-500/40 dark:bg-teal-950/40 dark:text-teal-200" : "text-foreground/70 ring-border hover:bg-muted/60"}`;
 const NIL = `inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[11.5px] font-medium ring-1 ring-inset ${EASE}`;
-const tinyInput =
-  "border-input bg-card rounded px-1.5 py-0.5 text-[12px] outline-none focus-visible:border-teal-500";
 
 type Props = {
   pmhItems: ClerkPmhItem[];
@@ -170,14 +169,11 @@ export function HistorySections(p: Props) {
         </div>
         {!p.negatives.no_pmh ? (
           <>
-            <Picker
-              items={lists?.condition ?? []}
+            <AddSelect
+              options={(lists?.condition ?? []).map((c) => ({ value: c.code, label: c.display }))}
               placeholder="Add a condition…"
-              onPick={(it) =>
-                p.setPmhItems([
-                  ...p.pmhItems,
-                  { code: it.code, display: it.display, adHoc: it.code.startsWith("adhoc_") },
-                ])
+              onAdd={(value, label) =>
+                p.setPmhItems([...p.pmhItems, { code: value, display: label }])
               }
             />
             {p.pmhItems.map((item, i) => {
@@ -191,14 +187,10 @@ export function HistorySections(p: Props) {
                   onRemove={() => p.setPmhItems(p.pmhItems.filter((_, j) => j !== i))}
                 >
                   <div className="flex flex-wrap items-center gap-2">
-                    <input
-                      className={`${tinyInput} w-20`}
-                      placeholder="Year"
-                      value={item.year ?? ""}
-                      onChange={(e) =>
-                        p.setPmhItems(
-                          p.pmhItems.map((x, j) => (j === i ? { ...x, year: e.target.value } : x)),
-                        )
+                    <YearSelect
+                      value={item.year}
+                      onChange={(v) =>
+                        p.setPmhItems(p.pmhItems.map((x, j) => (j === i ? { ...x, year: v } : x)))
                       }
                     />
                     {(
@@ -316,11 +308,11 @@ export function HistorySections(p: Props) {
         </div>
         {!p.negatives.no_psh ? (
           <>
-            <Picker
-              items={lists?.operation ?? []}
+            <AddSelect
+              options={(lists?.operation ?? []).map((o) => ({ value: o.code, label: o.display }))}
               placeholder="Add an operation…"
-              onPick={(it) =>
-                p.setPshItems([...p.pshItems, { code: it.code, display: it.display }])
+              onAdd={(value, label) =>
+                p.setPshItems([...p.pshItems, { code: value, display: label }])
               }
             />
             {p.pshItems.map((item, i) => (
@@ -330,14 +322,10 @@ export function HistorySections(p: Props) {
                 onRemove={() => p.setPshItems(p.pshItems.filter((_, j) => j !== i))}
               >
                 <div className="flex flex-wrap items-center gap-2">
-                  <input
-                    className={`${tinyInput} w-20`}
-                    placeholder="Year"
-                    value={item.year ?? ""}
-                    onChange={(e) =>
-                      p.setPshItems(
-                        p.pshItems.map((x, j) => (j === i ? { ...x, year: e.target.value } : x)),
-                      )
+                  <YearSelect
+                    value={item.year}
+                    onChange={(v) =>
+                      p.setPshItems(p.pshItems.map((x, j) => (j === i ? { ...x, year: v } : x)))
                     }
                   />
                   {(["ga", "spinal", "local", "unsure"] as const).map((a) => (
@@ -395,16 +383,10 @@ export function HistorySections(p: Props) {
         </div>
         {!p.negatives.no_meds ? (
           <>
-            <Picker
-              items={lists?.drug ?? []}
+            <AddSelect
+              options={(lists?.drug ?? []).map((d) => ({ value: d.code, label: d.display }))}
               placeholder="Add a medication…"
-              allowOther
-              onPick={(it) =>
-                p.setMedications([
-                  ...p.medications,
-                  { name: it.display, adHoc: it.code.startsWith("adhoc_") },
-                ])
-              }
+              onAdd={(_value, label) => p.setMedications([...p.medications, { name: label }])}
             />
             {p.medications.map((m, i) => (
               <ItemCard
@@ -413,13 +395,11 @@ export function HistorySections(p: Props) {
                 onRemove={() => p.setMedications(p.medications.filter((_, j) => j !== i))}
               >
                 <div className="flex flex-wrap items-center gap-2">
-                  <input
-                    className={`${tinyInput} w-24`}
-                    placeholder="Dose"
-                    value={m.dose ?? ""}
-                    onChange={(e) =>
+                  <DoseSelect
+                    value={m.dose}
+                    onChange={(v) =>
                       p.setMedications(
-                        p.medications.map((x, j) => (j === i ? { ...x, dose: e.target.value } : x)),
+                        p.medications.map((x, j) => (j === i ? { ...x, dose: v } : x)),
                       )
                     }
                   />
@@ -485,11 +465,10 @@ export function HistorySections(p: Props) {
         </div>
         {!p.negatives.nkda ? (
           <>
-            <Picker
-              items={lists?.allergen ?? []}
+            <AddSelect
+              options={(lists?.allergen ?? []).map((a) => ({ value: a.code, label: a.display }))}
               placeholder="Add an allergy…"
-              allowOther
-              onPick={(it) => p.setAllergies([...p.allergies, { substance: it.display }])}
+              onAdd={(_value, label) => p.setAllergies([...p.allergies, { substance: label }])}
             />
             {p.allergies.map((a, i) => (
               <ItemCard
@@ -641,81 +620,6 @@ function ItemCard({
         </button>
       </div>
       {children}
-    </div>
-  );
-}
-
-function Picker({
-  items,
-  placeholder,
-  allowOther,
-  onPick,
-}: {
-  items: PicklistItem[];
-  placeholder: string;
-  allowOther?: boolean;
-  onPick: (it: PicklistItem) => void;
-}) {
-  const [q, setQ] = useState("");
-  const matches = useMemo(() => {
-    const s = q.trim().toLowerCase();
-    if (!s) return [];
-    return items
-      .filter(
-        (it) =>
-          it.display.toLowerCase().includes(s) ||
-          it.synonyms.some((y) => y.toLowerCase().includes(s)),
-      )
-      .slice(0, 8);
-  }, [q, items]);
-  return (
-    <div className="flex flex-col gap-1.5">
-      <input
-        className={`${tinyInput} w-full py-1.5`}
-        placeholder={placeholder}
-        value={q}
-        onChange={(e) => setQ(e.target.value)}
-      />
-      {q.trim() ? (
-        <div className="flex flex-wrap gap-1">
-          {matches.map((it) => (
-            <button
-              key={it.code}
-              type="button"
-              className={chip(false)}
-              onClick={() => {
-                onPick(it);
-                setQ("");
-              }}
-            >
-              <PlusIcon className="mr-0.5 inline size-3" aria-hidden />
-              {it.display}
-            </button>
-          ))}
-          {allowOther ? (
-            <button
-              type="button"
-              className={chip(false)}
-              onClick={() => {
-                onPick({
-                  code: `adhoc_${q
-                    .trim()
-                    .toLowerCase()
-                    .replace(/[^a-z0-9]+/g, "_")}`,
-                  listType: "",
-                  display: q.trim(),
-                  synonyms: [],
-                  meta: {},
-                  ugandaFlag: null,
-                });
-                setQ("");
-              }}
-            >
-              <PlusIcon className="mr-0.5 inline size-3" aria-hidden />“{q.trim()}” (other)
-            </button>
-          ) : null}
-        </div>
-      ) : null}
     </div>
   );
 }

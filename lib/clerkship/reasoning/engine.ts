@@ -8,10 +8,13 @@
  */
 
 import type {
+  CapturedContext,
   DifferentialItem,
   Likelihood,
+  LiveReasoning,
   ReasoningMap,
   ReasoningResult,
+  ScoredDifferential,
 } from "@/lib/clerkship/reasoning/types";
 
 const SEVERITY: Record<Likelihood, number> = { must_not_miss: 2, likely: 1, less_likely: 0 };
@@ -113,4 +116,116 @@ export function reasoningForCodes(
   context: { pmhConditions?: string[] } = {},
 ): ReasoningResult {
   return mergeReasoning(mapsForCodes(maps, pcCodes), context);
+}
+
+/* ── Live re-weighting ─────────────────────────────────────────────────────
+ * As the clinician taps symptom properties / ROS / history, the differential
+ * re-ranks: rule-in features RAISE a candidate, rule-out features LOWER it. This
+ * narrows the differential WITHOUT ever dropping a must-not-miss (it stays shown,
+ * just re-ranked) and without ever concluding. Keyword matching on content words
+ * — deterministic + transparent (we show which features matched). */
+
+const STOP = new Set([
+  "pain",
+  "with",
+  "this",
+  "that",
+  "from",
+  "none",
+  "onset",
+  "your",
+  "have",
+  "associated",
+  "symptoms",
+  "features",
+  "risk",
+  "factors",
+  "vs",
+  "and",
+  "the",
+]);
+
+/** Content words (≥4 chars, not a stopword) for keyword matching. */
+function tokens(text: string): string[] {
+  return (text.toLowerCase().match(/[a-z]+/g) ?? []).filter((w) => w.length >= 4 && !STOP.has(w));
+}
+
+function featureSet(strings: string[]): Set<string> {
+  const set = new Set<string>();
+  for (const s of strings) for (const w of tokens(s)) set.add(w);
+  return set;
+}
+
+/** A clinical phrase "matches" the captured set if it shares a content word. */
+function phraseHits(phrase: string, set: Set<string>): boolean {
+  return tokens(phrase).some((w) => set.has(w));
+}
+
+/**
+ * Live reasoning: merge the fired maps, then re-weight each candidate by the
+ * captured features. Always plural; must-not-miss never dropped; transparent
+ * (matchedRuleIn/Out). Also computes what's still worth asking + risk factors.
+ */
+export function scoreReasoning(maps: ReasoningMap[], ctx: CapturedContext): LiveReasoning {
+  const merged = mergeReasoning(maps, { pmhConditions: ctx.history });
+  const captured = featureSet([...ctx.features, ...ctx.positives]);
+  const refuted = featureSet(ctx.negatives);
+
+  const scored: ScoredDifferential[] = merged.differential
+    .map((d) => {
+      const matchedRuleIn = (d.ruleIn ?? []).filter((f) => phraseHits(f, captured));
+      // a rule-OUT counts when its feature was POSITIVELY captured (present), or
+      // when a rule-IN feature was explicitly denied (negative).
+      const matchedRuleOut = [
+        ...(d.ruleOut ?? []).filter((f) => phraseHits(f, captured)),
+        ...(d.ruleIn ?? []).filter((f) => phraseHits(f, refuted)),
+      ];
+      const score = matchedRuleIn.length - matchedRuleOut.length;
+      const status: ScoredDifferential["status"] =
+        score > 0 ? "supported" : score < 0 ? "lowered" : "open";
+      return {
+        ...d,
+        score,
+        status,
+        matchedRuleIn,
+        matchedRuleOut: Array.from(new Set(matchedRuleOut)),
+      };
+    })
+    // most-cautious first within score: must-not-miss outranks ties, then score.
+    .sort((a, b) => {
+      const mnm = (x: ScoredDifferential) => (x.likelihood === "must_not_miss" ? 1 : 0);
+      return b.score - a.score || mnm(b) - mnm(a) || a.dx.localeCompare(b.dx);
+    });
+
+  // Discriminators / associated not yet addressed (present or denied).
+  const addressed = featureSet([...ctx.features, ...ctx.positives, ...ctx.negatives]);
+  const toAsk = [...merged.discriminatingHpc, ...merged.associated].filter(
+    (f) => !phraseHits(f, addressed),
+  );
+
+  // Risk factors: history-emphasis items present in the captured history vs. to-check.
+  const hist = featureSet(ctx.history);
+  const riskFactorsPresent = merged.historyEmphasis.filter((f) => phraseHits(f, hist));
+  const riskFactorsToCheck = merged.historyEmphasis.filter((f) => !phraseHits(f, hist));
+
+  return {
+    basis: merged.basis,
+    scored,
+    redFlags: merged.redFlags,
+    toAsk: Array.from(new Set(toAsk)),
+    examTargets: merged.examTargets,
+    riskFactorsPresent,
+    riskFactorsToCheck,
+    knownDiseaseTraps: merged.knownDiseaseTraps,
+    combinations: merged.combinations,
+  };
+}
+
+/** Live reasoning straight from captured PC codes + context. */
+export function liveReasoningForCodes(
+  maps: ReasoningMap[],
+  pcCodes: string[],
+  ctx: CapturedContext,
+): LiveReasoning {
+  return scoreReasoning(mapsForCodes(maps, pcCodes), ctx);
 }

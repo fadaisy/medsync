@@ -2,17 +2,18 @@
 
 import type { PicklistItem } from "@/lib/clerkship/catalog";
 import type { ClerkFamilyItem, ClerkIce, ClerkSocial } from "@/lib/encounter/clerkship";
-import { useEffect, useMemo, useState } from "react";
-import { CheckIcon, PlusIcon, XIcon } from "lucide-react";
+import { useEffect, useState } from "react";
+import { CheckIcon, XIcon } from "lucide-react";
 
 import { cageScore, FH_SCREEN, packYears } from "@/lib/clerkship/history";
 import { loadClerkshipPicklistsAction } from "../actions";
+import { AddSelect, NumSelect, YearSelect } from "./tap-controls";
 
 /**
- * Tap-first Family + Social/Personal history + ICE. Pickers, chips, number
- * pickers; pack-years auto-calculated (never typed); CAGE as a supportive 4-tap;
- * explicit negatives (no significant FH / non-smoker / no alcohol). Sensitive
- * sections framed non-judgmentally. Decision-support — screens are prompts.
+ * Tap-first Family + Social/Personal history + ICE — NO typing. Dropdowns, chips,
+ * year/number pickers; pack-years auto-calculated; CAGE as a supportive 4-tap;
+ * explicit negatives. Sensitive sections framed non-judgmentally; screens are
+ * prompts, not labels. Decision-support, not autonomous.
  */
 
 const EASE = "transition-colors duration-150 ease-expo-out";
@@ -22,8 +23,38 @@ const LBL = "text-muted-foreground w-24 shrink-0 text-[10px] tracking-wide upper
 const chip = (active: boolean) =>
   `rounded-md px-2 py-0.5 text-[11.5px] ring-1 ring-inset ${EASE} ${active ? "bg-teal-50 text-teal-700 ring-teal-500/40 dark:bg-teal-950/40 dark:text-teal-200" : "text-foreground/70 ring-border hover:bg-muted/60"}`;
 const NIL = `inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[11.5px] font-medium ring-1 ring-inset ${EASE}`;
-const tinyInput =
-  "border-input bg-card rounded px-1.5 py-0.5 text-[12px] outline-none focus-visible:border-teal-500";
+
+const CIG_DAY = [5, 10, 15, 20, 25, 30, 40, 60];
+const SMOKE_YEARS = [1, 2, 5, 10, 15, 20, 30, 40, 50];
+const UNITS = [1, 5, 10, 14, 20, 30, 40, 50, 70, 100];
+const DRUG_ROUTES = ["oral", "smoked", "inhaled", "injected", "other"];
+const ICE_OPTIONS: Record<keyof ClerkIce, string[]> = {
+  ideas: [
+    "something serious",
+    "minor / self-limiting",
+    "an infection",
+    "heart problem",
+    "cancer worry",
+    "unsure",
+  ],
+  concerns: [
+    "worried it's serious",
+    "pain",
+    "unable to work",
+    "cost",
+    "family impact",
+    "prognosis",
+  ],
+  expectations: [
+    "reassurance",
+    "a diagnosis",
+    "tests",
+    "treatment",
+    "referral",
+    "sick note",
+    "admission",
+  ],
+};
 
 type Props = {
   familyHistory: ClerkFamilyItem[];
@@ -68,14 +99,13 @@ export function FamilySocialSections(p: Props) {
         </div>
         {!p.negatives.no_fh ? (
           <>
-            <Picker
-              items={lists?.condition ?? []}
+            <AddSelect
+              options={(lists?.condition ?? []).map((c) => ({ value: c.code, label: c.display }))}
               placeholder="Add a family condition…"
-              allowOther
-              onPick={(it) =>
+              onAdd={(value, label) =>
                 p.setFamilyHistory([
                   ...p.familyHistory,
-                  { relative: "mother", conditionCode: it.code, conditionDisplay: it.display },
+                  { relative: "mother", conditionCode: value, conditionDisplay: label },
                 ])
               }
             />
@@ -112,15 +142,15 @@ export function FamilySocialSections(p: Props) {
                   ))}
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <input
-                    className={`${tinyInput} w-28`}
-                    placeholder="Age at onset/death"
-                    value={f.ageOnset ?? ""}
-                    onChange={(e) =>
+                  <span className="text-muted-foreground text-[10px] uppercase">
+                    age onset/death
+                  </span>
+                  <YearSelect
+                    value={f.ageOnset}
+                    placeholder="Age…"
+                    onChange={(v) =>
                       p.setFamilyHistory(
-                        p.familyHistory.map((x, j) =>
-                          j === i ? { ...x, ageOnset: e.target.value } : x,
-                        ),
+                        p.familyHistory.map((x, j) => (j === i ? { ...x, ageOnset: v } : x)),
                       )
                     }
                   />
@@ -171,26 +201,23 @@ export function FamilySocialSections(p: Props) {
 
         {/* Smoking */}
         <Row label="Smoking">
-          {(["never", "current", "ex"] as const).map((v) => (
-            <button
-              key={v}
-              type="button"
-              className={chip(s.smokingStatus === v)}
-              onClick={() => set({ smokingStatus: s.smokingStatus === v ? undefined : v })}
-            >
-              {v}
-            </button>
-          ))}
+          <Chips
+            options={["never", "current", "ex"]}
+            value={s.smokingStatus}
+            onPick={(v) => set({ smokingStatus: v as ClerkSocial["smokingStatus"] })}
+          />
           {s.smokingStatus && s.smokingStatus !== "never" ? (
             <>
-              <NumberPick
+              <NumSelect
                 label="cig/day"
                 value={s.cigsPerDay}
+                options={CIG_DAY}
                 onChange={(n) => set({ cigsPerDay: n })}
               />
-              <NumberPick
+              <NumSelect
                 label="years"
                 value={s.smokingYears}
+                options={SMOKE_YEARS}
                 onChange={(n) => set({ smokingYears: n })}
               />
               {py != null ? (
@@ -199,11 +226,10 @@ export function FamilySocialSections(p: Props) {
                 </span>
               ) : null}
               {s.smokingStatus === "ex" ? (
-                <input
-                  className={`${tinyInput} w-20`}
+                <YearSelect
+                  value={s.quitYear}
                   placeholder="quit yr"
-                  value={s.quitYear ?? ""}
-                  onChange={(e) => set({ quitYear: e.target.value })}
+                  onChange={(v) => set({ quitYear: v })}
                 />
               ) : null}
             </>
@@ -212,20 +238,16 @@ export function FamilySocialSections(p: Props) {
 
         {/* Alcohol */}
         <Row label="Alcohol">
-          {(["never", "occasional", "regular", "ex"] as const).map((v) => (
-            <button
-              key={v}
-              type="button"
-              className={chip(s.alcoholStatus === v)}
-              onClick={() => set({ alcoholStatus: s.alcoholStatus === v ? undefined : v })}
-            >
-              {v}
-            </button>
-          ))}
+          <Chips
+            options={["never", "occasional", "regular", "ex"]}
+            value={s.alcoholStatus}
+            onPick={(v) => set({ alcoholStatus: v as ClerkSocial["alcoholStatus"] })}
+          />
           {s.alcoholStatus && s.alcoholStatus !== "never" ? (
-            <NumberPick
+            <NumSelect
               label="units/wk"
               value={s.alcoholUnitsPerWeek}
+              options={UNITS}
               onChange={(n) => set({ alcoholUnitsPerWeek: n })}
             />
           ) : null}
@@ -261,33 +283,37 @@ export function FamilySocialSections(p: Props) {
 
         {/* Recreational drugs (sensitive) */}
         <Row label="Drugs">
-          {(["never", "past", "current"] as const).map((v) => (
-            <button
-              key={v}
-              type="button"
-              className={chip(s.drugUse === v)}
-              onClick={() => set({ drugUse: s.drugUse === v ? undefined : v })}
-            >
-              {v}
-            </button>
-          ))}
+          <Chips
+            options={["never", "past", "current"]}
+            value={s.drugUse}
+            onPick={(v) => set({ drugUse: v as ClerkSocial["drugUse"] })}
+          />
           {s.drugUse && s.drugUse !== "never" ? (
-            <input
-              className={`${tinyInput} flex-1`}
-              placeholder="substance / route (sensitive)"
-              value={s.drugDetail ?? ""}
-              onChange={(e) => set({ drugDetail: e.target.value })}
+            <Chips
+              options={DRUG_ROUTES}
+              value={s.drugDetail}
+              onPick={(v) => set({ drugDetail: v })}
             />
           ) : null}
         </Row>
 
         {/* Occupation + exposures */}
         <Row label="Occupation">
-          <OccPicker
-            items={lists?.occupation ?? []}
-            value={s.occupation}
-            onPick={(it) => set({ occupationCode: it.code, occupation: it.display })}
-          />
+          {s.occupation ? (
+            <button
+              type="button"
+              className={chip(true)}
+              onClick={() => set({ occupation: undefined, occupationCode: undefined })}
+            >
+              {s.occupation} <XIcon className="ml-0.5 inline size-3" aria-hidden />
+            </button>
+          ) : (
+            <AddSelect
+              options={(lists?.occupation ?? []).map((o) => ({ value: o.code, label: o.display }))}
+              placeholder="Occupation…"
+              onAdd={(value, label) => set({ occupationCode: value, occupation: label })}
+            />
+          )}
         </Row>
         <Row label="Exposures">
           {(lists?.exposure ?? []).map((ex) => {
@@ -313,59 +339,38 @@ export function FamilySocialSections(p: Props) {
 
         {/* Living + function */}
         <Row label="Lives">
-          {(["alone", "with_family", "with_spouse", "institution"] as const).map((v) => (
-            <button
-              key={v}
-              type="button"
-              className={chip(s.living === v)}
-              onClick={() => set({ living: s.living === v ? undefined : v })}
-            >
-              {v.replace(/_/g, " ")}
-            </button>
-          ))}
+          <Chips
+            options={["alone", "with_family", "with_spouse", "institution"]}
+            value={s.living}
+            onPick={(v) => set({ living: v as ClerkSocial["living"] })}
+          />
         </Row>
         <Row label="Function">
-          {(["independent", "some_help", "dependent"] as const).map((v) => (
-            <button
-              key={v}
-              type="button"
-              className={chip(s.func === v)}
-              onClick={() => set({ func: s.func === v ? undefined : v })}
-            >
-              {v.replace(/_/g, " ")}
-            </button>
-          ))}
+          <Chips
+            options={["independent", "some_help", "dependent"]}
+            value={s.func}
+            onPick={(v) => set({ func: v as ClerkSocial["func"] })}
+          />
         </Row>
         <Row label="Mobility">
-          {(["independent", "aid", "wheelchair", "bedbound"] as const).map((v) => (
-            <button
-              key={v}
-              type="button"
-              className={chip(s.mobility === v)}
-              onClick={() => set({ mobility: s.mobility === v ? undefined : v })}
-            >
-              {v}
-            </button>
-          ))}
+          <Chips
+            options={["independent", "aid", "wheelchair", "bedbound"]}
+            value={s.mobility}
+            onPick={(v) => set({ mobility: v as ClerkSocial["mobility"] })}
+          />
         </Row>
-
-        {/* Lifestyle */}
         <Row label="Activity">
-          {(["sedentary", "moderate", "active"] as const).map((v) => (
-            <button
-              key={v}
-              type="button"
-              className={chip(s.activity === v)}
-              onClick={() => set({ activity: s.activity === v ? undefined : v })}
-            >
-              {v}
-            </button>
-          ))}
-          <input
-            className={`${tinyInput} w-32`}
-            placeholder="recent travel"
-            value={s.recentTravel ?? ""}
-            onChange={(e) => set({ recentTravel: e.target.value })}
+          <Chips
+            options={["sedentary", "moderate", "active"]}
+            value={s.activity}
+            onPick={(v) => set({ activity: v as ClerkSocial["activity"] })}
+          />
+        </Row>
+        <Row label="Recent travel">
+          <Chips
+            options={["no", "yes"]}
+            value={s.recentTravel}
+            onPick={(v) => set({ recentTravel: v })}
           />
         </Row>
       </section>
@@ -373,24 +378,44 @@ export function FamilySocialSections(p: Props) {
       {/* ── ICE ── */}
       <section className={SECTION}>
         <span className={H}>Ideas · concerns · expectations</span>
-        {(
-          [
-            ["ideas", "Ideas"],
-            ["concerns", "Concerns"],
-            ["expectations", "Expectations"],
-          ] as const
-        ).map(([k, lbl]) => (
-          <Row key={k} label={lbl}>
-            <input
-              className={`${tinyInput} flex-1`}
-              value={p.ice[k] ?? ""}
-              onChange={(e) => p.setIce({ ...p.ice, [k]: e.target.value })}
-              placeholder={`${lbl} (brief)`}
+        {(["ideas", "concerns", "expectations"] as const).map((k) => (
+          <Row key={k} label={k}>
+            <Chips
+              options={ICE_OPTIONS[k]}
+              value={p.ice[k]}
+              onPick={(v) => p.setIce({ ...p.ice, [k]: v })}
             />
           </Row>
         ))}
       </section>
     </div>
+  );
+}
+
+/** Single-select chip group (tap to set / tap again to clear). */
+function Chips({
+  options,
+  value,
+  onPick,
+}: {
+  options: string[];
+  value: string | undefined;
+  onPick: (v: string | undefined) => void;
+}) {
+  return (
+    <>
+      {options.map((o) => (
+        <button
+          key={o}
+          type="button"
+          aria-pressed={value === o}
+          className={chip(value === o)}
+          onClick={() => onPick(value === o ? undefined : o)}
+        >
+          {o.replace(/_/g, " ")}
+        </button>
+      ))}
+    </>
   );
 }
 
@@ -400,33 +425,6 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
       <span className={LBL}>{label}</span>
       <div className="flex flex-1 flex-wrap items-center gap-1">{children}</div>
     </div>
-  );
-}
-
-function NumberPick({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: number | undefined;
-  onChange: (n: number | undefined) => void;
-}) {
-  return (
-    <span className="inline-flex items-center gap-1">
-      <input
-        type="number"
-        min={0}
-        className={`${tinyInput} w-16`}
-        placeholder={label}
-        value={value ?? ""}
-        onChange={(e) => {
-          const n = Number(e.target.value);
-          onChange(e.target.value === "" || !Number.isFinite(n) ? undefined : n);
-        }}
-      />
-      <span className="text-muted-foreground text-[10px]">{label}</span>
-    </span>
   );
 }
 
@@ -502,157 +500,6 @@ function ItemCard({
         </button>
       </div>
       {children}
-    </div>
-  );
-}
-
-function OccPicker({
-  items,
-  value,
-  onPick,
-}: {
-  items: PicklistItem[];
-  value: string | undefined;
-  onPick: (it: PicklistItem) => void;
-}) {
-  const [q, setQ] = useState("");
-  const matches = useMemo(() => {
-    const t = q.trim().toLowerCase();
-    return t ? items.filter((it) => it.display.toLowerCase().includes(t)).slice(0, 8) : [];
-  }, [q, items]);
-  if (value)
-    return (
-      <button
-        type="button"
-        className={chip(true)}
-        onClick={() =>
-          onPick({ code: "", listType: "", display: "", synonyms: [], meta: {}, ugandaFlag: null })
-        }
-      >
-        {value} ✕
-      </button>
-    );
-  return (
-    <div className="flex flex-1 flex-col gap-1">
-      <input
-        className={`${tinyInput} w-full`}
-        placeholder="Occupation…"
-        value={q}
-        onChange={(e) => setQ(e.target.value)}
-      />
-      {q.trim() ? (
-        <div className="flex flex-wrap gap-1">
-          {matches.map((it) => (
-            <button
-              key={it.code}
-              type="button"
-              className={chip(false)}
-              onClick={() => {
-                onPick(it);
-                setQ("");
-              }}
-            >
-              {it.display}
-            </button>
-          ))}
-          <button
-            type="button"
-            className={chip(false)}
-            onClick={() => {
-              onPick({
-                code: `adhoc_${q
-                  .trim()
-                  .toLowerCase()
-                  .replace(/[^a-z0-9]+/g, "_")}`,
-                listType: "",
-                display: q.trim(),
-                synonyms: [],
-                meta: {},
-                ugandaFlag: null,
-              });
-              setQ("");
-            }}
-          >
-            “{q.trim()}”
-          </button>
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
-function Picker({
-  items,
-  placeholder,
-  allowOther,
-  onPick,
-}: {
-  items: PicklistItem[];
-  placeholder: string;
-  allowOther?: boolean;
-  onPick: (it: PicklistItem) => void;
-}) {
-  const [q, setQ] = useState("");
-  const matches = useMemo(() => {
-    const t = q.trim().toLowerCase();
-    return t
-      ? items
-          .filter(
-            (it) =>
-              it.display.toLowerCase().includes(t) ||
-              it.synonyms.some((y) => y.toLowerCase().includes(t)),
-          )
-          .slice(0, 8)
-      : [];
-  }, [q, items]);
-  return (
-    <div className="flex flex-col gap-1.5">
-      <input
-        className={`${tinyInput} w-full py-1.5`}
-        placeholder={placeholder}
-        value={q}
-        onChange={(e) => setQ(e.target.value)}
-      />
-      {q.trim() ? (
-        <div className="flex flex-wrap gap-1">
-          {matches.map((it) => (
-            <button
-              key={it.code}
-              type="button"
-              className={chip(false)}
-              onClick={() => {
-                onPick(it);
-                setQ("");
-              }}
-            >
-              <PlusIcon className="mr-0.5 inline size-3" aria-hidden />
-              {it.display}
-            </button>
-          ))}
-          {allowOther ? (
-            <button
-              type="button"
-              className={chip(false)}
-              onClick={() => {
-                onPick({
-                  code: `adhoc_${q
-                    .trim()
-                    .toLowerCase()
-                    .replace(/[^a-z0-9]+/g, "_")}`,
-                  listType: "",
-                  display: q.trim(),
-                  synonyms: [],
-                  meta: {},
-                  ugandaFlag: null,
-                });
-                setQ("");
-              }}
-            >
-              <PlusIcon className="mr-0.5 inline size-3" aria-hidden />“{q.trim()}” (other)
-            </button>
-          ) : null}
-        </div>
-      ) : null}
     </div>
   );
 }

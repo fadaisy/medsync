@@ -58,6 +58,42 @@ export interface ReasoningMap {
   source?: string;
 }
 
+/** What the clinician has captured so far — drives live re-weighting (pure input). */
+export interface CapturedContext {
+  /** HPC tap values + symptom displays (e.g. "crushing", "radiation to arm"). */
+  features: string[];
+  /** ROS / associated symptoms recorded present. */
+  positives: string[];
+  /** ROS / associated symptoms explicitly denied. */
+  negatives: string[];
+  /** PMH conditions + FH positives + social tokens (risk-factor matching). */
+  history: string[];
+}
+
+/** A differential candidate re-weighted by the captured features. */
+export interface ScoredDifferential extends DifferentialItem {
+  /** +rule-in hits − rule-out hits from the captured features. */
+  score: number;
+  status: "supported" | "lowered" | "open";
+  matchedRuleIn: string[];
+  matchedRuleOut: string[];
+}
+
+/** Live reasoning — the differential re-ranked + what to do next + risk factors. */
+export interface LiveReasoning {
+  basis: string[];
+  scored: ScoredDifferential[];
+  redFlags: string[];
+  /** Discriminators / associated symptoms not yet addressed — ask/examine next. */
+  toAsk: string[];
+  examTargets: ExamTarget[];
+  /** Risk factors from history present vs. worth checking. */
+  riskFactorsPresent: string[];
+  riskFactorsToCheck: string[];
+  knownDiseaseTraps: string[];
+  combinations: CombinationCue[];
+}
+
 /** The merged reasoning surfaced to the clinician (always plural; suggestion only). */
 export interface ReasoningResult {
   /** Maps that fired (by display) — transparency: shown so the clinician sees why. */

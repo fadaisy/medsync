@@ -1,224 +1,279 @@
 "use client";
 
-import type { DifferentialItem } from "@/lib/clerkship/reasoning/types";
+import type { ScoredDifferential } from "@/lib/clerkship/reasoning/types";
+import type { RosObservation } from "@/lib/clerkship/ros";
+import type { CapturedSymptom } from "@/lib/clerkship/symptom-engine";
+import type { ClerkSocial } from "@/lib/encounter/clerkship";
 import { useMemo, useState } from "react";
 import {
   AlertTriangleIcon,
+  ArrowDownIcon,
+  ArrowUpIcon,
   BrainCircuitIcon,
-  ChevronDownIcon,
+  MinusIcon,
   PauseCircleIcon,
   ShieldAlertIcon,
+  XIcon,
 } from "lucide-react";
 
-import { diagnosticPausePrompts, reasoningForCodes } from "@/lib/clerkship/reasoning/engine";
+import { diagnosticPausePrompts, liveReasoningForCodes } from "@/lib/clerkship/reasoning/engine";
 import { REASONING_MAPS } from "@/lib/clerkship/reasoning/maps";
 
 /**
- * Clinical reasoning panel — the anti-anchoring surface. Computed PURELY from the
- * captured presenting complaint(s) + the CSO-signed maps. It ALWAYS shows a
- * plural differential incl. the must-not-miss, the discriminators still to ask,
- * the red flags, and the hypothesis-driven exam targets — and at synthesis a
- * diagnostic pause. It is SUGGESTION ONLY: nothing is pre-filled or concluded;
- * the clinician decides. Decision-support, not autonomous.
+ * Clinical reasoning — a FLOATING, LIVE, anti-anchoring panel that moves with the
+ * clerkship. As the clinician taps symptom properties / ROS / history, the
+ * differential RE-RANKS (rule-in raises, rule-out/denial lowers), surfaces what
+ * to ask + examine next, and flags risk factors + red flags. Computed PURELY on
+ * the client (no API, no latency, no PHI leaves the page). It NEVER narrows to
+ * one answer, never drops a must-not-miss, never auto-fills. Decision-support.
  */
 
-const EASE = "transition-colors duration-150 ease-expo-out";
+function socialTokens(s: ClerkSocial | undefined): string[] {
+  if (!s) return [];
+  const out: string[] = [];
+  if (s.smokingStatus === "current" || s.smokingStatus === "ex") out.push("smoking", "smoker");
+  if (s.alcoholStatus === "regular" || s.alcoholStatus === "ex") out.push("alcohol");
+  if (s.drugUse === "current" || s.drugUse === "past") out.push("recreational drugs", "IVDU");
+  if (s.occupation) out.push(s.occupation);
+  if (s.exposures?.length) out.push(...s.exposures);
+  return out;
+}
 
 export function ReasoningPanel({
   pcCodes,
+  hpcItems,
+  ros,
   pmhConditions,
+  fhScreen,
+  social,
   atSynthesis,
 }: {
   pcCodes: string[];
+  hpcItems: CapturedSymptom[];
+  ros: RosObservation[];
   pmhConditions: string[];
+  fhScreen: Record<string, "yes" | "no" | "unsure">;
+  social: ClerkSocial;
   atSynthesis: boolean;
 }) {
   const [open, setOpen] = useState(true);
-  const [showPause, setShowPause] = useState(false);
-  const r = useMemo(
-    () => reasoningForCodes(REASONING_MAPS, pcCodes, { pmhConditions }),
-    [pcCodes, pmhConditions],
-  );
+
+  const r = useMemo(() => {
+    const features = hpcItems.flatMap((i) => [
+      i.symptomDisplay,
+      ...i.properties.flatMap((p) => [...(p.labels ?? []), p.text ?? ""]),
+    ]);
+    const fhYes = Object.entries(fhScreen)
+      .filter(([, v]) => v === "yes")
+      .map(([k]) => k.replace(/_/g, " "));
+    const fhNo = Object.entries(fhScreen)
+      .filter(([, v]) => v === "no")
+      .map(([k]) => k.replace(/_/g, " "));
+    return liveReasoningForCodes(REASONING_MAPS, pcCodes, {
+      features,
+      positives: [
+        ...ros.filter((o) => o.status === "present").map((o) => o.symptomDisplay),
+        ...fhYes,
+      ],
+      negatives: [
+        ...ros.filter((o) => o.status === "denies").map((o) => o.symptomDisplay),
+        ...fhNo,
+      ],
+      history: [...pmhConditions, ...fhYes, ...socialTokens(social)],
+    });
+  }, [pcCodes, hpcItems, ros, pmhConditions, fhScreen, social]);
 
   const fired = r.basis.length > 0;
-  const mustNotMiss = r.differential.filter((d) => d.likelihood === "must_not_miss");
-  const likely = r.differential.filter((d) => d.likelihood !== "must_not_miss");
+  const mnmCount = r.scored.filter((d) => d.likelihood === "must_not_miss").length;
 
-  return (
-    <div className="border-border/70 bg-card/40 overflow-hidden rounded-xl border">
+  if (!open) {
+    return (
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center gap-2 px-3.5 py-2.5 text-left"
-        aria-expanded={open}
+        onClick={() => setOpen(true)}
+        className="fixed right-3 bottom-3 z-40 inline-flex items-center gap-1.5 rounded-full bg-teal-600 px-3 py-2 text-[12px] font-medium text-white shadow-lg"
       >
+        <BrainCircuitIcon className="size-4" aria-hidden />
+        Reasoning
+        {mnmCount ? (
+          <span className="rounded-full bg-amber-400 px-1.5 text-[10px] font-semibold text-amber-950">
+            {mnmCount}
+          </span>
+        ) : null}
+      </button>
+    );
+  }
+
+  return (
+    <aside className="border-border bg-card/95 fixed top-20 right-3 bottom-3 z-40 flex w-[21rem] max-w-[calc(100vw-1.5rem)] flex-col overflow-hidden rounded-2xl border shadow-xl backdrop-blur">
+      <div className="border-border/60 flex items-center gap-2 border-b px-3.5 py-2.5">
         <BrainCircuitIcon
           className="size-4 shrink-0 text-teal-600 dark:text-teal-400"
           aria-hidden
         />
         <span className="text-foreground text-[13px] font-semibold">Clinical reasoning</span>
-        <span className="text-muted-foreground hidden text-[10.5px] sm:inline">
-          decision support — broadens the differential, never decides
-        </span>
-        {fired && mustNotMiss.length ? (
+        {mnmCount ? (
           <span className="inline-flex items-center gap-1 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
             <ShieldAlertIcon className="size-3" aria-hidden />
-            {mustNotMiss.length} must-not-miss
+            {mnmCount}
           </span>
         ) : null}
-        <ChevronDownIcon
-          className={`text-muted-foreground ml-auto size-4 transition-transform ${open ? "" : "-rotate-90"}`}
-          aria-hidden
-        />
-      </button>
+        <button
+          type="button"
+          onClick={() => setOpen(false)}
+          className="text-muted-foreground hover:text-foreground ml-auto"
+          aria-label="Collapse reasoning panel"
+        >
+          <XIcon className="size-4" />
+        </button>
+      </div>
 
-      {open ? (
-        <div className="border-border/50 flex flex-col gap-3 border-t px-3.5 py-3">
-          {!fired ? (
-            <p className="text-muted-foreground text-[12px]">
-              Add a presenting complaint to surface the differential, the must-not-miss, and the
-              discriminators to ask + examine.
+      <div className="flex flex-col gap-3 overflow-y-auto px-3.5 py-3">
+        {!fired ? (
+          <p className="text-muted-foreground text-[12px]">
+            Add a presenting complaint — the differential, the must-not-miss, and the discriminators
+            will appear here and narrow as you capture features.
+          </p>
+        ) : (
+          <>
+            <p className="text-muted-foreground text-[10.5px]">
+              Decision support — broadens + narrows the differential as you work. You decide;
+              nothing is recorded until you enter it.
             </p>
-          ) : (
-            <>
-              {/* Known-disease (anchoring) trap — prominent */}
-              {r.knownDiseaseTraps.map((t, i) => (
-                <div
-                  key={i}
-                  className="flex items-start gap-1.5 rounded-lg bg-amber-50 px-2.5 py-1.5 text-[12px] text-amber-900 ring-1 ring-amber-500/30 ring-inset dark:bg-amber-950/30 dark:text-amber-200"
-                >
-                  <AlertTriangleIcon className="mt-0.5 size-3.5 shrink-0" aria-hidden />
-                  <span>{t}</span>
-                </div>
-              ))}
 
-              {/* Must-not-miss group */}
-              {mustNotMiss.length ? (
-                <Group title="Must not miss" tone="amber">
-                  {mustNotMiss.map((d) => (
-                    <DxChip key={d.dx} d={d} tone="amber" />
-                  ))}
-                </Group>
-              ) : null}
-
-              {/* Likely / less-likely */}
-              {likely.length ? (
-                <Group title="Differential">
-                  {likely.map((d) => (
-                    <DxChip key={d.dx} d={d} tone={d.likelihood === "likely" ? "teal" : "muted"} />
-                  ))}
-                </Group>
-              ) : null}
-
-              {r.redFlags.length ? (
-                <Group title="Red flags — re-check" tone="amber">
-                  {r.redFlags.map((f, i) => (
-                    <span key={i} className="text-[11.5px] text-amber-800 dark:text-amber-300">
-                      {f}
-                      {i < r.redFlags.length - 1 ? " · " : ""}
-                    </span>
-                  ))}
-                </Group>
-              ) : null}
-
-              <TextGroup title="Discriminators to ask" items={r.discriminatingHpc} />
-              <TextGroup title="Associated — rule in/out" items={r.associated} />
-              <TextGroup
-                title="Examine for"
-                items={r.examTargets.map(
-                  (t) => `${t.sign}${t.discriminates ? ` (${t.discriminates})` : ""}`,
-                )}
-              />
-              <TextGroup title="History that shifts likelihood" items={r.historyEmphasis} />
-
-              {/* Diagnostic pause — always available, emphasised at synthesis */}
+            {r.knownDiseaseTraps.map((t, i) => (
               <div
-                className={atSynthesis ? "rounded-lg bg-teal-50/60 p-2.5 dark:bg-teal-950/20" : ""}
+                key={i}
+                className="flex items-start gap-1.5 rounded-lg bg-amber-50 px-2.5 py-1.5 text-[11.5px] text-amber-900 ring-1 ring-amber-500/30 ring-inset dark:bg-amber-950/30 dark:text-amber-200"
               >
-                <button
-                  type="button"
-                  onClick={() => setShowPause((s) => !s)}
-                  className={`inline-flex items-center gap-1.5 text-[12px] font-medium text-teal-700 dark:text-teal-300 ${EASE}`}
-                >
-                  <PauseCircleIcon className="size-3.5" aria-hidden />
-                  Diagnostic pause {atSynthesis ? "(before you close)" : ""}
-                </button>
-                {showPause || atSynthesis ? (
-                  <ul className="text-muted-foreground mt-1.5 flex list-disc flex-col gap-0.5 pl-5 text-[11.5px]">
-                    {diagnosticPausePrompts().map((q, i) => (
-                      <li key={i}>{q}</li>
-                    ))}
-                  </ul>
-                ) : null}
+                <AlertTriangleIcon className="mt-0.5 size-3.5 shrink-0" aria-hidden />
+                <span>{t}</span>
               </div>
+            ))}
 
-              <p className="text-muted-foreground border-border/40 border-t pt-2 text-[10.5px]">
-                Suggestions from {r.basis.join(", ")} — consider/ask/examine/rule-out. The diagnosis
-                is yours; nothing here is recorded until you enter it.
-              </p>
-            </>
-          )}
-        </div>
-      ) : null}
-    </div>
+            <Section title="Differential — live">
+              <div className="flex flex-col gap-1">
+                {r.scored.map((d) => (
+                  <DxRow key={d.dx} d={d} />
+                ))}
+              </div>
+            </Section>
+
+            {r.toAsk.length ? (
+              <Section title="Ask / examine next — to discriminate">
+                <p className="text-foreground/80 text-[11.5px] leading-relaxed">
+                  {r.toAsk.slice(0, 12).join(" · ")}
+                </p>
+              </Section>
+            ) : null}
+
+            {r.redFlags.length ? (
+              <Section title="Red flags — re-check" tone="amber">
+                <p className="text-[11.5px] text-amber-800 dark:text-amber-300">
+                  {r.redFlags.join(" · ")}
+                </p>
+              </Section>
+            ) : null}
+
+            {r.riskFactorsPresent.length ? (
+              <Section title="Risk factors present">
+                <p className="text-[11.5px] text-teal-700 dark:text-teal-300">
+                  {r.riskFactorsPresent.join(" · ")}
+                </p>
+              </Section>
+            ) : null}
+            {r.riskFactorsToCheck.length ? (
+              <Section title="Risk factors to check">
+                <p className="text-muted-foreground text-[11.5px]">
+                  {r.riskFactorsToCheck.slice(0, 8).join(" · ")}
+                </p>
+              </Section>
+            ) : null}
+
+            <div
+              className={atSynthesis ? "rounded-lg bg-teal-50/60 p-2.5 dark:bg-teal-950/20" : ""}
+            >
+              <span className="inline-flex items-center gap-1.5 text-[11.5px] font-medium text-teal-700 dark:text-teal-300">
+                <PauseCircleIcon className="size-3.5" aria-hidden />
+                Diagnostic pause {atSynthesis ? "(before you close)" : ""}
+              </span>
+              {atSynthesis ? (
+                <ul className="text-muted-foreground mt-1 flex list-disc flex-col gap-0.5 pl-5 text-[11px]">
+                  {diagnosticPausePrompts().map((q, i) => (
+                    <li key={i}>{q}</li>
+                  ))}
+                </ul>
+              ) : null}
+            </div>
+
+            <p className="text-muted-foreground border-border/40 border-t pt-2 text-[10px]">
+              From {r.basis.join(", ")}.
+            </p>
+          </>
+        )}
+      </div>
+    </aside>
   );
 }
 
-function Group({
+function Section({
   title,
   tone,
   children,
 }: {
   title: string;
-  tone?: "amber" | "teal" | "muted";
+  tone?: "amber";
   children: React.ReactNode;
 }) {
-  const c = tone === "amber" ? "text-amber-700 dark:text-amber-400" : "text-muted-foreground";
   return (
     <div className="flex flex-col gap-1">
-      <span className={`text-[10px] font-medium tracking-[0.1em] uppercase ${c}`}>{title}</span>
-      <div className="flex flex-wrap items-center gap-1.5">{children}</div>
+      <span
+        className={`text-[10px] font-medium tracking-[0.1em] uppercase ${tone === "amber" ? "text-amber-700 dark:text-amber-400" : "text-muted-foreground"}`}
+      >
+        {title}
+      </span>
+      {children}
     </div>
   );
 }
 
-function DxChip({ d, tone }: { d: DifferentialItem; tone: "amber" | "teal" | "muted" }) {
+function DxRow({ d }: { d: ScoredDifferential }) {
   const [open, setOpen] = useState(false);
-  const cls =
-    tone === "amber"
-      ? "bg-amber-50 text-amber-800 ring-amber-500/30 dark:bg-amber-950/40 dark:text-amber-200"
-      : tone === "teal"
-        ? "bg-teal-50 text-teal-700 ring-teal-500/30 dark:bg-teal-950/40 dark:text-teal-200"
-        : "text-foreground/70 ring-border";
-  const hasDetail = (d.ruleIn?.length ?? 0) + (d.ruleOut?.length ?? 0) > 0;
+  const mnm = d.likelihood === "must_not_miss";
+  const Icon =
+    d.status === "supported" ? ArrowUpIcon : d.status === "lowered" ? ArrowDownIcon : MinusIcon;
+  const iconColor =
+    d.status === "supported"
+      ? "text-teal-600 dark:text-teal-400"
+      : d.status === "lowered"
+        ? "text-muted-foreground/60"
+        : "text-muted-foreground";
+  const hasDetail = d.matchedRuleIn.length + d.matchedRuleOut.length > 0;
   return (
-    <span className="inline-flex flex-col">
+    <div className={`rounded-md px-2 py-1 ${d.status === "lowered" ? "opacity-55" : ""}`}>
       <button
         type="button"
         onClick={() => hasDetail && setOpen((o) => !o)}
-        className={`rounded-md px-2 py-0.5 text-[11.5px] ring-1 ring-inset ${cls} ${hasDetail ? "cursor-pointer" : "cursor-default"}`}
-        title={hasDetail ? "Show discriminators" : undefined}
+        className="flex w-full items-center gap-1.5 text-left"
       >
-        {d.dx}
+        <Icon className={`size-3.5 shrink-0 ${iconColor}`} aria-hidden />
+        <span className="text-foreground min-w-0 flex-1 truncate text-[12px]">{d.dx}</span>
+        {mnm ? (
+          <span className="shrink-0 rounded bg-amber-100 px-1 text-[9px] font-semibold tracking-wide text-amber-800 uppercase dark:bg-amber-950/40 dark:text-amber-300">
+            must not miss
+          </span>
+        ) : null}
       </button>
       {open ? (
-        <span className="text-muted-foreground mt-0.5 max-w-[16rem] text-[10.5px] leading-snug">
-          {d.ruleIn?.length ? <>+ {d.ruleIn.join(", ")}. </> : null}
-          {d.ruleOut?.length ? <>− {d.ruleOut.join(", ")}.</> : null}
-        </span>
+        <div className="mt-0.5 pl-5 text-[10.5px] leading-snug">
+          {d.matchedRuleIn.length ? (
+            <p className="text-teal-700 dark:text-teal-400">+ {d.matchedRuleIn.join(", ")}</p>
+          ) : null}
+          {d.matchedRuleOut.length ? (
+            <p className="text-muted-foreground">− {d.matchedRuleOut.join(", ")}</p>
+          ) : null}
+        </div>
       ) : null}
-    </span>
-  );
-}
-
-function TextGroup({ title, items }: { title: string; items: string[] }) {
-  if (!items.length) return null;
-  return (
-    <div className="flex flex-col gap-0.5">
-      <span className="text-muted-foreground text-[10px] font-medium tracking-[0.1em] uppercase">
-        {title}
-      </span>
-      <p className="text-foreground/80 text-[11.5px] leading-relaxed">{items.join(" · ")}</p>
     </div>
   );
 }
