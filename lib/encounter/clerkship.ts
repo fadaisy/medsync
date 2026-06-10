@@ -94,6 +94,8 @@ export interface ClerkHistory {
   /** ROS scope (complete/focused) — records truthful coverage; PC-owned systems
    * are HPC-covered. not-reviewed ≠ negative. */
   rosScope?: RosScope;
+  /** Clinician's free-text ROS narrative — saved alongside the generated sweep summary. */
+  rosNarrative?: string;
   pmh?: string;
   /** Hutchison "retrospective history" prompt actioned. */
   retrospectiveChecked?: boolean;

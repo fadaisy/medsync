@@ -67,6 +67,8 @@ export const ClerkshipInputSchema = z.object({
       reviewedSystems: z.array(z.string().max(40)).max(20),
     })
     .optional(),
+  /** Clinician's free-text ROS narrative (saved with the generated sweep summary). */
+  rosNarrative: z.string().max(20000).optional(),
   socrates: z
     .object({
       site: z.string().max(240).optional(),
@@ -169,6 +171,7 @@ export function clerkshipInputToClerkship(input: ClerkshipInput): Clerkship {
     hpcItems: hpcItems.length > 0 ? hpcItems : undefined,
     ros: ros.length > 0 ? ros : undefined,
     rosScope: input.rosScope,
+    rosNarrative: clean(input.rosNarrative),
     socrates: input.socrates ? prune({ ...input.socrates }) : undefined,
     pmh: clean(input.pmh),
     drugHistory: clean(input.drugHistory),
