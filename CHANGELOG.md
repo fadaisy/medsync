@@ -5,6 +5,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Clerkship: reasoning discriminator tap-options (GATED) — 2026-06-10
+
+Migration **0047** (GATED) makes the live reasoning re-ranking match **exactly**, not just by keyword. An audit found only **34 genuine gaps** (the other flagged features already keyword-match curated options); 0047 adds a per-PC **"Discriminating features"** multi-select seeded with those gaps (31 options across 12 PCs), mapped to the symptom(s) the clinician taps — additive, does not touch the curated 0043 SOCRATES properties; reuses `symptom_property`/`_option`/`_map` (no new tables). Enriched maps (113 differentials, 65 must-not-miss) + cross-system support/refute already shipped. Artifact: `docs/clinical/enriched-reasoning-maps.json`.
+
 ### Changed — Clerkship: live floating reasoning + fully tap-first Background — 2026-06-10
 
 - **Live reasoning** — the reasoning panel now RE-RANKS as the clinician taps: rule-in features raise a candidate, rule-out/denials lower it (`scoreReasoning`, pure/client-side — no API, no latency). Transparent (shows the matched +/− features), surfaces **what to ask/examine next** + **risk factors present vs to-check**, and **never drops a must-not-miss** (only re-ranks). Now a **floating, collapsible side panel** that moves with the clerkship.
