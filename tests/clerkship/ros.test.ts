@@ -2,6 +2,7 @@ import type { RosObservation } from "@/lib/clerkship/ros";
 import { describe, expect, it } from "vitest";
 
 import {
+  renderRosNarrative,
   renderRosProse,
   renderRosSummary,
   rosCoverage,
@@ -47,6 +48,18 @@ describe("renderRosProse", () => {
   });
   it("empty in → empty out", () => {
     expect(renderRosProse([])).toBe("");
+  });
+});
+
+describe("renderRosNarrative", () => {
+  it("reads as a flowing clinician sentence (reports … ; denies …)", () => {
+    const s = renderRosNarrative(ros);
+    expect(s).toBe(
+      "On systems review, the patient reports chest pain (6/10); denies palpitations, orthopnoea and cough.",
+    );
+  });
+  it("empty in → empty out", () => {
+    expect(renderRosNarrative([])).toBe("");
   });
 });
 
