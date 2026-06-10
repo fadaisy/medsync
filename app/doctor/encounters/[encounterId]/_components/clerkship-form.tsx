@@ -24,6 +24,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { renderRosProse } from "@/lib/clerkship/ros";
 import { renderSymptomProse } from "@/lib/clerkship/symptom-engine";
 import { ICD10_CODES, LOINC_CODES } from "@/lib/encounter/reference-codes";
 import { submitClerkshipAction } from "../actions";
@@ -63,6 +64,7 @@ type FormState = {
   hpcNarrative: string;
   ros: RosObservation[];
   rosScope: RosScope;
+  rosNarrative: string;
   soc: Record<
     | "site"
     | "onset"
@@ -106,6 +108,7 @@ function buildClerkshipInput(f: FormState): unknown {
     hpcNarrative: f.hpcNarrative,
     ros: f.ros,
     rosScope: f.rosScope,
+    rosNarrative: f.rosNarrative,
     socrates: f.soc,
     pmh: f.pmh,
     drugHistory: f.drugHistory,
@@ -158,6 +161,7 @@ export function ClerkshipForm({
   const [rosScope, setRosScope] = useState<RosScope>(
     h?.rosScope ?? { mode: "complete", reviewedSystems: [] },
   );
+  const [rosNarrative, setRosNarrative] = useState(h?.rosNarrative ?? "");
   const [soc, setSoc] = useState({
     site: h?.socrates?.site ?? "",
     onset: h?.socrates?.onset ?? "",
@@ -221,6 +225,7 @@ export function ClerkshipForm({
     hpcNarrative,
     ros,
     rosScope,
+    rosNarrative,
     soc,
     pmh,
     drugHistory,
@@ -359,13 +364,43 @@ export function ClerkshipForm({
           ) : null}
 
           {step === 1 ? (
-            <RosReview
-              value={ros}
-              onChange={setRos}
-              scope={rosScope}
-              onScopeChange={setRosScope}
-              hpcItems={hpcItems}
-            />
+            <div className="flex flex-col gap-5">
+              <RosReview
+                value={ros}
+                onChange={setRos}
+                scope={rosScope}
+                onScopeChange={setRosScope}
+                hpcItems={hpcItems}
+              />
+
+              <div className="flex flex-col gap-2">
+                <Label className="text-[12.5px] font-medium">Review of systems — summary</Label>
+                {ros.length > 0 ? (
+                  <div className="rounded-lg border border-teal-200/70 bg-teal-50/60 px-3 py-2 dark:border-teal-900/50 dark:bg-teal-950/20">
+                    <span className="inline-flex items-center gap-1 text-[10px] font-medium tracking-[0.1em] text-teal-700 uppercase dark:text-teal-400">
+                      Auto-generated from the sweep above
+                    </span>
+                    <p className="mt-0.5 text-[12.5px] leading-relaxed text-teal-900/90 italic dark:text-teal-100/80">
+                      {renderRosProse(ros)}
+                    </p>
+                  </div>
+                ) : null}
+                <RichTextEditor
+                  value={rosNarrative}
+                  onChange={setRosNarrative}
+                  placeholder={
+                    ros.length
+                      ? "Add anything in your own words — context, pertinent detail… (this is saved with the generated summary)"
+                      : "Write the review of systems, or use the sweep above…"
+                  }
+                  rows={5}
+                />
+                <p className="text-muted-foreground text-[11px]">
+                  The teal summary is generated from the sweep; your typed narrative is saved with
+                  it.
+                </p>
+              </div>
+            </div>
           ) : null}
 
           {step === 2 ? (
