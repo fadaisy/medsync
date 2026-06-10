@@ -94,7 +94,7 @@ export const DOCTOR_FEATURE_AREAS: ReadonlyArray<DoctorFeatureArea> = [
     label: "Encounters",
     hint: "Open + recent encounters; notes & orders entry",
     iconKey: "encounters",
-    placeholder: true,
+    placeholder: false,
     visibleTo: "all",
   },
   {

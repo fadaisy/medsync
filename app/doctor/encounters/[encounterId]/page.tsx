@@ -135,11 +135,11 @@ function Wrap({ children }: { children: React.ReactNode }) {
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-6 py-8 lg:py-10">
       <Link
-        href="/doctor/patients"
+        href="/doctor/encounters"
         className="text-muted-foreground hover:text-foreground inline-flex w-fit items-center gap-1 text-[12.5px] transition-colors"
       >
         <ArrowLeftIcon className="size-3.5" aria-hidden />
-        Patients
+        Encounters
       </Link>
       {children}
     </div>
