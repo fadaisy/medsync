@@ -51,9 +51,9 @@ import { V2SiteNav } from "@/components/landing/v2-site-nav";
  *   - data-section-anchor on each section → scroll-margin clears the
  *     sticky nav so anchor jumps land on the title (see globals.css).
  *
- * The legacy composition is still reachable at `/v1` (see
- * `app/v1/page.tsx`), and the git tag `landing-v1-fallback` pins the
- * source state at the previous commit if a full revert is ever needed.
+ * The legacy v1 composition has been removed; the git tag
+ * `landing-v1-fallback` still pins its source state if a full revert is
+ * ever needed.
  */
 export default function HomePage() {
   return (
