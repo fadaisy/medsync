@@ -446,44 +446,54 @@ export function ClerkshipForm({
               ) : null}
 
               {step === 3 ? (
-                <div className="flex flex-col gap-5">
+                <div className="flex flex-col gap-4">
                   <VitalsPanel
                     encounterId={encounterId}
                     value={examVitals}
                     onChange={setExamVitals}
                   />
                   <ExamSections value={examGeneralFindings} onChange={setExamGeneralFindings} />
-                  <Field label="Other general-exam notes">
-                    <RichTextEditor
-                      value={examGeneral}
-                      onChange={setExamGeneral}
-                      placeholder="Anything not captured above…"
-                      rows={3}
-                    />
-                  </Field>
-                  <span className="text-muted-foreground text-[11px]">
-                    System-specific exams (CVS / resp / abdo / neuro) — focused modules coming; free
-                    text for now.
-                  </span>
-                  <div className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
-                    {(
-                      [
-                        ["cardiovascular", "Cardiovascular"],
-                        ["respiratory", "Respiratory"],
-                        ["abdominal", "Abdominal"],
-                        ["neurological", "Neurological"],
-                      ] as const
-                    ).map(([k, lbl]) => (
-                      <Field key={k} label={lbl}>
-                        <Input
-                          value={examSystems[k]}
-                          onChange={(ev) =>
-                            setExamSystems({ ...examSystems, [k]: ev.target.value })
-                          }
+                  <details className="group border-border/70 rounded-lg border">
+                    <summary className="text-muted-foreground hover:text-foreground flex cursor-pointer list-none items-center gap-2 px-3 py-2 text-[12px] font-medium select-none">
+                      <ChevronRightIcon
+                        className="size-3.5 transition-transform group-open:rotate-90"
+                        aria-hidden
+                      />
+                      Notes & system-specific exams
+                      <span className="text-muted-foreground/70 ml-auto text-[10.5px] font-normal">
+                        CVS / resp / abdo / neuro — free text for now
+                      </span>
+                    </summary>
+                    <div className="flex flex-col gap-4 px-3 pt-1 pb-3">
+                      <Field label="Other general-exam notes">
+                        <RichTextEditor
+                          value={examGeneral}
+                          onChange={setExamGeneral}
+                          placeholder="Anything not captured above…"
+                          rows={3}
                         />
                       </Field>
-                    ))}
-                  </div>
+                      <div className="grid gap-x-6 gap-y-4 sm:grid-cols-2">
+                        {(
+                          [
+                            ["cardiovascular", "Cardiovascular"],
+                            ["respiratory", "Respiratory"],
+                            ["abdominal", "Abdominal"],
+                            ["neurological", "Neurological"],
+                          ] as const
+                        ).map(([k, lbl]) => (
+                          <Field key={k} label={lbl}>
+                            <Input
+                              value={examSystems[k]}
+                              onChange={(ev) =>
+                                setExamSystems({ ...examSystems, [k]: ev.target.value })
+                              }
+                            />
+                          </Field>
+                        ))}
+                      </div>
+                    </div>
+                  </details>
                 </div>
               ) : null}
 
