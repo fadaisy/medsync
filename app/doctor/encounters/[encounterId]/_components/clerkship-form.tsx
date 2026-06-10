@@ -1,7 +1,7 @@
 "use client";
 
 import type { SubmitClerkshipResult } from "../actions";
-import type { RosObservation } from "@/lib/clerkship/ros";
+import type { RosObservation, RosScope } from "@/lib/clerkship/ros";
 import type { CapturedSymptom } from "@/lib/clerkship/symptom-engine";
 import type { Clerkship } from "@/lib/encounter/clerkship";
 import type { ComponentType } from "react";
@@ -62,6 +62,7 @@ type FormState = {
   hpcItems: CapturedSymptom[];
   hpcNarrative: string;
   ros: RosObservation[];
+  rosScope: RosScope;
   soc: Record<
     | "site"
     | "onset"
@@ -104,6 +105,7 @@ function buildClerkshipInput(f: FormState): unknown {
     hpcItems: f.hpcItems,
     hpcNarrative: f.hpcNarrative,
     ros: f.ros,
+    rosScope: f.rosScope,
     socrates: f.soc,
     pmh: f.pmh,
     drugHistory: f.drugHistory,
@@ -153,6 +155,9 @@ export function ClerkshipForm({
   const [hpcItems, setHpcItems] = useState<CapturedSymptom[]>(h?.hpcItems ?? []);
   const [hpcNarrative, setHpcNarrative] = useState(h?.hpcNarrative ?? "");
   const [ros, setRos] = useState<RosObservation[]>(h?.ros ?? []);
+  const [rosScope, setRosScope] = useState<RosScope>(
+    h?.rosScope ?? { mode: "complete", reviewedSystems: [] },
+  );
   const [soc, setSoc] = useState({
     site: h?.socrates?.site ?? "",
     onset: h?.socrates?.onset ?? "",
@@ -215,6 +220,7 @@ export function ClerkshipForm({
     hpcItems,
     hpcNarrative,
     ros,
+    rosScope,
     soc,
     pmh,
     drugHistory,
@@ -352,7 +358,15 @@ export function ClerkshipForm({
             </div>
           ) : null}
 
-          {step === 1 ? <RosReview value={ros} onChange={setRos} hpcItems={hpcItems} /> : null}
+          {step === 1 ? (
+            <RosReview
+              value={ros}
+              onChange={setRos}
+              scope={rosScope}
+              onScopeChange={setRosScope}
+              hpcItems={hpcItems}
+            />
+          ) : null}
 
           {step === 2 ? (
             <div className="flex flex-col gap-5">

@@ -1,7 +1,7 @@
 "use client";
 
 import type { CatalogProperty, RosScreenSymptom } from "@/lib/clerkship/catalog";
-import type { RosObservation } from "@/lib/clerkship/ros";
+import type { RosObservation, RosScope } from "@/lib/clerkship/ros";
 import type { CapturedPropertyValue, CapturedSymptom } from "@/lib/clerkship/symptom-engine";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import {
@@ -9,22 +9,29 @@ import {
   CheckIcon,
   ChevronDownIcon,
   CircleDashedIcon,
+  FileTextIcon,
   MinusCircleIcon,
+  PlusIcon,
 } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
-import { ROS_SYSTEM_LABEL, ROS_SYSTEM_ORDER } from "@/lib/clerkship/ros";
-import { loadRosCatalogAction, loadSymptomPropertiesAction } from "../actions";
+import { ROS_SYSTEM_LABEL, ROS_SYSTEM_ORDER, rosCoverage } from "@/lib/clerkship/ros";
+import {
+  loadRosCatalogAction,
+  loadSymptomCatalogAction,
+  loadSymptomPropertiesAction,
+} from "../actions";
 
 /**
- * Review of Systems — the system-grouped, tap-first screening sweep. Mostly
- * negative by design: each screening symptom is three-state (not-asked / denies /
- * present), with distinct treatments (icon + label + tone, never colour alone),
- * a one-tap "All negative" per system, a persistent progress indicator + per-
- * system roll-up chips, and present → the tap-first property capture (optional).
- * Carried-over presenting-complaint symptoms show as already-positive. A running
- * summary renders the documentation as the clinician sweeps. Decision-support —
- * nothing is auto-marked; not-asked ≠ denied.
+ * Review of Systems — the system-grouped, tap-first screening sweep with the
+ * PC-suppression + focused/complete logic:
+ *  - the presenting complaint's system(s) are HPC-covered → not re-screened here
+ *    (shown with a "covered in HPC" chip, still openable — never hidden);
+ *  - the clinician chooses Complete (all systems) or Focused (pick a few);
+ *  - coverage is truthful: reviewed-findings / reviewed-all-negative / HPC-covered
+ *    / not-reviewed — and not-reviewed is NEVER auto-marked negative.
+ * Three-state per symptom (not-asked / denies / present), distinct icon+label+tone.
+ * Decision-support — assists, never clinically hides; nothing auto-marked.
  */
 
 const EASE = "transition-colors duration-150 ease-expo-out";
@@ -35,13 +42,18 @@ type Status = "present" | "denies";
 export function RosReview({
   value,
   onChange,
+  scope,
+  onScopeChange,
   hpcItems,
 }: {
   value: RosObservation[];
   onChange: (next: RosObservation[]) => void;
+  scope: RosScope;
+  onScopeChange: (next: RosScope) => void;
   hpcItems: CapturedSymptom[];
 }) {
   const [catalog, setCatalog] = useState<RosScreenSymptom[] | null>(null);
+  const [systemByCode, setSystemByCode] = useState<Map<string, string>>(new Map());
   const [propsBySymptom, setPropsBySymptom] = useState<Record<string, CatalogProperty[]>>({});
   const [openProps, setOpenProps] = useState<string | null>(null);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
@@ -51,11 +63,23 @@ export function RosReview({
     loadRosCatalogAction()
       .then(setCatalog)
       .catch(() => setCatalog([]));
+    loadSymptomCatalogAction()
+      .then((all) => setSystemByCode(new Map(all.map((s) => [s.code, s.system]))))
+      .catch(() => {});
   }, []);
 
-  // Symptoms carried over from the presenting complaint — shown already-positive.
-  const carriedOver = useMemo(() => new Map(hpcItems.map((h) => [h.symptomCode, h])), [hpcItems]);
   const byCode = useMemo(() => new Map(value.map((o) => [o.symptomCode, o])), [value]);
+
+  // PC-owned systems — derived from ALL presenting-complaint symptoms (multi-system,
+  // bias to include). Those systems are explored in the HPC, not re-screened here.
+  const pcSystems = useMemo(() => {
+    const set = new Set<string>();
+    for (const h of hpcItems) {
+      const sys = systemByCode.get(h.symptomCode);
+      if (sys) set.add(sys);
+    }
+    return set;
+  }, [hpcItems, systemByCode]);
 
   const grouped = useMemo(() => {
     const m = new Map<string, RosScreenSymptom[]>();
@@ -68,14 +92,32 @@ export function RosReview({
   }, [catalog]);
 
   const systems = ROS_SYSTEM_ORDER.filter((s) => grouped.get(s)?.length);
+  const inScope = (sys: string) => scope.mode === "complete" || scope.reviewedSystems.includes(sys);
 
-  function statusOf(code: string): Status | "carried" | undefined {
-    if (carriedOver.has(code)) return "carried";
-    return byCode.get(code)?.status;
+  function setMode(mode: "complete" | "focused") {
+    if (mode === scope.mode) return;
+    if (mode === "focused") {
+      // preserve any system already answered as "in focus"
+      const answered = systems.filter(
+        (s) => !pcSystems.has(s) && value.some((o) => o.system === s),
+      );
+      onScopeChange({ mode, reviewedSystems: answered });
+    } else {
+      onScopeChange({ mode, reviewedSystems: scope.reviewedSystems });
+    }
+  }
+  function toggleFocus(sys: string) {
+    const has = scope.reviewedSystems.includes(sys);
+    onScopeChange({
+      mode: "focused",
+      reviewedSystems: has
+        ? scope.reviewedSystems.filter((s) => s !== sys)
+        : [...scope.reviewedSystems, sys],
+    });
+    if (has) setCollapsed((c) => new Set(c).add(sys));
   }
 
   function setStatus(sym: RosScreenSymptom, status: Status | null) {
-    if (carriedOver.has(sym.code)) return; // locked — it's the complaint
     const others = value.filter((o) => o.symptomCode !== sym.code);
     if (status === null) {
       onChange(others);
@@ -112,7 +154,7 @@ export function RosReview({
     const keep = value.filter((o) => o.system !== system);
     const present = value.filter((o) => o.system === system && o.status === "present");
     const denied = list
-      .filter((s) => !carriedOver.has(s.code) && !present.some((p) => p.symptomCode === s.code))
+      .filter((s) => !present.some((p) => p.symptomCode === s.code))
       .map(
         (s): RosObservation => ({
           symptomCode: s.code,
@@ -133,42 +175,68 @@ export function RosReview({
     return <p className="text-muted-foreground text-[12px]">Loading the review of systems…</p>;
   }
 
-  const reviewedSystems = systems.filter((sys) => {
-    const list = grouped.get(sys) ?? [];
-    return list.some((s) => statusOf(s.code) !== undefined);
-  }).length;
+  const cover = rosCoverage({ observations: value, pcSystems: [...pcSystems], systems });
+  const counts = {
+    reviewed: systems.filter((s) => cover[s] === "findings" || cover[s] === "all_negative").length,
+    hpc: systems.filter((s) => cover[s] === "hpc").length,
+    notReviewed: systems.filter((s) => cover[s] === "not_reviewed").length,
+  };
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Persistent progress */}
-      <div className="border-border/60 flex items-center gap-3 rounded-lg border px-3 py-2">
-        <span className={LABEL}>Reviewed</span>
-        <div className="bg-muted relative h-1.5 flex-1 overflow-hidden rounded-full">
-          <div
-            className="absolute inset-y-0 left-0 rounded-full bg-teal-500 transition-[width] duration-300"
-            style={{ width: `${systems.length ? (reviewedSystems / systems.length) * 100 : 0}%` }}
-          />
+      {/* Scope selector + honest roll-up */}
+      <div className="border-border/60 flex flex-col gap-2 rounded-lg border p-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className={LABEL}>Scope</span>
+          <div className="border-border inline-flex overflow-hidden rounded-md border">
+            {(["complete", "focused"] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                onClick={() => setMode(m)}
+                className={`px-3 py-1 text-[12px] font-medium capitalize ${EASE} ${
+                  scope.mode === m
+                    ? "bg-teal-600 text-white"
+                    : "text-muted-foreground hover:bg-muted"
+                }`}
+              >
+                {m}
+              </button>
+            ))}
+          </div>
+          <span className="text-muted-foreground text-[11px]">
+            {scope.mode === "complete"
+              ? "Screening all systems not covered by the complaint."
+              : "Pick the systems to review — the rest stay not-reviewed (not negative)."}
+          </span>
         </div>
-        <span className="text-foreground font-mono text-[11px] tabular-nums">
-          {reviewedSystems} / {systems.length}
-        </span>
+        <p className="text-muted-foreground text-[11px] tabular-nums">
+          <span className="text-foreground font-medium">{counts.reviewed}</span> reviewed ·{" "}
+          <span className="text-teal-700 dark:text-teal-400">{counts.hpc}</span> covered in HPC ·{" "}
+          <span>{counts.notReviewed}</span> not reviewed
+        </p>
       </div>
 
-      {/* System sections */}
       <div className="flex flex-col gap-2">
         {systems.map((sys) => {
           const list = grouped.get(sys) ?? [];
-          const reviewed = list.filter((s) => statusOf(s.code) !== undefined).length;
-          const positives = list.filter(
-            (s) => statusOf(s.code) === "present" || statusOf(s.code) === "carried",
-          ).length;
-          const isCollapsed = collapsed.has(sys);
+          const state = cover[sys];
+          const hpcCovered = state === "hpc";
+          const focusedOut = !hpcCovered && !inScope(sys);
+          const isCollapsed = collapsed.has(sys) || focusedOut;
+          const positives = list.filter((s) => byCode.get(s.code)?.status === "present").length;
+          const reviewed = list.filter((s) => byCode.has(s.code)).length;
+
           return (
-            <section key={sys} className="border-border/70 overflow-hidden rounded-lg border">
+            <section
+              key={sys}
+              className={`border-border/70 overflow-hidden rounded-lg border ${focusedOut ? "opacity-70" : ""}`}
+            >
               <div className="bg-muted/30 flex items-center gap-2 px-3 py-2">
                 <button
                   type="button"
                   onClick={() =>
+                    !focusedOut &&
                     setCollapsed((c) => {
                       const n = new Set(c);
                       if (n.has(sys)) n.delete(sys);
@@ -179,65 +247,79 @@ export function RosReview({
                   className="flex min-w-0 flex-1 items-center gap-2 text-left"
                   aria-expanded={!isCollapsed}
                 >
-                  <ChevronDownIcon
-                    className={`text-muted-foreground size-3.5 shrink-0 transition-transform ${isCollapsed ? "-rotate-90" : ""}`}
-                    aria-hidden
-                  />
+                  {!focusedOut ? (
+                    <ChevronDownIcon
+                      className={`text-muted-foreground size-3.5 shrink-0 transition-transform ${isCollapsed ? "-rotate-90" : ""}`}
+                      aria-hidden
+                    />
+                  ) : (
+                    <span className="w-3.5" />
+                  )}
                   <span className="text-foreground text-[13px] font-semibold">
                     {ROS_SYSTEM_LABEL[sys] ?? sys}
                   </span>
-                  <RollUp reviewed={reviewed} total={list.length} positives={positives} />
+                  {hpcCovered ? (
+                    <span className="inline-flex items-center gap-1 rounded bg-teal-50 px-1.5 py-0.5 text-[10px] font-medium text-teal-700 ring-1 ring-teal-500/30 ring-inset dark:bg-teal-950/40 dark:text-teal-200">
+                      <FileTextIcon className="size-3" aria-hidden />
+                      covered in HPC
+                    </span>
+                  ) : focusedOut ? (
+                    <span className="text-muted-foreground inline-flex items-center gap-1 text-[10.5px]">
+                      <CircleDashedIcon className="size-3" aria-hidden />
+                      not reviewed
+                    </span>
+                  ) : (
+                    <RollUp reviewed={reviewed} total={list.length} positives={positives} />
+                  )}
                 </button>
-                <button
-                  type="button"
-                  onClick={() => allNegative(sys)}
-                  className={`text-muted-foreground hover:bg-muted hover:text-foreground rounded-md px-2 py-1 text-[11px] font-medium ${EASE}`}
-                  title="Mark every unanswered symptom in this system as denied"
-                >
-                  All negative
-                </button>
+
+                {hpcCovered ? null : focusedOut ? (
+                  <button
+                    type="button"
+                    onClick={() => toggleFocus(sys)}
+                    className={`text-muted-foreground hover:bg-muted hover:text-foreground inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium ${EASE}`}
+                  >
+                    <PlusIcon className="size-3" aria-hidden />
+                    Review
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => allNegative(sys)}
+                    className={`text-muted-foreground hover:bg-muted hover:text-foreground rounded-md px-2 py-1 text-[11px] font-medium ${EASE}`}
+                    title="Mark every unanswered symptom in this system as denied"
+                  >
+                    All negative
+                  </button>
+                )}
               </div>
 
-              {!isCollapsed ? (
+              {/* HPC-covered: openable (add a screen the HPC didn't capture). */}
+              {hpcCovered && !isCollapsed ? (
+                <div className="text-muted-foreground border-border/50 border-t px-3 py-2 text-[11.5px]">
+                  Reviewed in depth in the History of Presenting Complaint. Anything extra can still
+                  be added below.
+                  <div className="divide-border/50 mt-1 divide-y">
+                    {list.map((s) => (
+                      <SymptomRow
+                        key={s.code}
+                        sym={s}
+                        status={byCode.get(s.code)?.status}
+                        onStatus={(st) => setStatus(s, st)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {!hpcCovered && !focusedOut && !isCollapsed ? (
                 <div className="divide-border/50 divide-y">
                   {list.map((s) => {
-                    const st = statusOf(s.code);
+                    const st = byCode.get(s.code)?.status;
                     const isOpen = openProps === s.code && st === "present";
                     return (
                       <div key={s.code}>
-                        <div className="flex items-center gap-2 px-3 py-2">
-                          <span className="flex min-w-0 flex-1 items-center gap-1.5">
-                            <span className="text-foreground text-[12.5px]">{s.display}</span>
-                            {s.mustNotMiss ? (
-                              <AlertTriangleIcon
-                                className="size-3 shrink-0 text-amber-500"
-                                aria-label="must-not-miss"
-                              />
-                            ) : null}
-                            {s.ugandaFlag ? (
-                              <span className="text-muted-foreground bg-muted rounded px-1 text-[9px] tracking-wide uppercase">
-                                {s.ugandaFlag}
-                              </span>
-                            ) : null}
-                            {st === "carried" ? (
-                              <span className="text-[10px] text-teal-700 dark:text-teal-400">
-                                from complaint
-                              </span>
-                            ) : null}
-                          </span>
-                          {st === "carried" ? (
-                            <span className="inline-flex items-center gap-1 rounded-md bg-teal-50 px-2 py-1 text-[11px] font-medium text-teal-700 ring-1 ring-teal-500/30 ring-inset dark:bg-teal-950/40 dark:text-teal-200">
-                              <CheckIcon className="size-3" aria-hidden />
-                              Present
-                            </span>
-                          ) : (
-                            <ThreeState
-                              status={st}
-                              onDenies={() => setStatus(s, st === "denies" ? null : "denies")}
-                              onPresent={() => setStatus(s, st === "present" ? null : "present")}
-                            />
-                          )}
-                        </div>
+                        <SymptomRow sym={s} status={st} onStatus={(x) => setStatus(s, x)} />
                         {isOpen ? (
                           <div className="bg-muted/20 border-border/50 border-t px-3 py-2">
                             <RosProps
@@ -260,6 +342,18 @@ export function RosReview({
                   })}
                 </div>
               ) : null}
+
+              {scope.mode === "focused" && !hpcCovered && !focusedOut ? (
+                <div className="border-border/50 flex justify-end border-t px-3 py-1.5">
+                  <button
+                    type="button"
+                    onClick={() => toggleFocus(sys)}
+                    className="text-muted-foreground hover:text-destructive text-[10.5px]"
+                  >
+                    remove from focus
+                  </button>
+                </div>
+              ) : null}
             </section>
           );
         })}
@@ -268,7 +362,40 @@ export function RosReview({
   );
 }
 
-/** Per-system roll-up status chip — distinct treatments, not colour alone. */
+function SymptomRow({
+  sym,
+  status,
+  onStatus,
+}: {
+  sym: RosScreenSymptom;
+  status: Status | undefined;
+  onStatus: (s: Status | null) => void;
+}) {
+  return (
+    <div className="flex items-center gap-2 px-3 py-2">
+      <span className="flex min-w-0 flex-1 items-center gap-1.5">
+        <span className="text-foreground text-[12.5px]">{sym.display}</span>
+        {sym.mustNotMiss ? (
+          <AlertTriangleIcon
+            className="size-3 shrink-0 text-amber-500"
+            aria-label="must-not-miss"
+          />
+        ) : null}
+        {sym.ugandaFlag ? (
+          <span className="text-muted-foreground bg-muted rounded px-1 text-[9px] tracking-wide uppercase">
+            {sym.ugandaFlag}
+          </span>
+        ) : null}
+      </span>
+      <ThreeState
+        status={status}
+        onDenies={() => onStatus(status === "denies" ? null : "denies")}
+        onPresent={() => onStatus(status === "present" ? null : "present")}
+      />
+    </div>
+  );
+}
+
 function RollUp({
   reviewed,
   total,
@@ -309,13 +436,12 @@ function RollUp({
   );
 }
 
-/** Three visually-distinct states: not-asked (neither lit) · denies · present. */
 function ThreeState({
   status,
   onDenies,
   onPresent,
 }: {
-  status: Status | "carried" | undefined;
+  status: Status | undefined;
   onDenies: () => void;
   onPresent: () => void;
 }) {
@@ -352,7 +478,6 @@ function ThreeState({
   );
 }
 
-/** Compact, optional property capture for an ROS positive (tap-first; same value types). */
 function RosProps({
   properties,
   current,
@@ -457,19 +582,12 @@ function RosProps({
                     {o.l}
                   </button>
                 ))}
-              {prop.valueType === "duration" && (
+              {(prop.valueType === "duration" || prop.valueType === "text") && (
                 <input
                   value={cur?.text ?? ""}
-                  placeholder="e.g. 3 days"
+                  placeholder={prop.valueType === "duration" ? "e.g. 3 days" : ""}
                   onChange={(e) => setProp(prop.code, () => ({ ...base, text: e.target.value }))}
-                  className="border-input bg-card w-28 rounded px-1.5 py-0.5 text-[11.5px] outline-none focus-visible:border-teal-500"
-                />
-              )}
-              {prop.valueType === "text" && (
-                <input
-                  value={cur?.text ?? ""}
-                  onChange={(e) => setProp(prop.code, () => ({ ...base, text: e.target.value }))}
-                  className="border-input bg-card w-full rounded px-1.5 py-0.5 text-[11.5px] outline-none focus-visible:border-teal-500"
+                  className="border-input bg-card w-full max-w-[12rem] rounded px-1.5 py-0.5 text-[11.5px] outline-none focus-visible:border-teal-500"
                 />
               )}
             </div>
