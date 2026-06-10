@@ -33,7 +33,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { renderRosProse } from "@/lib/clerkship/ros";
+import { renderRosNarrative } from "@/lib/clerkship/ros";
 import { renderSymptomProse } from "@/lib/clerkship/symptom-engine";
 import { ICD10_CODES, LOINC_CODES } from "@/lib/encounter/reference-codes";
 import { submitClerkshipAction } from "../actions";
@@ -378,7 +378,7 @@ export function ClerkshipForm({
                           Auto-generated from the sweep above
                         </span>
                         <p className="mt-0.5 text-[12.5px] leading-relaxed text-teal-900/90 italic dark:text-teal-100/80">
-                          {renderRosProse(ros)}
+                          {renderRosNarrative(ros)}
                         </p>
                       </div>
                     ) : null}

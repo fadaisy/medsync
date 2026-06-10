@@ -162,32 +162,24 @@ export function ReasoningPanel({
 
             {r.toAsk.length ? (
               <Section title="Ask / examine next — to discriminate">
-                <p className="text-foreground/80 text-[11.5px] leading-relaxed">
-                  {r.toAsk.slice(0, 12).join(" · ")}
-                </p>
+                <ChipList items={r.toAsk.slice(0, 12)} tone="neutral" />
               </Section>
             ) : null}
 
             {r.redFlags.length ? (
               <Section title="Red flags — re-check" tone="amber">
-                <p className="text-[11.5px] text-amber-800 dark:text-amber-300">
-                  {r.redFlags.join(" · ")}
-                </p>
+                <ChipList items={r.redFlags} tone="amber" />
               </Section>
             ) : null}
 
             {r.riskFactorsPresent.length ? (
               <Section title="Risk factors present">
-                <p className="text-[11.5px] text-teal-700 dark:text-teal-300">
-                  {r.riskFactorsPresent.join(" · ")}
-                </p>
+                <ChipList items={r.riskFactorsPresent} tone="teal" />
               </Section>
             ) : null}
             {r.riskFactorsToCheck.length ? (
               <Section title="Risk factors to check">
-                <p className="text-muted-foreground text-[11.5px]">
-                  {r.riskFactorsToCheck.slice(0, 8).join(" · ")}
-                </p>
+                <ChipList items={r.riskFactorsToCheck.slice(0, 8)} tone="muted" />
               </Section>
             ) : null}
 
@@ -214,6 +206,35 @@ export function ReasoningPanel({
         )}
       </div>
     </aside>
+  );
+}
+
+function ChipList({
+  items,
+  tone,
+}: {
+  items: string[];
+  tone: "amber" | "teal" | "muted" | "neutral";
+}) {
+  const cls =
+    tone === "amber"
+      ? "bg-amber-50 text-amber-800 ring-amber-500/25 dark:bg-amber-950/30 dark:text-amber-300"
+      : tone === "teal"
+        ? "bg-teal-50 text-teal-700 ring-teal-500/25 dark:bg-teal-950/30 dark:text-teal-300"
+        : tone === "muted"
+          ? "bg-muted/50 text-muted-foreground ring-border"
+          : "bg-muted/60 text-foreground/75 ring-border";
+  return (
+    <div className="flex flex-wrap gap-1">
+      {items.map((x, i) => (
+        <span
+          key={i}
+          className={`rounded-md px-1.5 py-0.5 text-[11px] leading-tight ring-1 ring-inset ${cls}`}
+        >
+          {x}
+        </span>
+      ))}
+    </div>
   );
 }
 

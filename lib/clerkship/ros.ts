@@ -89,6 +89,20 @@ export function renderRosProse(ros: RosObservation[]): string {
   return out.join(" ");
 }
 
+const listJoin = (xs: string[]): string =>
+  xs.length <= 1 ? (xs[0] ?? "") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`;
+
+/** A flowing, clinician-style ROS narrative (for the auto-generated summary field). */
+export function renderRosNarrative(ros: RosObservation[]): string {
+  const pos = ros.filter((o) => o.status === "present");
+  const neg = ros.filter((o) => o.status === "denies");
+  const parts: string[] = [];
+  if (pos.length) parts.push(`reports ${listJoin(pos.map(positivePhrase))}`);
+  if (neg.length) parts.push(`denies ${listJoin(neg.map((o) => o.symptomDisplay.toLowerCase()))}`);
+  if (!parts.length) return "";
+  return `On systems review, the patient ${parts.join("; ")}.`;
+}
+
 /**
  * ROS scope (clinician's choice). Complete = screen all non-suppressed systems;
  * focused = only `reviewedSystems`. PC-owned systems are HPC-covered in both.
