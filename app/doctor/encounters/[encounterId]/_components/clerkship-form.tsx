@@ -1,6 +1,7 @@
 "use client";
 
 import type { SubmitClerkshipResult } from "../actions";
+import type { RosObservation } from "@/lib/clerkship/ros";
 import type { CapturedSymptom } from "@/lib/clerkship/symptom-engine";
 import type { Clerkship } from "@/lib/encounter/clerkship";
 import type { ComponentType } from "react";
@@ -12,6 +13,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   ClipboardCheckIcon,
+  ListChecksIcon,
   NotebookPenIcon,
   PlusIcon,
   RefreshCwIcon,
@@ -26,6 +28,7 @@ import { renderSymptomProse } from "@/lib/clerkship/symptom-engine";
 import { ICD10_CODES, LOINC_CODES } from "@/lib/encounter/reference-codes";
 import { submitClerkshipAction } from "../actions";
 import { RichTextEditor } from "./rich-text";
+import { RosReview } from "./ros-review";
 import { SymptomCapture } from "./symptom-capture";
 
 /**
@@ -43,7 +46,8 @@ const FIELD =
 
 const TABS: { label: string; icon: ComponentType<{ className?: string }> }[] = [
   { label: "Complaint", icon: ActivityIcon },
-  { label: "History", icon: NotebookPenIcon },
+  { label: "Review of Systems", icon: ListChecksIcon },
+  { label: "Background", icon: NotebookPenIcon },
   { label: "Examination", icon: StethoscopeIcon },
   { label: "Assessment", icon: BrainIcon },
   { label: "Plan", icon: ClipboardCheckIcon },
@@ -57,6 +61,7 @@ type FormState = {
   presentingComplaint: string;
   hpcItems: CapturedSymptom[];
   hpcNarrative: string;
+  ros: RosObservation[];
   soc: Record<
     | "site"
     | "onset"
@@ -98,6 +103,7 @@ function buildClerkshipInput(f: FormState): unknown {
       : f.presentingComplaint,
     hpcItems: f.hpcItems,
     hpcNarrative: f.hpcNarrative,
+    ros: f.ros,
     socrates: f.soc,
     pmh: f.pmh,
     drugHistory: f.drugHistory,
@@ -146,6 +152,7 @@ export function ClerkshipForm({
   const [presentingComplaint] = useState(h?.presentingComplaint ?? "");
   const [hpcItems, setHpcItems] = useState<CapturedSymptom[]>(h?.hpcItems ?? []);
   const [hpcNarrative, setHpcNarrative] = useState(h?.hpcNarrative ?? "");
+  const [ros, setRos] = useState<RosObservation[]>(h?.ros ?? []);
   const [soc, setSoc] = useState({
     site: h?.socrates?.site ?? "",
     onset: h?.socrates?.onset ?? "",
@@ -207,6 +214,7 @@ export function ClerkshipForm({
     presentingComplaint,
     hpcItems,
     hpcNarrative,
+    ros,
     soc,
     pmh,
     drugHistory,
@@ -344,7 +352,9 @@ export function ClerkshipForm({
             </div>
           ) : null}
 
-          {step === 1 ? (
+          {step === 1 ? <RosReview value={ros} onChange={setRos} hpcItems={hpcItems} /> : null}
+
+          {step === 2 ? (
             <div className="flex flex-col gap-5">
               <Field label="SOCRATES">
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -448,7 +458,7 @@ export function ClerkshipForm({
             </div>
           ) : null}
 
-          {step === 2 ? (
+          {step === 3 ? (
             <div className="flex flex-col gap-5">
               <Field label="General inspection">
                 <RichTextEditor
@@ -477,7 +487,7 @@ export function ClerkshipForm({
             </div>
           ) : null}
 
-          {step === 3 ? (
+          {step === 4 ? (
             <div className="flex flex-col gap-5">
               <Field label="Summary / problem representation">
                 <RichTextEditor
@@ -520,7 +530,7 @@ export function ClerkshipForm({
             </div>
           ) : null}
 
-          {step === 4 ? (
+          {step === 5 ? (
             <div className="flex flex-col gap-5">
               <Field label="Investigations">
                 <RepeatList
