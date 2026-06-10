@@ -6,7 +6,7 @@ import {
   MyHealthSmsReminderChip,
   MyHealthTodayMedsCard,
 } from "./_my-health-mock";
-import { ClinicianHomeMock } from "./05-clinician-home-mock";
+import { ClinicianHomeMock } from "./clinician-home-mock";
 
 /**
  * Hero surfaces composition — the clinician dashboard + the patient
