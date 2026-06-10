@@ -1,6 +1,7 @@
 "use client";
 
 import type { SubmitClerkshipResult } from "../actions";
+import type { ExamObservation, RecordedVitals } from "@/lib/clerkship/exam/types";
 import type { RosObservation, RosScope } from "@/lib/clerkship/ros";
 import type { CapturedSymptom } from "@/lib/clerkship/symptom-engine";
 import type {
@@ -37,12 +38,14 @@ import { renderRosNarrative } from "@/lib/clerkship/ros";
 import { renderSymptomProse } from "@/lib/clerkship/symptom-engine";
 import { ICD10_CODES, LOINC_CODES } from "@/lib/encounter/reference-codes";
 import { submitClerkshipAction } from "../actions";
+import { ExamSections } from "./exam-sections";
 import { FamilySocialSections } from "./family-social-sections";
 import { HistorySections } from "./history-sections";
 import { ReasoningPanel } from "./reasoning-panel";
 import { RichTextEditor } from "./rich-text";
 import { RosReview } from "./ros-review";
 import { SymptomCapture } from "./symptom-capture";
+import { VitalsPanel } from "./vitals-panel";
 
 /**
  * Clerkship documentation entry — a tabbed, stepwise "window": each part of the
@@ -87,6 +90,8 @@ type FormState = {
   socialHx: ClerkSocial;
   ice: ClerkIce;
   examGeneral: string;
+  examGeneralFindings: ExamObservation[];
+  examVitals: RecordedVitals;
   examSystems: Record<"cardiovascular" | "respiratory" | "abdominal" | "neurological", string>;
   summary: string;
   differential: DxRow[];
@@ -123,6 +128,8 @@ function buildClerkshipInput(f: FormState): unknown {
     socialHx: f.socialHx,
     ice: f.ice,
     examGeneral: f.examGeneral,
+    examGeneralFindings: f.examGeneralFindings,
+    examVitals: f.examVitals,
     examSystems: f.examSystems,
     summary: f.summary,
     differential: f.differential.map((d) => ({
@@ -176,6 +183,10 @@ export function ClerkshipForm({
   const [socialHx, setSocialHx] = useState<ClerkSocial>(h?.socialHx ?? {});
   const [ice, setIce] = useState<ClerkIce>(h?.ice ?? {});
   const [examGeneral, setExamGeneral] = useState(e?.general ?? "");
+  const [examGeneralFindings, setExamGeneralFindings] = useState<ExamObservation[]>(
+    e?.generalFindings ?? [],
+  );
+  const [examVitals, setExamVitals] = useState<RecordedVitals>(e?.vitals ?? {});
   const [examSystems, setExamSystems] = useState({
     cardiovascular: e?.systems?.cardiovascular ?? "",
     respiratory: e?.systems?.respiratory ?? "",
@@ -225,6 +236,8 @@ export function ClerkshipForm({
     socialHx,
     ice,
     examGeneral,
+    examGeneralFindings,
+    examVitals,
     examSystems,
     summary,
     differential,
@@ -434,13 +447,24 @@ export function ClerkshipForm({
 
               {step === 3 ? (
                 <div className="flex flex-col gap-5">
-                  <Field label="General inspection">
+                  <VitalsPanel
+                    encounterId={encounterId}
+                    value={examVitals}
+                    onChange={setExamVitals}
+                  />
+                  <ExamSections value={examGeneralFindings} onChange={setExamGeneralFindings} />
+                  <Field label="Other general-exam notes">
                     <RichTextEditor
                       value={examGeneral}
                       onChange={setExamGeneral}
-                      placeholder="Well/unwell, vitals impression, hands → face → neck…"
+                      placeholder="Anything not captured above…"
+                      rows={3}
                     />
                   </Field>
+                  <span className="text-muted-foreground text-[11px]">
+                    System-specific exams (CVS / resp / abdo / neuro) — focused modules coming; free
+                    text for now.
+                  </span>
                   <div className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
                     {(
                       [
@@ -646,6 +670,7 @@ export function ClerkshipForm({
           pmhConditions={pmhItems.map((x) => x.display)}
           fhScreen={fhScreen}
           social={socialHx}
+          examFindings={examGeneralFindings}
           atSynthesis={step >= 4}
         />
       </div>

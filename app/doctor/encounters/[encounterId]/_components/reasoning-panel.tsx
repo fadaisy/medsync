@@ -1,5 +1,6 @@
 "use client";
 
+import type { ExamObservation } from "@/lib/clerkship/exam/types";
 import type { ScoredDifferential } from "@/lib/clerkship/reasoning/types";
 import type { RosObservation } from "@/lib/clerkship/ros";
 import type { CapturedSymptom } from "@/lib/clerkship/symptom-engine";
@@ -16,6 +17,7 @@ import {
   XIcon,
 } from "lucide-react";
 
+import { examReasoningTokens } from "@/lib/clerkship/exam/engine";
 import { diagnosticPausePrompts, liveReasoningForCodes } from "@/lib/clerkship/reasoning/engine";
 import { REASONING_MAPS } from "@/lib/clerkship/reasoning/maps";
 
@@ -46,6 +48,7 @@ export function ReasoningPanel({
   pmhConditions,
   fhScreen,
   social,
+  examFindings,
   atSynthesis,
 }: {
   pcCodes: string[];
@@ -54,6 +57,7 @@ export function ReasoningPanel({
   pmhConditions: string[];
   fhScreen: Record<string, "yes" | "no" | "unsure">;
   social: ClerkSocial;
+  examFindings: ExamObservation[];
   atSynthesis: boolean;
 }) {
   const [open, setOpen] = useState(true);
@@ -69,19 +73,22 @@ export function ReasoningPanel({
     const fhNo = Object.entries(fhScreen)
       .filter(([, v]) => v === "no")
       .map(([k]) => k.replace(/_/g, " "));
+    const exam = examReasoningTokens(examFindings);
     return liveReasoningForCodes(REASONING_MAPS, pcCodes, {
       features,
       positives: [
         ...ros.filter((o) => o.status === "present").map((o) => o.symptomDisplay),
         ...fhYes,
+        ...exam.positives,
       ],
       negatives: [
         ...ros.filter((o) => o.status === "denies").map((o) => o.symptomDisplay),
         ...fhNo,
+        ...exam.negatives,
       ],
       history: [...pmhConditions, ...fhYes, ...socialTokens(social)],
     });
-  }, [pcCodes, hpcItems, ros, pmhConditions, fhScreen, social]);
+  }, [pcCodes, hpcItems, ros, pmhConditions, fhScreen, social, examFindings]);
 
   const fired = r.basis.length > 0;
   const mnmCount = r.scored.filter((d) => d.likelihood === "must_not_miss").length;
