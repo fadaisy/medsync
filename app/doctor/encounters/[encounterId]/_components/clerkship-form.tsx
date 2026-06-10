@@ -39,6 +39,7 @@ import { ICD10_CODES, LOINC_CODES } from "@/lib/encounter/reference-codes";
 import { submitClerkshipAction } from "../actions";
 import { FamilySocialSections } from "./family-social-sections";
 import { HistorySections } from "./history-sections";
+import { ReasoningPanel } from "./reasoning-panel";
 import { RichTextEditor } from "./rich-text";
 import { RosReview } from "./ros-review";
 import { SymptomCapture } from "./symptom-capture";
@@ -75,17 +76,6 @@ type FormState = {
   ros: RosObservation[];
   rosScope: RosScope;
   rosNarrative: string;
-  soc: Record<
-    | "site"
-    | "onset"
-    | "character"
-    | "radiation"
-    | "associated"
-    | "timing"
-    | "exacerbating"
-    | "severity",
-    string
-  >;
   pmh: string;
   pmhItems: ClerkPmhItem[];
   pmhScreen: Record<string, "yes" | "no" | "unsure">;
@@ -119,7 +109,6 @@ function buildClerkshipInput(f: FormState): unknown {
     ros: f.ros,
     rosScope: f.rosScope,
     rosNarrative: f.rosNarrative,
-    socrates: f.soc,
     pmh: f.pmh,
     pmhItems: f.pmhItems,
     pmhScreen: f.pmhScreen,
@@ -174,16 +163,6 @@ export function ClerkshipForm({
     h?.rosScope ?? { mode: "complete", reviewedSystems: [] },
   );
   const [rosNarrative, setRosNarrative] = useState(h?.rosNarrative ?? "");
-  const [soc, setSoc] = useState({
-    site: h?.socrates?.site ?? "",
-    onset: h?.socrates?.onset ?? "",
-    character: h?.socrates?.character ?? "",
-    radiation: h?.socrates?.radiation ?? "",
-    associated: h?.socrates?.associated ?? "",
-    timing: h?.socrates?.timing ?? "",
-    exacerbating: h?.socrates?.exacerbating ?? "",
-    severity: h?.socrates?.severity ?? "",
-  });
   const [pmh, setPmh] = useState(h?.pmh ?? "");
   const [pmhItems, setPmhItems] = useState<ClerkPmhItem[]>(h?.pmhItems ?? []);
   const [pmhScreen, setPmhScreen] = useState<Record<string, "yes" | "no" | "unsure">>(
@@ -238,7 +217,6 @@ export function ClerkshipForm({
     ros,
     rosScope,
     rosNarrative,
-    soc,
     pmh,
     pmhItems,
     pmhScreen,
@@ -340,6 +318,15 @@ export function ClerkshipForm({
           })}
         </div>
 
+        {/* Clinical reasoning — persistent, anti-anchoring (decision support only) */}
+        <div className="px-4 pt-4 sm:px-6">
+          <ReasoningPanel
+            pcCodes={hpcItems.map((x) => x.symptomCode)}
+            pmhConditions={pmhItems.map((x) => x.display)}
+            atSynthesis={step >= 4}
+          />
+        </div>
+
         {/* Body */}
         <div className="min-h-[26rem] px-4 py-5 sm:px-6 sm:py-6">
           {step === 0 ? (
@@ -424,29 +411,6 @@ export function ClerkshipForm({
 
           {step === 2 ? (
             <div className="flex flex-col gap-5">
-              <Field label="SOCRATES">
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                  {(
-                    [
-                      ["site", "Site"],
-                      ["onset", "Onset"],
-                      ["character", "Character"],
-                      ["radiation", "Radiation"],
-                      ["associated", "Associated"],
-                      ["timing", "Timing"],
-                      ["exacerbating", "Exac./reliev."],
-                      ["severity", "Severity"],
-                    ] as const
-                  ).map(([k, lbl]) => (
-                    <Input
-                      key={k}
-                      placeholder={lbl}
-                      value={soc[k]}
-                      onChange={(ev) => setSoc({ ...soc, [k]: ev.target.value })}
-                    />
-                  ))}
-                </div>
-              </Field>
               <HistorySections
                 encounterId={encounterId}
                 pmhItems={pmhItems}

@@ -5,6 +5,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Clerkship: Clinical Reasoning Engine (anti-anchoring, decision-support) — 2026-06-10
+
+A stateful, anti-anchoring reasoning thread across the clerkship ([ADR 0065](docs/adr/0065-clerkship-clinical-reasoning-engine.md)). **No migration** — maps are code reference data; ships on deploy.
+
+- **Always plural, never a diagnosis-giver** — from the presenting complaint the engine forms an always-plural **differential (likely + must-not-miss)**; it is structurally incapable of returning one answer. A test asserts **every one of the 17 maps carries ≥1 must-not-miss**.
+- **Propagation as suggestion** — discriminating HPC features, associated symptoms to rule in/out, red flags, **hypothesis-driven examination targets**, and history emphasis — all _consider/ask/examine_, never pre-fill or conclude.
+- **Anti-bias by design** — transparent (shows which maps fired + per-dx rule-in/out), qualitative likelihood (not probabilities), the **known-disease anchoring trap** ("is this different from usual?"), and a **diagnostic pause/time-out** at synthesis.
+- **Maps** `lib/clerkship/reasoning/maps/` — 17 CSO-signed worked presenting complaints (§3): 206 differentials, 107 must-not-miss. Transcribed via a 17-agent workflow → deterministic assembler. **Engine** `lib/clerkship/reasoning/engine.ts` (pure/TDD, 10 tests). **UI** a persistent collapsible reasoning panel above the clerkship tabs (must-not-miss/red-flags = amber attention).
+- Removed the redundant free-text **SOCRATES** grid from Background (captured via tapped symptom properties). Decision-support, not autonomous — nothing auto-marked; reasoning is never persisted as a diagnosis. tsc/eslint/build clean; **807 tests**.
+
 ### Added — Clerkship: remaining history sections (PMH/PSH/Drug/Family/Social/ICE), tap-first (GATED) — 2026-06-10
 
 The rest of the clerkship history as **tap-first** structured capture ([ADR 0064](docs/adr/0064-clerkship-history-sections.md)) — a normal full history with little or no typing. **Migration 0046 is GATED.**
