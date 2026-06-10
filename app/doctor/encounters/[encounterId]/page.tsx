@@ -133,7 +133,7 @@ export default async function DoctorEncounterPage({ params }: PageProps) {
 
 function Wrap({ children }: { children: React.ReactNode }) {
   return (
-    <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-6 py-8 lg:py-10">
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-6 py-8 lg:py-10">
       <Link
         href="/doctor/encounters"
         className="text-muted-foreground hover:text-foreground inline-flex w-fit items-center gap-1 text-[12.5px] transition-colors"
