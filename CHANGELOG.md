@@ -5,6 +5,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Changed — Clerkship: live floating reasoning + fully tap-first Background — 2026-06-10
+
+- **Live reasoning** — the reasoning panel now RE-RANKS as the clinician taps: rule-in features raise a candidate, rule-out/denials lower it (`scoreReasoning`, pure/client-side — no API, no latency). Transparent (shows the matched +/− features), surfaces **what to ask/examine next** + **risk factors present vs to-check**, and **never drops a must-not-miss** (only re-ranks). Now a **floating, collapsible side panel** that moves with the clerkship.
+- **Background fully tap-first** — every field is now selectable (dropdowns / chips / year & number pickers); removed all free-text inputs, the search boxes, the redundant **SOCRATES** grid, and the "Other notes" field. `tap-controls.tsx`. +5 tests (812 total).
+
 ### Added — Clerkship: Clinical Reasoning Engine (anti-anchoring, decision-support) — 2026-06-10
 
 A stateful, anti-anchoring reasoning thread across the clerkship ([ADR 0065](docs/adr/0065-clerkship-clinical-reasoning-engine.md)). **No migration** — maps are code reference data; ships on deploy.

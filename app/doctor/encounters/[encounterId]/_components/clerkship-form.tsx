@@ -76,7 +76,6 @@ type FormState = {
   ros: RosObservation[];
   rosScope: RosScope;
   rosNarrative: string;
-  pmh: string;
   pmhItems: ClerkPmhItem[];
   pmhScreen: Record<string, "yes" | "no" | "unsure">;
   pshItems: ClerkPshItem[];
@@ -109,7 +108,6 @@ function buildClerkshipInput(f: FormState): unknown {
     ros: f.ros,
     rosScope: f.rosScope,
     rosNarrative: f.rosNarrative,
-    pmh: f.pmh,
     pmhItems: f.pmhItems,
     pmhScreen: f.pmhScreen,
     pshItems: f.pshItems,
@@ -163,7 +161,6 @@ export function ClerkshipForm({
     h?.rosScope ?? { mode: "complete", reviewedSystems: [] },
   );
   const [rosNarrative, setRosNarrative] = useState(h?.rosNarrative ?? "");
-  const [pmh, setPmh] = useState(h?.pmh ?? "");
   const [pmhItems, setPmhItems] = useState<ClerkPmhItem[]>(h?.pmhItems ?? []);
   const [pmhScreen, setPmhScreen] = useState<Record<string, "yes" | "no" | "unsure">>(
     h?.pmhScreen ?? {},
@@ -217,7 +214,6 @@ export function ClerkshipForm({
     ros,
     rosScope,
     rosNarrative,
-    pmh,
     pmhItems,
     pmhScreen,
     pshItems,
@@ -259,6 +255,15 @@ export function ClerkshipForm({
 
   return (
     <form onSubmit={(ev) => ev.preventDefault()}>
+      <ReasoningPanel
+        pcCodes={hpcItems.map((x) => x.symptomCode)}
+        hpcItems={hpcItems}
+        ros={ros}
+        pmhConditions={pmhItems.map((x) => x.display)}
+        fhScreen={fhScreen}
+        social={socialHx}
+        atSynthesis={step >= 4}
+      />
       <datalist id="icd10-codes">
         {ICD10_CODES.map((c) => (
           <option key={c.code} value={c.code}>
@@ -316,15 +321,6 @@ export function ClerkshipForm({
               </button>
             );
           })}
-        </div>
-
-        {/* Clinical reasoning — persistent, anti-anchoring (decision support only) */}
-        <div className="px-4 pt-4 sm:px-6">
-          <ReasoningPanel
-            pcCodes={hpcItems.map((x) => x.symptomCode)}
-            pmhConditions={pmhItems.map((x) => x.display)}
-            atSynthesis={step >= 4}
-          />
         </div>
 
         {/* Body */}
@@ -426,13 +422,6 @@ export function ClerkshipForm({
                 negatives={negatives}
                 setNegatives={setNegatives}
               />
-              <Field label="Other background notes">
-                <RichTextEditor
-                  value={pmh}
-                  onChange={setPmh}
-                  placeholder="Admissions, immunisations, anything not captured above…"
-                />
-              </Field>
               <FamilySocialSections
                 familyHistory={familyHistory}
                 setFamilyHistory={setFamilyHistory}

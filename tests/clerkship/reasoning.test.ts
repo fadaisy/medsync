@@ -3,9 +3,11 @@ import { describe, expect, it } from "vitest";
 
 import {
   diagnosticPausePrompts,
+  liveReasoningForCodes,
   mapsForCodes,
   mergeReasoning,
   reasoningForCodes,
+  scoreReasoning,
 } from "@/lib/clerkship/reasoning/engine";
 import { REASONING_MAPS } from "@/lib/clerkship/reasoning/maps";
 
@@ -108,6 +110,50 @@ describe("the seeded CSO maps (17 worked PCs) — the safety invariant", () => {
       .map((d) => d.dx.toLowerCase());
     expect(mnm.some((d) => d.includes("dissection"))).toBe(true);
     expect(mnm.some((d) => d.includes("pulmonary embolism") || d.includes("pe"))).toBe(true);
+  });
+});
+
+describe("scoreReasoning — live re-weighting as features are captured", () => {
+  const empty = { features: [], positives: [], negatives: [], history: [] };
+  it("with nothing captured, all candidates are open (still plural, must-not-miss shown)", () => {
+    const r = scoreReasoning([chestPain], empty);
+    expect(r.scored.every((d) => d.status === "open")).toBe(true);
+    expect(r.scored.some((d) => d.likelihood === "must_not_miss")).toBe(true);
+  });
+  it("a discriminating feature RAISES the matching candidate to the top", () => {
+    const r = scoreReasoning([chestPain], { ...empty, features: ["tearing", "unequal pulses"] });
+    expect(r.scored[0]?.dx).toBe("Aortic dissection");
+    expect(r.scored[0]?.status).toBe("supported");
+    expect(r.scored[0]?.matchedRuleIn.length).toBeGreaterThan(0);
+  });
+  it("denying a candidate's rule-in feature LOWERS it — but never drops the must-not-miss", () => {
+    const r = scoreReasoning([chestPain], { ...empty, negatives: ["tearing", "unequal pulses"] });
+    const diss = r.scored.find((d) => d.dx === "Aortic dissection");
+    expect(diss?.status).toBe("lowered");
+    expect(diss).toBeDefined(); // still present — never removed
+  });
+  it("toAsk lists discriminators not yet addressed; risk factors match history", () => {
+    const r = scoreReasoning([chestPain], {
+      ...empty,
+      features: ["exertional"],
+      history: ["cardiac risk factors"],
+    });
+    expect(r.toAsk.length).toBeGreaterThan(0);
+    expect(r.riskFactorsPresent).toContain("cardiac risk factors");
+  });
+});
+
+describe("liveReasoningForCodes on the real maps", () => {
+  it("chest pain narrows toward ACS when exertional + radiation captured", () => {
+    const r = liveReasoningForCodes(REASONING_MAPS, ["chest_pain"], {
+      features: ["exertional", "radiation to left arm", "sweating"],
+      positives: [],
+      negatives: [],
+      history: [],
+    });
+    expect(r.scored[0]?.status).toBe("supported");
+    // a must-not-miss is still in the list (never dropped by narrowing)
+    expect(r.scored.some((d) => d.likelihood === "must_not_miss")).toBe(true);
   });
 });
 
