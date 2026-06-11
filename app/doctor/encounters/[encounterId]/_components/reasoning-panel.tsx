@@ -1,5 +1,6 @@
 "use client";
 
+import type { RespExam } from "@/lib/clerkship/exam/respiratory";
 import type { ExamObservation } from "@/lib/clerkship/exam/types";
 import type { ScoredDifferential } from "@/lib/clerkship/reasoning/types";
 import type { RosObservation } from "@/lib/clerkship/ros";
@@ -18,6 +19,7 @@ import {
 } from "lucide-react";
 
 import { examReasoningTokens } from "@/lib/clerkship/exam/engine";
+import { respReasoningTokens } from "@/lib/clerkship/exam/respiratory";
 import { diagnosticPausePrompts, liveReasoningForCodes } from "@/lib/clerkship/reasoning/engine";
 import { REASONING_MAPS } from "@/lib/clerkship/reasoning/maps";
 
@@ -49,6 +51,7 @@ export function ReasoningPanel({
   fhScreen,
   social,
   examFindings,
+  respiratory,
   atSynthesis,
 }: {
   pcCodes: string[];
@@ -58,6 +61,7 @@ export function ReasoningPanel({
   fhScreen: Record<string, "yes" | "no" | "unsure">;
   social: ClerkSocial;
   examFindings: ExamObservation[];
+  respiratory: RespExam;
   atSynthesis: boolean;
 }) {
   const [open, setOpen] = useState(true);
@@ -74,12 +78,14 @@ export function ReasoningPanel({
       .filter(([, v]) => v === "no")
       .map(([k]) => k.replace(/_/g, " "));
     const exam = examReasoningTokens(examFindings);
+    const resp = respReasoningTokens(respiratory);
     return liveReasoningForCodes(REASONING_MAPS, pcCodes, {
       features,
       positives: [
         ...ros.filter((o) => o.status === "present").map((o) => o.symptomDisplay),
         ...fhYes,
         ...exam.positives,
+        ...resp.positives,
       ],
       negatives: [
         ...ros.filter((o) => o.status === "denies").map((o) => o.symptomDisplay),
@@ -88,7 +94,7 @@ export function ReasoningPanel({
       ],
       history: [...pmhConditions, ...fhYes, ...socialTokens(social)],
     });
-  }, [pcCodes, hpcItems, ros, pmhConditions, fhScreen, social, examFindings]);
+  }, [pcCodes, hpcItems, ros, pmhConditions, fhScreen, social, examFindings, respiratory]);
 
   const fired = r.basis.length > 0;
   const mnmCount = r.scored.filter((d) => d.likelihood === "must_not_miss").length;

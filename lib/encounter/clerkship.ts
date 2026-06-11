@@ -12,6 +12,7 @@
  * may be skipped/deferred (emergency: focused history, resus first).
  */
 
+import type { RespExam } from "@/lib/clerkship/exam/respiratory";
 import type { ExamObservation, RecordedVitals } from "@/lib/clerkship/exam/types";
 import type { RosObservation, RosScope } from "@/lib/clerkship/ros";
 import type { CapturedSymptom } from "@/lib/clerkship/symptom-engine";
@@ -213,6 +214,8 @@ export interface ClerkExamination {
   generalFindings?: ExamObservation[];
   /** A vital-signs set recorded at this exam (triage set is carried separately). */
   vitals?: RecordedVitals;
+  /** Structured respiratory examination (tap-first IPPA + zonal). See lib/clerkship/exam/respiratory. */
+  respiratory?: RespExam;
   /** Per-system exam (free text or IPPA), hypothesis-driven. */
   systems?: Record<string, string>;
 }

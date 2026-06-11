@@ -5,6 +5,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Clerkship: Respiratory Examination (tap-first IPPA + zonal + cluster→pattern) — 2026-06-11
+
+The first **system-specific** exam layer onto the general exam ([ADR 0067](docs/adr/0067-clerkship-respiratory-examination.md)). **No migration** — code-module catalog; captured in `section_data`.
+
+- **Tap-first IPPA + zonal** — percussion / breath sounds / vocal resonance / added sounds captured **per zone** (upper/mid/lower × L/R) via a tap-to-cycle grid; trachea + expansion (per side); non-zonal findings reuse the general-exam three-state model; **"normal respiratory exam" fast path**. Peripheral overlap (clubbing/cyanosis/nodes/JVP) reused from the general exam, not duplicated.
+- **Sign-cluster → pattern** (`matchRespPatterns`, pure/TDD) — surfaces consolidation / effusion / pneumothorax / **tension pneumothorax** / collapse / fibrosis / COPD / **stridor** the recorded cluster fits; **transparent**, **multiple on ambiguity** (broadening), **must-not-miss + emergencies flagged in red**, empty when nothing recorded — **never auto-diagnoses**.
+- **Reasoning thread** — findings + matched patterns feed the differential. Replaces the free-text "Respiratory" field; CVS/abdo/neuro remain free-text. tsc/eslint/build clean; **829 tests** (+11). _CSO to verify the authored finding set + cluster signatures vs. the full catalog._
+
 ### Added — Clerkship: General Examination (tap-first findings + vitals + reasoning) — 2026-06-10
 
 The Examination tab's general survey as **tap-first** capture ([ADR 0066](docs/adr/0066-clerkship-general-examination.md)). **No migration** — code-module catalog; ships on deploy.

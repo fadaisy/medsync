@@ -1,6 +1,7 @@
 "use client";
 
 import type { SubmitClerkshipResult } from "../actions";
+import type { RespExam } from "@/lib/clerkship/exam/respiratory";
 import type { ExamObservation, RecordedVitals } from "@/lib/clerkship/exam/types";
 import type { RosObservation, RosScope } from "@/lib/clerkship/ros";
 import type { CapturedSymptom } from "@/lib/clerkship/symptom-engine";
@@ -42,6 +43,7 @@ import { ExamSections } from "./exam-sections";
 import { FamilySocialSections } from "./family-social-sections";
 import { HistorySections } from "./history-sections";
 import { ReasoningPanel } from "./reasoning-panel";
+import { RespiratoryExam } from "./respiratory-exam";
 import { RichTextEditor } from "./rich-text";
 import { RosReview } from "./ros-review";
 import { SymptomCapture } from "./symptom-capture";
@@ -92,6 +94,7 @@ type FormState = {
   examGeneral: string;
   examGeneralFindings: ExamObservation[];
   examVitals: RecordedVitals;
+  examRespiratory: RespExam;
   examSystems: Record<"cardiovascular" | "respiratory" | "abdominal" | "neurological", string>;
   summary: string;
   differential: DxRow[];
@@ -130,6 +133,7 @@ function buildClerkshipInput(f: FormState): unknown {
     examGeneral: f.examGeneral,
     examGeneralFindings: f.examGeneralFindings,
     examVitals: f.examVitals,
+    examRespiratory: f.examRespiratory,
     examSystems: f.examSystems,
     summary: f.summary,
     differential: f.differential.map((d) => ({
@@ -187,6 +191,7 @@ export function ClerkshipForm({
     e?.generalFindings ?? [],
   );
   const [examVitals, setExamVitals] = useState<RecordedVitals>(e?.vitals ?? {});
+  const [examRespiratory, setExamRespiratory] = useState<RespExam>(e?.respiratory ?? {});
   const [examSystems, setExamSystems] = useState({
     cardiovascular: e?.systems?.cardiovascular ?? "",
     respiratory: e?.systems?.respiratory ?? "",
@@ -238,6 +243,7 @@ export function ClerkshipForm({
     examGeneral,
     examGeneralFindings,
     examVitals,
+    examRespiratory,
     examSystems,
     summary,
     differential,
@@ -459,9 +465,24 @@ export function ClerkshipForm({
                         className="size-3.5 transition-transform group-open:rotate-90"
                         aria-hidden
                       />
-                      Notes & system-specific exams
+                      Respiratory examination
                       <span className="text-muted-foreground/70 ml-auto text-[10.5px] font-normal">
-                        CVS / resp / abdo / neuro — free text for now
+                        IPPA · by zone &amp; side · sign-cluster patterns
+                      </span>
+                    </summary>
+                    <div className="px-1 pt-1 pb-2">
+                      <RespiratoryExam value={examRespiratory} onChange={setExamRespiratory} />
+                    </div>
+                  </details>
+                  <details className="group border-border/70 rounded-lg border">
+                    <summary className="text-muted-foreground hover:text-foreground flex cursor-pointer list-none items-center gap-2 px-3 py-2 text-[12px] font-medium select-none">
+                      <ChevronRightIcon
+                        className="size-3.5 transition-transform group-open:rotate-90"
+                        aria-hidden
+                      />
+                      Notes &amp; other system exams
+                      <span className="text-muted-foreground/70 ml-auto text-[10.5px] font-normal">
+                        CVS / abdo / neuro — free text for now
                       </span>
                     </summary>
                     <div className="flex flex-col gap-4 px-3 pt-1 pb-3">
@@ -477,7 +498,6 @@ export function ClerkshipForm({
                         {(
                           [
                             ["cardiovascular", "Cardiovascular"],
-                            ["respiratory", "Respiratory"],
                             ["abdominal", "Abdominal"],
                             ["neurological", "Neurological"],
                           ] as const
@@ -681,6 +701,7 @@ export function ClerkshipForm({
           fhScreen={fhScreen}
           social={socialHx}
           examFindings={examGeneralFindings}
+          respiratory={examRespiratory}
           atSynthesis={step >= 4}
         />
       </div>

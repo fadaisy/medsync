@@ -253,6 +253,60 @@ export const ClerkshipInputSchema = z.object({
       recordedAtIso: z.string().max(40).optional(),
     })
     .optional(),
+  /** Structured respiratory exam (tap-first IPPA + zonal). */
+  examRespiratory: (() => {
+    const zoneRec = <T extends z.ZodTypeAny>(v: T) =>
+      z
+        .object({
+          upper_right: v,
+          upper_left: v,
+          mid_right: v,
+          mid_left: v,
+          lower_right: v,
+          lower_left: v,
+        })
+        .partial()
+        .optional();
+    return z
+      .object({
+        findings: z
+          .array(
+            z.object({
+              code: z.string().max(80),
+              group: z.string().max(40),
+              display: z.string().max(160),
+              state: z.enum(["present", "absent", "not_examined"]),
+              values: z.array(z.string().max(120)).max(20).optional(),
+              note: z.string().max(1000).optional(),
+            }),
+          )
+          .max(60)
+          .optional(),
+        trachea: z.enum(["central", "deviated_right", "deviated_left"]).optional(),
+        expansion: z
+          .object({ right: z.enum(["normal", "reduced"]), left: z.enum(["normal", "reduced"]) })
+          .partial()
+          .optional(),
+        percussion: zoneRec(z.enum(["resonant", "dull", "stony_dull", "hyper_resonant"])),
+        breathSounds: zoneRec(z.enum(["vesicular", "bronchial", "reduced", "absent"])),
+        vocalResonance: zoneRec(z.enum(["normal", "increased", "reduced"])),
+        addedSounds: zoneRec(
+          z
+            .array(
+              z.enum([
+                "wheeze_poly",
+                "wheeze_mono",
+                "crackles_fine",
+                "crackles_coarse",
+                "pleural_rub",
+                "stridor",
+              ]),
+            )
+            .max(6),
+        ),
+      })
+      .optional();
+  })(),
   examSystems: z
     .object({
       cardiovascular: z.string().max(2000).optional(),
@@ -352,6 +406,10 @@ export function clerkshipInputToClerkship(input: ClerkshipInput): Clerkship {
     vitals:
       input.examVitals && Object.values(input.examVitals).some((v) => v !== undefined)
         ? input.examVitals
+        : undefined,
+    respiratory:
+      input.examRespiratory && Object.values(input.examRespiratory).some((v) => v !== undefined)
+        ? input.examRespiratory
         : undefined,
     systems: input.examSystems ? prune({ ...input.examSystems }) : undefined,
   });
