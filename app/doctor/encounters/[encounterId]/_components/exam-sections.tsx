@@ -1,23 +1,32 @@
 "use client";
 
-import type { ThreeStateValue } from "./exam-kit";
+import type { SectionStatus, ThreeStateValue } from "./exam-kit";
 import type { ExamFinding, ExamObservation, FindingState } from "@/lib/clerkship/exam/types";
 import { useMemo } from "react";
-import { AlertTriangleIcon, CircleDashedIcon, EyeIcon } from "lucide-react";
+import { CircleDashedIcon, EyeIcon } from "lucide-react";
 
-import { EXAM_FINDINGS, EXAM_GROUPS } from "@/lib/clerkship/exam/catalog";
+import { EXAM_FINDING_BY_CODE, EXAM_FINDINGS, EXAM_GROUPS } from "@/lib/clerkship/exam/catalog";
 import { normalGeneralExam, renderExamProse } from "@/lib/clerkship/exam/engine";
-import { NormalExamButton, StageCard, ThreeState, ValueChip } from "./exam-kit";
+import {
+  CompactField,
+  FindingGrid,
+  NormalExamButton,
+  PresentCluster,
+  SectionCard,
+  ThreeState,
+  ValueChip,
+} from "./exam-kit";
 
 /**
- * General examination — REWORKED PRESENTATION (ADR 0074). Same ExamObservation
- * data, handlers, value-sets and behaviour as before; restructured into the real
- * clinical sequence (end-of-bed → spot diagnosis → hands → face → neck →
- * peripheries) as numbered StageCards, using the shared exam-kit controls. Each
- * panel is captured with the honest three-state (not-examined ≠ normal); selects
- * pick a single graded value; sub-value chips reveal only when a finding is
- * present. The "normal general exam" fast-path and the auto-generated prose
- * summary are preserved. Decision-support — nothing auto-recorded.
+ * General examination — EXAMINATION UI v2 (progressive disclosure). Same
+ * ExamObservation data, handlers and value-sets as before; presentation only.
+ * Each catalog group is a COLLAPSIBLE SectionCard summarised to one line (status
+ * pill + inline positives + on-row "mark normal"); a fully-normal exam is a tidy
+ * stack of "All normal" cards. Inside a section, selects are compact chip-pickers
+ * and panels are compact three-states (detail revealed only when present). The
+ * spot-diagnosis pattern list collapses to a single "tap any present" cluster
+ * (with an explicit examined / not-examined control — not-examined ≠ all-negative).
+ * The whole-exam fast-path + the auto-summary are preserved. Nothing auto-recorded.
  */
 
 /** Graded select values that are not, in themselves, a positive finding. */
@@ -36,18 +45,12 @@ const NORMAL_SELECT = new Set([
 /** A non-normal positive: present, and not a select sitting on a normal value. */
 function isFinding(o: ExamObservation | undefined): boolean {
   if (!o || o.state !== "present") return false;
-  // a select holding a normal value is not a "finding"
   if ((o.values ?? []).length && (o.values ?? []).every((v) => NORMAL_SELECT.has(v))) return false;
   return true;
 }
 
-/* Per-stage hints, keyed by catalog group. The groups + order themselves come
-   straight from EXAM_GROUPS (single source of truth) so a new catalog group can
-   never be silently dropped from the UI. */
-const STAGE_HINTS: Record<string, string> = {
-  inspection: "end of the bed",
-  spot_diagnosis: "gestalt → focused exam",
-};
+const SPOT = "spot_diagnosis";
+const groupOf = (code: string) => EXAM_FINDING_BY_CODE[code]?.group;
 
 export function ExamSections({
   value,
@@ -75,51 +78,91 @@ export function ExamSections({
   const totalFindings = value.filter((o) => isFinding(o)).length;
   const totalTouched = value.filter((o) => o.state !== "not_examined").length;
 
-  // ── render one catalog finding with the kit ──
-  //   select → single-pick ValueChip row · panel → ThreeState + reveal value chips
-  const renderFinding = (x: ExamFinding) => {
+  // ── per-section: set the whole group normal (reuses the exact whole-exam normal) ──
+  const markGroupNormal = (key: string) => {
+    const normal = normalGeneralExam();
+    const others = value.filter((o) => groupOf(o.code) !== key);
+    const forGroup = normal.filter((o) => groupOf(o.code) === key);
+    onChange([...others, ...forGroup]);
+  };
+
+  // ── per-section status / count / inline-positive summary for the collapsed row ──
+  const sectionMeta = (
+    findings: ExamFinding[],
+  ): { status: SectionStatus; count: number; summary: string } => {
+    const obs = findings.map((x) => ({ x, o: byCode.get(x.code) }));
+    const positives = obs.filter(({ o }) => isFinding(o));
+    const mnm = positives.filter(({ x }) => x.mustNotMiss);
+    const touched = obs.filter(({ o }) => o && o.state !== "not_examined");
+    const summary = positives
+      .map(({ x, o }) => (o?.values?.length ? o.values.join(", ") : x.display))
+      .join(" · ");
+    if (mnm.length) return { status: "must_not_miss", count: mnm.length, summary };
+    if (positives.length) return { status: "findings", count: positives.length, summary };
+    if (touched.length === findings.length) return { status: "normal", count: 0, summary: "" };
+    if (touched.length > 0) return { status: "partial", count: 0, summary: "" };
+    return { status: "not_examined", count: 0, summary: "" };
+  };
+
+  // ── spot-diagnosis cluster (long binary list → one "tap any present" block) ──
+  const spotFindings = EXAM_FINDINGS.filter((x) => x.group === SPOT);
+  const spotPresent = spotFindings
+    .filter((x) => byCode.get(x.code)?.state === "present")
+    .map((x) => x.code);
+  const spotExamined = spotFindings.every(
+    (x) => (byCode.get(x.code)?.state ?? "not_examined") !== "not_examined",
+  );
+  const toggleSpot = (code: string) => {
+    const cur = byCode.get(code)?.state;
+    if (cur === "present") set(code, spotExamined ? { state: "absent", values: [] } : null);
+    else set(code, { state: "present", values: [] });
+  };
+  const setSpotExamined = (examined: boolean) => {
+    const others = value.filter((o) => groupOf(o.code) !== SPOT);
+    if (!examined) return onChange(others);
+    const forGroup: ExamObservation[] = spotFindings.map((x) => {
+      const ex = byCode.get(x.code);
+      if (ex?.state === "present") return ex;
+      return { code: x.code, group: SPOT, display: x.display, state: "absent", values: [] };
+    });
+    onChange([...others, ...forGroup]);
+  };
+
+  // ── compact renderers ──
+  const renderSelect = (x: ExamFinding) => {
     const o = byCode.get(x.code);
-
-    const label = (
-      <span className="flex min-w-0 items-center gap-1.5">
-        <span className="text-foreground text-[12.5px]">{x.display}</span>
-        {x.mustNotMiss ? (
-          <AlertTriangleIcon className="size-3 text-amber-500" aria-label="must-not-miss" />
-        ) : null}
-        {x.ugandaFlag ? (
-          <span className="text-muted-foreground bg-muted rounded px-1 text-[9px] uppercase">
-            {x.ugandaFlag}
-          </span>
-        ) : null}
-      </span>
-    );
-
-    if (x.kind === "select") {
-      return (
-        <div key={x.code} className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
-          {label}
-          <div className="flex flex-wrap justify-end gap-1">
-            {x.options.map((opt) => (
-              <ValueChip
-                key={opt}
-                active={o?.values?.[0] === opt}
-                onClick={() =>
-                  set(x.code, o?.values?.[0] === opt ? null : { state: "present", values: [opt] })
-                }
-              >
-                {opt}
-              </ValueChip>
-            ))}
-          </div>
+    return (
+      <div key={x.code} className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+        <span className="text-foreground flex min-w-0 items-center gap-1 text-[12px]">
+          {x.display}
+        </span>
+        <div className="flex flex-wrap justify-end gap-1">
+          {x.options.map((opt) => (
+            <ValueChip
+              key={opt}
+              active={o?.values?.[0] === opt}
+              onClick={() =>
+                set(x.code, o?.values?.[0] === opt ? null : { state: "present", values: [opt] })
+              }
+            >
+              {opt}
+            </ValueChip>
+          ))}
         </div>
-      );
-    }
+      </div>
+    );
+  };
 
+  const renderPanel = (x: ExamFinding) => {
+    const o = byCode.get(x.code);
     const state: ThreeStateValue = o?.state ?? "not_examined";
     return (
-      <div key={x.code} className="flex flex-col gap-1.5">
-        <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
-          {label}
+      <CompactField
+        key={x.code}
+        label={x.display}
+        mustNotMiss={x.mustNotMiss}
+        flag={x.ugandaFlag}
+        control={
           <ThreeState
             value={state}
             findingsLabel={x.options.length ? "Findings" : "Present"}
@@ -134,30 +177,43 @@ export function ExamSections({
               )
             }
           />
-        </div>
-        {state === "present" && x.options.length ? (
-          <div className="scale-in flex flex-wrap gap-1 pl-1">
-            {x.options.map((opt) => {
-              const on = o?.values?.includes(opt);
-              return (
-                <ValueChip
-                  key={opt}
-                  active={!!on}
-                  onClick={() =>
-                    set(x.code, {
-                      values: on
-                        ? (o?.values ?? []).filter((v) => v !== opt)
-                        : [...(o?.values ?? []), opt],
-                    })
-                  }
-                >
-                  {opt}
-                </ValueChip>
-              );
-            })}
-          </div>
+        }
+        detail={
+          state === "present" && x.options.length
+            ? x.options.map((opt) => {
+                const on = o?.values?.includes(opt);
+                return (
+                  <ValueChip
+                    key={opt}
+                    active={!!on}
+                    onClick={() =>
+                      set(x.code, {
+                        values: on
+                          ? (o?.values ?? []).filter((v) => v !== opt)
+                          : [...(o?.values ?? []), opt],
+                      })
+                    }
+                  >
+                    {opt}
+                  </ValueChip>
+                );
+              })
+            : undefined
+        }
+      />
+    );
+  };
+
+  const renderSection = (findings: ExamFinding[]) => {
+    const selects = findings.filter((x) => x.kind === "select");
+    const panels = findings.filter((x) => x.kind === "panel");
+    return (
+      <>
+        {selects.length ? (
+          <div className="flex flex-col gap-2.5">{selects.map(renderSelect)}</div>
         ) : null}
-      </div>
+        {panels.length ? <FindingGrid>{panels.map(renderPanel)}</FindingGrid> : null}
+      </>
     );
   };
 
@@ -184,24 +240,38 @@ export function ExamSections({
         </span>
       </div>
 
-      {/* Clinical sequence — one StageCard per catalog group */}
-      <div className="flex flex-col gap-3.5">
-        {EXAM_GROUPS.map((stage, i) => {
-          const findings = EXAM_FINDINGS.filter((x) => x.group === stage.key);
-          const groupObs = findings.map((x) => byCode.get(x.code));
-          const nFindings = groupObs.filter((o) => isFinding(o)).length;
-          const complete = groupObs.every((o) => o && o.state !== "not_examined");
+      {/* Clinical sequence — one collapsible SectionCard per catalog group */}
+      <div className="flex flex-col gap-2.5">
+        {EXAM_GROUPS.map((group, i) => {
+          const findings = EXAM_FINDINGS.filter((x) => x.group === group.key);
+          const { status, count, summary } = sectionMeta(findings);
           return (
-            <StageCard
-              key={stage.key}
+            <SectionCard
+              key={group.key}
               index={i + 1}
-              title={stage.label}
-              hint={STAGE_HINTS[stage.key]}
-              complete={complete}
-              count={nFindings}
+              title={group.label}
+              status={status}
+              count={count}
+              summary={summary}
+              onMarkNormal={() => markGroupNormal(group.key)}
             >
-              {findings.map(renderFinding)}
-            </StageCard>
+              {group.key === SPOT ? (
+                <PresentCluster
+                  label="tap any that are present"
+                  options={findings.map((x) => ({
+                    value: x.code,
+                    label: x.display,
+                    mustNotMiss: x.mustNotMiss,
+                  }))}
+                  present={spotPresent}
+                  examined={spotExamined}
+                  onToggle={toggleSpot}
+                  onSetExamined={setSpotExamined}
+                />
+              ) : (
+                renderSection(findings)
+              )}
+            </SectionCard>
           );
         })}
       </div>

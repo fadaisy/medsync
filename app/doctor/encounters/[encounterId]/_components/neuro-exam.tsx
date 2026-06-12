@@ -1,6 +1,6 @@
 "use client";
 
-import type { ThreeStateValue } from "./exam-kit";
+import type { SectionStatus, ThreeStateValue } from "./exam-kit";
 import type {
   NeuroExam,
   NeuroLimb,
@@ -10,13 +10,8 @@ import type {
   Tone,
 } from "@/lib/clerkship/exam/neurological";
 import type { ExamFinding, ExamObservation, FindingState } from "@/lib/clerkship/exam/types";
-import { useMemo, useState } from "react";
-import {
-  AlertTriangleIcon,
-  ChevronDownIcon,
-  CircleDashedIcon,
-  ShieldAlertIcon,
-} from "lucide-react";
+import { useMemo } from "react";
+import { AlertTriangleIcon, CircleDashedIcon, EyeIcon, ShieldAlertIcon } from "lucide-react";
 
 import {
   CAUDA_OPTS,
@@ -35,24 +30,56 @@ import { gcsTotal } from "@/lib/clerkship/exam/types";
 import { cn } from "@/lib/utils";
 import {
   ChipRow,
+  CompactField,
   CycleLegend,
+  FindingGrid,
   NormalExamButton,
-  StageCard,
+  SectionCard,
   ThreeState,
   ValueChip,
 } from "./exam-kit";
 import { LimbFigure } from "./limb-figure";
 
 /**
- * Neurological examination — REWORKED PRESENTATION (ADR 0074). Same NeuroExam
- * data, handlers, value-sets and behaviour as before; restructured into the
- * clinical examination sequence as numbered StageCards, with the four limbs as a
- * tappable body figure (LimbFigure) as the signature spatial control and the
- * shared exam-kit controls. GCS is still shown by E/V/M components (GCS ≤8 is
- * surfaced as the airway emergency it is). The localisation panel (UMN vs LMN +
- * where in the neuraxis) is DECISION-SUPPORT (multiple on ambiguity, emergencies
- * in red) — never an auto-diagnosis. not-examined ≠ normal is preserved.
+ * Neurological examination — EXAMINATION UI v2 (progressive disclosure; ADR 0074).
+ * SAME NeuroExam data, handlers, value-sets and behaviour as before — presentation
+ * only. Each clinical stage is a COLLAPSIBLE SectionCard summarised to one line
+ * (status pill + inline positives + on-row "mark normal"); a fully-normal exam is
+ * a tidy stack of "All normal" cards. The four limbs stay a tappable body figure
+ * (LimbFigure) with full per-limb tone / power / reflex / plantar grading INSIDE
+ * the expanded Motor section; GCS E/V/M stays inside Conscious level (GCS ≤8 is
+ * surfaced as the airway emergency it is). The long binary special-sign lists
+ * (meningism, cauda equina) become "tap any present" clusters with an explicit
+ * examined / not-examined control (not-examined ≠ all-negative; present must-not-
+ * miss keeps its reserved-red flag). The localisation panel (UMN vs LMN + where in
+ * the neuraxis) is DECISION-SUPPORT (multiple on ambiguity, emergencies in red) —
+ * never an auto-diagnosis. The whole-exam normal fast-path + auto-summary are kept.
  */
+
+/** Inline-positive labels for catalog findings (group → collapsed-row summary). */
+function findingSummary(findings: ExamFinding[], byCode: Map<string, ExamObservation>): string {
+  return findings
+    .map((x) => ({ x, o: byCode.get(x.code) }))
+    .filter(({ o }) => o?.state === "present")
+    .map(({ x, o }) => (o?.values?.length ? o.values.join(", ") : x.display))
+    .join(" · ");
+}
+
+/** Status for a catalog-finding group (none recorded / partial / normal / findings / mnm). */
+function findingStatus(
+  findings: ExamFinding[],
+  byCode: Map<string, ExamObservation>,
+): { status: SectionStatus; count: number } {
+  const obs = findings.map((x) => ({ x, o: byCode.get(x.code) }));
+  const positives = obs.filter(({ o }) => o?.state === "present");
+  const mnm = positives.filter(({ x }) => x.mustNotMiss);
+  const touched = obs.filter(({ o }) => o && o.state !== "not_examined");
+  if (mnm.length) return { status: "must_not_miss", count: mnm.length };
+  if (positives.length) return { status: "findings", count: positives.length };
+  if (touched.length === findings.length) return { status: "normal", count: 0 };
+  if (touched.length > 0) return { status: "partial", count: 0 };
+  return { status: "not_examined", count: 0 };
+}
 
 function Row({
   title,
@@ -117,7 +144,6 @@ export function NeuroExamForm({
   value: NeuroExam;
   onChange: (next: NeuroExam) => void;
 }) {
-  const [openFindings, setOpenFindings] = useState(false);
   const findings = value.findings ?? [];
   const byCode = useMemo(() => new Map(findings.map((o) => [o.code, o])), [findings]);
   const patterns = useMemo(() => matchNeuroPatterns(value), [value]);
@@ -168,41 +194,39 @@ export function NeuroExamForm({
     onChange({ ...value, plantar: rec });
   };
 
-  const findingsCount = findings.filter((o) => o.state === "present").length;
-
-  // ── render a non-graded catalog finding with the kit (select = chip pick; panel = three-state + chips) ──
-  const renderFinding = (x: ExamFinding) => {
+  // ── render a non-graded catalog finding with the kit (select = chip pick; panel = compact three-state + chips) ──
+  const renderSelect = (x: ExamFinding) => {
     const o = byCode.get(x.code);
-    if (x.kind === "select") {
-      return (
-        <ChipRow key={x.code} label={x.display}>
-          {x.options.map((opt) => (
-            <ValueChip
-              key={opt}
-              active={o?.values?.[0] === opt}
-              onClick={() =>
-                setFinding(
-                  x.code,
-                  o?.values?.[0] === opt ? null : { state: "present", values: [opt] },
-                )
-              }
-            >
-              {opt}
-            </ValueChip>
-          ))}
-        </ChipRow>
-      );
-    }
+    return (
+      <ChipRow key={x.code} label={x.display}>
+        {x.options.map((opt) => (
+          <ValueChip
+            key={opt}
+            active={o?.values?.[0] === opt}
+            onClick={() =>
+              setFinding(
+                x.code,
+                o?.values?.[0] === opt ? null : { state: "present", values: [opt] },
+              )
+            }
+          >
+            {opt}
+          </ValueChip>
+        ))}
+      </ChipRow>
+    );
+  };
+
+  const renderPanel = (x: ExamFinding) => {
+    const o = byCode.get(x.code);
     const state: ThreeStateValue = o?.state ?? "not_examined";
     return (
-      <div key={x.code} className="flex flex-col gap-1.5">
-        <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
-          <span className="flex min-w-0 items-center gap-1.5">
-            <span className="text-foreground text-[12.5px]">{x.display}</span>
-            {x.mustNotMiss ? (
-              <AlertTriangleIcon className="size-3 text-amber-500" aria-label="must-not-miss" />
-            ) : null}
-          </span>
+      <CompactField
+        key={x.code}
+        label={x.display}
+        mustNotMiss={x.mustNotMiss}
+        flag={x.ugandaFlag}
+        control={
           <ThreeState
             value={state}
             findingsLabel={x.options.length ? "Findings" : "Present"}
@@ -215,31 +239,156 @@ export function NeuroExamForm({
               )
             }
           />
-        </div>
-        {state === "present" && x.options.length ? (
-          <div className="flex flex-wrap gap-1 pl-1">
-            {x.options.map((opt) => {
-              const on = o?.values?.includes(opt);
-              return (
-                <ValueChip
-                  key={opt}
-                  active={!!on}
-                  onClick={() =>
-                    setFinding(x.code, {
-                      values: on
-                        ? (o?.values ?? []).filter((v) => v !== opt)
-                        : [...(o?.values ?? []), opt],
-                    })
-                  }
-                >
-                  {opt}
-                </ValueChip>
-              );
-            })}
-          </div>
-        ) : null}
-      </div>
+        }
+        detail={
+          state === "present" && x.options.length
+            ? x.options.map((opt) => {
+                const on = o?.values?.includes(opt);
+                return (
+                  <ValueChip
+                    key={opt}
+                    active={!!on}
+                    onClick={() =>
+                      setFinding(x.code, {
+                        values: on
+                          ? (o?.values ?? []).filter((v) => v !== opt)
+                          : [...(o?.values ?? []), opt],
+                      })
+                    }
+                  >
+                    {opt}
+                  </ValueChip>
+                );
+              })
+            : undefined
+        }
+      />
     );
+  };
+
+  // ── §1 Conscious level (GCS) — structured-only; no clean "normal" (GCS is recorded) ──
+  const gcsStatus: SectionStatus =
+    gcs == null ? "not_examined" : gcs <= 8 ? "must_not_miss" : gcs < 15 ? "findings" : "normal";
+  const gcsSummary = gcs != null ? `GCS ${gcs}/15${gcs <= 8 ? " · secure airway" : ""}` : "";
+
+  // ── §2 Motor — by limb (LimbFigure grading + power pattern + inspection) ──
+  const limbToneAbn = Object.values(value.tone ?? {}).filter((t) => t && t !== "normal").length;
+  const limbPowerAbn = Object.values(value.power ?? {}).filter((p) => p != null && p < 5).length;
+  const limbReflexAbn = Object.values(value.reflexes ?? {}).filter(
+    (r) => r && r !== "normal",
+  ).length;
+  const plantarAbn = Object.values(value.plantar ?? {}).filter((p) => p && p !== "down").length;
+  // powerPattern is a qualifier of weakness, not an independent positive, so it is
+  // not counted here (it shows alongside the weak limbs in the summary/prose).
+  const motorPositives =
+    limbToneAbn +
+    limbPowerAbn +
+    limbReflexAbn +
+    plantarAbn +
+    (value.wasting ? 1 : 0) +
+    (value.fasciculations ? 1 : 0);
+  const motorTouched =
+    !!value.tone ||
+    !!value.power ||
+    !!value.reflexes ||
+    !!value.plantar ||
+    value.wasting != null ||
+    value.fasciculations != null ||
+    value.powerPattern != null;
+  const motorAllRecorded =
+    !!value.tone &&
+    !!value.power &&
+    !!value.reflexes &&
+    !!value.plantar &&
+    value.wasting != null &&
+    value.fasciculations != null;
+  const motorStatus: SectionStatus = motorPositives
+    ? "findings"
+    : motorAllRecorded
+      ? "normal"
+      : motorTouched
+        ? "partial"
+        : "not_examined";
+  const motorSummaryParts: string[] = [];
+  if (limbPowerAbn)
+    motorSummaryParts.push(`${limbPowerAbn} weak limb${limbPowerAbn > 1 ? "s" : ""}`);
+  if (limbToneAbn) motorSummaryParts.push("abnormal tone");
+  if (limbReflexAbn) motorSummaryParts.push("abnormal reflexes");
+  if (plantarAbn) motorSummaryParts.push("upgoing/equivocal plantar");
+  if (value.wasting) motorSummaryParts.push("wasting");
+  if (value.fasciculations) motorSummaryParts.push("fasciculations");
+  const motorSummary = motorSummaryParts.join(" · ");
+  const markMotorNormal = () => {
+    const n = normalNeuroExam();
+    onChange({
+      ...value,
+      tone: n.tone,
+      power: n.power,
+      reflexes: n.reflexes,
+      plantar: n.plantar,
+      wasting: false,
+      fasciculations: false,
+    });
+  };
+
+  // ── §3 Sensation, coordination & gait ──
+  const sensAbn =
+    (value.sensoryPattern && value.sensoryPattern !== "normal" ? 1 : 0) +
+    (value.romberg === "positive" ? 1 : 0) +
+    (value.gait && value.gait !== "normal" ? 1 : 0) +
+    (value.cerebellarSigns?.length ?? 0);
+  const sensTouched =
+    value.sensoryPattern != null ||
+    value.romberg != null ||
+    value.gait != null ||
+    (value.cerebellarSigns?.length ?? 0) > 0;
+  const sensAllRecorded =
+    value.sensoryPattern != null && value.romberg != null && value.gait != null;
+  const sensStatus: SectionStatus = sensAbn
+    ? "findings"
+    : sensAllRecorded
+      ? "normal"
+      : sensTouched
+        ? "partial"
+        : "not_examined";
+  const sensSummaryParts: string[] = [];
+  if (value.sensoryPattern && value.sensoryPattern !== "normal")
+    sensSummaryParts.push(`${value.sensoryPattern.replace(/_/g, " ")} sensory`);
+  if (value.romberg === "positive") sensSummaryParts.push("Romberg+");
+  if (value.gait && value.gait !== "normal")
+    sensSummaryParts.push(`${value.gait.replace(/_/g, " ")} gait`);
+  if (value.cerebellarSigns?.length) sensSummaryParts.push(value.cerebellarSigns.join(", "));
+  const sensSummary = sensSummaryParts.join(" · ");
+  const markSensNormal = () => {
+    const n = normalNeuroExam();
+    onChange({
+      ...value,
+      sensoryPattern: n.sensoryPattern,
+      romberg: n.romberg,
+      gait: n.gait,
+      cerebellarSigns: [],
+    });
+  };
+
+  // ── §4 Special signs — meningism + cauda equina (positive-only emergency lists) ──
+  // The domain stores ONLY present signs (no "examined-absent" concept — and the
+  // input cap is exactly the option count), so an empty list is honestly
+  // not-examined, never "all-negative". Any tapped sign here is a must-not-miss.
+  const meningismPresent = value.meningism ?? [];
+  const caudaPresent = value.caudaEquina ?? [];
+  const specialPositives = meningismPresent.length + caudaPresent.length;
+  const specialStatus: SectionStatus = specialPositives ? "must_not_miss" : "not_examined";
+  const specialSummary = [...meningismPresent, ...caudaPresent].join(" · ");
+
+  // ── §5 Higher function · cranial nerves · coordination (catalog groups) ──
+  const detailFindings = NEURO_FINDINGS;
+  const detailMeta = findingStatus(detailFindings, byCode);
+  const detailSummary = findingSummary(detailFindings, byCode);
+  const markDetailNormal = () => {
+    const n = normalNeuroExam();
+    const normalForDetail = (n.findings ?? []).map((o) => o.code);
+    const others = (value.findings ?? []).filter((o) => !normalForDetail.includes(o.code));
+    onChange({ ...value, findings: [...others, ...(n.findings ?? [])] });
   };
 
   return (
@@ -262,13 +411,15 @@ export function NeuroExamForm({
         </span>
       </div>
 
-      <div className="flex flex-col gap-3.5">
-        {/* ── Stage 1 — Conscious level (GCS) ── */}
-        <StageCard
+      {/* Clinical sequence — collapsible SectionCards */}
+      <div className="flex flex-col gap-2.5">
+        {/* ── §1 Conscious level (GCS) ── */}
+        <SectionCard
           index={1}
           title="Conscious level"
-          complete={gcs != null}
-          hint="Eye · Verbal · Motor"
+          status={gcsStatus}
+          count={gcsStatus === "must_not_miss" ? 1 : 0}
+          summary={gcsSummary}
         >
           <ChipRow label="GCS">
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
@@ -314,13 +465,16 @@ export function NeuroExamForm({
             Consciousness, pupils &amp; spot-diagnosis patterns are also captured in the general
             examination + vitals.
           </p>
-        </StageCard>
+        </SectionCard>
 
-        {/* ── Stage 2 — Motor: tone · power · reflexes by limb ── */}
-        <StageCard
+        {/* ── §2 Motor — tone · power · reflexes by limb ── */}
+        <SectionCard
           index={2}
           title="Motor — by limb"
-          hint="tap a limb to grade · then tone / power / reflexes"
+          status={motorStatus}
+          count={motorPositives}
+          summary={motorSummary}
+          onMarkNormal={markMotorNormal}
         >
           <LimbFigure
             value={value}
@@ -349,10 +503,17 @@ export function NeuroExamForm({
               fasciculations
             </ValueChip>
           </ChipRow>
-        </StageCard>
+        </SectionCard>
 
-        {/* ── Stage 3 — Sensation · coordination · gait ── */}
-        <StageCard index={3} title="Sensation, coordination & gait">
+        {/* ── §3 Sensation · coordination · gait ── */}
+        <SectionCard
+          index={3}
+          title="Sensation, coordination & gait"
+          status={sensStatus}
+          count={sensAbn}
+          summary={sensSummary}
+          onMarkNormal={markSensNormal}
+        >
           <Row
             title="Sensory pattern"
             options={SENSORY_PATTERN_OPTS}
@@ -380,10 +541,20 @@ export function NeuroExamForm({
             values={value.cerebellarSigns}
             onToggle={(v) => toggle("cerebellarSigns", v)}
           />
-        </StageCard>
+        </SectionCard>
 
-        {/* ── Stage 4 — Special signs (meningism + cauda equina — emergencies) ── */}
-        <StageCard index={4} title="Special signs" hint="meningism · cauda equina">
+        {/* ── §4 Special signs — meningism + cauda equina (emergencies; positive-only) ── */}
+        <SectionCard
+          index={4}
+          title="Special signs"
+          status={specialStatus}
+          count={specialPositives}
+          summary={specialSummary}
+        >
+          <p className="text-muted-foreground text-[10px]">
+            Tap only the signs present — these are positive-only screens, so an empty list reads as
+            not examined (never asserted-absent). Any tap is a must-not-miss.
+          </p>
           <MultiRow
             title="Meningism"
             options={MENINGISM_OPTS}
@@ -398,42 +569,36 @@ export function NeuroExamForm({
             onToggle={(v) => toggle("caudaEquina", v)}
             alarm
           />
-        </StageCard>
+        </SectionCard>
 
-        {/* ── Stage 5 — Higher function · cranial nerves · coordination (collapsed) ── */}
-        <StageCard
+        {/* ── §5 Higher function · cranial nerves · coordination ── */}
+        <SectionCard
           index={5}
           title="Higher function · cranial nerves · coordination"
-          count={findingsCount}
+          status={detailMeta.status}
+          count={detailMeta.count}
+          summary={detailSummary}
+          onMarkNormal={markDetailNormal}
         >
-          <button
-            type="button"
-            onClick={() => setOpenFindings((o) => !o)}
-            className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 self-start text-[11.5px] font-medium"
-            aria-expanded={openFindings}
-          >
-            <ChevronDownIcon
-              className={`size-3.5 transition-transform ${openFindings ? "" : "-rotate-90"}`}
-              aria-hidden
-            />
-            {openFindings ? "Hide detailed findings" : "Record detailed findings"}
-          </button>
-          {openFindings ? (
-            <div className="stagger-children flex flex-col gap-2.5">
-              {NEURO_GROUPS.map((g) => {
-                const inGroup = NEURO_FINDINGS.filter((x) => x.group === g.key);
-                return (
-                  <div key={g.key} className="flex flex-col gap-1.5">
-                    <span className="text-muted-foreground text-[10px] font-medium tracking-wide uppercase">
-                      {g.label}
-                    </span>
-                    {inGroup.map(renderFinding)}
-                  </div>
-                );
-              })}
-            </div>
-          ) : null}
-        </StageCard>
+          <div className="flex flex-col gap-2.5">
+            {NEURO_GROUPS.map((g) => {
+              const inGroup = NEURO_FINDINGS.filter((x) => x.group === g.key);
+              const selects = inGroup.filter((x) => x.kind === "select");
+              const panels = inGroup.filter((x) => x.kind === "panel");
+              return (
+                <div key={g.key} className="flex flex-col gap-1.5">
+                  <span className="text-muted-foreground text-[10px] font-medium tracking-wide uppercase">
+                    {g.label}
+                  </span>
+                  {selects.length ? (
+                    <div className="flex flex-col gap-1.5">{selects.map(renderSelect)}</div>
+                  ) : null}
+                  {panels.length ? <FindingGrid>{panels.map(renderPanel)}</FindingGrid> : null}
+                </div>
+              );
+            })}
+          </div>
+        </SectionCard>
       </div>
 
       {/* Localisation (decision-support) */}
@@ -489,7 +654,12 @@ export function NeuroExamForm({
             {renderNeuroProse(value)}
           </p>
         </div>
-      ) : null}
+      ) : (
+        <p className="text-muted-foreground inline-flex items-center gap-1.5 text-[11px]">
+          <EyeIcon className="size-3" aria-hidden /> Tap through the survey, or set the neuro exam
+          normal and characterise only the positives.
+        </p>
+      )}
     </div>
   );
 }

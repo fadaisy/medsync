@@ -1,7 +1,7 @@
 "use client";
 
 import type { ChestModality } from "./chest-zone-map";
-import type { ThreeStateValue } from "./exam-kit";
+import type { SectionStatus, ThreeStateValue } from "./exam-kit";
 import type { AddedSound, RespExam, RespZone } from "@/lib/clerkship/exam/respiratory";
 import type { ExamFinding, ExamObservation, FindingState } from "@/lib/clerkship/exam/types";
 import { useMemo, useState } from "react";
@@ -20,18 +20,31 @@ import {
 } from "@/lib/clerkship/exam/respiratory";
 import { cn } from "@/lib/utils";
 import { ChestZoneMap } from "./chest-zone-map";
-import { ChipRow, NormalExamButton, StageCard, ThreeState, ValueChip } from "./exam-kit";
+import {
+  ChipRow,
+  CompactField,
+  FindingGrid,
+  NormalExamButton,
+  PresentCluster,
+  SectionCard,
+  ThreeState,
+  ValueChip,
+} from "./exam-kit";
 
 /**
- * Respiratory examination — REWORKED PRESENTATION onto the shared Examination kit.
- * Same RespExam data, handlers, value-sets and behaviour as before; restructured
- * into the clinical IPPA sequence as numbered StageCards, with the chest zonal
- * map as the signature spatial control (percussion / breath sounds / vocal
- * resonance / added sounds per zone & side). The sign-cluster → pattern
- * suggestion is surfaced transparently (multiple on ambiguity, must-not-miss /
- * emergency flagged) as DECISION-SUPPORT — never an auto-diagnosis. not-examined
- * ≠ normal. Peripheral signs (clubbing/cyanosis/nodes/JVP) reused from the
- * general exam.
+ * Respiratory examination — EXAMINATION UI v2 (progressive disclosure). Same
+ * RespExam data, handlers, value-sets and behaviour as before; presentation only.
+ * The clinical IPPA sequence is now four COLLAPSIBLE SectionCards (collapsed by
+ * default) summarised to one line (status pill + inline positives + on-row "mark
+ * normal"); a fully-normal exam reads as a tidy stack of "All normal" cards. The
+ * chest zonal map stays the signature spatial control inside Percussion &
+ * auscultation (percussion / breath sounds / vocal resonance / added sounds per
+ * zone & side). Peripheral / inspection binary signs collapse to "tap any
+ * present" PresentClusters (explicit examined / not-examined ⇒ not-examined ≠
+ * all-negative). The sign-cluster → pattern suggestion is preserved transparently
+ * (multiple on ambiguity, must-not-miss / emergency flagged) as DECISION-SUPPORT
+ * — never an auto-diagnosis. not-examined ≠ normal. Peripheral general signs
+ * (clubbing / cyanosis / nodes / JVP) remain in the general exam.
  */
 
 const seg = (active: boolean, tone: "muted" | "teal" = "muted") =>
@@ -55,6 +68,16 @@ const MOD_LABEL: Record<Modality, string> = {
   vocalResonance: "Vocal resonance",
   added: "Added sounds",
 };
+
+/** Graded select values that are not, in themselves, a positive finding. */
+const NORMAL_SELECT = new Set(["none", "normal", "symmetrical"]);
+
+/** A non-normal positive: present, and not a select sitting on a normal value. */
+function isFinding(o: ExamObservation | undefined): boolean {
+  if (!o || o.state !== "present") return false;
+  if ((o.values ?? []).length && (o.values ?? []).every((v) => NORMAL_SELECT.has(v))) return false;
+  return true;
+}
 
 export function RespiratoryExam({
   value,
@@ -106,44 +129,47 @@ export function RespiratoryExam({
     onChange({ ...value, addedSounds: rec });
   };
 
-  // ── render a catalog finding with the kit (select = chip pick; panel = three-state + chips) ──
-  const renderFinding = (x: ExamFinding) => {
+  const group = (key: string) => RESP_FINDINGS.filter((x) => x.group === key);
+
+  // ── compact select renderer (graded single-select; e.g. distress / pattern) ──
+  const renderSelect = (x: ExamFinding) => {
     const o = byCode.get(x.code);
-    if (x.kind === "select") {
-      return (
-        <ChipRow key={x.code} label={x.display}>
-          {x.options.map((opt) => (
-            <ValueChip
-              key={opt}
-              active={o?.values?.[0] === opt}
-              onClick={() =>
-                setFinding(
-                  x.code,
-                  o?.values?.[0] === opt ? null : { state: "present", values: [opt] },
-                )
-              }
-            >
-              {opt}
-            </ValueChip>
-          ))}
-        </ChipRow>
-      );
-    }
+    return (
+      <ChipRow key={x.code} label={x.display}>
+        {x.options.map((opt) => (
+          <ValueChip
+            key={opt}
+            active={o?.values?.[0] === opt}
+            tone={
+              x.mustNotMiss && o?.values?.[0] === opt && !NORMAL_SELECT.has(opt)
+                ? "amber"
+                : "default"
+            }
+            onClick={() =>
+              setFinding(
+                x.code,
+                o?.values?.[0] === opt ? null : { state: "present", values: [opt] },
+              )
+            }
+          >
+            {opt}
+          </ValueChip>
+        ))}
+      </ChipRow>
+    );
+  };
+
+  // ── compact panel renderer (three-state; value-set chips revealed when present) ──
+  const renderPanel = (x: ExamFinding) => {
+    const o = byCode.get(x.code);
     const state: ThreeStateValue = o?.state ?? "not_examined";
     return (
-      <div key={x.code} className="flex flex-col gap-1.5">
-        <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
-          <span className="flex min-w-0 items-center gap-1.5">
-            <span className="text-foreground text-[12.5px]">{x.display}</span>
-            {x.mustNotMiss ? (
-              <AlertTriangleIcon className="size-3 text-amber-500" aria-label="must-not-miss" />
-            ) : null}
-            {x.ugandaFlag ? (
-              <span className="text-muted-foreground bg-muted rounded px-1 text-[9px] uppercase">
-                {x.ugandaFlag}
-              </span>
-            ) : null}
-          </span>
+      <CompactField
+        key={x.code}
+        label={x.display}
+        mustNotMiss={x.mustNotMiss}
+        flag={x.ugandaFlag}
+        control={
           <ThreeState
             value={state}
             findingsLabel={x.options.length ? "Findings" : "Present"}
@@ -156,63 +182,238 @@ export function RespiratoryExam({
               )
             }
           />
-        </div>
-        {state === "present" && x.options.length ? (
-          <div className="flex flex-wrap gap-1 pl-1">
-            {x.options.map((opt) => {
-              const on = o?.values?.includes(opt);
-              return (
-                <ValueChip
-                  key={opt}
-                  active={!!on}
-                  onClick={() =>
-                    setFinding(x.code, {
-                      values: on
-                        ? (o?.values ?? []).filter((v) => v !== opt)
-                        : [...(o?.values ?? []), opt],
-                    })
-                  }
-                >
-                  {opt}
-                </ValueChip>
-              );
-            })}
-          </div>
-        ) : null}
-      </div>
+        }
+        detail={
+          state === "present" && x.options.length
+            ? x.options.map((opt) => {
+                const on = o?.values?.includes(opt);
+                return (
+                  <ValueChip
+                    key={opt}
+                    active={!!on}
+                    onClick={() =>
+                      setFinding(x.code, {
+                        values: on
+                          ? (o?.values ?? []).filter((v) => v !== opt)
+                          : [...(o?.values ?? []), opt],
+                      })
+                    }
+                  >
+                    {opt}
+                  </ValueChip>
+                );
+              })
+            : undefined
+        }
+      />
     );
   };
 
-  const group = (key: string) => RESP_FINDINGS.filter((x) => x.group === key);
-  const presentInGroups = (keys: string[]) =>
-    findings.filter((o) => o.state === "present" && keys.includes(o.group)).length;
-  const touched = (x: ExamFinding) =>
-    byCode.get(x.code)?.state && byCode.get(x.code)?.state !== "not_examined";
+  // ── PresentCluster wiring for a set of no-option binary panels (peripheral /
+  //    inspection / palpation stigmata) — mirrors the General spot-diagnosis pattern.
+  const clusterFor = (binary: ExamFinding[]) => {
+    const present = binary
+      .filter((x) => byCode.get(x.code)?.state === "present")
+      .map((x) => x.code);
+    const examined =
+      binary.length > 0 &&
+      binary.every((x) => (byCode.get(x.code)?.state ?? "not_examined") !== "not_examined");
+    const toggle = (code: string) => {
+      const cur = byCode.get(code)?.state;
+      if (cur === "present") setFinding(code, examined ? { state: "absent", values: [] } : null);
+      else setFinding(code, { state: "present", values: [] });
+    };
+    const setExamined = (ex: boolean) => {
+      const codes = new Set(binary.map((x) => x.code));
+      const others = findings.filter((o) => !codes.has(o.code));
+      if (!ex) return onChange({ ...value, findings: others });
+      const forCluster: ExamObservation[] = binary.map((x) => {
+        const cur = byCode.get(x.code);
+        if (cur?.state === "present") return cur;
+        return { code: x.code, group: x.group, display: x.display, state: "absent", values: [] };
+      });
+      onChange({ ...value, findings: [...others, ...forCluster] });
+    };
+    return { present, examined, toggle, setExamined };
+  };
 
-  // ── stage-completion hints (presentation only) ──
-  const inspectionDone = [...group("resp_peripheral"), ...group("resp_inspection")].every(touched);
-  const palpationDone =
-    value.trachea !== undefined &&
-    value.expansion?.left !== undefined &&
-    value.expansion?.right !== undefined &&
-    group("resp_palpation").every(touched);
+  const presentBlock = (binary: ExamFinding[], label?: string) => {
+    if (!binary.length) return null;
+    const { present, examined, toggle, setExamined } = clusterFor(binary);
+    return (
+      <PresentCluster
+        label={label ?? "tap any that are present"}
+        options={binary.map((x) => ({
+          value: x.code,
+          label: x.display,
+          mustNotMiss: x.mustNotMiss,
+        }))}
+        present={present}
+        examined={examined}
+        onToggle={toggle}
+        onSetExamined={setExamined}
+      />
+    );
+  };
+
+  // ── per-section status / count / inline-positive summary for the collapsed row ──
+  const findingMeta = (
+    items: ExamFinding[],
+    extraPositives: string[] = [],
+    extraTouched: boolean[] = [],
+  ): { status: SectionStatus; count: number; summary: string } => {
+    const obs = items.map((x) => ({ x, o: byCode.get(x.code) }));
+    const positives = obs.filter(({ o }) => isFinding(o));
+    const mnm = positives.filter(({ x }) => x.mustNotMiss);
+    const touched = obs.filter(({ o }) => o && o.state !== "not_examined");
+    const summary = [
+      ...positives.map(({ x, o }) =>
+        o?.values?.length && !o.values.every((v) => NORMAL_SELECT.has(v))
+          ? `${x.display} (${o.values.filter((v) => !NORMAL_SELECT.has(v)).join(", ")})`
+          : x.display,
+      ),
+      ...extraPositives,
+    ].join(" · ");
+    const positiveCount = positives.length + extraPositives.length;
+    const touchedCount = touched.length + extraTouched.filter(Boolean).length;
+    const totalCount = items.length + extraTouched.length;
+    if (mnm.length) return { status: "must_not_miss", count: mnm.length, summary };
+    if (positiveCount) return { status: "findings", count: positiveCount, summary };
+    if (totalCount > 0 && touchedCount === totalCount)
+      return { status: "normal", count: 0, summary: "" };
+    if (touchedCount > 0) return { status: "partial", count: 0, summary: "" };
+    return { status: "not_examined", count: 0, summary: "" };
+  };
+
+  // ── per-section "mark normal" reusing the whole-exam normal, scoped ──
+  // 1 · Inspection & peripheral — set this section's panels absent (selects, which
+  //     normalRespExam does NOT set, are left untouched ⇒ honest not-examined).
+  const inspectionFindings = [...group("resp_peripheral"), ...group("resp_inspection")];
+  const markInspectionNormal = () => {
+    const normal = normalRespExam();
+    const codes = new Set(inspectionFindings.map((x) => x.code));
+    const others = findings.filter((o) => !codes.has(o.code));
+    const forSection = (normal.findings ?? []).filter((o) => codes.has(o.code));
+    onChange({ ...value, findings: [...others, ...forSection] });
+  };
+
+  // 2 · Palpation — trachea central, expansion normal, non-zonal panels absent.
+  const palpationFindings = group("resp_palpation");
+  const markPalpationNormal = () => {
+    const normal = normalRespExam();
+    const codes = new Set(palpationFindings.map((x) => x.code));
+    const others = findings.filter((o) => !codes.has(o.code));
+    const forSection = (normal.findings ?? []).filter((o) => codes.has(o.code));
+    onChange({
+      ...value,
+      trachea: normal.trachea,
+      expansion: normal.expansion,
+      findings: [...others, ...forSection],
+    });
+  };
+
+  // 3 · Percussion & auscultation — all zones to their normal scalar, no added sounds.
+  const markZonalNormal = () => {
+    const normal = normalRespExam();
+    onChange({
+      ...value,
+      percussion: normal.percussion,
+      breathSounds: normal.breathSounds,
+      vocalResonance: normal.vocalResonance,
+      addedSounds: {},
+    });
+  };
+
+  // 4 · Completion — set this section's panels absent.
+  const completionFindings = group("resp_completion");
+  const markCompletionNormal = () => {
+    const normal = normalRespExam();
+    const codes = new Set(completionFindings.map((x) => x.code));
+    const others = findings.filter((o) => !codes.has(o.code));
+    const forSection = (normal.findings ?? []).filter((o) => codes.has(o.code));
+    onChange({ ...value, findings: [...others, ...forSection] });
+  };
+
+  // ── palpation structured-control meta (trachea + expansion) for status/summary ──
+  const trachDeviated = !!value.trachea && value.trachea !== "central";
+  const expReducedSides = (["left", "right"] as const).filter(
+    (s) => value.expansion?.[s] === "reduced",
+  );
+  const trachTouched = value.trachea !== undefined;
+  const expTouched = value.expansion?.left !== undefined || value.expansion?.right !== undefined;
+  const palpExtraPositives = [
+    ...(trachDeviated ? [`Trachea ${value.trachea!.replace("_", " ")}`] : []),
+    ...(expReducedSides.length
+      ? [`Reduced expansion ${expReducedSides.map((s) => (s === "left" ? "L" : "R")).join(" + ")}`]
+      : []),
+  ];
+
+  // ── zonal section meta (status / abnormal-count / inline summary) ──
+  const zonalAbnormal = (
+    rec: Partial<Record<RespZone, string>> | undefined,
+    opts: readonly { value: string; abnormal: boolean }[],
+  ) => Object.values(rec ?? {}).filter((v) => opts.find((o) => o.value === v)?.abnormal).length;
+  const zonalAddedCount = Object.values(value.addedSounds ?? {}).filter(
+    (arr) => (arr ?? []).length,
+  ).length;
+  const zonalCount =
+    zonalAbnormal(value.percussion, MOD_OPTS.percussion) +
+    zonalAbnormal(value.breathSounds, MOD_OPTS.breathSounds) +
+    zonalAbnormal(value.vocalResonance, MOD_OPTS.vocalResonance) +
+    zonalAddedCount;
   const zonesSet = (rec: Partial<Record<RespZone, unknown>> | undefined) =>
     RESP_ZONES.every((z) => rec?.[z.zone] !== undefined);
-  const percussionDone =
+  const zonalTouched =
+    Object.keys(value.percussion ?? {}).length > 0 ||
+    Object.keys(value.breathSounds ?? {}).length > 0 ||
+    Object.keys(value.vocalResonance ?? {}).length > 0 ||
+    zonalAddedCount > 0;
+  const zonalAllSet =
     zonesSet(value.percussion) && zonesSet(value.breathSounds) && zonesSet(value.vocalResonance);
-  const completionDone = group("resp_completion").every(touched);
+  const hasStridor = Object.values(value.addedSounds ?? {}).some((arr) =>
+    (arr ?? []).includes("stridor"),
+  );
+  const zonalStatus: SectionStatus = hasStridor
+    ? "must_not_miss"
+    : zonalCount > 0
+      ? "findings"
+      : zonalAllSet
+        ? "normal"
+        : zonalTouched
+          ? "partial"
+          : "not_examined";
+  const zonalSummary = (() => {
+    const parts: string[] = [];
+    const ZONE = Object.fromEntries(RESP_ZONES.map((z) => [z.zone, z.short]));
+    const collect = (
+      rec: Partial<Record<RespZone, string>> | undefined,
+      opts: readonly { value: string; label: string; abnormal: boolean }[],
+    ) =>
+      Object.entries(rec ?? {})
+        .filter(([, v]) => opts.find((o) => o.value === v)?.abnormal)
+        .map(([z, v]) => `${ZONE[z]} ${opts.find((o) => o.value === v)?.label.toLowerCase()}`);
+    parts.push(...collect(value.percussion, MOD_OPTS.percussion));
+    parts.push(...collect(value.breathSounds, MOD_OPTS.breathSounds));
+    parts.push(...collect(value.vocalResonance, MOD_OPTS.vocalResonance));
+    if (zonalAddedCount)
+      parts.push(`${zonalAddedCount} zone${zonalAddedCount > 1 ? "s" : ""} added sounds`);
+    return parts.join(" · ");
+  })();
 
-  const zonalCount =
-    Object.values(value.percussion ?? {}).filter(
-      (v) => MOD_OPTS.percussion.find((o) => o.value === v)?.abnormal,
-    ).length +
-    Object.values(value.breathSounds ?? {}).filter(
-      (v) => MOD_OPTS.breathSounds.find((o) => o.value === v)?.abnormal,
-    ).length +
-    Object.values(value.vocalResonance ?? {}).filter(
-      (v) => MOD_OPTS.vocalResonance.find((o) => o.value === v)?.abnormal,
-    ).length +
-    Object.values(value.addedSounds ?? {}).filter((arr) => (arr ?? []).length).length;
+  // ── section metas (binary-panel selects + panels handled by findingMeta) ──
+  const inspectionMeta = findingMeta(inspectionFindings);
+  const palpationMeta = findingMeta(palpationFindings, palpExtraPositives, [
+    trachTouched,
+    expTouched,
+  ]);
+  const completionMeta = findingMeta(completionFindings);
+
+  // partition Stage-1 catalog by render mode
+  const inspSelects = inspectionFindings.filter((x) => x.kind === "select");
+  const inspBinary = inspectionFindings.filter((x) => x.kind === "panel" && x.options.length === 0);
+  const inspPanels = inspectionFindings.filter((x) => x.kind === "panel" && x.options.length > 0);
+  const palpBinary = palpationFindings.filter((x) => x.kind === "panel" && x.options.length === 0);
+  const palpPanels = palpationFindings.filter((x) => x.kind === "panel" && x.options.length > 0);
 
   return (
     <div className="flex flex-col gap-4">
@@ -249,27 +450,35 @@ export function RespiratoryExam({
         </span>
       </div>
 
-      <div className="flex flex-col gap-3.5">
-        {/* ── Stage 1 — Inspection & peripheral ── */}
-        <StageCard
+      {/* Clinical sequence — collapsible SectionCards (collapsed by default) */}
+      <div className="flex flex-col gap-2.5">
+        {/* ── 1 · Inspection & peripheral ── */}
+        <SectionCard
           index={1}
           title="Inspection & peripheral"
-          complete={inspectionDone}
-          count={presentInGroups(["resp_peripheral", "resp_inspection"])}
-          hint="end of bed → hands → chest"
+          status={inspectionMeta.status}
+          count={inspectionMeta.count}
+          summary={inspectionMeta.summary}
+          onMarkNormal={markInspectionNormal}
         >
-          {[...group("resp_peripheral"), ...group("resp_inspection")].map(renderFinding)}
+          {inspSelects.length ? (
+            <div className="flex flex-col gap-2.5">{inspSelects.map(renderSelect)}</div>
+          ) : null}
+          {inspPanels.length ? <FindingGrid>{inspPanels.map(renderPanel)}</FindingGrid> : null}
+          {presentBlock(inspBinary, "tap any present sign")}
           <p className="text-muted-foreground border-border/60 mt-1 border-t pt-2 text-[10px]">
             Clubbing, cyanosis, lymph nodes &amp; JVP are captured in the general examination.
           </p>
-        </StageCard>
+        </SectionCard>
 
-        {/* ── Stage 2 — Palpation ── */}
-        <StageCard
+        {/* ── 2 · Palpation ── */}
+        <SectionCard
           index={2}
           title="Palpation"
-          complete={palpationDone}
-          hint="trachea → expansion → chest wall"
+          status={palpationMeta.status}
+          count={palpationMeta.count}
+          summary={palpationMeta.summary}
+          onMarkNormal={markPalpationNormal}
         >
           <ChipRow label="Trachea">
             {(
@@ -282,6 +491,7 @@ export function RespiratoryExam({
               <ValueChip
                 key={v}
                 active={value.trachea === v}
+                tone={v !== "central" && value.trachea === v ? "amber" : "default"}
                 onClick={() => onChange({ ...value, trachea: value.trachea === v ? undefined : v })}
               >
                 {lbl}
@@ -308,22 +518,25 @@ export function RespiratoryExam({
               );
             })}
           </ChipRow>
-          {group("resp_palpation").map(renderFinding)}
-        </StageCard>
+          {palpPanels.length ? <FindingGrid>{palpPanels.map(renderPanel)}</FindingGrid> : null}
+          {presentBlock(palpBinary, "tap any present sign")}
+        </SectionCard>
 
-        {/* ── Stage 3 — Percussion & auscultation (chest zonal map) ── */}
-        <StageCard
+        {/* ── 3 · Percussion & auscultation (chest zonal map) ── */}
+        <SectionCard
           index={3}
           title="Percussion & auscultation"
-          complete={percussionDone}
-          count={zonalCount}
-          hint="per zone · L vs R"
+          status={zonalStatus}
+          count={zonalStatus === "must_not_miss" ? 1 : zonalCount}
+          summary={zonalSummary}
+          onMarkNormal={markZonalNormal}
         >
           <div className="flex flex-wrap items-center gap-1">
             {(Object.keys(MOD_LABEL) as Modality[]).map((m) => (
               <button
                 key={m}
                 type="button"
+                aria-pressed={modality === m}
                 className={seg(modality === m, "teal")}
                 onClick={() => setModality(m)}
               >
@@ -378,18 +591,19 @@ export function RespiratoryExam({
               </span>
             )
           ) : null}
-        </StageCard>
+        </SectionCard>
 
-        {/* ── Stage 4 — Completion ── */}
-        <StageCard
+        {/* ── 4 · Completion ── */}
+        <SectionCard
           index={4}
           title="Completion"
-          complete={completionDone}
-          count={presentInGroups(["resp_completion"])}
-          hint="sputum · peak flow"
+          status={completionMeta.status}
+          count={completionMeta.count}
+          summary={completionMeta.summary}
+          onMarkNormal={markCompletionNormal}
         >
-          {group("resp_completion").map(renderFinding)}
-        </StageCard>
+          <FindingGrid>{completionFindings.map(renderPanel)}</FindingGrid>
+        </SectionCard>
       </div>
 
       {/* Cluster → pattern (decision-support) */}

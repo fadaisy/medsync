@@ -1,6 +1,6 @@
 "use client";
 
-import type { ThreeStateValue } from "./exam-kit";
+import type { SectionStatus, ThreeStateValue } from "./exam-kit";
 import type {
   GalsScreen,
   MskExam,
@@ -10,11 +10,11 @@ import type {
   MskSide,
 } from "@/lib/clerkship/exam/musculoskeletal";
 import type { ExamObservation, FindingState } from "@/lib/clerkship/exam/types";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import {
   AlertTriangleIcon,
-  ChevronDownIcon,
   CircleDashedIcon,
+  EyeIcon,
   PlusIcon,
   ShieldAlertIcon,
   XIcon,
@@ -38,18 +38,29 @@ import {
   renderMskProse,
 } from "@/lib/clerkship/exam/musculoskeletal";
 import { cn } from "@/lib/utils";
-import { ChipRow, NormalExamButton, StageCard, ThreeState, ValueChip } from "./exam-kit";
+import {
+  ChipRow,
+  CompactField,
+  FindingGrid,
+  NormalExamButton,
+  SectionCard,
+  ThreeState,
+  ValueChip,
+} from "./exam-kit";
 
 /**
- * Musculoskeletal examination — REWORKED PRESENTATION (ADR 0074). Same MskExam
- * data, handlers, value-sets and behaviour as before; restructured into the real
- * locomotor sequence as numbered StageCards — the GALS screen (the rapid fast
- * path), the arthropathy pattern characteriser, regional Look→Feel→Move cards by
- * joint & side with structured ROM + tap-to-cycle special tests, and the
- * prominent BACK-PAIN RED-FLAG screen (cauda options shared with the neuro exam).
- * The arthropathy pattern panel and auto-summary are DECISION-SUPPORT (multiple
- * on ambiguity, emergencies in red), never an auto-diagnosis. not-examined ≠
- * normal — three-state honesty preserved with the shared exam-kit.
+ * Musculoskeletal examination — EXAMINATION UI v2 (progressive disclosure; ADR
+ * 0074). Same MskExam data, handlers, value-sets and behaviour as before;
+ * presentation only. The locomotor sequence is now a stack of COLLAPSIBLE
+ * SectionCards summarised to one line (status pill + inline positives + on-row
+ * "mark normal"): the GALS screen (the rapid fast path), the arthropathy pattern
+ * characteriser, regional Look→Feel→Move cards by joint & side (structured ROM +
+ * tap-to-cycle special tests, full-width inside the section), the prominent
+ * BACK-PAIN RED-FLAG screen (cauda options shared with the neuro exam) rendered
+ * as "tap any present" clusters, and the GALS-detail / function measures. The
+ * arthropathy pattern panel and auto-summary are DECISION-SUPPORT (multiple on
+ * ambiguity, emergencies in red), never an auto-diagnosis. not-examined ≠ normal
+ * — three-state honesty preserved with the shared exam-kit. Nothing auto-recorded.
  */
 
 const seg = (active: boolean, tone: "muted" | "teal" = "muted") =>
@@ -107,12 +118,112 @@ function YesNo({
         <button
           key={String(v)}
           type="button"
+          aria-pressed={value === v}
           className={seg(value === v, v === goodIsYes ? "teal" : "muted")}
           onClick={() => onPick(value === v ? undefined : v)}
         >
           {v ? "Yes" : "No"}
         </button>
       ))}
+    </div>
+  );
+}
+
+/**
+ * Back-pain red-flag chip group — a single VISUAL grouping of flag chips that all
+ * write into the ONE shared backRedFlags array. Unlike PresentCluster it carries
+ * NO per-group Examined/Not-examined control: a single section-level control
+ * governs the whole shared array (see CLINICAL-SAFETY note in the Back section),
+ * so toggling one group can never wipe another group's recorded flags. Chip
+ * styling mirrors PresentCluster exactly (reserved-red for must-not-miss). */
+function BackFlagGroup({
+  label,
+  options,
+  present,
+  onToggle,
+}: {
+  label: string;
+  options: { value: string; label: string; mustNotMiss?: boolean }[];
+  present: string[];
+  onToggle: (value: string) => void;
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      <span className="text-muted-foreground text-[11px]">{label}</span>
+      <div className="flex flex-wrap gap-1.5">
+        {options.map((o) => {
+          const on = present.includes(o.value);
+          return (
+            <button
+              key={o.value}
+              type="button"
+              aria-pressed={on}
+              onClick={() => onToggle(o.value)}
+              className={cn(
+                "tap inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11.5px] ring-1 transition-colors duration-150 ring-inset",
+                on &&
+                  o.mustNotMiss &&
+                  "bg-red-100 text-red-700 ring-red-500/40 dark:bg-red-950/40 dark:text-red-300",
+                on &&
+                  !o.mustNotMiss &&
+                  "bg-teal-50 text-teal-700 ring-teal-500/40 dark:bg-teal-950/40 dark:text-teal-200",
+                !on && "text-foreground/70 ring-border hover:bg-muted/60",
+              )}
+            >
+              {o.mustNotMiss ? <AlertTriangleIcon className="size-3" aria-hidden /> : null}
+              {o.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * The SINGLE section-level Examined / Not-examined control governing the whole
+ * shared backRedFlags array. Mirrors PresentCluster's toggle styling exactly.
+ * "Not examined" intentionally clears the entire back section (one shared array),
+ * with no footgun where one sub-group wipes another's flags. */
+function BackExaminedControl({
+  examined,
+  anyPresent,
+  onSetExamined,
+}: {
+  examined: boolean;
+  anyPresent: boolean;
+  onSetExamined: (examined: boolean) => void;
+}) {
+  const untouched = !examined && !anyPresent;
+  return (
+    <div className="border-border inline-flex w-fit overflow-hidden rounded-md border text-[11px]">
+      <button
+        type="button"
+        aria-pressed={examined}
+        onClick={() => onSetExamined(true)}
+        className={cn(
+          "tap px-2.5 py-1 font-medium transition-colors duration-150",
+          examined
+            ? "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200"
+            : "text-muted-foreground/70 hover:bg-muted/60",
+        )}
+      >
+        Examined{examined && !anyPresent ? " — none present" : ""}
+      </button>
+      <span aria-hidden className="bg-border w-px" />
+      <button
+        type="button"
+        aria-pressed={untouched}
+        onClick={() => onSetExamined(false)}
+        className={cn(
+          "tap px-2.5 py-1 font-medium transition-colors duration-150",
+          untouched
+            ? "text-muted-foreground bg-muted ring-border ring-dashed ring-1 ring-inset"
+            : "text-muted-foreground/70 hover:bg-muted/60",
+        )}
+      >
+        Not examined
+      </button>
     </div>
   );
 }
@@ -124,7 +235,6 @@ export function MskExamForm({
   value: MskExam;
   onChange: (next: MskExam) => void;
 }) {
-  const [openFindings, setOpenFindings] = useState(false);
   const findings = value.findings ?? [];
   const byCode = useMemo(() => new Map(findings.map((o) => [o.code, o])), [findings]);
   const patterns = useMemo(() => matchMskPatterns(value), [value]);
@@ -179,6 +289,7 @@ export function MskExamForm({
         <button
           key={v}
           type="button"
+          aria-pressed={gals[key] === v}
           className={seg(gals[key] === v, v === "normal" ? "teal" : "muted")}
           onClick={() => setGals({ [key]: gals[key] === v ? undefined : v })}
         >
@@ -188,21 +299,147 @@ export function MskExamForm({
     </div>
   );
 
-  // ── completion heuristics (presentation-only — drive the stage check glyph) ──
-  const galsDone =
-    gals.qPainStiffness !== undefined &&
-    gals.qDress !== undefined &&
-    gals.qStairs !== undefined &&
-    gals.gait !== undefined &&
-    gals.arms !== undefined &&
-    gals.legs !== undefined &&
-    gals.spine !== undefined;
-  const characterDone =
-    value.distribution !== undefined ||
-    value.symmetry !== undefined ||
-    value.jointSize !== undefined ||
-    value.morningStiffness !== undefined;
   const presentFindings = findings.filter((o) => o.state === "present").length;
+
+  // ── per-section status / count / inline-positive summary for the collapsed row ──
+  // (mirrors the General exemplar's sectionMeta, adapted to the MSK data shapes).
+
+  // GALS screen — questions + four domains; abnormal/unfavourable answers are positives.
+  const galsMeta = (): { status: SectionStatus; count: number; summary: string } => {
+    const answered = [
+      gals.qPainStiffness !== undefined,
+      gals.qDress !== undefined,
+      gals.qStairs !== undefined,
+      gals.gait !== undefined,
+      gals.arms !== undefined,
+      gals.legs !== undefined,
+      gals.spine !== undefined,
+    ];
+    const total = answered.length;
+    const touched = answered.filter(Boolean).length;
+    const positives: string[] = [];
+    if (gals.qPainStiffness === true) positives.push("pain/stiffness");
+    if (gals.qDress === false) positives.push("difficulty dressing");
+    if (gals.qStairs === false) positives.push("difficulty stairs");
+    if (gals.gait && gals.gait !== "normal") positives.push(`gait ${gals.gait}`);
+    if (gals.arms === "abnormal") positives.push("arms abnormal");
+    if (gals.legs === "abnormal") positives.push("legs abnormal");
+    if (gals.spine === "abnormal") positives.push("spine abnormal");
+    const summary = positives.join(" · ");
+    if (positives.length) return { status: "findings", count: positives.length, summary };
+    if (touched === total) return { status: "normal", count: 0, summary: "" };
+    if (touched > 0) return { status: "partial", count: 0, summary: "" };
+    return { status: "not_examined", count: 0, summary: "" };
+  };
+
+  // Pattern characteriser — distribution/character; a single HOT swollen joint is must-not-miss.
+  const charMeta = (): { status: SectionStatus; count: number; summary: string } => {
+    const positives: string[] = [];
+    if (value.distribution) positives.push(value.distribution);
+    if (value.symmetry) positives.push(value.symmetry);
+    if (value.jointSize) positives.push(value.jointSize.replace("_", " "));
+    if (value.morningStiffness && value.morningStiffness !== "none")
+      positives.push(
+        value.morningStiffness === "over_30min" ? "morning stiffness >30 min" : "brief stiffness",
+      );
+    if (value.cannotWeightBear) positives.push("cannot weight-bear");
+    if (value.worseWithUse) positives.push("worse with use");
+    if (value.migratory) positives.push("migratory");
+    if (value.precedingSoreThroat) positives.push("preceding sore throat");
+    const summary = [value.hotSwollenJoint ? "single HOT swollen joint" : null, ...positives]
+      .filter(Boolean)
+      .join(" · ");
+    const touched =
+      value.distribution !== undefined ||
+      value.symmetry !== undefined ||
+      value.jointSize !== undefined ||
+      value.morningStiffness !== undefined ||
+      value.hotSwollenJoint ||
+      value.cannotWeightBear ||
+      value.worseWithUse ||
+      value.migratory ||
+      value.precedingSoreThroat;
+    if (value.hotSwollenJoint) return { status: "must_not_miss", count: 1, summary };
+    if (positives.length) return { status: "findings", count: positives.length, summary };
+    if (touched) return { status: "partial", count: 0, summary: "" };
+    return { status: "not_examined", count: 0, summary: "" };
+  };
+
+  // Regional examination — structured-only; positives = recorded look/feel/abnormal ROM/tests.
+  const regionalMeta = (): { status: SectionStatus; count: number; summary: string } => {
+    const compartment = regions.some((r) =>
+      (r.feel ?? []).includes("pain out of proportion (compartment)"),
+    );
+    const positives: string[] = [];
+    let count = 0;
+    for (const r of regions) {
+      const label = r.region ? (MSK_REGIONS.find((x) => x.region === r.region)?.label ?? "") : "";
+      const bits = [
+        ...(r.look ?? []),
+        ...(r.feel ?? []),
+        r.rom && r.rom !== "full" ? `ROM ${r.rom.replace("_", " + ")}` : null,
+        ...Object.entries(r.specialTests ?? {}).map(([t, res]) => `${t} ${res}`),
+      ].filter(Boolean) as string[];
+      count += bits.length;
+      if (bits.length) positives.push(`${label || "region"} — ${bits.join(", ")}`);
+    }
+    const summary = positives.join(" · ");
+    if (compartment) return { status: "must_not_miss", count, summary };
+    if (count) return { status: "findings", count, summary };
+    if (regions.length) return { status: "partial", count: 0, summary: "" };
+    return { status: "not_examined", count: 0, summary: "" };
+  };
+
+  // Back-pain red flags — cauda/cord are must-not-miss emergencies; any flag is a positive.
+  const backFlags = value.backRedFlags;
+  const backExamined = backFlags !== undefined;
+  const backMeta = (): { status: SectionStatus; count: number; summary: string } => {
+    const all = backFlags ?? [];
+    const mnm = all.filter(
+      (x) =>
+        (BACK_FLAG_CAUDA as readonly string[]).includes(x) ||
+        (BACK_FLAG_CORD as readonly string[]).includes(x),
+    );
+    const summary = all.join(" · ");
+    if (mnm.length) return { status: "must_not_miss", count: mnm.length, summary };
+    if (all.length) return { status: "findings", count: all.length, summary };
+    if (backExamined) return { status: "normal", count: 0, summary: "" };
+    return { status: "not_examined", count: 0, summary: "" };
+  };
+
+  // GALS detail / function — three-state panels; positives = present findings.
+  const detailMeta = (): { status: SectionStatus; count: number; summary: string } => {
+    const obs = MSK_FINDINGS.map((x) => ({ x, o: byCode.get(x.code) }));
+    const positives = obs.filter(({ o }) => o?.state === "present");
+    const touched = obs.filter(({ o }) => o && o.state !== "not_examined");
+    const summary = positives
+      .map(({ x, o }) => (o?.values?.length ? o.values.join(", ") : x.display))
+      .join(" · ");
+    if (positives.length) return { status: "findings", count: positives.length, summary };
+    if (touched.length === MSK_FINDINGS.length) return { status: "normal", count: 0, summary: "" };
+    if (touched.length > 0) return { status: "partial", count: 0, summary: "" };
+    return { status: "not_examined", count: 0, summary: "" };
+  };
+
+  // ── per-section "mark normal" reusing the exact whole-exam normal where one exists ──
+  const markGalsNormal = () => {
+    const n = normalMskExam();
+    onChange({ ...value, gals: n.gals });
+  };
+  const markBackNormal = () => {
+    const n = normalMskExam();
+    onChange({ ...value, backRedFlags: n.backRedFlags });
+  };
+  const markDetailNormal = () => {
+    const n = normalMskExam();
+    onChange({ ...value, findings: n.findings });
+  };
+
+  // ── back red-flag clusters: present↔removed; examined ⇔ backRedFlags is an array ──
+  const setBackExamined = (examined: boolean) =>
+    onChange({ ...value, backRedFlags: examined ? (value.backRedFlags ?? []) : undefined });
+  const backPresent = (set: readonly string[]) =>
+    (value.backRedFlags ?? []).filter((x) => (set as readonly string[]).includes(x));
 
   return (
     <div className="flex flex-col gap-4">
@@ -232,337 +469,436 @@ export function MskExamForm({
         </span>
       </div>
 
-      <div className="flex flex-col gap-3.5">
-        {/* ── Stage 1 — GALS screen (the rapid fast path) ── */}
-        <StageCard
-          index={1}
-          title="GALS screen"
-          complete={galsDone}
-          hint="3 questions → Gait · Arms · Legs · Spine"
-        >
-          <YesNo
-            title="Pain or stiffness in muscles, joints or back?"
-            value={gals.qPainStiffness}
-            onPick={(v) => setGals({ qPainStiffness: v })}
-            goodIsYes={false}
-          />
-          <YesNo
-            title="Can dress completely without difficulty?"
-            value={gals.qDress}
-            onPick={(v) => setGals({ qDress: v })}
-            goodIsYes={true}
-          />
-          <YesNo
-            title="Can manage stairs without difficulty?"
-            value={gals.qStairs}
-            onPick={(v) => setGals({ qStairs: v })}
-            goodIsYes={true}
-          />
-          <div className="border-border/60 mt-1 flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t pt-2.5">
-            <div className="flex items-center gap-1.5">
-              <span className="text-muted-foreground w-12 text-[11px]">Gait</span>
-              {(["normal", "antalgic", "abnormal"] as const).map((v) => (
-                <button
-                  key={v}
-                  type="button"
-                  className={seg(gals.gait === v, v === "normal" ? "teal" : "muted")}
-                  onClick={() => setGals({ gait: gals.gait === v ? undefined : v })}
-                >
-                  {v}
-                </button>
-              ))}
-            </div>
-            {galsDomain("arms", "Arms")}
-            {galsDomain("legs", "Legs")}
-            {galsDomain("spine", "Spine")}
-          </div>
-          <span className="text-muted-foreground text-[10px]">
-            An abnormal domain → add the regional exam below.
-          </span>
-        </StageCard>
-
-        {/* ── Stage 2 — Pattern characteriser (drives the arthropathy engine) ── */}
-        <StageCard
-          index={2}
-          title="Pattern characteriser"
-          complete={characterDone}
-          hint="distribution + character"
-        >
-          <Row
-            title="Distribution"
-            options={["monoarticular", "oligoarticular", "polyarticular"]}
-            value={value.distribution}
-            onPick={(v) => onChange({ ...value, distribution: v as MskExam["distribution"] })}
-          />
-          <Row
-            title="Symmetry"
-            options={["symmetrical", "asymmetrical"]}
-            value={value.symmetry}
-            onPick={(v) => onChange({ ...value, symmetry: v as MskExam["symmetry"] })}
-          />
-          <Row
-            title="Joints"
-            options={[
-              { value: "small_joints", label: "small joints" },
-              { value: "large_joints", label: "large joints" },
-              { value: "mixed", label: "mixed" },
-            ]}
-            value={value.jointSize}
-            onPick={(v) => onChange({ ...value, jointSize: v as MskExam["jointSize"] })}
-          />
-          <Row
-            title="Morning stiffness"
-            options={[
-              { value: "none", label: "none" },
-              { value: "brief", label: "brief" },
-              { value: "over_30min", label: ">30 min" },
-            ]}
-            value={value.morningStiffness}
-            onPick={(v) =>
-              onChange({ ...value, morningStiffness: v as MskExam["morningStiffness"] })
-            }
-          />
-          <ChipRow label="Character">
-            <ValueChip
-              active={!!value.hotSwollenJoint}
-              tone="alarm"
-              onClick={() => onChange({ ...value, hotSwollenJoint: !value.hotSwollenJoint })}
+      {/* Clinical sequence — collapsible SectionCards (collapsed by default) */}
+      <div className="flex flex-col gap-2.5">
+        {/* ── Section 1 — GALS screen (the rapid fast path) ── */}
+        {(() => {
+          const { status, count, summary } = galsMeta();
+          return (
+            <SectionCard
+              index={1}
+              title="GALS screen"
+              status={status}
+              count={count}
+              summary={summary}
+              onMarkNormal={markGalsNormal}
             >
-              single HOT swollen joint
-            </ValueChip>
-            <ValueChip
-              active={!!value.cannotWeightBear}
-              onClick={() => onChange({ ...value, cannotWeightBear: !value.cannotWeightBear })}
-            >
-              cannot weight-bear
-            </ValueChip>
-            <ValueChip
-              active={!!value.worseWithUse}
-              onClick={() => onChange({ ...value, worseWithUse: !value.worseWithUse })}
-            >
-              worse with use
-            </ValueChip>
-            <ValueChip
-              active={!!value.migratory}
-              onClick={() => onChange({ ...value, migratory: !value.migratory })}
-            >
-              migratory
-            </ValueChip>
-            <ValueChip
-              active={!!value.precedingSoreThroat}
-              onClick={() =>
-                onChange({ ...value, precedingSoreThroat: !value.precedingSoreThroat })
-              }
-            >
-              preceding sore throat
-            </ValueChip>
-          </ChipRow>
-        </StageCard>
-
-        {/* ── Stage 3 — Regional examination · Look → Feel → Move ── */}
-        <StageCard
-          index={3}
-          title="Regional examination"
-          complete={regions.length > 0 && regions.every((r) => r.region !== undefined)}
-          count={regions.length || undefined}
-          hint="Look · Feel · Move"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-muted-foreground text-[10px] font-medium tracking-wide uppercase">
-              add the symptomatic region(s)
-            </span>
-            <button
-              type="button"
-              onClick={() =>
-                onChange({ ...value, regions: [...regions, { id: crypto.randomUUID() }] })
-              }
-              className="tap text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-[11.5px]"
-            >
-              <PlusIcon className="size-3.5" aria-hidden /> Add region
-            </button>
-          </div>
-          {regions.length === 0 ? (
-            <p className="text-muted-foreground text-[11px]">
-              No regional exam recorded — add the symptomatic region(s).
-            </p>
-          ) : (
-            regions.map((r, i) => {
-              const lookOpts = [...LOOK_OPTS, ...(r.region ? REGION_LOOK_EXTRAS[r.region] : [])];
-              const tests = r.region ? REGION_SPECIAL_TESTS[r.region] : [];
-              return (
-                <div
-                  key={r.id}
-                  className="border-border/70 scale-in flex flex-col gap-1.5 rounded-lg border p-2.5"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground text-[10px] font-medium tracking-wide uppercase">
-                      Region {i + 1}
-                    </span>
+              <YesNo
+                title="Pain or stiffness in muscles, joints or back?"
+                value={gals.qPainStiffness}
+                onPick={(v) => setGals({ qPainStiffness: v })}
+                goodIsYes={false}
+              />
+              <YesNo
+                title="Can dress completely without difficulty?"
+                value={gals.qDress}
+                onPick={(v) => setGals({ qDress: v })}
+                goodIsYes={true}
+              />
+              <YesNo
+                title="Can manage stairs without difficulty?"
+                value={gals.qStairs}
+                onPick={(v) => setGals({ qStairs: v })}
+                goodIsYes={true}
+              />
+              <div className="border-border/60 mt-1 flex flex-wrap items-center gap-x-4 gap-y-1.5 border-t pt-2.5">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-muted-foreground w-12 text-[11px]">Gait</span>
+                  {(["normal", "antalgic", "abnormal"] as const).map((v) => (
                     <button
+                      key={v}
                       type="button"
-                      onClick={() =>
-                        onChange({ ...value, regions: regions.filter((x) => x.id !== r.id) })
-                      }
-                      className="tap text-muted-foreground hover:text-foreground"
-                      aria-label="Remove region"
+                      aria-pressed={gals.gait === v}
+                      className={seg(gals.gait === v, v === "normal" ? "teal" : "muted")}
+                      onClick={() => setGals({ gait: gals.gait === v ? undefined : v })}
                     >
-                      <XIcon className="size-3.5" />
+                      {v}
                     </button>
-                  </div>
-                  <Row
-                    title="Region"
-                    options={MSK_REGIONS.map((x) => ({ value: x.region, label: x.label }))}
-                    value={r.region}
-                    onPick={(v) => setRegion(r.id, { region: v as MskRegion | undefined })}
-                  />
-                  <Row
-                    title="Side"
-                    options={["right", "left", "bilateral"]}
-                    value={r.side}
-                    onPick={(v) => setRegion(r.id, { side: v as MskSide | undefined })}
-                  />
-                  <div className="flex flex-wrap items-start gap-x-2 gap-y-1">
-                    <span className="text-muted-foreground w-24 shrink-0 pt-0.5 text-[11px]">
-                      Look
-                    </span>
-                    <div className="flex min-w-0 flex-1 flex-wrap gap-1">
-                      {lookOpts.map((o) => (
-                        <ValueChip
-                          key={o}
-                          active={(r.look ?? []).includes(o)}
-                          onClick={() => toggleIn(r, "look", o)}
-                        >
-                          {o}
-                        </ValueChip>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap items-start gap-x-2 gap-y-1">
-                    <span className="text-muted-foreground w-24 shrink-0 pt-0.5 text-[11px]">
-                      Feel
-                    </span>
-                    <div className="flex min-w-0 flex-1 flex-wrap gap-1">
-                      {FEEL_OPTS.map((o) => (
-                        <ValueChip
-                          key={o}
-                          active={(r.feel ?? []).includes(o)}
-                          tone={o.includes("compartment") ? "alarm" : "default"}
-                          onClick={() => toggleIn(r, "feel", o)}
-                        >
-                          {o}
-                        </ValueChip>
-                      ))}
-                    </div>
-                  </div>
-                  <Row
-                    title="Move (ROM)"
-                    options={[
-                      { value: "full", label: "full" },
-                      { value: "restricted", label: "restricted" },
-                      { value: "restricted_painful", label: "restricted + painful" },
-                    ]}
-                    value={r.rom}
-                    onPick={(v) => setRegion(r.id, { rom: v as MskRom | undefined })}
-                  />
-                  {tests.length ? (
-                    <div className="flex flex-wrap items-start gap-x-2 gap-y-1">
-                      <span className="text-muted-foreground w-24 shrink-0 pt-0.5 text-[11px]">
-                        Special tests
-                      </span>
-                      <div className="flex min-w-0 flex-1 flex-wrap gap-1">
-                        {tests.map((t) => {
-                          const res = r.specialTests?.[t];
-                          return (
-                            <ValueChip
-                              key={t}
-                              active={res !== undefined}
-                              tone={res === "positive" ? "amber" : "teal"}
-                              onClick={() => cycleTest(r, t)}
-                            >
-                              {t}
-                              {res ? ` · ${res === "positive" ? "+" : "−"}` : ""}
-                            </ValueChip>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ) : null}
-                  {tests.length ? (
-                    <span className="text-muted-foreground pl-26 text-[10px]">
-                      Tap a test to cycle: positive → negative → untested.
-                    </span>
-                  ) : null}
+                  ))}
                 </div>
-              );
-            })
-          )}
-        </StageCard>
-
-        {/* ── Stage 4 — Back-pain red flags (mechanical back pain = exclusion) ── */}
-        <StageCard
-          index={4}
-          title="Back-pain red flags"
-          complete={(value.backRedFlags ?? []).length > 0}
-          count={(value.backRedFlags ?? []).length || undefined}
-          hint="mechanical back pain is a diagnosis of exclusion"
-        >
-          <div className="flex flex-wrap items-start gap-x-2 gap-y-1">
-            <span className="text-muted-foreground w-24 shrink-0 pt-0.5 text-[11px]">
-              Cauda equina
-            </span>
-            <div className="flex min-w-0 flex-1 flex-wrap gap-1">
-              {BACK_FLAG_CAUDA.map((o) => (
-                <ValueChip
-                  key={o}
-                  active={(value.backRedFlags ?? []).includes(o)}
-                  tone="alarm"
-                  onClick={() => toggleFlag(o)}
-                >
-                  {o}
-                </ValueChip>
-              ))}
-            </div>
-          </div>
-          <div className="flex flex-wrap items-start gap-x-2 gap-y-1">
-            <span className="text-muted-foreground w-24 shrink-0 pt-0.5 text-[11px]">Cord</span>
-            <div className="flex min-w-0 flex-1 flex-wrap gap-1">
-              {BACK_FLAG_CORD.map((o) => (
-                <ValueChip
-                  key={o}
-                  active={(value.backRedFlags ?? []).includes(o)}
-                  tone="alarm"
-                  onClick={() => toggleFlag(o)}
-                >
-                  {o}
-                </ValueChip>
-              ))}
-            </div>
-          </div>
-          {(
-            [
-              ["Malignancy", BACK_FLAG_MALIGNANCY],
-              ["Infection", BACK_FLAG_INFECTION],
-              ["Fracture", BACK_FLAG_FRACTURE],
-            ] as const
-          ).map(([label, opts]) => (
-            <div key={label} className="flex flex-wrap items-start gap-x-2 gap-y-1">
-              <span className="text-muted-foreground w-24 shrink-0 pt-0.5 text-[11px]">
-                {label}
-              </span>
-              <div className="flex min-w-0 flex-1 flex-wrap gap-1">
-                {opts.map((o) => (
-                  <ValueChip
-                    key={o}
-                    active={(value.backRedFlags ?? []).includes(o)}
-                    onClick={() => toggleFlag(o)}
-                  >
-                    {o}
-                  </ValueChip>
-                ))}
+                {galsDomain("arms", "Arms")}
+                {galsDomain("legs", "Legs")}
+                {galsDomain("spine", "Spine")}
               </div>
-            </div>
-          ))}
-        </StageCard>
+              <span className="text-muted-foreground text-[10px]">
+                An abnormal domain → add the regional exam below.
+              </span>
+            </SectionCard>
+          );
+        })()}
+
+        {/* ── Section 2 — Pattern characteriser (drives the arthropathy engine) ── */}
+        {(() => {
+          const { status, count, summary } = charMeta();
+          return (
+            <SectionCard
+              index={2}
+              title="Pattern characteriser"
+              status={status}
+              count={count}
+              summary={summary}
+            >
+              <Row
+                title="Distribution"
+                options={["monoarticular", "oligoarticular", "polyarticular"]}
+                value={value.distribution}
+                onPick={(v) => onChange({ ...value, distribution: v as MskExam["distribution"] })}
+              />
+              <Row
+                title="Symmetry"
+                options={["symmetrical", "asymmetrical"]}
+                value={value.symmetry}
+                onPick={(v) => onChange({ ...value, symmetry: v as MskExam["symmetry"] })}
+              />
+              <Row
+                title="Joints"
+                options={[
+                  { value: "small_joints", label: "small joints" },
+                  { value: "large_joints", label: "large joints" },
+                  { value: "mixed", label: "mixed" },
+                ]}
+                value={value.jointSize}
+                onPick={(v) => onChange({ ...value, jointSize: v as MskExam["jointSize"] })}
+              />
+              <Row
+                title="Morning stiffness"
+                options={[
+                  { value: "none", label: "none" },
+                  { value: "brief", label: "brief" },
+                  { value: "over_30min", label: ">30 min" },
+                ]}
+                value={value.morningStiffness}
+                onPick={(v) =>
+                  onChange({ ...value, morningStiffness: v as MskExam["morningStiffness"] })
+                }
+              />
+              <ChipRow label="Character">
+                <ValueChip
+                  active={!!value.hotSwollenJoint}
+                  tone="alarm"
+                  onClick={() => onChange({ ...value, hotSwollenJoint: !value.hotSwollenJoint })}
+                >
+                  single HOT swollen joint
+                </ValueChip>
+                <ValueChip
+                  active={!!value.cannotWeightBear}
+                  onClick={() => onChange({ ...value, cannotWeightBear: !value.cannotWeightBear })}
+                >
+                  cannot weight-bear
+                </ValueChip>
+                <ValueChip
+                  active={!!value.worseWithUse}
+                  onClick={() => onChange({ ...value, worseWithUse: !value.worseWithUse })}
+                >
+                  worse with use
+                </ValueChip>
+                <ValueChip
+                  active={!!value.migratory}
+                  onClick={() => onChange({ ...value, migratory: !value.migratory })}
+                >
+                  migratory
+                </ValueChip>
+                <ValueChip
+                  active={!!value.precedingSoreThroat}
+                  onClick={() =>
+                    onChange({ ...value, precedingSoreThroat: !value.precedingSoreThroat })
+                  }
+                >
+                  preceding sore throat
+                </ValueChip>
+              </ChipRow>
+            </SectionCard>
+          );
+        })()}
+
+        {/* ── Section 3 — Regional examination · Look → Feel → Move (structured-only) ── */}
+        {(() => {
+          const { status, count, summary } = regionalMeta();
+          return (
+            <SectionCard
+              index={3}
+              title="Regional examination"
+              status={status}
+              count={count}
+              summary={summary}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground text-[10px] font-medium tracking-wide uppercase">
+                  add the symptomatic region(s) · Look · Feel · Move
+                </span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    onChange({ ...value, regions: [...regions, { id: crypto.randomUUID() }] })
+                  }
+                  className="tap text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-[11.5px]"
+                >
+                  <PlusIcon className="size-3.5" aria-hidden /> Add region
+                </button>
+              </div>
+              {regions.length === 0 ? (
+                <p className="text-muted-foreground text-[11px]">
+                  No regional exam recorded — add the symptomatic region(s).
+                </p>
+              ) : (
+                regions.map((r, i) => {
+                  const lookOpts = [
+                    ...LOOK_OPTS,
+                    ...(r.region ? REGION_LOOK_EXTRAS[r.region] : []),
+                  ];
+                  const tests = r.region ? REGION_SPECIAL_TESTS[r.region] : [];
+                  return (
+                    <div
+                      key={r.id}
+                      className="border-border/70 scale-in flex flex-col gap-1.5 rounded-lg border p-2.5"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground text-[10px] font-medium tracking-wide uppercase">
+                          Region {i + 1}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            onChange({ ...value, regions: regions.filter((x) => x.id !== r.id) })
+                          }
+                          className="tap text-muted-foreground hover:text-foreground"
+                          aria-label="Remove region"
+                        >
+                          <XIcon className="size-3.5" />
+                        </button>
+                      </div>
+                      <Row
+                        title="Region"
+                        options={MSK_REGIONS.map((x) => ({ value: x.region, label: x.label }))}
+                        value={r.region}
+                        onPick={(v) => setRegion(r.id, { region: v as MskRegion | undefined })}
+                      />
+                      <Row
+                        title="Side"
+                        options={["right", "left", "bilateral"]}
+                        value={r.side}
+                        onPick={(v) => setRegion(r.id, { side: v as MskSide | undefined })}
+                      />
+                      <div className="flex flex-wrap items-start gap-x-2 gap-y-1">
+                        <span className="text-muted-foreground w-24 shrink-0 pt-0.5 text-[11px]">
+                          Look
+                        </span>
+                        <div className="flex min-w-0 flex-1 flex-wrap gap-1">
+                          {lookOpts.map((o) => (
+                            <ValueChip
+                              key={o}
+                              active={(r.look ?? []).includes(o)}
+                              onClick={() => toggleIn(r, "look", o)}
+                            >
+                              {o}
+                            </ValueChip>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap items-start gap-x-2 gap-y-1">
+                        <span className="text-muted-foreground w-24 shrink-0 pt-0.5 text-[11px]">
+                          Feel
+                        </span>
+                        <div className="flex min-w-0 flex-1 flex-wrap gap-1">
+                          {FEEL_OPTS.map((o) => (
+                            <ValueChip
+                              key={o}
+                              active={(r.feel ?? []).includes(o)}
+                              tone={o.includes("compartment") ? "alarm" : "default"}
+                              onClick={() => toggleIn(r, "feel", o)}
+                            >
+                              {o}
+                            </ValueChip>
+                          ))}
+                        </div>
+                      </div>
+                      <Row
+                        title="Move (ROM)"
+                        options={[
+                          { value: "full", label: "full" },
+                          { value: "restricted", label: "restricted" },
+                          { value: "restricted_painful", label: "restricted + painful" },
+                        ]}
+                        value={r.rom}
+                        onPick={(v) => setRegion(r.id, { rom: v as MskRom | undefined })}
+                      />
+                      {tests.length ? (
+                        <div className="flex flex-wrap items-start gap-x-2 gap-y-1">
+                          <span className="text-muted-foreground w-24 shrink-0 pt-0.5 text-[11px]">
+                            Special tests
+                          </span>
+                          <div className="flex min-w-0 flex-1 flex-wrap gap-1">
+                            {tests.map((t) => {
+                              const res = r.specialTests?.[t];
+                              return (
+                                <ValueChip
+                                  key={t}
+                                  active={res !== undefined}
+                                  tone={res === "positive" ? "amber" : "teal"}
+                                  onClick={() => cycleTest(r, t)}
+                                >
+                                  {t}
+                                  {res ? ` · ${res === "positive" ? "+" : "−"}` : ""}
+                                </ValueChip>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ) : null}
+                      {tests.length ? (
+                        <span className="text-muted-foreground pl-26 text-[10px]">
+                          Tap a test to cycle: positive → negative → untested.
+                        </span>
+                      ) : null}
+                    </div>
+                  );
+                })
+              )}
+            </SectionCard>
+          );
+        })()}
+
+        {/* ── Section 4 — Back-pain red flags (mechanical back pain = exclusion) ── */}
+        {(() => {
+          const { status, count, summary } = backMeta();
+          return (
+            <SectionCard
+              index={4}
+              title="Back-pain red flags"
+              status={status}
+              count={count}
+              summary={summary}
+              onMarkNormal={markBackNormal}
+            >
+              <span className="text-muted-foreground text-[10px]">
+                mechanical back pain is a diagnosis of exclusion — tap any present
+              </span>
+              {/* CLINICAL SAFETY: all five groups write into the ONE shared
+                  backRedFlags array, and a SINGLE section-level Examined / Not-
+                  examined control (below) governs that whole array. There is
+                  deliberately no per-group examined toggle — that prevents the
+                  data-loss footgun where marking one sub-group "not examined"
+                  would wipe a flag (e.g. a cauda-equina must-not-miss) recorded
+                  in another group. "Not examined" clears the whole section. */}
+              <BackFlagGroup
+                label="Cauda equina"
+                options={BACK_FLAG_CAUDA.map((o) => ({ value: o, label: o, mustNotMiss: true }))}
+                present={backPresent(BACK_FLAG_CAUDA)}
+                onToggle={toggleFlag}
+              />
+              <BackFlagGroup
+                label="Cord"
+                options={BACK_FLAG_CORD.map((o) => ({ value: o, label: o, mustNotMiss: true }))}
+                present={backPresent(BACK_FLAG_CORD)}
+                onToggle={toggleFlag}
+              />
+              <BackFlagGroup
+                label="Malignancy"
+                options={BACK_FLAG_MALIGNANCY.map((o) => ({ value: o, label: o }))}
+                present={backPresent(BACK_FLAG_MALIGNANCY)}
+                onToggle={toggleFlag}
+              />
+              <BackFlagGroup
+                label="Infection"
+                options={BACK_FLAG_INFECTION.map((o) => ({ value: o, label: o }))}
+                present={backPresent(BACK_FLAG_INFECTION)}
+                onToggle={toggleFlag}
+              />
+              <BackFlagGroup
+                label="Fracture"
+                options={BACK_FLAG_FRACTURE.map((o) => ({ value: o, label: o }))}
+                present={backPresent(BACK_FLAG_FRACTURE)}
+                onToggle={toggleFlag}
+              />
+              <BackExaminedControl
+                examined={backExamined}
+                anyPresent={(value.backRedFlags ?? []).length > 0}
+                onSetExamined={setBackExamined}
+              />
+            </SectionCard>
+          );
+        })()}
+
+        {/* ── Section 5 — GALS detail · function & measure ── */}
+        {(() => {
+          const { status, count, summary } = detailMeta();
+          return (
+            <SectionCard
+              index={5}
+              title="GALS detail · function & measure"
+              status={status}
+              count={count}
+              summary={summary}
+              onMarkNormal={markDetailNormal}
+            >
+              {MSK_GROUPS.map((g) => {
+                const inGroup = MSK_FINDINGS.filter((x) => x.group === g.key);
+                return (
+                  <div key={g.key} className="flex flex-col gap-2">
+                    <span className="text-muted-foreground text-[10px] font-medium tracking-wide uppercase">
+                      {g.label}
+                    </span>
+                    <FindingGrid>
+                      {inGroup.map((x) => {
+                        const o = byCode.get(x.code);
+                        const state: ThreeStateValue = o?.state ?? "not_examined";
+                        return (
+                          <CompactField
+                            key={x.code}
+                            label={x.display}
+                            control={
+                              <ThreeState
+                                value={state}
+                                findingsLabel={x.options.length ? "Findings" : "Present"}
+                                onChange={(v) =>
+                                  setFinding(
+                                    x.code,
+                                    v === "not_examined"
+                                      ? null
+                                      : {
+                                          state: v,
+                                          values: v === "absent" ? [] : (o?.values ?? []),
+                                        },
+                                  )
+                                }
+                              />
+                            }
+                            detail={
+                              state === "present" && x.options.length
+                                ? x.options.map((opt) => {
+                                    const on = o?.values?.includes(opt);
+                                    return (
+                                      <ValueChip
+                                        key={opt}
+                                        active={!!on}
+                                        onClick={() =>
+                                          setFinding(x.code, {
+                                            values: on
+                                              ? (o?.values ?? []).filter((v) => v !== opt)
+                                              : [...(o?.values ?? []), opt],
+                                          })
+                                        }
+                                      >
+                                        {opt}
+                                      </ValueChip>
+                                    );
+                                  })
+                                : undefined
+                            }
+                          />
+                        );
+                      })}
+                    </FindingGrid>
+                  </div>
+                );
+              })}
+              <p className="text-muted-foreground border-border/40 border-t pt-2 text-[10px]">
+                Hands/nails, rash, lymph nodes &amp; the gait first-impression are also captured in
+                the general examination.
+              </p>
+            </SectionCard>
+          );
+        })()}
       </div>
 
       {/* Pattern panel (decision-support) */}
@@ -609,97 +945,7 @@ export function MskExamForm({
         </div>
       ) : null}
 
-      {/* GALS detail + function — collapsed */}
-      <div className="border-border/70 overflow-hidden rounded-xl border">
-        <button
-          type="button"
-          onClick={() => setOpenFindings((o) => !o)}
-          className="bg-muted/30 hover:bg-muted/50 flex w-full items-center gap-2 px-3 py-2 text-left"
-        >
-          <ChevronDownIcon
-            className={`text-muted-foreground size-3.5 transition-transform ${openFindings ? "" : "-rotate-90"}`}
-            aria-hidden
-          />
-          <span className="text-foreground flex-1 text-[12.5px] font-semibold">
-            GALS detail · function &amp; measure
-          </span>
-          {presentFindings ? (
-            <span className="rounded-full bg-teal-100 px-1.5 text-[10px] font-semibold text-teal-800 dark:bg-teal-950/40 dark:text-teal-300">
-              {presentFindings}
-            </span>
-          ) : null}
-        </button>
-        {openFindings ? (
-          <div className="flex flex-col">
-            {MSK_GROUPS.map((g) => {
-              const inGroup = MSK_FINDINGS.filter((x) => x.group === g.key);
-              return (
-                <div key={g.key} className="border-border/40 border-t first:border-t-0">
-                  <div className="text-muted-foreground bg-muted/20 px-3 py-1 text-[10px] font-medium tracking-wide uppercase">
-                    {g.label}
-                  </div>
-                  <div className="divide-border/50 divide-y">
-                    {inGroup.map((x) => {
-                      const o = byCode.get(x.code);
-                      const state: ThreeStateValue = o?.state ?? "not_examined";
-                      return (
-                        <div key={x.code} className="flex flex-col gap-1.5 px-3 py-1.5">
-                          <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
-                            <span className="text-foreground min-w-0 text-[12.5px]">
-                              {x.display}
-                            </span>
-                            <ThreeState
-                              value={state}
-                              onChange={(v) =>
-                                setFinding(
-                                  x.code,
-                                  v === "not_examined"
-                                    ? null
-                                    : {
-                                        state: v,
-                                        values: v === "absent" ? [] : (o?.values ?? []),
-                                      },
-                                )
-                              }
-                            />
-                          </div>
-                          {state === "present" && x.options.length ? (
-                            <div className="flex flex-wrap gap-1 pl-1">
-                              {x.options.map((opt) => {
-                                const on = o?.values?.includes(opt);
-                                return (
-                                  <ValueChip
-                                    key={opt}
-                                    active={!!on}
-                                    onClick={() =>
-                                      setFinding(x.code, {
-                                        values: on
-                                          ? (o?.values ?? []).filter((v) => v !== opt)
-                                          : [...(o?.values ?? []), opt],
-                                      })
-                                    }
-                                  >
-                                    {opt}
-                                  </ValueChip>
-                                );
-                              })}
-                            </div>
-                          ) : null}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })}
-            <p className="text-muted-foreground border-border/40 border-t px-3 py-1.5 text-[10px]">
-              Hands/nails, rash, lymph nodes &amp; the gait first-impression are also captured in
-              the general examination.
-            </p>
-          </div>
-        ) : null}
-      </div>
-
+      {/* Auto-generated documentation summary (honest: not-examined ≠ normal) */}
       {renderMskProse(value) ? (
         <div className="fade-in-slow rounded-xl border border-teal-200/70 bg-teal-50/60 px-3 py-2 dark:border-teal-900/50 dark:bg-teal-950/20">
           <span className="inline-flex items-center gap-1 text-[10px] font-medium tracking-wide text-teal-700 uppercase dark:text-teal-400">
@@ -709,7 +955,12 @@ export function MskExamForm({
             {renderMskProse(value)}
           </p>
         </div>
-      ) : null}
+      ) : presentFindings || patterns.length ? null : (
+        <p className="text-muted-foreground inline-flex items-center gap-1.5 text-[11px]">
+          <EyeIcon className="size-3" aria-hidden /> Run the GALS screen, or set it normal and
+          characterise only the positive region(s).
+        </p>
+      )}
     </div>
   );
 }

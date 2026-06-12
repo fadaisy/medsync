@@ -1,6 +1,6 @@
 "use client";
 
-import type { ThreeStateValue } from "./exam-kit";
+import type { SectionStatus, ThreeStateValue } from "./exam-kit";
 import type {
   CvsExam,
   HeartSound,
@@ -38,14 +38,27 @@ import {
   renderCvsProse,
 } from "@/lib/clerkship/exam/cardiovascular";
 import { cn } from "@/lib/utils";
-import { ChipRow, NormalExamButton, StageCard, ThreeState, ValueChip } from "./exam-kit";
+import {
+  ChipRow,
+  CompactField,
+  FindingGrid,
+  NormalExamButton,
+  PresentCluster,
+  SectionCard,
+  ThreeState,
+  ValueChip,
+} from "./exam-kit";
 
 /**
- * Cardiovascular examination — REWORKED PRESENTATION (ADR 0074). Same CvsExam data,
- * handlers, value-sets and behaviour as before; restructured into the real clinical
- * I-P-A sequence as numbered StageCards (Inspection/periphery → Palpation [apex,
- * heaves, thrills] → Auscultation [heart sounds + the STRUCTURED murmur model +
- * added sounds] → JVP/oedema/completion). Murmurs stay tap-characterised
+ * Cardiovascular examination — EXAMINATION UI v2 (progressive disclosure, ADR 0074
+ * supersedes the v1 StageCard layout). Same CvsExam data, handlers, value-sets and
+ * behaviour as before; presentation only. The clinical I-P-A sequence is now FOUR
+ * collapsible SectionCards (Inspection/periphery → Palpation [apex, heaves, thrills]
+ * → Auscultation [heart sounds + the STRUCTURED murmur model + added sounds] →
+ * JVP/oedema/completion), each summarised to one line (status pill + inline
+ * positives + on-row "mark normal"). Long binary sign lists (peripheral stigmata,
+ * added sounds) collapse to "tap any present" clusters with an explicit examined /
+ * not-examined control (not-examined ≠ all-negative). Murmurs stay tap-characterised
  * STRUCTURALLY (timing/location/radiation/intensity/pitch/manoeuvre). The valve-
  * lesion / HF / IE / tamponade cluster is surfaced transparently (multiple on
  * ambiguity, must-not-miss/emergency flagged) as DECISION-SUPPORT — never an
@@ -122,44 +135,41 @@ export function CardiovascularExam({
     });
   };
 
+  const group = (key: string) => CVS_FINDINGS.filter((x) => x.group === key);
+
   // ── render a catalog finding with the kit (select = chip pick; panel = three-state + chips) ──
-  const renderFinding = (x: ExamFinding) => {
+  const renderSelect = (x: ExamFinding) => {
     const o = byCode.get(x.code);
-    if (x.kind === "select") {
-      return (
-        <ChipRow key={x.code} label={x.display}>
-          {x.options.map((opt) => (
-            <ValueChip
-              key={opt}
-              active={o?.values?.[0] === opt}
-              onClick={() =>
-                setFinding(
-                  x.code,
-                  o?.values?.[0] === opt ? null : { state: "present", values: [opt] },
-                )
-              }
-            >
-              {opt}
-            </ValueChip>
-          ))}
-        </ChipRow>
-      );
-    }
+    return (
+      <ChipRow key={x.code} label={x.display}>
+        {x.options.map((opt) => (
+          <ValueChip
+            key={opt}
+            active={o?.values?.[0] === opt}
+            onClick={() =>
+              setFinding(
+                x.code,
+                o?.values?.[0] === opt ? null : { state: "present", values: [opt] },
+              )
+            }
+          >
+            {opt}
+          </ValueChip>
+        ))}
+      </ChipRow>
+    );
+  };
+
+  const renderPanel = (x: ExamFinding) => {
+    const o = byCode.get(x.code);
     const state: ThreeStateValue = o?.state ?? "not_examined";
     return (
-      <div key={x.code} className="flex flex-col gap-1.5">
-        <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
-          <span className="flex min-w-0 items-center gap-1.5">
-            <span className="text-foreground text-[12.5px]">{x.display}</span>
-            {x.mustNotMiss ? (
-              <AlertTriangleIcon className="size-3 text-amber-500" aria-label="must-not-miss" />
-            ) : null}
-            {x.ugandaFlag ? (
-              <span className="text-muted-foreground bg-muted rounded px-1 text-[9px] uppercase">
-                {x.ugandaFlag}
-              </span>
-            ) : null}
-          </span>
+      <CompactField
+        key={x.code}
+        label={x.display}
+        mustNotMiss={x.mustNotMiss}
+        flag={x.ugandaFlag}
+        control={
           <ThreeState
             value={state}
             findingsLabel={x.options.length ? "Findings" : "Present"}
@@ -172,51 +182,224 @@ export function CardiovascularExam({
               )
             }
           />
-        </div>
-        {state === "present" && x.options.length ? (
-          <div className="flex flex-wrap gap-1 pl-1">
-            {x.options.map((opt) => {
-              const on = o?.values?.includes(opt);
-              return (
-                <ValueChip
-                  key={opt}
-                  active={!!on}
-                  onClick={() =>
-                    setFinding(x.code, {
-                      values: on
-                        ? (o?.values ?? []).filter((v) => v !== opt)
-                        : [...(o?.values ?? []), opt],
-                    })
-                  }
-                >
-                  {opt}
-                </ValueChip>
-              );
-            })}
-          </div>
-        ) : null}
-      </div>
+        }
+        detail={
+          state === "present" && x.options.length
+            ? x.options.map((opt) => {
+                const on = o?.values?.includes(opt);
+                return (
+                  <ValueChip
+                    key={opt}
+                    active={!!on}
+                    onClick={() =>
+                      setFinding(x.code, {
+                        values: on
+                          ? (o?.values ?? []).filter((v) => v !== opt)
+                          : [...(o?.values ?? []), opt],
+                      })
+                    }
+                  >
+                    {opt}
+                  </ValueChip>
+                );
+              })
+            : undefined
+        }
+      />
     );
   };
 
-  const group = (key: string) => CVS_FINDINGS.filter((x) => x.group === key);
-  const presentInGroups = (keys: string[]) =>
-    findings.filter((o) => o.state === "present" && keys.includes(o.group)).length;
-  const touched = (x: ExamFinding) =>
-    byCode.get(x.code)?.state && byCode.get(x.code)?.state !== "not_examined";
+  /** Compact catalog render: selects (chip pickers) above a 2-col grid of panels.
+   * `exclude` drops codes shown elsewhere (e.g. binary stigmata in a cluster). */
+  const renderCatalog = (keys: string[], exclude: string[] = []) => {
+    const skip = new Set(exclude);
+    const fs = keys.flatMap(group).filter((x) => !skip.has(x.code));
+    const selects = fs.filter((x) => x.kind === "select");
+    const panels = fs.filter((x) => x.kind === "panel");
+    if (!selects.length && !panels.length) return null;
+    return (
+      <>
+        {selects.length ? (
+          <div className="flex flex-col gap-2.5">{selects.map(renderSelect)}</div>
+        ) : null}
+        {panels.length ? <FindingGrid>{panels.map(renderPanel)}</FindingGrid> : null}
+      </>
+    );
+  };
 
-  // Stage-completion heuristics (presentation only — they gate the quiet check glyph)
-  const inspectionDone =
-    !!value.pulseRhythm &&
-    !!value.pulseCharacter &&
-    !!value.pulseVolume &&
-    [...group("cvs_peripheral"), ...group("cvs_inspection")].every(touched);
-  const palpationDone =
-    value.apexLocation !== undefined &&
-    value.apexCharacter !== undefined &&
-    group("cvs_palpation").every(touched);
-  const auscultationDone = value.s1 !== undefined && value.s2 !== undefined;
-  const completionDone = value.jvp !== undefined && group("cvs_completion").every(touched);
+  // ── PresentCluster wiring for a set of catalog findings (binary present/absent) ──
+  // toggle: present ↔ (absent if the cluster is examined, else removed); setExamined(true)
+  // marks untapped findings absent; setExamined(false) removes them all. Exactly the
+  // spot-diagnosis mapping pattern from the General exemplar, adapted to setFinding.
+  const clusterState = (codes: string[]) => {
+    const present = codes.filter((c) => byCode.get(c)?.state === "present");
+    const examined = codes.every(
+      (c) => (byCode.get(c)?.state ?? "not_examined") !== "not_examined",
+    );
+    return { present, examined };
+  };
+  const toggleCluster = (code: string, examined: boolean) => {
+    const cur = byCode.get(code)?.state;
+    if (cur === "present") setFinding(code, examined ? { state: "absent", values: [] } : null);
+    else setFinding(code, { state: "present", values: [] });
+  };
+  const setClusterExamined = (codes: string[], examined: boolean) => {
+    const others = findings.filter((o) => !codes.includes(o.code));
+    if (!examined) return onChange({ ...value, findings: others });
+    const forGroup: ExamObservation[] = codes.map((code) => {
+      const ex = byCode.get(code);
+      if (ex?.state === "present") return ex;
+      const fd = CVS_FINDINGS.find((x) => x.code === code)!;
+      return { code, group: fd.group, display: fd.display, state: "absent", values: [] };
+    });
+    onChange({ ...value, findings: [...others, ...forGroup] });
+  };
+
+  // The peripheral binary stigmata (no value-set) → one "tap any present" cluster.
+  const stigmataFindings = group("cvs_peripheral").filter(
+    (x) => x.kind === "panel" && !x.options.length,
+  );
+  const stigmataCodes = stigmataFindings.map((x) => x.code);
+  const stigmata = clusterState(stigmataCodes);
+
+  // Added heart sounds — examined is DERIVED from the existing array (no new field):
+  // any present ⇒ examined. Clearing returns the cluster to untouched, matching the
+  // v1 toggle-chip behaviour (the CvsExam model has no separate examined flag).
+  const addedSounds = value.addedSounds ?? [];
+  const addedExamined = addedSounds.length > 0;
+
+  // ── per-section status / count / inline-positive summary for the collapsed row ──
+  // Spans the section's catalog findings AND its scalar/structured CvsExam fields.
+  type Part = { present: boolean; mnm?: boolean; touched: boolean; summary?: string };
+  const findingPart = (code: string): Part => {
+    const o = byCode.get(code);
+    const fd = CVS_FINDINGS.find((x) => x.code === code);
+    const present = o?.state === "present";
+    return {
+      present,
+      mnm: present && fd?.mustNotMiss,
+      touched: !!o && o.state !== "not_examined",
+      summary: present ? (o?.values?.length ? o.values.join(", ") : fd?.display) : undefined,
+    };
+  };
+
+  const sectionMeta = (
+    parts: Part[],
+  ): { status: SectionStatus; count: number; summary: string } => {
+    const positives = parts.filter((p) => p.present);
+    const mnm = positives.filter((p) => p.mnm);
+    const touched = parts.filter((p) => p.touched);
+    const summary = positives
+      .map((p) => p.summary)
+      .filter(Boolean)
+      .join(" · ");
+    if (mnm.length) return { status: "must_not_miss", count: mnm.length, summary };
+    if (positives.length) return { status: "findings", count: positives.length, summary };
+    if (touched.length === parts.length && parts.length > 0)
+      return { status: "normal", count: 0, summary: "" };
+    if (touched.length > 0) return { status: "partial", count: 0, summary: "" };
+    return { status: "not_examined", count: 0, summary: "" };
+  };
+
+  // ── per-section "mark normal": reuse the exact whole-exam normal, filtered ──
+  const N = normalCvsExam();
+  const markGroupsNormal = (keys: string[], scalar: Partial<CvsExam>) => {
+    const codes = new Set(keys.flatMap((k) => group(k).map((x) => x.code)));
+    const others = findings.filter((o) => !codes.has(o.code));
+    const forGroups = (N.findings ?? []).filter((o) => codes.has(o.code));
+    onChange({ ...value, ...scalar, findings: [...others, ...forGroups] });
+  };
+
+  // ── Section 1 — Inspection & periphery ──
+  const s1Parts: Part[] = [
+    ...group("cvs_peripheral").map((x) => findingPart(x.code)),
+    ...group("cvs_inspection").map((x) => findingPart(x.code)),
+    {
+      present: !!value.pulseRhythm && value.pulseRhythm !== "regular",
+      touched: !!value.pulseRhythm,
+      summary: value.pulseRhythm ? label(value.pulseRhythm) : undefined,
+    },
+    {
+      present: !!value.pulseCharacter && value.pulseCharacter !== "normal",
+      touched: !!value.pulseCharacter,
+      summary:
+        value.pulseCharacter && value.pulseCharacter !== "normal"
+          ? `${label(value.pulseCharacter)} pulse`
+          : undefined,
+    },
+    {
+      present: !!value.pulseVolume && value.pulseVolume !== "normal",
+      touched: !!value.pulseVolume,
+      summary:
+        value.pulseVolume && value.pulseVolume !== "normal"
+          ? `${value.pulseVolume} volume`
+          : undefined,
+    },
+  ];
+  const s1Meta = sectionMeta(s1Parts);
+
+  // ── Section 2 — Palpation (precordium) ──
+  const s2Parts: Part[] = [
+    ...group("cvs_palpation").map((x) => findingPart(x.code)),
+    {
+      present: value.apexLocation === "displaced",
+      touched: value.apexLocation !== undefined,
+      summary:
+        value.apexLocation === "displaced"
+          ? `apex displaced${value.apexInterspace || value.apexLine ? ` (${[value.apexInterspace, value.apexLine].filter(Boolean).join(", ")})` : ""}`
+          : undefined,
+    },
+    {
+      present: !!value.apexCharacter && value.apexCharacter !== "normal",
+      touched: value.apexCharacter !== undefined,
+      summary:
+        value.apexCharacter && value.apexCharacter !== "normal"
+          ? `${label(value.apexCharacter)} apex`
+          : undefined,
+    },
+  ];
+  const s2Meta = sectionMeta(s2Parts);
+
+  // ── Section 3 — Auscultation (precordium) ──
+  const s3Parts: Part[] = [
+    {
+      present: !!value.s1 && value.s1 !== "normal",
+      touched: value.s1 !== undefined,
+      summary: value.s1 && value.s1 !== "normal" ? `S1 ${label(value.s1)}` : undefined,
+    },
+    {
+      present: !!value.s2 && value.s2 !== "normal",
+      touched: value.s2 !== undefined,
+      summary: value.s2 && value.s2 !== "normal" ? `S2 ${label(value.s2)}` : undefined,
+    },
+    {
+      present: addedSounds.length > 0,
+      touched: addedExamined,
+      summary: addedSounds.length ? addedSounds.join(", ") : undefined,
+    },
+    {
+      present: murmurs.length > 0,
+      touched: murmurs.length > 0,
+      summary: murmurs.length
+        ? `${murmurs.length} murmur${murmurs.length > 1 ? "s" : ""}`
+        : undefined,
+    },
+  ];
+  const s3Meta = sectionMeta(s3Parts);
+
+  // ── Section 4 — JVP, oedema & completion ──
+  const s4Parts: Part[] = [
+    {
+      present: value.jvp === "raised",
+      touched: value.jvp !== undefined,
+      summary:
+        value.jvp === "raised"
+          ? `JVP raised${value.jvpHeight ? ` (${value.jvpHeight})` : ""}`
+          : undefined,
+    },
+    ...group("cvs_completion").map((x) => findingPart(x.code)),
+  ];
+  const s4Meta = sectionMeta(s4Parts);
 
   return (
     <div className="flex flex-col gap-4">
@@ -238,17 +421,25 @@ export function CardiovascularExam({
         </span>
       </div>
 
-      <div className="flex flex-col gap-3.5">
-        {/* ── Stage 1 — Inspection & periphery ── */}
-        <StageCard
+      {/* Clinical sequence — collapsible SectionCards (collapsed by default) */}
+      <div className="flex flex-col gap-2.5">
+        {/* ── 1 — Inspection & periphery ── */}
+        <SectionCard
           index={1}
           title="Inspection & periphery"
-          complete={inspectionDone}
-          count={presentInGroups(["cvs_peripheral", "cvs_inspection"])}
-          hint="end of bed → hands → pulse → neck"
+          status={s1Meta.status}
+          count={s1Meta.count}
+          summary={s1Meta.summary}
+          onMarkNormal={() =>
+            markGroupsNormal(["cvs_peripheral", "cvs_inspection"], {
+              pulseRhythm: N.pulseRhythm,
+              pulseCharacter: N.pulseCharacter,
+              pulseVolume: N.pulseVolume,
+            })
+          }
         >
-          {group("cvs_peripheral").map(renderFinding)}
-          <div className="border-border/60 mt-1 flex flex-col gap-1.5 rounded-lg border-t pt-2.5">
+          {/* Pulse — graded selects */}
+          <div className="flex flex-col gap-1.5">
             <span className="text-muted-foreground text-[10px] font-medium tracking-wide uppercase">
               Pulse
             </span>
@@ -279,20 +470,54 @@ export function CardiovascularExam({
               }
             />
           </div>
-          <div className="border-border/60 mt-1 flex flex-col gap-1.5 rounded-lg border-t pt-2.5">
+
+          {/* Peripheral stigmata (binary signs incl. must-not-miss) → present cluster */}
+          {stigmataFindings.length ? (
+            <div className="border-border/60 flex flex-col gap-2 border-t pt-2.5">
+              <PresentCluster
+                label="Peripheral signs — tap any that are present"
+                options={stigmataFindings.map((x) => ({
+                  value: x.code,
+                  label: x.display,
+                  mustNotMiss: x.mustNotMiss,
+                }))}
+                present={stigmata.present}
+                examined={stigmata.examined}
+                onToggle={(code) => toggleCluster(code, stigmata.examined)}
+                onSetExamined={(ex) => setClusterExamined(stigmataCodes, ex)}
+              />
+            </div>
+          ) : null}
+
+          {/* Peripheral findings WITH value-sets (distress / IE stigmata / carotids / JVP waveform) */}
+          <div className="border-border/60 flex flex-col gap-2.5 border-t pt-2.5">
+            {renderCatalog(["cvs_peripheral"], stigmataCodes)}
+          </div>
+
+          {/* Inspection */}
+          <div className="border-border/60 flex flex-col gap-2.5 border-t pt-2.5">
             <span className="text-muted-foreground text-[10px] font-medium tracking-wide uppercase">
               Inspection
             </span>
-            {group("cvs_inspection").map(renderFinding)}
+            {renderCatalog(["cvs_inspection"])}
           </div>
-        </StageCard>
+        </SectionCard>
 
-        {/* ── Stage 2 — Palpation (precordium) ── */}
-        <StageCard
+        {/* ── 2 — Palpation (precordium) ── */}
+        <SectionCard
           index={2}
           title="Palpation — precordium"
-          complete={palpationDone}
-          hint="apex → heaves → thrills"
+          status={s2Meta.status}
+          count={s2Meta.count}
+          summary={s2Meta.summary}
+          onMarkNormal={() =>
+            markGroupsNormal(["cvs_palpation"], {
+              apexLocation: N.apexLocation,
+              apexCharacter: N.apexCharacter,
+              apexInterspace: undefined,
+              apexLine: undefined,
+            })
+          }
         >
           <Row
             title="Apex"
@@ -334,21 +559,29 @@ export function CardiovascularExam({
               onChange({ ...value, apexCharacter: (v as CvsExam["apexCharacter"]) ?? undefined })
             }
           />
-          <div className="border-border/60 mt-1 flex flex-col gap-1.5 rounded-lg border-t pt-2.5">
+          <div className="border-border/60 flex flex-col gap-2.5 border-t pt-2.5">
             <span className="text-muted-foreground text-[10px] font-medium tracking-wide uppercase">
               Heaves & thrills
             </span>
-            {group("cvs_palpation").map(renderFinding)}
+            {renderCatalog(["cvs_palpation"])}
           </div>
-        </StageCard>
+        </SectionCard>
 
-        {/* ── Stage 3 — Auscultation (precordium) ── */}
-        <StageCard
+        {/* ── 3 — Auscultation (precordium) ── */}
+        <SectionCard
           index={3}
           title="Auscultation — precordium"
-          complete={auscultationDone}
-          count={murmurs.length}
-          hint="heart sounds → murmurs → added"
+          status={s3Meta.status}
+          count={s3Meta.count}
+          summary={s3Meta.summary}
+          onMarkNormal={() =>
+            onChange({
+              ...value,
+              s1: N.s1,
+              s2: N.s2,
+              addedSounds: [],
+            })
+          }
         >
           {/* Heart sounds — laid out across the four auscultation areas as a crafted block */}
           <div className="border-border/70 bg-muted/15 flex flex-col gap-2 rounded-lg border p-2.5">
@@ -367,21 +600,20 @@ export function CardiovascularExam({
               value={value.s2}
               onPick={(v) => onChange({ ...value, s2: (v as HeartSound) ?? undefined })}
             />
-            <ChipRow label="Added sounds">
-              {CVS_ADDED_OPTS.map((s) => (
-                <ValueChip
-                  key={s}
-                  active={(value.addedSounds ?? []).includes(s)}
-                  onClick={() => toggleAdded(s)}
-                >
-                  {s}
-                </ValueChip>
-              ))}
-            </ChipRow>
           </div>
 
+          {/* Added sounds — "tap any present" cluster (examined ≠ all-negative) */}
+          <PresentCluster
+            label="Added sounds — tap any that are present"
+            options={CVS_ADDED_OPTS.map((s) => ({ value: s, label: s }))}
+            present={addedSounds}
+            examined={addedExamined}
+            onToggle={toggleAdded}
+            onSetExamined={(ex) => onChange({ ...value, addedSounds: ex ? addedSounds : [] })}
+          />
+
           {/* Murmurs — STRUCTURED (timing/location/radiation/intensity/pitch/manoeuvre) */}
-          <div className="flex flex-col gap-2">
+          <div className="border-border/60 flex flex-col gap-2 border-t pt-2.5">
             <div className="flex items-center justify-between">
               <span className="text-muted-foreground text-[10px] font-medium tracking-wide uppercase">
                 Murmurs — characterised structurally
@@ -463,15 +695,18 @@ export function CardiovascularExam({
               ))
             )}
           </div>
-        </StageCard>
+        </SectionCard>
 
-        {/* ── Stage 4 — JVP, oedema & completion ── */}
-        <StageCard
+        {/* ── 4 — JVP, oedema & completion ── */}
+        <SectionCard
           index={4}
           title="JVP, oedema & completion"
-          complete={completionDone}
-          count={presentInGroups(["cvs_completion"])}
-          hint="neck → lung bases → oedema"
+          status={s4Meta.status}
+          count={s4Meta.count}
+          summary={s4Meta.summary}
+          onMarkNormal={() =>
+            markGroupsNormal(["cvs_completion"], { jvp: N.jvp, jvpHeight: undefined })
+          }
         >
           <Row
             title="JVP"
@@ -502,16 +737,16 @@ export function CardiovascularExam({
               </span>
             </div>
           ) : null}
-          <div className="border-border/60 mt-1 flex flex-col gap-1.5 rounded-lg border-t pt-2.5">
+          <div className="border-border/60 flex flex-col gap-2.5 border-t pt-2.5">
             <span className="text-muted-foreground text-[10px] font-medium tracking-wide uppercase">
               Completion
             </span>
-            {group("cvs_completion").map(renderFinding)}
+            {renderCatalog(["cvs_completion"])}
           </div>
           <p className="text-muted-foreground text-[10px]">
             Clubbing, cyanosis & peripheral oedema are also captured in the general examination.
           </p>
-        </StageCard>
+        </SectionCard>
       </div>
 
       {/* Cluster → lesion (decision-support) */}

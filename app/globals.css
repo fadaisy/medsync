@@ -513,6 +513,11 @@
       transform: scale(0.96);
     }
   }
+  /* Keyboard focus ring (always shown, never motion-gated) — teal, design-system. */
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(20, 184, 166, 0.45);
+  }
 }
 
 /* Surfaces rise to meet the pointer. Border sharpens, shadow deepens. */
