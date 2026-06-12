@@ -3,6 +3,7 @@
 import type { SubmitClerkshipResult } from "../actions";
 import type { AbdoExam } from "@/lib/clerkship/exam/abdominal";
 import type { CvsExam } from "@/lib/clerkship/exam/cardiovascular";
+import type { NeuroExam } from "@/lib/clerkship/exam/neurological";
 import type { RespExam } from "@/lib/clerkship/exam/respiratory";
 import type { ExamObservation, RecordedVitals } from "@/lib/clerkship/exam/types";
 import type { RosObservation, RosScope } from "@/lib/clerkship/ros";
@@ -47,6 +48,7 @@ import { CardiovascularExam } from "./cardiovascular-exam";
 import { ExamSections } from "./exam-sections";
 import { FamilySocialSections } from "./family-social-sections";
 import { HistorySections } from "./history-sections";
+import { NeuroExamForm } from "./neuro-exam";
 import { ReasoningPanel } from "./reasoning-panel";
 import { RespiratoryExam } from "./respiratory-exam";
 import { RichTextEditor } from "./rich-text";
@@ -102,6 +104,7 @@ type FormState = {
   examRespiratory: RespExam;
   examCardiovascular: CvsExam;
   examAbdominal: AbdoExam;
+  examNeurological: NeuroExam;
   examSystems: Record<"cardiovascular" | "respiratory" | "abdominal" | "neurological", string>;
   summary: string;
   differential: DxRow[];
@@ -143,6 +146,7 @@ function buildClerkshipInput(f: FormState): unknown {
     examRespiratory: f.examRespiratory,
     examCardiovascular: f.examCardiovascular,
     examAbdominal: f.examAbdominal,
+    examNeurological: f.examNeurological,
     examSystems: f.examSystems,
     summary: f.summary,
     differential: f.differential.map((d) => ({
@@ -203,10 +207,13 @@ export function ClerkshipForm({
   const [examRespiratory, setExamRespiratory] = useState<RespExam>(e?.respiratory ?? {});
   const [examCardiovascular, setExamCardiovascular] = useState<CvsExam>(e?.cardiovascular ?? {});
   const [examAbdominal, setExamAbdominal] = useState<AbdoExam>(e?.abdominal ?? {});
+  const [examNeurological, setExamNeurological] = useState<NeuroExam>(e?.neurological ?? {});
   const [examSystem, setExamSystem] = useState<
     "general" | "cardiovascular" | "respiratory" | "abdominal" | "neurological"
   >("general");
-  const [examSystems, setExamSystems] = useState({
+  // Legacy free-text per-system notes (all four systems now have structured
+  // modules); kept read-only so any previously-saved text is preserved on re-save.
+  const [examSystems] = useState({
     cardiovascular: e?.systems?.cardiovascular ?? "",
     respiratory: e?.systems?.respiratory ?? "",
     abdominal: e?.systems?.abdominal ?? "",
@@ -260,6 +267,7 @@ export function ClerkshipForm({
     examRespiratory,
     examCardiovascular,
     examAbdominal,
+    examNeurological,
     examSystems,
     summary,
     differential,
@@ -498,7 +506,7 @@ export function ClerkshipForm({
                           ],
                           ["respiratory", "Respiratory", Object.keys(examRespiratory).length > 0],
                           ["abdominal", "Abdomen", Object.keys(examAbdominal).length > 0],
-                          ["neurological", "Neuro", !!examSystems.neurological],
+                          ["neurological", "Neuro", Object.keys(examNeurological).length > 0],
                         ] as const
                       ).map(([key, lbl, hasContent]) => (
                         <button
@@ -558,14 +566,7 @@ export function ClerkshipForm({
                         <AbdominalExam value={examAbdominal} onChange={setExamAbdominal} />
                       ) : null}
                       {examSystem === "neurological" ? (
-                        <Field label="Neurological examination">
-                          <RichTextEditor
-                            value={examSystems.neurological}
-                            onChange={(v) => setExamSystems({ ...examSystems, neurological: v })}
-                            placeholder="Higher function / cranial nerves / limbs / cerebellar… (structured module coming)"
-                            rows={5}
-                          />
-                        </Field>
+                        <NeuroExamForm value={examNeurological} onChange={setExamNeurological} />
                       ) : null}
                     </div>
                   </div>
@@ -784,6 +785,7 @@ export function ClerkshipForm({
             respiratory={examRespiratory}
             cardiovascular={examCardiovascular}
             abdominal={examAbdominal}
+            neurological={examNeurological}
             atSynthesis={step >= 4}
           />
         </aside>

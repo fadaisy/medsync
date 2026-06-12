@@ -5,6 +5,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Clerkship: Neurological Examination (structured grading + by-limb + localisation) — 2026-06-12
+
+The fourth + largest system-exam layer ([ADR 0070](docs/adr/0070-clerkship-neurological-examination.md)) — completes the Examination tab (all five systems now structured). Catalog supplied in full. **No migration.**
+
+- **Structured grading** — GCS E/V/M (≤8 surfaced as airway emergency; reuses gcsTotal), MRC power 0–5 (tap-to-cycle per limb), reflex grades (absent→clonus), tone, plantar (down/up/equivocal) — all tapped, never typed.
+- **By-limb (4-limb grid)** — power + per-limb tone/reflex; plantars per side; sensory by pattern (dermatomal/glove-and-stocking/sensory-level/hemisensory/dissociated) + Romberg; gait + DANISH cerebellar; meningism + cauda-equina screens; higher-function/cranial-nerve findings.
+- **Localisation engine** (`matchNeuroPatterns`, pure/TDD 15 tests) — UMN vs LMN + neuraxis level (cortical-stroke/cord/cerebellar/parkinsonism/neuropathy/myopathy/NMJ/radiculopathy/mononeuropathy); emergencies ranked first (GCS≤8 · raised ICP · cord compression · cauda equina · meningism · stroke); Uganda differentials woven in; transparent, multiple-on-ambiguity, never auto-diagnoses; consistent with the resus Disability step + confusion/focal_weakness maps.
+- Replaces the last free-text (Neuro) card in the Examination switcher; findings + localisation feed the live differential. tsc/eslint/build clean; **879 tests** (+15).
+
 ### Added — Clerkship: Abdominal Examination (tap-first IPPA by region + organs + PR + constellation) — 2026-06-12
 
 The third system-exam layer ([ADR 0069](docs/adr/0069-clerkship-abdominal-examination.md)) — catalog supplied in full. **No migration.**

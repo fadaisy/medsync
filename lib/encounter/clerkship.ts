@@ -14,6 +14,7 @@
 
 import type { AbdoExam } from "@/lib/clerkship/exam/abdominal";
 import type { CvsExam } from "@/lib/clerkship/exam/cardiovascular";
+import type { NeuroExam } from "@/lib/clerkship/exam/neurological";
 import type { RespExam } from "@/lib/clerkship/exam/respiratory";
 import type { ExamObservation, RecordedVitals } from "@/lib/clerkship/exam/types";
 import type { RosObservation, RosScope } from "@/lib/clerkship/ros";
@@ -222,6 +223,8 @@ export interface ClerkExamination {
   cardiovascular?: CvsExam;
   /** Structured abdominal examination (tap-first full IPPA by region + organs + PR). */
   abdominal?: AbdoExam;
+  /** Structured neurological examination (tap-first; structured grading + localisation). */
+  neurological?: NeuroExam;
   /** Per-system exam (free text or IPPA), hypothesis-driven. */
   systems?: Record<string, string>;
 }

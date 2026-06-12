@@ -2,6 +2,7 @@
 
 import type { AbdoExam } from "@/lib/clerkship/exam/abdominal";
 import type { CvsExam } from "@/lib/clerkship/exam/cardiovascular";
+import type { NeuroExam } from "@/lib/clerkship/exam/neurological";
 import type { RespExam } from "@/lib/clerkship/exam/respiratory";
 import type { ExamObservation } from "@/lib/clerkship/exam/types";
 import type { ScoredDifferential } from "@/lib/clerkship/reasoning/types";
@@ -23,6 +24,7 @@ import {
 import { abdoReasoningTokens } from "@/lib/clerkship/exam/abdominal";
 import { cvsReasoningTokens } from "@/lib/clerkship/exam/cardiovascular";
 import { examReasoningTokens } from "@/lib/clerkship/exam/engine";
+import { neuroReasoningTokens } from "@/lib/clerkship/exam/neurological";
 import { respReasoningTokens } from "@/lib/clerkship/exam/respiratory";
 import { diagnosticPausePrompts, liveReasoningForCodes } from "@/lib/clerkship/reasoning/engine";
 import { REASONING_MAPS } from "@/lib/clerkship/reasoning/maps";
@@ -60,6 +62,7 @@ export function ReasoningPanel({
   respiratory,
   cardiovascular,
   abdominal,
+  neurological,
   atSynthesis,
   onClose,
 }: {
@@ -73,6 +76,7 @@ export function ReasoningPanel({
   respiratory: RespExam;
   cardiovascular: CvsExam;
   abdominal: AbdoExam;
+  neurological: NeuroExam;
   atSynthesis: boolean;
   /** When hosted in a drawer, renders a close button; omit when docked as a rail. */
   onClose?: () => void;
@@ -92,6 +96,7 @@ export function ReasoningPanel({
     const resp = respReasoningTokens(respiratory);
     const cvs = cvsReasoningTokens(cardiovascular);
     const abdo = abdoReasoningTokens(abdominal);
+    const neuro = neuroReasoningTokens(neurological);
     return liveReasoningForCodes(REASONING_MAPS, pcCodes, {
       features,
       positives: [
@@ -101,6 +106,7 @@ export function ReasoningPanel({
         ...resp.positives,
         ...cvs.positives,
         ...abdo.positives,
+        ...neuro.positives,
       ],
       negatives: [
         ...ros.filter((o) => o.status === "denies").map((o) => o.symptomDisplay),
@@ -120,6 +126,7 @@ export function ReasoningPanel({
     respiratory,
     cardiovascular,
     abdominal,
+    neurological,
   ]);
 
   const fired = r.basis.length > 0;

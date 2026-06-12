@@ -490,6 +490,72 @@ export const ClerkshipInputSchema = z.object({
       })
       .optional();
   })(),
+  /** Structured neurological exam (tap-first; structured grading + localisation). */
+  examNeurological: (() => {
+    const limbRec = <T extends z.ZodTypeAny>(v: T) =>
+      z.object({ r_arm: v, l_arm: v, r_leg: v, l_leg: v }).partial().optional();
+    return z
+      .object({
+        findings: z
+          .array(
+            z.object({
+              code: z.string().max(80),
+              group: z.string().max(40),
+              display: z.string().max(160),
+              state: z.enum(["present", "absent", "not_examined"]),
+              values: z.array(z.string().max(120)).max(20).optional(),
+              note: z.string().max(1000).optional(),
+            }),
+          )
+          .max(60)
+          .optional(),
+        gcsE: z.number().min(1).max(4).optional(),
+        gcsV: z.number().min(1).max(5).optional(),
+        gcsM: z.number().min(1).max(6).optional(),
+        wasting: z.boolean().optional(),
+        fasciculations: z.boolean().optional(),
+        tone: limbRec(z.enum(["normal", "spastic", "rigid", "flaccid"])),
+        power: limbRec(z.number().min(0).max(5)),
+        powerPattern: z.enum(["pyramidal", "proximal", "distal", "global", "focal"]).optional(),
+        reflexes: limbRec(z.enum(["absent", "reduced", "normal", "brisk", "clonus"])),
+        plantar: z
+          .object({
+            right: z.enum(["down", "up", "equivocal"]),
+            left: z.enum(["down", "up", "equivocal"]),
+          })
+          .partial()
+          .optional(),
+        sensoryPattern: z
+          .enum([
+            "normal",
+            "dermatomal",
+            "single_nerve",
+            "glove_and_stocking",
+            "sensory_level",
+            "hemisensory",
+            "dissociated",
+          ])
+          .optional(),
+        romberg: z.enum(["positive", "negative"]).optional(),
+        gait: z
+          .enum([
+            "normal",
+            "hemiplegic",
+            "spastic",
+            "parkinsonian",
+            "ataxic",
+            "high_stepping",
+            "waddling",
+            "antalgic",
+            "apraxic",
+          ])
+          .optional(),
+        cerebellarSigns: z.array(z.string().max(40)).max(6).optional(),
+        meningism: z.array(z.string().max(40)).max(3).optional(),
+        caudaEquina: z.array(z.string().max(50)).max(4).optional(),
+      })
+      .optional();
+  })(),
   examSystems: z
     .object({
       cardiovascular: z.string().max(2000).optional(),
@@ -602,6 +668,10 @@ export function clerkshipInputToClerkship(input: ClerkshipInput): Clerkship {
     abdominal:
       input.examAbdominal && Object.values(input.examAbdominal).some((v) => v !== undefined)
         ? input.examAbdominal
+        : undefined,
+    neurological:
+      input.examNeurological && Object.values(input.examNeurological).some((v) => v !== undefined)
+        ? input.examNeurological
         : undefined,
     systems: input.examSystems ? prune({ ...input.examSystems }) : undefined,
   });
