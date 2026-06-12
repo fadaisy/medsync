@@ -319,6 +319,19 @@ export function ClerkshipForm({
   const [baseline, setBaseline] = useState(() => JSON.stringify(buildClerkshipInput(state)));
   const dirty = JSON.stringify(buildInput()) !== baseline;
 
+  // No-lost-work guard (W3): warn before the tab is closed/reloaded/navigated
+  // away while there are unsaved changes. Robust + PHI-safe (nothing persisted);
+  // the browser shows its native "Leave site? changes may not be saved" prompt.
+  useEffect(() => {
+    if (!dirty) return;
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, [dirty]);
+
   function save(finalise: boolean) {
     setResult(null);
     startTransition(async () => {
@@ -737,7 +750,12 @@ export function ClerkshipForm({
 
             {/* Footer — status + paging */}
             <div className="border-border/60 bg-muted/30 flex flex-wrap items-center gap-3 border-t px-4 py-3 sm:px-5">
-              {result && !result.ok ? (
+              {pending ? (
+                <span className="text-muted-foreground inline-flex items-center gap-1.5 text-[12px]">
+                  <LoaderCircleIcon className="size-3.5 motion-safe:animate-spin" aria-hidden />
+                  Saving…
+                </span>
+              ) : result && !result.ok ? (
                 <span className="text-destructive scale-in text-[12px]" role="alert">
                   {result.error}
                 </span>
