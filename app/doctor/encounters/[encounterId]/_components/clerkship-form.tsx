@@ -21,7 +21,7 @@ import type {
   ClerkSocial,
 } from "@/lib/encounter/clerkship";
 import type { ComponentType } from "react";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import {
   ActivityIcon,
   BrainIcon,
@@ -29,6 +29,7 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   ClipboardCheckIcon,
+  CopyIcon,
   ListChecksIcon,
   LoaderCircleIcon,
   NotebookPenIcon,
@@ -47,6 +48,7 @@ import { ICD10_CODES, LOINC_CODES } from "@/lib/encounter/reference-codes";
 import { submitClerkshipAction } from "../actions";
 import { AbdominalExam } from "./abdominal-exam";
 import { CardiovascularExam } from "./cardiovascular-exam";
+import { CodeCombobox } from "./code-combobox";
 import { EvfExamForm } from "./evf-exam";
 import { ExamSections } from "./exam-sections";
 import { FamilySocialSections } from "./family-social-sections";
@@ -258,6 +260,21 @@ export function ClerkshipForm({
   const [safetyNetting, setSafetyNetting] = useState(s?.safetyNetting ?? "");
 
   const [step, setStep] = useState(0);
+
+  // Jump-to-tab keyboard shortcuts (Alt+1…6) — fast tab switching on a busy ward.
+  // Alt avoids clashing with text entry and the browser's Cmd/Ctrl+number.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!e.altKey || e.metaKey || e.ctrlKey) return;
+      const n = Number(e.key);
+      if (Number.isInteger(n) && n >= 1 && n <= TABS.length) {
+        e.preventDefault();
+        setStep(n - 1);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
   const [finalised, setFinalised] = useState(false);
   const [pending, startTransition] = useTransition();
   const [result, setResult] = useState<SubmitClerkshipResult | null>(null);
@@ -318,21 +335,6 @@ export function ClerkshipForm({
 
   return (
     <form onSubmit={(ev) => ev.preventDefault()}>
-      <datalist id="icd10-codes">
-        {ICD10_CODES.map((c) => (
-          <option key={c.code} value={c.code}>
-            {c.display}
-          </option>
-        ))}
-      </datalist>
-      <datalist id="loinc-codes">
-        {LOINC_CODES.map((c) => (
-          <option key={c.code} value={c.code}>
-            {c.display}
-          </option>
-        ))}
-      </datalist>
-
       <div className="xl:grid xl:grid-cols-[minmax(0,1fr)_22rem] xl:items-start xl:gap-6">
         <div className="min-w-0">
           <div className="border-border bg-card overflow-hidden rounded-xl border shadow-sm">
@@ -368,6 +370,8 @@ export function ClerkshipForm({
                     type="button"
                     onClick={() => setStep(i)}
                     aria-current={active ? "step" : undefined}
+                    aria-keyshortcuts={`Alt+${i + 1}`}
+                    title={`${t.label} (Alt+${i + 1})`}
                     className={`tap relative -mb-px inline-flex items-center gap-1.5 rounded-t-md border-b-2 border-transparent px-3 py-2.5 text-[13px] font-medium whitespace-nowrap transition-colors duration-200 ${
                       active
                         ? "text-teal-700 dark:text-teal-300"
@@ -632,11 +636,11 @@ export function ClerkshipForm({
                               value={row.text}
                               onChange={(ev) => set({ ...row, text: ev.target.value })}
                             />
-                            <Input
-                              list="icd10-codes"
+                            <CodeCombobox
+                              options={ICD10_CODES}
                               placeholder="ICD-10"
                               value={row.icd10}
-                              onChange={(ev) => set({ ...row, icd10: ev.target.value })}
+                              onChange={(v) => set({ ...row, icd10: v })}
                             />
                             <label className="text-muted-foreground inline-flex items-center gap-1.5 text-[11.5px]">
                               <input
@@ -679,11 +683,11 @@ export function ClerkshipForm({
                               value={row.text}
                               onChange={(ev) => set({ ...row, text: ev.target.value })}
                             />
-                            <Input
-                              list="loinc-codes"
+                            <CodeCombobox
+                              options={LOINC_CODES}
                               placeholder="LOINC"
                               value={row.loinc}
-                              onChange={(ev) => set({ ...row, loinc: ev.target.value })}
+                              onChange={(v) => set({ ...row, loinc: v })}
                             />
                             <Input
                               placeholder="Justification"
@@ -863,6 +867,17 @@ function RepeatList<T>({
       {rows.map((row, i) => (
         <div key={i} className="scale-in flex flex-wrap items-center gap-2">
           {render(row, (next) => onChange(rows.map((r, j) => (j === i ? next : r))))}
+          <button
+            type="button"
+            aria-label="Duplicate"
+            title="Duplicate"
+            className="tap text-muted-foreground hover:text-foreground rounded-md p-0.5 transition-colors"
+            onClick={() =>
+              onChange([...rows.slice(0, i + 1), { ...rows[i]! }, ...rows.slice(i + 1)])
+            }
+          >
+            <CopyIcon className="size-3.5" aria-hidden />
+          </button>
           <button
             type="button"
             aria-label="Remove"
