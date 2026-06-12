@@ -5,6 +5,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Changed — Clerkship: full-bleed encounter workspace + docked reasoning rail — 2026-06-12
+
+The encounter clerking page now runs **full-bleed** like the resus/triage desks — the doctor sidebar + top bar are hidden (`FullBleedGate` extended to `/doctor/encounters/[id]`), replaced by a focused workspace top bar (back to Encounters · patient · hospital/cadre · sign out). The extra width lets **Clinical reasoning dock as its own right-hand rail** (sticky; stacks below the form on narrow screens) instead of the slide-over drawer — live + non-blocking. No migration.
+
 ### Changed — Clerkship: Examination UI declutter + GCS by component — 2026-06-12
 
 - **Clinical reasoning moved to a slide-over drawer** — toggled by a floating "Clinical reasoning" button; non-modal (stays live while you keep tapping the form). The clerkship form now uses the **full width** (no squeezed right column), un-cramming the Examination tab.
