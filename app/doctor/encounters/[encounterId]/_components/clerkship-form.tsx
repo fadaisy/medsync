@@ -3,6 +3,7 @@
 import type { SubmitClerkshipResult } from "../actions";
 import type { AbdoExam } from "@/lib/clerkship/exam/abdominal";
 import type { CvsExam } from "@/lib/clerkship/exam/cardiovascular";
+import type { EvfExam } from "@/lib/clerkship/exam/endo-vascular-foot";
 import type { MskExam } from "@/lib/clerkship/exam/musculoskeletal";
 import type { NeuroExam } from "@/lib/clerkship/exam/neurological";
 import type { RespExam } from "@/lib/clerkship/exam/respiratory";
@@ -46,6 +47,7 @@ import { ICD10_CODES, LOINC_CODES } from "@/lib/encounter/reference-codes";
 import { submitClerkshipAction } from "../actions";
 import { AbdominalExam } from "./abdominal-exam";
 import { CardiovascularExam } from "./cardiovascular-exam";
+import { EvfExamForm } from "./evf-exam";
 import { ExamSections } from "./exam-sections";
 import { FamilySocialSections } from "./family-social-sections";
 import { HistorySections } from "./history-sections";
@@ -108,6 +110,7 @@ type FormState = {
   examAbdominal: AbdoExam;
   examNeurological: NeuroExam;
   examMusculoskeletal: MskExam;
+  examEndoVascularFoot: EvfExam;
   examSystems: Record<"cardiovascular" | "respiratory" | "abdominal" | "neurological", string>;
   summary: string;
   differential: DxRow[];
@@ -151,6 +154,7 @@ function buildClerkshipInput(f: FormState): unknown {
     examAbdominal: f.examAbdominal,
     examNeurological: f.examNeurological,
     examMusculoskeletal: f.examMusculoskeletal,
+    examEndoVascularFoot: f.examEndoVascularFoot,
     examSystems: f.examSystems,
     summary: f.summary,
     differential: f.differential.map((d) => ({
@@ -213,8 +217,17 @@ export function ClerkshipForm({
   const [examAbdominal, setExamAbdominal] = useState<AbdoExam>(e?.abdominal ?? {});
   const [examNeurological, setExamNeurological] = useState<NeuroExam>(e?.neurological ?? {});
   const [examMusculoskeletal, setExamMusculoskeletal] = useState<MskExam>(e?.musculoskeletal ?? {});
+  const [examEndoVascularFoot, setExamEndoVascularFoot] = useState<EvfExam>(
+    e?.endoVascularFoot ?? {},
+  );
   const [examSystem, setExamSystem] = useState<
-    "general" | "cardiovascular" | "respiratory" | "abdominal" | "neurological" | "musculoskeletal"
+    | "general"
+    | "cardiovascular"
+    | "respiratory"
+    | "abdominal"
+    | "neurological"
+    | "musculoskeletal"
+    | "endovascular"
   >("general");
   // Legacy free-text per-system notes (all four systems now have structured
   // modules); kept read-only so any previously-saved text is preserved on re-save.
@@ -274,6 +287,7 @@ export function ClerkshipForm({
     examAbdominal,
     examNeurological,
     examMusculoskeletal,
+    examEndoVascularFoot,
     examSystems,
     summary,
     differential,
@@ -514,6 +528,11 @@ export function ClerkshipForm({
                           ["abdominal", "Abdomen", Object.keys(examAbdominal).length > 0],
                           ["neurological", "Neuro", Object.keys(examNeurological).length > 0],
                           ["musculoskeletal", "MSK", Object.keys(examMusculoskeletal).length > 0],
+                          [
+                            "endovascular",
+                            "Endo / Vasc / Foot",
+                            Object.keys(examEndoVascularFoot).length > 0,
+                          ],
                         ] as const
                       ).map(([key, lbl, hasContent]) => (
                         <button
@@ -579,6 +598,12 @@ export function ClerkshipForm({
                         <MskExamForm
                           value={examMusculoskeletal}
                           onChange={setExamMusculoskeletal}
+                        />
+                      ) : null}
+                      {examSystem === "endovascular" ? (
+                        <EvfExamForm
+                          value={examEndoVascularFoot}
+                          onChange={setExamEndoVascularFoot}
                         />
                       ) : null}
                     </div>
@@ -800,6 +825,7 @@ export function ClerkshipForm({
             abdominal={examAbdominal}
             neurological={examNeurological}
             musculoskeletal={examMusculoskeletal}
+            endoVascularFoot={examEndoVascularFoot}
             atSynthesis={step >= 4}
           />
         </aside>

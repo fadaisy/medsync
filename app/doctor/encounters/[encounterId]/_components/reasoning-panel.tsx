@@ -2,6 +2,7 @@
 
 import type { AbdoExam } from "@/lib/clerkship/exam/abdominal";
 import type { CvsExam } from "@/lib/clerkship/exam/cardiovascular";
+import type { EvfExam } from "@/lib/clerkship/exam/endo-vascular-foot";
 import type { MskExam } from "@/lib/clerkship/exam/musculoskeletal";
 import type { NeuroExam } from "@/lib/clerkship/exam/neurological";
 import type { RespExam } from "@/lib/clerkship/exam/respiratory";
@@ -24,6 +25,7 @@ import {
 
 import { abdoReasoningTokens } from "@/lib/clerkship/exam/abdominal";
 import { cvsReasoningTokens } from "@/lib/clerkship/exam/cardiovascular";
+import { evfReasoningTokens } from "@/lib/clerkship/exam/endo-vascular-foot";
 import { examReasoningTokens } from "@/lib/clerkship/exam/engine";
 import { mskReasoningTokens } from "@/lib/clerkship/exam/musculoskeletal";
 import { neuroReasoningTokens } from "@/lib/clerkship/exam/neurological";
@@ -66,6 +68,7 @@ export function ReasoningPanel({
   abdominal,
   neurological,
   musculoskeletal,
+  endoVascularFoot,
   atSynthesis,
   onClose,
 }: {
@@ -81,6 +84,7 @@ export function ReasoningPanel({
   abdominal: AbdoExam;
   neurological: NeuroExam;
   musculoskeletal: MskExam;
+  endoVascularFoot: EvfExam;
   atSynthesis: boolean;
   /** When hosted in a drawer, renders a close button; omit when docked as a rail. */
   onClose?: () => void;
@@ -102,6 +106,7 @@ export function ReasoningPanel({
     const abdo = abdoReasoningTokens(abdominal);
     const neuro = neuroReasoningTokens(neurological);
     const msk = mskReasoningTokens(musculoskeletal);
+    const evf = evfReasoningTokens(endoVascularFoot);
     return liveReasoningForCodes(REASONING_MAPS, pcCodes, {
       features,
       positives: [
@@ -113,6 +118,7 @@ export function ReasoningPanel({
         ...abdo.positives,
         ...neuro.positives,
         ...msk.positives,
+        ...evf.positives,
       ],
       negatives: [
         ...ros.filter((o) => o.status === "denies").map((o) => o.symptomDisplay),
@@ -134,6 +140,7 @@ export function ReasoningPanel({
     abdominal,
     neurological,
     musculoskeletal,
+    endoVascularFoot,
   ]);
 
   const fired = r.basis.length > 0;

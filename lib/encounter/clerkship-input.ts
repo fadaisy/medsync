@@ -1,6 +1,6 @@
 import type { RosObservation } from "@/lib/clerkship/ros";
 import type { CapturedSymptom } from "@/lib/clerkship/symptom-engine";
-import type { Clerkship } from "@/lib/encounter/clerkship";
+import type { ClerkExamination, Clerkship } from "@/lib/encounter/clerkship";
 import { z } from "zod";
 
 import { renderSymptomProse } from "@/lib/clerkship/symptom-engine";
@@ -611,6 +611,75 @@ export const ClerkshipInputSchema = z.object({
       backRedFlags: z.array(z.string().max(60)).max(20).optional(),
     })
     .optional(),
+  /** Endocrine · vascular · diabetic-foot exam pack. */
+  examEndoVascularFoot: z
+    .object({
+      findings: z
+        .array(
+          z.object({
+            code: z.string().max(80),
+            group: z.string().max(40),
+            display: z.string().max(160),
+            state: z.enum(["present", "absent", "not_examined"]),
+            values: z.array(z.string().max(120)).max(20).optional(),
+            note: z.string().max(1000).optional(),
+          }),
+        )
+        .max(40)
+        .optional(),
+      thyroid: z
+        .object({
+          status: z.enum(["euthyroid", "hyperthyroid", "hypothyroid"]).optional(),
+          gland: z.array(z.string().max(40)).max(10).optional(),
+          eyeSigns: z.array(z.string().max(40)).max(8).optional(),
+        })
+        .optional(),
+      vascular: z
+        .object({
+          arterialLook: z.array(z.string().max(60)).max(10).optional(),
+          pulses: z
+            .record(
+              z.string().max(30),
+              z.record(z.string().max(8), z.enum(["present", "reduced", "absent"])),
+            )
+            .optional(),
+          bruits: z.array(z.string().max(30)).max(6).optional(),
+          buergers: z.enum(["positive", "negative"]).optional(),
+          abpi: z
+            .object({ right: z.number().min(0).max(3), left: z.number().min(0).max(3) })
+            .partial()
+            .optional(),
+          acuteIschaemia: z.array(z.string().max(30)).max(6).optional(),
+          restPain: z.boolean().optional(),
+          venousLook: z.array(z.string().max(60)).max(8).optional(),
+          dvtSigns: z.boolean().optional(),
+        })
+        .optional(),
+      foot: (() => {
+        const sideObj = z
+          .object({
+            skin: z.array(z.string().max(60)).max(10).optional(),
+            deformity: z.array(z.string().max(60)).max(6).optional(),
+            monofilament: z.record(z.string().max(20), z.boolean()).optional(),
+            vibration: z.enum(["felt", "reduced", "absent"]).optional(),
+            pulsesPresent: z.boolean().optional(),
+            warmCharcot: z.boolean().optional(),
+            infection: z.array(z.string().max(60)).max(8).optional(),
+          })
+          .optional();
+        return z
+          .object({
+            right: sideObj,
+            left: sideObj,
+            priorUlcerOrAmputation: z.boolean().optional(),
+            endStageRenal: z.boolean().optional(),
+            systemicSepsis: z.boolean().optional(),
+            confirmedRisk: z.enum(["very_low", "low", "moderate", "high", "active"]).optional(),
+          })
+          .optional();
+      })(),
+    })
+    .optional(),
   examSystems: z
     .object({
       cardiovascular: z.string().max(2000).optional(),
@@ -732,6 +801,13 @@ export function clerkshipInputToClerkship(input: ClerkshipInput): Clerkship {
       input.examMusculoskeletal &&
       Object.values(input.examMusculoskeletal).some((v) => v !== undefined)
         ? input.examMusculoskeletal
+        : undefined,
+    endoVascularFoot:
+      input.examEndoVascularFoot &&
+      Object.values(input.examEndoVascularFoot).some((v) => v !== undefined)
+        ? // zod infers string-keyed records for the pulse/monofilament maps; the
+          // domain type narrows the keys (NamedPulse/FootSite). Values are identical.
+          (input.examEndoVascularFoot as ClerkExamination["endoVascularFoot"])
         : undefined,
     systems: input.examSystems ? prune({ ...input.examSystems }) : undefined,
   });

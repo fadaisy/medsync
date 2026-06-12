@@ -5,6 +5,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Clerkship: Endocrine · Vascular · Diabetic-Foot exam pack (NCD) — 2026-06-12
+
+The NCD-focused exam pack ([ADR 0072](docs/adr/0072-clerkship-endocrine-vascular-foot-examination.md)) — one card, three sub-tabs (Thyroid status / Peripheral vascular / **Diabetic foot**). Catalog supplied in full. **No migration.**
+
+- **Diabetic foot (the centrepiece)** — per-foot skin/deformity + a **10 g monofilament map** + vibration + foot pulses + Charcot/infection; yields an **IWGDF 2023 risk category** (web-verified cited constants — 0/1/2/3 + active) that is **clinician-confirmed (never auto-assigned)** and feeds the monitoring re-exam interval (engine stubbed → honest state).
+- **Peripheral vascular** — arterial look, pulses by name × side (tap-to-cycle), **ABPI with verified interpretation** (NICE CG147: <0.9 PAD · <0.5 critical · >1.4 calcified→TBI), Buerger's, the **6 P's** of acute limb ischaemia, venous + DVT flag.
+- **Thyroid status** — peripheral/eyes/gland clusters → hyper/hypo + storm/myxoedema/compressive/malignant flags.
+- **Cluster engine** (pure/TDD, 21 tests): acute limb ischaemia / diabetic-foot sepsis / acute Charcot emergencies; osteomyelitis; neuropathic-vs-ischaemic foot; arterial-vs-venous ulcer — transparent, never auto-diagnoses. Reuses neuro sensory + CVS pulses; feeds the live differential. tsc/eslint/build clean; **916 tests** (+21).
+
 ### Added — Clerkship: Musculoskeletal Examination (GALS + regional + arthropathy patterns) — 2026-06-12
 
 The fifth system-exam layer ([ADR 0071](docs/adr/0071-clerkship-musculoskeletal-examination.md)) — a new sixth card (MSK) in the Examination switcher. Catalog supplied in full. **No migration.**
