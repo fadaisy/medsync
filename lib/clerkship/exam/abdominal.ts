@@ -401,60 +401,76 @@ const REGION_LABEL: Record<AbdoRegion, string> = Object.fromEntries(
   ABDO_REGIONS.map((r) => [r.region, r.short]),
 ) as Record<AbdoRegion, string>;
 
-/** Readable abdominal prose — regions, organs, percussion, PR honesty, patterns. */
+/** Grammatical list join: "a", "a and b", "a, b and c". */
+const join = (xs: string[]): string =>
+  xs.length <= 1 ? (xs[0] ?? "") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`;
+
+/**
+ * Flowing clinical narrative of the abdominal exam — present findings (with their
+ * recorded values), structured organs and percussion, then PR honesty and the
+ * pattern(s) to consider. Same facts as the structured capture, narrated in prose.
+ */
 export function renderAbdoProse(c: AbdoExam): string {
-  const parts: string[] = [];
+  const clauses: string[] = [];
+
   const present = (c.findings ?? []).filter((o) => o.state === "present");
   if (present.length)
-    parts.push(
-      present
-        .map((o) =>
+    clauses.push(
+      `there is ${join(
+        present.map((o) =>
           o.values?.length
             ? `${o.display.toLowerCase()} (${o.values.join(", ")})`
             : o.display.toLowerCase(),
-        )
-        .join(", ") + ".",
+        ),
+      )}`,
     );
 
   const tender = Object.entries(c.tenderness ?? {});
   if (tender.length)
-    parts.push(
-      `Tender ${tender
-        .map(([r, t]) => `${REGION_LABEL[r as AbdoRegion]}${t === "deep" ? " (deep)" : ""}`)
-        .join(", ")}.`,
+    clauses.push(
+      `the abdomen is tender in the ${join(
+        tender.map(([r, t]) => `${REGION_LABEL[r as AbdoRegion]}${t === "deep" ? " (deep)" : ""}`),
+      )}`,
     );
   const guard = Object.entries(c.guarding ?? {});
   if (guard.length)
-    parts.push(
-      `Guarding ${guard.map(([r, g]) => `${REGION_LABEL[r as AbdoRegion]} (${g})`).join(", ")}.`,
+    clauses.push(
+      `with guarding in the ${join(
+        guard.map(([r, g]) => `${REGION_LABEL[r as AbdoRegion]} (${g})`),
+      )}`,
     );
   if (c.rigidity && c.rigidity !== "none")
-    parts.push(c.rigidity === "board_like" ? "Board-like rigidity." : "Localised rigidity.");
-  if (c.rebound) parts.push("Rebound tenderness.");
-  if (c.percussionTenderness) parts.push("Percussion tenderness.");
+    clauses.push(
+      c.rigidity === "board_like" ? "there is board-like rigidity" : "there is localised rigidity",
+    );
+  if (c.rebound) clauses.push("there is rebound tenderness");
+  if (c.percussionTenderness) clauses.push("there is percussion tenderness");
 
   if (c.liver?.palpable) {
     const bits = [
       c.liver.span ? `${c.liver.span} below the costal margin` : undefined,
-      c.liver.edge ? `${c.liver.edge} edge` : undefined,
-      c.liver.surface === "craggy" ? "craggy surface" : undefined,
+      c.liver.edge ? `with a ${c.liver.edge} edge` : undefined,
+      c.liver.surface === "craggy" ? "and a craggy surface" : undefined,
       c.liver.tender ? "tender" : undefined,
       c.liver.pulsatile ? "pulsatile" : undefined,
-    ].filter(Boolean);
-    parts.push(`Liver palpable${bits.length ? ` (${bits.join(", ")})` : ""}.`);
+    ].filter((x): x is string => !!x);
+    clauses.push(`the liver is palpable${bits.length ? ` ${bits.join(", ")}` : ""}`);
   }
   if (c.spleen?.palpable)
-    parts.push(
-      `Spleen palpable${c.spleen.extent ? ` (${c.spleen.extent}${c.spleen.notch ? ", notch felt" : ""})` : ""}.`,
+    clauses.push(
+      `the spleen is palpable${
+        c.spleen.extent ? ` ${c.spleen.extent}${c.spleen.notch ? " with a notch felt" : ""}` : ""
+      }`,
     );
   if (c.kidneys?.leftBallotable || c.kidneys?.rightBallotable) {
-    const sides = [c.kidneys.rightBallotable ? "right" : "", c.kidneys.leftBallotable ? "left" : ""]
-      .filter(Boolean)
-      .join(" + ");
-    parts.push(`Ballotable ${sides} kidney.`);
+    const sides = [
+      c.kidneys.rightBallotable ? "right" : "",
+      c.kidneys.leftBallotable ? "left" : "",
+    ].filter(Boolean);
+    clauses.push(`the ${join(sides)} kidney is ballotable`);
   }
-  if (c.aortaExpansile) parts.push("Expansile pulsatile aorta.");
-  if (c.bladderPalpable) parts.push("Bladder palpable (retention).");
+  if (c.aortaExpansile) clauses.push("the aorta is expansile and pulsatile");
+  if (c.bladderPalpable) clauses.push("the bladder is palpable, suggesting retention");
   for (const m of c.masses ?? []) {
     const bits = [
       m.region ? REGION_LABEL[m.region] : undefined,
@@ -462,31 +478,37 @@ export function renderAbdoProse(c: AbdoExam): string {
       m.surface,
       m.consistency,
       m.mobility,
-      m.pulsatileExpansile ? "expansile pulsatile" : undefined,
+      m.pulsatileExpansile ? "expansile and pulsatile" : undefined,
       m.tender ? "tender" : undefined,
-    ].filter(Boolean);
-    parts.push(`Mass: ${bits.join(", ")}.`);
+    ].filter((x): x is string => !!x);
+    clauses.push(`there is a mass${bits.length ? ` (${bits.join(", ")})` : ""}`);
   }
 
-  if (c.liverDullnessLost) parts.push("Loss of liver dullness.");
-  if (c.shiftingDullness) parts.push("Shifting dullness.");
-  if (c.fluidThrill) parts.push("Fluid thrill.");
-  if (c.bowelSounds && c.bowelSounds !== "normal")
-    parts.push(c.bowelSounds === "tinkling" ? "Tinkling bowel sounds." : "Absent bowel sounds.");
-  if (c.bowelSounds === "normal") parts.push("Bowel sounds normal.");
-  if (c.bruits?.length) parts.push(`Bruits: ${c.bruits.join(", ")}.`);
-  if (c.succussionSplash) parts.push("Succussion splash.");
+  if (c.liverDullnessLost) clauses.push("there is loss of liver dullness");
+  if (c.shiftingDullness) clauses.push("there is shifting dullness");
+  if (c.fluidThrill) clauses.push("there is a fluid thrill");
+  if (c.bowelSounds === "tinkling") clauses.push("bowel sounds are tinkling");
+  else if (c.bowelSounds === "absent") clauses.push("bowel sounds are absent");
+  else if (c.bowelSounds === "normal") clauses.push("bowel sounds are normal");
+  if (c.bruits?.length) clauses.push(`there are ${join(c.bruits)} bruits`);
+  if (c.succussionSplash) clauses.push("there is a succussion splash");
 
   // PR — stated honestly whenever the exam has content
   if (c.pr?.state === "examined")
-    parts.push(`PR: ${c.pr.findings?.length ? c.pr.findings.join(", ") : "no abnormality"}.`);
-  else if (c.pr?.state === "declined") parts.push("PR: offered, declined.");
-  else if (parts.length) parts.push("PR: not examined.");
+    clauses.push(
+      `on PR there is ${c.pr.findings?.length ? join(c.pr.findings) : "no abnormality"}`,
+    );
+  else if (c.pr?.state === "declined") clauses.push("PR was offered but declined");
+  else if (clauses.length) clauses.push("PR was not examined");
+
+  if (!clauses.length) return "";
+
+  let prose = `On abdominal examination, ${clauses.join("; ")}.`;
 
   const patterns = matchAbdoPatterns(c);
   if (patterns.length)
-    parts.push(`Pattern(s) to consider: ${patterns.map((p) => p.label).join(" / ")}.`);
-  return parts.length ? `Abdominal examination: ${parts.join(" ")}` : "";
+    prose += ` Pattern(s) to consider: ${patterns.map((p) => p.label).join(" / ")}.`;
+  return prose;
 }
 
 /** Abdominal findings + constellation → reasoning tokens (feed the differential). */

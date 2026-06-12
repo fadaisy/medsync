@@ -78,7 +78,11 @@ export interface VascularExam {
   pulses?: Partial<Record<NamedPulse, Partial<Record<Side, PulseGrade>>>>;
   bruits?: string[];
   buergers?: "positive" | "negative";
-  /** ABPI value if measured (interpreted via cited thresholds). */
+  /** Brachial systolic BP (mmHg) — the higher arm; the ABPI denominator. */
+  brachialSystolic?: number;
+  /** Ankle systolic BP (mmHg) per side — the ABPI numerator. */
+  ankleSystolic?: Partial<Record<Side, number>>;
+  /** ABPI per side — AUTO-CALCULATED from ankle ÷ brachial (interpreted via cited thresholds). */
   abpi?: Partial<Record<Side, number>>;
   /** The 6 P's of acute limb ischaemia. */
   acuteIschaemia?: string[];
@@ -111,6 +115,16 @@ export const SIX_PS = [
   "Perishingly cold",
 ] as const;
 export const ARTERIAL_BRUIT_OPTS = ["carotid", "abdominal aortic", "femoral", "renal"] as const;
+
+/** ABPI = ankle systolic ÷ brachial systolic (highest arm), rounded to 2dp.
+ *  Auto-calculated from the measured pressures; undefined if either is missing. */
+export function computeAbpi(
+  ankleSys: number | undefined,
+  brachialSys: number | undefined,
+): number | undefined {
+  if (ankleSys == null || brachialSys == null || brachialSys <= 0) return undefined;
+  return Math.round((ankleSys / brachialSys) * 100) / 100;
+}
 
 /** ABPI interpretation — VERIFIED (NICE CG147 + Wounds UK). */
 export type AbpiBand = "calcified" | "normal" | "pad" | "critical";
@@ -521,56 +535,67 @@ export function matchEvfPatterns(c: EvfExam): EvfPattern[] {
 }
 
 // ── Prose + reasoning tokens ──
-const pulseSummary = (v: VascularExam | undefined): string | null => {
+const evfListJoin = (xs: string[]): string =>
+  xs.length <= 1 ? (xs[0] ?? "") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`;
+
+/** Flowing description of any abnormal pulses, e.g. "the right dorsalis pedis is reduced and the left popliteal is absent". */
+const pulseNarrative = (v: VascularExam | undefined): string | null => {
   const abn: string[] = [];
   for (const p of NAMED_PULSES) {
     const rec = v?.pulses?.[p];
     if (!rec) continue;
     for (const side of ["right", "left"] as Side[]) {
       const g = rec[side];
-      if (g && g !== "present") abn.push(`${side === "right" ? "R" : "L"} ${p} ${g}`);
+      if (g && g !== "present") abn.push(`the ${side} ${p} is ${g}`);
     }
   }
-  return abn.length ? `Pulses: ${abn.join(", ")}.` : null;
+  return abn.length ? evfListJoin(abn) : null;
 };
 
+/**
+ * Flowing clinical narrative of the thyroid / peripheral-vascular / diabetic-foot
+ * examination — present findings (with their recorded values), pertinent normals,
+ * the foot risk category and the patterns to consider, narrated in the same order
+ * and carrying the same facts as the structured record. Returns "" when nothing is
+ * recorded. DATA-ONLY: nothing is invented, omitted or reinterpreted.
+ */
 export function renderEvfProse(c: EvfExam): string {
-  const parts: string[] = [];
+  const clauses: string[] = [];
+
   const present = (c.findings ?? []).filter((o) => o.state === "present");
-  if (present.length)
-    parts.push(
-      present
-        .map((o) =>
-          o.values?.length
-            ? `${o.display.toLowerCase()}: ${o.values.join(", ")}`
-            : o.display.toLowerCase(),
-        )
-        .join("; ") + ".",
+  for (const o of present) {
+    const label = o.display.toLowerCase();
+    clauses.push(
+      o.values?.length ? `there is ${label} (${evfListJoin(o.values)})` : `there is ${label}`,
     );
+  }
 
   const t = c.thyroid;
   if (t) {
-    const bits = [
-      t.status && t.status !== "euthyroid" ? t.status : null,
-      t.gland?.length ? `gland — ${t.gland.join(", ")}` : null,
-      t.eyeSigns?.length ? `eyes — ${t.eyeSigns.join(", ")}` : null,
-    ].filter(Boolean);
-    if (bits.length) parts.push(`Thyroid: ${bits.join("; ")}.`);
+    const bits: string[] = [];
+    if (t.status && t.status !== "euthyroid") bits.push(`the patient appears ${t.status}`);
+    if (t.gland?.length) bits.push(`the gland shows ${evfListJoin(t.gland)}`);
+    if (t.eyeSigns?.length) bits.push(`with eye signs of ${evfListJoin(t.eyeSigns)}`);
+    if (bits.length) clauses.push(bits.join(" "));
   }
 
   const v = c.vascular;
   if (v) {
-    if (v.arterialLook?.length) parts.push(`Arterial: ${v.arterialLook.join(", ")}.`);
-    const ps = pulseSummary(v);
-    if (ps) parts.push(ps);
+    if (v.arterialLook?.length) clauses.push(`there is arterial ${evfListJoin(v.arterialLook)}`);
+    const ps = pulseNarrative(v);
+    if (ps) clauses.push(ps);
     for (const side of ["right", "left"] as Side[]) {
       const band = interpretAbpi(v.abpi?.[side]);
-      if (band) parts.push(`ABPI ${side} ${v.abpi?.[side]} — ${ABPI_BAND_LABEL[band]}.`);
+      if (band) clauses.push(`the ${side} ABPI is ${v.abpi?.[side]}, ${ABPI_BAND_LABEL[band]}`);
     }
-    if (v.buergers === "positive") parts.push("Buerger's positive.");
-    if (v.acuteIschaemia?.length) parts.push(`Acute ischaemia: ${v.acuteIschaemia.join(", ")}.`);
-    if (v.venousLook?.length) parts.push(`Venous: ${v.venousLook.join(", ")}.`);
-    if (v.dvtSigns) parts.push("Unilateral calf swelling/tenderness (DVT — see oedema pathway).");
+    if (v.buergers === "positive") clauses.push("Buerger's test is positive");
+    if (v.acuteIschaemia?.length)
+      clauses.push(`there are features of acute limb ischaemia (${evfListJoin(v.acuteIschaemia)})`);
+    if (v.venousLook?.length) clauses.push(`there is venous ${evfListJoin(v.venousLook)}`);
+    if (v.dvtSigns)
+      clauses.push(
+        "there is unilateral calf swelling and tenderness (possible DVT — see oedema pathway)",
+      );
   }
 
   const fft = c.foot;
@@ -580,36 +605,34 @@ export function renderEvfProse(c: EvfExam): string {
       if (!s) continue;
       const notFelt = Object.values(s.monofilament ?? {}).filter((felt) => felt === false).length;
       const total = Object.keys(s.monofilament ?? {}).length;
-      const bits = [
-        s.skin?.length ? s.skin.join(", ") : null,
-        s.deformity?.length ? s.deformity.join(", ") : null,
-        total ? `monofilament ${total - notFelt}/${total} felt` : null,
-        s.vibration && s.vibration !== "felt" ? `vibration ${s.vibration}` : null,
-        s.pulsesPresent === false
-          ? "foot pulses absent"
-          : s.pulsesPresent
-            ? "foot pulses present"
-            : null,
-        s.warmCharcot ? "warm swollen (?Charcot)" : null,
-        s.infection?.length ? `infection — ${s.infection.join(", ")}` : null,
-      ].filter(Boolean);
-      if (bits.length) parts.push(`Foot ${side === "right" ? "R" : "L"}: ${bits.join("; ")}.`);
+      const bits: string[] = [];
+      if (s.skin?.length) bits.push(evfListJoin(s.skin));
+      if (s.deformity?.length) bits.push(evfListJoin(s.deformity));
+      if (total) bits.push(`monofilament felt at ${total - notFelt} of ${total} sites`);
+      if (s.vibration && s.vibration !== "felt") bits.push(`vibration ${s.vibration}`);
+      if (s.pulsesPresent === false) bits.push("foot pulses absent");
+      else if (s.pulsesPresent) bits.push("foot pulses present");
+      if (s.warmCharcot) bits.push("warm and swollen (?Charcot)");
+      if (s.infection?.length) bits.push(`infection with ${evfListJoin(s.infection)}`);
+      if (bits.length) clauses.push(`the ${side} foot shows ${evfListJoin(bits)}`);
     }
     const suggestion = suggestFootRisk(fft);
     if (fft.confirmedRisk) {
       const r = FOOT_RISK[fft.confirmedRisk];
-      parts.push(`Diabetic-foot risk (confirmed): ${r.label} — ${r.interval}.`);
+      clauses.push(`the confirmed diabetic-foot risk is ${r.label} (${r.interval})`);
     } else if (suggestion) {
-      parts.push(
-        `Diabetic-foot risk (suggested, confirm): ${suggestion.risk.label} — ${suggestion.risk.interval}.`,
+      clauses.push(
+        `the suggested diabetic-foot risk (to confirm) is ${suggestion.risk.label} (${suggestion.risk.interval})`,
       );
     }
   }
 
   const patterns = matchEvfPatterns(c);
   if (patterns.length)
-    parts.push(`Pattern(s) to consider: ${patterns.map((p) => p.label).join(" / ")}.`);
-  return parts.length ? `Endocrine / vascular / foot: ${parts.join(" ")}` : "";
+    clauses.push(`the patterns to consider are ${evfListJoin(patterns.map((p) => p.label))}`);
+
+  if (!clauses.length) return "";
+  return `On examination of the thyroid, peripheral vasculature and feet, ${clauses.join("; ")}.`;
 }
 
 export function evfReasoningTokens(c: EvfExam): { positives: string[]; negatives: string[] } {

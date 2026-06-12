@@ -1,12 +1,14 @@
 "use client";
 
 import type { CarriedVitals } from "../actions";
+import type { BpStandard } from "@/lib/clerkship/exam/bp";
 import type { RecordedVitals } from "@/lib/clerkship/exam/types";
 import type { AdultVitals } from "@/lib/triage/types";
 import { useEffect, useMemo, useState } from "react";
 import { ActivityIcon, ArrowDownIcon, ArrowUpIcon } from "lucide-react";
 
 import { Skeleton } from "@/components/ui/skeleton";
+import { BP_BORDER_TONE, BP_STANDARDS, BP_TEXT_TONE, bpCategory } from "@/lib/clerkship/exam/bp";
 import { gcsTotal } from "@/lib/clerkship/exam/types";
 import { scoreNews2 } from "@/lib/triage/scoring/news2";
 import { loadTriageVitalsAction } from "../actions";
@@ -67,6 +69,10 @@ export function VitalsPanel({
   value: RecordedVitals;
   onChange: (v: RecordedVitals) => void;
 }) {
+  // BP reference standard the clinician reads against (chronic-disease context).
+  const [bpStandard, setBpStandard] = useState<BpStandard>("who_esc");
+  const bpCat = bpCategory(value.sbp, value.dbp, bpStandard);
+
   const [carried, setCarried] = useState<CarriedVitals | null>(null);
   useEffect(() => {
     loadTriageVitalsAction(encounterId)
@@ -155,8 +161,19 @@ export function VitalsPanel({
         <Field label="HR" v={value.hr} onV={(n) => set({ hr: n })} pts={pts.pulse} />
         <Field label="RR" v={value.rr} onV={(n) => set({ rr: n })} pts={pts.respiratory_rate} />
         <Field label="SpO₂" v={value.spo2} onV={(n) => set({ spo2: n })} pts={pts.spo2} />
-        <Field label="SBP" v={value.sbp} onV={(n) => set({ sbp: n })} pts={pts.systolic_bp} />
-        <Field label="DBP" v={value.dbp} onV={(n) => set({ dbp: n })} />
+        {/* BP — interpreted by hypertension reference category (not NEWS2). */}
+        <Field
+          label="SBP"
+          v={value.sbp}
+          onV={(n) => set({ sbp: n })}
+          borderClass={bpCat ? BP_BORDER_TONE[bpCat.severity] : undefined}
+        />
+        <Field
+          label="DBP"
+          v={value.dbp}
+          onV={(n) => set({ dbp: n })}
+          borderClass={bpCat ? BP_BORDER_TONE[bpCat.severity] : undefined}
+        />
         <Field
           label="T°"
           v={value.tempC}
@@ -173,6 +190,38 @@ export function VitalsPanel({
             value.glucose != null && (value.glucose < 4 || value.glucose > 11) ? "amber" : undefined
           }
         />
+      </div>
+
+      {/* BP reference category — clinician selects the standard (WHO/ESC default) */}
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+        <span className="text-muted-foreground text-[10px] tracking-wide uppercase">BP</span>
+        <div className="border-border inline-flex overflow-hidden rounded-md border">
+          {BP_STANDARDS.map((s, i) => (
+            <button
+              key={s.value}
+              type="button"
+              aria-pressed={bpStandard === s.value}
+              onClick={() => setBpStandard(s.value)}
+              className={`tap px-2 py-0.5 text-[10.5px] font-medium transition-colors ${i > 0 ? "border-border border-l" : ""} ${
+                bpStandard === s.value
+                  ? "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200"
+                  : "text-muted-foreground/70 hover:bg-muted/60"
+              }`}
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
+        {bpCat ? (
+          <span
+            key={bpCat.label}
+            className={`scale-in text-[11px] font-medium ${BP_TEXT_TONE[bpCat.severity]}`}
+          >
+            {bpCat.label}
+          </span>
+        ) : (
+          <span className="text-muted-foreground text-[10px]">enter SBP / DBP</span>
+        )}
       </div>
 
       {/* GCS by component (Eye / Verbal / Motor) → total */}
@@ -268,6 +317,7 @@ function Field({
   pts,
   step,
   tone: toneOverride,
+  borderClass,
 }: {
   label: string;
   v: number | undefined;
@@ -275,9 +325,12 @@ function Field({
   pts?: number;
   step?: string;
   tone?: "amber";
+  /** Explicit border colour override (e.g. BP hypertension category). */
+  borderClass?: string;
 }) {
   const border =
-    toneOverride === "amber" ? "border-amber-400 dark:border-amber-600" : inputTone(pts);
+    borderClass ??
+    (toneOverride === "amber" ? "border-amber-400 dark:border-amber-600" : inputTone(pts));
   return (
     <label className="inline-flex items-center gap-1">
       <span className="text-muted-foreground text-[10px]">{label}</span>

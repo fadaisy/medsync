@@ -19,6 +19,7 @@ import {
   ABPI_BAND_LABEL,
   ARTERIAL_BRUIT_OPTS,
   ARTERIAL_LOOK_OPTS,
+  computeAbpi,
   EVF_FINDINGS,
   FOOT_DEFORMITY_OPTS,
   FOOT_INFECTION_OPTS,
@@ -466,41 +467,79 @@ export function EvfExamForm({
               ))}
             </div>
           </div>
-          {/* ABPI — keep interpretation */}
-          <div className="border-border/60 mt-1 flex flex-col gap-1.5 rounded-lg border-t pt-2.5">
+          {/* ABPI — AUTO-CALCULATED from ankle ÷ brachial systolic */}
+          <div className="border-border/60 mt-1 flex flex-col gap-2 rounded-lg border-t pt-2.5">
             <span className="text-muted-foreground text-[10px] font-medium tracking-wide uppercase">
               ABPI
+              <span className="ml-1 normal-case opacity-70">
+                · auto-calculated (ankle ÷ brachial systolic)
+              </span>
             </span>
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+            {/* Brachial systolic — the denominator (higher arm) */}
+            <label className="inline-flex w-fit items-center gap-1.5">
+              <span className="text-muted-foreground text-[11px]">Brachial systolic (mmHg)</span>
+              <input
+                type="number"
+                inputMode="numeric"
+                className="border-input bg-card w-20 rounded border px-1.5 py-1 text-[12px] tabular-nums outline-none focus-visible:border-teal-500"
+                value={v.brachialSystolic ?? ""}
+                onChange={(e) => {
+                  const n = Number(e.target.value);
+                  const brachialSystolic =
+                    e.target.value === "" || !Number.isFinite(n) ? undefined : n;
+                  setVasc({
+                    brachialSystolic,
+                    abpi: {
+                      right: computeAbpi(v.ankleSystolic?.right, brachialSystolic),
+                      left: computeAbpi(v.ankleSystolic?.left, brachialSystolic),
+                    },
+                  });
+                }}
+              />
+            </label>
+            {/* Ankle systolic per side → computed ABPI + interpretation */}
+            <div className="flex flex-col gap-2">
               {(["right", "left"] as Side[]).map((side) => {
-                const band = interpretAbpi(v.abpi?.[side]);
+                const abpi = v.abpi?.[side];
+                const band = interpretAbpi(abpi);
                 return (
-                  <label key={side} className="inline-flex items-center gap-1.5">
-                    <span className="text-muted-foreground text-[11px]">
-                      ABPI {side === "right" ? "R" : "L"}
+                  <div key={side} className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                    <label className="inline-flex items-center gap-1.5">
+                      <span className="text-muted-foreground text-[11px]">
+                        Ankle systolic {side === "right" ? "R" : "L"} (mmHg)
+                      </span>
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        className="border-input bg-card w-20 rounded border px-1.5 py-1 text-[12px] tabular-nums outline-none focus-visible:border-teal-500"
+                        value={v.ankleSystolic?.[side] ?? ""}
+                        onChange={(e) => {
+                          const n = Number(e.target.value);
+                          const ankleVal =
+                            e.target.value === "" || !Number.isFinite(n) ? undefined : n;
+                          setVasc({
+                            ankleSystolic: { ...v.ankleSystolic, [side]: ankleVal },
+                            abpi: {
+                              ...v.abpi,
+                              [side]: computeAbpi(ankleVal, v.brachialSystolic),
+                            },
+                          });
+                        }}
+                      />
+                    </label>
+                    <span className="font-mono text-[12px] tabular-nums">
+                      = ABPI {side === "right" ? "R" : "L"}{" "}
+                      <span className="text-foreground font-semibold">
+                        {abpi != null ? abpi.toFixed(2) : "—"}
+                      </span>
                     </span>
-                    <input
-                      type="number"
-                      step="0.05"
-                      className="border-input bg-card w-16 rounded border px-1.5 py-1 text-[12px] tabular-nums outline-none focus-visible:border-teal-500"
-                      value={v.abpi?.[side] ?? ""}
-                      onChange={(e) => {
-                        const n = Number(e.target.value);
-                        setVasc({
-                          abpi: {
-                            ...v.abpi,
-                            [side]: e.target.value === "" || !Number.isFinite(n) ? undefined : n,
-                          },
-                        });
-                      }}
-                    />
                     {band ? (
                       <span
                         className={cn(
                           "text-[10px]",
                           band === "critical"
                             ? "text-red-600 dark:text-red-400"
-                            : band === "pad"
+                            : band === "pad" || band === "calcified"
                               ? "text-amber-700 dark:text-amber-400"
                               : "text-muted-foreground",
                         )}
@@ -508,7 +547,7 @@ export function EvfExamForm({
                         {ABPI_BAND_LABEL[band]}
                       </span>
                     ) : null}
-                  </label>
+                  </div>
                 );
               })}
             </div>

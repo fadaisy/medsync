@@ -124,9 +124,10 @@ describe("renderMskProse + reasoning tokens", () => {
       ],
     };
     const s = renderMskProse(c);
-    expect(s).toMatch(/GALS: gait antalgic, arms abnormal/);
-    expect(s).toMatch(/Hand \/ wrist/);
-    expect(s).toMatch(/morning stiffness >30 min/);
+    expect(s).toContain("On musculoskeletal examination, ");
+    expect(s).toContain("on GALS screening, the gait is antalgic and the arms are abnormal");
+    expect(s).toContain("hand / wrist");
+    expect(s).toContain("morning stiffness >30 min");
     expect(s).toMatch(/Inflammatory arthritis/i);
     expect(mskReasoningTokens(c).positives.join(" ")).toMatch(/morning stiffness over 30 min/);
   });
@@ -136,6 +137,6 @@ describe("renderMskProse + reasoning tokens", () => {
   });
 
   it("normal GALS reads as the valuable negative it is", () => {
-    expect(renderMskProse(normalMskExam())).toMatch(/GALS screen normal/);
+    expect(renderMskProse(normalMskExam())).toContain("the GALS screen is normal");
   });
 });

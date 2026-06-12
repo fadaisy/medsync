@@ -420,70 +420,89 @@ const REGION_LABEL: Record<MskRegion, string> = Object.fromEntries(
   MSK_REGIONS.map((r) => [r.region, r.label]),
 ) as Record<MskRegion, string>;
 
-/** Readable MSK prose — GALS, regional cards, pattern characteriser, red flags. */
+/** Grammatical list join: "a", "a and b", "a, b and c". */
+const listJoin = (xs: string[]): string =>
+  xs.length <= 1 ? (xs[0] ?? "") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`;
+
+/** One region narrated as a sub-clause: side + look/feel + ROM + special tests. */
+function regionClause(r: MskRegional): string {
+  const label = REGION_LABEL[r.region as MskRegion];
+  const side = r.side ? `${r.side} ` : "";
+  const findings: string[] = [];
+  if (r.look?.length) findings.push(`shows ${listJoin(r.look)}`);
+  if (r.feel?.length) findings.push(`is tender to ${listJoin(r.feel)}`);
+  if (r.rom === "restricted") findings.push("has restricted range of movement");
+  else if (r.rom === "restricted_painful")
+    findings.push("has restricted and painful range of movement");
+  else if (r.rom === "full") findings.push("has a full range of movement");
+  const tests = Object.entries(r.specialTests ?? {});
+  if (tests.length) findings.push(`with ${listJoin(tests.map(([t, res]) => `${t} ${res}`))}`);
+  return findings.length
+    ? `the ${side}${label.toLowerCase()} ${listJoin(findings)}`
+    : `the ${side}${label.toLowerCase()} was examined`;
+}
+
+/** Flowing MSK narrative — GALS, regional cards, pattern characteriser, red flags. */
 export function renderMskProse(c: MskExam): string {
-  const parts: string[] = [];
+  const clauses: string[] = [];
+
+  // GALS screen + the three screening questions.
   const g = c.gals;
   if (g && (g.gait || g.arms || g.legs || g.spine)) {
     const abn = [
-      g.gait && g.gait !== "normal" ? `gait ${g.gait}` : null,
-      g.arms === "abnormal" ? "arms abnormal" : null,
-      g.legs === "abnormal" ? "legs abnormal" : null,
-      g.spine === "abnormal" ? "spine abnormal" : null,
-    ].filter(Boolean);
-    parts.push(abn.length ? `GALS: ${abn.join(", ")}.` : "GALS screen normal.");
+      g.gait && g.gait !== "normal" ? `the gait is ${g.gait}` : null,
+      g.arms === "abnormal" ? "the arms are abnormal" : null,
+      g.legs === "abnormal" ? "the legs are abnormal" : null,
+      g.spine === "abnormal" ? "the spine is abnormal" : null,
+    ].filter((x): x is string => !!x);
+    clauses.push(abn.length ? `on GALS screening, ${listJoin(abn)}` : "the GALS screen is normal");
   }
-  if (g?.qPainStiffness) parts.push("Reports pain/stiffness.");
-  if (g?.qDress === false) parts.push("Difficulty dressing.");
-  if (g?.qStairs === false) parts.push("Difficulty with stairs.");
+  const galsFn: string[] = [];
+  if (g?.qPainStiffness) galsFn.push("pain or stiffness in the muscles, joints or back");
+  if (g?.qDress === false) galsFn.push("difficulty dressing");
+  if (g?.qStairs === false) galsFn.push("difficulty managing stairs");
+  if (galsFn.length) clauses.push(`the patient reports ${listJoin(galsFn)}`);
 
+  // Present GALS-detail / function findings.
   const present = (c.findings ?? []).filter((o) => o.state === "present");
   if (present.length)
-    parts.push(
-      present
-        .map((o) =>
+    clauses.push(
+      `there is ${listJoin(
+        present.map((o) =>
           o.values?.length
-            ? `${o.display.toLowerCase()}: ${o.values.join(", ")}`
+            ? `${o.display.toLowerCase()} (${listJoin(o.values)})`
             : o.display.toLowerCase(),
-        )
-        .join("; ") + ".",
+        ),
+      )}`,
     );
 
+  // Regional Look-Feel-Move cards.
   for (const r of c.regions ?? []) {
     if (!r.region) continue;
-    const bits = [
-      r.side,
-      r.look?.length ? `look — ${r.look.join(", ")}` : null,
-      r.feel?.length ? `feel — ${r.feel.join(", ")}` : null,
-      r.rom && r.rom !== "full"
-        ? `ROM ${r.rom.replace("_", " + ")}`
-        : r.rom === "full"
-          ? "full ROM"
-          : null,
-    ].filter(Boolean);
-    const tests = Object.entries(r.specialTests ?? {});
-    if (tests.length) bits.push(tests.map(([t, res]) => `${t} ${res}`).join(", "));
-    parts.push(`${REGION_LABEL[r.region]}${bits.length ? ` (${bits.join("; ")})` : ""}.`);
+    clauses.push(regionClause(r));
   }
 
+  // Arthropathy pattern characteriser.
   const ch: string[] = [];
   if (c.distribution) ch.push(c.distribution);
   if (c.symmetry) ch.push(c.symmetry);
   if (c.jointSize) ch.push(c.jointSize.replace("_", " "));
   if (c.morningStiffness && c.morningStiffness !== "none")
     ch.push(c.morningStiffness === "over_30min" ? "morning stiffness >30 min" : "brief stiffness");
-  if (c.hotSwollenJoint) ch.push("hot swollen joint");
-  if (c.cannotWeightBear) ch.push("cannot weight-bear");
-  if (c.worseWithUse) ch.push("worse with use");
-  if (c.migratory) ch.push("migratory");
-  if (ch.length) parts.push(`Pattern: ${ch.join(", ")}.`);
+  if (c.hotSwollenJoint) ch.push("a hot swollen joint");
+  if (c.cannotWeightBear) ch.push("an inability to weight-bear");
+  if (c.worseWithUse) ch.push("pain worse with use");
+  if (c.migratory) ch.push("a migratory pattern");
+  if (ch.length) clauses.push(`the arthropathy is ${listJoin(ch)}`);
 
-  if (c.backRedFlags?.length) parts.push(`Back-pain red flags: ${c.backRedFlags.join(", ")}.`);
+  if (c.backRedFlags?.length)
+    clauses.push(`there are back-pain red flags of ${listJoin(c.backRedFlags)}`);
 
   const patterns = matchMskPatterns(c);
   if (patterns.length)
-    parts.push(`Pattern(s) to consider: ${patterns.map((p) => p.label).join(" / ")}.`);
-  return parts.length ? `Musculoskeletal examination: ${parts.join(" ")}` : "";
+    clauses.push(`patterns to consider include ${listJoin(patterns.map((p) => p.label))}`);
+
+  return clauses.length ? `On musculoskeletal examination, ${clauses.join("; ")}.` : "";
 }
 
 /** MSK findings + pattern → reasoning tokens (feed the differential). */

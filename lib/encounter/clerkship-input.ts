@@ -645,6 +645,11 @@ export const ClerkshipInputSchema = z.object({
             .optional(),
           bruits: z.array(z.string().max(30)).max(6).optional(),
           buergers: z.enum(["positive", "negative"]).optional(),
+          brachialSystolic: z.number().min(0).max(400).optional(),
+          ankleSystolic: z
+            .object({ right: z.number().min(0).max(400), left: z.number().min(0).max(400) })
+            .partial()
+            .optional(),
           abpi: z
             .object({ right: z.number().min(0).max(3), left: z.number().min(0).max(3) })
             .partial()
