@@ -23,13 +23,13 @@ import {
   XIcon,
 } from "lucide-react";
 
-import { abdoReasoningTokens } from "@/lib/clerkship/exam/abdominal";
-import { cvsReasoningTokens } from "@/lib/clerkship/exam/cardiovascular";
-import { evfReasoningTokens } from "@/lib/clerkship/exam/endo-vascular-foot";
-import { examReasoningTokens } from "@/lib/clerkship/exam/engine";
-import { mskReasoningTokens } from "@/lib/clerkship/exam/musculoskeletal";
-import { neuroReasoningTokens } from "@/lib/clerkship/exam/neurological";
-import { respReasoningTokens } from "@/lib/clerkship/exam/respiratory";
+import { abdoReasoningTokens, renderAbdoProse } from "@/lib/clerkship/exam/abdominal";
+import { cvsReasoningTokens, renderCvsProse } from "@/lib/clerkship/exam/cardiovascular";
+import { evfReasoningTokens, renderEvfProse } from "@/lib/clerkship/exam/endo-vascular-foot";
+import { examReasoningTokens, renderExamProse } from "@/lib/clerkship/exam/engine";
+import { mskReasoningTokens, renderMskProse } from "@/lib/clerkship/exam/musculoskeletal";
+import { neuroReasoningTokens, renderNeuroProse } from "@/lib/clerkship/exam/neurological";
+import { renderRespProse, respReasoningTokens } from "@/lib/clerkship/exam/respiratory";
 import { diagnosticPausePrompts, liveReasoningForCodes } from "@/lib/clerkship/reasoning/engine";
 import { REASONING_MAPS } from "@/lib/clerkship/reasoning/maps";
 
@@ -146,6 +146,34 @@ export function ReasoningPanel({
   const fired = r.basis.length > 0;
   const mnmCount = r.scored.filter((d) => d.likelihood === "must_not_miss").length;
 
+  // Always-alive: even before a complaint pins the differential, surface what the
+  // clinician has already recorded so the rail is never dead space. Each entry is
+  // a per-system auto-summary (empty string ⇒ that system has nothing recorded —
+  // honestly omitted, NOT shown as "normal").
+  const examSummary = useMemo(
+    () =>
+      (
+        [
+          ["General", renderExamProse(examFindings)],
+          ["Respiratory", renderRespProse(respiratory)],
+          ["Cardiovascular", renderCvsProse(cardiovascular)],
+          ["Abdominal", renderAbdoProse(abdominal)],
+          ["Neurological", renderNeuroProse(neurological)],
+          ["Musculoskeletal", renderMskProse(musculoskeletal)],
+          ["Endocrine / vascular / foot", renderEvfProse(endoVascularFoot)],
+        ] as const
+      ).filter(([, prose]) => prose.trim().length > 0),
+    [
+      examFindings,
+      respiratory,
+      cardiovascular,
+      abdominal,
+      neurological,
+      musculoskeletal,
+      endoVascularFoot,
+    ],
+  );
+
   return (
     <div className="bg-card flex h-full min-h-0 flex-col overflow-hidden">
       <div className="border-border/60 flex items-center gap-2 border-b px-3.5 py-3">
@@ -183,47 +211,69 @@ export function ReasoningPanel({
 
       <div className="stagger-children flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-3.5 py-3">
         {!fired ? (
-          <div className="flex flex-col items-center gap-3 px-2 py-8 text-center">
+          <div className="flex flex-col gap-3">
             {/* Quiet differential-tree glyph — one stem branching to plural possibilities */}
-            <svg
-              width="88"
-              height="56"
-              viewBox="0 0 88 56"
-              fill="none"
-              aria-hidden
-              className="text-gray-300 dark:text-gray-700"
-            >
-              <circle cx="11" cy="28" r="3" fill="currentColor" />
-              <path d="M14 28h18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-              <path
-                d="M32 28c9 0 7-14 16-14h11"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeDasharray="3 4"
-              />
-              <path
-                d="M32 28h27"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeDasharray="3 4"
-              />
-              <path
-                d="M32 28c9 0 7 14 16 14h11"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeDasharray="3 4"
-              />
-              <circle cx="66" cy="14" r="3" fill="currentColor" />
-              <circle cx="66" cy="28" r="3" className="fill-teal-500/70" />
-              <circle cx="66" cy="42" r="3" fill="currentColor" />
-            </svg>
-            <p className="text-muted-foreground text-[12px]">
-              Add a presenting complaint — the differential, the must-not-miss, and the
-              discriminators will appear here and narrow as you capture features.
-            </p>
+            <div className="flex flex-col items-center gap-2.5 px-2 pt-4 text-center">
+              <svg
+                width="88"
+                height="56"
+                viewBox="0 0 88 56"
+                fill="none"
+                aria-hidden
+                className="text-gray-300 dark:text-gray-700"
+              >
+                <circle cx="11" cy="28" r="3" fill="currentColor" />
+                <path d="M14 28h18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                <path
+                  d="M32 28c9 0 7-14 16-14h11"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeDasharray="3 4"
+                />
+                <path
+                  d="M32 28h27"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeDasharray="3 4"
+                />
+                <path
+                  d="M32 28c9 0 7 14 16 14h11"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeDasharray="3 4"
+                />
+                <circle cx="66" cy="14" r="3" fill="currentColor" />
+                <circle cx="66" cy="28" r="3" className="fill-teal-500/70" />
+                <circle cx="66" cy="42" r="3" fill="currentColor" />
+              </svg>
+              <p className="text-muted-foreground text-[12px]">
+                Add a presenting complaint — the differential, the must-not-miss, and the
+                discriminators will appear here and narrow as you capture features.
+              </p>
+            </div>
+
+            {/* Always-alive: live exam summary while the differential is still dormant */}
+            {examSummary.length ? (
+              <div className="fade-in-slow border-border/60 flex flex-col gap-2 border-t pt-3">
+                <span className="text-muted-foreground inline-flex items-center gap-1.5 text-[10px] font-medium tracking-wide uppercase">
+                  <span aria-hidden className="pulse-dot size-1.5 rounded-full bg-teal-500" />
+                  Examination so far
+                </span>
+                {examSummary.map(([label, prose]) => (
+                  <div key={label} className="flex flex-col gap-0.5">
+                    <span className="text-foreground text-[11px] font-semibold">{label}</span>
+                    <p className="text-muted-foreground text-[11.5px] leading-relaxed">{prose}</p>
+                  </div>
+                ))}
+                <span className="text-muted-foreground/70 text-[10px] italic">
+                  Recorded findings only — systems you haven&apos;t examined are omitted, not
+                  assumed normal.
+                </span>
+              </div>
+            ) : null}
           </div>
         ) : (
           <>
