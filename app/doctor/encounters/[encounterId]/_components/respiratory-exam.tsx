@@ -1,16 +1,11 @@
 "use client";
 
+import type { ChestModality } from "./chest-zone-map";
+import type { ThreeStateValue } from "./exam-kit";
 import type { AddedSound, RespExam, RespZone } from "@/lib/clerkship/exam/respiratory";
-import type { ExamObservation, FindingState } from "@/lib/clerkship/exam/types";
+import type { ExamFinding, ExamObservation, FindingState } from "@/lib/clerkship/exam/types";
 import { useMemo, useState } from "react";
-import {
-  AlertTriangleIcon,
-  CheckIcon,
-  ChevronDownIcon,
-  CircleDashedIcon,
-  MinusCircleIcon,
-  ShieldAlertIcon,
-} from "lucide-react";
+import { AlertTriangleIcon, CircleDashedIcon, ShieldAlertIcon } from "lucide-react";
 
 import {
   ADDED_OPTS,
@@ -20,24 +15,27 @@ import {
   PERCUSSION_OPTS,
   renderRespProse,
   RESP_FINDINGS,
-  RESP_GROUPS,
   RESP_ZONES,
   VR_OPTS,
 } from "@/lib/clerkship/exam/respiratory";
+import { cn } from "@/lib/utils";
+import { ChestZoneMap } from "./chest-zone-map";
+import { ChipRow, NormalExamButton, StageCard, ThreeState, ValueChip } from "./exam-kit";
 
 /**
- * Respiratory examination — tap-first IPPA + zonal capture (percussion / breath
- * sounds / vocal resonance / added sounds per zone & side). The sign-cluster →
- * pattern suggestion is surfaced transparently (multiple on ambiguity, must-not-
- * miss in red) as DECISION-SUPPORT — never an auto-diagnosis. not-examined ≠
- * normal. Reuses the general exam for peripheral signs (clubbing/cyanosis/nodes).
+ * Respiratory examination — REWORKED PRESENTATION onto the shared Examination kit.
+ * Same RespExam data, handlers, value-sets and behaviour as before; restructured
+ * into the clinical IPPA sequence as numbered StageCards, with the chest zonal
+ * map as the signature spatial control (percussion / breath sounds / vocal
+ * resonance / added sounds per zone & side). The sign-cluster → pattern
+ * suggestion is surfaced transparently (multiple on ambiguity, must-not-miss /
+ * emergency flagged) as DECISION-SUPPORT — never an auto-diagnosis. not-examined
+ * ≠ normal. Peripheral signs (clubbing/cyanosis/nodes/JVP) reused from the
+ * general exam.
  */
 
-const EASE = "transition-colors duration-150 ease-expo-out";
-const chip = (active: boolean) =>
-  `tap rounded-md px-2 py-0.5 text-[11.5px] ring-1 ring-inset ${EASE} ${active ? "bg-teal-50 text-teal-700 ring-teal-500/40 dark:bg-teal-950/40 dark:text-teal-200" : "text-foreground/70 ring-border hover:bg-muted/60"}`;
 const seg = (active: boolean, tone: "muted" | "teal" = "muted") =>
-  `tap inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset ${EASE} ${
+  `tap inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset transition-colors duration-150 ${
     active
       ? tone === "teal"
         ? "bg-teal-50 text-teal-700 ring-teal-500/40 dark:bg-teal-950/40 dark:text-teal-200"
@@ -67,7 +65,6 @@ export function RespiratoryExam({
 }) {
   const [modality, setModality] = useState<Modality>("percussion");
   const [activeZone, setActiveZone] = useState<RespZone | null>(null);
-  const [openFindings, setOpenFindings] = useState(false);
 
   const findings = value.findings ?? [];
   const byCode = useMemo(() => new Map(findings.map((o) => [o.code, o])), [findings]);
@@ -109,167 +106,249 @@ export function RespiratoryExam({
     onChange({ ...value, addedSounds: rec });
   };
 
-  const cellTone = (abnormal: boolean | undefined, set: boolean) =>
-    !set
-      ? "border-dashed border-border text-muted-foreground"
-      : abnormal
-        ? "border-amber-400 bg-amber-50 text-amber-800 dark:border-amber-700 dark:bg-amber-950/30 dark:text-amber-300"
-        : "border-teal-400 bg-teal-50 text-teal-700 dark:border-teal-700 dark:bg-teal-950/30 dark:text-teal-300";
+  // ── render a catalog finding with the kit (select = chip pick; panel = three-state + chips) ──
+  const renderFinding = (x: ExamFinding) => {
+    const o = byCode.get(x.code);
+    if (x.kind === "select") {
+      return (
+        <ChipRow key={x.code} label={x.display}>
+          {x.options.map((opt) => (
+            <ValueChip
+              key={opt}
+              active={o?.values?.[0] === opt}
+              onClick={() =>
+                setFinding(
+                  x.code,
+                  o?.values?.[0] === opt ? null : { state: "present", values: [opt] },
+                )
+              }
+            >
+              {opt}
+            </ValueChip>
+          ))}
+        </ChipRow>
+      );
+    }
+    const state: ThreeStateValue = o?.state ?? "not_examined";
+    return (
+      <div key={x.code} className="flex flex-col gap-1.5">
+        <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
+          <span className="flex min-w-0 items-center gap-1.5">
+            <span className="text-foreground text-[12.5px]">{x.display}</span>
+            {x.mustNotMiss ? (
+              <AlertTriangleIcon className="size-3 text-amber-500" aria-label="must-not-miss" />
+            ) : null}
+            {x.ugandaFlag ? (
+              <span className="text-muted-foreground bg-muted rounded px-1 text-[9px] uppercase">
+                {x.ugandaFlag}
+              </span>
+            ) : null}
+          </span>
+          <ThreeState
+            value={state}
+            findingsLabel={x.options.length ? "Findings" : "Present"}
+            onChange={(v) =>
+              setFinding(
+                x.code,
+                v === "not_examined"
+                  ? null
+                  : { state: v, values: v === "absent" ? [] : (o?.values ?? []) },
+              )
+            }
+          />
+        </div>
+        {state === "present" && x.options.length ? (
+          <div className="flex flex-wrap gap-1 pl-1">
+            {x.options.map((opt) => {
+              const on = o?.values?.includes(opt);
+              return (
+                <ValueChip
+                  key={opt}
+                  active={!!on}
+                  onClick={() =>
+                    setFinding(x.code, {
+                      values: on
+                        ? (o?.values ?? []).filter((v) => v !== opt)
+                        : [...(o?.values ?? []), opt],
+                    })
+                  }
+                >
+                  {opt}
+                </ValueChip>
+              );
+            })}
+          </div>
+        ) : null}
+      </div>
+    );
+  };
 
-  const findingsCount = findings.filter(
-    (o) => o.state === "present" && !(o.values?.length && false),
-  ).length;
+  const group = (key: string) => RESP_FINDINGS.filter((x) => x.group === key);
+  const presentInGroups = (keys: string[]) =>
+    findings.filter((o) => o.state === "present" && keys.includes(o.group)).length;
+  const touched = (x: ExamFinding) =>
+    byCode.get(x.code)?.state && byCode.get(x.code)?.state !== "not_examined";
+
+  // ── stage-completion hints (presentation only) ──
+  const inspectionDone = [...group("resp_peripheral"), ...group("resp_inspection")].every(touched);
+  const palpationDone =
+    value.trachea !== undefined &&
+    value.expansion?.left !== undefined &&
+    value.expansion?.right !== undefined &&
+    group("resp_palpation").every(touched);
+  const zonesSet = (rec: Partial<Record<RespZone, unknown>> | undefined) =>
+    RESP_ZONES.every((z) => rec?.[z.zone] !== undefined);
+  const percussionDone =
+    zonesSet(value.percussion) && zonesSet(value.breathSounds) && zonesSet(value.vocalResonance);
+  const completionDone = group("resp_completion").every(touched);
+
+  const zonalCount =
+    Object.values(value.percussion ?? {}).filter(
+      (v) => MOD_OPTS.percussion.find((o) => o.value === v)?.abnormal,
+    ).length +
+    Object.values(value.breathSounds ?? {}).filter(
+      (v) => MOD_OPTS.breathSounds.find((o) => o.value === v)?.abnormal,
+    ).length +
+    Object.values(value.vocalResonance ?? {}).filter(
+      (v) => MOD_OPTS.vocalResonance.find((o) => o.value === v)?.abnormal,
+    ).length +
+    Object.values(value.addedSounds ?? {}).filter((arr) => (arr ?? []).length).length;
 
   return (
-    <div className="border-border/70 flex flex-col gap-3 rounded-xl border p-3">
+    <div className="flex flex-col gap-4">
+      {/* Header */}
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-foreground text-[13px] font-semibold">Respiratory examination</span>
+        <h3 className="font-display text-foreground text-[15px] font-medium tracking-[-0.015em]">
+          Respiratory examination
+        </h3>
         {patterns.length ? (
           <span
             key={patterns.length}
-            className="scale-in rounded-full bg-teal-100 px-1.5 text-[10px] font-semibold text-teal-800 tabular-nums dark:bg-teal-950/40 dark:text-teal-300"
+            className={cn(
+              "scale-in inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 text-[10px] font-semibold tabular-nums",
+              patterns.some((p) => p.emergency)
+                ? "bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-300"
+                : patterns.some((p) => p.mustNotMiss)
+                  ? "bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300"
+                  : "bg-teal-100 text-teal-800 dark:bg-teal-950/40 dark:text-teal-300",
+            )}
           >
+            {patterns.some((p) => p.emergency) ? (
+              <ShieldAlertIcon className="size-3" aria-hidden />
+            ) : patterns.some((p) => p.mustNotMiss) ? (
+              <AlertTriangleIcon className="size-3" aria-hidden />
+            ) : null}
             {patterns.length} pattern{patterns.length > 1 ? "s" : ""}
           </span>
         ) : null}
-        <button
-          type="button"
-          onClick={() => onChange(normalRespExam())}
-          className={`tap text-muted-foreground hover:bg-muted hover:text-foreground ml-auto rounded-md px-2.5 py-1 text-[11.5px] font-medium ${EASE}`}
+        <span className="ml-auto">
+          <NormalExamButton
+            onClick={() => onChange(normalRespExam())}
+            label="Normal respiratory exam"
+          />
+        </span>
+      </div>
+
+      <div className="flex flex-col gap-3.5">
+        {/* ── Stage 1 — Inspection & peripheral ── */}
+        <StageCard
+          index={1}
+          title="Inspection & peripheral"
+          complete={inspectionDone}
+          count={presentInGroups(["resp_peripheral", "resp_inspection"])}
+          hint="end of bed → hands → chest"
         >
-          Normal respiratory exam
-        </button>
-      </div>
+          {[...group("resp_peripheral"), ...group("resp_inspection")].map(renderFinding)}
+          <p className="text-muted-foreground border-border/60 mt-1 border-t pt-2 text-[10px]">
+            Clubbing, cyanosis, lymph nodes &amp; JVP are captured in the general examination.
+          </p>
+        </StageCard>
 
-      {/* Palpation essentials — trachea + expansion */}
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-        <div className="flex items-center gap-1.5">
-          <span className="text-muted-foreground text-[11px]">Trachea</span>
-          {(
-            [
-              ["deviated_left", "← L"],
-              ["central", "central"],
-              ["deviated_right", "R →"],
-            ] as const
-          ).map(([v, lbl]) => (
-            <button
-              key={v}
-              type="button"
-              className={seg(value.trachea === v, v === "central" ? "muted" : "muted")}
-              onClick={() => onChange({ ...value, trachea: value.trachea === v ? undefined : v })}
-            >
-              {lbl}
-            </button>
-          ))}
-        </div>
-        <div className="flex items-center gap-1.5">
-          <span className="text-muted-foreground text-[11px]">Expansion</span>
-          {(["left", "right"] as const).map((side) => {
-            const reduced = value.expansion?.[side] === "reduced";
-            return (
-              <button
-                key={side}
-                type="button"
-                className={seg(reduced, "muted")}
-                onClick={() =>
-                  onChange({
-                    ...value,
-                    expansion: { ...value.expansion, [side]: reduced ? "normal" : "reduced" },
-                  })
-                }
+        {/* ── Stage 2 — Palpation ── */}
+        <StageCard
+          index={2}
+          title="Palpation"
+          complete={palpationDone}
+          hint="trachea → expansion → chest wall"
+        >
+          <ChipRow label="Trachea">
+            {(
+              [
+                ["deviated_left", "← L"],
+                ["central", "central"],
+                ["deviated_right", "R →"],
+              ] as const
+            ).map(([v, lbl]) => (
+              <ValueChip
+                key={v}
+                active={value.trachea === v}
+                onClick={() => onChange({ ...value, trachea: value.trachea === v ? undefined : v })}
               >
-                {side === "left" ? "L" : "R"} {reduced ? "reduced" : "normal"}
+                {lbl}
+              </ValueChip>
+            ))}
+          </ChipRow>
+          <ChipRow label="Expansion">
+            {(["left", "right"] as const).map((side) => {
+              const reduced = value.expansion?.[side] === "reduced";
+              return (
+                <ValueChip
+                  key={side}
+                  active={reduced}
+                  tone="amber"
+                  onClick={() =>
+                    onChange({
+                      ...value,
+                      expansion: { ...value.expansion, [side]: reduced ? "normal" : "reduced" },
+                    })
+                  }
+                >
+                  {side === "left" ? "L" : "R"} {reduced ? "reduced" : "normal"}
+                </ValueChip>
+              );
+            })}
+          </ChipRow>
+          {group("resp_palpation").map(renderFinding)}
+        </StageCard>
+
+        {/* ── Stage 3 — Percussion & auscultation (chest zonal map) ── */}
+        <StageCard
+          index={3}
+          title="Percussion & auscultation"
+          complete={percussionDone}
+          count={zonalCount}
+          hint="per zone · L vs R"
+        >
+          <div className="flex flex-wrap items-center gap-1">
+            {(Object.keys(MOD_LABEL) as Modality[]).map((m) => (
+              <button
+                key={m}
+                type="button"
+                className={seg(modality === m, "teal")}
+                onClick={() => setModality(m)}
+              >
+                {MOD_LABEL[m]}
               </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Zonal capture — modality tabs + 3×2 grid */}
-      <div className="flex flex-col gap-2">
-        <div className="flex flex-wrap gap-1">
-          {(Object.keys(MOD_LABEL) as Modality[]).map((m) => (
-            <button
-              key={m}
-              type="button"
-              className={seg(modality === m, "teal")}
-              onClick={() => setModality(m)}
-            >
-              {MOD_LABEL[m]}
-            </button>
-          ))}
-        </div>
-
-        {modality !== "added" ? (
-          <>
-            <div className="grid grid-cols-2 gap-1.5">
-              {RESP_ZONES.map((z) => {
-                const rec = (value[modality] as Partial<Record<RespZone, string>>) ?? {};
-                const cur = rec[z.zone];
-                const opt = MOD_OPTS[modality].find((o) => o.value === cur);
-                return (
-                  <button
-                    key={z.zone}
-                    type="button"
-                    onClick={() => cycleZone(z.zone)}
-                    className={`tap relative flex items-center justify-between rounded-md border px-2 py-1.5 text-left text-[11px] ${EASE} ${cellTone(opt?.abnormal, !!cur)}`}
-                  >
-                    {cur ? (
-                      <span
-                        key={cur}
-                        aria-hidden
-                        className="select-flare pointer-events-none absolute inset-0 rounded-md"
-                      />
-                    ) : null}
-                    <span className="text-[10px] opacity-70">{z.short}</span>
-                    <span className="font-medium">{opt?.label ?? "tap"}</span>
-                  </button>
-                );
-              })}
-            </div>
-            <span className="text-muted-foreground text-[10px]">
-              Tap a zone to cycle: {MOD_OPTS[modality].map((o) => o.label).join(" → ")} → unset
+            ))}
+            <span className="text-muted-foreground ml-auto text-[10px]">
+              {modality === "added"
+                ? "tap a zone, then tap sounds"
+                : `tap a zone to cycle: ${MOD_OPTS[modality].map((o) => o.label).join(" → ")} → unset`}
             </span>
-          </>
-        ) : (
-          <>
-            <div className="grid grid-cols-3 gap-1.5">
-              {RESP_ZONES.map((z) => {
-                const n = (value.addedSounds?.[z.zone] ?? []).length;
-                return (
-                  <button
-                    key={z.zone}
-                    type="button"
-                    onClick={() => setActiveZone(z.zone)}
-                    className={`tap rounded-md border px-2 py-1 text-[11px] ${EASE} ${activeZone === z.zone ? "border-teal-500 bg-teal-50 text-teal-700 dark:bg-teal-950/30 dark:text-teal-300" : n ? "border-amber-400 text-amber-800 dark:text-amber-300" : "border-border text-muted-foreground"}`}
-                  >
-                    {z.short}
-                    {n ? ` ·${n}` : ""}
-                  </button>
-                );
-              })}
-            </div>
-            {activeZone ? (
-              <>
-                <div className="flex flex-wrap gap-1">
-                  {ADDED_OPTS.map((o) => {
-                    const on = (value.addedSounds?.[activeZone] ?? []).includes(o.value);
-                    return (
-                      <button
-                        key={o.value}
-                        type="button"
-                        className={
-                          o.emergency && on
-                            ? "tap rounded-md bg-red-100 px-2 py-0.5 text-[11.5px] font-medium text-red-700 ring-1 ring-red-500/40 transition-colors ring-inset dark:bg-red-950/40 dark:text-red-300"
-                            : chip(on)
-                        }
-                        onClick={() => toggleAdded(activeZone, o.value)}
-                      >
-                        {o.label}
-                      </button>
-                    );
-                  })}
-                </div>
+          </div>
+
+          <ChestZoneMap
+            value={value}
+            modality={modality as ChestModality}
+            options={modality === "added" ? [] : [...MOD_OPTS[modality]]}
+            activeZone={activeZone}
+            onCycle={cycleZone}
+            onSelectZone={setActiveZone}
+          />
+
+          {modality === "added" ? (
+            activeZone ? (
+              <div className="scale-in flex flex-col gap-1.5">
                 <span className="text-muted-foreground text-[10px]">
                   Added sounds at:{" "}
                   <span className="text-foreground font-medium">
@@ -277,24 +356,57 @@ export function RespiratoryExam({
                     {RESP_ZONES.find((z) => z.zone === activeZone)?.side}
                   </span>
                 </span>
-              </>
+                <div className="flex flex-wrap gap-1">
+                  {ADDED_OPTS.map((o) => {
+                    const on = (value.addedSounds?.[activeZone] ?? []).includes(o.value);
+                    return (
+                      <ValueChip
+                        key={o.value}
+                        active={on}
+                        tone={o.emergency ? "alarm" : "default"}
+                        onClick={() => toggleAdded(activeZone, o.value)}
+                      >
+                        {o.label}
+                      </ValueChip>
+                    );
+                  })}
+                </div>
+              </div>
             ) : (
               <span className="text-muted-foreground text-[10px]">
-                Tap a zone above to add sounds there.
+                Tap a zone on the map to add sounds there.
               </span>
-            )}
-          </>
-        )}
+            )
+          ) : null}
+        </StageCard>
+
+        {/* ── Stage 4 — Completion ── */}
+        <StageCard
+          index={4}
+          title="Completion"
+          complete={completionDone}
+          count={presentInGroups(["resp_completion"])}
+          hint="sputum · peak flow"
+        >
+          {group("resp_completion").map(renderFinding)}
+        </StageCard>
       </div>
 
       {/* Cluster → pattern (decision-support) */}
       {patterns.length ? (
-        <div className="border-border/70 bg-muted/20 scale-in flex flex-col gap-1 rounded-lg border p-2.5">
+        <div
+          className={cn(
+            "flex flex-col gap-1 rounded-xl border p-3",
+            patterns.some((p) => p.emergency)
+              ? "border-red-300 bg-red-50/60 dark:border-red-900/50 dark:bg-red-950/20"
+              : "border-border/70 bg-muted/20",
+          )}
+        >
           <span className="text-muted-foreground text-[10px] font-medium tracking-wide uppercase">
             Pattern(s) to consider — decision support
           </span>
           {patterns.map((p) => (
-            <div key={p.key} className="flex items-start gap-1.5">
+            <div key={p.key} className="scale-in flex items-start gap-1.5">
               {p.emergency ? (
                 <ShieldAlertIcon
                   className="mt-0.5 size-3.5 shrink-0 text-red-600 dark:text-red-400"
@@ -324,151 +436,8 @@ export function RespiratoryExam({
         </div>
       ) : null}
 
-      {/* Non-zonal IPPA findings — collapsed by default */}
-      <div className="border-border/70 overflow-hidden rounded-lg border">
-        <button
-          type="button"
-          onClick={() => setOpenFindings((o) => !o)}
-          className="bg-muted/30 hover:bg-muted/50 flex w-full items-center gap-2 px-3 py-2 text-left transition-colors"
-        >
-          <ChevronDownIcon
-            className={`text-muted-foreground size-3.5 transition-transform ${openFindings ? "" : "-rotate-90"}`}
-            aria-hidden
-          />
-          <span className="text-foreground flex-1 text-[12.5px] font-semibold">
-            Inspection · peripheral · completion
-          </span>
-          {findingsCount ? (
-            <span
-              key={findingsCount}
-              className="scale-in rounded-full bg-teal-100 px-1.5 text-[10px] font-semibold text-teal-800 tabular-nums dark:bg-teal-950/40 dark:text-teal-300"
-            >
-              {findingsCount}
-            </span>
-          ) : null}
-        </button>
-        {openFindings ? (
-          <div className="reveal-up flex flex-col">
-            {RESP_GROUPS.map((g) => {
-              const inGroup = RESP_FINDINGS.filter((x) => x.group === g.key);
-              return (
-                <div key={g.key} className="border-border/40 border-t first:border-t-0">
-                  <div className="text-muted-foreground bg-muted/20 px-3 py-1 text-[10px] font-medium tracking-wide uppercase">
-                    {g.label}
-                  </div>
-                  <div className="divide-border/50 divide-y">
-                    {inGroup.map((x) => {
-                      const o = byCode.get(x.code);
-                      return (
-                        <div key={x.code} className="flex flex-col gap-1 px-3 py-1.5">
-                          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                            <span className="flex min-w-0 flex-1 items-center gap-1.5">
-                              <span className="text-foreground text-[12.5px]">{x.display}</span>
-                              {x.mustNotMiss ? (
-                                <AlertTriangleIcon
-                                  className="size-3 text-amber-500"
-                                  aria-label="must-not-miss"
-                                />
-                              ) : null}
-                              {x.ugandaFlag ? (
-                                <span className="text-muted-foreground bg-muted rounded px-1 text-[9px] uppercase">
-                                  {x.ugandaFlag}
-                                </span>
-                              ) : null}
-                            </span>
-                            {x.kind === "select" ? (
-                              <div className="flex flex-wrap justify-end gap-1">
-                                {x.options.map((opt) => (
-                                  <button
-                                    key={opt}
-                                    type="button"
-                                    className={chip(o?.values?.[0] === opt)}
-                                    onClick={() =>
-                                      setFinding(
-                                        x.code,
-                                        o?.values?.[0] === opt
-                                          ? null
-                                          : { state: "present", values: [opt] },
-                                      )
-                                    }
-                                  >
-                                    {opt}
-                                  </button>
-                                ))}
-                              </div>
-                            ) : (
-                              <div className="flex shrink-0 gap-1">
-                                <button
-                                  type="button"
-                                  aria-pressed={o?.state === "absent"}
-                                  className={seg(o?.state === "absent")}
-                                  onClick={() =>
-                                    setFinding(
-                                      x.code,
-                                      o?.state === "absent"
-                                        ? null
-                                        : { state: "absent", values: [] },
-                                    )
-                                  }
-                                >
-                                  <MinusCircleIcon className="size-3" aria-hidden /> Normal
-                                </button>
-                                <button
-                                  type="button"
-                                  aria-pressed={o?.state === "present"}
-                                  className={seg(o?.state === "present", "teal")}
-                                  onClick={() =>
-                                    setFinding(
-                                      x.code,
-                                      o?.state === "present" ? null : { state: "present" },
-                                    )
-                                  }
-                                >
-                                  <CheckIcon className="size-3" aria-hidden />{" "}
-                                  {x.options.length ? "Findings" : "Present"}
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                          {x.kind === "panel" && o?.state === "present" && x.options.length ? (
-                            <div className="flex flex-wrap gap-1 pl-1">
-                              {x.options.map((opt) => {
-                                const on = o.values?.includes(opt);
-                                return (
-                                  <button
-                                    key={opt}
-                                    type="button"
-                                    className={chip(!!on)}
-                                    onClick={() =>
-                                      setFinding(x.code, {
-                                        values: on
-                                          ? (o.values ?? []).filter((v) => v !== opt)
-                                          : [...(o.values ?? []), opt],
-                                      })
-                                    }
-                                  >
-                                    {opt}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                          ) : null}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              );
-            })}
-            <p className="text-muted-foreground border-border/40 border-t px-3 py-1.5 text-[10px]">
-              Clubbing, cyanosis, lymph nodes & JVP are captured in the general examination.
-            </p>
-          </div>
-        ) : null}
-      </div>
-
       {renderRespProse(value) ? (
-        <div className="fade-in-slow rounded-lg border border-teal-200/70 bg-teal-50/60 px-3 py-2 dark:border-teal-900/50 dark:bg-teal-950/20">
+        <div className="fade-in-slow rounded-xl border border-teal-200/70 bg-teal-50/60 px-3 py-2 dark:border-teal-900/50 dark:bg-teal-950/20">
           <span className="inline-flex items-center gap-1 text-[10px] font-medium tracking-wide text-teal-700 uppercase dark:text-teal-400">
             <CircleDashedIcon className="size-3" aria-hidden /> Auto-generated summary
           </span>
