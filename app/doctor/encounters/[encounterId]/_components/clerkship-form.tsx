@@ -3,6 +3,7 @@
 import type { SubmitClerkshipResult } from "../actions";
 import type { AbdoExam } from "@/lib/clerkship/exam/abdominal";
 import type { CvsExam } from "@/lib/clerkship/exam/cardiovascular";
+import type { MskExam } from "@/lib/clerkship/exam/musculoskeletal";
 import type { NeuroExam } from "@/lib/clerkship/exam/neurological";
 import type { RespExam } from "@/lib/clerkship/exam/respiratory";
 import type { ExamObservation, RecordedVitals } from "@/lib/clerkship/exam/types";
@@ -48,6 +49,7 @@ import { CardiovascularExam } from "./cardiovascular-exam";
 import { ExamSections } from "./exam-sections";
 import { FamilySocialSections } from "./family-social-sections";
 import { HistorySections } from "./history-sections";
+import { MskExamForm } from "./msk-exam";
 import { NeuroExamForm } from "./neuro-exam";
 import { ReasoningPanel } from "./reasoning-panel";
 import { RespiratoryExam } from "./respiratory-exam";
@@ -105,6 +107,7 @@ type FormState = {
   examCardiovascular: CvsExam;
   examAbdominal: AbdoExam;
   examNeurological: NeuroExam;
+  examMusculoskeletal: MskExam;
   examSystems: Record<"cardiovascular" | "respiratory" | "abdominal" | "neurological", string>;
   summary: string;
   differential: DxRow[];
@@ -147,6 +150,7 @@ function buildClerkshipInput(f: FormState): unknown {
     examCardiovascular: f.examCardiovascular,
     examAbdominal: f.examAbdominal,
     examNeurological: f.examNeurological,
+    examMusculoskeletal: f.examMusculoskeletal,
     examSystems: f.examSystems,
     summary: f.summary,
     differential: f.differential.map((d) => ({
@@ -208,8 +212,9 @@ export function ClerkshipForm({
   const [examCardiovascular, setExamCardiovascular] = useState<CvsExam>(e?.cardiovascular ?? {});
   const [examAbdominal, setExamAbdominal] = useState<AbdoExam>(e?.abdominal ?? {});
   const [examNeurological, setExamNeurological] = useState<NeuroExam>(e?.neurological ?? {});
+  const [examMusculoskeletal, setExamMusculoskeletal] = useState<MskExam>(e?.musculoskeletal ?? {});
   const [examSystem, setExamSystem] = useState<
-    "general" | "cardiovascular" | "respiratory" | "abdominal" | "neurological"
+    "general" | "cardiovascular" | "respiratory" | "abdominal" | "neurological" | "musculoskeletal"
   >("general");
   // Legacy free-text per-system notes (all four systems now have structured
   // modules); kept read-only so any previously-saved text is preserved on re-save.
@@ -268,6 +273,7 @@ export function ClerkshipForm({
     examCardiovascular,
     examAbdominal,
     examNeurological,
+    examMusculoskeletal,
     examSystems,
     summary,
     differential,
@@ -507,6 +513,7 @@ export function ClerkshipForm({
                           ["respiratory", "Respiratory", Object.keys(examRespiratory).length > 0],
                           ["abdominal", "Abdomen", Object.keys(examAbdominal).length > 0],
                           ["neurological", "Neuro", Object.keys(examNeurological).length > 0],
+                          ["musculoskeletal", "MSK", Object.keys(examMusculoskeletal).length > 0],
                         ] as const
                       ).map(([key, lbl, hasContent]) => (
                         <button
@@ -567,6 +574,12 @@ export function ClerkshipForm({
                       ) : null}
                       {examSystem === "neurological" ? (
                         <NeuroExamForm value={examNeurological} onChange={setExamNeurological} />
+                      ) : null}
+                      {examSystem === "musculoskeletal" ? (
+                        <MskExamForm
+                          value={examMusculoskeletal}
+                          onChange={setExamMusculoskeletal}
+                        />
                       ) : null}
                     </div>
                   </div>
@@ -786,6 +799,7 @@ export function ClerkshipForm({
             cardiovascular={examCardiovascular}
             abdominal={examAbdominal}
             neurological={examNeurological}
+            musculoskeletal={examMusculoskeletal}
             atSynthesis={step >= 4}
           />
         </aside>
