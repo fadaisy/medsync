@@ -5,6 +5,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Clerkship: Abdominal Examination (tap-first IPPA by region + organs + PR + constellation) — 2026-06-12
+
+The third system-exam layer ([ADR 0069](docs/adr/0069-clerkship-abdominal-examination.md)) — catalog supplied in full. **No migration.**
+
+- **9-region grid** (3×3 tap-to-cycle): tenderness (tender→deep) + guarding (voluntary→involuntary) per region; rigidity/rebound/percussion-tenderness controls.
+- **Structured organs** — liver (span/edge/craggy/tender/pulsatile), spleen (extent incl. massive-to-RIF/notch), kidneys, **aorta (expansile = alarm)**, bladder; **structured mass cards** (region/size/surface/edge/consistency/mobility/expansile/tender).
+- **Ascites tests** (shifting dullness/fluid thrill), **loss of liver dullness (perforation alarm)**, bowel sounds, bruits, succussion splash; named signs (Murphy's/Courvoisier's/Rovsing's/psoas-obturator); GI stigmata + inspection (5 F's, named scars, Grey Turner's/Cullen's, hernias).
+- **PR honesty control** — examined/not-examined/declined + findings; prose always states PR status; the normal-exam fast path leaves PR not-examined.
+- **Constellation → pattern** (pure/TDD, 19 tests): peritonitis/AAA/perforation emergencies ranked first; obstruction; ascites; portal HTN; CLD; hepatomegaly (craggy → HCC flag); **massive splenomegaly with the Uganda differential**; β-hCG/ectopic + GI-bleed-shock safety prompts — transparent, multiple-on-ambiguity, never auto-diagnoses.
+- Replaces the free-text Abdomen card in the Examination switcher; findings + constellation feed the live differential. tsc/eslint/build clean; **864 tests** (+19).
+
 ### Changed — Clerkship: CVS exam finding qualifiers (magnitude + location) — 2026-06-12
 
 Findings now carry their clinical detail, tap-first ([ADR 0068](docs/adr/0068-clerkship-cardiovascular-examination.md) addendum). **Displaced apex** → interspace (5th/6th/7th ICS) + line (mid-clavicular / anterior-axillary / mid-axillary); **raised JVP** → height above the sternal angle (4–10 cm / to earlobes); qualifiers appear only when the finding is positive and clear when it's toggled off (never orphaned). Pulse **volume** row surfaced (was typed but unrendered). Same sweep elsewhere: CVS oedema extent (ankle→thigh/sacral), hepatomegaly span/character, lung-base crackle laterality+extent, lymph-node **size** chips (<1 / 1–2 / >2 cm) across all node groups, peak-flow severity bands. Prose renders the detail ("JVP raised (7 cm)", "Apex displaced (6th ICS, anterior axillary line) thrusting"). No migration; 845 tests.

@@ -1,5 +1,6 @@
 "use client";
 
+import type { AbdoExam } from "@/lib/clerkship/exam/abdominal";
 import type { CvsExam } from "@/lib/clerkship/exam/cardiovascular";
 import type { RespExam } from "@/lib/clerkship/exam/respiratory";
 import type { ExamObservation } from "@/lib/clerkship/exam/types";
@@ -19,6 +20,7 @@ import {
   XIcon,
 } from "lucide-react";
 
+import { abdoReasoningTokens } from "@/lib/clerkship/exam/abdominal";
 import { cvsReasoningTokens } from "@/lib/clerkship/exam/cardiovascular";
 import { examReasoningTokens } from "@/lib/clerkship/exam/engine";
 import { respReasoningTokens } from "@/lib/clerkship/exam/respiratory";
@@ -57,6 +59,7 @@ export function ReasoningPanel({
   examFindings,
   respiratory,
   cardiovascular,
+  abdominal,
   atSynthesis,
   onClose,
 }: {
@@ -69,6 +72,7 @@ export function ReasoningPanel({
   examFindings: ExamObservation[];
   respiratory: RespExam;
   cardiovascular: CvsExam;
+  abdominal: AbdoExam;
   atSynthesis: boolean;
   /** When hosted in a drawer, renders a close button; omit when docked as a rail. */
   onClose?: () => void;
@@ -87,6 +91,7 @@ export function ReasoningPanel({
     const exam = examReasoningTokens(examFindings);
     const resp = respReasoningTokens(respiratory);
     const cvs = cvsReasoningTokens(cardiovascular);
+    const abdo = abdoReasoningTokens(abdominal);
     return liveReasoningForCodes(REASONING_MAPS, pcCodes, {
       features,
       positives: [
@@ -95,6 +100,7 @@ export function ReasoningPanel({
         ...exam.positives,
         ...resp.positives,
         ...cvs.positives,
+        ...abdo.positives,
       ],
       negatives: [
         ...ros.filter((o) => o.status === "denies").map((o) => o.symptomDisplay),
@@ -113,6 +119,7 @@ export function ReasoningPanel({
     examFindings,
     respiratory,
     cardiovascular,
+    abdominal,
   ]);
 
   const fired = r.basis.length > 0;
