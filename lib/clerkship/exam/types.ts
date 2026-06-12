@@ -48,6 +48,15 @@ export interface RecordedVitals {
   dbp?: number;
   tempC?: number;
   glucose?: number;
-  gcs?: number;
+  /** GCS captured by component (Eye 1–4 · Verbal 1–5 · Motor 1–6); total = sum. */
+  gcsE?: number;
+  gcsV?: number;
+  gcsM?: number;
   recordedAtIso?: string;
+}
+
+/** GCS total from components, or undefined until all three are recorded. */
+export function gcsTotal(v: { gcsE?: number; gcsV?: number; gcsM?: number }): number | undefined {
+  if (v.gcsE == null || v.gcsV == null || v.gcsM == null) return undefined;
+  return v.gcsE + v.gcsV + v.gcsM;
 }

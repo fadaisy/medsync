@@ -249,7 +249,9 @@ export const ClerkshipInputSchema = z.object({
       dbp: z.number().min(0).max(260).optional(),
       tempC: z.number().min(20).max(45).optional(),
       glucose: z.number().min(0).max(60).optional(),
-      gcs: z.number().min(3).max(15).optional(),
+      gcsE: z.number().min(1).max(4).optional(),
+      gcsV: z.number().min(1).max(5).optional(),
+      gcsM: z.number().min(1).max(6).optional(),
       recordedAtIso: z.string().max(40).optional(),
     })
     .optional(),

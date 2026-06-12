@@ -5,6 +5,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Changed — Clerkship: Examination UI declutter + GCS by component — 2026-06-12
+
+- **Clinical reasoning moved to a slide-over drawer** — toggled by a floating "Clinical reasoning" button; non-modal (stays live while you keep tapping the form). The clerkship form now uses the **full width** (no squeezed right column), un-cramming the Examination tab.
+- **Vitals GCS captured by component** — Eye (1–4) · Verbal (1–5) · Motor (1–6) selects with a computed, colour-banded **GCS /15** total (≤8 red), instead of a single overall-score field. NEWS2 consciousness still derived from the total. No migration.
+
 ### Added — Clerkship: Respiratory Examination (tap-first IPPA + zonal + cluster→pattern) — 2026-06-11
 
 The first **system-specific** exam layer onto the general exam ([ADR 0067](docs/adr/0067-clerkship-respiratory-examination.md)). **No migration** — code-module catalog; captured in `section_data`.

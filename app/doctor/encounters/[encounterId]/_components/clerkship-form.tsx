@@ -192,6 +192,7 @@ export function ClerkshipForm({
   );
   const [examVitals, setExamVitals] = useState<RecordedVitals>(e?.vitals ?? {});
   const [examRespiratory, setExamRespiratory] = useState<RespExam>(e?.respiratory ?? {});
+  const [reasoningOpen, setReasoningOpen] = useState(false);
   const [examSystems, setExamSystems] = useState({
     cardiovascular: e?.systems?.cardiovascular ?? "",
     respiratory: e?.systems?.respiratory ?? "",
@@ -289,7 +290,7 @@ export function ClerkshipForm({
         ))}
       </datalist>
 
-      <div className="xl:grid xl:grid-cols-[minmax(0,1fr)_21rem] xl:items-start xl:gap-5">
+      <div>
         <div className="min-w-0">
           <div className="border-border bg-card overflow-hidden rounded-xl border shadow-sm">
             {/* Window header — breadcrumb + status */}
@@ -692,19 +693,36 @@ export function ClerkshipForm({
             A correction is a new version — nothing is overwritten.
           </p>
         </div>
-
-        <ReasoningPanel
-          pcCodes={hpcItems.map((x) => x.symptomCode)}
-          hpcItems={hpcItems}
-          ros={ros}
-          pmhConditions={pmhItems.map((x) => x.display)}
-          fhScreen={fhScreen}
-          social={socialHx}
-          examFindings={examGeneralFindings}
-          respiratory={examRespiratory}
-          atSynthesis={step >= 4}
-        />
       </div>
+
+      {/* Clinical reasoning — opens as a slide-over so the form keeps full width */}
+      {!reasoningOpen ? (
+        <button
+          type="button"
+          onClick={() => setReasoningOpen(true)}
+          className="border-border bg-card text-foreground hover:bg-muted fixed right-5 bottom-5 z-40 inline-flex items-center gap-2 rounded-full border px-4 py-2.5 text-[12.5px] font-medium shadow-lg transition-colors"
+        >
+          <BrainIcon className="size-4 text-teal-600 dark:text-teal-400" aria-hidden />
+          Clinical reasoning
+        </button>
+      ) : null}
+
+      {reasoningOpen ? (
+        <div className="bg-card border-border animate-in slide-in-from-right fixed top-0 right-0 bottom-0 z-50 w-[24rem] max-w-[92vw] border-l shadow-2xl duration-200">
+          <ReasoningPanel
+            pcCodes={hpcItems.map((x) => x.symptomCode)}
+            hpcItems={hpcItems}
+            ros={ros}
+            pmhConditions={pmhItems.map((x) => x.display)}
+            fhScreen={fhScreen}
+            social={socialHx}
+            examFindings={examGeneralFindings}
+            respiratory={examRespiratory}
+            atSynthesis={step >= 4}
+            onClose={() => setReasoningOpen(false)}
+          />
+        </div>
+      ) : null}
     </form>
   );
 }

@@ -6,6 +6,7 @@ import type { AdultVitals } from "@/lib/triage/types";
 import { useEffect, useMemo, useState } from "react";
 import { ActivityIcon, ArrowDownIcon, ArrowUpIcon } from "lucide-react";
 
+import { gcsTotal } from "@/lib/clerkship/exam/types";
 import { scoreNews2 } from "@/lib/triage/scoring/news2";
 import { loadTriageVitalsAction } from "../actions";
 
@@ -40,7 +41,11 @@ function toAdult(v: RecordedVitals): AdultVitals {
     oxygen: "air",
     systolicBp: v.sbp ?? null,
     pulse: v.hr ?? null,
-    consciousness: v.gcs == null ? null : v.gcs >= 15 ? "A" : "V",
+    // NEWS2 only distinguishes Alert vs not — GCS total <15 → non-alert (3 pts).
+    consciousness: (() => {
+      const t = gcsTotal(v);
+      return t == null ? null : t >= 15 ? "A" : "V";
+    })(),
     temperature: v.tempC ?? null,
   };
 }
@@ -165,8 +170,31 @@ export function VitalsPanel({
             value.glucose != null && (value.glucose < 4 || value.glucose > 11) ? "amber" : undefined
           }
         />
-        <Field label="GCS" v={value.gcs} onV={(n) => set({ gcs: n })} pts={pts.consciousness} />
       </div>
+
+      {/* GCS by component (Eye / Verbal / Motor) → total */}
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5">
+        <span className="text-muted-foreground text-[10px] tracking-wide uppercase">GCS</span>
+        <GcsSelect label="E" v={value.gcsE} max={4} onV={(n) => set({ gcsE: n })} />
+        <GcsSelect label="V" v={value.gcsV} max={5} onV={(n) => set({ gcsV: n })} />
+        <GcsSelect label="M" v={value.gcsM} max={6} onV={(n) => set({ gcsM: n })} />
+        {gcsTotal(value) != null ? (
+          <span
+            className={`rounded px-1.5 py-0.5 font-mono text-[11px] font-semibold ${
+              gcsTotal(value)! <= 8
+                ? "bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-300"
+                : gcsTotal(value)! < 15
+                  ? "bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300"
+                  : "bg-teal-100 text-teal-800 dark:bg-teal-950/40 dark:text-teal-300"
+            }`}
+          >
+            GCS {gcsTotal(value)}/15
+          </span>
+        ) : (
+          <span className="text-muted-foreground text-[10px]">/15</span>
+        )}
+      </div>
+
       <p className="text-muted-foreground text-[10px]">
         Recorded on the encounter; monitoring engine not attached yet.
       </p>
@@ -195,6 +223,37 @@ function Carried({
       {suffix ?? ""}
       {Arrow ? <Arrow className="ml-0.5 inline size-3 opacity-70" aria-hidden /> : null}
     </span>
+  );
+}
+
+function GcsSelect({
+  label,
+  v,
+  max,
+  onV,
+}: {
+  label: string;
+  v: number | undefined;
+  max: number;
+  onV: (n: number | undefined) => void;
+}) {
+  return (
+    <label className="inline-flex items-center gap-1">
+      <span className="text-muted-foreground text-[10px]">{label}</span>
+      <select
+        className="border-input bg-card rounded border px-1 py-1 text-[12px] tabular-nums outline-none focus-visible:border-teal-500"
+        value={v ?? ""}
+        onChange={(e) => onV(e.target.value === "" ? undefined : Number(e.target.value))}
+        aria-label={`GCS ${label}`}
+      >
+        <option value="">–</option>
+        {Array.from({ length: max }, (_, i) => i + 1).map((n) => (
+          <option key={n} value={n}>
+            {n}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }
 
