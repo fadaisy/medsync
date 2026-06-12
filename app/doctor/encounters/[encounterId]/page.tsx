@@ -81,53 +81,122 @@ export default async function DoctorEncounterPage({ params }: PageProps) {
   const doc = record.documentation;
 
   return (
-    <Wrap>
-      {patient ? <PatientHeader patient={patient} allergies={record.allergies} /> : null}
+    <div className="bg-background text-foreground flex min-h-svh flex-col">
+      <WorkspaceTopBar
+        scope={scope}
+        patientName={patient ? `${patient.firstName} ${patient.surname}` : null}
+      />
+      <div className="mx-auto flex w-full max-w-[1500px] flex-1 flex-col gap-5 px-4 py-5 lg:px-8 lg:py-6">
+        {patient ? <PatientHeader patient={patient} allergies={record.allergies} /> : null}
 
-      <header className="flex flex-col gap-2">
-        <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
-          <span aria-hidden className="size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20" />
-          Encounter
+        <header className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+          <h1 className="font-display text-foreground text-[20px] leading-[1.1] font-medium tracking-[-0.015em]">
+            {enc.encounterType} · {enc.state}
+          </h1>
+          <p className="text-muted-foreground font-mono text-[11px] tabular-nums">
+            Started {enc.startedAt.toISOString().slice(0, 16).replace("T", " ")}
+            {doc ? ` · documentation v${doc.version} (${doc.status})` : " · no documentation yet"}
+          </p>
+        </header>
+
+        {/* Documentation entry — full-bleed workspace; reasoning docks as its own rail */}
+        <ClerkshipForm encounterId={encounterId} initial={record.clerkship} />
+
+        {/* Timeline */}
+        <section className="border-border bg-card flex flex-col gap-3 rounded-xl border p-4">
+          <h2 className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10.5px] tracking-[0.14em] uppercase">
+            <ClockIcon className="size-3.5" aria-hidden />
+            Timeline
+          </h2>
+          {record.timeline.length === 0 ? (
+            <p className="text-muted-foreground text-[12.5px]">No events yet.</p>
+          ) : (
+            <ul className="divide-border/60 -mx-2 divide-y">
+              {record.timeline.map((ev) => (
+                <li key={ev.id} className="flex items-baseline justify-between gap-3 px-2 py-1.5">
+                  <span className="text-foreground text-[12.5px]">
+                    <span className="text-muted-foreground inline-block w-[96px] font-mono text-[10px] tracking-[0.06em] uppercase">
+                      {ev.kind}
+                    </span>{" "}
+                    {ev.label}
+                  </span>
+                  <span className="text-muted-foreground font-mono text-[10.5px] tabular-nums">
+                    {ev.recordedAt.toISOString().slice(0, 16).replace("T", " ")}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
+    </div>
+  );
+}
+
+const CADRE_LABEL: Record<string, string> = {
+  INTERN_DOCTOR: "Intern Doctor",
+  MEDICAL_OFFICER: "Medical Officer",
+  MEDICAL_OFFICER_SG: "MO Special Grade",
+  CONSULTANT: "Consultant",
+  SENIOR_CONSULTANT: "Senior Consultant",
+};
+
+/** Full-bleed workspace top bar (the doctor shell chrome is hidden here). */
+function WorkspaceTopBar({
+  scope,
+  patientName,
+}: {
+  scope: Awaited<ReturnType<typeof requireDoctorScope>>;
+  patientName: string | null;
+}) {
+  return (
+    <header className="border-border bg-background/95 supports-backdrop-filter:bg-background/80 sticky top-0 z-30 flex h-[52px] items-center justify-between gap-3 border-b px-4 supports-backdrop-filter:backdrop-blur sm:px-6">
+      <div className="flex min-w-0 items-center gap-3">
+        <Link
+          href="/doctor/encounters"
+          className="text-muted-foreground hover:text-foreground inline-flex shrink-0 items-center gap-1 text-[12.5px] transition-colors"
+        >
+          <ArrowLeftIcon className="size-3.5" aria-hidden />
+          Encounters
+        </Link>
+        <span className="text-border hidden sm:inline" aria-hidden>
+          |
         </span>
-        <h1 className="font-display text-foreground text-[24px] leading-[1.1] font-medium tracking-[-0.015em]">
-          {enc.encounterType} · {enc.state}
-        </h1>
-        <p className="text-muted-foreground font-mono text-[11.5px] tabular-nums">
-          Started {enc.startedAt.toISOString().slice(0, 16).replace("T", " ")}
-          {doc ? ` · documentation v${doc.version} (${doc.status})` : " · no documentation yet"}
-        </p>
-      </header>
-
-      {/* Documentation entry */}
-      <ClerkshipForm encounterId={encounterId} initial={record.clerkship} />
-
-      {/* Timeline */}
-      <section className="border-border bg-card flex flex-col gap-3 rounded-xl border p-4">
-        <h2 className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10.5px] tracking-[0.14em] uppercase">
-          <ClockIcon className="size-3.5" aria-hidden />
-          Timeline
-        </h2>
-        {record.timeline.length === 0 ? (
-          <p className="text-muted-foreground text-[12.5px]">No events yet.</p>
-        ) : (
-          <ul className="divide-border/60 -mx-2 divide-y">
-            {record.timeline.map((ev) => (
-              <li key={ev.id} className="flex items-baseline justify-between gap-3 px-2 py-1.5">
-                <span className="text-foreground text-[12.5px]">
-                  <span className="text-muted-foreground inline-block w-[96px] font-mono text-[10px] tracking-[0.06em] uppercase">
-                    {ev.kind}
-                  </span>{" "}
-                  {ev.label}
-                </span>
-                <span className="text-muted-foreground font-mono text-[10.5px] tabular-nums">
-                  {ev.recordedAt.toISOString().slice(0, 16).replace("T", " ")}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-    </Wrap>
+        <span className="text-foreground hidden truncate text-[13px] font-medium sm:inline">
+          {patientName ?? "Clerking"}
+        </span>
+      </div>
+      <div className="flex items-center gap-3">
+        <span className="text-muted-foreground hidden items-center gap-1.5 font-mono text-[10px] tracking-[0.14em] uppercase lg:inline-flex">
+          <span
+            aria-hidden
+            className="size-1.5 shrink-0 rounded-full bg-teal-500 ring-2 ring-teal-500/20"
+          />
+          <span className="max-w-[180px] truncate" title={scope.hospitalName}>
+            {scope.hospitalName}
+          </span>
+          <span className="text-muted-foreground/70" aria-hidden>
+            ·
+          </span>
+          <span className="max-w-[140px] truncate">{scope.departmentName}</span>
+        </span>
+        <span
+          className={`inline-flex items-center rounded-full px-2 py-0.5 font-mono text-[10px] tracking-[0.12em] uppercase ${
+            scope.isJunior
+              ? "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200"
+              : "bg-teal-100 text-teal-800 dark:bg-teal-900/40 dark:text-teal-200"
+          }`}
+        >
+          {CADRE_LABEL[scope.cadreCode] ?? scope.cadreCode}
+        </span>
+        <Link
+          href="/sign-out"
+          className="text-muted-foreground hover:text-foreground text-[12px] transition-colors"
+        >
+          Sign out
+        </Link>
+      </div>
+    </header>
   );
 }
 

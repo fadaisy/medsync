@@ -24,9 +24,10 @@ import { diagnosticPausePrompts, liveReasoningForCodes } from "@/lib/clerkship/r
 import { REASONING_MAPS } from "@/lib/clerkship/reasoning/maps";
 
 /**
- * Clinical reasoning — a LIVE, anti-anchoring panel hosted in a slide-over drawer
- * (toggled from the form; non-modal so it stays live while you keep working). As
- * the clinician taps symptom properties / ROS / history / exam findings, the
+ * Clinical reasoning — a LIVE, anti-anchoring panel. In the full-bleed encounter
+ * workspace it docks as its own right-hand rail (stacks below the form on narrow
+ * screens); it can also be hosted in a drawer (pass onClose). As the clinician
+ * taps symptom properties / ROS / history / exam findings, the
  * differential RE-RANKS (rule-in raises, rule-out/denial lowers), surfaces what
  * to ask + examine next, and flags risk factors + red flags. Computed PURELY on
  * the client (no API, no latency, no PHI leaves the page). It NEVER narrows to
@@ -65,7 +66,8 @@ export function ReasoningPanel({
   examFindings: ExamObservation[];
   respiratory: RespExam;
   atSynthesis: boolean;
-  onClose: () => void;
+  /** When hosted in a drawer, renders a close button; omit when docked as a rail. */
+  onClose?: () => void;
 }) {
   const r = useMemo(() => {
     const features = hpcItems.flatMap((i) => [
@@ -101,7 +103,7 @@ export function ReasoningPanel({
   const mnmCount = r.scored.filter((d) => d.likelihood === "must_not_miss").length;
 
   return (
-    <aside className="bg-card flex h-full flex-col overflow-hidden">
+    <div className="bg-card flex h-full min-h-0 flex-col overflow-hidden">
       <div className="border-border/60 flex items-center gap-2 border-b px-3.5 py-3">
         <BrainCircuitIcon
           className="size-4 shrink-0 text-teal-600 dark:text-teal-400"
@@ -114,17 +116,19 @@ export function ReasoningPanel({
             {mnmCount}
           </span>
         ) : null}
-        <button
-          type="button"
-          onClick={onClose}
-          className="text-muted-foreground hover:text-foreground ml-auto"
-          aria-label="Close reasoning panel"
-        >
-          <XIcon className="size-4" />
-        </button>
+        {onClose ? (
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-muted-foreground hover:text-foreground ml-auto"
+            aria-label="Close reasoning panel"
+          >
+            <XIcon className="size-4" />
+          </button>
+        ) : null}
       </div>
 
-      <div className="flex flex-col gap-3 overflow-y-auto px-3.5 py-3">
+      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-3.5 py-3">
         {!fired ? (
           <p className="text-muted-foreground text-[12px]">
             Add a presenting complaint — the differential, the must-not-miss, and the discriminators
@@ -200,7 +204,7 @@ export function ReasoningPanel({
           </>
         )}
       </div>
-    </aside>
+    </div>
   );
 }
 
