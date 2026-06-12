@@ -22,6 +22,7 @@ import {
   loadSymptomCatalog,
 } from "@/lib/clerkship/catalog";
 import { createDoctorComplaint, proposeComplaintToShared } from "@/lib/clerkship/create-complaint";
+import { deleteClerkshipDraft, upsertClerkshipDraft } from "@/lib/clerkship/drafts";
 import { proposeCatalogItem } from "@/lib/clerkship/governance";
 import { requireDoctorScope } from "@/lib/doctor/scope";
 import { ClerkshipInputSchema, clerkshipInputToClerkship } from "@/lib/encounter/clerkship-input";
@@ -75,6 +76,38 @@ export async function submitClerkshipAction(
 
   revalidatePath(`/doctor/encounters/${encounterId}`);
   return { ok: true, documentationId: res.documentationId };
+}
+
+/**
+ * W3 working-draft autosave — upsert the author's mutable draft (debounced from
+ * the form). Separate from the append-only version history; gated behind
+ * CLERKSHIP_DRAFTS_LIVE (inert no-op when off). Validates + hospital-scopes like
+ * the save action; stores the validated flat input for clean rehydration.
+ */
+export async function saveClerkshipDraftAction(
+  encounterId: string,
+  rawInput: unknown,
+): Promise<{ ok: boolean }> {
+  if (!encounterEngineLive()) return { ok: false };
+  const scope = await requireDoctorScope();
+  const parsed = ClerkshipInputSchema.safeParse(rawInput);
+  if (!parsed.success) return { ok: false };
+  const [enc] = await db
+    .select({ hospitalId: encounters.hospitalId })
+    .from(encounters)
+    .where(eq(encounters.id, encounterId))
+    .limit(1);
+  if (!enc || enc.hospitalId !== scope.hospitalId) return { ok: false };
+  await upsertClerkshipDraft(encounterId, scope.userId, parsed.data);
+  return { ok: true };
+}
+
+/** Drop the author's working draft (on a successful save, or on discard-recovery). */
+export async function clearClerkshipDraftAction(encounterId: string): Promise<{ ok: boolean }> {
+  if (!encounterEngineLive()) return { ok: false };
+  const scope = await requireDoctorScope();
+  await deleteClerkshipDraft(encounterId, scope.userId);
+  return { ok: true };
 }
 
 /** Tap-first capture: the symptom list (shared + my personal) + a symptom's properties. */
