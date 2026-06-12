@@ -315,13 +315,17 @@ export function SectionCard({
             aria-hidden
           />
         </button>
-        {onMarkNormal && status !== "normal" ? (
+        {/* The on-row fast-path asserts "examined, all normal" — offered ONLY on a
+            fresh (not-examined) section, so one tap can never overwrite already-
+            recorded data or fabricate partly-examined fields as normal. Once any
+            data exists, the clinician fills field-by-field (or the whole-exam normal). */}
+        {onMarkNormal && status === "not_examined" ? (
           <button
             type="button"
             onClick={onMarkNormal}
             className="tap text-muted-foreground border-border mr-2 inline-flex shrink-0 items-center gap-1 rounded-md border px-2 py-1 text-[11px] hover:text-teal-700 dark:hover:text-teal-300"
           >
-            <CheckIcon className="size-3" aria-hidden /> normal
+            <CheckIcon className="size-3" aria-hidden /> mark normal
           </button>
         ) : null}
       </div>

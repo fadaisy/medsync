@@ -239,13 +239,13 @@ export function AbdominalExam({
     });
   };
 
-  // Completion — named-sign panels examined-normal; PR honestly not-examined.
+  // Completion — named-sign panels examined-normal. PR is an explicit clinician
+  // decision and is NEVER touched here (preserve any recorded PR finding — a
+  // "mark normal" must not wipe e.g. an examined PR with fresh blood).
   const markCompletionNormal = () => {
-    const n = normalAbdoExam();
     onChange({
       ...value,
       findings: normalForGroups(["abdo_signs", "abdo_completion"]),
-      pr: n.pr,
     });
   };
 
