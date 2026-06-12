@@ -24,8 +24,9 @@ import { diagnosticPausePrompts, liveReasoningForCodes } from "@/lib/clerkship/r
 import { REASONING_MAPS } from "@/lib/clerkship/reasoning/maps";
 
 /**
- * Clinical reasoning — a FLOATING, LIVE, anti-anchoring panel that moves with the
- * clerkship. As the clinician taps symptom properties / ROS / history, the
+ * Clinical reasoning — a LIVE, anti-anchoring panel hosted in a slide-over drawer
+ * (toggled from the form; non-modal so it stays live while you keep working). As
+ * the clinician taps symptom properties / ROS / history / exam findings, the
  * differential RE-RANKS (rule-in raises, rule-out/denial lowers), surfaces what
  * to ask + examine next, and flags risk factors + red flags. Computed PURELY on
  * the client (no API, no latency, no PHI leaves the page). It NEVER narrows to
@@ -53,6 +54,7 @@ export function ReasoningPanel({
   examFindings,
   respiratory,
   atSynthesis,
+  onClose,
 }: {
   pcCodes: string[];
   hpcItems: CapturedSymptom[];
@@ -63,9 +65,8 @@ export function ReasoningPanel({
   examFindings: ExamObservation[];
   respiratory: RespExam;
   atSynthesis: boolean;
+  onClose: () => void;
 }) {
-  const [open, setOpen] = useState(true);
-
   const r = useMemo(() => {
     const features = hpcItems.flatMap((i) => [
       i.symptomDisplay,
@@ -99,28 +100,9 @@ export function ReasoningPanel({
   const fired = r.basis.length > 0;
   const mnmCount = r.scored.filter((d) => d.likelihood === "must_not_miss").length;
 
-  if (!open) {
-    return (
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="border-border bg-card inline-flex w-full items-center gap-1.5 rounded-2xl border px-3.5 py-2.5 text-[12px] font-medium text-teal-700 shadow-sm xl:sticky xl:top-20 dark:text-teal-300"
-      >
-        <BrainCircuitIcon className="size-4" aria-hidden />
-        Clinical reasoning
-        {mnmCount ? (
-          <span className="rounded-full bg-amber-100 px-1.5 text-[10px] font-semibold text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
-            {mnmCount}
-          </span>
-        ) : null}
-        <span className="text-muted-foreground ml-auto text-[10px]">show</span>
-      </button>
-    );
-  }
-
   return (
-    <aside className="border-border bg-card flex flex-col overflow-hidden rounded-2xl border shadow-sm xl:sticky xl:top-20 xl:max-h-[calc(100vh-6rem)]">
-      <div className="border-border/60 flex items-center gap-2 border-b px-3.5 py-2.5">
+    <aside className="bg-card flex h-full flex-col overflow-hidden">
+      <div className="border-border/60 flex items-center gap-2 border-b px-3.5 py-3">
         <BrainCircuitIcon
           className="size-4 shrink-0 text-teal-600 dark:text-teal-400"
           aria-hidden
@@ -134,9 +116,9 @@ export function ReasoningPanel({
         ) : null}
         <button
           type="button"
-          onClick={() => setOpen(false)}
+          onClick={onClose}
           className="text-muted-foreground hover:text-foreground ml-auto"
-          aria-label="Collapse reasoning panel"
+          aria-label="Close reasoning panel"
         >
           <XIcon className="size-4" />
         </button>
