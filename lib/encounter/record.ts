@@ -146,8 +146,13 @@ export async function recordClerkshipVersion(
           text: d.text,
           rank: d.rank ?? null,
           mustNotMiss: d.mustNotMiss ?? false,
-          // A junior cannot finalise a diagnosis (co-sign hook) — keep working.
-          status: authority.canWriteFinalDiagnosis ? (d.status ?? "working") : "working",
+          // A junior cannot FINALISE a diagnosis (co-sign hook) — "final" downgrades
+          // to working; "excluded" (considered & excluded) is kept for any cadre
+          // (it is the auditable anti-anchoring record, not a final diagnosis).
+          status:
+            d.status === "final" && !authority.canWriteFinalDiagnosis
+              ? "working"
+              : (d.status ?? "working"),
           authoredByUserId: scope.userId,
         });
       }

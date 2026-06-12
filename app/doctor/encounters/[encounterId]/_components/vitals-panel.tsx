@@ -64,13 +64,16 @@ export function VitalsPanel({
   encounterId,
   value,
   onChange,
+  bpStandard,
+  onBpStandardChange,
 }: {
   encounterId: string;
   value: RecordedVitals;
   onChange: (v: RecordedVitals) => void;
+  /** The BP reference standard (lifted to the form so the Assessment reads the same). */
+  bpStandard: BpStandard;
+  onBpStandardChange: (s: BpStandard) => void;
 }) {
-  // BP reference standard the clinician reads against (chronic-disease context).
-  const [bpStandard, setBpStandard] = useState<BpStandard>("who_esc");
   const bpCat = bpCategory(value.sbp, value.dbp, bpStandard);
 
   const [carried, setCarried] = useState<CarriedVitals | null>(null);
@@ -201,7 +204,7 @@ export function VitalsPanel({
               key={s.value}
               type="button"
               aria-pressed={bpStandard === s.value}
-              onClick={() => setBpStandard(s.value)}
+              onClick={() => onBpStandardChange(s.value)}
               className={`tap px-2 py-0.5 text-[10.5px] font-medium transition-colors ${i > 0 ? "border-border border-l" : ""} ${
                 bpStandard === s.value
                   ? "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200"

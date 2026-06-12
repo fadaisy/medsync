@@ -120,6 +120,16 @@ export interface ClerkProblem {
   item: string;
   icd10?: string;
   active?: boolean;
+  /** Vitals-first synthesis modelling (Assessment GATE A). A vital starts as its
+   * own first-class problem and can be LINKED under a diagnosis as reasoning
+   * firms up — the linkage is the clinician's act. Carried in the versioned
+   * section_data; the problem_list projection derives `active` from `status`. */
+  kind?: "vital" | "diagnosis" | "finding" | "background";
+  status?: "active" | "resolved" | "linked";
+  /** The working diagnosis this problem is linked/merged under (by its text). */
+  linkedTo?: string;
+  /** Where the proposed item came from (auditable provenance). */
+  provenance?: string;
 }
 export interface ClerkOrder {
   kind: "bloods" | "imaging" | "bedside" | "special" | "other";

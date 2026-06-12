@@ -700,9 +700,25 @@ export const ClerkshipInputSchema = z.object({
         text: z.string().max(240),
         icd10: z.string().max(16).optional(),
         mustNotMiss: z.boolean().optional(),
+        /** "excluded" = considered & excluded (kept auditable, never silently dropped). */
+        status: z.enum(["working", "final", "excluded"]).optional(),
       }),
     )
     .max(30)
+    .optional(),
+  /** The clinician-committed problem list (vitals-first synthesis; Assessment GATE A). */
+  problems: z
+    .array(
+      z.object({
+        item: z.string().max(240),
+        icd10: z.string().max(16).optional(),
+        kind: z.enum(["vital", "diagnosis", "finding", "background"]).optional(),
+        status: z.enum(["active", "resolved", "linked"]).optional(),
+        linkedTo: z.string().max(240).optional(),
+        provenance: z.string().max(240).optional(),
+      }),
+    )
+    .max(40)
     .optional(),
   investigations: z
     .array(
@@ -821,7 +837,23 @@ export function clerkshipInputToClerkship(input: ClerkshipInput): Clerkship {
     summary: clean(input.summary),
     differential: input.differential
       ?.filter((d) => d.text.trim().length > 0)
-      .map((d) => ({ text: d.text.trim(), icd10: clean(d.icd10), mustNotMiss: d.mustNotMiss })),
+      .map((d) => ({
+        text: d.text.trim(),
+        icd10: clean(d.icd10),
+        mustNotMiss: d.mustNotMiss,
+        status: d.status,
+      })),
+    problems: input.problems
+      ?.filter((p) => p.item.trim().length > 0)
+      .map((p) => ({
+        item: p.item.trim(),
+        icd10: clean(p.icd10),
+        kind: p.kind,
+        status: p.status,
+        linkedTo: clean(p.linkedTo),
+        provenance: clean(p.provenance),
+        active: p.status ? p.status !== "resolved" : true,
+      })),
     investigations: input.investigations
       ?.filter((o) => o.text.trim().length > 0)
       .map((o) => ({

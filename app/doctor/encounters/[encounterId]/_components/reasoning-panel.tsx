@@ -23,13 +23,14 @@ import {
   XIcon,
 } from "lucide-react";
 
-import { abdoReasoningTokens, renderAbdoProse } from "@/lib/clerkship/exam/abdominal";
-import { cvsReasoningTokens, renderCvsProse } from "@/lib/clerkship/exam/cardiovascular";
-import { evfReasoningTokens, renderEvfProse } from "@/lib/clerkship/exam/endo-vascular-foot";
-import { examReasoningTokens, renderExamProse } from "@/lib/clerkship/exam/engine";
-import { mskReasoningTokens, renderMskProse } from "@/lib/clerkship/exam/musculoskeletal";
-import { neuroReasoningTokens, renderNeuroProse } from "@/lib/clerkship/exam/neurological";
-import { renderRespProse, respReasoningTokens } from "@/lib/clerkship/exam/respiratory";
+import { renderAbdoProse } from "@/lib/clerkship/exam/abdominal";
+import { renderCvsProse } from "@/lib/clerkship/exam/cardiovascular";
+import { renderEvfProse } from "@/lib/clerkship/exam/endo-vascular-foot";
+import { renderExamProse } from "@/lib/clerkship/exam/engine";
+import { renderMskProse } from "@/lib/clerkship/exam/musculoskeletal";
+import { renderNeuroProse } from "@/lib/clerkship/exam/neurological";
+import { renderRespProse } from "@/lib/clerkship/exam/respiratory";
+import { buildCapturedContext } from "@/lib/clerkship/reasoning/context";
 import { diagnosticPausePrompts, liveReasoningForCodes } from "@/lib/clerkship/reasoning/engine";
 import { REASONING_MAPS } from "@/lib/clerkship/reasoning/maps";
 
@@ -43,17 +44,6 @@ import { REASONING_MAPS } from "@/lib/clerkship/reasoning/maps";
  * the client (no API, no latency, no PHI leaves the page). It NEVER narrows to
  * one answer, never drops a must-not-miss, never auto-fills. Decision-support.
  */
-
-function socialTokens(s: ClerkSocial | undefined): string[] {
-  if (!s) return [];
-  const out: string[] = [];
-  if (s.smokingStatus === "current" || s.smokingStatus === "ex") out.push("smoking", "smoker");
-  if (s.alcoholStatus === "regular" || s.alcoholStatus === "ex") out.push("alcohol");
-  if (s.drugUse === "current" || s.drugUse === "past") out.push("recreational drugs", "IVDU");
-  if (s.occupation) out.push(s.occupation);
-  if (s.exposures?.length) out.push(...s.exposures);
-  return out;
-}
 
 export function ReasoningPanel({
   pcCodes,
@@ -90,43 +80,24 @@ export function ReasoningPanel({
   onClose?: () => void;
 }) {
   const r = useMemo(() => {
-    const features = hpcItems.flatMap((i) => [
-      i.symptomDisplay,
-      ...i.properties.flatMap((p) => [...(p.labels ?? []), p.text ?? ""]),
-    ]);
-    const fhYes = Object.entries(fhScreen)
-      .filter(([, v]) => v === "yes")
-      .map(([k]) => k.replace(/_/g, " "));
-    const fhNo = Object.entries(fhScreen)
-      .filter(([, v]) => v === "no")
-      .map(([k]) => k.replace(/_/g, " "));
-    const exam = examReasoningTokens(examFindings);
-    const resp = respReasoningTokens(respiratory);
-    const cvs = cvsReasoningTokens(cardiovascular);
-    const abdo = abdoReasoningTokens(abdominal);
-    const neuro = neuroReasoningTokens(neurological);
-    const msk = mskReasoningTokens(musculoskeletal);
-    const evf = evfReasoningTokens(endoVascularFoot);
-    return liveReasoningForCodes(REASONING_MAPS, pcCodes, {
-      features,
-      positives: [
-        ...ros.filter((o) => o.status === "present").map((o) => o.symptomDisplay),
-        ...fhYes,
-        ...exam.positives,
-        ...resp.positives,
-        ...cvs.positives,
-        ...abdo.positives,
-        ...neuro.positives,
-        ...msk.positives,
-        ...evf.positives,
-      ],
-      negatives: [
-        ...ros.filter((o) => o.status === "denies").map((o) => o.symptomDisplay),
-        ...fhNo,
-        ...exam.negatives,
-      ],
-      history: [...pmhConditions, ...fhYes, ...socialTokens(social)],
-    });
+    return liveReasoningForCodes(
+      REASONING_MAPS,
+      pcCodes,
+      buildCapturedContext({
+        hpcItems,
+        ros,
+        pmhConditions,
+        fhScreen,
+        social,
+        examFindings,
+        respiratory,
+        cardiovascular,
+        abdominal,
+        neurological,
+        musculoskeletal,
+        endoVascularFoot,
+      }),
+    );
   }, [
     pcCodes,
     hpcItems,

@@ -1,7 +1,9 @@
 "use client";
 
 import type { SubmitClerkshipResult } from "../actions";
+import type { ExcludedDx, ProblemRow } from "./assessment-synthesis";
 import type { AbdoExam } from "@/lib/clerkship/exam/abdominal";
+import type { BpStandard } from "@/lib/clerkship/exam/bp";
 import type { CvsExam } from "@/lib/clerkship/exam/cardiovascular";
 import type { EvfExam } from "@/lib/clerkship/exam/endo-vascular-foot";
 import type { MskExam } from "@/lib/clerkship/exam/musculoskeletal";
@@ -52,6 +54,7 @@ import {
   submitClerkshipAction,
 } from "../actions";
 import { AbdominalExam } from "./abdominal-exam";
+import { AssessmentSynthesis } from "./assessment-synthesis";
 import { CardiovascularExam } from "./cardiovascular-exam";
 import { CodeCombobox } from "./code-combobox";
 import { EvfExamForm } from "./evf-exam";
@@ -121,6 +124,10 @@ type FormState = {
   examSystems: Record<"cardiovascular" | "respiratory" | "abdominal" | "neurological", string>;
   summary: string;
   differential: DxRow[];
+  /** Considered & excluded (anti-anchoring audit) — merged into differential on save. */
+  excludedDx: ExcludedDx[];
+  /** The clinician-confirmed problem list (vitals-first synthesis). */
+  problems: ProblemRow[];
   investigations: OrderRow[];
   managementPlan: string;
   disposition: string;
@@ -164,10 +171,25 @@ function buildClerkshipInput(f: FormState): unknown {
     examEndoVascularFoot: f.examEndoVascularFoot,
     examSystems: f.examSystems,
     summary: f.summary,
-    differential: f.differential.map((d) => ({
-      text: d.text,
-      icd10: d.icd10 || undefined,
-      mustNotMiss: d.mustNotMiss,
+    differential: [
+      // The clinician's working set, then the considered-&-excluded audit trail.
+      ...f.differential.map((d) => ({
+        text: d.text,
+        icd10: d.icd10 || undefined,
+        mustNotMiss: d.mustNotMiss,
+      })),
+      ...f.excludedDx.map((d) => ({
+        text: d.text,
+        mustNotMiss: d.mustNotMiss,
+        status: "excluded" as const,
+      })),
+    ],
+    problems: f.problems.map((p) => ({
+      item: p.item,
+      kind: p.kind,
+      status: p.status,
+      linkedTo: p.linkedTo || undefined,
+      provenance: p.provenance || undefined,
     })),
     investigations: f.investigations.map((o) => ({
       kind: o.kind,
@@ -252,13 +274,34 @@ export function ClerkshipForm({
     neurological: e?.systems?.neurological ?? "",
   });
   const [summary, setSummary] = useState(s?.summary ?? "");
+  // The editable differential = the clinician's working set. "Considered &
+  // excluded" rows (anti-anchoring audit) live separately and re-merge on save.
   const [differential, setDifferential] = useState<DxRow[]>(
-    (s?.differential ?? []).map((d) => ({
-      text: d.text,
-      icd10: d.icd10 ?? "",
-      mustNotMiss: d.mustNotMiss ?? false,
+    (s?.differential ?? [])
+      .filter((d) => d.status !== "excluded")
+      .map((d) => ({
+        text: d.text,
+        icd10: d.icd10 ?? "",
+        mustNotMiss: d.mustNotMiss ?? false,
+      })),
+  );
+  const [excludedDx, setExcludedDx] = useState<ExcludedDx[]>(
+    (s?.differential ?? [])
+      .filter((d) => d.status === "excluded")
+      .map((d) => ({ text: d.text, mustNotMiss: d.mustNotMiss ?? false })),
+  );
+  // The clinician-confirmed problem list (vitals-first synthesis; GATE A model).
+  const [problems, setProblems] = useState<ProblemRow[]>(
+    (s?.problems ?? []).map((p) => ({
+      item: p.item,
+      kind: p.kind ?? "diagnosis",
+      status: p.status ?? (p.active === false ? "resolved" : "active"),
+      linkedTo: p.linkedTo,
+      provenance: p.provenance,
     })),
   );
+  // The BP reference standard — shared by the vitals panel + the Assessment.
+  const [bpStandard, setBpStandard] = useState<BpStandard>("who_esc");
   const [investigations, setInvestigations] = useState<OrderRow[]>(
     (s?.investigations ?? []).map((o) => ({
       kind: o.kind,
@@ -320,6 +363,8 @@ export function ClerkshipForm({
     examSystems,
     summary,
     differential,
+    excludedDx,
+    problems,
     investigations,
     managementPlan,
     disposition,
@@ -580,6 +625,8 @@ export function ClerkshipForm({
                       encounterId={encounterId}
                       value={examVitals}
                       onChange={setExamVitals}
+                      bpStandard={bpStandard}
+                      onBpStandardChange={setBpStandard}
                     />
 
                     {/* System switcher — each examination is its own card */}
@@ -680,6 +727,56 @@ export function ClerkshipForm({
 
                 {step === 4 ? (
                   <div className="flex flex-col gap-5">
+                    {/* The synthesis zones — assemble + propose; the clinician decides. */}
+                    <AssessmentSynthesis
+                      captured={{
+                        hpcItems,
+                        ros,
+                        pmhConditions: pmhItems.map((p) => p.display),
+                        fhScreen,
+                        social: socialHx,
+                        examFindings: examGeneralFindings,
+                        respiratory: examRespiratory,
+                        cardiovascular: examCardiovascular,
+                        abdominal: examAbdominal,
+                        neurological: examNeurological,
+                        musculoskeletal: examMusculoskeletal,
+                        endoVascularFoot: examEndoVascularFoot,
+                      }}
+                      pcCodes={hpcItems.map((x) => x.symptomCode)}
+                      vitals={examVitals}
+                      bpStandard={bpStandard}
+                      differential={differential}
+                      excluded={excludedDx}
+                      problems={problems}
+                      onAgree={(sdx) =>
+                        setDifferential([
+                          ...differential,
+                          {
+                            text: sdx.dx,
+                            icd10: "",
+                            mustNotMiss: sdx.likelihood === "must_not_miss",
+                          },
+                        ])
+                      }
+                      onExclude={(sdx) =>
+                        setExcludedDx([
+                          ...excludedDx,
+                          { text: sdx.dx, mustNotMiss: sdx.likelihood === "must_not_miss" },
+                        ])
+                      }
+                      onUnexclude={(text) =>
+                        setExcludedDx(excludedDx.filter((d) => d.text !== text))
+                      }
+                      onConfirmProblem={(p) => setProblems([...problems, p])}
+                      onUpdateProblem={(i, patch) =>
+                        setProblems(problems.map((p, j) => (j === i ? { ...p, ...patch } : p)))
+                      }
+                      onRemoveProblem={(i) => setProblems(problems.filter((_, j) => j !== i))}
+                      onInsertSummary={(text) =>
+                        setSummary(summary.trim() ? `${summary.trim()}\n\n${text}` : text)
+                      }
+                    />
                     <Field label="Summary / problem representation">
                       <RichTextEditor
                         value={summary}
@@ -687,7 +784,7 @@ export function ClerkshipForm({
                         placeholder="One-liner: age, salient features, working impression…"
                       />
                     </Field>
-                    <Field label="Differential (mark must-not-miss)">
+                    <Field label="Differential (mark must-not-miss) — your own diagnoses go here">
                       <RepeatList
                         rows={differential}
                         onChange={setDifferential}
