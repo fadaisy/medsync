@@ -340,7 +340,10 @@ export const ClerkshipInputSchema = z.object({
         .optional(),
       pulseVolume: z.enum(["low", "normal", "high"]).optional(),
       jvp: z.enum(["not_raised", "raised"]).optional(),
+      jvpHeight: z.string().max(20).optional(),
       apexLocation: z.enum(["undisplaced", "displaced"]).optional(),
+      apexInterspace: z.string().max(20).optional(),
+      apexLine: z.string().max(30).optional(),
       apexCharacter: z
         .enum(["normal", "heaving", "thrusting", "tapping", "double_impulse"])
         .optional(),

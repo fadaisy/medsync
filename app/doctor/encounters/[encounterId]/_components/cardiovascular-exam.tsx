@@ -22,10 +22,13 @@ import {
 
 import {
   APEX_CHAR_OPTS,
+  APEX_INTERSPACE_OPTS,
+  APEX_LINE_OPTS,
   CVS_ADDED_OPTS,
   CVS_FINDINGS,
   CVS_GROUPS,
   HEART_SOUND_OPTS,
+  JVP_HEIGHT_OPTS,
   matchCvsPatterns,
   MURMUR_AREA_OPTS,
   MURMUR_MANOEUVRE_OPTS,
@@ -171,14 +174,46 @@ export function CardiovascularExam({
           onPick={(v) => onChange({ ...value, pulseCharacter: (v as PulseCharacter) ?? undefined })}
         />
         <Row
+          title="Pulse volume"
+          options={[
+            { value: "low", label: "Low" },
+            { value: "normal", label: "Normal" },
+            { value: "high", label: "High" },
+          ]}
+          value={value.pulseVolume}
+          onPick={(v) =>
+            onChange({ ...value, pulseVolume: (v as CvsExam["pulseVolume"]) ?? undefined })
+          }
+        />
+        <Row
           title="JVP"
           options={[
             { value: "not_raised", label: "Not raised" },
             { value: "raised", label: "Raised" },
           ]}
           value={value.jvp}
-          onPick={(v) => onChange({ ...value, jvp: (v as CvsExam["jvp"]) ?? undefined })}
+          onPick={(v) =>
+            onChange({
+              ...value,
+              jvp: (v as CvsExam["jvp"]) ?? undefined,
+              // qualifier follows its finding — never orphaned
+              jvpHeight: v === "raised" ? value.jvpHeight : undefined,
+            })
+          }
         />
+        {value.jvp === "raised" ? (
+          <div className="scale-in flex flex-col gap-0.5">
+            <Row
+              title="↳ height"
+              options={JVP_HEIGHT_OPTS.map((v) => ({ value: v, label: v }))}
+              value={value.jvpHeight}
+              onPick={(v) => onChange({ ...value, jvpHeight: v })}
+            />
+            <span className="text-muted-foreground pl-26 text-[10px]">
+              above the sternal angle (normal ≤3–4 cm)
+            </span>
+          </div>
+        ) : null}
       </div>
 
       {/* Apex + heart sounds */}
@@ -191,9 +226,30 @@ export function CardiovascularExam({
           ]}
           value={value.apexLocation}
           onPick={(v) =>
-            onChange({ ...value, apexLocation: (v as CvsExam["apexLocation"]) ?? undefined })
+            onChange({
+              ...value,
+              apexLocation: (v as CvsExam["apexLocation"]) ?? undefined,
+              apexInterspace: v === "displaced" ? value.apexInterspace : undefined,
+              apexLine: v === "displaced" ? value.apexLine : undefined,
+            })
           }
         />
+        {value.apexLocation === "displaced" ? (
+          <div className="scale-in flex flex-col gap-1.5">
+            <Row
+              title="↳ interspace"
+              options={APEX_INTERSPACE_OPTS.map((v) => ({ value: v, label: v }))}
+              value={value.apexInterspace}
+              onPick={(v) => onChange({ ...value, apexInterspace: v })}
+            />
+            <Row
+              title="↳ line"
+              options={APEX_LINE_OPTS.map((v) => ({ value: v, label: v }))}
+              value={value.apexLine}
+              onPick={(v) => onChange({ ...value, apexLine: v })}
+            />
+          </div>
+        ) : null}
         <Row
           title="Apex character"
           options={APEX_CHAR_OPTS.map((o) => ({ value: o.value, label: o.label }))}
