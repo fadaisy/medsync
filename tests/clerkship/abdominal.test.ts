@@ -101,25 +101,29 @@ describe("matchAbdoPatterns — constellation → pattern (decision-support)", (
 });
 
 describe("renderAbdoProse — regions, organs, PR honesty", () => {
-  it("renders regions + structured liver + pattern", () => {
+  it("renders regions + structured liver + pattern as flowing narrative", () => {
     const s = renderAbdoProse({
       tenderness: { ruq: "tender" },
       liver: { palpable: true, span: "4 cm", edge: "smooth", tender: true },
       bowelSounds: "normal",
       pr: { state: "examined", findings: [] },
     });
-    expect(s).toMatch(/Tender RUQ/);
-    expect(s).toMatch(/Liver palpable \(4 cm below the costal margin, smooth edge, tender\)/);
-    expect(s).toMatch(/PR: no abnormality/);
+    expect(s).toMatch(/^On abdominal examination, /);
+    expect(s).toContain("tender in the RUQ");
+    expect(s).toContain(
+      "the liver is palpable 4 cm below the costal margin, with a smooth edge, tender",
+    );
+    expect(s).toContain("on PR there is no abnormality");
+    expect(s).toContain("Pattern(s) to consider:");
   });
 
   it("PR omission is stated honestly whenever the exam has content", () => {
-    expect(renderAbdoProse({ bowelSounds: "normal" })).toMatch(/PR: not examined/);
+    expect(renderAbdoProse({ bowelSounds: "normal" })).toContain("PR was not examined");
   });
 
   it("declined PR is recorded as declined", () => {
-    expect(renderAbdoProse({ bowelSounds: "normal", pr: { state: "declined" } })).toMatch(
-      /PR: offered, declined/,
+    expect(renderAbdoProse({ bowelSounds: "normal", pr: { state: "declined" } })).toContain(
+      "PR was offered but declined",
     );
   });
 

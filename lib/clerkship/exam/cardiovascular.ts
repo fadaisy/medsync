@@ -384,42 +384,58 @@ export function describeMurmur(m: Murmur): string {
   return bits.join(" ") || "murmur";
 }
 
-/** Readable CVS prose (structured findings + murmurs + patterns). */
+/** Grammatical list join: "a", "a and b", "a, b and c". */
+const cvsListJoin = (xs: string[]): string =>
+  xs.length <= 1 ? (xs[0] ?? "") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`;
+
+/** Readable CVS prose — flowing clinical narrative (findings + murmurs + patterns). */
 export function renderCvsProse(c: CvsExam): string {
-  const parts: string[] = [];
+  const clauses: string[] = [];
+
   const present2 = (c.findings ?? []).filter((o) => o.state === "present");
-  if (present2.length)
-    parts.push(
-      present2
-        .map((o) =>
-          o.values?.length
-            ? `${o.display.toLowerCase()} (${o.values.join(", ")})`
-            : o.display.toLowerCase(),
-        )
-        .join(", ") + ".",
+  if (present2.length) {
+    const items = present2.map((o) =>
+      o.values?.length
+        ? `${o.display.toLowerCase()} (${o.values.join(", ")})`
+        : o.display.toLowerCase(),
     );
+    clauses.push(`there is ${cvsListJoin(items)}`);
+  }
+
   if (c.pulseCharacter && c.pulseCharacter !== "normal")
-    parts.push(`${c.pulseCharacter.replace("_", "-")} pulse.`);
+    clauses.push(`the pulse is ${c.pulseCharacter.replace("_", "-")}`);
   if (c.pulseRhythm && c.pulseRhythm !== "regular")
-    parts.push(`${c.pulseRhythm.replace(/_/g, " ")} rhythm.`);
-  if (c.jvp === "raised") parts.push(`JVP raised${c.jvpHeight ? ` (${c.jvpHeight})` : ""}.`);
+    clauses.push(`the rhythm is ${c.pulseRhythm.replace(/_/g, " ")}`);
+  if (c.jvp === "raised")
+    clauses.push(`the JVP is raised${c.jvpHeight ? ` (${c.jvpHeight})` : ""}`);
+
   if (c.apexLocation === "displaced" || (c.apexCharacter && c.apexCharacter !== "normal")) {
     const where =
       c.apexLocation === "displaced" && (c.apexInterspace || c.apexLine)
         ? ` (${[c.apexInterspace, c.apexLine ? `${c.apexLine} line` : undefined].filter(Boolean).join(", ")})`
         : "";
-    parts.push(
-      `Apex ${c.apexLocation === "displaced" ? `displaced${where}` : ""}${c.apexCharacter && c.apexCharacter !== "normal" ? ` ${c.apexCharacter.replace("_", " ")}` : ""}.`.replace(
-        "  ",
-        " ",
-      ),
-    );
+    const displaced = c.apexLocation === "displaced" ? `displaced${where}` : "";
+    const character =
+      c.apexCharacter && c.apexCharacter !== "normal" ? c.apexCharacter.replace("_", " ") : "";
+    const desc = [displaced, character].filter(Boolean).join(" and ");
+    clauses.push(`the apex beat is ${desc}`);
   }
-  for (const m of c.murmurs ?? []) parts.push(`Murmur: ${describeMurmur(m)}.`);
+
+  const murmurs = c.murmurs ?? [];
+  if (murmurs.length) {
+    const described = murmurs.map((m) => describeMurmur(m));
+    const noun = murmurs.length > 1 ? "murmurs" : "a murmur";
+    clauses.push(`on auscultation there is ${noun}, ${cvsListJoin(described)}`);
+  }
+
   const patterns = matchCvsPatterns(c);
   if (patterns.length)
-    parts.push(`Lesion(s) to consider: ${patterns.map((p) => p.label).join(" / ")}.`);
-  return parts.length ? `Cardiovascular examination: ${parts.join(" ")}` : "";
+    clauses.push(
+      `the findings raise the possibility of ${cvsListJoin(patterns.map((p) => p.label.toLowerCase()))}`,
+    );
+
+  if (!clauses.length) return "";
+  return `On cardiovascular examination, ${clauses.join("; ")}.`;
 }
 
 /** CVS findings + murmurs + matched lesions → reasoning tokens (feed the differential). */

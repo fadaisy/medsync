@@ -291,50 +291,67 @@ const ZONE_LABEL: Record<RespZone, string> = Object.fromEntries(
   RESP_ZONES.map((z) => [z.zone, `${z.level.toLowerCase()} ${z.side}`]),
 ) as Record<RespZone, string>;
 
-/** Readable respiratory prose (zonal abnormalities + non-zonal findings + patterns). */
+/** Grammatical list join: "a", "a and b", "a, b and c". */
+const proseJoin = (xs: string[]): string =>
+  xs.length <= 1 ? (xs[0] ?? "") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`;
+
+/**
+ * Flowing respiratory narrative (present findings → zonal abnormalities → added
+ * sounds → patterns to consider). Same facts as the structured prose, narrated
+ * as clinical sentences. DATA-ONLY: nothing invented, omitted or reinterpreted.
+ */
 export function renderRespProse(r: RespExam): string {
-  const parts: string[] = [];
-  const findings = (r.findings ?? []).filter((o) => o.state !== "not_examined");
-  const present = findings.filter((o) => o.state === "present");
+  // Clauses joined with "; " into one flowing sentence after the lead-in.
+  const clauses: string[] = [];
+
+  const present = (r.findings ?? []).filter((o) => o.state === "present");
   if (present.length)
-    parts.push(
-      present
-        .map((o) =>
+    clauses.push(
+      `there is ${proseJoin(
+        present.map((o) =>
           o.values?.length
             ? `${o.display.toLowerCase()} (${o.values.join(", ")})`
             : o.display.toLowerCase(),
-        )
-        .join(", ") + ".",
+        ),
+      )}`,
     );
 
-  if (r.trachea && r.trachea !== "central") parts.push(`Trachea ${r.trachea.replace("_", " ")}.`);
+  if (r.trachea && r.trachea !== "central")
+    clauses.push(`the trachea is ${r.trachea.replace("_", " ")}`);
+
   if (r.expansion?.left === "reduced" || r.expansion?.right === "reduced") {
     const sides = (["left", "right"] as RespSide[]).filter((s) => r.expansion?.[s] === "reduced");
-    parts.push(`Reduced expansion ${sides.join(" + ")}.`);
+    clauses.push(`with reduced expansion on the ${proseJoin(sides)}`);
   }
 
   const zonal = (
-    label: string,
+    lead: string,
     rec: Partial<Record<RespZone, string>> | undefined,
     isNormal: (v: string) => boolean,
   ) => {
     const abn = Object.entries(rec ?? {}).filter(([, v]) => v && !isNormal(v));
     if (abn.length)
-      parts.push(
-        `${label}: ${abn.map(([z, v]) => `${ZONE_LABEL[z as RespZone]} ${String(v).replace("_", " ")}`).join(", ")}.`,
+      clauses.push(
+        `${lead} ${proseJoin(
+          abn.map(
+            ([z, v]) => `${String(v).replace("_", " ")} in the ${ZONE_LABEL[z as RespZone]} zone`,
+          ),
+        )}`,
       );
   };
-  zonal("Percussion", r.percussion, (v) => v === "resonant");
-  zonal("Breath sounds", r.breathSounds, (v) => v === "vesicular");
-  zonal("Vocal resonance", r.vocalResonance, (v) => v === "normal");
+  zonal("percussion is", r.percussion, (v) => v === "resonant");
+  zonal("breath sounds are", r.breathSounds, (v) => v === "vesicular");
+  zonal("vocal resonance is", r.vocalResonance, (v) => v === "normal");
+
   const added = collectAdded(r.addedSounds);
   if (added.size)
-    parts.push(`Added sounds: ${[...added].map((a) => a.replace("_", " ")).join(", ")}.`);
+    clauses.push(`there are added ${proseJoin([...added].map((a) => a.replace("_", " ")))}`);
 
   const patterns = matchRespPatterns(r);
   if (patterns.length)
-    parts.push(`Pattern(s) to consider: ${patterns.map((p) => p.label).join(" / ")}.`);
-  return parts.length ? `Respiratory examination: ${parts.join(" ")}` : "";
+    clauses.push(`the pattern is consistent with ${proseJoin(patterns.map((p) => p.label))}`);
+
+  return clauses.length ? `On respiratory examination, ${clauses.join("; ")}.` : "";
 }
 
 /** Respiratory findings + matched patterns → reasoning tokens (feed the differential). */

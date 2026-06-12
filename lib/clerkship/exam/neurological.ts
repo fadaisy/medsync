@@ -447,54 +447,74 @@ const LIMB_SHORT: Record<NeuroLimb, string> = Object.fromEntries(
   NEURO_LIMBS.map((l) => [l.limb, l.short]),
 ) as Record<NeuroLimb, string>;
 
-/** Readable neuro prose — GCS, structured grades by limb, localisation. */
+/** Grammatical list join: "a", "a and b", "a, b and c". */
+const listJoin = (xs: string[]): string =>
+  xs.length <= 1 ? (xs[0] ?? "") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`;
+
+/** Readable neuro prose — GCS, structured grades by limb, localisation, as flowing narrative. */
 export function renderNeuroProse(c: NeuroExam): string {
-  const parts: string[] = [];
+  const clauses: string[] = [];
   const gcs = gcsTotal(c);
-  if (gcs != null) parts.push(`GCS ${gcs}/15.`);
+  if (gcs != null) clauses.push(`the GCS is ${gcs}/15`);
 
   const present2 = (c.findings ?? []).filter((o) => o.state === "present");
   if (present2.length)
-    parts.push(
-      present2
-        .map((o) =>
+    clauses.push(
+      `there is ${listJoin(
+        present2.map((o) =>
           o.values?.length
-            ? `${o.display.toLowerCase()} — ${o.values.join(", ")}`
+            ? `${o.display.toLowerCase()} (${o.values.join(", ")})`
             : o.display.toLowerCase(),
-        )
-        .join("; ") + ".",
+        ),
+      )}`,
     );
 
-  if (c.wasting) parts.push("Wasting.");
-  if (c.fasciculations) parts.push("Fasciculations.");
+  if (c.wasting) clauses.push("there is muscle wasting");
+  if (c.fasciculations) clauses.push("there are fasciculations");
+
   const tone = Object.entries(c.tone ?? {}).filter(([, v]) => v && v !== "normal");
   if (tone.length)
-    parts.push(`Tone: ${tone.map(([l, v]) => `${LIMB_SHORT[l as NeuroLimb]} ${v}`).join(", ")}.`);
+    clauses.push(
+      `tone is ${listJoin(tone.map(([l, v]) => `${v} in the ${LIMB_SHORT[l as NeuroLimb]}`))}`,
+    );
+
   const power = Object.entries(c.power ?? {}).filter(([, v]) => v != null && v < 5);
   if (power.length)
-    parts.push(
-      `Power: ${power.map(([l, v]) => `${LIMB_SHORT[l as NeuroLimb]} ${v}/5`).join(", ")}${c.powerPattern ? ` (${c.powerPattern})` : ""}.`,
+    clauses.push(
+      `power is reduced to ${listJoin(
+        power.map(([l, v]) => `${v}/5 in the ${LIMB_SHORT[l as NeuroLimb]}`),
+      )}${c.powerPattern ? ` in a ${c.powerPattern} pattern` : ""}`,
     );
+
   const refl = Object.entries(c.reflexes ?? {}).filter(([, v]) => v && v !== "normal");
   if (refl.length)
-    parts.push(
-      `Reflexes: ${refl.map(([l, v]) => `${LIMB_SHORT[l as NeuroLimb]} ${v}`).join(", ")}.`,
+    clauses.push(
+      `reflexes are ${listJoin(refl.map(([l, v]) => `${v} in the ${LIMB_SHORT[l as NeuroLimb]}`))}`,
     );
+
   const plant = Object.entries(c.plantar ?? {}).filter(([, v]) => v && v !== "down");
-  if (plant.length) parts.push(`Plantars: ${plant.map(([s, v]) => `${s} ${v}going`).join(", ")}.`);
+  if (plant.length)
+    clauses.push(`the ${listJoin(plant.map(([s, v]) => `${s} plantar is ${v}going`))}`);
 
   if (c.sensoryPattern && c.sensoryPattern !== "normal")
-    parts.push(`Sensory: ${c.sensoryPattern.replace(/_/g, " ")} pattern.`);
-  if (c.romberg === "positive") parts.push("Romberg positive (dorsal-column ataxia).");
-  if (c.gait && c.gait !== "normal") parts.push(`Gait: ${c.gait.replace(/_/g, " ")}.`);
-  if (c.cerebellarSigns?.length) parts.push(`Cerebellar: ${c.cerebellarSigns.join(", ")}.`);
-  if (c.meningism?.length) parts.push(`Meningism: ${c.meningism.join(", ")}.`);
-  if (c.caudaEquina?.length) parts.push(`Cauda equina screen: ${c.caudaEquina.join(", ")}.`);
+    clauses.push(`there is a ${c.sensoryPattern.replace(/_/g, " ")} sensory pattern`);
+  if (c.romberg === "positive")
+    clauses.push("Romberg's test is positive, indicating dorsal-column ataxia");
+  if (c.gait && c.gait !== "normal") clauses.push(`the gait is ${c.gait.replace(/_/g, " ")}`);
+  if (c.cerebellarSigns?.length)
+    clauses.push(`there are cerebellar signs, namely ${listJoin(c.cerebellarSigns)}`);
+  if (c.meningism?.length) clauses.push(`there is meningism with ${listJoin(c.meningism)}`);
+  if (c.caudaEquina?.length)
+    clauses.push(`the cauda equina screen shows ${listJoin(c.caudaEquina)}`);
+
+  if (!clauses.length) return "";
+
+  let prose = `On neurological examination, ${clauses.join(", ")}.`;
 
   const patterns = matchNeuroPatterns(c);
   if (patterns.length)
-    parts.push(`Localisation(s) to consider: ${patterns.map((p) => p.label).join(" / ")}.`);
-  return parts.length ? `Neurological examination: ${parts.join(" ")}` : "";
+    prose += ` The localisation(s) to consider are ${listJoin(patterns.map((p) => p.label))}.`;
+  return prose;
 }
 
 /** Neuro findings + localisation → reasoning tokens (feed the differential). */

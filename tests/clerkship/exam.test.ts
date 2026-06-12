@@ -42,14 +42,19 @@ describe("the exam catalog", () => {
 });
 
 describe("renderExamProse — positives, normals, honest not-examined", () => {
-  it("renders selects + present panels, and never implies not-examined = normal", () => {
+  it("renders a flowing narrative: selects + present panels, never implying not-examined = normal", () => {
     const s = renderExamProse(obs);
+    // flowing clinical narrative, not a telegraphic label-list
+    expect(s).toContain("On general examination, ");
+    // present findings (with their recorded values) are narrated
     expect(s).toContain("wellbeing well");
     expect(s).toContain("Nails: clubbing");
     expect(s).toContain("Eyes: conjunctival pallor");
-    expect(s).toMatch(/Not examined:.*Mouth/);
-    // 'legs' was examined-normal → must NOT be in not-examined
-    expect(s).not.toMatch(/Not examined:.*Legs/);
+    // honest not-examined note — distinct from normal
+    expect(s).toContain("Mouth was not examined.");
+    // 'legs' was examined-normal → narrated as normal, NOT as not-examined
+    expect(s).toContain("Legs examined and normal");
+    expect(s).not.toMatch(/Legs (?:was|were) not examined/);
   });
 });
 

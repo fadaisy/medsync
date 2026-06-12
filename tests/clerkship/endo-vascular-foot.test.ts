@@ -135,13 +135,15 @@ describe("renderEvfProse + reasoning tokens", () => {
       foot: { right: { monofilament: { hallux: false }, pulsesPresent: true } },
     };
     const s = renderEvfProse(c);
-    expect(s).toMatch(/ABPI right 0.7 — peripheral arterial disease/);
-    expect(s).toMatch(/risk \(suggested, confirm\): IWGDF 1/);
+    expect(s).toContain("On examination of the thyroid, peripheral vasculature and feet,");
+    expect(s).toContain("the right ABPI is 0.7, peripheral arterial disease");
+    expect(s).toContain("the suggested diabetic-foot risk (to confirm) is IWGDF 1");
   });
 
   it("a confirmed risk reads as confirmed, not suggested", () => {
     const s = renderEvfProse({ foot: { confirmedRisk: "high", right: { pulsesPresent: false } } });
-    expect(s).toMatch(/risk \(confirmed\): IWGDF 3/);
+    expect(s).toContain("the confirmed diabetic-foot risk is IWGDF 3");
+    expect(s).not.toContain("suggested");
   });
 
   it("empty → empty string", () => {

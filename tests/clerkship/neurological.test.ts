@@ -109,7 +109,7 @@ describe("matchNeuroPatterns — sign-cluster → localisation (decision-support
 });
 
 describe("renderNeuroProse + reasoning tokens", () => {
-  it("renders GCS + structured grades + localisation", () => {
+  it("renders GCS + structured grades + localisation as flowing narrative", () => {
     const c: NeuroExam = {
       gcsE: 4,
       gcsV: 5,
@@ -121,9 +121,10 @@ describe("renderNeuroProse + reasoning tokens", () => {
       plantar: { right: "up" },
     };
     const s = renderNeuroProse(c);
-    expect(s).toMatch(/GCS 15\/15/);
-    expect(s).toMatch(/R arm 3\/5/);
-    expect(s).toMatch(/right upgoing/);
+    expect(s).toMatch(/^On neurological examination, /);
+    expect(s).toContain("the GCS is 15/15");
+    expect(s).toContain("3/5 in the R arm");
+    expect(s).toContain("the right plantar is upgoing");
     expect(s).toMatch(/stroke|upper motor neurone/i);
     expect(neuroReasoningTokens(c).positives.join(" ")).toMatch(/focal weakness/);
   });

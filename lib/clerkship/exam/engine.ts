@@ -29,7 +29,15 @@ const phrase = (o: ExamObservation): string => {
   return v ? `${o.display}: ${v}` : o.display;
 };
 
-/** Readable general-exam prose — selects + present panels + honest not-examined. */
+/** Grammatical list join: "a", "a and b", "a, b and c". */
+const listJoin = (xs: string[]): string =>
+  xs.length <= 1 ? (xs[0] ?? "") : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`;
+
+/**
+ * Flowing general-exam narrative — present findings (with values) first, then
+ * pertinent normals, then an honest note of what was not examined. Same facts as
+ * the structured projection, narrated in clinician prose; not-examined ≠ normal.
+ */
 export function renderExamProse(obs: ExamObservation[]): string {
   if (!obs.length) return "";
   const byState = (s: FindingState) => obs.filter((o) => o.state === s);
@@ -40,12 +48,19 @@ export function renderExamProse(obs: ExamObservation[]): string {
   // group present in catalog order for readability
   const orderedPresent = EXAM_GROUPS.flatMap((g) => present.filter((o) => o.group === g.key));
 
-  const parts: string[] = [];
-  if (orderedPresent.length) parts.push(orderedPresent.map(phrase).join("; ") + ".");
-  if (absent.length) parts.push(`Examined and normal: ${absent.map((o) => o.display).join(", ")}.`);
-  if (notExamined.length)
-    parts.push(`Not examined: ${notExamined.map((o) => o.display).join(", ")}.`);
-  return parts.length ? `General examination: ${parts.join(" ")}` : "";
+  const clauses: string[] = [];
+  if (orderedPresent.length) clauses.push(`there is ${listJoin(orderedPresent.map(phrase))}`);
+  if (absent.length) clauses.push(`${absent.map((o) => o.display).join(", ")} examined and normal`);
+
+  let sentence = clauses.length ? `On general examination, ${clauses.join("; ")}.` : "";
+
+  if (notExamined.length) {
+    const verb = notExamined.length > 1 ? "were" : "was";
+    const tail = `${listJoin(notExamined.map((o) => o.display))} ${verb} not examined.`;
+    sentence = sentence ? `${sentence} ${tail}` : `On general examination, ${tail}`;
+  }
+
+  return sentence;
 }
 
 export interface ExamReasoningTokens {

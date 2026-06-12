@@ -103,6 +103,7 @@ describe("renderCvsProse + reasoning tokens", () => {
       pulseCharacter: "slow_rising",
     };
     const s = renderCvsProse(c);
+    expect(s.startsWith("On cardiovascular examination, ")).toBe(true);
     expect(s).toMatch(/grade 3\/6/);
     expect(s).toMatch(/aortic stenosis/i);
     expect(cvsReasoningTokens(c).positives.join(" ")).toMatch(/aortic stenosis/i);
@@ -116,11 +117,13 @@ describe("renderCvsProse + reasoning tokens", () => {
 describe("finding qualifiers — magnitude/location detail", () => {
   it("raised JVP carries its height (cm above sternal angle)", () => {
     const s = renderCvsProse({ jvp: "raised", jvpHeight: "7 cm" });
-    expect(s).toMatch(/JVP raised \(7 cm\)/);
+    expect(s).toContain("the JVP is raised (7 cm)");
   });
 
   it("raised JVP without a height still reads (qualifier optional)", () => {
-    expect(renderCvsProse({ jvp: "raised" })).toMatch(/JVP raised\./);
+    expect(renderCvsProse({ jvp: "raised" })).toBe(
+      "On cardiovascular examination, the JVP is raised.",
+    );
   });
 
   it("displaced apex carries interspace + line", () => {
@@ -130,10 +133,14 @@ describe("finding qualifiers — magnitude/location detail", () => {
       apexLine: "anterior axillary",
       apexCharacter: "thrusting",
     });
-    expect(s).toMatch(/Apex displaced \(6th ICS, anterior axillary line\) thrusting/);
+    expect(s).toContain(
+      "the apex beat is displaced (6th ICS, anterior axillary line) and thrusting",
+    );
   });
 
   it("displaced apex without qualifiers reads as before", () => {
-    expect(renderCvsProse({ apexLocation: "displaced" })).toMatch(/Apex displaced\./);
+    expect(renderCvsProse({ apexLocation: "displaced" })).toBe(
+      "On cardiovascular examination, the apex beat is displaced.",
+    );
   });
 });
