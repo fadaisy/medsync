@@ -79,7 +79,7 @@ export default async function BreakGlassPage() {
   const actorById = new Map(actors.map((a) => [a.id, a]));
 
   return (
-    <div className="mx-auto flex w-full max-w-4xl flex-col gap-7 px-5 py-10 sm:px-8 sm:py-14">
+    <div className="stagger-children mx-auto flex w-full max-w-4xl flex-col gap-7 px-5 py-10 sm:px-8 sm:py-14">
       <header className="flex flex-col gap-2">
         <span className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
           <span className="size-1 rounded-full bg-teal-500" />
@@ -126,8 +126,10 @@ export default async function BreakGlassPage() {
                 <li
                   key={g.id}
                   className={
-                    "flex flex-col gap-2 p-4 sm:flex-row sm:items-start sm:justify-between" +
-                    (isActive ? " border-l-2 border-teal-500" : "")
+                    "flex flex-col gap-2 p-4 transition-colors sm:flex-row sm:items-start sm:justify-between" +
+                    (isActive
+                      ? " bg-teal-50/40 ring-1 ring-teal-500/25 ring-inset dark:bg-teal-950/20"
+                      : " hover:bg-muted/30")
                   }
                 >
                   <div className="flex flex-col gap-1">
@@ -140,7 +142,11 @@ export default async function BreakGlassPage() {
                         {g.category}
                       </span>
                       {isActive ? (
-                        <span className="rounded-full bg-teal-500/15 px-2 py-0.5 font-mono text-[10px] tracking-[0.14em] text-teal-800 uppercase dark:text-teal-200">
+                        <span className="scale-in inline-flex items-center gap-1.5 rounded-full bg-teal-500/15 px-2 py-0.5 font-mono text-[10px] tracking-[0.14em] text-teal-800 uppercase dark:text-teal-200">
+                          <span
+                            aria-hidden
+                            className="pulse-dot size-1.5 rounded-full bg-teal-600 dark:bg-teal-300"
+                          />
                           active
                         </span>
                       ) : g.revokedAt ? (
@@ -156,7 +162,7 @@ export default async function BreakGlassPage() {
                     <p className="text-foreground/85 max-w-[68ch] text-[12.5px]">
                       <span className="text-muted-foreground">Purpose:</span> {g.purpose}
                     </p>
-                    <p className="text-muted-foreground text-[11.5px]">
+                    <p className="text-muted-foreground font-mono text-[11px] tabular-nums">
                       Granted {g.grantedAt.toISOString().replace("T", " ").slice(0, 19)} · expires{" "}
                       {g.expiresAt.toISOString().replace("T", " ").slice(0, 19)}
                       {g.revokedAt

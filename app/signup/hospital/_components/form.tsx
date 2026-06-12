@@ -9,6 +9,7 @@ import type {
 import type { ImSpecialty } from "./im-subspecialty-picker";
 import type { ComboboxItem, MultiStepStep } from "@/components/forms";
 import { useActionState } from "react";
+import { TriangleAlertIcon } from "lucide-react";
 
 import {
   CascadingCombobox,
@@ -630,9 +631,12 @@ export function HospitalApplicationForm({
       render: () => (
         <>
           {dpa.isPlaceholder ? (
-            <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2.5 text-[12.5px] text-amber-900 dark:border-amber-800/60 dark:bg-amber-950/40 dark:text-amber-200">
-              ⚠ This is a placeholder DPA pending Ugandan-counsel review. Acceptance is recorded;
-              hospitals on the placeholder will be re-prompted when the approved version lands.
+            <div className="flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2.5 text-[12.5px] leading-snug text-amber-900 dark:border-amber-800/60 dark:bg-amber-950/40 dark:text-amber-200">
+              <TriangleAlertIcon aria-hidden className="mt-px size-3.5 shrink-0" strokeWidth={2} />
+              <span>
+                This is a placeholder DPA pending Ugandan-counsel review. Acceptance is recorded;
+                hospitals on the placeholder will be re-prompted when the approved version lands.
+              </span>
             </div>
           ) : null}
 
@@ -734,14 +738,25 @@ export function HospitalApplicationForm({
           {errors._form ? (
             <p
               role="alert"
-              className="text-destructive border-destructive bg-alert-bg rounded-sm border px-3 py-2 text-[12.5px]"
+              className="scale-in flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2.5 text-[12.5px] leading-snug text-amber-900 dark:border-amber-800/40 dark:bg-amber-950/30 dark:text-amber-200"
             >
-              {errors._form}
+              <TriangleAlertIcon aria-hidden className="mt-px size-3.5 shrink-0" strokeWidth={2} />
+              <span>{errors._form}</span>
             </p>
           ) : null}
 
-          <Button type="submit" variant="primary" size="lg" disabled={isPending}>
-            {isPending ? "Submitting application…" : "Submit application"}
+          <Button type="submit" variant="primary" size="lg" disabled={isPending} className="tap">
+            {isPending ? (
+              <>
+                <span
+                  aria-hidden
+                  className="size-3 shrink-0 rounded-full border-2 border-current/30 border-t-current motion-safe:animate-spin"
+                />
+                Submitting application…
+              </>
+            ) : (
+              "Submit application"
+            )}
           </Button>
         </>
       ),
@@ -751,7 +766,9 @@ export function HospitalApplicationForm({
   return (
     <form
       action={formAction}
-      className={cn("mx-auto flex w-full max-w-3xl flex-col gap-7 px-5 py-12 sm:px-8 sm:py-16")}
+      className={cn(
+        "reveal-up mx-auto flex w-full max-w-3xl flex-col gap-7 px-5 py-12 sm:px-8 sm:py-16",
+      )}
       noValidate
     >
       <MultiStepForm flowLabel="Hospital application" steps={steps} />

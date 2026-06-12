@@ -63,7 +63,12 @@ export default async function PatientHome() {
   const firstName = scope.fullName?.split(" ")[0];
 
   return (
-    <div className="mx-auto flex w-full max-w-xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-9">
+    <div className="stagger-children relative mx-auto flex w-full max-w-xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-9">
+      {/* Quiet teal atmosphere behind the greeting — 90% monochrome rule intact. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-24 left-1/2 -z-10 h-64 w-md max-w-full -translate-x-1/2 rounded-full bg-teal-500/5 blur-3xl dark:bg-teal-400/4"
+      />
       {/* ── Greeting ───────────────────────────────────────────── */}
       <section className="flex flex-col gap-1.5">
         <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
@@ -173,7 +178,7 @@ export default async function PatientHome() {
                 <li key={a.id}>
                   <Link
                     href="/patient/appointments"
-                    className="border-border bg-card hover:bg-muted/30 flex flex-col gap-2 rounded-xl border p-4 transition-colors hover:border-teal-500/40"
+                    className="border-border bg-card hover:bg-muted/30 card-lift flex flex-col gap-2 rounded-xl border p-4 hover:border-teal-500/40"
                   >
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-foreground text-[14px] font-medium">
@@ -243,7 +248,7 @@ function ConnectionBanner({
   return (
     <Link
       href="/patient/hospitals"
-      className="group relative overflow-hidden rounded-xl border border-teal-500/30 bg-gradient-to-br from-teal-50/80 via-teal-50/40 to-transparent p-4 transition-colors hover:border-teal-500/60 dark:border-teal-400/20 dark:from-teal-950/30 dark:via-teal-950/15 dark:to-transparent"
+      className="group card-lift relative overflow-hidden rounded-xl border border-teal-500/30 bg-linear-to-br from-teal-50/80 via-teal-50/40 to-transparent p-4 hover:border-teal-500/60 dark:border-teal-400/20 dark:from-teal-950/30 dark:via-teal-950/15 dark:to-transparent"
     >
       <div
         aria-hidden
@@ -351,7 +356,7 @@ function LatestReadingRow({ latest }: { latest: NonNullable<TrackingGlance["late
     <div className="flex items-center justify-between gap-3">
       <div className="flex min-w-0 flex-col">
         <span className="text-muted-foreground text-[11.5px]">{label}</span>
-        <span className="text-foreground text-[16px] font-medium tracking-[-0.005em] tabular-nums">
+        <span className="text-foreground font-mono text-[16px] font-medium tabular-nums">
           {value ?? (latest.note ? truncate(latest.note, 40) : "—")}
         </span>
       </div>
@@ -383,8 +388,8 @@ function QuickAction({
         href={href}
         className={
           tone === "primary"
-            ? "group bg-foreground text-background hover:bg-foreground/90 flex h-full flex-col gap-2 rounded-xl p-3.5 transition-colors"
-            : "group border-border bg-card hover:bg-muted/30 hover:border-foreground/15 flex h-full flex-col gap-2 rounded-xl border p-3.5 transition-colors"
+            ? "group bg-foreground text-background hover:bg-foreground/90 tap flex h-full flex-col gap-2 rounded-xl p-3.5 transition-colors"
+            : "group border-border bg-card hover:bg-muted/30 hover:border-foreground/15 card-lift tap flex h-full flex-col gap-2 rounded-xl border p-3.5"
         }
       >
         <span

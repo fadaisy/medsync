@@ -193,7 +193,7 @@ function Tool({
       aria-label={label}
       onMouseDown={(e) => e.preventDefault()} // keep the selection while clicking
       onClick={onClick}
-      className="text-muted-foreground hover:bg-muted hover:text-foreground rounded-md p-1.5 transition-colors"
+      className="tap text-muted-foreground hover:bg-muted hover:text-foreground rounded-md p-1.5 transition-colors"
     >
       <Icon className="size-3.5" />
     </button>

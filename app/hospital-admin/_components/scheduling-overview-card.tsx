@@ -115,10 +115,13 @@ export async function SchedulingOverviewCard({
         </h2>
         <Link
           href="/hospital-admin/scheduling"
-          className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-[11.5px] transition-colors"
+          className="text-muted-foreground hover:text-foreground group inline-flex items-center gap-1 text-[11.5px] transition-colors"
         >
           View
-          <ArrowRightIcon className="size-3" aria-hidden />
+          <ArrowRightIcon
+            className="size-3 transition-transform group-hover:translate-x-0.5"
+            aria-hidden
+          />
         </Link>
       </header>
 
@@ -176,13 +179,11 @@ function Stat({
             ? "text-amber-700 dark:text-amber-300"
             : "text-foreground";
   return (
-    <div className="border-border/60 rounded-md border p-3">
+    <div className="border-border/60 rounded-md border p-3 transition-colors hover:border-gray-300">
       <span className="text-muted-foreground font-mono text-[10px] tracking-[0.12em] uppercase">
         {label}
       </span>
-      <div
-        className={cn("font-display mt-1 text-[24px] leading-none font-medium tabular-nums", cls)}
-      >
+      <div className={cn("mt-1 font-mono text-[24px] leading-none font-medium tabular-nums", cls)}>
         {value}
       </div>
       {hint ? <span className="text-muted-foreground text-[10.5px]">{hint}</span> : null}

@@ -46,7 +46,7 @@ export default async function PatientLayout({ children }: { children: ReactNode 
 
   return (
     <div className="bg-background text-foreground flex min-h-svh flex-col">
-      <header className="border-border bg-background/95 supports-backdrop-filter:bg-background/80 sticky top-0 z-30 flex h-[52px] items-center justify-between gap-3 border-b px-4 supports-backdrop-filter:backdrop-blur sm:px-6">
+      <header className="border-border glass sticky top-0 z-30 flex h-13 items-center justify-between gap-3 border-b px-4 sm:px-6">
         <div className="flex min-w-0 items-center gap-3">
           <Link
             href="/patient"
@@ -74,7 +74,7 @@ export default async function PatientLayout({ children }: { children: ReactNode 
             <Link
               key={href}
               href={href}
-              className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[12.5px] font-medium transition-colors"
+              className="text-muted-foreground hover:text-foreground hover:bg-muted/60 tap inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[12.5px] font-medium transition-colors"
             >
               <Icon className="size-3.5" aria-hidden />
               {label}

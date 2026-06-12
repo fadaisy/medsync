@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { TriangleAlertIcon } from "lucide-react";
 import QRCode from "qrcode";
 
 import { createClient } from "@/lib/supabase/server";
@@ -43,9 +44,10 @@ export default async function MfaSetupPage() {
 
   if (error || !enroll || enroll.type !== "totp") {
     return (
-      <div className="bg-card border-border rounded-lg border p-6">
-        <p className="text-status-critical-fg text-body-s">
-          Could not start MFA enrolment: {error?.message ?? "unknown error"}
+      <div className="bg-card border-border scale-in rounded-lg border p-6">
+        <p className="text-body-s flex items-start gap-2 text-amber-900 dark:text-amber-200">
+          <TriangleAlertIcon aria-hidden className="mt-0.5 size-3.5 shrink-0" strokeWidth={2} />
+          <span>Could not start MFA enrolment: {error?.message ?? "unknown error"}</span>
         </p>
       </div>
     );

@@ -61,7 +61,9 @@ export function V2ScrollProgress() {
     >
       <div
         className={cn(
-          "h-full bg-teal-500 dark:bg-teal-400",
+          "h-full bg-linear-to-r from-teal-600 to-teal-400 dark:from-teal-500 dark:to-teal-300",
+          // Soft glow at the leading edge so the bar reads as live, not static chrome.
+          "shadow-[0_0_6px_rgba(20,184,166,0.45)]",
           // 100ms keeps the bar feeling tightly linked to scroll without
           // jittering. Reduced-motion users get an instant update.
           "transition-[width] duration-100 ease-linear motion-reduce:transition-none",

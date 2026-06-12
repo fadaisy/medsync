@@ -526,7 +526,7 @@ function ConfirmStep({
       <SummaryRow icon={<UserIcon className="size-4" aria-hidden />} label="Reason">
         <span className="text-foreground font-medium">{r?.title}</span>
         {reasonNote ? (
-          <span className="text-muted-foreground border-l-2 border-l-teal-500/40 pl-2 text-[12.5px] italic">
+          <span className="text-muted-foreground bg-muted/40 rounded-md px-2.5 py-1.5 text-[12.5px] italic">
             &ldquo;{reasonNote}&rdquo;
           </span>
         ) : null}

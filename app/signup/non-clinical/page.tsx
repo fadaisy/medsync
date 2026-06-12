@@ -5,6 +5,7 @@ import { desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { consentVersions } from "@/db/schema/consent-versions";
 import { listHospitals } from "@/lib/reference-data";
+import { SignupUnavailable } from "../_components/unavailable";
 import { NonClinicalSignupForm } from "./_components/form";
 import {
   loadDepartmentsForHospitalAction,
@@ -33,28 +34,29 @@ export default async function NonClinicalSignupPage() {
 
   if (!activeConsent) {
     return (
-      <div className="mx-auto max-w-2xl px-5 py-20 text-center">
-        <h1 className="text-foreground font-display text-3xl">Signup unavailable</h1>
-        <p className="text-muted-foreground mt-3 text-sm">
-          The current consent text isn&apos;t ready yet. Please check back shortly.
-        </p>
-      </div>
+      <SignupUnavailable title="Signup unavailable">
+        The current consent text isn&apos;t ready yet. Please check back shortly.
+      </SignupUnavailable>
     );
   }
 
   return (
     <div className="mx-auto max-w-xl px-5 py-12">
-      <header className="mb-8 flex flex-col gap-2">
-        <p className="text-muted-foreground font-mono text-[10.5px] tracking-[0.14em] uppercase">
+      <header className="stagger-children mb-8 flex flex-col gap-2">
+        <p className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10.5px] tracking-[0.14em] uppercase">
+          <span aria-hidden className="size-1 rounded-full bg-teal-500" />
           Non-clinical staff
         </p>
-        <h1 className="text-foreground font-display text-3xl leading-tight">
+        <h1 className="text-foreground font-display text-3xl leading-tight tracking-[-0.02em]">
           Sign up to work the front desk
         </h1>
         <p className="text-muted-foreground text-[13.5px] leading-relaxed">
           For reception, records and other non-clinical hospital staff. If you&rsquo;re a clinician,
           nurse, pharmacist or lab tech, use the{" "}
-          <Link className="text-foreground underline underline-offset-2" href="/signup/clinical">
+          <Link
+            className="text-foreground underline underline-offset-2 transition-colors duration-150 hover:text-teal-700 dark:hover:text-teal-300"
+            href="/signup/clinical"
+          >
             clinical signup
           </Link>{" "}
           instead.

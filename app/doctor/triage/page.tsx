@@ -27,7 +27,12 @@ export default async function DoctorTriagePage() {
   });
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-9">
+    <div className="relative isolate mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-9">
+      {/* Quiet atmosphere — a 4% teal glow behind the header, nothing more. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-48 bg-[radial-gradient(ellipse_at_top_left,rgba(13,148,136,0.04),transparent_60%)]"
+      />
       <header className="flex flex-col gap-1.5">
         <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
           <span aria-hidden className="size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20" />

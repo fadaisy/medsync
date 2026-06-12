@@ -60,18 +60,27 @@ export function DoctorShell({ scope, children }: { scope: DoctorScope; children:
       <FullBleedGate>
         <aside
           aria-label="Doctor workspace navigation"
-          className="bg-muted/40 border-border hidden w-[240px] shrink-0 flex-col border-r lg:flex"
+          className="bg-muted/40 border-border relative hidden w-[240px] shrink-0 flex-col border-r lg:flex"
         >
+          {/* Quiet teal atmosphere at the top of the rail */}
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 top-0 h-44 bg-[radial-gradient(120%_100%_at_50%_0%,rgba(13,148,136,0.06),transparent_70%)]"
+          />
+
           {/* Brand + hospital identity */}
-          <div className="border-border flex flex-col gap-0.5 border-b px-5 py-3">
+          <div className="border-border relative flex flex-col gap-1 border-b px-5 py-3.5">
             <Link
               href="/"
-              className="font-display text-foreground text-[15px] font-medium tracking-[-0.01em] transition-opacity hover:opacity-80"
+              className="group inline-flex w-fit items-center gap-2 transition-opacity hover:opacity-90"
             >
-              MedSync
+              <BrandMark />
+              <span className="font-display text-foreground text-[15px] font-medium tracking-[-0.01em]">
+                MedSync
+              </span>
             </Link>
             <span
-              className="text-muted-foreground truncate font-mono text-[10px] tracking-[0.12em] uppercase"
+              className="text-muted-foreground truncate pl-6.5 font-mono text-[10px] tracking-[0.12em] uppercase"
               title={scope.hospitalName}
             >
               {scope.hospitalName}
@@ -79,8 +88,8 @@ export function DoctorShell({ scope, children }: { scope: DoctorScope; children:
           </div>
 
           {/* Nav */}
-          <nav className="flex-1 overflow-y-auto p-2">
-            <ul className="flex flex-col gap-px">
+          <nav className="relative flex-1 overflow-y-auto p-2">
+            <ul className="stagger-children flex flex-col gap-px">
               {navItems.map((item) => (
                 <li key={item.slug}>
                   <DoctorSidebarItem
@@ -96,11 +105,11 @@ export function DoctorShell({ scope, children }: { scope: DoctorScope; children:
           </nav>
 
           {/* Identity + cadre */}
-          <div className="border-border border-t p-3">
-            <div className="flex items-center gap-2.5 px-1 py-1.5">
+          <div className="border-border relative border-t p-3">
+            <div className="hover:bg-muted/60 flex items-center gap-2.5 rounded-lg px-1.5 py-1.5 transition-colors duration-200">
               <div
                 aria-hidden
-                className="flex size-7 shrink-0 items-center justify-center rounded-full bg-teal-100 font-mono text-[11px] font-semibold text-teal-800 dark:bg-teal-900/60 dark:text-teal-200"
+                className="flex size-7 shrink-0 items-center justify-center rounded-full bg-teal-100 font-mono text-[11px] font-semibold text-teal-800 ring-1 ring-teal-200/70 dark:bg-teal-900/60 dark:text-teal-200 dark:ring-teal-800/50"
               >
                 {initial}
               </div>
@@ -108,7 +117,7 @@ export function DoctorShell({ scope, children }: { scope: DoctorScope; children:
                 <p className="text-foreground truncate text-[12px] font-medium">
                   {scope.fullName ?? scope.userEmail}
                 </p>
-                <p className="text-muted-foreground inline-flex items-center gap-1 font-mono text-[10px] tracking-[0.1em] uppercase">
+                <p className="text-muted-foreground inline-flex items-center gap-1 font-mono text-[10px] tracking-widest uppercase">
                   <ShieldCheckIcon
                     className="size-3 text-teal-600 dark:text-teal-400"
                     aria-hidden
@@ -125,14 +134,14 @@ export function DoctorShell({ scope, children }: { scope: DoctorScope; children:
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Top bar (hidden full-bleed on the bedside desks) */}
         <FullBleedGate>
-          <header className="border-border bg-background/95 supports-backdrop-filter:bg-background/80 sticky top-0 z-30 flex h-[52px] items-center justify-between gap-3 border-b px-4 supports-backdrop-filter:backdrop-blur sm:px-6">
+          <header className="border-border glass sticky top-0 z-30 flex h-13 items-center justify-between gap-3 border-b px-4 sm:px-6">
             {/* Mobile: brand only (mobile drawer ships later) */}
             <div className="flex items-center gap-2.5 lg:hidden">
-              <Link
-                href="/doctor"
-                className="font-display text-foreground text-[15px] font-medium tracking-[-0.01em]"
-              >
-                MedSync
+              <Link href="/doctor" className="inline-flex items-center gap-2">
+                <BrandMark />
+                <span className="font-display text-foreground text-[15px] font-medium tracking-[-0.01em]">
+                  MedSync
+                </span>
               </Link>
             </div>
 
@@ -176,7 +185,7 @@ export function DoctorShell({ scope, children }: { scope: DoctorScope; children:
             <div className="flex items-center justify-end gap-3">
               <Link
                 href="/sign-out"
-                className="text-muted-foreground hover:text-foreground text-[12px] transition-colors"
+                className="text-muted-foreground hover:text-foreground decoration-border text-[12px] underline-offset-4 transition-colors hover:underline"
               >
                 Sign out
               </Link>
@@ -187,5 +196,29 @@ export function DoctorShell({ scope, children }: { scope: DoctorScope; children:
         <main className="min-w-0 flex-1">{children}</main>
       </div>
     </div>
+  );
+}
+
+/**
+ * The MedSync brand mark — a teal tile carrying a single drawn pulse.
+ * `medsync-forced-dark` pins the teal scale so the white trace stays
+ * readable when the theme inverts.
+ */
+function BrandMark() {
+  return (
+    <span
+      aria-hidden
+      className="medsync-forced-dark ease-spring grid size-4.5 shrink-0 place-items-center rounded-[5px] bg-teal-600 text-white shadow-sm transition-transform duration-200 group-hover:scale-110"
+    >
+      <svg viewBox="0 0 16 16" fill="none" className="size-3">
+        <path
+          d="M1.5 8.5h3l1.5-4 2.5 7 2-5 1 2h3"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </span>
   );
 }

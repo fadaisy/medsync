@@ -2,6 +2,7 @@ import Link from "next/link";
 import { PlusIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { RevealOnScroll, StaggerOnScroll } from "./_reveal-on-scroll";
 
 /**
  * §15 — FAQ.
@@ -176,39 +177,46 @@ export function Faq() {
         <div className="grid gap-10 md:grid-cols-12 md:gap-16">
           {/* Left — header */}
           <header className="md:col-span-4">
-            <span className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
-              <span className="size-1 rounded-full bg-teal-500" />
-              FAQ
-            </span>
-            <h2
-              id="faq-headline"
-              className="font-display text-foreground mt-3 text-[30px] leading-[1.1] tracking-[-0.025em] text-balance sm:text-[40px]"
-              style={{ fontWeight: 400 }}
-            >
-              The questions{" "}
-              <span className="text-teal-700 italic dark:text-teal-300">we keep getting asked</span>
-              .
-            </h2>
-            <p className="text-muted-foreground mt-4 max-w-[44ch] text-[14.5px] leading-[1.55]">
-              Honest answers. If your question isn&rsquo;t here, the form on{" "}
-              <a
-                href="mailto:hello@medsync.health?subject=MedSync%20question"
-                className="text-teal-700 underline-offset-2 hover:underline dark:text-teal-300"
+            <RevealOnScroll>
+              <span className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
+                <span className="pulse-dot size-1 rounded-full bg-teal-500" />
+                FAQ
+              </span>
+              <h2
+                id="faq-headline"
+                className="font-display text-foreground mt-3 text-[30px] leading-[1.1] tracking-[-0.025em] text-balance sm:text-[40px]"
+                style={{ fontWeight: 400 }}
               >
-                hello@medsync.health
-              </a>{" "}
-              goes to a real inbox.
-            </p>
+                The questions{" "}
+                <span className="text-teal-700 italic dark:text-teal-300">
+                  we keep getting asked
+                </span>
+                .
+              </h2>
+              <p className="text-muted-foreground mt-4 max-w-[44ch] text-[14.5px] leading-[1.55]">
+                Honest answers. If your question isn&rsquo;t here, the form on{" "}
+                <a
+                  href="mailto:hello@medsync.health?subject=MedSync%20question"
+                  className="text-teal-700 underline-offset-2 hover:underline dark:text-teal-300"
+                >
+                  hello@medsync.health
+                </a>{" "}
+                goes to a real inbox.
+              </p>
+            </RevealOnScroll>
           </header>
 
           {/* Right — accordion */}
-          <ol role="list" className="border-border divide-border divide-y border-y md:col-span-8">
+          <StaggerOnScroll
+            as="ol"
+            className="border-border divide-border divide-y border-y md:col-span-8"
+          >
             {FAQS.map((faq) => (
               <li key={faq.q}>
                 <FaqRow faq={faq} />
               </li>
             ))}
-          </ol>
+          </StaggerOnScroll>
         </div>
       </div>
     </section>
@@ -217,12 +225,24 @@ export function Faq() {
 
 function FaqRow({ faq }: { faq: FaqEntry }) {
   return (
-    <details className="group [&_summary::-webkit-details-marker]:hidden">
+    <details
+      className={cn(
+        "group [&_summary::-webkit-details-marker]:hidden",
+        // Smooth open/close height — progressive enhancement for browsers
+        // that support ::details-content + interpolate-size (no JS). Others
+        // fall back to the instant toggle.
+        "[interpolate-size:allow-keywords]",
+        "[&::details-content]:[overflow-y:clip] [&::details-content]:[block-size:0]",
+        "[&[open]::details-content]:[block-size:auto]",
+        "motion-safe:[&::details-content]:[transition:block-size_300ms_var(--ease-expo-out),content-visibility_300ms_allow-discrete]",
+      )}
+    >
       <summary
         className={cn(
           "group/sum flex cursor-pointer list-none items-start justify-between gap-6 py-5",
           "text-foreground transition-colors duration-150",
-          "focus-visible:bg-muted/40 focus-visible:outline-none",
+          "hover:bg-muted/30 focus-visible:bg-muted/40 focus-visible:outline-none",
+          "-mx-2 rounded-md px-2",
         )}
       >
         <span className="font-display text-[17px] leading-[1.35] font-medium text-balance sm:text-[19px]">
@@ -233,6 +253,7 @@ function FaqRow({ faq }: { faq: FaqEntry }) {
           className={cn(
             "border-border bg-card text-muted-foreground mt-0.5 inline-flex size-7 shrink-0 items-center justify-center rounded-md border",
             "ease-expo-out transition-transform duration-200",
+            "group-hover/sum:border-teal-300 group-hover/sum:text-teal-700 dark:group-hover/sum:text-teal-300",
             "group-open:rotate-45 group-open:border-teal-300 group-open:bg-teal-50 group-open:text-teal-700",
             "dark:group-open:bg-teal-50/15 dark:group-open:text-teal-200",
           )}
@@ -241,7 +262,15 @@ function FaqRow({ faq }: { faq: FaqEntry }) {
         </span>
       </summary>
 
-      <div className="text-muted-foreground pr-13 pb-5 text-[14px] leading-[1.65]">{faq.a}</div>
+      <div
+        className={cn(
+          "text-muted-foreground pr-13 pb-5 text-[14px] leading-[1.65]",
+          // Answer eases up as the panel opens; re-runs per open.
+          "motion-safe:group-open:reveal-up",
+        )}
+      >
+        {faq.a}
+      </div>
     </details>
   );
 }

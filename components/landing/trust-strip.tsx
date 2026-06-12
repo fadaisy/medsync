@@ -1,5 +1,4 @@
 import { cn } from "@/lib/utils";
-
 /**
  * §06 — Mission / standards strip.
  *
@@ -18,6 +17,8 @@ import { cn } from "@/lib/utils";
  *                    the Pharmaceutical Society of Uganda is a
  *                    professional association, not the statutory regulator.
  */
+import { RevealOnScroll, StaggerOnScroll } from "./_reveal-on-scroll";
+
 const COUNCILS = [
   {
     abbr: "UMDPC",
@@ -44,9 +45,11 @@ export function TrustStrip() {
       className="border-border bg-muted/30 relative w-full border-y"
     >
       <div className="mx-auto flex w-full max-w-300 flex-col items-center gap-6 px-5 py-10 text-center sm:gap-7 sm:px-8 sm:py-14">
-        <p className="text-foreground font-display text-[18px] font-light tracking-[-0.01em] text-balance sm:text-[22px]">
-          Built by and for Uganda&rsquo;s medical community.
-        </p>
+        <RevealOnScroll>
+          <p className="text-foreground font-display text-[18px] font-light tracking-[-0.01em] text-balance sm:text-[22px]">
+            Built by and for Uganda&rsquo;s medical community.
+          </p>
+        </RevealOnScroll>
 
         <div className="flex flex-col items-center gap-3.5">
           <span className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
@@ -55,7 +58,10 @@ export function TrustStrip() {
             <span className="bg-border h-px w-6" />
           </span>
 
-          <ul role="list" className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+          <StaggerOnScroll
+            as="ul"
+            className="flex flex-wrap items-center justify-center gap-2 sm:gap-3"
+          >
             {COUNCILS.map((council) => (
               <li key={council.abbr}>
                 <span
@@ -75,7 +81,7 @@ export function TrustStrip() {
                 </span>
               </li>
             ))}
-          </ul>
+          </StaggerOnScroll>
 
           <p className="text-muted-foreground/80 max-w-prose text-[11px] italic">
             Council names are shown as the standards MedSync is built to meet. Not endorsements, not

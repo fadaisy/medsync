@@ -6,6 +6,7 @@ import type { AdultVitals } from "@/lib/triage/types";
 import { useEffect, useMemo, useState } from "react";
 import { ActivityIcon, ArrowDownIcon, ArrowUpIcon } from "lucide-react";
 
+import { Skeleton } from "@/components/ui/skeleton";
 import { gcsTotal } from "@/lib/clerkship/exam/types";
 import { scoreNews2 } from "@/lib/triage/scoring/news2";
 import { loadTriageVitalsAction } from "../actions";
@@ -96,7 +97,8 @@ export function VitalsPanel({
         </span>
         {news ? (
           <span
-            className={`rounded px-1.5 py-0.5 font-mono text-[11px] font-semibold ${totalTone}`}
+            key={totalTone}
+            className={`scale-in rounded px-1.5 py-0.5 font-mono text-[11px] font-semibold tabular-nums ${totalTone}`}
           >
             NEWS2 {news.total}
             {news.hasSingleParameterThree ? " · red" : ""}
@@ -107,8 +109,9 @@ export function VitalsPanel({
       </div>
 
       {/* Carried from triage — colour-coded */}
+      {carried === null ? <Skeleton className="h-8 rounded-lg" /> : null}
       {carried?.vitals ? (
-        <div className="bg-muted/30 flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg px-2.5 py-1.5 font-mono text-[11px] tabular-nums">
+        <div className="bg-muted/30 ring-border/50 fade-in-slow flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg px-2.5 py-1.5 font-mono text-[11px] tabular-nums ring-1 ring-inset">
           <span className="text-muted-foreground mr-1 font-sans text-[10px] tracking-wide uppercase">
             Triage
             {carried.triagedAtIso ? ` ${carried.triagedAtIso.slice(5, 16).replace("T", " ")}` : ""}
@@ -180,7 +183,8 @@ export function VitalsPanel({
         <GcsSelect label="M" v={value.gcsM} max={6} onV={(n) => set({ gcsM: n })} />
         {gcsTotal(value) != null ? (
           <span
-            className={`rounded px-1.5 py-0.5 font-mono text-[11px] font-semibold ${
+            key={gcsTotal(value)! <= 8 ? "crit" : gcsTotal(value)! < 15 ? "caution" : "full"}
+            className={`scale-in rounded px-1.5 py-0.5 font-mono text-[11px] font-semibold tabular-nums ${
               gcsTotal(value)! <= 8
                 ? "bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-300"
                 : gcsTotal(value)! < 15
@@ -241,7 +245,7 @@ function GcsSelect({
     <label className="inline-flex items-center gap-1">
       <span className="text-muted-foreground text-[10px]">{label}</span>
       <select
-        className="border-input bg-card rounded border px-1 py-1 text-[12px] tabular-nums outline-none focus-visible:border-teal-500"
+        className="tap border-input bg-card rounded border px-1 py-1 text-[12px] tabular-nums transition-colors outline-none hover:border-gray-300 focus-visible:border-teal-500"
         value={v ?? ""}
         onChange={(e) => onV(e.target.value === "" ? undefined : Number(e.target.value))}
         aria-label={`GCS ${label}`}
@@ -280,7 +284,7 @@ function Field({
       <input
         type="number"
         step={step}
-        className={`bg-card w-14 rounded border px-1.5 py-1 text-[12px] tabular-nums outline-none focus-visible:border-teal-500 ${border}`}
+        className={`bg-card w-14 rounded border px-1.5 py-1 text-[12px] tabular-nums transition-colors duration-300 outline-none focus-visible:border-teal-500 ${border}`}
         value={v ?? ""}
         onChange={(e) => {
           const n = Number(e.target.value);

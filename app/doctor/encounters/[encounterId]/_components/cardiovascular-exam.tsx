@@ -48,9 +48,9 @@ import {
 
 const EASE = "transition-colors duration-150 ease-expo-out";
 const chip = (active: boolean) =>
-  `rounded-md px-2 py-0.5 text-[11.5px] ring-1 ring-inset ${EASE} ${active ? "bg-teal-50 text-teal-700 ring-teal-500/40 dark:bg-teal-950/40 dark:text-teal-200" : "text-foreground/70 ring-border hover:bg-muted/60"}`;
+  `tap rounded-md px-2 py-0.5 text-[11.5px] ring-1 ring-inset ${EASE} ${active ? "bg-teal-50 text-teal-700 ring-teal-500/40 dark:bg-teal-950/40 dark:text-teal-200" : "text-foreground/70 ring-border hover:bg-muted/60"}`;
 const seg = (active: boolean, tone: "muted" | "teal" = "muted") =>
-  `inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset ${EASE} ${
+  `tap inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset ${EASE} ${
     active
       ? tone === "teal"
         ? "bg-teal-50 text-teal-700 ring-teal-500/40 dark:bg-teal-950/40 dark:text-teal-200"
@@ -140,14 +140,17 @@ export function CardiovascularExam({
           Cardiovascular examination
         </span>
         {patterns.length ? (
-          <span className="rounded-full bg-teal-100 px-1.5 text-[10px] font-semibold text-teal-800 dark:bg-teal-950/40 dark:text-teal-300">
+          <span
+            key={patterns.length}
+            className="scale-in rounded-full bg-teal-100 px-1.5 text-[10px] font-semibold text-teal-800 tabular-nums dark:bg-teal-950/40 dark:text-teal-300"
+          >
             {patterns.length} lesion{patterns.length > 1 ? "s" : ""}
           </span>
         ) : null}
         <button
           type="button"
           onClick={() => onChange(normalCvsExam())}
-          className={`text-muted-foreground hover:bg-muted hover:text-foreground ml-auto rounded-md px-2.5 py-1 text-[11.5px] font-medium ${EASE}`}
+          className={`tap text-muted-foreground hover:bg-muted hover:text-foreground ml-auto rounded-md px-2.5 py-1 text-[11.5px] font-medium ${EASE}`}
         >
           Normal CVS exam
         </button>
@@ -235,7 +238,7 @@ export function CardiovascularExam({
           <button
             type="button"
             onClick={addMurmur}
-            className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-[11.5px]"
+            className="tap text-muted-foreground hover:text-foreground hover:bg-muted/60 inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11.5px] transition-colors"
           >
             <PlusIcon className="size-3.5" aria-hidden /> Add murmur
           </button>
@@ -246,7 +249,7 @@ export function CardiovascularExam({
           murmurs.map((m, i) => (
             <div
               key={m.id}
-              className="border-border/70 flex flex-col gap-1.5 rounded-lg border p-2.5"
+              className="border-border/70 scale-in flex flex-col gap-1.5 rounded-lg border p-2.5 shadow-xs"
             >
               <div className="flex items-center justify-between">
                 <span className="text-muted-foreground text-[10px] font-medium tracking-wide uppercase">
@@ -255,7 +258,7 @@ export function CardiovascularExam({
                 <button
                   type="button"
                   onClick={() => removeMurmur(m.id)}
-                  className="text-muted-foreground hover:text-foreground"
+                  className="tap text-muted-foreground hover:text-foreground rounded-md p-0.5 transition-colors"
                   aria-label="Remove murmur"
                 >
                   <XIcon className="size-3.5" />
@@ -316,7 +319,7 @@ export function CardiovascularExam({
 
       {/* Cluster → lesion (decision-support) */}
       {patterns.length ? (
-        <div className="border-border/70 bg-muted/20 flex flex-col gap-1 rounded-lg border p-2.5">
+        <div className="border-border/70 bg-muted/20 scale-in flex flex-col gap-1 rounded-lg border p-2.5">
           <span className="text-muted-foreground text-[10px] font-medium tracking-wide uppercase">
             Lesion(s) to consider — decision support
           </span>
@@ -356,7 +359,7 @@ export function CardiovascularExam({
         <button
           type="button"
           onClick={() => setOpenFindings((o) => !o)}
-          className="bg-muted/30 hover:bg-muted/50 flex w-full items-center gap-2 px-3 py-2 text-left"
+          className="bg-muted/30 hover:bg-muted/50 flex w-full items-center gap-2 px-3 py-2 text-left transition-colors"
         >
           <ChevronDownIcon
             className={`text-muted-foreground size-3.5 transition-transform ${openFindings ? "" : "-rotate-90"}`}
@@ -366,13 +369,16 @@ export function CardiovascularExam({
             Peripheral · inspection · palpation · completion
           </span>
           {findingsCount ? (
-            <span className="rounded-full bg-teal-100 px-1.5 text-[10px] font-semibold text-teal-800 dark:bg-teal-950/40 dark:text-teal-300">
+            <span
+              key={findingsCount}
+              className="scale-in rounded-full bg-teal-100 px-1.5 text-[10px] font-semibold text-teal-800 tabular-nums dark:bg-teal-950/40 dark:text-teal-300"
+            >
               {findingsCount}
             </span>
           ) : null}
         </button>
         {openFindings ? (
-          <div className="flex flex-col">
+          <div className="reveal-up flex flex-col">
             {CVS_GROUPS.map((g) => {
               const inGroup = CVS_FINDINGS.filter((x) => x.group === g.key);
               return (
@@ -492,7 +498,7 @@ export function CardiovascularExam({
       </div>
 
       {renderCvsProse(value) ? (
-        <div className="rounded-lg border border-teal-200/70 bg-teal-50/60 px-3 py-2 dark:border-teal-900/50 dark:bg-teal-950/20">
+        <div className="fade-in-slow rounded-lg border border-teal-200/70 bg-teal-50/60 px-3 py-2 dark:border-teal-900/50 dark:bg-teal-950/20">
           <span className="inline-flex items-center gap-1 text-[10px] font-medium tracking-wide text-teal-700 uppercase dark:text-teal-400">
             <CircleDashedIcon className="size-3" aria-hidden /> Auto-generated summary
           </span>

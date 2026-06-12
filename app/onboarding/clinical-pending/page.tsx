@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { desc, eq } from "drizzle-orm";
+import { CheckIcon } from "lucide-react";
 
 import { db } from "@/db";
 import { staffAffiliations } from "@/db/schema/clinician-profiles";
@@ -118,19 +119,25 @@ export default async function ClinicalPendingPage() {
       : "We're verifying your affiliation";
 
   return (
-    <div className="bg-background min-h-svh">
-      <header className="border-gray-150 border-b">
+    <div className="bg-background relative isolate min-h-svh">
+      {/* Quiet teal wash at the top — calm, not celebratory */}
+      <div
+        aria-hidden
+        className="fade-in-slow pointer-events-none absolute top-0 left-1/2 -z-10 h-80 w-[120%] max-w-none -translate-x-1/2 [background:radial-gradient(closest-side,oklch(0.95_0.06_180/0.35),transparent_72%)] dark:[background:radial-gradient(closest-side,oklch(0.45_0.08_180/0.18),transparent_72%)]"
+      />
+
+      <header className="border-gray-150 glass sticky top-0 z-20 border-b">
         <div className="mx-auto flex w-full max-w-300 items-center justify-between px-8 py-4">
           <Link
             href="/"
-            className="font-display text-foreground text-[15px] font-medium tracking-tight"
+            className="font-display text-foreground text-[15px] font-medium tracking-tight transition-opacity hover:opacity-80"
           >
             MedSync
           </Link>
           <form action="/sign-out" method="POST">
             <button
               type="submit"
-              className="text-muted-foreground hover:text-foreground text-[12px]"
+              className="text-muted-foreground hover:text-foreground tap text-[12px] transition-colors"
             >
               Sign out
             </button>
@@ -138,10 +145,20 @@ export default async function ClinicalPendingPage() {
         </div>
       </header>
 
-      <main className="mx-auto flex w-full max-w-[720px] flex-col gap-8 px-5 py-16 sm:px-8 sm:py-24">
+      <main className="stagger-children mx-auto flex w-full max-w-180 flex-col gap-8 px-5 py-16 sm:px-8 sm:py-24">
         <div className="flex flex-col gap-3">
+          {isApproved ? (
+            <span
+              aria-hidden
+              className="scale-in mb-1 inline-flex size-10 items-center justify-center rounded-full bg-teal-50 text-teal-700 ring-1 ring-teal-200 dark:bg-teal-50/15 dark:text-teal-300 dark:ring-teal-300/30"
+            >
+              <CheckIcon className="size-5" strokeWidth={2} />
+            </span>
+          ) : null}
           <span className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
-            <span className={"size-1 rounded-full " + dotColor} />
+            <span
+              className={"size-1 rounded-full " + dotColor + (isUnderReview ? " pulse-dot" : "")}
+            />
             {describeState(aff.state as Parameters<typeof describeState>[0])}
           </span>
           <h1 className="font-display text-foreground text-[32px] leading-tight font-medium tracking-[-0.02em] sm:text-[40px]">
@@ -200,9 +217,15 @@ export default async function ClinicalPendingPage() {
             {!mfaEnrolled ? (
               <Link
                 href="/onboarding/mfa-setup"
-                className="border-border hover:bg-muted/40 inline-flex w-fit items-center gap-2 rounded-md border px-3 py-1.5 text-[12.5px] font-medium transition-colors"
+                className="border-border hover:bg-muted/40 tap group inline-flex w-fit items-center gap-2 rounded-md border px-3 py-2 text-[12.5px] font-medium transition-colors hover:border-gray-300"
               >
-                Set up two-factor →
+                Set up two-factor{" "}
+                <span
+                  aria-hidden
+                  className="ease-expo-out inline-block transition-transform duration-200 group-hover:translate-x-0.5"
+                >
+                  →
+                </span>
               </Link>
             ) : null}
           </section>
@@ -236,7 +259,7 @@ export default async function ClinicalPendingPage() {
             <dt className="text-muted-foreground font-mono text-[10.5px] tracking-[0.06em] uppercase">
               Submitted
             </dt>
-            <dd className="text-muted-foreground font-mono">
+            <dd className="text-muted-foreground font-mono text-[12px] tabular-nums">
               {new Date(aff.createdAt).toLocaleString()}
             </dd>
 
@@ -250,11 +273,11 @@ export default async function ClinicalPendingPage() {
         </section>
 
         {hasReviewNote ? (
-          <section className="flex flex-col gap-2 rounded-lg border border-amber-200 bg-amber-50/60 p-5 dark:border-amber-800/40 dark:bg-amber-950/20">
+          <section className="scale-in flex flex-col gap-2 rounded-lg border border-amber-200 bg-amber-50/60 p-5 dark:border-amber-800/40 dark:bg-amber-950/20">
             <p className="inline-flex items-center gap-2 text-[13px] font-medium text-amber-900 dark:text-amber-200">
               <span
                 aria-hidden
-                className="size-1.5 rounded-full bg-amber-500 ring-2 ring-amber-500/20"
+                className="pulse-dot size-1.5 rounded-full bg-amber-500 ring-2 ring-amber-500/20"
               />
               The hospital admin needs more information
             </p>

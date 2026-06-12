@@ -1,4 +1,5 @@
 import { OnboardingCtaCluster } from "./_cta-cluster";
+import { StaggerOnScroll } from "./_reveal-on-scroll";
 
 /**
  * §08 — Mid-page CTA band.
@@ -33,9 +34,9 @@ export function CtaBandMid() {
         }}
       />
 
-      <div className="relative mx-auto flex w-full max-w-300 flex-col items-center gap-9 px-5 py-20 text-center sm:gap-12 sm:px-8 sm:py-28">
+      <StaggerOnScroll className="relative mx-auto flex w-full max-w-300 flex-col items-center gap-9 px-5 py-20 text-center sm:gap-12 sm:px-8 sm:py-28">
         <span className="inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] text-teal-200/80 uppercase">
-          <span className="size-1 rounded-full bg-teal-300" />
+          <span className="pulse-dot size-1 rounded-full bg-teal-300" />
           Care that doesn&rsquo;t stop at the gate
         </span>
 
@@ -62,7 +63,7 @@ export function CtaBandMid() {
           No free trials, no pilot-with-strings. Express interest, we&rsquo;ll reply with a real
           conversation.
         </p>
-      </div>
+      </StaggerOnScroll>
     </section>
   );
 }

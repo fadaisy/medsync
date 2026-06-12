@@ -67,19 +67,25 @@ export default async function HospitalPendingPage() {
   const isRejected = app.state === "rejected";
 
   return (
-    <div className="bg-background min-h-svh">
-      <header className="border-gray-150 border-b">
+    <div className="bg-background relative isolate min-h-svh">
+      {/* Quiet teal wash at the top — calm while the review runs */}
+      <div
+        aria-hidden
+        className="fade-in-slow pointer-events-none absolute top-0 left-1/2 -z-10 h-80 w-[120%] max-w-none -translate-x-1/2 [background:radial-gradient(closest-side,oklch(0.95_0.06_180/0.35),transparent_72%)] dark:[background:radial-gradient(closest-side,oklch(0.45_0.08_180/0.18),transparent_72%)]"
+      />
+
+      <header className="border-gray-150 glass sticky top-0 z-20 border-b">
         <div className="mx-auto flex w-full max-w-300 items-center justify-between px-8 py-4">
           <Link
             href="/"
-            className="font-display text-foreground text-[15px] font-medium tracking-tight"
+            className="font-display text-foreground text-[15px] font-medium tracking-tight transition-opacity hover:opacity-80"
           >
             MedSync
           </Link>
           <form action="/sign-out" method="POST">
             <button
               type="submit"
-              className="text-muted-foreground hover:text-foreground text-[12px]"
+              className="text-muted-foreground hover:text-foreground tap text-[12px] transition-colors"
             >
               Sign out
             </button>
@@ -87,11 +93,15 @@ export default async function HospitalPendingPage() {
         </div>
       </header>
 
-      <main className="mx-auto flex w-full max-w-[720px] flex-col gap-8 px-5 py-16 sm:px-8 sm:py-24">
+      <main className="stagger-children mx-auto flex w-full max-w-180 flex-col gap-8 px-5 py-16 sm:px-8 sm:py-24">
         <div className="flex flex-col gap-3">
           <span className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
             <span
-              className={"size-1 rounded-full " + (isRejected ? "bg-red-500" : "bg-amber-500")}
+              className={
+                "size-1 rounded-full " +
+                (isRejected ? "bg-red-500" : "bg-amber-500") +
+                (isUnderReview ? " pulse-dot" : "")
+              }
             />
             {describeState(app.state as Parameters<typeof describeState>[0])}
           </span>
@@ -136,7 +146,7 @@ export default async function HospitalPendingPage() {
             <dt className="text-muted-foreground font-mono text-[10.5px] tracking-[0.06em] uppercase">
               Submitted
             </dt>
-            <dd className="text-muted-foreground font-mono">
+            <dd className="text-muted-foreground font-mono text-[12px] tabular-nums">
               {new Date(app.createdAt).toLocaleString()}
             </dd>
 

@@ -83,7 +83,7 @@ export function AvailabilityList({
           <span className="text-muted-foreground ml-auto font-mono text-[11px] tabular-nums">
             {blocks.length} {blocks.length === 1 ? "block" : "blocks"}
           </span>
-          <Button type="button" variant="primary" size="sm" onClick={openCreate}>
+          <Button type="button" variant="primary" size="sm" className="tap" onClick={openCreate}>
             <CalendarPlusIcon className="size-3.5" />
             Add block
           </Button>
@@ -91,18 +91,74 @@ export function AvailabilityList({
 
         {blocks.length === 0 ? (
           <div className="flex flex-col items-center gap-2 px-6 py-12 text-center">
+            {/* Quiet week-grid glyph — empty calendar, one slot hinted teal. */}
+            <svg viewBox="0 0 112 72" aria-hidden className="text-border mb-1 h-16 w-auto">
+              <rect
+                x="1.5"
+                y="1.5"
+                width="109"
+                height="69"
+                rx="8"
+                stroke="currentColor"
+                strokeWidth="3"
+                fill="none"
+                opacity="0.6"
+              />
+              <line
+                x1="1"
+                y1="20"
+                x2="111"
+                y2="20"
+                stroke="currentColor"
+                strokeWidth="3"
+                opacity="0.4"
+              />
+              <rect
+                x="12"
+                y="30"
+                width="20"
+                height="12"
+                rx="3"
+                fill="currentColor"
+                opacity="0.25"
+              />
+              <rect
+                x="40"
+                y="30"
+                width="20"
+                height="12"
+                rx="3"
+                fill="currentColor"
+                opacity="0.15"
+              />
+              <rect
+                x="68"
+                y="48"
+                width="20"
+                height="12"
+                rx="3"
+                className="text-teal-500/40"
+                fill="currentColor"
+              />
+            </svg>
             <p className="text-foreground text-[14px] font-medium">Nothing on your schedule yet</p>
             <p className="text-muted-foreground max-w-md text-[12.5px] leading-relaxed">
               Add bookable hours so patients can book you. Mark teaching, ward rounds and admin as
               non-bookable so they don&apos;t get double-booked.
             </p>
-            <Button type="button" variant="primary" size="sm" onClick={openCreate} className="mt-2">
+            <Button
+              type="button"
+              variant="primary"
+              size="sm"
+              onClick={openCreate}
+              className="tap mt-2"
+            >
               <CalendarPlusIcon className="size-3.5" />
               Add your first block
             </Button>
           </div>
         ) : (
-          <ul className="divide-border/70 flex flex-col divide-y">
+          <ul className="divide-border/70 stagger-children flex flex-col divide-y">
             {blocks.map((b) => (
               <BlockRow key={b.id} block={b} onOpen={() => openEdit(b.id)} />
             ))}
@@ -153,7 +209,7 @@ function BlockRow({ block, onOpen }: { block: AvailabilityRow; onOpen: () => voi
         type="button"
         onClick={onOpen}
         className={cn(
-          "hover:bg-muted/40 group flex w-full items-center gap-4 px-4 py-3 text-left transition-colors outline-none sm:px-6",
+          "group tap flex w-full items-center gap-4 px-4 py-3 text-left transition-colors outline-none hover:bg-teal-50/40 sm:px-6 dark:hover:bg-teal-950/15",
           "focus-visible:ring-2 focus-visible:ring-teal-500/40 focus-visible:ring-inset",
         )}
       >
@@ -178,7 +234,15 @@ function BlockRow({ block, onOpen }: { block: AvailabilityRow; onOpen: () => voi
           </span>
         ) : null}
 
-        <span className="text-muted-foreground ml-auto text-[11.5px]">Edit</span>
+        <span className="text-muted-foreground group-hover:text-foreground ml-auto inline-flex items-center gap-1 text-[11.5px] transition-colors">
+          Edit
+          <span
+            aria-hidden
+            className="inline-block transition-transform duration-200 group-hover:translate-x-0.5"
+          >
+            →
+          </span>
+        </span>
       </button>
     </li>
   );

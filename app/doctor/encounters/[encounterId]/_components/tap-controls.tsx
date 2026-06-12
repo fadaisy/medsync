@@ -10,7 +10,7 @@ import { PlusIcon } from "lucide-react";
  */
 
 const SELECT =
-  "border-input bg-card text-foreground focus-visible:border-teal-500 rounded-md border px-2 py-1 text-[12px] outline-none";
+  "tap border-input bg-card text-foreground focus-visible:border-teal-500 hover:border-gray-300 rounded-md border px-2 py-1 text-[12px] outline-none transition-colors";
 
 /** Add-an-item dropdown: pick from the curated list; resets after each pick. */
 export function AddSelect({

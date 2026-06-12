@@ -45,8 +45,8 @@ export function ImSubspecialtyPicker({ specialties, internalMedicineCheckboxName
   return (
     <fieldset
       className={cn(
-        "border-border bg-muted/40 mt-3 rounded-md border p-3 transition-opacity",
-        !imTicked && "pointer-events-none opacity-50",
+        "border-border bg-muted/40 ease-expo-out mt-3 rounded-md border p-3 transition-[opacity,transform,border-color] duration-300",
+        imTicked ? "border-teal-100 dark:border-teal-100/40" : "pointer-events-none opacity-50",
       )}
     >
       <legend className="text-foreground px-1 text-[12px] font-medium">

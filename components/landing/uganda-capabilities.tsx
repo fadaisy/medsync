@@ -10,6 +10,7 @@ import {
 
 import { cn } from "@/lib/utils";
 import { MyHealthSmsReminderChip } from "./_my-health-mock";
+import { RevealOnScroll, StaggerOnScroll } from "./_reveal-on-scroll";
 
 /**
  * §12a — [04] Built for the realities of Ugandan care.
@@ -85,10 +86,12 @@ export function UgandaCapabilities() {
     >
       <div className="mx-auto w-full max-w-300 px-5 py-20 sm:px-8 sm:py-28">
         {/* Section header */}
-        <div className="mb-10 flex flex-col gap-4">
+        <RevealOnScroll className="mb-10 flex flex-col gap-4">
           <span className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
-            <span className="size-1 rounded-full bg-teal-500" />
-            [04] &nbsp; Built for the realities of Ugandan care
+            <span className="pulse-dot size-1 rounded-full bg-teal-500" />
+            <span className="tabular text-teal-700/80 dark:text-teal-300/80">04</span>
+            <span aria-hidden className="bg-border h-px w-4" />
+            Built for the realities of Ugandan care
           </span>
           <h2
             id="uganda-headline"
@@ -104,9 +107,9 @@ export function UgandaCapabilities() {
             we&rsquo;ve committed to engineer against: load-shedding, 3G, basic phones,
             mobile-money, cross-region replication rules.
           </p>
-        </div>
+        </RevealOnScroll>
 
-        <ul role="list" className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+        <StaggerOnScroll as="ul" className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
           {CAPABILITIES.map((cap, i) => (
             <li
               key={cap.pillar}
@@ -118,7 +121,7 @@ export function UgandaCapabilities() {
               <CapabilityCard cap={cap} large={i === 0} />
             </li>
           ))}
-        </ul>
+        </StaggerOnScroll>
       </div>
     </section>
   );
@@ -128,7 +131,7 @@ function CapabilityCard({ cap, large }: { cap: Capability; large: boolean }) {
   return (
     <div
       className={cn(
-        "border-border bg-card relative flex h-full flex-col gap-3 overflow-hidden rounded-xl border p-5 sm:p-6",
+        "border-border bg-card card-lift relative flex h-full flex-col gap-3 overflow-hidden rounded-xl border p-5 sm:p-6",
         large ? "lg:grid lg:grid-cols-5 lg:items-start lg:gap-6" : "",
       )}
     >

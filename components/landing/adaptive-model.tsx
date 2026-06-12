@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { RevealOnScroll } from "./_reveal-on-scroll";
 
 /**
  * §09 — [02] Adaptive model — "The closed-loop record".
@@ -259,10 +260,12 @@ export function AdaptiveModel() {
       className="border-border bg-muted/30 relative w-full border-y"
     >
       <div className="mx-auto w-full max-w-300 px-5 py-20 sm:px-8 sm:py-28">
-        <div className="mb-8 flex flex-col gap-4">
+        <RevealOnScroll className="mb-8 flex flex-col gap-4">
           <span className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
-            <span className="size-1 rounded-full bg-teal-500" />
-            [02] &nbsp; One model, many specialties
+            <span className="pulse-dot size-1 rounded-full bg-teal-500" />
+            <span className="tabular text-teal-700/80 dark:text-teal-300/80">02</span>
+            <span aria-hidden className="bg-border h-px w-4" />
+            One model, many specialties
           </span>
           <h2
             id="adaptive-model-headline"
@@ -277,7 +280,7 @@ export function AdaptiveModel() {
             Same six clinical objects everywhere. The attributes shift per specialty so Diabetology
             sees HbA1c first, Cardiology sees LVEF first, and nothing has to be re-built per team.
           </p>
-        </div>
+        </RevealOnScroll>
 
         {/* Tab bar */}
         <div className="border-border bg-card flex w-full max-w-2xl overflow-hidden rounded-lg border">
@@ -291,7 +294,7 @@ export function AdaptiveModel() {
                 aria-pressed={isActive}
                 onClick={() => setActive(key)}
                 className={cn(
-                  "group relative flex flex-1 flex-col items-start gap-0.5 px-3 py-2.5 text-left",
+                  "group tap relative flex flex-1 flex-col items-start gap-0.5 px-3 py-2.5 text-left",
                   "transition-colors duration-150",
                   isActive
                     ? "bg-teal-50 text-teal-900 dark:bg-teal-50/10 dark:text-teal-100"
@@ -300,22 +303,50 @@ export function AdaptiveModel() {
               >
                 <span className="text-[13px] font-medium">{tab.label}</span>
                 <span className="text-[10.5px] opacity-70">{tab.subtitle}</span>
+                {/* Animated active underline — slides in from the left. */}
+                <span
+                  aria-hidden
+                  className={cn(
+                    "ease-expo-out absolute right-0 bottom-0 left-0 h-px origin-left bg-teal-500",
+                    "transition-transform duration-300",
+                    isActive ? "scale-x-100" : "scale-x-0",
+                  )}
+                />
+                {/* One-shot teal flare confirming the selection. */}
                 {isActive ? (
-                  <span className="absolute right-0 bottom-0 left-0 h-px bg-teal-500" />
+                  <span aria-hidden className="select-flare pointer-events-none absolute inset-0" />
                 ) : null}
               </button>
             );
           })}
         </div>
 
-        {/* Object grid */}
-        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <PatientCard data={current.data.patient} />
-          <VitalCard data={current.data.vital} />
-          <MedicationCard data={current.data.medication} />
-          <NoteCard data={current.data.note} />
-          <LabCard data={current.data.lab} />
-          <AppointmentCard data={current.data.appointment} />
+        {/* Object grid — re-keyed per specialty so the six cards cascade
+            back in on every tab switch. Each card sits in a plain wrapper
+            so the stagger animation's transform fill can't pin the
+            card-lift hover on the card itself. */}
+        <div
+          key={active}
+          className="stagger-children mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
+        >
+          <div>
+            <PatientCard data={current.data.patient} />
+          </div>
+          <div>
+            <VitalCard data={current.data.vital} />
+          </div>
+          <div>
+            <MedicationCard data={current.data.medication} />
+          </div>
+          <div>
+            <NoteCard data={current.data.note} />
+          </div>
+          <div>
+            <LabCard data={current.data.lab} />
+          </div>
+          <div>
+            <AppointmentCard data={current.data.appointment} />
+          </div>
         </div>
 
         {/* Signature attributes strip — the specialty's diagnostic fingerprint */}
@@ -328,7 +359,10 @@ export function AdaptiveModel() {
               These follow the patient between wards — never re-entered.
             </span>
           </div>
-          <div className="mt-3 grid gap-2 sm:grid-cols-3 lg:grid-cols-6">
+          <div
+            key={active}
+            className="stagger-children mt-3 grid gap-2 sm:grid-cols-3 lg:grid-cols-6"
+          >
             {current.data.signature.map((field) => (
               <SignatureField key={field.label} field={field} />
             ))}
@@ -355,8 +389,7 @@ function ObjectCardShell({
   return (
     <div
       className={cn(
-        "border-border bg-card group flex flex-col gap-2.5 rounded-lg border p-3.5",
-        "ease-expo-out transition-[opacity,transform] duration-300 motion-reduce:transition-none",
+        "border-border bg-card group card-lift flex h-full flex-col gap-2.5 rounded-lg border p-3.5",
       )}
     >
       <div className="text-muted-foreground flex items-center gap-2">

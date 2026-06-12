@@ -298,7 +298,7 @@ export function ResusDesk({
   return (
     <div className="bg-background flex min-h-svh flex-col">
       {/* ── Sticky command header ─────────────────────────────────── */}
-      <header className="border-border bg-background/95 supports-backdrop-filter:bg-background/80 sticky top-0 z-30 border-b supports-backdrop-filter:backdrop-blur">
+      <header className="border-border glass sticky top-0 z-30 border-b">
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-2.5 px-4 py-2.5 sm:px-6">
           <div className="flex items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
@@ -333,7 +333,10 @@ export function ResusDesk({
             </div>
             <div className="flex shrink-0 items-center gap-3">
               <div className="text-right">
-                <p className="text-foreground font-mono text-[18px] leading-none font-semibold tabular-nums">
+                <p className="text-foreground flex items-center justify-end gap-1.5 font-mono text-[18px] leading-none font-semibold tabular-nums">
+                  {active ? (
+                    <span aria-hidden className="pulse-dot size-1.5 rounded-full bg-rose-500" />
+                  ) : null}
                   {elapsed}
                 </p>
                 <p className="text-muted-foreground/70 font-mono text-[9px] tracking-[0.14em] uppercase">
@@ -378,7 +381,7 @@ export function ResusDesk({
                     onClick={() => setActiveStep(letter)}
                     aria-current={focused ? "step" : undefined}
                     className={cn(
-                      "flex flex-1 items-center justify-center gap-1.5 rounded-lg border px-2 py-1.5 text-[12px] font-semibold transition-colors",
+                      "tap flex flex-1 items-center justify-center gap-1.5 rounded-lg border px-2 py-1.5 text-[12px] font-semibold transition-colors duration-300",
                       STEP_TONE[vis],
                       focused ? "ring-2 ring-teal-500/70 ring-offset-1" : "",
                       nextStep === letter && active && !focused
@@ -409,7 +412,7 @@ export function ResusDesk({
                 if (active)
                   log("decision", "pre", { label: "Returned to A (reassess from the top)" });
               }}
-              className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-rose-300/70 bg-rose-50/60 px-2.5 py-1.5 text-[12px] font-semibold text-rose-700 transition-colors hover:bg-rose-100/70 disabled:opacity-50 dark:bg-rose-950/25 dark:text-rose-200"
+              className="tap inline-flex shrink-0 items-center gap-1 rounded-lg border border-rose-300/70 bg-rose-50/60 px-2.5 py-1.5 text-[12px] font-semibold text-rose-700 transition-colors hover:bg-rose-100/70 disabled:opacity-50 dark:bg-rose-950/25 dark:text-rose-200"
               disabled={!active}
             >
               <RotateCcwIcon className="size-3.5" aria-hidden /> Return to A
@@ -429,7 +432,7 @@ export function ResusDesk({
                   })
                 }
                 disabled={pending}
-                className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-rose-600 px-2.5 py-1.5 text-[12px] font-bold text-white transition-colors hover:bg-rose-700 disabled:opacity-50"
+                className="tap inline-flex shrink-0 items-center gap-1 rounded-lg bg-rose-600 px-2.5 py-1.5 text-[12px] font-bold text-white transition-colors hover:bg-rose-700 disabled:opacity-50"
                 title="Declare cardiac arrest — unresponsive + not breathing normally / no pulse"
               >
                 ⚠ Arrest
@@ -561,7 +564,10 @@ export function ResusDesk({
               </span>
             </h2>
             {pending ? (
-              <span className="text-muted-foreground/70 font-mono text-[10px]">saving…</span>
+              <span className="text-muted-foreground/70 inline-flex items-center gap-1 font-mono text-[10px]">
+                <span aria-hidden className="pulse-dot size-1 rounded-full bg-teal-500" />
+                saving…
+              </span>
             ) : null}
           </div>
           <Timeline timeline={timeline} pendingLabel={pendingLabel} />
@@ -892,7 +898,7 @@ function VitalCell({
       {canGraph && open && pos ? (
         <div
           style={{ position: "fixed", top: pos.top, left: pos.left }}
-          className="border-border bg-popover z-50 w-56 rounded-lg border p-2 shadow-lg"
+          className="border-border bg-popover scale-in z-50 w-56 origin-top-left rounded-lg border p-2 shadow-lg"
         >
           <VitalTrendGraph
             seriesKey={tile.key}
@@ -1040,7 +1046,7 @@ function VitalsBand({
             onClick={() => setCapture((c) => !c)}
             disabled={disabled}
             className={cn(
-              "ml-auto shrink-0 self-stretch rounded-lg border px-3 text-[12px] font-medium transition-colors disabled:opacity-50",
+              "tap ml-auto shrink-0 self-stretch rounded-lg border px-3 text-[12px] font-medium transition-colors disabled:opacity-50",
               due
                 ? "border-rose-400/70 bg-rose-50/60 text-rose-700 motion-safe:animate-pulse dark:bg-rose-950/25 dark:text-rose-200"
                 : "border-border bg-card text-foreground/80 hover:bg-muted/50",
@@ -1051,7 +1057,7 @@ function VitalsBand({
         </div>
 
         {capture ? (
-          <div className="flex flex-wrap items-end gap-2 pt-1">
+          <div className="scale-in flex origin-top flex-wrap items-end gap-2 pt-1">
             {CAPTURE_FIELDS.map((f) => (
               <label key={f.key} className="flex flex-col gap-0.5">
                 <span className="text-muted-foreground/70 font-mono text-[9px] tracking-[0.1em] uppercase">
@@ -1063,7 +1069,7 @@ function VitalsBand({
                   step={f.step}
                   value={form[f.key] ?? ""}
                   onChange={(e) => setForm((s) => ({ ...s, [f.key]: e.target.value }))}
-                  className="border-border bg-card text-foreground focus:ring-foreground/20 w-16 rounded-md border px-1.5 py-1 font-mono text-[13px] tabular-nums outline-none focus:ring-2"
+                  className="border-border bg-card text-foreground w-16 rounded-md border px-1.5 py-1 font-mono text-[13px] tabular-nums outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/25"
                 />
               </label>
             ))}
@@ -1088,7 +1094,7 @@ function VitalsBand({
               type="button"
               onClick={save}
               disabled={disabled}
-              className="rounded-lg bg-teal-600 px-3 py-1.5 text-[12.5px] font-semibold text-white transition-colors hover:bg-teal-700 disabled:opacity-50"
+              className="tap rounded-lg bg-teal-600 px-3 py-1.5 text-[12.5px] font-semibold text-white transition-colors hover:bg-teal-700 disabled:opacity-50"
             >
               Save vitals
             </button>
@@ -1132,7 +1138,7 @@ function AnaphylaxisBar({
           <button
             type="button"
             onClick={() => setOpen((o) => !o)}
-            className="text-muted-foreground hover:text-foreground rounded-md px-1.5 py-1 font-mono text-[10px] tracking-[0.1em] uppercase"
+            className="tap text-muted-foreground hover:text-foreground rounded-md px-1.5 py-1 font-mono text-[10px] tracking-[0.1em] uppercase transition-colors"
           >
             {open ? "Hide" : "Detail"}
           </button>
@@ -1140,7 +1146,7 @@ function AnaphylaxisBar({
             type="button"
             disabled={disabled}
             onClick={() => setPrescribeOpen(true)}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-rose-600 px-2.5 py-1.5 text-[12px] font-semibold text-white transition-colors hover:bg-rose-700 disabled:opacity-50"
+            className="tap inline-flex items-center gap-1.5 rounded-lg bg-rose-600 px-2.5 py-1.5 text-[12px] font-semibold text-white transition-colors hover:bg-rose-700 disabled:opacity-50"
           >
             Prescribe / record
           </button>
@@ -1215,7 +1221,7 @@ function StepPanel({
               type="button"
               disabled={disabled}
               onClick={() => onLog("assessment", step, { label: item.split(" — ")[0], item })}
-              className="border-border bg-muted/30 text-foreground/80 hover:bg-muted/60 rounded-lg border px-2.5 py-1.5 text-left text-[11.5px] transition-colors disabled:opacity-50"
+              className="tap border-border bg-muted/30 text-foreground/80 hover:bg-muted/60 rounded-lg border px-2.5 py-1.5 text-left text-[11.5px] transition-colors disabled:opacity-50"
               title={item}
             >
               {item.length > 64 ? item.slice(0, 62) + "…" : item}
@@ -1236,7 +1242,7 @@ function StepPanel({
               type="button"
               disabled={disabled}
               onClick={() => onLog("assessment", step, { label: sign, item: sign, danger: true })}
-              className="flex items-start gap-2 rounded-lg border border-rose-300/60 bg-rose-50/40 px-2.5 py-2 text-left text-[12px] text-rose-800 transition-colors hover:bg-rose-100/60 disabled:opacity-50 dark:border-rose-500/30 dark:bg-rose-950/20 dark:text-rose-200"
+              className="tap flex items-start gap-2 rounded-lg border border-rose-300/60 bg-rose-50/40 px-2.5 py-2 text-left text-[12px] text-rose-800 transition-colors hover:bg-rose-100/60 disabled:opacity-50 dark:border-rose-500/30 dark:bg-rose-950/20 dark:text-rose-200"
             >
               <span aria-hidden className="mt-px">
                 ▲
@@ -1274,7 +1280,7 @@ function StepPanel({
             onLog("reassessment", step, { label: `Reassessed ${step}` });
             setReassessed(true);
           }}
-          className="border-border text-foreground/80 hover:bg-muted/50 self-start rounded-lg border px-2.5 py-1 text-[11.5px] transition-colors disabled:opacity-50"
+          className="tap border-border text-foreground/80 hover:bg-muted/50 self-start rounded-lg border px-2.5 py-1 text-[11.5px] transition-colors disabled:opacity-50"
         >
           {reassessed ? "✓ Reassessment logged" : "Log reassessment"}
         </button>
@@ -1318,7 +1324,7 @@ function ActionRow({
               source: action.source,
             })
           }
-          className="flex min-w-0 flex-1 items-center gap-2 text-left disabled:opacity-50"
+          className="tap flex min-w-0 flex-1 items-center gap-2 rounded-md text-left disabled:opacity-50"
         >
           {action.emergency ? (
             <span aria-hidden className="text-rose-600">
@@ -1333,7 +1339,7 @@ function ActionRow({
           <button
             type="button"
             onClick={() => setShow((s) => !s)}
-            className="text-muted-foreground hover:text-foreground shrink-0 rounded-md px-1.5 font-mono text-[10px] tracking-[0.1em] uppercase"
+            className="tap text-muted-foreground hover:text-foreground shrink-0 rounded-md px-1.5 font-mono text-[10px] tracking-[0.1em] uppercase transition-colors"
           >
             {show ? "−" : "i"}
           </button>
@@ -1436,7 +1442,7 @@ function TeamPanel({
                   type="button"
                   disabled={disabled || pending}
                   onClick={() => claim(role)}
-                  className="text-muted-foreground hover:text-foreground border-border shrink-0 rounded-md border px-1.5 py-0.5 text-[10.5px] transition-colors disabled:opacity-40"
+                  className="tap text-muted-foreground hover:text-foreground border-border shrink-0 rounded-md border px-1.5 py-0.5 text-[10.5px] transition-colors disabled:opacity-40"
                 >
                   {holder ? "Take" : "Claim"}
                 </button>
@@ -1462,7 +1468,7 @@ function TeamPanel({
               onChange();
             })
           }
-          className="mt-2 w-full rounded-lg bg-teal-600 px-2.5 py-1.5 text-[12px] font-semibold text-white transition-colors hover:bg-teal-700 disabled:opacity-50"
+          className="tap mt-2 w-full rounded-lg bg-teal-600 px-2.5 py-1.5 text-[12px] font-semibold text-white transition-colors hover:bg-teal-700 disabled:opacity-50"
         >
           {"I'm responding"}
         </button>
@@ -1505,7 +1511,7 @@ function Timeline({
   return (
     <ol className="border-border/60 bg-muted/20 flex flex-1 flex-col gap-px overflow-y-auto rounded-xl border p-1.5">
       {pendingLabel ? (
-        <li className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-[11.5px] opacity-60">
+        <li className="scale-in flex origin-top items-center gap-2 rounded-lg px-2 py-1.5 text-[11.5px] opacity-60">
           <span className="font-mono text-[10px]">··:··</span>
           <span className="text-foreground/80 flex-1">{pendingLabel}</span>
         </li>
@@ -1515,7 +1521,7 @@ function Timeline({
           No entries yet. Tapping an assessment, danger sign, or action logs it here.
         </li>
       ) : null}
-      {ordered.map((e) => {
+      {ordered.map((e, i) => {
         const label = String(e.payload.label ?? e.payload.item ?? e.kind);
         const danger = e.payload.danger === true;
         // Subtle state tint so the running record is scannable by state
@@ -1532,7 +1538,13 @@ function Timeline({
         return (
           <li
             key={e.id}
-            className={cn("flex items-start gap-2 rounded-lg px-2 py-1.5 text-[11.5px]", tint)}
+            className={cn(
+              "flex items-start gap-2 rounded-lg px-2 py-1.5 text-[11.5px]",
+              // Only the newest entry pops on mount — arriving log lines are
+              // felt without re-animating the rest of the record.
+              i === 0 && "scale-in origin-top",
+              tint,
+            )}
           >
             <span className="text-muted-foreground/70 mt-px shrink-0 font-mono text-[10px] tabular-nums">
               {clockOf(e.recordedAt)}

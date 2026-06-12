@@ -60,10 +60,10 @@ export function HospitalSidebarItem({ href, label, iconKey, badgeCount }: Props)
       href={href}
       aria-current={isActive ? "page" : undefined}
       className={cn(
-        "group flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-[13px] transition-colors outline-none",
+        "group tap flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-[13px] transition-colors outline-none",
         "focus-visible:ring-2 focus-visible:ring-teal-500/40",
         isActive
-          ? "bg-teal-50 text-teal-700 dark:bg-teal-950/40 dark:text-teal-300"
+          ? "bg-teal-50 text-teal-700 ring-1 ring-teal-500/15 ring-inset dark:bg-teal-950/40 dark:text-teal-300"
           : "text-muted-foreground hover:bg-muted hover:text-foreground",
       )}
     >
@@ -82,7 +82,7 @@ export function HospitalSidebarItem({ href, label, iconKey, badgeCount }: Props)
         <span
           aria-label={`${badgeCount} pending`}
           className={cn(
-            "rounded-full px-1.5 py-0.5 font-mono text-[10px] font-semibold tabular-nums",
+            "scale-in rounded-full px-1.5 py-0.5 font-mono text-[10px] font-semibold tabular-nums",
             isActive
               ? "bg-teal-600 text-white"
               : "bg-teal-100 text-teal-800 dark:bg-teal-900/60 dark:text-teal-200",

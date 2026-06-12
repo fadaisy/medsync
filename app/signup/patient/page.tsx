@@ -4,6 +4,7 @@ import { desc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { consentVersions } from "@/db/schema/consent-versions";
 import { listDistricts } from "@/lib/reference-data";
+import { SignupUnavailable } from "../_components/unavailable";
 import { PatientSignupForm } from "./_components/form";
 import { loadSubcountiesForDistrictAction, submitPatientSignupAction } from "./actions";
 
@@ -40,12 +41,9 @@ export default async function PatientSignupPage() {
 
   if (!activeConsent) {
     return (
-      <div className="mx-auto max-w-2xl px-5 py-20 text-center">
-        <h1 className="text-foreground font-display text-3xl">Signup unavailable</h1>
-        <p className="text-muted-foreground mt-3 text-sm">
-          The current consent text isn&apos;t ready yet. Please check back shortly.
-        </p>
-      </div>
+      <SignupUnavailable title="Signup unavailable">
+        The current consent text isn&apos;t ready yet. Please check back shortly.
+      </SignupUnavailable>
     );
   }
 

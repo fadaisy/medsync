@@ -97,7 +97,7 @@ export function AdminShell({
         className="bg-muted/40 border-border hidden w-[240px] shrink-0 flex-col border-r lg:flex"
       >
         {/* Brand */}
-        <div className="border-border flex h-[52px] items-center gap-2.5 border-b px-5">
+        <div className="border-border flex h-13 items-center gap-2.5 border-b px-5">
           <Link
             href="/"
             className="font-display text-foreground text-[15px] font-medium tracking-[-0.01em] transition-opacity hover:opacity-80"
@@ -111,7 +111,7 @@ export function AdminShell({
 
         {/* Nav items */}
         <nav className="flex-1 overflow-y-auto p-2">
-          <ul className="flex flex-col gap-px">
+          <ul className="stagger-children flex flex-col gap-px">
             {items.map((item) => (
               <li key={item.href}>
                 <AdminSidebarItem
@@ -164,7 +164,7 @@ export function AdminShell({
       {/* ── Main column ──────────────────────────────────────────── */}
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Top bar */}
-        <header className="border-border bg-background/95 supports-backdrop-filter:bg-background/80 sticky top-0 z-30 flex h-[52px] items-center justify-between gap-3 border-b px-4 supports-backdrop-filter:backdrop-blur sm:px-6">
+        <header className="border-border glass sticky top-0 z-30 flex h-13 items-center justify-between gap-3 border-b px-4 sm:px-6">
           {/* Mobile-only: hamburger → sidebar sheet + brand mark */}
           <div className="flex items-center gap-2.5 lg:hidden">
             <MobileSidebar

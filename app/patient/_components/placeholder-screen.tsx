@@ -25,12 +25,19 @@ export function PatientPlaceholderScreen({
   backLabel?: string;
 }) {
   return (
-    <div className="mx-auto flex w-full max-w-xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-9">
+    <div className="stagger-children relative mx-auto flex w-full max-w-xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-9">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-20 left-1/2 -z-10 h-56 w-md max-w-full -translate-x-1/2 rounded-full bg-teal-500/5 blur-3xl dark:bg-teal-400/4"
+      />
       <Link
         href={backHref}
-        className="text-muted-foreground hover:text-foreground inline-flex w-fit items-center gap-1 text-[12.5px] transition-colors"
+        className="text-muted-foreground hover:text-foreground group inline-flex w-fit items-center gap-1 text-[12.5px] transition-colors"
       >
-        <ArrowLeftIcon className="size-3.5" aria-hidden />
+        <ArrowLeftIcon
+          className="size-3.5 transition-transform group-hover:-translate-x-0.5"
+          aria-hidden
+        />
         {backLabel}
       </Link>
 
@@ -49,13 +56,13 @@ export function PatientPlaceholderScreen({
         <div className="flex items-center gap-3">
           <span
             aria-hidden
-            className="inline-flex size-9 items-center justify-center rounded-full bg-teal-50 text-teal-700 ring-1 ring-teal-200/70 dark:bg-teal-950/40 dark:text-teal-300 dark:ring-teal-800/40"
+            className="scale-in inline-flex size-9 items-center justify-center rounded-full bg-teal-50 text-teal-700 ring-1 ring-teal-200/70 dark:bg-teal-950/40 dark:text-teal-300 dark:ring-teal-800/40"
           >
             <Icon className="size-4" />
           </span>
           <span className="text-foreground text-[13.5px] font-medium">Landing soon</span>
         </div>
-        <ul className="flex flex-col gap-1.5">
+        <ul className="stagger-children flex flex-col gap-1.5">
           {upcoming.map((item) => (
             <li
               key={item}

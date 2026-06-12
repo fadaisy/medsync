@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { ArrowRightIcon } from "lucide-react";
 
 import { ACTION_LABEL } from "@/lib/doctor/capabilities";
 import { listPendingCosignRequests } from "@/lib/doctor/cosign";
 import { requireDoctorScope } from "@/lib/doctor/scope";
+import { DoctorEmptyState } from "../_components/empty-state";
 import { ReviewForm } from "./_components/review-form";
 
 export const metadata: Metadata = { title: "Review queue · Doctor · MedSync" };
@@ -21,10 +23,13 @@ export default async function DoctorCosignQueuePage() {
   const queue = await listPendingCosignRequests({ hospitalId: scope.hospitalId });
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-6 py-8 lg:py-10">
+    <div className="stagger-children mx-auto flex w-full max-w-5xl flex-col gap-6 px-6 py-8 lg:py-10">
       <header className="flex flex-col gap-2">
         <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
-          <span aria-hidden className="size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20" />
+          <span
+            aria-hidden
+            className="pulse-dot size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20"
+          />
           Review queue
         </span>
         <h1 className="font-display text-foreground text-[26px] leading-[1.15] font-medium tracking-[-0.015em]">
@@ -37,18 +42,16 @@ export default async function DoctorCosignQueuePage() {
       </header>
 
       {queue.length === 0 ? (
-        <div className="border-border bg-card rounded-xl border p-6">
-          <p className="text-muted-foreground text-[12.5px] leading-relaxed">
-            Nothing waiting for your review. When an intern or clinical officer flags an action, it
-            lands here.
-          </p>
-        </div>
+        <DoctorEmptyState
+          title="Nothing waiting for your review"
+          body="When an intern or clinical officer flags an action, it lands here."
+        />
       ) : (
-        <ul className="flex flex-col gap-3">
+        <ul className="stagger-children flex flex-col gap-3">
           {queue.map((r) => (
             <li
               key={r.id}
-              className="border-border bg-card flex flex-col gap-3 rounded-xl border p-5"
+              className="border-border bg-card hover:border-foreground/15 flex flex-col gap-3 rounded-xl border p-5 transition-[border-color,box-shadow] duration-200 hover:shadow-xs"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="flex flex-col gap-1">
@@ -65,9 +68,13 @@ export default async function DoctorCosignQueuePage() {
                 </div>
                 <Link
                   href={`/doctor/patients/${r.patientUserId}`}
-                  className="text-muted-foreground hover:text-foreground text-[11.5px] transition-colors"
+                  className="text-muted-foreground hover:text-foreground group inline-flex items-center gap-0.5 text-[11.5px] transition-colors"
                 >
-                  Patient →
+                  Patient
+                  <ArrowRightIcon
+                    aria-hidden
+                    className="size-3 transition-transform duration-200 group-hover:translate-x-0.5"
+                  />
                 </Link>
               </div>
 

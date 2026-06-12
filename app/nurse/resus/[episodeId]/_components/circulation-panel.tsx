@@ -283,7 +283,7 @@ export function CirculationPanel({
             type="button"
             disabled={!active || pending}
             onClick={declareArrest}
-            className="shrink-0 rounded-lg bg-white px-2.5 py-1 text-[12px] font-bold text-rose-700 transition-opacity hover:opacity-90 disabled:opacity-50"
+            className="tap shrink-0 rounded-lg bg-white px-2.5 py-1 text-[12px] font-bold text-rose-700 transition-opacity hover:opacity-90 disabled:opacity-50"
           >
             Start CPR → ALS
           </button>
@@ -304,7 +304,7 @@ export function CirculationPanel({
                 disabled={!active}
                 onClick={() => setHeadline(headline === s ? null : s)}
                 className={cn(
-                  "rounded-lg border px-2.5 py-1.5 text-left text-[11.5px] transition-colors disabled:opacity-50",
+                  "tap rounded-lg border px-2.5 py-1.5 text-left text-[11.5px] transition-colors disabled:opacity-50",
                   headline === s
                     ? "border-foreground/30 bg-foreground/90 text-background font-medium"
                     : "border-border bg-muted/30 text-foreground/80 hover:bg-muted/60",
@@ -393,7 +393,7 @@ export function CirculationPanel({
             type="button"
             disabled={!active || pending}
             onClick={recordFindings}
-            className="mt-1 self-start rounded-lg bg-teal-600 px-3 py-1.5 text-[12.5px] font-semibold text-white transition-colors hover:bg-teal-700 disabled:opacity-50"
+            className="tap mt-1 self-start rounded-lg bg-teal-600 px-3 py-1.5 text-[12.5px] font-semibold text-white transition-colors hover:bg-teal-700 disabled:opacity-50"
           >
             {reassessDue ? "↻ Re-record circulation findings" : "Record circulation findings"}
           </button>
@@ -471,7 +471,7 @@ function ContextToggle({
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        "rounded-full border px-2.5 py-1 text-[11px] transition-colors disabled:opacity-50",
+        "tap rounded-full border px-2.5 py-1 text-[11px] transition-colors disabled:opacity-50",
         on
           ? danger
             ? "border-rose-500/70 bg-rose-50/70 text-rose-700 dark:bg-rose-950/30 dark:text-rose-200"
@@ -514,7 +514,7 @@ function FindingGroup({
               title={f.meaning}
               onClick={() => onToggle(f.code)}
               className={cn(
-                "rounded-lg border px-2 py-1 text-[11px] transition-colors disabled:opacity-50",
+                "tap rounded-lg border px-2 py-1 text-[11px] transition-colors disabled:opacity-50",
                 on
                   ? "border-teal-400/70 bg-teal-50/70 text-teal-800 dark:border-teal-500/40 dark:bg-teal-950/25 dark:text-teal-200"
                   : "border-border bg-muted/30 text-foreground/70 hover:bg-muted/60",
@@ -616,7 +616,7 @@ function ActionCard({
               onClick={() => onSetState(code, s)}
               aria-pressed={isCurrent}
               className={cn(
-                "inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[10.5px] transition-colors disabled:opacity-40",
+                "tap inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[10.5px] transition-colors disabled:opacity-40",
                 isCurrent
                   ? cn(sStyle.token, "ring-foreground/15 border-transparent font-semibold ring-1")
                   : "border-border text-muted-foreground hover:bg-muted/50",
@@ -632,7 +632,7 @@ function ActionCard({
             type="button"
             disabled={disabled}
             onClick={onPrescribe}
-            className="ml-auto inline-flex items-center gap-1 rounded-md bg-teal-600 px-2 py-0.5 text-[10.5px] font-semibold text-white transition-colors hover:bg-teal-700 disabled:opacity-40"
+            className="tap ml-auto inline-flex items-center gap-1 rounded-md bg-teal-600 px-2 py-0.5 text-[10.5px] font-semibold text-white transition-colors hover:bg-teal-700 disabled:opacity-40"
           >
             Prescribe / record
           </button>
@@ -648,7 +648,7 @@ function ActionCard({
             type="button"
             disabled={disabled}
             onClick={() => onSetState(escAction.code, "in_progress")}
-            className="shrink-0 rounded-md bg-rose-600 px-1.5 py-0.5 text-[10px] font-semibold text-white disabled:opacity-50"
+            className="tap shrink-0 rounded-md bg-rose-600 px-1.5 py-0.5 text-[10px] font-semibold text-white disabled:opacity-50"
             title={`Start ${escAction.label}`}
           >
             Escalate

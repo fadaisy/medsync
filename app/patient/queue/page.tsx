@@ -176,12 +176,19 @@ export default async function PatientQueuePage() {
   const anyOpen = items.some((i) => i.openNow);
 
   return (
-    <div className="mx-auto flex w-full max-w-xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-9">
+    <div className="stagger-children relative mx-auto flex w-full max-w-xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-9">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-20 left-1/2 -z-10 h-56 w-md max-w-full -translate-x-1/2 rounded-full bg-teal-500/5 blur-3xl dark:bg-teal-400/4"
+      />
       <Link
         href="/patient"
-        className="text-muted-foreground hover:text-foreground inline-flex w-fit items-center gap-1 text-[12.5px] transition-colors"
+        className="text-muted-foreground hover:text-foreground group inline-flex w-fit items-center gap-1 text-[12.5px] transition-colors"
       >
-        <ArrowLeftIcon className="size-3.5" aria-hidden />
+        <ArrowLeftIcon
+          className="size-3.5 transition-transform group-hover:-translate-x-0.5"
+          aria-hidden
+        />
         Back to home
       </Link>
 
@@ -263,12 +270,16 @@ function ExistingIntakeCard({ intakeId, status }: { intakeId: string; status: st
   return (
     <Link
       href={`/patient/queue/${intakeId}`}
-      className="group flex items-start gap-3 rounded-xl border border-teal-500/40 bg-teal-50/40 p-4 transition-colors hover:border-teal-500/60 dark:border-teal-400/30 dark:bg-teal-950/20"
+      className="group card-lift flex items-start gap-3 rounded-xl border border-teal-500/40 bg-teal-50/40 p-4 hover:border-teal-500/60 dark:border-teal-400/30 dark:bg-teal-950/20"
     >
       <span
         aria-hidden
-        className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-teal-100 text-teal-700 ring-1 ring-teal-200/80 dark:bg-teal-900/40 dark:text-teal-300 dark:ring-teal-800/40"
+        className="scale-in relative inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-teal-100 text-teal-700 ring-1 ring-teal-200/80 dark:bg-teal-900/40 dark:text-teal-300 dark:ring-teal-800/40"
       >
+        <span
+          aria-hidden
+          className="pulse-dot absolute -top-0.5 -right-0.5 size-2 rounded-full bg-teal-500 ring-2 ring-white dark:ring-teal-950"
+        />
         <TicketIcon className="size-4" />
       </span>
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
@@ -299,7 +310,7 @@ function ExistingAppointmentCard({
   return (
     <Link
       href="/patient/appointments"
-      className="border-border bg-card flex items-start gap-3 rounded-xl border p-4 transition-colors hover:border-teal-500/40"
+      className="border-border bg-card card-lift flex items-start gap-3 rounded-xl border p-4 hover:border-teal-500/40"
     >
       <span
         aria-hidden

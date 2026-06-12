@@ -327,7 +327,7 @@ export function PrescribeDialog({
       aria-modal="true"
       aria-label={`Prescribe — ${recLabel}`}
     >
-      <div className="border-border bg-card flex max-h-[92svh] w-full max-w-lg flex-col overflow-hidden rounded-t-2xl border shadow-xl sm:rounded-2xl">
+      <div className="border-border bg-card scale-in flex max-h-[92svh] w-full max-w-lg flex-col overflow-hidden rounded-t-2xl border shadow-xl sm:rounded-2xl">
         {/* Header */}
         <div className="border-border flex items-center justify-between gap-2 border-b px-4 py-3">
           <div className="min-w-0">
@@ -359,7 +359,7 @@ export function PrescribeDialog({
                     setTypedConfirm("");
                   }}
                   className={cn(
-                    "rounded-lg border px-2.5 py-1.5 text-[12px] transition-colors",
+                    "tap rounded-lg border px-2.5 py-1.5 text-[12px] transition-colors",
                     i === selected
                       ? "border-foreground/30 bg-foreground/90 text-background font-medium"
                       : "border-border bg-muted/30 text-foreground/80 hover:bg-muted/60",
@@ -379,7 +379,7 @@ export function PrescribeDialog({
                 <button
                   type="button"
                   onClick={() => setAdjusting((a) => !a)}
-                  className="text-muted-foreground hover:text-foreground border-border inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[10.5px]"
+                  className="tap text-muted-foreground hover:text-foreground border-border inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[10.5px]"
                 >
                   <PencilIcon className="size-3" aria-hidden />
                   {adjusting ? "Done" : "Adjust"}
@@ -572,7 +572,7 @@ export function PrescribeDialog({
                   type="button"
                   disabled={pending || !allergyDraft.trim()}
                   onClick={() => captureAllergies(false)}
-                  className="rounded-md bg-teal-600 px-2 py-1 text-[11.5px] font-semibold text-white disabled:opacity-50"
+                  className="tap rounded-md bg-teal-600 px-2 py-1 text-[11.5px] font-semibold text-white disabled:opacity-50"
                 >
                   Save
                 </button>
@@ -580,7 +580,7 @@ export function PrescribeDialog({
                   type="button"
                   disabled={pending}
                   onClick={() => captureAllergies(true)}
-                  className="border-border rounded-md border px-2 py-1 text-[11.5px] disabled:opacity-50"
+                  className="tap border-border rounded-md border px-2 py-1 text-[11.5px] disabled:opacity-50"
                 >
                   No known allergies
                 </button>
@@ -693,7 +693,7 @@ export function PrescribeDialog({
             <button
               type="button"
               onClick={onClose}
-              className="border-border text-foreground/80 rounded-lg border px-3 py-1.5 text-[12.5px]"
+              className="tap border-border text-foreground/80 rounded-lg border px-3 py-1.5 text-[12.5px]"
             >
               Cancel
             </button>
@@ -702,7 +702,7 @@ export function PrescribeDialog({
               disabled={!canConfirm}
               onClick={confirm}
               className={cn(
-                "rounded-lg px-3 py-1.5 text-[12.5px] font-semibold text-white transition-colors disabled:opacity-50",
+                "tap rounded-lg px-3 py-1.5 text-[12.5px] font-semibold text-white transition-colors disabled:opacity-50",
                 needsOverride ? "bg-rose-600 hover:bg-rose-700" : "bg-teal-600 hover:bg-teal-700",
               )}
             >

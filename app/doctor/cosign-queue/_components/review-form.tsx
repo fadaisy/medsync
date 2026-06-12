@@ -21,9 +21,13 @@ export function ReviewForm({ cosignRequestId }: { cosignRequestId: string }) {
         placeholder="Optional for approve · required for return (≥ 8 chars)."
         className="border-input bg-background text-foreground placeholder:text-muted-foreground/70 focus-visible:ring-ring/50 focus-visible:border-ring resize-none rounded-md border px-3 py-2 text-[12.5px] leading-relaxed outline-none focus-visible:ring-[3px]"
       />
-      {state.error ? <p className="text-destructive text-[11.5px]">{state.error}</p> : null}
+      {state.error ? (
+        <p className="text-destructive scale-in text-[11.5px]">{state.error}</p>
+      ) : null}
       {state.ok ? (
-        <p className="text-[11.5px] text-teal-700 dark:text-teal-300">Decision saved.</p>
+        <p className="scale-in text-[11.5px] font-medium text-teal-700 dark:text-teal-300">
+          Decision saved.
+        </p>
       ) : null}
       <div className="flex items-center justify-end gap-2">
         <Button type="submit" name="decision" value="returned" variant="secondary" size="sm">

@@ -127,16 +127,25 @@ export function ReasoningPanel({
         />
         <span className="text-foreground text-[13px] font-semibold">Clinical reasoning</span>
         {mnmCount ? (
-          <span className="inline-flex items-center gap-1 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
+          <span
+            key={mnmCount}
+            className="scale-in inline-flex items-center gap-1 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-800 tabular-nums dark:bg-amber-950/40 dark:text-amber-300"
+          >
             <ShieldAlertIcon className="size-3" aria-hidden />
             {mnmCount}
+          </span>
+        ) : null}
+        {fired ? (
+          <span className="text-muted-foreground ml-auto inline-flex items-center gap-1.5 font-mono text-[9.5px] tracking-[0.14em] uppercase">
+            <span aria-hidden className="pulse-dot size-1.5 rounded-full bg-teal-500" />
+            live
           </span>
         ) : null}
         {onClose ? (
           <button
             type="button"
             onClick={onClose}
-            className="text-muted-foreground hover:text-foreground ml-auto"
+            className={`tap text-muted-foreground hover:text-foreground rounded-md p-0.5 transition-colors ${fired ? "" : "ml-auto"}`}
             aria-label="Close reasoning panel"
           >
             <XIcon className="size-4" />
@@ -144,12 +153,50 @@ export function ReasoningPanel({
         ) : null}
       </div>
 
-      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-3.5 py-3">
+      <div className="stagger-children flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto px-3.5 py-3">
         {!fired ? (
-          <p className="text-muted-foreground text-[12px]">
-            Add a presenting complaint — the differential, the must-not-miss, and the discriminators
-            will appear here and narrow as you capture features.
-          </p>
+          <div className="flex flex-col items-center gap-3 px-2 py-8 text-center">
+            {/* Quiet differential-tree glyph — one stem branching to plural possibilities */}
+            <svg
+              width="88"
+              height="56"
+              viewBox="0 0 88 56"
+              fill="none"
+              aria-hidden
+              className="text-gray-300 dark:text-gray-700"
+            >
+              <circle cx="11" cy="28" r="3" fill="currentColor" />
+              <path d="M14 28h18" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              <path
+                d="M32 28c9 0 7-14 16-14h11"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeDasharray="3 4"
+              />
+              <path
+                d="M32 28h27"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeDasharray="3 4"
+              />
+              <path
+                d="M32 28c9 0 7 14 16 14h11"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeDasharray="3 4"
+              />
+              <circle cx="66" cy="14" r="3" fill="currentColor" />
+              <circle cx="66" cy="28" r="3" className="fill-teal-500/70" />
+              <circle cx="66" cy="42" r="3" fill="currentColor" />
+            </svg>
+            <p className="text-muted-foreground text-[12px]">
+              Add a presenting complaint — the differential, the must-not-miss, and the
+              discriminators will appear here and narrow as you capture features.
+            </p>
+          </div>
         ) : (
           <>
             <p className="text-muted-foreground text-[10.5px]">
@@ -199,14 +246,14 @@ export function ReasoningPanel({
             ) : null}
 
             <div
-              className={atSynthesis ? "rounded-lg bg-teal-50/60 p-2.5 dark:bg-teal-950/20" : ""}
+              className={`transition-colors duration-300 ${atSynthesis ? "rounded-lg bg-teal-50/60 p-2.5 dark:bg-teal-950/20" : ""}`}
             >
               <span className="inline-flex items-center gap-1.5 text-[11.5px] font-medium text-teal-700 dark:text-teal-300">
                 <PauseCircleIcon className="size-3.5" aria-hidden />
                 Diagnostic pause {atSynthesis ? "(before you close)" : ""}
               </span>
               {atSynthesis ? (
-                <ul className="text-muted-foreground mt-1 flex list-disc flex-col gap-0.5 pl-5 text-[11px]">
+                <ul className="text-muted-foreground reveal-up mt-1 flex list-disc flex-col gap-0.5 pl-5 text-[11px]">
                   {diagnosticPausePrompts().map((q, i) => (
                     <li key={i}>{q}</li>
                   ))}
@@ -291,11 +338,13 @@ function DxRow({ d }: { d: ScoredDifferential }) {
   // small inline count of confirming cross-system findings present
   const crossN = d.supportPresent.length;
   return (
-    <div className={`rounded-md px-2 py-1 ${d.status === "lowered" ? "opacity-55" : ""}`}>
+    <div
+      className={`hover:bg-muted/40 rounded-md px-2 py-1 transition-[background-color,opacity] duration-200 ${d.status === "lowered" ? "opacity-55" : ""}`}
+    >
       <button
         type="button"
         onClick={() => hasDetail && setOpen((o) => !o)}
-        className="flex w-full items-center gap-1.5 text-left"
+        className={`flex w-full items-center gap-1.5 text-left ${hasDetail ? "tap" : ""}`}
       >
         <Icon className={`size-3.5 shrink-0 ${iconColor}`} aria-hidden />
         <span className="text-foreground min-w-0 flex-1 truncate text-[12px]">{d.dx}</span>
@@ -305,13 +354,13 @@ function DxRow({ d }: { d: ScoredDifferential }) {
           </span>
         ) : null}
         {mnm ? (
-          <span className="shrink-0 rounded bg-amber-100 px-1 text-[9px] font-semibold tracking-wide text-amber-800 uppercase dark:bg-amber-950/40 dark:text-amber-300">
+          <span className="scale-in shrink-0 rounded bg-amber-100 px-1 text-[9px] font-semibold tracking-wide text-amber-800 uppercase dark:bg-amber-950/40 dark:text-amber-300">
             must not miss
           </span>
         ) : null}
       </button>
       {open ? (
-        <div className="mt-0.5 flex flex-col gap-0.5 pl-5 text-[10.5px] leading-snug">
+        <div className="reveal-up mt-0.5 flex flex-col gap-0.5 pl-5 text-[10.5px] leading-snug">
           {d.matchedRuleIn.length ? (
             <p className="text-teal-700 dark:text-teal-400">+ {d.matchedRuleIn.join(", ")}</p>
           ) : null}

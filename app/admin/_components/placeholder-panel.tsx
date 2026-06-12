@@ -32,7 +32,7 @@ export function PlaceholderPanel({
   tag,
 }: PlaceholderPanelProps) {
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-5 py-12 sm:px-8 sm:py-16">
+    <div className="stagger-children mx-auto flex w-full max-w-3xl flex-col gap-8 px-5 py-12 sm:px-8 sm:py-16">
       <header className="flex flex-col gap-3">
         <span className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
           <span className="size-1 rounded-full bg-teal-500" />
@@ -48,7 +48,7 @@ export function PlaceholderPanel({
           {tag ? (
             <span
               className={cn(
-                "border-border ml-3 inline-flex translate-y-[-4px] items-center rounded-full border px-2 py-1 align-middle font-mono text-[10px] tracking-[0.14em] uppercase",
+                "border-border ml-3 inline-flex -translate-y-1 items-center rounded-full border px-2 py-1 align-middle font-mono text-[10px] tracking-[0.14em] uppercase",
                 tag === "MVP" && "text-muted-foreground",
                 tag === "Read-only" &&
                   "border-amber-300/60 text-amber-700 dark:border-amber-400/30 dark:text-amber-300",

@@ -10,6 +10,7 @@ import type {
 } from "../actions";
 import type { ComboboxItem } from "@/components/forms";
 import { useActionState, useEffect, useState, useTransition } from "react";
+import { TriangleAlertIcon } from "lucide-react";
 
 import { ConsentCheckbox, Field, FileUpload, PhoneInput } from "@/components/forms";
 import { Button } from "@/components/ui/button";
@@ -38,8 +39,9 @@ interface Props {
   submit: typeof submitNonClinicalSignupAction;
 }
 
+// Mirrors the shared <Input> focus treatment — teal border + soft glow.
 const SELECT_CLASS =
-  "border-input bg-background text-foreground focus-visible:ring-ring/50 disabled:opacity-50 rounded-md border px-3 py-2 text-[13px] outline-none focus-visible:ring-[3px]";
+  "border-input bg-background text-foreground ease-expo-out rounded-md border px-3 py-2 text-[13px] outline-none transition-all duration-150 focus-visible:border-teal-500 focus-visible:shadow-[0_0_0_2px_rgba(20,184,166,0.15)] disabled:cursor-not-allowed disabled:opacity-50 dark:focus-visible:border-teal-400 dark:focus-visible:shadow-[0_0_0_2px_rgba(45,212,191,0.2)]";
 
 export function NonClinicalSignupForm({
   hospitals,
@@ -86,10 +88,11 @@ export function NonClinicalSignupForm({
   }
 
   return (
-    <form action={formAction} className="flex flex-col gap-8">
+    <form action={formAction} className="stagger-children flex flex-col gap-8">
       {/* ── Section: Account ──────────────────────────────────── */}
       <section className="flex flex-col gap-4">
-        <h2 className="text-muted-foreground font-mono text-[10.5px] tracking-[0.14em] uppercase">
+        <h2 className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10.5px] tracking-[0.14em] uppercase">
+          <span aria-hidden className="size-1 rounded-full bg-teal-500" />
           Account
         </h2>
 
@@ -130,7 +133,8 @@ export function NonClinicalSignupForm({
 
       {/* ── Section: Identity (replaces council/licence) ──────── */}
       <section className="flex flex-col gap-4">
-        <h2 className="text-muted-foreground font-mono text-[10.5px] tracking-[0.14em] uppercase">
+        <h2 className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10.5px] tracking-[0.14em] uppercase">
+          <span aria-hidden className="size-1 rounded-full bg-teal-500" />
           Identity
         </h2>
         <p className="text-muted-foreground -mt-2 text-[12px] leading-relaxed">
@@ -197,7 +201,8 @@ export function NonClinicalSignupForm({
 
       {/* ── Section: Where you work ───────────────────────────── */}
       <section className="flex flex-col gap-4">
-        <h2 className="text-muted-foreground font-mono text-[10.5px] tracking-[0.14em] uppercase">
+        <h2 className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10.5px] tracking-[0.14em] uppercase">
+          <span aria-hidden className="size-1 rounded-full bg-teal-500" />
           Where you work
         </h2>
 
@@ -313,7 +318,8 @@ export function NonClinicalSignupForm({
 
       {/* ── Section: Consent ──────────────────────────────────── */}
       <section className="flex flex-col gap-3">
-        <h2 className="text-muted-foreground font-mono text-[10.5px] tracking-[0.14em] uppercase">
+        <h2 className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10.5px] tracking-[0.14em] uppercase">
+          <span aria-hidden className="size-1 rounded-full bg-teal-500" />
           Consent
         </h2>
         <ConsentCheckbox
@@ -331,14 +337,28 @@ export function NonClinicalSignupForm({
       </section>
 
       {errors._form ? (
-        <p className="text-destructive border-destructive/30 bg-destructive/5 rounded-md border px-3 py-2 text-[12.5px]">
-          {errors._form}
+        <p
+          role="alert"
+          className="scale-in flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2.5 text-[12.5px] leading-snug text-amber-900 dark:border-amber-800/40 dark:bg-amber-950/30 dark:text-amber-200"
+        >
+          <TriangleAlertIcon aria-hidden className="mt-px size-3.5 shrink-0" strokeWidth={2} />
+          <span>{errors._form}</span>
         </p>
       ) : null}
 
       <div className="flex items-center justify-end gap-2">
-        <Button type="submit" disabled={pending}>
-          {pending ? "Creating account…" : "Create my account"}
+        <Button type="submit" disabled={pending} className="tap">
+          {pending ? (
+            <>
+              <span
+                aria-hidden
+                className="size-3 shrink-0 rounded-full border-2 border-current/30 border-t-current motion-safe:animate-spin"
+              />
+              Creating account…
+            </>
+          ) : (
+            "Create my account"
+          )}
         </Button>
       </div>
 

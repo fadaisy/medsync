@@ -89,7 +89,7 @@ export function ReceptionShell({
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="border-border bg-background/95 supports-backdrop-filter:bg-background/80 sticky top-0 z-30 flex h-[52px] items-center justify-between gap-3 border-b px-4 supports-backdrop-filter:backdrop-blur sm:px-6">
+        <header className="border-border glass sticky top-0 z-30 flex h-[52px] items-center justify-between gap-3 border-b px-4 sm:px-6">
           <div className="flex items-center gap-2.5 lg:hidden">
             <Link
               href="/reception"
@@ -106,7 +106,7 @@ export function ReceptionShell({
             >
               <span
                 aria-hidden
-                className="size-1.5 shrink-0 rounded-full bg-teal-500 ring-2 ring-teal-500/20"
+                className="pulse-dot size-1.5 shrink-0 rounded-full bg-teal-500 ring-2 ring-teal-500/20"
               />
               <span className="truncate" title={scope.hospitalName}>
                 {scope.hospitalName}
@@ -126,7 +126,7 @@ export function ReceptionShell({
                 administrative, not clinical. The chrome carries that
                 signal so the staff member knows their scope at a glance. */}
             <span
-              className="bg-muted text-muted-foreground border-border ml-2 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-mono text-[10px] tracking-[0.12em] uppercase"
+              className="bg-muted text-muted-foreground border-border scale-in ml-2 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-mono text-[10px] tracking-[0.12em] uppercase"
               title="Reception / Records — non-clinical scope"
             >
               Reception · non-clinical
@@ -136,7 +136,7 @@ export function ReceptionShell({
           <div className="flex items-center justify-end gap-3">
             <Link
               href="/sign-out"
-              className="text-muted-foreground hover:text-foreground text-[12px] transition-colors"
+              className="text-muted-foreground hover:text-foreground text-[12px] underline-offset-4 transition-colors hover:underline"
             >
               Sign out
             </Link>

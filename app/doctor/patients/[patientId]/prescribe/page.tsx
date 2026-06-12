@@ -35,18 +35,24 @@ export default async function DoctorPrescribePage({ params }: PageProps) {
   });
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-6 py-8 lg:py-10">
+    <div className="stagger-children mx-auto flex w-full max-w-3xl flex-col gap-6 px-6 py-8 lg:py-10">
       <Link
         href={`/doctor/patients/${patientId}`}
-        className="text-muted-foreground hover:text-foreground inline-flex w-fit items-center gap-1 text-[12.5px] transition-colors"
+        className="text-muted-foreground hover:text-foreground group inline-flex w-fit items-center gap-1 text-[12.5px] transition-colors"
       >
-        <ArrowLeftIcon className="size-3.5" aria-hidden />
+        <ArrowLeftIcon
+          className="size-3.5 transition-transform duration-200 group-hover:-translate-x-0.5"
+          aria-hidden
+        />
         Patient summary
       </Link>
 
       <header className="flex flex-col gap-2">
         <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
-          <span aria-hidden className="size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20" />
+          <span
+            aria-hidden
+            className="pulse-dot size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20"
+          />
           Prescribe
         </span>
         <h1 className="font-display text-foreground text-[24px] leading-[1.15] font-medium tracking-[-0.015em]">

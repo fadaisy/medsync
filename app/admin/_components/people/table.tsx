@@ -450,8 +450,8 @@ function PromoteToSaForm({
     <form
       action={formAction}
       className={cn(
-        "flex w-full flex-col gap-3 rounded-md border-l-2 border-amber-400 bg-amber-50 px-3 py-3",
-        "dark:border-amber-500/70 dark:bg-amber-950/40",
+        "flex w-full flex-col gap-3 rounded-md border border-amber-300/70 bg-amber-50 px-3 py-3 ring-1 ring-amber-500/15 ring-inset",
+        "dark:border-amber-500/40 dark:bg-amber-950/40",
       )}
     >
       <input type="hidden" name="target_user_id" value={item.id} />

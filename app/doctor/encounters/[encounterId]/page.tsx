@@ -2,7 +2,7 @@ import type { PatientSummary } from "@/lib/doctor/patient-access";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { eq } from "drizzle-orm";
-import { ArrowLeftIcon, ClockIcon } from "lucide-react";
+import { AlertTriangleIcon, ArrowLeftIcon, ClockIcon } from "lucide-react";
 
 import { db } from "@/db";
 import { encounters } from "@/db/schema/scheduling";
@@ -81,39 +81,76 @@ export default async function DoctorEncounterPage({ params }: PageProps) {
   const doc = record.documentation;
 
   return (
-    <div className="bg-background text-foreground flex min-h-svh flex-col">
+    <div className="bg-background text-foreground relative isolate flex min-h-svh flex-col">
+      {/* Ambient clinical atmosphere — a whisper of teal at the top, 95% monochrome below */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-72 bg-[radial-gradient(ellipse_80%_100%_at_50%_0%,rgba(13,148,136,0.05),transparent_70%)]"
+      />
       <WorkspaceTopBar
         scope={scope}
         patientName={patient ? `${patient.firstName} ${patient.surname}` : null}
       />
-      <div className="mx-auto flex w-full max-w-[1500px] flex-1 flex-col gap-5 px-4 py-5 lg:px-8 lg:py-6">
+      <div className="stagger-children mx-auto flex w-full max-w-[1500px] flex-1 flex-col gap-5 px-4 py-5 lg:px-8 lg:py-6">
         {patient ? <PatientHeader patient={patient} allergies={record.allergies} /> : null}
 
-        <header className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-          <h1 className="font-display text-foreground text-[20px] leading-[1.1] font-medium tracking-[-0.015em]">
-            {enc.encounterType} · {enc.state}
-          </h1>
-          <p className="text-muted-foreground font-mono text-[11px] tabular-nums">
-            Started {enc.startedAt.toISOString().slice(0, 16).replace("T", " ")}
-            {doc ? ` · documentation v${doc.version} (${doc.status})` : " · no documentation yet"}
-          </p>
+        <header className="flex flex-col gap-0.5">
+          <span className="text-muted-foreground/80 font-mono text-[10px] tracking-[0.18em] uppercase">
+            Clinical documentation
+          </span>
+          <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <h1 className="font-display text-foreground text-[22px] leading-[1.1] font-medium tracking-[-0.015em]">
+              {enc.encounterType} · {enc.state}
+            </h1>
+            <p className="text-muted-foreground font-mono text-[11px] tabular-nums">
+              Started {enc.startedAt.toISOString().slice(0, 16).replace("T", " ")}
+              {doc ? ` · documentation v${doc.version} (${doc.status})` : " · no documentation yet"}
+            </p>
+          </div>
         </header>
 
         {/* Documentation entry — full-bleed workspace; reasoning docks as its own rail */}
         <ClerkshipForm encounterId={encounterId} initial={record.clerkship} />
 
         {/* Timeline */}
-        <section className="border-border bg-card flex flex-col gap-3 rounded-xl border p-4">
+        <section className="border-border bg-card flex flex-col gap-3 rounded-xl border p-4 shadow-xs">
           <h2 className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10.5px] tracking-[0.14em] uppercase">
             <ClockIcon className="size-3.5" aria-hidden />
             Timeline
           </h2>
           {record.timeline.length === 0 ? (
-            <p className="text-muted-foreground text-[12.5px]">No events yet.</p>
+            <div className="flex flex-col items-center gap-2 py-5 text-center">
+              {/* Quiet timeline glyph — dots waiting on a dashed line */}
+              <svg
+                width="72"
+                height="32"
+                viewBox="0 0 72 32"
+                fill="none"
+                aria-hidden
+                className="text-gray-300 dark:text-gray-700"
+              >
+                <path
+                  d="M6 16h60"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeDasharray="3 4"
+                />
+                <circle cx="18" cy="16" r="3" fill="currentColor" />
+                <circle cx="36" cy="16" r="3" className="fill-teal-500/70" />
+                <circle cx="54" cy="16" r="3" fill="currentColor" />
+              </svg>
+              <p className="text-muted-foreground text-[12.5px]">
+                No events yet — they appear here as the encounter is documented.
+              </p>
+            </div>
           ) : (
             <ul className="divide-border/60 -mx-2 divide-y">
               {record.timeline.map((ev) => (
-                <li key={ev.id} className="flex items-baseline justify-between gap-3 px-2 py-1.5">
+                <li
+                  key={ev.id}
+                  className="hover:bg-muted/40 flex items-baseline justify-between gap-3 rounded-md px-2 py-1.5 transition-colors"
+                >
                   <span className="text-foreground text-[12.5px]">
                     <span className="text-muted-foreground inline-block w-[96px] font-mono text-[10px] tracking-[0.06em] uppercase">
                       {ev.kind}
@@ -150,13 +187,16 @@ function WorkspaceTopBar({
   patientName: string | null;
 }) {
   return (
-    <header className="border-border bg-background/95 supports-backdrop-filter:bg-background/80 sticky top-0 z-30 flex h-[52px] items-center justify-between gap-3 border-b px-4 supports-backdrop-filter:backdrop-blur sm:px-6">
+    <header className="border-border glass sticky top-0 z-30 flex h-13 items-center justify-between gap-3 border-b px-4 sm:px-6">
       <div className="flex min-w-0 items-center gap-3">
         <Link
           href="/doctor/encounters"
-          className="text-muted-foreground hover:text-foreground inline-flex shrink-0 items-center gap-1 text-[12.5px] transition-colors"
+          className="text-muted-foreground hover:text-foreground group inline-flex shrink-0 items-center gap-1 text-[12.5px] transition-colors"
         >
-          <ArrowLeftIcon className="size-3.5" aria-hidden />
+          <ArrowLeftIcon
+            className="size-3.5 transition-transform duration-200 group-hover:-translate-x-0.5"
+            aria-hidden
+          />
           Encounters
         </Link>
         <span className="text-border hidden sm:inline" aria-hidden>
@@ -217,7 +257,7 @@ function Wrap({ children }: { children: React.ReactNode }) {
 
 function Note({ title, body }: { title: string; body: string }) {
   return (
-    <div className="border-border bg-card/40 text-muted-foreground rounded-xl border border-dashed p-6">
+    <div className="border-border bg-card/40 text-muted-foreground reveal-up rounded-xl border border-dashed p-6">
       <span className="text-foreground/80 text-[14px] font-medium">{title}</span>
       <p className="mt-1 text-[12px] leading-relaxed">{body}</p>
     </div>
@@ -245,9 +285,9 @@ function PatientHeader({
   const age = computeAgeYears(patient.dateOfBirth);
   const anaphylaxis = allergies.some((a) => a.severity === "anaphylaxis");
   return (
-    <div className="border-border bg-card flex flex-col gap-2 rounded-xl border p-4">
+    <div className="border-border bg-card flex flex-col gap-2 rounded-xl border p-4 shadow-xs">
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-        <span className="text-foreground text-[15px] font-medium">
+        <span className="font-display text-foreground text-[16px] font-medium tracking-[-0.01em]">
           {patient.firstName} {patient.surname}
         </span>
         <span className="text-muted-foreground font-mono text-[11.5px] tabular-nums">
@@ -268,21 +308,30 @@ function PatientHeader({
             : "text-muted-foreground text-[12px]"
         }
       >
-        <span className="font-mono text-[10px] tracking-[0.12em] text-amber-700 uppercase dark:text-amber-300">
+        <span className="inline-flex items-center gap-1 font-mono text-[10px] tracking-[0.12em] text-amber-700 uppercase dark:text-amber-300">
+          {allergies.length > 0 ? <AlertTriangleIcon className="size-3" aria-hidden /> : null}
           Allergies{anaphylaxis ? " · anaphylaxis" : ""}
         </span>
         {allergies.length === 0 ? (
           <span className="text-[12px]">None recorded</span>
         ) : (
-          allergies.map((a) => (
-            <span
-              key={a.id}
-              className="rounded-full bg-amber-100 px-2 py-0.5 text-[11.5px] text-amber-900 dark:bg-amber-900/40 dark:text-amber-100"
-            >
-              {a.substance}
-              {a.severity ? ` (${a.severity})` : ""}
-            </span>
-          ))
+          allergies.map((a) => {
+            const ana = a.severity === "anaphylaxis";
+            return (
+              <span
+                key={a.id}
+                className={`scale-in inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11.5px] ${
+                  ana
+                    ? "bg-red-100 text-red-900 ring-1 ring-red-500/30 ring-inset dark:bg-red-950/40 dark:text-red-200"
+                    : "bg-amber-100 text-amber-900 dark:bg-amber-900/40 dark:text-amber-100"
+                }`}
+              >
+                {ana ? <AlertTriangleIcon className="size-3" aria-hidden /> : null}
+                {a.substance}
+                {a.severity ? ` (${a.severity})` : ""}
+              </span>
+            );
+          })
         )}
       </div>
     </div>

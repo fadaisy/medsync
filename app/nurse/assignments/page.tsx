@@ -89,7 +89,7 @@ export default async function NurseAssignmentsPage() {
   }));
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-8 lg:py-10">
+    <div className="stagger-children mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-8 lg:py-10">
       <header className="flex flex-col gap-2">
         <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
           <span aria-hidden className="size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20" />
@@ -113,7 +113,33 @@ export default async function NurseAssignmentsPage() {
             </h2>
           </div>
           {active.length === 0 ? (
-            <p className="text-muted-foreground p-4 text-[12.5px]">No active assignments.</p>
+            <div className="flex items-center gap-4 p-5">
+              <svg viewBox="0 0 96 56" aria-hidden className="text-border h-11 w-auto shrink-0">
+                <rect x="0" y="2" width="84" height="10" rx="4" fill="currentColor" opacity="0.5" />
+                <rect
+                  x="0"
+                  y="20"
+                  width="64"
+                  height="10"
+                  rx="4"
+                  fill="currentColor"
+                  opacity="0.3"
+                />
+                <rect
+                  x="0"
+                  y="38"
+                  width="44"
+                  height="10"
+                  rx="4"
+                  fill="currentColor"
+                  opacity="0.15"
+                />
+                <circle cx="89" cy="43" r="5" className="text-teal-500/30" fill="currentColor" />
+              </svg>
+              <p className="text-muted-foreground text-[12.5px]">
+                No active assignments. Pair the first patient with a nurse using the form.
+              </p>
+            </div>
           ) : (
             <table className="w-full border-collapse text-left">
               <thead className="bg-muted/30">
@@ -134,11 +160,14 @@ export default async function NurseAssignmentsPage() {
               </thead>
               <tbody className="divide-border/60 divide-y">
                 {active.map((r) => (
-                  <tr key={r.id} className="hover:bg-muted/30 transition-colors">
+                  <tr
+                    key={r.id}
+                    className="transition-colors hover:bg-teal-50/40 dark:hover:bg-teal-950/15"
+                  >
                     <td className="px-4 py-2 font-mono text-[12px] tabular-nums">
                       <Link
                         href={`/nurse/patients/${r.patientId}`}
-                        className="text-foreground transition-colors hover:text-teal-700"
+                        className="text-foreground transition-colors hover:text-teal-700 dark:hover:text-teal-300"
                       >
                         {r.patientCode ?? "—"}
                       </Link>

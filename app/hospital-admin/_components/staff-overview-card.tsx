@@ -125,10 +125,13 @@ export async function StaffOverviewCard({
         </h2>
         <Link
           href="/hospital-admin/staff"
-          className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 text-[11.5px] transition-colors"
+          className="text-muted-foreground hover:text-foreground group inline-flex items-center gap-1 text-[11.5px] transition-colors"
         >
           Manage
-          <ArrowRightIcon className="size-3" aria-hidden />
+          <ArrowRightIcon
+            className="size-3 transition-transform group-hover:translate-x-0.5"
+            aria-hidden
+          />
         </Link>
       </header>
 
@@ -186,13 +189,13 @@ function Stat({
   return (
     <Link
       href={href}
-      className="border-border/60 hover:bg-muted/40 group flex flex-col gap-1 rounded-md border p-3 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40"
+      className="border-border/60 hover:bg-muted/40 group card-lift tap flex flex-col gap-1 rounded-md border p-3 outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40"
     >
       <span className="text-muted-foreground font-mono text-[10.5px] tracking-[0.12em] uppercase">
         {label}
       </span>
       <span
-        className={cn("font-display text-[28px] leading-none font-medium tabular-nums", toneClass)}
+        className={cn("font-mono text-[28px] leading-none font-medium tabular-nums", toneClass)}
       >
         {value}
       </span>

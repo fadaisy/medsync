@@ -46,7 +46,7 @@ export default async function NurseHandoverPage() {
   ]);
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-6 py-8 lg:py-10">
+    <div className="stagger-children mx-auto flex w-full max-w-5xl flex-col gap-8 px-6 py-8 lg:py-10">
       <header className="flex flex-col gap-2">
         <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
           <span aria-hidden className="size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20" />
@@ -76,11 +76,40 @@ export default async function NurseHandoverPage() {
             Recent · {recent.length}
           </h2>
           {recent.length === 0 ? (
-            <p className="text-muted-foreground text-[12.5px]">No handovers yet.</p>
+            <div className="flex flex-col items-start gap-2.5 py-2">
+              <svg viewBox="0 0 96 56" aria-hidden className="text-border h-12 w-auto">
+                <rect x="0" y="2" width="84" height="10" rx="4" fill="currentColor" opacity="0.5" />
+                <rect
+                  x="0"
+                  y="20"
+                  width="64"
+                  height="10"
+                  rx="4"
+                  fill="currentColor"
+                  opacity="0.3"
+                />
+                <rect
+                  x="0"
+                  y="38"
+                  width="44"
+                  height="10"
+                  rx="4"
+                  fill="currentColor"
+                  opacity="0.15"
+                />
+                <circle cx="89" cy="43" r="5" className="text-teal-500/30" fill="currentColor" />
+              </svg>
+              <p className="text-muted-foreground text-[12.5px]">
+                No handovers yet. The first one submitted at this hospital lands here.
+              </p>
+            </div>
           ) : (
             <ul className="divide-border/60 -mx-2 flex flex-col divide-y">
               {recent.map((h) => (
-                <li key={h.id} className="flex flex-col gap-1 px-2 py-2.5">
+                <li
+                  key={h.id}
+                  className="hover:bg-muted/40 flex flex-col gap-1 rounded-sm px-2 py-2.5 transition-colors"
+                >
                   <div className="flex items-baseline justify-between gap-2">
                     <span className="text-foreground text-[12.5px] font-medium">
                       {h.wardName ?? "Ward"} · {SHIFT_LABEL[h.shiftLabel] ?? h.shiftLabel}

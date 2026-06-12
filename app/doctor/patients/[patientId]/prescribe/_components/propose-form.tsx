@@ -2,6 +2,7 @@
 
 import type { ProposeActionState } from "../../actions";
 import { useActionState } from "react";
+import { CheckCircle2Icon, TriangleAlertIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,7 +31,8 @@ export function ProposeForm({ patientUserId, patientCode, requirement, actionKin
   if (requirement === "blocked") {
     return (
       <div className="flex flex-col gap-2 rounded-xl border border-amber-500/30 bg-amber-50/40 p-5 dark:border-amber-400/20 dark:bg-amber-950/15">
-        <span className="text-[14px] font-medium text-amber-900 dark:text-amber-200">
+        <span className="inline-flex items-center gap-1.5 text-[14px] font-medium text-amber-900 dark:text-amber-200">
+          <TriangleAlertIcon className="size-4 shrink-0" aria-hidden />
           {ACTION_LABEL[actionKind]} is above your current scope
         </span>
         <p className="max-w-[56ch] text-[12.5px] leading-relaxed text-amber-900/80 dark:text-amber-200/80">
@@ -108,17 +110,19 @@ export function ProposeForm({ patientUserId, patientCode, requirement, actionKin
       </div>
 
       {state.error ? (
-        <p className="text-destructive border-destructive/30 bg-destructive/5 rounded-md border px-3 py-2 text-[12px] leading-relaxed">
+        <p className="text-destructive border-destructive/30 bg-destructive/5 scale-in rounded-md border px-3 py-2 text-[12px] leading-relaxed">
           {state.error}
         </p>
       ) : null}
       {state.ok && state.outcome === "queued_for_review" ? (
-        <p className="rounded-md border border-teal-500/30 bg-teal-50/50 px-3 py-2 text-[12.5px] leading-relaxed text-teal-900 dark:bg-teal-950/30 dark:text-teal-200">
+        <p className="scale-in flex items-start gap-1.5 rounded-md border border-teal-500/30 bg-teal-50/50 px-3 py-2 text-[12.5px] leading-relaxed text-teal-900 dark:bg-teal-950/30 dark:text-teal-200">
+          <CheckCircle2Icon className="mt-0.5 size-3.5 shrink-0" aria-hidden />
           Queued for your supervisor&rsquo;s review. You&rsquo;ll see the decision on your tasks.
         </p>
       ) : null}
       {state.ok && state.outcome === "executed" ? (
-        <p className="rounded-md border border-teal-500/30 bg-teal-50/50 px-3 py-2 text-[12.5px] leading-relaxed text-teal-900 dark:bg-teal-950/30 dark:text-teal-200">
+        <p className="scale-in flex items-start gap-1.5 rounded-md border border-teal-500/30 bg-teal-50/50 px-3 py-2 text-[12.5px] leading-relaxed text-teal-900 dark:bg-teal-950/30 dark:text-teal-200">
+          <CheckCircle2Icon className="mt-0.5 size-3.5 shrink-0" aria-hidden />
           Recorded. (Real prescribing engine ships with the clinical module.)
         </p>
       ) : null}

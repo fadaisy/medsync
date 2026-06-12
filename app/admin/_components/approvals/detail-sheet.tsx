@@ -322,22 +322,23 @@ function EvidenceList({ rows }: { rows: ReadonlyArray<ApprovalEvidence> }) {
 }
 
 function EvidenceRow({ row }: { row: ApprovalEvidence }) {
-  // Tone treatment: 2px left bar via border-l so the row reads as
-  // "needs attention" without relying on text color alone.
-  const toneBorder =
+  // Tone treatment: tinted fill + inset ring (never a coloured left
+  // bar — standing project rule) so the row reads as "needs attention"
+  // without relying on text color alone.
+  const toneFill =
     row.tone === "critical"
-      ? "border-l-red-500/70 dark:border-l-red-400/60"
+      ? "bg-red-50/60 ring-1 ring-red-500/25 ring-inset dark:bg-red-950/20"
       : row.tone === "warning"
-        ? "border-l-amber-500/70 dark:border-l-amber-400/60"
+        ? "bg-amber-50/60 ring-1 ring-amber-500/25 ring-inset dark:bg-amber-950/20"
         : row.tone === "ok"
-          ? "border-l-emerald-500/70 dark:border-l-emerald-400/60"
-          : "border-l-transparent";
+          ? "bg-emerald-50/50 ring-1 ring-emerald-500/20 ring-inset dark:bg-emerald-950/20"
+          : null;
 
   return (
     <div
       className={cn(
-        "border-border/40 grid grid-cols-[140px_1fr] gap-x-5 border-l-2 py-2 pl-2.5 sm:py-1.5 [&:not(:first-child)]:border-t",
-        toneBorder,
+        "border-border/40 grid grid-cols-[140px_1fr] gap-x-5 rounded-sm py-2 pl-2.5 not-first:border-t sm:py-1.5",
+        toneFill,
       )}
     >
       <dt className="text-muted-foreground self-baseline text-[11.5px] font-medium">{row.label}</dt>

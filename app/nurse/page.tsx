@@ -34,10 +34,19 @@ export default async function NurseOverviewPage() {
   });
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-6 py-8 lg:py-10">
-      <header className="flex flex-col gap-2">
+    <div className="relative mx-auto flex w-full max-w-5xl flex-col gap-8 px-6 py-8 lg:py-10">
+      {/* Quiet atmosphere — a 5% teal wash behind the header, nothing louder. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-56 bg-[radial-gradient(80%_100%_at_50%_0%,rgba(13,148,136,0.05),transparent_70%)]"
+      />
+
+      <header className="reveal-up flex flex-col gap-2">
         <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
-          <span aria-hidden className="size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20" />
+          <span
+            aria-hidden
+            className="pulse-dot size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20"
+          />
           {scope.hospitalName} · {scope.departmentName}
         </span>
         <h1 className="font-display text-foreground text-[28px] leading-[1.15] font-medium tracking-[-0.015em] lg:text-[32px]">
@@ -51,13 +60,15 @@ export default async function NurseOverviewPage() {
       </header>
 
       {/* Incoming intakes for this department */}
-      <IncomingIntakesPanel
-        rows={incoming}
-        departmentName={scope.departmentName}
-        triageHref="/nurse/triage"
-      />
+      <div className="reveal-up" style={{ animationDelay: "70ms" }}>
+        <IncomingIntakesPanel
+          rows={incoming}
+          departmentName={scope.departmentName}
+          triageHref="/nurse/triage"
+        />
+      </div>
 
-      <section className="grid gap-3 sm:grid-cols-2">
+      <section className="stagger-children grid gap-3 sm:grid-cols-2">
         <DirectionCard
           href="/nurse/patients"
           title="Patient panel"
@@ -133,21 +144,21 @@ function DirectionCard({
       href={href}
       className={
         tone === "primary"
-          ? "group bg-foreground text-background hover:bg-foreground/90 flex items-start gap-3 rounded-xl p-5 transition-colors"
-          : "group border-border bg-card hover:bg-muted/30 hover:border-foreground/15 flex items-start gap-3 rounded-xl border p-5 transition-colors"
+          ? "group card-lift tap bg-foreground text-background hover:bg-foreground/90 flex items-start gap-3 rounded-xl p-5 transition-colors"
+          : "group card-lift tap border-border bg-card hover:bg-muted/30 flex items-start gap-3 rounded-xl border p-5 transition-colors"
       }
     >
       <span
         aria-hidden
         className={
           tone === "primary"
-            ? "bg-background/15 text-background inline-flex size-9 shrink-0 items-center justify-center rounded-full"
-            : "bg-muted text-foreground/80 inline-flex size-9 shrink-0 items-center justify-center rounded-full"
+            ? "bg-background/15 text-background inline-flex size-9 shrink-0 items-center justify-center rounded-full transition-transform duration-200 group-hover:scale-105"
+            : "bg-muted text-foreground/80 inline-flex size-9 shrink-0 items-center justify-center rounded-full transition-colors duration-200 group-hover:bg-teal-50 group-hover:text-teal-700 dark:group-hover:bg-teal-950/40 dark:group-hover:text-teal-300"
         }
       >
         <Icon className="size-4" />
       </span>
-      <span className="flex flex-col">
+      <span className="flex min-w-0 flex-1 flex-col">
         <span className="text-[14.5px] font-medium">{title}</span>
         <span
           className={
@@ -158,6 +169,16 @@ function DirectionCard({
         >
           {subtitle}
         </span>
+      </span>
+      <span
+        aria-hidden
+        className={
+          tone === "primary"
+            ? "text-background/50 self-center text-[13px] transition-transform duration-200 group-hover:translate-x-0.5"
+            : "text-muted-foreground/50 group-hover:text-foreground/70 self-center text-[13px] transition-all duration-200 group-hover:translate-x-0.5"
+        }
+      >
+        →
       </span>
     </Link>
   );

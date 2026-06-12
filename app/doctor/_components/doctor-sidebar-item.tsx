@@ -54,25 +54,29 @@ export function DoctorSidebarItem({ href, label, iconKey, placeholder, badgeCoun
       href={href}
       aria-current={isActive ? "page" : undefined}
       className={cn(
-        "group flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-[12.5px] transition-colors",
+        "tap group flex min-h-8 items-center gap-2.5 rounded-md px-2.5 py-1.5 text-[12.5px] transition-colors duration-200 outline-none",
+        "focus-visible:ring-2 focus-visible:ring-teal-500/40",
         isActive
-          ? "bg-teal-50 text-teal-800 dark:bg-teal-950/40 dark:text-teal-200"
+          ? "bg-teal-50 font-medium text-teal-800 dark:bg-teal-950/40 dark:text-teal-200"
           : "text-muted-foreground hover:bg-muted hover:text-foreground",
         placeholder && !isActive && "opacity-70",
       )}
     >
       <Icon
         aria-hidden
-        className={cn("size-3.5 shrink-0", isActive ? "text-teal-600 dark:text-teal-400" : "")}
+        className={cn(
+          "ease-spring size-3.5 shrink-0 transition-transform duration-200",
+          isActive ? "scale-110 text-teal-600 dark:text-teal-400" : "group-hover:scale-105",
+        )}
       />
       <span className="truncate">{label}</span>
       {placeholder ? (
-        <span className="text-muted-foreground/70 ml-auto font-mono text-[9px] tracking-[0.1em] uppercase">
+        <span className="text-muted-foreground/70 ml-auto font-mono text-[9px] tracking-widest uppercase">
           soon
         </span>
       ) : null}
       {badgeCount && badgeCount > 0 ? (
-        <span className="ml-auto inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-teal-600 px-1 font-mono text-[9px] font-semibold text-white tabular-nums">
+        <span className="scale-in medsync-forced-dark ml-auto inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-teal-600 px-1 font-mono text-[9px] font-semibold text-white tabular-nums">
           {badgeCount > 9 ? "9+" : badgeCount}
         </span>
       ) : null}

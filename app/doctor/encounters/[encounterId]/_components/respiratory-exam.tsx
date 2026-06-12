@@ -35,9 +35,9 @@ import {
 
 const EASE = "transition-colors duration-150 ease-expo-out";
 const chip = (active: boolean) =>
-  `rounded-md px-2 py-0.5 text-[11.5px] ring-1 ring-inset ${EASE} ${active ? "bg-teal-50 text-teal-700 ring-teal-500/40 dark:bg-teal-950/40 dark:text-teal-200" : "text-foreground/70 ring-border hover:bg-muted/60"}`;
+  `tap rounded-md px-2 py-0.5 text-[11.5px] ring-1 ring-inset ${EASE} ${active ? "bg-teal-50 text-teal-700 ring-teal-500/40 dark:bg-teal-950/40 dark:text-teal-200" : "text-foreground/70 ring-border hover:bg-muted/60"}`;
 const seg = (active: boolean, tone: "muted" | "teal" = "muted") =>
-  `inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset ${EASE} ${
+  `tap inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset ${EASE} ${
     active
       ? tone === "teal"
         ? "bg-teal-50 text-teal-700 ring-teal-500/40 dark:bg-teal-950/40 dark:text-teal-200"
@@ -125,14 +125,17 @@ export function RespiratoryExam({
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-foreground text-[13px] font-semibold">Respiratory examination</span>
         {patterns.length ? (
-          <span className="rounded-full bg-teal-100 px-1.5 text-[10px] font-semibold text-teal-800 dark:bg-teal-950/40 dark:text-teal-300">
+          <span
+            key={patterns.length}
+            className="scale-in rounded-full bg-teal-100 px-1.5 text-[10px] font-semibold text-teal-800 tabular-nums dark:bg-teal-950/40 dark:text-teal-300"
+          >
             {patterns.length} pattern{patterns.length > 1 ? "s" : ""}
           </span>
         ) : null}
         <button
           type="button"
           onClick={() => onChange(normalRespExam())}
-          className={`text-muted-foreground hover:bg-muted hover:text-foreground ml-auto rounded-md px-2.5 py-1 text-[11.5px] font-medium ${EASE}`}
+          className={`tap text-muted-foreground hover:bg-muted hover:text-foreground ml-auto rounded-md px-2.5 py-1 text-[11.5px] font-medium ${EASE}`}
         >
           Normal respiratory exam
         </button>
@@ -209,8 +212,15 @@ export function RespiratoryExam({
                     key={z.zone}
                     type="button"
                     onClick={() => cycleZone(z.zone)}
-                    className={`flex items-center justify-between rounded-md border px-2 py-1.5 text-left text-[11px] ${EASE} ${cellTone(opt?.abnormal, !!cur)}`}
+                    className={`tap relative flex items-center justify-between rounded-md border px-2 py-1.5 text-left text-[11px] ${EASE} ${cellTone(opt?.abnormal, !!cur)}`}
                   >
+                    {cur ? (
+                      <span
+                        key={cur}
+                        aria-hidden
+                        className="select-flare pointer-events-none absolute inset-0 rounded-md"
+                      />
+                    ) : null}
                     <span className="text-[10px] opacity-70">{z.short}</span>
                     <span className="font-medium">{opt?.label ?? "tap"}</span>
                   </button>
@@ -231,7 +241,7 @@ export function RespiratoryExam({
                     key={z.zone}
                     type="button"
                     onClick={() => setActiveZone(z.zone)}
-                    className={`rounded-md border px-2 py-1 text-[11px] ${EASE} ${activeZone === z.zone ? "border-teal-500 bg-teal-50 text-teal-700 dark:bg-teal-950/30 dark:text-teal-300" : n ? "border-amber-400 text-amber-800 dark:text-amber-300" : "border-border text-muted-foreground"}`}
+                    className={`tap rounded-md border px-2 py-1 text-[11px] ${EASE} ${activeZone === z.zone ? "border-teal-500 bg-teal-50 text-teal-700 dark:bg-teal-950/30 dark:text-teal-300" : n ? "border-amber-400 text-amber-800 dark:text-amber-300" : "border-border text-muted-foreground"}`}
                   >
                     {z.short}
                     {n ? ` ·${n}` : ""}
@@ -250,7 +260,7 @@ export function RespiratoryExam({
                         type="button"
                         className={
                           o.emergency && on
-                            ? "rounded-md bg-red-100 px-2 py-0.5 text-[11.5px] font-medium text-red-700 ring-1 ring-red-500/40 ring-inset dark:bg-red-950/40 dark:text-red-300"
+                            ? "tap rounded-md bg-red-100 px-2 py-0.5 text-[11.5px] font-medium text-red-700 ring-1 ring-red-500/40 transition-colors ring-inset dark:bg-red-950/40 dark:text-red-300"
                             : chip(on)
                         }
                         onClick={() => toggleAdded(activeZone, o.value)}
@@ -279,7 +289,7 @@ export function RespiratoryExam({
 
       {/* Cluster → pattern (decision-support) */}
       {patterns.length ? (
-        <div className="border-border/70 bg-muted/20 flex flex-col gap-1 rounded-lg border p-2.5">
+        <div className="border-border/70 bg-muted/20 scale-in flex flex-col gap-1 rounded-lg border p-2.5">
           <span className="text-muted-foreground text-[10px] font-medium tracking-wide uppercase">
             Pattern(s) to consider — decision support
           </span>
@@ -319,7 +329,7 @@ export function RespiratoryExam({
         <button
           type="button"
           onClick={() => setOpenFindings((o) => !o)}
-          className="bg-muted/30 hover:bg-muted/50 flex w-full items-center gap-2 px-3 py-2 text-left"
+          className="bg-muted/30 hover:bg-muted/50 flex w-full items-center gap-2 px-3 py-2 text-left transition-colors"
         >
           <ChevronDownIcon
             className={`text-muted-foreground size-3.5 transition-transform ${openFindings ? "" : "-rotate-90"}`}
@@ -329,13 +339,16 @@ export function RespiratoryExam({
             Inspection · peripheral · completion
           </span>
           {findingsCount ? (
-            <span className="rounded-full bg-teal-100 px-1.5 text-[10px] font-semibold text-teal-800 dark:bg-teal-950/40 dark:text-teal-300">
+            <span
+              key={findingsCount}
+              className="scale-in rounded-full bg-teal-100 px-1.5 text-[10px] font-semibold text-teal-800 tabular-nums dark:bg-teal-950/40 dark:text-teal-300"
+            >
               {findingsCount}
             </span>
           ) : null}
         </button>
         {openFindings ? (
-          <div className="flex flex-col">
+          <div className="reveal-up flex flex-col">
             {RESP_GROUPS.map((g) => {
               const inGroup = RESP_FINDINGS.filter((x) => x.group === g.key);
               return (
@@ -455,7 +468,7 @@ export function RespiratoryExam({
       </div>
 
       {renderRespProse(value) ? (
-        <div className="rounded-lg border border-teal-200/70 bg-teal-50/60 px-3 py-2 dark:border-teal-900/50 dark:bg-teal-950/20">
+        <div className="fade-in-slow rounded-lg border border-teal-200/70 bg-teal-50/60 px-3 py-2 dark:border-teal-900/50 dark:bg-teal-950/20">
           <span className="inline-flex items-center gap-1 text-[10px] font-medium tracking-wide text-teal-700 uppercase dark:text-teal-400">
             <CircleDashedIcon className="size-3" aria-hidden /> Auto-generated summary
           </span>

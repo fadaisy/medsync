@@ -114,7 +114,7 @@ export default async function HospitalAdminIntakePage() {
                   key={i.id}
                   className={
                     i.isEmergency
-                      ? "flex flex-col gap-1 border-l-2 border-l-rose-500/60 px-2 py-2"
+                      ? "flex flex-col gap-1 rounded-md bg-rose-50/60 px-2 py-2 ring-1 ring-rose-500/30 ring-inset dark:bg-rose-950/20"
                       : "flex flex-col gap-1 px-2 py-2"
                   }
                 >

@@ -66,10 +66,13 @@ export function V2BackToTop() {
           "fixed right-5 bottom-5 z-30 sm:right-8 sm:bottom-8",
           "inline-flex size-11 items-center justify-center rounded-full",
           "border-border bg-card text-foreground border shadow-lg",
-          "hover:border-teal-300 hover:text-teal-700 dark:hover:text-teal-300",
-          "transition-[opacity,transform,background-color,border-color] duration-200 ease-out",
+          "hover:border-teal-300 hover:text-teal-700 hover:shadow-xl dark:hover:text-teal-300",
+          "transition-[opacity,transform,background-color,border-color,box-shadow] duration-200 ease-out",
           "motion-reduce:transition-none",
-          visible ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-2 opacity-0",
+          "motion-safe:active:scale-95",
+          visible
+            ? "translate-y-0 opacity-100 motion-safe:hover:-translate-y-0.5"
+            : "pointer-events-none translate-y-2 opacity-0",
         )}
       >
         <ArrowUpIcon className="size-4" strokeWidth={2} />

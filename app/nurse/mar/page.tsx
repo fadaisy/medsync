@@ -19,7 +19,7 @@ export default async function NurseMarPage({ searchParams }: PageProps) {
 
   if (!patient) {
     return (
-      <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-6 py-10">
+      <div className="stagger-children mx-auto flex w-full max-w-2xl flex-col gap-6 px-6 py-10">
         <header className="flex flex-col gap-2">
           <span className="text-muted-foreground font-mono text-[10px] tracking-[0.16em] uppercase">
             Medication administration
@@ -35,9 +35,15 @@ export default async function NurseMarPage({ searchParams }: PageProps) {
         </header>
         <Link
           href="/nurse/patients"
-          className="border-border bg-card hover:bg-muted/30 hover:border-foreground/15 inline-flex w-fit items-center gap-2 rounded-xl border px-4 py-2.5 text-[13px] transition-colors"
+          className="border-border bg-card hover:bg-muted/30 card-lift tap group inline-flex w-fit items-center gap-2 rounded-xl border px-4 py-2.5 text-[13px] transition-colors"
         >
-          Open patient panel →
+          Open patient panel
+          <span
+            aria-hidden
+            className="inline-block transition-transform duration-200 group-hover:translate-x-0.5"
+          >
+            →
+          </span>
         </Link>
       </div>
     );
@@ -71,12 +77,15 @@ export default async function NurseMarPage({ searchParams }: PageProps) {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-6 py-8">
+    <div className="stagger-children mx-auto flex w-full max-w-2xl flex-col gap-6 px-6 py-8">
       <Link
         href={`/nurse/patients/${summary.patientUserId}`}
-        className="text-muted-foreground hover:text-foreground inline-flex w-fit items-center gap-1 text-[12.5px] transition-colors"
+        className="text-muted-foreground hover:text-foreground group inline-flex w-fit items-center gap-1 text-[12.5px] transition-colors"
       >
-        <ArrowLeftIcon className="size-3.5" aria-hidden />
+        <ArrowLeftIcon
+          className="size-3.5 transition-transform duration-200 group-hover:-translate-x-0.5"
+          aria-hidden
+        />
         Patient summary
       </Link>
       <header className="flex flex-col gap-2">

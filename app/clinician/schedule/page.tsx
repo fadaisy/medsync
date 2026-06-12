@@ -86,8 +86,14 @@ export default async function ClinicianSchedulePage({ searchParams }: PageProps)
   const urgentCount = list.filter((r) => r.priority === "urgent").length;
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8">
-      <header className="flex flex-col gap-2">
+    <div className="relative mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8">
+      {/* Quiet atmosphere — a 5% teal wash behind the header, nothing louder. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 h-48 bg-[radial-gradient(80%_100%_at_50%_0%,rgba(13,148,136,0.05),transparent_70%)]"
+      />
+
+      <header className="reveal-up flex flex-col gap-2">
         <span className="text-muted-foreground inline-flex w-fit items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
           <span aria-hidden className="size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20" />
           {scope.hospitalName} · {scope.departmentName}
@@ -108,7 +114,7 @@ export default async function ClinicianSchedulePage({ searchParams }: PageProps)
         <div className="h-px w-10 bg-teal-500/60 dark:bg-teal-400/50" aria-hidden />
       </header>
 
-      <section className="grid grid-cols-3 gap-3">
+      <section className="stagger-children grid grid-cols-3 gap-3">
         <Kpi label="Booked" value={list.length} tone="neutral" />
         <Kpi
           label="Awaiting approval"
@@ -144,7 +150,7 @@ function Kpi({
         ? "text-red-700 dark:text-red-300"
         : "text-foreground";
   return (
-    <div className="border-border bg-card flex flex-col gap-1 rounded-lg border p-3.5">
+    <div className="border-border bg-card card-lift flex flex-col gap-1 rounded-lg border p-3.5">
       <span className="text-muted-foreground font-mono text-[10.5px] tracking-[0.12em] uppercase">
         {label}
       </span>
