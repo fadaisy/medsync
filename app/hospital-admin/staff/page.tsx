@@ -59,7 +59,7 @@ export default async function StaffPage({ searchParams }: PageProps) {
   ]);
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8">
+    <div className="stagger-children mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8">
       <header className="flex flex-col gap-2">
         <span className="text-muted-foreground inline-flex w-fit items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
           <span aria-hidden className="size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20" />
@@ -77,20 +77,30 @@ export default async function StaffPage({ searchParams }: PageProps) {
 
       <StaffTabs activeTab={activeTab} pendingCount={pendingRows.length} />
 
+      {/* Keyed wrapper per tab → the panel reveals when the tab changes
+          instead of popping. Presentation only. */}
       {activeTab === "pending" ? (
-        <PendingQueue rows={pendingRows} selectedAffiliationId={params.aff ?? null} />
+        <div key="tab-pending" className="reveal-up">
+          <PendingQueue rows={pendingRows} selectedAffiliationId={params.aff ?? null} />
+        </div>
       ) : null}
 
       {activeTab === "directory" ? (
-        <DirectoryTable
-          rows={directoryRows}
-          selectedAffiliationId={params.aff ?? null}
-          allDepartments={departments}
-          allRoles={hospitalRoles}
-        />
+        <div key="tab-directory" className="reveal-up">
+          <DirectoryTable
+            rows={directoryRows}
+            selectedAffiliationId={params.aff ?? null}
+            allDepartments={departments}
+            allRoles={hospitalRoles}
+          />
+        </div>
       ) : null}
 
-      {activeTab === "invites" ? <InvitationsPanel rows={invitations} /> : null}
+      {activeTab === "invites" ? (
+        <div key="tab-invites" className="reveal-up">
+          <InvitationsPanel rows={invitations} />
+        </div>
+      ) : null}
     </div>
   );
 }

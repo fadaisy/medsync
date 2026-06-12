@@ -32,7 +32,7 @@ export function PlaceholderSurface({
   eyebrow = "Reserved · feature prompt to follow",
 }: PlaceholderSurfaceProps) {
   return (
-    <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-4 py-8 sm:px-6 sm:py-10">
+    <div className="stagger-children mx-auto flex w-full max-w-4xl flex-col gap-8 px-4 py-8 sm:px-6 sm:py-10">
       {/* Page header */}
       <header className="flex flex-col gap-2">
         <span className="text-muted-foreground inline-flex w-fit items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
@@ -53,6 +53,22 @@ export function PlaceholderSurface({
       <section
         className={cn("border-border bg-card rounded-lg border", "flex flex-col gap-4 p-6 sm:p-8")}
       >
+        {/* Quiet blueprint sketch — the surface is reserved, not broken. */}
+        <svg
+          viewBox="0 0 280 56"
+          aria-hidden
+          className="text-muted-foreground/30 h-12 w-full max-w-70"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        >
+          <rect x="2" y="6" width="80" height="44" rx="4" strokeDasharray="4 4" />
+          <rect x="94" y="6" width="80" height="20" rx="4" strokeDasharray="4 4" />
+          <rect x="94" y="34" width="80" height="16" rx="4" strokeDasharray="4 4" />
+          <rect x="186" y="6" width="92" height="44" rx="4" strokeDasharray="4 4" />
+          <path d="M10 40 l12 -8 l10 4 l14 -10 l16 6" className="text-teal-500/50" />
+        </svg>
         <div className="flex flex-col gap-1">
           <h2 className="text-foreground text-[14px] font-medium tracking-[-0.005em]">
             Nothing here yet

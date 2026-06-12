@@ -12,6 +12,7 @@ import {
 
 import { cn } from "@/lib/utils";
 import { MyHealthMock } from "./_my-health-mock";
+import { RevealOnScroll } from "./_reveal-on-scroll";
 
 /**
  * §07 — [01] Platform showcase (5-scene scroll-pin).
@@ -114,10 +115,12 @@ export function PlatformShowcase() {
     >
       {/* Section header */}
       <div className="mx-auto w-full max-w-300 px-5 pt-16 pb-10 sm:px-8 sm:pt-24">
-        <div className="flex flex-col gap-4">
+        <RevealOnScroll className="flex flex-col gap-4">
           <span className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
-            <span className="size-1 rounded-full bg-teal-500" />
-            [01] &nbsp; The closed loop, scene by scene
+            <span className="pulse-dot size-1 rounded-full bg-teal-500" />
+            <span className="tabular text-teal-700/80 dark:text-teal-300/80">01</span>
+            <span aria-hidden className="bg-border h-px w-4" />
+            The closed loop, scene by scene
           </span>
           <h2
             className="font-display text-foreground text-[34px] leading-[1.08] tracking-[-0.025em] text-balance sm:text-[52px]"
@@ -132,7 +135,7 @@ export function PlatformShowcase() {
             the ward, then to the specialist, then home again &mdash; keeping the record live the
             whole time.
           </p>
-        </div>
+        </RevealOnScroll>
       </div>
 
       {/* Scroll-pin grid (desktop) / stacked (mobile + reduced-motion) */}
@@ -153,12 +156,15 @@ export function PlatformShowcase() {
                 >
                   <div className="flex items-center gap-3">
                     <span
+                      // Re-mounts when this scene becomes active so the
+                      // select-flare ring fires once per activation.
+                      key={active === scene.index ? "scene-on" : "scene-off"}
                       className={cn(
                         "tabular inline-flex items-center justify-center rounded-md font-mono",
                         "size-7 text-[11px]",
                         "transition-colors duration-200",
                         active === scene.index
-                          ? "bg-teal-700 text-teal-50 dark:bg-teal-300 dark:text-teal-950"
+                          ? "select-flare bg-teal-700 text-teal-50 dark:bg-teal-300 dark:text-teal-950"
                           : "bg-muted text-muted-foreground",
                       )}
                     >

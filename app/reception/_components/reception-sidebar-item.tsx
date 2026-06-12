@@ -39,17 +39,25 @@ export function ReceptionSidebarItem({ href, label, iconKey, exact }: Props) {
       href={href}
       aria-current={isActive ? "page" : undefined}
       className={cn(
-        "group flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-[12.5px] transition-colors",
+        "group tap flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-[12.5px] transition-colors",
         isActive
-          ? "bg-teal-50 text-teal-800 dark:bg-teal-950/40 dark:text-teal-200"
+          ? "bg-teal-50 font-medium text-teal-800 ring-1 ring-teal-600/10 ring-inset dark:bg-teal-950/40 dark:text-teal-200 dark:ring-teal-400/15"
           : "text-muted-foreground hover:bg-muted hover:text-foreground",
       )}
     >
       <Icon
         aria-hidden
-        className={cn("size-3.5 shrink-0", isActive ? "text-teal-600 dark:text-teal-400" : "")}
+        className={cn(
+          "size-3.5 shrink-0 transition-colors duration-150",
+          isActive
+            ? "text-teal-600 dark:text-teal-400"
+            : "text-muted-foreground/80 group-hover:text-foreground",
+        )}
       />
       <span className="truncate">{label}</span>
+      {isActive ? (
+        <span aria-hidden className="scale-in ml-auto size-1 rounded-full bg-teal-500/80" />
+      ) : null}
     </Link>
   );
 }

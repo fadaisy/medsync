@@ -33,12 +33,15 @@ export default async function ReceptionFlowPage() {
   const rows = await fetchTodayFlow({ hospitalId: scope.hospitalId, limit: 100 });
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-8 lg:py-10">
+    <div className="stagger-children mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-8 lg:py-10">
       <Link
         href="/reception"
-        className="text-muted-foreground hover:text-foreground inline-flex w-fit items-center gap-1 text-[12.5px] transition-colors"
+        className="text-muted-foreground hover:text-foreground group inline-flex w-fit items-center gap-1 text-[12.5px] transition-colors"
       >
-        <ArrowLeftIcon className="size-3.5" aria-hidden />
+        <ArrowLeftIcon
+          className="size-3.5 transition-transform duration-200 group-hover:-translate-x-0.5"
+          aria-hidden
+        />
         Today
       </Link>
 
@@ -57,8 +60,16 @@ export default async function ReceptionFlowPage() {
       </header>
 
       {rows.length === 0 ? (
-        <div className="border-border bg-card rounded-xl border p-6">
-          <p className="text-muted-foreground text-[13px]">No activity yet today.</p>
+        <div className="border-border bg-card flex items-center gap-5 rounded-xl border p-6">
+          <svg viewBox="0 0 96 56" aria-hidden className="text-border h-12 w-auto shrink-0">
+            <rect x="0" y="2" width="84" height="10" rx="4" fill="currentColor" opacity="0.5" />
+            <rect x="0" y="20" width="64" height="10" rx="4" fill="currentColor" opacity="0.3" />
+            <rect x="0" y="38" width="44" height="10" rx="4" fill="currentColor" opacity="0.15" />
+            <circle cx="89" cy="43" r="5" className="text-teal-500/30" fill="currentColor" />
+          </svg>
+          <p className="text-muted-foreground text-[13px]">
+            No activity yet today. The board fills as patients declare, arrive and queue.
+          </p>
         </div>
       ) : (
         <div className="border-border bg-card overflow-hidden rounded-xl border">
@@ -88,7 +99,7 @@ export default async function ReceptionFlowPage() {
                 return (
                   <tr
                     key={`${r.patientUserId ?? "unknown"}-${i}`}
-                    className="hover:bg-muted/30 transition-colors"
+                    className="transition-colors hover:bg-teal-50/40 dark:hover:bg-teal-950/15"
                   >
                     <td className="text-foreground px-4 py-2.5 font-mono text-[12.5px] tabular-nums">
                       {who}

@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { RevealOnScroll, StaggerOnScroll } from "./_reveal-on-scroll";
 
 /**
  * §12b — Trust / governance.
@@ -91,9 +92,9 @@ export function TrustGovernance() {
     >
       <div className="mx-auto w-full max-w-300 px-5 py-20 sm:px-8 sm:py-28">
         {/* Section header */}
-        <div className="mb-10 flex flex-col gap-4">
+        <RevealOnScroll className="mb-10 flex flex-col gap-4">
           <span className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
-            <span className="size-1 rounded-full bg-teal-500" />
+            <span className="pulse-dot size-1 rounded-full bg-teal-500" />
             Trust &middot; built in, not bolted on
           </span>
           <h2
@@ -110,46 +111,49 @@ export function TrustGovernance() {
             one tied to the file where it lives. HIPAA, ISO 27001, SOC 2 are work for a future
             quarter; until then, no badge.
           </p>
-        </div>
+        </RevealOnScroll>
 
-        <ol role="list" className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+        <StaggerOnScroll as="ol" className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
           {PILLARS.map((p, i) => (
-            <li
-              key={p.pillar}
-              className={cn(
-                "border-border bg-card flex h-full flex-col gap-3 rounded-lg border p-4",
-              )}
-            >
-              <div className="flex items-center justify-between">
-                <span className="inline-flex items-center gap-2">
-                  <span className="inline-flex size-7 items-center justify-center rounded-md bg-teal-50 text-teal-700 dark:bg-teal-50/15 dark:text-teal-200">
-                    <p.Icon className="size-3.5" strokeWidth={1.75} />
+            <li key={p.pillar} className="h-full">
+              {/* card-lift sits one level inside the staggered <li> so the
+                  entrance animation's transform fill can't pin the hover lift. */}
+              <div
+                className={cn(
+                  "border-border bg-card card-lift flex h-full flex-col gap-3 rounded-lg border p-4",
+                )}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="inline-flex items-center gap-2">
+                    <span className="inline-flex size-7 items-center justify-center rounded-md bg-teal-50 text-teal-700 dark:bg-teal-50/15 dark:text-teal-200">
+                      <p.Icon className="size-3.5" strokeWidth={1.75} />
+                    </span>
+                    <span className="text-foreground text-[13px] font-medium">{p.pillar}</span>
                   </span>
-                  <span className="text-foreground text-[13px] font-medium">{p.pillar}</span>
-                </span>
-                <span className="text-muted-foreground tabular font-mono text-[10px]">
-                  0{i + 1}
-                </span>
-              </div>
-              <p className="text-foreground/85 text-[12.5px] leading-[1.55]">{p.claim}</p>
-              <div className="border-border bg-muted/40 rounded-md border p-2">
-                <p className="text-muted-foreground font-mono text-[9.5px] tracking-[0.16em] uppercase">
-                  Mechanism
+                  <span className="text-muted-foreground tabular font-mono text-[10px]">
+                    0{i + 1}
+                  </span>
+                </div>
+                <p className="text-foreground/85 text-[12.5px] leading-[1.55]">{p.claim}</p>
+                <div className="border-border bg-muted/40 rounded-md border p-2">
+                  <p className="text-muted-foreground font-mono text-[9.5px] tracking-[0.16em] uppercase">
+                    Mechanism
+                  </p>
+                  <p className="text-foreground tabular font-mono text-[11px] leading-snug">
+                    {p.mechanism}
+                  </p>
+                </div>
+                <p className="text-muted-foreground border-border mt-auto border-t pt-2 font-mono text-[10px]">
+                  <span className="opacity-60">receipts &middot; </span>
+                  <span className="text-foreground/70 tabular">{p.receipts}</span>
                 </p>
-                <p className="text-foreground tabular font-mono text-[11px] leading-snug">
-                  {p.mechanism}
-                </p>
               </div>
-              <p className="text-muted-foreground border-border mt-auto border-t pt-2 font-mono text-[10px]">
-                <span className="opacity-60">receipts &middot; </span>
-                <span className="text-foreground/70 tabular">{p.receipts}</span>
-              </p>
             </li>
           ))}
-        </ol>
+        </StaggerOnScroll>
 
         {/* Hospital-CTA footer */}
-        <div className="border-border bg-card mt-6 flex flex-wrap items-center justify-between gap-4 rounded-lg border p-5 sm:p-6">
+        <RevealOnScroll className="border-border bg-card mt-6 flex flex-wrap items-center justify-between gap-4 rounded-lg border p-5 sm:p-6">
           <div className="flex flex-col">
             <span className="font-display text-foreground text-[19px] leading-tight font-medium sm:text-[22px]">
               Want the engineering review before signing a pilot?
@@ -162,9 +166,9 @@ export function TrustGovernance() {
           <Link
             href="/signup/hospital"
             className={cn(
-              "group inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-[13px] font-medium",
+              "group tap inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-[13px] font-medium",
               "bg-foreground text-background hover:bg-foreground/90",
-              "transition-colors duration-150",
+              "transition-colors duration-150 hover:shadow-md",
             )}
           >
             Talk to us about a pilot
@@ -173,7 +177,7 @@ export function TrustGovernance() {
               strokeWidth={2}
             />
           </Link>
-        </div>
+        </RevealOnScroll>
       </div>
     </section>
   );

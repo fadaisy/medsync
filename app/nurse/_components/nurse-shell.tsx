@@ -115,7 +115,7 @@ export function NurseShell({ scope, children }: { scope: NurseScope; children: R
       </SidebarGate>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="border-border bg-background/95 supports-backdrop-filter:bg-background/80 sticky top-0 z-30 flex h-[52px] items-center justify-between gap-3 border-b px-4 supports-backdrop-filter:backdrop-blur sm:px-6">
+        <header className="border-border glass sticky top-0 z-30 flex h-[52px] items-center justify-between gap-3 border-b px-4 sm:px-6">
           <div className="flex items-center gap-2.5 lg:hidden">
             <Link
               href="/nurse"
@@ -132,7 +132,7 @@ export function NurseShell({ scope, children }: { scope: NurseScope; children: R
             >
               <span
                 aria-hidden
-                className="size-1.5 shrink-0 rounded-full bg-teal-500 ring-2 ring-teal-500/20"
+                className="pulse-dot size-1.5 shrink-0 rounded-full bg-teal-500 ring-2 ring-teal-500/20"
               />
               <span className="truncate" title={scope.hospitalName}>
                 {scope.hospitalName}
@@ -150,7 +150,7 @@ export function NurseShell({ scope, children }: { scope: NurseScope; children: R
             </span>
             <span
               className={cn(
-                "ml-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-mono text-[10px] tracking-[0.12em] uppercase",
+                "scale-in ml-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-mono text-[10px] tracking-[0.12em] uppercase",
                 scope.isEnrolled
                   ? "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200"
                   : "bg-teal-100 text-teal-800 dark:bg-teal-900/40 dark:text-teal-200",
@@ -161,7 +161,8 @@ export function NurseShell({ scope, children }: { scope: NurseScope; children: R
             </span>
             {scope.isInCharge ? (
               <span
-                className="inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 font-mono text-[10px] tracking-[0.12em] text-blue-800 uppercase dark:bg-blue-900/40 dark:text-blue-200"
+                className="scale-in inline-flex items-center gap-1 rounded-full bg-blue-100 px-2 py-0.5 font-mono text-[10px] tracking-[0.12em] text-blue-800 uppercase dark:bg-blue-900/40 dark:text-blue-200"
+                style={{ animationDelay: "80ms" }}
                 title="You are currently ward in-charge"
               >
                 In-charge
@@ -172,7 +173,7 @@ export function NurseShell({ scope, children }: { scope: NurseScope; children: R
           <div className="flex items-center justify-end gap-3">
             <Link
               href="/sign-out"
-              className="text-muted-foreground hover:text-foreground text-[12px] transition-colors"
+              className="text-muted-foreground hover:text-foreground text-[12px] underline-offset-4 transition-colors hover:underline"
             >
               Sign out
             </Link>

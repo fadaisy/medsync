@@ -16,10 +16,10 @@ export function SubBanner() {
       <Link
         href="/signup/hospital"
         className={cn(
-          "group inline-flex items-center gap-2 rounded-full",
+          "group tap inline-flex items-center gap-2 rounded-full",
           "border border-teal-200 bg-teal-50 px-3 py-1.5 text-[12.5px] text-teal-900 hover:bg-teal-100",
           "dark:border-teal-900 dark:bg-teal-50/10 dark:text-teal-100 dark:hover:bg-teal-50/15",
-          "transition-colors duration-200",
+          "transition-colors duration-200 hover:shadow-sm",
         )}
       >
         <span className="relative flex size-1.5">

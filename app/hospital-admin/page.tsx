@@ -31,7 +31,11 @@ export default async function HospitalAdminOverviewPage() {
   // that already ships (Staff) and the upcoming-bits list for the
   // KPIs to come.
   return (
-    <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 py-8 sm:px-6 sm:py-10">
+    <div className="stagger-children relative mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 py-8 sm:px-6 sm:py-10">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-24 left-1/2 -z-10 h-64 w-2xl max-w-full -translate-x-1/2 rounded-full bg-teal-500/4 blur-3xl dark:bg-teal-400/4"
+      />
       <header className="flex flex-col gap-2">
         <span className="text-muted-foreground inline-flex w-fit items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
           <span aria-hidden className="size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20" />

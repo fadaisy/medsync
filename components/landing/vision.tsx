@@ -1,6 +1,7 @@
 import { CompassIcon, FlaskConicalIcon, NetworkIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { RevealOnScroll, StaggerOnScroll } from "./_reveal-on-scroll";
 
 /**
  * §14 — Vision / horizon.
@@ -71,9 +72,9 @@ export function Vision() {
       className="border-border bg-muted/30 relative w-full border-y"
     >
       <div className="mx-auto w-full max-w-300 px-5 py-20 sm:px-8 sm:py-28">
-        <div className="mb-10 flex flex-col gap-4">
+        <RevealOnScroll className="mb-10 flex flex-col gap-4">
           <span className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
-            <span className="size-1 rounded-full bg-teal-500" />
+            <span className="pulse-dot size-1 rounded-full bg-teal-500" />
             Where we&rsquo;re heading
           </span>
           <h2
@@ -92,15 +93,15 @@ export function Vision() {
             what is built today, what we&rsquo;re actively building, and what is genuinely research
             &mdash; not a product line.
           </p>
-        </div>
+        </RevealOnScroll>
 
-        <ol role="list" className="grid gap-3 md:grid-cols-3">
+        <StaggerOnScroll as="ol" className="grid gap-3 md:grid-cols-3">
           {HORIZONS.map((h, i) => (
             <li key={h.when}>
               <HorizonCard horizon={h} index={i} />
             </li>
           ))}
-        </ol>
+        </StaggerOnScroll>
       </div>
     </section>
   );
@@ -110,7 +111,7 @@ function HorizonCard({ horizon, index }: { horizon: Horizon; index: number }) {
   return (
     <article
       className={cn(
-        "border-border bg-card flex h-full flex-col gap-4 rounded-xl border p-5 sm:p-6",
+        "border-border bg-card card-lift flex h-full flex-col gap-4 rounded-xl border p-5 sm:p-6",
         // The "Later" card gets a different tone — caution-bg accent so it reads as
         // visibly distinct from the committed work in Now/Soon.
         index === 2 ? "border-status-caution-bg/60" : "",

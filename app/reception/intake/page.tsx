@@ -19,12 +19,15 @@ export default async function ReceptionIntakePage() {
   ]);
 
   return (
-    <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-6 py-8 lg:py-10">
+    <div className="stagger-children mx-auto flex w-full max-w-4xl flex-col gap-6 px-6 py-8 lg:py-10">
       <Link
         href="/reception"
-        className="text-muted-foreground hover:text-foreground inline-flex w-fit items-center gap-1 text-[12.5px] transition-colors"
+        className="text-muted-foreground hover:text-foreground group inline-flex w-fit items-center gap-1 text-[12.5px] transition-colors"
       >
-        <ArrowLeftIcon className="size-3.5" aria-hidden />
+        <ArrowLeftIcon
+          className="size-3.5 transition-transform duration-200 group-hover:-translate-x-0.5"
+          aria-hidden
+        />
         Today
       </Link>
 

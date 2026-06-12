@@ -2,6 +2,7 @@ import { ArrowDownIcon, CheckIcon, PlusIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { OnboardingCtaCluster } from "./_cta-cluster";
+import { StaggerOnScroll } from "./_reveal-on-scroll";
 
 /**
  * §16 — Final CTA.
@@ -43,9 +44,9 @@ export function FinalCta() {
         }}
       />
 
-      <div className="relative mx-auto flex w-full max-w-300 flex-col items-center gap-10 px-5 py-24 text-center sm:gap-14 sm:px-8 sm:py-32">
+      <StaggerOnScroll className="relative mx-auto flex w-full max-w-300 flex-col items-center gap-10 px-5 py-24 text-center sm:gap-14 sm:px-8 sm:py-32">
         <span className="inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] text-teal-200/80 uppercase">
-          <span className="size-1 rounded-full bg-teal-300" />
+          <span className="pulse-dot size-1 rounded-full bg-teal-300" />
           The page closes here. The work begins.
         </span>
 
@@ -75,7 +76,7 @@ export function FinalCta() {
           <span>Open beta &middot; 2026</span>
           <span className="h-px w-8 bg-teal-300/30" />
         </div>
-      </div>
+      </StaggerOnScroll>
     </section>
   );
 }
@@ -97,7 +98,7 @@ function PatientGlimpse() {
 
       <div
         className={cn(
-          "flex w-full max-w-sm flex-col gap-2 rounded-xl border border-teal-300/15 bg-white/[0.04] p-3 text-left backdrop-blur",
+          "float-slow flex w-full max-w-sm flex-col gap-2 rounded-xl border border-teal-300/15 bg-white/[0.04] p-3 text-left backdrop-blur",
         )}
       >
         <div className="flex items-baseline justify-between">

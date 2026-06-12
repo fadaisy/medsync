@@ -68,7 +68,7 @@ export function Hero() {
             className="text-muted-foreground motion-safe:reveal-up inline-flex items-center gap-2 font-mono text-[10.5px] tracking-[0.18em] uppercase"
             style={{ animationDelay: "420ms" }}
           >
-            <span className="size-1.5 rounded-full bg-teal-500/70" />
+            <span className="pulse-dot size-1.5 rounded-full bg-teal-500/70" />
             Three audiences &middot; One record &middot; Every step of care
           </p>
         </div>

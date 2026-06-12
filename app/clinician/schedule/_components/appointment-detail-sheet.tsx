@@ -83,7 +83,8 @@ function Content({ item, onClose }: { item: ScheduleAppointmentRow; onClose: () 
         </dl>
 
         {item.reasonNote ? (
-          <div className="mt-4 border-l-2 border-l-teal-500/50 px-3 py-2">
+          /* Patient's own words — quiet teal-tinted quote card (no edge bars). */
+          <div className="mt-4 rounded-md bg-teal-50/50 px-3 py-2 ring-1 ring-teal-500/15 dark:bg-teal-950/20">
             <p className="text-muted-foreground font-mono text-[10.5px] tracking-[0.12em] uppercase">
               Patient note
             </p>
@@ -197,7 +198,7 @@ function ActionForm({
           : "e.g. Patient didn't arrive; tried calling — no answer.";
 
   return (
-    <form action={formAction} className="flex w-full flex-col gap-3">
+    <form action={formAction} className="reveal-up flex w-full flex-col gap-3">
       <input type="hidden" name="appointment_id" value={appointmentId} />
       <div className="flex flex-col gap-1.5">
         <Label htmlFor="reason">

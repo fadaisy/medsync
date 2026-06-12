@@ -52,7 +52,7 @@ export function AssignDoctorButton({ intakeId }: { intakeId: string }) {
       <button
         type="button"
         onClick={openPicker}
-        className="text-muted-foreground hover:bg-muted/40 hover:text-foreground flex shrink-0 items-center gap-1 px-3 text-[11px] font-medium transition-colors"
+        className="tap text-muted-foreground hover:bg-muted/40 hover:text-foreground flex shrink-0 items-center gap-1 px-3 text-[11px] font-medium transition-colors"
       >
         <UserPlusIcon className="size-3.5" aria-hidden />
         {done ? "Reassign" : "Assign Dr"}
@@ -61,7 +61,7 @@ export function AssignDoctorButton({ intakeId }: { intakeId: string }) {
   }
 
   return (
-    <div className="flex shrink-0 items-center gap-1 px-2">
+    <div className="scale-in flex shrink-0 items-center gap-1 px-2">
       <select
         value={pick}
         onChange={(e) => setPick(e.target.value)}
@@ -81,7 +81,7 @@ export function AssignDoctorButton({ intakeId }: { intakeId: string }) {
         onClick={confirm}
         disabled={pending || !pick}
         aria-label="Confirm assignment"
-        className="text-teal-700 hover:text-teal-800 disabled:opacity-40 dark:text-teal-400"
+        className="tap text-teal-700 transition-colors hover:text-teal-800 disabled:opacity-40 dark:text-teal-400"
       >
         <CheckIcon className="size-4" aria-hidden />
       </button>
@@ -89,7 +89,7 @@ export function AssignDoctorButton({ intakeId }: { intakeId: string }) {
         type="button"
         onClick={() => setOpen(false)}
         aria-label="Cancel"
-        className="text-muted-foreground hover:text-foreground"
+        className="tap text-muted-foreground hover:text-foreground transition-colors"
       >
         <XIcon className="size-3.5" aria-hidden />
       </button>

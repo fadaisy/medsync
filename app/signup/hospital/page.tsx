@@ -6,6 +6,7 @@ import { consentVersions } from "@/db/schema/consent-versions";
 import { hospitalDpaVersions } from "@/db/schema/hospital-dpa-versions";
 import { specialties } from "@/db/schema/reference-data";
 import { listDistricts, listRegions } from "@/lib/reference-data";
+import { SignupUnavailable } from "../_components/unavailable";
 import { HospitalApplicationForm } from "./_components/form";
 import {
   loadSubcountiesForDistrictActionHospital,
@@ -48,12 +49,9 @@ export default async function HospitalSignupPage() {
 
   if (!activeConsent || !activeDpa) {
     return (
-      <div className="mx-auto max-w-2xl px-5 py-20 text-center">
-        <h1 className="text-foreground font-display text-3xl">Applications unavailable</h1>
-        <p className="text-muted-foreground mt-3 text-sm">
-          The current consent or agreement text isn&apos;t ready yet. Please check back shortly.
-        </p>
-      </div>
+      <SignupUnavailable title="Applications unavailable">
+        The current consent or agreement text isn&apos;t ready yet. Please check back shortly.
+      </SignupUnavailable>
     );
   }
 

@@ -28,7 +28,7 @@ export default async function ClinicianLayout({ children }: { children: ReactNod
 
   return (
     <div className="bg-background text-foreground flex min-h-svh w-full flex-col">
-      <header className="border-border bg-background/95 supports-backdrop-filter:bg-background/80 sticky top-0 z-30 flex h-[52px] items-center justify-between gap-3 border-b px-4 sm:px-6">
+      <header className="border-border glass sticky top-0 z-30 flex h-[52px] items-center justify-between gap-3 border-b px-4 sm:px-6">
         <div className="flex min-w-0 items-center gap-3">
           <Link
             href="/"
@@ -42,7 +42,7 @@ export default async function ClinicianLayout({ children }: { children: ReactNod
           >
             <span
               aria-hidden
-              className="mr-1.5 inline-block size-1 -translate-y-px rounded-full bg-teal-500 ring-2 ring-teal-500/20"
+              className="pulse-dot mr-1.5 inline-block size-1 -translate-y-px rounded-full bg-teal-500 ring-2 ring-teal-500/20"
             />
             Clinician · {scope.hospitalName}
           </span>
@@ -57,7 +57,7 @@ export default async function ClinicianLayout({ children }: { children: ReactNod
           </span>
           <Link
             href="/sign-out"
-            className="text-muted-foreground hover:text-foreground text-[12px] transition-colors"
+            className="text-muted-foreground hover:text-foreground text-[12px] underline-offset-4 transition-colors hover:underline"
           >
             Sign out
           </Link>

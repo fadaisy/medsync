@@ -1,6 +1,7 @@
 import { CheckCircle2Icon, MessageCircleIcon, PhoneIcon, SignalLowIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { RevealOnScroll } from "./_reveal-on-scroll";
 
 /**
  * §09b — Voices sub-block.
@@ -48,9 +49,9 @@ export function Voices() {
       className="border-border bg-background relative w-full border-y"
     >
       <div className="mx-auto w-full max-w-300 px-5 py-20 sm:px-8 sm:py-28">
-        <div className="mb-10 flex flex-col gap-4">
+        <RevealOnScroll className="mb-10 flex flex-col gap-4">
           <span className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
-            <span className="size-1 rounded-full bg-teal-500" />
+            <span className="pulse-dot size-1 rounded-full bg-teal-500" />
             What we kept hearing
           </span>
           <h2
@@ -65,54 +66,61 @@ export function Voices() {
             Wakiso, that MedSync exists in their answer. No testimonials — only the lines we wrote
             on the way home.
           </p>
-        </div>
+        </RevealOnScroll>
 
         <ol className="flex flex-col gap-4">
           {VOICES.map((v) => (
-            <li
-              key={v.short}
-              className="border-border bg-card grid gap-0 overflow-hidden rounded-xl border md:grid-cols-12"
-            >
-              {/* Left: the voice */}
-              <div className="flex flex-col gap-4 p-6 sm:p-8 md:col-span-7">
-                <span
-                  className={cn(
-                    "inline-flex w-fit items-center gap-2 rounded-full px-2.5 py-1",
-                    "border-border bg-muted/40 text-muted-foreground border font-mono text-[10px] tracking-[0.16em] uppercase",
-                  )}
-                >
-                  <span className="size-1 rounded-full bg-teal-500" />
-                  {v.pillar}
-                </span>
-                <blockquote
-                  className="font-display text-foreground text-[22px] leading-[1.18] tracking-[-0.02em] text-balance italic sm:text-[28px]"
-                  style={{ fontWeight: 400 }}
-                >
-                  <span aria-hidden className="text-teal-500/60 select-none dark:text-teal-400/60">
-                    &ldquo;
-                  </span>
-                  {v.short}
-                  <span aria-hidden className="text-teal-500/60 select-none dark:text-teal-400/60">
-                    &rdquo;
-                  </span>
-                </blockquote>
-                <p className="text-muted-foreground max-w-[60ch] text-[14.5px] leading-[1.55]">
-                  {v.body}
-                </p>
-                <p className="text-muted-foreground/80 mt-1 inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.16em] uppercase">
-                  <span className="bg-border h-px w-4" />
-                  MedSync founding team
-                </p>
-              </div>
+            <li key={v.short}>
+              <RevealOnScroll>
+                <div className="border-border bg-card card-lift grid gap-0 overflow-hidden rounded-xl border md:grid-cols-12">
+                  {/* Left: the voice */}
+                  <div className="flex flex-col gap-4 p-6 sm:p-8 md:col-span-7">
+                    <span
+                      className={cn(
+                        "inline-flex w-fit items-center gap-2 rounded-full px-2.5 py-1",
+                        "border-border bg-muted/40 text-muted-foreground border font-mono text-[10px] tracking-[0.16em] uppercase",
+                      )}
+                    >
+                      <span className="size-1 rounded-full bg-teal-500" />
+                      {v.pillar}
+                    </span>
+                    <blockquote
+                      className="font-display text-foreground text-[22px] leading-[1.18] tracking-[-0.02em] text-balance italic sm:text-[28px]"
+                      style={{ fontWeight: 400 }}
+                    >
+                      <span
+                        aria-hidden
+                        className="text-teal-500/60 select-none dark:text-teal-400/60"
+                      >
+                        &ldquo;
+                      </span>
+                      {v.short}
+                      <span
+                        aria-hidden
+                        className="text-teal-500/60 select-none dark:text-teal-400/60"
+                      >
+                        &rdquo;
+                      </span>
+                    </blockquote>
+                    <p className="text-muted-foreground max-w-[60ch] text-[14.5px] leading-[1.55]">
+                      {v.body}
+                    </p>
+                    <p className="text-muted-foreground/80 mt-1 inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.16em] uppercase">
+                      <span className="bg-border h-px w-4" />
+                      MedSync founding team
+                    </p>
+                  </div>
 
-              {/* Right: the answer surface */}
-              <div className="border-border bg-muted/30 border-t p-5 md:col-span-5 md:border-t-0 md:border-l md:p-6">
-                <span className="text-muted-foreground mb-3 inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
-                  What it looks like
-                  <span className="size-1 rounded-full bg-teal-500" />
-                </span>
-                <v.Surface />
-              </div>
+                  {/* Right: the answer surface */}
+                  <div className="border-border bg-muted/30 border-t p-5 md:col-span-5 md:border-t-0 md:border-l md:p-6">
+                    <span className="text-muted-foreground mb-3 inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
+                      What it looks like
+                      <span className="pulse-dot size-1 rounded-full bg-teal-500" />
+                    </span>
+                    <v.Surface />
+                  </div>
+                </div>
+              </RevealOnScroll>
             </li>
           ))}
         </ol>

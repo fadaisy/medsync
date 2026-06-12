@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { cn } from "@/lib/utils";
+import { RevealOnScroll } from "./_reveal-on-scroll";
 
 /**
  * §17 — Footer.
@@ -72,7 +73,7 @@ export function Footer() {
     <footer aria-label="Site footer" className="border-border bg-muted/30 relative w-full border-t">
       <div className="mx-auto w-full max-w-300 px-5 py-14 sm:px-8 sm:py-20">
         {/* Top — brand + columns */}
-        <div className="grid gap-10 md:grid-cols-12 md:gap-12">
+        <RevealOnScroll className="grid gap-10 md:grid-cols-12 md:gap-12">
           {/* Brand */}
           <div className="flex flex-col gap-4 md:col-span-4">
             <Link
@@ -90,7 +91,7 @@ export function Footer() {
               national-referral scale, and to keep care going after patients leave the gate.
             </p>
             <p className="text-muted-foreground tabular inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
-              <span className="size-1 rounded-full bg-teal-500" />
+              <span className="pulse-dot size-1 rounded-full bg-teal-500" />
               Kampala &middot; Uganda
             </p>
           </div>
@@ -109,7 +110,10 @@ export function Footer() {
                         href={link.href}
                         className={cn(
                           "text-foreground/85 hover:text-foreground inline-flex items-center gap-1.5 text-[12.5px] transition-colors",
-                          link.note ? "pointer-events-none opacity-70" : "",
+                          // Animated underline — sweeps in from the left.
+                          "bg-[linear-gradient(currentColor,currentColor)] bg-size-[0%_1px] bg-bottom-left bg-no-repeat",
+                          "motion-safe:ease-expo-out motion-safe:transition-[background-size,color] motion-safe:duration-300",
+                          link.note ? "pointer-events-none opacity-70" : "hover:bg-size-[100%_1px]",
                         )}
                       >
                         {link.label}
@@ -125,7 +129,7 @@ export function Footer() {
               </div>
             ))}
           </nav>
-        </div>
+        </RevealOnScroll>
 
         {/* Standards strip */}
         <div className="border-border mt-12 flex flex-wrap items-center gap-3 border-t pt-6">
@@ -137,7 +141,10 @@ export function Footer() {
               <li key={s.abbr}>
                 <span
                   title={s.full}
-                  className="border-border bg-card text-foreground/85 inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px]"
+                  className={cn(
+                    "border-border bg-card text-foreground/85 inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px]",
+                    "hover:text-foreground transition-colors hover:border-teal-300 hover:bg-teal-50/50 dark:hover:bg-teal-50/10",
+                  )}
                 >
                   <span className="size-1 rounded-full bg-teal-500" />
                   <span className="font-mono tracking-[0.12em]">{s.abbr}</span>

@@ -19,12 +19,12 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       {/* Atmosphere — radial glow */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 -z-10 [background:radial-gradient(closest-side_at_50%_30%,oklch(0.5_0.09_180/0.55),transparent_72%)]"
+        className="fade-in-slow pointer-events-none absolute inset-0 -z-10 [background:radial-gradient(closest-side_at_50%_30%,oklch(0.5_0.09_180/0.55),transparent_72%)]"
       />
-      {/* Atmosphere — secondary glow off-axis for depth */}
+      {/* Atmosphere — secondary glow off-axis for depth, drifting slowly */}
       <div
         aria-hidden
-        className="pointer-events-none absolute -right-32 -bottom-32 -z-10 size-[600px] rounded-full blur-2xl [background:radial-gradient(closest-side,oklch(0.55_0.1_180/0.32),transparent_70%)]"
+        className="fade-in-slow float-slow pointer-events-none absolute -right-32 -bottom-32 -z-10 size-150 rounded-full blur-2xl [background:radial-gradient(closest-side,oklch(0.55_0.1_180/0.32),transparent_70%)]"
       />
       {/* Atmosphere — grain texture */}
       <div
@@ -37,7 +37,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       />
 
       {/* Top bar — brand on a dark surface */}
-      <header className="relative flex items-center justify-between px-5 py-5 sm:px-8">
+      <header className="reveal-up relative flex items-center justify-between px-5 py-5 sm:px-8">
         <Link
           href="/"
           className="font-display text-[18px] tracking-tight text-teal-50 transition-opacity hover:opacity-80"
@@ -54,8 +54,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           underneath for separation against the dark atmosphere, and
           drop the Phase-0 honesty mark below it. */}
       <main className="relative flex flex-1 items-center justify-center px-5 pb-12 sm:px-8">
-        <div className="w-full max-w-[28rem]">
-          <div className="relative">
+        <div className="w-full max-w-md">
+          <div className="scale-in relative">
             <div
               aria-hidden
               className="pointer-events-none absolute -inset-px rounded-[14px] bg-linear-to-b from-teal-100/20 via-teal-200/10 to-teal-400/15 opacity-60 blur-md"
@@ -63,7 +63,10 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             <div className="relative drop-shadow-[0_24px_60px_rgba(0,40,40,0.45)]">{children}</div>
           </div>
 
-          <p className="mt-6 text-center font-mono text-[10px] tracking-[0.18em] text-teal-200/55 uppercase">
+          <p
+            className="reveal-up mt-6 text-center font-mono text-[10px] tracking-[0.18em] text-teal-200/55 uppercase"
+            style={{ animationDelay: "180ms" }}
+          >
             Phase&nbsp;0 — foundation only · MFA required on every staff session
           </p>
         </div>

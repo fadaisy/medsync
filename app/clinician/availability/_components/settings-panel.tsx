@@ -37,9 +37,15 @@ export function SettingsPanel({
         type="button"
         onClick={() => setExpanded((v) => !v)}
         aria-expanded={expanded}
-        className="flex w-full items-center gap-3 px-5 py-3.5 text-left outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40"
+        className="tap hover:bg-muted/30 flex w-full items-center gap-3 rounded-lg px-5 py-3.5 text-left transition-colors outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40"
       >
-        <SettingsIcon className="text-muted-foreground size-4" aria-hidden />
+        <SettingsIcon
+          className={cn(
+            "text-muted-foreground size-4 transition-transform duration-300",
+            expanded && "rotate-45",
+          )}
+          aria-hidden
+        />
         <div className="flex min-w-0 flex-1 flex-col">
           <span className="text-foreground text-[13.5px] font-medium">Scheduling settings</span>
           <span className="text-muted-foreground truncate text-[11.5px]">
@@ -64,7 +70,7 @@ export function SettingsPanel({
       {expanded ? (
         <form
           action={formAction}
-          className="border-border/70 flex flex-col gap-4 border-t px-5 py-4"
+          className="border-border/70 reveal-up flex flex-col gap-4 border-t px-5 py-4"
         >
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <ToggleRow
@@ -124,7 +130,7 @@ export function SettingsPanel({
           </div>
 
           <div className="flex items-center justify-end gap-2">
-            <Button type="submit" variant="primary" disabled={pending}>
+            <Button type="submit" variant="primary" className="tap" disabled={pending}>
               {pending ? "Saving…" : "Save settings"}
             </Button>
           </div>
@@ -146,7 +152,7 @@ function ToggleRow({
   defaultChecked: boolean;
 }) {
   return (
-    <label className="border-border hover:bg-muted/30 group flex items-start gap-3 rounded-md border p-3 transition-colors">
+    <label className="border-border hover:bg-muted/30 hover:border-foreground/15 group tap flex cursor-pointer items-start gap-3 rounded-md border p-3 transition-colors">
       <input
         type="checkbox"
         name={name}

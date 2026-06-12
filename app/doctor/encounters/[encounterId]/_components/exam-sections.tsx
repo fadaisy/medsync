@@ -35,9 +35,9 @@ const NORMAL_SELECT = new Set([
 ]);
 
 const chip = (active: boolean) =>
-  `rounded-md px-2 py-0.5 text-[11.5px] ring-1 ring-inset ${EASE} ${active ? "bg-teal-50 text-teal-700 ring-teal-500/40 dark:bg-teal-950/40 dark:text-teal-200" : "text-foreground/70 ring-border hover:bg-muted/60"}`;
+  `tap rounded-md px-2 py-0.5 text-[11.5px] ring-1 ring-inset ${EASE} ${active ? "bg-teal-50 text-teal-700 ring-teal-500/40 dark:bg-teal-950/40 dark:text-teal-200" : "text-foreground/70 ring-border hover:bg-muted/60"}`;
 const seg = (active: boolean, tone: "muted" | "teal" = "muted") =>
-  `inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset ${EASE} ${
+  `tap inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-medium ring-1 ring-inset ${EASE} ${
     active
       ? tone === "teal"
         ? "bg-teal-50 text-teal-700 ring-teal-500/40 dark:bg-teal-950/40 dark:text-teal-200"
@@ -84,14 +84,17 @@ export function ExamSections({
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-foreground text-[13px] font-semibold">General examination</span>
         {totalFindings ? (
-          <span className="rounded-full bg-teal-100 px-1.5 text-[10px] font-semibold text-teal-800 dark:bg-teal-950/40 dark:text-teal-300">
+          <span
+            key={totalFindings}
+            className="scale-in rounded-full bg-teal-100 px-1.5 text-[10px] font-semibold text-teal-800 tabular-nums dark:bg-teal-950/40 dark:text-teal-300"
+          >
             {totalFindings} finding{totalFindings > 1 ? "s" : ""}
           </span>
         ) : null}
         <button
           type="button"
           onClick={() => onChange(normalGeneralExam())}
-          className={`text-muted-foreground hover:bg-muted hover:text-foreground ml-auto rounded-md px-2.5 py-1 text-[11.5px] font-medium ${EASE}`}
+          className={`tap text-muted-foreground hover:bg-muted hover:text-foreground ml-auto rounded-md px-2.5 py-1 text-[11.5px] font-medium ${EASE}`}
           title="Set the routine survey to normal; characterise only the positives"
         >
           Normal general exam
@@ -108,7 +111,7 @@ export function ExamSections({
           return (
             <section
               key={g.key}
-              className={`border-border/70 overflow-hidden rounded-lg border ${isOpen ? "sm:col-span-2" : ""}`}
+              className={`border-border/70 hover:border-border overflow-hidden rounded-lg border transition-colors ${isOpen ? "sm:col-span-2" : ""}`}
             >
               <button
                 type="button"
@@ -120,7 +123,7 @@ export function ExamSections({
                     return n;
                   })
                 }
-                className="bg-muted/30 hover:bg-muted/50 flex w-full items-center gap-2 px-3 py-2 text-left"
+                className="bg-muted/30 hover:bg-muted/50 flex w-full items-center gap-2 px-3 py-2 text-left transition-colors"
               >
                 <ChevronDownIcon
                   className={`text-muted-foreground size-3.5 shrink-0 transition-transform ${isOpen ? "" : "-rotate-90"}`}
@@ -130,7 +133,10 @@ export function ExamSections({
                   {g.label}
                 </span>
                 {nFindings ? (
-                  <span className="shrink-0 rounded-full bg-teal-100 px-1.5 text-[10px] font-semibold text-teal-800 dark:bg-teal-950/40 dark:text-teal-300">
+                  <span
+                    key={nFindings}
+                    className="scale-in shrink-0 rounded-full bg-teal-100 px-1.5 text-[10px] font-semibold text-teal-800 tabular-nums dark:bg-teal-950/40 dark:text-teal-300"
+                  >
                     {nFindings}
                   </span>
                 ) : nTouched ? (
@@ -138,7 +144,7 @@ export function ExamSections({
                 ) : null}
               </button>
               {isOpen ? (
-                <div className="divide-border/50 divide-y">
+                <div className="divide-border/50 reveal-up divide-y">
                   {findings.map((x) => {
                     const o = byCode.get(x.code);
                     return (
@@ -241,7 +247,7 @@ export function ExamSections({
       </div>
 
       {totalTouched ? (
-        <div className="rounded-lg border border-teal-200/70 bg-teal-50/60 px-3 py-2 dark:border-teal-900/50 dark:bg-teal-950/20">
+        <div className="fade-in-slow rounded-lg border border-teal-200/70 bg-teal-50/60 px-3 py-2 dark:border-teal-900/50 dark:bg-teal-950/20">
           <span className="inline-flex items-center gap-1 text-[10px] font-medium tracking-wide text-teal-700 uppercase dark:text-teal-400">
             <CircleDashedIcon className="size-3" aria-hidden /> Auto-generated summary
           </span>

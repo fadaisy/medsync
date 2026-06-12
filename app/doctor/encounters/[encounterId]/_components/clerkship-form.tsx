@@ -26,6 +26,7 @@ import {
   ChevronRightIcon,
   ClipboardCheckIcon,
   ListChecksIcon,
+  LoaderCircleIcon,
   NotebookPenIcon,
   PlusIcon,
   RefreshCwIcon,
@@ -309,7 +310,8 @@ export function ClerkshipForm({
                 <span className="text-foreground font-medium">Clerking</span>
               </div>
               <span
-                className={`rounded px-1.5 py-0.5 text-[10px] font-semibold tracking-[0.08em] uppercase ${
+                key={finalised ? "finalised" : "draft"}
+                className={`scale-in rounded px-1.5 py-0.5 text-[10px] font-semibold tracking-[0.08em] uppercase ${
                   finalised
                     ? "bg-teal-100 text-teal-800 dark:bg-teal-950/50 dark:text-teal-300"
                     : "bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300"
@@ -331,355 +333,370 @@ export function ClerkshipForm({
                     key={t.label}
                     type="button"
                     onClick={() => setStep(i)}
-                    className={`-mb-px inline-flex items-center gap-1.5 rounded-t-md border-b-2 px-3 py-2.5 text-[13px] font-medium whitespace-nowrap transition-colors ${
+                    aria-current={active ? "step" : undefined}
+                    className={`tap relative -mb-px inline-flex items-center gap-1.5 rounded-t-md border-b-2 border-transparent px-3 py-2.5 text-[13px] font-medium whitespace-nowrap transition-colors duration-200 ${
                       active
-                        ? "border-teal-600 text-teal-700 dark:border-teal-400 dark:text-teal-300"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted/40 border-transparent"
+                        ? "text-teal-700 dark:text-teal-300"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
                     }`}
                   >
                     <t.icon className="size-3.5" aria-hidden />
                     {t.label}
+                    {active ? (
+                      <span
+                        aria-hidden
+                        className="scale-in absolute inset-x-2 -bottom-0.5 h-0.5 rounded-full bg-teal-600 dark:bg-teal-400"
+                      />
+                    ) : null}
                   </button>
                 );
               })}
             </div>
 
-            {/* Body */}
+            {/* Body — keyed wrapper so each step composes in */}
             <div className="min-h-[26rem] px-4 py-5 sm:px-6 sm:py-6">
-              {step === 0 ? (
-                <div className="flex flex-col gap-6">
-                  <div className="flex flex-col gap-2">
-                    <Label className="text-[12.5px] font-medium">Presenting complaint</Label>
-                    <p className="text-muted-foreground -mt-1 text-[11px] leading-snug">
-                      Click the field to choose a symptom, then open it to add the details.
-                    </p>
-                    <SymptomCapture value={hpcItems} onChange={setHpcItems} />
-                  </div>
+              <div key={step} className="reveal-up">
+                {step === 0 ? (
+                  <div className="flex flex-col gap-6">
+                    <div className="flex flex-col gap-2">
+                      <Label className="text-[12.5px] font-medium">Presenting complaint</Label>
+                      <p className="text-muted-foreground -mt-1 text-[11px] leading-snug">
+                        Click the field to choose a symptom, then open it to add the details.
+                      </p>
+                      <SymptomCapture value={hpcItems} onChange={setHpcItems} />
+                    </div>
 
-                  <div className="flex flex-col gap-2">
-                    <Label className="text-[12.5px] font-medium">
-                      History of presenting complaint
-                    </Label>
-                    {hpcItems.length > 0 ? (
-                      <div className="rounded-lg border border-teal-200/70 bg-teal-50/60 px-3 py-2 dark:border-teal-900/50 dark:bg-teal-950/20">
-                        <span className="inline-flex items-center gap-1 text-[10px] font-medium tracking-[0.1em] text-teal-700 uppercase dark:text-teal-400">
-                          Auto-generated from the symptoms above
-                        </span>
-                        <p className="mt-0.5 text-[12.5px] leading-relaxed text-teal-900/90 italic dark:text-teal-100/80">
-                          {renderSymptomProse(hpcItems)}
-                        </p>
-                      </div>
-                    ) : null}
-                    <RichTextEditor
-                      value={hpcNarrative}
-                      onChange={setHpcNarrative}
-                      placeholder={
-                        hpcItems.length
-                          ? "Add the narrative in your own words — onset, course, context, ICE… (this is added to the generated summary)"
-                          : "Write the history of the presenting complaint…"
-                      }
-                      rows={6}
+                    <div className="flex flex-col gap-2">
+                      <Label className="text-[12.5px] font-medium">
+                        History of presenting complaint
+                      </Label>
+                      {hpcItems.length > 0 ? (
+                        <div className="fade-in-slow rounded-lg border border-teal-200/70 bg-teal-50/60 px-3 py-2 dark:border-teal-900/50 dark:bg-teal-950/20">
+                          <span className="inline-flex items-center gap-1 text-[10px] font-medium tracking-[0.1em] text-teal-700 uppercase dark:text-teal-400">
+                            Auto-generated from the symptoms above
+                          </span>
+                          <p className="mt-0.5 text-[12.5px] leading-relaxed text-teal-900/90 italic dark:text-teal-100/80">
+                            {renderSymptomProse(hpcItems)}
+                          </p>
+                        </div>
+                      ) : null}
+                      <RichTextEditor
+                        value={hpcNarrative}
+                        onChange={setHpcNarrative}
+                        placeholder={
+                          hpcItems.length
+                            ? "Add the narrative in your own words — onset, course, context, ICE… (this is added to the generated summary)"
+                            : "Write the history of the presenting complaint…"
+                        }
+                        rows={6}
+                      />
+                      <p className="text-muted-foreground text-[11px]">
+                        The teal summary is generated from the symptoms; your typed narrative is
+                        saved with it.
+                      </p>
+                    </div>
+                  </div>
+                ) : null}
+
+                {step === 1 ? (
+                  <div className="flex flex-col gap-5">
+                    <RosReview
+                      value={ros}
+                      onChange={setRos}
+                      scope={rosScope}
+                      onScopeChange={setRosScope}
+                      hpcItems={hpcItems}
                     />
-                    <p className="text-muted-foreground text-[11px]">
-                      The teal summary is generated from the symptoms; your typed narrative is saved
-                      with it.
-                    </p>
+
+                    <div className="flex flex-col gap-2">
+                      <Label className="text-[12.5px] font-medium">
+                        Review of systems — summary
+                      </Label>
+                      {ros.length > 0 ? (
+                        <div className="fade-in-slow rounded-lg border border-teal-200/70 bg-teal-50/60 px-3 py-2 dark:border-teal-900/50 dark:bg-teal-950/20">
+                          <span className="inline-flex items-center gap-1 text-[10px] font-medium tracking-[0.1em] text-teal-700 uppercase dark:text-teal-400">
+                            Auto-generated from the sweep above
+                          </span>
+                          <p className="mt-0.5 text-[12.5px] leading-relaxed text-teal-900/90 italic dark:text-teal-100/80">
+                            {renderRosNarrative(ros)}
+                          </p>
+                        </div>
+                      ) : null}
+                      <RichTextEditor
+                        value={rosNarrative}
+                        onChange={setRosNarrative}
+                        placeholder={
+                          ros.length
+                            ? "Add anything in your own words — context, pertinent detail… (this is saved with the generated summary)"
+                            : "Write the review of systems, or use the sweep above…"
+                        }
+                        rows={5}
+                      />
+                      <p className="text-muted-foreground text-[11px]">
+                        The teal summary is generated from the sweep; your typed narrative is saved
+                        with it.
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ) : null}
+                ) : null}
 
-              {step === 1 ? (
-                <div className="flex flex-col gap-5">
-                  <RosReview
-                    value={ros}
-                    onChange={setRos}
-                    scope={rosScope}
-                    onScopeChange={setRosScope}
-                    hpcItems={hpcItems}
-                  />
-
-                  <div className="flex flex-col gap-2">
-                    <Label className="text-[12.5px] font-medium">Review of systems — summary</Label>
-                    {ros.length > 0 ? (
-                      <div className="rounded-lg border border-teal-200/70 bg-teal-50/60 px-3 py-2 dark:border-teal-900/50 dark:bg-teal-950/20">
-                        <span className="inline-flex items-center gap-1 text-[10px] font-medium tracking-[0.1em] text-teal-700 uppercase dark:text-teal-400">
-                          Auto-generated from the sweep above
-                        </span>
-                        <p className="mt-0.5 text-[12.5px] leading-relaxed text-teal-900/90 italic dark:text-teal-100/80">
-                          {renderRosNarrative(ros)}
-                        </p>
-                      </div>
-                    ) : null}
-                    <RichTextEditor
-                      value={rosNarrative}
-                      onChange={setRosNarrative}
-                      placeholder={
-                        ros.length
-                          ? "Add anything in your own words — context, pertinent detail… (this is saved with the generated summary)"
-                          : "Write the review of systems, or use the sweep above…"
-                      }
-                      rows={5}
+                {step === 2 ? (
+                  <div className="flex flex-col gap-5">
+                    <HistorySections
+                      encounterId={encounterId}
+                      pmhItems={pmhItems}
+                      setPmhItems={setPmhItems}
+                      pmhScreen={pmhScreen}
+                      setPmhScreen={setPmhScreen}
+                      pshItems={pshItems}
+                      setPshItems={setPshItems}
+                      medications={medications}
+                      setMedications={setMedications}
+                      allergies={allergies}
+                      setAllergies={setAllergies}
+                      negatives={negatives}
+                      setNegatives={setNegatives}
                     />
-                    <p className="text-muted-foreground text-[11px]">
-                      The teal summary is generated from the sweep; your typed narrative is saved
-                      with it.
-                    </p>
+                    <FamilySocialSections
+                      familyHistory={familyHistory}
+                      setFamilyHistory={setFamilyHistory}
+                      fhScreen={fhScreen}
+                      setFhScreen={setFhScreen}
+                      social={socialHx}
+                      setSocial={setSocialHx}
+                      ice={ice}
+                      setIce={setIce}
+                      negatives={negatives}
+                      setNegatives={setNegatives}
+                    />
                   </div>
-                </div>
-              ) : null}
+                ) : null}
 
-              {step === 2 ? (
-                <div className="flex flex-col gap-5">
-                  <HistorySections
-                    encounterId={encounterId}
-                    pmhItems={pmhItems}
-                    setPmhItems={setPmhItems}
-                    pmhScreen={pmhScreen}
-                    setPmhScreen={setPmhScreen}
-                    pshItems={pshItems}
-                    setPshItems={setPshItems}
-                    medications={medications}
-                    setMedications={setMedications}
-                    allergies={allergies}
-                    setAllergies={setAllergies}
-                    negatives={negatives}
-                    setNegatives={setNegatives}
-                  />
-                  <FamilySocialSections
-                    familyHistory={familyHistory}
-                    setFamilyHistory={setFamilyHistory}
-                    fhScreen={fhScreen}
-                    setFhScreen={setFhScreen}
-                    social={socialHx}
-                    setSocial={setSocialHx}
-                    ice={ice}
-                    setIce={setIce}
-                    negatives={negatives}
-                    setNegatives={setNegatives}
-                  />
-                </div>
-              ) : null}
+                {step === 3 ? (
+                  <div className="flex flex-col gap-4">
+                    <VitalsPanel
+                      encounterId={encounterId}
+                      value={examVitals}
+                      onChange={setExamVitals}
+                    />
 
-              {step === 3 ? (
-                <div className="flex flex-col gap-4">
-                  <VitalsPanel
-                    encounterId={encounterId}
-                    value={examVitals}
-                    onChange={setExamVitals}
-                  />
-
-                  {/* System switcher — each examination is its own card */}
-                  <div className="border-border/70 bg-muted/30 flex flex-wrap gap-1 rounded-lg border p-1">
-                    {(
-                      [
-                        ["general", "General", examGeneralFindings.length > 0],
+                    {/* System switcher — each examination is its own card */}
+                    <div className="border-border/70 bg-muted/30 flex flex-wrap gap-1 rounded-lg border p-1">
+                      {(
                         [
-                          "cardiovascular",
-                          "Cardiovascular",
-                          Object.keys(examCardiovascular).length > 0,
-                        ],
-                        ["respiratory", "Respiratory", Object.keys(examRespiratory).length > 0],
-                        ["abdominal", "Abdomen", !!examSystems.abdominal],
-                        ["neurological", "Neuro", !!examSystems.neurological],
-                      ] as const
-                    ).map(([key, lbl, hasContent]) => (
-                      <button
-                        key={key}
-                        type="button"
-                        onClick={() => setExamSystem(key)}
-                        className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-medium transition-colors ${
-                          examSystem === key
-                            ? "bg-card text-foreground shadow-sm"
-                            : "text-muted-foreground hover:text-foreground"
-                        }`}
-                      >
-                        {lbl}
-                        {hasContent ? (
-                          <span
-                            aria-hidden
-                            className="size-1.5 rounded-full bg-teal-500"
-                            title="Has findings"
-                          />
-                        ) : null}
-                      </button>
-                    ))}
-                  </div>
+                          ["general", "General", examGeneralFindings.length > 0],
+                          [
+                            "cardiovascular",
+                            "Cardiovascular",
+                            Object.keys(examCardiovascular).length > 0,
+                          ],
+                          ["respiratory", "Respiratory", Object.keys(examRespiratory).length > 0],
+                          ["abdominal", "Abdomen", !!examSystems.abdominal],
+                          ["neurological", "Neuro", !!examSystems.neurological],
+                        ] as const
+                      ).map(([key, lbl, hasContent]) => (
+                        <button
+                          key={key}
+                          type="button"
+                          onClick={() => setExamSystem(key)}
+                          aria-pressed={examSystem === key}
+                          className={`tap inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-medium transition-[background-color,color,box-shadow] duration-200 ${
+                            examSystem === key
+                              ? "bg-card text-foreground shadow-sm"
+                              : "text-muted-foreground hover:text-foreground"
+                          }`}
+                        >
+                          {lbl}
+                          {hasContent ? (
+                            <span
+                              aria-hidden
+                              className="scale-in size-1.5 rounded-full bg-teal-500"
+                              title="Has findings"
+                            />
+                          ) : null}
+                        </button>
+                      ))}
+                    </div>
 
-                  {/* Active system card */}
-                  <div className="border-border bg-card rounded-xl border p-4">
-                    {examSystem === "general" ? (
-                      <div className="flex flex-col gap-4">
-                        <ExamSections
-                          value={examGeneralFindings}
-                          onChange={setExamGeneralFindings}
+                    {/* Active system card — keyed so the chosen system slides in */}
+                    <div
+                      key={examSystem}
+                      className="border-border bg-card reveal-up rounded-xl border p-4"
+                    >
+                      {examSystem === "general" ? (
+                        <div className="flex flex-col gap-4">
+                          <ExamSections
+                            value={examGeneralFindings}
+                            onChange={setExamGeneralFindings}
+                          />
+                          <Field label="Other general-exam notes">
+                            <RichTextEditor
+                              value={examGeneral}
+                              onChange={setExamGeneral}
+                              placeholder="Anything not captured above…"
+                              rows={3}
+                            />
+                          </Field>
+                        </div>
+                      ) : null}
+                      {examSystem === "cardiovascular" ? (
+                        <CardiovascularExam
+                          value={examCardiovascular}
+                          onChange={setExamCardiovascular}
                         />
-                        <Field label="Other general-exam notes">
+                      ) : null}
+                      {examSystem === "respiratory" ? (
+                        <RespiratoryExam value={examRespiratory} onChange={setExamRespiratory} />
+                      ) : null}
+                      {examSystem === "abdominal" ? (
+                        <Field label="Abdominal examination">
                           <RichTextEditor
-                            value={examGeneral}
-                            onChange={setExamGeneral}
-                            placeholder="Anything not captured above…"
-                            rows={3}
+                            value={examSystems.abdominal}
+                            onChange={(v) => setExamSystems({ ...examSystems, abdominal: v })}
+                            placeholder="Inspection / palpation / percussion / auscultation… (structured module coming)"
+                            rows={5}
                           />
                         </Field>
-                      </div>
-                    ) : null}
-                    {examSystem === "cardiovascular" ? (
-                      <CardiovascularExam
-                        value={examCardiovascular}
-                        onChange={setExamCardiovascular}
-                      />
-                    ) : null}
-                    {examSystem === "respiratory" ? (
-                      <RespiratoryExam value={examRespiratory} onChange={setExamRespiratory} />
-                    ) : null}
-                    {examSystem === "abdominal" ? (
-                      <Field label="Abdominal examination">
-                        <RichTextEditor
-                          value={examSystems.abdominal}
-                          onChange={(v) => setExamSystems({ ...examSystems, abdominal: v })}
-                          placeholder="Inspection / palpation / percussion / auscultation… (structured module coming)"
-                          rows={5}
-                        />
-                      </Field>
-                    ) : null}
-                    {examSystem === "neurological" ? (
-                      <Field label="Neurological examination">
-                        <RichTextEditor
-                          value={examSystems.neurological}
-                          onChange={(v) => setExamSystems({ ...examSystems, neurological: v })}
-                          placeholder="Higher function / cranial nerves / limbs / cerebellar… (structured module coming)"
-                          rows={5}
-                        />
-                      </Field>
-                    ) : null}
+                      ) : null}
+                      {examSystem === "neurological" ? (
+                        <Field label="Neurological examination">
+                          <RichTextEditor
+                            value={examSystems.neurological}
+                            onChange={(v) => setExamSystems({ ...examSystems, neurological: v })}
+                            placeholder="Higher function / cranial nerves / limbs / cerebellar… (structured module coming)"
+                            rows={5}
+                          />
+                        </Field>
+                      ) : null}
+                    </div>
                   </div>
-                </div>
-              ) : null}
+                ) : null}
 
-              {step === 4 ? (
-                <div className="flex flex-col gap-5">
-                  <Field label="Summary / problem representation">
-                    <RichTextEditor
-                      value={summary}
-                      onChange={setSummary}
-                      placeholder="One-liner: age, salient features, working impression…"
-                    />
-                  </Field>
-                  <Field label="Differential (mark must-not-miss)">
-                    <RepeatList
-                      rows={differential}
-                      onChange={setDifferential}
-                      blank={{ text: "", icd10: "", mustNotMiss: false }}
-                      addLabel="Add diagnosis"
-                      render={(row, set) => (
-                        <>
-                          <Input
-                            placeholder="Diagnosis"
-                            value={row.text}
-                            onChange={(ev) => set({ ...row, text: ev.target.value })}
-                          />
-                          <Input
-                            list="icd10-codes"
-                            placeholder="ICD-10"
-                            value={row.icd10}
-                            onChange={(ev) => set({ ...row, icd10: ev.target.value })}
-                          />
-                          <label className="text-muted-foreground inline-flex items-center gap-1.5 text-[11.5px]">
-                            <input
-                              type="checkbox"
-                              checked={row.mustNotMiss}
-                              onChange={(ev) => set({ ...row, mustNotMiss: ev.target.checked })}
+                {step === 4 ? (
+                  <div className="flex flex-col gap-5">
+                    <Field label="Summary / problem representation">
+                      <RichTextEditor
+                        value={summary}
+                        onChange={setSummary}
+                        placeholder="One-liner: age, salient features, working impression…"
+                      />
+                    </Field>
+                    <Field label="Differential (mark must-not-miss)">
+                      <RepeatList
+                        rows={differential}
+                        onChange={setDifferential}
+                        blank={{ text: "", icd10: "", mustNotMiss: false }}
+                        addLabel="Add diagnosis"
+                        render={(row, set) => (
+                          <>
+                            <Input
+                              placeholder="Diagnosis"
+                              value={row.text}
+                              onChange={(ev) => set({ ...row, text: ev.target.value })}
                             />
-                            must-not-miss
-                          </label>
-                        </>
-                      )}
-                    />
-                  </Field>
-                </div>
-              ) : null}
+                            <Input
+                              list="icd10-codes"
+                              placeholder="ICD-10"
+                              value={row.icd10}
+                              onChange={(ev) => set({ ...row, icd10: ev.target.value })}
+                            />
+                            <label className="text-muted-foreground inline-flex items-center gap-1.5 text-[11.5px]">
+                              <input
+                                type="checkbox"
+                                checked={row.mustNotMiss}
+                                onChange={(ev) => set({ ...row, mustNotMiss: ev.target.checked })}
+                              />
+                              must-not-miss
+                            </label>
+                          </>
+                        )}
+                      />
+                    </Field>
+                  </div>
+                ) : null}
 
-              {step === 5 ? (
-                <div className="flex flex-col gap-5">
-                  <Field label="Investigations">
-                    <RepeatList
-                      rows={investigations}
-                      onChange={setInvestigations}
-                      blank={{ kind: "bloods", text: "", loinc: "", justification: "" }}
-                      addLabel="Add investigation"
-                      render={(row, set) => (
-                        <>
-                          <select
-                            className={FIELD}
-                            value={row.kind}
-                            onChange={(ev) => set({ ...row, kind: ev.target.value })}
-                          >
-                            {["bloods", "imaging", "bedside", "special", "other"].map((o) => (
+                {step === 5 ? (
+                  <div className="flex flex-col gap-5">
+                    <Field label="Investigations">
+                      <RepeatList
+                        rows={investigations}
+                        onChange={setInvestigations}
+                        blank={{ kind: "bloods", text: "", loinc: "", justification: "" }}
+                        addLabel="Add investigation"
+                        render={(row, set) => (
+                          <>
+                            <select
+                              className={FIELD}
+                              value={row.kind}
+                              onChange={(ev) => set({ ...row, kind: ev.target.value })}
+                            >
+                              {["bloods", "imaging", "bedside", "special", "other"].map((o) => (
+                                <option key={o} value={o}>
+                                  {o}
+                                </option>
+                              ))}
+                            </select>
+                            <Input
+                              placeholder="Test"
+                              value={row.text}
+                              onChange={(ev) => set({ ...row, text: ev.target.value })}
+                            />
+                            <Input
+                              list="loinc-codes"
+                              placeholder="LOINC"
+                              value={row.loinc}
+                              onChange={(ev) => set({ ...row, loinc: ev.target.value })}
+                            />
+                            <Input
+                              placeholder="Justification"
+                              value={row.justification}
+                              onChange={(ev) => set({ ...row, justification: ev.target.value })}
+                            />
+                          </>
+                        )}
+                      />
+                    </Field>
+                    <Field label="Management plan">
+                      <RichTextEditor
+                        value={managementPlan}
+                        onChange={setPlan}
+                        placeholder="Immediate, ongoing, referrals, monitoring…"
+                      />
+                    </Field>
+                    <div className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
+                      <Field label="Disposition">
+                        <select
+                          className={FIELD}
+                          value={disposition}
+                          onChange={(ev) => setDisposition(ev.target.value)}
+                        >
+                          <option value="">—</option>
+                          {["admit", "discharge", "refer", "observe", "transfer", "deceased"].map(
+                            (o) => (
                               <option key={o} value={o}>
                                 {o}
                               </option>
-                            ))}
-                          </select>
-                          <Input
-                            placeholder="Test"
-                            value={row.text}
-                            onChange={(ev) => set({ ...row, text: ev.target.value })}
-                          />
-                          <Input
-                            list="loinc-codes"
-                            placeholder="LOINC"
-                            value={row.loinc}
-                            onChange={(ev) => set({ ...row, loinc: ev.target.value })}
-                          />
-                          <Input
-                            placeholder="Justification"
-                            value={row.justification}
-                            onChange={(ev) => set({ ...row, justification: ev.target.value })}
-                          />
-                        </>
-                      )}
-                    />
-                  </Field>
-                  <Field label="Management plan">
-                    <RichTextEditor
-                      value={managementPlan}
-                      onChange={setPlan}
-                      placeholder="Immediate, ongoing, referrals, monitoring…"
-                    />
-                  </Field>
-                  <div className="grid gap-x-6 gap-y-5 sm:grid-cols-2">
-                    <Field label="Disposition">
-                      <select
-                        className={FIELD}
-                        value={disposition}
-                        onChange={(ev) => setDisposition(ev.target.value)}
-                      >
-                        <option value="">—</option>
-                        {["admit", "discharge", "refer", "observe", "transfer", "deceased"].map(
-                          (o) => (
-                            <option key={o} value={o}>
-                              {o}
-                            </option>
-                          ),
-                        )}
-                      </select>
-                    </Field>
-                    <Field label="Safety-netting">
-                      <Input
-                        value={safetyNetting}
-                        onChange={(ev) => setSafetyNetting(ev.target.value)}
-                        placeholder="What to watch for, when to return…"
-                      />
-                    </Field>
+                            ),
+                          )}
+                        </select>
+                      </Field>
+                      <Field label="Safety-netting">
+                        <Input
+                          value={safetyNetting}
+                          onChange={(ev) => setSafetyNetting(ev.target.value)}
+                          placeholder="What to watch for, when to return…"
+                        />
+                      </Field>
+                    </div>
                   </div>
-                </div>
-              ) : null}
+                ) : null}
+              </div>
             </div>
 
             {/* Footer — status + paging */}
             <div className="border-border/60 bg-muted/30 flex flex-wrap items-center gap-3 border-t px-4 py-3 sm:px-5">
               {result && !result.ok ? (
-                <span className="text-destructive text-[12px]" role="alert">
+                <span className="text-destructive scale-in text-[12px]" role="alert">
                   {result.error}
                 </span>
               ) : dirty ? (
@@ -688,7 +705,7 @@ export function ClerkshipForm({
                   Unsaved changes
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1.5 text-[12px] text-teal-700 dark:text-teal-400">
+                <span className="scale-in inline-flex items-center gap-1.5 text-[12px] text-teal-700 dark:text-teal-400">
                   <CheckIcon className="size-3.5" aria-hidden />
                   All changes saved
                 </span>
@@ -698,6 +715,7 @@ export function ClerkshipForm({
                 <Button
                   type="button"
                   variant="ghost"
+                  className="tap"
                   disabled={step === 0}
                   onClick={() => setStep((n) => Math.max(0, n - 1))}
                 >
@@ -707,19 +725,40 @@ export function ClerkshipForm({
                 <Button
                   type="button"
                   variant="secondary"
+                  className="tap"
                   disabled={pending}
                   onClick={() => save(false)}
                 >
-                  {pending ? "Saving…" : "Save draft"}
+                  {pending ? (
+                    <>
+                      <LoaderCircleIcon className="size-3.5 motion-safe:animate-spin" aria-hidden />
+                      Saving…
+                    </>
+                  ) : (
+                    "Save draft"
+                  )}
                 </Button>
                 {step < last ? (
-                  <Button type="button" onClick={() => setStep((n) => Math.min(last, n + 1))}>
+                  <Button
+                    type="button"
+                    className="tap"
+                    onClick={() => setStep((n) => Math.min(last, n + 1))}
+                  >
                     Next
                     <ChevronRightIcon className="size-4" aria-hidden />
                   </Button>
                 ) : (
-                  <Button type="button" disabled={pending} onClick={() => save(true)}>
-                    <CheckIcon className="size-4" aria-hidden />
+                  <Button
+                    type="button"
+                    className="tap"
+                    disabled={pending}
+                    onClick={() => save(true)}
+                  >
+                    {pending ? (
+                      <LoaderCircleIcon className="size-4 motion-safe:animate-spin" aria-hidden />
+                    ) : (
+                      <CheckIcon className="size-4" aria-hidden />
+                    )}
                     Finalise
                   </Button>
                 )}
@@ -734,7 +773,7 @@ export function ClerkshipForm({
 
         {/* Clinical reasoning — its own docked rail in the full-bleed workspace;
             stacks below the form on narrower screens. Live + non-blocking. */}
-        <aside className="border-border bg-card mt-4 flex max-h-[70svh] flex-col overflow-hidden rounded-2xl border shadow-sm xl:sticky xl:top-[68px] xl:mt-0 xl:max-h-[calc(100svh-88px)]">
+        <aside className="border-border bg-card fade-in-slow mt-4 flex max-h-[70svh] flex-col overflow-hidden rounded-2xl border shadow-sm xl:sticky xl:top-17 xl:mt-0 xl:max-h-[calc(100svh-88px)]">
           <ReasoningPanel
             pcCodes={hpcItems.map((x) => x.symptomCode)}
             hpcItems={hpcItems}
@@ -780,12 +819,12 @@ function RepeatList<T>({
   return (
     <div className="flex flex-col gap-2">
       {rows.map((row, i) => (
-        <div key={i} className="flex flex-wrap items-center gap-2">
+        <div key={i} className="scale-in flex flex-wrap items-center gap-2">
           {render(row, (next) => onChange(rows.map((r, j) => (j === i ? next : r))))}
           <button
             type="button"
             aria-label="Remove"
-            className="text-muted-foreground hover:text-destructive transition-colors"
+            className="tap text-muted-foreground hover:text-destructive rounded-md p-0.5 transition-colors"
             onClick={() => onChange(rows.filter((_, j) => j !== i))}
           >
             <XIcon className="size-3.5" aria-hidden />
@@ -794,7 +833,7 @@ function RepeatList<T>({
       ))}
       <button
         type="button"
-        className="text-muted-foreground hover:text-foreground inline-flex w-fit items-center gap-1 text-[11.5px] transition-colors"
+        className="tap text-muted-foreground hover:text-foreground hover:bg-muted/60 inline-flex w-fit items-center gap-1 rounded-md px-1.5 py-1 text-[11.5px] transition-colors"
         onClick={() => onChange([...rows, { ...blank }])}
       >
         <PlusIcon className="size-3" aria-hidden />

@@ -27,8 +27,8 @@ const EASE = "transition-colors duration-150 ease-expo-out";
 const SECTION = "border-border/70 flex flex-col gap-3 rounded-xl border p-3.5";
 const H = "text-foreground text-[13px] font-semibold";
 const chip = (active: boolean) =>
-  `rounded-md px-2 py-0.5 text-[11.5px] ring-1 ring-inset ${EASE} ${active ? "bg-teal-50 text-teal-700 ring-teal-500/40 dark:bg-teal-950/40 dark:text-teal-200" : "text-foreground/70 ring-border hover:bg-muted/60"}`;
-const NIL = `inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[11.5px] font-medium ring-1 ring-inset ${EASE}`;
+  `tap rounded-md px-2 py-0.5 text-[11.5px] ring-1 ring-inset ${EASE} ${active ? "bg-teal-50 text-teal-700 ring-teal-500/40 dark:bg-teal-950/40 dark:text-teal-200" : "text-foreground/70 ring-border hover:bg-muted/60"}`;
+const NIL = `tap inline-flex items-center gap-1 rounded-md px-2.5 py-1 text-[11.5px] font-medium ring-1 ring-inset ${EASE}`;
 
 type Props = {
   pmhItems: ClerkPmhItem[];
@@ -76,7 +76,7 @@ export function HistorySections(p: Props) {
     <div className="flex flex-col gap-4">
       {/* ── Carry-forward: confirm/import from the patient's record (not re-enter) ── */}
       {hasCarry ? (
-        <div className="rounded-xl border border-teal-200/70 bg-teal-50/50 p-3 dark:border-teal-900/50 dark:bg-teal-950/20">
+        <div className="scale-in rounded-xl border border-teal-200/70 bg-teal-50/50 p-3 dark:border-teal-900/50 dark:bg-teal-950/20">
           <span className="inline-flex items-center gap-1 text-[10px] font-medium tracking-[0.1em] text-teal-700 uppercase dark:text-teal-400">
             From this patient&apos;s record — tap to confirm into this encounter
           </span>
@@ -607,13 +607,13 @@ function ItemCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="border-border/60 bg-muted/20 flex flex-col gap-2 rounded-lg border px-2.5 py-2">
+    <div className="border-border/60 bg-muted/20 scale-in flex flex-col gap-2 rounded-lg border px-2.5 py-2">
       <div className="flex items-center justify-between">
         <span className="text-foreground text-[12.5px] font-medium">{title}</span>
         <button
           type="button"
           onClick={onRemove}
-          className="text-muted-foreground hover:text-destructive"
+          className="tap text-muted-foreground hover:text-destructive rounded-md p-0.5 transition-colors"
           aria-label="Remove"
         >
           <XIcon className="size-3.5" />

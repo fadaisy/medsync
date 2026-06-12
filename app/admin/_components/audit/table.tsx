@@ -139,7 +139,7 @@ export function AuditTable({ rows, cappedAt }: TableProps) {
 
   return (
     <>
-      <div className="border-border bg-card overflow-hidden rounded-lg border shadow-[0_0_0_1px_rgba(0,0,0,0.02),0_1px_3px_rgba(0,0,0,0.04)]">
+      <div className="border-border bg-card reveal-up overflow-hidden rounded-lg border shadow-[0_0_0_1px_rgba(0,0,0,0.02),0_1px_3px_rgba(0,0,0,0.04)]">
         <DataTable
           caption="Audit log"
           data={sorted}
@@ -171,7 +171,7 @@ export function AuditTable({ rows, cappedAt }: TableProps) {
         />
       </div>
 
-      <p className="text-muted-foreground mt-3 text-center font-mono text-[10.5px] tracking-[0.05em]">
+      <p className="text-muted-foreground mt-3 text-center font-mono text-[10.5px] tracking-wider">
         ↑↓ navigate · ↵ open · esc close
       </p>
 

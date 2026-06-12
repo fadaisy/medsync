@@ -129,7 +129,11 @@ export function ApprovalsQueue({ items, canSeeHospitalQueue }: QueueProps) {
     <div className="flex flex-col">
       {/* Page header */}
       <header className="border-border border-b px-4 py-6 sm:px-8 sm:py-8">
-        <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-1">
+        <div className="stagger-children mx-auto flex w-full max-w-300 flex-col gap-1.5">
+          <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
+            <span aria-hidden className="size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20" />
+            Console · Daily queue
+          </span>
           <h1 className="font-display text-foreground text-[24px] leading-tight font-medium tracking-[-0.018em] sm:text-[28px]">
             Approvals
           </h1>
@@ -142,8 +146,8 @@ export function ApprovalsQueue({ items, canSeeHospitalQueue }: QueueProps) {
       </header>
 
       {/* Table */}
-      <div className="mx-auto w-full max-w-[1200px] flex-1 px-4 sm:px-8">
-        <div className="border-border bg-card mt-6 overflow-hidden rounded-lg border shadow-[0_0_0_1px_rgba(0,0,0,0.02),0_1px_3px_rgba(0,0,0,0.04)]">
+      <div className="mx-auto w-full max-w-300 flex-1 px-4 sm:px-8">
+        <div className="border-border bg-card reveal-up mt-6 overflow-hidden rounded-lg border shadow-[0_0_0_1px_rgba(0,0,0,0.02),0_1px_3px_rgba(0,0,0,0.04)]">
           <DataTable
             caption="Pending approvals"
             data={sorted}
@@ -202,7 +206,7 @@ export function ApprovalsQueue({ items, canSeeHospitalQueue }: QueueProps) {
         </div>
 
         {/* Footer hint — keyboard nav discoverability */}
-        <p className="text-muted-foreground mt-3 text-center font-mono text-[10.5px] tracking-[0.05em]">
+        <p className="text-muted-foreground mt-3 text-center font-mono text-[10.5px] tracking-wider">
           ↑↓ navigate · ↵ open · esc close
         </p>
       </div>

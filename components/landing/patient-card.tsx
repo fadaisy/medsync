@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { RevealOnScroll } from "./_reveal-on-scroll";
 
 /**
  * §10b — Patient enrichment card. The richest single composition on the
@@ -38,19 +39,21 @@ export function PatientCard() {
             className="pointer-events-none absolute -inset-x-8 inset-y-0 -z-10 [background:radial-gradient(ellipse_at_center,oklch(0.92_0.06_180/0.35),transparent_60%)] dark:[background:radial-gradient(ellipse_at_center,oklch(0.45_0.08_180/0.18),transparent_65%)]"
           />
 
-          <article
-            className={cn(
-              "border-border bg-card relative overflow-hidden rounded-2xl border shadow-xl dark:shadow-2xl",
-            )}
-          >
-            <CardChrome />
-            <CardHeader />
-            <AutoSummary />
-            <TripleColumn />
-            <CarePlanTimeline />
-            <CareTeamAndAudit />
-            <CardFooter />
-          </article>
+          <RevealOnScroll>
+            <article
+              className={cn(
+                "border-border bg-card relative overflow-hidden rounded-2xl border shadow-xl dark:shadow-2xl",
+              )}
+            >
+              <CardChrome />
+              <CardHeader />
+              <AutoSummary />
+              <TripleColumn />
+              <CarePlanTimeline />
+              <CareTeamAndAudit />
+              <CardFooter />
+            </article>
+          </RevealOnScroll>
         </div>
       </div>
     </section>
@@ -708,7 +711,7 @@ function CardFooter() {
         Every line on this card is sample data &mdash; no real patient, no real identifiers.
       </span>
       <span className="text-muted-foreground tabular inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
-        <span className="size-1 rounded-full bg-teal-500" />
+        <span className="pulse-dot size-1 rounded-full bg-teal-500" />
         Live sync &middot; last 4 s
       </span>
     </footer>

@@ -64,11 +64,14 @@ export default async function DoctorSchedulePage() {
     ]);
 
   return (
-    <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 lg:px-6 lg:py-9">
+    <div className="stagger-children mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 lg:px-6 lg:py-9">
       <header className="flex flex-col gap-2">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
-            <span aria-hidden className="size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20" />
+            <span
+              aria-hidden
+              className="pulse-dot size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20"
+            />
             {scope.hospitalName} · {scope.departmentName} · Schedule
           </span>
           <div className="flex items-center gap-1.5">

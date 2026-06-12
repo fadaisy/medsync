@@ -21,7 +21,7 @@ const ACUITY_CHIP: Record<number, string> = {
 };
 
 const SELECT =
-  "border-input bg-card text-foreground rounded-sm border px-2 py-1.5 text-[12.5px] outline-none focus-visible:border-teal-500";
+  "border-input bg-card text-foreground rounded-sm border px-2 py-1.5 text-[12.5px] outline-none transition-[border-color,box-shadow] duration-200 focus-visible:border-teal-500 focus-visible:ring-2 focus-visible:ring-teal-500/30";
 
 export function AssignedRow({ row }: { row: AssignedEncounterRow }) {
   const router = useRouter();
@@ -69,12 +69,12 @@ export function AssignedRow({ row }: { row: AssignedEncounterRow }) {
   }
 
   return (
-    <li className="border-border bg-card flex flex-col gap-2 rounded-xl border p-4">
+    <li className="border-border bg-card card-lift flex flex-col gap-2 rounded-xl border p-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2.5">
           {row.acuity ? (
             <span
-              className={`inline-flex items-center rounded-full px-2 py-0.5 font-mono text-[10px] font-medium ring-1 ${
+              className={`scale-in inline-flex items-center rounded-full px-2 py-0.5 font-mono text-[10px] font-medium ring-1 ${
                 ACUITY_CHIP[row.acuity] ?? "bg-muted text-muted-foreground ring-border"
               }`}
             >
@@ -101,7 +101,7 @@ export function AssignedRow({ row }: { row: AssignedEncounterRow }) {
       </div>
 
       {reassigning ? (
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="reveal-up flex flex-wrap items-center gap-2">
           <select
             className={SELECT}
             value={pick}
@@ -121,7 +121,7 @@ export function AssignedRow({ row }: { row: AssignedEncounterRow }) {
           </Button>
           <button
             type="button"
-            className="text-muted-foreground hover:text-foreground text-[12px]"
+            className="text-muted-foreground hover:text-foreground tap rounded-sm px-1 text-[12px] underline-offset-4 transition-colors hover:underline"
             onClick={() => setReassigning(false)}
           >
             Cancel
@@ -130,7 +130,7 @@ export function AssignedRow({ row }: { row: AssignedEncounterRow }) {
       ) : null}
 
       {error ? (
-        <p className="text-destructive text-[12px]" role="alert">
+        <p className="text-destructive scale-in text-[12px]" role="alert">
           {error}
         </p>
       ) : null}

@@ -65,7 +65,7 @@ export function QueueRail({ entries }: { entries: ReadonlyArray<QueueRow> }) {
           <h3 className="text-muted-foreground font-mono text-[9.5px] tracking-[0.14em] uppercase">
             Now seeing
           </h3>
-          <ul className="flex flex-col gap-1">
+          <ul className="stagger-children flex flex-col gap-1">
             {beingSeen.map((e) => (
               <li key={e.id}>
                 <QueueChip row={e} variant="being_seen" />
@@ -83,7 +83,7 @@ export function QueueRail({ entries }: { entries: ReadonlyArray<QueueRow> }) {
         {waiting.length === 0 ? (
           <p className="text-muted-foreground text-[12px]">No one waiting right now.</p>
         ) : (
-          <ul className="flex flex-col gap-1">
+          <ul className="stagger-children flex flex-col gap-1">
             {waiting.map((e) => (
               <li key={e.id}>
                 <QueueChip row={e} variant="waiting" />
@@ -118,9 +118,10 @@ function QueueChip({ row, variant }: { row: QueueRow; variant: "waiting" | "bein
   return (
     <div
       className={cn(
-        "border-border flex items-start gap-2 rounded-md border px-2.5 py-2",
+        "border-border flex items-start gap-2 rounded-md border px-2.5 py-2 transition-colors duration-200",
         variant === "being_seen" && "border-blue-500/40 bg-blue-50/40 dark:bg-blue-950/15",
         isUrgent && variant === "waiting" && "border-rose-500/40 bg-rose-50/40 dark:bg-rose-950/15",
+        !isUrgent && variant === "waiting" && "hover:border-gray-300 hover:bg-teal-50/30",
       )}
     >
       <span aria-hidden className="text-muted-foreground font-mono text-[10.5px] tabular-nums">
@@ -140,7 +141,7 @@ function QueueChip({ row, variant }: { row: QueueRow; variant: "waiting" | "bein
         {row.notes ? (
           <span className="text-muted-foreground/90 text-[11px] italic">{row.notes}</span>
         ) : null}
-        {error ? <span className="text-destructive text-[11px]">{error}</span> : null}
+        {error ? <span className="text-destructive scale-in text-[11px]">{error}</span> : null}
       </div>
       {variant === "waiting" ? (
         <Button
@@ -239,7 +240,7 @@ function RecordWalkinForm({ onSuccess }: { onSuccess: () => void }) {
         />
       </div>
 
-      <label className="border-border bg-card flex cursor-pointer items-start gap-3 rounded-md border px-3 py-2.5">
+      <label className="border-border bg-card tap hover:bg-muted/20 flex cursor-pointer items-start gap-3 rounded-md border px-3 py-2.5 transition-colors">
         <input
           type="checkbox"
           checked={urgent}
@@ -269,7 +270,7 @@ function RecordWalkinForm({ onSuccess }: { onSuccess: () => void }) {
       </div>
 
       {error ? (
-        <p className="text-destructive border-destructive/30 bg-destructive/5 rounded-md border px-3 py-2 text-[12px] leading-relaxed">
+        <p className="text-destructive border-destructive/30 bg-destructive/5 scale-in rounded-md border px-3 py-2 text-[12px] leading-relaxed">
           {error}
         </p>
       ) : null}

@@ -37,8 +37,14 @@ export function TriageWorklist({
 }) {
   if (rows.length === 0) {
     return (
-      <div className="border-border bg-card flex flex-col items-center gap-2 rounded-xl border p-12 text-center">
-        <DoorOpenIcon className="text-muted-foreground size-5" strokeWidth={1.5} aria-hidden />
+      <div className="border-border bg-card relative isolate flex flex-col items-center gap-2.5 overflow-hidden rounded-xl border p-12 text-center">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,rgba(13,148,136,0.04),transparent_65%)]"
+        />
+        <span className="bg-muted/50 ring-border flex size-10 items-center justify-center rounded-full ring-1">
+          <DoorOpenIcon className="text-muted-foreground size-5" strokeWidth={1.5} aria-hidden />
+        </span>
         <p className="text-foreground text-[13.5px] font-medium">No one to triage</p>
         <p className="text-muted-foreground text-[12px]">
           When a patient arrives in {departmentName}, they appear here to be assessed.
@@ -48,7 +54,7 @@ export function TriageWorklist({
   }
 
   return (
-    <ul className="border-border bg-card divide-border/60 flex flex-col divide-y overflow-hidden rounded-xl border">
+    <ul className="border-border bg-card divide-border/60 stagger-children flex flex-col divide-y overflow-hidden rounded-xl border">
       {rows.map((r) => {
         const name = r.displayName ?? r.patientUnknownLabel ?? "Unidentified patient";
         const triaged = r.priorLevel != null;
@@ -73,12 +79,13 @@ export function TriageWorklist({
               href={`${basePath}/${r.intakeId}`}
               className="group flex min-w-0 flex-1 items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-teal-50/40 dark:hover:bg-teal-50/[0.04]"
             >
-              {/* Acuity dot rail */}
+              {/* Acuity dot rail — L1 pulses: a Red patient waiting is live */}
               <span
                 aria-hidden
                 className={cn(
                   "size-2 shrink-0 rounded-full",
                   acuity ? acuity.dot : "bg-border ring-border ring-2",
+                  r.priorLevel === 1 && "pulse-dot ring-2 ring-rose-500/25",
                 )}
               />
 

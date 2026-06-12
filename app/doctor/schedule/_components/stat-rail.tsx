@@ -35,7 +35,7 @@ export function StatRail({ stats }: { stats: SchedulingStats }) {
 
   return (
     <ul
-      className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6"
+      className="stagger-children grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6"
       aria-label="Scheduling stats"
     >
       {cards.map((c) => (
@@ -50,7 +50,7 @@ export function StatRail({ stats }: { stats: SchedulingStats }) {
 function StatCard({ spec }: { spec: StatCardSpec }) {
   const Icon = spec.icon;
   return (
-    <div className="border-border bg-card flex flex-col gap-1 rounded-xl border p-3">
+    <div className="border-border bg-card card-lift flex flex-col gap-1 rounded-xl border p-3">
       <div className="flex items-center gap-1.5">
         <Icon
           aria-hidden
@@ -68,7 +68,7 @@ function StatCard({ spec }: { spec: StatCardSpec }) {
       </div>
       <span
         className={cn(
-          "font-display text-foreground text-[24px] leading-none font-medium tabular-nums",
+          "text-foreground font-mono text-[22px] leading-none font-medium tracking-tight tabular-nums",
           spec.tone === "muted" && "text-muted-foreground",
         )}
       >

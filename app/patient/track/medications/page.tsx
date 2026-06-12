@@ -29,12 +29,19 @@ export default async function PatientMedicationsPage() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-9">
+    <div className="stagger-children relative mx-auto flex w-full max-w-xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-9">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-20 left-1/2 -z-10 h-56 w-md max-w-full -translate-x-1/2 rounded-full bg-teal-500/5 blur-3xl dark:bg-teal-400/4"
+      />
       <Link
         href="/patient/track"
-        className="text-muted-foreground hover:text-foreground inline-flex w-fit items-center gap-1 text-[12.5px] transition-colors"
+        className="text-muted-foreground hover:text-foreground group inline-flex w-fit items-center gap-1 text-[12.5px] transition-colors"
       >
-        <ArrowLeftIcon className="size-3.5" aria-hidden />
+        <ArrowLeftIcon
+          className="size-3.5 transition-transform group-hover:-translate-x-0.5"
+          aria-hidden
+        />
         Back to tracking
       </Link>
 
@@ -57,7 +64,7 @@ export default async function PatientMedicationsPage() {
           <h2 className="text-muted-foreground font-mono text-[10.5px] tracking-[0.14em] uppercase">
             Active
           </h2>
-          <ul className="border-border bg-card divide-border/60 flex flex-col divide-y rounded-xl border">
+          <ul className="border-border bg-card divide-border/60 flex flex-col divide-y overflow-hidden rounded-xl border">
             {meds.map((m) => {
               const expected = expectedDosesPerDay(m.schedulePattern);
               const taken = takesByMed.get(m.id) ?? 0;
@@ -68,7 +75,10 @@ export default async function PatientMedicationsPage() {
                     ? false
                     : taken > 0;
               return (
-                <li key={m.id} className="flex flex-col gap-3 px-4 py-3.5">
+                <li
+                  key={m.id}
+                  className="hover:bg-muted/30 flex flex-col gap-3 px-4 py-3.5 transition-colors"
+                >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex min-w-0 flex-col gap-0.5">
                       <span className="text-foreground text-[14.5px] font-medium">{m.name}</span>
@@ -100,7 +110,7 @@ export default async function PatientMedicationsPage() {
         <section className="border-border bg-card flex items-start gap-3 rounded-xl border p-4">
           <span
             aria-hidden
-            className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-teal-50 text-teal-700 ring-1 ring-teal-200/70 dark:bg-teal-950/40 dark:text-teal-300 dark:ring-teal-800/40"
+            className="scale-in inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-teal-50 text-teal-700 ring-1 ring-teal-200/70 dark:bg-teal-950/40 dark:text-teal-300 dark:ring-teal-800/40"
           >
             <PillIcon className="size-4" />
           </span>

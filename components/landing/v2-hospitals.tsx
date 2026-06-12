@@ -1,6 +1,6 @@
 import { ClipboardListIcon, LayersIcon, UsersIcon } from "lucide-react";
 
-import { cn } from "@/lib/utils";
+import { RevealOnScroll, StaggerOnScroll } from "./_reveal-on-scroll";
 import { ClinicianHomeMock } from "./clinician-home-mock";
 
 /**
@@ -21,24 +21,26 @@ import { ClinicianHomeMock } from "./clinician-home-mock";
 export function V2Hospitals() {
   return (
     <div className="mx-auto w-full max-w-300 px-5 py-20 sm:px-8 sm:py-28">
-      <header className="mb-10 flex flex-col gap-5">
-        <span className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
-          <span className="size-1 rounded-full bg-teal-500" />
-          For care teams &amp; hospitals
-        </span>
-        <h2
-          className="font-display text-foreground max-w-[28ch] text-[34px] leading-[1.08] tracking-[-0.025em] text-balance sm:text-[48px]"
-          style={{ fontWeight: 400 }}
-        >
-          One record, every shift,{" "}
-          <span className="text-teal-700 italic dark:text-teal-300">every specialty.</span>
-        </h2>
-        <p className="text-muted-foreground max-w-[60ch] text-[15px] leading-[1.55] sm:text-[16.5px]">
-          The same patient record adapts to the team using it — diabetology sees glycaemic trends
-          where cardiology sees rhythm strips. No re-keying between specialties, no shift handover
-          written on paper.
-        </p>
-      </header>
+      <RevealOnScroll>
+        <header className="mb-10 flex flex-col gap-5">
+          <span className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
+            <span className="pulse-dot size-1 rounded-full bg-teal-500" />
+            For care teams &amp; hospitals
+          </span>
+          <h2
+            className="font-display text-foreground max-w-[28ch] text-[34px] leading-[1.08] tracking-[-0.025em] text-balance sm:text-[48px]"
+            style={{ fontWeight: 400 }}
+          >
+            One record, every shift,{" "}
+            <span className="text-teal-700 italic dark:text-teal-300">every specialty.</span>
+          </h2>
+          <p className="text-muted-foreground max-w-[60ch] text-[15px] leading-[1.55] sm:text-[16.5px]">
+            The same patient record adapts to the team using it — diabetology sees glycaemic trends
+            where cardiology sees rhythm strips. No re-keying between specialties, no shift handover
+            written on paper.
+          </p>
+        </header>
+      </RevealOnScroll>
 
       {/* Stacked layout: the dashboard mock wants horizontal room
           (the patient-detail panel + schedule list crowd inside a 7-col
@@ -54,24 +56,22 @@ export function V2Hospitals() {
 
         {/* Three sub-points distilled from the [02] adaptive-model
             insight + the clinician-flavoured loop scenes. */}
-        <ul className="grid gap-4 sm:gap-5 md:grid-cols-3">
+        <StaggerOnScroll as="ul" className="grid gap-4 sm:gap-5 md:grid-cols-3">
           {SUB_POINTS.map(({ icon: Icon, eyebrow, title, body }) => (
-            <li
-              key={eyebrow}
-              className={cn(
-                "border-border bg-card flex flex-col gap-2 rounded-lg border p-5 sm:p-6",
-                "transition-colors duration-150 hover:border-teal-300/60 dark:hover:border-teal-400/40",
-              )}
-            >
-              <span className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.16em] uppercase">
-                <Icon className="size-3" strokeWidth={1.75} />
-                {eyebrow}
-              </span>
-              <h3 className="text-foreground text-[16px] font-medium tracking-tight">{title}</h3>
-              <p className="text-muted-foreground text-[13.5px] leading-[1.55]">{body}</p>
+            <li key={eyebrow} className="h-full">
+              {/* card-lift sits inside the staggered <li> so the entrance
+                  animation's transform fill can't pin the hover lift. */}
+              <div className="border-border bg-card card-lift flex h-full flex-col gap-2 rounded-lg border p-5 sm:p-6">
+                <span className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.16em] uppercase">
+                  <Icon className="size-3" strokeWidth={1.75} />
+                  {eyebrow}
+                </span>
+                <h3 className="text-foreground text-[16px] font-medium tracking-tight">{title}</h3>
+                <p className="text-muted-foreground text-[13.5px] leading-[1.55]">{body}</p>
+              </div>
             </li>
           ))}
-        </ul>
+        </StaggerOnScroll>
       </div>
     </div>
   );

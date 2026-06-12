@@ -97,16 +97,24 @@ export default async function PatientQueueDetailPage({ params }: PageProps) {
   const isTerminal = intake.status === "completed" || intake.status === "cancelled";
 
   return (
-    <div className="mx-auto flex w-full max-w-xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-9">
+    <div className="stagger-children relative mx-auto flex w-full max-w-xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-9">
       {/* Polling refresh — 30s — until websockets land. Reduced-motion
           users are unaffected (no animation). */}
       {!isTerminal ? <meta httpEquiv="refresh" content="30" /> : null}
 
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-20 left-1/2 -z-10 h-56 w-md max-w-full -translate-x-1/2 rounded-full bg-teal-500/5 blur-3xl dark:bg-teal-400/4"
+      />
+
       <Link
         href="/patient"
-        className="text-muted-foreground hover:text-foreground inline-flex w-fit items-center gap-1 text-[12.5px] transition-colors"
+        className="text-muted-foreground hover:text-foreground group inline-flex w-fit items-center gap-1 text-[12.5px] transition-colors"
       >
-        <ArrowLeftIcon className="size-3.5" aria-hidden />
+        <ArrowLeftIcon
+          className="size-3.5 transition-transform group-hover:-translate-x-0.5"
+          aria-hidden
+        />
         Back to home
       </Link>
 
@@ -149,7 +157,10 @@ export default async function PatientQueueDetailPage({ params }: PageProps) {
       {/* ── Cancel (declared only) ───────────────────────────── */}
       {intake.status === "declared" ? <CancelDeclaredIntakeButton intakeId={intake.id} /> : null}
 
-      <p className="text-muted-foreground text-center text-[11px]">
+      <p className="text-muted-foreground inline-flex items-center justify-center gap-1.5 text-center text-[11px]">
+        {!isTerminal ? (
+          <span aria-hidden className="pulse-dot size-1.5 rounded-full bg-teal-500" />
+        ) : null}
         Status updates every 30 seconds while this page is open.
       </p>
     </div>
@@ -161,11 +172,11 @@ export default async function PatientQueueDetailPage({ params }: PageProps) {
 function StageCard({ status, positionAhead }: { status: string; positionAhead: number | null }) {
   if (status === "declared") {
     return (
-      <article className="flex flex-col gap-2 rounded-xl border border-teal-500/40 bg-teal-50/40 p-4 dark:border-teal-400/30 dark:bg-teal-950/20">
+      <article className="flex flex-col gap-2 rounded-xl border border-teal-500/40 bg-teal-50/40 p-4 ring-1 ring-teal-500/10 dark:border-teal-400/30 dark:bg-teal-950/20">
         <div className="flex items-center gap-2">
           <span
             aria-hidden
-            className="inline-flex size-7 items-center justify-center rounded-full bg-teal-100 text-teal-700 ring-1 ring-teal-200/80 dark:bg-teal-900/40 dark:text-teal-300 dark:ring-teal-800/40"
+            className="scale-in inline-flex size-7 items-center justify-center rounded-full bg-teal-100 text-teal-700 ring-1 ring-teal-200/80 dark:bg-teal-900/40 dark:text-teal-300 dark:ring-teal-800/40"
           >
             <TicketIcon className="size-3.5" />
           </span>
@@ -178,22 +189,29 @@ function StageCard({ status, positionAhead }: { status: string; positionAhead: n
           you get there — they&rsquo;ll flip your ticket to arrived.
         </p>
         {positionAhead !== null ? (
-          <p className="text-foreground text-[13px] font-medium">
-            {positionAhead === 0
-              ? "No one ahead of you right now."
-              : `${positionAhead} ahead of you right now.`}
-          </p>
+          positionAhead === 0 ? (
+            <p className="text-foreground text-[13px] font-medium">
+              No one ahead of you right now.
+            </p>
+          ) : (
+            <p className="text-foreground flex items-baseline gap-2 text-[13px] font-medium">
+              <span className="scale-in font-mono text-[28px] leading-none font-medium tabular-nums">
+                {positionAhead}
+              </span>
+              ahead of you right now.
+            </p>
+          )
         ) : null}
       </article>
     );
   }
   if (status === "arrived" || status === "awaiting_triage") {
     return (
-      <article className="flex flex-col gap-2 rounded-xl border border-teal-500/40 bg-teal-50/40 p-4 dark:border-teal-400/30 dark:bg-teal-950/20">
+      <article className="flex flex-col gap-2 rounded-xl border border-teal-500/40 bg-teal-50/40 p-4 ring-1 ring-teal-500/10 dark:border-teal-400/30 dark:bg-teal-950/20">
         <div className="flex items-center gap-2">
           <span
             aria-hidden
-            className="inline-flex size-7 items-center justify-center rounded-full bg-teal-100 text-teal-700 ring-1 ring-teal-200/80 dark:bg-teal-900/40 dark:text-teal-300 dark:ring-teal-800/40"
+            className="scale-in inline-flex size-7 items-center justify-center rounded-full bg-teal-100 text-teal-700 ring-1 ring-teal-200/80 dark:bg-teal-900/40 dark:text-teal-300 dark:ring-teal-800/40"
           >
             <ClockIcon className="size-3.5" />
           </span>
@@ -206,9 +224,16 @@ function StageCard({ status, positionAhead }: { status: string; positionAhead: n
           clinician.
         </p>
         {positionAhead !== null ? (
-          <p className="text-foreground text-[13px] font-medium">
-            {positionAhead === 0 ? "You&rsquo;re next." : `${positionAhead} ahead of you.`}
-          </p>
+          positionAhead === 0 ? (
+            <p className="text-foreground text-[13px] font-medium">You&rsquo;re next.</p>
+          ) : (
+            <p className="text-foreground flex items-baseline gap-2 text-[13px] font-medium">
+              <span className="scale-in font-mono text-[28px] leading-none font-medium tabular-nums">
+                {positionAhead}
+              </span>
+              ahead of you.
+            </p>
+          )
         ) : null}
       </article>
     );

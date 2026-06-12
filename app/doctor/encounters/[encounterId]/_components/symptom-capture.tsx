@@ -88,7 +88,7 @@ function chipClass(active: boolean, tone: "teal" | "danger" = "teal") {
   const off =
     "text-foreground/70 ring-1 ring-inset ring-border hover:bg-muted/60 hover:text-foreground";
   return [
-    "rounded px-2 py-0.5 text-[11.5px] transition-colors duration-150",
+    "tap rounded px-2 py-0.5 text-[11.5px] transition-colors duration-150",
     active ? on : off,
   ].join(" ");
 }
@@ -231,7 +231,7 @@ export function SymptomCapture({
 
         {open ? (
           <div
-            className="border-border bg-popover absolute top-full right-0 left-0 z-20 mt-1.5 max-h-72 overflow-y-auto rounded-lg border p-1.5 shadow-lg"
+            className="border-border bg-popover scale-in absolute top-full right-0 left-0 z-20 mt-1.5 max-h-72 origin-top overflow-y-auto rounded-lg border p-1.5 shadow-lg"
             onMouseDown={(e) => e.preventDefault()}
           >
             {catalog === null ? (
@@ -313,7 +313,7 @@ export function SymptomCapture({
 
       {/* Selected symptoms — compact list with inline properties */}
       {value.length > 0 ? (
-        <div className="border-border/60 divide-border/60 flex flex-col divide-y overflow-hidden rounded-lg border">
+        <div className="border-border/60 divide-border/60 reveal-up flex flex-col divide-y overflow-hidden rounded-lg border shadow-xs">
           {value.map((s, idx) => {
             const sev = s.properties.find((p) => p.valueType === "scale" && p.num != null)?.num;
             const redFlags = s.properties.filter(isRedFlagValue).flatMap((p) => p.labels ?? []);
@@ -322,7 +322,10 @@ export function SymptomCapture({
             const meta = catalogByCode.get(s.symptomCode);
             const personal = meta?.scope === "personal";
             return (
-              <div key={s.symptomCode} className={isOpen ? "bg-muted/20" : ""}>
+              <div
+                key={s.symptomCode}
+                className={`scale-in transition-colors ${isOpen ? "bg-muted/20" : ""}`}
+              >
                 <div className="hover:bg-muted/30 group flex items-center gap-2 transition-colors">
                   <button
                     type="button"
@@ -378,7 +381,7 @@ export function SymptomCapture({
                   </button>
                 </div>
                 {isOpen ? (
-                  <div className="border-border/50 border-t px-3 py-1.5">
+                  <div className="border-border/50 reveal-up border-t px-3 py-1.5">
                     {meta?.createdByName ? (
                       <p className="text-muted-foreground border-border/50 mb-1 border-b pb-1.5 text-[10.5px]">
                         Created by {meta.createdByName}
@@ -407,7 +410,7 @@ function MenuItem({ onClick, children }: { onClick: () => void; children: React.
     <button
       type="button"
       onClick={onClick}
-      className="hover:bg-muted/70 text-foreground flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[12.5px] transition-colors"
+      className="tap hover:bg-muted/70 text-foreground flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[12.5px] transition-colors"
     >
       {children}
     </button>
@@ -872,7 +875,7 @@ function CreateComplaintDialog({
           type="button"
           disabled={pending || !display.trim()}
           onClick={save}
-          className="rounded-md bg-teal-600 px-4 py-1.5 text-[12.5px] font-medium text-white transition-colors hover:bg-teal-700 disabled:opacity-50"
+          className="tap rounded-md bg-teal-600 px-4 py-1.5 text-[12.5px] font-medium text-white transition-colors hover:bg-teal-700 disabled:opacity-50"
         >
           {pending ? "Saving…" : "Save & use"}
         </button>

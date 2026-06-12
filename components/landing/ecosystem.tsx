@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { RevealOnScroll, StaggerOnScroll } from "./_reveal-on-scroll";
 
 /**
  * §11 — The Ugandan care ecosystem.
@@ -110,9 +111,9 @@ export function Ecosystem() {
     >
       <div className="mx-auto w-full max-w-300 px-5 py-20 sm:px-8 sm:py-28">
         {/* Section header */}
-        <div className="mb-10 flex flex-col gap-4">
+        <RevealOnScroll className="mb-10 flex flex-col gap-4">
           <span className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
-            <span className="size-1 rounded-full bg-teal-500" />
+            <span className="pulse-dot size-1 rounded-full bg-teal-500" />
             The Uganda care ecosystem
           </span>
           <h2
@@ -132,10 +133,11 @@ export function Ecosystem() {
             endorsements, and not all live yet. We&rsquo;ll mark each one &ldquo;connected&rdquo;
             only when it actually is.
           </p>
-        </div>
+        </RevealOnScroll>
 
         {/* Honest framing band */}
-        <div
+        <RevealOnScroll
+          delay={120}
           className={cn(
             "border-border bg-card mb-6 flex flex-wrap items-center gap-2 rounded-md border px-3 py-2 text-[11.5px]",
           )}
@@ -148,16 +150,16 @@ export function Ecosystem() {
             Every chip below is a name we plan to integrate with. Real connection status will
             replace this label as each one comes online.
           </span>
-        </div>
+        </RevealOnScroll>
 
         {/* Category grid */}
-        <ul role="list" className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+        <StaggerOnScroll as="ul" className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
           {CATEGORIES.map((cat) => (
             <li key={cat.label}>
               <CategoryCard cat={cat} />
             </li>
           ))}
-        </ul>
+        </StaggerOnScroll>
 
         {/* Tagline */}
         <p className="text-muted-foreground/80 mx-auto mt-10 max-w-[60ch] text-center text-[12.5px] italic">
@@ -171,7 +173,7 @@ export function Ecosystem() {
 
 function CategoryCard({ cat }: { cat: EcoCategory }) {
   return (
-    <div className="border-border bg-card flex h-full flex-col gap-3 rounded-lg border p-4">
+    <div className="border-border bg-card card-lift flex h-full flex-col gap-3 rounded-lg border p-4">
       <div className="flex items-center gap-2">
         <span className="inline-flex size-7 items-center justify-center rounded-md bg-teal-50 text-teal-700 dark:bg-teal-50/15 dark:text-teal-200">
           <cat.Icon className="size-3.5" strokeWidth={1.75} />

@@ -153,7 +153,8 @@ function HealthTile({ label, value, hint, href, sensitive }: HealthTileData) {
         "shadow-[0_0_0_1px_rgba(0,0,0,0.02),0_1px_3px_rgba(0,0,0,0.04)]",
         "hover:border-foreground/15 hover:shadow-[0_0_0_1px_rgba(0,0,0,0.04),0_4px_12px_rgba(0,0,0,0.05)]",
         "focus-visible:ring-2 focus-visible:ring-teal-500/40",
-        sensitive && "border-l-2 border-l-amber-400 dark:border-l-amber-500",
+        sensitive &&
+          "border-amber-400/60 bg-amber-50/40 ring-1 ring-amber-500/15 ring-inset dark:border-amber-500/40 dark:bg-amber-950/15",
       )}
     >
       <div className="flex items-start justify-between gap-2">

@@ -99,7 +99,7 @@ export function HospitalShell({
 
           {/* Nav items */}
           <nav className="flex-1 overflow-y-auto p-2">
-            <ul className="flex flex-col gap-px">
+            <ul className="stagger-children flex flex-col gap-px">
               {navItems.map((item) => (
                 <li key={item.href}>
                   <HospitalSidebarItem
@@ -157,7 +157,7 @@ export function HospitalShell({
         {/* ── Main column ──────────────────────────────────────────── */}
         <div className="flex min-w-0 flex-1 flex-col">
           {/* Top bar */}
-          <header className="border-border bg-background/95 supports-backdrop-filter:bg-background/80 sticky top-0 z-30 flex h-[52px] items-center justify-between gap-3 border-b px-4 supports-backdrop-filter:backdrop-blur sm:px-6">
+          <header className="border-border glass sticky top-0 z-30 flex h-13 items-center justify-between gap-3 border-b px-4 sm:px-6">
             {/* Mobile: hamburger → sidebar sheet + brand */}
             <div className="flex items-center gap-2.5 lg:hidden">
               <MobileSidebar

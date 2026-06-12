@@ -4,10 +4,11 @@ import type { SignUpState } from "./actions";
 import Link from "next/link";
 import { useActionState } from "react";
 
-import { AuthCard, FieldError, FormError } from "@/components/medsync/auth-card";
+import { AuthCard, FieldError } from "@/components/medsync/auth-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { AuthNotice, ButtonSpinner } from "../_components/auth-notice";
 import { signUpAction } from "./actions";
 
 const initial: SignUpState = {};
@@ -22,14 +23,17 @@ export function SignUpForm() {
       footer={
         <p className="text-body-s text-muted-foreground">
           Already have an account?{" "}
-          <Link href="/sign-in" className="text-primary hover:underline">
+          <Link
+            href="/sign-in"
+            className="text-primary underline decoration-transparent underline-offset-2 transition-[text-decoration-color] duration-200 hover:decoration-current"
+          >
             Sign in
           </Link>
         </p>
       }
     >
-      <form action={formAction} className="flex flex-col gap-4">
-        <FormError message={state.errors?._form} />
+      <form action={formAction} className="stagger-children flex flex-col gap-4">
+        <AuthNotice message={state.errors?._form} />
 
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="full_name">Full name</Label>
@@ -68,11 +72,22 @@ export function SignUpForm() {
             required
             aria-invalid={!!state.errors?.password}
           />
-          <FieldError message={state.errors?.password ?? "At least 12 characters."} />
+          {state.errors?.password ? (
+            <FieldError message={state.errors.password} />
+          ) : (
+            <p className="text-muted-foreground text-[11px]">At least 12 characters.</p>
+          )}
         </div>
 
-        <Button type="submit" disabled={pending} variant="primary" size="md">
-          {pending ? "Creating account…" : "Create account"}
+        <Button type="submit" disabled={pending} variant="primary" size="md" className="tap">
+          {pending ? (
+            <>
+              <ButtonSpinner />
+              Creating account…
+            </>
+          ) : (
+            "Create account"
+          )}
         </Button>
       </form>
     </AuthCard>

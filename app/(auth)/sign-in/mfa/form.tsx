@@ -4,10 +4,11 @@ import type { MfaChallengeState } from "./actions";
 import { useSearchParams } from "next/navigation";
 import { useActionState } from "react";
 
-import { AuthCard, FieldError, FormError } from "@/components/medsync/auth-card";
+import { AuthCard, FieldError } from "@/components/medsync/auth-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { AuthNotice, ButtonSpinner } from "../../_components/auth-notice";
 import { challengeMfaAction } from "./actions";
 
 const initial: MfaChallengeState = {};
@@ -22,8 +23,8 @@ export function MfaChallengeForm() {
       title="Two-factor authentication"
       subtitle="Enter the 6-digit code from your authenticator app."
     >
-      <form action={formAction} className="flex flex-col gap-4">
-        <FormError message={state.errors?._form} />
+      <form action={formAction} className="stagger-children flex flex-col gap-4">
+        <AuthNotice message={state.errors?._form} />
         <input type="hidden" name="redirect" value={redirectTo} />
 
         <div className="flex flex-col gap-1.5">
@@ -38,14 +39,21 @@ export function MfaChallengeForm() {
             autoComplete="one-time-code"
             autoFocus
             required
-            className="text-center font-mono tracking-[0.4em]"
+            className="py-2.5 text-center font-mono text-[18px] tracking-[0.4em] tabular-nums"
             aria-invalid={!!state.errors?.code}
           />
           <FieldError message={state.errors?.code} />
         </div>
 
-        <Button type="submit" disabled={pending} variant="primary" size="md">
-          {pending ? "Verifying…" : "Verify"}
+        <Button type="submit" disabled={pending} variant="primary" size="md" className="tap">
+          {pending ? (
+            <>
+              <ButtonSpinner />
+              Verifying…
+            </>
+          ) : (
+            "Verify"
+          )}
         </Button>
       </form>
     </AuthCard>

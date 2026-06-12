@@ -209,8 +209,10 @@ function RecCard({
 
         {decided !== "pending" && !editing ? (
           <span
+            // Re-keyed per decision so the state word pops when it changes.
+            key={decided}
             className={cn(
-              "shrink-0 font-mono text-[9.5px] font-semibold tracking-wide uppercase",
+              "scale-in shrink-0 font-mono text-[9.5px] font-semibold tracking-wide uppercase",
               decided === "accepted" && "text-teal-700 dark:text-teal-300",
               decided === "dismissed" && "text-muted-foreground",
               decided === "modified" && "text-amber-700 dark:text-amber-300",
@@ -231,7 +233,7 @@ function RecCard({
                 onDecision("modified", draft.trim() || rec.suggestion);
                 setEditing(false);
               }}
-              className="inline-flex items-center gap-1 rounded-md bg-amber-500 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-amber-600"
+              className="tap inline-flex items-center gap-1 rounded-md bg-amber-500 px-2.5 py-1 text-[11px] font-semibold text-white transition-colors hover:bg-amber-600"
             >
               <CheckIcon className="size-3" aria-hidden />
               Save change
@@ -299,8 +301,10 @@ function CtlButton({
       type="button"
       onClick={onClick}
       className={cn(
-        "inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[11px] font-medium transition-colors",
-        active ? toneCls : "border-border text-muted-foreground hover:text-foreground",
+        "tap inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[11px] font-medium transition-colors",
+        active
+          ? toneCls
+          : "border-border text-muted-foreground hover:text-foreground hover:bg-muted/40",
       )}
     >
       {children}

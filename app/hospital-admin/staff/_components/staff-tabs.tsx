@@ -54,8 +54,9 @@ export function StaffTabs({ activeTab, pendingCount }: StaffTabsProps) {
             replace
             scroll={false}
             className={cn(
-              "relative inline-flex items-center gap-2 px-3 py-2.5 text-[13px] font-medium transition-colors outline-none",
+              "tap relative inline-flex items-center gap-2 rounded-t-md px-3 py-2.5 text-[13px] font-medium transition-colors outline-none",
               "focus-visible:ring-2 focus-visible:ring-teal-500/40",
+              "hover:bg-muted/50",
               isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground",
             )}
             // Preserve other params silently.
@@ -66,7 +67,7 @@ export function StaffTabs({ activeTab, pendingCount }: StaffTabsProps) {
               <span
                 aria-label={`${pendingCount} pending`}
                 className={cn(
-                  "rounded-full px-1.5 py-0.5 font-mono text-[10px] font-semibold tabular-nums",
+                  "scale-in rounded-full px-1.5 py-0.5 font-mono text-[10px] font-semibold tabular-nums",
                   isActive
                     ? "bg-teal-100 text-teal-800 dark:bg-teal-900/60 dark:text-teal-200"
                     : "bg-muted text-muted-foreground",
@@ -75,12 +76,15 @@ export function StaffTabs({ activeTab, pendingCount }: StaffTabsProps) {
                 {pendingCount}
               </span>
             ) : null}
-            {isActive ? (
-              <span
-                aria-hidden
-                className="absolute right-0 -bottom-px left-0 h-0.5 rounded-t bg-teal-500 dark:bg-teal-400"
-              />
-            ) : null}
+            {/* Always-mounted underline — scales in/out so the active
+                indicator animates instead of popping. */}
+            <span
+              aria-hidden
+              className={cn(
+                "ease-expo-out absolute right-0 -bottom-px left-0 h-0.5 origin-center rounded-t-md bg-teal-500 transition-transform duration-200 dark:bg-teal-400",
+                isActive ? "scale-x-100" : "scale-x-0",
+              )}
+            />
           </Link>
         );
       })}

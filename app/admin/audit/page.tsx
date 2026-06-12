@@ -114,9 +114,16 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
   return (
     <div className="flex flex-col">
       <header className="border-border border-b px-4 py-6 sm:px-8 sm:py-8">
-        <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-3">
+        <div className="mx-auto flex w-full max-w-300 flex-col gap-3">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-            <div className="flex flex-col gap-1">
+            <div className="flex flex-col gap-1.5">
+              <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
+                <span
+                  aria-hidden
+                  className="size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20"
+                />
+                Console · Immutable ledger
+              </span>
               <h1 className="font-display text-foreground text-[24px] leading-tight font-medium tracking-[-0.018em] sm:text-[28px]">
                 Audit console
               </h1>
@@ -130,7 +137,7 @@ export default async function AuditPage({ searchParams }: { searchParams: Promis
         </div>
       </header>
 
-      <div className="mx-auto w-full max-w-[1200px] flex-1 px-4 py-6 sm:px-8 sm:py-8">
+      <div className="mx-auto w-full max-w-300 flex-1 px-4 py-6 sm:px-8 sm:py-8">
         <div className="mb-4">
           <AuditFilters initial={initialFilters} />
         </div>

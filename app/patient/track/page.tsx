@@ -32,7 +32,11 @@ export default async function PatientTrackHub() {
   }
 
   return (
-    <div className="mx-auto flex w-full max-w-xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-9">
+    <div className="stagger-children relative mx-auto flex w-full max-w-xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-9">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-20 left-1/2 -z-10 h-56 w-md max-w-full -translate-x-1/2 rounded-full bg-teal-500/5 blur-3xl dark:bg-teal-400/4"
+      />
       {/* ── Header ────────────────────────────────────────────── */}
       <header className="flex flex-col gap-1.5">
         <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
@@ -51,7 +55,7 @@ export default async function PatientTrackHub() {
       <section className="grid grid-cols-2 gap-2">
         <Link
           href="/patient/track/log"
-          className="bg-foreground text-background hover:bg-foreground/90 group flex h-full flex-col gap-2 rounded-xl p-4 transition-colors"
+          className="bg-foreground text-background hover:bg-foreground/90 group tap flex h-full flex-col gap-2 rounded-xl p-4 transition-colors"
         >
           <span
             aria-hidden
@@ -66,7 +70,7 @@ export default async function PatientTrackHub() {
         </Link>
         <Link
           href="/patient/track/medications"
-          className="group border-border bg-card hover:bg-muted/30 hover:border-foreground/15 flex h-full flex-col gap-2 rounded-xl border p-4 transition-colors"
+          className="group border-border bg-card hover:bg-muted/30 hover:border-foreground/15 card-lift tap flex h-full flex-col gap-2 rounded-xl border p-4"
         >
           <span
             aria-hidden
@@ -89,9 +93,9 @@ export default async function PatientTrackHub() {
           <h2 className="text-muted-foreground font-mono text-[10.5px] tracking-[0.14em] uppercase">
             Today&rsquo;s medications
           </h2>
-          <ul className="border-border bg-card divide-border/60 divide-y rounded-xl border">
+          <ul className="border-border bg-card divide-border/60 divide-y overflow-hidden rounded-xl border">
             {meds.map((m) => (
-              <li key={m.id}>
+              <li key={m.id} className="hover:bg-muted/30 transition-colors">
                 <MedRow med={m} takenCount={takesByMed.get(m.id) ?? 0} />
               </li>
             ))}
@@ -114,9 +118,12 @@ export default async function PatientTrackHub() {
         {readings.length === 0 ? (
           <EmptyReadings />
         ) : (
-          <ul className="flex flex-col gap-2">
+          <ul className="stagger-children flex flex-col gap-2">
             {readings.map((r) => (
-              <li key={r.id} className="border-border bg-card rounded-xl border p-3.5">
+              <li
+                key={r.id}
+                className="border-border bg-card rounded-xl border p-3.5 transition-colors hover:border-gray-300"
+              >
                 <div className="flex items-baseline justify-between gap-2">
                   <span className="text-muted-foreground text-[11.5px]">
                     {READING_KIND_LABEL[r.kind] ?? r.kind}
@@ -126,7 +133,7 @@ export default async function PatientTrackHub() {
                   </span>
                 </div>
                 <div className="mt-1 flex items-baseline gap-2">
-                  <span className="text-foreground text-[16px] font-medium tracking-[-0.005em] tabular-nums">
+                  <span className="text-foreground font-mono text-[16px] font-medium tabular-nums">
                     {formatReadingValue(r) ??
                       (r.note ? truncate(r.note, 64) : <em className="font-normal">—</em>)}
                   </span>
@@ -193,10 +200,26 @@ function MedRow({ med, takenCount }: { med: MedicationRow; takenCount: number })
 function EmptyReadings() {
   return (
     <div className="border-border bg-card flex flex-col gap-3 rounded-xl border p-5">
+      {/* Quiet flatline-to-be: a dotted baseline waiting for its first point. */}
+      <svg
+        viewBox="0 0 320 40"
+        aria-hidden
+        className="text-muted-foreground/40 h-10 w-full"
+        fill="none"
+      >
+        <path
+          d="M4 28 H316"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeDasharray="1 7"
+        />
+        <circle cx="48" cy="28" r="3" className="fill-teal-500/60" />
+      </svg>
       <div className="flex items-start gap-3">
         <span
           aria-hidden
-          className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-teal-50 text-teal-700 ring-1 ring-teal-200/70 dark:bg-teal-950/40 dark:text-teal-300 dark:ring-teal-800/40"
+          className="scale-in inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-teal-50 text-teal-700 ring-1 ring-teal-200/70 dark:bg-teal-950/40 dark:text-teal-300 dark:ring-teal-800/40"
         >
           <ActivityIcon className="size-4" />
         </span>
@@ -211,7 +234,7 @@ function EmptyReadings() {
       <div className="flex items-center gap-3 pl-12">
         <Link
           href="/patient/track/log"
-          className="text-foreground border-foreground/15 hover:border-foreground/30 inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] transition-colors"
+          className="text-foreground border-foreground/15 hover:border-foreground/30 hover:bg-muted/40 tap inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[12px] transition-colors"
         >
           <PlusIcon className="size-3.5" aria-hidden />
           Log a reading

@@ -74,13 +74,27 @@ export function OnboardingCtaCluster({
             <Link
               href={href}
               className={cn(
-                "group relative flex h-full flex-col gap-3 overflow-hidden rounded-lg p-4 sm:p-5",
+                "group tap relative flex h-full flex-col gap-3 overflow-hidden rounded-lg p-4 sm:p-5",
                 "ease-expo-out transition-all duration-200",
+                "motion-safe:hover:-translate-y-0.5 motion-safe:hover:shadow-md",
                 tone === "light"
                   ? "border-border bg-card border hover:border-teal-300 hover:bg-teal-50/50 dark:hover:bg-teal-50/20"
                   : "border border-teal-300/20 bg-white/[0.03] backdrop-blur hover:border-teal-200/60 hover:bg-teal-300/10",
               )}
             >
+              {/* Sheen — one soft light sweep across the door on hover. */}
+              <span
+                aria-hidden
+                className={cn(
+                  "pointer-events-none absolute inset-y-0 -left-1/2 w-1/2 -skew-x-12",
+                  "bg-linear-to-r from-transparent to-transparent",
+                  tone === "light" ? "via-teal-100/40 dark:via-teal-50/10" : "via-white/[0.07]",
+                  "opacity-0 transition-none group-hover:opacity-100",
+                  "motion-safe:group-hover:translate-x-[340%]",
+                  "motion-safe:group-hover:transition-[transform,opacity] motion-safe:group-hover:duration-700",
+                  "motion-safe:group-hover:ease-expo-out",
+                )}
+              />
               <div className="flex items-center justify-between">
                 <span
                   className={cn(
@@ -136,7 +150,7 @@ export function OnboardingCtaCluster({
             key={audience}
             href={href}
             className={cn(
-              "group inline-flex items-center gap-1.5 rounded-full px-3 py-1.5",
+              "group tap inline-flex items-center gap-1.5 rounded-full px-3 py-1.5",
               "text-[13px] transition-colors duration-150",
               tone === "light"
                 ? "border-border bg-background border hover:border-teal-300 hover:bg-teal-50 hover:text-teal-800"

@@ -98,7 +98,7 @@ function DetailContent({ item, onClose }: { item: PendingAffiliationRow; onClose
       <SheetBody className="px-0 py-0">
         {item.reviewNote ? (
           <Section index={1} title="Outstanding info request">
-            <div className="border-l-2 border-l-amber-500/70 px-2.5 py-2 dark:border-l-amber-400/60">
+            <div className="rounded-md bg-amber-50/70 px-2.5 py-2 ring-1 ring-amber-500/30 ring-inset dark:bg-amber-950/25">
               <p className="text-[13px] leading-relaxed text-amber-900 italic dark:text-amber-200">
                 &ldquo;{item.reviewNote}&rdquo;
               </p>
@@ -149,7 +149,7 @@ function DetailContent({ item, onClose }: { item: PendingAffiliationRow; onClose
             />
           )}
           {!item.isClinical ? (
-            <p className="text-muted-foreground border-l-2 border-l-teal-500/60 px-2.5 py-2 text-[11.5px] leading-relaxed italic dark:border-l-teal-400/60">
+            <p className="text-muted-foreground rounded-md bg-teal-50/60 px-2.5 py-2 text-[11.5px] leading-relaxed italic ring-1 ring-teal-500/25 ring-inset dark:bg-teal-950/25">
               Non-clinical path — your approval IS the employer attestation. There is no external
               council to check. Confirm the applicant is a current employee in this role before
               approving.
@@ -186,7 +186,7 @@ function DetailContent({ item, onClose }: { item: PendingAffiliationRow; onClose
             </Section>
           ) : (
             <Section index={item.reviewNote ? 4 : 3} title="Licence document">
-              <p className="text-muted-foreground border-l-2 border-l-red-500/70 px-2.5 py-2 text-[12.5px] dark:border-l-red-400/60">
+              <p className="text-muted-foreground rounded-md bg-red-50/70 px-2.5 py-2 text-[12.5px] ring-1 ring-red-500/30 ring-inset dark:bg-red-950/25">
                 No licence document on file — request one before approving.
               </p>
             </Section>
@@ -200,7 +200,7 @@ function DetailContent({ item, onClose }: { item: PendingAffiliationRow; onClose
                 label="Appointment letter"
               />
             ) : (
-              <p className="text-muted-foreground border-l-2 border-l-amber-500/70 px-2.5 py-2 text-[12.5px] dark:border-l-amber-400/60">
+              <p className="text-muted-foreground rounded-md bg-amber-50/70 px-2.5 py-2 text-[12.5px] ring-1 ring-amber-500/30 ring-inset dark:bg-amber-950/25">
                 None uploaded — optional, but consider requesting one if you can&rsquo;t place this
                 applicant.
               </p>

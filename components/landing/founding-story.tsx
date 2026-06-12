@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useState } from "react";
 
 import { cn } from "@/lib/utils";
+import { RevealOnScroll } from "./_reveal-on-scroll";
 
 /**
  * §13 — Founding story.
@@ -240,26 +241,28 @@ export function FoundingStory() {
     >
       <div className="mx-auto w-full max-w-300 px-5 py-20 sm:px-8 sm:py-28">
         {/* Section header */}
-        <header className="mb-10 flex flex-col gap-5">
-          <span className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
-            <span className="size-1 rounded-full bg-teal-500" />
-            Why MedSync exists
-          </span>
-          <h2
-            id="founding-story-headline"
-            className="font-display text-foreground max-w-[26ch] text-[34px] leading-[1.08] tracking-[-0.025em] text-balance sm:text-[48px]"
-            style={{ fontWeight: 400 }}
-          >
-            Four cofounders.{" "}
-            <span className="text-teal-700 italic dark:text-teal-300">The patients</span> we
-            couldn&rsquo;t unsee.
-          </h2>
-          <p className="text-muted-foreground max-w-[60ch] text-[15px] leading-[1.55] sm:text-[16.5px]">
-            MedSync didn&rsquo;t start in a deck. It started on the wards &mdash; notebooks full of
-            warnings nobody had read, digital monitors full of readings nobody had ever opened, and
-            patients arriving with preventable damage already done.
-          </p>
-        </header>
+        <RevealOnScroll>
+          <header className="mb-10 flex flex-col gap-5">
+            <span className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
+              <span className="pulse-dot size-1 rounded-full bg-teal-500" />
+              Why MedSync exists
+            </span>
+            <h2
+              id="founding-story-headline"
+              className="font-display text-foreground max-w-[26ch] text-[34px] leading-[1.08] tracking-[-0.025em] text-balance sm:text-[48px]"
+              style={{ fontWeight: 400 }}
+            >
+              Four cofounders.{" "}
+              <span className="text-teal-700 italic dark:text-teal-300">The patients</span> we
+              couldn&rsquo;t unsee.
+            </h2>
+            <p className="text-muted-foreground max-w-[60ch] text-[15px] leading-[1.55] sm:text-[16.5px]">
+              MedSync didn&rsquo;t start in a deck. It started on the wards &mdash; notebooks full
+              of warnings nobody had read, digital monitors full of readings nobody had ever opened,
+              and patients arriving with preventable damage already done.
+            </p>
+          </header>
+        </RevealOnScroll>
 
         {/* Tab strip */}
         <div
@@ -281,7 +284,7 @@ export function FoundingStory() {
                 tabIndex={isActive ? 0 : -1}
                 onClick={() => setActive(i)}
                 className={cn(
-                  "group relative flex items-center gap-3 px-3 py-3 text-left",
+                  "group tap relative flex items-center gap-3 px-3 py-3 text-left",
                   "transition-colors duration-150",
                   isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground/80",
                 )}
@@ -362,7 +365,7 @@ function FounderBlock({ founder }: { founder: Founder }) {
       {/* Portrait + signature */}
       <aside className="flex flex-col gap-4 md:col-span-4">
         <figure className="flex flex-col gap-4">
-          <div className="relative aspect-[3/4] w-full max-w-xs overflow-hidden rounded-xl">
+          <div className="ring-border relative aspect-[3/4] w-full max-w-xs overflow-hidden rounded-xl shadow-sm ring-1">
             <Image
               src={founder.portraitSrc}
               alt={founder.portraitAlt}
@@ -396,12 +399,20 @@ function FounderBlock({ founder }: { founder: Founder }) {
 
         <div className="text-foreground/85 flex flex-col gap-4 text-[15.5px] leading-[1.65] sm:text-[16.5px]">
           {founder.story}
+          {/* Pull-quote — editorial Fraunces treatment with an oversized
+              teal quote glyph (no coloured edge bars per the design rules). */}
           <p
             className={cn(
-              "border-l-2 border-teal-500/70 pl-4 italic",
-              "text-foreground text-[16.5px] leading-[1.55] sm:text-[18px]",
+              "font-display relative mt-2 pl-7 italic",
+              "text-foreground text-[17px] leading-[1.5] tracking-[-0.01em] text-balance sm:text-[19px]",
             )}
           >
+            <span
+              aria-hidden
+              className="font-display absolute top-[-0.1em] left-0 text-[30px] leading-none text-teal-500/70 select-none dark:text-teal-400/70"
+            >
+              &ldquo;
+            </span>
             {founder.pullQuote}
           </p>
         </div>

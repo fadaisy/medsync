@@ -160,12 +160,12 @@ export function SchedulingSettingsSheet({ defaults }: { defaults: SettingsRow })
               </div>
 
               {state.error ? (
-                <p className="text-destructive border-destructive/30 bg-destructive/5 rounded-md border px-3 py-2 text-[12px] leading-relaxed">
+                <p className="text-destructive border-destructive/30 bg-destructive/5 scale-in rounded-md border px-3 py-2 text-[12px] leading-relaxed">
                   {state.error}
                 </p>
               ) : null}
               {state.ok ? (
-                <p className="rounded-md border border-teal-500/30 bg-teal-50/50 px-3 py-2 text-[12.5px] text-teal-900 dark:bg-teal-950/30 dark:text-teal-200">
+                <p className="scale-in rounded-md border border-teal-500/30 bg-teal-50/50 px-3 py-2 text-[12.5px] text-teal-900 dark:bg-teal-950/30 dark:text-teal-200">
                   Saved.
                 </p>
               ) : null}
@@ -201,7 +201,7 @@ function ToggleRow({
 }) {
   const [checked, setChecked] = useState(defaultChecked);
   return (
-    <label className="border-border bg-card hover:bg-muted/20 flex cursor-pointer items-start gap-3 rounded-md border px-3 py-2.5 transition-colors">
+    <label className="border-border bg-card hover:bg-muted/20 tap flex cursor-pointer items-start gap-3 rounded-md border px-3 py-2.5 transition-colors hover:border-gray-300">
       <input
         type="checkbox"
         className="mt-0.5 size-4 accent-teal-600"

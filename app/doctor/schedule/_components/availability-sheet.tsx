@@ -139,7 +139,7 @@ export function AvailabilitySheetButton({
                 </Button>
               </div>
             ) : (
-              <ul className="border-border bg-card divide-border/60 flex flex-col divide-y overflow-hidden rounded-xl border">
+              <ul className="border-border bg-card divide-border/60 stagger-children flex flex-col divide-y overflow-hidden rounded-xl border">
                 {blocks.map((b) => (
                   <li key={b.id}>
                     <BlockRow block={b} onEdit={() => openEdit(b)} />
@@ -187,7 +187,7 @@ function BlockRow({ block, onEdit }: { block: DoctorAvailabilityRow; onEdit: () 
       type="button"
       onClick={onEdit}
       className={cn(
-        "hover:bg-muted/40 group flex w-full items-center gap-3 px-4 py-3 text-left transition-colors outline-none",
+        "hover:bg-muted/40 active:bg-muted/60 group flex w-full items-center gap-3 px-4 py-3 text-left transition-colors duration-200 outline-none",
         "focus-visible:ring-2 focus-visible:ring-teal-500/40 focus-visible:ring-inset",
       )}
     >
@@ -214,7 +214,7 @@ function BlockRow({ block, onEdit }: { block: DoctorAvailabilityRow; onEdit: () 
 
       <span
         aria-hidden
-        className="text-muted-foreground ml-auto inline-flex items-center gap-1 text-[11px]"
+        className="text-muted-foreground ml-auto inline-flex items-center gap-1 text-[11px] opacity-60 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100"
       >
         <PencilIcon className="size-3" />
         Edit

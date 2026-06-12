@@ -3,7 +3,7 @@
 import type { PillTone } from "@/components/ui/data-table";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo } from "react";
-import { AlertCircleIcon, CalendarIcon } from "lucide-react";
+import { AlertCircleIcon } from "lucide-react";
 
 import { Pill } from "@/components/ui/data-table";
 import { cn } from "@/lib/utils";
@@ -67,8 +67,40 @@ export function ScheduleList({
 
   if (rows.length === 0) {
     return (
-      <div className="border-border bg-card flex flex-col items-center gap-2 rounded-lg border py-14 text-center">
-        <CalendarIcon className="text-muted-foreground size-5" aria-hidden />
+      <div className="border-border bg-card reveal-up flex flex-col items-center gap-2 rounded-lg border py-14 text-center">
+        {/* Quiet week-grid glyph — an open fortnight. */}
+        <svg viewBox="0 0 112 72" aria-hidden className="text-border mb-1 h-14 w-auto">
+          <rect
+            x="1.5"
+            y="1.5"
+            width="109"
+            height="69"
+            rx="8"
+            stroke="currentColor"
+            strokeWidth="3"
+            fill="none"
+            opacity="0.6"
+          />
+          <line
+            x1="1"
+            y1="20"
+            x2="111"
+            y2="20"
+            stroke="currentColor"
+            strokeWidth="3"
+            opacity="0.4"
+          />
+          <rect x="12" y="30" width="20" height="12" rx="3" fill="currentColor" opacity="0.2" />
+          <rect
+            x="40"
+            y="48"
+            width="20"
+            height="12"
+            rx="3"
+            className="text-teal-500/40"
+            fill="currentColor"
+          />
+        </svg>
         <p className="text-foreground text-[14px] font-medium">Nothing booked</p>
         <p className="text-muted-foreground max-w-md text-[12.5px] leading-relaxed">
           Patients can&apos;t book without your declared availability. Add bookable hours from{" "}
@@ -83,7 +115,7 @@ export function ScheduleList({
 
   return (
     <>
-      <ul className="flex flex-col gap-4">
+      <ul className="stagger-children flex flex-col gap-4">
         {grouped.map(([day, dayRows]) => (
           <li key={day}>
             <p className="text-muted-foreground mb-2 font-mono text-[10.5px] tracking-[0.14em] uppercase">
@@ -96,10 +128,10 @@ export function ScheduleList({
                     type="button"
                     onClick={() => openRow(r.id)}
                     className={cn(
-                      "hover:bg-muted/40 group flex w-full items-center gap-3 px-4 py-3 text-left transition-colors outline-none",
+                      "group tap flex w-full items-center gap-3 px-4 py-3 text-left transition-colors outline-none hover:bg-teal-50/40 dark:hover:bg-teal-950/15",
                       "focus-visible:bg-muted/60 focus-visible:ring-2 focus-visible:ring-teal-500/40 focus-visible:ring-inset",
                       r.status === "pending_approval" &&
-                        "bg-amber-50/40 hover:bg-amber-50/70 dark:bg-amber-950/15",
+                        "bg-amber-50/40 hover:bg-amber-50/70 dark:bg-amber-950/15 dark:hover:bg-amber-950/25",
                     )}
                   >
                     <div className="w-20 shrink-0 font-mono text-[12px] tabular-nums">

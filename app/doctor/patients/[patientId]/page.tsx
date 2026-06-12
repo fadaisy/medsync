@@ -53,18 +53,21 @@ export default async function DoctorPatientSummaryPage({ params }: PageProps) {
   const ageYears = computeAgeYears(summary.dateOfBirth);
 
   return (
-    <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-6 py-8 lg:py-10">
+    <div className="stagger-children mx-auto flex w-full max-w-4xl flex-col gap-6 px-6 py-8 lg:py-10">
       <div className="flex items-center justify-between gap-3">
         <Link
           href="/doctor/patients"
-          className="text-muted-foreground hover:text-foreground inline-flex w-fit items-center gap-1 text-[12.5px] transition-colors"
+          className="text-muted-foreground hover:text-foreground group inline-flex w-fit items-center gap-1 text-[12.5px] transition-colors"
         >
-          <ArrowLeftIcon className="size-3.5" aria-hidden />
+          <ArrowLeftIcon
+            className="size-3.5 transition-transform duration-200 group-hover:-translate-x-0.5"
+            aria-hidden
+          />
           Patient panel
         </Link>
         <Link
           href={`/doctor/patients/${summary.patientUserId}/prescribe`}
-          className="border-border bg-card hover:bg-muted/30 hover:border-foreground/15 inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-[12px] font-medium transition-colors"
+          className="border-border bg-card hover:bg-muted/30 hover:border-foreground/15 tap inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-[12px] font-medium transition-colors"
         >
           Prescribe / order
         </Link>
@@ -73,7 +76,10 @@ export default async function DoctorPatientSummaryPage({ params }: PageProps) {
       {/* Header — name + identity strip */}
       <header className="flex flex-col gap-2">
         <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
-          <span aria-hidden className="size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20" />
+          <span
+            aria-hidden
+            className="pulse-dot size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20"
+          />
           Patient summary
         </span>
         <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
@@ -94,7 +100,12 @@ export default async function DoctorPatientSummaryPage({ params }: PageProps) {
       {/* Access basis strip — small, but always visible (defensible: the doctor
           should know on what basis they're reading this record). */}
       <div className="border-border bg-card flex items-center gap-3 rounded-xl border px-4 py-2.5">
-        <ShieldAlertIcon className="size-4 shrink-0 text-teal-600 dark:text-teal-400" aria-hidden />
+        <span
+          aria-hidden
+          className="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-teal-50 ring-1 ring-teal-200/60 dark:bg-teal-950/40 dark:ring-teal-800/40"
+        >
+          <ShieldAlertIcon className="size-3.5 text-teal-600 dark:text-teal-400" />
+        </span>
         <div className="flex min-w-0 flex-1 flex-col">
           <span className="text-muted-foreground font-mono text-[9.5px] tracking-[0.12em] uppercase">
             Access basis · this read was logged
@@ -106,7 +117,7 @@ export default async function DoctorPatientSummaryPage({ params }: PageProps) {
       </div>
 
       {/* Two-column main */}
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="stagger-children grid gap-4 lg:grid-cols-3">
         {/* Demographics + contact */}
         <section className="border-border bg-card flex flex-col gap-3 rounded-xl border p-4 lg:col-span-1">
           <h2 className="text-muted-foreground font-mono text-[10.5px] tracking-[0.14em] uppercase">
@@ -125,11 +136,11 @@ export default async function DoctorPatientSummaryPage({ params }: PageProps) {
           {summary.knownConditions.length === 0 ? (
             <p className="text-muted-foreground text-[12.5px]">None on file.</p>
           ) : (
-            <ul className="flex flex-wrap gap-1.5">
+            <ul className="stagger-children flex flex-wrap gap-1.5">
               {summary.knownConditions.map((c) => (
                 <li
                   key={c}
-                  className="border-border bg-muted/40 text-foreground rounded-full border px-2.5 py-1 text-[12px]"
+                  className="border-border bg-muted/40 text-foreground rounded-full border px-2.5 py-1 text-[12px] transition-colors duration-200 hover:border-gray-300"
                 >
                   {c}
                 </li>
@@ -222,12 +233,15 @@ function PlaceholderSection({
 function NoAccessScreen({ patientId }: { patientId: string }) {
   void patientId;
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-6 py-10">
+    <div className="stagger-children mx-auto flex w-full max-w-2xl flex-col gap-6 px-6 py-10">
       <Link
         href="/doctor/patients"
-        className="text-muted-foreground hover:text-foreground inline-flex w-fit items-center gap-1 text-[12.5px] transition-colors"
+        className="text-muted-foreground hover:text-foreground group inline-flex w-fit items-center gap-1 text-[12.5px] transition-colors"
       >
-        <ArrowLeftIcon className="size-3.5" aria-hidden />
+        <ArrowLeftIcon
+          className="size-3.5 transition-transform duration-200 group-hover:-translate-x-0.5"
+          aria-hidden
+        />
         Patient panel
       </Link>
 

@@ -350,15 +350,17 @@ export function TriageDesk({
       </span>
       <div className="flex items-center gap-2">
         <span
+          // Re-keyed per level so the live badge pops as the acuity moves.
+          key={tier.level}
           className={cn(
-            "inline-flex items-center rounded-lg px-2.5 py-1 text-[14px] font-semibold tabular-nums",
+            "scale-in inline-flex items-center rounded-lg px-2.5 py-1 text-[14px] font-semibold tabular-nums",
             COLOUR_CLASS[tier.colour],
           )}
         >
           L{tier.level} · {tier.colour.toUpperCase()}
         </span>
         {result.provisional ? (
-          <span className="inline-flex items-center rounded-full bg-amber-50 px-1.5 py-0.5 font-mono text-[8.5px] font-semibold tracking-wide text-amber-700 uppercase dark:bg-amber-950/30 dark:text-amber-300">
+          <span className="scale-in inline-flex items-center rounded-full bg-amber-50 px-1.5 py-0.5 font-mono text-[8.5px] font-semibold tracking-wide text-amber-700 uppercase dark:bg-amber-950/30 dark:text-amber-300">
             provisional
           </span>
         ) : null}
@@ -369,7 +371,10 @@ export function TriageDesk({
       {result.news2 ? (
         <div className="bg-muted/50 h-1 w-full overflow-hidden rounded-full">
           <div
-            className={cn("h-full rounded-full", riskBarFill(result.news2.total))}
+            className={cn(
+              "h-full rounded-full motion-safe:transition-[width,background-color] motion-safe:duration-500",
+              riskBarFill(result.news2.total),
+            )}
             style={{ width: `${Math.min(100, (result.news2.total / 20) * 100)}%` }}
           />
         </div>
@@ -542,7 +547,7 @@ export function TriageDesk({
                 <label
                   key={d.code}
                   className={cn(
-                    "flex cursor-pointer items-start gap-2 rounded-lg border px-2.5 py-2 text-[12px] transition-colors",
+                    "tap flex cursor-pointer items-start gap-2 rounded-lg border px-2.5 py-2 text-[12px] transition-colors",
                     fired
                       ? "border-rose-500/60 bg-rose-50/70 dark:border-rose-500/50 dark:bg-rose-950/25"
                       : "border-border hover:border-border hover:bg-muted/40",
@@ -591,7 +596,11 @@ export function TriageDesk({
             Final acuity
           </span>
           <div className="flex items-end gap-2.5">
-            <span className="text-foreground font-mono text-[32px] leading-[0.85] font-semibold tabular-nums">
+            <span
+              // Re-keyed per level so the verdict pops when the engine moves it.
+              key={tier.level}
+              className="text-foreground scale-in inline-block origin-bottom-left font-mono text-[32px] leading-[0.85] font-semibold tabular-nums"
+            >
               L{tier.level}
             </span>
             <span
@@ -631,7 +640,7 @@ export function TriageDesk({
                   NEWS2 total
                 </span>
                 {result.news2.hasSingleParameterThree ? (
-                  <span className="inline-flex items-center rounded-full bg-rose-50 px-1.5 py-0.5 font-mono text-[9px] font-semibold tracking-wide text-rose-700 uppercase dark:bg-rose-950/30 dark:text-rose-300">
+                  <span className="scale-in inline-flex items-center rounded-full bg-rose-50 px-1.5 py-0.5 font-mono text-[9px] font-semibold tracking-wide text-rose-700 uppercase dark:bg-rose-950/30 dark:text-rose-300">
                     single +3 · red score
                   </span>
                 ) : null}
@@ -653,7 +662,10 @@ export function TriageDesk({
               </div>
               <div className="bg-muted/50 mt-0.5 h-1.5 w-full overflow-hidden rounded-full">
                 <div
-                  className={cn("h-full rounded-full", riskBarFill(result.news2.total))}
+                  className={cn(
+                    "h-full rounded-full motion-safe:transition-[width,background-color] motion-safe:duration-500",
+                    riskBarFill(result.news2.total),
+                  )}
                   style={{ width: `${Math.min(100, (result.news2.total / 20) * 100)}%` }}
                 />
               </div>
@@ -726,7 +738,7 @@ export function TriageDesk({
 
   // ── Assign / submit action bar ──────────────────────────────────
   const actionBar = (
-    <div className="border-border bg-card/95 supports-[backdrop-filter]:bg-card/80 sticky bottom-0 z-10 flex flex-col gap-3 rounded-2xl border p-4 backdrop-blur">
+    <div className="border-border glass sticky bottom-0 z-10 flex flex-col gap-3 rounded-2xl border p-4 shadow-lg shadow-black/3">
       <div className="flex flex-col gap-1.5">
         <span className="text-muted-foreground font-mono text-[10px] tracking-[0.14em] uppercase">
           Assign acuity
@@ -744,13 +756,21 @@ export function TriageDesk({
                 onClick={() => setAssigned(t.level)}
                 title={blocked ? "Only a doctor / clinical officer may assign a lower acuity" : ""}
                 className={cn(
-                  "flex-1 rounded-md py-1.5 text-[12px] font-semibold transition-colors",
+                  "tap relative flex-1 rounded-md py-2 text-[12px] font-semibold transition-colors",
                   selected
                     ? COLOUR_CLASS[t.colour]
-                    : "border-border bg-card text-muted-foreground hover:text-foreground border",
+                    : "border-border bg-card text-muted-foreground hover:text-foreground hover:bg-muted/40 border",
                   blocked && "cursor-not-allowed opacity-40",
                 )}
               >
+                {/* One-shot confirmation flare — mounts with the selection, so
+                    the button node (and keyboard focus) stays stable. */}
+                {selected ? (
+                  <span
+                    aria-hidden
+                    className="select-flare pointer-events-none absolute inset-0 rounded-md"
+                  />
+                ) : null}
                 L{t.level}
               </button>
             );
@@ -789,11 +809,12 @@ export function TriageDesk({
 
       <form action={formAction} className="flex items-center justify-end gap-2">
         <input type="hidden" name="payload" value={payload} />
-        <Button type="button" variant="ghost" onClick={onClose} disabled={pending}>
+        <Button type="button" variant="ghost" onClick={onClose} disabled={pending} className="tap">
           Cancel
         </Button>
         <Button
           type="submit"
+          className="tap"
           disabled={pending || downBlocked || (needsReason && overrideReason.trim().length < 8)}
         >
           {pending
@@ -811,9 +832,12 @@ export function TriageDesk({
       {/* Back nav */}
       <Link
         href={basePath}
-        className="text-muted-foreground hover:text-foreground mb-4 inline-flex items-center gap-1.5 text-[12px] transition-colors"
+        className="text-muted-foreground hover:text-foreground group mb-4 inline-flex items-center gap-1.5 text-[12px] transition-colors"
       >
-        <ArrowLeftIcon className="size-3.5" aria-hidden />
+        <ArrowLeftIcon
+          className="size-3.5 transition-transform group-hover:-translate-x-0.5"
+          aria-hidden
+        />
         Back to worklist
       </Link>
 
@@ -827,7 +851,7 @@ export function TriageDesk({
           stay visible above the vitals — the loop survives without
           scrolling away from the result. Hidden once the right rail
           appears (lg+). */}
-      <div className="bg-background/95 supports-[backdrop-filter]:bg-background/80 border-border sticky top-0 z-20 -mx-4 mb-3 border-b px-4 py-2 backdrop-blur sm:-mx-6 sm:px-6 lg:hidden">
+      <div className="glass border-border sticky top-0 z-20 -mx-4 mb-3 border-b px-4 py-2 sm:-mx-6 sm:px-6 lg:hidden">
         {compactAcuity}
       </div>
 
@@ -924,7 +948,7 @@ function WorseOf({
             <div
               key={l.key}
               className={cn(
-                "h-full flex-1 rounded-full",
+                "h-full flex-1 rounded-full transition-[background-color,opacity] duration-300",
                 laneTier ? SEG_FILL[laneTier.colour] : "bg-muted",
                 laneTier && !isWinner && "opacity-30",
               )}
@@ -1141,7 +1165,7 @@ function DeltaPill({ i, mod }: { i: VitalInterpretation; mod?: boolean }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 font-mono text-[10px] font-semibold tabular-nums",
+        "scale-in inline-flex items-center gap-1 rounded-full px-1.5 py-0.5 font-mono text-[10px] font-semibold tabular-nums",
         PILL_TINT[i.tone],
       )}
     >
@@ -1371,7 +1395,7 @@ function PillToggle({
       type="button"
       onClick={onClick}
       className={cn(
-        "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 font-mono text-[10px] tracking-wide transition-colors",
+        "tap inline-flex items-center gap-1 rounded-full border px-2.5 py-1 font-mono text-[10px] tracking-wide transition-colors",
         active
           ? "border-teal-500/50 bg-teal-50 text-teal-700 dark:bg-teal-950/30 dark:text-teal-300"
           : "border-border text-muted-foreground hover:text-foreground",

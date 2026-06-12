@@ -35,15 +35,16 @@ export function AssignForm({
 
   if (state.ok) {
     return (
-      <div className="border-border bg-card flex flex-col items-start gap-3 rounded-xl border p-5">
+      <div className="border-border bg-card scale-in flex flex-col items-start gap-3 rounded-xl border p-5 ring-1 ring-teal-500/10">
         <span
           aria-hidden
-          className="inline-flex size-9 items-center justify-center rounded-full bg-teal-100 text-teal-700 dark:bg-teal-900/60 dark:text-teal-300"
+          className="scale-in inline-flex size-9 items-center justify-center rounded-full bg-teal-100 text-teal-700 dark:bg-teal-900/60 dark:text-teal-300"
+          style={{ animationDelay: "90ms" }}
         >
           <ClipboardPenIcon className="size-4" />
         </span>
         <span className="text-foreground text-[14px] font-medium">Patient assigned</span>
-        <Button type="button" onClick={() => router.refresh()}>
+        <Button type="button" className="tap" onClick={() => router.refresh()}>
           Assign another
         </Button>
       </div>
@@ -140,13 +141,13 @@ export function AssignForm({
       </div>
 
       {state.error ? (
-        <p className="text-destructive border-destructive/30 bg-destructive/5 rounded-md border px-3 py-2 text-[12px]">
+        <p className="text-destructive border-destructive/30 bg-destructive/5 scale-in rounded-md border px-3 py-2 text-[12px]">
           {state.error}
         </p>
       ) : null}
 
       <div className="flex items-center justify-end">
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" className="tap" disabled={pending}>
           {pending ? "Assigning…" : "Assign"}
         </Button>
       </div>

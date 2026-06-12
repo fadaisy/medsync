@@ -142,9 +142,11 @@ export function V2SiteNav({ sections = DEFAULT_LANDING_SECTIONS }: V2SiteNavProp
         data-shrunk={shrunk || undefined}
         className={cn(
           "sticky top-0 z-40 w-full",
-          "supports-[backdrop-filter]:bg-background/80 bg-background/95 backdrop-blur",
+          // Frosted sticky-bar surface (shared `glass` utility).
+          "glass",
           "border-border/60 border-b",
           "ease-expo-out transition-all duration-200",
+          "data-shrunk:shadow-[0_1px_2px_rgba(0,0,0,0.04)]",
         )}
       >
         <div
@@ -181,12 +183,13 @@ export function V2SiteNav({ sections = DEFAULT_LANDING_SECTIONS }: V2SiteNavProp
                       )}
                     >
                       {s.label}
-                      {/* Active underline */}
+                      {/* Active underline — slides in from the left. */}
                       <span
                         aria-hidden
                         className={cn(
-                          "absolute right-3 bottom-0 left-3 h-[1.5px] rounded-full bg-teal-500 transition-opacity duration-200 dark:bg-teal-400",
-                          isActive ? "opacity-100" : "opacity-0",
+                          "absolute right-3 bottom-0 left-3 h-[1.5px] origin-left rounded-full bg-teal-500 dark:bg-teal-400",
+                          "ease-expo-out transition-transform duration-300",
+                          isActive ? "scale-x-100" : "scale-x-0",
                         )}
                       />
                     </a>
@@ -208,8 +211,8 @@ export function V2SiteNav({ sections = DEFAULT_LANDING_SECTIONS }: V2SiteNavProp
             <Link
               href="/get-started"
               className={cn(
-                "inline-flex items-center gap-1.5 rounded-md px-3.5 py-1.5 text-[12.5px] font-medium",
-                "bg-teal-600 text-white shadow-sm transition-colors hover:bg-teal-700",
+                "tap inline-flex items-center gap-1.5 rounded-md px-3.5 py-1.5 text-[12.5px] font-medium",
+                "bg-teal-600 text-white shadow-sm transition-colors hover:bg-teal-700 hover:shadow-md",
                 "dark:bg-teal-500 dark:hover:bg-teal-600",
               )}
             >
@@ -221,7 +224,7 @@ export function V2SiteNav({ sections = DEFAULT_LANDING_SECTIONS }: V2SiteNavProp
               aria-expanded={drawerOpen}
               aria-controls="v2-nav-drawer"
               onClick={() => setDrawerOpen(true)}
-              className="text-foreground hover:bg-muted inline-flex size-9 items-center justify-center rounded-md md:hidden"
+              className="text-foreground hover:bg-muted tap inline-flex size-9 items-center justify-center rounded-md md:hidden"
             >
               <MenuIcon className="size-4" strokeWidth={2} />
             </button>
@@ -242,9 +245,9 @@ export function V2SiteNav({ sections = DEFAULT_LANDING_SECTIONS }: V2SiteNavProp
             type="button"
             aria-label="Close menu"
             onClick={() => setDrawerOpen(false)}
-            className="bg-background/60 absolute inset-0 backdrop-blur-sm"
+            className="bg-background/60 absolute inset-0 backdrop-blur-sm motion-safe:[animation:medsync-fade-in_250ms_var(--ease-expo-out)_both]"
           />
-          <div className="bg-background border-border absolute inset-y-0 right-0 flex w-[78%] max-w-xs flex-col border-l shadow-xl">
+          <div className="bg-background border-border motion-safe:reveal-up absolute inset-y-0 right-0 flex w-[78%] max-w-xs flex-col border-l shadow-xl">
             <div className="border-border/60 flex items-center justify-between border-b px-5 py-3.5">
               <span className="font-display text-foreground text-[16px] tracking-tight">
                 MedSync
@@ -253,12 +256,12 @@ export function V2SiteNav({ sections = DEFAULT_LANDING_SECTIONS }: V2SiteNavProp
                 type="button"
                 aria-label="Close menu"
                 onClick={() => setDrawerOpen(false)}
-                className="text-foreground hover:bg-muted inline-flex size-9 items-center justify-center rounded-md"
+                className="text-foreground hover:bg-muted tap inline-flex size-9 items-center justify-center rounded-md"
               >
                 <XIcon className="size-4" strokeWidth={2} />
               </button>
             </div>
-            <nav aria-label="Page sections" className="flex flex-col gap-1 p-3">
+            <nav aria-label="Page sections" className="stagger-children flex flex-col gap-1 p-3">
               {sections.map((s) => {
                 const isActive = activeId === s.id;
                 return (
@@ -268,7 +271,7 @@ export function V2SiteNav({ sections = DEFAULT_LANDING_SECTIONS }: V2SiteNavProp
                     onClick={() => setDrawerOpen(false)}
                     aria-current={isActive ? "true" : undefined}
                     className={cn(
-                      "flex items-center justify-between rounded-md px-3 py-2.5 text-[14px]",
+                      "tap flex items-center justify-between rounded-md px-3 py-2.5 text-[14px]",
                       isActive
                         ? "text-foreground bg-teal-50/60 dark:bg-teal-50/10"
                         : "text-foreground/85 hover:bg-muted",

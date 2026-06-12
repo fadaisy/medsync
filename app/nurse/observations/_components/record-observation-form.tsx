@@ -39,10 +39,11 @@ export function RecordObservationForm({ patientUserId }: { patientUserId: string
 
   if (state.ok) {
     return (
-      <div className="border-border bg-card flex flex-col items-start gap-3 rounded-xl border p-5">
+      <div className="border-border bg-card scale-in flex flex-col items-start gap-3 rounded-xl border p-5 ring-1 ring-teal-500/10">
         <span
           aria-hidden
-          className="inline-flex size-9 items-center justify-center rounded-full bg-teal-100 text-teal-700 dark:bg-teal-900/60 dark:text-teal-300"
+          className="scale-in inline-flex size-9 items-center justify-center rounded-full bg-teal-100 text-teal-700 dark:bg-teal-900/60 dark:text-teal-300"
+          style={{ animationDelay: "90ms" }}
         >
           <HeartPulseIcon className="size-4" />
         </span>
@@ -82,8 +83,8 @@ export function RecordObservationForm({ patientUserId }: { patientUserId: string
               aria-pressed={kind === k.value}
               className={
                 kind === k.value
-                  ? "rounded-full bg-teal-600 px-3 py-1 text-[12px] font-medium text-white"
-                  : "border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 rounded-full border px-3 py-1 text-[12px] transition-colors"
+                  ? "tap select-flare rounded-full bg-teal-600 px-3.5 py-1.5 text-[12px] font-medium text-white shadow-sm"
+                  : "tap border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 hover:bg-muted/40 rounded-full border px-3.5 py-1.5 text-[12px] transition-colors"
               }
             >
               {k.label}
@@ -116,7 +117,10 @@ export function RecordObservationForm({ patientUserId }: { patientUserId: string
           ) : null}
           {meta.unit ? (
             <>
-              <span className="text-muted-foreground font-mono text-[11px]">{meta.unit}</span>
+              {/* key re-pops the unit label when the vital changes */}
+              <span key={kind} className="scale-in text-muted-foreground font-mono text-[11px]">
+                {meta.unit}
+              </span>
               <input type="hidden" name="unit" value={meta.unit} />
             </>
           ) : null}
@@ -152,16 +156,16 @@ export function RecordObservationForm({ patientUserId }: { patientUserId: string
       </div>
 
       {state.error ? (
-        <p className="text-destructive border-destructive/30 bg-destructive/5 rounded-md border px-3 py-2 text-[12px]">
+        <p className="text-destructive border-destructive/30 bg-destructive/5 scale-in rounded-md border px-3 py-2 text-[12px]">
           {state.error}
         </p>
       ) : null}
 
       <div className="flex items-center justify-end gap-2">
-        <Button type="button" variant="ghost" onClick={() => router.back()}>
+        <Button type="button" variant="ghost" className="tap" onClick={() => router.back()}>
           Cancel
         </Button>
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" className="tap" disabled={pending}>
           {pending ? "Recording…" : "Record observation"}
         </Button>
       </div>

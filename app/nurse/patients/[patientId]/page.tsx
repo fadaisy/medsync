@@ -108,12 +108,15 @@ export default async function NursePatientSummaryPage({ params }: PageProps) {
   const ageYears = computeAgeYears(summary.dateOfBirth);
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-6 py-8 lg:py-10">
+    <div className="stagger-children mx-auto flex w-full max-w-5xl flex-col gap-6 px-6 py-8 lg:py-10">
       <Link
         href="/nurse/patients"
-        className="text-muted-foreground hover:text-foreground inline-flex w-fit items-center gap-1 text-[12.5px] transition-colors"
+        className="text-muted-foreground hover:text-foreground group inline-flex w-fit items-center gap-1 text-[12.5px] transition-colors"
       >
-        <ArrowLeftIcon className="size-3.5" aria-hidden />
+        <ArrowLeftIcon
+          className="size-3.5 transition-transform duration-200 group-hover:-translate-x-0.5"
+          aria-hidden
+        />
         Patient panel
       </Link>
 
@@ -137,7 +140,7 @@ export default async function NursePatientSummaryPage({ params }: PageProps) {
         </p>
       </header>
 
-      <div className="border-border bg-card flex items-center gap-3 rounded-xl border px-4 py-2.5">
+      <div className="border-border bg-card flex items-center gap-3 rounded-xl border px-4 py-2.5 ring-1 ring-teal-500/5">
         <ShieldAlertIcon className="size-4 shrink-0 text-teal-600 dark:text-teal-400" aria-hidden />
         <div className="flex min-w-0 flex-1 flex-col">
           <span className="text-muted-foreground font-mono text-[9.5px] tracking-[0.12em] uppercase">
@@ -170,7 +173,7 @@ export default async function NursePatientSummaryPage({ params }: PageProps) {
               {summary.knownConditions.map((c) => (
                 <li
                   key={c}
-                  className="border-border bg-muted/40 text-foreground rounded-full border px-2.5 py-1 text-[12px]"
+                  className="border-border bg-muted/40 text-foreground hover:border-foreground/20 rounded-full border px-2.5 py-1 text-[12px] transition-colors"
                 >
                   {c}
                 </li>
@@ -206,7 +209,10 @@ export default async function NursePatientSummaryPage({ params }: PageProps) {
           ) : (
             <ul className="divide-border/60 -mx-2 divide-y">
               {recentObs.map((o) => (
-                <li key={o.id} className="flex items-baseline justify-between gap-2 px-2 py-1.5">
+                <li
+                  key={o.id}
+                  className="hover:bg-muted/40 flex items-baseline justify-between gap-2 rounded-sm px-2 py-1.5 transition-colors"
+                >
                   <span className="text-foreground text-[12.5px]">
                     <span className="text-muted-foreground inline-block w-[110px] font-mono text-[10.5px] tracking-[0.06em] uppercase">
                       {OBS_LABEL[o.kind] ?? o.kind}
@@ -266,13 +272,13 @@ export default async function NursePatientSummaryPage({ params }: PageProps) {
       {/* Bottom action — quick-record */}
       <div className="flex flex-wrap items-center gap-2">
         <Link href={`/nurse/observations?patient=${summary.patientUserId}`}>
-          <Button type="button">
+          <Button type="button" className="tap">
             <HeartPulseIcon className="size-3.5" aria-hidden />
             Record vitals
           </Button>
         </Link>
         <Link href={`/nurse/mar?patient=${summary.patientUserId}`}>
-          <Button type="button" variant="secondary">
+          <Button type="button" variant="secondary" className="tap">
             <PillIcon className="size-3.5" aria-hidden />
             Administer medication
           </Button>
@@ -323,10 +329,10 @@ function NoAccessScreen() {
         Patient panel
       </Link>
 
-      <div className="border-border bg-card flex flex-col items-start gap-3 rounded-xl border p-6">
+      <div className="border-border bg-card reveal-up flex flex-col items-start gap-3 rounded-xl border p-6">
         <span
           aria-hidden
-          className="inline-flex size-10 items-center justify-center rounded-full bg-amber-50 text-amber-700 ring-1 ring-amber-200/70 dark:bg-amber-950/40 dark:text-amber-300 dark:ring-amber-800/40"
+          className="scale-in inline-flex size-10 items-center justify-center rounded-full bg-amber-50 text-amber-700 ring-1 ring-amber-200/70 dark:bg-amber-950/40 dark:text-amber-300 dark:ring-amber-800/40"
         >
           <ShieldAlertIcon className="size-5" />
         </span>

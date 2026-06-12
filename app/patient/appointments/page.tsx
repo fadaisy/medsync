@@ -53,7 +53,11 @@ export default async function PatientAppointments() {
   ]);
 
   return (
-    <div className="mx-auto flex w-full max-w-xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-9">
+    <div className="stagger-children relative mx-auto flex w-full max-w-xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-9">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-20 left-1/2 -z-10 h-56 w-md max-w-full -translate-x-1/2 rounded-full bg-teal-500/5 blur-3xl dark:bg-teal-400/4"
+      />
       <header className="flex flex-col gap-1.5">
         <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
           <span aria-hidden className="size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20" />
@@ -71,7 +75,7 @@ export default async function PatientAppointments() {
       {scope.primaryHospitalId ? (
         <Link
           href="/patient/book"
-          className="bg-foreground text-background hover:bg-foreground/90 inline-flex items-center justify-between gap-3 rounded-xl p-3.5 transition-colors"
+          className="bg-foreground text-background hover:bg-foreground/90 tap group inline-flex items-center justify-between gap-3 rounded-xl p-3.5 transition-colors"
         >
           <span className="inline-flex items-center gap-3">
             <span
@@ -85,14 +89,17 @@ export default async function PatientAppointments() {
               <span className="text-background/70 text-[11.5px]">{scope.primaryHospitalName}</span>
             </span>
           </span>
-          <span aria-hidden className="text-background/80 text-[14px]">
+          <span
+            aria-hidden
+            className="text-background/80 text-[14px] transition-transform group-hover:translate-x-0.5"
+          >
             →
           </span>
         </Link>
       ) : (
         <Link
           href="/patient/hospitals"
-          className="group relative overflow-hidden rounded-xl border border-teal-500/30 bg-gradient-to-br from-teal-50/80 via-teal-50/40 to-transparent p-4 transition-colors hover:border-teal-500/60 dark:border-teal-400/20 dark:from-teal-950/30 dark:via-teal-950/15 dark:to-transparent"
+          className="group card-lift relative overflow-hidden rounded-xl border border-teal-500/30 bg-linear-to-br from-teal-50/80 via-teal-50/40 to-transparent p-4 hover:border-teal-500/60 dark:border-teal-400/20 dark:from-teal-950/30 dark:via-teal-950/15 dark:to-transparent"
         >
           <div className="relative flex items-start gap-3">
             <span
@@ -141,11 +148,11 @@ function Section({
           {emptyText}
         </p>
       ) : (
-        <ul className="flex flex-col gap-2">
+        <ul className="stagger-children flex flex-col gap-2">
           {rows.map((r) => (
             <li
               key={r.id}
-              className="border-border bg-card flex flex-col gap-2 rounded-xl border p-4"
+              className="border-border bg-card flex flex-col gap-2 rounded-xl border p-4 transition-colors hover:border-gray-300"
             >
               <div className="flex items-center justify-between gap-2">
                 <span className="text-foreground text-[14px] font-medium">{r.clinicianName}</span>
@@ -161,7 +168,7 @@ function Section({
                 {formatWhen(r.startsAtIso)}
               </p>
               {r.reasonNote ? (
-                <p className="text-muted-foreground border-l-2 border-l-teal-500/50 pl-2 text-[12px] italic">
+                <p className="text-muted-foreground bg-muted/40 rounded-md px-2.5 py-1.5 text-[12px] italic">
                   &ldquo;{r.reasonNote}&rdquo;
                 </p>
               ) : null}

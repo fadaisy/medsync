@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ROS_SYSTEM_LABEL, ROS_SYSTEM_ORDER, rosCoverage } from "@/lib/clerkship/ros";
 import {
   loadRosCatalogAction,
@@ -172,7 +173,15 @@ export function RosReview({
   }
 
   if (catalog === null) {
-    return <p className="text-muted-foreground text-[12px]">Loading the review of systems…</p>;
+    return (
+      <div className="flex flex-col gap-2" aria-busy="true">
+        <Skeleton className="h-16 rounded-lg" />
+        <Skeleton className="h-10 rounded-lg" />
+        <Skeleton className="h-10 rounded-lg" />
+        <Skeleton className="h-10 rounded-lg" />
+        <p className="text-muted-foreground text-[12px]">Loading the review of systems…</p>
+      </div>
+    );
   }
 
   const cover = rosCoverage({ observations: value, pcSystems: [...pcSystems], systems });
@@ -194,7 +203,7 @@ export function RosReview({
                 key={m}
                 type="button"
                 onClick={() => setMode(m)}
-                className={`px-3 py-1 text-[12px] font-medium capitalize ${EASE} ${
+                className={`tap px-3 py-1 text-[12px] font-medium capitalize ${EASE} ${
                   scope.mode === m
                     ? "bg-teal-600 text-white"
                     : "text-muted-foreground hover:bg-muted"
@@ -217,7 +226,7 @@ export function RosReview({
         </p>
       </div>
 
-      <div className="flex flex-col gap-2">
+      <div className="stagger-children flex flex-col gap-2">
         {systems.map((sys) => {
           const list = grouped.get(sys) ?? [];
           const state = cover[sys];
@@ -230,7 +239,7 @@ export function RosReview({
           return (
             <section
               key={sys}
-              className={`border-border/70 overflow-hidden rounded-lg border ${focusedOut ? "opacity-70" : ""}`}
+              className={`border-border/70 overflow-hidden rounded-lg border transition-[opacity,border-color] duration-200 ${focusedOut ? "opacity-70" : "hover:border-border"}`}
             >
               <div className="bg-muted/30 flex items-center gap-2 px-3 py-2">
                 <button
@@ -259,7 +268,7 @@ export function RosReview({
                     {ROS_SYSTEM_LABEL[sys] ?? sys}
                   </span>
                   {hpcCovered ? (
-                    <span className="inline-flex items-center gap-1 rounded bg-teal-50 px-1.5 py-0.5 text-[10px] font-medium text-teal-700 ring-1 ring-teal-500/30 ring-inset dark:bg-teal-950/40 dark:text-teal-200">
+                    <span className="scale-in inline-flex items-center gap-1 rounded bg-teal-50 px-1.5 py-0.5 text-[10px] font-medium text-teal-700 ring-1 ring-teal-500/30 ring-inset dark:bg-teal-950/40 dark:text-teal-200">
                       <FileTextIcon className="size-3" aria-hidden />
                       covered in HPC
                     </span>
@@ -269,7 +278,12 @@ export function RosReview({
                       not reviewed
                     </span>
                   ) : (
-                    <RollUp reviewed={reviewed} total={list.length} positives={positives} />
+                    <RollUp
+                      key={positives}
+                      reviewed={reviewed}
+                      total={list.length}
+                      positives={positives}
+                    />
                   )}
                 </button>
 
@@ -277,7 +291,7 @@ export function RosReview({
                   <button
                     type="button"
                     onClick={() => toggleFocus(sys)}
-                    className={`text-muted-foreground hover:bg-muted hover:text-foreground inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium ${EASE}`}
+                    className={`tap text-muted-foreground hover:bg-muted hover:text-foreground inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium ${EASE}`}
                   >
                     <PlusIcon className="size-3" aria-hidden />
                     Review
@@ -286,7 +300,7 @@ export function RosReview({
                   <button
                     type="button"
                     onClick={() => allNegative(sys)}
-                    className={`text-muted-foreground hover:bg-muted hover:text-foreground rounded-md px-2 py-1 text-[11px] font-medium ${EASE}`}
+                    className={`tap text-muted-foreground hover:bg-muted hover:text-foreground rounded-md px-2 py-1 text-[11px] font-medium ${EASE}`}
                     title="Mark every unanswered symptom in this system as denied"
                   >
                     All negative
@@ -296,7 +310,7 @@ export function RosReview({
 
               {/* HPC-covered: openable (add a screen the HPC didn't capture). */}
               {hpcCovered && !isCollapsed ? (
-                <div className="text-muted-foreground border-border/50 border-t px-3 py-2 text-[11.5px]">
+                <div className="text-muted-foreground border-border/50 reveal-up border-t px-3 py-2 text-[11.5px]">
                   Reviewed in depth in the History of Presenting Complaint. Anything extra can still
                   be added below.
                   <div className="divide-border/50 mt-1 divide-y">
@@ -313,7 +327,7 @@ export function RosReview({
               ) : null}
 
               {!hpcCovered && !focusedOut && !isCollapsed ? (
-                <div className="divide-border/50 divide-y">
+                <div className="divide-border/50 reveal-up divide-y">
                   {list.map((s) => {
                     const st = byCode.get(s.code)?.status;
                     const isOpen = openProps === s.code && st === "present";
@@ -321,7 +335,7 @@ export function RosReview({
                       <div key={s.code}>
                         <SymptomRow sym={s} status={st} onStatus={(x) => setStatus(s, x)} />
                         {isOpen ? (
-                          <div className="bg-muted/20 border-border/50 border-t px-3 py-2">
+                          <div className="bg-muted/20 border-border/50 reveal-up border-t px-3 py-2">
                             <RosProps
                               properties={propsBySymptom[s.code] ?? null}
                               current={byCode.get(s.code)?.properties ?? []}
@@ -445,7 +459,7 @@ function ThreeState({
   onDenies: () => void;
   onPresent: () => void;
 }) {
-  const base = `inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium ring-1 ring-inset ${EASE}`;
+  const base = `tap inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-medium ring-1 ring-inset ${EASE}`;
   return (
     <div className="flex shrink-0 gap-1">
       <button
@@ -500,7 +514,7 @@ function RosProps({
     onChange([...current.filter((p) => p.propertyCode !== code), build(prev)]);
   }
   const chip = (active: boolean) =>
-    `rounded px-2 py-0.5 text-[11.5px] ring-1 ring-inset ${EASE} ${active ? "bg-teal-50 text-teal-700 ring-teal-500/40 dark:bg-teal-950/40 dark:text-teal-200" : "text-foreground/70 ring-border hover:bg-muted/60"}`;
+    `tap rounded px-2 py-0.5 text-[11.5px] ring-1 ring-inset ${EASE} ${active ? "bg-teal-50 text-teal-700 ring-teal-500/40 dark:bg-teal-950/40 dark:text-teal-200" : "text-foreground/70 ring-border hover:bg-muted/60"}`;
 
   return (
     <div className="flex flex-col gap-2">

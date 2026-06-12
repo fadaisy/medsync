@@ -8,6 +8,7 @@ import {
   MyHealthSmsReminderChip,
   MyHealthTodayMedsCard,
 } from "./_my-health-mock";
+import { RevealOnScroll } from "./_reveal-on-scroll";
 
 /**
  * §07b — "Your health, in your hands" (patient-POV chapter).
@@ -179,9 +180,9 @@ export function PatientChapter() {
     >
       <div className="mx-auto w-full max-w-300 px-5 pt-16 pb-12 sm:px-8 sm:pt-24 sm:pb-20">
         {/* Chapter header — same archetype as §07, §09a, §10a, §12a */}
-        <div className="mb-12 flex flex-col gap-4">
+        <RevealOnScroll className="mb-12 flex flex-col gap-4">
           <span className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
-            <span className="size-1 rounded-full bg-teal-500" />/ for patients
+            <span className="pulse-dot size-1 rounded-full bg-teal-500" />/ for patients
           </span>
           <h2
             id="patient-chapter-headline"
@@ -196,13 +197,15 @@ export function PatientChapter() {
             a one-tap reading, dose reminders that reach the phone in her pocket, and a calm channel
             to tell her team when something feels off &mdash; without trekking into hospital.
           </p>
-        </div>
+        </RevealOnScroll>
 
         {/* Sub-points — alternating text/surface rows for rhythm */}
         <ol className="flex flex-col gap-12 sm:gap-16">
           {SUBPOINTS.map((sp, i) => (
             <li key={sp.letter}>
-              <SubPointRow subpoint={sp} reversed={i % 2 === 1} />
+              <RevealOnScroll>
+                <SubPointRow subpoint={sp} reversed={i % 2 === 1} />
+              </RevealOnScroll>
             </li>
           ))}
         </ol>

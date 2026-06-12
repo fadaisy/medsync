@@ -27,12 +27,19 @@ export default async function PatientHospitalsPage({ searchParams }: PageProps) 
   const results = await listDirectoryHospitals({ search });
 
   return (
-    <div className="mx-auto flex w-full max-w-xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-9">
+    <div className="stagger-children relative mx-auto flex w-full max-w-xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-9">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -top-20 left-1/2 -z-10 h-56 w-md max-w-full -translate-x-1/2 rounded-full bg-teal-500/5 blur-3xl dark:bg-teal-400/4"
+      />
       <Link
         href="/patient"
-        className="text-muted-foreground hover:text-foreground inline-flex w-fit items-center gap-1 text-[12.5px] transition-colors"
+        className="text-muted-foreground hover:text-foreground group inline-flex w-fit items-center gap-1 text-[12.5px] transition-colors"
       >
-        <ArrowLeftIcon className="size-3.5" aria-hidden />
+        <ArrowLeftIcon
+          className="size-3.5 transition-transform group-hover:-translate-x-0.5"
+          aria-hidden
+        />
         Back to home
       </Link>
 
@@ -80,22 +87,38 @@ export default async function PatientHospitalsPage({ searchParams }: PageProps) 
         </div>
 
         {results.length === 0 ? (
-          <p className="text-muted-foreground border-border bg-card rounded-xl border p-4 text-[12.5px] leading-relaxed">
-            {search
-              ? `No hospitals match "${search}". Try a shorter query, or clear the search.`
-              : "No active hospitals are listed right now. Check back soon."}
-          </p>
+          <div className="border-border bg-card flex flex-col items-center gap-2 rounded-xl border p-6 text-center">
+            <svg
+              viewBox="0 0 64 40"
+              aria-hidden
+              className="text-muted-foreground/40 h-10 w-16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <rect x="14" y="10" width="36" height="26" rx="2" />
+              <path d="M26 36 V24 h12 v12" />
+              <path d="M32 14 v8 M28 18 h8" className="text-teal-500/60" stroke="currentColor" />
+            </svg>
+            <p className="text-muted-foreground max-w-[40ch] text-[12.5px] leading-relaxed">
+              {search
+                ? `No hospitals match "${search}". Try a shorter query, or clear the search.`
+                : "No active hospitals are listed right now. Check back soon."}
+            </p>
+          </div>
         ) : (
-          <ul className="flex flex-col gap-2">
+          <ul className="stagger-children flex flex-col gap-2">
             {results.map((h) => {
               const isPrimary = h.id === scope.primaryHospitalId;
               return (
                 <li
-                  key={h.id}
+                  key={isPrimary ? `${h.id}-primary` : h.id}
                   className={
                     isPrimary
-                      ? "rounded-xl border border-teal-500/40 bg-teal-50/40 p-4 dark:border-teal-400/30 dark:bg-teal-950/20"
-                      : "border-border bg-card rounded-xl border p-4"
+                      ? "select-flare rounded-xl border border-teal-500/40 bg-teal-50/40 p-4 ring-1 ring-teal-500/20 dark:border-teal-400/30 dark:bg-teal-950/20"
+                      : "border-border bg-card rounded-xl border p-4 transition-colors hover:border-gray-300"
                   }
                 >
                   <div className="flex items-start justify-between gap-3">
@@ -138,14 +161,14 @@ export default async function PatientHospitalsPage({ searchParams }: PageProps) 
                       <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
                         <Link
                           href="/patient/queue"
-                          className="border-border bg-card inline-flex flex-1 items-center justify-center gap-1.5 rounded-full border px-3 py-2 text-[12.5px] font-medium text-teal-700 transition-colors hover:border-teal-300 hover:bg-teal-50/30 dark:text-teal-300 dark:hover:bg-teal-50/5"
+                          className="border-border bg-card tap inline-flex flex-1 items-center justify-center gap-1.5 rounded-full border px-3 py-2 text-[12.5px] font-medium text-teal-700 transition-colors hover:border-teal-300 hover:bg-teal-50/30 dark:text-teal-300 dark:hover:bg-teal-50/5"
                         >
                           <TicketIcon className="size-3.5" aria-hidden />
                           Join today&rsquo;s queue
                         </Link>
                         <Link
                           href="/patient/book"
-                          className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-full bg-teal-600 px-3 py-2 text-[12.5px] font-medium text-white shadow-xs transition-colors hover:bg-teal-700"
+                          className="tap inline-flex flex-1 items-center justify-center gap-1.5 rounded-full bg-teal-600 px-3 py-2 text-[12.5px] font-medium text-white shadow-xs transition-colors hover:bg-teal-700"
                         >
                           <CalendarPlusIcon className="size-3.5" aria-hidden />
                           Book a future visit

@@ -112,8 +112,10 @@ function FormContent({ block, onClose }: { block: AvailabilityRow | null; onClos
                 <label
                   key={k.value}
                   className={
-                    "border-border hover:bg-muted/30 flex cursor-pointer items-start gap-2.5 rounded-md border p-2.5 transition-colors " +
-                    (kind === k.value ? "border-teal-500/60 bg-teal-50/50 dark:bg-teal-950/20" : "")
+                    "border-border hover:bg-muted/30 tap flex cursor-pointer items-start gap-2.5 rounded-md border p-2.5 transition-colors " +
+                    (kind === k.value
+                      ? "select-flare border-teal-500/60 bg-teal-50/50 ring-1 ring-teal-500/15 dark:bg-teal-950/20"
+                      : "")
                   }
                 >
                   <input
@@ -244,7 +246,7 @@ function FormContent({ block, onClose }: { block: AvailabilityRow | null; onClos
         {isEdit && confirmingCancel ? (
           <form
             action={cancelAction}
-            className="mt-5 flex flex-col gap-2 rounded-md border border-amber-200 bg-amber-50/40 p-3 dark:border-amber-800/40 dark:bg-amber-950/20"
+            className="reveal-up mt-5 flex flex-col gap-2 rounded-md border border-amber-200 bg-amber-50/40 p-3 dark:border-amber-800/40 dark:bg-amber-950/20"
           >
             <input type="hidden" name="block_id" value={block.id} />
             <p className="text-[12.5px] font-medium text-amber-900 dark:text-amber-200">
