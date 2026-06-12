@@ -1,6 +1,7 @@
 "use client";
 
 import type { SubmitClerkshipResult } from "../actions";
+import type { ExamSystemMeta } from "./anatomical-canvas";
 import type { AbdoExam } from "@/lib/clerkship/exam/abdominal";
 import type { CvsExam } from "@/lib/clerkship/exam/cardiovascular";
 import type { EvfExam } from "@/lib/clerkship/exam/endo-vascular-foot";
@@ -46,6 +47,7 @@ import { renderSymptomProse } from "@/lib/clerkship/symptom-engine";
 import { ICD10_CODES, LOINC_CODES } from "@/lib/encounter/reference-codes";
 import { submitClerkshipAction } from "../actions";
 import { AbdominalExam } from "./abdominal-exam";
+import { ANATOMICAL_CANVAS_ENABLED, AnatomicalCanvas } from "./anatomical-canvas";
 import { CardiovascularExam } from "./cardiovascular-exam";
 import { EvfExamForm } from "./evf-exam";
 import { ExamSections } from "./exam-sections";
@@ -229,6 +231,11 @@ export function ClerkshipForm({
     | "musculoskeletal"
     | "endovascular"
   >("general");
+  // How the clinician navigates the exam systems. Defaults to the proven "By
+  // system" tab view — the Anatomical Canvas body-map is strictly opt-in, so the
+  // existing experience is untouched unless explicitly chosen (and the whole
+  // toggle hides when the feature is disabled). See anatomical-canvas.tsx.
+  const [examNav, setExamNav] = useState<"system" | "body">("system");
   // Legacy free-text per-system notes (all four systems now have structured
   // modules); kept read-only so any previously-saved text is preserved on re-save.
   const [examSystems] = useState({
@@ -514,49 +521,110 @@ export function ClerkshipForm({
                       onChange={setExamVitals}
                     />
 
-                    {/* System switcher — each examination is its own card */}
-                    <div className="border-border/70 bg-muted/30 flex flex-wrap gap-1 rounded-lg border p-1">
-                      {(
-                        [
-                          ["general", "General", examGeneralFindings.length > 0],
-                          [
-                            "cardiovascular",
-                            "Cardiovascular",
-                            Object.keys(examCardiovascular).length > 0,
-                          ],
-                          ["respiratory", "Respiratory", Object.keys(examRespiratory).length > 0],
-                          ["abdominal", "Abdomen", Object.keys(examAbdominal).length > 0],
-                          ["neurological", "Neuro", Object.keys(examNeurological).length > 0],
-                          ["musculoskeletal", "MSK", Object.keys(examMusculoskeletal).length > 0],
-                          [
-                            "endovascular",
-                            "Endo / Vasc / Foot",
-                            Object.keys(examEndoVascularFoot).length > 0,
-                          ],
-                        ] as const
-                      ).map(([key, lbl, hasContent]) => (
-                        <button
-                          key={key}
-                          type="button"
-                          onClick={() => setExamSystem(key)}
-                          aria-pressed={examSystem === key}
-                          className={`tap inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-medium transition-[background-color,color,box-shadow] duration-200 ${
-                            examSystem === key
-                              ? "bg-card text-foreground shadow-sm"
-                              : "text-muted-foreground hover:text-foreground"
-                          }`}
-                        >
-                          {lbl}
-                          {hasContent ? (
-                            <span
-                              aria-hidden
-                              className="scale-in size-1.5 rounded-full bg-teal-500"
-                              title="Has findings"
-                            />
+                    {/* System switcher — each examination is its own card. The
+                        tab list is the always-available equivalent (full keyboard
+                        + screen-reader); the body-map is an opt-in alternative
+                        view of the SAME selection. */}
+                    {(() => {
+                      const systemsMeta: ExamSystemMeta[] = [
+                        {
+                          key: "general",
+                          label: "General",
+                          hasContent: examGeneralFindings.length > 0,
+                        },
+                        {
+                          key: "cardiovascular",
+                          label: "Cardiovascular",
+                          hasContent: Object.keys(examCardiovascular).length > 0,
+                        },
+                        {
+                          key: "respiratory",
+                          label: "Respiratory",
+                          hasContent: Object.keys(examRespiratory).length > 0,
+                        },
+                        {
+                          key: "abdominal",
+                          label: "Abdomen",
+                          hasContent: Object.keys(examAbdominal).length > 0,
+                        },
+                        {
+                          key: "neurological",
+                          label: "Neuro",
+                          hasContent: Object.keys(examNeurological).length > 0,
+                        },
+                        {
+                          key: "musculoskeletal",
+                          label: "MSK",
+                          hasContent: Object.keys(examMusculoskeletal).length > 0,
+                        },
+                        {
+                          key: "endovascular",
+                          label: "Endo / Vasc / Foot",
+                          hasContent: Object.keys(examEndoVascularFoot).length > 0,
+                        },
+                      ];
+                      return (
+                        <div className="flex flex-col gap-2">
+                          {ANATOMICAL_CANVAS_ENABLED ? (
+                            <div className="border-border/70 bg-muted/30 flex w-fit gap-1 rounded-lg border p-1">
+                              {(
+                                [
+                                  ["system", "By system"],
+                                  ["body", "Body map"],
+                                ] as const
+                              ).map(([key, lbl]) => (
+                                <button
+                                  key={key}
+                                  type="button"
+                                  onClick={() => setExamNav(key)}
+                                  aria-pressed={examNav === key}
+                                  className={`tap rounded-md px-2.5 py-1 text-[11.5px] font-medium transition-[background-color,color,box-shadow] duration-200 ${
+                                    examNav === key
+                                      ? "bg-card text-foreground shadow-sm"
+                                      : "text-muted-foreground hover:text-foreground"
+                                  }`}
+                                >
+                                  {lbl}
+                                </button>
+                              ))}
+                            </div>
                           ) : null}
-                        </button>
-                      ))}
-                    </div>
+
+                          {ANATOMICAL_CANVAS_ENABLED && examNav === "body" ? (
+                            <AnatomicalCanvas
+                              systems={systemsMeta}
+                              active={examSystem}
+                              onSelect={setExamSystem}
+                            />
+                          ) : (
+                            <div className="border-border/70 bg-muted/30 flex flex-wrap gap-1 rounded-lg border p-1">
+                              {systemsMeta.map((s) => (
+                                <button
+                                  key={s.key}
+                                  type="button"
+                                  onClick={() => setExamSystem(s.key)}
+                                  aria-pressed={examSystem === s.key}
+                                  className={`tap inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-medium transition-[background-color,color,box-shadow] duration-200 ${
+                                    examSystem === s.key
+                                      ? "bg-card text-foreground shadow-sm"
+                                      : "text-muted-foreground hover:text-foreground"
+                                  }`}
+                                >
+                                  {s.label}
+                                  {s.hasContent ? (
+                                    <span
+                                      aria-hidden
+                                      className="scale-in size-1.5 rounded-full bg-teal-500"
+                                      title="Has findings"
+                                    />
+                                  ) : null}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
 
                     {/* Active system card — keyed so the chosen system slides in */}
                     <div
