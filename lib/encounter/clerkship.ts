@@ -14,6 +14,7 @@
 
 import type { AbdoExam } from "@/lib/clerkship/exam/abdominal";
 import type { CvsExam } from "@/lib/clerkship/exam/cardiovascular";
+import type { EvfExam } from "@/lib/clerkship/exam/endo-vascular-foot";
 import type { MskExam } from "@/lib/clerkship/exam/musculoskeletal";
 import type { NeuroExam } from "@/lib/clerkship/exam/neurological";
 import type { RespExam } from "@/lib/clerkship/exam/respiratory";
@@ -228,6 +229,8 @@ export interface ClerkExamination {
   neurological?: NeuroExam;
   /** Structured musculoskeletal examination (GALS + regional Look-Feel-Move). */
   musculoskeletal?: MskExam;
+  /** Endocrine · peripheral-vascular · diabetic-foot exam pack (NCD-focused). */
+  endoVascularFoot?: EvfExam;
   /** Per-system exam (free text or IPPA), hypothesis-driven. */
   systems?: Record<string, string>;
 }
