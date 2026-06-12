@@ -12,6 +12,7 @@
  * may be skipped/deferred (emergency: focused history, resus first).
  */
 
+import type { AbdoExam } from "@/lib/clerkship/exam/abdominal";
 import type { CvsExam } from "@/lib/clerkship/exam/cardiovascular";
 import type { RespExam } from "@/lib/clerkship/exam/respiratory";
 import type { ExamObservation, RecordedVitals } from "@/lib/clerkship/exam/types";
@@ -219,6 +220,8 @@ export interface ClerkExamination {
   respiratory?: RespExam;
   /** Structured cardiovascular examination (tap-first I-P-A + structured murmurs). */
   cardiovascular?: CvsExam;
+  /** Structured abdominal examination (tap-first full IPPA by region + organs + PR). */
+  abdominal?: AbdoExam;
   /** Per-system exam (free text or IPPA), hypothesis-driven. */
   systems?: Record<string, string>;
 }

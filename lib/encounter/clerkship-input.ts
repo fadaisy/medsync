@@ -385,6 +385,111 @@ export const ClerkshipInputSchema = z.object({
         .optional(),
     })
     .optional(),
+  /** Structured abdominal exam (tap-first full IPPA by region + organs + PR). */
+  examAbdominal: (() => {
+    const region = z.enum([
+      "ruq",
+      "epigastric",
+      "luq",
+      "r_flank",
+      "umbilical",
+      "l_flank",
+      "rif",
+      "suprapubic",
+      "lif",
+    ]);
+    const regionRec = <T extends z.ZodTypeAny>(v: T) =>
+      z
+        .object({
+          ruq: v,
+          epigastric: v,
+          luq: v,
+          r_flank: v,
+          umbilical: v,
+          l_flank: v,
+          rif: v,
+          suprapubic: v,
+          lif: v,
+        })
+        .partial()
+        .optional();
+    return z
+      .object({
+        findings: z
+          .array(
+            z.object({
+              code: z.string().max(80),
+              group: z.string().max(40),
+              display: z.string().max(160),
+              state: z.enum(["present", "absent", "not_examined"]),
+              values: z.array(z.string().max(120)).max(20).optional(),
+              note: z.string().max(1000).optional(),
+            }),
+          )
+          .max(60)
+          .optional(),
+        tenderness: regionRec(z.enum(["tender", "deep"])),
+        guarding: regionRec(z.enum(["voluntary", "involuntary"])),
+        rigidity: z.enum(["none", "localised", "board_like"]).optional(),
+        rebound: z.boolean().optional(),
+        percussionTenderness: z.boolean().optional(),
+        masses: z
+          .array(
+            z.object({
+              id: z.string().max(60),
+              region: region.optional(),
+              size: z.enum(["<2 cm", "2–5 cm", ">5 cm"]).optional(),
+              surface: z.enum(["smooth", "irregular", "nodular"]).optional(),
+              edge: z.enum(["well-defined", "diffuse"]).optional(),
+              consistency: z.enum(["soft", "firm", "hard"]).optional(),
+              mobility: z.enum(["mobile", "fixed", "moves with respiration"]).optional(),
+              pulsatileExpansile: z.boolean().optional(),
+              tender: z.boolean().optional(),
+            }),
+          )
+          .max(6)
+          .optional(),
+        liver: z
+          .object({
+            palpable: z.boolean().optional(),
+            span: z.enum(["2 cm", "4 cm", "6 cm", ">8 cm"]).optional(),
+            edge: z.enum(["smooth", "irregular", "nodular", "hard"]).optional(),
+            surface: z.enum(["smooth", "craggy"]).optional(),
+            tender: z.boolean().optional(),
+            pulsatile: z.boolean().optional(),
+          })
+          .optional(),
+        spleen: z
+          .object({
+            palpable: z.boolean().optional(),
+            extent: z.enum(["2 cm", "4 cm", "8 cm", "massive (to RIF)"]).optional(),
+            notch: z.boolean().optional(),
+            cantGetAbove: z.boolean().optional(),
+          })
+          .optional(),
+        kidneys: z
+          .object({
+            leftBallotable: z.boolean().optional(),
+            rightBallotable: z.boolean().optional(),
+          })
+          .optional(),
+        aortaExpansile: z.boolean().optional(),
+        bladderPalpable: z.boolean().optional(),
+        liverDullnessLost: z.boolean().optional(),
+        shiftingDullness: z.boolean().optional(),
+        fluidThrill: z.boolean().optional(),
+        bowelSounds: z.enum(["normal", "tinkling", "absent"]).optional(),
+        bruits: z.array(z.string().max(20)).max(3).optional(),
+        succussionSplash: z.boolean().optional(),
+        pr: z
+          .object({
+            state: z.enum(["examined", "not_examined", "declined"]),
+            findings: z.array(z.string().max(40)).max(8).optional(),
+          })
+          .optional(),
+      })
+      .optional();
+  })(),
   examSystems: z
     .object({
       cardiovascular: z.string().max(2000).optional(),
@@ -493,6 +598,10 @@ export function clerkshipInputToClerkship(input: ClerkshipInput): Clerkship {
       input.examCardiovascular &&
       Object.values(input.examCardiovascular).some((v) => v !== undefined)
         ? input.examCardiovascular
+        : undefined,
+    abdominal:
+      input.examAbdominal && Object.values(input.examAbdominal).some((v) => v !== undefined)
+        ? input.examAbdominal
         : undefined,
     systems: input.examSystems ? prune({ ...input.examSystems }) : undefined,
   });

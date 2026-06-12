@@ -1,6 +1,7 @@
 "use client";
 
 import type { SubmitClerkshipResult } from "../actions";
+import type { AbdoExam } from "@/lib/clerkship/exam/abdominal";
 import type { CvsExam } from "@/lib/clerkship/exam/cardiovascular";
 import type { RespExam } from "@/lib/clerkship/exam/respiratory";
 import type { ExamObservation, RecordedVitals } from "@/lib/clerkship/exam/types";
@@ -41,6 +42,7 @@ import { renderRosNarrative } from "@/lib/clerkship/ros";
 import { renderSymptomProse } from "@/lib/clerkship/symptom-engine";
 import { ICD10_CODES, LOINC_CODES } from "@/lib/encounter/reference-codes";
 import { submitClerkshipAction } from "../actions";
+import { AbdominalExam } from "./abdominal-exam";
 import { CardiovascularExam } from "./cardiovascular-exam";
 import { ExamSections } from "./exam-sections";
 import { FamilySocialSections } from "./family-social-sections";
@@ -99,6 +101,7 @@ type FormState = {
   examVitals: RecordedVitals;
   examRespiratory: RespExam;
   examCardiovascular: CvsExam;
+  examAbdominal: AbdoExam;
   examSystems: Record<"cardiovascular" | "respiratory" | "abdominal" | "neurological", string>;
   summary: string;
   differential: DxRow[];
@@ -139,6 +142,7 @@ function buildClerkshipInput(f: FormState): unknown {
     examVitals: f.examVitals,
     examRespiratory: f.examRespiratory,
     examCardiovascular: f.examCardiovascular,
+    examAbdominal: f.examAbdominal,
     examSystems: f.examSystems,
     summary: f.summary,
     differential: f.differential.map((d) => ({
@@ -198,6 +202,7 @@ export function ClerkshipForm({
   const [examVitals, setExamVitals] = useState<RecordedVitals>(e?.vitals ?? {});
   const [examRespiratory, setExamRespiratory] = useState<RespExam>(e?.respiratory ?? {});
   const [examCardiovascular, setExamCardiovascular] = useState<CvsExam>(e?.cardiovascular ?? {});
+  const [examAbdominal, setExamAbdominal] = useState<AbdoExam>(e?.abdominal ?? {});
   const [examSystem, setExamSystem] = useState<
     "general" | "cardiovascular" | "respiratory" | "abdominal" | "neurological"
   >("general");
@@ -254,6 +259,7 @@ export function ClerkshipForm({
     examVitals,
     examRespiratory,
     examCardiovascular,
+    examAbdominal,
     examSystems,
     summary,
     differential,
@@ -491,7 +497,7 @@ export function ClerkshipForm({
                             Object.keys(examCardiovascular).length > 0,
                           ],
                           ["respiratory", "Respiratory", Object.keys(examRespiratory).length > 0],
-                          ["abdominal", "Abdomen", !!examSystems.abdominal],
+                          ["abdominal", "Abdomen", Object.keys(examAbdominal).length > 0],
                           ["neurological", "Neuro", !!examSystems.neurological],
                         ] as const
                       ).map(([key, lbl, hasContent]) => (
@@ -549,14 +555,7 @@ export function ClerkshipForm({
                         <RespiratoryExam value={examRespiratory} onChange={setExamRespiratory} />
                       ) : null}
                       {examSystem === "abdominal" ? (
-                        <Field label="Abdominal examination">
-                          <RichTextEditor
-                            value={examSystems.abdominal}
-                            onChange={(v) => setExamSystems({ ...examSystems, abdominal: v })}
-                            placeholder="Inspection / palpation / percussion / auscultation… (structured module coming)"
-                            rows={5}
-                          />
-                        </Field>
+                        <AbdominalExam value={examAbdominal} onChange={setExamAbdominal} />
                       ) : null}
                       {examSystem === "neurological" ? (
                         <Field label="Neurological examination">
@@ -784,6 +783,7 @@ export function ClerkshipForm({
             examFindings={examGeneralFindings}
             respiratory={examRespiratory}
             cardiovascular={examCardiovascular}
+            abdominal={examAbdominal}
             atSynthesis={step >= 4}
           />
         </aside>
