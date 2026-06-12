@@ -11,9 +11,11 @@ import { fetchPatientSummaryAudited } from "@/lib/doctor/patient-access";
 import { requireDoctorScope } from "@/lib/doctor/scope";
 import { ClerkshipInputSchema, clerkshipInputToClerkship } from "@/lib/encounter/clerkship-input";
 import { clerkshipDraftsLive, encounterEngineLive } from "@/lib/encounter/feature";
+import { loadEncounterOrders } from "@/lib/encounter/orders";
 import { loadEncounterRecord } from "@/lib/encounter/record";
 import { toEncounterScope } from "@/lib/encounter/workspace-scope";
 import { ClerkshipForm } from "./_components/clerkship-form";
+import { InvestigationsPanel } from "./_components/investigations-panel";
 
 export const metadata: Metadata = { title: "Encounter · Doctor · MedSync" };
 export const dynamic = "force-dynamic";
@@ -99,6 +101,9 @@ export default async function DoctorEncounterPage({ params }: PageProps) {
     }
   }
 
+  // W4 — investigations & results visibility (read-only; reuses the spine).
+  const orders = await loadEncounterOrders(encounterId);
+
   return (
     <div className="bg-background text-foreground relative isolate flex min-h-svh flex-col">
       {/* Ambient clinical atmosphere — a whisper of teal at the top, 95% monochrome below */}
@@ -135,6 +140,9 @@ export default async function DoctorEncounterPage({ params }: PageProps) {
           draftsEnabled={draftsEnabled}
           recoveredDraftAt={recoveredDraftAt}
         />
+
+        {/* Investigations & results (read-only visibility) */}
+        <InvestigationsPanel orders={orders} />
 
         {/* Timeline */}
         <section className="border-border bg-card flex flex-col gap-3 rounded-xl border p-4 shadow-xs">
