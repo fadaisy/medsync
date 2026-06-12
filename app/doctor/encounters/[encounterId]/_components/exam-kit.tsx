@@ -1,7 +1,8 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { CheckIcon, CircleIcon, MinusIcon } from "lucide-react";
+import { useState } from "react";
+import { AlertTriangleIcon, CheckIcon, ChevronDownIcon, CircleIcon, MinusIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -198,5 +199,267 @@ export function CycleLegend({ steps }: { steps: string[] }) {
     <span className="text-muted-foreground text-[10px]">
       tap to cycle: {steps.join(" → ")} → unset
     </span>
+  );
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   Examination UI v2 — progressive disclosure (ADR supersedes the v1 StageCard).
+   Sections collapse to a one-line summary by default; a fully-normal exam is a
+   tidy stack of "All normal" cards. Compact-but-complete inside; long binary
+   lists become "tap any present" clusters. Presentation only — the SAME records.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Status & emphasis language — one consistent vocabulary across the workspace ──
+   normal = quiet/recedes · findings = teal accent · must-not-miss = reserved red ·
+   not-examined = a distinct, honest "untouched" treatment. Never colour alone. */
+export type SectionStatus = "normal" | "not_examined" | "findings" | "must_not_miss" | "partial";
+
+export function StatusPill({ status, count }: { status: SectionStatus; count?: number }) {
+  const base =
+    "inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-[10.5px] font-medium whitespace-nowrap";
+  if (status === "must_not_miss")
+    return (
+      <span
+        className={cn(
+          base,
+          "bg-red-50 text-red-700 ring-1 ring-red-500/30 ring-inset dark:bg-red-950/30 dark:text-red-300",
+        )}
+      >
+        <AlertTriangleIcon className="size-3" aria-hidden />
+        {count && count > 1 ? `${count} must-not-miss` : "must-not-miss"}
+      </span>
+    );
+  if (status === "findings")
+    return (
+      <span className={cn(base, "bg-teal-50 text-teal-700 dark:bg-teal-950/40 dark:text-teal-300")}>
+        <span aria-hidden className="size-1.5 rounded-full bg-teal-500" />
+        {count ?? 0} finding{(count ?? 0) > 1 ? "s" : ""}
+      </span>
+    );
+  if (status === "not_examined")
+    return (
+      <span className={cn(base, "border-border text-muted-foreground border border-dashed")}>
+        <CircleIcon className="size-2.5" aria-hidden />
+        Not examined
+      </span>
+    );
+  if (status === "partial")
+    return (
+      <span className={cn(base, "text-muted-foreground")}>
+        <MinusIcon className="size-3" aria-hidden />
+        Partly examined
+      </span>
+    );
+  return (
+    <span className={cn(base, "bg-muted text-muted-foreground")}>
+      <CheckIcon className="size-3" aria-hidden />
+      All normal
+    </span>
+  );
+}
+
+/* ── Collapsible section card — the signature surface ──
+   Collapsed = one-line summary (status pill + inline positives + on-row "mark all
+   normal"). Expanded = the compact capture. Children mount only when open (perf +
+   reduced-motion-safe entrance). The toggle and the mark-normal are separate
+   buttons (no nesting) for full keyboard + SR operation. */
+export function SectionCard({
+  index,
+  title,
+  status,
+  count,
+  summary,
+  onMarkNormal,
+  defaultOpen = false,
+  children,
+}: {
+  index?: number;
+  title: string;
+  status: SectionStatus;
+  count?: number;
+  summary?: string;
+  onMarkNormal?: () => void;
+  defaultOpen?: boolean;
+  children: ReactNode;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <section className="border-border bg-card overflow-hidden rounded-xl border shadow-sm">
+      <div className="flex items-center">
+        <button
+          type="button"
+          onClick={() => setOpen((o) => !o)}
+          aria-expanded={open}
+          className="tap flex min-w-0 flex-1 items-center gap-2.5 px-3.5 py-2.5 text-left"
+        >
+          {typeof index === "number" ? (
+            <span
+              aria-hidden
+              className="text-muted-foreground/60 font-mono text-[11px] tabular-nums"
+            >
+              {index}
+            </span>
+          ) : null}
+          <span className="font-display text-foreground shrink-0 text-[13px] font-medium tracking-[-0.01em]">
+            {title}
+          </span>
+          <StatusPill status={status} count={count} />
+          {!open && summary ? (
+            <span className="text-muted-foreground truncate text-[11.5px]">{summary}</span>
+          ) : null}
+          <ChevronDownIcon
+            className={cn(
+              "text-muted-foreground ml-auto size-4 shrink-0 transition-transform duration-200",
+              open && "rotate-180",
+            )}
+            aria-hidden
+          />
+        </button>
+        {onMarkNormal && status !== "normal" ? (
+          <button
+            type="button"
+            onClick={onMarkNormal}
+            className="tap text-muted-foreground border-border mr-2 inline-flex shrink-0 items-center gap-1 rounded-md border px-2 py-1 text-[11px] hover:text-teal-700 dark:hover:text-teal-300"
+          >
+            <CheckIcon className="size-3" aria-hidden /> normal
+          </button>
+        ) : null}
+      </div>
+      {open ? (
+        <div className="border-border/60 scale-in flex flex-col gap-3 border-t px-3.5 py-3">
+          {children}
+        </div>
+      ) : null}
+    </section>
+  );
+}
+
+/* ── Compact finding field — label + control on one line, multiple per row ──
+   Detail (value chips) is passed only when the finding is abnormal/present, so
+   normal rows stay short. Pair inside <FindingGrid> for a 2-col compact layout. */
+export function CompactField({
+  label,
+  mustNotMiss,
+  flag,
+  control,
+  detail,
+}: {
+  label: string;
+  mustNotMiss?: boolean;
+  /** small catalog hint badge (e.g. a Uganda "HIV" flag) */
+  flag?: string;
+  control: ReactNode;
+  detail?: ReactNode;
+}) {
+  return (
+    <div className="flex flex-col gap-1">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-foreground flex min-w-0 items-center gap-1 text-[12px]">
+          {mustNotMiss ? (
+            <AlertTriangleIcon
+              className="size-3 shrink-0 text-amber-500"
+              aria-label="must-not-miss"
+            />
+          ) : null}
+          <span className="truncate">{label}</span>
+          {flag ? (
+            <span className="text-muted-foreground bg-muted shrink-0 rounded px-1 text-[9px] uppercase">
+              {flag}
+            </span>
+          ) : null}
+        </span>
+        <span className="shrink-0">{control}</span>
+      </div>
+      {detail ? <div className="scale-in flex flex-wrap gap-1 pl-1">{detail}</div> : null}
+    </div>
+  );
+}
+
+/* ── A responsive 2-column grid for compact finding rows ── */
+export function FindingGrid({ children }: { children: ReactNode }) {
+  return <div className="grid grid-cols-1 gap-x-5 gap-y-2.5 sm:grid-cols-2">{children}</div>;
+}
+
+/* ── "Tap any present" cluster — long binary lists in one tidy block ──
+   tap a chip → present (accent; reserved-red if a must-not-miss is present);
+   an explicit Examined / Not-examined control keeps not-examined ≠ all-negative.
+   Presentation only: the consumer maps each option to its finding state. */
+export function PresentCluster({
+  label,
+  options,
+  present,
+  examined,
+  onToggle,
+  onSetExamined,
+}: {
+  label?: string;
+  options: { value: string; label: string; mustNotMiss?: boolean }[];
+  /** option values currently recorded present */
+  present: string[];
+  /** true once the cluster has been affirmed examined (untapped ⇒ absent) */
+  examined: boolean;
+  onToggle: (value: string) => void;
+  onSetExamined: (examined: boolean) => void;
+}) {
+  const untouched = !examined && present.length === 0;
+  return (
+    <div className="flex flex-col gap-2">
+      {label ? <span className="text-muted-foreground text-[11px]">{label}</span> : null}
+      <div className="flex flex-wrap gap-1.5">
+        {options.map((o) => {
+          const on = present.includes(o.value);
+          return (
+            <button
+              key={o.value}
+              type="button"
+              aria-pressed={on}
+              onClick={() => onToggle(o.value)}
+              className={cn(
+                "tap inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11.5px] ring-1 transition-colors duration-150 ring-inset",
+                on &&
+                  o.mustNotMiss &&
+                  "bg-red-100 text-red-700 ring-red-500/40 dark:bg-red-950/40 dark:text-red-300",
+                on &&
+                  !o.mustNotMiss &&
+                  "bg-teal-50 text-teal-700 ring-teal-500/40 dark:bg-teal-950/40 dark:text-teal-200",
+                !on && "text-foreground/70 ring-border hover:bg-muted/60",
+              )}
+            >
+              {o.mustNotMiss ? <AlertTriangleIcon className="size-3" aria-hidden /> : null}
+              {o.label}
+            </button>
+          );
+        })}
+      </div>
+      <div className="border-border inline-flex w-fit overflow-hidden rounded-md border text-[11px]">
+        <button
+          type="button"
+          aria-pressed={examined}
+          onClick={() => onSetExamined(true)}
+          className={cn(
+            "tap px-2.5 py-1 font-medium transition-colors duration-150",
+            examined
+              ? "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200"
+              : "text-muted-foreground/70 hover:bg-muted/60",
+          )}
+        >
+          Examined{examined && present.length === 0 ? " — none present" : ""}
+        </button>
+        <span aria-hidden className="bg-border w-px" />
+        <button
+          type="button"
+          aria-pressed={untouched}
+          onClick={() => onSetExamined(false)}
+          className={cn(
+            "tap px-2.5 py-1 font-medium transition-colors duration-150",
+            untouched
+              ? "text-muted-foreground bg-muted ring-border ring-dashed ring-1 ring-inset"
+              : "text-muted-foreground/70 hover:bg-muted/60",
+          )}
+        >
+          Not examined
+        </button>
+      </div>
+    </div>
   );
 }
