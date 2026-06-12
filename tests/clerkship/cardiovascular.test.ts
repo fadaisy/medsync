@@ -112,3 +112,28 @@ describe("renderCvsProse + reasoning tokens", () => {
     expect(renderCvsProse({})).toBe("");
   });
 });
+
+describe("finding qualifiers — magnitude/location detail", () => {
+  it("raised JVP carries its height (cm above sternal angle)", () => {
+    const s = renderCvsProse({ jvp: "raised", jvpHeight: "7 cm" });
+    expect(s).toMatch(/JVP raised \(7 cm\)/);
+  });
+
+  it("raised JVP without a height still reads (qualifier optional)", () => {
+    expect(renderCvsProse({ jvp: "raised" })).toMatch(/JVP raised\./);
+  });
+
+  it("displaced apex carries interspace + line", () => {
+    const s = renderCvsProse({
+      apexLocation: "displaced",
+      apexInterspace: "6th ICS",
+      apexLine: "anterior axillary",
+      apexCharacter: "thrusting",
+    });
+    expect(s).toMatch(/Apex displaced \(6th ICS, anterior axillary line\) thrusting/);
+  });
+
+  it("displaced apex without qualifiers reads as before", () => {
+    expect(renderCvsProse({ apexLocation: "displaced" })).toMatch(/Apex displaced\./);
+  });
+});

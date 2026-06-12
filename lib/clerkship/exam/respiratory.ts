@@ -157,7 +157,11 @@ export const RESP_FINDINGS: ExamFinding[] = [
     ["purulent", "blood-stained", "frothy", "rusty"],
     { ugandaFlag: "tb" },
   ),
-  f("peak_flow", "resp_completion", "Peak flow reduced", "panel", []),
+  f("peak_flow", "resp_completion", "Peak flow reduced", "panel", [
+    "mild reduction (>75% predicted)",
+    "moderate (50–75%)",
+    "severe (<50%)",
+  ]),
 ];
 
 // ── Sign-cluster → pattern (decision-support reference; CSO-signed) ──

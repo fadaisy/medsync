@@ -60,7 +60,12 @@ export interface CvsExam {
   pulseCharacter?: PulseCharacter;
   pulseVolume?: "low" | "normal" | "high";
   jvp?: "not_raised" | "raised";
+  /** When raised: height in cm above the sternal angle (or "to earlobes"). */
+  jvpHeight?: string;
   apexLocation?: "undisplaced" | "displaced";
+  /** When displaced: where to — intercostal space + chest line. */
+  apexInterspace?: string;
+  apexLine?: string;
   apexCharacter?: ApexCharacter;
   s1?: HeartSound;
   s2?: HeartSound;
@@ -93,6 +98,19 @@ export const APEX_CHAR_OPTS: { value: ApexCharacter; label: string; abnormal: bo
   { value: "double_impulse", label: "Double impulse", abnormal: true },
 ];
 export const HEART_SOUND_OPTS: HeartSound[] = ["normal", "loud", "soft", "split", "fixed_split"];
+/** JVP height above the sternal angle (normal ≤3–4 cm) — tap chips when raised. */
+export const JVP_HEIGHT_OPTS = [
+  "4 cm",
+  "5 cm",
+  "6 cm",
+  "7 cm",
+  "8 cm",
+  "10 cm",
+  "to earlobes",
+] as const;
+/** Where a displaced apex has moved to — interspace × chest line. */
+export const APEX_INTERSPACE_OPTS = ["5th ICS", "6th ICS", "7th ICS"] as const;
+export const APEX_LINE_OPTS = ["mid-clavicular", "anterior axillary", "mid-axillary"] as const;
 export const CVS_ADDED_OPTS = [
   "S3",
   "S4",
@@ -204,9 +222,19 @@ export const CVS_FINDINGS: ExamFinding[] = [
     { mustNotMiss: true },
   ),
   // completion
-  f("lung_bases", "cvs_completion", "Lung bases", "panel", ["bibasal crackles"]),
-  f("cvs_oedema", "cvs_completion", "Oedema", "panel", ["ankle", "sacral"]),
-  f("hepatomegaly", "cvs_completion", "Hepatomegaly / pulsatile liver", "panel", []),
+  f("lung_bases", "cvs_completion", "Lung bases (crackles)", "panel", [
+    "left base",
+    "right base",
+    "bibasal",
+    "extending to mid-zones",
+  ]),
+  f("cvs_oedema", "cvs_completion", "Oedema", "panel", ["ankle", "to knee", "to thigh", "sacral"]),
+  f("hepatomegaly", "cvs_completion", "Hepatomegaly / pulsatile liver", "panel", [
+    "pulsatile",
+    "tender",
+    "<4 cm below costal margin",
+    "≥4 cm below costal margin",
+  ]),
   f("peripheral_pulses", "cvs_completion", "Peripheral pulses", "select", [
     "present",
     "reduced",
@@ -374,14 +402,19 @@ export function renderCvsProse(c: CvsExam): string {
     parts.push(`${c.pulseCharacter.replace("_", "-")} pulse.`);
   if (c.pulseRhythm && c.pulseRhythm !== "regular")
     parts.push(`${c.pulseRhythm.replace(/_/g, " ")} rhythm.`);
-  if (c.jvp === "raised") parts.push("JVP raised.");
-  if (c.apexLocation === "displaced" || (c.apexCharacter && c.apexCharacter !== "normal"))
+  if (c.jvp === "raised") parts.push(`JVP raised${c.jvpHeight ? ` (${c.jvpHeight})` : ""}.`);
+  if (c.apexLocation === "displaced" || (c.apexCharacter && c.apexCharacter !== "normal")) {
+    const where =
+      c.apexLocation === "displaced" && (c.apexInterspace || c.apexLine)
+        ? ` (${[c.apexInterspace, c.apexLine ? `${c.apexLine} line` : undefined].filter(Boolean).join(", ")})`
+        : "";
     parts.push(
-      `Apex ${c.apexLocation === "displaced" ? "displaced" : ""}${c.apexCharacter && c.apexCharacter !== "normal" ? ` ${c.apexCharacter.replace("_", " ")}` : ""}.`.replace(
+      `Apex ${c.apexLocation === "displaced" ? `displaced${where}` : ""}${c.apexCharacter && c.apexCharacter !== "normal" ? ` ${c.apexCharacter.replace("_", " ")}` : ""}.`.replace(
         "  ",
         " ",
       ),
     );
+  }
   for (const m of c.murmurs ?? []) parts.push(`Murmur: ${describeMurmur(m)}.`);
   const patterns = matchCvsPatterns(c);
   if (patterns.length)

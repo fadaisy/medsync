@@ -5,6 +5,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Changed — Clerkship: CVS exam finding qualifiers (magnitude + location) — 2026-06-12
+
+Findings now carry their clinical detail, tap-first ([ADR 0068](docs/adr/0068-clerkship-cardiovascular-examination.md) addendum). **Displaced apex** → interspace (5th/6th/7th ICS) + line (mid-clavicular / anterior-axillary / mid-axillary); **raised JVP** → height above the sternal angle (4–10 cm / to earlobes); qualifiers appear only when the finding is positive and clear when it's toggled off (never orphaned). Pulse **volume** row surfaced (was typed but unrendered). Same sweep elsewhere: CVS oedema extent (ankle→thigh/sacral), hepatomegaly span/character, lung-base crackle laterality+extent, lymph-node **size** chips (<1 / 1–2 / >2 cm) across all node groups, peak-flow severity bands. Prose renders the detail ("JVP raised (7 cm)", "Apex displaced (6th ICS, anterior axillary line) thrusting"). No migration; 845 tests.
+
 ### Added — Clerkship: Cardiovascular Examination + per-system card switcher — 2026-06-12
 
 The Cardiovascular exam ([ADR 0068](docs/adr/0068-clerkship-cardiovascular-examination.md)) — tap-first **I-P-A** (no cardiac percussion) with **structured murmurs** (timing/location/radiation/intensity/pitch/manoeuvre — tapped) and a **valve-lesion / HF / IE / tamponade cluster** matcher (`matchCvsPatterns`, pure/TDD): transparent, multiple-on-ambiguity, must-not-miss + emergencies flagged in red, never auto-diagnoses; Uganda rheumatic woven in. **No migration.**
