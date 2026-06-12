@@ -1,6 +1,7 @@
 "use client";
 
 import type { SubmitClerkshipResult } from "../actions";
+import type { CvsExam } from "@/lib/clerkship/exam/cardiovascular";
 import type { RespExam } from "@/lib/clerkship/exam/respiratory";
 import type { ExamObservation, RecordedVitals } from "@/lib/clerkship/exam/types";
 import type { RosObservation, RosScope } from "@/lib/clerkship/ros";
@@ -39,6 +40,7 @@ import { renderRosNarrative } from "@/lib/clerkship/ros";
 import { renderSymptomProse } from "@/lib/clerkship/symptom-engine";
 import { ICD10_CODES, LOINC_CODES } from "@/lib/encounter/reference-codes";
 import { submitClerkshipAction } from "../actions";
+import { CardiovascularExam } from "./cardiovascular-exam";
 import { ExamSections } from "./exam-sections";
 import { FamilySocialSections } from "./family-social-sections";
 import { HistorySections } from "./history-sections";
@@ -95,6 +97,7 @@ type FormState = {
   examGeneralFindings: ExamObservation[];
   examVitals: RecordedVitals;
   examRespiratory: RespExam;
+  examCardiovascular: CvsExam;
   examSystems: Record<"cardiovascular" | "respiratory" | "abdominal" | "neurological", string>;
   summary: string;
   differential: DxRow[];
@@ -134,6 +137,7 @@ function buildClerkshipInput(f: FormState): unknown {
     examGeneralFindings: f.examGeneralFindings,
     examVitals: f.examVitals,
     examRespiratory: f.examRespiratory,
+    examCardiovascular: f.examCardiovascular,
     examSystems: f.examSystems,
     summary: f.summary,
     differential: f.differential.map((d) => ({
@@ -192,6 +196,10 @@ export function ClerkshipForm({
   );
   const [examVitals, setExamVitals] = useState<RecordedVitals>(e?.vitals ?? {});
   const [examRespiratory, setExamRespiratory] = useState<RespExam>(e?.respiratory ?? {});
+  const [examCardiovascular, setExamCardiovascular] = useState<CvsExam>(e?.cardiovascular ?? {});
+  const [examSystem, setExamSystem] = useState<
+    "general" | "cardiovascular" | "respiratory" | "abdominal" | "neurological"
+  >("general");
   const [examSystems, setExamSystems] = useState({
     cardiovascular: e?.systems?.cardiovascular ?? "",
     respiratory: e?.systems?.respiratory ?? "",
@@ -244,6 +252,7 @@ export function ClerkshipForm({
     examGeneralFindings,
     examVitals,
     examRespiratory,
+    examCardiovascular,
     examSystems,
     summary,
     differential,
@@ -458,62 +467,92 @@ export function ClerkshipForm({
                     value={examVitals}
                     onChange={setExamVitals}
                   />
-                  <ExamSections value={examGeneralFindings} onChange={setExamGeneralFindings} />
-                  <details className="group border-border/70 rounded-lg border">
-                    <summary className="text-muted-foreground hover:text-foreground flex cursor-pointer list-none items-center gap-2 px-3 py-2 text-[12px] font-medium select-none">
-                      <ChevronRightIcon
-                        className="size-3.5 transition-transform group-open:rotate-90"
-                        aria-hidden
+
+                  {/* System switcher — each examination is its own card */}
+                  <div className="border-border/70 bg-muted/30 flex flex-wrap gap-1 rounded-lg border p-1">
+                    {(
+                      [
+                        ["general", "General", examGeneralFindings.length > 0],
+                        [
+                          "cardiovascular",
+                          "Cardiovascular",
+                          Object.keys(examCardiovascular).length > 0,
+                        ],
+                        ["respiratory", "Respiratory", Object.keys(examRespiratory).length > 0],
+                        ["abdominal", "Abdomen", !!examSystems.abdominal],
+                        ["neurological", "Neuro", !!examSystems.neurological],
+                      ] as const
+                    ).map(([key, lbl, hasContent]) => (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => setExamSystem(key)}
+                        className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-medium transition-colors ${
+                          examSystem === key
+                            ? "bg-card text-foreground shadow-sm"
+                            : "text-muted-foreground hover:text-foreground"
+                        }`}
+                      >
+                        {lbl}
+                        {hasContent ? (
+                          <span
+                            aria-hidden
+                            className="size-1.5 rounded-full bg-teal-500"
+                            title="Has findings"
+                          />
+                        ) : null}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Active system card */}
+                  <div className="border-border bg-card rounded-xl border p-4">
+                    {examSystem === "general" ? (
+                      <div className="flex flex-col gap-4">
+                        <ExamSections
+                          value={examGeneralFindings}
+                          onChange={setExamGeneralFindings}
+                        />
+                        <Field label="Other general-exam notes">
+                          <RichTextEditor
+                            value={examGeneral}
+                            onChange={setExamGeneral}
+                            placeholder="Anything not captured above…"
+                            rows={3}
+                          />
+                        </Field>
+                      </div>
+                    ) : null}
+                    {examSystem === "cardiovascular" ? (
+                      <CardiovascularExam
+                        value={examCardiovascular}
+                        onChange={setExamCardiovascular}
                       />
-                      Respiratory examination
-                      <span className="text-muted-foreground/70 ml-auto text-[10.5px] font-normal">
-                        IPPA · by zone &amp; side · sign-cluster patterns
-                      </span>
-                    </summary>
-                    <div className="px-1 pt-1 pb-2">
+                    ) : null}
+                    {examSystem === "respiratory" ? (
                       <RespiratoryExam value={examRespiratory} onChange={setExamRespiratory} />
-                    </div>
-                  </details>
-                  <details className="group border-border/70 rounded-lg border">
-                    <summary className="text-muted-foreground hover:text-foreground flex cursor-pointer list-none items-center gap-2 px-3 py-2 text-[12px] font-medium select-none">
-                      <ChevronRightIcon
-                        className="size-3.5 transition-transform group-open:rotate-90"
-                        aria-hidden
-                      />
-                      Notes &amp; other system exams
-                      <span className="text-muted-foreground/70 ml-auto text-[10.5px] font-normal">
-                        CVS / abdo / neuro — free text for now
-                      </span>
-                    </summary>
-                    <div className="flex flex-col gap-4 px-3 pt-1 pb-3">
-                      <Field label="Other general-exam notes">
+                    ) : null}
+                    {examSystem === "abdominal" ? (
+                      <Field label="Abdominal examination">
                         <RichTextEditor
-                          value={examGeneral}
-                          onChange={setExamGeneral}
-                          placeholder="Anything not captured above…"
-                          rows={3}
+                          value={examSystems.abdominal}
+                          onChange={(v) => setExamSystems({ ...examSystems, abdominal: v })}
+                          placeholder="Inspection / palpation / percussion / auscultation… (structured module coming)"
+                          rows={5}
                         />
                       </Field>
-                      <div className="grid gap-x-6 gap-y-4 sm:grid-cols-2">
-                        {(
-                          [
-                            ["cardiovascular", "Cardiovascular"],
-                            ["abdominal", "Abdominal"],
-                            ["neurological", "Neurological"],
-                          ] as const
-                        ).map(([k, lbl]) => (
-                          <Field key={k} label={lbl}>
-                            <Input
-                              value={examSystems[k]}
-                              onChange={(ev) =>
-                                setExamSystems({ ...examSystems, [k]: ev.target.value })
-                              }
-                            />
-                          </Field>
-                        ))}
-                      </div>
-                    </div>
-                  </details>
+                    ) : null}
+                    {examSystem === "neurological" ? (
+                      <Field label="Neurological examination">
+                        <RichTextEditor
+                          value={examSystems.neurological}
+                          onChange={(v) => setExamSystems({ ...examSystems, neurological: v })}
+                          placeholder="Higher function / cranial nerves / limbs / cerebellar… (structured module coming)"
+                          rows={5}
+                        />
+                      </Field>
+                    ) : null}
+                  </div>
                 </div>
               ) : null}
 
@@ -705,6 +744,7 @@ export function ClerkshipForm({
             social={socialHx}
             examFindings={examGeneralFindings}
             respiratory={examRespiratory}
+            cardiovascular={examCardiovascular}
             atSynthesis={step >= 4}
           />
         </aside>

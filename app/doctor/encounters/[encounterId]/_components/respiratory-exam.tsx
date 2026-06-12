@@ -66,7 +66,7 @@ export function RespiratoryExam({
   onChange: (next: RespExam) => void;
 }) {
   const [modality, setModality] = useState<Modality>("percussion");
-  const [activeZone, setActiveZone] = useState<RespZone>("lower_right");
+  const [activeZone, setActiveZone] = useState<RespZone | null>(null);
   const [openFindings, setOpenFindings] = useState(false);
 
   const findings = value.findings ?? [];
@@ -239,32 +239,40 @@ export function RespiratoryExam({
                 );
               })}
             </div>
-            <div className="flex flex-wrap gap-1">
-              {ADDED_OPTS.map((o) => {
-                const on = (value.addedSounds?.[activeZone] ?? []).includes(o.value);
-                return (
-                  <button
-                    key={o.value}
-                    type="button"
-                    className={
-                      o.emergency && on
-                        ? "rounded-md bg-red-100 px-2 py-0.5 text-[11.5px] font-medium text-red-700 ring-1 ring-red-500/40 ring-inset dark:bg-red-950/40 dark:text-red-300"
-                        : chip(on)
-                    }
-                    onClick={() => toggleAdded(activeZone, o.value)}
-                  >
-                    {o.label}
-                  </button>
-                );
-              })}
-            </div>
-            <span className="text-muted-foreground text-[10px]">
-              Added sounds at:{" "}
-              <span className="text-foreground font-medium">
-                {RESP_ZONES.find((z) => z.zone === activeZone)?.level}{" "}
-                {RESP_ZONES.find((z) => z.zone === activeZone)?.side}
+            {activeZone ? (
+              <>
+                <div className="flex flex-wrap gap-1">
+                  {ADDED_OPTS.map((o) => {
+                    const on = (value.addedSounds?.[activeZone] ?? []).includes(o.value);
+                    return (
+                      <button
+                        key={o.value}
+                        type="button"
+                        className={
+                          o.emergency && on
+                            ? "rounded-md bg-red-100 px-2 py-0.5 text-[11.5px] font-medium text-red-700 ring-1 ring-red-500/40 ring-inset dark:bg-red-950/40 dark:text-red-300"
+                            : chip(on)
+                        }
+                        onClick={() => toggleAdded(activeZone, o.value)}
+                      >
+                        {o.label}
+                      </button>
+                    );
+                  })}
+                </div>
+                <span className="text-muted-foreground text-[10px]">
+                  Added sounds at:{" "}
+                  <span className="text-foreground font-medium">
+                    {RESP_ZONES.find((z) => z.zone === activeZone)?.level}{" "}
+                    {RESP_ZONES.find((z) => z.zone === activeZone)?.side}
+                  </span>
+                </span>
+              </>
+            ) : (
+              <span className="text-muted-foreground text-[10px]">
+                Tap a zone above to add sounds there.
               </span>
-            </span>
+            )}
           </>
         )}
       </div>

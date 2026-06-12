@@ -1,5 +1,6 @@
 "use client";
 
+import type { CvsExam } from "@/lib/clerkship/exam/cardiovascular";
 import type { RespExam } from "@/lib/clerkship/exam/respiratory";
 import type { ExamObservation } from "@/lib/clerkship/exam/types";
 import type { ScoredDifferential } from "@/lib/clerkship/reasoning/types";
@@ -18,6 +19,7 @@ import {
   XIcon,
 } from "lucide-react";
 
+import { cvsReasoningTokens } from "@/lib/clerkship/exam/cardiovascular";
 import { examReasoningTokens } from "@/lib/clerkship/exam/engine";
 import { respReasoningTokens } from "@/lib/clerkship/exam/respiratory";
 import { diagnosticPausePrompts, liveReasoningForCodes } from "@/lib/clerkship/reasoning/engine";
@@ -54,6 +56,7 @@ export function ReasoningPanel({
   social,
   examFindings,
   respiratory,
+  cardiovascular,
   atSynthesis,
   onClose,
 }: {
@@ -65,6 +68,7 @@ export function ReasoningPanel({
   social: ClerkSocial;
   examFindings: ExamObservation[];
   respiratory: RespExam;
+  cardiovascular: CvsExam;
   atSynthesis: boolean;
   /** When hosted in a drawer, renders a close button; omit when docked as a rail. */
   onClose?: () => void;
@@ -82,6 +86,7 @@ export function ReasoningPanel({
       .map(([k]) => k.replace(/_/g, " "));
     const exam = examReasoningTokens(examFindings);
     const resp = respReasoningTokens(respiratory);
+    const cvs = cvsReasoningTokens(cardiovascular);
     return liveReasoningForCodes(REASONING_MAPS, pcCodes, {
       features,
       positives: [
@@ -89,6 +94,7 @@ export function ReasoningPanel({
         ...fhYes,
         ...exam.positives,
         ...resp.positives,
+        ...cvs.positives,
       ],
       negatives: [
         ...ros.filter((o) => o.status === "denies").map((o) => o.symptomDisplay),
@@ -97,7 +103,17 @@ export function ReasoningPanel({
       ],
       history: [...pmhConditions, ...fhYes, ...socialTokens(social)],
     });
-  }, [pcCodes, hpcItems, ros, pmhConditions, fhScreen, social, examFindings, respiratory]);
+  }, [
+    pcCodes,
+    hpcItems,
+    ros,
+    pmhConditions,
+    fhScreen,
+    social,
+    examFindings,
+    respiratory,
+    cardiovascular,
+  ]);
 
   const fired = r.basis.length > 0;
   const mnmCount = r.scored.filter((d) => d.likelihood === "must_not_miss").length;

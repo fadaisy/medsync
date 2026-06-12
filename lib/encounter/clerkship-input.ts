@@ -309,6 +309,79 @@ export const ClerkshipInputSchema = z.object({
       })
       .optional();
   })(),
+  /** Structured cardiovascular exam (tap-first I-P-A + structured murmurs). */
+  examCardiovascular: z
+    .object({
+      findings: z
+        .array(
+          z.object({
+            code: z.string().max(80),
+            group: z.string().max(40),
+            display: z.string().max(160),
+            state: z.enum(["present", "absent", "not_examined"]),
+            values: z.array(z.string().max(120)).max(20).optional(),
+            note: z.string().max(1000).optional(),
+          }),
+        )
+        .max(60)
+        .optional(),
+      pulseRhythm: z.enum(["regular", "irregularly_irregular", "regularly_irregular"]).optional(),
+      pulseCharacter: z
+        .enum([
+          "normal",
+          "collapsing",
+          "slow_rising",
+          "bisferiens",
+          "thready",
+          "bounding",
+          "alternans",
+          "paradoxus",
+        ])
+        .optional(),
+      pulseVolume: z.enum(["low", "normal", "high"]).optional(),
+      jvp: z.enum(["not_raised", "raised"]).optional(),
+      apexLocation: z.enum(["undisplaced", "displaced"]).optional(),
+      apexCharacter: z
+        .enum(["normal", "heaving", "thrusting", "tapping", "double_impulse"])
+        .optional(),
+      s1: z.enum(["normal", "loud", "soft", "split", "fixed_split"]).optional(),
+      s2: z.enum(["normal", "loud", "soft", "split", "fixed_split"]).optional(),
+      addedSounds: z.array(z.string().max(40)).max(8).optional(),
+      murmurs: z
+        .array(
+          z.object({
+            id: z.string().max(60),
+            timing: z
+              .enum([
+                "ejection_systolic",
+                "pansystolic",
+                "late_systolic",
+                "early_diastolic",
+                "mid_diastolic",
+                "continuous",
+              ])
+              .optional(),
+            location: z
+              .enum(["aortic", "pulmonary", "tricuspid", "mitral", "left_sternal_edge"])
+              .optional(),
+            radiation: z.enum(["carotids", "axilla", "back", "none"]).optional(),
+            intensity: z.number().min(1).max(6).optional(),
+            pitch: z.enum(["high", "low", "rumbling", "blowing"]).optional(),
+            manoeuvre: z
+              .enum([
+                "louder_expiration",
+                "louder_inspiration",
+                "louder_sitting_forward",
+                "louder_left_lateral",
+                "softer_valsalva",
+              ])
+              .optional(),
+          }),
+        )
+        .max(8)
+        .optional(),
+    })
+    .optional(),
   examSystems: z
     .object({
       cardiovascular: z.string().max(2000).optional(),
@@ -412,6 +485,11 @@ export function clerkshipInputToClerkship(input: ClerkshipInput): Clerkship {
     respiratory:
       input.examRespiratory && Object.values(input.examRespiratory).some((v) => v !== undefined)
         ? input.examRespiratory
+        : undefined,
+    cardiovascular:
+      input.examCardiovascular &&
+      Object.values(input.examCardiovascular).some((v) => v !== undefined)
+        ? input.examCardiovascular
         : undefined,
     systems: input.examSystems ? prune({ ...input.examSystems }) : undefined,
   });

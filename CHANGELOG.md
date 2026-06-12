@@ -5,6 +5,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Clerkship: Cardiovascular Examination + per-system card switcher — 2026-06-12
+
+The Cardiovascular exam ([ADR 0068](docs/adr/0068-clerkship-cardiovascular-examination.md)) — tap-first **I-P-A** (no cardiac percussion) with **structured murmurs** (timing/location/radiation/intensity/pitch/manoeuvre — tapped) and a **valve-lesion / HF / IE / tamponade cluster** matcher (`matchCvsPatterns`, pure/TDD): transparent, multiple-on-ambiguity, must-not-miss + emergencies flagged in red, never auto-diagnoses; Uganda rheumatic woven in. **No migration.**
+
+The **Examination tab is now a per-system card switcher** — vitals on top, then segmented **General · Cardiovascular · Respiratory · Abdomen · Neuro**, each its own card (a teal dot marks systems with findings). General/Respiratory/Cardiovascular structured; Abdomen/Neuro free-text placeholders. Also fixed: the respiratory **Added-sounds** grid no longer pre-selects "lower right" — you tap a zone first. tsc/eslint/build clean; **841 tests** (+12). _CSO to verify the authored CVS finding set + murmur model + cluster signatures._
+
 ### Changed — Clerkship: full-bleed encounter workspace + docked reasoning rail — 2026-06-12
 
 The encounter clerking page now runs **full-bleed** like the resus/triage desks — the doctor sidebar + top bar are hidden (`FullBleedGate` extended to `/doctor/encounters/[id]`), replaced by a focused workspace top bar (back to Encounters · patient · hospital/cadre · sign out). The extra width lets **Clinical reasoning dock as its own right-hand rail** (sticky; stacks below the form on narrow screens) instead of the slide-over drawer — live + non-blocking. No migration.
