@@ -21,6 +21,7 @@ import type {
   ClerkSocial,
 } from "@/lib/encounter/clerkship";
 import type { ComponentType } from "react";
+import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import {
   ActivityIcon,
@@ -45,7 +46,11 @@ import { Label } from "@/components/ui/label";
 import { renderRosNarrative } from "@/lib/clerkship/ros";
 import { renderSymptomProse } from "@/lib/clerkship/symptom-engine";
 import { ICD10_CODES, LOINC_CODES } from "@/lib/encounter/reference-codes";
-import { submitClerkshipAction } from "../actions";
+import {
+  clearClerkshipDraftAction,
+  saveClerkshipDraftAction,
+  submitClerkshipAction,
+} from "../actions";
 import { AbdominalExam } from "./abdominal-exam";
 import { CardiovascularExam } from "./cardiovascular-exam";
 import { CodeCombobox } from "./code-combobox";
@@ -179,10 +184,17 @@ function buildClerkshipInput(f: FormState): unknown {
 export function ClerkshipForm({
   encounterId,
   initial,
+  draftsEnabled = false,
+  recoveredDraftAt = null,
 }: {
   encounterId: string;
   initial: Clerkship | null;
+  /** W3: working-draft autosave is live (gated). */
+  draftsEnabled?: boolean;
+  /** ISO timestamp if this form was hydrated from a recovered unsaved draft. */
+  recoveredDraftAt?: string | null;
 }) {
+  const router = useRouter();
   const h = initial?.history;
   const e = initial?.examination;
   const s = initial?.synthesis;
@@ -317,7 +329,25 @@ export function ClerkshipForm({
 
   // Lazy-init baseline = the clean snapshot; the dirty indicator diffs against it.
   const [baseline, setBaseline] = useState(() => JSON.stringify(buildClerkshipInput(state)));
-  const dirty = JSON.stringify(buildInput()) !== baseline;
+  const snapshot = JSON.stringify(buildInput());
+  const dirty = snapshot !== baseline;
+
+  // W3 — debounced working-draft autosave (gated/dark behind draftsEnabled).
+  // Persists the latest input to the mutable scratchpad ~2.5s after the last
+  // change, so a crash / dropped connection / device switch doesn't lose work.
+  // Separate from the append-only version history; cleared on an explicit save.
+  useEffect(() => {
+    if (!draftsEnabled || pending || snapshot === baseline) return;
+    const t = setTimeout(() => {
+      void saveClerkshipDraftAction(encounterId, JSON.parse(snapshot));
+    }, 2500);
+    return () => clearTimeout(t);
+  }, [draftsEnabled, pending, snapshot, baseline, encounterId]);
+
+  // Discard a recovered draft → drop it server-side and reload the saved version.
+  function discardRecoveredDraft() {
+    void clearClerkshipDraftAction(encounterId).then(() => router.refresh());
+  }
 
   // No-lost-work guard (W3): warn before the tab is closed/reloaded/navigated
   // away while there are unsaved changes. Robust + PHI-safe (nothing persisted);
@@ -340,6 +370,8 @@ export function ClerkshipForm({
       if (r.ok) {
         setBaseline(JSON.stringify(buildInput()));
         if (finalise) setFinalised(true);
+        // The new version supersedes any working draft — drop it (gated no-op off).
+        if (draftsEnabled) void clearClerkshipDraftAction(encounterId);
       }
     });
   }
@@ -350,6 +382,25 @@ export function ClerkshipForm({
     <form onSubmit={(ev) => ev.preventDefault()}>
       <div className="xl:grid xl:grid-cols-[minmax(0,1fr)_22rem] xl:items-start xl:gap-6">
         <div className="min-w-0">
+          {recoveredDraftAt ? (
+            <div className="scale-in mb-3 flex flex-wrap items-center gap-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-[12px] text-amber-900 dark:border-amber-800/60 dark:bg-amber-950/30 dark:text-amber-200">
+              <RefreshCwIcon className="size-3.5 shrink-0" aria-hidden />
+              <span>
+                Recovered unsaved changes from{" "}
+                <span className="font-mono tabular-nums">
+                  {recoveredDraftAt.slice(0, 16).replace("T", " ")}
+                </span>{" "}
+                — not yet saved. Save to keep them, or discard to return to the last saved version.
+              </span>
+              <button
+                type="button"
+                onClick={discardRecoveredDraft}
+                className="tap ml-auto rounded-md border border-amber-400/60 px-2 py-1 text-[11px] font-medium hover:bg-amber-100 dark:hover:bg-amber-900/40"
+              >
+                Discard
+              </button>
+            </div>
+          ) : null}
           <div className="border-border bg-card overflow-hidden rounded-xl border shadow-sm">
             {/* Window header — breadcrumb + status */}
             <div className="border-border/60 flex items-center gap-3 border-b px-4 py-3 sm:px-5">

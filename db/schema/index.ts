@@ -86,3 +86,6 @@ export * from "./symptom-catalog";
 
 // ─── Clerkship history-section pick-lists (migration 0046 — GATED) ──────
 export * from "./clerkship-picklist";
+
+// ─── Clerkship working-draft autosave (migration 0048 — GATED) ─────────
+export * from "./clerkship-drafts";

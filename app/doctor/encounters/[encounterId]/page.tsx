@@ -6,9 +6,11 @@ import { AlertTriangleIcon, ArrowLeftIcon, ClockIcon } from "lucide-react";
 
 import { db } from "@/db";
 import { encounters } from "@/db/schema/scheduling";
+import { loadClerkshipDraft } from "@/lib/clerkship/drafts";
 import { fetchPatientSummaryAudited } from "@/lib/doctor/patient-access";
 import { requireDoctorScope } from "@/lib/doctor/scope";
-import { encounterEngineLive } from "@/lib/encounter/feature";
+import { ClerkshipInputSchema, clerkshipInputToClerkship } from "@/lib/encounter/clerkship-input";
+import { clerkshipDraftsLive, encounterEngineLive } from "@/lib/encounter/feature";
 import { loadEncounterRecord } from "@/lib/encounter/record";
 import { toEncounterScope } from "@/lib/encounter/workspace-scope";
 import { ClerkshipForm } from "./_components/clerkship-form";
@@ -80,6 +82,23 @@ export default async function DoctorEncounterPage({ params }: PageProps) {
 
   const doc = record.documentation;
 
+  // W3 — if a working draft exists (autosaved after the last explicit save), offer
+  // it as the form's initial state, rehydrated through the same input mapper. The
+  // form shows a "recovered draft" banner so it's clearly unsaved. Gated/dark.
+  const draftsEnabled = clerkshipDraftsLive();
+  let initial = record.clerkship;
+  let recoveredDraftAt: string | null = null;
+  if (draftsEnabled) {
+    const draft = await loadClerkshipDraft(encounterId, scope.userId);
+    if (draft) {
+      const parsed = ClerkshipInputSchema.safeParse(draft.payload);
+      if (parsed.success) {
+        initial = clerkshipInputToClerkship(parsed.data);
+        recoveredDraftAt = draft.updatedAt.toISOString();
+      }
+    }
+  }
+
   return (
     <div className="bg-background text-foreground relative isolate flex min-h-svh flex-col">
       {/* Ambient clinical atmosphere — a whisper of teal at the top, 95% monochrome below */}
@@ -110,7 +129,12 @@ export default async function DoctorEncounterPage({ params }: PageProps) {
         </header>
 
         {/* Documentation entry — full-bleed workspace; reasoning docks as its own rail */}
-        <ClerkshipForm encounterId={encounterId} initial={record.clerkship} />
+        <ClerkshipForm
+          encounterId={encounterId}
+          initial={initial}
+          draftsEnabled={draftsEnabled}
+          recoveredDraftAt={recoveredDraftAt}
+        />
 
         {/* Timeline */}
         <section className="border-border bg-card flex flex-col gap-3 rounded-xl border p-4 shadow-xs">
