@@ -5,6 +5,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Clerkship: Musculoskeletal Examination (GALS + regional + arthropathy patterns) — 2026-06-12
+
+The fifth system-exam layer ([ADR 0071](docs/adr/0071-clerkship-musculoskeletal-examination.md)) — a new sixth card (MSK) in the Examination switcher. Catalog supplied in full. **No migration.**
+
+- **Two-level**: GALS screen (3 questions + G/A/L/S domains; "Normal GALS" fast path) → regional **Look·Feel·Move cards** by joint & side with region-specific LOOK extras, structured ROM, and **tap-to-cycle special tests** (Phalen's/Schober's/Thomas/McMurray's/Simmonds…).
+- **Pattern characteriser** (distribution/symmetry/joint-size/stiffness/character) driving the arthropathy engine: **septic arthritis (any hot joint — emergency)**, RA, OA, **gout (hot 1st MTP broadens to gout AND septic)**, spondyloarthropathy, psoriatic, **rheumatic fever**, **sickle-cell (dactylitis broadens — Uganda)**.
+- **Back-pain red-flag screen** — prominent; **cauda-equina options reused from the neuro exam**; cord/malignancy/infection (Pott's)/fracture groups; mechanical back pain is exclusion-only.
+- Findings + patterns feed the live differential. tsc/eslint/build clean; **895 tests** (+16).
+
 ### Added — Clerkship: Neurological Examination (structured grading + by-limb + localisation) — 2026-06-12
 
 The fourth + largest system-exam layer ([ADR 0070](docs/adr/0070-clerkship-neurological-examination.md)) — completes the Examination tab (all five systems now structured). Catalog supplied in full. **No migration.**

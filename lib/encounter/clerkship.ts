@@ -14,6 +14,7 @@
 
 import type { AbdoExam } from "@/lib/clerkship/exam/abdominal";
 import type { CvsExam } from "@/lib/clerkship/exam/cardiovascular";
+import type { MskExam } from "@/lib/clerkship/exam/musculoskeletal";
 import type { NeuroExam } from "@/lib/clerkship/exam/neurological";
 import type { RespExam } from "@/lib/clerkship/exam/respiratory";
 import type { ExamObservation, RecordedVitals } from "@/lib/clerkship/exam/types";
@@ -225,6 +226,8 @@ export interface ClerkExamination {
   abdominal?: AbdoExam;
   /** Structured neurological examination (tap-first; structured grading + localisation). */
   neurological?: NeuroExam;
+  /** Structured musculoskeletal examination (GALS + regional Look-Feel-Move). */
+  musculoskeletal?: MskExam;
   /** Per-system exam (free text or IPPA), hypothesis-driven. */
   systems?: Record<string, string>;
 }

@@ -556,6 +556,61 @@ export const ClerkshipInputSchema = z.object({
       })
       .optional();
   })(),
+  /** Structured MSK exam (GALS + regional Look-Feel-Move + back red flags). */
+  examMusculoskeletal: z
+    .object({
+      findings: z
+        .array(
+          z.object({
+            code: z.string().max(80),
+            group: z.string().max(40),
+            display: z.string().max(160),
+            state: z.enum(["present", "absent", "not_examined"]),
+            values: z.array(z.string().max(120)).max(20).optional(),
+            note: z.string().max(1000).optional(),
+          }),
+        )
+        .max(60)
+        .optional(),
+      gals: z
+        .object({
+          qPainStiffness: z.boolean().optional(),
+          qDress: z.boolean().optional(),
+          qStairs: z.boolean().optional(),
+          gait: z.enum(["normal", "antalgic", "abnormal"]).optional(),
+          arms: z.enum(["normal", "abnormal"]).optional(),
+          legs: z.enum(["normal", "abnormal"]).optional(),
+          spine: z.enum(["normal", "abnormal"]).optional(),
+        })
+        .optional(),
+      regions: z
+        .array(
+          z.object({
+            id: z.string().max(60),
+            region: z
+              .enum(["hand_wrist", "elbow", "shoulder", "spine", "hip", "knee", "ankle_foot"])
+              .optional(),
+            side: z.enum(["right", "left", "bilateral"]).optional(),
+            look: z.array(z.string().max(60)).max(20).optional(),
+            feel: z.array(z.string().max(60)).max(10).optional(),
+            rom: z.enum(["full", "restricted", "restricted_painful"]).optional(),
+            specialTests: z.record(z.string().max(60), z.enum(["positive", "negative"])).optional(),
+          }),
+        )
+        .max(8)
+        .optional(),
+      distribution: z.enum(["monoarticular", "oligoarticular", "polyarticular"]).optional(),
+      symmetry: z.enum(["symmetrical", "asymmetrical"]).optional(),
+      jointSize: z.enum(["small_joints", "large_joints", "mixed"]).optional(),
+      morningStiffness: z.enum(["none", "brief", "over_30min"]).optional(),
+      hotSwollenJoint: z.boolean().optional(),
+      cannotWeightBear: z.boolean().optional(),
+      worseWithUse: z.boolean().optional(),
+      migratory: z.boolean().optional(),
+      precedingSoreThroat: z.boolean().optional(),
+      backRedFlags: z.array(z.string().max(60)).max(20).optional(),
+    })
+    .optional(),
   examSystems: z
     .object({
       cardiovascular: z.string().max(2000).optional(),
@@ -672,6 +727,11 @@ export function clerkshipInputToClerkship(input: ClerkshipInput): Clerkship {
     neurological:
       input.examNeurological && Object.values(input.examNeurological).some((v) => v !== undefined)
         ? input.examNeurological
+        : undefined,
+    musculoskeletal:
+      input.examMusculoskeletal &&
+      Object.values(input.examMusculoskeletal).some((v) => v !== undefined)
+        ? input.examMusculoskeletal
         : undefined,
     systems: input.examSystems ? prune({ ...input.examSystems }) : undefined,
   });
