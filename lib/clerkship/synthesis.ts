@@ -1,5 +1,5 @@
 import type { BpStandard } from "@/lib/clerkship/exam/bp";
-import type { RecordedVitals } from "@/lib/clerkship/exam/types";
+import type { ExamObservation, RecordedVitals } from "@/lib/clerkship/exam/types";
 import type { AdultVitals } from "@/lib/triage/types";
 
 import { bpCategory } from "@/lib/clerkship/exam/bp";
@@ -22,6 +22,58 @@ import { scoreNews2 } from "@/lib/triage/scoring/news2";
  * positives/flags enter). Reuses the existing engines (NEWS2 scorer, the BP
  * reference categories, the exam cluster engines) — no duplicate thresholds.
  */
+
+/* ── Problem-list eligibility (CSO-signed, strict / Option A) ──────────────────
+   A captured exam FIELD is not a problem; a problem candidate is a flagged
+   significant abnormality. From a finding's recorded state we keep ONLY genuine
+   positives, collapse a finding + its value chips into ONE line (never one line
+   per chip), and drop descriptive/normal context. (Vitals, diagnoses + background
+   are handled on their own terms; cluster patterns come in as positives already.) */
+
+/** General-exam SELECT fields that are descriptive context, never problems —
+ *  per the CSO eligibility rule (consciousness is covered by the GCS vital). */
+const DESCRIPTIVE_SELECTS = new Set([
+  "wellbeing",
+  "distress",
+  "habitus",
+  "consciousness",
+  "position",
+]);
+
+/** Select values that are not, in themselves, a positive finding. */
+const NORMAL_SELECT = new Set([
+  "well",
+  "none",
+  "normal",
+  "not raised",
+  "central",
+  "present",
+  "warm",
+  "≤2 s",
+  "well-hydrated",
+  "symmetrical",
+]);
+
+/**
+ * Significant positive findings from an exam's recorded observations — the
+ * eligibility filter for problem candidates. Keeps a finding ONLY if it is
+ * present AND a genuine positive (a panel present, or a select on a pathological
+ * value), excluding descriptive selects and selects on a normal value. Each kept
+ * finding becomes a SINGLE line carrying its values ("Nails — clubbing,
+ * koilonychia"); never split per value chip. not-examined / absent are dropped
+ * (honest: absence here is "no significant abnormality", never invented).
+ */
+export function significantFindings(obs: ExamObservation[]): string[] {
+  const out: string[] = [];
+  for (const o of obs) {
+    if (o.state !== "present") continue;
+    if (DESCRIPTIVE_SELECTS.has(o.code)) continue;
+    const values = o.values ?? [];
+    if (values.length && values.every((v) => NORMAL_SELECT.has(v))) continue;
+    out.push(values.length ? `${o.display} — ${values.join(", ")}` : o.display);
+  }
+  return out;
+}
 
 export type AbnormalSource = "vitals" | "examination" | "ros" | "background";
 export type AbnormalSeverity = "borderline" | "critical" | "info";

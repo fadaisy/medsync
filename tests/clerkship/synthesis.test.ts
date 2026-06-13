@@ -1,3 +1,4 @@
+import type { ExamObservation } from "@/lib/clerkship/exam/types";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -5,7 +6,56 @@ import {
   assembleAbnormal,
   proposeProblems,
   renderProblemRepresentation,
+  significantFindings,
 } from "@/lib/clerkship/synthesis";
+
+const obs = (
+  code: string,
+  display: string,
+  state: ExamObservation["state"],
+  values?: string[],
+): ExamObservation => ({ code, group: "g", display, state, values });
+
+describe("significantFindings (problem-list eligibility filter, strict)", () => {
+  it("excludes descriptive selects even with a non-normal value", () => {
+    const out = significantFindings([
+      obs("wellbeing", "General wellbeing", "present", ["unwell + distressed"]),
+      obs("habitus", "Body habitus / nutrition", "present", ["obese"]),
+      obs("consciousness", "Consciousness", "present", ["drowsy"]),
+      obs("position", "Position / comfort", "present", ["sitting up"]),
+      obs("distress", "Distress", "present", ["mild"]),
+    ]);
+    expect(out).toEqual([]);
+  });
+
+  it("excludes a select sitting on a normal value, and not-examined / absent", () => {
+    expect(
+      significantFindings([
+        obs("peripheral_pulses", "Peripheral pulses", "present", ["present"]),
+        obs("jvp", "JVP", "present", ["not raised"]),
+        obs("nails", "Nails", "absent", []),
+        obs("eyes", "Eyes", "not_examined", []),
+      ]),
+    ).toEqual([]);
+  });
+
+  it("keeps a pathological select, collapsing its value into ONE line", () => {
+    const out = significantFindings([
+      obs("peripheral_pulses", "Peripheral pulses", "present", ["absent"]),
+      obs("oedema", "Peripheral oedema", "present", ["to knee"]),
+    ]);
+    expect(out).toContain("Peripheral pulses — absent");
+    expect(out).toContain("Peripheral oedema — to knee");
+    expect(out).toHaveLength(2);
+  });
+
+  it("keeps a positive panel as ONE line carrying all its values (never per-chip)", () => {
+    const out = significantFindings([
+      obs("nails", "Nails", "present", ["clubbing", "leuconychia"]),
+    ]);
+    expect(out).toEqual(["Nails — clubbing, leuconychia"]);
+  });
+});
 
 describe("abnormalVitals (vitals-up assembly rule)", () => {
   it("returns nothing when no vitals are recorded", () => {
