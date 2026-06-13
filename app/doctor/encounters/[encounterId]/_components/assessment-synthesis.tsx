@@ -32,6 +32,7 @@ import {
   assembleAbnormal,
   proposeProblems,
   renderProblemRepresentation,
+  significantFindings,
 } from "@/lib/clerkship/synthesis";
 import { cn } from "@/lib/utils";
 import { ValueChip } from "./exam-kit";
@@ -135,15 +136,19 @@ export function AssessmentSynthesis({
         patterns: pat(matchEvfPatterns(captured.endoVascularFoot)),
       },
     ];
-    // Exam positive findings come through the same reasoning tokens the rail
-    // uses (single source); shown under one "Examination" provenance.
-    const ctx = buildCapturedContext(captured);
-    const rosSet = new Set(
-      captured.ros.filter((o) => o.status === "present").map((o) => o.symptomDisplay),
-    );
-    const examPositives = ctx.positives.filter(
-      (p) => !rosSet.has(p) && !captured.pmhConditions.includes(p),
-    );
+    // Exam positives = SIGNIFICANT abnormal findings only (the CSO eligibility
+    // rule): each finding's value chips collapsed into ONE line, descriptive /
+    // normal selects excluded, never a captured field or an orphaned chip.
+    const examFindingsAll = [
+      ...captured.examFindings,
+      ...(captured.respiratory.findings ?? []),
+      ...(captured.cardiovascular.findings ?? []),
+      ...(captured.abdominal.findings ?? []),
+      ...(captured.neurological.findings ?? []),
+      ...(captured.musculoskeletal.findings ?? []),
+      ...(captured.endoVascularFoot.findings ?? []),
+    ];
+    const examPositives = Array.from(new Set(significantFindings(examFindingsAll)));
     return assembleAbnormal({
       vitals,
       bpStandard,
