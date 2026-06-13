@@ -61,6 +61,7 @@ import { EvfExamForm } from "./evf-exam";
 import { ExamSections } from "./exam-sections";
 import { FamilySocialSections } from "./family-social-sections";
 import { HistorySections } from "./history-sections";
+import { InvestigationSuggestions } from "./investigation-suggestions";
 import { MskExamForm } from "./msk-exam";
 import { NeuroExamForm } from "./neuro-exam";
 import { ReasoningPanel } from "./reasoning-panel";
@@ -820,6 +821,11 @@ export function ClerkshipForm({
 
                 {step === 5 ? (
                   <div className="flex flex-col gap-5">
+                    <InvestigationSuggestions
+                      pcCodes={hpcItems.map((x) => x.symptomCode)}
+                      existing={investigations.map((i) => i.text)}
+                      onAccept={(row) => setInvestigations([...investigations, row])}
+                    />
                     <Field label="Investigations">
                       <RepeatList
                         rows={investigations}
