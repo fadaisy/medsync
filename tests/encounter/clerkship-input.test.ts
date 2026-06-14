@@ -97,4 +97,28 @@ describe("clerkship-input", () => {
     expect(c.history?.allergies?.map((a) => a.substance)).toEqual(["aspirin"]);
     expect(c.synthesis?.differential?.map((d) => d.text)).toEqual(["migraine"]);
   });
+
+  it("round-trips a synthesised problem's nested evidence (no abnormal vital dropped)", () => {
+    const c = clerkshipInputToClerkship(
+      ClerkshipInputSchema.parse({
+        problems: [
+          {
+            item: "Acute coronary syndrome / MI",
+            kind: "diagnosis",
+            status: "active",
+            provenance: "reasoning synthesis · supported",
+            evidence: ["Crushing", "smoking", "SpO₂ 88%", "BP 189/110", "  "],
+          },
+        ],
+      }),
+    );
+    // evidence survives validation + mapping (so a confirmed problem's absorbed
+    // vitals are recognised on reload and never re-proposed standalone), blanks dropped.
+    expect(c.synthesis?.problems?.[0]!.evidence).toEqual([
+      "Crushing",
+      "smoking",
+      "SpO₂ 88%",
+      "BP 189/110",
+    ]);
+  });
 });

@@ -194,6 +194,7 @@ function buildClerkshipInput(f: FormState): unknown {
       status: p.status,
       linkedTo: p.linkedTo || undefined,
       provenance: p.provenance || undefined,
+      evidence: p.evidence?.length ? p.evidence : undefined,
     })),
     investigations: f.investigations.map((o) => ({
       kind: o.kind,
@@ -302,6 +303,7 @@ export function ClerkshipForm({
       status: p.status ?? (p.active === false ? "resolved" : "active"),
       linkedTo: p.linkedTo,
       provenance: p.provenance,
+      evidence: p.evidence,
     })),
   );
   // The BP reference standard — shared by the vitals panel + the Assessment.

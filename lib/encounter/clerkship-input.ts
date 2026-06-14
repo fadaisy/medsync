@@ -716,6 +716,8 @@ export const ClerkshipInputSchema = z.object({
         status: z.enum(["active", "resolved", "linked"]).optional(),
         linkedTo: z.string().max(240).optional(),
         provenance: z.string().max(240).optional(),
+        /** Supporting evidence for a synthesised problem (symptoms/signs/risks/vitals). */
+        evidence: z.array(z.string().max(240)).max(40).optional(),
       }),
     )
     .max(40)
@@ -852,6 +854,7 @@ export function clerkshipInputToClerkship(input: ClerkshipInput): Clerkship {
         status: p.status,
         linkedTo: clean(p.linkedTo),
         provenance: clean(p.provenance),
+        evidence: p.evidence?.map((e) => e.trim()).filter((e) => e.length > 0),
         active: p.status ? p.status !== "resolved" : true,
       })),
     investigations: input.investigations

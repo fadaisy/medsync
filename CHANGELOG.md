@@ -5,6 +5,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Changed — Clerkship: Problem-list synthesis (reasoned problems-with-evidence) — 2026-06-14
+
+The proposed problem list now **reasons across symptoms + signs + risks + abnormal vitals into the most-likely problems, each carrying its evidence underneath** — instead of listing each raw abnormal vital as its own line ([ADR 0073](docs/adr/0073-clerkship-problem-list-synthesis.md), supersedes the per-vital display). CSO-signed model (GATE A). **No migration.**
+
+- **The synthesised problem IS the reasoning engine's leading hypothesis** (`lib/clerkship/problem-synthesis.ts`, pure/TDD) — not a second diagnosis-engine. It reuses each `supported` `ScoredDifferential`'s own evidence (symptoms/signs/risks) verbatim and nests it under the problem. Honest wording: **"likely … (working)" + status chip**; the diagnosis of record stays the clinician's.
+- **Abnormal-vital safety net (conservative, clinician-confirmed):** a vital is absorbed as evidence only when its body system matches one the hypothesis draws support from (the differential's `supportingSymptoms` systems + a small vital→system map; temperature deliberately unmapped). Default standalone. **No abnormal vital is ever dropped** — it is nested under a shown problem, carried as evidence under a confirmed problem, or surfaced standalone ("unexplained · for review"); excluding a problem returns its vitals.
+- **Reconciled with the differential-decision into one coherent record** — confirming a synthesised problem agrees the differential + commits it with evidence; rejecting keeps it "considered & excluded" (must-not-miss retained). `ClerkProblem.evidence[]` persists in the versioned section_data.
+- **Pre-deploy adversarial review (7 agents)** caught a real evidence-persistence defect (dropped at the form boundary → could resurface an absorbed vital standalone) — fixed + locked with a round-trip regression test. tsc/eslint clean; **970 tests** (+10); build green.
+
 ### Added — Clerkship: Endocrine · Vascular · Diabetic-Foot exam pack (NCD) — 2026-06-12
 
 The NCD-focused exam pack ([ADR 0072](docs/adr/0072-clerkship-endocrine-vascular-foot-examination.md)) — one card, three sub-tabs (Thyroid status / Peripheral vascular / **Diabetic foot**). Catalog supplied in full. **No migration.**
