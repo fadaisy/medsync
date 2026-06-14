@@ -243,8 +243,42 @@ export const encounterResults = pgTable(
     abnormalFlag: text("abnormal_flag"),
     loincCode: text("loinc_code"),
     resultedAt: timestamp("resulted_at", { withTimezone: true }).notNull().defaultNow(),
+    /* ── Lab-tech workspace (GATED migration 0050; nullable — legacy rows + the
+       un-flagged path are unaffected). The manual results-entry + verify/release +
+       critical-value workflow. Written only when `labResultsLive()` is on. ── */
+    /** Specimen logging. */
+    specimenType: text("specimen_type"),
+    specimenCollectedAt: timestamp("specimen_collected_at", { withTimezone: true }),
+    specimenId: text("specimen_id"),
+    /** Reference range shown alongside the value (prose, e.g. "3.5–5.1 mmol/L"). */
+    referenceRangeText: text("reference_range_text"),
+    /** A crossed critical/panic threshold (drives the alert + priority release). */
+    criticalFlag: text("critical_flag"),
+    /** entered (not yet released) → released (clinician-visible final) → rejected. */
+    qualityStatus: text("quality_status"),
+    /** Who ENTERED the result (entered ≠ released). */
+    enteredByUserId: uuid("entered_by_user_id").references(() => authUsers.id, {
+      onDelete: "set null",
+    }),
+    /** Release is a deliberate, cadre-gated act — set on release, not on entry. */
+    releasedAt: timestamp("released_at", { withTimezone: true }),
+    releasedByUserId: uuid("released_by_user_id").references(() => authUsers.id, {
+      onDelete: "set null",
+    }),
+    /** Why a specimen/result was rejected ("haemolysed — recollect"). */
+    rejectionReason: text("rejection_reason"),
   },
-  (t) => [index("enc_result_order_idx").on(t.orderId)],
+  (t) => [
+    index("enc_result_order_idx").on(t.orderId),
+    check(
+      "enc_result_quality_check",
+      sql`${t.qualityStatus} IS NULL OR ${t.qualityStatus} IN ('entered','released','rejected')`,
+    ),
+    check(
+      "enc_result_critical_check",
+      sql`${t.criticalFlag} IS NULL OR ${t.criticalFlag} IN ('panic_high','panic_low','critical')`,
+    ),
+  ],
 );
 
 /** The append-only encounter timeline (mirrors the resus-timeline model). */

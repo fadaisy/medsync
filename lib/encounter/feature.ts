@@ -43,3 +43,19 @@ export function clerkshipDraftsLive(): boolean {
 export function problemListSynthesisLive(): boolean {
   return process.env.PROBLEM_LIST_SYNTHESIS_LIVE === "1" && encounterEngineLive();
 }
+
+/**
+ * Is the lab-technician manual results-entry + verify/release workflow live?
+ *
+ * Migration 0050 adds the nullable specimen/critical/quality/release columns to
+ * `encounter_results`. It is GATED — until the owner applies it those columns do
+ * not exist, so the WRITES (the lab result-entry/verify-release path) gate on this
+ * flag; the existing clinician read (`loadEncounterOrders`) selects only the
+ * pre-0050 columns, so it is safe either way. After `npm run db:migrate` applies
+ * 0050, set `LAB_RESULTS_LIVE=1` to switch the lab write workflow on — no redeploy
+ * of logic. Requires ENCOUNTER_ENGINE_LIVE (results live on the encounter spine).
+ * The critical-value alerting additionally gates on CRITICAL_VALUES_CSO_SIGNED.
+ */
+export function labResultsLive(): boolean {
+  return process.env.LAB_RESULTS_LIVE === "1" && encounterEngineLive();
+}
