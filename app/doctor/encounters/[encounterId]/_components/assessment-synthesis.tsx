@@ -19,21 +19,11 @@ import {
   XIcon,
 } from "lucide-react";
 
-import { matchAbdoPatterns } from "@/lib/clerkship/exam/abdominal";
-import { matchCvsPatterns } from "@/lib/clerkship/exam/cardiovascular";
-import { matchEvfPatterns } from "@/lib/clerkship/exam/endo-vascular-foot";
-import { matchMskPatterns } from "@/lib/clerkship/exam/musculoskeletal";
-import { matchNeuroPatterns } from "@/lib/clerkship/exam/neurological";
-import { matchRespPatterns } from "@/lib/clerkship/exam/respiratory";
+import { assembleClerkshipAbnormal } from "@/lib/clerkship/assemble";
 import { buildCapturedContext } from "@/lib/clerkship/reasoning/context";
 import { liveReasoningForCodes } from "@/lib/clerkship/reasoning/engine";
 import { REASONING_MAPS } from "@/lib/clerkship/reasoning/maps";
-import {
-  assembleAbnormal,
-  proposeProblems,
-  renderProblemRepresentation,
-  significantFindings,
-} from "@/lib/clerkship/synthesis";
+import { proposeProblems, renderProblemRepresentation } from "@/lib/clerkship/synthesis";
 import { cn } from "@/lib/utils";
 import { ValueChip } from "./exam-kit";
 
@@ -104,61 +94,12 @@ export function AssessmentSynthesis({
   onRemoveProblem: (index: number) => void;
   onInsertSummary: (text: string) => void;
 }) {
-  // ── the assembled abnormals (vitals-up; reuses the existing engines) ──
-  const items = useMemo(() => {
-    const pat = (ps: { label: string; mustNotMiss?: boolean; emergency?: boolean }[]) =>
-      ps.map((p) => ({ label: p.label, mustNotMiss: p.mustNotMiss, emergency: p.emergency }));
-    const exam = [
-      {
-        system: "Respiratory",
-        positives: [],
-        patterns: pat(matchRespPatterns(captured.respiratory)),
-      },
-      {
-        system: "Cardiovascular",
-        positives: [],
-        patterns: pat(matchCvsPatterns(captured.cardiovascular)),
-      },
-      { system: "Abdominal", positives: [], patterns: pat(matchAbdoPatterns(captured.abdominal)) },
-      {
-        system: "Neurological",
-        positives: [],
-        patterns: pat(matchNeuroPatterns(captured.neurological)),
-      },
-      {
-        system: "Musculoskeletal",
-        positives: [],
-        patterns: pat(matchMskPatterns(captured.musculoskeletal)),
-      },
-      {
-        system: "Endo · vascular · foot",
-        positives: [],
-        patterns: pat(matchEvfPatterns(captured.endoVascularFoot)),
-      },
-    ];
-    // Exam positives = SIGNIFICANT abnormal findings only (the CSO eligibility
-    // rule): each finding's value chips collapsed into ONE line, descriptive /
-    // normal selects excluded, never a captured field or an orphaned chip.
-    const examFindingsAll = [
-      ...captured.examFindings,
-      ...(captured.respiratory.findings ?? []),
-      ...(captured.cardiovascular.findings ?? []),
-      ...(captured.abdominal.findings ?? []),
-      ...(captured.neurological.findings ?? []),
-      ...(captured.musculoskeletal.findings ?? []),
-      ...(captured.endoVascularFoot.findings ?? []),
-    ];
-    const examPositives = Array.from(new Set(significantFindings(examFindingsAll)));
-    return assembleAbnormal({
-      vitals,
-      bpStandard,
-      exam: [{ system: "Examination", positives: examPositives, patterns: [] }, ...exam],
-      rosPositives: captured.ros
-        .filter((o) => o.status === "present")
-        .map((o) => ({ symptomDisplay: o.symptomDisplay, system: o.system })),
-      background: captured.pmhConditions,
-    });
-  }, [captured, vitals, bpStandard]);
+  // ── the assembled abnormals (vitals-up; the shared single-source assembly,
+  //    reused by the disposition cross-check so the two can never disagree) ──
+  const items = useMemo(
+    () => assembleClerkshipAbnormal(captured, vitals, bpStandard),
+    [captured, vitals, bpStandard],
+  );
 
   // ── the reasoning engine's live differential (the rail's same computation) ──
   const reasoning = useMemo(

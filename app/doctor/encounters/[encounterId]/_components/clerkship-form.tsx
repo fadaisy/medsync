@@ -24,7 +24,7 @@ import type {
 } from "@/lib/encounter/clerkship";
 import type { ComponentType } from "react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import {
   ActivityIcon,
   BrainIcon,
@@ -45,6 +45,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { assembleClerkshipAbnormal, examEmergencyLabels } from "@/lib/clerkship/assemble";
 import { renderRosNarrative } from "@/lib/clerkship/ros";
 import { renderSymptomProse } from "@/lib/clerkship/symptom-engine";
 import { ICD10_CODES, LOINC_CODES } from "@/lib/encounter/reference-codes";
@@ -57,6 +58,7 @@ import { AbdominalExam } from "./abdominal-exam";
 import { AssessmentSynthesis } from "./assessment-synthesis";
 import { CardiovascularExam } from "./cardiovascular-exam";
 import { CodeCombobox } from "./code-combobox";
+import { DispositionCheck } from "./disposition-check";
 import { EvfExamForm } from "./evf-exam";
 import { ExamSections } from "./exam-sections";
 import { FamilySocialSections } from "./family-social-sections";
@@ -316,6 +318,46 @@ export function ClerkshipForm({
   const [safetyNetting, setSafetyNetting] = useState(s?.safetyNetting ?? "");
 
   const [step, setStep] = useState(0);
+
+  // The captured clinical state — the single object the Assessment synthesis and
+  // the disposition cross-check both read (so they can never disagree).
+  const capturedState = useMemo(
+    () => ({
+      hpcItems,
+      ros,
+      pmhConditions: pmhItems.map((p) => p.display),
+      fhScreen,
+      social: socialHx,
+      examFindings: examGeneralFindings,
+      respiratory: examRespiratory,
+      cardiovascular: examCardiovascular,
+      abdominal: examAbdominal,
+      neurological: examNeurological,
+      musculoskeletal: examMusculoskeletal,
+      endoVascularFoot: examEndoVascularFoot,
+    }),
+    [
+      hpcItems,
+      ros,
+      pmhItems,
+      fhScreen,
+      socialHx,
+      examGeneralFindings,
+      examRespiratory,
+      examCardiovascular,
+      examAbdominal,
+      examNeurological,
+      examMusculoskeletal,
+      examEndoVascularFoot,
+    ],
+  );
+
+  // Must-not-miss / emergency exam patterns — the red-flag input to the
+  // disposition cross-check (derived from the same vitals-up assembly).
+  const examEmergencies = useMemo(
+    () => examEmergencyLabels(assembleClerkshipAbnormal(capturedState, examVitals, bpStandard)),
+    [capturedState, examVitals, bpStandard],
+  );
 
   // Jump-to-tab keyboard shortcuts (Alt+1…6) — fast tab switching on a busy ward.
   // Alt avoids clashing with text entry and the browser's Cmd/Ctrl+number.
@@ -730,20 +772,7 @@ export function ClerkshipForm({
                   <div className="flex flex-col gap-5">
                     {/* The synthesis zones — assemble + propose; the clinician decides. */}
                     <AssessmentSynthesis
-                      captured={{
-                        hpcItems,
-                        ros,
-                        pmhConditions: pmhItems.map((p) => p.display),
-                        fhScreen,
-                        social: socialHx,
-                        examFindings: examGeneralFindings,
-                        respiratory: examRespiratory,
-                        cardiovascular: examCardiovascular,
-                        abdominal: examAbdominal,
-                        neurological: examNeurological,
-                        musculoskeletal: examMusculoskeletal,
-                        endoVascularFoot: examEndoVascularFoot,
-                      }}
+                      captured={capturedState}
                       pcCodes={hpcItems.map((x) => x.symptomCode)}
                       vitals={examVitals}
                       bpStandard={bpStandard}
@@ -897,6 +926,14 @@ export function ClerkshipForm({
                         />
                       </Field>
                     </div>
+                    {/* Disposition cross-check — decision-support; reuses the signed
+                        NEWS2 / GCS / BP thresholds + must-not-miss exam patterns. */}
+                    <DispositionCheck
+                      chosen={disposition}
+                      vitals={examVitals}
+                      bpStandard={bpStandard}
+                      examEmergencies={examEmergencies}
+                    />
                   </div>
                 ) : null}
               </div>
