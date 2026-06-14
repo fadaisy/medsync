@@ -2,6 +2,7 @@
 
 import type { BpStandard } from "@/lib/clerkship/exam/bp";
 import type { RecordedVitals } from "@/lib/clerkship/exam/types";
+import type { SynthesisedProblem } from "@/lib/clerkship/problem-synthesis";
 import type { CapturedStateInput } from "@/lib/clerkship/reasoning/context";
 import type { ScoredDifferential } from "@/lib/clerkship/reasoning/types";
 import type { ProblemKind } from "@/lib/clerkship/synthesis";
@@ -20,6 +21,7 @@ import {
 } from "lucide-react";
 
 import { assembleClerkshipAbnormal } from "@/lib/clerkship/assemble";
+import { synthesiseProblemList } from "@/lib/clerkship/problem-synthesis";
 import { buildCapturedContext } from "@/lib/clerkship/reasoning/context";
 import { liveReasoningForCodes } from "@/lib/clerkship/reasoning/engine";
 import { REASONING_MAPS } from "@/lib/clerkship/reasoning/maps";
@@ -54,6 +56,8 @@ export type ProblemRow = {
   status: "active" | "resolved" | "linked";
   linkedTo?: string;
   provenance?: string;
+  /** Nested supporting evidence for a synthesised (diagnosis) problem. */
+  evidence?: string[];
 };
 
 const SOURCE_LABEL: Record<string, string> = {
@@ -61,6 +65,14 @@ const SOURCE_LABEL: Record<string, string> = {
   examination: "Examination",
   ros: "ROS",
   background: "Background",
+};
+
+/** Short clinical tags for nested evidence kinds (history / on-examination / etc). */
+const EVIDENCE_TAG: Record<string, string> = {
+  symptom: "Hx",
+  sign: "O/E",
+  risk: "Risk",
+  vital: "Vital",
 };
 
 export function AssessmentSynthesis({
@@ -117,14 +129,51 @@ export function AssessmentSynthesis({
   );
   const suggestions = reasoning.scored.filter((s) => !decidedTexts.has(s.dx.trim().toLowerCase()));
 
-  // ── the vitals-first proposed problems (minus already-confirmed) ──
+  // ── the synthesised problem list (GATE A model) ──
+  // The reasoning engine's leading SUPPORTED hypotheses, surfaced as proposed
+  // problems-with-evidence (its own evidence buckets, reused), with the abnormal
+  // vitals each one explains absorbed underneath. Any unabsorbed abnormal vital
+  // stays standalone — nothing abnormal is ever dropped.
   const confirmedSet = new Set(problems.map((p) => p.item.trim().toLowerCase()));
-  const proposed = proposeProblems(items, differential).filter(
-    (p) => !confirmedSet.has(p.item.trim().toLowerCase()),
+  const { synthesised, standaloneVitals } = useMemo(
+    () =>
+      synthesiseProblemList({
+        scored: reasoning.scored,
+        vitals: items.filter((i) => i.source === "vitals"),
+        excludedTexts: new Set(excluded.map((d) => d.text.trim().toLowerCase())),
+        confirmed: problems.map((p) => ({ item: p.item, evidence: p.evidence })),
+      }),
+    [reasoning.scored, items, excluded, problems],
+  );
+
+  // Findings + active background stay proposed on their own terms (the synthesis
+  // rework supersedes the per-VITAL and per-diagnosis behaviour only).
+  const proposedContext = proposeProblems(items, differential).filter(
+    (p) =>
+      (p.kind === "finding" || p.kind === "background") &&
+      !confirmedSet.has(p.item.trim().toLowerCase()),
   );
 
   const representation = renderProblemRepresentation(items);
   const workingDxTexts = differential.map((d) => d.text).filter((t) => t.trim());
+
+  // Confirming a synthesised problem = agreeing the differential (one coherent
+  // record) AND committing it as a problem-with-evidence; rejecting = exclude.
+  const confirmSynth = (sp: SynthesisedProblem) => {
+    const s = reasoning.scored.find((x) => x.dx === sp.dx);
+    if (s) onAgree(s);
+    onConfirmProblem({
+      item: sp.dx,
+      kind: "diagnosis",
+      status: "active",
+      provenance: `reasoning synthesis · ${sp.status}`,
+      evidence: sp.evidence.map((e) => e.label),
+    });
+  };
+  const rejectSynth = (sp: SynthesisedProblem) => {
+    const s = reasoning.scored.find((x) => x.dx === sp.dx);
+    if (s) onExclude(s);
+  };
 
   return (
     <div className="flex flex-col gap-4">
@@ -306,19 +355,149 @@ export function AssessmentSynthesis({
         </p>
       </section>
 
-      {/* ── Zone 3 · The proposed problem list (vitals-first; you confirm) ── */}
+      {/* ── Zone 3 · The synthesised problem list (problems-with-evidence) ── */}
       <section className="border-border bg-card flex flex-col gap-2.5 rounded-xl border p-3.5 shadow-sm">
         <h4 className="font-display text-foreground inline-flex items-center gap-1.5 text-[13px] font-medium">
           <ListChecksIcon className="size-4 text-teal-600 dark:text-teal-400" aria-hidden />
-          Problem list — proposed vitals-first, you confirm
+          Problem list — synthesised, you confirm
         </h4>
 
-        {proposed.length ? (
+        {/* Synthesised problems = the reasoning engine's leading hypotheses, with
+            their evidence nested. Honest hypothesis wording; the clinician decides. */}
+        {synthesised.length ? (
+          <div className="flex flex-col gap-1.5">
+            <span className="text-muted-foreground font-mono text-[9.5px] tracking-[0.12em] uppercase">
+              Proposed — likely problems with their evidence
+            </span>
+            {synthesised.map((sp) => (
+              <div
+                key={sp.dx}
+                className={cn(
+                  "flex flex-col gap-1.5 rounded-lg border border-dashed p-2",
+                  sp.mustNotMiss
+                    ? "border-red-300 bg-red-50/40 dark:border-red-900/50 dark:bg-red-950/15"
+                    : "border-border/70 bg-muted/20",
+                )}
+              >
+                <div className="flex flex-wrap items-start gap-2">
+                  <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                    <span className="text-foreground text-[12.5px] font-medium">
+                      {sp.mustNotMiss ? (
+                        <ShieldAlertIcon
+                          className="mr-1 inline size-3.5 text-red-600 dark:text-red-400"
+                          aria-label="must-not-miss"
+                        />
+                      ) : null}
+                      likely {sp.dx}{" "}
+                      <span className="text-muted-foreground text-[10.5px] font-normal">
+                        (working)
+                      </span>
+                      <span
+                        className={cn(
+                          "ml-1.5 rounded px-1 text-[9px] font-semibold tracking-wide uppercase",
+                          sp.mustNotMiss
+                            ? "bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-300"
+                            : "bg-teal-100 text-teal-800 dark:bg-teal-950/40 dark:text-teal-300",
+                        )}
+                      >
+                        {sp.mustNotMiss ? "must-not-miss" : "supported"}
+                      </span>
+                    </span>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => confirmSynth(sp)}
+                      className="tap inline-flex items-center gap-1 rounded-md bg-teal-600 px-2 py-1 text-[11px] font-medium text-white hover:bg-teal-700"
+                    >
+                      <CheckIcon className="size-3" aria-hidden /> Confirm
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => rejectSynth(sp)}
+                      className="tap text-muted-foreground border-border hover:text-foreground inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[11px]"
+                    >
+                      <XIcon className="size-3" aria-hidden /> Reject
+                    </button>
+                  </div>
+                </div>
+                {sp.evidence.length ? (
+                  <div className="flex flex-wrap items-center gap-1">
+                    <span className="text-muted-foreground/70 text-[9.5px]">evidence:</span>
+                    {sp.evidence.map((e) => (
+                      <span
+                        key={`${e.kind}:${e.label}`}
+                        className="ring-border bg-card inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10.5px] ring-1 ring-inset"
+                      >
+                        <span className="text-muted-foreground/60 text-[8px] font-semibold tracking-wide uppercase">
+                          {EVIDENCE_TAG[e.kind]}
+                        </span>
+                        {e.label}
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        ) : null}
+
+        {/* Abnormal vitals NOT absorbed into a synthesised problem — standalone,
+            unexplained, for review. Nothing abnormal is ever dropped. */}
+        {standaloneVitals.length ? (
           <div className="flex flex-col gap-1">
             <span className="text-muted-foreground font-mono text-[9.5px] tracking-[0.12em] uppercase">
-              Proposed
+              Unexplained abnormal vitals — for review
             </span>
-            {proposed.map((p) => (
+            {standaloneVitals.map((v) => (
+              <div
+                key={v.label}
+                className="border-border/70 bg-muted/20 flex flex-wrap items-center gap-2 rounded-lg border border-dashed px-2 py-1.5"
+              >
+                <span className="text-muted-foreground bg-muted rounded px-1 font-mono text-[9px] uppercase">
+                  vital
+                </span>
+                <span className="text-foreground min-w-0 flex-1 text-[12px]">
+                  {v.mustNotMiss ? (
+                    <AlertTriangleIcon
+                      className="mr-1 inline size-3 text-red-600 dark:text-red-400"
+                      aria-label="must-not-miss"
+                    />
+                  ) : null}
+                  {v.label}
+                  {v.detail ? (
+                    <span className="text-muted-foreground/70 ml-1.5 text-[10px]">{v.detail}</span>
+                  ) : null}
+                </span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    onConfirmProblem({
+                      item:
+                        v.detail && v.severity !== "critical"
+                          ? `${v.label} — ${v.detail}`
+                          : v.label,
+                      kind: "vital",
+                      status: "active",
+                      provenance: `vitals${v.detail ? ` · ${v.detail}` : ""}`,
+                    })
+                  }
+                  className="tap inline-flex items-center gap-1 rounded-md bg-teal-600 px-2 py-1 text-[11px] font-medium text-white hover:bg-teal-700"
+                >
+                  <PlusIcon className="size-3" aria-hidden /> Confirm
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : null}
+
+        {/* Findings + active background on their own terms. */}
+        {proposedContext.length ? (
+          <div className="flex flex-col gap-1">
+            <span className="text-muted-foreground font-mono text-[9.5px] tracking-[0.12em] uppercase">
+              Other proposed
+            </span>
+            {proposedContext.map((p) => (
               <div
                 key={p.item}
                 className="border-border/70 bg-muted/20 flex flex-wrap items-center gap-2 rounded-lg border border-dashed px-2 py-1.5"
@@ -365,79 +544,99 @@ export function AssessmentSynthesis({
             {problems.map((p, i) => (
               <div
                 key={`${p.item}-${i}`}
-                className="border-border bg-card flex flex-wrap items-center gap-2 rounded-lg border px-2 py-1.5"
+                className="border-border bg-card flex flex-col gap-1 rounded-lg border px-2 py-1.5"
               >
-                <span className="text-muted-foreground bg-muted rounded px-1 font-mono text-[9px] uppercase">
-                  {p.kind}
-                </span>
-                <span
-                  className={cn(
-                    "text-foreground min-w-0 flex-1 text-[12px]",
-                    p.status === "resolved" && "text-muted-foreground line-through",
-                  )}
-                >
-                  {p.item}
-                  {p.status === "linked" && p.linkedTo ? (
-                    <span className="text-muted-foreground ml-1.5 inline-flex items-center gap-0.5 text-[10px]">
-                      <Link2Icon className="size-3" aria-hidden /> under {p.linkedTo}
-                    </span>
-                  ) : null}
-                </span>
-                <div className="flex shrink-0 items-center gap-1">
-                  {(["active", "resolved"] as const).map((st) => (
-                    <ValueChip
-                      key={st}
-                      active={p.status === st}
-                      onClick={() => onUpdateProblem(i, { status: st, linkedTo: undefined })}
-                    >
-                      {st}
-                    </ValueChip>
-                  ))}
-                  {workingDxTexts.length && p.kind !== "diagnosis" ? (
-                    <select
-                      aria-label={`Link ${p.item} under a working diagnosis`}
-                      className="tap border-border bg-card rounded-md border px-1 py-0.5 text-[10.5px]"
-                      value={p.status === "linked" ? (p.linkedTo ?? "") : ""}
-                      onChange={(e) =>
-                        onUpdateProblem(
-                          i,
-                          e.target.value
-                            ? { status: "linked", linkedTo: e.target.value }
-                            : { status: "active", linkedTo: undefined },
-                        )
-                      }
-                    >
-                      <option value="">link under…</option>
-                      {workingDxTexts.map((t) => (
-                        <option key={t} value={t}>
-                          {t}
-                        </option>
-                      ))}
-                    </select>
-                  ) : null}
-                  <button
-                    type="button"
-                    onClick={() => onRemoveProblem(i)}
-                    aria-label={`Remove ${p.item}`}
-                    className="tap text-muted-foreground hover:text-destructive rounded-md p-0.5"
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-muted-foreground bg-muted rounded px-1 font-mono text-[9px] uppercase">
+                    {p.kind}
+                  </span>
+                  <span
+                    className={cn(
+                      "text-foreground min-w-0 flex-1 text-[12px]",
+                      p.status === "resolved" && "text-muted-foreground line-through",
+                    )}
                   >
-                    <XIcon className="size-3.5" aria-hidden />
-                  </button>
+                    {p.item}
+                    {p.status === "linked" && p.linkedTo ? (
+                      <span className="text-muted-foreground ml-1.5 inline-flex items-center gap-0.5 text-[10px]">
+                        <Link2Icon className="size-3" aria-hidden /> under {p.linkedTo}
+                      </span>
+                    ) : null}
+                  </span>
+                  <div className="flex shrink-0 items-center gap-1">
+                    {(["active", "resolved"] as const).map((st) => (
+                      <ValueChip
+                        key={st}
+                        active={p.status === st}
+                        onClick={() => onUpdateProblem(i, { status: st, linkedTo: undefined })}
+                      >
+                        {st}
+                      </ValueChip>
+                    ))}
+                    {workingDxTexts.length && p.kind !== "diagnosis" ? (
+                      <select
+                        aria-label={`Link ${p.item} under a working diagnosis`}
+                        className="tap border-border bg-card rounded-md border px-1 py-0.5 text-[10.5px]"
+                        value={p.status === "linked" ? (p.linkedTo ?? "") : ""}
+                        onChange={(e) =>
+                          onUpdateProblem(
+                            i,
+                            e.target.value
+                              ? { status: "linked", linkedTo: e.target.value }
+                              : { status: "active", linkedTo: undefined },
+                          )
+                        }
+                      >
+                        <option value="">link under…</option>
+                        {workingDxTexts.map((t) => (
+                          <option key={t} value={t}>
+                            {t}
+                          </option>
+                        ))}
+                      </select>
+                    ) : null}
+                    <button
+                      type="button"
+                      onClick={() => onRemoveProblem(i)}
+                      aria-label={`Remove ${p.item}`}
+                      className="tap text-muted-foreground hover:text-destructive rounded-md p-0.5"
+                    >
+                      <XIcon className="size-3.5" aria-hidden />
+                    </button>
+                  </div>
                 </div>
+                {p.evidence?.length ? (
+                  <div className="flex flex-wrap items-center gap-1 pl-1">
+                    <span className="text-muted-foreground/70 text-[9.5px]">evidence:</span>
+                    {p.evidence.map((e) => (
+                      <span
+                        key={e}
+                        className="ring-border bg-muted/30 text-muted-foreground rounded px-1.5 py-0.5 text-[10px] ring-1 ring-inset"
+                      >
+                        {e}
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
               </div>
             ))}
           </div>
-        ) : proposed.length === 0 ? (
+        ) : synthesised.length === 0 &&
+          standaloneVitals.length === 0 &&
+          proposedContext.length === 0 ? (
           <p className="text-muted-foreground text-[12px]">
-            Problems propose themselves here — vitals first — as the clerkship is captured; you
-            confirm what becomes the list of record.
+            Problems synthesise here as the clerkship is captured — the reasoning engine&apos;s
+            likely problems with their evidence, plus any unexplained abnormal vital. You confirm
+            what becomes the list of record.
           </p>
         ) : null}
 
         <p className="text-muted-foreground/70 text-[10px]">
-          A vital starts as its own problem and can be linked under a diagnosis as reasoning firms
-          up — your act, reversible; nothing is silently removed. The committed list persists on the
-          record.
+          Each likely problem is the reasoning engine&apos;s leading hypothesis with its evidence —
+          proposed, never asserted; the diagnosis of record is yours. Confirm a problem to record it
+          (and agree the differential); an abnormal vital it doesn&apos;t explain stays standalone,
+          and any confirmed problem can be linked under a diagnosis. Nothing is dropped or silently
+          removed.
         </p>
       </section>
     </div>

@@ -130,6 +130,11 @@ export interface ClerkProblem {
   linkedTo?: string;
   /** Where the proposed item came from (auditable provenance). */
   provenance?: string;
+  /** For a SYNTHESISED problem (a reasoning-engine hypothesis surfaced as a
+   *  problem): the supporting evidence nested underneath — symptoms, signs, risk
+   *  factors and the abnormal vitals it explains. Retained + auditable; the
+   *  problem-of-record stays the clinician's. */
+  evidence?: string[];
 }
 export interface ClerkOrder {
   kind: "bloods" | "imaging" | "bedside" | "special" | "other";
