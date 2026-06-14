@@ -20,6 +20,7 @@ import { rosObservationRows } from "@/lib/clerkship/ros";
 import { symptomObservationRows } from "@/lib/clerkship/symptom-engine";
 import { clerkshipWriteAuthority } from "@/lib/encounter/access";
 import { deriveClinicalObjects } from "@/lib/encounter/clerkship";
+import { problemListSynthesisLive } from "@/lib/encounter/feature";
 import { resolveEncounterAccess } from "@/lib/encounter/scope";
 import { logger } from "@/lib/logger";
 
@@ -156,6 +157,7 @@ export async function recordClerkshipVersion(
           authoredByUserId: scope.userId,
         });
       }
+      const synthesisLive = problemListSynthesisLive();
       for (const p of derived.problems) {
         await db.insert(problemList).values({
           patientUserId,
@@ -165,6 +167,16 @@ export async function recordClerkshipVersion(
           active: p.active ?? true,
           sourceEncounterId: encounterId,
           authoredByUserId: scope.userId,
+          // The synthesis projection (kind/status/linked_to/provenance) only
+          // exists once 0049 is applied — write it only when the gate is on.
+          ...(synthesisLive
+            ? {
+                kind: p.kind ?? null,
+                status: p.status ?? null,
+                linkedTo: p.linkedTo ?? null,
+                provenance: p.provenance ?? null,
+              }
+            : {}),
         });
       }
       for (const o of derived.orders) {
@@ -245,6 +257,47 @@ export async function recordClerkshipVersion(
   }
 }
 
+/**
+ * Explicit problem-list projection. The synthesis columns (kind/status/linked_to/
+ * provenance) are added by the GATED migration 0049 — so the read path selects
+ * ONLY the columns that exist BEFORE it. A bare `db.select().from(problemList)`
+ * would emit those new columns the moment they enter the Drizzle schema and break
+ * every read against an un-migrated database; this projection keeps the read
+ * stable until the owner applies 0049. (The dark WRITES of the new columns are
+ * gated on `problemListSynthesisLive()`.)
+ */
+const problemListColumns = {
+  id: problemList.id,
+  patientUserId: problemList.patientUserId,
+  hospitalId: problemList.hospitalId,
+  item: problemList.item,
+  icd10Code: problemList.icd10Code,
+  active: problemList.active,
+  onset: problemList.onset,
+  resolvedAt: problemList.resolvedAt,
+  sourceEncounterId: problemList.sourceEncounterId,
+  authoredByUserId: problemList.authoredByUserId,
+  createdAt: problemList.createdAt,
+  updatedAt: problemList.updatedAt,
+} as const;
+
+/** A problem-list row as read by the surfaces — the pre-0049 columns only. */
+export type ProblemListRow = Pick<
+  typeof problemList.$inferSelect,
+  | "id"
+  | "patientUserId"
+  | "hospitalId"
+  | "item"
+  | "icd10Code"
+  | "active"
+  | "onset"
+  | "resolvedAt"
+  | "sourceEncounterId"
+  | "authoredByUserId"
+  | "createdAt"
+  | "updatedAt"
+>;
+
 export type LoadEncounterRecord =
   | { ok: false; error: string }
   | {
@@ -253,7 +306,7 @@ export type LoadEncounterRecord =
       clerkship: Clerkship | null;
       allergies: (typeof patientAllergies.$inferSelect)[];
       diagnoses: (typeof encounterDiagnoses.$inferSelect)[];
-      problems: (typeof problemList.$inferSelect)[];
+      problems: ProblemListRow[];
       timeline: (typeof encounterEvents.$inferSelect)[];
     };
 
@@ -305,7 +358,7 @@ export async function loadEncounterRecord(
       .where(eq(encounterDiagnoses.encounterId, encounterId));
 
     const problems = await db
-      .select()
+      .select(problemListColumns)
       .from(problemList)
       .where(and(eq(problemList.patientUserId, patientUserId), eq(problemList.active, true)));
 
@@ -359,7 +412,7 @@ export type PatientClinicalRecord =
       ok: true;
       basis: string;
       allergies: (typeof patientAllergies.$inferSelect)[];
-      problems: (typeof problemList.$inferSelect)[];
+      problems: ProblemListRow[];
       medications: (typeof encounterMedications.$inferSelect)[];
       diagnoses: (typeof encounterDiagnoses.$inferSelect)[];
       encounters: PatientEncounterSummaryRow[];
@@ -397,7 +450,7 @@ export async function loadPatientClinicalRecord(
       .orderBy(desc(patientAllergies.recordedAt));
 
     const problems = await db
-      .select()
+      .select(problemListColumns)
       .from(problemList)
       .where(and(eq(problemList.patientUserId, patientUserId), eq(problemList.active, true)))
       .orderBy(desc(problemList.createdAt));

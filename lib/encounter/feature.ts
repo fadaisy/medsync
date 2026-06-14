@@ -27,3 +27,19 @@ export function encounterEngineLive(): boolean {
 export function clerkshipDraftsLive(): boolean {
   return process.env.CLERKSHIP_DRAFTS_LIVE === "1" && encounterEngineLive();
 }
+
+/**
+ * Is the queryable problem-list synthesis projection live?
+ *
+ * Migration 0049 adds nullable kind/status/linked_to/provenance columns to
+ * `problem_list` so the Assessment's richer modelling is queryable without
+ * parsing the versioned section_data. It is GATED — until the owner applies it
+ * those columns do not exist, so the WRITES that populate them gate on this flag
+ * (the reads already select an explicit pre-0049 projection, so they are safe
+ * either way). After `npm run db:migrate` applies 0049, set
+ * `PROBLEM_LIST_SYNTHESIS_LIVE=1` to start populating them — no redeploy of
+ * logic. Requires ENCOUNTER_ENGINE_LIVE (the columns live on the encounter spine).
+ */
+export function problemListSynthesisLive(): boolean {
+  return process.env.PROBLEM_LIST_SYNTHESIS_LIVE === "1" && encounterEngineLive();
+}
