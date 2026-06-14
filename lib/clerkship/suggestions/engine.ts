@@ -1,4 +1,9 @@
-import type { InvestigationSet, SuggestedInvestigation } from "./types";
+import type {
+  InvestigationSet,
+  ManagementPathway,
+  SuggestedInvestigation,
+  SuggestedManagementPathway,
+} from "./types";
 
 /**
  * Suggestion engine (pure). Derives suggested investigations from the presenting
@@ -35,4 +40,25 @@ export function suggestInvestigations(
   const rank = (s: SuggestedInvestigation) =>
     (s.mustNotMiss ? 0 : 2) + (s.ugandaTier === "core" ? 0 : 1);
   return [...byTest.values()].sort((a, b) => rank(a) - rank(b));
+}
+
+/**
+ * Management-pathway engine (pure). Returns the cited management pathways whose
+ * PC codes intersect the active presenting complaint(s), preserving each
+ * pathway's authored step order (steps are an ordered clinical sequence, NOT a
+ * deduped pool like investigations). A pathway is returned once even if several
+ * of its PC codes match; `why` records every matching code. Decision-support
+ * only — it suggests; the clinician decides. No doses (agents/classes only).
+ */
+export function suggestManagement(
+  pcCodes: string[],
+  catalog: ManagementPathway[],
+): SuggestedManagementPathway[] {
+  const active = new Set(pcCodes);
+  const out: SuggestedManagementPathway[] = [];
+  for (const p of catalog) {
+    const why = p.pcCodes.filter((c) => active.has(c));
+    if (why.length) out.push({ ...p, why });
+  }
+  return out;
 }
