@@ -1,7 +1,7 @@
 "use client";
 
 import type { SubmitClerkshipResult } from "../actions";
-import type { ExcludedDx, ProblemRow } from "./assessment-synthesis";
+import type { ExcludedDx } from "./assessment-synthesis";
 import type { AbdoExam } from "@/lib/clerkship/exam/abdominal";
 import type { BpStandard } from "@/lib/clerkship/exam/bp";
 import type { CvsExam } from "@/lib/clerkship/exam/cardiovascular";
@@ -46,6 +46,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { assembleClerkshipAbnormal, examEmergencyLabels } from "@/lib/clerkship/assemble";
+import { diagnosisByDisplay } from "@/lib/clerkship/diagnosis/catalog";
 import { renderRosNarrative } from "@/lib/clerkship/ros";
 import { renderSymptomProse } from "@/lib/clerkship/symptom-engine";
 import { ICD10_CODES, LOINC_CODES } from "@/lib/encounter/reference-codes";
@@ -130,8 +131,6 @@ type FormState = {
   differential: DxRow[];
   /** Considered & excluded (anti-anchoring audit) — merged into differential on save. */
   excludedDx: ExcludedDx[];
-  /** The clinician-confirmed problem list (vitals-first synthesis). */
-  problems: ProblemRow[];
   investigations: OrderRow[];
   managementPlan: string;
   disposition: string;
@@ -188,14 +187,9 @@ function buildClerkshipInput(f: FormState): unknown {
         status: "excluded" as const,
       })),
     ],
-    problems: f.problems.map((p) => ({
-      item: p.item,
-      kind: p.kind,
-      status: p.status,
-      linkedTo: p.linkedTo || undefined,
-      provenance: p.provenance || undefined,
-      evidence: p.evidence?.length ? p.evidence : undefined,
-    })),
+    // The Assessment's problem-list proposer was removed (replaced by diagnostic
+    // logic); the patient longitudinal problem_list is still fed from PMH at the
+    // engine layer (deriveClinicalObjects), so no synthesis problems are sent here.
     investigations: f.investigations.map((o) => ({
       kind: o.kind,
       text: o.text,
@@ -294,17 +288,6 @@ export function ClerkshipForm({
     (s?.differential ?? [])
       .filter((d) => d.status === "excluded")
       .map((d) => ({ text: d.text, mustNotMiss: d.mustNotMiss ?? false })),
-  );
-  // The clinician-confirmed problem list (vitals-first synthesis; GATE A model).
-  const [problems, setProblems] = useState<ProblemRow[]>(
-    (s?.problems ?? []).map((p) => ({
-      item: p.item,
-      kind: p.kind ?? "diagnosis",
-      status: p.status ?? (p.active === false ? "resolved" : "active"),
-      linkedTo: p.linkedTo,
-      provenance: p.provenance,
-      evidence: p.evidence,
-    })),
   );
   // The BP reference standard — shared by the vitals panel + the Assessment.
   const [bpStandard, setBpStandard] = useState<BpStandard>("who_esc");
@@ -410,7 +393,6 @@ export function ClerkshipForm({
     summary,
     differential,
     excludedDx,
-    problems,
     investigations,
     managementPlan,
     disposition,
@@ -781,13 +763,13 @@ export function ClerkshipForm({
                       bpStandard={bpStandard}
                       differential={differential}
                       excluded={excludedDx}
-                      problems={problems}
                       onAgree={(sdx) =>
                         setDifferential([
                           ...differential,
                           {
                             text: sdx.dx,
-                            icd10: "",
+                            // Select carries the catalog's verified ICD-10 (or "" if pending).
+                            icd10: diagnosisByDisplay(sdx.dx)?.icd10 ?? "",
                             mustNotMiss: sdx.likelihood === "must_not_miss",
                           },
                         ])
@@ -801,11 +783,6 @@ export function ClerkshipForm({
                       onUnexclude={(text) =>
                         setExcludedDx(excludedDx.filter((d) => d.text !== text))
                       }
-                      onConfirmProblem={(p) => setProblems([...problems, p])}
-                      onUpdateProblem={(i, patch) =>
-                        setProblems(problems.map((p, j) => (j === i ? { ...p, ...patch } : p)))
-                      }
-                      onRemoveProblem={(i) => setProblems(problems.filter((_, j) => j !== i))}
                       onInsertSummary={(text) =>
                         setSummary(summary.trim() ? `${summary.trim()}\n\n${text}` : text)
                       }
