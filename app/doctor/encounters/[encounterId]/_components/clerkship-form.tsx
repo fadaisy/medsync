@@ -64,6 +64,7 @@ import { ExamSections } from "./exam-sections";
 import { FamilySocialSections } from "./family-social-sections";
 import { HistorySections } from "./history-sections";
 import { InvestigationSuggestions } from "./investigation-suggestions";
+import { ManagementSuggestions } from "./management-suggestions";
 import { MskExamForm } from "./msk-exam";
 import { NeuroExamForm } from "./neuro-exam";
 import { ReasoningPanel } from "./reasoning-panel";
@@ -894,6 +895,16 @@ export function ClerkshipForm({
                         )}
                       />
                     </Field>
+                    {/* Cited management pathways (gated dark until CSO sign-off). */}
+                    <ManagementSuggestions
+                      pcCodes={hpcItems.map((x) => x.symptomCode)}
+                      onAppendPlan={(text) =>
+                        setPlan((prev) => (prev.trim() ? `${prev.trim()}\n- ${text}` : `- ${text}`))
+                      }
+                      onAppendSafetyNet={(text) =>
+                        setSafetyNetting((prev) => (prev.trim() ? `${prev.trim()}; ${text}` : text))
+                      }
+                    />
                     <Field label="Management plan">
                       <RichTextEditor
                         value={managementPlan}
