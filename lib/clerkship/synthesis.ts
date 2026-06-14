@@ -89,7 +89,7 @@ export interface AbnormalItem {
 }
 
 /** RecordedVitals → the NEWS2 scorer's shape (same mapping the vitals panel uses). */
-function recordedToAdult(v: RecordedVitals): AdultVitals {
+export function recordedToAdult(v: RecordedVitals): AdultVitals {
   const t = gcsTotal(v);
   return {
     respiratoryRate: v.rr ?? null,
