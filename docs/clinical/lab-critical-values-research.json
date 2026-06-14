@@ -1,0 +1,640 @@
+{
+  "summary": "Fetch + cite a laboratory critical-value (panic-value) list for adult IM, Uganda-calibrated — for CSO sign-off (gated dark; never from memory)",
+  "agentCount": 3,
+  "logs": [],
+  "result": {
+    "groups": [
+      {
+        "analytes": [
+          {
+            "analyte": "Potassium (serum/plasma)",
+            "loincHint": "2823-3",
+            "lowCritical": "< 2.8 (commonly 2.5-3.0)",
+            "highCritical": "> 6.0 (commonly 6.0-6.5)",
+            "unit": "mmol/L",
+            "rationale": "Severe hypo- or hyperkalaemia causes life-threatening cardiac arrhythmias (VT/VF, asystole). Hyperkalaemia >6.0-6.5 produces peaked T waves, widened QRS and sine-wave arrest; hypokalaemia <2.8 predisposes to torsades and is dangerous with digoxin. Most-frequently-listed critical analyte across labs (CAP Q-Probes).",
+            "confidence": "high",
+            "pediatricNote": "Neonatal (0-2 days) high limit is higher: Beaumont/Rochester use > 7.5 mmol/L (neonates tolerate higher K; haemolysis common). Neonatal low ~ < 2.7-2.9 mmol/L.",
+            "ugandaNote": "Spurious hyperkalaemia from haemolysis (delayed sample transport, manual draws, ambient heat) is a major false-positive source; confirm against an undelayed/non-haemolysed sample before acting. Renal failure from severe malaria and HIV-associated nephropathy raises true hyperkalaemia prevalence.",
+            "source": {
+              "guideline": "ARUP Laboratories Critical Values List (cross-checked vs CAP Q-Probes survey of 163 labs, Wagar et al. Arch Pathol Lab Med 2007;131:1769 mean limits K 2.8 / 6.2)",
+              "version": "CORP-APPEND-0104A, Rev. 46, April 2026",
+              "recommendation": "Potassium critical: < 3.0 or > 6.1 mmol/L (ARUP). LabCorp/Beaumont default 2.5 low / 6.0-6.5 high; CAP survey mean 2.8 low / 6.2 high.",
+              "url": "https://www.aruplab.com/files/resources/testing/ARUP_Critical_Values.pdf"
+            }
+          },
+          {
+            "analyte": "Sodium (serum/plasma)",
+            "loincHint": "2951-2",
+            "lowCritical": "< 120",
+            "highCritical": "> 160 (commonly 155-160)",
+            "unit": "mmol/L",
+            "rationale": "Severe hyponatraemia (<120) causes cerebral oedema, seizures and coma; severe hypernatraemia (>160) causes neuronal dehydration, altered consciousness and intracranial bleeding. Rapid overcorrection of chronic hyponatraemia risks osmotic demyelination, so the value flags both the danger and the need for controlled correction.",
+            "confidence": "high",
+            "pediatricNote": "Children/older neonates often use a narrower band: Beaumont uses > 155 / < 125 for 2 days-17 years; neonate (0-1 day) > 166 / < 120.",
+            "ugandaNote": "Severe hyponatraemia is common in advanced HIV/TB, cryptococcal meningitis and severe malaria; pair the alert with a note to avoid rapid correction (ODS risk) given limited access to frequent repeat Na and hypertonic saline.",
+            "source": {
+              "guideline": "ARUP Critical Values List; concordant with LabCorp (120/160) and Beaumont adult (120/160); CAP Q-Probes mean 120 low / 158 high (Wagar 2007)",
+              "version": "ARUP Rev. 46, April 2026; LabCorp 01/19/2024; Beaumont eff. 03/04/2024",
+              "recommendation": "Sodium critical: < 120 or > 160 mmol/L (ARUP, LabCorp, Beaumont adult). CAP survey mean 120 / 158.",
+              "url": "https://www.aruplab.com/files/resources/testing/ARUP_Critical_Values.pdf"
+            }
+          },
+          {
+            "analyte": "Calcium, total (serum)",
+            "loincHint": "17861-6",
+            "lowCritical": "< 1.6 (commonly 1.5-1.75)",
+            "highCritical": "> 3.25 (commonly 3.2-3.5)",
+            "unit": "mmol/L",
+            "rationale": "Severe hypocalcaemia causes tetany, laryngospasm, seizures and QT prolongation; severe hypercalcaemia causes obtundation, arrhythmia, AKI and 'stones-bones-groans'. Interpret with albumin: correct total Ca for hypoalbuminaemia or use ionised Ca, otherwise true ionised hypocalcaemia is missed.",
+            "confidence": "needs_cso_input",
+            "pediatricNote": "Reference intervals are higher in neonates/infants; total-Ca low alert may need raising in the first weeks of life. CSO to set a paediatric band.",
+            "ugandaNote": "Hypoalbuminaemia is very common (malnutrition, nephrotic syndrome, chronic infection/HIV), so total calcium under-reads true (ionised) calcium and may trigger false-low alerts. Strongly prefer albumin-corrected calcium or ionised calcium where the assay is available.",
+            "source": {
+              "guideline": "ARUP Critical Values List (cross-checked Beaumont, LabCorp; CAP Q-Probes mean 1.65 low / 3.22 high, Wagar 2007)",
+              "version": "ARUP Rev. 46, April 2026; Beaumont eff. 03/04/2024; LabCorp 01/19/2024",
+              "recommendation": "Total Ca critical: < 6.0 or > 13.0 mg/dL = < 1.50 or > 3.24 mmol/L (ARUP). Beaumont < 6.5/> 13.0 mg/dL (1.62/3.24); LabCorp < 7.0/> 13.0 mg/dL (1.75/3.24); CAP mean 1.65/3.22 mmol/L.",
+              "url": "https://www.aruplab.com/files/resources/testing/ARUP_Critical_Values.pdf"
+            }
+          },
+          {
+            "analyte": "Calcium, ionised (serum/whole blood)",
+            "loincHint": "1995-0",
+            "lowCritical": "< 0.78 (commonly 0.75-0.80)",
+            "highCritical": "> 1.58 (commonly 1.55-1.62)",
+            "unit": "mmol/L",
+            "rationale": "Ionised calcium is the physiologically active fraction; it is the preferred critical analyte in critically ill, hypoalbuminaemic or transfused patients (citrate chelation). Severe ionised hypocalcaemia causes tetany/arrhythmia independent of albumin.",
+            "confidence": "high",
+            "pediatricNote": "Neonatal ionised Ca reference is higher; neonatal low-alert thresholds differ and should be set separately by the CSO.",
+            "ugandaNote": "Given high hypoalbuminaemia prevalence, ionised calcium is the more reliable critical analyte than total calcium where the blood-gas/ISE analyser is available; flag preanalytic anaerobic-handling requirements (air exposure/heparin falsely lowers iCa).",
+            "source": {
+              "guideline": "ARUP Critical Values List (Beaumont and Rochester concordant after conversion)",
+              "version": "ARUP Rev. 46, April 2026; Beaumont eff. 03/04/2024; Rochester (Strong/URMC) list",
+              "recommendation": "Ionised Ca critical: <= 0.78 or >= 1.58 mmol/L (ARUP). Beaumont < 3.0/> 6.5 mg/dL (0.75/1.62 mmol/L); Rochester < 3.2/> 6.2 mg/dL (0.80/1.55 mmol/L).",
+              "url": "https://www.aruplab.com/files/resources/testing/ARUP_Critical_Values.pdf"
+            }
+          },
+          {
+            "analyte": "Magnesium (serum)",
+            "loincHint": "19123-9",
+            "lowCritical": "< 0.41 (commonly 0.4-0.5)",
+            "highCritical": "> 1.85 (range 1.85-3.7 across labs)",
+            "unit": "mmol/L",
+            "rationale": "Severe hypomagnesaemia causes refractory hypokalaemia/hypocalcaemia, tetany and torsades de pointes; severe hypermagnesaemia causes loss of deep tendon reflexes, respiratory depression and cardiac arrest (especially in renal failure or magnesium therapy for eclampsia).",
+            "confidence": "needs_cso_input",
+            "pediatricNote": "Limited paediatric critical-value consensus; neonatal magnesium is affected by maternal Mg therapy. CSO to confirm a paediatric high threshold.",
+            "ugandaNote": "Magnesium is given in eclampsia (very prevalent obstetric emergency); a high-Mg alert is clinically important for monitoring toxicity (areflexia/respiratory depression) when serum Mg is available. Assay may be unavailable in lower-tier labs - flag clinically (reflexes/RR) where the test is not offered.",
+            "source": {
+              "guideline": "ARUP and Beaumont Critical Values Lists (note divergent high limits)",
+              "version": "ARUP Rev. 46, April 2026; Beaumont eff. 03/04/2024",
+              "recommendation": "Mg critical: ARUP < 1.0/> 9.0 mg/dL (< 0.41/> 3.70 mmol/L); Beaumont < 1.0/> 4.5 mg/dL (< 0.41/> 1.85 mmol/L). Low limit concordant; high limit varies 2-fold - CSO to pick local high threshold.",
+              "url": "https://www.aruplab.com/files/resources/testing/ARUP_Critical_Values.pdf"
+            }
+          },
+          {
+            "analyte": "Phosphate / Phosphorus (serum)",
+            "loincHint": "2777-1",
+            "lowCritical": "< 0.32 (commonly 0.3-0.4)",
+            "highCritical": "> 2.9 (commonly 2.9-3.2)",
+            "unit": "mmol/L",
+            "rationale": "Severe hypophosphataemia causes respiratory muscle weakness/failure, rhabdomyolysis, haemolysis and impaired cardiac contractility (notably in refeeding and DKA recovery); severe hyperphosphataemia (renal failure, tumour lysis) drives hypocalcaemia and metastatic calcification.",
+            "confidence": "needs_cso_input",
+            "pediatricNote": "Children/neonates have physiologically higher phosphate; the high-alert threshold must be raised for paediatrics (Beaumont uses > 10.5 mg/dL for 0-14 days). CSO to set paediatric band.",
+            "ugandaNote": "Refeeding hypophosphataemia is a real risk in severe malnutrition/HIV wasting; the low-phosphate alert is clinically valuable. Phosphate assay is not universally available in district labs - flag where unavailable.",
+            "source": {
+              "guideline": "ARUP and Beaumont Critical Values Lists (Rochester concordant)",
+              "version": "ARUP Rev. 46, April 2026; Beaumont eff. 03/04/2024",
+              "recommendation": "Phosphate critical: ARUP < 1.0/> 9.0 mg/dL (< 0.32/> 2.91 mmol/L); Beaumont adult < 1.0/> 10.0 mg/dL (< 0.32/> 3.23 mmol/L); Rochester 1.2/8.9 mg/dL (0.39/2.87). Low concordant; CSO to confirm high.",
+              "url": "https://www.aruplab.com/files/resources/testing/ARUP_Critical_Values.pdf"
+            }
+          },
+          {
+            "analyte": "Glucose (serum/plasma) - LOW",
+            "loincHint": "2345-7",
+            "lowCritical": "< 2.8 (commonly 2.2-3.0)",
+            "highCritical": "",
+            "unit": "mmol/L",
+            "rationale": "Hypoglycaemia <2.8 mmol/L causes neuroglycopenia (confusion, seizures, coma) and, if untreated, death; it is rapidly reversible so immediate notification is high-yield. A major cause of preventable harm.",
+            "confidence": "needs_cso_input",
+            "pediatricNote": "Neonates use a higher low threshold (hypoglycaemia of the newborn): ARUP < 46 mg/dL (< 2.55 mmol/L) for birth-30 days; some neonatal protocols alert < 2.6 mmol/L. CSO to set neonatal cutoff.",
+            "ugandaNote": "Hypoglycaemia is a WHO severe-malaria criterion (blood glucose < 2.2 mmol/L / < 40 mg/dL) and is also driven by quinine therapy, sepsis and malnutrition - very high prevalence. Consider aligning the adult low-alert with the WHO severe-malaria cutoff (2.2 mmol/L) vs the lab-standard 2.8; CSO decision.",
+            "source": {
+              "guideline": "ARUP / LabCorp / Beaumont Critical Values Lists; WHO severe malaria criteria (glucose < 2.2 mmol/L) for endemic calibration",
+              "version": "ARUP Rev. 46, April 2026; LabCorp 01/19/2024; Beaumont eff. 03/04/2024",
+              "recommendation": "Glucose low critical: ARUP < 55 mg/dL (< 3.05 mmol/L) adult; LabCorp < 40 mg/dL (< 2.22); Beaumont < 50 mg/dL (< 2.77). WHO severe-malaria hypoglycaemia < 2.2 mmol/L.",
+              "url": "https://www.aruplab.com/files/resources/testing/ARUP_Critical_Values.pdf"
+            }
+          },
+          {
+            "analyte": "Glucose (serum/plasma) - HIGH",
+            "loincHint": "2345-7",
+            "lowCritical": "",
+            "highCritical": "> 25 (commonly 25-28)",
+            "unit": "mmol/L",
+            "rationale": "Severe hyperglycaemia flags possible DKA or hyperosmolar hyperglycaemic state (HHS) - dehydration, ketoacidosis, altered consciousness and arrhythmia risk. The value prompts ketone/osmolality/pH assessment and urgent fluid/insulin therapy.",
+            "confidence": "needs_cso_input",
+            "pediatricNote": "Neonatal high threshold is lower (ARUP > 200 mg/dL / > 11.1 mmol/L for birth-30 days). CSO to set paediatric/neonatal high cutoff.",
+            "ugandaNote": "Rising type-2 diabetes burden; HHS often presents late. The high-glucose alert should travel with a prompt to check ketones/venous bicarbonate where point-of-care ketones are limited.",
+            "source": {
+              "guideline": "ARUP / LabCorp / Beaumont Critical Values Lists (high limit varies 25-28 mmol/L)",
+              "version": "ARUP Rev. 46, April 2026; LabCorp 01/19/2024; Beaumont eff. 03/04/2024",
+              "recommendation": "Glucose high critical: ARUP > 450 mg/dL (> 24.98 mmol/L) adult; LabCorp > 500 mg/dL (> 27.75); Beaumont > 500 mg/dL (> 27.75). Commonly cited > 25 mmol/L.",
+              "url": "https://www.aruplab.com/files/resources/testing/ARUP_Critical_Values.pdf"
+            }
+          },
+          {
+            "analyte": "Bicarbonate / Total CO2 (serum)",
+            "loincHint": "1963-8",
+            "lowCritical": "< 10 (commonly 10-11)",
+            "highCritical": "> 40 (commonly 40)",
+            "unit": "mmol/L",
+            "rationale": "Very low bicarbonate (<10) indicates severe metabolic acidosis (DKA, lactic acidosis, sepsis, toxic alcohols, severe malaria, AKI) with high mortality and need for urgent resuscitation; very high (>40) indicates severe metabolic alkalosis risking arrhythmia and hypoventilation. Surrogate for life-threatening acid-base derangement.",
+            "confidence": "high",
+            "pediatricNote": "Paediatric thresholds are broadly similar; neonates run slightly lower normal bicarbonate. CSO to confirm any neonatal adjustment.",
+            "ugandaNote": "Low bicarbonate is a strong, accessible surrogate for the metabolic acidosis of severe malaria and sepsis where blood-gas/lactate is unavailable - a high-value alert in resource-limited settings (acidosis is a leading predictor of malaria death). Pair with respiratory-distress/deep-breathing assessment.",
+            "source": {
+              "guideline": "ARUP Critical Values List (Beaumont and Rochester concordant)",
+              "version": "ARUP Rev. 46, April 2026; Beaumont eff. 03/04/2024",
+              "recommendation": "Bicarbonate (total CO2) critical: < 10 or > 40 mmol/L (ARUP, Beaumont). Rochester < 11 / > 39 mmol/L.",
+              "url": "https://www.aruplab.com/files/resources/testing/ARUP_Critical_Values.pdf"
+            }
+          },
+          {
+            "analyte": "Creatinine (serum) - severe AKI",
+            "loincHint": "2160-0",
+            "highCritical": "> 619 (lab default; consider > 265 for severe malaria AKI / acute rise)",
+            "lowCritical": "",
+            "unit": "umol/L",
+            "rationale": "A markedly elevated creatinine indicates severe renal failure with risk of hyperkalaemia, fluid overload, severe acidosis and uraemic complications, and may signal need for urgent dialysis. Critical-value alerting on the absolute level is a blunt tool - an acute RISE (KDIGO: >= 26.5 umol/L in 48h, or >= 1.5x baseline) is the more sensitive AKI trigger and should be considered for delta-check alerting.",
+            "confidence": "needs_cso_input",
+            "pediatricNote": "Creatinine reference and critical levels are far lower in children (lower muscle mass); a fixed adult absolute threshold will miss paediatric AKI. Beaumont uses > 2.8 mg/dL (~248 umol/L) for 0-18 years. CSO must set a paediatric value and prefer baseline-relative (delta) alerting.",
+            "ugandaNote": "WHO severe-malaria renal criterion is creatinine > 265 umol/L (3.0 mg/dL) or urea > 20 mmol/L - consider this lower, endemic-calibrated alert for the IM/malaria population rather than the very high US lab default (~619 umol/L). Black-African (non-corrected) eGFR equations and limited dialysis access make early AKI flagging important.",
+            "source": {
+              "guideline": "Beaumont Critical Values List (lab default) + WHO Guidelines for the Treatment of Malaria / severe-malaria definition (renal impairment criterion) for endemic calibration; KDIGO AKI definition for delta-check rationale",
+              "version": "Beaumont eff. 03/04/2024; WHO severe malaria criteria (creatinine > 265 umol/L)",
+              "recommendation": "Beaumont adult creatinine critical > 7.0 mg/dL (~619 umol/L). WHO severe-malaria AKI: creatinine > 265 umol/L (3 mg/dL). KDIGO acute rise >= 26.5 umol/L/48h.",
+              "url": "https://www.beaumontlaboratory.com/docs/default-source/hcp-resources/critical-values/bl.op.rg.006.r04-bl-critical-values.pdf"
+            }
+          },
+          {
+            "analyte": "Urea / BUN (serum) - severe AKI",
+            "loincHint": "3091-6",
+            "highCritical": "> 35.7 (lab default ~BUN 100 mg/dL); consider > 20 for severe malaria",
+            "lowCritical": "",
+            "unit": "mmol/L",
+            "rationale": "Severely elevated urea reflects advanced renal failure / uraemia (encephalopathy, pericarditis, platelet dysfunction, bleeding) and signals possible need for urgent dialysis. Used alongside creatinine; urea-to-creatinine ratio also helps distinguish pre-renal from intrinsic AKI.",
+            "confidence": "needs_cso_input",
+            "pediatricNote": "Lower thresholds apply in children; CSO to set paediatric value and prefer assessing alongside creatinine and baseline.",
+            "ugandaNote": "WHO severe-malaria criterion uses blood urea > 20 mmol/L as a renal-impairment marker - an endemic-calibrated alert that is lower than the US lab default (BUN 100 mg/dL = urea ~35.7 mmol/L). Note BUN (mg/dL) vs urea (mmol/L) unit confusion is a real safety hazard; standardise on urea mmol/L (urea mmol/L = BUN mg/dL x 0.357).",
+            "source": {
+              "guideline": "Beaumont Critical Values List (BUN default) + WHO severe-malaria definition (urea > 20 mmol/L) for endemic calibration",
+              "version": "Beaumont eff. 03/04/2024; WHO severe malaria criteria",
+              "recommendation": "Beaumont BUN critical > 100 mg/dL (urea ~35.7 mmol/L). WHO severe-malaria renal criterion urea > 20 mmol/L. Many labs (e.g. ARUP) do not list urea as a stand-alone critical value.",
+              "url": "https://www.beaumontlaboratory.com/docs/default-source/hcp-resources/critical-values/bl.op.rg.006.r04-bl-critical-values.pdf"
+            }
+          },
+          {
+            "analyte": "Lactate / Lactic acid (blood)",
+            "loincHint": "2524-7",
+            "lowCritical": "",
+            "highCritical": ">= 4.0 (lab critical-call commonly 3.4-5.0)",
+            "unit": "mmol/L",
+            "rationale": "Hyperlactataemia is a marker of tissue hypoperfusion/anaerobic metabolism. Lactate >= 4.0 mmol/L (especially with hypotension) is strongly associated with mortality in sepsis (Surviving Sepsis Campaign; ~44.5% mortality with lactate >4 + hypotension) and triggers urgent resuscitation; it is also a key severe-malaria mortality predictor.",
+            "confidence": "needs_cso_input",
+            "pediatricNote": "Paediatric/neonatal baseline lactate runs higher; the same >=4 mmol/L resuscitation trigger is broadly used but neonatal interpretation differs. CSO to confirm paediatric handling.",
+            "ugandaNote": "Lactate > 5 mmol/L is a WHO severe-malaria criterion and a leading predictor of malaria death. Point-of-care lactate is often unavailable in district labs - where absent, low bicarbonate is the practical acidosis surrogate. If POC lactate exists, the >= 4 (sepsis) / > 5 (severe malaria) thresholds are high-value.",
+            "source": {
+              "guideline": "Surviving Sepsis Campaign / AAFP review (Espinosa & Brown, Am Fam Physician 2021) for lactate >= 4.0 mortality threshold; ARUP/Beaumont/Rochester for lab critical-call values; WHO severe malaria criteria (> 5 mmol/L)",
+              "version": "AAFP 2021; ARUP Rev. 46, April 2026; Beaumont eff. 03/04/2024",
+              "recommendation": "Sepsis/clinical critical: lactate >= 4.0 mmol/L (Surviving Sepsis / AAFP). Lab critical-call values: ARUP >= 5 mmol/L, Beaumont/Rochester > 3.4-3.9 mmol/L. WHO severe malaria > 5 mmol/L.",
+              "url": "https://www.aafp.org/pubs/afp/issues/2021/0301/p309.html"
+            }
+          }
+        ],
+        "csoNotes": [
+          "Sources triangulated across multiple current institutional lists - ARUP (most current: Rev. 46, April 2026), Beaumont (eff. 03/04/2024), LabCorp (01/19/2024) and URMC/Rochester (older, 2008) - plus the CAP Q-Probes survey of 163 labs (Wagar et al., Arch Pathol Lab Med 2007;131:1769). Critical values are NOT internationally standardised; the acutecaretesting.org review (Higgins 2011) explicitly notes a serious lack of evidence base and wide inter-lab variation. Treat these as commonly-cited starting points, not absolutes.",
+          "Confidence=needs_cso_input is flagged wherever (a) labs disagree materially (magnesium and phosphate HIGH limits vary ~2x; glucose high 25 vs 28 mmol/L), or (b) an endemic/local-policy call is needed (creatinine/urea/lactate/glucose-low should arguably be calibrated to WHO severe-malaria cutoffs for the IM population rather than US lab defaults).",
+          "UNIT-SAFETY: The source lists use mg/dL for calcium, magnesium, phosphate, glucose, BUN and creatinine; all have been converted to SI here (factors used: Ca x0.2495, Mg x0.4114, PO4 x0.3229, glucose x0.0555, BUN->urea x0.357, creatinine x88.4). BUN(mg/dL) vs urea(mmol/L) is a genuine medication/alert error source - standardise the tool on a single SI unit per analyte and display the unit prominently.",
+          "ENDEMIC CALIBRATION decisions for the CSO: (1) Glucose-low - adopt WHO severe-malaria 2.2 mmol/L or the lab-standard 2.8? (2) Creatinine/urea - use US lab high defaults (~619 umol/L / ~36 mmol/L urea) or the lower WHO severe-malaria AKI cutoffs (creatinine > 265 umol/L, urea > 20 mmol/L) for the malaria/IM population? (3) Lactate - sepsis >=4 vs severe-malaria >5; and what to do where POC lactate is unavailable (recommend bicarbonate as acidosis surrogate). (4) Calcium - default to ionised or albumin-corrected calcium given high hypoalbuminaemia prevalence.",
+          "AKI alerting: absolute creatinine/urea thresholds are insensitive for early AKI. Recommend the tool ALSO support a delta-check (KDIGO: creatinine rise >= 26.5 umol/L in 48h or >= 1.5x baseline) where prior results exist - this is the more clinically meaningful trigger and is a CSO design decision.",
+          "Pediatric/neonatal thresholds differ materially for potassium (higher neonatal high), sodium, calcium (higher infant normal), phosphate (higher paediatric normal), glucose (neonatal hypoglycaemia), creatinine/urea (much lower) and bilirubin. This tool is scoped to ADULT IM; if any paediatric use is anticipated the CSO must set a separate paediatric table - do NOT apply adult thresholds to children.",
+          "PREANALYTIC false-positive guard for the Ugandan setting: haemolysis (heat, delayed transport, manual draws) causes spurious hyperkalaemia and is the single biggest false-critical-value risk; build a haemolysis/repeat-check prompt into potassium alerts. EDTA contamination spuriously raises K and lowers Ca."
+        ],
+        "sourcesConsulted": [
+          "https://www.aruplab.com/files/resources/testing/ARUP_Critical_Values.pdf (ARUP Critical Values List, CORP-APPEND-0104A Rev. 46, April 2026)",
+          "https://www.urmc.rochester.edu/medialibraries/urmcmedia/urmc-labs/clinical/documents/CriticalValuesList.pdf (URMC/Strong Clinical Laboratory Critical Value Immediate Notification List)",
+          "https://www.labcorp.com/content/dam/labcorp/drupal/811850_DX_TL_Critical(Panic)Values011924_FINAL.pdf (LabCorp Critical/Panic Values, 01/19/2024)",
+          "https://www.beaumontlaboratory.com/docs/default-source/hcp-resources/critical-values/bl.op.rg.006.r04-bl-critical-values.pdf?sfvrsn=d60540ee_1 (Beaumont Laboratory Critical (Panic) Values, BL.OP.RG.006.r04, eff. 03/04/2024)",
+          "https://acutecaretesting.org/en/articles/critical-values-in-laboratory-medicine (Higgins C, Critical values in laboratory medicine, acutecaretesting.org, 2011)",
+          "https://meridian.allenpress.com/aplm/article/131/12/1769/460054 and https://pubmed.ncbi.nlm.nih.gov/18081434/ (Wagar EA et al., Critical Values Comparison: A CAP Q-Probes Survey of 163 Clinical Laboratories, Arch Pathol Lab Med 2007;131:1769)",
+          "https://www.aafp.org/pubs/afp/issues/2021/0301/p309.html (Espinosa K, Brown SR, Serum Lactate Testing to Predict Mortality in Patients with Sepsis, Am Fam Physician 2021)",
+          "https://pubmed.ncbi.nlm.nih.gov/25479113/ (Casserly B et al., Lactate measurements in sepsis-induced tissue hypoperfusion: Surviving Sepsis Campaign database)",
+          "https://malariajournal.biomedcentral.com/articles/10.1186/s12936-022-04301-8 (Severe malaria - WHO criteria review, Malaria Journal 2022)",
+          "https://www.severemalaria.org/severe-malaria/severe-malaria-criteria-features-definition (WHO severe malaria criteria: glucose < 2.2 mmol/L, creatinine > 265 umol/L, urea > 20 mmol/L, lactate > 5 mmol/L, Hb < 7 g/dL)"
+        ]
+      },
+      {
+        "analytes": [
+          {
+            "analyte": "Haemoglobin (low) — whole blood",
+            "loincHint": "718-7",
+            "lowCritical": "< 7.0",
+            "highCritical": "",
+            "unit": "g/dL",
+            "rationale": "Critical anaemia at this level risks inadequate oxygen delivery, high-output cardiac failure, and is a common transfusion-decision trigger; sudden drops signal acute haemorrhage. Most US reference labs set the adult low panic value at <7.0 g/dL (e.g. ARUP), while many others use <6.0 g/dL (CAP Q-Probes mean low limit ~6 g/dL; University of Chicago <6.0). Both are in common use, so the exact cut is a local policy call.",
+            "confidence": "needs_cso_input",
+            "pediatricNote": "Neonatal values differ markedly — ARUP uses a separate window for birth–6 days (critical if ≤12.0 or ≥22.0 g/dL) because neonatal Hb is physiologically much higher; do NOT apply the adult <7.0 threshold to neonates. Paediatric (≥7 days to adult) is treated on the adult-style low limit in ARUP's list.",
+            "ugandaNote": "Endemic malaria, hookworm, sickle cell and nutritional deficiency mean chronic anaemia is highly prevalent, so a fixed <7.0 g/dL fires very frequently and could cause alert fatigue. WHO severe malaria criteria define severe malarial anaemia in ADULTS as Hb <7 g/dL (children <5 g/dL) with parasitaemia >10,000/µL — so <7.0 g/dL is clinically well-aligned for an IM/malaria-endemic setting. Consider that WHO transfusion thresholds in high-transmission areas are lower (Hb <4 g/dL, or <6 g/dL with complications). CSO may wish to set the LAB critical-alert at <7.0 g/dL but pair it with delta-check/acute-drop logic so chronic stable severe anaemia does not swamp the alert channel.",
+            "source": {
+              "guideline": "ARUP Laboratories Critical Values List (national reference laboratory)",
+              "version": "CORP-APPEND-0104A, Rev. 46, April 2026",
+              "recommendation": "Hemoglobin (≥7 days to adult): critical if < 7.0 g/dL",
+              "url": "https://www.aruplab.com/files/resources/testing/ARUP_Critical_Values.pdf"
+            }
+          },
+          {
+            "analyte": "Platelet count (low) — thrombocytopenia",
+            "loincHint": "777-3",
+            "lowCritical": "< 20",
+            "highCritical": "",
+            "unit": "x10^9/L",
+            "rationale": "Severe thrombocytopenia carries a risk of spontaneous bleeding, including intracranial haemorrhage, particularly below 20 x10^9/L. The most commonly cited low panic threshold across reference labs is ≤20 x10^9/L (ARUP ≤20; contemporary reference labs cluster at 20–30). University of Chicago uses <30,000/µL. The 20 vs 30 x10^9/L cut is a defensible local policy choice.",
+            "confidence": "high",
+            "pediatricNote": "Neonatal thresholds may be set higher in some institutions because of higher bleeding risk; confirm separate neonatal limits if the lab serves a neonatal unit. ARUP applies the same platelet limits across ages.",
+            "ugandaNote": "Thrombocytopenia is extremely common with malaria and is itself a marker of malaria severity, plus dengue/arboviral and HIV-related causes — a fixed low alert will fire often in IM wards. The threshold is still clinically valid; combine with delta-check and clinical context (active bleeding) at the bedside.",
+            "source": {
+              "guideline": "ARUP Laboratories Critical Values List (national reference laboratory)",
+              "version": "CORP-APPEND-0104A, Rev. 46, April 2026",
+              "recommendation": "Platelet Count: critical if ≤ 20 x 10^3/µL (= 20 x10^9/L)",
+              "url": "https://www.aruplab.com/files/resources/testing/ARUP_Critical_Values.pdf"
+            }
+          },
+          {
+            "analyte": "Platelet count (high) — thrombocytosis",
+            "loincHint": "777-3",
+            "lowCritical": "",
+            "highCritical": "> 1000",
+            "unit": "x10^9/L",
+            "rationale": "Extreme thrombocytosis above ~1000 x10^9/L raises concern for myeloproliferative neoplasm and, paradoxically, acquired von Willebrand syndrome / bleeding as well as thrombotic risk, warranting prompt notification. ≥1000 x10^9/L is the consistently cited high panic value (ARUP ≥1000; University of Chicago >1,000,000/µL; CAP Q-Probes mean high limit ~1000 x10^9/L).",
+            "confidence": "high",
+            "pediatricNote": "Reactive thrombocytosis is common and benign in young children (infection, iron deficiency); the same numeric alert is generally applied, but clinical interpretation differs — a high count is far more often reactive than neoplastic in paediatrics.",
+            "ugandaNote": "Reactive thrombocytosis from chronic infection/inflammation and iron deficiency is common; the >1000 x10^9/L alert remains appropriate as a flag but most cases will be reactive rather than myeloproliferative.",
+            "source": {
+              "guideline": "ARUP Laboratories Critical Values List (national reference laboratory)",
+              "version": "CORP-APPEND-0104A, Rev. 46, April 2026",
+              "recommendation": "Platelet Count: critical if ≥ 1000 x 10^3/µL (= 1000 x10^9/L)",
+              "url": "https://www.aruplab.com/files/resources/testing/ARUP_Critical_Values.pdf"
+            }
+          },
+          {
+            "analyte": "White cell count (low) — leukopenia / severe neutropenia",
+            "loincHint": "6690-2",
+            "lowCritical": "< 2.0",
+            "highCritical": "",
+            "unit": "x10^9/L",
+            "rationale": "A very low total WBC, and especially severe neutropenia, places the patient at high risk of life-threatening sepsis; febrile neutropenia is an oncological emergency. Reference labs alert on total WBC ≤2.0 x10^9/L (ARUP). However, the clinically superior trigger is the ABSOLUTE NEUTROPHIL COUNT: severe neutropenia is ANC <0.5 x10^9/L and agranulocytosis <0.1 x10^9/L (University of Chicago alerts on neutrophils <0.5 x10^9/L when WBC >1.0). Whether the alert keys on total WBC ≤2.0 or on ANC <0.5 is a local policy decision and both should ideally be implemented.",
+            "confidence": "needs_cso_input",
+            "pediatricNote": "Age-specific neutrophil reference ranges apply; benign ethnic neutropenia and viral suppression are common in children. Neonatal neutrophil dynamics differ substantially — use neonatal-specific limits if serving neonates.",
+            "ugandaNote": "Benign ethnic neutropenia is common in populations of African ancestry — baseline neutrophil counts run lower than European-derived reference ranges, so a WBC/ANC alert calibrated to Western ranges will over-fire. HIV, antiretroviral/anti-TB therapy and chemotherapy are major causes. CSO should consider an ANC-based alert (e.g. <0.5 x10^9/L = severe neutropenia / febrile-neutropenia risk) rather than total WBC alone, and account for benign ethnic neutropenia in the lower-end interpretation.",
+            "source": {
+              "guideline": "ARUP Laboratories Critical Values List (total WBC); corroborated by StatPearls/Merck neutropenia classification (ANC)",
+              "version": "ARUP CORP-APPEND-0104A Rev. 46, April 2026; StatPearls Neutropenia 2024",
+              "recommendation": "Total WBC: critical if ≤ 2.0 x10^3/µL. Severe neutropenia = ANC < 0.5 x10^9/L; agranulocytosis < 0.1 x10^9/L (NBK507702)",
+              "url": "https://www.aruplab.com/files/resources/testing/ARUP_Critical_Values.pdf"
+            }
+          },
+          {
+            "analyte": "White cell count (high) — leukocytosis / hyperleukocytosis",
+            "loincHint": "6690-2",
+            "lowCritical": "",
+            "highCritical": "> 40",
+            "unit": "x10^9/L",
+            "rationale": "Extreme leukocytosis (hyperleukocytosis) may indicate acute leukaemia and carries a risk of leukostasis (pulmonary/CNS) and tumour lysis, warranting urgent notification. ARUP alerts at ≥40 x10^9/L. Some labs do not list a high WBC critical value at all, treating a new blast/leukaemic picture via smear review instead, so the high cut is a policy choice.",
+            "confidence": "medium",
+            "pediatricNote": "Leukaemoid reactions and very high counts occur in paediatric infection and in neonates (where physiologic WBC is high); congenital leukaemia and Down-syndrome transient myeloproliferative disorder are considerations. Apply age-aware interpretation.",
+            "ugandaNote": "Marked reactive leukocytosis is common with bacterial sepsis and pertussis; the >40 x10^9/L flag should prompt smear review to distinguish leukaemoid reaction from leukaemia, given limited flow-cytometry access in many Ugandan labs.",
+            "source": {
+              "guideline": "ARUP Laboratories Critical Values List (national reference laboratory)",
+              "version": "CORP-APPEND-0104A, Rev. 46, April 2026",
+              "recommendation": "White Blood Cell Count: critical if ≥ 40 x10^3/µL (= 40 x10^9/L)",
+              "url": "https://www.aruplab.com/files/resources/testing/ARUP_Critical_Values.pdf"
+            }
+          },
+          {
+            "analyte": "INR (International Normalised Ratio) / Prothrombin time",
+            "loincHint": "34714-6",
+            "lowCritical": "",
+            "highCritical": "> 5.0",
+            "unit": "ratio (dimensionless)",
+            "rationale": "A markedly elevated INR signals a high bleeding risk (over-anticoagulation, liver failure, vitamin K deficiency, DIC) and may require urgent reversal. The international hemostasis consensus (Lippi et al.) found most labs agree on INR >5 as critical, and recommends the critical INR threshold be set NOT lower than 4.0 and NOT higher than 6.0. ARUP uses INR ≥5.0 (and PT ≥46.4 s); University of Chicago uses INR >4.0. The exact cut (4.0 vs 5.0) is a defensible local policy choice within the consensus 4.0–6.0 band.",
+            "confidence": "high",
+            "pediatricNote": "Neonates have physiologically prolonged PT/INR due to immature vitamin-K-dependent factors; use neonatal-specific limits and interpret with caution rather than applying the adult >5.0 alert directly.",
+            "ugandaNote": "Warfarin remains the dominant oral anticoagulant (DOACs less available/affordable), and INR control is harder with intermittent monitoring, so over-anticoagulation alerts are clinically important. Liver disease (viral hepatitis) and severe sepsis/DIC are common non-warfarin causes of a critical INR in IM wards.",
+            "source": {
+              "guideline": "Lippi G, Adcock D, Simundic A-M, Tripodi A, Favaloro EJ. Critical laboratory values in hemostasis: toward consensus. Annals of Medicine",
+              "version": "2017; vol 49(6):455-461 (PMID 28042729)",
+              "recommendation": "Consensus: most labs use INR >5 (PT >37 s) as critical; the critical INR threshold should not be lower than 4.0 nor higher than 6.0. ARUP operationalises INR ≥5.0 / PT ≥46.4 s.",
+              "url": "https://pubmed.ncbi.nlm.nih.gov/28042729/"
+            }
+          },
+          {
+            "analyte": "APTT (Activated Partial Thromboplastin Time)",
+            "loincHint": "14979-9",
+            "lowCritical": "",
+            "highCritical": "> 100",
+            "unit": "seconds",
+            "rationale": "A markedly prolonged APTT indicates bleeding risk from heparin excess, factor deficiency (e.g. haemophilia), DIC, or liver failure and warrants urgent notification. The hemostasis consensus (Lippi et al.) reports most labs use aPTT >100 s as critical; University of Chicago uses >100.0 s. ARUP's reference-lab PTT critical is ≥85 s — so the commonly-cited band is roughly 85–100 s and the exact cut is method-dependent (reagent-specific reference range) and a local policy call.",
+            "confidence": "needs_cso_input",
+            "pediatricNote": "Neonates and infants have physiologically prolonged APTT (immature contact-factor system); use age/neonatal-specific reference and critical limits, not the adult threshold.",
+            "ugandaNote": "Heparin-monitoring context: unfractionated-heparin APTT monitoring is common where anti-Xa assays are unavailable. Reagent/analyser variability is significant, so the APTT critical value MUST be validated against the local reagent's reference range rather than transplanted as an absolute number.",
+            "source": {
+              "guideline": "Lippi G et al. Critical laboratory values in hemostasis: toward consensus. Annals of Medicine (consensus); corroborated by ARUP Critical Values List",
+              "version": "Ann Med 2017;49(6):455-461 (PMID 28042729); ARUP Rev. 46 April 2026",
+              "recommendation": "Consensus: most labs use aPTT >100 s as critical. ARUP reference-lab value: PTT ≥ 85 seconds. University of Chicago: >100.0 s.",
+              "url": "https://pubmed.ncbi.nlm.nih.gov/28042729/"
+            }
+          },
+          {
+            "analyte": "Fibrinogen (low) — hypofibrinogenaemia",
+            "loincHint": "3255-7",
+            "lowCritical": "< 1.0",
+            "highCritical": "",
+            "unit": "g/L",
+            "rationale": "Critically low fibrinogen impairs clot formation and signals consumptive coagulopathy (DIC), massive haemorrhage, obstetric haemorrhage/abruption, or liver failure — a major bleeding risk requiring urgent cryoprecipitate/fibrinogen replacement. The hemostasis consensus and most labs use fibrinogen <100 mg/dL (= <1.0 g/L) as critical (ARUP <100 mg/dL; University of Chicago <80 mg/dL = <0.8 g/L). The 80 vs 100 mg/dL cut is a local policy choice; in obstetric haemorrhage a higher action threshold (<2 g/L) is often used clinically.",
+            "confidence": "high",
+            "pediatricNote": "Neonates may have modestly lower fibrinogen reference ranges; congenital afibrinogenaemia/dysfibrinogenaemia present in childhood. Use neonatal reference where serving neonates.",
+            "ugandaNote": "Obstetric haemorrhage and DIC (sepsis, severe malaria, abruption, pre-eclampsia) are leading causes of critical hypofibrinogenaemia in the Ugandan setting; fibrinogen (or a Clauss assay) may not be universally available, so where it is measured the critical alert is high-value. Note cryoprecipitate availability constraints when designing the downstream action.",
+            "source": {
+              "guideline": "Lippi G et al. Critical laboratory values in hemostasis: toward consensus. Annals of Medicine (consensus); corroborated by ARUP Critical Values List",
+              "version": "Ann Med 2017;49(6):455-461 (PMID 28042729); ARUP Rev. 46 April 2026",
+              "recommendation": "Consensus / most labs: fibrinogen < 100 mg/dL (= <1.0 g/L) critical. ARUP <100 mg/dL; University of Chicago <80 mg/dL.",
+              "url": "https://pubmed.ncbi.nlm.nih.gov/28042729/"
+            }
+          }
+        ],
+        "csoNotes": [
+          "Haemoglobin low cut is a POLICY CALL: <7.0 g/dL (ARUP) vs <6.0 g/dL (CAP Q-Probes mean, University of Chicago). For Ugandan IM/malaria-endemic context <7.0 g/dL aligns with WHO severe malarial anaemia in adults (<7 g/dL), but chronic endemic anaemia will make it fire frequently — strongly recommend pairing with a delta-check / acute-drop rule to reduce alert fatigue.",
+          "WBC low alert: decide between total WBC ≤2.0 x10^9/L (ARUP) and an ANC-based alert (severe neutropenia ANC <0.5 x10^9/L). An ANC-based febrile-neutropenia trigger is clinically more useful. CRITICAL Uganda caveat: benign ethnic neutropenia in populations of African ancestry means Western-derived lower limits over-call neutropenia — calibrate or annotate.",
+          "INR critical threshold must sit within the published consensus band of 4.0–6.0 (Lippi et al.). Recommend 5.0 (ARUP) unless local warfarin-monitoring practice favours the more sensitive 4.0 (University of Chicago).",
+          "APTT critical value is REAGENT/ANALYSER-DEPENDENT (commonly-cited band ~85–100 s). It must be validated against the local coagulation reagent's reference range before deployment — do NOT hard-code an absolute number without local verification.",
+          "Fibrinogen low: confirm unit (g/L vs mg/dL; 1.0 g/L = 100 mg/dL). Lab critical alert ~<1.0 g/L, but obstetric-haemorrhage clinical action threshold is higher (~<2 g/L) — consider a context-specific rule for maternity.",
+          "All numeric thresholds vary by laboratory; CAP/AACC emphasise each lab should establish and periodically review its own critical-value list. These values are the COMMONLY-CITED defaults, not mandates — local validation and CSO sign-off required before go-live.",
+          "Neonatal/paediatric haematology and coagulation parameters differ substantially (Hb, PT/APTT physiologically prolonged in neonates; neonatal Hb critical window is HIGH not low). If the tool will ever serve neonatal/paediatric wards, separate age-banded critical limits are mandatory.",
+          "Consider adding Absolute Neutrophil Count (ANC) and Haematocrit as explicit alertable analytes; several reference labs (e.g. University of Chicago) alert on HCT <15% and ANC <0.5 in addition to the parameters requested."
+        ],
+        "sourcesConsulted": [
+          "https://www.aruplab.com/files/resources/testing/ARUP_Critical_Values.pdf (ARUP Laboratories Critical Values List, CORP-APPEND-0104A Rev. 46, April 2026 — Hgb, Platelets, WBC, PT, INR, PTT, Fibrinogen)",
+          "https://d3qi0qp55mx5f5.cloudfront.net/medlabs/i/documents/Critical_Value_List.pdf (University of Chicago Medical Center Laboratories Critical Value List — Hgb, Platelets, neutrophils, APTT, INR, Fibrinogen)",
+          "https://pubmed.ncbi.nlm.nih.gov/28042729/ (Lippi G et al. Critical laboratory values in hemostasis: toward consensus. Ann Med 2017;49(6):455-461 — PT/INR/APTT/fibrinogen consensus, INR 4.0-6.0 band)",
+          "https://www.tandfonline.com/doi/full/10.1080/07853890.2016.1278303 (full-text landing for the Lippi hemostasis consensus paper — 403, abstract obtained via PubMed and search snippet)",
+          "https://meridian.allenpress.com/aplm/article/131/12/1769/460054 and https://pubmed.ncbi.nlm.nih.gov/18081434/ (CAP Q-Probes survey of 163 labs — mean Hgb <6/>20 g/dL, platelets <41/>1000 x10^9/L)",
+          "https://www.ncbi.nlm.nih.gov/books/NBK602183/ and https://www.ncbi.nlm.nih.gov/books/NBK602198/ (WHO Guideline on haemoglobin cutoffs to define anaemia, 2024)",
+          "https://pmc.ncbi.nlm.nih.gov/articles/PMC10983828/ and https://www.thelancet.com/journals/lanhae/article/PIIS2352-3026(24)00030-9/fulltext (Lancet Haematology 2024 — fifth-centile Hb 119.7 g/L women, 134.9 g/L men)",
+          "https://www.thebloodproject.com/definition-of-anemia-hb-thresholds/ (WHO anaemia thresholds + 1989 severity classification: severe <60% of cutoff, i.e. ~<80 g/L)",
+          "https://pmc.ncbi.nlm.nih.gov/articles/PMC9536054/ (Severe malaria review — WHO severe malarial anaemia adults <7 g/dL / HCT <20%, children <5 g/dL / HCT <15%; hyperparasitaemia P. falciparum >10%)",
+          "https://www.ncbi.nlm.nih.gov/books/NBK507702/ and Merck Manual / StatPearls Neutropenia & Agranulocytosis (severe neutropenia ANC <0.5 x10^9/L; agranulocytosis <0.1 x10^9/L)",
+          "WHO severe malaria criteria (search-confirmed via malariajournal.biomedcentral.com / PMC9536054: hyperparasitaemia ≥10% iRBC; transfusion thresholds Hb <4 g/dL, or <6 g/dL with complications in high-transmission areas)"
+        ]
+      },
+      {
+        "analytes": [
+          {
+            "analyte": "Arterial blood pH",
+            "loincHint": "2744-1",
+            "lowCritical": "< 7.2",
+            "highCritical": "> 7.6",
+            "unit": "pH units",
+            "rationale": "Severe acidaemia (pH < 7.2) and severe alkalaemia (pH > 7.6) cause myocardial depression, arrhythmias, reduced catecholamine responsiveness, and impaired tissue oxygen delivery; both carry high short-term mortality and demand immediate intervention (ventilation, buffering, treatment of the underlying cause). In a Ugandan IM setting the commonest drivers are sepsis/shock, DKA, severe malaria (lactic acidosis), and respiratory failure.",
+            "confidence": "needs_cso_input",
+            "pediatricNote": "Neonatal/paediatric blood-gas critical pH is generally reported with the same bounds as adults at the labs surveyed (Vanderbilt states paediatric chemistry critical values equal adult except where separately listed; URMC adds a newborn-specific pO2 range but not a separate pH). A neonatologist may set tighter bounds for sick neonates.",
+            "ugandaNote": "Confirm bounds against the actual blood-gas analyser in use (many Ugandan units have only point-of-care i-STAT or no ABG at all). Where no ABG is available, severe metabolic acidosis is inferred from venous bicarbonate/lactate; WHO severe-malaria acidosis is defined as base deficit > 8 mEq/L or bicarbonate < 15 mmol/L or venous lactate >= 5 mmol/L.",
+            "source": {
+              "guideline": "Vanderbilt Medical Laboratories - Clinical Laboratory Critical Values",
+              "version": "January 2025",
+              "recommendation": "Arterial or capillary blood pH critical LOW 7.15, critical HIGH 7.6 (adult). Cross-referenced against URMC/University of Rochester list (pH 7.21-7.59) and Cleveland Clinic (pH high > 7.6). Commonly-cited range across labs is roughly low 7.15-7.2 / high 7.55-7.6; AACC review notes substantial inter-lab variability, hence needs_cso_input on the exact local cut-offs.",
+              "url": "https://www.testmenu.com/vanderbiltmedicallabs/TestDirectory/SiteFile?fileName=sidebar%5CVanderbilt+Laboratory+Laboratories+Critical+Values+0125.pdf"
+            }
+          },
+          {
+            "analyte": "Blood gas pCO2 (PaCO2, arterial)",
+            "loincHint": "2019-8",
+            "lowCritical": "< 20 mmHg",
+            "highCritical": "> 70 mmHg",
+            "unit": "mmHg",
+            "rationale": "High PaCO2 (> 70 mmHg) signals ventilatory failure / CO2 narcosis with risk of obtundation, acidosis, and respiratory arrest; very low PaCO2 (< 20 mmHg) reflects extreme hyperventilation (e.g. compensating for severe metabolic acidosis such as DKA or salicylate toxicity) and severe cerebral vasoconstriction. Either flags impending decompensation requiring airway/ventilation review.",
+            "confidence": "needs_cso_input",
+            "pediatricNote": "Surveyed labs report PaCO2 critical for arterial samples only; URMC/Vanderbilt do not give a separate neonatal PaCO2. Ventilated neonates have their own permissive-hypercapnia targets set by the neonatal team, so a separate neonatal cut-off may be warranted locally.",
+            "ugandaNote": "Applicable only where ABG analysis exists. The high cut-off matters most for COPD/asthma and post-ictal/poisoning patients on general wards without continuous monitoring; ensure the alert routes to a prescriber who can escalate ventilatory support, which may be limited.",
+            "source": {
+              "guideline": "University of Rochester Medical Center (URMC) - Clinical Laboratory Critical Value Immediate Notification Test List",
+              "version": "Approved 2008, current public posting",
+              "recommendation": "pCO2 (mmHg) arterial only: critical LOW 21, critical HIGH 69. Vanderbilt 2025 lists arterial pCO2 critical HIGH 70 mmHg; Cleveland Clinic lists pCO2 LOW < 10, HIGH > 60. Commonly-cited bounds cluster around low ~20 / high ~65-70 mmHg with documented inter-lab variability (needs_cso_input).",
+              "url": "https://www.urmc.rochester.edu/medialibraries/urmcmedia/urmc-labs/clinical/documents/CriticalValuesList.pdf"
+            }
+          },
+          {
+            "analyte": "Blood gas pO2 (PaO2, arterial)",
+            "loincHint": "2703-7",
+            "lowCritical": "< 46 mmHg",
+            "highCritical": "",
+            "unit": "mmHg",
+            "rationale": "Only the LOW value is critical: PaO2 < ~40-46 mmHg represents severe hypoxaemia (roughly SaO2 < 80%) with imminent risk of organ injury, arrhythmia, and cardiac arrest, mandating immediate oxygen/airway escalation. A high PaO2 is generally not life-threatening and is not reported as critical.",
+            "confidence": "needs_cso_input",
+            "pediatricNote": "URMC sets a SEPARATE newborn (< 5 days) arterial pO2 critical range of LOW 41 / HIGH 90 mmHg - a high cut-off IS used in neonates because hyperoxia risks retinopathy of prematurity. Use the neonatal range for newborns, not the adult low-only rule.",
+            "ugandaNote": "Where ABG is unavailable, pulse oximetry SpO2 is the practical surrogate (WHO severe malaria uses SpO2 < 92% on room air as a severity marker). Many Ugandan wards rely on SpO2 alone; ensure the tool can ingest oximetry as the hypoxaemia alert when no PaO2 is measured.",
+            "source": {
+              "guideline": "University of Rochester Medical Center (URMC) - Clinical Laboratory Critical Value Immediate Notification Test List",
+              "version": "Approved 2008, current public posting",
+              "recommendation": "pO2 (mmHg) adult arterial only: critical LOW 46, no high limit. Newborn < 5 days arterial: LOW 41 / HIGH 90. Vanderbilt 2025 lists adult arterial pO2 critical LOW 40 mmHg. Commonly-cited adult low cut-off ~40-46 mmHg; exact value is a local policy call (needs_cso_input).",
+              "url": "https://www.urmc.rochester.edu/medialibraries/urmcmedia/urmc-labs/clinical/documents/CriticalValuesList.pdf"
+            }
+          },
+          {
+            "analyte": "Total bilirubin - neonatal (<= 30 days)",
+            "loincHint": "1975-2",
+            "lowCritical": "",
+            "highCritical": "> 15 mg/dL (257 micromol/L)",
+            "unit": "mg/dL (also micromol/L)",
+            "rationale": "Markedly elevated total serum bilirubin in a neonate risks acute bilirubin encephalopathy and kernicterus (permanent choreoathetoid cerebral palsy, sensorineural deafness). A critical-value call triggers urgent TSB plotting on the AAP nomogram, phototherapy, and consideration of exchange transfusion. The numeric flag is a screening trigger; the actionable threshold is age-in-hours/gestation/risk-specific per the 2022 AAP nomogram, not a single number.",
+            "confidence": "high",
+            "pediatricNote": "This IS the neonatal value. Surveyed cut-offs vary: Vanderbilt flags neonatal (<= 30 days) total bilirubin > 18 mg/dL; URMC flags total bilirubin (< 1 week) > 14.9 mg/dL; Cleveland Clinic uses neonatal (< 31 days) > 15.0 mg/dL as an urgent value. The Howanitz CAP-survey of 623 US labs found upper neonatal critical limits ranged 206-307 micromol/L (~12-18 mg/dL). The true decision threshold must be read off the AAP 2022 hour-specific phototherapy/exchange nomogram (escalation-of-care = within 2 mg/dL of the exchange line).",
+            "ugandaNote": "G6PD deficiency is common in the region and is an AAP-defined neurotoxicity risk factor lowering the action threshold - couple the bilirubin alert with G6PD status where known. Where direct/conjugated fractionation or transcutaneous bilirubinometry is unavailable, treat any high total bilirubin in a jaundiced neonate as urgent. Capacity for exchange transfusion is limited, so early phototherapy escalation is the priority.",
+            "source": {
+              "guideline": "Vanderbilt Medical Laboratories - Clinical Laboratory Critical Values (numeric flag); clinical action threshold per AAP 2022 Clinical Practice Guideline on hyperbilirubinemia (>= 35 weeks)",
+              "version": "Vanderbilt January 2025; AAP guideline 2022",
+              "recommendation": "Vanderbilt: Total Bilirubin, neonates only (<= 30 days) critical HIGH > 18 mg/dL. Cleveland Clinic urgent neonatal (<31d) > 15.0 mg/dL; URMC < 1 week > 14.9 mg/dL. AAP 2022 defines a medical emergency as TSB within 2 mg/dL of the hour-specific exchange-transfusion threshold (escalation of care). Common laboratory neonatal critical flag ~15 mg/dL (257 micromol/L).",
+              "url": "https://www.testmenu.com/vanderbiltmedicallabs/TestDirectory/SiteFile?fileName=sidebar%5CVanderbilt+Laboratory+Laboratories+Critical+Values+0125.pdf"
+            }
+          },
+          {
+            "analyte": "Total bilirubin - adult",
+            "loincHint": "1975-2",
+            "lowCritical": "",
+            "highCritical": "",
+            "unit": "mg/dL",
+            "rationale": "In adults total bilirubin is generally NOT a stand-alone critical/panic value at the major academic labs surveyed - it does not carry the acute neurotoxicity risk seen in neonates and is interpreted in clinical context (hepatic failure, haemolysis, obstruction). Elevations are flagged as abnormal/urgent rather than critical. A markedly high bilirubin is clinically significant but managed as part of liver-failure workup, not as an immediate single-value panic alert.",
+            "confidence": "needs_cso_input",
+            "pediatricNote": "The age boundary for treating bilirubin as a true critical value is neonatal (<= 30 days at Vanderbilt; < 1 week at URMC). Beyond the neonatal window most labs drop bilirubin from the critical list.",
+            "ugandaNote": "WHO uses serum bilirubin > 50 micromol/L (3 mg/dL) WITH a P. falciparum parasite count > 100 000/microL as a severe-malaria criterion (malarial jaundice) - so in the malaria context an elevated bilirubin plus high parasitaemia should trigger a severe-malaria alert even though bilirubin alone is not a generic adult critical value. CSO should decide whether to add an adult bilirubin critical flag (e.g. for fulminant hepatic failure) given local practice.",
+            "source": {
+              "guideline": "Vanderbilt Medical Laboratories - Clinical Laboratory Critical Values (adult section lists no total bilirubin); WHO Guidelines for malaria (malarial jaundice criterion)",
+              "version": "Vanderbilt January 2025; WHO 13 August 2025",
+              "recommendation": "Vanderbilt and URMC critical lists restrict total bilirubin to neonates; no adult total-bilirubin critical threshold is published. WHO severe falciparum malaria: bilirubin > 50 micromol/L (3 mg/dL) WITH parasite count > 100 000/microL = severe (jaundice criterion). Whether to add an adult critical-bilirubin flag is a local CSO policy call.",
+              "url": "https://www.testmenu.com/vanderbiltmedicallabs/TestDirectory/SiteFile?fileName=sidebar%5CVanderbilt+Laboratory+Laboratories+Critical+Values+0125.pdf"
+            }
+          },
+          {
+            "analyte": "Cardiac troponin (high-sensitivity, positive/elevated)",
+            "loincHint": "67151-1",
+            "lowCritical": "",
+            "highCritical": "> 99th-percentile URL (assay-specific); operationalised as first positive hs-cTnT >= 52 ng/L",
+            "unit": "ng/L",
+            "rationale": "A first positive / newly elevated cardiac troponin above the assay 99th-percentile upper reference limit, in the right clinical context, indicates acute myocardial injury / myocardial infarction (4th Universal Definition of MI requires a rise/fall with >= 1 value above the 99th percentile URL). Prompt notification enables time-critical ACS management. The labs surveyed call the FIRST positive within 48 hours and then suppress repeat calls.",
+            "confidence": "needs_cso_input",
+            "pediatricNote": "Troponin critical reporting is an adult IM use-case; paediatric elevations (myocarditis, congenital disease) are interpreted by paediatric cardiology and are not part of the standard adult panic-value workflow.",
+            "ugandaNote": "The threshold is ASSAY-SPECIFIC - the numeric cut-off must be taken from the 99th-percentile URL of the exact analyser/platform in the local lab (and is sex-specific for some assays). Many Ugandan labs use point-of-care or conventional (non-high-sensitivity) troponin, or only qualitative tests; the alert logic must read the platform's own 99th-percentile value rather than the 52 ng/L Vanderbilt hs-cTnT example. Hence needs_cso_input.",
+            "source": {
+              "guideline": "Vanderbilt Medical Laboratories - Clinical Laboratory Critical Values (operational threshold); Fourth Universal Definition of MI / IFCC Committee on Clinical Application of Cardiac Bio-Markers (diagnostic principle)",
+              "version": "Vanderbilt January 2025; UDMI 4th (2018); IFCC Clin Chem 2022",
+              "recommendation": "Vanderbilt: High-Sensitivity Cardiac Troponin T critical HIGH = 52 ng/L, first positive within 48 hours. Cleveland Clinic: hs-cTnT urgent at >= 52 ng/L, called once per 24h. UDMI/IFCC: diagnostic threshold is the assay-specific 99th-percentile URL (CV <= 10% at that concentration); use the local platform's value.",
+              "url": "https://www.testmenu.com/vanderbiltmedicallabs/TestDirectory/SiteFile?fileName=sidebar%5CVanderbilt+Laboratory+Laboratories+Critical+Values+0125.pdf"
+            }
+          },
+          {
+            "analyte": "Blood culture positive / Gram stain (any organism in blood)",
+            "loincHint": "600-7",
+            "lowCritical": "",
+            "highCritical": "Positive Gram stain / any organism seen in blood",
+            "unit": "qualitative (organisms seen)",
+            "rationale": "Any bacteria or fungus seen on the initial Gram stain of a blood culture is a critical result - it indicates bacteraemia/fungaemia/sepsis and must be phoned immediately so empiric antimicrobials can be started or adjusted within the sepsis golden hour. Notification is triggered at the positive smear stage, before full identification/sensitivities.",
+            "confidence": "high",
+            "pediatricNote": "Positive blood cultures are critical at all ages and are emphasised as especially vital in neonates/NICU; some labs additionally flag herpes-virus positivity in pregnant women or babies < 6 months. No numeric difference - it is qualitative.",
+            "ugandaNote": "Blood-culture capacity (automated incubators, Gram-stain turnaround) is uneven across Ugandan hospitals; where culture is available the positive-smear alert is high value. The alert must reach a prescriber who can act on empiric therapy. In settings without culture, sepsis is treated clinically, so the tool should not gate sepsis escalation on a culture result.",
+            "source": {
+              "guideline": "University of Rochester Medical Center (URMC) - Critical Value Immediate Notification Test List (Microbiology)",
+              "version": "Approved 2008, current public posting",
+              "recommendation": "Any bacteria or fungus from blood - Positive (+) smear - notify (critical). 'Organisms seen in bld, CSF smear: any' is listed in the chemistry/hematology critical table. Cleveland Clinic: blood culture positive initial Gram stain = urgent notification. Vanderbilt: presence of intracellular bacteria on CSF and positive sterile-site organisms flagged.",
+              "url": "https://www.urmc.rochester.edu/medialibraries/urmcmedia/urmc-labs/clinical/documents/CriticalValuesList.pdf"
+            }
+          },
+          {
+            "analyte": "CSF glucose",
+            "loincHint": "2342-4",
+            "lowCritical": "< 20 mg/dL (1.1 mmol/L)",
+            "highCritical": "",
+            "unit": "mg/dL (also mmol/L)",
+            "rationale": "A markedly low CSF glucose (hypoglycorrhachia) strongly suggests acute bacterial (or TB/fungal) meningitis - a neurological emergency. The LOW value is critical and must be phoned so empiric antimicrobials/antivirals are not delayed. Should be interpreted against a paired serum glucose (CSF:serum ratio).",
+            "confidence": "high",
+            "pediatricNote": "The < 20 mg/dL critical flag is generally applied across ages; neonates have higher normal CSF:serum glucose ratios so paediatric interpretation must use the ratio, but the laboratory critical-call threshold is the same low absolute value at the surveyed labs.",
+            "ugandaNote": "TB meningitis and cryptococcal meningitis (in HIV) are major causes of low CSF glucose in Uganda; pair the alert with CSF cell count, protein, India-ink/CrAg and Gram stain. Where CSF glucose assay is delayed, a positive CSF Gram stain or CrAg should itself drive the alert.",
+            "source": {
+              "guideline": "Vanderbilt Medical Laboratories - Clinical Laboratory Critical Values",
+              "version": "January 2025",
+              "recommendation": "CSF Glucose critical LOW < 20 mg/dL. URMC lists Glucose, CSF critical LOW 38 mg/dL (higher cut-off) - inter-lab variation exists, but < 20 mg/dL is the widely cited bacterial-meningitis critical threshold.",
+              "url": "https://www.testmenu.com/vanderbiltmedicallabs/TestDirectory/SiteFile?fileName=sidebar%5CVanderbilt+Laboratory+Laboratories+Critical+Values+0125.pdf"
+            }
+          },
+          {
+            "analyte": "CSF protein",
+            "loincHint": "2880-3",
+            "lowCritical": "",
+            "highCritical": "> 300 mg/dL",
+            "unit": "mg/dL",
+            "rationale": "A markedly elevated CSF protein indicates significant meningeal/CNS pathology (bacterial/TB meningitis, severe inflammation, spinal block). The HIGH value is flagged for prompt clinical correlation alongside CSF glucose and cell count.",
+            "confidence": "high",
+            "pediatricNote": "Neonates have physiologically higher CSF protein (up to ~100-150 mg/dL in the first weeks), so the > 300 mg/dL critical flag still applies but normal neonatal baselines are higher; paediatric interpretation should account for age.",
+            "ugandaNote": "Very high CSF protein supports TB meningitis (often with a spider-web clot) - common in this setting and in HIV co-infection. Use with the meningitis panel rather than in isolation.",
+            "source": {
+              "guideline": "Vanderbilt Medical Laboratories - Clinical Laboratory Critical Values",
+              "version": "January 2025",
+              "recommendation": "CSF Protein critical HIGH > 300 mg/dL. (URMC does not list a CSF-protein critical value; this is lab-policy dependent but 300 mg/dL is the published Vanderbilt critical threshold.)",
+              "url": "https://www.testmenu.com/vanderbiltmedicallabs/TestDirectory/SiteFile?fileName=sidebar%5CVanderbilt+Laboratory+Laboratories+Critical+Values+0125.pdf"
+            }
+          },
+          {
+            "analyte": "CSF cell count / microscopy flags (organisms, cryptococcal yeast, raised WBC)",
+            "loincHint": "806-0",
+            "lowCritical": "",
+            "highCritical": "Presence of organisms / cryptococcal-like yeast / intracellular bacteria on CSF smear (qualitative); markedly raised CSF WBC",
+            "unit": "qualitative microscopy; cells/microL for count",
+            "rationale": "Seeing organisms, intracellular bacteria, or cryptococcal-like yeast on CSF microscopy is a critical result diagnostic of meningitis and must be phoned immediately. A markedly elevated CSF white-cell count (pleocytosis) likewise signals meningitis/encephalitis. These flags drive immediate empiric antimicrobial/antifungal therapy.",
+            "confidence": "needs_cso_input",
+            "pediatricNote": "Normal CSF WBC is higher in neonates (up to ~20-30 cells/microL in the first weeks vs <= 5 in adults), so any numeric pleocytosis cut-off must be age-adjusted; the qualitative 'organisms seen' flag is age-independent. Positive CSF culture/smear in a neonate is especially urgent.",
+            "ugandaNote": "Cryptococcal meningitis is a leading cause of meningitis in HIV-positive Ugandan adults - the explicit 'cryptococcal-like yeast' microscopy flag (and CrAg) is high yield here. Vanderbilt explicitly lists 'presence of cryptococcal-like yeast or intracellular bacteria' as the CSF critical microscopy trigger. A specific numeric CSF-WBC critical cut-off is not standardised across the surveyed labs (commonly any frank pleocytosis is flagged), so the exact numeric trigger needs a local CSO decision.",
+            "source": {
+              "guideline": "Vanderbilt Medical Laboratories - Clinical Laboratory Critical Values (Hematology - CSF); URMC Microbiology list (organisms in CSF smear)",
+              "version": "Vanderbilt January 2025; URMC current",
+              "recommendation": "Vanderbilt: CSF (Cerebrospinal Fluid) - Presence of Cryptococcal-like yeast or intracellular bacteria = critical. URMC: 'Organisms seen in bld, CSF smear: any' = critical; any bacteria/fungus from sterile fluid (positive smear and culture) notified. No uniform numeric CSF-WBC critical threshold is published, so the numeric cell-count trigger is a local policy call (needs_cso_input).",
+              "url": "https://www.testmenu.com/vanderbiltmedicallabs/TestDirectory/SiteFile?fileName=sidebar%5CVanderbilt+Laboratory+Laboratories+Critical+Values+0125.pdf"
+            }
+          },
+          {
+            "analyte": "Malaria parasitaemia (P. falciparum hyperparasitaemia)",
+            "loincHint": "32207-3",
+            "lowCritical": "",
+            "highCritical": "> 10% parasitised RBC (severe); >= 4% (uncomplicated hyperparasitaemia, monitor)",
+            "unit": "% parasitised erythrocytes (also parasites/microL)",
+            "rationale": "P. falciparum parasitaemia > 10% is a WHO-defined criterion for SEVERE falciparum malaria and mandates parenteral artesunate, close monitoring, and consideration of higher-level care - it independently carries high mortality. >= 4% parasitaemia without other severity signs is 'uncomplicated hyperparasitaemia': increased risk of progression to severe disease and treatment failure, warranting close monitoring and full ACT. A laboratory reporting any high parasite density (or 'malaria smear positive') should phone it as a critical/urgent result.",
+            "confidence": "high",
+            "pediatricNote": "WHO severe-malaria parasite thresholds (> 10%) apply across ages; however severe malarial anaemia is age-stratified - haemoglobin <= 5 g/dL or haematocrit <= 15% in children < 12 years (vs < 7 g/dL and < 20% in adults), each WITH a parasite count > 10 000/microL. Children tolerate high parasitaemia differently and progress faster, so paediatric high-parasitaemia must be escalated promptly.",
+            "ugandaNote": "Uganda is a high-transmission setting: semi-immune individuals can tolerate higher densities, so the WHO uses % parasitaemia/density cut-offs (> 10% = severe; >= 4% = uncomplicated hyperparasitaemia to monitor). Report parasite density as % AND/OR parasites/microL on every positive falciparum film. Couple with severe-malaria endemic anaemia (WHO severe malarial anaemia Hb <= 5 g/dL children / < 7 g/dL adults with parasites > 10 000/microL) and WHO severe-malaria biochemistry flags: glucose < 2.2 mmol/L (40 mg/dL), bicarbonate < 15 mmol/L / lactate >= 5 mmol/L, creatinine > 265 micromol/L, bilirubin > 50 micromol/L with parasites > 100 000/microL. P. knowlesi hyperparasitaemia threshold differs (> 100 000/microL).",
+            "source": {
+              "guideline": "WHO Guidelines for malaria - definition of severe falciparum malaria and uncomplicated hyperparasitaemia",
+              "version": "13 August 2025 (NCBI Bookshelf NBK588130)",
+              "recommendation": "Severe falciparum malaria criterion - Hyperparasitaemia: P. falciparum parasitaemia > 10%. Uncomplicated hyperparasitaemia: >= 4% parasitaemia with no signs of severity (increased risk of severe malaria/treatment failure; monitor closely + ACT). Severe malarial anaemia: Hb <= 5 g/dL or Hct <= 15% in children < 12y (< 7 g/dL / < 20% in adults) with parasite count > 10 000/microL.",
+              "url": "https://www.ncbi.nlm.nih.gov/books/NBK588130/pdf/Bookshelf_NBK588130.pdf"
+            }
+          }
+        ],
+        "csoNotes": [
+          "Two academic-lab critical lists were fully text-extracted (Vanderbilt Jan 2025 and University of Rochester/URMC); Cleveland Clinic was extracted via web fetch. They AGREE on direction but DISAGREE on exact numeric cut-offs (e.g. pH low 7.15 vs 7.21; pCO2 high 60 vs 69 vs 70; pO2 low 40 vs 46; CSF glucose low 20 vs 38; neonatal bilirubin 15 vs 18 mg/dL). Critical values are not nationally standardised - CAP/AACC explicitly document wide inter-laboratory variability. The CSO must ratify ONE local value per analyte; defaults in this report lean to the most widely-cited / Vanderbilt 2025 values.",
+          "Troponin and (if adopted) any biochemistry critical numbers are ASSAY/PLATFORM-specific. The troponin critical threshold must be set from the 99th-percentile upper reference limit of the exact analyser in the local lab (sex-specific for some assays); do not hard-code 52 ng/L (that is the Vanderbilt/Cleveland hs-cTnT example).",
+          "Neonatal bilirubin: the numeric lab flag (~15 mg/dL) is only a screening trigger. The true action threshold is hour-of-life + gestation + neurotoxicity-risk specific per the AAP 2022 nomogram; G6PD deficiency (common in the region) lowers it. The tool should plot TSB on the nomogram, not act on a single number, and should ingest G6PD status.",
+          "Where ABG analysers are absent (common in Ugandan general wards), wire the hypoxaemia alert to pulse-oximetry SpO2 (WHO severe-malaria uses SpO2 < 92% room air) and infer metabolic acidosis from venous bicarbonate/lactate (WHO: bicarbonate < 15 mmol/L or lactate >= 5 mmol/L or base deficit > 8 mEq/L).",
+          "Malaria: report parasite density as BOTH % parasitised RBC and parasites/microL on every positive falciparum film. In high-transmission Uganda, WHO % thresholds (> 10% severe; >= 4% uncomplicated hyperparasitaemia) are the actionable cut-offs. Bundle the malaria alert with endemic-anaemia Hb thresholds and the WHO severe-malaria biochemistry criteria rather than treating parasitaemia in isolation.",
+          "Endemic anaemia baseline: a generic adult Hb critical-low (e.g. < 6-7 g/dL on the Vanderbilt list) will fire very frequently in a malaria/hookworm/HIV-endemic population. Consider a Uganda-calibrated haemoglobin critical-low and a 'no previous result within N days' suppression rule (as Vanderbilt/URMC use) to avoid alert fatigue. CSO to set the local Hb critical-low.",
+          "Qualitative microbiology criticals (positive blood/CSF Gram stain or smear, cryptococcal-like yeast, intracellular bacteria) are age-independent and high value; route them to a prescriber who can start empiric therapy within the sepsis/meningitis golden hour. Where culture capacity is absent, do NOT gate sepsis/meningitis escalation on a culture result."
+        ],
+        "sourcesConsulted": [
+          "https://www.urmc.rochester.edu/medialibraries/urmcmedia/urmc-labs/clinical/documents/CriticalValuesList.pdf (University of Rochester Medical Center - Clinical Laboratory Critical Value Immediate Notification Test List; full text extracted)",
+          "https://www.testmenu.com/vanderbiltmedicallabs/TestDirectory/SiteFile?fileName=sidebar%5CVanderbilt+Laboratory+Laboratories+Critical+Values+0125.pdf (Vanderbilt Medical Laboratories - Clinical Laboratory Critical Values, January 2025; full text extracted)",
+          "https://clevelandcliniclabs.com/laboratory-resources/policies-procedures/critical-and-urgent-values-results/ (Cleveland Clinic Laboratories - Critical and Urgent Values & Results)",
+          "https://acutecaretesting.org/en/articles/critical-values-in-laboratory-medicine (Acute Care Testing review - Howanitz CAP survey neonatal bilirubin range 206-307 micromol/L; documents inter-lab variability)",
+          "https://myadlm.org/cln/articles/2024/septemberoctober/critical-result-notification-preferences (AACC/ADLM - Critical result notification preferences; blood/CSF culture and neonatal bilirubin as critical)",
+          "https://www.ncbi.nlm.nih.gov/books/NBK588130/pdf/Bookshelf_NBK588130.pdf (WHO Guidelines for malaria, 13 August 2025 - severe falciparum malaria definition, hyperparasitaemia > 10%, uncomplicated hyperparasitaemia >= 4%, severe malarial anaemia thresholds; full text extracted)",
+          "https://academic.oup.com/clinchem/article/68/8/1022/6610910 (IFCC Committee on Clinical Application of Cardiac Bio-Markers - 99th-percentile URL derivation for hs-cTn)",
+          "https://publications.aap.org/pediatrics/article/153/4/e2023063323/196871/ and AAFP summary https://www.aafp.org/pubs/afp/issues/2023/0600/practice-guidelines-hyperbilirubinemia-newborns.html (AAP 2022 neonatal hyperbilirubinemia guideline - exchange/phototherapy nomogram, escalation-of-care within 2 mg/dL of exchange threshold)",
+          "https://pubmed.ncbi.nlm.nih.gov/23839815/ (National survey on critical-value notification, 599 institutions - inter-lab variability)",
+          "https://stanfordlab.com/test-directory/critical-values.html (Stanford critical values - data held in images, not text-extractable)",
+          "https://www.cpllabs.com/media/yzajpwkv/37003-critical-and-alert-tables_ada.pdf (CPL Labs critical/alert tables - 403, not retrieved)",
+          "https://www.mmv.org/sites/default/files/content/document/WHO-UCN-GMP-2023.01-eng.pdf (WHO malaria guidelines PDF - 403, superseded by NCBI Bookshelf 2025 version above)"
+        ]
+      }
+    ],
+    "totalAnalytes": 31,
+    "csoNotes": [
+      "Sources triangulated across multiple current institutional lists - ARUP (most current: Rev. 46, April 2026), Beaumont (eff. 03/04/2024), LabCorp (01/19/2024) and URMC/Rochester (older, 2008) - plus the CAP Q-Probes survey of 163 labs (Wagar et al., Arch Pathol Lab Med 2007;131:1769). Critical values are NOT internationally standardised; the acutecaretesting.org review (Higgins 2011) explicitly notes a serious lack of evidence base and wide inter-lab variation. Treat these as commonly-cited starting points, not absolutes.",
+      "Confidence=needs_cso_input is flagged wherever (a) labs disagree materially (magnesium and phosphate HIGH limits vary ~2x; glucose high 25 vs 28 mmol/L), or (b) an endemic/local-policy call is needed (creatinine/urea/lactate/glucose-low should arguably be calibrated to WHO severe-malaria cutoffs for the IM population rather than US lab defaults).",
+      "UNIT-SAFETY: The source lists use mg/dL for calcium, magnesium, phosphate, glucose, BUN and creatinine; all have been converted to SI here (factors used: Ca x0.2495, Mg x0.4114, PO4 x0.3229, glucose x0.0555, BUN->urea x0.357, creatinine x88.4). BUN(mg/dL) vs urea(mmol/L) is a genuine medication/alert error source - standardise the tool on a single SI unit per analyte and display the unit prominently.",
+      "ENDEMIC CALIBRATION decisions for the CSO: (1) Glucose-low - adopt WHO severe-malaria 2.2 mmol/L or the lab-standard 2.8? (2) Creatinine/urea - use US lab high defaults (~619 umol/L / ~36 mmol/L urea) or the lower WHO severe-malaria AKI cutoffs (creatinine > 265 umol/L, urea > 20 mmol/L) for the malaria/IM population? (3) Lactate - sepsis >=4 vs severe-malaria >5; and what to do where POC lactate is unavailable (recommend bicarbonate as acidosis surrogate). (4) Calcium - default to ionised or albumin-corrected calcium given high hypoalbuminaemia prevalence.",
+      "AKI alerting: absolute creatinine/urea thresholds are insensitive for early AKI. Recommend the tool ALSO support a delta-check (KDIGO: creatinine rise >= 26.5 umol/L in 48h or >= 1.5x baseline) where prior results exist - this is the more clinically meaningful trigger and is a CSO design decision.",
+      "Pediatric/neonatal thresholds differ materially for potassium (higher neonatal high), sodium, calcium (higher infant normal), phosphate (higher paediatric normal), glucose (neonatal hypoglycaemia), creatinine/urea (much lower) and bilirubin. This tool is scoped to ADULT IM; if any paediatric use is anticipated the CSO must set a separate paediatric table - do NOT apply adult thresholds to children.",
+      "PREANALYTIC false-positive guard for the Ugandan setting: haemolysis (heat, delayed transport, manual draws) causes spurious hyperkalaemia and is the single biggest false-critical-value risk; build a haemolysis/repeat-check prompt into potassium alerts. EDTA contamination spuriously raises K and lowers Ca.",
+      "Haemoglobin low cut is a POLICY CALL: <7.0 g/dL (ARUP) vs <6.0 g/dL (CAP Q-Probes mean, University of Chicago). For Ugandan IM/malaria-endemic context <7.0 g/dL aligns with WHO severe malarial anaemia in adults (<7 g/dL), but chronic endemic anaemia will make it fire frequently — strongly recommend pairing with a delta-check / acute-drop rule to reduce alert fatigue.",
+      "WBC low alert: decide between total WBC ≤2.0 x10^9/L (ARUP) and an ANC-based alert (severe neutropenia ANC <0.5 x10^9/L). An ANC-based febrile-neutropenia trigger is clinically more useful. CRITICAL Uganda caveat: benign ethnic neutropenia in populations of African ancestry means Western-derived lower limits over-call neutropenia — calibrate or annotate.",
+      "INR critical threshold must sit within the published consensus band of 4.0–6.0 (Lippi et al.). Recommend 5.0 (ARUP) unless local warfarin-monitoring practice favours the more sensitive 4.0 (University of Chicago).",
+      "APTT critical value is REAGENT/ANALYSER-DEPENDENT (commonly-cited band ~85–100 s). It must be validated against the local coagulation reagent's reference range before deployment — do NOT hard-code an absolute number without local verification.",
+      "Fibrinogen low: confirm unit (g/L vs mg/dL; 1.0 g/L = 100 mg/dL). Lab critical alert ~<1.0 g/L, but obstetric-haemorrhage clinical action threshold is higher (~<2 g/L) — consider a context-specific rule for maternity.",
+      "All numeric thresholds vary by laboratory; CAP/AACC emphasise each lab should establish and periodically review its own critical-value list. These values are the COMMONLY-CITED defaults, not mandates — local validation and CSO sign-off required before go-live.",
+      "Neonatal/paediatric haematology and coagulation parameters differ substantially (Hb, PT/APTT physiologically prolonged in neonates; neonatal Hb critical window is HIGH not low). If the tool will ever serve neonatal/paediatric wards, separate age-banded critical limits are mandatory.",
+      "Consider adding Absolute Neutrophil Count (ANC) and Haematocrit as explicit alertable analytes; several reference labs (e.g. University of Chicago) alert on HCT <15% and ANC <0.5 in addition to the parameters requested.",
+      "Two academic-lab critical lists were fully text-extracted (Vanderbilt Jan 2025 and University of Rochester/URMC); Cleveland Clinic was extracted via web fetch. They AGREE on direction but DISAGREE on exact numeric cut-offs (e.g. pH low 7.15 vs 7.21; pCO2 high 60 vs 69 vs 70; pO2 low 40 vs 46; CSF glucose low 20 vs 38; neonatal bilirubin 15 vs 18 mg/dL). Critical values are not nationally standardised - CAP/AACC explicitly document wide inter-laboratory variability. The CSO must ratify ONE local value per analyte; defaults in this report lean to the most widely-cited / Vanderbilt 2025 values.",
+      "Troponin and (if adopted) any biochemistry critical numbers are ASSAY/PLATFORM-specific. The troponin critical threshold must be set from the 99th-percentile upper reference limit of the exact analyser in the local lab (sex-specific for some assays); do not hard-code 52 ng/L (that is the Vanderbilt/Cleveland hs-cTnT example).",
+      "Neonatal bilirubin: the numeric lab flag (~15 mg/dL) is only a screening trigger. The true action threshold is hour-of-life + gestation + neurotoxicity-risk specific per the AAP 2022 nomogram; G6PD deficiency (common in the region) lowers it. The tool should plot TSB on the nomogram, not act on a single number, and should ingest G6PD status.",
+      "Where ABG analysers are absent (common in Ugandan general wards), wire the hypoxaemia alert to pulse-oximetry SpO2 (WHO severe-malaria uses SpO2 < 92% room air) and infer metabolic acidosis from venous bicarbonate/lactate (WHO: bicarbonate < 15 mmol/L or lactate >= 5 mmol/L or base deficit > 8 mEq/L).",
+      "Malaria: report parasite density as BOTH % parasitised RBC and parasites/microL on every positive falciparum film. In high-transmission Uganda, WHO % thresholds (> 10% severe; >= 4% uncomplicated hyperparasitaemia) are the actionable cut-offs. Bundle the malaria alert with endemic-anaemia Hb thresholds and the WHO severe-malaria biochemistry criteria rather than treating parasitaemia in isolation.",
+      "Endemic anaemia baseline: a generic adult Hb critical-low (e.g. < 6-7 g/dL on the Vanderbilt list) will fire very frequently in a malaria/hookworm/HIV-endemic population. Consider a Uganda-calibrated haemoglobin critical-low and a 'no previous result within N days' suppression rule (as Vanderbilt/URMC use) to avoid alert fatigue. CSO to set the local Hb critical-low.",
+      "Qualitative microbiology criticals (positive blood/CSF Gram stain or smear, cryptococcal-like yeast, intracellular bacteria) are age-independent and high value; route them to a prescriber who can start empiric therapy within the sepsis/meningitis golden hour. Where culture capacity is absent, do NOT gate sepsis/meningitis escalation on a culture result."
+    ]
+  }
+}

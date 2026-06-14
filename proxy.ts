@@ -52,6 +52,9 @@ const ALWAYS_AUTH_REQUIRED_PREFIXES = [
   // Clinician workspace — same auth + AAL2 + MFA gate. Per-clinician
   // affiliation scope resolves in app/clinician/layout.tsx.
   "/clinician",
+  // Lab-technician workspace — same auth + AAL2 + MFA gate. The AHPC
+  // lab-cadre scope resolves in app/lab/layout.tsx (requireLabTechScope).
+  "/lab",
   // Patient workspace — requires auth. Patients are MFA-optional
   // (per kickoff), so the MFA branches in proxy.ts don't fire for
   // pure patients; a clinician-also-patient still gets MFA.
