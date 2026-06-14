@@ -129,10 +129,37 @@ export const problemList = pgTable(
     authoredByUserId: uuid("authored_by_user_id").references(() => authUsers.id, {
       onDelete: "set null",
     }),
+    /* ── Assessment-synthesis projection (GATED migration 0049; nullable so the
+       legacy rows + the un-flagged write path are unaffected). Mirrors the richer
+       `ClerkProblem` modelling carried in the versioned section_data, so the
+       problem list is QUERYABLE by kind/status/linkage without parsing JSON.
+       Written only when `problemListSynthesisLive()` is on. ── */
+    /** Where the problem entered from: a vital / a working diagnosis / an exam
+     *  finding / active background. */
+    kind: text("kind"),
+    /** Lifecycle in the synthesis sense — `active`, `resolved`, or `linked`
+     *  (subsumed under a working diagnosis; the canonical `active` boolean still
+     *  drives the live list, derived as status !== 'resolved'). */
+    status: text("status"),
+    /** The working-diagnosis text this problem is linked/merged under (the
+     *  clinician's act); null when the problem stands on its own. */
+    linkedTo: text("linked_to"),
+    /** Auditable provenance string for the proposal (e.g. "vitals · NEWS2 +2"). */
+    provenance: text("provenance"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [index("problem_list_patient_idx").on(t.patientUserId, t.active)],
+  (t) => [
+    index("problem_list_patient_idx").on(t.patientUserId, t.active),
+    check(
+      "problem_list_kind_check",
+      sql`${t.kind} IS NULL OR ${t.kind} IN ('vital','diagnosis','finding','background')`,
+    ),
+    check(
+      "problem_list_status_check",
+      sql`${t.status} IS NULL OR ${t.status} IN ('active','resolved','linked')`,
+    ),
+  ],
 );
 
 // NOTE: `patient_allergies` is the canonical allergy object and already lives in
