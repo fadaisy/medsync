@@ -1,33 +1,29 @@
 "use client";
 
+import type { DiagnosisSuggestion } from "@/lib/clerkship/diagnosis/suggest";
 import type { BpStandard } from "@/lib/clerkship/exam/bp";
 import type { RecordedVitals } from "@/lib/clerkship/exam/types";
-import type { SynthesisedProblem } from "@/lib/clerkship/problem-synthesis";
 import type { CapturedStateInput } from "@/lib/clerkship/reasoning/context";
 import type { ScoredDifferential } from "@/lib/clerkship/reasoning/types";
-import type { ProblemKind } from "@/lib/clerkship/synthesis";
 import { useMemo } from "react";
 import {
   ActivityIcon,
   AlertTriangleIcon,
   ArrowDownToLineIcon,
   CheckIcon,
-  LightbulbIcon,
-  Link2Icon,
-  ListChecksIcon,
   PlusIcon,
   ShieldAlertIcon,
+  StethoscopeIcon,
   XIcon,
 } from "lucide-react";
 
 import { assembleClerkshipAbnormal } from "@/lib/clerkship/assemble";
-import { synthesiseProblemList } from "@/lib/clerkship/problem-synthesis";
+import { suggestDiagnoses } from "@/lib/clerkship/diagnosis/suggest";
 import { buildCapturedContext } from "@/lib/clerkship/reasoning/context";
 import { liveReasoningForCodes } from "@/lib/clerkship/reasoning/engine";
 import { REASONING_MAPS } from "@/lib/clerkship/reasoning/maps";
-import { proposeProblems, renderProblemRepresentation } from "@/lib/clerkship/synthesis";
+import { renderProblemRepresentation } from "@/lib/clerkship/synthesis";
 import { cn } from "@/lib/utils";
-import { ValueChip } from "./exam-kit";
 
 /**
  * Assessment / Synthesis — the clerkship's convergence (GATE A-signed model).
@@ -50,15 +46,6 @@ import { ValueChip } from "./exam-kit";
 
 export type DxRow = { text: string; icd10: string; mustNotMiss: boolean };
 export type ExcludedDx = { text: string; mustNotMiss: boolean };
-export type ProblemRow = {
-  item: string;
-  kind: ProblemKind;
-  status: "active" | "resolved" | "linked";
-  linkedTo?: string;
-  provenance?: string;
-  /** Nested supporting evidence for a synthesised (diagnosis) problem. */
-  evidence?: string[];
-};
 
 const SOURCE_LABEL: Record<string, string> = {
   vitals: "Vitals",
@@ -67,12 +54,12 @@ const SOURCE_LABEL: Record<string, string> = {
   background: "Background",
 };
 
-/** Short clinical tags for nested evidence kinds (history / on-examination / etc). */
+/** Short clinical tags for diagnosis evidence kinds. */
 const EVIDENCE_TAG: Record<string, string> = {
-  symptom: "Hx",
-  sign: "O/E",
+  feature: "For",
+  symptom: "Sx",
   risk: "Risk",
-  vital: "Vital",
+  against: "Against",
 };
 
 export function AssessmentSynthesis({
@@ -82,13 +69,9 @@ export function AssessmentSynthesis({
   bpStandard,
   differential,
   excluded,
-  problems,
   onAgree,
   onExclude,
   onUnexclude,
-  onConfirmProblem,
-  onUpdateProblem,
-  onRemoveProblem,
   onInsertSummary,
 }: {
   captured: CapturedStateInput;
@@ -97,13 +80,9 @@ export function AssessmentSynthesis({
   bpStandard: BpStandard;
   differential: DxRow[];
   excluded: ExcludedDx[];
-  problems: ProblemRow[];
   onAgree: (dx: ScoredDifferential) => void;
   onExclude: (dx: ScoredDifferential) => void;
   onUnexclude: (text: string) => void;
-  onConfirmProblem: (p: ProblemRow) => void;
-  onUpdateProblem: (index: number, patch: Partial<ProblemRow>) => void;
-  onRemoveProblem: (index: number) => void;
   onInsertSummary: (text: string) => void;
 }) {
   // ── the assembled abnormals (vitals-up; the shared single-source assembly,
@@ -127,51 +106,30 @@ export function AssessmentSynthesis({
       ]),
     [differential, excluded],
   );
-  const suggestions = reasoning.scored.filter((s) => !decidedTexts.has(s.dx.trim().toLowerCase()));
 
-  // ── the synthesised problem list (GATE A model) ──
-  // The reasoning engine's leading SUPPORTED hypotheses, surfaced as proposed
-  // problems-with-evidence (its own evidence buckets, reused), with the abnormal
-  // vitals each one explains absorbed underneath. Any unabsorbed abnormal vital
-  // stays standalone — nothing abnormal is ever dropped.
-  const confirmedSet = new Set(problems.map((p) => p.item.trim().toLowerCase()));
-  const { synthesised, standaloneVitals } = useMemo(
+  // ── the diagnostic-logic suggestions (GATE B) ──
+  // The reasoning engine's scored differential, re-presented as ranked,
+  // evidence-backed diagnosis suggestions (joined with the catalog's ICD-10 +
+  // provenance). Borrowed, not recomputed — so they correspond to the rail.
+  // Must-not-miss floats regardless of support; decided ones drop out.
+  const suggestionList = useMemo(
     () =>
-      synthesiseProblemList({
-        scored: reasoning.scored,
-        vitals: items.filter((i) => i.source === "vitals"),
-        excludedTexts: new Set(excluded.map((d) => d.text.trim().toLowerCase())),
-        confirmed: problems.map((p) => ({ item: p.item, evidence: p.evidence })),
-      }),
-    [reasoning.scored, items, excluded, problems],
-  );
-
-  // Findings + active background stay proposed on their own terms (the synthesis
-  // rework supersedes the per-VITAL and per-diagnosis behaviour only).
-  const proposedContext = proposeProblems(items, differential).filter(
-    (p) =>
-      (p.kind === "finding" || p.kind === "background") &&
-      !confirmedSet.has(p.item.trim().toLowerCase()),
+      suggestDiagnoses(reasoning.scored).filter(
+        (s) => !decidedTexts.has(s.dx.trim().toLowerCase()),
+      ),
+    [reasoning.scored, decidedTexts],
   );
 
   const representation = renderProblemRepresentation(items);
-  const workingDxTexts = differential.map((d) => d.text).filter((t) => t.trim());
 
-  // Confirming a synthesised problem = agreeing the differential (one coherent
-  // record) AND committing it as a problem-with-evidence; rejecting = exclude.
-  const confirmSynth = (sp: SynthesisedProblem) => {
-    const s = reasoning.scored.find((x) => x.dx === sp.dx);
+  // Select a suggestion = the clinician's working diagnosis (carries the catalog
+  // ICD-10); Reject = considered & excluded (must-not-miss retained).
+  const selectSuggestion = (sg: DiagnosisSuggestion) => {
+    const s = reasoning.scored.find((x) => x.dx === sg.dx);
     if (s) onAgree(s);
-    onConfirmProblem({
-      item: sp.dx,
-      kind: "diagnosis",
-      status: "active",
-      provenance: `reasoning synthesis · ${sp.status}`,
-      evidence: sp.evidence.map((e) => e.label),
-    });
   };
-  const rejectSynth = (sp: SynthesisedProblem) => {
-    const s = reasoning.scored.find((x) => x.dx === sp.dx);
+  const rejectSuggestion = (sg: DiagnosisSuggestion) => {
+    const s = reasoning.scored.find((x) => x.dx === sg.dx);
     if (s) onExclude(s);
   };
 
@@ -253,65 +211,96 @@ export function AssessmentSynthesis({
         </p>
       </section>
 
-      {/* ── Zone 2 · The suggested differential — the clinician decides ── */}
+      {/* ── Zone 2 · Diagnostic logic — ranked, evidence-backed suggestions ── */}
       <section className="border-border bg-card flex flex-col gap-2.5 rounded-xl border p-3.5 shadow-sm">
         <h4 className="font-display text-foreground inline-flex items-center gap-1.5 text-[13px] font-medium">
-          <LightbulbIcon className="size-4 text-teal-600 dark:text-teal-400" aria-hidden />
-          Suggested differential — you decide
+          <StethoscopeIcon className="size-4 text-teal-600 dark:text-teal-400" aria-hidden />
+          Diagnostic logic — ranked suggestions, you select
         </h4>
 
-        {suggestions.length === 0 && excluded.length === 0 ? (
+        {suggestionList.length === 0 && excluded.length === 0 ? (
           <p className="text-muted-foreground text-[12px]">
             {pcCodes.length
-              ? "Every suggestion has been decided — your differential below is the record."
-              : "Add a presenting complaint and the reasoning engine's differential appears here for your decision. Your own diagnoses go in the editor below either way."}
+              ? "Every suggestion has been decided — your selected diagnoses below are the record."
+              : "Add a presenting complaint and the diagnosis catalog's matches appear here, ranked by support, for your decision. Your own diagnoses go in the editor below either way."}
           </p>
         ) : null}
 
-        {suggestions.map((s) => (
+        {suggestionList.map((sg) => (
           <div
-            key={s.dx}
+            key={sg.dx}
             className={cn(
-              "flex flex-wrap items-center gap-2 rounded-lg border p-2",
-              s.likelihood === "must_not_miss"
+              "flex flex-col gap-1.5 rounded-lg border p-2",
+              sg.mustNotMiss
                 ? "border-red-300 bg-red-50/50 dark:border-red-900/50 dark:bg-red-950/20"
                 : "border-border bg-muted/20",
             )}
           >
-            {s.likelihood === "must_not_miss" ? (
-              <ShieldAlertIcon
-                className="size-3.5 shrink-0 text-red-600 dark:text-red-400"
-                aria-hidden
-              />
+            <div className="flex flex-wrap items-start gap-2">
+              {sg.mustNotMiss ? (
+                <ShieldAlertIcon
+                  className="mt-0.5 size-3.5 shrink-0 text-red-600 dark:text-red-400"
+                  aria-label="must-not-miss"
+                />
+              ) : null}
+              <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                  <span className="text-foreground text-[12.5px] font-medium">{sg.dx}</span>
+                  {sg.icd10 ? (
+                    <span className="text-muted-foreground font-mono text-[9.5px]">{sg.icd10}</span>
+                  ) : null}
+                  <span
+                    className={cn(
+                      "rounded px-1 text-[9px] font-semibold tracking-wide uppercase",
+                      sg.mustNotMiss
+                        ? "bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-300"
+                        : sg.status === "supported"
+                          ? "bg-teal-100 text-teal-800 dark:bg-teal-950/40 dark:text-teal-300"
+                          : "text-muted-foreground bg-muted",
+                    )}
+                  >
+                    {sg.mustNotMiss ? "must-not-miss" : sg.status}
+                  </span>
+                </div>
+              </div>
+              <div className="flex shrink-0 items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => selectSuggestion(sg)}
+                  className="tap inline-flex items-center gap-1 rounded-md bg-teal-600 px-2 py-1 text-[11px] font-medium text-white hover:bg-teal-700"
+                >
+                  <CheckIcon className="size-3" aria-hidden /> Select
+                </button>
+                <button
+                  type="button"
+                  onClick={() => rejectSuggestion(sg)}
+                  className="tap text-muted-foreground border-border hover:text-foreground inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[11px]"
+                >
+                  <XIcon className="size-3" aria-hidden /> Reject
+                </button>
+              </div>
+            </div>
+            {sg.evidence.length ? (
+              <div className="flex flex-wrap items-center gap-1">
+                <span className="text-muted-foreground/70 text-[9.5px]">why:</span>
+                {sg.evidence.map((e) => (
+                  <span
+                    key={`${e.kind}:${e.label}`}
+                    className={cn(
+                      "inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10.5px] ring-1 ring-inset",
+                      e.kind === "against"
+                        ? "text-muted-foreground/70 bg-muted/30 ring-border"
+                        : "ring-border bg-card",
+                    )}
+                  >
+                    <span className="text-muted-foreground/60 text-[8px] font-semibold tracking-wide uppercase">
+                      {EVIDENCE_TAG[e.kind]}
+                    </span>
+                    {e.label}
+                  </span>
+                ))}
+              </div>
             ) : null}
-            <div className="flex min-w-0 flex-1 flex-col">
-              <span className="text-foreground text-[12.5px] font-medium">{s.dx}</span>
-              <span className="text-muted-foreground text-[10.5px]">
-                {s.likelihood === "must_not_miss"
-                  ? "must-not-miss"
-                  : s.likelihood.replace("_", " ")}
-                {s.matchedRuleIn.length ? ` · for: ${s.matchedRuleIn.slice(0, 3).join(", ")}` : ""}
-                {s.matchedRuleOut.length
-                  ? ` · against: ${s.matchedRuleOut.slice(0, 2).join(", ")}`
-                  : ""}
-              </span>
-            </div>
-            <div className="flex shrink-0 items-center gap-1">
-              <button
-                type="button"
-                onClick={() => onAgree(s)}
-                className="tap inline-flex items-center gap-1 rounded-md bg-teal-600 px-2 py-1 text-[11px] font-medium text-white hover:bg-teal-700"
-              >
-                <CheckIcon className="size-3" aria-hidden /> Agree
-              </button>
-              <button
-                type="button"
-                onClick={() => onExclude(s)}
-                className="tap text-muted-foreground border-border hover:text-foreground inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[11px]"
-              >
-                <XIcon className="size-3" aria-hidden /> Exclude
-              </button>
-            </div>
           </div>
         ))}
 
@@ -349,294 +338,11 @@ export function AssessmentSynthesis({
         ) : null}
 
         <p className="text-muted-foreground/70 text-[10px]">
-          Agree records <em>your</em> working diagnosis; Exclude keeps it visible as considered
-          &amp; excluded. Your own diagnoses go in the editor below — the diagnosis of record is
-          always the clinician&apos;s, never the machine&apos;s.
-        </p>
-      </section>
-
-      {/* ── Zone 3 · The synthesised problem list (problems-with-evidence) ── */}
-      <section className="border-border bg-card flex flex-col gap-2.5 rounded-xl border p-3.5 shadow-sm">
-        <h4 className="font-display text-foreground inline-flex items-center gap-1.5 text-[13px] font-medium">
-          <ListChecksIcon className="size-4 text-teal-600 dark:text-teal-400" aria-hidden />
-          Problem list — synthesised, you confirm
-        </h4>
-
-        {/* Synthesised problems = the reasoning engine's leading hypotheses, with
-            their evidence nested. Honest hypothesis wording; the clinician decides. */}
-        {synthesised.length ? (
-          <div className="flex flex-col gap-1.5">
-            <span className="text-muted-foreground font-mono text-[9.5px] tracking-[0.12em] uppercase">
-              Proposed — likely problems with their evidence
-            </span>
-            {synthesised.map((sp) => (
-              <div
-                key={sp.dx}
-                className={cn(
-                  "flex flex-col gap-1.5 rounded-lg border border-dashed p-2",
-                  sp.mustNotMiss
-                    ? "border-red-300 bg-red-50/40 dark:border-red-900/50 dark:bg-red-950/15"
-                    : "border-border/70 bg-muted/20",
-                )}
-              >
-                <div className="flex flex-wrap items-start gap-2">
-                  <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                    <span className="text-foreground text-[12.5px] font-medium">
-                      {sp.mustNotMiss ? (
-                        <ShieldAlertIcon
-                          className="mr-1 inline size-3.5 text-red-600 dark:text-red-400"
-                          aria-label="must-not-miss"
-                        />
-                      ) : null}
-                      likely {sp.dx}{" "}
-                      <span className="text-muted-foreground text-[10.5px] font-normal">
-                        (working)
-                      </span>
-                      <span
-                        className={cn(
-                          "ml-1.5 rounded px-1 text-[9px] font-semibold tracking-wide uppercase",
-                          sp.mustNotMiss
-                            ? "bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-300"
-                            : "bg-teal-100 text-teal-800 dark:bg-teal-950/40 dark:text-teal-300",
-                        )}
-                      >
-                        {sp.mustNotMiss ? "must-not-miss" : "supported"}
-                      </span>
-                    </span>
-                  </div>
-                  <div className="flex shrink-0 items-center gap-1">
-                    <button
-                      type="button"
-                      onClick={() => confirmSynth(sp)}
-                      className="tap inline-flex items-center gap-1 rounded-md bg-teal-600 px-2 py-1 text-[11px] font-medium text-white hover:bg-teal-700"
-                    >
-                      <CheckIcon className="size-3" aria-hidden /> Confirm
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => rejectSynth(sp)}
-                      className="tap text-muted-foreground border-border hover:text-foreground inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[11px]"
-                    >
-                      <XIcon className="size-3" aria-hidden /> Reject
-                    </button>
-                  </div>
-                </div>
-                {sp.evidence.length ? (
-                  <div className="flex flex-wrap items-center gap-1">
-                    <span className="text-muted-foreground/70 text-[9.5px]">evidence:</span>
-                    {sp.evidence.map((e) => (
-                      <span
-                        key={`${e.kind}:${e.label}`}
-                        className="ring-border bg-card inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10.5px] ring-1 ring-inset"
-                      >
-                        <span className="text-muted-foreground/60 text-[8px] font-semibold tracking-wide uppercase">
-                          {EVIDENCE_TAG[e.kind]}
-                        </span>
-                        {e.label}
-                      </span>
-                    ))}
-                  </div>
-                ) : null}
-              </div>
-            ))}
-          </div>
-        ) : null}
-
-        {/* Abnormal vitals NOT absorbed into a synthesised problem — standalone,
-            unexplained, for review. Nothing abnormal is ever dropped. */}
-        {standaloneVitals.length ? (
-          <div className="flex flex-col gap-1">
-            <span className="text-muted-foreground font-mono text-[9.5px] tracking-[0.12em] uppercase">
-              Unexplained abnormal vitals — for review
-            </span>
-            {standaloneVitals.map((v) => (
-              <div
-                key={v.label}
-                className="border-border/70 bg-muted/20 flex flex-wrap items-center gap-2 rounded-lg border border-dashed px-2 py-1.5"
-              >
-                <span className="text-muted-foreground bg-muted rounded px-1 font-mono text-[9px] uppercase">
-                  vital
-                </span>
-                <span className="text-foreground min-w-0 flex-1 text-[12px]">
-                  {v.mustNotMiss ? (
-                    <AlertTriangleIcon
-                      className="mr-1 inline size-3 text-red-600 dark:text-red-400"
-                      aria-label="must-not-miss"
-                    />
-                  ) : null}
-                  {v.label}
-                  {v.detail ? (
-                    <span className="text-muted-foreground/70 ml-1.5 text-[10px]">{v.detail}</span>
-                  ) : null}
-                </span>
-                <button
-                  type="button"
-                  onClick={() =>
-                    onConfirmProblem({
-                      item:
-                        v.detail && v.severity !== "critical"
-                          ? `${v.label} — ${v.detail}`
-                          : v.label,
-                      kind: "vital",
-                      status: "active",
-                      provenance: `vitals${v.detail ? ` · ${v.detail}` : ""}`,
-                    })
-                  }
-                  className="tap inline-flex items-center gap-1 rounded-md bg-teal-600 px-2 py-1 text-[11px] font-medium text-white hover:bg-teal-700"
-                >
-                  <PlusIcon className="size-3" aria-hidden /> Confirm
-                </button>
-              </div>
-            ))}
-          </div>
-        ) : null}
-
-        {/* Findings + active background on their own terms. */}
-        {proposedContext.length ? (
-          <div className="flex flex-col gap-1">
-            <span className="text-muted-foreground font-mono text-[9.5px] tracking-[0.12em] uppercase">
-              Other proposed
-            </span>
-            {proposedContext.map((p) => (
-              <div
-                key={p.item}
-                className="border-border/70 bg-muted/20 flex flex-wrap items-center gap-2 rounded-lg border border-dashed px-2 py-1.5"
-              >
-                <span className="text-muted-foreground bg-muted rounded px-1 font-mono text-[9px] uppercase">
-                  {p.kind}
-                </span>
-                <span className="text-foreground min-w-0 flex-1 text-[12px]">
-                  {p.mustNotMiss ? (
-                    <AlertTriangleIcon
-                      className="mr-1 inline size-3 text-red-600 dark:text-red-400"
-                      aria-label="must-not-miss"
-                    />
-                  ) : null}
-                  {p.item}
-                  <span className="text-muted-foreground/70 ml-1.5 text-[10px]">
-                    {p.provenance}
-                  </span>
-                </span>
-                <button
-                  type="button"
-                  onClick={() =>
-                    onConfirmProblem({
-                      item: p.item,
-                      kind: p.kind,
-                      status: "active",
-                      provenance: p.provenance,
-                    })
-                  }
-                  className="tap inline-flex items-center gap-1 rounded-md bg-teal-600 px-2 py-1 text-[11px] font-medium text-white hover:bg-teal-700"
-                >
-                  <PlusIcon className="size-3" aria-hidden /> Confirm
-                </button>
-              </div>
-            ))}
-          </div>
-        ) : null}
-
-        {problems.length ? (
-          <div className="flex flex-col gap-1">
-            <span className="text-muted-foreground font-mono text-[9.5px] tracking-[0.12em] uppercase">
-              Confirmed — the list of record on save
-            </span>
-            {problems.map((p, i) => (
-              <div
-                key={`${p.item}-${i}`}
-                className="border-border bg-card flex flex-col gap-1 rounded-lg border px-2 py-1.5"
-              >
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-muted-foreground bg-muted rounded px-1 font-mono text-[9px] uppercase">
-                    {p.kind}
-                  </span>
-                  <span
-                    className={cn(
-                      "text-foreground min-w-0 flex-1 text-[12px]",
-                      p.status === "resolved" && "text-muted-foreground line-through",
-                    )}
-                  >
-                    {p.item}
-                    {p.status === "linked" && p.linkedTo ? (
-                      <span className="text-muted-foreground ml-1.5 inline-flex items-center gap-0.5 text-[10px]">
-                        <Link2Icon className="size-3" aria-hidden /> under {p.linkedTo}
-                      </span>
-                    ) : null}
-                  </span>
-                  <div className="flex shrink-0 items-center gap-1">
-                    {(["active", "resolved"] as const).map((st) => (
-                      <ValueChip
-                        key={st}
-                        active={p.status === st}
-                        onClick={() => onUpdateProblem(i, { status: st, linkedTo: undefined })}
-                      >
-                        {st}
-                      </ValueChip>
-                    ))}
-                    {workingDxTexts.length && p.kind !== "diagnosis" ? (
-                      <select
-                        aria-label={`Link ${p.item} under a working diagnosis`}
-                        className="tap border-border bg-card rounded-md border px-1 py-0.5 text-[10.5px]"
-                        value={p.status === "linked" ? (p.linkedTo ?? "") : ""}
-                        onChange={(e) =>
-                          onUpdateProblem(
-                            i,
-                            e.target.value
-                              ? { status: "linked", linkedTo: e.target.value }
-                              : { status: "active", linkedTo: undefined },
-                          )
-                        }
-                      >
-                        <option value="">link under…</option>
-                        {workingDxTexts.map((t) => (
-                          <option key={t} value={t}>
-                            {t}
-                          </option>
-                        ))}
-                      </select>
-                    ) : null}
-                    <button
-                      type="button"
-                      onClick={() => onRemoveProblem(i)}
-                      aria-label={`Remove ${p.item}`}
-                      className="tap text-muted-foreground hover:text-destructive rounded-md p-0.5"
-                    >
-                      <XIcon className="size-3.5" aria-hidden />
-                    </button>
-                  </div>
-                </div>
-                {p.evidence?.length ? (
-                  <div className="flex flex-wrap items-center gap-1 pl-1">
-                    <span className="text-muted-foreground/70 text-[9.5px]">evidence:</span>
-                    {p.evidence.map((e) => (
-                      <span
-                        key={e}
-                        className="ring-border bg-muted/30 text-muted-foreground rounded px-1.5 py-0.5 text-[10px] ring-1 ring-inset"
-                      >
-                        {e}
-                      </span>
-                    ))}
-                  </div>
-                ) : null}
-              </div>
-            ))}
-          </div>
-        ) : synthesised.length === 0 &&
-          standaloneVitals.length === 0 &&
-          proposedContext.length === 0 ? (
-          <p className="text-muted-foreground text-[12px]">
-            Problems synthesise here as the clerkship is captured — the reasoning engine&apos;s
-            likely problems with their evidence, plus any unexplained abnormal vital. You confirm
-            what becomes the list of record.
-          </p>
-        ) : null}
-
-        <p className="text-muted-foreground/70 text-[10px]">
-          Each likely problem is the reasoning engine&apos;s leading hypothesis with its evidence —
-          proposed, never asserted; the diagnosis of record is yours. Confirm a problem to record it
-          (and agree the differential); an abnormal vital it doesn&apos;t explain stays standalone,
-          and any confirmed problem can be linked under a diagnosis. Nothing is dropped or silently
-          removed.
+          Suggestions are the reasoning engine&apos;s differential matched against the diagnosis
+          catalog, ranked by support (must-not-miss surfaces regardless) — a suggestion, never a
+          verdict. Select records <em>your</em> working diagnosis (it carries the catalog ICD-10 +
+          feeds workup next); Reject keeps it considered &amp; excluded. Add your own below — the
+          diagnosis of record is always the clinician&apos;s.
         </p>
       </section>
     </div>

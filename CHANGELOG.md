@@ -5,6 +5,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Changed — Clerkship: Assessment as diagnostic logic (catalog-driven suggestions) — 2026-06-14
+
+The Assessment now **reads the whole clerkship, matches captured features against a diagnosis catalog, and surfaces ranked, evidence-backed diagnosis suggestions the clinician selects from** — replacing the problem-list ([ADR 0074](docs/adr/0074-assessment-as-diagnostic-logic.md), supersedes [ADR 0073](docs/adr/0073-clerkship-problem-list-synthesis.md) for this surface). **No migration.**
+
+- **Diagnosis catalog** (`lib/clerkship/diagnosis/catalog.ts`, pure/TDD) — a RE-PIVOT of the 17 CSO-signed reasoning maps, **derived at runtime** (structural one-source-of-truth — a map change flows here; never a parallel body). Inverts every differential into diagnosis-keyed entries with assembled supports + presentation provenance + must-not-miss. ICD-10 linked **only** from verified `ICD10_CODES` by name, else null (never fabricated); `workupRef` placeholder.
+- **Support-matching adapter** (`suggest.ts`, TDD) — **borrows the reasoning engine** (re-presents its `ScoredDifferential` + matched evidence, joined with catalog metadata); cannot diverge from the rail. Ranks by support; **must-not-miss floats regardless of support**.
+- **Surface** — ranked evidence-backed suggestions (the "why" shown) + **Select / Reject / Add-own** (ICD-10 typeahead); Select carries the catalog ICD-10 + feeds the workup seam (next build); Reject keeps "considered & excluded". The **problem-list proposer is removed** (Zone 3 + the problem-synthesis engine deleted); the patient longitudinal `problem_list` is unaffected (still fed from PMH at `deriveClinicalObjects`).
+- Decision-support, never autonomous; no fabrication; not-examined ≠ normal. Pre-deploy adversarial review (parity/safety/clean-removal) — **0 confirmed findings**. tsc/eslint clean; **975 tests** (+14 catalog/adapter, −8 removed); build green. **Open follow-ups:** the 151 `«»` free-text features + ~85 null ICD-10 codes pending CSO curation/web-verification.
+
 ### Changed — Clerkship: Problem-list synthesis (reasoned problems-with-evidence) — 2026-06-14
 
 The proposed problem list now **reasons across symptoms + signs + risks + abnormal vitals into the most-likely problems, each carrying its evidence underneath** — instead of listing each raw abnormal vital as its own line ([ADR 0073](docs/adr/0073-clerkship-problem-list-synthesis.md), supersedes the per-vital display). CSO-signed model (GATE A). **No migration.**
