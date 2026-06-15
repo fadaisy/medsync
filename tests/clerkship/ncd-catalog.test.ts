@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -30,6 +31,34 @@ describe("NCD catalog (cited, derived, gated)", () => {
     for (const e of NCD_DIAGNOSIS_CATALOG) {
       for (const s of [...e.supportingSymptoms, ...e.riskFactors]) {
         expect(/^[a-z0-9_]+$/.test(s), `${e.display}: "${s}"`).toBe(true);
+      }
+    }
+  });
+
+  // ONE-SOURCE-OF-TRUTH: every support code must be DEFINED in the seeded Sx/ROS
+  // catalogs (HPC 0042/0043 + ROS 0045) or the condition picklist (0046) — never
+  // invented inline. Checks the seed SQL directly (the source of those codes).
+  const sqlOf = (p: string) => readFileSync(p, "utf8");
+  const symptomSql =
+    sqlOf("supabase/migrations/0042_symptom_catalog.sql") +
+    sqlOf("supabase/migrations/0043_symptom_catalog_hutchison.sql") +
+    sqlOf("supabase/migrations/0045_review_of_systems.sql");
+  const conditionSql = sqlOf("supabase/migrations/0046_clerkship_picklists.sql");
+
+  it("every supportingSymptom is a code defined in the seeded HPC/ROS catalogs", () => {
+    for (const e of NCD_DIAGNOSIS_CATALOG) {
+      for (const s of e.supportingSymptoms) {
+        expect(symptomSql.includes(`'${s}'`), `${e.display}: "${s}" not in Sx/ROS seed`).toBe(true);
+      }
+    }
+  });
+
+  it("every riskFactor is a condition code defined in the seeded picklist", () => {
+    for (const e of NCD_DIAGNOSIS_CATALOG) {
+      for (const r of e.riskFactors) {
+        expect(conditionSql.includes(`'${r}'`), `${e.display}: "${r}" not in condition seed`).toBe(
+          true,
+        );
       }
     }
   });

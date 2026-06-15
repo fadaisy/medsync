@@ -35,7 +35,10 @@ export function DiagnosisPicker({ onPick }: { onPick: (r: CatalogSearchResult) =
 
       {query.trim().length >= 2 ? (
         results.length ? (
-          <ul className="border-border bg-card flex max-h-64 flex-col gap-0.5 overflow-auto rounded-lg border p-1 shadow-sm">
+          <ul
+            aria-label="Diagnosis catalog results"
+            className="border-border bg-card flex max-h-64 flex-col gap-0.5 overflow-auto rounded-lg border p-1 shadow-sm"
+          >
             {results.map((r) => (
               <li key={`${r.category}:${r.code}`}>
                 <button

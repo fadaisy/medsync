@@ -77,6 +77,7 @@ export function AssessmentSynthesis({
   onUnexclude,
   onInsertSummary,
   onPickDiagnosis,
+  conditionCodes,
 }: {
   captured: CapturedStateInput;
   pcCodes: string[];
@@ -84,6 +85,9 @@ export function AssessmentSynthesis({
   bpStandard: BpStandard;
   differential: DxRow[];
   excluded: ExcludedDx[];
+  /** Real PMH condition CODES (picklist codes — not display strings) for NCD
+   *  risk-factor matching. From the form's pmhItems[].code + pmhScreen yes-keys. */
+  conditionCodes: string[];
   onAgree: (dx: ScoredDifferential) => void;
   onExclude: (dx: ScoredDifferential) => void;
   onUnexclude: (text: string) => void;
@@ -137,18 +141,12 @@ export function AssessmentSynthesis({
       ...captured.hpcItems.map((h) => h.symptomCode),
       ...captured.ros.filter((o) => o.status === "present").map((o) => o.symptomCode),
     ]);
-    const conditionCodes = new Set<string>(
-      captured.pmhConditions.map((d) =>
-        d
-          .trim()
-          .toLowerCase()
-          .replace(/[^a-z0-9]+/g, "_"),
-      ),
-    );
-    return matchNcds({ symptomCodes, conditionCodes }).filter(
+    // Real condition CODES (picklist codes), not normalised display strings —
+    // so a risk factor like "diabetes_t2" actually matches a captured PMH item.
+    return matchNcds({ symptomCodes, conditionCodes: new Set(conditionCodes) }).filter(
       (n) => !decidedTexts.has(n.dx.trim().toLowerCase()),
     );
-  }, [captured, decidedTexts]);
+  }, [captured, conditionCodes, decidedTexts]);
 
   // Select a suggestion = the clinician's working diagnosis (carries the catalog
   // ICD-10); Reject = considered & excluded (must-not-miss retained).
