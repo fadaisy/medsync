@@ -786,6 +786,24 @@ export function ClerkshipForm({
                       onInsertSummary={(text) =>
                         setSummary(summary.trim() ? `${summary.trim()}\n\n${text}` : text)
                       }
+                      conditionCodes={Array.from(
+                        new Set([
+                          ...pmhItems.map((p) => p.code).filter(Boolean),
+                          ...Object.entries(pmhScreen)
+                            .filter(([, v]) => v === "yes")
+                            .map(([k]) => k),
+                        ]),
+                      )}
+                      onPickDiagnosis={(r) => {
+                        // Catalog pick = the clinician's working diagnosis — same
+                        // differential path as Select; skip if already present.
+                        const key = r.display.trim().toLowerCase();
+                        if (differential.some((d) => d.text.trim().toLowerCase() === key)) return;
+                        setDifferential([
+                          ...differential,
+                          { text: r.display, icd10: r.icd10 ?? "", mustNotMiss: r.mustNotMiss },
+                        ]);
+                      }}
                     />
                     <Field label="Summary / problem representation">
                       <RichTextEditor

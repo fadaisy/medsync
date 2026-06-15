@@ -1,5 +1,6 @@
 "use client";
 
+import type { CatalogSearchResult } from "@/lib/clerkship/diagnosis/search";
 import type { DiagnosisSuggestion } from "@/lib/clerkship/diagnosis/suggest";
 import type { BpStandard } from "@/lib/clerkship/exam/bp";
 import type { RecordedVitals } from "@/lib/clerkship/exam/types";
@@ -18,12 +19,14 @@ import {
 } from "lucide-react";
 
 import { assembleClerkshipAbnormal } from "@/lib/clerkship/assemble";
+import { matchNcds } from "@/lib/clerkship/diagnosis/ncd-suggest";
 import { suggestDiagnoses } from "@/lib/clerkship/diagnosis/suggest";
 import { buildCapturedContext } from "@/lib/clerkship/reasoning/context";
 import { liveReasoningForCodes } from "@/lib/clerkship/reasoning/engine";
 import { REASONING_MAPS } from "@/lib/clerkship/reasoning/maps";
 import { renderProblemRepresentation } from "@/lib/clerkship/synthesis";
 import { cn } from "@/lib/utils";
+import { DiagnosisPicker } from "./diagnosis-picker";
 
 /**
  * Assessment / Synthesis — the clerkship's convergence (GATE A-signed model).
@@ -73,6 +76,8 @@ export function AssessmentSynthesis({
   onExclude,
   onUnexclude,
   onInsertSummary,
+  onPickDiagnosis,
+  conditionCodes,
 }: {
   captured: CapturedStateInput;
   pcCodes: string[];
@@ -80,10 +85,15 @@ export function AssessmentSynthesis({
   bpStandard: BpStandard;
   differential: DxRow[];
   excluded: ExcludedDx[];
+  /** Real PMH condition CODES (picklist codes — not display strings) for NCD
+   *  risk-factor matching. From the form's pmhItems[].code + pmhScreen yes-keys. */
+  conditionCodes: string[];
   onAgree: (dx: ScoredDifferential) => void;
   onExclude: (dx: ScoredDifferential) => void;
   onUnexclude: (text: string) => void;
   onInsertSummary: (text: string) => void;
+  /** Commit a diagnosis chosen from the catalog picker (same path as Select). */
+  onPickDiagnosis: (r: CatalogSearchResult) => void;
 }) {
   // ── the assembled abnormals (vitals-up; the shared single-source assembly,
   //    reused by the disposition cross-check so the two can never disagree) ──
@@ -121,6 +131,22 @@ export function AssessmentSynthesis({
   );
 
   const representation = renderProblemRepresentation(items);
+
+  // ── the NCD layer (GATE C; gated dark until CSO sign-off) ──
+  // Match the NCD catalog against the captured codes (HPC + ROS-present symptoms;
+  // PMH conditions normalised to codes). Surfaced FIRST, ranked by support, with
+  // cited defining criteria shown. matchNcds is empty until the catalog is signed.
+  const ncdSuggestions = useMemo(() => {
+    const symptomCodes = new Set<string>([
+      ...captured.hpcItems.map((h) => h.symptomCode),
+      ...captured.ros.filter((o) => o.status === "present").map((o) => o.symptomCode),
+    ]);
+    // Real condition CODES (picklist codes), not normalised display strings —
+    // so a risk factor like "diabetes_t2" actually matches a captured PMH item.
+    return matchNcds({ symptomCodes, conditionCodes: new Set(conditionCodes) }).filter(
+      (n) => !decidedTexts.has(n.dx.trim().toLowerCase()),
+    );
+  }, [captured, conditionCodes, decidedTexts]);
 
   // Select a suggestion = the clinician's working diagnosis (carries the catalog
   // ICD-10); Reject = considered & excluded (must-not-miss retained).
@@ -217,6 +243,74 @@ export function AssessmentSynthesis({
           <StethoscopeIcon className="size-4 text-teal-600 dark:text-teal-400" aria-hidden />
           Diagnostic logic — ranked suggestions, you select
         </h4>
+
+        {/* NCD layer — surfaced first, ranked by support, with cited defining
+            criteria + what's met shown. Gated dark until CSO sign-off. */}
+        {ncdSuggestions.length ? (
+          <div className="flex flex-col gap-1.5">
+            <span className="text-muted-foreground font-mono text-[9.5px] tracking-[0.12em] uppercase">
+              Chronic conditions (NCDs) — supported by this clerkship
+            </span>
+            {ncdSuggestions.map((n) => (
+              <div
+                key={n.code}
+                className={cn(
+                  "flex flex-col gap-1 rounded-lg border p-2",
+                  n.mustNotMiss
+                    ? "border-red-300 bg-red-50/40 dark:border-red-900/50 dark:bg-red-950/15"
+                    : "border-border bg-muted/20",
+                )}
+              >
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-foreground text-[12.5px] font-medium">
+                    {n.mustNotMiss ? (
+                      <ShieldAlertIcon
+                        className="mr-1 inline size-3.5 text-red-600 dark:text-red-400"
+                        aria-label="must-not-miss"
+                      />
+                    ) : null}
+                    {n.dx}
+                  </span>
+                  {n.icd10 ? (
+                    <span className="text-muted-foreground font-mono text-[9.5px]">{n.icd10}</span>
+                  ) : null}
+                  <span className="rounded bg-teal-100 px-1 text-[8.5px] font-semibold tracking-wide text-teal-800 uppercase dark:bg-teal-950/40 dark:text-teal-300">
+                    NCD
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      onPickDiagnosis({
+                        code: n.code,
+                        display: n.dx,
+                        icd10: n.icd10,
+                        category: "ncd",
+                        mustNotMiss: n.mustNotMiss,
+                      })
+                    }
+                    className="tap ml-auto inline-flex items-center gap-1 rounded-md bg-teal-600 px-2 py-1 text-[11px] font-medium text-white hover:bg-teal-700"
+                  >
+                    <CheckIcon className="size-3" aria-hidden /> Select
+                  </button>
+                </div>
+                {n.matchedSymptoms.length || n.matchedRiskFactors.length ? (
+                  <p className="text-muted-foreground text-[10.5px]">
+                    supported by: {[...n.matchedSymptoms, ...n.matchedRiskFactors].join(", ")}
+                  </p>
+                ) : null}
+                {n.definingCriteria.length ? (
+                  <p className="text-muted-foreground/80 text-[10px]">
+                    defining criteria (confirm — not auto-applied):{" "}
+                    {n.definingCriteria
+                      .slice(0, 3)
+                      .map((c) => `${c.measure} ${c.threshold}`)
+                      .join("; ")}
+                  </p>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        ) : null}
 
         {suggestionList.length === 0 && excluded.length === 0 ? (
           <p className="text-muted-foreground text-[12px]">
@@ -336,6 +430,15 @@ export function AssessmentSynthesis({
             </div>
           </div>
         ) : null}
+
+        {/* The doctor's "select a diagnosis from the catalog" picker — commits
+            via the SAME differential path as a ranked suggestion. */}
+        <div className="border-border/60 flex flex-col gap-1.5 border-t pt-2.5">
+          <span className="text-muted-foreground font-mono text-[9.5px] tracking-[0.12em] uppercase">
+            Or select a diagnosis from the catalog
+          </span>
+          <DiagnosisPicker onPick={onPickDiagnosis} />
+        </div>
 
         <p className="text-muted-foreground/70 text-[10px]">
           Suggestions are the reasoning engine&apos;s differential matched against the diagnosis
