@@ -5,6 +5,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Clerkship: NCD-prioritised diagnosis catalog + catalog picker — 2026-06-16
+
+The diagnostic-logic Assessment gains a chronic-disease (NCD) layer + a doctor's searchable "select a diagnosis from the catalog" picker ([ADR 0075](docs/adr/0075-ncd-diagnosis-catalog.md), extends ADR 0074). **Ships gated dark** (`NCD_CATALOG_CSO_SIGNED=false`); **no migration**.
+
+- **15 prioritised NCDs** (`lib/clerkship/diagnosis/ncd-catalog.ts`) — T2DM/T1DM/diabetes-with-complications, hypertension, dyslipidaemia, heart failure, IHD, CKD, COPD, asthma, stroke, chronic liver disease, hypo/hyperthyroidism, RHD. Supports **derived from existing HPC/ROS + condition codes** (a CI test asserts every code is defined in the seed SQL — invented codes fail the build). **Defining criteria fetched + cited + version-stamped** (WHO/Uganda-first → ADA/ISH/ESC/KDIGO/GOLD/GINA/ATA/WHF fallback), persisted at `docs/clinical/ncd-defining-criteria-research.json`; 17 `needs_cso_input` markers. ICD-10 only from verified codes.
+- **Matching** (`ncd-suggest.ts`, pure/TDD) ranks by support; must-not-miss surfaces regardless; criteria **inform + display what's met vs not, never auto-diagnose**; not-measured ≠ normal.
+- **Catalog picker** (`diagnosis-picker.tsx` + `search.ts`) — acute (live) + NCD (gated), NCDs first; commits via the **same differential→encounterDiagnoses path** as a ranked suggestion (one record, no fork). One-source-of-truth with the reasoning maps preserved.
+- **Pre-deploy adversarial review (15 agents)** — caught + fixed a real risk-factor matching bug (PMH displays vs condition codes); the "invented codes" finding was a false positive (reviewers missed the 572 ROS codes), now guarded by seed-SQL code-validity tests. Decision-support, never autonomous. tsc/eslint clean; **999 tests** (+18); build green. **Activate:** flip `NCD_CATALOG_CSO_SIGNED` after the CSO ratifies the criteria.
+
 ### Changed — Clerkship: Assessment as diagnostic logic (catalog-driven suggestions) — 2026-06-14
 
 The Assessment now **reads the whole clerkship, matches captured features against a diagnosis catalog, and surfaces ranked, evidence-backed diagnosis suggestions the clinician selects from** — replacing the problem-list ([ADR 0074](docs/adr/0074-assessment-as-diagnostic-logic.md), supersedes [ADR 0073](docs/adr/0073-clerkship-problem-list-synthesis.md) for this surface). **No migration.**
