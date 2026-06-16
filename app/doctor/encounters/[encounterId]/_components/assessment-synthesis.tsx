@@ -346,13 +346,26 @@ export function AssessmentSynthesis({
                   </p>
                 ) : null}
                 {n.definingCriteria.length ? (
-                  <p className="text-muted-foreground/80 text-[10px]">
-                    defining criteria (confirm — not auto-applied):{" "}
-                    {n.definingCriteria
-                      .slice(0, 3)
-                      .map((c) => `${c.measure} ${c.threshold}`)
-                      .join("; ")}
-                  </p>
+                  <div className="flex flex-col gap-0.5">
+                    <span className="text-muted-foreground/80 text-[10px]">
+                      defining criteria (confirm — not auto-applied):
+                    </span>
+                    <div className="flex flex-wrap gap-1">
+                      {n.definingCriteria.slice(0, 4).map((c) => (
+                        <span
+                          key={`${c.measure}:${c.threshold}`}
+                          className="ring-border bg-card text-muted-foreground inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] ring-1 ring-inset"
+                        >
+                          {c.measure} {c.threshold}
+                          {c.confidence === "needs_cso_input" ? (
+                            <span className="rounded bg-amber-100 px-1 text-[8px] font-semibold tracking-wide text-amber-800 uppercase dark:bg-amber-950/40 dark:text-amber-300">
+                              pending CSO
+                            </span>
+                          ) : null}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
                 ) : null}
               </div>
             ))}
