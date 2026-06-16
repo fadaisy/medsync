@@ -50,3 +50,6 @@ supabase/.temp/
 # editor swap files
 *.swp
 *.swo
+
+# superpowers brainstorm scratch (visual companion mockups)
+.superpowers/
