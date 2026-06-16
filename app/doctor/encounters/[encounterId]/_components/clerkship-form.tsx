@@ -49,7 +49,7 @@ import { assembleClerkshipAbnormal, examEmergencyLabels } from "@/lib/clerkship/
 import { diagnosisByDisplay } from "@/lib/clerkship/diagnosis/catalog";
 import { renderRosNarrative } from "@/lib/clerkship/ros";
 import { renderSymptomProse } from "@/lib/clerkship/symptom-engine";
-import { ICD10_CODES, LOINC_CODES } from "@/lib/encounter/reference-codes";
+import { LOINC_CODES } from "@/lib/encounter/reference-codes";
 import {
   clearClerkshipDraftAction,
   saveClerkshipDraftAction,
@@ -755,7 +755,8 @@ export function ClerkshipForm({
 
                 {step === 4 ? (
                   <div className="flex flex-col gap-5">
-                    {/* The synthesis zones — assemble + propose; the clinician decides. */}
+                    {/* The Assessment surface — clinical picture → diagnosis →
+                        working diagnoses; assemble + propose, the clinician decides. */}
                     <AssessmentSynthesis
                       captured={capturedState}
                       pcCodes={hpcItems.map((x) => x.symptomCode)}
@@ -763,6 +764,8 @@ export function ClerkshipForm({
                       bpStandard={bpStandard}
                       differential={differential}
                       excluded={excludedDx}
+                      summary={summary}
+                      onSummaryChange={setSummary}
                       onAgree={(sdx) =>
                         setDifferential([
                           ...differential,
@@ -783,9 +786,7 @@ export function ClerkshipForm({
                       onUnexclude={(text) =>
                         setExcludedDx(excludedDx.filter((d) => d.text !== text))
                       }
-                      onInsertSummary={(text) =>
-                        setSummary(summary.trim() ? `${summary.trim()}\n\n${text}` : text)
-                      }
+                      onDifferentialChange={setDifferential}
                       conditionCodes={Array.from(
                         new Set([
                           ...pmhItems.map((p) => p.code).filter(Boolean),
@@ -814,44 +815,6 @@ export function ClerkshipForm({
                         )
                       }
                     />
-                    <Field label="Summary / problem representation">
-                      <RichTextEditor
-                        value={summary}
-                        onChange={setSummary}
-                        placeholder="One-liner: age, salient features, working impression…"
-                      />
-                    </Field>
-                    <Field label="Differential (mark must-not-miss) — your own diagnoses go here">
-                      <RepeatList
-                        rows={differential}
-                        onChange={setDifferential}
-                        blank={{ text: "", icd10: "", mustNotMiss: false }}
-                        addLabel="Add diagnosis"
-                        render={(row, set) => (
-                          <>
-                            <Input
-                              placeholder="Diagnosis"
-                              value={row.text}
-                              onChange={(ev) => set({ ...row, text: ev.target.value })}
-                            />
-                            <CodeCombobox
-                              options={ICD10_CODES}
-                              placeholder="ICD-10"
-                              value={row.icd10}
-                              onChange={(v) => set({ ...row, icd10: v })}
-                            />
-                            <label className="text-muted-foreground inline-flex items-center gap-1.5 text-[11.5px]">
-                              <input
-                                type="checkbox"
-                                checked={row.mustNotMiss}
-                                onChange={(ev) => set({ ...row, mustNotMiss: ev.target.checked })}
-                              />
-                              must-not-miss
-                            </label>
-                          </>
-                        )}
-                      />
-                    </Field>
                   </div>
                 ) : null}
 

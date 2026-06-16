@@ -13,12 +13,14 @@ import {
   AlertTriangleIcon,
   ArrowDownToLineIcon,
   CheckIcon,
+  ListChecksIcon,
   PlusIcon,
   ShieldAlertIcon,
   StethoscopeIcon,
   XIcon,
 } from "lucide-react";
 
+import { Input } from "@/components/ui/input";
 import { assembleClerkshipAbnormal } from "@/lib/clerkship/assemble";
 import { matchNcds } from "@/lib/clerkship/diagnosis/ncd-suggest";
 import { suggestDiagnoses } from "@/lib/clerkship/diagnosis/suggest";
@@ -26,32 +28,34 @@ import { buildCapturedContext } from "@/lib/clerkship/reasoning/context";
 import { liveReasoningForCodes } from "@/lib/clerkship/reasoning/engine";
 import { REASONING_MAPS } from "@/lib/clerkship/reasoning/maps";
 import { renderProblemRepresentation } from "@/lib/clerkship/synthesis";
+import { ICD10_CODES } from "@/lib/encounter/reference-codes";
 import { cn } from "@/lib/utils";
 import {
   loadClerkshipPicklistsAction,
   loadRosCatalogAction,
   loadSymptomCatalogAction,
 } from "../actions";
+import { CodeCombobox } from "./code-combobox";
 import { DiagnosisPicker } from "./diagnosis-picker";
-import { DiagnosisReconciliation } from "./diagnosis-reconciliation";
+import { DiagnosisFeatures } from "./diagnosis-reconciliation";
+import { RichTextEditor } from "./rich-text";
 
 /**
- * Assessment / Synthesis — the clerkship's convergence (GATE A-signed model).
- * Three zones, all DECISION-SUPPORT (assemble + propose; the clinician decides):
+ * Assessment — the clerkship's convergence (GATE A-signed model), three sections,
+ * all DECISION-SUPPORT (assemble + propose; the clinician decides):
  *
- *  1. The ABNORMAL SUMMARY — everything already flagged abnormal, assembled
- *     vitals-up with provenance; one tap inserts the problem representation into
- *     the editable Summary field (never auto-set; never invents a finding).
- *  2. The SUGGESTED DIFFERENTIAL — the reasoning engine's live output, per item
- *     Agree (records the CLINICIAN'S working diagnosis) / Exclude (kept visible
- *     as "considered & excluded" — must-not-miss never silently dropped). The
- *     manual editor below remains the "add your own" path. The diagnosis of
- *     record is always the clinician's.
- *  3. The PROPOSED PROBLEM LIST — vitals-first (abnormal vitals are first-class
- *     problems until a diagnosis subsumes them → working diagnoses → unexplained
- *     findings → active background). The doctor confirms / removes / links a
- *     problem under a working diagnosis (active / resolved / linked; nothing
- *     silently removed). Committed problems persist via the versioned spine.
+ *  1. CLINICAL PICTURE — every finding already flagged abnormal, assembled
+ *     vitals-up with provenance, sitting directly above the editable one-liner it
+ *     summarises (one tap pulls the assembled representation in — never auto-set,
+ *     never invents a finding).
+ *  2. DIAGNOSIS — the reasoning engine's ranked, evidence-backed suggestions
+ *     (chronic NCDs + acute), Select (records the CLINICIAN'S working diagnosis,
+ *     carrying the catalog ICD-10) / Reject (kept visible as considered & excluded;
+ *     must-not-miss never silently dropped), plus the catalog picker / free add.
+ *  3. WORKING DIAGNOSES — the record of decisions: each is an editable row
+ *     (name · ICD-10 · must-not-miss · remove) with its supporting-feature
+ *     reconciliation inline (present ✓ / tap a missing symptom to capture it).
+ *     The diagnosis of record is always the clinician's.
  */
 
 export type DxRow = { text: string; icd10: string; mustNotMiss: boolean };
@@ -79,13 +83,15 @@ export function AssessmentSynthesis({
   bpStandard,
   differential,
   excluded,
+  conditionCodes,
+  summary,
+  onSummaryChange,
   onAgree,
   onExclude,
   onUnexclude,
-  onInsertSummary,
   onPickDiagnosis,
   onCaptureSymptom,
-  conditionCodes,
+  onDifferentialChange,
 }: {
   captured: CapturedStateInput;
   pcCodes: string[];
@@ -96,14 +102,18 @@ export function AssessmentSynthesis({
   /** Real PMH condition CODES (picklist codes — not display strings) for NCD
    *  risk-factor matching. From the form's pmhItems[].code + pmhScreen yes-keys. */
   conditionCodes: string[];
+  /** The editable problem-representation / one-liner (co-located with abnormals). */
+  summary: string;
+  onSummaryChange: (s: string) => void;
   onAgree: (dx: ScoredDifferential) => void;
   onExclude: (dx: ScoredDifferential) => void;
   onUnexclude: (text: string) => void;
-  onInsertSummary: (text: string) => void;
   /** Commit a diagnosis chosen from the catalog picker (same path as Select). */
   onPickDiagnosis: (r: CatalogSearchResult) => void;
   /** Capture a missing supporting symptom (reconciliation) as a present ROS row. */
   onCaptureSymptom: (obs: { symptomCode: string; symptomDisplay: string; system: string }) => void;
+  /** Edit the committed working-diagnoses list (remove / toggle / free-text add). */
+  onDifferentialChange: (rows: DxRow[]) => void;
 }) {
   // ── code→display(+system) maps for diagnosis feature reconciliation ──
   // Loaded once from the live catalogs (ROS + HPC symptoms, condition picklist).
@@ -132,6 +142,7 @@ export function AssessmentSynthesis({
       live = false;
     };
   }, []);
+
   // ── the assembled abnormals (vitals-up; the shared single-source assembly,
   //    reused by the disposition cross-check so the two can never disagree) ──
   const items = useMemo(
@@ -154,11 +165,9 @@ export function AssessmentSynthesis({
     [differential, excluded],
   );
 
-  // ── the diagnostic-logic suggestions (GATE B) ──
-  // The reasoning engine's scored differential, re-presented as ranked,
-  // evidence-backed diagnosis suggestions (joined with the catalog's ICD-10 +
-  // provenance). Borrowed, not recomputed — so they correspond to the rail.
-  // Must-not-miss floats regardless of support; decided ones drop out.
+  // ── the diagnostic-logic suggestions — the reasoning engine's scored
+  //    differential joined with the catalog (ICD-10 + provenance), ranked by
+  //    support; must-not-miss floats regardless; decided ones drop out ──
   const suggestionList = useMemo(
     () =>
       suggestDiagnoses(reasoning.scored).filter(
@@ -169,11 +178,7 @@ export function AssessmentSynthesis({
 
   const representation = renderProblemRepresentation(items);
 
-  // ── the NCD layer (GATE C; gated dark until CSO sign-off) ──
-  // Match the NCD catalog against the captured codes (HPC + ROS-present symptoms;
-  // PMH conditions normalised to codes). Surfaced FIRST, ranked by support, with
-  // cited defining criteria shown. matchNcds is empty until the catalog is signed.
-  // Captured code sets — shared by NCD matching + diagnosis reconciliation.
+  // ── captured code sets — shared by NCD matching + diagnosis reconciliation ──
   const capturedSymptomCodes = useMemo(
     () =>
       new Set<string>([
@@ -186,6 +191,9 @@ export function AssessmentSynthesis({
   // risk factor like "diabetes_t2" actually matches a captured PMH item.
   const capturedConditionCodes = useMemo(() => new Set(conditionCodes), [conditionCodes]);
 
+  // ── the NCD layer — chronic conditions supported by the captured clerkship,
+  //    ranked by support, with cited defining criteria (criteria inform, never
+  //    auto-diagnose; needs_cso_input thresholds stay flagged) ──
   const ncdSuggestions = useMemo(
     () =>
       matchNcds({
@@ -206,25 +214,26 @@ export function AssessmentSynthesis({
     if (s) onExclude(s);
   };
 
+  // ── working-diagnoses list edits (the record of decisions) ──
+  const insertAssembled = () =>
+    onSummaryChange(summary.trim() ? `${summary.trim()}\n\n${representation}` : representation);
+  const setRow = (i: number, next: DxRow) =>
+    onDifferentialChange(differential.map((r, j) => (j === i ? next : r)));
+  const removeRow = (i: number) => onDifferentialChange(differential.filter((_, j) => j !== i));
+  const addRow = () =>
+    onDifferentialChange([...differential, { text: "", icd10: "", mustNotMiss: false }]);
+
+  const nothingToDecide =
+    suggestionList.length === 0 && ncdSuggestions.length === 0 && excluded.length === 0;
+
   return (
     <div className="flex flex-col gap-4">
-      {/* ── Zone 1 · The abnormal summary (vitals-up, assembled) ── */}
-      <section className="border-border bg-card flex flex-col gap-2.5 rounded-xl border p-3.5 shadow-sm">
-        <div className="flex flex-wrap items-center gap-2">
-          <h4 className="font-display text-foreground inline-flex items-center gap-1.5 text-[13px] font-medium">
-            <ActivityIcon className="size-4 text-teal-600 dark:text-teal-400" aria-hidden />
-            Abnormal findings — assembled, vitals-up
-          </h4>
-          {representation ? (
-            <button
-              type="button"
-              onClick={() => onInsertSummary(representation)}
-              className="tap text-muted-foreground border-border ml-auto inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[11px] hover:text-teal-700 dark:hover:text-teal-300"
-            >
-              <ArrowDownToLineIcon className="size-3" aria-hidden /> Insert into summary
-            </button>
-          ) : null}
-        </div>
+      {/* ── 1 · Clinical picture — abnormals (vitals-up) + the one-liner ── */}
+      <section className="border-border bg-card flex flex-col gap-3 rounded-xl border p-3.5 shadow-sm">
+        <h4 className="font-display text-foreground inline-flex items-center gap-1.5 text-[13px] font-medium">
+          <ActivityIcon className="size-4 text-teal-600 dark:text-teal-400" aria-hidden />
+          Clinical picture
+        </h4>
 
         {items.length === 0 ? (
           <p className="text-muted-foreground text-[12px]">
@@ -233,70 +242,81 @@ export function AssessmentSynthesis({
             summarised as normal.
           </p>
         ) : (
-          <>
-            <div className="flex flex-col gap-1.5">
-              {(["vitals", "examination", "ros", "background"] as const).map((src) => {
-                const inSrc = items.filter((i) => i.source === src);
-                if (!inSrc.length) return null;
-                return (
-                  <div key={src} className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                    <span className="text-muted-foreground w-24 shrink-0 font-mono text-[9.5px] tracking-[0.12em] uppercase">
-                      {SOURCE_LABEL[src]}
-                    </span>
-                    <div className="flex min-w-0 flex-wrap gap-1">
-                      {inSrc.map((i, n) => (
-                        <span
-                          key={`${i.label}-${n}`}
-                          className={cn(
-                            "inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] ring-1 ring-inset",
-                            i.severity === "critical"
-                              ? "bg-red-50 text-red-700 ring-red-500/30 dark:bg-red-950/30 dark:text-red-300"
-                              : i.severity === "borderline"
-                                ? "bg-amber-50 text-amber-800 ring-amber-500/30 dark:bg-amber-950/30 dark:text-amber-300"
-                                : "bg-muted/40 text-foreground/80 ring-border",
-                          )}
-                          title={i.detail}
-                        >
-                          {i.mustNotMiss ? (
-                            <AlertTriangleIcon className="size-3" aria-label="must-not-miss" />
-                          ) : null}
-                          {i.label}
-                          {i.detail ? (
-                            <span className="text-muted-foreground/80 text-[9.5px]">
-                              {i.detail}
-                            </span>
-                          ) : null}
-                        </span>
-                      ))}
-                    </div>
+          <div className="flex flex-col gap-1.5">
+            {(["vitals", "examination", "ros", "background"] as const).map((src) => {
+              const inSrc = items.filter((i) => i.source === src);
+              if (!inSrc.length) return null;
+              return (
+                <div key={src} className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+                  <span className="text-muted-foreground w-24 shrink-0 font-mono text-[9.5px] tracking-[0.12em] uppercase">
+                    {SOURCE_LABEL[src]}
+                  </span>
+                  <div className="flex min-w-0 flex-wrap gap-1">
+                    {inSrc.map((i, n) => (
+                      <span
+                        key={`${i.label}-${n}`}
+                        className={cn(
+                          "inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[11px] ring-1 ring-inset",
+                          i.severity === "critical"
+                            ? "bg-red-50 text-red-700 ring-red-500/30 dark:bg-red-950/30 dark:text-red-300"
+                            : i.severity === "borderline"
+                              ? "bg-amber-50 text-amber-800 ring-amber-500/30 dark:bg-amber-950/30 dark:text-amber-300"
+                              : "bg-muted/40 text-foreground/80 ring-border",
+                        )}
+                        title={i.detail}
+                      >
+                        {i.mustNotMiss ? (
+                          <AlertTriangleIcon className="size-3" aria-label="must-not-miss" />
+                        ) : null}
+                        {i.label}
+                        {i.detail ? (
+                          <span className="text-muted-foreground/80 text-[9.5px]">{i.detail}</span>
+                        ) : null}
+                      </span>
+                    ))}
                   </div>
-                );
-              })}
-            </div>
-            <p className="text-muted-foreground border-border/60 border-t pt-2 text-[12px] leading-relaxed italic">
-              {representation}
-            </p>
-          </>
+                </div>
+              );
+            })}
+          </div>
         )}
-        <p className="text-muted-foreground/70 text-[10px]">
-          Assembled from captured findings only — provenance on every item; you refine the summary,
-          it never invents a finding.
-        </p>
+
+        {/* the editable one-liner, co-located with the abnormals it summarises */}
+        <div className="border-border/60 flex flex-col gap-1.5 border-t pt-2.5">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-muted-foreground text-[11.5px]">Working summary / one-liner</span>
+            {representation ? (
+              <button
+                type="button"
+                onClick={insertAssembled}
+                className="tap text-muted-foreground border-border ml-auto inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[11px] hover:text-teal-700 dark:hover:text-teal-300"
+              >
+                <ArrowDownToLineIcon className="size-3" aria-hidden /> Insert assembled
+              </button>
+            ) : null}
+          </div>
+          <RichTextEditor
+            value={summary}
+            onChange={onSummaryChange}
+            placeholder="One-liner: age, salient features, working impression…"
+          />
+          <p className="text-muted-foreground/70 text-[10px]">
+            Assembled from captured findings only — you refine it; it never invents a finding.
+          </p>
+        </div>
       </section>
 
-      {/* ── Zone 2 · Diagnostic logic — ranked, evidence-backed suggestions ── */}
+      {/* ── 2 · Diagnosis — ranked suggestions; the clinician selects ── */}
       <section className="border-border bg-card flex flex-col gap-2.5 rounded-xl border p-3.5 shadow-sm">
         <h4 className="font-display text-foreground inline-flex items-center gap-1.5 text-[13px] font-medium">
           <StethoscopeIcon className="size-4 text-teal-600 dark:text-teal-400" aria-hidden />
-          Diagnostic logic — ranked suggestions, you select
+          Diagnosis — ranked suggestions, you decide
         </h4>
 
-        {/* NCD layer — surfaced first, ranked by support, with cited defining
-            criteria + what's met shown. Gated dark until CSO sign-off. */}
         {ncdSuggestions.length ? (
           <div className="flex flex-col gap-1.5">
             <span className="text-muted-foreground font-mono text-[9.5px] tracking-[0.12em] uppercase">
-              Chronic conditions (NCDs) — supported by this clerkship
+              Chronic (NCD) — supported by this clerkship
             </span>
             {ncdSuggestions.map((n) => (
               <div
@@ -346,25 +366,21 @@ export function AssessmentSynthesis({
                   </p>
                 ) : null}
                 {n.definingCriteria.length ? (
-                  <div className="flex flex-col gap-0.5">
-                    <span className="text-muted-foreground/80 text-[10px]">
-                      defining criteria (confirm — not auto-applied):
-                    </span>
-                    <div className="flex flex-wrap gap-1">
-                      {n.definingCriteria.slice(0, 4).map((c) => (
-                        <span
-                          key={`${c.measure}:${c.threshold}`}
-                          className="ring-border bg-card text-muted-foreground inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] ring-1 ring-inset"
-                        >
-                          {c.measure} {c.threshold}
-                          {c.confidence === "needs_cso_input" ? (
-                            <span className="rounded bg-amber-100 px-1 text-[8px] font-semibold tracking-wide text-amber-800 uppercase dark:bg-amber-950/40 dark:text-amber-300">
-                              pending CSO
-                            </span>
-                          ) : null}
-                        </span>
-                      ))}
-                    </div>
+                  <div className="flex flex-wrap items-center gap-1">
+                    <span className="text-muted-foreground/70 text-[9.5px]">criteria:</span>
+                    {n.definingCriteria.slice(0, 3).map((c) => (
+                      <span
+                        key={`${c.measure}:${c.threshold}`}
+                        className="ring-border bg-card text-muted-foreground inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] ring-1 ring-inset"
+                      >
+                        {c.measure} {c.threshold}
+                        {c.confidence === "needs_cso_input" ? (
+                          <span className="rounded bg-amber-100 px-1 text-[8px] font-semibold tracking-wide text-amber-800 uppercase dark:bg-amber-950/40 dark:text-amber-300">
+                            pending CSO
+                          </span>
+                        ) : null}
+                      </span>
+                    ))}
                   </div>
                 ) : null}
               </div>
@@ -372,91 +388,102 @@ export function AssessmentSynthesis({
           </div>
         ) : null}
 
-        {suggestionList.length === 0 && excluded.length === 0 ? (
+        {nothingToDecide ? (
           <p className="text-muted-foreground text-[12px]">
             {pcCodes.length
-              ? "Every suggestion has been decided — your selected diagnoses below are the record."
-              : "Add a presenting complaint and the diagnosis catalog's matches appear here, ranked by support, for your decision. Your own diagnoses go in the editor below either way."}
+              ? "Every suggestion has been decided — your working diagnoses are below."
+              : "Add a presenting complaint and ranked matches appear here. You can also search the catalog or add your own below."}
           </p>
         ) : null}
 
-        {suggestionList.map((sg) => (
-          <div
-            key={sg.dx}
-            className={cn(
-              "flex flex-col gap-1.5 rounded-lg border p-2",
-              sg.mustNotMiss
-                ? "border-red-300 bg-red-50/50 dark:border-red-900/50 dark:bg-red-950/20"
-                : "border-border bg-muted/20",
-            )}
-          >
-            <div className="flex flex-wrap items-start gap-2">
-              {sg.mustNotMiss ? (
-                <ShieldAlertIcon
-                  className="mt-0.5 size-3.5 shrink-0 text-red-600 dark:text-red-400"
-                  aria-label="must-not-miss"
-                />
-              ) : null}
-              <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                  <span className="text-foreground text-[12.5px] font-medium">{sg.dx}</span>
-                  {sg.icd10 ? (
-                    <span className="text-muted-foreground font-mono text-[9.5px]">{sg.icd10}</span>
-                  ) : null}
-                  <span
-                    className={cn(
-                      "rounded px-1 text-[9px] font-semibold tracking-wide uppercase",
-                      sg.mustNotMiss
-                        ? "bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-300"
-                        : sg.status === "supported"
-                          ? "bg-teal-100 text-teal-800 dark:bg-teal-950/40 dark:text-teal-300"
-                          : "text-muted-foreground bg-muted",
-                    )}
-                  >
-                    {sg.mustNotMiss ? "must-not-miss" : sg.status}
-                  </span>
-                </div>
-              </div>
-              <div className="flex shrink-0 items-center gap-1">
-                <button
-                  type="button"
-                  onClick={() => selectSuggestion(sg)}
-                  className="tap inline-flex items-center gap-1 rounded-md bg-teal-600 px-2 py-1 text-[11px] font-medium text-white hover:bg-teal-700"
-                >
-                  <CheckIcon className="size-3" aria-hidden /> Select
-                </button>
-                <button
-                  type="button"
-                  onClick={() => rejectSuggestion(sg)}
-                  className="tap text-muted-foreground border-border hover:text-foreground inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[11px]"
-                >
-                  <XIcon className="size-3" aria-hidden /> Reject
-                </button>
-              </div>
-            </div>
-            {sg.evidence.length ? (
-              <div className="flex flex-wrap items-center gap-1">
-                <span className="text-muted-foreground/70 text-[9.5px]">why:</span>
-                {sg.evidence.map((e) => (
-                  <span
-                    key={`${e.kind}:${e.label}`}
-                    className={cn(
-                      "inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10.5px] ring-1 ring-inset",
-                      e.kind === "against"
-                        ? "text-muted-foreground/70 bg-muted/30 ring-border"
-                        : "ring-border bg-card",
-                    )}
-                  >
-                    <span className="text-muted-foreground/60 text-[8px] font-semibold tracking-wide uppercase">
-                      {EVIDENCE_TAG[e.kind]}
-                    </span>
-                    {e.label}
-                  </span>
-                ))}
-              </div>
+        {suggestionList.length ? (
+          <div className="flex flex-col gap-1.5">
+            {ncdSuggestions.length ? (
+              <span className="text-muted-foreground font-mono text-[9.5px] tracking-[0.12em] uppercase">
+                Acute / other
+              </span>
             ) : null}
+            {suggestionList.map((sg) => (
+              <div
+                key={sg.dx}
+                className={cn(
+                  "flex flex-col gap-1.5 rounded-lg border p-2",
+                  sg.mustNotMiss
+                    ? "border-red-300 bg-red-50/50 dark:border-red-900/50 dark:bg-red-950/20"
+                    : "border-border bg-muted/20",
+                )}
+              >
+                <div className="flex flex-wrap items-start gap-2">
+                  {sg.mustNotMiss ? (
+                    <ShieldAlertIcon
+                      className="mt-0.5 size-3.5 shrink-0 text-red-600 dark:text-red-400"
+                      aria-label="must-not-miss"
+                    />
+                  ) : null}
+                  <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                      <span className="text-foreground text-[12.5px] font-medium">{sg.dx}</span>
+                      {sg.icd10 ? (
+                        <span className="text-muted-foreground font-mono text-[9.5px]">
+                          {sg.icd10}
+                        </span>
+                      ) : null}
+                      <span
+                        className={cn(
+                          "rounded px-1 text-[9px] font-semibold tracking-wide uppercase",
+                          sg.mustNotMiss
+                            ? "bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-300"
+                            : sg.status === "supported"
+                              ? "bg-teal-100 text-teal-800 dark:bg-teal-950/40 dark:text-teal-300"
+                              : "text-muted-foreground bg-muted",
+                        )}
+                      >
+                        {sg.mustNotMiss ? "must-not-miss" : sg.status}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => selectSuggestion(sg)}
+                      className="tap inline-flex items-center gap-1 rounded-md bg-teal-600 px-2 py-1 text-[11px] font-medium text-white hover:bg-teal-700"
+                    >
+                      <CheckIcon className="size-3" aria-hidden /> Select
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => rejectSuggestion(sg)}
+                      className="tap text-muted-foreground border-border hover:text-foreground inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[11px]"
+                    >
+                      <XIcon className="size-3" aria-hidden /> Reject
+                    </button>
+                  </div>
+                </div>
+                {sg.evidence.length ? (
+                  <div className="flex flex-wrap items-center gap-1">
+                    <span className="text-muted-foreground/70 text-[9.5px]">why:</span>
+                    {sg.evidence.map((e) => (
+                      <span
+                        key={`${e.kind}:${e.label}`}
+                        className={cn(
+                          "inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10.5px] ring-1 ring-inset",
+                          e.kind === "against"
+                            ? "text-muted-foreground/70 bg-muted/30 ring-border"
+                            : "ring-border bg-card",
+                        )}
+                      >
+                        <span className="text-muted-foreground/60 text-[8px] font-semibold tracking-wide uppercase">
+                          {EVIDENCE_TAG[e.kind]}
+                        </span>
+                        {e.label}
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            ))}
           </div>
-        ))}
+        ) : null}
 
         {excluded.length ? (
           <div className="border-border/60 flex flex-col gap-1 border-t pt-2">
@@ -491,33 +518,106 @@ export function AssessmentSynthesis({
           </div>
         ) : null}
 
-        {/* The doctor's "select a diagnosis from the catalog" picker — commits
-            via the SAME differential path as a ranked suggestion. */}
+        {/* catalog picker — commits via the SAME differential path as Select */}
         <div className="border-border/60 flex flex-col gap-1.5 border-t pt-2.5">
           <span className="text-muted-foreground font-mono text-[9.5px] tracking-[0.12em] uppercase">
-            Or select a diagnosis from the catalog
+            Search the catalog or add a diagnosis not listed
           </span>
           <DiagnosisPicker onPick={onPickDiagnosis} />
         </div>
 
         <p className="text-muted-foreground/70 text-[10px]">
-          Suggestions are the reasoning engine&apos;s differential matched against the diagnosis
-          catalog, ranked by support (must-not-miss surfaces regardless) — a suggestion, never a
-          verdict. Select records <em>your</em> working diagnosis (it carries the catalog ICD-10 +
-          feeds workup next); Reject keeps it considered &amp; excluded. Add your own below — the
-          diagnosis of record is always the clinician&apos;s.
+          Decision-support, not a verdict — Select records <em>your</em> working diagnosis (with its
+          catalog ICD-10); Reject keeps it considered &amp; excluded. Must-not-miss always surfaces.
         </p>
       </section>
 
-      {/* ── Zone 3 · Diagnosis-driven feature reconciliation (selected dx) ── */}
-      <DiagnosisReconciliation
-        differentials={differential.map((d) => d.text)}
-        symptomCodes={capturedSymptomCodes}
-        conditionCodes={capturedConditionCodes}
-        symptomMeta={symptomMeta}
-        conditionMeta={conditionMeta}
-        onCaptureSymptom={onCaptureSymptom}
-      />
+      {/* ── 3 · Working diagnoses — the record + per-dx feature reconciliation ── */}
+      <section className="border-border bg-card flex flex-col gap-2.5 rounded-xl border p-3.5 shadow-sm">
+        <h4 className="font-display text-foreground inline-flex items-center gap-1.5 text-[13px] font-medium">
+          <ListChecksIcon className="size-4 text-teal-600 dark:text-teal-400" aria-hidden />
+          Working diagnoses — verify supporting features
+        </h4>
+
+        {differential.length === 0 ? (
+          <p className="text-muted-foreground text-[12px]">
+            No working diagnosis yet — Select a suggestion above, pick from the catalog, or add your
+            own below. The diagnosis of record is always yours.
+          </p>
+        ) : (
+          <div className="flex flex-col gap-2">
+            {differential.map((row, i) => (
+              <div
+                key={i}
+                className={cn(
+                  "scale-in flex flex-col gap-2 rounded-lg border p-2.5",
+                  row.mustNotMiss
+                    ? "border-red-300 bg-red-50/40 dark:border-red-900/50 dark:bg-red-950/15"
+                    : "border-border bg-muted/20",
+                )}
+              >
+                <div className="flex flex-wrap items-center gap-2">
+                  {row.mustNotMiss ? (
+                    <ShieldAlertIcon
+                      className="size-3.5 shrink-0 text-red-600 dark:text-red-400"
+                      aria-label="must-not-miss"
+                    />
+                  ) : null}
+                  <Input
+                    className="h-8 min-w-40 flex-1 text-[12.5px]"
+                    placeholder="Diagnosis"
+                    value={row.text}
+                    onChange={(ev) => setRow(i, { ...row, text: ev.target.value })}
+                  />
+                  <CodeCombobox
+                    options={ICD10_CODES}
+                    placeholder="ICD-10"
+                    value={row.icd10}
+                    onChange={(v) => setRow(i, { ...row, icd10: v })}
+                  />
+                  <label className="text-muted-foreground inline-flex items-center gap-1.5 text-[11px]">
+                    <input
+                      type="checkbox"
+                      checked={row.mustNotMiss}
+                      onChange={(ev) => setRow(i, { ...row, mustNotMiss: ev.target.checked })}
+                    />
+                    must-not-miss
+                  </label>
+                  <button
+                    type="button"
+                    aria-label={`Remove ${row.text || "diagnosis"}`}
+                    onClick={() => removeRow(i)}
+                    className="tap text-muted-foreground hover:text-destructive ml-auto rounded-md p-0.5 transition-colors"
+                  >
+                    <XIcon className="size-3.5" aria-hidden />
+                  </button>
+                </div>
+                <DiagnosisFeatures
+                  text={row.text}
+                  symptomCodes={capturedSymptomCodes}
+                  conditionCodes={capturedConditionCodes}
+                  symptomMeta={symptomMeta}
+                  conditionMeta={conditionMeta}
+                  onCaptureSymptom={onCaptureSymptom}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+
+        <button
+          type="button"
+          onClick={addRow}
+          className="tap text-muted-foreground hover:text-foreground hover:bg-muted/60 inline-flex w-fit items-center gap-1 rounded-md px-1.5 py-1 text-[11.5px] transition-colors"
+        >
+          <PlusIcon className="size-3" aria-hidden /> Add diagnosis
+        </button>
+
+        <p className="text-muted-foreground/70 text-[10px]">
+          Tap a missing symptom to record it present (ROS) — nothing is auto-filled; missing
+          features stay blank until you add them. Risk factors are recorded in Background.
+        </p>
+      </section>
     </div>
   );
 }
