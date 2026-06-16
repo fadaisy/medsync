@@ -1,6 +1,7 @@
 "use client";
 
 import type { SubmitClerkshipResult } from "../actions";
+import type { AgentConfig, AgentInput, Insight } from "@/lib/clerkship/agent";
 import type { AbdoExam } from "@/lib/clerkship/exam/abdominal";
 import type { BpStandard } from "@/lib/clerkship/exam/bp";
 import type { CvsExam } from "@/lib/clerkship/exam/cardiovascular";
@@ -13,6 +14,7 @@ import type { RosObservation, RosScope } from "@/lib/clerkship/ros";
 import type { CapturedSymptom } from "@/lib/clerkship/symptom-engine";
 import type {
   ClerkAllergy,
+  ClerkDifferential,
   ClerkFamilyItem,
   ClerkIce,
   ClerkMedication,
@@ -23,12 +25,13 @@ import type {
 } from "@/lib/encounter/clerkship";
 import type { ComponentType } from "react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import {
   ActivityIcon,
   CheckIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  ClipboardCheckIcon,
   ListChecksIcon,
   LoaderCircleIcon,
   NotebookPenIcon,
@@ -38,6 +41,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { loadAgentPacks, runClerkshipAgent } from "@/lib/clerkship/agent";
 import { renderRosNarrative } from "@/lib/clerkship/ros";
 import { renderSymptomProse } from "@/lib/clerkship/symptom-engine";
 import {
@@ -46,6 +50,8 @@ import {
   submitClerkshipAction,
 } from "../actions";
 import { AbdominalExam } from "./abdominal-exam";
+import { AgentExamNotes, AgentNudges, AgentSafetyStrip } from "./agent-insights";
+import { AssessmentTab } from "./assessment-tab";
 import { CardiovascularExam } from "./cardiovascular-exam";
 import { EvfExamForm } from "./evf-exam";
 import { ExamSections } from "./exam-sections";
@@ -65,8 +71,11 @@ import { VitalsPanel } from "./vitals-panel";
  * Examination), with Back / Next paging and a live saved/unsaved indicator.
  * Free-text fields use a Markdown rich-text editor. Structured-but-flexible —
  * every field optional; save a draft any time, finalise when complete. The
- * Assessment + Plan surface (diagnostic + clinical reasoning) was removed and is
- * being rebuilt separately. No fabrication — blanks are dropped.
+ * clerkship AGENT (a pure, live decision-support engine, gated dark) surfaces
+ * inline: forward-prediction nudges under the complaint, a must-not-miss safety
+ * strip, must-check/incompatible notes in the exam, and the Assessment tab where
+ * it proposes diagnoses the clinician commits. Decision-support, never
+ * autonomous; no fabrication — blanks are dropped.
  */
 
 const TABS: { label: string; icon: ComponentType<{ className?: string }> }[] = [
@@ -74,7 +83,12 @@ const TABS: { label: string; icon: ComponentType<{ className?: string }> }[] = [
   { label: "Review of Systems", icon: ListChecksIcon },
   { label: "Background", icon: NotebookPenIcon },
   { label: "Examination", icon: StethoscopeIcon },
+  { label: "Assessment", icon: ClipboardCheckIcon },
 ];
+
+// Cited knowledge packs for the clerkship agent — loaded once, cached. The engine
+// is pure + client-side; the server hands down which packs are active via agentConfig.
+const AGENT_PACKS = loadAgentPacks();
 
 type FormState = {
   presentingComplaint: string;
@@ -103,6 +117,10 @@ type FormState = {
   examMusculoskeletal: MskExam;
   examEndoVascularFoot: EvfExam;
   examSystems: Record<"cardiovascular" | "respiratory" | "abdominal" | "neurological", string>;
+  // Assessment — the clinician's committed working diagnoses + one-liner (the only
+  // synthesis the agent surface persists; the rest of the old Plan stays omitted).
+  summary: string;
+  differential: ClerkDifferential[];
 };
 
 // Pure: flat form state → the plain object the server re-validates (Zod safeParse).
@@ -141,10 +159,13 @@ function buildClerkshipInput(f: FormState): unknown {
     examMusculoskeletal: f.examMusculoskeletal,
     examEndoVascularFoot: f.examEndoVascularFoot,
     examSystems: f.examSystems,
-    // Assessment + Plan (summary / differential / investigations / management /
-    // disposition / safety-netting) are no longer captured in this form — the
-    // diagnostic + planning surface is being rebuilt separately. The schema fields
-    // stay optional, so the omitted sections simply persist empty.
+    // Assessment — the agent surface persists ONLY the clinician's one-liner and
+    // committed differential (working/excluded; must-not-miss never silently
+    // dropped). The rest of the old Plan (investigations / management /
+    // disposition / safety-netting) stays omitted — those schema fields are
+    // optional, so they simply persist empty.
+    summary: f.summary || undefined,
+    differential: f.differential.length ? f.differential : undefined,
   };
 }
 
@@ -153,6 +174,7 @@ export function ClerkshipForm({
   initial,
   draftsEnabled = false,
   recoveredDraftAt = null,
+  agentConfig,
 }: {
   encounterId: string;
   initial: Clerkship | null;
@@ -160,10 +182,13 @@ export function ClerkshipForm({
   draftsEnabled?: boolean;
   /** ISO timestamp if this form was hydrated from a recovered unsaved draft. */
   recoveredDraftAt?: string | null;
+  /** Clerkship-agent run-config from the server (gated dark by default). */
+  agentConfig: AgentConfig;
 }) {
   const router = useRouter();
   const h = initial?.history;
   const e = initial?.examination;
+  const s = initial?.synthesis;
 
   const [presentingComplaint] = useState(h?.presentingComplaint ?? "");
   const [hpcItems, setHpcItems] = useState<CapturedSymptom[]>(h?.hpcItems ?? []);
@@ -220,9 +245,13 @@ export function ClerkshipForm({
   // The BP reference standard — used by the vitals panel.
   const [bpStandard, setBpStandard] = useState<BpStandard>("who_esc");
 
+  // Assessment — the clinician's one-liner + committed differential (rehydrated).
+  const [summary, setSummary] = useState(s?.summary ?? "");
+  const [differential, setDifferential] = useState<ClerkDifferential[]>(s?.differential ?? []);
+
   const [step, setStep] = useState(0);
 
-  // Jump-to-tab keyboard shortcuts (Alt+1…4) — fast tab switching on a busy ward.
+  // Jump-to-tab keyboard shortcuts (Alt+1…5) — fast tab switching on a busy ward.
   // Alt avoids clashing with text entry and the browser's Cmd/Ctrl+number.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -267,8 +296,48 @@ export function ClerkshipForm({
     examMusculoskeletal,
     examEndoVascularFoot,
     examSystems,
+    summary,
+    differential,
   };
   const buildInput = () => buildClerkshipInput(state);
+
+  // The clerkship agent — pure, live decision-support over the whole clerkship.
+  // Gated dark by default (agentConfig.enabled); each pack also gates on its own
+  // CSO-signed flag. Recomputes as the captured state changes. Never autonomous.
+  const insights: Insight[] = useMemo(() => {
+    if (!agentConfig.enabled) return [];
+    const input: AgentInput = {
+      hpcItems,
+      ros,
+      pmhItems: pmhItems.map((p) => ({ code: p.code, display: p.display })),
+      pmhScreen,
+      examVitals,
+      bpStandard,
+      examGeneralFindings,
+      examRespiratory,
+      examCardiovascular,
+      examAbdominal,
+      examNeurological,
+      examMusculoskeletal,
+      examEndoVascularFoot,
+    };
+    return runClerkshipAgent(input, AGENT_PACKS, agentConfig).insights;
+  }, [
+    agentConfig,
+    hpcItems,
+    ros,
+    pmhItems,
+    pmhScreen,
+    examVitals,
+    bpStandard,
+    examGeneralFindings,
+    examRespiratory,
+    examCardiovascular,
+    examAbdominal,
+    examNeurological,
+    examMusculoskeletal,
+    examEndoVascularFoot,
+  ]);
 
   // Lazy-init baseline = the clean snapshot; the dirty indicator diffs against it.
   const [baseline, setBaseline] = useState(() => JSON.stringify(buildClerkshipInput(state)));
@@ -402,6 +471,9 @@ export function ClerkshipForm({
 
             {/* Body — keyed wrapper so each step composes in */}
             <div className="min-h-[26rem] px-4 py-5 sm:px-6 sm:py-6">
+              {/* Must-not-miss / emergency strip — visible on every step so it can't
+                  hide while the clinician is on another tab. Empty when clear. */}
+              <AgentSafetyStrip insights={insights} />
               <div key={step} className="reveal-up">
                 {step === 0 ? (
                   <div className="flex flex-col gap-6">
@@ -411,6 +483,9 @@ export function ClerkshipForm({
                         Click the field to choose a symptom, then open it to add the details.
                       </p>
                       <SymptomCapture value={hpcItems} onChange={setHpcItems} />
+                      {/* Forward-prediction nudges — ask-about + look-for, from the
+                          captured complaint. Tappable, never blocking. */}
+                      <AgentNudges insights={insights} />
                     </div>
 
                     <div className="flex flex-col gap-2">
@@ -576,8 +651,11 @@ export function ClerkshipForm({
                     {/* Active system card — keyed so the chosen system slides in */}
                     <div
                       key={examSystem}
-                      className="border-border bg-card reveal-up rounded-xl border p-4"
+                      className="border-border bg-card reveal-up flex flex-col gap-3 rounded-xl border p-4"
                     >
+                      {/* Sign dependencies (must-check) + incompatibilities for this
+                          system. Empty until those packs are sourced (Phase 2). */}
+                      <AgentExamNotes insights={insights} area={examSystem} />
                       {examSystem === "general" ? (
                         <div className="flex flex-col gap-4">
                           <ExamSections
@@ -623,6 +701,16 @@ export function ClerkshipForm({
                       ) : null}
                     </div>
                   </div>
+                ) : null}
+
+                {step === 4 ? (
+                  <AssessmentTab
+                    insights={insights}
+                    differential={differential}
+                    onDifferentialChange={setDifferential}
+                    summary={summary}
+                    onSummaryChange={setSummary}
+                  />
                 ) : null}
               </div>
             </div>

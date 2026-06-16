@@ -10,7 +10,11 @@ import { loadClerkshipDraft } from "@/lib/clerkship/drafts";
 import { fetchPatientSummaryAudited } from "@/lib/doctor/patient-access";
 import { requireDoctorScope } from "@/lib/doctor/scope";
 import { ClerkshipInputSchema, clerkshipInputToClerkship } from "@/lib/encounter/clerkship-input";
-import { clerkshipDraftsLive, encounterEngineLive } from "@/lib/encounter/feature";
+import {
+  clerkshipAgentConfig,
+  clerkshipDraftsLive,
+  encounterEngineLive,
+} from "@/lib/encounter/feature";
 import { loadEncounterOrders } from "@/lib/encounter/orders";
 import { loadEncounterRecord } from "@/lib/encounter/record";
 import { toEncounterScope } from "@/lib/encounter/workspace-scope";
@@ -133,12 +137,14 @@ export default async function DoctorEncounterPage({ params }: PageProps) {
           </div>
         </header>
 
-        {/* Documentation entry — full-bleed workspace; reasoning docks as its own rail */}
+        {/* Documentation entry — full-bleed workspace; the clerkship agent surfaces
+            decision-support inline (gated dark via clerkshipAgentConfig). */}
         <ClerkshipForm
           encounterId={encounterId}
           initial={initial}
           draftsEnabled={draftsEnabled}
           recoveredDraftAt={recoveredDraftAt}
+          agentConfig={clerkshipAgentConfig()}
         />
 
         {/* Investigations & results (read-only visibility) */}
