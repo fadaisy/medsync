@@ -5,6 +5,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Clerkship: NCD catalog surfaced + diagnosis-driven feature reconciliation — 2026-06-16
+
+The NCD catalog is now **visible** and a diagnosis, when selected, **reconciles itself against the whole clerkship** ([ADR 0076](docs/adr/0076-diagnosis-feature-reconciliation.md)). **No migration.**
+
+- **NCD catalog surfaced** (`NCD_CATALOG_CSO_SIGNED=true`) — the diabetes **types** (T1/T2/with-complications) + all 15 NCDs are now selectable in the ranked suggestions + the catalog picker. Per-criterion honesty kept: confidence shown, the 17 `needs_cso_input` thresholds flagged; criteria inform/display, **never auto-diagnose**; the clinician selects.
+- **Feature reconciliation** (`lib/clerkship/diagnosis/reconcile.ts`, pure/TDD + `diagnosis-reconciliation.tsx`) — selecting a diagnosis scans the clerkship for its supporting features and shows **present** (already captured → auto-confirmed ✓) vs **missing** (blank ＋). e.g. selecting diabetes ticks the polyuria/polydipsia already captured and leaves the rest blank. **Tap a missing symptom to capture it** as a present ROS observation (deduped); **nothing is auto-filled** — a missing feature stays missing until tapped. Code→display resolved from the live catalogs.
+- Decision-support, never autonomous; capture only on the clinician's tap. Pre-deploy adversarial review (no-fabrication / capture-correctness / live-NCD-safety). tsc/eslint clean; **1006 tests** (+13); build green.
+
 ### Added — Clerkship: NCD-prioritised diagnosis catalog + catalog picker — 2026-06-16
 
 The diagnostic-logic Assessment gains a chronic-disease (NCD) layer + a doctor's searchable "select a diagnosis from the catalog" picker ([ADR 0075](docs/adr/0075-ncd-diagnosis-catalog.md), extends ADR 0074). **Ships gated dark** (`NCD_CATALOG_CSO_SIGNED=false`); **no migration**.
