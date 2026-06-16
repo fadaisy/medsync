@@ -26,9 +26,17 @@ function SrcTag({ insight }: { insight: Insight }) {
   );
 }
 
-/** Must-not-miss / emergency strip — reserved clinical-red. Renders nothing when clear. */
+/**
+ * "Act-now" emergency strip — reserved clinical-red. Carries only genuine
+ * present emergencies: a red vital-flag (vital-in-context) or a fired red
+ * combination (a must-not-miss feature cluster). Must-not-miss DIAGNOSES are
+ * also red but live in the Assessment tab, not here — surfacing every one in
+ * the strip would be alarm fatigue. Renders nothing when clear.
+ */
 export function AgentSafetyStrip({ insights }: { insights: Insight[] }) {
-  const red = insights.filter((i) => i.severity === "red");
+  const red = insights.filter(
+    (i) => i.severity === "red" && (i.kind === "vital-flag" || i.kind === "combination"),
+  );
   if (!red.length) return null;
   return (
     <div className="scale-in mb-3 flex flex-col gap-1.5" role="alert">
