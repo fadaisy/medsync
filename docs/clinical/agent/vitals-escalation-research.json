@@ -1,0 +1,698 @@
+{
+  "_meta": {
+    "purpose": "Cited research provenance for the clerkship-agent vitals-escalation pack. Sourced via the GATE-A spec Appendix A prompt (run by the CSO in a web-enabled session, 2026-06-17). The runtime pack docs/clinical/agent/vitals-escalation.json is DISTILLED from this (engine shape + catalog-mapped escalation features). NOT clinical content authored from model memory — every threshold is cited here; needs_cso_input entries await CSO ratification before AGENT_VITALS_ESCALATION_CSO_SIGNED is set.",
+    "sourcedAtIso": "2026-06-17",
+    "instrument": "GATE-A spec Appendix A"
+  },
+  "entries": [
+    {
+      "vital": "blood_pressure_high",
+      "trigger": {
+        "metric": "systolic_BP",
+        "comparator": ">=",
+        "value": 180,
+        "unit": "mmHg",
+        "alt": {
+          "metric": "diastolic_BP",
+          "comparator": ">=",
+          "value": 110,
+          "unit": "mmHg",
+          "note": "ESC 2024 uses >=180/110; AHA/ACC lineage uses >=180/120 — see needs_cso_input"
+        },
+        "news2_red": {
+          "metric": "systolic_BP",
+          "comparator": ">=",
+          "value": 220,
+          "unit": "mmHg",
+          "note": "NEWS2 single-parameter red score 3"
+        }
+      },
+      "baseTier": {
+        "label": "Severe hypertension / markedly elevated BP (no organ-damage features)",
+        "severity": "amber",
+        "ddx": [
+          "essential hypertension, uncontrolled / non-adherent",
+          "white-coat / pain / anxiety-driven rise",
+          "secondary hypertension (renal, endocrine)",
+          "medication withdrawal"
+        ],
+        "action": "Confirm with repeat reading after rest; do NOT lower acutely/aggressively if asymptomatic (risk of harm); arrange/optimise oral therapy and timely outpatient follow-up; screen for target-organ damage."
+      },
+      "escalation": {
+        "anyOf": [
+          "chest pain",
+          "severe dyspnoea / pulmonary oedema",
+          "new neurological deficit / focal weakness",
+          "severe headache, visual disturbance, confusion or seizures (encephalopathy)",
+          "tearing chest/back pain (aortic dissection)",
+          "pregnancy >20wks with headache/visual symptoms/RUQ pain (pre-eclampsia/eclampsia)",
+          "reduced urine output / acute kidney injury",
+          "papilloedema / retinal haemorrhages"
+        ],
+        "tier": {
+          "label": "Hypertensive EMERGENCY (acute hypertension-mediated target-organ damage)",
+          "severity": "red",
+          "ddx": [
+            "hypertensive encephalopathy",
+            "acute stroke (ischaemic or haemorrhagic)",
+            "acute coronary syndrome / acute LV failure / pulmonary oedema",
+            "aortic dissection",
+            "eclampsia / severe pre-eclampsia",
+            "acute kidney injury / malignant hypertension"
+          ],
+          "action": "EMERGENCY: controlled IV BP reduction (agent + target by the specific syndrome — e.g. NOT aggressive lowering in acute ischaemic stroke; rapid control in dissection/eclampsia/pulmonary oedema); urgent investigations (ECG, U&E/creatinine, urinalysis, fundoscopy, imaging as indicated); admit (ICU/HDU). Decisions are syndrome-specific — clinician-led."
+        }
+      },
+      "confidence": "high",
+      "ugandaNote": "Eclampsia is a leading obstetric emergency — any pregnant/recently-postpartum woman with high BP + features needs MgSO4 + BP control + delivery planning per Uganda Clinical Guidelines (use MEOWS, not NEWS2, in pregnancy). CT/MRI to distinguish stroke type is often unavailable — treat the syndrome clinically and refer; IV antihypertensive choice depends on locally-available agents. RHD/CKD common as background.",
+      "citation": {
+        "guideline": "ESC Guidelines for the management of elevated blood pressure and hypertension; AHA Scientific Statement on management of elevated BP in the acute care setting; 2017 ACC/AHA Hypertension Guideline",
+        "version": "ESC 2024; AHA 2024; ACC/AHA 2017",
+        "url": "https://academic.oup.com/eurheartj/article/45/38/3912/7741010"
+      },
+      "needs_cso_input": true,
+      "cso_reason": "Guidelines disagree on the diastolic emergency cut-point: ESC 2024 defines emergency at >=180/110 mmHg; AHA/ACC lineage uses >=180/120 mmHg. Both provided; CSO to set MedSync's flag threshold and confirm alignment with the Uganda Clinical Guidelines."
+    },
+    {
+      "vital": "blood_pressure_low",
+      "trigger": {
+        "metric": "systolic_BP",
+        "comparator": "<=",
+        "value": 100,
+        "unit": "mmHg",
+        "tiers": [
+          {
+            "comparator": "<=",
+            "value": 100,
+            "unit": "mmHg",
+            "note": "qSOFA / sepsis screen cut-point"
+          },
+          {
+            "comparator": "<=",
+            "value": 90,
+            "unit": "mmHg",
+            "note": "NEWS2 single-parameter red score 3; common shock threshold"
+          }
+        ]
+      },
+      "baseTier": {
+        "label": "Hypotension (isolated low systolic BP)",
+        "severity": "amber",
+        "ddx": [
+          "physiological / baseline low BP",
+          "dehydration / hypovolaemia (early)",
+          "vasovagal",
+          "drug effect (antihypertensives, diuretics)",
+          "autonomic"
+        ],
+        "action": "Confirm reading + posture; assess perfusion (pulse, capillary refill, mentation, urine output); look for a cause; fluid as indicated by volume status. Reassess — trend matters more than a single value."
+      },
+      "escalation": {
+        "anyOf": [
+          "tachycardia + cool peripheries / prolonged capillary refill / mottling",
+          "altered mental status / confusion / drowsiness",
+          "reduced urine output",
+          "fever or suspected infection (sepsis)",
+          "lactate raised (if available)",
+          "chest pain / breathlessness",
+          "active bleeding / melaena / trauma",
+          "anaphylaxis features (rash, wheeze, angioedema)",
+          "raised JVP + muffled heart sounds (tamponade) / unilateral absent breath sounds (tension pneumothorax)"
+        ],
+        "tier": {
+          "label": "SHOCK / haemodynamic compromise",
+          "severity": "red",
+          "ddx": [
+            "septic shock",
+            "hypovolaemic shock (haemorrhage, GI loss, severe dehydration)",
+            "cardiogenic shock",
+            "obstructive shock (tension pneumothorax, tamponade, massive PE)",
+            "anaphylactic shock",
+            "Addisonian crisis"
+          ],
+          "action": "EMERGENCY: ABCDE, high-flow oxygen, large-bore IV access, restore circulation per cause; if sepsis suspected — cultures + early antibiotics + measured resuscitation; treat the specific shock type (e.g. adrenaline for anaphylaxis, decompression for tension pneumothorax, control haemorrhage); senior help; admit ICU/HDU."
+        }
+      },
+      "confidence": "high",
+      "ugandaNote": "Severe malaria, severe anaemia (incl. sickle cell crisis), GI bleeding, and obstetric haemorrhage are major shock causes. CRITICAL: in febrile children with impaired perfusion, the FEAST trial showed rapid fluid boluses INCREASED mortality — do NOT bolus febrile non-hypotensive children; follow WHO/Uganda paediatric guidance. Lactate and blood products may be unavailable — clinical perfusion assessment is primary.",
+      "citation": {
+        "guideline": "Third International Consensus Definitions for Sepsis and Septic Shock (Sepsis-3) / qSOFA; Surviving Sepsis Campaign; Royal College of Physicians NEWS2; WHO/FEAST (paediatric fluids)",
+        "version": "Sepsis-3 2016; SSC current; RCP NEWS2 2017; FEAST 2011",
+        "url": "https://jamanetwork.com/journals/jama/fullarticle/2492881"
+      },
+      "needs_cso_input": true,
+      "cso_reason": "Two cut-points in use (<=100 mmHg for the sepsis/qSOFA screen vs <=90 mmHg as the NEWS2 red/shock threshold). CSO to set MedSync's flag band and confirm the paediatric FEAST guardrail is encoded for febrile children."
+    },
+    {
+      "vital": "spo2",
+      "trigger": {
+        "metric": "SpO2_on_air",
+        "comparator": "<=",
+        "value": 95,
+        "unit": "%",
+        "tiers": [
+          { "band": "94-95", "unit": "%", "note": "NEWS2 Scale 1 score 1" },
+          { "band": "92-93", "unit": "%", "note": "NEWS2 Scale 1 score 2" },
+          { "comparator": "<=", "value": 91, "unit": "%", "note": "NEWS2 Scale 1 score 3 (red)" }
+        ],
+        "scale2_note": "For patients with a target of 88-92% (e.g. COPD/hypercapnic risk), use NEWS2 SpO2 Scale 2 — different bands; CSO/clinician to select the scale."
+      },
+      "baseTier": {
+        "label": "Hypoxaemia (low oxygen saturation)",
+        "severity": "amber",
+        "ddx": [
+          "respiratory infection / pneumonia",
+          "COPD / asthma",
+          "heart failure / pulmonary oedema",
+          "PE",
+          "poor probe trace / cold peripheries (artefact)",
+          "anaemia (may read normal SpO2 despite low O2 content)"
+        ],
+        "action": "Confirm with a good trace; give controlled oxygen to a target (88-92% if hypercapnic risk, else 94-98%); identify + treat the cause; reassess RR and work of breathing together (SpO2 alone underestimates respiratory distress)."
+      },
+      "escalation": {
+        "anyOf": [
+          "respiratory rate >=25 or <=8",
+          "unable to speak full sentences / exhaustion / silent chest",
+          "cyanosis",
+          "altered mental status / agitation or drowsiness (CO2 retention)",
+          "haemodynamic instability",
+          "SpO2 not correcting despite oxygen",
+          "stridor / upper-airway compromise"
+        ],
+        "tier": {
+          "label": "Acute respiratory failure / impending arrest",
+          "severity": "red",
+          "ddx": [
+            "severe pneumonia / ARDS",
+            "life-threatening asthma / COPD exacerbation",
+            "massive PE",
+            "pulmonary oedema",
+            "upper-airway obstruction",
+            "pneumothorax (tension)"
+          ],
+          "action": "EMERGENCY: ABCDE, high-flow/titrated oxygen, treat the cause urgently (e.g. bronchodilators, decompress tension pneumothorax); consider ventilatory support (NIV/intubation); senior + critical-care help; admit."
+        }
+      },
+      "confidence": "high",
+      "ugandaNote": "TB, HIV-associated pneumonia (incl. PCP) and severe malaria are key causes. Altitude (parts of Uganda are elevated) lowers baseline SpO2 — interpret against local normals. Pulse oximeters, oxygen supply and ventilatory support may be limited — prioritise oxygen and referral; in severe anaemia, SpO2 can be normal despite inadequate oxygen delivery.",
+      "citation": {
+        "guideline": "Royal College of Physicians National Early Warning Score 2 (NEWS2); BTS Guideline for oxygen use in adults",
+        "version": "RCP NEWS2 2017; BTS oxygen 2017 (updated)",
+        "url": "https://www.rcp.ac.uk/improving-care/resources/national-early-warning-score-news-2/"
+      },
+      "needs_cso_input": true,
+      "cso_reason": "Scale 1 vs Scale 2 selection is patient-dependent (hypercapnic/COPD risk) and altitude shifts baseline normals — CSO to define how MedSync selects the scale and whether to apply an altitude/locale adjustment."
+    },
+    {
+      "vital": "respiratory_rate",
+      "trigger": {
+        "metric": "respiratory_rate",
+        "comparator": "outside",
+        "value": [12, 20],
+        "unit": "breaths/min",
+        "tiers": [
+          { "band": "21-24", "note": "NEWS2 score 2" },
+          { "comparator": ">=", "value": 25, "note": "NEWS2 score 3 (red)" },
+          { "band": "9-11", "note": "NEWS2 score 1" },
+          { "comparator": "<=", "value": 8, "note": "NEWS2 score 3 (red)" }
+        ]
+      },
+      "baseTier": {
+        "label": "Abnormal respiratory rate (tachypnoea or bradypnoea)",
+        "severity": "amber",
+        "ddx_tachypnoea": [
+          "respiratory infection / pneumonia",
+          "asthma/COPD",
+          "PE",
+          "metabolic acidosis (e.g. DKA - Kussmaul)",
+          "pain/anxiety/fever",
+          "heart failure"
+        ],
+        "ddx_bradypnoea": [
+          "opioid/sedative effect",
+          "CNS pathology / raised ICP",
+          "fatigue / pre-arrest",
+          "hypothyroidism"
+        ],
+        "action": "RR is the most sensitive early deterioration sign — count for a full minute. Identify the cause; treat (oxygen, bronchodilators, reverse opioids if indicated); reassess with SpO2 and work of breathing. A rising RR is an early warning even when other vitals are normal."
+      },
+      "escalation": {
+        "anyOf": [
+          "SpO2 low / cyanosis",
+          "altered mental status",
+          "unable to complete sentences / exhaustion",
+          "haemodynamic instability",
+          "Kussmaul breathing + high glucose (DKA)",
+          "RR <=8 with reduced consciousness (impending arrest / opioid toxicity)"
+        ],
+        "tier": {
+          "label": "Respiratory failure / peri-arrest",
+          "severity": "red",
+          "ddx": [
+            "severe pneumonia/ARDS",
+            "life-threatening asthma/COPD",
+            "massive PE",
+            "DKA (compensatory)",
+            "opioid/CNS depression with hypoventilation"
+          ],
+          "action": "EMERGENCY: ABCDE; oxygen; treat the cause (bronchodilators, naloxone for opioid toxicity, fluids+insulin for DKA per protocol); ventilatory support if needed; senior/critical-care help; admit."
+        }
+      },
+      "confidence": "high",
+      "ugandaNote": "Kussmaul breathing in a young person points to DKA (often new-onset, late-presenting) or salicylate/toxin; severe malaria and pneumonia cause respiratory distress; acidotic 'respiratory distress' in malaria is a danger sign. Respiratory support is often limited — early recognition and referral are key.",
+      "citation": {
+        "guideline": "Royal College of Physicians National Early Warning Score 2 (NEWS2)",
+        "version": "RCP NEWS2 2017",
+        "url": "https://www.rcp.ac.uk/improving-care/resources/national-early-warning-score-news-2/"
+      },
+      "needs_cso_input": false
+    },
+    {
+      "vital": "heart_rate_brady",
+      "trigger": {
+        "metric": "heart_rate",
+        "comparator": "<=",
+        "value": 50,
+        "unit": "bpm",
+        "tiers": [
+          { "band": "41-50", "note": "NEWS2 score 1" },
+          { "comparator": "<=", "value": 40, "note": "NEWS2 score 3 (red)" }
+        ]
+      },
+      "baseTier": {
+        "label": "Bradycardia",
+        "severity": "amber",
+        "ddx": [
+          "physiological (athlete, sleep)",
+          "drug effect (beta-blocker, calcium-channel blocker, digoxin)",
+          "heart block / conduction disease",
+          "hypothyroidism",
+          "hypothermia",
+          "raised intracranial pressure (with hypertension = Cushing response)",
+          "electrolyte disturbance (hyperkalaemia)"
+        ],
+        "action": "12-lead ECG; review medications + electrolytes; assess for symptoms/perfusion. Asymptomatic with good perfusion — investigate cause. Treat reversible causes."
+      },
+      "escalation": {
+        "anyOf": [
+          "hypotension / shock",
+          "syncope or presyncope",
+          "chest pain",
+          "heart failure / pulmonary oedema",
+          "reduced consciousness",
+          "ECG showing high-grade AV block"
+        ],
+        "tier": {
+          "label": "Adverse/unstable bradycardia",
+          "severity": "red",
+          "ddx": [
+            "complete (3rd-degree) or Mobitz II AV block",
+            "drug toxicity (beta-blocker/CCB/digoxin)",
+            "severe hyperkalaemia",
+            "inferior MI with bradyarrhythmia"
+          ],
+          "action": "EMERGENCY per resuscitation-council adult bradycardia algorithm: assess for adverse features; atropine; if refractory, transcutaneous pacing / chronotropic infusion; treat toxic/electrolyte cause; senior + cardiology; continuous monitoring."
+        }
+      },
+      "confidence": "high",
+      "ugandaNote": "Consider hyperkalaemia (AKI, severe illness) and drug toxicity; pacing facilities are often unavailable — stabilise medically (atropine, treat hyperkalaemia) and refer urgently. Hypothermia from severe illness/neonatal context can cause bradycardia.",
+      "citation": {
+        "guideline": "Royal College of Physicians NEWS2; Resuscitation Council adult bradycardia algorithm",
+        "version": "RCP NEWS2 2017; Resus Council current",
+        "url": "https://www.rcp.ac.uk/improving-care/resources/national-early-warning-score-news-2/"
+      },
+      "needs_cso_input": false
+    },
+    {
+      "vital": "heart_rate_tachy",
+      "trigger": {
+        "metric": "heart_rate",
+        "comparator": ">=",
+        "value": 91,
+        "unit": "bpm",
+        "tiers": [
+          { "band": "91-110", "note": "NEWS2 score 1" },
+          { "band": "111-130", "note": "NEWS2 score 2" },
+          { "comparator": ">=", "value": 131, "note": "NEWS2 score 3 (red)" }
+        ]
+      },
+      "baseTier": {
+        "label": "Tachycardia",
+        "severity": "amber",
+        "ddx": [
+          "fever / infection / sepsis",
+          "pain / anxiety",
+          "hypovolaemia / dehydration / haemorrhage (compensatory)",
+          "arrhythmia (e.g. AF, SVT)",
+          "hyperthyroidism",
+          "anaemia",
+          "PE",
+          "drugs / stimulants / withdrawal"
+        ],
+        "action": "12-lead ECG to define rhythm; identify + treat the cause (it is often a compensatory sign — find what it is compensating for); reassess BP and perfusion. Treat the cause, not just the number."
+      },
+      "escalation": {
+        "anyOf": [
+          "hypotension / shock",
+          "chest pain / ischaemia",
+          "severe breathlessness / heart failure",
+          "syncope",
+          "reduced consciousness",
+          "rate >150 with a broad or irregular complex (unstable tachyarrhythmia)"
+        ],
+        "tier": {
+          "label": "Unstable tachyarrhythmia / decompensation",
+          "severity": "red",
+          "ddx": [
+            "unstable SVT / VT",
+            "fast AF with compromise",
+            "septic or hypovolaemic shock with compensatory tachycardia",
+            "massive PE"
+          ],
+          "action": "EMERGENCY: ABCDE; if a tachyarrhythmia with adverse features — synchronised DC cardioversion per the resuscitation-council algorithm; if compensatory — treat the underlying shock/sepsis/haemorrhage; senior help; monitoring; admit."
+        }
+      },
+      "confidence": "high",
+      "ugandaNote": "Sepsis (malaria, pneumonia, typhoid), severe anaemia and dehydration are very common drivers — treat the cause. Rheumatic heart disease and thyrotoxicosis cause AF. Distinguish a compensatory sinus tachycardia (don't 'rate-control') from a primary arrhythmia.",
+      "citation": {
+        "guideline": "Royal College of Physicians NEWS2; Resuscitation Council adult tachycardia algorithm",
+        "version": "RCP NEWS2 2017; Resus Council current",
+        "url": "https://www.rcp.ac.uk/improving-care/resources/national-early-warning-score-news-2/"
+      },
+      "needs_cso_input": false
+    },
+    {
+      "vital": "temperature_fever",
+      "trigger": {
+        "metric": "temperature",
+        "comparator": ">=",
+        "value": 38.1,
+        "unit": "C",
+        "tiers": [
+          { "band": "38.1-39.0", "note": "NEWS2 score 1" },
+          { "comparator": ">=", "value": 39.1, "note": "NEWS2 score 2" }
+        ]
+      },
+      "baseTier": {
+        "label": "Fever / pyrexia",
+        "severity": "amber",
+        "ddx": [
+          "infection (any source)",
+          "malaria",
+          "viral illness",
+          "inflammatory / autoimmune",
+          "drug fever",
+          "venous thromboembolism"
+        ],
+        "action": "Identify the source (history, exam, focused tests); in an endemic area, TEST FOR MALARIA (RDT/film) in any fever; antipyretics for comfort; reassess for sepsis features. Fever alone is a symptom — the priority is finding and treating the cause."
+      },
+      "escalation": {
+        "anyOf": [
+          "altered mental status / confusion",
+          "systolic BP <=100 / signs of shock",
+          "respiratory rate >=22",
+          "neck stiffness / photophobia / non-blanching rash (meningococcaemia)",
+          "reduced urine output",
+          "lactate raised (if available)",
+          "immunocompromise (HIV, chemotherapy, neutropenia)"
+        ],
+        "tier": {
+          "label": "SEPSIS / serious infection (e.g. meningitis, severe malaria)",
+          "severity": "red",
+          "ddx": [
+            "sepsis / septic shock",
+            "bacterial meningitis",
+            "severe/cerebral malaria",
+            "neutropenic sepsis",
+            "typhoid with complications"
+          ],
+          "action": "EMERGENCY: treat as sepsis — cultures + EARLY broad-spectrum antibiotics, measured fluid resuscitation, oxygen, source control; if meningitis suspected don't delay antibiotics; if malaria — IV artesunate; senior help; admit. Use a sepsis screen (e.g. qSOFA/NEWS2) but treat on clinical suspicion."
+        }
+      },
+      "confidence": "high",
+      "ugandaNote": "Malaria must be actively excluded in EVERY fever (RDT/microscopy) — and severe/cerebral malaria treated with IV artesunate per WHO/Uganda guidance. Typhoid, TB, HIV-related infections and meningitis (incl. cryptococcal in HIV) are common. FEAST: do NOT give rapid fluid boluses to febrile non-hypotensive children. Antibiotic + artesunate availability and blood cultures vary by facility.",
+      "citation": {
+        "guideline": "Surviving Sepsis Campaign; Sepsis-3/qSOFA; WHO Guidelines for malaria; Uganda Clinical Guidelines",
+        "version": "SSC current; Sepsis-3 2016; WHO malaria 2025; UCG current",
+        "url": "https://www.who.int/teams/global-malaria-programme/guidelines-for-malaria"
+      },
+      "needs_cso_input": false
+    },
+    {
+      "vital": "temperature_hypothermia",
+      "trigger": {
+        "metric": "temperature",
+        "comparator": "<=",
+        "value": 36.0,
+        "unit": "C",
+        "tiers": [
+          { "band": "35.1-36.0", "note": "NEWS2 score 1" },
+          { "comparator": "<=", "value": 35.0, "note": "NEWS2 score 3 (red)" }
+        ]
+      },
+      "baseTier": {
+        "label": "Low temperature / hypothermia (<=35.0 C)",
+        "severity": "amber",
+        "ddx": [
+          "environmental cold exposure",
+          "sepsis (hypothermia is a sepsis sign, especially in the elderly/immunocompromised)",
+          "hypothyroidism / myxoedema",
+          "hypoglycaemia",
+          "alcohol / drugs",
+          "adrenal insufficiency",
+          "extensive skin disease/burns"
+        ],
+        "action": "Confirm with a low-reading thermometer (core); rewarm; CRUCIALLY look for an underlying cause — hypothermia in an unwell adult often signals sepsis, not just cold. Check glucose. Reassess."
+      },
+      "escalation": {
+        "anyOf": [
+          "features of infection / shock (hypothermic sepsis)",
+          "reduced consciousness",
+          "bradycardia / arrhythmia",
+          "very low glucose",
+          "known hypothyroidism / missed thyroxine (myxoedema coma)",
+          "hypotension"
+        ],
+        "tier": {
+          "label": "Hypothermic sepsis / myxoedema coma / decompensation",
+          "severity": "red",
+          "ddx": [
+            "septic shock presenting with hypothermia",
+            "myxoedema coma",
+            "severe hypoglycaemia",
+            "addisonian crisis"
+          ],
+          "action": "EMERGENCY: ABCDE; active rewarming; treat sepsis (cultures + early antibiotics + resuscitation) if infection suspected; correct glucose; if myxoedema coma — thyroid hormone + steroids per protocol; cardiac monitoring (arrhythmia risk); senior help; admit."
+        }
+      },
+      "confidence": "high",
+      "ugandaNote": "Hypothermia as a sign of severe sepsis/severe illness (and in neonates) is important; myxoedema is rarer but missed. Core thermometers and warming may be limited — improvise warming and prioritise treating sepsis/glucose. Always check capillary glucose.",
+      "citation": {
+        "guideline": "Royal College of Physicians NEWS2; Surviving Sepsis Campaign",
+        "version": "RCP NEWS2 2017; SSC current",
+        "url": "https://www.rcp.ac.uk/improving-care/resources/national-early-warning-score-news-2/"
+      },
+      "needs_cso_input": false
+    },
+    {
+      "vital": "capillary_glucose_hypo",
+      "trigger": {
+        "metric": "capillary_blood_glucose",
+        "comparator": "<",
+        "value": 3.9,
+        "unit": "mmol/L",
+        "alt_unit": { "value": 70, "unit": "mg/dL" },
+        "tiers": [
+          { "label": "Level 1", "band": "3.0-3.8 mmol/L (54-69 mg/dL)" },
+          {
+            "label": "Level 2",
+            "comparator": "<",
+            "value": 3.0,
+            "unit": "mmol/L",
+            "alt": "<54 mg/dL",
+            "note": "neuroglycopenia threshold"
+          },
+          {
+            "label": "Level 3",
+            "note": "any glucose with altered mental/physical function requiring assistance - clinical, not a number"
+          }
+        ]
+      },
+      "baseTier": {
+        "label": "Hypoglycaemia (Level 1: 3.0-3.8 mmol/L)",
+        "severity": "amber",
+        "ddx": [
+          "insulin or sulfonylurea effect (treated diabetes)",
+          "missed meal / reduced intake",
+          "alcohol",
+          "sepsis / critical illness",
+          "liver failure",
+          "adrenal insufficiency",
+          "malaria (and quinine-induced)"
+        ],
+        "action": "Treat immediately with fast-acting oral carbohydrate (15-20 g) if conscious and able to swallow; recheck in ~15 min and repeat until >=4.0 mmol/L; then a longer-acting carbohydrate; find and address the cause (review insulin/sulfonylurea). Always check glucose in any unwell or altered patient ('Don't Ever Forget Glucose')."
+      },
+      "escalation": {
+        "anyOf": [
+          "unable to swallow / reduced consciousness / coma",
+          "seizures",
+          "aggressive or markedly confused behaviour (neuroglycopenia)",
+          "glucose <3.0 mmol/L (Level 2)",
+          "requires assistance from another person (Level 3 / severe)"
+        ],
+        "tier": {
+          "label": "Severe hypoglycaemia (Level 2/3) - neuroglycopenic emergency",
+          "severity": "red",
+          "ddx": [
+            "insulin/sulfonylurea overdose or mismatch",
+            "sulfonylurea-induced (prolonged, recurrent - needs admission)",
+            "sepsis/malaria with hypoglycaemia",
+            "alcohol/liver failure"
+          ],
+          "action": "EMERGENCY: if IV access - IV glucose (e.g. dextrose) per protocol; if no IV access - IM glucagon; recheck and repeat; protect airway; in sulfonylurea/recurrent cases admit and consider octreotide; treat the cause. Recheck glucose after recovery - relapse is common."
+        }
+      },
+      "confidence": "high",
+      "ugandaNote": "Hypoglycaemia is a key danger sign in severe malaria (and quinine therapy) and in sick neonates/children - check glucose in every unwell patient. Sulfonylureas (e.g. glibenclamide) cause prolonged, recurrent hypoglycaemia - admit. IV dextrose / IM glucagon availability varies; oral sugar is the universal first step if able to swallow.",
+      "citation": {
+        "guideline": "American Diabetes Association Standards of Care - Glycemic Goals and Hypoglycemia / Diabetes Care in the Hospital",
+        "version": "ADA Standards of Care 2024-2026",
+        "url": "https://diabetesjournals.org/care/issue/49/Supplement_1"
+      },
+      "needs_cso_input": true,
+      "cso_reason": "Glucose thresholds are point-of-care-meter and unit dependent (mmol/L vs mg/dL; capillary vs venous bias). CSO to confirm the assay/units used in MedSync facilities and the exact treatment doses (which live in the prescribing engine, not here)."
+    },
+    {
+      "vital": "capillary_glucose_hyper",
+      "trigger": {
+        "metric": "capillary_blood_glucose",
+        "comparator": ">",
+        "value": 11.0,
+        "unit": "mmol/L",
+        "alt_unit": {
+          "value": 200,
+          "unit": "mg/dL",
+          "note": ">10.0 mmol/L (>180 mg/dL) is 'time above range'; a flag band ~>11 mmol/L is commonly used - CSO to set"
+        },
+        "marked": {
+          "comparator": ">",
+          "value": 14.0,
+          "unit": "mmol/L",
+          "note": "marked hyperglycaemia; check ketones - context for DKA/HHS"
+        }
+      },
+      "baseTier": {
+        "label": "Hyperglycaemia",
+        "severity": "amber",
+        "ddx": [
+          "known diabetes, suboptimal control / non-adherence",
+          "new-onset diabetes",
+          "intercurrent illness / infection / stress hyperglycaemia",
+          "steroid-induced",
+          "missed/insufficient insulin"
+        ],
+        "action": "Confirm; CHECK KETONES (blood beta-hydroxybutyrate ideally, or urine) and hydration; assess for an intercurrent illness/infection; review/adjust therapy; arrange follow-up. Marked or symptomatic hyperglycaemia + ketones needs the DKA/HHS pathway."
+      },
+      "escalation": {
+        "anyOf": [
+          "ketones positive / raised beta-hydroxybutyrate",
+          "Kussmaul (deep) breathing / acidotic breathing",
+          "abdominal pain, vomiting, dehydration",
+          "drowsiness / altered consciousness",
+          "very high glucose with marked dehydration (HHS, often >30 mmol/L)",
+          "shock"
+        ],
+        "tier": {
+          "label": "Hyperglycaemic EMERGENCY (DKA or HHS)",
+          "severity": "red",
+          "ddx": [
+            "diabetic ketoacidosis (DKA)",
+            "hyperosmolar hyperglycaemic state (HHS)",
+            "mixed DKA/HHS",
+            "precipitating sepsis"
+          ],
+          "action": "EMERGENCY: confirm with ketones/venous gas/U&E; manage per the current DKA/HHS consensus pathway - IV fluids, fixed-rate IV insulin (or SC for mild/uncomplicated DKA where appropriate), potassium replacement, treat the precipitant, monitor closely; senior help; admit (HDU/ICU as needed). Doses/rates via protocol + the prescribing engine."
+        }
+      },
+      "confidence": "moderate",
+      "ugandaNote": "New-onset diabetes often presents LATE as DKA; check ketones in any marked hyperglycaemia. Blood ketone meters and venous-gas analysers may be unavailable - use urine ketones + clinical judgement and refer. Treat any precipitating infection (incl. malaria). Doses are guideline-version sensitive (2024 DKA/HHS consensus changed criteria + allows SC insulin for mild DKA) - verify at build.",
+      "citation": {
+        "guideline": "ADA/EASD/JBDS/AACE/DTS Consensus on Hyperglycemic Crises (DKA/HHS); ADA Standards of Care; WHO/Uganda Clinical Guidelines",
+        "version": "Hyperglycaemic crises consensus 2024; ADA 2024-2026; UCG current",
+        "url": "https://diabetesjournals.org/care/article/47/8/1257/156808"
+      },
+      "needs_cso_input": true,
+      "cso_reason": "The hyperglycaemia FLAG band (e.g. >11 vs >14 mmol/L) is not a single fixed guideline value and is assay/unit dependent; the DKA/HHS diagnostic thresholds + treatment doses are guideline-version sensitive and live in the prescribing engine. CSO to set the flag band and confirm the pathway/criteria at build."
+    },
+    {
+      "vital": "gcs_conscious_level",
+      "trigger": {
+        "metric": "GCS",
+        "comparator": "<=",
+        "value": 14,
+        "unit": "GCS points",
+        "avpu_equivalent": "any level below Alert on AVPU/ACVPU (i.e. new Confusion, Voice, Pain, Unresponsive) = NEWS2 score 3 (red)",
+        "tiers": [
+          {
+            "comparator": "<=",
+            "value": 14,
+            "note": "any drop below 15 / new confusion - abnormal, flag"
+          },
+          {
+            "comparator": "<=",
+            "value": 8,
+            "note": "AIRWAY AT RISK - cannot protect airway; emergency"
+          }
+        ]
+      },
+      "baseTier": {
+        "label": "Reduced conscious level / new confusion (GCS <=14 or below Alert)",
+        "severity": "amber",
+        "ddx": [
+          "hypoglycaemia (check first)",
+          "hypoxia / hypercapnia",
+          "sepsis / infection (incl. CNS)",
+          "drugs / alcohol / opioids",
+          "post-ictal",
+          "metabolic (uraemia, hyponatraemia, hepatic)",
+          "stroke / intracranial event",
+          "raised intracranial pressure"
+        ],
+        "action": "ABCDE; CHECK GLUCOSE IMMEDIATELY ('Don't Ever Forget Glucose'); check SpO2; review medications/toxins; focused neuro exam; identify and treat reversible causes; serial GCS (a trend matters). Note: scoring 0 on NEWS2 does NOT mean normal - assess clinically."
+      },
+      "escalation": {
+        "anyOf": [
+          "GCS <=8 (airway at risk)",
+          "rapidly falling GCS",
+          "unequal/fixed pupils, focal neurology, seizures",
+          "signs of raised ICP (Cushing response: hypertension + bradycardia)",
+          "meningism + fever (meningitis/encephalitis)",
+          "hypoglycaemia or hypoxia not corrected",
+          "shock"
+        ],
+        "tier": {
+          "label": "Critical: airway-threatening / acute brain emergency",
+          "severity": "red",
+          "ddx": [
+            "any cause of GCS <=8",
+            "acute stroke / intracranial haemorrhage / raised ICP",
+            "bacterial meningitis / encephalitis / cerebral malaria",
+            "status epilepticus / post-ictal",
+            "severe metabolic derangement",
+            "opioid toxicity"
+          ],
+          "action": "EMERGENCY: ABCDE with AIRWAY PROTECTION (GCS <=8 - secure the airway / call for anaesthetic-airway help); correct glucose + oxygen immediately; treat the cause (e.g. naloxone, anticonvulsant, antibiotics +/- antimalarial for CNS infection); urgent imaging if available; senior + critical-care help; admit."
+        }
+      },
+      "confidence": "high",
+      "ugandaNote": "Cerebral malaria, meningitis (bacterial + cryptococcal in HIV), hypoglycaemia and stroke are leading causes - and hypoglycaemia + cerebral malaria are reversible/treatable, so check glucose and a malaria test in EVERY reduced-consciousness patient. CT is frequently unavailable to distinguish stroke type - treat clinically and refer. The 'GCS <=8 - protect airway' rule holds even where intubation is limited (positioning, airway adjuncts, urgent referral).",
+      "citation": {
+        "guideline": "Royal College of Physicians NEWS2 (ACVPU); Glasgow Coma Scale; WHO/Uganda Clinical Guidelines (cerebral malaria, meningitis)",
+        "version": "RCP NEWS2 2017; GCS (Teasdale); WHO malaria 2025; UCG current",
+        "url": "https://www.rcp.ac.uk/improving-care/resources/national-early-warning-score-news-2/"
+      },
+      "needs_cso_input": false
+    }
+  ]
+}

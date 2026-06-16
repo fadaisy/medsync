@@ -63,4 +63,98 @@ describe("runClerkshipAgent", () => {
     });
     expect(report.insights.find((i) => i.kind === "diagnosis")).toBeUndefined();
   });
+
+  it("real vitals pack: BP 204/112 alone → amber urgency; + headache → red emergency", () => {
+    const baseV: AgentInput = {
+      hpcItems: [],
+      ros: [],
+      pmhItems: [],
+      pmhScreen: {},
+      examVitals: { sbp: 204, dbp: 112 },
+      bpStandard: "who_esc",
+      examGeneralFindings: [],
+      examRespiratory: {},
+      examCardiovascular: {},
+      examAbdominal: {},
+      examNeurological: {},
+      examMusculoskeletal: {},
+      examEndoVascularFoot: {},
+    };
+    const alone = runClerkshipAgent(baseV, loadAgentPacks(), ON).insights.filter(
+      (i) => i.kind === "vital-flag",
+    );
+    expect(alone).toHaveLength(1);
+    expect(alone[0]!.severity).toBe("amber");
+
+    const withHeadache = runClerkshipAgent(
+      {
+        ...baseV,
+        ros: [
+          {
+            symptomCode: "headache",
+            symptomDisplay: "Headache",
+            system: "neurological",
+            status: "present",
+          },
+        ],
+      },
+      loadAgentPacks(),
+      ON,
+    ).insights.filter((i) => i.kind === "vital-flag");
+    expect(withHeadache).toHaveLength(1);
+    expect(withHeadache[0]!.severity).toBe("red");
+  });
+
+  it("real vitals pack: glucose 2.5 + bedside 'confused' consciousness chip → red emergency", () => {
+    const input: AgentInput = {
+      hpcItems: [],
+      ros: [],
+      pmhItems: [],
+      pmhScreen: {},
+      examVitals: { glucose: 2.5 },
+      bpStandard: "who_esc",
+      examGeneralFindings: [
+        {
+          code: "consciousness",
+          group: "general",
+          display: "Consciousness",
+          state: "present",
+          values: ["confused"],
+        },
+      ],
+      examRespiratory: {},
+      examCardiovascular: {},
+      examAbdominal: {},
+      examNeurological: {},
+      examMusculoskeletal: {},
+      examEndoVascularFoot: {},
+    };
+    const flags = runClerkshipAgent(input, loadAgentPacks(), ON).insights.filter(
+      (i) => i.kind === "vital-flag",
+    );
+    expect(flags.some((f) => f.severity === "red")).toBe(true);
+  });
+
+  it("vitalsEscalation pack disabled → no vital-flag insights", () => {
+    const report = runClerkshipAgent(
+      {
+        hpcItems: [],
+        ros: [],
+        pmhItems: [],
+        pmhScreen: {},
+        examVitals: { sbp: 204, dbp: 112 },
+        bpStandard: "who_esc",
+        examGeneralFindings: [],
+        examRespiratory: {},
+        examCardiovascular: {},
+        examAbdominal: {},
+        examNeurological: {},
+        examMusculoskeletal: {},
+        examEndoVascularFoot: {},
+      },
+      loadAgentPacks(),
+      { ...ON, activePacks: { ...ON.activePacks, vitalsEscalation: false } },
+    );
+    expect(report.insights.find((i) => i.kind === "vital-flag")).toBeUndefined();
+  });
 });

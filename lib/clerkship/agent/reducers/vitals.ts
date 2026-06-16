@@ -73,19 +73,21 @@ export function vitalFlags(
     const mv = metricValue(input.examVitals, rule.trigger.metric);
     if (!mv.ok || !triggered(rule, mv)) continue;
 
-    const matched = rule.escalation.anyOf.filter((f) =>
-      idx.presentDisplays.has(normalizeFeature(f.feature)),
-    );
-    const escalated = matched.length > 0;
+    // An accompanying feature fires if any of its catalog match-tokens is present
+    // (falling back to the prose itself when no match-tokens are given).
+    const featureEvidence: EvidenceItem[] = [];
+    for (const f of rule.escalation.anyOf) {
+      const tokens = (f.match && f.match.length ? f.match : [f.feature]).map(normalizeFeature);
+      const tok = tokens.find((t) => idx.presentDisplays.has(t));
+      if (tok) featureEvidence.push(idx.provenance.get(tok) ?? { label: f.feature, from: "ros" });
+    }
+    const escalated = featureEvidence.length > 0;
     const tier = escalated ? rule.escalation.tier : rule.baseTier;
 
     const vitalEvidence: EvidenceItem = {
       label: `${rule.vital.toUpperCase()} recorded`,
       from: "vitals",
     };
-    const featureEvidence: EvidenceItem[] = matched.map(
-      (f) => idx.provenance.get(normalizeFeature(f.feature)) ?? { label: f.feature, from: "ros" },
-    );
 
     out.push({
       id: `vital:${rule.id}:${escalated ? "esc" : "base"}`,
