@@ -1,12 +1,13 @@
 "use client";
 
+import type { SymptomMeta } from "./diagnosis-reconciliation";
 import type { CatalogSearchResult } from "@/lib/clerkship/diagnosis/search";
 import type { DiagnosisSuggestion } from "@/lib/clerkship/diagnosis/suggest";
 import type { BpStandard } from "@/lib/clerkship/exam/bp";
 import type { RecordedVitals } from "@/lib/clerkship/exam/types";
 import type { CapturedStateInput } from "@/lib/clerkship/reasoning/context";
 import type { ScoredDifferential } from "@/lib/clerkship/reasoning/types";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ActivityIcon,
   AlertTriangleIcon,
@@ -26,7 +27,13 @@ import { liveReasoningForCodes } from "@/lib/clerkship/reasoning/engine";
 import { REASONING_MAPS } from "@/lib/clerkship/reasoning/maps";
 import { renderProblemRepresentation } from "@/lib/clerkship/synthesis";
 import { cn } from "@/lib/utils";
+import {
+  loadClerkshipPicklistsAction,
+  loadRosCatalogAction,
+  loadSymptomCatalogAction,
+} from "../actions";
 import { DiagnosisPicker } from "./diagnosis-picker";
+import { DiagnosisReconciliation } from "./diagnosis-reconciliation";
 
 /**
  * Assessment / Synthesis — the clerkship's convergence (GATE A-signed model).
@@ -77,6 +84,7 @@ export function AssessmentSynthesis({
   onUnexclude,
   onInsertSummary,
   onPickDiagnosis,
+  onCaptureSymptom,
   conditionCodes,
 }: {
   captured: CapturedStateInput;
@@ -94,7 +102,36 @@ export function AssessmentSynthesis({
   onInsertSummary: (text: string) => void;
   /** Commit a diagnosis chosen from the catalog picker (same path as Select). */
   onPickDiagnosis: (r: CatalogSearchResult) => void;
+  /** Capture a missing supporting symptom (reconciliation) as a present ROS row. */
+  onCaptureSymptom: (obs: { symptomCode: string; symptomDisplay: string; system: string }) => void;
 }) {
+  // ── code→display(+system) maps for diagnosis feature reconciliation ──
+  // Loaded once from the live catalogs (ROS + HPC symptoms, condition picklist).
+  const [symptomMeta, setSymptomMeta] = useState<Map<string, SymptomMeta>>(new Map());
+  const [conditionMeta, setConditionMeta] = useState<Map<string, string>>(new Map());
+  useEffect(() => {
+    let live = true;
+    void (async () => {
+      try {
+        const [ros, hpc, picklists] = await Promise.all([
+          loadRosCatalogAction(),
+          loadSymptomCatalogAction(),
+          loadClerkshipPicklistsAction(),
+        ]);
+        if (!live) return;
+        const sym = new Map<string, SymptomMeta>();
+        for (const s of hpc) sym.set(s.code, { display: s.display, system: s.system });
+        for (const s of ros) sym.set(s.code, { display: s.display, system: s.system }); // ROS wins (has system)
+        setSymptomMeta(sym);
+        setConditionMeta(new Map((picklists.condition ?? []).map((c) => [c.code, c.display])));
+      } catch {
+        // honest: reconciliation renders with codes only if catalogs can't load.
+      }
+    })();
+    return () => {
+      live = false;
+    };
+  }, []);
   // ── the assembled abnormals (vitals-up; the shared single-source assembly,
   //    reused by the disposition cross-check so the two can never disagree) ──
   const items = useMemo(
@@ -136,17 +173,27 @@ export function AssessmentSynthesis({
   // Match the NCD catalog against the captured codes (HPC + ROS-present symptoms;
   // PMH conditions normalised to codes). Surfaced FIRST, ranked by support, with
   // cited defining criteria shown. matchNcds is empty until the catalog is signed.
-  const ncdSuggestions = useMemo(() => {
-    const symptomCodes = new Set<string>([
-      ...captured.hpcItems.map((h) => h.symptomCode),
-      ...captured.ros.filter((o) => o.status === "present").map((o) => o.symptomCode),
-    ]);
-    // Real condition CODES (picklist codes), not normalised display strings —
-    // so a risk factor like "diabetes_t2" actually matches a captured PMH item.
-    return matchNcds({ symptomCodes, conditionCodes: new Set(conditionCodes) }).filter(
-      (n) => !decidedTexts.has(n.dx.trim().toLowerCase()),
-    );
-  }, [captured, conditionCodes, decidedTexts]);
+  // Captured code sets — shared by NCD matching + diagnosis reconciliation.
+  const capturedSymptomCodes = useMemo(
+    () =>
+      new Set<string>([
+        ...captured.hpcItems.map((h) => h.symptomCode),
+        ...captured.ros.filter((o) => o.status === "present").map((o) => o.symptomCode),
+      ]),
+    [captured],
+  );
+  // Real condition CODES (picklist codes), not normalised display strings — so a
+  // risk factor like "diabetes_t2" actually matches a captured PMH item.
+  const capturedConditionCodes = useMemo(() => new Set(conditionCodes), [conditionCodes]);
+
+  const ncdSuggestions = useMemo(
+    () =>
+      matchNcds({
+        symptomCodes: capturedSymptomCodes,
+        conditionCodes: capturedConditionCodes,
+      }).filter((n) => !decidedTexts.has(n.dx.trim().toLowerCase())),
+    [capturedSymptomCodes, capturedConditionCodes, decidedTexts],
+  );
 
   // Select a suggestion = the clinician's working diagnosis (carries the catalog
   // ICD-10); Reject = considered & excluded (must-not-miss retained).
@@ -448,6 +495,16 @@ export function AssessmentSynthesis({
           diagnosis of record is always the clinician&apos;s.
         </p>
       </section>
+
+      {/* ── Zone 3 · Diagnosis-driven feature reconciliation (selected dx) ── */}
+      <DiagnosisReconciliation
+        differentials={differential.map((d) => d.text)}
+        symptomCodes={capturedSymptomCodes}
+        conditionCodes={capturedConditionCodes}
+        symptomMeta={symptomMeta}
+        conditionMeta={conditionMeta}
+        onCaptureSymptom={onCaptureSymptom}
+      />
     </div>
   );
 }

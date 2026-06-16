@@ -23,7 +23,13 @@
  * suggestions surface, the picker shows only the signed acute catalog).
  */
 
-export const NCD_CATALOG_CSO_SIGNED = false;
+// Surfaced 2026-06-16 (CSO direction): the NCD catalog ENTRIES are live so the
+// diagnoses (incl. the diabetes types) are visible + selectable + reconcilable.
+// HONESTY IS PRESERVED PER-CRITERION: each defining criterion still carries its
+// confidence, and the 17 `needs_cso_input` thresholds are shown with a "pending
+// ratification" marker in the UI — criteria INFORM + display, they never
+// auto-diagnose. The clinician selects; the diagnosis of record is theirs.
+export const NCD_CATALOG_CSO_SIGNED = true;
 export const NCD_CATALOG_BUILT = "2026-06-16";
 
 export type NcdConfidence = "high" | "medium" | "needs_cso_input";

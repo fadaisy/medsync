@@ -804,6 +804,15 @@ export function ClerkshipForm({
                           { text: r.display, icd10: r.icd10 ?? "", mustNotMiss: r.mustNotMiss },
                         ]);
                       }}
+                      onCaptureSymptom={(obs) =>
+                        // Reconciliation: tap a missing supporting symptom → record it
+                        // present in the ROS (deduped; never overwrites an existing row).
+                        setRos((prev) =>
+                          prev.some((o) => o.symptomCode === obs.symptomCode)
+                            ? prev
+                            : [...prev, { ...obs, status: "present" as const }],
+                        )
+                      }
                     />
                     <Field label="Summary / problem representation">
                       <RichTextEditor

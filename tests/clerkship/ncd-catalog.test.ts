@@ -71,9 +71,9 @@ describe("NCD catalog (cited, derived, gated)", () => {
     expect(ncdByDisplay("Type 2 diabetes mellitus")?.icd10).toBe("E11");
   });
 
-  it("is GATED — ncdCatalog() is empty until the CSO signs", () => {
-    expect(NCD_CATALOG_CSO_SIGNED).toBe(false);
-    expect(ncdCatalog()).toEqual([]);
+  it("is SURFACED — ncdCatalog() returns the entries (CSO-directed)", () => {
+    expect(NCD_CATALOG_CSO_SIGNED).toBe(true);
+    expect(ncdCatalog().length).toBe(NCD_DIAGNOSIS_CATALOG.length);
   });
 });
 
@@ -95,21 +95,23 @@ describe("scoreNcdMatch (pure support matching)", () => {
   });
 });
 
-describe("matchNcds + searchCatalog (gated NCD layer)", () => {
-  it("matchNcds surfaces nothing while the catalog is unsigned", () => {
-    expect(
-      matchNcds({
-        symptomCodes: new Set(["orthopnoea"]),
-        conditionCodes: new Set(["hypertension"]),
-      }),
-    ).toEqual([]);
+describe("matchNcds + searchCatalog (surfaced NCD layer)", () => {
+  it("matchNcds surfaces NCDs supported by the captured clerkship, ranked", () => {
+    const out = matchNcds({
+      symptomCodes: new Set(["orthopnoea", "ankle_leg_swelling"]),
+      conditionCodes: new Set(["hypertension"]),
+    });
+    expect(out.some((n) => n.dx === "Heart failure")).toBe(true);
   });
 
-  it("searchCatalog finds the live acute catalog but not the gated NCDs", () => {
+  it("searchCatalog includes NCDs (diabetes types surfaced), NCDs first", () => {
     expect(searchCatalog("a")).toEqual([]); // under 2 chars
-    const acute = searchCatalog("pulmonary");
-    expect(acute.some((r) => r.category === "acute")).toBe(true);
-    // NCDs are gated dark → none surface yet
-    expect(searchCatalog("diabetes").some((r) => r.category === "ncd")).toBe(false);
+    const diabetes = searchCatalog("diabetes");
+    expect(diabetes.some((r) => r.category === "ncd")).toBe(true);
+    // the diabetes TYPES are now visible
+    expect(diabetes.some((r) => /type 2/i.test(r.display))).toBe(true);
+    expect(diabetes.some((r) => /type 1/i.test(r.display))).toBe(true);
+    // acute catalog still searchable
+    expect(searchCatalog("pulmonary").some((r) => r.category === "acute")).toBe(true);
   });
 });
