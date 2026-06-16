@@ -453,7 +453,15 @@ export function ClerkshipForm({
 
   return (
     <form onSubmit={(ev) => ev.preventDefault()}>
-      <div className="xl:grid xl:grid-cols-[minmax(0,1fr)_22rem] xl:items-start xl:gap-6">
+      {/* On the Assessment step the reasoning rail is FUSED into the diagnosis
+          surface (one "Form the diagnosis" component), so the rail is hidden and
+          the form goes single-column full-width there; every other step keeps the
+          docked live-reasoning rail. */}
+      <div
+        className={
+          step === 4 ? "" : "xl:grid xl:grid-cols-[minmax(0,1fr)_22rem] xl:items-start xl:gap-6"
+        }
+      >
         <div className="min-w-0">
           {recoveredDraftAt ? (
             <div className="scale-in mb-3 flex flex-wrap items-center gap-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-[12px] text-amber-900 dark:border-amber-800/60 dark:bg-amber-950/30 dark:text-amber-200">
@@ -1003,25 +1011,29 @@ export function ClerkshipForm({
         </div>
 
         {/* Clinical reasoning — its own docked rail in the full-bleed workspace;
-            stacks below the form on narrower screens. Live + non-blocking. */}
-        <aside className="border-border bg-card fade-in-slow mt-4 flex max-h-[70svh] flex-col overflow-hidden rounded-2xl border shadow-sm xl:sticky xl:top-17 xl:mt-0 xl:max-h-[calc(100svh-88px)]">
-          <ReasoningPanel
-            pcCodes={hpcItems.map((x) => x.symptomCode)}
-            hpcItems={hpcItems}
-            ros={ros}
-            pmhConditions={pmhItems.map((x) => x.display)}
-            fhScreen={fhScreen}
-            social={socialHx}
-            examFindings={examGeneralFindings}
-            respiratory={examRespiratory}
-            cardiovascular={examCardiovascular}
-            abdominal={examAbdominal}
-            neurological={examNeurological}
-            musculoskeletal={examMusculoskeletal}
-            endoVascularFoot={examEndoVascularFoot}
-            atSynthesis={step >= 4}
-          />
-        </aside>
+            stacks below the form on narrower screens. Live + non-blocking. On the
+            Assessment step it's fused into the "Form the diagnosis" surface, so the
+            rail is omitted there to avoid showing the differential twice. */}
+        {step !== 4 ? (
+          <aside className="border-border bg-card fade-in-slow mt-4 flex max-h-[70svh] flex-col overflow-hidden rounded-2xl border shadow-sm xl:sticky xl:top-17 xl:mt-0 xl:max-h-[calc(100svh-88px)]">
+            <ReasoningPanel
+              pcCodes={hpcItems.map((x) => x.symptomCode)}
+              hpcItems={hpcItems}
+              ros={ros}
+              pmhConditions={pmhItems.map((x) => x.display)}
+              fhScreen={fhScreen}
+              social={socialHx}
+              examFindings={examGeneralFindings}
+              respiratory={examRespiratory}
+              cardiovascular={examCardiovascular}
+              abdominal={examAbdominal}
+              neurological={examNeurological}
+              musculoskeletal={examMusculoskeletal}
+              endoVascularFoot={examEndoVascularFoot}
+              atSynthesis={step >= 4}
+            />
+          </aside>
+        ) : null}
       </div>
     </form>
   );
