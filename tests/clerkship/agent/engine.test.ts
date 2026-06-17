@@ -6,7 +6,13 @@ import { loadAgentPacks } from "@/lib/clerkship/agent/packs";
 
 const ON: AgentConfig = {
   enabled: true,
-  activePacks: { maps: true, vitalsEscalation: true, incompatibilities: true, dependencies: true },
+  activePacks: {
+    maps: true,
+    vitalsEscalation: true,
+    incompatibilities: true,
+    dependencies: true,
+    ddxRanking: false,
+  },
 };
 
 const cp = (over: Partial<AgentInput> = {}): AgentInput => ({

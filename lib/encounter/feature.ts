@@ -92,6 +92,7 @@ export function clerkshipAgentConfig(): AgentConfig {
       vitalsEscalation: enabled && process.env.AGENT_VITALS_ESCALATION_CSO_SIGNED === "1",
       incompatibilities: enabled && process.env.AGENT_INCOMPATIBILITIES_CSO_SIGNED === "1",
       dependencies: enabled && process.env.AGENT_DEPENDENCIES_CSO_SIGNED === "1",
+      ddxRanking: enabled && process.env.AGENT_DDX_RANKING_CSO_SIGNED === "1",
     },
   };
 }
