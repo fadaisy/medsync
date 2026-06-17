@@ -75,6 +75,9 @@ export interface Insight {
   excludes?: ExcludeItem[];
   suggests?: { dx: string; icd10?: string; mustNotMiss?: boolean };
   discriminators?: ExpectItem[];
+  /** Secondary detail (e.g. a vital-flag's differential + action) — shown behind a
+   * tap so the headline stays short. The cited content is preserved here. */
+  detail?: string;
   /** Diagnosis ranking score (higher = better supported). Diagnosis insights only. */
   score?: number;
   sourceRef: SourceRef;

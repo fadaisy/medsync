@@ -50,7 +50,7 @@ import {
   submitClerkshipAction,
 } from "../actions";
 import { AbdominalExam } from "./abdominal-exam";
-import { AgentExamNotes, AgentNudges, AgentSafetyStrip, AgentVitalFlags } from "./agent-insights";
+import { AgentRail } from "./agent-insights";
 import { AssessmentTab } from "./assessment-tab";
 import { CardiovascularExam } from "./cardiovascular-exam";
 import { EvfExamForm } from "./evf-exam";
@@ -338,6 +338,9 @@ export function ClerkshipForm({
     examMusculoskeletal,
     examEndoVascularFoot,
   ]);
+  // The rail (and the two-column layout) appear only when the agent has something
+  // to say — a fresh/empty clerkship, or the agent gated off, stays single-column.
+  const hasRail = insights.length > 0;
 
   // Lazy-init baseline = the clean snapshot; the dirty indicator diffs against it.
   const [baseline, setBaseline] = useState(() => JSON.stringify(buildClerkshipInput(state)));
@@ -392,10 +395,16 @@ export function ClerkshipForm({
 
   return (
     <form onSubmit={(ev) => ev.preventDefault()}>
-      {/* Single centred column — the reasoning rail was removed with the
-          Assessment/Plan rebuild; this form is now history + examination capture. */}
-      <div className="mx-auto w-full max-w-4xl">
-        <div className="min-w-0">
+      {/* Two-column on wide screens: the clerkship form + a sticky agent rail on
+          the right. The rail (and the grid) appear only when the agent has output. */}
+      <div
+        className={
+          hasRail
+            ? "xl:grid xl:grid-cols-[minmax(0,1fr)_17rem] xl:items-start xl:gap-4"
+            : "mx-auto w-full max-w-4xl"
+        }
+      >
+        <div className={hasRail ? "mx-auto w-full max-w-4xl min-w-0 xl:mx-0" : "min-w-0"}>
           {recoveredDraftAt ? (
             <div className="scale-in mb-3 flex flex-wrap items-center gap-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-[12px] text-amber-900 dark:border-amber-800/60 dark:bg-amber-950/30 dark:text-amber-200">
               <RefreshCwIcon className="size-3.5 shrink-0" aria-hidden />
@@ -471,9 +480,6 @@ export function ClerkshipForm({
 
             {/* Body — keyed wrapper so each step composes in */}
             <div className="min-h-[26rem] px-4 py-5 sm:px-6 sm:py-6">
-              {/* Must-not-miss / emergency strip — visible on every step so it can't
-                  hide while the clinician is on another tab. Empty when clear. */}
-              <AgentSafetyStrip insights={insights} />
               <div key={step} className="reveal-up">
                 {step === 0 ? (
                   <div className="flex flex-col gap-6">
@@ -483,9 +489,6 @@ export function ClerkshipForm({
                         Click the field to choose a symptom, then open it to add the details.
                       </p>
                       <SymptomCapture value={hpcItems} onChange={setHpcItems} />
-                      {/* Forward-prediction nudges — ask-about + look-for, from the
-                          captured complaint. Tappable, never blocking. */}
-                      <AgentNudges insights={insights} />
                     </div>
 
                     <div className="flex flex-col gap-2">
@@ -604,10 +607,6 @@ export function ClerkshipForm({
                       onBpStandardChange={setBpStandard}
                     />
 
-                    {/* Vitals-in-context: urgency (amber) + emergency (red). Red also
-                        rides the always-visible safety strip above. */}
-                    <AgentVitalFlags insights={insights} />
-
                     {/* System switcher — each examination is its own card */}
                     <div className="border-border/70 bg-muted/30 flex flex-wrap gap-1 rounded-lg border p-1">
                       {(
@@ -657,9 +656,6 @@ export function ClerkshipForm({
                       key={examSystem}
                       className="border-border bg-card reveal-up flex flex-col gap-3 rounded-xl border p-4"
                     >
-                      {/* Sign dependencies (must-check) + incompatibilities for this
-                          system. Empty until those packs are sourced (Phase 2). */}
-                      <AgentExamNotes insights={insights} area={examSystem} />
                       {examSystem === "general" ? (
                         <div className="flex flex-col gap-4">
                           <ExamSections
@@ -801,6 +797,11 @@ export function ClerkshipForm({
             A correction is a new version — nothing is overwritten.
           </p>
         </div>
+        {hasRail ? (
+          <aside className="mt-4 xl:sticky xl:top-4 xl:mt-0">
+            <AgentRail insights={insights} />
+          </aside>
+        ) : null}
       </div>
     </form>
   );
