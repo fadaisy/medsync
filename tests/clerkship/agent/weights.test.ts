@@ -1,7 +1,13 @@
-import type { FeatureIndex, MapDifferential } from "@/lib/clerkship/agent/types";
+import type { FeatureIndex, MapDifferential, ReasoningMap } from "@/lib/clerkship/agent/types";
 import { describe, expect, it } from "vitest";
 
-import { deriveWeights, scoreDifferential, tierOf, TIERS } from "@/lib/clerkship/agent/weights";
+import {
+  deriveWeights,
+  mergeDdxWeights,
+  scoreDifferential,
+  tierOf,
+  TIERS,
+} from "@/lib/clerkship/agent/weights";
 
 function idxWith(present: string[]): FeatureIndex {
   return {
@@ -81,5 +87,50 @@ describe("tierOf", () => {
     expect(tierOf(TIERS.CONSIDER)).toBe("consider");
     expect(tierOf(TIERS.FLOOR)).toBe("less_likely");
     expect(tierOf(TIERS.FLOOR - 1)).toBe("ruled_down");
+  });
+});
+
+describe("mergeDdxWeights", () => {
+  const maps: ReasoningMap[] = [
+    {
+      code: "chest_pain",
+      display: "Chest pain",
+      triggerCodes: ["chest_pain"],
+      associated: [],
+      redFlags: [],
+      examTargets: [],
+      combinations: [],
+      differential: [
+        {
+          dx: "Acute coronary syndrome",
+          likelihood: "must_not_miss",
+          ruleIn: ["Exertional"],
+          ruleOut: [],
+          supportingSymptoms: [],
+          refutingSymptoms: [],
+          riskFactors: [],
+        },
+      ],
+    },
+  ];
+
+  it("applies a sourced weight entry onto the matching differential by dx name", () => {
+    const merged = mergeDdxWeights(maps, [
+      {
+        complaint: "chest_pain",
+        weights: [
+          { dx: "Acute coronary syndrome", basePrior: 4, agePrior: [{ minAge: 50, delta: 2 }] },
+        ],
+      },
+    ]);
+    const d = merged[0]!.differential[0]!;
+    expect(d.basePrior).toBe(4);
+    expect(d.agePrior).toEqual([{ minAge: 50, delta: 2 }]);
+    expect(d.ruleIn).toEqual(["Exertional"]); // untouched approved fields preserved
+  });
+
+  it("leaves maps unchanged when there are no weight files", () => {
+    const merged = mergeDdxWeights(maps, []);
+    expect(merged[0]!.differential[0]!.basePrior).toBeUndefined();
   });
 });
