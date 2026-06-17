@@ -1,7 +1,7 @@
 "use client";
 
 import type { SubmitClerkshipResult } from "../actions";
-import type { AgentConfig, AgentInput, Insight } from "@/lib/clerkship/agent";
+import type { AgentConfig, AgentInput, IncompatibilityRule, Insight } from "@/lib/clerkship/agent";
 import type { AbdoExam } from "@/lib/clerkship/exam/abdominal";
 import type { BpStandard } from "@/lib/clerkship/exam/bp";
 import type { CvsExam } from "@/lib/clerkship/exam/cardiovascular";
@@ -89,6 +89,8 @@ const TABS: { label: string; icon: ComponentType<{ className?: string }> }[] = [
 // Cited knowledge packs for the clerkship agent — loaded once, cached. The engine
 // is pure + client-side; the server hands down which packs are active via agentConfig.
 const AGENT_PACKS = loadAgentPacks();
+/** Stable empty-rules reference for the gated-off in-field path (no per-render []). */
+const NO_RULES: IncompatibilityRule[] = [];
 
 type FormState = {
   presentingComplaint: string;
@@ -341,6 +343,15 @@ export function ClerkshipForm({
   // The rail (and the two-column layout) appear only when the agent has something
   // to say — a fresh/empty clerkship, or the agent gated off, stays single-column.
   const hasRail = insights.length > 0;
+
+  // Active incompatibility rules — drive in-field soft-dim on exam controls. Gated
+  // exactly like the rail's incompatibility insights (enabled + the CSO-signed pack).
+  // Both branches are stable module-singleton references, so the child's dim memo
+  // never churns (NO_RULES avoids a fresh [] each render when gated off).
+  const incompatRules =
+    agentConfig.enabled && agentConfig.activePacks.incompatibilities
+      ? AGENT_PACKS.incompatibilities
+      : NO_RULES;
 
   // Lazy-init baseline = the clean snapshot; the dirty indicator diffs against it.
   const [baseline, setBaseline] = useState(() => JSON.stringify(buildClerkshipInput(state)));
@@ -681,7 +692,11 @@ export function ClerkshipForm({
                         />
                       ) : null}
                       {examSystem === "respiratory" ? (
-                        <RespiratoryExam value={examRespiratory} onChange={setExamRespiratory} />
+                        <RespiratoryExam
+                          value={examRespiratory}
+                          onChange={setExamRespiratory}
+                          incompatRules={incompatRules}
+                        />
                       ) : null}
                       {examSystem === "abdominal" ? (
                         <AbdominalExam value={examAbdominal} onChange={setExamAbdominal} />

@@ -2,11 +2,13 @@
 
 import type { ChestModality } from "./chest-zone-map";
 import type { SectionStatus, ThreeStateValue } from "./exam-kit";
+import type { IncompatibilityRule } from "@/lib/clerkship/agent/types";
 import type { AddedSound, RespExam, RespZone } from "@/lib/clerkship/exam/respiratory";
 import type { ExamFinding, ExamObservation, FindingState } from "@/lib/clerkship/exam/types";
 import { useMemo, useState } from "react";
 import { AlertTriangleIcon, CircleDashedIcon, ShieldAlertIcon } from "lucide-react";
 
+import { addedSoundDimsByZone } from "@/lib/clerkship/agent/in-field";
 import {
   ADDED_OPTS,
   BREATH_OPTS,
@@ -82,9 +84,12 @@ function isFinding(o: ExamObservation | undefined): boolean {
 export function RespiratoryExam({
   value,
   onChange,
+  incompatRules = [],
 }: {
   value: RespExam;
   onChange: (next: RespExam) => void;
+  /** Active, gated, CSO-signed incompatibility rules — drive in-field soft-dim. */
+  incompatRules?: IncompatibilityRule[];
 }) {
   const [modality, setModality] = useState<Modality>("percussion");
   const [activeZone, setActiveZone] = useState<RespZone | null>(null);
@@ -92,6 +97,19 @@ export function RespiratoryExam({
   const findings = value.findings ?? [];
   const byCode = useMemo(() => new Map(findings.map((o) => [o.code, o])), [findings]);
   const patterns = useMemo(() => matchRespPatterns(value), [value]);
+
+  // In-field decision-support: at a zone whose breath sounds make added sounds
+  // implausible (cited pack), softly dim those chips — tappable override.
+  const addedDims = useMemo(
+    () =>
+      addedSoundDimsByZone(
+        value.breathSounds,
+        ADDED_OPTS.map((o) => o.value),
+        incompatRules,
+      ),
+    [value.breathSounds, incompatRules],
+  );
+  const zoneDims = activeZone ? (addedDims[activeZone] ?? []) : [];
 
   const setFinding = (code: string, patch: Partial<ExamObservation> | null) => {
     const fd = RESP_FINDINGS.find((x) => x.code === code);
@@ -572,11 +590,14 @@ export function RespiratoryExam({
                 <div className="flex flex-wrap gap-1">
                   {ADDED_OPTS.map((o) => {
                     const on = (value.addedSounds?.[activeZone] ?? []).includes(o.value);
+                    const dim = zoneDims.find((d) => d.value === o.value);
                     return (
                       <ValueChip
                         key={o.value}
                         active={on}
                         tone={o.emergency ? "alarm" : "default"}
+                        dimmed={!!dim}
+                        dimReason={dim?.reason}
                         onClick={() => toggleAdded(activeZone, o.value)}
                       >
                         {o.label}
@@ -584,6 +605,16 @@ export function RespiratoryExam({
                     );
                   })}
                 </div>
+                {zoneDims.length ? (
+                  <p className="text-muted-foreground/80 flex items-start gap-1 text-[10px] italic">
+                    <CircleDashedIcon className="mt-0.5 size-2.5 shrink-0" aria-hidden />
+                    <span>
+                      Dimmed sounds are unlikely at this zone.{" "}
+                      {[...new Set(zoneDims.map((d) => d.reason))].join(" ")} You can still record
+                      any you do hear.
+                    </span>
+                  </p>
+                ) : null}
               </div>
             ) : (
               <span className="text-muted-foreground text-[10px]">

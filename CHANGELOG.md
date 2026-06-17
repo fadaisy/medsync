@@ -5,6 +5,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Clerkship agent: in-field soft-dim of incompatible signs — 2026-06-17
+
+The clerkship agent's incompatibility signal now surfaces **on the exam control itself**, not only in the rail (agent behaviour #3). When a recorded sign makes another implausible per the cited, CSO-signed incompatibility pack, the implausible chip **softly dims** (faded, dashed, italic) with the cited reason. **No migration.** Inherently dark in prod until `AGENT_INCOMPATIBILITIES_CSO_SIGNED`.
+
+- **Soft-dim + override, never a hard block** (decision-support, never autonomous) — a dimmed chip stays tappable; recording it un-dims and the conflict then shows in the rail. The clinician is never prevented from documenting a genuine finding.
+- **Pack-driven, anchored binding** (`lib/clerkship/agent/in-field.ts`, pure/TDD) — the clinical assertion (trigger → excluded sign → reason) comes only from the cited pack; the code binds tokens to option values by an **allow-listed, whole-word** map (no substring collisions), so a sign the pack does not exclude is never dimmed and each chip shows the reason of the rule that excluded it. Scope: the respiratory added-sounds chips (crackles/wheeze dim at a zone with absent breath sounds) — the pack's only chip-renderable rule today; zone-local.
+- Pre-ship adversarial review (gating-dark / no-fabrication-pack-fidelity / never-block-honesty / zone-locality-a11y) confirmed 4 findings (2 latent pack-fidelity, 2 nits) — all fixed. tsc/eslint clean; **982 tests** (+7); build green.
+
 ### Added — Lab: result entry → release/reject (the lab write-side slice) — 2026-06-17
 
 The lab-tech workspace gains the full result lifecycle ([ADR 0077](docs/adr/0077-lab-result-entry-release.md)). **Ships gated dark** (`LAB_RESULTS_LIVE=1` after migrations 0050 + 0051 are applied); uses the GATED 0050 columns from PR #138 plus **one new GATED migration 0051** (a unique index = one result row per order).
