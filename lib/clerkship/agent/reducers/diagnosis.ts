@@ -8,10 +8,13 @@ import type {
   ReasoningMap,
 } from "@/lib/clerkship/agent/types";
 
+import { featurePresent } from "@/lib/clerkship/agent/aliases";
 import { normalizeFeature } from "@/lib/clerkship/agent/normalize";
 import { matchedMaps } from "@/lib/clerkship/agent/reducers/maps";
 
-const present = (idx: FeatureIndex, f: string) => idx.presentDisplays.has(normalizeFeature(f));
+// Alias-aware: matches the map's prose feature against catalog tokens (handles
+// vocabulary near-misses like "Crushing" → "Crushing / pressing").
+const present = featurePresent;
 
 function scoreDifferential(idx: FeatureIndex, d: MapDifferential) {
   const ruleInHit = d.ruleIn.filter((f) => present(idx, f));

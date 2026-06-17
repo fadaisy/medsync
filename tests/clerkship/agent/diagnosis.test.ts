@@ -91,6 +91,59 @@ describe("suggestDiagnoses", () => {
     expect(out.find((o) => o.suggests!.dx.startsWith("Musculoskeletal"))).toBeUndefined();
   });
 
+  it("aligns map prose to catalog tokens (Crushing/pressing · Left arm · diabetes screen)", () => {
+    const MAP2: ReasoningMap = {
+      code: "chest_pain",
+      display: "Chest pain",
+      triggerCodes: ["chest_pain"],
+      associated: [],
+      redFlags: [],
+      examTargets: [],
+      combinations: [],
+      differential: [
+        {
+          dx: "ACS",
+          likelihood: "must_not_miss",
+          ruleIn: ["Crushing", "Radiation to left arm"],
+          ruleOut: [],
+          supportingSymptoms: [],
+          refutingSymptoms: [],
+          riskFactors: ["diabetes mellitus"],
+        },
+      ],
+    };
+    const i = input({
+      hpcItems: [
+        {
+          symptomCode: "chest_pain",
+          symptomDisplay: "Chest pain",
+          properties: [
+            {
+              propertyCode: "cp_character",
+              propertyDisplay: "Character",
+              valueType: "single_select",
+              labels: ["Crushing / pressing"],
+            },
+            {
+              propertyCode: "cp_radiation",
+              propertyDisplay: "Radiation",
+              valueType: "multi_select",
+              labels: ["Left arm"],
+            },
+          ],
+        },
+      ],
+      pmhScreen: { diabetes: "yes" },
+    });
+    const out = suggestDiagnoses(i, buildFeatureIndex(i), [MAP2]);
+    const acs = out.find((o) => o.suggests!.dx === "ACS")!;
+    const ev = acs.evidence.map((e) => e.label.toLowerCase());
+    expect(ev).toEqual(
+      expect.arrayContaining(["crushing", "radiation to left arm", "diabetes mellitus"]),
+    );
+    expect(acs.score!).toBeGreaterThanOrEqual(3);
+  });
+
   it("ruleOut present reduces score; must-not-miss still floats first", () => {
     const i = input({
       hpcItems: [
