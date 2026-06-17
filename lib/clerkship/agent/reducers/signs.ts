@@ -1,6 +1,7 @@
 import type {
   AgentInput,
   DependencyRule,
+  EvidenceItem,
   ExcludeItem,
   ExpectItem,
   FeatureIndex,
@@ -10,6 +11,21 @@ import type {
 
 import { normalizeFeature } from "@/lib/clerkship/agent/normalize";
 
+/**
+ * Does the rule's trigger fire? Matches on `when.match` tokens (the catalog /
+ * structured-exam tokens), falling back to the prose `when.sign` only when no
+ * match array is given. An explicit empty `match: []` never fires — used to keep
+ * a sourced rule on the record without surfacing it (e.g. incompatibilities that
+ * are already enforced by a single-select exam field). Returns the matched
+ * finding's provenance, or null when nothing fired.
+ */
+function whenHit(idx: FeatureIndex, when: { sign: string; match?: string[] }): EvidenceItem | null {
+  const tokens = (when.match ?? [when.sign]).map(normalizeFeature);
+  const tok = tokens.find((t) => idx.presentDisplays.has(t));
+  if (!tok) return null;
+  return idx.provenance.get(tok) ?? { label: when.sign, from: "exam" };
+}
+
 export function mustCheckSigns(
   _input: AgentInput,
   idx: FeatureIndex,
@@ -17,7 +33,8 @@ export function mustCheckSigns(
 ): Insight[] {
   const out: Insight[] = [];
   for (const r of rules) {
-    if (!idx.presentDisplays.has(normalizeFeature(r.when.sign))) continue;
+    const hit = whenHit(idx, r.when);
+    if (!hit) continue;
     const expects: ExpectItem[] = r.mustCheck.map((c) => ({
       label: c.sign,
       area: c.area,
@@ -29,9 +46,7 @@ export function mustCheckSigns(
       severity: "amber",
       target: { area: r.when.area, field: r.when.sign },
       message: `${r.when.sign} present — also characterise:`,
-      evidence: [
-        idx.provenance.get(normalizeFeature(r.when.sign)) ?? { label: r.when.sign, from: "exam" },
-      ],
+      evidence: [hit],
       expects,
       sourceRef: { pack: "sign-dependencies", entryId: r.id, citation: r.citation },
     });
@@ -46,7 +61,8 @@ export function incompatibleSigns(
 ): Insight[] {
   const out: Insight[] = [];
   for (const r of rules) {
-    if (!idx.presentDisplays.has(normalizeFeature(r.when.sign))) continue;
+    const hit = whenHit(idx, r.when);
+    if (!hit) continue;
     const excludes: ExcludeItem[] = r.implausible.map((x) => ({
       label: x.sign,
       area: x.area,
@@ -59,9 +75,7 @@ export function incompatibleSigns(
       severity: "info",
       target: { area: r.when.area, field: r.when.sign },
       message: r.reason,
-      evidence: [
-        idx.provenance.get(normalizeFeature(r.when.sign)) ?? { label: r.when.sign, from: "exam" },
-      ],
+      evidence: [hit],
       excludes,
       sourceRef: { pack: "sign-incompatibilities", entryId: r.id, citation: r.citation },
     });

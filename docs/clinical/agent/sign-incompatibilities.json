@@ -1,1 +1,39 @@
-[]
+[
+  {
+    "id": "resp-stonydull-vs-breath-character",
+    "when": {
+      "area": "respiratory",
+      "sign": "stony dull percussion (effusion)",
+      "match": ["stony dull percussion"]
+    },
+    "implausible": [
+      { "area": "respiratory", "sign": "bronchial breath sounds at that zone" },
+      { "area": "respiratory", "sign": "vesicular (normal) breath sounds at that zone" },
+      { "area": "respiratory", "sign": "increased vocal resonance at that zone" }
+    ],
+    "reason": "Stony dullness = pleural fluid between lung + chest wall, which characteristically abolishes breath sounds and reduces vocal resonance at that zone — so audible/bronchial breath sounds + increased vocal resonance there are unlikely.",
+    "scope": "same_zone",
+    "confidence": "moderate",
+    "citation": "Macleod's Clinical Examination 15th ed. (2023)",
+    "needs_cso_input": true,
+    "cso_reason": "Cross-parameter physiological link (not a single-select rule); a thin effusion over consolidation can rarely give mixed signs — soft + overridable. CSO to confirm dim-vs-no-dim."
+  },
+  {
+    "id": "resp-absent-breath-sounds-cross",
+    "when": {
+      "area": "respiratory",
+      "sign": "absent breath sounds",
+      "match": ["absent breath sounds"]
+    },
+    "implausible": [
+      { "area": "respiratory", "sign": "increased vocal resonance at that zone" },
+      { "area": "respiratory", "sign": "crackles at that zone" },
+      { "area": "respiratory", "sign": "wheeze at that zone" }
+    ],
+    "reason": "If breath sounds are truly absent over a zone, added sounds (crackles, wheeze) and increased vocal resonance cannot be present there.",
+    "scope": "same_zone",
+    "confidence": "high",
+    "citation": "Macleod's Clinical Examination 15th ed. (2023)",
+    "needs_cso_input": false
+  }
+]
