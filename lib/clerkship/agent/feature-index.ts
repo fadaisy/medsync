@@ -182,6 +182,22 @@ function indexStructuredExam(input: AgentInput, idx: FeatureIndex) {
   if (neuro.wasting === true) tok("wasting");
   if (neuro.fasciculations === true) tok("fasciculations");
   if (asArr(neuro.meningism).length) tok("meningism");
+  // facial weakness — a present cn_vii (VII — facial) finding with a UMN/LMN
+  // forehead value (its value chips both contain "forehead").
+  const neuroFindings = asArr(neuro.findings) as {
+    code?: string;
+    state?: string;
+    values?: string[];
+  }[];
+  if (
+    neuroFindings.some(
+      (f) =>
+        f?.code === "cn_vii" &&
+        f?.state === "present" &&
+        (f.values ?? []).some((v) => /forehead/i.test(String(v))),
+    )
+  )
+    tok("facial weakness");
 
   // General — nodes → lymphadenopathy (clubbing / pallor / jaundice already index
   // via their finding value chips).
