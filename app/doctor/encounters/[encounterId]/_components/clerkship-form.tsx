@@ -50,7 +50,7 @@ import {
   submitClerkshipAction,
 } from "../actions";
 import { AbdominalExam } from "./abdominal-exam";
-import { AgentExamNotes, AgentNudges, AgentSafetyStrip } from "./agent-insights";
+import { AgentExamNotes, AgentNudges, AgentSafetyStrip, AgentVitalFlags } from "./agent-insights";
 import { AssessmentTab } from "./assessment-tab";
 import { CardiovascularExam } from "./cardiovascular-exam";
 import { EvfExamForm } from "./evf-exam";
@@ -603,6 +603,10 @@ export function ClerkshipForm({
                       bpStandard={bpStandard}
                       onBpStandardChange={setBpStandard}
                     />
+
+                    {/* Vitals-in-context: urgency (amber) + emergency (red). Red also
+                        rides the always-visible safety strip above. */}
+                    <AgentVitalFlags insights={insights} />
 
                     {/* System switcher — each examination is its own card */}
                     <div className="border-border/70 bg-muted/30 flex flex-wrap gap-1 rounded-lg border p-1">

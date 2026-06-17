@@ -85,4 +85,34 @@ describe("vitalFlags", () => {
     const input = base({ examVitals: { sbp: 150, dbp: 95 } });
     expect(vitalFlags(input, buildFeatureIndex(input), [BP_RULE])).toEqual([]);
   });
+
+  it("escalation fires on catalog match-tokens, not the verbose prose feature", () => {
+    const RULE: VitalsEscalationRule = {
+      ...BP_RULE,
+      escalation: {
+        anyOf: [
+          {
+            feature: "severe headache, visual disturbance or confusion (encephalopathy)",
+            match: ["headache", "visual disturbance"],
+          },
+        ],
+        tier: BP_RULE.escalation.tier,
+      },
+    };
+    const input = base({
+      examVitals: { sbp: 204, dbp: 112 },
+      ros: [
+        {
+          symptomCode: "visual_disturbance",
+          symptomDisplay: "Visual disturbance",
+          system: "neurological",
+          status: "present",
+        },
+      ],
+    });
+    const out = vitalFlags(input, buildFeatureIndex(input), [RULE]);
+    expect(out).toHaveLength(1);
+    expect(out[0]!.severity).toBe("red");
+    expect(out[0]!.evidence.some((e) => e.label.toLowerCase() === "visual disturbance")).toBe(true);
+  });
 });

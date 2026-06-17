@@ -181,7 +181,14 @@ export interface VitalsEscalationRule {
   };
   baseTier: { label: string; severity: Severity; ddx: string[]; action: string };
   escalation: {
-    anyOf: { feature: string }[];
+    /**
+     * Accompanying clinical features that escalate the base tier. `feature` is the
+     * cited human-readable prose; `match` are the catalog DISPLAY tokens (normalized
+     * + matched against the feature index) that make it fire. No `match` → the
+     * prose itself is matched (rare). Unmappable features carry `match: []` — shown
+     * for context but never auto-fire (honest: no fabricated match).
+     */
+    anyOf: { feature: string; match?: string[] }[];
     tier: { label: string; severity: Severity; ddx: string[]; action: string };
   };
   citation: string;

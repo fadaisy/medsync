@@ -6,7 +6,7 @@
  * border + bg + ring + glyph. See docs/design/clerkship-agent-gate-a.md.
  */
 import type { ClerkArea, Insight } from "@/lib/clerkship/agent";
-import { AlertTriangleIcon, CircleAlertIcon, SparklesIcon } from "lucide-react";
+import { ActivityIcon, AlertTriangleIcon, CircleAlertIcon, SparklesIcon } from "lucide-react";
 
 const PACK_LABEL: Record<string, string> = {
   "enriched-reasoning-maps": "maps",
@@ -67,6 +67,67 @@ export function AgentSafetyStrip({ insights }: { insights: Insight[] }) {
           <SrcTag insight={i} />
         </div>
       ))}
+    </div>
+  );
+}
+
+/**
+ * Vitals-in-context flags, shown under the vitals panel. Carries BOTH amber
+ * (urgency) and red (emergency) — the contextual interpretation of the vitals
+ * just entered. Red ones ALSO appear in the always-visible top strip; amber
+ * ones live only here (kept out of the top strip to avoid alarm fatigue).
+ */
+export function AgentVitalFlags({ insights }: { insights: Insight[] }) {
+  const flags = insights.filter((i) => i.kind === "vital-flag");
+  if (!flags.length) return null;
+  return (
+    <div className="flex flex-col gap-1.5">
+      {flags.map((i) => {
+        const red = i.severity === "red";
+        return (
+          <div
+            key={i.id}
+            className={`flex items-start gap-2 rounded-lg px-3 py-2 ring-1 ring-inset ${
+              red
+                ? "bg-red-50 ring-red-500/30 dark:bg-red-950/40"
+                : "bg-amber-50 ring-amber-300/60 dark:bg-amber-950/30"
+            }`}
+          >
+            {red ? (
+              <AlertTriangleIcon
+                className="mt-0.5 size-4 shrink-0 text-red-600 dark:text-red-400"
+                aria-hidden
+              />
+            ) : (
+              <ActivityIcon
+                className="mt-0.5 size-4 shrink-0 text-amber-600 dark:text-amber-400"
+                aria-hidden
+              />
+            )}
+            <div className="min-w-0 flex-1">
+              <p
+                className={`text-[12.5px] font-medium ${
+                  red ? "text-red-900 dark:text-red-100" : "text-amber-900 dark:text-amber-100"
+                }`}
+              >
+                {i.message}
+              </p>
+              {i.evidence.length ? (
+                <p
+                  className={`mt-0.5 text-[10.5px] ${
+                    red
+                      ? "text-red-700/80 dark:text-red-300/80"
+                      : "text-amber-700/80 dark:text-amber-300/80"
+                  }`}
+                >
+                  {i.evidence.map((e) => e.label).join(" · ")}
+                </p>
+              ) : null}
+            </div>
+            <SrcTag insight={i} />
+          </div>
+        );
+      })}
     </div>
   );
 }
