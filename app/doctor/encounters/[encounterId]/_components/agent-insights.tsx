@@ -123,7 +123,10 @@ export function AgentRail({ insights }: { insights: Insight[] }) {
   const asks = insights.filter((i) => i.kind === "association");
   const looks = insights.filter((i) => i.kind === "expected-sign");
   const toCheck = insights.filter((i) => i.kind === "must-check" || i.kind === "incompatible");
-  const dxCount = insights.filter((i) => i.kind === "diagnosis").length;
+  const dx = insights.filter((i) => i.kind === "diagnosis");
+  const leading = dx.find((i) => i.tier === "leading");
+  const mnmCount = dx.filter((i) => i.suggests?.mustNotMiss).length;
+  const dxCount = dx.length;
 
   if (
     !emergencies.length &&
@@ -210,8 +213,14 @@ export function AgentRail({ insights }: { insights: Insight[] }) {
 
       {dxCount ? (
         <RailSection label="Assessment" tone="muted">
-          <p className="text-foreground/80 text-[11.5px]">
-            {dxCount} suggested diagnos{dxCount === 1 ? "is" : "es"} —{" "}
+          {leading ? (
+            <p className="text-[11.5px]">
+              <span className="font-semibold text-teal-700 dark:text-teal-400">Leading: </span>
+              <span className="text-foreground/80">{leading.suggests?.dx}</span>
+            </p>
+          ) : null}
+          <p className="text-muted-foreground text-[11px]">
+            {dxCount} in differential{mnmCount ? ` · ${mnmCount} must-not-miss` : ""} —{" "}
             <span className="text-teal-700 dark:text-teal-400">see the Assessment tab</span>
           </p>
         </RailSection>
