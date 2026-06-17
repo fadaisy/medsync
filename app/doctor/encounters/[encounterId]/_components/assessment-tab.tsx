@@ -11,6 +11,7 @@ import type { ClerkDifferential } from "@/lib/encounter/clerkship";
 import { CheckIcon, PlusIcon, XIcon } from "lucide-react";
 
 import { Label } from "@/components/ui/label";
+import { groupSuggestions } from "../_lib/ddx-grouping";
 
 const PROV_ORDER: ProvenanceFrom[] = ["vitals", "hpc", "ros", "exam", "background"];
 
@@ -87,12 +88,10 @@ export function AssessmentTab({
   const excluded = differential.filter((d) => d.status === "excluded");
   const suggestions = diagnoses.filter((i) => i.suggests && !committed.has(norm(i.suggests.dx)));
 
-  // Ranked mode: insights carry a tier. Group for display; must-not-miss is pinned
-  // separately unless it is already Leading. Flat mode (no tier) → single list.
-  const ranked = suggestions.some((i) => i.tier);
-  const leadIds = new Set(suggestions.filter((i) => i.tier === "leading").map((i) => i.id));
-  const tierItems = (t: string) => suggestions.filter((i) => i.tier === t);
-  const pinned = suggestions.filter((i) => i.suggests?.mustNotMiss && !leadIds.has(i.id));
+  // Ranked mode: insights carry a tier. Group (pure) for display; a must-not-miss
+  // shows exactly once — Leading or pinned — never duplicated. Flat mode → list.
+  const g = groupSuggestions(suggestions);
+  const ranked = g.ranked;
 
   return (
     <div className="flex flex-col gap-5">
@@ -158,44 +157,43 @@ export function AssessmentTab({
               <DxTierGroup
                 label="Leading"
                 tone="teal"
-                items={tierItems("leading")}
+                items={g.leading}
                 onAdd={addWorking}
                 onExclude={exclude}
               />
               <DxTierGroup
                 label="Worth considering"
                 tone="sky"
-                items={tierItems("consider")}
+                items={g.consider}
                 onAdd={addWorking}
                 onExclude={exclude}
               />
               <DxTierGroup
                 label="Less likely"
                 tone="muted"
-                items={tierItems("less_likely")}
+                items={g.lessLikely}
                 onAdd={addWorking}
                 onExclude={exclude}
               />
-              {pinned.length ? (
+              {g.pinned.length ? (
                 <DxTierGroup
                   label="Must-not-miss — keep excluding"
                   tone="red"
-                  items={pinned}
+                  items={g.pinned}
                   onAdd={addWorking}
                   onExclude={exclude}
                 />
               ) : null}
-              {tierItems("ruled_down").filter((i) => !i.suggests?.mustNotMiss).length ? (
+              {g.ruledDown.length ? (
                 <details className="group">
                   <summary className="text-muted-foreground hover:text-foreground cursor-pointer list-none text-[11px] select-none">
-                    Ruled down (
-                    {tierItems("ruled_down").filter((i) => !i.suggests?.mustNotMiss).length}) ›
+                    Ruled down ({g.ruledDown.length}) ›
                   </summary>
                   <div className="mt-2">
                     <DxTierGroup
                       label=""
                       tone="muted"
-                      items={tierItems("ruled_down").filter((i) => !i.suggests?.mustNotMiss)}
+                      items={g.ruledDown}
                       onAdd={addWorking}
                       onExclude={exclude}
                     />
