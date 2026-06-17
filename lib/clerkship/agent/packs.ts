@@ -42,8 +42,10 @@ let cached: AgentPacks | null = null;
 
 export function loadAgentPacks(): AgentPacks {
   if (cached) return cached;
+  const approved = adaptMaps(rawMaps);
   cached = {
-    maps: mergeDdxWeights(adaptMaps(rawMaps), DDX_WEIGHT_FILES),
+    maps: approved,
+    rankedMaps: mergeDdxWeights(approved, DDX_WEIGHT_FILES),
     incompatibilities: rawIncompat as IncompatibilityRule[],
     dependencies: rawDeps as DependencyRule[],
     vitalsEscalation: rawVitals as VitalsEscalationRule[],

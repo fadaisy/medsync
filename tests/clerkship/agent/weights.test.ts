@@ -133,4 +133,100 @@ describe("mergeDdxWeights", () => {
     const merged = mergeDdxWeights(maps, []);
     expect(merged[0]!.differential[0]!.basePrior).toBeUndefined();
   });
+
+  it("appends a new dx that matches no existing differential", () => {
+    const merged = mergeDdxWeights(maps, [
+      {
+        complaint: "chest_pain",
+        weights: [
+          {
+            dx: "Aortic dissection",
+            likelihood: "must_not_miss",
+            featureWeights: { "tearing pain": 4, "back radiation": 3 },
+            riskFactors: ["hypertension", "Marfan syndrome"],
+            supportingSymptoms: ["pulse deficit", "unequal BP"],
+          },
+        ],
+      },
+    ]);
+    const diff = merged[0]!.differential;
+    // Still has the original dx
+    expect(diff.some((d) => d.dx === "Acute coronary syndrome")).toBe(true);
+    // New dx appended
+    const appended = diff.find((d) => d.dx === "Aortic dissection");
+    expect(appended).toBeDefined();
+    expect(appended!.likelihood).toBe("must_not_miss");
+    expect(appended!.featureWeights).toEqual({ "tearing pain": 4, "back radiation": 3 });
+    expect(appended!.riskFactors).toEqual(["hypertension", "Marfan syndrome"]);
+    // supportingSymptoms wrapped to {system, symptom} objects
+    expect(appended!.supportingSymptoms).toEqual([
+      { system: "", symptom: "pulse deficit" },
+      { system: "", symptom: "unequal BP" },
+    ]);
+    // Total differential length increased by 1
+    expect(diff).toHaveLength(2);
+  });
+
+  it("overlay by dx name does NOT duplicate an existing dx", () => {
+    const merged = mergeDdxWeights(maps, [
+      {
+        complaint: "chest_pain",
+        weights: [{ dx: "Acute coronary syndrome", basePrior: 5 }],
+      },
+    ]);
+    const diff = merged[0]!.differential;
+    // Exactly one ACS entry (overlaid, not duplicated)
+    expect(diff.filter((d) => d.dx === "Acute coronary syndrome")).toHaveLength(1);
+    expect(diff[0]!.basePrior).toBe(5);
+    expect(diff).toHaveLength(1);
+  });
+
+  it("appends a new dx matched by dxCode when both sides have one", () => {
+    const mapsWithCode: ReasoningMap[] = [
+      {
+        code: "chest_pain",
+        display: "Chest pain",
+        triggerCodes: ["chest_pain"],
+        associated: [],
+        redFlags: [],
+        examTargets: [],
+        combinations: [],
+        differential: [
+          {
+            dx: "Acute coronary syndrome",
+            dxCode: "I21",
+            likelihood: "must_not_miss",
+            ruleIn: ["Exertional"],
+            ruleOut: [],
+            supportingSymptoms: [],
+            refutingSymptoms: [],
+            riskFactors: [],
+          },
+        ],
+      },
+    ];
+    const merged = mergeDdxWeights(mapsWithCode, [
+      {
+        complaint: "chest_pain",
+        weights: [
+          {
+            dxCode: "I33",
+            dx: "Infective endocarditis",
+            likelihood: "less_likely",
+            ruleIn: ["fever", "new murmur"],
+            ruleOut: [],
+            supportingSymptoms: ["splinter haemorrhages"],
+            refutingSymptoms: [],
+            riskFactors: ["IVDU"],
+          },
+        ],
+      },
+    ]);
+    const diff = merged[0]!.differential;
+    const ie = diff.find((d) => d.dxCode === "I33");
+    expect(ie).toBeDefined();
+    expect(ie!.dx).toBe("Infective endocarditis");
+    expect(ie!.likelihood).toBe("less_likely");
+    expect(diff).toHaveLength(2);
+  });
 });

@@ -35,10 +35,12 @@ export function runClerkshipAgent(
     insights.push(...mapExpectedSigns(input, idx, packs.maps));
     insights.push(...combinationFlags(input, idx, packs.maps));
     insights.push(
-      ...suggestDiagnoses(input, idx, packs.maps, {
-        ranked: config.activePacks.ddxRanking,
-        demographics: input.demographics,
-      }),
+      ...suggestDiagnoses(
+        input,
+        idx,
+        config.activePacks.ddxRanking ? packs.rankedMaps : packs.maps,
+        { ranked: config.activePacks.ddxRanking, demographics: input.demographics },
+      ),
     );
   }
   if (config.activePacks.vitalsEscalation)

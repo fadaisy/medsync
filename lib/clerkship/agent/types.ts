@@ -242,6 +242,8 @@ export interface VitalsEscalationRule {
 
 export interface AgentPacks {
   maps: ReasoningMap[];
+  /** maps + sourced overlays + appended new diagnoses — used ONLY in ranked mode. */
+  rankedMaps: ReasoningMap[];
   incompatibilities: IncompatibilityRule[];
   dependencies: DependencyRule[];
   vitalsEscalation: VitalsEscalationRule[];

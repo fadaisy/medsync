@@ -142,6 +142,13 @@ export interface DdxWeightEntry {
   confidence?: string;
   needsCsoInput?: boolean;
   weightCitation?: string;
+  // Core fields for an APPENDED new differential (omit for pure weight overlays):
+  likelihood?: string; // "must_not_miss" | "likely" | "less_likely"
+  ruleIn?: string[];
+  ruleOut?: string[];
+  supportingSymptoms?: string[];
+  refutingSymptoms?: string[];
+  riskFactors?: string[];
 }
 /** One sourced file: a complaint code + its differential weight entries. */
 export interface DdxWeightFile {
@@ -161,7 +168,32 @@ const WEIGHT_KEYS: (keyof DdxWeightEntry)[] = [
   "weightCitation",
 ];
 
-/** Merge sourced weight files onto the maps (pure; identity by dxCode, else name). */
+function entryMatchesDifferential(e: DdxWeightEntry, d: MapDifferential): boolean {
+  return e.dxCode && d.dxCode
+    ? e.dxCode === d.dxCode
+    : normalizeFeature(e.dx ?? "") === normalizeFeature(d.dx);
+}
+
+/** Build a full MapDifferential from a sourced entry that introduces a NEW dx. */
+function toDifferential(e: DdxWeightEntry): MapDifferential {
+  const patch: Record<string, unknown> = {};
+  for (const k of WEIGHT_KEYS)
+    if ((e as Record<string, unknown>)[k] !== undefined)
+      patch[k] = (e as Record<string, unknown>)[k];
+  return {
+    dx: e.dx ?? "",
+    likelihood: e.likelihood ?? "less_likely",
+    ruleIn: e.ruleIn ?? [],
+    ruleOut: e.ruleOut ?? [],
+    supportingSymptoms: (e.supportingSymptoms ?? []).map((s) => ({ system: "", symptom: s })),
+    refutingSymptoms: (e.refutingSymptoms ?? []).map((s) => ({ system: "", symptom: s })),
+    riskFactors: e.riskFactors ?? [],
+    ...patch,
+  } as MapDifferential;
+}
+
+/** Merge sourced weight files onto the maps (pure; identity by dxCode, else name).
+ *  Also appends entries whose dx matches no existing differential (new dx for ranked mode). */
 export function mergeDdxWeights(maps: ReasoningMap[], files: DdxWeightFile[]): ReasoningMap[] {
   if (!files.length) return maps;
   const byComplaint = new Map<string, DdxWeightEntry[]>();
@@ -170,17 +202,18 @@ export function mergeDdxWeights(maps: ReasoningMap[], files: DdxWeightFile[]): R
   return maps.map((m) => {
     const entries = byComplaint.get(m.code);
     if (!entries) return m;
-    const differential = m.differential.map((d) => {
-      const match = entries.find((e) =>
-        e.dxCode && d.dxCode
-          ? e.dxCode === d.dxCode
-          : normalizeFeature(e.dx ?? "") === normalizeFeature(d.dx),
-      );
+    const overlaid = m.differential.map((d) => {
+      const match = entries.find((e) => entryMatchesDifferential(e, d));
       if (!match) return d;
       const patch: Record<string, unknown> = {};
-      for (const k of WEIGHT_KEYS) if (match[k] !== undefined) patch[k] = match[k];
+      for (const k of WEIGHT_KEYS)
+        if ((match as Record<string, unknown>)[k] !== undefined)
+          patch[k] = (match as Record<string, unknown>)[k];
       return { ...d, ...patch };
     });
-    return { ...m, differential };
+    const appended = entries
+      .filter((e) => e.dx && !m.differential.some((d) => entryMatchesDifferential(e, d)))
+      .map(toDifferential);
+    return { ...m, differential: [...overlaid, ...appended] };
   });
 }
