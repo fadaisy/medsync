@@ -94,7 +94,8 @@ export function vitalFlags(
       kind: "vital-flag",
       severity: tier.severity,
       target: { area: "vitals" },
-      message: `${tier.label} — ${tier.ddx.join(", ")}. ${tier.action}`,
+      message: tier.label,
+      detail: `${tier.ddx.join(", ")}. ${tier.action}`,
       evidence: [vitalEvidence, ...featureEvidence],
       sourceRef: { pack: "vitals-escalation", entryId: rule.id, citation: rule.citation },
     });

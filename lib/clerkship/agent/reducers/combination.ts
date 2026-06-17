@@ -28,7 +28,8 @@ export function combinationFlags(
         kind: "combination",
         severity: c.mustNotMiss ? "red" : "amber",
         target: { area: "complaint" },
-        message: `${c.suggests}${c.action ? ` — ${c.action}` : ""}`,
+        message: c.suggests,
+        detail: c.action,
         evidence,
         suggests: { dx: c.suggests, mustNotMiss: c.mustNotMiss },
         sourceRef: {
