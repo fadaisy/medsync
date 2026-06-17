@@ -400,11 +400,13 @@ export function ClerkshipForm({
       <div
         className={
           hasRail
-            ? "xl:grid xl:grid-cols-[minmax(0,1fr)_17rem] xl:items-start xl:gap-4"
+            ? "xl:grid xl:grid-cols-[minmax(0,1fr)_22rem] xl:items-start xl:gap-5"
             : "mx-auto w-full max-w-4xl"
         }
       >
-        <div className={hasRail ? "mx-auto w-full max-w-4xl min-w-0 xl:mx-0" : "min-w-0"}>
+        <div
+          className={hasRail ? "mx-auto w-full max-w-4xl min-w-0 xl:mx-0 xl:max-w-none" : "min-w-0"}
+        >
           {recoveredDraftAt ? (
             <div className="scale-in mb-3 flex flex-wrap items-center gap-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-[12px] text-amber-900 dark:border-amber-800/60 dark:bg-amber-950/30 dark:text-amber-200">
               <RefreshCwIcon className="size-3.5 shrink-0" aria-hidden />
