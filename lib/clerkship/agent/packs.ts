@@ -11,11 +11,18 @@ import type {
   ReasoningMap,
   VitalsEscalationRule,
 } from "@/lib/clerkship/agent/types";
+import type { DdxWeightFile } from "@/lib/clerkship/agent/weights";
 
 import rawDeps from "@/docs/clinical/agent/sign-dependencies.json";
 import rawIncompat from "@/docs/clinical/agent/sign-incompatibilities.json";
 import rawVitals from "@/docs/clinical/agent/vitals-escalation.json";
 import rawMaps from "@/docs/clinical/enriched-reasoning-maps.json";
+import { mergeDdxWeights } from "@/lib/clerkship/agent/weights";
+
+// Sourced per-complaint weight files (one import per complaint as chunks land).
+// CHUNK-1: none yet — bootstrap from the approved maps. Add imports here, e.g.:
+//   import chestPainWeights from "@/docs/clinical/agent/ddx-weights/chest_pain.json";
+const DDX_WEIGHT_FILES: DdxWeightFile[] = [];
 
 function adaptMaps(raw: unknown): ReasoningMap[] {
   if (!Array.isArray(raw)) return [];
@@ -36,7 +43,7 @@ let cached: AgentPacks | null = null;
 export function loadAgentPacks(): AgentPacks {
   if (cached) return cached;
   cached = {
-    maps: adaptMaps(rawMaps),
+    maps: mergeDdxWeights(adaptMaps(rawMaps), DDX_WEIGHT_FILES),
     incompatibilities: rawIncompat as IncompatibilityRule[],
     dependencies: rawDeps as DependencyRule[],
     vitalsEscalation: rawVitals as VitalsEscalationRule[],
