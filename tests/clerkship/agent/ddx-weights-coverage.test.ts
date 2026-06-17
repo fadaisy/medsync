@@ -13,10 +13,31 @@ describe("ddx-weights coverage", () => {
     }
   });
 
+  it("every rankedMaps differential has a stable identity for cross-complaint matching", () => {
+    const { rankedMaps } = loadAgentPacks();
+    for (const m of rankedMaps) {
+      const keys = m.differential.map((d) => d.dxCode ?? d.dx.trim().toLowerCase());
+      expect(new Set(keys).size).toBe(keys.length); // no duplicate dx within a complaint
+    }
+  });
+
   it("any merged sourced weights landed on a real differential (no orphan weights)", () => {
     const { maps } = loadAgentPacks();
     // A differential carrying weight fields must still carry its approved core fields.
     for (const m of maps) {
+      for (const d of m.differential) {
+        if (d.basePrior !== undefined || d.featureWeights) {
+          expect(typeof d.dx).toBe("string");
+          expect(Array.isArray(d.ruleIn)).toBe(true);
+        }
+      }
+    }
+  });
+
+  it("any merged sourced weights in rankedMaps landed on a real differential (no orphan weights)", () => {
+    const { rankedMaps } = loadAgentPacks();
+    // A differential carrying weight fields must still carry its approved core fields.
+    for (const m of rankedMaps) {
       for (const d of m.differential) {
         if (d.basePrior !== undefined || d.featureWeights) {
           expect(typeof d.dx).toBe("string");
