@@ -41,6 +41,30 @@ export type InsightKind =
 export type Severity = "info" | "amber" | "red";
 export type ProvenanceFrom = "hpc" | "ros" | "exam" | "vitals" | "background";
 
+/** Read-only patient demographics fed to the agent (resolved server-side). */
+export interface Demographics {
+  ageYears: number | null;
+  sex: string | null;
+}
+
+/** An age band for a demographic prior: matches when ageYears ∈ [minAge, maxAge]. */
+export interface AgeBand {
+  minAge?: number;
+  maxAge?: number;
+  delta: number;
+}
+
+/** One signed term contributing to a diagnosis score (drives the "why" chips). */
+export type ContributionSource = "base" | "age" | "sex" | "feature" | "risk" | "interaction";
+export interface Contribution {
+  source: ContributionSource;
+  label: string;
+  delta: number;
+}
+
+/** Score-based tier for a ranked diagnosis. Must-not-miss pinning is separate. */
+export type DxTier = "leading" | "consider" | "less_likely" | "ruled_down";
+
 export interface EvidenceItem {
   label: string;
   from: ProvenanceFrom;
@@ -80,6 +104,10 @@ export interface Insight {
   detail?: string;
   /** Diagnosis ranking score (higher = better supported). Diagnosis insights only. */
   score?: number;
+  /** Ranked-differential tier (diagnosis insights, ranking mode only). */
+  tier?: DxTier;
+  /** Signed terms that produced the score (diagnosis insights, ranking mode). */
+  contributions?: Contribution[];
   sourceRef: SourceRef;
 }
 
@@ -94,6 +122,7 @@ export interface AgentConfig {
     vitalsEscalation: boolean;
     incompatibilities: boolean;
     dependencies: boolean;
+    ddxRanking: boolean;
   };
 }
 
@@ -112,6 +141,7 @@ export interface AgentInput {
   examNeurological: NeuroExam;
   examMusculoskeletal: MskExam;
   examEndoVascularFoot: EvfExam;
+  demographics?: Demographics;
 }
 
 /** A normalized index of present/denied features for matching. */
@@ -136,6 +166,16 @@ export interface MapDifferential {
   supportingSymptoms: { system: string; symptom: string }[];
   refutingSymptoms: { system: string; symptom: string }[];
   riskFactors: string[];
+  /** ── Sourced weights (optional; absent → derived from the fields above). ── */
+  dxCode?: string;
+  basePrior?: number;
+  agePrior?: AgeBand[];
+  sexPrior?: Partial<Record<string, number>>;
+  featureWeights?: Record<string, number>;
+  riskWeights?: Record<string, number>;
+  confidence?: string;
+  needsCsoInput?: boolean;
+  weightCitation?: string;
 }
 export interface MapExamTarget {
   area: string;
