@@ -1,1 +1,532 @@
-[]
+[
+  {
+    "id": "cvs-murmur-characterise",
+    "when": { "area": "cardiovascular", "sign": "cardiac murmur", "match": ["cardiac murmur"] },
+    "mustCheck": [
+      {
+        "area": "cardiovascular",
+        "sign": "timing (systolic vs diastolic)",
+        "why": "First discriminator of the lesion (systolic AS/MR vs diastolic AR/MS)."
+      },
+      {
+        "area": "cardiovascular",
+        "sign": "site of maximal intensity + radiation",
+        "why": "Localises the valve (AS → carotids; MR → axilla)."
+      },
+      {
+        "area": "cardiovascular",
+        "sign": "character, pitch + intensity (grade)",
+        "why": "Ejection vs pansystolic vs decrescendo distinguishes lesions; grade aids severity."
+      },
+      {
+        "area": "cardiovascular",
+        "sign": "dynamic manoeuvres (respiration, hand-grip, squat/stand)",
+        "why": "Right-sided murmurs ↑ on inspiration; manoeuvres separate AS/HOCM/MR."
+      },
+      {
+        "area": "cardiovascular",
+        "sign": "peripheral signs of severity (pulse character, pulse pressure, apex, failure signs)",
+        "why": "Slow-rising/narrow pulse pressure (severe AS), collapsing/wide (severe AR)."
+      }
+    ],
+    "confidence": "high",
+    "ugandaNote": "Rheumatic heart disease → mixed/multiple valve lesions are common; characterise EACH murmur; consider infective endocarditis.",
+    "citation": "Macleod's Clinical Examination 15th ed. (2023)",
+    "needs_cso_input": false
+  },
+  {
+    "id": "cvs-irregularly-irregular-pulse",
+    "when": {
+      "area": "cardiovascular",
+      "sign": "irregularly irregular pulse",
+      "match": ["irregularly irregular pulse"]
+    },
+    "mustCheck": [
+      {
+        "area": "cardiovascular",
+        "sign": "apex-radial (pulse) deficit",
+        "why": "An apical rate exceeding radial confirms AF + ineffective beats."
+      },
+      {
+        "area": "cardiovascular",
+        "sign": "signs of heart failure (raised JVP, basal crackles, oedema, displaced apex)",
+        "why": "AF commonly coexists with / precipitates failure."
+      },
+      {
+        "area": "cardiovascular",
+        "sign": "mitral stenosis signs (loud S1, tapping apex, mid-diastolic murmur)",
+        "why": "Rheumatic mitral disease is a leading AF cause (high Uganda relevance)."
+      },
+      {
+        "area": "neurological",
+        "sign": "focal neurological deficit (embolic screen)",
+        "why": "AF is a major cause of cardioembolic stroke."
+      },
+      {
+        "area": "general",
+        "sign": "thyroid status (thyrotoxicosis)",
+        "why": "A reversible AF driver."
+      }
+    ],
+    "confidence": "high",
+    "ugandaNote": "Rheumatic mitral stenosis + thyrotoxicosis are common, treatable AF causes; anticoagulation monitoring (INR) varies.",
+    "citation": "Talley & O'Connor's Clinical Examination 9th ed. (2021)",
+    "needs_cso_input": false
+  },
+  {
+    "id": "cvs-raised-jvp",
+    "when": { "area": "cardiovascular", "sign": "raised JVP", "match": ["raised jvp"] },
+    "mustCheck": [
+      {
+        "area": "cardiovascular",
+        "sign": "JVP waveform + hepatojugular reflux; pulsatile (venous) vs non-pulsatile (SVC obstruction)",
+        "why": "Waveform (large v waves = TR) + reflux refine the cause."
+      },
+      {
+        "area": "cardiovascular",
+        "sign": "right/biventricular failure signs (oedema, tender hepatomegaly, basal crackles)",
+        "why": "Confirms congestion + extent."
+      },
+      {
+        "area": "cardiovascular",
+        "sign": "pericardial signs (pulsus paradoxus, muffled sounds, rub, Kussmaul's sign)",
+        "why": "Tamponade / constriction are reversible must-not-miss causes."
+      }
+    ],
+    "confidence": "high",
+    "ugandaNote": "Cor pulmonale (chronic lung disease / TB sequelae) and TB pericarditis are key causes.",
+    "citation": "Macleod's Clinical Examination 15th ed. (2023)",
+    "needs_cso_input": false
+  },
+  {
+    "id": "cvs-displaced-apex",
+    "when": {
+      "area": "cardiovascular",
+      "sign": "displaced apex beat",
+      "match": ["displaced apex"]
+    },
+    "mustCheck": [
+      {
+        "area": "cardiovascular",
+        "sign": "apex character (heaving/pressure vs thrusting/volume vs tapping)",
+        "why": "Pressure overload (AS/HTN) vs volume (AR/MR) vs MS."
+      },
+      {
+        "area": "cardiovascular",
+        "sign": "heaves + thrills; auscultate for murmurs, S3/S4",
+        "why": "Identifies the underlying valvular / myocardial lesion."
+      },
+      {
+        "area": "cardiovascular",
+        "sign": "signs of heart failure",
+        "why": "Cardiomegaly with a displaced apex often reflects failure."
+      }
+    ],
+    "confidence": "high",
+    "ugandaNote": "Dilated cardiomyopathy (peripartum, HIV-associated) + rheumatic valve disease are common.",
+    "citation": "Macleod's Clinical Examination 15th ed. (2023)",
+    "needs_cso_input": false
+  },
+  {
+    "id": "resp-dull-base",
+    "when": {
+      "area": "respiratory",
+      "sign": "dullness to percussion at a lung base",
+      "match": ["dull percussion", "stony dull percussion"]
+    },
+    "mustCheck": [
+      {
+        "area": "respiratory",
+        "sign": "breath sounds + vocal resonance over that zone",
+        "why": "Reduced/absent + reduced VR = effusion; bronchial + increased VR = consolidation."
+      },
+      {
+        "area": "respiratory",
+        "sign": "is it stony dull (effusion) vs dull (consolidation/collapse)?",
+        "why": "Stony dullness points to pleural fluid."
+      },
+      {
+        "area": "respiratory",
+        "sign": "tracheal position + chest expansion",
+        "why": "Shift away (large effusion) vs towards (collapse) localises + grades."
+      },
+      {
+        "area": "respiratory",
+        "sign": "added sounds (crackles, pleural rub)",
+        "why": "Crackles support consolidation; a rub suggests pleural inflammation."
+      }
+    ],
+    "confidence": "high",
+    "ugandaNote": "TB causes both effusion + consolidation; empyema / parapneumonic effusions are common.",
+    "citation": "Macleod's Clinical Examination 15th ed. (2023)",
+    "needs_cso_input": false
+  },
+  {
+    "id": "resp-bronchial-breathing",
+    "when": {
+      "area": "respiratory",
+      "sign": "bronchial breath sounds",
+      "match": ["bronchial breath sounds"]
+    },
+    "mustCheck": [
+      {
+        "area": "respiratory",
+        "sign": "vocal resonance / fremitus over the zone",
+        "why": "Increased VR confirms consolidation (lung conducts sound)."
+      },
+      {
+        "area": "respiratory",
+        "sign": "percussion note over the zone",
+        "why": "Dullness supports consolidation; helps exclude effusion."
+      },
+      {
+        "area": "respiratory",
+        "sign": "crackles + the rest of the respiratory exam",
+        "why": "Coarse crackles support consolidation; completes the pattern."
+      }
+    ],
+    "confidence": "high",
+    "ugandaNote": "Consolidation is commonly pneumonia or TB (+ PCP in HIV) — correlate with fever, cough, HIV status.",
+    "citation": "Hutchison's Clinical Methods 24th ed. (2018)",
+    "needs_cso_input": false
+  },
+  {
+    "id": "resp-reduced-expansion-unilateral",
+    "when": {
+      "area": "respiratory",
+      "sign": "reduced chest expansion on one side",
+      "match": ["reduced expansion"]
+    },
+    "mustCheck": [
+      {
+        "area": "respiratory",
+        "sign": "tracheal position",
+        "why": "Shift towards (collapse/fibrosis) vs away (large effusion / tension pneumothorax) localises."
+      },
+      {
+        "area": "respiratory",
+        "sign": "percussion + breath sounds on the affected side",
+        "why": "Stony-dull+absent (effusion), hyper-resonant+absent (pneumothorax), dull+bronchial (consolidation) define the cause."
+      }
+    ],
+    "confidence": "high",
+    "citation": "Macleod's Clinical Examination 15th ed. (2023)",
+    "needs_cso_input": false
+  },
+  {
+    "id": "resp-clubbing",
+    "when": { "area": "general", "sign": "finger clubbing", "match": ["clubbing"] },
+    "mustCheck": [
+      {
+        "area": "respiratory",
+        "sign": "full respiratory exam (suppurative / fibrotic / malignant lung disease)",
+        "why": "Bronchiectasis, abscess/empyema, fibrosis, carcinoma are key thoracic causes."
+      },
+      {
+        "area": "cardiovascular",
+        "sign": "signs of infective endocarditis / cyanotic heart disease",
+        "why": "Cardiac causes of clubbing."
+      },
+      { "area": "abdominal", "sign": "signs of chronic liver disease / IBD", "why": "GI causes." }
+    ],
+    "confidence": "high",
+    "ugandaNote": "Post-TB bronchiectasis + empyema are common Ugandan causes of clubbing.",
+    "citation": "Talley & O'Connor's Clinical Examination 9th ed. (2021)",
+    "needs_cso_input": false
+  },
+  {
+    "id": "abdo-hepatomegaly",
+    "when": { "area": "abdominal", "sign": "hepatomegaly", "match": ["hepatomegaly"] },
+    "mustCheck": [
+      {
+        "area": "abdominal",
+        "sign": "liver span, edge, surface, consistency, tenderness, pulsatility",
+        "why": "Span confirms enlargement; craggy/hard = malignancy, tender smooth = congestion/hepatitis, pulsatile = TR."
+      },
+      {
+        "area": "abdominal",
+        "sign": "splenomegaly",
+        "why": "Hepatosplenomegaly narrows the differential."
+      },
+      {
+        "area": "abdominal",
+        "sign": "ascites (shifting dullness / fluid thrill)",
+        "why": "Points to portal hypertension / CLD or malignancy."
+      },
+      {
+        "area": "abdominal",
+        "sign": "chronic liver disease signs (jaundice, spider naevi, palmar erythema, caput medusae) + flap",
+        "why": "Establishes chronicity + decompensation (encephalopathy)."
+      }
+    ],
+    "confidence": "high",
+    "ugandaNote": "HCC (hepatitis B, aflatoxin) presents as a hard, tender, rapidly enlarging liver; hepatitis B/C + congestive causes common.",
+    "citation": "Macleod's Clinical Examination 15th ed. (2023)",
+    "needs_cso_input": false
+  },
+  {
+    "id": "abdo-splenomegaly",
+    "when": { "area": "abdominal", "sign": "splenomegaly", "match": ["splenomegaly"] },
+    "mustCheck": [
+      {
+        "area": "abdominal",
+        "sign": "confirm it is spleen (can't get above it, moves with respiration, notch, dull) vs left kidney",
+        "why": "Distinguishes splenomegaly from a renal mass."
+      },
+      {
+        "area": "abdominal",
+        "sign": "degree of enlargement + hepatomegaly + ascites",
+        "why": "Massive vs moderate + hepatosplenomegaly narrow the cause."
+      },
+      {
+        "area": "general",
+        "sign": "lymphadenopathy + anaemia/bruising (haematological screen)",
+        "why": "Lymphoma/leukaemia + haemolysis present with splenomegaly + nodes/anaemia."
+      }
+    ],
+    "confidence": "high",
+    "ugandaNote": "Massive splenomegaly: hyper-reactive malarial splenomegaly, schistosomiasis, CML, lymphoma; early sickle cell.",
+    "citation": "Macleod's Clinical Examination 15th ed. (2023)",
+    "needs_cso_input": false
+  },
+  {
+    "id": "abdo-ascites",
+    "when": { "area": "abdominal", "sign": "ascites", "match": ["ascites"] },
+    "mustCheck": [
+      {
+        "area": "abdominal",
+        "sign": "confirm fluid (fluid thrill / shifting dullness) + exclude the other 'Fs' of distension",
+        "why": "Confirms fluid vs fat/flatus/faeces/fetus/mass."
+      },
+      {
+        "area": "abdominal",
+        "sign": "chronic liver disease + hepatosplenomegaly + portal hypertension (caput medusae)",
+        "why": "Differentiates portal-hypertensive ascites."
+      },
+      {
+        "area": "cardiovascular",
+        "sign": "raised JVP / right heart failure / constrictive pericarditis signs",
+        "why": "Cardiac ascites is an important reversible cause."
+      },
+      {
+        "area": "general",
+        "sign": "lymphadenopathy / cachexia / fever (malignancy, TB peritonitis)",
+        "why": "Malignant + tuberculous ascites are common, need specific work-up."
+      }
+    ],
+    "confidence": "high",
+    "ugandaNote": "TB peritonitis + malignancy are common alongside CLD (hepatitis B, schistosomal portal hypertension); diagnostic paracentesis is key.",
+    "citation": "Hutchison's Clinical Methods 24th ed. (2018)",
+    "needs_cso_input": false
+  },
+  {
+    "id": "abdo-localised-tenderness",
+    "when": {
+      "area": "abdominal",
+      "sign": "localised abdominal tenderness",
+      "match": ["abdominal tenderness"]
+    },
+    "mustCheck": [
+      {
+        "area": "abdominal",
+        "sign": "peritonism (guarding, rebound, percussion tenderness, rigidity)",
+        "why": "Distinguishes localised tenderness from peritonitis needing urgent surgical review."
+      },
+      {
+        "area": "abdominal",
+        "sign": "bowel sounds + percussion (obstruction / perforation)",
+        "why": "Absent sounds / board-like rigidity flag perforation; tinkling suggests obstruction."
+      },
+      {
+        "area": "general",
+        "sign": "fever + vitals (sepsis screen) + pregnancy test in reproductive-age women",
+        "why": "An acute abdomen with sepsis is time-critical; exclude ectopic pregnancy."
+      }
+    ],
+    "confidence": "moderate",
+    "ugandaNote": "Typhoid ileal perforation + complicated appendicitis are important causes; always consider ectopic pregnancy.",
+    "citation": "Talley & O'Connor's Clinical Examination 9th ed. (2021)",
+    "needs_cso_input": true,
+    "cso_reason": "Localised-tenderness follow-ups cross surgical/obstetric pathways; CSO to confirm IM-clerkship scope + the mandatory pregnancy-test prompt."
+  },
+  {
+    "id": "neuro-focal-limb-weakness",
+    "when": {
+      "area": "neurological",
+      "sign": "focal limb weakness",
+      "match": ["focal limb weakness"]
+    },
+    "mustCheck": [
+      {
+        "area": "neurological",
+        "sign": "tone (spastic vs flaccid) in the affected limb(s)",
+        "why": "↑ tone = UMN; ↓ tone (+ wasting/fasciculations) = LMN — the localisation step."
+      },
+      {
+        "area": "neurological",
+        "sign": "deep tendon reflexes + plantar response",
+        "why": "Brisk + upgoing plantar = UMN; absent = LMN."
+      },
+      {
+        "area": "neurological",
+        "sign": "power (MRC) + pattern (pyramidal / proximal / distal / single-nerve / hemiparesis)",
+        "why": "Localises the lesion (cortex/cord/root/plexus/nerve/muscle)."
+      },
+      {
+        "area": "neurological",
+        "sign": "sensory exam incl. a sensory level",
+        "why": "A sensory level is a red-flag pointer to cord compression (must-not-miss)."
+      },
+      {
+        "area": "neurological",
+        "sign": "coordination + gait (where safe)",
+        "why": "Adds cerebellar/functional information."
+      }
+    ],
+    "confidence": "high",
+    "ugandaNote": "Stroke, HIV CNS disease, spinal TB (Pott's) + B12 deficiency are key; a sensory level demands urgent cord-compression work-up.",
+    "citation": "Macleod's Clinical Examination 15th ed. (2023)",
+    "needs_cso_input": false
+  },
+  {
+    "id": "neuro-extensor-plantar",
+    "when": {
+      "area": "neurological",
+      "sign": "extensor (upgoing) plantar response",
+      "match": ["upgoing plantar"]
+    },
+    "mustCheck": [
+      {
+        "area": "neurological",
+        "sign": "tone + reflexes in the same limb (UMN corroboration)",
+        "why": "Confirms an UMN lesion (spasticity, hyper-reflexia)."
+      },
+      {
+        "area": "neurological",
+        "sign": "sensory level + spinal exam",
+        "why": "Localises a cord lesion + screens for compression (must-not-miss)."
+      },
+      {
+        "area": "neurological",
+        "sign": "higher function / cranial nerves (lesion above or below foramen magnum?)",
+        "why": "Distinguishes a cerebral from a cord cause."
+      }
+    ],
+    "confidence": "high",
+    "ugandaNote": "Pott's disease (spinal TB) + HIV myelopathy are important cord causes — UMN picture + sensory level needs urgent imaging/referral.",
+    "citation": "Macleod's Clinical Examination 15th ed. (2023)",
+    "needs_cso_input": false
+  },
+  {
+    "id": "neuro-absent-ankle-jerk",
+    "when": {
+      "area": "neurological",
+      "sign": "absent reflex (e.g. ankle jerk)",
+      "match": ["absent reflexes"]
+    },
+    "mustCheck": [
+      {
+        "area": "neurological",
+        "sign": "plantar response (paradoxically upgoing?)",
+        "why": "Absent ankle jerks WITH extensor plantars = classic mixed UMN+LMN (B12, MND, dual pathology)."
+      },
+      {
+        "area": "neurological",
+        "sign": "distal sensation (glove-and-stocking) incl. vibration/proprioception",
+        "why": "Peripheral neuropathy (diabetes, B12, HIV, alcohol) is the common cause."
+      },
+      {
+        "area": "general",
+        "sign": "diabetic-foot / vascular check if neuropathy suspected",
+        "why": "Links to protective-sensation loss + foot-risk stratification."
+      }
+    ],
+    "confidence": "moderate",
+    "ugandaNote": "Diabetic + HIV neuropathy + B12 deficiency are common; the diabetic-foot pathway follows loss of protective sensation.",
+    "citation": "Macleod's Clinical Examination 15th ed. (2023)",
+    "needs_cso_input": false
+  },
+  {
+    "id": "gen-lymphadenopathy",
+    "when": { "area": "general", "sign": "lymphadenopathy", "match": ["lymphadenopathy"] },
+    "mustCheck": [
+      {
+        "area": "general",
+        "sign": "localised vs generalised; all node groups (cervical, axillary, inguinal, epitrochlear, supraclavicular)",
+        "why": "Distribution reshapes the differential; supraclavicular (Virchow's) suggests intra-abdominal/thoracic malignancy."
+      },
+      {
+        "area": "general",
+        "sign": "node character (size, consistency, tenderness, matting, fixation)",
+        "why": "Rubbery (lymphoma), hard/fixed (carcinoma), tender (infective), matted (TB)."
+      },
+      {
+        "area": "abdominal",
+        "sign": "hepatosplenomegaly",
+        "why": "Lymphoma/leukaemia + chronic infection present with nodes + organomegaly."
+      }
+    ],
+    "confidence": "high",
+    "ugandaNote": "TB lymphadenitis, HIV (PGL), lymphoma + Kaposi-associated nodes are common — examine for HIV/TB context.",
+    "citation": "Talley & O'Connor's Clinical Examination 9th ed. (2021)",
+    "needs_cso_input": false
+  },
+  {
+    "id": "gen-pallor",
+    "when": {
+      "area": "general",
+      "sign": "conjunctival pallor (suspected anaemia)",
+      "match": ["conjunctival pallor"]
+    },
+    "mustCheck": [
+      {
+        "area": "general",
+        "sign": "jaundice + signs of haemolysis",
+        "why": "Pallor + jaundice points to haemolysis (sickle cell, malaria, G6PD)."
+      },
+      {
+        "area": "abdominal",
+        "sign": "splenomegaly + chronic liver disease signs",
+        "why": "Inform the anaemia cause."
+      },
+      {
+        "area": "general",
+        "sign": "koilonychia / glossitis / signs of bleeding or malnutrition",
+        "why": "Iron deficiency, chronic blood loss, nutritional causes."
+      }
+    ],
+    "confidence": "moderate",
+    "ugandaNote": "Anaemia is very common (malaria, sickle cell, hookworm/iron deficiency, HIV); severe anaemia is a danger sign needing transfusion access.",
+    "citation": "Macleod's Clinical Examination 15th ed. (2023)",
+    "needs_cso_input": false
+  },
+  {
+    "id": "gen-jaundice",
+    "when": {
+      "area": "general",
+      "sign": "jaundice (scleral icterus)",
+      "match": ["jaundice", "scleral icterus"]
+    },
+    "mustCheck": [
+      {
+        "area": "abdominal",
+        "sign": "hepatomegaly (character/tenderness) + splenomegaly + CLD signs + ascites",
+        "why": "Distinguishes hepatic/cholestatic from pre-hepatic + detects decompensation."
+      },
+      {
+        "area": "general",
+        "sign": "pallor (haemolysis) + depth/shade of jaundice",
+        "why": "Pallor + lemon tinge suggests haemolytic (pre-hepatic) jaundice."
+      },
+      {
+        "area": "abdominal",
+        "sign": "Courvoisier's sign (palpable gallbladder) / malignancy signs",
+        "why": "A palpable non-tender gallbladder + jaundice suggests malignant obstruction."
+      }
+    ],
+    "confidence": "high",
+    "ugandaNote": "Viral hepatitis (A/B/E), malaria (haemolysis), HCC + obstructive causes are common; in pregnancy consider hepatitis E.",
+    "citation": "Macleod's Clinical Examination 15th ed. (2023)",
+    "needs_cso_input": false
+  }
+]

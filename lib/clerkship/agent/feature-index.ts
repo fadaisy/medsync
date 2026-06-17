@@ -78,5 +78,120 @@ export function buildFeatureIndex(input: AgentInput): FeatureIndex {
     if (exam?.findings) indexExam(exam.findings, "exam");
   }
 
+  // Structured exam signs (percussion notes, pulse rhythm, organ palpability,
+  // tone/reflexes/plantar, …) live in scalar/per-zone fields that are NOT in the
+  // findings[] arrays — index them as semantic tokens so the agent can reason on
+  // them (sign-incompatibilities / must-check dependencies, and richer dx matching).
+  indexStructuredExam(input, idx);
+
   return idx;
+}
+
+/* ── structured-exam → semantic tokens (see docs/clinical/agent token scheme) ── */
+
+const strVals = (rec: unknown): string[] =>
+  rec && typeof rec === "object"
+    ? Object.values(rec as Record<string, unknown>).filter(
+        (v): v is string => typeof v === "string",
+      )
+    : [];
+const numVals = (rec: unknown): number[] =>
+  rec && typeof rec === "object"
+    ? Object.values(rec as Record<string, unknown>).filter(
+        (v): v is number => typeof v === "number",
+      )
+    : [];
+const asArr = (v: unknown): unknown[] => (Array.isArray(v) ? v : []);
+
+function indexStructuredExam(input: AgentInput, idx: FeatureIndex) {
+  const tok = (t: string) => add(idx, t, { label: t, from: "exam" });
+
+  // Respiratory (per-zone)
+  const resp = input.examRespiratory as Record<string, unknown>;
+  const perc = strVals(resp.percussion);
+  if (perc.includes("dull")) tok("dull percussion");
+  if (perc.includes("stony_dull")) tok("stony dull percussion");
+  if (perc.includes("hyper_resonant")) tok("hyper-resonant percussion");
+  const bs = strVals(resp.breathSounds);
+  if (bs.includes("bronchial")) tok("bronchial breath sounds");
+  if (bs.includes("reduced")) tok("reduced breath sounds");
+  if (bs.includes("absent")) tok("absent breath sounds");
+  const vr = strVals(resp.vocalResonance);
+  if (vr.includes("increased")) tok("increased vocal resonance");
+  if (vr.includes("reduced")) tok("reduced vocal resonance");
+  if (strVals(resp.expansion).includes("reduced")) tok("reduced expansion");
+  if (resp.trachea === "deviated_right" || resp.trachea === "deviated_left")
+    tok("deviated trachea");
+
+  // Cardiovascular
+  const cvs = input.examCardiovascular as Record<string, unknown>;
+  if (cvs.pulseRhythm === "irregularly_irregular") tok("irregularly irregular pulse");
+  if (cvs.pulseRhythm === "regularly_irregular") tok("regularly irregular pulse");
+  if (cvs.pulseCharacter === "collapsing") tok("collapsing pulse");
+  if (cvs.pulseCharacter === "slow_rising") tok("slow-rising pulse");
+  if (cvs.jvp === "raised") tok("raised jvp");
+  if (cvs.apexLocation === "displaced") tok("displaced apex");
+  if (cvs.apexCharacter === "heaving") tok("heaving apex");
+  if (cvs.apexCharacter === "tapping") tok("tapping apex");
+  if (cvs.apexCharacter === "thrusting") tok("thrusting apex");
+  if (cvs.s1 === "loud") tok("loud s1");
+  if (cvs.s1 === "soft") tok("soft s1");
+  const murmurs = asArr(cvs.murmurs);
+  if (murmurs.length) {
+    tok("cardiac murmur");
+    const timings = murmurs.map((m) =>
+      m && typeof m === "object" ? (m as Record<string, unknown>).timing : undefined,
+    );
+    if (
+      timings.some((t) => t === "ejection_systolic" || t === "pansystolic" || t === "late_systolic")
+    )
+      tok("systolic murmur");
+    if (timings.some((t) => t === "early_diastolic" || t === "mid_diastolic"))
+      tok("diastolic murmur");
+  }
+
+  // Abdominal
+  const abdo = input.examAbdominal as Record<string, unknown>;
+  if (abdo.tenderness && typeof abdo.tenderness === "object" && Object.keys(abdo.tenderness).length)
+    tok("abdominal tenderness");
+  if (strVals(abdo.guarding).includes("involuntary")) tok("involuntary guarding");
+  if (abdo.rigidity === "board_like") tok("board-like rigidity");
+  if (abdo.rigidity === "localised") tok("localised rigidity");
+  if (abdo.rebound === true) tok("rebound tenderness");
+  const liver = abdo.liver as Record<string, unknown> | undefined;
+  if (liver?.palpable === true) tok("hepatomegaly");
+  const spleen = abdo.spleen as Record<string, unknown> | undefined;
+  if (spleen?.palpable === true) tok("splenomegaly");
+  if (abdo.shiftingDullness === true || abdo.fluidThrill === true) tok("ascites");
+  if (abdo.bowelSounds === "absent") tok("absent bowel sounds");
+  if (abdo.bowelSounds === "tinkling") tok("tinkling bowel sounds");
+  if (abdo.aortaExpansile === true) tok("pulsatile mass");
+
+  // Neurological
+  const neuro = input.examNeurological as Record<string, unknown>;
+  const tone = strVals(neuro.tone);
+  if (tone.includes("spastic")) tok("spastic tone");
+  if (tone.includes("flaccid")) tok("flaccid tone");
+  if (tone.includes("rigid")) tok("rigid tone");
+  if (numVals(neuro.power).some((v) => v < 5)) tok("focal limb weakness");
+  const reflexes = strVals(neuro.reflexes);
+  if (reflexes.includes("absent")) tok("absent reflexes");
+  if (reflexes.includes("brisk") || reflexes.includes("clonus")) tok("brisk reflexes");
+  if (strVals(neuro.plantar).includes("up")) tok("upgoing plantar");
+  if (neuro.sensoryPattern === "sensory_level") tok("sensory level");
+  if (neuro.wasting === true) tok("wasting");
+  if (neuro.fasciculations === true) tok("fasciculations");
+  if (asArr(neuro.meningism).length) tok("meningism");
+
+  // General — nodes → lymphadenopathy (clubbing / pallor / jaundice already index
+  // via their finding value chips).
+  const nodeCodes = new Set([
+    "cervical_nodes",
+    "supraclavicular_nodes",
+    "axillary_nodes",
+    "inguinal_nodes",
+    "epitrochlear_nodes",
+  ]);
+  if (input.examGeneralFindings.some((f) => f.state === "present" && nodeCodes.has(f.code)))
+    tok("lymphadenopathy");
 }

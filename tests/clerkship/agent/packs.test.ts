@@ -12,10 +12,15 @@ describe("loadAgentPacks", () => {
     expect(cp!.triggerCodes).toContain("chest_pain");
   });
 
-  it("incompatibilities + dependencies packs ship empty until sourced (Phase 2)", () => {
+  it("dependencies + incompatibilities packs are sourced (cited, with match tokens)", () => {
     const packs = loadAgentPacks();
-    expect(packs.incompatibilities).toEqual([]);
-    expect(packs.dependencies).toEqual([]);
+    expect(packs.dependencies.length).toBeGreaterThan(0);
+    expect(packs.incompatibilities.length).toBeGreaterThan(0);
+    const murmur = packs.dependencies.find((r) => r.id === "cvs-murmur-characterise");
+    expect(murmur?.when.match).toContain("cardiac murmur");
+    expect(murmur?.mustCheck.length).toBeGreaterThan(0);
+    expect(packs.dependencies.every((r) => r.citation.length > 0)).toBe(true);
+    expect(packs.incompatibilities.every((r) => r.citation.length > 0)).toBe(true);
   });
 
   it("vitals-escalation pack is sourced (BP high/low present, cited)", () => {

@@ -135,6 +135,55 @@ describe("runClerkshipAgent", () => {
     expect(flags.some((f) => f.severity === "red")).toBe(true);
   });
 
+  it("real dependency pack: a murmur (structured) → must-check insight", () => {
+    const input: AgentInput = {
+      hpcItems: [],
+      ros: [],
+      pmhItems: [],
+      pmhScreen: {},
+      examVitals: {},
+      bpStandard: "who_esc",
+      examGeneralFindings: [],
+      examRespiratory: {},
+      examCardiovascular: {
+        murmurs: [{ id: "m1", timing: "pansystolic" }],
+      } as AgentInput["examCardiovascular"],
+      examAbdominal: {},
+      examNeurological: {},
+      examMusculoskeletal: {},
+      examEndoVascularFoot: {},
+    };
+    const report = runClerkshipAgent(input, loadAgentPacks(), ON);
+    const mc = report.insights.find((i) => i.kind === "must-check");
+    expect(mc).toBeTruthy();
+    expect(mc!.expects?.length).toBeGreaterThan(0);
+  });
+
+  it("dependencies pack disabled → no must-check insights", () => {
+    const input: AgentInput = {
+      hpcItems: [],
+      ros: [],
+      pmhItems: [],
+      pmhScreen: {},
+      examVitals: {},
+      bpStandard: "who_esc",
+      examGeneralFindings: [],
+      examRespiratory: {},
+      examCardiovascular: {
+        murmurs: [{ id: "m1", timing: "pansystolic" }],
+      } as AgentInput["examCardiovascular"],
+      examAbdominal: {},
+      examNeurological: {},
+      examMusculoskeletal: {},
+      examEndoVascularFoot: {},
+    };
+    const report = runClerkshipAgent(input, loadAgentPacks(), {
+      ...ON,
+      activePacks: { ...ON.activePacks, dependencies: false },
+    });
+    expect(report.insights.find((i) => i.kind === "must-check")).toBeUndefined();
+  });
+
   it("vitalsEscalation pack disabled → no vital-flag insights", () => {
     const report = runClerkshipAgent(
       {

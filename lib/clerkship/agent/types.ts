@@ -161,14 +161,17 @@ export interface ReasoningMap {
 
 export interface IncompatibilityRule {
   id: string;
-  when: { area: ClerkArea; sign: string; zone?: string };
+  /** `sign` is the human-readable trigger; `match` are the catalog/structured-exam
+   * tokens that make it fire (an empty `match: []` keeps the rule for the record
+   * but never fires — e.g. incompatibilities already enforced by a single-select). */
+  when: { area: ClerkArea; sign: string; zone?: string; match?: string[] };
   implausible: { area: ClerkArea; sign: string; zone?: string }[];
   reason: string;
   citation: string;
 }
 export interface DependencyRule {
   id: string;
-  when: { area: ClerkArea; sign: string };
+  when: { area: ClerkArea; sign: string; match?: string[] };
   mustCheck: { area: ClerkArea; sign: string; why: string }[];
   citation: string;
 }

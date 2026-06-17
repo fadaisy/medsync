@@ -89,4 +89,55 @@ describe("buildFeatureIndex", () => {
     expect(idx.presentDisplays.has("hypertension")).toBe(true);
     expect(idx.presentDisplays.has("diabetes")).toBe(false);
   });
+
+  it("structured exam fields index as semantic tokens", () => {
+    const idx = buildFeatureIndex({
+      ...EMPTY,
+      examRespiratory: {
+        percussion: { lower_right: "stony_dull" },
+        breathSounds: { lower_right: "absent" },
+      } as AgentInput["examRespiratory"],
+      examCardiovascular: {
+        pulseRhythm: "irregularly_irregular",
+        jvp: "raised",
+        murmurs: [{ id: "m1", timing: "ejection_systolic" }],
+      } as AgentInput["examCardiovascular"],
+      examAbdominal: {
+        liver: { palpable: true },
+        shiftingDullness: true,
+      } as AgentInput["examAbdominal"],
+      examNeurological: {
+        power: { r_arm: 3 },
+        plantar: { right: "up" },
+      } as AgentInput["examNeurological"],
+    });
+    for (const t of [
+      "stony dull percussion",
+      "absent breath sounds",
+      "irregularly irregular pulse",
+      "raised jvp",
+      "cardiac murmur",
+      "systolic murmur",
+      "hepatomegaly",
+      "ascites",
+      "focal limb weakness",
+      "upgoing plantar",
+    ]) {
+      expect(idx.presentDisplays.has(t)).toBe(true);
+    }
+  });
+
+  it("normal structured exam values do NOT index abnormal tokens", () => {
+    const idx = buildFeatureIndex({
+      ...EMPTY,
+      examCardiovascular: {
+        pulseRhythm: "regular",
+        jvp: "not_raised",
+      } as AgentInput["examCardiovascular"],
+      examAbdominal: { liver: { palpable: false } } as AgentInput["examAbdominal"],
+    });
+    expect(idx.presentDisplays.has("irregularly irregular pulse")).toBe(false);
+    expect(idx.presentDisplays.has("raised jvp")).toBe(false);
+    expect(idx.presentDisplays.has("hepatomegaly")).toBe(false);
+  });
 });
