@@ -123,27 +123,38 @@ export function ThreeState({
   );
 }
 
-/* ── Value chip — selected / hover / press, with disciplined tones ── */
+/* ── Value chip — selected / hover / press, with disciplined tones ──
+   `dimmed` softly de-emphasises a chip the agent deems implausible given another
+   recorded sign (in-field decision-support). It is NEVER a hard block — the chip
+   stays tappable so the clinician can record it anyway; `dimReason` is the cited
+   why (tooltip). A dimmed chip that is tapped active drops the dim (active wins). */
 export type ChipTone = "default" | "teal" | "amber" | "alarm";
 export function ValueChip({
   active,
   tone = "default",
+  dimmed = false,
+  dimReason,
   onClick,
   children,
 }: {
   active: boolean;
   tone?: ChipTone;
+  dimmed?: boolean;
+  dimReason?: string;
   onClick: () => void;
   children: ReactNode;
 }) {
+  const soft = dimmed && !active;
   return (
     <button
       type="button"
       aria-pressed={active}
-      onClick={onClick}
+      title={soft ? dimReason : undefined}
+      data-dimmed={soft ? "" : undefined}
       className={cn(
         "tap rounded-md px-2 py-0.5 text-[11.5px] ring-1 transition-colors duration-150 ring-inset",
-        !active && "text-foreground/70 ring-border hover:bg-muted/60",
+        !active && !soft && "text-foreground/70 ring-border hover:bg-muted/60",
+        soft && "text-muted-foreground/50 ring-border/50 ring-dashed hover:bg-muted/40 italic",
         active &&
           tone === "default" &&
           "bg-teal-50 text-teal-700 ring-teal-500/40 dark:bg-teal-950/40 dark:text-teal-200",
@@ -157,6 +168,7 @@ export function ValueChip({
           tone === "alarm" &&
           "bg-red-100 text-red-700 ring-red-500/40 dark:bg-red-950/40 dark:text-red-300",
       )}
+      onClick={onClick}
     >
       {children}
     </button>
