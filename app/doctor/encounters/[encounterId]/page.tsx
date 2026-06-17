@@ -145,6 +145,10 @@ export default async function DoctorEncounterPage({ params }: PageProps) {
           draftsEnabled={draftsEnabled}
           recoveredDraftAt={recoveredDraftAt}
           agentConfig={clerkshipAgentConfig()}
+          demographics={{
+            ageYears: patient ? computeAgeYears(patient.dateOfBirth) : null,
+            sex: patient?.sex ?? null,
+          }}
         />
 
         {/* Investigations & results (read-only visibility) */}

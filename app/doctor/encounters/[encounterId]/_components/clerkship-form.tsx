@@ -1,7 +1,13 @@
 "use client";
 
 import type { SubmitClerkshipResult } from "../actions";
-import type { AgentConfig, AgentInput, IncompatibilityRule, Insight } from "@/lib/clerkship/agent";
+import type {
+  AgentConfig,
+  AgentInput,
+  Demographics,
+  IncompatibilityRule,
+  Insight,
+} from "@/lib/clerkship/agent";
 import type { AbdoExam } from "@/lib/clerkship/exam/abdominal";
 import type { BpStandard } from "@/lib/clerkship/exam/bp";
 import type { CvsExam } from "@/lib/clerkship/exam/cardiovascular";
@@ -177,6 +183,7 @@ export function ClerkshipForm({
   draftsEnabled = false,
   recoveredDraftAt = null,
   agentConfig,
+  demographics,
 }: {
   encounterId: string;
   initial: Clerkship | null;
@@ -186,6 +193,7 @@ export function ClerkshipForm({
   recoveredDraftAt?: string | null;
   /** Clerkship-agent run-config from the server (gated dark by default). */
   agentConfig: AgentConfig;
+  demographics: Demographics;
 }) {
   const router = useRouter();
   const h = initial?.history;
@@ -322,6 +330,7 @@ export function ClerkshipForm({
       examNeurological,
       examMusculoskeletal,
       examEndoVascularFoot,
+      demographics,
     };
     return runClerkshipAgent(input, AGENT_PACKS, agentConfig).insights;
   }, [
@@ -339,6 +348,7 @@ export function ClerkshipForm({
     examNeurological,
     examMusculoskeletal,
     examEndoVascularFoot,
+    demographics,
   ]);
   // The rail (and the two-column layout) appear only when the agent has something
   // to say — a fresh/empty clerkship, or the agent gated off, stays single-column.
@@ -727,6 +737,7 @@ export function ClerkshipForm({
                     onDifferentialChange={setDifferential}
                     summary={summary}
                     onSummaryChange={setSummary}
+                    demographics={demographics}
                   />
                 ) : null}
               </div>
