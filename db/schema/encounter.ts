@@ -10,6 +10,7 @@ import {
   text,
   timestamp,
   unique,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 
@@ -269,7 +270,11 @@ export const encounterResults = pgTable(
     rejectionReason: text("rejection_reason"),
   },
   (t) => [
-    index("enc_result_order_idx").on(t.orderId),
+    // One result row per order (GATED 0051): the entered/rejected row is the
+    // single editable slot; a released result is frozen. The unique index is the
+    // DB backstop for the select-then-upsert in enterLabResultAction — it also
+    // serves the order_id lookup, so it replaces the old non-unique index.
+    uniqueIndex("enc_result_one_per_order").on(t.orderId),
     check(
       "enc_result_quality_check",
       sql`${t.qualityStatus} IS NULL OR ${t.qualityStatus} IN ('entered','released','rejected')`,

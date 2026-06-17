@@ -1,21 +1,24 @@
 import { FlaskConicalIcon } from "lucide-react";
 
+import { labResultsLive } from "@/lib/encounter/feature";
 import { requireLabTechScope } from "@/lib/lab-tech/scope";
 import { loadLabWorklist, summariseWorklist, worklistAgeLabel } from "@/lib/lab-tech/worklist";
 import { cn } from "@/lib/utils";
+import { ResultRowActions } from "./_components/result-row-actions";
 
 export const dynamic = "force-dynamic";
 
 /**
  * Lab incoming worklist — the results-in counterpart to orders-out. Reads the
- * real `encounterOrders` pipe (hospital-scoped, oldest-first) read-only. The
- * accept / specimen / result-entry + verify-release write workflow (with the
- * GATED result columns + Edge function + critical-value alerting) lands next.
+ * real `encounterOrders` pipe (hospital-scoped, oldest-first). When the lab
+ * workflow is live, each row gains result entry → release/reject controls
+ * (entered ≠ released); otherwise it stays read-only.
  */
 export default async function LabWorklistPage() {
   const scope = await requireLabTechScope();
   const items = await loadLabWorklist(scope.hospitalId);
   const summary = summariseWorklist(items);
+  const live = labResultsLive();
   const now = new Date();
 
   return (
@@ -59,6 +62,7 @@ export default async function LabWorklistPage() {
                 <th className="px-3 py-2 font-semibold">Test</th>
                 <th className="px-3 py-2 font-semibold">Status</th>
                 <th className="px-3 py-2 text-right font-semibold">Waiting</th>
+                {live ? <th className="px-3 py-2 text-right font-semibold">Result</th> : null}
               </tr>
             </thead>
             <tbody>
@@ -95,6 +99,11 @@ export default async function LabWorklistPage() {
                   <td className="text-muted-foreground px-3 py-2 text-right align-top font-mono text-[12px]">
                     {worklistAgeLabel(it.orderedAt, now)}
                   </td>
+                  {live ? (
+                    <td className="px-3 py-2 align-top">
+                      <ResultRowActions item={it} />
+                    </td>
+                  ) : null}
                 </tr>
               ))}
             </tbody>
@@ -103,9 +112,9 @@ export default async function LabWorklistPage() {
       )}
 
       <p className="text-muted-foreground/80 text-[10.5px] italic">
-        Read-only worklist from the shared orders pipe. Accept · specimen logging · result entry ·
-        verify/release · critical-value alerting arrive in the next build — no result is ever
-        auto-entered, and entered ≠ released.
+        {live
+          ? "Enter a result, then DELIBERATELY release it (entered ≠ released) or reject for recollection. No result is auto-entered; critical-value alerting activates once the critical-value list is CSO-signed."
+          : "Read-only worklist from the shared orders pipe. Result entry → verify/release activates with the lab module (entered ≠ released; no result is ever auto-entered)."}
       </p>
     </div>
   );

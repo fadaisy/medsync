@@ -6,6 +6,7 @@ import { db } from "@/db";
 import { encounterOrders, encounterResults } from "@/db/schema/encounter";
 import { encounters } from "@/db/schema/scheduling";
 import { users } from "@/db/schema/users";
+import { labResultsLive } from "@/lib/encounter/feature";
 
 /**
  * The lab incoming worklist — the READ side of the orders-out → results-in pipe.
@@ -32,6 +33,11 @@ export interface LabWorklistItem {
   orderedAt: Date;
   /** Whether a result row already exists (read from the real results table). */
   hasResult: boolean;
+  /** Lab workflow (gated): the entered/rejected result on this order, if any. */
+  resultId?: string;
+  resultStatus?: "entered" | "released" | "rejected";
+  resultValue?: string;
+  resultUnit?: string | null;
 }
 
 /** Orders awaiting the lab — the statuses that belong on the incoming worklist. */
@@ -42,6 +48,9 @@ const INCOMING_STATUSES = ["ordered", "collected"] as const;
  * Service-role read; the caller (the /lab route) is already lab-scoped + MFA-gated.
  */
 export async function loadLabWorklist(hospitalId: string): Promise<LabWorklistItem[]> {
+  // Gated: include the entered result's quality/value (a 0050 column) only when
+  // the lab workflow is live — keeps the read safe before migration 0050.
+  const live = labResultsLive();
   const rows = await db
     .select({
       orderId: encounterOrders.id,
@@ -54,6 +63,13 @@ export async function loadLabWorklist(hospitalId: string): Promise<LabWorklistIt
       status: encounterOrders.status,
       orderedAt: encounterOrders.createdAt,
       resultId: encounterResults.id,
+      ...(live
+        ? {
+            resultStatus: encounterResults.qualityStatus,
+            resultValue: encounterResults.value,
+            resultUnit: encounterResults.unit,
+          }
+        : {}),
     })
     .from(encounterOrders)
     .innerJoin(encounters, eq(encounters.id, encounterOrders.encounterId))
@@ -67,18 +83,36 @@ export async function loadLabWorklist(hospitalId: string): Promise<LabWorklistIt
     )
     .orderBy(asc(encounterOrders.createdAt));
 
-  return rows.map((r) => ({
-    orderId: r.orderId,
-    encounterId: r.encounterId,
-    patientUserId: r.patientUserId,
-    patientName: r.patientName,
-    test: r.test,
-    kind: r.kind,
-    loincCode: r.loincCode,
-    status: r.status,
-    orderedAt: r.orderedAt,
-    hasResult: r.resultId != null,
-  }));
+  // Collapse the 1:N orders→results join to one item per order, preferring the
+  // row that carries a result (defensive: 0051's unique index guarantees one
+  // result row per order, but never list an order twice if a stray exists).
+  const byOrder = new Map<string, LabWorklistItem>();
+  for (const r of rows) {
+    const row = r as (typeof rows)[number] & {
+      resultStatus?: string | null;
+      resultValue?: string | null;
+      resultUnit?: string | null;
+    };
+    const existing = byOrder.get(row.orderId);
+    if (existing && (existing.resultId != null || row.resultId == null)) continue;
+    byOrder.set(row.orderId, {
+      orderId: row.orderId,
+      encounterId: row.encounterId,
+      patientUserId: row.patientUserId,
+      patientName: row.patientName,
+      test: row.test,
+      kind: row.kind,
+      loincCode: row.loincCode,
+      status: row.status,
+      orderedAt: row.orderedAt,
+      hasResult: row.resultId != null,
+      resultId: row.resultId ?? undefined,
+      resultStatus: (row.resultStatus ?? undefined) as LabWorklistItem["resultStatus"],
+      resultValue: row.resultValue ?? undefined,
+      resultUnit: row.resultUnit ?? undefined,
+    });
+  }
+  return [...byOrder.values()];
 }
 
 /** A compact, honest summary of the worklist (for the header). Pure. */
