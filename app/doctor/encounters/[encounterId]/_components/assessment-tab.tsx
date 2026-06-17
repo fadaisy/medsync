@@ -33,12 +33,14 @@ export function AssessmentTab({
   onDifferentialChange,
   summary,
   onSummaryChange,
+  demographics,
 }: {
   insights: Insight[];
   differential: ClerkDifferential[];
   onDifferentialChange: (d: ClerkDifferential[]) => void;
   summary: string;
   onSummaryChange: (s: string) => void;
+  demographics?: { ageYears: number | null; sex: string | null };
 }) {
   const diagnoses = insights.filter((i) => i.kind === "diagnosis");
   const committed = new Set(differential.map((d) => norm(d.text)));
@@ -85,11 +87,24 @@ export function AssessmentTab({
   const excluded = differential.filter((d) => d.status === "excluded");
   const suggestions = diagnoses.filter((i) => i.suggests && !committed.has(norm(i.suggests.dx)));
 
+  // Ranked mode: insights carry a tier. Group for display; must-not-miss is pinned
+  // separately unless it is already Leading. Flat mode (no tier) → single list.
+  const ranked = suggestions.some((i) => i.tier);
+  const leadIds = new Set(suggestions.filter((i) => i.tier === "leading").map((i) => i.id));
+  const tierItems = (t: string) => suggestions.filter((i) => i.tier === t);
+  const pinned = suggestions.filter((i) => i.suggests?.mustNotMiss && !leadIds.has(i.id));
+
   return (
     <div className="flex flex-col gap-5">
       {/* Section 1 — clinical picture */}
       <section className="border-border bg-card rounded-xl border p-4">
         <SectionHead n={1} label="Clinical picture — assembled, vitals-up" />
+        {demographics && (demographics.ageYears != null || demographics.sex) ? (
+          <p className="text-muted-foreground mt-1 text-[10.5px]">
+            Priors shaped by: {demographics.sex ?? "sex —"}
+            {demographics.ageYears != null ? ` · ${demographics.ageYears}y` : ""}
+          </p>
+        ) : null}
         {picture.length ? (
           <div className="mt-2 flex flex-wrap gap-1.5">
             {picture.map((p, k) => (
@@ -138,70 +153,63 @@ export function AssessmentTab({
       <section className="border-border bg-card rounded-xl border p-4">
         <SectionHead n={2} label="Suggested diagnoses — must-not-miss floated" />
         {suggestions.length ? (
-          <div className="mt-2 flex flex-col gap-2">
-            {suggestions.map((i) => (
-              <article
-                key={i.id}
-                className={`rounded-lg border p-3 ${
-                  i.suggests?.mustNotMiss
-                    ? "border-red-300/70 bg-red-50/50 dark:border-red-900/50 dark:bg-red-950/20"
-                    : "border-border bg-muted/20"
-                }`}
-              >
-                <div className="flex items-center gap-2">
-                  {i.suggests?.mustNotMiss ? (
-                    <span
-                      className="size-2 shrink-0 rounded-full bg-red-600 dark:bg-red-400"
-                      aria-hidden
-                      title="Must not miss"
+          ranked ? (
+            <div className="mt-2 flex flex-col gap-3">
+              <DxTierGroup
+                label="Leading"
+                tone="teal"
+                items={tierItems("leading")}
+                onAdd={addWorking}
+                onExclude={exclude}
+              />
+              <DxTierGroup
+                label="Worth considering"
+                tone="sky"
+                items={tierItems("consider")}
+                onAdd={addWorking}
+                onExclude={exclude}
+              />
+              <DxTierGroup
+                label="Less likely"
+                tone="muted"
+                items={tierItems("less_likely")}
+                onAdd={addWorking}
+                onExclude={exclude}
+              />
+              {pinned.length ? (
+                <DxTierGroup
+                  label="Must-not-miss — keep excluding"
+                  tone="red"
+                  items={pinned}
+                  onAdd={addWorking}
+                  onExclude={exclude}
+                />
+              ) : null}
+              {tierItems("ruled_down").filter((i) => !i.suggests?.mustNotMiss).length ? (
+                <details className="group">
+                  <summary className="text-muted-foreground hover:text-foreground cursor-pointer list-none text-[11px] select-none">
+                    Ruled down (
+                    {tierItems("ruled_down").filter((i) => !i.suggests?.mustNotMiss).length}) ›
+                  </summary>
+                  <div className="mt-2">
+                    <DxTierGroup
+                      label=""
+                      tone="muted"
+                      items={tierItems("ruled_down").filter((i) => !i.suggests?.mustNotMiss)}
+                      onAdd={addWorking}
+                      onExclude={exclude}
                     />
-                  ) : null}
-                  <span className="text-foreground text-[14px] font-medium">{i.suggests?.dx}</span>
-                  {i.suggests?.icd10 ? (
-                    <span className="text-muted-foreground font-mono text-[11.5px]">
-                      {i.suggests.icd10}
-                    </span>
-                  ) : null}
-                  <PackTag insight={i} />
-                </div>
-                {i.evidence.length ? (
-                  <ChipRow
-                    label="Evidence for"
-                    tone="teal"
-                    items={i.evidence.map((e) => e.label)}
-                  />
-                ) : (
-                  <p className="text-muted-foreground mt-1.5 text-[11px] italic">
-                    Must-not-miss — surfaced for safety even without supporting features yet.
-                  </p>
-                )}
-                {i.discriminators?.length ? (
-                  <ChipRow
-                    label="To discriminate — check next"
-                    tone="amber"
-                    items={i.discriminators.map((d) => d.label)}
-                  />
-                ) : null}
-                <div className="mt-2.5 flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => addWorking(i)}
-                    className="tap inline-flex items-center gap-1 rounded-md bg-teal-600 px-2.5 py-1 text-[12px] font-medium text-white hover:bg-teal-700"
-                  >
-                    <PlusIcon className="size-3.5" aria-hidden />
-                    Working dx
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => exclude(i)}
-                    className="tap border-border text-muted-foreground hover:text-foreground inline-flex items-center gap-1 rounded-md border px-2.5 py-1 text-[12px]"
-                  >
-                    Considered &amp; excluded
-                  </button>
-                </div>
-              </article>
-            ))}
-          </div>
+                  </div>
+                </details>
+              ) : null}
+            </div>
+          ) : (
+            <div className="mt-2 flex flex-col gap-2">
+              {suggestions.map((i) => (
+                <DxCard key={i.id} i={i} onAdd={addWorking} onExclude={exclude} />
+              ))}
+            </div>
+          )
         ) : (
           <p className="text-muted-foreground mt-2 text-[12px]">
             {diagnoses.length
@@ -318,5 +326,119 @@ function ChipRow({
         ))}
       </div>
     </div>
+  );
+}
+
+const TIER_TONE: Record<string, string> = {
+  teal: "text-teal-700 dark:text-teal-400",
+  sky: "text-sky-700 dark:text-sky-400",
+  red: "text-red-700 dark:text-red-400",
+  muted: "text-muted-foreground",
+};
+
+function DxTierGroup({
+  label,
+  tone,
+  items,
+  onAdd,
+  onExclude,
+}: {
+  label: string;
+  tone: "teal" | "sky" | "red" | "muted";
+  items: Insight[];
+  onAdd: (i: Insight) => void;
+  onExclude: (i: Insight) => void;
+}) {
+  if (!items.length) return null;
+  return (
+    <div className="flex flex-col gap-2">
+      {label ? (
+        <p className={`text-[9.5px] font-semibold tracking-[0.06em] uppercase ${TIER_TONE[tone]}`}>
+          {label} <span className="text-muted-foreground">({items.length})</span>
+        </p>
+      ) : null}
+      {items.map((i) => (
+        <DxCard key={i.id} i={i} onAdd={onAdd} onExclude={onExclude} />
+      ))}
+    </div>
+  );
+}
+
+/** Non-numeric strength cue (0–4 filled) from the score, clamped. Optional. */
+function Strength({ score }: { score?: number }) {
+  const n = Math.max(0, Math.min(4, Math.round(score ?? 0)));
+  return (
+    <span
+      className="ml-auto flex shrink-0 items-center gap-0.5"
+      aria-hidden
+      title="relative strength of fit"
+    >
+      {Array.from({ length: 4 }, (_, k) => (
+        <span key={k} className={`h-1.5 w-3 rounded-sm ${k < n ? "bg-teal-500" : "bg-muted"}`} />
+      ))}
+    </span>
+  );
+}
+
+function DxCard({
+  i,
+  onAdd,
+  onExclude,
+}: {
+  i: Insight;
+  onAdd: (i: Insight) => void;
+  onExclude: (i: Insight) => void;
+}) {
+  return (
+    <article
+      className={`rounded-lg border p-3 ${i.suggests?.mustNotMiss ? "border-red-300/70 bg-red-50/50 dark:border-red-900/50 dark:bg-red-950/20" : "border-border bg-muted/20"}`}
+    >
+      <div className="flex items-center gap-2">
+        {i.suggests?.mustNotMiss ? (
+          <span
+            className="size-2 shrink-0 rounded-full bg-red-600 dark:bg-red-400"
+            aria-hidden
+            title="Must not miss"
+          />
+        ) : null}
+        <span className="text-foreground text-[14px] font-medium">{i.suggests?.dx}</span>
+        {i.suggests?.icd10 ? (
+          <span className="text-muted-foreground font-mono text-[11.5px]">{i.suggests.icd10}</span>
+        ) : null}
+        <Strength score={i.score} />
+        <PackTag insight={i} />
+      </div>
+      {i.evidence.length ? (
+        <ChipRow label="Why" tone="teal" items={i.evidence.map((e) => e.label)} />
+      ) : (
+        <p className="text-muted-foreground mt-1.5 text-[11px] italic">
+          Must-not-miss — surfaced for safety even without supporting features yet.
+        </p>
+      )}
+      {i.discriminators?.length ? (
+        <ChipRow
+          label="To discriminate — check next"
+          tone="amber"
+          items={i.discriminators.map((d) => d.label)}
+        />
+      ) : null}
+      <div className="mt-2.5 flex gap-2">
+        <button
+          type="button"
+          onClick={() => onAdd(i)}
+          className="tap inline-flex items-center gap-1 rounded-md bg-teal-600 px-2.5 py-1 text-[12px] font-medium text-white hover:bg-teal-700"
+        >
+          <PlusIcon className="size-3.5" aria-hidden />
+          Working dx
+        </button>
+        <button
+          type="button"
+          onClick={() => onExclude(i)}
+          className="tap border-border text-muted-foreground hover:text-foreground inline-flex items-center gap-1 rounded-md border px-2.5 py-1 text-[12px]"
+        >
+          Considered &amp; excluded
+        </button>
+      </div>
+    </article>
   );
 }
