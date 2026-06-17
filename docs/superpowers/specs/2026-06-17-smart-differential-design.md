@@ -165,3 +165,12 @@ Each contributing term is captured as a `Contribution { source, label, delta }` 
 - **New** gating flag for the ranking (not the existing maps sign-off).
 - Strength cue: **kept** (faint, non-numeric, removable).
 - Parallel per-complaint weight files (not edits to the approved maps file) for clean chunked CSO review.
+
+## 14 · Update 2026-06-17 — differential EXPANSION (CSO-directed)
+
+The sourcing now also **adds new diagnoses** per complaint (comprehensive, ~10–15 dx, Uganda-relevant), not just re-weights the existing 6–7. Implications, implemented on `feat/smart-differential`:
+
+- **Data model:** a `DdxWeightEntry` whose `dx` matches an existing differential **overlays** weights (as before); an entry matching nothing is **appended** as a full new `MapDifferential` (it carries `likelihood` + optional `ruleIn/ruleOut/supportingSymptoms/refutingSymptoms` + the weight fields). `mergeDdxWeights` does both.
+- **Gating (safety):** appended dx + overlays live ONLY in `packs.rankedMaps`; `packs.maps` (used by flat-mode diagnosis + every other reducer) stays the untouched approved set. So flat/prod-without-flag is byte-for-byte unchanged, and new diagnoses are net-new cited content that only surface under `AGENT_DDX_RANKING_CSO_SIGNED` after CSO review. A gating test asserts appended dx never appear in `maps`.
+- **Firing:** new-dx criteria reuse the existing capture vocabulary (107 feature / 50 symptom / 79 risk tokens) so they move the ranking; genuinely-new features are flagged `needsCsoInput` and ride base prior + age/sex until the catalog supports them.
+- Sourcing contract updated in `docs/clinical/agent/ddx-weights/README.md`.
