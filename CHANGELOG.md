@@ -5,6 +5,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Lab: result entry → release/reject (the lab write-side slice) — 2026-06-17
+
+The lab-tech workspace gains the full result lifecycle ([ADR 0077](docs/adr/0077-lab-result-entry-release.md)). **Ships gated dark** (`LAB_RESULTS_LIVE=1` after migrations 0050 + 0051 are applied); uses the GATED 0050 columns from PR #138 plus **one new GATED migration 0051** (a unique index = one result row per order).
+
+- **Server actions** (`app/lab/actions.ts`, mirror the clerkship write precedent): `enterLabResultAction` / `releaseLabResultAction` / `rejectLabResultAction` — `requireLabTechScope` + hospital re-check + `labResultsLive()` gate + append-only `encounterEvents` (kind `result`) audit.
+- **entered ≠ released** — entering records `qualityStatus='entered'` (NOT visible to the clinician); a deliberate release sets `releasedAt/By` + moves the order to `resulted`; reject needs a reason (recollect). One result row per order (the non-released row is editable; a released result is frozen).
+- **Release-aware clinician read** (`loadEncounterOrders`, gated) — only released (or legacy) results show as final; entered = pending, rejected = recollect. Legacy path selects only pre-0050 columns (safe un-migrated). All three reads collapse the orders→results join to one row per order (defence in depth; 0051's unique index makes a duplicate impossible).
+- **Critical flag** computed on entry via the gated `evaluateCriticalFlag` (inert until `CRITICAL_VALUES_CSO_SIGNED`); the `sa_notifications` fan-out to the ordering clinician is a documented follow-up (needs a notification-kind migration).
+- `/lab` worklist rows gain enter-form + release/reject controls when live. No fabrication; pending/rejected ≠ normal. Pure validation/critical-flag unit-tested; tsc/eslint clean; **975 tests** (+5); build green.
+
 ### Added — Clerkship: NCD catalog surfaced + diagnosis-driven feature reconciliation — 2026-06-16
 
 The NCD catalog is now **visible** and a diagnosis, when selected, **reconciles itself against the whole clerkship** ([ADR 0076](docs/adr/0076-diagnosis-feature-reconciliation.md)). **No migration.**
