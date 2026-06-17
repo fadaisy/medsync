@@ -447,6 +447,31 @@
     "needs_cso_input": false
   },
   {
+    "id": "neuro-facial-weakness",
+    "when": { "area": "neurological", "sign": "facial weakness", "match": ["facial weakness"] },
+    "mustCheck": [
+      {
+        "area": "neurological",
+        "sign": "is the forehead spared (UMN) or involved (LMN)?",
+        "why": "Forehead sparing = UMN (stroke); forehead involved = LMN (Bell's) — the key discriminator."
+      },
+      {
+        "area": "neurological",
+        "sign": "other cranial nerves + limb signs",
+        "why": "Associated deficits point to a central/brainstem lesion; isolated LMN VII suggests Bell's."
+      },
+      {
+        "area": "neurological",
+        "sign": "ear / parotid exam (herpes zoster oticus, parotid mass)",
+        "why": "Identifies treatable/structural LMN causes."
+      }
+    ],
+    "confidence": "high",
+    "ugandaNote": "Exclude stroke (UMN pattern); HIV can cause Bell's palsy + other cranial neuropathies.",
+    "citation": "Macleod's Clinical Examination 15th ed. (2023)",
+    "needs_cso_input": false
+  },
+  {
     "id": "gen-lymphadenopathy",
     "when": { "area": "general", "sign": "lymphadenopathy", "match": ["lymphadenopathy"] },
     "mustCheck": [
