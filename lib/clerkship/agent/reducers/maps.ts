@@ -6,7 +6,7 @@ import type {
   ReasoningMap,
 } from "@/lib/clerkship/agent/types";
 
-import { normalizeFeature } from "@/lib/clerkship/agent/normalize";
+import { featurePresent } from "@/lib/clerkship/agent/aliases";
 
 export function matchedMaps(idx: FeatureIndex, maps: ReasoningMap[]): ReasoningMap[] {
   return maps.filter((m) => m.triggerCodes.some((c) => idx.complaintCodes.has(c)));
@@ -20,7 +20,7 @@ export function mapAssociations(
   const out: Insight[] = [];
   for (const m of matchedMaps(idx, maps)) {
     const expects: ExpectItem[] = m.associated
-      .filter((a) => !idx.presentDisplays.has(normalizeFeature(a)))
+      .filter((a) => !featurePresent(idx, a))
       .map((a) => ({ label: a.replace(/[«»]/g, ""), area: "ros" as const }));
     if (!expects.length) continue;
     out.push({

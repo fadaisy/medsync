@@ -6,6 +6,7 @@ import type {
   ReasoningMap,
 } from "@/lib/clerkship/agent/types";
 
+import { featurePresent } from "@/lib/clerkship/agent/aliases";
 import { normalizeFeature } from "@/lib/clerkship/agent/normalize";
 import { matchedMaps } from "@/lib/clerkship/agent/reducers/maps";
 
@@ -17,7 +18,7 @@ export function combinationFlags(
   const out: Insight[] = [];
   for (const m of matchedMaps(idx, maps)) {
     for (const c of m.combinations ?? []) {
-      const allPresent = c.features.every((f) => idx.presentDisplays.has(normalizeFeature(f)));
+      const allPresent = c.features.every((f) => featurePresent(idx, f));
       if (!allPresent) continue;
       const evidence: EvidenceItem[] = c.features.map(
         (f) =>
