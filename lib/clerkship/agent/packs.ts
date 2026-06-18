@@ -14,6 +14,7 @@ import type {
 import type { DdxWeightFile } from "@/lib/clerkship/agent/weights";
 
 import chestPainWeights from "@/docs/clinical/agent/ddx-weights/chest_pain.json";
+import coughWeights from "@/docs/clinical/agent/ddx-weights/cough.json";
 import rawDeps from "@/docs/clinical/agent/sign-dependencies.json";
 import rawIncompat from "@/docs/clinical/agent/sign-incompatibilities.json";
 import rawVitals from "@/docs/clinical/agent/vitals-escalation.json";
@@ -22,7 +23,10 @@ import { mergeDdxWeights } from "@/lib/clerkship/agent/weights";
 
 // Sourced per-complaint weight files (overlay existing dx + append new ones).
 // One import + array entry per complaint as chunks land; each is cited + CSO-signed.
-const DDX_WEIGHT_FILES: DdxWeightFile[] = [chestPainWeights as unknown as DdxWeightFile];
+const DDX_WEIGHT_FILES: DdxWeightFile[] = [
+  chestPainWeights as unknown as DdxWeightFile,
+  coughWeights as unknown as DdxWeightFile,
+];
 
 function adaptMaps(raw: unknown): ReasoningMap[] {
   if (!Array.isArray(raw)) return [];
