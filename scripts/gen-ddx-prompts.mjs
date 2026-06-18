@@ -12,8 +12,9 @@ const maps = JSON.parse(
   readFileSync(new URL("../docs/clinical/enriched-reasoning-maps.json", import.meta.url), "utf8"),
 );
 
-const clean = (s) => s.replace(/[«»]/g, "");
-const uniqSorted = (set) => [...set].map(clean).sort((a, b) => a.localeCompare(b));
+const clean = (s) => s.replace(/[«»]/g, "").trim();
+// Clean FIRST, then de-dup — otherwise "«Exertional»" and "Exertional" survive as two.
+const uniqSorted = (set) => [...new Set([...set].map(clean))].sort((a, b) => a.localeCompare(b));
 
 // Firing vocabulary — union across all maps (what the clerkship actually captures).
 const feat = new Set(),
