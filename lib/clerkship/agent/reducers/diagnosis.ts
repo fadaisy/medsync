@@ -14,6 +14,7 @@ import { featurePresent } from "@/lib/clerkship/agent/aliases";
 import { normalizeFeature } from "@/lib/clerkship/agent/normalize";
 import { matchedMaps } from "@/lib/clerkship/agent/reducers/maps";
 import {
+  dedupeWeights,
   deriveWeights,
   pinSatisfied,
   REINFORCE,
@@ -28,9 +29,9 @@ const dxKey = (d: MapDifferential) => d.dxCode ?? normalizeFeature(d.dx);
 /** Unmet positive features → "to discriminate, check next". */
 function discriminatorsFor(idx: FeatureIndex, d: MapDifferential): ExpectItem[] {
   const w = deriveWeights(d);
-  return Object.entries(w.featureWeights)
-    .filter(([token, weight]) => weight > 0 && !present(idx, token))
-    .map(([token]) => ({ label: clean(token), area: "complaint" as const }));
+  return dedupeWeights(w.featureWeights)
+    .filter(({ token, weight }) => weight > 0 && !present(idx, token))
+    .map(({ token }) => ({ label: clean(token), area: "complaint" as const }));
 }
 
 function evidenceFromContributions(c: Contribution[]): EvidenceItem[] {

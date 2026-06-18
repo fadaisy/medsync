@@ -79,6 +79,24 @@ export interface ScoredDifferential {
 
 const clean = (s: string) => s.replace(/[«»]/g, "");
 
+/**
+ * Collapse weight keys that normalize to the SAME token (e.g. a sourced file
+ * listing both "Haemoptysis" and "haemoptysis", or "Wheeze"/"wheeze") to one
+ * entry — keeping the strongest (max |weight|) — so a single finding is never
+ * scored twice. Returns the representative original token (for the label).
+ */
+export function dedupeWeights(
+  weights: Record<string, number>,
+): { token: string; weight: number }[] {
+  const byNorm = new Map<string, { token: string; weight: number }>();
+  for (const [token, weight] of Object.entries(weights)) {
+    const norm = normalizeFeature(token);
+    const prev = byNorm.get(norm);
+    if (!prev || Math.abs(weight) > Math.abs(prev.weight)) byNorm.set(norm, { token, weight });
+  }
+  return [...byNorm.values()];
+}
+
 export function scoreDifferential(
   d: MapDifferential,
   idx: FeatureIndex,
@@ -108,13 +126,13 @@ export function scoreDifferential(
     contributions.push({ source: "sex", label: demo.sex, delta });
   }
 
-  for (const [token, weight] of Object.entries(w.featureWeights)) {
+  for (const { token, weight } of dedupeWeights(w.featureWeights)) {
     if (featurePresent(idx, token)) {
       score += weight;
       contributions.push({ source: "feature", label: clean(token), delta: weight });
     }
   }
-  for (const [token, weight] of Object.entries(w.riskWeights)) {
+  for (const { token, weight } of dedupeWeights(w.riskWeights)) {
     if (featurePresent(idx, token)) {
       score += weight;
       contributions.push({ source: "risk", label: clean(token), delta: weight });
