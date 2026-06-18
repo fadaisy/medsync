@@ -1,0 +1,398 @@
+{
+  "complaint": "chest_pain",
+  "source_version": "2026-06-17",
+  "weights": [
+    {
+      "dx": "Acute coronary syndrome / MI",
+      "new": false,
+      "likelihood": "must_not_miss",
+      "basePrior": 2,
+      "agePrior": [
+        { "minAge": 40, "delta": 1 },
+        { "minAge": 65, "delta": 2 }
+      ],
+      "sexPrior": { "male": 1 },
+      "featureWeights": {
+        "Crushing": 4,
+        "Radiation to left arm": 3,
+        "Radiation to jaw": 3,
+        "Exertional": 3,
+        "Reproducible on palpation": -4,
+        "Pleuritic": -3,
+        "Tearing": -2,
+        "Sharp": -1,
+        "Worse on movement": -1,
+        "dyspnoea": 1,
+        "palpitations": 1,
+        "nausea/vomiting": 1,
+        "syncope": 1
+      },
+      "riskWeights": {
+        "ischaemic heart disease": 2,
+        "diabetes mellitus": 1,
+        "hypertension": 1,
+        "hyperlipidaemia": 1,
+        "smoking": 1,
+        "family history premature cardiac death": 1
+      },
+      "confidence": "high",
+      "needsCsoInput": true,
+      "csoNote": "Ugandan basePrior is rising with epidemiological transition (historically lower than Western data) — confirm local frequency; also 'family history premature cardiac death' is NOT in the standard capture token set (capture gap to add).",
+      "weightCitation": "ESC 2023 ACS Guidelines (Byrne RA et al., Eur Heart J 2023;44:3720-3826); 2021 AHA/ACC Chest Pain Guideline (Gulati M et al., 2021)"
+    },
+    {
+      "dx": "Aortic dissection",
+      "new": false,
+      "likelihood": "must_not_miss",
+      "basePrior": 0,
+      "agePrior": [{ "minAge": 50, "delta": 1 }],
+      "sexPrior": { "male": 1 },
+      "featureWeights": {
+        "Tearing": 4,
+        "Maximal at onset": 4,
+        "Radiation to back": 3,
+        "Sudden": 2,
+        "Reproducible on palpation": -4,
+        "Crushing": -1,
+        "Exertional": -1
+      },
+      "riskWeights": { "hypertension": 2 },
+      "confidence": "high",
+      "needsCsoInput": true,
+      "csoNote": "Two strong discriminators are NOT in the HPC feature/risk token set: 'unequal pulses' (an examination sign, captured at CVS exam not HPC) and 'Marfan / connective tissue disease' (risk-token gap) — both should be added to capture so they can move the rank.",
+      "weightCitation": "ESC 2014 Aortic Diseases Guidelines (Erbel R et al., Eur Heart J 2014;35:2873-2926); 2022 ACC/AHA Aortic Disease Guideline; Macleod's Clinical Examination 15th ed (2023)"
+    },
+    {
+      "dx": "Pulmonary embolism",
+      "new": false,
+      "likelihood": "must_not_miss",
+      "basePrior": 1,
+      "agePrior": [{ "minAge": 60, "delta": 1 }],
+      "featureWeights": {
+        "Pleuritic": 3,
+        "Sudden": 3,
+        "dyspnoea": 2,
+        "haemoptysis": 2,
+        "leg swelling": 2,
+        "Reproducible on palpation": -4,
+        "Exertional": -2,
+        "Sharp": 1,
+        "cough": 1,
+        "syncope": 1
+      },
+      "riskWeights": {
+        "cancer": 2,
+        "recent immobility or surgery": 2,
+        "prior VTE": 2,
+        "oestrogen / pregnancy": 2
+      },
+      "confidence": "high",
+      "needsCsoInput": true,
+      "csoNote": "PE is under-diagnosed in Uganda (limited CTPA/D-dimer access) — true frequency likely higher than detected; basePrior reflects detection, not incidence. Confirm with CSO.",
+      "weightCitation": "ESC 2019 Acute Pulmonary Embolism Guidelines (Konstantinides SV et al., Eur Heart J 2020;41:543-603)"
+    },
+    {
+      "dx": "Tension pneumothorax",
+      "new": false,
+      "likelihood": "must_not_miss",
+      "basePrior": 1,
+      "agePrior": [{ "maxAge": 35, "delta": 1 }],
+      "sexPrior": { "male": 1 },
+      "featureWeights": {
+        "Pleuritic": 3,
+        "Sudden": 3,
+        "dyspnoea": 2,
+        "Reproducible on palpation": -3,
+        "Sharp": 1,
+        "Exertional": -1
+      },
+      "riskWeights": { "chest trauma": 2, "asthma": 1, "COPD": 1, "TB / TB contact": 1 },
+      "confidence": "moderate",
+      "needsCsoInput": false,
+      "weightCitation": "Macleod's Clinical Examination 15th ed (2023); Davidson's Principles & Practice of Medicine 24th ed (2022); BTS Pleural Disease Guideline 2023"
+    },
+    {
+      "dx": "Pericarditis",
+      "new": false,
+      "likelihood": "less_likely",
+      "basePrior": 1,
+      "agePrior": [{ "maxAge": 40, "delta": 1 }],
+      "featureWeights": {
+        "Relieved sitting forward": 4,
+        "Worse lying flat": 3,
+        "Pleuritic": 3,
+        "Sharp": 2,
+        "fever": 1,
+        "Exertional": -2,
+        "Crushing": -1
+      },
+      "riskWeights": { "recent viral illness": 2, "TB / TB contact": 2, "HIV": 1 },
+      "confidence": "high",
+      "needsCsoInput": false,
+      "weightCitation": "ESC 2015 Pericardial Diseases Guidelines (Adler Y et al., Eur Heart J 2015;36:2921-2964); IMPI trial (Mayosi BM, African TB pericarditis); Davidson's 24th ed"
+    },
+    {
+      "dx": "Musculoskeletal / costochondritis",
+      "new": false,
+      "likelihood": "likely",
+      "basePrior": 3,
+      "agePrior": [],
+      "featureWeights": {
+        "Reproducible on palpation": 4,
+        "Worse on movement": 3,
+        "Sharp": 2,
+        "Worse on coughing/bending": 2,
+        "Exertional": -2,
+        "Crushing": -3,
+        "Radiation to jaw": -3,
+        "dyspnoea": -1
+      },
+      "riskWeights": { "recent strain or trauma": 2, "chest trauma": 1 },
+      "confidence": "high",
+      "needsCsoInput": false,
+      "weightCitation": "Macleod's Clinical Examination 15th ed (2023); Hutchison's Clinical Methods 24th ed (2018); 2021 AHA/ACC Chest Pain Guideline (Gulati M et al., 2021)"
+    },
+    {
+      "dx": "GORD / oesophageal",
+      "new": false,
+      "likelihood": "likely",
+      "basePrior": 3,
+      "agePrior": [],
+      "featureWeights": {
+        "Burning": 3,
+        "Postprandial": 3,
+        "Acid taste": 3,
+        "Burning postprandial": 3,
+        "heartburn": 3,
+        "Epigastric": 2,
+        "Worse lying flat": 1,
+        "Exertional": -2,
+        "Crushing": -1
+      },
+      "riskWeights": { "peptic ulcer disease": 1, "alcohol": 1 },
+      "confidence": "high",
+      "needsCsoInput": false,
+      "csoNote": "Oesophageal pain can mimic ACS and even respond to GTN — never use relief-with-GTN to exclude ACS.",
+      "weightCitation": "2021 AHA/ACC Chest Pain Guideline (Gulati M et al., 2021); Davidson's 24th ed (GI)"
+    },
+    {
+      "dx": "Stable angina",
+      "new": true,
+      "likelihood": "likely",
+      "basePrior": 2,
+      "agePrior": [
+        { "minAge": 50, "delta": 1 },
+        { "minAge": 65, "delta": 1 }
+      ],
+      "sexPrior": { "male": 1 },
+      "featureWeights": {
+        "Exertional": 4,
+        "Crushing": 2,
+        "Radiation to left arm": 2,
+        "Radiation to jaw": 2,
+        "Reproducible on palpation": -4,
+        "Pleuritic": -3,
+        "Constant": -2,
+        "dyspnoea": 1
+      },
+      "riskWeights": {
+        "ischaemic heart disease": 2,
+        "diabetes mellitus": 1,
+        "hypertension": 1,
+        "hyperlipidaemia": 1,
+        "smoking": 1
+      },
+      "confidence": "high",
+      "needsCsoInput": true,
+      "csoNote": "Key stable-angina-vs-ACS discriminators (relief within minutes of rest/GTN; stability/predictability over weeks) are NOT fully in the capture token set (tempo/relief). Add capture for 'relieved by rest' and symptom stability so the engine can separate stable angina from ACS.",
+      "ruleIn": ["Exertional"],
+      "ruleOut": ["Reproducible on palpation", "Pleuritic"],
+      "supportingSymptoms": ["dyspnoea"],
+      "weightCitation": "ESC 2019 Chronic Coronary Syndromes Guidelines (Knuuti J et al., Eur Heart J 2020;41:407-477); 2021 AHA/ACC Chest Pain Guideline"
+    },
+    {
+      "dx": "Community-acquired pneumonia",
+      "new": true,
+      "likelihood": "likely",
+      "basePrior": 3,
+      "agePrior": [{ "minAge": 65, "delta": 1 }],
+      "featureWeights": {
+        "Pleuritic": 3,
+        "cough": 3,
+        "fever": 3,
+        "sputum": 3,
+        "dyspnoea": 2,
+        "Sharp": 1,
+        "haemoptysis": 1,
+        "Worse on coughing/bending": 1,
+        "Reproducible on palpation": -2,
+        "Crushing": -2,
+        "Exertional": -1
+      },
+      "riskWeights": {
+        "HIV": 2,
+        "COPD": 1,
+        "smoking": 1,
+        "TB / TB contact": 1,
+        "alcohol": 1,
+        "sickle-cell disease": 1
+      },
+      "confidence": "high",
+      "needsCsoInput": false,
+      "csoNote": "Uganda: HIV-associated pneumonia (incl. PCP) common; TB can mimic/coexist.",
+      "ruleIn": ["Pleuritic"],
+      "supportingSymptoms": ["cough", "fever", "sputum", "dyspnoea"],
+      "weightCitation": "Uganda Clinical Guidelines 2023 (pneumonia); WHO; Davidson's 24th ed; BTS CAP guideline"
+    },
+    {
+      "dx": "TB pleuritis / pleural effusion",
+      "new": true,
+      "likelihood": "likely",
+      "basePrior": 2,
+      "agePrior": [],
+      "featureWeights": {
+        "Pleuritic": 3,
+        "night sweats": 3,
+        "weight loss": 3,
+        "cough": 2,
+        "fever": 2,
+        "dyspnoea": 2,
+        "Dry": 1,
+        "Sharp": 1,
+        "Reproducible on palpation": -2
+      },
+      "riskWeights": { "TB / TB contact": 2, "HIV": 2 },
+      "confidence": "high",
+      "needsCsoInput": true,
+      "csoNote": "basePrior far exceeds Western data — TB is the leading cause of exudative pleural effusion in high-burden Uganda; exact frequency among chest-pain presentations is an extrapolation. Confirm local weighting with CSO.",
+      "ruleIn": ["Pleuritic"],
+      "supportingSymptoms": ["fever", "night sweats", "weight loss", "cough"],
+      "weightCitation": "WHO Operational Handbook on TB (2022); Uganda National TB & Leprosy Programme guidelines; Davidson's 24th ed (TB pleural effusion)"
+    },
+    {
+      "dx": "Anxiety / panic disorder",
+      "new": true,
+      "likelihood": "likely",
+      "basePrior": 2,
+      "agePrior": [{ "maxAge": 40, "delta": 1 }],
+      "sexPrior": { "female": 1 },
+      "featureWeights": {
+        "anxiety": 3,
+        "palpitations": 2,
+        "Sharp": 1,
+        "dyspnoea": 1,
+        "Exertional": -1,
+        "Crushing": -1
+      },
+      "riskWeights": {},
+      "confidence": "moderate",
+      "needsCsoInput": true,
+      "csoNote": "DIAGNOSIS OF EXCLUSION — must not anchor here before excluding ACS, PE, arrhythmia and thyrotoxicosis. Recommend the engine never ranks this above an unexcluded must-not-miss. Confirm safeguard with CSO.",
+      "ruleIn": ["anxiety"],
+      "supportingSymptoms": ["palpitations", "dyspnoea"],
+      "weightCitation": "2021 AHA/ACC Chest Pain Guideline (noncardiac causes); DSM-5-TR (panic disorder); Davidson's 24th ed"
+    },
+    {
+      "dx": "Herpes zoster (shingles)",
+      "new": true,
+      "likelihood": "less_likely",
+      "basePrior": 1,
+      "agePrior": [{ "minAge": 50, "delta": 1 }],
+      "featureWeights": {
+        "Unilateral": 4,
+        "Burning": 2,
+        "Sharp": 2,
+        "Reproducible on palpation": -1,
+        "Exertional": -2,
+        "Crushing": -2,
+        "Pleuritic": -1
+      },
+      "riskWeights": { "HIV": 2, "cancer": 1, "diabetes mellitus": 1 },
+      "confidence": "moderate",
+      "needsCsoInput": false,
+      "csoNote": "Uganda: dermatomal pain PRECEDES the rash by days (mimics cardiac/pleuritic pain); zoster in a young adult should prompt HIV testing (WHO clinical stage 2).",
+      "ruleIn": ["Unilateral", "Burning"],
+      "supportingSymptoms": [],
+      "weightCitation": "Davidson's 24th ed; Uganda Clinical Guidelines 2023 (herpes zoster/HIV); WHO HIV clinical staging"
+    },
+    {
+      "dx": "Sickle-cell acute chest syndrome",
+      "new": true,
+      "likelihood": "must_not_miss",
+      "basePrior": 1,
+      "agePrior": [{ "maxAge": 40, "delta": 1 }],
+      "featureWeights": {
+        "Pleuritic": 2,
+        "fever": 2,
+        "cough": 2,
+        "dyspnoea": 2,
+        "Sharp": 1,
+        "Constant": 1
+      },
+      "riskWeights": { "sickle-cell disease": 2 },
+      "confidence": "moderate",
+      "needsCsoInput": true,
+      "csoNote": "The must-not-miss pin should ideally be CONDITIONAL on sickle-cell-disease status (a 'don't forget' only in SCD patients); basePrior is population-dependent (high SCD prevalence in Uganda). Confirm conditional-pin behaviour with CSO. EMERGENCY in a known SCD patient: chest pain + fever + new infiltrate + hypoxia.",
+      "ruleIn": [],
+      "supportingSymptoms": ["fever", "cough", "dyspnoea"],
+      "weightCitation": "ASH acute chest syndrome definition (Blood 2025); Nansseu JRN et al., BMC Pediatr 2015 (ACS in SSA); Davidson's 24th ed (haematology)"
+    },
+    {
+      "dx": "Referred pain (biliary / pancreatitis / peptic ulcer)",
+      "new": true,
+      "likelihood": "less_likely",
+      "basePrior": 2,
+      "agePrior": [],
+      "featureWeights": {
+        "Epigastric": 3,
+        "Colicky": 2,
+        "Postprandial": 2,
+        "Radiation to back": 2,
+        "nausea/vomiting": 2,
+        "Burning": 1,
+        "heartburn": 1,
+        "Pleuritic": -2,
+        "Exertional": -1
+      },
+      "riskWeights": { "peptic ulcer disease": 2, "alcohol": 2 },
+      "confidence": "moderate",
+      "needsCsoInput": false,
+      "csoNote": "Epigastric pain overlaps INFERIOR MI — do not dismiss as GI without an ECG.",
+      "ruleIn": ["Epigastric"],
+      "supportingSymptoms": ["nausea/vomiting"],
+      "weightCitation": "Davidson's Principles & Practice of Medicine 24th ed (2022) (GI); Macleod's Clinical Examination 15th ed (2023)"
+    },
+    {
+      "dx": "Pulmonary hypertension / cor pulmonale",
+      "new": true,
+      "likelihood": "less_likely",
+      "basePrior": 1,
+      "agePrior": [],
+      "featureWeights": {
+        "dyspnoea": 3,
+        "Exertional": 2,
+        "syncope": 2,
+        "leg swelling": 2,
+        "fatigue": 1,
+        "Orthopnoea": 1,
+        "Reproducible on palpation": -2,
+        "Crushing": -1,
+        "Pleuritic": -1
+      },
+      "riskWeights": {
+        "COPD": 2,
+        "HIV": 1,
+        "rheumatic heart disease": 1,
+        "TB / TB contact": 1,
+        "heart failure": 1,
+        "sickle-cell disease": 1
+      },
+      "confidence": "moderate",
+      "needsCsoInput": true,
+      "csoNote": "Chest pain is a less typical PRIMARY presentation (exertional dyspnoea dominates). Ugandan causes differ — schistosomiasis-associated PAH and post-TB lung disease are important; schistosomiasis exposure is NOT in the risk capture token set (gap to add).",
+      "ruleIn": [],
+      "supportingSymptoms": ["dyspnoea", "leg swelling", "syncope", "fatigue"],
+      "weightCitation": "ESC/ERS 2022 Pulmonary Hypertension Guidelines (Humbert M et al., Eur Heart J 2022;43:3618-3731); Davidson's 24th ed"
+    }
+  ]
+}

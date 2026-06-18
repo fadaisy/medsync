@@ -134,11 +134,13 @@ prefer the vocabulary tokens; mark which dx are NEW.
 
 1. Save as `docs/clinical/agent/ddx-weights/<complaint_code>.json`.
 2. In `lib/clerkship/agent/packs.ts`, add the import + array entry:
+
    ```ts
    import chestPainWeights from "@/docs/clinical/agent/ddx-weights/chest_pain.json";
 
-   const DDX_WEIGHT_FILES: DdxWeightFile[] = [chestPainWeights as DdxWeightFile];
+   const DDX_WEIGHT_FILES: DdxWeightFile[] = [chestPainWeights as unknown as DdxWeightFile];
    ```
+
 3. `npx vitest run tests/clerkship/agent/ddx-weights-coverage.test.ts` (entries resolve; no dup identity).
 4. Smoke: `CLERKSHIP_AGENT_LIVE=1 ENCOUNTER_ENGINE_LIVE=1 AGENT_DDX_RANKING_CSO_SIGNED=1 npm run dev`.
 5. CSO reviews the file (every new dx + every `needsCsoInput: true`). Going live is the flag, already on.
