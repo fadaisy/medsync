@@ -13,7 +13,13 @@ import type {
 import { featurePresent } from "@/lib/clerkship/agent/aliases";
 import { normalizeFeature } from "@/lib/clerkship/agent/normalize";
 import { matchedMaps } from "@/lib/clerkship/agent/reducers/maps";
-import { deriveWeights, REINFORCE, scoreDifferential, tierOf } from "@/lib/clerkship/agent/weights";
+import {
+  deriveWeights,
+  pinSatisfied,
+  REINFORCE,
+  scoreDifferential,
+  tierOf,
+} from "@/lib/clerkship/agent/weights";
 
 const present = featurePresent;
 const clean = (s: string) => s.replace(/[«»]/g, "");
@@ -73,7 +79,10 @@ function suggestRanked(
           delta: REINFORCE,
         });
       }
-      const mustNotMiss = d.likelihood === "must_not_miss";
+      // A conditional must-not-miss (pinWhen) only counts as must-not-miss — i.e.
+      // gets the red pin + always-visible treatment — when its gate is satisfied;
+      // otherwise it ranks like a normal dx (quiet unless its risk/feature is present).
+      const mustNotMiss = d.likelihood === "must_not_miss" && pinSatisfied(d.pinWhen, idx);
 
       insights.push({
         id: `dx:${m.code}:${normalizeFeature(d.dx)}`,
