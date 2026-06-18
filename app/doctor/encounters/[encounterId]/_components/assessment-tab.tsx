@@ -153,25 +153,14 @@ export function AssessmentTab({
         <SectionHead n={2} label="Suggested diagnoses — must-not-miss floated" />
         {suggestions.length ? (
           ranked ? (
+            // Convergence: only the most-likely + must-not-miss (safety). The full
+            // re-ranking list (worth-considering / less-likely / ruled-down) lives
+            // live in the rail.
             <div className="mt-2 flex flex-col gap-3">
               <DxTierGroup
                 label="Leading"
                 tone="teal"
                 items={g.leading}
-                onAdd={addWorking}
-                onExclude={exclude}
-              />
-              <DxTierGroup
-                label="Worth considering"
-                tone="sky"
-                items={g.consider}
-                onAdd={addWorking}
-                onExclude={exclude}
-              />
-              <DxTierGroup
-                label="Less likely"
-                tone="muted"
-                items={g.lessLikely}
                 onAdd={addWorking}
                 onExclude={exclude}
               />
@@ -184,22 +173,17 @@ export function AssessmentTab({
                   onExclude={exclude}
                 />
               ) : null}
-              {g.ruledDown.length ? (
-                <details className="group">
-                  <summary className="text-muted-foreground hover:text-foreground cursor-pointer list-none text-[11px] select-none">
-                    Ruled down ({g.ruledDown.length}) ›
-                  </summary>
-                  <div className="mt-2">
-                    <DxTierGroup
-                      label=""
-                      tone="muted"
-                      items={g.ruledDown}
-                      onAdd={addWorking}
-                      onExclude={exclude}
-                    />
-                  </div>
-                </details>
-              ) : null}
+              {!g.leading.length && !g.pinned.length ? (
+                <p className="text-muted-foreground text-[12px]">
+                  Nothing leading yet — the full live differential is in the rail; capture more and
+                  the most-likely surface here.
+                </p>
+              ) : (
+                <p className="text-muted-foreground/80 text-[10.5px] italic">
+                  Most-likely + must-not-miss only. The full re-ranking differential is in the
+                  clerkship-agent rail.
+                </p>
+              )}
             </div>
           ) : (
             <div className="mt-2 flex flex-col gap-2">

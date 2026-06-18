@@ -11,6 +11,8 @@
 import type { Insight } from "@/lib/clerkship/agent";
 import { ActivityIcon, AlertTriangleIcon, SparklesIcon, StethoscopeIcon } from "lucide-react";
 
+import { groupSuggestions } from "../_lib/ddx-grouping";
+
 const PACK_LABEL: Record<string, string> = {
   "enriched-reasoning-maps": "maps",
   "vitals-escalation": "vitals",
@@ -111,6 +113,43 @@ function FlagItem({ insight, red }: { insight: Insight; red: boolean }) {
   );
 }
 
+type DxTone = "teal" | "sky" | "muted" | "red";
+const DOT_TONE: Record<DxTone, string> = {
+  teal: "bg-teal-500",
+  sky: "bg-sky-500",
+  muted: "bg-slate-400",
+  red: "bg-red-500",
+};
+
+/** One compact differential line in the live rail list (read-only; commit on the tab). */
+function DxLine({ insight, tone }: { insight: Insight; tone: DxTone }) {
+  return (
+    <div className="flex items-center gap-1.5 text-[11.5px]">
+      {tone === "red" ? (
+        <AlertTriangleIcon className="size-3 shrink-0 text-red-600 dark:text-red-400" aria-hidden />
+      ) : (
+        <span aria-hidden className={`size-1.5 shrink-0 rounded-full ${DOT_TONE[tone]}`} />
+      )}
+      <span className="text-foreground/85 truncate">{insight.suggests?.dx ?? insight.message}</span>
+    </div>
+  );
+}
+
+/** A tier group in the live rail differential. */
+function DxGroup({ label, tone, items }: { label: string; tone: DxTone; items: Insight[] }) {
+  if (!items.length) return null;
+  return (
+    <div className="flex flex-col gap-1">
+      <p className="text-muted-foreground text-[8.5px] font-semibold tracking-[0.07em] uppercase">
+        {label}
+      </p>
+      {items.map((i) => (
+        <DxLine key={i.id} insight={i} tone={tone} />
+      ))}
+    </div>
+  );
+}
+
 /**
  * The consolidated agent rail. Renders nothing when there's nothing to say
  * (agent off / empty clerkship). Place it as a sticky right-hand column.
@@ -124,9 +163,8 @@ export function AgentRail({ insights }: { insights: Insight[] }) {
   const looks = insights.filter((i) => i.kind === "expected-sign");
   const toCheck = insights.filter((i) => i.kind === "must-check" || i.kind === "incompatible");
   const dx = insights.filter((i) => i.kind === "diagnosis");
-  const leading = dx.find((i) => i.tier === "leading");
-  const mnmCount = dx.filter((i) => i.suggests?.mustNotMiss).length;
   const dxCount = dx.length;
+  const g = groupSuggestions(dx);
 
   if (
     !emergencies.length &&
@@ -212,17 +250,35 @@ export function AgentRail({ insights }: { insights: Insight[] }) {
       ) : null}
 
       {dxCount ? (
-        <RailSection label="Assessment" tone="muted">
-          {leading ? (
-            <p className="text-[11.5px]">
-              <span className="font-semibold text-teal-700 dark:text-teal-400">Leading: </span>
-              <span className="text-foreground/80">{leading.suggests?.dx}</span>
+        <RailSection label="Differential · live" tone="teal">
+          {g.ranked ? (
+            <div className="flex flex-col gap-2">
+              <DxGroup label="Leading" tone="teal" items={g.leading} />
+              <DxGroup label="Worth considering" tone="sky" items={g.consider} />
+              <DxGroup label="Less likely" tone="muted" items={g.lessLikely} />
+              <DxGroup label="Must-not-miss" tone="red" items={g.pinned} />
+              {g.ruledDown.length ? (
+                <details className="group">
+                  <summary className="text-muted-foreground hover:text-foreground cursor-pointer list-none text-[10px] select-none">
+                    ruled down ({g.ruledDown.length}) ›
+                  </summary>
+                  <div className="mt-1 flex flex-col gap-1">
+                    {g.ruledDown.map((i) => (
+                      <DxLine key={i.id} insight={i} tone="muted" />
+                    ))}
+                  </div>
+                </details>
+              ) : null}
+              <p className="text-muted-foreground/80 text-[9.5px] italic">
+                re-orders as you capture · commit on the Assessment tab
+              </p>
+            </div>
+          ) : (
+            <p className="text-foreground/80 text-[11.5px]">
+              {dxCount} suggested —{" "}
+              <span className="text-teal-700 dark:text-teal-400">see the Assessment tab</span>
             </p>
-          ) : null}
-          <p className="text-muted-foreground text-[11px]">
-            {dxCount} in differential{mnmCount ? ` · ${mnmCount} must-not-miss` : ""} —{" "}
-            <span className="text-teal-700 dark:text-teal-400">see the Assessment tab</span>
-          </p>
+          )}
         </RailSection>
       ) : null}
     </div>
