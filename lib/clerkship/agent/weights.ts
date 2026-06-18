@@ -5,6 +5,7 @@ import type {
   DxTier,
   FeatureIndex,
   MapDifferential,
+  PinWhen,
   ReasoningMap,
 } from "@/lib/clerkship/agent/types";
 
@@ -130,6 +131,14 @@ export function tierOf(score: number): DxTier {
   return "ruled_down";
 }
 
+/** Is a conditional must-not-miss's pin gate satisfied? No gate (or empty) → always
+ * pins (the default). Otherwise pins only when a listed risk/feature is present. */
+export function pinSatisfied(pinWhen: PinWhen | undefined, idx: FeatureIndex): boolean {
+  if (!pinWhen) return true;
+  const toks = [...(pinWhen.riskAny ?? []), ...(pinWhen.featureAny ?? [])];
+  return toks.length === 0 ? true : toks.some((t) => featurePresent(idx, t));
+}
+
 /** A sourced weight entry for one differential (all weight fields optional). */
 export interface DdxWeightEntry {
   dxCode?: string;
@@ -142,6 +151,7 @@ export interface DdxWeightEntry {
   confidence?: string;
   needsCsoInput?: boolean;
   weightCitation?: string;
+  pinWhen?: PinWhen; // conditional must-not-miss gate (overlay or new dx)
   // Core fields for an APPENDED new differential (omit for pure weight overlays):
   likelihood?: string; // "must_not_miss" | "likely" | "less_likely"
   ruleIn?: string[];
@@ -166,6 +176,7 @@ const WEIGHT_KEYS: (keyof DdxWeightEntry)[] = [
   "confidence",
   "needsCsoInput",
   "weightCitation",
+  "pinWhen",
 ];
 
 function entryMatchesDifferential(e: DdxWeightEntry, d: MapDifferential): boolean {

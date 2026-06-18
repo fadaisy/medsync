@@ -330,9 +330,10 @@
         "Constant": 1
       },
       "riskWeights": { "sickle-cell disease": 2 },
+      "pinWhen": { "riskAny": ["sickle-cell disease"] },
       "confidence": "moderate",
       "needsCsoInput": true,
-      "csoNote": "The must-not-miss pin should ideally be CONDITIONAL on sickle-cell-disease status (a 'don't forget' only in SCD patients); basePrior is population-dependent (high SCD prevalence in Uganda). Confirm conditional-pin behaviour with CSO. EMERGENCY in a known SCD patient: chest pain + fever + new infiltrate + hypoxia.",
+      "csoNote": "Conditional must-not-miss: pinWhen sickle-cell disease present (a 'don't forget' only in SCD patients). basePrior population-dependent (high SCD prevalence in Uganda). EMERGENCY in a known SCD patient: chest pain + fever + new infiltrate + hypoxia.",
       "ruleIn": [],
       "supportingSymptoms": ["fever", "cough", "dyspnoea"],
       "weightCitation": "ASH acute chest syndrome definition (Blood 2025); Nansseu JRN et al., BMC Pediatr 2015 (ACS in SSA); Davidson's 24th ed (haematology)"

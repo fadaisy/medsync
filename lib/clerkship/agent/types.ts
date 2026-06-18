@@ -158,6 +158,14 @@ export interface FeatureIndex {
 
 /* ── Pack rule types (the cited JSON, adapted) ───────────────────────────── */
 
+/** Gate for a CONDITIONAL must-not-miss: it pins only when a listed risk/feature
+ * is present (e.g. sickle-cell acute chest syndrome pins only in SCD patients).
+ * Absent → the must-not-miss pins unconditionally (the default). */
+export interface PinWhen {
+  riskAny?: string[];
+  featureAny?: string[];
+}
+
 export interface MapDifferential {
   dx: string;
   likelihood: string; // "must_not_miss" | "likely" | "less_likely" | ...
@@ -176,6 +184,8 @@ export interface MapDifferential {
   confidence?: string;
   needsCsoInput?: boolean;
   weightCitation?: string;
+  /** Conditional must-not-miss gate (only meaningful when likelihood = must_not_miss). */
+  pinWhen?: PinWhen;
 }
 export interface MapExamTarget {
   area: string;

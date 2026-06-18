@@ -67,8 +67,10 @@ describe("chest_pain — wired sourced weights", () => {
     expect(byDx(out, "Community-acquired pneumonia")?.tier).toBe("leading");
   });
 
-  it("sickle-cell acute chest syndrome is must-not-miss (pinned regardless of score)", () => {
-    const out = run([], { ageYears: 25, sex: "male" });
-    expect(byDx(out, "Sickle-cell acute chest syndrome")?.suggests?.mustNotMiss).toBe(true);
+  it("sickle-cell acute chest syndrome is CONDITIONALLY pinned — only with SCD", () => {
+    const noScd = run([], { ageYears: 25, sex: "male" });
+    expect(byDx(noScd, "Sickle-cell acute chest syndrome")?.suggests?.mustNotMiss).toBe(false);
+    const withScd = run(["sickle-cell disease"], { ageYears: 25, sex: "male" });
+    expect(byDx(withScd, "Sickle-cell acute chest syndrome")?.suggests?.mustNotMiss).toBe(true);
   });
 });
