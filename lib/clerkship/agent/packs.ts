@@ -15,6 +15,7 @@ import type { DdxWeightFile } from "@/lib/clerkship/agent/weights";
 
 import chestPainWeights from "@/docs/clinical/agent/ddx-weights/chest_pain.json";
 import coughWeights from "@/docs/clinical/agent/ddx-weights/cough.json";
+import dyspnoeaWeights from "@/docs/clinical/agent/ddx-weights/dyspnoea.json";
 import feverWeights from "@/docs/clinical/agent/ddx-weights/fever.json";
 import rawDeps from "@/docs/clinical/agent/sign-dependencies.json";
 import rawIncompat from "@/docs/clinical/agent/sign-incompatibilities.json";
@@ -28,6 +29,7 @@ const DDX_WEIGHT_FILES: DdxWeightFile[] = [
   chestPainWeights as unknown as DdxWeightFile,
   coughWeights as unknown as DdxWeightFile,
   feverWeights as unknown as DdxWeightFile,
+  dyspnoeaWeights as unknown as DdxWeightFile,
 ];
 
 function adaptMaps(raw: unknown): ReasoningMap[] {
