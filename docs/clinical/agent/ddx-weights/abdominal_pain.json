@@ -1,0 +1,355 @@
+{
+  "complaint": "abdominal_pain",
+  "source_version": "2026-06-19",
+  "weights": [
+    {
+      "dx": "Ruptured abdominal aortic aneurysm",
+      "new": false,
+      "likelihood": "must_not_miss",
+      "basePrior": 0,
+      "agePrior": [{ "minAge": 60, "delta": 2 }],
+      "sexPrior": { "male": 2 },
+      "featureWeights": {
+        "Tearing": 4,
+        "Sudden": 3,
+        "Radiation to back": 3,
+        "Constant": 2,
+        "syncope": 2,
+        "Colicky": -2
+      },
+      "riskWeights": { "hypertension": 2, "smoking": 2, "age over 60 male": 2 },
+      "confidence": "high",
+      "needsCsoInput": true,
+      "csoNote": "AAA is LESS common in sub-Saharan African populations than in Western data — basePrior low; but catastrophic if missed. Pulsatile expansile abdominal mass + hypotension + back/flank pain in an older hypertensive smoker.",
+      "weightCitation": "ESC 2014 Aortic Diseases Guidelines (Erbel R et al., Eur Heart J 2014;35:2873-2926); 2024 ACC/AHA Aortic Disease Guideline; Davidson's 24th ed"
+    },
+    {
+      "dx": "Perforation / peritonitis",
+      "new": false,
+      "likelihood": "must_not_miss",
+      "basePrior": 2,
+      "agePrior": [],
+      "featureWeights": {
+        "Sudden": 3,
+        "Constant": 3,
+        "Worse on movement": 3,
+        "Worse on coughing/bending": 2,
+        "With fever": 2,
+        "fever": 2,
+        "abdominal distension": 1,
+        "nausea/vomiting": 1,
+        "Colicky": -3
+      },
+      "riskWeights": { "peptic ulcer disease": 2, "NSAID use": 2, "tuberculosis": 1, "HIV": 1 },
+      "confidence": "high",
+      "needsCsoInput": false,
+      "csoNote": "Uganda: typhoid ILEAL PERFORATION and perforated peptic ulcer are major causes of generalised peritonitis; board-like rigidity, patient lies still, pain worse on any movement/coughing.",
+      "weightCitation": "Davidson's 24th ed"
+    },
+    {
+      "dx": "Bowel obstruction / ischaemia",
+      "new": false,
+      "likelihood": "must_not_miss",
+      "basePrior": 2,
+      "agePrior": [],
+      "featureWeights": {
+        "Colicky": 4,
+        "abdominal distension": 3,
+        "nausea/vomiting": 3,
+        "change in bowel habit": 3,
+        "Constant": 1,
+        "Sudden": 1
+      },
+      "riskWeights": { "prior abdominal surgery": 2, "atrial fibrillation": 2, "cancer": 1 },
+      "confidence": "high",
+      "needsCsoInput": false,
+      "csoNote": "Uganda: sigmoid volvulus, obstructed hernia, adhesions, intestinal TB and malignancy. Constant pain 'out of proportion' + AF suggests MESENTERIC ISCHAEMIA (embolic).",
+      "weightCitation": "Davidson's 24th ed"
+    },
+    {
+      "dx": "Ectopic pregnancy",
+      "new": false,
+      "likelihood": "must_not_miss",
+      "basePrior": 1,
+      "agePrior": [],
+      "sexPrior": { "female": 3 },
+      "featureWeights": {
+        "Sudden": 3,
+        "syncope": 2,
+        "vaginal/urethral discharge": 1,
+        "Constant": 1,
+        "abdominal distension": 1
+      },
+      "riskWeights": {
+        "reproductive-age woman": 2,
+        "missed period": 2,
+        "prior PID / ectopic": 2
+      },
+      "pinWhen": { "riskAny": ["reproductive-age woman", "missed period"] },
+      "confidence": "high",
+      "needsCsoInput": true,
+      "csoNote": "MANDATORY: a pregnancy test in ANY reproductive-age woman with abdominal pain — the core safety rule. Ruptured ectopic = haemorrhagic shock and is a leading cause of maternal death in Uganda. Note: vaginal BLEEDING is captured only loosely via 'vaginal/urethral discharge' (a discriminator gap).",
+      "weightCitation": "WHO; RCOG Ectopic Pregnancy Guideline (GTG); Davidson's 24th ed"
+    },
+    {
+      "dx": "Acute pancreatitis",
+      "new": false,
+      "likelihood": "likely",
+      "basePrior": 2,
+      "agePrior": [],
+      "featureWeights": {
+        "Radiation to back": 4,
+        "Epigastric": 3,
+        "Constant": 3,
+        "nausea/vomiting": 2,
+        "Worse on movement": -1,
+        "Colicky": -2
+      },
+      "riskWeights": { "alcohol": 2, "gallstones": 2 },
+      "confidence": "high",
+      "needsCsoInput": false,
+      "csoNote": "Epigastric pain radiating to the back, relieved by sitting forward, with raised lipase/amylase. Uganda: alcohol and gallstones are the main causes.",
+      "weightCitation": "Revised Atlanta Classification (Banks PA et al., Gut 2013); IAP/APA guidelines; Davidson's 24th ed"
+    },
+    {
+      "dx": "Appendicitis",
+      "new": false,
+      "likelihood": "likely",
+      "basePrior": 3,
+      "agePrior": [{ "maxAge": 40, "delta": 1 }],
+      "featureWeights": {
+        "Right iliac fossa": 4,
+        "Migrated from umbilicus": 4,
+        "appetite loss": 2,
+        "fever": 2,
+        "nausea/vomiting": 1,
+        "Worse on movement": 1,
+        "Worse on coughing/bending": 1
+      },
+      "riskWeights": {},
+      "confidence": "high",
+      "needsCsoInput": false,
+      "csoNote": "Uganda: common; mimics include mesenteric adenitis, ileocaecal TB, and — in women — ectopic and PID (ALWAYS do a pregnancy test in a reproductive-age woman with RIF pain).",
+      "weightCitation": "Davidson's 24th ed (Alvarado score; WSES guidelines)"
+    },
+    {
+      "dx": "Inferior MI (epigastric)",
+      "new": false,
+      "likelihood": "must_not_miss",
+      "basePrior": 1,
+      "agePrior": [{ "minAge": 50, "delta": 1 }],
+      "sexPrior": { "male": 1 },
+      "featureWeights": {
+        "Epigastric": 3,
+        "nausea/vomiting": 2,
+        "Worse on movement": -2,
+        "Colicky": -2,
+        "Burning": -1
+      },
+      "riskWeights": { "diabetes mellitus": 2, "ischaemic heart disease": 2, "hypertension": 1 },
+      "confidence": "high",
+      "needsCsoInput": true,
+      "csoNote": "Key MI discriminators 'Exertional' and 'dyspnoea' are NOT in the abdominal-pain capture token set (they exist for chest pain/dyspnoea) — so the EMR currently cannot capture the cardinal MI features in an epigastric-pain presentation. Recommend cross-linking. Rule: ECG in ANY epigastric pain with cardiac risk; DIABETICS may have a silent/atypical MI.",
+      "weightCitation": "ESC 2023 ACS Guidelines (Byrne RA et al., Eur Heart J 2023;44:3720-3826); Davidson's 24th ed"
+    },
+    {
+      "dx": "Peptic ulcer disease / gastritis",
+      "new": true,
+      "likelihood": "likely",
+      "basePrior": 3,
+      "agePrior": [],
+      "featureWeights": {
+        "Epigastric": 4,
+        "Burning": 3,
+        "Postprandial": 3,
+        "melaena": 2,
+        "haematemesis": 2,
+        "nausea/vomiting": 1,
+        "Worse on movement": -2
+      },
+      "riskWeights": { "peptic ulcer disease": 2, "NSAID use": 2, "alcohol": 1, "smoking": 1 },
+      "confidence": "high",
+      "needsCsoInput": false,
+      "csoNote": "Uganda: very common; H. pylori prevalent (not a capture token) and NSAID use. Watch the two complications — BLEEDING (haematemesis/melaena) and PERFORATION (sudden severe pain + rigidity).",
+      "ruleIn": ["Epigastric", "Burning"],
+      "supportingSymptoms": ["nausea/vomiting", "melaena"],
+      "weightCitation": "Davidson's 24th ed; Maastricht VI/Florence H. pylori Consensus (2022)"
+    },
+    {
+      "dx": "Biliary colic / cholecystitis / cholangitis",
+      "new": true,
+      "likelihood": "likely",
+      "basePrior": 2,
+      "agePrior": [],
+      "sexPrior": { "female": 1 },
+      "featureWeights": {
+        "Right upper quadrant pain": 4,
+        "Postprandial": 3,
+        "Colicky": 2,
+        "With fever": 2,
+        "fever": 2,
+        "jaundice": 2,
+        "nausea/vomiting": 2,
+        "Radiation to back": 1,
+        "Worse on movement": -1
+      },
+      "riskWeights": { "gallstones": 2, "alcohol": 1 },
+      "confidence": "high",
+      "needsCsoInput": false,
+      "csoNote": "CHARCOT'S TRIAD (RUQ pain + fever + jaundice) = ASCENDING CHOLANGITIS, a must-not-miss biliary-sepsis emergency; Murphy's sign for cholecystitis. Spectrum: biliary colic (no fever) -> cholecystitis -> cholangitis.",
+      "ruleIn": ["Right upper quadrant pain", "Postprandial"],
+      "supportingSymptoms": ["fever", "jaundice", "nausea/vomiting"],
+      "weightCitation": "Tokyo Guidelines TG18 (Yokoe M et al., J Hepatobiliary Pancreat Sci 2018); Davidson's 24th ed"
+    },
+    {
+      "dx": "Amoebic liver abscess",
+      "new": true,
+      "likelihood": "likely",
+      "basePrior": 2,
+      "agePrior": [],
+      "sexPrior": { "male": 2 },
+      "featureWeights": {
+        "Right upper quadrant pain": 4,
+        "With fever": 3,
+        "fever": 3,
+        "jaundice": 1,
+        "weight loss": 1,
+        "nausea/vomiting": 1,
+        "Constant": 1
+      },
+      "riskWeights": { "alcohol": 1, "diabetes mellitus": 1, "HIV": 1, "high-risk exposure": 1 },
+      "confidence": "moderate",
+      "needsCsoInput": false,
+      "csoNote": "Uganda: amoebic liver abscess (Entamoeba histolytica) — RUQ pain + swinging fever + TENDER hepatomegaly, strongly male-predominant; right-sided pleuritic/shoulder-tip referral; 'anchovy sauce' aspirate. Distinguish from pyogenic abscess and HCC.",
+      "ruleIn": ["Right upper quadrant pain"],
+      "supportingSymptoms": ["fever", "jaundice"],
+      "weightCitation": "Davidson's 24th ed; Harrison's 21st ed (amoebic liver abscess)"
+    },
+    {
+      "dx": "Renal / ureteric colic",
+      "new": true,
+      "likelihood": "likely",
+      "basePrior": 2,
+      "agePrior": [],
+      "sexPrior": { "male": 1 },
+      "featureWeights": {
+        "Colicky": 4,
+        "Radiation to back": 2,
+        "Sudden": 2,
+        "nausea/vomiting": 2,
+        "dysuria": 1,
+        "urinary frequency": 1,
+        "Constant": -1
+      },
+      "riskWeights": {},
+      "confidence": "moderate",
+      "needsCsoInput": true,
+      "csoNote": "Cardinal features — LOIN-TO-GROIN radiation and HAEMATURIA — are not precisely tokenised ('Radiation to back', 'Colicky', 'dysuria' are proxies). The patient is classically RESTLESS/writhing (unlike the lying-still of peritonitis) — a discriminating behavioural sign that isn't captured. CT-KUB is diagnostic where available.",
+      "ruleIn": ["Colicky"],
+      "supportingSymptoms": ["nausea/vomiting", "dysuria"],
+      "weightCitation": "EAU Urolithiasis Guidelines; Davidson's 24th ed"
+    },
+    {
+      "dx": "Typhoid / enteric fever (incl. ileal perforation)",
+      "new": true,
+      "likelihood": "likely",
+      "basePrior": 3,
+      "agePrior": [],
+      "featureWeights": {
+        "With fever": 3,
+        "fever": 3,
+        "abdominal pain": 2,
+        "change in bowel habit": 2,
+        "Gradual": 1,
+        "nausea/vomiting": 1,
+        "appetite loss": 1,
+        "abdominal distension": 1,
+        "Sudden": 2,
+        "Worse on movement": 1
+      },
+      "riskWeights": { "high-risk exposure": 1, "HIV": 1 },
+      "confidence": "high",
+      "needsCsoInput": true,
+      "csoNote": "Very common in Uganda (faecal-oral; contaminated water/food, only loosely tokenised as 'high-risk exposure') — basePrior high but study-dependent. The must-not-miss complication is ILEAL PERFORATION in the 2nd-3rd week (sudden worsening + peritonism + distension) — a leading cause of typhoid mortality; the Sudden/Worse-on-movement weights flag that transition.",
+      "ruleIn": ["With fever"],
+      "supportingSymptoms": ["abdominal pain", "change in bowel habit", "fever"],
+      "weightCitation": "WHO typhoid/enteric fever guidance; Uganda Clinical Guidelines 2023; Davidson's 24th ed"
+    },
+    {
+      "dx": "Pelvic inflammatory disease",
+      "new": true,
+      "likelihood": "likely",
+      "basePrior": 2,
+      "agePrior": [],
+      "sexPrior": { "female": 3 },
+      "featureWeights": {
+        "vaginal/urethral discharge": 3,
+        "With fever": 2,
+        "fever": 2,
+        "dysuria": 1,
+        "nausea/vomiting": 1,
+        "Constant": 1
+      },
+      "riskWeights": {
+        "reproductive-age woman": 2,
+        "prior PID / ectopic": 2,
+        "high-risk exposure": 1
+      },
+      "confidence": "moderate",
+      "needsCsoInput": true,
+      "csoNote": "Must EXCLUDE ectopic first (pregnancy test) in any reproductive-age woman. Cardinal sign — cervical motion tenderness — is an examination finding, not in the token set. Overlaps appendicitis and ectopic; can cause tubo-ovarian abscess, Fitz-Hugh-Curtis (RUQ) and infertility. Uganda: common given the high STI/HIV burden.",
+      "ruleIn": [],
+      "supportingSymptoms": ["vaginal/urethral discharge", "fever"],
+      "weightCitation": "WHO STI Guidelines; CDC STI Treatment Guidelines (2021); Davidson's 24th ed"
+    },
+    {
+      "dx": "Sickle-cell vaso-occlusive crisis",
+      "new": true,
+      "likelihood": "must_not_miss",
+      "basePrior": 1,
+      "agePrior": [{ "maxAge": 40, "delta": 1 }],
+      "featureWeights": {
+        "Constant": 2,
+        "Acute": 2,
+        "Continuous": 1,
+        "nausea/vomiting": 1,
+        "pallor": 1,
+        "With fever": 1
+      },
+      "riskWeights": { "sickle-cell disease": 2 },
+      "pinWhen": { "riskAny": ["sickle-cell disease"] },
+      "confidence": "moderate",
+      "needsCsoInput": true,
+      "csoNote": "CONDITIONAL must-not-miss — pin only in known sickle-cell disease; basePrior population-dependent (high SCD prevalence in Uganda). Abdominal vaso-occlusive crisis MIMICS a surgical abdomen; SCD also predisposes to pigment-stone cholecystitis and splenic/hepatic SEQUESTRATION. Always exclude a precipitating infection and a true surgical cause.",
+      "ruleIn": [],
+      "supportingSymptoms": ["pallor", "nausea/vomiting"],
+      "weightCitation": "ASH Sickle Cell Disease Guidelines (2020); Davidson's 24th ed"
+    },
+    {
+      "dx": "DKA presenting as abdominal pain",
+      "new": true,
+      "likelihood": "must_not_miss",
+      "basePrior": 1,
+      "agePrior": [{ "maxAge": 40, "delta": 1 }],
+      "featureWeights": {
+        "polyuria/polydipsia": 4,
+        "nausea/vomiting": 3,
+        "abdominal pain": 2,
+        "Constant": 1,
+        "With fever": 1,
+        "Acute": 1
+      },
+      "riskWeights": { "diabetes mellitus": 2 },
+      "pinWhen": {
+        "riskAny": ["diabetes mellitus"],
+        "featureAny": ["polyuria/polydipsia"]
+      },
+      "confidence": "moderate",
+      "needsCsoInput": true,
+      "csoNote": "CONDITIONAL must-not-miss and a CLASSIC TRAP: DKA causes abdominal pain + vomiting that mimics a surgical abdomen and RESOLVES with DKA treatment — do not rush to laparotomy, but don't miss a true surgical precipitant either. CHECK GLUCOSE + KETONES in any abdominal pain (DEFG). New-onset DKA may lack a diabetes label, so the polyuria/polydipsia feature also triggers the pin.",
+      "ruleIn": [],
+      "supportingSymptoms": ["polyuria/polydipsia", "nausea/vomiting"],
+      "weightCitation": "ADA/EASD/JBDS/AACE/DTS Consensus on Hyperglycaemic Crises (DKA/HHS), Diabetes Care 2024; Davidson's 24th ed"
+    }
+  ]
+}
