@@ -1,0 +1,351 @@
+{
+  "complaint": "focal_weakness",
+  "source_version": "2026-06-20",
+  "weights": [
+    {
+      "dx": "Acute ischaemic stroke",
+      "new": false,
+      "likelihood": "must_not_miss",
+      "basePrior": 3,
+      "agePrior": [{ "minAge": 55, "delta": 1 }],
+      "featureWeights": {
+        "Sudden": 4,
+        "Unilateral face/arm/leg": 4,
+        "Speech disturbance": 3,
+        "speech disturbance": 3,
+        "visual disturbance": 2,
+        "weakness": 2,
+        "Unilateral": 2,
+        "Maximal at onset": 2,
+        "Gradual over weeks": -3
+      },
+      "riskWeights": {
+        "hypertension": 2,
+        "atrial fibrillation": 2,
+        "stroke/TIA": 2,
+        "diabetes mellitus": 1,
+        "smoking": 1,
+        "hyperlipidaemia": 1,
+        "rheumatic heart disease": 1
+      },
+      "confidence": "high",
+      "needsCsoInput": true,
+      "csoNote": "Uganda: stroke is often YOUNGER than Western data, with RHD/AF cardioembolism and HIV-associated mechanisms prominent. CRITICAL: ischaemic vs haemorrhagic CANNOT be distinguished clinically — CT is required but often unavailable; this changes management. Always CHECK GLUCOSE first (hypoglycaemia mimics stroke — DEFG).",
+      "weightCitation": "AHA/ASA 2019 Acute Ischemic Stroke Guidelines (Powers WJ et al., Stroke 2019); WHO; Davidson's 24th ed"
+    },
+    {
+      "dx": "Intracranial haemorrhage",
+      "new": false,
+      "likelihood": "must_not_miss",
+      "basePrior": 3,
+      "agePrior": [{ "minAge": 45, "delta": 1 }],
+      "featureWeights": {
+        "Sudden": 4,
+        "Maximal at onset": 2,
+        "headache": 3,
+        "nausea/vomiting": 2,
+        "memory/cognitive change": 2,
+        "Unilateral face/arm/leg": 2,
+        "seizures": 1,
+        "Gradual over weeks": -3
+      },
+      "riskWeights": { "hypertension": 2, "anticoagulant": 2 },
+      "confidence": "high",
+      "needsCsoInput": true,
+      "csoNote": "Uganda: hypertensive intracerebral haemorrhage is proportionally MORE common than in Western data (high uncontrolled-hypertension burden). Cannot be distinguished from ischaemic stroke without CT. Headache/vomiting/reduced consciousness favour haemorrhage but are not reliable. Reverse anticoagulation urgently if present.",
+      "weightCitation": "AHA/ASA 2022 Spontaneous Intracerebral Hemorrhage Guideline (Greenberg SM et al., Stroke 2022); Davidson's 24th ed"
+    },
+    {
+      "dx": "Subarachnoid haemorrhage",
+      "new": false,
+      "likelihood": "must_not_miss",
+      "basePrior": 1,
+      "agePrior": [{ "minAge": 40, "delta": 1 }],
+      "featureWeights": {
+        "Thunderclap": 4,
+        "Maximal at onset": 3,
+        "Sudden": 3,
+        "headache": 3,
+        "nausea/vomiting": 1,
+        "seizures": 1
+      },
+      "riskWeights": { "hypertension": 1, "family history SAH": 2, "anticoagulant": 1 },
+      "confidence": "high",
+      "needsCsoInput": false,
+      "csoNote": "Presents more as thunderclap HEADACHE than focal weakness, but a sentinel bleed/complication can give focal signs. CT then LP (xanthochromia).",
+      "weightCitation": "AHA/ASA aneurysmal SAH guidance; Davidson's 24th ed"
+    },
+    {
+      "dx": "Hypoglycaemia (stroke mimic)",
+      "new": false,
+      "likelihood": "must_not_miss",
+      "basePrior": 1,
+      "agePrior": [],
+      "featureWeights": {
+        "Sudden": 3,
+        "Speech disturbance": 1,
+        "Unilateral face/arm/leg": 1,
+        "memory/cognitive change": 1
+      },
+      "riskWeights": { "diabetes mellitus": 2, "insulin / sulfonylurea": 2 },
+      "pinWhen": { "riskAny": ["diabetes mellitus", "insulin / sulfonylurea"] },
+      "confidence": "high",
+      "needsCsoInput": true,
+      "csoNote": "CONDITIONAL must-not-miss (pin on diabetes / insulin-sulfonylurea). Dominant trigger is the GLUCOSE VALUE (vitals; also via vitals-escalation pack). DEFG — ALWAYS check capillary glucose in ANY focal deficit before calling it a stroke; hypoglycaemia can produce focal signs that fully reverse with glucose. Sulfonylureas cause prolonged/recurrent hypoglycaemia.",
+      "weightCitation": "ADA Standards of Care 2024 (hypoglycaemia); Davidson's 24th ed (hypoglycaemia as a stroke mimic — DEFG)"
+    },
+    {
+      "dx": "Space-occupying lesion",
+      "new": false,
+      "likelihood": "must_not_miss",
+      "basePrior": 1,
+      "agePrior": [],
+      "featureWeights": {
+        "Gradual over weeks": 4,
+        "Gradual": 2,
+        "headache": 2,
+        "seizures": 3,
+        "weakness": 2,
+        "memory/cognitive change": 1,
+        "visual disturbance": 1,
+        "Sudden": -3
+      },
+      "riskWeights": { "cancer": 2, "HIV": 2, "TB contact": 1, "tuberculosis": 1 },
+      "confidence": "high",
+      "needsCsoInput": false,
+      "csoNote": "Subacute progressive focal deficit +/- seizures +/- raised-ICP headache. Uganda: in HIV consider toxoplasmosis, tuberculoma, primary CNS lymphoma (see those entries); also metastases and primary tumours.",
+      "weightCitation": "Davidson's 24th ed (intracranial space-occupying lesion)"
+    },
+    {
+      "dx": "Todd's paresis (post-seizure)",
+      "new": false,
+      "likelihood": "likely",
+      "basePrior": 1,
+      "agePrior": [],
+      "featureWeights": {
+        "Preceding seizure": 4,
+        "Sudden": 2,
+        "seizures": 3,
+        "Speech disturbance": 1,
+        "Gradual over weeks": -2
+      },
+      "riskWeights": { "epilepsy": 2 },
+      "confidence": "high",
+      "needsCsoInput": false,
+      "csoNote": "Transient focal deficit AFTER a witnessed seizure, resolving over minutes-hours — but a first seizure with focal deficit still needs imaging to exclude an underlying lesion.",
+      "weightCitation": "Davidson's 24th ed (post-ictal Todd's paresis)"
+    },
+    {
+      "dx": "Bell's palsy / peripheral lesion",
+      "new": false,
+      "likelihood": "likely",
+      "basePrior": 2,
+      "agePrior": [],
+      "featureWeights": {
+        "Isolated facial (forehead involved)": 4,
+        "Sudden": 1,
+        "Unilateral face/arm/leg": -3,
+        "weakness": -2,
+        "Speech disturbance": -1
+      },
+      "riskWeights": { "HIV": 1, "diabetes mellitus": 1 },
+      "confidence": "high",
+      "needsCsoInput": false,
+      "csoNote": "LMN facial palsy with FOREHEAD INVOLVED (cannot wrinkle/close eye) distinguishes it from UMN (stroke) facial palsy where the forehead is spared. Uganda: HIV can cause Bell's palsy and other cranial neuropathies; exclude herpes zoster oticus / parotid lesion.",
+      "weightCitation": "Davidson's 24th ed (Bell's palsy — LMN facial nerve, forehead involved)"
+    },
+    {
+      "dx": "Transient ischaemic attack (TIA)",
+      "new": true,
+      "likelihood": "must_not_miss",
+      "basePrior": 2,
+      "agePrior": [{ "minAge": 55, "delta": 1 }],
+      "featureWeights": {
+        "Sudden": 3,
+        "Unilateral face/arm/leg": 3,
+        "Speech disturbance": 2,
+        "visual disturbance": 2,
+        "Unilateral": 1,
+        "Gradual over weeks": -3
+      },
+      "riskWeights": {
+        "atrial fibrillation": 2,
+        "hypertension": 2,
+        "stroke/TIA": 2,
+        "diabetes mellitus": 1,
+        "smoking": 1,
+        "hyperlipidaemia": 1,
+        "rheumatic heart disease": 1
+      },
+      "confidence": "high",
+      "needsCsoInput": true,
+      "csoNote": "A TIA is a 'brain attack' WARNING — high early stroke risk, must not be dismissed (urgent secondary prevention; ABCD2). KEY GAP: the defining feature — full RESOLUTION of the deficit (<24h) — is NOT a capture token; without a 'transient/resolved deficit' field the EMR cannot separate TIA from an evolving stroke. Recommend adding one.",
+      "ruleIn": [],
+      "supportingSymptoms": ["speech disturbance", "visual disturbance"],
+      "weightCitation": "AHA/ASA TIA definition & management (ABCD2); Davidson's 24th ed"
+    },
+    {
+      "dx": "HIV-associated / young stroke",
+      "new": true,
+      "likelihood": "likely",
+      "basePrior": 2,
+      "agePrior": [{ "maxAge": 45, "delta": 2 }],
+      "featureWeights": {
+        "Sudden": 3,
+        "Unilateral face/arm/leg": 3,
+        "Speech disturbance": 2,
+        "weakness": 2,
+        "visual disturbance": 1,
+        "Gradual over weeks": -2
+      },
+      "riskWeights": {
+        "HIV": 2,
+        "rheumatic heart disease": 2,
+        "sickle-cell disease": 1,
+        "atrial fibrillation": 1
+      },
+      "confidence": "moderate",
+      "needsCsoInput": true,
+      "csoNote": "Overlaps 'Acute ischaemic stroke' but flags the distinct mechanisms (and different WORKUP) that dominate stroke in YOUNGER Ugandans: HIV vasculopathy, RHD cardioembolism, vasculitis, sickle-cell, hypercoagulable states. Prompts HIV test, echo, vasculitis/thrombophilia screen. 'young' threshold is an extrapolation — confirm with CSO.",
+      "ruleIn": [],
+      "supportingSymptoms": ["speech disturbance", "weakness"],
+      "weightCitation": "Davidson's 24th ed; stroke-in-HIV / young-stroke literature (HIV vasculopathy, RHD cardioembolism, vasculitis, hypercoagulable states)"
+    },
+    {
+      "dx": "CNS toxoplasmosis",
+      "new": true,
+      "likelihood": "must_not_miss",
+      "basePrior": 2,
+      "agePrior": [],
+      "featureWeights": {
+        "weakness": 3,
+        "Unilateral face/arm/leg": 2,
+        "seizures": 3,
+        "Speech disturbance": 2,
+        "Gradual": 2,
+        "headache": 2,
+        "visual disturbance": 1,
+        "fever": 1,
+        "memory/cognitive change": 1
+      },
+      "riskWeights": { "HIV": 2, "immunosuppression": 2 },
+      "pinWhen": { "riskAny": ["HIV", "immunosuppression"] },
+      "confidence": "high",
+      "needsCsoInput": true,
+      "csoNote": "CONDITIONAL must-not-miss (pin on HIV/immunosuppression). basePrior population-dependent — the commonest FOCAL brain lesion in advanced HIV (CD4<100) in Uganda. Subacute focal deficit/seizures + multiple ring-enhancing lesions on CT; empirical anti-toxoplasma trial; differential is tuberculoma / primary CNS lymphoma.",
+      "ruleIn": [],
+      "supportingSymptoms": ["weakness", "seizures", "speech disturbance"],
+      "weightCitation": "WHO HIV/opportunistic-infection guidelines; Uganda Clinical Guidelines 2023; Davidson's 24th ed"
+    },
+    {
+      "dx": "Tuberculoma",
+      "new": true,
+      "likelihood": "must_not_miss",
+      "basePrior": 1,
+      "agePrior": [],
+      "featureWeights": {
+        "weakness": 3,
+        "Unilateral face/arm/leg": 2,
+        "seizures": 3,
+        "Gradual": 2,
+        "Gradual over weeks": 2,
+        "headache": 2,
+        "fever": 1,
+        "night sweats": 1,
+        "weight loss": 1,
+        "Speech disturbance": 1
+      },
+      "riskWeights": { "tuberculosis": 2, "TB contact": 2, "HIV": 2, "immunosuppression": 1 },
+      "pinWhen": { "riskAny": ["HIV", "immunosuppression", "tuberculosis", "TB contact"] },
+      "confidence": "moderate",
+      "needsCsoInput": true,
+      "csoNote": "CONDITIONAL must-not-miss (pin on TB/HIV exposure). Uganda: given the very high TB burden, intracranial tuberculoma is an important focal mass lesion — subacute focal deficit/seizures +/- constitutional TB features. A key differential of CNS toxoplasmosis in HIV; often coexists with TB meningitis. basePrior under-characterised locally — confirm with CSO.",
+      "ruleIn": [],
+      "supportingSymptoms": ["weakness", "seizures", "night sweats"],
+      "weightCitation": "WHO Consolidated Guidelines on TB; Uganda National TB & Leprosy Programme; Davidson's 24th ed (tuberculoma)"
+    },
+    {
+      "dx": "Cerebral malaria with focal signs",
+      "new": true,
+      "likelihood": "must_not_miss",
+      "basePrior": 1,
+      "agePrior": [],
+      "featureWeights": {
+        "fever": 3,
+        "seizures": 3,
+        "memory/cognitive change": 3,
+        "Sudden": 1,
+        "nausea/vomiting": 1
+      },
+      "riskWeights": { "malaria": 2, "malaria-endemic residence/travel": 2 },
+      "pinWhen": { "featureAny": ["fever"] },
+      "confidence": "moderate",
+      "needsCsoInput": true,
+      "csoNote": "CONDITIONAL on FEVER (cerebral malaria without fever is essentially never). Cerebral malaria USUALLY causes DIFFUSE encephalopathy (coma, seizures) rather than classic focal hemiparesis — focal signs/post-malaria neurological syndromes are less typical. In holoendemic Uganda, any febrile neuro presentation needs a malaria RDT/smear; check glucose (DEFG); exclude concurrent meningitis.",
+      "ruleIn": [],
+      "supportingSymptoms": ["fever", "seizures"],
+      "weightCitation": "WHO Guidelines for Malaria (2025); Uganda Clinical Guidelines 2023; Davidson's 24th ed"
+    },
+    {
+      "dx": "Neurocysticercosis",
+      "new": true,
+      "likelihood": "likely",
+      "basePrior": 1,
+      "agePrior": [],
+      "featureWeights": {
+        "seizures": 4,
+        "Gradual": 1,
+        "headache": 2,
+        "weakness": 1,
+        "Speech disturbance": 1,
+        "visual disturbance": 1
+      },
+      "riskWeights": { "high-risk exposure": 1 },
+      "confidence": "moderate",
+      "needsCsoInput": true,
+      "csoNote": "Predominantly a SEIZURE disorder (overlaps Todd's paresis) rather than primary focal weakness; focal deficits less common. Uganda: a leading cause of adult-onset seizures in pig-keeping areas (Taenia solium). The pork/Taenia exposure is not specifically tokenised ('high-risk exposure' is the proxy). Calcified/cystic lesions on CT.",
+      "ruleIn": [],
+      "supportingSymptoms": ["seizures", "headache"],
+      "weightCitation": "Davidson's 24th ed; WHO Taenia solium / neurocysticercosis guidance"
+    },
+    {
+      "dx": "Spinal cord compression (TB/Pott's)",
+      "new": true,
+      "likelihood": "must_not_miss",
+      "basePrior": 1,
+      "agePrior": [],
+      "featureWeights": {
+        "Gradual": 3,
+        "Gradual over weeks": 3,
+        "weakness": 3,
+        "incontinence": 3,
+        "night sweats": 1,
+        "weight loss": 1,
+        "Unilateral face/arm/leg": -3,
+        "Speech disturbance": -3
+      },
+      "riskWeights": { "tuberculosis": 2, "TB contact": 2, "cancer": 2, "HIV": 1 },
+      "confidence": "high",
+      "needsCsoInput": true,
+      "csoNote": "THE must-not-miss NON-STROKE cause of limb weakness — unconditional. Distinguished from stroke by a pattern the tokens capture poorly: BILATERAL LEG weakness (paraparesis), a SENSORY LEVEL, back pain, and bladder/bowel involvement (only 'incontinence' is tokenised). Strong NEGATIVE weights on stroke-pattern tokens. Uganda: Pott's (spinal TB) and malignant compression are key — a SENSORY LEVEL demands urgent MRI + decompression/steroids; do not mislabel as stroke. (Recommend 'sensory level' + 'paraparesis' tokens.)",
+      "ruleIn": [],
+      "supportingSymptoms": ["incontinence", "weakness", "night sweats"],
+      "weightCitation": "Davidson's 24th ed (spinal cord compression — malignant, and tuberculous/Pott's)"
+    },
+    {
+      "dx": "Functional / conversion weakness",
+      "new": true,
+      "likelihood": "less_likely",
+      "basePrior": 1,
+      "agePrior": [],
+      "featureWeights": { "Sudden": 1, "weakness": 1, "Gradual over weeks": -1 },
+      "riskWeights": {},
+      "confidence": "low",
+      "needsCsoInput": true,
+      "csoNote": "DIAGNOSIS OF EXCLUSION made on POSITIVE signs (Hoover's, give-way weakness, inconsistency) — NOT merely the absence of a lesion, and NOT before excluding stroke/cord/structural causes and checking glucose. The positive functional signs are examination findings not in the token set. The engine must never rank this above an unexcluded must-not-miss.",
+      "ruleIn": [],
+      "supportingSymptoms": ["weakness"],
+      "weightCitation": "Davidson's 24th ed (functional/dissociative neurological disorder — positive signs e.g. Hoover's)"
+    }
+  ]
+}
