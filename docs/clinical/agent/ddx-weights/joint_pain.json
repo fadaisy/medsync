@@ -1,0 +1,409 @@
+{
+  "complaint": "joint_pain",
+  "source_version": "2026-06-20",
+  "weights": [
+    {
+      "dx": "Septic arthritis",
+      "new": false,
+      "likelihood": "must_not_miss",
+      "basePrior": 2,
+      "agePrior": [],
+      "featureWeights": {
+        "Single hot swollen joint": 4,
+        "With fever": 4,
+        "fever": 3,
+        "Acute": 3,
+        "Single joint": 2,
+        "Worse with use": -2,
+        "Symmetrical small joints": -2,
+        "Migratory": -1
+      },
+      "riskWeights": {
+        "diabetes mellitus": 2,
+        "HIV": 2,
+        "immunosuppression": 2,
+        "prosthetic joint": 2,
+        "skin breach": 1
+      },
+      "confidence": "high",
+      "needsCsoInput": false,
+      "weightCitation": "BSR septic arthritis guideline; Davidson's Principles & Practice of Medicine 24th ed (2022). EVERY acute single HOT SWOLLEN joint is SEPTIC ARTHRITIS until proven otherwise — ASPIRATE (Gram stain, culture, crystals, cell count) BEFORE antibiotics; a missed septic joint is destroyed within days. S. aureus commonest; consider gonococcal (young — see that entry) and TB (chronic — see that entry). Stays UNCONDITIONAL."
+    },
+    {
+      "dx": "Rheumatic fever",
+      "new": false,
+      "likelihood": "must_not_miss",
+      "basePrior": 1,
+      "agePrior": [
+        { "maxAge": 25, "delta": 2 },
+        { "minAge": 40, "delta": -1 }
+      ],
+      "featureWeights": {
+        "Migratory": 4,
+        "fever": 3,
+        "Acute": 2,
+        "sore throat/hoarseness": 2,
+        "Symmetrical small joints": -1,
+        "Worse with use": -1
+      },
+      "riskWeights": {
+        "rheumatic heart disease": 2,
+        "recent sore throat": 2
+      },
+      "pinWhen": {
+        "featureAny": ["Migratory"],
+        "riskAny": ["recent sore throat", "rheumatic heart disease"]
+      },
+      "confidence": "high",
+      "needsCsoInput": true,
+      "csoNote": "CONDITIONAL on migratory pattern / recent sore throat / RHD. UGANDA: acute rheumatic fever remains important (high RHD burden) — MIGRATORY large-joint polyarthritis + fever 2-4 weeks after streptococcal pharyngitis; the danger is CARDITIS (Jones criteria — the arthritis is benign, the heart is not). More common in children/adolescents (age prior). Treat strep + anti-inflammatories + secondary prophylaxis; echo for carditis.",
+      "ruleIn": [],
+      "supportingSymptoms": ["fever", "sore throat/hoarseness"],
+      "weightCitation": "WHO rheumatic fever guidance; revised Jones criteria (2015); Davidson's Principles & Practice of Medicine 24th ed (2022)"
+    },
+    {
+      "dx": "Haemarthrosis",
+      "new": false,
+      "likelihood": "must_not_miss",
+      "basePrior": 0,
+      "agePrior": [],
+      "featureWeights": {
+        "Single joint": 3,
+        "Acute": 3,
+        "easy bruising/bleeding": 3,
+        "Single hot swollen joint": 2,
+        "With fever": -2
+      },
+      "riskWeights": {
+        "anticoagulant": 2,
+        "bleeding disorder": 2
+      },
+      "pinWhen": {
+        "featureAny": ["easy bruising/bleeding"],
+        "riskAny": ["anticoagulant", "bleeding disorder"]
+      },
+      "confidence": "high",
+      "needsCsoInput": true,
+      "csoNote": "CONDITIONAL — pinned on the capturable bleeding-tendency sign 'easy bruising/bleeding' (ROS) OR anticoagulant/bleeding-disorder history. PIN repointed to also gate on 'easy bruising/bleeding' so the must-not-miss is REACHABLE — 'anticoagulant'/'bleeding disorder' are free-text capture gaps (no medication/condition token), so the pin would otherwise never fire for the key anticoagulated population (recommend adding an anticoagulant + bleeding-disorder history token). NOT made unconditional (basePrior 0 — rare; would alarm-flood every joint pain). Acute single swollen joint from intra-articular BLEEDING — over-anticoagulation, haemophilia, or trauma; aspirate blood-stained (no organisms); correct coagulation. Afebrile/bland — distinguishes it from septic arthritis.",
+      "weightCitation": "Davidson's Principles & Practice of Medicine 24th ed (2022) (haemarthrosis)."
+    },
+    {
+      "dx": "Gout / pseudogout",
+      "new": false,
+      "likelihood": "likely",
+      "basePrior": 2,
+      "agePrior": [{ "minAge": 40, "delta": 1 }],
+      "sexPrior": { "male": 1 },
+      "featureWeights": {
+        "Single hot swollen joint": 4,
+        "Acute": 3,
+        "Single joint": 2,
+        "With fever": 1,
+        "Worse with use": -1,
+        "Symmetrical small joints": -2
+      },
+      "riskWeights": {
+        "gout": 2,
+        "chronic kidney disease": 2,
+        "alcohol": 1
+      },
+      "confidence": "high",
+      "needsCsoInput": true,
+      "csoNote": "Acute monoarthritis (gout — 1st MTP 'podagra'; or pseudogout/CPPD — knee/wrist in older patients); a hot swollen joint that can MIMIC septic arthritis — ASPIRATE for crystals (negatively-birefringent urate / positively-birefringent CPPD) AND culture, because gout and sepsis CAN COEXIST; never assume gout without excluding infection. Serum urate/CKD context; alcohol/diuretic triggers.",
+      "ruleIn": [],
+      "supportingSymptoms": [],
+      "weightCitation": "ACR 2020 Gout Guideline / EULAR; Davidson's Principles & Practice of Medicine 24th ed (2022)"
+    },
+    {
+      "dx": "Rheumatoid / inflammatory arthritis",
+      "new": false,
+      "likelihood": "likely",
+      "basePrior": 2,
+      "agePrior": [{ "minAge": 30, "delta": 1 }],
+      "sexPrior": { "female": 1 },
+      "featureWeights": {
+        "Symmetrical small joints": 4,
+        "fatigue": 2,
+        "Worse with use": -3,
+        "Single hot swollen joint": -2,
+        "Brief stiffness": -2,
+        "With fever": -1
+      },
+      "riskWeights": {
+        "rheumatoid arthritis": 2
+      },
+      "confidence": "high",
+      "needsCsoInput": true,
+      "csoNote": "SYMMETRICAL SMALL-joint (MCP/PIP/wrist) polyarthritis + prolonged early-morning stiffness + fatigue, BETTER with use (hence the negative 'Worse with use' weight). TOKEN GAP: 'Morning stiffness over 30 min' — the cardinal inflammatory discriminator — is NOT a catalog option (the maps use it but the capture layer lacks it); 'Symmetrical small joints' is the reliable proxy. Recommend adding a 'prolonged morning stiffness' token. RF/anti-CCP; early DMARDs.",
+      "ruleIn": [],
+      "supportingSymptoms": ["fatigue"],
+      "weightCitation": "ACR/EULAR 2010 Rheumatoid Arthritis classification criteria; Davidson's Principles & Practice of Medicine 24th ed (2022)"
+    },
+    {
+      "dx": "Osteoarthritis / mechanical",
+      "new": false,
+      "likelihood": "likely",
+      "basePrior": 3,
+      "agePrior": [{ "minAge": 50, "delta": 2 }],
+      "featureWeights": {
+        "Worse with use": 4,
+        "Brief stiffness": 3,
+        "With fever": -3,
+        "Single hot swollen joint": -2,
+        "Symmetrical small joints": -1,
+        "Acute": -1
+      },
+      "riskWeights": {
+        "age": 2,
+        "obesity": 2
+      },
+      "confidence": "high",
+      "needsCsoInput": false,
+      "weightCitation": "NICE Osteoarthritis / EULAR; Davidson's Principles & Practice of Medicine 24th ed (2022). Mechanical pain WORSE WITH USE, better with rest, with BRIEF (<30 min) stiffness; weight-bearing joints (knee/hip) +/- DIP nodes (Heberden's); age + obesity; NO fever or prolonged inflammatory stiffness — a hot/febrile joint is NOT OA."
+    },
+    {
+      "dx": "Disseminated gonococcal arthritis",
+      "new": true,
+      "likelihood": "must_not_miss",
+      "basePrior": 1,
+      "agePrior": [{ "maxAge": 35, "delta": 1 }],
+      "featureWeights": {
+        "Migratory": 4,
+        "rash": 3,
+        "With fever": 3,
+        "fever": 2,
+        "Single hot swollen joint": 2,
+        "Acute": 2,
+        "vaginal/urethral discharge": 2,
+        "dysuria": 1
+      },
+      "riskWeights": {
+        "high-risk exposure": 2
+      },
+      "pinWhen": {
+        "featureAny": ["Migratory"],
+        "riskAny": ["high-risk exposure"]
+      },
+      "confidence": "moderate",
+      "needsCsoInput": true,
+      "csoNote": "CONDITIONAL — pinned on MIGRATORY pattern (the capturable disc_joint_pain discriminator) OR high-risk sexual exposure. Disseminated gonococcal infection in a YOUNG sexually-active person — the 'arthritis-dermatitis syndrome': MIGRATORY polyarthralgia + TENOSYNOVITIS (not tokenised) + pustular/vesiculopustular skin lesions + fever; OR a purulent MONOarthritis. A common cause of acute arthritis in young adults — culture joint/blood/genital/throat; ceftriaxone. PIN repointed to also gate on 'Migratory' so the must-not-miss is REACHABLE — 'high-risk exposure' is a free-text capture gap that rarely fires (recommend a sexual-history token). Like rheumatic fever, DGI legitimately flags on a migratory polyarthritis.",
+      "ruleIn": [],
+      "supportingSymptoms": ["rash", "vaginal/urethral discharge"],
+      "weightCitation": "CDC STI Treatment Guidelines 2021; Davidson's Principles & Practice of Medicine 24th ed (2022) (disseminated gonococcal infection)"
+    },
+    {
+      "dx": "TB arthritis / Poncet's / spinal TB",
+      "new": true,
+      "likelihood": "must_not_miss",
+      "basePrior": 1,
+      "agePrior": [],
+      "featureWeights": {
+        "Single joint": 3,
+        "night sweats": 3,
+        "weight loss": 3,
+        "fever": 2,
+        "Single hot swollen joint": 1,
+        "appetite loss": 1,
+        "Symmetrical small joints": 1
+      },
+      "riskWeights": {
+        "tuberculosis": 2,
+        "TB contact": 2,
+        "HIV": 2,
+        "immunosuppression": 1
+      },
+      "pinWhen": {
+        "riskAny": ["tuberculosis", "TB contact", "HIV"]
+      },
+      "confidence": "high",
+      "needsCsoInput": true,
+      "csoNote": "CONDITIONAL on TB/HIV. UGANDA: high TB burden — TB arthritis is a CHRONIC INDOLENT MONOarthritis (hip/knee) with constitutional features (night sweats, weight loss), often slower than pyogenic septic arthritis; SPINAL TB (Pott's) causes back pain + gibbus + cord compression (links to the focal-weakness pack); PONCET'S is a sterile reactive symmetrical polyarthritis in active TB. Synovial biopsy/culture; anti-TB. A CHRONIC monoarthritis in Uganda is TB until proven otherwise.",
+      "ruleIn": [],
+      "supportingSymptoms": ["night sweats", "weight loss"],
+      "weightCitation": "WHO Consolidated TB Guidelines; Davidson's Principles & Practice of Medicine 24th ed (2022) (TB arthritis / Pott's / Poncet's)"
+    },
+    {
+      "dx": "Sickle-cell vaso-occlusive bone/joint crisis + avascular necrosis",
+      "new": true,
+      "likelihood": "likely",
+      "basePrior": 2,
+      "agePrior": [],
+      "featureWeights": {
+        "Acute": 3,
+        "Single joint": 1,
+        "Single hot swollen joint": 1,
+        "With fever": 1,
+        "fever": 1,
+        "Symmetrical small joints": 1
+      },
+      "riskWeights": {
+        "sickle-cell disease": 2
+      },
+      "confidence": "moderate",
+      "needsCsoInput": true,
+      "csoNote": "Sickle-cell VASO-OCCLUSIVE bone/joint crisis (acute bone pain; dactylitis in hands/feet) and AVASCULAR NECROSIS (chronic hip/shoulder pain — femoral head). UGANDA: sickle-cell is common. CRITICAL: sickle patients are ALSO at high risk of SEPTIC ARTHRITIS and SALMONELLA OSTEOMYELITIS — a hot joint/bone with fever in a sickle patient must NOT be assumed 'just a crisis'; exclude infection (aspirate/culture). Hydration/analgesia for crisis.",
+      "ruleIn": [],
+      "supportingSymptoms": [],
+      "weightCitation": "ASH Sickle Cell Disease guidelines 2020; Davidson's Principles & Practice of Medicine 24th ed (2022)"
+    },
+    {
+      "dx": "HIV-associated arthropathy / acute HIV",
+      "new": true,
+      "likelihood": "likely",
+      "basePrior": 1,
+      "agePrior": [],
+      "featureWeights": {
+        "Symmetrical small joints": 2,
+        "fever": 2,
+        "rash": 2,
+        "fatigue": 2,
+        "Acute": 2,
+        "Single joint": 1,
+        "weight loss": 1
+      },
+      "riskWeights": {
+        "HIV": 2,
+        "high-risk exposure": 1
+      },
+      "confidence": "moderate",
+      "needsCsoInput": true,
+      "csoNote": "UGANDA: HIV burden — HIV-associated arthropathy (oligoarticular; 'painful articular syndrome'), ACUTE HIV SEROCONVERSION (fever + maculopapular rash + arthralgia + lymphadenopathy + pharyngitis — test HIV with a LOW threshold, esp with high-risk exposure), and HIV-related reactive/spondyloarthritis. HIV also predisposes to septic/TB arthritis (separate entries). Test HIV.",
+      "ruleIn": [],
+      "supportingSymptoms": ["rash", "fatigue"],
+      "weightCitation": "WHO HIV guidance; Davidson's Principles & Practice of Medicine 24th ed (2022)"
+    },
+    {
+      "dx": "Chikungunya / arboviral polyarthralgia",
+      "new": true,
+      "likelihood": "likely",
+      "basePrior": 1,
+      "agePrior": [],
+      "featureWeights": {
+        "With fever": 4,
+        "fever": 4,
+        "Symmetrical small joints": 3,
+        "Acute": 3,
+        "rash": 2,
+        "fatigue": 2
+      },
+      "riskWeights": {
+        "high-risk exposure": 1,
+        "malaria": 1
+      },
+      "confidence": "moderate",
+      "needsCsoInput": true,
+      "csoNote": "Febrile symmetric polyarthralgia. Web-verified (ECDC/WHO 2026): chikungunya is ENDEMIC and OUTBREAK-PRONE in East Africa (the most-affected African subregion in 2026; recurrent Ugandan epidemics, esp northern/refugee settings) — abrupt FEVER + SEVERE SYMMETRIC POLYARTHRALGIA (often debilitating, can persist months/years) + rash; Aedes-borne. O'NYONG-NYONG (a closely-related Ugandan alphavirus — 'weakening of the joints' in Acholi) causes similar epidemic polyarthralgia. Mosquito/outbreak exposure is not cleanly tokenised. Serology/PCR; supportive care. Co-endemic with malaria — TEST BOTH.",
+      "ruleIn": [],
+      "supportingSymptoms": ["fever", "rash"],
+      "weightCitation": "WHO chikungunya guidance; ECDC chikungunya overview 2026 (web-verified); Davidson's Principles & Practice of Medicine 24th ed (2022)"
+    },
+    {
+      "dx": "Connective-tissue disease / SLE",
+      "new": true,
+      "likelihood": "likely",
+      "basePrior": 1,
+      "agePrior": [],
+      "sexPrior": { "female": 2 },
+      "featureWeights": {
+        "Symmetrical small joints": 3,
+        "rash": 3,
+        "fatigue": 2,
+        "fever": 2,
+        "Acute": 1,
+        "low mood": 1,
+        "visual disturbance": 1,
+        "weight loss": 1,
+        "Worse with use": -1
+      },
+      "riskWeights": {},
+      "confidence": "moderate",
+      "needsCsoInput": true,
+      "csoNote": "SLE — symmetric NON-EROSIVE polyARTHRITIS + MULTISYSTEM features (malar/photosensitive RASH, serositis, nephritis, cytopenias, fatigue, fever); predominantly WOMEN of childbearing age (female sexPrior — acceptable per the caution: SLE affects women of ALL ages, so no age bound needed). May be under-recognised in Uganda. ANA/dsDNA, complement, urinalysis (lupus nephritis). Covers other CTD (mixed CTD, Sjogren's). The multisystem features beyond joints/rash are not all tokenised.",
+      "ruleIn": [],
+      "supportingSymptoms": ["rash", "fatigue"],
+      "weightCitation": "ACR/EULAR 2019 SLE classification criteria; Davidson's Principles & Practice of Medicine 24th ed (2022)"
+    },
+    {
+      "dx": "Seronegative spondyloarthritis / psoriatic",
+      "new": true,
+      "likelihood": "likely",
+      "basePrior": 1,
+      "agePrior": [{ "maxAge": 45, "delta": 1 }],
+      "sexPrior": { "male": 1 },
+      "featureWeights": {
+        "rash": 2,
+        "Single joint": 1,
+        "Acute": 1,
+        "Worse with use": -1,
+        "Brief stiffness": -1
+      },
+      "riskWeights": {},
+      "confidence": "moderate",
+      "needsCsoInput": true,
+      "csoNote": "Seronegative SPONDYLOARTHRITIS — INFLAMMATORY BACK pain (ankylosing spondylitis, HLA-B27; better with exercise, worse with rest, alternating buttock pain), asymmetric LOWER-LIMB oligoarthritis, ENTHESITIS, DACTYLITIS, and PSORIATIC arthritis (with psoriasis/nail changes). KEY TOKEN GAPS: 'inflammatory back pain' and 'enthesitis' are not capturable (recommend adding). NB HLA-B27 prevalence is LOWER in some African populations (confidence moderate). NSAIDs; biologics.",
+      "ruleIn": [],
+      "supportingSymptoms": ["rash"],
+      "weightCitation": "ASAS/EULAR spondyloarthritis criteria; Davidson's Principles & Practice of Medicine 24th ed (2022)"
+    },
+    {
+      "dx": "Reactive arthritis",
+      "new": true,
+      "likelihood": "likely",
+      "basePrior": 1,
+      "agePrior": [{ "maxAge": 40, "delta": 1 }],
+      "featureWeights": {
+        "diarrhoea": 3,
+        "dysuria": 3,
+        "Single joint": 2,
+        "visual disturbance": 2,
+        "vaginal/urethral discharge": 2,
+        "Acute": 2,
+        "rash": 1,
+        "With fever": 1
+      },
+      "riskWeights": {
+        "high-risk exposure": 1,
+        "HIV": 1
+      },
+      "confidence": "moderate",
+      "needsCsoInput": true,
+      "csoNote": "REACTIVE arthritis (Reiter's) — asymmetric LOWER-LIMB oligoarthritis 1-4 weeks AFTER dysentery (Shigella/Salmonella/Campylobacter — links to the GI/dysentery pack) or an STI (Chlamydia); the classic triad 'can't SEE, can't PEE, can't climb a TREE' = conjunctivitis + urethritis + arthritis (+ enthesitis/dactylitis). UGANDA: both dysentery and STIs are common antecedents. Sterile joint (post-infectious); NSAIDs; treat the trigger. Enthesitis not tokenised.",
+      "ruleIn": [],
+      "supportingSymptoms": ["diarrhoea", "dysuria"],
+      "weightCitation": "Davidson's Principles & Practice of Medicine 24th ed (2022) (reactive arthritis / Reiter's)"
+    },
+    {
+      "dx": "Osteomyelitis",
+      "new": true,
+      "likelihood": "must_not_miss",
+      "basePrior": 1,
+      "agePrior": [],
+      "featureWeights": {
+        "With fever": 3,
+        "fever": 3,
+        "Single joint": 2,
+        "Acute": 2,
+        "Single hot swollen joint": 1,
+        "night sweats": 1,
+        "Worse with use": -1
+      },
+      "riskWeights": {
+        "sickle-cell disease": 2,
+        "diabetes mellitus": 2,
+        "skin breach": 2,
+        "prosthetic joint": 1,
+        "immunosuppression": 1,
+        "HIV": 1
+      },
+      "pinWhen": {
+        "riskAny": ["sickle-cell disease", "diabetes mellitus", "skin breach", "prosthetic joint"]
+      },
+      "confidence": "moderate",
+      "needsCsoInput": true,
+      "csoNote": "CONDITIONAL on sickle/diabetes/skin-breach/prosthetic. BONE infection — localized bone pain + tenderness + fever +/- overlying swelling; ACUTE (S. aureus; SALMONELLA in SICKLE-CELL) or CHRONIC (diabetic foot, sinus/sequestrum, contiguous spread; TB/Pott's overlaps). UGANDA: sickle-cell Salmonella osteomyelitis and diabetic-foot osteomyelitis are key. Imaging (X-ray late, MRI) + bone culture; prolonged antibiotics +/- surgery. It is BONE not joint pain but presents as regional musculoskeletal pain.",
+      "ruleIn": [],
+      "supportingSymptoms": ["fever", "night sweats"],
+      "weightCitation": "IDSA osteomyelitis guidance; Davidson's Principles & Practice of Medicine 24th ed (2022)"
+    }
+  ]
+}
