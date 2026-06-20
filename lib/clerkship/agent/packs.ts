@@ -23,6 +23,7 @@ import focalWeaknessWeights from "@/docs/clinical/agent/ddx-weights/focal_weakne
 import giBleedingWeights from "@/docs/clinical/agent/ddx-weights/gi_bleeding.json";
 import headacheWeights from "@/docs/clinical/agent/ddx-weights/headache.json";
 import jaundiceWeights from "@/docs/clinical/agent/ddx-weights/jaundice.json";
+import oedemaWeights from "@/docs/clinical/agent/ddx-weights/oedema.json";
 import syncopeWeights from "@/docs/clinical/agent/ddx-weights/syncope.json";
 import rawDeps from "@/docs/clinical/agent/sign-dependencies.json";
 import rawIncompat from "@/docs/clinical/agent/sign-incompatibilities.json";
@@ -44,6 +45,7 @@ const DDX_WEIGHT_FILES: DdxWeightFile[] = [
   syncopeWeights as unknown as DdxWeightFile,
   jaundiceWeights as unknown as DdxWeightFile,
   giBleedingWeights as unknown as DdxWeightFile,
+  oedemaWeights as unknown as DdxWeightFile,
 ];
 
 function adaptMaps(raw: unknown): ReasoningMap[] {
