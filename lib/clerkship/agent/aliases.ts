@@ -60,6 +60,18 @@ export const FEATURE_ALIASES: Record<string, string[]> = {
   "acute and painful": ["unilateral, painful, warm calf", "unilateral painful (dvt)"],
   orthopnoea: ["orthopnoea / pnd"],
   "paroxysmal nocturnal dyspnoea": ["orthopnoea / pnd"],
+  // ── palpitations rhythm / onset / associated (palp_* options use variant +
+  //    bundled displays; these strings are palpitations-specific) ──
+  "single skipped beats": ["single skips / thumps"],
+  "sudden onset and offset": ["sudden on / off"],
+  "sudden onset": ["sudden on / off"],
+  "with exertion": ["during exertion"],
+  "with syncope": ["syncope", "syncope / presyncope"],
+  "with chest pain": ["chest pain"],
+  "with dizziness/syncope": ["dizziness", "syncope", "syncope / presyncope"],
+  tremor: ["sweating / tremor"],
+  "heat intolerance": ["heat intolerance / weight loss"],
+  gradual: ["gradual build & settle"],
 };
 
 /** Is a (map-prose) feature present in the index — directly, or via an alias? */
