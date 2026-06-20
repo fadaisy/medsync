@@ -71,7 +71,7 @@
       "new": false,
       "likelihood": "must_not_miss",
       "basePrior": 1,
-      "agePrior": [],
+      "agePrior": [{ "minAge": 55, "delta": -3 }],
       "sexPrior": { "female": 3 },
       "featureWeights": {
         "Sudden": 3,
