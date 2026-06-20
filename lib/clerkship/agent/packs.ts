@@ -20,6 +20,7 @@ import coughWeights from "@/docs/clinical/agent/ddx-weights/cough.json";
 import dyspnoeaWeights from "@/docs/clinical/agent/ddx-weights/dyspnoea.json";
 import feverWeights from "@/docs/clinical/agent/ddx-weights/fever.json";
 import focalWeaknessWeights from "@/docs/clinical/agent/ddx-weights/focal_weakness.json";
+import giBleedingWeights from "@/docs/clinical/agent/ddx-weights/gi_bleeding.json";
 import headacheWeights from "@/docs/clinical/agent/ddx-weights/headache.json";
 import jaundiceWeights from "@/docs/clinical/agent/ddx-weights/jaundice.json";
 import syncopeWeights from "@/docs/clinical/agent/ddx-weights/syncope.json";
@@ -42,6 +43,7 @@ const DDX_WEIGHT_FILES: DdxWeightFile[] = [
   confusionWeights as unknown as DdxWeightFile,
   syncopeWeights as unknown as DdxWeightFile,
   jaundiceWeights as unknown as DdxWeightFile,
+  giBleedingWeights as unknown as DdxWeightFile,
 ];
 
 function adaptMaps(raw: unknown): ReasoningMap[] {
