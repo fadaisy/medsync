@@ -1,0 +1,392 @@
+{
+  "complaint": "palpitations",
+  "source_version": "2026-06-20",
+  "weights": [
+    {
+      "dx": "Ventricular tachycardia / malignant arrhythmia",
+      "new": false,
+      "likelihood": "must_not_miss",
+      "basePrior": 1,
+      "agePrior": [{ "minAge": 50, "delta": 1 }],
+      "sexPrior": { "male": 1 },
+      "featureWeights": {
+        "Regular fast": 4,
+        "With syncope": 4,
+        "With dizziness/syncope": 4,
+        "With chest pain": 3,
+        "syncope": 3,
+        "chest pain": 2,
+        "Sudden onset": 2,
+        "With exertion": 1,
+        "Single skipped beats": -2,
+        "Situational": -2
+      },
+      "riskWeights": {
+        "ischaemic heart disease": 2,
+        "heart failure": 2,
+        "cardiomyopathy": 2,
+        "family history sudden death": 2
+      },
+      "confidence": "high",
+      "needsCsoInput": false,
+      "weightCitation": "ESC 2022 Ventricular Arrhythmias & Sudden Cardiac Death Guideline (Zeppenfeld K et al.); Davidson's Principles & Practice of Medicine 24th ed (2022). REGULAR FAST palpitations WITH SYNCOPE/presyncope or chest pain in someone with structural heart disease (IHD, HF, cardiomyopathy) or FHx sudden death is VT until proven otherwise. 12-lead ECG + urgent cardiology; syncope-WITH-palpitations is the cardinal red flag."
+    },
+    {
+      "dx": "AF with rapid ventricular response",
+      "new": false,
+      "likelihood": "must_not_miss",
+      "basePrior": 2,
+      "agePrior": [],
+      "featureWeights": {
+        "Irregularly irregular": 4,
+        "Sudden onset": 3,
+        "dyspnoea": 2,
+        "chest pain": 2,
+        "With exertion": 1,
+        "exertional dyspnoea": 1,
+        "Regular fast": -2,
+        "Single skipped beats": -1
+      },
+      "riskWeights": {
+        "atrial fibrillation": 2,
+        "hypertension": 2,
+        "thyroid disease": 2,
+        "rheumatic heart disease": 2,
+        "alcohol": 1,
+        "heart failure": 1
+      },
+      "confidence": "high",
+      "needsCsoInput": false,
+      "weightCitation": "ESC 2024 Atrial Fibrillation Guideline (Van Gelder IC et al.); Davidson's Principles & Practice of Medicine 24th ed (2022). IRREGULARLY IRREGULAR fast palpitations; rate control + anticoagulation per stroke risk — but ANTICOAGULATE regardless in VALVULAR/rheumatic AF (see RHD entry); always seek a precipitant (thyrotoxicosis, sepsis, alcohol, PE)."
+    },
+    {
+      "dx": "Supraventricular tachycardia",
+      "new": false,
+      "likelihood": "likely",
+      "basePrior": 1,
+      "agePrior": [{ "maxAge": 50, "delta": 1 }],
+      "sexPrior": { "female": 1 },
+      "featureWeights": {
+        "Sudden onset and offset": 4,
+        "Regular fast": 4,
+        "Sudden onset": 2,
+        "With dizziness/syncope": 1,
+        "With syncope": -1,
+        "Irregularly irregular": -3
+      },
+      "riskWeights": { "WPW": 2 },
+      "confidence": "high",
+      "needsCsoInput": false,
+      "weightCitation": "ESC 2019 Supraventricular Tachycardia Guideline (Brugada J et al.); Davidson's Principles & Practice of Medicine 24th ed (2022). REGULAR, fast, ABRUPT onset AND offset (a 'switch'); often young; vagal manoeuvres/adenosine terminate it; WPW (delta wave) is a substrate — avoid AV-nodal blockers in pre-excited AF."
+    },
+    {
+      "dx": "Thyrotoxicosis",
+      "new": false,
+      "likelihood": "likely",
+      "basePrior": 1,
+      "agePrior": [],
+      "sexPrior": { "female": 1 },
+      "featureWeights": {
+        "heat intolerance": 4,
+        "tremor": 4,
+        "Persistent": 3,
+        "weight loss": 3,
+        "Continuous": 2,
+        "Irregularly irregular": 2,
+        "appetite loss": -1
+      },
+      "riskWeights": { "thyroid disease": 2 },
+      "confidence": "high",
+      "needsCsoInput": false,
+      "weightCitation": "American Thyroid Association thyrotoxicosis guidance; Davidson's Principles & Practice of Medicine 24th ed (2022). PERSISTENT palpitations + heat intolerance + weight loss (with preserved/increased appetite) + tremor; causes sinus tachycardia OR AF; check TFTs — a thyroid cause must be sought in new AF."
+    },
+    {
+      "dx": "Anaemia",
+      "new": false,
+      "likelihood": "likely",
+      "basePrior": 2,
+      "agePrior": [],
+      "featureWeights": {
+        "pallor": 4,
+        "With exertion": 4,
+        "fatigue": 3,
+        "exertional dyspnoea": 2,
+        "dyspnoea": 1,
+        "Regular fast": 1,
+        "weakness": 1
+      },
+      "riskWeights": {
+        "sickle-cell disease": 2,
+        "GI blood loss": 2,
+        "malaria": 1,
+        "HIV": 1
+      },
+      "confidence": "high",
+      "needsCsoInput": false,
+      "weightCitation": "WHO anaemia guidance; Davidson's Principles & Practice of Medicine 24th ed (2022). Compensatory sinus tachycardia from anaemia -> palpitations (worse on exertion) + pallor + fatigue; UGANDA causes — malaria, hookworm/iron-deficiency, sickle-cell, chronic disease; check FBC/Hb."
+    },
+    {
+      "dx": "Anxiety / ectopics",
+      "new": false,
+      "likelihood": "less_likely",
+      "basePrior": 2,
+      "agePrior": [],
+      "featureWeights": {
+        "Single skipped beats": 4,
+        "Situational": 4,
+        "anxiety": 3,
+        "With syncope": -4,
+        "syncope": -3,
+        "Irregularly irregular": -2
+      },
+      "riskWeights": {
+        "depression/anxiety": 2,
+        "caffeine / stimulants": 2
+      },
+      "confidence": "high",
+      "needsCsoInput": false,
+      "weightCitation": "Davidson's Principles & Practice of Medicine 24th ed (2022) (ectopic beats / anxiety-related palpitations). Awareness of SINGLE skipped/extra beats (ectopics) or situational/anxiety-related palpitations WITHOUT syncope — usually benign; but palpitations WITH syncope are NEVER attributed to anxiety until a malignant arrhythmia is excluded."
+    },
+    {
+      "dx": "Rheumatic heart disease / valvular AF",
+      "new": true,
+      "likelihood": "must_not_miss",
+      "basePrior": 2,
+      "agePrior": [{ "maxAge": 40, "delta": 1 }],
+      "featureWeights": {
+        "Irregularly irregular": 4,
+        "Sudden onset": 2,
+        "dyspnoea": 2,
+        "exertional dyspnoea": 2,
+        "With exertion": 1,
+        "leg swelling": 1,
+        "chest pain": 1
+      },
+      "riskWeights": {
+        "rheumatic heart disease": 2,
+        "atrial fibrillation": 1,
+        "heart failure": 1
+      },
+      "pinWhen": { "riskAny": ["rheumatic heart disease"] },
+      "confidence": "high",
+      "needsCsoInput": true,
+      "csoNote": "CONDITIONAL on rheumatic heart disease. UGANDA: RHD is a LEADING cause of AF in YOUNG adults (mitral valve disease -> AF) — distinct from the elderly hypertensive AF of the West. KEY MANAGEMENT difference: VALVULAR (rheumatic/mitral-stenosis) AF needs ANTICOAGULATION regardless of CHA2DS2-VASc, and WARFARIN (not DOACs) for mitral stenosis/mechanical valves; echo for valve assessment; secondary rheumatic prophylaxis. Overlaps 'AF with RVR' but flags the valvular aetiology.",
+      "ruleIn": [],
+      "supportingSymptoms": ["dyspnoea", "exertional dyspnoea"],
+      "weightCitation": "WHO rheumatic heart disease guidance; ESC valvular & AF guidelines; Davidson's Principles & Practice of Medicine 24th ed (2022)"
+    },
+    {
+      "dx": "Sinus tachycardia secondary to systemic illness",
+      "new": true,
+      "likelihood": "likely",
+      "basePrior": 3,
+      "agePrior": [],
+      "featureWeights": {
+        "With fever": 4,
+        "fever": 3,
+        "Regular fast": 3,
+        "Persistent": 1,
+        "Gradual": 1,
+        "weakness": 1,
+        "Irregularly irregular": -3,
+        "Sudden onset and offset": -2
+      },
+      "riskWeights": {
+        "malaria": 2,
+        "volume depletion": 1,
+        "HIV": 1
+      },
+      "confidence": "high",
+      "needsCsoInput": true,
+      "csoNote": "The COMMONEST 'palpitations' at a Ugandan referral hospital — a reactive REGULAR SINUS tachycardia driven by a SYSTEMIC cause: FEVER/SEPSIS/MALARIA, dehydration, pain, anaemia, hypoxia, or thyrotoxicosis. The palpitations are a SYMPTOM — find and treat the cause (the rhythm itself is not the problem). Heart rate is in vitals; ECG shows sinus tachycardia.",
+      "ruleIn": [],
+      "supportingSymptoms": ["fever", "weakness"],
+      "weightCitation": "Davidson's Principles & Practice of Medicine 24th ed (2022) (sinus tachycardia secondary to systemic illness)"
+    },
+    {
+      "dx": "Electrolyte disturbance (hypokalaemia / hypomagnesaemia)",
+      "new": true,
+      "likelihood": "likely",
+      "basePrior": 1,
+      "agePrior": [],
+      "featureWeights": {
+        "Single skipped beats": 2,
+        "weakness": 2,
+        "With syncope": 2,
+        "Regular fast": 1,
+        "Irregularly irregular": 1,
+        "nausea/vomiting": 1
+      },
+      "riskWeights": { "volume depletion": 1 },
+      "confidence": "moderate",
+      "needsCsoInput": true,
+      "csoNote": "HYPOKALAEMIA/HYPOMAGNESAEMIA (from diarrhoea, vomiting, diuretics — common in Uganda) create an ARRHYTHMIA SUBSTRATE -> ectopics, and can precipitate VT/TORSADES (links to the VT and long-QT entries). The electrolyte VALUES (K, Mg) are lab-measured and NOT tokenised — recommend checking U&E/Mg in palpitations with these risks; ECG (U waves, long QT). Correct K AND Mg together.",
+      "ruleIn": [],
+      "supportingSymptoms": ["weakness"],
+      "weightCitation": "Davidson's Principles & Practice of Medicine 24th ed (2022) (hypokalaemia/hypomagnesaemia and arrhythmia)"
+    },
+    {
+      "dx": "Drug / stimulant-induced",
+      "new": true,
+      "likelihood": "likely",
+      "basePrior": 1,
+      "agePrior": [],
+      "featureWeights": {
+        "Regular fast": 2,
+        "tremor": 2,
+        "Sudden onset": 1,
+        "Persistent": 1,
+        "Situational": 1,
+        "anxiety": 1
+      },
+      "riskWeights": {
+        "caffeine / stimulants": 2,
+        "alcohol": 2,
+        "thyroid disease": 1
+      },
+      "confidence": "moderate",
+      "needsCsoInput": true,
+      "csoNote": "Drug/stimulant-induced palpitations — SALBUTAMOL (asthma), CAFFEINE, ALCOHOL (incl 'holiday-heart' AF + withdrawal), KHAT/miraa (a sympathomimetic stimulant used in parts of the region), DECONGESTANTS, EXCESS THYROXINE. The specific drug/stimulant history (salbutamol, khat, thyroxine, decongestants) is NOT cleanly tokenised ('caffeine/stimulants' + 'alcohol' are partial) — recommend a medication/stimulant field. Usually benign + reversible on stopping.",
+      "ruleIn": [],
+      "supportingSymptoms": ["tremor"],
+      "weightCitation": "Davidson's Principles & Practice of Medicine 24th ed (2022) (drug/stimulant-induced palpitations)"
+    },
+    {
+      "dx": "Hypoglycaemia",
+      "new": true,
+      "likelihood": "must_not_miss",
+      "basePrior": 1,
+      "agePrior": [],
+      "featureWeights": {
+        "tremor": 3,
+        "anxiety": 2,
+        "weakness": 2,
+        "Sudden onset": 2,
+        "Regular fast": 1
+      },
+      "riskWeights": {
+        "diabetes mellitus": 2,
+        "insulin / sulfonylurea": 2,
+        "malaria": 1
+      },
+      "pinWhen": { "riskAny": ["diabetes mellitus", "insulin / sulfonylurea"] },
+      "confidence": "moderate",
+      "needsCsoInput": true,
+      "csoNote": "CONDITIONAL on diabetes/insulin-sulfonylurea. ADRENERGIC palpitations (with tremor, sweating [not tokenised], hunger, anxiety) from hypoglycaemia — in diabetics on INSULIN/SULFONYLUREA, and in Uganda also from malaria/sepsis/alcohol/liver failure. DEFG — the glucose VALUE is the trigger but is NOT tokenised for this complaint (recommend a glucose check). Give glucose.",
+      "ruleIn": [],
+      "supportingSymptoms": ["tremor", "anxiety"],
+      "weightCitation": "ADA Standards of Care 2024; Davidson's Principles & Practice of Medicine 24th ed (2022) (adrenergic symptoms of hypoglycaemia)"
+    },
+    {
+      "dx": "Cardiomyopathy (peripartum / HIV / dilated)",
+      "new": true,
+      "likelihood": "must_not_miss",
+      "basePrior": 1,
+      "agePrior": [{ "minAge": 55, "delta": -1 }],
+      "featureWeights": {
+        "dyspnoea": 2,
+        "exertional dyspnoea": 2,
+        "leg swelling": 2,
+        "Irregularly irregular": 2,
+        "With syncope": 2,
+        "Regular fast": 1,
+        "chest pain": 1,
+        "fatigue": 1
+      },
+      "riskWeights": {
+        "cardiomyopathy": 2,
+        "oestrogen / pregnancy": 2,
+        "HIV": 1,
+        "heart failure": 1
+      },
+      "pinWhen": { "riskAny": ["cardiomyopathy", "HIV", "oestrogen / pregnancy"] },
+      "confidence": "moderate",
+      "needsCsoInput": true,
+      "csoNote": "CONDITIONAL on cardiomyopathy/HIV/pregnancy. Groups PERIPARTUM cardiomyopathy (late pregnancy/early postpartum — an obstetric must-not-miss, a leading cause of maternal cardiac death), HIV-associated cardiomyopathy, and dilated cardiomyopathy — all cause arrhythmia (AF/VT) + heart failure. Per the sexPrior caution: NO large fixed female delta (grouped entry — HIV/dilated affect both sexes); relies on the risk tokens, with a small OLDER-age penalty for the peripartum component so it is not mis-ranked for post-menopausal women. Echo; treat HF + arrhythmia.",
+      "ruleIn": [],
+      "supportingSymptoms": ["dyspnoea", "leg swelling"],
+      "weightCitation": "ESC cardiomyopathy guidelines; Davidson's Principles & Practice of Medicine 24th ed (2022) (peripartum / HIV / dilated cardiomyopathy)"
+    },
+    {
+      "dx": "Heart block / bradyarrhythmia",
+      "new": true,
+      "likelihood": "likely",
+      "basePrior": 1,
+      "agePrior": [{ "minAge": 60, "delta": 1 }],
+      "featureWeights": {
+        "With syncope": 3,
+        "With dizziness/syncope": 3,
+        "Single skipped beats": 2,
+        "syncope": 2,
+        "Gradual": 1,
+        "Regular fast": -2
+      },
+      "riskWeights": {
+        "ischaemic heart disease": 1,
+        "rheumatic heart disease": 1
+      },
+      "confidence": "moderate",
+      "needsCsoInput": true,
+      "csoNote": "Palpitations as awareness of PAUSES/dropped beats or a slow pulse — bradyarrhythmia/HEART BLOCK. COMPLETE (3rd-degree) heart block causes syncope (Stokes-Adams) and SUDDEN DEATH and needs PACING — the must-not-miss within this entry, though it more often presents as syncope (see the syncope pack). Causes: conduction-system fibrosis, ischaemia, drugs (beta-blockers/digoxin/CCB — not tokenised). Rate/rhythm in vitals; ECG diagnostic.",
+      "ruleIn": [],
+      "supportingSymptoms": ["syncope"],
+      "weightCitation": "ESC 2021 Cardiac Pacing & CRT Guideline; Davidson's Principles & Practice of Medicine 24th ed (2022) (heart block / bradyarrhythmia)"
+    },
+    {
+      "dx": "Pulmonary embolism",
+      "new": true,
+      "likelihood": "must_not_miss",
+      "basePrior": 1,
+      "agePrior": [],
+      "featureWeights": {
+        "dyspnoea": 3,
+        "Regular fast": 2,
+        "chest pain": 2,
+        "With dizziness/syncope": 2,
+        "syncope": 2,
+        "Irregularly irregular": 1,
+        "With exertion": 1,
+        "exertional dyspnoea": 1,
+        "leg swelling": 1
+      },
+      "riskWeights": {
+        "prior VTE": 2,
+        "recent immobility or surgery": 2,
+        "cancer": 2,
+        "oestrogen / pregnancy": 1
+      },
+      "pinWhen": {
+        "riskAny": ["prior VTE", "recent immobility or surgery", "cancer", "oestrogen / pregnancy"]
+      },
+      "confidence": "moderate",
+      "needsCsoInput": true,
+      "csoNote": "CONDITIONAL on VTE risk. PE commonly causes SINUS TACHYCARDIA (the commonest ECG finding) or new AF, and can present with palpitations + dyspnoea + pleuritic chest pain +/- syncope +/- DVT. Pinned on prior VTE / recent immobility-surgery / cancer / pregnancy. (CANCER now wired as a risk + pin — it resolves via the 'cancer (specify site)' picklist, matching the dyspnoea PE entry.) Wells score + D-dimer/CTPA.",
+      "ruleIn": [],
+      "supportingSymptoms": ["dyspnoea", "chest pain"],
+      "weightCitation": "ESC 2019 Pulmonary Embolism Guideline (Konstantinides SV et al.); Davidson's Principles & Practice of Medicine 24th ed (2022)"
+    },
+    {
+      "dx": "Long-QT / channelopathy",
+      "new": true,
+      "likelihood": "must_not_miss",
+      "basePrior": 0,
+      "agePrior": [{ "maxAge": 40, "delta": 1 }],
+      "featureWeights": {
+        "With syncope": 3,
+        "With dizziness/syncope": 3,
+        "syncope": 2,
+        "Sudden onset": 1,
+        "With exertion": 1,
+        "Single skipped beats": 1
+      },
+      "riskWeights": { "family history sudden death": 2 },
+      "pinWhen": { "riskAny": ["family history sudden death"] },
+      "confidence": "moderate",
+      "needsCsoInput": true,
+      "csoNote": "CONDITIONAL on family history sudden death — RARE but critical. Congenital long-QT/channelopathy -> TORSADES -> syncope (esp on exertion/emotion/startle) and SUDDEN DEATH, classically in a YOUNG person with a FAMILY HISTORY of sudden/unexplained death or drowning. ACQUIRED long-QT (QT-prolonging drugs + hypokalaemia/hypomagnesaemia — links to the electrolyte entry) also causes torsades. Measure QTc on ECG; avoid QT-prolonging drugs; correct K/Mg.",
+      "ruleIn": [],
+      "supportingSymptoms": ["syncope"],
+      "weightCitation": "ESC 2022 Ventricular Arrhythmias Guideline; Davidson's Principles & Practice of Medicine 24th ed (2022) (long-QT / channelopathy, torsades)"
+    }
+  ]
+}
