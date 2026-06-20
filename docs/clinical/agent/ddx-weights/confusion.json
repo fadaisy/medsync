@@ -1,0 +1,343 @@
+{
+  "complaint": "confusion",
+  "source_version": "2026-06-20",
+  "weights": [
+    {
+      "dx": "Hypoglycaemia",
+      "new": false,
+      "likelihood": "must_not_miss",
+      "basePrior": 2,
+      "agePrior": [],
+      "featureWeights": {
+        "Acute": 3,
+        "Sudden": 2,
+        "Fluctuating": 1,
+        "seizures": 1,
+        "speech disturbance": 1,
+        "weakness": 1
+      },
+      "riskWeights": {
+        "diabetes mellitus": 2,
+        "insulin / sulfonylurea": 2,
+        "alcohol": 1,
+        "liver disease": 1,
+        "malaria": 1
+      },
+      "confidence": "high",
+      "needsCsoInput": true,
+      "csoNote": "Kept UNCONDITIONAL (despite the prompt's pinWhen suggestion) to honour DEFG — ALWAYS check capillary glucose in ANY confusion; the glucose VALUE in vitals is the definitive trigger. Uganda: hypoglycaemia is frequently NON-diabetic — severe malaria, sepsis, alcohol, liver failure, prolonged sulfonylurea — so a diabetes-only pin would under-surface it.",
+      "weightCitation": "ADA Standards of Care 2024; WHO Guidelines for Malaria 2025 (hypoglycaemia in severe malaria); Davidson's 24th ed"
+    },
+    {
+      "dx": "Sepsis / meningitis / encephalitis",
+      "new": false,
+      "likelihood": "must_not_miss",
+      "basePrior": 3,
+      "agePrior": [],
+      "featureWeights": {
+        "With fever": 4,
+        "fever": 3,
+        "Acute": 3,
+        "Fluctuating": 3,
+        "headache": 2,
+        "rash": 2,
+        "seizures": 2,
+        "nausea/vomiting": 1
+      },
+      "riskWeights": { "HIV": 2, "immunosuppression": 2, "indwelling device": 2, "TB contact": 1 },
+      "confidence": "high",
+      "needsCsoInput": false,
+      "csoNote": "Uganda: infection is a leading cause of delirium — systemic sepsis, bacterial/cryptococcal/TB meningitis, HSV encephalitis. LP + cultures; do not delay empirical antibiotics +/- aciclovir; meningococcal rash is non-blanching.",
+      "weightCitation": "Surviving Sepsis Campaign; Sepsis-3 (Singer M et al., JAMA 2016); WHO meningitis guidance; Uganda Clinical Guidelines 2023; Davidson's 24th ed"
+    },
+    {
+      "dx": "Stroke / intracranial bleed / raised ICP",
+      "new": false,
+      "likelihood": "must_not_miss",
+      "basePrior": 2,
+      "agePrior": [{ "minAge": 50, "delta": 1 }],
+      "featureWeights": {
+        "Sudden": 3,
+        "Acute": 3,
+        "weakness": 3,
+        "speech disturbance": 3,
+        "headache": 2,
+        "visual disturbance": 1,
+        "seizures": 1,
+        "nausea/vomiting": 1
+      },
+      "riskWeights": {
+        "hypertension": 2,
+        "atrial fibrillation": 2,
+        "anticoagulant": 2,
+        "stroke/TIA": 1,
+        "diabetes mellitus": 1
+      },
+      "confidence": "high",
+      "needsCsoInput": false,
+      "csoNote": "Focal signs + sudden onset; reduced consciousness + headache + vomiting suggests raised ICP/haemorrhage. CT distinguishes ischaemic vs haemorrhagic but is often unavailable in Uganda; reverse anticoagulation if bleeding.",
+      "weightCitation": "AHA/ASA stroke & intracerebral haemorrhage guidelines (2019/2022); Davidson's 24th ed"
+    },
+    {
+      "dx": "Cerebral malaria",
+      "new": false,
+      "likelihood": "must_not_miss",
+      "basePrior": 3,
+      "agePrior": [],
+      "featureWeights": {
+        "With fever": 4,
+        "fever": 4,
+        "Acute": 3,
+        "seizures": 3,
+        "Fluctuating": 1
+      },
+      "riskWeights": { "malaria": 2, "malaria-endemic residence/travel": 2 },
+      "pinWhen": { "featureAny": ["fever", "With fever"] },
+      "confidence": "high",
+      "needsCsoInput": true,
+      "csoNote": "CONDITIONAL on FEVER (cerebral malaria without fever is essentially never). Holoendemic Uganda — any FEBRILE confusion needs a malaria RDT/smear and IV artesunate if severe. Check GLUCOSE (hypoglycaemia mimics/coexists — DEFG) and exclude concurrent meningitis (co-infection common).",
+      "weightCitation": "WHO Guidelines for Malaria (2025); Uganda Clinical Guidelines 2023; Davidson's 24th ed"
+    },
+    {
+      "dx": "DKA / HHS",
+      "new": false,
+      "likelihood": "must_not_miss",
+      "basePrior": 1,
+      "agePrior": [],
+      "featureWeights": {
+        "polyuria/polydipsia": 4,
+        "Acute": 2,
+        "nausea/vomiting": 2,
+        "dyspnoea": 1,
+        "Gradual": 1
+      },
+      "riskWeights": { "diabetes mellitus": 2 },
+      "pinWhen": { "riskAny": ["diabetes mellitus"], "featureAny": ["polyuria/polydipsia"] },
+      "confidence": "high",
+      "needsCsoInput": true,
+      "csoNote": "CONDITIONAL (diabetes / polyuria). The glucose VALUE in vitals is the definitive trigger; new-onset DKA may lack a diabetes flag, so polyuria/polydipsia also fires the pin. HHS (profound confusion + very high glucose + marked dehydration, often without ketosis) is the more confusion-predominant form. Check glucose + ketones.",
+      "weightCitation": "ADA/EASD/JBDS/AACE/DTS Consensus on Hyperglycaemic Crises (DKA/HHS), Diabetes Care 2024; Davidson's 24th ed"
+    },
+    {
+      "dx": "Drug / alcohol intoxication or withdrawal",
+      "new": false,
+      "likelihood": "likely",
+      "basePrior": 2,
+      "agePrior": [],
+      "featureWeights": {
+        "Acute": 3,
+        "Fluctuating": 2,
+        "seizures": 2,
+        "Worse in evening": 1,
+        "Prolonged post-event confusion": 1
+      },
+      "riskWeights": { "alcohol": 2, "opioids / sedatives": 2 },
+      "confidence": "high",
+      "needsCsoInput": false,
+      "csoNote": "Alcohol withdrawal (tremor, autonomic features, withdrawal seizures, delirium tremens at 48-72h); opioid/sedative intoxication (naloxone if opioid). ALWAYS co-administer PARENTERAL THIAMINE (see Wernicke's) and check glucose.",
+      "weightCitation": "Davidson's 24th ed (alcohol/sedative intoxication & withdrawal — CIWA-Ar)"
+    },
+    {
+      "dx": "Dementia (chronic)",
+      "new": false,
+      "likelihood": "likely",
+      "basePrior": 1,
+      "agePrior": [{ "minAge": 65, "delta": 2 }],
+      "featureWeights": {
+        "Gradual": 4,
+        "memory/cognitive change": 4,
+        "Gradual over weeks": 3,
+        "Worse in evening": 1,
+        "Acute": -3,
+        "Fluctuating": -2,
+        "With fever": -2,
+        "fever": -2
+      },
+      "riskWeights": { "age": 2, "age over 50": 1, "HIV": 1 },
+      "confidence": "high",
+      "needsCsoInput": true,
+      "csoNote": "Dementia is the CHRONIC, gradual, stable picture — an ACUTE or FLUCTUATING change is DELIRIUM until proven otherwise (delirium superimposed on dementia is common, so the acute change still needs a full reversible-cause workup, never attributed to 'known dementia'). Under-recognised in Uganda; consider HIV-associated neurocognitive disorder in younger patients.",
+      "weightCitation": "Davidson's 24th ed (delirium vs dementia — 4AT/CAM)"
+    },
+    {
+      "dx": "Hepatic encephalopathy",
+      "new": true,
+      "likelihood": "must_not_miss",
+      "basePrior": 2,
+      "agePrior": [],
+      "featureWeights": {
+        "jaundice": 3,
+        "Fluctuating": 3,
+        "memory/cognitive change": 1,
+        "Worse in evening": 1,
+        "Gradual": 1,
+        "Acute": 1
+      },
+      "riskWeights": { "liver disease": 2, "hepatitis B/C": 2, "alcohol": 1 },
+      "pinWhen": { "riskAny": ["liver disease", "hepatitis B/C"] },
+      "confidence": "high",
+      "needsCsoInput": true,
+      "csoNote": "CONDITIONAL on liver disease / hepatitis. Uganda: chronic liver disease from HEPATITIS B (endemic) and alcohol is common. Always seek + treat a PRECIPITANT (GI bleed, infection/SBP, constipation, diuretics, hypokalaemia). Asterixis is the key sign but is NOT a token; treat with lactulose; ammonia is supportive not diagnostic.",
+      "ruleIn": [],
+      "supportingSymptoms": ["jaundice"],
+      "weightCitation": "AASLD-EASL Hepatic Encephalopathy guidelines; West Haven criteria; Davidson's 24th ed"
+    },
+    {
+      "dx": "Uraemic encephalopathy / AKI",
+      "new": true,
+      "likelihood": "must_not_miss",
+      "basePrior": 2,
+      "agePrior": [],
+      "featureWeights": {
+        "Fluctuating": 2,
+        "seizures": 2,
+        "nausea/vomiting": 2,
+        "Gradual": 2,
+        "Acute": 1,
+        "Gradual over weeks": 1,
+        "incontinence": 1
+      },
+      "riskWeights": {
+        "chronic kidney disease": 2,
+        "diabetes mellitus": 1,
+        "hypertension": 1,
+        "HIV": 1
+      },
+      "pinWhen": { "riskAny": ["chronic kidney disease"] },
+      "confidence": "moderate",
+      "needsCsoInput": true,
+      "csoNote": "CONDITIONAL on CKD — BUT acute kidney injury (severe malaria, sepsis, dehydration — all common in Uganda) causes uraemic encephalopathy WITHOUT a CKD flag, so the urea/creatinine LAB value is the real trigger and AKI risks being missed by a CKD-only pin. Asterixis/myoclonus/seizures; dialysis access is limited — treat reversible AKI causes urgently.",
+      "ruleIn": [],
+      "supportingSymptoms": ["nausea/vomiting", "seizures"],
+      "weightCitation": "KDIGO AKI Guideline; Davidson's 24th ed (uraemic encephalopathy)"
+    },
+    {
+      "dx": "Electrolyte disturbance (hyponatraemia)",
+      "new": true,
+      "likelihood": "must_not_miss",
+      "basePrior": 2,
+      "agePrior": [],
+      "featureWeights": {
+        "seizures": 3,
+        "Acute": 2,
+        "nausea/vomiting": 2,
+        "Fluctuating": 1,
+        "Gradual": 1
+      },
+      "riskWeights": { "cancer": 1, "chronic kidney disease": 1, "diabetes mellitus": 1 },
+      "confidence": "moderate",
+      "needsCsoInput": true,
+      "csoNote": "The electrolyte VALUES (Na, Ca) are LAB-measured and NOT in the token set — recommend checking U&E in any confusion (like glucose). Severe/acute HYPONATRAEMIA causes cerebral oedema and seizures and must be corrected at a CONTROLLED rate (over-rapid correction -> osmotic demyelination). Also consider HYPERCALCAEMIA (malignancy, TB).",
+      "ruleIn": [],
+      "supportingSymptoms": ["seizures", "nausea/vomiting"],
+      "weightCitation": "European Hyponatraemia Guidelines (2014); Davidson's 24th ed"
+    },
+    {
+      "dx": "Hypoxia / CO2 narcosis",
+      "new": true,
+      "likelihood": "must_not_miss",
+      "basePrior": 1,
+      "agePrior": [],
+      "featureWeights": { "dyspnoea": 3, "Acute": 2, "Fluctuating": 1, "Gradual": 1 },
+      "riskWeights": {},
+      "confidence": "moderate",
+      "needsCsoInput": true,
+      "csoNote": "The SpO2 VALUE in vitals is the trigger — check oxygenation in any confusion. CO2 NARCOSIS (hypercapnic respiratory failure) causes drowsiness/confusion and can be WORSENED by uncontrolled high-flow oxygen (target 88-92% where there is hypercapnic risk). Few applicable risk tokens in this complaint — relies on the vitals SpO2 and the dyspnoea feature.",
+      "ruleIn": [],
+      "supportingSymptoms": ["dyspnoea"],
+      "weightCitation": "BTS Guideline for oxygen use in adults; Davidson's 24th ed (hypoxia / hypercapnic CO2 narcosis)"
+    },
+    {
+      "dx": "HIV CNS disease (cryptococcal / toxoplasmosis / HIV encephalopathy)",
+      "new": true,
+      "likelihood": "must_not_miss",
+      "basePrior": 2,
+      "agePrior": [],
+      "featureWeights": {
+        "With fever": 2,
+        "fever": 2,
+        "headache": 2,
+        "seizures": 2,
+        "weakness": 2,
+        "memory/cognitive change": 2,
+        "Gradual": 2,
+        "Gradual over weeks": 2,
+        "Fluctuating": 1,
+        "visual disturbance": 1
+      },
+      "riskWeights": { "HIV": 2, "immunosuppression": 2, "TB contact": 1 },
+      "pinWhen": { "riskAny": ["HIV", "immunosuppression"] },
+      "confidence": "high",
+      "needsCsoInput": true,
+      "csoNote": "CONDITIONAL on HIV/immunosuppression — basePrior population-dependent. Groups CRYPTOCOCCAL meningitis (commonest — CrAg, raised ICP needs serial therapeutic LPs), CNS TOXOPLASMOSIS (focal, ring-enhancing), HIV ENCEPHALOPATHY/HAND, plus TB meningitis/PML/CMV. In advanced HIV (CD4<100-200) a major cause of confusion in Uganda; LP + CrAg + CT + CD4.",
+      "ruleIn": [],
+      "supportingSymptoms": ["fever", "headache", "seizures"],
+      "weightCitation": "WHO Guidelines on cryptococcal disease in HIV & HIV/opportunistic infections; Uganda Clinical Guidelines 2023; Davidson's 24th ed"
+    },
+    {
+      "dx": "Wernicke's encephalopathy",
+      "new": true,
+      "likelihood": "must_not_miss",
+      "basePrior": 1,
+      "agePrior": [],
+      "featureWeights": {
+        "visual disturbance": 2,
+        "memory/cognitive change": 2,
+        "Acute": 2,
+        "Fluctuating": 1
+      },
+      "riskWeights": { "alcohol": 2 },
+      "pinWhen": { "riskAny": ["alcohol"] },
+      "confidence": "moderate",
+      "needsCsoInput": true,
+      "csoNote": "CONDITIONAL on alcohol — but ALSO occurs with malnutrition, prolonged vomiting/hyperemesis and refeeding (not all tokenised). CRITICAL: give PARENTERAL THIAMINE before/with glucose in any malnourished/alcoholic confused patient — glucose without thiamine can PRECIPITATE Wernicke's. The classic triad (confusion + ophthalmoplegia + ataxia) is usually INCOMPLETE; treatable but irreversible (Korsakoff) if missed. Ataxia is not a token; ophthalmoplegia ~ 'visual disturbance'.",
+      "ruleIn": [],
+      "supportingSymptoms": ["visual disturbance"],
+      "weightCitation": "EFNS Guidelines on Wernicke encephalopathy; Davidson's 24th ed"
+    },
+    {
+      "dx": "Thyroid emergency (myxoedema coma / thyroid storm)",
+      "new": true,
+      "likelihood": "must_not_miss",
+      "basePrior": 0,
+      "agePrior": [],
+      "featureWeights": {
+        "With fever": 2,
+        "fever": 1,
+        "Acute": 1,
+        "Fluctuating": 1,
+        "seizures": 1
+      },
+      "riskWeights": { "thyroid disease": 2 },
+      "pinWhen": { "riskAny": ["thyroid disease"] },
+      "confidence": "moderate",
+      "needsCsoInput": true,
+      "csoNote": "CONDITIONAL on thyroid disease — uncommon, TWO opposite extremes. MYXOEDEMA COMA (severe HYPOthyroidism — hypothermia, bradycardia, reduced consciousness, often precipitated by infection/cold). THYROID STORM (severe HYPERthyroidism — fever, tachycardia, AF, agitation; Burch-Wartofsky). Both must-not-miss; the TEMPERATURE in vitals (low vs high) is a key discriminator; confirm with TFTs.",
+      "ruleIn": [],
+      "supportingSymptoms": ["fever"],
+      "weightCitation": "American Thyroid Association guidance (Burch-Wartofsky for thyroid storm); Davidson's 24th ed"
+    },
+    {
+      "dx": "Subdural haematoma",
+      "new": true,
+      "likelihood": "must_not_miss",
+      "basePrior": 1,
+      "agePrior": [{ "minAge": 65, "delta": 1 }],
+      "featureWeights": {
+        "Fluctuating": 3,
+        "Gradual": 2,
+        "Gradual over weeks": 2,
+        "headache": 2,
+        "weakness": 1,
+        "speech disturbance": 1
+      },
+      "riskWeights": { "anticoagulant": 2, "alcohol": 2, "age over 50": 1, "age": 1 },
+      "confidence": "moderate",
+      "needsCsoInput": true,
+      "csoNote": "Head-trauma history (often TRIVIAL or forgotten) is NOT a capture token — recommend adding one. Classic FLUCTUATING consciousness +/- focal signs in the elderly/alcoholic/anticoagulated, often weeks after a minor head injury. CT is diagnostic (often unavailable in Uganda); surgically evacuable — a reversible cause not to miss.",
+      "ruleIn": [],
+      "supportingSymptoms": ["headache", "weakness"],
+      "weightCitation": "Davidson's 24th ed; neurosurgical references (chronic subdural haematoma)"
+    }
+  ]
+}
