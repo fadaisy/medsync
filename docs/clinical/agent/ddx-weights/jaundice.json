@@ -1,0 +1,363 @@
+{
+  "complaint": "jaundice",
+  "source_version": "2026-06-20",
+  "weights": [
+    {
+      "dx": "Ascending cholangitis",
+      "new": false,
+      "likelihood": "must_not_miss",
+      "basePrior": 1,
+      "agePrior": [{ "minAge": 50, "delta": 1 }],
+      "featureWeights": {
+        "Right upper quadrant pain": 4,
+        "With fever": 4,
+        "fever": 3,
+        "abdominal pain": 2,
+        "Pale stools / dark urine": 2,
+        "Colicky": 1,
+        "pruritus": 1,
+        "memory/cognitive change": 1,
+        "Painless": -2
+      },
+      "riskWeights": { "gallstones": 2 },
+      "confidence": "high",
+      "needsCsoInput": false,
+      "weightCitation": "Tokyo Guidelines TG18 (acute cholangitis/cholecystitis); Davidson's Principles & Practice of Medicine 24th ed (2022) (Charcot's triad / Reynolds' pentad). Charcot's triad = RUQ pain + fever + jaundice; Reynolds' pentad adds confusion + hypotension (suppurative cholangitis — an emergency needing urgent biliary drainage + antibiotics)."
+    },
+    {
+      "dx": "Pancreatic / biliary malignancy",
+      "new": false,
+      "likelihood": "must_not_miss",
+      "basePrior": 1,
+      "agePrior": [{ "minAge": 50, "delta": 2 }],
+      "featureWeights": {
+        "Painless": 4,
+        "Pale stools / dark urine": 4,
+        "weight loss": 3,
+        "pruritus": 2,
+        "Gradual": 2,
+        "Gradual over weeks": 2,
+        "Chronic over 3 weeks": 2,
+        "appetite loss": 2,
+        "Epigastric": 1,
+        "With fever": -2
+      },
+      "riskWeights": { "cancer": 2, "smoking": 1 },
+      "confidence": "high",
+      "needsCsoInput": false,
+      "weightCitation": "Davidson's Principles & Practice of Medicine 24th ed (2022) (Courvoisier's law — painless jaundice + palpable gallbladder). PAINLESS progressive cholestatic jaundice + weight loss + pale stools/dark urine; Courvoisier — a painless palpable (non-tender) gallbladder suggests malignant obstruction (pancreatic head / cholangiocarcinoma) over stones."
+    },
+    {
+      "dx": "Acute liver failure / fulminant hepatitis",
+      "new": false,
+      "likelihood": "must_not_miss",
+      "basePrior": 1,
+      "agePrior": [],
+      "featureWeights": {
+        "memory/cognitive change": 4,
+        "easy bruising/bleeding": 4,
+        "Acute": 2,
+        "Acute under 3 weeks": 2,
+        "nausea/vomiting": 1,
+        "fever": 1
+      },
+      "riskWeights": { "hepatitis B/C": 2, "paracetamol overdose": 2, "liver disease": 1 },
+      "confidence": "high",
+      "needsCsoInput": false,
+      "weightCitation": "AASLD & EASL Acute Liver Failure guidance; King's College criteria; Davidson's Principles & Practice of Medicine 24th ed (2022). Jaundice + ENCEPHALOPATHY + COAGULOPATHY (raised INR) within weeks, without pre-existing cirrhosis. UGANDA causes: HBV, hepatitis E (esp pregnancy), DILI (anti-TB, paracetamol, herbal). Paracetamol — King's College criteria + N-acetylcysteine; transfer for transplant assessment where available."
+    },
+    {
+      "dx": "Severe malaria / sickle haemolytic crisis",
+      "new": false,
+      "likelihood": "must_not_miss",
+      "basePrior": 3,
+      "agePrior": [],
+      "featureWeights": {
+        "With fever": 4,
+        "fever": 3,
+        "pallor": 4,
+        "nausea/vomiting": 1,
+        "Pale stools / dark urine": -3
+      },
+      "riskWeights": {
+        "malaria": 2,
+        "malaria-endemic residence/travel": 2,
+        "sickle-cell disease": 2
+      },
+      "pinWhen": {
+        "featureAny": ["With fever", "fever"],
+        "riskAny": ["malaria", "sickle-cell disease"]
+      },
+      "confidence": "high",
+      "needsCsoInput": true,
+      "csoNote": "CONDITIONAL on fever/malaria/sickle. UGANDA: holoendemic malaria — haemolytic (pre-hepatic) jaundice is common; jaundice in malaria is a SEVERITY marker needing IV artesunate; sickle-cell haemolytic crisis. TOKEN NUANCE: the combined 'Pale stools / dark urine' token argues AGAINST haemolysis — haemolysis gives DARK urine (haemoglobinuria) but NORMAL-coloured stools; only obstructive cholestasis gives PALE stools. A split dark-urine-only token would discriminate pre-hepatic from post-hepatic far better.",
+      "weightCitation": "WHO Guidelines for Malaria (2025); ASH sickle-cell disease guidance; Davidson's Principles & Practice of Medicine 24th ed (2022)"
+    },
+    {
+      "dx": "Viral hepatitis",
+      "new": false,
+      "likelihood": "likely",
+      "basePrior": 3,
+      "agePrior": [],
+      "featureWeights": {
+        "fatigue": 3,
+        "appetite loss": 3,
+        "Acute": 2,
+        "Acute under 3 weeks": 2,
+        "nausea/vomiting": 2,
+        "Right upper quadrant pain": 1,
+        "With fever": 1,
+        "Pale stools / dark urine": 1,
+        "Chronic over 3 weeks": 1
+      },
+      "riskWeights": { "hepatitis B/C": 2, "HIV": 1, "IV drug use": 1 },
+      "confidence": "high",
+      "needsCsoInput": false,
+      "weightCitation": "WHO Hepatitis B & C guidelines; Davidson's Principles & Practice of Medicine 24th ed (2022). UGANDA: HEPATITIS B is endemic (high chronic carriage) and the dominant viral hepatitis; prodrome (fatigue, anorexia, nausea) then jaundice; check HBsAg / anti-HCV; distinguish acute HBV from a chronic-HBV flare. (Acute HAV/HEV — see Hepatitis A/E.)"
+    },
+    {
+      "dx": "Alcoholic / decompensated liver disease",
+      "new": false,
+      "likelihood": "likely",
+      "basePrior": 2,
+      "agePrior": [],
+      "featureWeights": {
+        "abdominal distension": 4,
+        "haematemesis": 3,
+        "Chronic over 3 weeks": 2,
+        "Gradual over weeks": 2,
+        "easy bruising/bleeding": 2,
+        "memory/cognitive change": 2,
+        "weight loss": 1,
+        "fatigue": 1,
+        "appetite loss": 1
+      },
+      "riskWeights": { "liver disease": 2, "alcohol": 2, "hepatitis B/C": 1 },
+      "confidence": "high",
+      "needsCsoInput": false,
+      "weightCitation": "AASLD/EASL alcohol-related liver disease guidance; Davidson's Principles & Practice of Medicine 24th ed (2022). Jaundice as a marker of hepatic DECOMPENSATION — ascites (distension), variceal bleeding (haematemesis), encephalopathy, coagulopathy. In Uganda cirrhosis is often HBV ± alcohol; severe alcoholic hepatitis (Maddrey's) is a specific acute-on-chronic presentation."
+    },
+    {
+      "dx": "Gallstones (obstructive)",
+      "new": false,
+      "likelihood": "likely",
+      "basePrior": 1,
+      "agePrior": [{ "minAge": 40, "delta": 1 }],
+      "sexPrior": { "female": 1 },
+      "featureWeights": {
+        "Right upper quadrant pain": 4,
+        "Pale stools / dark urine": 4,
+        "Colicky": 3,
+        "pruritus": 2,
+        "Epigastric": 1,
+        "nausea/vomiting": 1,
+        "Painless": -3,
+        "weight loss": -1
+      },
+      "riskWeights": { "gallstones": 2 },
+      "confidence": "high",
+      "needsCsoInput": false,
+      "weightCitation": "Tokyo Guidelines TG18; Davidson's Principles & Practice of Medicine 24th ed (2022) (choledocholithiasis). A common-bile-duct stone causes obstructive jaundice with COLICKY RUQ pain + pale stools/dark urine; added fever suggests superimposed cholangitis; PAINLESS progressive jaundice suggests malignancy instead."
+    },
+    {
+      "dx": "Hepatocellular carcinoma (HBV-related)",
+      "new": true,
+      "likelihood": "must_not_miss",
+      "basePrior": 2,
+      "agePrior": [{ "minAge": 40, "delta": 1 }],
+      "sexPrior": { "male": 1 },
+      "featureWeights": {
+        "weight loss": 3,
+        "Right upper quadrant pain": 3,
+        "Chronic over 3 weeks": 2,
+        "Gradual over weeks": 2,
+        "abdominal distension": 2,
+        "appetite loss": 2,
+        "pallor": 1,
+        "fatigue": 1,
+        "night sweats": 1
+      },
+      "riskWeights": { "hepatitis B/C": 2, "liver disease": 2, "cancer": 1, "alcohol": 1 },
+      "pinWhen": { "riskAny": ["hepatitis B/C", "liver disease", "cancer"] },
+      "confidence": "high",
+      "needsCsoInput": true,
+      "csoNote": "CONDITIONAL on HBV/liver disease/cancer. UGANDA: HCC is a LEADING cancer, driven by endemic HEPATITIS B — and notably can arise WITHOUT preceding cirrhosis in HBV and in YOUNGER patients than in the West. Presents late: RUQ mass + weight loss + decompensation. Undiagnosed HBV is common, so a LOW THRESHOLD for AFP + ultrasound is warranted even without a known liver-disease flag.",
+      "ruleIn": [],
+      "supportingSymptoms": ["weight loss", "abdominal distension"],
+      "weightCitation": "EASL Clinical Practice Guidelines — HCC (Galle PR et al., 2018); WHO HBV/HCC guidance; Davidson's Principles & Practice of Medicine 24th ed (2022)"
+    },
+    {
+      "dx": "Drug-induced liver injury (DILI)",
+      "new": true,
+      "likelihood": "must_not_miss",
+      "basePrior": 2,
+      "agePrior": [],
+      "featureWeights": {
+        "Acute": 2,
+        "Acute under 3 weeks": 2,
+        "appetite loss": 1,
+        "nausea/vomiting": 1,
+        "fatigue": 1,
+        "pruritus": 1,
+        "night sweats": 1,
+        "memory/cognitive change": 1,
+        "Pale stools / dark urine": 1
+      },
+      "riskWeights": {
+        "tuberculosis": 2,
+        "paracetamol overdose": 2,
+        "HIV": 1,
+        "TB contact": 1,
+        "NSAID use": 1
+      },
+      "pinWhen": { "riskAny": ["tuberculosis", "paracetamol overdose", "HIV", "TB contact"] },
+      "confidence": "moderate",
+      "needsCsoInput": true,
+      "csoNote": "CONDITIONAL on drug-exposed populations (anti-TB via 'tuberculosis'/'TB contact', ARVs via 'HIV', paracetamol). KEY TOKEN GAP: the actual DRUG HISTORY — anti-TB (isoniazid/rifampicin/pyrazinamide), ARVs (nevirapine/efavirenz), and especially TRADITIONAL/HERBAL medicines (extremely common in Uganda and a major cause of liver injury) — is NOT tokenised beyond 'paracetamol overdose'/'tuberculosis'. Recommend adding a current-medications + herbal/traditional-medicine field. Anti-TB hepatotoxicity needs drug interruption per WHO; paracetamol — King's College + NAC.",
+      "ruleIn": [],
+      "supportingSymptoms": ["appetite loss", "nausea/vomiting"],
+      "weightCitation": "AASLD/EASL DILI guidelines; WHO anti-TB hepatotoxicity guidance; Davidson's Principles & Practice of Medicine 24th ed (2022)"
+    },
+    {
+      "dx": "Amoebic liver abscess",
+      "new": true,
+      "likelihood": "likely",
+      "basePrior": 1,
+      "agePrior": [],
+      "sexPrior": { "male": 1 },
+      "featureWeights": {
+        "Right upper quadrant pain": 4,
+        "With fever": 3,
+        "fever": 3,
+        "weight loss": 1,
+        "night sweats": 1,
+        "nausea/vomiting": 1,
+        "Pale stools / dark urine": -1
+      },
+      "riskWeights": { "high-risk exposure": 1, "HIV": 1, "alcohol": 1 },
+      "confidence": "moderate",
+      "needsCsoInput": true,
+      "csoNote": "UGANDA: amoebic liver abscess (Entamoeba histolytica) is COMMON — BUT jaundice is an UNCOMMON/MILD feature (it presents with RUQ pain + swinging fever + TENDER hepatomegaly, not prominent jaundice, unless a large abscess compresses the biliary tree). Included for the cholangitis overlap but weighted LOW for the jaundice complaint. Treatable with metronidazole; risk of rupture; serology/ultrasound.",
+      "ruleIn": [],
+      "supportingSymptoms": ["fever", "night sweats"],
+      "refutingSymptoms": ["Painless"],
+      "weightCitation": "WHO amoebiasis guidance; Davidson's Principles & Practice of Medicine 24th ed (2022) (amoebic liver abscess)"
+    },
+    {
+      "dx": "Leptospirosis (Weil's disease)",
+      "new": true,
+      "likelihood": "must_not_miss",
+      "basePrior": 1,
+      "agePrior": [],
+      "featureWeights": {
+        "With fever": 4,
+        "fever": 4,
+        "easy bruising/bleeding": 2,
+        "pallor": 1,
+        "nausea/vomiting": 1,
+        "memory/cognitive change": 1
+      },
+      "riskWeights": { "high-risk exposure": 2 },
+      "pinWhen": { "featureAny": ["With fever", "fever"], "riskAny": ["high-risk exposure"] },
+      "confidence": "moderate",
+      "needsCsoInput": true,
+      "csoNote": "CONDITIONAL on fever/exposure. WEIL'S disease = severe icteric leptospirosis (jaundice + ACUTE KIDNEY INJURY + bleeding + conjunctival suffusion + myalgia) — under-diagnosed in Uganda; rodent/water/flooding/farming exposure (only loosely 'high-risk exposure'). Treatable (penicillin/doxycycline). ACTIVE-OUTBREAK NOTE: in the current Bundibugyo Ebola PHEIC, febrile jaundice with BLEEDING + high-risk exposure within 21 days must ALSO trigger VHF precautions — isolate + notify (see the fever pack's VHF entry).",
+      "ruleIn": [],
+      "supportingSymptoms": ["fever", "easy bruising/bleeding"],
+      "weightCitation": "WHO leptospirosis guidance; Davidson's Principles & Practice of Medicine 24th ed (2022) (Weil's disease)"
+    },
+    {
+      "dx": "G6PD deficiency / other haemolytic anaemia",
+      "new": true,
+      "likelihood": "likely",
+      "basePrior": 1,
+      "agePrior": [],
+      "sexPrior": { "male": 1 },
+      "featureWeights": {
+        "pallor": 4,
+        "fatigue": 2,
+        "Acute": 1,
+        "nausea/vomiting": 1,
+        "Pale stools / dark urine": -3
+      },
+      "riskWeights": { "malaria": 1, "sickle-cell disease": 1 },
+      "confidence": "moderate",
+      "needsCsoInput": true,
+      "csoNote": "Pre-hepatic HAEMOLYTIC jaundice: unconjugated bilirubin + pallor + DARK urine (haemoglobinuria) but NORMAL stool colour — so the combined 'Pale stools / dark urine' token misleads here too. G6PD deficiency (common in malaria-endemic Uganda; X-linked — males) causes episodic OXIDATIVE haemolysis triggered by oxidant DRUGS (primaquine/dapsone/sulfonamides), fava beans, or infection — the oxidant-drug trigger is not tokenised. Also covers autoimmune/other haemolysis.",
+      "ruleIn": [],
+      "supportingSymptoms": ["pallor", "fatigue"],
+      "weightCitation": "Davidson's Principles & Practice of Medicine 24th ed (2022); WHO G6PD deficiency guidance"
+    },
+    {
+      "dx": "Hepatitis A / E",
+      "new": true,
+      "likelihood": "likely",
+      "basePrior": 2,
+      "agePrior": [],
+      "featureWeights": {
+        "With fever": 3,
+        "fever": 2,
+        "Acute": 3,
+        "Acute under 3 weeks": 3,
+        "fatigue": 2,
+        "appetite loss": 2,
+        "nausea/vomiting": 2,
+        "Right upper quadrant pain": 1,
+        "Chronic over 3 weeks": -2
+      },
+      "riskWeights": { "high-risk exposure": 1 },
+      "confidence": "moderate",
+      "needsCsoInput": true,
+      "csoNote": "Acute faeco-oral (HAV) / waterborne (HEV) viral hepatitis — common with poor sanitation in Uganda and OUTBREAK-PRONE (HEV genotype 1 circulates in East Africa, esp refugee/displaced settings). Usually self-limiting BUT hepatitis E is SEVERE/FULMINANT IN PREGNANCY (high mortality — escalate to the Acute Liver Failure entry). Contaminated-water/sanitation exposure is only loosely captured as 'high-risk exposure'.",
+      "ruleIn": [],
+      "supportingSymptoms": ["fatigue", "appetite loss"],
+      "weightCitation": "WHO Hepatitis A & E guidance; Davidson's Principles & Practice of Medicine 24th ed (2022)"
+    },
+    {
+      "dx": "Schistosomiasis (hepatic / periportal fibrosis)",
+      "new": true,
+      "likelihood": "less_likely",
+      "basePrior": 1,
+      "agePrior": [],
+      "featureWeights": {
+        "haematemesis": 3,
+        "abdominal distension": 2,
+        "Chronic over 3 weeks": 1,
+        "weight loss": 1,
+        "Painless": 1
+      },
+      "riskWeights": { "high-risk exposure": 1, "liver disease": 1 },
+      "confidence": "moderate",
+      "needsCsoInput": true,
+      "csoNote": "IMPORTANT TEACHING: hepatic/intestinal schistosomiasis (S. mansoni — common around Lake Victoria/Albert) causes Symmers' PERIPORTAL FIBROSIS → PRESINUSOIDAL PORTAL HYPERTENSION (splenomegaly, oesophageal varices → haematemesis) with PRESERVED hepatocellular function — so it characteristically does NOT cause jaundice. JAUNDICE in a schistosomiasis patient should prompt a search for a CONCURRENT cause (viral hepatitis, HCC, decompensation). Marked less_likely for the jaundice complaint deliberately; freshwater-contact exposure only loosely 'high-risk exposure'.",
+      "ruleIn": [],
+      "supportingSymptoms": ["haematemesis", "abdominal distension"],
+      "refutingSymptoms": ["Pale stools / dark urine"],
+      "weightCitation": "WHO schistosomiasis guidance; Davidson's Principles & Practice of Medicine 24th ed (2022) (Symmers' periportal fibrosis)"
+    },
+    {
+      "dx": "Yellow fever",
+      "new": true,
+      "likelihood": "must_not_miss",
+      "basePrior": 1,
+      "agePrior": [],
+      "featureWeights": {
+        "With fever": 4,
+        "fever": 4,
+        "easy bruising/bleeding": 3,
+        "Acute": 2,
+        "Acute under 3 weeks": 2,
+        "nausea/vomiting": 2,
+        "pallor": 1
+      },
+      "riskWeights": { "high-risk exposure": 1, "malaria-endemic residence/travel": 1 },
+      "pinWhen": { "featureAny": ["With fever", "fever"] },
+      "confidence": "moderate",
+      "needsCsoInput": true,
+      "csoNote": "CONDITIONAL on fever. Web-verified: UGANDA is in the YELLOW FEVER belt with RECURRENT outbreaks (annual suspected cases; recent outbreaks incl. Buikwe/Buvuma and Ngora; a national vaccination campaign is ongoing but coverage is INCOMPLETE — ~123/146 districts). Severe YF = febrile jaundice + bleeding + hepatorenal failure; a NOTIFIABLE outbreak disease — notify public health. Vaccination status and forest/mosquito exposure are not well tokenised. Overlaps the VHF picture — in the current Bundibugyo Ebola PHEIC, febrile jaundice with bleeding + high-risk exposure within 21 days must trigger VHF precautions: isolate + notify.",
+      "ruleIn": [],
+      "supportingSymptoms": ["fever", "easy bruising/bleeding"],
+      "weightCitation": "WHO Yellow Fever guidance; Uganda MoH / WHO Uganda yellow-fever reports (2024-2026, web-verified); Davidson's Principles & Practice of Medicine 24th ed (2022)"
+    }
+  ]
+}
