@@ -44,6 +44,22 @@ export const FEATURE_ALIASES: Record<string, string[]> = {
   "hepatitis b/c": ["hepatitis b", "hepatitis c"],
   "sickle-cell disease": ["sickle_cell"],
   "rheumatic fever": ["rheumatic_fever", "rheumatic heart disease"],
+  // ── oedema laterality / distribution (oed_* options are COMPOUND displays, so
+  //    the atomic map tokens never matched; these compound strings are oedema-
+  //    specific so they cannot false-match other complaints) ──
+  bilateral: [
+    "bilateral, pitting, dependent",
+    "bilateral, pitting, periorbital too",
+    "bilateral + venous skin changes",
+    "generalised (anasarca)",
+  ],
+  unilateral: ["unilateral, painful, warm calf", "unilateral painful (dvt)"],
+  "facial / periorbital": ["bilateral, pitting, periorbital too", "morning facial / periorbital"],
+  "worse in evening": ["worse end of day"],
+  "red and warm": ["unilateral, painful, warm calf"],
+  "acute and painful": ["unilateral, painful, warm calf", "unilateral painful (dvt)"],
+  orthopnoea: ["orthopnoea / pnd"],
+  "paroxysmal nocturnal dyspnoea": ["orthopnoea / pnd"],
 };
 
 /** Is a (map-prose) feature present in the index — directly, or via an alias? */
