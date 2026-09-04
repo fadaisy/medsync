@@ -1,0 +1,418 @@
+{
+  "complaint": "fatigue",
+  "source_version": "2026-09-04",
+  "weights": [
+    {
+      "dx": "HIV / TB",
+      "new": false,
+      "likelihood": "must_not_miss",
+      "basePrior": 3,
+      "agePrior": [{ "minAge": 25, "maxAge": 49, "delta": 1 }],
+      "featureWeights": {
+        "night sweats": 4,
+        "weight loss": 3,
+        "fever": 3,
+        "febrile 38 or above": 3,
+        "bmi under 18.5": 3,
+        "muac under 23": 3,
+        "lymphadenopathy": 3,
+        "Weight change": 2,
+        "Worsening": 2,
+        "housebound": 2,
+        "recurrent infections": 2,
+        "Physical fatigue": 1
+      },
+      "riskWeights": {
+        "HIV": 3,
+        "tuberculosis": 3,
+        "TB contact": 2,
+        "immunosuppression": 2
+      },
+      "confidence": "high",
+      "needsCsoInput": true,
+      "csoNote": "Highest basePrior in this file. In Uganda fatigue is a presenting feature of the two commonest serious diagnoses on the ward — HIV/AIDS was 30% of Mulago medical admissions and TB prevalence is 401/100,000 adults — so this is a default hypothesis, not a 'don't forget'. NOW RANKS ON MEASURED NUTRITION (ADR 0078): 'bmi under 18.5' and 'muac under 23' carry +3 each, which is the objective evidence the map previously could not see at all. NOTE THE COMBINED ENTRY: the approved map lumps HIV and TB into one node. They co-present constantly (TB was 61.2% of hospitalised Ugandan adults with advanced HIV disease), so the lump is defensible, but the CSO may wish to split them in a future map revision because the confirmatory tests differ. BEING ON ART DOES NOT EXCLUDE either — do not read a known-HIV history as reassurance.",
+      "weightCitation": "Kalyesubula et al., PLOS One 2019;14(5):e0216060 (HIV/AIDS 30% of Mulago medical admissions); Uganda National Tuberculosis Prevalence Survey 2014-2015 (401/100,000 adults); Tugume L et al., PLOS Glob Public Health 2023;3(10):e0002457 (TB in 61.2% of hospitalised advanced HIV disease); WHO clinical staging of HIV disease; WHO four-symptom TB screen."
+    },
+    {
+      "dx": "Anaemia",
+      "new": false,
+      "likelihood": "likely",
+      "basePrior": 3,
+      "featureWeights": {
+        "pallor": 4,
+        "Exertional": 3,
+        "exertional dyspnoea": 3,
+        "palpitations": 2,
+        "Breathlessness / palpitations": 2,
+        "tachycardia over 100": 2,
+        "Physical fatigue": 2,
+        "Melaena": 3,
+        "housebound": 1,
+        "Sleepiness": -1
+      },
+      "riskWeights": {
+        "sickle-cell disease": 3,
+        "GI blood loss": 3,
+        "heavy menstrual bleeding": 3,
+        "HIV": 2,
+        "malaria": 2,
+        "chronic kidney disease": 2,
+        "cancer": 1,
+        "NSAID use": 1
+      },
+      "confidence": "high",
+      "needsCsoInput": true,
+      "csoNote": "UGANDA-CALIBRATED to basePrior 3 where a Western text would say 1-2: in the Mulago medical emergency ward 64.6% of adult admissions were anaemic, and fatigue was among the features significantly associated with anaemia. Independently associated with malaria, HIV and heavy hookworm infection. In people living with HIV, ANAEMIA IS ALSO IATROGENIC — zidovudine is an established cause and anaemia predicts disability through fatigue — so a patient on AZT-containing ART with new fatigue needs an FBC, not reassurance (see the medication entry). Hookworm, sickle-cell and heavy menstrual loss are the other dominant local routes. Exertional breathlessness plus pallor is the pattern; check Hb rather than treating empirically.",
+      "weightCitation": "Kiggundu et al. / Mulago medical emergency ward, 'Prevalence and morphological types of anaemia and hookworm infestation in the medical emergency ward, Mulago Hospital, Uganda' (2009) — anaemia 64.6%, fatigue and dizziness significantly associated; Bahendeka et al., PLOS One 2013 (anaemia independently associated with malaria OR 3.49, HIV OR 2.17, heavy hookworm OR 3.45); 'Anaemia in a rural Ugandan HIV cohort: prevalence at enrolment, incidence, diagnosis and associated factors' (2008) — 18.9% prevalence; WHO haemoglobin thresholds."
+    },
+    {
+      "dx": "Depression",
+      "new": false,
+      "likelihood": "likely",
+      "basePrior": 3,
+      "featureWeights": {
+        "Mental more than physical": 4,
+        "low mood": 3,
+        "Low mood / motivation": 3,
+        "appetite loss": 2,
+        "memory/cognitive change": 2,
+        "housebound": 1,
+        "fever": -4,
+        "febrile 38 or above": -4,
+        "night sweats": -4,
+        "lymphadenopathy": -4,
+        "pallor": -2
+      },
+      "riskWeights": {
+        "depression/anxiety": 3,
+        "stress": 1,
+        "alcohol": 1,
+        "HIV": 1
+      },
+      "confidence": "moderate",
+      "needsCsoInput": true,
+      "csoNote": "Very common and genuinely under-diagnosed — the Ugandan national meta-analysis (127 studies, 123,859 individuals) pooled depression prevalence at 30.2%, and depression is markedly more common in people living with HIV, hence the modest HIV risk weight. 'Mental more than physical' is the map's own discriminator and is the single most useful question: depressive fatigue is typically worse in the morning, unrelieved by rest, and disproportionately mental. sexPrior deliberately NEUTRAL — the Ugandan meta-regression does not establish the female excess Western sources assume. SAFETY: strong negative weights on fever, night sweats, lymphadenopathy and pallor, because this is the entry most likely to close a work-up prematurely; depression and TB/HIV COEXIST constantly here and a high rank must never read as exclusion. CALIBRATION: 'low mood' is held at +3 rather than +4 because it and 'Mental more than physical' are near-synonymous captures that would otherwise stack to +8, and the B-symptom penalties are -4 (not -3) — at the earlier values a patient with clear low mood PLUS fever AND night sweats still scored on the Leading threshold, which is exactly the premature-closure failure this entry must not produce.",
+      "weightCitation": "Uganda national depression meta-analysis, PLOS One 2022;17(10):e0276552 (127 studies, 123,859 individuals; pooled prevalence 30.2%, 95% CI 26.7-34.1); Davidson's Principles & Practice of Medicine 24th ed (2022), fatigue and depression."
+    },
+    {
+      "dx": "Malignancy",
+      "new": false,
+      "likelihood": "must_not_miss",
+      "basePrior": 1,
+      "agePrior": [
+        { "minAge": 60, "delta": 2 },
+        { "minAge": 50, "maxAge": 59, "delta": 1 }
+      ],
+      "featureWeights": {
+        "weight loss": 4,
+        "lymphadenopathy": 4,
+        "easy bruising/bleeding": 4,
+        "bmi under 18.5": 2,
+        "night sweats": 2,
+        "Weight change": 2,
+        "Worsening": 2,
+        "pallor": 2,
+        "splenomegaly": 2,
+        "Physical fatigue": 1
+      },
+      "riskWeights": {
+        "cancer": 3,
+        "smoking": 2,
+        "family cancer history": 2,
+        "HIV": 2,
+        "hepatitis B/C": 1
+      },
+      "confidence": "moderate",
+      "needsCsoInput": true,
+      "csoNote": "Fatigue alone is a weak cancer signal — the danger is fatigue PLUS an alarm feature, which is why weight loss, lymphadenopathy and easy bruising/bleeding all carry +4 while the base prior stays 1. EASY BRUISING/BLEEDING IS THE ONE NOT TO MISS: fatigue with bruising, bleeding or recurrent infection is acute leukaemia until an FBC says otherwise, and it is the presentation that gets sent home. UGANDA: the HIV risk weight is deliberate — Kaposi sarcoma and non-Hodgkin lymphoma are among the commonest malignancies in Kampala and peak in the early-to-mid thirties, so a young age must NOT be treated as reassuring (hence no negative age band below 50). See the weight_loss chunk, where the HIV-associated cancers are carried as a separate node.",
+      "weightCitation": "NICE NG12 suspected cancer recognition and referral (fatigue with alarm features); Kampala Cancer Registry 2009-2013 (Kaposi sarcoma highest male incidence 18/100,000); Bukirwa et al., Int J Cancer 2021 (rising Kampala incidence); Davidson's Principles & Practice of Medicine 24th ed (2022), leukaemia presentation."
+    },
+    {
+      "dx": "Heart failure",
+      "new": false,
+      "likelihood": "must_not_miss",
+      "basePrior": 2,
+      "featureWeights": {
+        "Exertional": 4,
+        "exertional dyspnoea": 4,
+        "orthopnoea": 4,
+        "paroxysmal nocturnal dyspnoea": 4,
+        "raised jvp": 4,
+        "leg swelling": 3,
+        "Breathlessness / palpitations": 3,
+        "displaced apex": 2,
+        "hypoxia under 92": 2,
+        "ascites": 1,
+        "Sleepiness": -1
+      },
+      "riskWeights": {
+        "heart failure": 3,
+        "rheumatic heart disease": 3,
+        "cardiomyopathy": 3,
+        "hypertension": 2,
+        "ischaemic heart disease": 2,
+        "HIV": 1
+      },
+      "confidence": "high",
+      "needsCsoInput": true,
+      "csoNote": "Heart failure was 9.3% of Mulago medical admissions, and Ugandan heart failure is a YOUNG-ADULT disease — cardiomyopathy (~40%) and rheumatic heart disease (~27%), not the ischaemic elderly Western pattern — so NO age prior is encoded and RHD/cardiomyopathy carry the same weight as a known heart-failure history. Fatigue is often the presenting complaint before breathlessness is volunteered. The map's «Exertional» rule-in now fires directly (disc_fatigue offers 'Exertional'), and raised JVP / displaced apex come from the structured cardiovascular exam. If a MURMUR is present, consider infective endocarditis alongside heart failure — see the weight_loss chunk.",
+      "weightCitation": "Kalyesubula et al., PLOS One 2019;14(5):e0216060 (heart failure 9.3% of Mulago medical admissions); Ugandan heart-failure aetiology series (cardiomyopathy ~40%, RHD ~27% in young adults); ESC 2021 Guidelines for the diagnosis and treatment of acute and chronic heart failure."
+    },
+    {
+      "dx": "Diabetes mellitus",
+      "new": false,
+      "likelihood": "likely",
+      "basePrior": 2,
+      "agePrior": [{ "minAge": 40, "delta": 1 }],
+      "featureWeights": {
+        "random glucose over 11.1": 4,
+        "Polyuria / polydipsia": 4,
+        "polyuria/polydipsia": 4,
+        "weight loss": 2,
+        "Weight change": 2,
+        "recurrent infections": 1,
+        "Physical fatigue": 1
+      },
+      "riskWeights": {
+        "diabetes mellitus": 2,
+        "obesity": 2,
+        "hypertension": 1
+      },
+      "confidence": "high",
+      "needsCsoInput": false,
+      "csoNote": "Unlike the weight_loss map, this entry is named 'Diabetes mellitus' rather than 'New diabetes mellitus', so the known-diabetes risk token is CORRECT here — uncontrolled established diabetes is a leading cause of fatigue and is exactly what should surface. NOW RANKS ON THE ACTUAL TEST (ADR 0078): 'random glucose over 11.1' carries +4 from recorded vitals, so a bedside glucose moves the ranking rather than sitting inert. Both the HPC display 'Polyuria / polydipsia' and the ROS token are weighted because the two capture points are separate; they collapse to one contribution when both are tapped.",
+      "weightCitation": "WHO/ADA diagnostic criteria for diabetes mellitus (random >=11.1 mmol/L with symptoms); Uganda Clinical Guidelines 2023 (diabetes); Davidson's Principles & Practice of Medicine 24th ed (2022)."
+    },
+    {
+      "dx": "Hypothyroidism",
+      "new": false,
+      "likelihood": "likely",
+      "basePrior": 1,
+      "sexPrior": { "female": 1 },
+      "featureWeights": {
+        "Cold intolerance": 4,
+        "cold intolerance": 4,
+        "appetite loss": 2,
+        "Weight change": 2,
+        "memory/cognitive change": 2,
+        "bradycardia under 50": 2,
+        "Physical fatigue": 1,
+        "Sleepiness": 1,
+        "Low mood / motivation": 1
+      },
+      "riskWeights": { "thyroid disease": 3 },
+      "confidence": "moderate",
+      "needsCsoInput": true,
+      "csoNote": "Cold intolerance is the most specific capturable discriminator and carries +4. Female predominance is well established internationally; Ugandan incidence was not sourced beyond a 1974 hospital series in which goitre dominated, so basePrior 1 is conservative and needs CSO calibration. OVERLAP TRAP: hypothyroidism mimics depression (low mood, cognitive slowing, fatigue) and the two are frequently confused — check TSH before settling on either. Bradycardia now contributes from recorded vitals (ADR 0078).",
+      "weightCitation": "ATA Guidelines for the Treatment of Hypothyroidism (Jonklaas et al., Thyroid 2014); 'Thyroid disease in Uganda' (PMID 4439461, 1974) — five-year Ugandan hospital series; Davidson's Principles & Practice of Medicine 24th ed (2022), hypothyroidism."
+    },
+    {
+      "dx": "Obstructive sleep apnoea / sleep-disordered breathing",
+      "new": true,
+      "likelihood": "likely",
+      "basePrior": 2,
+      "agePrior": [{ "minAge": 40, "delta": 1 }],
+      "sexPrior": { "male": 1 },
+      "featureWeights": {
+        "Poor sleep / snoring": 4,
+        "Sleepiness": 4,
+        "memory/cognitive change": 2,
+        "Physical fatigue": -1,
+        "Mental more than physical": -1
+      },
+      "riskWeights": {
+        "obesity": 3,
+        "hypertension": 2,
+        "heart failure": 1,
+        "diabetes mellitus": 1
+      },
+      "confidence": "moderate",
+      "needsCsoInput": true,
+      "csoNote": "ADDED BECAUSE THE CLERKSHIP ALREADY CAPTURES IT AND NOTHING USED IT: 'Sleepiness' (fat_type) and 'Poor sleep / snoring' (fat_assoc) are existing chips with no diagnosis behind them, and sleepiness-rather-than-tiredness is the discriminator that separates this from every other entry here. OSA is described in the sub-Saharan literature as under-diagnosed and lesser-known: questionnaire-assessed high risk runs 30-60%, objective general-population prevalence ~28.5% with moderate-to-severe ~6.3%, and 40-60% among hospital attendees — but diagnosis is limited by the cost of sleep studies, so most cases are never confirmed. NO UGANDAN PREVALENCE DATA WAS FOUND; basePrior 2 is extrapolated from regional series and needs CSO calibration. Negative weights on 'Physical fatigue' and 'Mental more than physical' are deliberate — this is sleepiness, not exhaustion or low motivation.",
+      "ruleIn": ["Sleepiness"],
+      "ruleOut": [],
+      "supportingSymptoms": ["memory/cognitive change"],
+      "refutingSymptoms": [],
+      "weightCitation": "'Prevalence of obstructive sleep apnoea in sleep consultations in Burkina Faso: implications for monitoring' (2021) — sub-Saharan prevalence figures and under-diagnosis; 'Prevalence of risk and factors associated with obstructive sleep apnea-hypopnea syndrome in an adult population in Kinshasa, DRC' (2022); 'Obstructive sleep apnea and hypopnea syndrome in patients admitted in a tertiary hospital in Cameroon' (2020)."
+    },
+    {
+      "dx": "Chronic kidney disease",
+      "new": true,
+      "likelihood": "likely",
+      "basePrior": 2,
+      "agePrior": [{ "minAge": 45, "delta": 1 }],
+      "featureWeights": {
+        "pallor": 3,
+        "appetite loss": 3,
+        "pruritus": 3,
+        "frothy urine": 3,
+        "leg swelling": 2,
+        "nausea/vomiting": 2,
+        "Physical fatigue": 1
+      },
+      "riskWeights": {
+        "chronic kidney disease": 3,
+        "hypertension": 2,
+        "diabetes mellitus": 2,
+        "HIV": 2
+      },
+      "confidence": "moderate",
+      "needsCsoInput": true,
+      "csoNote": "Fatigue in CKD is multifactorial — renal anaemia, uraemia and acidosis together — and it is the commonest symptom patients actually report. CKD prevalence is 2-7% nationally (12.5% in eastern Uganda, up to ~15% in HIV and hypertension) and is one of the fastest-rising shares of Mulago medical admissions (annual percentage change +24%); protein-energy wasting affects 47.3% (44/93) of Mulago CKD patients. OVERLAPS ANAEMIA BY DESIGN: renal anaemia is the mechanism, so both entries ranking together is correct, not duplication — but the treatment differs (iron/EPO and CKD care, not transfusion alone). basePrior inferred from disease prevalence, not measured against a fatigue denominator.",
+      "ruleIn": [],
+      "ruleOut": [],
+      "supportingSymptoms": ["pallor", "pruritus", "leg swelling"],
+      "refutingSymptoms": [],
+      "weightCitation": "Protein-energy wasting in Ugandan CKD patients, BMC Nephrology 2018 (PMC6003131) — 44/93 = 47.3% (95% CI 37.2-57.5); Kalyesubula et al., PLOS One 2019;14(5):e0216060 (CKD annual percentage change +24%); KDIGO CKD guideline; Uganda Clinical Guidelines 2023."
+    },
+    {
+      "dx": "Malaria",
+      "new": true,
+      "likelihood": "must_not_miss",
+      "basePrior": 2,
+      "featureWeights": {
+        "fever": 4,
+        "febrile 38 or above": 4,
+        "Rigors": 3,
+        "pallor": 2,
+        "headache": 2,
+        "nausea/vomiting": 1,
+        "Physical fatigue": 1,
+        "Sleepiness": -1
+      },
+      "riskWeights": {
+        "malaria": 3,
+        "malaria-endemic residence/travel": 2,
+        "HIV": 1,
+        "oestrogen / pregnancy": 1
+      },
+      "pinWhen": {
+        "featureAny": ["fever", "febrile 38 or above", "Rigors"],
+        "riskAny": ["malaria"]
+      },
+      "confidence": "moderate",
+      "needsCsoInput": true,
+      "csoNote": "PIN GATED ON FEVER, NOT ENDEMIC RESIDENCE — same reasoning as the weight_loss chunk: endemic residence is near-universal in Uganda, so gating on it would pin malaria for every tired patient and destroy the signal. It stays a scoring risk, not a pin gate. The 'febrile 38 or above' token now fires from a RECORDED temperature (ADR 0078), so an objectively febrile patient reaches the pin even if fever was not volunteered in the history — the single most valuable thing the vitals change buys this complaint. Malaria also causes fatigue indirectly through severe anaemia. Any febrile tired patient gets an mRDT or blood slide.",
+      "ruleIn": [],
+      "ruleOut": [],
+      "supportingSymptoms": ["fever", "headache", "pallor"],
+      "refutingSymptoms": [],
+      "weightCitation": "WHO Guidelines for malaria (2023), severe malaria criteria incl. severe anaemia; Uganda Clinical Guidelines 2023 (malaria — test before treat, mRDT/microscopy)."
+    },
+    {
+      "dx": "Chronic liver disease",
+      "new": true,
+      "likelihood": "less_likely",
+      "basePrior": 1,
+      "agePrior": [{ "minAge": 40, "delta": 1 }],
+      "featureWeights": {
+        "jaundice": 4,
+        "abdominal distension": 3,
+        "ascites": 3,
+        "easy bruising/bleeding": 2,
+        "splenomegaly": 2,
+        "pruritus": 2,
+        "appetite loss": 2,
+        "leg swelling": 1
+      },
+      "riskWeights": {
+        "liver disease": 3,
+        "hepatitis B/C": 3,
+        "alcohol": 3,
+        "HIV": 1
+      },
+      "confidence": "moderate",
+      "needsCsoInput": true,
+      "csoNote": "Fatigue is the commonest and earliest symptom of chronic liver disease and often precedes any stigma. Two dominant Ugandan drivers: hepatitis B is highly endemic (4.3% national HBsAg, higher in the north) and Uganda has the highest per-capita alcohol consumption in Africa (12.21 L pure alcohol/year vs 6.3 L African average; 19.93 L among men). Alcohol is carried as a RISK token here rather than as a separate entry because the clerkship has no social-history or units-per-week capture. basePrior inferred from disease prevalence, not a fatigue denominator.",
+      "ruleIn": [],
+      "ruleOut": [],
+      "supportingSymptoms": ["jaundice", "abdominal distension", "pruritus"],
+      "refutingSymptoms": [],
+      "weightCitation": "WHO hepatitis B fact sheet and Uganda HBsAg seroprevalence surveys (4.3% national); WHO World Health Statistics 2023 (Uganda per-capita alcohol 12.21 L, highest in Africa); Uganda Clinical Guidelines 2023 (chronic liver disease); Davidson's 24th ed (2022), cirrhosis."
+    },
+    {
+      "dx": "Medication-related fatigue (including ART)",
+      "new": true,
+      "likelihood": "less_likely",
+      "basePrior": 1,
+      "featureWeights": {
+        "pallor": 2,
+        "Sleepiness": 2,
+        "Physical fatigue": 1,
+        "memory/cognitive change": 1
+      },
+      "riskWeights": {
+        "HIV": 2,
+        "opioids / sedatives": 2,
+        "antihypertensives": 2,
+        "tuberculosis": 1,
+        "epilepsy": 1
+      },
+      "confidence": "low",
+      "needsCsoInput": true,
+      "csoNote": "SPECIFICALLY UGANDAN AND ROUTINELY MISSED. Zidovudine is an established cause of anaemia in people on ART, and anaemia predicts disability through fatigue — so new fatigue in a patient on an AZT-containing regimen is an FBC, not reassurance. Anaemia prevalence differs sharply by regimen (11.9% on INSTI-based vs 26.5% on protease inhibitors vs 30.0% on other regimens), and efavirenz causes sleep disturbance and daytime somnolence. Add sedating antihypertensives, opioids and anticonvulsants. MAJOR CAPTURE GAP (why confidence is low and needsCsoInput true): there is NO current-medication or ART-regimen field in the clerkship, so 'HIV' is only a proxy for being on ART and the specific drug can never be identified — this entry rides proxies alone. RECOMMEND a medication-review capture; it would also serve the ototoxicity entry in the dizziness chunk.",
+      "ruleIn": [],
+      "ruleOut": [],
+      "supportingSymptoms": ["pallor"],
+      "refutingSymptoms": [],
+      "weightCitation": "'Anaemia in a rural Ugandan HIV cohort: prevalence at enrolment, incidence, diagnosis and associated factors' (2008); 'Incidence and risk factors of anaemia among people on antiretroviral therapy in Harare', S Afr J HIV Med (regimen-stratified anaemia 11.9% INSTI / 26.5% PI / 30.0% other; zidovudine as a risk factor); Uganda Clinical Guidelines 2023 (ART regimens and adverse effects)."
+    },
+    {
+      "dx": "Adrenal insufficiency",
+      "new": true,
+      "likelihood": "must_not_miss",
+      "basePrior": 0,
+      "featureWeights": {
+        "pigmentation": 2,
+        "appetite loss": 2,
+        "nausea/vomiting": 2,
+        "Muscle weakness": 2,
+        "systolic under 90": 3,
+        "weight loss": 2
+      },
+      "riskWeights": {
+        "tuberculosis": 3,
+        "HIV": 2,
+        "immunosuppression": 1
+      },
+      "pinWhen": {
+        "riskAny": ["tuberculosis", "HIV"]
+      },
+      "confidence": "low",
+      "needsCsoInput": true,
+      "csoNote": "Deliberately basePrior 0 and STRICTLY pinned on TB or HIV — cheap to treat, fatal if missed (adrenal crisis), but an unconditional pin at this rarity would alarm-flood the commonest complaint in medicine. Specifically Ugandan: in sub-Saharan Africa the dominant causes of primary adrenal insufficiency are ADRENAL TB and HIV rather than autoimmunity; pooled prevalence 26% (95% CI 12-40%) in African TB patients. HYPOTENSION NOW CONTRIBUTES from recorded vitals (ADR 0078), which is a better rule-in here than the skin sign: hyperpigmentation is hard to read in very dark skin and the clerkship offers only a single generic 'pigmentation' chip, so it is weighted +2 rather than the +4 textbooks imply and the pin does not depend on it. Same recommendation as the weight_loss chunk — add site-specific pigmentation chips (buccal, palmar-crease, scar).",
+      "ruleIn": [],
+      "ruleOut": [],
+      "supportingSymptoms": ["appetite loss", "nausea/vomiting"],
+      "refutingSymptoms": [],
+      "weightCitation": "Kibirige D et al., 'Prevalence and Predictors of Adrenal Insufficiency in Adults With Tuberculosis or HIV', Open Forum Infect Dis 2024;11(4):ofae098 (Africa TB subgroup 26%, 95% CI 12-40%); Merck Manual Professional, Addison disease (hyperpigmentation harder to detect in darker skin); Davidson's 24th ed (2022), adrenal insufficiency."
+    },
+    {
+      "dx": "Post-infectious / persistent fatigue",
+      "new": true,
+      "likelihood": "less_likely",
+      "basePrior": 1,
+      "featureWeights": {
+        "Physical fatigue": 2,
+        "Fluctuating": 2,
+        "limits daily activity": 1,
+        "fever": -3,
+        "febrile 38 or above": -3,
+        "night sweats": -3,
+        "lymphadenopathy": -3,
+        "weight loss": -3,
+        "pallor": -2,
+        "bmi under 18.5": -2
+      },
+      "riskWeights": {},
+      "confidence": "low",
+      "needsCsoInput": true,
+      "csoNote": "A DIAGNOSIS OF EXCLUSION, and the entry in this file most capable of doing harm if it ranks early — hence basePrior 1 with the heaviest negative weights of any entry. Every objective marker of organic disease (fever whether reported or measured, night sweats, lymphadenopathy, weight loss, pallor, low BMI) drives it down hard, so it can only surface once the serious causes have gone quiet. It is carried at all because a substantial minority of fatigue is never explained and naming that is more honest than an empty differential — but it must NEVER outrank HIV/TB, malignancy or anaemia while any of their features are present. CAPTURE GAP: the defining criteria (duration over months, post-exertional malaise, unrefreshing sleep) have no tokens; 'Fluctuating' progression and the ROS functional-impact scale are the nearest available and are weak substitutes.",
+      "ruleIn": [],
+      "ruleOut": [],
+      "supportingSymptoms": [],
+      "refutingSymptoms": ["fever", "night sweats", "weight loss"],
+      "weightCitation": "NICE NG206, Myalgic encephalomyelitis (or encephalopathy) / chronic fatigue syndrome: diagnosis and management (2021) — diagnosis requires exclusion of alternative causes; AAFP, 'Fatigue: an overview' (Am Fam Physician) — a cause is never identified in a substantial minority."
+    }
+  ]
+}

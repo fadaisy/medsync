@@ -120,6 +120,14 @@ export const FEATURE_ALIASES: Record<string, string[]> = {
   //    ros_weight_change_appetite — nowhere else in any migration.
   "reduced appetite": ["poor appetite", "reduced"],
   "increased appetite": ["good appetite", "increased"],
+  // ── fatigue character. The map's rule-in for depressive fatigue is
+  //    «Mental more than physical», which the catalog never captures under that
+  //    name; fat_type offers "Low mood / motivation" and fat_assoc offers
+  //    "Low mood / anhedonia" (0043). Both are fatigue-specific compound
+  //    displays, so they cannot false-match another complaint. "low mood" is
+  //    deliberately NOT aliased to the same targets: Depression weights BOTH
+  //    tokens, and aliasing both would score one tapped chip twice.
+  "mental more than physical": ["low mood / motivation", "low mood / anhedonia"],
 };
 
 /** Is a (map-prose) feature present in the index — directly, or via an alias? */
