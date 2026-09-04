@@ -1,7 +1,7 @@
 /**
  * Clerkship-agent right rail (display-only). A lean, sticky panel that
  * consolidates every agent surface — emergencies, vitals-in-context, forward
- * prediction, exam must-checks, and a pointer to the Assessment suggestions.
+ * prediction and exam must-checks. Read-only throughout (ADR 0079).
  * Each item is headline + evidence; the full differential/action sits behind a
  * native <details> tap so nothing shouts. Decision-support: every claim carries
  * a cited source tag; nothing is auto-recorded. medsync semantic tokens
@@ -121,7 +121,7 @@ const DOT_TONE: Record<DxTone, string> = {
   red: "bg-red-500",
 };
 
-/** One compact differential line in the live rail list (read-only; commit on the tab). */
+/** One compact differential line in the live rail list (read-only). */
 function DxLine({ insight, tone }: { insight: Insight; tone: DxTone }) {
   return (
     <div className="flex items-center gap-1.5 text-[11.5px]">
@@ -270,13 +270,13 @@ export function AgentRail({ insights }: { insights: Insight[] }) {
                 </details>
               ) : null}
               <p className="text-muted-foreground/80 text-[9.5px] italic">
-                re-orders as you capture · commit on the Assessment tab
+                re-orders as you capture · read-only decision support
               </p>
             </div>
           ) : (
             <p className="text-foreground/80 text-[11.5px]">
               {dxCount} suggested —{" "}
-              <span className="text-teal-700 dark:text-teal-400">see the Assessment tab</span>
+              <span className="text-teal-700 dark:text-teal-400">expand to review</span>
             </p>
           )}
         </RailSection>

@@ -5,6 +5,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Removed — Clerkship: the Assessment tab — 2026-09-04
+
+The clerkship form's fifth step is removed ([ADR 0079](docs/adr/0079-remove-assessment-tab.md), owner-directed; supersedes in part [ADR 0074](docs/adr/0074-assessment-as-diagnostic-logic.md) and [ADR 0076](docs/adr/0076-diagnosis-feature-reconciliation.md)). **No migration** — the `synthesis` schema is untouched.
+
+- `TABS` drops from five steps to four (Complaint · Review of Systems · Background · Examination); `assessment-tab.tsx` deleted.
+- **No commit surface for a working diagnosis remains.** `synthesis.differential` can no longer be populated by a new encounter, so `encounterRecords` derives no diagnoses for encounters clerked after this change, and the `summary`/`differential` sections become unreachable — joining `investigations`/`managementPlan`, which already were. `clerkshipStatus` gates nothing, so nothing errors.
+- **The ranked differential is not lost, but is now read-only.** All 17 sourced weight files and the ranking engine still run and the live rail still renders the tiered differential with its evidence and must-not-miss group — what goes is the ability to act on it (no Agree/Exclude/commit). Rail copy updated: it previously said "commit on the Assessment tab", which would now dangle. Feature reconciliation (0076) is dormant, not deleted — nothing triggers it.
+- **Existing records preserved deliberately.** `buildClerkshipInput` sends the whole payload each save, so dropping the state would have wiped `summary`/`differential` from previously-clerked encounters on the next autosave. Both are still rehydrated and echoed back unchanged — no longer editable, never destroyed.
+- tsc/eslint/prettier clean; **1116 tests** (unchanged — no test covered the deleted surface).
+
 ### Added — Clerkship agent: vitals + anthropometry as diagnosis feature tokens — 2026-09-04
 
 Recorded vitals now reach the ranked differential, and the clerkship can finally record a weight ([ADR 0078](docs/adr/0078-vitals-anthropometry-feature-tokens.md)). **No migration** — clerkship sections persist as JSONB, so the new `RecordedVitals` fields need no schema change. Inherently dark in prod until `AGENT_DDX_RANKING_CSO_SIGNED`.
