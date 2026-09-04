@@ -10,6 +10,8 @@
       "agePrior": [],
       "sexPrior": { "male": 1 },
       "featureWeights": {
+        "bmi under 18.5": 2,
+        "muac under 23": 2,
         "Night sweats": 3,
         "night sweats": 3,
         "Over 5% in 6 months": 3,
@@ -44,6 +46,8 @@
       "basePrior": 4,
       "agePrior": [{ "minAge": 25, "maxAge": 49, "delta": 1 }],
       "featureWeights": {
+        "bmi under 18.5": 2,
+        "muac under 23": 2,
         "Over 5% in 6 months": 3,
         "Unintentional >5%": 3,
         "Diarrhoea": 3,
@@ -81,6 +85,7 @@
         { "maxAge": 39, "delta": -1 }
       ],
       "featureWeights": {
+        "bmi under 18.5": 1,
         "Poor appetite": 3,
         "Over 5% in 6 months": 3,
         "Unintentional >5%": 3,
@@ -140,6 +145,7 @@
       "basePrior": 2,
       "agePrior": [{ "minAge": 40, "delta": 1 }],
       "featureWeights": {
+        "random glucose over 11.1": 4,
         "Polyuria / polydipsia": 4,
         "Good appetite": 3,
         "fatigue": 1,
@@ -152,7 +158,7 @@
       },
       "confidence": "high",
       "needsCsoInput": true,
-      "csoNote": "TWO PROBLEMS THE CSO SHOULD RULE ON. (1) NAMING: the approved name is 'New diabetes mellitus', but its risk token 'diabetes mellitus' fires on ALREADY-DIAGNOSED diabetes through the existing alias to the PMH screen key — i.e. a known diabetic scores a new-diagnosis hypothesis. Rather than silently drop the token (which would blind the entry to the very common uncontrolled-diabetic wasting presentation), it is held at a deliberately LOW +1 while 'Polyuria / polydipsia' at +4 does the real work. RECOMMEND RENAMING to 'Diabetes mellitus — new or uncontrolled' in a future approved-map revision; the rename cannot be done from a weights file because entries match the map by exact name. (2) GLUCOSE IS INVISIBLE: a random glucose is recorded in vitals but vitals never reach the diagnosis scorer, so the ADA/WHO diagnostic threshold cannot influence ranking at all — see the file-level gap note. FINDING DIABETES DOES NOT CLOSE THE CASE: diabetes roughly triples TB risk and the two co-present constantly here; NICE NG12 also treats new-onset diabetes as a pancreatic-cancer flag.",
+      "csoNote": "TWO PROBLEMS THE CSO SHOULD RULE ON. (1) NAMING: the approved name is 'New diabetes mellitus', but its risk token 'diabetes mellitus' fires on ALREADY-DIAGNOSED diabetes through the existing alias to the PMH screen key — i.e. a known diabetic scores a new-diagnosis hypothesis. Rather than silently drop the token (which would blind the entry to the very common uncontrolled-diabetic wasting presentation), it is held at a deliberately LOW +1 while 'Polyuria / polydipsia' at +4 does the real work. RECOMMEND RENAMING to 'Diabetes mellitus — new or uncontrolled' in a future approved-map revision; the rename cannot be done from a weights file because entries match the map by exact name. (2) GLUCOSE NOW RANKS (ADR 0078): 'random glucose over 11.1' is derived from recorded vitals and carries +4 here — it is the actual diagnostic discriminator, so this entry no longer depends on the known-diabetes token to surface. FINDING DIABETES DOES NOT CLOSE THE CASE: diabetes roughly triples TB risk and the two co-present constantly here; NICE NG12 also treats new-onset diabetes as a pancreatic-cancer flag.",
       "weightCitation": "WHO/ADA diagnostic criteria for diabetes mellitus (fasting >=7.0 mmol/L; random >=11.1 mmol/L with symptoms); Uganda Clinical Guidelines 2023 (diabetes); NICE NG12 1.2.5 (new-onset diabetes with weight loss as a pancreatic-cancer referral trigger); Davidson's Principles & Practice of Medicine 24th ed (2022)."
     },
     {
@@ -432,6 +438,8 @@
       "basePrior": 2,
       "agePrior": [{ "minAge": 70, "delta": 1 }],
       "featureWeights": {
+        "bmi under 18.5": 2,
+        "muac under 23": 2,
         "Poor appetite": 2,
         "memory/cognitive change": 2,
         "weakness": 1,

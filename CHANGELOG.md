@@ -5,6 +5,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Clerkship agent: vitals + anthropometry as diagnosis feature tokens — 2026-09-04
+
+Recorded vitals now reach the ranked differential, and the clerkship can finally record a weight ([ADR 0078](docs/adr/0078-vitals-anthropometry-feature-tokens.md)). **No migration** — clerkship sections persist as JSONB, so the new `RecordedVitals` fields need no schema change. Inherently dark in prod until `AGENT_DDX_RANKING_CSO_SIGNED`.
+
+- **The gap this closes** was found by the adversarial review of the weight_loss chunk: `RecordedVitals` had no weight, height, BMI or MUAC anywhere, and `examVitals` never reached `buildFeatureIndex` — so a random glucose of 19 could not rank "New diabetes mellitus", and the weight-loss complaint ran in an EMR that could not record a weight.
+- **Anthropometry** (`weightKg`, `heightCm`, `muacCm`) + a pure `bmi()` helper that returns `undefined` unless BOTH weight and height exist — a missing height is never a default height. MUAC is carried deliberately: it is the standard adult nutrition screen in Ugandan TB/HIV programmes and needs only a tape, not a working scale.
+- **Twelve threshold tokens**, every cut-off a named published one (WHO/ADA glucose, WHO fever, NEWS2 bands reused rather than re-authored, WHO adult BMI, Ugandan programme MUAC). **Not-measured is never normal** — a token is emitted only when the measurement was recorded, so an empty or normal vitals set produces no tokens. Opt-in by exact token name, so no existing chunk's ranking shifts by accident.
+- **Nutrition row** in the vitals panel (weight · height · MUAC) with a derived BMI chip that always pairs colour with the word (`BMI 15.6 · severe thinness`); clinical-red reserved for BMI < 16.
+- Consumed immediately: weight_loss ranks TB/HIV/inadequate-intake on `bmi under 18.5` + `muac under 23` and New diabetes on `random glucose over 11.1` (+4); dizziness gains the glucose tokens on Hypoglycaemia. **NOT done:** renaming "New diabetes mellitus" (it matches the CSO-approved map by exact name) — recommended as a CSO action.
+- tsc/eslint/prettier clean; **1106 tests** (+8).
+
 ### Added — Clerkship agent: in-field soft-dim of incompatible signs — 2026-06-17
 
 The clerkship agent's incompatibility signal now surfaces **on the exam control itself**, not only in the rail (agent behaviour #3). When a recorded sign makes another implausible per the cited, CSO-signed incompatibility pack, the implausible chip **softly dims** (faded, dashed, italic) with the cited reason. **No migration.** Inherently dark in prod until `AGENT_INCOMPATIBILITIES_CSO_SIGNED`.
