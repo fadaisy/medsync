@@ -102,6 +102,24 @@ export const FEATURE_ALIASES: Record<string, string[]> = {
   ],
   unsteady: ["disequilibrium (unsteady)"],
   "on standing": ["standing", "on standing from lying"],
+  // ── weight-loss appetite direction. The map's two rule-in discriminators are
+  //    «Reduced appetite» / «Increased appetite», but the clerkship captures
+  //    wl_appetite as "Good appetite" / "Poor appetite" (0043) and the ROS
+  //    appetite/weight-change direction as the bare "increased" / "reduced"
+  //    (0045). Without this, FOUR of the six approved weight_loss differentials
+  //    (Malignancy, Hyperthyroidism, New diabetes, Depression) have a rule-in
+  //    that can never be met, so the Assessment tab would permanently show them
+  //    as unmet "to discriminate" prompts even with appetite recorded.
+  //    "Good appetite" is bridged to "Increased appetite" as a deliberate
+  //    CLINICAL reading, not a synonym: in a patient who is LOSING WEIGHT, a
+  //    preserved appetite is the discriminator that points at hyperthyroidism /
+  //    diabetes / malabsorption, which is exactly what the map's rule-in means.
+  //    Flagged for CSO in weight_loss.json. Safe to alias globally: these two
+  //    keys are used by no other complaint, and the bare displays "increased" /
+  //    "reduced" occur ONLY in ros_appetite_change_direction and
+  //    ros_weight_change_appetite — nowhere else in any migration.
+  "reduced appetite": ["poor appetite", "reduced"],
+  "increased appetite": ["good appetite", "increased"],
 };
 
 /** Is a (map-prose) feature present in the index — directly, or via an alias? */

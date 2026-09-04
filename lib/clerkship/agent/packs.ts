@@ -28,6 +28,7 @@ import jointPainWeights from "@/docs/clinical/agent/ddx-weights/joint_pain.json"
 import oedemaWeights from "@/docs/clinical/agent/ddx-weights/oedema.json";
 import palpitationsWeights from "@/docs/clinical/agent/ddx-weights/palpitations.json";
 import syncopeWeights from "@/docs/clinical/agent/ddx-weights/syncope.json";
+import weightLossWeights from "@/docs/clinical/agent/ddx-weights/weight_loss.json";
 import rawDeps from "@/docs/clinical/agent/sign-dependencies.json";
 import rawIncompat from "@/docs/clinical/agent/sign-incompatibilities.json";
 import rawVitals from "@/docs/clinical/agent/vitals-escalation.json";
@@ -52,6 +53,7 @@ const DDX_WEIGHT_FILES: DdxWeightFile[] = [
   palpitationsWeights as unknown as DdxWeightFile,
   jointPainWeights as unknown as DdxWeightFile,
   dizzinessWeights as unknown as DdxWeightFile,
+  weightLossWeights as unknown as DdxWeightFile,
 ];
 
 function adaptMaps(raw: unknown): ReasoningMap[] {
