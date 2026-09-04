@@ -71,6 +71,58 @@ describe("featurePresent (maps↔catalog vocabulary aliases)", () => {
     expect(featurePresent(idx, "dyspnoea")).toBe(true);
   });
 
+  const withDizz = (propertyCode: string, label: string) =>
+    base({
+      hpcItems: [
+        {
+          symptomCode: "dizziness",
+          symptomDisplay: "Dizziness",
+          properties: [
+            {
+              propertyCode,
+              propertyDisplay: "Dizziness detail",
+              valueType: "single_select",
+              labels: [label],
+            },
+          ],
+        },
+      ],
+    });
+
+  it("dizziness near-miss: map 'True spinning' ↔ catalog 'Vertigo (spinning)'", () => {
+    const idx = buildFeatureIndex(withDizz("dizz_type", "Vertigo (spinning)"));
+    expect(featurePresent(idx, "True spinning")).toBe(true);
+  });
+
+  it("dizziness near-miss: 'Light-headed / faint type' ↔ both presyncope displays", () => {
+    for (const label of ["Pre-syncope (about to faint)", "Vague light-headedness"]) {
+      const idx = buildFeatureIndex(withDizz("dizz_type", label));
+      expect(featurePresent(idx, "Light-headed / faint type")).toBe(true);
+    }
+  });
+
+  // One token, three capture points — featurePresent is boolean-OR, so tapping
+  // several focal-neuro displays still scores the weight once (no double count).
+  it("dizziness focal-neuro alias spans timing / red-flag / associated displays", () => {
+    for (const c of [
+      { prop: "dizz_timing", label: "With focal neurology" },
+      { prop: "dizz_redflags", label: "Focal neurology" },
+      { prop: "dizz_assoc", label: "Diplopia / dysarthria / ataxia" },
+    ]) {
+      const idx = buildFeatureIndex(withDizz(c.prop, c.label));
+      expect(featurePresent(idx, "With focal neuro symptoms")).toBe(true);
+    }
+  });
+
+  // Guards the scoping decision: keys SHARED with other complaints are not
+  // aliased to a dizziness-only display, or a dizziness capture would silently
+  // score another complaint's differential.
+  it("shared keys are not aliased to dizziness-only displays", () => {
+    const idx = buildFeatureIndex(withDizz("dizz_timing", "Days, continuous"));
+    expect(featurePresent(idx, "Continuous")).toBe(false);
+    expect(featurePresent(idx, "nausea/vomiting")).toBe(false);
+  });
+
   it("no false positives: unrelated features stay absent", () => {
     const idx = buildFeatureIndex(base({ pmhScreen: { hypertension: "yes" } }));
     expect(featurePresent(idx, "cancer")).toBe(false);

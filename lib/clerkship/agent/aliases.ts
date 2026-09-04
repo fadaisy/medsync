@@ -72,6 +72,36 @@ export const FEATURE_ALIASES: Record<string, string[]> = {
   tremor: ["sweating / tremor"],
   "heat intolerance": ["heat intolerance / weight loss"],
   gradual: ["gradual build & settle"],
+  // ── dizziness type / trigger / timing / focal-neuro (dizz_* HPC options in
+  //    migration 0043 + ros_dizziness_vertigo_* in 0045). The dizziness map
+  //    phrases every discriminator in its own prose ("True spinning",
+  //    "Triggered by head movement, brief") and the catalog captures none of
+  //    those strings, so before this block NOTHING in the dizziness
+  //    differential fired. Alias matching is boolean-OR, so a clinician who
+  //    taps several focal-neuro displays still scores the token ONCE.
+  //    Scoped deliberately: these keys are used only by the dizziness
+  //    complaint, except "light-headed / faint type" and "on standing", which
+  //    syncope shares and where the same capture carries the same meaning.
+  //    "Continuous" and "nausea/vomiting" are NOT aliased — those keys are
+  //    shared with other complaints, so aliasing them to a dizziness-only
+  //    display would let a dizziness capture score another complaint's dx;
+  //    dizziness.json uses the catalog displays ("Days, continuous",
+  //    "Nausea / vomiting") directly instead.
+  "true spinning": ["vertigo (spinning)", "spinning-vertigo"],
+  "light-headed / faint type": [
+    "pre-syncope (about to faint)",
+    "vague light-headedness",
+    "light-headed",
+  ],
+  "triggered by head movement, brief": ["seconds, positional", "head movement"],
+  "with focal neuro symptoms": [
+    "with focal neurology",
+    "focal neurology",
+    "diplopia / dysarthria / ataxia",
+    "neuro signs",
+  ],
+  unsteady: ["disequilibrium (unsteady)"],
+  "on standing": ["standing", "on standing from lying"],
 };
 
 /** Is a (map-prose) feature present in the index — directly, or via an alias? */
