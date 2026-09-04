@@ -46,7 +46,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { loadAgentPacks, runClerkshipAgent } from "@/lib/clerkship/agent";
+import { buildFeatureIndex, loadAgentPacks, runClerkshipAgent } from "@/lib/clerkship/agent";
 import { renderRosNarrative } from "@/lib/clerkship/ros";
 import { renderSymptomProse } from "@/lib/clerkship/symptom-engine";
 import {
@@ -315,9 +315,8 @@ export function ClerkshipForm({
   // The clerkship agent — pure, live decision-support over the whole clerkship.
   // Gated dark by default (agentConfig.enabled); each pack also gates on its own
   // CSO-signed flag. Recomputes as the captured state changes. Never autonomous.
-  const insights: Insight[] = useMemo(() => {
-    if (!agentConfig.enabled) return [];
-    const input: AgentInput = {
+  const agentInput: AgentInput = useMemo(
+    () => ({
       hpcItems,
       ros,
       pmhItems: pmhItems.map((p) => ({ code: p.code, display: p.display })),
@@ -332,25 +331,45 @@ export function ClerkshipForm({
       examMusculoskeletal,
       examEndoVascularFoot,
       demographics,
-    };
-    return runClerkshipAgent(input, AGENT_PACKS, agentConfig).insights;
-  }, [
-    agentConfig,
-    hpcItems,
-    ros,
-    pmhItems,
-    pmhScreen,
-    examVitals,
-    bpStandard,
-    examGeneralFindings,
-    examRespiratory,
-    examCardiovascular,
-    examAbdominal,
-    examNeurological,
-    examMusculoskeletal,
-    examEndoVascularFoot,
-    demographics,
-  ]);
+    }),
+    [
+      hpcItems,
+      ros,
+      pmhItems,
+      pmhScreen,
+      examVitals,
+      bpStandard,
+      examGeneralFindings,
+      examRespiratory,
+      examCardiovascular,
+      examAbdominal,
+      examNeurological,
+      examMusculoskeletal,
+      examEndoVascularFoot,
+      demographics,
+    ],
+  );
+
+  const insights: Insight[] = useMemo(() => {
+    if (!agentConfig.enabled) return [];
+    return runClerkshipAgent(agentInput, AGENT_PACKS, agentConfig).insights;
+  }, [agentConfig, agentInput]);
+
+  // The ROS reads the SAME live differential the rail does, so it can rank the
+  // remaining screening questions by how much each answer would move it (ADR 0080).
+  // Null when ddx ranking is gated off — the sweep then renders exactly as before.
+  const rosAgent = useMemo(
+    () =>
+      agentConfig.enabled && agentConfig.activePacks.ddxRanking
+        ? {
+            index: buildFeatureIndex(agentInput),
+            maps: AGENT_PACKS.rankedMaps,
+            demographics,
+          }
+        : null,
+    [agentConfig, agentInput, demographics],
+  );
+
   // The rail (and the two-column layout) appear only when the agent has something
   // to say — a fresh/empty clerkship, or the agent gated off, stays single-column.
   const hasRail = insights.length > 0;
@@ -555,6 +574,7 @@ export function ClerkshipForm({
                       scope={rosScope}
                       onScopeChange={setRosScope}
                       hpcItems={hpcItems}
+                      agent={rosAgent}
                     />
 
                     <div className="flex flex-col gap-2">
