@@ -37,7 +37,6 @@ import {
   CheckIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
-  ClipboardCheckIcon,
   ListChecksIcon,
   LoaderCircleIcon,
   NotebookPenIcon,
@@ -57,7 +56,6 @@ import {
 } from "../actions";
 import { AbdominalExam } from "./abdominal-exam";
 import { AgentRail } from "./agent-insights";
-import { AssessmentTab } from "./assessment-tab";
 import { CardiovascularExam } from "./cardiovascular-exam";
 import { EvfExamForm } from "./evf-exam";
 import { ExamSections } from "./exam-sections";
@@ -89,7 +87,6 @@ const TABS: { label: string; icon: ComponentType<{ className?: string }> }[] = [
   { label: "Review of Systems", icon: ListChecksIcon },
   { label: "Background", icon: NotebookPenIcon },
   { label: "Examination", icon: StethoscopeIcon },
-  { label: "Assessment", icon: ClipboardCheckIcon },
 ];
 
 // Cited knowledge packs for the clerkship agent — loaded once, cached. The engine
@@ -255,9 +252,13 @@ export function ClerkshipForm({
   // The BP reference standard — used by the vitals panel.
   const [bpStandard, setBpStandard] = useState<BpStandard>("who_esc");
 
-  // Assessment — the clinician's one-liner + committed differential (rehydrated).
-  const [summary, setSummary] = useState(s?.summary ?? "");
-  const [differential, setDifferential] = useState<ClerkDifferential[]>(s?.differential ?? []);
+  // Assessment tab removed (ADR 0079). These two are NO LONGER EDITABLE, but are
+  // still rehydrated and echoed back on save so that an encounter clerked before
+  // the removal does not silently lose its committed one-liner and differential —
+  // clinical records are append-only, and dropping them from the payload would
+  // wipe them on the next autosave.
+  const [summary] = useState(s?.summary ?? "");
+  const [differential] = useState<ClerkDifferential[]>(s?.differential ?? []);
 
   const [step, setStep] = useState(0);
 
@@ -728,17 +729,6 @@ export function ClerkshipForm({
                       ) : null}
                     </div>
                   </div>
-                ) : null}
-
-                {step === 4 ? (
-                  <AssessmentTab
-                    insights={insights}
-                    differential={differential}
-                    onDifferentialChange={setDifferential}
-                    summary={summary}
-                    onSummaryChange={setSummary}
-                    demographics={demographics}
-                  />
                 ) : null}
               </div>
             </div>
