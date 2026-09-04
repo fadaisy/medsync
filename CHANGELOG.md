@@ -5,6 +5,21 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Changed — Clerkship: the Review of Systems is now hypothesis-driven — 2026-09-04
+
+The 81-symptom sweep is joined to the ranking engine that was already sitting beside it ([ADR 0080](docs/adr/0080-hypothesis-driven-review-of-systems.md); extends [ADR 0062](docs/adr/0062-review-of-systems-engine.md) and [ADR 0063](docs/adr/0063-ros-pc-suppression-focused-complete.md), governed by [ADR 0065](docs/adr/0065-clerkship-clinical-reasoning-engine.md)). **No migration** — no new persisted state, no catalog change.
+
+- **The gap this closes.** `RosReview` received no agent input at all, so the sweep asked the same questions in the same order for every patient while the engine next to it held a live weighted differential from 17 sourced weight files. ADR 0065 promised to propagate discriminating prompts into the ROS; that propagation was only ever built for the Assessment tab (now deleted) and the rail, and `discriminatorsFor` hardcodes `area: "complaint"` so it could not route here in principle.
+- **Three lanes** replace the single accordion: **Ask next** (top 6 by discrimination, re-ranked live) · **Red flags** (all 19 unanswered must-not-miss screens, never capped, never ranked out) · **Full sweep** (the 12-system accordion, unchanged).
+- **New pure engine** `lib/clerkship/agent/ros-priority.ts`: simulates each unanswered screen as "present", re-scores the live hypotheses and measures how far apart they move. Gain = `separation` + leader-flip + top-3 entrants, damped ×0.35 when a question's only effect is to raise the current leader, plus an undamped +4 when it would satisfy an unpinned must-not-miss gate.
+- **The anti-anchoring guarantees are the design test, and are asserted:** a uniform lift scores **zero however large** (magnitude is not gain — spread is), and a confirm-the-leader question ranks **below** a separating one even at twice the raw lift. The pin bonus is added after the damp and scanned over the whole differential, not the ranked window. With <2 live hypotheses the engine stays silent, because every question could then only confirm.
+- **Honest reasons.** Each question says what it would change — _"Separates Tuberculosis from ACE-inhibitor cough"_, _"Would raise Malaria — a must-not-miss"_. A test asserts every diagnosis named in a reason line is actually in the live differential for that input. Vocabulary is the existing curated `FEATURE_ALIASES` bridge only; no fuzzy matching added.
+- **ADR 0063 coverage honesty untouched** — coverage still comes from what was answered, never from what was offered; not-reviewed is still never auto-marked negative. The lanes re-order and remove nothing. Red flags deliberately ignore focused scope (a focused sweep is a choice about depth, not a licence to drop a must-not-miss); the ranked lane respects it and offers a one-tap Include for what it held back.
+- **Graceful degradation** — with `AGENT_DDX_RANKING_CSO_SIGNED` off, or before a complaint is captured, the ranked lane is empty, the red-flag lane is still complete (it is catalog-driven) and the sweep renders exactly as before.
+- **UI**: teal Ask-next card with a live-rank dot and a FLIP re-order (expo-out, 250 ms, nothing under `prefers-reduced-motion`) so the clinician can see their answer change the priorities; amber two-column red-flag lane with a remaining count; the sweep collapsed behind a header when a ranked lane leads. Property capture on a screen is now **opt-in** (`+ detail`) instead of springing open on every positive.
+- **Not done:** promoting a positive screen into the HPC — `pcSystems` derives from all `hpcItems`, so it would collapse that whole system out of the sweep (ADR 0063 Rule 1). Recorded in the ADR with the reason.
+- Ranking costs **0.74 ms** for all 81 screens. tsc/eslint/prettier clean; **1138 tests** (+22).
+
 ### Removed — Clerkship: the Assessment tab — 2026-09-04
 
 The clerkship form's fifth step is removed ([ADR 0079](docs/adr/0079-remove-assessment-tab.md), owner-directed; supersedes in part [ADR 0074](docs/adr/0074-assessment-as-diagnostic-logic.md) and [ADR 0076](docs/adr/0076-diagnosis-feature-reconciliation.md)). **No migration** — the `synthesis` schema is untouched.
