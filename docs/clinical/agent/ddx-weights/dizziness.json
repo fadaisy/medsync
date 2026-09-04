@@ -75,6 +75,8 @@
       "likelihood": "must_not_miss",
       "basePrior": 1,
       "featureWeights": {
+        "glucose under 3.9": 4,
+        "glucose under 2.2": 4,
         "Light-headed / faint type": 3,
         "tremor": 2,
         "memory/cognitive change": 1,

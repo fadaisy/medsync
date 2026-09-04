@@ -6,6 +6,7 @@ import type {
 } from "@/lib/clerkship/agent/types";
 
 import { normalizeFeature } from "@/lib/clerkship/agent/normalize";
+import { bmi } from "@/lib/clerkship/exam/types";
 
 function add(idx: FeatureIndex, raw: string, ev: EvidenceItem) {
   const t = normalizeFeature(raw);
@@ -83,6 +84,11 @@ export function buildFeatureIndex(input: AgentInput): FeatureIndex {
   // findings[] arrays — index them as semantic tokens so the agent can reason on
   // them (sign-incompatibilities / must-check dependencies, and richer dx matching).
   indexStructuredExam(input, idx);
+
+  // Recorded vitals + anthropometry → threshold tokens (ADR 0078). Before this,
+  // examVitals reached only vitalFlags, so a random glucose could not rank a new
+  // diabetic and a BMI could not rank a wasting diagnosis.
+  indexVitals(input, idx);
 
   return idx;
 }
@@ -210,4 +216,47 @@ function indexStructuredExam(input: AgentInput, idx: FeatureIndex) {
   ]);
   if (input.examGeneralFindings.some((f) => f.state === "present" && nodeCodes.has(f.code)))
     tok("lymphadenopathy");
+}
+
+/* ── recorded vitals + anthropometry → threshold tokens (ADR 0078) ──
+ *
+ * Every threshold here is a NAMED, cited cut-off, never an invented one, and a
+ * token is emitted ONLY when the measurement was actually recorded — a missing
+ * vital is never treated as normal, which is the same not-measured-is-not-normal
+ * rule the rest of the clerkship follows. Tokens are one-directional facts
+ * ("febrile 38 or above"), so a weight file opts in explicitly; nothing changes
+ * for a complaint that does not reference them. */
+function indexVitals(input: AgentInput, idx: FeatureIndex) {
+  const v = input.examVitals;
+  if (!v) return;
+  const tok = (t: string) => add(idx, t, { label: t, from: "vitals" });
+
+  // Glucose — WHO/ADA diagnostic threshold for diabetes, and the ADA level-1
+  // hypoglycaemia alert value. WHO severe-malaria hypoglycaemia is < 2.2.
+  if (v.glucose != null) {
+    if (v.glucose >= 11.1) tok("random glucose over 11.1");
+    if (v.glucose < 3.9) tok("glucose under 3.9");
+    if (v.glucose < 2.2) tok("glucose under 2.2");
+  }
+
+  // Temperature — WHO fever definition (>= 38.0) and NEWS2 low-temperature band.
+  if (v.tempC != null) {
+    if (v.tempC >= 38) tok("febrile 38 or above");
+    if (v.tempC < 36) tok("hypothermic under 36");
+  }
+
+  // Haemodynamics — NEWS2 / sepsis-screen cut-offs.
+  if (v.sbp != null && v.sbp < 90) tok("systolic under 90");
+  if (v.hr != null && v.hr > 100) tok("tachycardia over 100");
+  if (v.hr != null && v.hr < 50) tok("bradycardia under 50");
+  if (v.spo2 != null && v.spo2 < 92) tok("hypoxia under 92");
+
+  // Anthropometry — WHO adult BMI cut-offs (underweight < 18.5; severe thinness
+  // < 16) and the adult MUAC cut-off used by Ugandan TB/HIV nutrition programmes.
+  const b = bmi(v);
+  if (b != null) {
+    if (b < 18.5) tok("bmi under 18.5");
+    if (b < 16) tok("bmi under 16");
+  }
+  if (v.muacCm != null && v.muacCm < 23) tok("muac under 23");
 }

@@ -52,6 +52,13 @@ export interface RecordedVitals {
   gcsE?: number;
   gcsV?: number;
   gcsM?: number;
+  /** Anthropometry (ADR 0078). Nutritional status is a vital sign on a wasting
+   * ward, not an optional extra — weight_loss and fatigue both rank on it.
+   * MUAC is included deliberately: it is the standard adult nutrition screen in
+   * Ugandan TB/HIV programmes and needs only a tape, not a working scale. */
+  weightKg?: number;
+  heightCm?: number;
+  muacCm?: number;
   recordedAtIso?: string;
 }
 
@@ -59,4 +66,13 @@ export interface RecordedVitals {
 export function gcsTotal(v: { gcsE?: number; gcsV?: number; gcsM?: number }): number | undefined {
   if (v.gcsE == null || v.gcsV == null || v.gcsM == null) return undefined;
   return v.gcsE + v.gcsV + v.gcsM;
+}
+
+/** BMI (kg/m²) from a recorded weight + height, or undefined until both exist.
+ * Never guesses: a missing height is not a default height. */
+export function bmi(v: { weightKg?: number; heightCm?: number }): number | undefined {
+  if (v.weightKg == null || v.heightCm == null) return undefined;
+  if (v.weightKg <= 0 || v.heightCm <= 0) return undefined;
+  const m = v.heightCm / 100;
+  return v.weightKg / (m * m);
 }

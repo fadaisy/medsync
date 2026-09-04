@@ -9,7 +9,7 @@ import { ActivityIcon, ArrowDownIcon, ArrowUpIcon } from "lucide-react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { BP_BORDER_TONE, BP_STANDARDS, BP_TEXT_TONE, bpCategory } from "@/lib/clerkship/exam/bp";
-import { gcsTotal } from "@/lib/clerkship/exam/types";
+import { bmi, gcsTotal } from "@/lib/clerkship/exam/types";
 import { scoreNews2 } from "@/lib/triage/scoring/news2";
 import { loadTriageVitalsAction } from "../actions";
 
@@ -60,6 +60,30 @@ function pointsMap(adult: AdultVitals): Record<string, number> {
   return out;
 }
 
+/** WHO adult BMI bands. Colour is always paired with the word (design system:
+ * never colour alone), and clinical-red is reserved for severe thinness, which
+ * is a genuine emergency on a wasting ward — not merely "below normal". */
+function bmiBandOf(b: number | undefined): { label: string; tone: string } {
+  if (b == null) return { label: "", tone: "" };
+  if (b < 16)
+    return {
+      label: "severe thinness",
+      tone: "bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-300",
+    };
+  if (b < 18.5)
+    return {
+      label: "underweight",
+      tone: "bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300",
+    };
+  if (b < 25)
+    return {
+      label: "normal",
+      tone: "bg-teal-100 text-teal-800 dark:bg-teal-950/40 dark:text-teal-300",
+    };
+  if (b < 30) return { label: "overweight", tone: "bg-muted text-foreground" };
+  return { label: "obese", tone: "bg-muted text-foreground" };
+}
+
 export function VitalsPanel({
   encounterId,
   value,
@@ -88,6 +112,8 @@ export function VitalsPanel({
   const pts = useMemo(() => (hasNew ? pointsMap(toAdult(value)) : {}), [value, hasNew]);
   const carriedPts = useMemo(() => (carried?.vitals ? pointsMap(carried.vitals) : {}), [carried]);
   const set = (patch: Partial<RecordedVitals>) => onChange({ ...value, ...patch });
+  const bmiValue = useMemo(() => bmi(value), [value]);
+  const bmiBand = bmiBandOf(bmiValue);
 
   const totalTone = !news
     ? "bg-muted text-foreground"
@@ -248,6 +274,31 @@ export function VitalsPanel({
           </span>
         ) : (
           <span className="text-muted-foreground text-[10px]">/15</span>
+        )}
+      </div>
+
+      {/* Anthropometry — nutritional status (ADR 0078). MUAC is offered alongside
+          weight/height because it needs only a tape, not a working scale. */}
+      <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
+        <span className="text-muted-foreground text-[10px] tracking-wide uppercase">Nutrition</span>
+        <Field label="Wt kg" v={value.weightKg} onV={(n) => set({ weightKg: n })} step="0.1" />
+        <Field label="Ht cm" v={value.heightCm} onV={(n) => set({ heightCm: n })} />
+        <Field
+          label="MUAC cm"
+          v={value.muacCm}
+          onV={(n) => set({ muacCm: n })}
+          step="0.1"
+          tone={value.muacCm != null && value.muacCm < 23 ? "amber" : undefined}
+        />
+        {bmiValue != null ? (
+          <span
+            key={bmiBand.label}
+            className={`scale-in rounded px-1.5 py-0.5 font-mono text-[11px] font-semibold tabular-nums ${bmiBand.tone}`}
+          >
+            BMI {bmiValue.toFixed(1)} · {bmiBand.label}
+          </span>
+        ) : (
+          <span className="text-muted-foreground text-[10px]">enter weight + height</span>
         )}
       </div>
 
