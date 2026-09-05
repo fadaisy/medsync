@@ -135,6 +135,64 @@ export function NcdProfileView({ profile }: { profile: NcdProfile }) {
         </section>
       ))}
 
+      {/* 1b. Danger signs — urgent on their own, before anything is established.
+             This is what a site with no ketones or blood gas still gets told. */}
+      {profile.dangerSigns.length ? (
+        <section
+          role="alert"
+          className={`scale-in bg-card overflow-hidden rounded-xl border ${
+            profile.dangerSigns.some((d) => d.severity === "red")
+              ? "border-red-500/40"
+              : "border-amber-400/60 dark:border-amber-700/60"
+          }`}
+        >
+          <header
+            className={`flex items-center gap-2 border-b px-3.5 py-2 ${
+              profile.dangerSigns.some((d) => d.severity === "red")
+                ? "border-red-500/25 bg-red-50/70 dark:bg-red-950/25"
+                : "border-amber-400/30 bg-amber-50/60 dark:bg-amber-950/25"
+            }`}
+          >
+            <AlertTriangleIcon
+              className={`size-3.5 shrink-0 ${
+                profile.dangerSigns.some((d) => d.severity === "red")
+                  ? "text-red-600 dark:text-red-400"
+                  : "text-amber-600 dark:text-amber-400"
+              }`}
+              aria-hidden
+            />
+            <span className="text-foreground text-[11px] font-medium tracking-[0.04em]">
+              Danger signs recorded
+            </span>
+            <span className="text-muted-foreground ml-auto font-mono text-[10px] tabular-nums">
+              {profile.dangerSigns.length}
+            </span>
+          </header>
+          <ul className="divide-border/50 divide-y">
+            {profile.dangerSigns.map((d) => (
+              <li key={d.feature} className="px-3.5 py-2">
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                  <span
+                    className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${
+                      d.severity === "red"
+                        ? "bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-200"
+                        : "bg-amber-100 text-amber-900 dark:bg-amber-900/50 dark:text-amber-200"
+                    }`}
+                  >
+                    {d.severity === "red" ? "Now" : "Same day"}
+                  </span>
+                  <span className="text-foreground min-w-0 flex-1 text-[12.5px] font-medium">
+                    {d.display}
+                  </span>
+                  <Source citation={d.citation} />
+                </div>
+                <p className="text-foreground/80 mt-0.5 text-[11.5px] leading-snug">{d.action}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
       {/* 2. Header — completeness given the same weight as the findings. */}
       <section className={`${CARD} px-3.5 py-3`}>
         <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">

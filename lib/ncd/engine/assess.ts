@@ -28,7 +28,13 @@ import type {
 } from "@/lib/ncd/engine/evaluate";
 
 import { preferredCriteria } from "@/lib/ncd/catalog/schema";
-import { contextOf, evaluateAny, evaluateCriterion, rollUpAny } from "@/lib/ncd/engine/evaluate";
+import {
+  contextOf,
+  evaluateAny,
+  evaluateCriterion,
+  evaluatePredicate,
+  rollUpAny,
+} from "@/lib/ncd/engine/evaluate";
 
 export function ncdContext(
   catalog: NcdCatalog,
@@ -103,6 +109,46 @@ function firstStage(
     }
   }
   return undefined;
+}
+
+/* ── 1b. danger signs ────────────────────────────────────────────────────── */
+
+export interface DangerSign {
+  feature: string;
+  display: string;
+  severity: "red" | "amber";
+  action: string;
+  citation: Citation;
+}
+
+/**
+ * Findings that demand urgent action on their own, without waiting for a
+ * complication to be ESTABLISHED.
+ *
+ * This is the layer that works where the interlock cannot. DKA needs ketones and
+ * acid-base to confirm; a clinic without either can never reach that verdict, and
+ * would otherwise be told nothing at all. Vomiting with abdominal pain in a person
+ * with diabetes is recordable anywhere, and is enough to say "this person needs to
+ * be seen now".
+ *
+ * Fires only on a RECORDED positive — an unasked symptom raises nothing, and a
+ * symptom recorded as absent raises nothing.
+ */
+export function dangerSigns(catalog: NcdCatalog, ctx: EvalContext): DangerSign[] {
+  const out: DangerSign[] = [];
+  for (const f of catalog.features) {
+    const d = f.dangerSign;
+    if (!d) continue;
+    if (evaluatePredicate({ feature: f.code, op: "present" }, ctx).state !== "met") continue;
+    out.push({
+      feature: f.code,
+      display: f.display,
+      severity: d.severity,
+      action: d.action,
+      citation: d.citation,
+    });
+  }
+  return out.sort((a, b) => (a.severity === "red" ? 0 : 1) - (b.severity === "red" ? 0 : 1));
 }
 
 /* ── 2. test validity ────────────────────────────────────────────────────── */

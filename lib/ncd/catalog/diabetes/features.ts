@@ -200,11 +200,17 @@ export const FEATURES: Feature[] = [
     ],
   },
   {
+    /**
+     * Only asked once insulin is one of the answers. Not a property OF the
+     * therapy list — a separate question that simply does not arise otherwise,
+     * which is what `showWhen` is for as distinct from `parent`.
+     */
     code: "insulin_regimen_pattern",
     display: "Insulin regimen pattern",
     kind: "history",
     valueType: "single_select",
     section: "status",
+    showWhen: { feature: "glucose_lowering_therapy", op: "==", value: "insulin" },
     citation: ADA_2026_PHARM,
     options: [
       { value: "basal_only", display: "Basal only" },

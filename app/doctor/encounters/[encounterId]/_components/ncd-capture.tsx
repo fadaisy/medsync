@@ -8,10 +8,10 @@ import type {
   DurationUnit,
 } from "@/lib/ncd/engine/evaluate";
 import { useMemo } from "react";
-import { CheckIcon, CircleSlashIcon, RotateCcwIcon } from "lucide-react";
+import { AlertTriangleIcon, CheckIcon, CircleSlashIcon, RotateCcwIcon } from "lucide-react";
 
-import { isPerformable } from "@/lib/ncd/catalog/schema";
-import { isDuration, isEntry } from "@/lib/ncd/engine/evaluate";
+import { displayCondition, isPerformable } from "@/lib/ncd/catalog/schema";
+import { contextOf, evaluatePredicate, isDuration, isEntry } from "@/lib/ncd/engine/evaluate";
 
 /**
  * Catalog-driven capture. The form is GENERATED from the catalog rather than
@@ -69,7 +69,13 @@ export function sectionProgress(
     .sort((a, b) => a.order - b.order)
     .filter((s) => (by.get(s.id) ?? []).length)
     .map((s) => {
-      const fs = by.get(s.id) ?? [];
+      const ctx = contextOf(catalog.features, values, site);
+      // Conditional fields are not yet askable, so counting them would show a
+      // denominator the clinician cannot reach.
+      const fs = (by.get(s.id) ?? []).filter((f) => {
+        const cond = displayCondition(f);
+        return cond ? evaluatePredicate(cond, ctx).state === "met" : true;
+      });
       const unavailable = fs.filter((f) => !isPerformable(f, site)).length;
       return {
         id: s.id,
@@ -98,11 +104,39 @@ export function NcdCapture({
   onChange,
   sectionId,
 }: NcdCaptureProps & { sectionId: string }) {
-  const features = useMemo(
-    () => catalog.features.filter((f) => f.section === sectionId),
-    [catalog.features, sectionId],
-  );
   const section = catalog.sections.find((s) => s.id === sectionId);
+
+  /**
+   * Which features are visible right now.
+   *
+   * A property only appears once its finding is present, and a conditional field
+   * only once its condition holds — evaluated by the SAME evaluator the clinical
+   * rules use, so what the form shows and what the engine reasons about can never
+   * drift apart. The effect is that an unasked symptom never spawns a page of
+   * questions about itself.
+   */
+  const visible = useMemo(() => {
+    const ctx = contextOf(catalog.features, values, site);
+    return catalog.features.filter((f) => {
+      if (f.section !== sectionId) return false;
+      const cond = displayCondition(f);
+      return cond ? evaluatePredicate(cond, ctx).state === "met" : true;
+    });
+  }, [catalog.features, sectionId, values, site]);
+
+  /** Top-level findings, each followed by whichever of its properties are visible. */
+  const rows = useMemo(() => {
+    const shown = new Set(visible.map((f) => f.code));
+    const out: { feature: Feature; depth: number }[] = [];
+    for (const f of visible) {
+      if (f.parent && shown.has(f.parent)) continue; // emitted under its parent
+      out.push({ feature: f, depth: 0 });
+      for (const child of visible) {
+        if (child.parent === f.code) out.push({ feature: child, depth: 1 });
+      }
+    }
+    return out;
+  }, [visible]);
 
   const set = (code: string, v: CaptureMap[string]) => {
     const next = { ...values };
@@ -125,13 +159,14 @@ export function NcdCapture({
       </header>
 
       <div className="border-border bg-card divide-border/50 divide-y overflow-hidden rounded-xl border shadow-xs">
-        {features.map((f) => (
+        {rows.map(({ feature, depth }) => (
           <FeatureRow
-            key={f.code}
-            feature={f}
+            key={feature.code}
+            feature={feature}
             site={site}
-            value={values[f.code]}
-            onSet={(v) => set(f.code, v)}
+            depth={depth}
+            value={values[feature.code]}
+            onSet={(v) => set(feature.code, v)}
           />
         ))}
       </div>
@@ -203,11 +238,14 @@ function FeatureRow({
   site,
   value,
   onSet,
+  depth = 0,
 }: {
   feature: Feature;
   site: SiteProfile;
   value: CaptureMap[string];
   onSet: (v: CaptureMap[string]) => void;
+  /** 1 for a property of the finding above it. */
+  depth?: number;
 }) {
   const performable = isPerformable(feature, site);
   const recorded = value?.state === "recorded" ? value.value : undefined;
@@ -220,15 +258,32 @@ function FeatureRow({
     (Boolean(feature.optionDetail) ||
       (feature.valueType === "multi_select" && (feature.options?.length ?? 0) > 5));
 
+  const nested = depth > 0;
+
   return (
     <div
-      className={`gap-x-3 gap-y-1.5 px-3 py-2 ${wide ? "flex flex-col" : "flex flex-wrap items-center"}`}
+      className={`gap-x-3 gap-y-1.5 py-2 pr-3 ${nested ? "bg-muted/25 pl-7" : "pl-3"} ${wide ? "flex flex-col" : "flex flex-wrap items-center"}`}
     >
       <span className={`flex min-w-0 flex-col ${wide ? "" : "flex-[1_1_11rem]"}`}>
         <span
-          className={`text-[12.5px] ${performable ? "text-foreground" : "text-muted-foreground"}`}
+          className={`${nested ? "text-[12px]" : "text-[12.5px]"} ${performable ? "text-foreground" : "text-muted-foreground"} ${feature.dangerSign ? "inline-flex items-center gap-1.5" : ""}`}
         >
           {feature.display}
+          {/* Marked before it is answered, so the clinician knows the question
+              carries weight rather than discovering it after the fact. */}
+          {feature.dangerSign ? (
+            <span
+              title={feature.dangerSign.action}
+              className={`inline-flex shrink-0 items-center gap-0.5 rounded px-1 py-px text-[9px] font-medium ${
+                feature.dangerSign.severity === "red"
+                  ? "bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300"
+                  : "bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300"
+              }`}
+            >
+              <AlertTriangleIcon className="size-2.5" aria-hidden />
+              danger sign
+            </span>
+          ) : null}
         </span>
         {feature.unit && feature.valueType !== "duration" ? (
           <span className="text-muted-foreground font-mono text-[10px]">

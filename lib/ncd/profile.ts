@@ -11,6 +11,7 @@ import type {
   AcuteFlag,
   ClassificationResult,
   ComplicationResult,
+  DangerSign,
   DiagnosisResult,
   Gap,
 } from "@/lib/ncd/engine/assess";
@@ -22,6 +23,7 @@ import {
   acuteInterlock,
   assessComplications,
   classify,
+  dangerSigns,
   diagnose,
   gaps,
   ncdContext,
@@ -53,6 +55,11 @@ export interface NcdProfile {
   standardApplied?: { body: StandardBody; version: string };
   /** Emergencies. Non-empty means stop and escalate. */
   acute: AcuteFlag[];
+  /**
+   * Findings urgent on their own, before any complication is established. These
+   * reach sites that cannot run the confirmatory tests at all.
+   */
+  dangerSigns: DangerSign[];
   diagnosis: DiagnosisResult;
   classification: ClassificationResult;
   complications: ComplicationResult[];
@@ -88,6 +95,7 @@ export function buildProfile(args: {
         ? { body: diagnosis.standard, version: diagnosis.version }
         : undefined,
     acute,
+    dangerSigns: dangerSigns(catalog, ctx),
     diagnosis,
     classification,
     complications,

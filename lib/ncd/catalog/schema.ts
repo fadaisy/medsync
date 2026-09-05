@@ -210,8 +210,54 @@ export interface Feature {
   refRange?: { low?: number; high?: number };
   /** Which form section captures it. */
   section: string;
+  /**
+   * This feature CHARACTERISES another one — "is the polyuria nocturnal?" only
+   * means anything once polyuria is present.
+   *
+   * Properties are ordinary features, not a nested type, so a predicate can
+   * reference one exactly like anything else. What `parent` adds is display
+   * (indented beneath its finding) and a default `showWhen` of "parent present",
+   * so an unasked symptom never spawns a page of questions about itself.
+   */
+  parent?: string;
+  /**
+   * Render only while this holds. Uses the same evaluator as clinical rules, so
+   * conditional display and clinical logic can never drift apart.
+   *
+   * Defaults to "parent is present" when `parent` is set. Given explicitly it
+   * handles the cases `parent` cannot — an insulin regimen is not a property OF
+   * the therapy list, it is a separate question that only arises when insulin is
+   * one of the answers.
+   */
+  showWhen?: Predicate;
+  /**
+   * This finding, on its own, demands urgent action.
+   *
+   * Distinct from a `Complication` with `timing: "acute"`, and the difference is
+   * what makes it worth having. An acute complication is ESTABLISHED from
+   * criteria — DKA needs ketones and acid-base, which a district clinic may not
+   * have. A danger sign fires on a single recorded symptom, so the same clinic
+   * that can never confirm DKA can still be told, from vomiting and abdominal
+   * pain alone, that this person needs to be seen now.
+   *
+   * Keep the list short. An interface that cries wolf is ignored, which is the
+   * opposite of safe, so `action` must be the guideline's own instruction and
+   * never a precaution invented here.
+   */
+  dangerSign?: {
+    severity: "red" | "amber";
+    action: string;
+    citation: Citation;
+  };
   /** Only where the feature itself is a clinical assertion (e.g. a named sign). */
   citation?: Citation;
+}
+
+/** The condition under which a feature is shown. `parent` implies "present". */
+export function displayCondition(f: Feature): Predicate | undefined {
+  if (f.showWhen) return f.showWhen;
+  if (f.parent) return { feature: f.parent, op: "present" };
+  return undefined;
 }
 
 /* ── Predicates + criteria: the logic vocabulary ─────────────────────────── */

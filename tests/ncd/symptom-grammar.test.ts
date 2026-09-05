@@ -1,0 +1,207 @@
+import type { Citation, Feature, NcdCatalog, SiteProfile } from "@/lib/ncd/catalog/schema";
+import type { CaptureMap } from "@/lib/ncd/engine/evaluate";
+import { describe, expect, it } from "vitest";
+
+import { DIABETES_CATALOG } from "@/lib/ncd/catalog/diabetes";
+import { displayCondition, recorded } from "@/lib/ncd/catalog/schema";
+import { errorsOf, validateCatalog } from "@/lib/ncd/catalog/validate";
+import { dangerSigns, ncdContext } from "@/lib/ncd/engine/assess";
+import { contextOf, evaluatePredicate } from "@/lib/ncd/engine/evaluate";
+
+const cite: Citation = {
+  standard: "ADA",
+  version: "2026",
+  title: "t",
+  url: "https://example.org",
+  csoSigned: true,
+};
+
+const site: SiteProfile = { id: "s", display: "s", standardPreference: [], available: [] };
+
+const base = (): NcdCatalog => ({
+  id: "probe",
+  display: "Probe",
+  version: "0",
+  capabilities: [],
+  sections: [{ id: "sx", display: "Symptoms", order: 1 }],
+  features: [
+    { code: "polyuria", display: "Polyuria", kind: "symptom", valueType: "boolean", section: "sx" },
+    {
+      code: "nocturia",
+      display: "Nocturia",
+      kind: "symptom",
+      valueType: "boolean",
+      section: "sx",
+      parent: "polyuria",
+    },
+  ],
+  diagnosis: [],
+  complications: [],
+});
+
+const errs = (c: NcdCatalog) => errorsOf(validateCatalog(c)).map((e) => e.message);
+
+/* ── properties only exist once their finding does ───────────────────────── */
+
+describe("parent — a property of a finding", () => {
+  it("defaults its display condition to the parent being present", () => {
+    const child = base().features[1]!;
+    expect(displayCondition(child)).toEqual({ feature: "polyuria", op: "present" });
+  });
+
+  it("an explicit showWhen wins over the parent default", () => {
+    const f: Feature = {
+      code: "x",
+      display: "X",
+      kind: "symptom",
+      valueType: "boolean",
+      section: "sx",
+      parent: "polyuria",
+      showWhen: { feature: "polyuria", op: "absent" },
+    };
+    expect(displayCondition(f)).toEqual({ feature: "polyuria", op: "absent" });
+  });
+
+  it("a feature with neither is always shown", () => {
+    expect(displayCondition(base().features[0]!)).toBeUndefined();
+  });
+
+  // The point of the whole mechanism: an unasked symptom raises no questions
+  // about itself, and one recorded as ABSENT raises none either.
+  it("shows the property only when the finding is recorded present", () => {
+    const c = base();
+    const cond = displayCondition(c.features[1]!)!;
+    const shows = (values: CaptureMap) =>
+      evaluatePredicate(cond, contextOf(c.features, values, site)).state === "met";
+    expect(shows({})).toBe(false);
+    expect(shows({ polyuria: recorded(false) })).toBe(false);
+    expect(shows({ polyuria: recorded(true) })).toBe(true);
+  });
+});
+
+describe("validateCatalog — property integrity", () => {
+  it("accepts a well-formed parent relationship", () => {
+    expect(errs(base())).toEqual([]);
+  });
+
+  it("rejects a property whose finding does not exist", () => {
+    const c = base();
+    c.features[1]!.parent = "ghost";
+    expect(errs(c).some((m) => m.includes('unknown parent feature "ghost"'))).toBe(true);
+  });
+
+  it("rejects a feature that is its own parent, and a parent cycle", () => {
+    const self = base();
+    self.features[0]!.parent = "polyuria";
+    expect(errs(self).some((m) => m.includes("its own parent"))).toBe(true);
+
+    const cyc = base();
+    cyc.features[0]!.parent = "nocturia";
+    expect(errs(cyc).some((m) => m.includes("cycle"))).toBe(true);
+  });
+
+  it("warns when a property is filed in a different section from its finding", () => {
+    const c = base();
+    c.sections.push({ id: "other", display: "Other", order: 2 });
+    c.features[1]!.section = "other";
+    expect(errs(c)).toEqual([]);
+    expect(validateCatalog(c).some((i) => i.message.includes("render apart from it"))).toBe(true);
+  });
+
+  it("rejects a showWhen pointing at a feature that does not exist", () => {
+    const c = base();
+    c.features[1]!.showWhen = { feature: "ghost", op: "present" };
+    expect(errs(c).some((m) => m.includes('unknown feature "ghost"'))).toBe(true);
+  });
+});
+
+/* ── danger signs ────────────────────────────────────────────────────────── */
+
+describe("danger signs", () => {
+  const withDanger = (): NcdCatalog => {
+    const c = base();
+    c.features.push({
+      code: "vomiting",
+      display: "Vomiting",
+      kind: "symptom",
+      valueType: "boolean",
+      section: "sx",
+      dangerSign: { severity: "red", action: "Assess for ketoacidosis now.", citation: cite },
+    });
+    c.features.push({
+      code: "blurred_vision",
+      display: "Blurred vision",
+      kind: "symptom",
+      valueType: "boolean",
+      section: "sx",
+      dangerSign: { severity: "amber", action: "Arrange same-day eye review.", citation: cite },
+    });
+    return c;
+  };
+  const fired = (values: CaptureMap) => {
+    const c = withDanger();
+    return dangerSigns(c, ncdContext(c, values, site)).map((d) => d.feature);
+  };
+
+  it("fires on a recorded positive only", () => {
+    expect(fired({ vomiting: recorded(true) })).toEqual(["vomiting"]);
+    expect(fired({ vomiting: recorded(false) })).toEqual([]);
+    expect(fired({})).toEqual([]);
+  });
+
+  it("puts the emergencies first", () => {
+    expect(fired({ vomiting: recorded(true), blurred_vision: recorded(true) })).toEqual([
+      "vomiting",
+      "blurred_vision",
+    ]);
+  });
+
+  it("carries the guideline's own action and its citation", () => {
+    const c = withDanger();
+    const d = dangerSigns(c, ncdContext(c, { vomiting: recorded(true) }, site))[0]!;
+    expect(d.action).toBe("Assess for ketoacidosis now.");
+    expect(d.citation.standard).toBe("ADA");
+    expect(d.severity).toBe("red");
+  });
+
+  // A warning with nothing to do is noise, and noise is what gets a real warning
+  // ignored later.
+  it("rejects a danger sign with no action", () => {
+    const c = withDanger();
+    c.features[2]!.dangerSign!.action = "  ";
+    expect(errs(c).some((m) => m.includes("warning with nothing to do"))).toBe(true);
+  });
+
+  it("requires provenance like every other clinical assertion", () => {
+    const c = withDanger();
+    // @ts-expect-error deliberately removing a required field
+    delete c.features[2]!.dangerSign!.citation;
+    expect(errs(c)).toContain("missing citation");
+  });
+});
+
+/* ── against the real catalog ────────────────────────────────────────────── */
+
+describe("the diabetes catalog uses the grammar correctly", () => {
+  it("still validates", () => {
+    expect(errorsOf(validateCatalog(DIABETES_CATALOG))).toEqual([]);
+  });
+
+  it("asks for an insulin regimen only once insulin is selected", () => {
+    const f = DIABETES_CATALOG.features.find((x) => x.code === "insulin_regimen_pattern")!;
+    const cond = displayCondition(f)!;
+    const shows = (values: CaptureMap) =>
+      evaluatePredicate(cond, contextOf(DIABETES_CATALOG.features, values, site)).state === "met";
+    expect(shows({})).toBe(false);
+    expect(shows({ glucose_lowering_therapy: recorded([{ option: "metformin" }]) })).toBe(false);
+    expect(shows({ glucose_lowering_therapy: recorded([{ option: "insulin" }]) })).toBe(true);
+    expect(
+      shows({
+        glucose_lowering_therapy: recorded([
+          { option: "metformin", detail: "1 g bd" },
+          { option: "insulin", detail: "20 u nocte" },
+        ]),
+      }),
+    ).toBe(true);
+  });
+});

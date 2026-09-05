@@ -237,6 +237,54 @@ export function validateCatalog(catalog: NcdCatalog): ValidationIssue[] {
       out.push({ severity: "warning", path, message: "numeric feature has no unit" });
     }
     if (f.citation) checkCitation(f.citation, `${path}.citation`, out);
+
+    // A property of a finding that does not exist can never appear, so the
+    // question it asks is silently lost rather than loudly broken.
+    if (f.parent) {
+      if (!features.has(f.parent)) {
+        out.push({ severity: "error", path, message: `unknown parent feature "${f.parent}"` });
+      } else if (f.parent === f.code) {
+        out.push({ severity: "error", path, message: "feature is its own parent" });
+      } else if (f.section !== features.get(f.parent)?.section) {
+        out.push({
+          severity: "warning",
+          path,
+          message:
+            "property sits in a different section from its parent, so it will render apart from it",
+        });
+      }
+    }
+    if (f.showWhen) {
+      checkPredicate(f.showWhen, `${path}.showWhen`, features, out);
+    }
+    if (f.dangerSign) {
+      checkCitation(f.dangerSign.citation, `${path}.dangerSign.citation`, out);
+      if (!f.dangerSign.action.trim()) {
+        out.push({
+          severity: "error",
+          path,
+          message: "danger sign has no action — a warning with nothing to do is noise",
+        });
+      }
+    }
+  }
+
+  // A property chain that loops would render forever.
+  for (const f of catalog.features) {
+    const seen = new Set<string>([f.code]);
+    let cur = f.parent;
+    while (cur) {
+      if (seen.has(cur)) {
+        out.push({
+          severity: "error",
+          path: `features.${f.code}`,
+          message: `parent chain forms a cycle at "${cur}"`,
+        });
+        break;
+      }
+      seen.add(cur);
+      cur = features.get(cur)?.parent;
+    }
   }
 
   for (const set of catalog.diagnosis) {
