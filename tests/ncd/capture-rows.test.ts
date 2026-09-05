@@ -495,3 +495,55 @@ describe("screening questions keep every symptom in one section", () => {
     }
   });
 });
+
+describe("abdominal pain takes a full SOCRATES history", () => {
+  const propsOf = (values: Parameters<typeof contextOf>[1]) => {
+    const ctx = contextOf(DIABETES_CATALOG.features, values, REFERRAL_SITE);
+    return buildBlocks(
+      DIABETES_CATALOG.features.filter(
+        (x) => x.section === "symptoms" && !x.offProtocol && isVisible(x, ctx),
+      ),
+    ).find((b) => b.finding.code === "abdominal_pain")!.properties;
+  };
+
+  /**
+   * The consensus warns this pain may belong to the ketoacidosis OR to whatever
+   * precipitated it, and only the history separates them — which is why this one
+   * symptom earns a full pain history where the others take one or two
+   * properties.
+   */
+  it("asks all eight letters, and nothing until the pain is present", () => {
+    expect(propsOf({})).toHaveLength(0);
+    expect(propsOf({ abdominal_pain: recorded(true) }).map((p) => p.feature.code)).toEqual([
+      "abdominal_pain_site",
+      "abdominal_pain_onset",
+      "abdominal_pain_character",
+      "abdominal_pain_radiation",
+      "abdominal_pain_associations",
+      "abdominal_pain_duration",
+      "abdominal_pain_time_course",
+      "abdominal_pain_modifiers",
+      "abdominal_pain_severity",
+    ]);
+  });
+
+  /**
+   * Associations deliberately omits vomiting, dehydration and altered
+   * consciousness. Each is already its own finding in the same band, and asking
+   * again under a second heading is how one history ends up split across two
+   * answers that can disagree.
+   */
+  it("does not re-ask what the crisis band already captures", () => {
+    const assoc = DIABETES_CATALOG.features.find((f) => f.code === "abdominal_pain_associations")!;
+    const offered = (assoc.options ?? []).map((o) => o.value).join(" ");
+    for (const dup of ["vomit", "dehydration", "conscious", "breathing"]) {
+      expect(offered, dup).not.toContain(dup);
+    }
+  });
+
+  // Nine unanswered questions must not be foldable away.
+  it("cannot be folded until the history is taken", () => {
+    const values = { abdominal_pain: recorded(true) };
+    expect(wellFold(propsOf(values), values)).toMatchObject({ settled: 0, foldable: false });
+  });
+});

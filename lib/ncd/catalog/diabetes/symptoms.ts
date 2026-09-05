@@ -125,6 +125,30 @@ const OUR_REASONING = c({
   needsCsoInput: "Clinically defensible but not stated by the cited sources. CSO to ratify.",
 });
 
+/**
+ * SOCRATES — the pain history framework, used here as the property set for
+ * abdominal pain.
+ *
+ * Marked as OURS rather than dressed as a guideline. It is a widely-taught
+ * mnemonic with no primary guideline source behind it, which is exactly the
+ * shape of thing this catalog has been burned by before (the "5 Ps" that no
+ * source defines). The difference is that SOCRATES prescribes only the SHAPE of
+ * the history — which questions to ask — and asserts nothing about a patient, so
+ * it is safe to adopt on those terms as long as it says whose idea it is.
+ *
+ * What the cited consensus DOES say is why this pain deserves the full set:
+ * abdominal pain is a common feature of ketoacidosis itself AND may instead
+ * signal the condition that precipitated it. Those two are told apart by site,
+ * character and radiation.
+ */
+const SOCRATES = c({
+  standard: "local",
+  version: "SOCRATES pain history framework",
+  title: "Structure of the pain history — not a guideline position",
+  needsCsoInput:
+    "A widely-taught mnemonic with no primary guideline source. It structures the questions and asserts nothing clinical; the option lists are conventional. CSO to ratify.",
+});
+
 /** The crisis presentation. Same consensus as complications.ts, PMC mirror. */
 const CRISES_2024 = c({
   standard: "EASD",
@@ -508,15 +532,131 @@ export const SYMPTOM_FEATURES: Feature[] = [
      * features rather than raising an alert of its own.
      */
   },
+  /* SOCRATES. Site, Onset, Character, Radiation, Associations, Time course,
+     Exacerbating/relieving, Severity — the full pain history, because the
+     consensus warns this pain may belong to the crisis OR to whatever caused
+     it, and only the history separates them. All eight appear only once the
+     pain is recorded present, and fold away once answered. */
   prop("abdominal_pain", {
-    code: "abdominal_pain_localised",
-    display: "Localised or generalised",
+    /** S — replaces the old localised/generalised split, which this subsumes. */
+    code: "abdominal_pain_site",
+    display: "Site",
     valueType: "single_select",
-    citation: CRISES_2024,
+    citation: SOCRATES,
     options: [
       { value: "generalised", display: "Generalised" },
-      { value: "localised", display: "Localised" },
+      { value: "epigastric", display: "Epigastric" },
+      { value: "right_upper", display: "Right upper quadrant" },
+      { value: "left_upper", display: "Left upper quadrant" },
+      { value: "periumbilical", display: "Around the umbilicus" },
+      { value: "right_lower", display: "Right lower quadrant" },
+      { value: "left_lower", display: "Left lower quadrant" },
+      { value: "loin", display: "Loin or flank" },
+      { value: "suprapubic", display: "Suprapubic" },
     ],
+  }),
+  prop("abdominal_pain", {
+    /** O */
+    code: "abdominal_pain_onset",
+    display: "Onset",
+    valueType: "single_select",
+    citation: SOCRATES,
+    options: [
+      { value: "sudden", display: "Sudden, at its worst straight away" },
+      { value: "rapid", display: "Over minutes to hours" },
+      { value: "gradual", display: "Gradually, over days" },
+    ],
+  }),
+  prop("abdominal_pain", {
+    /** C */
+    code: "abdominal_pain_character",
+    display: "Character",
+    valueType: "single_select",
+    citation: SOCRATES,
+    options: [
+      { value: "colicky", display: "Cramping or colicky" },
+      { value: "sharp", display: "Sharp or stabbing" },
+      { value: "burning", display: "Burning" },
+      { value: "dull", display: "Dull ache" },
+      { value: "tearing", display: "Tearing" },
+    ],
+  }),
+  prop("abdominal_pain", {
+    /** R */
+    code: "abdominal_pain_radiation",
+    display: "Radiation",
+    valueType: "single_select",
+    citation: SOCRATES,
+    options: [
+      { value: "none", display: "Stays in one place" },
+      { value: "back", display: "Through to the back" },
+      { value: "shoulder", display: "To the shoulder tip" },
+      { value: "groin", display: "To the groin" },
+      { value: "chest", display: "Up to the chest" },
+    ],
+  }),
+  prop("abdominal_pain", {
+    /**
+     * A. Deliberately omits vomiting, dehydration and altered consciousness:
+     * each is already its own finding in this band, and asking again under a
+     * second heading is how one history ends up split across two answers.
+     */
+    code: "abdominal_pain_associations",
+    display: "Associated with",
+    valueType: "multi_select",
+    citation: SOCRATES,
+    options: [
+      { value: "fever", display: "Fever" },
+      { value: "diarrhoea", display: "Diarrhoea" },
+      { value: "no_stool_or_wind", display: "No stool or wind" },
+      { value: "urinary", display: "Urinary symptoms" },
+      { value: "jaundice", display: "Jaundice" },
+      { value: "none", display: "Nothing else" },
+    ],
+  }),
+  prop("abdominal_pain", {
+    /** T, part one — hours, because this is an acute presentation. */
+    code: "abdominal_pain_duration",
+    display: "For how long",
+    valueType: "duration",
+    unit: "hours",
+    citation: SOCRATES,
+  }),
+  prop("abdominal_pain", {
+    /** T, part two */
+    code: "abdominal_pain_time_course",
+    display: "Since it started",
+    valueType: "single_select",
+    citation: SOCRATES,
+    options: [
+      { value: "constant", display: "Constant" },
+      { value: "intermittent", display: "Comes and goes" },
+      { value: "worsening", display: "Getting worse" },
+      { value: "improving", display: "Getting better" },
+    ],
+  }),
+  prop("abdominal_pain", {
+    /** E */
+    code: "abdominal_pain_modifiers",
+    display: "Worse or better with",
+    valueType: "multi_select",
+    citation: SOCRATES,
+    options: [
+      { value: "worse_movement", display: "Worse on movement" },
+      { value: "worse_eating", display: "Worse after eating" },
+      { value: "better_eating", display: "Better after eating" },
+      { value: "better_vomiting", display: "Better after vomiting" },
+      { value: "better_leaning_forward", display: "Better leaning forward" },
+      { value: "nothing", display: "Nothing changes it" },
+    ],
+  }),
+  prop("abdominal_pain", {
+    /** S — the second one. */
+    code: "abdominal_pain_severity",
+    display: "Severity",
+    valueType: "number",
+    unit: "/10",
+    citation: SOCRATES,
   }),
 
   {
