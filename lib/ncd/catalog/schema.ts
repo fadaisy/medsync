@@ -222,7 +222,14 @@ export interface Criterion {
   all?: Predicate[];
   any?: Predicate[];
   atLeast?: { n: number; of: Predicate[] };
-  /** Guideline requires a second, separate sample before this counts. */
+  /**
+   * Satisfying this criterion is NOT by itself a diagnosis — a second,
+   * INDEPENDENT abnormal result is required (ADA: "two abnormal results, which
+   * may be obtained at the same time").
+   *
+   * Do NOT set it on a criterion that already encodes the repeat as one of its
+   * own predicates (as the WHO set does): that would demand confirmation twice.
+   */
   requiresConfirmation?: boolean;
   citation: Citation;
 }
@@ -316,6 +323,44 @@ export interface Complication {
   citation: Citation;
 }
 
+/* ── Test validity ───────────────────────────────────────────────────────── */
+
+/**
+ * A condition under which a test's RESULT cannot be trusted — distinct from the
+ * test being unavailable, and distinct from the result being abnormal.
+ *
+ * This exists because Phase 0 decision (a) required more than a binary
+ * "unreliable" badge. NGSP states that haemoglobin-variant interference with
+ * HbA1c is ASSAY-SPECIFIC, and that the bias has a DIRECTION: anything
+ * shortening red-cell survival (haemolysis, malaria, recent transfusion)
+ * falsely LOWERS HbA1c and can mask diabetes, while iron deficiency falsely
+ * RAISES it and can manufacture one. A clinician told only "unreliable" cannot
+ * tell which error they are looking at.
+ *
+ * Modelling it here rather than in engine code keeps the engine disease-generic
+ * and keeps the policy reviewable as data. The same shape recurs elsewhere —
+ * eGFR at extremes of muscle mass, ACR after exercise or in UTI.
+ */
+export interface ValidityCaveat {
+  id: string;
+  /** The feature whose RESULT this caveat undermines. */
+  feature: string;
+  label: string;
+  when: Criterion;
+  /**
+   * Which way the result is biased, in terms of the clinical consequence:
+   * `masks` — falsely reassuring, may hide disease.
+   * `manufactures` — falsely alarming, may create disease that is not there.
+   * `unpredictable` — direction not established.
+   */
+  direction: "masks" | "manufactures" | "unpredictable";
+  /** What the guideline says to use instead. */
+  alternative?: string;
+  /** When true, this feature may not be used to DIAGNOSE while the caveat holds. */
+  blocksDiagnosis: boolean;
+  citation: Citation;
+}
+
 /* ── Risk stratification ─────────────────────────────────────────────────── */
 
 export type RiskSeverity = "low" | "moderate" | "high" | "very_high";
@@ -387,6 +432,8 @@ export interface NcdCatalog {
   diagnosis: CriteriaSet[];
   classifications?: Classification[];
   complications: Complication[];
+  /** Conditions under which a feature's result cannot be trusted. */
+  validityCaveats?: ValidityCaveat[];
   riskModels?: RiskModel[];
   management?: ManagementStep[];
 }

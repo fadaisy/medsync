@@ -19,6 +19,7 @@ import type { NcdCatalog, SiteProfile } from "@/lib/ncd/catalog/schema";
 import { COMPLICATIONS } from "@/lib/ncd/catalog/diabetes/complications";
 import { CLASSIFICATIONS, DIAGNOSIS } from "@/lib/ncd/catalog/diabetes/diagnosis";
 import { CAPABILITIES, FEATURES, SECTIONS } from "@/lib/ncd/catalog/diabetes/features";
+import { VALIDITY_CAVEATS } from "@/lib/ncd/catalog/diabetes/validity";
 
 export const DIABETES_CATALOG: NcdCatalog = {
   id: "diabetes",
@@ -30,6 +31,7 @@ export const DIABETES_CATALOG: NcdCatalog = {
   diagnosis: DIAGNOSIS,
   classifications: CLASSIFICATIONS,
   complications: COMPLICATIONS,
+  validityCaveats: VALIDITY_CAVEATS,
 };
 
 /* ── Reference site profiles ─────────────────────────────────────────────── */

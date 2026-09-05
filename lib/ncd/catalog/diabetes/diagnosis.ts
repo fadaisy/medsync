@@ -59,7 +59,6 @@ export const DIAGNOSIS: CriteriaSet[] = [
           { feature: "fpg", op: ">=", value: 7.0, unit: "mmol/L" },
           { feature: "second_sample_confirms", op: "present" },
         ],
-        requiresConfirmation: true,
         citation: WHO_2019_CLASS,
       },
       {
@@ -70,7 +69,6 @@ export const DIAGNOSIS: CriteriaSet[] = [
           { feature: "ogtt_2h", op: ">=", value: 11.1, unit: "mmol/L" },
           { feature: "second_sample_confirms", op: "present" },
         ],
-        requiresConfirmation: true,
         citation: WHO_2019_CLASS,
       },
       {
@@ -83,7 +81,6 @@ export const DIAGNOSIS: CriteriaSet[] = [
           { feature: "hba1c", op: ">=", value: 6.5, unit: "%" },
           { feature: "second_sample_confirms", op: "present" },
         ],
-        requiresConfirmation: true,
         citation: WHO_2011_HBA1C,
       },
     ],
@@ -149,7 +146,6 @@ export const DIAGNOSIS: CriteriaSet[] = [
           { feature: "fpg", op: ">=", value: 7.0, unit: "mmol/L" },
           { feature: "second_sample_confirms", op: "present" },
         ],
-        requiresConfirmation: true,
         citation: IDF_2025_ATLAS,
       },
     ],

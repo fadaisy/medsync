@@ -311,6 +311,25 @@ export function validateCatalog(catalog: NcdCatalog): ValidationIssue[] {
     }
   }
 
+  for (const vc of catalog.validityCaveats ?? []) {
+    const path = `validityCaveats.${vc.id}`;
+    checkCitation(vc.citation, `${path}.citation`, out);
+    checkCriterion(vc.when, `${path}.when`, features, out);
+    if (!features.has(vc.feature)) {
+      out.push({ severity: "error", path, message: `unknown feature "${vc.feature}"` });
+    }
+    // A caveat that blocks diagnosis without saying what to use instead leaves
+    // the clinician stuck: they are told not to trust the test and offered
+    // nothing in its place.
+    if (vc.blocksDiagnosis && !vc.alternative) {
+      out.push({
+        severity: "warning",
+        path,
+        message: "blocksDiagnosis without an `alternative` — the clinician is left with no route",
+      });
+    }
+  }
+
   for (const rm of catalog.riskModels ?? []) {
     const path = `riskModels.${rm.id}`;
     checkCitation(rm.citation, `${path}.citation`, out);
@@ -364,6 +383,10 @@ export function referencedFeatures(catalog: NcdCatalog): Set<string> {
   (catalog.riskModels ?? []).forEach((m) => {
     m.requires.forEach((r) => out.add(r));
     m.bands.forEach((b) => add(b.when));
+  });
+  (catalog.validityCaveats ?? []).forEach((v) => {
+    add(v.when);
+    out.add(v.feature);
   });
   (catalog.management ?? []).forEach((m) => {
     add(m.when);
