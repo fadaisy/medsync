@@ -465,6 +465,19 @@ export const SYMPTOM_FEATURES: Feature[] = [
     },
   },
   prop("vomiting", {
+    /**
+     * Hours, not days. How long someone has been vomiting is how much fluid they
+     * have lost, and it is also the tempo: the consensus describes ketoacidosis
+     * developing over hours while a hyperosmolar state builds over days. Both
+     * bear on what is set up before transfer.
+     */
+    code: "vomiting_duration",
+    display: "For how long",
+    valueType: "duration",
+    unit: "hours",
+    citation: CRISES_2024,
+  }),
+  prop("vomiting", {
     code: "vomiting_tolerating_fluids",
     display: "Tolerating oral fluids",
     valueType: "single_select",

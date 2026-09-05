@@ -296,6 +296,25 @@ describe("durations — the unit travels with the value", () => {
     expect(run({ value: 6, unit: "weeks" })).toBe("not_met");
     expect(run({ value: 4000, unit: "days" })).toBe("met"); // ~10.9 years
     expect(run({ value: 300, unit: "days" })).toBe("not_met");
+    expect(run({ value: 100000, unit: "hours" })).toBe("met"); // ~11.4 years
+    expect(run({ value: 48, unit: "hours" })).toBe("not_met");
+  });
+
+  /**
+   * Hours exist for the acute end of the catalog — vomiting in a suspected
+   * crisis is asked in hours, and a threshold written in days must still be able
+   * to read it. This is the pair a fraction-of-a-day workaround would have got
+   * wrong in opposite directions.
+   */
+  it("reads an acute duration in hours against a threshold written in days", () => {
+    const over2d = { feature: "dur", op: ">=" as const, value: 2, unit: "years" };
+    const hours = (n: number) =>
+      evaluatePredicate(
+        { ...over2d, value: 2 / 365.25, unit: "years" },
+        contextOf(FEATS, { dur: recorded({ value: n, unit: "hours" }) }, site),
+      ).state;
+    expect(hours(72)).toBe("met");
+    expect(hours(6)).toBe("not_met");
   });
 
   it("treats a duration threshold with no unit as unusable, not as a comparison", () => {

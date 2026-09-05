@@ -56,14 +56,21 @@ export interface CaptureEntry {
  * compares 120 >= 10 and passes, which is the same class of error as the
  * mmol/L-versus-mg/dL trap the validator already guards.
  */
-export type DurationUnit = "days" | "weeks" | "months" | "years";
+export type DurationUnit = "hours" | "days" | "weeks" | "months" | "years";
 export interface CaptureDuration {
   value: number;
   unit: DurationUnit;
 }
 
-/** Days per unit. Month and year are the conventional averages, not exact. */
+/**
+ * Days per unit, ascending. Month and year are the conventional averages, not
+ * exact. Hours earn a place because acute symptoms are measured in them: a
+ * hyperglycaemic crisis turns on whether the vomiting started this morning or
+ * three days ago, and forcing that into a fraction of a day is how a clinician
+ * ends up typing 0.25.
+ */
 export const DURATION_DAYS: Record<DurationUnit, number> = {
+  hours: 1 / 24,
   days: 1,
   weeks: 7,
   months: 30.4375,
@@ -77,6 +84,9 @@ export const isDuration = (v: unknown): v is CaptureDuration =>
   (v as CaptureDuration).unit in DURATION_DAYS;
 
 export const durationInDays = (d: CaptureDuration): number => d.value * DURATION_DAYS[d.unit];
+
+/** The units a duration control offers, shortest first. */
+export const DURATION_UNITS = Object.keys(DURATION_DAYS) as DurationUnit[];
 
 /** A captured value for a feature. Anything not present is `not_assessed`. */
 export type CaptureValue =

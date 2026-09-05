@@ -43,7 +43,13 @@ import {
   isPerformable,
   MAX_PROPERTY_DEPTH,
 } from "@/lib/ncd/catalog/schema";
-import { contextOf, evaluatePredicate, isDuration, isEntry } from "@/lib/ncd/engine/evaluate";
+import {
+  contextOf,
+  DURATION_UNITS,
+  evaluatePredicate,
+  isDuration,
+  isEntry,
+} from "@/lib/ncd/engine/evaluate";
 
 /**
  * Catalog-driven capture. The form is GENERATED from the catalog rather than
@@ -1061,7 +1067,7 @@ function ValueEditor({
           onChange={(e) => put({ value: d?.value ?? 0, unit: e.target.value as DurationUnit })}
           className="border-input bg-card text-foreground/85 ease-expo-out focus-visible:border-brand-500 rounded-md border px-1.5 py-1 text-[11.5px] transition-[border-color] duration-100 outline-none"
         >
-          {(["days", "weeks", "months", "years"] as const).map((u) => (
+          {DURATION_UNITS.map((u) => (
             <option key={u} value={u}>
               {u}
             </option>
