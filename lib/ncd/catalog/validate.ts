@@ -73,7 +73,7 @@ function checkCitation(c: Citation | undefined, path: string, out: ValidationIss
 function checkPredicate(
   p: Predicate,
   path: string,
-  features: Map<string, { unit?: string; options?: { value: string }[] }>,
+  features: Map<string, { unit?: string; valueType?: string; options?: { value: string }[] }>,
   out: ValidationIssue[],
 ) {
   const f = features.get(p.feature);
@@ -86,6 +86,15 @@ function checkPredicate(
     return;
   }
   const numeric = [">=", ">", "<=", "<"].includes(p.op);
+  // A duration threshold with no unit cannot be normalised, so it would silently
+  // compare raw numbers across different scales.
+  if (numeric && (f as { valueType?: string }).valueType === "duration" && !p.unit) {
+    out.push({
+      severity: "error",
+      path,
+      message: "duration threshold has no unit — it cannot be normalised before comparison",
+    });
+  }
   if (numeric && typeof p.value !== "number") {
     out.push({
       severity: "error",
@@ -138,7 +147,7 @@ function checkPredicate(
 function checkCriterion(
   c: Criterion,
   path: string,
-  features: Map<string, { unit?: string; options?: { value: string }[] }>,
+  features: Map<string, { unit?: string; valueType?: string; options?: { value: string }[] }>,
   out: ValidationIssue[],
 ) {
   if (!c.all?.length && !c.any?.length && !c.atLeast?.of.length) {

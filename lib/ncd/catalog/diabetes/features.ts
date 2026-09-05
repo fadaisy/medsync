@@ -121,10 +121,16 @@ export const FEATURES: Feature[] = [
     ],
   },
   {
-    code: "dm_duration_years",
-    display: "Years since diagnosis",
+    /**
+     * Recorded in whatever unit the patient actually knows it in — "about six
+     * weeks" and "eleven years" are both normal answers. Thresholds in this
+     * catalog are written in `unit` (years) and the engine normalises both sides
+     * to days before comparing, so the entered unit never changes the verdict.
+     */
+    code: "dm_duration",
+    display: "Time since diagnosis",
     kind: "history",
-    valueType: "number",
+    valueType: "duration",
     unit: "years",
     section: "status",
   },

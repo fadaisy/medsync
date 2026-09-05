@@ -1,5 +1,5 @@
 import type { Citation, Criterion, Feature, SiteProfile } from "@/lib/ncd/catalog/schema";
-import type { CaptureMap } from "@/lib/ncd/engine/evaluate";
+import type { CaptureMap, CaptureValue } from "@/lib/ncd/engine/evaluate";
 import { describe, expect, it } from "vitest";
 
 import { notAssessed, recorded, unavailable } from "@/lib/ncd/catalog/schema";
@@ -209,6 +209,55 @@ describe("entry lists — a recorded dose is documentation, never logic", () => 
   it("an empty selection is not a recorded negative", () => {
     expect(run({ therapy: recorded([]) }, { feature: "therapy", op: "present" })).toBe("not_met");
     expect(run({}, { feature: "therapy", op: "present" })).toBe("insufficient");
+  });
+});
+
+describe("durations — the unit travels with the value", () => {
+  const FEATS: Feature[] = [
+    {
+      code: "dur",
+      display: "Time since diagnosis",
+      kind: "history",
+      valueType: "duration",
+      unit: "years",
+      section: "s",
+    },
+  ];
+  const site: SiteProfile = { id: "s", display: "s", standardPreference: [], available: [] };
+  const over10y = { feature: "dur", op: ">=" as const, value: 10, unit: "years" };
+  const run = (v: CaptureValue) =>
+    evaluatePredicate(over10y, contextOf(FEATS, { dur: recorded(v) }, site)).state;
+
+  /**
+   * The trap this closes. A bare number with the unit kept elsewhere would
+   * compare 120 >= 10 and pass for the wrong reason, and 6 >= 10 and fail for
+   * the wrong reason. Both sides normalise to days first.
+   */
+  it("compares across units rather than comparing raw numbers", () => {
+    expect(run({ value: 11, unit: "years" })).toBe("met");
+    expect(run({ value: 132, unit: "months" })).toBe("met"); // 11 years
+    expect(run({ value: 120, unit: "months" })).toBe("met"); // exactly 10 years
+    expect(run({ value: 6, unit: "months" })).toBe("not_met");
+    expect(run({ value: 6, unit: "weeks" })).toBe("not_met");
+    expect(run({ value: 4000, unit: "days" })).toBe("met"); // ~10.9 years
+    expect(run({ value: 300, unit: "days" })).toBe("not_met");
+  });
+
+  it("treats a duration threshold with no unit as unusable, not as a comparison", () => {
+    const noUnit = { feature: "dur", op: ">=" as const, value: 10 };
+    expect(
+      evaluatePredicate(
+        noUnit,
+        contextOf(FEATS, { dur: recorded({ value: 11, unit: "years" }) }, site),
+      ).state,
+    ).toBe("insufficient");
+  });
+
+  it("is present only when the recorded duration is greater than zero", () => {
+    const present = { feature: "dur", op: "present" as const };
+    const ctxOf = (v: CaptureValue) => contextOf(FEATS, { dur: recorded(v) }, site);
+    expect(evaluatePredicate(present, ctxOf({ value: 2, unit: "weeks" })).state).toBe("met");
+    expect(evaluatePredicate(present, ctxOf({ value: 0, unit: "years" })).state).toBe("not_met");
   });
 });
 

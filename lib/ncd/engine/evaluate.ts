@@ -46,8 +46,40 @@ export interface CaptureEntry {
   detail?: string;
 }
 
+/**
+ * A duration recorded in whichever unit the clinician actually knows it in.
+ *
+ * "Six weeks since diagnosis" and "eleven years since diagnosis" are both
+ * normal answers, and forcing either into a single unit invites a fraction or a
+ * silent rounding. The unit travels WITH the value so a comparison can normalise
+ * both sides — without that, a threshold of 10 years tested against 120 months
+ * compares 120 >= 10 and passes, which is the same class of error as the
+ * mmol/L-versus-mg/dL trap the validator already guards.
+ */
+export type DurationUnit = "days" | "weeks" | "months" | "years";
+export interface CaptureDuration {
+  value: number;
+  unit: DurationUnit;
+}
+
+/** Days per unit. Month and year are the conventional averages, not exact. */
+export const DURATION_DAYS: Record<DurationUnit, number> = {
+  days: 1,
+  weeks: 7,
+  months: 30.4375,
+  years: 365.25,
+};
+
+export const isDuration = (v: unknown): v is CaptureDuration =>
+  typeof v === "object" &&
+  v !== null &&
+  typeof (v as CaptureDuration).value === "number" &&
+  (v as CaptureDuration).unit in DURATION_DAYS;
+
+export const durationInDays = (d: CaptureDuration): number => d.value * DURATION_DAYS[d.unit];
+
 /** A captured value for a feature. Anything not present is `not_assessed`. */
-export type CaptureValue = number | string | string[] | boolean | CaptureEntry[];
+export type CaptureValue = number | string | string[] | boolean | CaptureEntry[] | CaptureDuration;
 
 const isEntryList = (v: CaptureValue): v is CaptureEntry[] =>
   Array.isArray(v) && v.every((x) => typeof x === "object" && x !== null && "option" in x);
@@ -97,6 +129,7 @@ function isPositive(v: CaptureValue): boolean {
   if (typeof v === "boolean") return v;
   if (typeof v === "number") return v > 0;
   if (Array.isArray(v)) return v.length > 0;
+  if (isDuration(v)) return v.value > 0;
   return v.trim() !== "" && v !== "none" && v !== "negative";
 }
 
@@ -148,8 +181,18 @@ export function evaluatePredicate(p: Predicate, ctx: EvalContext): PredicateResu
     case ">":
     case "<=":
     case "<": {
-      const n = asNumber(v);
-      const t = typeof p.value === "number" ? p.value : undefined;
+      let n = asNumber(v);
+      let t = typeof p.value === "number" ? p.value : undefined;
+      // Durations normalise to days on BOTH sides before comparing, so 120
+      // months correctly exceeds a 10-year threshold instead of losing to it.
+      if (isDuration(v)) {
+        const unit = p.unit as DurationUnit | undefined;
+        if (!unit || !(unit in DURATION_DAYS) || t === undefined) {
+          return { predicate: p, state: "insufficient" };
+        }
+        n = durationInDays(v);
+        t = t * DURATION_DAYS[unit];
+      }
       // A numeric comparison against a non-numeric capture is not a negative —
       // it is missing data, and must not read as "criterion not met".
       if (n === undefined || t === undefined) return { predicate: p, state: "insufficient" };

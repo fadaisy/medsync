@@ -1,11 +1,17 @@
 "use client";
 
 import type { Feature, FeatureOption, NcdCatalog, SiteProfile } from "@/lib/ncd/catalog/schema";
-import type { CaptureEntry, CaptureMap, CaptureValue } from "@/lib/ncd/engine/evaluate";
+import type {
+  CaptureEntry,
+  CaptureMap,
+  CaptureValue,
+  DurationUnit,
+} from "@/lib/ncd/engine/evaluate";
 import { useMemo } from "react";
 import { CheckIcon, CircleSlashIcon, RotateCcwIcon } from "lucide-react";
 
 import { isPerformable } from "@/lib/ncd/catalog/schema";
+import { isDuration } from "@/lib/ncd/engine/evaluate";
 
 /**
  * Catalog-driven capture. The form is GENERATED from the catalog rather than
@@ -224,7 +230,7 @@ function FeatureRow({
         >
           {feature.display}
         </span>
-        {feature.unit ? (
+        {feature.unit && feature.valueType !== "duration" ? (
           <span className="text-muted-foreground font-mono text-[10px]">
             {feature.unit}
             {feature.altUnit && typeof recorded === "number"
@@ -395,6 +401,45 @@ function ValueEditor({
             }}
           />
         ))}
+      </span>
+    );
+  }
+
+  // A duration keeps its unit, so "6 weeks" and "11 years" are both sayable and
+  // neither has to be rounded into a unit the clinician did not mean.
+  if (feature.valueType === "duration") {
+    const d = isDuration(current) ? current : undefined;
+    const unit: DurationUnit = d?.unit ?? (feature.unit as DurationUnit) ?? "years";
+    return (
+      <span className="inline-flex items-center gap-1">
+        <input
+          inputMode="decimal"
+          value={d ? String(d.value) : ""}
+          placeholder="—"
+          aria-label={feature.display}
+          onChange={(e) => {
+            const raw = e.target.value;
+            if (raw === "") return onSet(undefined);
+            const n = Number(raw);
+            if (!Number.isFinite(n)) return;
+            put({ value: n, unit });
+          }}
+          className={`border-input bg-card ease-expo-out w-[4.5rem] rounded-md border px-2 py-1 text-right font-mono text-[12px] tabular-nums transition-[border-color,box-shadow] duration-100 outline-none focus-visible:border-teal-500 focus-visible:ring-2 focus-visible:ring-teal-500/25 ${
+            d ? "text-foreground" : "text-muted-foreground"
+          }`}
+        />
+        <select
+          aria-label={`${feature.display} — unit`}
+          value={unit}
+          onChange={(e) => put({ value: d?.value ?? 0, unit: e.target.value as DurationUnit })}
+          className="border-input bg-card text-foreground/85 ease-expo-out rounded-md border px-1.5 py-1 text-[11.5px] transition-[border-color] duration-100 outline-none focus-visible:border-teal-500"
+        >
+          {(["days", "weeks", "months", "years"] as const).map((u) => (
+            <option key={u} value={u}>
+              {u}
+            </option>
+          ))}
+        </select>
       </span>
     );
   }
