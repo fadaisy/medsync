@@ -1,0 +1,416 @@
+/**
+ * NCD catalog schema — the shape EVERY chronic-disease catalog conforms to.
+ *
+ * Pure, client-safe, declarative. This module contains NO clinical content: it
+ * is the grammar in which clinical content is written. Diabetes, hypertension
+ * and CKD are then *data files* against this schema, not new engines — which is
+ * the whole point of putting the effort here first.
+ *
+ * ── Why this shape (ADR 0082) ────────────────────────────────────────────────
+ *
+ * The removed v1 engine was a DIFFERENTIAL engine: open-ended, probabilistic,
+ * "given these findings, what could this be?". It needed a tuned weight file per
+ * complaint and never finished covering the front door.
+ *
+ * This is a PROTOCOL engine: "this patient has diabetes — is the diagnosis
+ * confirmed, which complications are screened, what stratum, what is missing,
+ * what does the guideline say next?". Bounded, deterministic and auditable.
+ * There are no weights here and nothing is tuned: every verdict traces to a
+ * named threshold published by a named body, which is what makes it signable.
+ *
+ * ── Four invariants the types themselves enforce ─────────────────────────────
+ *
+ * 1. NOTHING CLINICAL WITHOUT A CITATION. `citation` is REQUIRED (not optional)
+ *    on every construct that asserts something about a patient. You cannot add
+ *    a threshold to a catalog without saying who published it and in which
+ *    version. A test additionally rejects placeholder citations.
+ *
+ * 2. NOT-ASSESSED IS NOT NORMAL — and "we cannot do that test here" is a THIRD
+ *    state, distinct from both. See `Assessed<T>`. A profile that renders "no
+ *    retinopathy" because nobody looked is a patient-safety failure, so the
+ *    absence of a value is never representable as a normal value.
+ *
+ * 3. STANDARDS DISAGREE, AND THE ENGINE MUST SAY WHICH IT USED. Criteria are
+ *    keyed by `standard` + `version`, and a `SiteProfile` declares a precedence
+ *    order. WHO PEN is written for resource-limited settings and ADA for
+ *    well-resourced ones; they differ on pathways, not physiology. One engine
+ *    serves both because the standard is data, not code.
+ *
+ * 4. GUIDANCE STOPS AT THE PRESCRIPTION. `ManagementStep.requiresPrescribing`
+ *    marks any step involving a dose; those hand off to the prescribing module
+ *    and are never computed here.
+ */
+
+/* ── Provenance ───────────────────────────────────────────────────────────── */
+
+/** A standard-setting body. `local` = a site/national protocol layered on top. */
+export type StandardBody =
+  | "ADA"
+  | "WHO"
+  | "IDF"
+  | "KDIGO"
+  | "IWGDF"
+  | "ICDR"
+  | "ETDRS"
+  | "ESC"
+  | "EASD"
+  | "ISH"
+  | "local";
+
+/**
+ * The provenance of one clinical assertion. Required wherever a threshold,
+ * stage, band or step is defined — there is deliberately no way to state a
+ * clinical fact in this schema anonymously.
+ */
+export interface Citation {
+  standard: StandardBody;
+  /** The specific edition the value was read from, e.g. "Standards of Care 2026". */
+  version: string;
+  title: string;
+  url?: string;
+  /** Short verbatim quote containing the value, for audit. */
+  quote?: string;
+  /** ISO date the source was retrieved. Stamped at research time, never guessed. */
+  retrieved?: string;
+  /** Ratified by the Clinical Safety Officer. Unsigned content is gated dark. */
+  csoSigned: boolean;
+  /**
+   * Set when the value could NOT be confirmed from a primary source. The entry
+   * still ships (an honest gap beats a silent guess) but the engine surfaces it
+   * as unratified and the CSO memo lists it.
+   */
+  needsCsoInput?: string;
+}
+
+/* ── Capability: what a given site can actually measure ───────────────────── */
+
+/** e.g. "lab.hba1c", "lab.urine_acr", "imaging.fundus", "device.monofilament". */
+export type CapabilityCode = string;
+
+export interface Capability {
+  code: CapabilityCode;
+  display: string;
+  /** Informational tier, for defaulting a new site's profile. */
+  tier: "bedside" | "basic_lab" | "advanced_lab" | "imaging" | "specialist";
+}
+
+/**
+ * A site's declared reality. This is what makes the module international rather
+ * than tuned to one hospital: the same catalog produces a different — and
+ * honest — pathway depending on what the site can run.
+ */
+export interface SiteProfile {
+  id: string;
+  display: string;
+  /**
+   * Which body wins when two standards give different pathways for the same
+   * decision. First match applies; the engine always reports what it applied.
+   */
+  standardPreference: StandardBody[];
+  available: CapabilityCode[];
+}
+
+/* ── Captured values: the honesty primitive ──────────────────────────────── */
+
+/**
+ * A value that may not exist yet — and the two reasons it might not.
+ *
+ * `not_assessed`  the clinician has not done/asked it. A gap to close.
+ * `unavailable`   the site cannot do it at all. NOT a gap to nag about; a
+ *                 referral or an alternative pathway.
+ *
+ * Collapsing these two is how a gaps list becomes noise people learn to ignore,
+ * and collapsing either into "normal" is how a screening tool hurts someone.
+ */
+export type Assessed<T> =
+  | { state: "recorded"; value: T; at?: string }
+  | { state: "not_assessed" }
+  | { state: "unavailable"; capability: CapabilityCode };
+
+export const notAssessed = <T>(): Assessed<T> => ({ state: "not_assessed" });
+export const recorded = <T>(value: T, at?: string): Assessed<T> => ({
+  state: "recorded",
+  value,
+  at,
+});
+export const unavailable = <T>(capability: CapabilityCode): Assessed<T> => ({
+  state: "unavailable",
+  capability,
+});
+export const isRecorded = <T>(
+  a: Assessed<T> | undefined,
+): a is { state: "recorded"; value: T; at?: string } => a?.state === "recorded";
+
+/* ── Features: everything the form can capture ───────────────────────────── */
+
+export type FeatureKind = "symptom" | "sign" | "investigation" | "history" | "measurement";
+export type ValueType =
+  | "boolean"
+  | "single_select"
+  | "multi_select"
+  | "number"
+  | "duration"
+  | "text";
+
+export interface FeatureOption {
+  value: string;
+  display: string;
+}
+
+/** Unit conversion for values clinicians read in two scales (mmol/L ↔ mg/dL). */
+export interface AltUnit {
+  unit: string;
+  /** value_in_altUnit = value_in_unit * factor */
+  factor: number;
+}
+
+export interface Feature {
+  /** Stable and unique within the catalog. Referenced by every predicate. */
+  code: string;
+  display: string;
+  kind: FeatureKind;
+  valueType: ValueType;
+  /** SI unit. Thresholds in this catalog are always expressed in this unit. */
+  unit?: string;
+  altUnit?: AltUnit;
+  options?: FeatureOption[];
+  /**
+   * The capability this feature needs. ABSENT means bedside/clinical — always
+   * available, no equipment. Present means the engine can distinguish
+   * "not done" from "cannot be done here".
+   */
+  requires?: CapabilityCode;
+  /** Reference band for DISPLAY only. Never a diagnostic threshold. */
+  refRange?: { low?: number; high?: number };
+  /** Which form section captures it. */
+  section: string;
+  /** Only where the feature itself is a clinical assertion (e.g. a named sign). */
+  citation?: Citation;
+}
+
+/* ── Predicates + criteria: the logic vocabulary ─────────────────────────── */
+
+export type PredicateOp = ">=" | ">" | "<=" | "<" | "==" | "!=" | "in" | "present" | "absent";
+
+/**
+ * One test against one feature. `present`/`absent` test the RECORDED state and
+ * are deliberately false for `not_assessed` — absence of evidence never
+ * satisfies a predicate.
+ */
+export interface Predicate {
+  feature: string;
+  op: PredicateOp;
+  value?: number | string | string[];
+  /** Documentation of the unit the threshold is in; must match Feature.unit. */
+  unit?: string;
+}
+
+/** A named, citable clinical rule. `all` is AND, `any` is OR; both may be given. */
+export interface Criterion {
+  id: string;
+  /** Human-readable, shown verbatim to the clinician: "Fasting plasma glucose ≥ 7.0 mmol/L". */
+  label: string;
+  all?: Predicate[];
+  any?: Predicate[];
+  /** Guideline requires a second, separate sample before this counts. */
+  requiresConfirmation?: boolean;
+  citation: Citation;
+}
+
+/**
+ * The criteria for one verdict under one standard. `anyOf` because diagnostic
+ * criteria are characteristically alternatives (FPG *or* OGTT *or* HbA1c *or*
+ * random glucose with symptoms).
+ */
+export interface CriteriaSet {
+  id: string;
+  standard: StandardBody;
+  version: string;
+  anyOf: Criterion[];
+  citation: Citation;
+}
+
+/* ── Classification (T1 / T2 / other / unclassified) ─────────────────────── */
+
+/**
+ * Aetiological classification, layered OVER a confirmed diagnosis. Designed to
+ * degrade: where the discriminating tests (C-peptide, autoantibodies) are
+ * unavailable — the common case globally — the engine must return
+ * `unclassified` rather than infer a type from phenotype alone.
+ */
+export interface Classification {
+  code: string;
+  display: string;
+  supportedBy: Criterion[];
+  refutedBy?: Criterion[];
+  /** Features that would settle it; drives the gaps list. */
+  discriminators?: string[];
+  citation: Citation;
+}
+
+/* ── Complications ───────────────────────────────────────────────────────── */
+
+/**
+ * `acute` complications are emergencies on a minutes-to-hours horizon and are
+ * evaluated by an always-on interlock regardless of the form's mode; they route
+ * out to the resuscitation pathway rather than sitting in a chronic profile.
+ */
+export type ComplicationTiming = "acute" | "chronic";
+
+export type StageSeverity = "none" | "mild" | "moderate" | "severe" | "critical";
+
+export interface StageDefinition {
+  /** The published stage code, e.g. "G3a", "A2", "iwgdf_2". */
+  code: string;
+  display: string;
+  when: Criterion;
+  severity: StageSeverity;
+}
+
+export interface StagingSystem {
+  id: string;
+  display: string;
+  standard: StandardBody;
+  version: string;
+  stages: StageDefinition[];
+  citation: Citation;
+}
+
+export interface ScreeningInterval {
+  months: number;
+  /** Interval may depend on the current stage, e.g. IWGDF foot risk categories. */
+  forStage?: string;
+  citation: Citation;
+}
+
+export interface EmergencyAction {
+  severity: "red" | "amber";
+  /** What to do, in the guideline's own terms. Never a dose. */
+  action: string;
+  citation: Citation;
+}
+
+export interface Complication {
+  code: string;
+  display: string;
+  timing: ComplicationTiming;
+  /** Findings that ESTABLISH it. Any one satisfied ⇒ present. */
+  establishedBy: Criterion[];
+  /** Features that constitute screening for it. Drives `gaps()`. */
+  screenedBy: string[];
+  screeningIntervals?: ScreeningInterval[];
+  /** Published staging/grading systems, possibly several across standards. */
+  staging?: StagingSystem[];
+  /** Required for `timing: "acute"`. */
+  emergency?: EmergencyAction;
+  citation: Citation;
+}
+
+/* ── Risk stratification ─────────────────────────────────────────────────── */
+
+export type RiskSeverity = "low" | "moderate" | "high" | "very_high";
+
+export interface RiskBand {
+  code: string;
+  display: string;
+  severity: RiskSeverity;
+  when: Criterion;
+}
+
+export interface RiskModel {
+  id: string;
+  display: string;
+  standard: StandardBody;
+  version: string;
+  /**
+   * Populations the model was validated in. Several widely-used cardiovascular
+   * models are NOT validated in sub-Saharan African populations; where that is
+   * the case the engine must say so beside the number rather than presenting a
+   * borrowed risk as if it were local.
+   */
+  validatedIn?: string[];
+  applicabilityNote?: string;
+  /** Feature codes the model needs. Missing ones make the model inapplicable. */
+  requires: string[];
+  bands: RiskBand[];
+  citation: Citation;
+}
+
+/* ── Management ──────────────────────────────────────────────────────────── */
+
+export interface ManagementStep {
+  id: string;
+  display: string;
+  when: Criterion;
+  contraindications?: Criterion[];
+  standard: StandardBody;
+  version: string;
+  /**
+   * TRUE for anything involving a drug or a dose. Such steps are shown as a
+   * guideline-linked RECOMMENDATION and hand off to the prescribing module;
+   * this schema never encodes a dose and this engine never computes one.
+   */
+  requiresPrescribing: boolean;
+  citation: Citation;
+}
+
+/* ── The catalog ─────────────────────────────────────────────────────────── */
+
+export interface CatalogSection {
+  id: string;
+  display: string;
+  /** Ordering hint for the generated form. */
+  order: number;
+  description?: string;
+}
+
+export interface NcdCatalog {
+  /** e.g. "diabetes". Stable; used as the section key in section_data. */
+  id: string;
+  display: string;
+  /** Catalog version, bumped whenever clinical content changes. */
+  version: string;
+  capabilities: Capability[];
+  sections: CatalogSection[];
+  features: Feature[];
+  /** Diagnostic criteria, one set per standard. */
+  diagnosis: CriteriaSet[];
+  classifications?: Classification[];
+  complications: Complication[];
+  riskModels?: RiskModel[];
+  management?: ManagementStep[];
+}
+
+/* ── Lookup helpers (pure) ───────────────────────────────────────────────── */
+
+export function featureMap(catalog: NcdCatalog): Map<string, Feature> {
+  return new Map(catalog.features.map((f) => [f.code, f]));
+}
+
+/** Every feature code referenced by a criterion — used by validation and gaps. */
+export function criterionFeatures(c: Criterion): string[] {
+  return [...(c.all ?? []), ...(c.any ?? [])].map((p) => p.feature);
+}
+
+/**
+ * Is a feature performable at this site? A feature with no `requires` is
+ * bedside and always performable; otherwise the site must declare the
+ * capability. This is the single check that separates "not done yet" from
+ * "cannot be done here".
+ */
+export function isPerformable(feature: Feature, site: SiteProfile): boolean {
+  return feature.requires == null || site.available.includes(feature.requires);
+}
+
+/**
+ * Pick the criteria set to apply, honouring the site's standard precedence.
+ * Falls back to the first set so a catalog always yields a verdict, and the
+ * caller reports which standard was applied.
+ */
+export function preferredCriteria(sets: CriteriaSet[], site: SiteProfile): CriteriaSet | undefined {
+  for (const body of site.standardPreference) {
+    const hit = sets.find((s) => s.standard === body);
+    if (hit) return hit;
+  }
+  return sets[0];
+}
