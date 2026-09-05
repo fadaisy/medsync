@@ -1,7 +1,7 @@
 "use client";
 
 import type { Citation } from "@/lib/ncd/catalog/schema";
-import type { ComplicationResult } from "@/lib/ncd/engine/assess";
+import type { ComplicationResult, Gap } from "@/lib/ncd/engine/assess";
 import type { EvalState } from "@/lib/ncd/engine/evaluate";
 import type { NcdProfile } from "@/lib/ncd/profile";
 import {
@@ -12,6 +12,7 @@ import {
   FlaskConicalIcon,
   MinusIcon,
   ShieldQuestionIcon,
+  SparklesIcon,
 } from "lucide-react";
 
 /**
@@ -363,29 +364,29 @@ export function NcdProfileView({ profile }: { profile: NcdProfile }) {
                   {outstanding.length}
                 </span>
               </header>
+              {/* Grouped by what the gap is FOR. Seven foot-screening items each
+                  repeating "prompted by tingling or numbness" is correct and
+                  unreadable; the reason belongs once, above the group it explains. */}
               <ul className="divide-border/50 divide-y">
-                {outstanding.map((g) => (
-                  <li key={g.feature} className="px-3.5 py-1.5">
-                    <div className="flex items-center gap-2">
-                      <CircleDashedIcon
-                        className={`size-3 shrink-0 ${g.promptedBy ? "text-teal-600 dark:text-teal-400" : "text-muted-foreground"}`}
-                        aria-hidden
-                      />
-                      <span className="text-foreground/85 min-w-0 flex-1 truncate text-[12px]">
-                        {g.display}
+                {groupGaps(outstanding).map((grp) => (
+                  <li key={grp.blocks} className="px-3.5 py-2">
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-foreground/85 min-w-0 flex-1 text-[11.5px] font-medium">
+                        {grp.blocks}
                       </span>
-                      <span className="text-muted-foreground shrink-0 text-[10.5px]">
-                        {g.blocks}
+                      <span className="text-muted-foreground shrink-0 font-mono text-[10px] tabular-nums">
+                        {grp.items.length}
                       </span>
                     </div>
-                    {/* A gap with a reason behind it is acted on; a flat list is
-                        scrolled past. The finding never asserts the complication —
-                        it only says why this is worth doing next. */}
-                    {g.promptedBy?.length ? (
-                      <p className="mt-0.5 pl-5 text-[10.5px] text-teal-700 dark:text-teal-400">
-                        prompted by {g.promptedBy.join(", ")}
+                    {grp.promptedBy.length ? (
+                      <p className="mt-0.5 flex items-center gap-1 text-[10.5px] text-teal-700 dark:text-teal-400">
+                        <SparklesIcon className="size-3 shrink-0" aria-hidden />
+                        prompted by {grp.promptedBy.join(", ")}
                       </p>
                     ) : null}
+                    <p className="text-muted-foreground mt-1 text-[11px] leading-relaxed">
+                      {grp.items.map((g) => g.display).join(" · ")}
+                    </p>
                   </li>
                 ))}
               </ul>
@@ -431,6 +432,21 @@ export function NcdProfileView({ profile }: { profile: NcdProfile }) {
 }
 
 /* ── pieces ──────────────────────────────────────────────────────────────── */
+
+/** One entry per thing the gaps are FOR, with the reasons said once. */
+function groupGaps(gaps: Gap[]): { blocks: string; items: Gap[]; promptedBy: string[] }[] {
+  const by = new Map<string, { blocks: string; items: Gap[]; promptedBy: Set<string> }>();
+  for (const g of gaps) {
+    const e = by.get(g.blocks) ?? { blocks: g.blocks, items: [], promptedBy: new Set<string>() };
+    e.items.push(g);
+    for (const p of g.promptedBy ?? []) e.promptedBy.add(p);
+    by.set(g.blocks, e);
+  }
+  // Prompted groups first — they carry a reason, so they are the ones to act on.
+  return [...by.values()]
+    .map((e) => ({ blocks: e.blocks, items: e.items, promptedBy: [...e.promptedBy] }))
+    .sort((a, b) => (b.promptedBy.length ? 1 : 0) - (a.promptedBy.length ? 1 : 0));
+}
 
 function DiagnosisHeadline({ profile }: { profile: NcdProfile }) {
   const { diagnosis } = profile;

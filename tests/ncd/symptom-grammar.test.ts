@@ -273,6 +273,47 @@ describe("the diabetes catalog uses the grammar correctly", () => {
     expect(errorsOf(validateCatalog(DIABETES_CATALOG))).toEqual([]);
   });
 
+  it("leads with ADA's three classic symptoms, which diagnosis.ts reads", () => {
+    const codes = DIABETES_CATALOG.features.map((f) => f.code);
+    for (const c of ["polyuria", "polydipsia", "unexplained_weight_loss"]) {
+      expect(codes, c).toContain(c);
+    }
+    // The trio is not decoration: it is the symptom requirement for the
+    // single-sample random-glucose route.
+    const who = DIABETES_CATALOG.diagnosis.find((d) => d.id === "who_2019")!;
+    const single = who.anyOf.find((x) => x.id === "who_random_symptomatic")!;
+    expect(single.any!.map((p) => p.feature).sort()).toEqual([
+      "polydipsia",
+      "polyuria",
+      "unexplained_weight_loss",
+    ]);
+  });
+
+  it("keeps the symptoms section short until symptoms are actually present", () => {
+    const sx = DIABETES_CATALOG.features.filter((f) => f.section === "symptoms");
+    const top = sx.filter((f) => !f.parent);
+    // Two-thirds of the section is properties that only appear on demand.
+    expect(top.length).toBeLessThan(sx.length / 1.5);
+    for (const f of sx) {
+      if (!f.parent) continue;
+      expect(displayCondition(f), f.code).toEqual({ feature: f.parent, op: "present" });
+    }
+  });
+
+  it("raises the crisis features as red danger signs, and nothing routine", () => {
+    const danger = DIABETES_CATALOG.features.filter((f) => f.dangerSign);
+    const red = danger.filter((f) => f.dangerSign!.severity === "red").map((f) => f.code);
+    expect(red.sort()).toEqual([
+      "abdominal_pain",
+      "altered_mental_state",
+      "deep_rapid_breathing",
+      "vomiting",
+    ]);
+    // Short enough that every item is taken seriously.
+    expect(danger.length).toBeLessThanOrEqual(6);
+    for (const f of danger) expect(f.dangerSign!.action.trim().length, f.code).toBeGreaterThan(20);
+  });
+
   it("asks for an insulin regimen only once insulin is selected", () => {
     const f = DIABETES_CATALOG.features.find((x) => x.code === "insulin_regimen_pattern")!;
     const cond = displayCondition(f)!;

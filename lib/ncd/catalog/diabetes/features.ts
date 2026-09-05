@@ -226,50 +226,6 @@ export const FEATURES: Feature[] = [
     ],
   },
 
-  /* ── symptoms ───────────────────────────────────────────────────────── */
-  {
-    code: "polyuria",
-    display: "Polyuria",
-    kind: "symptom",
-    valueType: "boolean",
-    section: "symptoms",
-  },
-  {
-    code: "polydipsia",
-    display: "Polydipsia",
-    kind: "symptom",
-    valueType: "boolean",
-    section: "symptoms",
-  },
-  {
-    code: "unexplained_weight_loss",
-    display: "Unexplained weight loss",
-    kind: "symptom",
-    valueType: "boolean",
-    section: "symptoms",
-  },
-  {
-    code: "blurred_vision",
-    display: "Blurred vision",
-    kind: "symptom",
-    valueType: "boolean",
-    section: "symptoms",
-  },
-  {
-    code: "recurrent_infections",
-    display: "Recurrent infections",
-    kind: "symptom",
-    valueType: "boolean",
-    section: "symptoms",
-  },
-  {
-    code: "poor_wound_healing",
-    display: "Poor wound healing",
-    kind: "symptom",
-    valueType: "boolean",
-    section: "symptoms",
-  },
-
   /* ── glycaemia ──────────────────────────────────────────────────────── */
   {
     code: "fpg",
