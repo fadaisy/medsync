@@ -212,6 +212,45 @@ describe("entry lists — a recorded dose is documentation, never logic", () => 
   });
 });
 
+describe("a single-select option carrying an optional note", () => {
+  const FEATS: Feature[] = [
+    {
+      code: "regimen",
+      display: "Insulin regimen",
+      kind: "history",
+      valueType: "single_select",
+      section: "s",
+      options: [
+        { value: "basal_only", display: "Basal only" },
+        { value: "other", display: "Other", detail: { label: "Regimen" } },
+      ],
+    },
+  ];
+  const site: SiteProfile = { id: "s", display: "s", standardPreference: [], available: [] };
+  const run = (v: CaptureValue, value: string) =>
+    evaluatePredicate(
+      { feature: "regimen", op: "==", value },
+      contextOf(FEATS, { regimen: recorded(v) }, site),
+    ).state;
+
+  it("matches on the option, whether or not a note was typed", () => {
+    expect(run({ option: "other", detail: "split-mix, 3 doses" }, "other")).toBe("met");
+    expect(run({ option: "other" }, "other")).toBe("met");
+    expect(run("other", "other")).toBe("met"); // a plain select still works
+    expect(run({ option: "other", detail: "anything" }, "basal_only")).toBe("not_met");
+  });
+
+  // The note is optional: leaving it blank must not weaken the selection.
+  it("treats the selection alone as a complete answer", () => {
+    expect(run({ option: "other", detail: "" }, "other")).toBe("met");
+    const present = { feature: "regimen", op: "present" as const };
+    expect(
+      evaluatePredicate(present, contextOf(FEATS, { regimen: recorded({ option: "other" }) }, site))
+        .state,
+    ).toBe("met");
+  });
+});
+
 describe("durations — the unit travels with the value", () => {
   const FEATS: Feature[] = [
     {

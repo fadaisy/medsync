@@ -210,7 +210,13 @@ export const FEATURES: Feature[] = [
       { value: "basal_only", display: "Basal only" },
       { value: "premixed_bd", display: "Premixed, twice daily" },
       { value: "basal_bolus", display: "Basal-bolus" },
-      { value: "other", display: "Other" },
+      {
+        value: "other",
+        display: "Other",
+        // Optional: the selection alone is the recorded answer, and the note is
+        // there for the regimens the four named patterns do not describe.
+        detail: { label: "Regimen", placeholder: "Describe it (optional)" },
+      },
     ],
   },
 

@@ -79,13 +79,28 @@ export const isDuration = (v: unknown): v is CaptureDuration =>
 export const durationInDays = (d: CaptureDuration): number => d.value * DURATION_DAYS[d.unit];
 
 /** A captured value for a feature. Anything not present is `not_assessed`. */
-export type CaptureValue = number | string | string[] | boolean | CaptureEntry[] | CaptureDuration;
+export type CaptureValue =
+  | number
+  | string
+  | string[]
+  | boolean
+  /** A single-select whose chosen option carries an optional note. */
+  | CaptureEntry
+  | CaptureEntry[]
+  | CaptureDuration;
 
-const isEntryList = (v: CaptureValue): v is CaptureEntry[] =>
-  Array.isArray(v) && v.every((x) => typeof x === "object" && x !== null && "option" in x);
+export const isEntry = (v: unknown): v is CaptureEntry =>
+  typeof v === "object" && v !== null && typeof (v as CaptureEntry).option === "string";
 
-/** The selectable values of an array capture, whatever form it takes. */
+const isEntryList = (v: CaptureValue): v is CaptureEntry[] => Array.isArray(v) && v.every(isEntry);
+
+/**
+ * The selected values of a capture, whatever form it takes: a plain string
+ * array, an entry list carrying details, or a single entry from a select whose
+ * chosen option needs one. Details never appear here — only options.
+ */
 function selectedOptions(v: CaptureValue): string[] | undefined {
+  if (isEntry(v)) return [v.option];
   if (!Array.isArray(v)) return undefined;
   return isEntryList(v) ? v.map((e) => e.option) : (v as string[]).map(String);
 }
@@ -130,6 +145,7 @@ function isPositive(v: CaptureValue): boolean {
   if (typeof v === "number") return v > 0;
   if (Array.isArray(v)) return v.length > 0;
   if (isDuration(v)) return v.value > 0;
+  if (isEntry(v)) return isPositive(v.option);
   return v.trim() !== "" && v !== "none" && v !== "negative";
 }
 

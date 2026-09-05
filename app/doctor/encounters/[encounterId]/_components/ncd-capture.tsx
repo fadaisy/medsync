@@ -11,7 +11,7 @@ import { useMemo } from "react";
 import { CheckIcon, CircleSlashIcon, RotateCcwIcon } from "lucide-react";
 
 import { isPerformable } from "@/lib/ncd/catalog/schema";
-import { isDuration } from "@/lib/ncd/engine/evaluate";
+import { isDuration, isEntry } from "@/lib/ncd/engine/evaluate";
 
 /**
  * Catalog-driven capture. The form is GENERATED from the catalog rather than
@@ -382,18 +382,34 @@ function ValueEditor({
 
   if (feature.valueType === "single_select" || feature.valueType === "multi_select") {
     const multi = feature.valueType === "multi_select";
+    const entry = isEntry(current) ? current : undefined;
     const selected = new Set(
-      Array.isArray(current) ? current.map(String) : current != null ? [String(current)] : [],
+      entry
+        ? [entry.option]
+        : Array.isArray(current)
+          ? current.map(String)
+          : current != null
+            ? [String(current)]
+            : [],
     );
+    // A single-select option may carry an OPTIONAL note — "Other" needs somewhere
+    // to say which. The selection alone is a complete answer; the note only ever
+    // adds to it, and is never read by a criterion.
+    const chosen = !multi ? (feature.options ?? []).find((o) => selected.has(o.value)) : undefined;
+    const note = chosen && !chosen.noDetail ? (chosen.detail ?? feature.optionDetail) : undefined;
+
     return (
-      <span className="flex flex-wrap justify-end gap-1">
+      <span className="flex flex-wrap items-center justify-end gap-1">
         {(feature.options ?? []).map((o) => (
           <Chip
             key={o.value}
             option={o}
             active={selected.has(o.value)}
             onPick={() => {
-              if (!multi) return put(o.value);
+              if (!multi) {
+                const cfg = !o.noDetail ? (o.detail ?? feature.optionDetail) : undefined;
+                return put(cfg ? { option: o.value, detail: entry?.detail } : o.value);
+              }
               const next = new Set(selected);
               if (next.has(o.value)) next.delete(o.value);
               else next.add(o.value);
@@ -401,6 +417,15 @@ function ValueEditor({
             }}
           />
         ))}
+        {note && chosen ? (
+          <input
+            value={entry?.detail ?? ""}
+            placeholder={note.placeholder ?? ""}
+            aria-label={`${note.label ?? "Detail"} — ${chosen.display} (optional)`}
+            onChange={(e) => put({ option: chosen.value, detail: e.target.value })}
+            className="border-input bg-card ease-expo-out w-[11rem] rounded-md border px-2 py-1 text-[11.5px] transition-[border-color,box-shadow] duration-100 outline-none focus-visible:border-teal-500 focus-visible:ring-2 focus-visible:ring-teal-500/25"
+          />
+        ) : null}
       </span>
     );
   }
