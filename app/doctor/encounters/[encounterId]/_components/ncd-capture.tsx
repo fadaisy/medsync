@@ -15,13 +15,22 @@ import type {
   DurationUnit,
   EvalContext,
 } from "@/lib/ncd/engine/evaluate";
+import type { LucideIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 import {
   AlertTriangleIcon,
+  BandageIcon,
   CheckIcon,
   CircleSlashIcon,
+  DropletsIcon,
+  EyeIcon,
+  FootprintsIcon,
+  HeartPulseIcon,
   PenLineIcon,
   RotateCcwIcon,
+  SirenIcon,
+  TrendingDownIcon,
+  WavesIcon,
   XIcon,
 } from "lucide-react";
 
@@ -211,7 +220,12 @@ export function NcdCapture({
   onChange,
   sectionId,
 }: NcdCaptureProps & { sectionId: string }) {
-  const section = catalog.sections.find((s) => s.id === sectionId);
+  const ordered = useMemo(
+    () => [...catalog.sections].sort((a, b) => a.order - b.order),
+    [catalog.sections],
+  );
+  const index = ordered.findIndex((s) => s.id === sectionId);
+  const section = ordered[index];
 
   const featureIndex = useMemo(
     () => new Map(catalog.features.map((f) => [f.code, f])),
@@ -273,7 +287,13 @@ export function NcdCapture({
 
   return (
     <section key={sectionId} className="flex flex-col">
-      <header className="mb-1 flex flex-wrap items-baseline gap-x-2">
+      <header className="mb-1.5 flex flex-wrap items-baseline gap-x-2">
+        <span
+          aria-hidden
+          className="bg-brand-100 text-brand-700 dark:bg-brand-900/60 dark:text-brand-300 shrink-0 self-center rounded px-1.5 py-0.5 font-mono text-[10px] font-medium tabular-nums"
+        >
+          {String(index + 1).padStart(2, "0")}
+        </span>
         <h3 className="font-display text-foreground text-body-l leading-tight font-medium tracking-[-0.012em]">
           {section.display}
         </h3>
@@ -301,11 +321,13 @@ export function NcdCapture({
                 <div
                   role="group"
                   aria-label={`About ${finding.display}`}
-                  className="border-gray-150 bg-muted mr-3 mb-2 ml-6 rounded-md border"
+                  className="border-brand-100 bg-brand-50/40 dark:border-brand-900/40 dark:bg-brand-950/15 mr-3 mb-2 ml-6 rounded-md border"
                 >
                   <div className="ncd-reveal flex items-baseline gap-1.5 px-2.5 pt-2 pb-1">
-                    <span className={`${OVERLINE} shrink-0`}>About</span>
-                    <span className="text-caption text-muted-foreground min-w-0 truncate">
+                    <span className="text-overline text-brand-600/80 dark:text-brand-400/80 shrink-0">
+                      About
+                    </span>
+                    <span className="text-caption text-brand-800/70 dark:text-brand-300/70 min-w-0 truncate">
                       {finding.display}
                     </span>
                   </div>
@@ -344,6 +366,23 @@ export function NcdCapture({
 }
 
 /**
+ * Icons a catalog may name. A registry rather than an import in the catalog,
+ * so a data file never reaches for a UI library — the property that lets
+ * hypertension ship as data instead of as code. An unknown name simply gets no
+ * icon; a missing glyph must never cost a clinician their band heading.
+ */
+const GROUP_ICONS: Record<string, LucideIcon> = {
+  droplets: DropletsIcon,
+  bandage: BandageIcon,
+  siren: SirenIcon,
+  falling: TrendingDownIcon,
+  foot: FootprintsIcon,
+  eye: EyeIcon,
+  pulse: HeartPulseIcon,
+  waves: WavesIcon,
+};
+
+/**
  * A landmark, not a rail.
  *
  * Sticky answers "where am I", which is orientation. Navigation is the ability
@@ -351,17 +390,57 @@ export function NcdCapture({
  * target, no aria-current, and deliberately no progress count. A count invites
  * completion-chasing, completion-chasing wants a jump target, and a second
  * navigable hierarchy is exactly what a long section must not grow.
+ *
+ * Sentence case, not uppercase: these are headings a clinician reads, and
+ * setting a nine-word clinical phrase in caps makes it slower to read while
+ * making it shout. The type scale's uppercase step is for one- or two-word
+ * labels; this is a sentence.
+ *
+ * Colour is two-valued on purpose. The design system permits a monochrome base
+ * with accents and forbids decorative colour, so a hue per group would be
+ * decoration — the icon carries the differentiation and the accent is spent
+ * only on the band that means act now.
  */
 function GroupBand({ group }: { group: CatalogGroup }) {
+  const Icon = group.icon ? GROUP_ICONS[group.icon] : undefined;
+  const alert = group.tone === "alert";
   return (
-    <h4
-      className="bg-muted border-gray-150 sticky top-0 z-10 flex items-center border-y px-3 py-1.5 first:border-t-0"
-      title={group.description}
+    <div
+      className={`sticky top-0 z-10 flex items-baseline gap-2 border-y px-3 py-2 first:border-t-0 ${
+        alert
+          ? "border-amber-200/70 bg-amber-50 dark:border-amber-900/50 dark:bg-amber-950/35"
+          : "border-brand-100 bg-brand-50 dark:border-brand-900/50 dark:bg-brand-950/35"
+      }`}
     >
-      <span className="text-overline text-gray-500 uppercase dark:text-gray-400">
+      {Icon ? (
+        <span
+          aria-hidden
+          className={`grid size-5 shrink-0 translate-y-0.5 place-items-center rounded-md ${
+            alert ? "bg-amber-500 text-white" : "bg-brand-600 text-white"
+          }`}
+        >
+          <Icon className="size-3" />
+        </span>
+      ) : null}
+      <h4
+        className={`text-body-s shrink-0 font-medium ${
+          alert ? "text-amber-900 dark:text-amber-200" : "text-brand-900 dark:text-brand-100"
+        }`}
+      >
         {group.display}
-      </span>
-    </h4>
+      </h4>
+      {group.description ? (
+        <p
+          className={`text-caption min-w-0 truncate ${
+            alert
+              ? "text-amber-800/70 dark:text-amber-300/70"
+              : "text-brand-700/70 dark:text-brand-300/70"
+          }`}
+        >
+          {group.description}
+        </p>
+      ) : null}
+    </div>
   );
 }
 
@@ -455,7 +534,11 @@ function FeatureRow({
 
   return (
     <div
-      className={`gap-x-3 gap-y-1.5 ${nested ? "px-2.5 py-1.5" : "bg-card px-3 py-2"} ${wide ? "flex flex-col" : "flex flex-wrap items-center"}`}
+      className={`gap-x-3 gap-y-1.5 ${
+        nested
+          ? "px-2.5 py-1.5"
+          : "bg-card hover:bg-brand-50/40 dark:hover:bg-brand-950/20 ease-expo-out px-3 py-2 transition-colors duration-100"
+      } ${wide ? "flex flex-col" : "flex flex-wrap items-center"}`}
     >
       <span className={`flex min-w-0 items-start gap-1.5 ${wide ? "" : "flex-[1_1_11rem]"}`}>
         {/* Depth 2 is a glyph in the text column, never a second box: two
@@ -484,14 +567,14 @@ function FeatureRow({
             {feature.dangerSign ? (
               <span
                 title={feature.dangerSign.action}
-                className={`inline-flex shrink-0 items-center gap-0.5 rounded px-1 py-px text-[9px] font-medium ${
+                className={`text-caption inline-flex shrink-0 items-center gap-1 rounded px-1.5 py-px font-medium ring-1 ring-inset ${
                   feature.dangerSign.severity === "red"
-                    ? "bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300"
-                    : "bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300"
+                    ? "bg-red-50 text-red-700 ring-red-200 dark:bg-red-950/40 dark:text-red-300 dark:ring-red-900/60"
+                    : "bg-amber-50 text-amber-800 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:ring-amber-900/60"
                 }`}
               >
-                <AlertTriangleIcon className="size-2.5" aria-hidden />
-                danger sign
+                <AlertTriangleIcon className="size-3" aria-hidden />
+                Danger sign
               </span>
             ) : null}
           </span>

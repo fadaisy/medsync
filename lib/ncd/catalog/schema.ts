@@ -603,6 +603,20 @@ export interface CatalogGroup {
   display: string;
   order: number;
   description?: string;
+  /**
+   * Icon name the capture surface resolves against its own registry. A NAME, not
+   * a component, so the catalog stays a data file with no import of a UI library
+   * — the same property that lets hypertension ship without new code.
+   */
+  icon?: string;
+  /**
+   * `alert` marks a band whose findings mean act now. The palette here is
+   * deliberately two-valued, not categorical: the design system allows a
+   * monochrome base with accents and forbids decorative colour, so a hue per
+   * group would be decoration. Icons carry the differentiation; colour is spent
+   * only where it means something.
+   */
+  tone?: "default" | "alert";
 }
 
 export interface CatalogSection {
