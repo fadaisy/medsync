@@ -299,21 +299,52 @@ describe("the diabetes catalog's laterality follow-ups", () => {
   });
 
   /**
-   * One side field for the whole foot, raised by any of the three findings that
-   * imply one. Asking it three times is what would have doubled the section.
+   * A side per LESION, not one for the patient. An ulcer on the left with a
+   * Charcot foot on the right is an ordinary presentation, and the single shared
+   * "which foot" this replaced could not express it.
    */
-  it("raises one foot-side question from any of the three foot findings", () => {
-    const roots = (values: Parameters<typeof contextOf>[1]) =>
-      blocksFor(values, "symptoms").map((b) => b.finding.code);
-    expect(roots({})).not.toContain("foot_side");
-    for (const code of [
-      "foot_ulcer_or_inflammation",
-      "charcot_presentation",
-      "foot_infection_or_gangrene",
-    ]) {
-      expect(roots({ [code]: recorded(true) }), code).toContain("foot_side");
+  it("gives each foot lesion its own side, inside that finding's own well", () => {
+    const propsFor = (code: string) => {
+      const values = { foot_symptom_screen: recorded(true), [code]: recorded(true) };
+      const ctx = contextOf(DIABETES_CATALOG.features, values, REFERRAL_SITE);
+      return buildBlocks(
+        DIABETES_CATALOG.features.filter(
+          (x) => x.section === "symptoms" && !x.offProtocol && isVisible(x, ctx),
+        ),
+      )
+        .find((b) => b.finding.code === code)!
+        .properties.map((p) => p.feature.code);
+    };
+    for (const [finding, side] of [
+      ["foot_ulcer_or_inflammation", "foot_ulcer_side"],
+      ["foot_infection_or_gangrene", "foot_infection_side"],
+      ["charcot_presentation", "charcot_side"],
+    ] as const) {
+      expect(propsFor(finding), finding).toContain(side);
     }
-    expect(DIABETES_CATALOG.features.filter((x) => x.display === "Which foot")).toHaveLength(2);
+    // The shared field is gone, not merely hidden.
+    expect(DIABETES_CATALOG.features.map((f) => f.code)).not.toContain("foot_side");
+  });
+
+  /**
+   * Every foot finding asks how long, because every foot decision is a tempo
+   * decision — an ulcer open four weeks has spent the window IWGDF gives it, a
+   * spreading infection is measured in days, and neuropathy that arrived over
+   * weeks is atypical where the same symptoms over years are not.
+   */
+  it("asks the duration of every foot finding except the screen itself", () => {
+    const findings = DIABETES_CATALOG.features.filter(
+      (f) => f.group === "feet_and_legs" && !f.parent && f.code !== "foot_symptom_screen",
+    );
+    expect(findings.length).toBeGreaterThan(5);
+    for (const f of findings) {
+      const durations = DIABETES_CATALOG.features.filter(
+        (x) => x.parent === f.code && x.valueType === "duration",
+      );
+      expect(durations, f.code).toHaveLength(1);
+      // A default unit that matches the tempo, so nobody types 0.5 weeks.
+      expect(durations[0]!.unit, f.code).toBeTruthy();
+    }
   });
 });
 

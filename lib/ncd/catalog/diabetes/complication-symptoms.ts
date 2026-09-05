@@ -334,6 +334,18 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
     citation: ADA_S12,
   },
   prop("peripheral_neuropathic_symptoms", {
+    /**
+     * Separate from `neuropathy_onset`, which records HOW it began. This is how
+     * long it has run — the two together are what distinguish a length-dependent
+     * picture that crept in over years from an atypical one that arrived over
+     * weeks and needs another cause looked for.
+     */
+    code: "neuropathy_duration",
+    display: "Duration",
+    valueType: "duration",
+    unit: "months",
+  }),
+  prop("peripheral_neuropathic_symptoms", {
     code: "neuropathy_quality",
     display: "Quality",
     valueType: "multi_select",
@@ -508,6 +520,12 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
     citation: HEARTS_D,
   },
   prop("unsteadiness_or_falls", {
+    code: "unsteadiness_duration",
+    display: "Duration",
+    valueType: "duration",
+    unit: "months",
+  }),
+  prop("unsteadiness_or_falls", {
     code: "falls_last_year",
     display: "Falls in the last year",
     valueType: "number",
@@ -549,6 +567,48 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
       { value: "warmth", display: "Increased temperature" },
       { value: "discharge", display: "Discharge" },
     ],
+  }),
+  prop("foot_ulcer_or_inflammation", {
+    /**
+     * A side per LESION, not one for the whole patient. An ulcer on the left
+     * with a Charcot foot on the right is an ordinary presentation, and a single
+     * shared "which foot" could not say it. Offloading, dressing and the
+     * referral all attach to one limb, and the next review compares that foot
+     * with the other — so "both" is not a shrug: it says the contralateral shoe
+     * lift is not the plan and the left-right temperature comparison is unusable.
+     */
+    code: "foot_ulcer_side",
+    display: "Which foot",
+    valueType: "single_select",
+    citation: {
+      ...IWGDF_PRACTICAL,
+      quote:
+        "consider also using a shoe lift on the contralateral limb to improve the person\u2019s comfort and balance while walking in the device",
+      needsCsoInput:
+        "IWGDF's offloading and left-right temperature comparison both presume a known side; that recording it is therefore required is our inference. CSO to ratify.",
+    },
+    options: [
+      { value: "left", display: "Left" },
+      { value: "right", display: "Right" },
+      { value: "both", display: "Both" },
+    ],
+  }),
+  prop("foot_ulcer_or_inflammation", {
+    /**
+     * The one duration in this band a published rule turns on: a properly
+     * treated ulcer should have halved in area by four weeks, so a wound already
+     * open that long has spent the whole window and needs vascular assessment at
+     * this visit rather than at a review appointment.
+     */
+    code: "foot_ulcer_duration",
+    display: "Duration",
+    valueType: "duration",
+    unit: "weeks",
+    citation: {
+      ...IWGDF_PAD,
+      quote:
+        "when the wound deteriorates or fails to significantly improve (e.g. a less than 50% reduction in wound area within 4 weeks)",
+    },
   }),
   prop("foot_ulcer_or_inflammation", {
     code: "foot_probe_to_bone",
@@ -602,42 +662,6 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
       { value: "lateral", display: "Outer border" },
     ],
   }),
-  {
-    /**
-     * A question about THE FOOT, not a property of any one finding about it.
-     *
-     * An ulcer, a Charcot presentation and a spreading infection each raise it
-     * and none of them owns it, so it hangs off all three with `showWhenAny`
-     * rather than being asked three times — the parsimony rule the audit
-     * insisted on, since a foot section that doubles is one that gets skipped.
-     *
-     * "Both" is not a shrug: it says the contralateral shoe lift is not the plan
-     * and the left-right temperature comparison is unusable.
-     */
-    code: "foot_side",
-    display: "Which foot",
-    kind: "symptom",
-    valueType: "single_select",
-    section: SX,
-    group: "feet_and_legs",
-    showWhenAny: [
-      { feature: "foot_ulcer_or_inflammation", op: "present" },
-      { feature: "charcot_presentation", op: "present" },
-      { feature: "foot_infection_or_gangrene", op: "present" },
-    ],
-    citation: {
-      ...IWGDF_PRACTICAL,
-      quote:
-        "consider also using a shoe lift on the contralateral limb to improve the person\u2019s comfort and balance while walking in the device",
-      needsCsoInput:
-        "IWGDF's offloading and temperature-comparison recommendations presume a known side; that recording it is therefore required is our inference. CSO to ratify.",
-    },
-    options: [
-      { value: "left", display: "Left foot" },
-      { value: "right", display: "Right foot" },
-      { value: "both", display: "Both feet" },
-    ],
-  },
 
   {
     /**
@@ -661,6 +685,30 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
       citation: HEARTS_D,
     },
   },
+  prop("foot_infection_or_gangrene", {
+    code: "foot_infection_side",
+    display: "Which foot",
+    valueType: "single_select",
+    citation: {
+      ...IWGDF_PRACTICAL,
+      quote:
+        "consider also using a shoe lift on the contralateral limb to improve the person\u2019s comfort and balance while walking in the device",
+      needsCsoInput:
+        "IWGDF's offloading and left-right temperature comparison both presume a known side; that recording it is therefore required is our inference. CSO to ratify.",
+    },
+    options: [
+      { value: "left", display: "Left" },
+      { value: "right", display: "Right" },
+      { value: "both", display: "Both" },
+    ],
+  }),
+  prop("foot_infection_or_gangrene", {
+    /** Days, not weeks — how fast this is spreading is what decides admission. */
+    code: "foot_infection_duration",
+    display: "Duration",
+    valueType: "duration",
+    unit: "days",
+  }),
   prop("foot_infection_or_gangrene", {
     code: "foot_systemic_signs",
     display: "Systemic features",
@@ -711,6 +759,30 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
     },
   },
   prop("charcot_presentation", {
+    code: "charcot_side",
+    display: "Which foot",
+    valueType: "single_select",
+    citation: {
+      ...IWGDF_PRACTICAL,
+      quote:
+        "consider also using a shoe lift on the contralateral limb to improve the person\u2019s comfort and balance while walking in the device",
+      needsCsoInput:
+        "IWGDF's offloading and left-right temperature comparison both presume a known side; that recording it is therefore required is our inference. CSO to ratify.",
+    },
+    options: [
+      { value: "left", display: "Left" },
+      { value: "right", display: "Right" },
+      { value: "both", display: "Both" },
+    ],
+  }),
+  prop("charcot_presentation", {
+    /** Acute Charcot runs in weeks, and every week walking on it costs joint. */
+    code: "charcot_duration",
+    display: "Duration",
+    valueType: "duration",
+    unit: "weeks",
+  }),
+  prop("charcot_presentation", {
     code: "charcot_known_neuropathy",
     display: "Known neuropathy",
     valueType: "boolean",
@@ -729,6 +801,12 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
     suggests: ["diabetic_foot"],
     citation: IWGDF_PRACTICAL,
   },
+  prop("foot_deformity_reported", {
+    code: "foot_deformity_duration",
+    display: "Duration",
+    valueType: "duration",
+    unit: "months",
+  }),
 
   {
     /** WHO's pre-ulcerative category — treatable now, before it becomes an ulcer. */
@@ -742,6 +820,12 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
     suggests: ["diabetic_foot"],
     citation: IWGDF_PRACTICAL,
   },
+  prop("foot_skin_lesions", {
+    code: "foot_skin_lesions_duration",
+    display: "Duration",
+    valueType: "duration",
+    unit: "weeks",
+  }),
   prop("foot_skin_lesions", {
     code: "foot_skin_broken",
     display: "Skin broken or macerated",
@@ -777,6 +861,12 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
       citation: HEARTS_D,
     },
   },
+  prop("leg_ischaemic_symptoms", {
+    code: "leg_ischaemic_duration",
+    display: "Duration",
+    valueType: "duration",
+    unit: "months",
+  }),
   prop("leg_ischaemic_symptoms", {
     code: "leg_pain_character",
     display: "When does it hurt",
