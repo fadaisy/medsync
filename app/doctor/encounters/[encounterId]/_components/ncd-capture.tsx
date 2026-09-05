@@ -2,8 +2,8 @@
 
 import type { Feature, FeatureOption, NcdCatalog, SiteProfile } from "@/lib/ncd/catalog/schema";
 import type { CaptureMap, CaptureValue } from "@/lib/ncd/engine/evaluate";
-import { useMemo, useState } from "react";
-import { ChevronDownIcon, CircleSlashIcon, RotateCcwIcon } from "lucide-react";
+import { useMemo } from "react";
+import { CheckIcon, CircleSlashIcon, RotateCcwIcon } from "lucide-react";
 
 import { isPerformable } from "@/lib/ncd/catalog/schema";
 
@@ -37,20 +37,66 @@ export interface NcdCaptureProps {
   onChange: (next: CaptureMap) => void;
 }
 
-export function NcdCapture({ catalog, site, values, onChange }: NcdCaptureProps) {
-  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+/** Per-section progress, used by the rail. Unavailable features are excluded
+ *  from the denominator — a site is not asked to complete what it cannot do. */
+export interface SectionProgress {
+  id: string;
+  display: string;
+  description?: string;
+  answered: number;
+  total: number;
+  unavailable: number;
+}
 
-  const bySection = useMemo(() => {
-    const m = new Map<string, Feature[]>();
-    for (const f of catalog.features) {
-      const list = m.get(f.section) ?? [];
-      list.push(f);
-      m.set(f.section, list);
-    }
-    return m;
-  }, [catalog.features]);
+export function sectionProgress(
+  catalog: NcdCatalog,
+  site: SiteProfile,
+  values: CaptureMap,
+): SectionProgress[] {
+  const by = new Map<string, Feature[]>();
+  for (const f of catalog.features) {
+    const list = by.get(f.section) ?? [];
+    list.push(f);
+    by.set(f.section, list);
+  }
+  return [...catalog.sections]
+    .sort((a, b) => a.order - b.order)
+    .filter((s) => (by.get(s.id) ?? []).length)
+    .map((s) => {
+      const fs = by.get(s.id) ?? [];
+      const unavailable = fs.filter((f) => !isPerformable(f, site)).length;
+      return {
+        id: s.id,
+        display: s.display,
+        description: s.description,
+        answered: fs.filter((f) => values[f.code]?.state === "recorded").length,
+        total: fs.length - unavailable,
+        unavailable,
+      };
+    });
+}
 
-  const sections = [...catalog.sections].sort((a, b) => a.order - b.order);
+/**
+ * ONE section at a time.
+ *
+ * Seventy features in a single column is a scroll, and a scroll is where a
+ * clinician loses their place mid-encounter. Sections are short enough to hold
+ * whole, and the rail beside them keeps the shape of the whole protocol visible
+ * so nothing feels hidden — which is the tension: less on screen must not mean
+ * less known about.
+ */
+export function NcdCapture({
+  catalog,
+  site,
+  values,
+  onChange,
+  sectionId,
+}: NcdCaptureProps & { sectionId: string }) {
+  const features = useMemo(
+    () => catalog.features.filter((f) => f.section === sectionId),
+    [catalog.features, sectionId],
+  );
+  const section = catalog.sections.find((s) => s.id === sectionId);
 
   const set = (code: string, v: CaptureMap[string]) => {
     const next = { ...values };
@@ -59,70 +105,92 @@ export function NcdCapture({ catalog, site, values, onChange }: NcdCaptureProps)
     onChange(next);
   };
 
+  if (!section) return null;
+
   return (
-    <div className="stagger-children flex flex-col gap-3">
-      {sections.map((section) => {
-        const features = bySection.get(section.id) ?? [];
-        if (!features.length) return null;
-        const open = !collapsed.has(section.id);
-        const answered = features.filter((f) => values[f.code]?.state === "recorded").length;
-        const blocked = features.filter((f) => !isPerformable(f, site)).length;
+    <section key={sectionId} className="flex flex-col">
+      <header className="mb-1 flex flex-wrap items-baseline gap-x-2">
+        <h3 className="font-display text-foreground text-[17px] leading-tight font-medium tracking-[-0.012em]">
+          {section.display}
+        </h3>
+        {section.description ? (
+          <p className="text-muted-foreground text-[11.5px]">{section.description}</p>
+        ) : null}
+      </header>
 
-        return (
-          <section
-            key={section.id}
-            className="border-border bg-card overflow-hidden rounded-xl border shadow-xs"
-          >
-            <button
-              type="button"
-              onClick={() =>
-                setCollapsed((c) => {
-                  const n = new Set(c);
-                  if (n.has(section.id)) n.delete(section.id);
-                  else n.add(section.id);
-                  return n;
-                })
-              }
-              aria-expanded={open}
-              className={`hover:bg-muted/40 flex w-full items-center gap-2 px-3 py-2.5 text-left ${EASE}`}
-            >
-              <ChevronDownIcon
-                aria-hidden
-                className={`text-muted-foreground ease-expo-out size-3.5 shrink-0 transition-transform duration-150 ${open ? "" : "-rotate-90"}`}
-              />
-              <span className="text-foreground text-[13px] font-medium">{section.display}</span>
-              {section.description ? (
-                <span className="text-muted-foreground hidden text-[11px] sm:inline">
-                  {section.description}
-                </span>
-              ) : null}
-              <span className="text-muted-foreground ml-auto shrink-0 font-mono text-[10.5px] tabular-nums">
-                {answered}/{features.length - blocked}
-                {blocked ? <span className="ml-1 opacity-70">· {blocked} n/a</span> : null}
-              </span>
-            </button>
-
-            {open ? (
-              <div className="divide-border/50 reveal-up border-border/60 divide-y border-t">
-                {features.map((f) => (
-                  <FeatureRow
-                    key={f.code}
-                    feature={f}
-                    site={site}
-                    value={values[f.code]}
-                    onSet={(v) => set(f.code, v)}
-                  />
-                ))}
-              </div>
-            ) : null}
-          </section>
-        );
-      })}
-    </div>
+      <div className="border-border bg-card divide-border/50 divide-y overflow-hidden rounded-xl border shadow-xs">
+        {features.map((f) => (
+          <FeatureRow
+            key={f.code}
+            feature={f}
+            site={site}
+            value={values[f.code]}
+            onSet={(v) => set(f.code, v)}
+          />
+        ))}
+      </div>
+    </section>
   );
 }
 
-/* ── one feature ─────────────────────────────────────────────────────────── */
+/* ── the rail: the whole protocol, always visible ────────────────────────── */
+
+export function NcdSectionRail({
+  progress,
+  activeId,
+  onPick,
+}: {
+  progress: SectionProgress[];
+  activeId: string;
+  onPick: (id: string) => void;
+}) {
+  return (
+    <nav aria-label="Clerkship sections" className="flex gap-1 overflow-x-auto lg:flex-col">
+      {progress.map((s) => {
+        const active = s.id === activeId;
+        const done = s.total > 0 && s.answered >= s.total;
+        return (
+          <button
+            key={s.id}
+            type="button"
+            aria-current={active ? "step" : undefined}
+            onClick={() => onPick(s.id)}
+            className={`tap flex shrink-0 items-center gap-2 rounded-lg px-2.5 py-1.5 text-left ${EASE} ${TAP} ${
+              active ? "bg-teal-50 dark:bg-teal-950/40" : "hover:bg-muted/60"
+            }`}
+          >
+            {/* Progress as a ring, paired with the count — never colour alone. */}
+            <span
+              aria-hidden
+              className={`grid size-5 shrink-0 place-items-center rounded-full text-[9px] font-medium tabular-nums ring-1 ring-inset ${
+                done
+                  ? "bg-teal-600 text-white ring-teal-600"
+                  : s.answered > 0
+                    ? "text-teal-700 ring-teal-500/50 dark:text-teal-300"
+                    : "text-muted-foreground ring-border"
+              }`}
+            >
+              {done ? <CheckIcon className="size-3" /> : s.answered}
+            </span>
+            <span className="min-w-0 flex-1">
+              <span
+                className={`block truncate text-[12.5px] ${
+                  active ? "text-teal-900 dark:text-teal-100" : "text-foreground/85"
+                } ${active ? "font-medium" : ""}`}
+              >
+                {s.display}
+              </span>
+              <span className="text-muted-foreground block font-mono text-[9.5px] tabular-nums">
+                {s.answered}/{s.total}
+                {s.unavailable ? ` · ${s.unavailable} n/a` : ""}
+              </span>
+            </span>
+          </button>
+        );
+      })}
+    </nav>
+  );
+}
 
 function FeatureRow({
   feature,

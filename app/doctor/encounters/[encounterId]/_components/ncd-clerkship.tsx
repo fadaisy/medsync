@@ -3,22 +3,28 @@
 import type { NcdCatalog, SiteProfile } from "@/lib/ncd/catalog/schema";
 import type { CaptureMap } from "@/lib/ncd/engine/evaluate";
 import { useMemo, useState } from "react";
-import { ActivityIcon } from "lucide-react";
+import { ActivityIcon, ArrowLeftIcon, ArrowRightIcon } from "lucide-react";
 
 import { buildProfile } from "@/lib/ncd/profile";
-import { NcdCapture } from "./ncd-capture";
+import { NcdCapture, NcdSectionRail, sectionProgress } from "./ncd-capture";
 import { NcdProfileView } from "./ncd-profile";
 
 /**
- * The NCD clerkship shell — capture on the left, the live profile on the right.
+ * The NCD clerkship workspace.
  *
- * The profile recomputes on every keystroke because `buildProfile` is pure and
- * cheap, and because the payoff of answering a question should be immediate and
- * visible. That feedback loop is the thing the old clerkship never had: forty
- * taps that changed nothing on screen.
+ * ── Why this is a bounded workspace and not a page ───────────────────────────
+ * Seventy features stacked in one column is a long scroll, and a long scroll is
+ * where a clinician loses their place mid-encounter — and worse, where the live
+ * profile disappears off the top exactly when their answer has just changed it.
  *
- * Nothing here is autonomous. The engine reports which criteria are met and
- * which are not; the diagnosis of record remains the clinician's.
+ * So: three panes, each scrolling independently, none of them moving the page.
+ * The rail keeps the whole protocol visible, the middle holds one section at a
+ * time, and the profile never leaves the screen. The feedback loop between
+ * answering something and seeing it land is the thing the old clerkship never
+ * had; it only works if both halves are visible at once.
+ *
+ * Below `lg` this degrades to the honest stack — rail as a scrollable chip row,
+ * then the section, then the profile — because side-by-side is a lie on a phone.
  */
 export function NcdClerkship({
   catalog,
@@ -43,19 +49,30 @@ export function NcdClerkship({
 }) {
   const [values, setValues] = useState<CaptureMap>(initialValues ?? {});
   const [activeSite, setActiveSite] = useState<SiteProfile>(site);
+  const [activeId, setActiveId] = useState<string>(
+    () => [...catalog.sections].sort((a, b) => a.order - b.order)[0]?.id ?? "",
+  );
 
   const profile = useMemo(
     () => buildProfile({ catalog, values, site: activeSite, established }),
     [catalog, values, activeSite, established],
   );
+  const progress = useMemo(
+    () => sectionProgress(catalog, activeSite, values),
+    [catalog, activeSite, values],
+  );
 
-  const update = (next: CaptureMap) => {
-    setValues(next);
-    onChange?.(next);
+  const index = progress.findIndex((s) => s.id === activeId);
+  const prev = index > 0 ? progress[index - 1] : undefined;
+  const next = index >= 0 && index < progress.length - 1 ? progress[index + 1] : undefined;
+
+  const update = (v: CaptureMap) => {
+    setValues(v);
+    onChange?.(v);
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-3">
       <header className="flex flex-wrap items-center gap-x-3 gap-y-2">
         <span className="inline-flex items-center gap-1.5">
           <ActivityIcon className="size-4 text-teal-600 dark:text-teal-400" aria-hidden />
@@ -93,12 +110,76 @@ export function NcdClerkship({
         ) : null}
       </header>
 
-      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(22rem,26rem)]">
-        <NcdCapture catalog={catalog} site={activeSite} values={values} onChange={update} />
-        <div className="lg:sticky lg:top-4">
+      <div className="grid grid-cols-1 gap-3 lg:h-[calc(100svh-9rem)] lg:max-h-[52rem] lg:min-h-[32rem] lg:grid-cols-[13rem_minmax(0,1fr)_24rem]">
+        {/* Rail — the whole protocol, so one-at-a-time never means hidden. */}
+        <div className="border-border bg-card overflow-x-auto rounded-xl border p-1.5 shadow-xs lg:overflow-x-hidden lg:overflow-y-auto">
+          <NcdSectionRail progress={progress} activeId={activeId} onPick={setActiveId} />
+        </div>
+
+        {/* One section, plus its own step controls. */}
+        <div className="flex min-h-0 flex-col gap-2">
+          <div className="min-h-0 flex-1 lg:overflow-y-auto lg:pr-1">
+            <NcdCapture
+              catalog={catalog}
+              site={activeSite}
+              values={values}
+              onChange={update}
+              sectionId={activeId}
+            />
+          </div>
+
+          {/* Stepping is navigation, done many times per encounter — no motion. */}
+          <div className="flex shrink-0 items-center gap-2">
+            <StepButton
+              dir="prev"
+              label={prev?.display}
+              onClick={() => prev && setActiveId(prev.id)}
+            />
+            <span className="text-muted-foreground mx-auto font-mono text-[10px] tabular-nums">
+              {index + 1} / {progress.length}
+            </span>
+            <StepButton
+              dir="next"
+              label={next?.display}
+              onClick={() => next && setActiveId(next.id)}
+            />
+          </div>
+        </div>
+
+        {/* Profile — never leaves the screen. */}
+        <div className="min-h-0 lg:overflow-y-auto lg:pr-1">
           <NcdProfileView profile={profile} />
         </div>
       </div>
     </div>
+  );
+}
+
+function StepButton({
+  dir,
+  label,
+  onClick,
+}: {
+  dir: "prev" | "next";
+  label?: string;
+  onClick: () => void;
+}) {
+  const disabled = !label;
+  const Icon = dir === "prev" ? ArrowLeftIcon : ArrowRightIcon;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={`border-border ease-expo-out inline-flex max-w-[45%] items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[12px] transition-colors duration-100 ${
+        disabled
+          ? "text-muted-foreground/40 cursor-default"
+          : "text-foreground/85 hover:bg-muted active:scale-[0.97]"
+      }`}
+    >
+      {dir === "prev" ? <Icon className="size-3.5 shrink-0" aria-hidden /> : null}
+      <span className="truncate">{label ?? (dir === "prev" ? "Start" : "End")}</span>
+      {dir === "next" ? <Icon className="size-3.5 shrink-0" aria-hidden /> : null}
+    </button>
   );
 }
