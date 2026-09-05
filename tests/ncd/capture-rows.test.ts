@@ -9,7 +9,7 @@ import {
   wellFold,
 } from "@/app/doctor/encounters/[encounterId]/_components/ncd-capture";
 import { DIABETES_CATALOG, REFERRAL_SITE } from "@/lib/ncd/catalog/diabetes";
-import { recorded, unavailable } from "@/lib/ncd/catalog/schema";
+import { displayPredicates, recorded, unavailable } from "@/lib/ncd/catalog/schema";
 import { errorsOf, validateCatalog } from "@/lib/ncd/catalog/validate";
 import { contextOf, evaluatePredicate } from "@/lib/ncd/engine/evaluate";
 
@@ -259,29 +259,25 @@ describe("the diabetes catalog's laterality follow-ups", () => {
 
   it("asks which eye only once the answer is one eye", () => {
     const base = { visual_symptoms: recorded(true) };
-    expect(propsOf(base, "complication_symptoms", "visual_symptoms")).not.toContain("visual_eye@2");
+    expect(propsOf(base, "symptoms", "visual_symptoms")).not.toContain("visual_eye@2");
     expect(
-      propsOf(
-        { ...base, visual_laterality: recorded("both_eyes") },
-        "complication_symptoms",
-        "visual_symptoms",
-      ),
+      propsOf({ ...base, visual_laterality: recorded("both_eyes") }, "symptoms", "visual_symptoms"),
     ).not.toContain("visual_eye@2");
     expect(
-      propsOf(
-        { ...base, visual_laterality: recorded("one_eye") },
-        "complication_symptoms",
-        "visual_symptoms",
-      ),
+      propsOf({ ...base, visual_laterality: recorded("one_eye") }, "symptoms", "visual_symptoms"),
     ).toContain("visual_eye@2");
   });
 
   it("asks which limb only once the distribution is one limb", () => {
-    const base = { peripheral_neuropathic_symptoms: recorded(true) };
+    // The foot band opens behind its screening question, so that comes first.
+    const base = {
+      foot_symptom_screen: recorded(true),
+      peripheral_neuropathic_symptoms: recorded(true),
+    };
     const at = (d?: string) =>
       propsOf(
         d ? { ...base, neuropathy_distribution: recorded(d) } : base,
-        "complication_symptoms",
+        "symptoms",
         "peripheral_neuropathic_symptoms",
       );
     expect(at()).not.toContain("neuropathy_limb@2");
@@ -308,7 +304,7 @@ describe("the diabetes catalog's laterality follow-ups", () => {
    */
   it("raises one foot-side question from any of the three foot findings", () => {
     const roots = (values: Parameters<typeof contextOf>[1]) =>
-      blocksFor(values, "complication_symptoms").map((b) => b.finding.code);
+      blocksFor(values, "symptoms").map((b) => b.finding.code);
     expect(roots({})).not.toContain("foot_side");
     for (const code of [
       "foot_ulcer_or_inflammation",
@@ -351,8 +347,7 @@ describe("wellFold — a finding's properties may be folded once they are settle
     const visible = (values: Parameters<typeof contextOf>[1]) =>
       buildBlocks(
         DIABETES_CATALOG.features.filter(
-          (x) =>
-            x.section === "complication_symptoms" && !x.offProtocol && isVisible(x, ctxFor(values)),
+          (x) => x.section === "symptoms" && !x.offProtocol && isVisible(x, ctxFor(values)),
         ),
       ).find((b) => b.finding.code === "visual_symptoms")!.properties;
 
@@ -413,5 +408,90 @@ describe("summarise — a folded answer is compressed, never concealed", () => {
   it("says so when the answer was that it could not be obtained", () => {
     expect(summarise(f({ code: "x" }), unavailable("lab.x"))).toBe("not obtainable");
     expect(summarise(f({ code: "x" }), undefined)).toBe("—");
+  });
+});
+
+/* ── the systems screen: how the complication symptoms fit in one tab ────── */
+
+describe("screening questions keep every symptom in one section", () => {
+  const roots = (values: Parameters<typeof contextOf>[1]) => {
+    const ctx = contextOf(DIABETES_CATALOG.features, values, REFERRAL_SITE);
+    return buildBlocks(
+      DIABETES_CATALOG.features.filter(
+        (x) => x.section === "symptoms" && !x.offProtocol && isVisible(x, ctx),
+      ),
+    ).map((b) => b.finding.code);
+  };
+
+  it("puts the complication symptoms in the symptoms section, not a second one", () => {
+    expect(DIABETES_CATALOG.sections.map((s) => s.id)).not.toContain("complication_symptoms");
+    for (const code of ["visual_symptoms", "chest_pain", "foot_ulcer_or_inflammation"]) {
+      expect(DIABETES_CATALOG.features.find((f) => f.code === code)!.section, code).toBe(
+        "symptoms",
+      );
+    }
+  });
+
+  it("holds nine foot questions behind one, until there is something to ask about", () => {
+    const closed = roots({});
+    expect(closed).toContain("foot_symptom_screen");
+    expect(closed).not.toContain("foot_ulcer_or_inflammation");
+
+    // An explicit NO is a recorded clinical answer, and it keeps the band shut.
+    expect(roots({ foot_symptom_screen: recorded(false) })).not.toContain(
+      "foot_ulcer_or_inflammation",
+    );
+
+    const open = roots({ foot_symptom_screen: recorded(true) });
+    for (const code of [
+      "peripheral_neuropathic_symptoms",
+      "foot_ulcer_or_inflammation",
+      "foot_infection_or_gangrene",
+      "charcot_presentation",
+      "leg_ischaemic_symptoms",
+    ]) {
+      expect(open, code).toContain(code);
+    }
+    expect(open.length - closed.length).toBe(8);
+  });
+
+  /**
+   * The trap this design has to survive: neuropathy makes an ulcer painless, so
+   * a patient can honestly report no foot trouble while having one. That is
+   * exactly why IWGDF requires the foot to be EXAMINED regardless of symptoms —
+   * so the examination section must not be gated on anything.
+   */
+  it("never gates the foot examination on what the patient reports", () => {
+    const exam = DIABETES_CATALOG.features.filter((f) => f.section === "foot");
+    expect(exam.length).toBeGreaterThan(0);
+    for (const f of exam) {
+      expect(f.showWhen?.feature, f.code).not.toBe("foot_symptom_screen");
+      expect(
+        displayPredicates(f).map((p) => p.feature),
+        f.code,
+      ).not.toContain("foot_symptom_screen");
+    }
+  });
+
+  /**
+   * Impaired hypoglycaemia awareness is deliberately NOT behind a "any lows?"
+   * screen. Losing the warning symptoms is WHY a patient reports no lows, so
+   * gating it there would hide the question precisely when it matters most.
+   */
+  it("leaves the lows band open, because unawareness explains a negative answer", () => {
+    for (const code of [
+      "hypoglycaemia_episode",
+      "hypoglycaemia_requiring_assistance",
+      "impaired_hypo_awareness",
+    ]) {
+      expect(roots({}), code).toContain(code);
+    }
+  });
+
+  it("keeps the emergency band always visible", () => {
+    const open = roots({});
+    for (const code of ["vomiting", "altered_mental_state", "deep_rapid_breathing"]) {
+      expect(open, code).toContain(code);
+    }
   });
 });

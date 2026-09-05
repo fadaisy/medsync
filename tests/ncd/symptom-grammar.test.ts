@@ -338,7 +338,7 @@ describe("the diabetes catalog uses the grammar correctly", () => {
   // worse than ungrouped: the loose rows fall below the last band and read as
   // belonging to it.
   it("bands the two symptom sections completely", () => {
-    for (const id of ["symptoms", "complication_symptoms"]) {
+    for (const id of ["symptoms"]) {
       const s = DIABETES_CATALOG.sections.find((x) => x.id === id)!;
       expect(s.groups?.length, id).toBeTruthy();
       const findings = DIABETES_CATALOG.features.filter(

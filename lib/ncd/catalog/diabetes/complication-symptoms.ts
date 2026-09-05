@@ -191,7 +191,7 @@ const WHO_LEPROSY = c({
 
 /* ── helpers ─────────────────────────────────────────────────────────────── */
 
-const SX = "complication_symptoms";
+const SX = "symptoms";
 
 const prop = (
   parent: string,
@@ -275,7 +275,40 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
     citation: ADA_S6,
   },
 
-  /* ── D. Foot & limb — 8. One exam, one referral pathway. ──────────────── */
+  /* ── D. Foot & limb — one screen, then one exam and one referral ──────── */
+  {
+    /**
+     * The device that lets the complication symptoms live in the symptoms
+     * section without turning it into a scroll: nine foot questions collapse to
+     * one until there is something to ask about.
+     *
+     * It is a real feature rather than a UI toggle, and that distinction is the
+     * whole safety argument. The gate is evaluated by the same evaluator as
+     * every clinical rule, so there is no second disclosure mechanism that could
+     * hide a row the engine believes is askable — and a NO is RECORDED, which is
+     * strictly more honest than the nine blank rows it replaces.
+     *
+     * The asymptomatic-ulcer trap is real and is handled elsewhere by design:
+     * neuropathy means an ulcer can be painless and unreported, which is exactly
+     * why IWGDF requires the foot to be EXAMINED regardless of symptoms. That
+     * examination is the `foot` section, and it is not gated on this or anything
+     * else. This gates what the patient reports, never what the clinician looks at.
+     */
+    code: "foot_symptom_screen",
+    display: "Any trouble with the feet or legs",
+    kind: "symptom",
+    valueType: "boolean",
+    section: SX,
+    group: "feet_and_legs",
+    suggests: ["diabetic_foot"],
+    citation: {
+      ...HEARTS_D,
+      quote:
+        "sensory loss, unsteadiness, sensory symptoms (pain, unpleasant sensation of burning, tingling or numbness)",
+      needsCsoInput:
+        "HEARTS-D lists these symptoms; compounding them into one screening question is ours. The wording must stay broad enough that no foot problem is answerable as 'no'. CSO to ratify.",
+    },
+  },
   {
     /**
      * Four proposals merged into one field. "Numbness", "burning feet" and
@@ -289,6 +322,7 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
     valueType: "boolean",
     section: SX,
     group: "feet_and_legs",
+    showWhen: { feature: "foot_symptom_screen", op: "present" },
     /**
      * `suggests` is RETAINED deliberately, not by oversight. The audit noted it
      * points at the foot even for an arm or thigh presentation. That is accepted:
@@ -469,6 +503,7 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
     valueType: "boolean",
     section: SX,
     group: "feet_and_legs",
+    showWhen: { feature: "foot_symptom_screen", op: "present" },
     suggests: ["diabetic_foot"],
     citation: HEARTS_D,
   },
@@ -492,6 +527,7 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
     valueType: "boolean",
     section: SX,
     group: "feet_and_legs",
+    showWhen: { feature: "foot_symptom_screen", op: "present" },
     suggests: ["diabetic_foot"],
     citation: ADA_S12,
     dangerSign: {
@@ -615,6 +651,7 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
     valueType: "boolean",
     section: SX,
     group: "feet_and_legs",
+    showWhen: { feature: "foot_symptom_screen", op: "present" },
     suggests: ["diabetic_foot"],
     citation: HEARTS_D,
     dangerSign: {
@@ -663,6 +700,7 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
     valueType: "boolean",
     section: SX,
     group: "feet_and_legs",
+    showWhen: { feature: "foot_symptom_screen", op: "present" },
     suggests: ["diabetic_foot"],
     citation: ADA_S12,
     dangerSign: {
@@ -687,6 +725,7 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
     valueType: "boolean",
     section: SX,
     group: "feet_and_legs",
+    showWhen: { feature: "foot_symptom_screen", op: "present" },
     suggests: ["diabetic_foot"],
     citation: IWGDF_PRACTICAL,
   },
@@ -699,6 +738,7 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
     valueType: "boolean",
     section: SX,
     group: "feet_and_legs",
+    showWhen: { feature: "foot_symptom_screen", op: "present" },
     suggests: ["diabetic_foot"],
     citation: IWGDF_PRACTICAL,
   },
@@ -721,6 +761,7 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
     valueType: "boolean",
     section: SX,
     group: "feet_and_legs",
+    showWhen: { feature: "foot_symptom_screen", op: "present" },
     suggests: ["diabetic_foot"],
     citation: IWGDF_PAD,
     dangerSign: {
@@ -747,7 +788,27 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
     ],
   }),
 
-  /* ── E. Autonomic — 4 ─────────────────────────────────────────────────── */
+  /* ── E. Autonomic — one screen, then the four named questions ─────────── */
+  {
+    /**
+     * ADA 12.19 names these four enquiries and they are never volunteered — a
+     * patient does not raise erectile difficulty or overflow incontinence
+     * unprompted. Asking them behind one screen keeps them ASKED rather than
+     * skipped, which is the failure this replaces: four rows at the bottom of a
+     * long section are four rows nobody reaches.
+     */
+    code: "autonomic_symptom_screen",
+    display: "Dizziness on standing, gut, bladder or sexual problems",
+    kind: "symptom",
+    valueType: "boolean",
+    section: SX,
+    group: "autonomic",
+    citation: {
+      ...ADA_S12,
+      needsCsoInput:
+        "ADA names these enquiries individually; compounding them into one screening question is ours. CSO to ratify.",
+    },
+  },
   {
     /** ADA 12.19's first named screening question. Converts to a lying/standing BP. */
     code: "postural_dizziness",
@@ -756,6 +817,7 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
     valueType: "boolean",
     section: SX,
     group: "autonomic",
+    showWhen: { feature: "autonomic_symptom_screen", op: "present" },
     citation: ADA_S12,
   },
   {
@@ -770,6 +832,7 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
     valueType: "boolean",
     section: SX,
     group: "autonomic",
+    showWhen: { feature: "autonomic_symptom_screen", op: "present" },
     citation: ADA_S12,
   },
   prop("gi_autonomic_symptoms", {
@@ -792,6 +855,7 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
     valueType: "boolean",
     section: SX,
     group: "autonomic",
+    showWhen: { feature: "autonomic_symptom_screen", op: "present" },
     citation: ADA_S12,
   },
   prop("bladder_symptoms", {
@@ -818,6 +882,7 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
     valueType: "boolean",
     section: SX,
     group: "autonomic",
+    showWhen: { feature: "autonomic_symptom_screen", op: "present" },
     citation: ADA_S12,
   },
 
@@ -1069,22 +1134,6 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
       action: "Same-day referral. WHO HEARTS-D lists anuria among its urgent-referral criteria.",
       citation: HEARTS_D,
     },
-  },
-
-  {
-    /**
-     * Outside the protocol, and the interface says so in as many ways as it can.
-     * The engine is FORBIDDEN to read this: the validator rejects any rule that
-     * names it, `evaluatePredicate` fails closed on it, and it counts toward no
-     * completeness denominator. A note must never make a section read as
-     * finished, and free text must never decide a clinical verdict.
-     */
-    code: "complication_symptoms_other",
-    display: "Add a symptom the list does not cover",
-    kind: "symptom",
-    valueType: "text_list",
-    section: SX,
-    offProtocol: true,
   },
 
   /* ── I. Crisis precipitants — 3 ───────────────────────────────────────── */

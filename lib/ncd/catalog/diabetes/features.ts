@@ -84,10 +84,17 @@ export const SECTIONS: CatalogSection[] = [
     display: "Symptoms",
     order: 2,
     /**
-     * The bands follow what the answers DO, which is the clerkship's own axis —
-     * not the textbook taxonomy. WHO PEN organises its diabetes module the same
-     * way (ASSESS / DIAGNOSE / TREAT), and HEARTS-D splits acute from chronic
-     * before it splits micro from macro.
+     * Complication symptoms live HERE, not in a section of their own. A
+     * clinician asks about symptoms once, and splitting the question across two
+     * tabs made the split the form's problem rather than the clerkship's.
+     *
+     * What keeps one section from becoming a scroll is a SCREENING QUESTION per
+     * system — a real catalog feature, so the gate is a recorded clinical answer
+     * evaluated by the same evaluator as everything else, and "asked, and
+     * negative" is captured rather than left as twenty blank rows. The bands
+     * follow what the answers DO, which is the clerkship's own axis: WHO PEN
+     * organises its diabetes module the same way, and HEARTS-D splits acute from
+     * chronic before it splits micro from macro.
      */
     groups: [
       {
@@ -112,55 +119,59 @@ export const SECTIONS: CatalogSection[] = [
         tone: "alert",
         description: "These stop the clerking.",
       },
-    ],
-  },
-  {
-    id: "complication_symptoms",
-    display: "Complication symptoms",
-    order: 3,
-    description: "Diabetes often presents with a complication already established.",
-    groups: [
-      { id: "hypoglycaemia", display: "Lows (hypoglycaemia)", order: 1, icon: "falling" },
+      {
+        id: "hypoglycaemia",
+        display: "Lows (hypoglycaemia)",
+        order: 4,
+        icon: "falling",
+        description: "The field that changes a dose before the patient leaves.",
+      },
       {
         id: "feet_and_legs",
         display: "Feet and legs",
-        order: 2,
+        order: 5,
         icon: "foot",
         description: "One examination, one referral decision.",
       },
       {
         id: "eyes_and_kidneys",
         display: "Eyes and kidneys",
-        order: 3,
+        order: 6,
         icon: "eye",
         description: "Silent until far advanced — a 'no' here does not close the screening.",
       },
-      { id: "heart_and_brain", display: "Heart and brain", order: 4, icon: "pulse" },
-      { id: "autonomic", display: "Autonomic symptoms", order: 5, icon: "waves" },
+      { id: "heart_and_brain", display: "Heart and brain", order: 7, icon: "pulse" },
+      {
+        id: "autonomic",
+        display: "Autonomic symptoms",
+        order: 8,
+        icon: "waves",
+        description: "Never volunteered, and each answer has its own action.",
+      },
     ],
   },
   {
     id: "precipitants",
     display: "Crisis precipitants",
-    order: 4,
+    order: 3,
     description: "What set this off — insulin and fluids alone will not fix it.",
   },
-  { id: "glycaemia", display: "Glycaemia", order: 5 },
+  { id: "glycaemia", display: "Glycaemia", order: 4 },
   {
     id: "hba1c_validity",
     display: "HbA1c reliability",
-    order: 6,
+    order: 5,
     description: "Conditions that make HbA1c unsafe to diagnose on.",
   },
   {
     id: "acute",
     display: "Acute assessment",
-    order: 7,
+    order: 6,
     description: "Ketones, acid-base and osmolality.",
   },
-  { id: "kidney", display: "Kidney", order: 8 },
-  { id: "foot", display: "Foot", order: 9 },
-  { id: "history", display: "History", order: 10 },
+  { id: "kidney", display: "Kidney", order: 7 },
+  { id: "foot", display: "Foot", order: 8 },
+  { id: "history", display: "History", order: 9 },
 ];
 
 const KETONE_STRIP = [
