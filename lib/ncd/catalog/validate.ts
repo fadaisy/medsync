@@ -141,8 +141,18 @@ function checkCriterion(
   features: Map<string, { unit?: string; options?: { value: string }[] }>,
   out: ValidationIssue[],
 ) {
-  if (!c.all?.length && !c.any?.length) {
-    out.push({ severity: "error", path, message: "criterion has neither `all` nor `any`" });
+  if (!c.all?.length && !c.any?.length && !c.atLeast?.of.length) {
+    out.push({ severity: "error", path, message: "criterion has no predicates" });
+  }
+  if (c.atLeast) {
+    const m = c.atLeast.of.length;
+    if (c.atLeast.n < 1 || c.atLeast.n > m) {
+      out.push({
+        severity: "error",
+        path,
+        message: `atLeast.n (${c.atLeast.n}) must be between 1 and the ${m} predicates given`,
+      });
+    }
   }
   if (!c.label?.trim()) {
     out.push({
@@ -152,7 +162,7 @@ function checkCriterion(
     });
   }
   checkCitation(c.citation, `${path}.citation`, out);
-  [...(c.all ?? []), ...(c.any ?? [])].forEach((p, i) =>
+  [...(c.all ?? []), ...(c.any ?? []), ...(c.atLeast?.of ?? [])].forEach((p, i) =>
     checkPredicate(p, `${path}.predicate[${i}]`, features, out),
   );
 }

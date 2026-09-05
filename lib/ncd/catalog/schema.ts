@@ -205,13 +205,23 @@ export interface Predicate {
   unit?: string;
 }
 
-/** A named, citable clinical rule. `all` is AND, `any` is OR; both may be given. */
+/**
+ * A named, citable clinical rule. `all` is AND, `any` is OR, `atLeast` is
+ * n-of-m; any combination may be given and they are conjoined.
+ *
+ * `atLeast` exists because real staging systems are written that way and
+ * approximating them would change what they mean — IWGDF foot risk category 2
+ * is defined as "a combination of TWO of" loss of protective sensation,
+ * peripheral artery disease and foot deformity, which is neither an AND nor an
+ * OR of the three.
+ */
 export interface Criterion {
   id: string;
   /** Human-readable, shown verbatim to the clinician: "Fasting plasma glucose ≥ 7.0 mmol/L". */
   label: string;
   all?: Predicate[];
   any?: Predicate[];
+  atLeast?: { n: number; of: Predicate[] };
   /** Guideline requires a second, separate sample before this counts. */
   requiresConfirmation?: boolean;
   citation: Citation;
@@ -389,7 +399,7 @@ export function featureMap(catalog: NcdCatalog): Map<string, Feature> {
 
 /** Every feature code referenced by a criterion — used by validation and gaps. */
 export function criterionFeatures(c: Criterion): string[] {
-  return [...(c.all ?? []), ...(c.any ?? [])].map((p) => p.feature);
+  return [...(c.all ?? []), ...(c.any ?? []), ...(c.atLeast?.of ?? [])].map((p) => p.feature);
 }
 
 /**

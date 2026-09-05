@@ -175,6 +175,21 @@ function combineAny(rs: PredicateResult[]): EvalState {
   return "not_met";
 }
 
+/**
+ * n-of-m. `met` once n alternatives are satisfied. `not_met` only when even the
+ * unresolved predicates could not carry it to n — so a partially-captured
+ * staging rule reports as unresolved rather than as a negative, which is the
+ * same honesty rule the other two combinators follow.
+ */
+function combineAtLeast(rs: PredicateResult[], n: number): EvalState {
+  const met = rs.filter((r) => r.state === "met").length;
+  if (met >= n) return "met";
+  const insufficient = rs.filter((r) => r.state === "insufficient").length;
+  const unavail = rs.filter((r) => r.state === "unavailable").length;
+  if (met + insufficient + unavail < n) return "not_met";
+  return insufficient > 0 ? "insufficient" : "unavailable";
+}
+
 /** AND of two branch states, using the same precedence as `combineAll`. */
 function conjoin(a: EvalState, b: EvalState): EvalState {
   if (a === "not_met" || b === "not_met") return "not_met";
@@ -188,15 +203,18 @@ function conjoin(a: EvalState, b: EvalState): EvalState {
 export function evaluateCriterion(c: Criterion, ctx: EvalContext): CriterionResult {
   const allRs = (c.all ?? []).map((p) => evaluatePredicate(p, ctx));
   const anyRs = (c.any ?? []).map((p) => evaluatePredicate(p, ctx));
+  const atLeastRs = (c.atLeast?.of ?? []).map((p) => evaluatePredicate(p, ctx));
 
-  let state: EvalState;
-  if (c.all?.length && c.any?.length) state = conjoin(combineAll(allRs), combineAny(anyRs));
-  else if (c.all?.length) state = combineAll(allRs);
-  else if (c.any?.length) state = combineAny(anyRs);
+  // Each branch is evaluated independently, then conjoined — a criterion that
+  // gives more than one branch means ALL of them must hold.
+  const branches: EvalState[] = [];
+  if (c.all?.length) branches.push(combineAll(allRs));
+  if (c.any?.length) branches.push(combineAny(anyRs));
+  if (c.atLeast?.of.length) branches.push(combineAtLeast(atLeastRs, c.atLeast.n));
   // A criterion with no predicates cannot assert anything about a patient.
-  else state = "insufficient";
+  const state: EvalState = branches.length ? branches.reduce(conjoin) : "insufficient";
 
-  const predicates = [...allRs, ...anyRs];
+  const predicates = [...allRs, ...anyRs, ...atLeastRs];
   return {
     id: c.id,
     label: c.label,
