@@ -175,6 +175,21 @@ export interface Feature {
   altUnit?: AltUnit;
   options?: FeatureOption[];
   /**
+   * When set, each SELECTED option may carry a free-text detail — a current
+   * dose and frequency, say.
+   *
+   * The boundary this sits on matters. Recording what a patient reports taking
+   * is DOCUMENTATION, and every medication history does it; without it you
+   * cannot tell metformin 500 mg once daily from 1 g twice daily, which changes
+   * whether there is room to escalate. That is not prescribing.
+   *
+   * What remains prohibited is unchanged: the engine never RECOMMENDS or
+   * COMPUTES a dose. And the detail is inert — `evaluatePredicate` reads only
+   * the selected option, never the text beside it — so no criterion can ever
+   * turn on a dose string.
+   */
+  optionDetail?: { label: string; placeholder?: string };
+  /**
    * The capability this feature needs. ABSENT means bedside/clinical — always
    * available, no equipment. Present means the engine can distinguish
    * "not done" from "cannot be done here".

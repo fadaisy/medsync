@@ -1,7 +1,7 @@
 "use client";
 
 import type { Feature, FeatureOption, NcdCatalog, SiteProfile } from "@/lib/ncd/catalog/schema";
-import type { CaptureMap, CaptureValue } from "@/lib/ncd/engine/evaluate";
+import type { CaptureEntry, CaptureMap, CaptureValue } from "@/lib/ncd/engine/evaluate";
 import { useMemo } from "react";
 import { CheckIcon, CircleSlashIcon, RotateCcwIcon } from "lucide-react";
 
@@ -207,9 +207,18 @@ function FeatureRow({
   const recorded = value?.state === "recorded" ? value.value : undefined;
   const markedUnavailable = value?.state === "unavailable";
 
+  // A long option list, or one carrying per-option detail, needs the full row
+  // width — chips squeezed against the right edge is what overflowed the frame.
+  const wide =
+    performable &&
+    (Boolean(feature.optionDetail) ||
+      (feature.valueType === "multi_select" && (feature.options?.length ?? 0) > 5));
+
   return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-3 py-2">
-      <span className="flex min-w-0 flex-[1_1_11rem] flex-col">
+    <div
+      className={`gap-x-3 gap-y-1.5 px-3 py-2 ${wide ? "flex flex-col" : "flex flex-wrap items-center"}`}
+    >
+      <span className={`flex min-w-0 flex-col ${wide ? "" : "flex-[1_1_11rem]"}`}>
         <span
           className={`text-[12.5px] ${performable ? "text-foreground" : "text-muted-foreground"}`}
         >
@@ -233,7 +242,9 @@ function FeatureRow({
           <span className="font-mono text-[9.5px] opacity-70">{feature.requires}</span>
         </span>
       ) : (
-        <span className="ml-auto flex shrink-0 items-center gap-1.5">
+        <span
+          className={`flex min-w-0 items-center gap-1.5 ${wide ? "w-full" : "ml-auto flex-wrap justify-end"}`}
+        >
           <ValueEditor feature={feature} value={value} onSet={onSet} />
           {value ? (
             <button
@@ -294,6 +305,71 @@ function ValueEditor({
         onPick={(v) => put(v === "yes")}
         tone={current === true ? "teal" : "slate"}
       />
+    );
+  }
+
+  // A checkable list, not chips: eleven options with a dose beside each will
+  // never fit on one line, and a horizontal row that overflows its frame hides
+  // options entirely rather than merely crowding them.
+  if (feature.optionDetail && feature.valueType === "multi_select") {
+    const entries: CaptureEntry[] = Array.isArray(current)
+      ? (current as (string | CaptureEntry)[]).map((e) =>
+          typeof e === "string" ? { option: e } : e,
+        )
+      : [];
+    const put2 = (next: CaptureEntry[]) => (next.length ? put(next) : onSet(undefined));
+    return (
+      <span className="border-border divide-border/50 w-full divide-y overflow-hidden rounded-lg border">
+        {(feature.options ?? []).map((o) => {
+          const picked = entries.find((e) => e.option === o.value);
+          return (
+            <span key={o.value} className="flex items-center gap-2 px-2 py-1">
+              <button
+                type="button"
+                role="checkbox"
+                aria-checked={Boolean(picked)}
+                onClick={() =>
+                  put2(
+                    picked
+                      ? entries.filter((e) => e.option !== o.value)
+                      : [...entries, { option: o.value }],
+                  )
+                }
+                className={`tap flex min-w-0 flex-1 items-center gap-2 rounded px-1 py-0.5 text-left text-[12px] ${EASE} ${TAP}`}
+              >
+                <span
+                  aria-hidden
+                  className={`grid size-4 shrink-0 place-items-center rounded ring-1 ring-inset ${
+                    picked ? "bg-teal-600 text-white ring-teal-600" : "ring-border"
+                  }`}
+                >
+                  {picked ? <CheckIcon className="size-3" /> : null}
+                </span>
+                <span className={picked ? "text-foreground" : "text-muted-foreground"}>
+                  {o.display}
+                </span>
+              </button>
+
+              {/* Documentation only — never read by any criterion. */}
+              {picked ? (
+                <input
+                  value={picked.detail ?? ""}
+                  placeholder={feature.optionDetail?.placeholder ?? ""}
+                  aria-label={`${feature.optionDetail?.label ?? "Detail"} — ${o.display}`}
+                  onChange={(e) =>
+                    put2(
+                      entries.map((x) =>
+                        x.option === o.value ? { ...x, detail: e.target.value } : x,
+                      ),
+                    )
+                  }
+                  className="border-input bg-card ease-expo-out w-[9rem] shrink-0 rounded-md border px-2 py-1 text-[11.5px] transition-[border-color,box-shadow] duration-100 outline-none focus-visible:border-teal-500 focus-visible:ring-2 focus-visible:ring-teal-500/25"
+                />
+              ) : null}
+            </span>
+          );
+        })}
+      </span>
     );
   }
 

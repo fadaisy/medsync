@@ -36,8 +36,27 @@ import { isPerformable } from "@/lib/ncd/catalog/schema";
 
 export type EvalState = "met" | "not_met" | "insufficient" | "unavailable";
 
+/**
+ * A selected option that carries a free-text detail beside it — a current dose,
+ * for instance. The detail is DOCUMENTATION and is never evaluated: predicates
+ * read `option` only, so no clinical rule can turn on a dose string.
+ */
+export interface CaptureEntry {
+  option: string;
+  detail?: string;
+}
+
 /** A captured value for a feature. Anything not present is `not_assessed`. */
-export type CaptureValue = number | string | string[] | boolean;
+export type CaptureValue = number | string | string[] | boolean | CaptureEntry[];
+
+const isEntryList = (v: CaptureValue): v is CaptureEntry[] =>
+  Array.isArray(v) && v.every((x) => typeof x === "object" && x !== null && "option" in x);
+
+/** The selectable values of an array capture, whatever form it takes. */
+function selectedOptions(v: CaptureValue): string[] | undefined {
+  if (!Array.isArray(v)) return undefined;
+  return isEntryList(v) ? v.map((e) => e.option) : (v as string[]).map(String);
+}
 export type CaptureMap = Record<string, Assessed<CaptureValue> | undefined>;
 
 export interface PredicateResult {
@@ -108,18 +127,22 @@ export function evaluatePredicate(p: Predicate, ctx: EvalContext): PredicateResu
     observed: v,
   });
 
+  // An array capture is compared on its SELECTED OPTIONS, whether it is a plain
+  // multi-select or an entry list carrying details. The detail never features.
+  const picked = selectedOptions(v);
+
   switch (p.op) {
     case "present":
       return hit(isPositive(v));
     case "absent":
       return hit(!isPositive(v));
     case "==":
-      return hit(Array.isArray(v) ? v.includes(String(p.value)) : v === p.value);
+      return hit(picked ? picked.includes(String(p.value)) : v === p.value);
     case "!=":
-      return hit(Array.isArray(v) ? !v.includes(String(p.value)) : v !== p.value);
+      return hit(picked ? !picked.includes(String(p.value)) : v !== p.value);
     case "in": {
       const set = Array.isArray(p.value) ? p.value.map(String) : [];
-      return hit(Array.isArray(v) ? v.some((x) => set.includes(x)) : set.includes(String(v)));
+      return hit(picked ? picked.some((x) => set.includes(x)) : set.includes(String(v)));
     }
     case ">=":
     case ">":

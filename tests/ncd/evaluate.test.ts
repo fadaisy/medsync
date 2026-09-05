@@ -158,6 +158,60 @@ describe("evaluatePredicate — absence of evidence is never evidence", () => {
   });
 });
 
+describe("entry lists — a recorded dose is documentation, never logic", () => {
+  const FEATS: Feature[] = [
+    {
+      code: "therapy",
+      display: "Therapy",
+      kind: "history",
+      valueType: "multi_select",
+      section: "s",
+      optionDetail: { label: "Dose" },
+      options: [
+        { value: "metformin", display: "Metformin" },
+        { value: "insulin", display: "Insulin" },
+      ],
+    },
+  ];
+  const site: SiteProfile = { id: "s", display: "s", standardPreference: [], available: [] };
+  const run = (v: CaptureMap, p: Parameters<typeof evaluatePredicate>[0]) =>
+    evaluatePredicate(p, contextOf(FEATS, v, site)).state;
+
+  it("matches on the selected option exactly as a plain multi-select does", () => {
+    const withDose: CaptureMap = {
+      therapy: recorded([{ option: "metformin", detail: "1 g bd" }]),
+    };
+    const plain: CaptureMap = { therapy: recorded(["metformin"]) };
+    for (const v of [withDose, plain]) {
+      expect(run(v, { feature: "therapy", op: "==", value: "metformin" })).toBe("met");
+      expect(run(v, { feature: "therapy", op: "==", value: "insulin" })).toBe("not_met");
+      expect(run(v, { feature: "therapy", op: "in", value: ["insulin", "metformin"] })).toBe("met");
+      expect(run(v, { feature: "therapy", op: "present" })).toBe("met");
+    }
+  });
+
+  /**
+   * The boundary that keeps dose capture safe. Recording what a patient takes is
+   * documentation; letting a rule branch on the free text beside it would be the
+   * engine reasoning about doses, which it must never do.
+   */
+  it("gives the same verdict whatever the dose text says", () => {
+    const verdicts = ["1 g bd", "", "STOP", "0", "metformin"].map((detail) =>
+      run(
+        { therapy: recorded([{ option: "metformin", detail }]) },
+        { feature: "therapy", op: "==", value: "metformin" },
+      ),
+    );
+    expect(new Set(verdicts).size).toBe(1);
+    expect(verdicts[0]).toBe("met");
+  });
+
+  it("an empty selection is not a recorded negative", () => {
+    expect(run({ therapy: recorded([]) }, { feature: "therapy", op: "present" })).toBe("not_met");
+    expect(run({}, { feature: "therapy", op: "present" })).toBe("insufficient");
+  });
+});
+
 describe("AND — a contradicted requirement is definitive", () => {
   const c = crit({
     all: [
