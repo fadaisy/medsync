@@ -8,11 +8,13 @@ import { db } from "@/db";
 import { encounters } from "@/db/schema/scheduling";
 import { fetchPatientSummaryAudited } from "@/lib/doctor/patient-access";
 import { requireDoctorScope } from "@/lib/doctor/scope";
-import { encounterEngineLive } from "@/lib/encounter/feature";
+import { encounterEngineLive, ncdClerkshipLive } from "@/lib/encounter/feature";
 import { loadEncounterOrders } from "@/lib/encounter/orders";
 import { loadEncounterRecord } from "@/lib/encounter/record";
 import { toEncounterScope } from "@/lib/encounter/workspace-scope";
+import { DIABETES_CATALOG, DISTRICT_SITE, REFERRAL_SITE } from "@/lib/ncd/catalog/diabetes";
 import { InvestigationsPanel } from "./_components/investigations-panel";
+import { NcdClerkship } from "./_components/ncd-clerkship";
 
 export const metadata: Metadata = { title: "Encounter · Doctor · MedSync" };
 export const dynamic = "force-dynamic";
@@ -113,29 +115,40 @@ export default async function DoctorEncounterPage({ params }: PageProps) {
           </div>
         </header>
 
-        {/* Documentation entry — the v1 clerkship engine was removed (ADR 0081)
-            and the NCD-specific rebuild is in progress. Deliberately an honest
-            empty state rather than a stub form: nothing here may imply that
-            clerking was captured when it was not. Documentation already written
-            still renders below and in the patient record. */}
-        <section className="border-border bg-card flex flex-col gap-2 rounded-xl border p-5 shadow-xs">
-          <span className="text-muted-foreground/80 font-mono text-[10px] tracking-[0.18em] uppercase">
-            Clerkship
-          </span>
-          <h2 className="font-display text-foreground text-[18px] leading-[1.3] font-medium tracking-[-0.01em]">
-            Being rebuilt for NCD care
-          </h2>
-          <p className="text-muted-foreground max-w-prose text-[13px] leading-relaxed">
-            The previous clerkship is no longer available for new entries. Existing documentation
-            for this encounter is unchanged and still readable — in the timeline below and in the
-            patient&apos;s clinical record.
-          </p>
-          {doc ? (
-            <p className="text-muted-foreground font-mono text-[11px] tabular-nums">
-              Last documented: v{doc.version} ({doc.status})
+        {/* The NCD clerkship (ADR 0082). Gated by NCD_CLERKSHIP_LIVE; the
+            criteria carry their own sign-off state, and the profile shows a
+            gated-dark notice while any citation is unratified — so the surface
+            can be reviewed without any part of it claiming to be ratified
+            clinical advice. Nothing is persisted yet: the capture shape settles
+            in the next increment and will write to
+            clinical_documentation.section_data, which is JSONB and needs no
+            migration. Until then the honest empty state stands. */}
+        {ncdClerkshipLive() ? (
+          <NcdClerkship
+            catalog={DIABETES_CATALOG}
+            site={REFERRAL_SITE}
+            siteOptions={[REFERRAL_SITE, DISTRICT_SITE]}
+          />
+        ) : (
+          <section className="border-border bg-card flex flex-col gap-2 rounded-xl border p-5 shadow-xs">
+            <span className="text-muted-foreground/80 font-mono text-[10px] tracking-[0.18em] uppercase">
+              Clerkship
+            </span>
+            <h2 className="font-display text-foreground text-[18px] leading-[1.3] font-medium tracking-[-0.01em]">
+              Being rebuilt for NCD care
+            </h2>
+            <p className="text-muted-foreground max-w-prose text-[13px] leading-relaxed">
+              The previous clerkship is no longer available for new entries. Existing documentation
+              for this encounter is unchanged and still readable — in the timeline below and in the
+              patient&apos;s clinical record.
             </p>
-          ) : null}
-        </section>
+            {doc ? (
+              <p className="text-muted-foreground font-mono text-[11px] tabular-nums">
+                Last documented: v{doc.version} ({doc.status})
+              </p>
+            ) : null}
+          </section>
+        )}
 
         {/* Investigations & results (read-only visibility) */}
         <InvestigationsPanel orders={orders} />

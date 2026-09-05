@@ -63,6 +63,20 @@ export function labResultsLive(): boolean {
   return process.env.LAB_RESULTS_LIVE === "1" && encounterEngineLive();
 }
 
+/**
+ * Is the NCD clerkship surface live?
+ *
+ * Gated separately from the CRITERIA sign-off on purpose. This flag controls
+ * whether the surface renders at all; whether its thresholds are ratified is a
+ * property of the catalog itself (every Citation carries `csoSigned`), and the
+ * profile shows a gated-dark notice while any of them is unsigned. So the
+ * surface can be switched on for review without any part of it claiming to be
+ * ratified clinical advice.
+ */
+export function ncdClerkshipLive(): boolean {
+  return process.env.NCD_CLERKSHIP_LIVE === "1" && encounterEngineLive();
+}
+
 /*
  * `clerkshipAgentLive()` / `clerkshipAgentConfig()` were removed with the v1
  * clerkship engine (ADR 0081) — they resolved the CSO-signed pack flags for a
