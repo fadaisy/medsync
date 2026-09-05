@@ -2,7 +2,7 @@ import type { Citation, Feature, NcdCatalog, SiteProfile } from "@/lib/ncd/catal
 import type { CaptureMap } from "@/lib/ncd/engine/evaluate";
 import { describe, expect, it } from "vitest";
 
-import { DIABETES_CATALOG } from "@/lib/ncd/catalog/diabetes";
+import { DIABETES_CATALOG, REFERRAL_SITE } from "@/lib/ncd/catalog/diabetes";
 import { displayCondition, recorded } from "@/lib/ncd/catalog/schema";
 import { errorsOf, validateCatalog } from "@/lib/ncd/catalog/validate";
 import { dangerSigns, ncdContext } from "@/lib/ncd/engine/assess";
@@ -298,6 +298,34 @@ describe("the diabetes catalog uses the grammar correctly", () => {
       if (!f.parent) continue;
       expect(displayCondition(f), f.code).toEqual({ feature: f.parent, op: "present" });
     }
+  });
+
+  /**
+   * The audit's correction, pinned. Vomiting alone is gastroenteritis; a tool
+   * that calls it an emergency teaches people to dismiss the flag that matters.
+   */
+  it("does not cry wolf: vomiting alone raises nothing", () => {
+    const fire = (values: CaptureMap) =>
+      dangerSigns(DIABETES_CATALOG, ncdContext(DIABETES_CATALOG, values, REFERRAL_SITE)).map(
+        (d) => d.feature,
+      );
+
+    expect(fire({ vomiting: recorded(true) })).toEqual([]);
+    expect(fire({ abdominal_pain: recorded(true) })).toEqual([]);
+
+    // …but with osmotic symptoms, or in known diabetes, it is an emergency.
+    expect(fire({ vomiting: recorded(true), polyuria: recorded(true) })).toContain("vomiting");
+    expect(fire({ vomiting: recorded(true), dm_status: recorded("known") })).toContain("vomiting");
+  });
+
+  // Kussmaul is not an everyday finding, so it is deliberately NOT gated.
+  it("keeps the ungated reds for findings that are never routine", () => {
+    const fire = (values: CaptureMap) =>
+      dangerSigns(DIABETES_CATALOG, ncdContext(DIABETES_CATALOG, values, REFERRAL_SITE)).map(
+        (d) => d.feature,
+      );
+    expect(fire({ deep_rapid_breathing: recorded(true) })).toEqual(["deep_rapid_breathing"]);
+    expect(fire({ altered_mental_state: recorded(true) })).toEqual(["altered_mental_state"]);
   });
 
   it("raises the crisis features as red danger signs, and nothing routine", () => {

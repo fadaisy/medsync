@@ -269,6 +269,9 @@ export function validateCatalog(catalog: NcdCatalog): ValidationIssue[] {
     }
     if (f.dangerSign) {
       checkCitation(f.dangerSign.citation, `${path}.dangerSign.citation`, out);
+      if (f.dangerSign.when) {
+        checkCriterion(f.dangerSign.when, `${path}.dangerSign.when`, features, out);
+      }
       if (!f.dangerSign.action.trim()) {
         out.push({
           severity: "error",

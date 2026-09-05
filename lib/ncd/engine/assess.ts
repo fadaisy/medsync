@@ -140,6 +140,8 @@ export function dangerSigns(catalog: NcdCatalog, ctx: EvalContext): DangerSign[]
     const d = f.dangerSign;
     if (!d) continue;
     if (evaluatePredicate({ feature: f.code, op: "present" }, ctx).state !== "met") continue;
+    // A contextual danger sign fires only in the context its source describes.
+    if (d.when && evaluateCriterion(d.when, ctx).state !== "met") continue;
     out.push({
       feature: f.code,
       display: f.display,

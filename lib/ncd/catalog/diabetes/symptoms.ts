@@ -81,6 +81,24 @@ const CRISES_2024 = c({
   quote: "If DKA or HHS is suspected, initial samples should be taken",
 });
 
+/**
+ * Reasoning that is OURS, not a guideline's.
+ *
+ * The audit rejected several rationales that read as guideline positions but
+ * were not in the cited page — WHO does not distinguish fluctuating from sudden
+ * visual loss, Diabetes UK does not say recurrent thrush should prompt a glucose
+ * test, IDF does not say a non-healing wound mandates a foot examination at that
+ * visit. Each is defensible clinical reasoning and none of it is sourced, so it
+ * says so rather than borrowing authority from a page that does not carry it.
+ */
+const OUR_REASONING = c({
+  standard: "local",
+  version: "MedSync clinical reasoning",
+  title: "Not a guideline position — implementation reasoning, unratified",
+  needsCsoInput:
+    "Clinically defensible but not stated by the cited sources (audit finding). CSO to ratify or supply a citation.",
+});
+
 /* ── shared option sets ──────────────────────────────────────────────────── */
 
 const YES_NO = [
@@ -95,6 +113,27 @@ const prop = (parent: string, f: Omit<Feature, "section" | "parent" | "kind">): 
   section: "symptoms",
   parent,
 });
+
+/**
+ * "In a person with, or suspected of having, diabetes."
+ *
+ * The audit's correction, encoded. The consensus report describes nausea,
+ * vomiting and abdominal pain as features COMMON IN DKA — not as emergencies on
+ * their own. Vomiting in someone with no hyperglycaemic symptoms and no diabetes
+ * is gastroenteritis, and a tool that calls that an emergency teaches people to
+ * dismiss the flag that matters.
+ */
+const IN_DIABETIC_CONTEXT = {
+  id: "diabetic_context",
+  label: "With osmotic symptoms, or in known diabetes",
+  any: [
+    { feature: "polyuria", op: "present" as const },
+    { feature: "polydipsia", op: "present" as const },
+    { feature: "unexplained_weight_loss", op: "present" as const },
+    { feature: "dm_status", op: "==" as const, value: "known" },
+  ],
+  citation: CRISES_2024,
+};
 
 /* ── the symptoms ────────────────────────────────────────────────────────── */
 
@@ -233,10 +272,10 @@ export const SYMPTOM_FEATURES: Feature[] = [
 
   {
     /**
-     * Triage, not diagnosis. Blurring that FLUCTUATES with glucose is an osmotic
-     * refractive change expected to settle with control; sudden loss is an eye
-     * emergency. The same word from the patient means two very different things,
-     * which is why the property is the point and the symptom is not.
+     * WHO and IDF both list blurred vision, and that is ALL they do — neither
+     * distinguishes fluctuating osmotic blurring from sudden loss, and neither
+     * addresses referral timing (audit finding). The triage distinction below is
+     * our reasoning and is cited as such.
      */
     code: "blurred_vision",
     display: "Blurred vision",
@@ -249,7 +288,7 @@ export const SYMPTOM_FEATURES: Feature[] = [
     code: "vision_pattern",
     display: "Pattern",
     valueType: "single_select",
-    citation: WHO_FACTSHEET,
+    citation: OUR_REASONING,
     options: [
       { value: "fluctuating", display: "Fluctuates with glucose" },
       { value: "progressive", display: "Progressive" },
@@ -269,9 +308,10 @@ export const SYMPTOM_FEATURES: Feature[] = [
   /* ── infections that should prompt a glucose test ─────────────────────── */
   {
     /**
-     * Changes the TEST ORDERED. Recurrent or treatment-resistant genital
-     * candidiasis in an adult should prompt a glucose rather than another course
-     * of antifungal — that is the decision this field exists to trigger.
+     * Diabetes UK lists this among the symptoms beyond the 4Ts, and that is what
+     * is sourced. That recurrent or treatment-resistant thrush should prompt a
+     * glucose rather than another antifungal is OUR inference (audit finding) —
+     * defensible, unsourced, and marked as such on the property below.
      */
     code: "genital_itching_or_thrush",
     display: "Genital itching or thrush",
@@ -284,7 +324,7 @@ export const SYMPTOM_FEATURES: Feature[] = [
     code: "thrush_recurrent_or_resistant",
     display: "Recurrent or not responding to treatment",
     valueType: "boolean",
-    citation: DIABETES_UK_4TS,
+    citation: OUR_REASONING,
   }),
 
   {
@@ -298,9 +338,10 @@ export const SYMPTOM_FEATURES: Feature[] = [
 
   {
     /**
-     * `suggests` points at the foot, because a non-healing wound in a person
-     * with suspected diabetes needs the foot examined at THIS visit — which is
-     * what turns "foot examination outstanding" into a reason rather than a chore.
+     * IDF and Diabetes UK both list the symptom; NEITHER says the feet must be
+     * examined at that visit (audit finding). The `suggests` link therefore does
+     * what it is designed to do and no more — it raises the priority of foot
+     * screening without asserting anything.
      */
     code: "slow_healing_wounds",
     display: "Wounds that heal slowly",
@@ -333,9 +374,10 @@ export const SYMPTOM_FEATURES: Feature[] = [
 
   {
     /**
-     * Present AT DIAGNOSIS this changes the care plan rather than the diagnosis:
-     * it means complications are already established, so the person has probably
-     * had undiagnosed diabetes for years and the foot needs examining now.
+     * IDF supports the inference that people may go undiagnosed for years before
+     * complications appear. It does NOT say the visit must add a foot risk
+     * assessment (audit finding), so that stays a prompt rather than an
+     * instruction.
      */
     code: "tingling_or_numbness",
     display: "Tingling or numbness in the hands or feet",
@@ -357,10 +399,15 @@ export const SYMPTOM_FEATURES: Feature[] = [
     ],
   }),
   prop("tingling_or_numbness", {
+    /**
+     * Deliberately what the PATIENT reports. Establishing loss of protective
+     * sensation is a monofilament examination — a different act, and it lives in
+     * the foot section.
+     */
     code: "sensory_loss_reported",
-    display: "Reduced feeling, not just tingling",
+    display: "Reduced feeling reported (not an examination)",
     valueType: "boolean",
-    citation: IDF_T2,
+    citation: OUR_REASONING,
   }),
 
   /* ── the child presentation ──────────────────────────────────────────── */
@@ -405,6 +452,7 @@ export const SYMPTOM_FEATURES: Feature[] = [
       severity: "red",
       action:
         "Suspect a hyperglycaemic crisis. Take initial samples now — glucose, ketones, electrolytes and blood gas — and assess urgently.",
+      when: IN_DIABETIC_CONTEXT,
       citation: CRISES_2024,
     },
   },
@@ -432,7 +480,8 @@ export const SYMPTOM_FEATURES: Feature[] = [
     dangerSign: {
       severity: "red",
       action:
-        "Suspect a hyperglycaemic crisis and take initial samples now. Also look for a precipitating cause — the pain may be the trigger rather than the effect.",
+        "Suspect a hyperglycaemic crisis and take initial samples now. Also look for a precipitating cause — the consensus warns the pain may be a result of the ketoacidosis OR an indication of what precipitated it.",
+      when: IN_DIABETIC_CONTEXT,
       citation: CRISES_2024,
     },
   },
@@ -477,9 +526,11 @@ export const SYMPTOM_FEATURES: Feature[] = [
 
   {
     /**
-     * The bedside sign that separates ketoacidosis from simple hyperglycaemia,
-     * and it needs no laboratory at all — which is exactly what makes it
-     * decisive at a site that cannot measure ketones.
+     * The red rests on the verified basis: the consensus states Kussmaul
+     * breathing is the respiratory compensation for the metabolic acidosis of
+     * DKA, with acetone on the breath. That it is therefore decisive where
+     * ketones cannot be measured is OUR inference, and is not gated on context
+     * because deep sighing respiration is not an everyday clinic finding.
      */
     code: "deep_rapid_breathing",
     display: "Deep, sighing rapid breathing (Kussmaul)",
@@ -491,7 +542,7 @@ export const SYMPTOM_FEATURES: Feature[] = [
     dangerSign: {
       severity: "red",
       action:
-        "Suspect ketoacidosis and assess urgently. This sign carries weight even where ketones cannot be measured.",
+        "Suspect ketoacidosis and assess urgently — Kussmaul breathing is the respiratory compensation for metabolic acidosis.",
       citation: CRISES_2024,
     },
   },

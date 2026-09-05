@@ -247,6 +247,17 @@ export interface Feature {
   dangerSign?: {
     severity: "red" | "amber";
     action: string;
+    /**
+     * An ADDITIONAL condition. The finding must be present AND this must hold.
+     *
+     * Added because the audit caught the catalog crying wolf: vomiting and
+     * abdominal pain were firing red on the symptom alone, when the source
+     * describes them as features of a SUSPECTED crisis — "nausea, vomiting and
+     * abdominal pain are common in DKA". Vomiting in a person with no
+     * hyperglycaemic symptoms and no diabetes is gastroenteritis, and a tool
+     * that calls it an emergency teaches people to dismiss the flag that matters.
+     */
+    when?: Criterion;
     citation: Citation;
   };
   /**
