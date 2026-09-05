@@ -34,6 +34,8 @@
  */
 import type { Citation, Feature } from "@/lib/ncd/catalog/schema";
 
+import { socratesProps } from "@/lib/ncd/catalog/diabetes/socrates";
+
 const RETRIEVED = "2026-09-05";
 const c = (x: Omit<Citation, "csoSigned" | "retrieved">): Citation => ({
   ...x,
@@ -1179,15 +1181,70 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
       citation: HEARTS_D,
     },
   },
-  prop("chest_pain", {
-    code: "chest_pain_pattern",
-    display: "Pattern",
-    valueType: "single_select",
-    citation: HEARTS_D,
-    options: [
-      { value: "on_exertion", display: "On exertion, relieved by rest" },
-      { value: "at_rest", display: "At rest or ongoing" },
-      { value: "vague", display: "Vague discomfort" },
+  /**
+   * The full pain history, on the same framework as abdominal pain. It replaces
+   * a single three-option `pattern` field, which could record that the pain came
+   * on with exertion but not what it felt like, where it went, or how long it
+   * lasted — and in diabetes the presentation is often atypical, so the
+   * character and the radiation are doing more work here than usual.
+   *
+   * The danger sign is unchanged and still ungated: WHO's literal tier for
+   * coronary symptoms is same-day for the symptom itself, so nothing here
+   * narrows it. What these add is the detail the referral is made on.
+   */
+  ...socratesProps({
+    parent: "chest_pain",
+    section: SX,
+    // Minutes: under ten and over twenty are different problems.
+    durationUnit: "minutes",
+    site: [
+      { value: "central", display: "Central or behind the breastbone" },
+      { value: "left", display: "Left side" },
+      { value: "right", display: "Right side" },
+      { value: "across", display: "Across the whole chest" },
+      { value: "epigastric", display: "Upper abdomen" },
+    ],
+    character: [
+      { value: "crushing", display: "Crushing or pressing" },
+      { value: "tight_band", display: "Tight, like a band" },
+      { value: "sharp", display: "Sharp or stabbing" },
+      { value: "burning", display: "Burning" },
+      { value: "dull", display: "Dull ache" },
+    ],
+    radiation: [
+      { value: "none", display: "Stays in one place" },
+      { value: "left_arm", display: "To the left arm" },
+      { value: "both_arms", display: "To both arms" },
+      { value: "jaw_or_neck", display: "To the jaw or neck" },
+      { value: "back", display: "Through to the back" },
+      { value: "epigastrium", display: "Down to the upper abdomen" },
+    ],
+    /**
+     * Sweating with the pain is the association that most changes the index of
+     * suspicion, and it is the one nobody writes down. Vomiting is omitted: it
+     * is already its own finding in the emergency band.
+     */
+    associations: [
+      { value: "sweating", display: "Sweating" },
+      { value: "breathless", display: "Breathless" },
+      { value: "nausea", display: "Nausea" },
+      { value: "palpitations", display: "Palpitations" },
+      { value: "lightheaded", display: "Light-headed" },
+      { value: "none", display: "Nothing else" },
+    ],
+    /**
+     * Carries what the old `pattern` field asked, and more: brought on by
+     * exertion and relieved by rest is the anginal pattern, while pain that is
+     * worse on breathing in or on moving points away from the heart.
+     */
+    modifiers: [
+      { value: "worse_exertion", display: "Worse on exertion" },
+      { value: "better_rest", display: "Better with rest" },
+      { value: "worse_breathing_in", display: "Worse breathing in" },
+      { value: "worse_position", display: "Worse on moving or lying flat" },
+      { value: "better_sitting_forward", display: "Better sitting forward" },
+      { value: "better_nitrate", display: "Better with a nitrate" },
+      { value: "nothing", display: "Nothing changes it" },
     ],
   }),
   {

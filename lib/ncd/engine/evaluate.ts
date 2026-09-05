@@ -56,7 +56,7 @@ export interface CaptureEntry {
  * compares 120 >= 10 and passes, which is the same class of error as the
  * mmol/L-versus-mg/dL trap the validator already guards.
  */
-export type DurationUnit = "hours" | "days" | "weeks" | "months" | "years";
+export type DurationUnit = "minutes" | "hours" | "days" | "weeks" | "months" | "years";
 export interface CaptureDuration {
   value: number;
   unit: DurationUnit;
@@ -67,9 +67,12 @@ export interface CaptureDuration {
  * exact. Hours earn a place because acute symptoms are measured in them: a
  * hyperglycaemic crisis turns on whether the vomiting started this morning or
  * three days ago, and forcing that into a fraction of a day is how a clinician
- * ends up typing 0.25.
+ * ends up typing 0.25. Minutes for the same reason one step down: chest pain
+ * lasting under ten minutes and chest pain lasting over twenty are different
+ * problems, and neither is a sensible fraction of an hour.
  */
 export const DURATION_DAYS: Record<DurationUnit, number> = {
+  minutes: 1 / 1440,
   hours: 1 / 24,
   days: 1,
   weeks: 7,

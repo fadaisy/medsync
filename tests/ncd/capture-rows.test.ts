@@ -527,54 +527,77 @@ describe("screening questions keep every symptom in one section", () => {
   });
 });
 
-describe("abdominal pain takes a full SOCRATES history", () => {
-  const propsOf = (values: Parameters<typeof contextOf>[1]) => {
+describe("pain symptoms take a full SOCRATES history", () => {
+  const propsOf = (finding: string, values: Parameters<typeof contextOf>[1]) => {
     const ctx = contextOf(DIABETES_CATALOG.features, values, REFERRAL_SITE);
     return buildBlocks(
       DIABETES_CATALOG.features.filter(
         (x) => x.section === "symptoms" && !x.offProtocol && isVisible(x, ctx),
       ),
-    ).find((b) => b.finding.code === "abdominal_pain")!.properties;
+    ).find((b) => b.finding.code === finding)!.properties;
   };
 
   /**
-   * The consensus warns this pain may belong to the ketoacidosis OR to whatever
-   * precipitated it, and only the history separates them — which is why this one
-   * symptom earns a full pain history where the others take one or two
-   * properties.
+   * Both pains earn a full history where other symptoms take one or two
+   * properties. Abdominal pain because the consensus warns it may belong to the
+   * ketoacidosis OR to whatever precipitated it; chest pain because in diabetes
+   * the presentation is often atypical, so character and radiation carry more
+   * than usual.
    */
-  it("asks all eight letters, and nothing until the pain is present", () => {
-    expect(propsOf({})).toHaveLength(0);
-    expect(propsOf({ abdominal_pain: recorded(true) }).map((p) => p.feature.code)).toEqual([
-      "abdominal_pain_site",
-      "abdominal_pain_onset",
-      "abdominal_pain_character",
-      "abdominal_pain_radiation",
-      "abdominal_pain_associations",
-      "abdominal_pain_duration",
-      "abdominal_pain_time_course",
-      "abdominal_pain_modifiers",
-      "abdominal_pain_severity",
+  it.each(["abdominal_pain", "chest_pain"])("asks all eight letters of %s", (finding) => {
+    expect(propsOf(finding, {})).toHaveLength(0);
+    expect(propsOf(finding, { [finding]: recorded(true) }).map((p) => p.feature.code)).toEqual([
+      `${finding}_site`,
+      `${finding}_onset`,
+      `${finding}_character`,
+      `${finding}_radiation`,
+      `${finding}_associations`,
+      `${finding}_duration`,
+      `${finding}_time_course`,
+      `${finding}_modifiers`,
+      `${finding}_severity`,
     ]);
   });
 
   /**
-   * Associations deliberately omits vomiting, dehydration and altered
-   * consciousness. Each is already its own finding in the same band, and asking
-   * again under a second heading is how one history ends up split across two
-   * answers that can disagree.
+   * The framework is shared; the clinical content is not. A site list that was
+   * the same for both would mean the helper had been given generic options
+   * instead of the ones that belong to that part of the body.
    */
-  it("does not re-ask what the crisis band already captures", () => {
-    const assoc = DIABETES_CATALOG.features.find((f) => f.code === "abdominal_pain_associations")!;
-    const offered = (assoc.options ?? []).map((o) => o.value).join(" ");
+  it("shares the shape and shares nothing clinical", () => {
+    const opts = (code: string) =>
+      DIABETES_CATALOG.features.find((f) => f.code === code)!.options!.map((o) => o.value);
+    expect(opts("abdominal_pain_site")).not.toEqual(opts("chest_pain_site"));
+    expect(opts("abdominal_pain_character")).not.toEqual(opts("chest_pain_character"));
+    expect(opts("chest_pain_radiation")).toContain("jaw_or_neck");
+    expect(opts("abdominal_pain_radiation")).toContain("groin");
+    // The tempo differs too, so nobody has to type a fraction.
+    const unit = (c: string) => DIABETES_CATALOG.features.find((f) => f.code === c)!.unit;
+    expect(unit("chest_pain_duration")).toBe("minutes");
+    expect(unit("abdominal_pain_duration")).toBe("hours");
+  });
+
+  /**
+   * Associations deliberately omits what the catalog already captures as
+   * findings of its own. Asking again under a second heading is how one history
+   * ends up split across two answers that can disagree.
+   */
+  it.each(["abdominal_pain", "chest_pain"])("does not re-ask what %s already has", (finding) => {
+    const offered = DIABETES_CATALOG.features
+      .find((f) => f.code === `${finding}_associations`)!
+      .options!.map((o) => o.value)
+      .join(" ");
     for (const dup of ["vomit", "dehydration", "conscious", "breathing"]) {
       expect(offered, dup).not.toContain(dup);
     }
   });
 
   // Nine unanswered questions must not be foldable away.
-  it("cannot be folded until the history is taken", () => {
-    const values = { abdominal_pain: recorded(true) };
-    expect(wellFold(propsOf(values), values)).toMatchObject({ settled: 0, foldable: false });
+  it.each(["abdominal_pain", "chest_pain"])("cannot fold %s until it is taken", (finding) => {
+    const values = { [finding]: recorded(true) };
+    expect(wellFold(propsOf(finding, values), values)).toMatchObject({
+      settled: 0,
+      foldable: false,
+    });
   });
 });
