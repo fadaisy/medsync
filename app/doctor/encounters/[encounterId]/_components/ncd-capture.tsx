@@ -350,12 +350,13 @@ function ValueEditor({
                 </span>
               </button>
 
-              {/* Documentation only — never read by any criterion. */}
-              {picked ? (
+              {/* Documentation only — never read by any criterion, and never
+                  offered against an option a detail cannot describe. */}
+              {picked && !o.noDetail ? (
                 <input
                   value={picked.detail ?? ""}
-                  placeholder={feature.optionDetail?.placeholder ?? ""}
-                  aria-label={`${feature.optionDetail?.label ?? "Detail"} — ${o.display}`}
+                  placeholder={o.detail?.placeholder ?? feature.optionDetail?.placeholder ?? ""}
+                  aria-label={`${o.detail?.label ?? feature.optionDetail?.label ?? "Detail"} — ${o.display}`}
                   onChange={(e) =>
                     put2(
                       entries.map((x) =>

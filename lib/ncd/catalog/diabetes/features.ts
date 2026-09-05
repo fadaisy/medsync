@@ -15,6 +15,16 @@ import type { Capability, CatalogSection, Citation, Feature } from "@/lib/ncd/ca
  * ADA Section 9 — pharmacologic approaches. Cited for the therapy CLASS list
  * only; no agent and no dose is encoded anywhere in this catalog.
  */
+/** ADA Section 5 — the behavioural interventions, cited for the lifestyle list. */
+const ADA_2026_BEHAVIOUR: Citation = {
+  standard: "ADA",
+  version: "Standards of Care in Diabetes—2026, Section 5",
+  title: "5. Facilitating Positive Health Behaviors and Well-being",
+  url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690188/",
+  retrieved: "2026-09-05",
+  csoSigned: false,
+};
+
 const ADA_2026_PHARM: Citation = {
   standard: "ADA",
   version: "Standards of Care in Diabetes—2026, Section 9",
@@ -138,7 +148,7 @@ export const FEATURES: Feature[] = [
     citation: ADA_2026_PHARM,
     optionDetail: { label: "Dose", placeholder: "e.g. 1 g twice daily" },
     options: [
-      { value: "none", display: "None — lifestyle only" },
+      { value: "none", display: "None — no glucose-lowering drug", noDetail: true },
       { value: "metformin", display: "Metformin · oral" },
       { value: "sulfonylurea", display: "Sulfonylurea · oral" },
       { value: "dpp4", display: "DPP-4 inhibitor · oral" },
@@ -147,7 +157,39 @@ export const FEATURES: Feature[] = [
       { value: "agi", display: "Alpha-glucosidase inhibitor · oral" },
       { value: "glp1", display: "GLP-1 receptor agonist · injectable" },
       { value: "insulin", display: "Insulin · injectable" },
-      { value: "other", display: "Other" },
+      {
+        value: "other",
+        display: "Other",
+        // The same input asking a different question: which drug, not what dose.
+        detail: { label: "Drug", placeholder: "Name, and dose if known" },
+      },
+      { value: "unknown", display: "Not known", noDetail: true },
+    ],
+  },
+  {
+    /**
+     * Lifestyle modification is an intervention, not the absence of one. Recorded
+     * separately from drug therapy because "on nothing" and "on structured
+     * dietary advice, exercise and a weight-management plan" are different
+     * patients, and only one of them has an untried option left.
+     *
+     * No detail field: these are not dosed, and an input beside them would
+     * invite a value that cannot mean anything.
+     */
+    code: "lifestyle_modification",
+    display: "Lifestyle modification in place",
+    kind: "history",
+    valueType: "multi_select",
+    section: "status",
+    citation: ADA_2026_BEHAVIOUR,
+    options: [
+      { value: "none", display: "None in place" },
+      { value: "nutrition", display: "Medical nutrition therapy / dietary advice" },
+      { value: "physical_activity", display: "Physical activity" },
+      { value: "weight_management", display: "Weight management" },
+      { value: "smoking_cessation", display: "Smoking cessation" },
+      { value: "alcohol_reduction", display: "Alcohol reduction" },
+      { value: "dsmes", display: "Diabetes self-management education" },
       { value: "unknown", display: "Not known" },
     ],
   },

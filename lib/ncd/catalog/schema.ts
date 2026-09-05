@@ -155,6 +155,17 @@ export type ValueType =
 export interface FeatureOption {
   value: string;
   display: string;
+  /**
+   * Suppress this feature's `optionDetail` for this option. "None" and "Not
+   * known" take no dose, and offering an input beside them invites a value that
+   * cannot mean anything.
+   */
+  noDetail?: boolean;
+  /**
+   * Override the feature's `optionDetail` for this option. "Other" needs the
+   * drug's NAME, not a dose — the same input asking a different question.
+   */
+  detail?: { label?: string; placeholder?: string };
 }
 
 /** Unit conversion for values clinicians read in two scales (mmol/L ↔ mg/dL). */

@@ -108,6 +108,41 @@ describe("diabetes catalog", () => {
   });
 });
 
+describe("therapy capture", () => {
+  const therapy = cat.features.find((f) => f.code === "glucose_lowering_therapy")!;
+  const lifestyle = cat.features.find((f) => f.code === "lifestyle_modification")!;
+
+  it("offers a dose against drugs, and never against 'none' or 'not known'", () => {
+    expect(therapy.optionDetail?.label).toBe("Dose");
+    for (const v of ["none", "unknown"]) {
+      expect(therapy.options!.find((o) => o.value === v)?.noDetail, v).toBe(true);
+    }
+    expect(therapy.options!.find((o) => o.value === "metformin")?.noDetail).toBeUndefined();
+  });
+
+  // The same input asking a different question.
+  it("asks 'Other' for the drug, not for a dose", () => {
+    const other = therapy.options!.find((o) => o.value === "other")!;
+    expect(other.noDetail).toBeUndefined();
+    expect(other.detail?.label).toBe("Drug");
+    expect(therapy.optionDetail?.label).toBe("Dose");
+  });
+
+  // Lifestyle is an intervention in its own right, and it is not dosed.
+  it("records lifestyle modification separately, with no dose field at all", () => {
+    expect(lifestyle.valueType).toBe("multi_select");
+    expect(lifestyle.optionDetail).toBeUndefined();
+    expect(lifestyle.options!.map((o) => o.value)).toContain("nutrition");
+  });
+
+  it("covers oral agents, not only insulin", () => {
+    const values = therapy.options!.map((o) => o.value);
+    for (const oral of ["metformin", "sulfonylurea", "dpp4", "sglt2", "tzd", "agi"]) {
+      expect(values, oral).toContain(oral);
+    }
+  });
+});
+
 /* ── the audit's four corrections must be visible in the data ────────────── */
 
 describe("Phase 0 audit corrections are honoured", () => {
