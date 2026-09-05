@@ -602,7 +602,7 @@ export const SYMPTOM_FEATURES: Feature[] = [
      * second heading is how one history ends up split across two answers.
      */
     code: "abdominal_pain_associations",
-    display: "Associated with",
+    display: "Associations",
     valueType: "multi_select",
     citation: SOCRATES,
     options: [
@@ -617,7 +617,7 @@ export const SYMPTOM_FEATURES: Feature[] = [
   prop("abdominal_pain", {
     /** T, part one — hours, because this is an acute presentation. */
     code: "abdominal_pain_duration",
-    display: "For how long",
+    display: "Duration",
     valueType: "duration",
     unit: "hours",
     citation: SOCRATES,
@@ -625,7 +625,7 @@ export const SYMPTOM_FEATURES: Feature[] = [
   prop("abdominal_pain", {
     /** T, part two */
     code: "abdominal_pain_time_course",
-    display: "Since it started",
+    display: "Course",
     valueType: "single_select",
     citation: SOCRATES,
     options: [
@@ -638,7 +638,7 @@ export const SYMPTOM_FEATURES: Feature[] = [
   prop("abdominal_pain", {
     /** E */
     code: "abdominal_pain_modifiers",
-    display: "Worse or better with",
+    display: "What changes it",
     valueType: "multi_select",
     citation: SOCRATES,
     options: [

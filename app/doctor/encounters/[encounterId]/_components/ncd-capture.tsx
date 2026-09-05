@@ -682,24 +682,40 @@ function FeatureRow({
   const recorded = value?.state === "recorded" ? value.value : undefined;
   const markedUnavailable = value?.state === "unavailable";
 
-  // A long option list, or one carrying per-option detail, needs the full row
-  // width — chips squeezed against the right edge is what overflowed the frame.
-  const wide =
-    performable &&
-    (Boolean(feature.optionDetail) ||
-      (feature.valueType === "multi_select" && (feature.options?.length ?? 0) > 5));
-
+  // A checkable list with a detail box beside each option needs the whole row;
+  // nothing else does, now that properties lay out as aligned columns.
+  const wide = performable && Boolean(feature.optionDetail);
   const nested = depth > 0;
 
   return (
     <div
-      className={`gap-x-3 gap-y-1.5 ${
+      /**
+       * Properties lay out as ALIGNED COLUMNS, findings do not.
+       *
+       * The scatter this fixes: every control was `ml-auto justify-end`, so a
+       * wrapping chip group had a ragged LEFT edge and each row's options began
+       * at a different x. Nine rows of that is nine different starting points
+       * for the eye. A grid gives one label column, one control column and one
+       * action column, so a well reads down instead of zig-zagging.
+       *
+       * Findings keep label-left / answer-right: they are overwhelmingly Yes/No
+       * and already form a clean column of their own.
+       */
+      className={`group/row gap-x-3 gap-y-1 ${
         nested
-          ? "px-2.5 py-1.5"
+          ? "px-2.5 py-1"
           : "bg-card hover:bg-brand-50/40 dark:hover:bg-brand-950/20 ease-expo-out px-3 py-2 transition-colors duration-100"
-      } ${wide ? "flex flex-col" : "flex flex-wrap items-center"}`}
+      } ${
+        wide
+          ? "flex flex-col"
+          : nested
+            ? "grid grid-cols-[7rem_minmax(0,1fr)_1.5rem] items-baseline"
+            : "flex flex-wrap items-center"
+      }`}
     >
-      <span className={`flex min-w-0 items-start gap-1.5 ${wide ? "" : "flex-[1_1_11rem]"}`}>
+      <span
+        className={`flex min-w-0 items-start gap-1.5 ${wide || nested ? "" : "flex-[1_1_11rem]"}`}
+      >
         {/* Depth 2 is a glyph in the text column, never a second box: two
             adjacent 1px borders read as 2px, which the design system forbids. */}
         {depth >= 2 ? (
@@ -791,7 +807,10 @@ function FeatureRow({
       )}
 
       {markedUnavailable ? (
-        <span className="text-muted-foreground w-full text-[10.5px]">
+        /* A fourth grid child would otherwise land in the 7rem label column. */
+        <span
+          className={`text-muted-foreground text-[10.5px] ${nested ? "col-span-full" : "w-full"}`}
+        >
           Recorded as not obtainable at this visit — a referral, not an outstanding task.
         </span>
       ) : null}
@@ -888,12 +907,15 @@ function ValueEditor({
   value,
   onSet,
   labelSuffix,
+  left,
 }: {
   feature: Feature;
   value: CaptureMap[string];
   onSet: (v: CaptureMap[string]) => void;
   /** Carries the true parent into the accessible name where depth is clamped. */
   labelSuffix?: string;
+  /** Lay the options out from the left, for the aligned column of a well. */
+  left?: boolean;
 }) {
   const current = value?.state === "recorded" ? value.value : undefined;
   const put = (v: CaptureValue) => onSet({ state: "recorded", value: v });
@@ -1002,7 +1024,7 @@ function ValueEditor({
       <span
         role={multi ? "group" : undefined}
         aria-label={multi ? label : undefined}
-        className="flex flex-wrap items-center justify-end gap-1"
+        className={`flex flex-wrap items-center gap-1 ${left ? "justify-start" : "justify-end"}`}
       >
         {(feature.options ?? []).map((o) => (
           <Chip
