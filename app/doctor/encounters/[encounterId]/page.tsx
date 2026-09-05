@@ -6,19 +6,12 @@ import { AlertTriangleIcon, ArrowLeftIcon, ClockIcon } from "lucide-react";
 
 import { db } from "@/db";
 import { encounters } from "@/db/schema/scheduling";
-import { loadClerkshipDraft } from "@/lib/clerkship/drafts";
 import { fetchPatientSummaryAudited } from "@/lib/doctor/patient-access";
 import { requireDoctorScope } from "@/lib/doctor/scope";
-import { ClerkshipInputSchema, clerkshipInputToClerkship } from "@/lib/encounter/clerkship-input";
-import {
-  clerkshipAgentConfig,
-  clerkshipDraftsLive,
-  encounterEngineLive,
-} from "@/lib/encounter/feature";
+import { encounterEngineLive } from "@/lib/encounter/feature";
 import { loadEncounterOrders } from "@/lib/encounter/orders";
 import { loadEncounterRecord } from "@/lib/encounter/record";
 import { toEncounterScope } from "@/lib/encounter/workspace-scope";
-import { ClerkshipForm } from "./_components/clerkship-form";
 import { InvestigationsPanel } from "./_components/investigations-panel";
 
 export const metadata: Metadata = { title: "Encounter · Doctor · MedSync" };
@@ -88,23 +81,6 @@ export default async function DoctorEncounterPage({ params }: PageProps) {
 
   const doc = record.documentation;
 
-  // W3 — if a working draft exists (autosaved after the last explicit save), offer
-  // it as the form's initial state, rehydrated through the same input mapper. The
-  // form shows a "recovered draft" banner so it's clearly unsaved. Gated/dark.
-  const draftsEnabled = clerkshipDraftsLive();
-  let initial = record.clerkship;
-  let recoveredDraftAt: string | null = null;
-  if (draftsEnabled) {
-    const draft = await loadClerkshipDraft(encounterId, scope.userId);
-    if (draft) {
-      const parsed = ClerkshipInputSchema.safeParse(draft.payload);
-      if (parsed.success) {
-        initial = clerkshipInputToClerkship(parsed.data);
-        recoveredDraftAt = draft.updatedAt.toISOString();
-      }
-    }
-  }
-
   // W4 — investigations & results visibility (read-only; reuses the spine).
   const orders = await loadEncounterOrders(encounterId);
 
@@ -137,19 +113,29 @@ export default async function DoctorEncounterPage({ params }: PageProps) {
           </div>
         </header>
 
-        {/* Documentation entry — full-bleed workspace; the clerkship agent surfaces
-            decision-support inline (gated dark via clerkshipAgentConfig). */}
-        <ClerkshipForm
-          encounterId={encounterId}
-          initial={initial}
-          draftsEnabled={draftsEnabled}
-          recoveredDraftAt={recoveredDraftAt}
-          agentConfig={clerkshipAgentConfig()}
-          demographics={{
-            ageYears: patient ? computeAgeYears(patient.dateOfBirth) : null,
-            sex: patient?.sex ?? null,
-          }}
-        />
+        {/* Documentation entry — the v1 clerkship engine was removed (ADR 0081)
+            and the NCD-specific rebuild is in progress. Deliberately an honest
+            empty state rather than a stub form: nothing here may imply that
+            clerking was captured when it was not. Documentation already written
+            still renders below and in the patient record. */}
+        <section className="border-border bg-card flex flex-col gap-2 rounded-xl border p-5 shadow-xs">
+          <span className="text-muted-foreground/80 font-mono text-[10px] tracking-[0.18em] uppercase">
+            Clerkship
+          </span>
+          <h2 className="font-display text-foreground text-[18px] leading-[1.3] font-medium tracking-[-0.01em]">
+            Being rebuilt for NCD care
+          </h2>
+          <p className="text-muted-foreground max-w-prose text-[13px] leading-relaxed">
+            The previous clerkship is no longer available for new entries. Existing documentation
+            for this encounter is unchanged and still readable — in the timeline below and in the
+            patient&apos;s clinical record.
+          </p>
+          {doc ? (
+            <p className="text-muted-foreground font-mono text-[11px] tabular-nums">
+              Last documented: v{doc.version} ({doc.status})
+            </p>
+          ) : null}
+        </section>
 
         {/* Investigations & results (read-only visibility) */}
         <InvestigationsPanel orders={orders} />

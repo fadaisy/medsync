@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 
 import { getAuthState } from "@/lib/auth";
-import { listPendingProposals } from "@/lib/clerkship/governance";
+import { listPendingProposals } from "@/lib/catalog/governance";
 import { encounterEngineLive } from "@/lib/encounter/feature";
 import { ProposalReview } from "./_components/proposal-review";
 

@@ -10,17 +10,41 @@
  * autonomous — it structures/prompts/records; the clinician examines + decides.
  * No auto-diagnosis. Structured BUT flexible — every field is optional; sections
  * may be skipped/deferred (emergency: focused history, resus first).
+ *
+ * ── FROZEN (ADR 0081, 2026-09-05) ────────────────────────────────────────────
+ * The v1 clerkship capture engine and its UI were removed to make way for the
+ * NCD-specific rebuild. This module SURVIVES as the READER for clerkship
+ * documents already written to `clinical_documentation.section_data`: clinical
+ * records are append-only, so a document that exists must stay readable. It is
+ * what still lets the patient clinical-record panel render historical
+ * encounters.
+ *
+ * Do NOT extend it. Nothing writes this shape any more — the NCD clerkship
+ * defines and writes its own. To read the removed v1 engine:
+ *   git checkout archive/clerkship-v1
  */
 
-import type { AbdoExam } from "@/lib/clerkship/exam/abdominal";
-import type { CvsExam } from "@/lib/clerkship/exam/cardiovascular";
-import type { EvfExam } from "@/lib/clerkship/exam/endo-vascular-foot";
-import type { MskExam } from "@/lib/clerkship/exam/musculoskeletal";
-import type { NeuroExam } from "@/lib/clerkship/exam/neurological";
-import type { RespExam } from "@/lib/clerkship/exam/respiratory";
-import type { ExamObservation, RecordedVitals } from "@/lib/clerkship/exam/types";
-import type { RosObservation, RosScope } from "@/lib/clerkship/ros";
-import type { CapturedSymptom } from "@/lib/clerkship/symptom-engine";
+/**
+ * Opaque v1 payload sections. These were authored by the removed capture engine
+ * (`lib/clerkship/*`); nothing in this module — or anywhere downstream — reads
+ * INTO them. `deriveClinicalObjects` only touches history.{allergies,medications,
+ * pmhItems} and synthesis.{differential,problems,investigations,disposition},
+ * so the exam/ROS/symptom payloads are carried structurally and rendered as
+ * stored. Typing them opaquely is what lets the v1 engine be deleted without
+ * making a single existing clinical record unreadable.
+ */
+type V1Payload = Record<string, unknown>;
+type AbdoExam = V1Payload;
+type CvsExam = V1Payload;
+type EvfExam = V1Payload;
+type MskExam = V1Payload;
+type NeuroExam = V1Payload;
+type RespExam = V1Payload;
+type ExamObservation = V1Payload;
+type RecordedVitals = V1Payload;
+type RosObservation = V1Payload;
+type RosScope = V1Payload;
+type CapturedSymptom = V1Payload;
 
 // Mirrors the DB CHECK on patient_allergies (migration 0040 / prescribing.ts).
 // `anaphylaxis` is the band the prescribing allergy guard cares about most — it

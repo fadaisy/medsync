@@ -1,6 +1,6 @@
 "use client";
 
-import type { PendingProposalRow } from "@/lib/clerkship/governance";
+import type { PendingProposalRow } from "@/lib/catalog/governance";
 import { useState, useTransition } from "react";
 
 import { Button } from "@/components/ui/button";

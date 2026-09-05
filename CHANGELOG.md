@@ -5,6 +5,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Removed — Clerkship v1 capture layer, ahead of the NCD rebuild — 2026-09-05
+
+The v1 clerkship capture engine and its UI are removed so the NCD-specific version can be built on a clean surface ([ADR 0081](docs/adr/0081-remove-clerkship-v1.md), owner-directed). **Archived at tag `archive/clerkship-v1` → `fcaabc5`** — nothing was deleted from history. **No migration**, no schema change, no data change.
+
+- **156 files, 38,507 deletions.** Out: `lib/clerkship/` (symptom engine, ROS, six structured exams, catalogs, reasoning agent, 17 sourced weight files), the clerkship form and all its tabs/panels/rail, its server actions, `tests/clerkship/` (51 files), and the agent packs under `docs/clinical/agent/`.
+- **The cut is between capturing a clerkship and having an encounter.** The spine stays, so lab worklist + result entry (ADR 0077), triage→doctor assignment, nurse resus, doctor/assigned, patient clinical records and admin catalog proposals all keep working, untouched.
+- **Existing clinical records stay readable.** `lib/encounter/clerkship.ts` survives as a FROZEN v1 document reader. It could be kept because `deriveClinicalObjects` reads only `history.{allergies,medications,pmhItems}` and `synthesis.{differential,problems,investigations,disposition}` — never into the exam/ROS/symptom payloads, which were nine **type-only** imports. Replacing them with an opaque `V1Payload` let the whole engine be deleted without making a single written clinical document unreadable.
+- **Catalog governance was not clerkship code** — `lib/clerkship/governance.ts` imported only `db`, the symptom-catalog schema and `logger`. Moved verbatim to `lib/catalog/governance.ts` (100% rename); `app/admin/catalog-proposals/` repointed.
+- **Left in place deliberately:** migrations 0040/0045/0048/0049 (applied + immutable; `db:check` reports no drift), the now-importerless `clerkship-drafts`/`clerkship-picklist` schema files, existing `encounter_symptom_observations` rows, and `clerkshipDraftsLive()` (annotated as unread so v2 can switch autosave back on without a migration).
+- **The encounter route survives** — patient header, allergies, encounter state, investigations/results and timeline all render. Where the form was there is an honest empty state, not a stub form: nothing may imply clerking was captured when it was not.
+- tsc (app + Edge Functions) clean; eslint clean with **0 warnings** (the 6 pre-existing ones were in deleted exam components); **781 tests pass, 0 failures**; `npm run build` compiles.
+
 ### Changed — Clerkship: the Review of Systems is now hypothesis-driven — 2026-09-04
 
 The 81-symptom sweep is joined to the ranking engine that was already sitting beside it ([ADR 0080](docs/adr/0080-hypothesis-driven-review-of-systems.md); extends [ADR 0062](docs/adr/0062-review-of-systems-engine.md) and [ADR 0063](docs/adr/0063-ros-pc-suppression-focused-complete.md), governed by [ADR 0065](docs/adr/0065-clerkship-clinical-reasoning-engine.md)). **No migration** — no new persisted state, no catalog change.
