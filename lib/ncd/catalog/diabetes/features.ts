@@ -9,7 +9,20 @@
  * Thresholds live in diagnosis.ts / complications.ts, never here. `refRange` on
  * a feature is for DISPLAY only and is never used to decide anything.
  */
-import type { Capability, CatalogSection, Feature } from "@/lib/ncd/catalog/schema";
+import type { Capability, CatalogSection, Citation, Feature } from "@/lib/ncd/catalog/schema";
+
+/**
+ * ADA Section 9 — pharmacologic approaches. Cited for the therapy CLASS list
+ * only; no agent and no dose is encoded anywhere in this catalog.
+ */
+const ADA_2026_PHARM: Citation = {
+  standard: "ADA",
+  version: "Standards of Care in Diabetes—2026, Section 9",
+  title: "9. Pharmacologic Approaches to Glycemic Treatment",
+  url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690185/",
+  retrieved: "2026-09-05",
+  csoSigned: false,
+};
 
 export const CAPABILITIES: Capability[] = [
   { code: "device.glucometer", display: "Glucometer (capillary glucose)", tier: "bedside" },
@@ -50,6 +63,12 @@ export const CAPABILITIES: Capability[] = [
 ];
 
 export const SECTIONS: CatalogSection[] = [
+  {
+    id: "status",
+    display: "Diabetes status",
+    order: 1,
+    description: "Known, suspected, or being evaluated.",
+  },
   { id: "symptoms", display: "Symptoms", order: 2 },
   { id: "glycaemia", display: "Glycaemia", order: 3 },
   {
@@ -61,12 +80,12 @@ export const SECTIONS: CatalogSection[] = [
   {
     id: "acute",
     display: "Acute assessment",
-    order: 7,
+    order: 5,
     description: "Ketones, acid-base and osmolality.",
   },
-  { id: "kidney", display: "Kidney", order: 8 },
-  { id: "foot", display: "Foot", order: 9 },
-  { id: "history", display: "History", order: 11 },
+  { id: "kidney", display: "Kidney", order: 6 },
+  { id: "foot", display: "Foot", order: 7 },
+  { id: "history", display: "History", order: 8 },
 ];
 
 const KETONE_STRIP = [
@@ -78,6 +97,74 @@ const KETONE_STRIP = [
 ];
 
 export const FEATURES: Feature[] = [
+  /* ── status ─────────────────────────────────────────────────────────── */
+  {
+    code: "dm_status",
+    display: "Diabetes status",
+    kind: "history",
+    valueType: "single_select",
+    section: "status",
+    options: [
+      { value: "known", display: "Known diabetes" },
+      { value: "evaluating", display: "Being evaluated" },
+      { value: "none", display: "No known diabetes" },
+    ],
+  },
+  {
+    code: "dm_duration_years",
+    display: "Years since diagnosis",
+    kind: "history",
+    valueType: "number",
+    unit: "years",
+    section: "status",
+  },
+  {
+    /**
+     * Current glucose-lowering therapy, BY CLASS. Multi-select because
+     * combination therapy is the norm rather than the exception, and because the
+     * previous boolean ("on insulin?") could not distinguish a patient on
+     * metformin alone from one on nothing at all — the two carry entirely
+     * different implications for control, hypoglycaemia risk and what to do next.
+     *
+     * Classes only, never agents and never doses: naming a drug edges toward
+     * prescribing, which this catalog does not do (ADR 0082). Oral and injectable
+     * routes are marked in the labels so the list stays readable at a glance.
+     */
+    code: "glucose_lowering_therapy",
+    display: "Current glucose-lowering therapy",
+    kind: "history",
+    valueType: "multi_select",
+    section: "status",
+    citation: ADA_2026_PHARM,
+    options: [
+      { value: "none", display: "None — lifestyle only" },
+      { value: "metformin", display: "Metformin (oral)" },
+      { value: "sulfonylurea", display: "Sulfonylurea (oral)" },
+      { value: "dpp4", display: "DPP-4 inhibitor (oral)" },
+      { value: "sglt2", display: "SGLT2 inhibitor (oral)" },
+      { value: "tzd", display: "Thiazolidinedione (oral)" },
+      { value: "agi", display: "Alpha-glucosidase inhibitor (oral)" },
+      { value: "glp1", display: "GLP-1 receptor agonist (injectable)" },
+      { value: "insulin", display: "Insulin (injectable)" },
+      { value: "other", display: "Other" },
+      { value: "unknown", display: "Not known" },
+    ],
+  },
+  {
+    code: "insulin_regimen_pattern",
+    display: "Insulin regimen pattern",
+    kind: "history",
+    valueType: "single_select",
+    section: "status",
+    citation: ADA_2026_PHARM,
+    options: [
+      { value: "basal_only", display: "Basal only" },
+      { value: "premixed_bd", display: "Premixed, twice daily" },
+      { value: "basal_bolus", display: "Basal-bolus" },
+      { value: "other", display: "Other" },
+    ],
+  },
+
   /* ── symptoms ───────────────────────────────────────────────────────── */
   {
     code: "polyuria",
@@ -522,6 +609,14 @@ export const FEATURES: Feature[] = [
    * Declared so the engine can tell "not tested" from "cannot be tested here".
    * Where these are unavailable — the common case globally — classification
    * must return `unclassified` rather than infer a type from phenotype. */
+  {
+    code: "age_at_onset",
+    display: "Age at onset",
+    kind: "history",
+    valueType: "number",
+    unit: "years",
+    section: "history",
+  },
   {
     code: "c_peptide",
     display: "Fasting C-peptide",

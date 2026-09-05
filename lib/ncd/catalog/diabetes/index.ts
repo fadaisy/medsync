@@ -19,7 +19,6 @@ import type { NcdCatalog, SiteProfile } from "@/lib/ncd/catalog/schema";
 import { COMPLICATIONS } from "@/lib/ncd/catalog/diabetes/complications";
 import { CLASSIFICATIONS, DIAGNOSIS } from "@/lib/ncd/catalog/diabetes/diagnosis";
 import { CAPABILITIES, FEATURES, SECTIONS } from "@/lib/ncd/catalog/diabetes/features";
-import { STATUS_FEATURES, STATUS_SECTIONS } from "@/lib/ncd/catalog/diabetes/status";
 import { VALIDITY_CAVEATS } from "@/lib/ncd/catalog/diabetes/validity";
 
 export const DIABETES_CATALOG: NcdCatalog = {
@@ -27,8 +26,8 @@ export const DIABETES_CATALOG: NcdCatalog = {
   display: "Diabetes mellitus",
   version: "0.1.0",
   capabilities: CAPABILITIES,
-  sections: [...SECTIONS, ...STATUS_SECTIONS],
-  features: [...FEATURES, ...STATUS_FEATURES],
+  sections: SECTIONS,
+  features: FEATURES,
   diagnosis: DIAGNOSIS,
   classifications: CLASSIFICATIONS,
   complications: COMPLICATIONS,
