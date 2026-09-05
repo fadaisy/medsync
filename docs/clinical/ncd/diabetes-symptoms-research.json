@@ -2215,7 +2215,170 @@
         "The 5Ps and 3Ws mnemonics were outside this domain (they describe the classic osmotic presentation, not complications) and were not researched. The mnemonicFindings field is deliberately omitted rather than filled with guesses; nothing about those mnemonics should be inferred from this output.",
         "Coverage gap by design: this domain excludes the acute hyperglycaemic crises (DKA, HHS) and acute hypoglycaemia as primary subjects. They appear only where a chronic-complication symptom must not be misattributed — vomiting must not be labelled gastroparesis while DKA is possible (WHO), and impaired hypoglycaemia awareness changes sulfonylurea choice (WHO). A separate domain should cover the crises properly."
       ],
-      "audit": null
+      "audit": [
+        {
+          "code": "numbness_or_sensory_loss_feet",
+          "status": "CONFIRMED",
+          "reason": "Fetched the aotinc.net PDF: it is genuinely ADA SOC-2026 Section 12, masthead reading 'Diabetes Care 2026;49(Suppl. 1):S261-S276 | https://doi.org/10.2337/dc26-S012' — the citation is exact, not reconstructed. Text confirms 'The involvement of large fibers may cause balance issues (including falls), numbness, and loss of protective sensation (LOPS). LOPS is a risk factor for DFU due to predisposition to unrecognized minor trauma.' Rec 12.25 verbatim: 'Individuals with evidence of sensory loss or prior ulceration or amputation should have their feet inspected at every visit. A'. Table 12.1 confirms the surveillance-interval claim (category 0 no LOPS/no PAD = annually; category 1 LOPS or PAD = every 6-12 months). whyItMatters names a real decision (risk category, inspection interval, and removal of pain as a reassurance signal).",
+          "correction": "None to the clinical content. Operational risk only: aotinc.net is a third-party mirror and the PDF's own copyright block states 'ADA permission is required to post this work on any third-party site or platform', so this URL may be taken down. Store the DOI 10.2337/dc26-S012 as the durable citation."
+        },
+        {
+          "code": "burning_or_tingling_feet",
+          "status": "CONFIRMED",
+          "reason": "ADA 2026 S12 confirms small-fibre attribution verbatim: 'The most common early symptoms are induced by the involvement of small fibers and include pain and dysesthesia (unpleasant sensations of burning and tingling).' Rec 12.21 verbatim: 'Assess and treat pain related to diabetic peripheral neuropathy B and symptoms of autonomic neuropathy to improve quality of life. E'. Rec 12.22 confirms the named drug classes. The decision (start or correct analgesia within a constrained class list) is real.",
+          "correction": "Two glosses drift from the sources. (1) WHO HEARTS-D says only 'Refer patients with painful peripheral neuropathy to specialized care for pharmacological management of pain' — it is unconditional; the added qualifier 'where pharmacological management is not available locally' is not in the document. Delete that clause. (2) 12.22 does not exclude opioids absolutely: 'Opioids, including tramadol and tapentadol, should not be used for neuropathic pain treatment in diabetes given the potential for adverse events except in rare circumstances. B'. Change 'explicitly excluding opioids' to 'advising against opioids except in rare circumstances'."
+        },
+        {
+          "code": "unsteadiness_or_falls",
+          "status": "CONFIRMED",
+          "reason": "The prescribing consequence — the load-bearing part of this field — is verbatim in WHO HEARTS-D (confirmed as 'Diagnosis and management of type 2 diabetes (HEARTS-D). Geneva: World Health Organization; 2020 (WHO/UCN/NCD/20.1)'): 'Glibenclamide is not recommended in: ... in patients for whom hypoglycaemia is a concern (people who are at risk of falls, who have impaired awareness of hypoglycaemia, who live alone)'. WHO also lists 'unsteadiness' explicitly under 'Peripheral neuropathy' symptoms, and ADA attributes 'balance issues (including falls)' to large-fibre involvement. Both halves of the attribution hold; the decision (gliclazide over glibenclamide) is concrete and correct — WHO elsewhere says 'Add a second-generation sulfonylurea (preferably gliclazide)'. Single property, well justified.",
+          "correction": "No correction required."
+        },
+        {
+          "code": "postural_dizziness",
+          "status": "CONFIRMED",
+          "reason": "Rec 12.19 verbatim: 'Screening can include asking about orthostatic dizziness, syncope, early satiety, erectile dysfunction, changes in sweating patterns, or dry cracked skin in the extremities.' Orthostatic dizziness is indeed listed first, as claimed. The quoted mortality line is verbatim and correctly scoped to CAN: 'CAN is associated with mortality independent of other cardiovascular risk factors'. ADA also defines the bedside threshold the postural_bp_change property needs ('a fall in systolic or diastolic blood pressure by >20 mmHg or >10 mmHg, respectively, upon standing without an appropriate increase in heart rate') and names resting tachycardia >100 bpm, grounding resting_pulse. WHO independently supports referral: 'Refer patients with suspected autonomic neuropathy to specialized care.' Correctly carries no danger sign.",
+          "correction": "No correction required."
+        },
+        {
+          "code": "early_satiety_bloating_vomiting",
+          "status": "CONFIRMED",
+          "reason": "12.19 names 'early satiety'. ADA confirms the diagnosis-of-exclusion framing verbatim: 'Gastrointestinal neuropathies are a diagnosis of exclusion (including consideration of gastrointestinal adverse effects due to medications such as metformin and/or GLP-1-based therapy)' and 'Exclusion of reversible/iatrogenic causes such as medications (e.g., certain GLP-1-based therapies, opioids) or organic causes of gastric outlet obstruction or peptic ulcer disease ... is needed before considering a diagnosis of ... gastroparesis' — so drug-review-before-prokinetic is correct. erratic_glycaemia is grounded: 'Gastroparesis should be suspected in individuals with erratic glycemic management'. IDF confirmed verbatim: 'People with suspected gastroparesis and/or persistent vomiting should also be referred.' The danger is not overstated: WHO's same-day list does contain 'suspicion of ketoacidosis or HHS', the sign is amber not red, it fires on a compound condition via dka_features, and the framing (exclude DKA before attributing vomiting to gastroparesis) is a genuine safety inversion rather than crying wolf.",
+          "correction": "Minor: 'changes insulin timing rather than insulin dose' is an inference — ADA links gastroparesis to erratic glycaemic management but does not state that timing rather than dose is the adjustment. Soften or drop that clause."
+        },
+        {
+          "code": "diarrhoea_or_constipation",
+          "status": "CONFIRMED",
+          "reason": "ADA lists all three variants as autonomic manifestations verbatim: 'Major clinical manifestations of diabetic autonomic neuropathy include resting tachycardia, orthostatic hypotension, gastroparesis, constipation, diarrhea, fecal incontinence, erectile dysfunction, neurogenic bladder, and sudomotor dysfunction'. The drug-review decision is sourced by the same diagnosis-of-exclusion sentence naming metformin and GLP-1. Faecal incontinence is separately named, supporting the claim that it is a distinct variant. The two properties are the minimum needed to act, with no gratuitous onset or severity fields.",
+          "correction": "No correction required."
+        },
+        {
+          "code": "bladder_symptoms",
+          "status": "CONFIRMED",
+          "reason": "Verbatim in ADA 2026 S12: 'Lower urinary tract symptoms manifest as urinary incontinence and bladder dysfunction (nocturia, frequent urination, urinary urgency, and weak urinary stream). Evaluation of bladder function should be performed for individuals with diabetes who have recurrent urinary tract infections, pyelonephritis, incontinence, or a palpable bladder.' Every symptom in the field label and both properties are literally in that sentence, and the trigger is an explicit actionable one. The proposer's note that nocturia belongs to autonomic neuropathy rather than kidney disease is correct and non-obvious — I tried to refute it and could not.",
+          "correction": "The mechanistic rationale 'causes recurrent infection and obstructive kidney injury that is reversible if found' is not stated in ADA Section 12, which says only that evaluation of bladder function should be performed. The decision is sourced; the physiological justification is not. Drop it or cite a urology source."
+        },
+        {
+          "code": "recurrent_urinary_tract_infection",
+          "status": "CONFIRMED",
+          "reason": "Directly verbatim: 'Evaluation of bladder function should be performed for individuals with diabetes who have recurrent urinary tract infections, pyelonephritis, incontinence, or a palpable bladder.' Both recurrent UTI and pyelonephritis are named, matching both properties exactly. The decision — evaluate bladder function rather than treat the episode in isolation — is exactly what the guideline directs, and the emphasis on recurrence over the current episode is the right read of 'recurrent'. Correctly carries no danger sign.",
+          "correction": "No correction required."
+        },
+        {
+          "code": "erectile_dysfunction",
+          "status": "CONFIRMED",
+          "reason": "Named in Rec 12.19's screening-question list verbatim ('orthostatic dizziness, syncope, early satiety, erectile dysfunction, changes in sweating patterns, or dry cracked skin'), and again in the narrative ('In men, diabetic autonomic neuropathy may cause erectile dysfunction and/or retrograde ejaculation'). 12.19 also confirms the wider-assessment trigger: assess autonomic symptoms 'with evidence of other microvascular complications, particularly kidney disease and diabetic peripheral neuropathy'. 12.21 confirms treating autonomic symptoms to improve quality of life. The deliberate absence of sub-properties is defensible: the guideline action turns on presence alone.",
+          "correction": "No correction required."
+        },
+        {
+          "code": "female_sexual_dysfunction",
+          "status": "CONFIRMED",
+          "reason": "Verbatim: 'Female sexual dysfunction occurs more frequently in those with diabetes and presents as decreased sexual desire, increased pain during intercourse, decreased sexual arousal, and inadequate lubrication.' The four descriptors in the field label map one-to-one onto that sentence. Notably the proposer did NOT overclaim this as a 12.19 screening question (12.19 names only erectile dysfunction) and instead said ADA 'records' it and 'describes its specific presentations', which is precisely accurate. The 12.21 hook (assess and treat autonomic symptoms to improve quality of life) legitimately covers it.",
+          "correction": "No correction required."
+        },
+        {
+          "code": "hypoglycaemia_unawareness",
+          "status": "CONFIRMED",
+          "reason": "WHO verbatim: glibenclamide 'not recommended in ... people ... who have impaired awareness of hypoglycaemia, who live alone' — grounding both the drug switch and the lives_alone property. The HbA1c claim is verbatim too: 'Consider less stringent glycaemic control in patients with frequent severe hypoglycaemia, advanced complications, serious comorbidities and/or limited life expectancy.' The modelling caveat is the strongest item in the set and is verbatim in ADA: 'Impaired counterregulatory responses to hypoglycemia in type 1 and type 2 diabetes can lead to impaired hypoglycemia awareness but are not directly linked to autonomic neuropathy.' Correctly grouped under hypoglycaemia rather than autonomic.",
+          "correction": "No correction required."
+        },
+        {
+          "code": "dry_cracked_skin_feet",
+          "status": "CONFIRMED",
+          "reason": "Both roles claimed are verbatim in 12.19 — as a screening question ('changes in sweating patterns, or dry cracked skin in the extremities') and as a sign ('Signs of autonomic neuropathy include orthostatic hypotension, a resting tachycardia, or evidence of peripheral dryness or cracking of skin'). WHO independently lists 'dry, cracked skin on the feet' among diabetic foot symptoms. The specific action is verbatim in WHO's counselling section: 'Moisturize your feet but not between your toes. Use a moisturizer daily to keep dry skin from itching or cracking. But don't moisturize between the toes - that could encourage a fungal infection.' The 'never between the toes' detail is real, not invented.",
+          "correction": "No correction required."
+        },
+        {
+          "code": "fungal_infection_between_toes",
+          "status": "CONFIRMED",
+          "reason": "I specifically tried to refute the interdigital specificity and failed — WHO names it exactly: 'fungal infections between the toes' appears in the diabetic foot symptom list. The pre-ulcerative category claim is also verbatim: 'Pre-ulcerative lesions need to be treated by a trained professional by: removal of callus, protection or draining of blisters, treatment of ingrown and thickened nails, antifungal treatment for fungal infections' — so the 'same category as callus and ingrown nails' comparison is literally the same bulleted list. Limb-preservation framing is proportionate and no danger sign was set.",
+          "correction": "No correction required."
+        },
+        {
+          "code": "foot_ulcer_or_wound",
+          "status": "CONFIRMED",
+          "reason": "The danger sign is legitimate and quoted verbatim from ADA: 'Individuals with any open ulceration or unexplained swelling, erythema, or increased skin temperature should be referred urgently to a foot care specialist or interprofessional team.' The guideline itself uses the word 'urgently', so this is not a promoted ordinary symptom. WHO independently supplies the same-day escalation ('infected foot ulcer with or without symptoms of systemic infection; gangrene', 'critical limb ischaemia'). IDF verbatim: 'Persons with diabetic foot ulcers should be referred to a diabetic foot clinic, where the treatment by a multidisciplinary specialized team will reduce the risk of amputation and the time to functional recovery considerably.' IWGDF PAD abstract verbatim: 'Approximately 50% of people with diabetes and a foot ulcer have peripheral artery disease (PAD)', justifying mandatory perfusion assessment.",
+          "correction": "Property provenance error: 'probe_to_bone_or_bone_visible' is not in ADA Section 12 — the string 'probe-to-bone' does not appear anywhere in that document. It comes from IWGDF/IDSA 2023 Infection Recommendation 7: 'consider using a combination of probe-to-bone test, plain X-rays, and erythrocyte sedimentation rate, or C-reactive protein, or procalcitonin as the initial studies to diagnose osteomyelitis of the foot.' Re-cite that property to IWGDF/IDSA."
+        },
+        {
+          "code": "foot_infection_signs",
+          "status": "CONFIRMED",
+          "reason": "The red danger is justified by the guidelines' own words, not by the proposer's caution. WHO's same-day list verbatim includes 'infected foot ulcer with or without symptoms of systemic infection; gangrene'. IWGDF/IDSA 2023 Recommendation 2 verbatim: 'Consider hospitalising all persons with diabetes and a foot infection who have either a severe foot infection as classified by the IWGDF/IDSA classification, or a moderate infection which is associated with key relevant morbidities.' The bedside grading claim is supported by Rec 1a/1b ('Diagnose a soft tissue diabetes-related infection clinically, based on the presence of local or systemic signs and symptoms of inflammation'; 'Asses the severity ... using the IWGDF/IDSA classification scheme'), which justifies local_signs, deeper_than_skin and systemic_signs. The caveat is verbatim ADA: 'Infection can proceed rapidly in the neuroischemic extremity, often without signs or symptoms commensurate with its severity.'",
+          "correction": "Title is paraphrased. The document's actual title is 'Guidelines on the diagnosis and treatment of foot infection in persons with diabetes, IWGDF/IDSA 2023', not 'Guidelines on the Diagnosis and Treatment of Diabetes-related Foot Infections'. Correct the citation string."
+        },
+        {
+          "code": "red_hot_swollen_foot",
+          "status": "CONFIRMED",
+          "reason": "I expected this to be the overstated one and it is not. ADA describes the presentation exactly as the field label does — 'individuals with neuropathy who present with a warm, swollen, red foot with or without a history of trauma and without an open ulceration' — and the danger quote is verbatim: 'These individuals require total non-weight-bearing and urgent referral to a foot care specialist for further management.' The X-ray property is grounded ('Foot and ankle X-rays should be performed in all individuals presenting with the above clinical findings') and the paramount-importance quote is verbatim. Crucially the WHO claim is also exact and correctly attributed to Annex 2 rather than to the same-day list: 'Urgent referral to acute services is recommended for patients with any of the following: infected ulcer; spreading infection; critical limb ischaemia; gangrene; suspicion of acute Charcot arthropathy; unexplained red swollen foot.' The non-obvious action (offload and X-ray, not antibiotics) is the real decision.",
+          "correction": "No correction required."
+        },
+        {
+          "code": "foot_shape_change_or_deformity",
+          "status": "CONFIRMED",
+          "reason": "This is the item where attribution precision mattered most and the proposer got it right. WHO Table 8 lists moderate risk as 'Any of: deformity; neuropathy; non-critical limb ischaemia' with action 'Assess every 3-6 months' against low-risk 'Assess annually', so deformity alone IS a moderate-risk criterion in WHO, exactly as claimed. Had this been attributed to ADA it would have been wrong: ADA's Table 12.1 requires combinations ('LOPS + PAD, or LOPS + foot deformity, or PAD + foot deformity'). WHO also lists 'a change in the shape of feet over time' as a symptom, matching the field label. ADA 12.31 verbatim supports the footwear indication: therapeutic footwear for those with 'LOPS, foot deformities, ulcers, callous formation, poor peripheral circulation, or history of amputation'. Correctly routes newly collapsed or rocker-bottom shape to the Charcot field instead of setting a danger sign here.",
+          "correction": "No correction required."
+        },
+        {
+          "code": "gangrene_or_black_tissue",
+          "status": "CONFIRMED",
+          "reason": "All three cited authorities check out verbatim. WHO's same-day list includes 'gangrene'. ADA: 'Necrotizing soft tissue infections and wet gangrene are surgical emergencies and need immediate surgical referral for wide incision and drainage, often including amputation to manage the source of infection' — so the wet/dry distinction driving the wet_or_dry property is genuinely guideline-derived, not clinical folklore. IWGDF PAD Recommendation 14 is real and correctly numbered: 'In a person with diabetes, peripheral artery disease and a foot ulcer with infection or gangrene involving any portion of the foot, urgently consult a vascular specialist in order to determine the timing of a drainage procedure and a revascularisation procedure.' The delay warning is real too ('Delay in treatment can lead to rapid...').",
+          "correction": "Precision: IWGDF Rec 14 is conditioned on 'a foot ulcer with infection or gangrene', i.e. it presumes a foot ulcer is present. The paraphrase 'with PAD and gangrene involving any portion of the foot' drops that condition and slightly broadens the trigger. Note that near-identical wording also appears as Recommendation 21 of the IWGDF/IDSA Infection guideline if a second citation is wanted."
+        },
+        {
+          "code": "claudication",
+          "status": "CONFIRMED",
+          "reason": "ADA 12.27 verbatim: 'Individuals with a history of leg fatigue, claudication, and rest pain relieved with dependency or decreased or absent pedal pulses should be referred for ankle-brachial index with toe pressures and for further vascular assessment as appropriate. B' — grounding both the trigger and the pedal_pulses property. IDF verbatim: 'People should be referred to a vascular surgeon if they have severe intermittent claudication.' The rule-out caveat, which is the safety-critical half of this field, is verbatim IWGDF: 'The diagnosis of PAD and chronic limb-threatening ischaemia (CLTI) is frequently complicated by the absence of classical symptoms of PAD such as intermittent claudication and rest pain, probably due to factors such as sedentary lifestyle and loss of pain sensation due to diabetes-related peripheral neuropathy.' Correctly no danger sign — this is a screening trigger, not an emergency.",
+          "correction": "No correction required."
+        },
+        {
+          "code": "foot_pain_at_rest",
+          "status": "CONFIRMED",
+          "reason": "IWGDF/ESVS/SVS 2023 confirmed as 'The intersocietal IWGDF, ESVS, SVS guidelines on peripheral artery disease in patients with diabetes mellitus and a foot ulcer'. Rest pain is verbatim part of the CLTI definition: 'Chronic Limb Threatening Ischaemia: a clinical syndrome defined by the presence of peripheral artery disease in combination with rest pain, gangrene or foot ulcer of at least 2 weeks duration.' The two-week evidence is verbatim: 'There is retrospective evidence demonstrating that a delay in revascularisation of more than two weeks in people with diabetes results in increased risk of limb loss.' WHO's same-day list contains 'critical limb ischaemia', so the amber danger is guideline-sourced. The relieved_by_hanging_leg_down property is directly grounded in ADA 12.27's 'rest pain relieved with dependency'.",
+          "correction": "No correction required."
+        },
+        {
+          "code": "chest_pain",
+          "status": "CONFIRMED",
+          "reason": "WHO's same-day referral list contains 'symptoms/signs of coronary heart disease and stroke' verbatim, so the guideline itself treats this as needing urgent action — a danger sign is legitimate here and is not a promoted ordinary symptom. IDF verbatim: 'Screen for CAD when the patient has typical or atypical symptoms.' The decision named (emergency transfer versus outpatient investigation versus neither) is real and consequential.",
+          "correction": "Grading consistency, not sourcing. WHO operates ONE urgency tier — 'Urgent (same day) referral' — yet the proposer split items drawn from that single undifferentiated bullet list across two tiers: gangrene and infected ulcer red, but critical limb ischaemia (foot_pain_at_rest), recent deterioration of vision (vision_deterioration) and anuria (reduced_urine_output) amber. The red upgrade here is disclosed and defensible, but the red/amber distinction is the proposer's own and is applied inconsistently across one source list. Document an explicit tiering rule (e.g. red = immediate/resuscitation, amber = same-day referral) and re-grade all WHO same-day items against it uniformly."
+        },
+        {
+          "code": "exertional_dyspnoea",
+          "status": "WRONG_ATTRIBUTION",
+          "reason": "The source is real and correctly cited — 'IDF Clinical Practice Recommendations for managing Type 2 Diabetes in Primary Care, International Diabetes Federation - 2017' — and both quoted sentences exist verbatim: 'The symptoms of coronary artery disease (CAD) may be atypical, such as sudden dyspnea' and 'Screen for CAD when the patient has typical or atypical symptoms.' But the field does not match what the source names. IDF's named atypical symptom is SUDDEN dyspnoea; the field is labelled 'Breathlessness on exertion' with a 'brought_on_by_exertion' property, which is a different temporal pattern. No retrieved source names exertional breathlessness as a diabetes CAD presentation. The proposer's own whyItMatters quotes 'sudden dyspnoea' while the field captures exertional — an internal contradiction between field and citation.",
+          "correction": "Either relabel the field to 'Breathlessness — new, sudden or on exertion' and make onset the discriminating property, recording sudden onset as the IDF-named atypical presentation; or narrow it to 'Sudden breathlessness' to match IDF exactly. Do not leave a field whose label contradicts the only sentence supporting it. Exertional dyspnoea can still be justified under the generic 'typical or atypical symptoms' screening line, but that must then be the citation rather than the sudden-dyspnoea sentence."
+        },
+        {
+          "code": "vision_deterioration",
+          "status": "CONFIRMED",
+          "reason": "The best-sourced field in the set — four independent guidelines agree and all four quotes are verbatim. WHO same-day list: 'recent deterioration of vision'. WHO screening section: 'Patients reporting vision loss at any visit and those who have not had a retinal examination in the past two years should be referred to an ophthalmologist.' IDF: 'If the screening for retinopathy is positive or if the patient has unexplained reduced visual acuity with or without retinopathy, the individual should be referred to an ophthalmologist.' ICO: 'persons with unexplained visual-acuity loss should be referred.' The safety counterpart is verbatim ADA: 'people with vision-threatening retinopathy may be asymptomatic', correctly preventing the field being used as a substitute for scheduled screening.",
+          "correction": "No correction required."
+        },
+        {
+          "code": "floaters_or_visual_symptoms",
+          "status": "NOT_IN_SOURCE",
+          "reason": "The source is genuine and correctly titled — the PDF's first page reads 'ICO Guidelines for Diabetic Eye Care Updated 2017' — and the quoted criterion exists verbatim under section 2.2: 'Minimum referral guidelines are as follows: i. Visual acuity below 6/12 (20/40) or symptomatic vision complaints'. But the symptom itself is absent: I searched the full 40-page extraction and the words 'floater' and 'cobweb' do not appear anywhere, and every occurrence of 'spots' is either 'cotton-wool spots' (a retinal sign seen by the examiner, not a patient symptom) or 'laser spots'. Classifying floaters as a 'symptomatic vision complaint' is the proposer's inference, not ICO's statement. Mitigating: the proposer disclosed this explicitly and correctly set no danger sign.",
+          "correction": "Keep the field but restate the provenance honestly: ICO's generic 'symptomatic vision complaints' referral criterion is the source, and ICO does not name floaters. If a floaters-specific citation is wanted, note that ADA Section 12 names 'vitreous hemorrhage and tractional retinal detachment' among ocular complications but does not describe floaters as their symptom, so a vitreoretinal source outside this set would be needed. Do not upgrade to a danger sign without one."
+        },
+        {
+          "code": "reduced_urine_output",
+          "status": "CONFIRMED",
+          "reason": "WHO same-day list verbatim: 'anuria or eGFR <30 mL/min/1.73 m2'. The danger quote is accurate and the guideline itself places it in the urgent tier, so the danger sign is earned. The observation that this is the only symptom-detectable, time-critical kidney finding is fair — WHO's other renal criteria (eGFR 30-59, moderately and severely increased albuminuria) are laboratory-based and sit on the non-emergency referral list, which I confirmed.",
+          "correction": "Scope: WHO lists ANURIA only. The field label 'Passing much less urine, or none' extends the trigger to oliguria, which appears in WHO only as one component of a different bullet ('blood pressure >180/>110 mmHg with headache, shortness of breath, blurred vision, changed mental state, nausea, vomiting, reduced urine output'). Bind the amber danger to the 'degree' property = anuria, and treat lesser reduction as a prompt to measure eGFR/uACR and blood pressure rather than as a same-day referral."
+        },
+        {
+          "code": "leg_or_facial_swelling",
+          "status": "NOT_IN_SOURCE",
+          "reason": "Independently verified and the proposer's self-assessment is accurate. Searching WHO HEARTS-D and ADA Section 12 for oedema/edema returns only diabetic MACULAR oedema (an eye finding) and, in the IDF drug table, 'Edema and bone fracture' as a thiazolidinedione adverse effect. No retrieved guideline lists peripheral or facial oedema as a symptom of diabetic kidney disease. Correctly marked fetched:false with an empty sourceUrl rather than padded with a plausible-looking citation, and correctly carries no danger sign and no properties.",
+          "correction": "Handling is already correct — do not ship pending clinical review. If later sourced, the honest framing is the one already written (prompts uACR/eGFR and a search for other causes such as heart failure, and never excludes kidney disease by its absence). The pioglitazone/TZD oedema adverse effect noted in the IDF drug table is a legitimate drug-review angle if the row is revived."
+        },
+        {
+          "code": "genital_candidiasis_or_balanitis",
+          "status": "NOT_IN_SOURCE",
+          "reason": "Verified independently and the proposer's account is exactly right. Searching all six documents for candid/mycotic/balanitis/thrush returns a single hit: the IDF drug-comparison table listing 'Mycotic genital infections, fractures, amputations' as SGLT2-inhibitor adverse effects. No guideline in this set describes genital candidiasis as a presenting or complicating feature of diabetes. Correctly declared unsourced with fetched:false, no danger sign and no properties.",
+          "correction": "Handling is already correct — do not ship pending clinical review. The one verified anchor is the IDF adverse-effect table, which supports only the narrower SGLT2-review decision; the 'test glucose in recurrent or treatment-resistant infection' decision remains unsourced in this set and needs a diagnosis-focused guideline."
+        }
+      ]
     },
     {
       "domain": "Diabetes — danger signs that mandate urgent action (DKA/HHS, level 3 hypoglycaemia, foot emergencies, sight and vascular emergencies), with the resource-limited referral tier taken from WHO",
@@ -3131,7 +3294,92 @@
         "Anuria was folded into the dehydration field as a urine-output property rather than given its own danger-sign field. WHO HEARTS-D lists 'anuria or eGFR <30 mL/min/1.73 m2' as a standalone urgent same-day referral criterion, so if the eGFR arm is wanted it needs a separate field this pass does not provide.",
         "Two candidates were deliberately EXCLUDED as not meeting rule 5 despite being clinically real: (a) impaired hypoglycaemia awareness — ADA mandates referral but not same-day, so it is a property of the hypoglycaemia field rather than a danger sign; (b) polyuria and polydipsia alone without dehydration or intercurrent illness — no guideline I read makes these urgent on their own, and flagging them would fire on most poorly-controlled patients and destroy the list's credibility."
       ],
-      "audit": null
+      "audit": [
+        {
+          "code": "vomiting_in_diabetes",
+          "status": "CONFIRMED",
+          "reason": "PMC11343900 is genuinely 'Hyperglycaemic crises in adults with diabetes: a consensus report', Diabetologia 2024;67(8):1455-1479, DOI 10.1007/s00125-024-06183-8 — citation exact. The WHO danger quote is verbatim in the retrieved HEARTS-D PDF: 'Refer to hospital all patients with suspected DKA or HHS. (DKA or HHS should be suspected in every ill patient with hyperglycaemia.)' WHO independently states 'Frequent symptoms and signs of DKA are nausea, vomiting and abdominal pain.' Red is guideline-backed, not promoted. whyItMatters names a real fork (sick-day vs transfer).",
+          "correction": "The >50% figure is misstated. The source sentence is 'Nausea, vomiting and abdominal pain are common in DKA (>50%) but are uncommon in HHS' — the frequency attaches to the symptom cluster, not to vomiting alone. Reword to 'nausea, vomiting and abdominal pain are common in DKA (>50%)'. Separately, the IV-line-before-transport inference is the proposer's own; the WHO text that supports it is the dehydration/gastric-emptying sentence, so cite that if the claim is kept."
+        },
+        {
+          "code": "abdominal_pain_in_diabetes",
+          "status": "CONFIRMED",
+          "reason": "Verified verbatim in the fetched consensus report: 'Caution is needed with patients who present with abdominal pain because the symptoms could be either a result of the DKA or an indication of a precipitating cause of DKA, particularly in the absence of severe metabolic acidosis.' The report elsewhere names surgery, pancreatitis and infection as precipitants, so 'surgical or infective cause' is a fair specification. WHO danger quote verbatim. Both decisions in whyItMatters are real and they genuinely diverge.",
+          "correction": "The source's qualifier 'particularly in the absence of severe metabolic acidosis' was dropped, and it is the operative part — it is what tells the clinician when the pain is more likely a precipitant than a consequence. Restore it, since without it the property persists_after_treatment loses its rationale."
+        },
+        {
+          "code": "kussmaul_breathing",
+          "status": "CONFIRMED",
+          "reason": "Supported by three retrieved sources. Consensus report: 'The respiratory compensation for metabolic acidosis found in DKA is manifest by Kussmaul breathing, which consists of deep breaths with a fruity odour smell because of the presence of acetone' — this also justifies the acetone_breath property. WHO: 'Severe cases of DKA can present with Kussmaul's breathing.' PEN-H triage table lists 'Altered mental status heavy labored breathing' and 'Fruity breath odor (due to exhaled acetone)' as DKA signs. The PEN-H danger quote is verbatim at its DKA RECOGNIZE step: 'Diabetic ketoacidosis is an emergency and requires urgent transfer to hospital.'",
+          "correction": "One sentence in whyItMatters is not in any fetched source: 'Where blood gases are unavailable it is often the only available measure of how severe the acidosis is.' The consensus report's Table 2 grades DKA severity by pH, bicarbonate and beta-hydroxybutyrate — laboratory values — and does not assign Kussmaul breathing a severity-grading role. Drop the sentence or mark it as clinical inference rather than sourced. Also note the provenance mismatch: the 'standard' field names the ADA/EASD consensus report while the danger quote comes from PEN-H; surface both."
+        },
+        {
+          "code": "altered_consciousness",
+          "status": "CONFIRMED",
+          "reason": "Every element checked out. The WHO citation note is verbatim — the footnote in the retrieved PDF reads '* Derived from WHO-PEN 2013'. Danger quote verbatim. The consensus report's Table 2 does map mental status to level of care: Mild/Alert -> 'Regular or observation nursing unit'; Moderate/'Alert/drowsy' -> 'Step-down unit or intermediate care unit'; Severe/'Stupor/coma' -> 'ICU'. The stupor-or-coma-to-ICU claim is exactly right. WHO separately supports the hypoglycaemia-vs-hyperglycaemia fork by covering both, and PEN-H's ABCDE triage includes consciousness.",
+          "correction": "Minor precision: mental status is one of four rows in Table 2 (with glucose, ketonaemia and acidosis), and the report states 'not all variables need to be fulfilled' and that the categorisation 'may be clinically useful for guiding' care location. 'Assigns care by mental status' is slightly stronger and more unilateral than the source; say it is one of the variables that sets the suggested level of care."
+        },
+        {
+          "code": "dehydration",
+          "status": "CONFIRMED",
+          "reason": "The danger quote is verbatim in the fetched WHO PDF: 'Correction of dehydration is the critical first step for transport. Hyperglycaemia slows gastric emptying, and oral rehydration might not be effective even in patients who are not vomiting.' The symptom wording tracks PEN-H's DKA sign row 'Dry skin and tongue, decreased skin turgor'. The consensus report confirms dehydration as a presenting feature of both DKA and HHS and puts isotonic saline at 500-1000 ml/h in the first 2-4 h as initial treatment, supporting 'first thing corrected'.",
+          "correction": "This is the weakest danger framing in the set, though not wrong. The quoted sentence is management guidance sitting inside 'Management of hyperglycaemic emergencies' — it tells you how to prepare a patient for transport; it does not say dehydration itself triggers referral. Dehydration does not appear on WHO's own urgent same-day referral list. Red holds only because the symptom is scoped to the hyperglycaemic_crisis group. For consistency with items 1, 2 and 4, use the DKA/HHS referral sentence as the trigger quote and keep this sentence as the accompanying management note."
+        },
+        {
+          "code": "rapid_weight_loss_new_presentation",
+          "status": "CONFIRMED",
+          "reason": "The amber quote is verbatim from the retrieved urgent-referral list: 'Urgent (same day) referral should occur if one of the following is detected: ... clinical suspicion of type 1 diabetes in newly diagnosed patient'. The symptom triad is supported by WHO Table 2 (symptoms: thirst, frequent urination; signs: unintentional weight loss) and by PEN-H's DKA row verbatim ('Rapid weight loss / Excessive urination / Thirst'). WHO also states 'Type 1 diabetes is more likely to present with symptoms and its onset is typically in children and young adults.' Amber correctly matches WHO's same-day tier rather than being inflated to red.",
+          "correction": "The second half of whyItMatters — that starting metformin or a sulfonylurea is how a type 1 patient returns in DKA — is clinical inference, not a guideline statement. The closest sourced support is WHO's separate urgent criterion 'urine ketones >2+, or no improvement in glycaemia >=18 mmol/L after management with metformin and/or gliclazide'. Cite that or label the sentence as reasoning."
+        },
+        {
+          "code": "hypoglycaemia_requiring_assistance",
+          "status": "CONFIRMED",
+          "reason": "Citation exact: PMC10725808 is Section 6, 'Glycemic Goals and Hypoglycemia: Standards of Care in Diabetes-2024', Diabetes Care 47(Suppl. 1):S111-S125. Danger quote verbatim: 'Recurrent level 2 hypoglycemia and/or level 3 hypoglycemia is an urgent medical issue and requires intervention with medical treatment plan adjustment...'. The level 3 definition matches the symptom label exactly: 'a severe event characterized by altered mental and/or physical functioning that requires assistance from another person for recovery, irrespective of glucose level.' The proposer's caveat about the 2026 rename was honest and I confirmed it is true.",
+          "correction": "Update the citation — it is September 2026 and the 2024 edition is superseded. The current text is Section 6, 'Glycemic Goals, Hypoglycemia, and Hyperglycemic Crises: Standards of Care in Diabetes-2026', Diabetes Care 2026;49(Suppl. 1):S132-S149, DOI 10.2337/dc26-S006. The 'urgent medical issue' sentence survives in 2026 with one wording change ('treatment plan adjustment' rather than 'medical treatment plan adjustment'), so the substance stands. Note also that the 2026 edition folds hyperglycaemic crises into this same section, which is now the ADA's own current home for the DKA/HHS content that items 1-5 cite to the 2024 consensus report."
+        },
+        {
+          "code": "foot_ulcer_or_open_wound",
+          "status": "CONFIRMED",
+          "reason": "The aens.us URL is live and serves the genuine article — its first page reads '12. Retinopathy, Neuropathy, and Foot Care: Standards of Care in Diabetes-2024, Diabetes Care 2024;47(Suppl. 1):S231-S243'. Page range and DOI as cited. The danger quote is verbatim: 'Individuals with any open ulceration or unexplained swelling, erythema, or increased skin temperature should be referred urgently to a foot care specialist or interprofessional team.' The parallel WHO claim also checks out — its urgent same-day list includes 'infected foot ulcer with or without symptoms of systemic infection; gangrene'. Amber is the right tier.",
+          "correction": "Update to the current edition: Diabetes Care 2026;49(Suppl. 1):S261-S276, DOI 10.2337/dc26-S012. I fetched the 2026 text and the quoted sentence appears word-for-word, so the proposer's hedge was correct. One nuance to fix in whyItMatters: WHO refers urgently on an INFECTED ulcer or gangrene, not on the presence of any ulcer alone — WHO's plain-ulcer guidance is 'Patients with a foot ulcer should be referred to a more specialized level' when local capability is lacking. It is ADA, not WHO, that makes any open ulceration urgent."
+        },
+        {
+          "code": "foot_infection_spreading_or_gangrene",
+          "status": "CONFIRMED",
+          "reason": "Both quotes verified in the retrieved PDFs. IWGDF 2023 Practical Guidelines, section 4.2.1, verbatim: 'Infection of the foot in a person with diabetes presents an immediate threat to the affected foot and limb.' It continues 'prompt treatment is required' and 'hospitalization may be necessary', supporting the admission claim. The WHO danger quote is verbatim and complete: 'Urgent referral to acute services is recommended for patients with any of the following: infected ulcer; spreading infection; critical limb ischaemia; gangrene; suspicion of acute Charcot arthropathy; unexplained red swollen foot.' Red is justified by the guidelines' own words.",
+          "correction": "Provenance is split across two documents — the 'standard' field names IWGDF while the danger quote is WHO. Both are real and each is correctly URL-labelled, but the UI should show which sentence came from which. The IWGDF document is correctly identified as the 2023 update (Schaper, van Netten, Apelqvist et al.)."
+        },
+        {
+          "code": "red_hot_swollen_foot",
+          "status": "CONFIRMED",
+          "reason": "This is the best-matched item in the set. IWGDF 2023 section 5 states verbatim: 'In any person with diabetes mellitus and with a red, hot, swollen foot, the diagnosis of active CNO should be considered.' The ADA danger quote is verbatim and, critically, ADA attaches it to precisely this presentation — 'individuals with neuropathy who present with a warm, swollen, red foot with or without a history of trauma and without an open ulceration ... These individuals require total non-weight-bearing and urgent referral to a foot care specialist for further management.' That makes open_ulcer_present a genuinely decision-changing property rather than description. IWGDF corroborates immediate offloading: 'the affected extremity should be offloaded and immobilized ... Treatment should start once the diagnosis is considered.'",
+          "correction": "Update the ADA citation to Diabetes Care 2026;49(Suppl. 1):S261-S276 — I fetched the 2026 text and the sentence is unchanged. The 2026 edition adds a new sentence worth capturing: 'Foot and ankle X-rays should be performed in all individuals presenting with the above clinical findings.' As with item 9, the 'standard' field names IWGDF while the danger quote is ADA; label both."
+        },
+        {
+          "code": "critical_limb_ischaemia",
+          "status": "CONFIRMED",
+          "reason": "The danger quote is verbatim from WHO's urgent same-day list, which does include 'critical limb ischaemia'. Amber correctly matches WHO's same-day tier. IWGDF does support urgent vascular action, recommending 'consider urgent vascular imaging ... and revascularisation' for ankle pressure <50 mmHg or ABI <0.4, which validates the ankle_brachial_index property.",
+          "correction": "Two overstatements against IWGDF. First, whyItMatters says 'IWGDF is explicit that an ischaemic foot will not heal without restoring perfusion' — IWGDF's actual sentence is materially weaker: 'Ischemia in the lower-extremity affects healing potential of a foot ulcer', and its recommendations say to 'consider' revascularisation, including after 'an ulcer fails to show signs of healing within 4-6 weeks'. Do not harden hedged guideline language into an absolute. Second, the phrase 'critical limb ischaemia' does not appear anywhere in the IWGDF 2023 Practical Guidelines — it is WHO's term. Since the 'standard' field credits IWGDF, correct that attribution."
+        },
+        {
+          "code": "recent_vision_deterioration",
+          "status": "CONFIRMED",
+          "reason": "Fully verified with nothing to refute. The quote is verbatim from the retrieved WHO urgent same-day referral list: 'recent deterioration of vision'. Amber matches WHO's tier exactly. whyItMatters correctly identifies that WHO's criterion turns on recent CHANGE, not on blurred vision as such — WHO lists plain 'blurring of vision' among ordinary diabetes symptoms in Table 2 and does not refer on it, which is precisely the distinction the proposer drew. The time_course property is therefore what carries the decision, not padding.",
+          "correction": ""
+        },
+        {
+          "code": "chest_pain_in_diabetes",
+          "status": "OVERSTATED_DANGER",
+          "reason": "The sources are real and the quotes verbatim, but the red tier is a promotion the guidelines do not make for undifferentiated chest pain. PEN-H's triage table attaches its emergency classification to ACUTE CORONARY SYNDROME, whose listed presenting feature is 'Severe chest pain / May have sweating, and/or nausea' — the qualifier 'severe' plus associated features is what makes it emergency #1 of the 'handful (about 8)'. WHO HEARTS-D's criterion is 'symptoms/signs of coronary heart disease and stroke' and it sits in the URGENT (SAME DAY) list, which this proposal maps to amber everywhere else (items 6, 8, 11, 12). So the same WHO tier has been rendered amber for vision and limb ischaemia but red for chest pain. Neither guideline says that any chest pain in any person with diabetes needs treatment within minutes. Chest pain is also common and often non-cardiac, so a red on the bare symptom is exactly the cry-wolf pattern that gets an alert ignored.",
+          "correction": "Either narrow the symptom to match the source — 'Severe chest pain, or chest pain with sweating or nausea' — and keep red, citing PEN-H's ACS row; or keep the broad label and set amber against WHO's same-day criterion 'symptoms/signs of coronary heart disease and stroke'. Do not keep a broad label at red. The associated_features property should then be what escalates amber to red, which also gives that property a real job. Note too that PEN-H carries no stated publication year, as the proposer correctly flagged; it is by the International Rescue Committee, prepared by Shanthi Mendis, USAID-supported."
+        },
+        {
+          "code": "focal_neurological_deficit",
+          "status": "CONFIRMED",
+          "reason": "Verified in full against PEN-H Table 3.1, which lists STROKE as emergency NCD condition #4 with presenting features 'Difficulty in speech / Weakness of one side of body' and signs 'Altered state of consciousness / Difficulty with speech / Weakness or paralysis of limbs / If unconscious, may have secretions obstructing airway'. The symptom label tracks that wording, and the airway claim in whyItMatters is verbatim from the source rather than inferred — unlike the chest pain item, PEN-H attaches no severity qualifier here, so red is the guideline's own tier. 'Treat immediately and refer immediately' and 'Emergency conditions need immediate treatment within minutes' are both verbatim. WHO's same-day list independently includes 'symptoms/signs of coronary heart disease and stroke'. The blood_glucose_checked property is well motivated since hypoglycaemia mimics stroke.",
+          "correction": "Only a citation refinement: the PEN-H quote 'Treat immediately and refer immediately' comes from the triage overview column header for Emergency NCD conditions, and 'Emergency conditions need immediate treatment within minutes' from the narrative a few lines later. They are two separate sentences joined by an ellipsis; keep them distinct so the quote is not read as one continuous statement."
+        }
+      ]
     },
     {
       "domain": "Diabetes mellitus — how hyperglycaemia and complication symptoms should be CHARACTERISED (onset, pattern, precipitants), and which pertinent NEGATIVES change a decision. Sourced for a decision-support tool used internationally, including resource-limited settings.",
@@ -4742,7 +4990,254 @@
         "Cardiovascular symptoms (chest pain, breathlessness) and the phenomenon of silent myocardial ischaemia in diabetes are not covered here; the crises consensus names myocardial infarction only as a DKA precipitant. A cardiovascular symptom set needs its own sourcing pass.",
         "Unit handling: mg/dL and mmol/L figures are reproduced exactly as the guidelines state them. I did not independently recompute any conversion, and the tool must not display a converted value that no source stated."
       ],
-      "audit": null
+      "audit": [
+        {
+          "code": "polyuria",
+          "status": "CONFIRMED",
+          "reason": "PMC11635041 is genuinely '2. Diagnosis and Classification of Diabetes: Standards of Care in Diabetes—2025', Diabetes Care 48(Suppl 1):S27–S49, as claimed. Table 2.1 verbatim: 'In an individual with classic symptoms of hyperglycemia or hyperglycemic crisis, a random plasma glucose ≥200 mg/dL (≥11.1 mmol/L).' Classic symptoms verbatim: 'polyuria, polydipsia, and unexplained weight loss'. Rec 2.1b verbatim: 'In the absence of unequivocal hyperglycemia (e.g., hyperglycemic crises), diagnosis requires confirmatory testing.' The decision named is real and correctly attributed.",
+          "correction": "Two fixes. (1) The proposer's 'a second abnormal test is required' invites a return-visit UI. ADA's footnote is narrower: 'diagnosis requires two abnormal results from different tests which may be obtained at the same time (e.g., A1C and FPG), or the same test at two different time points.' A same-visit A1C satisfies it — important where follow-up is unreliable. (2) The props onset_speed and duration have no decision attached in Section 2. onset_speed is defensible but from a different source (PMC11343900: DKA 'hours to a few days', HHS 'days or weeks'); duration is unjustified — drop it or cite it. Also cite the current edition: PMC12690183 (2026, Diabetes Care 49 Suppl 1) carries word-for-word identical language."
+        },
+        {
+          "code": "polydipsia",
+          "status": "NOT_IN_SOURCE",
+          "reason": "Half confirmed, half unsupported. The triad membership is verbatim in the cited Section 2. But the second decision — 'whether the patient can still drink enough to replace osmotic losses decides between oral rehydration and immediate intravenous fluids' — is in neither cited nor adjacent source. ADA Section 2 is a diagnosis-and-classification document containing no fluid recommendations at all. I grepped the 2024 hyperglycaemic crises report (PMC11343900) for 'oral rehydration', 'oral fluid' and 'drink': zero hits in 137k characters. That report treats DKA and HHS with intravenous fluids throughout ('The management of DKA and HHS includes the administration of intravenous fluids, insulin and electrolytes'). The prop oral_intake_maintained is one of only two props and rests entirely on this unsourced claim.",
+          "correction": "The rationale is clinically defensible but cited to the wrong document. It is quotable from ADA Standards of Care 2026 Section 6 (PMC12690178), which does contemplate outpatient management of mild DKA with 'noncaloric hydration' and subcutaneous insulin, and states: 'individuals should seek immediate medical attention if they are unable to tolerate oral hydration, they experience ongoing emesis, blood glucose levels and/or ketone levels do not improve with insulin administration, altered mental status is present, or any signs of worsening illness occur.' Re-cite oral_intake_maintained there, or delete it."
+        },
+        {
+          "code": "polyphagia",
+          "status": "CONFIRMED",
+          "reason": "NBK242 verbatim: 'Symptoms of new onset or poor control of diabetes include polyuria, polydipsia, polyphagia, weight loss, fatigue, and vaginal Candida infections.' The chapter is genuinely Clinical Methods 3rd ed., Ch. 136 'Diabetes Mellitus'. The operative decision — keep polyphagia out of the set that satisfies ADA's single-random-glucose rule — is directly supported, since ADA's classic list is only polyuria, polydipsia and unexplained weight loss. This is a good safety-motivated separation.",
+          "correction": "One sentence of the rationale is contradicted by the proposer's own other source. 'Eating more while losing weight... pushes toward type 1 / ketosis-prone disease' is not in NBK242 and is undercut by ADA Section 2, which names the useful type 1 discriminators as 'younger age at diagnosis (<35 years) with lower BMI (<25 kg/m2), unintentional weight loss, ketoacidosis, and plasma glucose >360 mg/dL' — polyphagia is absent — and then says explicitly: 'Other features classically associated with type 1 diabetes, such as ketosis without acidosis, osmotic symptoms, family history, or a history of autoimmune diseases, are weak discriminators.' Drop the type-1 claim; keep the field. Chapter author is Mark E. Molitch; Walker/Hall/Hurst are the book editors."
+        },
+        {
+          "code": "unexplained_weight_loss",
+          "status": "CONFIRMED",
+          "reason": "Verbatim in the cited Section 2: 'The features most useful in determination of type 1 diabetes include younger age at diagnosis (<35 years) with lower BMI (<25 kg/m2), unintentional weight loss, ketoacidosis, and plasma glucose >360 mg/dL (>20 mmol/L) at presentation.' It is also verbatim a member of the classic triad. Both halves of the attribution hold.",
+          "correction": "'Its presence tips the immediate decision toward starting insulin rather than an oral agent' is not stated in Section 2 — that is Section 9 (Pharmacologic Approaches) territory and needs its own citation. Note also ADA's Fig. 2.1 caveat that would govern this field: 'No single clinical feature confirms type 1 diabetes in isolation,' and the flowchart is 'based on data from White European populations' — a material limitation for a Ugandan deployment. The props amount, period and evidence_type have no threshold anywhere in the source; they are reasonable but are the proposer's design choice, not the guideline's."
+        },
+        {
+          "code": "fatigue",
+          "status": "CONFIRMED",
+          "reason": "Verbatim in NBK242's symptom list. Independently corroborated by the 4 Ts page I fetched (diabetes.org.uk), which gives 'Tired — feeling more tired than usual'. The whyItMatters is a negative design decision — block fatigue from satisfying the classic-symptom rule — and that is exactly what ADA Section 2 supports, since fatigue is absent from its classic list. Correctly given no props and no dangerSign.",
+          "correction": "None. This is the right way to carry a nonspecific symptom: recorded, but explicitly barred from a diagnostic shortcut."
+        },
+        {
+          "code": "blurred_vision",
+          "status": "CONFIRMED",
+          "reason": "Present in the cited source, though not where a naive reader would look — it is in the complications history, not the new-onset symptom list. NBK242 verbatim: 'A more recent blurring of vision may simply indicate lens swelling and poor control.' The proposer's decision (fluctuating osmotic blurring reverses with control, so do not refer urgently or issue new spectacles) is directly supported by that sentence.",
+          "correction": "The proposer under-read their own source and dropped a genuine urgency trigger sitting in the same paragraph: 'Sudden loss of vision is of more concern and indicates need for rapid ophthalmologic consultation. A sudden loss of vision may result from hemorrhage, a retinal detachment, or vascular disease.' The 'pattern' prop should carry a sudden-loss branch with a red dangerSign — this is one place where the guideline itself does demand urgent action and the form is silent. Also NBK242 attributes slow gradual visual decline to cataract, not to maculopathy as the whyItMatters implies."
+        },
+        {
+          "code": "genital_or_skin_candidiasis",
+          "status": "NOT_IN_SOURCE",
+          "reason": "The field is broader than the source will carry. NBK242 contains exactly one relevant string — 'vaginal Candida infections' — in the new-onset symptom list. I grepped the full chapter text: 'pruritus' 0 hits, 'thrush' 0 hits, no 'skin candidiasis', no 'generalised itch', no 'recurrent', no 'refractory'. The stated decision — that recurrent or treatment-resistant genital candidiasis should prompt a glucose check at that same visit — appears nowhere in NBK242; the chapter merely lists vaginal candidiasis as a symptom of new onset or poor control. The pruritus arm traces only to the emc.id '5 Ps' page, which is a 2019 hospital patient-education article, not a guideline.",
+          "correction": "Narrow the field to 'genital candidiasis' and cite NBK242 for that alone, or find a real guideline for the recurrent/refractory→test-glucose rule and cite it. Delete the pruritus and skin-candidiasis arms, or move them to unverifiable — a hospital marketing page is not an acceptable basis for a clinical field. The recurrent_or_refractory prop currently has no source behind it."
+        },
+        {
+          "code": "nausea_vomiting",
+          "status": "CONFIRMED",
+          "reason": "PMC11343900 is genuinely the ADA/EASD/JBDS/AACE/DTS consensus report (endorsement by all five verified in the footnotes; Umpierrez et al., 2024). Verbatim: 'Nausea, vomiting and abdominal pain are common in DKA (>50%) but are uncommon in HHS.' The DKA-versus-HHS steering decision is exactly what the source supports.",
+          "correction": "Two issues, both fixable. (1) The fluid clause — 'vomiting is what makes oral rehydration impossible against ongoing osmotic loss, forcing intravenous fluids' — is not in this report, which gives IV fluids in DKA and HHS regardless of vomiting; as written it implies a non-vomiting crisis patient might be managed orally, which is wrong. (2) This symptom is under-flagged, not over-flagged: ADA SoC 2026 Section 6 names 'unable to tolerate oral hydration' and 'ongoing emesis' among the states for which 'individuals should seek immediate medical attention'. That is a guideline-worded urgency trigger, so an amber dangerSign on can_keep_fluids_down=no is justified and is missing."
+        },
+        {
+          "code": "abdominal_pain",
+          "status": "CONFIRMED",
+          "reason": "The dangerSign quote is verbatim and correctly attributed: 'Further clinical evaluation is necessary if this complaint is not resolved with the resolution of dehydration and metabolic acidosis.' The immediately preceding sentence also independently justifies the severe_acidosis_present prop: 'Caution is needed with patients who present with abdominal pain because the symptoms could be either a result of the DKA or an indication of a precipitating cause of DKA, particularly in the absence of severe metabolic acidosis.' Amber is the correct calibration — the guideline's own register is 'caution is needed' and 'further clinical evaluation is necessary', not emergency. This is the model the other danger signs should follow.",
+          "correction": "None on substance. Worth noting the prop severe_acidosis_present inverts the guideline's logic in a useful way and should be labelled so the clinician understands that ABSENCE of severe acidosis raises, not lowers, suspicion of a surgical or septic cause."
+        },
+        {
+          "code": "altered_mental_status",
+          "status": "CONFIRMED",
+          "reason": "Two independent verbatim supports in the cited report: 'Changes in cognitive state are usually present in patients with severe DKA and HHS' and 'The severity of DKA is classified as mild, moderate or severe based on the magnitude of metabolic acidosis (blood pH, serum bicarbonate and ketone levels) and the presence of altered mental status... This categorisation may be clinically useful for guiding the location where an individual is assigned to receive care (e.g., emergency department, intensive care unit [ICU] or step-down unit).' That directly licenses the claimed decision about monitoring level and ward suitability.",
+          "correction": "'Airway plan' is not in the source — remove or source it. Carry the report's own hedge into the UI: 'not all variables need to be fulfilled to be defined as either mild, moderate or severe, and the admission site and level of care are ultimately a clinical decision.' And like nausea/vomiting, this is under-flagged: ADA SoC 2026 Section 6 lists 'altered mental status is present' among the triggers to 'seek immediate medical attention'. A red dangerSign here would be guideline-backed, and its absence is a bigger safety gap than any over-flagging in this set."
+        },
+        {
+          "code": "kussmaul_breathing",
+          "status": "NOT_IN_SOURCE",
+          "reason": "The description is verbatim — 'The respiratory compensation for metabolic acidosis found in DKA is manifest by Kussmaul breathing, which consists of deep breaths with a fruity odour smell because of the presence of acetone (a breakdown product of the ketone acetoacetic acid) in the breath' — but the load-bearing rationale is not. The report nowhere proposes Kussmaul breathing as a discriminator usable where labs are unavailable. The only resource-limited-setting statement in the entire document is about a different test: 'Although the anion gap is not recommended as a first-line diagnostic or resolution criterion for these reasons, it may still have some utility in resource settings where ketone measurement is unavailable.' The proposer appears to have transplanted that concession onto Kussmaul breathing.",
+          "correction": "This is the most consequential inference in the set given the stated deployment. The report requires hyperglycaemia (or known diabetes) PLUS elevated ketones PLUS metabolic acidosis for DKA, and recommends direct β-hydroxybutyrate measurement. Kussmaul breathing must not be allowed to route a patient onto the DKA protocol by itself. Rewrite whyItMatters to the sourced claim — it is a bedside sign of metabolic acidosis that raises suspicion and should prompt ketone and acid-base testing — and, if you want a resource-limited fallback, cite the anion-gap sentence for the anion gap, which is what it actually says."
+        },
+        {
+          "code": "prior_dka_episodes",
+          "status": "NOT_IN_SOURCE",
+          "reason": "The URL resolves and PMC10725809 is correctly identified as ADA SoC 2024 Section 4. But the specific claim — that ADA Table 4.1 requires DKA frequency, severity and cause to be recorded — cannot be verified from that page and could not have been read there. Table 4.1 is published as bitmap images in every PMC rendering (the 2023 sibling PMC9810472 exposes the filenames dc23S004t1a.jpg / dc23S004t1b.jpg); grepping the full 169k-character text of PMC10725809 for 'frequency, severity' returns zero hits, and 'ketoacidosis' appears only in the COVID-19 narrative and reference list. diabetesjournals.org returns HTTP 403. Two targeted web searches failed to surface any quotable rendering of the table. This reads as reconstruction from memory presented as fetched:true.",
+          "correction": "The decision is sound and there is a current, quotable source for it — just not this one. ADA SoC 2026 Section 6 (PMC12690178) states verbatim: 'A substantial proportion of individuals hospitalized with DKA experience recurrent episodes, which underscores the importance of engaging individuals experiencing these events to identify triggers and prevent recurrence. Structured diabetes self-management education and support that includes problem-solving is effective at reducing DKA admissions, as are psychological interventions, peer support, individual coaching, and behavioral family systems therapy,' and 'those with recurrent DKA often require extensive multisystemic behavioral interventions.' Separately, 'most often insulin omission for cost or supply' overstates: PMC11343900 attributes omission to 'psychological and socioeconomic factors' generally, and its regional Table 1 shows omission ranging 13.3% (Indonesia) to 59.6% (USA), with infection leading in most non-US regions — including Nigeria (32.5% infection vs 27.5% omission), the closest proxy in the table to the Ugandan setting."
+        },
+        {
+          "code": "peripheral_neuropathic_symptoms",
+          "status": "CONFIRMED",
+          "reason": "Verbatim in cited Section 12: 'The most common early symptoms are induced by the involvement of small fibers and include pain and dysesthesia (unpleasant sensations of burning and tingling). The involvement of large fibers may cause numbness and loss of protective sensation (LOPS).' Rec 12.26 verbatim requires assessing 'current symptoms of neuropathy (pain, burning, numbness)'. The annual 10-g monofilament pathway is confirmed, as is the alternative_cause_exposure prop: 'Diabetic neuropathy is a diagnosis of exclusion. Nondiabetic neuropathies may be present in people with diabetes and may be treatable.' The quality-selects-the-pathway claim is exactly the source's own structure.",
+          "correction": "Two refinements. The pain_rating prop has no basis in Section 12 — ADA's escalation logic is impact-based, not intensity-based (see neuropathic_pain_impact). And ADA requires the monofilament 'along with at least one other neurological assessment tool' — small-fibre: pinprick and temperature; large-fibre: vibration and lower-extremity reflexes — with 'absent monofilament sensation and one other abnormal test' confirming LOPS. The field should encode the pairing, not the monofilament alone."
+        },
+        {
+          "code": "neuropathic_pain_impact",
+          "status": "CONFIRMED",
+          "reason": "Verbatim in cited Section 12: 'Neuropathic pain can be severe and can impact quality of life, limit mobility, and contribute to depression and social dysfunction.' Attribution to Section 12 of the 2024 edition is correct. Separating impact from mere presence is a legitimate design decision.",
+          "correction": "ADA does not say that impact rather than intensity is what justifies pharmacotherapy — that inversion is the proposer's. What Section 12 actually says is: 'No compelling evidence exists in support of glycemic or lifestyle management as therapies for neuropathic pain in diabetes or prediabetes, which leaves only pharmaceutical interventions.' Restate the rationale as: pharmacotherapy is the only available modality, and the impact domains are what a treatment decision and a mood assessment are weighed against. The mood-assessment link is a reasonable inference from 'contribute to depression', not a stated recommendation."
+        },
+        {
+          "code": "foot_ulcer_or_inflammation",
+          "status": "CONFIRMED",
+          "reason": "The red dangerSign is fully earned — the guideline uses the word 'urgently' itself. Verbatim: 'Individuals with any open ulceration or unexplained swelling, erythema, or increased skin temperature should be referred urgently to a foot care specialist or interprofessional team.' The field wording maps one-to-one onto the guideline's own trigger list. No promotion of an ordinary symptom here.",
+          "correction": "The quoted snippet is truncated in a way that matters for this deployment: the guideline says 'a foot care specialist or interprofessional team'. In a Ugandan district hospital with no podiatrist, the second limb is the actionable one and should survive into the UI text. Also worth carrying: ADA places these individuals in the moderate-to-high risk category requiring 'ongoing preventive care and lifelong surveillance', so the referral is not a one-off event."
+        },
+        {
+          "code": "charcot_presentation",
+          "status": "CONFIRMED",
+          "reason": "Both the antecedent and the action are verbatim in the cited Section 12: 'Special consideration should be given to individuals with neuropathy who present with a warm, swollen, red foot with or without a history of trauma and without an open ulceration. These individuals require a thorough workup for possible Charcot neuroarthropathy... These individuals require total non–weight-bearing and urgent referral to a foot care specialist for further management.' The known_neuropathy and trauma_history props are both drawn from the guideline's own sentence, and the offloading-not-antibiotics framing matches ADA's emphasis on 'preventing deformities and instability that can lead to ulceration and amputation'. Red is correct and the language persists into the 2026 edition (Diabetes Care 49 Suppl 1:S261–S276).",
+          "correction": "The field drops a discriminator ADA builds into the trigger: 'without an open ulceration'. As written, foot_ulcer_or_inflammation and charcot_presentation both fire red on the same warm, swollen, red foot, which is duplicated alerting on one finding — the thing the cry-wolf concern is about. Add the no-open-ulcer condition. Also missing a concrete action the guideline states: 'Foot and ankle X-rays should be performed in all individuals presenting with the above clinical findings.'"
+        },
+        {
+          "code": "claudication_and_leg_symptoms",
+          "status": "CONFIRMED",
+          "reason": "Rec 12.27 verbatim, including the unusual phrase the proposer paraphrased: 'Individuals with a history of leg fatigue, claudication, and rest pain relieved with dependency or decreased or absent pedal pulses should be referred for ankle-brachial index with toe pressures and for further vascular assessment as appropriate.' Restated in the body text as 'Initial screening for PAD should include a history of leg fatigue, claudication, and rest pain relieved with dependency.' The symptom set is ADA's own, verbatim, not assembled.",
+          "correction": "'ADA's trigger for ankle-brachial index measurement' slightly misstates the action. ADA says refer for 'ankle-brachial index with toe pressures', then warns: ABIs 'should be interpreted carefully, as they are known to be inaccurate in people with diabetes due to noncompressible vessels. Toe systolic blood pressure tends to be more accurate. Toe systolic blood pressures <30 mmHg are suggestive of PAD and an inability to heal foot ulcerations.' A tool that sends a clinician to a bare ABI will produce falsely reassuring results in exactly this population."
+        },
+        {
+          "code": "orthostatic_dizziness_or_syncope",
+          "status": "CONFIRMED",
+          "reason": "Rec 12.19 verbatim: 'Screening can include asking about orthostatic dizziness, syncope, or dry cracked skin in the extremities. Signs of autonomic neuropathy include orthostatic hypotension, a resting tachycardia, or evidence of peripheral dryness or cracking of skin.' It is literally ADA's named screening question, as claimed. The trigger and syncope props both come from the guideline's own wording.",
+          "correction": "The downstream decisions are cited to the wrong section. Section 12's stated actions are further autonomic testing 'if symptoms are present' and CAN treatment 'generally focused on alleviating symptoms' — it says nothing about antihypertensive or diuretic prescribing. The falls limb is sourceable but to Section 4 (PMC10725809), which lists 'Peripheral and autonomic neuropathy' as a diabetes-specific fracture risk factor in Table 4.5 and recommends at 4.12: 'Prioritize use of glucose-lowering medications that are associated with low risk for hypoglycemia to avoid falls.' Split the citation rather than loading it all onto Section 12. Also carry ADA's definition so the follow-up measurement is done right: orthostatic hypotension is 'a fall in systolic or diastolic blood pressure by >20 mmHg or >10 mmHg, respectively, upon standing without an appropriate increase in heart rate'."
+        },
+        {
+          "code": "dry_cracked_skin_extremities",
+          "status": "CONFIRMED",
+          "reason": "Doubly confirmed in the cited Section 12: named as a screening question in Rec 12.19 ('asking about orthostatic dizziness, syncope, or dry cracked skin in the extremities'), named again as a sign ('evidence of peripheral dryness or cracking of skin'), and the mechanism is named in the body text ('sudomotor dysfunction with either increased or decreased sweating'). The emollient action is also sourced: 'Initial treatment recommendations should include daily foot inspection, use of moisturizers for dry, scaly skin, and avoidance of self-care of ingrown nails and calluses.' A no-props field with a real decision behind it — correctly restrained.",
+          "correction": "'Cracked skin is a portal for the foot infection that the whole foot pathway exists to prevent' is the proposer's mechanism, not ADA's wording; ADA simply prescribes moisturizers. Keep the field, soften the claim."
+        },
+        {
+          "code": "gastroparesis_symptoms",
+          "status": "NOT_IN_SOURCE",
+          "reason": "Gastroparesis is confirmed as a named autonomic manifestation, and the guideline does give one decision: 'Gastroparesis should be suspected in individuals with erratic glycemic management or with upper gastrointestinal symptoms without another identified cause.' But the whyItMatters asserts something the source does not contain — that it 'changes the timing of prandial insulin rather than its dose'. I grepped Section 12 for 'prandial': zero hits. 'Glycemic variability': zero hits. Nor is the specific symptom list (early satiety, bloating, vomiting of undigested food) enumerated anywhere in Section 12; ADA says only 'upper gastrointestinal symptoms'.",
+          "correction": "An unsourced insulin-timing instruction in a tool that touches prescribing is the wrong kind of error to leave in. ADA's actual next steps are exclusion first, then testing: 'Exclusion of reversible/iatrogenic causes such as medications or organic causes of gastric outlet obstruction or peptic ulcer disease (with esophagogastroduodenoscopy or a barium study of the stomach) is needed before considering a diagnosis of or specialized testing for gastroparesis,' with scintigraphy the gold standard. Rewrite the decision as suspect-and-exclude, and either source the insulin-timing claim to Section 9 or drop it. Note the causal arrow also runs the way ADA states it: erratic glycemia is the clue that prompts suspicion of gastroparesis."
+        },
+        {
+          "code": "bowel_symptoms",
+          "status": "NOT_IN_SOURCE",
+          "reason": "The manifestations are verbatim ('Major clinical manifestations of diabetic autonomic neuropathy include resting tachycardia, orthostatic hypotension, gastroparesis, constipation, diarrhea, fecal incontinence, erectile dysfunction, neurogenic bladder, and sudomotor dysfunction'), but the stated payoff is contradicted by the cited section itself. The proposer says identifying these 'flags the patient as autonomically involved — which is the reason to go looking for orthostatic hypotension and hypoglycaemia unawareness'. Section 12 states the opposite about the second one, verbatim: 'Impaired counterregulatory responses to hypoglycemia in type 1 and type 2 diabetes can lead to hypoglycemia unawareness but are not directly linked to autonomic neuropathy.' The other claim — that this 'stops autonomic diarrhoea being treated repeatedly as infection' — appears nowhere in Section 12.",
+          "correction": "Delete the hypoglycaemia-unawareness link from this field and from erectile_or_sexual_dysfunction; the cited guideline explicitly disclaims it, and propagating it would make the tool hunt for unawareness on the wrong trigger while missing it on the right one (insulin/sulfonylurea exposure and prior level 2/3 events, per Section 6). What survives is thin: bowel symptoms are named manifestations and Section 12 lists constipation and diarrhoea among the autonomic screening questions. If that is the whole decision, say so plainly rather than inventing a downstream."
+        },
+        {
+          "code": "erectile_or_sexual_dysfunction",
+          "status": "NOT_IN_SOURCE",
+          "reason": "Erectile dysfunction is confirmed as a named manifestation, and Section 12 adds 'Diabetic autonomic neuropathy may also cause genitourinary disturbances, including sexual dysfunction and bladder dysfunction' plus female sexual dysfunction detail. But the field's entire justification is the same link Section 12 denies: 'Impaired counterregulatory responses to hypoglycemia... are not directly linked to autonomic neuropathy.' Strip that away and what remains — 'a named autonomic manifestation that is essentially never volunteered' — is data collection for its own sake. Section 12 prescribes no action for erectile dysfunction; it is a list entry.",
+          "correction": "Either give this field a decision with its own fetched source, or drop it. ADA Section 12 will not supply one. The 'never volunteered, so ask directly' argument is a good reason to ask a question, but it is not a decision the answer changes, which is the bar this exercise set. Do not backfill with the ED-as-cardiovascular-marker argument unless you actually fetch a source for it."
+        },
+        {
+          "code": "bladder_symptoms",
+          "status": "CONFIRMED",
+          "reason": "This one has a genuine, explicit action in the cited section, verbatim: 'Evaluation of bladder function should be performed for individuals with diabetes who have recurrent urinary tract infections, pyelonephritis, incontinence, or a palpable bladder.' Neurogenic bladder is confirmed as a named manifestation, and the symptom set is given: 'Lower urinary tract symptoms manifest as urinary incontinence and bladder dysfunction (nocturia, frequent urination, urination urgency, and weak urinary stream).' Independently corroborated by NBK242: 'There are several varieties of bladder neuropathy, and an early sign may be recurrent urinary tract infections secondary to failure of complete bladder emptying.'",
+          "correction": "Minor wording only. 'Straining' is the proposer's term; ADA's is 'weak urinary stream'. The claim that this field prevents non-osmotic frequency being miscounted as a classic symptom is the proposer's own design reasoning rather than ADA's — but it is sound, and it is the kind of cross-field interlock this form needs more of, so keep it and label it as design logic rather than guideline text."
+        },
+        {
+          "code": "hypoglycaemia_episode",
+          "status": "CONFIRMED",
+          "reason": "PMC10725808 is genuinely ADA SoC 2024 Section 6, and the four props map prop-for-prop onto one sentence: 'Hypoglycemia history should be assessed at every clinical encounter and should include hypoglycemic event frequency, severity, precipitants, symptoms (or lack thereof), and approach to treatment.' Rec 6.11a verbatim: 'History of hypoglycemia should be reviewed at every clinical encounter for all individuals at risk for hypoglycemia and evaluated as indicated.' The level prop is backed by Table 6.4 (Level 1 <70 and ≥54 mg/dL; Level 2 <54 mg/dL; Level 3 'a severe event characterized by altered mental and/or physical status requiring assistance'). The treatment-change decision is explicit: 'Level 2 or 3 hypoglycemic events especially should trigger a reevaluation of the individual's diabetes treatment plan, with consideration of deintensification of therapy.' Best-sourced field in the set.",
+          "correction": "Only a currency note. Section 6 was restructured for 2026 into 'Glycemic Goals, Hypoglycemia, and Hyperglycemic Crises' (PMC12690178, Diabetes Care 49 Suppl 1:S132) and now also carries the DKA/HHS material this form cites to the 2024 consensus report. Re-pin to the 2026 section so hypoglycaemia and crisis content share one current citation."
+        },
+        {
+          "code": "impaired_hypoglycaemia_awareness",
+          "status": "CONFIRMED",
+          "reason": "Rec 6.11b verbatim: 'Clinicians should screen all individuals at risk for hypoglycemia for impaired hypoglycemia awareness.' The definition and the ask-specifically rationale are both sourced: 'Individuals at risk for hypoglycemia should also be screened for impaired hypoglycemia awareness (also called hypoglycemia unawareness or hypoglycemia-associated autonomic failure) at least yearly. Impaired hypoglycemia awareness is defined as not experiencing the typical counterregulatory hormone release at low glucose levels or the associated symptoms.' The target-relaxation decision is sourced: 'individuals with one or more episodes of clinically significant hypoglycemia may benefit from at least short-term relaxation of glycemic goals.' Both props are supported — the lows_without_symptoms prop maps onto 'If an individual has level 2 hypoglycemia without adrenergic or neuroglycopenic symptoms, they likely have impaired hypoglycemia awareness.'",
+          "correction": "Two edits. 'Changes driving and occupational advice' overreaches: Section 6 lists 'avoidance of driving with hypoglycemia' as standard education for everyone at risk, not as a consequence of impaired awareness specifically, and 'occupational' appears nowhere. And the proposer omits ADA's most concrete action, which is reversible: 'Individuals with impaired awareness of hypoglycemia benefit from, and should be referred to, training programs that can reestablish awareness of hypoglycemia,' plus 'several weeks of avoidance of hypoglycemia can improve counterregulation and hypoglycemia awareness.' A form that only relaxes the target and never triggers the referral loses the treatable half."
+        },
+        {
+          "code": "intercurrent_illness",
+          "status": "CONFIRMED",
+          "reason": "Verbatim in the cited report: 'Worldwide, infection is the most common precipitating factor for DKA, occurring in 14–58% of cases,' and for the other crisis: 'Infection is the major precipitating factor in 30–60% of patients with HHS, with urinary tract infections and pneumonia being the most common.' The decision — that naming the source is the treatable half, since insulin and fluids alone will not fix it — is directly supported by the report's own framing of treatment as including 'identification and treatment of the precipitating cause'.",
+          "correction": "None on substance. The features prop would be more useful pointed at what the guideline names: urinary tract infection and pneumonia are the two specific sources it calls out for both DKA and HHS, so those deserve to be first-class options rather than free text."
+        },
+        {
+          "code": "treatment_omission",
+          "status": "CONFIRMED",
+          "reason": "Verbatim: 'The omission of insulin therapy, often in the setting of psychological and socioeconomic factors, is a major cause of DKA, particularly among adults with type 1 diabetes living in socioeconomically deprived areas,' and the cited study finding 'discontinuation of insulin therapy to account for more than two-thirds of all DKA admissions'. The lead paragraph independently names 'the omission of insulin therapy' alongside infection as the most frequent cause. The reason prop is well justified by the report's own attribution to psychological and socioeconomic factors, and the decision — that this precipitant is corrected by supply and support rather than drugs — is the right one to encode.",
+          "correction": "Do not let the form rank omission above infection by default in this deployment. The report's regional Table 1 shows insulin omission from 13.3% (Indonesia) to 59.6% (USA); in Nigeria, the only sub-Saharan row, infection leads at 32.5% versus omission 27.5%. Both fields should be presented with equal prominence and both asked, since the report's whole point is that the precipitant must be identified rather than assumed."
+        },
+        {
+          "code": "new_or_changed_drug",
+          "status": "CONFIRMED",
+          "reason": "Both named drug actions are verbatim in the cited report. SGLT2 inhibitors: 'SGLT2 inhibitors should be stopped on admission,' and 'May present with near-normal glucose concentrations or euglycaemic DKA (glucose <11.1 mmol/l [200 mg/dl]).' Glucocorticoids: 'Glucocorticoids may precipitate acute and sustained hyperglycaemia by countering insulin action.' The report also names antipsychotics ('may also raise DKA risk') and checkpoint inhibitors ('Approximately 1–2% of patients receiving checkpoint inhibitors develop new-onset autoimmune diabetes'), and for HHS lists 'corticosteroids, sympathomimetic agents and antipsychotic drugs'. The drug_class prop is well founded.",
+          "correction": "'Anticipatory dose change rather than reactive correction' for glucocorticoids is the proposer's inference — the report says only that they precipitate 'acute and sustained' hyperglycaemia. More importantly the field omits the report's other explicit SGLT2 action, which is the one that prevents a treatment error: 'In euglycaemic DKA, 5–10% dextrose should be added to intravenous fluid or started at the same time as the 0.9% sodium chloride.' Add antipsychotics and sympathomimetics to drug_class; both are named."
+        },
+        {
+          "code": "pn_classic_symptoms_denied",
+          "status": "CONFIRMED",
+          "reason": "The strongest item in the set, and correctly identified as such. Rec 2.1b verbatim: 'In the absence of unequivocal hyperglycemia (e.g., hyperglycemic crises), diagnosis requires confirmatory testing.' Body text verbatim: 'Unless there is a clear clinical diagnosis (e.g., individual with classic symptoms of hyperglycemia or hyperglycemic crisis and random plasma glucose ≥200 mg/dL [≥11.1 mmol/L]), confirmation is necessary to establish the diagnosis.' Recording the denial genuinely does change whether one reading can label someone diabetic for life. Identical wording persists in the 2026 edition.",
+          "correction": "Two precision fixes so the negative does not itself mislead. (1) The confirmation ADA requires is 'two abnormal results from different tests which may be obtained at the same time (e.g., A1C and FPG), or the same test at two different time points' — not necessarily a second visit; a same-encounter A1C closes it, which matters where patients do not return. (2) ADA's exemption is classic symptoms OR hyperglycaemic crisis, so this pertinent negative must be suppressed when the patient is in DKA or HHS, or the form will demand confirmatory testing in a crisis."
+        },
+        {
+          "code": "pn_no_vomiting_or_abdominal_pain",
+          "status": "CONFIRMED",
+          "reason": "Verbatim: 'Nausea, vomiting and abdominal pain are common in DKA (>50%) but are uncommon in HHS.' The claimed shift toward HHS is exactly the inference the sentence licenses, and the proposer's own guard rail — that it does not exclude DKA and must never be allowed to skip a ketone measurement — is correct and matches the report's diagnostic criteria, which require elevated ketones and metabolic acidosis rather than any symptom pattern. This is a well-constructed negative: it carries its own limit.",
+          "correction": "None. Note only that the report also names 'change in cognitive state' among features shared by both conditions ('Both conditions may present with polyuria, polydipsia, weight loss, vomiting, dehydration and change in cognitive state'), so the HHS shift rests on the GI cluster specifically, as written."
+        },
+        {
+          "code": "pn_glucose_not_markedly_raised",
+          "status": "CONFIRMED",
+          "reason": "All three figures are verbatim in the cited report. 'Approximately 10% of patients with DKA present with euglycaemic DKA, which is defined as plasma glucose levels <11.1 mmol/l (200 mg/dl) in the presence of ketosis and metabolic acidosis criteria of DKA.' And: 'in one series, 35% of people treated with SGLT2 inhibitors presenting with DKA had glucose levels <11.1 mmol/l (200 mg/dl), and in another series, 71% of people treated with SGLT2 inhibitors presenting with DKA had glucose levels ≤13.9 mmol/l (250 mg/dl).' The pairing of sglt2_in_use with a non-raised glucose is precisely the report's own safety point, reinforced by its statement that SGLT2 inhibitor use 'has accounted for the majority of cases of euglycaemic DKA'.",
+          "correction": "Two thresholds, not one: the 35% series used <200 mg/dL and the 71% series used ≤250 mg/dL, and 'below the usual thresholds' blurs them — quote both numbers with their own cut-offs or the figures will not survive scrutiny. Also the prop set is too narrow for the deployment: the report lists euglycaemic DKA causes as 'exogenous insulin injection, reduced food intake, pregnancy, or impaired gluconeogenesis due to alcohol use, liver failure and/or SGLT2 inhibitor therapy'. In a setting with fasting, undernutrition and pregnancy, gating this negative on SGLT2 use alone will miss most of the euglycaemic cases actually encountered."
+        },
+        {
+          "code": "pn_no_neuropathic_symptoms",
+          "status": "CONFIRMED",
+          "reason": "Verbatim in the cited Section 12: 'Up to 50% of diabetic peripheral neuropathy may be asymptomatic. If not recognized and if preventive foot care is not implemented, people with diabetes are at risk for injuries as well as diabetic foot ulcers (DFUs) and amputations.' The examination requirement is equally explicit: annual assessment for all with type 2 diabetes and type 1 duration ≥5 years, using 'the 10-g monofilament along with at least one other neurological assessment tool', with 'absent monofilament sensation and one other abnormal test' confirming LOPS. The negative is designed to be overridden, which is the right construction.",
+          "correction": "None. Name the second test in the examination_still_done prop so it cannot be satisfied by a monofilament alone — ADA's options are pinprick and temperature for small fibre, vibration and lower-extremity reflexes for large fibre."
+        },
+        {
+          "code": "pn_vision_normal",
+          "status": "CONFIRMED",
+          "reason": "Verbatim in the cited Section 12: 'The preventive effects of therapy and the fact that individuals with any level of diabetic retinopathy or macular edema may be asymptomatic provide strong support for screening to detect diabetic retinopathy,' followed by 'timely intervention that may prevent vision loss in individuals who are asymptomatic despite advanced diabetic eye disease.' The claim that the negative must not cancel or defer retinal screening is precisely what the source argues.",
+          "correction": "None on substance. Pair this with the blurred_vision field so the two do not conflict: a patient reporting fluctuating osmotic blurring is not 'vision normal', and one reporting sudden loss needs the rapid ophthalmology route from NBK242 rather than routine screening."
+        },
+        {
+          "code": "pn_no_hypoglycaemia",
+          "status": "CONFIRMED",
+          "reason": "The 'symptoms (or lack thereof)' phrasing the proposer leans on is verbatim: 'Hypoglycemia history should be assessed at every clinical encounter and should include hypoglycemic event frequency, severity, precipitants, symptoms (or lack thereof), and approach to treatment.' Rec 6.11a confirms the every-encounter requirement. The distinction the proposer draws between a documented absence and an empty field is a legitimate and useful one.",
+          "correction": "'A documented absence of episodes is what justifies tightening a glycaemic target' is not a stated ADA recommendation — it is the mirror image of Fig. 6.2's individualisation factors and of Rec 6.7 ('Less stringent glycemic goals may be appropriate for individuals with limited life expectancy or where the harms of treatment are greater than the benefits'). Present it as design logic, not as guideline text. The monitoring_available prop is well chosen and arguably load-bearing here: ADA's caution that individuals may 'tolerate hypoglycemia without treatment either because of lack of symptoms' means an absence of episodes reported without any glucose monitoring is close to worthless."
+        },
+        {
+          "code": "pn_insulin_not_omitted",
+          "status": "CONFIRMED",
+          "reason": "Supported by the cited report's precipitant framework: omission is named in the lead as one of the two 'most frequent causes' alongside infection, the body text calls it 'a major cause of DKA', and treatment is defined to include 'identification and treatment of the precipitating cause'. Explicitly excluding omission does redirect that search, and documenting supply rather than assuming adherence is the right instinct for a setting where interruption is often economic.",
+          "correction": "The report contains no explicit recommendation to document the exclusion of omission — that step is the proposer's construction from the precipitant framework, and should be labelled as such rather than implied to be a guideline requirement. Also make supply_verified genuinely verifiable: the report attributes omission to 'psychological and socioeconomic factors', so a yes recorded without checking actual insulin possession, cold-chain and cost is the same failure mode as an unchecked hypoglycaemia field."
+        },
+        {
+          "code": "mnemonic_5ps",
+          "status": "CONFIRMED",
+          "reason": "The page exists and the expansion is genuinely on it, quoted accurately: 'Polyuria (urinating a lot), Polydipsia (drinking a lot), Polyphagia (eating a lot), Weight loss for no apparent reason, Pruritus (itchy rash)'. fetched:true is honest. But the source is a hospital patient-education article by Dr. Apriliana Adhyaksari at EMC Hospital Tangerang, published 7 November 2019 — not a guideline, not peer-reviewed, and not a standard any clinician would recognise as authoritative.",
+          "correction": "Move to unverifiable as a clinical claim, or keep it explicitly labelled as a teaching mnemonic with no guideline standing. This matters beyond the mnemonic list: emc.id is the only source anywhere in this submission for the pruritus arm of genital_or_skin_candidiasis, which is currently mis-attributed to NBK242. A single hospital blog post should not be load-bearing for a field in a tool used on patients."
+        },
+        {
+          "code": "mnemonic_3ps",
+          "status": "NOT_IN_SOURCE",
+          "reason": "Correctly self-declared fetched:false, so no verified claim is being made. I did not fetch healthline.com either; a consumer health site would not be an acceptable clinical source in any case. The proposer's handling is honest and the item is properly routed to unverifiable.",
+          "correction": "Leave in unverifiable. If the 3 Ps are wanted in the interface, note that polyuria and polydipsia are ADA classic symptoms while polyphagia is not — the same trap flagged under polyphagia — so the mnemonic as a unit must never be wired to the single-random-glucose rule."
+        },
+        {
+          "code": "mnemonic_3ws",
+          "status": "NOT_IN_SOURCE",
+          "reason": "Explicitly reported as 'NOT SOURCED — no expansion could be verified', with fetched:false and no URL. This is the correct behaviour: an unverifiable mnemonic was left unexpanded rather than reconstructed from memory. Nothing to refute.",
+          "correction": "None. Keep it absent from the interface rather than filling it in later from recall."
+        },
+        {
+          "code": "mnemonic_4ts",
+          "status": "CONFIRMED",
+          "reason": "I fetched the URL independently: the page exists and all four expansions are verbatim as quoted — Toilet: 'going to the toilet a lot, bed-wetting by a previously dry child or heavier nappies in babies'; Thirsty: 'being really thirsty and not being able to quench the thirst'; Tired: 'feeling more tired than usual'; Thinner: 'losing weight or looking thinner than usual'. Diabetes UK is the campaign's originator, so this is the primary source rather than a repetition of it. No reconstruction from memory.",
+          "correction": "Scope note for the interface: the 4 Ts is a type 1 awareness campaign aimed at children, and its wording is paediatric (bed-wetting, nappies). Three of the four map onto ADA's classic symptoms; 'Tired' does not, and must not be allowed to satisfy the single-random-glucose rule — consistent with how the fatigue field was correctly constructed."
+        },
+        {
+          "code": "mnemonic_aabbcc",
+          "status": "CONFIRMED",
+          "reason": "Verbatim in the fetched Section 2 and independently reconfirmed by me in the 2026 edition (PMC12690183): 'Age (e.g., for individuals <35 years old, consider type 1 diabetes); Autoimmunity (e.g., personal or family history of autoimmune disease or polyglandular autoimmune syndromes); Body habitus (e.g., BMI <25 kg/m2); Background (e.g., family history of type 1 diabetes); Control (preferred term is \"goal,\" i.e., the inability to achieve glycemic goals on noninsulin therapies); and Comorbidities (e.g., treatment with immune checkpoint inhibitors for cancer can cause acute autoimmune type 1 diabetes).' Every letter including the checkpoint-inhibitor example is genuinely in the source — this is a real reading, not a reconstruction.",
+          "correction": "Three caveats the proposer dropped, all material for this deployment. ADA's 2026 text opens with 'Although not prospectively validated, the AABBCC approach is a useful tool'. Fig. 2.1 states 'No single clinical feature confirms type 1 diabetes in isolation.' And the accompanying flowchart is explicitly 'based on data from White European populations' — a BMI <25 threshold and an age <35 cut-off derived from that population should not be presented unqualified in a Ugandan hospital, particularly given the same section's finding that 'over half of Black/African American and Hispanic/Latino adults with newly diagnosed diabetes presenting with unprovoked DKA have type 2 diabetes'. Also keep ADA's own note that 'goal' is its preferred term over 'Control'."
+        },
+        {
+          "code": "ada_classic_symptoms",
+          "status": "CONFIRMED",
+          "reason": "Verbatim and correctly characterised as the phrase the diagnostic rule turns on. Section 2 (2025): 'random glucose accompanied by classic hyperglycemic symptoms (e.g., polyuria, polydipsia, and unexplained weight loss) or hyperglycemic crises (i.e., diabetic ketoacidosis [DKA] and/or hyperglycemic hyperosmolar state [HHS])'. Identical in the 2026 edition. Confirming the negative too: I grepped the full Section 2 text for polyphagia, fatigue, blurred vision, pruritus and candidiasis — zero hits for all five, which is exactly what makes the polyphagia and fatigue exclusions defensible rather than arbitrary.",
+          "correction": "Note the ADA formula is symptoms OR crisis — the crisis limb is as much a licence for single-test diagnosis as the symptom limb, and the form should treat a DKA/HHS presentation as satisfying it independently of any symptom checkboxes."
+        }
+      ]
     }
   ]
 }

@@ -56,13 +56,6 @@ const IDF_T1 = c({
   url: "https://idf.org/about-diabetes/type-1-diabetes/",
 });
 
-const IDF_T2 = c({
-  standard: "IDF",
-  version: "IDF type 2 diabetes symptom list",
-  title: "Type 2 diabetes — International Diabetes Federation",
-  url: "https://idf.org/about-diabetes/type-2-diabetes/",
-});
-
 /** The 4Ts — the one mnemonic in this space with a real, citable source. */
 const DIABETES_UK_4TS = c({
   standard: "local",
@@ -79,24 +72,6 @@ const CRISES_2024 = c({
   title: "Hyperglycemic Crises in Adults With Diabetes: A Consensus Report",
   url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC11272983/",
   quote: "If DKA or HHS is suspected, initial samples should be taken",
-});
-
-/**
- * Reasoning that is OURS, not a guideline's.
- *
- * The audit rejected several rationales that read as guideline positions but
- * were not in the cited page — WHO does not distinguish fluctuating from sudden
- * visual loss, Diabetes UK does not say recurrent thrush should prompt a glucose
- * test, IDF does not say a non-healing wound mandates a foot examination at that
- * visit. Each is defensible clinical reasoning and none of it is sourced, so it
- * says so rather than borrowing authority from a page that does not carry it.
- */
-const OUR_REASONING = c({
-  standard: "local",
-  version: "MedSync clinical reasoning",
-  title: "Not a guideline position — implementation reasoning, unratified",
-  needsCsoInput:
-    "Clinically defensible but not stated by the cited sources (audit finding). CSO to ratify or supply a citation.",
 });
 
 /* ── shared option sets ──────────────────────────────────────────────────── */
@@ -247,10 +222,10 @@ export const SYMPTOM_FEATURES: Feature[] = [
 
   {
     /**
-     * On its own this changes nothing — it is among the least specific symptoms
-     * in medicine. It is here because WHO and IDF both list it, and because it
-     * is one of the Diabetes UK 4Ts, so its value is combinatorial rather than
-     * standalone.
+     * Deliberately propertyless. Its entire value is being RECORDED and being
+     * BLOCKED from the diagnostic gate: it is one of the Diabetes UK 4Ts and is
+     * listed by WHO and IDF, but it is not one of ADA's three classic symptoms,
+     * so it must never help a single random glucose reach a diagnosis.
      */
     code: "fatigue",
     display: "Unusual tiredness",
@@ -259,156 +234,6 @@ export const SYMPTOM_FEATURES: Feature[] = [
     section: "symptoms",
     citation: WHO_FACTSHEET,
   },
-  prop("fatigue", {
-    code: "fatigue_onset",
-    display: "Onset",
-    valueType: "single_select",
-    options: [
-      { value: "new_weeks", display: "New, over weeks" },
-      { value: "months", display: "Over months" },
-      { value: "longstanding", display: "Longstanding" },
-    ],
-  }),
-
-  {
-    /**
-     * WHO and IDF both list blurred vision, and that is ALL they do — neither
-     * distinguishes fluctuating osmotic blurring from sudden loss, and neither
-     * addresses referral timing (audit finding). The triage distinction below is
-     * our reasoning and is cited as such.
-     */
-    code: "blurred_vision",
-    display: "Blurred vision",
-    kind: "symptom",
-    valueType: "boolean",
-    section: "symptoms",
-    citation: WHO_FACTSHEET,
-  },
-  prop("blurred_vision", {
-    code: "vision_pattern",
-    display: "Pattern",
-    valueType: "single_select",
-    citation: OUR_REASONING,
-    options: [
-      { value: "fluctuating", display: "Fluctuates with glucose" },
-      { value: "progressive", display: "Progressive" },
-      { value: "sudden_loss", display: "Sudden loss" },
-    ],
-  }),
-  prop("blurred_vision", {
-    code: "vision_laterality",
-    display: "Which eye",
-    valueType: "single_select",
-    options: [
-      { value: "both", display: "Both" },
-      { value: "one", display: "One" },
-    ],
-  }),
-
-  /* ── infections that should prompt a glucose test ─────────────────────── */
-  {
-    /**
-     * Diabetes UK lists this among the symptoms beyond the 4Ts, and that is what
-     * is sourced. That recurrent or treatment-resistant thrush should prompt a
-     * glucose rather than another antifungal is OUR inference (audit finding) —
-     * defensible, unsourced, and marked as such on the property below.
-     */
-    code: "genital_itching_or_thrush",
-    display: "Genital itching or thrush",
-    kind: "symptom",
-    valueType: "boolean",
-    section: "symptoms",
-    citation: DIABETES_UK_4TS,
-  },
-  prop("genital_itching_or_thrush", {
-    code: "thrush_recurrent_or_resistant",
-    display: "Recurrent or not responding to treatment",
-    valueType: "boolean",
-    citation: OUR_REASONING,
-  }),
-
-  {
-    code: "recurrent_skin_infections",
-    display: "Repeated skin infections (boils, abscesses)",
-    kind: "symptom",
-    valueType: "boolean",
-    section: "symptoms",
-    citation: IDF_T2,
-  },
-
-  {
-    /**
-     * IDF and Diabetes UK both list the symptom; NEITHER says the feet must be
-     * examined at that visit (audit finding). The `suggests` link therefore does
-     * what it is designed to do and no more — it raises the priority of foot
-     * screening without asserting anything.
-     */
-    code: "slow_healing_wounds",
-    display: "Wounds that heal slowly",
-    kind: "symptom",
-    valueType: "boolean",
-    section: "symptoms",
-    suggests: ["diabetic_foot"],
-    citation: IDF_T2,
-  },
-  prop("slow_healing_wounds", {
-    code: "wound_site_is_foot",
-    display: "On the foot",
-    valueType: "boolean",
-    citation: IDF_T2,
-  }),
-  prop("slow_healing_wounds", {
-    code: "wound_infection_features",
-    display: "Features of infection",
-    valueType: "multi_select",
-    citation: IDF_T2,
-    options: [
-      { value: "spreading_redness", display: "Spreading redness" },
-      { value: "pus", display: "Pus" },
-      { value: "foul_smell", display: "Foul smell" },
-      { value: "fever", display: "Fever" },
-      { value: "black_tissue", display: "Black tissue" },
-      { value: "none", display: "None" },
-    ],
-  }),
-
-  {
-    /**
-     * IDF supports the inference that people may go undiagnosed for years before
-     * complications appear. It does NOT say the visit must add a foot risk
-     * assessment (audit finding), so that stays a prompt rather than an
-     * instruction.
-     */
-    code: "tingling_or_numbness",
-    display: "Tingling or numbness in the hands or feet",
-    kind: "symptom",
-    valueType: "boolean",
-    section: "symptoms",
-    suggests: ["diabetic_foot"],
-    citation: IDF_T2,
-  },
-  prop("tingling_or_numbness", {
-    code: "sensory_distribution",
-    display: "Distribution",
-    valueType: "single_select",
-    citation: IDF_T2,
-    options: [
-      { value: "feet_only", display: "Feet only" },
-      { value: "hands_and_feet", display: "Hands and feet" },
-      { value: "one_limb_or_patchy", display: "One limb or patchy" },
-    ],
-  }),
-  prop("tingling_or_numbness", {
-    /**
-     * Deliberately what the PATIENT reports. Establishing loss of protective
-     * sensation is a monofilament examination — a different act, and it lives in
-     * the foot section.
-     */
-    code: "sensory_loss_reported",
-    display: "Reduced feeling reported (not an examination)",
-    valueType: "boolean",
-    citation: OUR_REASONING,
-  }),
 
   /* ── the child presentation ──────────────────────────────────────────── */
   {
@@ -477,13 +302,14 @@ export const SYMPTOM_FEATURES: Feature[] = [
     section: "symptoms",
     suggests: ["dka"],
     citation: CRISES_2024,
-    dangerSign: {
-      severity: "red",
-      action:
-        "Suspect a hyperglycaemic crisis and take initial samples now. Also look for a precipitating cause — the consensus warns the pain may be a result of the ketoacidosis OR an indication of what precipitated it.",
-      when: IN_DIABETIC_CONTEXT,
-      citation: CRISES_2024,
-    },
+    /**
+     * NO independent flag, on the audit's second look. The consensus wording
+     * ("further clinical evaluation is necessary if this complaint is not
+     * resolved with the resolution of dehydration and metabolic acidosis") is an
+     * INPATIENT rule about pain persisting after the crisis is treated — not a
+     * clerking flag. It contributes to the crisis picture through the other
+     * features rather than raising an alert of its own.
+     */
   },
   prop("abdominal_pain", {
     code: "abdominal_pain_localised",

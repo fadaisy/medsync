@@ -328,17 +328,53 @@ describe("the diabetes catalog uses the grammar correctly", () => {
     expect(fire({ altered_mental_state: recorded(true) })).toEqual(["altered_mental_state"]);
   });
 
-  it("raises the crisis features as red danger signs, and nothing routine", () => {
-    const danger = DIABETES_CATALOG.features.filter((f) => f.dangerSign);
-    const red = danger.filter((f) => f.dangerSign!.severity === "red").map((f) => f.code);
+  // The gate is the whole design. Claudication is the ordinary presentation of
+  // peripheral arterial disease and fluctuating blur is ordinary hyperglycaemia;
+  // neither is an emergency until the finding says which kind it is.
+  it("waits for the property that separates the emergency from the everyday", () => {
+    const fire = (values: CaptureMap) =>
+      dangerSigns(DIABETES_CATALOG, ncdContext(DIABETES_CATALOG, values, REFERRAL_SITE)).map(
+        (d) => d.feature,
+      );
+
+    expect(fire({ leg_ischaemic_symptoms: recorded(true) })).toEqual([]);
+    expect(
+      fire({ leg_ischaemic_symptoms: recorded(true), leg_pain_character: recorded("on_walking") }),
+    ).toEqual([]);
+    expect(
+      fire({ leg_ischaemic_symptoms: recorded(true), leg_pain_character: recorded("at_rest") }),
+    ).toContain("leg_ischaemic_symptoms");
+
+    expect(fire({ visual_symptoms: recorded(true) })).toEqual([]);
+    expect(
+      fire({ visual_symptoms: recorded(true), visual_pattern: recorded("fluctuating_blurring") }),
+    ).toEqual([]);
+    for (const pattern of ["recent_deterioration", "sudden_loss"]) {
+      expect(
+        fire({ visual_symptoms: recorded(true), visual_pattern: recorded(pattern) }),
+        pattern,
+      ).toContain("visual_symptoms");
+    }
+  });
+
+  it("keeps red for the findings that mean act now, and nothing else", () => {
+    const red = DIABETES_CATALOG.features
+      .filter((f) => f.dangerSign?.severity === "red")
+      .map((f) => f.code);
     expect(red.sort()).toEqual([
-      "abdominal_pain",
       "altered_mental_state",
       "deep_rapid_breathing",
+      "focal_neurological_deficit",
+      "foot_infection_or_gangrene",
+      "hypoglycaemia_requiring_assistance",
       "vomiting",
     ]);
-    // Short enough that every item is taken seriously.
-    expect(danger.length).toBeLessThanOrEqual(6);
+  });
+
+  // A form that flags everything flags nothing.
+  it("flags a small minority of the catalog, and every flag says what to do", () => {
+    const danger = DIABETES_CATALOG.features.filter((f) => f.dangerSign);
+    expect(danger.length / DIABETES_CATALOG.features.length).toBeLessThan(0.15);
     for (const f of danger) expect(f.dangerSign!.action.trim().length, f.code).toBeGreaterThan(20);
   });
 

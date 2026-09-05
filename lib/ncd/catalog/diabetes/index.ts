@@ -16,6 +16,7 @@
  */
 import type { NcdCatalog, SiteProfile } from "@/lib/ncd/catalog/schema";
 
+import { COMPLICATION_SYMPTOM_FEATURES } from "@/lib/ncd/catalog/diabetes/complication-symptoms";
 import { COMPLICATIONS } from "@/lib/ncd/catalog/diabetes/complications";
 import { CLASSIFICATIONS, DIAGNOSIS } from "@/lib/ncd/catalog/diabetes/diagnosis";
 import { CAPABILITIES, FEATURES, SECTIONS } from "@/lib/ncd/catalog/diabetes/features";
@@ -28,7 +29,7 @@ export const DIABETES_CATALOG: NcdCatalog = {
   version: "0.1.0",
   capabilities: CAPABILITIES,
   sections: SECTIONS,
-  features: [...FEATURES, ...SYMPTOM_FEATURES],
+  features: [...FEATURES, ...SYMPTOM_FEATURES, ...COMPLICATION_SYMPTOM_FEATURES],
   diagnosis: DIAGNOSIS,
   classifications: CLASSIFICATIONS,
   complications: COMPLICATIONS,

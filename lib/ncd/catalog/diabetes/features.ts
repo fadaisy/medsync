@@ -80,22 +80,34 @@ export const SECTIONS: CatalogSection[] = [
     description: "Known, suspected, or being evaluated.",
   },
   { id: "symptoms", display: "Symptoms", order: 2 },
-  { id: "glycaemia", display: "Glycaemia", order: 3 },
+  {
+    id: "complication_symptoms",
+    display: "Complication symptoms",
+    order: 3,
+    description: "Diabetes often presents with a complication already established.",
+  },
+  {
+    id: "precipitants",
+    display: "Crisis precipitants",
+    order: 4,
+    description: "What set this off — insulin and fluids alone will not fix it.",
+  },
+  { id: "glycaemia", display: "Glycaemia", order: 5 },
   {
     id: "hba1c_validity",
     display: "HbA1c reliability",
-    order: 4,
+    order: 6,
     description: "Conditions that make HbA1c unsafe to diagnose on.",
   },
   {
     id: "acute",
     display: "Acute assessment",
-    order: 5,
+    order: 7,
     description: "Ketones, acid-base and osmolality.",
   },
-  { id: "kidney", display: "Kidney", order: 6 },
-  { id: "foot", display: "Foot", order: 7 },
-  { id: "history", display: "History", order: 8 },
+  { id: "kidney", display: "Kidney", order: 8 },
+  { id: "foot", display: "Foot", order: 9 },
+  { id: "history", display: "History", order: 10 },
 ];
 
 const KETONE_STRIP = [
