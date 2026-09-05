@@ -206,9 +206,25 @@ describe("entry lists — a recorded dose is documentation, never logic", () => 
     expect(verdicts[0]).toBe("met");
   });
 
+  /**
+   * The assertion this test's own name always described. An empty selection used
+   * to read as `present: not_met` AND `absent: met` — so unticking the last chip
+   * asserted a clinical negative the clinician never made. `absent` is the half
+   * that matters: that is the direction which manufactures evidence.
+   */
   it("an empty selection is not a recorded negative", () => {
-    expect(run({ therapy: recorded([]) }, { feature: "therapy", op: "present" })).toBe("not_met");
-    expect(run({}, { feature: "therapy", op: "present" })).toBe("insufficient");
+    for (const op of ["present", "absent"] as const) {
+      expect(run({ therapy: recorded([]) }, { feature: "therapy", op }), op).toBe("insufficient");
+      expect(run({ therapy: recorded("") }, { feature: "therapy", op }), op).toBe("insufficient");
+      expect(run({}, { feature: "therapy", op }), op).toBe("insufficient");
+    }
+    // A real selection still reads normally in both directions.
+    expect(run({ therapy: recorded(["metformin"]) }, { feature: "therapy", op: "present" })).toBe(
+      "met",
+    );
+    expect(run({ therapy: recorded(["metformin"]) }, { feature: "therapy", op: "absent" })).toBe(
+      "not_met",
+    );
   });
 });
 

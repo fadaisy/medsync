@@ -613,6 +613,25 @@
 
 /* Tactile press for tap-first controls. Composes with existing transition
    classes (it only adds transform). */
+/**
+ * The form grew because of what you just answered.
+ *
+ * Answering a finding conjures properties that did not exist a moment ago. With
+ * no transition they materialise and the rows below jump, which reads as a
+ * glitch rather than as consequence. Opacity only, and on the CONTENTS — the
+ * well's box takes its space instantly, so the rows below move exactly once.
+ * Animating height would be a layout animation, which this system forbids.
+ */
+@utility ncd-reveal {
+  @media (prefers-reduced-motion: no-preference) {
+    opacity: 1;
+    transition: opacity var(--duration-normal) var(--ease-expo-out);
+    @starting-style {
+      opacity: 0;
+    }
+  }
+}
+
 @utility tap {
   @media (prefers-reduced-motion: no-preference) {
     transition-property: transform, background-color, border-color, color, box-shadow;

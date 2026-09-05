@@ -1,16 +1,37 @@
 "use client";
 
-import type { Feature, FeatureOption, NcdCatalog, SiteProfile } from "@/lib/ncd/catalog/schema";
+import type {
+  CatalogGroup,
+  Feature,
+  FeatureOption,
+  NcdCatalog,
+  Predicate,
+  SiteProfile,
+} from "@/lib/ncd/catalog/schema";
 import type {
   CaptureEntry,
   CaptureMap,
   CaptureValue,
   DurationUnit,
+  EvalContext,
 } from "@/lib/ncd/engine/evaluate";
-import { useMemo } from "react";
-import { AlertTriangleIcon, CheckIcon, CircleSlashIcon, RotateCcwIcon } from "lucide-react";
+import { useMemo, useState } from "react";
+import {
+  AlertTriangleIcon,
+  CheckIcon,
+  CircleSlashIcon,
+  PenLineIcon,
+  RotateCcwIcon,
+  XIcon,
+} from "lucide-react";
 
-import { displayCondition, isPerformable } from "@/lib/ncd/catalog/schema";
+import {
+  displayAnyOf,
+  displayPredicates,
+  effectiveGroup,
+  isPerformable,
+  MAX_PROPERTY_DEPTH,
+} from "@/lib/ncd/catalog/schema";
 import { contextOf, evaluatePredicate, isDuration, isEntry } from "@/lib/ncd/engine/evaluate";
 
 /**
@@ -25,10 +46,30 @@ import { contextOf, evaluatePredicate, isDuration, isEntry } from "@/lib/ncd/eng
  * input at all — it is shown as unobtainable, with the capability named, because
  * an input the clinician can never fill is just a reproach.
  *
+ * ── Three registers, because a flat list was unreadable ──────────────────────
+ * A clinician could not tell a finding from a property of one. Indent and a 2%
+ * tint were carrying that entire load across forty rows, and 0.5px of type-size
+ * difference was carrying the rest. So:
+ *
+ *   FINDING   a row on the card: white ground, weight 500, primary tone
+ *   PROPERTY  inside a bordered Muted well headed "About {finding}"
+ *   DEPTH 2   a monospace gutter glyph inside the SAME well, one tone lighter
+ *
+ * The hairline divider now separates FINDINGS ONLY. That is the highest-leverage
+ * line here: a rule means "new question", and its absence means "same question",
+ * where before it said "peer" about every adjacent pair. Nothing was added to
+ * the interface to buy that.
+ *
+ * Depth clamps at two. There are exactly two devices and no third, and a catalog
+ * reaching depth three has a modelling problem the UI must not paper over — so
+ * the validator rejects it where catalogs are authored.
+ *
  * ── Motion, deliberately sparse ──────────────────────────────────────────────
  * Answering a feature happens dozens of times per encounter, so the controls do
  * not animate: 100 ms colour only, and an :active press so the button feels
- * heard. Sections animate on first reveal, once. Nothing here is decorative.
+ * heard. The one exception is a property well's contents, which fade in over
+ * 150 ms — the form grew because of what you just answered, and without that the
+ * new rows read as a glitch. Nothing here is decorative.
  */
 
 const EASE = "transition-colors duration-100 ease-expo-out";
@@ -43,8 +84,66 @@ export interface NcdCaptureProps {
   onChange: (next: CaptureMap) => void;
 }
 
-/** Per-section progress, used by the rail. Unavailable features are excluded
- *  from the denominator — a site is not asked to complete what it cannot do. */
+/** Is this feature askable right now? Same evaluator the clinical rules use. */
+export function isVisible(f: Feature, ctx: EvalContext): boolean {
+  const met = (p: Predicate) => evaluatePredicate(p, ctx).state === "met";
+  const anyOf = displayAnyOf(f);
+  if (anyOf && !anyOf.some(met)) return false;
+  return displayPredicates(f).every(met);
+}
+
+/* ── rows: one finding, then everything hanging off it ───────────────────── */
+
+export interface CaptureRow {
+  feature: Feature;
+  /** 1 for a property, 2 for a property of one. Clamped at MAX_PROPERTY_DEPTH. */
+  depth: number;
+}
+
+export interface CaptureBlock {
+  finding: Feature;
+  properties: CaptureRow[];
+}
+
+/**
+ * Group the visible features into one block per finding.
+ *
+ * Written recursively because the previous flat version emitted a finding and
+ * then only its DIRECT children — so a property of a property was dropped from
+ * the form entirely. Not mis-indented: absent. The question never appeared, the
+ * progress denominator still counted it, and nothing failed, because no test
+ * reached this function. It is exported for that reason.
+ *
+ * A feature whose parent is not visible in this section is treated as a root, so
+ * an orphan still renders rather than vanishing a second way.
+ */
+export function buildBlocks(visible: Feature[]): CaptureBlock[] {
+  const shown = new Set(visible.map((f) => f.code));
+  const childrenOf = new Map<string, Feature[]>();
+  for (const f of visible) {
+    if (!f.parent || !shown.has(f.parent)) continue;
+    const list = childrenOf.get(f.parent) ?? [];
+    list.push(f);
+    childrenOf.set(f.parent, list);
+  }
+
+  const walk = (code: string, depth: number, out: CaptureRow[]) => {
+    for (const child of childrenOf.get(code) ?? []) {
+      out.push({ feature: child, depth: Math.min(depth, MAX_PROPERTY_DEPTH) });
+      walk(child.code, depth + 1, out);
+    }
+  };
+
+  return visible
+    .filter((f) => !f.parent || !shown.has(f.parent))
+    .map((finding) => {
+      const properties: CaptureRow[] = [];
+      walk(finding.code, 1, properties);
+      return { finding, properties };
+    });
+}
+
+/** Per-section progress, used by the rail. */
 export interface SectionProgress {
   id: string;
   display: string;
@@ -65,25 +164,33 @@ export function sectionProgress(
     list.push(f);
     by.set(f.section, list);
   }
+  const ctx = contextOf(catalog.features, values, site);
   return [...catalog.sections]
     .sort((a, b) => a.order - b.order)
     .filter((s) => (by.get(s.id) ?? []).length)
     .map((s) => {
-      const ctx = contextOf(catalog.features, values, site);
       // Conditional fields are not yet askable, so counting them would show a
-      // denominator the clinician cannot reach.
-      const fs = (by.get(s.id) ?? []).filter((f) => {
-        const cond = displayCondition(f);
-        return cond ? evaluatePredicate(cond, ctx).state === "met" : true;
-      });
-      const unavailable = fs.filter((f) => !isPerformable(f, site)).length;
+      // denominator the clinician cannot reach. Off-protocol notes are excluded
+      // outright: a section must not read as unfinished because nobody had a
+      // free-text remark to add, and must not read as finished because they did.
+      const fs = (by.get(s.id) ?? []).filter((f) => !f.offProtocol && isVisible(f, ctx));
+      // Numerator and denominator over the SAME population. Counting `answered`
+      // across every visible feature while subtracting the unavailable ones from
+      // `total` let a site-blocked section show a green tick over unanswered
+      // clinical questions.
+      const askable = fs.filter((f) => isPerformable(f, site));
       return {
         id: s.id,
         display: s.display,
         description: s.description,
-        answered: fs.filter((f) => values[f.code]?.state === "recorded").length,
-        total: fs.length - unavailable,
-        unavailable,
+        // An explicit "could not do it today" is an answered question, not an
+        // outstanding one — which is what the profile card already believed.
+        answered: askable.filter((f) => {
+          const st = values[f.code]?.state;
+          return st === "recorded" || st === "unavailable";
+        }).length,
+        total: askable.length,
+        unavailable: fs.length - askable.length,
       };
     });
 }
@@ -106,37 +213,54 @@ export function NcdCapture({
 }: NcdCaptureProps & { sectionId: string }) {
   const section = catalog.sections.find((s) => s.id === sectionId);
 
+  const featureIndex = useMemo(
+    () => new Map(catalog.features.map((f) => [f.code, f])),
+    [catalog.features],
+  );
+
   /**
-   * Which features are visible right now.
-   *
-   * A property only appears once its finding is present, and a conditional field
-   * only once its condition holds — evaluated by the SAME evaluator the clinical
-   * rules use, so what the form shows and what the engine reasons about can never
-   * drift apart. The effect is that an unasked symptom never spawns a page of
-   * questions about itself.
+   * Which features are visible right now — evaluated by the SAME evaluator the
+   * clinical rules use, so what the form shows and what the engine reasons about
+   * can never drift apart. The effect is that an unasked symptom never spawns a
+   * page of questions about itself.
    */
   const visible = useMemo(() => {
     const ctx = contextOf(catalog.features, values, site);
-    return catalog.features.filter((f) => {
-      if (f.section !== sectionId) return false;
-      const cond = displayCondition(f);
-      return cond ? evaluatePredicate(cond, ctx).state === "met" : true;
-    });
+    return catalog.features.filter(
+      (f) => f.section === sectionId && !f.offProtocol && isVisible(f, ctx),
+    );
   }, [catalog.features, sectionId, values, site]);
 
-  /** Top-level findings, each followed by whichever of its properties are visible. */
-  const rows = useMemo(() => {
-    const shown = new Set(visible.map((f) => f.code));
-    const out: { feature: Feature; depth: number }[] = [];
-    for (const f of visible) {
-      if (f.parent && shown.has(f.parent)) continue; // emitted under its parent
-      out.push({ feature: f, depth: 0 });
-      for (const child of visible) {
-        if (child.parent === f.code) out.push({ feature: child, depth: 1 });
-      }
-    }
-    return out;
-  }, [visible]);
+  /** Findings in group order, each carrying its own properties. */
+  const banded = useMemo(() => {
+    const groups = section?.groups ?? [];
+    const order = new Map(groups.map((g) => [g.id, g.order]));
+    const blocks = buildBlocks(visible).map((b) => ({
+      ...b,
+      group: effectiveGroup(b.finding, featureIndex),
+    }));
+    const byId = new Map(groups.map((g) => [g.id, g]));
+    return blocks
+      .map((b, i) => ({ b, i }))
+      .sort((x, y) => {
+        const ox = order.get(x.b.group ?? "") ?? Number.MAX_SAFE_INTEGER;
+        const oy = order.get(y.b.group ?? "") ?? Number.MAX_SAFE_INTEGER;
+        return ox - oy || x.i - y.i;
+      })
+      .map(({ b }, i, arr) => ({
+        ...b,
+        // A band is drawn where the group CHANGES, so it is a property of the
+        // ordered list rather than of the block — computed here rather than
+        // tracked in a variable the render mutates as it goes.
+        band: b.group && b.group !== arr[i - 1]?.b.group ? byId.get(b.group) : undefined,
+      }));
+  }, [visible, section, featureIndex]);
+
+  /** Off-protocol capture for this section, if the catalog declares any. */
+  const offProtocol = useMemo(
+    () => catalog.features.filter((f) => f.section === sectionId && f.offProtocol),
+    [catalog.features, sectionId],
+  );
 
   const set = (code: string, v: CaptureMap[string]) => {
     const next = { ...values };
@@ -154,23 +278,90 @@ export function NcdCapture({
           {section.display}
         </h3>
         {section.description ? (
-          <p className="text-muted-foreground text-[11.5px]">{section.description}</p>
+          <p className="text-muted-foreground text-caption">{section.description}</p>
         ) : null}
       </header>
 
-      <div className="border-border bg-card divide-border/50 divide-y overflow-hidden rounded-xl border shadow-xs">
-        {rows.map(({ feature, depth }) => (
-          <FeatureRow
-            key={feature.code}
-            feature={feature}
-            site={site}
-            depth={depth}
-            value={values[feature.code]}
-            onSet={(v) => set(feature.code, v)}
-          />
-        ))}
+      {/* One card, banded — not six cards. Elevation is a truth claim, and this
+          is one protocol for one section. The divider now separates findings
+          only, so a rule reliably means "new question". */}
+      <div className="border-border bg-card divide-gray-150 divide-y overflow-hidden rounded-xl border shadow-xs">
+        {banded.map(({ finding, properties, band }) => {
+          return (
+            <div key={finding.code}>
+              {band ? <GroupBand group={band} /> : null}
+              <FeatureRow
+                feature={finding}
+                site={site}
+                depth={0}
+                value={values[finding.code]}
+                onSet={(v) => set(finding.code, v)}
+              />
+              {properties.length ? (
+                <div
+                  role="group"
+                  aria-label={`About ${finding.display}`}
+                  className="border-gray-150 bg-muted mr-3 mb-2 ml-6 rounded-md border"
+                >
+                  <div className="ncd-reveal flex items-baseline gap-1.5 px-2.5 pt-2 pb-1">
+                    <span className={`${OVERLINE} shrink-0`}>About</span>
+                    <span className="text-caption text-muted-foreground min-w-0 truncate">
+                      {finding.display}
+                    </span>
+                  </div>
+                  <div className="ncd-reveal">
+                    {properties.map(({ feature, depth }) => (
+                      <FeatureRow
+                        key={feature.code}
+                        feature={feature}
+                        site={site}
+                        depth={depth}
+                        parentDisplay={
+                          feature.parent ? featureIndex.get(feature.parent)?.display : undefined
+                        }
+                        value={values[feature.code]}
+                        onSet={(v) => set(feature.code, v)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          );
+        })}
       </div>
+
+      {offProtocol.map((f) => (
+        <OffProtocolBlock
+          key={f.code}
+          feature={f}
+          value={values[f.code]}
+          onSet={(v) => set(f.code, v)}
+        />
+      ))}
     </section>
+  );
+}
+
+/**
+ * A landmark, not a rail.
+ *
+ * Sticky answers "where am I", which is orientation. Navigation is the ability
+ * to JUMP, and that stays with the section rail — so this carries no click
+ * target, no aria-current, and deliberately no progress count. A count invites
+ * completion-chasing, completion-chasing wants a jump target, and a second
+ * navigable hierarchy is exactly what a long section must not grow.
+ */
+function GroupBand({ group }: { group: CatalogGroup }) {
+  return (
+    <h4
+      className="bg-muted border-gray-150 sticky top-0 z-10 flex items-center border-y px-3 py-1.5 first:border-t-0"
+      title={group.description}
+    >
+      <span className="text-overline text-gray-500 uppercase dark:text-gray-400">
+        {group.display}
+      </span>
+    </h4>
   );
 }
 
@@ -239,13 +430,15 @@ function FeatureRow({
   value,
   onSet,
   depth = 0,
+  parentDisplay,
 }: {
   feature: Feature;
   site: SiteProfile;
   value: CaptureMap[string];
   onSet: (v: CaptureMap[string]) => void;
-  /** 1 for a property of the finding above it. */
+  /** 0 finding, 1 property, 2 property of a property. */
   depth?: number;
+  parentDisplay?: string;
 }) {
   const performable = isPerformable(feature, site);
   const recorded = value?.state === "recorded" ? value.value : undefined;
@@ -262,37 +455,55 @@ function FeatureRow({
 
   return (
     <div
-      className={`gap-x-3 gap-y-1.5 py-2 pr-3 ${nested ? "bg-muted/25 pl-7" : "pl-3"} ${wide ? "flex flex-col" : "flex flex-wrap items-center"}`}
+      className={`gap-x-3 gap-y-1.5 ${nested ? "px-2.5 py-1.5" : "bg-card px-3 py-2"} ${wide ? "flex flex-col" : "flex flex-wrap items-center"}`}
     >
-      <span className={`flex min-w-0 flex-col ${wide ? "" : "flex-[1_1_11rem]"}`}>
-        <span
-          className={`${nested ? "text-[12px]" : "text-[12.5px]"} ${performable ? "text-foreground" : "text-muted-foreground"} ${feature.dangerSign ? "inline-flex items-center gap-1.5" : ""}`}
-        >
-          {feature.display}
-          {/* Marked before it is answered, so the clinician knows the question
-              carries weight rather than discovering it after the fact. */}
-          {feature.dangerSign ? (
-            <span
-              title={feature.dangerSign.action}
-              className={`inline-flex shrink-0 items-center gap-0.5 rounded px-1 py-px text-[9px] font-medium ${
-                feature.dangerSign.severity === "red"
-                  ? "bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300"
-                  : "bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300"
-              }`}
-            >
-              <AlertTriangleIcon className="size-2.5" aria-hidden />
-              danger sign
+      <span className={`flex min-w-0 items-start gap-1.5 ${wide ? "" : "flex-[1_1_11rem]"}`}>
+        {/* Depth 2 is a glyph in the text column, never a second box: two
+            adjacent 1px borders read as 2px, which the design system forbids. */}
+        {depth >= 2 ? (
+          <span
+            aria-hidden
+            className="text-caption shrink-0 font-mono text-gray-400 select-none dark:text-gray-500"
+          >
+            →
+          </span>
+        ) : null}
+        <span className="flex min-w-0 flex-col">
+          <span
+            className={`text-body-s ${
+              depth === 0
+                ? "text-foreground font-medium"
+                : depth === 1
+                  ? "text-gray-600 dark:text-gray-300"
+                  : "text-gray-500 dark:text-gray-400"
+            } ${!performable ? "text-muted-foreground" : ""} ${feature.dangerSign ? "inline-flex items-center gap-1.5" : ""}`}
+          >
+            {feature.display}
+            {/* Marked before it is answered, so the clinician knows the question
+                carries weight rather than discovering it after the fact. */}
+            {feature.dangerSign ? (
+              <span
+                title={feature.dangerSign.action}
+                className={`inline-flex shrink-0 items-center gap-0.5 rounded px-1 py-px text-[9px] font-medium ${
+                  feature.dangerSign.severity === "red"
+                    ? "bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300"
+                    : "bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300"
+                }`}
+              >
+                <AlertTriangleIcon className="size-2.5" aria-hidden />
+                danger sign
+              </span>
+            ) : null}
+          </span>
+          {feature.unit && feature.valueType !== "duration" ? (
+            <span className="text-muted-foreground font-mono text-[10px]">
+              {feature.unit}
+              {feature.altUnit && typeof recorded === "number"
+                ? ` · ${(recorded * feature.altUnit.factor).toFixed(feature.altUnit.factor > 10 ? 0 : 1)} ${feature.altUnit.unit}`
+                : null}
             </span>
           ) : null}
         </span>
-        {feature.unit && feature.valueType !== "duration" ? (
-          <span className="text-muted-foreground font-mono text-[10px]">
-            {feature.unit}
-            {feature.altUnit && typeof recorded === "number"
-              ? ` · ${(recorded * feature.altUnit.factor).toFixed(feature.altUnit.factor > 10 ? 0 : 1)} ${feature.altUnit.unit}`
-              : null}
-          </span>
-        ) : null}
       </span>
 
       {!performable ? (
@@ -306,7 +517,12 @@ function FeatureRow({
         <span
           className={`flex min-w-0 items-center gap-1.5 ${wide ? "w-full" : "ml-auto flex-wrap justify-end"}`}
         >
-          <ValueEditor feature={feature} value={value} onSet={onSet} />
+          <ValueEditor
+            feature={feature}
+            value={value}
+            onSet={onSet}
+            labelSuffix={depth >= 2 && parentDisplay ? parentDisplay : undefined}
+          />
           {value ? (
             <button
               type="button"
@@ -341,9 +557,20 @@ function FeatureRow({
   );
 }
 
-/* ── value editors, one per valueType ────────────────────────────────────── */
-
-function ValueEditor({
+/**
+ * Off-protocol capture: outside the card, unfilled, dashed, never brand.
+ *
+ * The distinction is a patient-safety property, not a stylistic one. Brand
+ * indigo is what an engine-recognised selection looks like everywhere else on
+ * this surface, so the absence of the accent IS the signal — and it has to hold
+ * in every state, because an input that lit up on focus would, for that moment,
+ * look exactly like a value the engine had accepted.
+ *
+ * The affordances that are missing are missing on purpose. No danger-sign chip:
+ * there is no citation. No `n/a`: "unavailable" is a claim about a site's
+ * capability, and there is no capability for a symptom nobody defined.
+ */
+function OffProtocolBlock({
   feature,
   value,
   onSet,
@@ -352,12 +579,88 @@ function ValueEditor({
   value: CaptureMap[string];
   onSet: (v: CaptureMap[string]) => void;
 }) {
+  const [draft, setDraft] = useState("");
+  const items = value?.state === "recorded" && Array.isArray(value.value) ? value.value : [];
+  const list = items.map(String);
+
+  const commit = (next: string[]) =>
+    next.length ? onSet({ state: "recorded", value: next }) : onSet(undefined);
+
+  const add = () => {
+    const t = draft.trim();
+    if (!t || list.includes(t)) return setDraft("");
+    commit([...list, t]);
+    setDraft("");
+  };
+
+  return (
+    <div className="border-border mt-3 rounded-xl border border-dashed bg-transparent px-3 py-2.5">
+      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+        <span className={OVERLINE}>Not in the protocol</span>
+        <span className="text-caption text-muted-foreground">
+          Recorded in the notes. The engine does not read these — they raise no flag and change no
+          verdict.
+        </span>
+      </div>
+
+      {list.map((t) => (
+        <div key={t} className="flex items-start gap-2 py-1.5">
+          <PenLineIcon
+            className="mt-0.5 size-3.5 shrink-0 text-gray-400 dark:text-gray-500"
+            aria-hidden
+          />
+          <span className="text-body-s min-w-0 flex-1 text-gray-600 dark:text-gray-300">{t}</span>
+          <button
+            type="button"
+            onClick={() => commit(list.filter((x) => x !== t))}
+            aria-label={`Remove ${t}`}
+            className={`tap text-muted-foreground hover:text-foreground rounded p-1 ${EASE} ${TAP}`}
+          >
+            <XIcon className="size-3" aria-hidden />
+          </button>
+        </div>
+      ))}
+
+      <input
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={add}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") {
+            e.preventDefault();
+            add();
+          }
+        }}
+        placeholder={feature.display}
+        aria-label={feature.display}
+        className="text-body-s text-muted-foreground focus-visible:text-foreground w-full bg-transparent py-1.5 outline-none placeholder:text-gray-400"
+      />
+    </div>
+  );
+}
+
+/* ── value editors, one per valueType ────────────────────────────────────── */
+
+function ValueEditor({
+  feature,
+  value,
+  onSet,
+  labelSuffix,
+}: {
+  feature: Feature;
+  value: CaptureMap[string];
+  onSet: (v: CaptureMap[string]) => void;
+  /** Carries the true parent into the accessible name where depth is clamped. */
+  labelSuffix?: string;
+}) {
   const current = value?.state === "recorded" ? value.value : undefined;
   const put = (v: CaptureValue) => onSet({ state: "recorded", value: v });
+  const label = labelSuffix ? `${feature.display} — ${labelSuffix}` : feature.display;
 
   if (feature.valueType === "boolean") {
     return (
       <Segmented
+        label={label}
         options={[
           { value: "yes", display: "Yes" },
           { value: "no", display: "No" },
@@ -454,7 +757,11 @@ function ValueEditor({
     const note = chosen && !chosen.noDetail ? (chosen.detail ?? feature.optionDetail) : undefined;
 
     return (
-      <span className="flex flex-wrap items-center justify-end gap-1">
+      <span
+        role={multi ? "group" : undefined}
+        aria-label={multi ? label : undefined}
+        className="flex flex-wrap items-center justify-end gap-1"
+      >
         {(feature.options ?? []).map((o) => (
           <Chip
             key={o.value}
@@ -468,7 +775,11 @@ function ValueEditor({
               const next = new Set(selected);
               if (next.has(o.value)) next.delete(o.value);
               else next.add(o.value);
-              put([...next]);
+              // Unticking the last option is NOT a recorded negative. An empty
+              // array satisfies `absent`, so leaving it recorded would manufacture
+              // the very absence-of-evidence claim the engine exists to refuse.
+              const list = [...next];
+              return list.length ? put(list) : onSet(undefined);
             }}
           />
         ))}
@@ -496,7 +807,7 @@ function ValueEditor({
           inputMode="decimal"
           value={d ? String(d.value) : ""}
           placeholder="—"
-          aria-label={feature.display}
+          aria-label={label}
           onChange={(e) => {
             const raw = e.target.value;
             if (raw === "") return onSet(undefined);
@@ -509,7 +820,7 @@ function ValueEditor({
           }`}
         />
         <select
-          aria-label={`${feature.display} — unit`}
+          aria-label={`${label} — unit`}
           value={unit}
           onChange={(e) => put({ value: d?.value ?? 0, unit: e.target.value as DurationUnit })}
           className="border-input bg-card text-foreground/85 ease-expo-out focus-visible:border-brand-500 rounded-md border px-1.5 py-1 text-[11.5px] transition-[border-color] duration-100 outline-none"
@@ -529,7 +840,7 @@ function ValueEditor({
       inputMode={feature.valueType === "number" ? "decimal" : "text"}
       value={current == null ? "" : String(current)}
       placeholder="—"
-      aria-label={feature.display}
+      aria-label={label}
       onChange={(e) => {
         const raw = e.target.value;
         if (raw === "") return onSet(undefined);
@@ -542,9 +853,11 @@ function ValueEditor({
         }
         put(raw);
       }}
-      className={`border-input bg-card ease-expo-out focus-visible:border-brand-500 focus-visible:ring-brand-500/25 w-[6.5rem] rounded-md border px-2 py-1 text-right font-mono text-[12px] tabular-nums transition-[border-color,box-shadow] duration-100 outline-none focus-visible:ring-2 ${
-        current != null ? "text-foreground" : "text-muted-foreground"
-      }`}
+      className={`border-input bg-card ease-expo-out focus-visible:border-brand-500 focus-visible:ring-brand-500/25 rounded-md border px-2 py-1 transition-[border-color,box-shadow] duration-100 outline-none focus-visible:ring-2 ${
+        feature.valueType === "number"
+          ? "w-[6.5rem] text-right font-mono text-[12px] tabular-nums"
+          : "text-body-s w-full min-w-[8rem] flex-1"
+      } ${current != null ? "text-foreground" : "text-muted-foreground"}`}
     />
   );
 }
@@ -554,14 +867,20 @@ function Segmented({
   active,
   onPick,
   tone,
+  label,
 }: {
   options: FeatureOption[];
   active?: string;
   onPick: (v: string) => void;
   tone: "teal" | "slate";
+  label?: string;
 }) {
   return (
-    <span className="border-border inline-flex overflow-hidden rounded-md border">
+    <span
+      role="group"
+      aria-label={label}
+      className="border-border inline-flex overflow-hidden rounded-md border"
+    >
       {options.map((o) => {
         const on = active === o.value;
         return (

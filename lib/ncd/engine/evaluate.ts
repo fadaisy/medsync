@@ -157,6 +157,13 @@ export function evaluatePredicate(p: Predicate, ctx: EvalContext): PredicateResu
   // never let a typo read as a satisfied criterion.
   if (!feature) return { predicate: p, state: "insufficient" };
 
+  // Off-protocol capture is the clinician's own words, not a modelled finding.
+  // The validator rejects any criterion naming one, so reaching here is already a
+  // bug — fail closed rather than let free text decide a clinical verdict. Never
+  // `not_met`: that would make `absent` read as a recorded negative, which is the
+  // absence-of-evidence collapse this whole module exists to prevent.
+  if (feature.offProtocol) return { predicate: p, state: "insufficient" };
+
   if (!assessed || assessed.state !== "recorded") {
     // Distinguish "not done yet" from "cannot be done here". An explicit
     // `unavailable` capture wins; otherwise infer from the site profile.
@@ -182,9 +189,18 @@ export function evaluatePredicate(p: Predicate, ctx: EvalContext): PredicateResu
 
   switch (p.op) {
     case "present":
-      return hit(isPositive(v));
-    case "absent":
-      return hit(!isPositive(v));
+    case "absent": {
+      // An empty capture carries NO information. Nothing ticked is not the same
+      // as "none of these apply", and an empty string is not a recorded answer —
+      // yet both would satisfy `absent` and manufacture a negative out of
+      // silence, which is the one collapse this evaluator exists to refuse. The
+      // capture surface no longer writes either, so reaching here means legacy
+      // or imported data: fail closed.
+      const empty =
+        (Array.isArray(v) && v.length === 0) || (typeof v === "string" && v.trim() === "");
+      if (empty) return { predicate: p, state: "insufficient" };
+      return hit(p.op === "present" ? isPositive(v) : !isPositive(v));
+    }
     case "==":
       return hit(picked ? picked.includes(String(p.value)) : v === p.value);
     case "!=":

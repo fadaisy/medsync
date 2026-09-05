@@ -111,6 +111,10 @@ function completenessOf(catalog: NcdCatalog, values: CaptureMap, site: SiteProfi
   let outstanding = 0;
   let unavailable = 0;
   for (const f of catalog.features) {
+    // Off-protocol notes are not questions, so they belong in neither half of
+    // the fraction. Counted as outstanding, a clerking could never reach 100%
+    // for any patient with nothing extra to say.
+    if (f.offProtocol) continue;
     const v = values[f.code];
     if (v?.state === "recorded") recorded++;
     else if (v?.state === "unavailable" || !isPerformable(f, site)) unavailable++;

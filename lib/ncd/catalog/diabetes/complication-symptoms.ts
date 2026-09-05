@@ -97,12 +97,96 @@ const PEN_H = c({
   quote: "Treat immediately and refer immediately",
 });
 
-/** Reasoning that is ours, not a guideline's. Named so it cannot borrow authority. */
-const OUR_REASONING = c({
+/**
+ * ADA Section 12, CURRENT edition. A separate constant from `ADA_S12` on
+ * purpose: the audit checked the 2024 PMC mirror above and the atypical-features
+ * parenthetical is simply not in it — the 2024 sentence is the short form. Every
+ * neuropathy field below turns on that parenthetical, so pointing them at the
+ * older document would have attributed words to ADA it did not write there.
+ */
+const ADA_S12_2026 = c({
+  standard: "ADA",
+  version:
+    "Standards of Care in Diabetes\u20142026, Section 12; Diabetes Care 49(Suppl. 1):S261\u2013S276",
+  title: "12. Retinopathy, Neuropathy, and Foot Care",
+  url: "https://doi.org/10.2337/dc26-S012",
+  quote:
+    "Electrophysiological testing, magnetic resonance imaging (MRI) scan of the spine, or referral to a neurologist is rarely needed, except in situations where the clinical features are atypical (acute or subacute presentation, non\u2013length dependent, asymmetric, and/or motor involvement) or the diagnosis is unclear.",
+});
+
+/** ADA's 2017 neuropathy position statement — the named focal syndromes. */
+const ADA_NEURO_2017 = c({
+  standard: "ADA",
+  version:
+    "Diabetic Neuropathy: A Position Statement by the ADA. Diabetes Care 2017;40:136\u2013154",
+  title: "Diabetic Neuropathy — ADA position statement",
+  url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC6977405/",
+  quote:
+    "People with the condition routinely present with extreme unilateral thigh pain and weight loss, followed by motor weakness.",
+});
+
+/**
+ * NICE NG17, recommendation 1.14.7. VERIFIED DIRECTLY against nice.org.uk, which
+ * matters: this closes the gap the previous round left open, where no retrieved
+ * guideline graded sudden visual loss as an emergency and floaters therefore
+ * shipped unflagged. NG28 carries the same recommendation for type 2 at 1.43.3,
+ * but that page would not serve to us, so only NG17 is claimed here.
+ */
+const NICE_NG17_EYE = c({
   standard: "local",
-  version: "MedSync clinical reasoning",
-  title: "Not a guideline position — implementation reasoning, unratified",
-  needsCsoInput: "Clinically defensible but not stated by the cited sources. CSO to ratify.",
+  version: "NICE NG17, Type 1 diabetes in adults, rec 1.14.7 [2004, amended 2015]",
+  title: "Type 1 diabetes in adults: diagnosis and management — NICE",
+  url: "https://www.nice.org.uk/guidance/ng17/chapter/Recommendations",
+  quote:
+    "Arrange emergency review by an ophthalmologist for: sudden loss of vision rubeosis iridis pre-retinal or vitreous haemorrhage retinal detachment.",
+});
+
+/** NICE NG128, rec 1.1.5. Verified directly against nice.org.uk. */
+const NICE_NG128_TIA = c({
+  standard: "local",
+  version: "NICE NG128, Stroke and transient ischaemic attack in over 16s, rec 1.1.5 [2019]",
+  title: "Stroke and transient ischaemic attack in over 16s — NICE",
+  url: "https://www.nice.org.uk/guidance/ng128/chapter/Recommendations",
+  quote:
+    "Refer immediately people who have had a suspected TIA for specialist assessment and investigation, to be seen within 24 hours of onset of symptoms.",
+});
+
+/** AAO Preferred Practice Patterns. Retrieved by the research pass, not re-verified here. */
+const AAO_PVD = {
+  ...c({
+    standard: "local",
+    version:
+      "AAO Posterior Vitreous Detachment, Retinal Breaks, and Lattice Degeneration PPP, 2024",
+    title: "Posterior Vitreous Detachment, Retinal Breaks, and Lattice Degeneration — AAO",
+    url: "https://www.aao.org/education/preferred-practice-pattern/posterior-vitreous-detachment-retinal-breaks-latti",
+    quote:
+      "It is essential that clinical personnel be familiar with the symptoms of PVD and RRD and that they recognize the need for urgent ophthalmologic evaluation of symptomatic patients.",
+  }),
+  needsCsoInput:
+    "Quote retrieved by an automated research pass and not independently re-verified. CSO to confirm before this flag goes live.",
+};
+
+const AAO_RAO = {
+  ...c({
+    standard: "local",
+    version: "AAO Retinal and Ophthalmic Artery Occlusions PPP, 2024",
+    title: "Retinal and Ophthalmic Artery Occlusions — AAO",
+    url: "https://www.aao.org/education/preferred-practice-pattern/retinal-ophthalmic-artery-occlusions-ppp",
+    quote:
+      "Patients presenting with a CRAO typically describe a sudden, painless decrease in the visual acuity and field of vision in one eye that occurs over a period of seconds.",
+  }),
+  needsCsoInput:
+    "Quote retrieved by an automated research pass and not independently re-verified. CSO to confirm.",
+};
+
+/** WHO's leprosy cardinal signs — a common and treatable local cause. */
+const WHO_LEPROSY = c({
+  standard: "WHO",
+  version: "WHO leprosy fact sheet",
+  title: "Leprosy (Hansen's disease) — WHO fact sheet",
+  url: "https://www.who.int/news-room/fact-sheets/detail/leprosy",
+  quote:
+    "thickened or enlarged peripheral nerve, with loss of sensation and/or weakness of the muscles supplied by that nerve",
 });
 
 /* ── helpers ─────────────────────────────────────────────────────────────── */
@@ -129,6 +213,7 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
     kind: "symptom",
     valueType: "boolean",
     section: SX,
+    group: "hypoglycaemia",
     suggests: ["hypoglycaemia"],
     citation: ADA_S6,
   },
@@ -164,6 +249,7 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
     kind: "symptom",
     valueType: "boolean",
     section: SX,
+    group: "hypoglycaemia",
     suggests: ["hypoglycaemia"],
     citation: ADA_S6,
     dangerSign: {
@@ -184,6 +270,7 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
     kind: "symptom",
     valueType: "boolean",
     section: SX,
+    group: "hypoglycaemia",
     suggests: ["hypoglycaemia"],
     citation: ADA_S6,
   },
@@ -197,10 +284,18 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
      * actually selects the pathway.
      */
     code: "peripheral_neuropathic_symptoms",
-    display: "Burning, tingling, shooting pain or numbness in the feet",
+    display: "Burning, tingling, shooting pain or numbness in the feet, hands or limbs",
     kind: "symptom",
     valueType: "boolean",
     section: SX,
+    group: "feet_and_legs",
+    /**
+     * `suggests` is RETAINED deliberately, not by oversight. The audit noted it
+     * points at the foot even for an arm or thigh presentation. That is accepted:
+     * it writes a prompt to complete foot screening, which IWGDF requires
+     * annually in everyone with diabetes regardless of where the symptoms are,
+     * and a missed foot examination costs more than a redundant prompt.
+     */
     suggests: ["diabetic_foot"],
     citation: ADA_S12,
   },
@@ -225,10 +320,41 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
     options: [
       { value: "feet_only", display: "Feet only" },
       { value: "feet_and_hands", display: "Feet and hands" },
+      { value: "hands_first", display: "Hands before the feet, or hands only" },
       { value: "one_limb", display: "One limb" },
       { value: "patchy", display: "Patchy or asymmetric" },
     ],
   }),
+  {
+    /**
+     * Documentation, and it says so. Left versus right changes no guideline
+     * pathway — the pathway turns on SYMMETRIC versus ASYMMETRIC, which
+     * `neuropathy_distribution` already records. What the side buys is a named
+     * nerve territory to examine: one leg is common peroneal, one arm is median
+     * and ulnar, and an entrapment found there is a surgical referral rather
+     * than foot care.
+     */
+    code: "neuropathy_limb",
+    display: "Which limb",
+    kind: "symptom",
+    valueType: "single_select",
+    section: SX,
+    parent: "neuropathy_distribution",
+    showWhenAll: [{ feature: "neuropathy_distribution", op: "==", value: "one_limb" }],
+    citation: {
+      ...ADA_NEURO_2017,
+      quote:
+        "can occur as a result of involvement of the median, ulnar, radial, and common peroneal nerves",
+      needsCsoInput:
+        "ADA names the nerves; that the side should therefore be recorded is ours. No retrieved guideline conditions any action on left versus right. CSO to ratify.",
+    },
+    options: [
+      { value: "right_leg", display: "Right leg or foot" },
+      { value: "left_leg", display: "Left leg or foot" },
+      { value: "right_arm", display: "Right arm or hand" },
+      { value: "left_arm", display: "Left arm or hand" },
+    ],
+  },
   prop("peripheral_neuropathic_symptoms", {
     /**
      * Atypical features are the reason this property exists: a length-dependent
@@ -243,17 +369,97 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
       { value: "alcohol", display: "Alcohol" },
       { value: "b12", display: "B12 deficiency or long-term metformin" },
       { value: "hiv", display: "HIV" },
+      { value: "leprosy", display: "Leprosy (numb pale patch, or a thickened nerve)" },
       { value: "hypothyroidism", display: "Hypothyroidism" },
       { value: "renal", display: "Kidney disease" },
       { value: "none", display: "None identified" },
     ],
   }),
+  {
+    /**
+     * Leprosy is on the other-causes list because it is common here, treatable,
+     * and routinely mistaken for diabetic neuropathy — but ADA does not name it,
+     * so the claim is carried HERE rather than borrowing ADA's authority through
+     * the option list above.
+     *
+     * What it buys is a two-second examination nobody otherwise does: palpate the
+     * ulnar and common peroneal nerves, and look for a pale anaesthetic patch. A
+     * hit changes the diagnosis, the drug, the follow-up and the contact tracing.
+     */
+    code: "leprosy_cardinal_sign",
+    display: "Thickened nerve, or a pale numb skin patch",
+    kind: "sign",
+    valueType: "single_select",
+    section: SX,
+    parent: "neuropathy_other_causes",
+    showWhenAll: [{ feature: "neuropathy_other_causes", op: "==", value: "leprosy" }],
+    citation: {
+      ...WHO_LEPROSY,
+      needsCsoInput:
+        "WHO's cardinal signs are quoted exactly; that leprosy belongs on a diabetes neuropathy differential is ours, not ADA's. CSO to ratify.",
+    },
+    options: [
+      { value: "thickened_nerve", display: "Thickened or enlarged nerve" },
+      { value: "anaesthetic_patch", display: "Pale or reddish numb patch" },
+      { value: "both", display: "Both" },
+      { value: "neither", display: "Neither" },
+    ],
+  },
   prop("peripheral_neuropathic_symptoms", {
     code: "neuropathy_worse_at_night",
     display: "Worse at night",
     valueType: "boolean",
     citation: ADA_S12,
   }),
+  prop("peripheral_neuropathic_symptoms", {
+    /**
+     * One of ADA's four atypical features, and the one that most often closes a
+     * review too early: burning feet get attributed to the diabetes and the
+     * weakness beside them is never recorded. NO DANGER SIGN — ADA's instruction
+     * is a referral with no urgency word, no time frame and no same-day
+     * language, and the genuinely time-critical version of this presentation is
+     * already red under `focal_neurological_deficit`.
+     */
+    code: "neuropathy_motor_involvement",
+    display: "Weakness or muscle wasting in the affected limb",
+    valueType: "boolean",
+    citation: ADA_S12_2026,
+  }),
+  prop("peripheral_neuropathic_symptoms", {
+    /**
+     * Acute or subacute onset is on ADA's atypical list. It is also the hook a
+     * later pass needs for treatment-induced neuropathy — pain appearing after an
+     * abrupt improvement in control, which is iatrogenic and must not be read as
+     * the diabetes worsening.
+     */
+    code: "neuropathy_onset",
+    display: "How it came on",
+    valueType: "single_select",
+    citation: ADA_S12_2026,
+    options: [
+      { value: "gradual", display: "Gradually, over months or years" },
+      { value: "subacute", display: "Over weeks" },
+      { value: "acute", display: "Over days" },
+    ],
+  }),
+  {
+    /**
+     * Unilateral proximal thigh pain, weakness and the already-recorded
+     * `unexplained_weight_loss` together are ADA's own description of diabetic
+     * radiculoplexus neuropathy — and each of the three is otherwise read as
+     * something else, the weight loss most damagingly as a reason to escalate
+     * glucose-lowering therapy. Gated on the DISTRIBUTION rather than the side,
+     * because the side is documentation and the asymmetry is the finding.
+     */
+    code: "neuropathy_proximal_leg_pain",
+    display: "Pain in the thigh or buttock, rather than the foot",
+    kind: "symptom",
+    valueType: "boolean",
+    section: SX,
+    parent: "peripheral_neuropathic_symptoms",
+    showWhenAll: [{ feature: "neuropathy_distribution", op: "in", value: ["one_limb", "patchy"] }],
+    citation: ADA_NEURO_2017,
+  },
 
   {
     /** WHO's verbatim glibenclamide contraindication — a concrete prescribing change. */
@@ -262,6 +468,7 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
     kind: "symptom",
     valueType: "boolean",
     section: SX,
+    group: "feet_and_legs",
     suggests: ["diabetic_foot"],
     citation: HEARTS_D,
   },
@@ -284,6 +491,7 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
     kind: "symptom",
     valueType: "boolean",
     section: SX,
+    group: "feet_and_legs",
     suggests: ["diabetic_foot"],
     citation: ADA_S12,
     dangerSign: {
@@ -312,6 +520,88 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
     valueType: "boolean",
     citation: IWGDF_PRACTICAL,
   }),
+  prop("foot_ulcer_or_inflammation", {
+    /**
+     * SINBAD's "Site", which is what a district clinic's referral letter and
+     * outcome audit are built on when there is no Doppler. With the surface it
+     * also picks the offloading: a plantar forefoot or midfoot ulcer gets a
+     * non-removable knee-high device, and a heel ulcer is a separate and weaker
+     * recommendation.
+     */
+    code: "foot_ulcer_region",
+    display: "Where on the foot",
+    valueType: "single_select",
+    showWhenAll: [{ feature: "foot_finding", op: "==", value: "open_ulcer" }],
+    citation: {
+      ...IWGDF_PRACTICAL,
+      quote:
+        "\u2018Site\u2019: Describe where the ulcer is located on the foot. This includes description of forefoot, midfoot or hindfoot",
+    },
+    options: [
+      { value: "toe", display: "Toe" },
+      { value: "forefoot", display: "Forefoot (ball of the foot)" },
+      { value: "midfoot", display: "Midfoot (arch)" },
+      { value: "hindfoot", display: "Hindfoot (heel)" },
+    ],
+  }),
+  prop("foot_ulcer_or_inflammation", {
+    /**
+     * Not decoration on the region: casting a dorsal ulcer is the wrong
+     * treatment, and the region alone does not say which you are looking at.
+     */
+    code: "foot_ulcer_surface",
+    display: "Which surface",
+    valueType: "single_select",
+    showWhenAll: [{ feature: "foot_finding", op: "==", value: "open_ulcer" }],
+    citation: {
+      ...IWGDF_PRACTICAL,
+      quote:
+        "it is also suggested to differentiate between plantar, interdigital, medial, lateral or dorsal",
+    },
+    options: [
+      { value: "plantar", display: "Sole (plantar)" },
+      { value: "dorsal", display: "Top of the foot (dorsal)" },
+      { value: "interdigital", display: "Between the toes" },
+      { value: "medial", display: "Inner border" },
+      { value: "lateral", display: "Outer border" },
+    ],
+  }),
+  {
+    /**
+     * A question about THE FOOT, not a property of any one finding about it.
+     *
+     * An ulcer, a Charcot presentation and a spreading infection each raise it
+     * and none of them owns it, so it hangs off all three with `showWhenAny`
+     * rather than being asked three times — the parsimony rule the audit
+     * insisted on, since a foot section that doubles is one that gets skipped.
+     *
+     * "Both" is not a shrug: it says the contralateral shoe lift is not the plan
+     * and the left-right temperature comparison is unusable.
+     */
+    code: "foot_side",
+    display: "Which foot",
+    kind: "symptom",
+    valueType: "single_select",
+    section: SX,
+    group: "feet_and_legs",
+    showWhenAny: [
+      { feature: "foot_ulcer_or_inflammation", op: "present" },
+      { feature: "charcot_presentation", op: "present" },
+      { feature: "foot_infection_or_gangrene", op: "present" },
+    ],
+    citation: {
+      ...IWGDF_PRACTICAL,
+      quote:
+        "consider also using a shoe lift on the contralateral limb to improve the person\u2019s comfort and balance while walking in the device",
+      needsCsoInput:
+        "IWGDF's offloading and temperature-comparison recommendations presume a known side; that recording it is therefore required is our inference. CSO to ratify.",
+    },
+    options: [
+      { value: "left", display: "Left foot" },
+      { value: "right", display: "Right foot" },
+      { value: "both", display: "Both feet" },
+    ],
+  },
 
   {
     /**
@@ -324,6 +614,7 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
     kind: "symptom",
     valueType: "boolean",
     section: SX,
+    group: "feet_and_legs",
     suggests: ["diabetic_foot"],
     citation: HEARTS_D,
     dangerSign: {
@@ -371,6 +662,7 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
     kind: "symptom",
     valueType: "boolean",
     section: SX,
+    group: "feet_and_legs",
     suggests: ["diabetic_foot"],
     citation: ADA_S12,
     dangerSign: {
@@ -394,6 +686,7 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
     kind: "symptom",
     valueType: "boolean",
     section: SX,
+    group: "feet_and_legs",
     suggests: ["diabetic_foot"],
     citation: IWGDF_PRACTICAL,
   },
@@ -405,6 +698,7 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
     kind: "symptom",
     valueType: "boolean",
     section: SX,
+    group: "feet_and_legs",
     suggests: ["diabetic_foot"],
     citation: IWGDF_PRACTICAL,
   },
@@ -426,6 +720,7 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
     kind: "symptom",
     valueType: "boolean",
     section: SX,
+    group: "feet_and_legs",
     suggests: ["diabetic_foot"],
     citation: IWGDF_PAD,
     dangerSign: {
@@ -460,6 +755,7 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
     kind: "symptom",
     valueType: "boolean",
     section: SX,
+    group: "autonomic",
     citation: ADA_S12,
   },
   {
@@ -473,6 +769,7 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
     kind: "symptom",
     valueType: "boolean",
     section: SX,
+    group: "autonomic",
     citation: ADA_S12,
   },
   prop("gi_autonomic_symptoms", {
@@ -494,6 +791,7 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
     kind: "symptom",
     valueType: "boolean",
     section: SX,
+    group: "autonomic",
     citation: ADA_S12,
   },
   prop("bladder_symptoms", {
@@ -519,54 +817,178 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
     kind: "symptom",
     valueType: "boolean",
     section: SX,
+    group: "autonomic",
     citation: ADA_S12,
   },
 
-  /* ── F. Eye — 1 ───────────────────────────────────────────────────────── */
+  /* ── F. Eye — the pattern and the side both steer the referral ────────── */
   {
     /**
-     * A4. One field, and the `pattern` property carries the whole decision:
-     * blurring that FLUCTUATES with glucose is reversible lens swelling, while
-     * RECENT DETERIORATION is WHO's same-day referral. The danger sign is gated
-     * on the property, so ordinary blurring raises nothing.
+     * A4. One finding; the properties carry the whole decision.
      *
-     * Floaters ship UNFLAGGED — see the file header. No retrieved guideline
-     * grades them as an emergency and the pathway must be sourced before use.
+     * Blurring that FLUCTUATES with glucose is reversible lens swelling and
+     * raises nothing. Recent deterioration is WHO's same-day referral. Sudden
+     * loss is NICE's emergency. And the SIDE decides the destination rather than
+     * the urgency: monocular sudden loss that recovered is amaurosis fugax — a
+     * TIA, which is a stroke service, not an eye clinic.
+     *
+     * The file header's open gap is now CLOSED. NICE NG17 1.14.7 was verified
+     * directly against nice.org.uk, so floaters and a curtain no longer ship
+     * unflagged. The red sits on `visual_pattern` where NICE puts it, and the
+     * amber here covers the urgent-but-not-emergency tier.
      */
     code: "visual_symptoms",
     display: "Vision problems",
     kind: "symptom",
     valueType: "boolean",
     section: SX,
+    group: "eyes_and_kidneys",
     citation: HEARTS_D,
     dangerSign: {
       severity: "amber",
       action:
-        "Same-day referral. WHO HEARTS-D lists recent deterioration of vision among its urgent-referral criteria.",
+        "Arrange urgent ophthalmic examination. New flashes, floaters or a curtain need dilated examination as soon as is feasible; WHO HEARTS-D lists recent deterioration of vision among its urgent-referral criteria.",
       when: {
-        id: "recent_visual_deterioration",
-        label: "Vision has recently deteriorated (not fluctuating blurring)",
+        id: "urgent_visual_change",
+        label: "Recent deterioration, new floaters or a curtain — not fluctuating blurring",
         any: [
           { feature: "visual_pattern", op: "==", value: "recent_deterioration" },
-          { feature: "visual_pattern", op: "==", value: "sudden_loss" },
+          { feature: "visual_pattern", op: "==", value: "floaters" },
+          { feature: "visual_pattern", op: "==", value: "curtain" },
         ],
-        citation: HEARTS_D,
+        citation: AAO_PVD,
       },
       citation: HEARTS_D,
     },
   },
   prop("visual_symptoms", {
+    /**
+     * Multi-select, because sudden loss WITH new floaters is the vitreous
+     * haemorrhage picture and recording them separately loses it. Floaters and
+     * the curtain are amber, not red: the AAO's words are "urgent ophthalmologic
+     * evaluation", and promoting an extremely common and usually benign symptom
+     * to the same alarm as Kussmaul breathing is the wolf-crying this catalog
+     * refuses.
+     */
     code: "visual_pattern",
     display: "Pattern",
-    valueType: "single_select",
+    valueType: "multi_select",
     citation: HEARTS_D,
     options: [
       { value: "fluctuating", display: "Blurring that comes and goes with glucose" },
       { value: "recent_deterioration", display: "Recently got worse" },
       { value: "sudden_loss", display: "Sudden loss" },
-      { value: "floaters", display: "Floaters or flashes" },
+      { value: "curtain", display: "A curtain or shadow over part of the vision" },
+      { value: "floaters", display: "New floaters or flashes" },
+    ],
+    dangerSign: {
+      severity: "red",
+      action:
+        "Arrange emergency review by an ophthalmologist. NICE lists sudden loss of vision among the findings requiring emergency review.",
+      when: {
+        id: "sudden_visual_loss",
+        label: "Sudden loss of vision",
+        all: [{ feature: "visual_pattern", op: "==", value: "sudden_loss" }],
+        citation: NICE_NG17_EYE,
+      },
+      citation: NICE_NG17_EYE,
+    },
+  }),
+  prop("visual_symptoms", {
+    /**
+     * Bilateral gradual change is diabetic eye disease. UNILATERAL sudden loss
+     * is a vascular event until proven otherwise, and that is a different
+     * service. Laterality carries no flag of its own — a second red for one
+     * complaint is how a flag list starts getting scrolled past.
+     */
+    code: "visual_laterality",
+    display: "One eye or both eyes",
+    valueType: "single_select",
+    citation: AAO_RAO,
+    options: [
+      { value: "one_eye", display: "One eye" },
+      { value: "both_eyes", display: "Both eyes" },
+      { value: "not_sure", display: "Not sure" },
     ],
   }),
+  {
+    /**
+     * Documentation, and it earns the row twice over: the referral letter and the
+     * receiving examination both name the eye, and a later encounter can then
+     * detect that the OTHER eye has gone — the same complaint in the fellow eye
+     * is a different and worse event, which a record saying only "one eye"
+     * cannot see.
+     */
+    code: "visual_eye",
+    display: "Which eye",
+    kind: "symptom",
+    valueType: "single_select",
+    section: SX,
+    parent: "visual_laterality",
+    showWhenAll: [{ feature: "visual_laterality", op: "==", value: "one_eye" }],
+    citation: {
+      ...AAO_RAO,
+      needsCsoInput:
+        "That the side must be recorded is our inference from the contralateral-eye reasoning, not a stated AAO instruction. CSO to ratify.",
+    },
+    options: [
+      { value: "left", display: "Left eye" },
+      { value: "right", display: "Right eye" },
+    ],
+  },
+  {
+    /**
+     * The single highest-value question in this group, and today the catalog
+     * cannot ask it. Sudden monocular loss that CAME BACK is amaurosis fugax:
+     * NICE requires specialist assessment within 24 hours and the stroke
+     * pathway, not an ophthalmology waiting list. Gated on one eye deliberately —
+     * transient bilateral dimming is not amaurosis fugax and must not fire this.
+     */
+    code: "visual_loss_recovered",
+    display: "Did the vision come back",
+    kind: "symptom",
+    valueType: "single_select",
+    section: SX,
+    parent: "visual_symptoms",
+    showWhenAll: [{ feature: "visual_pattern", op: "==", value: "sudden_loss" }],
+    citation: NICE_NG128_TIA,
+    options: [
+      { value: "no", display: "No, still lost" },
+      { value: "partly", display: "Partly" },
+      { value: "fully", display: "Yes, it came back completely" },
+    ],
+    dangerSign: {
+      severity: "red",
+      action:
+        "Treat as a suspected TIA, not an eye problem. Refer immediately for specialist assessment and investigation, to be seen within 24 hours of onset.",
+      when: {
+        id: "amaurosis_fugax",
+        label: "Transient monocular visual loss that recovered fully",
+        all: [
+          { feature: "visual_loss_recovered", op: "==", value: "fully" },
+          { feature: "visual_laterality", op: "==", value: "one_eye" },
+        ],
+        citation: NICE_NG128_TIA,
+      },
+      citation: NICE_NG128_TIA,
+    },
+  },
+  {
+    /**
+     * Aims an emergency that already exists rather than adding one. Painless
+     * sudden loss is a vascular event and a stroke assessment; painful with a red
+     * eye is a pressure emergency — measure the intraocular pressure now. NICE
+     * lists rubeosis iridis, which is how neovascular glaucoma presents.
+     */
+    code: "visual_eye_pain",
+    display: "Painful or red eye with it",
+    kind: "symptom",
+    valueType: "boolean",
+    section: SX,
+    parent: "visual_symptoms",
+    showWhenAll: [{ feature: "visual_pattern", op: "==", value: "sudden_loss" }],
+    citation: NICE_NG17_EYE,
+  },
   prop("visual_symptoms", {
     code: "last_retinal_exam",
     display: "Last retinal examination",
@@ -593,6 +1015,7 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
     kind: "symptom",
     valueType: "boolean",
     section: SX,
+    group: "heart_and_brain",
     citation: HEARTS_D,
     dangerSign: {
       severity: "amber",
@@ -622,6 +1045,7 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
     kind: "sign",
     valueType: "boolean",
     section: SX,
+    group: "heart_and_brain",
     citation: PEN_H,
     dangerSign: {
       severity: "red",
@@ -637,6 +1061,7 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
     kind: "symptom",
     valueType: "boolean",
     section: SX,
+    group: "eyes_and_kidneys",
     suggests: ["diabetic_kidney_disease"],
     citation: HEARTS_D,
     dangerSign: {
@@ -646,27 +1071,21 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
     },
   },
 
-  /* ── H. Infection at presentation — 1 ─────────────────────────────────── */
   {
     /**
-     * The classic route by which undiagnosed type 2 is found. Merged from
-     * genital thrush and recurrent boils. NO danger sign, and the rationale that
-     * this should prompt a glucose rather than another antifungal is OURS — the
-     * audit could not find it in any source, so it is cited as ours.
+     * Outside the protocol, and the interface says so in as many ways as it can.
+     * The engine is FORBIDDEN to read this: the validator rejects any rule that
+     * names it, `evaluatePredicate` fails closed on it, and it counts toward no
+     * completeness denominator. A note must never make a section read as
+     * finished, and free text must never decide a clinical verdict.
      */
-    code: "recurrent_infections",
-    display: "Repeated thrush, boils or skin infections",
+    code: "complication_symptoms_other",
+    display: "Add a symptom the list does not cover",
     kind: "symptom",
-    valueType: "boolean",
+    valueType: "text_list",
     section: SX,
-    citation: OUR_REASONING,
+    offProtocol: true,
   },
-  prop("recurrent_infections", {
-    code: "infection_resistant_to_treatment",
-    display: "Not responding to treatment",
-    valueType: "boolean",
-    citation: OUR_REASONING,
-  }),
 
   /* ── I. Crisis precipitants — 3 ───────────────────────────────────────── */
   {

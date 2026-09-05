@@ -150,7 +150,9 @@ export type ValueType =
   | "multi_select"
   | "number"
   | "duration"
-  | "text";
+  | "text"
+  /** A list of free-text entries. Only valid on an `offProtocol` feature. */
+  | "text_list";
 
 export interface FeatureOption {
   value: string;
@@ -224,12 +226,57 @@ export interface Feature {
    * Render only while this holds. Uses the same evaluator as clinical rules, so
    * conditional display and clinical logic can never drift apart.
    *
-   * Defaults to "parent is present" when `parent` is set. Given explicitly it
+   * REPLACES the parent gate rather than adding to it. Given explicitly it
    * handles the cases `parent` cannot — an insulin regimen is not a property OF
    * the therapy list, it is a separate question that only arises when insulin is
    * one of the answers.
    */
   showWhen?: Predicate;
+  /**
+   * Extra conditions CONJOINED with the parent gate — all must hold.
+   *
+   * The distinction from `showWhen` is the point. "Which eye?" is a property of
+   * the vision complaint AND is only asked when the laterality answer was "one
+   * eye": both must hold. Expressing that with `showWhen` would silently discard
+   * the parent gate, leaving the question visible under a finding the clinician
+   * has not recorded — which is how a stale answer survives to the profile.
+   *
+   * A `Predicate[]` rather than a `Criterion` on purpose: a Criterion would drag
+   * a required label and citation onto a display rule, and a display rule is not
+   * a clinical assertion.
+   */
+  showWhenAll?: Predicate[];
+  /**
+   * At least one of these must hold, conjoined with everything else.
+   *
+   * Exists because "which foot?" is a question about THE FOOT, not a property of
+   * any one finding about it — an ulcer, a Charcot presentation and a spreading
+   * infection each raise it, and none of them owns it. Modelling that as three
+   * separate side fields would double the foot section, which is the specific
+   * bloat the parsimony rule refuses.
+   */
+  showWhenAny?: Predicate[];
+  /**
+   * The named subgroup this feature renders under, within its section. Must be
+   * declared in the section's `groups`. A property inherits its finding's group
+   * and must not declare its own — the group is a property of the FINDING.
+   */
+  group?: string;
+  /**
+   * Recorded, never reasoned over. The clinician's own words for something the
+   * catalog does not model.
+   *
+   * Three consequences, and all three are the point:
+   * `evaluatePredicate` fails closed on it, the validator REJECTS any criterion
+   * that names it, and it is excluded from every completeness denominator — so a
+   * free-text note can never make a section read as finished, and can never
+   * satisfy or contradict a clinical rule.
+   *
+   * Distinct from a feature that merely happens to be unreferenced. "Which eye"
+   * is a real clinical question no criterion currently reads; this is a field the
+   * engine is FORBIDDEN to read, which is why it is declared rather than inferred.
+   */
+  offProtocol?: boolean;
   /**
    * This finding, on its own, demands urgent action.
    *
@@ -275,12 +322,50 @@ export interface Feature {
   citation?: Citation;
 }
 
-/** The condition under which a feature is shown. `parent` implies "present". */
-export function displayCondition(f: Feature): Predicate | undefined {
-  if (f.showWhen) return f.showWhen;
-  if (f.parent) return { feature: f.parent, op: "present" };
+/**
+ * Every condition that must hold for a feature to be shown, ANDed together.
+ * An empty list means "always shown".
+ *
+ * `parent` implies "parent is present"; `showWhen` replaces that gate;
+ * `showWhenAll` adds to whichever gate is in force.
+ */
+export function displayPredicates(f: Feature): Predicate[] {
+  const base: Predicate[] = f.showWhen
+    ? [f.showWhen]
+    : f.parent
+      ? [{ feature: f.parent, op: "present" }]
+      : [];
+  return f.showWhenAll?.length ? [...base, ...f.showWhenAll] : base;
+}
+
+/** The OR branch of a display condition, if the feature declares one. */
+export function displayAnyOf(f: Feature): Predicate[] | undefined {
+  return f.showWhenAny?.length ? f.showWhenAny : undefined;
+}
+
+/**
+ * The group a feature renders under. A property inherits from its finding, so
+ * the walk goes to the root of the parent chain. Depth is bounded by the
+ * validator, but the guard is kept here too — a display helper must not hang on
+ * a malformed catalog.
+ */
+export function effectiveGroup(f: Feature, features: Map<string, Feature>): string | undefined {
+  let cur: Feature | undefined = f;
+  for (let i = 0; cur && i <= MAX_PROPERTY_DEPTH + 1; i++) {
+    if (cur.group) return cur.group;
+    cur = cur.parent ? features.get(cur.parent) : undefined;
+  }
   return undefined;
 }
+
+/**
+ * How deep a property chain may go: a finding, a property of it, and a property
+ * of THAT. Past this point the form has no visual register left to spend (see
+ * the capture surface's two devices — the well and the gutter glyph) and the
+ * modelling is almost certainly wrong, so the validator rejects it where
+ * catalogs are authored rather than the renderer truncating it silently.
+ */
+export const MAX_PROPERTY_DEPTH = 2;
 
 /* ── Predicates + criteria: the logic vocabulary ─────────────────────────── */
 
@@ -505,12 +590,29 @@ export interface ManagementStep {
 
 /* ── The catalog ─────────────────────────────────────────────────────────── */
 
+/**
+ * A named band of findings inside a section — "Feet and legs", "Lows".
+ *
+ * A subgroup is a LANDMARK, not a destination: it orients the clinician inside a
+ * long section without becoming a second thing to navigate. The section rail
+ * remains the only navigable hierarchy, which is why a group carries no progress
+ * count of its own.
+ */
+export interface CatalogGroup {
+  id: string;
+  display: string;
+  order: number;
+  description?: string;
+}
+
 export interface CatalogSection {
   id: string;
   display: string;
   /** Ordering hint for the generated form. */
   order: number;
   description?: string;
+  /** Named bands within the section. Features reference these by id. */
+  groups?: CatalogGroup[];
 }
 
 export interface NcdCatalog {

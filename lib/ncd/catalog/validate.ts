@@ -12,7 +12,7 @@
  */
 import type { Citation, Criterion, NcdCatalog, Predicate } from "@/lib/ncd/catalog/schema";
 
-import { criterionFeatures } from "@/lib/ncd/catalog/schema";
+import { criterionFeatures, MAX_PROPERTY_DEPTH } from "@/lib/ncd/catalog/schema";
 
 export type IssueSeverity = "error" | "warning";
 
@@ -233,6 +233,26 @@ export function validateCatalog(catalog: NcdCatalog): ValidationIssue[] {
     if ((f.valueType === "single_select" || f.valueType === "multi_select") && !f.options?.length) {
       out.push({ severity: "error", path, message: `${f.valueType} feature has no options` });
     }
+    // A free-text list is capture the engine must never reason over. Tying the
+    // shape to the flag here means the safety property cannot be lost by someone
+    // reusing a convenient valueType.
+    if (f.valueType === "text_list" && !f.offProtocol) {
+      out.push({
+        severity: "error",
+        path,
+        message: "text_list is only valid on an offProtocol feature",
+      });
+    }
+    if (
+      f.offProtocol &&
+      (f.parent || f.showWhen || f.showWhenAll || f.showWhenAny || f.dangerSign || f.suggests)
+    ) {
+      out.push({
+        severity: "error",
+        path,
+        message: "an offProtocol feature cannot gate, flag or point at anything",
+      });
+    }
     if (f.valueType === "number" && !f.unit) {
       out.push({ severity: "warning", path, message: "numeric feature has no unit" });
     }
@@ -256,6 +276,33 @@ export function validateCatalog(catalog: NcdCatalog): ValidationIssue[] {
     }
     if (f.showWhen) {
       checkPredicate(f.showWhen, `${path}.showWhen`, features, out);
+    }
+    (f.showWhenAll ?? []).forEach((p, i) =>
+      checkPredicate(p, `${path}.showWhenAll[${i}]`, features, out),
+    );
+    (f.showWhenAny ?? []).forEach((p, i) =>
+      checkPredicate(p, `${path}.showWhenAny[${i}]`, features, out),
+    );
+
+    // A group must be declared on the section that renders it, and a property
+    // must not claim one — it belongs to whichever band its finding sits in, and
+    // two different answers would put a question in a band its parent is not in.
+    if (f.group) {
+      if (f.parent) {
+        out.push({
+          severity: "error",
+          path,
+          message: "a property must not declare a group — it inherits its finding's",
+        });
+      }
+      const declared = catalog.sections.find((s) => s.id === f.section)?.groups ?? [];
+      if (!declared.some((g) => g.id === f.group)) {
+        out.push({
+          severity: "error",
+          path,
+          message: `group "${f.group}" is not declared on section "${f.section}"`,
+        });
+      }
     }
     // A pointer at a complication that does not exist can never prompt anything.
     for (const code of f.suggests ?? []) {
@@ -282,10 +329,12 @@ export function validateCatalog(catalog: NcdCatalog): ValidationIssue[] {
     }
   }
 
-  // A property chain that loops would render forever.
+  // A property chain that loops would render forever; one that runs too deep has
+  // no register left to render it in, and would be silently flattened.
   for (const f of catalog.features) {
     const seen = new Set<string>([f.code]);
     let cur = f.parent;
+    let depth = 0;
     while (cur) {
       if (seen.has(cur)) {
         out.push({
@@ -296,7 +345,69 @@ export function validateCatalog(catalog: NcdCatalog): ValidationIssue[] {
         break;
       }
       seen.add(cur);
+      depth += 1;
+      if (depth > MAX_PROPERTY_DEPTH) {
+        out.push({
+          severity: "error",
+          path: `features.${f.code}`,
+          message: `property chain is ${depth} deep — the form renders at most ${MAX_PROPERTY_DEPTH}`,
+        });
+        break;
+      }
       cur = features.get(cur)?.parent;
+    }
+  }
+
+  // Sections declare their bands; a band nobody is in renders as an empty heading.
+  for (const s of catalog.sections) {
+    for (const d of dupes((s.groups ?? []).map((g) => g.id))) {
+      out.push({ severity: "error", path: `sections.${s.id}`, message: `duplicate group "${d}"` });
+    }
+    for (const d of dupes((s.groups ?? []).map((g) => String(g.order)))) {
+      out.push({
+        severity: "error",
+        path: `sections.${s.id}`,
+        message: `two or more groups share order ${d}`,
+      });
+    }
+    for (const g of s.groups ?? []) {
+      const members = catalog.features.filter((f) => f.section === s.id && f.group === g.id);
+      if (!members.length) {
+        out.push({
+          severity: "error",
+          path: `sections.${s.id}.groups.${g.id}`,
+          message: "group has no features — it would render as an empty heading",
+        });
+      }
+    }
+    // Half-grouped is worse than ungrouped: the ungrouped rows fall below the
+    // last band and read as belonging to it.
+    // Off-protocol capture renders outside the banded card, so it is in no band.
+    const inSection = catalog.features.filter(
+      (f) => f.section === s.id && !f.parent && !f.offProtocol,
+    );
+    const grouped = inSection.filter((f) => f.group);
+    if (grouped.length && grouped.length !== inSection.length) {
+      out.push({
+        severity: "error",
+        path: `sections.${s.id}`,
+        message: `${inSection.length - grouped.length} of ${inSection.length} findings have no group — group all of them or none`,
+      });
+    }
+  }
+
+  // Off-protocol capture is free text. A rule that reads it is a rule decided by
+  // prose, which is precisely what the citation discipline exists to prevent.
+  const offProtocol = new Set(catalog.features.filter((f) => f.offProtocol).map((f) => f.code));
+  if (offProtocol.size) {
+    for (const code of referencedFeatures(catalog)) {
+      if (offProtocol.has(code)) {
+        out.push({
+          severity: "error",
+          path: `features.${code}`,
+          message: "off-protocol feature is referenced by a clinical rule",
+        });
+      }
     }
   }
 
@@ -445,10 +556,21 @@ export function validateCatalog(catalog: NcdCatalog): ValidationIssue[] {
 
 export const errorsOf = (issues: ValidationIssue[]) => issues.filter((i) => i.severity === "error");
 
-/** Feature codes referenced anywhere in the catalog's logic. */
+/**
+ * Feature codes referenced anywhere in the catalog's logic — including the
+ * display gates, which are evaluated by the same evaluator the clinical rules
+ * use. Leaving them out made a typo in a `showWhen` invisible to the
+ * unknown-feature test, so the question it gated simply never appeared.
+ */
 export function referencedFeatures(catalog: NcdCatalog): Set<string> {
   const out = new Set<string>();
   const add = (c: Criterion) => criterionFeatures(c).forEach((f) => out.add(f));
+  catalog.features.forEach((f) => {
+    if (f.showWhen) out.add(f.showWhen.feature);
+    (f.showWhenAll ?? []).forEach((p) => out.add(p.feature));
+    (f.showWhenAny ?? []).forEach((p) => out.add(p.feature));
+    if (f.dangerSign?.when) add(f.dangerSign.when);
+  });
   catalog.diagnosis.forEach((s) => s.anyOf.forEach(add));
   (catalog.classifications ?? []).forEach((c) => {
     c.supportedBy.forEach(add);

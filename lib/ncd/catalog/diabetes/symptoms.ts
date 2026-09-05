@@ -65,6 +65,66 @@ const DIABETES_UK_4TS = c({
   quote: "Toilet, Thirsty, Tired, Thinner",
 });
 
+/**
+ * Slow-healing wounds. Sourced, but NOT to a practice guideline — and the
+ * distinction is recorded rather than smoothed over. The 2025 IDF clinical
+ * practice recommendations contain no symptom list and no occurrence of the word
+ * "wound" at all; this is IDF's public information page. WHO does not list it in
+ * the diabetes fact sheet or the PEN training manual, so it is NOT attributed to
+ * WHO however often it appears in teaching material.
+ */
+const IDF_T2_INFO = {
+  ...c({
+    standard: "IDF",
+    version: "IDF — Type 2 diabetes, about-diabetes information page",
+    title: "Type 2 diabetes — International Diabetes Federation",
+    url: "https://idf.org/about-diabetes/type-2-diabetes/",
+    quote: "Slow healing wounds",
+  }),
+  needsCsoInput:
+    "Organisational information page, not a practice guideline. IDF's 2025 clinical practice recommendations carry no symptom list. CSO to ratify.",
+};
+
+/** ADA Section 12, current edition — the definition of a foot ulcer by site. */
+const ADA_S12_2026 = c({
+  standard: "ADA",
+  version:
+    "Standards of Care in Diabetes—2026, Section 12; Diabetes Care 49(Suppl. 1):S261\u2013S276",
+  title: "12. Retinopathy, Neuropathy, and Foot Care",
+  url: "https://doi.org/10.2337/dc26-S012",
+  quote:
+    "DFUs can be defined as a break of the epidermis and at least part of the dermis, below the ankle, in a person with diabetes.",
+});
+
+/** IWGDF, for the tempo of a wound that is not closing. */
+const IWGDF_PAD_2023 = c({
+  standard: "IWGDF",
+  version: "IWGDF/ESVS/SVS 2023 PAD Guideline",
+  title: "Peripheral artery disease in people with diabetes and a foot ulcer",
+  url: "https://iwgdfguidelines.org/wp-content/uploads/2023/07/IWGDF-2023-05-PAD-Guideline.pdf",
+  quote:
+    "when the wound deteriorates or fails to significantly improve (e.g. a less than 50% reduction in wound area within 4 weeks)",
+});
+
+/** IWGDF, for the left-right comparison a known side makes possible. */
+const IWGDF_FOOT_SIDE = c({
+  standard: "IWGDF",
+  version: "IWGDF 2023 Practical Guidelines",
+  title:
+    "IWGDF Practical Guidelines on the prevention and management of diabetes-related foot disease",
+  url: "https://iwgdfguidelines.org/wp-content/uploads/2023/07/IWGDF-2023-01-Practical-Guidelines.pdf",
+  quote:
+    "In unilateral disease the left-right temperature difference can be calculated at each visit.",
+});
+
+/** Reasoning that is ours, not a guideline's. Named so it cannot borrow authority. */
+const OUR_REASONING = c({
+  standard: "local",
+  version: "MedSync clinical reasoning",
+  title: "Not a guideline position — implementation reasoning, unratified",
+  needsCsoInput: "Clinically defensible but not stated by the cited sources. CSO to ratify.",
+});
+
 /** The crisis presentation. Same consensus as complications.ts, PMC mirror. */
 const CRISES_2024 = c({
   standard: "EASD",
@@ -126,6 +186,7 @@ export const SYMPTOM_FEATURES: Feature[] = [
     kind: "symptom",
     valueType: "boolean",
     section: "symptoms",
+    group: "classic",
     citation: ADA_2026_DX,
   },
   prop("polyuria", {
@@ -147,6 +208,7 @@ export const SYMPTOM_FEATURES: Feature[] = [
     kind: "symptom",
     valueType: "boolean",
     section: "symptoms",
+    group: "classic",
     citation: ADA_2026_DX,
   },
   prop("polydipsia", {
@@ -168,6 +230,7 @@ export const SYMPTOM_FEATURES: Feature[] = [
     kind: "symptom",
     valueType: "boolean",
     section: "symptoms",
+    group: "classic",
     citation: ADA_2026_DX,
   },
   prop("unexplained_weight_loss", {
@@ -206,6 +269,7 @@ export const SYMPTOM_FEATURES: Feature[] = [
     kind: "symptom",
     valueType: "boolean",
     section: "symptoms",
+    group: "classic",
     citation: IDF_T1,
   },
   prop("polyphagia", {
@@ -232,6 +296,7 @@ export const SYMPTOM_FEATURES: Feature[] = [
     kind: "symptom",
     valueType: "boolean",
     section: "symptoms",
+    group: "classic",
     citation: WHO_FACTSHEET,
   },
 
@@ -248,6 +313,7 @@ export const SYMPTOM_FEATURES: Feature[] = [
     kind: "symptom",
     valueType: "boolean",
     section: "symptoms",
+    group: "classic",
     suggests: ["dka"],
     citation: IDF_T1,
     dangerSign: {
@@ -264,6 +330,122 @@ export const SYMPTOM_FEATURES: Feature[] = [
     unit: "weeks",
   }),
 
+  /* ── skin, wounds and infection — how undiagnosed type 2 walks in ─────── */
+  {
+    /**
+     * Restored, having been cut in the collapse from 93 proposals to 33.
+     *
+     * It earns its row by catching a DIFFERENT patient from
+     * `foot_ulcer_or_inflammation`: that field is a present-tense examination
+     * trigger on the complications screen, i.e. the screen you reach once
+     * diabetes is already on the table. This one catches the adult who came in
+     * about a sore on the shin and does not yet know they are diabetic — check a
+     * glucose at this visit rather than dress it and send them away.
+     *
+     * NO DANGER SIGN, for the second time. The only escalation rules that exist
+     * (ADA's 50%-in-4-weeks and IWGDF PAD BPS 15) are conditioned on the wound
+     * having already had appropriate treatment, which a clerking has not given.
+     */
+    code: "slow_healing_wound",
+    display: "A cut, sore or wound that is slow to heal",
+    kind: "symptom",
+    valueType: "boolean",
+    section: "symptoms",
+    group: "skin_and_healing",
+    citation: IDF_T2_INFO,
+  },
+  prop("slow_healing_wound", {
+    code: "slow_healing_wound_status",
+    display: "The wound now",
+    valueType: "single_select",
+    citation: IDF_T2_INFO,
+    options: [
+      { value: "still_open", display: "Still open" },
+      { value: "healed_slowly", display: "Healed, but took a long time" },
+    ],
+  }),
+  prop("slow_healing_wound", {
+    /**
+     * The site selects the pathway, and only one of the answers is a diabetes
+     * foot problem: ADA defines a foot ulcer as being BELOW THE ANKLE, so a shin
+     * wound is a leg-ulcer assessment and a buttock wound is a pressure area.
+     */
+    code: "slow_healing_wound_site",
+    display: "Where",
+    valueType: "single_select",
+    citation: ADA_S12_2026,
+    options: [
+      { value: "foot_or_toes", display: "Foot or toes" },
+      { value: "lower_leg_or_ankle", display: "Lower leg or ankle" },
+      { value: "hand_or_arm", display: "Hand or arm" },
+      { value: "trunk_or_pressure_area", display: "Trunk, back, buttock or hip" },
+      { value: "several_sites", display: "Several sites" },
+      { value: "other", display: "Somewhere else" },
+    ],
+  }),
+  {
+    /**
+     * "Both" is not a shrug. It removes the contralateral reference that IWGDF's
+     * temperature-comparison method depends on, and it argues against the single
+     * pressure-point injury a unilateral plantar ulcer usually is.
+     */
+    code: "slow_healing_wound_foot_side",
+    display: "Which foot",
+    kind: "symptom",
+    valueType: "single_select",
+    section: "symptoms",
+    parent: "slow_healing_wound_site",
+    showWhenAll: [{ feature: "slow_healing_wound_site", op: "==", value: "foot_or_toes" }],
+    suggests: ["diabetic_foot"],
+    citation: {
+      ...IWGDF_FOOT_SIDE,
+      needsCsoInput:
+        "IWGDF's contralateral-comparison method presumes a known side; that recording the side is therefore required is our inference, not IWGDF's instruction. CSO to ratify.",
+    },
+    options: [
+      { value: "left", display: "Left foot" },
+      { value: "right", display: "Right foot" },
+      { value: "both", display: "Both feet" },
+    ],
+  },
+  {
+    code: "slow_healing_wound_weeks",
+    display: "How long it has been open",
+    kind: "symptom",
+    valueType: "duration",
+    unit: "weeks",
+    section: "symptoms",
+    parent: "slow_healing_wound",
+    showWhenAll: [{ feature: "slow_healing_wound_status", op: "==", value: "still_open" }],
+    citation: IWGDF_PAD_2023,
+  },
+
+  {
+    /**
+     * Moved here from the complications screen. The question belongs at the
+     * front door beside the osmotic symptoms, because repeated thrush and boils
+     * are how undiagnosed type 2 presents — not something you look for once the
+     * diagnosis is already made.
+     *
+     * The rationale that this should prompt a glucose rather than another
+     * antifungal is OURS. The audit could not find it in any source, so it is
+     * cited as ours rather than dressed as a guideline position.
+     */
+    code: "recurrent_infections",
+    display: "Repeated thrush, boils or skin infections",
+    kind: "symptom",
+    valueType: "boolean",
+    section: "symptoms",
+    group: "skin_and_healing",
+    citation: OUR_REASONING,
+  },
+  prop("recurrent_infections", {
+    code: "infection_resistant_to_treatment",
+    display: "Not responding to treatment",
+    valueType: "boolean",
+    citation: OUR_REASONING,
+  }),
+
   /* ── the crisis presentation — this is an emergency now ───────────────── */
   {
     code: "vomiting",
@@ -271,6 +453,7 @@ export const SYMPTOM_FEATURES: Feature[] = [
     kind: "symptom",
     valueType: "boolean",
     section: "symptoms",
+    group: "crisis",
     suggests: ["dka"],
     citation: CRISES_2024,
     dangerSign: {
@@ -300,6 +483,7 @@ export const SYMPTOM_FEATURES: Feature[] = [
     kind: "symptom",
     valueType: "boolean",
     section: "symptoms",
+    group: "crisis",
     suggests: ["dka"],
     citation: CRISES_2024,
     /**
@@ -328,6 +512,7 @@ export const SYMPTOM_FEATURES: Feature[] = [
     kind: "sign",
     valueType: "boolean",
     section: "symptoms",
+    group: "crisis",
     suggests: ["dka", "hhs", "hypoglycaemia"],
     citation: CRISES_2024,
     dangerSign: {
@@ -363,6 +548,7 @@ export const SYMPTOM_FEATURES: Feature[] = [
     kind: "sign",
     valueType: "boolean",
     section: "symptoms",
+    group: "crisis",
     suggests: ["dka"],
     citation: CRISES_2024,
     dangerSign: {
@@ -385,6 +571,7 @@ export const SYMPTOM_FEATURES: Feature[] = [
     kind: "sign",
     valueType: "boolean",
     section: "symptoms",
+    group: "crisis",
     suggests: ["dka", "hhs"],
     citation: CRISES_2024,
   },
@@ -400,4 +587,14 @@ export const SYMPTOM_FEATURES: Feature[] = [
       { value: "low_urine_output", display: "Low urine output" },
     ],
   }),
+
+  {
+    /** Off-protocol. See the twin field on the complications section. */
+    code: "symptoms_other",
+    display: "Add a symptom the list does not cover",
+    kind: "symptom",
+    valueType: "text_list",
+    section: "symptoms",
+    offProtocol: true,
+  },
 ];

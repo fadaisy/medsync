@@ -79,12 +79,59 @@ export const SECTIONS: CatalogSection[] = [
     order: 1,
     description: "Known, suspected, or being evaluated.",
   },
-  { id: "symptoms", display: "Symptoms", order: 2 },
+  {
+    id: "symptoms",
+    display: "Symptoms",
+    order: 2,
+    /**
+     * The bands follow what the answers DO, which is the clerkship's own axis —
+     * not the textbook taxonomy. WHO PEN organises its diabetes module the same
+     * way (ASSESS / DIAGNOSE / TREAT), and HEARTS-D splits acute from chronic
+     * before it splits micro from macro.
+     */
+    groups: [
+      {
+        id: "classic",
+        display: "Classic symptoms of high sugar",
+        order: 1,
+        description: "ADA's three classic symptoms decide whether one glucose can diagnose today.",
+      },
+      {
+        id: "skin_and_healing",
+        display: "Skin, wounds and infections",
+        order: 2,
+        description: "How undiagnosed type 2 usually walks in.",
+      },
+      {
+        id: "crisis",
+        display: "Signs this is an emergency now",
+        order: 3,
+        description: "These stop the clerking.",
+      },
+    ],
+  },
   {
     id: "complication_symptoms",
     display: "Complication symptoms",
     order: 3,
     description: "Diabetes often presents with a complication already established.",
+    groups: [
+      { id: "hypoglycaemia", display: "Lows (hypoglycaemia)", order: 1 },
+      {
+        id: "feet_and_legs",
+        display: "Feet and legs",
+        order: 2,
+        description: "One examination, one referral decision.",
+      },
+      {
+        id: "eyes_and_kidneys",
+        display: "Eyes and kidneys",
+        order: 3,
+        description: "Silent until far advanced — a 'no' here does not close the screening.",
+      },
+      { id: "heart_and_brain", display: "Heart and brain", order: 4 },
+      { id: "autonomic", display: "Autonomic symptoms", order: 5 },
+    ],
   },
   {
     id: "precipitants",

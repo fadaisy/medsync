@@ -3,7 +3,7 @@ import type { CaptureMap } from "@/lib/ncd/engine/evaluate";
 import { describe, expect, it } from "vitest";
 
 import { DIABETES_CATALOG, REFERRAL_SITE } from "@/lib/ncd/catalog/diabetes";
-import { displayCondition, recorded } from "@/lib/ncd/catalog/schema";
+import { displayAnyOf, displayPredicates, recorded } from "@/lib/ncd/catalog/schema";
 import { errorsOf, validateCatalog } from "@/lib/ncd/catalog/validate";
 import { dangerSigns, ncdContext } from "@/lib/ncd/engine/assess";
 import { contextOf, evaluatePredicate } from "@/lib/ncd/engine/evaluate";
@@ -47,7 +47,7 @@ const errs = (c: NcdCatalog) => errorsOf(validateCatalog(c)).map((e) => e.messag
 describe("parent — a property of a finding", () => {
   it("defaults its display condition to the parent being present", () => {
     const child = base().features[1]!;
-    expect(displayCondition(child)).toEqual({ feature: "polyuria", op: "present" });
+    expect(displayPredicates(child)).toEqual([{ feature: "polyuria", op: "present" }]);
   });
 
   it("an explicit showWhen wins over the parent default", () => {
@@ -60,20 +60,51 @@ describe("parent — a property of a finding", () => {
       parent: "polyuria",
       showWhen: { feature: "polyuria", op: "absent" },
     };
-    expect(displayCondition(f)).toEqual({ feature: "polyuria", op: "absent" });
+    expect(displayPredicates(f)).toEqual([{ feature: "polyuria", op: "absent" }]);
   });
 
   it("a feature with neither is always shown", () => {
-    expect(displayCondition(base().features[0]!)).toBeUndefined();
+    expect(displayPredicates(base().features[0]!)).toEqual([]);
+  });
+
+  // The distinction that made laterality possible. `showWhen` REPLACES the
+  // parent gate, so a property using it to test a sibling would render under a
+  // finding nobody recorded; `showWhenAll` is conjoined with it.
+  it("conjoins showWhenAll with the parent gate, where showWhen would replace it", () => {
+    const f: Feature = {
+      code: "which_eye",
+      display: "Which eye",
+      kind: "symptom",
+      valueType: "boolean",
+      section: "sx",
+      parent: "polyuria",
+      showWhenAll: [{ feature: "nocturia", op: "==", value: "one" }],
+    };
+    expect(displayPredicates(f)).toEqual([
+      { feature: "polyuria", op: "present" },
+      { feature: "nocturia", op: "==", value: "one" },
+    ]);
+    expect(displayPredicates({ ...f, showWhen: { feature: "nocturia", op: "present" } })).toEqual([
+      { feature: "nocturia", op: "present" },
+      { feature: "nocturia", op: "==", value: "one" },
+    ]);
+  });
+
+  it("carries showWhenAny separately, because it is an OR", () => {
+    const f = base().features[0]!;
+    expect(displayAnyOf(f)).toBeUndefined();
+    expect(displayAnyOf({ ...f, showWhenAny: [{ feature: "nocturia", op: "present" }] })).toEqual([
+      { feature: "nocturia", op: "present" },
+    ]);
   });
 
   // The point of the whole mechanism: an unasked symptom raises no questions
   // about itself, and one recorded as ABSENT raises none either.
   it("shows the property only when the finding is recorded present", () => {
     const c = base();
-    const cond = displayCondition(c.features[1]!)!;
+    const preds = displayPredicates(c.features[1]!);
     const shows = (values: CaptureMap) =>
-      evaluatePredicate(cond, contextOf(c.features, values, site)).state === "met";
+      preds.every((p) => evaluatePredicate(p, contextOf(c.features, values, site)).state === "met");
     expect(shows({})).toBe(false);
     expect(shows({ polyuria: recorded(false) })).toBe(false);
     expect(shows({ polyuria: recorded(true) })).toBe(true);
@@ -294,9 +325,30 @@ describe("the diabetes catalog uses the grammar correctly", () => {
     const top = sx.filter((f) => !f.parent);
     // Two-thirds of the section is properties that only appear on demand.
     expect(top.length).toBeLessThan(sx.length / 1.5);
+    // Every property is gated on its own finding — whatever else it also waits
+    // for. A property that lost its parent gate would render under a finding the
+    // clinician never recorded.
     for (const f of sx) {
       if (!f.parent) continue;
-      expect(displayCondition(f), f.code).toEqual({ feature: f.parent, op: "present" });
+      expect(displayPredicates(f), f.code).toContainEqual({ feature: f.parent, op: "present" });
+    }
+  });
+
+  // Every section is either fully banded or not banded at all. Half-grouped is
+  // worse than ungrouped: the loose rows fall below the last band and read as
+  // belonging to it.
+  it("bands the two symptom sections completely", () => {
+    for (const id of ["symptoms", "complication_symptoms"]) {
+      const s = DIABETES_CATALOG.sections.find((x) => x.id === id)!;
+      expect(s.groups?.length, id).toBeTruthy();
+      const findings = DIABETES_CATALOG.features.filter(
+        (f) => f.section === id && !f.parent && !f.offProtocol,
+      );
+      const ids = new Set((s.groups ?? []).map((g) => g.id));
+      for (const f of findings) {
+        expect(f.group, `${id}/${f.code}`).toBeTruthy();
+        expect(ids.has(f.group!), `${id}/${f.code} -> ${f.group}`).toBe(true);
+      }
     }
   });
 
@@ -346,15 +398,45 @@ describe("the diabetes catalog uses the grammar correctly", () => {
     ).toContain("leg_ischaemic_symptoms");
 
     expect(fire({ visual_symptoms: recorded(true) })).toEqual([]);
+    // Ordinary blurring that tracks the glucose is reversible lens swelling.
+    // (This assertion previously named an option that does not exist, so it
+    // passed vacuously and would not have caught a regression.)
     expect(
-      fire({ visual_symptoms: recorded(true), visual_pattern: recorded("fluctuating_blurring") }),
+      fire({ visual_symptoms: recorded(true), visual_pattern: recorded(["fluctuating"]) }),
     ).toEqual([]);
-    for (const pattern of ["recent_deterioration", "sudden_loss"]) {
+    for (const pattern of ["recent_deterioration", "floaters", "curtain"]) {
       expect(
-        fire({ visual_symptoms: recorded(true), visual_pattern: recorded(pattern) }),
+        fire({ visual_symptoms: recorded(true), visual_pattern: recorded([pattern]) }),
         pattern,
       ).toContain("visual_symptoms");
     }
+    // Sudden loss is NICE's emergency tier, and it sits on the pattern.
+    expect(
+      fire({ visual_symptoms: recorded(true), visual_pattern: recorded(["sudden_loss"]) }),
+    ).toContain("visual_pattern");
+  });
+
+  /**
+   * Sudden monocular loss that CAME BACK is amaurosis fugax — a TIA, and a
+   * stroke service rather than an eye clinic. Transient BILATERAL dimming is not,
+   * and must not fire it.
+   */
+  it("separates amaurosis fugax from a bilateral transient blur", () => {
+    const fire = (values: CaptureMap) =>
+      dangerSigns(DIABETES_CATALOG, ncdContext(DIABETES_CATALOG, values, REFERRAL_SITE)).map(
+        (d) => d.feature,
+      );
+    const base = {
+      visual_symptoms: recorded(true),
+      visual_pattern: recorded(["sudden_loss"]),
+      visual_loss_recovered: recorded("fully"),
+    };
+    expect(fire({ ...base, visual_laterality: recorded("one_eye") })).toContain(
+      "visual_loss_recovered",
+    );
+    expect(fire({ ...base, visual_laterality: recorded("both_eyes") })).not.toContain(
+      "visual_loss_recovered",
+    );
   });
 
   it("keeps red for the findings that mean act now, and nothing else", () => {
@@ -367,6 +449,8 @@ describe("the diabetes catalog uses the grammar correctly", () => {
       "focal_neurological_deficit",
       "foot_infection_or_gangrene",
       "hypoglycaemia_requiring_assistance",
+      "visual_loss_recovered",
+      "visual_pattern",
       "vomiting",
     ]);
   });
@@ -380,9 +464,12 @@ describe("the diabetes catalog uses the grammar correctly", () => {
 
   it("asks for an insulin regimen only once insulin is selected", () => {
     const f = DIABETES_CATALOG.features.find((x) => x.code === "insulin_regimen_pattern")!;
-    const cond = displayCondition(f)!;
+    const preds = displayPredicates(f);
     const shows = (values: CaptureMap) =>
-      evaluatePredicate(cond, contextOf(DIABETES_CATALOG.features, values, site)).state === "met";
+      preds.every(
+        (p) =>
+          evaluatePredicate(p, contextOf(DIABETES_CATALOG.features, values, site)).state === "met",
+      );
     expect(shows({})).toBe(false);
     expect(shows({ glucose_lowering_therapy: recorded([{ option: "metformin" }]) })).toBe(false);
     expect(shows({ glucose_lowering_therapy: recorded([{ option: "insulin" }]) })).toBe(true);
