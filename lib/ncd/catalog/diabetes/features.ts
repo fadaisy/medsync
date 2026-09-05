@@ -50,12 +50,6 @@ export const CAPABILITIES: Capability[] = [
 ];
 
 export const SECTIONS: CatalogSection[] = [
-  {
-    id: "status",
-    display: "Diabetes status",
-    order: 1,
-    description: "Known, suspected, or being evaluated.",
-  },
   { id: "symptoms", display: "Symptoms", order: 2 },
   { id: "glycaemia", display: "Glycaemia", order: 3 },
   {
@@ -67,12 +61,12 @@ export const SECTIONS: CatalogSection[] = [
   {
     id: "acute",
     display: "Acute assessment",
-    order: 5,
+    order: 7,
     description: "Ketones, acid-base and osmolality.",
   },
-  { id: "kidney", display: "Kidney", order: 6 },
-  { id: "foot", display: "Foot", order: 7 },
-  { id: "history", display: "History", order: 8 },
+  { id: "kidney", display: "Kidney", order: 8 },
+  { id: "foot", display: "Foot", order: 9 },
+  { id: "history", display: "History", order: 11 },
 ];
 
 const KETONE_STRIP = [
@@ -84,35 +78,6 @@ const KETONE_STRIP = [
 ];
 
 export const FEATURES: Feature[] = [
-  /* ── status ─────────────────────────────────────────────────────────── */
-  {
-    code: "dm_status",
-    display: "Diabetes status",
-    kind: "history",
-    valueType: "single_select",
-    section: "status",
-    options: [
-      { value: "known", display: "Known diabetes" },
-      { value: "evaluating", display: "Being evaluated" },
-      { value: "none", display: "No known diabetes" },
-    ],
-  },
-  {
-    code: "dm_duration_years",
-    display: "Years since diagnosis",
-    kind: "history",
-    valueType: "number",
-    unit: "years",
-    section: "status",
-  },
-  {
-    code: "on_insulin",
-    display: "Currently on insulin",
-    kind: "history",
-    valueType: "boolean",
-    section: "status",
-  },
-
   /* ── symptoms ───────────────────────────────────────────────────────── */
   {
     code: "polyuria",
@@ -550,14 +515,6 @@ export const FEATURES: Feature[] = [
     display: "Later did not require insulin",
     kind: "history",
     valueType: "boolean",
-    section: "history",
-  },
-  {
-    code: "age_at_onset",
-    display: "Age at onset",
-    kind: "history",
-    valueType: "number",
-    unit: "years",
     section: "history",
   },
 

@@ -199,6 +199,16 @@ export function validateCatalog(catalog: NcdCatalog): ValidationIssue[] {
     }
   }
 
+  // Two sections at the same order render in an arbitrary relative position —
+  // a silently wrong form, which is worse than a loud one.
+  for (const d of dupes(catalog.sections.map((x) => String(x.order)))) {
+    out.push({
+      severity: "error",
+      path: "sections",
+      message: `two or more sections share order ${d}`,
+    });
+  }
+
   for (const f of catalog.features) {
     const path = `features.${f.code}`;
     if (f.requires && !capabilities.has(f.requires)) {
