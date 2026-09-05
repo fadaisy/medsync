@@ -5,6 +5,8 @@ import {
   buildBlocks,
   isVisible,
   sectionProgress,
+  summarise,
+  wellFold,
 } from "@/app/doctor/encounters/[encounterId]/_components/ncd-capture";
 import { DIABETES_CATALOG, REFERRAL_SITE } from "@/lib/ncd/catalog/diabetes";
 import { recorded, unavailable } from "@/lib/ncd/catalog/schema";
@@ -316,5 +318,100 @@ describe("the diabetes catalog's laterality follow-ups", () => {
       expect(roots({ [code]: recorded(true) }), code).toContain("foot_side");
     }
     expect(DIABETES_CATALOG.features.filter((x) => x.display === "Which foot")).toHaveLength(2);
+  });
+});
+
+/* ── folding a well away, without hiding anything ────────────────────────── */
+
+describe("wellFold — a finding's properties may be folded once they are settled", () => {
+  const rows = (fs: Feature[]) => fs.map((feature) => ({ feature, depth: 1 }));
+  const props = rows([f({ code: "p1" }), f({ code: "p2" })]);
+
+  it("refuses to fold while any question is unanswered", () => {
+    expect(wellFold(props, {})).toMatchObject({ settled: 0, foldable: false });
+    expect(wellFold(props, { p1: recorded(true) })).toMatchObject({ settled: 1, foldable: false });
+  });
+
+  it("folds once every question is settled", () => {
+    expect(wellFold(props, { p1: recorded(true), p2: recorded(false) }).foldable).toBe(true);
+  });
+
+  it("counts an explicit 'could not do it today' as settled", () => {
+    expect(wellFold(props, { p1: recorded(true), p2: unavailable("site") }).foldable).toBe(true);
+  });
+
+  /**
+   * The property that makes folding safe, and the reason it needs no effect and
+   * nothing to synchronise: a question conjured by an answer arrives unsettled,
+   * so the well that was foldable a moment ago is not any more.
+   */
+  it("becomes unfoldable again when an answer opens a further question", () => {
+    const ctxFor = (values: Parameters<typeof contextOf>[1]) =>
+      contextOf(DIABETES_CATALOG.features, values, REFERRAL_SITE);
+    const visible = (values: Parameters<typeof contextOf>[1]) =>
+      buildBlocks(
+        DIABETES_CATALOG.features.filter(
+          (x) =>
+            x.section === "complication_symptoms" && !x.offProtocol && isVisible(x, ctxFor(values)),
+        ),
+      ).find((b) => b.finding.code === "visual_symptoms")!.properties;
+
+    // Every visible property answered — the well folds.
+    const answered = {
+      visual_symptoms: recorded(true),
+      visual_pattern: recorded(["fluctuating"]),
+      visual_laterality: recorded("both_eyes"),
+      last_retinal_exam: recorded("never"),
+    };
+    expect(wellFold(visible(answered), answered).foldable).toBe(true);
+
+    // Change the side to one eye: "Which eye" appears, unanswered.
+    const opened = { ...answered, visual_laterality: recorded("one_eye") };
+    const after = visible(opened);
+    expect(after.map((p) => p.feature.code)).toContain("visual_eye");
+    expect(wellFold(after, opened).foldable).toBe(false);
+  });
+});
+
+describe("summarise — a folded answer is compressed, never concealed", () => {
+  it("states each value type in the fewest words that stay true", () => {
+    const sel = f({
+      code: "s",
+      valueType: "single_select",
+      options: [
+        { value: "a", display: "Alpha" },
+        { value: "b", display: "Beta" },
+      ],
+    });
+    expect(summarise(f({ code: "b" }), recorded(true))).toBe("Yes");
+    expect(summarise(f({ code: "b" }), recorded(false))).toBe("No");
+    expect(summarise(sel, recorded("a"))).toBe("Alpha");
+    expect(summarise(sel, recorded({ option: "b", detail: "note" }))).toBe("Beta");
+    expect(summarise(f({ code: "n", valueType: "number", unit: "kg" }), recorded(4))).toBe("4 kg");
+    expect(
+      summarise(f({ code: "d", valueType: "duration" }), recorded({ value: 6, unit: "weeks" })),
+    ).toBe("6 weeks");
+  });
+
+  // A trailing "…" would make folding a way to lose an answer. The count keeps
+  // the summary honest about how much it is not showing.
+  it("names the first two of a long selection and counts the rest", () => {
+    const multi = f({
+      code: "m",
+      valueType: "multi_select",
+      options: [
+        { value: "a", display: "Alpha" },
+        { value: "b", display: "Beta" },
+        { value: "c", display: "Gamma" },
+        { value: "d", display: "Delta" },
+      ],
+    });
+    expect(summarise(multi, recorded(["a", "b"]))).toBe("Alpha, Beta");
+    expect(summarise(multi, recorded(["a", "b", "c", "d"]))).toBe("Alpha, Beta +2");
+  });
+
+  it("says so when the answer was that it could not be obtained", () => {
+    expect(summarise(f({ code: "x" }), unavailable("lab.x"))).toBe("not obtainable");
+    expect(summarise(f({ code: "x" }), undefined)).toBe("—");
   });
 });

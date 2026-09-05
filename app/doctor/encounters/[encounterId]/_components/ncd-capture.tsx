@@ -21,6 +21,8 @@ import {
   AlertTriangleIcon,
   BandageIcon,
   CheckIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
   CircleSlashIcon,
   DropletsIcon,
   EyeIcon,
@@ -276,6 +278,13 @@ export function NcdCapture({
     [catalog.features, sectionId],
   );
 
+  /**
+   * Which wells the clinician has folded away. Held here rather than per-row so
+   * it survives a re-render, and deliberately NOT persisted to the record: how a
+   * form is folded is not a clinical fact.
+   */
+  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+
   const set = (code: string, v: CaptureMap[string]) => {
     const next = { ...values };
     if (v === undefined) delete next[code];
@@ -318,35 +327,22 @@ export function NcdCapture({
                 onSet={(v) => set(finding.code, v)}
               />
               {properties.length ? (
-                <div
-                  role="group"
-                  aria-label={`About ${finding.display}`}
-                  className="border-brand-100 bg-brand-50/40 dark:border-brand-900/40 dark:bg-brand-950/15 mr-3 mb-2 ml-6 rounded-md border"
-                >
-                  <div className="ncd-reveal flex items-baseline gap-1.5 px-2.5 pt-2 pb-1">
-                    <span className="text-overline text-brand-600/80 dark:text-brand-400/80 shrink-0">
-                      About
-                    </span>
-                    <span className="text-caption text-brand-800/70 dark:text-brand-300/70 min-w-0 truncate">
-                      {finding.display}
-                    </span>
-                  </div>
-                  <div className="ncd-reveal">
-                    {properties.map(({ feature, depth }) => (
-                      <FeatureRow
-                        key={feature.code}
-                        feature={feature}
-                        site={site}
-                        depth={depth}
-                        parentDisplay={
-                          feature.parent ? featureIndex.get(feature.parent)?.display : undefined
-                        }
-                        value={values[feature.code]}
-                        onSet={(v) => set(feature.code, v)}
-                      />
-                    ))}
-                  </div>
-                </div>
+                <PropertyWell
+                  finding={finding}
+                  properties={properties}
+                  site={site}
+                  values={values}
+                  featureIndex={featureIndex}
+                  collapsed={collapsed.has(finding.code)}
+                  onToggle={() =>
+                    setCollapsed((prev) => {
+                      const next = new Set(prev);
+                      if (!next.delete(finding.code)) next.add(finding.code);
+                      return next;
+                    })
+                  }
+                  onSet={set}
+                />
               ) : null}
             </div>
           );
@@ -362,6 +358,163 @@ export function NcdCapture({
         />
       ))}
     </section>
+  );
+}
+
+/** Has this question been dealt with — answered, or explicitly marked undoable? */
+export const isSettled = (v: CaptureMap[string]) =>
+  v?.state === "recorded" || v?.state === "unavailable";
+
+/**
+ * Whether a finding's properties may be folded away, and how far off it is.
+ *
+ * The whole safety argument for folding lives in this one line: `foldable` is
+ * true only when every visible property is settled, so an unanswered question
+ * can never be hidden — and since a property conjured by an answer arrives
+ * unsettled, a well that opens a new question folds itself back open, with no
+ * effect and nothing to keep in sync.
+ */
+export function wellFold(properties: CaptureRow[], values: CaptureMap) {
+  const settled = properties.filter((p) => isSettled(values[p.feature.code])).length;
+  return { settled, total: properties.length, foldable: settled === properties.length };
+}
+
+/**
+ * A recorded value in the fewest words that remain true.
+ *
+ * Used only in a folded well, so it carries a real burden: if it loses
+ * information the fold becomes a way to hide an answer, rather than a way to
+ * compress one. Multi-selects therefore name the first two and COUNT the rest
+ * rather than trailing off.
+ */
+export function summarise(feature: Feature, v: CaptureMap[string]): string {
+  if (v?.state === "unavailable") return "not obtainable";
+  if (v?.state !== "recorded") return "—";
+  const val = v.value;
+  const label = (o: string) => feature.options?.find((x) => x.value === o)?.display ?? o;
+
+  if (typeof val === "boolean") return val ? "Yes" : "No";
+  if (isDuration(val)) return `${val.value} ${val.unit}`;
+  if (isEntry(val)) return label(val.option);
+  if (Array.isArray(val)) {
+    const opts = val.map((e) => label(isEntry(e) ? e.option : String(e)));
+    return opts.length > 2 ? `${opts.slice(0, 2).join(", ")} +${opts.length - 2}` : opts.join(", ");
+  }
+  if (typeof val === "number") return feature.unit ? `${val} ${feature.unit}` : String(val);
+  return label(String(val));
+}
+
+/**
+ * A finding's properties, foldable once they are all dealt with.
+ *
+ * THE RULE THAT MAKES THIS SAFE: a well can only fold when EVERY visible
+ * property is settled. An unanswered question is never hidden, and because a
+ * newly-conjured property arrives unanswered, answering something that opens a
+ * further question forces the well back open on its own — no effect, no
+ * synchronisation, just the same condition read again.
+ *
+ * Folded is not hidden. The summary states every answer, so folding compresses
+ * the record rather than concealing it, and a danger sign among the folded rows
+ * keeps its badge on the summary line.
+ */
+function PropertyWell({
+  finding,
+  properties,
+  site,
+  values,
+  featureIndex,
+  collapsed,
+  onToggle,
+  onSet,
+}: {
+  finding: Feature;
+  properties: CaptureRow[];
+  site: SiteProfile;
+  values: CaptureMap;
+  featureIndex: Map<string, Feature>;
+  collapsed: boolean;
+  onToggle: () => void;
+  onSet: (code: string, v: CaptureMap[string]) => void;
+}) {
+  const { settled, foldable } = wellFold(properties, values);
+  const folded = foldable && collapsed;
+  const flagged = folded && properties.some((p) => p.feature.dangerSign);
+  const bodyId = `props-${finding.code}`;
+
+  return (
+    <div
+      role="group"
+      aria-label={`About ${finding.display}`}
+      className="border-brand-100 bg-brand-50/40 dark:border-brand-900/40 dark:bg-brand-950/15 mr-3 mb-2 ml-6 rounded-md border"
+    >
+      <div className="ncd-reveal flex items-baseline gap-1.5 px-2.5 pt-2 pb-1">
+        <span className="text-caption text-brand-600/90 dark:text-brand-400/90 shrink-0 font-medium">
+          About
+        </span>
+        <span className="text-caption text-brand-800/70 dark:text-brand-300/70 min-w-0 truncate">
+          {finding.display}
+        </span>
+        {flagged ? (
+          <span
+            className="text-caption inline-flex shrink-0 items-center gap-1 rounded bg-amber-50 px-1.5 py-px font-medium text-amber-800 ring-1 ring-amber-200 ring-inset dark:bg-amber-950/40 dark:text-amber-300 dark:ring-amber-900/60"
+            title="A folded answer carries a danger sign"
+          >
+            <AlertTriangleIcon className="size-3" aria-hidden />
+            Danger sign
+          </span>
+        ) : null}
+        <span className="ml-auto shrink-0">
+          {foldable ? (
+            <button
+              type="button"
+              onClick={onToggle}
+              aria-expanded={!folded}
+              aria-controls={bodyId}
+              className={`tap text-caption text-brand-700 hover:bg-brand-100/70 dark:text-brand-300 dark:hover:bg-brand-900/40 inline-flex items-center gap-1 rounded px-1.5 py-0.5 font-medium ${EASE} ${TAP}`}
+            >
+              {folded ? (
+                <ChevronDownIcon className="size-3" />
+              ) : (
+                <ChevronUpIcon className="size-3" />
+              )}
+              {folded ? `Show ${properties.length}` : "Hide"}
+            </button>
+          ) : (
+            /* Not a disabled control — an unfoldable well simply says why. */
+            <span className="text-caption text-brand-700/60 dark:text-brand-400/60 tabular-nums">
+              {settled}/{properties.length}
+            </span>
+          )}
+        </span>
+      </div>
+
+      <div id={bodyId} className="ncd-reveal">
+        {folded ? (
+          <ul className="flex flex-wrap gap-x-3 gap-y-0.5 px-2.5 pb-2">
+            {properties.map(({ feature }) => (
+              <li key={feature.code} className="text-caption min-w-0">
+                <span className="text-brand-700/70 dark:text-brand-400/70">{feature.display}</span>
+                <span className="text-foreground/80 ml-1 font-medium">
+                  {summarise(feature, values[feature.code])}
+                </span>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          properties.map(({ feature, depth }) => (
+            <FeatureRow
+              key={feature.code}
+              feature={feature}
+              site={site}
+              depth={depth}
+              parentDisplay={feature.parent ? featureIndex.get(feature.parent)?.display : undefined}
+              value={values[feature.code]}
+              onSet={(v) => onSet(feature.code, v)}
+            />
+          ))
+        )}
+      </div>
+    </div>
   );
 }
 
