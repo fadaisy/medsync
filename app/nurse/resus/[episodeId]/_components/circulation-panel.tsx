@@ -54,7 +54,7 @@ const PRESCRIBABLE = new Set(Object.keys(RECOMMENDATION_DRUG_MAP));
 
 const STATE_TONE: Record<string, string> = {
   well_perfused:
-    "border-teal-300/70 bg-teal-50/60 text-teal-700 dark:bg-teal-950/25 dark:text-teal-200",
+    "border-mint-300/70 bg-mint-50/60 text-mint-700 dark:bg-mint-950/25 dark:text-mint-200",
   compensated_shock:
     "border-amber-300/70 bg-amber-50/60 text-amber-800 dark:bg-amber-950/25 dark:text-amber-200",
   decompensated_shock:
@@ -94,7 +94,7 @@ const ACTION_STATE_STYLE: Record<
   performed: {
     label: "Performed",
     short: "Done",
-    token: "bg-teal-100 text-teal-800 dark:bg-teal-900/50 dark:text-teal-200",
+    token: "bg-mint-100 text-mint-800 dark:bg-mint-900/50 dark:text-mint-200",
     icon: CheckIcon,
   },
   failed: {
@@ -233,10 +233,10 @@ export function CirculationPanel({
       {/* Header + circulatory-state indicator */}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2.5">
-          <span className="bg-foreground/90 text-background flex size-8 items-center justify-center rounded-lg font-mono text-[15px] font-semibold">
+          <span className="bg-foreground/90 text-background text-body-m flex size-8 items-center justify-center rounded-lg font-mono font-semibold">
             C
           </span>
-          <h2 className="font-display text-foreground text-[18px] font-medium tracking-[-0.01em]">
+          <h2 className="font-display text-foreground text-heading-s font-medium tracking-[-0.01em]">
             Circulation
           </h2>
         </div>
@@ -259,7 +259,7 @@ export function CirculationPanel({
           <p className="text-[12.5px] font-semibold text-rose-800 dark:text-rose-200">
             Shock type: {SHOCK_TYPE_LABEL[shockType]}
           </p>
-          <p className="text-muted-foreground text-[11px]">{SHOCK_TYPE_STRATEGY[shockType]}</p>
+          <p className="text-muted-foreground text-caption">{SHOCK_TYPE_STRATEGY[shockType]}</p>
         </div>
       ) : null}
 
@@ -268,7 +268,7 @@ export function CirculationPanel({
         className={cn(
           "rounded-lg border px-3 py-1.5 text-[11.5px]",
           guard.ok
-            ? "border-teal-300/60 bg-teal-50/50 text-teal-700 dark:bg-teal-950/20 dark:text-teal-200"
+            ? "border-mint-300/60 bg-mint-50/50 text-mint-700 dark:bg-mint-950/20 dark:text-mint-200"
             : "border-amber-300/70 bg-amber-50/60 text-amber-800 dark:bg-amber-950/20 dark:text-amber-200",
         )}
       >
@@ -393,7 +393,7 @@ export function CirculationPanel({
             type="button"
             disabled={!active || pending}
             onClick={recordFindings}
-            className="tap mt-1 self-start rounded-lg bg-teal-600 px-3 py-1.5 text-[12.5px] font-semibold text-white transition-colors hover:bg-teal-700 disabled:opacity-50"
+            className="tap bg-mint-600 hover:bg-mint-700 mt-1 self-start rounded-lg px-3 py-1.5 text-[12.5px] font-semibold text-white transition-colors disabled:opacity-50"
           >
             {reassessDue ? "↻ Re-record circulation findings" : "Record circulation findings"}
           </button>
@@ -471,7 +471,7 @@ function ContextToggle({
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        "tap rounded-full border px-2.5 py-1 text-[11px] transition-colors disabled:opacity-50",
+        "tap text-caption rounded-full border px-2.5 py-1 transition-colors disabled:opacity-50",
         on
           ? danger
             ? "border-rose-500/70 bg-rose-50/70 text-rose-700 dark:bg-rose-950/30 dark:text-rose-200"
@@ -514,9 +514,9 @@ function FindingGroup({
               title={f.meaning}
               onClick={() => onToggle(f.code)}
               className={cn(
-                "tap rounded-lg border px-2 py-1 text-[11px] transition-colors disabled:opacity-50",
+                "tap text-caption rounded-lg border px-2 py-1 transition-colors disabled:opacity-50",
                 on
-                  ? "border-teal-400/70 bg-teal-50/70 text-teal-800 dark:border-teal-500/40 dark:bg-teal-950/25 dark:text-teal-200"
+                  ? "border-mint-400/70 bg-mint-50/70 text-mint-800 dark:border-mint-500/40 dark:bg-mint-950/25 dark:text-mint-200"
                   : "border-border bg-muted/30 text-foreground/70 hover:bg-muted/60",
               )}
             >
@@ -562,7 +562,7 @@ function ActionCard({
       : currentState === "in_progress"
         ? "border-blue-300/60 bg-blue-50/40 dark:bg-blue-950/15"
         : currentState === "performed"
-          ? "border-teal-300/60 bg-teal-50/30 dark:bg-teal-950/15"
+          ? "border-mint-300/60 bg-mint-50/30 dark:bg-mint-950/15"
           : currentState === "deferred" || currentState === "not_indicated"
             ? "border-border"
             : emergency
@@ -632,7 +632,7 @@ function ActionCard({
             type="button"
             disabled={disabled}
             onClick={onPrescribe}
-            className="tap ml-auto inline-flex items-center gap-1 rounded-md bg-teal-600 px-2 py-0.5 text-[10.5px] font-semibold text-white transition-colors hover:bg-teal-700 disabled:opacity-40"
+            className="tap bg-mint-600 hover:bg-mint-700 ml-auto inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10.5px] font-semibold text-white transition-colors disabled:opacity-40"
           >
             Prescribe / record
           </button>

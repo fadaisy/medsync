@@ -52,7 +52,7 @@ export function AdministerForm({
         className={
           state.queuedForReview
             ? "border-border bg-card scale-in flex flex-col items-start gap-3 rounded-xl border p-5 ring-1 ring-amber-500/15"
-            : "border-border bg-card scale-in flex flex-col items-start gap-3 rounded-xl border p-5 ring-1 ring-teal-500/10"
+            : "border-border bg-card scale-in ring-brand-500/10 flex flex-col items-start gap-3 rounded-xl border p-5 ring-1"
         }
       >
         <span
@@ -61,7 +61,7 @@ export function AdministerForm({
           className={
             state.queuedForReview
               ? "scale-in inline-flex size-9 items-center justify-center rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300"
-              : "scale-in inline-flex size-9 items-center justify-center rounded-full bg-teal-100 text-teal-700 dark:bg-teal-900/60 dark:text-teal-300"
+              : "scale-in bg-brand-100 text-brand-700 dark:bg-brand-900/60 dark:text-brand-300 inline-flex size-9 items-center justify-center rounded-full"
           }
         >
           {state.queuedForReview ? (
@@ -101,19 +101,19 @@ export function AdministerForm({
       {/* Drug + dose */}
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5 sm:col-span-2">
-          <Label htmlFor="drug" className="text-[11px] tracking-tight">
+          <Label htmlFor="drug" className="text-caption tracking-tight">
             Drug
           </Label>
           <Input id="drug" name="drug_name" placeholder="e.g. Metformin" maxLength={240} required />
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="dose" className="text-[11px] tracking-tight">
+          <Label htmlFor="dose" className="text-caption tracking-tight">
             Dose
           </Label>
           <Input id="dose" name="dose" placeholder="e.g. 500 mg" maxLength={120} required />
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="route" className="text-[11px] tracking-tight">
+          <Label htmlFor="route" className="text-caption tracking-tight">
             Route
           </Label>
           <select
@@ -121,7 +121,7 @@ export function AdministerForm({
             name="route"
             defaultValue="oral"
             required
-            className="border-input bg-background text-foreground focus-visible:ring-ring/50 rounded-md border px-3 py-2 text-[13px] outline-none focus-visible:ring-[3px]"
+            className="border-input bg-background text-foreground focus-visible:ring-ring/50 text-body-s rounded-md border px-3 py-2 outline-none focus-visible:ring-[3px]"
           >
             {ROUTES.map((r) => (
               <option key={r.value} value={r.value}>
@@ -134,7 +134,7 @@ export function AdministerForm({
 
       {/* State */}
       <div className="flex flex-col gap-1.5">
-        <Label className="text-[11px] tracking-tight">Outcome</Label>
+        <Label className="text-caption tracking-tight">Outcome</Label>
         <div className="flex flex-wrap gap-1.5">
           {STATES.map((s) => (
             <button
@@ -144,7 +144,7 @@ export function AdministerForm({
               aria-pressed={recordState === s.value}
               className={
                 recordState === s.value
-                  ? "tap select-flare rounded-full bg-teal-600 px-3.5 py-1.5 text-[12px] font-medium text-white shadow-sm"
+                  ? "tap select-flare bg-brand-600 rounded-full px-3.5 py-1.5 text-[12px] font-medium text-white shadow-sm"
                   : "tap border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 hover:bg-muted/40 rounded-full border px-3.5 py-1.5 text-[12px] transition-colors"
               }
             >
@@ -156,7 +156,7 @@ export function AdministerForm({
 
       {recordState !== "administered" ? (
         <div className="reveal-up flex flex-col gap-1.5">
-          <Label htmlFor="withheld" className="text-[11px] tracking-tight">
+          <Label htmlFor="withheld" className="text-caption tracking-tight">
             Reason (required)
           </Label>
           <Input id="withheld" name="withheld_reason" placeholder="Why?" maxLength={500} required />
@@ -172,7 +172,7 @@ export function AdministerForm({
           className="mt-0.5 size-4 accent-rose-600"
         />
         <span className="flex flex-1 flex-col">
-          <span className="text-foreground inline-flex items-center gap-1.5 text-[13px] font-medium">
+          <span className="text-foreground text-body-s inline-flex items-center gap-1.5 font-medium">
             <AlertTriangleIcon className="size-3.5 text-rose-600" aria-hidden />
             High-alert medication
           </span>
@@ -197,7 +197,7 @@ export function AdministerForm({
       <label
         className={
           confirmed
-            ? "tap select-flare flex cursor-pointer items-start gap-3 rounded-md border border-teal-500/40 bg-teal-50/40 px-3 py-2.5 transition-colors dark:bg-teal-950/20"
+            ? "tap select-flare border-brand-500/40 bg-brand-50/40 dark:bg-brand-950/20 flex cursor-pointer items-start gap-3 rounded-md border px-3 py-2.5 transition-colors"
             : "tap border-border bg-card hover:bg-muted/30 flex cursor-pointer items-start gap-3 rounded-md border px-3 py-2.5 transition-colors"
         }
       >
@@ -205,10 +205,10 @@ export function AdministerForm({
           type="checkbox"
           checked={confirmed}
           onChange={(e) => setConfirmed(e.target.checked)}
-          className="mt-0.5 size-4 accent-teal-600"
+          className="accent-brand-600 mt-0.5 size-4"
         />
         <span className="flex flex-1 flex-col">
-          <span className="text-foreground text-[13px] font-medium">
+          <span className="text-foreground text-body-s font-medium">
             I have confirmed the 5 rights
           </span>
           <span className="text-muted-foreground text-[11.5px]">
@@ -218,7 +218,7 @@ export function AdministerForm({
       </label>
 
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="mar-notes" className="text-[11px] tracking-tight">
+        <Label htmlFor="mar-notes" className="text-caption tracking-tight">
           Notes (optional)
         </Label>
         <textarea
@@ -226,12 +226,12 @@ export function AdministerForm({
           name="notes"
           rows={2}
           maxLength={2000}
-          className="border-input bg-background text-foreground placeholder:text-muted-foreground/70 focus-visible:ring-ring/50 focus-visible:border-ring resize-none rounded-md border px-3 py-2 text-[13px] leading-relaxed outline-none focus-visible:ring-[3px]"
+          className="border-input bg-background text-foreground placeholder:text-muted-foreground/70 focus-visible:ring-ring/50 focus-visible:border-ring text-body-s resize-none rounded-md border px-3 py-2 leading-relaxed outline-none focus-visible:ring-[3px]"
         />
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="mar-reason" className="text-[11px] tracking-tight">
+        <Label htmlFor="mar-reason" className="text-caption tracking-tight">
           Audit note (≥ 8 chars)
         </Label>
         <Input

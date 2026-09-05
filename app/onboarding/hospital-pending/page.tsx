@@ -71,14 +71,14 @@ export default async function HospitalPendingPage() {
       {/* Quiet teal wash at the top — calm while the review runs */}
       <div
         aria-hidden
-        className="fade-in-slow pointer-events-none absolute top-0 left-1/2 -z-10 h-80 w-[120%] max-w-none -translate-x-1/2 [background:radial-gradient(closest-side,oklch(0.95_0.06_180/0.35),transparent_72%)] dark:[background:radial-gradient(closest-side,oklch(0.45_0.08_180/0.18),transparent_72%)]"
+        className="fade-in-slow pointer-events-none absolute top-0 left-1/2 -z-10 h-80 w-[120%] max-w-none -translate-x-1/2 [background:radial-gradient(closest-side,oklch(0.95_0.06_286/0.35),transparent_72%)] dark:[background:radial-gradient(closest-side,oklch(0.45_0.08_286/0.18),transparent_72%)]"
       />
 
       <header className="border-gray-150 glass sticky top-0 z-20 border-b">
         <div className="mx-auto flex w-full max-w-300 items-center justify-between px-8 py-4">
           <Link
             href="/"
-            className="font-display text-foreground text-[15px] font-medium tracking-tight transition-opacity hover:opacity-80"
+            className="font-display text-foreground text-body-m font-medium tracking-tight transition-opacity hover:opacity-80"
           >
             MedSync
           </Link>
@@ -108,7 +108,7 @@ export default async function HospitalPendingPage() {
           <h1 className="font-display text-foreground text-[32px] leading-tight font-medium tracking-[-0.02em] sm:text-[40px]">
             {isRejected ? "Your application wasn't approved" : "We're reviewing your application"}
           </h1>
-          <p className="text-muted-foreground text-[15px] leading-relaxed">
+          <p className="text-muted-foreground text-body-m leading-relaxed">
             {isRejected ? (
               <>
                 Our review found:{" "}

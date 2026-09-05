@@ -40,7 +40,7 @@ export function ReceptionShell({
         <div className="border-border flex flex-col gap-0.5 border-b px-5 py-3">
           <Link
             href="/"
-            className="font-display text-foreground text-[15px] font-medium tracking-[-0.01em] transition-opacity hover:opacity-80"
+            className="font-display text-foreground text-body-m font-medium tracking-[-0.01em] transition-opacity hover:opacity-80"
           >
             MedSync
           </Link>
@@ -71,7 +71,7 @@ export function ReceptionShell({
           <div className="flex items-center gap-2.5 px-1 py-1.5">
             <div
               aria-hidden
-              className="bg-muted text-foreground/80 flex size-7 shrink-0 items-center justify-center rounded-full font-mono text-[11px] font-semibold"
+              className="bg-muted text-foreground/80 text-caption flex size-7 shrink-0 items-center justify-center rounded-full font-mono font-semibold"
             >
               {initial}
             </div>
@@ -80,7 +80,10 @@ export function ReceptionShell({
                 {scope.fullName ?? scope.userEmail}
               </p>
               <p className="text-muted-foreground inline-flex items-center gap-1 font-mono text-[10px] tracking-[0.1em] uppercase">
-                <ShieldCheckIcon className="size-3 text-teal-600 dark:text-teal-400" aria-hidden />
+                <ShieldCheckIcon
+                  className="text-brand-600 dark:text-brand-400 size-3"
+                  aria-hidden
+                />
                 MFA · AAL2
               </p>
             </div>
@@ -93,7 +96,7 @@ export function ReceptionShell({
           <div className="flex items-center gap-2.5 lg:hidden">
             <Link
               href="/reception"
-              className="font-display text-foreground text-[15px] font-medium tracking-[-0.01em]"
+              className="font-display text-foreground text-body-m font-medium tracking-[-0.01em]"
             >
               MedSync
             </Link>
@@ -106,7 +109,7 @@ export function ReceptionShell({
             >
               <span
                 aria-hidden
-                className="pulse-dot size-1.5 shrink-0 rounded-full bg-teal-500 ring-2 ring-teal-500/20"
+                className="pulse-dot bg-brand-500 ring-brand-500/20 size-1.5 shrink-0 rounded-full ring-2"
               />
               <span className="truncate" title={scope.hospitalName}>
                 {scope.hospitalName}

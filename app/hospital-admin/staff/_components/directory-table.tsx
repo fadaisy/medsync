@@ -124,7 +124,7 @@ export function DirectoryTable({
       cell: (row) => (
         <div className="flex min-w-0 flex-col">
           <span className="text-foreground truncate font-medium">{row.fullName}</span>
-          <span className="text-muted-foreground truncate font-mono text-[11px]">{row.email}</span>
+          <span className="text-muted-foreground text-caption truncate font-mono">{row.email}</span>
         </div>
       ),
     },
@@ -204,7 +204,7 @@ export function DirectoryTable({
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 aria-label="Search the staff directory"
-                className="text-foreground placeholder:text-muted-foreground border-border w-64 max-w-full rounded-md border bg-transparent px-2.5 py-1 text-[12.5px] outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40"
+                className="text-foreground placeholder:text-muted-foreground border-border focus-visible:ring-brand-500/40 w-64 max-w-full rounded-md border bg-transparent px-2.5 py-1 text-[12.5px] outline-none focus-visible:ring-2"
               />
               <div className="ml-2 flex items-center gap-1.5">
                 {STATUS_FILTERS.map((s) => (
@@ -221,7 +221,7 @@ export function DirectoryTable({
                 aria-label="Filter by department"
                 value={departmentFilter ?? ""}
                 onChange={(e) => setDepartmentFilter(e.target.value || null)}
-                className="border-border text-foreground rounded-md border bg-transparent px-2 py-1 text-[12px] outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40"
+                className="border-border text-foreground focus-visible:ring-brand-500/40 rounded-md border bg-transparent px-2 py-1 text-[12px] outline-none focus-visible:ring-2"
               >
                 <option value="">All departments</option>
                 {allDepartments.map((d) => (

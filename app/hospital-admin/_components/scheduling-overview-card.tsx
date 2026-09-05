@@ -110,7 +110,7 @@ export async function SchedulingOverviewCard({
     >
       <header className="flex items-center justify-between gap-3">
         <h2 className="text-foreground inline-flex items-center gap-2 text-[14px] font-medium tracking-[-0.005em]">
-          <CalendarClockIcon className="size-4 text-teal-600 dark:text-teal-400" aria-hidden />
+          <CalendarClockIcon className="text-brand-600 dark:text-brand-400 size-4" aria-hidden />
           Scheduling
         </h2>
         <Link
@@ -170,7 +170,7 @@ function Stat({
 }) {
   const cls =
     tone === "actionable"
-      ? "text-teal-700 dark:text-teal-300"
+      ? "text-brand-700 dark:text-brand-300"
       : tone === "ok"
         ? "text-emerald-700 dark:text-emerald-300"
         : tone === "critical"

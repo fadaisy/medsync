@@ -87,11 +87,11 @@ function ApprovalDetailContent({ item, onClose }: { item: ApprovalItem; onClose:
             <h2 className="font-display text-foreground text-[24px] leading-[1.15] font-medium tracking-[-0.015em]">
               {item.title}
             </h2>
-            <p className="text-muted-foreground text-[13px] leading-snug">{item.subtitle}</p>
+            <p className="text-muted-foreground text-body-s leading-snug">{item.subtitle}</p>
           </div>
 
           {/* Hairline teal accent — the recurring motif from the landing surface. */}
-          <div className="h-px w-10 bg-teal-500/60 dark:bg-teal-400/50" aria-hidden />
+          <div className="bg-brand-500/60 dark:bg-brand-400/50 h-px w-10" aria-hidden />
 
           <dl className="flex flex-wrap items-baseline gap-x-6 gap-y-1.5 text-[11.5px]">
             <div className="flex items-baseline gap-1.5">
@@ -344,7 +344,7 @@ function EvidenceRow({ row }: { row: ApprovalEvidence }) {
       <dt className="text-muted-foreground self-baseline text-[11.5px] font-medium">{row.label}</dt>
       <dd
         className={cn(
-          "text-foreground self-baseline text-[13px] leading-relaxed wrap-break-word",
+          "text-foreground text-body-s self-baseline leading-relaxed wrap-break-word",
           row.mono && "font-mono text-[12.5px] tabular-nums",
           row.tone === "warning" && "text-amber-800 dark:text-amber-200",
           row.tone === "critical" && "text-red-800 dark:text-red-200",
@@ -394,13 +394,13 @@ function EvidenceDocCard({
       <input type="hidden" name="bucket" value={bucket} />
       <input type="hidden" name="path" value={path} />
 
-      <div className="flex size-9 shrink-0 items-center justify-center rounded bg-teal-50 text-teal-700 ring-1 ring-teal-200/70 dark:bg-teal-950/40 dark:text-teal-300 dark:ring-teal-800/40">
+      <div className="bg-brand-50 text-brand-700 ring-brand-200/70 dark:bg-brand-950/40 dark:text-brand-300 dark:ring-brand-800/40 flex size-9 shrink-0 items-center justify-center rounded ring-1">
         <FileTextIcon className="size-4" aria-hidden />
       </div>
 
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex items-center gap-2">
-          <span className="text-foreground truncate text-[13px] font-medium">
+          <span className="text-foreground text-body-s truncate font-medium">
             {label ?? "Supporting document"}
           </span>
           <span className="text-muted-foreground bg-muted shrink-0 rounded px-1.5 py-px font-mono text-[9.5px] tracking-wide tabular-nums">

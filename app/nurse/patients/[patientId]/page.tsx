@@ -122,11 +122,11 @@ export default async function NursePatientSummaryPage({ params }: PageProps) {
 
       <header className="flex flex-col gap-2">
         <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
-          <span aria-hidden className="size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20" />
+          <span aria-hidden className="bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2" />
           Patient summary
         </span>
         <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
-          <h1 className="font-display text-foreground text-[28px] leading-[1.1] font-medium tracking-[-0.015em]">
+          <h1 className="font-display text-foreground text-heading-l leading-[1.1] font-medium tracking-[-0.015em]">
             {summary.firstName} {summary.surname}
           </h1>
           <span className="text-muted-foreground font-mono text-[12px] tabular-nums">
@@ -140,8 +140,11 @@ export default async function NursePatientSummaryPage({ params }: PageProps) {
         </p>
       </header>
 
-      <div className="border-border bg-card flex items-center gap-3 rounded-xl border px-4 py-2.5 ring-1 ring-teal-500/5">
-        <ShieldAlertIcon className="size-4 shrink-0 text-teal-600 dark:text-teal-400" aria-hidden />
+      <div className="border-border bg-card ring-brand-500/5 flex items-center gap-3 rounded-xl border px-4 py-2.5 ring-1">
+        <ShieldAlertIcon
+          className="text-brand-600 dark:text-brand-400 size-4 shrink-0"
+          aria-hidden
+        />
         <div className="flex min-w-0 flex-1 flex-col">
           <span className="text-muted-foreground font-mono text-[9.5px] tracking-[0.12em] uppercase">
             Access basis · this read was logged
@@ -308,8 +311,8 @@ function Field({
       <span
         className={
           mono
-            ? "text-foreground font-mono text-[13px] tabular-nums"
-            : "text-foreground text-[13px]"
+            ? "text-foreground text-body-s font-mono tabular-nums"
+            : "text-foreground text-body-s"
         }
       >
         {value}
@@ -337,7 +340,7 @@ function NoAccessScreen() {
           <ShieldAlertIcon className="size-5" />
         </span>
         <div className="flex flex-col gap-1.5">
-          <span className="text-foreground text-[15px] font-medium">Above your current access</span>
+          <span className="text-foreground text-body-m font-medium">Above your current access</span>
           <p className="text-muted-foreground max-w-[56ch] text-[12.5px] leading-relaxed">
             You don&rsquo;t have a current clinical relationship with this patient — no assignment,
             no ward-census activity today, no in-charge basis. If you need access for legitimate

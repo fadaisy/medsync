@@ -35,10 +35,10 @@ export function AssignForm({
 
   if (state.ok) {
     return (
-      <div className="border-border bg-card scale-in flex flex-col items-start gap-3 rounded-xl border p-5 ring-1 ring-teal-500/10">
+      <div className="border-border bg-card scale-in ring-brand-500/10 flex flex-col items-start gap-3 rounded-xl border p-5 ring-1">
         <span
           aria-hidden
-          className="scale-in inline-flex size-9 items-center justify-center rounded-full bg-teal-100 text-teal-700 dark:bg-teal-900/60 dark:text-teal-300"
+          className="scale-in bg-brand-100 text-brand-700 dark:bg-brand-900/60 dark:text-brand-300 inline-flex size-9 items-center justify-center rounded-full"
           style={{ animationDelay: "90ms" }}
         >
           <ClipboardPenIcon className="size-4" />
@@ -54,7 +54,7 @@ export function AssignForm({
   return (
     <form action={formAction} className="flex flex-col gap-4">
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="nurse" className="text-[11px] tracking-tight">
+        <Label htmlFor="nurse" className="text-caption tracking-tight">
           Nurse
         </Label>
         <select
@@ -62,7 +62,7 @@ export function AssignForm({
           name="nurse_user_id"
           required
           defaultValue=""
-          className="border-input bg-background text-foreground focus-visible:ring-ring/50 rounded-md border px-3 py-2 text-[13px] outline-none focus-visible:ring-[3px]"
+          className="border-input bg-background text-foreground focus-visible:ring-ring/50 text-body-s rounded-md border px-3 py-2 outline-none focus-visible:ring-[3px]"
         >
           <option value="" disabled>
             Choose a nurse on shift
@@ -77,7 +77,7 @@ export function AssignForm({
 
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="patient" className="text-[11px] tracking-tight">
+          <Label htmlFor="patient" className="text-caption tracking-tight">
             Patient (UUID)
           </Label>
           <Input
@@ -92,14 +92,14 @@ export function AssignForm({
           </p>
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="ward" className="text-[11px] tracking-tight">
+          <Label htmlFor="ward" className="text-caption tracking-tight">
             Ward (optional)
           </Label>
           <select
             id="ward"
             name="ward_id"
             defaultValue=""
-            className="border-input bg-background text-foreground focus-visible:ring-ring/50 rounded-md border px-3 py-2 text-[13px] outline-none focus-visible:ring-[3px]"
+            className="border-input bg-background text-foreground focus-visible:ring-ring/50 text-body-s rounded-md border px-3 py-2 outline-none focus-visible:ring-[3px]"
           >
             <option value="">— Department-level —</option>
             {wards.map((w) => (
@@ -112,14 +112,14 @@ export function AssignForm({
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="rk" className="text-[11px] tracking-tight">
+        <Label htmlFor="rk" className="text-caption tracking-tight">
           Relationship
         </Label>
         <select
           id="rk"
           name="relationship_kind"
           defaultValue="primary"
-          className="border-input bg-background text-foreground focus-visible:ring-ring/50 rounded-md border px-3 py-2 text-[13px] outline-none focus-visible:ring-[3px]"
+          className="border-input bg-background text-foreground focus-visible:ring-ring/50 text-body-s rounded-md border px-3 py-2 outline-none focus-visible:ring-[3px]"
         >
           <option value="primary">Primary nurse</option>
           <option value="cover">Cover</option>
@@ -127,7 +127,7 @@ export function AssignForm({
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="ar" className="text-[11px] tracking-tight">
+        <Label htmlFor="ar" className="text-caption tracking-tight">
           Audit note (≥ 8 chars)
         </Label>
         <Input

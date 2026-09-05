@@ -75,7 +75,7 @@ export default async function DoctorOverviewPage() {
           <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
             <span
               aria-hidden
-              className="pulse-dot size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20"
+              className="pulse-dot bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2"
             />
             {scope.hospitalName} · {scope.departmentName}
           </span>
@@ -161,7 +161,7 @@ function SupervisorCard({
         <div className="flex items-center gap-3">
           <span
             aria-hidden
-            className="inline-flex size-10 items-center justify-center rounded-full bg-teal-50 text-teal-700 ring-1 ring-teal-200/70 dark:bg-teal-950/40 dark:text-teal-300 dark:ring-teal-800/40"
+            className="bg-brand-50 text-brand-700 ring-brand-200/70 dark:bg-brand-950/40 dark:text-brand-300 dark:ring-brand-800/40 inline-flex size-10 items-center justify-center rounded-full ring-1"
           >
             <GraduationCapIcon className="size-5" />
           </span>
@@ -195,7 +195,7 @@ function SeniorReviewCard({ pendingCount }: { pendingCount: number }) {
       href="/doctor/cosign-queue"
       className={
         pendingCount > 0
-          ? "group card-lift flex items-center gap-3 rounded-xl border border-teal-500/30 bg-teal-50/40 p-5 hover:border-teal-500/60 dark:border-teal-400/20 dark:bg-teal-950/15"
+          ? "group card-lift border-brand-500/30 bg-brand-50/40 hover:border-brand-500/60 dark:border-brand-400/20 dark:bg-brand-950/15 flex items-center gap-3 rounded-xl border p-5"
           : "group card-lift border-border bg-card flex items-center gap-3 rounded-xl border p-5"
       }
     >
@@ -203,7 +203,7 @@ function SeniorReviewCard({ pendingCount }: { pendingCount: number }) {
         aria-hidden
         className={
           pendingCount > 0
-            ? "ease-spring inline-flex size-10 items-center justify-center rounded-full bg-teal-100 text-teal-700 ring-1 ring-teal-200/70 transition-transform duration-200 group-hover:scale-105 dark:bg-teal-900/40 dark:text-teal-300 dark:ring-teal-800/40"
+            ? "ease-spring bg-brand-100 text-brand-700 ring-brand-200/70 dark:bg-brand-900/40 dark:text-brand-300 dark:ring-brand-800/40 inline-flex size-10 items-center justify-center rounded-full ring-1 transition-transform duration-200 group-hover:scale-105"
             : "bg-muted text-foreground/80 ease-spring inline-flex size-10 items-center justify-center rounded-full transition-transform duration-200 group-hover:scale-105"
         }
       >
@@ -218,7 +218,7 @@ function SeniorReviewCard({ pendingCount }: { pendingCount: number }) {
         </span>
       </div>
       {pendingCount > 0 ? (
-        <span className="scale-in inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-teal-600/10 px-1.5 font-mono text-[12px] font-semibold text-teal-700 tabular-nums dark:text-teal-300">
+        <span className="scale-in bg-brand-600/10 text-brand-700 dark:text-brand-300 inline-flex h-6 min-w-6 items-center justify-center rounded-full px-1.5 font-mono text-[12px] font-semibold tabular-nums">
           {pendingCount}
         </span>
       ) : null}

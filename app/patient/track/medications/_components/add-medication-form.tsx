@@ -36,7 +36,7 @@ export function AddMedicationForm() {
       className="border-border bg-card flex flex-col gap-3 rounded-xl border p-4"
     >
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="med-name" className="text-[11px] tracking-tight">
+        <Label htmlFor="med-name" className="text-caption tracking-tight">
           Name
         </Label>
         <Input id="med-name" name="name" placeholder="e.g. Metformin" maxLength={120} required />
@@ -44,20 +44,20 @@ export function AddMedicationForm() {
 
       <div className="grid grid-cols-2 gap-2">
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="med-dose" className="text-[11px] tracking-tight">
+          <Label htmlFor="med-dose" className="text-caption tracking-tight">
             Dose (optional)
           </Label>
           <Input id="med-dose" name="dose" placeholder="500 mg" maxLength={60} />
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="med-pattern" className="text-[11px] tracking-tight">
+          <Label htmlFor="med-pattern" className="text-caption tracking-tight">
             How often
           </Label>
           <select
             id="med-pattern"
             name="schedule_pattern"
             defaultValue="once_daily"
-            className="border-input bg-background text-foreground focus-visible:ring-ring/50 rounded-md border px-3 py-2 text-[13px] outline-none focus-visible:ring-[3px]"
+            className="border-input bg-background text-foreground focus-visible:ring-ring/50 text-body-s rounded-md border px-3 py-2 outline-none focus-visible:ring-[3px]"
           >
             {PATTERNS.map((p) => (
               <option key={p.value} value={p.value}>
@@ -69,7 +69,7 @@ export function AddMedicationForm() {
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="med-instructions" className="text-[11px] tracking-tight">
+        <Label htmlFor="med-instructions" className="text-caption tracking-tight">
           Instructions (optional)
         </Label>
         <Input

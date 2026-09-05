@@ -45,7 +45,7 @@ export default async function ReceptionFindPage({ searchParams }: PageProps) {
 
       <header className="reveal-up flex flex-col gap-2" style={{ animationDelay: "50ms" }}>
         <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
-          <span aria-hidden className="size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20" />
+          <span aria-hidden className="bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2" />
           {scope.hospitalName} · Find a patient
         </span>
         <h1 className="font-display text-foreground text-[26px] leading-[1.15] font-medium tracking-[-0.015em]">
@@ -65,7 +65,7 @@ export default async function ReceptionFindPage({ searchParams }: PageProps) {
       >
         <span
           aria-hidden
-          className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 transition-colors duration-200 group-focus-within:text-teal-600 dark:group-focus-within:text-teal-400"
+          className="text-muted-foreground group-focus-within:text-brand-600 dark:group-focus-within:text-brand-400 pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 transition-colors duration-200"
         >
           <SearchIcon className="size-4" />
         </span>
@@ -74,7 +74,7 @@ export default async function ReceptionFindPage({ searchParams }: PageProps) {
           name="q"
           defaultValue={query}
           placeholder="e.g. MS-2026-00"
-          className="h-10 w-full pr-3 pl-9 font-mono text-[13px]"
+          className="text-body-s h-10 w-full pr-3 pl-9 font-mono"
           minLength={3}
           autoFocus
         />
@@ -106,7 +106,7 @@ export default async function ReceptionFindPage({ searchParams }: PageProps) {
                 strokeLinecap="round"
                 opacity="0.35"
               />
-              <circle cx="27" cy="27" r="3" className="text-teal-500/30" fill="currentColor" />
+              <circle cx="27" cy="27" r="3" className="text-brand-500/30" fill="currentColor" />
             </svg>
             <p className="text-muted-foreground text-[12.5px]">
               No patient matches &ldquo;{query}&rdquo;. If they&rsquo;re new, head to{" "}

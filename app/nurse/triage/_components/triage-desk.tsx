@@ -56,7 +56,7 @@ const COLOUR_CLASS: Record<string, string> = {
   red: "bg-rose-600 text-white",
   orange: "bg-orange-500 text-white",
   yellow: "bg-amber-400 text-amber-950",
-  green: "bg-teal-600 text-white",
+  green: "bg-mint-600 text-white",
   blue: "bg-slate-400 text-white",
 };
 
@@ -65,7 +65,7 @@ const SEG_FILL: Record<AcuityColour, string> = {
   red: "bg-rose-600",
   orange: "bg-orange-500",
   yellow: "bg-amber-400",
-  green: "bg-teal-600",
+  green: "bg-mint-600",
   blue: "bg-slate-400",
 };
 
@@ -74,7 +74,7 @@ const HERO_TINT: Record<AcuityColour, string> = {
   red: "border-rose-500/40 bg-rose-50/60 dark:border-rose-500/30 dark:bg-rose-950/20",
   orange: "border-orange-400/40 bg-orange-50/60 dark:border-orange-500/30 dark:bg-orange-950/20",
   yellow: "border-amber-300/50 bg-amber-50/60 dark:border-amber-500/30 dark:bg-amber-950/20",
-  green: "border-teal-500/30 bg-teal-50/50 dark:border-teal-500/30 dark:bg-teal-950/20",
+  green: "border-mint-500/30 bg-mint-50/50 dark:border-mint-500/30 dark:bg-mint-950/20",
   blue: "border-slate-300/50 bg-slate-50/60 dark:border-slate-500/30 dark:bg-slate-950/20",
 };
 
@@ -141,7 +141,7 @@ function riskBarFill(total: number): string {
   if (total >= 7) return "bg-rose-500";
   if (total >= 5) return "bg-orange-500";
   if (total >= 1) return "bg-amber-400";
-  return "bg-teal-600";
+  return "bg-mint-600";
 }
 
 interface VitalsState {
@@ -336,7 +336,7 @@ export function TriageDesk({
       <h1 className="font-display text-foreground text-[20px] leading-tight font-medium tracking-[-0.01em]">
         {name}
       </h1>
-      <span className="text-muted-foreground font-mono text-[11px] tabular-nums">
+      <span className="text-muted-foreground text-caption font-mono tabular-nums">
         {metaBits.join(" · ")}
       </span>
     </div>
@@ -365,7 +365,7 @@ export function TriageDesk({
           </span>
         ) : null}
       </div>
-      <span className="text-foreground/80 text-[11px] font-medium">
+      <span className="text-foreground/80 text-caption font-medium">
         {result.disposition} · target {tier.targetMinutes}m
       </span>
       {result.news2 ? (
@@ -605,7 +605,7 @@ export function TriageDesk({
             </span>
             <span
               className={cn(
-                "mb-1 inline-flex items-center rounded-full px-2.5 py-0.5 text-[11px] font-semibold tracking-wide uppercase",
+                "text-overline mb-1 inline-flex items-center rounded-full px-2.5 py-0.5 font-semibold tracking-wide uppercase",
                 COLOUR_CLASS[tier.colour],
               )}
             >
@@ -616,7 +616,7 @@ export function TriageDesk({
             <span className="text-foreground text-[12.5px] font-semibold">
               {result.disposition} · target {tier.targetMinutes}m
             </span>
-            <span className="text-muted-foreground/80 text-[11px]">
+            <span className="text-muted-foreground/80 text-caption">
               {result.news2
                 ? `driver: NEWS2 ${result.news2.total}`
                 : (result.firedDiscriminators[0]?.label ?? "clinical assessment")}
@@ -778,7 +778,7 @@ export function TriageDesk({
         </div>
         <p
           className={cn(
-            "text-[11px]",
+            "text-caption",
             direction === "none"
               ? "text-muted-foreground"
               : direction === "up"
@@ -801,7 +801,7 @@ export function TriageDesk({
           rows={2}
           minLength={8}
           placeholder="Why is a lower acuity clinically appropriate? (audited)"
-          className="border-input bg-background focus-visible:ring-ring/50 rounded-md border p-2 text-[13px] outline-none focus-visible:ring-[3px]"
+          className="border-input bg-background focus-visible:ring-ring/50 text-body-s rounded-md border p-2 outline-none focus-visible:ring-[3px]"
         />
       ) : null}
 
@@ -1022,7 +1022,7 @@ function WorseOf({
         </p>
         <span
           className={cn(
-            "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[11px] font-semibold tabular-nums",
+            "text-caption inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 font-semibold tabular-nums",
             COLOUR_CLASS[finalTier.colour],
           )}
         >
@@ -1091,7 +1091,7 @@ function ReasoningLine({ line }: { line: string }) {
         aria-hidden
         className={cn(
           "mt-[5px] size-1.5 shrink-0 rounded-full",
-          isDecision ? "bg-teal-500/70" : "bg-border",
+          isDecision ? "bg-mint-500/70" : "bg-border",
         )}
       />
       <span className="text-foreground/85 text-[11.5px] leading-relaxed">{text}</span>
@@ -1193,7 +1193,7 @@ function VitalTile({
     <div
       className={cn(
         tileShell(i.tone),
-        "focus-within:border-teal-500 focus-within:ring-2 focus-within:ring-teal-500/20 dark:focus-within:border-teal-400",
+        "focus-within:border-mint-500 focus-within:ring-mint-500/20 dark:focus-within:border-mint-400 focus-within:ring-2",
       )}
     >
       <div className="flex items-start justify-between gap-2">
@@ -1208,7 +1208,7 @@ function VitalTile({
           placeholder="—"
           aria-label={label}
           className={cn(
-            "placeholder:text-muted-foreground/40 -ml-0.5 w-full min-w-0 bg-transparent font-mono text-[22px] leading-none font-semibold tracking-[-0.02em] tabular-nums outline-none",
+            "placeholder:text-muted-foreground/40 text-heading-m -ml-0.5 w-full min-w-0 bg-transparent font-mono leading-none font-semibold tracking-[-0.02em] tabular-nums outline-none",
             VALUE_TONE[i.tone],
           )}
         />
@@ -1251,7 +1251,7 @@ function SelectTile({
     <div
       className={cn(
         tileShell(i.tone),
-        "focus-within:border-teal-500 dark:focus-within:border-teal-400",
+        "focus-within:border-mint-500 dark:focus-within:border-mint-400",
       )}
     >
       <div className="flex items-start justify-between gap-2">
@@ -1276,7 +1276,9 @@ function SelectTile({
           ))}
         </select>
       </div>
-      <span className={cn("line-clamp-1 text-[11px]", TONE_CHIP[i.tone])}>{subLabel(i.label)}</span>
+      <span className={cn("text-caption line-clamp-1", TONE_CHIP[i.tone])}>
+        {subLabel(i.label)}
+      </span>
     </div>
   );
 }
@@ -1303,10 +1305,10 @@ function DerivedTile({
         <TileLabel>{label}</TileLabel>
       </div>
       {missing ? (
-        <span className="text-muted-foreground/60 font-mono text-[15px] italic">Not recorded</span>
+        <span className="text-muted-foreground/60 text-body-m font-mono italic">Not recorded</span>
       ) : (
         <div className="flex items-baseline gap-1">
-          <span className="text-foreground font-mono text-[18px] leading-none font-semibold tabular-nums">
+          <span className="text-foreground text-heading-s font-mono leading-none font-semibold tabular-nums">
             {value}
           </span>
           {unit ? (
@@ -1314,7 +1316,7 @@ function DerivedTile({
           ) : null}
         </div>
       )}
-      <span className={cn("line-clamp-1 text-[11px]", TONE_CHIP[t])}>{sub}</span>
+      <span className={cn("text-caption line-clamp-1", TONE_CHIP[t])}>{sub}</span>
     </div>
   );
 }
@@ -1325,11 +1327,11 @@ function ReadTile({ label, value, unit }: { label: string; value: string; unit?:
     <div className={tileShell("normal")}>
       <TileLabel>{label}</TileLabel>
       <div className="flex items-baseline gap-1">
-        <span className="text-foreground font-mono text-[18px] leading-none font-semibold tabular-nums">
+        <span className="text-foreground text-heading-s font-mono leading-none font-semibold tabular-nums">
           {value}
         </span>
       </div>
-      {unit ? <span className="text-muted-foreground/70 text-[11px]">{unit}</span> : null}
+      {unit ? <span className="text-muted-foreground/70 text-caption">{unit}</span> : null}
     </div>
   );
 }
@@ -1352,12 +1354,12 @@ function PillSelectTile({
     <div
       className={cn(
         tileShell("normal"),
-        "focus-within:border-teal-500 dark:focus-within:border-teal-400",
+        "focus-within:border-mint-500 dark:focus-within:border-mint-400",
       )}
     >
       <TileLabel>{label}</TileLabel>
       <div className="relative flex items-center">
-        <span className="text-foreground font-mono text-[18px] leading-none font-semibold">
+        <span className="text-foreground text-heading-s font-mono leading-none font-semibold">
           {display}
         </span>
         <ChevronDownIcon className="text-muted-foreground/50 ml-1 size-3.5" aria-hidden />
@@ -1397,7 +1399,7 @@ function PillToggle({
       className={cn(
         "tap inline-flex items-center gap-1 rounded-full border px-2.5 py-1 font-mono text-[10px] tracking-wide transition-colors",
         active
-          ? "border-teal-500/50 bg-teal-50 text-teal-700 dark:bg-teal-950/30 dark:text-teal-300"
+          ? "border-mint-500/50 bg-mint-50 text-mint-700 dark:bg-mint-950/30 dark:text-mint-300"
           : "border-border text-muted-foreground hover:text-foreground",
       )}
       title="SpO₂ Scale 2 — confirmed hypercapnic / COPD target 88–92%"
@@ -1423,7 +1425,7 @@ function Check({
         type="checkbox"
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
-        className="mt-0.5 size-3.5 accent-teal-600"
+        className="accent-mint-600 mt-0.5 size-3.5"
       />
       <span className="text-foreground/90">{children}</span>
     </label>

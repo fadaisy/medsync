@@ -56,14 +56,14 @@ export default async function PatientAppointments() {
     <div className="stagger-children relative mx-auto flex w-full max-w-xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-9">
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-20 left-1/2 -z-10 h-56 w-md max-w-full -translate-x-1/2 rounded-full bg-teal-500/5 blur-3xl dark:bg-teal-400/4"
+        className="bg-brand-500/5 dark:bg-brand-400/4 pointer-events-none absolute -top-20 left-1/2 -z-10 h-56 w-md max-w-full -translate-x-1/2 rounded-full blur-3xl"
       />
       <header className="flex flex-col gap-1.5">
         <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
-          <span aria-hidden className="size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20" />
+          <span aria-hidden className="bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2" />
           MedSync · Visits
         </span>
-        <h1 className="font-display text-foreground text-[24px] leading-[1.15] font-medium tracking-[-0.015em] sm:text-[28px]">
+        <h1 className="font-display text-foreground sm:text-heading-l text-[24px] leading-[1.15] font-medium tracking-[-0.015em]">
           Your appointments
         </h1>
         <p className="text-muted-foreground text-[12.5px] leading-relaxed">
@@ -99,12 +99,12 @@ export default async function PatientAppointments() {
       ) : (
         <Link
           href="/patient/hospitals"
-          className="group card-lift relative overflow-hidden rounded-xl border border-teal-500/30 bg-linear-to-br from-teal-50/80 via-teal-50/40 to-transparent p-4 hover:border-teal-500/60 dark:border-teal-400/20 dark:from-teal-950/30 dark:via-teal-950/15 dark:to-transparent"
+          className="group card-lift border-brand-500/30 from-brand-50/80 via-brand-50/40 hover:border-brand-500/60 dark:border-brand-400/20 dark:from-brand-950/30 dark:via-brand-950/15 relative overflow-hidden rounded-xl border bg-linear-to-br to-transparent p-4 dark:to-transparent"
         >
           <div className="relative flex items-start gap-3">
             <span
               aria-hidden
-              className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-white/80 text-teal-700 ring-1 ring-teal-200/80 dark:bg-teal-950/60 dark:text-teal-300 dark:ring-teal-800/40"
+              className="text-brand-700 ring-brand-200/80 dark:bg-brand-950/60 dark:text-brand-300 dark:ring-brand-800/40 inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-white/80 ring-1"
             >
               <HospitalIcon className="size-4" />
             </span>
@@ -115,7 +115,7 @@ export default async function PatientAppointments() {
               <span className="text-muted-foreground max-w-[44ch] text-[12px] leading-relaxed">
                 Booking opens once you choose your primary hospital. It takes a tap.
               </span>
-              <span className="mt-1 inline-flex items-center gap-1 text-[12px] font-medium text-teal-700 dark:text-teal-300">
+              <span className="text-brand-700 dark:text-brand-300 mt-1 inline-flex items-center gap-1 text-[12px] font-medium">
                 Browse hospitals →
               </span>
             </div>

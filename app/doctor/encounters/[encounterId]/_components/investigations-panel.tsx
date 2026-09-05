@@ -68,7 +68,7 @@ export function InvestigationsPanel({ orders }: { orders: EncounterOrderRow[] })
                     ) : null}
                   </span>
                   {o.justification ? (
-                    <span className="text-muted-foreground text-[11px]">{o.justification}</span>
+                    <span className="text-muted-foreground text-caption">{o.justification}</span>
                   ) : null}
                   {resulted && o.result ? (
                     <span className="text-muted-foreground font-mono text-[10px] tabular-nums">
@@ -85,7 +85,7 @@ export function InvestigationsPanel({ orders }: { orders: EncounterOrderRow[] })
                           ? "bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-300"
                           : abnormal
                             ? "bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300"
-                            : "bg-teal-50 text-teal-700 dark:bg-teal-950/40 dark:text-teal-300"
+                            : "bg-brand-50 text-brand-700 dark:bg-brand-950/40 dark:text-brand-300"
                       }`}
                     >
                       {o.result.value}

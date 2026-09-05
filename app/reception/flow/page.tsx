@@ -21,9 +21,9 @@ const STAGE_TONE: Record<string, string> = {
   // teal so it's visibly different from 'arrived' (solid teal) — the
   // pre-queued/arrived distinction must be unmistakable.
   declared:
-    "bg-teal-50/60 text-teal-700 ring-1 ring-teal-200/60 dark:bg-teal-950/30 dark:text-teal-300 dark:ring-teal-800/40",
+    "bg-brand-50/60 text-brand-700 ring-1 ring-brand-200/60 dark:bg-brand-950/30 dark:text-brand-300 dark:ring-brand-800/40",
   expected: "bg-muted text-muted-foreground",
-  arrived: "bg-teal-50 text-teal-700 dark:bg-teal-950/40 dark:text-teal-300",
+  arrived: "bg-brand-50 text-brand-700 dark:bg-brand-950/40 dark:text-brand-300",
   in_queue: "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300",
   awaiting_triage: "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300",
 };
@@ -47,7 +47,7 @@ export default async function ReceptionFlowPage() {
 
       <header className="flex flex-col gap-2">
         <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
-          <span aria-hidden className="size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20" />
+          <span aria-hidden className="bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2" />
           {scope.hospitalName} · Today&rsquo;s flow
         </span>
         <h1 className="font-display text-foreground text-[26px] leading-[1.15] font-medium tracking-[-0.015em]">
@@ -65,9 +65,9 @@ export default async function ReceptionFlowPage() {
             <rect x="0" y="2" width="84" height="10" rx="4" fill="currentColor" opacity="0.5" />
             <rect x="0" y="20" width="64" height="10" rx="4" fill="currentColor" opacity="0.3" />
             <rect x="0" y="38" width="44" height="10" rx="4" fill="currentColor" opacity="0.15" />
-            <circle cx="89" cy="43" r="5" className="text-teal-500/30" fill="currentColor" />
+            <circle cx="89" cy="43" r="5" className="text-brand-500/30" fill="currentColor" />
           </svg>
-          <p className="text-muted-foreground text-[13px]">
+          <p className="text-muted-foreground text-body-s">
             No activity yet today. The board fills as patients declare, arrive and queue.
           </p>
         </div>
@@ -99,7 +99,7 @@ export default async function ReceptionFlowPage() {
                 return (
                   <tr
                     key={`${r.patientUserId ?? "unknown"}-${i}`}
-                    className="transition-colors hover:bg-teal-50/40 dark:hover:bg-teal-950/15"
+                    className="hover:bg-brand-50/40 dark:hover:bg-brand-950/15 transition-colors"
                   >
                     <td className="text-foreground px-4 py-2.5 font-mono text-[12.5px] tabular-nums">
                       {who}

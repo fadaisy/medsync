@@ -179,7 +179,7 @@ export default async function PatientQueuePage() {
     <div className="stagger-children relative mx-auto flex w-full max-w-xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-9">
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-20 left-1/2 -z-10 h-56 w-md max-w-full -translate-x-1/2 rounded-full bg-teal-500/5 blur-3xl dark:bg-teal-400/4"
+        className="bg-brand-500/5 dark:bg-brand-400/4 pointer-events-none absolute -top-20 left-1/2 -z-10 h-56 w-md max-w-full -translate-x-1/2 rounded-full blur-3xl"
       />
       <Link
         href="/patient"
@@ -194,13 +194,13 @@ export default async function PatientQueuePage() {
 
       <header className="flex flex-col gap-1.5">
         <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
-          <span aria-hidden className="size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20" />
+          <span aria-hidden className="bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2" />
           MedSync · Join today&rsquo;s queue
         </span>
-        <h1 className="font-display text-foreground text-[24px] leading-[1.15] font-medium tracking-[-0.015em] sm:text-[28px]">
+        <h1 className="font-display text-foreground sm:text-heading-l text-[24px] leading-[1.15] font-medium tracking-[-0.015em]">
           You&rsquo;re coming in today.
         </h1>
-        <p className="text-muted-foreground max-w-[44ch] text-[13px] leading-relaxed">
+        <p className="text-muted-foreground text-body-s max-w-[44ch] leading-relaxed">
           Pick the department you&rsquo;re heading to at <strong>{hospitalName}</strong>.
           We&rsquo;ll save a spot in line. You&rsquo;ll see your position update live; check in at
           the front desk when you arrive.
@@ -246,7 +246,7 @@ export default async function PatientQueuePage() {
         Not coming today?{" "}
         <Link
           href="/patient/book"
-          className="text-foreground underline underline-offset-2 hover:text-teal-700 dark:hover:text-teal-300"
+          className="text-foreground hover:text-brand-700 dark:hover:text-brand-300 underline underline-offset-2"
         >
           Book a future visit
         </Link>{" "}
@@ -270,15 +270,15 @@ function ExistingIntakeCard({ intakeId, status }: { intakeId: string; status: st
   return (
     <Link
       href={`/patient/queue/${intakeId}`}
-      className="group card-lift flex items-start gap-3 rounded-xl border border-teal-500/40 bg-teal-50/40 p-4 hover:border-teal-500/60 dark:border-teal-400/30 dark:bg-teal-950/20"
+      className="group card-lift border-brand-500/40 bg-brand-50/40 hover:border-brand-500/60 dark:border-brand-400/30 dark:bg-brand-950/20 flex items-start gap-3 rounded-xl border p-4"
     >
       <span
         aria-hidden
-        className="scale-in relative inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-teal-100 text-teal-700 ring-1 ring-teal-200/80 dark:bg-teal-900/40 dark:text-teal-300 dark:ring-teal-800/40"
+        className="scale-in bg-brand-100 text-brand-700 ring-brand-200/80 dark:bg-brand-900/40 dark:text-brand-300 dark:ring-brand-800/40 relative inline-flex size-9 shrink-0 items-center justify-center rounded-full ring-1"
       >
         <span
           aria-hidden
-          className="pulse-dot absolute -top-0.5 -right-0.5 size-2 rounded-full bg-teal-500 ring-2 ring-white dark:ring-teal-950"
+          className="pulse-dot bg-brand-500 dark:ring-brand-950 absolute -top-0.5 -right-0.5 size-2 rounded-full ring-2 ring-white"
         />
         <TicketIcon className="size-4" />
       </span>
@@ -288,7 +288,7 @@ function ExistingIntakeCard({ intakeId, status }: { intakeId: string; status: st
           Tap to see your live queue status.
         </span>
       </div>
-      <span className="text-[12px] font-medium text-teal-700 transition-transform group-hover:translate-x-0.5 dark:text-teal-300">
+      <span className="text-brand-700 dark:text-brand-300 text-[12px] font-medium transition-transform group-hover:translate-x-0.5">
         →
       </span>
     </Link>
@@ -310,7 +310,7 @@ function ExistingAppointmentCard({
   return (
     <Link
       href="/patient/appointments"
-      className="border-border bg-card card-lift flex items-start gap-3 rounded-xl border p-4 hover:border-teal-500/40"
+      className="border-border bg-card card-lift hover:border-brand-500/40 flex items-start gap-3 rounded-xl border p-4"
     >
       <span
         aria-hidden

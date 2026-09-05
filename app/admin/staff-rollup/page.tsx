@@ -73,10 +73,10 @@ export default async function StaffRollupPage() {
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8">
       <header className="flex flex-col gap-2">
         <span className="text-muted-foreground inline-flex w-fit items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
-          <span aria-hidden className="size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20" />
+          <span aria-hidden className="bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2" />
           Platform · Staff rollup
         </span>
-        <h1 className="font-display text-foreground text-[24px] leading-[1.15] font-medium tracking-[-0.015em] sm:text-[28px]">
+        <h1 className="font-display text-foreground sm:text-heading-l text-[24px] leading-[1.15] font-medium tracking-[-0.015em]">
           Staff across hospitals
         </h1>
         <p className="text-muted-foreground max-w-2xl text-[13.5px] leading-relaxed">
@@ -87,7 +87,7 @@ export default async function StaffRollupPage() {
           </Link>
           .
         </p>
-        <div className="h-px w-10 bg-teal-500/60 dark:bg-teal-400/50" aria-hidden />
+        <div className="bg-brand-500/60 dark:bg-brand-400/50 h-px w-10" aria-hidden />
       </header>
 
       {errored ? (
@@ -125,7 +125,7 @@ export default async function StaffRollupPage() {
 
       {staleHospitals.length > 0 ? (
         <section className="flex flex-col gap-2 rounded-lg border border-amber-200 bg-amber-50/60 p-5 dark:border-amber-800/40 dark:bg-amber-950/20">
-          <h2 className="inline-flex items-center gap-2 text-[13px] font-medium text-amber-900 dark:text-amber-200">
+          <h2 className="text-body-s inline-flex items-center gap-2 font-medium text-amber-900 dark:text-amber-200">
             <span
               aria-hidden
               className="size-1.5 rounded-full bg-amber-500 ring-2 ring-amber-500/20"
@@ -142,10 +142,10 @@ export default async function StaffRollupPage() {
             {staleHospitals.map((h) => (
               <li
                 key={h.hospitalId}
-                className="flex items-baseline gap-2 text-[13px] text-amber-900 dark:text-amber-100"
+                className="text-body-s flex items-baseline gap-2 text-amber-900 dark:text-amber-100"
               >
                 <span className="font-medium">{h.hospitalName}</span>
-                <span className="font-mono text-[11px] text-amber-700 tabular-nums dark:text-amber-300">
+                <span className="text-caption font-mono text-amber-700 tabular-nums dark:text-amber-300">
                   {h.pending} pending · oldest {h.oldestPendingDays}d
                 </span>
               </li>
@@ -157,13 +157,13 @@ export default async function StaffRollupPage() {
       <section className="border-border bg-card overflow-hidden rounded-lg border">
         <header className="border-border flex items-center gap-2 border-b px-4 py-2.5 sm:px-6">
           <UsersIcon className="text-muted-foreground size-3.5" aria-hidden />
-          <span className="text-foreground text-[13px] font-medium">Per-hospital totals</span>
-          <span className="text-muted-foreground ml-auto font-mono text-[11px] tabular-nums">
+          <span className="text-foreground text-body-s font-medium">Per-hospital totals</span>
+          <span className="text-muted-foreground text-caption ml-auto font-mono tabular-nums">
             {perHospital.length} {perHospital.length === 1 ? "hospital" : "hospitals"}
           </span>
         </header>
         {perHospital.length === 0 ? (
-          <p className="text-muted-foreground p-8 text-center text-[13px]">
+          <p className="text-muted-foreground text-body-s p-8 text-center">
             No hospitals on platform yet.
           </p>
         ) : (
@@ -193,15 +193,15 @@ export default async function StaffRollupPage() {
                 >
                   <td className="px-4 py-2.5 sm:px-6">
                     <div className="flex min-w-0 flex-col">
-                      <span className="text-foreground truncate text-[13px] font-medium">
+                      <span className="text-foreground text-body-s truncate font-medium">
                         {h.hospitalName}
                       </span>
-                      <span className="text-muted-foreground truncate font-mono text-[11px]">
+                      <span className="text-muted-foreground text-caption truncate font-mono">
                         {h.hospitalLevel}
                       </span>
                     </div>
                   </td>
-                  <td className="text-foreground px-4 py-2.5 text-right font-mono text-[13px] tabular-nums sm:px-6">
+                  <td className="text-foreground text-body-s px-4 py-2.5 text-right font-mono tabular-nums sm:px-6">
                     {h.active}
                   </td>
                   <td className="px-4 py-2.5 text-right sm:px-6">
@@ -213,7 +213,7 @@ export default async function StaffRollupPage() {
                       </span>
                     )}
                   </td>
-                  <td className="text-foreground px-4 py-2.5 text-right font-mono text-[13px] tabular-nums sm:px-6">
+                  <td className="text-foreground text-body-s px-4 py-2.5 text-right font-mono tabular-nums sm:px-6">
                     {h.suspended || ""}
                     {h.suspended === 0 ? <span className="text-muted-foreground">0</span> : null}
                   </td>
@@ -385,7 +385,7 @@ function KpiCard({
 }) {
   const toneClass =
     tone === "actionable"
-      ? "text-teal-700 dark:text-teal-300"
+      ? "text-brand-700 dark:text-brand-300"
       : tone === "ok"
         ? "text-emerald-700 dark:text-emerald-300"
         : tone === "warning"
@@ -399,12 +399,15 @@ function KpiCard({
         {label}
       </span>
       <span
-        className={cn("font-display text-[28px] leading-none font-medium tabular-nums", toneClass)}
+        className={cn(
+          "font-display text-heading-l leading-none font-medium tabular-nums",
+          toneClass,
+        )}
       >
         {value}
       </span>
       {hint ? (
-        <span className="text-muted-foreground text-[11px] leading-tight">{hint}</span>
+        <span className="text-muted-foreground text-caption leading-tight">{hint}</span>
       ) : null}
     </div>
   );

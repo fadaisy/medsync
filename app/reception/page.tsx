@@ -31,14 +31,14 @@ export default async function ReceptionTodayPage() {
         <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
           <span
             aria-hidden
-            className="pulse-dot size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20"
+            className="pulse-dot bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2"
           />
           {scope.hospitalName} · Front desk
         </span>
-        <h1 className="font-display text-foreground text-[28px] leading-[1.15] font-medium tracking-[-0.015em] lg:text-[32px]">
+        <h1 className="font-display text-foreground text-heading-l leading-[1.15] font-medium tracking-[-0.015em] lg:text-[32px]">
           {firstName ? `Hi, ${firstName}.` : "Hi."}
         </h1>
-        <p className="text-muted-foreground max-w-[60ch] text-[13px] leading-relaxed">
+        <p className="text-muted-foreground text-body-s max-w-[60ch] leading-relaxed">
           Today&rsquo;s front-desk picture. Click any quick action to start.
         </p>
       </header>
@@ -107,7 +107,7 @@ function StatTile({
 }) {
   const toneClass =
     tone === "teal"
-      ? "text-teal-700 dark:text-teal-300"
+      ? "text-brand-700 dark:text-brand-300"
       : tone === "amber"
         ? "text-amber-700 dark:text-amber-300"
         : tone === "muted"
@@ -119,7 +119,7 @@ function StatTile({
         {label}
       </span>
       <span
-        className={`font-display text-[28px] leading-none font-medium tabular-nums ${toneClass}`}
+        className={`font-display text-heading-l leading-none font-medium tabular-nums ${toneClass}`}
       >
         {value}
       </span>
@@ -154,7 +154,7 @@ function QuickAction({
         className={
           tone === "primary"
             ? "bg-background/15 text-background inline-flex size-9 shrink-0 items-center justify-center rounded-full transition-transform duration-200 group-hover:scale-105"
-            : "bg-muted text-foreground/80 inline-flex size-9 shrink-0 items-center justify-center rounded-full transition-colors duration-200 group-hover:bg-teal-50 group-hover:text-teal-700 dark:group-hover:bg-teal-950/40 dark:group-hover:text-teal-300"
+            : "bg-muted text-foreground/80 group-hover:bg-brand-50 group-hover:text-brand-700 dark:group-hover:bg-brand-950/40 dark:group-hover:text-brand-300 inline-flex size-9 shrink-0 items-center justify-center rounded-full transition-colors duration-200"
         }
       >
         <Icon className="size-4" />
@@ -175,8 +175,8 @@ function QuickAction({
         aria-hidden
         className={
           tone === "primary"
-            ? "text-background/50 self-center text-[13px] transition-transform duration-200 group-hover:translate-x-0.5"
-            : "text-muted-foreground/50 group-hover:text-foreground/70 self-center text-[13px] transition-all duration-200 group-hover:translate-x-0.5"
+            ? "text-background/50 text-body-s self-center transition-transform duration-200 group-hover:translate-x-0.5"
+            : "text-muted-foreground/50 group-hover:text-foreground/70 text-body-s self-center transition-all duration-200 group-hover:translate-x-0.5"
         }
       >
         →

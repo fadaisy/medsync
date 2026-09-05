@@ -75,7 +75,7 @@ export function DoctorShell({ scope, children }: { scope: DoctorScope; children:
               className="group inline-flex w-fit items-center gap-2 transition-opacity hover:opacity-90"
             >
               <BrandMark />
-              <span className="font-display text-foreground text-[15px] font-medium tracking-[-0.01em]">
+              <span className="font-display text-foreground text-body-m font-medium tracking-[-0.01em]">
                 MedSync
               </span>
             </Link>
@@ -109,7 +109,7 @@ export function DoctorShell({ scope, children }: { scope: DoctorScope; children:
             <div className="hover:bg-muted/60 flex items-center gap-2.5 rounded-lg px-1.5 py-1.5 transition-colors duration-200">
               <div
                 aria-hidden
-                className="flex size-7 shrink-0 items-center justify-center rounded-full bg-teal-100 font-mono text-[11px] font-semibold text-teal-800 ring-1 ring-teal-200/70 dark:bg-teal-900/60 dark:text-teal-200 dark:ring-teal-800/50"
+                className="bg-brand-100 text-caption text-brand-800 ring-brand-200/70 dark:bg-brand-900/60 dark:text-brand-200 dark:ring-brand-800/50 flex size-7 shrink-0 items-center justify-center rounded-full font-mono font-semibold ring-1"
               >
                 {initial}
               </div>
@@ -119,7 +119,7 @@ export function DoctorShell({ scope, children }: { scope: DoctorScope; children:
                 </p>
                 <p className="text-muted-foreground inline-flex items-center gap-1 font-mono text-[10px] tracking-widest uppercase">
                   <ShieldCheckIcon
-                    className="size-3 text-teal-600 dark:text-teal-400"
+                    className="text-brand-600 dark:text-brand-400 size-3"
                     aria-hidden
                   />
                   MFA · AAL2
@@ -139,7 +139,7 @@ export function DoctorShell({ scope, children }: { scope: DoctorScope; children:
             <div className="flex items-center gap-2.5 lg:hidden">
               <Link href="/doctor" className="inline-flex items-center gap-2">
                 <BrandMark />
-                <span className="font-display text-foreground text-[15px] font-medium tracking-[-0.01em]">
+                <span className="font-display text-foreground text-body-m font-medium tracking-[-0.01em]">
                   MedSync
                 </span>
               </Link>
@@ -153,7 +153,7 @@ export function DoctorShell({ scope, children }: { scope: DoctorScope; children:
               >
                 <span
                   aria-hidden
-                  className="size-1.5 shrink-0 rounded-full bg-teal-500 ring-2 ring-teal-500/20"
+                  className="bg-brand-500 ring-brand-500/20 size-1.5 shrink-0 rounded-full ring-2"
                 />
                 <span className="truncate" title={scope.hospitalName}>
                   {scope.hospitalName}
@@ -174,7 +174,7 @@ export function DoctorShell({ scope, children }: { scope: DoctorScope; children:
                   "ml-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-mono text-[10px] tracking-[0.12em] uppercase",
                   scope.isJunior
                     ? "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200"
-                    : "bg-teal-100 text-teal-800 dark:bg-teal-900/40 dark:text-teal-200",
+                    : "bg-brand-100 text-brand-800 dark:bg-brand-900/40 dark:text-brand-200",
                 )}
                 title={`Cadre: ${CADRE_LABEL[scope.cadreCode] ?? scope.cadreCode}`}
               >
@@ -208,7 +208,7 @@ function BrandMark() {
   return (
     <span
       aria-hidden
-      className="medsync-forced-dark ease-spring grid size-4.5 shrink-0 place-items-center rounded-[5px] bg-teal-600 text-white shadow-sm transition-transform duration-200 group-hover:scale-110"
+      className="medsync-forced-dark ease-spring bg-brand-600 grid size-4.5 shrink-0 place-items-center rounded-[5px] text-white shadow-sm transition-transform duration-200 group-hover:scale-110"
     >
       <svg viewBox="0 0 16 16" fill="none" className="size-3">
         <path

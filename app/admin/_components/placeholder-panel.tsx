@@ -35,13 +35,13 @@ export function PlaceholderPanel({
     <div className="stagger-children mx-auto flex w-full max-w-3xl flex-col gap-8 px-5 py-12 sm:px-8 sm:py-16">
       <header className="flex flex-col gap-3">
         <span className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
-          <span className="size-1 rounded-full bg-teal-500" />
+          <span className="bg-brand-500 size-1 rounded-full" />
           Superadmin workspace · GATE {gate} (scaffold)
           <span aria-hidden="true">&middot;</span>
           <span className="text-muted-foreground">{eyebrow}</span>
         </span>
         <h1
-          className="font-display text-foreground text-[28px] leading-[1.1] tracking-[-0.02em] sm:text-[36px]"
+          className="font-display text-foreground text-heading-l sm:text-display-s leading-[1.1] tracking-[-0.02em]"
           style={{ fontWeight: 400 }}
         >
           {title}
@@ -69,7 +69,7 @@ export function PlaceholderPanel({
         <ul className="flex flex-col gap-1.5">
           {mvpBullets.map((b) => (
             <li key={b} className="flex items-start gap-2 text-[13.5px]">
-              <span className="mt-1.5 size-1 shrink-0 rounded-full bg-teal-500" />
+              <span className="bg-brand-500 mt-1.5 size-1 shrink-0 rounded-full" />
               <span className="text-foreground/85">{b}</span>
             </li>
           ))}
@@ -83,7 +83,7 @@ export function PlaceholderPanel({
           </span>
           <ul className="flex flex-col gap-1.5">
             {deferredBullets.map((b) => (
-              <li key={b} className="flex items-start gap-2 text-[13px]">
+              <li key={b} className="text-body-s flex items-start gap-2">
                 <span className="border-muted-foreground/40 mt-1.5 size-1 shrink-0 rounded-full border" />
                 <span className="text-muted-foreground">{b}</span>
               </li>

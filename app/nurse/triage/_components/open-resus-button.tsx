@@ -35,7 +35,7 @@ export function OpenResusButton({
           if (r?.error) setError(r.error);
         })
       }
-      className="tap mr-3 shrink-0 gap-1 self-center bg-rose-600 text-[11px] font-semibold text-white hover:bg-rose-700"
+      className="tap text-caption mr-3 shrink-0 gap-1 self-center bg-rose-600 font-semibold text-white hover:bg-rose-700"
       title={error ?? "Open the ABCDE resus desk for this patient — vitals carried from triage"}
     >
       <SirenIcon className="size-3" aria-hidden />

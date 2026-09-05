@@ -23,7 +23,7 @@ export function StopMedicationButton({
   if (confirming) {
     return (
       <div className="flex items-center gap-1.5">
-        <span className="text-muted-foreground text-[11px]">Stop taking {medicationName}?</span>
+        <span className="text-muted-foreground text-caption">Stop taking {medicationName}?</span>
         <button
           type="button"
           onClick={() => setConfirming(false)}

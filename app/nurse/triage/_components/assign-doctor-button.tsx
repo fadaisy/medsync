@@ -52,7 +52,7 @@ export function AssignDoctorButton({ intakeId }: { intakeId: string }) {
       <button
         type="button"
         onClick={openPicker}
-        className="tap text-muted-foreground hover:bg-muted/40 hover:text-foreground flex shrink-0 items-center gap-1 px-3 text-[11px] font-medium transition-colors"
+        className="tap text-muted-foreground hover:bg-muted/40 hover:text-foreground text-caption flex shrink-0 items-center gap-1 px-3 font-medium transition-colors"
       >
         <UserPlusIcon className="size-3.5" aria-hidden />
         {done ? "Reassign" : "Assign Dr"}
@@ -66,7 +66,7 @@ export function AssignDoctorButton({ intakeId }: { intakeId: string }) {
         value={pick}
         onChange={(e) => setPick(e.target.value)}
         disabled={doctors === null || pending}
-        className="border-input bg-card text-foreground max-w-[150px] rounded-sm border px-1.5 py-1 text-[11px] outline-none focus-visible:border-teal-500"
+        className="border-input bg-card text-foreground text-caption focus-visible:border-mint-500 max-w-[150px] rounded-sm border px-1.5 py-1 outline-none"
       >
         <option value="">{doctors === null ? "Loading…" : "Doctor…"}</option>
         {(doctors ?? []).map((d) => (
@@ -81,7 +81,7 @@ export function AssignDoctorButton({ intakeId }: { intakeId: string }) {
         onClick={confirm}
         disabled={pending || !pick}
         aria-label="Confirm assignment"
-        className="tap text-teal-700 transition-colors hover:text-teal-800 disabled:opacity-40 dark:text-teal-400"
+        className="tap text-mint-700 hover:text-mint-800 dark:text-mint-400 transition-colors disabled:opacity-40"
       >
         <CheckIcon className="size-4" aria-hidden />
       </button>

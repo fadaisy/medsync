@@ -62,7 +62,7 @@ export default async function ReceptionExpectedPage({ searchParams }: PageProps)
 
       <header className="flex flex-col gap-2">
         <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
-          <span aria-hidden className="size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20" />
+          <span aria-hidden className="bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2" />
           {scope.hospitalName} · Expected arrivals
         </span>
         <h1 className="font-display text-foreground text-[26px] leading-[1.15] font-medium tracking-[-0.015em]">
@@ -89,10 +89,10 @@ export default async function ReceptionExpectedPage({ searchParams }: PageProps)
             {declared.map((d) => (
               <li
                 key={d.id}
-                className="flex items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-teal-50/40 dark:hover:bg-teal-950/15"
+                className="hover:bg-brand-50/40 dark:hover:bg-brand-950/15 flex items-center justify-between gap-3 px-4 py-3 transition-colors"
               >
                 <div className="flex min-w-0 flex-col gap-0.5">
-                  <span className="text-foreground inline-flex items-center gap-2 text-[13px]">
+                  <span className="text-foreground text-body-s inline-flex items-center gap-2">
                     <span className="font-mono tabular-nums">
                       {d.patientCode ?? "Unknown patient"}
                     </span>
@@ -118,9 +118,9 @@ export default async function ReceptionExpectedPage({ searchParams }: PageProps)
             <rect x="0" y="2" width="84" height="10" rx="4" fill="currentColor" opacity="0.5" />
             <rect x="0" y="20" width="64" height="10" rx="4" fill="currentColor" opacity="0.3" />
             <rect x="0" y="38" width="44" height="10" rx="4" fill="currentColor" opacity="0.15" />
-            <circle cx="89" cy="43" r="5" className="text-teal-500/30" fill="currentColor" />
+            <circle cx="89" cy="43" r="5" className="text-brand-500/30" fill="currentColor" />
           </svg>
-          <p className="text-muted-foreground text-[13px]">
+          <p className="text-muted-foreground text-body-s">
             No bookings for today. Booked patients appear here as appointments are confirmed.
           </p>
         </div>
@@ -148,7 +148,7 @@ export default async function ReceptionExpectedPage({ searchParams }: PageProps)
               {rows.map((r) => (
                 <tr
                   key={r.id}
-                  className="transition-colors hover:bg-teal-50/40 dark:hover:bg-teal-950/15"
+                  className="hover:bg-brand-50/40 dark:hover:bg-brand-950/15 transition-colors"
                 >
                   <td className="text-foreground px-4 py-2.5 font-mono text-[12.5px] tabular-nums">
                     {formatTime(r.startsAtIso)}
@@ -185,7 +185,7 @@ export default async function ReceptionExpectedPage({ searchParams }: PageProps)
         </div>
       )}
 
-      <p className="fade-in-slow text-muted-foreground/80 text-[11px] leading-relaxed">
+      <p className="fade-in-slow text-muted-foreground/80 text-caption leading-relaxed">
         Patient codes only — reception sees operational + demographic data, never clinical content.
         Every check-in is audited.
       </p>

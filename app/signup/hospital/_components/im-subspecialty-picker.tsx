@@ -46,12 +46,12 @@ export function ImSubspecialtyPicker({ specialties, internalMedicineCheckboxName
     <fieldset
       className={cn(
         "border-border bg-muted/40 ease-expo-out mt-3 rounded-md border p-3 transition-[opacity,transform,border-color] duration-300",
-        imTicked ? "border-teal-100 dark:border-teal-100/40" : "pointer-events-none opacity-50",
+        imTicked ? "border-brand-100 dark:border-brand-100/40" : "pointer-events-none opacity-50",
       )}
     >
       <legend className="text-foreground px-1 text-[12px] font-medium">
         Internal Medicine sub-specialties
-        <span className="text-muted-foreground ml-2 text-[11px] font-normal">
+        <span className="text-muted-foreground text-caption ml-2 font-normal">
           {imTicked ? "Pick the ones you actively run." : "Tick Internal Medicine above to enable."}
         </span>
       </legend>

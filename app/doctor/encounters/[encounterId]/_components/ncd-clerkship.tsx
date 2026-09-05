@@ -75,8 +75,8 @@ export function NcdClerkship({
     <div className="flex flex-col gap-3">
       <header className="flex flex-wrap items-center gap-x-3 gap-y-2">
         <span className="inline-flex items-center gap-1.5">
-          <ActivityIcon className="size-4 text-teal-600 dark:text-teal-400" aria-hidden />
-          <h2 className="font-display text-foreground text-[17px] leading-tight font-medium tracking-[-0.012em]">
+          <ActivityIcon className="text-brand-600 dark:text-brand-400 size-4" aria-hidden />
+          <h2 className="font-display text-foreground text-body-l leading-tight font-medium tracking-[-0.012em]">
             {catalog.display}
           </h2>
         </span>
@@ -98,7 +98,7 @@ export function NcdClerkship({
                   onClick={() => setActiveSite(s)}
                   className={`ease-expo-out px-2.5 py-1 text-[11.5px] font-medium transition-colors duration-100 active:scale-[0.97] ${
                     s.id === activeSite.id
-                      ? "bg-teal-600 text-white"
+                      ? "bg-brand-600 text-white"
                       : "text-muted-foreground hover:bg-muted"
                   }`}
                 >

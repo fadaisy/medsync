@@ -29,7 +29,7 @@ export default async function NursePatientsPage() {
     <div className="stagger-children mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-8 lg:py-10">
       <header className="flex flex-col gap-2">
         <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
-          <span aria-hidden className="size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20" />
+          <span aria-hidden className="bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2" />
           {scope.hospitalName} · {scope.departmentName} · Patients
         </span>
         <h1 className="font-display text-foreground text-[26px] leading-[1.15] font-medium tracking-[-0.015em]">
@@ -74,12 +74,12 @@ export default async function NursePatientsPage() {
               {rows.map((r) => (
                 <tr
                   key={r.patientUserId}
-                  className="group transition-colors hover:bg-teal-50/40 dark:hover:bg-teal-950/15"
+                  className="group hover:bg-brand-50/40 dark:hover:bg-brand-950/15 transition-colors"
                 >
                   <td className="px-4 py-2.5">
                     <Link
                       href={`/nurse/patients/${r.patientUserId}`}
-                      className="text-foreground font-mono text-[12.5px] font-medium tabular-nums transition-colors hover:text-teal-700 dark:hover:text-teal-300"
+                      className="text-foreground hover:text-brand-700 dark:hover:text-brand-300 font-mono text-[12.5px] font-medium tabular-nums transition-colors"
                     >
                       {r.patientCode}
                     </Link>
@@ -111,7 +111,7 @@ export default async function NursePatientsPage() {
         </div>
       )}
 
-      <p className="fade-in-slow text-muted-foreground/80 text-[11px] leading-relaxed">
+      <p className="fade-in-slow text-muted-foreground/80 text-caption leading-relaxed">
         Patient names + contact PHI decrypt only when you open a specific patient — every read is
         logged.
       </p>
@@ -137,12 +137,12 @@ function EmptyPanel({
         <rect x="0" y="6" width="116" height="16" rx="5" fill="currentColor" opacity="0.5" />
         <rect x="0" y="30" width="92" height="16" rx="5" fill="currentColor" opacity="0.32" />
         <rect x="0" y="54" width="68" height="16" rx="5" fill="currentColor" opacity="0.16" />
-        <circle cx="9" cy="14" r="4" className="text-teal-500/35" fill="currentColor" />
-        <circle cx="9" cy="38" r="4" className="text-teal-500/20" fill="currentColor" />
+        <circle cx="9" cy="14" r="4" className="text-brand-500/35" fill="currentColor" />
+        <circle cx="9" cy="38" r="4" className="text-brand-500/20" fill="currentColor" />
       </svg>
       <span
         aria-hidden
-        className="scale-in inline-flex size-10 items-center justify-center rounded-full bg-teal-50 text-teal-700 ring-1 ring-teal-200/70 dark:bg-teal-950/40 dark:text-teal-300 dark:ring-teal-800/40"
+        className="scale-in bg-brand-50 text-brand-700 ring-brand-200/70 dark:bg-brand-950/40 dark:text-brand-300 dark:ring-brand-800/40 inline-flex size-10 items-center justify-center rounded-full ring-1"
       >
         <UsersIcon className="size-5" />
       </span>

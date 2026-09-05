@@ -83,7 +83,7 @@ export function CreateHospitalButton() {
                 <select
                   name="facility_level"
                   required
-                  className="border-input bg-card w-full rounded-md border px-2.5 py-2 text-[13px]"
+                  className="border-input bg-card text-body-s w-full rounded-md border px-2.5 py-2"
                   defaultValue="general"
                 >
                   {FACILITY_LEVELS.map((l) => (
@@ -224,7 +224,7 @@ function SuccessView({ state }: { state: CreateHospitalState & { ok: true } }) {
   const [copied, setCopied] = useState(false);
   return (
     <div className="flex flex-col gap-3">
-      <p className="rounded-md border border-teal-200 bg-teal-50 px-3 py-2 text-[12.5px] text-teal-900 dark:border-teal-800/60 dark:bg-teal-950/40 dark:text-teal-200">
+      <p className="border-brand-200 bg-brand-50 text-brand-900 dark:border-brand-800/60 dark:bg-brand-950/40 dark:text-brand-200 rounded-md border px-3 py-2 text-[12.5px]">
         ✓ Hospital created in <span className="font-mono">{state.hospital_slug}</span>. Tenant is in{" "}
         <span className="font-medium">provisioning</span>; the invited admin must claim their role +
         complete the setup wizard before the hospital can go live.

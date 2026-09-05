@@ -52,7 +52,7 @@ export function ProfileForm({ defaults }: { defaults: ProfileDefaults }) {
           Contact
         </h2>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="phone" className="text-[11px] tracking-tight">
+          <Label htmlFor="phone" className="text-caption tracking-tight">
             Phone
           </Label>
           <Input
@@ -66,7 +66,7 @@ export function ProfileForm({ defaults }: { defaults: ProfileDefaults }) {
           />
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="village_address" className="text-[11px] tracking-tight">
+          <Label htmlFor="village_address" className="text-caption tracking-tight">
             Village / address (optional)
           </Label>
           <Input
@@ -77,7 +77,7 @@ export function ProfileForm({ defaults }: { defaults: ProfileDefaults }) {
           />
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="preferred_language" className="text-[11px] tracking-tight">
+          <Label htmlFor="preferred_language" className="text-caption tracking-tight">
             Preferred language (optional)
           </Label>
           <Input
@@ -100,7 +100,7 @@ export function ProfileForm({ defaults }: { defaults: ProfileDefaults }) {
           Health
         </h2>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="known_conditions" className="text-[11px] tracking-tight">
+          <Label htmlFor="known_conditions" className="text-caption tracking-tight">
             Known conditions (optional)
           </Label>
           <textarea
@@ -109,9 +109,9 @@ export function ProfileForm({ defaults }: { defaults: ProfileDefaults }) {
             rows={3}
             defaultValue={defaults.knownConditions.join(", ")}
             placeholder="Diabetes, Hypertension, Asthma…"
-            className="border-input bg-background text-foreground placeholder:text-muted-foreground/70 focus-visible:ring-ring/50 focus-visible:border-ring resize-none rounded-md border px-3 py-2 text-[13px] leading-relaxed shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px]"
+            className="border-input bg-background text-foreground placeholder:text-muted-foreground/70 focus-visible:ring-ring/50 focus-visible:border-ring text-body-s resize-none rounded-md border px-3 py-2 leading-relaxed shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px]"
           />
-          <p className="text-muted-foreground text-[11px] leading-relaxed">
+          <p className="text-muted-foreground text-caption leading-relaxed">
             Comma-separated. We use this to suggest what to log on the Track tab.
           </p>
         </div>
@@ -125,7 +125,7 @@ export function ProfileForm({ defaults }: { defaults: ProfileDefaults }) {
           Someone to contact in an emergency. Both name and phone, or leave the whole section blank.
         </p>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="nok_name" className="text-[11px] tracking-tight">
+          <Label htmlFor="nok_name" className="text-caption tracking-tight">
             Name
           </Label>
           <Input
@@ -137,14 +137,14 @@ export function ProfileForm({ defaults }: { defaults: ProfileDefaults }) {
         </div>
         <div className="grid grid-cols-2 gap-2">
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="nok_relationship" className="text-[11px] tracking-tight">
+            <Label htmlFor="nok_relationship" className="text-caption tracking-tight">
               Relationship
             </Label>
             <select
               id="nok_relationship"
               name="nok_relationship"
               defaultValue={defaults.nokRelationship ?? ""}
-              className="border-input bg-background text-foreground focus-visible:ring-ring/50 rounded-md border px-3 py-2 text-[13px] outline-none focus-visible:ring-[3px]"
+              className="border-input bg-background text-foreground focus-visible:ring-ring/50 text-body-s rounded-md border px-3 py-2 outline-none focus-visible:ring-[3px]"
             >
               {NOK_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>
@@ -154,7 +154,7 @@ export function ProfileForm({ defaults }: { defaults: ProfileDefaults }) {
             </select>
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="nok_phone" className="text-[11px] tracking-tight">
+            <Label htmlFor="nok_phone" className="text-caption tracking-tight">
               Phone
             </Label>
             <Input

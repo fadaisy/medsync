@@ -93,7 +93,7 @@ export function AuditExportButton({ currentFilters }: { currentFilters: AuditFil
 
   return (
     <div className="border-border bg-card flex flex-col gap-2 rounded-md border p-3">
-      <label className="text-muted-foreground text-[11px] font-medium tracking-[0.01em]">
+      <label className="text-muted-foreground text-caption font-medium tracking-[0.01em]">
         Reason for export (recorded in audit log; ≥ 8 chars)
       </label>
       <Input

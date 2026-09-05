@@ -32,7 +32,7 @@ export function MarkTakenButton({
 
   if (isDone) {
     return (
-      <span className="inline-flex items-center gap-1.5 rounded-full bg-teal-50 px-3 py-1 text-[12px] font-medium text-teal-700 ring-1 ring-teal-200/70 dark:bg-teal-950/40 dark:text-teal-300 dark:ring-teal-800/40">
+      <span className="bg-brand-50 text-brand-700 ring-brand-200/70 dark:bg-brand-950/40 dark:text-brand-300 dark:ring-brand-800/40 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[12px] font-medium ring-1">
         <CheckIcon className="size-3.5" aria-hidden />
         {completedLabel}
       </span>

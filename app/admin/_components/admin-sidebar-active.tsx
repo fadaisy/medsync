@@ -73,10 +73,10 @@ export function AdminSidebarItem({ href, label, iconKey, sensitive, badgeCount }
       href={href}
       aria-current={isActive ? "page" : undefined}
       className={cn(
-        "group tap flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-[13px] transition-colors outline-none",
-        "focus-visible:ring-2 focus-visible:ring-teal-500/40",
+        "group tap text-body-s flex items-center gap-2.5 rounded-md px-2.5 py-1.5 transition-colors outline-none",
+        "focus-visible:ring-brand-500/40 focus-visible:ring-2",
         isActive
-          ? "bg-teal-50 text-teal-700 ring-1 ring-teal-500/15 ring-inset dark:bg-teal-950/40 dark:text-teal-300"
+          ? "bg-brand-50 text-brand-700 ring-brand-500/15 dark:bg-brand-950/40 dark:text-brand-300 ring-1 ring-inset"
           : "text-muted-foreground hover:bg-muted hover:text-foreground",
         sensitive &&
           !isActive &&
@@ -87,7 +87,7 @@ export function AdminSidebarItem({ href, label, iconKey, sensitive, badgeCount }
         className={cn(
           "size-4 shrink-0",
           isActive
-            ? "text-teal-600 dark:text-teal-400"
+            ? "text-brand-600 dark:text-brand-400"
             : "text-muted-foreground/80 group-hover:text-foreground",
           sensitive && !isActive && "text-amber-700 dark:text-amber-400",
         )}
@@ -101,8 +101,8 @@ export function AdminSidebarItem({ href, label, iconKey, sensitive, badgeCount }
           className={cn(
             "scale-in rounded-full px-1.5 py-0.5 font-mono text-[10px] font-semibold tabular-nums",
             isActive
-              ? "bg-teal-600 text-white"
-              : "bg-teal-100 text-teal-800 dark:bg-teal-900/60 dark:text-teal-200",
+              ? "bg-brand-600 text-white"
+              : "bg-brand-100 text-brand-800 dark:bg-brand-900/60 dark:text-brand-200",
           )}
         >
           {badgeCount}

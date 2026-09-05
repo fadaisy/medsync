@@ -74,7 +74,7 @@ function SendForm({ onIssued }: { onIssued: (issued: ReadonlyArray<IssuedInvitat
     <section className="border-border bg-card flex flex-col gap-4 rounded-lg border p-5">
       <div className="flex flex-col gap-1">
         <h2 className="text-foreground inline-flex items-center gap-2 text-[14px] font-medium tracking-[-0.005em]">
-          <MailPlusIcon className="size-4 text-teal-600 dark:text-teal-400" aria-hidden />
+          <MailPlusIcon className="text-brand-600 dark:text-brand-400 size-4" aria-hidden />
           Invite staff
         </h2>
         <p className="text-muted-foreground text-[12.5px] leading-relaxed">
@@ -98,7 +98,7 @@ function SendForm({ onIssued }: { onIssued: (issued: ReadonlyArray<IssuedInvitat
             className={cn(
               "border-border text-foreground placeholder:text-muted-foreground",
               "min-h-[120px] resize-y rounded-md border bg-transparent px-3 py-2 font-mono text-[12.5px] leading-relaxed outline-none",
-              "focus-visible:ring-2 focus-visible:ring-teal-500/40",
+              "focus-visible:ring-brand-500/40 focus-visible:ring-2",
             )}
           />
         </div>
@@ -150,13 +150,13 @@ function ExistingInvitations({
         <h2 className="text-foreground text-[14px] font-medium tracking-[-0.005em]">
           Invitations on file
         </h2>
-        <span className="text-muted-foreground ml-auto font-mono text-[11px] tabular-nums">
+        <span className="text-muted-foreground text-caption ml-auto font-mono tabular-nums">
           {rows.length} {rows.length === 1 ? "invitation" : "invitations"}
         </span>
       </header>
 
       {rows.length === 0 ? (
-        <p className="text-muted-foreground p-6 text-center text-[13px]">
+        <p className="text-muted-foreground text-body-s p-6 text-center">
           No invitations sent yet. Use the form on the left.
         </p>
       ) : (
@@ -181,10 +181,10 @@ function InvitationItem({
     <li className="flex flex-col gap-2 px-4 py-3">
       <div className="flex items-center gap-3">
         <div className="flex min-w-0 flex-col">
-          <span className="text-foreground truncate text-[13px] font-medium">
+          <span className="text-foreground text-body-s truncate font-medium">
             {row.name ?? row.email}
           </span>
-          <span className="text-muted-foreground truncate font-mono text-[11px]">{row.email}</span>
+          <span className="text-muted-foreground text-caption truncate font-mono">{row.email}</span>
         </div>
         <div className="ml-auto flex items-center gap-2">
           <Pill tone={STATUS_TONES[row.status]}>{STATUS_LABEL[row.status]}</Pill>
@@ -194,7 +194,7 @@ function InvitationItem({
 
       {justIssued ? <ClaimUrlBlock claimUrl={justIssued.claim_url} /> : null}
 
-      <div className="flex items-center gap-3 text-[11px]">
+      <div className="text-caption flex items-center gap-3">
         <span className="text-muted-foreground font-mono tabular-nums">
           Sent {new Date(row.invitedAtIso).toLocaleDateString()}
         </span>
@@ -263,7 +263,7 @@ function RevokeButton({ invitationId, email }: { invitationId: string; email: st
       <button
         type="button"
         onClick={() => setConfirming(true)}
-        className="text-muted-foreground inline-flex items-center gap-1 text-[11px] transition-colors hover:text-amber-700 dark:hover:text-amber-300"
+        className="text-muted-foreground text-caption inline-flex items-center gap-1 transition-colors hover:text-amber-700 dark:hover:text-amber-300"
       >
         <RotateCcwIcon className="size-3" aria-hidden />
         Revoke
@@ -281,7 +281,7 @@ function RevokeButton({ invitationId, email }: { invitationId: string; email: st
         minLength={8}
         autoFocus
         placeholder={`Why revoking ${email}? (≥ 8 chars)`}
-        className="border-border w-64 max-w-full rounded-md border bg-transparent px-2 py-0.5 text-[11px] outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40"
+        className="border-border text-caption focus-visible:ring-brand-500/40 w-64 max-w-full rounded-md border bg-transparent px-2 py-0.5 outline-none focus-visible:ring-2"
       />
       <Button type="submit" variant="secondary" size="sm" disabled={pending}>
         {pending ? "Revoking…" : "Confirm"}
@@ -289,12 +289,12 @@ function RevokeButton({ invitationId, email }: { invitationId: string; email: st
       <button
         type="button"
         onClick={() => setConfirming(false)}
-        className="text-muted-foreground hover:text-foreground text-[11px]"
+        className="text-muted-foreground hover:text-foreground text-caption"
       >
         Cancel
       </button>
       {!state.ok && state.error ? (
-        <span role="alert" className="text-[11px] text-red-700 dark:text-red-300">
+        <span role="alert" className="text-caption text-red-700 dark:text-red-300">
           {state.error}
         </span>
       ) : null}

@@ -20,7 +20,7 @@ export default async function DoctorAlertsPage() {
         <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
           <span
             aria-hidden
-            className="pulse-dot size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20"
+            className="pulse-dot bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2"
           />
           Monitoring alerts
         </span>

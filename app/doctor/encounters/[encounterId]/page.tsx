@@ -105,10 +105,10 @@ export default async function DoctorEncounterPage({ params }: PageProps) {
             Clinical documentation
           </span>
           <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <h1 className="font-display text-foreground text-[22px] leading-[1.1] font-medium tracking-[-0.015em]">
+            <h1 className="font-display text-foreground text-heading-m leading-[1.1] font-medium tracking-[-0.015em]">
               {enc.encounterType} · {enc.state}
             </h1>
-            <p className="text-muted-foreground font-mono text-[11px] tabular-nums">
+            <p className="text-muted-foreground text-caption font-mono tabular-nums">
               Started {enc.startedAt.toISOString().slice(0, 16).replace("T", " ")}
               {doc ? ` · documentation v${doc.version} (${doc.status})` : " · no documentation yet"}
             </p>
@@ -134,16 +134,16 @@ export default async function DoctorEncounterPage({ params }: PageProps) {
             <span className="text-muted-foreground/80 font-mono text-[10px] tracking-[0.18em] uppercase">
               Clerkship
             </span>
-            <h2 className="font-display text-foreground text-[18px] leading-[1.3] font-medium tracking-[-0.01em]">
+            <h2 className="font-display text-foreground text-heading-s leading-[1.3] font-medium tracking-[-0.01em]">
               Being rebuilt for NCD care
             </h2>
-            <p className="text-muted-foreground max-w-prose text-[13px] leading-relaxed">
+            <p className="text-muted-foreground text-body-s max-w-prose leading-relaxed">
               The previous clerkship is no longer available for new entries. Existing documentation
               for this encounter is unchanged and still readable — in the timeline below and in the
               patient&apos;s clinical record.
             </p>
             {doc ? (
-              <p className="text-muted-foreground font-mono text-[11px] tabular-nums">
+              <p className="text-muted-foreground text-caption font-mono tabular-nums">
                 Last documented: v{doc.version} ({doc.status})
               </p>
             ) : null}
@@ -178,7 +178,7 @@ export default async function DoctorEncounterPage({ params }: PageProps) {
                   strokeDasharray="3 4"
                 />
                 <circle cx="18" cy="16" r="3" fill="currentColor" />
-                <circle cx="36" cy="16" r="3" className="fill-teal-500/70" />
+                <circle cx="36" cy="16" r="3" className="fill-brand-500/70" />
                 <circle cx="54" cy="16" r="3" fill="currentColor" />
               </svg>
               <p className="text-muted-foreground text-[12.5px]">
@@ -243,7 +243,7 @@ function WorkspaceTopBar({
         <span className="text-border hidden sm:inline" aria-hidden>
           |
         </span>
-        <span className="text-foreground hidden truncate text-[13px] font-medium sm:inline">
+        <span className="text-foreground text-body-s hidden truncate font-medium sm:inline">
           {patientName ?? "Clerking"}
         </span>
       </div>
@@ -251,7 +251,7 @@ function WorkspaceTopBar({
         <span className="text-muted-foreground hidden items-center gap-1.5 font-mono text-[10px] tracking-[0.14em] uppercase lg:inline-flex">
           <span
             aria-hidden
-            className="size-1.5 shrink-0 rounded-full bg-teal-500 ring-2 ring-teal-500/20"
+            className="bg-brand-500 ring-brand-500/20 size-1.5 shrink-0 rounded-full ring-2"
           />
           <span className="max-w-[180px] truncate" title={scope.hospitalName}>
             {scope.hospitalName}
@@ -265,7 +265,7 @@ function WorkspaceTopBar({
           className={`inline-flex items-center rounded-full px-2 py-0.5 font-mono text-[10px] tracking-[0.12em] uppercase ${
             scope.isJunior
               ? "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200"
-              : "bg-teal-100 text-teal-800 dark:bg-teal-900/40 dark:text-teal-200"
+              : "bg-brand-100 text-brand-800 dark:bg-brand-900/40 dark:text-brand-200"
           }`}
         >
           {CADRE_LABEL[scope.cadreCode] ?? scope.cadreCode}

@@ -147,7 +147,7 @@ export function TenantsTable({ items }: TableProps) {
       <header className="border-border border-b px-4 py-6 sm:px-8 sm:py-8">
         <div className="mx-auto flex w-full max-w-[1200px] items-start justify-between gap-4">
           <div className="flex flex-col gap-1">
-            <h1 className="font-display text-foreground text-[24px] leading-tight font-medium tracking-[-0.018em] sm:text-[28px]">
+            <h1 className="font-display text-foreground sm:text-heading-l text-[24px] leading-tight font-medium tracking-[-0.018em]">
               Tenants
             </h1>
             <p className="text-muted-foreground text-[13.5px]">
@@ -344,7 +344,7 @@ function EvidenceRow({ label, value, mono }: { label: string; value: string; mon
       <dt className="text-muted-foreground font-mono text-[10.5px] font-semibold tracking-[0.06em] uppercase">
         {label}
       </dt>
-      <dd className={cn("text-foreground text-[13px]", mono && "font-mono tabular-nums")}>
+      <dd className={cn("text-foreground text-body-s", mono && "font-mono tabular-nums")}>
         {value}
       </dd>
     </>

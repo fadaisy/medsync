@@ -100,7 +100,7 @@ export function buildProfile(args: {
     classification,
     complications,
     caveats: activeCaveats(catalog, ctx),
-    gaps: gaps(catalog, diagnosis, complications),
+    gaps: gaps(catalog, diagnosis, complications, ctx),
     completeness: completenessOf(catalog, values, site),
     gatedDark: !isFullySigned(catalog),
   };

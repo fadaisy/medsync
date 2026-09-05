@@ -249,6 +249,17 @@ export interface Feature {
     action: string;
     citation: Citation;
   };
+  /**
+   * Complication codes this finding POINTS AT when present.
+   *
+   * Turns a flat gaps list into a prompted one. "Foot examination outstanding"
+   * is a chore; "the patient reports burning feet and the foot examination is
+   * outstanding" is a reason. The link is one-directional and weak on purpose —
+   * a symptom raises the priority of screening for something, and never asserts
+   * that the something is there. Establishing a complication still requires its
+   * own criteria.
+   */
+  suggests?: string[];
   /** Only where the feature itself is a clinical assertion (e.g. a named sign). */
   citation?: Citation;
 }

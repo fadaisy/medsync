@@ -15,7 +15,7 @@ export function CloseBreakGlassButton({ grantId }: { grantId: string }) {
   );
 
   if (state.ok) {
-    return <span className="text-[12px] text-teal-700 dark:text-teal-300">Closed</span>;
+    return <span className="text-brand-700 dark:text-brand-300 text-[12px]">Closed</span>;
   }
   if (!open) {
     return (
@@ -27,7 +27,7 @@ export function CloseBreakGlassButton({ grantId }: { grantId: string }) {
   return (
     <form action={action} className="flex flex-col gap-2">
       <input type="hidden" name="grant_id" value={grantId} />
-      <label className="text-muted-foreground text-[11px]">Reason (audit log; ≥ 4 chars)</label>
+      <label className="text-muted-foreground text-caption">Reason (audit log; ≥ 4 chars)</label>
       <Input autoFocus name="reason" placeholder="e.g. work complete" minLength={4} required />
       {state.error ? <p className="text-destructive text-[11.5px]">{state.error}</p> : null}
       <div className="flex gap-2">

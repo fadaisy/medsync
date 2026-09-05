@@ -7,6 +7,7 @@ import { displayCondition, recorded } from "@/lib/ncd/catalog/schema";
 import { errorsOf, validateCatalog } from "@/lib/ncd/catalog/validate";
 import { dangerSigns, ncdContext } from "@/lib/ncd/engine/assess";
 import { contextOf, evaluatePredicate } from "@/lib/ncd/engine/evaluate";
+import { buildProfile } from "@/lib/ncd/profile";
 
 const cite: Citation = {
   standard: "ADA",
@@ -177,6 +178,91 @@ describe("danger signs", () => {
     // @ts-expect-error deliberately removing a required field
     delete c.features[2]!.dangerSign!.citation;
     expect(errs(c)).toContain("missing citation");
+  });
+});
+
+/* ── a symptom points at a complication, without asserting it ────────────── */
+
+describe("suggests — prompted gaps", () => {
+  const withSuggest = (): NcdCatalog => {
+    const c = base();
+    c.features.push({
+      code: "burning_feet",
+      display: "Burning feet",
+      kind: "symptom",
+      valueType: "boolean",
+      section: "sx",
+      suggests: ["foot"],
+    });
+    c.features.push({
+      code: "monofilament",
+      display: "Monofilament test",
+      kind: "sign",
+      valueType: "boolean",
+      section: "sx",
+    });
+    c.complications.push({
+      code: "foot",
+      display: "Diabetes-related foot disease",
+      timing: "chronic",
+      citation: cite,
+      screenedBy: ["monofilament"],
+      establishedBy: [
+        {
+          id: "e",
+          label: "e",
+          all: [{ feature: "monofilament", op: "present" }],
+          citation: cite,
+        },
+      ],
+    });
+    return c;
+  };
+
+  const gapsFor = (values: CaptureMap) => {
+    const c = withSuggest();
+    const p = buildProfile({ catalog: c, values, site });
+    return p.gaps;
+  };
+
+  it("attaches the reason when the symptom is present", () => {
+    const g = gapsFor({ burning_feet: recorded(true) }).find((x) => x.feature === "monofilament")!;
+    expect(g.promptedBy).toEqual(["Burning feet"]);
+  });
+
+  it("attaches nothing when the symptom is absent or unasked", () => {
+    for (const values of [{}, { burning_feet: recorded(false) }]) {
+      const g = gapsFor(values).find((x) => x.feature === "monofilament")!;
+      expect(g.promptedBy).toBeUndefined();
+    }
+  });
+
+  // The link is weak on purpose: a symptom raises the priority of screening,
+  // it never establishes the complication.
+  it("does not make the complication present", () => {
+    const c = withSuggest();
+    const p = buildProfile({ catalog: c, values: { burning_feet: recorded(true) }, site });
+    expect(p.complications.find((x) => x.code === "foot")!.state).not.toBe("met");
+  });
+
+  it("puts prompted gaps ahead of unprompted ones", () => {
+    const c = withSuggest();
+    c.features.push({
+      code: "other_screen",
+      display: "Other screen",
+      kind: "sign",
+      valueType: "boolean",
+      section: "sx",
+    });
+    c.complications[0]!.screenedBy = ["other_screen", "monofilament"];
+    const p = buildProfile({ catalog: c, values: { burning_feet: recorded(true) }, site });
+    expect(p.gaps[0]!.promptedBy?.length).toBeTruthy();
+  });
+
+  it("rejects a pointer at a complication that does not exist", () => {
+    const c = withSuggest();
+    c.features[2]!.suggests = ["ghost"];
+    expect(errs(c).some((m) => m.includes('suggests unknown complication "ghost"'))).toBe(true);
   });
 });
 

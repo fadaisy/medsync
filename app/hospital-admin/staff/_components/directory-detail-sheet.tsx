@@ -110,12 +110,12 @@ function DetailContent({
             <h2 className="font-display text-foreground text-[24px] leading-[1.15] font-medium tracking-[-0.015em]">
               {item.fullName}
             </h2>
-            <p className="text-muted-foreground text-[13px] leading-snug">
+            <p className="text-muted-foreground text-body-s leading-snug">
               {item.roleName} · {item.departmentName}
             </p>
           </div>
 
-          <div className="h-px w-10 bg-teal-500/60 dark:bg-teal-400/50" aria-hidden />
+          <div className="bg-brand-500/60 dark:bg-brand-400/50 h-px w-10" aria-hidden />
 
           <dl className="flex flex-wrap items-baseline gap-x-6 gap-y-1.5 text-[11.5px]">
             <Meta label="Email" value={item.email} mono />
@@ -436,7 +436,7 @@ function AssignRoleForm({
             id="department-select"
             value={departmentId}
             onChange={(e: ChangeEvent<HTMLSelectElement>) => setDepartmentId(e.target.value)}
-            className="border-border text-foreground rounded-md border bg-transparent px-2 py-1.5 text-[13px] outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40"
+            className="border-border text-foreground text-body-s focus-visible:ring-brand-500/40 rounded-md border bg-transparent px-2 py-1.5 outline-none focus-visible:ring-2"
           >
             {departmentCatalog.map((d) => (
               <option key={d.id} value={d.id}>
@@ -451,7 +451,7 @@ function AssignRoleForm({
             id="role-select"
             value={roleId}
             onChange={(e: ChangeEvent<HTMLSelectElement>) => setRoleId(e.target.value)}
-            className="border-border text-foreground rounded-md border bg-transparent px-2 py-1.5 text-[13px] outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40"
+            className="border-border text-foreground text-body-s focus-visible:ring-brand-500/40 rounded-md border bg-transparent px-2 py-1.5 outline-none focus-visible:ring-2"
           >
             {roleCatalog.map((r) => (
               <option key={r.id} value={r.id}>
@@ -525,7 +525,7 @@ function Rows({ rows }: { rows: ReadonlyArray<{ label: string; value: string; mo
           </dt>
           <dd
             className={cn(
-              "text-foreground self-baseline text-[13px] leading-relaxed wrap-break-word",
+              "text-foreground text-body-s self-baseline leading-relaxed wrap-break-word",
               row.mono && "font-mono text-[12.5px] tabular-nums",
             )}
           >

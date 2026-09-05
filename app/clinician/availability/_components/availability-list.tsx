@@ -80,7 +80,7 @@ export function AvailabilityList({
       <section className="border-border bg-card overflow-hidden rounded-lg border">
         <header className="border-border flex items-center gap-3 border-b px-4 py-3 sm:px-6">
           <h2 className="text-foreground text-[13.5px] font-medium">Upcoming blocks</h2>
-          <span className="text-muted-foreground ml-auto font-mono text-[11px] tabular-nums">
+          <span className="text-muted-foreground text-caption ml-auto font-mono tabular-nums">
             {blocks.length} {blocks.length === 1 ? "block" : "blocks"}
           </span>
           <Button type="button" variant="primary" size="sm" className="tap" onClick={openCreate}>
@@ -137,7 +137,7 @@ export function AvailabilityList({
                 width="20"
                 height="12"
                 rx="3"
-                className="text-teal-500/40"
+                className="text-brand-500/40"
                 fill="currentColor"
               />
             </svg>
@@ -209,13 +209,13 @@ function BlockRow({ block, onOpen }: { block: AvailabilityRow; onOpen: () => voi
         type="button"
         onClick={onOpen}
         className={cn(
-          "group tap flex w-full items-center gap-4 px-4 py-3 text-left transition-colors outline-none hover:bg-teal-50/40 sm:px-6 dark:hover:bg-teal-950/15",
-          "focus-visible:ring-2 focus-visible:ring-teal-500/40 focus-visible:ring-inset",
+          "group tap hover:bg-brand-50/40 dark:hover:bg-brand-950/15 flex w-full items-center gap-4 px-4 py-3 text-left transition-colors outline-none sm:px-6",
+          "focus-visible:ring-brand-500/40 focus-visible:ring-2 focus-visible:ring-inset",
         )}
       >
         <div className="flex w-32 shrink-0 flex-col">
-          <span className="text-foreground text-[13px] font-medium tabular-nums">{dateLabel}</span>
-          <span className="text-muted-foreground font-mono text-[11px] tabular-nums">
+          <span className="text-foreground text-body-s font-medium tabular-nums">{dateLabel}</span>
+          <span className="text-muted-foreground text-caption font-mono tabular-nums">
             {timeLabel}
           </span>
         </div>

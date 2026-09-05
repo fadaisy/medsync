@@ -23,7 +23,9 @@ export default async function NurseAssignmentsPage() {
   if (!scope.isInCharge) {
     return (
       <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 px-6 py-10">
-        <h1 className="font-display text-foreground text-[22px] font-medium">Assignment board</h1>
+        <h1 className="font-display text-foreground text-heading-m font-medium">
+          Assignment board
+        </h1>
         <p className="text-muted-foreground text-[12.5px]">
           The assignment board is for the ward in-charge. Your nurse-in-charge can pair you with
           patients for today&rsquo;s shift.
@@ -92,7 +94,7 @@ export default async function NurseAssignmentsPage() {
     <div className="stagger-children mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-8 lg:py-10">
       <header className="flex flex-col gap-2">
         <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
-          <span aria-hidden className="size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20" />
+          <span aria-hidden className="bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2" />
           {scope.hospitalName} · Assignment board
         </span>
         <h1 className="font-display text-foreground text-[26px] leading-tight font-medium tracking-[-0.015em]">
@@ -134,7 +136,7 @@ export default async function NurseAssignmentsPage() {
                   fill="currentColor"
                   opacity="0.15"
                 />
-                <circle cx="89" cy="43" r="5" className="text-teal-500/30" fill="currentColor" />
+                <circle cx="89" cy="43" r="5" className="text-brand-500/30" fill="currentColor" />
               </svg>
               <p className="text-muted-foreground text-[12.5px]">
                 No active assignments. Pair the first patient with a nurse using the form.
@@ -162,12 +164,12 @@ export default async function NurseAssignmentsPage() {
                 {active.map((r) => (
                   <tr
                     key={r.id}
-                    className="transition-colors hover:bg-teal-50/40 dark:hover:bg-teal-950/15"
+                    className="hover:bg-brand-50/40 dark:hover:bg-brand-950/15 transition-colors"
                   >
                     <td className="px-4 py-2 font-mono text-[12px] tabular-nums">
                       <Link
                         href={`/nurse/patients/${r.patientId}`}
-                        className="text-foreground transition-colors hover:text-teal-700 dark:hover:text-teal-300"
+                        className="text-foreground hover:text-brand-700 dark:hover:text-brand-300 transition-colors"
                       >
                         {r.patientCode ?? "—"}
                       </Link>
@@ -181,7 +183,7 @@ export default async function NurseAssignmentsPage() {
                     <td className="text-muted-foreground px-4 py-2 text-[12px]">
                       {r.wardName ?? "—"}
                     </td>
-                    <td className="text-muted-foreground px-4 py-2 font-mono text-[11px] tabular-nums">
+                    <td className="text-muted-foreground text-caption px-4 py-2 font-mono tabular-nums">
                       {formatRelative(r.startsAt.toISOString())}
                     </td>
                   </tr>

@@ -470,6 +470,11 @@ export interface Gap {
   capability?: string;
   /** What the missing value is holding up. */
   blocks: string;
+  /**
+   * Findings the patient reports that point at what this gap would settle.
+   * A gap with a reason attached is acted on; a flat list is scrolled past.
+   */
+  promptedBy?: string[];
 }
 
 /**
@@ -481,14 +486,38 @@ export function gaps(
   catalog: NcdCatalog,
   dx: DiagnosisResult,
   complications: ComplicationResult[],
+  ctx?: EvalContext,
 ): Gap[] {
   const byCode = new Map(catalog.features.map((f) => [f.code, f]));
+
+  /**
+   * Which complications the patient's PRESENT findings point at, and what they
+   * were. A symptom only raises the priority of screening for something — it
+   * never asserts the something is there.
+   */
+  const prompts = new Map<string, string[]>();
+  if (ctx) {
+    for (const f of catalog.features) {
+      if (!f.suggests?.length) continue;
+      if (evaluatePredicate({ feature: f.code, op: "present" }, ctx).state !== "met") continue;
+      for (const code of f.suggests) {
+        prompts.set(code, [...(prompts.get(code) ?? []), f.display]);
+      }
+    }
+  }
+
   const out = new Map<string, Gap>();
-  const add = (feature: string, kind: Gap["kind"], blocks: string, capability?: string) => {
+  const add = (
+    feature: string,
+    kind: Gap["kind"],
+    blocks: string,
+    capability?: string,
+    promptedBy?: string[],
+  ) => {
     if (out.has(feature)) return;
     const f = byCode.get(feature);
     if (!f) return;
-    out.set(feature, { feature, display: f.display, kind, capability, blocks });
+    out.set(feature, { feature, display: f.display, kind, capability, blocks, promptedBy });
   };
 
   for (const m of dx.missing) add(m, "not_assessed", "Diagnosis");
@@ -496,14 +525,20 @@ export function gaps(
 
   for (const c of complications) {
     if (c.timing === "acute") continue;
+    const promptedBy = prompts.get(c.code);
     for (const u of c.unscreened) {
       add(
         u.feature,
         u.state === "unavailable" ? "unavailable" : "not_assessed",
         c.display,
         byCode.get(u.feature)?.requires,
+        promptedBy?.length ? promptedBy : undefined,
       );
     }
   }
-  return [...out.values()];
+
+  // A prompted gap has a reason behind it, so it goes first.
+  return [...out.values()].sort(
+    (a, b) => (b.promptedBy?.length ? 1 : 0) - (a.promptedBy?.length ? 1 : 0),
+  );
 }

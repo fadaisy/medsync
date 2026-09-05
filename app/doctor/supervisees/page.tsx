@@ -24,7 +24,7 @@ export default async function DoctorSuperviseesPage() {
         <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
           <span
             aria-hidden
-            className="pulse-dot size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20"
+            className="pulse-dot bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2"
           />
           Supervisees
         </span>
@@ -54,7 +54,7 @@ export default async function DoctorSuperviseesPage() {
           {supervisees.map((s) => (
             <li
               key={s.superviseeAffiliationId}
-              className="flex items-center justify-between gap-3 px-5 py-3.5 transition-colors duration-200 hover:bg-teal-50/40 dark:hover:bg-teal-950/10"
+              className="hover:bg-brand-50/40 dark:hover:bg-brand-950/10 flex items-center justify-between gap-3 px-5 py-3.5 transition-colors duration-200"
             >
               <div className="flex flex-col">
                 <span className="text-foreground text-[14px] font-medium">

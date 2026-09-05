@@ -19,7 +19,7 @@ const BASIS_LABEL: Record<string, string> = {
 const STATUS_TONES: Record<string, string> = {
   requested: "bg-amber-50 text-amber-700 ring-amber-200/70",
   pending_approval: "bg-amber-50 text-amber-700 ring-amber-200/70",
-  confirmed: "bg-teal-50 text-teal-700 ring-teal-200/70",
+  confirmed: "bg-brand-50 text-brand-700 ring-brand-200/70",
   arrived: "bg-blue-50 text-blue-700 ring-blue-200/70",
   in_progress: "bg-blue-50 text-blue-700 ring-blue-200/70",
   completed: "bg-muted text-muted-foreground ring-border/60",
@@ -53,7 +53,7 @@ export default async function DoctorPatientsPage() {
         <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
           <span
             aria-hidden
-            className="pulse-dot size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20"
+            className="pulse-dot bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2"
           />
           {scope.hospitalName} · {scope.departmentName} · Patient panel
         </span>
@@ -102,12 +102,12 @@ export default async function DoctorPatientsPage() {
               {rows.map((r) => (
                 <tr
                   key={r.patientUserId}
-                  className="group transition-colors duration-200 hover:bg-teal-50/40 dark:hover:bg-teal-950/10"
+                  className="group hover:bg-brand-50/40 dark:hover:bg-brand-950/10 transition-colors duration-200"
                 >
                   <td className="px-4 py-2.5">
                     <Link
                       href={`/doctor/patients/${r.patientUserId}`}
-                      className="text-foreground font-mono text-[12.5px] font-medium tabular-nums transition-colors hover:text-teal-700 dark:hover:text-teal-300"
+                      className="text-foreground hover:text-brand-700 dark:hover:text-brand-300 font-mono text-[12.5px] font-medium tabular-nums transition-colors"
                     >
                       {r.patientCode}
                     </Link>
@@ -148,7 +148,7 @@ export default async function DoctorPatientsPage() {
         </div>
       )}
 
-      <p className="text-muted-foreground/80 text-[11px] leading-relaxed">
+      <p className="text-muted-foreground/80 text-caption leading-relaxed">
         Patient names + contact PHI decrypt only when you open a specific patient — every read is
         logged.
       </p>

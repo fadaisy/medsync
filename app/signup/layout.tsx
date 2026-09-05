@@ -20,7 +20,7 @@ export default function SignupLayout({ children }: { children: ReactNode }) {
       {/* Quiet teal wash behind the flow header — atmosphere, not decoration */}
       <div
         aria-hidden
-        className="fade-in-slow pointer-events-none absolute top-0 left-1/2 -z-10 h-72 w-[120%] max-w-none -translate-x-1/2 [background:radial-gradient(closest-side,oklch(0.95_0.06_180/0.35),transparent_72%)] dark:[background:radial-gradient(closest-side,oklch(0.45_0.08_180/0.18),transparent_72%)]"
+        className="fade-in-slow pointer-events-none absolute top-0 left-1/2 -z-10 h-72 w-[120%] max-w-none -translate-x-1/2 [background:radial-gradient(closest-side,oklch(0.95_0.06_286/0.35),transparent_72%)] dark:[background:radial-gradient(closest-side,oklch(0.45_0.08_286/0.18),transparent_72%)]"
       />
 
       <header className="border-border/60 glass sticky top-0 z-30 w-full border-b">

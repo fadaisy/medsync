@@ -11,7 +11,7 @@ const TIER = [
   { level: 1 as const, label: "Red", cls: "text-rose-600 dark:text-rose-400" },
   { level: 2 as const, label: "Orange", cls: "text-orange-600 dark:text-orange-400" },
   { level: 3 as const, label: "Yellow", cls: "text-amber-600 dark:text-amber-400" },
-  { level: 4 as const, label: "Green", cls: "text-teal-600 dark:text-teal-400" },
+  { level: 4 as const, label: "Green", cls: "text-mint-600 dark:text-mint-400" },
   { level: 5 as const, label: "Blue", cls: "text-slate-500 dark:text-slate-400" },
 ];
 
@@ -27,7 +27,7 @@ export function TriageAcuitySnippet({ metrics }: { metrics: TriageMetrics }) {
         <h2 className="text-muted-foreground font-mono text-[10.5px] tracking-[0.14em] uppercase">
           Triage today · acuity mix
         </h2>
-        <span className="text-muted-foreground font-mono text-[11px] tabular-nums">
+        <span className="text-muted-foreground text-caption font-mono tabular-nums">
           {metrics.total} triaged
         </span>
       </div>
@@ -36,7 +36,7 @@ export function TriageAcuitySnippet({ metrics }: { metrics: TriageMetrics }) {
         {TIER.map((t) => (
           <div key={t.level} className="flex flex-col items-center gap-0.5">
             <span
-              className={`font-display text-[22px] leading-none font-medium tabular-nums ${t.cls}`}
+              className={`font-display text-heading-m leading-none font-medium tabular-nums ${t.cls}`}
             >
               {metrics.byLevel[t.level]}
             </span>
@@ -47,7 +47,7 @@ export function TriageAcuitySnippet({ metrics }: { metrics: TriageMetrics }) {
         ))}
       </div>
 
-      <p className="text-muted-foreground border-border border-t pt-2 text-[11px]">
+      <p className="text-muted-foreground border-border text-caption border-t pt-2">
         {metrics.overrides} clinician override{metrics.overrides === 1 ? "" : "s"} ·{" "}
         {metrics.baselineAdjustments} baseline adjustment
         {metrics.baselineAdjustments === 1 ? "" : "s"} today. Over/under-triage rate becomes

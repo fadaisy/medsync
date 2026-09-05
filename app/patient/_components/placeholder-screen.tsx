@@ -28,7 +28,7 @@ export function PatientPlaceholderScreen({
     <div className="stagger-children relative mx-auto flex w-full max-w-xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-9">
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-20 left-1/2 -z-10 h-56 w-md max-w-full -translate-x-1/2 rounded-full bg-teal-500/5 blur-3xl dark:bg-teal-400/4"
+        className="bg-brand-500/5 dark:bg-brand-400/4 pointer-events-none absolute -top-20 left-1/2 -z-10 h-56 w-md max-w-full -translate-x-1/2 rounded-full blur-3xl"
       />
       <Link
         href={backHref}
@@ -43,20 +43,20 @@ export function PatientPlaceholderScreen({
 
       <header className="flex flex-col gap-2">
         <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
-          <span aria-hidden className="size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20" />
+          <span aria-hidden className="bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2" />
           {eyebrow}
         </span>
-        <h1 className="font-display text-foreground text-[24px] leading-[1.15] font-medium tracking-[-0.015em] sm:text-[28px]">
+        <h1 className="font-display text-foreground sm:text-heading-l text-[24px] leading-[1.15] font-medium tracking-[-0.015em]">
           {title}
         </h1>
-        <p className="text-muted-foreground max-w-[48ch] text-[13px] leading-relaxed">{blurb}</p>
+        <p className="text-muted-foreground text-body-s max-w-[48ch] leading-relaxed">{blurb}</p>
       </header>
 
       <section className="border-border bg-card flex flex-col gap-3 rounded-xl border p-4">
         <div className="flex items-center gap-3">
           <span
             aria-hidden
-            className="scale-in inline-flex size-9 items-center justify-center rounded-full bg-teal-50 text-teal-700 ring-1 ring-teal-200/70 dark:bg-teal-950/40 dark:text-teal-300 dark:ring-teal-800/40"
+            className="scale-in bg-brand-50 text-brand-700 ring-brand-200/70 dark:bg-brand-950/40 dark:text-brand-300 dark:ring-brand-800/40 inline-flex size-9 items-center justify-center rounded-full ring-1"
           >
             <Icon className="size-4" />
           </span>
@@ -70,7 +70,7 @@ export function PatientPlaceholderScreen({
             >
               <span
                 aria-hidden
-                className="mt-1.5 inline-block size-1 shrink-0 rounded-full bg-teal-500/70"
+                className="bg-brand-500/70 mt-1.5 inline-block size-1 shrink-0 rounded-full"
               />
               {item}
             </li>

@@ -35,7 +35,7 @@ export default async function NurseMarPage({ searchParams }: PageProps) {
         </header>
         <Link
           href="/nurse/patients"
-          className="border-border bg-card hover:bg-muted/30 card-lift tap group inline-flex w-fit items-center gap-2 rounded-xl border px-4 py-2.5 text-[13px] transition-colors"
+          className="border-border bg-card hover:bg-muted/30 card-lift tap group text-body-s inline-flex w-fit items-center gap-2 rounded-xl border px-4 py-2.5 transition-colors"
         >
           Open patient panel
           <span

@@ -35,18 +35,18 @@ export default async function PatientTrackHub() {
     <div className="stagger-children relative mx-auto flex w-full max-w-xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-9">
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-20 left-1/2 -z-10 h-56 w-md max-w-full -translate-x-1/2 rounded-full bg-teal-500/5 blur-3xl dark:bg-teal-400/4"
+        className="bg-brand-500/5 dark:bg-brand-400/4 pointer-events-none absolute -top-20 left-1/2 -z-10 h-56 w-md max-w-full -translate-x-1/2 rounded-full blur-3xl"
       />
       {/* ── Header ────────────────────────────────────────────── */}
       <header className="flex flex-col gap-1.5">
         <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
-          <span aria-hidden className="size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20" />
+          <span aria-hidden className="bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2" />
           Your tracking
         </span>
-        <h1 className="font-display text-foreground text-[24px] leading-[1.15] font-medium tracking-[-0.015em] sm:text-[28px]">
+        <h1 className="font-display text-foreground sm:text-heading-l text-[24px] leading-[1.15] font-medium tracking-[-0.015em]">
           Day to day
         </h1>
-        <p className="text-muted-foreground max-w-[44ch] text-[13px] leading-relaxed">
+        <p className="text-muted-foreground text-body-s max-w-[44ch] leading-relaxed">
           For your own tracking — not yet shared with a clinician.
         </p>
       </header>
@@ -65,7 +65,7 @@ export default async function PatientTrackHub() {
           </span>
           <span className="flex flex-col">
             <span className="text-[13.5px] font-medium">Log a reading</span>
-            <span className="text-background/70 text-[11px]">Glucose, BP, weight…</span>
+            <span className="text-background/70 text-caption">Glucose, BP, weight…</span>
           </span>
         </Link>
         <Link
@@ -80,7 +80,7 @@ export default async function PatientTrackHub() {
           </span>
           <span className="flex flex-col">
             <span className="text-foreground text-[13.5px] font-medium">Medications</span>
-            <span className="text-muted-foreground text-[11px]">
+            <span className="text-muted-foreground text-caption">
               {meds.length > 0 ? `${meds.length} active` : "Add what you take"}
             </span>
           </span>
@@ -110,7 +110,7 @@ export default async function PatientTrackHub() {
             Recent readings
           </h2>
           {readings.length > 0 ? (
-            <span className="text-muted-foreground font-mono text-[11px] tabular-nums">
+            <span className="text-muted-foreground text-caption font-mono tabular-nums">
               {readings.length} {readings.length === 1 ? "entry" : "entries"}
             </span>
           ) : null}
@@ -128,7 +128,7 @@ export default async function PatientTrackHub() {
                   <span className="text-muted-foreground text-[11.5px]">
                     {READING_KIND_LABEL[r.kind] ?? r.kind}
                   </span>
-                  <span className="text-muted-foreground font-mono text-[11px] tabular-nums">
+                  <span className="text-muted-foreground text-caption font-mono tabular-nums">
                     {formatReadingDate(r.recordedAtIso)}
                   </span>
                 </div>
@@ -138,7 +138,7 @@ export default async function PatientTrackHub() {
                       (r.note ? truncate(r.note, 64) : <em className="font-normal">—</em>)}
                   </span>
                   {r.severity ? (
-                    <span className="font-mono text-[11px] text-amber-700 tabular-nums dark:text-amber-300">
+                    <span className="text-caption font-mono text-amber-700 tabular-nums dark:text-amber-300">
                       severity {r.severity}/5
                     </span>
                   ) : null}
@@ -214,12 +214,12 @@ function EmptyReadings() {
           strokeLinecap="round"
           strokeDasharray="1 7"
         />
-        <circle cx="48" cy="28" r="3" className="fill-teal-500/60" />
+        <circle cx="48" cy="28" r="3" className="fill-brand-500/60" />
       </svg>
       <div className="flex items-start gap-3">
         <span
           aria-hidden
-          className="scale-in inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-teal-50 text-teal-700 ring-1 ring-teal-200/70 dark:bg-teal-950/40 dark:text-teal-300 dark:ring-teal-800/40"
+          className="scale-in bg-brand-50 text-brand-700 ring-brand-200/70 dark:bg-brand-950/40 dark:text-brand-300 dark:ring-brand-800/40 inline-flex size-9 shrink-0 items-center justify-center rounded-full ring-1"
         >
           <ActivityIcon className="size-4" />
         </span>

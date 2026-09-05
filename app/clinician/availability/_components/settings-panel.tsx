@@ -37,7 +37,7 @@ export function SettingsPanel({
         type="button"
         onClick={() => setExpanded((v) => !v)}
         aria-expanded={expanded}
-        className="tap hover:bg-muted/30 flex w-full items-center gap-3 rounded-lg px-5 py-3.5 text-left transition-colors outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40"
+        className="tap hover:bg-muted/30 focus-visible:ring-brand-500/40 flex w-full items-center gap-3 rounded-lg px-5 py-3.5 text-left transition-colors outline-none focus-visible:ring-2"
       >
         <SettingsIcon
           className={cn(
@@ -157,10 +157,10 @@ function ToggleRow({
         type="checkbox"
         name={name}
         defaultChecked={defaultChecked}
-        className="mt-0.5 size-4 accent-teal-600"
+        className="accent-brand-600 mt-0.5 size-4"
       />
       <div className="flex flex-col gap-0.5">
-        <span className="text-foreground text-[13px] font-medium">{label}</span>
+        <span className="text-foreground text-body-s font-medium">{label}</span>
         <span className="text-muted-foreground text-[11.5px] leading-snug">{hint}</span>
       </div>
     </label>

@@ -24,7 +24,7 @@ export default async function CatalogProposalsPage() {
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-6 py-8 lg:py-10">
       <header className="flex flex-col gap-1.5">
         <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
-          <span aria-hidden className="size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20" />
+          <span aria-hidden className="bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2" />
           Catalog governance
         </span>
         <h1 className="font-display text-foreground text-[24px] leading-[1.1] font-medium tracking-[-0.015em]">

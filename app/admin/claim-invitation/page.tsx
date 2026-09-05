@@ -53,7 +53,7 @@ export default async function ClaimInvitationPage({
   if (!sp.token) {
     return (
       <div className="mx-auto max-w-xl px-5 py-12">
-        <h1 className="font-display text-foreground text-[22px] font-medium">
+        <h1 className="font-display text-foreground text-heading-m font-medium">
           Missing invitation token
         </h1>
         <p className="text-muted-foreground mt-2 text-[13.5px]">

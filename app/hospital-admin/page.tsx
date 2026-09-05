@@ -34,21 +34,21 @@ export default async function HospitalAdminOverviewPage() {
     <div className="stagger-children relative mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 py-8 sm:px-6 sm:py-10">
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-24 left-1/2 -z-10 h-64 w-2xl max-w-full -translate-x-1/2 rounded-full bg-teal-500/4 blur-3xl dark:bg-teal-400/4"
+        className="bg-brand-500/4 dark:bg-brand-400/4 pointer-events-none absolute -top-24 left-1/2 -z-10 h-64 w-2xl max-w-full -translate-x-1/2 rounded-full blur-3xl"
       />
       <header className="flex flex-col gap-2">
         <span className="text-muted-foreground inline-flex w-fit items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
-          <span aria-hidden className="size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20" />
+          <span aria-hidden className="bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2" />
           {scope.hospitalName} · Overview
         </span>
-        <h1 className="font-display text-foreground text-[24px] leading-[1.15] font-medium tracking-[-0.015em] sm:text-[28px]">
+        <h1 className="font-display text-foreground sm:text-heading-l text-[24px] leading-[1.15] font-medium tracking-[-0.015em]">
           Operational overview
         </h1>
         <p className="text-muted-foreground max-w-2xl text-[13.5px] leading-relaxed">
           Glanceable, Uganda-HMIS-grounded KPIs for {scope.hospitalName}. Operations-only, never
           decrypted clinical content.
         </p>
-        <div className="h-px w-10 bg-teal-500/60 dark:bg-teal-400/50" aria-hidden />
+        <div className="bg-brand-500/60 dark:bg-brand-400/50 h-px w-10" aria-hidden />
       </header>
 
       <StaffOverviewCard hospitalId={scope.hospitalId} variant="panel" />

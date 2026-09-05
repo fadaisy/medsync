@@ -257,6 +257,16 @@ export function validateCatalog(catalog: NcdCatalog): ValidationIssue[] {
     if (f.showWhen) {
       checkPredicate(f.showWhen, `${path}.showWhen`, features, out);
     }
+    // A pointer at a complication that does not exist can never prompt anything.
+    for (const code of f.suggests ?? []) {
+      if (!catalog.complications.some((c) => c.code === code)) {
+        out.push({
+          severity: "error",
+          path,
+          message: `suggests unknown complication "${code}"`,
+        });
+      }
+    }
     if (f.dangerSign) {
       checkCitation(f.dangerSign.citation, `${path}.dangerSign.citation`, out);
       if (!f.dangerSign.action.trim()) {

@@ -100,7 +100,7 @@ export function AdminShell({
         <div className="border-border flex h-13 items-center gap-2.5 border-b px-5">
           <Link
             href="/"
-            className="font-display text-foreground text-[15px] font-medium tracking-[-0.01em] transition-opacity hover:opacity-80"
+            className="font-display text-foreground text-body-m font-medium tracking-[-0.01em] transition-opacity hover:opacity-80"
           >
             MedSync
           </Link>
@@ -131,7 +131,7 @@ export function AdminShell({
           <div className="flex items-center gap-2.5 px-1 py-1.5">
             <div
               aria-hidden
-              className="flex size-7 shrink-0 items-center justify-center rounded-full bg-teal-100 font-mono text-[11px] font-semibold text-teal-800 dark:bg-teal-900/60 dark:text-teal-200"
+              className="bg-brand-100 text-caption text-brand-800 dark:bg-brand-900/60 dark:text-brand-200 flex size-7 shrink-0 items-center justify-center rounded-full font-mono font-semibold"
             >
               {operatorEmail.slice(0, 1).toUpperCase()}
             </div>
@@ -141,7 +141,7 @@ export function AdminShell({
                 className={cn(
                   "inline-flex items-center gap-1 font-mono text-[10px] tracking-[0.1em] uppercase",
                   mfaActive
-                    ? "text-teal-700 dark:text-teal-300"
+                    ? "text-brand-700 dark:text-brand-300"
                     : "text-amber-700 dark:text-amber-400",
                 )}
               >
@@ -149,7 +149,7 @@ export function AdminShell({
                   className={cn(
                     "size-3",
                     mfaActive
-                      ? "text-teal-600 dark:text-teal-400"
+                      ? "text-brand-600 dark:text-brand-400"
                       : "text-amber-600 dark:text-amber-400",
                   )}
                   aria-hidden
@@ -179,7 +179,7 @@ export function AdminShell({
             />
             <Link
               href="/admin"
-              className="font-display text-foreground text-[15px] font-medium tracking-[-0.01em]"
+              className="font-display text-foreground text-body-m font-medium tracking-[-0.01em]"
             >
               MedSync
             </Link>
@@ -193,7 +193,7 @@ export function AdminShell({
             >
               <span
                 aria-hidden
-                className="size-1.5 rounded-full bg-teal-500 ring-2 ring-teal-500/20"
+                className="bg-brand-500 ring-brand-500/20 size-1.5 rounded-full ring-2"
               />
               {isSuperadmin ? "Superadmin console" : "Admin console"} · Production
             </span>

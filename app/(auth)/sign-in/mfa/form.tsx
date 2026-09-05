@@ -39,7 +39,7 @@ export function MfaChallengeForm() {
             autoComplete="one-time-code"
             autoFocus
             required
-            className="py-2.5 text-center font-mono text-[18px] tracking-[0.4em] tabular-nums"
+            className="text-heading-s py-2.5 text-center font-mono tracking-[0.4em] tabular-nums"
             aria-invalid={!!state.errors?.code}
           />
           <FieldError message={state.errors?.code} />

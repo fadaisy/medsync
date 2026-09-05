@@ -63,30 +63,59 @@ const darkNeutralScale: ReadonlyArray<SwatchSpec> = [
   { name: "neutral-950", hex: "#FAFAFA", textOnLight: true },
 ];
 
-const lightTealScale: ReadonlyArray<SwatchSpec> = [
-  { name: "teal-50", hex: "#F0FDFA", textOnLight: true },
-  { name: "teal-100", hex: "#CCFBF1", textOnLight: true },
-  { name: "teal-200", hex: "#99F6E4", textOnLight: true },
-  { name: "teal-300", hex: "#5EEAD4", textOnLight: true },
-  { name: "teal-400", hex: "#2DD4BF", textOnLight: true },
-  { name: "teal-500", hex: "#14B8A6", textOnLight: false },
-  { name: "teal-600", hex: "#0D9488", textOnLight: false },
-  { name: "teal-700", hex: "#0F766E", textOnLight: false },
-  { name: "teal-800", hex: "#115E59", textOnLight: false },
-  { name: "teal-900", hex: "#134E4A", textOnLight: false },
+const lightBrandScale: ReadonlyArray<SwatchSpec> = [
+  { name: "brand-50", hex: "#F4F3FF", textOnLight: true },
+  { name: "brand-100", hex: "#E7E6FF", textOnLight: true },
+  { name: "brand-200", hex: "#D1CFFF", textOnLight: true },
+  { name: "brand-300", hex: "#B7B1FF", textOnLight: true },
+  { name: "brand-400", hex: "#9C91FE", textOnLight: true },
+  { name: "brand-500", hex: "#8476E7", textOnLight: false },
+  { name: "brand-600", hex: "#6D5DC9", textOnLight: false },
+  { name: "brand-700", hex: "#5545A8", textOnLight: false },
+  { name: "brand-800", hex: "#44358B", textOnLight: false },
+  { name: "brand-900", hex: "#352970", textOnLight: false },
+  { name: "brand-950", hex: "#21164D", textOnLight: false },
 ];
 
-const darkTealScale: ReadonlyArray<SwatchSpec> = [
-  { name: "teal-50", hex: "#042F2E", textOnLight: false },
-  { name: "teal-100", hex: "#064E45", textOnLight: false },
-  { name: "teal-200", hex: "#0F766E", textOnLight: false },
-  { name: "teal-300", hex: "#0D9488", textOnLight: false },
-  { name: "teal-400", hex: "#14B8A6", textOnLight: false },
-  { name: "teal-500", hex: "#2DD4BF", textOnLight: true },
-  { name: "teal-600", hex: "#5EEAD4", textOnLight: true },
-  { name: "teal-700", hex: "#99F6E4", textOnLight: true },
-  { name: "teal-800", hex: "#CCFBF1", textOnLight: true },
-  { name: "teal-900", hex: "#F0FDFA", textOnLight: true },
+const darkBrandScale: ReadonlyArray<SwatchSpec> = [
+  { name: "brand-50", hex: "#21164D", textOnLight: false },
+  { name: "brand-100", hex: "#352970", textOnLight: false },
+  { name: "brand-200", hex: "#44358B", textOnLight: false },
+  { name: "brand-300", hex: "#5545A8", textOnLight: false },
+  { name: "brand-400", hex: "#6D5DC9", textOnLight: false },
+  { name: "brand-500", hex: "#8476E7", textOnLight: false },
+  { name: "brand-600", hex: "#9C91FE", textOnLight: true },
+  { name: "brand-700", hex: "#B7B1FF", textOnLight: true },
+  { name: "brand-800", hex: "#D1CFFF", textOnLight: true },
+  { name: "brand-900", hex: "#E7E6FF", textOnLight: true },
+  { name: "brand-950", hex: "#F4F3FF", textOnLight: true },
+];
+
+const lightMintScale: ReadonlyArray<SwatchSpec> = [
+  { name: "mint-50", hex: "#E5FEF1", textOnLight: true },
+  { name: "mint-100", hex: "#CBFBE2", textOnLight: true },
+  { name: "mint-200", hex: "#A2F8CE", textOnLight: true },
+  { name: "mint-300", hex: "#74F4BB", textOnLight: true },
+  { name: "mint-400", hex: "#33E2A0", textOnLight: true },
+  { name: "mint-500", hex: "#00CB86", textOnLight: true },
+  { name: "mint-600", hex: "#00AE6D", textOnLight: false },
+  { name: "mint-700", hex: "#008E56", textOnLight: false },
+  { name: "mint-800", hex: "#007043", textOnLight: false },
+  { name: "mint-900", hex: "#005933", textOnLight: false },
+  { name: "mint-950", hex: "#00381D", textOnLight: false },
+];
+
+const gradientSpecs: ReadonlyArray<{ name: string; className: string; usage: string }> = [
+  { name: "gradient-hero", className: "bg-gradient-hero", usage: "Full-bleed hero and final CTA" },
+  { name: "gradient-band", className: "bg-gradient-band", usage: "Mid-page always-dark band" },
+  { name: "gradient-wash", className: "bg-gradient-wash", usage: "Page background wash" },
+  { name: "gradient-accent", className: "bg-gradient-accent", usage: "Mint stat / highlight card" },
+  {
+    name: "gradient-signature",
+    className: "bg-gradient-signature",
+    usage: "Brand → accent diagonal",
+  },
+  { name: "gradient-card", className: "bg-gradient-card", usage: "Raised card surface" },
 ];
 
 const clinicalStatuses: Array<{ status: ClinicalStatus; label: string; usage: string }> = [
@@ -151,7 +180,7 @@ function Section({ n, title, subtitle, children }: SectionProps) {
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-3">
           <SectionNumber n={n} />
-          <span className="text-caption text-muted-foreground font-mono uppercase dark:text-teal-500">
+          <span className="text-caption text-muted-foreground dark:text-brand-500 font-mono uppercase">
             {title}
           </span>
         </div>
@@ -183,7 +212,7 @@ function Swatch({ name, hex, textOnLight }: SwatchSpec) {
           {hex}
         </span>
       </div>
-      <span className="text-muted-foreground font-mono text-[11px]">{name}</span>
+      <span className="text-muted-foreground text-caption font-mono">{name}</span>
     </div>
   );
 }
@@ -200,14 +229,14 @@ export default function StyleguidePage() {
             <span className="font-display text-heading-s text-foreground tracking-tight">
               MedSync
             </span>
-            <span className="text-muted-foreground font-mono text-[11px] tracking-wider uppercase">
+            <span className="text-muted-foreground text-overline font-mono tracking-wider uppercase">
               Design system
             </span>
           </Link>
           <div className="flex items-center gap-5">
             <Link
               href="/"
-              className="text-muted-foreground hover:text-foreground text-[13px] transition-colors duration-150"
+              className="text-muted-foreground hover:text-foreground text-body-s transition-colors duration-150"
             >
               ← Back home
             </Link>
@@ -260,8 +289,8 @@ export default function StyleguidePage() {
           {/* 03 — Teal scales */}
           <Section
             n={3}
-            title="Teal — clinical accent"
-            subtitle="Light anchor is teal-600 (#0D9488); dark anchor brightens to teal-500 (#2DD4BF). Both scales shown."
+            title="Brand indigo + mint accent"
+            subtitle="Indigo anchors the brand (#402A8E sits at brand-800); mint is the accent (#74F4BB at mint-300). Ramps are perceptually even in OKLab."
           >
             <div className="flex flex-col gap-6">
               <div>
@@ -269,7 +298,7 @@ export default function StyleguidePage() {
                   Light
                 </span>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-5 lg:grid-cols-10">
-                  {lightTealScale.map((s) => (
+                  {lightBrandScale.map((s) => (
                     <Swatch key={`lt-${s.name}`} {...s} />
                   ))}
                 </div>
@@ -279,11 +308,40 @@ export default function StyleguidePage() {
                   Dark
                 </span>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-5 lg:grid-cols-10">
-                  {darkTealScale.map((s) => (
+                  {darkBrandScale.map((s) => (
                     <Swatch key={`dt-${s.name}`} {...s} />
                   ))}
                 </div>
               </div>
+              <div>
+                <span className="text-caption text-muted-foreground mb-3 inline-block font-mono uppercase">
+                  Mint accent
+                </span>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-5 lg:grid-cols-10">
+                  {lightMintScale.map((s) => (
+                    <Swatch key={`mt-${s.name}`} {...s} />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </Section>
+
+          {/* 03b — Gradients */}
+          <Section
+            n={3}
+            title="Gradients"
+            subtitle="Large-area, low-contrast washes: the shift is a lightness step inside one hue, never a rainbow. Each flips with the theme."
+          >
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {gradientSpecs.map(({ name, className, usage }) => (
+                <div key={name} className="border-border overflow-hidden rounded-lg border">
+                  <div className={`${className} h-24 w-full`} aria-hidden />
+                  <div className="bg-card flex flex-col gap-0.5 p-3">
+                    <code className="text-primary text-caption font-mono">.{className}</code>
+                    <span className="text-muted-foreground text-body-s">{usage}</span>
+                  </div>
+                </div>
+              ))}
             </div>
           </Section>
 
@@ -323,8 +381,8 @@ export default function StyleguidePage() {
                 >
                   <div className={`${t.className} text-foreground`}>{t.name}</div>
                   <div className="flex items-baseline gap-3">
-                    <code className="text-muted-foreground font-mono text-[11px]">{t.spec}</code>
-                    <code className="text-primary font-mono text-[11px]">
+                    <code className="text-muted-foreground text-caption font-mono">{t.spec}</code>
+                    <code className="text-primary text-caption font-mono">
                       .{t.className.split(" ")[0]}
                     </code>
                   </div>
@@ -340,30 +398,38 @@ export default function StyleguidePage() {
             subtitle="Six variants, three sizes. Primary teal flips its anchor across modes; emergency softens its red palette in dark."
           >
             <div className="flex flex-col gap-12">
-              {(["primary", "secondary", "ghost", "tealSoft", "emergency", "alert"] as const).map(
-                (variant) => (
-                  <div
-                    key={variant}
-                    className="border-gray-150 grid grid-cols-1 items-center gap-6 border-b pb-8 last:border-b-0 last:pb-0 sm:grid-cols-[120px_1fr]"
-                  >
-                    <code className="text-muted-foreground font-mono text-[11px]">{variant}</code>
-                    <div className="flex flex-wrap items-center gap-3">
-                      <Button variant={variant} size="sm">
-                        Small
-                      </Button>
-                      <Button variant={variant} size="md">
-                        Medium action
-                      </Button>
-                      <Button variant={variant} size="lg">
-                        Large action
-                      </Button>
-                      <Button variant={variant} size="md" disabled>
-                        Disabled
-                      </Button>
-                    </div>
+              {(
+                [
+                  "primary",
+                  "mint",
+                  "secondary",
+                  "ghost",
+                  "brandSoft",
+                  "emergency",
+                  "alert",
+                ] as const
+              ).map((variant) => (
+                <div
+                  key={variant}
+                  className="border-gray-150 grid grid-cols-1 items-center gap-6 border-b pb-8 last:border-b-0 last:pb-0 sm:grid-cols-[120px_1fr]"
+                >
+                  <code className="text-muted-foreground text-caption font-mono">{variant}</code>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <Button variant={variant} size="sm">
+                      Small
+                    </Button>
+                    <Button variant={variant} size="md">
+                      Medium action
+                    </Button>
+                    <Button variant={variant} size="lg">
+                      Large action
+                    </Button>
+                    <Button variant={variant} size="md" disabled>
+                      Disabled
+                    </Button>
                   </div>
-                ),
-              )}
+                </div>
+              ))}
             </div>
           </Section>
 
@@ -371,7 +437,7 @@ export default function StyleguidePage() {
           <Section
             n={7}
             title="Inputs"
-            subtitle="Compact for data density. Focus ring is teal-tinted; error state pulls the alert palette."
+            subtitle="Compact for data density. Focus ring is brand-tinted; error state pulls the alert palette."
           >
             <div className="grid max-w-2xl grid-cols-1 gap-6 sm:grid-cols-2">
               <div>
@@ -534,11 +600,11 @@ export default function StyleguidePage() {
               {radiiScale.map((r) => (
                 <div key={r.name} className="flex flex-col items-center gap-2">
                   <div
-                    className={`bg-accent size-20 border border-teal-100 ${r.className}`}
+                    className={`bg-accent border-brand-100 size-20 border ${r.className}`}
                     aria-hidden
                   />
                   <div className="flex flex-col items-center">
-                    <code className="text-foreground font-mono text-[11px]">{r.name}</code>
+                    <code className="text-foreground text-caption font-mono">{r.name}</code>
                     <code className="text-muted-foreground font-mono text-[10px]">{r.value}</code>
                   </div>
                 </div>
@@ -556,7 +622,7 @@ export default function StyleguidePage() {
               {shadowsScale.map((s) => (
                 <div key={s.name} className="flex flex-col items-center gap-3">
                   <div className={`bg-card size-24 rounded-lg ${s.className}`} aria-hidden />
-                  <code className="text-muted-foreground font-mono text-[11px]">{s.name}</code>
+                  <code className="text-muted-foreground text-caption font-mono">{s.name}</code>
                 </div>
               ))}
             </div>
@@ -612,7 +678,7 @@ export default function StyleguidePage() {
           </Section>
         </div>
 
-        <footer className="border-gray-150 text-muted-foreground mt-32 flex items-center justify-between border-t pt-8 text-[11px]">
+        <footer className="border-gray-150 text-muted-foreground text-caption mt-32 flex items-center justify-between border-t pt-8">
           <span>
             Source of truth: <code className="text-primary font-mono">DESIGN-medsync.md</code>
           </span>

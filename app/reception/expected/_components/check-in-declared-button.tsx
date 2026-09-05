@@ -20,7 +20,7 @@ export function CheckInDeclaredButton({ intakeId }: { intakeId: string }) {
 
   if (state.ok) {
     return (
-      <span className="scale-in inline-flex items-center gap-1 rounded-full bg-teal-50 px-2.5 py-1 text-[11.5px] font-medium text-teal-700 ring-1 ring-teal-200/70 dark:bg-teal-950/40 dark:text-teal-300 dark:ring-teal-800/40">
+      <span className="scale-in bg-brand-50 text-brand-700 ring-brand-200/70 dark:bg-brand-950/40 dark:text-brand-300 dark:ring-brand-800/40 inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11.5px] font-medium ring-1">
         <CheckIcon className="size-3" aria-hidden />
         Checked in
       </span>

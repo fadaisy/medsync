@@ -287,7 +287,7 @@ export function CommandPaletteRoot({ isSuperadmin, hospitals, people }: CommandP
         className={cn(
           "border-border bg-background hover:bg-muted text-muted-foreground",
           "inline-flex items-center gap-2 rounded-md border px-2.5 py-1.5 text-[12px] transition-colors",
-          "focus-visible:ring-2 focus-visible:ring-teal-500/40 focus-visible:outline-none",
+          "focus-visible:ring-brand-500/40 focus-visible:ring-2 focus-visible:outline-none",
         )}
       >
         <SearchIcon className="size-3.5" aria-hidden />
@@ -357,7 +357,7 @@ export function CommandPaletteRoot({ isSuperadmin, hospitals, people }: CommandP
               </div>
 
               <ComboboxPrimitive.List className="max-h-[60svh] overflow-y-auto p-2">
-                <ComboboxPrimitive.Empty className="text-muted-foreground px-3 py-8 text-center text-[13px]">
+                <ComboboxPrimitive.Empty className="text-muted-foreground text-body-s px-3 py-8 text-center">
                   No matches for &ldquo;{query}&rdquo;.
                 </ComboboxPrimitive.Empty>
 
@@ -400,7 +400,7 @@ export function CommandPaletteRoot({ isSuperadmin, hospitals, people }: CommandP
                         />
                         <span className="flex flex-1 flex-col text-left">
                           <span className="text-foreground font-medium">{item.name}</span>
-                          <span className="text-muted-foreground font-mono text-[11px]">
+                          <span className="text-muted-foreground text-caption font-mono">
                             {item.slug} · {item.state}
                           </span>
                         </span>
@@ -431,7 +431,7 @@ export function CommandPaletteRoot({ isSuperadmin, hospitals, people }: CommandP
                         />
                         <span className="flex flex-1 flex-col text-left">
                           <span className="text-foreground font-medium">{item.fullName}</span>
-                          <span className="text-muted-foreground font-mono text-[11px]">
+                          <span className="text-muted-foreground text-caption font-mono">
                             {item.email}
                           </span>
                         </span>
@@ -445,7 +445,7 @@ export function CommandPaletteRoot({ isSuperadmin, hospitals, people }: CommandP
                 ) : null}
               </ComboboxPrimitive.List>
 
-              <div className="border-border bg-muted/30 text-muted-foreground flex items-center justify-between border-t px-4 py-2 text-[11px]">
+              <div className="border-border bg-muted/30 text-muted-foreground text-caption flex items-center justify-between border-t px-4 py-2">
                 <div className="flex items-center gap-3">
                   <span className="inline-flex items-center gap-1">
                     <kbd className="border-border bg-background rounded border px-1 py-0.5 font-mono text-[10px]">

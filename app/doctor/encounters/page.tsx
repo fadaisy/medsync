@@ -23,7 +23,7 @@ export default async function DoctorEncountersPage() {
         <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
           <span
             aria-hidden
-            className="pulse-dot size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20"
+            className="pulse-dot bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2"
           />
           Encounters
         </span>
@@ -77,15 +77,15 @@ async function EncounterList({
         <li key={r.encounterId}>
           <Link
             href={`/doctor/encounters/${r.encounterId}`}
-            className="group flex items-center gap-3 px-4 py-3 transition-colors duration-200 hover:bg-teal-50/50 focus-visible:bg-teal-50/50 focus-visible:outline-none dark:hover:bg-teal-950/15 dark:focus-visible:bg-teal-950/15"
+            className="group hover:bg-brand-50/50 focus-visible:bg-brand-50/50 dark:hover:bg-brand-950/15 dark:focus-visible:bg-brand-950/15 flex items-center gap-3 px-4 py-3 transition-colors duration-200 focus-visible:outline-none"
           >
-            <span className="text-foreground min-w-0 flex-1 truncate text-[13px] font-medium">
+            <span className="text-foreground text-body-s min-w-0 flex-1 truncate font-medium">
               {r.patientCode ?? "Patient"}
             </span>
             <span
               className={`scale-in rounded px-1.5 py-0.5 text-[10px] font-semibold tracking-[0.06em] uppercase ${
                 r.state === "in_progress"
-                  ? "bg-teal-100 text-teal-800 dark:bg-teal-950/50 dark:text-teal-300"
+                  ? "bg-brand-100 text-brand-800 dark:bg-brand-950/50 dark:text-brand-300"
                   : "bg-muted text-muted-foreground"
               }`}
             >

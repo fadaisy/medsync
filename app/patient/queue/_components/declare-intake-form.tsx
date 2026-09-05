@@ -50,7 +50,7 @@ export function DeclareIntakeForm({ departments, anyOpen, hospitalName }: Props)
         </p>
         <Link
           href="/patient/book"
-          className="mt-1 inline-flex w-fit items-center gap-1.5 rounded-full bg-teal-600 px-3 py-1.5 text-[12px] font-medium text-white shadow-xs transition-colors hover:bg-teal-700"
+          className="bg-brand-600 hover:bg-brand-700 mt-1 inline-flex w-fit items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-medium text-white shadow-xs transition-colors"
         >
           Book a future visit
         </Link>
@@ -76,8 +76,8 @@ export function DeclareIntakeForm({ departments, anyOpen, hospitalName }: Props)
                     !d.openNow
                       ? "border-border bg-card flex cursor-not-allowed items-center gap-3 rounded-xl border p-3.5 opacity-60"
                       : isSelected
-                        ? "flex cursor-pointer items-center gap-3 rounded-xl border border-teal-500/50 bg-teal-50/50 p-3.5 ring-1 ring-teal-500/30 dark:border-teal-400/40 dark:bg-teal-950/20"
-                        : "border-border bg-card flex cursor-pointer items-center gap-3 rounded-xl border p-3.5 transition-colors hover:border-teal-300"
+                        ? "border-brand-500/50 bg-brand-50/50 ring-brand-500/30 dark:border-brand-400/40 dark:bg-brand-950/20 flex cursor-pointer items-center gap-3 rounded-xl border p-3.5 ring-1"
+                        : "border-border bg-card hover:border-brand-300 flex cursor-pointer items-center gap-3 rounded-xl border p-3.5 transition-colors"
                   }
                 >
                   <input
@@ -87,7 +87,7 @@ export function DeclareIntakeForm({ departments, anyOpen, hospitalName }: Props)
                     value={d.id}
                     disabled={!d.openNow}
                     onChange={() => setSelected(d.id)}
-                    className="size-4 accent-teal-600"
+                    className="accent-brand-600 size-4"
                     required
                   />
                   <div className="flex min-w-0 flex-1 flex-col gap-0.5">
@@ -123,7 +123,7 @@ export function DeclareIntakeForm({ departments, anyOpen, hospitalName }: Props)
           rows={3}
           maxLength={500}
           placeholder="A short note helps the team prepare — e.g. follow-up for diabetes, persistent cough for 3 days."
-          className="border-input bg-background text-foreground placeholder:text-muted-foreground/70 focus-visible:ring-ring/50 focus-visible:border-ring rounded-md border p-3 text-[13px] shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px]"
+          className="border-input bg-background text-foreground placeholder:text-muted-foreground/70 focus-visible:ring-ring/50 focus-visible:border-ring text-body-s rounded-md border p-3 shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px]"
         />
       </div>
 
@@ -133,7 +133,7 @@ export function DeclareIntakeForm({ departments, anyOpen, hospitalName }: Props)
           {state.existing_appointment_id ? (
             <Link
               href="/patient/appointments"
-              className="text-foreground self-start text-[12px] font-medium underline underline-offset-2 hover:text-teal-700 dark:hover:text-teal-300"
+              className="text-foreground hover:text-brand-700 dark:hover:text-brand-300 self-start text-[12px] font-medium underline underline-offset-2"
             >
               View today&rsquo;s booking →
             </Link>
@@ -141,7 +141,7 @@ export function DeclareIntakeForm({ departments, anyOpen, hospitalName }: Props)
           {state.existing_intake_id ? (
             <Link
               href={`/patient/queue/${state.existing_intake_id}`}
-              className="text-foreground self-start text-[12px] font-medium underline underline-offset-2 hover:text-teal-700 dark:hover:text-teal-300"
+              className="text-foreground hover:text-brand-700 dark:hover:text-brand-300 self-start text-[12px] font-medium underline underline-offset-2"
             >
               View your queue ticket →
             </Link>
@@ -154,7 +154,7 @@ export function DeclareIntakeForm({ departments, anyOpen, hospitalName }: Props)
         {pending ? "Saving your spot…" : "Join today's queue"}
       </Button>
 
-      <p className="text-muted-foreground text-center text-[11px] leading-snug">
+      <p className="text-muted-foreground text-caption text-center leading-snug">
         A ticket isn&rsquo;t a guarantee of being seen by a specific clinician or at a fixed time.
         The team works through the line in order.
       </p>

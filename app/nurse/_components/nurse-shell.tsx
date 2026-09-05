@@ -61,7 +61,7 @@ export function NurseShell({ scope, children }: { scope: NurseScope; children: R
           <div className="border-border flex flex-col gap-0.5 border-b px-5 py-3">
             <Link
               href="/"
-              className="font-display text-foreground text-[15px] font-medium tracking-[-0.01em] transition-opacity hover:opacity-80"
+              className="font-display text-foreground text-body-m font-medium tracking-[-0.01em] transition-opacity hover:opacity-80"
             >
               MedSync
             </Link>
@@ -93,7 +93,7 @@ export function NurseShell({ scope, children }: { scope: NurseScope; children: R
             <div className="flex items-center gap-2.5 px-1 py-1.5">
               <div
                 aria-hidden
-                className="flex size-7 shrink-0 items-center justify-center rounded-full bg-teal-100 font-mono text-[11px] font-semibold text-teal-800 dark:bg-teal-900/60 dark:text-teal-200"
+                className="bg-brand-100 text-caption text-brand-800 dark:bg-brand-900/60 dark:text-brand-200 flex size-7 shrink-0 items-center justify-center rounded-full font-mono font-semibold"
               >
                 {initial}
               </div>
@@ -103,7 +103,7 @@ export function NurseShell({ scope, children }: { scope: NurseScope; children: R
                 </p>
                 <p className="text-muted-foreground inline-flex items-center gap-1 font-mono text-[10px] tracking-[0.1em] uppercase">
                   <ShieldCheckIcon
-                    className="size-3 text-teal-600 dark:text-teal-400"
+                    className="text-brand-600 dark:text-brand-400 size-3"
                     aria-hidden
                   />
                   MFA · AAL2
@@ -119,7 +119,7 @@ export function NurseShell({ scope, children }: { scope: NurseScope; children: R
           <div className="flex items-center gap-2.5 lg:hidden">
             <Link
               href="/nurse"
-              className="font-display text-foreground text-[15px] font-medium tracking-[-0.01em]"
+              className="font-display text-foreground text-body-m font-medium tracking-[-0.01em]"
             >
               MedSync
             </Link>
@@ -132,7 +132,7 @@ export function NurseShell({ scope, children }: { scope: NurseScope; children: R
             >
               <span
                 aria-hidden
-                className="pulse-dot size-1.5 shrink-0 rounded-full bg-teal-500 ring-2 ring-teal-500/20"
+                className="pulse-dot bg-brand-500 ring-brand-500/20 size-1.5 shrink-0 rounded-full ring-2"
               />
               <span className="truncate" title={scope.hospitalName}>
                 {scope.hospitalName}
@@ -153,7 +153,7 @@ export function NurseShell({ scope, children }: { scope: NurseScope; children: R
                 "scale-in ml-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-mono text-[10px] tracking-[0.12em] uppercase",
                 scope.isEnrolled
                   ? "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200"
-                  : "bg-teal-100 text-teal-800 dark:bg-teal-900/40 dark:text-teal-200",
+                  : "bg-brand-100 text-brand-800 dark:bg-brand-900/40 dark:text-brand-200",
               )}
               title={`Cadre: ${cadrePill}`}
             >

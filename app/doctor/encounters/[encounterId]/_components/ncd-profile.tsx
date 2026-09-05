@@ -50,7 +50,7 @@ const STATE_WORD: Record<EvalState, string> = {
 function StateBadge({ state, met = "Present" }: { state: EvalState; met?: string }) {
   const map: Record<EvalState, { cls: string; icon: React.ReactNode }> = {
     met: {
-      cls: "bg-teal-50 text-teal-800 ring-teal-500/30 dark:bg-teal-950/40 dark:text-teal-200",
+      cls: "bg-brand-50 text-brand-800 ring-brand-500/30 dark:bg-brand-950/40 dark:text-brand-200",
       icon: <CheckIcon className="size-3" aria-hidden />,
     },
     not_met: {
@@ -114,7 +114,7 @@ export function NcdProfileView({ profile }: { profile: NcdProfile }) {
             />
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-baseline gap-x-2">
-                <h3 className="font-display text-[15px] font-medium tracking-[-0.01em] text-red-900 dark:text-red-100">
+                <h3 className="font-display text-body-m font-medium tracking-[-0.01em] text-red-900 dark:text-red-100">
                   {flag.display}
                 </h3>
                 {flag.stage ? (
@@ -161,7 +161,7 @@ export function NcdProfileView({ profile }: { profile: NcdProfile }) {
               }`}
               aria-hidden
             />
-            <span className="text-foreground text-[11px] font-medium tracking-[0.04em]">
+            <span className="text-foreground text-caption font-medium tracking-[0.04em]">
               Danger signs recorded
             </span>
             <span className="text-muted-foreground ml-auto font-mono text-[10px] tabular-nums">
@@ -198,13 +198,13 @@ export function NcdProfileView({ profile }: { profile: NcdProfile }) {
         <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
           <span className={OVERLINE}>Profile</span>
           {profile.standardApplied ? (
-            <span className="text-muted-foreground text-[11px]">
+            <span className="text-muted-foreground text-caption">
               applied{" "}
               <span className="text-foreground font-medium">{profile.standardApplied.body}</span>{" "}
               {profile.standardApplied.version}
             </span>
           ) : null}
-          <span className="text-muted-foreground ml-auto text-[11px]">{profile.site.display}</span>
+          <span className="text-muted-foreground text-caption ml-auto">{profile.site.display}</span>
         </div>
 
         <div className="mt-2.5 flex items-baseline gap-2">
@@ -215,11 +215,11 @@ export function NcdProfileView({ profile }: { profile: NcdProfile }) {
         </div>
         <div className="bg-border/40 mt-2 h-1 w-full overflow-hidden rounded-full" aria-hidden>
           <div
-            className="ease-expo-out h-1 rounded-full bg-teal-500 transition-[width] duration-250"
+            className="ease-expo-out bg-brand-500 h-1 rounded-full transition-[width] duration-250"
             style={{ width: `${completeness.percent}%` }}
           />
         </div>
-        <p className="text-muted-foreground mt-1.5 flex flex-wrap gap-x-2.5 text-[11px] tabular-nums">
+        <p className="text-muted-foreground text-caption mt-1.5 flex flex-wrap gap-x-2.5 tabular-nums">
           <span>
             <span className="text-foreground font-medium">{completeness.recorded}</span> recorded
           </span>
@@ -292,7 +292,7 @@ export function NcdProfileView({ profile }: { profile: NcdProfile }) {
           <span className={OVERLINE}>Type</span>
           <Source citation={classification.citation} />
         </div>
-        <p className="text-foreground mt-1.5 text-[15px] font-medium">{classification.display}</p>
+        <p className="text-foreground text-body-m mt-1.5 font-medium">{classification.display}</p>
         <p className="text-muted-foreground mt-0.5 text-[11.5px] leading-snug">
           {classification.reason}
         </p>
@@ -318,7 +318,7 @@ export function NcdProfileView({ profile }: { profile: NcdProfile }) {
               className="size-3.5 shrink-0 text-amber-600 dark:text-amber-400"
               aria-hidden
             />
-            <span className="text-foreground text-[11px] font-medium tracking-[0.04em]">
+            <span className="text-foreground text-caption font-medium tracking-[0.04em]">
               Results that cannot be taken at face value
             </span>
           </header>
@@ -332,7 +332,7 @@ export function NcdProfileView({ profile }: { profile: NcdProfile }) {
                 </div>
                 <p className="text-foreground/85 mt-1 text-[11.5px] leading-snug">{c.label}</p>
                 {c.alternative ? (
-                  <p className="text-muted-foreground mt-0.5 text-[11px]">{c.alternative}</p>
+                  <p className="text-muted-foreground text-caption mt-0.5">{c.alternative}</p>
                 ) : null}
               </li>
             ))}
@@ -365,15 +365,27 @@ export function NcdProfileView({ profile }: { profile: NcdProfile }) {
               </header>
               <ul className="divide-border/50 divide-y">
                 {outstanding.map((g) => (
-                  <li key={g.feature} className="flex items-center gap-2 px-3.5 py-1.5">
-                    <CircleDashedIcon
-                      className="text-muted-foreground size-3 shrink-0"
-                      aria-hidden
-                    />
-                    <span className="text-foreground/85 min-w-0 flex-1 truncate text-[12px]">
-                      {g.display}
-                    </span>
-                    <span className="text-muted-foreground shrink-0 text-[10.5px]">{g.blocks}</span>
+                  <li key={g.feature} className="px-3.5 py-1.5">
+                    <div className="flex items-center gap-2">
+                      <CircleDashedIcon
+                        className={`size-3 shrink-0 ${g.promptedBy ? "text-teal-600 dark:text-teal-400" : "text-muted-foreground"}`}
+                        aria-hidden
+                      />
+                      <span className="text-foreground/85 min-w-0 flex-1 truncate text-[12px]">
+                        {g.display}
+                      </span>
+                      <span className="text-muted-foreground shrink-0 text-[10.5px]">
+                        {g.blocks}
+                      </span>
+                    </div>
+                    {/* A gap with a reason behind it is acted on; a flat list is
+                        scrolled past. The finding never asserts the complication —
+                        it only says why this is worth doing next. */}
+                    {g.promptedBy?.length ? (
+                      <p className="mt-0.5 pl-5 text-[10.5px] text-teal-700 dark:text-teal-400">
+                        prompted by {g.promptedBy.join(", ")}
+                      </p>
+                    ) : null}
                   </li>
                 ))}
               </ul>
@@ -437,7 +449,7 @@ function DiagnosisHeadline({ profile }: { profile: NcdProfile }) {
     <div className="flex flex-wrap items-baseline gap-x-2">
       <span
         className={`font-display text-[19px] leading-tight font-medium tracking-[-0.015em] ${
-          strong ? "text-teal-800 dark:text-teal-200" : "text-foreground"
+          strong ? "text-brand-800 dark:text-brand-200" : "text-foreground"
         }`}
       >
         {word}
@@ -473,7 +485,7 @@ function ComplicationRow({ c }: { c: ComplicationResult }) {
         <StateBadge state={c.state} />
         <span className="text-foreground min-w-0 flex-1 text-[12.5px]">{c.display}</span>
         {staged?.stage ? (
-          <span className="shrink-0 rounded bg-teal-50 px-1.5 py-0.5 text-[10.5px] font-medium text-teal-800 ring-1 ring-teal-500/25 ring-inset dark:bg-teal-950/40 dark:text-teal-200">
+          <span className="bg-brand-50 text-brand-800 ring-brand-500/25 dark:bg-brand-950/40 dark:text-brand-200 shrink-0 rounded px-1.5 py-0.5 text-[10.5px] font-medium ring-1 ring-inset">
             {staged.stage.code}
           </span>
         ) : null}
@@ -481,7 +493,7 @@ function ComplicationRow({ c }: { c: ComplicationResult }) {
       </div>
 
       {staged?.stage ? (
-        <p className="text-muted-foreground mt-0.5 pl-1 text-[11px]">{staged.stage.display}</p>
+        <p className="text-muted-foreground text-caption mt-0.5 pl-1">{staged.stage.display}</p>
       ) : null}
 
       {c.screeningIntervalMonths ? (

@@ -97,7 +97,7 @@ export function AuditFilters({ initial }: { initial: AuditFiltersState }) {
     >
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="lg:col-span-2">
-          <label className="text-muted-foreground mb-1 inline-flex text-[11px] font-medium tracking-[0.01em]">
+          <label className="text-muted-foreground text-caption mb-1 inline-flex font-medium tracking-[0.01em]">
             Date range
           </label>
           <DateRangePicker

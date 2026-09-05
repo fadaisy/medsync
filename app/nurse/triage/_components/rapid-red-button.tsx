@@ -73,7 +73,7 @@ export function RapidRedButton({
         size="sm"
         variant="secondary"
         onClick={() => setOpen(true)}
-        className="tap mr-3 shrink-0 gap-1 self-center bg-rose-600 text-[11px] font-semibold text-white hover:bg-rose-700"
+        className="tap text-caption mr-3 shrink-0 gap-1 self-center bg-rose-600 font-semibold text-white hover:bg-rose-700"
         title="Declare an immediate life threat — Level 1, resus now"
       >
         <ZapIcon className="size-3" aria-hidden />
@@ -87,7 +87,7 @@ export function RapidRedButton({
               <ZapIcon className="size-2.5" aria-hidden />
               Rapid · Level 1 resus
             </span>
-            <DialogTitle className="text-[18px] leading-tight font-medium">
+            <DialogTitle className="text-heading-s leading-tight font-medium">
               Immediate life threat — {patientLabel}
             </DialogTitle>
             <DialogDescription className="text-[12px]">
@@ -101,7 +101,7 @@ export function RapidRedButton({
               <label
                 key={lt}
                 className={cn(
-                  "tap flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-[13px] transition-colors",
+                  "tap text-body-s flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 transition-colors",
                   reason === lt
                     ? "border-rose-500/50 bg-rose-50/60 dark:bg-rose-950/20"
                     : "border-border hover:bg-muted/40",

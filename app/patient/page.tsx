@@ -67,18 +67,18 @@ export default async function PatientHome() {
       {/* Quiet teal atmosphere behind the greeting — 90% monochrome rule intact. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-24 left-1/2 -z-10 h-64 w-md max-w-full -translate-x-1/2 rounded-full bg-teal-500/5 blur-3xl dark:bg-teal-400/4"
+        className="bg-brand-500/5 dark:bg-brand-400/4 pointer-events-none absolute -top-24 left-1/2 -z-10 h-64 w-md max-w-full -translate-x-1/2 rounded-full blur-3xl"
       />
       {/* ── Greeting ───────────────────────────────────────────── */}
       <section className="flex flex-col gap-1.5">
         <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
-          <span aria-hidden className="size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20" />
+          <span aria-hidden className="bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2" />
           MedSync · Your space
         </span>
         <h1 className="font-display text-foreground text-[26px] leading-[1.15] font-medium tracking-[-0.015em] sm:text-[30px]">
           {firstName ? `Hello, ${firstName}.` : "Hello."}
         </h1>
-        <p className="text-muted-foreground max-w-[44ch] text-[13px] leading-relaxed">
+        <p className="text-muted-foreground text-body-s max-w-[44ch] leading-relaxed">
           {scope.primaryHospitalName
             ? `${scope.primaryHospitalName} is your primary hospital. Track how you're doing, see your visits, and book when you need to.`
             : "This is your private workspace. Track how you're doing day to day; when you're ready, connect to a hospital."}
@@ -178,7 +178,7 @@ export default async function PatientHome() {
                 <li key={a.id}>
                   <Link
                     href="/patient/appointments"
-                    className="border-border bg-card hover:bg-muted/30 card-lift flex flex-col gap-2 rounded-xl border p-4 hover:border-teal-500/40"
+                    className="border-border bg-card hover:bg-muted/30 card-lift hover:border-brand-500/40 flex flex-col gap-2 rounded-xl border p-4"
                   >
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-foreground text-[14px] font-medium">
@@ -219,7 +219,7 @@ function ConnectionBanner({
         <div className="flex min-w-0 items-center gap-3">
           <span
             aria-hidden
-            className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-teal-50 text-teal-700 ring-1 ring-teal-200/70 dark:bg-teal-950/40 dark:text-teal-300 dark:ring-teal-800/40"
+            className="bg-brand-50 text-brand-700 ring-brand-200/70 dark:bg-brand-950/40 dark:text-brand-300 dark:ring-brand-800/40 inline-flex size-9 shrink-0 items-center justify-center rounded-full ring-1"
           >
             <HospitalIcon className="size-4" />
           </span>
@@ -243,21 +243,21 @@ function ConnectionBanner({
   }
 
   // Unaffiliated — invite, not warn. The kickoff calls for "calm
-  // wellbeing tone, encouraging not shaming." A teal-tinted card with
+  // wellbeing tone, encouraging not shaming." A brand-tinted card with
   // a single primary CTA carries the weight without an alert chrome.
   return (
     <Link
       href="/patient/hospitals"
-      className="group card-lift relative overflow-hidden rounded-xl border border-teal-500/30 bg-linear-to-br from-teal-50/80 via-teal-50/40 to-transparent p-4 hover:border-teal-500/60 dark:border-teal-400/20 dark:from-teal-950/30 dark:via-teal-950/15 dark:to-transparent"
+      className="group card-lift border-brand-500/30 from-brand-50/80 via-brand-50/40 hover:border-brand-500/60 dark:border-brand-400/20 dark:from-brand-950/30 dark:via-brand-950/15 relative overflow-hidden rounded-xl border bg-linear-to-br to-transparent p-4 dark:to-transparent"
     >
       <div
         aria-hidden
-        className="absolute -top-12 -right-12 size-32 rounded-full bg-teal-500/10 blur-2xl transition-opacity group-hover:opacity-80 dark:bg-teal-400/10"
+        className="bg-brand-500/10 dark:bg-brand-400/10 absolute -top-12 -right-12 size-32 rounded-full blur-2xl transition-opacity group-hover:opacity-80"
       />
       <div className="relative flex items-start gap-3">
         <span
           aria-hidden
-          className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-white/80 text-teal-700 ring-1 ring-teal-200/80 dark:bg-teal-950/60 dark:text-teal-300 dark:ring-teal-800/40"
+          className="text-brand-700 ring-brand-200/80 dark:bg-brand-950/60 dark:text-brand-300 dark:ring-brand-800/40 inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-white/80 ring-1"
         >
           <HospitalIcon className="size-5" />
         </span>
@@ -269,7 +269,7 @@ function ConnectionBanner({
             Pick a MedSync hospital as your primary. You can book appointments and, when a clinician
             connects, see your records here.
           </span>
-          <span className="mt-1 inline-flex items-center gap-1 text-[12px] font-medium text-teal-700 dark:text-teal-300">
+          <span className="text-brand-700 dark:text-brand-300 mt-1 inline-flex items-center gap-1 text-[12px] font-medium">
             Browse hospitals
             <span aria-hidden className="transition-transform group-hover:translate-x-0.5">
               →
@@ -296,7 +296,7 @@ function TrackingGlanceCard({ glance }: { glance: TrackingGlance }) {
         <div className="flex items-start gap-3">
           <span
             aria-hidden
-            className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-teal-50 text-teal-700 ring-1 ring-teal-200/70 dark:bg-teal-950/40 dark:text-teal-300 dark:ring-teal-800/40"
+            className="bg-brand-50 text-brand-700 ring-brand-200/70 dark:bg-brand-950/40 dark:text-brand-300 dark:ring-brand-800/40 inline-flex size-9 shrink-0 items-center justify-center rounded-full ring-1"
           >
             <ActivityIcon className="size-4" />
           </span>
@@ -332,13 +332,13 @@ function TrackingGlanceCard({ glance }: { glance: TrackingGlance }) {
         <div className="border-border/60 flex items-center justify-between gap-3 border-t pt-3">
           <div className="flex flex-col">
             <span className="text-muted-foreground text-[11.5px]">Medications</span>
-            <span className="text-foreground text-[13px] font-medium">
+            <span className="text-foreground text-body-s font-medium">
               {glance.takesToday > 0
                 ? `${glance.takesToday} dose${glance.takesToday === 1 ? "" : "s"} taken today`
                 : "Nothing taken yet today"}
             </span>
           </div>
-          <span className="text-muted-foreground font-mono text-[11px] tabular-nums">
+          <span className="text-muted-foreground text-caption font-mono tabular-nums">
             {glance.activeMedicationCount} active
           </span>
         </div>
@@ -360,7 +360,7 @@ function LatestReadingRow({ latest }: { latest: NonNullable<TrackingGlance["late
           {value ?? (latest.note ? truncate(latest.note, 40) : "—")}
         </span>
       </div>
-      <span className="text-muted-foreground shrink-0 font-mono text-[11px] tabular-nums">
+      <span className="text-muted-foreground text-caption shrink-0 font-mono tabular-nums">
         {when}
       </span>
     </div>
@@ -403,12 +403,12 @@ function QuickAction({
           <Icon className="size-3.5" />
         </span>
         <span className="flex flex-col gap-0.5">
-          <span className="text-[13px] font-medium">{label}</span>
+          <span className="text-body-s font-medium">{label}</span>
           <span
             className={
               tone === "primary"
-                ? "text-background/70 text-[11px] leading-tight"
-                : "text-muted-foreground text-[11px] leading-tight"
+                ? "text-background/70 text-caption leading-tight"
+                : "text-muted-foreground text-caption leading-tight"
             }
           >
             {sub}

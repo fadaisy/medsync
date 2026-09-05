@@ -49,7 +49,7 @@ export default async function NurseHandoverPage() {
     <div className="stagger-children mx-auto flex w-full max-w-5xl flex-col gap-8 px-6 py-8 lg:py-10">
       <header className="flex flex-col gap-2">
         <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
-          <span aria-hidden className="size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20" />
+          <span aria-hidden className="bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2" />
           {scope.hospitalName} · Handover
         </span>
         <h1 className="font-display text-foreground text-[26px] leading-tight font-medium tracking-[-0.015em]">
@@ -97,7 +97,7 @@ export default async function NurseHandoverPage() {
                   fill="currentColor"
                   opacity="0.15"
                 />
-                <circle cx="89" cy="43" r="5" className="text-teal-500/30" fill="currentColor" />
+                <circle cx="89" cy="43" r="5" className="text-brand-500/30" fill="currentColor" />
               </svg>
               <p className="text-muted-foreground text-[12.5px]">
                 No handovers yet. The first one submitted at this hospital lands here.

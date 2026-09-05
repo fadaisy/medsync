@@ -82,11 +82,11 @@ export default async function BreakGlassPage() {
     <div className="stagger-children mx-auto flex w-full max-w-4xl flex-col gap-7 px-5 py-10 sm:px-8 sm:py-14">
       <header className="flex flex-col gap-2">
         <span className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
-          <span className="size-1 rounded-full bg-teal-500" />
+          <span className="bg-brand-500 size-1 rounded-full" />
           Break-glass · platform-level patient access
         </span>
         <h1
-          className="font-display text-foreground text-[28px] leading-[1.1] tracking-[-0.02em] sm:text-[36px]"
+          className="font-display text-foreground text-heading-l sm:text-display-s leading-[1.1] tracking-[-0.02em]"
           style={{ fontWeight: 400 }}
         >
           Break-glass
@@ -128,7 +128,7 @@ export default async function BreakGlassPage() {
                   className={
                     "flex flex-col gap-2 p-4 transition-colors sm:flex-row sm:items-start sm:justify-between" +
                     (isActive
-                      ? " bg-teal-50/40 ring-1 ring-teal-500/25 ring-inset dark:bg-teal-950/20"
+                      ? " bg-brand-50/40 ring-brand-500/25 dark:bg-brand-950/20 ring-1 ring-inset"
                       : " hover:bg-muted/30")
                   }
                 >
@@ -142,10 +142,10 @@ export default async function BreakGlassPage() {
                         {g.category}
                       </span>
                       {isActive ? (
-                        <span className="scale-in inline-flex items-center gap-1.5 rounded-full bg-teal-500/15 px-2 py-0.5 font-mono text-[10px] tracking-[0.14em] text-teal-800 uppercase dark:text-teal-200">
+                        <span className="scale-in bg-brand-500/15 text-brand-800 dark:text-brand-200 inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 font-mono text-[10px] tracking-[0.14em] uppercase">
                           <span
                             aria-hidden
-                            className="pulse-dot size-1.5 rounded-full bg-teal-600 dark:bg-teal-300"
+                            className="pulse-dot bg-brand-600 dark:bg-brand-300 size-1.5 rounded-full"
                           />
                           active
                         </span>
@@ -162,7 +162,7 @@ export default async function BreakGlassPage() {
                     <p className="text-foreground/85 max-w-[68ch] text-[12.5px]">
                       <span className="text-muted-foreground">Purpose:</span> {g.purpose}
                     </p>
-                    <p className="text-muted-foreground font-mono text-[11px] tabular-nums">
+                    <p className="text-muted-foreground text-caption font-mono tabular-nums">
                       Granted {g.grantedAt.toISOString().replace("T", " ").slice(0, 19)} · expires{" "}
                       {g.expiresAt.toISOString().replace("T", " ").slice(0, 19)}
                       {g.revokedAt

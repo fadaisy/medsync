@@ -114,7 +114,7 @@ function FormContent({ block, onClose }: { block: AvailabilityRow | null; onClos
                   className={
                     "border-border hover:bg-muted/30 tap flex cursor-pointer items-start gap-2.5 rounded-md border p-2.5 transition-colors " +
                     (kind === k.value
-                      ? "select-flare border-teal-500/60 bg-teal-50/50 ring-1 ring-teal-500/15 dark:bg-teal-950/20"
+                      ? "select-flare border-brand-500/60 bg-brand-50/50 ring-brand-500/15 dark:bg-brand-950/20 ring-1"
                       : "")
                   }
                 >
@@ -124,7 +124,7 @@ function FormContent({ block, onClose }: { block: AvailabilityRow | null; onClos
                     value={k.value}
                     checked={kind === k.value}
                     onChange={() => setKind(k.value)}
-                    className="mt-0.5 size-4 accent-teal-600"
+                    className="accent-brand-600 mt-0.5 size-4"
                   />
                   <div className="flex flex-col">
                     <span className="text-foreground text-[12.5px] font-medium">{k.label}</span>
@@ -146,7 +146,7 @@ function FormContent({ block, onClose }: { block: AvailabilityRow | null; onClos
                 type="datetime-local"
                 required
                 defaultValue={defaultStarts}
-                className="border-border text-foreground rounded-md border bg-transparent px-2.5 py-1.5 text-[13px] outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40"
+                className="border-border text-foreground text-body-s focus-visible:ring-brand-500/40 rounded-md border bg-transparent px-2.5 py-1.5 outline-none focus-visible:ring-2"
                 onChange={syncIsoHidden("starts_at")}
               />
               <input type="hidden" name="starts_at" defaultValue={toIso(defaultStarts)} />
@@ -159,7 +159,7 @@ function FormContent({ block, onClose }: { block: AvailabilityRow | null; onClos
                 type="datetime-local"
                 required
                 defaultValue={defaultEnds}
-                className="border-border text-foreground rounded-md border bg-transparent px-2.5 py-1.5 text-[13px] outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40"
+                className="border-border text-foreground text-body-s focus-visible:ring-brand-500/40 rounded-md border bg-transparent px-2.5 py-1.5 outline-none focus-visible:ring-2"
                 onChange={syncIsoHidden("ends_at")}
               />
               <input type="hidden" name="ends_at" defaultValue={toIso(defaultEnds)} />
@@ -173,7 +173,7 @@ function FormContent({ block, onClose }: { block: AvailabilityRow | null; onClos
                 name="recurrence"
                 value={recurrence}
                 onChange={(e) => setRecurrence(e.target.value as "none" | "weekly")}
-                className="border-border text-foreground rounded-md border bg-transparent px-2 py-1.5 text-[13px] outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40"
+                className="border-border text-foreground text-body-s focus-visible:ring-brand-500/40 rounded-md border bg-transparent px-2 py-1.5 outline-none focus-visible:ring-2"
               >
                 <option value="none">One-off</option>
                 <option value="weekly">Repeat weekly</option>
@@ -183,7 +183,7 @@ function FormContent({ block, onClose }: { block: AvailabilityRow | null; onClos
                   name="recurrence_weekday"
                   value={weekday}
                   onChange={(e) => setWeekday(Number(e.target.value))}
-                  className="border-border text-foreground rounded-md border bg-transparent px-2 py-1.5 text-[13px] outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40"
+                  className="border-border text-foreground text-body-s focus-visible:ring-brand-500/40 rounded-md border bg-transparent px-2 py-1.5 outline-none focus-visible:ring-2"
                 >
                   {WEEKDAYS.map((d) => (
                     <option key={d.value} value={d.value}>
@@ -214,7 +214,7 @@ function FormContent({ block, onClose }: { block: AvailabilityRow | null; onClos
               rows={2}
               defaultValue={block?.notes ?? ""}
               maxLength={1000}
-              className="border-border text-foreground placeholder:text-muted-foreground min-h-[60px] resize-y rounded-md border bg-transparent px-2.5 py-1.5 text-[13px] outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40"
+              className="border-border text-foreground placeholder:text-muted-foreground text-body-s focus-visible:ring-brand-500/40 min-h-[60px] resize-y rounded-md border bg-transparent px-2.5 py-1.5 outline-none focus-visible:ring-2"
               placeholder="Visible only to you + your admins."
             />
           </div>

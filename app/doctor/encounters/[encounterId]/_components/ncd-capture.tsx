@@ -150,7 +150,7 @@ export function NcdCapture({
   return (
     <section key={sectionId} className="flex flex-col">
       <header className="mb-1 flex flex-wrap items-baseline gap-x-2">
-        <h3 className="font-display text-foreground text-[17px] leading-tight font-medium tracking-[-0.012em]">
+        <h3 className="font-display text-foreground text-body-l leading-tight font-medium tracking-[-0.012em]">
           {section.display}
         </h3>
         {section.description ? (
@@ -197,7 +197,7 @@ export function NcdSectionRail({
             aria-current={active ? "step" : undefined}
             onClick={() => onPick(s.id)}
             className={`tap flex shrink-0 items-center gap-2 rounded-lg px-2.5 py-1.5 text-left ${EASE} ${TAP} ${
-              active ? "bg-teal-50 dark:bg-teal-950/40" : "hover:bg-muted/60"
+              active ? "bg-brand-50 dark:bg-brand-950/40" : "hover:bg-muted/60"
             }`}
           >
             {/* Progress as a ring, paired with the count — never colour alone. */}
@@ -205,9 +205,9 @@ export function NcdSectionRail({
               aria-hidden
               className={`grid size-5 shrink-0 place-items-center rounded-full text-[9px] font-medium tabular-nums ring-1 ring-inset ${
                 done
-                  ? "bg-teal-600 text-white ring-teal-600"
+                  ? "bg-brand-600 ring-brand-600 text-white"
                   : s.answered > 0
-                    ? "text-teal-700 ring-teal-500/50 dark:text-teal-300"
+                    ? "text-brand-700 ring-brand-500/50 dark:text-brand-300"
                     : "text-muted-foreground ring-border"
               }`}
             >
@@ -216,7 +216,7 @@ export function NcdSectionRail({
             <span className="min-w-0 flex-1">
               <span
                 className={`block truncate text-[12.5px] ${
-                  active ? "text-teal-900 dark:text-teal-100" : "text-foreground/85"
+                  active ? "text-brand-900 dark:text-brand-100" : "text-foreground/85"
                 } ${active ? "font-medium" : ""}`}
               >
                 {s.display}
@@ -297,7 +297,7 @@ function FeatureRow({
 
       {!performable ? (
         /* Not an empty input. An input the clinician can never fill is a reproach. */
-        <span className="text-muted-foreground ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1 text-[11px]">
+        <span className="text-muted-foreground text-caption ml-auto inline-flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1">
           <CircleSlashIcon className="size-3" aria-hidden />
           Not available here
           <span className="font-mono text-[9.5px] opacity-70">{feature.requires}</span>
@@ -401,7 +401,7 @@ function ValueEditor({
                 <span
                   aria-hidden
                   className={`grid size-4 shrink-0 place-items-center rounded ring-1 ring-inset ${
-                    picked ? "bg-teal-600 text-white ring-teal-600" : "ring-border"
+                    picked ? "bg-brand-600 ring-brand-600 text-white" : "ring-border"
                   }`}
                 >
                   {picked ? <CheckIcon className="size-3" /> : null}
@@ -425,7 +425,7 @@ function ValueEditor({
                       ),
                     )
                   }
-                  className="border-input bg-card ease-expo-out w-[9rem] shrink-0 rounded-md border px-2 py-1 text-[11.5px] transition-[border-color,box-shadow] duration-100 outline-none focus-visible:border-teal-500 focus-visible:ring-2 focus-visible:ring-teal-500/25"
+                  className="border-input bg-card ease-expo-out focus-visible:border-brand-500 focus-visible:ring-brand-500/25 w-[9rem] shrink-0 rounded-md border px-2 py-1 text-[11.5px] transition-[border-color,box-shadow] duration-100 outline-none focus-visible:ring-2"
                 />
               ) : null}
             </span>
@@ -478,7 +478,7 @@ function ValueEditor({
             placeholder={note.placeholder ?? ""}
             aria-label={`${note.label ?? "Detail"} — ${chosen.display} (optional)`}
             onChange={(e) => put({ option: chosen.value, detail: e.target.value })}
-            className="border-input bg-card ease-expo-out w-[11rem] rounded-md border px-2 py-1 text-[11.5px] transition-[border-color,box-shadow] duration-100 outline-none focus-visible:border-teal-500 focus-visible:ring-2 focus-visible:ring-teal-500/25"
+            className="border-input bg-card ease-expo-out focus-visible:border-brand-500 focus-visible:ring-brand-500/25 w-[11rem] rounded-md border px-2 py-1 text-[11.5px] transition-[border-color,box-shadow] duration-100 outline-none focus-visible:ring-2"
           />
         ) : null}
       </span>
@@ -504,7 +504,7 @@ function ValueEditor({
             if (!Number.isFinite(n)) return;
             put({ value: n, unit });
           }}
-          className={`border-input bg-card ease-expo-out w-[4.5rem] rounded-md border px-2 py-1 text-right font-mono text-[12px] tabular-nums transition-[border-color,box-shadow] duration-100 outline-none focus-visible:border-teal-500 focus-visible:ring-2 focus-visible:ring-teal-500/25 ${
+          className={`border-input bg-card ease-expo-out focus-visible:border-brand-500 focus-visible:ring-brand-500/25 w-[4.5rem] rounded-md border px-2 py-1 text-right font-mono text-[12px] tabular-nums transition-[border-color,box-shadow] duration-100 outline-none focus-visible:ring-2 ${
             d ? "text-foreground" : "text-muted-foreground"
           }`}
         />
@@ -512,7 +512,7 @@ function ValueEditor({
           aria-label={`${feature.display} — unit`}
           value={unit}
           onChange={(e) => put({ value: d?.value ?? 0, unit: e.target.value as DurationUnit })}
-          className="border-input bg-card text-foreground/85 ease-expo-out rounded-md border px-1.5 py-1 text-[11.5px] transition-[border-color] duration-100 outline-none focus-visible:border-teal-500"
+          className="border-input bg-card text-foreground/85 ease-expo-out focus-visible:border-brand-500 rounded-md border px-1.5 py-1 text-[11.5px] transition-[border-color] duration-100 outline-none"
         >
           {(["days", "weeks", "months", "years"] as const).map((u) => (
             <option key={u} value={u}>
@@ -542,7 +542,7 @@ function ValueEditor({
         }
         put(raw);
       }}
-      className={`border-input bg-card ease-expo-out w-[6.5rem] rounded-md border px-2 py-1 text-right font-mono text-[12px] tabular-nums transition-[border-color,box-shadow] duration-100 outline-none focus-visible:border-teal-500 focus-visible:ring-2 focus-visible:ring-teal-500/25 ${
+      className={`border-input bg-card ease-expo-out focus-visible:border-brand-500 focus-visible:ring-brand-500/25 w-[6.5rem] rounded-md border px-2 py-1 text-right font-mono text-[12px] tabular-nums transition-[border-color,box-shadow] duration-100 outline-none focus-visible:ring-2 ${
         current != null ? "text-foreground" : "text-muted-foreground"
       }`}
     />
@@ -573,7 +573,7 @@ function Segmented({
             className={`tap px-2.5 py-1 text-[11.5px] font-medium ${EASE} ${TAP} ${
               on
                 ? tone === "teal"
-                  ? "bg-teal-600 text-white"
+                  ? "bg-brand-600 text-white"
                   : "bg-slate-600 text-white"
                 : "text-muted-foreground hover:bg-muted"
             }`}
@@ -602,7 +602,7 @@ function Chip({
       onClick={onPick}
       className={`tap rounded px-2 py-0.5 text-[11.5px] ring-1 ring-inset ${EASE} ${TAP} ${
         active
-          ? "bg-teal-50 text-teal-700 ring-teal-500/40 dark:bg-teal-950/40 dark:text-teal-200"
+          ? "bg-brand-50 text-brand-700 ring-brand-500/40 dark:bg-brand-950/40 dark:text-brand-200"
           : "text-foreground/70 ring-border hover:bg-muted/60"
       }`}
     >

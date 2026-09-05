@@ -59,7 +59,7 @@ const PRESCRIBABLE = new Set(Object.keys(RECOMMENDATION_DRUG_MAP));
 
 const STATE_TONE: Record<string, string> = {
   no_new_critical_finding:
-    "border-teal-300/70 bg-teal-50/60 text-teal-700 dark:bg-teal-950/25 dark:text-teal-200",
+    "border-mint-300/70 bg-mint-50/60 text-mint-700 dark:bg-mint-950/25 dark:text-mint-200",
   significant_finding:
     "border-amber-300/70 bg-amber-50/60 text-amber-800 dark:bg-amber-950/25 dark:text-amber-200",
   temperature_extreme:
@@ -81,7 +81,7 @@ const TEMP_TONE: Record<string, string> = {
   severe_hypothermia: "text-rose-700 dark:text-rose-300",
   moderate_hypothermia: "text-orange-700 dark:text-orange-300",
   mild_hypothermia: "text-amber-700 dark:text-amber-300",
-  normal: "text-teal-700 dark:text-teal-300",
+  normal: "text-mint-700 dark:text-mint-300",
   fever: "text-amber-700 dark:text-amber-300",
   hyperthermia: "text-rose-700 dark:text-rose-300",
 };
@@ -106,7 +106,7 @@ const ACTION_STATE_STYLE: Record<
   performed: {
     label: "Performed",
     short: "Done",
-    token: "bg-teal-100 text-teal-800 dark:bg-teal-900/50 dark:text-teal-200",
+    token: "bg-mint-100 text-mint-800 dark:bg-mint-900/50 dark:text-mint-200",
     icon: CheckIcon,
   },
   failed: {
@@ -269,10 +269,10 @@ export function ExposurePanel({
       {/* Header + exposure-state indicator */}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2.5">
-          <span className="bg-foreground/90 text-background flex size-8 items-center justify-center rounded-lg font-mono text-[15px] font-semibold">
+          <span className="bg-foreground/90 text-background text-body-m flex size-8 items-center justify-center rounded-lg font-mono font-semibold">
             E
           </span>
-          <h2 className="font-display text-foreground text-[18px] font-medium tracking-[-0.01em]">
+          <h2 className="font-display text-foreground text-heading-s font-medium tracking-[-0.01em]">
             Exposure
           </h2>
         </div>
@@ -295,7 +295,7 @@ export function ExposurePanel({
           <p className="text-[12.5px] font-semibold text-amber-900 dark:text-amber-200">
             ⚠ Temperature not measured — check core temperature.
           </p>
-          <p className="text-muted-foreground text-[11px]">
+          <p className="text-muted-foreground text-caption">
             Hypothermia/hyperthermia is missed otherwise; sepsis hides in an unexplained low temp
             (cold sepsis).
           </p>
@@ -308,7 +308,7 @@ export function ExposurePanel({
           <p className="text-[12.5px] font-semibold text-rose-800 dark:text-rose-200">
             Suspected: {EXPOSURE_DIAGNOSIS_LABEL[diagnosis]}
           </p>
-          <p className="text-muted-foreground text-[11px]">
+          <p className="text-muted-foreground text-caption">
             {EXPOSURE_DIAGNOSIS_STRATEGY[diagnosis]}
           </p>
         </div>
@@ -483,7 +483,7 @@ export function ExposurePanel({
             type="button"
             disabled={!active || pending}
             onClick={recordFindings}
-            className="tap mt-1 self-start rounded-lg bg-teal-600 px-3 py-1.5 text-[12.5px] font-semibold text-white transition-colors hover:bg-teal-700 disabled:opacity-50"
+            className="tap bg-mint-600 hover:bg-mint-700 mt-1 self-start rounded-lg px-3 py-1.5 text-[12.5px] font-semibold text-white transition-colors disabled:opacity-50"
           >
             {seeded ? "↻ Re-record exposure findings" : "Record exposure findings"}
           </button>
@@ -529,14 +529,14 @@ export function ExposurePanel({
         className={cn(
           "flex flex-wrap items-center justify-between gap-2 rounded-xl border px-3 py-2.5",
           guard.ok
-            ? "border-teal-400/70 bg-teal-50/60 dark:border-teal-500/40 dark:bg-teal-950/25"
+            ? "border-mint-400/70 bg-mint-50/60 dark:border-mint-500/40 dark:bg-mint-950/25"
             : "border-amber-300/70 bg-amber-50/60 dark:border-amber-500/30 dark:bg-amber-950/20",
         )}
       >
         <p
           className={cn(
             "text-[12px] font-medium",
-            guard.ok ? "text-teal-800 dark:text-teal-200" : "text-amber-900 dark:text-amber-200",
+            guard.ok ? "text-mint-800 dark:text-mint-200" : "text-amber-900 dark:text-amber-200",
           )}
         >
           {guard.ok ? "✓ " : "⚠ "}
@@ -548,7 +548,7 @@ export function ExposurePanel({
           onClick={returnToA}
           className={cn(
             "inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-[12.5px] font-semibold text-white transition-colors disabled:opacity-50",
-            guard.ok ? "bg-teal-600 hover:bg-teal-700" : "bg-amber-600 hover:bg-amber-700",
+            guard.ok ? "bg-mint-600 hover:bg-mint-700" : "bg-amber-600 hover:bg-amber-700",
           )}
         >
           <RotateCcwIcon className="size-3.5" aria-hidden />
@@ -591,7 +591,7 @@ function ContextToggle({
       disabled={disabled}
       onClick={onClick}
       className={cn(
-        "tap rounded-full border px-2.5 py-1 text-[11px] transition-colors disabled:opacity-50",
+        "tap text-caption rounded-full border px-2.5 py-1 transition-colors disabled:opacity-50",
         on
           ? danger
             ? "border-rose-500/70 bg-rose-50/70 text-rose-700 dark:bg-rose-950/30 dark:text-rose-200"
@@ -634,9 +634,9 @@ function FindingGroup({
               title={f.meaning}
               onClick={() => onToggle(f.code)}
               className={cn(
-                "tap rounded-lg border px-2 py-1 text-[11px] transition-colors disabled:opacity-50",
+                "tap text-caption rounded-lg border px-2 py-1 transition-colors disabled:opacity-50",
                 on
-                  ? "border-teal-400/70 bg-teal-50/70 text-teal-800 dark:border-teal-500/40 dark:bg-teal-950/25 dark:text-teal-200"
+                  ? "border-mint-400/70 bg-mint-50/70 text-mint-800 dark:border-mint-500/40 dark:bg-mint-950/25 dark:text-mint-200"
                   : "border-border bg-muted/30 text-foreground/70 hover:bg-muted/60",
               )}
             >
@@ -682,7 +682,7 @@ function ActionCard({
       : currentState === "in_progress"
         ? "border-blue-300/60 bg-blue-50/40 dark:bg-blue-950/15"
         : currentState === "performed"
-          ? "border-teal-300/60 bg-teal-50/30 dark:bg-teal-950/15"
+          ? "border-mint-300/60 bg-mint-50/30 dark:bg-mint-950/15"
           : currentState === "deferred" || currentState === "not_indicated"
             ? "border-border"
             : emergency
@@ -752,7 +752,7 @@ function ActionCard({
             type="button"
             disabled={disabled}
             onClick={onPrescribe}
-            className="tap ml-auto inline-flex items-center gap-1 rounded-md bg-teal-600 px-2 py-0.5 text-[10.5px] font-semibold text-white transition-colors hover:bg-teal-700 disabled:opacity-40"
+            className="tap bg-mint-600 hover:bg-mint-700 ml-auto inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[10.5px] font-semibold text-white transition-colors disabled:opacity-40"
           >
             Prescribe / record
           </button>

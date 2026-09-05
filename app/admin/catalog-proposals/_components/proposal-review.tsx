@@ -24,7 +24,7 @@ export function ProposalReview({ proposal }: { proposal: PendingProposalRow }) {
   return (
     <li className="border-border bg-card flex flex-col gap-2 rounded-xl border p-4">
       <div className="flex items-center justify-between gap-3">
-        <span className="text-foreground text-[13px] font-medium">
+        <span className="text-foreground text-body-s font-medium">
           <span className="text-muted-foreground font-mono text-[10px] tracking-[0.12em] uppercase">
             {proposal.kind}
           </span>{" "}
@@ -46,7 +46,7 @@ export function ProposalReview({ proposal }: { proposal: PendingProposalRow }) {
           </span>
         </p>
       ) : null}
-      <pre className="bg-muted/40 text-muted-foreground overflow-x-auto rounded-md p-2 text-[11px]">
+      <pre className="bg-muted/40 text-muted-foreground text-caption overflow-x-auto rounded-md p-2">
         {JSON.stringify(payload, null, 2)}
       </pre>
       {proposal.note ? (
