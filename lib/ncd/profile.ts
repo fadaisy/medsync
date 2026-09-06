@@ -14,6 +14,7 @@ import type {
   DangerSign,
   DiagnosisResult,
   Gap,
+  TherapyConcern,
 } from "@/lib/ncd/engine/assess";
 import type { CaptureMap } from "@/lib/ncd/engine/evaluate";
 
@@ -27,6 +28,7 @@ import {
   diagnose,
   gaps,
   ncdContext,
+  therapyConcerns,
 } from "@/lib/ncd/engine/assess";
 
 /**
@@ -60,6 +62,8 @@ export interface NcdProfile {
    * reach sites that cannot run the confirmatory tests at all.
    */
   dangerSigns: DangerSign[];
+  /** Recorded therapy a guideline says is wrong for this patient. */
+  therapyConcerns: TherapyConcern[];
   diagnosis: DiagnosisResult;
   classification: ClassificationResult;
   complications: ComplicationResult[];
@@ -96,6 +100,7 @@ export function buildProfile(args: {
         : undefined,
     acute,
     dangerSigns: dangerSigns(catalog, ctx),
+    therapyConcerns: therapyConcerns(catalog, ctx),
     diagnosis,
     classification,
     complications,
@@ -143,6 +148,7 @@ function isFullySigned(catalog: NcdCatalog): boolean {
       ...(c.staging ?? []).map((s) => s.citation),
     ]),
     ...(catalog.validityCaveats ?? []).map((v) => v.citation),
+    ...(catalog.therapyFlags ?? []).map((t) => t.citation),
   ];
   return cites.every((c) => c.csoSigned);
 }

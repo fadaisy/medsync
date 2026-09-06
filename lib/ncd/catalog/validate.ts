@@ -542,6 +542,37 @@ export function validateCatalog(catalog: NcdCatalog): ValidationIssue[] {
     }
   }
 
+  for (const tf of catalog.therapyFlags ?? []) {
+    const path = `therapyFlags.${tf.id}`;
+    checkCitation(tf.citation, `${path}.citation`, out);
+    checkCriterion(tf.when, `${path}.when`, features, out);
+    if (!tf.action.trim()) {
+      out.push({
+        severity: "error",
+        path,
+        message: "therapy flag has no action — a warning with nothing to do is noise",
+      });
+    }
+    // The one boundary this construct exists inside. A flag that carries a dose
+    // has stopped being decision support and started prescribing.
+    //
+    // A unit followed by "/" is a RATE, not a dose — "eGFR below 30 mL/min" is a
+    // threshold the guideline states and the flag must be free to quote it. The
+    // lookahead is what separates the two, and it was added because the guard
+    // caught exactly that sentence on its first run.
+    if (/\b\d+(?:\.\d+)?\s*(?:mg|mcg|g|units?|u|ml)\b(?!\s*\/)/i.test(tf.action)) {
+      out.push({
+        severity: "error",
+        path,
+        message: "therapy flag action contains a dose — this engine never prescribes",
+      });
+    }
+  }
+
+  for (const d of dupes((catalog.therapyFlags ?? []).map((t) => t.id))) {
+    out.push({ severity: "error", path: "therapyFlags", message: `duplicate flag "${d}"` });
+  }
+
   for (const ms of catalog.management ?? []) {
     const path = `management.${ms.id}`;
     checkCitation(ms.citation, `${path}.citation`, out);
@@ -590,6 +621,7 @@ export function referencedFeatures(catalog: NcdCatalog): Set<string> {
     add(v.when);
     out.add(v.feature);
   });
+  (catalog.therapyFlags ?? []).forEach((t) => add(t.when));
   (catalog.management ?? []).forEach((m) => {
     add(m.when);
     (m.contraindications ?? []).forEach(add);

@@ -11,6 +11,7 @@ import {
   CircleSlashIcon,
   FlaskConicalIcon,
   MinusIcon,
+  PillIcon,
   ShieldQuestionIcon,
   SparklesIcon,
 } from "lucide-react";
@@ -188,6 +189,63 @@ export function NcdProfileView({ profile }: { profile: NcdProfile }) {
                   <Source citation={d.citation} />
                 </div>
                 <p className="text-foreground/80 mt-0.5 text-[11.5px] leading-snug">{d.action}</p>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      {/* 1c. Therapy the guideline says is wrong for THIS patient. Sits with the
+             danger signs rather than in the management block, because an SGLT2
+             inhibitor in an acute illness is a now decision, not a plan. */}
+      {profile.therapyConcerns.length ? (
+        <section
+          className={`bg-card overflow-hidden rounded-xl border ${
+            profile.therapyConcerns.some((t) => t.state === "met" && t.severity === "red")
+              ? "border-red-500/40"
+              : "border-amber-400/60 dark:border-amber-700/60"
+          }`}
+        >
+          <header className="border-border/60 bg-muted/40 flex items-center gap-2 border-b px-3.5 py-2">
+            <PillIcon className="text-muted-foreground size-3.5 shrink-0" aria-hidden />
+            <span className="text-foreground text-caption font-medium tracking-[0.04em]">
+              Therapy to review
+            </span>
+            <span className="text-muted-foreground ml-auto font-mono text-[10px] tabular-nums">
+              {profile.therapyConcerns.length}
+            </span>
+          </header>
+          <ul className="divide-border/50 divide-y">
+            {profile.therapyConcerns.map((t) => (
+              <li key={t.id} className="px-3.5 py-2">
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                  {/* A check nobody could run is not a clean result, and must not
+                      look like one — the word says which it is. */}
+                  <span
+                    className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${
+                      t.state !== "met"
+                        ? "bg-muted text-muted-foreground"
+                        : t.severity === "red"
+                          ? "bg-red-100 text-red-800 dark:bg-red-900/50 dark:text-red-200"
+                          : "bg-amber-100 text-amber-900 dark:bg-amber-900/50 dark:text-amber-200"
+                    }`}
+                  >
+                    {t.state !== "met"
+                      ? "Cannot check here"
+                      : t.severity === "red"
+                        ? "Now"
+                        : "Review"}
+                  </span>
+                  <span className="text-foreground min-w-0 flex-1 text-[12.5px] font-medium">
+                    {t.display}
+                  </span>
+                  <Source citation={t.citation} />
+                </div>
+                <p className="text-foreground/80 mt-0.5 text-[11.5px] leading-snug">
+                  {t.state === "met"
+                    ? t.action
+                    : `This site cannot obtain ${t.blocked.join(", ")}, so the check could not be run.`}
+                </p>
               </li>
             ))}
           </ul>

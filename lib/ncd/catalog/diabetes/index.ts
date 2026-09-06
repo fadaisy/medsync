@@ -21,6 +21,7 @@ import { COMPLICATIONS } from "@/lib/ncd/catalog/diabetes/complications";
 import { CLASSIFICATIONS, DIAGNOSIS } from "@/lib/ncd/catalog/diabetes/diagnosis";
 import { CAPABILITIES, FEATURES, SECTIONS } from "@/lib/ncd/catalog/diabetes/features";
 import { SYMPTOM_FEATURES } from "@/lib/ncd/catalog/diabetes/symptoms";
+import { THERAPY_FLAGS } from "@/lib/ncd/catalog/diabetes/therapy-flags";
 import { VALIDITY_CAVEATS } from "@/lib/ncd/catalog/diabetes/validity";
 
 export const DIABETES_CATALOG: NcdCatalog = {
@@ -34,6 +35,7 @@ export const DIABETES_CATALOG: NcdCatalog = {
   classifications: CLASSIFICATIONS,
   complications: COMPLICATIONS,
   validityCaveats: VALIDITY_CAVEATS,
+  therapyFlags: THERAPY_FLAGS,
 };
 
 /* ── Reference site profiles ─────────────────────────────────────────────── */

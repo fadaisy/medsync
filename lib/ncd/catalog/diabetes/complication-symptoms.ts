@@ -34,6 +34,7 @@
  */
 import type { Citation, Feature } from "@/lib/ncd/catalog/schema";
 
+import { ADA_2026_PHARM, THERAPY_CLASSES } from "@/lib/ncd/catalog/diabetes/features";
 import { socratesProps } from "@/lib/ncd/catalog/diabetes/socrates";
 
 const RETRIEVED = "2026-09-05";
@@ -1283,7 +1284,7 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
     },
   },
 
-  /* ── I. Crisis precipitants — 3 ───────────────────────────────────────── */
+  /* ── I. Crisis precipitants ───────────────────────────────────────────── */
   {
     /**
      * Infection precipitates a large share of DKA worldwide. Insulin and fluids
@@ -1296,6 +1297,111 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
     valueType: "boolean",
     section: "precipitants",
     citation: HEARTS_D,
+  },
+  prop(
+    "intercurrent_illness",
+    {
+      /**
+       * A named list rather than free text, because the precipitant decides what
+       * is treated ALONGSIDE the crisis, and a free-text answer cannot be
+       * reasoned over or counted. The list is the common causes in the settings
+       * this module is built for — malaria, TB and HIV belong on it as much as
+       * pneumonia and UTI do, and a catalog written only from northern guidance
+       * would omit all three.
+       */
+      code: "illness_type",
+      display: "Which",
+      valueType: "multi_select",
+      citation: HEARTS_D,
+      options: [
+        { value: "pneumonia", display: "Pneumonia or chest infection" },
+        { value: "uti", display: "Urinary tract infection" },
+        { value: "skin_soft_tissue", display: "Skin or soft-tissue infection" },
+        { value: "foot_infection", display: "Diabetic foot infection" },
+        { value: "gastroenteritis", display: "Gastroenteritis" },
+        { value: "malaria", display: "Malaria" },
+        { value: "tb", display: "Tuberculosis" },
+        { value: "hiv_related", display: "HIV-related illness" },
+        { value: "sepsis", display: "Sepsis, source unclear" },
+        { value: "covid_flu", display: "COVID-19 or influenza" },
+        { value: "mi_or_stroke", display: "Heart attack or stroke" },
+        { value: "pancreatitis", display: "Pancreatitis" },
+        { value: "surgery_trauma", display: "Recent surgery or trauma" },
+        { value: "pregnancy", display: "Pregnancy" },
+        { value: "other", display: "Other" },
+      ],
+    },
+    "precipitants",
+  ),
+  prop(
+    "intercurrent_illness",
+    {
+      /**
+       * HOW the illness was established — the same discipline this catalog
+       * applies to its own citations, turned on the record.
+       *
+       * It is not bookkeeping. Three things turn on it:
+       *
+       * 1. A PRESUMED precipitant may be the wrong one. If the patient is not
+       *    improving on treatment for a presumed chest infection, the real
+       *    precipitant may be a silent myocardial infarction or a missed dose —
+       *    and a record that says "pneumonia" flatly gives the next clinician no
+       *    reason to look again.
+       * 2. It decides whether a treatment is committed to. "UTI" from a dipstick
+       *    in a hyperglycaemic patient may be glycosuria or asymptomatic
+       *    bacteriuria; treating it commits antibiotics that may not be needed.
+       * 3. Malaria specifically. WHO requires parasitological confirmation
+       *    before treating, and presumptive treatment is a named anti-pattern —
+       *    so "clinically diagnosed" and "confirmed by RDT" are different
+       *    entries in the record, not shades of the same one.
+       */
+      code: "illness_diagnosed_by",
+      display: "How it was established",
+      valueType: "single_select",
+      citation: {
+        ...HEARTS_D,
+        needsCsoInput:
+          "That diagnostic certainty should be recorded alongside the precipitant is our reasoning, not a stated HEARTS-D requirement. The option list is conventional. CSO to ratify.",
+      },
+      options: [
+        { value: "test_confirmed", display: "Confirmed by a test" },
+        { value: "clinical", display: "Clinical diagnosis, no test" },
+        { value: "presumed", display: "Presumed, treated empirically" },
+        { value: "elsewhere", display: "Diagnosed at another facility" },
+        { value: "patient_reported", display: "Reported by the patient" },
+      ],
+    },
+    "precipitants",
+  ),
+  {
+    /**
+     * The one confirmation worth its own field here. WHO's rule is
+     * parasitological confirmation before treatment, malaria is a common
+     * precipitant in this setting, and it also falsely LOWERS HbA1c — so an
+     * unconfirmed malaria diagnosis quietly damages two decisions at once.
+     */
+    code: "malaria_confirmation",
+    display: "Malaria confirmed how",
+    kind: "history",
+    valueType: "single_select",
+    section: "precipitants",
+    parent: "illness_type",
+    showWhenAll: [{ feature: "illness_type", op: "==", value: "malaria" }],
+    citation: {
+      standard: "WHO",
+      version: "WHO Guidelines for malaria",
+      title: "WHO Guidelines for malaria — diagnosis",
+      url: "https://www.who.int/publications/i/item/guidelines-for-malaria",
+      retrieved: "2026-09-06",
+      csoSigned: false,
+      needsCsoInput:
+        "WHO's parasitological-confirmation requirement is well established but the quote was not re-verified against the current edition here. CSO to confirm before this drives anything.",
+    },
+    options: [
+      { value: "rdt", display: "Rapid diagnostic test" },
+      { value: "microscopy", display: "Blood slide microscopy" },
+      { value: "none", display: "Not confirmed — treated on suspicion" },
+    ],
   },
   {
     /**
@@ -1313,7 +1419,7 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
   {
     /**
      * SGLT2 inhibitors permit ketoacidosis at a NORMAL glucose and must be
-     * stopped on admission; steroids predict sustained hyperglycaemia. Both
+     * stopped in acute illness; steroids predict sustained hyperglycaemia. Both
      * change what happens next in ways the glucose alone will not reveal.
      */
     code: "new_or_changed_drug",
@@ -1326,15 +1432,83 @@ export const COMPLICATION_SYMPTOM_FEATURES: Feature[] = [
   prop(
     "new_or_changed_drug",
     {
-      code: "drug_change_type",
-      display: "Which",
+      /**
+       * A change has a SHAPE before it has a content, and the shape decides what
+       * else is worth asking. Recording only "insulin changed" cannot tell a
+       * dose increase from a stop, and those are opposite problems.
+       */
+      code: "drug_change_kind",
+      display: "What changed",
+      valueType: "single_select",
+      citation: HEARTS_D,
+      options: [
+        { value: "started", display: "Started something new" },
+        { value: "stopped", display: "Stopped something" },
+        { value: "switched", display: "Switched one for another" },
+        { value: "added", display: "Added to what was already taken" },
+        { value: "dose_changed", display: "Same drugs, different dose" },
+      ],
+    },
+    "precipitants",
+  ),
+  {
+    /**
+     * FROM and TO, using the same class list as the status tab so the two can be
+     * compared. Between them they express every change the clinician described:
+     * one drug swapped for another, a monotherapy becoming a combination
+     * (from = [metformin], to = [metformin, sulfonylurea]), or the same class in
+     * both with a different dose in the detail beside it.
+     */
+    code: "drug_change_from",
+    display: "Was taking",
+    kind: "history",
+    valueType: "multi_select",
+    section: "precipitants",
+    parent: "new_or_changed_drug",
+    showWhenAll: [
+      { feature: "drug_change_kind", op: "in", value: ["stopped", "switched", "dose_changed"] },
+    ],
+    optionDetail: { label: "Dose", placeholder: "e.g. 1 g twice daily" },
+    citation: ADA_2026_PHARM,
+    options: THERAPY_CLASSES,
+  },
+  {
+    code: "drug_change_to",
+    display: "Now taking",
+    kind: "history",
+    valueType: "multi_select",
+    section: "precipitants",
+    parent: "new_or_changed_drug",
+    showWhenAll: [
+      {
+        feature: "drug_change_kind",
+        op: "in",
+        value: ["started", "switched", "added", "dose_changed"],
+      },
+    ],
+    optionDetail: { label: "Dose", placeholder: "e.g. 1 g twice daily" },
+    citation: ADA_2026_PHARM,
+    options: THERAPY_CLASSES,
+  },
+  prop(
+    "new_or_changed_drug",
+    {
+      /**
+       * Not glucose-lowering, and that is why it is a separate field rather than
+       * an option in the lists above: a steroid does not replace a diabetes drug,
+       * it sits alongside one and drives the glucose up regardless of it.
+       */
+      code: "drug_change_non_diabetes",
+      display: "Other medicines started",
       valueType: "multi_select",
       citation: HEARTS_D,
       options: [
-        { value: "sglt2_started", display: "SGLT2 inhibitor" },
         { value: "steroid", display: "Steroid" },
-        { value: "insulin_changed", display: "Insulin dose changed" },
-        { value: "other", display: "Other" },
+        { value: "thiazide", display: "Thiazide diuretic" },
+        { value: "antipsychotic", display: "Antipsychotic" },
+        { value: "arv", display: "Antiretrovirals" },
+        { value: "tb_treatment", display: "TB treatment" },
+        { value: "none", display: "None" },
       ],
     },
     "precipitants",

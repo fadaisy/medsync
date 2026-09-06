@@ -153,6 +153,51 @@ export function dangerSigns(catalog: NcdCatalog, ctx: EvalContext): DangerSign[]
   return out.sort((a, b) => (a.severity === "red" ? 0 : 1) - (b.severity === "red" ? 0 : 1));
 }
 
+/**
+ * Recorded treatments a guideline says are wrong for THIS patient.
+ *
+ * Reports the blocked ones too, and that is not padding. Every rule here is a
+ * relation between a drug and something measured, so at a site that cannot
+ * measure it the check does not fail — it cannot be run. Returning only the
+ * fired flags would let a district clinic read "nothing wrong with the therapy"
+ * when the truth is "nobody could check", which is the same collapse the whole
+ * four-state evaluator exists to refuse.
+ */
+export interface TherapyConcern {
+  id: string;
+  display: string;
+  severity: "red" | "amber";
+  action: string;
+  /** `met` fired; `unavailable` means the site cannot run the check. */
+  state: EvalState;
+  /** Features the check needed and could not obtain here. */
+  blocked: string[];
+  citation: Citation;
+}
+
+export function therapyConcerns(catalog: NcdCatalog, ctx: EvalContext): TherapyConcern[] {
+  const out: TherapyConcern[] = [];
+  for (const t of catalog.therapyFlags ?? []) {
+    const r = evaluateCriterion(t.when, ctx);
+    if (r.state !== "met" && r.state !== "unavailable") continue;
+    out.push({
+      id: t.id,
+      display: t.display,
+      severity: t.severity,
+      action: t.action,
+      state: r.state,
+      blocked: r.blocked.map((b) => b.feature),
+      citation: t.citation,
+    });
+  }
+  // Fired before unrunnable, red before amber.
+  return out.sort(
+    (a, b) =>
+      (a.state === "met" ? 0 : 1) - (b.state === "met" ? 0 : 1) ||
+      (a.severity === "red" ? 0 : 1) - (b.severity === "red" ? 0 : 1),
+  );
+}
+
 /* ── 2. test validity ────────────────────────────────────────────────────── */
 
 export interface ActiveCaveat {

@@ -9,7 +9,13 @@
  * Thresholds live in diagnosis.ts / complications.ts, never here. `refRange` on
  * a feature is for DISPLAY only and is never used to decide anything.
  */
-import type { Capability, CatalogSection, Citation, Feature } from "@/lib/ncd/catalog/schema";
+import type {
+  Capability,
+  CatalogSection,
+  Citation,
+  Feature,
+  FeatureOption,
+} from "@/lib/ncd/catalog/schema";
 
 /**
  * ADA Section 9 — pharmacologic approaches. Cited for the therapy CLASS list
@@ -25,7 +31,7 @@ const ADA_2026_BEHAVIOUR: Citation = {
   csoSigned: false,
 };
 
-const ADA_2026_PHARM: Citation = {
+export const ADA_2026_PHARM: Citation = {
   standard: "ADA",
   version: "Standards of Care in Diabetes—2026, Section 9",
   title: "9. Pharmacologic Approaches to Glycemic Treatment",
@@ -33,6 +39,34 @@ const ADA_2026_PHARM: Citation = {
   retrieved: "2026-09-05",
   csoSigned: false,
 };
+
+/**
+ * Glucose-lowering therapy BY CLASS, declared once.
+ *
+ * The status tab records what the patient is on; the crisis-precipitant screen
+ * records what they were on and what they are on now. Those three lists have to
+ * be the same list or the comparison between them means nothing — a "switch"
+ * from a class that exists in one list to a class that does not is not a switch
+ * anyone can read.
+ */
+export const THERAPY_CLASSES: FeatureOption[] = [
+  { value: "none", display: "None — no glucose-lowering drug", noDetail: true },
+  { value: "metformin", display: "Metformin · oral" },
+  { value: "sulfonylurea", display: "Sulfonylurea · oral" },
+  { value: "dpp4", display: "DPP-4 inhibitor · oral" },
+  { value: "sglt2", display: "SGLT2 inhibitor · oral" },
+  { value: "tzd", display: "Thiazolidinedione · oral" },
+  { value: "agi", display: "Alpha-glucosidase inhibitor · oral" },
+  { value: "glp1", display: "GLP-1 receptor agonist · injectable" },
+  { value: "insulin", display: "Insulin · injectable" },
+  {
+    value: "other",
+    display: "Other",
+    // The same input asking a different question: which drug, not what dose.
+    detail: { label: "Drug", placeholder: "Name, and dose if known" },
+  },
+  { value: "unknown", display: "Not known", noDetail: true },
+];
 
 export const CAPABILITIES: Capability[] = [
   { code: "device.glucometer", display: "Glucometer (capillary glucose)", tier: "bedside" },
@@ -229,23 +263,34 @@ export const FEATURES: Feature[] = [
     section: "status",
     citation: ADA_2026_PHARM,
     optionDetail: { label: "Dose", placeholder: "e.g. 1 g twice daily" },
+    options: THERAPY_CLASSES,
+  },
+  {
+    /**
+     * WHICH sulfonylurea, because the class hides the one decision in it.
+     *
+     * The therapy list is by class, which is right for everything else — the
+     * engine reasons about metformin the class, not about brands. But WHO
+     * directs a switch from glibenclamide to gliclazide BY NAME, and
+     * glibenclamide is the sulfonylurea most widely dispensed where this module
+     * is going. A class-level list cannot express the commonest correctable
+     * prescribing problem in the setting it is built for, so this one class gets
+     * an agent. The dose stays where it is — in `optionDetail`, inert.
+     */
+    code: "sulfonylurea_agent",
+    display: "Which sulfonylurea",
+    kind: "history",
+    valueType: "single_select",
+    section: "status",
+    showWhen: { feature: "glucose_lowering_therapy", op: "==", value: "sulfonylurea" },
+    citation: ADA_2026_PHARM,
     options: [
-      { value: "none", display: "None — no glucose-lowering drug", noDetail: true },
-      { value: "metformin", display: "Metformin · oral" },
-      { value: "sulfonylurea", display: "Sulfonylurea · oral" },
-      { value: "dpp4", display: "DPP-4 inhibitor · oral" },
-      { value: "sglt2", display: "SGLT2 inhibitor · oral" },
-      { value: "tzd", display: "Thiazolidinedione · oral" },
-      { value: "agi", display: "Alpha-glucosidase inhibitor · oral" },
-      { value: "glp1", display: "GLP-1 receptor agonist · injectable" },
-      { value: "insulin", display: "Insulin · injectable" },
-      {
-        value: "other",
-        display: "Other",
-        // The same input asking a different question: which drug, not what dose.
-        detail: { label: "Drug", placeholder: "Name, and dose if known" },
-      },
-      { value: "unknown", display: "Not known", noDetail: true },
+      { value: "glibenclamide", display: "Glibenclamide (glyburide)" },
+      { value: "gliclazide", display: "Gliclazide" },
+      { value: "glimepiride", display: "Glimepiride" },
+      { value: "glipizide", display: "Glipizide" },
+      { value: "other", display: "Other" },
+      { value: "unknown", display: "Not known" },
     ],
   },
   {

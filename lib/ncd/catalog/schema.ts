@@ -570,6 +570,39 @@ export interface RiskModel {
   citation: Citation;
 }
 
+/* ── Therapy safety ──────────────────────────────────────────────────────── */
+
+/**
+ * A recorded treatment that the guideline says is wrong for THIS patient.
+ *
+ * Distinct from `Feature.dangerSign`, and the difference is why it needs its own
+ * construct: a danger sign fires on ONE finding being present, whereas every
+ * rule here is a relation BETWEEN captures — metformin AND an eGFR below 30, an
+ * SGLT2 inhibitor AND an acute illness. That is a `Criterion`, so it belongs at
+ * the catalog level rather than hanging off any single feature.
+ *
+ * ── The line this must not cross ─────────────────────────────────────────────
+ * `action` carries the guideline's own instruction and NEVER a dose. "Metformin
+ * is contraindicated below an eGFR of 30" is a contraindication the source
+ * states; "reduce to 500 mg" would be prescribing, which this engine does not
+ * do. Naming a DRUG is allowed where the source names it — WHO directs a switch
+ * from glibenclamide to gliclazide in those words — because the alternative to
+ * naming it is a warning the clinician cannot act on.
+ *
+ * A flag is decision support, and it is wrong often enough to matter: the
+ * capture is what the patient reports taking, not a dispensing record.
+ */
+export interface TherapyFlag {
+  id: string;
+  /** The concern, in a few words: "Metformin with an eGFR below 30". */
+  display: string;
+  severity: "red" | "amber";
+  when: Criterion;
+  /** What to do, in the guideline's own terms. Never a dose. */
+  action: string;
+  citation: Citation;
+}
+
 /* ── Management ──────────────────────────────────────────────────────────── */
 
 export interface ManagementStep {
@@ -645,6 +678,8 @@ export interface NcdCatalog {
   /** Conditions under which a feature's result cannot be trusted. */
   validityCaveats?: ValidityCaveat[];
   riskModels?: RiskModel[];
+  /** Recorded treatments a guideline says are wrong for this patient. */
+  therapyFlags?: TherapyFlag[];
   management?: ManagementStep[];
 }
 
