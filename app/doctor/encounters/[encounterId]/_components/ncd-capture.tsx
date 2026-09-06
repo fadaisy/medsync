@@ -285,11 +285,17 @@ export function NcdCapture({
   );
 
   /**
-   * Which wells the clinician has folded away. Held here rather than per-row so
-   * it survives a re-render, and deliberately NOT persisted to the record: how a
-   * form is folded is not a clinical fact.
+   * Which wells are folded, and WHICH QUESTIONS each held when it was folded.
+   *
+   * The codes are the point. A well may now be folded with questions still
+   * unanswered, so the old guarantee — that a well conjuring a new question
+   * became unfoldable — is gone. Remembering what was there instead lets a well
+   * that has since grown a question open itself again.
+   *
+   * Held here rather than per-row so it survives a re-render, and deliberately
+   * NOT persisted: how a form is folded is not a clinical fact.
    */
-  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+  const [folded, setFolded] = useState<Map<string, string[]>>(new Map());
 
   const set = (code: string, v: CaptureMap[string]) => {
     const next = { ...values };
@@ -339,11 +345,12 @@ export function NcdCapture({
                   site={site}
                   values={values}
                   featureIndex={featureIndex}
-                  collapsed={collapsed.has(finding.code)}
-                  onToggle={() =>
-                    setCollapsed((prev) => {
-                      const next = new Set(prev);
-                      if (!next.delete(finding.code)) next.add(finding.code);
+                  foldedAt={folded.get(finding.code)}
+                  onToggle={(codes) =>
+                    setFolded((prev) => {
+                      const next = new Map(prev);
+                      if (codes) next.set(finding.code, codes);
+                      else next.delete(finding.code);
                       return next;
                     })
                   }
@@ -371,18 +378,40 @@ export function NcdCapture({
 export const isSettled = (v: CaptureMap[string]) =>
   v?.state === "recorded" || v?.state === "unavailable";
 
-/**
- * Whether a finding's properties may be folded away, and how far off it is.
- *
- * The whole safety argument for folding lives in this one line: `foldable` is
- * true only when every visible property is settled, so an unanswered question
- * can never be hidden — and since a property conjured by an answer arrives
- * unsettled, a well that opens a new question folds itself back open, with no
- * effect and nothing to keep in sync.
- */
+/** How much of a finding's history has been taken. */
 export function wellFold(properties: CaptureRow[], values: CaptureMap) {
   const settled = properties.filter((p) => isSettled(values[p.feature.code])).length;
-  return { settled, total: properties.length, foldable: settled === properties.length };
+  return { settled, total: properties.length, complete: settled === properties.length };
+}
+
+/**
+ * Has the form asked something new since this well was folded?
+ *
+ * Any well may now be folded, answered or not — so the rule that used to make
+ * that safe (a well conjuring a question became unfoldable, because the new
+ * question arrived unsettled) no longer holds. This replaces it: the codes
+ * present at the moment of folding are remembered, and a well that has since
+ * grown a question unfolds itself to show it.
+ *
+ * Without this, recording "one eye" would add "Which eye" inside a folded well
+ * and nobody would ever see it.
+ */
+/**
+ * Flagged questions still unanswered — the one thing a folded summary must show
+ * in full rather than compress.
+ *
+ * Folding used to be impossible while anything was unanswered, which made this
+ * unnecessary. Now that a well folds freely, a danger-sign question could
+ * otherwise be folded out of sight while unasked, which is the failure the whole
+ * flag list exists to prevent.
+ */
+export function unansweredFlags(properties: CaptureRow[], values: CaptureMap): CaptureRow[] {
+  return properties.filter((p) => p.feature.dangerSign && !isSettled(values[p.feature.code]));
+}
+
+export function foldStale(foldedAt: string[] | undefined, properties: CaptureRow[]): boolean {
+  if (!foldedAt) return false;
+  return properties.some((p) => !foldedAt.includes(p.feature.code));
 }
 
 /**
@@ -429,7 +458,7 @@ function PropertyWell({
   site,
   values,
   featureIndex,
-  collapsed,
+  foldedAt,
   onToggle,
   onSet,
 }: {
@@ -438,14 +467,18 @@ function PropertyWell({
   site: SiteProfile;
   values: CaptureMap;
   featureIndex: Map<string, Feature>;
-  collapsed: boolean;
-  onToggle: () => void;
+  /** The property codes present when this well was folded, or undefined if open. */
+  foldedAt?: string[];
+  onToggle: (codes: string[] | undefined) => void;
   onSet: (code: string, v: CaptureMap[string]) => void;
 }) {
-  const { settled, foldable } = wellFold(properties, values);
-  const folded = foldable && collapsed;
-  const flagged = folded && properties.some((p) => p.feature.dangerSign);
+  const { settled, total, complete } = wellFold(properties, values);
+  const folded = Boolean(foldedAt) && !foldStale(foldedAt, properties);
   const bodyId = `props-${finding.code}`;
+
+  // Never folded out of sight: a question that carries a flag and has not been
+  // answered is the one thing a summary must still show in full.
+  const openFlags = unansweredFlags(properties, values);
 
   return (
     <div
@@ -460,52 +493,71 @@ function PropertyWell({
         <span className="text-caption text-brand-800/70 dark:text-brand-300/70 min-w-0 truncate">
           {finding.display}
         </span>
-        {flagged ? (
+        <span className="ml-auto flex shrink-0 items-baseline gap-1.5">
           <span
-            className="text-caption inline-flex shrink-0 items-center gap-1 rounded bg-amber-50 px-1.5 py-px font-medium text-amber-800 ring-1 ring-amber-200 ring-inset dark:bg-amber-950/40 dark:text-amber-300 dark:ring-amber-900/60"
-            title="A folded answer carries a danger sign"
+            className={`text-caption tabular-nums ${
+              complete
+                ? "text-brand-700/70 dark:text-brand-400/70"
+                : "text-amber-700 dark:text-amber-400"
+            }`}
           >
-            <AlertTriangleIcon className="size-3" aria-hidden />
-            Danger sign
+            {settled}/{total}
+            {complete ? "" : " asked"}
           </span>
-        ) : null}
-        <span className="ml-auto shrink-0">
-          {foldable ? (
-            <button
-              type="button"
-              onClick={onToggle}
-              aria-expanded={!folded}
-              aria-controls={bodyId}
-              className={`tap text-caption text-brand-700 hover:bg-brand-100/70 dark:text-brand-300 dark:hover:bg-brand-900/40 inline-flex items-center gap-1 rounded px-1.5 py-0.5 font-medium ${EASE} ${TAP}`}
-            >
-              {folded ? (
-                <ChevronDownIcon className="size-3" />
-              ) : (
-                <ChevronUpIcon className="size-3" />
-              )}
-              {folded ? `Show ${properties.length}` : "Hide"}
-            </button>
-          ) : (
-            /* Not a disabled control — an unfoldable well simply says why. */
-            <span className="text-caption text-brand-700/60 dark:text-brand-400/60 tabular-nums">
-              {settled}/{properties.length}
-            </span>
-          )}
+          <button
+            type="button"
+            onClick={() => onToggle(folded ? undefined : properties.map((p) => p.feature.code))}
+            aria-expanded={!folded}
+            aria-controls={bodyId}
+            className={`tap text-caption text-brand-700 hover:bg-brand-100/70 dark:text-brand-300 dark:hover:bg-brand-900/40 inline-flex items-center gap-1 rounded px-1.5 py-0.5 font-medium ${EASE} ${TAP}`}
+          >
+            {folded ? <ChevronDownIcon className="size-3" /> : <ChevronUpIcon className="size-3" />}
+            {folded ? "Show" : "Hide"}
+          </button>
         </span>
       </div>
 
       <div id={bodyId} className="ncd-reveal">
         {folded ? (
-          <ul className="flex flex-wrap gap-x-3 gap-y-0.5 px-2.5 pb-2">
-            {properties.map(({ feature }) => (
-              <li key={feature.code} className="text-caption min-w-0">
-                <span className="text-brand-700/70 dark:text-brand-400/70">{feature.display}</span>
-                <span className="text-foreground/80 ml-1 font-medium">
-                  {summarise(feature, values[feature.code])}
-                </span>
-              </li>
-            ))}
-          </ul>
+          <>
+            <ul className="flex flex-wrap gap-x-3 gap-y-0.5 px-2.5 pb-2">
+              {properties.map(({ feature }) => {
+                const answered = isSettled(values[feature.code]);
+                return (
+                  <li key={feature.code} className="text-caption min-w-0">
+                    <span
+                      className={
+                        answered
+                          ? "text-brand-700/70 dark:text-brand-400/70"
+                          : "text-muted-foreground/70"
+                      }
+                    >
+                      {feature.display}
+                    </span>{" "}
+                    {/* An unasked question reads as a gap, not as a value. The
+                        dash is paired with the muted label and the "n asked"
+                        count, so it never depends on colour alone. */}
+                    <span
+                      className={
+                        answered
+                          ? "text-foreground/80 font-medium"
+                          : "text-muted-foreground/50 italic"
+                      }
+                    >
+                      {answered ? summarise(feature, values[feature.code]) : "not asked"}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+            {openFlags.length ? (
+              <p className="text-caption flex flex-wrap items-center gap-1.5 px-2.5 pb-2 text-amber-800 dark:text-amber-300">
+                <AlertTriangleIcon className="size-3 shrink-0" aria-hidden />
+                <span className="font-medium">Still unanswered, and flagged:</span>
+                {openFlags.map((p) => p.feature.display).join(" · ")}
+              </p>
+            ) : null}
+          </>
         ) : (
           properties.map(({ feature, depth }) => (
             <FeatureRow

@@ -1,11 +1,14 @@
 import type { Citation, Feature, NcdCatalog, SiteProfile } from "@/lib/ncd/catalog/schema";
+import type { CaptureMap } from "@/lib/ncd/engine/evaluate";
 import { describe, expect, it } from "vitest";
 
 import {
   buildBlocks,
+  foldStale,
   isVisible,
   sectionProgress,
   summarise,
+  unansweredFlags,
   wellFold,
 } from "@/app/doctor/encounters/[encounterId]/_components/ncd-capture";
 import { DIABETES_CATALOG, REFERRAL_SITE } from "@/lib/ncd/catalog/diabetes";
@@ -350,29 +353,40 @@ describe("the diabetes catalog's laterality follow-ups", () => {
 
 /* ── folding a well away, without hiding anything ────────────────────────── */
 
-describe("wellFold — a finding's properties may be folded once they are settled", () => {
+describe("folding a well, answered or not", () => {
   const rows = (fs: Feature[]) => fs.map((feature) => ({ feature, depth: 1 }));
   const props = rows([f({ code: "p1" }), f({ code: "p2" })]);
 
-  it("refuses to fold while any question is unanswered", () => {
-    expect(wellFold(props, {})).toMatchObject({ settled: 0, foldable: false });
-    expect(wellFold(props, { p1: recorded(true) })).toMatchObject({ settled: 1, foldable: false });
+  it("counts what has been asked, without gating the fold on it", () => {
+    expect(wellFold(props, {})).toMatchObject({ settled: 0, total: 2, complete: false });
+    expect(wellFold(props, { p1: recorded(true) })).toMatchObject({ settled: 1, complete: false });
+    expect(wellFold(props, { p1: recorded(true), p2: recorded(false) }).complete).toBe(true);
   });
 
-  it("folds once every question is settled", () => {
-    expect(wellFold(props, { p1: recorded(true), p2: recorded(false) }).foldable).toBe(true);
-  });
-
-  it("counts an explicit 'could not do it today' as settled", () => {
-    expect(wellFold(props, { p1: recorded(true), p2: unavailable("site") }).foldable).toBe(true);
+  it("counts an explicit 'could not do it today' as asked", () => {
+    expect(wellFold(props, { p1: recorded(true), p2: unavailable("site") }).complete).toBe(true);
   });
 
   /**
-   * The property that makes folding safe, and the reason it needs no effect and
-   * nothing to synchronise: a question conjured by an answer arrives unsettled,
-   * so the well that was foldable a moment ago is not any more.
+   * A well may now be folded with questions outstanding, which removes the old
+   * guarantee — that a well conjuring a question became unfoldable, because the
+   * new question arrived unsettled. This is what replaces it: the codes present
+   * at the moment of folding are remembered, and a well that has since grown a
+   * question is stale and opens itself.
+   *
+   * Without it, recording "one eye" would add "Which eye" inside a folded well
+   * and nobody would ever see it.
    */
-  it("becomes unfoldable again when an answer opens a further question", () => {
+  it("re-opens itself when the form asks something new", () => {
+    const at = props.map((p) => p.feature.code);
+    expect(foldStale(at, props)).toBe(false);
+    expect(foldStale(at, [...props, ...rows([f({ code: "p3" })])])).toBe(true);
+    // Answering something, or losing a question, is not a new question.
+    expect(foldStale(at, [props[0]!])).toBe(false);
+    expect(foldStale(undefined, props)).toBe(false);
+  });
+
+  it("holds against the real catalog's laterality chain", () => {
     const ctxFor = (values: Parameters<typeof contextOf>[1]) =>
       contextOf(DIABETES_CATALOG.features, values, REFERRAL_SITE);
     const visible = (values: Parameters<typeof contextOf>[1]) =>
@@ -382,20 +396,58 @@ describe("wellFold — a finding's properties may be folded once they are settle
         ),
       ).find((b) => b.finding.code === "visual_symptoms")!.properties;
 
-    // Every visible property answered — the well folds.
-    const answered = {
+    const before = {
       visual_symptoms: recorded(true),
       visual_pattern: recorded(["fluctuating"]),
       visual_laterality: recorded("both_eyes"),
-      last_retinal_exam: recorded("never"),
     };
-    expect(wellFold(visible(answered), answered).foldable).toBe(true);
+    const at = visible(before).map((p) => p.feature.code);
+    expect(foldStale(at, visible(before))).toBe(false);
 
-    // Change the side to one eye: "Which eye" appears, unanswered.
-    const opened = { ...answered, visual_laterality: recorded("one_eye") };
-    const after = visible(opened);
+    // Change the side to one eye: "Which eye" appears, and the fold goes stale.
+    const after = visible({ ...before, visual_laterality: recorded("one_eye") });
     expect(after.map((p) => p.feature.code)).toContain("visual_eye");
-    expect(wellFold(after, opened).foldable).toBe(false);
+    expect(foldStale(at, after)).toBe(true);
+  });
+});
+
+describe("a folded well never hides an unanswered flag", () => {
+  const rows = (fs: Feature[]) => fs.map((feature) => ({ feature, depth: 1 }));
+  const danger = f({
+    code: "flagged",
+    dangerSign: {
+      severity: "amber",
+      action: "Do the thing that must be done today.",
+      citation: cite,
+    },
+  });
+  const props = rows([f({ code: "plain" }), danger]);
+
+  it("surfaces a flagged question that has not been answered", () => {
+    expect(unansweredFlags(props, {}).map((p) => p.feature.code)).toEqual(["flagged"]);
+    expect(unansweredFlags(props, { plain: recorded(true) }).map((p) => p.feature.code)).toEqual([
+      "flagged",
+    ]);
+  });
+
+  it("stops surfacing it once it has been answered either way", () => {
+    const answers: CaptureMap[string][] = [recorded(true), recorded(false), unavailable("site")];
+    for (const v of answers) {
+      expect(unansweredFlags(props, { flagged: v })).toEqual([]);
+    }
+  });
+
+  /**
+   * Against the real catalog: vomiting's own well is unflagged, but the crisis
+   * band is full of flagged findings, and a folded well must account for any it
+   * contains.
+   */
+  it("finds them in the real catalog", () => {
+    const flagged = DIABETES_CATALOG.features.filter((x) => x.dangerSign && x.parent);
+    expect(flagged.length).toBeGreaterThan(0);
+    for (const feature of flagged) {
+      expect(unansweredFlags([{ feature, depth: 1 }], {})).toHaveLength(1);
+    }
   });
 });
 
@@ -592,12 +644,13 @@ describe("pain symptoms take a full SOCRATES history", () => {
     }
   });
 
-  // Nine unanswered questions must not be foldable away.
-  it.each(["abdominal_pain", "chest_pain"])("cannot fold %s until it is taken", (finding) => {
+  // The fold may hide an untaken history, so the count has to be honest about it.
+  it.each(["abdominal_pain", "chest_pain"])("reports %s as untaken until it is", (finding) => {
     const values = { [finding]: recorded(true) };
     expect(wellFold(propsOf(finding, values), values)).toMatchObject({
       settled: 0,
-      foldable: false,
+      total: 9,
+      complete: false,
     });
   });
 });
