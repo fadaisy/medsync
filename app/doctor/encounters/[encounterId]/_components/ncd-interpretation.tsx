@@ -2,7 +2,6 @@
 
 import type { Interpretation } from "@/lib/ncd/engine/assess";
 import type { ReactNode } from "react";
-import { CheckIcon } from "lucide-react";
 
 /**
  * The glycaemic tests, captured INSIDE the scale that reads them.
@@ -12,6 +11,9 @@ import { CheckIcon } from "lucide-react";
  * IS the test: name, input, and the three bands it could fall in, on one line of
  * sight. Entering 7.4 and watching the right-hand cell light up is the whole
  * interaction.
+ *
+ * Styling stays plain on purpose: this is a dense clinical surface, and the
+ * table earns its place by being readable rather than by being decorated.
  *
  * ── The colours are the clinical lead's call ─────────────────────────────────
  * Red for the diabetes range, brand for normal, green for the intermediate band.
@@ -40,14 +42,11 @@ const HEAD: Record<Tone, string> = {
   diagnostic: "text-red-700 dark:text-red-400",
 };
 
-/** The occupied cell: fill, ring and a tick. Never fill alone. */
+/** The occupied cell. Never fill alone — the words beside it carry the meaning. */
 const ON: Record<Tone, string> = {
-  normal:
-    "bg-brand-50 text-brand-900 ring-brand-400/50 dark:bg-brand-950/50 dark:text-brand-100 dark:ring-brand-500/40",
-  intermediate:
-    "bg-emerald-50 text-emerald-900 ring-emerald-400/50 dark:bg-emerald-950/50 dark:text-emerald-100 dark:ring-emerald-500/40",
-  diagnostic:
-    "bg-red-50 text-red-900 ring-red-400/60 dark:bg-red-950/50 dark:text-red-100 dark:ring-red-500/40",
+  normal: "bg-brand-100 text-brand-900 dark:bg-brand-900/50 dark:text-brand-100",
+  intermediate: "bg-emerald-50 text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200",
+  diagnostic: "bg-red-100 text-red-900 dark:bg-red-900/50 dark:text-red-100",
 };
 
 const LABEL: Record<Tone, string> = {
@@ -78,7 +77,7 @@ export function NcdInterpretation({
 
   return (
     <section className="border-border bg-card overflow-hidden rounded-xl border shadow-xs">
-      <header className="border-border/60 bg-muted/40 flex flex-wrap items-baseline gap-x-2 gap-y-0.5 border-b px-3.5 py-2.5">
+      <header className="border-border/60 bg-muted/40 flex flex-wrap items-baseline gap-x-2 border-b px-3.5 py-2">
         <h4 className="text-foreground text-body-s font-medium">Interpretation</h4>
         {/* Which standard, always: the intermediate bands differ between them,
             and a table that did not say which it applied would be printing one
@@ -90,21 +89,12 @@ export function NcdInterpretation({
       </header>
 
       <div className="overflow-x-auto">
-        <table className="w-full table-fixed border-collapse">
-          <colgroup>
-            <col className="w-[38%] min-w-[11rem]" />
-            <col span={3} />
-          </colgroup>
+        <table className="w-full border-collapse text-left">
           <thead>
             <tr className="border-border/60 border-b">
-              <th className="text-muted-foreground text-overline px-3.5 py-2 text-left uppercase">
-                Test
-              </th>
+              <th className="text-muted-foreground text-caption px-3.5 py-1.5 font-medium">Test</th>
               {COLUMNS.map((tone) => (
-                <th
-                  key={tone}
-                  className={`text-overline px-2 py-2 text-center uppercase ${HEAD[tone]}`}
-                >
+                <th key={tone} className={`text-caption px-2 py-1.5 font-medium ${HEAD[tone]}`}>
                   {LABEL[tone]}
                 </th>
               ))}
@@ -115,7 +105,7 @@ export function NcdInterpretation({
             {rows.map((row) => (
               <tr key={row.feature} className="align-top">
                 {/* The capture lives with its own scale, not in a card above it. */}
-                <th scope="row" className="px-3.5 py-2.5 text-left font-normal">
+                <th scope="row" className="px-3.5 py-2 text-left font-normal">
                   <span className="text-body-s text-foreground block font-medium">
                     {row.display}
                   </span>
@@ -144,30 +134,29 @@ export function NcdInterpretation({
                   const band = row.bands.find((b) => b.tone === tone);
                   const here = Boolean(band && row.band && row.band.code === band.code);
                   return (
-                    <td key={tone} className="p-1 align-middle">
+                    <td
+                      key={tone}
+                      className={`px-2 py-2 align-middle text-[11.5px] ${
+                        here ? `${ON[tone]} font-medium` : "text-muted-foreground"
+                      }`}
+                    >
                       {band ? (
-                        <span
-                          className={`ease-expo-out flex h-full flex-col items-center justify-center gap-0.5 rounded-lg px-2 py-2.5 text-center transition-colors duration-150 ${
-                            here
-                              ? `${ON[tone]} ring-1 ring-inset`
-                              : "text-muted-foreground/80 bg-transparent"
-                          }`}
-                        >
-                          <span className="font-mono text-[12px] font-medium tabular-nums">
+                        <>
+                          <span className="font-mono tabular-nums">
                             {bandRange(band.from, band.to, row.unit)}
                           </span>
-                          <span className="text-[10px] leading-tight">{band.display}</span>
+                          <span className="mt-0.5 block text-[10px] leading-tight">
+                            {band.display}
+                          </span>
+                          {/* Never colour alone. */}
                           {here ? (
-                            <span className="mt-0.5 inline-flex items-center gap-0.5 text-[10px] font-medium">
-                              <CheckIcon className="size-3" aria-hidden />
-                              this patient
+                            <span className="mt-0.5 block text-[10px] font-medium">
+                              ◂ this patient
                             </span>
                           ) : null}
-                        </span>
+                        </>
                       ) : (
-                        <span className="text-muted-foreground/40 flex items-center justify-center px-2 py-2.5 text-center text-[10.5px] italic">
-                          not defined
-                        </span>
+                        <span className="text-muted-foreground/50 italic">not defined</span>
                       )}
                     </td>
                   );
