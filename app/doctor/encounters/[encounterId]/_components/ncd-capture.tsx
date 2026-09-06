@@ -36,6 +36,7 @@ import {
   XIcon,
 } from "lucide-react";
 
+import { NcdInterpretation } from "@/app/doctor/encounters/[encounterId]/_components/ncd-interpretation";
 import {
   displayAnyOf,
   displayPredicates,
@@ -43,6 +44,7 @@ import {
   isPerformable,
   MAX_PROPERTY_DEPTH,
 } from "@/lib/ncd/catalog/schema";
+import { interpretations, ncdContext } from "@/lib/ncd/engine/assess";
 import {
   contextOf,
   DURATION_UNITS,
@@ -278,6 +280,24 @@ export function NcdCapture({
       }));
   }, [visible, section, featureIndex]);
 
+  /**
+   * The interpretation table, where this section holds the tests it reads.
+   *
+   * Which section that is comes from the CATALOG — a table's feature knows its
+   * own section — rather than from a hardcoded id here. Hypertension gets its
+   * blood-pressure bands under whichever section it files them in, with no
+   * change to this component.
+   */
+  const interpretation = useMemo(() => {
+    const inSection = new Set(
+      catalog.features.filter((f) => f.section === sectionId).map((f) => f.code),
+    );
+    if (!catalog.interpretation?.some((t) => inSection.has(t.feature))) return [];
+    return interpretations(catalog, ncdContext(catalog, values, site)).filter((i) =>
+      inSection.has(i.feature),
+    );
+  }, [catalog, sectionId, values, site]);
+
   /** Off-protocol capture for this section, if the catalog declares any. */
   const offProtocol = useMemo(
     () => catalog.features.filter((f) => f.section === sectionId && f.offProtocol),
@@ -361,6 +381,8 @@ export function NcdCapture({
           );
         })}
       </div>
+
+      <NcdInterpretation rows={interpretation} />
 
       {offProtocol.map((f) => (
         <OffProtocolBlock

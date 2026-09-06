@@ -178,3 +178,29 @@ describe("a band is not a verdict", () => {
     expect(p.diagnosis.state).not.toBe("met");
   });
 });
+
+/**
+ * The table renders under the section holding the tests it reads, and which
+ * section that is comes from the catalog rather than from a hardcoded id in the
+ * component — so hypertension gets its blood-pressure bands under whichever
+ * section it files them in, with no UI change.
+ */
+describe("the table belongs to a section, derived from the catalog", () => {
+  it("puts every interpreted test in one section", () => {
+    const sections = new Set(
+      (DIABETES_CATALOG.interpretation ?? []).map(
+        (t) => DIABETES_CATALOG.features.find((f) => f.code === t.feature)!.section,
+      ),
+    );
+    expect([...sections]).toEqual(["glycaemia"]);
+  });
+
+  it("names a feature that exists, so a table can never render nowhere", () => {
+    for (const t of DIABETES_CATALOG.interpretation ?? []) {
+      expect(
+        DIABETES_CATALOG.features.some((f) => f.code === t.feature),
+        t.id,
+      ).toBe(true);
+    }
+  });
+});
