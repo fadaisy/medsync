@@ -187,3 +187,62 @@ describe("prefill and draft, merged", () => {
     expect(initialCapture(undefined, undefined)).toEqual({});
   });
 });
+
+/**
+ * The bug this was written after: `clinical_observations` carries a
+ * `triage_record_id` column, which reads as though triage writes there. It does
+ * not — triage vitals live in `triage_records.vitals_snapshot`, and reading only
+ * the first table left a fully triaged patient with an empty examination.
+ *
+ * Both are read now, and the newest reading of each vital wins whichever table
+ * it came from.
+ */
+describe("the newest reading of each vital wins", () => {
+  const at = (iso: string) => new Date(iso);
+  const v = (feature: string, value: number, iso: string, fromTriage: boolean) => ({
+    feature,
+    display: feature,
+    value,
+    recordedAt: at(iso),
+    fromTriage,
+  });
+
+  it("lets a later ward observation supersede triage", async () => {
+    const { latestPerVital } = await import("@/lib/ncd/vitals");
+    const out = latestPerVital([
+      v("bp_systolic", 160, "2026-09-06T07:30:00Z", true),
+      v("bp_systolic", 132, "2026-09-06T09:15:00Z", false),
+    ]);
+    expect(out).toHaveLength(1);
+    expect(out[0]).toMatchObject({ value: 132, fromTriage: false });
+  });
+
+  it("keeps triage where nothing newer exists", async () => {
+    const { latestPerVital } = await import("@/lib/ncd/vitals");
+    const out = latestPerVital([
+      v("capillary_glucose", 22, "2026-09-06T07:30:00Z", true),
+      v("pulse", 96, "2026-09-06T09:15:00Z", false),
+    ]);
+    expect(out.map((x) => [x.feature, x.value, x.fromTriage])).toEqual([
+      ["capillary_glucose", 22, true],
+      ["pulse", 96, false],
+    ]);
+  });
+
+  it("is insensitive to the order it is given them in", async () => {
+    const { latestPerVital } = await import("@/lib/ncd/vitals");
+    const rows = [
+      v("pulse", 114, "2026-09-06T07:30:00Z", true),
+      v("pulse", 88, "2026-09-06T11:00:00Z", false),
+      v("pulse", 100, "2026-09-06T09:00:00Z", false),
+    ];
+    expect(latestPerVital(rows)[0]!.value).toBe(88);
+    expect(latestPerVital([...rows].reverse())[0]!.value).toBe(88);
+  });
+
+  /** A NaN is a parse failure, not a reading of zero. */
+  it("drops a value that did not parse", async () => {
+    const { latestPerVital } = await import("@/lib/ncd/vitals");
+    expect(latestPerVital([v("pulse", Number.NaN, "2026-09-06T07:30:00Z", true)])).toEqual([]);
+  });
+});
