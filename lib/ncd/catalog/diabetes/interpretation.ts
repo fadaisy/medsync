@@ -34,7 +34,7 @@ import type { InterpretationTable, ResultBand } from "@/lib/ncd/catalog/schema";
 
 import {
   ADA_S10_BP,
-  NEWS2_SOURCE,
+  REFERENCE_RANGE,
   WHO_BMI,
   WHO_WAIST,
 } from "@/lib/ncd/catalog/diabetes/examination";
@@ -392,89 +392,94 @@ export const INTERPRETATION: InterpretationTable[] = [
     ],
   },
 
-  /* ── the other vitals — NEWS2's own boundaries ────────────────────────── */
+  /* ── the other vitals — standard adult reference ranges ───────────────── */
   {
     /**
-     * The boundaries are NEWS2's, transcribed from this project's own triage
-     * constants rather than re-derived — one source of truth, and a test asserts
-     * the two agree. What NEWS2 does not give is a four-tone vocabulary: its
-     * scale is points, and a pulse scores on BOTH sides of normal. So the bands
-     * below fold its 1- and 2-point steps into "raised" and keep 3 points for
-     * "critical", which is a presentation choice and is marked as ours.
+     * The ordinary adult reference range, NOT an early-warning score.
+     *
+     * NEWS2 was the first thing reached for and it is the wrong instrument
+     * here: it scores DETERIORATION for escalation, so its bands answer "how
+     * close is this patient to needing a review" rather than "is this pulse
+     * normal". A clerkship is asking the second question, and a table headed
+     * with NEWS2 points would read as an acuity call the clerkship is not
+     * making. The triage surface still uses NEWS2, where it belongs.
      */
-    id: "pulse_news2",
+    id: "pulse_reference",
     feature: "pulse",
     standard: "local",
-    version: "NEWS2",
-    citation: NEWS2_SOURCE,
+    version: "Adult reference range",
+    citation: REFERENCE_RANGE,
     toneLabels: {
       low: "Low",
       normal: "Normal",
       intermediate: "Raised",
-      diagnostic: "Critical",
+      diagnostic: "Markedly raised",
     },
     bands: [
-      { code: "low", display: "Bradycardia", to: 51, tone: "low" },
-      { code: "normal", display: "Normal", from: 51, to: 91, tone: "normal" },
-      { code: "raised", display: "Tachycardia", from: 91, to: 131, tone: "intermediate" },
-      { code: "critical", display: "Marked tachycardia", from: 131, tone: "diagnostic" },
+      { code: "low", display: "Bradycardia", to: 60, tone: "low" },
+      { code: "normal", display: "Normal", from: 60, to: 100, tone: "normal" },
+      { code: "raised", display: "Tachycardia", from: 100, to: 130, tone: "intermediate" },
+      { code: "marked", display: "Marked tachycardia", from: 130, tone: "diagnostic" },
     ],
   },
   {
-    id: "rr_news2",
+    id: "rr_reference",
     feature: "respiratory_rate",
     standard: "local",
-    version: "NEWS2",
-    citation: NEWS2_SOURCE,
+    version: "Adult reference range",
+    citation: REFERENCE_RANGE,
     toneLabels: {
       low: "Low",
       normal: "Normal",
       intermediate: "Raised",
-      diagnostic: "Critical",
+      diagnostic: "Markedly raised",
     },
     bands: [
-      { code: "low", display: "Slow", to: 12, tone: "low" },
-      { code: "normal", display: "Normal", from: 12, to: 21, tone: "normal" },
-      { code: "raised", display: "Tachypnoea", from: 21, to: 25, tone: "intermediate" },
-      { code: "critical", display: "Marked tachypnoea", from: 25, tone: "diagnostic" },
+      { code: "low", display: "Bradypnoea", to: 12, tone: "low" },
+      { code: "normal", display: "Normal", from: 12, to: 20, tone: "normal" },
+      { code: "raised", display: "Tachypnoea", from: 20, to: 30, tone: "intermediate" },
+      { code: "marked", display: "Marked tachypnoea", from: 30, tone: "diagnostic" },
     ],
   },
   {
-    id: "temperature_news2",
+    id: "temperature_reference",
     feature: "temperature",
     standard: "local",
-    version: "NEWS2",
-    citation: NEWS2_SOURCE,
+    version: "Adult reference range",
+    citation: REFERENCE_RANGE,
+    // The generic headings, so temperature shares a table with the pulse and the
+    // respiratory rate — the CELLS still read Hypothermia, Fever and High fever,
+    // so nothing is lost and there is one table fewer to scan.
     toneLabels: {
       low: "Low",
       normal: "Normal",
       intermediate: "Raised",
-      diagnostic: "Critical",
+      diagnostic: "Markedly raised",
     },
     bands: [
-      { code: "low", display: "Hypothermia", to: 36.1, tone: "low" },
-      { code: "normal", display: "Normal", from: 36.1, to: 38.1, tone: "normal" },
-      { code: "raised", display: "Fever", from: 38.1, to: 39.1, tone: "intermediate" },
-      { code: "critical", display: "High fever", from: 39.1, tone: "diagnostic" },
+      { code: "low", display: "Hypothermia", to: 36, tone: "low" },
+      { code: "normal", display: "Normal", from: 36, to: 38, tone: "normal" },
+      { code: "fever", display: "Fever", from: 38, to: 39.5, tone: "intermediate" },
+      { code: "high_fever", display: "High fever", from: 39.5, tone: "diagnostic" },
     ],
   },
   {
     /**
-     * Inverted, and the model does not mind: lower is worse for a saturation, so
-     * the critical band is the OPEN LOW end rather than the open high one. The
-     * bands still tile the line, which is all the engine asks.
+     * Inverted, and the band model does not mind: a saturation is worse the
+     * LOWER it goes, so the severe band is the open low end rather than the open
+     * high one. The bands still tile the line, which is all the engine asks.
      */
-    id: "spo2_news2",
+    id: "spo2_reference",
     feature: "spo2",
     standard: "local",
-    version: "NEWS2 scale 1",
-    citation: NEWS2_SOURCE,
-    note: "Scale 1. A patient on the hypercapnic target (scale 2) is read against different bands, which this table does not apply.",
-    toneLabels: { diagnostic: "Critical", intermediate: "Low", normal: "Normal" },
+    version: "Adult reference range, breathing air",
+    citation: REFERENCE_RANGE,
+    note: "Breathing air. A patient on oxygen, or on a hypercapnic target of 88–92%, is read against a different range that this table does not apply.",
+    toneLabels: { diagnostic: "Severe", intermediate: "Low", normal: "Normal" },
     bands: [
-      { code: "critical", display: "Severe hypoxaemia", to: 92, tone: "diagnostic" },
-      { code: "low", display: "Hypoxaemia", from: 92, to: 96, tone: "intermediate" },
-      { code: "normal", display: "Normal", from: 96, tone: "normal" },
+      { code: "severe", display: "Severe hypoxaemia", to: 90, tone: "diagnostic" },
+      { code: "low", display: "Hypoxaemia", from: 90, to: 94, tone: "intermediate" },
+      { code: "normal", display: "Normal", from: 94, tone: "normal" },
     ],
   },
 ];

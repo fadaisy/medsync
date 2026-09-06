@@ -1,6 +1,8 @@
 "use client";
 
+import type { ResultBand } from "@/lib/ncd/catalog/schema";
 import type { Interpretation } from "@/lib/ncd/engine/assess";
+import type { CaptureReading } from "@/lib/ncd/engine/evaluate";
 import type { ReactNode } from "react";
 import { AlertTriangleIcon } from "lucide-react";
 
@@ -75,6 +77,79 @@ const FIELD: Record<Tone, string> = {
   intermediate: "text-emerald-800 dark:text-emerald-300",
   diagnostic: "text-red-700 dark:text-red-400",
 };
+
+const hhmm = (iso: string) => {
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? "" : d.toTimeString().slice(0, 5);
+};
+
+const LINE: Record<Tone, string> = {
+  low: "stroke-red-500",
+  normal: "stroke-brand-500",
+  intermediate: "stroke-emerald-500",
+  diagnostic: "stroke-red-500",
+};
+
+/**
+ * The trend, at the size it is read at.
+ *
+ * Deliberately not a charting library: this is a handful of points beside a
+ * number, and an axis, a legend and a tooltip layer would take more room than
+ * the data. Each point carries its own value and time, so hovering says what it
+ * is without any of that.
+ */
+function Sparkline({ series, tone }: { series: CaptureReading[]; tone: Tone }) {
+  if (series.length < 2) return null;
+  const sorted = [...series].sort((a, b) => a.at.localeCompare(b.at));
+  const values = sorted.map((r) => r.value);
+  const min = Math.min(...values);
+  const span = Math.max(...values) - min || 1;
+  const w = 76;
+  const h = 20;
+  const x = (i: number) => (i / (sorted.length - 1)) * w;
+  const y = (v: number) => h - ((v - min) / span) * (h - 4) - 2;
+
+  return (
+    <svg
+      width={w}
+      height={h}
+      viewBox={`0 0 ${w} ${h}`}
+      className="mt-1 shrink-0 overflow-visible"
+      role="img"
+      aria-label={`Trend: ${sorted.map((r) => `${r.value} at ${hhmm(r.at)}`).join(", ")}`}
+    >
+      <path
+        d={sorted
+          .map((r, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)},${y(r.value).toFixed(1)}`)
+          .join(" ")}
+        fill="none"
+        strokeWidth={1.5}
+        strokeLinejoin="round"
+        strokeLinecap="round"
+        className={LINE[tone]}
+      />
+      {sorted.map((r, i) => (
+        <circle
+          key={`${r.at}-${i}`}
+          cx={x(i)}
+          cy={y(r.value)}
+          r={i === sorted.length - 1 ? 2.4 : 1.5}
+          className={`${LINE[tone]} fill-current`}
+        >
+          <title>{`${r.value} · ${hhmm(r.at)}`}</title>
+        </circle>
+      ))}
+    </svg>
+  );
+}
+
+/** "≥ 130 and < 150 mmHg" — the rule a value fell under, said back. */
+function bandRule(band: ResultBand, unit?: string): string {
+  const u = unit ? ` ${unit}` : "";
+  if (band.from === undefined && band.to !== undefined) return `< ${band.to}${u}`;
+  if (band.from !== undefined && band.to === undefined) return `≥ ${band.from}${u}`;
+  return `≥ ${band.from} and < ${band.to}${u}`;
+}
 
 /** "< 5.6", "5.6 – 7.0", "≥ 7.0" — an open end reads as open. */
 function bandRange(from: number | undefined, to: number | undefined, unit?: string): string {
@@ -235,6 +310,10 @@ function InterpretationTable({
                       not available at this site
                     </span>
                   ) : null}
+                  {/* Where a measure is tracked, where it is heading. */}
+                  {row.series && row.series.length > 1 ? (
+                    <Sparkline series={row.series} tone={row.band?.tone ?? "normal"} />
+                  ) : null}
                 </th>
 
                 {columns.map((tone) => {
@@ -243,8 +322,22 @@ function InterpretationTable({
                   return (
                     <td
                       key={tone}
+                      title={
+                        here && band
+                          ? [
+                              `${row.display} ${row.value}${row.unit ? ` ${row.unit}` : ""}`,
+                              row.series?.length
+                                ? `measured ${hhmm(row.series[row.series.length - 1]!.at)}`
+                                : undefined,
+                              `rule: ${bandRule(band, row.unit)}`,
+                              `${row.standard} ${row.version}`,
+                            ]
+                              .filter(Boolean)
+                              .join(" · ")
+                          : undefined
+                      }
                       className={`px-2 py-2 align-middle text-[11.5px] ${
-                        here ? `${ON[tone]} font-medium` : "text-muted-foreground"
+                        here ? `${ON[tone]} cursor-help font-medium` : "text-muted-foreground"
                       }`}
                     >
                       {band ? (

@@ -210,49 +210,41 @@ describe("vitals are recorded as a series", () => {
       value: 28.7,
     });
   });
-
-  it("bands every trending vital against NEWS2's own boundaries", () => {
-    const at = (code: string, v: number) =>
-      read(code, { [code]: recorded([{ value: v, at: "2026-09-06T11:00:00Z" }]) }).band!.code;
-    expect(at("pulse", 114)).toBe("raised");
-    expect(at("pulse", 45)).toBe("low");
-    expect(at("respiratory_rate", 32)).toBe("critical");
-    expect(at("temperature", 37.9)).toBe("normal");
-    // Inverted: a saturation is worse the LOWER it goes.
-    expect(at("spo2", 89)).toBe("critical");
-    expect(at("spo2", 94)).toBe("low");
-    expect(at("spo2", 98)).toBe("normal");
-  });
 });
 
 /**
- * The bands mirror the boundaries this project already encodes for triage —
- * a CSO-authored file transcribed verbatim from the research document. Two
- * copies of a clinical threshold is one too many, so this fails if they drift.
+ * NEWS2 was the first instrument reached for and it is the wrong one here: it
+ * scores DETERIORATION for escalation, not whether a pulse is normal. The
+ * triage surface still uses it; this one asks a different question.
  */
-describe("the vital bands do not drift from the triage engine", () => {
-  it("uses the same boundaries as lib/triage/constants.ts", async () => {
-    const { NEWS2_PULSE, NEWS2_RESP_RATE, NEWS2_TEMPERATURE, NEWS2_SPO2_SCALE1 } =
-      await import("@/lib/triage/constants");
-    const bounds = (code: string) =>
-      DIABETES_CATALOG.interpretation!.find((t) => t.feature === code)!
-        .bands.flatMap((b) => [b.from, b.to])
-        .filter((n): n is number => n !== undefined);
+describe("the vitals read against reference ranges, not an early-warning score", () => {
+  it("bands each vital on the ordinary adult range", () => {
+    const at = (code: string, v: number) =>
+      read(code, { [code]: recorded([{ value: v, at: "2026-09-06T11:00:00Z" }]) }).band!.code;
+    expect(at("pulse", 55)).toBe("low");
+    expect(at("pulse", 80)).toBe("normal");
+    expect(at("pulse", 114)).toBe("raised");
+    expect(at("respiratory_rate", 16)).toBe("normal");
+    expect(at("respiratory_rate", 32)).toBe("marked");
+    expect(at("temperature", 37.9)).toBe("normal");
+    expect(at("temperature", 38.4)).toBe("fever");
+    // Inverted: a saturation is worse the LOWER it goes.
+    expect(at("spo2", 89)).toBe("severe");
+    expect(at("spo2", 92)).toBe("low");
+    expect(at("spo2", 98)).toBe("normal");
+  });
 
-    // NEWS2 bands are inclusive integers; ours are half-open, so a boundary of
-    // "max 50" becomes "from 51". Compare against the open edge either way.
-    expect(bounds("pulse")).toEqual([51, 51, 91, 91, 131, 131]);
-    expect(NEWS2_PULSE.map((b) => b.max)).toContain(50);
-    expect(NEWS2_PULSE.map((b) => b.min)).toContain(91);
-    expect(NEWS2_PULSE.map((b) => b.min)).toContain(131);
+  it("says so, rather than borrowing a score's authority", () => {
+    for (const code of ["pulse", "respiratory_rate", "temperature", "spo2"]) {
+      const t = DIABETES_CATALOG.interpretation!.find((x) => x.feature === code)!;
+      expect(t.standard, code).toBe("local");
+      expect(t.citation.needsCsoInput, code).toBeTruthy();
+      expect(JSON.stringify(t), code).not.toMatch(/NEWS2/i);
+    }
+  });
 
-    expect(bounds("respiratory_rate")).toEqual([12, 12, 21, 21, 25, 25]);
-    expect(NEWS2_RESP_RATE.map((b) => b.min)).toEqual(expect.arrayContaining([12, 21, 25]));
-
-    expect(bounds("temperature")).toEqual([36.1, 36.1, 38.1, 38.1, 39.1, 39.1]);
-    expect(NEWS2_TEMPERATURE.map((b) => b.min)).toEqual(expect.arrayContaining([36.1, 38.1, 39.1]));
-
-    expect(bounds("spo2")).toEqual([92, 92, 96, 96]);
-    expect(NEWS2_SPO2_SCALE1.map((b) => b.min)).toEqual(expect.arrayContaining([92, 96]));
+  /** A saturation on oxygen is a different range, and the table says it. */
+  it("scopes the saturation range to a patient breathing air", () => {
+    expect(read("spo2", {}).note).toMatch(/breathing air/i);
   });
 });

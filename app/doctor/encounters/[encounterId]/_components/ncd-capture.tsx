@@ -38,7 +38,6 @@ import {
 } from "lucide-react";
 
 import { NcdInterpretation } from "@/app/doctor/encounters/[encounterId]/_components/ncd-interpretation";
-import { NcdVitals } from "@/app/doctor/encounters/[encounterId]/_components/ncd-vitals";
 import {
   displayAnyOf,
   displayPredicates,
@@ -53,6 +52,8 @@ import {
   evaluatePredicate,
   isDuration,
   isEntry,
+  isSeries,
+  latestReading,
 } from "@/lib/ncd/engine/evaluate";
 
 /**
@@ -360,15 +361,6 @@ export function NcdCapture({
 
   const prefilledCodes = useMemo(() => new Set(prefilled.map((i) => i.feature)), [prefilled]);
 
-  /** Does this section trend its measurements? Then it is not a grid. */
-  const trendsHere = useMemo(
-    () =>
-      interpretation.some(
-        (i) => catalog.features.find((f) => f.code === i.feature)?.valueType === "series",
-      ),
-    [interpretation, catalog.features],
-  );
-
   const set = (code: string, v: CaptureMap[string]) => {
     const next = { ...values };
     if (v === undefined) delete next[code];
@@ -422,62 +414,55 @@ export function NcdCapture({
         </div>
       ) : null}
 
-      {/*
-       * Two layouts, chosen by the DATA rather than by section name. A grid of
-       * columns only works where the bands run one way in every row — true of
-       * the glucose tests, false of a pulse (abnormal on both sides) and of a
-       * saturation (worse the lower it goes). Where a section trends its
-       * measurements, each gets a row of its own instead.
-       */}
-      {trendsHere ? (
-        <NcdVitals rows={interpretation} values={values} features={featureIndex} onSet={set} />
-      ) : null}
-      {trendsHere ? null : (
-        <NcdInterpretation
-          rows={interpretation}
-          renderInput={(code) => {
-            const f = featureIndex.get(code);
-            if (!f) return null;
-            const performable = isPerformable(f, site);
-            if (!performable) {
-              return (
-                <span className="text-muted-foreground text-caption inline-flex items-center gap-1">
-                  <CircleSlashIcon className="size-3" aria-hidden />
-                  not available here
-                </span>
-              );
-            }
+      <NcdInterpretation
+        rows={interpretation}
+        renderInput={(code) => {
+          const f = featureIndex.get(code);
+          if (!f) return null;
+          const performable = isPerformable(f, site);
+          if (!performable) {
             return (
-              <>
-                <ValueEditor feature={f} value={values[code]} onSet={(v) => set(code, v)} left />
-                {values[code] ? (
-                  <button
-                    type="button"
-                    onClick={() => set(code, undefined)}
-                    title="Clear — back to not assessed"
-                    aria-label={`Clear ${f.display}`}
-                    className={`tap text-muted-foreground hover:text-foreground rounded p-1 ${EASE} ${TAP}`}
-                  >
-                    <RotateCcwIcon className="size-3" aria-hidden />
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      set(code, { state: "unavailable", capability: f.requires ?? "site" })
-                    }
-                    title="Could not be done today"
-                    aria-label={`${f.display} — could not be done today`}
-                    className={`tap text-muted-foreground/70 hover:text-foreground rounded px-1.5 py-0.5 text-[10.5px] ${EASE} ${TAP}`}
-                  >
-                    n/a
-                  </button>
-                )}
-              </>
+              <span className="text-muted-foreground text-caption inline-flex items-center gap-1">
+                <CircleSlashIcon className="size-3" aria-hidden />
+                not available here
+              </span>
             );
-          }}
-        />
-      )}
+          }
+          // A vital is measured AGAIN, not corrected — overwriting throws away
+          // the fact that it was 160, and that fact is the trend.
+          if (f.valueType === "series") {
+            return <SeriesField feature={f} value={values[code]} onSet={(v) => set(code, v)} />;
+          }
+          return (
+            <>
+              <ValueEditor feature={f} value={values[code]} onSet={(v) => set(code, v)} left />
+              {values[code] ? (
+                <button
+                  type="button"
+                  onClick={() => set(code, undefined)}
+                  title="Clear — back to not assessed"
+                  aria-label={`Clear ${f.display}`}
+                  className={`tap text-muted-foreground hover:text-foreground rounded p-1 ${EASE} ${TAP}`}
+                >
+                  <RotateCcwIcon className="size-3" aria-hidden />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() =>
+                    set(code, { state: "unavailable", capability: f.requires ?? "site" })
+                  }
+                  title="Could not be done today"
+                  aria-label={`${f.display} — could not be done today`}
+                  className={`tap text-muted-foreground/70 hover:text-foreground rounded px-1.5 py-0.5 text-[10.5px] ${EASE} ${TAP}`}
+                >
+                  n/a
+                </button>
+              )}
+            </>
+          );
+        }}
+      />
 
       {/* One card, banded — not six cards. Elevation is a truth claim, and this
           is one protocol for one section. The divider now separates findings
@@ -1536,6 +1521,59 @@ function OptionEffects({ feature, selected }: { feature: Feature; selected: Set<
         </tbody>
       </table>
     </div>
+  );
+}
+
+/**
+ * A vital that is measured again rather than corrected.
+ *
+ * The distinction matters: overwriting a blood pressure throws away the fact
+ * that it WAS 160, and that fact is the trend. So the control appends — the
+ * field shows the latest reading, and taking another adds to the series rather
+ * than replacing it. Clearing removes the whole series, which is the only
+ * honest way to undo a measurement that should not have been recorded.
+ */
+function SeriesField({
+  feature,
+  value,
+  onSet,
+}: {
+  feature: Feature;
+  value: CaptureMap[string];
+  onSet: (v: CaptureMap[string]) => void;
+}) {
+  const [draft, setDraft] = useState("");
+  const series = value?.state === "recorded" && isSeries(value.value) ? value.value : [];
+  const latest = latestReading(series);
+
+  const add = () => {
+    const n = Number(draft);
+    if (draft.trim() === "" || !Number.isFinite(n)) return;
+    onSet({ state: "recorded", value: [...series, { value: n, at: new Date().toISOString() }] });
+    setDraft("");
+  };
+
+  return (
+    <span className="flex flex-wrap items-center gap-1.5">
+      <span className="text-foreground font-mono text-[13px] font-medium tabular-nums">
+        {latest ? latest.value : "—"}
+      </span>
+      <input
+        inputMode="decimal"
+        value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onKeyDown={(e) => e.key === "Enter" && add()}
+        onBlur={add}
+        placeholder={series.length ? "again" : "record"}
+        aria-label={`${series.length ? "New reading" : "Record"} — ${feature.display}`}
+        className="border-input bg-card ease-expo-out focus-visible:border-brand-500 focus-visible:ring-brand-500/25 w-[4.5rem] rounded-md border px-2 py-1 text-right font-mono text-[12px] tabular-nums transition-[border-color,box-shadow] duration-100 outline-none focus-visible:ring-2"
+      />
+      {series.length > 1 ? (
+        <span className="text-caption text-muted-foreground tabular-nums">
+          {series.length} readings
+        </span>
+      ) : null}
+    </span>
   );
 }
 

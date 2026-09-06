@@ -56,15 +56,27 @@ export const WHO_BMI = {
  * The bands here mirror those boundaries rather than re-deriving them, and a
  * test asserts the two agree so they cannot drift apart.
  */
-export const NEWS2_SOURCE = {
+/**
+ * The ordinary adult reference ranges — deliberately NOT NEWS2.
+ *
+ * NEWS2 is an early-warning score: it measures DETERIORATION so a ward knows
+ * when to escalate, and its bands answer "how close is this patient to needing
+ * review". A clerkship is asking a different question — "is this pulse normal"
+ * — and presenting NEWS2 points as an interpretation would read as an acuity
+ * call this surface is not making. The triage engine still uses NEWS2, where it
+ * is the right instrument.
+ *
+ * These are the conventional teaching ranges. Universally used, and no guideline
+ * was retrieved stating them, so they ship as ours.
+ */
+export const REFERENCE_RANGE = {
   standard: "local" as const,
-  version: "NEWS2 (Royal College of Physicians), as encoded in lib/triage/constants.ts",
-  title: "National Early Warning Score 2 — the boundaries this project already uses",
-  url: "https://www.rcp.ac.uk/improving-care/resources/national-early-warning-score-news-2/",
+  version: "Adult reference ranges",
+  title: "Standard adult vital-sign reference ranges — not a guideline position",
   retrieved: RETRIEVED,
   csoSigned: false,
   needsCsoInput:
-    "The BOUNDARIES are NEWS2's and are pinned to the triage constants by test. Folding its 1- and 2-point steps into one 'raised' band is a presentation choice of ours, not NEWS2's own vocabulary. CSO to ratify.",
+    "Conventional adult reference ranges, not a published guideline, and they vary between texts at the margins. A site may hold different local values. CSO to ratify.",
 };
 
 /** A measurement is a clinical claim about a body; the convention is still ours. */

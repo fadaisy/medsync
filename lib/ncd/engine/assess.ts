@@ -25,6 +25,7 @@ import type {
 } from "@/lib/ncd/catalog/schema";
 import type {
   CaptureMap,
+  CaptureReading,
   CriterionResult,
   EvalContext,
   EvalState,
@@ -221,8 +222,10 @@ export interface Interpretation {
   standard: StandardBody;
   version: string;
   bands: ResultBand[];
-  /** The recorded value, if there is one. */
+  /** The recorded value, if there is one — the latest, for a series. */
   value?: number;
+  /** Every reading, where this measure is tracked over time. */
+  series?: CaptureReading[];
   /** Which band it fell in. Undefined while nothing is recorded. */
   band?: ResultBand;
   state: EvalState;
@@ -230,6 +233,12 @@ export interface Interpretation {
   /** Column headings, where the default glucose wording does not fit. */
   toneLabels?: InterpretationTable["toneLabels"];
   citation: Citation;
+}
+
+/** Every reading, where the capture is tracked over time. */
+function seriesOf(ctx: EvalContext, code: string): CaptureReading[] | undefined {
+  const v = ctx.values[code];
+  return v?.state === "recorded" && isSeries(v.value) ? v.value : undefined;
 }
 
 /** The plain number behind a capture, whatever shape it is stored in. */
@@ -310,6 +319,7 @@ export function interpretations(catalog: NcdCatalog, ctx: EvalContext): Interpre
       version: chosen.version,
       bands: chosen.bands,
       value,
+      series: seriesOf(ctx, code),
       band: value === undefined ? undefined : bandFor(chosen.bands, value),
       state,
       note: chosen.note,
