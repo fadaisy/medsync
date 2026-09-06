@@ -584,14 +584,16 @@ export interface ResultBand {
   from?: number;
   to?: number;
   /**
-   * `diagnostic` means this band meets the standard's own threshold for
-   * diabetes. It is a display role, NOT a verdict — a single value in the
+   * `low` is hypoglycaemia — the only band on this scale that is an EMERGENCY,
+   * and the reason the surface is allowed to move for it. `diagnostic` means the
+   * value meets the standard's own threshold for diabetes. Both are display
+   * roles, NOT verdicts — a single value in the
    * diagnostic band does not diagnose anybody, and `diagnose()` remains the only
    * thing that adjudicates. The two are kept apart on purpose: confirmation
    * rules, validity caveats and the standard in force all bear on the verdict
    * and none of them bears on which band a number sits in.
    */
-  tone: "normal" | "intermediate" | "diagnostic";
+  tone: "low" | "normal" | "intermediate" | "diagnostic";
 }
 
 /**

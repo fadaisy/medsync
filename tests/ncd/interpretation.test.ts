@@ -223,8 +223,52 @@ describe("one row per test", () => {
     const rest = DIABETES_CATALOG.features.filter(
       (f) => f.section === "glycaemia" && !interpreted.has(f.code),
     );
-    // Capillary glucose and the second-sample confirmation have no published
-    // band; they are still captured, just not in the table.
-    expect(rest.map((f) => f.code)).toEqual(["capillary_glucose", "second_sample_confirms"]);
+    // Capillary glucose joined the table once it gained a hypoglycaemia band —
+    // finding a low is the thing a bedside glucose is actually for. Only the
+    // second-sample confirmation has no scale to be read on.
+    expect(rest.map((f) => f.code)).toEqual(["second_sample_confirms"]);
+  });
+});
+
+/**
+ * Hypoglycaemia is the emergency on this scale — it kills faster than
+ * hyperglycaemia and the treatment is the opposite — so it is the one band the
+ * surface is allowed to animate for.
+ */
+describe("the hypoglycaemia band", () => {
+  it("reads a low glucose as hypoglycaemia on every venous and bedside test", () => {
+    for (const code of ["fpg", "random_pg", "capillary_glucose"]) {
+      expect(of(code, { [code]: recorded(2.8) }).band, code).toMatchObject({ tone: "low" });
+      expect(of(code, { [code]: recorded(3.9) }).band!.tone, code).not.toBe("low");
+    }
+  });
+
+  it("uses ADA's in-range floor of 3.9 as the boundary", () => {
+    expect(of("fpg", { fpg: recorded(3.89) }).band!.tone).toBe("low");
+    expect(of("fpg", { fpg: recorded(3.9) }).band!.tone).toBe("normal");
+  });
+
+  /**
+   * A capillary sample cannot diagnose diabetes — the standards define their
+   * thresholds on venous plasma. Its table therefore has NO diagnostic band, and
+   * a high bedside reading says so rather than implying a diagnosis.
+   */
+  it("gives the bedside test a hypo band and no diagnostic band", () => {
+    const cap = DIABETES_CATALOG.interpretation!.find((t) => t.feature === "capillary_glucose")!;
+    expect(cap.bands.map((b) => b.tone)).toEqual(["low", "normal"]);
+    expect(of("capillary_glucose", { capillary_glucose: recorded(19) }).band!.display).toMatch(
+      /not diagnostic/i,
+    );
+    expect(cap.note).toMatch(/cannot diagnose/i);
+  });
+
+  it("leaves HbA1c and the OGTT without a low band, which neither standard defines", () => {
+    for (const code of ["hba1c", "ogtt_2h"]) {
+      const t = DIABETES_CATALOG.interpretation!.find((x) => x.feature === code)!;
+      expect(
+        t.bands.some((b) => b.tone === "low"),
+        code,
+      ).toBe(false);
+    }
   });
 });

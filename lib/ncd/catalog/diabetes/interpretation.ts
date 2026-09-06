@@ -60,6 +60,33 @@ const WHO_IGT = {
     "Impaired Glucose tolerance (IGT) Fasting plasma glucose 2–h plasma glucose* <7.0mmol/l (126mg/dl) and ≥7.8 and <11.1mmol/l (140mg/dl and 200mg/dl)",
 };
 
+/**
+ * Hypoglycaemia. ADA Table 6.4 puts the in-range floor at 3.9 mmol/L, level 1
+ * hypoglycaemia at 3.0–3.8 and level 2 — "clinically significant" — below 3.0.
+ *
+ * ONE band rather than two, on purpose: two hypo columns would sit empty on
+ * every row that has no low band (HbA1c, the OGTT) and buy a distinction the
+ * alert already makes in words. The level-2 threshold is carried in the alert
+ * and the note, where it changes what someone does.
+ */
+const ADA_HYPO = {
+  standard: "ADA" as const,
+  version: "Standards of Care in Diabetes, Section 6 (Table 6.4)",
+  title: "6. Glycemic Goals and Hypoglycemia",
+  url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC10725808/",
+  retrieved: RETRIEVED,
+  csoSigned: false,
+  quote:
+    "TBR: % of readings and time 54–69 mg/dL (3.0–3.8 mmol/L) Level 1 hypoglycemia … TBR: % of readings and time <54 mg/dL (<3.0 mmol/L) Level 2 hypoglycemia",
+};
+
+const low = (): ResultBand => ({
+  code: "low",
+  display: "Hypoglycaemia",
+  to: 3.9,
+  tone: "low",
+});
+
 const normal = (to: number, display = "Not diabetes"): ResultBand => ({
   code: "normal",
   display,
@@ -83,7 +110,8 @@ export const INTERPRETATION: InterpretationTable[] = [
     version: "Standards of Care in Diabetes—2026",
     citation: ADA_PREDIABETES,
     bands: [
-      normal(5.6),
+      low(),
+      { ...normal(5.6), from: 3.9 },
       {
         code: "intermediate",
         display: "Prediabetes (IFG)",
@@ -102,7 +130,8 @@ export const INTERPRETATION: InterpretationTable[] = [
     citation: WHO_IFG,
     note: "WHO keeps the impaired-fasting-glucose cut-point at 6.1 mmol/L, having considered 5.6 and declined it.",
     bands: [
-      normal(6.1),
+      low(),
+      { ...normal(6.1), from: 3.9 },
       {
         code: "intermediate",
         display: "Impaired fasting glucose",
@@ -189,6 +218,38 @@ export const INTERPRETATION: InterpretationTable[] = [
     version: "Standards of Care in Diabetes—2026",
     citation: ADA_2026_DX,
     note: "A random glucose has no intermediate band — below the threshold it excludes nothing, and a fasting glucose or HbA1c is still needed.",
-    bands: [normal(11.1, "Not diagnostic — does not exclude diabetes"), diagnostic(11.1)],
+    bands: [
+      low(),
+      { ...normal(11.1, "Not diagnostic — does not exclude diabetes"), from: 3.9 },
+      diagnostic(11.1),
+    ],
+  },
+
+  /* ── capillary glucose — the bedside test, and what it can honestly say ── */
+  {
+    /**
+     * A capillary sample CANNOT diagnose diabetes: the standards define the
+     * thresholds on venous plasma, and this catalog's criteria say so. What a
+     * bedside glucose is genuinely for is finding a hypo, which is why it gets a
+     * table at all and why that table has no diagnostic band.
+     *
+     * The upper band is therefore open and says what it means — not low, and not
+     * a diagnosis either.
+     */
+    id: "capillary_hypo",
+    feature: "capillary_glucose",
+    standard: "ADA",
+    version: "Standards of Care in Diabetes, Section 6",
+    citation: ADA_HYPO,
+    note: "A capillary glucose can find a hypoglycaemia but cannot diagnose diabetes — the thresholds are defined on venous plasma.",
+    bands: [
+      low(),
+      {
+        code: "normal",
+        display: "Not low — not diagnostic either",
+        from: 3.9,
+        tone: "normal",
+      },
+    ],
   },
 ];

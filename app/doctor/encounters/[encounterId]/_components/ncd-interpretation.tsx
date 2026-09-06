@@ -2,6 +2,7 @@
 
 import type { Interpretation } from "@/lib/ncd/engine/assess";
 import type { ReactNode } from "react";
+import { AlertTriangleIcon } from "lucide-react";
 
 /**
  * The glycaemic tests, captured INSIDE the scale that reads them.
@@ -33,10 +34,11 @@ import type { ReactNode } from "react";
  * profile still reads "not yet established" — and both are true at once.
  */
 
-const COLUMNS = ["normal", "intermediate", "diagnostic"] as const;
+const COLUMNS = ["low", "normal", "intermediate", "diagnostic"] as const;
 type Tone = (typeof COLUMNS)[number];
 
 const HEAD: Record<Tone, string> = {
+  low: "text-red-700 dark:text-red-400",
   normal: "text-brand-700 dark:text-brand-300",
   intermediate: "text-emerald-700 dark:text-emerald-400",
   diagnostic: "text-red-700 dark:text-red-400",
@@ -44,15 +46,28 @@ const HEAD: Record<Tone, string> = {
 
 /** The occupied cell. Never fill alone — the words beside it carry the meaning. */
 const ON: Record<Tone, string> = {
+  low: "bg-red-100 text-red-900 dark:bg-red-900/60 dark:text-red-100",
   normal: "bg-brand-100 text-brand-900 dark:bg-brand-900/50 dark:text-brand-100",
   intermediate: "bg-emerald-50 text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200",
   diagnostic: "bg-red-100 text-red-900 dark:bg-red-900/50 dark:text-red-100",
 };
 
 const LABEL: Record<Tone, string> = {
+  low: "Hypoglycaemia",
   normal: "Not diabetes",
   intermediate: "Intermediate",
   diagnostic: "Diabetes range",
+};
+
+/**
+ * The input's own colour, once there is a value to read. The clinician's eye is
+ * on the field they just typed in, not on the row it belongs to.
+ */
+const FIELD: Record<Tone, string> = {
+  low: "text-red-700 dark:text-red-400",
+  normal: "text-brand-800 dark:text-brand-200",
+  intermediate: "text-emerald-800 dark:text-emerald-300",
+  diagnostic: "text-red-700 dark:text-red-400",
 };
 
 /** "< 5.6", "5.6 – 7.0", "≥ 7.0" — an open end reads as open. */
@@ -74,6 +89,7 @@ export function NcdInterpretation({
 }) {
   if (!rows.length) return null;
   const first = rows[0]!;
+  const hypos = rows.filter((r) => r.band?.tone === "low");
 
   return (
     <section className="border-border bg-card overflow-hidden rounded-xl border shadow-xs">
@@ -88,8 +104,44 @@ export function NcdInterpretation({
         </span>
       </header>
 
+      {/*
+       * The one moment this surface is allowed to move.
+       *
+       * Hypoglycaemia is the emergency on this scale: it kills faster than
+       * hyperglycaemia and its treatment is the opposite, so a clinician reading
+       * a glucose of 2.8 must not scan past it. The design system permits motion
+       * that carries meaning and forbids it otherwise — this is the case it was
+       * written for, and it is the only animation in the module.
+       *
+       * The pulse is reduced-motion gated at the utility, and the words carry
+       * the message without it.
+       */}
+      {hypos.length ? (
+        <div
+          role="alert"
+          className="flex flex-wrap items-center gap-x-2 gap-y-1 border-b border-red-500/30 bg-red-50 px-3.5 py-2 dark:bg-red-950/40"
+        >
+          <span className="pulse-dot inline-flex shrink-0 items-center text-red-600 dark:text-red-400">
+            <AlertTriangleIcon className="size-4" aria-hidden />
+          </span>
+          <span className="text-body-s font-medium text-red-900 dark:text-red-200">
+            Hypoglycaemia
+          </span>
+          <span className="text-caption text-red-800/90 dark:text-red-300/90">
+            {hypos.map((h) => `${h.display} ${h.value} ${h.unit ?? ""}`.trim()).join(" · ")} — treat
+            now. Below 3.0 mmol/L is ADA level 2, clinically significant.
+          </span>
+        </div>
+      ) : null}
+
       <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-left">
+        <table className="w-full table-fixed border-collapse text-left">
+          <colgroup>
+            <col className="w-[30%]" />
+            {COLUMNS.map((c) => (
+              <col key={c} />
+            ))}
+          </colgroup>
           <thead>
             <tr className="border-border/60 border-b">
               <th className="text-muted-foreground text-caption px-3.5 py-1.5 font-medium">Test</th>
@@ -109,7 +161,16 @@ export function NcdInterpretation({
                   <span className="text-body-s text-foreground block font-medium">
                     {row.display}
                   </span>
-                  <span className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+                  {/* The editor sets its own text colour, so the reading has to
+                      override it — the eye is on the field just typed in, not on
+                      the row it belongs to. */}
+                  <span
+                    className={`mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 ${
+                      row.band
+                        ? `${FIELD[row.band.tone]} [&_input]:!font-medium [&_input]:!text-current`
+                        : ""
+                    }`}
+                  >
                     {renderInput(row.feature)}
                     {row.unit ? (
                       <span className="text-muted-foreground font-mono text-[10px]">
