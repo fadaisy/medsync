@@ -1,4 +1,5 @@
 import type { PatientSummary } from "@/lib/doctor/patient-access";
+import type { CaptureMap } from "@/lib/ncd/engine/evaluate";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { eq } from "drizzle-orm";
@@ -13,8 +14,10 @@ import { loadEncounterOrders } from "@/lib/encounter/orders";
 import { loadEncounterRecord } from "@/lib/encounter/record";
 import { toEncounterScope } from "@/lib/encounter/workspace-scope";
 import { DIABETES_CATALOG, DISTRICT_SITE, REFERRAL_SITE } from "@/lib/ncd/catalog/diabetes";
+import { loadNcdDraft } from "@/lib/ncd/draft";
 import { InvestigationsPanel } from "./_components/investigations-panel";
 import { NcdClerkship } from "./_components/ncd-clerkship";
+import { saveNcdDraftAction } from "./actions";
 
 export const metadata: Metadata = { title: "Encounter · Doctor · MedSync" };
 export const dynamic = "force-dynamic";
@@ -36,6 +39,17 @@ export default async function DoctorEncounterPage({ params }: PageProps) {
         />
       </Wrap>
     );
+  }
+
+  /**
+   * Bound to this encounter, so the action the client can call cannot be aimed
+   * at another one. It still re-checks the caller's scope on the server — a
+   * server action is a public endpoint and the closure is convenience, not
+   * security.
+   */
+  async function saveDraft(values: CaptureMap) {
+    "use server";
+    return saveNcdDraftAction(encounterId, values);
   }
 
   const [enc] = await db
@@ -85,6 +99,11 @@ export default async function DoctorEncounterPage({ params }: PageProps) {
 
   // W4 — investigations & results visibility (read-only; reuses the spine).
   const orders = await loadEncounterOrders(encounterId);
+  // Undefined when the flag is off, the migration is un-applied, or there is
+  // simply no draft — all three are the same honest empty state to the form.
+  const draft = ncdClerkshipLive()
+    ? await loadNcdDraft(encounterId, scope.userId, DIABETES_CATALOG)
+    : undefined;
 
   return (
     <div className="bg-background text-foreground relative isolate flex min-h-svh flex-col">
@@ -119,15 +138,20 @@ export default async function DoctorEncounterPage({ params }: PageProps) {
             criteria carry their own sign-off state, and the profile shows a
             gated-dark notice while any citation is unratified — so the surface
             can be reviewed without any part of it claiming to be ratified
-            clinical advice. Nothing is persisted yet: the capture shape settles
-            in the next increment and will write to
-            clinical_documentation.section_data, which is JSONB and needs no
-            migration. Until then the honest empty state stands. */}
+            clinical advice.
+
+            The working draft autosaves to the MUTABLE `clerkship_drafts`
+            scratchpad, not to clinical_documentation: that table is append-only
+            and audited, and writing a version every time a clinician changes tab
+            would turn the clinical timeline into noise. The explicit clinical
+            save — the one that does write a version — is the next increment. */}
         {ncdClerkshipLive() ? (
           <NcdClerkship
             catalog={DIABETES_CATALOG}
             site={REFERRAL_SITE}
             siteOptions={[REFERRAL_SITE, DISTRICT_SITE]}
+            initialValues={draft}
+            onSave={saveDraft}
           />
         ) : (
           <section className="border-border bg-card flex flex-col gap-2 rounded-xl border p-5 shadow-xs">

@@ -2,12 +2,79 @@
 
 import type { NcdCatalog, SiteProfile } from "@/lib/ncd/catalog/schema";
 import type { CaptureMap } from "@/lib/ncd/engine/evaluate";
-import { useMemo, useState } from "react";
-import { ActivityIcon, ArrowLeftIcon, ArrowRightIcon } from "lucide-react";
+import { useCallback, useMemo, useRef, useState } from "react";
+import {
+  ActivityIcon,
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  CheckIcon,
+  LoaderIcon,
+  RotateCcwIcon,
+  TriangleAlertIcon,
+} from "lucide-react";
 
 import { buildProfile } from "@/lib/ncd/profile";
 import { NcdCapture, NcdSectionRail, sectionProgress } from "./ncd-capture";
 import { NcdProfileView } from "./ncd-profile";
+
+type SaveState =
+  | { kind: "idle" }
+  | { kind: "saving" }
+  | { kind: "saved"; at: number }
+  | { kind: "failed"; error?: string };
+
+/**
+ * What happened to the last autosave, said plainly.
+ *
+ * A save that silently failed is worse than one that never ran: the clinician
+ * believes their work is safe and closes the laptop. So a failure is stated, in
+ * words, with the one thing that fixes it — and it stays on screen until a save
+ * succeeds rather than fading like a toast.
+ */
+function SaveStatus({ state, onRetry }: { state: SaveState; onRetry: () => void }) {
+  if (state.kind === "idle") return null;
+  if (state.kind === "saving") {
+    return (
+      <p className="text-muted-foreground text-caption mt-2 inline-flex items-center gap-1.5 px-2.5">
+        <LoaderIcon className="size-3 animate-spin" aria-hidden />
+        Saving…
+      </p>
+    );
+  }
+  if (state.kind === "saved") {
+    return (
+      <p className="text-muted-foreground text-caption mt-2 inline-flex items-center gap-1.5 px-2.5">
+        <CheckIcon className="size-3 text-emerald-600 dark:text-emerald-400" aria-hidden />
+        Draft saved{" "}
+        <span className="font-mono tabular-nums">
+          {new Date(state.at).toTimeString().slice(0, 5)}
+        </span>
+      </p>
+    );
+  }
+  return (
+    <div
+      role="status"
+      className="text-caption mt-2 flex flex-col gap-1 rounded-lg border border-amber-400/50 bg-amber-50 px-2.5 py-2 text-amber-900 dark:bg-amber-950/40 dark:text-amber-200"
+    >
+      <span className="inline-flex items-center gap-1.5 font-medium">
+        <TriangleAlertIcon className="size-3 shrink-0" aria-hidden />
+        Not saved
+      </span>
+      <span className="text-amber-800/90 dark:text-amber-300/90">
+        {state.error ?? "The draft did not save."} Nothing is lost — it is still on this screen.
+      </span>
+      <button
+        type="button"
+        onClick={onRetry}
+        className="tap text-caption inline-flex w-fit items-center gap-1 rounded px-1.5 py-0.5 font-medium underline underline-offset-2"
+      >
+        <RotateCcwIcon className="size-3" aria-hidden />
+        Try again
+      </button>
+    </div>
+  );
+}
 
 /**
  * The NCD clerkship workspace.
@@ -32,6 +99,7 @@ export function NcdClerkship({
   initialValues,
   established,
   onChange,
+  onSave,
   siteOptions,
 }: {
   catalog: NcdCatalog;
@@ -40,6 +108,11 @@ export function NcdClerkship({
   /** The patient already carries the diagnosis — skips re-adjudication. */
   established?: boolean;
   onChange?: (values: CaptureMap) => void;
+  /**
+   * Persist the working draft. Called when the clinician LEAVES a section —
+   * see `leave` below for why that moment and not every keystroke.
+   */
+  onSave?: (values: CaptureMap) => Promise<{ ok: boolean; error?: string }>;
   /**
    * Preview only. In production the site's capability profile comes from the
    * hospital's configuration — it is a property of the building, not a choice
@@ -69,6 +142,48 @@ export function NcdClerkship({
   const update = (v: CaptureMap) => {
     setValues(v);
     onChange?.(v);
+  };
+
+  /**
+   * Autosave on LEAVING a section, which is the moment the clinician has
+   * finished a thought — not on every keystroke, which would put a write behind
+   * every digit of a glucose, and not on a timer, which fires mid-sentence.
+   *
+   * Navigation does NOT wait for the round trip. Blocking a tab change on the
+   * network would make the form feel broken on a slow link, and nothing is at
+   * risk by moving on: the values live in this component either way. What the
+   * clinician is owed is the TRUTH about whether the save landed, which the
+   * status line beside the rail gives them, with a retry when it did not.
+   *
+   * Clicking through three tabs quickly fires three saves. Last write wins at
+   * the database (the draft is a per-author upsert), and a sequence number keeps
+   * a slow earlier response from overwriting a newer verdict on screen.
+   */
+  const [save, setSave] = useState<SaveState>({ kind: "idle" });
+  const seq = useRef(0);
+
+  const persist = useCallback(
+    async (v: CaptureMap) => {
+      if (!onSave) return;
+      const mine = ++seq.current;
+      setSave({ kind: "saving" });
+      try {
+        const r = await onSave(v);
+        if (mine !== seq.current) return; // a newer save has already answered
+        setSave(r.ok ? { kind: "saved", at: Date.now() } : { kind: "failed", error: r.error });
+      } catch {
+        if (mine !== seq.current) return;
+        setSave({ kind: "failed", error: "Could not reach the server." });
+      }
+    },
+    [onSave],
+  );
+
+  /** Move to another section, saving what was just done on the way out. */
+  const leave = (id: string) => {
+    if (id === activeId) return;
+    setActiveId(id);
+    void persist(values);
   };
 
   return (
@@ -113,7 +228,8 @@ export function NcdClerkship({
       <div className="grid grid-cols-1 gap-3 lg:h-[calc(100svh-9rem)] lg:max-h-[52rem] lg:min-h-[32rem] lg:grid-cols-[13rem_minmax(0,1fr)_24rem]">
         {/* Rail — the whole protocol, so one-at-a-time never means hidden. */}
         <div className="border-border bg-card overflow-x-auto rounded-xl border p-1.5 shadow-xs lg:overflow-x-hidden lg:overflow-y-auto">
-          <NcdSectionRail progress={progress} activeId={activeId} onPick={setActiveId} />
+          <NcdSectionRail progress={progress} activeId={activeId} onPick={leave} />
+          {onSave ? <SaveStatus state={save} onRetry={() => void persist(values)} /> : null}
         </div>
 
         {/* One section, plus its own step controls. */}
@@ -130,19 +246,11 @@ export function NcdClerkship({
 
           {/* Stepping is navigation, done many times per encounter — no motion. */}
           <div className="flex shrink-0 items-center gap-2">
-            <StepButton
-              dir="prev"
-              label={prev?.display}
-              onClick={() => prev && setActiveId(prev.id)}
-            />
+            <StepButton dir="prev" label={prev?.display} onClick={() => prev && leave(prev.id)} />
             <span className="text-muted-foreground mx-auto font-mono text-[10px] tabular-nums">
               {index + 1} / {progress.length}
             </span>
-            <StepButton
-              dir="next"
-              label={next?.display}
-              onClick={() => next && setActiveId(next.id)}
-            />
+            <StepButton dir="next" label={next?.display} onClick={() => next && leave(next.id)} />
           </div>
         </div>
 
