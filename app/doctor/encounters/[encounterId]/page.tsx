@@ -15,7 +15,7 @@ import { loadEncounterRecord } from "@/lib/encounter/record";
 import { toEncounterScope } from "@/lib/encounter/workspace-scope";
 import { DIABETES_CATALOG, DISTRICT_SITE, REFERRAL_SITE } from "@/lib/ncd/catalog/diabetes";
 import { loadNcdDraft } from "@/lib/ncd/draft";
-import { loadLatestVitals } from "@/lib/ncd/vitals";
+import { initialCapture, loadLatestVitals } from "@/lib/ncd/vitals";
 import { InvestigationsPanel } from "./_components/investigations-panel";
 import { NcdClerkship } from "./_components/ncd-clerkship";
 import { saveNcdDraftAction } from "./actions";
@@ -152,7 +152,7 @@ export default async function DoctorEncounterPage({ params }: PageProps) {
             catalog={DIABETES_CATALOG}
             site={REFERRAL_SITE}
             siteOptions={[REFERRAL_SITE, DISTRICT_SITE]}
-            initialValues={draft}
+            initialValues={initialCapture(vitals?.values, draft)}
             onSave={saveDraft}
             pulled={
               vitals?.vitals.length

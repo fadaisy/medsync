@@ -39,7 +39,10 @@ vi.mock("@/db", () => ({
 }));
 
 const live = vi.hoisted(() => ({ value: true }));
-vi.mock("@/lib/encounter/feature", () => ({ clerkshipDraftsLive: () => live.value }));
+vi.mock("@/lib/encounter/feature", () => ({
+  clerkshipDraftsLive: () => live.value,
+  encounterEngineLive: () => true,
+}));
 vi.mock("server-only", () => ({}));
 
 const { loadNcdDraft, saveNcdDraft } = await import("@/lib/ncd/draft");
@@ -148,5 +151,39 @@ describe("saving a draft", () => {
       false,
     );
     expect(inserted).toHaveLength(0);
+  });
+});
+
+/**
+ * What the form opens with. The prefill is a convenience; the draft is the
+ * clinician's own work, and the difference between the two is the difference
+ * between a helpful form and one that argues with you.
+ */
+describe("prefill and draft, merged", () => {
+  it("carries the record's vitals in when there is no draft", async () => {
+    const { initialCapture } = await import("@/lib/ncd/vitals");
+    expect(initialCapture({ bp_systolic: recorded(148) }, undefined)).toEqual({
+      bp_systolic: recorded(148),
+    });
+  });
+
+  it("lets the author's own value win over an older reading", async () => {
+    const { initialCapture } = await import("@/lib/ncd/vitals");
+    expect(initialCapture({ bp_systolic: recorded(148) }, { bp_systolic: recorded(132) })).toEqual({
+      bp_systolic: recorded(132),
+    });
+  });
+
+  it("keeps both where they do not collide", async () => {
+    const { initialCapture } = await import("@/lib/ncd/vitals");
+    expect(initialCapture({ pulse: recorded(96) }, { fpg: recorded(7.4) })).toEqual({
+      pulse: recorded(96),
+      fpg: recorded(7.4),
+    });
+  });
+
+  it("is an ordinary empty state when there is neither", async () => {
+    const { initialCapture } = await import("@/lib/ncd/vitals");
+    expect(initialCapture(undefined, undefined)).toEqual({});
   });
 });

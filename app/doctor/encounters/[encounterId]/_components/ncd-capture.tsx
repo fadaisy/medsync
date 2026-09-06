@@ -338,24 +338,26 @@ export function NcdCapture({
    * only those the clinician has not already answered themselves. A value they
    * typed is theirs and is never overwritten by an older reading from the ward.
    */
-  const offer = useMemo(() => {
-    if (!pulled?.items.length) return undefined;
+  /**
+   * Which of this section's values are still exactly what was carried over.
+   *
+   * Compared by value rather than tracked by a flag, so the marker disappears
+   * the moment the clinician changes the number — at which point it is theirs
+   * and the provenance would be a lie.
+   */
+  const prefilled = useMemo(() => {
+    if (!pulled?.items.length) return [];
     const here = new Set(
       catalog.features.filter((f) => f.section === sectionId).map((f) => f.code),
     );
-    const items = pulled.items.filter((i) => here.has(i.feature) && !values[i.feature]);
-    return items.length ? items : undefined;
+    return pulled.items.filter((i) => {
+      if (!here.has(i.feature)) return false;
+      const current = values[i.feature];
+      return current?.state === "recorded" && current.value === i.value;
+    });
   }, [pulled, catalog.features, sectionId, values]);
 
-  const acceptPulled = () => {
-    if (!offer || !pulled) return;
-    const next = { ...values };
-    for (const item of offer) {
-      const v = pulled.values[item.feature];
-      if (v) next[item.feature] = v;
-    }
-    onChange(next);
-  };
+  const prefilledCodes = useMemo(() => new Set(prefilled.map((i) => i.feature)), [prefilled]);
 
   const set = (code: string, v: CaptureMap[string]) => {
     const next = { ...values };
@@ -384,33 +386,29 @@ export function NcdCapture({
       </header>
 
       {/*
-       * Offered, never assumed. Somebody else measured these, at another time,
-       * possibly in another room — and the clinician signing this clerkship is
-       * accountable for the numbers in it. So the surface says what exists, when
-       * it was taken and where it came from, and fills the fields only when
-       * asked. An hour-old triage blood pressure is often exactly what you want;
-       * it is never something a form should decide for you.
+       * Prefilled, and SAID SO.
+       *
+       * The values are already in the fields — a clinician should not retype a
+       * blood pressure the triage nurse took twenty minutes ago. But somebody
+       * else measured them, at another time, and the person signing this
+       * clerkship is accountable for every number in it. So each prefilled row
+       * carries where it came from until it is edited, and this line says it
+       * once at the top: these are not yours yet, check them.
        */}
-      {offer ? (
-        <div className="border-brand-200 bg-brand-50/60 dark:border-brand-900/50 dark:bg-brand-950/25 mb-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-xl border px-3 py-2.5">
+      {prefilled.length ? (
+        <div className="border-brand-200 bg-brand-50/60 dark:border-brand-900/50 dark:bg-brand-950/25 mb-3 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl border px-3 py-2.5">
           <ClipboardListIcon
             className="text-brand-600 dark:text-brand-400 size-4 shrink-0"
             aria-hidden
           />
           <span className="text-body-s text-foreground font-medium">
-            {pulled?.anyFromTriage ? "Recorded at triage" : "Already on the record"}
-          </span>
-          <span className="text-caption text-muted-foreground min-w-0 flex-1">
-            {offer.map((i) => `${i.display} ${i.value}`).join(" · ")}
+            {pulled?.anyFromTriage ? "Filled from triage" : "Filled from the record"}
             {pulled?.latestAt ? ` · ${pulled.latestAt}` : ""}
           </span>
-          <button
-            type="button"
-            onClick={acceptPulled}
-            className={`tap text-caption bg-brand-600 hover:bg-brand-700 shrink-0 rounded-md px-2.5 py-1 font-medium text-white ${EASE} ${TAP}`}
-          >
-            Use these
-          </button>
+          <span className="text-caption text-muted-foreground min-w-0 flex-1">
+            {prefilled.length} {prefilled.length === 1 ? "value" : "values"} carried over. Check
+            them — they are somebody else&apos;s measurement until you change or confirm them.
+          </span>
         </div>
       ) : null}
 
@@ -476,6 +474,13 @@ export function NcdCapture({
                 site={site}
                 depth={0}
                 value={values[finding.code]}
+                carriedOver={
+                  prefilledCodes.has(finding.code)
+                    ? (pulled?.anyFromTriage ?? false)
+                      ? "triage"
+                      : "record"
+                    : undefined
+                }
                 onSet={(v) => set(finding.code, v)}
               />
               {properties.length ? (
@@ -861,6 +866,7 @@ function FeatureRow({
   onSet,
   depth = 0,
   parentDisplay,
+  carriedOver,
 }: {
   feature: Feature;
   site: SiteProfile;
@@ -869,6 +875,8 @@ function FeatureRow({
   /** 0 finding, 1 property, 2 property of a property. */
   depth?: number;
   parentDisplay?: string;
+  /** Still exactly the value carried over from elsewhere, not yet the author's. */
+  carriedOver?: "triage" | "record";
 }) {
   const performable = isPerformable(feature, site);
   const recorded = value?.state === "recorded" ? value.value : undefined;
@@ -945,6 +953,12 @@ function FeatureRow({
               </span>
             ) : null}
           </span>
+          {/* Whose number this is, until the clinician makes it theirs. */}
+          {carriedOver ? (
+            <span className="text-caption text-brand-700/80 dark:text-brand-400/80">
+              from {carriedOver === "triage" ? "triage" : "the record"}
+            </span>
+          ) : null}
           {feature.unit && feature.valueType !== "duration" ? (
             <span className="text-muted-foreground font-mono text-[10px]">
               {feature.unit}

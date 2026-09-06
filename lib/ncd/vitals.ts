@@ -9,20 +9,25 @@ import { encounterEngineLive } from "@/lib/encounter/feature";
 import { logger } from "@/lib/logger";
 
 /**
- * Vitals already on the record, offered to the clerkship rather than re-asked.
+ * Vitals already on the record, carried into the clerkship rather than re-asked.
  *
  * A triaged patient has a blood pressure, a pulse and a temperature in
  * `clinical_observations` before the doctor opens this form. Asking for them a
  * second time is how a form gets routed around — and worse, how two different
  * numbers for the same patient end up in one chart.
  *
- * ── Offered, never assumed ───────────────────────────────────────────────────
- * These are NOT written into the capture automatically. Somebody else measured
- * them, at another time, possibly hours ago in another room — and the clinician
- * signing this clerkship is the one accountable for the numbers in it. So the
- * surface shows what exists, says when and where it came from, and fills the
- * fields only when asked. An hour-old triage blood pressure is often exactly
- * what you want; it is never something the form should decide for you.
+ * ── Prefilled, and said so ───────────────────────────────────────────────────
+ * These ARE written into the capture on load: nobody should retype a blood
+ * pressure the triage nurse took twenty minutes ago.
+ *
+ * But somebody else measured them, at another time, possibly in another room,
+ * and the clinician signing this clerkship is accountable for every number in
+ * it. So provenance travels with the value and the surface keeps saying it:
+ * `at` carries the moment it was taken, and each row reads "from triage" until
+ * the clinician changes the number — at which point it is theirs and the label
+ * would be a lie. The section header says it once more at the top.
+ *
+ * The draft always wins over a prefill; see `initialCapture`.
  */
 
 /** Observation kinds in `clinical_observations` mapped to catalog features. */
@@ -48,7 +53,7 @@ export interface PulledVital {
 
 export interface VitalsPull {
   vitals: PulledVital[];
-  /** The values, ready to merge into the capture if the clinician accepts. */
+  /** The values, keyed by feature, each carrying when it was taken. */
   values: CaptureMap;
   latestAt?: Date;
   anyFromTriage: boolean;
@@ -69,8 +74,8 @@ const LABELS: Record<string, string> = {
  * The most recent ACTIVE observation of each kind for this patient.
  *
  * `corrected` rows are excluded by the state filter: a corrected observation is
- * one somebody has already said was wrong, and offering it back would undo their
- * correction.
+ * one somebody has already said was wrong, and carrying it forward would undo
+ * their correction.
  */
 export async function loadLatestVitals(patientUserId: string): Promise<VitalsPull> {
   const empty: VitalsPull = { vitals: [], values: {}, anyFromTriage: false };
@@ -140,4 +145,24 @@ export async function loadLatestVitals(patientUserId: string): Promise<VitalsPul
     logger.warn("ncd.vitals.load_failed", { error: String(error) });
     return empty;
   }
+}
+
+/**
+ * What the form opens with: the record's vitals, with the author's own draft
+ * laid over the top.
+ *
+ * THE DRAFT ALWAYS WINS. A value the clinician typed and saved is theirs, and an
+ * older reading from the ward must never overwrite it — that is the difference
+ * between a helpful prefill and a form that argues with you.
+ *
+ * One rough edge, stated rather than hidden: a value the clinician deliberately
+ * CLEARED is simply absent from the draft, which is indistinguishable from never
+ * having answered it — so it prefills again next time. Recoverable in one click,
+ * and the alternative is a tombstone per field.
+ */
+export function initialCapture(
+  pulled: CaptureMap | undefined,
+  draft: CaptureMap | undefined,
+): CaptureMap {
+  return { ...(pulled ?? {}), ...(draft ?? {}) };
 }
