@@ -254,3 +254,18 @@ export function initialCapture(
 ): CaptureMap {
   return { ...(pulled ?? {}), ...(draft ?? {}) };
 }
+
+/**
+ * The patient record stores whatever the intake form captured; the catalog
+ * offers three options.
+ *
+ * Anything not clearly male or female becomes `other` rather than being
+ * guessed — and `other` selects NO waist table, so the surface says it cannot
+ * classify instead of quietly picking one sex's cut-points.
+ */
+export function normaliseSex(raw: string): string {
+  const v = raw.trim().toLowerCase();
+  if (v.startsWith("m")) return "male";
+  if (v.startsWith("f")) return "female";
+  return "other";
+}

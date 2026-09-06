@@ -218,7 +218,16 @@ export function NcdInterpretation({
   return (
     <div className="flex flex-col gap-3">
       {groups.map((g) => (
-        <InterpretationTable key={g.key} rows={g.rows} head={g.head} renderInput={renderInput} />
+        <InterpretationTable
+          key={g.key}
+          rows={g.rows}
+          head={g.head}
+          /* Every tracked measure, so the trend dialog can offer the rest for
+             comparison — a respiratory rate is read against the pulse beside it,
+             and those two can live in different tables. */
+          trending={rows.filter((r) => (r.series?.length ?? 0) > 1)}
+          renderInput={renderInput}
+        />
       ))}
     </div>
   );
@@ -227,10 +236,12 @@ export function NcdInterpretation({
 function InterpretationTable({
   rows,
   head,
+  trending,
   renderInput,
 }: {
   rows: Interpretation[];
   head: Record<Tone, string>;
+  trending: Interpretation[];
   renderInput: (featureCode: string) => ReactNode;
 }) {
   /** This table's palette — its own where it declares one, the default otherwise. */
@@ -349,7 +360,7 @@ function InterpretationTable({
                   {row.series && row.series.length > 1 ? (
                     <>
                       <Sparkline series={row.series} color={colorOf(row, row.band)} />
-                      <NcdTrend row={row} colorOf={(b) => colorOf(row, b)} />
+                      <NcdTrend row={row} siblings={trending} colorOf={(b) => colorOf(row, b)} />
                     </>
                   ) : null}
                 </th>

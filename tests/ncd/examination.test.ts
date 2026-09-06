@@ -323,3 +323,25 @@ describe("BMI is captured where it is interpreted", () => {
     }
   });
 });
+
+/**
+ * Sex is read from the chart rather than asked for. The waist bands are
+ * sex-specific and WHO's anaemia cutoffs are too, so the alternative is asking a
+ * clinician for something the record already knows.
+ */
+describe("sex comes from the patient record", () => {
+  it("normalises whatever the intake captured onto the three options", async () => {
+    const { normaliseSex } = await import("@/lib/ncd/vitals");
+    expect(normaliseSex("Male")).toBe("male");
+    expect(normaliseSex("f")).toBe("female");
+    expect(normaliseSex("FEMALE")).toBe("female");
+    // Anything unclear becomes `other` rather than being guessed — and `other`
+    // selects NO waist table, so the surface says it cannot classify instead of
+    // picking a scale.
+    for (const raw of ["", "unknown", "intersex", "prefer not to say"]) {
+      expect(normaliseSex(raw), raw).toBe("other");
+    }
+    const opts = DIABETES_CATALOG.features.find((f) => f.code === "sex")!.options!;
+    expect(opts.map((o) => o.value)).toEqual(["female", "male", "other"]);
+  });
+});

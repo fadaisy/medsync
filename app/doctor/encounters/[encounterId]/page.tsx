@@ -15,7 +15,7 @@ import { loadEncounterRecord } from "@/lib/encounter/record";
 import { toEncounterScope } from "@/lib/encounter/workspace-scope";
 import { DIABETES_CATALOG, DISTRICT_SITE, REFERRAL_SITE } from "@/lib/ncd/catalog/diabetes";
 import { loadNcdDraft } from "@/lib/ncd/draft";
-import { initialCapture, loadLatestVitals } from "@/lib/ncd/vitals";
+import { initialCapture, loadLatestVitals, normaliseSex } from "@/lib/ncd/vitals";
 import { InvestigationsPanel } from "./_components/investigations-panel";
 import { NcdClerkship } from "./_components/ncd-clerkship";
 import { saveNcdDraftAction } from "./actions";
@@ -105,6 +105,19 @@ export default async function DoctorEncounterPage({ params }: PageProps) {
   const vitals = ncdClerkshipLive()
     ? await loadLatestVitals(enc.patientUserId, DIABETES_CATALOG)
     : undefined;
+  /**
+   * Demographics the chart already holds. The waist bands are sex-specific and
+   * WHO's anaemia cutoffs are too, so the alternative to reading it here is
+   * asking a clinician for something the record knows — which is how a form
+   * earns the reputation of wasting time.
+   *
+   * Age is NOT carried across: nothing in this catalog reads it yet, and a field
+   * no rule consults is a question with no consequence. It joins the day a band
+   * needs it (WHO's anaemia thresholds differ for children).
+   */
+  const demographics: CaptureMap = patient?.sex
+    ? { sex: { state: "recorded", value: normaliseSex(patient.sex) } }
+    : {};
   const draft = ncdClerkshipLive()
     ? await loadNcdDraft(encounterId, scope.userId, DIABETES_CATALOG)
     : undefined;
@@ -154,7 +167,7 @@ export default async function DoctorEncounterPage({ params }: PageProps) {
             catalog={DIABETES_CATALOG}
             site={REFERRAL_SITE}
             siteOptions={[REFERRAL_SITE, DISTRICT_SITE]}
-            initialValues={initialCapture(vitals?.values, draft)}
+            initialValues={initialCapture({ ...demographics, ...(vitals?.values ?? {}) }, draft)}
             onSave={saveDraft}
             pulled={
               vitals?.vitals.length
