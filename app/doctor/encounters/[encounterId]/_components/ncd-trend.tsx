@@ -117,12 +117,12 @@ export function NcdTrend({
   const lo = Math.min(dataLo - pad, ...near);
   const hi = Math.max(dataHi + pad, ...near);
 
-  const W = 1000;
-  const H = 340;
-  const L = 74;
-  const R = 26;
-  const TOP = 20;
-  const BOT = 62;
+  const W = 820;
+  const H = 300;
+  const L = 66;
+  const R = 22;
+  const TOP = 18;
+  const BOT = 56;
   const t0 = ms(series[0]!.at);
   const t1 = ms(series[series.length - 1]!.at);
   const x = (at: number) => L + (t1 === t0 ? 0.5 : (at - t0) / (t1 - t0)) * (W - L - R);
@@ -164,7 +164,7 @@ export function NcdTrend({
       </button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-h-[92vh] w-[min(97vw,76rem)] max-w-none overflow-y-auto sm:max-w-none">
+        <DialogContent className="max-h-[90vh] w-[min(94vw,54rem)] max-w-none overflow-y-auto sm:max-w-none">
           <DialogHeader className="sr-only">
             <DialogTitle>{active.display} — trend</DialogTitle>
           </DialogHeader>
