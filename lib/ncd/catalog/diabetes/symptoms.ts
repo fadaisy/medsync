@@ -127,7 +127,7 @@ const OUR_REASONING = c({
 });
 
 /** The crisis presentation. Same consensus as complications.ts, PMC mirror. */
-const CRISES_2024 = c({
+export const CRISES_2024 = c({
   standard: "EASD",
   version: "ADA/EASD/JBDS/AACE/DTS consensus report, 2024",
   title: "Hyperglycemic Crises in Adults With Diabetes: A Consensus Report",
@@ -545,14 +545,14 @@ export const SYMPTOM_FEATURES: Feature[] = [
       { value: "groin", display: "To the groin" },
       { value: "chest", display: "Up to the chest" },
     ],
-    // Omits vomiting, dehydration and altered consciousness: each is already its
-    // own finding in this band.
+    // Omits vomiting, dehydration, altered consciousness and jaundice: each is
+    // already its own finding — the first three in this band, jaundice in the
+    // general examination.
     associations: [
       { value: "fever", display: "Fever" },
       { value: "diarrhoea", display: "Diarrhoea" },
       { value: "no_stool_or_wind", display: "No stool or wind" },
       { value: "urinary", display: "Urinary symptoms" },
-      { value: "jaundice", display: "Jaundice" },
       { value: "none", display: "Nothing else" },
     ],
     modifiers: [
@@ -617,35 +617,14 @@ export const SYMPTOM_FEATURES: Feature[] = [
       citation: CRISES_2024,
     },
   },
-  prop("deep_rapid_breathing", {
-    code: "acetone_breath",
-    display: "Acetone smell on the breath",
-    valueType: "boolean",
-    citation: CRISES_2024,
-  }),
-
-  {
-    code: "dehydration",
-    display: "Signs of dehydration",
-    kind: "sign",
-    valueType: "boolean",
-    section: "symptoms",
-    group: "crisis",
-    suggests: ["dka", "hhs"],
-    citation: CRISES_2024,
-  },
-  prop("dehydration", {
-    code: "dehydration_signs",
-    display: "Which signs",
-    valueType: "multi_select",
-    citation: CRISES_2024,
-    options: [
-      { value: "dry_mouth", display: "Dry mouth" },
-      { value: "sunken_eyes", display: "Sunken eyes" },
-      { value: "reduced_skin_turgor", display: "Reduced skin turgor" },
-      { value: "low_urine_output", display: "Low urine output" },
-    ],
-  }),
+  /*
+   * Dehydration, its signs and the acetone fetor MOVED to the general
+   * examination — they are physical signs, found by looking and touching, and
+   * a finding recorded in two places is a record that can disagree with
+   * itself. Nothing about the reasoning moved with them: `suggests` and every
+   * predicate read a feature CODE, never a section, so a dehydration recorded
+   * on the examination tab still points at DKA and HHS from here.
+   */
 
   {
     /** Off-protocol. See the twin field on the complications section. */

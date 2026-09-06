@@ -65,11 +65,17 @@ describe("anaemia — the count, or the reason there is not one", () => {
     ]);
   });
 
-  it("asks for the signs when the basis is the bedside", () => {
+  /**
+   * The bedside basis no longer spawns its own tick-list of signs. Pallor is
+   * one field with its own sites in the general examination — reachable before
+   * anyone has decided there is an anaemia, which is the right way round — and
+   * the tachycardia it used to offer is the pulse, a vital with a band on it.
+   */
+  it("records the bedside basis without re-asking for pallor", () => {
     expect(props("anaemia", { ...yes, anaemia_basis: recorded("clinical") })).toEqual([
       "anaemia_basis",
-      "anaemia_clinical_signs",
     ]);
+    expect(DIABETES_CATALOG.features.some((f) => f.code === "anaemia_clinical_signs")).toBe(false);
   });
 
   it("carries WHO's own cutoffs in the severity labels", () => {

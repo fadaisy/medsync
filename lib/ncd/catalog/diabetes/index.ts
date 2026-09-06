@@ -21,6 +21,7 @@ import { COMPLICATIONS } from "@/lib/ncd/catalog/diabetes/complications";
 import { CLASSIFICATIONS, DIAGNOSIS } from "@/lib/ncd/catalog/diabetes/diagnosis";
 import { EXAMINATION_FEATURES } from "@/lib/ncd/catalog/diabetes/examination";
 import { CAPABILITIES, FEATURES, SECTIONS } from "@/lib/ncd/catalog/diabetes/features";
+import { GENERAL_EXAM_FEATURES } from "@/lib/ncd/catalog/diabetes/general-exam";
 import { HBA1C_EVIDENCE_FEATURES, ORDERABLES } from "@/lib/ncd/catalog/diabetes/hba1c-evidence";
 import { INTERPRETATION } from "@/lib/ncd/catalog/diabetes/interpretation";
 import { SYMPTOM_FEATURES } from "@/lib/ncd/catalog/diabetes/symptoms";
@@ -39,6 +40,7 @@ export const DIABETES_CATALOG: NcdCatalog = {
     ...COMPLICATION_SYMPTOM_FEATURES,
     ...HBA1C_EVIDENCE_FEATURES,
     ...EXAMINATION_FEATURES,
+    ...GENERAL_EXAM_FEATURES,
   ],
   diagnosis: DIAGNOSIS,
   classifications: CLASSIFICATIONS,

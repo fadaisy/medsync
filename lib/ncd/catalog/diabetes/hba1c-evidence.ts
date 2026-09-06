@@ -207,25 +207,20 @@ export const HBA1C_EVIDENCE_FEATURES: Feature[] = [
       { value: "macrocytic", display: "Macrocytic — MCV >100" },
     ],
   }),
-  prop("anaemia", {
-    /**
-     * The bedside answer, and a legitimate one: most anaemia in this setting is
-     * found on examination first. Recording it as clinical-only is what lets the
-     * count be ORDERED rather than the field simply sitting empty.
-     */
-    code: "anaemia_clinical_signs",
-    display: "Clinical signs",
-    valueType: "multi_select",
-    showWhenAll: [{ feature: "anaemia_basis", op: "==", value: "clinical" }],
-    citation: CONVENTION,
-    options: [
-      { value: "conjunctival_pallor", display: "Conjunctival pallor" },
-      { value: "palmar_pallor", display: "Palmar pallor" },
-      { value: "mucosal_pallor", display: "Mucosal pallor" },
-      { value: "tachycardia", display: "Tachycardia" },
-      { value: "exertional_dyspnoea", display: "Breathless on exertion" },
-    ],
-  }),
+  /*
+   * `anaemia_clinical_signs` DELETED — every one of its options is now
+   * recorded, better, somewhere it belongs.
+   *
+   * The three pallors are one field with its own sites in the general
+   * examination, reachable by a clinician who has NOT yet decided there is an
+   * anaemia — which is the right way round, since pallor is the observation
+   * that raises the question. Tachycardia is the pulse, a vital with a band on
+   * it. What was left was "breathless on exertion", a symptom, sitting inside
+   * an HbA1c-validity sub-field where nobody would look for it.
+   *
+   * `anaemia_basis: "clinical"` still records that the anaemia was called at
+   * the bedside. What supports it is the examination, where the examination is.
+   */
 
   /* ── iron deficiency — the studies, or the order for them ─────────────── */
   basis("iron_deficiency", "iron_basis", "Iron studies", NGSP),
@@ -295,10 +290,14 @@ export const HBA1C_EVIDENCE_FEATURES: Feature[] = [
     valueType: "multi_select",
     showWhenAll: [{ feature: "haemolysis_basis", op: "==", value: "clinical" }],
     citation: CONVENTION,
+    /*
+     * Jaundice and pallor removed: both are general-examination findings and
+     * are recorded there. What remains is what this field alone asks — a
+     * history (dark urine, known pigment stones) and an abdominal sign that
+     * the general survey does not cover.
+     */
     options: [
-      { value: "jaundice", display: "Jaundice" },
       { value: "dark_urine", display: "Dark urine" },
-      { value: "pallor", display: "Pallor" },
       { value: "splenomegaly", display: "Splenomegaly" },
       { value: "gallstones", display: "Known pigment gallstones" },
     ],
