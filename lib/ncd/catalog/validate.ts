@@ -596,6 +596,16 @@ export function validateCatalog(catalog: NcdCatalog): ValidationIssue[] {
       }
     }
 
+    for (const b of t.bands) {
+      if (b.alert && (!b.alert.title.trim() || !b.alert.action.trim())) {
+        out.push({
+          severity: "error",
+          path,
+          message: `band "${b.code}" raises an alert with no title or action`,
+        });
+      }
+    }
+
     /**
      * THE ANTI-DRIFT RULE. The diagnostic band's boundary has to be a threshold
      * that standard's own criteria actually use. Without this the table and the

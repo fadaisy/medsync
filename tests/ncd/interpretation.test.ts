@@ -280,3 +280,75 @@ describe("the hypoglycaemia band", () => {
     }
   });
 });
+
+/**
+ * A respiratory rate of 10 was announced as "Hypoglycaemia — treat now. Below
+ * 3.0 mmol/L is ADA level 2". So were a pulse of 40 and a temperature of 34.5.
+ *
+ * The surface was keying its alarm off the TONE `low` — which had meant
+ * hypoglycaemia when glucose was the only banded measure, and came to mean
+ * "below normal on any scale" the moment the vitals were banded. The words were
+ * hardcoded in the component too, so it asserted a glucose threshold over a
+ * respiratory rate.
+ *
+ * An alert is now declared on the BAND, with its own words.
+ */
+describe("only a band that declares an alert raises one", () => {
+  const ser = (v: number) => recorded([{ value: v, at: "2026-09-06T11:00:00Z" }]);
+  const alerts = (values: Parameters<typeof ncdContext>[1]) =>
+    read(values)
+      .filter((r) => r.band?.alert)
+      .map((r) => r.feature);
+
+  it("stays silent on a low vital, which is below normal but not a hypo", () => {
+    expect(alerts({ respiratory_rate: ser(10) })).toEqual([]);
+    expect(alerts({ pulse: ser(40) })).toEqual([]);
+    expect(alerts({ temperature: ser(34.5) })).toEqual([]);
+    expect(alerts({ spo2: ser(88) })).toEqual([]);
+  });
+
+  it("still raises one on a low glucose, wherever it was measured", () => {
+    expect(alerts({ capillary_glucose: recorded(2.8) })).toEqual(["capillary_glucose"]);
+    expect(alerts({ fpg: recorded(3.1) })).toEqual(["fpg"]);
+    expect(alerts({ random_pg: recorded(3.0) })).toEqual(["random_pg"]);
+  });
+
+  it("says nothing on a glucose that is high, or normal", () => {
+    expect(alerts({ fpg: recorded(7.4) })).toEqual([]);
+    expect(alerts({ fpg: recorded(5.0) })).toEqual([]);
+  });
+
+  /** The words are the catalog's, so no component asserts a threshold. */
+  it("carries its own title and action, and only on the glucose bands", () => {
+    const flagged = DIABETES_CATALOG.interpretation!.flatMap((t) =>
+      t.bands.filter((b) => b.alert).map((b) => ({ feature: t.feature, band: b })),
+    );
+    expect([...new Set(flagged.map((f) => f.feature))].sort()).toEqual([
+      "capillary_glucose",
+      "fpg",
+      "random_pg",
+    ]);
+    for (const f of flagged) {
+      expect(f.band.alert!.title).toBe("Hypoglycaemia");
+      expect(f.band.alert!.action).toMatch(/ADA level 2/);
+    }
+  });
+
+  it("rejects an alert with nothing to do", () => {
+    const broken = {
+      ...DIABETES_CATALOG,
+      interpretation: [
+        {
+          ...DIABETES_CATALOG.interpretation![0]!,
+          id: "probe",
+          bands: DIABETES_CATALOG.interpretation![0]!.bands.map((b, i) =>
+            i === 0 ? { ...b, alert: { title: "x", action: "  " } } : b,
+          ),
+        },
+      ],
+    };
+    expect(
+      errorsOf(validateCatalog(broken)).some((e) => e.message.includes("no title or action")),
+    ).toBe(true);
+  });
+});

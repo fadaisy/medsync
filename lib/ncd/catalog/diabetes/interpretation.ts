@@ -86,11 +86,23 @@ const ADA_HYPO = {
     "TBR: % of readings and time 54–69 mg/dL (3.0–3.8 mmol/L) Level 1 hypoglycemia … TBR: % of readings and time <54 mg/dL (<3.0 mmol/L) Level 2 hypoglycemia",
 };
 
+/**
+ * The glucose low band — and the only one on this catalog that raises an alarm.
+ *
+ * The alert text lives HERE rather than in the surface, because it is a clinical
+ * claim: it names a threshold, a level and an action. A component that wrote it
+ * would be asserting something about a band it cannot read, which is how a
+ * respiratory rate of 10 came to be announced as a hypoglycaemia.
+ */
 const low = (): ResultBand => ({
   code: "low",
   display: "Hypoglycaemia",
   to: 3.9,
   tone: "low",
+  alert: {
+    title: "Hypoglycaemia",
+    action: "Treat now. Below 3.0 mmol/L is ADA level 2 — clinically significant hypoglycaemia.",
+  },
 });
 
 const normal = (to: number, display = "Not diabetes"): ResultBand => ({

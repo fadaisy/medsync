@@ -76,14 +76,6 @@ const STOP: Record<string, string> = {
   red: "text-red-500",
   grey: "text-gray-400",
 };
-const BAND_FILL: Record<string, string> = {
-  brand: "fill-brand-500/[0.07]",
-  emerald: "fill-emerald-500/[0.07]",
-  amber: "fill-amber-500/[0.07]",
-  orange: "fill-orange-500/[0.09]",
-  red: "fill-red-500/[0.07]",
-  grey: "fill-gray-500/[0.05]",
-};
 
 export function NcdTrend({
   row,
@@ -125,12 +117,12 @@ export function NcdTrend({
   const lo = Math.min(dataLo - pad, ...near);
   const hi = Math.max(dataHi + pad, ...near);
 
-  const W = 900;
-  const H = 300;
-  const L = 52;
-  const R = 20;
-  const TOP = 16;
-  const BOT = 34;
+  const W = 1000;
+  const H = 340;
+  const L = 74;
+  const R = 26;
+  const TOP = 20;
+  const BOT = 62;
   const t0 = ms(series[0]!.at);
   const t1 = ms(series[series.length - 1]!.at);
   const x = (at: number) => L + (t1 === t0 ? 0.5 : (at - t0) / (t1 - t0)) * (W - L - R);
@@ -139,6 +131,14 @@ export function NcdTrend({
   const color = colorOf(active.band);
   const first = series[0]!;
   const last = series[series.length - 1]!;
+  const normal = active.bands.find((b) => b.tone === "normal");
+  // Five identical dates down the x-axis say nothing; the date moves to the
+  // axis title and the ticks show only the clock.
+  const sameDay = day(first.at) === day(last.at);
+  const xLabel = (at: number) => {
+    const iso = new Date(at).toISOString();
+    return sameDay ? clock(iso) : `${day(iso)} ${clock(iso)}`;
+  };
   const delta = Math.round((last.value - first.value) * 10) / 10;
   const pct = first.value === 0 ? 0 : Math.round(((last.value - first.value) / first.value) * 100);
 
@@ -164,7 +164,7 @@ export function NcdTrend({
       </button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="w-[min(96vw,60rem)] max-w-none">
+        <DialogContent className="max-h-[92vh] w-[min(97vw,76rem)] max-w-none overflow-y-auto sm:max-w-none">
           <DialogHeader className="sr-only">
             <DialogTitle>{active.display} — trend</DialogTitle>
           </DialogHeader>
@@ -239,6 +239,11 @@ export function NcdTrend({
               {active.band ? (
                 <span className="text-caption text-muted-foreground">· {active.band.display}</span>
               ) : null}
+              {normal && normal.from !== undefined && normal.to !== undefined ? (
+                <span className="text-caption text-muted-foreground border-border ml-1 rounded border border-dashed px-1.5 py-0.5 tabular-nums">
+                  Normal {normal.from}–{normal.to}
+                </span>
+              ) : null}
             </span>
           </div>
 
@@ -260,23 +265,25 @@ export function NcdTrend({
                 setHover(ms(nearest.at));
               }}
             >
-              {/* Bands behind the line — this is one vital on its own axis, so
-                  they mean exactly what they say. */}
-              {active.bands.map((b) => {
-                const top = y(Math.min(b.to ?? hi, hi));
-                const bottom = y(Math.max(b.from ?? lo, lo));
-                if (bottom - top < 1) return null;
-                return (
-                  <rect
-                    key={b.code}
-                    x={L}
-                    y={top}
-                    width={W - L - R}
-                    height={bottom - top}
-                    className={BAND_FILL[colorOf(b)] ?? BAND_FILL.grey}
-                  />
-                );
-              })}
+              {/*
+               * No coloured wash behind the line.
+               *
+               * Four tinted bands stacked up the plot turned the chart into a
+               * background with a line on it, and their colours competed with
+               * the line’s — which is the one colour here that carries a
+               * verdict. The normal range is still drawn, because “how far out
+               * is this” is what the chart is for, as two grey hairlines with
+               * the numbers spelled out in the legend.
+               */}
+              {normal ? (
+                <g className="stroke-muted-foreground/35">
+                  {[normal.from, normal.to].map((v) =>
+                    v === undefined || v <= lo || v >= hi ? null : (
+                      <line key={v} x1={L} x2={W - R} y1={y(v)} y2={y(v)} strokeDasharray="2 5" />
+                    ),
+                  )}
+                </g>
+              ) : null}
 
               {ticks(lo, hi).map((v) => (
                 <g key={v}>
@@ -288,24 +295,51 @@ export function NcdTrend({
                     className="stroke-border"
                     strokeDasharray="4 5"
                   />
+                  <line x1={L - 5} x2={L} y1={y(v)} y2={y(v)} className="stroke-border" />
                   <text
                     x={L - 10}
-                    y={y(v) + 3.5}
+                    y={y(v) + 4}
                     textAnchor="end"
-                    className="fill-current text-[11px] opacity-50"
-                    style={{ fontSize: 11 }}
+                    className="fill-current opacity-55"
+                    style={{ fontSize: 13 }}
                   >
                     {v}
                   </text>
                 </g>
               ))}
 
+              {/* The axes themselves — without them the ticks are floating text. */}
+              <line x1={L} x2={L} y1={TOP} y2={H - BOT} className="stroke-border" />
+              <line x1={L} x2={W - R} y1={H - BOT} y2={H - BOT} className="stroke-border" />
+
+              {/* What each axis is measuring, said out loud. */}
+              <text
+                transform={`rotate(-90 16 ${(TOP + H - BOT) / 2})`}
+                x={16}
+                y={(TOP + H - BOT) / 2 + 4}
+                textAnchor="middle"
+                className="fill-current font-medium opacity-70"
+                style={{ fontSize: 13 }}
+              >
+                {active.display}
+                {active.unit ? ` (${active.unit})` : ""}
+              </text>
+              <text
+                x={(L + W - R) / 2}
+                y={H - 8}
+                textAnchor="middle"
+                className="fill-current font-medium opacity-70"
+                style={{ fontSize: 13 }}
+              >
+                {sameDay ? `Time · ${day(first.at)}` : "Time"}
+              </text>
+
               <defs>
                 <linearGradient id={`fill-${active.feature}`} x1="0" y1="0" x2="0" y2="1">
                   <stop
                     offset="0%"
                     stopColor="currentColor"
-                    stopOpacity={0.22}
+                    stopOpacity={0.16}
                     className={STOP[color]}
                   />
                   <stop
@@ -362,19 +396,27 @@ export function NcdTrend({
                 />
               ) : null}
 
-              {[0, 0.5, 1].map((f, i) => {
+              {[0, 0.25, 0.5, 0.75, 1].map((f, i, all) => {
                 const at = t0 + f * (t1 - t0);
                 return (
-                  <text
-                    key={i}
-                    x={x(at)}
-                    y={H - 10}
-                    textAnchor={i === 0 ? "start" : i === 2 ? "end" : "middle"}
-                    className="fill-current text-[11px] opacity-50"
-                    style={{ fontSize: 11 }}
-                  >
-                    {day(new Date(at).toISOString())} {clock(new Date(at).toISOString())}
-                  </text>
+                  <g key={i}>
+                    <line
+                      x1={x(at)}
+                      x2={x(at)}
+                      y1={H - BOT}
+                      y2={H - BOT + 5}
+                      className="stroke-border"
+                    />
+                    <text
+                      x={x(at)}
+                      y={H - BOT + 20}
+                      textAnchor={i === 0 ? "start" : i === all.length - 1 ? "end" : "middle"}
+                      className="fill-current opacity-55"
+                      style={{ fontSize: 12 }}
+                    >
+                      {xLabel(at)}
+                    </text>
+                  </g>
                 );
               })}
             </svg>

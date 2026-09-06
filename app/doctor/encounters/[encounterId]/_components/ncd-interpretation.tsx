@@ -248,7 +248,12 @@ function InterpretationTable({
   const colorOf = (row: Interpretation, band: ResultBand | undefined): BandColor =>
     band ? (row.toneColors?.[band.tone] ?? DEFAULT_COLOR[band.tone]) : "grey";
   const first = rows[0]!;
-  const hypos = rows.filter((r) => r.band?.tone === "low");
+  /**
+   * Rows whose OCCUPIED BAND declares an alert — never rows whose tone happens
+   * to be `low`. `low` means "below normal" on every scale, so keying off it
+   * announced a respiratory rate of 10 as a hypoglycaemia.
+   */
+  const alerts = rows.filter((r) => r.band?.alert);
   // Only the columns this table's rows actually use — an always-empty column is
   // a question the table is not answering.
   const columns = COLUMNS.filter((t) => rows.some((r) => r.bands.some((b) => b.tone === t)));
@@ -278,21 +283,31 @@ function InterpretationTable({
        * The pulse is reduced-motion gated at the utility, and the words carry
        * the message without it.
        */}
-      {hypos.length ? (
+      {alerts.length ? (
         <div
           role="alert"
-          className="flex flex-wrap items-center gap-x-2 gap-y-1 border-b border-red-500/30 bg-red-50 px-3.5 py-2 dark:bg-red-950/40"
+          className="flex flex-col gap-1 border-b border-red-500/30 bg-red-50 px-3.5 py-2 dark:bg-red-950/40"
         >
-          <span className="pulse-dot inline-flex shrink-0 items-center text-red-600 dark:text-red-400">
-            <AlertTriangleIcon className="size-4" aria-hidden />
-          </span>
-          <span className="text-body-s font-medium text-red-900 dark:text-red-200">
-            Hypoglycaemia
-          </span>
-          <span className="text-caption text-red-800/90 dark:text-red-300/90">
-            {hypos.map((h) => `${h.display} ${h.value} ${h.unit ?? ""}`.trim()).join(" · ")} — treat
-            now. Below 3.0 mmol/L is ADA level 2, clinically significant.
-          </span>
+          {alerts.map((a) => (
+            <p key={a.feature} className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              {/*
+               * The one moment this surface moves. Hypoglycaemia kills faster
+               * than hyperglycaemia and its treatment is the opposite, so a
+               * glucose of 2.8 must not be scanned past. Reduced-motion gated at
+               * the utility; the words carry it without the pulse.
+               */}
+              <span className="pulse-dot inline-flex shrink-0 items-center text-red-600 dark:text-red-400">
+                <AlertTriangleIcon className="size-4" aria-hidden />
+              </span>
+              <span className="text-body-s font-medium text-red-900 dark:text-red-200">
+                {a.band!.alert!.title}
+              </span>
+              <span className="text-caption text-red-800/90 dark:text-red-300/90">
+                {a.display} {a.value}
+                {a.unit ? ` ${a.unit}` : ""} — {a.band!.alert!.action}
+              </span>
+            </p>
+          ))}
         </div>
       ) : null}
 

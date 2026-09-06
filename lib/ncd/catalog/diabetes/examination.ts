@@ -51,12 +51,6 @@ export const WHO_BMI = {
 };
 
 /**
- * NEWS2, as this project already encodes it in `lib/triage/constants.ts` — which
- * is a CSO-authored file transcribed verbatim from the triage research document.
- * The bands here mirror those boundaries rather than re-deriving them, and a
- * test asserts the two agree so they cannot drift apart.
- */
-/**
  * The ordinary adult reference ranges — deliberately NOT NEWS2.
  *
  * NEWS2 is an early-warning score: it measures DETERIORATION so a ward knows

@@ -679,6 +679,17 @@ export interface ResultBand {
    * and none of them bears on which band a number sits in.
    */
   tone: "low" | "normal" | "intermediate" | "diagnostic";
+  /**
+   * This band demands action NOW, in these words.
+   *
+   * Declared per band, never inferred from the tone. `low` means "below normal"
+   * on every scale — a bradycardia, a bradypnoea and a hypothermia all carry it
+   * — so a surface that raised an alarm on the tone raised a HYPOGLYCAEMIA alert
+   * over a respiratory rate of 10, which is exactly what it did until this
+   * existed. The words are the catalog's too, so no component asserts a clinical
+   * sentence about a band it knows nothing about.
+   */
+  alert?: { title: string; action: string };
 }
 
 /**
