@@ -14,6 +14,7 @@ import type {
   DangerSign,
   DiagnosisResult,
   Gap,
+  Interpretation,
   TherapyConcern,
 } from "@/lib/ncd/engine/assess";
 import type { CaptureMap } from "@/lib/ncd/engine/evaluate";
@@ -27,6 +28,7 @@ import {
   dangerSigns,
   diagnose,
   gaps,
+  interpretations,
   ncdContext,
   therapyConcerns,
 } from "@/lib/ncd/engine/assess";
@@ -64,6 +66,8 @@ export interface NcdProfile {
   dangerSigns: DangerSign[];
   /** Recorded therapy a guideline says is wrong for this patient. */
   therapyConcerns: TherapyConcern[];
+  /** What each glycaemic number means under the standard this site applies. */
+  interpretation: Interpretation[];
   diagnosis: DiagnosisResult;
   classification: ClassificationResult;
   complications: ComplicationResult[];
@@ -101,6 +105,7 @@ export function buildProfile(args: {
     acute,
     dangerSigns: dangerSigns(catalog, ctx),
     therapyConcerns: therapyConcerns(catalog, ctx),
+    interpretation: interpretations(catalog, ctx),
     diagnosis,
     classification,
     complications,
@@ -149,6 +154,7 @@ function isFullySigned(catalog: NcdCatalog): boolean {
     ]),
     ...(catalog.validityCaveats ?? []).map((v) => v.citation),
     ...(catalog.therapyFlags ?? []).map((t) => t.citation),
+    ...(catalog.interpretation ?? []).map((t) => t.citation),
   ];
   return cites.every((c) => c.csoSigned);
 }

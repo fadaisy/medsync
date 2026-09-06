@@ -570,6 +570,64 @@ export interface RiskModel {
   citation: Citation;
 }
 
+/* ── Interpretation: what a number MEANS ─────────────────────────────────── */
+
+/**
+ * One band of a result scale. `from` is inclusive, `to` is EXCLUSIVE, and either
+ * may be omitted for the open end — so the bands tile the number line with no
+ * gap and no overlap, which is the property that makes a value land in exactly
+ * one of them.
+ */
+export interface ResultBand {
+  code: string;
+  display: string;
+  from?: number;
+  to?: number;
+  /**
+   * `diagnostic` means this band meets the standard's own threshold for
+   * diabetes. It is a display role, NOT a verdict — a single value in the
+   * diagnostic band does not diagnose anybody, and `diagnose()` remains the only
+   * thing that adjudicates. The two are kept apart on purpose: confirmation
+   * rules, validity caveats and the standard in force all bear on the verdict
+   * and none of them bears on which band a number sits in.
+   */
+  tone: "normal" | "intermediate" | "diagnostic";
+}
+
+/**
+ * How to read one test's number, under one standard.
+ *
+ * ── Why this is per-standard and not a constant ──────────────────────────────
+ * The bands are where the standards visibly disagree. ADA's impaired fasting
+ * glucose starts at 5.6 mmol/L; WHO's starts at 6.1 and WHO says so
+ * deliberately, having considered the lower cut-point and declined it. A single
+ * table would have to pick one and silently present it as the answer, which is
+ * the failure this catalog's whole standard-precedence design exists to prevent.
+ *
+ * The DIABETES threshold, by contrast, is the same everywhere — and the
+ * validator enforces that the diagnostic band's boundary matches a threshold
+ * actually used in that standard's diagnostic criteria, so the table and the
+ * criteria cannot drift into two sources of truth.
+ */
+export interface InterpretationTable {
+  id: string;
+  /** The feature whose value these bands read. */
+  feature: string;
+  standard: StandardBody;
+  version: string;
+  bands: ResultBand[];
+  /** Stated where this standard defines no intermediate band for this test. */
+  note?: string;
+  citation: Citation;
+}
+
+/** The band a value falls in, or undefined if it falls outside every band. */
+export function bandFor(bands: ResultBand[], value: number): ResultBand | undefined {
+  return bands.find(
+    (b) => (b.from === undefined || value >= b.from) && (b.to === undefined || value < b.to),
+  );
+}
+
 /* ── Therapy safety ──────────────────────────────────────────────────────── */
 
 /**
@@ -680,6 +738,8 @@ export interface NcdCatalog {
   riskModels?: RiskModel[];
   /** Recorded treatments a guideline says are wrong for this patient. */
   therapyFlags?: TherapyFlag[];
+  /** How to read each test's number, per standard. */
+  interpretation?: InterpretationTable[];
   management?: ManagementStep[];
 }
 

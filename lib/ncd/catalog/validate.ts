@@ -542,6 +542,66 @@ export function validateCatalog(catalog: NcdCatalog): ValidationIssue[] {
     }
   }
 
+  for (const t of catalog.interpretation ?? []) {
+    const path = `interpretation.${t.id}`;
+    checkCitation(t.citation, `${path}.citation`, out);
+    if (!features.has(t.feature)) {
+      out.push({ severity: "error", path, message: `unknown feature "${t.feature}"` });
+    }
+    if (!t.bands.length) {
+      out.push({ severity: "error", path, message: "interpretation table has no bands" });
+      continue;
+    }
+
+    // The bands must TILE the number line: no gap a value could fall through,
+    // no overlap that would put one value in two bands.
+    const first = t.bands[0]!;
+    const last = t.bands[t.bands.length - 1]!;
+    if (first.from !== undefined) {
+      out.push({ severity: "error", path, message: "lowest band is not open below" });
+    }
+    if (last.to !== undefined) {
+      out.push({ severity: "error", path, message: "highest band is not open above" });
+    }
+    for (let i = 0; i < t.bands.length - 1; i++) {
+      if (t.bands[i]!.to !== t.bands[i + 1]!.from) {
+        out.push({
+          severity: "error",
+          path,
+          message: `bands leave a gap or overlap between "${t.bands[i]!.code}" and "${t.bands[i + 1]!.code}"`,
+        });
+      }
+    }
+
+    /**
+     * THE ANTI-DRIFT RULE. The diagnostic band's boundary has to be a threshold
+     * that standard's own criteria actually use. Without this the table and the
+     * criteria are two sources of truth for the same number, and the first edit
+     * to one of them makes the surface disagree with the verdict beneath it.
+     */
+    const diag = t.bands.find((b) => b.tone === "diagnostic");
+    const set = catalog.diagnosis.find((d) => d.standard === t.standard);
+    if (diag?.from !== undefined && set) {
+      const used = new Set(
+        set.anyOf
+          .flatMap((c) => [...(c.all ?? []), ...(c.any ?? []), ...(c.atLeast?.of ?? [])])
+          .filter((pr) => pr.feature === t.feature && typeof pr.value === "number")
+          .map((pr) => pr.value as number),
+      );
+      if (used.size && !used.has(diag.from)) {
+        out.push({
+          severity: "error",
+          path,
+          message: `diagnostic band starts at ${diag.from}, which is not a threshold ${t.standard} uses for "${t.feature}" (${[...used].join(", ")})`,
+        });
+      }
+    }
+  }
+
+  for (const d of dupes((catalog.interpretation ?? []).map((t) => t.id))) {
+    out.push({ severity: "error", path: "interpretation", message: `duplicate table "${d}"` });
+  }
+
   for (const tf of catalog.therapyFlags ?? []) {
     const path = `therapyFlags.${tf.id}`;
     checkCitation(tf.citation, `${path}.citation`, out);
@@ -622,6 +682,7 @@ export function referencedFeatures(catalog: NcdCatalog): Set<string> {
     out.add(v.feature);
   });
   (catalog.therapyFlags ?? []).forEach((t) => add(t.when));
+  (catalog.interpretation ?? []).forEach((t) => out.add(t.feature));
   (catalog.management ?? []).forEach((m) => {
     add(m.when);
     (m.contraindications ?? []).forEach(add);

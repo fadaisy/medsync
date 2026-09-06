@@ -37,6 +37,37 @@ import {
  * none of it is load-bearing on its own.
  */
 
+/**
+ * Band colour. Green for normal and amber for intermediate are the design
+ * system's own status tokens, used for what they mean.
+ *
+ * The diagnostic band is NOT red, though the convention would be. Red on this
+ * project is reserved for a genuine emergency, and meeting the diabetes
+ * threshold is not one — spending red here would weaken it on the rows where a
+ * patient is dying. Brand indigo carries the weight instead, and the words in
+ * the cell carry the meaning.
+ */
+const BAND_HEAD: Record<string, string> = {
+  normal: "text-emerald-700 dark:text-emerald-400",
+  intermediate: "text-amber-700 dark:text-amber-400",
+  diagnostic: "text-brand-700 dark:text-brand-300",
+};
+
+const BAND_ON: Record<string, string> = {
+  normal: "bg-emerald-50 text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200",
+  intermediate: "bg-amber-50 text-amber-900 dark:bg-amber-950/40 dark:text-amber-200",
+  diagnostic: "bg-brand-100 text-brand-900 dark:bg-brand-900/50 dark:text-brand-100",
+};
+
+/** "< 5.6", "5.6–6.9", ">= 7.0" — the open ends read as open. */
+function bandRange(from: number | undefined, to: number | undefined, unit?: string): string {
+  const u = unit && unit !== "%" ? "" : (unit ?? "");
+  if (from === undefined && to !== undefined) return `< ${to}${u}`;
+  if (from !== undefined && to === undefined) return `≥ ${from}${u}`;
+  if (from !== undefined && to !== undefined) return `${from} – ${to}${u}`;
+  return "—";
+}
+
 const OVERLINE = "font-mono text-[10px] tracking-[0.16em] uppercase text-muted-foreground/80";
 const CARD = "border-border bg-card rounded-xl border shadow-xs";
 
@@ -249,6 +280,115 @@ export function NcdProfileView({ profile }: { profile: NcdProfile }) {
               </li>
             ))}
           </ul>
+        </section>
+      ) : null}
+
+      {/* 1d. What the numbers MEAN, on the scale this site's standard publishes. */}
+      {profile.interpretation.length ? (
+        <section className={`${CARD} overflow-hidden`}>
+          <header className="border-border/60 bg-muted/40 flex flex-wrap items-baseline gap-x-2 border-b px-3.5 py-2">
+            <span className={OVERLINE}>Interpretation</span>
+            {/* Which standard, always — the bands below differ between them. */}
+            <span className="text-muted-foreground text-caption">
+              bands per{" "}
+              <span className="text-foreground font-medium">
+                {profile.interpretation[0]!.standard}
+              </span>{" "}
+              {profile.interpretation[0]!.version}
+            </span>
+          </header>
+
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse text-left">
+              <thead>
+                <tr className="border-border/60 border-b">
+                  <th className="text-muted-foreground text-caption px-3.5 py-1.5 font-medium">
+                    Test
+                  </th>
+                  {(["normal", "intermediate", "diagnostic"] as const).map((tone) => (
+                    <th
+                      key={tone}
+                      className={`text-caption px-2 py-1.5 font-medium ${BAND_HEAD[tone]}`}
+                    >
+                      {tone === "normal"
+                        ? "Not diabetes"
+                        : tone === "intermediate"
+                          ? "Intermediate"
+                          : "Diabetes range"}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-border/40 divide-y">
+                {profile.interpretation.map((row) => (
+                  <tr key={row.feature}>
+                    <th
+                      scope="row"
+                      className="text-foreground/85 px-3.5 py-2 text-[12px] font-medium"
+                    >
+                      {row.display}
+                      {row.value !== undefined ? (
+                        <span className="text-foreground block font-mono text-[11px] tabular-nums">
+                          {row.value} {row.unit}
+                          {row.altUnit
+                            ? ` · ${Math.round(row.value * row.altUnit.factor)} ${row.altUnit.unit}`
+                            : ""}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground/70 block text-[10.5px] italic">
+                          {row.state === "unavailable" ? "not available here" : "not measured"}
+                        </span>
+                      )}
+                    </th>
+                    {(["normal", "intermediate", "diagnostic"] as const).map((tone) => {
+                      const band = row.bands.find((b) => b.tone === tone);
+                      const here = Boolean(band && row.band && row.band.code === band.code);
+                      return (
+                        <td
+                          key={tone}
+                          className={`px-2 py-2 align-middle text-[11.5px] ${
+                            here ? `${BAND_ON[tone]} font-medium` : "text-muted-foreground"
+                          }`}
+                        >
+                          {band ? (
+                            <>
+                              <span className="font-mono tabular-nums">
+                                {bandRange(band.from, band.to, row.unit)}
+                              </span>
+                              {/* Never colour alone: the cell that holds this
+                                  patient says so in words. */}
+                              {here ? (
+                                <span className="mt-0.5 block text-[10px]">◂ this patient</span>
+                              ) : null}
+                            </>
+                          ) : (
+                            <span className="text-muted-foreground/50 italic">not defined</span>
+                          )}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {profile.interpretation.some((r) => r.note) ? (
+            <ul className="border-border/60 space-y-1 border-t px-3.5 py-2">
+              {profile.interpretation
+                .filter((r) => r.note)
+                .map((r) => (
+                  <li key={r.feature} className="text-muted-foreground text-[11px] leading-snug">
+                    <span className="text-foreground/80 font-medium">{r.display}:</span> {r.note}
+                  </li>
+                ))}
+            </ul>
+          ) : null}
+
+          <p className="border-border/60 text-muted-foreground border-t px-3.5 py-2 text-[11px] leading-snug">
+            A band is where the number sits on a published scale. It is not a diagnosis — see below
+            for the verdict, which also weighs confirmation and test validity.
+          </p>
         </section>
       ) : null}
 

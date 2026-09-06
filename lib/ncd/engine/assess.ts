@@ -13,7 +13,9 @@
 import type {
   Citation,
   Complication,
+  InterpretationTable,
   NcdCatalog,
+  ResultBand,
   SiteProfile,
   StageDefinition,
   StageSeverity,
@@ -27,7 +29,7 @@ import type {
   EvalState,
 } from "@/lib/ncd/engine/evaluate";
 
-import { preferredCriteria } from "@/lib/ncd/catalog/schema";
+import { bandFor, isPerformable, preferredCriteria } from "@/lib/ncd/catalog/schema";
 import {
   contextOf,
   evaluateAny,
@@ -196,6 +198,82 @@ export function therapyConcerns(catalog: NcdCatalog, ctx: EvalContext): TherapyC
       (a.state === "met" ? 0 : 1) - (b.state === "met" ? 0 : 1) ||
       (a.severity === "red" ? 0 : 1) - (b.severity === "red" ? 0 : 1),
   );
+}
+
+/**
+ * What each glycaemic number MEANS, under the standard this site applies.
+ *
+ * Deliberately separate from `diagnose()`. A band says where a number sits on a
+ * published scale; a diagnosis weighs confirmation, validity caveats and the
+ * whole criteria set. Keeping them apart is what lets the surface show a value
+ * in the diabetes range while the verdict still reads "not yet established" —
+ * which is the honest state for a single unconfirmed sample, and the state a
+ * table that doubled as a verdict could not express.
+ */
+export interface Interpretation {
+  feature: string;
+  display: string;
+  unit?: string;
+  altUnit?: { unit: string; factor: number };
+  standard: StandardBody;
+  version: string;
+  bands: ResultBand[];
+  /** The recorded value, if there is one. */
+  value?: number;
+  /** Which band it fell in. Undefined while nothing is recorded. */
+  band?: ResultBand;
+  state: EvalState;
+  note?: string;
+  citation: Citation;
+}
+
+export function interpretations(catalog: NcdCatalog, ctx: EvalContext): Interpretation[] {
+  const tables = catalog.interpretation ?? [];
+  const out: Interpretation[] = [];
+  // One table per feature: the site's standard precedence picks it, exactly as
+  // it picks the criteria set, so the form never shows two answers to the same
+  // question.
+  const byFeature = new Map<string, InterpretationTable[]>();
+  for (const t of tables) {
+    const list = byFeature.get(t.feature) ?? [];
+    list.push(t);
+    byFeature.set(t.feature, list);
+  }
+
+  for (const [code, list] of byFeature) {
+    const feature = ctx.features.get(code);
+    if (!feature) continue;
+    const chosen =
+      ctx.site.standardPreference.map((b) => list.find((t) => t.standard === b)).find(Boolean) ??
+      list[0];
+    if (!chosen) continue;
+
+    const assessed = ctx.values[code];
+    const recorded = assessed?.state === "recorded" ? assessed.value : undefined;
+    const value = typeof recorded === "number" ? recorded : undefined;
+    const state: EvalState =
+      value !== undefined
+        ? "met"
+        : assessed?.state === "unavailable" || !isPerformable(feature, ctx.site)
+          ? "unavailable"
+          : "insufficient";
+
+    out.push({
+      feature: code,
+      display: feature.display,
+      unit: feature.unit,
+      altUnit: feature.altUnit,
+      standard: chosen.standard,
+      version: chosen.version,
+      bands: chosen.bands,
+      value,
+      band: value === undefined ? undefined : bandFor(chosen.bands, value),
+      state,
+      note: chosen.note,
+      citation: chosen.citation,
+    });
+  }
+  return out;
 }
 
 /* ── 2. test validity ────────────────────────────────────────────────────── */

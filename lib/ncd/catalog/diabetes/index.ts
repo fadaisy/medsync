@@ -20,6 +20,7 @@ import { COMPLICATION_SYMPTOM_FEATURES } from "@/lib/ncd/catalog/diabetes/compli
 import { COMPLICATIONS } from "@/lib/ncd/catalog/diabetes/complications";
 import { CLASSIFICATIONS, DIAGNOSIS } from "@/lib/ncd/catalog/diabetes/diagnosis";
 import { CAPABILITIES, FEATURES, SECTIONS } from "@/lib/ncd/catalog/diabetes/features";
+import { INTERPRETATION } from "@/lib/ncd/catalog/diabetes/interpretation";
 import { SYMPTOM_FEATURES } from "@/lib/ncd/catalog/diabetes/symptoms";
 import { THERAPY_FLAGS } from "@/lib/ncd/catalog/diabetes/therapy-flags";
 import { VALIDITY_CAVEATS } from "@/lib/ncd/catalog/diabetes/validity";
@@ -36,6 +37,7 @@ export const DIABETES_CATALOG: NcdCatalog = {
   complications: COMPLICATIONS,
   validityCaveats: VALIDITY_CAVEATS,
   therapyFlags: THERAPY_FLAGS,
+  interpretation: INTERPRETATION,
 };
 
 /* ── Reference site profiles ─────────────────────────────────────────────── */
