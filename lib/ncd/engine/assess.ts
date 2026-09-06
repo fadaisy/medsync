@@ -13,6 +13,7 @@
 import type {
   Citation,
   Complication,
+  Feature,
   InterpretationTable,
   NcdCatalog,
   ResultBand,
@@ -272,6 +273,62 @@ export function interpretations(catalog: NcdCatalog, ctx: EvalContext): Interpre
       note: chosen.note,
       citation: chosen.citation,
     });
+  }
+  return out;
+}
+
+/**
+ * Tests that would answer questions currently unanswered.
+ *
+ * The point is the inversion. A gaps list says "haemoglobin is missing", which
+ * the clinician already knew and cannot act on from the form; this says "a full
+ * blood count would settle the anaemia, classify it, and tell you whether the
+ * iron deficiency is pulling the HbA1c the other way". Same emptiness, an action
+ * attached to it.
+ *
+ * Only offered where the parent question is actually live — nobody is asked to
+ * order a count for an anaemia that was never recorded.
+ */
+export interface PendingOrder {
+  code: string;
+  display: string;
+  because?: string;
+  /** The unanswered features this result would fill. */
+  wouldFill: { code: string; display: string }[];
+}
+
+/** Is the finding this question hangs off recorded present? Walks the chain. */
+function liveFinding(f: Feature, ctx: EvalContext): boolean {
+  let cur: Feature | undefined = f;
+  for (let i = 0; cur?.parent && i <= 4; i++) {
+    if (evaluatePredicate({ feature: cur.parent, op: "present" }, ctx).state !== "met")
+      return false;
+    cur = ctx.features.get(cur.parent);
+  }
+  return true;
+}
+
+export function pendingOrders(catalog: NcdCatalog, ctx: EvalContext): PendingOrder[] {
+  const out: PendingOrder[] = [];
+  for (const o of catalog.orderables ?? []) {
+    const wouldFill = o.fills
+      .map((code) => ctx.features.get(code))
+      .filter((f): f is Feature => Boolean(f))
+      .filter((f) => {
+        const v = ctx.values[f.code];
+        if (v?.state === "recorded" || v?.state === "unavailable") return false;
+        // The FINDING has to be live — nobody is asked to order a count for an
+        // anaemia that was never recorded. But the field's own display gate is
+        // deliberately IGNORED: the haemoglobin is hidden precisely because
+        // there is no full blood count, and that absence is what the order
+        // exists to answer. Filtering on it silenced the suggestion in the one
+        // case it is for.
+        return liveFinding(f, ctx);
+      })
+      .map((f) => ({ code: f.code, display: f.display }));
+    if (wouldFill.length) {
+      out.push({ code: o.code, display: o.display, because: o.because, wouldFill });
+    }
   }
   return out;
 }

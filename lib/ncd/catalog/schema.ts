@@ -152,7 +152,9 @@ export type ValueType =
   | "duration"
   | "text"
   /** A list of free-text entries. Only valid on an `offProtocol` feature. */
-  | "text_list";
+  | "text_list"
+  /** An ISO date (YYYY-MM-DD). */
+  | "date";
 
 export interface FeatureOption {
   value: string;
@@ -256,6 +258,23 @@ export interface Feature {
    * bloat the parsimony rule refuses.
    */
   showWhenAny?: Predicate[];
+  /**
+   * A value the surface DISPLAYS alongside this one, computed rather than
+   * captured. Named, not a function, so the catalog stays a data file.
+   *
+   * `gestation_from_lnmp` shows gestational age and an estimated delivery date
+   * beside a last-menstrual-period date. Deliberately display-only and never
+   * stored: it is a pure function of a date that is stored, so keeping a copy
+   * would only create something that can drift out of date — literally, since it
+   * changes every morning.
+   */
+  derives?: "gestation_from_lnmp";
+  /**
+   * The lab order that would produce this value. Drives the pending-orders list:
+   * a clinician who records anaemia on pallor alone should be offered the count
+   * that would settle it, not merely told the field is empty.
+   */
+  orderedBy?: string;
   /**
    * The named subgroup this feature renders under, within its section. Must be
    * declared in the section's `groups`. A property inherits its finding's group
@@ -570,6 +589,26 @@ export interface RiskModel {
   citation: Citation;
 }
 
+/* ── Lab ordering ────────────────────────────────────────────────────────── */
+
+/**
+ * A test that can be requested, and the features its result would fill.
+ *
+ * The catalog's job here is only to say WHAT could be ordered and what it would
+ * answer. Placing the order — the requisition, the specimen, the result coming
+ * back — is the laboratory module's, and none of it is modelled yet. What this
+ * buys today is that an outstanding field stops being a blank the clinician is
+ * nagged about and becomes a test somebody can request.
+ */
+export interface LabOrder {
+  code: string;
+  display: string;
+  /** Feature codes this result would populate. */
+  fills: string[];
+  /** Why it is being suggested, in the clinician's terms. */
+  because?: string;
+}
+
 /* ── Interpretation: what a number MEANS ─────────────────────────────────── */
 
 /**
@@ -742,6 +781,8 @@ export interface NcdCatalog {
   therapyFlags?: TherapyFlag[];
   /** How to read each test's number, per standard. */
   interpretation?: InterpretationTable[];
+  /** Tests that can be requested, and what each would answer. */
+  orderables?: LabOrder[];
   management?: ManagementStep[];
 }
 

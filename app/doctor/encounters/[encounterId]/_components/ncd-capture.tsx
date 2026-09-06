@@ -16,7 +16,7 @@ import type {
   EvalContext,
 } from "@/lib/ncd/engine/evaluate";
 import type { LucideIcon } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import {
   AlertTriangleIcon,
   BandageIcon,
@@ -1185,6 +1185,32 @@ function ValueEditor({
     );
   }
 
+  /**
+   * A date, and what follows from it.
+   *
+   * Gestational age and the estimated delivery date are DISPLAYED, never stored:
+   * both are pure functions of a date that is stored, so a saved copy could only
+   * drift — and gestational age drifts every morning. The catalog names the
+   * derivation; the arithmetic lives here.
+   */
+  if (feature.valueType === "date") {
+    const iso = typeof current === "string" ? current : "";
+    return (
+      <span className="inline-flex flex-wrap items-center gap-x-2 gap-y-1">
+        <input
+          type="date"
+          value={iso}
+          aria-label={label}
+          onChange={(e) => (e.target.value ? put(e.target.value) : onSet(undefined))}
+          className={`border-input bg-card ease-expo-out focus-visible:border-brand-500 focus-visible:ring-brand-500/25 rounded-md border px-2 py-1 font-mono text-[12px] tabular-nums transition-[border-color,box-shadow] duration-100 outline-none focus-visible:ring-2 ${
+            iso ? "text-foreground" : "text-muted-foreground"
+          }`}
+        />
+        {feature.derives === "gestation_from_lnmp" && iso ? <Gestation lnmp={iso} /> : null}
+      </span>
+    );
+  }
+
   // A duration keeps its unit, so "6 weeks" and "11 years" are both sayable and
   // neither has to be rounded into a unit the clinician did not mean.
   if (feature.valueType === "duration") {
@@ -1248,6 +1274,83 @@ function ValueEditor({
           : "text-body-s w-full min-w-[8rem] flex-1"
       } ${current != null ? "text-foreground" : "text-muted-foreground"}`}
     />
+  );
+}
+
+/**
+ * Naegele's rule: an estimated delivery date is the last menstrual period plus
+ * 280 days, and gestational age is the time since it. Shown beside the date
+ * rather than stored, and the trimester with it — WHO's anaemia cutoff moves
+ * between trimesters, so it is not decoration.
+ *
+ * A future date, or one implying a gestation past 45 weeks, is a typo rather
+ * than a pregnancy; it says so instead of printing an absurd number.
+ */
+/**
+ * "Now", read once per page load and never during render.
+ *
+ * Two problems with one fix. The React compiler is right that `Date.now()` is
+ * impure — the same render gives a different answer tomorrow — and computing it
+ * on the SERVER would hand the client a gestational age from another timezone,
+ * which is a hydration mismatch on a clinical number. The server snapshot is
+ * undefined, so the age simply appears once the client takes over.
+ *
+ * Cached at module scope so the snapshot is stable, which `useSyncExternalStore`
+ * requires. The consequence is that a page left open overnight keeps yesterday's
+ * gestational age until it is reloaded — the right trade for a number that must
+ * not change under the clinician mid-sentence.
+ */
+const SUBSCRIBE_NEVER = () => () => {};
+let cachedNow: number | undefined;
+const clientToday = () => (cachedNow ??= Date.now());
+const serverToday = () => undefined;
+
+function Gestation({ lnmp }: { lnmp: string }) {
+  /**
+   * "Today" is read after mount, not during render, for two reasons that happen
+   * to have one fix. The React compiler is right that it is impure — the same
+   * render would give a different answer tomorrow — and rendering it on the
+   * server would hand the client a gestational age computed in another timezone,
+   * which is a hydration mismatch on a clinical number.
+   *
+   * The estimated delivery date needs no "today" at all, so it shows straight
+   * away; only the age waits.
+   */
+  const today = useSyncExternalStore(SUBSCRIBE_NEVER, clientToday, serverToday);
+
+  const start = new Date(`${lnmp}T00:00:00`);
+  if (Number.isNaN(start.getTime())) return null;
+  const edd = new Date(start.getTime() + 280 * 86_400_000).toISOString().slice(0, 10);
+  const due = (
+    <>
+      due <span className="font-mono tabular-nums">{edd}</span>
+    </>
+  );
+
+  if (today === undefined) {
+    return <span className="text-caption text-muted-foreground">{due}</span>;
+  }
+
+  const days = Math.floor((today - start.getTime()) / 86_400_000);
+  // A future date, or one implying a gestation past 45 weeks, is a typo rather
+  // than a pregnancy. Say so instead of printing an absurd number.
+  if (days < 0 || days > 315) {
+    return (
+      <span className="text-caption text-amber-700 dark:text-amber-400">
+        check the date — that is {days < 0 ? "in the future" : "over 45 weeks ago"}
+      </span>
+    );
+  }
+  const weeks = Math.floor(days / 7);
+  const trimester = weeks < 14 ? "1st" : weeks < 28 ? "2nd" : "3rd";
+  return (
+    <span className="text-caption text-muted-foreground">
+      <span className="text-foreground font-medium tabular-nums">
+        {weeks}
+        <sup>+{days % 7}</sup> weeks
+      </span>{" "}
+      · {trimester} trimester · {due}
+    </span>
   );
 }
 

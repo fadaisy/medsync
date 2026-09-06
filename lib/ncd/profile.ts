@@ -15,6 +15,7 @@ import type {
   DiagnosisResult,
   Gap,
   Interpretation,
+  PendingOrder,
   TherapyConcern,
 } from "@/lib/ncd/engine/assess";
 import type { CaptureMap } from "@/lib/ncd/engine/evaluate";
@@ -30,6 +31,7 @@ import {
   gaps,
   interpretations,
   ncdContext,
+  pendingOrders,
   therapyConcerns,
 } from "@/lib/ncd/engine/assess";
 
@@ -68,6 +70,8 @@ export interface NcdProfile {
   therapyConcerns: TherapyConcern[];
   /** What each glycaemic number means under the standard this site applies. */
   interpretation: Interpretation[];
+  /** Tests that would answer questions currently unanswered. */
+  pendingOrders: PendingOrder[];
   diagnosis: DiagnosisResult;
   classification: ClassificationResult;
   complications: ComplicationResult[];
@@ -106,6 +110,7 @@ export function buildProfile(args: {
     dangerSigns: dangerSigns(catalog, ctx),
     therapyConcerns: therapyConcerns(catalog, ctx),
     interpretation: interpretations(catalog, ctx),
+    pendingOrders: pendingOrders(catalog, ctx),
     diagnosis,
     classification,
     complications,

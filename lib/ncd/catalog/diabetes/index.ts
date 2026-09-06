@@ -20,6 +20,7 @@ import { COMPLICATION_SYMPTOM_FEATURES } from "@/lib/ncd/catalog/diabetes/compli
 import { COMPLICATIONS } from "@/lib/ncd/catalog/diabetes/complications";
 import { CLASSIFICATIONS, DIAGNOSIS } from "@/lib/ncd/catalog/diabetes/diagnosis";
 import { CAPABILITIES, FEATURES, SECTIONS } from "@/lib/ncd/catalog/diabetes/features";
+import { HBA1C_EVIDENCE_FEATURES, ORDERABLES } from "@/lib/ncd/catalog/diabetes/hba1c-evidence";
 import { INTERPRETATION } from "@/lib/ncd/catalog/diabetes/interpretation";
 import { SYMPTOM_FEATURES } from "@/lib/ncd/catalog/diabetes/symptoms";
 import { THERAPY_FLAGS } from "@/lib/ncd/catalog/diabetes/therapy-flags";
@@ -31,13 +32,19 @@ export const DIABETES_CATALOG: NcdCatalog = {
   version: "0.1.0",
   capabilities: CAPABILITIES,
   sections: SECTIONS,
-  features: [...FEATURES, ...SYMPTOM_FEATURES, ...COMPLICATION_SYMPTOM_FEATURES],
+  features: [
+    ...FEATURES,
+    ...SYMPTOM_FEATURES,
+    ...COMPLICATION_SYMPTOM_FEATURES,
+    ...HBA1C_EVIDENCE_FEATURES,
+  ],
   diagnosis: DIAGNOSIS,
   classifications: CLASSIFICATIONS,
   complications: COMPLICATIONS,
   validityCaveats: VALIDITY_CAVEATS,
   therapyFlags: THERAPY_FLAGS,
   interpretation: INTERPRETATION,
+  orderables: ORDERABLES,
 };
 
 /* ── Reference site profiles ─────────────────────────────────────────────── */

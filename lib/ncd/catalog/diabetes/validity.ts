@@ -34,6 +34,23 @@ import {
 
 const USE_GLUCOSE = "Use fasting or 2-hour plasma glucose criteria instead of HbA1c.";
 
+/**
+ * The antiretroviral finding. A primary study rather than a guideline position,
+ * which is why it does not block a diagnosis and why it carries needsCsoInput.
+ */
+const ARV_A1C_CAVEAT = {
+  standard: "local" as const,
+  version: "Kim PS et al. Diabetes Care 2009;32(9):1591\u20131593",
+  title: "A1C Underestimates Glycemia in HIV Infection",
+  url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC2732167/",
+  retrieved: "2026-09-06",
+  csoSigned: false,
+  quote:
+    "A1C underestimates glycemia in HIV-infected patients and is related to NRTI use. Use of abacavir and increased MCV were key correlates in multivariate analyses.",
+  needsCsoInput:
+    "A single prospective study, not a guideline. It does not block diagnosis here; the CSO decides whether it should.",
+};
+
 export const VALIDITY_CAVEATS: ValidityCaveat[] = [
   {
     id: "hba1c_shortened_rbc_survival",
@@ -203,5 +220,30 @@ export const VALIDITY_CAVEATS: ValidityCaveat[] = [
       all: [{ feature: "on_dialysis", op: "present" }],
       citation: KDIGO_2024_CKD,
     },
+  },
+  {
+    /**
+     * The antiretroviral effect, and it is large: A1C underestimated glucose by
+     * about 29 mg/dL in HIV-infected subjects, with abacavir and a raised MCV the
+     * only predictors surviving multivariate analysis.
+     *
+     * MASKS, not manufactures — the direction that matters most, because a
+     * reassuring number is the one nobody re-checks. It does NOT block the
+     * diagnosis: this is one prospective study rather than a guideline position,
+     * and gating a diagnosis on it is a decision for the CSO, not for me.
+     */
+    id: "abacavir_lowers_hba1c",
+    feature: "hba1c",
+    label: "On abacavir — HbA1c reads lower than the glucose warrants",
+    when: {
+      id: "on_abacavir",
+      label: "Taking abacavir",
+      all: [{ feature: "art_regimen", op: "==", value: "abacavir" }],
+      citation: ARV_A1C_CAVEAT,
+    },
+    direction: "masks",
+    alternative: "Use glucose measurements, or fructosamine where available.",
+    blocksDiagnosis: false,
+    citation: ARV_A1C_CAVEAT,
   },
 ];
