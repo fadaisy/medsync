@@ -1388,24 +1388,43 @@ function OptionEffects({ feature, selected }: { feature: Feature; selected: Set<
         <tbody className="divide-border/40 divide-y">
           {effects.map((e) => {
             const here = selected.has(e.option);
-            // `masks` is the dangerous direction: a falsely reassuring number is
-            // the one nobody re-checks. Never colour alone — the effect is
-            // spelled out in the cell beside it.
-            const tone =
-              e.direction === "masks" || e.direction === "manufactures"
-                ? "text-amber-800 dark:text-amber-300"
-                : e.direction === "unpredictable"
-                  ? "text-muted-foreground"
-                  : "text-muted-foreground";
+            /**
+             * An option that MOVES the number is highlighted red when it is the
+             * one selected — this patient's HbA1c cannot be read at face value,
+             * and that is not the same news as "recorded". Brand is what an
+             * ordinary engine-recognised selection looks like everywhere on this
+             * surface, so an affecting regimen must not wear it.
+             *
+             * `masks` is the dangerous direction of the two: a falsely
+             * reassuring number is the one nobody re-checks.
+             */
+            const affects = e.direction === "masks" || e.direction === "manufactures";
+            const row = here
+              ? affects
+                ? "bg-red-50 dark:bg-red-950/40"
+                : "bg-brand-50 dark:bg-brand-950/40"
+              : "";
+            // Never colour alone — the effect is spelled out in the cell beside it.
+            const tone = affects
+              ? here
+                ? "text-red-800 dark:text-red-300"
+                : "text-amber-800 dark:text-amber-300"
+              : "text-muted-foreground";
             return (
-              <tr key={e.option} className={here ? "bg-brand-50 dark:bg-brand-950/40" : ""}>
+              <tr key={e.option} className={row}>
                 <td
-                  className={`px-2 py-1 text-[11.5px] ${here ? "text-foreground font-medium" : "text-muted-foreground"}`}
+                  className={`px-2 py-1 text-[11.5px] ${
+                    here
+                      ? affects
+                        ? "font-medium text-red-900 dark:text-red-200"
+                        : "text-foreground font-medium"
+                      : "text-muted-foreground"
+                  }`}
                 >
                   {label(e.option)}
                   {here ? <span className="ml-1 text-[10px]">◂ this patient</span> : null}
                 </td>
-                <td className={`px-2 py-1 text-[11.5px] ${here ? `${tone} font-medium` : tone}`}>
+                <td className={`px-2 py-1 text-[11.5px] ${tone} ${here ? "font-medium" : ""}`}>
                   {e.effect}
                 </td>
               </tr>
