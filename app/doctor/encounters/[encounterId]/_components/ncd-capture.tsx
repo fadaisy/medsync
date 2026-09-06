@@ -248,12 +248,34 @@ export function NcdCapture({
    * can never drift apart. The effect is that an unasked symptom never spawns a
    * page of questions about itself.
    */
+  /**
+   * The interpretation table, where this section holds the tests it reads.
+   *
+   * Which section that is comes from the CATALOG — a table's feature knows its
+   * own section — rather than from a hardcoded id here. Hypertension gets its
+   * blood-pressure bands under whichever section it files them in, with no
+   * change to this component.
+   */
+  const interpretation = useMemo(() => {
+    const inSection = new Set(
+      catalog.features.filter((f) => f.section === sectionId).map((f) => f.code),
+    );
+    if (!catalog.interpretation?.some((t) => inSection.has(t.feature))) return [];
+    return interpretations(catalog, ncdContext(catalog, values, site)).filter((i) =>
+      inSection.has(i.feature),
+    );
+  }, [catalog, sectionId, values, site]);
+
   const visible = useMemo(() => {
     const ctx = contextOf(catalog.features, values, site);
+    // A test the interpretation table captures is NOT also a row in the card.
+    // The input belongs with the scale that reads it, and rendering both would
+    // put the same question on the screen twice.
+    const inTable = new Set(interpretation.map((i) => i.feature));
     return catalog.features.filter(
-      (f) => f.section === sectionId && !f.offProtocol && isVisible(f, ctx),
+      (f) => f.section === sectionId && !f.offProtocol && !inTable.has(f.code) && isVisible(f, ctx),
     );
-  }, [catalog.features, sectionId, values, site]);
+  }, [catalog.features, sectionId, values, site, interpretation]);
 
   /** Findings in group order, each carrying its own properties. */
   const banded = useMemo(() => {
@@ -279,24 +301,6 @@ export function NcdCapture({
         band: b.group && b.group !== arr[i - 1]?.b.group ? byId.get(b.group) : undefined,
       }));
   }, [visible, section, featureIndex]);
-
-  /**
-   * The interpretation table, where this section holds the tests it reads.
-   *
-   * Which section that is comes from the CATALOG — a table's feature knows its
-   * own section — rather than from a hardcoded id here. Hypertension gets its
-   * blood-pressure bands under whichever section it files them in, with no
-   * change to this component.
-   */
-  const interpretation = useMemo(() => {
-    const inSection = new Set(
-      catalog.features.filter((f) => f.section === sectionId).map((f) => f.code),
-    );
-    if (!catalog.interpretation?.some((t) => inSection.has(t.feature))) return [];
-    return interpretations(catalog, ncdContext(catalog, values, site)).filter((i) =>
-      inSection.has(i.feature),
-    );
-  }, [catalog, sectionId, values, site]);
 
   /** Off-protocol capture for this section, if the catalog declares any. */
   const offProtocol = useMemo(
@@ -343,10 +347,59 @@ export function NcdCapture({
         ) : null}
       </header>
 
+      <NcdInterpretation
+        rows={interpretation}
+        renderInput={(code) => {
+          const f = featureIndex.get(code);
+          if (!f) return null;
+          const performable = isPerformable(f, site);
+          if (!performable) {
+            return (
+              <span className="text-muted-foreground text-caption inline-flex items-center gap-1">
+                <CircleSlashIcon className="size-3" aria-hidden />
+                not available here
+              </span>
+            );
+          }
+          return (
+            <>
+              <ValueEditor feature={f} value={values[code]} onSet={(v) => set(code, v)} left />
+              {values[code] ? (
+                <button
+                  type="button"
+                  onClick={() => set(code, undefined)}
+                  title="Clear — back to not assessed"
+                  aria-label={`Clear ${f.display}`}
+                  className={`tap text-muted-foreground hover:text-foreground rounded p-1 ${EASE} ${TAP}`}
+                >
+                  <RotateCcwIcon className="size-3" aria-hidden />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() =>
+                    set(code, { state: "unavailable", capability: f.requires ?? "site" })
+                  }
+                  title="Could not be done today"
+                  aria-label={`${f.display} — could not be done today`}
+                  className={`tap text-muted-foreground/70 hover:text-foreground rounded px-1.5 py-0.5 text-[10.5px] ${EASE} ${TAP}`}
+                >
+                  n/a
+                </button>
+              )}
+            </>
+          );
+        }}
+      />
+
       {/* One card, banded — not six cards. Elevation is a truth claim, and this
           is one protocol for one section. The divider now separates findings
           only, so a rule reliably means "new question". */}
-      <div className="border-border bg-card divide-gray-150 divide-y overflow-hidden rounded-xl border shadow-xs">
+      <div
+        className={`border-border bg-card divide-gray-150 divide-y overflow-hidden rounded-xl border shadow-xs ${
+          banded.length ? "" : "hidden"
+        } ${interpretation.length ? "mt-3" : ""}`}
+      >
         {banded.map(({ finding, properties, band }) => {
           return (
             <div key={finding.code}>
@@ -381,8 +434,6 @@ export function NcdCapture({
           );
         })}
       </div>
-
-      <NcdInterpretation rows={interpretation} />
 
       {offProtocol.map((f) => (
         <OffProtocolBlock

@@ -204,3 +204,27 @@ describe("the table belongs to a section, derived from the catalog", () => {
     }
   });
 });
+
+/**
+ * The table now CAPTURES the tests it reads, so a feature appearing twice would
+ * put the same question on screen twice — once in the table and once in the card
+ * beneath it — with two inputs writing the same value.
+ */
+describe("one row per test", () => {
+  it("returns exactly one row for each interpreted feature, under either site", () => {
+    for (const site of [REFERRAL_SITE, DISTRICT_SITE]) {
+      const codes = read({}, site).map((i) => i.feature);
+      expect(new Set(codes).size, site.id).toBe(codes.length);
+    }
+  });
+
+  it("leaves the section's uninterpreted tests to the card below", () => {
+    const interpreted = new Set(read({}).map((i) => i.feature));
+    const rest = DIABETES_CATALOG.features.filter(
+      (f) => f.section === "glycaemia" && !interpreted.has(f.code),
+    );
+    // Capillary glucose and the second-sample confirmation have no published
+    // band; they are still captured, just not in the table.
+    expect(rest.map((f) => f.code)).toEqual(["capillary_glucose", "second_sample_confirms"]);
+  });
+});
