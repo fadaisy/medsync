@@ -46,11 +46,21 @@ type Tone = (typeof COLUMNS)[number];
  * prediabetes on a glucose scale and a raised pulse on a vital, and those do not
  * want the same colour — one is a risk state the patient lives in, the other is
  * a number that is off right now.
+ *
+ * Normal is GREEN. It was the brand indigo, which is the colour of every button
+ * and link on the page and therefore reads as chrome rather than as a verdict —
+ * a clinician scanning a column of results has to stop and decode it. Green is
+ * the one thing everyone already reads as "this one is fine", and the design
+ * system permits it here because the colour never travels alone: the band's
+ * word sits in the same cell.
+ *
+ * Intermediate moves to amber accordingly. It is a risk state, not an
+ * emergency, so it must not be red — and it can no longer be green.
  */
 const DEFAULT_COLOR: Record<Tone, BandColor> = {
   low: "red",
-  normal: "brand",
-  intermediate: "emerald",
+  normal: "emerald",
+  intermediate: "amber",
   diagnostic: "red",
 };
 
@@ -81,13 +91,6 @@ const LINE_BY_COLOR: Record<BandColor, string> = {
   grey: "stroke-gray-400",
 };
 
-const HEAD: Record<Tone, string> = {
-  low: "text-red-700 dark:text-red-400",
-  normal: "text-brand-700 dark:text-brand-300",
-  intermediate: "text-emerald-700 dark:text-emerald-400",
-  diagnostic: "text-red-700 dark:text-red-400",
-};
-
 /** The glucose vocabulary. A table meaning something else brings its own. */
 const LABEL: Record<Tone, string> = {
   low: "Hypoglycaemia",
@@ -104,12 +107,18 @@ const headings = (row: Interpretation): Record<Tone, string> => ({
 /**
  * The input's own colour, once there is a value to read. The clinician's eye is
  * on the field they just typed in, not on the row it belongs to.
+ *
+ * Keyed by the RESOLVED colour, not by the tone. Keyed by tone it ignored a
+ * table's `toneColors`, so a pulse of 118 sat in an orange column with a
+ * green number in the box.
  */
-const FIELD: Record<Tone, string> = {
-  low: "text-red-700 dark:text-red-400",
-  normal: "text-brand-800 dark:text-brand-200",
-  intermediate: "text-emerald-800 dark:text-emerald-300",
-  diagnostic: "text-red-700 dark:text-red-400",
+const FIELD_BY_COLOR: Record<BandColor, string> = {
+  brand: "text-brand-800 dark:text-brand-200",
+  emerald: "text-emerald-800 dark:text-emerald-300",
+  amber: "text-amber-800 dark:text-amber-300",
+  orange: "text-orange-800 dark:text-orange-300",
+  red: "text-red-700 dark:text-red-400",
+  grey: "text-foreground",
 };
 
 const hhmm = (iso: string) => {
@@ -326,7 +335,7 @@ function InterpretationTable({
                 <th
                   key={tone}
                   className={`text-caption px-2 py-1.5 font-medium ${
-                    HEAD_BY_COLOR[rows[0]?.toneColors?.[tone] ?? DEFAULT_COLOR[tone]] ?? HEAD[tone]
+                    HEAD_BY_COLOR[rows[0]?.toneColors?.[tone] ?? DEFAULT_COLOR[tone]]
                   }`}
                 >
                   {head[tone]}
@@ -349,7 +358,7 @@ function InterpretationTable({
                   <span
                     className={`mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 ${
                       row.band
-                        ? `${FIELD[row.band.tone]} [&_input]:!font-medium [&_input]:!text-current`
+                        ? `${FIELD_BY_COLOR[colorOf(row, row.band)]} [&_input]:!font-medium [&_input]:!text-current`
                         : ""
                     }`}
                   >

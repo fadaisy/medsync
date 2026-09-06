@@ -35,8 +35,8 @@ import type { InterpretationTable, ResultBand } from "@/lib/ncd/catalog/schema";
 import {
   ADA_S10_BP,
   REFERENCE_RANGE,
+  WAIST_RISK,
   WHO_BMI,
-  WHO_WAIST,
 } from "@/lib/ncd/catalog/diabetes/examination";
 import { ADA_2026_DX, WHO_2006_DX } from "@/lib/ncd/catalog/diabetes/sources";
 
@@ -330,6 +330,9 @@ export const INTERPRETATION: InterpretationTable[] = [
       },
       { code: "prompt", display: "Prompt initiation", from: 150, tone: "diagnostic" },
     ],
+    // Above target is a treatment trigger, not an emergency — the same orange
+    // every other raised vital carries, and pointedly not red.
+    toneColors: { intermediate: "orange" },
   },
   {
     id: "bp_diastolic_ada",
@@ -353,6 +356,9 @@ export const INTERPRETATION: InterpretationTable[] = [
       },
       { code: "prompt", display: "Prompt initiation", from: 90, tone: "diagnostic" },
     ],
+    // Above target is a treatment trigger, not an emergency — the same orange
+    // every other raised vital carries, and pointedly not red.
+    toneColors: { intermediate: "orange" },
   },
 
   /* ── waist circumference — two scales, not one ────────────────────────── */
@@ -363,44 +369,60 @@ export const INTERPRETATION: InterpretationTable[] = [
      * print one sex's cut-points as if they were everyone's — and the sex is
      * prefilled from the patient record, so the gate costs the clinician nothing.
      *
-     * The note carries what is still unrecorded: IDF's thresholds are LOWER for
-     * several populations, and this catalog has no ethnicity to select on.
+     * ── Four categories, not WHO's two ───────────────────────────────────────
+     * This replaces WHO's 94/102 cm scale with the four-risk-category table
+     * supplied for this build. They DISAGREE and the disagreement is not small:
+     * WHO calls a 96 cm waist in a man "increased risk", this table calls it
+     * low. Which is right is a site decision, and it is recorded as one — the
+     * citation carries `needsCsoInput` saying exactly that.
+     *
+     * The source prints inches with centimetre equivalents, and the rounding
+     * leaves gaps (89 then 90, 109 then 110). Bands here are contiguous, since
+     * a scale with holes in it cannot classify a waist that lands in one.
      */
-    id: "waist_male_who",
+    id: "waist_male_risk",
     feature: "waist_cm",
     when: { feature: "sex", op: "==", value: "male" },
-    standard: "WHO",
-    version: "WHO expert consultation",
-    citation: WHO_WAIST,
-    note: "Europid cut-points. IDF publishes lower thresholds for South Asian, Chinese and Japanese populations, and no ethnicity is recorded here.",
+    standard: "local",
+    version: "Criteria for waist circumference in adults",
+    citation: WAIST_RISK,
+    note: "Four risk categories. Ethnicity is not recorded here, and IDF publishes lower thresholds for South Asian, Chinese and Japanese populations.",
     toneLabels: {
-      normal: "No added risk",
-      intermediate: "Increased risk",
-      diagnostic: "Substantially increased",
+      low: "Very low",
+      normal: "Low",
+      intermediate: "High",
+      diagnostic: "Very high",
     },
+    // Both of the left-hand categories are low-risk, and say so. Orange for
+    // high, because it is a risk state to act on rather than an emergency.
+    toneColors: { low: "emerald", intermediate: "orange" },
     bands: [
-      { code: "normal", display: "No added risk", to: 94, tone: "normal" },
-      { code: "increased", display: "Increased risk", from: 94, to: 102, tone: "intermediate" },
-      { code: "substantial", display: "Substantially increased", from: 102, tone: "diagnostic" },
+      { code: "very_low", display: "Very low risk", to: 80, tone: "low" },
+      { code: "low", display: "Low risk", from: 80, to: 100, tone: "normal" },
+      { code: "high", display: "High risk", from: 100, to: 120, tone: "intermediate" },
+      { code: "very_high", display: "Very high risk", from: 120, tone: "diagnostic" },
     ],
   },
   {
-    id: "waist_female_who",
+    id: "waist_female_risk",
     feature: "waist_cm",
     when: { feature: "sex", op: "==", value: "female" },
-    standard: "WHO",
-    version: "WHO expert consultation",
-    citation: WHO_WAIST,
-    note: "Europid cut-points. IDF publishes lower thresholds for South Asian, Chinese and Japanese populations, and no ethnicity is recorded here.",
+    standard: "local",
+    version: "Criteria for waist circumference in adults",
+    citation: WAIST_RISK,
+    note: "Four risk categories. Ethnicity is not recorded here, and IDF publishes lower thresholds for South Asian, Chinese and Japanese populations.",
     toneLabels: {
-      normal: "No added risk",
-      intermediate: "Increased risk",
-      diagnostic: "Substantially increased",
+      low: "Very low",
+      normal: "Low",
+      intermediate: "High",
+      diagnostic: "Very high",
     },
+    toneColors: { low: "emerald", intermediate: "orange" },
     bands: [
-      { code: "normal", display: "No added risk", to: 80, tone: "normal" },
-      { code: "increased", display: "Increased risk", from: 80, to: 88, tone: "intermediate" },
-      { code: "substantial", display: "Substantially increased", from: 88, tone: "diagnostic" },
+      { code: "very_low", display: "Very low risk", to: 70, tone: "low" },
+      { code: "low", display: "Low risk", from: 70, to: 90, tone: "normal" },
+      { code: "high", display: "High risk", from: 90, to: 110, tone: "intermediate" },
+      { code: "very_high", display: "Very high risk", from: 110, tone: "diagnostic" },
     ],
   },
 

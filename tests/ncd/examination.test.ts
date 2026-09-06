@@ -158,11 +158,34 @@ describe("waist circumference is banded per sex", () => {
   const waistFor = (sex: string, cm: number) =>
     read("waist_cm", { sex: recorded(sex), waist_cm: recorded(cm) }).band?.code;
 
+  /**
+   * Every boundary of the supplied four-category table, both sexes, on the
+   * threshold and just under it — because the whole reason this scale replaced
+   * WHO's is that the numbers moved, and a test that only checks the middle of
+   * a band would not have noticed.
+   */
   it("uses a different threshold for each sex", () => {
-    expect(waistFor("male", 92)).toBe("normal");
-    expect(waistFor("female", 92)).toBe("substantial");
-    expect(waistFor("male", 96)).toBe("increased");
-    expect(waistFor("female", 84)).toBe("increased");
+    expect(waistFor("male", 79.9)).toBe("very_low");
+    expect(waistFor("male", 80)).toBe("low");
+    expect(waistFor("male", 99.9)).toBe("low");
+    expect(waistFor("male", 100)).toBe("high");
+    expect(waistFor("male", 119.9)).toBe("high");
+    expect(waistFor("male", 120)).toBe("very_high");
+
+    expect(waistFor("female", 69.9)).toBe("very_low");
+    expect(waistFor("female", 70)).toBe("low");
+    expect(waistFor("female", 89.9)).toBe("low");
+    expect(waistFor("female", 90)).toBe("high");
+    expect(waistFor("female", 109.9)).toBe("high");
+    expect(waistFor("female", 110)).toBe("very_high");
+  });
+
+  /** The same waist, two answers — which is the point of gating on sex. */
+  it("reads one measurement differently for a man and a woman", () => {
+    expect(waistFor("male", 92)).toBe("low");
+    expect(waistFor("female", 92)).toBe("high");
+    expect(waistFor("male", 115)).toBe("high");
+    expect(waistFor("female", 115)).toBe("very_high");
   });
 
   /**

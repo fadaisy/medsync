@@ -3,20 +3,18 @@ import type { CaptureMap } from "@/lib/ncd/engine/evaluate";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { eq } from "drizzle-orm";
-import { AlertTriangleIcon, ArrowLeftIcon, ClockIcon } from "lucide-react";
+import { AlertTriangleIcon, ArrowLeftIcon } from "lucide-react";
 
 import { db } from "@/db";
 import { encounters } from "@/db/schema/scheduling";
 import { fetchPatientSummaryAudited } from "@/lib/doctor/patient-access";
 import { requireDoctorScope } from "@/lib/doctor/scope";
 import { encounterEngineLive, ncdClerkshipLive } from "@/lib/encounter/feature";
-import { loadEncounterOrders } from "@/lib/encounter/orders";
 import { loadEncounterRecord } from "@/lib/encounter/record";
 import { toEncounterScope } from "@/lib/encounter/workspace-scope";
 import { DIABETES_CATALOG, DISTRICT_SITE, REFERRAL_SITE } from "@/lib/ncd/catalog/diabetes";
 import { loadNcdDraft } from "@/lib/ncd/draft";
-import { initialCapture, loadLatestVitals, normaliseSex } from "@/lib/ncd/vitals";
-import { InvestigationsPanel } from "./_components/investigations-panel";
+import { initialCapture, loadLatestVitals, loadPatientDemographics } from "@/lib/ncd/vitals";
 import { NcdClerkship } from "./_components/ncd-clerkship";
 import { saveNcdDraftAction } from "./actions";
 
@@ -98,8 +96,6 @@ export default async function DoctorEncounterPage({ params }: PageProps) {
 
   const doc = record.documentation;
 
-  // W4 — investigations & results visibility (read-only; reuses the spine).
-  const orders = await loadEncounterOrders(encounterId);
   // Undefined when the flag is off, the migration is un-applied, or there is
   // simply no draft — all three are the same honest empty state to the form.
   const vitals = ncdClerkshipLive()
@@ -111,12 +107,18 @@ export default async function DoctorEncounterPage({ params }: PageProps) {
    * asking a clinician for something the record knows — which is how a form
    * earns the reputation of wasting time.
    *
+   * Read from the profile column DIRECTLY, not from `patient` above. That
+   * summary decrypts the name, the phone and the address, and returns null if
+   * any of them fails — so an unreadable name took the sex down with it, and
+   * the examination asked for a demographic sitting in plaintext one table
+   * away. Nothing a reference scale needs should ride on a decrypt.
+   *
    * Age is NOT carried across: nothing in this catalog reads it yet, and a field
    * no rule consults is a question with no consequence. It joins the day a band
    * needs it (WHO's anaemia thresholds differ for children).
    */
-  const demographics: CaptureMap = patient?.sex
-    ? { sex: { state: "recorded", value: normaliseSex(patient.sex) } }
+  const demographics: CaptureMap = ncdClerkshipLive()
+    ? await loadPatientDemographics(enc.patientUserId)
     : {};
   const draft = ncdClerkshipLive()
     ? await loadNcdDraft(encounterId, scope.userId, DIABETES_CATALOG)
@@ -205,63 +207,6 @@ export default async function DoctorEncounterPage({ params }: PageProps) {
             ) : null}
           </section>
         )}
-
-        {/* Investigations & results (read-only visibility) */}
-        <InvestigationsPanel orders={orders} />
-
-        {/* Timeline */}
-        <section className="border-border bg-card flex flex-col gap-3 rounded-xl border p-4 shadow-xs">
-          <h2 className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10.5px] tracking-[0.14em] uppercase">
-            <ClockIcon className="size-3.5" aria-hidden />
-            Timeline
-          </h2>
-          {record.timeline.length === 0 ? (
-            <div className="flex flex-col items-center gap-2 py-5 text-center">
-              {/* Quiet timeline glyph — dots waiting on a dashed line */}
-              <svg
-                width="72"
-                height="32"
-                viewBox="0 0 72 32"
-                fill="none"
-                aria-hidden
-                className="text-gray-300 dark:text-gray-700"
-              >
-                <path
-                  d="M6 16h60"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeDasharray="3 4"
-                />
-                <circle cx="18" cy="16" r="3" fill="currentColor" />
-                <circle cx="36" cy="16" r="3" className="fill-brand-500/70" />
-                <circle cx="54" cy="16" r="3" fill="currentColor" />
-              </svg>
-              <p className="text-muted-foreground text-[12.5px]">
-                No events yet — they appear here as the encounter is documented.
-              </p>
-            </div>
-          ) : (
-            <ul className="divide-border/60 -mx-2 divide-y">
-              {record.timeline.map((ev) => (
-                <li
-                  key={ev.id}
-                  className="hover:bg-muted/40 flex items-baseline justify-between gap-3 rounded-md px-2 py-1.5 transition-colors"
-                >
-                  <span className="text-foreground text-[12.5px]">
-                    <span className="text-muted-foreground inline-block w-[96px] font-mono text-[10px] tracking-[0.06em] uppercase">
-                      {ev.kind}
-                    </span>{" "}
-                    {ev.label}
-                  </span>
-                  <span className="text-muted-foreground font-mono text-[10.5px] tabular-nums">
-                    {ev.recordedAt.toISOString().slice(0, 16).replace("T", " ")}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
       </div>
     </div>
   );

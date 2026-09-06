@@ -352,3 +352,69 @@ describe("only a band that declares an alert raises one", () => {
     ).toBe(true);
   });
 });
+
+/**
+ * Colour is the fastest thing on the row, so it has to say the same thing the
+ * word beside it says. Two rules hold across every table:
+ *
+ *  - a "raised but not an emergency" band is ORANGE, never red — an above-target
+ *    blood pressure is a treatment trigger, and red is reserved here for things
+ *    that need somebody now;
+ *  - a tone override is declared on the table, not inferred by the surface, so a
+ *    component cannot decide a pulse and a prediabetes deserve the same colour.
+ */
+describe("the raised bands are orange, and say so in the catalog", () => {
+  const table = (id: string) => DIABETES_CATALOG.interpretation!.find((t) => t.id === id)!;
+
+  it("colours both limbs of an above-target blood pressure orange", () => {
+    for (const id of ["bp_systolic_ada", "bp_diastolic_ada"]) {
+      expect(table(id).toneColors, id).toMatchObject({ intermediate: "orange" });
+      expect(table(id).toneLabels, id).toMatchObject({ intermediate: "Above target" });
+    }
+  });
+
+  it("keeps the treat-promptly band distinct from above target", () => {
+    expect(of("bp_systolic", { bp_systolic: recorded(138) }).band).toMatchObject({
+      code: "above_target",
+      tone: "intermediate",
+    });
+    expect(of("bp_systolic", { bp_systolic: recorded(152) }).band).toMatchObject({
+      code: "prompt",
+      tone: "diagnostic",
+    });
+    expect(of("bp_diastolic", { bp_diastolic: recorded(84) }).band).toMatchObject({
+      tone: "intermediate",
+    });
+  });
+
+  /** No raised vital may be red. Red is the emergency colour and stays scarce. */
+  it("never paints a raised vital red", () => {
+    for (const t of DIABETES_CATALOG.interpretation!) {
+      if (t.toneColors?.intermediate) {
+        expect(t.toneColors.intermediate, t.id).not.toBe("red");
+      }
+    }
+  });
+});
+
+/**
+ * A BMI is DERIVED, never captured. The row that shows it reads the evaluation
+ * context, because the capture map has no `bmi` in it and never will — reading
+ * the capture map is why the calculated figure showed a dash next to a height
+ * and a weight that were both filled in.
+ */
+describe("a computed measure reaches the row that displays it", () => {
+  it("carries a value and a band once both inputs are in", () => {
+    const values = { weight_kg: recorded(84), height_cm: recorded(171) };
+    expect(of("bmi", values)).toMatchObject({ value: 28.7, state: "met" });
+    expect(of("bmi", values).band).toBeDefined();
+    // The source of truth is untouched — the whole point of deriving it.
+    expect(Object.keys(values).sort()).toEqual(["height_cm", "weight_kg"]);
+  });
+
+  it("carries no value while either input is missing", () => {
+    expect(of("bmi", { weight_kg: recorded(84) }).value).toBeUndefined();
+    expect(of("bmi", { height_cm: recorded(171) }).value).toBeUndefined();
+    expect(of("bmi", {}).value).toBeUndefined();
+  });
+});

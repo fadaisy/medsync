@@ -95,18 +95,24 @@ const vital = (f: Omit<Feature, "section" | "kind" | "group">): Feature => ({
 const body = vital;
 
 /**
- * WHO's waist thresholds. TWO tables, because it is two scales: the cut-points
- * for men and women are different numbers, not a refinement of one.
+ * The waist thresholds. TWO tables, because it is two scales: the cut-points for
+ * men and women are different numbers, not a refinement of one.
+ *
+ * Four risk categories, from the reference table supplied for this build. It is
+ * NOT the WHO scale this catalog carried first, and the two disagree — WHO puts
+ * a man's first threshold at 94 cm and its second at 102, this table at 100 and
+ * 120. A 96 cm waist is "increased risk" to WHO and "low risk" here. That is a
+ * real disagreement about a real patient, so it is recorded rather than
+ * smoothed over, and the CSO decides which scale the site uses.
  */
-export const WHO_WAIST = {
-  standard: "WHO" as const,
-  version: "Waist circumference and waist–hip ratio: report of a WHO expert consultation",
-  title: "WHO expert consultation on waist circumference and waist–hip ratio",
-  url: "https://iris.who.int/handle/10665/44583",
+export const WAIST_RISK = {
+  standard: "local" as const,
+  version: "Criteria for waist circumference in adults",
+  title: "Waist circumference risk categories — four bands, by sex",
   retrieved: RETRIEVED,
   csoSigned: false,
   needsCsoInput:
-    "The WHO/NIH cut-points below (94/102 cm men, 80/88 cm women) are the Europid values. IDF publishes LOWER thresholds for South Asian, Chinese, Japanese and other populations, and this catalog records no ethnicity. CSO to decide the site default.",
+    'Supplied as a reference table ("Criteria for Waist Circumference in Adults"): very low / low / high / very high, at 80, 100 and 120 cm for men and 70, 90 and 110 cm for women. The PRIMARY SOURCE WAS NOT RETRIEVED and these cut-points are not verified against it — the table is of the kind reproduced in exercise-physiology texts. It REPLACES the WHO expert-consultation scale (94/102 cm men, 80/88 cm women), which is published and cited and gives different answers. CSO to ratify which scale this site uses. Separately, ethnicity is still not recorded: IDF publishes lower thresholds for South Asian, Chinese, Japanese and other populations.',
 };
 
 export const EXAMINATION_FEATURES: Feature[] = [
@@ -233,6 +239,6 @@ export const EXAMINATION_FEATURES: Feature[] = [
     display: "Waist circumference",
     valueType: "number",
     unit: "cm",
-    citation: WHO_WAIST,
+    citation: WAIST_RISK,
   }),
 ];

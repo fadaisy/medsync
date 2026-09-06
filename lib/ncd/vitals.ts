@@ -6,6 +6,7 @@ import { and, desc, eq } from "drizzle-orm";
 
 import { db } from "@/db";
 import { clinicalObservations } from "@/db/schema/nurse-workspace";
+import { patientProfiles } from "@/db/schema/patient-profiles";
 import { triageRecords } from "@/db/schema/triage";
 import { encounterEngineLive } from "@/lib/encounter/feature";
 import { logger } from "@/lib/logger";
@@ -253,6 +254,42 @@ export function initialCapture(
   draft: CaptureMap | undefined,
 ): CaptureMap {
   return { ...(pulled ?? {}), ...(draft ?? {}) };
+}
+
+/**
+ * The demographics a REFERENCE SCALE needs — read from the column that holds
+ * them, and from nothing else.
+ *
+ * The waist cut-points are sex-specific and WHO's anaemia thresholds are too,
+ * so without this the surface has to print one sex's numbers as if they were
+ * everyone's.
+ *
+ * ── Why this is not taken from the patient summary ───────────────────────────
+ * It was, and it silently stopped arriving. That summary decrypts the name, the
+ * phone and the address, and returns NULL if ANY of them fails — so on a record
+ * whose PHI could not be decrypted, the sex vanished too, and the clerkship
+ * asked a clinician for a demographic the database was holding in plaintext one
+ * table away. `sex` is not encrypted and never was. Reading it here cannot be
+ * taken down by a key that no longer matches a name.
+ *
+ * Access is already settled before this is called: the caller has resolved the
+ * doctor's scope and the encounter, and this reads one non-PHI column.
+ */
+export async function loadPatientDemographics(patientUserId: string): Promise<CaptureMap> {
+  try {
+    const [row] = await db
+      .select({ sex: patientProfiles.sex })
+      .from(patientProfiles)
+      .where(eq(patientProfiles.id, patientUserId))
+      .limit(1);
+    if (!row?.sex) return {};
+    return { sex: { state: "recorded", value: normaliseSex(row.sex) } };
+  } catch (error) {
+    // An absent demographic is a valid state: the scale says it cannot classify
+    // rather than guessing, which is the whole reason the gate exists.
+    logger.warn("ncd.demographics.load_failed", { error: String(error) });
+    return {};
+  }
 }
 
 /**

@@ -270,18 +270,26 @@ export function NcdCapture({
    * blood-pressure bands under whichever section it files them in, with no
    * change to this component.
    */
+  /**
+   * One context for the whole card — and the reason a computed measure can be
+   * shown at all.
+   *
+   * A BMI is never in `values`. It is DERIVED as the context is built, from the
+   * weight and the height, precisely so it can never disagree with them. So a
+   * surface reading `values.bmi` reads nothing, every time — which is why the
+   * calculated figure never appeared beside the two inputs it comes from.
+   */
+  const ctx = useMemo(() => ncdContext(catalog, values, site), [catalog, values, site]);
+
   const interpretation = useMemo(() => {
     const inSection = new Set(
       catalog.features.filter((f) => f.section === sectionId).map((f) => f.code),
     );
     if (!catalog.interpretation?.some((t) => inSection.has(t.feature))) return [];
-    return interpretations(catalog, ncdContext(catalog, values, site)).filter((i) =>
-      inSection.has(i.feature),
-    );
-  }, [catalog, sectionId, values, site]);
+    return interpretations(catalog, ctx).filter((i) => inSection.has(i.feature));
+  }, [catalog, sectionId, ctx]);
 
   const visible = useMemo(() => {
-    const ctx = contextOf(catalog.features, values, site);
     // A test the interpretation table captures is NOT also a row in the card.
     // The input belongs with the scale that reads it, and rendering both would
     // put the same question on the screen twice.
@@ -296,7 +304,7 @@ export function NcdCapture({
     return catalog.features.filter(
       (f) => f.section === sectionId && !f.offProtocol && !inTable.has(f.code) && isVisible(f, ctx),
     );
-  }, [catalog.features, sectionId, values, site, interpretation]);
+  }, [catalog.features, sectionId, ctx, interpretation]);
 
   /** Findings in group order, each carrying its own properties. */
   const banded = useMemo(() => {
@@ -444,11 +452,15 @@ export function NcdCapture({
            * somewhere else on the screen.
            */
           if (f.computed) {
-            const value = values[code];
+            const value = ctx.values[code];
             const shown =
               value?.state === "recorded" && typeof value.value === "number"
                 ? value.value
                 : undefined;
+            const missing = f.computed.from.filter((src) => {
+              const v = values[src];
+              return !(v?.state === "recorded" && typeof v.value === "number");
+            });
             return (
               <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
                 {f.computed.from.map((src) => {
@@ -481,9 +493,25 @@ export function NcdCapture({
                   );
                 })}
                 <span className="text-caption text-muted-foreground">=</span>
-                <span className="text-foreground font-mono text-[13px] font-medium tabular-nums">
-                  {shown ?? "—"}
-                </span>
+                {shown !== undefined ? (
+                  <span className="text-foreground font-mono text-[13px] font-medium tabular-nums">
+                    {shown}
+                    {f.unit ? (
+                      <span className="text-muted-foreground ml-1 text-[10px] font-normal">
+                        {f.unit}
+                      </span>
+                    ) : null}
+                  </span>
+                ) : (
+                  // A dash says "nothing here"; this says which number is still
+                  // missing, which is the only actionable half of that.
+                  <span className="text-muted-foreground text-caption">
+                    needs{" "}
+                    {missing
+                      .map((src) => featureIndex.get(src)?.display.toLowerCase() ?? src)
+                      .join(" and ")}
+                  </span>
+                )}
               </span>
             );
           }
