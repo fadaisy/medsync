@@ -50,6 +50,23 @@ export const WHO_BMI = {
     "overweight is a BMI greater than or equal to 25; and obesity is a BMI greater than or equal to 30",
 };
 
+/**
+ * NEWS2, as this project already encodes it in `lib/triage/constants.ts` — which
+ * is a CSO-authored file transcribed verbatim from the triage research document.
+ * The bands here mirror those boundaries rather than re-deriving them, and a
+ * test asserts the two agree so they cannot drift apart.
+ */
+export const NEWS2_SOURCE = {
+  standard: "local" as const,
+  version: "NEWS2 (Royal College of Physicians), as encoded in lib/triage/constants.ts",
+  title: "National Early Warning Score 2 — the boundaries this project already uses",
+  url: "https://www.rcp.ac.uk/improving-care/resources/national-early-warning-score-news-2/",
+  retrieved: RETRIEVED,
+  csoSigned: false,
+  needsCsoInput:
+    "The BOUNDARIES are NEWS2's and are pinned to the triage constants by test. Folding its 1- and 2-point steps into one 'raised' band is a presentation choice of ours, not NEWS2's own vocabulary. CSO to ratify.",
+};
+
 /** A measurement is a clinical claim about a body; the convention is still ours. */
 const MEASUREMENT = {
   standard: "local" as const,
@@ -68,14 +85,48 @@ const vital = (f: Omit<Feature, "section" | "kind" | "group">): Feature => ({
   group: "vitals",
 });
 
-const body = (f: Omit<Feature, "section" | "kind" | "group">): Feature => ({
-  ...f,
-  kind: "measurement",
-  section: "examination",
-  group: "body",
-});
+/** Anthropometry sits with the vitals: it is measured in the same breath. */
+const body = vital;
+
+/**
+ * WHO's waist thresholds. TWO tables, because it is two scales: the cut-points
+ * for men and women are different numbers, not a refinement of one.
+ */
+export const WHO_WAIST = {
+  standard: "WHO" as const,
+  version: "Waist circumference and waist–hip ratio: report of a WHO expert consultation",
+  title: "WHO expert consultation on waist circumference and waist–hip ratio",
+  url: "https://iris.who.int/handle/10665/44583",
+  retrieved: RETRIEVED,
+  csoSigned: false,
+  needsCsoInput:
+    "The WHO/NIH cut-points below (94/102 cm men, 80/88 cm women) are the Europid values. IDF publishes LOWER thresholds for South Asian, Chinese, Japanese and other populations, and this catalog records no ethnicity. CSO to decide the site default.",
+};
 
 export const EXAMINATION_FEATURES: Feature[] = [
+  {
+    /**
+     * Recorded because the MEASUREMENTS need it, not as a demographic exercise:
+     * the waist thresholds and WHO's anaemia cutoffs are both sex-specific, and
+     * without this the surface would have to print one sex's numbers as if they
+     * were everyone's.
+     *
+     * Prefilled from the patient record, where it already exists — nobody should
+     * be asked for a demographic the chart already holds.
+     */
+    code: "sex",
+    display: "Sex",
+    kind: "history",
+    valueType: "single_select",
+    section: "examination",
+    group: "vitals",
+    citation: MEASUREMENT,
+    options: [
+      { value: "female", display: "Female" },
+      { value: "male", display: "Male" },
+      { value: "other", display: "Other or not recorded" },
+    ],
+  },
   /* ── vitals ───────────────────────────────────────────────────────────── */
   vital({
     /**
@@ -86,7 +137,7 @@ export const EXAMINATION_FEATURES: Feature[] = [
      */
     code: "bp_systolic",
     display: "Blood pressure — systolic",
-    valueType: "number",
+    valueType: "series",
     unit: "mmHg",
     refRange: { low: 90, high: 130 },
     citation: ADA_S10_BP,
@@ -94,7 +145,7 @@ export const EXAMINATION_FEATURES: Feature[] = [
   vital({
     code: "bp_diastolic",
     display: "Blood pressure — diastolic",
-    valueType: "number",
+    valueType: "series",
     unit: "mmHg",
     refRange: { low: 60, high: 80 },
     citation: ADA_S10_BP,
@@ -102,7 +153,7 @@ export const EXAMINATION_FEATURES: Feature[] = [
   vital({
     code: "pulse",
     display: "Pulse",
-    valueType: "number",
+    valueType: "series",
     unit: "bpm",
     refRange: { low: 60, high: 100 },
     citation: MEASUREMENT,
@@ -110,7 +161,7 @@ export const EXAMINATION_FEATURES: Feature[] = [
   vital({
     code: "respiratory_rate",
     display: "Respiratory rate",
-    valueType: "number",
+    valueType: "series",
     unit: "breaths/min",
     refRange: { low: 12, high: 20 },
     citation: MEASUREMENT,
@@ -118,7 +169,7 @@ export const EXAMINATION_FEATURES: Feature[] = [
   vital({
     code: "temperature",
     display: "Temperature",
-    valueType: "number",
+    valueType: "series",
     unit: "°C",
     refRange: { low: 36, high: 37.5 },
     citation: MEASUREMENT,
@@ -126,7 +177,7 @@ export const EXAMINATION_FEATURES: Feature[] = [
   vital({
     code: "spo2",
     display: "Oxygen saturation",
-    valueType: "number",
+    valueType: "series",
     unit: "%",
     refRange: { low: 94, high: 100 },
     citation: MEASUREMENT,
@@ -164,22 +215,18 @@ export const EXAMINATION_FEATURES: Feature[] = [
     /**
      * The measurement the BMI cannot make. Central fat is what drives insulin
      * resistance, so a normal BMI with a large waist is a real and common
-     * phenotype — and it is the one a BMI-only assessment calls healthy.
+     * phenotype — and it is exactly the patient a BMI-only assessment calls
+     * healthy.
      *
-     * NOT banded, deliberately. Every published threshold is sex-specific and
-     * most are ethnicity-specific too (IDF sets different cut-points for South
-     * Asian, Chinese and Japanese populations), and this catalog captures
-     * neither sex nor ethnicity. A single pair of numbers presented as the
-     * answer would be wrong for most of the world.
+     * Banded now that `sex` is captured, against WHO's cut-points — as TWO
+     * tables, because men and women have different numbers rather than a shared
+     * scale with an adjustment. Ethnicity remains unrecorded, and the note on
+     * the table says so: IDF's thresholds are lower for several populations.
      */
     code: "waist_cm",
     display: "Waist circumference",
     valueType: "number",
     unit: "cm",
-    citation: {
-      ...MEASUREMENT,
-      needsCsoInput:
-        "Captured but not classified: every published cut-point is sex-specific and most are ethnicity-specific, and this catalog records neither. The CSO decides whether a site-level default is safe.",
-    },
+    citation: WHO_WAIST,
   }),
 ];

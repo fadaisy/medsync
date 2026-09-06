@@ -102,7 +102,9 @@ export default async function DoctorEncounterPage({ params }: PageProps) {
   const orders = await loadEncounterOrders(encounterId);
   // Undefined when the flag is off, the migration is un-applied, or there is
   // simply no draft — all three are the same honest empty state to the form.
-  const vitals = ncdClerkshipLive() ? await loadLatestVitals(enc.patientUserId) : undefined;
+  const vitals = ncdClerkshipLive()
+    ? await loadLatestVitals(enc.patientUserId, DIABETES_CATALOG)
+    : undefined;
   const draft = ncdClerkshipLive()
     ? await loadNcdDraft(encounterId, scope.userId, DIABETES_CATALOG)
     : undefined;

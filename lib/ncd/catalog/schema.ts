@@ -154,7 +154,12 @@ export type ValueType =
   /** A list of free-text entries. Only valid on an `offProtocol` feature. */
   | "text_list"
   /** An ISO date (YYYY-MM-DD). */
-  | "date";
+  | "date"
+  /**
+   * A vital measured repeatedly. Rules read the latest reading; the series is
+   * kept so the surface can show where it is heading.
+   */
+  | "series";
 
 export interface FeatureOption {
   value: string;
@@ -695,6 +700,15 @@ export interface InterpretationTable {
   id: string;
   /** The feature whose value these bands read. */
   feature: string;
+  /**
+   * Apply this table only while this holds.
+   *
+   * Some scales are not one scale. Waist circumference has a different threshold
+   * for men and for women — not a refinement, a different number — so it needs
+   * two tables and a way to pick between them. Without this the surface would
+   * have to print one sex's cut-points as if they were everyone's.
+   */
+  when?: Predicate;
   standard: StandardBody;
   version: string;
   bands: ResultBand[];

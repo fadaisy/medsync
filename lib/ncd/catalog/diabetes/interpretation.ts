@@ -32,7 +32,12 @@
  */
 import type { InterpretationTable, ResultBand } from "@/lib/ncd/catalog/schema";
 
-import { ADA_S10_BP, WHO_BMI } from "@/lib/ncd/catalog/diabetes/examination";
+import {
+  ADA_S10_BP,
+  NEWS2_SOURCE,
+  WHO_BMI,
+  WHO_WAIST,
+} from "@/lib/ncd/catalog/diabetes/examination";
 import { ADA_2026_DX, WHO_2006_DX } from "@/lib/ncd/catalog/diabetes/sources";
 
 const RETRIEVED = "2026-09-06";
@@ -335,6 +340,141 @@ export const INTERPRETATION: InterpretationTable[] = [
         tone: "intermediate",
       },
       { code: "prompt", display: "Prompt initiation", from: 90, tone: "diagnostic" },
+    ],
+  },
+
+  /* ── waist circumference — two scales, not one ────────────────────────── */
+  {
+    /**
+     * Gated on the recorded sex, because these are DIFFERENT NUMBERS rather than
+     * one scale with an adjustment. Without the gate the surface would have to
+     * print one sex's cut-points as if they were everyone's — and the sex is
+     * prefilled from the patient record, so the gate costs the clinician nothing.
+     *
+     * The note carries what is still unrecorded: IDF's thresholds are LOWER for
+     * several populations, and this catalog has no ethnicity to select on.
+     */
+    id: "waist_male_who",
+    feature: "waist_cm",
+    when: { feature: "sex", op: "==", value: "male" },
+    standard: "WHO",
+    version: "WHO expert consultation",
+    citation: WHO_WAIST,
+    note: "Europid cut-points. IDF publishes lower thresholds for South Asian, Chinese and Japanese populations, and no ethnicity is recorded here.",
+    toneLabels: {
+      normal: "No added risk",
+      intermediate: "Increased risk",
+      diagnostic: "Substantially increased",
+    },
+    bands: [
+      { code: "normal", display: "No added risk", to: 94, tone: "normal" },
+      { code: "increased", display: "Increased risk", from: 94, to: 102, tone: "intermediate" },
+      { code: "substantial", display: "Substantially increased", from: 102, tone: "diagnostic" },
+    ],
+  },
+  {
+    id: "waist_female_who",
+    feature: "waist_cm",
+    when: { feature: "sex", op: "==", value: "female" },
+    standard: "WHO",
+    version: "WHO expert consultation",
+    citation: WHO_WAIST,
+    note: "Europid cut-points. IDF publishes lower thresholds for South Asian, Chinese and Japanese populations, and no ethnicity is recorded here.",
+    toneLabels: {
+      normal: "No added risk",
+      intermediate: "Increased risk",
+      diagnostic: "Substantially increased",
+    },
+    bands: [
+      { code: "normal", display: "No added risk", to: 80, tone: "normal" },
+      { code: "increased", display: "Increased risk", from: 80, to: 88, tone: "intermediate" },
+      { code: "substantial", display: "Substantially increased", from: 88, tone: "diagnostic" },
+    ],
+  },
+
+  /* ── the other vitals — NEWS2's own boundaries ────────────────────────── */
+  {
+    /**
+     * The boundaries are NEWS2's, transcribed from this project's own triage
+     * constants rather than re-derived — one source of truth, and a test asserts
+     * the two agree. What NEWS2 does not give is a four-tone vocabulary: its
+     * scale is points, and a pulse scores on BOTH sides of normal. So the bands
+     * below fold its 1- and 2-point steps into "raised" and keep 3 points for
+     * "critical", which is a presentation choice and is marked as ours.
+     */
+    id: "pulse_news2",
+    feature: "pulse",
+    standard: "local",
+    version: "NEWS2",
+    citation: NEWS2_SOURCE,
+    toneLabels: {
+      low: "Low",
+      normal: "Normal",
+      intermediate: "Raised",
+      diagnostic: "Critical",
+    },
+    bands: [
+      { code: "low", display: "Bradycardia", to: 51, tone: "low" },
+      { code: "normal", display: "Normal", from: 51, to: 91, tone: "normal" },
+      { code: "raised", display: "Tachycardia", from: 91, to: 131, tone: "intermediate" },
+      { code: "critical", display: "Marked tachycardia", from: 131, tone: "diagnostic" },
+    ],
+  },
+  {
+    id: "rr_news2",
+    feature: "respiratory_rate",
+    standard: "local",
+    version: "NEWS2",
+    citation: NEWS2_SOURCE,
+    toneLabels: {
+      low: "Low",
+      normal: "Normal",
+      intermediate: "Raised",
+      diagnostic: "Critical",
+    },
+    bands: [
+      { code: "low", display: "Slow", to: 12, tone: "low" },
+      { code: "normal", display: "Normal", from: 12, to: 21, tone: "normal" },
+      { code: "raised", display: "Tachypnoea", from: 21, to: 25, tone: "intermediate" },
+      { code: "critical", display: "Marked tachypnoea", from: 25, tone: "diagnostic" },
+    ],
+  },
+  {
+    id: "temperature_news2",
+    feature: "temperature",
+    standard: "local",
+    version: "NEWS2",
+    citation: NEWS2_SOURCE,
+    toneLabels: {
+      low: "Low",
+      normal: "Normal",
+      intermediate: "Raised",
+      diagnostic: "Critical",
+    },
+    bands: [
+      { code: "low", display: "Hypothermia", to: 36.1, tone: "low" },
+      { code: "normal", display: "Normal", from: 36.1, to: 38.1, tone: "normal" },
+      { code: "raised", display: "Fever", from: 38.1, to: 39.1, tone: "intermediate" },
+      { code: "critical", display: "High fever", from: 39.1, tone: "diagnostic" },
+    ],
+  },
+  {
+    /**
+     * Inverted, and the model does not mind: lower is worse for a saturation, so
+     * the critical band is the OPEN LOW end rather than the open high one. The
+     * bands still tile the line, which is all the engine asks.
+     */
+    id: "spo2_news2",
+    feature: "spo2",
+    standard: "local",
+    version: "NEWS2 scale 1",
+    citation: NEWS2_SOURCE,
+    note: "Scale 1. A patient on the hypercapnic target (scale 2) is read against different bands, which this table does not apply.",
+    toneLabels: { diagnostic: "Critical", intermediate: "Low", normal: "Normal" },
+    bands: [
+      { code: "critical", display: "Severe hypoxaemia", to: 92, tone: "diagnostic" },
+      { code: "low", display: "Hypoxaemia", from: 92, to: 96, tone: "intermediate" },
+      { code: "normal", display: "Normal", from: 96, tone: "normal" },
     ],
   },
 ];

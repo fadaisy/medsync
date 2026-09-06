@@ -192,17 +192,10 @@ export const SECTIONS: CatalogSection[] = [
     groups: [
       {
         id: "vitals",
-        display: "Vital signs",
+        display: "Vital signs and measurements",
         order: 1,
         icon: "pulse",
-        description: "Pulled from triage where the patient was triaged.",
-      },
-      {
-        id: "body",
-        display: "Body measurements",
-        order: 2,
-        icon: "droplets",
-        description: "The risk factor the management ladder turns on.",
+        description: "Prefilled from triage where the patient was triaged.",
       },
     ],
   },

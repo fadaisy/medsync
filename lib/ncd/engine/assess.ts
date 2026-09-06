@@ -36,6 +36,8 @@ import {
   evaluateAny,
   evaluateCriterion,
   evaluatePredicate,
+  isSeries,
+  latestReading,
   rollUpAny,
 } from "@/lib/ncd/engine/evaluate";
 
@@ -230,6 +232,14 @@ export interface Interpretation {
   citation: Citation;
 }
 
+/** The plain number behind a capture, whatever shape it is stored in. */
+function recordedValue(ctx: EvalContext, code: string): number | undefined {
+  const v = ctx.values[code];
+  if (v?.state !== "recorded") return undefined;
+  if (typeof v.value === "number") return v.value;
+  return isSeries(v.value) ? latestReading(v.value)?.value : undefined;
+}
+
 export function interpretations(catalog: NcdCatalog, ctx: EvalContext): Interpretation[] {
   const tables = catalog.interpretation ?? [];
   const out: Interpretation[] = [];
@@ -246,14 +256,44 @@ export function interpretations(catalog: NcdCatalog, ctx: EvalContext): Interpre
   for (const [code, list] of byFeature) {
     const feature = ctx.features.get(code);
     if (!feature) continue;
+    // A table gated on a patient attribute only applies when it holds — and one
+    // that is gated but unsatisfied is not a fallback, it is the wrong scale.
+    const applicable = list.filter(
+      (t) => !t.when || evaluatePredicate(t.when, ctx).state === "met",
+    );
     const chosen =
-      ctx.site.standardPreference.map((b) => list.find((t) => t.standard === b)).find(Boolean) ??
-      list[0];
-    if (!chosen) continue;
+      ctx.site.standardPreference
+        .map((b) => applicable.find((t) => t.standard === b))
+        .find(Boolean) ?? applicable[0];
+
+    /**
+     * Every table for this measure is gated, and none of the gates holds — so
+     * there is no scale to read it against. The row still appears, because the
+     * measurement is still worth recording; it simply carries no band and says
+     * why. Dropping it would take the input away with the interpretation.
+     */
+    if (!chosen) {
+      const gate = list[0]?.when?.feature;
+      out.push({
+        feature: code,
+        display: feature.display,
+        unit: feature.unit,
+        altUnit: feature.altUnit,
+        standard: list[0]!.standard,
+        version: list[0]!.version,
+        bands: [],
+        value: typeof recordedValue(ctx, code) === "number" ? recordedValue(ctx, code) : undefined,
+        state: "insufficient",
+        note: gate
+          ? `Not classified: this scale differs by ${ctx.features.get(gate)?.display ?? gate}, which is not recorded.`
+          : "Not classified here.",
+        citation: list[0]!.citation,
+      });
+      continue;
+    }
 
     const assessed = ctx.values[code];
-    const recorded = assessed?.state === "recorded" ? assessed.value : undefined;
-    const value = typeof recorded === "number" ? recorded : undefined;
+    const value = recordedValue(ctx, code);
     const state: EvalState =
       value !== undefined
         ? "met"

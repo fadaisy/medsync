@@ -1,5 +1,6 @@
 import "server-only";
 
+import type { NcdCatalog } from "@/lib/ncd/catalog/schema";
 import type { CaptureMap } from "@/lib/ncd/engine/evaluate";
 import { and, desc, eq } from "drizzle-orm";
 
@@ -114,7 +115,10 @@ const LABELS: Record<string, string> = {
  * `corrected` observations are excluded: a corrected reading is one somebody has
  * already said was wrong, and carrying it forward would undo them.
  */
-export async function loadLatestVitals(patientUserId: string): Promise<VitalsPull> {
+export async function loadLatestVitals(
+  patientUserId: string,
+  catalog: NcdCatalog,
+): Promise<VitalsPull> {
   const empty: VitalsPull = { vitals: [], values: {}, anyFromTriage: false };
   if (!encounterEngineLive()) return empty;
 
@@ -192,8 +196,15 @@ export async function loadLatestVitals(patientUserId: string): Promise<VitalsPul
 
   const vitals = latestPerVital(candidates);
   const values: CaptureMap = {};
+  const seriesFeatures = new Set(
+    catalog.features.filter((f) => f.valueType === "series").map((f) => f.code),
+  );
   for (const v of vitals) {
-    values[v.feature] = { state: "recorded", value: v.value, at: v.recordedAt.toISOString() };
+    // A trending vital opens its series with the carried-over reading, so the
+    // graph starts at triage rather than at the first one taken on this ward.
+    values[v.feature] = seriesFeatures.has(v.feature)
+      ? { state: "recorded", value: [{ value: v.value, at: v.recordedAt.toISOString() }] }
+      : { state: "recorded", value: v.value, at: v.recordedAt.toISOString() };
   }
 
   return {

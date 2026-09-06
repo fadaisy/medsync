@@ -38,6 +38,7 @@ import {
 } from "lucide-react";
 
 import { NcdInterpretation } from "@/app/doctor/encounters/[encounterId]/_components/ncd-interpretation";
+import { NcdVitals } from "@/app/doctor/encounters/[encounterId]/_components/ncd-vitals";
 import {
   displayAnyOf,
   displayPredicates,
@@ -359,6 +360,15 @@ export function NcdCapture({
 
   const prefilledCodes = useMemo(() => new Set(prefilled.map((i) => i.feature)), [prefilled]);
 
+  /** Does this section trend its measurements? Then it is not a grid. */
+  const trendsHere = useMemo(
+    () =>
+      interpretation.some(
+        (i) => catalog.features.find((f) => f.code === i.feature)?.valueType === "series",
+      ),
+    [interpretation, catalog.features],
+  );
+
   const set = (code: string, v: CaptureMap[string]) => {
     const next = { ...values };
     if (v === undefined) delete next[code];
@@ -412,50 +422,62 @@ export function NcdCapture({
         </div>
       ) : null}
 
-      <NcdInterpretation
-        rows={interpretation}
-        renderInput={(code) => {
-          const f = featureIndex.get(code);
-          if (!f) return null;
-          const performable = isPerformable(f, site);
-          if (!performable) {
+      {/*
+       * Two layouts, chosen by the DATA rather than by section name. A grid of
+       * columns only works where the bands run one way in every row — true of
+       * the glucose tests, false of a pulse (abnormal on both sides) and of a
+       * saturation (worse the lower it goes). Where a section trends its
+       * measurements, each gets a row of its own instead.
+       */}
+      {trendsHere ? (
+        <NcdVitals rows={interpretation} values={values} features={featureIndex} onSet={set} />
+      ) : null}
+      {trendsHere ? null : (
+        <NcdInterpretation
+          rows={interpretation}
+          renderInput={(code) => {
+            const f = featureIndex.get(code);
+            if (!f) return null;
+            const performable = isPerformable(f, site);
+            if (!performable) {
+              return (
+                <span className="text-muted-foreground text-caption inline-flex items-center gap-1">
+                  <CircleSlashIcon className="size-3" aria-hidden />
+                  not available here
+                </span>
+              );
+            }
             return (
-              <span className="text-muted-foreground text-caption inline-flex items-center gap-1">
-                <CircleSlashIcon className="size-3" aria-hidden />
-                not available here
-              </span>
+              <>
+                <ValueEditor feature={f} value={values[code]} onSet={(v) => set(code, v)} left />
+                {values[code] ? (
+                  <button
+                    type="button"
+                    onClick={() => set(code, undefined)}
+                    title="Clear — back to not assessed"
+                    aria-label={`Clear ${f.display}`}
+                    className={`tap text-muted-foreground hover:text-foreground rounded p-1 ${EASE} ${TAP}`}
+                  >
+                    <RotateCcwIcon className="size-3" aria-hidden />
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      set(code, { state: "unavailable", capability: f.requires ?? "site" })
+                    }
+                    title="Could not be done today"
+                    aria-label={`${f.display} — could not be done today`}
+                    className={`tap text-muted-foreground/70 hover:text-foreground rounded px-1.5 py-0.5 text-[10.5px] ${EASE} ${TAP}`}
+                  >
+                    n/a
+                  </button>
+                )}
+              </>
             );
-          }
-          return (
-            <>
-              <ValueEditor feature={f} value={values[code]} onSet={(v) => set(code, v)} left />
-              {values[code] ? (
-                <button
-                  type="button"
-                  onClick={() => set(code, undefined)}
-                  title="Clear — back to not assessed"
-                  aria-label={`Clear ${f.display}`}
-                  className={`tap text-muted-foreground hover:text-foreground rounded p-1 ${EASE} ${TAP}`}
-                >
-                  <RotateCcwIcon className="size-3" aria-hidden />
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() =>
-                    set(code, { state: "unavailable", capability: f.requires ?? "site" })
-                  }
-                  title="Could not be done today"
-                  aria-label={`${f.display} — could not be done today`}
-                  className={`tap text-muted-foreground/70 hover:text-foreground rounded px-1.5 py-0.5 text-[10.5px] ${EASE} ${TAP}`}
-                >
-                  n/a
-                </button>
-              )}
-            </>
-          );
-        }}
-      />
+          }}
+        />
+      )}
 
       {/* One card, banded — not six cards. Elevation is a truth claim, and this
           is one protocol for one section. The divider now separates findings

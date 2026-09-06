@@ -91,6 +91,38 @@ export const durationInDays = (d: CaptureDuration): number => d.value * DURATION
 /** The units a duration control offers, shortest first. */
 export const DURATION_UNITS = Object.keys(DURATION_DAYS) as DurationUnit[];
 
+/**
+ * A vital measured more than once — the reading and the moment it was taken.
+ *
+ * Vitals are not a number, they are a number AND a time, and the second one is
+ * what makes a trend. A blood pressure of 160 an hour ago and 132 now is a
+ * different patient from one who has sat at 160 all morning, and a single field
+ * cannot tell them apart.
+ *
+ * Ordered oldest-first. Every rule reads the LATEST entry — the current state of
+ * the patient is what a criterion is about — but the whole series is kept, so
+ * the surface can draw it and a later reader can see the direction of travel.
+ */
+export interface CaptureReading {
+  value: number;
+  /** ISO instant. */
+  at: string;
+}
+export type CaptureSeries = CaptureReading[];
+
+export const isReading = (v: unknown): v is CaptureReading =>
+  typeof v === "object" &&
+  v !== null &&
+  typeof (v as CaptureReading).value === "number" &&
+  typeof (v as CaptureReading).at === "string";
+
+export const isSeries = (v: unknown): v is CaptureSeries =>
+  Array.isArray(v) && v.length > 0 && v.every(isReading);
+
+/** The reading a rule reads: the most recent one. */
+export const latestReading = (s: CaptureSeries): CaptureReading | undefined =>
+  s.reduce<CaptureReading | undefined>((a, r) => (!a || r.at > a.at ? r : a), undefined);
+
 /** A captured value for a feature. Anything not present is `not_assessed`. */
 export type CaptureValue =
   | number
@@ -100,12 +132,15 @@ export type CaptureValue =
   /** A single-select whose chosen option carries an optional note. */
   | CaptureEntry
   | CaptureEntry[]
-  | CaptureDuration;
+  | CaptureDuration
+  /** A vital measured more than once. Rules read the latest entry. */
+  | CaptureSeries;
 
 export const isEntry = (v: unknown): v is CaptureEntry =>
   typeof v === "object" && v !== null && typeof (v as CaptureEntry).option === "string";
 
-const isEntryList = (v: CaptureValue): v is CaptureEntry[] => Array.isArray(v) && v.every(isEntry);
+const isEntryList = (v: CaptureValue): v is CaptureEntry[] =>
+  Array.isArray(v) && v.length > 0 && v.every(isEntry);
 
 /**
  * The selected values of a capture, whatever form it takes: a plain string
@@ -115,6 +150,9 @@ const isEntryList = (v: CaptureValue): v is CaptureEntry[] => Array.isArray(v) &
 function selectedOptions(v: CaptureValue): string[] | undefined {
   if (isEntry(v)) return [v.option];
   if (!Array.isArray(v)) return undefined;
+  // A series is numbers over time, not a selection — comparing it as options
+  // would make "160" an option code.
+  if (isSeries(v)) return undefined;
   return isEntryList(v) ? v.map((e) => e.option) : (v as string[]).map(String);
 }
 export type CaptureMap = Record<string, Assessed<CaptureValue> | undefined>;
@@ -150,12 +188,18 @@ export interface EvalContext {
 
 /* ── one predicate ───────────────────────────────────────────────────────── */
 
-const asNumber = (v: CaptureValue): number | undefined => (typeof v === "number" ? v : undefined);
+/** The number a rule compares against — for a series, the most recent reading. */
+const asNumber = (v: CaptureValue): number | undefined => {
+  if (typeof v === "number") return v;
+  if (isSeries(v)) return latestReading(v)?.value;
+  return undefined;
+};
 
 /** Truthiness for `present`/`absent`: a recorded value that means "there". */
 function isPositive(v: CaptureValue): boolean {
   if (typeof v === "boolean") return v;
   if (typeof v === "number") return v > 0;
+  if (isSeries(v)) return (latestReading(v)?.value ?? 0) > 0;
   if (Array.isArray(v)) return v.length > 0;
   if (isDuration(v)) return v.value > 0;
   if (isEntry(v)) return isPositive(v.option);
@@ -407,8 +451,15 @@ export function contextOf(features: Feature[], values: CaptureMap, site: SitePro
     const args: number[] = [];
     for (const code of f.computed.from) {
       const v = values[code];
-      if (v?.state !== "recorded" || typeof v.value !== "number") break;
-      args.push(v.value);
+      if (v?.state !== "recorded") break;
+      const n =
+        typeof v.value === "number"
+          ? v.value
+          : isSeries(v.value)
+            ? latestReading(v.value)?.value
+            : undefined;
+      if (n === undefined) break;
+      args.push(n);
     }
     if (args.length !== f.computed.from.length) continue;
     const out = fn(args);
