@@ -286,6 +286,13 @@ export function NcdCapture({
     // The input belongs with the scale that reads it, and rendering both would
     // put the same question on the screen twice.
     const inTable = new Set(interpretation.map((i) => i.feature));
+    // The numbers a computed measure comes from are captured in ITS row, so they
+    // are not also rows of their own — the same question twice, with two inputs
+    // writing one value, is the thing the table was moved into to avoid.
+    for (const i of interpretation) {
+      const f = catalog.features.find((x) => x.code === i.feature);
+      for (const src of f?.computed?.from ?? []) inTable.add(src);
+    }
     return catalog.features.filter(
       (f) => f.section === sectionId && !f.offProtocol && !inTable.has(f.code) && isVisible(f, ctx),
     );
@@ -425,6 +432,58 @@ export function NcdCapture({
               <span className="text-muted-foreground text-caption inline-flex items-center gap-1">
                 <CircleSlashIcon className="size-3" aria-hidden />
                 not available here
+              </span>
+            );
+          }
+          /**
+           * A computed measure is captured through the numbers it comes FROM.
+           *
+           * Its own row is where a clinician looks for it, so the weight and the
+           * height belong here rather than in a card further down the page — and
+           * the result appears beside them, already interpreted, instead of
+           * somewhere else on the screen.
+           */
+          if (f.computed) {
+            const value = values[code];
+            const shown =
+              value?.state === "recorded" && typeof value.value === "number"
+                ? value.value
+                : undefined;
+            return (
+              <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                {f.computed.from.map((src) => {
+                  const input = featureIndex.get(src);
+                  if (!input) return null;
+                  const v = values[src];
+                  return (
+                    <span key={src} className="inline-flex items-center gap-1">
+                      <input
+                        inputMode="decimal"
+                        value={
+                          v?.state === "recorded" && typeof v.value === "number"
+                            ? String(v.value)
+                            : ""
+                        }
+                        placeholder={input.display.toLowerCase()}
+                        aria-label={`${input.display}${input.unit ? ` in ${input.unit}` : ""}`}
+                        onChange={(e) => {
+                          const raw = e.target.value;
+                          if (raw === "") return set(src, undefined);
+                          const n = Number(raw);
+                          if (Number.isFinite(n)) set(src, { state: "recorded", value: n });
+                        }}
+                        className="border-input bg-card ease-expo-out focus-visible:border-brand-500 focus-visible:ring-brand-500/25 w-[4.5rem] rounded-md border px-2 py-1 text-right font-mono text-[12px] tabular-nums transition-[border-color,box-shadow] duration-100 outline-none focus-visible:ring-2"
+                      />
+                      <span className="text-muted-foreground font-mono text-[10px]">
+                        {input.unit}
+                      </span>
+                    </span>
+                  );
+                })}
+                <span className="text-caption text-muted-foreground">=</span>
+                <span className="text-foreground font-mono text-[13px] font-medium tabular-nums">
+                  {shown ?? "—"}
+                </span>
               </span>
             );
           }

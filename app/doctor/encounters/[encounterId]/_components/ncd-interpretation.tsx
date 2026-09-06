@@ -1,6 +1,6 @@
 "use client";
 
-import type { ResultBand } from "@/lib/ncd/catalog/schema";
+import type { BandColor, ResultBand } from "@/lib/ncd/catalog/schema";
 import type { Interpretation } from "@/lib/ncd/engine/assess";
 import type { CaptureReading } from "@/lib/ncd/engine/evaluate";
 import type { ReactNode } from "react";
@@ -36,22 +36,56 @@ import { AlertTriangleIcon } from "lucide-react";
  * profile still reads "not yet established" — and both are true at once.
  */
 
+import { NcdTrend } from "@/app/doctor/encounters/[encounterId]/_components/ncd-trend";
+
 const COLUMNS = ["low", "normal", "intermediate", "diagnostic"] as const;
 type Tone = (typeof COLUMNS)[number];
+
+/**
+ * The default palette. A table may override any tone: `intermediate` is
+ * prediabetes on a glucose scale and a raised pulse on a vital, and those do not
+ * want the same colour — one is a risk state the patient lives in, the other is
+ * a number that is off right now.
+ */
+const DEFAULT_COLOR: Record<Tone, BandColor> = {
+  low: "red",
+  normal: "brand",
+  intermediate: "emerald",
+  diagnostic: "red",
+};
+
+const HEAD_BY_COLOR: Record<BandColor, string> = {
+  brand: "text-brand-700 dark:text-brand-300",
+  emerald: "text-emerald-700 dark:text-emerald-400",
+  amber: "text-amber-700 dark:text-amber-400",
+  orange: "text-orange-700 dark:text-orange-400",
+  red: "text-red-700 dark:text-red-400",
+  grey: "text-muted-foreground",
+};
+
+const ON_BY_COLOR: Record<BandColor, string> = {
+  brand: "bg-brand-100 text-brand-900 dark:bg-brand-900/50 dark:text-brand-100",
+  emerald: "bg-emerald-50 text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200",
+  amber: "bg-amber-100 text-amber-900 dark:bg-amber-900/50 dark:text-amber-100",
+  orange: "bg-orange-100 text-orange-900 dark:bg-orange-900/50 dark:text-orange-100",
+  red: "bg-red-100 text-red-900 dark:bg-red-900/50 dark:text-red-100",
+  grey: "bg-muted text-foreground",
+};
+
+const LINE_BY_COLOR: Record<BandColor, string> = {
+  brand: "stroke-brand-500",
+  emerald: "stroke-emerald-500",
+  amber: "stroke-amber-500",
+  orange: "stroke-orange-500",
+  red: "stroke-red-500",
+  grey: "stroke-gray-400",
+};
 
 const HEAD: Record<Tone, string> = {
   low: "text-red-700 dark:text-red-400",
   normal: "text-brand-700 dark:text-brand-300",
   intermediate: "text-emerald-700 dark:text-emerald-400",
   diagnostic: "text-red-700 dark:text-red-400",
-};
-
-/** The occupied cell. Never fill alone — the words beside it carry the meaning. */
-const ON: Record<Tone, string> = {
-  low: "bg-red-100 text-red-900 dark:bg-red-900/60 dark:text-red-100",
-  normal: "bg-brand-100 text-brand-900 dark:bg-brand-900/50 dark:text-brand-100",
-  intermediate: "bg-emerald-50 text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200",
-  diagnostic: "bg-red-100 text-red-900 dark:bg-red-900/50 dark:text-red-100",
 };
 
 /** The glucose vocabulary. A table meaning something else brings its own. */
@@ -83,13 +117,6 @@ const hhmm = (iso: string) => {
   return Number.isNaN(d.getTime()) ? "" : d.toTimeString().slice(0, 5);
 };
 
-const LINE: Record<Tone, string> = {
-  low: "stroke-red-500",
-  normal: "stroke-brand-500",
-  intermediate: "stroke-emerald-500",
-  diagnostic: "stroke-red-500",
-};
-
 /**
  * The trend, at the size it is read at.
  *
@@ -98,7 +125,7 @@ const LINE: Record<Tone, string> = {
  * the data. Each point carries its own value and time, so hovering says what it
  * is without any of that.
  */
-function Sparkline({ series, tone }: { series: CaptureReading[]; tone: Tone }) {
+function Sparkline({ series, color }: { series: CaptureReading[]; color: BandColor }) {
   if (series.length < 2) return null;
   const sorted = [...series].sort((a, b) => a.at.localeCompare(b.at));
   const values = sorted.map((r) => r.value);
@@ -126,7 +153,7 @@ function Sparkline({ series, tone }: { series: CaptureReading[]; tone: Tone }) {
         strokeWidth={1.5}
         strokeLinejoin="round"
         strokeLinecap="round"
-        className={LINE[tone]}
+        className={LINE_BY_COLOR[color]}
       />
       {sorted.map((r, i) => (
         <circle
@@ -134,7 +161,7 @@ function Sparkline({ series, tone }: { series: CaptureReading[]; tone: Tone }) {
           cx={x(i)}
           cy={y(r.value)}
           r={i === sorted.length - 1 ? 2.4 : 1.5}
-          className={`${LINE[tone]} fill-current`}
+          className={`${LINE_BY_COLOR[color]} fill-current`}
         >
           <title>{`${r.value} · ${hhmm(r.at)}`}</title>
         </circle>
@@ -206,6 +233,9 @@ function InterpretationTable({
   head: Record<Tone, string>;
   renderInput: (featureCode: string) => ReactNode;
 }) {
+  /** This table's palette — its own where it declares one, the default otherwise. */
+  const colorOf = (row: Interpretation, band: ResultBand | undefined): BandColor =>
+    band ? (row.toneColors?.[band.tone] ?? DEFAULT_COLOR[band.tone]) : "grey";
   const first = rows[0]!;
   const hypos = rows.filter((r) => r.band?.tone === "low");
   // Only the columns this table's rows actually use — an always-empty column is
@@ -267,7 +297,12 @@ function InterpretationTable({
             <tr className="border-border/60 border-b">
               <th className="text-muted-foreground text-caption px-3.5 py-1.5 font-medium">Test</th>
               {columns.map((tone) => (
-                <th key={tone} className={`text-caption px-2 py-1.5 font-medium ${HEAD[tone]}`}>
+                <th
+                  key={tone}
+                  className={`text-caption px-2 py-1.5 font-medium ${
+                    HEAD_BY_COLOR[rows[0]?.toneColors?.[tone] ?? DEFAULT_COLOR[tone]] ?? HEAD[tone]
+                  }`}
+                >
                   {head[tone]}
                 </th>
               ))}
@@ -312,7 +347,10 @@ function InterpretationTable({
                   ) : null}
                   {/* Where a measure is tracked, where it is heading. */}
                   {row.series && row.series.length > 1 ? (
-                    <Sparkline series={row.series} tone={row.band?.tone ?? "normal"} />
+                    <>
+                      <Sparkline series={row.series} color={colorOf(row, row.band)} />
+                      <NcdTrend row={row} colorOf={(b) => colorOf(row, b)} />
+                    </>
                   ) : null}
                 </th>
 
@@ -337,7 +375,9 @@ function InterpretationTable({
                           : undefined
                       }
                       className={`px-2 py-2 align-middle text-[11.5px] ${
-                        here ? `${ON[tone]} cursor-help font-medium` : "text-muted-foreground"
+                        here
+                          ? `${ON_BY_COLOR[colorOf(row, band)]} cursor-help font-medium`
+                          : "text-muted-foreground"
                       }`}
                     >
                       {band ? (

@@ -226,8 +226,9 @@ describe("the vitals read against reference ranges, not an early-warning score",
     expect(at("pulse", 114)).toBe("raised");
     expect(at("respiratory_rate", 16)).toBe("normal");
     expect(at("respiratory_rate", 32)).toBe("marked");
-    expect(at("temperature", 37.9)).toBe("normal");
-    expect(at("temperature", 38.4)).toBe("fever");
+    // 37.9 is a low-grade fever, not normal — the revised boundary at 37.5.
+    expect(at("temperature", 37.9)).toBe("fever");
+    expect(at("temperature", 36.8)).toBe("normal");
     // Inverted: a saturation is worse the LOWER it goes.
     expect(at("spo2", 89)).toBe("severe");
     expect(at("spo2", 92)).toBe("low");
@@ -246,5 +247,79 @@ describe("the vitals read against reference ranges, not an early-warning score",
   /** A saturation on oxygen is a different range, and the table says it. */
   it("scopes the saturation range to a patient breathing air", () => {
     expect(read("spo2", {}).note).toMatch(/breathing air/i);
+  });
+});
+
+/**
+ * The first version put hypothermia below 36 °C, which is wrong — hypothermia
+ * is defined below 35.0, and 35.0–36.0 is a low temperature in a patient who is
+ * not hypothermic. The upper bound was 39.5, which is not a defined threshold at
+ * all; hyperpyrexia is 41.0.
+ */
+describe("temperature reads against the defined thresholds", () => {
+  const at = (v: number) =>
+    read("temperature", { temperature: recorded([{ value: v, at: "2026-09-06T11:00:00Z" }]) }).band!
+      .code;
+
+  it("calls hypothermia below 35, and not above it", () => {
+    expect(at(34.8)).toBe("low");
+    expect(at(35.0)).toBe("normal");
+    // The case the old bands got wrong: low, but not hypothermic.
+    expect(at(35.6)).toBe("normal");
+  });
+
+  it("puts the fever boundary at 37.5 and hyperpyrexia at 41", () => {
+    expect(at(37.4)).toBe("normal");
+    expect(at(37.5)).toBe("fever");
+    expect(at(40.9)).toBe("fever");
+    expect(at(41.0)).toBe("hyperpyrexia");
+  });
+
+  it("says where it compressed the scale", () => {
+    // 37.5–38.0 is low-grade fever and shares the fever band rather than
+    // earning a fifth column; the note admits it rather than hiding it.
+    expect(read("temperature", {}).note).toMatch(/low-grade/i);
+  });
+});
+
+/**
+ * `intermediate` is prediabetes on a glucose scale and a raised pulse on a
+ * vital, and those do not want the same colour: one is a risk state the patient
+ * lives in, the other is a number that is off right now.
+ */
+describe("a table may bring its own palette", () => {
+  it("paints a raised vital orange and leaves the glucose scale alone", () => {
+    for (const code of ["pulse", "respiratory_rate", "temperature", "spo2"]) {
+      const t = DIABETES_CATALOG.interpretation!.find((x) => x.feature === code)!;
+      expect(t.toneColors?.intermediate, code).toBe("orange");
+    }
+    const fpg = DIABETES_CATALOG.interpretation!.find(
+      (x) => x.feature === "fpg" && x.standard === "ADA",
+    )!;
+    expect(fpg.toneColors).toBeUndefined();
+  });
+});
+
+/**
+ * A computed measure is captured through the numbers it comes from, in its own
+ * row — so the weight and the height are not ALSO rows of their own further down
+ * the page. The same question twice, with two inputs writing one value, is what
+ * moving capture into the table was for.
+ */
+describe("BMI is captured where it is interpreted", () => {
+  it("names inputs that exist and are not separately banded", () => {
+    const bmi = DIABETES_CATALOG.features.find((f) => f.code === "bmi")!;
+    expect(bmi.computed!.from).toEqual(["weight_kg", "height_cm"]);
+    for (const src of bmi.computed!.from) {
+      expect(
+        DIABETES_CATALOG.features.some((f) => f.code === src),
+        src,
+      ).toBe(true);
+      // No band of their own: they are read through the BMI.
+      expect(
+        DIABETES_CATALOG.interpretation!.some((t) => t.feature === src),
+        src,
+      ).toBe(false);
+    }
   });
 });

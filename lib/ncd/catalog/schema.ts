@@ -696,6 +696,9 @@ export interface ResultBand {
  * actually used in that standard's diagnostic criteria, so the table and the
  * criteria cannot drift into two sources of truth.
  */
+/** The palette a band may be drawn in. Names, never classes. */
+export type BandColor = "brand" | "emerald" | "amber" | "orange" | "red" | "grey";
+
 export interface InterpretationTable {
   id: string;
   /** The feature whose value these bands read. */
@@ -723,6 +726,15 @@ export interface InterpretationTable {
    * share so two vocabularies never end up sharing a column.
    */
   toneLabels?: Partial<Record<ResultBand["tone"], string>>;
+  /**
+   * Colour per tone, where the default does not carry the meaning.
+   *
+   * `intermediate` is prediabetes on a glucose scale and a raised pulse on a
+   * vital, and those do not want the same colour: one is a risk state the
+   * patient lives in, the other is a number that is off now. A NAMED palette
+   * rather than classes, so the catalog still holds no styling.
+   */
+  toneColors?: Partial<Record<ResultBand["tone"], BandColor>>;
   citation: Citation;
 }
 

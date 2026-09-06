@@ -415,6 +415,9 @@ export const INTERPRETATION: InterpretationTable[] = [
       intermediate: "Raised",
       diagnostic: "Markedly raised",
     },
+    // Orange, not the glucose green: prediabetes is a risk state the patient
+    // lives in, a raised pulse is a number that is off right now.
+    toneColors: { intermediate: "orange" },
     bands: [
       { code: "low", display: "Bradycardia", to: 60, tone: "low" },
       { code: "normal", display: "Normal", from: 60, to: 100, tone: "normal" },
@@ -434,6 +437,9 @@ export const INTERPRETATION: InterpretationTable[] = [
       intermediate: "Raised",
       diagnostic: "Markedly raised",
     },
+    // Orange, not the glucose green: prediabetes is a risk state the patient
+    // lives in, a raised pulse is a number that is off right now.
+    toneColors: { intermediate: "orange" },
     bands: [
       { code: "low", display: "Bradypnoea", to: 12, tone: "low" },
       { code: "normal", display: "Normal", from: 12, to: 20, tone: "normal" },
@@ -442,6 +448,12 @@ export const INTERPRETATION: InterpretationTable[] = [
     ],
   },
   {
+    /**
+     * REVISED. The first version put hypothermia below 36 °C, which is wrong:
+     * hypothermia is defined below 35.0, and 35.0–36.0 is a low temperature in a
+     * patient who is not hypothermic. The top boundary was 39.5, which is not a
+     * defined threshold at all — hyperpyrexia is 41.0.
+     */
     id: "temperature_reference",
     feature: "temperature",
     standard: "local",
@@ -456,11 +468,15 @@ export const INTERPRETATION: InterpretationTable[] = [
       intermediate: "Raised",
       diagnostic: "Markedly raised",
     },
+    // Orange, not the glucose green: prediabetes is a risk state the patient
+    // lives in, a raised pulse is a number that is off right now.
+    toneColors: { intermediate: "orange" },
+    note: "Hypothermia is defined below 35.0 °C — 35.0–36.0 is low, not hypothermic. Fever is conventionally ≥38.0 °C; 37.5–38.0 is low-grade and sits in the fever band here rather than earning a fifth column.",
     bands: [
-      { code: "low", display: "Hypothermia", to: 36, tone: "low" },
-      { code: "normal", display: "Normal", from: 36, to: 38, tone: "normal" },
-      { code: "fever", display: "Fever", from: 38, to: 39.5, tone: "intermediate" },
-      { code: "high_fever", display: "High fever", from: 39.5, tone: "diagnostic" },
+      { code: "low", display: "Hypothermia", to: 35, tone: "low" },
+      { code: "normal", display: "Normal", from: 35, to: 37.5, tone: "normal" },
+      { code: "fever", display: "Fever", from: 37.5, to: 41, tone: "intermediate" },
+      { code: "hyperpyrexia", display: "Hyperpyrexia", from: 41, tone: "diagnostic" },
     ],
   },
   {
@@ -476,6 +492,7 @@ export const INTERPRETATION: InterpretationTable[] = [
     citation: REFERENCE_RANGE,
     note: "Breathing air. A patient on oxygen, or on a hypercapnic target of 88–92%, is read against a different range that this table does not apply.",
     toneLabels: { diagnostic: "Severe", intermediate: "Low", normal: "Normal" },
+    toneColors: { intermediate: "orange" },
     bands: [
       { code: "severe", display: "Severe hypoxaemia", to: 90, tone: "diagnostic" },
       { code: "low", display: "Hypoxaemia", from: 90, to: 94, tone: "intermediate" },

@@ -232,6 +232,8 @@ export interface Interpretation {
   note?: string;
   /** Column headings, where the default glucose wording does not fit. */
   toneLabels?: InterpretationTable["toneLabels"];
+  /** Colour per tone, where the default does not carry the meaning. */
+  toneColors?: InterpretationTable["toneColors"];
   citation: Citation;
 }
 
@@ -324,6 +326,7 @@ export function interpretations(catalog: NcdCatalog, ctx: EvalContext): Interpre
       state,
       note: chosen.note,
       toneLabels: chosen.toneLabels,
+      toneColors: chosen.toneColors,
       citation: chosen.citation,
     });
   }
