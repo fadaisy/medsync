@@ -809,7 +809,7 @@ function FeatureRow({
 
   // A checkable list with a detail box beside each option needs the whole row;
   // nothing else does, now that properties lay out as aligned columns.
-  const wide = performable && Boolean(feature.optionDetail);
+  const wide = performable && Boolean(feature.optionDetail || feature.optionEffects?.length);
   const nested = depth > 0;
 
   return (
@@ -1172,6 +1172,9 @@ function ValueEditor({
             }}
           />
         ))}
+        {feature.optionEffects?.length ? (
+          <OptionEffects feature={feature} selected={selected} />
+        ) : null}
         {note && chosen ? (
           <input
             value={entry?.detail ?? ""}
@@ -1351,6 +1354,66 @@ function Gestation({ lnmp }: { lnmp: string }) {
       </span>{" "}
       · {trimester} trimester · {due}
     </span>
+  );
+}
+
+/**
+ * What each option MEANS, tabulated beside the choice.
+ *
+ * Built for the antiretroviral regimens: three of a dozen combinations move the
+ * HbA1c and the rest do not, which is a fact worth reading at a glance rather
+ * than hunting for in an option label. The selected row is marked, so the table
+ * answers both "which regimen is this patient on" and "does it matter".
+ *
+ * Every option appears, including the ones with no effect — an option missing
+ * from the table would read as "no effect" without anyone having said so, and
+ * the validator rejects a table with a gap in it.
+ */
+function OptionEffects({ feature, selected }: { feature: Feature; selected: Set<string> }) {
+  const effects = feature.optionEffects;
+  if (!effects?.length) return null;
+  const label = (v: string) => feature.options?.find((o) => o.value === v)?.display ?? v;
+
+  return (
+    <div className="border-border/60 mt-2 w-full overflow-hidden rounded-lg border">
+      <table className="w-full border-collapse text-left">
+        <thead>
+          <tr className="border-border/60 bg-muted/40 border-b">
+            <th className="text-muted-foreground text-caption px-2 py-1 font-medium">Regimen</th>
+            <th className="text-muted-foreground text-caption px-2 py-1 font-medium">
+              {feature.optionEffectsLabel ?? "Effect"}
+            </th>
+          </tr>
+        </thead>
+        <tbody className="divide-border/40 divide-y">
+          {effects.map((e) => {
+            const here = selected.has(e.option);
+            // `masks` is the dangerous direction: a falsely reassuring number is
+            // the one nobody re-checks. Never colour alone — the effect is
+            // spelled out in the cell beside it.
+            const tone =
+              e.direction === "masks" || e.direction === "manufactures"
+                ? "text-amber-800 dark:text-amber-300"
+                : e.direction === "unpredictable"
+                  ? "text-muted-foreground"
+                  : "text-muted-foreground";
+            return (
+              <tr key={e.option} className={here ? "bg-brand-50 dark:bg-brand-950/40" : ""}>
+                <td
+                  className={`px-2 py-1 text-[11.5px] ${here ? "text-foreground font-medium" : "text-muted-foreground"}`}
+                >
+                  {label(e.option)}
+                  {here ? <span className="ml-1 text-[10px]">◂ this patient</span> : null}
+                </td>
+                <td className={`px-2 py-1 text-[11.5px] ${here ? `${tone} font-medium` : tone}`}>
+                  {e.effect}
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
   );
 }
 

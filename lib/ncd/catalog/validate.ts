@@ -274,6 +274,29 @@ export function validateCatalog(catalog: NcdCatalog): ValidationIssue[] {
         });
       }
     }
+    // An effect against an option that does not exist can never be shown, and an
+    // option missing from the table reads as "no effect" without saying so.
+    if (f.optionEffects?.length) {
+      const valid = new Set((f.options ?? []).map((o) => o.value));
+      for (const e of f.optionEffects) {
+        if (!valid.has(e.option)) {
+          out.push({
+            severity: "error",
+            path,
+            message: `optionEffects names option "${e.option}", which this feature does not define`,
+          });
+        }
+      }
+      for (const o of f.options ?? []) {
+        if (!f.optionEffects.some((e) => e.option === o.value)) {
+          out.push({
+            severity: "error",
+            path,
+            message: `option "${o.value}" has no entry in optionEffects — silence reads as "no effect"`,
+          });
+        }
+      }
+    }
     if (f.showWhen) {
       checkPredicate(f.showWhen, `${path}.showWhen`, features, out);
     }

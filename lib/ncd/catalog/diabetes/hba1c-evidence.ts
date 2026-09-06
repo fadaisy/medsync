@@ -127,16 +127,17 @@ export const HBA1C_EVIDENCE_FEATURES: Feature[] = [
   basis("anaemia", "anaemia_basis", "Full blood count", WHO_ANAEMIA),
   prop("anaemia", {
     /**
-     * The number the whole classification rests on. Recorded in g/L because that
-     * is the unit WHO's table is written in; the alt unit carries g/dL for
-     * clinicians and analysers that report it that way.
+     * The number the whole classification rests on, in g/dL — the unit it is
+     * reported and spoken in at the bedside. WHO's table is written in g/L, so
+     * the cutoffs below are converted (a tenth) and the alt unit carries g/L
+     * back for anyone reading against the source.
      */
     code: "anaemia_hb",
     display: "Haemoglobin",
     valueType: "number",
-    unit: "g/L",
-    altUnit: { unit: "g/dL", factor: 0.1 },
-    refRange: { low: 120, high: 160 },
+    unit: "g/dL",
+    altUnit: { unit: "g/L", factor: 10 },
+    refRange: { low: 12, high: 16 },
     orderedBy: "cbc",
     showWhenAll: [{ feature: "anaemia_basis", op: "==", value: "lab" }],
     citation: WHO_ANAEMIA,
@@ -158,9 +159,9 @@ export const HBA1C_EVIDENCE_FEATURES: Feature[] = [
     showWhenAll: [{ feature: "anaemia_basis", op: "==", value: "lab" }],
     citation: WHO_ANAEMIA,
     options: [
-      { value: "mild", display: "Mild — 110–119 women, 110–129 men g/L" },
-      { value: "moderate", display: "Moderate — 80–109 g/L" },
-      { value: "severe", display: "Severe — below 80 g/L" },
+      { value: "mild", display: "Mild — 11.0–11.9 women, 11.0–12.9 men g/dL" },
+      { value: "moderate", display: "Moderate — 8.0–10.9 g/dL" },
+      { value: "severe", display: "Severe — below 8.0 g/dL" },
     ],
   }),
   prop("anaemia", {
@@ -255,6 +256,76 @@ export const HBA1C_EVIDENCE_FEATURES: Feature[] = [
     citation: NGSP,
   }),
 
+  /* ── haemolysis — what actually points to it ──────────────────────────── */
+  basis("haemolysis", "haemolysis_basis", "Laboratory markers", NGSP),
+  prop("haemolysis", {
+    /**
+     * The four that make the diagnosis, and they travel together: cells break
+     * open, so the contents rise (bilirubin, LDH), the scavenger falls
+     * (haptoglobin), and the marrow answers (reticulocytes). A haptoglobin that
+     * is low with a raised LDH is close to definitive — which is also why
+     * haptoglobin appears in the antiretroviral study three fields down.
+     *
+     * The film and the direct antiglobulin test are here because they say WHICH
+     * haemolysis: fragments mean a mechanical or microangiopathic process,
+     * spherocytes with a positive DAT mean autoimmune, and sickle cells point
+     * back at the variant field at the top of this section.
+     */
+    code: "haemolysis_markers",
+    display: "Markers",
+    valueType: "multi_select",
+    orderedBy: "haemolysis_screen",
+    showWhenAll: [{ feature: "haemolysis_basis", op: "==", value: "lab" }],
+    citation: CONVENTION,
+    options: [
+      { value: "raised_unconjugated_bilirubin", display: "Raised unconjugated bilirubin" },
+      { value: "raised_ldh", display: "Raised LDH" },
+      { value: "low_haptoglobin", display: "Low or absent haptoglobin" },
+      { value: "reticulocytosis", display: "Reticulocytosis" },
+      { value: "film_fragments", display: "Blood film — fragments or schistocytes" },
+      { value: "film_spherocytes", display: "Blood film — spherocytes" },
+      { value: "film_sickle", display: "Blood film — sickle cells" },
+      { value: "positive_dat", display: "Positive direct antiglobulin (Coombs) test" },
+      { value: "haemoglobinuria", display: "Haemoglobinuria" },
+    ],
+  }),
+  prop("haemolysis", {
+    code: "haemolysis_clinical_signs",
+    display: "Clinical signs",
+    valueType: "multi_select",
+    showWhenAll: [{ feature: "haemolysis_basis", op: "==", value: "clinical" }],
+    citation: CONVENTION,
+    options: [
+      { value: "jaundice", display: "Jaundice" },
+      { value: "dark_urine", display: "Dark urine" },
+      { value: "pallor", display: "Pallor" },
+      { value: "splenomegaly", display: "Splenomegaly" },
+      { value: "gallstones", display: "Known pigment gallstones" },
+    ],
+  }),
+  prop("haemolysis", {
+    /**
+     * The cause changes what is done about it, and three of these are already
+     * captured elsewhere in this section — the variant at the top, malaria two
+     * fields down, the drug list in the regimen. Recording it here is what links
+     * them into one picture rather than four ticks.
+     */
+    code: "haemolysis_cause",
+    display: "Cause, if known",
+    valueType: "single_select",
+    citation: CONVENTION,
+    options: [
+      { value: "sickle_cell", display: "Sickle-cell disease" },
+      { value: "g6pd", display: "G6PD deficiency" },
+      { value: "malaria", display: "Malaria" },
+      { value: "autoimmune", display: "Autoimmune" },
+      { value: "mechanical", display: "Mechanical — valve or microangiopathy" },
+      { value: "drug_induced", display: "Drug-induced" },
+      { value: "other", display: "Other" },
+      { value: "unknown", display: "Not known" },
+    ],
+  }),
+
   /* ── malaria — parasitological confirmation, or none ──────────────────── */
   prop("malaria_current", {
     /**
@@ -324,29 +395,104 @@ export const HBA1C_EVIDENCE_FEATURES: Feature[] = [
   /* ── antiretrovirals — and the one that moves the number ──────────────── */
   prop("hiv_on_art", {
     /**
-     * ABACAVIR is the reason this field exists. A1C underestimates glucose in
-     * HIV by around 29 mg/dL, and in multivariate analysis only MCV and current
-     * NRTI use — abacavir in particular — survived as predictors. Zidovudine is
-     * listed beside it because it causes macrocytosis, which is the other half of
+     * The REGIMEN, not a drug list — antiretrovirals are prescribed, dispensed
+     * and spoken about as fixed combinations, and a clinician asked to tick
+     * three ingredients will reach for the regimen name anyway. TLD is the WHO
+     * preferred first line and dominates in this setting.
+     *
+     * ABACAVIR is why the field exists at all. A1C underestimates glucose in HIV
+     * by around 29 mg/dL, and in multivariate analysis only MCV and current NRTI
+     * use — abacavir in particular — survived. Every ABC-containing regimen is
+     * therefore enumerated separately so the caveat can match it; zidovudine is
+     * marked beside them because the macrocytosis it causes is the other half of
      * that same finding.
      *
-     * A class-level "on ART: yes" cannot express any of that, which is exactly
-     * the argument that earned the sulfonylurea its agent field.
+     * THE LIMIT, stated rather than hidden: "Other" takes free text, and free
+     * text is inert here as everywhere else in this catalog. An ABC-containing
+     * regimen entered that way will NOT raise the caveat. Enumerating the
+     * combinations that actually circulate is the mitigation; if a site's
+     * formulary carries one this list misses, it belongs in the list.
      */
     code: "art_regimen",
-    display: "Which drugs",
-    valueType: "multi_select",
+    display: "Regimen",
+    valueType: "single_select",
     citation: ARV_A1C,
     options: [
-      { value: "abacavir", display: "Abacavir (ABC) — lowers HbA1c" },
-      { value: "zidovudine", display: "Zidovudine (AZT) — macrocytosis" },
-      { value: "tenofovir", display: "Tenofovir (TDF/TAF)" },
-      { value: "lamivudine", display: "Lamivudine (3TC)" },
-      { value: "dolutegravir", display: "Dolutegravir (DTG)" },
-      { value: "efavirenz", display: "Efavirenz (EFV)" },
-      { value: "protease_inhibitor", display: "Protease inhibitor" },
-      { value: "other", display: "Other" },
-      { value: "unknown", display: "Not known" },
+      { value: "tdf_3tc_dtg", display: "TDF + 3TC + DTG (TLD)" },
+      { value: "taf_ftc_dtg", display: "TAF + FTC + DTG" },
+      { value: "tdf_3tc_efv", display: "TDF + 3TC + EFV (TLE)" },
+      { value: "abc_3tc_dtg", display: "ABC + 3TC + DTG" },
+      { value: "abc_3tc_efv", display: "ABC + 3TC + EFV" },
+      { value: "abc_3tc_lpvr", display: "ABC + 3TC + LPV/r" },
+      { value: "azt_3tc_dtg", display: "AZT + 3TC + DTG" },
+      { value: "azt_3tc_efv", display: "AZT + 3TC + EFV" },
+      { value: "azt_3tc_lpvr", display: "AZT + 3TC + LPV/r" },
+      { value: "tdf_3tc_lpvr", display: "TDF + 3TC + LPV/r" },
+      { value: "tdf_3tc_atvr", display: "TDF + 3TC + ATV/r" },
+      {
+        value: "other",
+        display: "Other",
+        // Free text, and therefore invisible to the caveat above. Named so.
+        detail: { label: "Regimen", placeholder: "Drugs, if known" },
+      },
+      { value: "unknown", display: "Not known", noDetail: true },
+    ],
+    optionEffectsLabel: "Effect on HbA1c",
+    /**
+     * Tabulated rather than annotated. Three of these combinations move the
+     * number and the rest do not, which is a fact worth reading in one glance —
+     * buried in an option label it is a fact nobody reads.
+     *
+     * Every option appears, including the ones with no effect: an option missing
+     * from the table would read as "no effect" without anyone having said so,
+     * and the validator rejects that.
+     */
+    optionEffects: [
+      { option: "tdf_3tc_dtg", effect: "No established effect", direction: "none" },
+      { option: "taf_ftc_dtg", effect: "No established effect", direction: "none" },
+      { option: "tdf_3tc_efv", effect: "No established effect", direction: "none" },
+      {
+        option: "abc_3tc_dtg",
+        effect: "Abacavir — HbA1c reads LOW for the glucose",
+        direction: "masks",
+      },
+      {
+        option: "abc_3tc_efv",
+        effect: "Abacavir — HbA1c reads LOW for the glucose",
+        direction: "masks",
+      },
+      {
+        option: "abc_3tc_lpvr",
+        effect: "Abacavir — HbA1c reads LOW for the glucose",
+        direction: "masks",
+      },
+      {
+        option: "azt_3tc_dtg",
+        effect: "Zidovudine — macrocytosis, the other predictor of a low reading",
+        direction: "masks",
+      },
+      {
+        option: "azt_3tc_efv",
+        effect: "Zidovudine — macrocytosis, the other predictor of a low reading",
+        direction: "masks",
+      },
+      {
+        option: "azt_3tc_lpvr",
+        effect: "Zidovudine — macrocytosis, the other predictor of a low reading",
+        direction: "masks",
+      },
+      { option: "tdf_3tc_lpvr", effect: "No established effect", direction: "none" },
+      { option: "tdf_3tc_atvr", effect: "No established effect", direction: "none" },
+      {
+        option: "other",
+        effect: "Not identified here — check for abacavir or zidovudine",
+        direction: "unpredictable",
+      },
+      {
+        option: "unknown",
+        effect: "Not identified here — check for abacavir or zidovudine",
+        direction: "unpredictable",
+      },
     ],
   }),
 
@@ -467,6 +613,13 @@ export const ORDERABLES = [
     display: "Full blood count",
     because: "Anaemia recorded on clinical grounds — the count would settle it and classify it.",
     fills: ["anaemia_hb", "anaemia_severity", "anaemia_mcv", "anaemia_mch", "anaemia_morphology"],
+  },
+  {
+    code: "haemolysis_screen",
+    display: "Haemolysis screen",
+    because:
+      "Broken red cells shorten the window an HbA1c averages over, so the number reads low for reasons that have nothing to do with the glucose.",
+    fills: ["haemolysis_markers"],
   },
   {
     code: "iron_studies",

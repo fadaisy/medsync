@@ -238,7 +238,15 @@ export const VALIDITY_CAVEATS: ValidityCaveat[] = [
     when: {
       id: "on_abacavir",
       label: "Taking abacavir",
-      all: [{ feature: "art_regimen", op: "==", value: "abacavir" }],
+      // Every abacavir-containing combination on the regimen list. An "Other"
+      // regimen is free text and cannot be matched — see the field's comment.
+      all: [
+        {
+          feature: "art_regimen",
+          op: "in",
+          value: ["abc_3tc_dtg", "abc_3tc_efv", "abc_3tc_lpvr"],
+        },
+      ],
       citation: ARV_A1C_CAVEAT,
     },
     direction: "masks",

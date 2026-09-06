@@ -75,7 +75,7 @@ describe("anaemia — the count, or the reason there is not one", () => {
   it("carries WHO's own cutoffs in the severity labels", () => {
     const sev = DIABETES_CATALOG.features.find((f) => f.code === "anaemia_severity")!;
     expect(sev.options!.map((o) => o.value)).toEqual(["mild", "moderate", "severe"]);
-    expect(sev.options!.find((o) => o.value === "moderate")!.display).toContain("80–109");
+    expect(sev.options!.find((o) => o.value === "moderate")!.display).toContain("8.0–10.9");
     expect(sev.citation!.quote).toContain("nonpregnant women");
   });
 
@@ -168,14 +168,36 @@ describe("the antiretroviral caveat", () => {
       (c) => c.id,
     );
 
-  it("fires on abacavir and not on the rest of the regimen", () => {
+  /**
+   * The regimen is recorded as a COMBINATION, which is how antiretrovirals are
+   * prescribed and dispensed — so the caveat has to match every abacavir-
+   * containing one rather than a single drug code.
+   */
+  it("fires on every abacavir-containing regimen and no other", () => {
     const on = { hiv_on_art: recorded(true) };
-    expect(caveats({ ...on, art_regimen: recorded(["abacavir"]) })).toContain(
-      "abacavir_lowers_hba1c",
-    );
-    expect(caveats({ ...on, art_regimen: recorded(["tenofovir", "dolutegravir"]) })).not.toContain(
-      "abacavir_lowers_hba1c",
-    );
+    for (const r of ["abc_3tc_dtg", "abc_3tc_efv", "abc_3tc_lpvr"]) {
+      expect(caveats({ ...on, art_regimen: recorded(r) }), r).toContain("abacavir_lowers_hba1c");
+    }
+    for (const r of ["tdf_3tc_dtg", "taf_ftc_dtg", "azt_3tc_dtg", "tdf_3tc_efv"]) {
+      expect(caveats({ ...on, art_regimen: recorded(r) }), r).not.toContain(
+        "abacavir_lowers_hba1c",
+      );
+    }
+  });
+
+  /**
+   * The limit, pinned so nobody assumes otherwise: "Other" is free text, and
+   * free text is inert throughout this catalog. An abacavir regimen entered that
+   * way raises nothing, which is why the combinations that actually circulate
+   * are enumerated.
+   */
+  it("cannot see abacavir inside a free-text 'other' regimen", () => {
+    expect(
+      caveats({
+        hiv_on_art: recorded(true),
+        art_regimen: recorded({ option: "other", detail: "ABC + 3TC + DTG" }),
+      }),
+    ).not.toContain("abacavir_lowers_hba1c");
   });
 
   /**
@@ -194,10 +216,85 @@ describe("the antiretroviral caveat", () => {
 });
 
 describe("the rest of the evidence", () => {
-  it("asks which drugs, not merely whether there is a regimen", () => {
+  /**
+   * Three of a dozen combinations move the number and the rest do not. That is
+   * a fact worth reading in a table rather than hunting for in an option label.
+   */
+  it("tabulates what every regimen does to the HbA1c, with no gaps", () => {
     const r = DIABETES_CATALOG.features.find((f) => f.code === "art_regimen")!;
-    expect(r.options!.map((o) => o.value)).toContain("abacavir");
-    expect(r.options!.map((o) => o.value)).toContain("zidovudine");
+    expect(r.valueType).toBe("single_select");
+    expect(r.optionEffectsLabel).toBe("Effect on HbA1c");
+    // Every option accounted for — a missing row would read as "no effect".
+    expect(r.optionEffects!.map((e) => e.option).sort()).toEqual(
+      r.options!.map((o) => o.value).sort(),
+    );
+    const masks = r.optionEffects!.filter((e) => e.direction === "masks").map((e) => e.option);
+    expect(masks).toEqual([
+      "abc_3tc_dtg",
+      "abc_3tc_efv",
+      "abc_3tc_lpvr",
+      "azt_3tc_dtg",
+      "azt_3tc_efv",
+      "azt_3tc_lpvr",
+    ]);
+    expect(r.optionEffects!.some((e) => e.direction === "none")).toBe(true);
+  });
+
+  it("rejects an effects table with a hole in it", () => {
+    const r = DIABETES_CATALOG.features.find((f) => f.code === "art_regimen")!;
+    const holed = {
+      ...DIABETES_CATALOG,
+      features: DIABETES_CATALOG.features.map((f) =>
+        f.code === "art_regimen" ? { ...f, optionEffects: r.optionEffects!.slice(1) } : f,
+      ),
+    };
+    expect(
+      errorsOf(validateCatalog(holed)).some((e) => e.message.includes("no entry in optionEffects")),
+    ).toBe(true);
+  });
+
+  /**
+   * Haemolysis shortens the window an HbA1c averages over, so the number reads
+   * low for reasons that have nothing to do with glucose. What was a bare tick
+   * now carries what actually points to it.
+   */
+  it("asks what points to the haemolysis, by basis", () => {
+    const yes = { haemolysis: recorded(true) };
+    expect(props("haemolysis", { ...yes, haemolysis_basis: recorded("lab") })).toEqual([
+      "haemolysis_basis",
+      "haemolysis_markers",
+      "haemolysis_cause",
+    ]);
+    expect(props("haemolysis", { ...yes, haemolysis_basis: recorded("clinical") })).toEqual([
+      "haemolysis_basis",
+      "haemolysis_clinical_signs",
+      "haemolysis_cause",
+    ]);
+    const m = DIABETES_CATALOG.features.find((f) => f.code === "haemolysis_markers")!;
+    // The four that travel together, plus what says WHICH haemolysis.
+    expect(m.options!.map((o) => o.value)).toEqual(
+      expect.arrayContaining([
+        "raised_unconjugated_bilirubin",
+        "raised_ldh",
+        "low_haptoglobin",
+        "reticulocytosis",
+        "positive_dat",
+      ]),
+    );
+    expect(orders({ ...yes, haemolysis_basis: recorded("clinical") }).map((o) => o.code)).toEqual([
+      "haemolysis_screen",
+    ]);
+  });
+
+  /** Reported and spoken in g/dL at the bedside; WHO writes its table in g/L. */
+  it("records haemoglobin in g/dL, with WHO's cutoffs converted to match", () => {
+    const hb = DIABETES_CATALOG.features.find((f) => f.code === "anaemia_hb")!;
+    expect(hb.unit).toBe("g/dL");
+    expect(hb.altUnit).toEqual({ unit: "g/L", factor: 10 });
+    expect(hb.refRange).toEqual({ low: 12, high: 16 });
+    const sev = DIABETES_CATALOG.features.find((f) => f.code === "anaemia_severity")!;
+    expect(sev.options!.find((o) => o.value === "severe")!.display).toContain("8.0");
+    expect(sev.options!.every((o) => !o.display.includes("g/L"))).toBe(true);
   });
 
   it("asks what the erythropoietin is for, and for how long", () => {

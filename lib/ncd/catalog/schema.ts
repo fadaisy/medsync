@@ -172,6 +172,26 @@ export interface FeatureOption {
   detail?: { label?: string; placeholder?: string };
 }
 
+/**
+ * What CHOOSING one option means, tabulated beside the choice.
+ *
+ * Built for the antiretroviral regimens, where three of a dozen combinations
+ * move the HbA1c and the rest do not — a fact that belongs in a table the
+ * clinician can read, not buried in an option label they scroll past.
+ *
+ * `direction` reuses the vocabulary of `ValidityCaveat` on purpose: `masks` is
+ * the dangerous one, because a falsely reassuring number is the one nobody
+ * re-checks. Listing an option with `none` is as much a claim as listing one
+ * with `masks`, so both are cited.
+ */
+export interface OptionEffect {
+  /** Must be one of the feature's own option values. */
+  option: string;
+  /** The consequence, in a few words. */
+  effect: string;
+  direction: "masks" | "manufactures" | "unpredictable" | "none";
+}
+
 /** Unit conversion for values clinicians read in two scales (mmol/L ↔ mg/dL). */
 export interface AltUnit {
   unit: string;
@@ -189,6 +209,13 @@ export interface Feature {
   unit?: string;
   altUnit?: AltUnit;
   options?: FeatureOption[];
+  /**
+   * Consequences of each option, rendered as a reference table beside the field.
+   * Display only — a criterion reads the selected OPTION, never this.
+   */
+  optionEffects?: OptionEffect[];
+  /** Heading for that table's consequence column. */
+  optionEffectsLabel?: string;
   /**
    * When set, each SELECTED option may carry a free-text detail — a current
    * dose and frequency, say.
