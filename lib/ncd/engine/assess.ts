@@ -225,6 +225,8 @@ export interface Interpretation {
   band?: ResultBand;
   state: EvalState;
   note?: string;
+  /** Column headings, where the default glucose wording does not fit. */
+  toneLabels?: InterpretationTable["toneLabels"];
   citation: Citation;
 }
 
@@ -271,6 +273,7 @@ export function interpretations(catalog: NcdCatalog, ctx: EvalContext): Interpre
       band: value === undefined ? undefined : bandFor(chosen.bands, value),
       state,
       note: chosen.note,
+      toneLabels: chosen.toneLabels,
       citation: chosen.citation,
     });
   }

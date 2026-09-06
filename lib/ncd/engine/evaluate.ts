@@ -369,7 +369,53 @@ export function rollUpAny(rs: CriterionResult[]): EvalState {
   return "not_met";
 }
 
-/** Build an evaluation context from a catalog's features. */
+/**
+ * Arithmetic, not clinical content — which is the whole reason it is allowed to
+ * live in the engine. BMI is weight over height squared everywhere; what counts
+ * as obese is a threshold, and thresholds stay in the catalog where they carry a
+ * citation.
+ */
+const FORMULAS: Record<string, (args: number[]) => number | undefined> = {
+  /** kg and cm in, kg/m² out, rounded to a tenth — the precision it is reported at. */
+  bmi: ([weight, height]) => {
+    if (!weight || !height) return undefined;
+    const m = height / 100;
+    return Math.round((weight / (m * m)) * 10) / 10;
+  },
+};
+
+/**
+ * Build an evaluation context, computing whatever can be computed.
+ *
+ * A computed value is a REAL capture in the context: bands read it, criteria may
+ * reference it, and it counts as answered once its inputs are. It is derived
+ * fresh every time rather than stored, so it can never disagree with the numbers
+ * it comes from — the failure mode of a stored BMI is that somebody corrects the
+ * weight and the BMI quietly keeps the old answer.
+ *
+ * An input that is missing, unavailable or non-numeric yields NOTHING rather
+ * than a zero: a BMI of 0 is not a thin patient, it is an unanswered question.
+ */
 export function contextOf(features: Feature[], values: CaptureMap, site: SiteProfile): EvalContext {
-  return { values, features: new Map(features.map((f) => [f.code, f])), site };
+  const index = new Map(features.map((f) => [f.code, f]));
+  let derived: CaptureMap | undefined;
+
+  for (const f of features) {
+    if (!f.computed) continue;
+    const fn = FORMULAS[f.computed.formula];
+    if (!fn) continue;
+    const args: number[] = [];
+    for (const code of f.computed.from) {
+      const v = values[code];
+      if (v?.state !== "recorded" || typeof v.value !== "number") break;
+      args.push(v.value);
+    }
+    if (args.length !== f.computed.from.length) continue;
+    const out = fn(args);
+    if (out === undefined || !Number.isFinite(out)) continue;
+    derived ??= { ...values };
+    derived[f.code] = { state: "recorded", value: out };
+  }
+
+  return { values: derived ?? values, features: index, site };
 }

@@ -297,6 +297,20 @@ export interface Feature {
    */
   derives?: "gestation_from_lnmp";
   /**
+   * A value COMPUTED from other captures rather than typed.
+   *
+   * Named, not a function, so the catalog stays a data file — the arithmetic
+   * lives in the engine's small formula registry. Unlike `derives`, which is a
+   * display flourish beside a field, a computed feature is a REAL value in the
+   * evaluation context: bands read it, criteria may reference it, and the gaps
+   * list knows it is answered once its inputs are.
+   *
+   * The formula is arithmetic, never clinical content. BMI is weight over height
+   * squared everywhere on earth; what counts as obese is a threshold, and
+   * thresholds stay in the catalog where they can be cited.
+   */
+  computed?: { formula: "bmi"; from: string[] };
+  /**
    * The lab order that would produce this value. Drives the pending-orders list:
    * a clinician who records anaemia on pallor alone should be offered the count
    * that would settle it, not merely told the field is empty.
@@ -686,6 +700,15 @@ export interface InterpretationTable {
   bands: ResultBand[];
   /** Stated where this standard defines no intermediate band for this test. */
   note?: string;
+  /**
+   * Column headings, where the default wording does not fit.
+   *
+   * The glucose tables read "Not diabetes / Intermediate / Diabetes range",
+   * which is meaningless above a BMI or a blood pressure. A table that means
+   * something else says so, and the surface groups rows by the headings they
+   * share so two vocabularies never end up sharing a column.
+   */
+  toneLabels?: Partial<Record<ResultBand["tone"], string>>;
   citation: Citation;
 }
 

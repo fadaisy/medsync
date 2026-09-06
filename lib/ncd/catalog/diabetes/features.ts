@@ -185,27 +185,49 @@ export const SECTIONS: CatalogSection[] = [
     ],
   },
   {
+    id: "examination",
+    display: "Examination",
+    order: 3,
+    description: "What is measured, and what is found.",
+    groups: [
+      {
+        id: "vitals",
+        display: "Vital signs",
+        order: 1,
+        icon: "pulse",
+        description: "Pulled from triage where the patient was triaged.",
+      },
+      {
+        id: "body",
+        display: "Body measurements",
+        order: 2,
+        icon: "droplets",
+        description: "The risk factor the management ladder turns on.",
+      },
+    ],
+  },
+  {
     id: "precipitants",
     display: "Crisis precipitants",
-    order: 3,
+    order: 4,
     description: "What set this off — insulin and fluids alone will not fix it.",
   },
-  { id: "glycaemia", display: "Glycaemia", order: 4 },
+  { id: "glycaemia", display: "Glycaemia", order: 5 },
   {
     id: "hba1c_validity",
     display: "HbA1c reliability",
-    order: 5,
+    order: 6,
     description: "Conditions that make HbA1c unsafe to diagnose on.",
   },
   {
     id: "acute",
     display: "Acute assessment",
-    order: 6,
+    order: 7,
     description: "Ketones, acid-base and osmolality.",
   },
-  { id: "kidney", display: "Kidney", order: 7 },
-  { id: "foot", display: "Foot", order: 8 },
-  { id: "history", display: "History", order: 9 },
+  { id: "kidney", display: "Kidney", order: 8 },
+  { id: "foot", display: "Foot", order: 9 },
+  { id: "history", display: "History", order: 10 },
 ];
 
 const KETONE_STRIP = [

@@ -32,6 +32,7 @@
  */
 import type { InterpretationTable, ResultBand } from "@/lib/ncd/catalog/schema";
 
+import { ADA_S10_BP, WHO_BMI } from "@/lib/ncd/catalog/diabetes/examination";
 import { ADA_2026_DX, WHO_2006_DX } from "@/lib/ncd/catalog/diabetes/sources";
 
 const RETRIEVED = "2026-09-06";
@@ -250,6 +251,90 @@ export const INTERPRETATION: InterpretationTable[] = [
         from: 3.9,
         tone: "normal",
       },
+    ],
+  },
+
+  /* ── body mass index — WHO's classes ──────────────────────────────────── */
+  {
+    /**
+     * The tone vocabulary is borrowed, not the meaning: `low` is underweight,
+     * `diagnostic` is obesity. The column headings below say so, because a BMI
+     * under a heading reading "Diabetes range" would be nonsense.
+     *
+     * WHO's classes are the ones every other body's cut-points are read
+     * against — and the note carries the caveat that matters most for a product
+     * that is not built for one continent.
+     */
+    id: "bmi_who",
+    feature: "bmi",
+    standard: "WHO",
+    version: "WHO fact sheet",
+    citation: WHO_BMI,
+    note: "WHO's own expert consultation records LOWER action points for Asian populations (23 and 27.5). These classes are the international default, not a universal one.",
+    toneLabels: {
+      low: "Underweight",
+      normal: "Healthy weight",
+      intermediate: "Overweight",
+      diagnostic: "Obesity",
+    },
+    bands: [
+      { code: "underweight", display: "Underweight", to: 18.5, tone: "low" },
+      { code: "normal", display: "Healthy weight", from: 18.5, to: 25, tone: "normal" },
+      { code: "overweight", display: "Overweight", from: 25, to: 30, tone: "intermediate" },
+      { code: "obese", display: "Obesity", from: 30, tone: "diagnostic" },
+    ],
+  },
+
+  /* ── blood pressure — ADA's target and its two triggers ───────────────── */
+  {
+    /**
+     * Two tables, one per limb, because ADA's trigger is EITHER of them: a
+     * patient at 128/94 qualifies for treatment on the diastolic alone, and a
+     * single combined band could not say that.
+     */
+    id: "bp_systolic_ada",
+    feature: "bp_systolic",
+    standard: "ADA",
+    version: "Standards of Care, Section 10",
+    citation: ADA_S10_BP,
+    toneLabels: {
+      normal: "At target",
+      intermediate: "Above target",
+      diagnostic: "Treat promptly",
+    },
+    bands: [
+      { code: "at_target", display: "At target", to: 130, tone: "normal" },
+      {
+        code: "above_target",
+        display: "Qualifies for treatment",
+        from: 130,
+        to: 150,
+        tone: "intermediate",
+      },
+      { code: "prompt", display: "Prompt initiation", from: 150, tone: "diagnostic" },
+    ],
+  },
+  {
+    id: "bp_diastolic_ada",
+    feature: "bp_diastolic",
+    standard: "ADA",
+    version: "Standards of Care, Section 10",
+    citation: ADA_S10_BP,
+    toneLabels: {
+      normal: "At target",
+      intermediate: "Above target",
+      diagnostic: "Treat promptly",
+    },
+    bands: [
+      { code: "at_target", display: "At target", to: 80, tone: "normal" },
+      {
+        code: "above_target",
+        display: "Qualifies for treatment",
+        from: 80,
+        to: 90,
+        tone: "intermediate",
+      },
+      { code: "prompt", display: "Prompt initiation", from: 90, tone: "diagnostic" },
     ],
   },
 ];

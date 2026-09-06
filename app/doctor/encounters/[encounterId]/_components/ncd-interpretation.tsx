@@ -52,12 +52,18 @@ const ON: Record<Tone, string> = {
   diagnostic: "bg-red-100 text-red-900 dark:bg-red-900/50 dark:text-red-100",
 };
 
+/** The glucose vocabulary. A table meaning something else brings its own. */
 const LABEL: Record<Tone, string> = {
   low: "Hypoglycaemia",
   normal: "Not diabetes",
   intermediate: "Intermediate",
   diagnostic: "Diabetes range",
 };
+
+const headings = (row: Interpretation): Record<Tone, string> => ({
+  ...LABEL,
+  ...(row.toneLabels ?? {}),
+});
 
 /**
  * The input's own colour, once there is a value to read. The clinician's eye is
@@ -88,8 +94,48 @@ export function NcdInterpretation({
   renderInput: (featureCode: string) => ReactNode;
 }) {
   if (!rows.length) return null;
+
+  /**
+   * One table per VOCABULARY, not one per section.
+   *
+   * A blood pressure and a BMI cannot share a column headed "Diabetes range",
+   * and a table whose heading means something different in each row is worse
+   * than two tables. Rows are grouped by the headings they share, so the four
+   * glucose tests stay one table and the examination's BMI and blood pressure
+   * become two.
+   */
+  const groups: { key: string; head: Record<Tone, string>; rows: Interpretation[] }[] = [];
+  for (const row of rows) {
+    const head = headings(row);
+    const key = COLUMNS.map((t) => head[t]).join("|");
+    const found = groups.find((g) => g.key === key);
+    if (found) found.rows.push(row);
+    else groups.push({ key, head, rows: [row] });
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      {groups.map((g) => (
+        <InterpretationTable key={g.key} rows={g.rows} head={g.head} renderInput={renderInput} />
+      ))}
+    </div>
+  );
+}
+
+function InterpretationTable({
+  rows,
+  head,
+  renderInput,
+}: {
+  rows: Interpretation[];
+  head: Record<Tone, string>;
+  renderInput: (featureCode: string) => ReactNode;
+}) {
   const first = rows[0]!;
   const hypos = rows.filter((r) => r.band?.tone === "low");
+  // Only the columns this table's rows actually use — an always-empty column is
+  // a question the table is not answering.
+  const columns = COLUMNS.filter((t) => rows.some((r) => r.bands.some((b) => b.tone === t)));
 
   return (
     <section className="border-border bg-card overflow-hidden rounded-xl border shadow-xs">
@@ -138,16 +184,16 @@ export function NcdInterpretation({
         <table className="w-full table-fixed border-collapse text-left">
           <colgroup>
             <col className="w-[30%]" />
-            {COLUMNS.map((c) => (
+            {columns.map((c) => (
               <col key={c} />
             ))}
           </colgroup>
           <thead>
             <tr className="border-border/60 border-b">
               <th className="text-muted-foreground text-caption px-3.5 py-1.5 font-medium">Test</th>
-              {COLUMNS.map((tone) => (
+              {columns.map((tone) => (
                 <th key={tone} className={`text-caption px-2 py-1.5 font-medium ${HEAD[tone]}`}>
-                  {LABEL[tone]}
+                  {head[tone]}
                 </th>
               ))}
             </tr>
@@ -191,7 +237,7 @@ export function NcdInterpretation({
                   ) : null}
                 </th>
 
-                {COLUMNS.map((tone) => {
+                {columns.map((tone) => {
                   const band = row.bands.find((b) => b.tone === tone);
                   const here = Boolean(band && row.band && row.band.code === band.code);
                   return (

@@ -186,13 +186,21 @@ describe("a band is not a verdict", () => {
  * section it files them in, with no UI change.
  */
 describe("the table belongs to a section, derived from the catalog", () => {
-  it("puts every interpreted test in one section", () => {
+  /**
+   * Was a single section when glycaemia held the only tables; the examination
+   * now bands a BMI and a blood pressure too. What still has to hold is that a
+   * table lands in a section that EXISTS — a table whose feature belongs
+   * nowhere would render nowhere, silently.
+   */
+  it("puts every interpreted test in a section the catalog declares", () => {
+    const declared = new Set(DIABETES_CATALOG.sections.map((s) => s.id));
     const sections = new Set(
       (DIABETES_CATALOG.interpretation ?? []).map(
         (t) => DIABETES_CATALOG.features.find((f) => f.code === t.feature)!.section,
       ),
     );
-    expect([...sections]).toEqual(["glycaemia"]);
+    expect([...sections].sort()).toEqual(["examination", "glycaemia"]);
+    for (const id of sections) expect(declared.has(id), id).toBe(true);
   });
 
   it("names a feature that exists, so a table can never render nowhere", () => {

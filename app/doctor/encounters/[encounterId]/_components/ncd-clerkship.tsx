@@ -1,5 +1,6 @@
 "use client";
 
+import type { PulledVitals } from "./ncd-capture";
 import type { NcdCatalog, SiteProfile } from "@/lib/ncd/catalog/schema";
 import type { CaptureMap } from "@/lib/ncd/engine/evaluate";
 import { useCallback, useMemo, useRef, useState } from "react";
@@ -101,6 +102,7 @@ export function NcdClerkship({
   onChange,
   onSave,
   siteOptions,
+  pulled,
 }: {
   catalog: NcdCatalog;
   site: SiteProfile;
@@ -119,6 +121,8 @@ export function NcdClerkship({
    * the clinician makes at the bedside.
    */
   siteOptions?: SiteProfile[];
+  /** Vitals already on the record, offered to whichever section holds them. */
+  pulled?: PulledVitals;
 }) {
   const [values, setValues] = useState<CaptureMap>(initialValues ?? {});
   const [activeSite, setActiveSite] = useState<SiteProfile>(site);
@@ -240,6 +244,7 @@ export function NcdClerkship({
               site={activeSite}
               values={values}
               onChange={update}
+              pulled={pulled}
               sectionId={activeId}
             />
           </div>

@@ -15,6 +15,7 @@ import { loadEncounterRecord } from "@/lib/encounter/record";
 import { toEncounterScope } from "@/lib/encounter/workspace-scope";
 import { DIABETES_CATALOG, DISTRICT_SITE, REFERRAL_SITE } from "@/lib/ncd/catalog/diabetes";
 import { loadNcdDraft } from "@/lib/ncd/draft";
+import { loadLatestVitals } from "@/lib/ncd/vitals";
 import { InvestigationsPanel } from "./_components/investigations-panel";
 import { NcdClerkship } from "./_components/ncd-clerkship";
 import { saveNcdDraftAction } from "./actions";
@@ -101,6 +102,7 @@ export default async function DoctorEncounterPage({ params }: PageProps) {
   const orders = await loadEncounterOrders(encounterId);
   // Undefined when the flag is off, the migration is un-applied, or there is
   // simply no draft — all three are the same honest empty state to the form.
+  const vitals = ncdClerkshipLive() ? await loadLatestVitals(enc.patientUserId) : undefined;
   const draft = ncdClerkshipLive()
     ? await loadNcdDraft(encounterId, scope.userId, DIABETES_CATALOG)
     : undefined;
@@ -152,6 +154,21 @@ export default async function DoctorEncounterPage({ params }: PageProps) {
             siteOptions={[REFERRAL_SITE, DISTRICT_SITE]}
             initialValues={draft}
             onSave={saveDraft}
+            pulled={
+              vitals?.vitals.length
+                ? {
+                    values: vitals.values,
+                    items: vitals.vitals.map((v) => ({
+                      feature: v.feature,
+                      display: v.display,
+                      value: v.value,
+                      fromTriage: v.fromTriage,
+                    })),
+                    latestAt: vitals.latestAt?.toISOString().slice(11, 16),
+                    anyFromTriage: vitals.anyFromTriage,
+                  }
+                : undefined
+            }
           />
         ) : (
           <section className="border-border bg-card flex flex-col gap-2 rounded-xl border p-5 shadow-xs">

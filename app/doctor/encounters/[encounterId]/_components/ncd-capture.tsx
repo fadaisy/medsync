@@ -24,6 +24,7 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
   CircleSlashIcon,
+  ClipboardListIcon,
   DropletsIcon,
   EyeIcon,
   FootprintsIcon,
@@ -101,6 +102,16 @@ export interface NcdCaptureProps {
   site: SiteProfile;
   values: CaptureMap;
   onChange: (next: CaptureMap) => void;
+  /** Vitals already on the record, offered for this section. */
+  pulled?: PulledVitals;
+}
+
+/** What the record already holds, ready to be accepted — never assumed. */
+export interface PulledVitals {
+  values: CaptureMap;
+  items: { feature: string; display: string; value: number; fromTriage: boolean }[];
+  latestAt?: string;
+  anyFromTriage: boolean;
 }
 
 /** Is this feature askable right now? Same evaluator the clinical rules use. */
@@ -228,6 +239,7 @@ export function NcdCapture({
   site,
   values,
   onChange,
+  pulled,
   sectionId,
 }: NcdCaptureProps & { sectionId: string }) {
   const ordered = useMemo(
@@ -321,6 +333,30 @@ export function NcdCapture({
    */
   const [folded, setFolded] = useState<Map<string, string[]>>(new Map());
 
+  /**
+   * The offer, scoped to this section: only vitals whose feature lives here, and
+   * only those the clinician has not already answered themselves. A value they
+   * typed is theirs and is never overwritten by an older reading from the ward.
+   */
+  const offer = useMemo(() => {
+    if (!pulled?.items.length) return undefined;
+    const here = new Set(
+      catalog.features.filter((f) => f.section === sectionId).map((f) => f.code),
+    );
+    const items = pulled.items.filter((i) => here.has(i.feature) && !values[i.feature]);
+    return items.length ? items : undefined;
+  }, [pulled, catalog.features, sectionId, values]);
+
+  const acceptPulled = () => {
+    if (!offer || !pulled) return;
+    const next = { ...values };
+    for (const item of offer) {
+      const v = pulled.values[item.feature];
+      if (v) next[item.feature] = v;
+    }
+    onChange(next);
+  };
+
   const set = (code: string, v: CaptureMap[string]) => {
     const next = { ...values };
     if (v === undefined) delete next[code];
@@ -346,6 +382,37 @@ export function NcdCapture({
           <p className="text-muted-foreground text-caption">{section.description}</p>
         ) : null}
       </header>
+
+      {/*
+       * Offered, never assumed. Somebody else measured these, at another time,
+       * possibly in another room — and the clinician signing this clerkship is
+       * accountable for the numbers in it. So the surface says what exists, when
+       * it was taken and where it came from, and fills the fields only when
+       * asked. An hour-old triage blood pressure is often exactly what you want;
+       * it is never something a form should decide for you.
+       */}
+      {offer ? (
+        <div className="border-brand-200 bg-brand-50/60 dark:border-brand-900/50 dark:bg-brand-950/25 mb-3 flex flex-wrap items-center gap-x-3 gap-y-1.5 rounded-xl border px-3 py-2.5">
+          <ClipboardListIcon
+            className="text-brand-600 dark:text-brand-400 size-4 shrink-0"
+            aria-hidden
+          />
+          <span className="text-body-s text-foreground font-medium">
+            {pulled?.anyFromTriage ? "Recorded at triage" : "Already on the record"}
+          </span>
+          <span className="text-caption text-muted-foreground min-w-0 flex-1">
+            {offer.map((i) => `${i.display} ${i.value}`).join(" · ")}
+            {pulled?.latestAt ? ` · ${pulled.latestAt}` : ""}
+          </span>
+          <button
+            type="button"
+            onClick={acceptPulled}
+            className={`tap text-caption bg-brand-600 hover:bg-brand-700 shrink-0 rounded-md px-2.5 py-1 font-medium text-white ${EASE} ${TAP}`}
+          >
+            Use these
+          </button>
+        </div>
+      ) : null}
 
       <NcdInterpretation
         rows={interpretation}
