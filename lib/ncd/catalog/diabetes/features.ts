@@ -189,13 +189,33 @@ export const SECTIONS: CatalogSection[] = [
     display: "Examination",
     order: 3,
     description: "What is measured, and what is found.",
+    /**
+     * Two separate acts, done at two separate moments — the vitals are read off
+     * a machine and a chart, the general survey is done with hands and eyes on
+     * the patient. Stacking them down one card makes the second look like an
+     * appendix to the first, and it is not.
+     */
+    segmented: true,
     groups: [
       {
         id: "vitals",
-        display: "Vital signs and measurements",
+        display: "Vitals",
         order: 1,
         icon: "pulse",
         description: "Prefilled from triage where the patient was triaged.",
+      },
+      {
+        /**
+         * Declared and deliberately EMPTY. The segment exists so the shape of
+         * the examination is visible — vitals are not the whole of it — and the
+         * content is being worked out rather than guessed at. An empty group
+         * that says so beats a populated one nobody agreed to.
+         */
+        id: "general",
+        display: "General examination",
+        order: 2,
+        icon: "stethoscope",
+        description: "The survey done before any single system is examined.",
       },
     ],
   },

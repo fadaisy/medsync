@@ -397,9 +397,19 @@ export function validateCatalog(catalog: NcdCatalog): ValidationIssue[] {
       const members = catalog.features.filter((f) => f.section === s.id && f.group === g.id);
       if (!members.length) {
         out.push({
-          severity: "error",
+          /**
+           * In a stacked section an empty group is a dangling heading over
+           * nothing, which is a defect. In a SEGMENTED one it is a tab the
+           * surface renders as "not built yet" — a legible state while a
+           * section is being built out, and one a clinician can tell apart from
+           * "nothing to record here". Still worth saying out loud, so it stays
+           * a warning rather than passing silently.
+           */
+          severity: s.segmented ? "warning" : "error",
           path: `sections.${s.id}.groups.${g.id}`,
-          message: "group has no features — it would render as an empty heading",
+          message: s.segmented
+            ? "segment has no features yet — it renders as a not-built-yet card"
+            : "group has no features — it would render as an empty heading",
         });
       }
     }

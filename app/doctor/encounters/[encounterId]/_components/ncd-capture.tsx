@@ -32,6 +32,7 @@ import {
   PenLineIcon,
   RotateCcwIcon,
   SirenIcon,
+  StethoscopeIcon,
   TrendingDownIcon,
   WavesIcon,
   XIcon,
@@ -257,6 +258,33 @@ export function NcdCapture({
   );
 
   /**
+   * A section that declares itself `segmented` shows one group at a time,
+   * behind a bar.
+   *
+   * The chosen id is state, but the ACTIVE one is derived from it — if the
+   * section changes under us, or a group is removed from the catalog, the
+   * stale id simply stops matching and the first group wins. No effect, no
+   * reset, nothing to get out of step with the props.
+   */
+  const segments = useMemo(
+    () => (section?.segmented ? [...(section.groups ?? [])].sort((a, b) => a.order - b.order) : []),
+    [section],
+  );
+  const [chosen, setChosen] = useState<string | undefined>(undefined);
+  const activeGroup =
+    segments.length > 1
+      ? segments.some((g) => g.id === chosen)
+        ? chosen
+        : segments[0]!.id
+      : undefined;
+  /** Every group but the active one is hidden, so nothing else needs to know. */
+  const inSegment = (code: string) => {
+    if (activeGroup === undefined) return true;
+    const f = featureIndex.get(code);
+    return f !== undefined && effectiveGroup(f, featureIndex) === activeGroup;
+  };
+
+  /**
    * Which features are visible right now — evaluated by the SAME evaluator the
    * clinical rules use, so what the form shows and what the engine reasons about
    * can never drift apart. The effect is that an unasked symptom never spawns a
@@ -286,8 +314,11 @@ export function NcdCapture({
       catalog.features.filter((f) => f.section === sectionId).map((f) => f.code),
     );
     if (!catalog.interpretation?.some((t) => inSection.has(t.feature))) return [];
-    return interpretations(catalog, ctx).filter((i) => inSection.has(i.feature));
-  }, [catalog, sectionId, ctx]);
+    return interpretations(catalog, ctx).filter(
+      (i) => inSection.has(i.feature) && inSegment(i.feature),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- inSegment is derived from activeGroup + featureIndex, both listed.
+  }, [catalog, sectionId, ctx, activeGroup, featureIndex]);
 
   const visible = useMemo(() => {
     // A test the interpretation table captures is NOT also a row in the card.
@@ -302,9 +333,15 @@ export function NcdCapture({
       for (const src of f?.computed?.from ?? []) inTable.add(src);
     }
     return catalog.features.filter(
-      (f) => f.section === sectionId && !f.offProtocol && !inTable.has(f.code) && isVisible(f, ctx),
+      (f) =>
+        f.section === sectionId &&
+        !f.offProtocol &&
+        !inTable.has(f.code) &&
+        inSegment(f.code) &&
+        isVisible(f, ctx),
     );
-  }, [catalog.features, sectionId, ctx, interpretation]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- inSegment is derived from activeGroup + featureIndex, both listed.
+  }, [catalog.features, sectionId, ctx, interpretation, activeGroup, featureIndex]);
 
   /** Findings in group order, each carrying its own properties. */
   const banded = useMemo(() => {
@@ -333,8 +370,12 @@ export function NcdCapture({
 
   /** Off-protocol capture for this section, if the catalog declares any. */
   const offProtocol = useMemo(
-    () => catalog.features.filter((f) => f.section === sectionId && f.offProtocol),
-    [catalog.features, sectionId],
+    () =>
+      catalog.features.filter(
+        (f) =>
+          f.section === sectionId && f.offProtocol && (!activeGroup || f.group === activeGroup),
+      ),
+    [catalog.features, sectionId, activeGroup],
   );
 
   /**
@@ -365,14 +406,17 @@ export function NcdCapture({
   const prefilled = useMemo(() => {
     if (!pulled?.items.length) return [];
     const here = new Set(
-      catalog.features.filter((f) => f.section === sectionId).map((f) => f.code),
+      catalog.features
+        .filter((f) => f.section === sectionId && inSegment(f.code))
+        .map((f) => f.code),
     );
     return pulled.items.filter((i) => {
       if (!here.has(i.feature)) return false;
       const current = values[i.feature];
       return current?.state === "recorded" && current.value === i.value;
     });
-  }, [pulled, catalog.features, sectionId, values]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- inSegment is derived from activeGroup + featureIndex, both listed.
+  }, [pulled, catalog.features, sectionId, values, activeGroup, featureIndex]);
 
   const prefilledCodes = useMemo(() => new Set(prefilled.map((i) => i.feature)), [prefilled]);
 
@@ -401,6 +445,48 @@ export function NcdCapture({
           <p className="text-muted-foreground text-caption">{section.description}</p>
         ) : null}
       </header>
+
+      {/*
+       * The segment bar.
+       *
+       * Not the section rail in miniature: the rail navigates the clerkship and
+       * this switches which act of ONE section you are performing, so it sits
+       * inside the section and carries the group's own icon and its own
+       * description underneath. `aria-pressed` rather than a tablist, because
+       * the panel below is not a separate document — it is the same card with
+       * different rows in it.
+       */}
+      {activeGroup ? (
+        <div className="mb-3 flex flex-col gap-1.5">
+          <div className="bg-muted flex w-fit max-w-full flex-wrap items-center gap-0.5 rounded-lg p-0.5">
+            {segments.map((g) => {
+              const Icon = g.icon ? GROUP_ICONS[g.icon] : undefined;
+              const on = g.id === activeGroup;
+              return (
+                <button
+                  key={g.id}
+                  type="button"
+                  aria-pressed={on}
+                  onClick={() => setChosen(g.id)}
+                  className={`tap text-body-s ease-expo-out inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 font-medium transition-colors duration-100 ${
+                    on
+                      ? "bg-card text-foreground shadow-xs"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {Icon ? <Icon className="size-3.5 shrink-0" aria-hidden /> : null}
+                  {g.display}
+                </button>
+              );
+            })}
+          </div>
+          {segments.find((g) => g.id === activeGroup)?.description ? (
+            <p className="text-muted-foreground text-caption">
+              {segments.find((g) => g.id === activeGroup)!.description}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
 
       {/*
        * Prefilled, and SAID SO.
@@ -562,7 +648,7 @@ export function NcdCapture({
         {banded.map(({ finding, properties, band }) => {
           return (
             <div key={finding.code}>
-              {band ? <GroupBand group={band} /> : null}
+              {band && !activeGroup ? <GroupBand group={band} /> : null}
               <FeatureRow
                 feature={finding}
                 site={site}
@@ -600,6 +686,24 @@ export function NcdCapture({
           );
         })}
       </div>
+
+      {/*
+       * A segment the catalog declares but has not filled yet.
+       *
+       * Said plainly rather than shown as a blank card, because a clinician who
+       * finds nothing here needs to know the difference between "there is
+       * nothing to record" and "this is not built" — the first would have them
+       * signing off an examination they never did.
+       */}
+      {activeGroup && !interpretation.length && !banded.length && !offProtocol.length ? (
+        <div className="border-border bg-card text-muted-foreground rounded-xl border border-dashed px-4 py-6 text-center">
+          <p className="text-body-s text-foreground font-medium">Not built yet</p>
+          <p className="text-caption mx-auto mt-1 max-w-prose">
+            {segments.find((g) => g.id === activeGroup)?.display} has no fields on it yet. Nothing
+            recorded here is missing — there is nothing here to record.
+          </p>
+        </div>
+      ) : null}
 
       {offProtocol.map((f) => (
         <OffProtocolBlock
@@ -829,6 +933,7 @@ const GROUP_ICONS: Record<string, LucideIcon> = {
   foot: FootprintsIcon,
   eye: EyeIcon,
   pulse: HeartPulseIcon,
+  stethoscope: StethoscopeIcon,
   waves: WavesIcon,
 };
 

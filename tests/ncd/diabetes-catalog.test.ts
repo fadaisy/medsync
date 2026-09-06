@@ -76,13 +76,25 @@ describe("diabetes catalog", () => {
     expect(errorsOf(validateCatalog(cat))).toEqual([]);
   });
 
-  // Ships gated dark: every warning should be the unsigned one, nothing else.
-  it("is entirely unsigned, and that is its only warning class", () => {
+  /**
+   * Ships gated dark, so the unsigned warning is expected on everything. The
+   * only other warning allowed is a segment the catalog has declared and not
+   * filled yet — a state the surface renders as "not built yet", and one that
+   * must stay visible in the validator rather than passing quietly.
+   */
+  it("warns only about being unsigned, and about segments not built yet", () => {
     const warns = validateCatalog(cat).filter((i) => i.severity === "warning");
     expect(warns.length).toBeGreaterThan(0);
-    expect([...new Set(warns.map((w) => w.message))]).toEqual([
+    expect([...new Set(warns.map((w) => w.message))].sort()).toEqual([
       "not CSO-signed — gated dark until ratified",
+      "segment has no features yet — it renders as a not-built-yet card",
     ]);
+  });
+
+  /** And exactly which one, so a second empty segment has to be deliberate. */
+  it("has one empty segment, the general examination", () => {
+    const empty = validateCatalog(cat).filter((i) => i.message.startsWith("segment has no"));
+    expect(empty.map((i) => i.path)).toEqual(["sections.examination.groups.general"]);
   });
 
   it("cites every clinical assertion", () => {

@@ -846,6 +846,16 @@ export interface CatalogSection {
   description?: string;
   /** Named bands within the section. Features reference these by id. */
   groups?: CatalogGroup[];
+  /**
+   * Render this section's groups as a bar the clinician switches between,
+   * rather than as bands stacked down one long card.
+   *
+   * OPT-IN, never inferred from "has more than one group". The symptom groups
+   * are meant to be read in a single pass — turning those into tabs would hide
+   * two thirds of the screening from anyone who does not think to click. A
+   * section earns this only when its groups are separate acts.
+   */
+  segmented?: boolean;
 }
 
 export interface NcdCatalog {
