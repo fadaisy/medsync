@@ -185,22 +185,53 @@ describe("one finding, one home", () => {
   });
 
   /** The two fields that were actually carrying duplicates. */
-  /** Grades, not how far up the leg it reached. */
-  it("grades the oedema on one scale that includes non-pitting", () => {
-    expect(at("oedema_extent")).toBeUndefined();
+  /**
+   * BOTH conventional scales, side by side, because they measure different
+   * things: how saturated the tissue is, and how much of the patient is wet.
+   * A 4+ pit at the ankles and a 1+ pit reaching the sacrum are not the same
+   * illness, and either scale alone would have to throw that away.
+   */
+  it("grades the oedema on both scales, and merges neither into the other", () => {
     expect(at("oedema_pitting")).toBeUndefined();
-    const g = at("oedema_grade")!;
-    expect(g.parent).toBe("peripheral_oedema");
-    expect(g.options!.map((o) => o.value)).toEqual([
+
+    const pit = at("oedema_grade")!;
+    expect(pit.parent).toBe("peripheral_oedema");
+    expect(pit.options!.map((o) => o.value)).toEqual([
       "non_pitting",
       "grade_1",
       "grade_2",
       "grade_3",
       "grade_4",
     ]);
-    // The rebound times genuinely differ between texts, and the citation says so
-    // rather than picking one and presenting it as the scale.
-    expect(g.citation!.needsCsoInput).toMatch(/REBOUND TIMES are not/);
+
+    const extent = at("oedema_distribution")!;
+    expect(extent.parent).toBe("peripheral_oedema");
+    expect(extent.options!.map((o) => o.value)).toEqual([
+      "feet_ankles",
+      "mid_calf",
+      "knee_or_above",
+      "sacral",
+      "generalised",
+    ]);
+    // Two scales, two citations — neither borrows the other's provenance.
+    expect(extent.citation).not.toBe(pit.citation);
+  });
+
+  /**
+   * Neither scale is a guideline position and the record has to say so. The
+   * authoritative reference for peripheral oedema grades it not at all, and the
+   * scales in circulation disagree at the margins.
+   */
+  it("says out loud that no guideline states either scale", () => {
+    // The rebound times genuinely differ between texts, rather than one being
+    // picked and presented as the scale.
+    expect(at("oedema_grade")!.citation!.needsCsoInput).toMatch(/REBOUND TIMES are not/);
+    expect(at("oedema_distribution")!.citation!.needsCsoInput).toMatch(
+      /NO GUIDELINE STATING EITHER SCALE WAS RETRIEVED/,
+    );
+    for (const code of ["oedema_grade", "oedema_distribution"]) {
+      expect(at(code)!.citation!.csoSigned, code).toBe(false);
+    }
   });
 
   it("has retired the anaemia sign list and trimmed the haemolysis one", () => {

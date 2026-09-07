@@ -197,6 +197,26 @@ const CONVENTION: Citation = {
  * The pitting scale. Conventional, universally used, and genuinely variable at
  * the margins between texts — which is why it ships as ours and says so.
  */
+/**
+ * The second conventional scale, and the one the first cannot substitute for.
+ *
+ * They measure different things. The pitting scale answers "how saturated is
+ * this tissue"; this one answers "how much of the patient is wet". A 4+ pit
+ * confined to the ankles and a 1+ pit that reaches the sacrum are not the same
+ * illness, and neither scale on its own tells you which you are looking at —
+ * which is exactly why both are taught and why recording one is not recording
+ * the other.
+ */
+const OEDEMA_EXTENT: Citation = {
+  standard: "local",
+  version: "Peripheral oedema — conventional extent grading",
+  title: "Oedema graded by how far it reaches — not a guideline position",
+  retrieved: RETRIEVED,
+  csoSigned: false,
+  needsCsoInput:
+    "The second of the two conventional oedema scales: graded by the level the oedema reaches rather than by the depth of the pit. NO GUIDELINE STATING EITHER SCALE WAS RETRIEVED — StatPearls' peripheral-oedema article describes the examination and offers no grading system at all, and the scales in circulation come from textbooks and nursing references that differ at the margins. Both are recorded here as convention. CSO to ratify, or to adopt a single site scale.",
+};
+
 const OEDEMA_GRADE: Citation = {
   standard: "local",
   version: "Pitting oedema — conventional 1+ to 4+ scale",
@@ -620,6 +640,27 @@ export const GENERAL_EXAM_FEATURES: Feature[] = [
       { value: "grade_2", display: "2+ — about 4 mm, rebounds in seconds" },
       { value: "grade_3", display: "3+ — about 6 mm, a pit that lingers" },
       { value: "grade_4", display: "4+ — about 8 mm, a pit lasting minutes" },
+    ],
+  }),
+  prop("peripheral_oedema", {
+    /**
+     * The other scale, asked beside the first rather than instead of it.
+     *
+     * Kept as its own field because the two are ORTHOGONAL and a single answer
+     * would have to throw one of them away. Sacral oedema is its own option and
+     * not a step above the knee: it is where fluid collects in someone who has
+     * been lying down, so it can be the only place there is any.
+     */
+    code: "oedema_distribution",
+    display: "How far it reaches",
+    valueType: "single_select",
+    citation: OEDEMA_EXTENT,
+    options: [
+      { value: "feet_ankles", display: "Grade 1 — feet and ankles" },
+      { value: "mid_calf", display: "Grade 2 — up to mid-calf" },
+      { value: "knee_or_above", display: "Grade 3 — to the knee or above" },
+      { value: "sacral", display: "Sacral — in someone lying down" },
+      { value: "generalised", display: "Grade 4 — generalised (anasarca)" },
     ],
   }),
 
