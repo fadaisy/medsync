@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { isVisible } from "@/app/doctor/encounters/[encounterId]/_components/ncd-capture";
+import {
+  GROUP_ICONS,
+  isVisible,
+} from "@/app/doctor/encounters/[encounterId]/_components/ncd-capture";
 import { DIABETES_CATALOG, REFERRAL_SITE } from "@/lib/ncd/catalog/diabetes";
 import { effectiveGroup, recorded } from "@/lib/ncd/catalog/schema";
 import { errorsOf, validateCatalog } from "@/lib/ncd/catalog/validate";
@@ -10,8 +13,21 @@ import { contextOf, evaluatePredicate } from "@/lib/ncd/engine/evaluate";
 const features = DIABETES_CATALOG.features;
 const index = new Map(features.map((f) => [f.code, f]));
 const at = (code: string) => features.find((f) => f.code === code);
+/**
+ * The general examination is now a segment with REGIONS inside it, so "is this
+ * field in the general examination" is a question about the group's parent, not
+ * about the group. Resolved here the way the surface resolves it.
+ */
+const examSection = DIABETES_CATALOG.sections.find((s) => s.id === "examination")!;
+const parentOf = new Map((examSection.groups ?? []).map((g) => [g.id, g.parent]));
+const segmentOf = (code: string) => {
+  const f = index.get(code);
+  if (!f) return undefined;
+  const g = effectiveGroup(f, index);
+  return g === undefined ? undefined : (parentOf.get(g) ?? g);
+};
 const inGeneral = features.filter(
-  (f) => f.section === "examination" && effectiveGroup(f, index) === "general",
+  (f) => f.section === "examination" && segmentOf(f.code) === "general",
 );
 
 describe("the general examination is built on ADA Table 4.1", () => {
@@ -59,6 +75,36 @@ describe("the general examination is built on ADA Table 4.1", () => {
     expect(inGeneral.length).toBeGreaterThan(20);
     expect(errorsOf(validateCatalog(DIABETES_CATALOG))).toEqual([]);
   });
+
+  /**
+   * The regions are the order the examination is performed in, and each one has
+   * to hold something — a band over nothing is a heading the eye stops at for
+   * no reason.
+   */
+  it("files every finding into a region, and leaves no region empty", () => {
+    const regions = (examSection.groups ?? []).filter((g) => g.parent === "general");
+    expect(regions.map((g) => g.id)).toEqual([
+      "gx_survey",
+      "gx_colour",
+      "gx_hands",
+      "gx_head_neck",
+      "gx_skin",
+      "gx_legs",
+    ]);
+    for (const r of regions) {
+      expect(features.filter((f) => f.group === r.id).length, r.id).toBeGreaterThan(0);
+    }
+    // Nothing sits directly on the segment: every finding belongs to a region.
+    expect(features.filter((f) => f.group === "general")).toEqual([]);
+  });
+
+  /** Groups nest one level. A region inside a region is a section split wrong. */
+  it("nests groups exactly one level deep", () => {
+    for (const g of examSection.groups ?? []) {
+      if (!g.parent) continue;
+      expect(parentOf.get(g.parent), g.id).toBeUndefined();
+    }
+  });
 });
 
 describe("what moved, moved whole", () => {
@@ -71,7 +117,8 @@ describe("what moved, moved whole", () => {
   it("keeps dehydration pointing at the crises from its new home", () => {
     const d = at("dehydration")!;
     expect(d.section).toBe("examination");
-    expect(effectiveGroup(d, index)).toBe("general");
+    expect(effectiveGroup(d, index)).toBe("gx_survey");
+    expect(segmentOf("dehydration")).toBe("general");
     expect(d.suggests).toEqual(["dka", "hhs"]);
     expect(at("dehydration_signs")!.parent).toBe("dehydration");
   });
@@ -127,7 +174,7 @@ describe("one finding, one home", () => {
   it("offers none of them as an option anywhere else", () => {
     const offenders: string[] = [];
     for (const f of features) {
-      if (effectiveGroup(f, index) === "general" && f.section === "examination") continue;
+      if (f.section === "examination" && segmentOf(f.code) === "general") continue;
       for (const o of f.options ?? []) {
         for (const concept of CONCEPTS) {
           if (o.value.includes(concept)) offenders.push(`${f.code}.${o.value}`);
@@ -138,6 +185,24 @@ describe("one finding, one home", () => {
   });
 
   /** The two fields that were actually carrying duplicates. */
+  /** Grades, not how far up the leg it reached. */
+  it("grades the oedema on one scale that includes non-pitting", () => {
+    expect(at("oedema_extent")).toBeUndefined();
+    expect(at("oedema_pitting")).toBeUndefined();
+    const g = at("oedema_grade")!;
+    expect(g.parent).toBe("peripheral_oedema");
+    expect(g.options!.map((o) => o.value)).toEqual([
+      "non_pitting",
+      "grade_1",
+      "grade_2",
+      "grade_3",
+      "grade_4",
+    ]);
+    // The rebound times genuinely differ between texts, and the citation says so
+    // rather than picking one and presenting it as the scale.
+    expect(g.citation!.needsCsoInput).toMatch(/REBOUND TIMES are not/);
+  });
+
   it("has retired the anaemia sign list and trimmed the haemolysis one", () => {
     expect(at("anaemia_clinical_signs")).toBeUndefined();
     expect(at("haemolysis_clinical_signs")!.options!.map((o) => o.value)).toEqual([
@@ -189,5 +254,28 @@ describe("the vitals segment is unchanged by all this", () => {
         contextOf(features, { glucose_lowering_therapy: recorded(["metformin"]) }, REFERRAL_SITE),
       ).state,
     ).toBe("not_met");
+  });
+});
+
+/**
+ * A band with no icon is a band that looks broken next to five that have one.
+ * The catalog names icons as STRINGS so it stays a data file, which means
+ * nothing type-checks the name — only this does.
+ */
+describe("every group names an icon the surface can resolve", () => {
+  it("resolves each icon in the examination section", () => {
+    for (const g of examSection.groups ?? []) {
+      if (!g.icon) continue;
+      expect(GROUP_ICONS[g.icon], `${g.id} → ${g.icon}`).toBeDefined();
+    }
+  });
+
+  it("resolves every icon named anywhere in the catalog", () => {
+    for (const s of DIABETES_CATALOG.sections) {
+      for (const g of s.groups ?? []) {
+        if (!g.icon) continue;
+        expect(GROUP_ICONS[g.icon], `${s.id}.${g.id} → ${g.icon}`).toBeDefined();
+      }
+    }
   });
 });

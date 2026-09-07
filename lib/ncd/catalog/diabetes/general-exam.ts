@@ -193,14 +193,34 @@ const CONVENTION: Citation = {
     "The conventional findings of a general examination, taught universally, with no retrieved guideline stating them as a set. Recorded as documentation; none of them drives a verdict here. CSO to ratify.",
 };
 
-const EX = "examination";
-const G = "general";
+/**
+ * The pitting scale. Conventional, universally used, and genuinely variable at
+ * the margins between texts — which is why it ships as ours and says so.
+ */
+const OEDEMA_GRADE: Citation = {
+  standard: "local",
+  version: "Pitting oedema — conventional 1+ to 4+ scale",
+  title: "Pitting oedema grading — not a guideline position",
+  retrieved: RETRIEVED,
+  csoSigned: false,
+  needsCsoInput:
+    "The 1+ to 4+ pitting scale, graded on the depth of the pit after firm pressure over a bony prominence. The DEPTHS (2, 4, 6, 8 mm) are consistent across the sources consulted; the REBOUND TIMES are not — grade 3 is variously given as 10 seconds and as a minute — so the labels carry the depth and describe the rebound only qualitatively. No guideline stating the scale was retrieved. CSO to ratify, or to adopt a site scale.",
+};
 
-const finding = (f: Omit<Feature, "section" | "kind" | "group">): Feature => ({
+const EX = "examination";
+
+/**
+ * A general-survey finding, filed under the region it is found in.
+ *
+ * The region is a NESTED group: the segment bar shows "General examination",
+ * and inside it the findings band into the order a physician actually works
+ * through — end of the bed, colour, hands, head and neck, skin, legs.
+ */
+const finding = (region: string, f: Omit<Feature, "section" | "kind" | "group">): Feature => ({
   ...f,
   kind: "sign",
   section: EX,
-  group: G,
+  group: region,
 });
 
 /** Characterises the finding above it; only asked once that is present. */
@@ -213,7 +233,7 @@ const prop = (parent: string, f: Omit<Feature, "section" | "kind" | "parent">): 
 
 export const GENERAL_EXAM_FEATURES: Feature[] = [
   /* ── the survey from the end of the bed ──────────────────────────────── */
-  finding({
+  finding("gx_survey", {
     /**
      * Three states, not five. The distinction that changes behaviour is "can
      * this wait"; a finer scale invites a judgement the examiner has not made.
@@ -229,7 +249,7 @@ export const GENERAL_EXAM_FEATURES: Feature[] = [
     ],
   }),
 
-  finding({
+  finding("gx_survey", {
     /**
      * MOVED from the crisis symptoms, unchanged in code and in what it
      * suggests — so a dehydration recorded here still points at DKA and HHS.
@@ -255,7 +275,7 @@ export const GENERAL_EXAM_FEATURES: Feature[] = [
     ],
   }),
 
-  finding({
+  finding("gx_survey", {
     /**
      * PROMOTED from a property of Kussmaul breathing to a finding of its own.
      * The fetor is smelled walking up to the bed, and gating it behind deep
@@ -273,7 +293,7 @@ export const GENERAL_EXAM_FEATURES: Feature[] = [
     citation: CRISES_2024,
   }),
 
-  finding({
+  finding("gx_survey", {
     /**
      * Wasting the BMI cannot see. A person can lose a great deal of muscle and
      * weigh the same, and in new type 1 diabetes and prolonged hyperglycaemia
@@ -293,7 +313,7 @@ export const GENERAL_EXAM_FEATURES: Feature[] = [
   }),
 
   /* ── colour ──────────────────────────────────────────────────────────── */
-  finding({
+  finding("gx_colour", {
     /**
      * The only place pallor is now recorded. It used to be three tick-boxes
      * inside the HbA1c anaemia sub-field, which could only be reached by a
@@ -319,7 +339,7 @@ export const GENERAL_EXAM_FEATURES: Feature[] = [
     ],
   }),
 
-  finding({
+  finding("gx_colour", {
     /** Also the only place jaundice is recorded; the haemolysis field lost it. */
     code: "jaundice",
     display: "Jaundice",
@@ -327,7 +347,7 @@ export const GENERAL_EXAM_FEATURES: Feature[] = [
     citation: CONVENTION,
   }),
 
-  finding({
+  finding("gx_colour", {
     /**
      * Peripheral cyanosis is a perfusion finding, central cyanosis an
      * oxygenation one. Different problems, so one field with three answers
@@ -345,7 +365,7 @@ export const GENERAL_EXAM_FEATURES: Feature[] = [
   }),
 
   /* ── skin: ADA asks for this one by name ─────────────────────────────── */
-  finding({
+  finding("gx_skin", {
     /**
      * Named in ADA Table 4.1. The visible sign of insulin resistance, and one
      * of the few examination findings that says something about the TYPE of
@@ -370,7 +390,7 @@ export const GENERAL_EXAM_FEATURES: Feature[] = [
     ],
   }),
 
-  finding({
+  finding("gx_skin", {
     /**
      * Asked only of someone on insulin, because on anyone else it is a question
      * about an injection that does not happen.
@@ -410,7 +430,7 @@ export const GENERAL_EXAM_FEATURES: Feature[] = [
     ],
   }),
 
-  finding({
+  finding("gx_skin", {
     /**
      * The diabetes-associated dermatoses, as ONE field rather than seven
      * booleans: they are looked for in a single pass over the skin, and seven
@@ -442,7 +462,7 @@ export const GENERAL_EXAM_FEATURES: Feature[] = [
     ],
   }),
 
-  finding({
+  finding("gx_skin", {
     /**
      * A precipitant, not an incidental — an abscess is one of the commonest
      * things that tips a controlled diabetes into a crisis.
@@ -474,7 +494,7 @@ export const GENERAL_EXAM_FEATURES: Feature[] = [
     citation: CONVENTION,
   }),
 
-  finding({
+  finding("gx_skin", {
     /**
      * ADA lists dry, cracked peripheral skin among the SIGNS of autonomic
      * neuropathy — sudomotor failure, not simply a dry patient. It sits beside
@@ -487,7 +507,7 @@ export const GENERAL_EXAM_FEATURES: Feature[] = [
   }),
 
   /* ── hands ───────────────────────────────────────────────────────────── */
-  finding({
+  finding("gx_hands", {
     /**
      * The prayer sign: the palms will not meet. Costs nothing, needs no
      * equipment, and is one of the few bedside findings that tracks with
@@ -500,7 +520,7 @@ export const GENERAL_EXAM_FEATURES: Feature[] = [
   }),
 
   /* ── head and neck ───────────────────────────────────────────────────── */
-  finding({
+  finding("gx_head_neck", {
     /**
      * "Thyroid palpation" is its own row in ADA Table 4.1, and the reason is
      * rec 4.6: autoimmune thyroid disease is the commonest autoimmune disorder
@@ -524,7 +544,7 @@ export const GENERAL_EXAM_FEATURES: Feature[] = [
     ],
   }),
 
-  finding({
+  finding("gx_head_neck", {
     /**
      * ADA recommends a dental referral at least annually and records the last
      * dental visit in Table 4.1, because periodontal disease is worse in
@@ -544,7 +564,7 @@ export const GENERAL_EXAM_FEATURES: Feature[] = [
     ],
   }),
 
-  finding({
+  finding("gx_head_neck", {
     code: "lymphadenopathy",
     display: "Lymphadenopathy",
     valueType: "boolean",
@@ -564,7 +584,7 @@ export const GENERAL_EXAM_FEATURES: Feature[] = [
   }),
 
   /* ── fluid and the autonomic nervous system ──────────────────────────── */
-  finding({
+  finding("gx_legs", {
     /**
      * In a diabetic clinic this is a question about the kidneys and the heart
      * before it is anything else, so how far up matters as much as whether it
@@ -576,25 +596,34 @@ export const GENERAL_EXAM_FEATURES: Feature[] = [
     citation: CONVENTION,
   }),
   prop("peripheral_oedema", {
-    code: "oedema_extent",
-    display: "How far up",
+    /**
+     * The grade, not the height.
+     *
+     * ONE field, not a pitting yes/no beside a grade: the two could contradict
+     * each other, and "non-pitting, grade 3" is not a finding. Non-pitting is
+     * the first answer on the same scale because it is a different disease —
+     * lymphoedema and myxoedema, not fluid overload — and a form that only
+     * offers grades quietly turns every swollen leg into a cardiac one.
+     *
+     * Depths are consistent across texts; rebound times are NOT — the sources
+     * consulted put grade 3 anywhere between 10 seconds and a minute. The
+     * labels carry the depth, which is what the thumb actually measures, and
+     * the citation says the times vary.
+     */
+    code: "oedema_grade",
+    display: "Grade",
     valueType: "single_select",
-    citation: CONVENTION,
+    citation: OEDEMA_GRADE,
     options: [
-      { value: "ankles", display: "Ankles" },
-      { value: "mid_shin", display: "To mid-shin" },
-      { value: "knee_or_above", display: "To the knee or above" },
-      { value: "sacral", display: "Sacral" },
+      { value: "non_pitting", display: "Non-pitting" },
+      { value: "grade_1", display: "1+ — about 2 mm, rebounds at once" },
+      { value: "grade_2", display: "2+ — about 4 mm, rebounds in seconds" },
+      { value: "grade_3", display: "3+ — about 6 mm, a pit that lingers" },
+      { value: "grade_4", display: "4+ — about 8 mm, a pit lasting minutes" },
     ],
   }),
-  prop("peripheral_oedema", {
-    code: "oedema_pitting",
-    display: "Pitting",
-    valueType: "boolean",
-    citation: CONVENTION,
-  }),
 
-  finding({
+  finding("gx_legs", {
     /**
      * ADA Table 4.1 asks for orthostatic blood pressure "when indicated", and
      * Section 12 names orthostatic hypotension a sign of autonomic neuropathy.
@@ -622,7 +651,7 @@ export const GENERAL_EXAM_FEATURES: Feature[] = [
     kind: "sign",
     valueType: "text_list",
     section: EX,
-    group: G,
+    group: "gx_survey",
     offProtocol: true,
   },
 ];

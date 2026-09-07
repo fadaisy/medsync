@@ -28,10 +28,13 @@ import {
   DropletsIcon,
   EyeIcon,
   FootprintsIcon,
+  HandIcon,
   HeartPulseIcon,
   PenLineIcon,
   RotateCcwIcon,
+  ScanLineIcon,
   SirenIcon,
+  SmileIcon,
   StethoscopeIcon,
   TrendingDownIcon,
   WavesIcon,
@@ -267,7 +270,15 @@ export function NcdCapture({
    * reset, nothing to get out of step with the props.
    */
   const segments = useMemo(
-    () => (section?.segmented ? [...(section.groups ?? [])].sort((a, b) => a.order - b.order) : []),
+    () =>
+      section?.segmented
+        ? [...(section.groups ?? [])].filter((g) => !g.parent).sort((a, b) => a.order - b.order)
+        : [],
+    [section],
+  );
+  /** Region → the segment it sits in, so a nested band knows its home. */
+  const parentOf = useMemo(
+    () => new Map((section?.groups ?? []).map((g) => [g.id, g.parent])),
     [section],
   );
   const [chosen, setChosen] = useState<string | undefined>(undefined);
@@ -281,7 +292,10 @@ export function NcdCapture({
   const inSegment = (code: string) => {
     if (activeGroup === undefined) return true;
     const f = featureIndex.get(code);
-    return f !== undefined && effectiveGroup(f, featureIndex) === activeGroup;
+    if (!f) return false;
+    const g = effectiveGroup(f, featureIndex);
+    // A finding filed under a REGION belongs to the segment that region is in.
+    return g === activeGroup || (g !== undefined && parentOf.get(g) === activeGroup);
   };
 
   /**
@@ -318,7 +332,7 @@ export function NcdCapture({
       (i) => inSection.has(i.feature) && inSegment(i.feature),
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps -- inSegment is derived from activeGroup + featureIndex, both listed.
-  }, [catalog, sectionId, ctx, activeGroup, featureIndex]);
+  }, [catalog, sectionId, ctx, activeGroup, featureIndex, parentOf]);
 
   const visible = useMemo(() => {
     // A test the interpretation table captures is NOT also a row in the card.
@@ -341,7 +355,7 @@ export function NcdCapture({
         isVisible(f, ctx),
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps -- inSegment is derived from activeGroup + featureIndex, both listed.
-  }, [catalog.features, sectionId, ctx, interpretation, activeGroup, featureIndex]);
+  }, [catalog.features, sectionId, ctx, interpretation, activeGroup, featureIndex, parentOf]);
 
   /** Findings in group order, each carrying its own properties. */
   const banded = useMemo(() => {
@@ -368,14 +382,40 @@ export function NcdCapture({
       }));
   }, [visible, section, featureIndex]);
 
+  /**
+   * Region tallies, and the blanks each region could fill in one action.
+   *
+   * Derived from the blocks that are actually ON SCREEN — not from the catalog
+   * — so a finding hidden behind a gate is never counted as unexamined and
+   * never silently answered by "nothing abnormal".
+   */
+  const regions = useMemo(() => {
+    const out = new Map<string, { examined: number; total: number; blanks: string[] }>();
+    for (const b of banded) {
+      const g = b.group;
+      if (!g) continue;
+      const held = out.get(g) ?? { examined: 0, total: 0, blanks: [] };
+      held.total += 1;
+      if (values[b.finding.code]) held.examined += 1;
+      else if (b.finding.valueType === "boolean") held.blanks.push(b.finding.code);
+      out.set(g, held);
+    }
+    return out;
+  }, [banded, values]);
+
+  /** Fills the blanks. Never touches a finding that already has an answer. */
+  const markRegionNormal = (blanks: string[]) => {
+    const next = { ...values };
+    for (const code of blanks) next[code] = { state: "recorded", value: false };
+    onChange(next);
+  };
+
   /** Off-protocol capture for this section, if the catalog declares any. */
   const offProtocol = useMemo(
     () =>
-      catalog.features.filter(
-        (f) =>
-          f.section === sectionId && f.offProtocol && (!activeGroup || f.group === activeGroup),
-      ),
-    [catalog.features, sectionId, activeGroup],
+      catalog.features.filter((f) => f.section === sectionId && f.offProtocol && inSegment(f.code)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- inSegment is derived from activeGroup + featureIndex + parentOf, all listed.
+    [catalog.features, sectionId, activeGroup, featureIndex, parentOf],
   );
 
   /**
@@ -416,7 +456,7 @@ export function NcdCapture({
       return current?.state === "recorded" && current.value === i.value;
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- inSegment is derived from activeGroup + featureIndex, both listed.
-  }, [pulled, catalog.features, sectionId, values, activeGroup, featureIndex]);
+  }, [pulled, catalog.features, sectionId, values, activeGroup, featureIndex, parentOf]);
 
   const prefilledCodes = useMemo(() => new Set(prefilled.map((i) => i.feature)), [prefilled]);
 
@@ -648,7 +688,18 @@ export function NcdCapture({
         {banded.map(({ finding, properties, band }) => {
           return (
             <div key={finding.code}>
-              {band && !activeGroup ? <GroupBand group={band} /> : null}
+              {band && band.id !== activeGroup ? (
+                <GroupBand
+                  group={band}
+                  examined={regions.get(band.id)?.examined}
+                  total={regions.get(band.id)?.total}
+                  onNormal={
+                    regions.get(band.id)?.blanks.length
+                      ? () => markRegionNormal(regions.get(band.id)!.blanks)
+                      : undefined
+                  }
+                />
+              ) : null}
               <FeatureRow
                 feature={finding}
                 site={site}
@@ -686,6 +737,17 @@ export function NcdCapture({
           );
         })}
       </div>
+
+      {/*
+       * The examination, read back as the line it will become.
+       *
+       * A form that takes twenty answers and shows twenty rows has made the
+       * clinician do the summarising — and the summary is the part that ends up
+       * in the notes. So the positives are named, the negatives are counted,
+       * and what has not been looked at yet is named too, because "not examined"
+       * and "normal" are the two things a clerkship must never confuse.
+       */}
+      {activeGroup && banded.length ? <ExamSummary blocks={banded} values={values} /> : null}
 
       {/*
        * A segment the catalog declares but has not filled yet.
@@ -925,7 +987,7 @@ function PropertyWell({
  * hypertension ship as data instead of as code. An unknown name simply gets no
  * icon; a missing glyph must never cost a clinician their band heading.
  */
-const GROUP_ICONS: Record<string, LucideIcon> = {
+export const GROUP_ICONS: Record<string, LucideIcon> = {
   droplets: DropletsIcon,
   bandage: BandageIcon,
   siren: SirenIcon,
@@ -934,6 +996,9 @@ const GROUP_ICONS: Record<string, LucideIcon> = {
   eye: EyeIcon,
   pulse: HeartPulseIcon,
   stethoscope: StethoscopeIcon,
+  hand: HandIcon,
+  smile: SmileIcon,
+  scan: ScanLineIcon,
   waves: WavesIcon,
 };
 
@@ -956,7 +1021,113 @@ const GROUP_ICONS: Record<string, LucideIcon> = {
  * decoration — the icon carries the differentiation and the accent is spent
  * only on the band that means act now.
  */
-function GroupBand({ group }: { group: CatalogGroup }) {
+/**
+ * A band, and — where the region is a set of yes/no findings — the one action
+ * that makes an examination form usable.
+ *
+ * Most general examinations are normal. A clinician who has looked at the hands
+ * and found nothing has to say so, and saying so by clicking "no" six times is
+ * how a form gets skipped entirely and written up from memory afterwards. So a
+ * region offers "nothing abnormal": it records an explicit ABSENT on every
+ * yes/no finding in the region that has not been answered yet.
+ *
+ * What it will not do is overwrite an answer. It fills the blanks and leaves
+ * every recorded value alone, so it can never quietly turn a positive into a
+ * negative — and it disappears once there is nothing left blank to fill.
+ */
+/**
+ * What this examination currently says, in the order a person would say it.
+ *
+ * Deliberately NOT a progress bar. A count of answered fields tells a clinician
+ * how much typing is left; this tells them what they have found, which is the
+ * thing they are actually trying to know — and it is the sentence they would
+ * otherwise reconstruct from twenty rows by eye.
+ */
+function ExamSummary({ blocks, values }: { blocks: { finding: Feature }[]; values: CaptureMap }) {
+  const positive: string[] = [];
+  const negative: string[] = [];
+  const unexamined: string[] = [];
+
+  for (const { finding } of blocks) {
+    if (finding.offProtocol) continue;
+    const v = values[finding.code];
+    if (!v) {
+      unexamined.push(finding.display);
+      continue;
+    }
+    if (v.state !== "recorded") continue;
+    const raw = v.value;
+    // "None" and "Well" are answers that mean nothing was found, so they read as
+    // negatives — a summary that called them positives would cry wolf on a
+    // normal examination.
+    const label = (val: string) => finding.options?.find((o) => o.value === val)?.display ?? val;
+    if (typeof raw === "boolean") (raw ? positive : negative).push(finding.display);
+    else if (Array.isArray(raw)) {
+      if (raw.length)
+        positive.push(`${finding.display} — ${raw.map((e) => label(String(e))).join(", ")}`);
+      else negative.push(finding.display);
+    } else if (typeof raw === "string") {
+      if (raw === "none" || raw === "well") negative.push(finding.display);
+      else positive.push(`${finding.display} — ${label(raw)}`);
+    }
+  }
+
+  if (!positive.length && !negative.length && !unexamined.length) return null;
+
+  return (
+    <div className="border-border bg-card mb-3 flex flex-col gap-2 rounded-xl border px-3.5 py-3">
+      {positive.length ? (
+        <p className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+          <span className="text-caption text-muted-foreground shrink-0">Found</span>
+          {positive.map((t) => (
+            <span
+              key={t}
+              className="text-body-s text-foreground border-border rounded-md border px-1.5 py-0.5 font-medium"
+            >
+              {t}
+            </span>
+          ))}
+        </p>
+      ) : null}
+
+      <p className="text-caption text-muted-foreground flex flex-wrap items-baseline gap-x-2">
+        {negative.length ? (
+          <span>
+            <span className="text-foreground font-medium tabular-nums">{negative.length}</span>{" "}
+            examined and normal
+          </span>
+        ) : null}
+        {!positive.length && !negative.length ? <span>Nothing examined yet.</span> : null}
+      </p>
+
+      {/* Named, not counted. "Four not examined" is a number; "thyroid, mouth"
+          is the two things left to do. */}
+      {unexamined.length ? (
+        <p className="text-caption text-muted-foreground">
+          Not examined —{" "}
+          <span className="text-foreground/80">
+            {unexamined.slice(0, 6).join(" · ").toLowerCase()}
+            {unexamined.length > 6 ? ` · and ${unexamined.length - 6} more` : ""}
+          </span>
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+function GroupBand({
+  group,
+  examined,
+  total,
+  onNormal,
+}: {
+  group: CatalogGroup;
+  /** Findings in this region carrying an answer. Omitted → no progress shown. */
+  examined?: number;
+  total?: number;
+  /** Present only while there are unanswered yes/no findings to fill. */
+  onNormal?: () => void;
+}) {
   const Icon = group.icon ? GROUP_ICONS[group.icon] : undefined;
   const alert = group.tone === "alert";
   return (
@@ -994,6 +1165,34 @@ function GroupBand({ group }: { group: CatalogGroup }) {
         >
           {group.description}
         </p>
+      ) : null}
+
+      {total ? (
+        <span className="ml-auto flex shrink-0 items-baseline gap-2">
+          <span
+            className={`text-caption font-medium tabular-nums ${
+              alert
+                ? "text-amber-800/80 dark:text-amber-300/80"
+                : "text-brand-700/80 dark:text-brand-300/80"
+            }`}
+          >
+            {examined}/{total}
+          </span>
+          {onNormal ? (
+            <button
+              type="button"
+              onClick={onNormal}
+              title={`Record every remaining ${group.display.toLowerCase()} finding as absent`}
+              className={`tap text-caption ease-expo-out rounded-md px-2 py-0.5 font-medium transition-colors duration-100 ${
+                alert
+                  ? "text-amber-900 hover:bg-amber-200/60 dark:text-amber-200 dark:hover:bg-amber-900/40"
+                  : "text-brand-800 hover:bg-brand-200/60 dark:text-brand-200 dark:hover:bg-brand-900/40"
+              }`}
+            >
+              Nothing abnormal
+            </button>
+          ) : null}
+        </span>
       ) : null}
     </div>
   );

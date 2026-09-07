@@ -24,7 +24,8 @@ describe("the examination section", () => {
   // vitals and a separate segment for it was a heading with nothing behind it.
   it("holds its measurements in a single group, banded and complete", () => {
     const s = DIABETES_CATALOG.sections.find((x) => x.id === "examination")!;
-    expect(s.groups!.map((g) => g.id)).toEqual(["vitals", "general"]);
+    // Two segments; the general examination carries its regions beneath it.
+    expect(s.groups!.filter((g) => !g.parent).map((g) => g.id)).toEqual(["vitals", "general"]);
     const findings = DIABETES_CATALOG.features.filter(
       (f) => f.section === "examination" && !f.parent,
     );

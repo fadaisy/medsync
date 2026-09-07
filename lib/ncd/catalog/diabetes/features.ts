@@ -205,17 +205,63 @@ export const SECTIONS: CatalogSection[] = [
         description: "Prefilled from triage where the patient was triaged.",
       },
       {
-        /**
-         * Declared and deliberately EMPTY. The segment exists so the shape of
-         * the examination is visible — vitals are not the whole of it — and the
-         * content is being worked out rather than guessed at. An empty group
-         * that says so beats a populated one nobody agreed to.
-         */
         id: "general",
         display: "General examination",
         order: 2,
         icon: "stethoscope",
         description: "The survey done before any single system is examined.",
+      },
+      /*
+       * The regions, in the order the examination is actually performed: from
+       * the end of the bed, then the hands, then the face and neck, then the
+       * skin, then the legs. Nested under the segment rather than listed beside
+       * it, because they are not five places to navigate to — they are one
+       * examination with an order to it.
+       */
+      {
+        id: "gx_survey",
+        display: "From the end of the bed",
+        order: 21,
+        parent: "general",
+        icon: "eye",
+        description: "What is true before anyone is touched.",
+      },
+      {
+        id: "gx_colour",
+        display: "Colour",
+        order: 22,
+        parent: "general",
+        icon: "droplets",
+        description: "Conjunctivae, palms, mucosa, nail beds.",
+      },
+      {
+        id: "gx_hands",
+        display: "Hands",
+        order: 23,
+        parent: "general",
+        icon: "hand",
+      },
+      {
+        id: "gx_head_neck",
+        display: "Head and neck",
+        order: 24,
+        parent: "general",
+        icon: "smile",
+      },
+      {
+        id: "gx_skin",
+        display: "Skin",
+        order: 25,
+        parent: "general",
+        icon: "scan",
+        description: "ADA asks for this one by name at every visit.",
+      },
+      {
+        id: "gx_legs",
+        display: "Legs and fluid",
+        order: 26,
+        parent: "general",
+        icon: "waves",
       },
     ],
   },

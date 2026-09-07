@@ -823,6 +823,19 @@ export interface CatalogGroup {
   order: number;
   description?: string;
   /**
+   * This group sits INSIDE another one.
+   *
+   * A segmented section shows its top-level groups as a bar; a group with a
+   * parent is a region within whichever segment it belongs to, and renders as a
+   * band there. It exists because an examination is not a list — it is a survey
+   * performed in an order, end of the bed to the ankles, and a form that erases
+   * that order makes the clinician hold it in their head instead.
+   *
+   * One level only. A region inside a region is a section that should have been
+   * split, and `validateCatalog` rejects it.
+   */
+  parent?: string;
+  /**
    * Icon name the capture surface resolves against its own registry. A NAME, not
    * a component, so the catalog stays a data file with no import of a UI library
    * — the same property that lets hypertension ship without new code.

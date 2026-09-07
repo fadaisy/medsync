@@ -393,8 +393,35 @@ export function validateCatalog(catalog: NcdCatalog): ValidationIssue[] {
         message: `two or more groups share order ${d}`,
       });
     }
+    const byId = new Map((s.groups ?? []).map((g) => [g.id, g]));
     for (const g of s.groups ?? []) {
-      const members = catalog.features.filter((f) => f.section === s.id && f.group === g.id);
+      /**
+       * A group nests ONE level. A region inside a region is a section that
+       * should have been split, and a parent that does not exist is a band that
+       * renders nowhere.
+       */
+      if (g.parent !== undefined) {
+        const parent = byId.get(g.parent);
+        if (!parent) {
+          out.push({
+            severity: "error",
+            path: `sections.${s.id}.groups.${g.id}`,
+            message: `parent group "${g.parent}" is not declared in this section`,
+          });
+        } else if (parent.parent !== undefined) {
+          out.push({
+            severity: "error",
+            path: `sections.${s.id}.groups.${g.id}`,
+            message: `nested two deep under "${g.parent}" — groups nest one level`,
+          });
+        }
+      }
+      // A parent group holds its regions' features, not its own: counting only
+      // direct members would call a fully populated segment empty.
+      const children = new Set((s.groups ?? []).filter((c) => c.parent === g.id).map((c) => c.id));
+      const members = catalog.features.filter(
+        (f) => f.section === s.id && (f.group === g.id || (f.group && children.has(f.group))),
+      );
       if (!members.length) {
         out.push({
           /**
