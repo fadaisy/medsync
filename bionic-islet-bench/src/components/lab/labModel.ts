@@ -1,5 +1,5 @@
 /**
- * The Probe Lab's own pair of probes.
+ * The lens view's own pair of probes.
  *
  * The lab does not read the running device. It runs its own optical and
  * enzymatic probe under conditions the reader sets, because the questions it
@@ -16,16 +16,15 @@ import type { EnzymaticEnvironment, Impedance } from "../../engine/probes/enzyma
 import type { OpticalEnvironment } from "../../engine/probes/optical/index.ts";
 
 import { BenchProbes } from "../../engine/probes/bench.ts";
-import { ENV, ENZ, IMP, PHOTO } from "../../engine/probes/constants.ts";
+import { ENV, ENZ } from "../../engine/probes/constants.ts";
 import {
-  dissolvedOxygen,
   EnzymaticProbe,
   randlesElements,
   randlesImpedance,
+  turnoverRate,
 } from "../../engine/probes/enzymatic/index.ts";
 import {
   indicatorQuantumYield,
-  NORMAL_CONDITIONS,
   occupancy,
   OpticalProbe,
   survivalAfterFlashes,
@@ -113,18 +112,6 @@ function enzymaticEnvironment(conditions: LabConditions): EnzymaticEnvironment {
   };
 }
 
-/** One species drawn across the stack. */
-export type ProfileSeries = {
-  key: string;
-  label: string;
-  colour: string;
-  /** Concentration in each cell's own material, mmol/L. */
-  values: Float64Array;
-  /** Scale factor applied before drawing, and what it was. */
-  scale: number;
-  scaleLabel: string;
-};
-
 export type LayerBand = { name: string; fromMicron: number; toMicron: number };
 
 export type OpticalResult = {
@@ -150,7 +137,6 @@ export type OpticalResult = {
 export type EnzymaticResult = {
   depthsMicron: Float64Array;
   layers: LayerBand[];
-  series: ProfileSeries[];
   enzymeProfile: Float64Array;
   enzymeFrom: number;
   currentNa: number;
@@ -161,6 +147,16 @@ export type EnzymaticResult = {
   oxygenReturned: number;
   peroxideCapture: number;
   betaFraction: number;
+  /**
+   * What the enzyme actually sees, as parts per million of its Michaelis
+   * constant. This is the number that says the enzyme is starved.
+   */
+  betaAtEnzymePpm: number;
+  /**
+   * Turnovers per second for one enzyme molecule where the enzyme sits, which
+   * is what sets how often the drawing's flavin cycles.
+   */
+  turnoverPerSecond: number;
   localPh: number;
   thiele: number;
   effectiveness: number;
@@ -195,6 +191,7 @@ export type LabSolution = {
     oxygen: Float64Array;
     peroxide: Float64Array;
     paracetamol: Float64Array;
+    ascorbate: Float64Array;
     gluconate: Float64Array;
   };
 };
@@ -273,7 +270,6 @@ export function solve(conditions: LabConditions): LabSolution {
   const enzymaticResult: EnzymaticResult = {
     depthsMicron: Float64Array.from(enzymaticProbe.depths(), (x) => x * 1e6),
     layers: enzymaticLayers,
-    series: [],
     enzymeProfile: d.enzymeProfile,
     enzymeFrom: enzymeBand?.fromMicron ?? 0,
     currentNa: raw(readingB.current) * 1e9,
@@ -284,6 +280,17 @@ export function solve(conditions: LabConditions): LabSolution {
     oxygenReturned: d.oxygenReturnedFraction,
     peroxideCapture: d.peroxideCaptureFraction,
     betaFraction: d.betaFractionAtEnzyme,
+    betaAtEnzymePpm: (raw(d.betaAtEnzyme) / raw(ENZ.kmGlucose)) * 1e6,
+    // Per enzyme molecule, so the volumetric rate is divided by the loading.
+    turnoverPerSecond:
+      raw(
+        turnoverRate(
+          ENZ.enzymeLoading,
+          d.betaAtEnzyme,
+          d.oxygenAtEnzyme,
+          celsiusToKelvin(conditions.temperatureC),
+        ),
+      ) / raw(ENZ.enzymeLoading),
     localPh: d.localPh,
     thiele: d.thiele,
     effectiveness: d.effectiveness,
@@ -310,18 +317,10 @@ export function solve(conditions: LabConditions): LabSolution {
       oxygen: enzymaticProbe.concentrationProfile("oxygen"),
       peroxide: enzymaticProbe.concentrationProfile("peroxide"),
       paracetamol: enzymaticProbe.concentrationProfile("paracetamol"),
+      ascorbate: enzymaticProbe.concentrationProfile("ascorbate"),
       gluconate: enzymaticProbe.concentrationProfile("gluconate"),
     },
   };
-}
-
-/** Total glucose, both anomers, across the enzymatic stack. */
-export function totalGlucoseProfile(probe: EnzymaticProbe): Float64Array {
-  const beta = probe.concentrationProfile("betaGlucose");
-  const alpha = probe.concentrationProfile("alphaGlucose");
-  const out = new Float64Array(beta.length);
-  for (let i = 0; i < out.length; i += 1) out[i] = beta[i]! + alpha[i]!;
-  return out;
 }
 
 /** The isotherm, for the binding chart. Pure chemistry, no transport. */
@@ -379,17 +378,5 @@ export function responseSeconds(conditions: LabConditions, toMmol: number): numb
   }
   return null;
 }
-
-/** Named constants the panels quote, so the numbers and their labels agree. */
-export const LAB_FACTS = {
-  kmGlucose: raw(ENZ.kmGlucose),
-  kmOxygen: raw(ENZ.kmOxygen),
-  enzymeLoading: raw(ENZ.enzymeLoading),
-  probeFrequency: IMP.probeFrequency,
-  bulkOxygenAt40: raw(dissolvedOxygen(raw(mmHgToPascals(40)))),
-  dyeDensity: PHOTO.dyeSurfaceDensity,
-  referenceDyeDensity: PHOTO.referenceDyeDensity,
-  normalConditions: NORMAL_CONDITIONS,
-} as const;
 
 export type { OpticalProbe };

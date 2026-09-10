@@ -19,6 +19,8 @@ export type Experiment = {
   /** The answer, stated before the reader runs it, so it can be wrong. */
   claim: string;
   panel: "optical" | "enzymatic";
+  /** The station where the claim is visible, so a preset moves the lens there. */
+  station: string;
   /** Conditions to compare, left and right. */
   left: { label: string; conditions: LabConditions };
   right: { label: string; conditions: LabConditions };
@@ -35,6 +37,7 @@ export const EXPERIMENTS: readonly Experiment[] = [
     claim:
       "Because the outer membrane starves it. At 25 mmol/L outside, the enzyme sees about 25 parts per million of its Michaelis constant, so it never leaves the first order part of its own curve.",
     panel: "enzymatic",
+    station: "e-outer",
     left: { label: "6 mmol/L", conditions: { ...base, glucoseMmol: 6 } },
     right: { label: "25 mmol/L", conditions: { ...base, glucoseMmol: 25 } },
   },
@@ -46,6 +49,7 @@ export const EXPERIMENTS: readonly Experiment[] = [
     claim:
       "Because oxidising peroxide at the platinum returns one oxygen for each one the enzyme spent, and almost all of the peroxide gets there. Switch the recycling off, which is a model switch and not a state of the device, and the same probe at 2 mmHg loses half its current.",
     panel: "enzymatic",
+    station: "e-platinum",
     left: {
       label: "2 mmHg, recycling on",
       conditions: { ...base, glucoseMmol: 12, oxygenMmHg: 2 },
@@ -62,6 +66,7 @@ export const EXPERIMENTS: readonly Experiment[] = [
     claim:
       "Because both dyes are excited by the same flash with the same cross-section, so they die at the same fractional rate and their ratio does not move. The counts halve and the reading does not.",
     panel: "optical",
+    station: "o-fibre",
     left: { label: "new probe", conditions: { ...base, flashes: 0 } },
     right: {
       label: "half the dye gone",
@@ -76,6 +81,7 @@ export const EXPERIMENTS: readonly Experiment[] = [
     claim:
       "The switch is the boron holding a diol and it cannot tell which diol. Every occupied site lights up, the instrument attributes all of them to glucose, and the reading goes up rather than down.",
     panel: "optical",
+    station: "o-gel",
     left: { label: "no mannitol", conditions: { ...base, polyolMmol: 0 } },
     right: { label: "3 mmol/L mannitol", conditions: { ...base, polyolMmol: 3 } },
   },
@@ -86,6 +92,7 @@ export const EXPERIMENTS: readonly Experiment[] = [
     claim:
       "Nowhere fast. Gluconate is anionic, so the same membrane that let the glucose in traps it, and the enzyme layer runs a pH unit or more below the body at high glucose. Nothing in the model reads that number, because no pH dependence of glucose oxidase is declared and inventing one would be inventing physics.",
     panel: "enzymatic",
+    station: "e-enzyme",
     left: { label: "6 mmol/L", conditions: { ...base, glucoseMmol: 6 } },
     right: { label: "25 mmol/L", conditions: { ...base, glucoseMmol: 25 } },
   },
@@ -97,6 +104,7 @@ export const EXPERIMENTS: readonly Experiment[] = [
     claim:
       "Because at 1 kHz the double layer shunts most of the cell and the measurement is reading a capacitor. The protein film the bench's fault deposits moves the magnitude by 20 per cent there, under the 35 per cent step the supervisor flags on, so it goes unseen. Move up to 10 kHz, where that capacitor is effectively a short and the cell reads its solution resistance, and the same film moves it by 83 per cent.",
     panel: "enzymatic",
+    station: "e-capsule",
     left: { label: "clean", conditions: { ...base, foulingFraction: 0 } },
     right: {
       // The level the bench's protein deposition fault actually applies, so

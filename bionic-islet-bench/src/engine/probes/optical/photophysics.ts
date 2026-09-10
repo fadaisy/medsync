@@ -234,7 +234,7 @@ export function occupancySensitivityToRatio(ratio: number, scale: number = ratio
   return raw(PHOTO.kRadiative) / (quantumYield * quantumYield * raw(PHOTO.kPet) * scale);
 }
 
-/** The excitation and the two emission wavelengths, for the Probe Lab's spectrum. */
+/** The excitation and the two emission wavelengths, as the lens view labels them. */
 export const WAVELENGTHS: {
   readonly excitation: Metres;
   readonly indicator: Metres;

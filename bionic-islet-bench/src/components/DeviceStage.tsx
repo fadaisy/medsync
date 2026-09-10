@@ -1,5 +1,5 @@
 import { ZOOM_LEVELS, useBench, type ZoomLevel } from "../store/bench.ts";
-import { ProbeLab } from "./lab/ProbeLab.tsx";
+import { Focus } from "./lab/Focus.tsx";
 import { BodyView } from "./stage/BodyView.tsx";
 import { HousingView } from "./stage/HousingView.tsx";
 import { TipAView } from "./stage/TipAView.tsx";
@@ -28,10 +28,10 @@ export function DeviceStage() {
       <header className="border-b border-edge px-3 py-2">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h2 className="text-heading-s">{lab ? "Probe Lab" : current.label}</h2>
+            <h2 className="text-heading-s">{lab ? "Under the lens" : current.label}</h2>
             <p className="text-micro text-muted">
               {lab
-                ? "The same two probe models, run on conditions you set"
+                ? "One film of the stack, blown up until the mechanism shows"
                 : current.caption}
             </p>
           </div>
@@ -46,7 +46,7 @@ export function DeviceStage() {
                   : "border-edge text-muted hover:border-teal-bright hover:text-teal-bright"
               }`}
             >
-              Probe Lab
+              Under the lens
             </button>
             {lab ? null : (
               <>
@@ -90,7 +90,7 @@ export function DeviceStage() {
 
       <div className="min-h-0 flex-1 overflow-hidden p-2">
         {lab ? (
-          <ProbeLab />
+          <Focus />
         ) : (
           <>
             {zoom === 1 ? <BodyView /> : null}

@@ -20,7 +20,7 @@ export type ZoomLevel = 1 | 2 | 3 | 4;
  * What the stage is showing.
  *
  * `device` is the running implant at one of four zoom levels. `lab` is the
- * Probe Lab, which runs its own copy of the two probe models under conditions
+ * lens view, which runs its own copy of the two probe models under conditions
  * the reader sets. They share the stage because the bench is one screen and
  * because they are two views of the same object: what it does, and why.
  */

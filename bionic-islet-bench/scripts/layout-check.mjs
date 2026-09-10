@@ -50,7 +50,7 @@ const PANELS = [
   'section[aria-label="Scenarios"]',
 ];
 
-/** Panels the Probe Lab deliberately replaces, so their absence is expected. */
+/** Panels the focus view deliberately replaces, so their absence is expected. */
 const LAB_HIDES = [
   'section[aria-label="Traces"]',
   'section[aria-label="Safety supervisor"]',
@@ -76,7 +76,7 @@ for (const size of SIZES) {
 
   for (const mode of ["device", "lab"]) {
     if (mode === "lab") {
-      await page.getByRole("button", { name: "Probe Lab" }).click();
+      await page.getByRole("button", { name: "Under the lens" }).click();
       await page.waitForTimeout(1200);
     }
 

@@ -90,7 +90,7 @@ import {
 
 const GLUCOSE = "glucose";
 
-/** The layer names, in order from the fluid inwards. Used by the Probe Lab. */
+/** The layer names, in order from the fluid inwards. Used by the lens view. */
 export const OPTICAL_LAYERS = ["boundary", "fouling", "capsule", "gel"] as const;
 export type OpticalLayerName = (typeof OPTICAL_LAYERS)[number];
 

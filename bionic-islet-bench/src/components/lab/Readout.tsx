@@ -5,7 +5,7 @@
 import type { ReactNode } from "react";
 
 export function Figures({ children }: { children: ReactNode }) {
-  return <dl className="mt-2 grid grid-cols-2 gap-x-4 gap-y-1.5">{children}</dl>;
+  return <dl className="mt-2 grid grid-cols-1 gap-x-4 gap-y-1.5 sm:grid-cols-2">{children}</dl>;
 }
 
 export function Figure({ label, value, note }: { label: string; value: string; note?: ReactNode }) {

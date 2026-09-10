@@ -34,7 +34,7 @@
  * faradaic branch being charge transfer resistance in series with a Warburg
  * element for semi-infinite diffusion. Fouling and capsule both add solution
  * resistance; a fractured lead is an open circuit. The bench reads one
- * frequency; the model has the whole spectrum, and the Probe Lab draws it.
+ * frequency; the model has the whole spectrum and reads one point of it.
  */
 import type {
   Amperes,

@@ -528,7 +528,7 @@ export class BenchProbes {
     return channel;
   }
 
-  /** Everything the Probe Lab needs, without exposing the probes themselves. */
+  /** Everything the lens view needs, without exposing the probes themselves. */
   diagnostics(inputs: BenchProbeInputs): {
     optical: ReturnType<OpticalProbe["diagnostics"]>;
     enzymatic: ReturnType<EnzymaticProbe["diagnostics"]>;
@@ -539,7 +539,7 @@ export class BenchProbes {
     };
   }
 
-  /** The probes themselves, for the Probe Lab's profile plots. */
+  /** The probes themselves, for the lens view to read profiles from. */
   probes(): { optical: OpticalProbe; enzymatic: EnzymaticProbe } {
     return { optical: this.optical, enzymatic: this.enzymatic };
   }

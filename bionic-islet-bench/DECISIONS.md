@@ -903,3 +903,78 @@ The check was then verified the only way that means anything: by putting both
 bugs back and confirming it fails, and by taking them out again and confirming
 it passes. A regression check nobody has seen fail is a regression check nobody
 knows works.
+
+## 48. The Probe Lab was charts; what was wanted was a magnification
+
+The Probe Lab answered the questions it was built for and was still the wrong
+thing. It was a dashboard: profile charts through the stack, an isotherm, a
+photon budget, an impedance spectrum, and sliders down the side. Everything on
+it was true and none of it showed how the probe works. A chart of a
+concentration profile tells you the numbers; it does not tell you that oxygen
+sails through a film that glucose barely dissolves in, and it certainly does
+not tell you that the enzyme takes the glucose first and the oxygen second and
+never both at once.
+
+So it was replaced with **Under the lens**, which is the level below the device
+stage's fourth zoom. A strip draws the whole stack to scale; a lens sits on one
+film; the drawing underneath is that film blown up until the mechanism is
+visible. The charts are gone. The six preset experiments survived, because each
+one is a claim the physics makes and each is asserted in the test suite, but
+they now set the dials and move the lens to where the claim is visible rather
+than drawing a second curve next to a first.
+
+### Everything drawn had to come out of the solver
+
+The first version of the drawing had hand-chosen counts: fourteen glucose
+molecules on the capsule side of the membrane, three on the far side, five
+paracetamol in the permselective film. They looked right. Two of them were
+wrong in a way that matters.
+
+The paracetamol was drawn at a dose of zero. A drawing that shows a molecule
+the model does not have is not a simplification, it is a false statement, and
+it was on the one station whose entire subject is that paracetamol gets
+through. Every count now comes from the solved profile, so at zero dose nothing
+is drawn and moving the dial makes them appear.
+
+The counts either side of the membrane were the opposite problem. Drawn from
+the model on a logarithmic scale they come out thirteen against nine, which
+sits directly under a sentence saying oxygen crosses two and a half thousand
+times more easily than glucose. The scale is not wrong: six orders of magnitude
+separate the species in one stack, and a linear count draws either an empty
+band or a solid one. What was wrong was showing a compressed count without
+saying it was compressed. That band's caption now prints both concentrations,
+their ratio, and the two counts it drew, so the compression is on the drawing
+rather than hidden in it.
+
+The same rule settled the enzyme. One molecule of glucose oxidase turns over
+about once every 279 seconds at 6 mmol/L, which is what the membrane in front
+of it costs and is worth knowing. The drawing runs a cycle every 4.5 seconds
+and states the factor, rather than scaling the period quietly.
+
+### Two bugs the drawing had that nothing else would have found
+
+**`animateTransform` replaces the transform it animates.** Every drifting
+molecule was in a group with a static `translate(x y)` and an animation from
+`0 0`; SVG's default is `additive="replace"`, so the moment each animation
+began the group's own translate was thrown away and the molecule jumped to the
+top edge of the drawing at x near zero. The first screenshot showed a neat row
+of glucose and oxygen sitting above every band. `additive="sum"` composes with
+the base instead.
+
+**A band caption is not bounded by its band.** The platinum's caption is longer
+than the platinum, and it ran off the right edge of the drawing; the fibre
+station's two closing lines were centred on the gel band rather than the
+drawing and ran off the left. Both are now pulled back inside.
+
+Neither would have been caught by a type checker, a lint rule or a test, and
+both were obvious in the first rendered frame. The screenshots were taken
+because of that, not in spite of it.
+
+### What it costs at 400 pixels
+
+The drawing is 900 units wide and its labels stop being readable somewhere
+around 600, so the strip and the drawing share one horizontally scrolling
+container with a 620 pixel minimum. They scroll together because they are one
+diagram: separating them would let the lens and the flare it casts drift apart.
+This is the exception the design system allows for diagrams, and it is the only
+horizontal scroll on the page.

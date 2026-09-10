@@ -41,7 +41,7 @@ export default function App() {
         <ScenarioCard />
 
         {/*
-         * The Probe Lab takes the instrument column as well as the stage. It is
+         * The lens view takes the instrument column as well as the stage. It is
          * a reference surface with a lot on it, and the supervisor and the
          * scoreboard are describing a run nobody is watching while they are in
          * the lab. Giving it the width lets its charts sit two up instead of
@@ -66,7 +66,7 @@ export default function App() {
           </div>
 
           {/*
-           * The Probe Lab takes the whole middle column rather than the stage's
+           * The lens view takes the whole middle column rather than the stage's
            * share of it. It is a different job from watching the traces: nobody
            * asks what an oxygen tension does to the enzyme while also following
            * a meal, and squeezed into half the column its charts fall below the

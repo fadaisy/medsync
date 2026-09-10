@@ -110,7 +110,7 @@ the constant behind each symbol.
 Every constant is in one file with a symbol, a unit and a provenance. Nothing
 numeric appears inline anywhere else in the directory, with one stated
 exception. 62 of the 118 constants are engineering estimates and are marked
-`est` wherever the Probe Lab shows one.
+`est` wherever a figure is shown that rests on one.
 
 **What that buys.** Things the bench used to declare, it now produces:
 
@@ -119,7 +119,7 @@ exception. 62 of the 118 constants are engineering estimates and are marked
   because a straight line was written down.
 - The electrode returns one oxygen for every peroxide it oxidises, so the
   probe recycles almost all of its own oxygen and oxygen limitation never
-  appears. Switch the recycling off in the Probe Lab and the same probe at
+  appears. Switch the recycling off under the lens and the same probe at
   2 mmHg loses half its current.
 - Both dyes bleach at the same fractional rate, so the counts halve and the
   reading does not move.
@@ -133,16 +133,46 @@ a lot. `npm run compare` prints both, side by side, on four scenarios. Where
 they differ, `DECISIONS.md` says which changed and why, and the answer is
 never that a constant was adjusted to make a number come out.
 
-### The Probe Lab
+### Under the lens
 
-The **Probe Lab** button on the device stage swaps the running implant for the
-same two probe models run on conditions you set: profiles through the stack,
-the isotherm and the switch, the photon budget, the enzyme through its own
-layer, the current broken down by what produced it, and the whole impedance
-spectrum with the point the bench reads marked on it.
+The device stage zooms four times, from the body down to a tip, and stops at
+the layer stack. **Under the lens** is the level below that.
 
-Six preset experiments, each stating its claim before you run it. All six are
-asserted in the test suite, so a card that stops being true fails a test.
+A strip across the top draws the whole probe to scale, every film at its real
+thickness. A lens sits on one of them, and the drawing underneath is that film
+blown up until the mechanism inside it is visible: the molecules that arrive,
+what happens to them, and what leaves. Eight stations, five on the enzymatic
+tip and three on the optical one, each opening with the question it answers.
+
+Nothing in the drawing is an illustration of the model. How many molecules are
+drawn in a band is its solved concentration; how often an enzyme turns over is
+its rate law; how often an electron reaches the amplifier is the current; which
+receptors are lit is the occupancy the isotherm gives. Move a dial and the
+drawing changes because the solver ran again.
+
+Three scales are compressed, and each one says so on the drawing rather than
+leaving it to be assumed:
+
+- **The strip is to scale, the drawing is not.** The caption states the factor:
+  the permselective film is one micron of a hundred and fourteen, so its
+  drawing is a hundred and fourteen times closer than the strip.
+- **Molecule counts are logarithmic**, because the species in one stack differ
+  by six orders of magnitude. Where that understates the point, as it does
+  either side of the glucose-limiting membrane, the drawing prints both
+  concentrations and the ratio next to the counts it drew.
+- **Rates are sped up.** One enzyme turns over about once every 279 seconds at
+  6 mmol/L, which is what starving it on purpose costs; the drawing runs a
+  cycle every 4.5 seconds and says by what factor.
+
+Each station shows only the dials it actually responds to, and says what to
+watch when you move one. Six preset experiments state their claim before you
+run them, set the conditions and move the lens to where the claim is visible.
+All six are asserted in the test suite, so a card that stops being true fails a
+test, and so is every station's lens position, so a layer renamed in the engine
+fails a test rather than quietly leaving the lens spanning the whole probe.
+
+Under `prefers-reduced-motion` every molecule freezes where it is and every
+number keeps updating, because the point of the drawing is the arrangement.
 
 ## Changing the model
 
@@ -254,20 +284,20 @@ Production build, `npm run build`:
 
 | Asset | Raw | Gzipped | Loaded |
 | --- | --- | --- | --- |
-| `index-*.js` | 313 kB | **98.3 kB** | on first paint |
+| `index-*.js` | 335 kB | **104.6 kB** | on first paint |
 | `motion-*.js` | 88 kB | **30.8 kB** | on first paint |
-| `index-*.css` | 25 kB | 5.9 kB | on first paint |
+| `index-*.css` | 26 kB | 5.9 kB | on first paint |
 | `sim.worker-*.js` | 104 kB | 33.5 kB | alongside, in the worker |
-| **First-load JavaScript** | | **129.1 kB gzipped** | budget 300 kB |
+| **First-load JavaScript** | | **135.4 kB gzipped** | budget 300 kB |
 
-The first-load figure went from 103.3 kB to 129.1 kB when the probe physics
-arrived. The Probe Lab imports the solver, the two probe models and the
-constants table directly, so all of it lands in the main chunk rather than in
-the worker's. That is 26 kB gzipped for eight species of diffusion and
-reaction, a Poisson sampler and a hundred and eighteen constants with their
-provenance, against a budget with 170 kB of headroom left. It could be split
-out behind a dynamic import if the budget ever tightened; it has not, so it is
-not.
+The first-load figure went from 103.3 kB to 135.4 kB across the probe physics
+work. The lens view imports the solver, the two probe models and the constants
+table directly, so all of it lands in the main chunk rather than in the
+worker's. That is 32 kB gzipped for eight species of diffusion and reaction, a
+Poisson sampler, a hundred and eighteen constants with their provenance and
+eight magnified mechanisms, against a budget with 165 kB of headroom left. It
+could be split out behind a dynamic import if the budget ever tightened; it
+has not, so it is not.
 
 `framer-motion` is loaded through `LazyMotion` with the `domAnimation` feature
 set rather than in full, which is 31 kB gzipped instead of 45. It is used for

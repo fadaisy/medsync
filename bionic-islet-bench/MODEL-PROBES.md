@@ -24,7 +24,7 @@ has been checked against a primary source.
 Treat every one as a reviewable claim. There are 118 constants in 11 groups,
 of which 62 are engineering estimates: properties of a device that does not
 exist, chosen here because the model needed a value. Those carry an `est`
-marker in the Probe Lab.
+marker wherever a figure resting on one is shown.
 
 The honest summary is that the *structure* of these models is defensible and
 the *numbers* are a starting point. A reader who wants to know what the device
@@ -94,7 +94,7 @@ This is why there is no special interface equation anywhere in the solver:
 writing it in `u` makes an interface an ordinary face with a different
 conductance on each side.
 
-It is also why the Probe Lab's profile charts have steps in them. Those steps
+It is also why a profile through the stack has steps in it. Those steps
 are partition coefficients, not discontinuities in anything physical.
 
 ### 3.2 Discretisation
@@ -477,7 +477,7 @@ the peroxide gets there. It is modelled as a source in the control volume
 against the electrode face, equal to the flux leaving through it. The
 consequence is that the probe recycles almost all of its own oxygen and
 oxygen limitation never appears at any partial pressure down to 1 mmHg. The
-Probe Lab has a labelled model switch that turns the recycling off, which is
+lens view has a labelled model switch that turns the recycling off, which is
 the only way to see what it is worth: the same probe at 2 mmHg then loses
 half its current and is fully oxygen limited.
 
@@ -602,7 +602,7 @@ models:
 
 An acquisition forces a catch-up, so the instrument never reads a stale
 profile and full, fast and a sixty-second stride give the same numbers. The
-difference between them is only what the Probe Lab sees between readings.
+difference between them is only what the lens view sees between readings.
 
 A run spanning months passes a coarser stride, which is the first choice that
 costs accuracy: 0.02 percentage points of mean error over a day at nine
@@ -662,3 +662,42 @@ a heading of physical constants would be filing them under a heading that is
 false.
 
 Everything with a unit is still in `constants.ts`.
+
+## 13. The three scales the drawing compresses
+
+`src/components/lab/Magnified.tsx` draws the mechanism inside one film. Three
+quantities in it cannot be drawn faithfully, and each one is declared on the
+drawing rather than silently applied.
+
+**Size.** A glucose molecule is under a nanometre and the glucose-limiting
+membrane is twenty five thousand of them thick. Drawn to scale it would be an
+empty rectangle. So molecule sizes are fixed and readable and carry no
+information at all; what carries a concentration is how many are drawn. The
+strip above the drawing is to scale, and the caption states the ratio between
+the two, so nothing rests on assuming the drawing is proportionate.
+
+**Concentration.** Counts are logarithmic over six decades:
+
+    n(C) = clamp( round( (log10(C / 1e-5 mmol/L) / 6) * n_max ), 1, n_max )
+
+because the species in one stack differ by six orders of magnitude and a linear
+count draws either an empty band or a solid one. Where the comparison across a
+band is the point being made, the band's caption prints both concentrations and
+their ratio next to the counts it drew, so the compression is visible. At the
+glucose-limiting membrane that reads: 4.80 mmol/L on one side, 0.0671 on the
+other, seventy one times less, drawn as thirteen against nine.
+
+**Rate.** Two things in the drawing happen at a rate the model sets:
+
+- The enzyme cycle is one turnover of one molecule. The interval between
+  turnovers is `1 / v(x)` with `v` the ping-pong rate law of section 4 divided
+  by the enzyme loading, and comes to about 279 s at 6 mmol/L. The drawing runs
+  a cycle every 4.5 s and prints the ratio.
+- Electrons reaching the amplifier are charge per unit time, so the current
+  sets the interval rather than the count: the drawing places one electron
+  every `2.4 s / (I / 0.4 nA)`.
+
+Everything else drawn is a solved quantity used directly: which receptors are
+lit is the occupancy of section 3, which species cross the permselective film
+is the partitioning of section 5, and the fraction of peroxide reaching the
+platinum is the capture fraction of section 6.

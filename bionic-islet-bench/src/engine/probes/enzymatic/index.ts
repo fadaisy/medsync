@@ -164,7 +164,7 @@ export type EnzymaticProbeOptions = {
    * This is a **model switch, not a state of the device**. It exists because
    * the recycling turns out to be worth almost all of the probe's oxygen
    * tolerance, and the only way to show how much is to run the same probe
-   * without it. The Probe Lab labels it as an experiment. Nothing in the
+   * without it. The lens view labels it as an experiment. Nothing in the
    * bench ever sets it false.
    */
   readonly recycleOxygen?: boolean;
@@ -597,7 +597,7 @@ export class EnzymaticProbe {
     };
   }
 
-  /** Impedance across a whole sweep, for the Probe Lab's Nyquist plot. */
+  /** Impedance across a whole sweep, which the bench reads one point of. */
   impedanceSpectrum(frequencies: readonly number[]): Impedance[] {
     const elements = randlesElements(
       this.geometry.foulingFraction,

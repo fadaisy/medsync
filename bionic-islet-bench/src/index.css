@@ -173,6 +173,28 @@ h4 {
  * a molecule crossing a membrane, an electron arriving at the platinum and a
  * flash going down a fibre are all things the model says are happening.
  */
+/*
+ * The focus view's one transition.
+ *
+ * Moving the lens along the stack is a discrete choice, so the lens itself
+ * jumps rather than sliding: sliding would suggest a continuous scan that the
+ * stations are not. What does need to say "this is a different thing now" is
+ * the drawing underneath, and a single quick fade does that. The rule above
+ * collapses it to nothing under reduced motion.
+ */
+@keyframes focus-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.focus-in {
+  animation: focus-in var(--duration-quick) var(--ease-medsync) both;
+}
+
 @keyframes travel-x {
   from {
     transform: translateX(0);

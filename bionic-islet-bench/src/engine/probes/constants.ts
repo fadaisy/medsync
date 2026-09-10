@@ -59,7 +59,7 @@ import {
  * Treat every one of them as a reviewable claim. `ESTIMATE` marks the values
  * that are not even that: an engineering estimate chosen here because the
  * quantity is a property of a device that does not exist. Those carry an
- * `est` marker in the Probe Lab.
+ * `est` marker on any figure that rests on one.
  *
  * See MODEL-PROBES.md section 1 for the same warning in the reviewer's copy.
  */
@@ -1146,7 +1146,7 @@ export const SOLVER_TABLE = {
 export const SOLVER = values(SOLVER_TABLE);
 
 // ---------------------------------------------------------------------------
-// The registry, for the Probe Lab's `est` markers and MODEL-PROBES.md
+// The registry, for the `est` markers and MODEL-PROBES.md
 // ---------------------------------------------------------------------------
 
 export const ALL_TABLES = {

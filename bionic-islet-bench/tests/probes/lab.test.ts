@@ -10,8 +10,9 @@ import type { LabConditions } from "../../src/components/lab/labModel.ts";
 import { describe, expect, it } from "vitest";
 
 import { EXPERIMENTS } from "../../src/components/lab/experiments.ts";
-import { isotherm, solve } from "../../src/components/lab/labModel.ts";
+import { DEFAULT_CONDITIONS, isotherm, solve } from "../../src/components/lab/labModel.ts";
 import { CHEMISTRY_COLOURS } from "../../src/components/lab/palette.ts";
+import { STATIONS } from "../../src/components/lab/stations.ts";
 
 /* eslint-disable no-console */
 
@@ -190,5 +191,43 @@ describe("the lab's own drawing rules", () => {
     expect(first.glucoseOnly).toBe(0);
     expect(last.total).toBeGreaterThan(first.total);
     expect(last.total).toBeLessThanOrEqual(1);
+  });
+});
+
+describe("the lens sits on the stack the engine actually builds", () => {
+  /*
+   * The magnified view places its lens by looking up a layer by name in the
+   * solved stack. A layer renamed in the engine would leave the lens quietly
+   * spanning the whole probe instead of the film it is supposed to be on, and
+   * nothing would throw. So every station's site is resolved here.
+   */
+  const solution = solve(DEFAULT_CONDITIONS);
+
+  it("names a real layer at every station that claims one", () => {
+    for (const station of STATIONS) {
+      const site = station.site;
+      if (site.kind !== "layer") continue;
+      const layers =
+        station.probe === "enzymatic" ? solution.enzymatic.layers : solution.optical.layers;
+      const band = layers.find((l) => l.name === site.layer);
+      expect(band, `station ${station.id} looks for a layer named "${site.layer}"`).toBeTruthy();
+      expect(band!.toMicron).toBeGreaterThan(band!.fromMicron);
+    }
+  });
+
+  it("sends every preset to a station that exists on the probe it names", () => {
+    for (const experiment of EXPERIMENTS) {
+      const station = STATIONS.find((s) => s.id === experiment.station);
+      expect(station, `experiment ${experiment.id} points at "${experiment.station}"`).toBeTruthy();
+      expect(station!.probe).toBe(experiment.panel);
+    }
+  });
+
+  it("only asks for dials the conditions actually have", () => {
+    for (const station of STATIONS) {
+      for (const key of station.controls) {
+        expect(DEFAULT_CONDITIONS, `station ${station.id} wants "${key}"`).toHaveProperty(key);
+      }
+    }
   });
 });

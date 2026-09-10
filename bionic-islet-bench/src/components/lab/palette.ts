@@ -1,7 +1,7 @@
 /**
  * The molecular colour convention.
  *
- * One colour per species, used everywhere the Probe Lab draws that species:
+ * One colour per species, used everywhere the lens view draws that species:
  * in a profile, in a legend, in a label. A reader who learns that green is
  * glucose learns it once.
  *
