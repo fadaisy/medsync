@@ -141,6 +141,116 @@ export const isRecorded = <T>(
   a: Assessed<T> | undefined,
 ): a is { state: "recorded"; value: T; at?: string } => a?.state === "recorded";
 
+/* ── Age bands (ADR 0083) ────────────────────────────────────────────────── */
+
+/**
+ * The life stages a threshold can differ across.
+ *
+ * Declared IN FULL even though only `adolescent`, `adult` and `older_adult`
+ * carry content today. A band added later is then a data change; a band added
+ * to this union later would be a schema change rippling through every catalog,
+ * and paediatric diabetes is a known, funded next increment rather than a
+ * hypothetical one.
+ */
+export type AgeBand = "neonate" | "infant" | "child" | "adolescent" | "adult" | "older_adult";
+
+/** Ascending, so a surface can render bands in life order without sorting. */
+export const AGE_BANDS: readonly AgeBand[] = [
+  "neonate",
+  "infant",
+  "child",
+  "adolescent",
+  "adult",
+  "older_adult",
+] as const;
+
+/**
+ * A reference band that applies only to one age band.
+ *
+ * ADDITIVE to `Feature.refRange`, which stays the unbanded default. Resolution
+ * is band-first with fallback, so declaring a band on one feature cannot change
+ * how any other feature reads — which is what let this ship without touching
+ * the vitals already in the catalog.
+ *
+ * Carries its own citation because a paediatric range and an adult range are
+ * two claims from two sources, and inheriting one citation for both would
+ * misattribute whichever was not read.
+ */
+export interface AgeRefRange {
+  band: AgeBand;
+  low?: number;
+  high?: number;
+  citation: Citation;
+}
+
+/* ── Discrimination: what a finding argues FOR and AGAINST (ADR 0083) ────── */
+
+/**
+ * How hard a finding argues. Four ordinal tiers, deliberately not numbers.
+ *
+ * `pathognomonic` means "present, no other condition in this catalog explains
+ * it". Almost nothing qualifies and the validator warns on every use, because a
+ * catalog that reaches for it is usually describing something merely `strong`.
+ */
+export type DiscriminationStrength = "weak" | "moderate" | "strong" | "pathognomonic";
+
+/**
+ * One finding's evidential relationship to one condition.
+ *
+ * Distinct from `Feature.suggests`, and the distinction is the safety property.
+ * `suggests` is a WEAK, one-directional screening-priority hint — "ask about the
+ * feet next". This is an EVIDENTIAL CLAIM with a direction, a strength and a
+ * source, and it feeds a ranked list a clinician reads.
+ *
+ * There are no tuned weights here. `strength` is the datum; the integers the
+ * ranker sorts by are a fixed disease-generic ladder in engine code, never
+ * shown, never stored, and never a probability.
+ */
+export interface Discrimination {
+  /** A `DifferentialCondition.code`. The validator rejects an unknown one. */
+  condition: string;
+  direction: "supports" | "refutes";
+  strength: DiscriminationStrength;
+  /**
+   * A PUBLISHED likelihood ratio, where one exists. Never invented to justify a
+   * tier — the validator rejects a numeric LR whose citation carries neither a
+   * URL nor `needsCsoInput`, so an unverifiable number cannot enter quietly.
+   */
+  lrPositive?: number;
+  lrNegative?: number;
+  /** Why, in one clinical sentence. Rendered verbatim in the evidence trail. */
+  rationale: string;
+  citation: Citation;
+}
+
+/**
+ * What this finding's RECORDED ABSENCE argues against.
+ *
+ * Meaningful only because `Assessed<T>` separates `not_assessed` from a
+ * recorded negative — without that, this would be reading silence as evidence.
+ *
+ * `caveat` is MANDATORY. Absent Kussmaul respiration refutes *severe* DKA and
+ * says nothing about mild or early DKA; a bare list of refuted conditions would
+ * lose exactly the qualification that stops it being dangerous.
+ */
+export interface ImportantNegative {
+  /** `DifferentialCondition` codes. */
+  absenceRefutes: string[];
+  caveat: string;
+  citation: Citation;
+}
+
+/**
+ * BY WHEN something must happen.
+ *
+ * A second axis, orthogonal to the `red`/`amber` severity already carried by
+ * `EmergencyAction`, `dangerSign` and `TherapyFlag` — that one answers HOW LOUD.
+ * The two genuinely come apart: an amber finding can be `immediate` (get a
+ * capillary glucose now) and a red one `same_day`. Collapsing them would force
+ * one of the two questions to go unanswered.
+ */
+export type Urgency = "routine" | "same_day" | "urgent" | "immediate";
+
 /* ── Features: everything the form can capture ───────────────────────────── */
 
 export type FeatureKind = "symptom" | "sign" | "investigation" | "history" | "measurement";
@@ -383,6 +493,49 @@ export interface Feature {
    * own criteria.
    */
   suggests?: string[];
+  /* ── examination layer (ADR 0083) ──────────────────────────────────────── */
+  /**
+   * Other names the same finding is taught and charted under. Search only —
+   * never evaluated, never a second code. A clinician who knows "air hunger"
+   * should not have to know the catalog calls it Kussmaul respiration.
+   */
+  synonyms?: string[];
+  /**
+   * HOW to elicit it, in the imperative, at the bedside.
+   *
+   * Earns its place because an inconsistently elicited sign is a worthless one:
+   * a monofilament applied until it buckles and one pressed until the patient
+   * winces are different tests, and only one of them means what the guideline
+   * says it means.
+   */
+  elicitation?: string;
+  /**
+   * The life stages this finding applies to. Absent means all of them.
+   *
+   * Filters the surface rather than the reasoning: a finding outside the
+   * patient's band is not rendered, so it can never be recorded, so no rule can
+   * fire on it.
+   */
+  ageBands?: AgeBand[];
+  /** Age-specific reference bands. Resolved band-first, falling back to `refRange`. */
+  ageRefRanges?: AgeRefRange[];
+  /**
+   * What this finding, PRESENT, argues for and against.
+   *
+   * Required by the validator on every examination `sign` that is not a
+   * property of another finding: a finding that cannot move the picture, raise
+   * urgency or trigger an action is documentation, and documentation belongs in
+   * the note rather than in a catalog that claims to reason.
+   *
+   * Measurements deliberately do NOT carry this — a number discriminates
+   * through a cited threshold, which is a `Criterion` on a `DifferentialRule`.
+   * See ADR 0083.
+   */
+  discriminates?: Discrimination[];
+  /** What this finding's RECORDED ABSENCE argues against. */
+  importantNegative?: ImportantNegative;
+  /** By when this finding, alone, demands something happen. */
+  urgency?: Urgency;
   /** Only where the feature itself is a clinical assertion (e.g. a named sign). */
   citation?: Citation;
 }
@@ -871,6 +1024,80 @@ export interface CatalogSection {
   segmented?: boolean;
 }
 
+/* ── The differential layer (ADR 0083) ───────────────────────────────────── */
+
+/**
+ * A condition this catalog can RANK.
+ *
+ * Bounded on purpose. Ranking is confined to conditions the catalog already
+ * models, which is what separates this from the open-ended v1 engine removed in
+ * ADR 0081 — the list cannot grow to cover all of medicine because every entry
+ * has to be a diabetes condition someone wrote criteria for.
+ *
+ * `complication` links to the `Complication` that ESTABLISHES it where one
+ * exists. Ranking says "consider this"; the complication says "this is
+ * established", and the two must never be confused: a condition can top the
+ * ranking while its complication remains `insufficient`, which is the honest
+ * state before the confirmatory tests are back.
+ */
+export interface DifferentialCondition {
+  code: string;
+  display: string;
+  /** The `Complication.code` that confirms it, where the catalog models one. */
+  complication?: string;
+  /** Life stages this condition is a real consideration in. Absent means all. */
+  ageBands?: AgeBand[];
+  citation: Citation;
+}
+
+/**
+ * How strongly the catalog is prepared to say a condition is in play once a
+ * rule has fired. Ordinal, three values, never a probability.
+ */
+export type Posterior = "low" | "moderate" | "high";
+
+/**
+ * A named combination of findings that raises a condition.
+ *
+ * The clinical value is in COMBINATIONS: no single finding makes DKA, and the
+ * shape acute presentations are actually written in — "hyperglycaemia plus two
+ * of these five" — is `Criterion.atLeast`, which already exists and is already
+ * unit-checked and cited. Reusing it rather than inventing a rule DSL is why
+ * this layer added no new evaluator.
+ */
+export interface DifferentialRule {
+  id: string;
+  display: string;
+  /** A `DifferentialCondition.code`. */
+  condition: string;
+  /** Fires when this is `met`. Reuses the four-state evaluator unchanged. */
+  when: Criterion;
+  posterior: Posterior;
+  urgency: Urgency;
+  /** Life stages the rule applies in — paediatric and adult DKA differ. */
+  ageBands?: AgeBand[];
+  /**
+   * Feature codes that would CONFIRM it. Codes, not prose, so the surface can
+   * offer the order and the gaps list can tell whether it is outstanding or
+   * simply not available at this site.
+   */
+  confirmWith: string[];
+  /**
+   * What must be excluded before acting — as NAMED STRINGS, not condition
+   * codes, and deliberately so. Most mimics of DKA lie outside diabetes
+   * entirely (salicylate toxicity, sepsis with lactic acidosis), and giving
+   * them codes would let the engine imply it is reasoning about conditions it
+   * has no criteria for. Naming them tells the clinician what to think about
+   * without the catalog pretending to think about it.
+   */
+  mimicsToExclude: string[];
+  /** Condition codes this rule firing argues AGAINST. */
+  rulesOut?: string[];
+  /** The caveat that would otherwise be lost — euglycaemic DKA, say. */
+  notes?: string;
+  citation: Citation;
+}
+
 export interface NcdCatalog {
   /** e.g. "diabetes". Stable; used as the section key in section_data. */
   id: string;
@@ -894,6 +1121,13 @@ export interface NcdCatalog {
   /** Tests that can be requested, and what each would answer. */
   orderables?: LabOrder[];
   management?: ManagementStep[];
+  /**
+   * The bounded set of conditions the examination layer may RANK (ADR 0083).
+   * A catalog that omits these two fields behaves exactly as it did before the
+   * layer existed, which is how hypertension and CKD stay unaffected.
+   */
+  conditions?: DifferentialCondition[];
+  rules?: DifferentialRule[];
 }
 
 /* ── Lookup helpers (pure) ───────────────────────────────────────────────── */

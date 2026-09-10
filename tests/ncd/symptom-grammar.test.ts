@@ -444,11 +444,33 @@ describe("the diabetes catalog uses the grammar correctly", () => {
       .filter((f) => f.dangerSign?.severity === "red")
       .map((f) => f.code);
     expect(red.sort()).toEqual([
+      // Gas in the abdominal wall — emphysematous infection or necrotising
+      // fasciitis. A surgical decision measured in hours.
+      "abdominal_wall_crepitus",
+      // GATED on recurrent hypoglycaemia or a postural drop (dangerSign.when).
+      // The pigment itself is months old and is not an emergency; the
+      // combination is a failing adrenal reserve.
+      "addisonian_hyperpigmentation",
       "altered_mental_state",
       "deep_rapid_breathing",
+      // Necrotising (malignant) otitis externa — skull-base osteomyelitis.
+      "ear_canal_granulation",
       "focal_neurological_deficit",
       "foot_infection_or_gangrene",
       "hypoglycaemia_requiring_assistance",
+      // Rhino-orbito-cerebral mucormycosis. Survival turns on the day it is
+      // recognised.
+      "nasal_or_palatal_necrosis",
+      // Fournier gangrene — a surgical emergency with a mortality that turns on
+      // hours, and an SGLT2-inhibitor association that makes it easy to miss.
+      "perineal_soft_tissue_infection",
+      // A seizure in someone with diabetes is hypoglycaemia until proven
+      // otherwise, and that is treatable in minutes.
+      "seizure",
+      // A PUPIL-INVOLVING third nerve palsy is a posterior communicating artery
+      // aneurysm until proven otherwise — the opposite of the pupil-sparing
+      // microvascular palsy of diabetes, which is why the pupil is the finding.
+      "third_nerve_pupil",
       "visual_loss_recovered",
       "visual_pattern",
       "vomiting",

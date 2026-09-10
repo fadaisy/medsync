@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { NcdCatalog } from "@/lib/ncd/catalog/schema";
+import type { AgeBand, NcdCatalog } from "@/lib/ncd/catalog/schema";
 import type { CaptureMap } from "@/lib/ncd/engine/evaluate";
 import { and, desc, eq } from "drizzle-orm";
 
@@ -10,6 +10,7 @@ import { patientProfiles } from "@/db/schema/patient-profiles";
 import { triageRecords } from "@/db/schema/triage";
 import { encounterEngineLive } from "@/lib/encounter/feature";
 import { logger } from "@/lib/logger";
+import { ageBandFromDob } from "@/lib/ncd/age";
 
 /**
  * Vitals already on the record, carried into the clerkship rather than re-asked.
@@ -275,20 +276,37 @@ export function initialCapture(
  * Access is already settled before this is called: the caller has resolved the
  * doctor's scope and the encounter, and this reads one non-PHI column.
  */
-export async function loadPatientDemographics(patientUserId: string): Promise<CaptureMap> {
+export interface PatientDemographics {
+  /** Prefilled catalog values — currently `sex`. */
+  values: CaptureMap;
+  /**
+   * The life stage the reference scales and age-scoped findings resolve
+   * against (ADR 0083). Absent where the date of birth is missing or
+   * unparseable — and absent means EVERYTHING stays in scope, never a guess.
+   */
+  ageBand?: AgeBand;
+}
+
+export async function loadPatientDemographics(patientUserId: string): Promise<PatientDemographics> {
   try {
     const [row] = await db
-      .select({ sex: patientProfiles.sex })
+      .select({ sex: patientProfiles.sex, dateOfBirth: patientProfiles.dateOfBirth })
       .from(patientProfiles)
       .where(eq(patientProfiles.id, patientUserId))
       .limit(1);
-    if (!row?.sex) return {};
-    return { sex: { state: "recorded", value: normaliseSex(row.sex) } };
+    if (!row) return { values: {} };
+    return {
+      values: row.sex ? { sex: { state: "recorded", value: normaliseSex(row.sex) } } : {},
+      // Read in the same query as the sex, for the same reason: both are
+      // plaintext columns, and neither can be taken down by a decryption
+      // failure on a name.
+      ageBand: row.dateOfBirth ? ageBandFromDob(String(row.dateOfBirth)) : undefined,
+    };
   } catch (error) {
     // An absent demographic is a valid state: the scale says it cannot classify
     // rather than guessing, which is the whole reason the gate exists.
     logger.warn("ncd.demographics.load_failed", { error: String(error) });
-    return {};
+    return { values: {} };
   }
 }
 

@@ -76,6 +76,20 @@ export const CAPABILITIES: Capability[] = [
     display: "Doppler probe for ankle-brachial index",
     tier: "bedside",
   },
+  {
+    /**
+     * Added so the biothesiometer reading can be marked UNOBTAINABLE rather than
+     * merely undone. Without a capability code the field reads as a gap the
+     * clinician has failed to close, at every site that will never own the
+     * instrument — which is the exact collapse the four-state evaluator exists
+     * to refuse. `specialist` rather than `bedside`: it is a mains-powered
+     * device costing far more than a tuning fork, and the tuning fork beside it
+     * answers most of the same question.
+     */
+    code: "device.biothesiometer",
+    display: "Biothesiometer (vibration perception threshold)",
+    tier: "specialist",
+  },
   { code: "lab.glucose", display: "Laboratory plasma glucose", tier: "basic_lab" },
   { code: "lab.hba1c", display: "HbA1c assay", tier: "basic_lab" },
   {
@@ -263,6 +277,118 @@ export const SECTIONS: CatalogSection[] = [
         parent: "general",
         icon: "waves",
       },
+      {
+        /**
+         * Its own region rather than part of the skin survey, because it is a
+         * different act: the patient has to expose the sites and the sites have
+         * to be PALPATED, not looked at. Lipohypertrophy is smooth, painless and
+         * frequently invisible, and it is one of the commonest real causes of
+         * erratic control — which is exactly the finding a visual skin sweep
+         * misses.
+         */
+        id: "gx_injection",
+        display: "Injection and infusion sites",
+        order: 27,
+        parent: "general",
+        icon: "syringe",
+        description: "Only where insulin or a GLP-1 agonist is injected.",
+      },
+      /*
+       * The system examinations, as segments beside the survey rather than
+       * regions inside it. Each is a separate act performed at a separate
+       * moment, often with equipment the survey does not need — which is the
+       * same test `general` had to pass to be split from `vitals`.
+       */
+      {
+        id: "neuro",
+        display: "Neurological",
+        order: 3,
+        icon: "brain",
+        description: "Conscious level, cranial nerves, and the autonomic system.",
+      },
+      {
+        id: "nx_conscious",
+        display: "Conscious level",
+        order: 31,
+        parent: "neuro",
+        icon: "eye",
+        description: "Graded, not described — a trend is what matters.",
+      },
+      {
+        id: "nx_focal",
+        display: "Focal signs and seizures",
+        order: 32,
+        parent: "neuro",
+        icon: "zap",
+      },
+      {
+        id: "nx_autonomic",
+        display: "Autonomic",
+        order: 33,
+        parent: "neuro",
+        icon: "waves",
+        description: "Never volunteered, and each finding has its own action.",
+      },
+      {
+        id: "eyes",
+        display: "Eyes",
+        order: 4,
+        icon: "eye",
+        description: "Acuity first — it is the finding that changes the referral.",
+      },
+      {
+        id: "ey_acuity",
+        display: "Vision",
+        order: 41,
+        parent: "eyes",
+        icon: "eye",
+      },
+      {
+        id: "ey_fundus",
+        display: "Fundus",
+        order: 42,
+        parent: "eyes",
+        icon: "scan",
+        description: "Staged against a published scale, with its referral trigger.",
+      },
+      {
+        id: "ey_external",
+        display: "External eye and orbit",
+        order: 43,
+        parent: "eyes",
+        icon: "alert",
+        tone: "alert",
+        description: "Where the sight- and life-threatening infections declare themselves.",
+      },
+      {
+        id: "abdomen",
+        display: "Abdomen",
+        order: 5,
+        icon: "scan",
+        description: "The crisis abdomen, and the infections that hide behind it.",
+      },
+      {
+        id: "ab_palpation",
+        display: "Palpation",
+        order: 51,
+        parent: "abdomen",
+        icon: "hand",
+      },
+      {
+        id: "ab_infection",
+        display: "Severe infection",
+        order: 52,
+        parent: "abdomen",
+        icon: "siren",
+        tone: "alert",
+      },
+      {
+        id: "msk",
+        display: "Musculoskeletal",
+        order: 6,
+        icon: "hand",
+        description: "Cheap to examine, and a marker of long glycaemic exposure.",
+      },
     ],
   },
   {
@@ -285,7 +411,63 @@ export const SECTIONS: CatalogSection[] = [
     description: "Ketones, acid-base and osmolality.",
   },
   { id: "kidney", display: "Kidney", order: 8 },
-  { id: "foot", display: "Foot", order: 9 },
+  {
+    id: "foot",
+    display: "Foot",
+    order: 9,
+    description: "The IWGDF examination, in the order it is performed.",
+    /*
+     * Segmented for the same reason the general examination is: looking, feeling
+     * for pulses and testing sensation are three separate acts with three
+     * different pieces of equipment, and stacking them down one card makes the
+     * later ones read as an appendix to the first.
+     */
+    segmented: true,
+    groups: [
+      {
+        id: "ft_look",
+        display: "Skin and nails",
+        order: 1,
+        icon: "eye",
+        description: "Both feet, socks off, between the toes and the heels included.",
+      },
+      {
+        id: "ft_deformity",
+        display: "Shape",
+        order: 2,
+        icon: "scan",
+        description: "Deformity loads the foot where it was not built to be loaded.",
+      },
+      {
+        id: "ft_neuro",
+        display: "Sensation",
+        order: 3,
+        icon: "zap",
+        description: "Loss of protective sensation is painless — it is only ever found by testing.",
+      },
+      {
+        id: "ft_vascular",
+        display: "Circulation",
+        order: 4,
+        icon: "pulse",
+      },
+      {
+        id: "ft_ulcer",
+        display: "Ulcer",
+        order: 5,
+        icon: "bandage",
+        tone: "alert",
+        description: "Graded and staged — an ulcer without a grade cannot be handed over.",
+      },
+      {
+        id: "ft_footwear",
+        display: "Footwear",
+        order: 6,
+        icon: "foot",
+        description: "The commonest cause of the next ulcer is in the patient's hand.",
+      },
+    ],
+  },
   { id: "history", display: "History", order: 10 },
 ];
 
@@ -716,6 +898,7 @@ export const FEATURES: Feature[] = [
     kind: "sign",
     valueType: "single_select",
     section: "foot",
+    group: "ft_neuro",
     options: [
       { value: "present", display: "Present" },
       { value: "absent", display: "Absent" },
@@ -728,6 +911,7 @@ export const FEATURES: Feature[] = [
     kind: "sign",
     valueType: "single_select",
     section: "foot",
+    group: "ft_neuro",
     options: [
       { value: "present", display: "Present" },
       { value: "absent", display: "Absent" },
@@ -739,6 +923,7 @@ export const FEATURES: Feature[] = [
     kind: "sign",
     valueType: "single_select",
     section: "foot",
+    group: "ft_vascular",
     options: [
       { value: "both", display: "Both palpable" },
       { value: "reduced", display: "Reduced" },
@@ -753,6 +938,7 @@ export const FEATURES: Feature[] = [
     unit: "ratio",
     requires: "device.doppler_abi",
     section: "foot",
+    group: "ft_vascular",
   },
   {
     /**
@@ -767,6 +953,7 @@ export const FEATURES: Feature[] = [
     kind: "sign",
     valueType: "single_select",
     section: "foot",
+    group: "ft_vascular",
     options: [
       { value: "present", display: "Present" },
       { value: "absent", display: "Absent" },
@@ -778,6 +965,7 @@ export const FEATURES: Feature[] = [
     kind: "sign",
     valueType: "boolean",
     section: "foot",
+    group: "ft_deformity",
   },
   {
     code: "active_foot_ulcer",
@@ -785,6 +973,7 @@ export const FEATURES: Feature[] = [
     kind: "sign",
     valueType: "boolean",
     section: "foot",
+    group: "ft_ulcer",
   },
 
   /* ── history ────────────────────────────────────────────────────────── */

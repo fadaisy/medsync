@@ -90,6 +90,7 @@ describe("the general examination is built on ADA Table 4.1", () => {
       "gx_head_neck",
       "gx_skin",
       "gx_legs",
+      "gx_injection",
     ]);
     for (const r of regions) {
       expect(features.filter((f) => f.group === r.id).length, r.id).toBeGreaterThan(0);
@@ -159,12 +160,27 @@ describe("one finding, one home", () => {
     "cyanosis",
   ];
 
+  /**
+   * Findings that share a WORD with one of the concepts and are a different
+   * thing entirely. Named individually rather than loosening the match, because
+   * the substring match is what gives this test its teeth: every future
+   * collision has to be looked at by a person and justified here.
+   *
+   * `cerebral_oedema_late_signs` — cerebral oedema in DKA. Nothing to do with
+   *   the peripheral oedema graded in the general examination, and papilloedema
+   *   is one of its signs.
+   * `ischaemic_foot_signs.elevation_pallor` — Buerger's test. Pallor of a foot
+   *   on elevation is a vascular sign of the limb, not the conjunctival pallor
+   *   of anaemia.
+   */
+  const DISTINCT = new Set(["cerebral_oedema_late_signs", "ischaemic_foot_signs"]);
+
   /** Nothing outside this segment may capture one of them, as a field… */
   it("defines each general-examination finding exactly once", () => {
     const general = new Set(inGeneral.map((f) => f.code));
     for (const concept of CONCEPTS) {
       const owners = features
-        .filter((f) => f.code.includes(concept) && !general.has(f.code))
+        .filter((f) => f.code.includes(concept) && !general.has(f.code) && !DISTINCT.has(f.code))
         .map((f) => `${f.code} (${f.section})`);
       expect(owners, concept).toEqual([]);
     }
@@ -175,6 +191,7 @@ describe("one finding, one home", () => {
     const offenders: string[] = [];
     for (const f of features) {
       if (f.section === "examination" && segmentOf(f.code) === "general") continue;
+      if (DISTINCT.has(f.code)) continue;
       for (const o of f.options ?? []) {
         for (const concept of CONCEPTS) {
           if (o.value.includes(concept)) offenders.push(`${f.code}.${o.value}`);

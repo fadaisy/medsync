@@ -1,6 +1,7 @@
 "use client";
 
 import type {
+  AgeBand,
   CatalogGroup,
   Feature,
   FeatureOption,
@@ -16,10 +17,11 @@ import type {
   EvalContext,
 } from "@/lib/ncd/engine/evaluate";
 import type { LucideIcon } from "lucide-react";
-import { useMemo, useState, useSyncExternalStore } from "react";
+import { createContext, useContext, useMemo, useState, useSyncExternalStore } from "react";
 import {
   AlertTriangleIcon,
   BandageIcon,
+  BrainIcon,
   CheckIcon,
   ChevronDownIcon,
   ChevronUpIcon,
@@ -36,9 +38,11 @@ import {
   SirenIcon,
   SmileIcon,
   StethoscopeIcon,
+  SyringeIcon,
   TrendingDownIcon,
   WavesIcon,
   XIcon,
+  ZapIcon,
 } from "lucide-react";
 
 import { NcdInterpretation } from "@/app/doctor/encounters/[encounterId]/_components/ncd-interpretation";
@@ -50,6 +54,7 @@ import {
   MAX_PROPERTY_DEPTH,
 } from "@/lib/ncd/catalog/schema";
 import { interpretations, ncdContext } from "@/lib/ncd/engine/assess";
+import { resolveRefRange } from "@/lib/ncd/engine/differential";
 import {
   contextOf,
   DURATION_UNITS,
@@ -110,6 +115,11 @@ export interface NcdCaptureProps {
   onChange: (next: CaptureMap) => void;
   /** Vitals already on the record, offered for this section. */
   pulled?: PulledVitals;
+  /**
+   * The patient's life stage. Scopes age-specific findings and selects the
+   * reference band a number is read against. Absent leaves everything in scope.
+   */
+  ageBand?: AgeBand;
 }
 
 /** What the record already holds, ready to be accepted — never assumed. */
@@ -247,6 +257,7 @@ export function NcdCapture({
   onChange,
   pulled,
   sectionId,
+  ageBand,
 }: NcdCaptureProps & { sectionId: string }) {
   const ordered = useMemo(
     () => [...catalog.sections].sort((a, b) => a.order - b.order),
@@ -470,312 +481,316 @@ export function NcdCapture({
   if (!section) return null;
 
   return (
-    <section key={sectionId} className="flex flex-col">
-      <header className="mb-1.5 flex flex-wrap items-baseline gap-x-2">
-        <span
-          aria-hidden
-          className="bg-brand-100 text-brand-700 dark:bg-brand-900/60 dark:text-brand-300 shrink-0 self-center rounded px-1.5 py-0.5 font-mono text-[10px] font-medium tabular-nums"
-        >
-          {String(index + 1).padStart(2, "0")}
-        </span>
-        <h3 className="font-display text-foreground text-body-l leading-tight font-medium tracking-[-0.012em]">
-          {section.display}
-        </h3>
-        {section.description ? (
-          <p className="text-muted-foreground text-caption">{section.description}</p>
-        ) : null}
-      </header>
-
-      {/*
-       * The segment bar.
-       *
-       * Not the section rail in miniature: the rail navigates the clerkship and
-       * this switches which act of ONE section you are performing, so it sits
-       * inside the section and carries the group's own icon and its own
-       * description underneath. `aria-pressed` rather than a tablist, because
-       * the panel below is not a separate document — it is the same card with
-       * different rows in it.
-       */}
-      {activeGroup ? (
-        <div className="mb-3 flex flex-col gap-1.5">
-          <div className="bg-muted flex w-fit max-w-full flex-wrap items-center gap-0.5 rounded-lg p-0.5">
-            {segments.map((g) => {
-              const Icon = g.icon ? GROUP_ICONS[g.icon] : undefined;
-              const on = g.id === activeGroup;
-              return (
-                <button
-                  key={g.id}
-                  type="button"
-                  aria-pressed={on}
-                  onClick={() => setChosen(g.id)}
-                  className={`tap text-body-s ease-expo-out inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 font-medium transition-colors duration-100 ${
-                    on
-                      ? "bg-card text-foreground shadow-xs"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {Icon ? <Icon className="size-3.5 shrink-0" aria-hidden /> : null}
-                  {g.display}
-                </button>
-              );
-            })}
-          </div>
-          {segments.find((g) => g.id === activeGroup)?.description ? (
-            <p className="text-muted-foreground text-caption">
-              {segments.find((g) => g.id === activeGroup)!.description}
-            </p>
-          ) : null}
-        </div>
-      ) : null}
-
-      {/*
-       * Prefilled, and SAID SO.
-       *
-       * The values are already in the fields — a clinician should not retype a
-       * blood pressure the triage nurse took twenty minutes ago. But somebody
-       * else measured them, at another time, and the person signing this
-       * clerkship is accountable for every number in it. So each prefilled row
-       * carries where it came from until it is edited, and this line says it
-       * once at the top: these are not yours yet, check them.
-       */}
-      {prefilled.length ? (
-        <div className="border-brand-200 bg-brand-50/60 dark:border-brand-900/50 dark:bg-brand-950/25 mb-3 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl border px-3 py-2.5">
-          <ClipboardListIcon
-            className="text-brand-600 dark:text-brand-400 size-4 shrink-0"
+    /* The band is ambient for every control in the section, so it is provided
+       once here rather than threaded through six component signatures. */
+    <AgeBandContext value={ageBand}>
+      <section key={sectionId} className="flex flex-col">
+        <header className="mb-1.5 flex flex-wrap items-baseline gap-x-2">
+          <span
             aria-hidden
-          />
-          <span className="text-body-s text-foreground font-medium">
-            {pulled?.anyFromTriage ? "Filled from triage" : "Filled from the record"}
-            {pulled?.latestAt ? ` · ${pulled.latestAt}` : ""}
+            className="bg-brand-100 text-brand-700 dark:bg-brand-900/60 dark:text-brand-300 shrink-0 self-center rounded px-1.5 py-0.5 font-mono text-[10px] font-medium tabular-nums"
+          >
+            {String(index + 1).padStart(2, "0")}
           </span>
-          <span className="text-caption text-muted-foreground min-w-0 flex-1">
-            {prefilled.length} {prefilled.length === 1 ? "value" : "values"} carried over. Check
-            them — they are somebody else&apos;s measurement until you change or confirm them.
-          </span>
-        </div>
-      ) : null}
+          <h3 className="font-display text-foreground text-body-l leading-tight font-medium tracking-[-0.012em]">
+            {section.display}
+          </h3>
+          {section.description ? (
+            <p className="text-muted-foreground text-caption">{section.description}</p>
+          ) : null}
+        </header>
 
-      <NcdInterpretation
-        rows={interpretation}
-        renderInput={(code) => {
-          const f = featureIndex.get(code);
-          if (!f) return null;
-          const performable = isPerformable(f, site);
-          if (!performable) {
-            return (
-              <span className="text-muted-foreground text-caption inline-flex items-center gap-1">
-                <CircleSlashIcon className="size-3" aria-hidden />
-                not available here
-              </span>
-            );
-          }
-          /**
-           * A computed measure is captured through the numbers it comes FROM.
-           *
-           * Its own row is where a clinician looks for it, so the weight and the
-           * height belong here rather than in a card further down the page — and
-           * the result appears beside them, already interpreted, instead of
-           * somewhere else on the screen.
-           */
-          if (f.computed) {
-            const value = ctx.values[code];
-            const shown =
-              value?.state === "recorded" && typeof value.value === "number"
-                ? value.value
-                : undefined;
-            const missing = f.computed.from.filter((src) => {
-              const v = values[src];
-              return !(v?.state === "recorded" && typeof v.value === "number");
-            });
-            return (
-              <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                {f.computed.from.map((src) => {
-                  const input = featureIndex.get(src);
-                  if (!input) return null;
-                  const v = values[src];
-                  return (
-                    <span key={src} className="inline-flex items-center gap-1">
-                      <input
-                        inputMode="decimal"
-                        value={
-                          v?.state === "recorded" && typeof v.value === "number"
-                            ? String(v.value)
-                            : ""
-                        }
-                        placeholder={input.display.toLowerCase()}
-                        aria-label={`${input.display}${input.unit ? ` in ${input.unit}` : ""}`}
-                        onChange={(e) => {
-                          const raw = e.target.value;
-                          if (raw === "") return set(src, undefined);
-                          const n = Number(raw);
-                          if (Number.isFinite(n)) set(src, { state: "recorded", value: n });
-                        }}
-                        className="border-input bg-card ease-expo-out focus-visible:border-brand-500 focus-visible:ring-brand-500/25 w-[4.5rem] rounded-md border px-2 py-1 text-right font-mono text-[12px] tabular-nums transition-[border-color,box-shadow] duration-100 outline-none focus-visible:ring-2"
-                      />
-                      <span className="text-muted-foreground font-mono text-[10px]">
-                        {input.unit}
+        {/*
+         * The segment bar.
+         *
+         * Not the section rail in miniature: the rail navigates the clerkship and
+         * this switches which act of ONE section you are performing, so it sits
+         * inside the section and carries the group's own icon and its own
+         * description underneath. `aria-pressed` rather than a tablist, because
+         * the panel below is not a separate document — it is the same card with
+         * different rows in it.
+         */}
+        {activeGroup ? (
+          <div className="mb-3 flex flex-col gap-1.5">
+            <div className="bg-muted flex w-fit max-w-full flex-wrap items-center gap-0.5 rounded-lg p-0.5">
+              {segments.map((g) => {
+                const Icon = g.icon ? GROUP_ICONS[g.icon] : undefined;
+                const on = g.id === activeGroup;
+                return (
+                  <button
+                    key={g.id}
+                    type="button"
+                    aria-pressed={on}
+                    onClick={() => setChosen(g.id)}
+                    className={`tap text-body-s ease-expo-out inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 font-medium transition-colors duration-100 ${
+                      on
+                        ? "bg-card text-foreground shadow-xs"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {Icon ? <Icon className="size-3.5 shrink-0" aria-hidden /> : null}
+                    {g.display}
+                  </button>
+                );
+              })}
+            </div>
+            {segments.find((g) => g.id === activeGroup)?.description ? (
+              <p className="text-muted-foreground text-caption">
+                {segments.find((g) => g.id === activeGroup)!.description}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+
+        {/*
+         * Prefilled, and SAID SO.
+         *
+         * The values are already in the fields — a clinician should not retype a
+         * blood pressure the triage nurse took twenty minutes ago. But somebody
+         * else measured them, at another time, and the person signing this
+         * clerkship is accountable for every number in it. So each prefilled row
+         * carries where it came from until it is edited, and this line says it
+         * once at the top: these are not yours yet, check them.
+         */}
+        {prefilled.length ? (
+          <div className="border-brand-200 bg-brand-50/60 dark:border-brand-900/50 dark:bg-brand-950/25 mb-3 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-xl border px-3 py-2.5">
+            <ClipboardListIcon
+              className="text-brand-600 dark:text-brand-400 size-4 shrink-0"
+              aria-hidden
+            />
+            <span className="text-body-s text-foreground font-medium">
+              {pulled?.anyFromTriage ? "Filled from triage" : "Filled from the record"}
+              {pulled?.latestAt ? ` · ${pulled.latestAt}` : ""}
+            </span>
+            <span className="text-caption text-muted-foreground min-w-0 flex-1">
+              {prefilled.length} {prefilled.length === 1 ? "value" : "values"} carried over. Check
+              them — they are somebody else&apos;s measurement until you change or confirm them.
+            </span>
+          </div>
+        ) : null}
+
+        <NcdInterpretation
+          rows={interpretation}
+          renderInput={(code) => {
+            const f = featureIndex.get(code);
+            if (!f) return null;
+            const performable = isPerformable(f, site);
+            if (!performable) {
+              return (
+                <span className="text-muted-foreground text-caption inline-flex items-center gap-1">
+                  <CircleSlashIcon className="size-3" aria-hidden />
+                  not available here
+                </span>
+              );
+            }
+            /**
+             * A computed measure is captured through the numbers it comes FROM.
+             *
+             * Its own row is where a clinician looks for it, so the weight and the
+             * height belong here rather than in a card further down the page — and
+             * the result appears beside them, already interpreted, instead of
+             * somewhere else on the screen.
+             */
+            if (f.computed) {
+              const value = ctx.values[code];
+              const shown =
+                value?.state === "recorded" && typeof value.value === "number"
+                  ? value.value
+                  : undefined;
+              const missing = f.computed.from.filter((src) => {
+                const v = values[src];
+                return !(v?.state === "recorded" && typeof v.value === "number");
+              });
+              return (
+                <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                  {f.computed.from.map((src) => {
+                    const input = featureIndex.get(src);
+                    if (!input) return null;
+                    const v = values[src];
+                    return (
+                      <span key={src} className="inline-flex items-center gap-1">
+                        <input
+                          inputMode="decimal"
+                          value={
+                            v?.state === "recorded" && typeof v.value === "number"
+                              ? String(v.value)
+                              : ""
+                          }
+                          placeholder={input.display.toLowerCase()}
+                          aria-label={`${input.display}${input.unit ? ` in ${input.unit}` : ""}`}
+                          onChange={(e) => {
+                            const raw = e.target.value;
+                            if (raw === "") return set(src, undefined);
+                            const n = Number(raw);
+                            if (Number.isFinite(n)) set(src, { state: "recorded", value: n });
+                          }}
+                          className="border-input bg-card ease-expo-out focus-visible:border-brand-500 focus-visible:ring-brand-500/25 w-[4.5rem] rounded-md border px-2 py-1 text-right font-mono text-[12px] tabular-nums transition-[border-color,box-shadow] duration-100 outline-none focus-visible:ring-2"
+                        />
+                        <span className="text-muted-foreground font-mono text-[10px]">
+                          {input.unit}
+                        </span>
                       </span>
+                    );
+                  })}
+                  <span className="text-caption text-muted-foreground">=</span>
+                  {shown !== undefined ? (
+                    <span className="text-foreground font-mono text-[13px] font-medium tabular-nums">
+                      {shown}
+                      {f.unit ? (
+                        <span className="text-muted-foreground ml-1 text-[10px] font-normal">
+                          {f.unit}
+                        </span>
+                      ) : null}
                     </span>
-                  );
-                })}
-                <span className="text-caption text-muted-foreground">=</span>
-                {shown !== undefined ? (
-                  <span className="text-foreground font-mono text-[13px] font-medium tabular-nums">
-                    {shown}
-                    {f.unit ? (
-                      <span className="text-muted-foreground ml-1 text-[10px] font-normal">
-                        {f.unit}
-                      </span>
-                    ) : null}
-                  </span>
+                  ) : (
+                    // A dash says "nothing here"; this says which number is still
+                    // missing, which is the only actionable half of that.
+                    <span className="text-muted-foreground text-caption">
+                      needs{" "}
+                      {missing
+                        .map((src) => featureIndex.get(src)?.display.toLowerCase() ?? src)
+                        .join(" and ")}
+                    </span>
+                  )}
+                </span>
+              );
+            }
+            // A vital is measured AGAIN, not corrected — overwriting throws away
+            // the fact that it was 160, and that fact is the trend.
+            if (f.valueType === "series") {
+              return <SeriesField feature={f} value={values[code]} onSet={(v) => set(code, v)} />;
+            }
+            return (
+              <>
+                <ValueEditor feature={f} value={values[code]} onSet={(v) => set(code, v)} left />
+                {values[code] ? (
+                  <button
+                    type="button"
+                    onClick={() => set(code, undefined)}
+                    title="Clear — back to not assessed"
+                    aria-label={`Clear ${f.display}`}
+                    className={`tap text-muted-foreground hover:text-foreground rounded p-1 ${EASE} ${TAP}`}
+                  >
+                    <RotateCcwIcon className="size-3" aria-hidden />
+                  </button>
                 ) : (
-                  // A dash says "nothing here"; this says which number is still
-                  // missing, which is the only actionable half of that.
-                  <span className="text-muted-foreground text-caption">
-                    needs{" "}
-                    {missing
-                      .map((src) => featureIndex.get(src)?.display.toLowerCase() ?? src)
-                      .join(" and ")}
-                  </span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      set(code, { state: "unavailable", capability: f.requires ?? "site" })
+                    }
+                    title="Could not be done today"
+                    aria-label={`${f.display} — could not be done today`}
+                    className={`tap text-muted-foreground/70 hover:text-foreground rounded px-1.5 py-0.5 text-[10.5px] ${EASE} ${TAP}`}
+                  >
+                    n/a
+                  </button>
                 )}
-              </span>
+              </>
             );
-          }
-          // A vital is measured AGAIN, not corrected — overwriting throws away
-          // the fact that it was 160, and that fact is the trend.
-          if (f.valueType === "series") {
-            return <SeriesField feature={f} value={values[code]} onSet={(v) => set(code, v)} />;
-          }
-          return (
-            <>
-              <ValueEditor feature={f} value={values[code]} onSet={(v) => set(code, v)} left />
-              {values[code] ? (
-                <button
-                  type="button"
-                  onClick={() => set(code, undefined)}
-                  title="Clear — back to not assessed"
-                  aria-label={`Clear ${f.display}`}
-                  className={`tap text-muted-foreground hover:text-foreground rounded p-1 ${EASE} ${TAP}`}
-                >
-                  <RotateCcwIcon className="size-3" aria-hidden />
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() =>
-                    set(code, { state: "unavailable", capability: f.requires ?? "site" })
-                  }
-                  title="Could not be done today"
-                  aria-label={`${f.display} — could not be done today`}
-                  className={`tap text-muted-foreground/70 hover:text-foreground rounded px-1.5 py-0.5 text-[10.5px] ${EASE} ${TAP}`}
-                >
-                  n/a
-                </button>
-              )}
-            </>
-          );
-        }}
-      />
+          }}
+        />
 
-      {/* One card, banded — not six cards. Elevation is a truth claim, and this
+        {/* One card, banded — not six cards. Elevation is a truth claim, and this
           is one protocol for one section. The divider now separates findings
           only, so a rule reliably means "new question". */}
-      <div
-        className={`border-border bg-card divide-gray-150 divide-y overflow-hidden rounded-xl border shadow-xs ${
-          banded.length ? "" : "hidden"
-        } ${interpretation.length ? "mt-3" : ""}`}
-      >
-        {banded.map(({ finding, properties, band }) => {
-          return (
-            <div key={finding.code}>
-              {band && band.id !== activeGroup ? (
-                <GroupBand
-                  group={band}
-                  examined={regions.get(band.id)?.examined}
-                  total={regions.get(band.id)?.total}
-                  onNormal={
-                    regions.get(band.id)?.blanks.length
-                      ? () => markRegionNormal(regions.get(band.id)!.blanks)
+        <div
+          className={`border-border bg-card divide-gray-150 divide-y overflow-hidden rounded-xl border shadow-xs ${
+            banded.length ? "" : "hidden"
+          } ${interpretation.length ? "mt-3" : ""}`}
+        >
+          {banded.map(({ finding, properties, band }) => {
+            return (
+              <div key={finding.code}>
+                {band && band.id !== activeGroup ? (
+                  <GroupBand
+                    group={band}
+                    examined={regions.get(band.id)?.examined}
+                    total={regions.get(band.id)?.total}
+                    onNormal={
+                      regions.get(band.id)?.blanks.length
+                        ? () => markRegionNormal(regions.get(band.id)!.blanks)
+                        : undefined
+                    }
+                  />
+                ) : null}
+                <FeatureRow
+                  feature={finding}
+                  site={site}
+                  depth={0}
+                  value={values[finding.code]}
+                  carriedOver={
+                    prefilledCodes.has(finding.code)
+                      ? (pulled?.anyFromTriage ?? false)
+                        ? "triage"
+                        : "record"
                       : undefined
                   }
+                  onSet={(v) => set(finding.code, v)}
                 />
-              ) : null}
-              <FeatureRow
-                feature={finding}
-                site={site}
-                depth={0}
-                value={values[finding.code]}
-                carriedOver={
-                  prefilledCodes.has(finding.code)
-                    ? (pulled?.anyFromTriage ?? false)
-                      ? "triage"
-                      : "record"
-                    : undefined
-                }
-                onSet={(v) => set(finding.code, v)}
-              />
-              {properties.length ? (
-                <PropertyWell
-                  finding={finding}
-                  properties={properties}
-                  site={site}
-                  values={values}
-                  featureIndex={featureIndex}
-                  foldedAt={folded.get(finding.code)}
-                  onToggle={(codes) =>
-                    setFolded((prev) => {
-                      const next = new Map(prev);
-                      if (codes) next.set(finding.code, codes);
-                      else next.delete(finding.code);
-                      return next;
-                    })
-                  }
-                  onSet={set}
-                />
-              ) : null}
-            </div>
-          );
-        })}
-      </div>
-
-      {/*
-       * The examination, read back as the line it will become.
-       *
-       * A form that takes twenty answers and shows twenty rows has made the
-       * clinician do the summarising — and the summary is the part that ends up
-       * in the notes. So the positives are named, the negatives are counted,
-       * and what has not been looked at yet is named too, because "not examined"
-       * and "normal" are the two things a clerkship must never confuse.
-       */}
-      {activeGroup && banded.length ? <ExamSummary blocks={banded} values={values} /> : null}
-
-      {/*
-       * A segment the catalog declares but has not filled yet.
-       *
-       * Said plainly rather than shown as a blank card, because a clinician who
-       * finds nothing here needs to know the difference between "there is
-       * nothing to record" and "this is not built" — the first would have them
-       * signing off an examination they never did.
-       */}
-      {activeGroup && !interpretation.length && !banded.length && !offProtocol.length ? (
-        <div className="border-border bg-card text-muted-foreground rounded-xl border border-dashed px-4 py-6 text-center">
-          <p className="text-body-s text-foreground font-medium">Not built yet</p>
-          <p className="text-caption mx-auto mt-1 max-w-prose">
-            {segments.find((g) => g.id === activeGroup)?.display} has no fields on it yet. Nothing
-            recorded here is missing — there is nothing here to record.
-          </p>
+                {properties.length ? (
+                  <PropertyWell
+                    finding={finding}
+                    properties={properties}
+                    site={site}
+                    values={values}
+                    featureIndex={featureIndex}
+                    foldedAt={folded.get(finding.code)}
+                    onToggle={(codes) =>
+                      setFolded((prev) => {
+                        const next = new Map(prev);
+                        if (codes) next.set(finding.code, codes);
+                        else next.delete(finding.code);
+                        return next;
+                      })
+                    }
+                    onSet={set}
+                  />
+                ) : null}
+              </div>
+            );
+          })}
         </div>
-      ) : null}
 
-      {offProtocol.map((f) => (
-        <OffProtocolBlock
-          key={f.code}
-          feature={f}
-          value={values[f.code]}
-          onSet={(v) => set(f.code, v)}
-        />
-      ))}
-    </section>
+        {/*
+         * The examination, read back as the line it will become.
+         *
+         * A form that takes twenty answers and shows twenty rows has made the
+         * clinician do the summarising — and the summary is the part that ends up
+         * in the notes. So the positives are named, the negatives are counted,
+         * and what has not been looked at yet is named too, because "not examined"
+         * and "normal" are the two things a clerkship must never confuse.
+         */}
+        {activeGroup && banded.length ? <ExamSummary blocks={banded} values={values} /> : null}
+
+        {/*
+         * A segment the catalog declares but has not filled yet.
+         *
+         * Said plainly rather than shown as a blank card, because a clinician who
+         * finds nothing here needs to know the difference between "there is
+         * nothing to record" and "this is not built" — the first would have them
+         * signing off an examination they never did.
+         */}
+        {activeGroup && !interpretation.length && !banded.length && !offProtocol.length ? (
+          <div className="border-border bg-card text-muted-foreground rounded-xl border border-dashed px-4 py-6 text-center">
+            <p className="text-body-s text-foreground font-medium">Not built yet</p>
+            <p className="text-caption mx-auto mt-1 max-w-prose">
+              {segments.find((g) => g.id === activeGroup)?.display} has no fields on it yet. Nothing
+              recorded here is missing — there is nothing here to record.
+            </p>
+          </div>
+        ) : null}
+
+        {offProtocol.map((f) => (
+          <OffProtocolBlock
+            key={f.code}
+            feature={f}
+            value={values[f.code]}
+            onSet={(v) => set(f.code, v)}
+          />
+        ))}
+      </section>
+    </AgeBandContext>
   );
 }
 
@@ -1000,6 +1015,11 @@ export const GROUP_ICONS: Record<string, LucideIcon> = {
   smile: SmileIcon,
   scan: ScanLineIcon,
   waves: WavesIcon,
+  /* Added with the system examinations (ADR 0083). */
+  syringe: SyringeIcon,
+  brain: BrainIcon,
+  zap: ZapIcon,
+  alert: AlertTriangleIcon,
 };
 
 /**
@@ -1113,6 +1133,42 @@ function ExamSummary({ blocks, values }: { blocks: { finding: Feature }[]; value
       ) : null}
     </div>
   );
+}
+
+/**
+ * The patient's life stage, for the controls that need it.
+ *
+ * A context rather than a prop drilled through six components, because it is
+ * ambient for the whole form and threading it would touch every signature
+ * between the workspace and a single number input. `undefined` is the honest
+ * default: an unknown band shows the unbanded range rather than guessing one.
+ */
+const AgeBandContext = createContext<AgeBand | undefined>(undefined);
+
+/**
+ * The reference band this number should be read against, resolved for the
+ * patient's life stage — and whether the recorded value sits outside it.
+ *
+ * `refRange` is DISPLAY only and never a diagnostic threshold (see the schema).
+ * What it buys at the bedside is catching the transcription slip: a respiratory
+ * rate of 4 typed for 40 looks fine in an empty box and wrong beside "12-20".
+ */
+function useRange(feature: Feature, recorded: unknown) {
+  const ageBand = useContext(AgeBandContext);
+  const range = resolveRefRange(feature, { ageBand } as never);
+  if (!range || (range.low == null && range.high == null)) return undefined;
+  const text =
+    range.low != null && range.high != null
+      ? `${range.low}\u2013${range.high}`
+      : range.low != null
+        ? `\u2265 ${range.low}`
+        : `\u2264 ${range.high}`;
+  const n = typeof recorded === "number" ? recorded : undefined;
+  const outside =
+    n == null
+      ? undefined
+      : (range.low != null && n < range.low) || (range.high != null && n > range.high);
+  return { text, outside, banded: range.citation != null };
 }
 
 function GroupBand({
@@ -1278,6 +1334,7 @@ function FeatureRow({
 }) {
   const performable = isPerformable(feature, site);
   const recorded = value?.state === "recorded" ? value.value : undefined;
+  const range = useRange(feature, recorded);
   const markedUnavailable = value?.state === "unavailable";
 
   // A checkable list with a detail box beside each option needs the whole row;
@@ -1363,6 +1420,20 @@ function FeatureRow({
               {feature.altUnit && typeof recorded === "number"
                 ? ` · ${(recorded * feature.altUnit.factor).toFixed(feature.altUnit.factor > 10 ? 0 : 1)} ${feature.altUnit.unit}`
                 : null}
+              {/* The normal band, beside the unit. What this catches is the
+                  transcription slip: a respiratory rate of 4 typed for 40 looks
+                  fine in an empty box and obviously wrong beside "12–20". */}
+              {range ? ` · normal ${range.text}` : null}
+              {range?.banded ? " for this age" : null}
+            </span>
+          ) : null}
+          {/* Flagged in WORDS as well as colour — the design system forbids
+              colour carrying a state on its own. Not an error and not a block:
+              an out-of-range vital is frequently the true finding. */}
+          {range?.outside ? (
+            <span className="text-caption mt-0.5 inline-flex w-fit items-center gap-1 rounded bg-amber-50 px-1.5 py-px font-medium text-amber-800 ring-1 ring-amber-200 ring-inset dark:bg-amber-950/40 dark:text-amber-300 dark:ring-amber-900/60">
+              <AlertTriangleIcon className="size-3" aria-hidden />
+              Outside the normal range
             </span>
           ) : null}
         </span>

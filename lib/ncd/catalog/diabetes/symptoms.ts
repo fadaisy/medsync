@@ -135,6 +135,41 @@ export const CRISES_2024 = c({
   quote: "If DKA or HHS is suspected, initial samples should be taken",
 });
 
+/**
+ * The three sentences the crisis discriminations rest on, quoted separately
+ * from `CRISES_2024` because they are different claims — a shared quote would
+ * let one borrow the other's support.
+ *
+ * All three were re-fetched and verified verbatim against the PMC text.
+ */
+const CRISES_2024_KUSSMAUL = c({
+  standard: "EASD",
+  version: "ADA/EASD/JBDS/AACE/DTS consensus report, 2024",
+  title: "Hyperglycemic Crises in Adults With Diabetes: A Consensus Report",
+  url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC11272983/",
+  quote:
+    "The respiratory compensation for metabolic acidosis found in DKA is manifest by Kussmaul breathing, which consists of deep breaths with a fruity odor smell because of the presence of acetone (a breakdown product of the ketone acetoacetic acid) in the breath.",
+});
+
+const CRISES_2024_HHS_NON_ACIDOTIC = c({
+  standard: "EASD",
+  version: "ADA/EASD/JBDS/AACE/DTS consensus report, 2024",
+  title: "Hyperglycemic Crises in Adults With Diabetes: A Consensus Report",
+  url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC11272983/",
+  quote:
+    "HHS is characterized by severe hyperglycemia, hyperosmolality, and dehydration in the absence of significant ketosis or acidosis.",
+});
+
+/** Table 2 — mental status is one of the axes DKA severity is graded on. */
+const CRISES_2024_SEVERITY = c({
+  standard: "EASD",
+  version: "ADA/EASD/JBDS/AACE/DTS consensus report, 2024, Table 2",
+  title: "Hyperglycemic Crises in Adults With Diabetes: A Consensus Report",
+  url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC11272983/",
+  quote:
+    "Mental status | Alert | Alert/drowsy | Stupor/coma … Suggested level of care | Regular or observation nursing unit | Step-down unit or intermediate care unit | Intensive care unit",
+});
+
 /* ── shared option sets ──────────────────────────────────────────────────── */
 
 const YES_NO = [
@@ -572,7 +607,41 @@ export const SYMPTOM_FEATURES: Feature[] = [
     valueType: "boolean",
     section: "symptoms",
     group: "crisis",
+    elicitation:
+      "Grade it rather than describing it — AVPU below, and the GCS in the neurological examination. What matters clinically is the direction of travel, which only a graded scale can show.",
+    urgency: "immediate",
     suggests: ["dka", "hhs", "hypoglycaemia"],
+    /*
+     * Deliberately supports THREE conditions whose treatments are opposite, and
+     * that is the honest shape: a reduced conscious level is the finding that
+     * says measure the glucose now, not the finding that says which crisis this
+     * is. Ranking it towards any one of them would be the anchoring error.
+     */
+    discriminates: [
+      {
+        condition: "severe_dka",
+        direction: "supports",
+        strength: "strong",
+        rationale:
+          "Stupor or coma is one of the axes DKA severity is graded on, and the one that decides the level of care.",
+        citation: CRISES_2024_SEVERITY,
+      },
+      {
+        condition: "hhs",
+        direction: "supports",
+        strength: "moderate",
+        rationale: "Changes in cognitive state are usually present in severe DKA and in HHS.",
+        citation: CRISES_2024_SEVERITY,
+      },
+      {
+        condition: "hypoglycaemia",
+        direction: "supports",
+        strength: "moderate",
+        rationale:
+          "Neuroglycopenia presents as confusion or a reduced conscious level, and is the one cause of this sign that is reversible in minutes.",
+        citation: CRISES_2024,
+      },
+    ],
     citation: CRISES_2024,
     dangerSign: {
       severity: "red",
@@ -604,11 +673,51 @@ export const SYMPTOM_FEATURES: Feature[] = [
      */
     code: "deep_rapid_breathing",
     display: "Deep, sighing rapid breathing (Kussmaul)",
+    synonyms: ["Kussmaul respiration", "air hunger", "deep sighing breathing"],
     kind: "sign",
     valueType: "boolean",
     section: "symptoms",
     group: "crisis",
+    elicitation:
+      "Watch the undressed chest for 60 s before touching the patient. Deep, regular, high-tidal-volume breaths that are not laboured or distressed — effortful, obstructed or accessory-muscle breathing is a different sign.",
+    urgency: "immediate",
     suggests: ["dka"],
+    /*
+     * The discrimination the whole layer exists for, and the reason it is not
+     * left to `suggests` alone: this sign argues in BOTH directions at once, and
+     * a one-directional link can only carry half of that.
+     */
+    discriminates: [
+      {
+        condition: "dka",
+        direction: "supports",
+        strength: "strong",
+        rationale:
+          "Respiratory compensation for the metabolic acidosis of DKA, with acetone on the breath.",
+        citation: CRISES_2024_KUSSMAUL,
+      },
+      {
+        condition: "hhs",
+        direction: "refutes",
+        strength: "moderate",
+        rationale:
+          "HHS is defined by the ABSENCE of significant acidosis, so a compensatory breathing pattern points away from a pure hyperosmolar state and towards DKA or a mixed picture.",
+        citation: CRISES_2024_HHS_NON_ACIDOTIC,
+      },
+    ],
+    /*
+     * Scoped to SEVERE DKA deliberately. Absent Kussmaul does not exclude DKA —
+     * it is a compensation that appears as the acidosis deepens, so a mild or
+     * early presentation breathes normally, and an exhausted or obtunded patient
+     * may have lost the compensation entirely. Refuting `dka` here would tell a
+     * clinician the opposite of the truth.
+     */
+    importantNegative: {
+      absenceRefutes: ["severe_dka"],
+      caveat:
+        "Absent in mild and early ketoacidosis, and may be lost in exhaustion, sedation or a falling conscious level. Its absence never excludes DKA — only makes deep acidosis less likely.",
+      citation: CRISES_2024_KUSSMAUL,
+    },
     citation: CRISES_2024,
     dangerSign: {
       severity: "red",

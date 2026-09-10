@@ -1,7 +1,7 @@
 "use client";
 
 import type { PulledVitals } from "./ncd-capture";
-import type { NcdCatalog, SiteProfile } from "@/lib/ncd/catalog/schema";
+import type { AgeBand, NcdCatalog, SiteProfile } from "@/lib/ncd/catalog/schema";
 import type { CaptureMap } from "@/lib/ncd/engine/evaluate";
 import { useCallback, useMemo, useRef, useState } from "react";
 import {
@@ -103,6 +103,7 @@ export function NcdClerkship({
   onSave,
   siteOptions,
   pulled,
+  ageBand,
 }: {
   catalog: NcdCatalog;
   site: SiteProfile;
@@ -123,6 +124,12 @@ export function NcdClerkship({
   siteOptions?: SiteProfile[];
   /** Vitals already on the record, offered to whichever section holds them. */
   pulled?: PulledVitals;
+  /**
+   * The patient's life stage, from their date of birth. Absent leaves every
+   * finding and rule in scope — a missing band is harmless, a guessed one
+   * silently narrows the examination.
+   */
+  ageBand?: AgeBand;
 }) {
   const [values, setValues] = useState<CaptureMap>(initialValues ?? {});
   const [activeSite, setActiveSite] = useState<SiteProfile>(site);
@@ -131,8 +138,8 @@ export function NcdClerkship({
   );
 
   const profile = useMemo(
-    () => buildProfile({ catalog, values, site: activeSite, established }),
-    [catalog, values, activeSite, established],
+    () => buildProfile({ catalog, values, site: activeSite, established, ageBand }),
+    [catalog, values, activeSite, established, ageBand],
   );
   const progress = useMemo(
     () => sectionProgress(catalog, activeSite, values),
@@ -246,6 +253,7 @@ export function NcdClerkship({
               onChange={update}
               pulled={pulled}
               sectionId={activeId}
+              ageBand={ageBand}
             />
           </div>
 

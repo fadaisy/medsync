@@ -16,6 +16,8 @@ import {
   SparklesIcon,
 } from "lucide-react";
 
+import { NcdDifferential } from "./ncd-differential";
+
 /**
  * The assembled profile.
  *
@@ -136,6 +138,13 @@ export function NcdProfileView({ profile }: { profile: NcdProfile }) {
           </div>
         </section>
       ))}
+
+      {/* 1a. The ranked differential (ADR 0083).
+             Sits BELOW the acute interlock and ABOVE everything established,
+             which is its exact standing: more pressing than a chronic review,
+             and never a substitute for a verdict the criteria actually reached.
+             It ranks what to CONSIDER; the sections below say what is settled. */}
+      <NcdDifferential result={profile.differential} />
 
       {/* 1b. Danger signs — urgent on their own, before anything is established.
              This is what a site with no ketones or blood gas still gets told. */}

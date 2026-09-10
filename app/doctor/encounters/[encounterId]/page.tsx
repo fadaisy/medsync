@@ -113,13 +113,16 @@ export default async function DoctorEncounterPage({ params }: PageProps) {
    * the examination asked for a demographic sitting in plaintext one table
    * away. Nothing a reference scale needs should ride on a decrypt.
    *
-   * Age is NOT carried across: nothing in this catalog reads it yet, and a field
-   * no rule consults is a question with no consequence. It joins the day a band
-   * needs it (WHO's anaemia thresholds differ for children).
+   * The date of birth now comes across too, as a LIFE STAGE rather than a
+   * number (ADR 0083). It is read in the same query and from the same kind of
+   * plaintext column, and it scopes age-specific findings and reference bands.
+   * The band is deliberately allowed to be absent: an unknown stage leaves
+   * everything in scope, where a guessed one would quietly narrow the
+   * examination.
    */
-  const demographics: CaptureMap = ncdClerkshipLive()
+  const demographics = ncdClerkshipLive()
     ? await loadPatientDemographics(enc.patientUserId)
-    : {};
+    : { values: {} as CaptureMap };
   const draft = ncdClerkshipLive()
     ? await loadNcdDraft(encounterId, scope.userId, DIABETES_CATALOG)
     : undefined;
@@ -169,7 +172,11 @@ export default async function DoctorEncounterPage({ params }: PageProps) {
             catalog={DIABETES_CATALOG}
             site={REFERRAL_SITE}
             siteOptions={[REFERRAL_SITE, DISTRICT_SITE]}
-            initialValues={initialCapture({ ...demographics, ...(vitals?.values ?? {}) }, draft)}
+            initialValues={initialCapture(
+              { ...demographics.values, ...(vitals?.values ?? {}) },
+              draft,
+            )}
+            ageBand={demographics.ageBand}
             onSave={saveDraft}
             pulled={
               vitals?.vitals.length

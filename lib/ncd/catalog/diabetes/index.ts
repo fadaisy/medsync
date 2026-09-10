@@ -18,12 +18,25 @@ import type { NcdCatalog, SiteProfile } from "@/lib/ncd/catalog/schema";
 
 import { COMPLICATION_SYMPTOM_FEATURES } from "@/lib/ncd/catalog/diabetes/complication-symptoms";
 import { COMPLICATIONS } from "@/lib/ncd/catalog/diabetes/complications";
+import { DIABETES_CONDITIONS } from "@/lib/ncd/catalog/diabetes/conditions";
 import { CLASSIFICATIONS, DIAGNOSIS } from "@/lib/ncd/catalog/diabetes/diagnosis";
+import { ABDOMEN_FEATURES } from "@/lib/ncd/catalog/diabetes/exam-abdomen";
+import { AGE_SPECIFIC_FEATURES } from "@/lib/ncd/catalog/diabetes/exam-age-specific";
+import { AUTOIMMUNE_FEATURES } from "@/lib/ncd/catalog/diabetes/exam-autoimmune";
+import { CNS_FEATURES } from "@/lib/ncd/catalog/diabetes/exam-cns";
+import { EYE_FEATURES } from "@/lib/ncd/catalog/diabetes/exam-eyes";
+import { FOOT_EXAM_FEATURES } from "@/lib/ncd/catalog/diabetes/exam-foot";
+import { MSK_FEATURES } from "@/lib/ncd/catalog/diabetes/exam-msk";
+import { NEUROPATHY_FEATURES } from "@/lib/ncd/catalog/diabetes/exam-neuropathy";
+import { SKIN_FEATURES } from "@/lib/ncd/catalog/diabetes/exam-skin";
+import { VITALS_EXTRA_FEATURES } from "@/lib/ncd/catalog/diabetes/exam-vitals";
 import { EXAMINATION_FEATURES } from "@/lib/ncd/catalog/diabetes/examination";
 import { CAPABILITIES, FEATURES, SECTIONS } from "@/lib/ncd/catalog/diabetes/features";
 import { GENERAL_EXAM_FEATURES } from "@/lib/ncd/catalog/diabetes/general-exam";
 import { HBA1C_EVIDENCE_FEATURES, ORDERABLES } from "@/lib/ncd/catalog/diabetes/hba1c-evidence";
 import { INTERPRETATION } from "@/lib/ncd/catalog/diabetes/interpretation";
+import { ACUTE_RULES } from "@/lib/ncd/catalog/diabetes/rules-acute";
+import { FOOT_RULES } from "@/lib/ncd/catalog/diabetes/rules-foot";
 import { SYMPTOM_FEATURES } from "@/lib/ncd/catalog/diabetes/symptoms";
 import { THERAPY_FLAGS } from "@/lib/ncd/catalog/diabetes/therapy-flags";
 import { VALIDITY_CAVEATS } from "@/lib/ncd/catalog/diabetes/validity";
@@ -41,6 +54,17 @@ export const DIABETES_CATALOG: NcdCatalog = {
     ...HBA1C_EVIDENCE_FEATURES,
     ...EXAMINATION_FEATURES,
     ...GENERAL_EXAM_FEATURES,
+    /* The examination build-out (ADR 0083), one file per domain. */
+    ...VITALS_EXTRA_FEATURES,
+    ...CNS_FEATURES,
+    ...NEUROPATHY_FEATURES,
+    ...FOOT_EXAM_FEATURES,
+    ...SKIN_FEATURES,
+    ...MSK_FEATURES,
+    ...EYE_FEATURES,
+    ...ABDOMEN_FEATURES,
+    ...AUTOIMMUNE_FEATURES,
+    ...AGE_SPECIFIC_FEATURES,
   ],
   diagnosis: DIAGNOSIS,
   classifications: CLASSIFICATIONS,
@@ -49,6 +73,9 @@ export const DIABETES_CATALOG: NcdCatalog = {
   therapyFlags: THERAPY_FLAGS,
   interpretation: INTERPRETATION,
   orderables: ORDERABLES,
+  /* The examination discrimination layer (ADR 0083). */
+  conditions: DIABETES_CONDITIONS,
+  rules: [...ACUTE_RULES, ...FOOT_RULES],
 };
 
 /* ── Reference site profiles ─────────────────────────────────────────────── */
@@ -65,6 +92,10 @@ export const REFERRAL_SITE: SiteProfile = {
     "device.glucometer",
     "device.monofilament",
     "device.doppler_abi",
+    // A well-resourced centre is where a biothesiometer would be, if anywhere.
+    // The district profile deliberately lacks it, so the reading reads as
+    // unobtainable there rather than as a gap someone failed to close.
+    "device.biothesiometer",
     "lab.glucose",
     "lab.hba1c",
     "lab.hba1c_ngsp_certified",

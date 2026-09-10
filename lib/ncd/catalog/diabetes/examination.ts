@@ -18,6 +18,15 @@
  * examination and the ankle-brachial index belong in this section too and are
  * not built yet; the section is structured so they arrive as groups beside these
  * rather than as a restructuring.
+ *
+ * ── The adolescent band (ADR 0083) ───────────────────────────────────────────
+ * `pulse` and `respiratory_rate` carry an `ageRefRange` for 10–19-year-olds;
+ * nothing else here does. Temperature and oxygen saturation do not move with
+ * age, blood-pressure percentiles and BMI-for-age are deferred paediatric
+ * content, and a band declared without cause is worse than no band at all —
+ * resolution is band-first, so a guessed adolescent range REPLACES a defensible
+ * adult one for every patient inside it. The postural pair, the capillary refill
+ * and the weight trajectory live beside these in exam-vitals.ts.
  */
 import type { Feature } from "@/lib/ncd/catalog/schema";
 
@@ -71,6 +80,31 @@ export const REFERENCE_RANGE = {
   csoSigned: false,
   needsCsoInput:
     "Conventional adult reference ranges, not a published guideline, and they vary between texts at the margins. A site may hold different local values. CSO to ratify.",
+};
+
+/**
+ * The adolescent bands, and the evidence that they are needed rather than the
+ * numbers themselves.
+ *
+ * Fleming's systematic review is the only source retrieved that speaks to this
+ * age at all, and what it establishes is a NEGATIVE: the cut-offs in the widely
+ * taught paediatric sets misclassify a large fraction of normal children, in
+ * both directions. Its actual centile values live in the paper's figures and in
+ * a supplementary web table, neither of which could be retrieved past the
+ * abstract and the author manuscript, so they are not what is declared below.
+ */
+export const FLEMING_2011_VITALS = {
+  standard: "local" as const,
+  version: "Lancet 2011;377:1011–18 (author manuscript, PMC3789232)",
+  title:
+    "Fleming S, Thompson M, Stevens R, et al. Normal ranges of heart rate and respiratory rate in children from birth to 18 years of age: a systematic review of observational studies",
+  url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC3789232",
+  retrieved: "2026-09-07",
+  csoSigned: false,
+  quote:
+    "In children over 12 years of age, the PALS upper limit of 16 breaths/minute is below the median value on our centile chart for much of this age range. … For example, at the age of ten years, the APLS cut-off for heart rate classifies approximately 40% of normal children as abnormal.",
+  needsCsoInput:
+    "THE NUMBERS BELOW ARE NOT FLEMING'S CENTILES. The centile values sit in the paper's figures and its supplementary web table, and neither was retrievable for this build — only the author manuscript's text, quoted above, which establishes that a band is needed and that the common paediatric cut-offs misclassify normal children. What is declared is therefore a WIDENED conventional envelope, chosen under one rule: an adolescent band may never be narrower than the adult range it replaces, because `ageRefRanges` resolves band-first and a tighter guess would flag normal adolescents as abnormal for every reader of this catalog. A single band across 10–19 years is itself a compromise — a ten-year-old and a nineteen-year-old are not the same physiology. Paediatric early-warning charts were considered and rejected as the source: an early-warning score answers how close a child is to needing review, not whether this pulse is normal, and this file already declines NEWS2 for that reason. CSO to obtain Fleming's table and replace these limits, or to adopt a site scale.",
 };
 
 /** A measurement is a clinical claim about a body; the convention is still ours. */
@@ -163,19 +197,36 @@ export const EXAMINATION_FEATURES: Feature[] = [
     citation: ADA_S10_BP,
   }),
   vital({
+    /**
+     * The adult range stays the default and is unchanged; the adolescent band
+     * is ADDITIVE and resolved band-first (ADR 0083). Only 10–19 is declared —
+     * the younger bands are deferred with the rest of the paediatric increment,
+     * and declaring one without a source would silently replace a defensible
+     * range with a guess for every patient in it.
+     */
     code: "pulse",
     display: "Pulse",
     valueType: "series",
     unit: "bpm",
     refRange: { low: 60, high: 100 },
+    ageRefRanges: [{ band: "adolescent", low: 55, high: 110, citation: FLEMING_2011_VITALS }],
     citation: MEASUREMENT,
   }),
   vital({
+    /**
+     * The one band with a directional argument behind it: Fleming reports that
+     * in children over twelve the PALS upper limit of 16 breaths/min sits BELOW
+     * the median of their chart, so an adolescent breathing faster than an adult
+     * ceiling is not necessarily breathing abnormally. The upper limit is
+     * widened for that reason and the lower one left where the adult range puts
+     * it.
+     */
     code: "respiratory_rate",
     display: "Respiratory rate",
     valueType: "series",
     unit: "breaths/min",
     refRange: { low: 12, high: 20 },
+    ageRefRanges: [{ band: "adolescent", low: 12, high: 24, citation: FLEMING_2011_VITALS }],
     citation: MEASUREMENT,
   }),
   vital({

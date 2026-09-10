@@ -5,7 +5,7 @@
  * Order is deliberate: the acute interlock runs FIRST and is reported first,
  * because a hyperglycaemic emergency is not a row in a chronic review.
  */
-import type { NcdCatalog, SiteProfile, StandardBody } from "@/lib/ncd/catalog/schema";
+import type { AgeBand, NcdCatalog, SiteProfile, StandardBody } from "@/lib/ncd/catalog/schema";
 import type {
   ActiveCaveat,
   AcuteFlag,
@@ -18,6 +18,7 @@ import type {
   PendingOrder,
   TherapyConcern,
 } from "@/lib/ncd/engine/assess";
+import type { DifferentialResult } from "@/lib/ncd/engine/differential";
 import type { CaptureMap } from "@/lib/ncd/engine/evaluate";
 
 import { isPerformable } from "@/lib/ncd/catalog/schema";
@@ -34,6 +35,7 @@ import {
   pendingOrders,
   therapyConcerns,
 } from "@/lib/ncd/engine/assess";
+import { rankDifferential } from "@/lib/ncd/engine/differential";
 
 /**
  * How much of the protocol has actually been done — shown as prominently as the
@@ -79,6 +81,16 @@ export interface NcdProfile {
   caveats: ActiveCaveat[];
   gaps: Gap[];
   completeness: Completeness;
+  /**
+   * The ranked examination differential (ADR 0083) — ordered, traced to the
+   * findings that produced it, and carrying its own confidence.
+   *
+   * Deliberately reported AFTER the protocol verdicts above, and never in place
+   * of them. `diagnosis` and `complications` say what is ESTABLISHED; this says
+   * what to consider. A surface that let the second overwrite the first would be
+   * the autonomous-diagnosis failure this module is built to refuse.
+   */
+  differential: DifferentialResult;
   /** True while any citation in the catalog is unratified. */
   gatedDark: boolean;
 }
@@ -89,9 +101,11 @@ export function buildProfile(args: {
   site: SiteProfile;
   /** Set when the patient already carries the diagnosis — skips re-adjudication. */
   established?: boolean;
+  /** The patient's life stage. Absent leaves every finding and rule in scope. */
+  ageBand?: AgeBand;
 }): NcdProfile {
   const { catalog, values, site } = args;
-  const ctx = ncdContext(catalog, values, site);
+  const ctx = { ...ncdContext(catalog, values, site), ageBand: args.ageBand };
 
   const acute = acuteInterlock(catalog, ctx);
   const diagnosis = diagnose(catalog, ctx, { established: args.established });
@@ -117,6 +131,7 @@ export function buildProfile(args: {
     caveats: activeCaveats(catalog, ctx),
     gaps: gaps(catalog, diagnosis, complications, ctx),
     completeness: completenessOf(catalog, values, site),
+    differential: rankDifferential(catalog, ctx),
     gatedDark: !isFullySigned(catalog),
   };
 }

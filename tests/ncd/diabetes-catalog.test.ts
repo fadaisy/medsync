@@ -76,12 +76,42 @@ describe("diabetes catalog", () => {
     expect(errorsOf(validateCatalog(cat))).toEqual([]);
   });
 
-  // Ships gated dark: every warning should be the unsigned one, nothing else.
-  it("is entirely unsigned, and that is its only warning class", () => {
+  /**
+   * Ships gated dark, so the unsigned warning is expected on every citation.
+   *
+   * ONE other class is tolerated while the catalog is being built out:
+   * `unreachable`, added with the discrimination layer (ADR 0083), which marks
+   * a condition nothing discriminates and no rule names. Tolerated but NOT
+   * ignored — the next test pins exactly which conditions are outstanding, so
+   * the list can only shrink, and a catalog cannot be signed while any remain.
+   * Any THIRD warning class is a failure.
+   */
+  it("warns only about being unsigned, and about conditions nothing can reach yet", () => {
     const warns = validateCatalog(cat).filter((i) => i.severity === "warning");
     expect(warns.length).toBeGreaterThan(0);
-    expect([...new Set(warns.map((w) => w.message))]).toEqual([
-      "not CSO-signed — gated dark until ratified",
+    const classes = [...new Set(warns.map((w) => w.message.split(" — ")[0]))].sort();
+    expect(classes).toEqual(["not CSO-signed", "unreachable"]);
+  });
+
+  /**
+   * The conditions still wired to nothing, named individually so the list is a
+   * ratchet: resolving one means deleting a line here, and adding an
+   * unreachable condition means a failing test rather than a silent warning.
+   *
+   * All five came from splitting an over-coarse `secondary_diabetes`, and each
+   * is either wired to a discriminating finding or removed before sign-off.
+   */
+  it("names every condition still waiting to be wired or removed", () => {
+    const unreachable = validateCatalog(cat)
+      .filter((i) => i.message.startsWith("unreachable"))
+      .map((i) => i.path.replace("conditions.", ""))
+      .sort();
+    expect(unreachable).toEqual([
+      "glucocorticoid_induced_diabetes",
+      "hiv_art_associated_diabetes",
+      "ketosis_prone_type_2_diabetes",
+      "non_diabetic_kidney_disease",
+      "pancreatogenic_diabetes",
     ]);
   });
 

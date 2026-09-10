@@ -23,6 +23,7 @@
  * NOT symmetric — see the comments on each.
  */
 import type {
+  AgeBand,
   Assessed,
   CapabilityCode,
   Citation,
@@ -184,6 +185,16 @@ export interface EvalContext {
   values: CaptureMap;
   features: Map<string, Feature>;
   site: SiteProfile;
+  /**
+   * The patient's life stage, where it is known (ADR 0083).
+   *
+   * OPTIONAL, and the fallbacks are deliberate: an unknown band resolves
+   * age-banded reference ranges to the unbanded `refRange`, and leaves every
+   * age-scoped feature and rule IN scope rather than filtering it out. Guessing
+   * a band would silently narrow what the clinician is shown, and a narrower
+   * examination is the more dangerous error.
+   */
+  ageBand?: AgeBand;
 }
 
 /* ── one predicate ───────────────────────────────────────────────────────── */

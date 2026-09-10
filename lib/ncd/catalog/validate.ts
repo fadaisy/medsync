@@ -712,6 +712,216 @@ export function validateCatalog(catalog: NcdCatalog): ValidationIssue[] {
     );
   }
 
+  /* ── the discrimination layer (ADR 0083) ──────────────────────────────── */
+
+  const conditionCodes = new Set((catalog.conditions ?? []).map((c) => c.code));
+  const complicationCodes = new Set(catalog.complications.map((c) => c.code));
+
+  for (const d of dupes((catalog.conditions ?? []).map((c) => c.code))) {
+    out.push({ severity: "error", path: "conditions", message: `duplicate condition "${d}"` });
+  }
+  for (const d of dupes((catalog.rules ?? []).map((r) => r.id))) {
+    out.push({ severity: "error", path: "rules", message: `duplicate rule "${d}"` });
+  }
+
+  for (const c of catalog.conditions ?? []) {
+    const path = `conditions.${c.code}`;
+    checkCitation(c.citation, `${path}.citation`, out);
+    if (c.complication && !complicationCodes.has(c.complication)) {
+      out.push({
+        severity: "error",
+        path,
+        message: `links to unknown complication "${c.complication}"`,
+      });
+    }
+  }
+
+  for (const f of catalog.features) {
+    const path = `features.${f.code}`;
+
+    /*
+     * The parsimony rule, made enforceable. An examination sign that cannot
+     * move the differential, raise urgency or trigger an action is
+     * documentation — and documentation belongs in the note, not in a catalog
+     * that claims to reason. Scoped to signs that are findings in their own
+     * right: a PROPERTY characterises its parent rather than discriminating,
+     * and an off-protocol note is one the engine is forbidden to read at all.
+     */
+    if (
+      f.section === "examination" &&
+      f.kind === "sign" &&
+      !f.parent &&
+      !f.offProtocol &&
+      !f.discriminates?.length
+    ) {
+      out.push({
+        severity: "error",
+        path,
+        message:
+          "examination sign carries no `discriminates` — a finding that cannot change " +
+          "the picture is documentation, not a catalog entry (ADR 0083)",
+      });
+    }
+
+    for (const [i, d] of (f.discriminates ?? []).entries()) {
+      const dpath = `${path}.discriminates[${i}]`;
+      checkCitation(d.citation, `${dpath}.citation`, out);
+      if (!conditionCodes.has(d.condition)) {
+        out.push({
+          severity: "error",
+          path: dpath,
+          message: `discriminates against unknown condition "${d.condition}"`,
+        });
+      }
+      if (!d.rationale?.trim() || PLACEHOLDER.test(d.rationale.trim())) {
+        out.push({
+          severity: "error",
+          path: dpath,
+          message: "rationale is empty or a placeholder",
+        });
+      }
+      /*
+       * A likelihood ratio is the one number here a reader will take literally,
+       * so it may not enter on a citation nobody can follow. The tier is the
+       * primary datum; an LR is provenance attached to it, and unverifiable
+       * provenance is worse than none.
+       */
+      if (
+        (d.lrPositive != null || d.lrNegative != null) &&
+        !d.citation.url &&
+        !d.citation.needsCsoInput
+      ) {
+        out.push({
+          severity: "error",
+          path: dpath,
+          message: "numeric likelihood ratio with no locatable source — cite it or drop it",
+        });
+      }
+      if (d.strength === "pathognomonic") {
+        out.push({
+          severity: "warning",
+          path: dpath,
+          message:
+            "`pathognomonic` claimed — almost nothing qualifies; confirm this is not merely `strong`",
+        });
+      }
+    }
+
+    if (f.importantNegative) {
+      const npath = `${path}.importantNegative`;
+      checkCitation(f.importantNegative.citation, `${npath}.citation`, out);
+      if (!f.importantNegative.absenceRefutes.length) {
+        out.push({ severity: "error", path: npath, message: "absenceRefutes is empty" });
+      }
+      for (const code of f.importantNegative.absenceRefutes) {
+        if (!conditionCodes.has(code)) {
+          out.push({
+            severity: "error",
+            path: npath,
+            message: `absence refutes unknown condition "${code}"`,
+          });
+        }
+      }
+      // The caveat is what stops "absent" over-reading. Without it the entry is
+      // more dangerous than its absence would be.
+      if (!f.importantNegative.caveat?.trim()) {
+        out.push({ severity: "error", path: npath, message: "caveat is required and empty" });
+      }
+    }
+
+    for (const r of f.ageRefRanges ?? []) {
+      checkCitation(r.citation, `${path}.ageRefRanges.${r.band}.citation`, out);
+    }
+    for (const d of dupes((f.ageRefRanges ?? []).map((r) => r.band))) {
+      out.push({
+        severity: "error",
+        path: `${path}.ageRefRanges`,
+        message: `two ranges declared for band "${d}"`,
+      });
+    }
+  }
+
+  /*
+   * A condition nothing can reach is dead weight, and dead weight in a
+   * differential is the same defect as a finding that only documents: it makes
+   * the list look more capable than it is. Reachability means at least one
+   * finding discriminates it, one finding's absence refutes it, or one rule
+   * names it.
+   *
+   * A WARNING rather than an error, deliberately — a catalog is built in
+   * layers, and the conditions have to land before the findings that reference
+   * them can compile. It becomes visible in the manifest and is cleared before
+   * a catalog is signed.
+   */
+  {
+    const reachable = new Set<string>();
+    for (const f of catalog.features) {
+      (f.discriminates ?? []).forEach((d) => reachable.add(d.condition));
+      (f.importantNegative?.absenceRefutes ?? []).forEach((c) => reachable.add(c));
+    }
+    for (const r of catalog.rules ?? []) {
+      reachable.add(r.condition);
+      (r.rulesOut ?? []).forEach((c) => reachable.add(c));
+    }
+    for (const c of catalog.conditions ?? []) {
+      if (!reachable.has(c.code)) {
+        out.push({
+          severity: "warning",
+          path: `conditions.${c.code}`,
+          message:
+            "unreachable — no finding discriminates it and no rule names it, so it can never be ranked",
+        });
+      }
+    }
+  }
+
+  for (const r of catalog.rules ?? []) {
+    const path = `rules.${r.id}`;
+    checkCitation(r.citation, `${path}.citation`, out);
+    checkCriterion(r.when, `${path}.when`, features, out);
+    if (!conditionCodes.has(r.condition)) {
+      out.push({ severity: "error", path, message: `unknown condition "${r.condition}"` });
+    }
+    for (const code of r.rulesOut ?? []) {
+      if (!conditionCodes.has(code)) {
+        out.push({
+          severity: "error",
+          path,
+          message: `rulesOut names unknown condition "${code}"`,
+        });
+      }
+    }
+    /*
+     * Confirmatory tests are FEATURE CODES, not prose, so the surface can tell
+     * "not done yet" from "cannot be done here" and offer the order. A typo
+     * would silently produce a confirmatory set the clinician can never clear.
+     */
+    for (const code of r.confirmWith) {
+      if (!features.has(code)) {
+        out.push({
+          severity: "error",
+          path,
+          message: `confirmWith names unknown feature "${code}"`,
+        });
+      }
+    }
+    if (!r.confirmWith.length) {
+      out.push({ severity: "error", path, message: "rule states no confirmatory tests" });
+    }
+    /*
+     * Every rule must name what to exclude. A rule that suggests a condition
+     * without saying what else looks like it is the exact shape of an anchoring
+     * error, and ADR 0083 makes the mimic list non-optional for that reason.
+     */
+    if (!r.mimicsToExclude.length) {
+      out.push({
+        severity: "error",
+        path,
+        message: "rule declares no mimicsToExclude (ADR 0083 requires it)",
+      });
+    }
+  }
+
   return out;
 }
 
@@ -756,6 +966,10 @@ export function referencedFeatures(catalog: NcdCatalog): Set<string> {
   (catalog.management ?? []).forEach((m) => {
     add(m.when);
     (m.contraindications ?? []).forEach(add);
+  });
+  (catalog.rules ?? []).forEach((r) => {
+    add(r.when);
+    r.confirmWith.forEach((c) => out.add(c));
   });
   return out;
 }
