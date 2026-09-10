@@ -1,5 +1,5 @@
 import { AGEING, PHYSIOLOGY } from "../../engine/params.ts";
-import { num } from "../../lib/format.ts";
+import { DOT, num } from "../../lib/format.ts";
 import { Part, StageSvg } from "./Part.tsx";
 import { capsuleRadius } from "./visualMapping.ts";
 import { useLiveState, usePulse } from "./useLiveState.ts";
@@ -250,7 +250,7 @@ export function BodyView() {
       </g>
 
       <text x={896} y={404} textAnchor="end" className="fill-[var(--color-muted)] font-mono text-[12px]">
-        day {num(state.tipA.ageDays, 1)} · capsule growth {num(AGEING.capsuleGrowthPerDay * (1 - AGEING.coatEffect), 2)} um/day bare
+        day {num(state.tipA.ageDays, 1)} {DOT} capsule growth {num(AGEING.capsuleGrowthPerDay * (1 - AGEING.coatEffect), 2)} um/day bare
       </text>
     </StageSvg>
   );

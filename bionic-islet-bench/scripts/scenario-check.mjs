@@ -40,7 +40,7 @@ const TITLES = [
 async function loadScenario(title) {
   await page.locator(`section[aria-label="Scenarios"] button:has-text("${title}")`).first().click();
   await page.waitForTimeout(1200);
-  await page.waitForFunction(() => !document.querySelector('[role="status"]'), null, {
+  await page.waitForFunction(() => !document.querySelector("[data-progress]"), null, {
     timeout: 600_000,
   });
   await page.waitForSelector('[aria-label="Scenario result"]', { timeout: 30_000 });
@@ -59,7 +59,7 @@ for (const title of TITLES) {
 // Scenario 3 against scenario 4, side by side.
 await loadScenario("Paracetamol at 14:00");
 await page.getByRole("button", { name: /Compare 3 and 4/ }).click();
-await page.waitForFunction(() => !document.querySelector('[role="status"]'), null, { timeout: 120_000 });
+await page.waitForFunction(() => !document.querySelector("[data-progress]"), null, { timeout: 120_000 });
 await page.waitForSelector("text=The same interferent, twice", { timeout: 30_000 });
 const comparison = await page.locator('[aria-label="Scenario result"]').last().innerText();
 console.log("\nscenario 3 against scenario 4, as the bench shows them:\n");

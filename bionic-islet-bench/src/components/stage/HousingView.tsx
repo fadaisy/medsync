@@ -1,4 +1,4 @@
-import { ARBITRATION_LABEL, num } from "../../lib/format.ts";
+import { ARBITRATION_LABEL, DOT, num } from "../../lib/format.ts";
 import { AUTONOMY_LABEL } from "../../engine/types.ts";
 import { ELECTROCHEMICAL } from "../../engine/params.ts";
 import { Part, StageSvg } from "./Part.tsx";
@@ -135,7 +135,7 @@ export function HousingView() {
         y={110}
         number="13"
         name="Microcontroller"
-        value={`A ${num(state.readingA.glucose)} · B ${num(state.readingB.glucose)} mmol/L`}
+        value={`A ${num(state.readingA.glucose)} ${DOT} B ${num(state.readingB.glucose)} mmol/L`}
         detail="Applies the inverse models and the drift corrections, and produces two glucose values with an uncertainty each. It does not decide anything: that is the supervisor's job, on its own core."
         accent="#0d9488"
       >

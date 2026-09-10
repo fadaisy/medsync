@@ -83,7 +83,7 @@ console.log("\nthree ages:");
 async function loadScenario(title) {
   await page.locator(`section[aria-label="Scenarios"] button:has-text("${title}")`).first().click();
   await page.waitForTimeout(1200);
-  await page.waitForFunction(() => !document.querySelector('[role="status"]'), null, {
+  await page.waitForFunction(() => !document.querySelector("[data-progress]"), null, {
     timeout: 600_000,
   });
 }

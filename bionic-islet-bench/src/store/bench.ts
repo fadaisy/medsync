@@ -65,12 +65,21 @@ type BenchStore = {
   changeEnvelope: (envelope: Partial<Envelope>, actor: string) => void;
 };
 
-let worker: Worker | null = null;
+/**
+ * The simulation host, which is either a Web Worker or the same module running
+ * on this thread. The single-file preview build has no separate worker file to
+ * fetch and may not be allowed to spawn one, so it runs the host in process.
+ * Nothing else in the bench can tell the difference.
+ */
+let send: (message: ToWorker) => void = () => {};
+let connected = false;
 let publishHandle: ReturnType<typeof setInterval> | null = null;
 
 function sendToWorker(message: ToWorker): void {
-  worker?.postMessage(message);
+  send(message);
 }
+
+const RUN_IN_PROCESS = import.meta.env.VITE_INLINE_HOST === "1";
 
 export const useBench = create<BenchStore>((set, get) => ({
   connected: false,
@@ -85,10 +94,10 @@ export const useBench = create<BenchStore>((set, get) => ({
   tick: 0,
 
   connect: () => {
-    if (worker) return;
-    worker = new Worker(new URL("../worker/sim.worker.ts", import.meta.url), { type: "module" });
-    worker.onmessage = (message: MessageEvent<FromWorker>) => {
-      const data = message.data;
+    if (connected) return;
+    connected = true;
+
+    const receive = (data: FromWorker) => {
       if (data.type === "snapshot") {
         applySnapshot(data.snapshot);
         if (data.snapshot.running !== get().running) set({ running: data.snapshot.running });
@@ -102,7 +111,21 @@ export const useBench = create<BenchStore>((set, get) => ({
         set({ connected: true });
       }
     };
-    sendToWorker({ type: "init", seed: get().seed });
+
+    if (RUN_IN_PROCESS) {
+      void import("../worker/simHost.ts").then((host) => {
+        host.setPost(receive);
+        send = (message) => host.handle(message);
+        sendToWorker({ type: "init", seed: get().seed });
+      });
+    } else {
+      const worker = new Worker(new URL("../worker/sim.worker.ts", import.meta.url), {
+        type: "module",
+      });
+      worker.onmessage = (message: MessageEvent<FromWorker>) => receive(message.data);
+      send = (message) => worker.postMessage(message);
+      sendToWorker({ type: "init", seed: get().seed });
+    }
 
     // Publish to React at 10 Hz. The canvas does not go through here.
     publishHandle ??= setInterval(() => {

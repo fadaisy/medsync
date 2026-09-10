@@ -230,45 +230,83 @@ requests and stores nothing. Serve it from any static host, or open
 `dist/index.html` over `file://` if your browser allows module workers from
 that origin (most do not, so a static server is easier).
 
-### Vercel
+### On the MedSync deployment, at /bioniccell
 
-The bench is a **separate Vercel project from the MedSync application**. The
-`vercel.json` at the repository root configures the Next.js app and its cron
-jobs; the one in this directory configures the bench. Running `vercel` from the
-repository root would deploy MedSync, not this.
+This is how the bench is actually shipped. It rides on the existing MedSync
+Vercel project rather than a separate one, so it is on the same domain, the
+same branch previews and the same deployment as the hospital application:
 
-From this directory:
+```
+https://<any medsync deployment>/bioniccell
+```
+
+Three pieces make that work, all in the repository root:
+
+| Piece | What it does |
+| --- | --- |
+| `public/bioniccell/` | the built bench, committed as static files |
+| `next.config.ts` rewrite | `/bioniccell` serves `/bioniccell/index.html`, so the bare path works |
+| `proxy.ts` matcher | excludes `/bioniccell`, so it is never auth-gated and pays no cookie refresh |
+
+The bench build for this route uses `--base=/bioniccell/`, so its assets and
+its worker resolve from an absolute path. That matters: with a relative base
+the page served at `/bioniccell` asks for `/assets/...` and gets nothing.
+
+**The MedSync build does not build the bench.** A broken bench build would
+otherwise take the hospital application down with it. The built output is
+committed, and regenerated deliberately:
+
+```bash
+npm run bench:embed     # from the repository root: build the bench, copy it into public/
+```
+
+Run that whenever the bench changes, and commit what it produces.
+
+### As its own Vercel project
+
+Also supported, if you would rather it had its own domain. `vercel.json` in
+this directory configures it; deploy from here, not from the repository root,
+which would deploy the Next.js application instead:
 
 ```bash
 cd bionic-islet-bench
-npx vercel login            # once
-npx vercel                  # preview deployment
-npx vercel --prod           # production
+npx vercel --prod
 ```
 
-The first `vercel` run asks whether to link to an existing project; answer no
-and let it create one. It reads `vercel.json` here, so it will not ask about
-the framework, the build command or the output directory.
+| Setting | Value |
+| --- | --- |
+| Framework | Vite |
+| Root directory | `bionic-islet-bench` |
+| Install command | `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm install` |
+| Build command | `npm run build` |
+| Output directory | `dist` |
 
-To connect it to the Git repository instead, create a **new** Vercel project
-from `justfadhul/medsync` and set **Root Directory** to `bionic-islet-bench`
-in the project settings. Vercel only reads this `vercel.json` once the root
-directory points here.
+The install command matters: the check scripts depend on Playwright, whose
+postinstall would otherwise download a browser onto the builder for no reason.
 
-| Setting | Value | Why |
-| --- | --- | --- |
-| Framework | Vite | |
-| Root directory | `bionic-islet-bench` | the repository root is the Next.js app |
-| Install command | `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm install` | the check scripts depend on Playwright, whose postinstall would otherwise download a browser onto the builder for no reason |
-| Build command | `npm run build` | typechecks, then builds |
-| Output directory | `dist` | |
+### A single self-contained page
 
-Verified from a clean checkout of the committed tree: install 13 s, build 7 s,
-identical hashed assets, and the resulting `dist/` serves and runs with zero
-axe-core violations and full keyboard operation.
+```bash
+npm run build:single      # dist-single/bench-preview.html
+```
 
-There are no environment variables and no secrets. If a deployment ever asks
-for one, something is wrong.
+One HTML file, about 370 kB, with the stylesheet, the bundle and the favicon
+inlined and no external request of any kind. Useful for embedding the bench
+somewhere that will not run a build, or for handing someone a copy that works
+from a file.
+
+The difference from the production build is where the simulation loop runs.
+The normal build puts it in a Web Worker; the single-file build runs it on the
+main thread, because a page embedded under a strict content policy may not be
+allowed to spawn a worker at all. Both use the same `src/worker/simHost.ts`,
+and all nine scenarios produce identical numbers either way. At 1440 times real
+time the engine costs under 2 ms of processor time per wall-clock second, so
+the main thread carries it without dropping a frame.
+
+One thing does not survive the move: a page embedded in a sandboxed frame
+cannot hand the viewer a file, so the comma-separated export writes its row
+count to the screen but the file does not reach the disk. It works normally in
+the production build.
 
 ### Before you put it on a public URL
 

@@ -134,7 +134,7 @@ await sample("day 0, unannounced on top");
 // merely for its name to appear on a button in the control rail.
 await page.locator('section[aria-label="Scenarios"] button:has-text("Six months in")').first().click();
 await page.waitForTimeout(1000);
-await page.waitForFunction(() => !document.querySelector('[role="status"]'), null, { timeout: 300_000 });
+await page.waitForFunction(() => !document.querySelector("[data-progress]"), null, { timeout: 300_000 });
 await sample("day 181");
 
 await browser.close();

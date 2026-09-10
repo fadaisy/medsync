@@ -114,5 +114,11 @@ export async function proxy(request: NextRequest): Promise<NextResponse> {
 
 export const config = {
   // Skip static assets, _next internals, the Sentry tunnel, and favicon.
-  matcher: ["/((?!_next|monitoring|favicon|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
+  //
+  // /bioniccell is excluded too: it is the sensor bench, a self-contained
+  // static build under public/ with no session, no Supabase call and no
+  // clinical data. Excluding it here means neither the page nor any of its
+  // assets pays for a cookie refresh, and it can never be caught by a future
+  // change to the gating rules above.
+  matcher: ["/((?!_next|monitoring|favicon|bioniccell|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
 };

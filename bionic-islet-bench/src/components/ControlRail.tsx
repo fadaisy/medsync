@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 import { SCENARIOS } from "../engine/scenarios.ts";
 import type { SimEvent } from "../engine/types.ts";
-import { num } from "../lib/format.ts";
+import { DOT, num } from "../lib/format.ts";
 import { benchData } from "../store/benchData.ts";
 import { useBench } from "../store/bench.ts";
 import { EnvelopePanel } from "./EnvelopePanel.tsx";
@@ -196,7 +196,7 @@ export function ControlRail() {
         {state ? (
           <p className="tabular mt-1 text-micro text-muted">
             {num(benchData.achievedRate, 0)} of {bench.speed} simulated s per wall s
-            {" · "}
+            {` ${DOT} `}
             engine {num(benchData.stepBudgetUs, 2)} us per simulated second
           </p>
         ) : null}

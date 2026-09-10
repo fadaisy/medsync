@@ -498,3 +498,111 @@ looking. On completion the worker now writes one line into the event log with
 time in range, time below 3.9, the fused difference against plasma, the alert
 count, minutes at reduced autonomy, minutes suspended, total insulin, capsule
 thickness, photobleaching and enzyme activity.
+
+---
+
+## 29. The simulation host is separate from the worker
+
+`sim.worker.ts` held all the logic and reached for `self.postMessage`, which
+tied the simulation to running inside a Web Worker. That was fine until the
+bench needed to be embedded in a page that may not be permitted to spawn one.
+
+The logic moved to `src/worker/simHost.ts`, which knows nothing about workers:
+it takes a `post` callback and exposes `handle(message)`. `sim.worker.ts` is
+now four lines connecting it to a worker, and the store picks a host from a
+build flag. Nothing else in the bench can tell the difference, and all nine
+scenarios produce identical numbers either way.
+
+Two things this exposed, both fixed:
+
+- `import.meta.env["VITE_INLINE_HOST"]` with a bracket is **not** statically
+  replaced by Vite; only dot access is. The branch that should have been dead
+  in the production build survived, and the whole engine was bundled a second
+  time into the main chunk, 33 kB of it. `src/vite-env.d.ts` declares the flag
+  so dot access typechecks.
+- Vite's worker plugin emits a worker file whenever it sees the
+  `new Worker(new URL(...))` pattern in the source, even when that branch has
+  been removed. `scripts/build-single.mjs` therefore asserts that the assembled
+  bundle contains no `new Worker(` and no relative module import, rather than
+  trusting that the emitted file is unused.
+
+---
+
+## 30. The source is pure ASCII
+
+The single-file page carries no charset declaration of its own, because
+whatever embeds it supplies one. A literal middle dot, which the design system
+uses as a separator between related values, was decoded as Latin-1 and rendered
+as two wrong characters.
+
+Two changes, either of which would have been enough, both kept because they
+protect against different failures: the separator is now a single exported
+constant written as an escape, so no source file contains a byte outside ASCII;
+and the preview build sets `esbuild.charset: "ascii"`, so anything non-ASCII
+that arrives later through a dependency is escaped on the way out. The
+assembled page is checked for non-ASCII bytes after every build.
+
+---
+
+## 31. The export says how many rows it wrote
+
+A page embedded in a sandboxed frame cannot hand the viewer a file. The
+comma-separated export was therefore a control that did nothing at all in that
+setting, with no error and no explanation.
+
+The fix was not to couple the bench to whichever host is embedding it. The
+control now reports what it produced, which is useful in every setting: in the
+production build the file lands and the count confirms it, and in an embedded
+copy the count is the only thing that happens, which is at least honest.
+
+---
+
+## 32. The bench ships on the MedSync deployment, at /bioniccell
+
+Not as its own Vercel project. It is committed as static files under
+`public/bioniccell/`, a rewrite in `next.config.ts` makes the bare
+`/bioniccell` path work, and the `proxy.ts` matcher excludes it so it is never
+auth-gated.
+
+**The MedSync build deliberately does not build the bench.** Chaining them
+would mean a broken bench build takes the hospital application's deployment
+down with it, which is a bad trade for a demonstration tool. The built output
+is committed instead, and `npm run bench:embed` at the repository root
+regenerates it.
+
+Committing build output is normally a smell. Here it buys isolation between a
+product deployment and a demonstration, and the alternative was worse.
+
+### The bug this nearly shipped with
+
+The first attempt built the bench with Vite's `base: "./"`, which is right for
+a page served from a directory root. Served through the rewrite, the page is at
+`/bioniccell` with no trailing slash, so `./assets/index.js` resolves against
+`/` and asks for `/assets/index.js`, which does not exist. The page returned
+200, the HTML was correct, every asset was individually fetchable at its real
+path, and the application never mounted.
+
+Only loading the page through the actual Next server caught it. Fetching the
+assets directly, which is what a naive check would have done, passed.
+
+The embedded build now uses `--base=/bioniccell/` and the favicon uses Vite's
+`%BASE_URL%` placeholder so it follows the same base. The standalone build
+still uses `./` and still works from a domain root.
+
+---
+
+## 33. Two live regions, and a check that assumed one
+
+The progress bar and the export confirmation are both `role="status"` live
+regions, which is correct HTML: they announce different things.
+
+The browser checks, though, waited for a scenario to finish loading by polling
+`!document.querySelector('[role="status"]')`. Adding the second live region
+made that selector always match, so the checks hung for their full ten minute
+timeout on the first scenario, and the first failure looked like the engine
+refactor had broken the worker.
+
+The progress bar now carries `data-progress` and the checks wait on that. The
+lesson is about the checks rather than the page: a probe that keys off a role
+shared by any other element is a probe that will break for a reason unrelated
+to what it is testing.

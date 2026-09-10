@@ -29,6 +29,13 @@ const FILTERS: Array<{ id: LogStream | "all"; label: string }> = [
 export function EventLog() {
   useBench((s) => s.tick);
   const [filter, setFilter] = useState<LogStream | "all">("all");
+  /**
+   * What the last export produced. Some hosts, including an embedded preview
+   * in a sandboxed frame, refuse a download a page starts for itself. Saying
+   * how many rows were written means the control is never silent, whether or
+   * not the file reaches the disk.
+   */
+  const [exported, setExported] = useState<string | null>(null);
 
   const entries = useMemo(() => {
     const all = benchData.log;
@@ -45,6 +52,7 @@ export function EventLog() {
         return `${e.t},${logTime(e.t)},${e.stream},${e.code},${message}`;
       })
       .join("\n");
+    const rows = benchData.log.length;
     const blob = new Blob([header, body], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -52,6 +60,8 @@ export function EventLog() {
     link.download = "bionic-islet-bench-log.csv";
     link.click();
     URL.revokeObjectURL(url);
+    setExported(`${rows.toLocaleString("en-GB")} row${rows === 1 ? "" : "s"}`);
+    window.setTimeout(() => setExported(null), 6000);
   };
 
   return (
@@ -86,6 +96,9 @@ export function EventLog() {
           >
             Export comma-separated
           </button>
+          <span role="status" aria-live="polite" className="text-micro text-muted">
+            {exported ? `${exported} written` : ""}
+          </span>
         </div>
       </header>
 

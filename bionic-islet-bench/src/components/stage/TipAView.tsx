@@ -1,5 +1,5 @@
 import { AGEING, SENSING } from "../../engine/params.ts";
-import { num } from "../../lib/format.ts";
+import { DOT, num } from "../../lib/format.ts";
 import { Part, StageSvg } from "./Part.tsx";
 import { useLiveState, usePulse, useReducedMotion } from "./useLiveState.ts";
 import {
@@ -228,8 +228,8 @@ export function TipAView() {
       />
 
       <text x={40} y={396} className="fill-[var(--color-muted)] font-mono text-[12px]">
-        local glucose {num(tip.localGlucose)} mmol/L · docking every {num(dockPeriod, 2)} s · day {num(tip.ageDays, 1)}
-        {state.mannitolOn ? " · mannitol present, read as glucose" : ""}
+        local glucose {num(tip.localGlucose)} mmol/L {DOT} docking every {num(dockPeriod, 2)} s {DOT} day {num(tip.ageDays, 1)}
+        {state.mannitolOn ? ` ${DOT} mannitol present, read as glucose` : ""}
       </text>
       {reduced ? (
         <text x={880} y={396} textAnchor="end" className="fill-[var(--color-muted)] font-mono text-[12px]">

@@ -1,5 +1,15 @@
 /** Formatting helpers. British English, units always shown. */
 
+/**
+ * The separator the design system uses between related values.
+ *
+ * Written as an escape rather than the literal character so that every source
+ * file stays pure ASCII. The single-file preview build has no charset
+ * declaration of its own, because the page embedding it supplies one, and a
+ * literal middle dot decoded as Latin-1 renders as two wrong characters.
+ */
+export const DOT = "\u00B7";
+
 import type { ArbitrationState, AutonomyLevel } from "../engine/types.ts";
 
 /** Simulated seconds since implant, as "Day 3, 14:07". */

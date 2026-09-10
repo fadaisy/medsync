@@ -102,6 +102,7 @@ function ProgressBar() {
     <div
       role="status"
       aria-live="polite"
+      data-progress
       className="border-b border-edge bg-[#0f1728] px-3 py-1.5 text-micro text-muted"
     >
       <span className="mr-2 text-[#cfd8e6]">{progress.label}</span>

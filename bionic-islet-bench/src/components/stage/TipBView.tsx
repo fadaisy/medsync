@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 import { AGEING, ELECTROCHEMICAL, PHYSIOLOGY } from "../../engine/params.ts";
-import { num } from "../../lib/format.ts";
+import { DOT, num } from "../../lib/format.ts";
 import { Part, StageSvg } from "./Part.tsx";
 import { useLiveState, usePulse, useReducedMotion } from "./useLiveState.ts";
 import { crossingPeriodSeconds, electronPeriodSeconds, tipCapsuleRadius } from "./visualMapping.ts";
@@ -292,9 +292,9 @@ export function TipBView() {
       </g>
 
       <text x={X.fluidStart} y={408} className="fill-[var(--color-muted)] font-mono text-[12px]">
-        glucose crossing every {num(crossPeriod, 2)} s · electron arriving every {num(electronPeriod, 3)} s · day{" "}
+        glucose crossing every {num(crossPeriod, 2)} s {DOT} electron arriving every {num(electronPeriod, 3)} s {DOT} day{" "}
         {num(tip.ageDays, 1)}
-        {interferent ? " · interferent present, read as glucose" : ""}
+        {interferent ? ` ${DOT} interferent present, read as glucose` : ""}
       </text>
       {reduced ? (
         <text x={880} y={408} textAnchor="end" className="fill-[var(--color-muted)] font-mono text-[12px]">
