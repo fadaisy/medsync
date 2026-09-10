@@ -340,6 +340,62 @@ export const DIFFUSIVITY_TABLE = {
     ESTIMATE,
     "Before rejection. The rejection factors below do most of the work.",
   ),
+  glucoseInnerMembrane: k(
+    "D_G,inner",
+    diffusivity(5.0e-13),
+    "m2/s",
+    ESTIMATE,
+    "The permselective film is not built to pass a sugar and does not. Glucose never needs to reach the platinum.",
+  ),
+  oxygenInnerMembrane: k(
+    "D_O2,inner",
+    diffusivity(8.0e-11),
+    "m2/s",
+    ESTIMATE,
+    "Oxygen crosses this film too, which matters because the electrode gives oxygen back.",
+  ),
+  peroxideCapsule: k(
+    "D_H2O2,capsule",
+    diffusivity(8.0e-10),
+    "m2/s",
+    ESTIMATE,
+    "Whatever peroxide escapes outward crosses the capsule.",
+  ),
+  peroxideFouling: k(
+    "D_H2O2,foul",
+    diffusivity(6.0e-10),
+    "m2/s",
+    ESTIMATE,
+    "And the protein film before it.",
+  ),
+  interferentCapsule: k(
+    "D_I,capsule",
+    diffusivity(1.5e-10),
+    "m2/s",
+    ESTIMATE,
+    "Paracetamol and ascorbate through the fibrous capsule.",
+  ),
+  interferentFouling: k(
+    "D_I,foul",
+    diffusivity(1.0e-10),
+    "m2/s",
+    ESTIMATE,
+    "And through the adsorbed protein film.",
+  ),
+  interferentOuterMembrane: k(
+    "D_I,outer",
+    diffusivity(5.0e-12),
+    "m2/s",
+    ESTIMATE,
+    "Sixteen times faster than glucose through the same film, because a small neutral aromatic is far more at home in a hydrophobic polymer than a sugar is. This is why the glucose-limiting membrane does not limit paracetamol.",
+  ),
+  interferentEnzymeLayer: k(
+    "D_I,enz",
+    diffusivity(5.0e-10),
+    "m2/s",
+    ESTIMATE,
+    "Through the crosslinked protein gel.",
+  ),
 } as const;
 
 export const DIFF = values(DIFFUSIVITY_TABLE);
@@ -506,6 +562,32 @@ export const PARTITION_TABLE = {
     "-",
     ESTIMATE,
     "Before the explicit rejection factors. Charge and size exclusion together.",
+  ),
+  glucoseInnerMembrane: k(
+    "K_G,inner",
+    fraction(0.05),
+    "-",
+    ESTIMATE,
+    "A sugar is not welcome in a permselective film.",
+  ),
+  oxygenInnerMembrane: k("K_O2,inner", fraction(0.8), "-", ESTIMATE, "Oxygen is, as usual."),
+  peroxideCapsule: k("K_H2O2,capsule", fraction(0.85), "-", ESTIMATE, "As water, near enough."),
+  peroxideFouling: k("K_H2O2,foul", fraction(0.6), "-", ESTIMATE, "Protein takes up rather less."),
+  interferentFouling: k("K_I,foul", fraction(0.5), "-", ESTIMATE, "As glucose through the same film."),
+  interferentOuterMembrane: k(
+    "K_I,outer",
+    fraction(0.4),
+    "-",
+    ESTIMATE,
+    "Nearly three times the glucose figure. Hydrophobic membranes dissolve neutral aromatics readily, and that is the whole of the paracetamol problem.",
+  ),
+  interferentEnzymeLayer: k("K_I,enz", fraction(0.9), "-", ESTIMATE, "As water."),
+  gluconateOuterMembrane: k(
+    "K_gluc,outer",
+    fraction(0.05),
+    "-",
+    ESTIMATE,
+    "Gluconate is anionic at pH 7.4, so the membrane excludes it even more firmly than the glucose it came from. That is why the acid builds up inside.",
   ),
 } as const;
 
@@ -774,6 +856,13 @@ export const ENZYME_TABLE = {
     "D-glucono-1,5-lactone hydrolysis at neutral pH, standard carbohydrate chemistry",
     "Seven minutes. Slow enough that the lactone accumulates locally and acidifies the layer.",
   ),
+  bufferCapacity: k(
+    "beta_buf",
+    molPerM3(30),
+    "mol/(m3 pH)",
+    "Bicarbonate and protein buffering of interstitial fluid, physiology reference range",
+    "How much acid the enzyme layer absorbs per unit of pH. Sets how far the gluconic acid moves the local pH.",
+  ),
 } as const;
 
 export const ENZ = values(ENZYME_TABLE);
@@ -852,6 +941,20 @@ export const ELECTRODE_TABLE = {
     "-",
     "Paracetamol oxidation to the quinone imine",
     "Two electrons.",
+  ),
+  standardChloride: k(
+    "a_Cl,std",
+    molPerM3(1000),
+    "mol/m3",
+    "Definition, the one molar standard state",
+    "The activity the silver chloride standard potential is quoted against.",
+  ),
+  oxygenPerPeroxide: k(
+    "n_O2",
+    1,
+    "-",
+    "Stoichiometry of peroxide oxidation",
+    "H2O2 gives back one O2 for each one the enzyme consumed. The electrode is an oxygen source, which is why oxygen limitation is milder than a supply calculation alone suggests.",
   ),
   electronsPerAscorbate: k(
     "n_asc",
@@ -939,6 +1042,13 @@ export const IMPEDANCE_TABLE = {
     "Definition",
     "What a fractured lead reads.",
   ),
+  probeFrequency: k(
+    "f_probe",
+    1000,
+    "Hz",
+    "Definition, matching the bench's impedance sweep",
+    "The single frequency the bench's health check reads. The model computes the whole spectrum; this is the point on it the instrument reports.",
+  ),
 } as const;
 
 export const IMP = values(IMPEDANCE_TABLE);
@@ -982,6 +1092,13 @@ export const SOLVER_TABLE = {
     "m",
     "Definition",
     "A layer that is currently absent, such as fouling on a clean probe, is kept in the stack at this thickness so the grid stays the same shape. Its transport resistance is then seven orders below the layers that matter, which a test checks.",
+  ),
+  activityFloor: k(
+    "a_min",
+    fraction(1.0e-6),
+    "-",
+    "Definition",
+    "A Nernst potential is a logarithm, so an activity is clamped above zero. A reference this far gone has already run away; the clamp only stops the arithmetic, not the failure.",
   ),
   geometryRebuildTolerance: k(
     "eps_geom",
