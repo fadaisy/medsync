@@ -221,9 +221,18 @@ function factoryCalibration(): { slope: number; intercept: number } {
  * Settled fields, keyed by the conditions that produced them.
  *
  * Every bench engine starts from the same place, so the first one pays for the
- * steady-state solve and the rest start from its answer and converge on the
- * first Newton iteration. The key carries everything the solve depends on, so
- * a hit returns the field the solve would have returned.
+ * steady-state solve and the rest are handed its answer.
+ *
+ * A hit **replaces** the solve rather than warm starting it. That is not an
+ * optimisation detail, it is the difference between a cache and a bug: Newton
+ * stops when its update falls below a tolerance, so a solve started from a
+ * warm guess lands a few parts in ten thousand million from one started cold.
+ * Both are converged and neither is wrong, but it made the engine's output
+ * depend on whether another engine had been built first, and a bench that is
+ * not reproducible is not a bench. Copying the stored field is exact.
+ *
+ * The key carries everything the steady state depends on, so a hit returns the
+ * field the solve would have returned for those conditions.
  */
 const settledCache = new Map<string, { optical: Float64Array[]; enzymatic: Float64Array[] }>();
 
@@ -293,7 +302,7 @@ export class BenchProbes {
     const key = settleKey(inputs);
     const warm = settledCache.get(key);
     if (warm) this.optical.restore(warm.optical);
-    this.optical.settle(opticalEnv);
+    else this.optical.settle(opticalEnv);
 
     this.enzymatic = new EnzymaticProbe(
       {
@@ -304,7 +313,7 @@ export class BenchProbes {
       enzymaticEnv,
     );
     if (warm) this.enzymatic.restore(warm.enzymatic);
-    this.enzymatic.settle(enzymaticEnv);
+    else this.enzymatic.settle(enzymaticEnv);
     if (!warm) {
       settledCache.set(key, {
         optical: this.optical.snapshot(),
