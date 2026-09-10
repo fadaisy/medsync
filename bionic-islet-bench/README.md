@@ -230,9 +230,54 @@ requests and stores nothing. Serve it from any static host, or open
 `dist/index.html` over `file://` if your browser allows module workers from
 that origin (most do not, so a static server is easier).
 
-The honesty strip is not configurable and cannot be dismissed. If you are
-publishing this anywhere someone might mistake it for a product, leave it
-alone.
+### Vercel
+
+The bench is a **separate Vercel project from the MedSync application**. The
+`vercel.json` at the repository root configures the Next.js app and its cron
+jobs; the one in this directory configures the bench. Running `vercel` from the
+repository root would deploy MedSync, not this.
+
+From this directory:
+
+```bash
+cd bionic-islet-bench
+npx vercel login            # once
+npx vercel                  # preview deployment
+npx vercel --prod           # production
+```
+
+The first `vercel` run asks whether to link to an existing project; answer no
+and let it create one. It reads `vercel.json` here, so it will not ask about
+the framework, the build command or the output directory.
+
+To connect it to the Git repository instead, create a **new** Vercel project
+from `justfadhul/medsync` and set **Root Directory** to `bionic-islet-bench`
+in the project settings. Vercel only reads this `vercel.json` once the root
+directory points here.
+
+| Setting | Value | Why |
+| --- | --- | --- |
+| Framework | Vite | |
+| Root directory | `bionic-islet-bench` | the repository root is the Next.js app |
+| Install command | `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm install` | the check scripts depend on Playwright, whose postinstall would otherwise download a browser onto the builder for no reason |
+| Build command | `npm run build` | typechecks, then builds |
+| Output directory | `dist` | |
+
+Verified from a clean checkout of the committed tree: install 13 s, build 7 s,
+identical hashed assets, and the resulting `dist/` serves and runs with zero
+axe-core violations and full keyboard operation.
+
+There are no environment variables and no secrets. If a deployment ever asks
+for one, something is wrong.
+
+### Before you put it on a public URL
+
+The honesty strip is not configurable and cannot be dismissed. Leave it alone.
+
+`public/robots.txt` currently allows crawling. This is a simulation of a device
+that does not exist, dressed as an instrument panel; if the URL is public and
+you would rather it did not turn up in search results, change that `Allow` to
+`Disallow` before deploying.
 
 ---
 
