@@ -65,15 +65,15 @@ export function MonthView({
               aria-label={d.toLocaleDateString(undefined, { dateStyle: "full" })}
               onClick={() => onDayClick(d)}
               className={cn(
-                "border-border/60 group hover:bg-muted/40 flex flex-col items-stretch gap-1 border-t border-l p-1.5 text-left transition-colors first:border-l-0 focus-visible:ring-2 focus-visible:ring-teal-500/40 focus-visible:outline-none",
+                "border-border/60 group hover:bg-muted/40 focus-visible:ring-brand-500/40 flex flex-col items-stretch gap-1 border-t border-l p-1.5 text-left transition-colors first:border-l-0 focus-visible:ring-2 focus-visible:outline-none",
                 !inMonth && "bg-muted/20",
               )}
             >
               <span
                 className={cn(
-                  "inline-flex h-5 w-5 items-center justify-center self-start rounded-full font-mono text-[11px] tabular-nums",
+                  "text-caption inline-flex h-5 w-5 items-center justify-center self-start rounded-full font-mono tabular-nums",
                   today
-                    ? "bg-teal-600 text-white"
+                    ? "bg-brand-600 text-white"
                     : inMonth
                       ? "text-foreground"
                       : "text-muted-foreground/60",
@@ -127,7 +127,7 @@ function tonePill(status: string): string {
   const tone = STATUS_TONES[status] ?? "pending";
   if (tone === "completed" || tone === "cancelled") return "bg-muted text-muted-foreground/80";
   if (tone === "confirmed")
-    return "bg-teal-100/70 text-teal-800 dark:bg-teal-900/40 dark:text-teal-200";
+    return "bg-brand-100/70 text-brand-800 dark:bg-brand-900/40 dark:text-brand-200";
   if (tone === "arrived")
     return "bg-blue-100/70 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200";
   if (tone === "no_show")

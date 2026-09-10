@@ -233,9 +233,9 @@ function ReasonStep({
                 aria-pressed={selected}
                 className={cn(
                   "border-border flex w-full items-start gap-3 rounded-xl border p-4 text-left transition-colors outline-none",
-                  "focus-visible:ring-2 focus-visible:ring-teal-500/40",
+                  "focus-visible:ring-brand-500/40 focus-visible:ring-2",
                   selected
-                    ? "border-teal-500 bg-teal-50/60 dark:border-teal-400 dark:bg-teal-950/30"
+                    ? "border-brand-500 bg-brand-50/60 dark:border-brand-400 dark:bg-brand-950/30"
                     : "hover:bg-muted/40",
                 )}
               >
@@ -244,7 +244,7 @@ function ReasonStep({
                   className={cn(
                     "mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full border-2 transition-colors",
                     selected
-                      ? "border-teal-600 bg-teal-600 dark:border-teal-400 dark:bg-teal-400"
+                      ? "border-brand-600 bg-brand-600 dark:border-brand-400 dark:bg-brand-400"
                       : "border-muted-foreground/40",
                   )}
                 >
@@ -272,9 +272,9 @@ function ReasonStep({
           rows={3}
           maxLength={500}
           placeholder="e.g. The chest pain comes on after climbing stairs."
-          className="border-border text-foreground placeholder:text-muted-foreground min-h-[80px] resize-y rounded-md border bg-transparent px-3 py-2 text-[14px] leading-relaxed outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40"
+          className="border-border text-foreground placeholder:text-muted-foreground focus-visible:ring-brand-500/40 min-h-[80px] resize-y rounded-md border bg-transparent px-3 py-2 text-[14px] leading-relaxed outline-none focus-visible:ring-2"
         />
-        <p className="text-muted-foreground text-[11px]">{note.length} / 500</p>
+        <p className="text-muted-foreground text-caption">{note.length} / 500</p>
       </div>
     </div>
   );
@@ -311,15 +311,15 @@ function ClinicianStep({
                     disabled={!hasOpenSlots}
                     className={cn(
                       "border-border flex w-full items-center gap-3 rounded-xl border p-4 text-left transition-colors outline-none",
-                      "focus-visible:ring-2 focus-visible:ring-teal-500/40 disabled:opacity-60",
+                      "focus-visible:ring-brand-500/40 focus-visible:ring-2 disabled:opacity-60",
                       selected
-                        ? "border-teal-500 bg-teal-50/60 dark:border-teal-400 dark:bg-teal-950/30"
+                        ? "border-brand-500 bg-brand-50/60 dark:border-brand-400 dark:bg-brand-950/30"
                         : "hover:bg-muted/40",
                     )}
                   >
                     <span
                       aria-hidden
-                      className="inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-teal-50 text-teal-700 ring-1 ring-teal-200/70 dark:bg-teal-950/40 dark:text-teal-300 dark:ring-teal-800/40"
+                      className="bg-brand-50 text-brand-700 ring-brand-200/70 dark:bg-brand-950/40 dark:text-brand-300 dark:ring-brand-800/40 inline-flex size-9 shrink-0 items-center justify-center rounded-full ring-1"
                     >
                       <StethoscopeIcon className="size-4" />
                     </span>
@@ -334,7 +334,10 @@ function ClinicianStep({
                       </span>
                     </span>
                     {selected ? (
-                      <CheckIcon aria-hidden className="size-4 text-teal-600 dark:text-teal-400" />
+                      <CheckIcon
+                        aria-hidden
+                        className="text-brand-600 dark:text-brand-400 size-4"
+                      />
                     ) : null}
                   </button>
                 </li>
@@ -383,7 +386,7 @@ function SlotStep({
           min={minDate}
           max={maxDate}
           onChange={(e) => onDateChange(e.target.value)}
-          className="border-border text-foreground rounded-md border bg-transparent px-3 py-2 text-[14px] outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40"
+          className="border-border text-foreground focus-visible:ring-brand-500/40 rounded-md border bg-transparent px-3 py-2 text-[14px] outline-none focus-visible:ring-2"
         />
       </div>
 
@@ -429,9 +432,9 @@ function SlotStep({
                     aria-pressed={selected}
                     className={cn(
                       "border-border w-full rounded-md border px-2 py-2 font-mono text-[12.5px] tabular-nums transition-colors outline-none",
-                      "focus-visible:ring-2 focus-visible:ring-teal-500/40",
+                      "focus-visible:ring-brand-500/40 focus-visible:ring-2",
                       selected
-                        ? "border-teal-500 bg-teal-500 text-white dark:border-teal-400 dark:bg-teal-400 dark:text-teal-950"
+                        ? "border-brand-500 bg-brand-500 dark:border-brand-400 dark:bg-brand-400 dark:text-brand-950 text-white"
                         : "hover:bg-muted/40 text-foreground",
                     )}
                   >
@@ -465,13 +468,13 @@ function TypeButton({
       aria-pressed={active}
       className={cn(
         "border-border flex flex-col items-start gap-0.5 rounded-md border p-3 text-left transition-colors outline-none",
-        "focus-visible:ring-2 focus-visible:ring-teal-500/40",
+        "focus-visible:ring-brand-500/40 focus-visible:ring-2",
         active
-          ? "border-teal-500 bg-teal-50/60 dark:border-teal-400 dark:bg-teal-950/30"
+          ? "border-brand-500 bg-brand-50/60 dark:border-brand-400 dark:bg-brand-950/30"
           : "hover:bg-muted/40",
       )}
     >
-      <span className="text-foreground text-[13px] font-medium">{label}</span>
+      <span className="text-foreground text-body-s font-medium">{label}</span>
       <span className="text-muted-foreground text-[11.5px]">{hint}</span>
     </button>
   );
@@ -494,7 +497,7 @@ function ConfirmStep({
 }) {
   if (!clinician || !slot || !reason) {
     return (
-      <p className="text-muted-foreground text-[13px]">Go back and fill in any missing pieces.</p>
+      <p className="text-muted-foreground text-body-s">Go back and fill in any missing pieces.</p>
     );
   }
   const r = REASONS.find((x) => x.value === reason);

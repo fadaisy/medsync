@@ -36,7 +36,7 @@ export interface RecDecisionRecord {
 const SEAM_BADGE: Record<Recommendation["seam"], { label: string; cls: string }> = {
   live: {
     label: "live",
-    cls: "bg-teal-50 text-teal-700 dark:bg-teal-950/30 dark:text-teal-300",
+    cls: "bg-mint-50 text-mint-700 dark:bg-mint-950/30 dark:text-mint-300",
   },
   pending_intent: {
     label: "workflow to follow",
@@ -163,7 +163,7 @@ function RecCard({
     <li
       className={cn(
         "border-border bg-card rounded-2xl border p-3.5 transition-colors",
-        decided === "accepted" && "border-teal-500/40 bg-teal-50/30 dark:bg-teal-950/15",
+        decided === "accepted" && "border-mint-500/40 bg-mint-50/30 dark:bg-mint-950/15",
         decided === "dismissed" && "opacity-55",
         decided === "modified" && "border-amber-400/40 bg-amber-50/30 dark:bg-amber-950/15",
       )}
@@ -194,14 +194,14 @@ function RecCard({
               onChange={(e) => setDraft(e.target.value)}
               rows={2}
               autoFocus
-              className="border-input bg-background mt-0.5 rounded-md border p-2 text-[12.5px] outline-none focus-visible:border-teal-500"
+              className="border-input bg-background focus-visible:border-mint-500 mt-0.5 rounded-md border p-2 text-[12.5px] outline-none"
             />
           ) : (
             <p className="text-foreground text-[12.5px] leading-snug font-medium">
               {state.note ?? rec.suggestion}
             </p>
           )}
-          <p className="text-muted-foreground text-[11px] leading-relaxed">{rec.rationale}</p>
+          <p className="text-muted-foreground text-caption leading-relaxed">{rec.rationale}</p>
           <p className="text-muted-foreground/60 text-[10px] leading-relaxed italic">
             {rec.source}
           </p>
@@ -213,7 +213,7 @@ function RecCard({
             key={decided}
             className={cn(
               "scale-in shrink-0 font-mono text-[9.5px] font-semibold tracking-wide uppercase",
-              decided === "accepted" && "text-teal-700 dark:text-teal-300",
+              decided === "accepted" && "text-mint-700 dark:text-mint-300",
               decided === "dismissed" && "text-muted-foreground",
               decided === "modified" && "text-amber-700 dark:text-amber-300",
             )}
@@ -233,7 +233,7 @@ function RecCard({
                 onDecision("modified", draft.trim() || rec.suggestion);
                 setEditing(false);
               }}
-              className="tap inline-flex items-center gap-1 rounded-md bg-amber-500 px-2.5 py-1 text-[11px] font-semibold text-white transition-colors hover:bg-amber-600"
+              className="tap text-caption inline-flex items-center gap-1 rounded-md bg-amber-500 px-2.5 py-1 font-semibold text-white transition-colors hover:bg-amber-600"
             >
               <CheckIcon className="size-3" aria-hidden />
               Save change
@@ -244,7 +244,7 @@ function RecCard({
                 setDraft(state.note ?? rec.suggestion);
                 setEditing(false);
               }}
-              className="text-muted-foreground hover:text-foreground px-2 py-1 text-[11px]"
+              className="text-muted-foreground hover:text-foreground text-caption px-2 py-1"
             >
               Cancel
             </button>
@@ -292,7 +292,7 @@ function CtlButton({
 }) {
   const toneCls =
     tone === "teal"
-      ? "border-teal-500/50 bg-teal-50 text-teal-700 dark:bg-teal-950/30 dark:text-teal-300"
+      ? "border-mint-500/50 bg-mint-50 text-mint-700 dark:bg-mint-950/30 dark:text-mint-300"
       : tone === "amber"
         ? "border-amber-400/50 bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-300"
         : "border-border bg-muted/40 text-muted-foreground";
@@ -301,7 +301,7 @@ function CtlButton({
       type="button"
       onClick={onClick}
       className={cn(
-        "tap inline-flex items-center gap-1 rounded-md border px-2 py-1 text-[11px] font-medium transition-colors",
+        "tap text-caption inline-flex items-center gap-1 rounded-md border px-2 py-1 font-medium transition-colors",
         active
           ? toneCls
           : "border-border text-muted-foreground hover:text-foreground hover:bg-muted/40",

@@ -30,7 +30,7 @@ export function ClinicalBadge({ status, className, children, ...props }: Clinica
       data-status={status}
       className={cn(
         "inline-flex items-center justify-center px-2.5 py-0.5",
-        "text-[11px] leading-[1.4] font-medium",
+        "text-caption leading-[1.4] font-medium",
         "rounded-[5px]",
         statusStyles[status],
         className,

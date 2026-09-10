@@ -126,8 +126,8 @@ export function DateRangePicker({
                 "ease-expo-out duration-150",
                 "disabled:pointer-events-none disabled:opacity-50",
                 isActive
-                  ? "border-teal-500 bg-teal-50/60 text-teal-900 dark:border-teal-400 dark:bg-teal-50/15 dark:text-teal-200"
-                  : "border-input bg-card text-muted-foreground hover:text-foreground hover:border-teal-300",
+                  ? "border-brand-500 bg-brand-50/60 text-brand-900 dark:border-brand-400 dark:bg-brand-50/15 dark:text-brand-200"
+                  : "border-input bg-card text-muted-foreground hover:text-foreground hover:border-brand-300",
               )}
             >
               {p.label}
@@ -149,8 +149,8 @@ export function DateRangePicker({
         className={cn(
           "border-input bg-card text-foreground flex w-full items-stretch overflow-hidden rounded-sm border",
           "ease-expo-out transition-all duration-150",
-          "focus-within:border-teal-500 focus-within:shadow-[0_0_0_2px_rgba(20,184,166,0.15)]",
-          "dark:focus-within:border-teal-400 dark:focus-within:shadow-[0_0_0_2px_rgba(45,212,191,0.2)]",
+          "focus-within:border-brand-500 focus-within:shadow-[0_0_0_2px_rgba(20,184,166,0.15)]",
+          "dark:focus-within:border-brand-400 dark:focus-within:shadow-[0_0_0_2px_rgba(45,212,191,0.2)]",
           invalid &&
             "border-destructive bg-alert-bg shadow-[0_0_0_2px_rgba(220,38,38,0.1)] dark:shadow-[0_0_0_2px_rgba(252,165,165,0.1)]",
           disabled && "bg-muted pointer-events-none cursor-not-allowed opacity-50",
@@ -171,7 +171,7 @@ export function DateRangePicker({
           disabled={disabled}
           onChange={(e) => setFrom(e.target.value)}
           aria-label="From date"
-          className="min-w-0 flex-1 bg-transparent px-2.5 py-2 text-[13px] tabular-nums outline-none"
+          className="text-body-s min-w-0 flex-1 bg-transparent px-2.5 py-2 tabular-nums outline-none"
         />
         <span aria-hidden="true" className="text-muted-foreground flex shrink-0 items-center">
           —
@@ -185,7 +185,7 @@ export function DateRangePicker({
           disabled={disabled}
           onChange={(e) => setTo(e.target.value)}
           aria-label="To date"
-          className="min-w-0 flex-1 bg-transparent px-2.5 py-2 text-[13px] tabular-nums outline-none"
+          className="text-body-s min-w-0 flex-1 bg-transparent px-2.5 py-2 tabular-nums outline-none"
         />
       </div>
 

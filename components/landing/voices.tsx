@@ -51,17 +51,17 @@ export function Voices() {
       <div className="mx-auto w-full max-w-300 px-5 py-20 sm:px-8 sm:py-28">
         <RevealOnScroll className="mb-10 flex flex-col gap-4">
           <span className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
-            <span className="pulse-dot size-1 rounded-full bg-teal-500" />
+            <span className="pulse-dot bg-brand-500 size-1 rounded-full" />
             What we kept hearing
           </span>
           <h2
             id="voices-headline"
-            className="font-display text-foreground text-[30px] leading-[1.1] tracking-[-0.025em] text-balance sm:text-[44px]"
+            className="font-display text-foreground sm:text-display-m text-[30px] leading-[1.1] tracking-[-0.025em] text-balance"
             style={{ fontWeight: 400 }}
           >
             Three problems we couldn&rsquo;t put down.
           </h2>
-          <p className="text-muted-foreground max-w-[64ch] text-[15px] leading-[1.55] sm:text-[17px]">
+          <p className="text-muted-foreground text-body-m sm:text-body-l max-w-[64ch] leading-[1.55]">
             Said often enough, in wards, OPD clinics, and discharge lounges across Mulago and
             Wakiso, that MedSync exists in their answer. No testimonials — only the lines we wrote
             on the way home.
@@ -81,23 +81,23 @@ export function Voices() {
                         "border-border bg-muted/40 text-muted-foreground border font-mono text-[10px] tracking-[0.16em] uppercase",
                       )}
                     >
-                      <span className="size-1 rounded-full bg-teal-500" />
+                      <span className="bg-brand-500 size-1 rounded-full" />
                       {v.pillar}
                     </span>
                     <blockquote
-                      className="font-display text-foreground text-[22px] leading-[1.18] tracking-[-0.02em] text-balance italic sm:text-[28px]"
+                      className="font-display text-foreground text-heading-m sm:text-heading-l leading-[1.18] tracking-[-0.02em] text-balance italic"
                       style={{ fontWeight: 400 }}
                     >
                       <span
                         aria-hidden
-                        className="text-teal-500/60 select-none dark:text-teal-400/60"
+                        className="text-brand-500/60 dark:text-brand-400/60 select-none"
                       >
                         &ldquo;
                       </span>
                       {v.short}
                       <span
                         aria-hidden
-                        className="text-teal-500/60 select-none dark:text-teal-400/60"
+                        className="text-brand-500/60 dark:text-brand-400/60 select-none"
                       >
                         &rdquo;
                       </span>
@@ -115,7 +115,7 @@ export function Voices() {
                   <div className="border-border bg-muted/30 border-t p-5 md:col-span-5 md:border-t-0 md:border-l md:p-6">
                     <span className="text-muted-foreground mb-3 inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
                       What it looks like
-                      <span className="pulse-dot size-1 rounded-full bg-teal-500" />
+                      <span className="pulse-dot bg-brand-500 size-1 rounded-full" />
                     </span>
                     <v.Surface />
                   </div>
@@ -248,7 +248,7 @@ function CoordinationSurface() {
             <span
               className={cn(
                 "mt-1 size-1.5 shrink-0 rounded-full",
-                entry.tone === "teal" && "bg-teal-500",
+                entry.tone === "teal" && "bg-brand-500",
                 entry.tone === "violet" && "bg-status-discharged-fg",
                 entry.tone === "neutral" && "bg-muted-foreground/60",
               )}

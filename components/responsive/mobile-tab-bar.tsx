@@ -81,8 +81,8 @@ export function MobileTabBar({
                 aria-current={isActive ? "page" : undefined}
                 className={cn(
                   "group flex flex-col items-center gap-0.5 rounded-md px-2 py-1.5 transition-colors outline-none",
-                  "focus-visible:ring-2 focus-visible:ring-teal-500/40",
-                  isActive ? "text-teal-700 dark:text-teal-300" : "text-muted-foreground",
+                  "focus-visible:ring-brand-500/40 focus-visible:ring-2",
+                  isActive ? "text-brand-700 dark:text-brand-300" : "text-muted-foreground",
                 )}
               >
                 <span className="relative">
@@ -93,7 +93,7 @@ export function MobileTabBar({
                   {item.badgeCount && item.badgeCount > 0 ? (
                     <span
                       aria-label={`${item.badgeCount} new`}
-                      className="absolute -top-1 -right-2 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-teal-600 px-1 font-mono text-[9.5px] font-semibold text-white tabular-nums"
+                      className="bg-brand-600 absolute -top-1 -right-2 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 font-mono text-[9.5px] font-semibold text-white tabular-nums"
                     >
                       {item.badgeCount > 9 ? "9+" : item.badgeCount}
                     </span>

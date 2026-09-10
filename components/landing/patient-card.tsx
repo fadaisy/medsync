@@ -36,7 +36,7 @@ export function PatientCard() {
           {/* Soft halo behind the card */}
           <div
             aria-hidden
-            className="pointer-events-none absolute -inset-x-8 inset-y-0 -z-10 [background:radial-gradient(ellipse_at_center,oklch(0.92_0.06_180/0.35),transparent_60%)] dark:[background:radial-gradient(ellipse_at_center,oklch(0.45_0.08_180/0.18),transparent_65%)]"
+            className="pointer-events-none absolute -inset-x-8 inset-y-0 -z-10 [background:radial-gradient(ellipse_at_center,oklch(0.92_0.06_286/0.35),transparent_60%)] dark:[background:radial-gradient(ellipse_at_center,oklch(0.45_0.08_286/0.18),transparent_65%)]"
           />
 
           <RevealOnScroll>
@@ -64,7 +64,7 @@ export function PatientCard() {
 
 function CardChrome() {
   return (
-    <div className="border-border bg-muted/40 flex flex-wrap items-center justify-between gap-2 border-b px-4 py-2 text-[11px] sm:px-5">
+    <div className="border-border bg-muted/40 text-caption flex flex-wrap items-center justify-between gap-2 border-b px-4 py-2 sm:px-5">
       <div className="flex items-center gap-2">
         <span className="text-muted-foreground font-mono tracking-[0.15em] uppercase">
           app.medsync.health
@@ -81,11 +81,11 @@ function CardChrome() {
         <span
           className={cn(
             "inline-flex items-center gap-1.5 rounded-full px-2 py-0.5",
-            "border border-teal-300 bg-teal-50 font-mono text-[9.5px] tracking-[0.18em] text-teal-800 uppercase",
-            "dark:border-teal-700 dark:bg-teal-50/10 dark:text-teal-200",
+            "border-brand-300 bg-brand-50 text-brand-800 border font-mono text-[9.5px] tracking-[0.18em] uppercase",
+            "dark:border-brand-700 dark:bg-brand-50/10 dark:text-brand-200",
           )}
         >
-          <span className="size-1.5 rounded-full bg-teal-500" />
+          <span className="bg-brand-500 size-1.5 rounded-full" />
           Illustrative &middot; sample
         </span>
       </div>
@@ -103,7 +103,7 @@ function CardHeader() {
         <p className="text-muted-foreground font-mono text-[10px] tracking-[0.18em] uppercase">
           Patient &middot; MS-00184
         </p>
-        <h3 className="font-display text-foreground text-[28px] leading-[1.05] font-medium sm:text-[32px]">
+        <h3 className="font-display text-foreground text-heading-l leading-[1.05] font-medium sm:text-[32px]">
           Amina N.
         </h3>
         <p className="text-muted-foreground text-[12.5px]">
@@ -142,10 +142,10 @@ function CardHeader() {
           <span className="size-1.5 rounded-full bg-current" />
           Admitted
         </span>
-        <p className="text-muted-foreground text-right text-[11px]">
+        <p className="text-muted-foreground text-caption text-right">
           Primary &middot; Dr. Usama Fadhul
         </p>
-        <p className="text-muted-foreground inline-flex items-center gap-1 text-right text-[11px]">
+        <p className="text-muted-foreground text-caption inline-flex items-center gap-1 text-right">
           <PhoneIcon className="size-3" strokeWidth={1.75} />
           Last seen on app &middot; 06:31 today
         </p>
@@ -256,7 +256,7 @@ function VitalsColumn() {
           <span className="text-muted-foreground tabular font-mono text-[10.5px]">mmol/L</span>
         </div>
         <GlucoseTrend />
-        <div className="mt-2 grid grid-cols-3 gap-2 text-[11px]">
+        <div className="text-caption mt-2 grid grid-cols-3 gap-2">
           <KV k="Latest" v="14.2" tone="alert" />
           <KV k="Mean 7d" v="9.9" />
           <KV k="Target" v="4–10" />
@@ -271,7 +271,7 @@ function VitalsColumn() {
           <span className="text-muted-foreground tabular font-mono text-[10.5px]">mmHg</span>
         </div>
         <BpBars />
-        <div className="mt-2 grid grid-cols-3 gap-2 text-[11px]">
+        <div className="text-caption mt-2 grid grid-cols-3 gap-2">
           <KV k="Latest" v="152/94" tone="alert" />
           <KV k="Mean 7d" v="142/88" />
           <KV k="Target" v="<140/90" />
@@ -308,7 +308,7 @@ function MedicationsColumn() {
                 </span>
               ) : null}
             </div>
-            <p className="text-muted-foreground tabular text-[11px]">
+            <p className="text-muted-foreground tabular text-caption">
               {m.dose} &middot; {m.freq}
             </p>
             {"adherence" in m ? (
@@ -320,7 +320,7 @@ function MedicationsColumn() {
                       m.adherence >= 90
                         ? "bg-status-stable-fg"
                         : m.adherence >= 75
-                          ? "bg-teal-500"
+                          ? "bg-brand-500"
                           : "bg-status-caution-fg",
                     )}
                     style={{ width: `${m.adherence}%` }}
@@ -415,7 +415,7 @@ function GlucoseTrend() {
         y={bandTop}
         width={width}
         height={bandBottom - bandTop}
-        className="fill-teal-100/60 dark:fill-teal-50/10"
+        className="fill-brand-100/60 dark:fill-brand-50/10"
       />
       <polyline
         points={points}
@@ -459,7 +459,7 @@ function BpBars() {
             width={barWidth}
             height={heightPx}
             rx={1}
-            className={aboveTarget ? "fill-status-critical-fg/70" : "fill-teal-500/60"}
+            className={aboveTarget ? "fill-status-critical-fg/70" : "fill-brand-500/60"}
           />
         );
       })}
@@ -558,13 +558,13 @@ function TimelineDot({ state }: { state: "done" | "active" | "future" }) {
     <span
       className={cn(
         "mt-0.5 inline-flex size-3 shrink-0 items-center justify-center rounded-full",
-        state === "done" && "bg-teal-500 text-white",
-        state === "active" && "bg-background ring-2 ring-teal-500",
+        state === "done" && "bg-brand-500 text-white",
+        state === "active" && "bg-background ring-brand-500 ring-2",
         state === "future" && "bg-muted ring-border ring-1",
       )}
     >
       {state === "active" ? (
-        <span className="size-1.5 animate-pulse rounded-full bg-teal-500 motion-reduce:animate-none" />
+        <span className="bg-brand-500 size-1.5 animate-pulse rounded-full motion-reduce:animate-none" />
       ) : null}
     </span>
   );
@@ -641,7 +641,7 @@ function CareTeam() {
               className={cn(
                 "tabular inline-flex size-7 items-center justify-center rounded-full text-[10.5px] font-medium",
                 p.tone === "teal" &&
-                  "bg-teal-100 text-teal-800 dark:bg-teal-50/15 dark:text-teal-200",
+                  "bg-brand-100 text-brand-800 dark:bg-brand-50/15 dark:text-brand-200",
                 p.tone === "violet" && "bg-status-discharged-bg text-status-discharged-fg",
                 p.tone === "amber" && "bg-status-caution-bg text-status-caution-fg",
                 p.tone === "neutral" && "bg-muted text-muted-foreground",
@@ -651,7 +651,7 @@ function CareTeam() {
             </span>
             <div className="flex flex-col">
               <span className="text-foreground text-[12.5px] font-medium">{p.name}</span>
-              <span className="text-muted-foreground text-[11px]">{p.role}</span>
+              <span className="text-muted-foreground text-caption">{p.role}</span>
             </div>
           </li>
         ))}
@@ -706,12 +706,12 @@ function AuditTrail() {
 
 function CardFooter() {
   return (
-    <footer className="bg-muted/30 flex flex-wrap items-center justify-between gap-2 px-5 py-3 text-[11px] sm:px-6">
+    <footer className="bg-muted/30 text-caption flex flex-wrap items-center justify-between gap-2 px-5 py-3 sm:px-6">
       <span className="text-muted-foreground">
         Every line on this card is sample data &mdash; no real patient, no real identifiers.
       </span>
       <span className="text-muted-foreground tabular inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
-        <span className="pulse-dot size-1 rounded-full bg-teal-500" />
+        <span className="pulse-dot bg-brand-500 size-1 rounded-full" />
         Live sync &middot; last 4 s
       </span>
     </footer>

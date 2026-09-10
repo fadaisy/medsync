@@ -121,7 +121,7 @@ function QueueChip({ row, variant }: { row: QueueRow; variant: "waiting" | "bein
         "border-border flex items-start gap-2 rounded-md border px-2.5 py-2 transition-colors duration-200",
         variant === "being_seen" && "border-blue-500/40 bg-blue-50/40 dark:bg-blue-950/15",
         isUrgent && variant === "waiting" && "border-rose-500/40 bg-rose-50/40 dark:bg-rose-950/15",
-        !isUrgent && variant === "waiting" && "hover:border-gray-300 hover:bg-teal-50/30",
+        !isUrgent && variant === "waiting" && "hover:bg-brand-50/30 hover:border-gray-300",
       )}
     >
       <span aria-hidden className="text-muted-foreground font-mono text-[10.5px] tabular-nums">
@@ -139,9 +139,9 @@ function QueueChip({ row, variant }: { row: QueueRow; variant: "waiting" | "bein
           {formatRelative(row.arrivedAtIso)} · {KIND_LABEL[row.kind] ?? row.kind}
         </span>
         {row.notes ? (
-          <span className="text-muted-foreground/90 text-[11px] italic">{row.notes}</span>
+          <span className="text-muted-foreground/90 text-caption italic">{row.notes}</span>
         ) : null}
-        {error ? <span className="text-destructive scale-in text-[11px]">{error}</span> : null}
+        {error ? <span className="text-destructive scale-in text-caption">{error}</span> : null}
       </div>
       {variant === "waiting" ? (
         <Button
@@ -212,7 +212,7 @@ function RecordWalkinForm({ onSuccess }: { onSuccess: () => void }) {
   return (
     <form action={submit} className="flex flex-col gap-4">
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="patient_user_id" className="text-[11px] tracking-tight">
+        <Label htmlFor="patient_user_id" className="text-caption tracking-tight">
           Patient ID (UUID)
         </Label>
         <Input
@@ -222,14 +222,14 @@ function RecordWalkinForm({ onSuccess }: { onSuccess: () => void }) {
           required
           className="font-mono text-[12px]"
         />
-        <p className="text-muted-foreground text-[11px] leading-relaxed">
+        <p className="text-muted-foreground text-caption leading-relaxed">
           Paste the patient&rsquo;s UUID for now — the picker ships with the patient-directory
           polish pass.
         </p>
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="walkin-notes" className="text-[11px] tracking-tight">
+        <Label htmlFor="walkin-notes" className="text-caption tracking-tight">
           Notes (optional)
         </Label>
         <Input
@@ -248,7 +248,7 @@ function RecordWalkinForm({ onSuccess }: { onSuccess: () => void }) {
           className="mt-0.5 size-4 accent-rose-600"
         />
         <span className="flex flex-1 flex-col">
-          <span className="text-foreground text-[13px] font-medium">Mark as urgent</span>
+          <span className="text-foreground text-body-s font-medium">Mark as urgent</span>
           <span className="text-muted-foreground text-[11.5px]">
             Walks the queue to the front and flags the entry rose. Use sparingly.
           </span>
@@ -256,7 +256,7 @@ function RecordWalkinForm({ onSuccess }: { onSuccess: () => void }) {
       </label>
 
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="walkin-reason" className="text-[11px] tracking-tight">
+        <Label htmlFor="walkin-reason" className="text-caption tracking-tight">
           Reason (audited · ≥ 8 chars)
         </Label>
         <Input

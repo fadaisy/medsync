@@ -84,7 +84,7 @@ export function TimeGrid({
             <span
               className={cn(
                 "inline-flex h-6 w-6 items-center justify-center rounded-full font-mono text-[12px] tabular-nums",
-                isToday(d) ? "bg-teal-600 text-white" : "text-foreground",
+                isToday(d) ? "bg-brand-600 text-white" : "text-foreground",
               )}
             >
               {d.getDate()}
@@ -126,7 +126,7 @@ export function TimeGrid({
                 key={keyOf(d)}
                 className={cn(
                   "border-border/60 relative border-l first:border-l-0",
-                  isCurrent && "bg-teal-50/20 dark:bg-teal-950/10",
+                  isCurrent && "bg-brand-50/20 dark:bg-brand-950/10",
                 )}
               >
                 {/* Hour grid lines */}
@@ -169,7 +169,7 @@ export function TimeGrid({
                       type="button"
                       onClick={() => onEventClick?.(ev)}
                       className={cn(
-                        "absolute right-0.5 left-0.5 z-10 flex flex-col gap-0.5 overflow-hidden rounded-[3px] px-1.5 py-1 text-left text-[10.5px] shadow-sm transition-shadow hover:shadow-md focus-visible:ring-2 focus-visible:ring-teal-500/40 focus-visible:outline-none",
+                        "focus-visible:ring-brand-500/40 absolute right-0.5 left-0.5 z-10 flex flex-col gap-0.5 overflow-hidden rounded-[3px] px-1.5 py-1 text-left text-[10.5px] shadow-sm transition-shadow hover:shadow-md focus-visible:ring-2 focus-visible:outline-none",
                         STATUS_BLOCK_CLASSES[STATUS_TONES[ev.status] ?? "pending"],
                         ev.priority === "urgent" && "ring-1 ring-rose-500/70",
                       )}
@@ -178,7 +178,7 @@ export function TimeGrid({
                       <span className="font-mono text-[10px] tabular-nums">
                         {formatTime(ev.startsAt)}
                       </span>
-                      <span className="truncate text-[11px] leading-tight font-medium">
+                      <span className="text-caption truncate leading-tight font-medium">
                         {ev.patientName}
                       </span>
                     </button>
@@ -193,8 +193,8 @@ export function TimeGrid({
                     aria-hidden
                   >
                     <div className="relative">
-                      <div className="absolute -left-1 size-2 -translate-y-1/2 rounded-full bg-teal-600" />
-                      <div className="h-px bg-teal-600" />
+                      <div className="bg-brand-600 absolute -left-1 size-2 -translate-y-1/2 rounded-full" />
+                      <div className="bg-brand-600 h-px" />
                     </div>
                   </div>
                 ) : null}

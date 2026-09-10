@@ -1,25 +1,22 @@
 import type { PatientSummary } from "@/lib/doctor/patient-access";
+import type { CaptureMap } from "@/lib/ncd/engine/evaluate";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { eq } from "drizzle-orm";
-import { AlertTriangleIcon, ArrowLeftIcon, ClockIcon } from "lucide-react";
+import { AlertTriangleIcon, ArrowLeftIcon } from "lucide-react";
 
 import { db } from "@/db";
 import { encounters } from "@/db/schema/scheduling";
-import { loadClerkshipDraft } from "@/lib/clerkship/drafts";
 import { fetchPatientSummaryAudited } from "@/lib/doctor/patient-access";
 import { requireDoctorScope } from "@/lib/doctor/scope";
-import { ClerkshipInputSchema, clerkshipInputToClerkship } from "@/lib/encounter/clerkship-input";
-import {
-  clerkshipAgentConfig,
-  clerkshipDraftsLive,
-  encounterEngineLive,
-} from "@/lib/encounter/feature";
-import { loadEncounterOrders } from "@/lib/encounter/orders";
+import { encounterEngineLive, ncdClerkshipLive } from "@/lib/encounter/feature";
 import { loadEncounterRecord } from "@/lib/encounter/record";
 import { toEncounterScope } from "@/lib/encounter/workspace-scope";
-import { ClerkshipForm } from "./_components/clerkship-form";
-import { InvestigationsPanel } from "./_components/investigations-panel";
+import { DIABETES_CATALOG, DISTRICT_SITE, REFERRAL_SITE } from "@/lib/ncd/catalog/diabetes";
+import { loadNcdDraft } from "@/lib/ncd/draft";
+import { initialCapture, loadLatestVitals, loadPatientDemographics } from "@/lib/ncd/vitals";
+import { NcdClerkship } from "./_components/ncd-clerkship";
+import { saveNcdDraftAction } from "./actions";
 
 export const metadata: Metadata = { title: "Encounter · Doctor · MedSync" };
 export const dynamic = "force-dynamic";
@@ -41,6 +38,17 @@ export default async function DoctorEncounterPage({ params }: PageProps) {
         />
       </Wrap>
     );
+  }
+
+  /**
+   * Bound to this encounter, so the action the client can call cannot be aimed
+   * at another one. It still re-checks the caller's scope on the server — a
+   * server action is a public endpoint and the closure is convenience, not
+   * security.
+   */
+  async function saveDraft(values: CaptureMap) {
+    "use server";
+    return saveNcdDraftAction(encounterId, values);
   }
 
   const [enc] = await db
@@ -88,25 +96,36 @@ export default async function DoctorEncounterPage({ params }: PageProps) {
 
   const doc = record.documentation;
 
-  // W3 — if a working draft exists (autosaved after the last explicit save), offer
-  // it as the form's initial state, rehydrated through the same input mapper. The
-  // form shows a "recovered draft" banner so it's clearly unsaved. Gated/dark.
-  const draftsEnabled = clerkshipDraftsLive();
-  let initial = record.clerkship;
-  let recoveredDraftAt: string | null = null;
-  if (draftsEnabled) {
-    const draft = await loadClerkshipDraft(encounterId, scope.userId);
-    if (draft) {
-      const parsed = ClerkshipInputSchema.safeParse(draft.payload);
-      if (parsed.success) {
-        initial = clerkshipInputToClerkship(parsed.data);
-        recoveredDraftAt = draft.updatedAt.toISOString();
-      }
-    }
-  }
-
-  // W4 — investigations & results visibility (read-only; reuses the spine).
-  const orders = await loadEncounterOrders(encounterId);
+  // Undefined when the flag is off, the migration is un-applied, or there is
+  // simply no draft — all three are the same honest empty state to the form.
+  const vitals = ncdClerkshipLive()
+    ? await loadLatestVitals(enc.patientUserId, DIABETES_CATALOG)
+    : undefined;
+  /**
+   * Demographics the chart already holds. The waist bands are sex-specific and
+   * WHO's anaemia cutoffs are too, so the alternative to reading it here is
+   * asking a clinician for something the record knows — which is how a form
+   * earns the reputation of wasting time.
+   *
+   * Read from the profile column DIRECTLY, not from `patient` above. That
+   * summary decrypts the name, the phone and the address, and returns null if
+   * any of them fails — so an unreadable name took the sex down with it, and
+   * the examination asked for a demographic sitting in plaintext one table
+   * away. Nothing a reference scale needs should ride on a decrypt.
+   *
+   * The date of birth now comes across too, as a LIFE STAGE rather than a
+   * number (ADR 0083). It is read in the same query and from the same kind of
+   * plaintext column, and it scopes age-specific findings and reference bands.
+   * The band is deliberately allowed to be absent: an unknown stage leaves
+   * everything in scope, where a guessed one would quietly narrow the
+   * examination.
+   */
+  const demographics = ncdClerkshipLive()
+    ? await loadPatientDemographics(enc.patientUserId)
+    : { values: {} as CaptureMap };
+  const draft = ncdClerkshipLive()
+    ? await loadNcdDraft(encounterId, scope.userId, DIABETES_CATALOG)
+    : undefined;
 
   return (
     <div className="bg-background text-foreground relative isolate flex min-h-svh flex-col">
@@ -127,86 +146,74 @@ export default async function DoctorEncounterPage({ params }: PageProps) {
             Clinical documentation
           </span>
           <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <h1 className="font-display text-foreground text-[22px] leading-[1.1] font-medium tracking-[-0.015em]">
+            <h1 className="font-display text-foreground text-heading-m leading-[1.1] font-medium tracking-[-0.015em]">
               {enc.encounterType} · {enc.state}
             </h1>
-            <p className="text-muted-foreground font-mono text-[11px] tabular-nums">
+            <p className="text-muted-foreground text-caption font-mono tabular-nums">
               Started {enc.startedAt.toISOString().slice(0, 16).replace("T", " ")}
               {doc ? ` · documentation v${doc.version} (${doc.status})` : " · no documentation yet"}
             </p>
           </div>
         </header>
 
-        {/* Documentation entry — full-bleed workspace; the clerkship agent surfaces
-            decision-support inline (gated dark via clerkshipAgentConfig). */}
-        <ClerkshipForm
-          encounterId={encounterId}
-          initial={initial}
-          draftsEnabled={draftsEnabled}
-          recoveredDraftAt={recoveredDraftAt}
-          agentConfig={clerkshipAgentConfig()}
-          demographics={{
-            ageYears: patient ? computeAgeYears(patient.dateOfBirth) : null,
-            sex: patient?.sex ?? null,
-          }}
-        />
+        {/* The NCD clerkship (ADR 0082). Gated by NCD_CLERKSHIP_LIVE; the
+            criteria carry their own sign-off state, and the profile shows a
+            gated-dark notice while any citation is unratified — so the surface
+            can be reviewed without any part of it claiming to be ratified
+            clinical advice.
 
-        {/* Investigations & results (read-only visibility) */}
-        <InvestigationsPanel orders={orders} />
-
-        {/* Timeline */}
-        <section className="border-border bg-card flex flex-col gap-3 rounded-xl border p-4 shadow-xs">
-          <h2 className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10.5px] tracking-[0.14em] uppercase">
-            <ClockIcon className="size-3.5" aria-hidden />
-            Timeline
-          </h2>
-          {record.timeline.length === 0 ? (
-            <div className="flex flex-col items-center gap-2 py-5 text-center">
-              {/* Quiet timeline glyph — dots waiting on a dashed line */}
-              <svg
-                width="72"
-                height="32"
-                viewBox="0 0 72 32"
-                fill="none"
-                aria-hidden
-                className="text-gray-300 dark:text-gray-700"
-              >
-                <path
-                  d="M6 16h60"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                  strokeLinecap="round"
-                  strokeDasharray="3 4"
-                />
-                <circle cx="18" cy="16" r="3" fill="currentColor" />
-                <circle cx="36" cy="16" r="3" className="fill-teal-500/70" />
-                <circle cx="54" cy="16" r="3" fill="currentColor" />
-              </svg>
-              <p className="text-muted-foreground text-[12.5px]">
-                No events yet — they appear here as the encounter is documented.
+            The working draft autosaves to the MUTABLE `clerkship_drafts`
+            scratchpad, not to clinical_documentation: that table is append-only
+            and audited, and writing a version every time a clinician changes tab
+            would turn the clinical timeline into noise. The explicit clinical
+            save — the one that does write a version — is the next increment. */}
+        {ncdClerkshipLive() ? (
+          <NcdClerkship
+            catalog={DIABETES_CATALOG}
+            site={REFERRAL_SITE}
+            siteOptions={[REFERRAL_SITE, DISTRICT_SITE]}
+            initialValues={initialCapture(
+              { ...demographics.values, ...(vitals?.values ?? {}) },
+              draft,
+            )}
+            ageBand={demographics.ageBand}
+            onSave={saveDraft}
+            pulled={
+              vitals?.vitals.length
+                ? {
+                    values: vitals.values,
+                    items: vitals.vitals.map((v) => ({
+                      feature: v.feature,
+                      display: v.display,
+                      value: v.value,
+                      fromTriage: v.fromTriage,
+                    })),
+                    latestAt: vitals.latestAt?.toISOString().slice(11, 16),
+                    anyFromTriage: vitals.anyFromTriage,
+                  }
+                : undefined
+            }
+          />
+        ) : (
+          <section className="border-border bg-card flex flex-col gap-2 rounded-xl border p-5 shadow-xs">
+            <span className="text-muted-foreground/80 font-mono text-[10px] tracking-[0.18em] uppercase">
+              Clerkship
+            </span>
+            <h2 className="font-display text-foreground text-heading-s leading-[1.3] font-medium tracking-[-0.01em]">
+              Being rebuilt for NCD care
+            </h2>
+            <p className="text-muted-foreground text-body-s max-w-prose leading-relaxed">
+              The previous clerkship is no longer available for new entries. Existing documentation
+              for this encounter is unchanged and still readable — in the timeline below and in the
+              patient&apos;s clinical record.
+            </p>
+            {doc ? (
+              <p className="text-muted-foreground text-caption font-mono tabular-nums">
+                Last documented: v{doc.version} ({doc.status})
               </p>
-            </div>
-          ) : (
-            <ul className="divide-border/60 -mx-2 divide-y">
-              {record.timeline.map((ev) => (
-                <li
-                  key={ev.id}
-                  className="hover:bg-muted/40 flex items-baseline justify-between gap-3 rounded-md px-2 py-1.5 transition-colors"
-                >
-                  <span className="text-foreground text-[12.5px]">
-                    <span className="text-muted-foreground inline-block w-[96px] font-mono text-[10px] tracking-[0.06em] uppercase">
-                      {ev.kind}
-                    </span>{" "}
-                    {ev.label}
-                  </span>
-                  <span className="text-muted-foreground font-mono text-[10.5px] tabular-nums">
-                    {ev.recordedAt.toISOString().slice(0, 16).replace("T", " ")}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
+            ) : null}
+          </section>
+        )}
       </div>
     </div>
   );
@@ -244,7 +251,7 @@ function WorkspaceTopBar({
         <span className="text-border hidden sm:inline" aria-hidden>
           |
         </span>
-        <span className="text-foreground hidden truncate text-[13px] font-medium sm:inline">
+        <span className="text-foreground text-body-s hidden truncate font-medium sm:inline">
           {patientName ?? "Clerking"}
         </span>
       </div>
@@ -252,7 +259,7 @@ function WorkspaceTopBar({
         <span className="text-muted-foreground hidden items-center gap-1.5 font-mono text-[10px] tracking-[0.14em] uppercase lg:inline-flex">
           <span
             aria-hidden
-            className="size-1.5 shrink-0 rounded-full bg-teal-500 ring-2 ring-teal-500/20"
+            className="bg-brand-500 ring-brand-500/20 size-1.5 shrink-0 rounded-full ring-2"
           />
           <span className="max-w-[180px] truncate" title={scope.hospitalName}>
             {scope.hospitalName}
@@ -266,7 +273,7 @@ function WorkspaceTopBar({
           className={`inline-flex items-center rounded-full px-2 py-0.5 font-mono text-[10px] tracking-[0.12em] uppercase ${
             scope.isJunior
               ? "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200"
-              : "bg-teal-100 text-teal-800 dark:bg-teal-900/40 dark:text-teal-200"
+              : "bg-brand-100 text-brand-800 dark:bg-brand-900/40 dark:text-brand-200"
           }`}
         >
           {CADRE_LABEL[scope.cadreCode] ?? scope.cadreCode}

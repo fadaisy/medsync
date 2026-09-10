@@ -187,7 +187,7 @@ export function ResusBoard({
       </section>
 
       <div className="border-border/60 flex items-center justify-between gap-3 border-t pt-4">
-        <p className="text-muted-foreground/70 text-[11px]">
+        <p className="text-muted-foreground/70 text-caption">
           {leaderRecommended
             ? "Your cadre is recommended to lead. Role assignment stays open — never blocked."
             : "Any clinical responder can take any role. The team leader is usually a doctor."}

@@ -22,7 +22,7 @@ export function EcgLoader({
         viewBox="0 0 240 64"
         fill="none"
         aria-hidden
-        className="h-12 w-44 text-teal-500 motion-reduce:opacity-80"
+        className="text-brand-500 h-12 w-44 motion-reduce:opacity-80"
       >
         {/* ghost trace — always visible so the mark reads even before paint */}
         <path

@@ -24,7 +24,7 @@ export function V2Hospitals() {
       <RevealOnScroll>
         <header className="mb-10 flex flex-col gap-5">
           <span className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
-            <span className="pulse-dot size-1 rounded-full bg-teal-500" />
+            <span className="pulse-dot bg-brand-500 size-1 rounded-full" />
             For care teams &amp; hospitals
           </span>
           <h2
@@ -32,9 +32,9 @@ export function V2Hospitals() {
             style={{ fontWeight: 400 }}
           >
             One record, every shift,{" "}
-            <span className="text-teal-700 italic dark:text-teal-300">every specialty.</span>
+            <span className="text-brand-700 dark:text-brand-300 italic">every specialty.</span>
           </h2>
-          <p className="text-muted-foreground max-w-[60ch] text-[15px] leading-[1.55] sm:text-[16.5px]">
+          <p className="text-muted-foreground text-body-m max-w-[60ch] leading-[1.55] sm:text-[16.5px]">
             The same patient record adapts to the team using it — diabetology sees glycaemic trends
             where cardiology sees rhythm strips. No re-keying between specialties, no shift handover
             written on paper.

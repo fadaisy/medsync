@@ -70,17 +70,17 @@ export default async function SchedulingRollupPage() {
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8">
       <header className="flex flex-col gap-2">
         <span className="text-muted-foreground inline-flex w-fit items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
-          <span aria-hidden className="size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20" />
+          <span aria-hidden className="bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2" />
           Platform · Scheduling rollup
         </span>
-        <h1 className="font-display text-foreground text-[24px] leading-[1.15] font-medium tracking-[-0.015em] sm:text-[28px]">
+        <h1 className="font-display text-foreground sm:text-heading-l text-[24px] leading-[1.15] font-medium tracking-[-0.015em]">
           Scheduling across hospitals
         </h1>
         <p className="text-muted-foreground max-w-2xl text-[13.5px] leading-relaxed">
           Aggregate counts only — no individual appointments. Patient-level operations go through
           the per-hospital workspace.
         </p>
-        <div className="h-px w-10 bg-teal-500/60 dark:bg-teal-400/50" aria-hidden />
+        <div className="bg-brand-500/60 dark:bg-brand-400/50 h-px w-10" aria-hidden />
       </header>
 
       {errored ? (
@@ -117,13 +117,13 @@ export default async function SchedulingRollupPage() {
       <section className="border-border bg-card overflow-hidden rounded-lg border">
         <header className="border-border flex items-center gap-2 border-b px-4 py-2.5 sm:px-6">
           <CalendarClockIcon className="text-muted-foreground size-3.5" aria-hidden />
-          <span className="text-foreground text-[13px] font-medium">Per-hospital scheduling</span>
-          <span className="text-muted-foreground ml-auto font-mono text-[11px] tabular-nums">
+          <span className="text-foreground text-body-s font-medium">Per-hospital scheduling</span>
+          <span className="text-muted-foreground text-caption ml-auto font-mono tabular-nums">
             {perHospital.length} {perHospital.length === 1 ? "hospital" : "hospitals"}
           </span>
         </header>
         {perHospital.length === 0 ? (
-          <p className="text-muted-foreground p-8 text-center text-[13px]">No active hospitals.</p>
+          <p className="text-muted-foreground text-body-s p-8 text-center">No active hospitals.</p>
         ) : (
           <table className="w-full border-collapse text-left">
             <caption className="sr-only">Per-hospital scheduling aggregates</caption>
@@ -151,15 +151,15 @@ export default async function SchedulingRollupPage() {
                 >
                   <td className="px-4 py-2.5 sm:px-6">
                     <div className="flex min-w-0 flex-col">
-                      <span className="text-foreground truncate text-[13px] font-medium">
+                      <span className="text-foreground text-body-s truncate font-medium">
                         {h.hospitalName}
                       </span>
-                      <span className="text-muted-foreground truncate font-mono text-[11px]">
+                      <span className="text-muted-foreground text-caption truncate font-mono">
                         {h.hospitalLevel}
                       </span>
                     </div>
                   </td>
-                  <td className="text-foreground px-4 py-2.5 text-right font-mono text-[13px] tabular-nums sm:px-6">
+                  <td className="text-foreground text-body-s px-4 py-2.5 text-right font-mono tabular-nums sm:px-6">
                     {h.todayBooked}
                   </td>
                   <td className="px-4 py-2.5 text-right sm:px-6">
@@ -189,7 +189,7 @@ export default async function SchedulingRollupPage() {
                       </span>
                     )}
                   </td>
-                  <td className="text-foreground px-4 py-2.5 text-right font-mono text-[13px] tabular-nums sm:px-6">
+                  <td className="text-foreground text-body-s px-4 py-2.5 text-right font-mono tabular-nums sm:px-6">
                     {h.noShows7d}
                   </td>
                   <td className="hidden px-4 py-2.5 text-right sm:table-cell sm:px-6">
@@ -346,7 +346,7 @@ function Kpi({
 }) {
   const cls =
     tone === "actionable"
-      ? "text-teal-700 dark:text-teal-300"
+      ? "text-brand-700 dark:text-brand-300"
       : tone === "ok"
         ? "text-emerald-700 dark:text-emerald-300"
         : tone === "critical"
@@ -359,7 +359,9 @@ function Kpi({
       <span className="text-muted-foreground font-mono text-[10.5px] tracking-[0.12em] uppercase">
         {label}
       </span>
-      <span className={cn("font-display text-[28px] leading-none font-medium tabular-nums", cls)}>
+      <span
+        className={cn("font-display text-heading-l leading-none font-medium tabular-nums", cls)}
+      >
         {value}
       </span>
     </div>

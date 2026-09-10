@@ -44,7 +44,7 @@ export default async function NonClinicalSignupPage() {
     <div className="mx-auto max-w-xl px-5 py-12">
       <header className="stagger-children mb-8 flex flex-col gap-2">
         <p className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10.5px] tracking-[0.14em] uppercase">
-          <span aria-hidden className="size-1 rounded-full bg-teal-500" />
+          <span aria-hidden className="bg-brand-500 size-1 rounded-full" />
           Non-clinical staff
         </p>
         <h1 className="text-foreground font-display text-3xl leading-tight tracking-[-0.02em]">
@@ -54,7 +54,7 @@ export default async function NonClinicalSignupPage() {
           For reception, records and other non-clinical hospital staff. If you&rsquo;re a clinician,
           nurse, pharmacist or lab tech, use the{" "}
           <Link
-            className="text-foreground underline underline-offset-2 transition-colors duration-150 hover:text-teal-700 dark:hover:text-teal-300"
+            className="text-foreground hover:text-brand-700 dark:hover:text-brand-300 underline underline-offset-2 transition-colors duration-150"
             href="/signup/clinical"
           >
             clinical signup

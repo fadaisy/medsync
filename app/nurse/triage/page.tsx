@@ -35,13 +35,13 @@ export default async function TriagePage() {
       />
       <header className="flex flex-col gap-1.5">
         <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
-          <span aria-hidden className="size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20" />
+          <span aria-hidden className="bg-mint-500 ring-mint-500/20 size-1 rounded-full ring-2" />
           {scope.hospitalName} · {scope.departmentName} · Triage
         </span>
-        <h1 className="font-display text-foreground text-[24px] leading-[1.15] font-medium tracking-[-0.015em] sm:text-[28px]">
+        <h1 className="font-display text-foreground sm:text-heading-l text-[24px] leading-[1.15] font-medium tracking-[-0.015em]">
           Triage worklist
         </h1>
-        <p className="text-muted-foreground max-w-2xl text-[13px] leading-relaxed">
+        <p className="text-muted-foreground text-body-s max-w-2xl leading-relaxed">
           Assess each waiting patient and assign an acuity. The score is decision-support — you
           confirm or override every result, and the engine biases up when uncertain.
           {scope.authority.mayDownTriage ? null : (
@@ -52,7 +52,7 @@ export default async function TriagePage() {
             </>
           )}
         </p>
-        <div className="h-px w-10 bg-teal-500/60 dark:bg-teal-400/50" aria-hidden />
+        <div className="bg-mint-500/60 dark:bg-mint-400/50 h-px w-10" aria-hidden />
       </header>
 
       <TriageWorklist rows={rows} departmentName={scope.departmentName} />

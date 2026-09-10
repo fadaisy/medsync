@@ -1,7 +1,5 @@
 import "server-only";
 
-import type { AgentConfig } from "@/lib/clerkship/agent/types";
-
 /**
  * Is the encounter / EMR engine live?
  *
@@ -26,6 +24,9 @@ export function encounterEngineLive(): boolean {
  * `CLERKSHIP_DRAFTS_LIVE=1` to switch autosave on — no redeploy of logic.
  * Requires ENCOUNTER_ENGINE_LIVE too (drafts reference the encounter spine).
  */
+/* Currently UNREAD (ADR 0081): the v1 autosave that consumed it was removed with
+ * the clerkship form. Migration 0048 and the `clerkship_drafts` table are applied
+ * and untouched, so NCD v2 can switch autosave back on without a migration. */
 export function clerkshipDraftsLive(): boolean {
   return process.env.CLERKSHIP_DRAFTS_LIVE === "1" && encounterEngineLive();
 }
@@ -63,36 +64,23 @@ export function labResultsLive(): boolean {
 }
 
 /**
- * Is the clerkship agent (the live clinical-reasoning layer) on?
+ * Is the NCD clerkship surface live?
  *
- * The agent is a pure client-side engine (lib/clerkship/agent) that runs over
- * the live clerkship state and surfaces decision-support insights. It needs no
- * migration — committed working diagnoses persist through the existing
- * ClerkSynthesis fields — but it gates on this master flag so it ships dark
- * until the CSO turns it on. Requires ENCOUNTER_ENGINE_LIVE. See ADR / the
- * GATE-A spec docs/design/clerkship-agent-gate-a.md.
+ * Gated separately from the CRITERIA sign-off on purpose. This flag controls
+ * whether the surface renders at all; whether its thresholds are ratified is a
+ * property of the catalog itself (every Citation carries `csoSigned`), and the
+ * profile shows a gated-dark notice while any of them is unsigned. So the
+ * surface can be switched on for review without any part of it claiming to be
+ * ratified clinical advice.
  */
-export function clerkshipAgentLive(): boolean {
-  return process.env.CLERKSHIP_AGENT_LIVE === "1" && encounterEngineLive();
+export function ncdClerkshipLive(): boolean {
+  return process.env.NCD_CLERKSHIP_LIVE === "1" && encounterEngineLive();
 }
 
-/**
- * The agent run-config the server hands to the (client) clerkship form. The
- * reasoning maps are already CSO-approved, so they activate with the master
- * flag; the three NEW packs are sourced + CSO-signed separately and each gates
- * on its own signed flag (dark until ratified). Flags stay server-only here;
- * the client only ever receives the resolved booleans.
+/*
+ * `clerkshipAgentLive()` / `clerkshipAgentConfig()` were removed with the v1
+ * clerkship engine (ADR 0081) — they resolved the CSO-signed pack flags for a
+ * decision-support surface that no longer exists. The env vars
+ * CLERKSHIP_AGENT_LIVE and AGENT_*_CSO_SIGNED are now unread; leave them set or
+ * unset, they do nothing. The NCD clerkship will declare its own gating.
  */
-export function clerkshipAgentConfig(): AgentConfig {
-  const enabled = clerkshipAgentLive();
-  return {
-    enabled,
-    activePacks: {
-      maps: enabled,
-      vitalsEscalation: enabled && process.env.AGENT_VITALS_ESCALATION_CSO_SIGNED === "1",
-      incompatibilities: enabled && process.env.AGENT_INCOMPATIBILITIES_CSO_SIGNED === "1",
-      dependencies: enabled && process.env.AGENT_DEPENDENCIES_CSO_SIGNED === "1",
-      ddxRanking: enabled && process.env.AGENT_DDX_RANKING_CSO_SIGNED === "1",
-    },
-  };
-}

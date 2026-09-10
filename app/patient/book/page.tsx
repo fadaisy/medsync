@@ -50,7 +50,7 @@ export default async function PatientBookPage() {
         </p>
         <Link
           href="/patient"
-          className="text-foreground inline-flex w-fit items-center gap-1 text-[13px] underline-offset-2 hover:underline"
+          className="text-foreground text-body-s inline-flex w-fit items-center gap-1 underline-offset-2 hover:underline"
         >
           Back to home →
         </Link>
@@ -72,7 +72,7 @@ export default async function PatientBookPage() {
         </p>
         <Link
           href="/patient"
-          className="text-foreground inline-flex w-fit items-center gap-1 text-[13px] underline-offset-2 hover:underline"
+          className="text-foreground text-body-s inline-flex w-fit items-center gap-1 underline-offset-2 hover:underline"
         >
           Back to home →
         </Link>

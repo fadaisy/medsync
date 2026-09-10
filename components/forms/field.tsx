@@ -53,7 +53,7 @@ export function Field({
     >
       <FieldPrimitive.Label
         className={cn(
-          "text-muted-foreground inline-flex items-center gap-1.5 text-[11px] leading-none font-medium tracking-[0.01em] select-none",
+          "text-muted-foreground text-caption inline-flex items-center gap-1.5 leading-none font-medium tracking-[0.01em] select-none",
           "group-data-disabled:opacity-50",
         )}
       >

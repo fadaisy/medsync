@@ -21,7 +21,7 @@ const ACUITY_CHIP: Record<number, string> = {
 };
 
 const SELECT =
-  "border-input bg-card text-foreground rounded-sm border px-2 py-1.5 text-[12.5px] outline-none transition-[border-color,box-shadow] duration-200 focus-visible:border-teal-500 focus-visible:ring-2 focus-visible:ring-teal-500/30";
+  "border-input bg-card text-foreground rounded-sm border px-2 py-1.5 text-[12.5px] outline-none transition-[border-color,box-shadow] duration-200 focus-visible:border-brand-500 focus-visible:ring-2 focus-visible:ring-brand-500/30";
 
 export function AssignedRow({ row }: { row: AssignedEncounterRow }) {
   const router = useRouter();

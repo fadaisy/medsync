@@ -97,9 +97,9 @@ export function Combobox({
       <ComboboxPrimitive.Trigger
         className={cn(
           "border-input bg-card text-foreground relative flex w-full items-center gap-2 rounded-sm border px-2.5 py-2",
-          "ease-expo-out text-left text-[13px] transition-all duration-150 outline-none",
-          "focus-within:border-teal-500 focus-within:shadow-[0_0_0_2px_rgba(20,184,166,0.15)]",
-          "dark:focus-within:border-teal-400 dark:focus-within:shadow-[0_0_0_2px_rgba(45,212,191,0.2)]",
+          "ease-expo-out text-body-s text-left transition-all duration-150 outline-none",
+          "focus-within:border-brand-500 focus-within:shadow-[0_0_0_2px_rgba(20,184,166,0.15)]",
+          "dark:focus-within:border-brand-400 dark:focus-within:shadow-[0_0_0_2px_rgba(45,212,191,0.2)]",
           "disabled:bg-muted disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
           "data-[disabled]:bg-muted data-[disabled]:pointer-events-none data-[disabled]:cursor-not-allowed data-[disabled]:opacity-50",
           invalid &&
@@ -114,7 +114,7 @@ export function Combobox({
           id={id}
           placeholder={placeholder}
           className={cn(
-            "flex-1 bg-transparent text-[13px] outline-none",
+            "text-body-s flex-1 bg-transparent outline-none",
             "placeholder:text-gray-400 dark:placeholder:text-gray-400",
           )}
         />
@@ -142,13 +142,13 @@ export function Combobox({
                   key={item.value}
                   value={item}
                   className={cn(
-                    "flex cursor-default items-center justify-between gap-3 px-3 py-2 text-[13px]",
+                    "text-body-s flex cursor-default items-center justify-between gap-3 px-3 py-2",
                     "data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground outline-none",
                     "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
                   )}
                 >
                   <span className="truncate">{item.label}</span>
-                  <ComboboxPrimitive.ItemIndicator className="text-teal-600 dark:text-teal-400">
+                  <ComboboxPrimitive.ItemIndicator className="text-brand-600 dark:text-brand-400">
                     <CheckIcon className="size-3.5" strokeWidth={2.25} />
                   </ComboboxPrimitive.ItemIndicator>
                 </ComboboxPrimitive.Item>

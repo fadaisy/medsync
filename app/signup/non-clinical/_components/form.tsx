@@ -41,7 +41,7 @@ interface Props {
 
 // Mirrors the shared <Input> focus treatment — teal border + soft glow.
 const SELECT_CLASS =
-  "border-input bg-background text-foreground ease-expo-out rounded-md border px-3 py-2 text-[13px] outline-none transition-all duration-150 focus-visible:border-teal-500 focus-visible:shadow-[0_0_0_2px_rgba(20,184,166,0.15)] disabled:cursor-not-allowed disabled:opacity-50 dark:focus-visible:border-teal-400 dark:focus-visible:shadow-[0_0_0_2px_rgba(45,212,191,0.2)]";
+  "border-input bg-background text-foreground ease-expo-out rounded-md border px-3 py-2 text-body-s outline-none transition-all duration-150 focus-visible:border-brand-500 focus-visible:shadow-[0_0_0_2px_rgba(20,184,166,0.15)] disabled:cursor-not-allowed disabled:opacity-50 dark:focus-visible:border-brand-400 dark:focus-visible:shadow-[0_0_0_2px_rgba(45,212,191,0.2)]";
 
 export function NonClinicalSignupForm({
   hospitals,
@@ -92,7 +92,7 @@ export function NonClinicalSignupForm({
       {/* ── Section: Account ──────────────────────────────────── */}
       <section className="flex flex-col gap-4">
         <h2 className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10.5px] tracking-[0.14em] uppercase">
-          <span aria-hidden className="size-1 rounded-full bg-teal-500" />
+          <span aria-hidden className="bg-brand-500 size-1 rounded-full" />
           Account
         </h2>
 
@@ -134,7 +134,7 @@ export function NonClinicalSignupForm({
       {/* ── Section: Identity (replaces council/licence) ──────── */}
       <section className="flex flex-col gap-4">
         <h2 className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10.5px] tracking-[0.14em] uppercase">
-          <span aria-hidden className="size-1 rounded-full bg-teal-500" />
+          <span aria-hidden className="bg-brand-500 size-1 rounded-full" />
           Identity
         </h2>
         <p className="text-muted-foreground -mt-2 text-[12px] leading-relaxed">
@@ -202,7 +202,7 @@ export function NonClinicalSignupForm({
       {/* ── Section: Where you work ───────────────────────────── */}
       <section className="flex flex-col gap-4">
         <h2 className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10.5px] tracking-[0.14em] uppercase">
-          <span aria-hidden className="size-1 rounded-full bg-teal-500" />
+          <span aria-hidden className="bg-brand-500 size-1 rounded-full" />
           Where you work
         </h2>
 
@@ -319,7 +319,7 @@ export function NonClinicalSignupForm({
       {/* ── Section: Consent ──────────────────────────────────── */}
       <section className="flex flex-col gap-3">
         <h2 className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10.5px] tracking-[0.14em] uppercase">
-          <span aria-hidden className="size-1 rounded-full bg-teal-500" />
+          <span aria-hidden className="bg-brand-500 size-1 rounded-full" />
           Consent
         </h2>
         <ConsentCheckbox

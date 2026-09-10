@@ -65,7 +65,7 @@ export function CatalogBrowser({ sections }: BrowserProps) {
         header: "ID",
         mono: true,
         cell: (row) => (
-          <span className="text-muted-foreground/70 text-[11px]">{row.id.slice(0, 8)}…</span>
+          <span className="text-muted-foreground/70 text-caption">{row.id.slice(0, 8)}…</span>
         ),
         className: "w-[120px]",
         hideOnNarrow: true,
@@ -95,10 +95,10 @@ export function CatalogBrowser({ sections }: BrowserProps) {
                 setQuery("");
               }}
               className={cn(
-                "shrink-0 rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors outline-none",
-                "focus-visible:ring-2 focus-visible:ring-teal-500/40",
+                "text-body-s shrink-0 rounded-md px-3 py-1.5 font-medium transition-colors outline-none",
+                "focus-visible:ring-brand-500/40 focus-visible:ring-2",
                 s.key === active
-                  ? "bg-teal-50 text-teal-700 dark:bg-teal-950/40 dark:text-teal-300"
+                  ? "bg-brand-50 text-brand-700 dark:bg-brand-950/40 dark:text-brand-300"
                   : "text-muted-foreground hover:bg-muted hover:text-foreground",
               )}
             >
@@ -108,7 +108,7 @@ export function CatalogBrowser({ sections }: BrowserProps) {
                   className={cn(
                     "font-mono text-[10.5px] tabular-nums",
                     s.key === active
-                      ? "text-teal-700/80 dark:text-teal-300/80"
+                      ? "text-brand-700/80 dark:text-brand-300/80"
                       : "text-muted-foreground/70",
                   )}
                 >
@@ -134,7 +134,7 @@ export function CatalogBrowser({ sections }: BrowserProps) {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder={`Filter ${current?.label.toLowerCase() ?? "rows"}…`}
-                className="border-input bg-background min-w-[200px] rounded-md border px-2.5 py-1 text-[12px] outline-none focus-visible:border-teal-500"
+                className="border-input bg-background focus-visible:border-brand-500 min-w-[200px] rounded-md border px-2.5 py-1 text-[12px] outline-none"
               />
             </DataTableToolbar>
           }

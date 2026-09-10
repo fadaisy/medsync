@@ -1,286 +1,51 @@
 "use server";
 
-import type {
-  CatalogProperty,
-  CatalogPropertySummary,
-  CatalogSymptom,
-  PicklistItem,
-  RosScreenSymptom,
-} from "@/lib/clerkship/catalog";
-import type { AdultVitals } from "@/lib/triage/types";
-import { revalidatePath } from "next/cache";
+import type { CaptureMap } from "@/lib/ncd/engine/evaluate";
 import { eq } from "drizzle-orm";
 
 import { db } from "@/db";
 import { encounters } from "@/db/schema/scheduling";
-import { triageRecords } from "@/db/schema/triage";
-import {
-  loadClerkshipPicklists,
-  loadPropertiesForSymptom,
-  loadPropertyCatalog,
-  loadRosCatalog,
-  loadSymptomCatalog,
-} from "@/lib/clerkship/catalog";
-import { createDoctorComplaint, proposeComplaintToShared } from "@/lib/clerkship/create-complaint";
-import { deleteClerkshipDraft, upsertClerkshipDraft } from "@/lib/clerkship/drafts";
-import { proposeCatalogItem } from "@/lib/clerkship/governance";
 import { requireDoctorScope } from "@/lib/doctor/scope";
-import { ClerkshipInputSchema, clerkshipInputToClerkship } from "@/lib/encounter/clerkship-input";
-import { encounterEngineLive } from "@/lib/encounter/feature";
-import { loadPatientClinicalRecord, recordClerkshipVersion } from "@/lib/encounter/record";
-import { toEncounterScope } from "@/lib/encounter/workspace-scope";
+import { ncdClerkshipLive } from "@/lib/encounter/feature";
+import { DIABETES_CATALOG } from "@/lib/ncd/catalog/diabetes";
+import { saveNcdDraft } from "@/lib/ncd/draft";
 
-export type SubmitClerkshipResult =
-  | { ok: true; documentationId?: string }
-  | { ok: false; error: string };
+export type SaveDraftResult = { ok: true; at: number } | { ok: false; error: string };
 
 /**
- * Append a clerkship documentation version for an encounter (draft or final).
- * Validates the form input, resolves the doctor scope + the encounter's patient,
- * verifies the encounter is in the doctor's hospital, then delegates to the
- * engine (which enforces the cadre rules + legitimate-access basis + audit +
- * append-only versioning). Decision-support — records what the clinician writes.
+ * Autosave the in-progress clerkship.
+ *
+ * Writes to the mutable `clerkship_drafts` scratchpad, NOT to the append-only
+ * clinical documentation — see lib/ncd/draft.ts for why that distinction is the
+ * whole design. This is not a clinical save and does not put anything on the
+ * audited timeline; it exists so that closing a laptop does not cost an hour of
+ * clerking.
+ *
+ * The encounter is re-checked against the caller's hospital on every call. The
+ * client is not trusted for that even though the page already checked it: an
+ * action is a public endpoint, and the scope pin is what makes it one the
+ * clinician's own hospital can rely on.
  */
-export async function submitClerkshipAction(
+export async function saveNcdDraftAction(
   encounterId: string,
-  rawInput: unknown,
-  finalise: boolean,
-): Promise<SubmitClerkshipResult> {
-  if (!encounterEngineLive()) {
-    return { ok: false, error: "The clinical module is not active yet." };
-  }
+  values: CaptureMap,
+): Promise<SaveDraftResult> {
+  if (!ncdClerkshipLive()) return { ok: false, error: "The clerkship surface is not active." };
 
   const scope = await requireDoctorScope();
 
-  const parsed = ClerkshipInputSchema.safeParse(rawInput);
-  if (!parsed.success) return { ok: false, error: "Invalid clerkship input." };
-
-  const [enc] = await db
-    .select({ patientUserId: encounters.patientUserId, hospitalId: encounters.hospitalId })
-    .from(encounters)
-    .where(eq(encounters.id, encounterId))
-    .limit(1);
-  if (!enc) return { ok: false, error: "Encounter not found." };
-  if (enc.hospitalId !== scope.hospitalId) {
-    return { ok: false, error: "That encounter is outside your hospital." };
-  }
-
-  const res = await recordClerkshipVersion({
-    encounterId,
-    patientUserId: enc.patientUserId,
-    scope: toEncounterScope(scope),
-    clerkship: clerkshipInputToClerkship(parsed.data),
-    finalise,
-  });
-  if (res.error) return { ok: false, error: res.error };
-
-  revalidatePath(`/doctor/encounters/${encounterId}`);
-  return { ok: true, documentationId: res.documentationId };
-}
-
-/**
- * W3 working-draft autosave — upsert the author's mutable draft (debounced from
- * the form). Separate from the append-only version history; gated behind
- * CLERKSHIP_DRAFTS_LIVE (inert no-op when off). Validates + hospital-scopes like
- * the save action; stores the validated flat input for clean rehydration.
- */
-export async function saveClerkshipDraftAction(
-  encounterId: string,
-  rawInput: unknown,
-): Promise<{ ok: boolean }> {
-  if (!encounterEngineLive()) return { ok: false };
-  const scope = await requireDoctorScope();
-  const parsed = ClerkshipInputSchema.safeParse(rawInput);
-  if (!parsed.success) return { ok: false };
   const [enc] = await db
     .select({ hospitalId: encounters.hospitalId })
     .from(encounters)
     .where(eq(encounters.id, encounterId))
     .limit(1);
-  if (!enc || enc.hospitalId !== scope.hospitalId) return { ok: false };
-  await upsertClerkshipDraft(encounterId, scope.userId, parsed.data);
-  return { ok: true };
-}
 
-/** Drop the author's working draft (on a successful save, or on discard-recovery). */
-export async function clearClerkshipDraftAction(encounterId: string): Promise<{ ok: boolean }> {
-  if (!encounterEngineLive()) return { ok: false };
-  const scope = await requireDoctorScope();
-  await deleteClerkshipDraft(encounterId, scope.userId);
-  return { ok: true };
-}
+  if (!enc || enc.hospitalId !== scope.hospitalId) {
+    return { ok: false, error: "That encounter is not yours to write to." };
+  }
 
-/** Tap-first capture: the symptom list (shared + my personal) + a symptom's properties. */
-export async function loadSymptomCatalogAction(): Promise<CatalogSymptom[]> {
-  const scope = await requireDoctorScope();
-  return loadSymptomCatalog(scope.userId);
-}
-
-export async function loadSymptomPropertiesAction(symptomCode: string): Promise<CatalogProperty[]> {
-  await requireDoctorScope();
-  return loadPropertiesForSymptom(symptomCode);
-}
-
-/** The property catalog — for the create-complaint mapping picker (reuse-only). */
-export async function loadPropertyCatalogAction(): Promise<CatalogPropertySummary[]> {
-  await requireDoctorScope();
-  return loadPropertyCatalog();
-}
-
-/** The Review-of-Systems screening symptoms (grouped by system in the UI). */
-export async function loadRosCatalogAction(): Promise<RosScreenSymptom[]> {
-  await requireDoctorScope();
-  return loadRosCatalog();
-}
-
-/** The clerkship history-section pick-lists (condition/operation/allergen/drug/…). */
-export async function loadClerkshipPicklistsAction(): Promise<Record<string, PicklistItem[]>> {
-  await requireDoctorScope();
-  return loadClerkshipPicklists();
-}
-
-export interface CarriedVitals {
-  vitals: AdultVitals | null;
-  triagedAtIso: string | null;
-}
-
-/** The triage vitals snapshot to CARRY FORWARD into the general exam (read-only). */
-export async function loadTriageVitalsAction(encounterId: string): Promise<CarriedVitals> {
-  await requireDoctorScope();
-  const [enc] = await db
-    .select({ triageRecordId: encounters.triageRecordId })
-    .from(encounters)
-    .where(eq(encounters.id, encounterId))
-    .limit(1);
-  if (!enc?.triageRecordId) return { vitals: null, triagedAtIso: null };
-  const [tr] = await db
-    .select({ snapshot: triageRecords.vitalsSnapshot, triagedAt: triageRecords.triagedAt })
-    .from(triageRecords)
-    .where(eq(triageRecords.id, enc.triageRecordId))
-    .limit(1);
-  if (!tr) return { vitals: null, triagedAtIso: null };
-  return {
-    vitals: (tr.snapshot ?? null) as AdultVitals | null,
-    triagedAtIso: tr.triagedAt ? tr.triagedAt.toISOString() : null,
-  };
-}
-
-export interface CarryForward {
-  allergies: { substance: string; reaction: string | null; severity: string | null }[];
-  problems: { item: string }[];
-  medications: {
-    name: string;
-    dose: string | null;
-    route: string | null;
-    frequency: string | null;
-  }[];
-}
-
-/** A returning patient's stored record — surfaced to review/confirm, not re-enter. */
-export async function loadCarryForwardAction(encounterId: string): Promise<CarryForward> {
-  const scope = await requireDoctorScope();
-  const empty: CarryForward = { allergies: [], problems: [], medications: [] };
-  const [enc] = await db
-    .select({ patientUserId: encounters.patientUserId })
-    .from(encounters)
-    .where(eq(encounters.id, encounterId))
-    .limit(1);
-  if (!enc?.patientUserId) return empty;
-  const rec = await loadPatientClinicalRecord(enc.patientUserId, toEncounterScope(scope));
-  if (!rec.ok) return empty;
-  return {
-    allergies: rec.allergies.map((a) => ({
-      substance: a.substance,
-      reaction: a.reaction,
-      severity: a.severity,
-    })),
-    problems: rec.problems.map((p) => ({ item: p.item })),
-    medications: rec.medications.map((m) => ({
-      name: m.name,
-      dose: m.dose,
-      route: m.route,
-      frequency: m.frequency,
-    })),
-  };
-}
-
-export type CreateComplaintResult =
-  | { ok: true; symptom: CatalogSymptom }
-  | { ok: false; error: string };
-
-/**
- * Create a doctor-defined complaint (a reusable, attributed catalog TEMPLATE):
- * name + system + synonyms + a mapping of EXISTING properties. Saves the
- * STRUCTURE ONLY — never the patient values (those persist to the encounter as
- * normal). Personal to the creator (usable immediately); attributed + audited.
- */
-export async function createComplaintAction(input: {
-  display: string;
-  system: string;
-  synonyms: string[];
-  propertyCodes: string[];
-}): Promise<CreateComplaintResult> {
-  if (!encounterEngineLive()) return { ok: false, error: "The clinical module is not active yet." };
-  const scope = await requireDoctorScope();
-  const res = await createDoctorComplaint({
-    creatorUserId: scope.userId,
-    creatorName: scope.fullName,
-    display: input.display,
-    system: input.system,
-    synonyms: input.synonyms ?? [],
-    propertyCodes: input.propertyCodes ?? [],
-  });
-  if (!res.ok) return { ok: false, error: res.error };
-  return {
-    ok: true,
-    symptom: {
-      code: res.code,
-      display: input.display.trim(),
-      synonyms: input.synonyms ?? [],
-      system: input.system.trim(),
-      createdByName: scope.fullName,
-      createdAtIso: null,
-      scope: "personal",
-    },
-  };
-}
-
-export type ProposeResult = { ok: true } | { ok: false; error: string };
-
-/**
- * Propose a personal doctor-created complaint (+ its mapping) for the SHARED
- * catalog. Routes to CSO/SA review → approval promotes it. Never mutates the
- * shared catalog directly.
- */
-export async function proposeComplaintAction(code: string, note?: string): Promise<ProposeResult> {
-  if (!encounterEngineLive()) return { ok: false, error: "The clinical module is not active yet." };
-  const scope = await requireDoctorScope();
-  const res = await proposeComplaintToShared({
-    code,
-    proposerUserId: scope.userId,
-    hospitalId: scope.hospitalId,
-    note,
-  });
-  return res.ok ? { ok: true } : { ok: false, error: res.error };
-}
-
-/**
- * Propose an ad-hoc symptom to the SHARED catalog (governed). Routes to CSO/SA
- * review — it does NOT mutate the shared catalog. The clinician keeps the symptom
- * locally on the encounter regardless.
- */
-export async function proposeSymptomAction(
-  payload: { code: string; display: string; system: string },
-  note?: string,
-): Promise<ProposeResult> {
-  if (!encounterEngineLive()) return { ok: false, error: "The clinical module is not active yet." };
-  const scope = await requireDoctorScope();
-  const res = await proposeCatalogItem({
-    proposerUserId: scope.userId,
-    hospitalId: scope.hospitalId,
-    kind: "symptom",
-    payload,
-    note,
-  });
-  return res.ok ? { ok: true } : { ok: false, error: res.error };
+  const saved = await saveNcdDraft(encounterId, scope.userId, DIABETES_CATALOG, values);
+  return saved
+    ? { ok: true, at: Date.now() }
+    : { ok: false, error: "Draft autosave is not switched on for this deployment." };
 }

@@ -81,17 +81,17 @@ export function Footer() {
               className="flex items-baseline gap-0.5 transition-opacity hover:opacity-80"
               aria-label="MedSync — home"
             >
-              <span className="font-display text-foreground text-[22px] leading-none font-medium tracking-tight">
+              <span className="font-display text-foreground text-heading-m leading-none font-medium tracking-tight">
                 MedSync
               </span>
-              <span className="size-1.5 translate-y-[-2px] rounded-full bg-teal-500 dark:bg-teal-400" />
+              <span className="bg-brand-500 dark:bg-brand-400 size-1.5 translate-y-[-2px] rounded-full" />
             </Link>
-            <p className="text-muted-foreground max-w-[44ch] text-[13px] leading-[1.55]">
+            <p className="text-muted-foreground text-body-s max-w-[44ch] leading-[1.55]">
               A digital hospital operating system for Uganda. Built for hospitals up to
               national-referral scale, and to keep care going after patients leave the gate.
             </p>
             <p className="text-muted-foreground tabular inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
-              <span className="pulse-dot size-1 rounded-full bg-teal-500" />
+              <span className="pulse-dot bg-brand-500 size-1 rounded-full" />
               Kampala &middot; Uganda
             </p>
           </div>
@@ -142,11 +142,11 @@ export function Footer() {
                 <span
                   title={s.full}
                   className={cn(
-                    "border-border bg-card text-foreground/85 inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-[11px]",
-                    "hover:text-foreground transition-colors hover:border-teal-300 hover:bg-teal-50/50 dark:hover:bg-teal-50/10",
+                    "border-border bg-card text-foreground/85 text-caption inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5",
+                    "hover:text-foreground hover:border-brand-300 hover:bg-brand-50/50 dark:hover:bg-brand-50/10 transition-colors",
                   )}
                 >
-                  <span className="size-1 rounded-full bg-teal-500" />
+                  <span className="bg-brand-500 size-1 rounded-full" />
                   <span className="font-mono tracking-[0.12em]">{s.abbr}</span>
                 </span>
               </li>
@@ -155,7 +155,7 @@ export function Footer() {
         </div>
 
         {/* Bottom — copyright + DPA */}
-        <div className="border-border mt-6 flex flex-wrap items-baseline justify-between gap-3 border-t pt-5 text-[11px]">
+        <div className="border-border text-caption mt-6 flex flex-wrap items-baseline justify-between gap-3 border-t pt-5">
           <p className="text-muted-foreground">&copy; 2026 MedSync. All rights reserved.</p>
           <p className="text-muted-foreground/80 italic">
             Sample data on this page is fictional. No real patients, no real identifiers. Built in

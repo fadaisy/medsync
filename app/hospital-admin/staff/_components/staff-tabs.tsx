@@ -54,8 +54,8 @@ export function StaffTabs({ activeTab, pendingCount }: StaffTabsProps) {
             replace
             scroll={false}
             className={cn(
-              "tap relative inline-flex items-center gap-2 rounded-t-md px-3 py-2.5 text-[13px] font-medium transition-colors outline-none",
-              "focus-visible:ring-2 focus-visible:ring-teal-500/40",
+              "tap text-body-s relative inline-flex items-center gap-2 rounded-t-md px-3 py-2.5 font-medium transition-colors outline-none",
+              "focus-visible:ring-brand-500/40 focus-visible:ring-2",
               "hover:bg-muted/50",
               isActive ? "text-foreground" : "text-muted-foreground hover:text-foreground",
             )}
@@ -69,7 +69,7 @@ export function StaffTabs({ activeTab, pendingCount }: StaffTabsProps) {
                 className={cn(
                   "scale-in rounded-full px-1.5 py-0.5 font-mono text-[10px] font-semibold tabular-nums",
                   isActive
-                    ? "bg-teal-100 text-teal-800 dark:bg-teal-900/60 dark:text-teal-200"
+                    ? "bg-brand-100 text-brand-800 dark:bg-brand-900/60 dark:text-brand-200"
                     : "bg-muted text-muted-foreground",
                 )}
               >
@@ -81,7 +81,7 @@ export function StaffTabs({ activeTab, pendingCount }: StaffTabsProps) {
             <span
               aria-hidden
               className={cn(
-                "ease-expo-out absolute right-0 -bottom-px left-0 h-0.5 origin-center rounded-t-md bg-teal-500 transition-transform duration-200 dark:bg-teal-400",
+                "ease-expo-out bg-brand-500 dark:bg-brand-400 absolute right-0 -bottom-px left-0 h-0.5 origin-center rounded-t-md transition-transform duration-200",
                 isActive ? "scale-x-100" : "scale-x-0",
               )}
             />

@@ -39,10 +39,10 @@ export function RecordObservationForm({ patientUserId }: { patientUserId: string
 
   if (state.ok) {
     return (
-      <div className="border-border bg-card scale-in flex flex-col items-start gap-3 rounded-xl border p-5 ring-1 ring-teal-500/10">
+      <div className="border-border bg-card scale-in ring-brand-500/10 flex flex-col items-start gap-3 rounded-xl border p-5 ring-1">
         <span
           aria-hidden
-          className="scale-in inline-flex size-9 items-center justify-center rounded-full bg-teal-100 text-teal-700 dark:bg-teal-900/60 dark:text-teal-300"
+          className="scale-in bg-brand-100 text-brand-700 dark:bg-brand-900/60 dark:text-brand-300 inline-flex size-9 items-center justify-center rounded-full"
           style={{ animationDelay: "90ms" }}
         >
           <HeartPulseIcon className="size-4" />
@@ -83,7 +83,7 @@ export function RecordObservationForm({ patientUserId }: { patientUserId: string
               aria-pressed={kind === k.value}
               className={
                 kind === k.value
-                  ? "tap select-flare rounded-full bg-teal-600 px-3.5 py-1.5 text-[12px] font-medium text-white shadow-sm"
+                  ? "tap select-flare bg-brand-600 rounded-full px-3.5 py-1.5 text-[12px] font-medium text-white shadow-sm"
                   : "tap border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 hover:bg-muted/40 rounded-full border px-3.5 py-1.5 text-[12px] transition-colors"
               }
             >
@@ -94,13 +94,13 @@ export function RecordObservationForm({ patientUserId }: { patientUserId: string
       </fieldset>
 
       <div className="flex flex-col gap-2">
-        <Label className="text-[11px] tracking-tight">Value</Label>
+        <Label className="text-caption tracking-tight">Value</Label>
         <div className="flex items-center gap-2">
           <Input
             name="numeric_value_1"
             inputMode="decimal"
             placeholder={kind === "bp" ? "Systolic" : "Value"}
-            className="font-mono text-[15px] tabular-nums"
+            className="text-body-m font-mono tabular-nums"
             required
           />
           {meta.inputs === 2 ? (
@@ -110,7 +110,7 @@ export function RecordObservationForm({ patientUserId }: { patientUserId: string
                 name="numeric_value_2"
                 inputMode="decimal"
                 placeholder="Diastolic"
-                className="font-mono text-[15px] tabular-nums"
+                className="text-body-m font-mono tabular-nums"
                 required
               />
             </>
@@ -118,7 +118,7 @@ export function RecordObservationForm({ patientUserId }: { patientUserId: string
           {meta.unit ? (
             <>
               {/* key re-pops the unit label when the vital changes */}
-              <span key={kind} className="scale-in text-muted-foreground font-mono text-[11px]">
+              <span key={kind} className="scale-in text-muted-foreground text-caption font-mono">
                 {meta.unit}
               </span>
               <input type="hidden" name="unit" value={meta.unit} />
@@ -128,7 +128,7 @@ export function RecordObservationForm({ patientUserId }: { patientUserId: string
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="obs-notes" className="text-[11px] tracking-tight">
+        <Label htmlFor="obs-notes" className="text-caption tracking-tight">
           Notes (optional)
         </Label>
         <textarea
@@ -137,12 +137,12 @@ export function RecordObservationForm({ patientUserId }: { patientUserId: string
           rows={2}
           maxLength={2000}
           placeholder="e.g. taken sitting, post-meal, technique notes"
-          className="border-input bg-background text-foreground placeholder:text-muted-foreground/70 focus-visible:ring-ring/50 focus-visible:border-ring resize-none rounded-md border px-3 py-2 text-[13px] leading-relaxed outline-none focus-visible:ring-[3px]"
+          className="border-input bg-background text-foreground placeholder:text-muted-foreground/70 focus-visible:ring-ring/50 focus-visible:border-ring text-body-s resize-none rounded-md border px-3 py-2 leading-relaxed outline-none focus-visible:ring-[3px]"
         />
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="obs-reason" className="text-[11px] tracking-tight">
+        <Label htmlFor="obs-reason" className="text-caption tracking-tight">
           Audit note (≥ 8 chars)
         </Label>
         <Input

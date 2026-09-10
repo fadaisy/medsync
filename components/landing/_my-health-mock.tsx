@@ -95,11 +95,11 @@ function PatientHeader() {
       <span
         className={cn(
           "inline-flex items-center gap-1 rounded-full px-1.5 py-0.5",
-          "border border-teal-300 bg-teal-50 font-mono text-[8.5px] tracking-[0.15em] text-teal-800 uppercase",
-          "dark:border-teal-700 dark:bg-teal-50/10 dark:text-teal-200",
+          "border-brand-300 bg-brand-50 text-brand-800 border font-mono text-[8.5px] tracking-[0.15em] uppercase",
+          "dark:border-brand-700 dark:bg-brand-50/10 dark:text-brand-200",
         )}
       >
-        <span className="size-1 rounded-full bg-teal-500" />
+        <span className="bg-brand-500 size-1 rounded-full" />
         Illustrative
       </span>
     </div>
@@ -135,12 +135,12 @@ function LogReadingCard() {
         tabIndex={-1}
         className={cn(
           "inline-flex w-full items-center justify-center gap-1.5 rounded-md py-2 text-[12px] font-medium",
-          "border-border bg-background text-foreground border hover:border-teal-300 hover:bg-teal-50/40",
-          "dark:hover:bg-teal-50/[0.04]",
+          "border-border bg-background text-foreground hover:border-brand-300 hover:bg-brand-50/40 border",
+          "dark:hover:bg-brand-50/[0.04]",
           "transition-colors duration-150",
         )}
       >
-        <PlusIcon className="size-3.5 text-teal-600 dark:text-teal-400" strokeWidth={1.75} />
+        <PlusIcon className="text-brand-600 dark:text-brand-400 size-3.5" strokeWidth={1.75} />
         Log this morning&rsquo;s reading
       </button>
     </div>
@@ -180,7 +180,7 @@ function ReadingSparkline() {
         cx={width}
         cy={height - ((11.6 - min) / (max - min)) * height}
         r={2.5}
-        className="fill-teal-500"
+        className="fill-brand-500"
       />
     </svg>
   );
@@ -210,7 +210,7 @@ function TodayMedsCard() {
             className={cn(
               "border-border bg-muted/30 flex items-start gap-2 rounded-md border p-2",
               med.state === "due" &&
-                "border-teal-300 bg-teal-50/40 dark:border-teal-700 dark:bg-teal-50/[0.04]",
+                "border-brand-300 bg-brand-50/40 dark:border-brand-700 dark:bg-brand-50/[0.04]",
               med.state === "held" && "border-status-caution-bg",
             )}
           >
@@ -231,7 +231,7 @@ function TodayMedsCard() {
                 ) : med.state === "held" ? (
                   <span className="text-status-caution-fg"> &middot; held by your care team</span>
                 ) : (
-                  <span className="text-teal-700 dark:text-teal-300"> &middot; due now</span>
+                  <span className="text-brand-700 dark:text-brand-300"> &middot; due now</span>
                 )}
               </span>
             </div>
@@ -255,7 +255,7 @@ function MedStateIcon({ state }: { state: "taken" | "due" | "held" }) {
   if (state === "due") {
     return (
       <span
-        className={cn(cls, "bg-teal-100 text-teal-800 dark:bg-teal-50/15 dark:text-teal-200")}
+        className={cn(cls, "bg-brand-100 text-brand-800 dark:bg-brand-50/15 dark:text-brand-200")}
         aria-label="Due now"
       >
         <ClockIcon
@@ -300,8 +300,8 @@ function AdherenceStrip() {
               aria-hidden
               className={cn(
                 "inline-flex size-3.5 items-center justify-center rounded-full text-[8px]",
-                d.state === "done" && "bg-teal-500 text-white",
-                d.state === "today" && "bg-background text-foreground ring-2 ring-teal-500",
+                d.state === "done" && "bg-brand-500 text-white",
+                d.state === "today" && "bg-background text-foreground ring-brand-500 ring-2",
                 d.state === "future" && "bg-muted text-muted-foreground",
               )}
             >
@@ -327,7 +327,7 @@ function SmsReminderChip() {
         "border-border bg-card border shadow-sm",
       )}
     >
-      <span className="inline-flex size-7 items-center justify-center rounded-full bg-teal-50 text-teal-700 dark:bg-teal-50/15 dark:text-teal-200">
+      <span className="bg-brand-50 text-brand-700 dark:bg-brand-50/15 dark:text-brand-200 inline-flex size-7 items-center justify-center rounded-full">
         <MessageSquareIcon className="size-3.5" strokeWidth={1.75} />
       </span>
       <div className="flex flex-1 flex-col">
@@ -351,10 +351,10 @@ function ReportConcernCard() {
       tabIndex={-1}
       className={cn(
         "border-border bg-card flex w-full items-start gap-2.5 rounded-xl border p-3 text-left shadow-sm",
-        "transition-colors duration-150 hover:border-teal-300",
+        "hover:border-brand-300 transition-colors duration-150",
       )}
     >
-      <span className="inline-flex size-7 shrink-0 items-center justify-center rounded-md bg-teal-50 text-teal-700 dark:bg-teal-50/15 dark:text-teal-200">
+      <span className="bg-brand-50 text-brand-700 dark:bg-brand-50/15 dark:text-brand-200 inline-flex size-7 shrink-0 items-center justify-center rounded-md">
         <ShieldIcon className="size-3.5" strokeWidth={1.75} />
       </span>
       <div className="flex flex-1 flex-col gap-0.5">

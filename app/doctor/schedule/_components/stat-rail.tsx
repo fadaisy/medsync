@@ -56,7 +56,7 @@ function StatCard({ spec }: { spec: StatCardSpec }) {
           aria-hidden
           className={cn(
             "size-3.5",
-            spec.tone === "teal" && "text-teal-600 dark:text-teal-400",
+            spec.tone === "teal" && "text-brand-600 dark:text-brand-400",
             spec.tone === "amber" && "text-amber-600 dark:text-amber-400",
             spec.tone === "rose" && "text-rose-600 dark:text-rose-400",
             (spec.tone === "neutral" || spec.tone === "muted") && "text-muted-foreground",
@@ -68,7 +68,7 @@ function StatCard({ spec }: { spec: StatCardSpec }) {
       </div>
       <span
         className={cn(
-          "text-foreground font-mono text-[22px] leading-none font-medium tracking-tight tabular-nums",
+          "text-foreground text-heading-m font-mono leading-none font-medium tracking-tight tabular-nums",
           spec.tone === "muted" && "text-muted-foreground",
         )}
       >

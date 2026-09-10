@@ -26,7 +26,7 @@ export function SignInForm() {
       title="Sign in"
       subtitle={
         justSignedUp ? (
-          <span className="scale-in inline-flex items-center gap-1.5 text-teal-700 dark:text-teal-300">
+          <span className="scale-in text-brand-700 dark:text-brand-300 inline-flex items-center gap-1.5">
             <CheckIcon aria-hidden className="size-3.5 shrink-0" strokeWidth={2.5} />
             Account created. Sign in to continue.
           </span>

@@ -244,7 +244,7 @@ export function FoundingStory() {
         <RevealOnScroll>
           <header className="mb-10 flex flex-col gap-5">
             <span className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
-              <span className="pulse-dot size-1 rounded-full bg-teal-500" />
+              <span className="pulse-dot bg-brand-500 size-1 rounded-full" />
               Why MedSync exists
             </span>
             <h2
@@ -253,10 +253,10 @@ export function FoundingStory() {
               style={{ fontWeight: 400 }}
             >
               Four cofounders.{" "}
-              <span className="text-teal-700 italic dark:text-teal-300">The patients</span> we
+              <span className="text-brand-700 dark:text-brand-300 italic">The patients</span> we
               couldn&rsquo;t unsee.
             </h2>
-            <p className="text-muted-foreground max-w-[60ch] text-[15px] leading-[1.55] sm:text-[16.5px]">
+            <p className="text-muted-foreground text-body-m max-w-[60ch] leading-[1.55] sm:text-[16.5px]">
               MedSync didn&rsquo;t start in a deck. It started on the wards &mdash; notebooks full
               of warnings nobody had read, digital monitors full of readings nobody had ever opened,
               and patients arriving with preventable damage already done.
@@ -293,7 +293,7 @@ export function FoundingStory() {
                 <span
                   aria-hidden
                   className={cn(
-                    "absolute bottom-[-1px] left-0 h-[2px] bg-teal-500",
+                    "bg-brand-500 absolute bottom-[-1px] left-0 h-[2px]",
                     "transition-all duration-300 ease-out",
                     isActive ? "right-0 opacity-100" : "right-full opacity-0",
                   )}
@@ -303,7 +303,7 @@ export function FoundingStory() {
                     "tabular inline-flex size-6 items-center justify-center rounded-full font-mono text-[10px]",
                     "transition-colors duration-200",
                     isActive
-                      ? "bg-teal-100 text-teal-800 dark:bg-teal-50/15 dark:text-teal-200"
+                      ? "bg-brand-100 text-brand-800 dark:bg-brand-50/15 dark:text-brand-200"
                       : "bg-muted text-muted-foreground",
                   )}
                 >
@@ -379,7 +379,7 @@ function FounderBlock({ founder }: { founder: Founder }) {
             />
           </div>
           <figcaption className="flex flex-col gap-0.5">
-            <span className="font-display text-foreground text-[17px] font-medium">
+            <span className="font-display text-foreground text-body-l font-medium">
               {founder.name}
             </span>
             <span className="text-muted-foreground text-[12.5px]">{founder.title}</span>
@@ -394,7 +394,7 @@ function FounderBlock({ founder }: { founder: Founder }) {
           style={{ fontWeight: 400 }}
         >
           {founder.headlineLead}{" "}
-          <span className="text-teal-700 italic dark:text-teal-300">{founder.headlineEnd}</span>
+          <span className="text-brand-700 dark:text-brand-300 italic">{founder.headlineEnd}</span>
         </h3>
 
         <div className="text-foreground/85 flex flex-col gap-4 text-[15.5px] leading-[1.65] sm:text-[16.5px]">
@@ -404,12 +404,12 @@ function FounderBlock({ founder }: { founder: Founder }) {
           <p
             className={cn(
               "font-display relative mt-2 pl-7 italic",
-              "text-foreground text-[17px] leading-[1.5] tracking-[-0.01em] text-balance sm:text-[19px]",
+              "text-foreground text-body-l leading-[1.5] tracking-[-0.01em] text-balance sm:text-[19px]",
             )}
           >
             <span
               aria-hidden
-              className="font-display absolute top-[-0.1em] left-0 text-[30px] leading-none text-teal-500/70 select-none dark:text-teal-400/70"
+              className="font-display text-brand-500/70 dark:text-brand-400/70 absolute top-[-0.1em] left-0 text-[30px] leading-none select-none"
             >
               &ldquo;
             </span>

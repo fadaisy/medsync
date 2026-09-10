@@ -83,7 +83,7 @@ export function SchedulingSettingsSheet({ defaults }: { defaults: SettingsRow })
               {/* Slot length + buffer */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="default_slot_minutes" className="text-[11px] tracking-tight">
+                  <Label htmlFor="default_slot_minutes" className="text-caption tracking-tight">
                     Slot length (min)
                     {defaults.usingDefaults.defaultSlotMinutes ? (
                       <span className="text-muted-foreground/80 ml-1 font-normal">
@@ -103,7 +103,7 @@ export function SchedulingSettingsSheet({ defaults }: { defaults: SettingsRow })
                   />
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="buffer_minutes" className="text-[11px] tracking-tight">
+                  <Label htmlFor="buffer_minutes" className="text-caption tracking-tight">
                     Buffer between (min)
                     {defaults.usingDefaults.bufferMinutes ? (
                       <span className="text-muted-foreground/80 ml-1 font-normal">
@@ -145,7 +145,7 @@ export function SchedulingSettingsSheet({ defaults }: { defaults: SettingsRow })
 
               {/* Reason (audited) */}
               <div className="flex flex-col gap-1.5">
-                <Label htmlFor="reason" className="text-[11px] tracking-tight">
+                <Label htmlFor="reason" className="text-caption tracking-tight">
                   Note for the audit trail (≥ 8 chars)
                 </Label>
                 <Input
@@ -165,7 +165,7 @@ export function SchedulingSettingsSheet({ defaults }: { defaults: SettingsRow })
                 </p>
               ) : null}
               {state.ok ? (
-                <p className="scale-in rounded-md border border-teal-500/30 bg-teal-50/50 px-3 py-2 text-[12.5px] text-teal-900 dark:bg-teal-950/30 dark:text-teal-200">
+                <p className="scale-in border-brand-500/30 bg-brand-50/50 text-brand-900 dark:bg-brand-950/30 dark:text-brand-200 rounded-md border px-3 py-2 text-[12.5px]">
                   Saved.
                 </p>
               ) : null}
@@ -204,15 +204,15 @@ function ToggleRow({
     <label className="border-border bg-card hover:bg-muted/20 tap flex cursor-pointer items-start gap-3 rounded-md border px-3 py-2.5 transition-colors hover:border-gray-300">
       <input
         type="checkbox"
-        className="mt-0.5 size-4 accent-teal-600"
+        className="accent-brand-600 mt-0.5 size-4"
         checked={checked}
         onChange={(e) => setChecked(e.target.checked)}
       />
       <input type="hidden" name={name} value={checked ? "true" : "false"} />
       <span className="flex flex-1 flex-col">
-        <span className="text-foreground text-[13px]">{checked ? onLabel : offLabel}</span>
+        <span className="text-foreground text-body-s">{checked ? onLabel : offLabel}</span>
         {isDefault ? (
-          <span className="text-muted-foreground/80 text-[11px]">
+          <span className="text-muted-foreground/80 text-caption">
             Using the department default.
           </span>
         ) : null}

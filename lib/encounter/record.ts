@@ -15,9 +15,6 @@ import {
 } from "@/db/schema/encounter";
 import { patientAllergies } from "@/db/schema/prescribing";
 import { encounters } from "@/db/schema/scheduling";
-import { encounterSymptomObservations } from "@/db/schema/symptom-catalog";
-import { rosObservationRows } from "@/lib/clerkship/ros";
-import { symptomObservationRows } from "@/lib/clerkship/symptom-engine";
 import { clerkshipWriteAuthority } from "@/lib/encounter/access";
 import { deriveClinicalObjects } from "@/lib/encounter/clerkship";
 import { problemListSynthesisLive } from "@/lib/encounter/feature";
@@ -196,49 +193,11 @@ export async function recordClerkshipVersion(
           .set({ disposition: derived.disposition })
           .where(eq(encounters.id, encounterId));
       }
-      // Structured HPC → the queryable symptom-observation projection (on
-      // finalise only, so drafts don't duplicate rows). Prose stays in the doc.
-      // BEST-EFFORT: this is an analytics projection — a failure here (e.g. the
-      // 0042 catalog tables not yet applied) must never fail the clinician's
-      // documentation save. The structured items are already safe in section_data.
-      try {
-        const hpcItems = clerkship.history?.hpcItems ?? [];
-        for (const item of hpcItems) {
-          for (const row of symptomObservationRows(item)) {
-            await db.insert(encounterSymptomObservations).values({
-              encounterId,
-              patientUserId,
-              symptomCode: row.symptomCode,
-              symptomDisplay: row.symptomDisplay,
-              adHoc: row.adHoc,
-              propertyCode: row.propertyCode,
-              propertyDisplay: row.propertyDisplay,
-              valueType: row.valueType,
-              valueText: row.valueText,
-              valueNum: row.valueNum != null ? String(row.valueNum) : null,
-              recordedByUserId: scope.userId,
-            });
-          }
-        }
-        // Review-of-Systems screen → projection rows incl. pertinent NEGATIVES.
-        for (const row of rosObservationRows(clerkship.history?.ros ?? [])) {
-          await db.insert(encounterSymptomObservations).values({
-            encounterId,
-            patientUserId,
-            symptomCode: row.symptomCode,
-            symptomDisplay: row.symptomDisplay,
-            status: row.status,
-            propertyCode: row.propertyCode,
-            propertyDisplay: row.propertyDisplay,
-            valueType: row.valueType,
-            valueText: row.valueText,
-            valueNum: row.valueNum != null ? String(row.valueNum) : null,
-            recordedByUserId: scope.userId,
-          });
-        }
-      } catch (e) {
-        logger.warn("encounter.symptom_obs.fan_out_failed", { error: String(e) });
-      }
+      // The v1 structured-symptom fan-out to `encounter_symptom_observations`
+      // was removed with the v1 capture engine (ADR 0081): nothing writes
+      // hpcItems / ros any more, so there is nothing to project. Existing rows
+      // are untouched and still queryable. The NCD clerkship will define its own
+      // projection when its capture shape is settled.
     }
 
     // 3. Timeline event (append-only).

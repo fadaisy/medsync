@@ -51,7 +51,7 @@ export function SetupWizard(props: WizardProps) {
         <span className="text-muted-foreground font-mono text-[10px] tracking-[0.18em] uppercase">
           Hospital setup
         </span>
-        <h1 className="font-display text-foreground text-[28px] leading-tight font-medium tracking-[-0.02em]">
+        <h1 className="font-display text-foreground text-heading-l leading-tight font-medium tracking-[-0.02em]">
           Get {props.hospital.name} ready to go live
         </h1>
         <p className="text-muted-foreground text-[14px]">
@@ -109,7 +109,7 @@ export function SetupWizard(props: WizardProps) {
           title="Connectivity & SMS preferences"
           summary="Confirmed at application time; can be edited after go-live."
         >
-          <p className="text-muted-foreground text-[13px] leading-relaxed">
+          <p className="text-muted-foreground text-body-s leading-relaxed">
             Your connectivity profile was captured during the application. Settings will be editable
             in <span className="text-foreground font-medium">Settings → Connectivity</span> after
             the hospital is live.
@@ -154,20 +154,20 @@ function Step({
     <li
       className={cn(
         "border-border bg-card overflow-hidden rounded-lg border",
-        done && "border-teal-200 dark:border-teal-800/60",
+        done && "border-brand-200 dark:border-brand-800/60",
       )}
     >
       <div className="flex items-start gap-3 px-5 py-4">
         <div
           className={cn(
             "flex size-7 shrink-0 items-center justify-center rounded-full font-mono text-[12px] font-semibold",
-            done ? "bg-teal-600 text-white" : "bg-muted text-muted-foreground",
+            done ? "bg-brand-600 text-white" : "bg-muted text-muted-foreground",
           )}
         >
           {done ? <CheckIcon className="size-3.5" /> : n}
         </div>
         <div className="flex flex-1 flex-col gap-0.5">
-          <h2 className="text-foreground text-[15px] font-medium tracking-tight">{title}</h2>
+          <h2 className="text-foreground text-body-m font-medium tracking-tight">{title}</h2>
           <p className="text-muted-foreground text-[12.5px]">{summary}</p>
         </div>
       </div>
@@ -211,7 +211,7 @@ function StepDepartments({
               {group.items.map((d) => (
                 <label
                   key={d.code}
-                  className="text-foreground/90 inline-flex items-center gap-2 text-[13px]"
+                  className="text-foreground/90 text-body-s inline-flex items-center gap-2"
                 >
                   <input
                     type="checkbox"
@@ -234,7 +234,7 @@ function StepDepartments({
           {state.error}
         </p>
       ) : null}
-      {state.ok ? <p className="text-[12px] text-teal-700">Saved.</p> : null}
+      {state.ok ? <p className="text-brand-700 text-[12px]">Saved.</p> : null}
       <div className="flex justify-end">
         <Button type="submit" variant="primary" size="sm" disabled={pending}>
           {pending ? "Saving…" : "Confirm departments"}
@@ -260,7 +260,7 @@ function StepWards({
           {wards.map((w) => (
             <li
               key={w.id}
-              className="border-border bg-muted/30 flex items-center justify-between rounded-md border px-3 py-2 text-[13px]"
+              className="border-border bg-muted/30 text-body-s flex items-center justify-between rounded-md border px-3 py-2"
             >
               <span className="text-foreground font-medium">{w.name}</span>
               <span className="text-muted-foreground font-mono tabular-nums">
@@ -285,7 +285,7 @@ function AddWardForm({ hospitalId }: { hospitalId: string }) {
     >
       <input type="hidden" name="hospital_id" value={hospitalId} />
       <div className="flex flex-1 flex-col gap-1">
-        <Label htmlFor="ward_name" className="text-[11px]">
+        <Label htmlFor="ward_name" className="text-caption">
           Ward name
         </Label>
         <Input
@@ -297,7 +297,7 @@ function AddWardForm({ hospitalId }: { hospitalId: string }) {
         />
       </div>
       <div className="flex flex-col gap-1 sm:w-[120px]">
-        <Label htmlFor="bed_count" className="text-[11px]">
+        <Label htmlFor="bed_count" className="text-caption">
           Beds
         </Label>
         <Input id="bed_count" name="bed_count" type="number" min={0} defaultValue={0} required />
@@ -306,7 +306,7 @@ function AddWardForm({ hospitalId }: { hospitalId: string }) {
         <PlusIcon className="size-3.5" /> Add
       </Button>
       {state.error ? (
-        <p role="alert" className="text-[11px] text-red-700 sm:w-full">
+        <p role="alert" className="text-caption text-red-700 sm:w-full">
           {state.error}
         </p>
       ) : null}
@@ -349,11 +349,11 @@ function StepAdminTeam({
         {roster.map((r) => (
           <li
             key={r.id}
-            className="border-border bg-muted/30 flex items-center justify-between rounded-md border px-3 py-2 text-[13px]"
+            className="border-border bg-muted/30 text-body-s flex items-center justify-between rounded-md border px-3 py-2"
           >
             <span className="flex flex-col">
               <span className="text-foreground font-medium">{r.fullName}</span>
-              <span className="text-muted-foreground font-mono text-[11px]">{r.email}</span>
+              <span className="text-muted-foreground text-caption font-mono">{r.email}</span>
             </span>
             <Pill tone={r.designation === "primary" ? "admitted" : "neutral"}>{r.designation}</Pill>
           </li>
@@ -365,7 +365,7 @@ function StepAdminTeam({
       <form action={action} className="flex flex-col gap-2 sm:flex-row sm:items-end">
         <input type="hidden" name="hospital_id" value={hospitalId} />
         <div className="flex flex-1 flex-col gap-1">
-          <Label htmlFor="backup_email" className="text-[11px]">
+          <Label htmlFor="backup_email" className="text-caption">
             Backup admin email
           </Label>
           <Input
@@ -386,7 +386,7 @@ function StepAdminTeam({
         </p>
       ) : null}
       {state.ok ? (
-        <p className="text-[12px] text-teal-700">
+        <p className="text-brand-700 text-[12px]">
           Invitation queued. They&apos;ll claim the role via the invitation link (delivered in a
           follow-up release).
         </p>
@@ -414,7 +414,7 @@ function StepStaff({
       <form action={action} className="flex flex-col gap-2 sm:flex-row sm:items-end">
         <input type="hidden" name="hospital_id" value={hospitalId} />
         <div className="flex flex-1 flex-col gap-1">
-          <Label htmlFor="staff_email" className="text-[11px]">
+          <Label htmlFor="staff_email" className="text-caption">
             Staff email
           </Label>
           <Input id="staff_email" name="email" type="email" required />
@@ -436,7 +436,7 @@ function StepStaff({
               className="text-muted-foreground flex items-center justify-between text-[12px]"
             >
               <span className="font-mono">{inv.email}</span>
-              <span className="font-mono text-[11px]">
+              <span className="text-caption font-mono">
                 {new Date(inv.invitedAtIso).toLocaleDateString()}
               </span>
             </li>

@@ -131,10 +131,13 @@ export function ApprovalsQueue({ items, canSeeHospitalQueue }: QueueProps) {
       <header className="border-border border-b px-4 py-6 sm:px-8 sm:py-8">
         <div className="stagger-children mx-auto flex w-full max-w-300 flex-col gap-1.5">
           <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
-            <span aria-hidden className="size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20" />
+            <span
+              aria-hidden
+              className="bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2"
+            />
             Console · Daily queue
           </span>
-          <h1 className="font-display text-foreground text-[24px] leading-tight font-medium tracking-[-0.018em] sm:text-[28px]">
+          <h1 className="font-display text-foreground sm:text-heading-l text-[24px] leading-tight font-medium tracking-[-0.018em]">
             Approvals
           </h1>
           <p className="text-muted-foreground text-[13.5px]">

@@ -90,7 +90,7 @@ export default function GetStartedPage() {
       {/* Atmospheric teal radial — same shape as the landing hero */}
       <div
         aria-hidden
-        className="fade-in-slow pointer-events-none absolute top-0 left-1/2 -z-10 h-[60%] w-[140%] max-w-none -translate-x-1/2 [background:radial-gradient(closest-side,oklch(0.95_0.06_180/0.45),transparent_72%)] dark:[background:radial-gradient(closest-side,oklch(0.45_0.08_180/0.25),transparent_72%)]"
+        className="fade-in-slow pointer-events-none absolute top-0 left-1/2 -z-10 h-[60%] w-[140%] max-w-none -translate-x-1/2 [background:radial-gradient(closest-side,oklch(0.95_0.06_286/0.45),transparent_72%)] dark:[background:radial-gradient(closest-side,oklch(0.45_0.08_286/0.25),transparent_72%)]"
       />
 
       <main className="mx-auto flex w-full max-w-300 flex-1 flex-col px-5 py-14 sm:px-8 sm:py-20">
@@ -102,17 +102,17 @@ export default function GetStartedPage() {
             &larr; Back to MedSync
           </Link>
           <span className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
-            <span className="pulse-dot size-1 rounded-full bg-teal-500" />
+            <span className="pulse-dot bg-brand-500 size-1 rounded-full" />
             Get started
           </span>
           <h1
-            className="font-display text-foreground max-w-[24ch] text-[36px] leading-[1.05] tracking-[-0.025em] text-balance sm:text-[52px]"
+            className="font-display text-foreground text-display-s max-w-[24ch] leading-[1.05] tracking-[-0.025em] text-balance sm:text-[52px]"
             style={{ fontWeight: 400 }}
           >
             One record.{" "}
-            <span className="text-teal-700 italic dark:text-teal-300">Four doors in.</span>
+            <span className="text-brand-700 dark:text-brand-300 italic">Four doors in.</span>
           </h1>
-          <p className="text-muted-foreground max-w-[60ch] text-[15px] leading-[1.55] sm:text-[16.5px]">
+          <p className="text-muted-foreground text-body-m max-w-[60ch] leading-[1.55] sm:text-[16.5px]">
             Pick the door that matches you. Patients get an account immediately; clinicians and
             hospitals go through approval so we can verify identity and protect patient data.
           </p>
@@ -125,21 +125,21 @@ export default function GetStartedPage() {
                 href={tile.href}
                 className={cn(
                   "group border-border bg-card card-lift relative flex h-full w-full flex-col gap-4 overflow-hidden rounded-xl border p-5",
-                  "hover:border-teal-300",
-                  "dark:hover:bg-teal-50/[0.04]",
+                  "hover:border-brand-300",
+                  "dark:hover:bg-brand-50/[0.04]",
                 )}
               >
                 {/* Quiet teal wash rises from the foot of the tile on hover */}
                 <div
                   aria-hidden
-                  className="ease-expo-out pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-linear-to-t from-teal-50/70 to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100 dark:from-teal-50/6"
+                  className="ease-expo-out from-brand-50/70 dark:from-brand-50/6 pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-linear-to-t to-transparent opacity-0 transition-opacity duration-300 group-hover:opacity-100"
                 />
                 <div className="relative flex items-start justify-between">
-                  <span className="ease-expo-out inline-flex size-10 items-center justify-center rounded-md bg-teal-50 text-teal-700 transition-colors duration-200 group-hover:bg-teal-100 dark:bg-teal-50/15 dark:text-teal-200 dark:group-hover:bg-teal-50/25">
+                  <span className="ease-expo-out bg-brand-50 text-brand-700 group-hover:bg-brand-100 dark:bg-brand-50/15 dark:text-brand-200 dark:group-hover:bg-brand-50/25 inline-flex size-10 items-center justify-center rounded-md transition-colors duration-200">
                     <tile.Icon className="size-5" strokeWidth={1.75} />
                   </span>
                   <ArrowUpRightIcon
-                    className="text-muted-foreground ease-expo-out size-4 transition-[transform,color] duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-teal-700 dark:group-hover:text-teal-300"
+                    className="text-muted-foreground ease-expo-out group-hover:text-brand-700 dark:group-hover:text-brand-300 size-4 transition-[transform,color] duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
                     strokeWidth={1.5}
                   />
                 </div>
@@ -147,9 +147,9 @@ export default function GetStartedPage() {
                   <span className="font-display text-foreground text-[20px] leading-tight font-medium">
                     {tile.label}
                   </span>
-                  <span className="text-muted-foreground text-[13px]">{tile.sub}</span>
+                  <span className="text-muted-foreground text-body-s">{tile.sub}</span>
                 </div>
-                <p className="relative text-[13px] leading-[1.55]">
+                <p className="text-body-s relative leading-[1.55]">
                   <span className="text-foreground/80">{tile.details}</span>
                 </p>
                 <p className="text-muted-foreground border-border relative mt-auto border-t pt-3 font-mono text-[10.5px] tracking-[0.12em] uppercase">
@@ -164,10 +164,10 @@ export default function GetStartedPage() {
           className="border-border reveal-up mt-10 flex flex-wrap items-center justify-between gap-3 border-t pt-6"
           style={{ animationDelay: "300ms" }}
         >
-          <p className="text-muted-foreground text-[13px]">Already have an account?</p>
+          <p className="text-muted-foreground text-body-s">Already have an account?</p>
           <Link
             href="/sign-in"
-            className="text-foreground border-border hover:bg-muted tap group inline-flex items-center gap-1.5 rounded-md border px-4 py-2 text-[13px] font-medium transition-colors hover:border-gray-300"
+            className="text-foreground border-border hover:bg-muted tap group text-body-s inline-flex items-center gap-1.5 rounded-md border px-4 py-2 font-medium transition-colors hover:border-gray-300"
           >
             Sign in
             <ArrowUpRightIcon

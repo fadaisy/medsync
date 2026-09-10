@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { getAuthState } from "@/lib/auth";
-import { reviewProposal } from "@/lib/clerkship/governance";
+import { reviewProposal } from "@/lib/catalog/governance";
 
 /**
  * Review a symptom-catalog proposal — superadmin (CSO) only. Approve of a

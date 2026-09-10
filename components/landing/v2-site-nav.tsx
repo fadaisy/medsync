@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils";
  *   - Mobile: hamburger opens a sheet with the same anchor list.
  *
  * Visual language is unchanged from the rest of the landing — borrows the
- * existing eyebrow + glassy backdrop + teal-accent treatment so it reads
+ * existing eyebrow + glassy backdrop + brand-accent treatment so it reads
  * as part of the same design system.
  */
 
@@ -160,7 +160,7 @@ export function V2SiteNav({ sections = DEFAULT_LANDING_SECTIONS }: V2SiteNavProp
           {/* Wordmark */}
           <Link
             href="/"
-            className="font-display text-foreground text-[18px] tracking-tight transition-opacity hover:opacity-80"
+            className="font-display text-foreground text-heading-s tracking-tight transition-opacity hover:opacity-80"
           >
             MedSync
           </Link>
@@ -187,7 +187,7 @@ export function V2SiteNav({ sections = DEFAULT_LANDING_SECTIONS }: V2SiteNavProp
                       <span
                         aria-hidden
                         className={cn(
-                          "absolute right-3 bottom-0 left-3 h-[1.5px] origin-left rounded-full bg-teal-500 dark:bg-teal-400",
+                          "bg-brand-500 dark:bg-brand-400 absolute right-3 bottom-0 left-3 h-[1.5px] origin-left rounded-full",
                           "ease-expo-out transition-transform duration-300",
                           isActive ? "scale-x-100" : "scale-x-0",
                         )}
@@ -212,8 +212,10 @@ export function V2SiteNav({ sections = DEFAULT_LANDING_SECTIONS }: V2SiteNavProp
               href="/get-started"
               className={cn(
                 "tap inline-flex items-center gap-1.5 rounded-md px-3.5 py-1.5 text-[12.5px] font-medium",
-                "bg-teal-600 text-white shadow-sm transition-colors hover:bg-teal-700 hover:shadow-md",
-                "dark:bg-teal-500 dark:hover:bg-teal-600",
+                "bg-mint-300 text-brand-900 hover:bg-mint-400 shadow-sm transition-colors hover:shadow-md",
+                // The scales invert in dark, so re-pair to keep bright mint under
+                // deep indigo text (AA 9.05:1) instead of the 3.43:1 flip.
+                "dark:bg-mint-700 dark:text-brand-100 dark:hover:bg-mint-600",
               )}
             >
               Get started
@@ -273,7 +275,7 @@ export function V2SiteNav({ sections = DEFAULT_LANDING_SECTIONS }: V2SiteNavProp
                     className={cn(
                       "tap flex items-center justify-between rounded-md px-3 py-2.5 text-[14px]",
                       isActive
-                        ? "text-foreground bg-teal-50/60 dark:bg-teal-50/10"
+                        ? "text-foreground bg-brand-50/60 dark:bg-brand-50/10"
                         : "text-foreground/85 hover:bg-muted",
                     )}
                   >
@@ -281,7 +283,7 @@ export function V2SiteNav({ sections = DEFAULT_LANDING_SECTIONS }: V2SiteNavProp
                     {isActive ? (
                       <span
                         aria-hidden
-                        className="size-1.5 rounded-full bg-teal-500 dark:bg-teal-400"
+                        className="bg-brand-500 dark:bg-brand-400 size-1.5 rounded-full"
                       />
                     ) : null}
                   </a>
@@ -302,7 +304,7 @@ export function V2SiteNav({ sections = DEFAULT_LANDING_SECTIONS }: V2SiteNavProp
                 <Link
                   href="/get-started"
                   onClick={() => setDrawerOpen(false)}
-                  className="inline-flex items-center justify-center rounded-md bg-teal-600 px-3 py-2.5 text-[14px] font-medium text-white dark:bg-teal-500"
+                  className="bg-mint-300 text-brand-900 dark:bg-mint-700 dark:text-brand-100 inline-flex items-center justify-center rounded-md px-3 py-2.5 text-[14px] font-medium"
                 >
                   Get started
                 </Link>

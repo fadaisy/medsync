@@ -83,12 +83,12 @@ function Content({ item, onClose }: { item: ScheduleAppointmentRow; onClose: () 
         </dl>
 
         {item.reasonNote ? (
-          /* Patient's own words — quiet teal-tinted quote card (no edge bars). */
-          <div className="mt-4 rounded-md bg-teal-50/50 px-3 py-2 ring-1 ring-teal-500/15 dark:bg-teal-950/20">
+          /* Patient's own words — quiet brand-tinted quote card (no edge bars). */
+          <div className="bg-brand-50/50 ring-brand-500/15 dark:bg-brand-950/20 mt-4 rounded-md px-3 py-2 ring-1">
             <p className="text-muted-foreground font-mono text-[10.5px] tracking-[0.12em] uppercase">
               Patient note
             </p>
-            <p className="text-foreground text-[13px] leading-relaxed italic">
+            <p className="text-foreground text-body-s leading-relaxed italic">
               &ldquo;{item.reasonNote}&rdquo;
             </p>
           </div>

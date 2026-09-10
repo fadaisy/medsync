@@ -28,23 +28,26 @@ export default async function PatientCarePage() {
 
         <header className="flex flex-col gap-2">
           <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
-            <span aria-hidden className="size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20" />
+            <span
+              aria-hidden
+              className="bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2"
+            />
             MedSync · My care
           </span>
-          <h1 className="font-display text-foreground text-[24px] leading-[1.15] font-medium tracking-[-0.015em] sm:text-[28px]">
+          <h1 className="font-display text-foreground sm:text-heading-l text-[24px] leading-[1.15] font-medium tracking-[-0.015em]">
             Available once you connect
           </h1>
         </header>
 
-        <div className="relative overflow-hidden rounded-xl border border-teal-500/30 bg-gradient-to-br from-teal-50/80 via-teal-50/40 to-transparent p-5 dark:border-teal-400/20 dark:from-teal-950/30 dark:via-teal-950/15 dark:to-transparent">
+        <div className="border-brand-500/30 from-brand-50/80 via-brand-50/40 dark:border-brand-400/20 dark:from-brand-950/30 dark:via-brand-950/15 relative overflow-hidden rounded-xl border bg-gradient-to-br to-transparent p-5 dark:to-transparent">
           <div
             aria-hidden
-            className="absolute -top-12 -right-12 size-32 rounded-full bg-teal-500/10 blur-2xl dark:bg-teal-400/10"
+            className="bg-brand-500/10 dark:bg-brand-400/10 absolute -top-12 -right-12 size-32 rounded-full blur-2xl"
           />
           <div className="relative flex items-start gap-3">
             <span
               aria-hidden
-              className="inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-white/80 text-teal-700 ring-1 ring-teal-200/80 dark:bg-teal-950/60 dark:text-teal-300 dark:ring-teal-800/40"
+              className="text-brand-700 ring-brand-200/80 dark:bg-brand-950/60 dark:text-brand-300 dark:ring-brand-800/40 inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-white/80 ring-1"
             >
               <BuildingIcon className="size-5" />
             </span>
@@ -58,7 +61,7 @@ export default async function PatientCarePage() {
               </p>
               <Link
                 href="/patient/hospitals"
-                className="mt-1 inline-flex w-fit items-center gap-1 text-[12px] font-medium text-teal-700 dark:text-teal-300"
+                className="text-brand-700 dark:text-brand-300 mt-1 inline-flex w-fit items-center gap-1 text-[12px] font-medium"
               >
                 Pick a hospital →
               </Link>

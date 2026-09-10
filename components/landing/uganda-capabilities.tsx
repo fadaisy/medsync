@@ -88,21 +88,21 @@ export function UgandaCapabilities() {
         {/* Section header */}
         <RevealOnScroll className="mb-10 flex flex-col gap-4">
           <span className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
-            <span className="pulse-dot size-1 rounded-full bg-teal-500" />
-            <span className="tabular text-teal-700/80 dark:text-teal-300/80">04</span>
+            <span className="pulse-dot bg-brand-500 size-1 rounded-full" />
+            <span className="tabular text-brand-700/80 dark:text-brand-300/80">04</span>
             <span aria-hidden className="bg-border h-px w-4" />
             Built for the realities of Ugandan care
           </span>
           <h2
             id="uganda-headline"
-            className="font-display text-foreground max-w-[24ch] text-[30px] leading-[1.1] tracking-[-0.025em] text-balance sm:text-[44px]"
+            className="font-display text-foreground sm:text-display-m max-w-[24ch] text-[30px] leading-[1.1] tracking-[-0.025em] text-balance"
             style={{ fontWeight: 400 }}
           >
             Designed for the wards{" "}
-            <span className="text-teal-700 italic dark:text-teal-300">we actually work in</span>{" "}
+            <span className="text-brand-700 dark:text-brand-300 italic">we actually work in</span>{" "}
             &mdash; not a perfect demo room.
           </h2>
-          <p className="text-muted-foreground max-w-[68ch] text-[15px] leading-[1.55] sm:text-[17px]">
+          <p className="text-muted-foreground text-body-m sm:text-body-l max-w-[68ch] leading-[1.55]">
             We won&rsquo;t quote uptime numbers we haven&rsquo;t measured. What we will show is what
             we&rsquo;ve committed to engineer against: load-shedding, 3G, basic phones,
             mobile-money, cross-region replication rules.
@@ -139,13 +139,13 @@ function CapabilityCard({ cap, large }: { cap: Capability; large: boolean }) {
       {large ? (
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-0 [background:radial-gradient(ellipse_at_top_right,oklch(0.94_0.05_180/0.5),transparent_50%)] dark:[background:radial-gradient(ellipse_at_top_right,oklch(0.45_0.08_180/0.18),transparent_55%)]"
+          className="pointer-events-none absolute inset-0 [background:radial-gradient(ellipse_at_top_right,oklch(0.94_0.05_286/0.5),transparent_50%)] dark:[background:radial-gradient(ellipse_at_top_right,oklch(0.45_0.08_286/0.18),transparent_55%)]"
         />
       ) : null}
 
       <div className={cn("relative flex flex-col gap-3", large ? "lg:col-span-3" : "")}>
         <span className="inline-flex items-center gap-2">
-          <span className="inline-flex size-9 items-center justify-center rounded-md bg-teal-50 text-teal-700 dark:bg-teal-50/15 dark:text-teal-200">
+          <span className="bg-brand-50 text-brand-700 dark:bg-brand-50/15 dark:text-brand-200 inline-flex size-9 items-center justify-center rounded-md">
             <cap.Icon className="size-4" strokeWidth={1.75} />
           </span>
           <span className="text-muted-foreground font-mono text-[10px] tracking-[0.18em] uppercase">
@@ -155,7 +155,7 @@ function CapabilityCard({ cap, large }: { cap: Capability; large: boolean }) {
         <h3
           className={cn(
             "font-display text-foreground leading-[1.18] tracking-[-0.018em] text-balance",
-            large ? "text-[24px] sm:text-[28px]" : "text-[19px] sm:text-[21px]",
+            large ? "sm:text-heading-l text-[24px]" : "text-[19px] sm:text-[21px]",
           )}
           style={{ fontWeight: 400 }}
         >
@@ -185,7 +185,7 @@ function CapabilityCard({ cap, large }: { cap: Capability; large: boolean }) {
         ) : null}
         <div
           className={cn(
-            "flex items-center gap-2 text-[11px]",
+            "text-caption flex items-center gap-2",
             cap.patientSurface ? "border-border border-t pt-2" : "",
           )}
         >
@@ -220,7 +220,7 @@ function OfflineSavedReadingCard() {
         </span>
       </div>
       <div className="flex items-baseline gap-2">
-        <span className="font-display text-foreground tabular text-[18px] leading-none font-medium">
+        <span className="font-display text-foreground tabular text-heading-s leading-none font-medium">
           11.6
         </span>
         <span className="text-muted-foreground tabular font-mono text-[9.5px]">mmol/L</span>

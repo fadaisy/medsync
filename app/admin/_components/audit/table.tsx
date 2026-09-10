@@ -77,8 +77,8 @@ export function AuditTable({ rows, cappedAt }: TableProps) {
         sortable: true,
         cell: (row) => (
           <span className="flex flex-col">
-            <span className="text-foreground text-[13px]">{row.actorFullName ?? "(unknown)"}</span>
-            <span className="text-muted-foreground font-mono text-[11px]">
+            <span className="text-foreground text-body-s">{row.actorFullName ?? "(unknown)"}</span>
+            <span className="text-muted-foreground text-caption font-mono">
               {row.actorEmail ?? "—"}
             </span>
           </span>
@@ -229,7 +229,7 @@ function Ev({ label, value, mono }: { label: string; value: string; mono?: boole
         {label}
       </dt>
       <dd
-        className={cn("text-foreground text-[13px] break-words", mono && "font-mono tabular-nums")}
+        className={cn("text-foreground text-body-s break-words", mono && "font-mono tabular-nums")}
       >
         {value}
       </dd>

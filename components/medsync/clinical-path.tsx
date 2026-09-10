@@ -20,7 +20,7 @@ export function ClinicalPath({
       data-slot="clinical-path"
       aria-label="Path"
       className={cn(
-        "text-primary inline-flex items-center gap-1.5 font-mono text-[13px] leading-none",
+        "text-primary text-body-s inline-flex items-center gap-1.5 font-mono leading-none",
         className,
       )}
       {...props}

@@ -25,7 +25,7 @@ export function ReviewForm({ cosignRequestId }: { cosignRequestId: string }) {
         <p className="text-destructive scale-in text-[11.5px]">{state.error}</p>
       ) : null}
       {state.ok ? (
-        <p className="scale-in text-[11.5px] font-medium text-teal-700 dark:text-teal-300">
+        <p className="scale-in text-brand-700 dark:text-brand-300 text-[11.5px] font-medium">
           Decision saved.
         </p>
       ) : null}

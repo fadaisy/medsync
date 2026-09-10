@@ -43,7 +43,7 @@ export function HeroSurfaces() {
         >
           <span className="bg-border h-px flex-1" aria-hidden />
           <span className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
-            <span className="pulse-dot size-1 rounded-full bg-teal-500" />
+            <span className="pulse-dot bg-brand-500 size-1 rounded-full" />
             &hellip; and on Amina&rsquo;s app at home
           </span>
           <span className="bg-border h-px flex-1" aria-hidden />

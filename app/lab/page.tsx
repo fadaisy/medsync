@@ -25,8 +25,8 @@ export default async function LabWorklistPage() {
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-5 px-4 py-6 sm:px-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="flex flex-col gap-1">
-          <h1 className="font-display text-foreground inline-flex items-center gap-2 text-[18px] font-medium tracking-[-0.01em]">
-            <FlaskConicalIcon className="size-5 text-teal-600 dark:text-teal-400" aria-hidden />
+          <h1 className="font-display text-foreground text-heading-s inline-flex items-center gap-2 font-medium tracking-[-0.01em]">
+            <FlaskConicalIcon className="text-brand-600 dark:text-brand-400 size-5" aria-hidden />
             Incoming worklist
           </h1>
           <p className="text-muted-foreground text-[12.5px]">
@@ -50,7 +50,7 @@ export default async function LabWorklistPage() {
       </div>
 
       {items.length === 0 ? (
-        <div className="border-border bg-muted/20 text-muted-foreground rounded-xl border border-dashed p-8 text-center text-[13px]">
+        <div className="border-border bg-muted/20 text-muted-foreground text-body-s rounded-xl border border-dashed p-8 text-center">
           No orders awaiting the lab right now. New orders from clinicians appear here.
         </div>
       ) : (
@@ -87,7 +87,7 @@ export default async function LabWorklistPage() {
                       className={cn(
                         "rounded px-1.5 py-0.5 text-[10.5px] font-medium",
                         it.hasResult
-                          ? "bg-teal-100 text-teal-800 dark:bg-teal-950/40 dark:text-teal-300"
+                          ? "bg-brand-100 text-brand-800 dark:bg-brand-950/40 dark:text-brand-300"
                           : it.status === "collected"
                             ? "bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300"
                             : "text-muted-foreground bg-muted",

@@ -56,7 +56,7 @@ export const STATUS_BLOCK_CLASSES: Record<StatusTone, string> = {
   pending:
     "bg-amber-50 text-amber-900 border-l-2 border-l-amber-500 dark:bg-amber-950/30 dark:text-amber-100 dark:border-l-amber-400",
   confirmed:
-    "bg-teal-50 text-teal-900 border-l-2 border-l-teal-600 dark:bg-teal-950/30 dark:text-teal-100 dark:border-l-teal-400",
+    "bg-brand-50 text-brand-900 border-l-2 border-l-brand-600 dark:bg-brand-950/30 dark:text-brand-100 dark:border-l-brand-400",
   arrived:
     "bg-blue-50 text-blue-900 border-l-2 border-l-blue-600 dark:bg-blue-950/30 dark:text-blue-100 dark:border-l-blue-400",
   completed: "bg-muted text-muted-foreground border-l-2 border-l-border",
@@ -67,7 +67,7 @@ export const STATUS_BLOCK_CLASSES: Record<StatusTone, string> = {
 
 /** Availability block kinds → background classes (recede behind appointments). */
 export const AVAILABILITY_KIND_CLASSES: Record<string, string> = {
-  bookable: "bg-teal-50/50 dark:bg-teal-950/15",
+  bookable: "bg-brand-50/50 dark:bg-brand-950/15",
   teaching:
     "bg-[repeating-linear-gradient(45deg,transparent_0,transparent_6px,rgba(0,0,0,0.04)_6px,rgba(0,0,0,0.04)_8px)] dark:bg-[repeating-linear-gradient(45deg,transparent_0,transparent_6px,rgba(255,255,255,0.04)_6px,rgba(255,255,255,0.04)_8px)]",
   ward_round:

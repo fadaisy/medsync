@@ -31,10 +31,10 @@ export function HandoverForm({ wards }: { wards: ReadonlyArray<WardOption> }) {
 
   if (state.ok) {
     return (
-      <div className="border-border bg-card scale-in flex flex-col items-start gap-3 rounded-xl border p-5 ring-1 ring-teal-500/10">
+      <div className="border-border bg-card scale-in ring-brand-500/10 flex flex-col items-start gap-3 rounded-xl border p-5 ring-1">
         <span
           aria-hidden
-          className="scale-in inline-flex size-9 items-center justify-center rounded-full bg-teal-100 text-teal-700 dark:bg-teal-900/60 dark:text-teal-300"
+          className="scale-in bg-brand-100 text-brand-700 dark:bg-brand-900/60 dark:text-brand-300 inline-flex size-9 items-center justify-center rounded-full"
           style={{ animationDelay: "90ms" }}
         >
           <ScrollTextIcon className="size-4" />
@@ -55,7 +55,7 @@ export function HandoverForm({ wards }: { wards: ReadonlyArray<WardOption> }) {
   if (wards.length === 0) {
     return (
       <div className="border-border bg-card flex flex-col gap-2 rounded-xl border p-4">
-        <p className="text-foreground text-[13px] font-medium">No wards set up yet</p>
+        <p className="text-foreground text-body-s font-medium">No wards set up yet</p>
         <p className="text-muted-foreground text-[12px]">
           A handover is per-ward. Your hospital admin sets up wards under{" "}
           <span className="font-mono">Departments</span> — once a ward exists you can submit.
@@ -68,7 +68,7 @@ export function HandoverForm({ wards }: { wards: ReadonlyArray<WardOption> }) {
     <form action={formAction} className="flex flex-col gap-4">
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="ward" className="text-[11px] tracking-tight">
+          <Label htmlFor="ward" className="text-caption tracking-tight">
             Ward
           </Label>
           <select
@@ -76,7 +76,7 @@ export function HandoverForm({ wards }: { wards: ReadonlyArray<WardOption> }) {
             name="ward_id"
             required
             defaultValue={wards[0]?.id ?? ""}
-            className="border-input bg-background text-foreground focus-visible:ring-ring/50 rounded-md border px-3 py-2 text-[13px] outline-none focus-visible:ring-[3px]"
+            className="border-input bg-background text-foreground focus-visible:ring-ring/50 text-body-s rounded-md border px-3 py-2 outline-none focus-visible:ring-[3px]"
           >
             {wards.map((w) => (
               <option key={w.id} value={w.id}>
@@ -86,14 +86,14 @@ export function HandoverForm({ wards }: { wards: ReadonlyArray<WardOption> }) {
           </select>
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="shift" className="text-[11px] tracking-tight">
+          <Label htmlFor="shift" className="text-caption tracking-tight">
             Shift
           </Label>
           <select
             id="shift"
             name="shift_label"
             defaultValue="day"
-            className="border-input bg-background text-foreground focus-visible:ring-ring/50 rounded-md border px-3 py-2 text-[13px] outline-none focus-visible:ring-[3px]"
+            className="border-input bg-background text-foreground focus-visible:ring-ring/50 text-body-s rounded-md border px-3 py-2 outline-none focus-visible:ring-[3px]"
           >
             {SHIFTS.map((s) => (
               <option key={s.value} value={s.value}>
@@ -105,7 +105,7 @@ export function HandoverForm({ wards }: { wards: ReadonlyArray<WardOption> }) {
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="summary" className="text-[11px] tracking-tight">
+        <Label htmlFor="summary" className="text-caption tracking-tight">
           What does the next shift need to know?
         </Label>
         <textarea
@@ -116,12 +116,12 @@ export function HandoverForm({ wards }: { wards: ReadonlyArray<WardOption> }) {
           minLength={8}
           maxLength={8000}
           placeholder="Patients of concern, pending tasks, dressings due, awaiting results, family notifications…"
-          className="border-input bg-background text-foreground placeholder:text-muted-foreground/70 focus-visible:ring-ring/50 focus-visible:border-ring resize-none rounded-md border px-3 py-2 text-[13px] leading-relaxed outline-none focus-visible:ring-[3px]"
+          className="border-input bg-background text-foreground placeholder:text-muted-foreground/70 focus-visible:ring-ring/50 focus-visible:border-ring text-body-s resize-none rounded-md border px-3 py-2 leading-relaxed outline-none focus-visible:ring-[3px]"
         />
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="ho-reason" className="text-[11px] tracking-tight">
+        <Label htmlFor="ho-reason" className="text-caption tracking-tight">
           Audit note (≥ 8 chars)
         </Label>
         <Input

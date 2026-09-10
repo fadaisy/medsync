@@ -39,14 +39,14 @@ export function PlaceholderSurface({
           <span aria-hidden className="size-1 rounded-full bg-amber-500 ring-2 ring-amber-500/20" />
           {eyebrow}
         </span>
-        <h1 className="font-display text-foreground text-[24px] leading-[1.15] font-medium tracking-[-0.015em] sm:text-[28px]">
+        <h1 className="font-display text-foreground sm:text-heading-l text-[24px] leading-[1.15] font-medium tracking-[-0.015em]">
           {title}
         </h1>
         <p className="text-muted-foreground max-w-2xl text-[13.5px] leading-relaxed">
           {description}
         </p>
         {/* Hairline teal accent — recurring landing-page motif. */}
-        <div className="h-px w-10 bg-teal-500/60 dark:bg-teal-400/50" aria-hidden />
+        <div className="bg-brand-500/60 dark:bg-brand-400/50 h-px w-10" aria-hidden />
       </header>
 
       {/* Empty-state card */}
@@ -67,7 +67,7 @@ export function PlaceholderSurface({
           <rect x="94" y="6" width="80" height="20" rx="4" strokeDasharray="4 4" />
           <rect x="94" y="34" width="80" height="16" rx="4" strokeDasharray="4 4" />
           <rect x="186" y="6" width="92" height="44" rx="4" strokeDasharray="4 4" />
-          <path d="M10 40 l12 -8 l10 4 l14 -10 l16 6" className="text-teal-500/50" />
+          <path d="M10 40 l12 -8 l10 4 l14 -10 l16 6" className="text-brand-500/50" />
         </svg>
         <div className="flex flex-col gap-1">
           <h2 className="text-foreground text-[14px] font-medium tracking-[-0.005em]">

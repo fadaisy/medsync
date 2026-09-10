@@ -334,7 +334,7 @@ export function PrescribeDialog({
             <p className="text-muted-foreground/70 font-mono text-[10px] tracking-[0.14em] uppercase">
               Prescribe / record
             </p>
-            <h2 className="text-foreground truncate text-[15px] font-semibold">{recLabel}</h2>
+            <h2 className="text-foreground text-body-m truncate font-semibold">{recLabel}</h2>
           </div>
           <button
             type="button"
@@ -386,7 +386,7 @@ export function PrescribeDialog({
                 </button>
               ) : null}
             </div>
-            <p className="text-muted-foreground text-[11px]">
+            <p className="text-muted-foreground text-caption">
               {drug.drugClass} · T-{drug.tier.replace(/_/g, " ")}
             </p>
             {drug.adult ? (
@@ -572,7 +572,7 @@ export function PrescribeDialog({
                   type="button"
                   disabled={pending || !allergyDraft.trim()}
                   onClick={() => captureAllergies(false)}
-                  className="tap rounded-md bg-teal-600 px-2 py-1 text-[11.5px] font-semibold text-white disabled:opacity-50"
+                  className="tap bg-mint-600 rounded-md px-2 py-1 text-[11.5px] font-semibold text-white disabled:opacity-50"
                 >
                   Save
                 </button>
@@ -703,7 +703,7 @@ export function PrescribeDialog({
               onClick={confirm}
               className={cn(
                 "tap rounded-lg px-3 py-1.5 text-[12.5px] font-semibold text-white transition-colors disabled:opacity-50",
-                needsOverride ? "bg-rose-600 hover:bg-rose-700" : "bg-teal-600 hover:bg-teal-700",
+                needsOverride ? "bg-rose-600 hover:bg-rose-700" : "bg-mint-600 hover:bg-mint-700",
               )}
             >
               {needsOverride ? "Override + record" : "Confirm + record"}

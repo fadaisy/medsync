@@ -294,7 +294,7 @@ export function ClinicalSignupForm({
           </Field>
 
           <details className="border-border bg-card rounded-md border p-4 text-[12.5px]">
-            <summary className="text-foreground cursor-pointer font-medium transition-colors duration-150 hover:text-teal-700 dark:hover:text-teal-300">
+            <summary className="text-foreground hover:text-brand-700 dark:hover:text-brand-300 cursor-pointer font-medium transition-colors duration-150">
               Read the consent text (v{consent.version}, effective {consent.effectiveDate})
             </summary>
             <p className="text-muted-foreground mt-3 leading-snug whitespace-pre-line">

@@ -38,7 +38,7 @@ export function MfaSetupForm({ factorId, secret, qrSvg }: MfaSetupFormProps) {
             Can&apos;t scan the QR code?
           </summary>
           <p className="text-body-s mt-2">Enter this secret manually:</p>
-          <code className="bg-muted text-foreground scale-in mt-2 block rounded-sm border border-gray-200 p-2 font-mono text-[11px] break-all">
+          <code className="bg-muted text-foreground scale-in text-caption mt-2 block rounded-sm border border-gray-200 p-2 font-mono break-all">
             {secret}
           </code>
         </details>
@@ -59,7 +59,7 @@ export function MfaSetupForm({ factorId, secret, qrSvg }: MfaSetupFormProps) {
               autoComplete="one-time-code"
               autoFocus
               required
-              className="py-2.5 text-center font-mono text-[18px] tracking-[0.4em] tabular-nums"
+              className="text-heading-s py-2.5 text-center font-mono tracking-[0.4em] tabular-nums"
               aria-invalid={!!state.errors?.code}
             />
             <FieldError message={state.errors?.code} />

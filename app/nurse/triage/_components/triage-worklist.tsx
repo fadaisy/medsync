@@ -18,7 +18,7 @@ const ACUITY: Record<number, { label: string; dot: string; text: string }> = {
   1: { label: "L1", dot: "bg-rose-600", text: "text-rose-700 dark:text-rose-300" },
   2: { label: "L2", dot: "bg-orange-500", text: "text-orange-700 dark:text-orange-300" },
   3: { label: "L3", dot: "bg-amber-400", text: "text-amber-700 dark:text-amber-300" },
-  4: { label: "L4", dot: "bg-teal-600", text: "text-teal-700 dark:text-teal-300" },
+  4: { label: "L4", dot: "bg-mint-600", text: "text-mint-700 dark:text-mint-300" },
   5: { label: "L5", dot: "bg-slate-400", text: "text-slate-600 dark:text-slate-300" },
 };
 
@@ -77,7 +77,7 @@ export function TriageWorklist({
           >
             <Link
               href={`${basePath}/${r.intakeId}`}
-              className="group flex min-w-0 flex-1 items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-teal-50/40 dark:hover:bg-teal-50/[0.04]"
+              className="group hover:bg-mint-50/40 dark:hover:bg-mint-50/[0.04] flex min-w-0 flex-1 items-center gap-3 px-4 py-3 text-left transition-colors"
             >
               {/* Acuity dot rail — L1 pulses: a Red patient waiting is live */}
               <span
@@ -99,7 +99,7 @@ export function TriageWorklist({
                     </span>
                   ) : null}
                 </span>
-                <span className="text-muted-foreground truncate font-mono text-[11px] tabular-nums">
+                <span className="text-muted-foreground text-caption truncate font-mono tabular-nums">
                   {meta}
                   {r.presentingComplaint ? (
                     <span className="font-sans"> · {r.presentingComplaint}</span>

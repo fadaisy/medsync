@@ -17,14 +17,14 @@ export function SubBanner() {
         href="/signup/hospital"
         className={cn(
           "group tap inline-flex items-center gap-2 rounded-full",
-          "border border-teal-200 bg-teal-50 px-3 py-1.5 text-[12.5px] text-teal-900 hover:bg-teal-100",
-          "dark:border-teal-900 dark:bg-teal-50/10 dark:text-teal-100 dark:hover:bg-teal-50/15",
+          "border-brand-200 bg-brand-50 text-brand-900 hover:bg-brand-100 border px-3 py-1.5 text-[12.5px]",
+          "dark:border-brand-900 dark:bg-brand-50/10 dark:text-brand-100 dark:hover:bg-brand-50/15",
           "transition-colors duration-200 hover:shadow-sm",
         )}
       >
         <span className="relative flex size-1.5">
-          <span className="absolute inset-0 animate-ping rounded-full bg-teal-500/60 motion-reduce:hidden" />
-          <span className="relative size-1.5 rounded-full bg-teal-500 dark:bg-teal-400" />
+          <span className="bg-brand-500/60 absolute inset-0 animate-ping rounded-full motion-reduce:hidden" />
+          <span className="bg-brand-500 dark:bg-brand-400 relative size-1.5 rounded-full" />
         </span>
         <span className="font-medium">
           <span className="font-mono text-[10px] tracking-[0.16em] uppercase">Live</span>

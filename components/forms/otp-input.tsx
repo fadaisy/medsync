@@ -74,11 +74,11 @@ export function OtpInput({
           key={i}
           aria-invalid={invalid || undefined}
           className={cn(
-            "border-input bg-card text-foreground size-11 rounded-sm border text-center text-[18px] font-medium tabular-nums",
+            "border-input bg-card text-foreground text-heading-s size-11 rounded-sm border text-center font-medium tabular-nums",
             "ease-expo-out transition-all duration-150 outline-none",
-            "focus-visible:border-teal-500 focus-visible:shadow-[0_0_0_2px_rgba(20,184,166,0.15)]",
-            "dark:focus-visible:border-teal-400 dark:focus-visible:shadow-[0_0_0_2px_rgba(45,212,191,0.2)]",
-            "data-filled:border-teal-500 data-filled:bg-teal-50/40 dark:data-filled:border-teal-400 dark:data-filled:bg-teal-50/10",
+            "focus-visible:border-brand-500 focus-visible:shadow-[0_0_0_2px_rgba(20,184,166,0.15)]",
+            "dark:focus-visible:border-brand-400 dark:focus-visible:shadow-[0_0_0_2px_rgba(45,212,191,0.2)]",
+            "data-filled:border-brand-500 data-filled:bg-brand-50/40 dark:data-filled:border-brand-400 dark:data-filled:bg-brand-50/10",
             "disabled:bg-muted disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
             invalid && "border-destructive bg-alert-bg shadow-[0_0_0_2px_rgba(220,38,38,0.1)]",
           )}

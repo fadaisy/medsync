@@ -75,12 +75,12 @@ function DetailContent({ item, onClose }: { item: PendingAffiliationRow; onClose
             <h2 className="font-display text-foreground text-[24px] leading-[1.15] font-medium tracking-[-0.015em]">
               {item.fullName}
             </h2>
-            <p className="text-muted-foreground text-[13px] leading-snug">
+            <p className="text-muted-foreground text-body-s leading-snug">
               {item.roleName} · {item.departmentName}
             </p>
           </div>
 
-          <div className="h-px w-10 bg-teal-500/60 dark:bg-teal-400/50" aria-hidden />
+          <div className="bg-brand-500/60 dark:bg-brand-400/50 h-px w-10" aria-hidden />
 
           <dl className="flex flex-wrap items-baseline gap-x-6 gap-y-1.5 text-[11.5px]">
             <Meta label="Received" value={`${days} day${days === 1 ? "" : "s"} ago`} mono />
@@ -99,7 +99,7 @@ function DetailContent({ item, onClose }: { item: PendingAffiliationRow; onClose
         {item.reviewNote ? (
           <Section index={1} title="Outstanding info request">
             <div className="rounded-md bg-amber-50/70 px-2.5 py-2 ring-1 ring-amber-500/30 ring-inset dark:bg-amber-950/25">
-              <p className="text-[13px] leading-relaxed text-amber-900 italic dark:text-amber-200">
+              <p className="text-body-s leading-relaxed text-amber-900 italic dark:text-amber-200">
                 &ldquo;{item.reviewNote}&rdquo;
               </p>
             </div>
@@ -149,7 +149,7 @@ function DetailContent({ item, onClose }: { item: PendingAffiliationRow; onClose
             />
           )}
           {!item.isClinical ? (
-            <p className="text-muted-foreground rounded-md bg-teal-50/60 px-2.5 py-2 text-[11.5px] leading-relaxed italic ring-1 ring-teal-500/25 ring-inset dark:bg-teal-950/25">
+            <p className="text-muted-foreground bg-brand-50/60 ring-brand-500/25 dark:bg-brand-950/25 rounded-md px-2.5 py-2 text-[11.5px] leading-relaxed italic ring-1 ring-inset">
               Non-clinical path — your approval IS the employer attestation. There is no external
               council to check. Confirm the applicant is a current employee in this role before
               approving.
@@ -365,12 +365,12 @@ function LicenceCard({
     >
       <input type="hidden" name="bucket" value={bucket} />
       <input type="hidden" name="path" value={path} />
-      <div className="flex size-9 shrink-0 items-center justify-center rounded bg-teal-50 text-teal-700 ring-1 ring-teal-200/70 dark:bg-teal-950/40 dark:text-teal-300 dark:ring-teal-800/40">
+      <div className="bg-brand-50 text-brand-700 ring-brand-200/70 dark:bg-brand-950/40 dark:text-brand-300 dark:ring-brand-800/40 flex size-9 shrink-0 items-center justify-center rounded ring-1">
         <FileTextIcon className="size-4" aria-hidden />
       </div>
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex items-center gap-2">
-          <span className="text-foreground truncate text-[13px] font-medium">{label}</span>
+          <span className="text-foreground text-body-s truncate font-medium">{label}</span>
           <span className="text-muted-foreground bg-muted shrink-0 rounded px-1.5 py-px font-mono text-[9.5px] tracking-wide tabular-nums">
             {kind}
           </span>
@@ -431,7 +431,7 @@ function Rows({ rows }: { rows: ReadonlyArray<{ label: string; value: string; mo
           </dt>
           <dd
             className={cn(
-              "text-foreground self-baseline text-[13px] leading-relaxed wrap-break-word",
+              "text-foreground text-body-s self-baseline leading-relaxed wrap-break-word",
               row.mono && "font-mono text-[12.5px] tabular-nums",
             )}
           >

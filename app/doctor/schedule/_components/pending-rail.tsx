@@ -112,7 +112,7 @@ function PendingRow({ row }: { row: PendingRow }) {
 
       {mode === "decline" ? (
         <form action={declineAction} className="reveal-up flex flex-col gap-2 pt-1">
-          <label className="text-muted-foreground inline-flex items-center gap-1.5 text-[11px] tracking-tight">
+          <label className="text-muted-foreground text-caption inline-flex items-center gap-1.5 tracking-tight">
             <MessageSquareIcon className="size-3" aria-hidden />
             Reason (≥ 8 chars · sent to the patient + audited)
           </label>

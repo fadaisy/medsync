@@ -126,14 +126,14 @@ export function FileUpload({
         className={cn(
           "border-input bg-card text-muted-foreground flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-md border border-dashed px-5 py-7 text-center",
           "ease-expo-out transition-all duration-150",
-          "hover:border-teal-300 hover:bg-teal-50/30 dark:hover:bg-teal-50/5",
-          isOver && "border-teal-500 bg-teal-50/40 dark:bg-teal-50/10",
+          "hover:border-brand-300 hover:bg-brand-50/30 dark:hover:bg-brand-50/5",
+          isOver && "border-brand-500 bg-brand-50/40 dark:bg-brand-50/10",
           invalid && "border-destructive bg-alert-bg",
           disabled && "pointer-events-none cursor-not-allowed opacity-50",
         )}
       >
         <UploadCloudIcon className="size-5" strokeWidth={1.5} />
-        <span className="text-foreground text-[13px] font-medium">
+        <span className="text-foreground text-body-s font-medium">
           Tap to upload or drop a file
         </span>
         {hint ? <span className="text-[11.5px]">{hint}</span> : null}
@@ -161,8 +161,8 @@ export function FileUpload({
             >
               <FileIcon className="text-muted-foreground size-3.5" strokeWidth={2} />
               <div className="flex min-w-0 flex-1 flex-col">
-                <span className="text-foreground truncate text-[13px]">{f.name}</span>
-                <span className="text-muted-foreground text-[11px]">
+                <span className="text-foreground text-body-s truncate">{f.name}</span>
+                <span className="text-muted-foreground text-caption">
                   {(f.size / 1024).toFixed(0)} KB
                 </span>
               </div>

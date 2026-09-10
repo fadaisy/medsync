@@ -117,8 +117,8 @@ export function PlatformShowcase() {
       <div className="mx-auto w-full max-w-300 px-5 pt-16 pb-10 sm:px-8 sm:pt-24">
         <RevealOnScroll className="flex flex-col gap-4">
           <span className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
-            <span className="pulse-dot size-1 rounded-full bg-teal-500" />
-            <span className="tabular text-teal-700/80 dark:text-teal-300/80">01</span>
+            <span className="pulse-dot bg-brand-500 size-1 rounded-full" />
+            <span className="tabular text-brand-700/80 dark:text-brand-300/80">01</span>
             <span aria-hidden className="bg-border h-px w-4" />
             The closed loop, scene by scene
           </span>
@@ -127,10 +127,10 @@ export function PlatformShowcase() {
             style={{ fontWeight: 400 }}
           >
             One record. Five steps.{" "}
-            <span className="text-teal-700 italic dark:text-teal-300">No hand-off lost</span>{" "}
+            <span className="text-brand-700 dark:text-brand-300 italic">No hand-off lost</span>{" "}
             between them.
           </h2>
-          <p className="text-muted-foreground max-w-[64ch] text-[15px] leading-[1.55] sm:text-[17px]">
+          <p className="text-muted-foreground text-body-m sm:text-body-l max-w-[64ch] leading-[1.55]">
             Most hospital software ends at discharge. MedSync follows the patient home, then back to
             the ward, then to the specialist, then home again &mdash; keeping the record live the
             whole time.
@@ -161,10 +161,10 @@ export function PlatformShowcase() {
                       key={active === scene.index ? "scene-on" : "scene-off"}
                       className={cn(
                         "tabular inline-flex items-center justify-center rounded-md font-mono",
-                        "size-7 text-[11px]",
+                        "text-caption size-7",
                         "transition-colors duration-200",
                         active === scene.index
-                          ? "select-flare bg-teal-700 text-teal-50 dark:bg-teal-300 dark:text-teal-950"
+                          ? "select-flare bg-brand-700 text-brand-50 dark:bg-brand-300 dark:text-brand-950"
                           : "bg-muted text-muted-foreground",
                       )}
                     >
@@ -317,8 +317,8 @@ function SurfaceShell({ children }: { children: React.ReactNode }) {
         <span className="text-muted-foreground font-mono tracking-[0.15em] uppercase">
           app.medsync.health
         </span>
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-teal-50 px-1.5 py-0.5 font-mono text-[9px] tracking-[0.15em] text-teal-800 uppercase dark:bg-teal-50/10 dark:text-teal-200">
-          <span className="size-1 rounded-full bg-teal-500" />
+        <span className="bg-brand-50 text-brand-800 dark:bg-brand-50/10 dark:text-brand-200 inline-flex items-center gap-1.5 rounded-full px-1.5 py-0.5 font-mono text-[9px] tracking-[0.15em] uppercase">
+          <span className="bg-brand-500 size-1 rounded-full" />
           Illustrative
         </span>
       </div>
@@ -371,7 +371,7 @@ function AdmitSurface() {
             </div>
           ))}
         </div>
-        <p className="text-muted-foreground text-[11px]">
+        <p className="text-muted-foreground text-caption">
           Captured once at the gate. Every subsequent screen reads from this same record.
         </p>
       </div>
@@ -429,14 +429,14 @@ function TreatSurface() {
       <div className="flex flex-col gap-3 p-4">
         <PatientLine />
         <div className="border-border bg-card flex items-start gap-2.5 rounded-md border p-2.5">
-          <span className="inline-flex size-7 items-center justify-center rounded-md bg-teal-100 text-teal-800 dark:bg-teal-50/15 dark:text-teal-200">
+          <span className="bg-brand-100 text-brand-800 dark:bg-brand-50/15 dark:text-brand-200 inline-flex size-7 items-center justify-center rounded-md">
             <PillIcon className="size-3.5" strokeWidth={1.75} />
           </span>
           <div className="flex flex-1 flex-col gap-0.5">
             <span className="text-foreground text-[12.5px] font-medium">
               Insulin Actrapid &middot; sliding scale
             </span>
-            <span className="text-muted-foreground text-[11px]">
+            <span className="text-muted-foreground text-caption">
               Pre-meal cover &middot; adjust per 4-hourly capillary glucose
             </span>
             <div className="mt-1 grid grid-cols-3 gap-1.5">
@@ -455,7 +455,7 @@ function TreatSurface() {
                   <span className="text-muted-foreground tabular block font-mono text-[9.5px]">
                     {range}
                   </span>
-                  <span className="tabular text-foreground block text-[11px] font-medium">
+                  <span className="tabular text-foreground text-caption block font-medium">
                     {dose}
                   </span>
                 </div>
@@ -467,7 +467,7 @@ function TreatSurface() {
           <span className="bg-status-stable-fg/15 text-status-stable-fg mt-0.5 inline-flex size-4 items-center justify-center rounded-full">
             <span className="bg-status-stable-fg block size-1.5 rounded-full" />
           </span>
-          <div className="text-status-stable-fg flex flex-col text-[11px]">
+          <div className="text-status-stable-fg text-caption flex flex-col">
             <span className="font-medium">
               Allergy check passed &middot; no penicillin / sulpha conflict
             </span>
@@ -500,7 +500,7 @@ function DischargeSurface() {
               "Follow-up clinic · 14 days · Diabetology",
             ].map((line) => (
               <li key={line} className="flex items-start gap-2">
-                <span className="mt-1 size-1 rounded-full bg-teal-500" />
+                <span className="bg-brand-500 mt-1 size-1 rounded-full" />
                 <span className="text-foreground">{line}</span>
               </li>
             ))}
@@ -551,7 +551,7 @@ function LoopSurface() {
           <p className="text-foreground tabular mt-1 text-[12px] font-medium">
             Today 14:30 &middot; Tele follow-up &middot; Dr. Usama Fadhul
           </p>
-          <p className="text-muted-foreground mt-0.5 text-[11px]">
+          <p className="text-muted-foreground text-caption mt-0.5">
             The next clinic visit starts with this reading already on screen.
           </p>
         </div>

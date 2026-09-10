@@ -104,9 +104,9 @@ type StepVisual = "pending" | "clear" | "addressed" | "threatened" | "active_thr
 
 const STEP_TONE: Record<StepVisual, string> = {
   pending: "border-border bg-muted/30 text-muted-foreground",
-  clear: "border-teal-300/70 bg-teal-50/60 text-teal-700 dark:bg-teal-950/25 dark:text-teal-200",
+  clear: "border-mint-300/70 bg-mint-50/60 text-mint-700 dark:bg-mint-950/25 dark:text-mint-200",
   addressed:
-    "border-teal-600/60 bg-teal-600/10 text-teal-800 dark:bg-teal-900/30 dark:text-teal-200",
+    "border-mint-600/60 bg-mint-600/10 text-mint-800 dark:bg-mint-900/30 dark:text-mint-200",
   threatened:
     "border-amber-300/80 bg-amber-50/70 text-amber-800 dark:bg-amber-950/25 dark:text-amber-200",
   active_threat: "border-rose-600 bg-rose-600 text-white ring-1 ring-rose-500/50",
@@ -114,8 +114,8 @@ const STEP_TONE: Record<StepVisual, string> = {
 
 const STEP_CHIP: Record<StepVisual, string> = {
   pending: "bg-muted text-muted-foreground",
-  clear: "bg-teal-100 text-teal-700 dark:bg-teal-900/60 dark:text-teal-200",
-  addressed: "bg-teal-700 text-white",
+  clear: "bg-mint-100 text-mint-700 dark:bg-mint-900/60 dark:text-mint-200",
+  addressed: "bg-mint-700 text-white",
   threatened: "bg-amber-400 text-amber-950 dark:bg-amber-500/80 dark:text-amber-950",
   active_threat: "bg-white text-rose-700",
 };
@@ -316,11 +316,11 @@ export function ResusDesk({
                   >
                     RESUS
                   </span>
-                  <h1 className="text-foreground truncate text-[15px] font-semibold">
+                  <h1 className="text-foreground text-body-m truncate font-semibold">
                     {patientName}
                   </h1>
                   {patient.ageYears != null ? (
-                    <span className="text-muted-foreground/70 font-mono text-[11px]">
+                    <span className="text-muted-foreground/70 text-caption font-mono">
                       {patient.ageYears}y {patient.sex ?? ""}
                     </span>
                   ) : null}
@@ -333,7 +333,7 @@ export function ResusDesk({
             </div>
             <div className="flex shrink-0 items-center gap-3">
               <div className="text-right">
-                <p className="text-foreground flex items-center justify-end gap-1.5 font-mono text-[18px] leading-none font-semibold tabular-nums">
+                <p className="text-foreground text-heading-s flex items-center justify-end gap-1.5 font-mono leading-none font-semibold tabular-nums">
                   {active ? (
                     <span aria-hidden className="pulse-dot size-1.5 rounded-full bg-rose-500" />
                   ) : null}
@@ -383,9 +383,9 @@ export function ResusDesk({
                     className={cn(
                       "tap flex flex-1 items-center justify-center gap-1.5 rounded-lg border px-2 py-1.5 text-[12px] font-semibold transition-colors duration-300",
                       STEP_TONE[vis],
-                      focused ? "ring-2 ring-teal-500/70 ring-offset-1" : "",
+                      focused ? "ring-mint-500/70 ring-2 ring-offset-1" : "",
                       nextStep === letter && active && !focused
-                        ? "outline-1 outline-offset-1 outline-teal-400/60 outline-dashed"
+                        ? "outline-mint-400/60 outline-1 outline-offset-1 outline-dashed"
                         : "",
                     )}
                     aria-label={`${letter} — ${STEP_WORD[vis]}${focused ? " (current step)" : ""}`}
@@ -394,7 +394,7 @@ export function ResusDesk({
                     <span
                       aria-hidden
                       className={cn(
-                        "flex size-4.5 items-center justify-center rounded font-mono text-[11px] font-semibold",
+                        "text-caption flex size-4.5 items-center justify-center rounded font-mono font-semibold",
                         STEP_CHIP[vis],
                       )}
                     >
@@ -565,7 +565,7 @@ export function ResusDesk({
             </h2>
             {pending ? (
               <span className="text-muted-foreground/70 inline-flex items-center gap-1 font-mono text-[10px]">
-                <span aria-hidden className="pulse-dot size-1 rounded-full bg-teal-500" />
+                <span aria-hidden className="pulse-dot bg-mint-500 size-1 rounded-full" />
                 saving…
               </span>
             ) : null}
@@ -600,7 +600,7 @@ function vitalTone(key: string, v: number | null | undefined): VitalTone {
 /** The trend arrow/delta colour — by CLINICAL meaning for this vital (not raw
  *  direction). Never colour alone (always paired with the glyph + value). */
 const TREND_DIR_CLASS: Record<ClinicalDirection, string> = {
-  improving: "text-teal-700 dark:text-teal-300",
+  improving: "text-mint-700 dark:text-mint-300",
   deteriorating: "text-rose-700 dark:text-rose-300",
   neutral: "text-muted-foreground",
 };
@@ -611,7 +611,7 @@ const TREND_CELL_CLASS: Record<"deteriorating" | "improving", string> = {
   deteriorating:
     "border-rose-400/70 bg-rose-50/60 text-rose-700 dark:border-rose-500/40 dark:bg-rose-950/25 dark:text-rose-200",
   improving:
-    "border-teal-300/70 bg-teal-50/60 text-teal-700 dark:border-teal-500/40 dark:bg-teal-950/25 dark:text-teal-200",
+    "border-mint-300/70 bg-mint-50/60 text-mint-700 dark:border-mint-500/40 dark:bg-mint-950/25 dark:text-mint-200",
 };
 
 /**
@@ -642,7 +642,7 @@ function TrendArrow({ trend, decimals }: { trend: VitalTrend; decimals?: number 
   return (
     <span
       className={cn(
-        "font-mono text-[11px] leading-none font-semibold",
+        "text-caption font-mono leading-none font-semibold",
         TREND_DIR_CLASS[trend.clinicalDirection],
       )}
       aria-hidden
@@ -715,7 +715,7 @@ function VitalTrendGraph({
   return (
     <div className="flex flex-col gap-1">
       <div className="flex items-baseline justify-between gap-2">
-        <span className="text-foreground text-[11px] font-semibold">
+        <span className="text-foreground text-caption font-semibold">
           {label} <span className="text-muted-foreground/70 font-normal">{unit}</span>
         </span>
         <span className="text-muted-foreground/70 font-mono text-[9px]">{all.length} readings</span>
@@ -734,7 +734,7 @@ function VitalTrendGraph({
             width={w - 2 * padX}
             y={y(ref.normalHigh ?? hi)}
             height={Math.max(0, y(ref.normalLow ?? lo) - y(ref.normalHigh ?? hi))}
-            className="fill-teal-500/10"
+            className="fill-mint-500/10"
           />
         ) : null}
         {/* Danger threshold lines */}
@@ -777,7 +777,7 @@ function VitalTrendGraph({
           </span>
         ) : null}
         {ref.normalLow != null || ref.normalHigh != null ? (
-          <span className="text-teal-700/70 dark:text-teal-300/70">
+          <span className="text-mint-700/70 dark:text-mint-300/70">
             normal {ref.normalLow ?? "≤"}
             {ref.normalLow != null && ref.normalHigh != null ? "–" : ""}
             {ref.normalHigh ?? (ref.normalLow != null ? "+" : "")}
@@ -884,7 +884,7 @@ function VitalCell({
           {tile.label}
         </span>
         <span className="flex items-baseline gap-1">
-          <span className="font-mono text-[15px] leading-none font-semibold tabular-nums">
+          <span className="text-body-m font-mono leading-none font-semibold tabular-nums">
             {valueText}
           </span>
           {trend ? <TrendArrow trend={trend} decimals={decimals} /> : null}
@@ -1036,7 +1036,7 @@ function VitalsBand({
               <span className="font-mono text-[9px] tracking-[0.1em] uppercase opacity-70">
                 {c.label}
               </span>
-              <span className="font-mono text-[15px] leading-none font-semibold tabular-nums">
+              <span className="text-body-m font-mono leading-none font-semibold tabular-nums">
                 {c.value}
               </span>
             </div>
@@ -1069,7 +1069,7 @@ function VitalsBand({
                   step={f.step}
                   value={form[f.key] ?? ""}
                   onChange={(e) => setForm((s) => ({ ...s, [f.key]: e.target.value }))}
-                  className="border-border bg-card text-foreground w-16 rounded-md border px-1.5 py-1 font-mono text-[13px] tabular-nums outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/25"
+                  className="border-border bg-card text-foreground text-body-s focus:border-mint-500 focus:ring-mint-500/25 w-16 rounded-md border px-1.5 py-1 font-mono tabular-nums outline-none focus:ring-2"
                 />
               </label>
             ))}
@@ -1080,7 +1080,7 @@ function VitalsBand({
               <select
                 value={form.consciousness ?? ""}
                 onChange={(e) => setForm((s) => ({ ...s, consciousness: e.target.value }))}
-                className="border-border bg-card text-foreground w-16 rounded-md border px-1.5 py-1 font-mono text-[13px] outline-none"
+                className="border-border bg-card text-foreground text-body-s w-16 rounded-md border px-1.5 py-1 font-mono outline-none"
               >
                 <option value="">—</option>
                 {["A", "C", "V", "P", "U"].map((o) => (
@@ -1094,7 +1094,7 @@ function VitalsBand({
               type="button"
               onClick={save}
               disabled={disabled}
-              className="tap rounded-lg bg-teal-600 px-3 py-1.5 text-[12.5px] font-semibold text-white transition-colors hover:bg-teal-700 disabled:opacity-50"
+              className="tap bg-mint-600 hover:bg-mint-700 rounded-lg px-3 py-1.5 text-[12.5px] font-semibold text-white transition-colors disabled:opacity-50"
             >
               Save vitals
             </button>
@@ -1132,7 +1132,7 @@ function AnaphylaxisBar({
             Anaphylaxis — first-line everywhere{" "}
             <span className="text-muted-foreground/70 font-mono text-[10px]">A · B · C · E</span>
           </p>
-          <p className="text-muted-foreground/80 truncate text-[11px]">{dose.adultDose}</p>
+          <p className="text-muted-foreground/80 text-caption truncate">{dose.adultDose}</p>
         </div>
         <div className="flex shrink-0 items-center gap-1.5">
           <button
@@ -1201,10 +1201,10 @@ function StepPanel({
   return (
     <div className="border-border bg-card flex flex-col gap-3 rounded-2xl border p-4">
       <div className="flex items-center gap-2.5">
-        <span className="bg-foreground/90 text-background flex size-8 items-center justify-center rounded-lg font-mono text-[15px] font-semibold">
+        <span className="bg-foreground/90 text-background text-body-m flex size-8 items-center justify-center rounded-lg font-mono font-semibold">
           {step}
         </span>
-        <h2 className="font-display text-foreground text-[18px] font-medium tracking-[-0.01em]">
+        <h2 className="font-display text-foreground text-heading-s font-medium tracking-[-0.01em]">
           {cat.title}
         </h2>
       </div>
@@ -1346,7 +1346,7 @@ function ActionRow({
         ) : null}
       </div>
       {show ? (
-        <div className="border-border/60 text-muted-foreground flex flex-col gap-1 border-t px-2.5 py-2 text-[11px]">
+        <div className="border-border/60 text-muted-foreground text-caption flex flex-col gap-1 border-t px-2.5 py-2">
           <p>
             <span className="text-foreground/60">When:</span> {action.whenIndicated}
           </p>
@@ -1468,12 +1468,12 @@ function TeamPanel({
               onChange();
             })
           }
-          className="tap mt-2 w-full rounded-lg bg-teal-600 px-2.5 py-1.5 text-[12px] font-semibold text-white transition-colors hover:bg-teal-700 disabled:opacity-50"
+          className="tap bg-mint-600 hover:bg-mint-700 mt-2 w-full rounded-lg px-2.5 py-1.5 text-[12px] font-semibold text-white transition-colors disabled:opacity-50"
         >
           {"I'm responding"}
         </button>
       ) : iAmResponding ? (
-        <p className="mt-2 text-center text-[11px] font-medium text-teal-700 dark:text-teal-300">
+        <p className="text-caption text-mint-700 dark:text-mint-300 mt-2 text-center font-medium">
           {`✓ You're responding${meHasRole ? "" : " — claim a role above"}`}
         </p>
       ) : null}
@@ -1531,7 +1531,7 @@ function Timeline({
           danger || evState === "failed"
             ? "bg-rose-50/60 dark:bg-rose-950/20"
             : evState === "performed"
-              ? "bg-teal-50/50 dark:bg-teal-950/20"
+              ? "bg-mint-50/50 dark:bg-mint-950/20"
               : evState === "in_progress"
                 ? "bg-blue-50/40 dark:bg-blue-950/15"
                 : "";

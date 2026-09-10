@@ -94,19 +94,21 @@ export function TrustGovernance() {
         {/* Section header */}
         <RevealOnScroll className="mb-10 flex flex-col gap-4">
           <span className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
-            <span className="pulse-dot size-1 rounded-full bg-teal-500" />
+            <span className="pulse-dot bg-brand-500 size-1 rounded-full" />
             Trust &middot; built in, not bolted on
           </span>
           <h2
             id="trust-headline"
-            className="font-display text-foreground max-w-[24ch] text-[30px] leading-[1.1] tracking-[-0.025em] text-balance sm:text-[44px]"
+            className="font-display text-foreground sm:text-display-m max-w-[24ch] text-[30px] leading-[1.1] tracking-[-0.025em] text-balance"
             style={{ fontWeight: 400 }}
           >
             We hold no certifications{" "}
-            <span className="text-teal-700 italic dark:text-teal-300">we haven&rsquo;t earned</span>
+            <span className="text-brand-700 dark:text-brand-300 italic">
+              we haven&rsquo;t earned
+            </span>
             .
           </h2>
-          <p className="text-muted-foreground max-w-[68ch] text-[15px] leading-[1.55] sm:text-[17px]">
+          <p className="text-muted-foreground text-body-m sm:text-body-l max-w-[68ch] leading-[1.55]">
             What we stand behind are concrete engineering mechanisms in the code today &mdash; each
             one tied to the file where it lives. HIPAA, ISO 27001, SOC 2 are work for a future
             quarter; until then, no badge.
@@ -125,10 +127,10 @@ export function TrustGovernance() {
               >
                 <div className="flex items-center justify-between">
                   <span className="inline-flex items-center gap-2">
-                    <span className="inline-flex size-7 items-center justify-center rounded-md bg-teal-50 text-teal-700 dark:bg-teal-50/15 dark:text-teal-200">
+                    <span className="bg-brand-50 text-brand-700 dark:bg-brand-50/15 dark:text-brand-200 inline-flex size-7 items-center justify-center rounded-md">
                       <p.Icon className="size-3.5" strokeWidth={1.75} />
                     </span>
-                    <span className="text-foreground text-[13px] font-medium">{p.pillar}</span>
+                    <span className="text-foreground text-body-s font-medium">{p.pillar}</span>
                   </span>
                   <span className="text-muted-foreground tabular font-mono text-[10px]">
                     0{i + 1}
@@ -139,7 +141,7 @@ export function TrustGovernance() {
                   <p className="text-muted-foreground font-mono text-[9.5px] tracking-[0.16em] uppercase">
                     Mechanism
                   </p>
-                  <p className="text-foreground tabular font-mono text-[11px] leading-snug">
+                  <p className="text-foreground tabular text-caption font-mono leading-snug">
                     {p.mechanism}
                   </p>
                 </div>
@@ -155,7 +157,7 @@ export function TrustGovernance() {
         {/* Hospital-CTA footer */}
         <RevealOnScroll className="border-border bg-card mt-6 flex flex-wrap items-center justify-between gap-4 rounded-lg border p-5 sm:p-6">
           <div className="flex flex-col">
-            <span className="font-display text-foreground text-[19px] leading-tight font-medium sm:text-[22px]">
+            <span className="font-display text-foreground sm:text-heading-m text-[19px] leading-tight font-medium">
               Want the engineering review before signing a pilot?
             </span>
             <span className="text-muted-foreground text-[12.5px]">
@@ -166,7 +168,7 @@ export function TrustGovernance() {
           <Link
             href="/signup/hospital"
             className={cn(
-              "group tap inline-flex items-center gap-1.5 rounded-md px-4 py-2 text-[13px] font-medium",
+              "group tap text-body-s inline-flex items-center gap-1.5 rounded-md px-4 py-2 font-medium",
               "bg-foreground text-background hover:bg-foreground/90",
               "transition-colors duration-150 hover:shadow-md",
             )}

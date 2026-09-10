@@ -12,7 +12,7 @@ function Card({
   const toneClasses: Record<CardTone, string> = {
     standard: "bg-card text-card-foreground border border-border shadow-card",
     muted: "bg-muted text-card-foreground border border-gray-150",
-    tealTinted: "bg-accent text-card-foreground border border-teal-100",
+    tealTinted: "bg-accent text-card-foreground border border-brand-100",
   };
 
   return (

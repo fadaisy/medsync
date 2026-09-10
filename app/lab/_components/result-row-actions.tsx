@@ -74,7 +74,7 @@ export function ResultRowActions({ item }: { item: LabWorklistItem }) {
             type="button"
             disabled={pending}
             onClick={release}
-            className={`${btn} bg-teal-600 text-white hover:bg-teal-700`}
+            className={`${btn} bg-brand-600 hover:bg-brand-700 text-white`}
           >
             Release
           </button>
@@ -106,7 +106,7 @@ export function ResultRowActions({ item }: { item: LabWorklistItem }) {
             type="button"
             disabled={pending}
             onClick={() => setMode(mode === "enter" ? "idle" : "enter")}
-            className={`${btn} bg-teal-600 text-white hover:bg-teal-700`}
+            className={`${btn} bg-brand-600 hover:bg-brand-700 text-white`}
           >
             {rejected ? "Re-enter" : "Enter result"}
           </button>
@@ -173,7 +173,7 @@ export function ResultRowActions({ item }: { item: LabWorklistItem }) {
               type="button"
               disabled={pending || value.trim().length < 1}
               onClick={save}
-              className={`${btn} bg-teal-600 text-white hover:bg-teal-700`}
+              className={`${btn} bg-brand-600 hover:bg-brand-700 text-white`}
             >
               {entered ? "Save" : "Enter (unreleased)"}
             </button>

@@ -43,7 +43,7 @@ export function AgendaView({
                 <span
                   className={cn(
                     "font-mono text-[10.5px] tracking-[0.12em] uppercase",
-                    isToday(d) ? "text-teal-700 dark:text-teal-300" : "text-muted-foreground",
+                    isToday(d) ? "text-brand-700 dark:text-brand-300" : "text-muted-foreground",
                   )}
                 >
                   {formatDay(d)}
@@ -73,7 +73,7 @@ export function AgendaView({
                           {formatTime(ev.startsAt)}
                         </span>
                         <span className="flex min-w-0 flex-1 flex-col">
-                          <span className="text-foreground truncate text-[13px] font-medium">
+                          <span className="text-foreground text-body-s truncate font-medium">
                             {ev.patientName}
                           </span>
                           <span className="text-muted-foreground truncate text-[11.5px]">
@@ -108,7 +108,7 @@ export function AgendaView({
 
 function toneText(status: string): string {
   const t = STATUS_TONES[status] ?? "pending";
-  if (t === "confirmed") return "text-teal-700 dark:text-teal-300";
+  if (t === "confirmed") return "text-brand-700 dark:text-brand-300";
   if (t === "arrived") return "text-blue-700 dark:text-blue-300";
   if (t === "no_show") return "text-rose-700 dark:text-rose-300";
   if (t === "cancelled" || t === "completed") return "text-muted-foreground";

@@ -30,7 +30,7 @@ export default async function PatientHospitalsPage({ searchParams }: PageProps) 
     <div className="stagger-children relative mx-auto flex w-full max-w-xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-9">
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-20 left-1/2 -z-10 h-56 w-md max-w-full -translate-x-1/2 rounded-full bg-teal-500/5 blur-3xl dark:bg-teal-400/4"
+        className="bg-brand-500/5 dark:bg-brand-400/4 pointer-events-none absolute -top-20 left-1/2 -z-10 h-56 w-md max-w-full -translate-x-1/2 rounded-full blur-3xl"
       />
       <Link
         href="/patient"
@@ -45,13 +45,13 @@ export default async function PatientHospitalsPage({ searchParams }: PageProps) 
 
       <header className="flex flex-col gap-1.5">
         <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
-          <span aria-hidden className="size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20" />
+          <span aria-hidden className="bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2" />
           MedSync · Hospitals
         </span>
-        <h1 className="font-display text-foreground text-[24px] leading-[1.15] font-medium tracking-[-0.015em] sm:text-[28px]">
+        <h1 className="font-display text-foreground sm:text-heading-l text-[24px] leading-[1.15] font-medium tracking-[-0.015em]">
           {scope.primaryHospitalId ? "Hospitals on MedSync" : "Find your hospital"}
         </h1>
-        <p className="text-muted-foreground max-w-[44ch] text-[13px] leading-relaxed">
+        <p className="text-muted-foreground text-body-s max-w-[44ch] leading-relaxed">
           {scope.primaryHospitalId
             ? "Browse the network — switch your primary if you'd like, or just check who's here."
             : "Pick one as your primary hospital. You can change it any time."}
@@ -71,7 +71,7 @@ export default async function PatientHospitalsPage({ searchParams }: PageProps) 
           name="q"
           defaultValue={search}
           placeholder="Search by name, district, or region"
-          className="border-input bg-background text-foreground placeholder:text-muted-foreground/70 focus-visible:ring-ring/50 focus-visible:border-ring h-10 w-full rounded-lg border pr-3 pl-9 text-[13px] shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px]"
+          className="border-input bg-background text-foreground placeholder:text-muted-foreground/70 focus-visible:ring-ring/50 focus-visible:border-ring text-body-s h-10 w-full rounded-lg border pr-3 pl-9 shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px]"
         />
       </form>
 
@@ -81,7 +81,7 @@ export default async function PatientHospitalsPage({ searchParams }: PageProps) 
           <h2 className="text-muted-foreground font-mono text-[10.5px] tracking-[0.14em] uppercase">
             {search ? "Matches" : "Active hospitals"}
           </h2>
-          <span className="text-muted-foreground font-mono text-[11px] tabular-nums">
+          <span className="text-muted-foreground text-caption font-mono tabular-nums">
             {results.length} {results.length === 1 ? "result" : "results"}
           </span>
         </div>
@@ -100,7 +100,7 @@ export default async function PatientHospitalsPage({ searchParams }: PageProps) 
             >
               <rect x="14" y="10" width="36" height="26" rx="2" />
               <path d="M26 36 V24 h12 v12" />
-              <path d="M32 14 v8 M28 18 h8" className="text-teal-500/60" stroke="currentColor" />
+              <path d="M32 14 v8 M28 18 h8" className="text-brand-500/60" stroke="currentColor" />
             </svg>
             <p className="text-muted-foreground max-w-[40ch] text-[12.5px] leading-relaxed">
               {search
@@ -117,7 +117,7 @@ export default async function PatientHospitalsPage({ searchParams }: PageProps) 
                   key={isPrimary ? `${h.id}-primary` : h.id}
                   className={
                     isPrimary
-                      ? "select-flare rounded-xl border border-teal-500/40 bg-teal-50/40 p-4 ring-1 ring-teal-500/20 dark:border-teal-400/30 dark:bg-teal-950/20"
+                      ? "select-flare border-brand-500/40 bg-brand-50/40 ring-brand-500/20 dark:border-brand-400/30 dark:bg-brand-950/20 rounded-xl border p-4 ring-1"
                       : "border-border bg-card rounded-xl border p-4 transition-colors hover:border-gray-300"
                   }
                 >
@@ -127,7 +127,7 @@ export default async function PatientHospitalsPage({ searchParams }: PageProps) 
                         aria-hidden
                         className={
                           isPrimary
-                            ? "inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-teal-100 text-teal-700 ring-1 ring-teal-200/80 dark:bg-teal-900/40 dark:text-teal-300 dark:ring-teal-800/40"
+                            ? "bg-brand-100 text-brand-700 ring-brand-200/80 dark:bg-brand-900/40 dark:text-brand-300 dark:ring-brand-800/40 inline-flex size-9 shrink-0 items-center justify-center rounded-full ring-1"
                             : "bg-muted text-foreground/80 inline-flex size-9 shrink-0 items-center justify-center rounded-full"
                         }
                       >
@@ -154,21 +154,21 @@ export default async function PatientHospitalsPage({ searchParams }: PageProps) 
                     <SelectHospitalButton hospitalId={h.id} isPrimary={isPrimary} />
                   </div>
                   {isPrimary ? (
-                    <div className="mt-3 flex flex-col gap-2.5 border-t border-teal-500/20 pt-3 dark:border-teal-400/20">
+                    <div className="border-brand-500/20 dark:border-brand-400/20 mt-3 flex flex-col gap-2.5 border-t pt-3">
                       <p className="text-muted-foreground text-[11.5px] leading-snug">
                         What would you like to do?
                       </p>
                       <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
                         <Link
                           href="/patient/queue"
-                          className="border-border bg-card tap inline-flex flex-1 items-center justify-center gap-1.5 rounded-full border px-3 py-2 text-[12.5px] font-medium text-teal-700 transition-colors hover:border-teal-300 hover:bg-teal-50/30 dark:text-teal-300 dark:hover:bg-teal-50/5"
+                          className="border-border bg-card tap text-brand-700 hover:border-brand-300 hover:bg-brand-50/30 dark:text-brand-300 dark:hover:bg-brand-50/5 inline-flex flex-1 items-center justify-center gap-1.5 rounded-full border px-3 py-2 text-[12.5px] font-medium transition-colors"
                         >
                           <TicketIcon className="size-3.5" aria-hidden />
                           Join today&rsquo;s queue
                         </Link>
                         <Link
                           href="/patient/book"
-                          className="tap inline-flex flex-1 items-center justify-center gap-1.5 rounded-full bg-teal-600 px-3 py-2 text-[12.5px] font-medium text-white shadow-xs transition-colors hover:bg-teal-700"
+                          className="tap bg-brand-600 hover:bg-brand-700 inline-flex flex-1 items-center justify-center gap-1.5 rounded-full px-3 py-2 text-[12.5px] font-medium text-white shadow-xs transition-colors"
                         >
                           <CalendarPlusIcon className="size-3.5" aria-hidden />
                           Book a future visit

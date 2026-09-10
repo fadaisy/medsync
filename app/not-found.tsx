@@ -23,12 +23,12 @@ export default function NotFound() {
       {/* Atmosphere — softer than the hero, just a tint */}
       <div
         aria-hidden
-        className="pointer-events-none absolute top-0 left-1/2 -z-10 h-[80%] w-[120%] max-w-none -translate-x-1/2 [background:radial-gradient(closest-side,oklch(0.95_0.06_180/0.4),transparent_72%)] dark:[background:radial-gradient(closest-side,oklch(0.45_0.08_180/0.22),transparent_72%)]"
+        className="pointer-events-none absolute top-0 left-1/2 -z-10 h-[80%] w-[120%] max-w-none -translate-x-1/2 [background:radial-gradient(closest-side,oklch(0.95_0.06_286/0.4),transparent_72%)] dark:[background:radial-gradient(closest-side,oklch(0.45_0.08_286/0.22),transparent_72%)]"
       />
 
       <main className="mx-auto flex w-full max-w-200 flex-1 flex-col items-center justify-center gap-8 px-6 py-20 text-center">
         <span className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
-          <span className="size-1 rounded-full bg-teal-500" />
+          <span className="bg-brand-500 size-1 rounded-full" />
           404 &middot; That page doesn&rsquo;t exist
         </span>
 
@@ -36,11 +36,11 @@ export default function NotFound() {
           className="font-display text-foreground max-w-[22ch] text-[40px] leading-[1.05] tracking-[-0.025em] text-balance sm:text-[64px]"
           style={{ fontWeight: 400 }}
         >
-          The record for <span className="text-teal-700 italic dark:text-teal-300">this page</span>{" "}
-          is missing.
+          The record for{" "}
+          <span className="text-brand-700 dark:text-brand-300 italic">this page</span> is missing.
         </h1>
 
-        <p className="text-muted-foreground max-w-[58ch] text-[15px] leading-[1.6] text-balance sm:text-[17px]">
+        <p className="text-muted-foreground text-body-m sm:text-body-l max-w-[58ch] leading-[1.6] text-balance">
           The link you followed points somewhere we haven&rsquo;t built yet &mdash; or somewhere
           we&rsquo;ve since moved. The doors below are the only ones currently open.
         </p>
@@ -53,8 +53,8 @@ export default function NotFound() {
           <Link
             href="/"
             className={cn(
-              "border-border text-foreground hover:border-teal-300 hover:bg-teal-50/50 dark:hover:bg-teal-50/10",
-              "inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-[13px]",
+              "border-border text-foreground hover:border-brand-300 hover:bg-brand-50/50 dark:hover:bg-brand-50/10",
+              "text-body-s inline-flex items-center gap-1.5 rounded-md border px-3 py-1.5",
               "transition-colors duration-150",
             )}
           >
@@ -63,7 +63,7 @@ export default function NotFound() {
           </Link>
           <Link
             href="/#faq"
-            className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1 px-2 py-1.5 text-[13px] transition-colors"
+            className="text-muted-foreground hover:text-foreground text-body-s inline-flex items-center gap-1 px-2 py-1.5 transition-colors"
           >
             Or visit the FAQ
             <ArrowUpRightIcon className="size-3" strokeWidth={1.75} />

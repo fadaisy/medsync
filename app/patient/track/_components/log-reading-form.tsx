@@ -110,7 +110,7 @@ export function LogReadingForm({
 
       {/* When */}
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="recorded_at" className="text-[11px] tracking-tight">
+        <Label htmlFor="recorded_at" className="text-caption tracking-tight">
           When (optional)
         </Label>
         <Input
@@ -118,14 +118,14 @@ export function LogReadingForm({
           name="recorded_at"
           type="datetime-local"
           defaultValue={localNowDatetimeLocal()}
-          className="font-mono text-[13px] tabular-nums"
+          className="text-body-s font-mono tabular-nums"
         />
       </div>
 
       {/* Optional note — always available except for kind=note (where note IS the value) */}
       {kind !== "note" ? (
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="note" className="text-[11px] tracking-tight">
+          <Label htmlFor="note" className="text-caption tracking-tight">
             Note (optional)
           </Label>
           <textarea
@@ -134,7 +134,7 @@ export function LogReadingForm({
             rows={3}
             maxLength={2000}
             placeholder="Anything worth remembering about this reading."
-            className="border-input bg-background text-foreground placeholder:text-muted-foreground/70 focus-visible:ring-ring/50 focus-visible:border-ring resize-none rounded-md border px-3 py-2 text-[13px] leading-relaxed shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px]"
+            className="border-input bg-background text-foreground placeholder:text-muted-foreground/70 focus-visible:ring-ring/50 focus-visible:border-ring text-body-s resize-none rounded-md border px-3 py-2 leading-relaxed shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px]"
           />
         </div>
       ) : null}
@@ -177,7 +177,7 @@ function KindChip({
       aria-pressed={active}
       className={
         active
-          ? "rounded-full bg-teal-600 px-3 py-1 text-[12.5px] font-medium text-white shadow-xs"
+          ? "bg-brand-600 rounded-full px-3 py-1 text-[12.5px] font-medium text-white shadow-xs"
           : "border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 rounded-full border px-3 py-1 text-[12.5px] transition-colors"
       }
     >
@@ -191,13 +191,13 @@ function KindChip({
 function BpFields() {
   return (
     <div className="flex flex-col gap-2">
-      <Label className="text-[11px] tracking-tight">Reading</Label>
+      <Label className="text-caption tracking-tight">Reading</Label>
       <div className="flex items-center gap-2">
         <Input
           name="numeric_value_1"
           inputMode="decimal"
           placeholder="Systolic"
-          className="font-mono text-[15px] tabular-nums"
+          className="text-body-m font-mono tabular-nums"
           required
         />
         <span className="text-muted-foreground font-mono text-[14px]">/</span>
@@ -205,7 +205,7 @@ function BpFields() {
           name="numeric_value_2"
           inputMode="decimal"
           placeholder="Diastolic"
-          className="font-mono text-[15px] tabular-nums"
+          className="text-body-m font-mono tabular-nums"
           required
         />
         <span className="text-muted-foreground shrink-0 font-mono text-[12px]">mmHg</span>
@@ -219,13 +219,13 @@ function SingleNumericFields({ kind }: { kind: NumericReadingKind }) {
   const units = READING_UNIT_OPTIONS[kind];
   return (
     <div className="flex flex-col gap-2">
-      <Label className="text-[11px] tracking-tight">Reading</Label>
+      <Label className="text-caption tracking-tight">Reading</Label>
       <div className="flex items-center gap-2">
         <Input
           name="numeric_value_1"
           inputMode="decimal"
           placeholder="Value"
-          className="font-mono text-[15px] tabular-nums"
+          className="text-body-m font-mono tabular-nums"
           required
         />
         {units.length === 1 ? (
@@ -255,7 +255,7 @@ function SymptomFields() {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="symptom-desc" className="text-[11px] tracking-tight">
+        <Label htmlFor="symptom-desc" className="text-caption tracking-tight">
           What you&rsquo;re feeling
         </Label>
         <Input
@@ -268,13 +268,13 @@ function SymptomFields() {
         {/* numeric_value_1 isn't required for symptom — superRefine allows it */}
       </div>
       <div className="flex flex-col gap-1.5">
-        <Label className="text-[11px] tracking-tight">Severity (optional)</Label>
+        <Label className="text-caption tracking-tight">Severity (optional)</Label>
         <div className="flex items-center gap-1.5">
           {[1, 2, 3, 4, 5].map((s) => (
             <SeverityRadio key={s} value={s} />
           ))}
         </div>
-        <p className="text-muted-foreground text-[11px]">1 = barely noticeable · 5 = severe</p>
+        <p className="text-muted-foreground text-caption">1 = barely noticeable · 5 = severe</p>
       </div>
     </div>
   );
@@ -282,7 +282,7 @@ function SymptomFields() {
 
 function SeverityRadio({ value }: { value: number }) {
   return (
-    <label className="border-border text-muted-foreground hover:border-foreground/30 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border font-mono text-[13px] tabular-nums transition-colors has-[:checked]:border-teal-600 has-[:checked]:bg-teal-600 has-[:checked]:text-white">
+    <label className="border-border text-muted-foreground hover:border-foreground/30 text-body-s has-[:checked]:border-brand-600 has-[:checked]:bg-brand-600 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border font-mono tabular-nums transition-colors has-[:checked]:text-white">
       <input type="radio" name="severity" value={value} className="sr-only" />
       {value}
     </label>
@@ -292,7 +292,7 @@ function SeverityRadio({ value }: { value: number }) {
 function NoteOnlyFields() {
   return (
     <div className="flex flex-col gap-1.5">
-      <Label htmlFor="note-only" className="text-[11px] tracking-tight">
+      <Label htmlFor="note-only" className="text-caption tracking-tight">
         Your note
       </Label>
       <textarea
@@ -302,7 +302,7 @@ function NoteOnlyFields() {
         maxLength={2000}
         required
         placeholder="Anything you want to remember. Private to you."
-        className="border-input bg-background text-foreground placeholder:text-muted-foreground/70 focus-visible:ring-ring/50 focus-visible:border-ring resize-none rounded-md border px-3 py-2 text-[13px] leading-relaxed shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px]"
+        className="border-input bg-background text-foreground placeholder:text-muted-foreground/70 focus-visible:ring-ring/50 focus-visible:border-ring text-body-s resize-none rounded-md border px-3 py-2 leading-relaxed shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px]"
       />
     </div>
   );
@@ -312,7 +312,7 @@ function OtherFields() {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="other-value" className="text-[11px] tracking-tight">
+        <Label htmlFor="other-value" className="text-caption tracking-tight">
           Value (optional)
         </Label>
         <Input
@@ -320,11 +320,11 @@ function OtherFields() {
           name="numeric_value_1"
           inputMode="decimal"
           placeholder="A number, if relevant"
-          className="font-mono text-[15px] tabular-nums"
+          className="text-body-m font-mono tabular-nums"
         />
       </div>
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="other-unit" className="text-[11px] tracking-tight">
+        <Label htmlFor="other-unit" className="text-caption tracking-tight">
           Unit (optional)
         </Label>
         <Input id="other-unit" name="unit" placeholder="e.g. steps, hours" maxLength={16} />

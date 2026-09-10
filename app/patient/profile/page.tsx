@@ -25,13 +25,13 @@ export default async function PatientProfilePage() {
 
       <header className="flex flex-col gap-1.5">
         <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
-          <span aria-hidden className="size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20" />
+          <span aria-hidden className="bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2" />
           MedSync · Profile
         </span>
-        <h1 className="font-display text-foreground text-[24px] leading-[1.15] font-medium tracking-[-0.015em] sm:text-[28px]">
+        <h1 className="font-display text-foreground sm:text-heading-l text-[24px] leading-[1.15] font-medium tracking-[-0.015em]">
           Your profile
         </h1>
-        <p className="text-muted-foreground max-w-[44ch] text-[13px] leading-relaxed">
+        <p className="text-muted-foreground text-body-s max-w-[44ch] leading-relaxed">
           Identity details stay locked — change them through support. Contact, language, and
           conditions are yours to edit any time.
         </p>
@@ -113,7 +113,7 @@ function ReadField({
       <span
         className={
           mono
-            ? "text-foreground font-mono text-[13px] tabular-nums"
+            ? "text-foreground text-body-s font-mono tabular-nums"
             : "text-foreground text-[13.5px]"
         }
       >

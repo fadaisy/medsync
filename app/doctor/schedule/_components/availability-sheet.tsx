@@ -120,7 +120,7 @@ export function AvailabilitySheetButton({
               <div className="border-border bg-card flex flex-col items-start gap-3 rounded-xl border p-5">
                 <span
                   aria-hidden
-                  className="inline-flex size-9 items-center justify-center rounded-full bg-teal-50 text-teal-700 ring-1 ring-teal-200/70 dark:bg-teal-950/40 dark:text-teal-300 dark:ring-teal-800/40"
+                  className="bg-brand-50 text-brand-700 ring-brand-200/70 dark:bg-brand-950/40 dark:text-brand-300 dark:ring-brand-800/40 inline-flex size-9 items-center justify-center rounded-full ring-1"
                 >
                   <CalendarClockIcon className="size-4" />
                 </span>
@@ -188,7 +188,7 @@ function BlockRow({ block, onEdit }: { block: DoctorAvailabilityRow; onEdit: () 
       onClick={onEdit}
       className={cn(
         "hover:bg-muted/40 active:bg-muted/60 group flex w-full items-center gap-3 px-4 py-3 text-left transition-colors duration-200 outline-none",
-        "focus-visible:ring-2 focus-visible:ring-teal-500/40 focus-visible:ring-inset",
+        "focus-visible:ring-brand-500/40 focus-visible:ring-2 focus-visible:ring-inset",
       )}
     >
       <div className="flex w-28 shrink-0 flex-col">
@@ -201,7 +201,7 @@ function BlockRow({ block, onEdit }: { block: DoctorAvailabilityRow; onEdit: () 
       <Pill tone={KIND_TONES[block.kind] ?? "neutral"}>{KIND_LABEL[block.kind] ?? block.kind}</Pill>
 
       {block.recurrence === "weekly" && block.recurrenceWeekday ? (
-        <span className="text-muted-foreground text-[11px]">
+        <span className="text-muted-foreground text-caption">
           Every {WEEKDAY_LABEL[block.recurrenceWeekday - 1]}
         </span>
       ) : null}
@@ -214,7 +214,7 @@ function BlockRow({ block, onEdit }: { block: DoctorAvailabilityRow; onEdit: () 
 
       <span
         aria-hidden
-        className="text-muted-foreground ml-auto inline-flex items-center gap-1 text-[11px] opacity-60 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100"
+        className="text-muted-foreground text-caption ml-auto inline-flex items-center gap-1 opacity-60 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100"
       >
         <PencilIcon className="size-3" />
         Edit

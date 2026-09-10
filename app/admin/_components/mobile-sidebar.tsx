@@ -42,7 +42,7 @@ export function MobileSidebar({ items, operatorEmail }: Props) {
         className={cn(
           "border-border bg-background text-muted-foreground inline-flex items-center justify-center rounded-md border p-1.5 transition-colors outline-none lg:hidden",
           "hover:bg-muted hover:text-foreground",
-          "focus-visible:ring-2 focus-visible:ring-teal-500/40",
+          "focus-visible:ring-brand-500/40 focus-visible:ring-2",
         )}
       >
         <MenuIcon className="size-4" aria-hidden />
@@ -52,7 +52,7 @@ export function MobileSidebar({ items, operatorEmail }: Props) {
         <SheetTitle className="sr-only">Workspace navigation</SheetTitle>
 
         <div className="border-border flex h-[52px] items-center gap-2.5 border-b px-5">
-          <span className="font-display text-foreground text-[15px] font-medium tracking-[-0.01em]">
+          <span className="font-display text-foreground text-body-m font-medium tracking-[-0.01em]">
             MedSync
           </span>
           <span className="text-muted-foreground font-mono text-[9.5px] tracking-[0.16em] uppercase">
@@ -83,7 +83,7 @@ export function MobileSidebar({ items, operatorEmail }: Props) {
           <div className="flex items-center gap-2.5 px-1 py-1.5">
             <div
               aria-hidden
-              className="flex size-7 shrink-0 items-center justify-center rounded-full bg-teal-100 font-mono text-[11px] font-semibold text-teal-800 dark:bg-teal-900/60 dark:text-teal-200"
+              className="bg-brand-100 text-caption text-brand-800 dark:bg-brand-900/60 dark:text-brand-200 flex size-7 shrink-0 items-center justify-center rounded-full font-mono font-semibold"
             >
               {operatorEmail.slice(0, 1).toUpperCase()}
             </div>

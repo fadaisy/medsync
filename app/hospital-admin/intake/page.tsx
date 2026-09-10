@@ -31,10 +31,10 @@ export default async function HospitalAdminIntakePage() {
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-8 lg:py-10">
       <header className="flex flex-col gap-2">
         <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
-          <span aria-hidden className="size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20" />
+          <span aria-hidden className="bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2" />
           {scope.hospitalName} · Intake
         </span>
-        <h1 className="font-display text-foreground text-[28px] leading-[1.15] font-medium tracking-[-0.015em]">
+        <h1 className="font-display text-foreground text-heading-l leading-[1.15] font-medium tracking-[-0.015em]">
           Front door
         </h1>
         <p className="text-muted-foreground max-w-[60ch] text-[12.5px] leading-relaxed">
@@ -51,7 +51,7 @@ export default async function HospitalAdminIntakePage() {
             <UserPlusIcon className="size-3" aria-hidden />
             Awaiting triage
           </span>
-          <span className="font-display text-foreground text-[28px] leading-none font-medium tabular-nums">
+          <span className="font-display text-foreground text-heading-l leading-none font-medium tabular-nums">
             {today.awaitingTriage}
           </span>
         </li>
@@ -75,8 +75,8 @@ export default async function HospitalAdminIntakePage() {
           <span
             className={
               today.emergencyAwaiting > 0
-                ? "font-display text-[28px] leading-none font-medium text-rose-700 tabular-nums dark:text-rose-300"
-                : "font-display text-foreground text-[28px] leading-none font-medium tabular-nums"
+                ? "font-display text-heading-l leading-none font-medium text-rose-700 tabular-nums dark:text-rose-300"
+                : "font-display text-foreground text-heading-l leading-none font-medium tabular-nums"
             }
           >
             {today.emergencyAwaiting}

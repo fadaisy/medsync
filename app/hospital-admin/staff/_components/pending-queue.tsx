@@ -57,7 +57,7 @@ export function PendingQueue({ rows, selectedAffiliationId }: PendingQueueProps)
       cell: (row) => (
         <div className="flex min-w-0 flex-col">
           <span className="text-foreground truncate font-medium">{row.fullName}</span>
-          <span className="text-muted-foreground truncate font-mono text-[11px]">{row.email}</span>
+          <span className="text-muted-foreground text-caption truncate font-mono">{row.email}</span>
         </div>
       ),
     },
@@ -103,7 +103,7 @@ export function PendingQueue({ rows, selectedAffiliationId }: PendingQueueProps)
         row.reviewNote ? (
           <Pill tone="caution">Info requested</Pill>
         ) : (
-          <span className="text-muted-foreground text-[11px]">—</span>
+          <span className="text-muted-foreground text-caption">—</span>
         ),
     },
   ];
@@ -124,8 +124,8 @@ export function PendingQueue({ rows, selectedAffiliationId }: PendingQueueProps)
       <div className="border-border bg-card overflow-hidden rounded-lg border">
         <div className="border-border flex items-center gap-2 border-b px-4 py-2.5 sm:px-6">
           <ClipboardCheckIcon className="text-muted-foreground size-3.5" aria-hidden />
-          <span className="text-foreground text-[13px] font-medium">Pending triage</span>
-          <span className="text-muted-foreground ml-auto font-mono text-[11px] tabular-nums">
+          <span className="text-foreground text-body-s font-medium">Pending triage</span>
+          <span className="text-muted-foreground text-caption ml-auto font-mono tabular-nums">
             {rows.length} {rows.length === 1 ? "row" : "rows"}
           </span>
         </div>

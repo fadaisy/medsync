@@ -75,7 +75,7 @@ export function SignUpForm() {
           {state.errors?.password ? (
             <FieldError message={state.errors.password} />
           ) : (
-            <p className="text-muted-foreground text-[11px]">At least 12 characters.</p>
+            <p className="text-muted-foreground text-caption">At least 12 characters.</p>
           )}
         </div>
 

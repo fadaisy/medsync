@@ -81,7 +81,7 @@ export function IntakeForm({
         className={
           state.isEmergency
             ? "flex flex-col gap-3 rounded-xl border border-rose-500/40 bg-rose-50/40 p-5 dark:bg-rose-950/15"
-            : "flex flex-col gap-3 rounded-xl border border-teal-500/40 bg-teal-50/40 p-5 dark:bg-teal-950/15"
+            : "border-brand-500/40 bg-brand-50/40 dark:bg-brand-950/15 flex flex-col gap-3 rounded-xl border p-5"
         }
       >
         <span
@@ -89,7 +89,7 @@ export function IntakeForm({
           className={
             state.isEmergency
               ? "inline-flex size-9 items-center justify-center rounded-full bg-rose-100 text-rose-700 dark:bg-rose-900/60 dark:text-rose-300"
-              : "inline-flex size-9 items-center justify-center rounded-full bg-teal-100 text-teal-700 dark:bg-teal-900/60 dark:text-teal-300"
+              : "bg-brand-100 text-brand-700 dark:bg-brand-900/60 dark:text-brand-300 inline-flex size-9 items-center justify-center rounded-full"
           }
         >
           {state.isEmergency ? (
@@ -145,7 +145,7 @@ export function IntakeForm({
                 typeCode === t.code
                   ? t.isEmergency
                     ? "rounded-full bg-rose-600 px-3 py-1 text-[12px] font-medium text-white shadow-xs"
-                    : "rounded-full bg-teal-600 px-3 py-1 text-[12px] font-medium text-white shadow-xs"
+                    : "bg-brand-600 rounded-full px-3 py-1 text-[12px] font-medium text-white shadow-xs"
                   : t.isEmergency
                     ? "rounded-full border border-rose-500/40 px-3 py-1 text-[12px] text-rose-700 transition-colors hover:bg-rose-50/60 dark:text-rose-300 dark:hover:bg-rose-950/30"
                     : "border-border text-muted-foreground hover:text-foreground hover:border-foreground/30 rounded-full border px-3 py-1 text-[12px] transition-colors"
@@ -201,7 +201,7 @@ export function IntakeForm({
         </div>
         {patientMode === "known" ? (
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="patient_user_id" className="text-[11px] tracking-tight">
+            <Label htmlFor="patient_user_id" className="text-caption tracking-tight">
               Patient UUID
             </Label>
             <Input
@@ -217,7 +217,7 @@ export function IntakeForm({
           </div>
         ) : (
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="patient_unknown_label" className="text-[11px] tracking-tight">
+            <Label htmlFor="patient_unknown_label" className="text-caption tracking-tight">
               Describe the patient
             </Label>
             <Input
@@ -234,14 +234,14 @@ export function IntakeForm({
       {/* Receiving department + entry point */}
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="receiving_department_id" className="text-[11px] tracking-tight">
+          <Label htmlFor="receiving_department_id" className="text-caption tracking-tight">
             Receiving department
           </Label>
           <select
             id="receiving_department_id"
             name="receiving_department_id"
             defaultValue=""
-            className="border-input bg-background text-foreground focus-visible:ring-ring/50 rounded-md border px-3 py-2 text-[13px] outline-none focus-visible:ring-[3px]"
+            className="border-input bg-background text-foreground focus-visible:ring-ring/50 text-body-s rounded-md border px-3 py-2 outline-none focus-visible:ring-[3px]"
           >
             <option value="">— Triage decides —</option>
             {departments.map((d) => (
@@ -252,14 +252,14 @@ export function IntakeForm({
           </select>
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="entry_point" className="text-[11px] tracking-tight">
+          <Label htmlFor="entry_point" className="text-caption tracking-tight">
             Entry door
           </Label>
           <select
             id="entry_point"
             name="entry_point"
             defaultValue={isEmergency ? "casualty" : "opd"}
-            className="border-input bg-background text-foreground focus-visible:ring-ring/50 rounded-md border px-3 py-2 text-[13px] outline-none focus-visible:ring-[3px]"
+            className="border-input bg-background text-foreground focus-visible:ring-ring/50 text-body-s rounded-md border px-3 py-2 outline-none focus-visible:ring-[3px]"
           >
             {ENTRY_POINTS.map((p) => (
               <option key={p.value} value={p.value}>
@@ -281,14 +281,14 @@ export function IntakeForm({
           </legend>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="referring_hospital_id" className="text-[11px] tracking-tight">
+              <Label htmlFor="referring_hospital_id" className="text-caption tracking-tight">
                 Referring hospital (in network)
               </Label>
               <select
                 id="referring_hospital_id"
                 name="referring_hospital_id"
                 defaultValue=""
-                className="border-input bg-background text-foreground focus-visible:ring-ring/50 rounded-md border px-3 py-2 text-[13px] outline-none focus-visible:ring-[3px]"
+                className="border-input bg-background text-foreground focus-visible:ring-ring/50 text-body-s rounded-md border px-3 py-2 outline-none focus-visible:ring-[3px]"
               >
                 <option value="">— Not in network —</option>
                 {hospitals.map((h) => (
@@ -299,7 +299,7 @@ export function IntakeForm({
               </select>
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="referring_facility_other" className="text-[11px] tracking-tight">
+              <Label htmlFor="referring_facility_other" className="text-caption tracking-tight">
                 Or referring facility name
               </Label>
               <Input
@@ -312,7 +312,7 @@ export function IntakeForm({
           </div>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="referring_clinician_name" className="text-[11px] tracking-tight">
+              <Label htmlFor="referring_clinician_name" className="text-caption tracking-tight">
                 Referring clinician (optional)
               </Label>
               <Input
@@ -323,19 +323,19 @@ export function IntakeForm({
               />
             </div>
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="referral_date" className="text-[11px] tracking-tight">
+              <Label htmlFor="referral_date" className="text-caption tracking-tight">
                 Referral date (optional)
               </Label>
               <Input
                 id="referral_date"
                 name="referral_date"
                 type="date"
-                className="font-mono text-[13px]"
+                className="text-body-s font-mono"
               />
             </div>
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="referral_reason" className="text-[11px] tracking-tight">
+            <Label htmlFor="referral_reason" className="text-caption tracking-tight">
               Referral reason
             </Label>
             <textarea
@@ -344,7 +344,7 @@ export function IntakeForm({
               rows={2}
               maxLength={2000}
               placeholder="What the referring facility wrote (or said on the phone)."
-              className="border-input bg-background text-foreground placeholder:text-muted-foreground/70 focus-visible:ring-ring/50 focus-visible:border-ring resize-none rounded-md border px-3 py-2 text-[13px] leading-relaxed outline-none focus-visible:ring-[3px]"
+              className="border-input bg-background text-foreground placeholder:text-muted-foreground/70 focus-visible:ring-ring/50 focus-visible:border-ring text-body-s resize-none rounded-md border px-3 py-2 leading-relaxed outline-none focus-visible:ring-[3px]"
             />
           </div>
         </fieldset>
@@ -352,7 +352,7 @@ export function IntakeForm({
 
       {/* Presenting complaint + brought-by */}
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="presenting_complaint" className="text-[11px] tracking-tight">
+        <Label htmlFor="presenting_complaint" className="text-caption tracking-tight">
           Presenting complaint (optional — triage will refine)
         </Label>
         <textarea
@@ -361,12 +361,12 @@ export function IntakeForm({
           rows={2}
           maxLength={2000}
           placeholder="What did the patient (or carer) say at the desk?"
-          className="border-input bg-background text-foreground placeholder:text-muted-foreground/70 focus-visible:ring-ring/50 focus-visible:border-ring resize-none rounded-md border px-3 py-2 text-[13px] leading-relaxed outline-none focus-visible:ring-[3px]"
+          className="border-input bg-background text-foreground placeholder:text-muted-foreground/70 focus-visible:ring-ring/50 focus-visible:border-ring text-body-s resize-none rounded-md border px-3 py-2 leading-relaxed outline-none focus-visible:ring-[3px]"
         />
       </div>
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="brought_by" className="text-[11px] tracking-tight">
+          <Label htmlFor="brought_by" className="text-caption tracking-tight">
             Brought by (optional)
           </Label>
           <Input
@@ -377,7 +377,7 @@ export function IntakeForm({
           />
         </div>
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="priority_hint_override" className="text-[11px] tracking-tight">
+          <Label htmlFor="priority_hint_override" className="text-caption tracking-tight">
             Priority hint
             <span className="text-muted-foreground/80 ml-1 font-normal">
               (default: {activeType?.defaultPriorityHint ?? "routine"})
@@ -387,7 +387,7 @@ export function IntakeForm({
             id="priority_hint_override"
             name="priority_hint_override"
             defaultValue=""
-            className="border-input bg-background text-foreground focus-visible:ring-ring/50 rounded-md border px-3 py-2 text-[13px] outline-none focus-visible:ring-[3px]"
+            className="border-input bg-background text-foreground focus-visible:ring-ring/50 text-body-s rounded-md border px-3 py-2 outline-none focus-visible:ring-[3px]"
           >
             <option value="">Use default</option>
             <option value="routine">Routine</option>
@@ -398,7 +398,7 @@ export function IntakeForm({
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor="reason" className="text-[11px] tracking-tight">
+        <Label htmlFor="reason" className="text-caption tracking-tight">
           Audit note (≥ 8 chars)
         </Label>
         <Input

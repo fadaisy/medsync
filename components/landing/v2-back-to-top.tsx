@@ -66,7 +66,7 @@ export function V2BackToTop() {
           "fixed right-5 bottom-5 z-30 sm:right-8 sm:bottom-8",
           "inline-flex size-11 items-center justify-center rounded-full",
           "border-border bg-card text-foreground border shadow-lg",
-          "hover:border-teal-300 hover:text-teal-700 hover:shadow-xl dark:hover:text-teal-300",
+          "hover:border-brand-300 hover:text-brand-700 dark:hover:text-brand-300 hover:shadow-xl",
           "transition-[opacity,transform,background-color,border-color,box-shadow] duration-200 ease-out",
           "motion-reduce:transition-none",
           "motion-safe:active:scale-95",
