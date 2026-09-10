@@ -415,6 +415,33 @@ export function scenarioById(id: ScenarioId): Scenario {
 }
 
 /** Run a scenario headlessly and return everything the checks need. */
+/**
+ * Simulated seconds per probe solve, chosen from how long the run is.
+ *
+ * The physics front end solves two diffusion stacks, and at the interactive
+ * stride of ten seconds a simulated year is over an hour of wall clock. Two of
+ * the nine scenarios run months. Left to the default they do not finish: the
+ * test suite timed out on them twice, and loading scenario 5 or 9 in the bench
+ * would have hung the worker for hours behind a creeping progress bar.
+ *
+ * Up to the acquisition period the stride costs nothing at all, because an
+ * acquisition forces a catch-up and the instrument always reads a current
+ * profile: one second, ten and sixty give the same numbers. Sixty is therefore
+ * the right default for any run and is four times faster than ten.
+ *
+ * Past a couple of days the run is asking what the months did to the hardware
+ * rather than what the glucose was at half past two, so the stride goes to
+ * nine hundred seconds. That is the first choice that costs accuracy, and it
+ * is measured rather than assumed: 0.02 percentage points of mean error over a
+ * day. It takes a simulated year from twenty nine minutes of wall clock to two.
+ *
+ * A caller who wants something else passes `probeStrideS` in the overrides and
+ * this gets out of the way.
+ */
+export function scenarioProbeStride(durationS: number): number {
+  return durationS > 2 * DAY ? 900 : 60;
+}
+
 export function runScenario(
   scenario: Scenario,
   overrides?: Partial<EngineOptions>,
@@ -423,6 +450,7 @@ export function runScenario(
   const statesVisited: ArbitrationState[] = [];
   const engine = new SimEngine({
     seed: scenario.seed,
+    probeStrideS: scenarioProbeStride(scenario.durationS),
     ...scenario.options,
     ...overrides,
     // Score every sample the run produces, not only the ones the trace buffer

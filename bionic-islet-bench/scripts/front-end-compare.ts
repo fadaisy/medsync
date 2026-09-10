@@ -60,8 +60,9 @@ function table(title: string, data: Row[]): void {
 }
 
 function run(scenario: Scenario, frontEnd: "placeholder" | "physics") {
-  const stride = scenario.durationS > 2 * 86_400 ? 900 : 60;
-  return runScenario(scenario, { frontEnd, probeStrideS: stride });
+  // The stride now comes from `runScenario` itself, from the scenario's own
+  // duration, so the bench, the tests and this script cannot disagree about it.
+  return runScenario(scenario, { frontEnd });
 }
 
 for (const number of WANTED) {
