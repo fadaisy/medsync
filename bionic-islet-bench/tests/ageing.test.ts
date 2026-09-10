@@ -2,7 +2,12 @@ import { beforeAll, describe, expect, it } from "vitest";
 
 import { AGEING, PHYSIOLOGY } from "../src/engine/params.ts";
 import { ScoreboardAccumulator } from "../src/engine/scoreboard.ts";
-import { ordinaryDays, runScenario, scenarioById } from "../src/engine/scenarios.ts";
+import {
+  ordinaryDays,
+  runScenario,
+  scenarioById,
+  scenarioProbeStride,
+} from "../src/engine/scenarios.ts";
 import { SimEngine } from "../src/engine/sim.ts";
 import type { Scoreboard } from "../src/engine/types.ts";
 
@@ -16,7 +21,15 @@ type YearResult = {
 
 /** One ordinary year: three meals and a night's sleep every day, no faults. */
 function runYear(seed: number, steroidEffectScale = 1): YearResult {
-  const engine = new SimEngine({ seed, steroidEffectScale, maxSamples: 4000 });
+  // A year, so the coarse stride, for the reasons `scenarioProbeStride` gives.
+  // Without it this test does not finish: the physics front end would solve
+  // both diffusion stacks half a million times.
+  const engine = new SimEngine({
+    seed,
+    steroidEffectScale,
+    maxSamples: 4000,
+    probeStrideS: scenarioProbeStride(365 * DAY),
+  });
   const queue = [...ordinaryDays(365)].sort((a, b) => a.atSeconds - b.atSeconds);
   let next = 0;
   const accumulator = new ScoreboardAccumulator();

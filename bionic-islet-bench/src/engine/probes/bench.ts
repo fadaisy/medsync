@@ -69,15 +69,23 @@ export type Fidelity = "full" | "fast" | "frozen";
 /**
  * How many simulated seconds each mode puts into one solve.
  *
+ * `fast` is sixty seconds and not ten, which is the acquisition period, and
+ * that is not a compromise: an acquisition forces a catch-up, so the
+ * instrument reads a current profile whatever the stride, and one second, ten
+ * and sixty produce the same numbers. Sixty is simply six times cheaper for
+ * nothing. It was ten, and the only thing that bought was solving the stacks
+ * five times over between two readings nobody could see the difference in.
+ *
  * These are presets, not the whole story: a caller that is simulating a year
- * passes its own stride, because at ten seconds a year takes twenty minutes of
- * wall clock and nothing in a year-long run turns on second-by-second
- * transport. What a coarser stride costs is measured against `full` rather
- * than assumed, and the measurement is in the tests.
+ * passes its own stride, because even at sixty seconds a year is nineteen
+ * minutes of wall clock and nothing in a year-long run turns on transport
+ * resolved to the minute. `scenarioProbeStride` in scenarios.ts is where that
+ * choice is made and reasoned about. What a coarser stride costs is measured
+ * against `full` rather than assumed, and the measurement is in the tests.
  */
 export const FIDELITY_STEP: Readonly<Record<Fidelity, number>> = {
   full: 1,
-  fast: 10,
+  fast: 60,
   frozen: Number.POSITIVE_INFINITY,
 };
 
