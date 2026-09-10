@@ -106,7 +106,7 @@ export function competitorLoad(competitors: Competitors, conditions: BindingCond
   );
 }
 
-/** Fractional receptor occupancy by glucose. */
+/** Fractional receptor occupancy by glucose alone. */
 export function occupancy(
   glucose: MolPerCubicMetre,
   competitors: Competitors,
@@ -115,6 +115,34 @@ export function occupancy(
   const kd = raw(dissociationConstant(conditions));
   const g = Math.max(raw(glucose), 0) / kd;
   return g / (1 + g + competitorLoad(competitors, conditions));
+}
+
+/**
+ * Fractional occupancy by **anything**, which is what the fluorescence
+ * actually reports.
+ *
+ *     theta_total = (G/Kd_G + F/Kd_F + M/Kd_M) / (1 + G/Kd_G + F/Kd_F + M/Kd_M)
+ *
+ * This distinction is the whole of the probe's polyol error and it is easy to
+ * get backwards. The switch is the boron pulling on the amine's lone pair, and
+ * the boron does that whenever it has esterified **a** diol. It has no way of
+ * knowing which one. So a fructose or a mannitol sitting in the receptor
+ * lights the molecule up exactly as a glucose would, and the instrument, which
+ * inverts as though every occupied site held glucose, reads high.
+ *
+ * Using glucose occupancy alone would make a competitor read *low*, by taking
+ * sites away from glucose. That is what a competitive binding assay does when
+ * the label is the glucose; it is not what a single-site turn-on sensor does.
+ */
+export function totalOccupancy(
+  glucose: MolPerCubicMetre,
+  competitors: Competitors,
+  conditions: BindingConditions,
+): number {
+  const kd = raw(dissociationConstant(conditions));
+  const g = Math.max(raw(glucose), 0) / kd;
+  const load = competitorLoad(competitors, conditions);
+  return (g + load) / (1 + g + load);
 }
 
 /** d(theta)/d(glucose), needed by the storage term's Jacobian and by error propagation. */
@@ -130,14 +158,14 @@ export function occupancyDerivative(
 }
 
 /**
- * Glucose implied by an occupancy, the inverse of `occupancy`.
- *
- *     C = Kd * theta * (1 + competitors) / (1 - theta)
+ * Glucose implied by a **total** occupancy: the inverse of `totalOccupancy`.
  *
  * The instrument inverts with `competitors` set to the calibration value, not
- * the true one, because it cannot measure fructose. That mismatch is the whole
- * mechanism of the probe's polyol error, and it is visible here as a caller's
- * choice of argument rather than as an added term.
+ * the true one, because it cannot measure fructose or know about an infusion.
+ * When the true load exceeds the calibrated one, the extra occupied sites are
+ * attributed to glucose and the reading comes out high. That mismatch is the
+ * whole mechanism of the probe's polyol error, and it is visible here as a
+ * caller's choice of argument rather than as an added term.
  */
 export function glucoseFromOccupancy(
   theta: number,
@@ -147,7 +175,10 @@ export function glucoseFromOccupancy(
   const kd = raw(dissociationConstant(conditions));
   if (theta <= 0) return molPerM3(0);
   if (theta >= 1) return molPerM3(Number.POSITIVE_INFINITY);
-  return molPerM3((kd * theta * (1 + competitorLoad(competitors, conditions))) / (1 - theta));
+  // Inverting the total occupancy:
+  //     theta = (g + load) / (1 + g + load)   =>   g = theta/(1 - theta) - load
+  const g = theta / (1 - theta) - competitorLoad(competitors, conditions);
+  return molPerM3(Math.max(kd * g, 0));
 }
 
 // ---------------------------------------------------------------------------

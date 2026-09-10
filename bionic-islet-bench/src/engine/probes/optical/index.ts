@@ -70,6 +70,7 @@ import {
   receptorDensity,
   relaxationTime,
   retardationFactor,
+  totalOccupancy,
 } from "./binding.ts";
 import {
   countVariance,
@@ -126,7 +127,10 @@ export type OpticalReading = {
 };
 
 export type OpticalDiagnostics = {
+  /** What the light sees: every occupied site, whatever is in it. */
   readonly gelOccupancy: number;
+  /** What the glucose alone is doing. The gap is the polyol error. */
+  readonly glucoseOccupancy: number;
   readonly freeGlucoseAtFibre: MolPerCubicMetre;
   readonly retardationFactor: number;
   readonly receptorDensity: MolPerCubicMetre;
@@ -317,22 +321,30 @@ export class OpticalProbe {
     for (let c = 0; c < this.grid.nCells; c += 1) {
       if (this.grid.layerOf[c] !== GEL_LAYER) continue;
       const free = molPerM3(concentrationAt(this.grid, this.field, GLUCOSE, c));
-      const theta = occupancy(free, environment.competitors, environment.conditions);
+      // Total occupancy, not glucose occupancy: the switch is the boron
+      // holding a diol, and it cannot tell which diol it is holding.
+      const theta = totalOccupancy(free, environment.competitors, environment.conditions);
       weighted += indicatorQuantumYield(theta) * this.grid.h[c]!;
       width += this.grid.h[c]!;
     }
     return width > 0 ? weighted / width : indicatorQuantumYield(0);
   }
 
-  /** Width-weighted mean receptor occupancy across the gel, for diagnostics. */
-  gelOccupancy(environment: OpticalEnvironment): number {
+  /**
+   * Width-weighted mean receptor occupancy across the gel.
+   *
+   * `total` is what the light sees; the glucose-only figure is what the
+   * glucose is actually doing. They differ by exactly the competitor load,
+   * which is the probe's polyol error made visible.
+   */
+  gelOccupancy(environment: OpticalEnvironment, which: "total" | "glucose" = "total"): number {
+    const of = which === "total" ? totalOccupancy : occupancy;
     let weighted = 0;
     let width = 0;
     for (let c = 0; c < this.grid.nCells; c += 1) {
       if (this.grid.layerOf[c] !== GEL_LAYER) continue;
       const free = molPerM3(concentrationAt(this.grid, this.field, GLUCOSE, c));
-      weighted +=
-        occupancy(free, environment.competitors, environment.conditions) * this.grid.h[c]!;
+      weighted += of(free, environment.competitors, environment.conditions) * this.grid.h[c]!;
       width += this.grid.h[c]!;
     }
     return width > 0 ? weighted / width : 0;
@@ -382,9 +394,10 @@ export class OpticalProbe {
       countVariance(referenceMean) / (referenceMean * referenceMean);
     const ratioSd = ratio * Math.sqrt(relativeVariance);
     const dThetaDRatio = occupancySensitivityToRatio(ratio);
+    // d/d(theta) of Kd (theta/(1 - theta) - load) is Kd/(1 - theta)^2. The
+    // competitor load is a constant offset and drops out of the derivative.
     const kd = raw(dissociationConstant(this.calibrationConditions));
-    const load = competitorLoad(this.calibrationCompetitors, this.calibrationConditions);
-    const dGlucoseDTheta = (kd * (1 + load)) / Math.pow(1 - clamped, 2) / partition;
+    const dGlucoseDTheta = kd / Math.pow(1 - clamped, 2) / partition;
 
     return {
       indicatorCounts,
@@ -413,6 +426,7 @@ export class OpticalProbe {
     const capsule = layersFor(this.geometry)[CAPSULE_LAYER]!;
     return {
       gelOccupancy: gelTheta,
+      glucoseOccupancy: this.gelOccupancy(environment, "glucose"),
       freeGlucoseAtFibre: atFibre,
       retardationFactor: retardationFactor(
         atFibre,

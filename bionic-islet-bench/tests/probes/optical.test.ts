@@ -44,6 +44,7 @@ import {
   survivalAfterFlashes,
   switchContrast,
   temperatureFactor,
+  totalOccupancy,
 } from "../../src/engine/probes/optical/index.ts";
 import { poisson } from "../../src/engine/probes/stochastic.ts";
 import {
@@ -109,21 +110,64 @@ describe("competitive binding", () => {
     expect(error).toBeLessThan(0.03);
   });
 
-  it("shifts the apparent affinity by the competitive term and no more", () => {
-    // Adding a competitor at C = Kd_F must raise the glucose needed for half
-    // occupancy by exactly (1 + load). That is the analytic prediction of a
-    // shared site, so it is what the test asserts.
+  it("shifts the glucose half point by the competitive term and no more", () => {
+    // Adding a competitor at C = Kd_F must raise the glucose needed to fill
+    // half the sites *with glucose* by exactly (1 + load). That is the
+    // analytic prediction of a shared site, so it is what the test asserts.
     const withFructose: Competitors = { fructose: BIND.kdFructose, polyol: molPerM3(0) };
     const load = competitorLoad(withFructose, NORMAL_CONDITIONS);
-    const half = raw(glucoseFromOccupancy(0.5, withFructose, NORMAL_CONDITIONS));
+    let lo = 0;
+    let hi = raw(BIND.kdGlucose) * 100;
+    for (let i = 0; i < 200; i += 1) {
+      const mid = (lo + hi) / 2;
+      if (occupancy(molPerM3(mid), withFructose, NORMAL_CONDITIONS) < 0.5) lo = mid;
+      else hi = mid;
+    }
+    const half = (lo + hi) / 2;
     const predicted = raw(BIND.kdGlucose) * (1 + load);
     const error = Math.abs(half - predicted) / predicted;
     // eslint-disable-next-line no-console
     console.log(
-      `  competitor load ${load.toFixed(4)}, half occupancy at ${half.toFixed(4)} mol/m3, predicted ${predicted.toFixed(4)}, error ${(error * 100).toExponential(2)} %`,
+      `  competitor load ${load.toFixed(4)}, glucose half point at ${half.toFixed(4)} mol/m3, predicted ${predicted.toFixed(4)}, error ${(error * 100).toExponential(2)} %`,
     );
     expect(error).toBeLessThan(0.02);
     expect(load).toBeGreaterThan(0);
+  });
+
+  it("counts every occupied site, whatever is sitting in it", () => {
+    // The switch is the boron holding a diol; it cannot tell which diol. So
+    // total occupancy must always exceed glucose occupancy by exactly the
+    // competitor's share, and with no competitor the two must coincide.
+    //
+    // Getting this backwards is the easy mistake, and it inverts the sign of
+    // the probe's entire polyol error, so it is asserted rather than assumed.
+    const competitors: Competitors = { fructose: molPerM3(0.4), polyol: molPerM3(1.2) };
+    for (const g of [0, 2, 6, 12, 20]) {
+      const glucose = molPerM3(g);
+      const alone = occupancy(glucose, NONE, NORMAL_CONDITIONS);
+      const withOthers = occupancy(glucose, competitors, NORMAL_CONDITIONS);
+      const total = totalOccupancy(glucose, competitors, NORMAL_CONDITIONS);
+      // A competitor takes sites from glucose but adds them to the total.
+      expect(withOthers).toBeLessThanOrEqual(alone + 1e-12);
+      expect(total).toBeGreaterThan(withOthers - 1e-12);
+      expect(totalOccupancy(glucose, NONE, NORMAL_CONDITIONS)).toBeCloseTo(alone, 12);
+    }
+    const emptyOfGlucose = totalOccupancy(molPerM3(0), competitors, NORMAL_CONDITIONS);
+    // eslint-disable-next-line no-console
+    console.log(
+      `  with 0.4 mmol/L fructose and 1.2 mmol/L polyol the receptor is ${(emptyOfGlucose * 100).toFixed(1)} % occupied at zero glucose`,
+    );
+    expect(emptyOfGlucose).toBeGreaterThan(0);
+  });
+
+  it("inverts the total occupancy back to the glucose that produced it", () => {
+    // Round trip through the transduction, including the competitor offset
+    // the instrument believes in.
+    for (const g of [0.5, 3, 6, 12, 22]) {
+      const theta = totalOccupancy(molPerM3(g), NORMAL_COMPETITORS, NORMAL_CONDITIONS);
+      const back = raw(glucoseFromOccupancy(theta, NORMAL_COMPETITORS, NORMAL_CONDITIONS));
+      expect(back).toBeCloseTo(g, 10);
+    }
   });
 
   it("weakens binding when the medium acidifies and when it warms", () => {
@@ -382,21 +426,32 @@ describe("the assembled probe", () => {
   it("reads high when fructose competes, because the instrument cannot see it", () => {
     const truth = 6;
     const clean = settledProbe(truth);
+    const elevated = raw(ENV.plasmaFructose) * 20;
     const spiked = settledProbe(truth, {
-      competitors: { fructose: molPerM3(raw(ENV.plasmaFructose) * 20), polyol: molPerM3(0) },
+      competitors: { fructose: molPerM3(elevated), polyol: molPerM3(0) },
     });
     const rng = new Rng(77);
     const cleanRead = clean.probe.acquire(rng.stream("a"), clean.env);
     const spikedRead = spiked.probe.acquire(rng.stream("b"), spiked.env);
     const shift = (raw(spikedRead.glucose) - raw(cleanRead.glucose)) / truth;
+
+    // The size of the error is the competitor load, and the load is the
+    // concentration over the competitor's own dissociation constant. Fructose
+    // binds an arylboronic acid ten times more tightly than glucose does, so
+    // it does not take much of it.
+    const load = competitorLoad(
+      { fructose: molPerM3(elevated), polyol: molPerM3(0) },
+      NORMAL_CONDITIONS,
+    );
     // eslint-disable-next-line no-console
     console.log(
-      `  fructose at ${(raw(ENV.plasmaFructose) * 20).toFixed(2)} mmol/L moves the reading by ${(shift * 100).toFixed(1)} %, from ${raw(cleanRead.glucose).toFixed(2)} to ${raw(spikedRead.glucose).toFixed(2)} mmol/L`,
+      `  fructose at ${elevated.toFixed(2)} mmol/L is a load of ${load.toFixed(3)} on a receptor with Kd_F ${raw(BIND.kdFructose)} mmol/L; the reading moves ${(shift * 100).toFixed(1)} %, from ${raw(cleanRead.glucose).toFixed(2)} to ${raw(spikedRead.glucose).toFixed(2)} mmol/L`,
     );
-    // Fructose occupies sites glucose would have, so the reading falls. The
-    // sign is the model's, not a choice: a competitor at a shared site can
-    // only take occupancy away.
-    expect(shift).toBeLessThan(0);
+    // High, not low. Every occupied site lights up, and the instrument
+    // attributes all of them to glucose.
+    expect(shift).toBeGreaterThan(0);
+    const diagnostics = spiked.probe.diagnostics(spiked.env);
+    expect(diagnostics.gelOccupancy).toBeGreaterThan(diagnostics.glucoseOccupancy);
   });
 
   it("survives the capsule thickening without losing its state", () => {
