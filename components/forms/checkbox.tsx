@@ -50,11 +50,11 @@ export function Checkbox({
   return (
     <label
       className={cn(
-        "border-input bg-card flex cursor-pointer items-start gap-3 rounded-md border p-3 text-[13px]",
+        "border-input bg-card text-body-s flex cursor-pointer items-start gap-3 rounded-md border p-3",
         "ease-expo-out transition-all duration-150 select-none",
-        "hover:border-teal-300",
-        "focus-within:border-teal-500 focus-within:shadow-[0_0_0_2px_rgba(20,184,166,0.15)]",
-        "dark:focus-within:border-teal-400 dark:focus-within:shadow-[0_0_0_2px_rgba(45,212,191,0.2)]",
+        "hover:border-brand-300",
+        "focus-within:border-brand-500 focus-within:shadow-[0_0_0_2px_rgba(20,184,166,0.15)]",
+        "dark:focus-within:border-brand-400 dark:focus-within:shadow-[0_0_0_2px_rgba(45,212,191,0.2)]",
         invalid && "border-destructive bg-alert-bg",
         disabled && "pointer-events-none cursor-not-allowed opacity-50",
         className,
@@ -70,8 +70,8 @@ export function Checkbox({
         disabled={disabled}
         className={cn(
           "border-input bg-card mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-sm border",
-          "data-[checked]:border-teal-500 data-[checked]:bg-teal-500 data-[checked]:text-white",
-          "dark:data-[checked]:border-teal-400 dark:data-[checked]:bg-teal-400 dark:data-[checked]:text-gray-900",
+          "data-[checked]:border-brand-500 data-[checked]:bg-brand-500 data-[checked]:text-white",
+          "dark:data-[checked]:border-brand-400 dark:data-[checked]:bg-brand-400 dark:data-[checked]:text-gray-900",
           "ease-expo-out transition-all duration-150",
         )}
       >

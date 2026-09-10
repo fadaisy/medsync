@@ -45,7 +45,7 @@ export function ClinicianHomeMock() {
           >
             {/* Top hairline w/ ILLUSTRATIVE badge */}
             <div className="border-border bg-muted/50 flex items-center justify-between border-b px-4 py-2">
-              <div className="flex items-center gap-2 text-[11px]">
+              <div className="text-caption flex items-center gap-2">
                 <span className="text-muted-foreground font-mono tracking-[0.15em] uppercase">
                   app.medsync.health
                 </span>
@@ -56,11 +56,11 @@ export function ClinicianHomeMock() {
                 className={cn(
                   "inline-flex items-center gap-1.5 rounded-full px-2 py-0.5",
                   "font-mono text-[9.5px] tracking-[0.18em] uppercase",
-                  "border border-teal-300 bg-teal-50 text-teal-800",
-                  "dark:border-teal-700 dark:bg-teal-50/10 dark:text-teal-200",
+                  "border-brand-300 bg-brand-50 text-brand-800 border",
+                  "dark:border-brand-700 dark:bg-brand-50/10 dark:text-brand-200",
                 )}
               >
-                <span className="size-1.5 rounded-full bg-teal-500" />
+                <span className="bg-brand-500 size-1.5 rounded-full" />
                 Illustrative &middot; sample data
               </span>
             </div>
@@ -95,8 +95,8 @@ function Sidebar() {
     >
       <div className="flex items-center justify-between px-1 pt-1">
         <div className="flex items-baseline gap-0.5">
-          <span className="font-display text-[15px] font-medium">MedSync</span>
-          <span className="size-1 translate-y-[-1px] rounded-full bg-teal-500" />
+          <span className="font-display text-body-m font-medium">MedSync</span>
+          <span className="bg-brand-500 size-1 translate-y-[-1px] rounded-full" />
         </div>
         <span className="text-muted-foreground inline-flex items-center gap-1 font-mono text-[10px]">
           <CommandIcon className="size-2.5" strokeWidth={2} />K
@@ -169,7 +169,7 @@ function MainColumn() {
         </div>
         <div className="flex items-center gap-2">
           <span className="border-border bg-card flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-[12px]">
-            <span className="size-1.5 rounded-full bg-teal-500" />
+            <span className="bg-brand-500 size-1.5 rounded-full" />
             Synced 12s ago
           </span>
         </div>
@@ -219,13 +219,13 @@ function TodayPanel() {
             key={it.time + it.title}
             className={cn(
               "border-border bg-card flex items-start gap-3 rounded-md border p-2.5",
-              it.tone === "teal" ? "border-teal-200 dark:border-teal-800" : "",
+              it.tone === "teal" ? "border-brand-200 dark:border-brand-800" : "",
             )}
           >
-            <span className="tabular text-foreground pt-0.5 font-mono text-[11px]">{it.time}</span>
+            <span className="tabular text-foreground text-caption pt-0.5 font-mono">{it.time}</span>
             <div className="flex flex-col gap-0.5">
               <span className="text-foreground text-[12.5px] leading-snug">{it.title}</span>
-              <span className="text-muted-foreground text-[11px]">{it.sub}</span>
+              <span className="text-muted-foreground text-caption">{it.sub}</span>
             </div>
           </li>
         ))}
@@ -275,7 +275,7 @@ function PatientDetail() {
             Glucose <span className="tabular font-mono">14.2 mmol/L</span>
             <span className="text-muted-foreground ml-1.5 font-normal">· 3 min ago</span>
           </span>
-          <span className="text-status-critical-fg/80 text-[11px]">
+          <span className="text-status-critical-fg/80 text-caption">
             Above target (4–10). Auto-suggest: review insulin sliding scale.
           </span>
         </div>
@@ -324,7 +324,7 @@ function CareAvatar({
   tone: "teal" | "violet" | "amber" | "neutral";
 }) {
   const toneClasses: Record<typeof tone, string> = {
-    teal: "bg-teal-100 text-teal-800 dark:bg-teal-50/15 dark:text-teal-200",
+    teal: "bg-brand-100 text-brand-800 dark:bg-brand-50/15 dark:text-brand-200",
     violet: "bg-status-discharged-bg text-status-discharged-fg",
     amber: "bg-status-caution-bg text-status-caution-fg",
     neutral: "bg-muted text-muted-foreground",
@@ -375,7 +375,7 @@ function GlucoseTrend() {
         y={bandTop}
         width={width}
         height={bandBottom - bandTop}
-        className="fill-teal-100/60 dark:fill-teal-50/10"
+        className="fill-brand-100/60 dark:fill-brand-50/10"
       />
       {/* Polyline */}
       <polyline

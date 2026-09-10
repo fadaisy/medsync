@@ -139,7 +139,7 @@ function Shell({ children }: { children: React.ReactNode }) {
   return (
     <section className="flex flex-col gap-4">
       <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
-        <span aria-hidden className="size-1 rounded-full bg-teal-500 ring-2 ring-teal-500/20" />
+        <span aria-hidden className="bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2" />
         Clinical record
       </span>
       {children}
@@ -173,7 +173,7 @@ function ListCard({
               <>
                 <span className="text-foreground text-[12.5px]">{it.primary}</span>
                 {it.secondary ? (
-                  <span className="text-muted-foreground text-[11px]">{it.secondary}</span>
+                  <span className="text-muted-foreground text-caption">{it.secondary}</span>
                 ) : null}
               </>
             );
@@ -201,7 +201,7 @@ function ListCard({
 function EmptyNote({ title, body }: { title: string; body: string }) {
   return (
     <div className="border-border bg-card/40 text-muted-foreground rounded-xl border border-dashed p-4">
-      <span className="text-foreground/80 text-[13px] font-medium">{title}</span>
+      <span className="text-foreground/80 text-body-s font-medium">{title}</span>
       <p className="mt-1 text-[11.5px] leading-relaxed">{body}</p>
     </div>
   );

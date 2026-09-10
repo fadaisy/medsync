@@ -262,8 +262,8 @@ export function AdaptiveModel() {
       <div className="mx-auto w-full max-w-300 px-5 py-20 sm:px-8 sm:py-28">
         <RevealOnScroll className="mb-8 flex flex-col gap-4">
           <span className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
-            <span className="pulse-dot size-1 rounded-full bg-teal-500" />
-            <span className="tabular text-teal-700/80 dark:text-teal-300/80">02</span>
+            <span className="pulse-dot bg-brand-500 size-1 rounded-full" />
+            <span className="tabular text-brand-700/80 dark:text-brand-300/80">02</span>
             <span aria-hidden className="bg-border h-px w-4" />
             One model, many specialties
           </span>
@@ -273,10 +273,10 @@ export function AdaptiveModel() {
             style={{ fontWeight: 400 }}
           >
             The closed-loop record{" "}
-            <span className="text-teal-700 italic dark:text-teal-300">adapts to the ward</span> —
+            <span className="text-brand-700 dark:text-brand-300 italic">adapts to the ward</span> —
             not the other way around.
           </h2>
-          <p className="text-muted-foreground max-w-[64ch] text-[15px] leading-[1.55] sm:text-[17px]">
+          <p className="text-muted-foreground text-body-m sm:text-body-l max-w-[64ch] leading-[1.55]">
             Same six clinical objects everywhere. The attributes shift per specialty so Diabetology
             sees HbA1c first, Cardiology sees LVEF first, and nothing has to be re-built per team.
           </p>
@@ -297,17 +297,17 @@ export function AdaptiveModel() {
                   "group tap relative flex flex-1 flex-col items-start gap-0.5 px-3 py-2.5 text-left",
                   "transition-colors duration-150",
                   isActive
-                    ? "bg-teal-50 text-teal-900 dark:bg-teal-50/10 dark:text-teal-100"
+                    ? "bg-brand-50 text-brand-900 dark:bg-brand-50/10 dark:text-brand-100"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground",
                 )}
               >
-                <span className="text-[13px] font-medium">{tab.label}</span>
+                <span className="text-body-s font-medium">{tab.label}</span>
                 <span className="text-[10.5px] opacity-70">{tab.subtitle}</span>
                 {/* Animated active underline — slides in from the left. */}
                 <span
                   aria-hidden
                   className={cn(
-                    "ease-expo-out absolute right-0 bottom-0 left-0 h-px origin-left bg-teal-500",
+                    "ease-expo-out bg-brand-500 absolute right-0 bottom-0 left-0 h-px origin-left",
                     "transition-transform duration-300",
                     isActive ? "scale-x-100" : "scale-x-0",
                   )}
@@ -355,7 +355,7 @@ export function AdaptiveModel() {
             <span className="text-muted-foreground font-mono text-[10px] tracking-[0.18em] uppercase">
               {current.label} signature attributes
             </span>
-            <span className="text-muted-foreground text-[11px] italic">
+            <span className="text-muted-foreground text-caption italic">
               These follow the patient between wards — never re-entered.
             </span>
           </div>
@@ -457,7 +457,7 @@ function PatientCard({ data }: { data: SpecialtyCardSet["patient"] }) {
   return (
     <ObjectCardShell kind="Patient" Icon={UserIcon} moreAttributes={data.moreAttributes}>
       <div>
-        <p className="font-display text-foreground text-[15px] font-medium">{data.name}</p>
+        <p className="font-display text-foreground text-body-m font-medium">{data.name}</p>
         <p className="text-muted-foreground text-[11.5px]">
           {data.age} &middot; {data.sex}
         </p>
@@ -486,12 +486,12 @@ function VitalCard({ data }: { data: SpecialtyCardSet["vital"] }) {
     >
       <div>
         <p className="text-muted-foreground text-[11.5px]">{data.label}</p>
-        <p className="tabular text-foreground text-[18px] font-medium">
+        <p className="tabular text-foreground text-heading-s font-medium">
           {data.value}{" "}
           <span
             className={cn(
               "ml-0.5 text-[14px]",
-              data.trend === "down" ? "text-status-critical-fg" : "text-teal-500",
+              data.trend === "down" ? "text-status-critical-fg" : "text-brand-500",
             )}
           >
             {arrow}
@@ -507,7 +507,7 @@ function MedicationCard({ data }: { data: SpecialtyCardSet["medication"] }) {
   return (
     <ObjectCardShell kind="Medication" Icon={PillIcon} moreAttributes={data.moreAttributes}>
       <div>
-        <p className="text-foreground text-[13px] font-medium">{data.name}</p>
+        <p className="text-foreground text-body-s font-medium">{data.name}</p>
         <div className="mt-1 flex flex-col gap-0.5">
           <FieldRow label="Dose" value={data.dose} />
           <FieldRow label="Frequency" value={data.freq} />
@@ -560,7 +560,7 @@ function AppointmentCard({ data }: { data: SpecialtyCardSet["appointment"] }) {
       moreAttributes={data.moreAttributes}
     >
       <div>
-        <p className="text-foreground text-[13px] font-medium">{data.kind}</p>
+        <p className="text-foreground text-body-s font-medium">{data.kind}</p>
         <div className="mt-1 flex flex-col gap-0.5">
           <FieldRow label="When" value={data.when} />
           <FieldRow label="With" value={data.with} />

@@ -103,7 +103,7 @@ export function CascadingCombobox({
       <div className="flex flex-1 flex-col gap-1.5">
         <label
           htmlFor={parentId}
-          className="text-muted-foreground text-[11px] leading-none font-medium tracking-[0.01em]"
+          className="text-muted-foreground text-caption leading-none font-medium tracking-[0.01em]"
         >
           {parentLabel}
         </label>
@@ -124,7 +124,7 @@ export function CascadingCombobox({
       <div className="flex flex-1 flex-col gap-1.5">
         <label
           htmlFor={childId}
-          className="text-muted-foreground text-[11px] leading-none font-medium tracking-[0.01em]"
+          className="text-muted-foreground text-caption leading-none font-medium tracking-[0.01em]"
         >
           {childLabel}
         </label>

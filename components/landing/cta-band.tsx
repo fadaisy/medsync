@@ -12,18 +12,18 @@ export function CtaBandMid() {
   return (
     <section
       aria-labelledby="cta-band-mid-headline"
-      className="medsync-forced-dark relative w-full overflow-hidden bg-teal-950 text-teal-50"
+      className="medsync-forced-dark bg-gradient-band text-brand-50 relative w-full overflow-hidden"
     >
       {/* Atmosphere — base linear sweep (lighter top → deeper bottom) so
           the surface reads with depth even before the radial glows on top. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 [background:linear-gradient(180deg,oklch(0.32_0.08_180),oklch(0.18_0.05_180)_55%,oklch(0.14_0.04_180))]"
+        className="pointer-events-none absolute inset-0 [background:linear-gradient(180deg,oklch(0.32_0.08_286),oklch(0.18_0.05_286)_55%,oklch(0.14_0.04_286))]"
       />
       {/* Atmosphere — pronounced radial glow from top-left */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 [background:radial-gradient(ellipse_at_top_left,oklch(0.55_0.13_180/0.55),transparent_55%),radial-gradient(ellipse_at_bottom_right,oklch(0.28_0.06_180/0.6),transparent_65%)]"
+        className="pointer-events-none absolute inset-0 [background:radial-gradient(ellipse_at_top_left,oklch(0.55_0.13_286/0.55),transparent_55%),radial-gradient(ellipse_at_bottom_right,oklch(0.28_0.06_286/0.6),transparent_65%)]"
       />
       <div
         aria-hidden
@@ -35,21 +35,21 @@ export function CtaBandMid() {
       />
 
       <StaggerOnScroll className="relative mx-auto flex w-full max-w-300 flex-col items-center gap-9 px-5 py-20 text-center sm:gap-12 sm:px-8 sm:py-28">
-        <span className="inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] text-teal-200/80 uppercase">
-          <span className="pulse-dot size-1 rounded-full bg-teal-300" />
+        <span className="text-brand-200/80 inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
+          <span className="pulse-dot bg-brand-300 size-1 rounded-full" />
           Care that doesn&rsquo;t stop at the gate
         </span>
 
         <h2
           id="cta-band-mid-headline"
-          className="font-display max-w-[22ch] text-[36px] leading-[1.05] tracking-[-0.025em] text-balance sm:text-[56px]"
+          className="font-display text-display-s sm:text-display-l max-w-[22ch] leading-[1.05] tracking-[-0.025em] text-balance"
           style={{ fontWeight: 400 }}
         >
-          Three audiences. <span className="text-teal-200 italic">One record.</span> Every step of
+          Three audiences. <span className="text-brand-200 italic">One record.</span> Every step of
           care.
         </h2>
 
-        <p className="max-w-[58ch] text-[15px] leading-[1.55] text-balance text-teal-100/75 sm:text-[17px]">
+        <p className="text-body-m text-brand-100/75 sm:text-body-l max-w-[58ch] leading-[1.55] text-balance">
           Whether you&rsquo;re a patient looking for continuity, a clinician tired of writing the
           same note twice, or a hospital that needs to run the wards and the wards-at-home —
           there&rsquo;s a door for you.
@@ -59,7 +59,7 @@ export function CtaBandMid() {
           <OnboardingCtaCluster layout="doors" tone="dark" />
         </div>
 
-        <p className="max-w-[44ch] text-[11px] text-teal-300/60 italic">
+        <p className="text-caption text-brand-300/60 max-w-[44ch] italic">
           No free trials, no pilot-with-strings. Express interest, we&rsquo;ll reply with a real
           conversation.
         </p>

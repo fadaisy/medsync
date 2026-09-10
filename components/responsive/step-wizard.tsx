@@ -62,7 +62,7 @@ export function StepWizardShell({
             <button
               type="button"
               onClick={onBack}
-              className="text-muted-foreground hover:text-foreground inline-flex items-center justify-center rounded-full p-1.5 transition-colors outline-none focus-visible:ring-2 focus-visible:ring-teal-500/40"
+              className="text-muted-foreground hover:text-foreground focus-visible:ring-brand-500/40 inline-flex items-center justify-center rounded-full p-1.5 transition-colors outline-none focus-visible:ring-2"
               aria-label="Back"
             >
               <ChevronLeftIcon className="size-5" aria-hidden />
@@ -73,11 +73,11 @@ export function StepWizardShell({
           <StepIndicator steps={steps} currentStepIndex={currentStepIndex} />
         </div>
         <div className="flex flex-col gap-1 px-1">
-          <h1 className="font-display text-foreground text-[22px] leading-tight font-medium tracking-[-0.015em] sm:text-[26px]">
+          <h1 className="font-display text-foreground text-heading-m leading-tight font-medium tracking-[-0.015em] sm:text-[26px]">
             {title}
           </h1>
           {description ? (
-            <p className="text-muted-foreground max-w-xl text-[13px] leading-relaxed">
+            <p className="text-muted-foreground text-body-s max-w-xl leading-relaxed">
               {description}
             </p>
           ) : null}
@@ -117,7 +117,7 @@ function StepIndicator({
             <span
               className={cn(
                 "h-1 flex-1 rounded-full transition-colors",
-                done || current ? "bg-teal-500 dark:bg-teal-400" : "bg-muted",
+                done || current ? "bg-brand-500 dark:bg-brand-400" : "bg-muted",
               )}
             />
           </div>

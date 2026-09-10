@@ -70,7 +70,7 @@ const FAQS: FaqEntry[] = [
         <p className="mt-2">
           Long answer:{" "}
           <Link
-            className="text-teal-700 underline-offset-2 hover:underline dark:text-teal-300"
+            className="text-brand-700 dark:text-brand-300 underline-offset-2 hover:underline"
             href="/#trust"
           >
             the trust section
@@ -154,7 +154,7 @@ const FAQS: FaqEntry[] = [
             <li key={d.href}>
               <Link
                 href={d.href}
-                className="text-teal-700 underline-offset-2 hover:underline dark:text-teal-300"
+                className="text-brand-700 dark:text-brand-300 underline-offset-2 hover:underline"
               >
                 {d.label}
               </Link>
@@ -179,7 +179,7 @@ export function Faq() {
           <header className="md:col-span-4">
             <RevealOnScroll>
               <span className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
-                <span className="pulse-dot size-1 rounded-full bg-teal-500" />
+                <span className="pulse-dot bg-brand-500 size-1 rounded-full" />
                 FAQ
               </span>
               <h2
@@ -188,7 +188,7 @@ export function Faq() {
                 style={{ fontWeight: 400 }}
               >
                 The questions{" "}
-                <span className="text-teal-700 italic dark:text-teal-300">
+                <span className="text-brand-700 dark:text-brand-300 italic">
                   we keep getting asked
                 </span>
                 .
@@ -197,7 +197,7 @@ export function Faq() {
                 Honest answers. If your question isn&rsquo;t here, the form on{" "}
                 <a
                   href="mailto:hello@medsync.health?subject=MedSync%20question"
-                  className="text-teal-700 underline-offset-2 hover:underline dark:text-teal-300"
+                  className="text-brand-700 dark:text-brand-300 underline-offset-2 hover:underline"
                 >
                   hello@medsync.health
                 </a>{" "}
@@ -245,7 +245,7 @@ function FaqRow({ faq }: { faq: FaqEntry }) {
           "-mx-2 rounded-md px-2",
         )}
       >
-        <span className="font-display text-[17px] leading-[1.35] font-medium text-balance sm:text-[19px]">
+        <span className="font-display text-body-l leading-[1.35] font-medium text-balance sm:text-[19px]">
           {faq.q}
         </span>
         <span
@@ -253,9 +253,9 @@ function FaqRow({ faq }: { faq: FaqEntry }) {
           className={cn(
             "border-border bg-card text-muted-foreground mt-0.5 inline-flex size-7 shrink-0 items-center justify-center rounded-md border",
             "ease-expo-out transition-transform duration-200",
-            "group-hover/sum:border-teal-300 group-hover/sum:text-teal-700 dark:group-hover/sum:text-teal-300",
-            "group-open:rotate-45 group-open:border-teal-300 group-open:bg-teal-50 group-open:text-teal-700",
-            "dark:group-open:bg-teal-50/15 dark:group-open:text-teal-200",
+            "group-hover/sum:border-brand-300 group-hover/sum:text-brand-700 dark:group-hover/sum:text-brand-300",
+            "group-open:border-brand-300 group-open:bg-brand-50 group-open:text-brand-700 group-open:rotate-45",
+            "dark:group-open:bg-brand-50/15 dark:group-open:text-brand-200",
           )}
         >
           <PlusIcon className="size-3.5" strokeWidth={2} />

@@ -54,7 +54,7 @@ const SUBPOINTS: SubPoint[] = [
     title: (
       <>
         Log in seconds,{" "}
-        <span className="text-teal-700 italic dark:text-teal-300">not in a notebook</span>.
+        <span className="text-brand-700 dark:text-brand-300 italic">not in a notebook</span>.
       </>
     ),
     body: (
@@ -83,7 +83,8 @@ const SUBPOINTS: SubPoint[] = [
     pillar: "Never lose track of a dose",
     title: (
       <>
-        Never lose track of <span className="text-teal-700 italic dark:text-teal-300">a dose</span>.
+        Never lose track of{" "}
+        <span className="text-brand-700 dark:text-brand-300 italic">a dose</span>.
       </>
     ),
     body: (
@@ -116,7 +117,10 @@ const SUBPOINTS: SubPoint[] = [
     title: (
       <>
         Tell your team{" "}
-        <span className="text-teal-700 italic dark:text-teal-300">without a trip to hospital</span>.
+        <span className="text-brand-700 dark:text-brand-300 italic">
+          without a trip to hospital
+        </span>
+        .
       </>
     ),
     body: (
@@ -146,7 +150,7 @@ const SUBPOINTS: SubPoint[] = [
     title: (
       <>
         You&rsquo;re never logging{" "}
-        <span className="text-teal-700 italic dark:text-teal-300">into silence</span>.
+        <span className="text-brand-700 dark:text-brand-300 italic">into silence</span>.
       </>
     ),
     body: (
@@ -182,7 +186,7 @@ export function PatientChapter() {
         {/* Chapter header — same archetype as §07, §09a, §10a, §12a */}
         <RevealOnScroll className="mb-12 flex flex-col gap-4">
           <span className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
-            <span className="pulse-dot size-1 rounded-full bg-teal-500" />/ for patients
+            <span className="pulse-dot bg-brand-500 size-1 rounded-full" />/ for patients
           </span>
           <h2
             id="patient-chapter-headline"
@@ -190,9 +194,9 @@ export function PatientChapter() {
             style={{ fontWeight: 400 }}
           >
             Your health,{" "}
-            <span className="text-teal-700 italic dark:text-teal-300">in your hands</span>.
+            <span className="text-brand-700 dark:text-brand-300 italic">in your hands</span>.
           </h2>
-          <p className="text-muted-foreground max-w-[64ch] text-[15px] leading-[1.55] sm:text-[17px]">
+          <p className="text-muted-foreground text-body-m sm:text-body-l max-w-[64ch] leading-[1.55]">
             The closed loop only closes if the patient is in it. From Amina&rsquo;s side, that means
             a one-tap reading, dose reminders that reach the phone in her pocket, and a calm channel
             to tell her team when something feels off &mdash; without trekking into hospital.
@@ -224,8 +228,8 @@ function SubPointRow({ subpoint, reversed }: { subpoint: SubPoint; reversed: boo
         <div className="flex items-center gap-3">
           <span
             className={cn(
-              "tabular inline-flex size-7 items-center justify-center rounded-md font-mono text-[11px]",
-              "bg-teal-100 text-teal-800 dark:bg-teal-50/15 dark:text-teal-200",
+              "tabular text-caption inline-flex size-7 items-center justify-center rounded-md font-mono",
+              "bg-brand-100 text-brand-800 dark:bg-brand-50/15 dark:text-brand-200",
             )}
           >
             {subpoint.number}
@@ -291,8 +295,8 @@ function CareTeamReplyCard() {
         <span
           className={cn(
             "inline-flex size-9 items-center justify-center rounded-full",
-            "bg-teal-100 text-teal-800 dark:bg-teal-50/15 dark:text-teal-200",
-            "font-mono text-[11px] font-medium",
+            "bg-brand-100 text-brand-800 dark:bg-brand-50/15 dark:text-brand-200",
+            "text-caption font-mono font-medium",
           )}
         >
           MO
@@ -319,8 +323,8 @@ function CareTeamReplyCard() {
         <span
           className={cn(
             "inline-flex items-center gap-1.5 rounded-md px-2 py-1",
-            "border border-teal-200 bg-teal-50/60 text-[10.5px] text-teal-900",
-            "dark:border-teal-700 dark:bg-teal-50/10 dark:text-teal-100",
+            "border-brand-200 bg-brand-50/60 text-brand-900 border text-[10.5px]",
+            "dark:border-brand-700 dark:bg-brand-50/10 dark:text-brand-100",
           )}
         >
           <ClockIcon className="size-3" strokeWidth={1.75} />

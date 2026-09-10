@@ -75,10 +75,11 @@ export function RadioCards({
             className={cn(
               "border-input bg-card text-foreground relative flex cursor-pointer gap-3 rounded-md border p-3.5",
               "ease-expo-out transition-all duration-150 select-none",
-              "hover:border-teal-300 hover:bg-teal-50/40 dark:hover:bg-teal-50/10",
-              "focus-within:border-teal-500 focus-within:shadow-[0_0_0_2px_rgba(20,184,166,0.15)]",
-              "dark:focus-within:border-teal-400 dark:focus-within:shadow-[0_0_0_2px_rgba(45,212,191,0.2)]",
-              isSelected && "border-teal-500 bg-teal-50/60 dark:border-teal-400 dark:bg-teal-50/15",
+              "hover:border-brand-300 hover:bg-brand-50/40 dark:hover:bg-brand-50/10",
+              "focus-within:border-brand-500 focus-within:shadow-[0_0_0_2px_rgba(20,184,166,0.15)]",
+              "dark:focus-within:border-brand-400 dark:focus-within:shadow-[0_0_0_2px_rgba(45,212,191,0.2)]",
+              isSelected &&
+                "border-brand-500 bg-brand-50/60 dark:border-brand-400 dark:bg-brand-50/15",
               invalid && !isSelected && "border-destructive bg-alert-bg",
               isDisabled && "pointer-events-none cursor-not-allowed opacity-50",
             )}
@@ -100,7 +101,7 @@ export function RadioCards({
                 className={cn(
                   "mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md",
                   isSelected
-                    ? "bg-teal-500 text-white dark:bg-teal-400 dark:text-gray-900"
+                    ? "bg-brand-500 dark:bg-brand-400 text-white dark:text-gray-900"
                     : "bg-muted text-muted-foreground",
                 )}
               >
@@ -127,7 +128,7 @@ export function RadioCards({
               className={cn(
                 "mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full border",
                 isSelected
-                  ? "border-teal-500 bg-teal-500 text-white dark:border-teal-400 dark:bg-teal-400 dark:text-gray-900"
+                  ? "border-brand-500 bg-brand-500 dark:border-brand-400 dark:bg-brand-400 text-white dark:text-gray-900"
                   : "border-border bg-card",
               )}
             >

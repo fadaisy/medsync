@@ -65,12 +65,12 @@ export function IncomingIntakesPanel({
       {triageHref ? (
         <Link
           href={triageHref}
-          className="inline-flex w-fit items-center gap-1.5 rounded-md bg-teal-600 px-3 py-1.5 text-[12px] font-medium text-white shadow-xs transition-colors hover:bg-teal-700"
+          className="bg-brand-600 hover:bg-brand-700 inline-flex w-fit items-center gap-1.5 rounded-md px-3 py-1.5 text-[12px] font-medium text-white shadow-xs transition-colors"
         >
           Open triage worklist →
         </Link>
       ) : (
-        <p className="text-muted-foreground/80 text-[11px] leading-relaxed">
+        <p className="text-muted-foreground/80 text-caption leading-relaxed">
           These arrivals are assessed on the triage worklist; clinical staff assign each an acuity
           there.
         </p>
@@ -84,7 +84,7 @@ const ACUITY_CHIP: Record<number, { label: string; cls: string }> = {
   1: { label: "L1 RED", cls: "bg-rose-600 text-white" },
   2: { label: "L2 ORANGE", cls: "bg-orange-500 text-white" },
   3: { label: "L3 YELLOW", cls: "bg-amber-400 text-amber-950" },
-  4: { label: "L4 GREEN", cls: "bg-teal-600 text-white" },
+  4: { label: "L4 GREEN", cls: "bg-brand-600 text-white" },
   5: { label: "L5 BLUE", cls: "bg-slate-400 text-white" },
 };
 
@@ -128,7 +128,7 @@ function IntakeRowItem({ row }: { row: IntakeRow }) {
           ) : null}
           {isDeclared ? (
             <span
-              className="inline-flex items-center gap-0.5 rounded-full bg-teal-50 px-1.5 py-0.5 font-mono text-[9px] font-medium text-teal-700 ring-1 ring-teal-200/60 dark:bg-teal-950/30 dark:text-teal-300 dark:ring-teal-800/40"
+              className="bg-brand-50 text-brand-700 ring-brand-200/60 dark:bg-brand-950/30 dark:text-brand-300 dark:ring-brand-800/40 inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 font-mono text-[9px] font-medium ring-1"
               title="Patient said they're coming today — not checked in yet"
             >
               <ClockIcon className="size-2.5" aria-hidden />

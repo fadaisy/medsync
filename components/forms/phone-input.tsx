@@ -99,8 +99,8 @@ export function PhoneInput({
         className={cn(
           "border-input bg-card text-foreground flex w-full items-stretch overflow-hidden rounded-sm border",
           "ease-expo-out transition-all duration-150",
-          "focus-within:border-teal-500 focus-within:shadow-[0_0_0_2px_rgba(20,184,166,0.15)]",
-          "dark:focus-within:border-teal-400 dark:focus-within:shadow-[0_0_0_2px_rgba(45,212,191,0.2)]",
+          "focus-within:border-brand-500 focus-within:shadow-[0_0_0_2px_rgba(20,184,166,0.15)]",
+          "dark:focus-within:border-brand-400 dark:focus-within:shadow-[0_0_0_2px_rgba(45,212,191,0.2)]",
           invalid &&
             "border-destructive bg-alert-bg shadow-[0_0_0_2px_rgba(220,38,38,0.1)] dark:shadow-[0_0_0_2px_rgba(252,165,165,0.1)]",
           disabled && "bg-muted pointer-events-none cursor-not-allowed opacity-50",
@@ -108,7 +108,7 @@ export function PhoneInput({
       >
         <span
           aria-hidden="true"
-          className="bg-muted text-muted-foreground border-border flex shrink-0 items-center justify-center border-r px-2.5 font-mono text-[13px]"
+          className="bg-muted text-muted-foreground border-border text-body-s flex shrink-0 items-center justify-center border-r px-2.5 font-mono"
         >
           {COUNTRY}
         </span>
@@ -124,7 +124,7 @@ export function PhoneInput({
           aria-required={required || undefined}
           onChange={(e) => setSubscriber(toSubscriber(e.target.value))}
           className={cn(
-            "min-w-0 flex-1 bg-transparent px-2.5 py-2 text-[13px] tracking-[0.02em] outline-none",
+            "text-body-s min-w-0 flex-1 bg-transparent px-2.5 py-2 tracking-[0.02em] outline-none",
             "placeholder:text-gray-400 dark:placeholder:text-gray-400",
           )}
         />

@@ -74,21 +74,21 @@ export function Vision() {
       <div className="mx-auto w-full max-w-300 px-5 py-20 sm:px-8 sm:py-28">
         <RevealOnScroll className="mb-10 flex flex-col gap-4">
           <span className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
-            <span className="pulse-dot size-1 rounded-full bg-teal-500" />
+            <span className="pulse-dot bg-brand-500 size-1 rounded-full" />
             Where we&rsquo;re heading
           </span>
           <h2
             id="vision-headline"
-            className="font-display text-foreground max-w-[24ch] text-[30px] leading-[1.1] tracking-[-0.025em] text-balance sm:text-[44px]"
+            className="font-display text-foreground sm:text-display-m max-w-[24ch] text-[30px] leading-[1.1] tracking-[-0.025em] text-balance"
             style={{ fontWeight: 400 }}
           >
             Three horizons.{" "}
-            <span className="text-teal-700 italic dark:text-teal-300">
+            <span className="text-brand-700 dark:text-brand-300 italic">
               No dates we can&rsquo;t keep
             </span>
             .
           </h2>
-          <p className="text-muted-foreground max-w-[68ch] text-[15px] leading-[1.55] sm:text-[17px]">
+          <p className="text-muted-foreground text-body-m sm:text-body-l max-w-[68ch] leading-[1.55]">
             A roadmap is the easiest section on a healthcare landing page to over-promise. We named
             what is built today, what we&rsquo;re actively building, and what is genuinely research
             &mdash; not a product line.
@@ -124,7 +124,7 @@ function HorizonCard({ horizon, index }: { horizon: Horizon; index: number }) {
               "inline-flex size-9 items-center justify-center rounded-md",
               index === 2
                 ? "bg-status-caution-bg text-status-caution-fg"
-                : "bg-teal-50 text-teal-700 dark:bg-teal-50/15 dark:text-teal-200",
+                : "bg-brand-50 text-brand-700 dark:bg-brand-50/15 dark:text-brand-200",
             )}
           >
             <horizon.Icon className="size-4" strokeWidth={1.75} />
@@ -137,7 +137,7 @@ function HorizonCard({ horizon, index }: { horizon: Horizon; index: number }) {
       </div>
 
       <h3
-        className="font-display text-foreground text-[19px] leading-[1.2] tracking-[-0.018em] text-balance sm:text-[22px]"
+        className="font-display text-foreground sm:text-heading-m text-[19px] leading-[1.2] tracking-[-0.018em] text-balance"
         style={{ fontWeight: 400 }}
       >
         {horizon.label}
@@ -150,7 +150,7 @@ function HorizonCard({ horizon, index }: { horizon: Horizon; index: number }) {
             <span
               className={cn(
                 "mt-1.5 size-1 shrink-0 rounded-full",
-                index === 2 ? "bg-status-caution-fg/70" : "bg-teal-500",
+                index === 2 ? "bg-status-caution-fg/70" : "bg-brand-500",
               )}
             />
             <span className="text-foreground/85">{item}</span>
@@ -159,7 +159,7 @@ function HorizonCard({ horizon, index }: { horizon: Horizon; index: number }) {
       </ul>
 
       {horizon.badge ? (
-        <p className="border-status-caution-bg bg-status-caution-bg/40 text-status-caution-fg mt-auto rounded-md border px-3 py-2 text-[11px] italic">
+        <p className="border-status-caution-bg bg-status-caution-bg/40 text-status-caution-fg text-caption mt-auto rounded-md border px-3 py-2 italic">
           {horizon.badge}
         </p>
       ) : null}

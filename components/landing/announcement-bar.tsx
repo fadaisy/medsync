@@ -56,24 +56,24 @@ export function AnnouncementBar() {
       aria-label="Site announcement"
       className={cn(
         "relative w-full",
-        "bg-linear-to-r from-teal-900 via-teal-800 to-teal-900 text-teal-50",
-        "dark:from-teal-50 dark:via-teal-100 dark:to-teal-50 dark:text-teal-900",
+        "from-brand-900 via-brand-800 to-brand-900 text-brand-50 bg-linear-to-r",
+        "dark:from-brand-50 dark:via-brand-100 dark:to-brand-50 dark:text-brand-900",
       )}
     >
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-teal-400/30" />
+      <div className="bg-brand-400/30 pointer-events-none absolute inset-x-0 bottom-0 h-px" />
 
       <div className="mx-auto flex w-full max-w-300 items-center justify-center gap-3 px-4 py-2 sm:px-8">
-        <span className="font-mono text-[10px] tracking-[0.18em] text-teal-300/80 uppercase dark:text-teal-700">
+        <span className="text-brand-300/80 dark:text-brand-700 font-mono text-[10px] tracking-[0.18em] uppercase">
           Hospital pilots
         </span>
-        <span className="hidden h-3 w-px bg-teal-400/30 sm:block" />
-        <p className="text-[12.5px] leading-snug sm:text-[13px]">
+        <span className="bg-brand-400/30 hidden h-3 w-px sm:block" />
+        <p className="sm:text-body-s text-[12.5px] leading-snug">
           MedSync is open to founding hospital partners in Uganda for 2026.{" "}
           <Link
             href="/signup/hospital"
             className={cn(
               "group inline-flex items-center gap-1 font-medium underline-offset-[3px] hover:underline",
-              "decoration-teal-400/70 dark:decoration-teal-600/70",
+              "decoration-brand-400/70 dark:decoration-brand-600/70",
             )}
           >
             Apply for a pilot

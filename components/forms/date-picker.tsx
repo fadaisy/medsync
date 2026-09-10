@@ -78,8 +78,8 @@ export function DatePicker({
       className={cn(
         "border-input bg-card text-foreground flex w-full items-stretch overflow-hidden rounded-sm border",
         "ease-expo-out transition-all duration-150",
-        "focus-within:border-teal-500 focus-within:shadow-[0_0_0_2px_rgba(20,184,166,0.15)]",
-        "dark:focus-within:border-teal-400 dark:focus-within:shadow-[0_0_0_2px_rgba(45,212,191,0.2)]",
+        "focus-within:border-brand-500 focus-within:shadow-[0_0_0_2px_rgba(20,184,166,0.15)]",
+        "dark:focus-within:border-brand-400 dark:focus-within:shadow-[0_0_0_2px_rgba(45,212,191,0.2)]",
         invalid &&
           "border-destructive bg-alert-bg shadow-[0_0_0_2px_rgba(220,38,38,0.1)] dark:shadow-[0_0_0_2px_rgba(252,165,165,0.1)]",
         disabled && "bg-muted pointer-events-none cursor-not-allowed opacity-50",
@@ -104,7 +104,7 @@ export function DatePicker({
         aria-invalid={invalid || undefined}
         onChange={(e) => setValue(e.target.value)}
         className={cn(
-          "min-w-0 flex-1 bg-transparent px-2.5 py-2 text-[13px] tabular-nums outline-none",
+          "text-body-s min-w-0 flex-1 bg-transparent px-2.5 py-2 tabular-nums outline-none",
           "placeholder:text-gray-400 dark:placeholder:text-gray-400",
           // The native ::-webkit-calendar-picker-indicator is hidden because
           // we provide our own affordance (the calendar icon to the left).

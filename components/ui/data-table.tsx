@@ -222,7 +222,7 @@ export function DataTable<TRow>({
               <tr>
                 <td
                   colSpan={columns.length}
-                  className="text-muted-foreground px-4 py-16 text-center text-[13px] sm:px-6"
+                  className="text-muted-foreground text-body-s px-4 py-16 text-center sm:px-6"
                 >
                   {empty ?? "Nothing to show."}
                 </td>
@@ -242,8 +242,8 @@ export function DataTable<TRow>({
                     className={cn(
                       "border-border border-b transition-colors outline-none",
                       "hover:bg-muted/60 focus-visible:bg-muted/80",
-                      "focus-visible:ring-2 focus-visible:ring-teal-500/40 focus-visible:ring-inset",
-                      isSelected && "bg-teal-50/60 dark:bg-teal-950/30",
+                      "focus-visible:ring-brand-500/40 focus-visible:ring-2 focus-visible:ring-inset",
+                      isSelected && "bg-brand-50/60 dark:bg-brand-950/30",
                       onRowSelect && "cursor-pointer",
                     )}
                   >
@@ -251,7 +251,7 @@ export function DataTable<TRow>({
                       <td
                         key={col.id}
                         className={cn(
-                          "text-foreground px-4 py-2.5 align-middle text-[13px] sm:px-6",
+                          "text-foreground text-body-s px-4 py-2.5 align-middle sm:px-6",
                           col.mono && "font-mono tabular-nums",
                           col.hideOnNarrow && "hidden md:table-cell",
                           col.className,
@@ -285,16 +285,19 @@ export type PillTone =
   | "pending"
   | "sensitive";
 
+// The six clinical statuses resolve to the design-system status tokens, so a Pill
+// and a ClinicalBadge render the same status identically. The tokens are defined
+// in both :root and .dark (app/globals.css), so they flip on their own — no dark:
+// variants here, and none wanted: a hand-written override would drift again.
 const PILL_TONES: Record<PillTone, string> = {
-  neutral: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-200",
-  stable: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-200",
-  caution: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-200",
-  critical: "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-200",
-  admitted: "bg-teal-100 text-teal-800 dark:bg-teal-900/40 dark:text-teal-200",
-  discharged: "bg-violet-100 text-violet-700 dark:bg-violet-900/40 dark:text-violet-200",
-  pending: "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300",
-  sensitive:
-    "bg-amber-50 text-amber-700 ring-1 ring-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:ring-amber-800/40",
+  neutral: "bg-gray-100 text-gray-700",
+  stable: "bg-status-stable-bg text-status-stable-fg",
+  caution: "bg-status-caution-bg text-status-caution-fg",
+  critical: "bg-status-critical-bg text-status-critical-fg",
+  admitted: "bg-status-admitted-bg text-status-admitted-fg",
+  discharged: "bg-status-discharged-bg text-status-discharged-fg",
+  pending: "bg-status-pending-bg text-status-pending-fg",
+  sensitive: "bg-status-caution-bg text-status-caution-fg ring-status-caution-fg/25 ring-1",
 };
 
 export interface PillProps {
@@ -307,7 +310,7 @@ export function Pill({ tone = "neutral", children, className }: PillProps) {
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded px-2 py-0.5 text-[11px] font-medium",
+        "text-caption inline-flex items-center rounded px-2 py-0.5 font-medium",
         PILL_TONES[tone],
         className,
       )}
@@ -357,7 +360,7 @@ export function DataTableToolbar({ count, children }: DataTableToolbarProps) {
     <div className="flex items-center justify-between gap-3">
       <div className="flex flex-1 items-center gap-2 overflow-x-auto">{children}</div>
       {typeof count === "number" ? (
-        <span className="text-muted-foreground shrink-0 font-mono text-[11px] tabular-nums">
+        <span className="text-muted-foreground text-caption shrink-0 font-mono tabular-nums">
           {count} {count === 1 ? "row" : "rows"}
         </span>
       ) : null}
@@ -384,9 +387,9 @@ export function FilterChip({ active, onClick, children, count }: FilterChipProps
       aria-pressed={active}
       className={cn(
         "inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-[12px] transition-colors outline-none",
-        "focus-visible:ring-2 focus-visible:ring-teal-500/40",
+        "focus-visible:ring-brand-500/40 focus-visible:ring-2",
         active
-          ? "bg-teal-50 text-teal-700 ring-1 ring-teal-200 dark:bg-teal-950/40 dark:text-teal-300 dark:ring-teal-800/40"
+          ? "bg-brand-50 text-brand-700 ring-brand-200 dark:bg-brand-950/40 dark:text-brand-300 dark:ring-brand-800/40 ring-1"
           : "bg-background text-muted-foreground hover:text-foreground hover:bg-muted ring-border ring-1",
       )}
     >
@@ -395,7 +398,7 @@ export function FilterChip({ active, onClick, children, count }: FilterChipProps
         <span
           className={cn(
             "font-mono text-[10px] tabular-nums",
-            active ? "text-teal-700/80 dark:text-teal-300/80" : "text-muted-foreground",
+            active ? "text-brand-700/80 dark:text-brand-300/80" : "text-muted-foreground",
           )}
         >
           {count}

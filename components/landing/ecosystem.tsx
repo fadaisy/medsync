@@ -113,21 +113,21 @@ export function Ecosystem() {
         {/* Section header */}
         <RevealOnScroll className="mb-10 flex flex-col gap-4">
           <span className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
-            <span className="pulse-dot size-1 rounded-full bg-teal-500" />
+            <span className="pulse-dot bg-brand-500 size-1 rounded-full" />
             The Uganda care ecosystem
           </span>
           <h2
             id="ecosystem-headline"
-            className="font-display text-foreground max-w-[24ch] text-[30px] leading-[1.1] tracking-[-0.025em] text-balance sm:text-[44px]"
+            className="font-display text-foreground sm:text-display-m max-w-[24ch] text-[30px] leading-[1.1] tracking-[-0.025em] text-balance"
             style={{ fontWeight: 400 }}
           >
             MedSync plugs into the rails{" "}
-            <span className="text-teal-700 italic dark:text-teal-300">
+            <span className="text-brand-700 dark:text-brand-300 italic">
               the country already runs on
             </span>
             .
           </h2>
-          <p className="text-muted-foreground max-w-[68ch] text-[15px] leading-[1.55] sm:text-[17px]">
+          <p className="text-muted-foreground text-body-m sm:text-body-l max-w-[68ch] leading-[1.55]">
             The Attio version of this section is a wall of logos. Ours is a list of names. These are
             the public Ugandan systems MedSync is designed to integrate with &mdash; not
             endorsements, and not all live yet. We&rsquo;ll mark each one &ldquo;connected&rdquo;
@@ -175,10 +175,10 @@ function CategoryCard({ cat }: { cat: EcoCategory }) {
   return (
     <div className="border-border bg-card card-lift flex h-full flex-col gap-3 rounded-lg border p-4">
       <div className="flex items-center gap-2">
-        <span className="inline-flex size-7 items-center justify-center rounded-md bg-teal-50 text-teal-700 dark:bg-teal-50/15 dark:text-teal-200">
+        <span className="bg-brand-50 text-brand-700 dark:bg-brand-50/15 dark:text-brand-200 inline-flex size-7 items-center justify-center rounded-md">
           <cat.Icon className="size-3.5" strokeWidth={1.75} />
         </span>
-        <span className="text-foreground text-[13px] font-medium">{cat.label}</span>
+        <span className="text-foreground text-body-s font-medium">{cat.label}</span>
       </div>
       <ul className="flex flex-col gap-1">
         {cat.items.map((item) => (
@@ -186,13 +186,13 @@ function CategoryCard({ cat }: { cat: EcoCategory }) {
             <span className="text-muted-foreground/40 mt-1 size-1 shrink-0 rounded-full bg-current" />
             <div className="flex min-w-0 flex-1 flex-col">
               <span className="text-foreground text-[12.5px]">{item.name}</span>
-              <span className="text-muted-foreground text-[11px]">{item.detail}</span>
+              <span className="text-muted-foreground text-caption">{item.detail}</span>
             </div>
           </li>
         ))}
       </ul>
       {cat.note ? (
-        <p className="text-muted-foreground/80 border-border mt-auto border-t pt-2 text-[11px] italic">
+        <p className="text-muted-foreground/80 border-border text-caption mt-auto border-t pt-2 italic">
           {cat.note}
         </p>
       ) : null}

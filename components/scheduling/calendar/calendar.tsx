@@ -135,7 +135,7 @@ export function MedSyncCalendar({
           >
             <ChevronRightIcon className="size-4" />
           </Button>
-          <h2 className="font-display text-foreground ml-1 text-[15px] font-medium tracking-[-0.005em]">
+          <h2 className="font-display text-foreground text-body-m ml-1 font-medium tracking-[-0.005em]">
             {headerLabel}
           </h2>
         </div>

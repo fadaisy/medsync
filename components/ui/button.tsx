@@ -23,8 +23,12 @@ const buttonVariants = cva(
           "bg-secondary text-secondary-foreground border border-gray-200 dark:border-gray-300 hover:bg-muted hover:border-gray-300 active:bg-gray-150",
         ghost:
           "bg-transparent text-muted-foreground hover:bg-muted hover:text-foreground active:bg-gray-150",
-        tealSoft:
-          "bg-accent text-accent-foreground border border-teal-100 hover:bg-teal-100/70 hover:border-teal-200 dark:hover:bg-teal-100/40",
+        brandSoft:
+          "bg-accent text-accent-foreground border border-brand-100 hover:bg-brand-100/70 hover:border-brand-200 dark:hover:bg-brand-100/40",
+        // The reference palette's signature call to action: mint fill carrying
+        // deep-indigo text, rather than a filled brand button. Both scales flip
+        // in dark mode, so the pairing holds without a dark: override.
+        mint: "bg-mint-300 text-brand-900 hover:bg-mint-200 active:bg-mint-400 dark:bg-mint-700 dark:text-brand-100 dark:hover:bg-mint-800",
         emergency: [
           "bg-destructive text-white",
           "hover:bg-red-700 active:bg-red-800",
@@ -36,9 +40,9 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline px-0",
       },
       size: {
-        sm: "px-2.5 py-[5px] text-[11px] rounded-sm gap-1.5 [&_svg:not([class*='size-'])]:size-3",
-        md: "px-[18px] py-2 text-[13px] rounded-md",
-        lg: "px-6 py-[11px] text-[15px] rounded-md",
+        sm: "px-2.5 py-[5px] text-caption rounded-sm gap-1.5 [&_svg:not([class*='size-'])]:size-3",
+        md: "px-[18px] py-2 text-body-s rounded-md",
+        lg: "px-6 py-[11px] text-body-m rounded-md",
         iconSm: "size-7 rounded-sm [&_svg:not([class*='size-'])]:size-3.5",
         icon: "size-9 rounded-md",
         iconLg: "size-11 rounded-md [&_svg:not([class*='size-'])]:size-5",

@@ -132,7 +132,7 @@ export function MultiStepForm({
                 id={`${s.key}-heading`}
                 ref={isActive ? stepHeadingRef : undefined}
                 tabIndex={-1}
-                className="font-display text-foreground text-[22px] leading-tight tracking-[-0.015em] outline-none sm:text-[26px]"
+                className="font-display text-foreground text-heading-m leading-tight tracking-[-0.015em] outline-none sm:text-[26px]"
                 style={{ fontWeight: 400 }}
               >
                 {s.heading}
@@ -195,7 +195,7 @@ function ProgressRail({
     <div className="flex flex-col gap-2">
       {flowLabel ? (
         <span className="text-muted-foreground inline-flex items-center gap-2 font-mono text-[10px] tracking-[0.18em] uppercase">
-          <span className="size-1 rounded-full bg-teal-500" />
+          <span className="bg-brand-500 size-1 rounded-full" />
           {flowLabel}
           <span aria-hidden="true">&middot;</span>
           <span>
@@ -217,15 +217,15 @@ function ProgressRail({
                 className={cn(
                   "block h-1 rounded-full transition-colors",
                   isDone
-                    ? "bg-teal-500 dark:bg-teal-400"
+                    ? "bg-brand-500 dark:bg-brand-400"
                     : isActive
-                      ? "bg-teal-500 dark:bg-teal-400"
+                      ? "bg-brand-500 dark:bg-brand-400"
                       : "bg-muted",
                 )}
               />
               <span
                 className={cn(
-                  "hidden text-[11px] leading-tight sm:flex sm:items-center sm:gap-1.5",
+                  "text-caption hidden leading-tight sm:flex sm:items-center sm:gap-1.5",
                   isActive
                     ? "text-foreground font-medium"
                     : isDone
@@ -235,7 +235,7 @@ function ProgressRail({
               >
                 {isDone ? (
                   <CheckIcon
-                    className="size-3 text-teal-600 dark:text-teal-400"
+                    className="text-brand-600 dark:text-brand-400 size-3"
                     strokeWidth={2.5}
                   />
                 ) : null}

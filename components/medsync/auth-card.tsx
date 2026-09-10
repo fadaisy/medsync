@@ -43,7 +43,7 @@ interface FieldErrorProps {
 
 export function FieldError({ message }: FieldErrorProps) {
   if (!message) return null;
-  return <p className="text-status-critical-fg text-[11px]">{message}</p>;
+  return <p className="text-status-critical-fg text-caption">{message}</p>;
 }
 
 interface FormErrorProps {
@@ -55,7 +55,7 @@ export function FormError({ message }: FormErrorProps) {
   return (
     <div
       role="alert"
-      className="bg-alert-bg border-alert-border text-alert-fg rounded-sm border px-3 py-2 text-[13px]"
+      className="bg-alert-bg border-alert-border text-alert-fg text-body-s rounded-sm border px-3 py-2"
     >
       {message}
     </div>
