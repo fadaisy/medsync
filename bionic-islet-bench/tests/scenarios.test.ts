@@ -64,7 +64,22 @@ describe("fault injections each do what their tooltip says", () => {
     const beforeA = engine.state.readingA.glucose ?? 0;
     engine.apply({ kind: "paracetamol" });
     settle(engine, 3600);
-    expect((engine.state.readingB.glucose ?? 0) - (engine.state.readingA.glucose ?? 0)).toBeGreaterThan(2);
+    const lift = (engine.state.readingB.glucose ?? 0) - (engine.state.readingA.glucose ?? 0);
+    // eslint-disable-next-line no-console
+    console.log(`  one gram of paracetamol lifts tip B above tip A by ${lift.toFixed(2)} mmol/L`);
+
+    // The direction and the asymmetry are the claim, and both hold: the
+    // platinum oxidises paracetamol alongside the peroxide and the optical
+    // tip has no idea it is there.
+    //
+    // The size is much smaller than the placeholder front end's. A gram of
+    // paracetamol reaches the electrode through the same six films as
+    // everything else and adds about eight per cent of the signal, not
+    // sixty four. That is under the supervisor's agreement window, which is
+    // why scenarios 3 and 4 use a four gram dose: they are arguing about
+    // evidence, and a stimulus the supervisor correctly ignores cannot carry
+    // that argument.
+    expect(lift).toBeGreaterThan(0.3);
     expect(Math.abs((engine.state.readingA.glucose ?? 0) - beforeA)).toBeLessThan(2);
   });
 
@@ -100,9 +115,22 @@ describe("fault injections each do what their tooltip says", () => {
     expect(engine.state.tipB.fouling).toBeCloseTo(fouling * 0.5, 5);
   });
 
-  it("low oxygen only bites above 12 mmol/L", () => {
-    // The claim is about the electrochemical tip specifically, so it is
-    // measured against the optical tip, which has no oxygen dependence at all.
+  it("low oxygen does not bite, because the electrode gives the oxygen back", () => {
+    // This test used to assert that low oxygen bites above 12 mmol/L, which is
+    // what the placeholder front end did: it had a threshold and a saturation
+    // tension, and above the threshold it scaled the signal down.
+    //
+    // The physics says otherwise, and the reason is worth stating. Oxidising
+    // peroxide at the platinum returns one oxygen for every one the enzyme
+    // spent, and with these membranes 99.97 per cent of the peroxide gets
+    // there. The probe recycles almost all of its own oxygen, so starving the
+    // fluid does very little.
+    //
+    // That result hangs on one engineering estimate, the peroxide permeability
+    // of the outer membrane, which is what decides how much escapes outward
+    // instead. The Probe Lab's second experiment turns the recycling off so
+    // the size of the effect can be seen: the same probe at 2 mmHg then loses
+    // half its current and is fully oxygen limited.
     const gap = (lowOxygen: boolean, grams: number) => {
       const engine = new SimEngine({ seed: 611 });
       engine.run(1800);
@@ -123,19 +151,22 @@ describe("fault injections each do what their tooltip says", () => {
       return { worst, atGlucose };
     };
 
-    // At an ordinary glucose the enzyme has all the oxygen it needs.
-    const ordinary = gap(true, 20);
-    expect(ordinary.worst).toBeLessThan(0.8);
-
-    // Push glucose past 12 mmol/L and the same fault bites.
     const high = gap(true, 140);
     const control = gap(false, 140);
+    // eslint-disable-next-line no-console
+    console.log(
+      `  at ${high.atGlucose.toFixed(1)} mmol/L the optical tip leads the electrochemical one by ` +
+        `${high.worst.toFixed(2)} mmol/L on low oxygen and ${control.worst.toFixed(2)} on normal: ` +
+        `a difference of ${(high.worst - control.worst).toFixed(2)}`,
+    );
+
     expect(high.atGlucose).toBeGreaterThan(12);
-    expect(high.worst).toBeGreaterThan(ordinary.worst);
-    expect(high.worst).toBeGreaterThan(control.worst + 0.5);
+    // Low oxygen must not open a gap. Whatever separates the two tips at high
+    // glucose is their different response times, and it is there either way.
+    expect(Math.abs(high.worst - control.worst)).toBeLessThan(0.5);
   });
 
-  it("a battery low slows acquisition and widens the band", () => {
+  it("a battery low slows acquisition, and the band does not notice", () => {
     const engine = new SimEngine({ seed: 612 });
     engine.run(3600);
     const before = engine.state.readingA.uncertainty;
@@ -143,8 +174,29 @@ describe("fault injections each do what their tooltip says", () => {
     engine.apply({ kind: "battery-low" });
     engine.run(3600);
     const producedWhileLow = engine.samplesProduced - samplesBefore;
+    const after = engine.state.readingA.uncertainty;
+    // eslint-disable-next-line no-console
+    console.log(
+      `  ${producedWhileLow} acquisitions in the hour after the battery warning; ` +
+        `optical band ${before.toFixed(3)} to ${after.toFixed(3)} mmol/L`,
+    );
+
+    // The acquisition rate really does fall, which is the fault's whole point.
     expect(producedWhileLow).toBeLessThan(20);
-    expect(engine.state.readingA.uncertainty).toBeGreaterThan(before);
+
+    // The band does not widen, and this test used to assert that it did. It
+    // passed for the wrong reason: the term that grew was days since
+    // calibration, which grows whether or not the battery is low, and on the
+    // placeholder front end it dominated.
+    //
+    // On the physics front end the optical band is counting statistics on a
+    // flash whose energy has not changed, so a slower flash rate does not
+    // widen it. That is correct as far as it goes and it is also a gap: a
+    // reading five times staler is worth less to a controller dosing on it,
+    // and neither front end models the cost of that staleness. DECISIONS.md
+    // records it rather than leaving a test asserting something the model
+    // does not do.
+    expect(after).toBeCloseTo(before, 2);
   });
 
   it("a thermistor failure widens both bands without killing either channel", () => {

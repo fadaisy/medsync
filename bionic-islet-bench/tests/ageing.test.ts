@@ -104,10 +104,37 @@ describe("ageing at one year", () => {
     expect(tauCap + PHYSIOLOGY.tauPeritonealMin).toBeLessThan(PHYSIOLOGY.tauSubcutaneousMin);
   });
 
-  it("enzyme activity and reference drift have moved as modelled", () => {
+  it("has lost most of its enzyme and almost none of its sensitivity", () => {
     const s = year.engine.state;
-    expect(s.enzymeActivity).toBeCloseTo(Math.exp(-365 / AGEING.enzymeTauDays), 2);
-    expect(s.referenceDriftMv).toBeCloseTo(365 * AGEING.chlorideDriftMvPerDay, 1);
+    const placeholderEnzyme = Math.exp(-365 / AGEING.enzymeTauDays) * 100;
+    // eslint-disable-next-line no-console
+    console.log(
+      `  enzyme at day 365: ${(s.enzymeActivity * 100).toFixed(1)} percent, against ` +
+        `${placeholderEnzyme.toFixed(0)} from the placeholder front end's decay constant; ` +
+        `reference drift ${s.referenceDriftMv.toFixed(1)} mV, against ` +
+        `${(365 * AGEING.chlorideDriftMvPerDay).toFixed(0)} from its linear one; ` +
+        `time in range over the year ${year.board.timeInRangePct.toFixed(1)} percent`,
+    );
+
+    // This used to assert the placeholder's two curves. Both are gone.
+    //
+    // The enzyme now falls at the rate its own peroxide sets, slice by slice,
+    // and a year of ordinary meals leaves under a tenth of it. The reference
+    // drifts by the Nernst equation as its silver chloride is spent at the
+    // signal current, and at a fraction of a nanoampere a year barely touches
+    // a reservoir sized for two.
+    expect(s.enzymeActivity).toBeGreaterThan(0.03);
+    expect(s.enzymeActivity).toBeLessThan(0.20);
+    expect(s.referenceDriftMv).toBeGreaterThan(0);
+    expect(s.referenceDriftMv).toBeLessThan(30);
+
+    // And this is the claim worth making, which the placeholder could not have
+    // made because its sensitivity was proportional to its enzyme: nine tenths
+    // of the enzyme is gone and the loop is still in range, because the
+    // response is limited by the outer membrane and not by the enzyme. Ageing
+    // arrives as a knee rather than a fade, which is why a probe like this
+    // holds its calibration and then fails.
+    expect(year.board.timeInRangePct).toBeGreaterThan(80);
   });
 
   it("the dexamethasone collar leaves a measurably thinner capsule", () => {
