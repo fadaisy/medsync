@@ -24,7 +24,15 @@ const eslintConfig = defineConfig([
       eqeqeq: ["error", "smart"],
     },
   },
-  globalIgnores([".next/**", "out/**", "build/**", "node_modules/**", "next-env.d.ts"]),
+  globalIgnores([
+    ".next/**",
+    "out/**",
+    "build/**",
+    "node_modules/**",
+    "next-env.d.ts",
+    // Self-contained Vite subproject with its own toolchain.
+    "bionic-islet-bench/**",
+  ]),
 ]);
 
 export default eslintConfig;
