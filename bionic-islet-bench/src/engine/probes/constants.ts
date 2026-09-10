@@ -573,7 +573,13 @@ export const PARTITION_TABLE = {
   oxygenInnerMembrane: k("K_O2,inner", fraction(0.8), "-", ESTIMATE, "Oxygen is, as usual."),
   peroxideCapsule: k("K_H2O2,capsule", fraction(0.85), "-", ESTIMATE, "As water, near enough."),
   peroxideFouling: k("K_H2O2,foul", fraction(0.6), "-", ESTIMATE, "Protein takes up rather less."),
-  interferentFouling: k("K_I,foul", fraction(0.5), "-", ESTIMATE, "As glucose through the same film."),
+  interferentFouling: k(
+    "K_I,foul",
+    fraction(0.5),
+    "-",
+    ESTIMATE,
+    "As glucose through the same film.",
+  ),
   interferentOuterMembrane: k(
     "K_I,outer",
     fraction(0.4),

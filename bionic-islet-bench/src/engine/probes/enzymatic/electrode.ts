@@ -36,23 +36,18 @@
  * resistance; a fractured lead is an open circuit. The bench reads one
  * frequency; the model has the whole spectrum, and the Probe Lab draws it.
  */
+import type {
+  Amperes,
+  FluxMolPerM2S,
+  Metres,
+  MolPerCubicMetre,
+  Ohms,
+  PermeabilityMPerS,
+  Volts,
+} from "../units.ts";
 
 import { ELEC, ENV, FUND, GEOM, IMP, SOLVER } from "../constants.ts";
-import {
-  A as amperes,
-  molPerM3,
-  ohm,
-  permeabilityMs,
-  raw,
-  V,
-  type Amperes,
-  type FluxMolPerM2S,
-  type Metres,
-  type MolPerCubicMetre,
-  type Ohms,
-  type PermeabilityMPerS,
-  type Volts,
-} from "../units.ts";
+import { A as amperes, molPerM3, ohm, permeabilityMs, raw, V } from "../units.ts";
 
 /**
  * Nernst potential of a silver, silver chloride reference against the
@@ -63,10 +58,7 @@ import {
  * Chloride appears on the reduced side, so the potential rises as chloride
  * falls. That is the direction the reference fails in.
  */
-export function referencePotential(
-  chloride: MolPerCubicMetre,
-  temperature: number,
-): Volts {
+export function referencePotential(chloride: MolPerCubicMetre, temperature: number): Volts {
   const activity = Math.max(raw(chloride) / raw(ELEC.standardChloride), raw(SOLVER.activityFloor));
   const thermal = (raw(FUND.gasConstant) * temperature) / raw(FUND.faraday);
   return V(raw(ELEC.referenceStandardPotential) - thermal * Math.log(activity));

@@ -46,47 +46,24 @@
  *   coefficients, not two current terms.
  */
 
+import type { Stream } from "../../rng.ts";
+import type { Boundaries, Field, Grid, LayerSpec, ReactionTerm } from "../transport.ts";
+import type { Amperes, Kelvin, Metres, MolPerCubicMetre, Ohms, Seconds, Volts } from "../units.ts";
+import type { Impedance } from "./electrode.ts";
+
 import { DIFF, ELEC, ENV, ENZ, GEOM, IMP, PART, SOLVER } from "../constants.ts";
 import { damkohler, effectivenessFactor, thieleModulus } from "../dimensionless.ts";
 import {
   buildGrid,
   concentrationAt,
   innerFlux,
+  outerFlux,
   profile,
   remapField,
   step,
   uniformField,
-  type Boundaries,
-  type Field,
-  type Grid,
-  type LayerSpec,
-  type ReactionTerm,
 } from "../transport.ts";
-import {
-  A as amperes,
-  flux as fluxOf,
-  m,
-  molPerM3,
-  raw,
-  V,
-  type Amperes,
-  type Kelvin,
-  type Metres,
-  type MolPerCubicMetre,
-  type Ohms,
-  type Seconds,
-  type Volts,
-} from "../units.ts";
-import {
-  ageEnzyme,
-  catalyticTemperatureFactor,
-  localPh,
-  lactoneHydrolysisRate,
-  mutarotationRate,
-  oxygenLimitationFraction,
-  pseudoFirstOrderRate,
-  turnoverRate,
-} from "./kinetics.ts";
+import { A as amperes, flux as fluxOf, m, molPerM3, raw, V } from "../units.ts";
 import {
   faradaicCurrent,
   peroxideSurfaceRate,
@@ -95,9 +72,17 @@ import {
   randlesImpedance,
   referenceDrift,
   silverChlorideRemaining,
-  type Impedance,
 } from "./electrode.ts";
-import type { Stream } from "../../rng.ts";
+import {
+  ageEnzyme,
+  catalyticTemperatureFactor,
+  lactoneHydrolysisRate,
+  localPh,
+  mutarotationRate,
+  oxygenLimitationFraction,
+  pseudoFirstOrderRate,
+  turnoverRate,
+} from "./kinetics.ts";
 
 const BETA = "betaGlucose";
 const ALPHA = "alphaGlucose";
@@ -608,6 +593,16 @@ export class EnzymaticProbe {
     return frequencies.map((f) => randlesImpedance(elements, 2 * Math.PI * f));
   }
 
+  /**
+   * Molar flux entering through the outer face, mol/(m2 s), positive inwards.
+   *
+   * Negative for a product on its way out. Summing it over the four species
+   * that carry the glucose skeleton is how the carbon balance is checked.
+   */
+  outerFluxOf(species: string, environment: EnzymaticEnvironment): number {
+    return outerFlux(this.grid, this.field, species, this.boundaries(environment));
+  }
+
   concentrationProfile(species: string): Float64Array {
     return profile(this.grid, this.field, species);
   }
@@ -628,9 +623,7 @@ export class EnzymaticProbe {
   enzymeSurviving(): number {
     let total = 0;
     for (const value of this.enzyme) total += value;
-    return this.enzyme.length > 0
-      ? total / (this.enzyme.length * raw(ENZ.enzymeLoading))
-      : 0;
+    return this.enzyme.length > 0 ? total / (this.enzyme.length * raw(ENZ.enzymeLoading)) : 0;
   }
 
   diagnostics(environment: EnzymaticEnvironment): EnzymaticDiagnostics {
@@ -649,11 +642,7 @@ export class EnzymaticProbe {
 
     const meanEnzyme = molPerM3(raw(ENZ.enzymeLoading) * this.enzymeSurviving());
     const rateConstant = pseudoFirstOrderRate(meanEnzyme, environment.temperature);
-    const thiele = thieleModulus(
-      GEOM.enzymeLayerThickness,
-      rateConstant,
-      DIFF.glucoseEnzymeLayer,
-    );
+    const thiele = thieleModulus(GEOM.enzymeLayerThickness, rateConstant, DIFF.glucoseEnzymeLayer);
 
     // How much of the peroxide made ends up at the electrode rather than
     // escaping outward, and how much of the oxygen the enzyme spent comes
@@ -677,8 +666,7 @@ export class EnzymaticProbe {
     return {
       betaAtEnzyme: beta,
       alphaAtEnzyme: alpha,
-      betaFractionAtEnzyme:
-        raw(beta) + raw(alpha) > 0 ? raw(beta) / (raw(beta) + raw(alpha)) : 0,
+      betaFractionAtEnzyme: raw(beta) + raw(alpha) > 0 ? raw(beta) / (raw(beta) + raw(alpha)) : 0,
       oxygenAtEnzyme: oxygen,
       peroxideAtElectrode,
       oxygenLimitation: oxygenLimitationFraction(meanEnzyme, beta, oxygen, environment.temperature),
@@ -690,9 +678,7 @@ export class EnzymaticProbe {
       thiele,
       effectiveness: effectivenessFactor(thiele),
       damkohler: damkohler(
-        raw(ENZ.kCat) *
-          catalyticTemperatureFactor(environment.temperature) *
-          raw(meanEnzyme),
+        raw(ENZ.kCat) * catalyticTemperatureFactor(environment.temperature) * raw(meanEnzyme),
         GEOM.enzymeLayerThickness,
         raw(DIFF.glucoseOuterMembrane) * raw(PART.glucoseOuterMembrane),
         GEOM.outerMembraneThickness,

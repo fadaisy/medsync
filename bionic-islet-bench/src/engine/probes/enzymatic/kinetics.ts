@@ -42,19 +42,10 @@
  * high glucose makes more peroxide and ages faster, and the outer skin of the
  * layer, where the peroxide is highest, dies first. Both of those are results.
  */
+import type { Kelvin, MolPerCubicMetre, PerSecond, RateMolPerM3S, Seconds } from "../units.ts";
 
 import { ENV, ENZ, FUND } from "../constants.ts";
-import {
-  molPerM3,
-  perSecond,
-  rate,
-  raw,
-  type Kelvin,
-  type MolPerCubicMetre,
-  type PerSecond,
-  type RateMolPerM3S,
-  type Seconds,
-} from "../units.ts";
+import { molPerM3, perSecond, rate, raw } from "../units.ts";
 
 /**
  * Arrhenius factor on the catalytic rate, 1 at body temperature.
@@ -126,7 +117,9 @@ export function mutarotationRate(
   betaGlucose: MolPerCubicMetre,
 ): RateMolPerM3S {
   const total = Math.max(raw(alphaGlucose), 0) + Math.max(raw(betaGlucose), 0);
-  return rate(raw(ENZ.mutarotation) * (raw(ENZ.betaFractionEquilibrium) * total - raw(betaGlucose)));
+  return rate(
+    raw(ENZ.mutarotation) * (raw(ENZ.betaFractionEquilibrium) * total - raw(betaGlucose)),
+  );
 }
 
 /** First-order hydrolysis rate constant of the lactone, from its half-life. */
