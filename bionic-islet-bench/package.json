@@ -18,7 +18,8 @@
     "analyse": "node --experimental-strip-types --no-warnings src/engine/analyse.ts",
     "params": "node --experimental-strip-types --no-warnings scripts/param-table.ts",
     "build:single": "vite build --config vite.config.singlefile.ts && node scripts/build-single.mjs",
-    "compare": "node --experimental-strip-types --no-warnings scripts/front-end-compare.ts"
+    "compare": "node --experimental-strip-types --no-warnings scripts/front-end-compare.ts",
+    "check:layout": "node scripts/layout-check.mjs"
   },
   "dependencies": {
     "framer-motion": "^12.40.0",

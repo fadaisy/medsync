@@ -86,6 +86,64 @@ a small `model` tag. Hover or focus it to see where the number comes from.
 
 ---
 
+## The probes, from first principles
+
+The two sensing probes are not transfer functions. They are diffusion,
+chemistry and photon counting, solved.
+
+`src/engine/probes` holds them, and nothing in it knows the bench exists.
+`MODEL-PROBES.md` is the reviewer's copy: every equation as implemented, with
+the constant behind each symbol.
+
+- **Transport.** One-dimensional finite volume through a stack of layers,
+  solved in partition-normalised concentration so an interface is an ordinary
+  face. Fully implicit, block tridiagonal Newton, adaptive substepping.
+  Checked against four analytic solutions; mass closes to 1.4e-14.
+- **The optical probe.** Competitive boronate binding with pH and van 't Hoff
+  terms, a photoinduced electron transfer switch that is three rate constants
+  competing for one excited state, and exact Poisson photon counting.
+- **The enzymatic probe.** Ping-pong bi-bi kinetics with both glucose anomers,
+  eight species across six films, peroxide that destroys the enzyme that made
+  it, a silver chloride reference that is spent at the signal current, and a
+  Randles cell.
+
+Every constant is in one file with a symbol, a unit and a provenance. Nothing
+numeric appears inline anywhere else in the directory, with one stated
+exception. 62 of the 118 constants are engineering estimates and are marked
+`est` wherever the Probe Lab shows one.
+
+**What that buys.** Things the bench used to declare, it now produces:
+
+- The response is linear from 3 to 25 mmol/L because the outer membrane
+  starves the enzyme to 25 parts per million of its Michaelis constant, not
+  because a straight line was written down.
+- The electrode returns one oxygen for every peroxide it oxidises, so the
+  probe recycles almost all of its own oxygen and oxygen limitation never
+  appears. Switch the recycling off in the Probe Lab and the same probe at
+  2 mmHg loses half its current.
+- Both dyes bleach at the same fractional rate, so the counts halve and the
+  reading does not move.
+- A year at 6 mmol/L leaves 11 per cent of the enzyme and costs 0.15 per cent
+  of the sensitivity. Ageing arrives as a knee, not a fade.
+- An infused polyol reads *high*, because the switch is the boron holding a
+  diol and it cannot tell which diol.
+
+Some of those disagree with the front end the bench shipped with, sometimes by
+a lot. `npm run compare` prints both, side by side, on four scenarios. Where
+they differ, `DECISIONS.md` says which changed and why, and the answer is
+never that a constant was adjusted to make a number come out.
+
+### The Probe Lab
+
+The **Probe Lab** button on the device stage swaps the running implant for the
+same two probe models run on conditions you set: profiles through the stack,
+the isotherm and the switch, the photon budget, the enzyme through its own
+layer, the current broken down by what produced it, and the whole impedance
+spectrum with the point the bench reads marked on it.
+
+Six preset experiments, each stating its claim before you run it. All six are
+asserted in the test suite, so a card that stops being true fails a test.
+
 ## Changing the model
 
 Every parameter is in one file, `src/engine/params.ts`, grouped by subsystem
@@ -196,11 +254,20 @@ Production build, `npm run build`:
 
 | Asset | Raw | Gzipped | Loaded |
 | --- | --- | --- | --- |
-| `index-*.js` | 232 kB | **72.2 kB** | on first paint |
-| `motion-*.js` | 88 kB | **31.1 kB** | on first paint |
-| `index-*.css` | 24 kB | 5.6 kB | on first paint |
-| `sim.worker-*.js` | 42 kB | 14 kB | alongside, in the worker |
-| **First-load JavaScript** | | **103.3 kB gzipped** | budget 300 kB |
+| `index-*.js` | 313 kB | **98.3 kB** | on first paint |
+| `motion-*.js` | 88 kB | **30.8 kB** | on first paint |
+| `index-*.css` | 25 kB | 5.9 kB | on first paint |
+| `sim.worker-*.js` | 104 kB | 33.5 kB | alongside, in the worker |
+| **First-load JavaScript** | | **129.1 kB gzipped** | budget 300 kB |
+
+The first-load figure went from 103.3 kB to 129.1 kB when the probe physics
+arrived. The Probe Lab imports the solver, the two probe models and the
+constants table directly, so all of it lands in the main chunk rather than in
+the worker's. That is 26 kB gzipped for eight species of diffusion and
+reaction, a Poisson sampler and a hundred and eighteen constants with their
+provenance, against a budget with 170 kB of headroom left. It could be split
+out behind a dynamic import if the budget ever tightened; it has not, so it is
+not.
 
 `framer-motion` is loaded through `LazyMotion` with the `domAnimation` feature
 set rather than in full, which is 31 kB gzipped instead of 45. It is used for
@@ -208,7 +275,9 @@ exactly two panel transitions and nothing else, because the design system has
 no decorative motion for it to do.
 
 Lighthouse 13.4.1 against the production build, headless Chromium, default
-mobile throttling:
+mobile throttling. **These are the phase 6 numbers and have not been re-run
+since the probe physics landed**; the main chunk grew by 26 kB gzipped, which
+will have moved the performance score and the paint timings somewhat:
 
 | Category | Score |
 | --- | --- |

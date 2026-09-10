@@ -606,3 +606,300 @@ The progress bar now carries `data-progress` and the checks wait on that. The
 lesson is about the checks rather than the page: a probe that keys off a role
 shared by any other element is a probe that will break for a reason unrelated
 to what it is testing.
+
+## 34. Branded units do not catch arithmetic, and the test says so
+
+The probe models brand their SI types, so a `MolPerCubicMetre` cannot be
+passed where a `FluxMolPerM2S` is wanted. The brief asked for a test that
+fails if the brands are bypassed, and there is one for assignment.
+
+There is not one for arithmetic, because arithmetic on two branded numbers
+yields a plain `number`: `length + time` compiles and always will. TypeScript
+has no dimensional algebra, and simulating one with phantom types would put a
+wrapper call around every term in every formula in the model and make the
+physics unreadable.
+
+Branding catches the mistake that actually happens, which is passing the wrong
+quantity to a function or storing it in the wrong field. It does not catch
+adding two things that should not be added. `tests/probes/units.test.ts` states
+that limitation rather than implying a guarantee it does not have.
+
+## 35. The temperature term on the boronate binding has the brief's sign wrong
+
+The brief gives
+
+    Kd(T) = Kd(310) exp( -dH/R (1/T - 1/310) ),   dH = -20 kJ/mol
+
+Substitute a temperature above 310 and Kd falls, which means binding gets
+*tighter* as the probe warms. That contradicts the negative enthalpy the brief
+supplies in the same sentence: an exothermic association must weaken with
+warming, by Le Chatelier and by van 't Hoff.
+
+The correct form is implemented:
+
+    Kd(T) = Kd(T0) exp( +dH/R (1/T - 1/T0) )
+
+At 40 C the receptor binds glucose 6.4 per cent more weakly than at 37, which
+is the direction the thermochemistry requires. The instrument corrects for it
+using the thermistor, which is why a failed thermistor costs the optical
+channel accuracy through a real affinity shift rather than through an added
+error term.
+
+## 36. The receptor density is derived, not declared
+
+The obvious way to make binding retardation visible in the gel is to declare a
+receptor concentration large enough for it to matter. That would have been
+inventing a design feature to make a term worth having.
+
+The receptor **is** the indicator: one molecule carries the boronic acid that
+binds and the amine whose lone pair quenches, which is what makes the
+fluorescence report the binding at all. So its concentration is already fixed
+by the dye loading and the gel thickness that the photon budget declares:
+
+    R_tot = N_dye0 / ( L_gel N_A )  =  about 20 umol/L
+
+which is five hundred times below Kd_G. The retardation factor comes out at
+1.0000002. The mechanism is implemented in full and the model's answer is that
+it does not matter at this loading, and that the gel's lag is diffusive rather
+than chemical. That is a result, and reporting it is worth more than a knob
+that would have made a chart look busier.
+
+## 37. The optical switch counts every occupied site, and the model had it backwards
+
+Found in phase 4, while mapping the bench's mannitol fault onto the physics.
+
+The photoinduced electron transfer switch is the boron pulling on the amine's
+lone pair, and the boron does that whenever it has esterified a diol. It has no
+way of knowing which diol. So the fluorescence reports **total** occupancy, and
+a fructose or an infused mannitol lights the molecule up exactly as a glucose
+would. The instrument, inverting as though every occupied site held glucose,
+reads high.
+
+Phase 2 used glucose occupancy alone, which makes a competitor read *low* by
+taking sites away from glucose. That is what a competitive binding assay does
+when the label is the glucose; it is not what a single-site turn-on sensor
+does, and it inverted the sign of the probe's entire polyol error.
+
+Two tests had encoded the wrong sign and were rewritten to the physics rather
+than loosened. A third was added that asserts the direction on its own,
+because this is an easy mistake to make twice.
+
+The accuracy figures did not move, because the calibration load cancels
+exactly. What moved is the error in the presence of a competitor: three
+millimoles per litre of mannitol now takes the reading from 6.08 to 17.28
+against a truth of 6.
+
+## 38. A latent sign error in the solver, and the tests that would have caught it
+
+The Newton path in `transport.ts` set its off-diagonal Jacobian blocks to
+`+G` where the residual requires `-G`. The linear path, written separately,
+had it right.
+
+Every phase 1 check passed anyway. Each of them either ran the linear path or
+happened to converge on the first Newton iteration, where a wrong Jacobian
+still lands inside a loose tolerance. It surfaced only when the optical probe's
+nonlinear storage term pushed a solve to a second iteration, which then
+diverged by a factor of 1.6e6 per iteration.
+
+No published phase 1 number changed. Two regression tests were added that would
+have caught it: the Newton path against the linear path on the same problem
+with a zero reaction term, which must agree to machine precision and does to
+5.4e-14, and the Newton path against the analytic first-order decay slab.
+
+The general lesson, which is the reason this has its own entry: a solver test
+that only ever exercises one iteration is not testing the solver.
+
+## 39. The impedance is read at 10 kHz
+
+The bench's placeholder read at 1 kHz and its fouling coefficient made a
+protein film double the magnitude. The Randles cell does not agree: at 1 kHz
+the double layer shunts most of the cell, so the measurement is dominated by a
+capacitance that fouling does not touch, and the film moves the magnitude by 20
+per cent against a 35 per cent flag threshold. Scenario 4, whose entire point is
+that the impedance accuses tip B, stopped working.
+
+Fouling is a solution-resistance effect and has to be probed where solution
+resistance is what the cell reads. At 10 kHz the capacitor is effectively a
+short, the magnitude tends to R_s, and the same film moves it by 83 per cent.
+
+This is a change to the instrument, justified by the physics, not a change to
+the physics to suit the instrument. It is also what a real electrochemical
+impedance measurement of a membrane would do.
+
+## 40. Three scenarios changed, and the constants did not
+
+The physics disagrees with the placeholder front end in several places. Where
+that broke a scenario, the scenario changed and never a constant.
+
+**3 and 4, the paracetamol pair.** A one gram dose moves the amperometric
+reading by 8.3 per cent, which is inside what the supervisor should treat as
+agreement, and these two scenarios are arguing about evidence rather than about
+paracetamol. They now use four grams: the maximum daily dose taken at once,
+which is what a cold remedy on top of regular paracetamol does, and a real
+reason a real sensor misreads.
+
+**5, six months in.** The bands were the placeholder's numbers. They are now
+the physics: a tenth of the dye gone rather than a third, a quarter of the
+enzyme left rather than two thirds. The check also gained the clause the
+placeholder could not have supported, that the loop is still 96 per cent in
+range with three quarters of the enzyme gone, because the response is limited
+by the outer membrane and not by the enzyme.
+
+**6, the omental wrap.** The placeholder caught a wrap by dimming the optical
+return. This geometry cannot: the fibre and the gel sit inside the housing and
+the collected light never crosses the tissue. What an omentum does is add
+eighty five micrometres of diffusion barrier, which doubles tip A's lag, from
+1.8 to 3.3 minutes through a meal.
+
+And the supervisor never notices, because tip A was the faster of the two to
+begin with and the wrap brings them closer together. The scenario now asserts
+that, which is a better lesson than the one it replaced. **The cost is that the
+bench no longer demonstrates the optical-loss evidence path at all.** That is a
+real loss and it is written down rather than papered over.
+
+## 41. A supervisor defect the physics found
+
+Two probes with genuinely different response times sit near the edge of the
+agreement window during a fast excursion, and a single acquisition's noise
+decided which side of it they landed on. The result was a one-minute drop to
+`invalid` and straight back, counted as an alert. Six months of ordinary days
+produced 298 alerts on the placeholder and thousands on the physics.
+
+A disagreement now has to survive a second acquisition before autonomy falls,
+which is how the recovery direction already worked through `agreementHoldS`.
+The cost is one minute of latency before autonomy falls on a real disagreement.
+The alternative is a supervisor that cries wolf every time the glucose moves
+quickly, and a reader who learns to ignore it.
+
+Six months of ordinary days now produces no alerts on the placeholder and three
+on the physics. The ten thousand sequence property test still passes.
+
+## 42. The amperometric noise is carried across rather than derived
+
+`electricalNoiseFloor` computes the noise the physics gives: shot noise and
+Johnson noise at a nanoampere over a minute come to about a femtoampere, four
+orders of magnitude below the 0.35 nA the bench declares.
+
+Using the derived figure would have made the amperometric channel almost
+noiseless and the whole bench dishonestly good. The declared figure is standing
+in for micro-motion of the probe in tissue and for local perfusion, neither of
+which this model resolves, and both of which dominate a real amperometric
+sensor.
+
+So the bench's declaration is carried across as what it always meant, a noise
+in the units of the reading: 0.35 nA over 2.0 nA per mmol/L is 0.175 mmol/L,
+and it stays 0.175 mmol/L against a signal thirty times smaller. The derived
+number is computed anyway, and reported, so the gap between the two is visible
+rather than hidden.
+
+This is the fourth time in this build that a number came out better than it
+should have and the fix was to make the model worse rather than publish the
+number.
+
+## 43. A cache that changed the answer
+
+The settled-field cache added in phase 4 restored a stored field and then ran
+the steady-state solve anyway, from that warm guess. Newton stops when its
+update falls below a tolerance, so a solve started warm lands a few parts in
+1e10 from one started cold. Both are converged and neither is wrong.
+
+It made the engine's output depend on whether another engine had been built
+first in the same process, which broke the trace determinism test and would
+have broken reproducibility in ways much harder to notice. On a hit the stored
+field is now copied and the solve skipped entirely.
+
+A cache that changes the answer is not a cache.
+
+## 44. A fourth fidelity choice the brief did not name
+
+The brief names three fidelity modes: full, fast and frozen. A fourth choice
+was needed, and it is a stride in seconds rather than a named mode.
+
+At the interactive stride a simulated year costs twenty nine minutes of wall
+clock, and two of the nine scenarios run a year. Nothing over that horizon
+turns on second-by-second transport: those scenarios ask what the year did to
+the hardware.
+
+Up to the acquisition period the stride is a cost-only choice, because an
+acquisition forces a catch-up and the instrument always reads a current
+profile: full, fast and a sixty-second stride give the same numbers. Past the
+acquisition period the catch-up is dropped and the readings begin to lag. Both
+channels lag together, so they still agree and the supervisor is not fooled,
+but the reading is no longer the current glucose. The cost is measured, 0.02
+percentage points of mean error over a day at nine hundred seconds, and the
+bench never runs that way.
+
+## 45. The Probe Lab does not read the running device
+
+It runs its own pair of probes. The questions it exists to answer are of the
+form "what happens if the oxygen falls", which needs conditions set rather than
+observed, and sharing the bench's probes would mean either disturbing a running
+simulation or being unable to ask anything.
+
+Its six experiments each state a claim before the reader runs it, so the claim
+can be wrong. All six are asserted in the suite. A card that stops being true
+fails a test rather than quietly misleading someone, which is the only thing
+that makes stating a claim up front worth doing.
+
+## 46. Coral is the nearest any chemistry colour comes to the bench's red
+
+The bench reserves red for the insulin path and the invalid state. The brief
+names the peroxide colour as coral, `#D85A30`, and that is 53 units from the
+bench's red in RGB against 150 or more for every other molecular colour.
+
+It is kept. The peroxide is the aggressive species, the one that destroys the
+enzyme that made it, and a warm colour says so. What makes it safe is that the
+two never share a view: the insulin trace is on the bench's canvas and the
+peroxide is in the Probe Lab's profile, which has no insulin in it at all.
+
+The test asserts the rule the brief actually states, that no chemistry colour
+is either red and every one has a green channel well clear of the red's, and
+logs the closest distance so a change that moved a colour toward red would
+show.
+
+## 47. Two panels on top of each other, and a check that nearly missed them
+
+The device stage overlapped the traces panel by thirty pixels at 1440 by 700.
+The body drawing sat on the chart.
+
+The cause was `grid-rows-[minmax(0,1.05fr)_minmax(0,1fr)]` on the middle column
+with the two children carrying their own `min-h-[300px]` and `min-h-[320px]`.
+A zero row minimum lets a track shrink below what its item needs; the item then
+keeps its own height and paints straight over the next row. Nothing had
+overflowed anything, so no overflow check would have found it, and the two
+viewport sizes the screenshot script uses were both tall enough to hide it.
+
+The minimums now sit on the tracks, `minmax(300px,1.05fr)` and
+`minmax(320px,1fr)`, and the column scrolls when the viewport cannot give it
+the 632 pixels it asks for. That costs the "on a wide viewport nothing scrolls"
+intent on short screens, which is a much smaller price than two panels on top
+of each other.
+
+The same class of mistake was in the main grid: its single implicit row was
+sized `auto`, so it grew to fit its tallest column and pushed past the flex
+line. The columns carried `min-h-0` and `overflow-y-auto` already, but neither
+can do anything while the track they sit in is free to grow.
+
+### Two ways the check for it was wrong first
+
+`scripts/layout-check.mjs` measures every panel rectangle at six viewport sizes
+in both stage modes and fails if any two intersect. It was wrong twice before
+it was right, and both are worth recording because both produce a check that
+reports success.
+
+**It compared rectangles nobody can see.** `getBoundingClientRect` reports
+where an element is laid out, which for something scrolled out of an
+`overflow-y: auto` container is a position it is clipped away from. The first
+run reported four overlaps in the right column that were not visible to anyone.
+Each rectangle is now intersected with every clipping ancestor first.
+
+**It skipped what it could not find.** The traces were a bare `div`, not a
+labelled `section`, so the selector matched nothing and the pair was silently
+dropped: the check reported a clean bill of health on exactly the two panels
+that were on top of each other. A selector matching nothing is now a failure,
+which promptly found a second stale entry in the list.
+
+The check was then verified the only way that means anything: by putting both
+bugs back and confirming it fails, and by taking them out again and confirming
+it passes. A regression check nobody has seen fail is a regression check nobody
+knows works.
