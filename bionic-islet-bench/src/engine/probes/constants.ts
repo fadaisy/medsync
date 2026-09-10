@@ -205,6 +205,20 @@ export const ENVIRONMENT_TABLE = {
     "Normal plasma mannitol and sorbitol, clinical reference range",
     "Zero unless mannitol is infused. The bench raises it as a fault; the constant is the normal value.",
   ),
+  ascorbateDoseRise: k(
+    "dA_dose",
+    molPerM3(0.1),
+    "mol/m3",
+    "Peak rise in plasma ascorbate after a one gram oral dose, clinical pharmacokinetics",
+    "Added on top of the normal fasting value. Ascorbate is an anion, so the permselective film keeps most of it out, which is the point of the comparison with paracetamol.",
+  ),
+  infusedPolyol: k(
+    "M_infused",
+    molPerM3(3),
+    "mol/m3",
+    "Peak plasma mannitol after a standard intravenous osmotherapy dose, clinical pharmacokinetics",
+    "What the bench's mannitol fault puts in the fluid. At three times the normal value of zero and a receptor that binds a polyol at 3 mmol/L, this alone fills half the sites.",
+  ),
   capsuleGlucoseUptake: k(
     "k_up",
     perSecond(1.7e-5),
@@ -775,6 +789,13 @@ export const PHOTOPHYSICS_TABLE = {
     "Silicon photodiode quantum efficiency in the blue to green, standard detector data",
     "Photons converted to counted electrons.",
   ),
+  channelGainDriftSd: k(
+    "sigma_gain",
+    fraction(0.005),
+    "-",
+    ESTIMATE,
+    "Slow differential drift between the two emission channels, one standard deviation. A ratiometric measurement cancels anything common to both channels, which is why the dye can bleach to half and the reading not move; what survives is the difference between them, such as one emission filter ageing faster than the other. Half a per cent on the ratio is not half a per cent on the reading: the switch is steep, so it arrives as about one and a half per cent of glucose, and a one point calibration cannot take it out because the inversion is not a gain.",
+  ),
   darkCounts: k("N_dark", 40, "count", ESTIMATE, "Detector dark counts per acquisition window."),
   amplifierNoiseCounts: k(
     "sigma_amp",
@@ -1050,10 +1071,10 @@ export const IMPEDANCE_TABLE = {
   ),
   probeFrequency: k(
     "f_probe",
-    1000,
+    10000,
     "Hz",
-    "Definition, matching the bench's impedance sweep",
-    "The single frequency the bench's health check reads. The model computes the whole spectrum; this is the point on it the instrument reports.",
+    "Definition, chosen so the measurement reads the solution resistance",
+    "The single frequency the bench's health check reads. High enough that the double layer is effectively a short across the faradaic branch, so the cell reads R_s alone. The placeholder front end read at 1 kHz, where the capacitor shunts most of the cell and a fouling film, which is a solution-resistance effect, is barely visible: 23 per cent against a flag threshold of 35. At 10 kHz the same film moves the reading by 84 per cent. The model has the whole spectrum; this is the point on it worth reporting.",
   ),
 } as const;
 

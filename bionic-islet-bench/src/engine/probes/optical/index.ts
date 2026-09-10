@@ -412,6 +412,26 @@ export class OpticalProbe {
     };
   }
 
+  /**
+   * Turn a measured ratio into a reported glucose, the way the instrument
+   * does: invert the switch, invert the isotherm using the conditions the
+   * device believes it is in, and divide out the gel's partition coefficient.
+   *
+   * `conditions` is what the **thermistor** says, not the truth. That is the
+   * whole reason a failed thermistor costs the optical channel accuracy: the
+   * receptor's affinity really does move with temperature, and the instrument
+   * can only correct for a temperature it can measure.
+   */
+  invert(
+    ratio: number,
+    conditions: BindingConditions = this.calibrationConditions,
+    competitors: Competitors = this.calibrationCompetitors,
+  ): MolPerCubicMetre {
+    const theta = Math.min(Math.max(occupancyFromRatio(ratio), 0), 1 - Number.EPSILON);
+    const inGel = raw(glucoseFromOccupancy(theta, competitors, conditions));
+    return molPerM3(inGel / raw(PART.glucoseGel));
+  }
+
   /** The ratio the instrument would read with no noise at all. */
   noiselessRatio(environment: OpticalEnvironment): number {
     const meanYield = this.meanQuantumYield(environment);
@@ -451,9 +471,36 @@ export class OpticalProbe {
     };
   }
 
+  /**
+   * The solved field, copied out, and put back.
+   *
+   * Used to warm start a probe from an identical one that has already been
+   * settled. A steady-state solve from a uniform guess is the single most
+   * expensive thing this class does, and every probe built in the same
+   * conditions arrives at the same answer, so doing it once is a cache and
+   * not an approximation.
+   */
+  snapshot(): Float64Array[] {
+    return this.field.map((a) => Float64Array.from(a));
+  }
+
+  restore(field: readonly Float64Array[]): void {
+    if (field.length !== this.field.length) return;
+    for (let i = 0; i < field.length; i += 1) {
+      const source = field[i]!;
+      if (source.length !== this.field[i]!.length) return;
+    }
+    this.field = field.map((a) => Float64Array.from(a));
+  }
+
   /** Total flashes fired, for the bleaching readout. */
   flashCount(): number {
     return this.flashes;
+  }
+
+  /** Surviving fraction of each dye population, for the counts readout. */
+  survival(): { indicator: number; reference: number } {
+    return { indicator: this.indicatorSurvival, reference: this.referenceSurvival };
   }
 
   /** Force the dye populations, for restoring saved state or for an experiment. */

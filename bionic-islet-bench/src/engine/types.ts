@@ -61,7 +61,7 @@ export type SimEvent =
   | { kind: "exercise-stop" }
   | { kind: "sleep-start" }
   | { kind: "sleep-stop" }
-  | { kind: "paracetamol" }
+  | { kind: "paracetamol"; grams?: number }
   | { kind: "mannitol" }
   | { kind: "vitamin-c" }
   | { kind: "low-oxygen"; on: boolean }
@@ -185,7 +185,7 @@ export type SimState = {
   enzymeActivity: number;
   /** Silver chloride reference drift, mV. */
   referenceDriftMv: number;
-  /** Measured impedance magnitude at 1 kHz, kOhm. Updated on the hourly sweep. */
+  /** Measured impedance magnitude at the probe frequency, kOhm. Updated on the hourly sweep. */
   impedanceKohm: number;
   /** Impedance the model expects given fouling and capsule, kOhm. */
   impedanceExpectedKohm: number;
@@ -225,6 +225,14 @@ export type SimState = {
   /** True when the patient is deliberately skipping calibrations. */
   missedCalibration: boolean;
   /** Slow sensitivity drift per channel, 1.0 is no drift. */
+  /**
+   * Paracetamol dose currently in the body, grams. Scales the plasma peak.
+   * One gram is the ordinary dose; four is the maximum daily dose taken at
+   * once, which is what a cold remedy on top of regular paracetamol does.
+   */
+  paracetamolGrams: number;
+  /** Indicator dye destroyed by the excitation so far, 0 to 1. */
+  bleachFraction: number;
   driftA: number;
   driftB: number;
 

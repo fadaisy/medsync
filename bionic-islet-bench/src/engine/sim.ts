@@ -1,3 +1,41 @@
+import type { Envelope } from "./params.ts";
+import type { BenchProbeInputs, Fidelity } from "./probes/bench.ts";
+import type {
+  ArbitrationState,
+  AutonomyLevel,
+  ChannelReading,
+  LogEntry,
+  LogStream,
+  Sample,
+  SimEvent,
+  SimState,
+  TipId,
+  TipState,
+} from "./types.ts";
+
+import {
+  basalCeiling,
+  computeBasal,
+  computeCorrectionBolus,
+  computeMealBolus,
+} from "./controller.ts";
+import {
+  AGEING,
+  ARBITRATION,
+  CONTROLLER,
+  defaultEnvelope,
+  ELECTROCHEMICAL,
+  normaliseEnvelope,
+  OPTICAL,
+  PHYSIOLOGY,
+  SENSING,
+} from "./params.ts";
+import { BenchProbes } from "./probes/bench.ts";
+import { PHOTO } from "./probes/constants.ts";
+import { raw } from "./probes/units.ts";
+import { Rng } from "./rng.ts";
+import { AUTONOMY } from "./types.ts";
+
 /**
  * The bench engine.
  *
@@ -9,39 +47,6 @@
  * Illustrative simulation of a device that does not yet exist. Every
  * parameter is an engineering estimate. Not a medical device.
  */
-
-import {
-  AGEING,
-  ARBITRATION,
-  CONTROLLER,
-  defaultEnvelope,
-  ELECTROCHEMICAL,
-  normaliseEnvelope,
-  OPTICAL,
-  PHYSIOLOGY,
-  SENSING,
-  type Envelope,
-} from "./params.ts";
-import {
-  basalCeiling,
-  computeBasal,
-  computeCorrectionBolus,
-  computeMealBolus,
-} from "./controller.ts";
-import { Rng } from "./rng.ts";
-import {
-  AUTONOMY,
-  type ArbitrationState,
-  type AutonomyLevel,
-  type ChannelReading,
-  type LogEntry,
-  type LogStream,
-  type Sample,
-  type SimEvent,
-  type SimState,
-  type TipId,
-  type TipState,
-} from "./types.ts";
 
 export type AuditEntry = {
   t: number;
@@ -66,7 +71,35 @@ export type EngineOptions = {
   maxLog?: number;
   /** Called for every sample the run produces, before any buffer drops it. */
   onSample?: (sample: Sample) => void;
+  /**
+   * Which front end turns glucose into a signal.
+   *
+   * `physics` runs the transport, chemistry and photon counting in
+   * `src/engine/probes`. `placeholder` runs the linearised front end the
+   * bench shipped with, and is kept so the two can be put side by side; it is
+   * not a fallback and nothing chooses it automatically.
+   */
+  frontEnd?: FrontEnd;
+  /**
+   * Simulated seconds per probe solve, overriding the fidelity preset.
+   *
+   * A run that spans months passes a larger stride, because nothing over that
+   * horizon turns on second-by-second transport and ten seconds would cost
+   * twenty minutes of wall clock. The stacks are still solved to the moment of
+   * every acquisition, so a coarse stride costs cycles between readings and
+   * not the readings themselves.
+   */
+  probeStrideS?: number;
+  /**
+   * How often the physics front end solves. Ignored by the placeholder.
+   * `fast` is the default: it is the same model at a ten second implicit
+   * step, which costs under two tenths of a per cent against `full` and fits
+   * the bench's budget.
+   */
+  fidelity?: Fidelity;
 };
+
+export type FrontEnd = "placeholder" | "physics";
 
 const SECONDS_PER_MINUTE = 60;
 const SECONDS_PER_DAY = 86_400;
@@ -135,6 +168,9 @@ export class SimEngine {
   private autoCalibrate: boolean;
   private readonly onSample: ((sample: Sample) => void) | undefined;
   private steroidEffectScale: number;
+  readonly frontEnd: FrontEnd;
+  /** Null on the placeholder front end. */
+  private probes: BenchProbes | null = null;
 
   /** Rolling buffer of fused values, one per acquisition, for the rate estimate. */
   private fusedHistory: Array<{ t: number; g: number }> = [];
@@ -155,6 +191,14 @@ export class SimEngine {
   private prevArbitration: ArbitrationState = "valid";
   /** Seconds of continuous unexplained disagreement. */
   private disagreementS = 0;
+  /**
+   * Seconds the two readings have been outside the agreement window.
+   *
+   * Separate from `disagreementS`, which counts how long the supervisor has
+   * already been in `invalid` and therefore cannot be used to decide whether
+   * to enter it.
+   */
+  private outsideWindowS = 0;
   private suspendedNow = false;
   private predictiveHoldNow = false;
 
@@ -165,8 +209,10 @@ export class SimEngine {
     this.autoCalibrate = options.autoCalibrate ?? true;
     this.onSample = options.onSample;
     this.steroidEffectScale = options.steroidEffectScale ?? 1;
+    this.frontEnd = options.frontEnd ?? "physics";
 
     const envelope = normaliseEnvelope({ ...defaultEnvelope(), ...options.envelope });
+    const fidelity: Fidelity = options.fidelity ?? "fast";
 
     const g0 = PHYSIOLOGY.startingGlucose;
     const xb = this.basalInsulinAction();
@@ -187,6 +233,8 @@ export class SimEngine {
       asleep: false,
       sleepElapsedS: 0,
       paracetamolElapsedS: null,
+      paracetamolGrams: 1,
+      bleachFraction: 0,
       vitaminCElapsedS: null,
       mannitolOn: false,
       lowOxygenOn: false,
@@ -247,10 +295,105 @@ export class SimEngine {
       alertCount: 0,
     };
 
+    if (this.frontEnd === "physics") {
+      this.probes = new BenchProbes(this.probeInputs(), fidelity, options.probeStrideS);
+      this.state.impedanceKohm = this.probes.nominal.impedanceKohm;
+      this.state.impedanceExpectedKohm = this.probes.nominal.impedanceKohm;
+    }
+
     // Calibrate at implant, with the meter's own error, so that error is in
     // the numbers from the first second rather than appearing a week later.
     this.calibrate("implant");
     this.state.alertCount = 0;
+  }
+
+  // ------------------------------------------------------------------------
+  // The physics front end
+  // ------------------------------------------------------------------------
+
+  /**
+   * The bench's state, in the vocabulary the probes take.
+   *
+   * The two interferents arrive as plasma concentrations rather than as
+   * currents: on this front end the probe works out its own interference from
+   * how much of each molecule reaches the platinum, so the bench's job is only
+   * to say what is in the blood.
+   */
+  private probeInputs(): BenchProbeInputs {
+    const s = this.state;
+    return {
+      glucoseMmol: s.peritonealGlucose,
+      oxygenMmHg: s.oxygenMmHg,
+      temperatureC: s.tipTemperatureC,
+      paracetamolMmol: this.interferentConcentration(
+        s.paracetamolElapsedS,
+        BenchProbes.paracetamolPeakMmol() * s.paracetamolGrams,
+        ELECTROCHEMICAL.paracetamolTauAbsorbMin,
+        ELECTROCHEMICAL.paracetamolHalfLifeMin,
+      ),
+      ascorbateMmol:
+        BenchProbes.ascorbateBaselineMmol() +
+        this.interferentConcentration(
+          s.vitaminCElapsedS,
+          BenchProbes.ascorbateDoseRiseMmol(),
+          ELECTROCHEMICAL.vitaminCTauAbsorbMin,
+          ELECTROCHEMICAL.vitaminCHalfLifeMin,
+        ),
+      polyolMmol: s.mannitolOn ? BenchProbes.infusedPolyolMmol() : 0,
+      tipA: {
+        capsuleMicron: s.tipA.capsuleMicron,
+        foulingFraction: s.tipA.fouling,
+        leadIntact: s.tipA.leadIntact,
+      },
+      tipB: {
+        capsuleMicron: s.tipB.capsuleMicron,
+        foulingFraction: s.tipB.fouling,
+        leadIntact: s.tipB.leadIntact,
+      },
+    };
+  }
+
+  /**
+   * The same absorption-then-elimination shape the placeholder used, but
+   * scaled to a plasma concentration rather than to a current. The shape is
+   * pharmacokinetics and belongs to the body; what the probe does with the
+   * molecule belongs to the probe.
+   */
+  /**
+   * The inputs on a tick that is only being accumulated.
+   *
+   * `advance` reads nothing from them unless it is about to solve, and the
+   * caller has already established that it is not, so the expensive parts are
+   * left out. If that ever stops being true `wouldSolve` is the thing to
+   * change, not this.
+   */
+  private probeInputsLight(): BenchProbeInputs {
+    const s = this.state;
+    return {
+      glucoseMmol: s.peritonealGlucose,
+      oxygenMmHg: s.oxygenMmHg,
+      temperatureC: s.tipTemperatureC,
+      paracetamolMmol: 0,
+      ascorbateMmol: 0,
+      polyolMmol: 0,
+      tipA: { capsuleMicron: 0, foulingFraction: 0, leadIntact: true },
+      tipB: { capsuleMicron: 0, foulingFraction: 0, leadIntact: true },
+    };
+  }
+
+  private interferentConcentration(
+    elapsedS: number | null,
+    peak: number,
+    tauAbsorb: number,
+    halfLife: number,
+  ): number {
+    if (elapsedS === null) return 0;
+    const t = elapsedS / SECONDS_PER_MINUTE;
+    const tauElim = halfLife / Math.LN2;
+    const shape = Math.exp(-t / tauElim) - Math.exp(-t / tauAbsorb);
+    const tPeak = (Math.log(tauElim / tauAbsorb) * (tauAbsorb * tauElim)) / (tauElim - tauAbsorb);
+    const norm = Math.exp(-tPeak / tauElim) - Math.exp(-tPeak / tauAbsorb);
+    return (peak * Math.max(0, shape)) / norm;
   }
 
   // ------------------------------------------------------------------------
@@ -318,7 +461,11 @@ export class SimEngine {
       }
       case "exercise-start":
         s.exercising = true;
-        this.write("clinical", "EXER", "Exercise started: insulin sensitivity up 40 percent, peritoneal oxygen down 15 percent");
+        this.write(
+          "clinical",
+          "EXER",
+          "Exercise started: insulin sensitivity up 40 percent, peritoneal oxygen down 15 percent",
+        );
         break;
       case "exercise-stop":
         s.exercising = false;
@@ -334,13 +481,23 @@ export class SimEngine {
         s.sleepElapsedS = 0;
         this.write("clinical", "SLEP", "Sleep ended");
         break;
-      case "paracetamol":
+      case "paracetamol": {
         s.paracetamolElapsedS = 0;
-        this.write("clinical", "DRUG", "Paracetamol taken: adds up to 8 nA to the electrochemical tip, 4 h half-life");
+        s.paracetamolGrams = event.grams ?? 1;
+        this.write(
+          "clinical",
+          "DRUG",
+          `Paracetamol taken, ${s.paracetamolGrams} g: the platinum oxidises it alongside the peroxide, 4 h half-life`,
+        );
         break;
+      }
       case "vitamin-c":
         s.vitaminCElapsedS = 0;
-        this.write("clinical", "DRUG", "Vitamin C taken: adds up to 3 nA to the electrochemical tip, 1 h half-life");
+        this.write(
+          "clinical",
+          "DRUG",
+          "Vitamin C taken: adds up to 3 nA to the electrochemical tip, 1 h half-life",
+        );
         break;
       case "mannitol":
         s.mannitolOn = !s.mannitolOn;
@@ -364,7 +521,11 @@ export class SimEngine {
         break;
       case "protein-deposition":
         s.tipB.fouling = clamp(s.tipB.fouling + AGEING.foulingEventStep, 0, 1);
-        this.write("device", "FOUL", `Protein deposition on tip B: fouling now ${(s.tipB.fouling * 100).toFixed(0)} percent`);
+        this.write(
+          "device",
+          "FOUL",
+          `Protein deposition on tip B: fouling now ${(s.tipB.fouling * 100).toFixed(0)} percent`,
+        );
         break;
       case "omental-wrap": {
         const tip = event.tip === "A" ? s.tipA : s.tipB;
@@ -384,15 +545,27 @@ export class SimEngine {
         break;
       case "lead-b-fracture":
         s.tipB.leadIntact = false;
-        this.alert("device", "LEAD", "Lead B conductor fracture: electrochemical channel lost, impedance open circuit");
+        this.alert(
+          "device",
+          "LEAD",
+          "Lead B conductor fracture: electrochemical channel lost, impedance open circuit",
+        );
         break;
       case "thermistor-failure":
         s.thermistorOk = false;
-        this.alert("device", "TEMP", "Thermistor failed: temperature compensation falls back to 37.0 C, uncertainty widened");
+        this.alert(
+          "device",
+          "TEMP",
+          "Thermistor failed: temperature compensation falls back to 37.0 C, uncertainty widened",
+        );
         break;
       case "telemetry-loss":
         s.telemetryOk = false;
-        this.write("device", "RADI", "Telemetry radio lost. The loop inside the body is unaffected");
+        this.write(
+          "device",
+          "RADI",
+          "Telemetry radio lost. The loop inside the body is unaffected",
+        );
         break;
       case "telemetry-restore":
         s.telemetryOk = true;
@@ -424,7 +597,9 @@ export class SimEngine {
         this.write(
           "clinical",
           "CAL",
-          event.on ? "Calibration prompts are being ignored" : "Calibration prompts are being answered again",
+          event.on
+            ? "Calibration prompts are being ignored"
+            : "Calibration prompts are being answered again",
         );
         break;
       case "envelope-change": {
@@ -473,16 +648,28 @@ export class SimEngine {
           s.enzymeActivity = 1;
           s.referenceDriftMv = 0;
         }
+        if (this.probes) {
+          if (event.tip === "A") this.probes.replaceOptical();
+          else this.probes.replaceEnzymatic();
+        }
         this.impedanceBaseline = null;
         this.opticalBaseline = null;
         if (event.tip === "A") this.historyA.length = 0;
         else this.historyB.length = 0;
-        this.write("clinical", "TIPX", `Tip ${event.tip} exchanged: ageing, fouling and lead integrity reset`);
+        this.write(
+          "clinical",
+          "TIPX",
+          `Tip ${event.tip} exchanged: ageing, fouling and lead integrity reset`,
+        );
         break;
       }
       case "cgm-bridge-on":
         s.cgmBridged = true;
-        this.write("clinical", "BRDG", "External continuous glucose monitor bridged through the phone. Basal only, never full");
+        this.write(
+          "clinical",
+          "BRDG",
+          "External continuous glucose monitor bridged through the phone. Basal only, never full",
+        );
         break;
       case "cgm-bridge-off":
         s.cgmBridged = false;
@@ -550,10 +737,29 @@ export class SimEngine {
     s.subcutaneousGlucose +=
       ((s.plasmaGlucose - s.subcutaneousGlucose) / PHYSIOLOGY.tauSubcutaneousMin) * DT_MIN;
 
-    for (const tip of [s.tipA, s.tipB]) {
-      const tauCap =
-        PHYSIOLOGY.tauCapsuleBaseMin + PHYSIOLOGY.tauCapsulePerMicron * tip.capsuleMicron;
-      tip.localGlucose += ((s.peritonealGlucose - tip.localGlucose) / tauCap) * DT_MIN;
+    if (this.probes) {
+      // The stacks are the lag. There is no separate compartment and no time
+      // constant: the capsule, the membranes and the sensing layer set how
+      // fast the probe follows the fluid, and they do it by diffusing.
+      //
+      // The inputs are only built on a tick that is going to be solved.
+      // Building them means evaluating two pharmacokinetic curves, and on a
+      // tick that is merely being accumulated that is pure waste.
+      if (this.probes.wouldSolve(DT_S)) {
+        const inputs = this.probeInputs();
+        this.probes.advance(DT_S, inputs);
+        s.tipA.localGlucose = this.probes.opticalLocalGlucose(inputs);
+        s.tipB.localGlucose = this.probes.enzymaticLocalGlucose(inputs);
+        s.tipA.flashes = this.probes.flashCount();
+      } else {
+        this.probes.advance(DT_S, this.probeInputsLight());
+      }
+    } else {
+      for (const tip of [s.tipA, s.tipB]) {
+        const tauCap =
+          PHYSIOLOGY.tauCapsuleBaseMin + PHYSIOLOGY.tauCapsulePerMicron * tip.capsuleMicron;
+        tip.localGlucose += ((s.peritonealGlucose - tip.localGlucose) / tauCap) * DT_MIN;
+      }
     }
 
     // Peritoneal oxygen. Exercise and a thick capsule both lower it.
@@ -594,13 +800,25 @@ export class SimEngine {
       );
     }
 
-    s.enzymeActivity = Math.exp(-s.tipB.ageDays / AGEING.enzymeTauDays);
+    if (this.probes) {
+      // Both of these come out of the probe rather than out of a curve. The
+      // enzyme falls at the rate its own peroxide sets, slice by slice, and
+      // the reference drifts by the Nernst equation as its silver chloride is
+      // spent at the signal current.
+      const channel = this.probes.channel();
+      s.enzymeActivity = channel.enzymeSurviving;
+      s.referenceDriftMv = channel.referenceDriftMv;
+      s.bleachFraction = 1 - this.probes.indicatorSurvival();
+    } else {
+      s.bleachFraction = 1 - Math.exp(-s.tipA.flashes / AGEING.photobleachHalfScaleFlashes);
+      s.enzymeActivity = Math.exp(-s.tipB.ageDays / AGEING.enzymeTauDays);
 
-    const day = s.tipB.ageDays;
-    const beforeKnee = Math.min(day, AGEING.chlorideKneeDay);
-    const afterKnee = Math.max(0, day - AGEING.chlorideKneeDay);
-    s.referenceDriftMv =
-      AGEING.chlorideDriftMvPerDay * (beforeKnee + AGEING.chlorideAccelFactor * afterKnee);
+      const day = s.tipB.ageDays;
+      const beforeKnee = Math.min(day, AGEING.chlorideKneeDay);
+      const afterKnee = Math.max(0, day - AGEING.chlorideKneeDay);
+      s.referenceDriftMv =
+        AGEING.chlorideDriftMvPerDay * (beforeKnee + AGEING.chlorideAccelFactor * afterKnee);
+    }
   }
 
   // ------------------------------------------------------------------------
@@ -614,6 +832,21 @@ export class SimEngine {
 
   private acquire(): void {
     const s = this.state;
+    // Put whatever time has accumulated into the stacks before reading them,
+    // so the instrument reads a profile that is current rather than up to one
+    // stride stale.
+    //
+    // Only while the stride is shorter than the acquisition period. Past that
+    // the catch-up would be the whole cost of the front end, and a run that
+    // spans months would take an hour of wall clock; those runs ask what the
+    // year did to the hardware, not what the glucose was at half past two. So
+    // beyond the acquisition period the stride stops being a cost-only choice
+    // and the readings begin to lag. Both channels lag together, so they still
+    // agree with each other and the supervisor is not fooled, but the reading
+    // is no longer the current glucose. The bench never runs this way.
+    if (this.probes && this.probes.stride() <= this.acquisitionPeriod()) {
+      this.probes.catchUp(this.probeInputs());
+    }
 
     s.tipTemperatureC = this.rng
       .stream("thermistor")
@@ -648,8 +881,31 @@ export class SimEngine {
     const tau = SENSING.sensorDriftTauDays;
     const sd = SENSING.sensorDriftSd;
     const pull = dtDays / tau;
+
+    // The two front ends put this drift in different physical places, so it
+    // is not the same size in both.
+    //
+    // On the placeholder it is a sensitivity: a fraction of the reported
+    // glucose, on both channels, and a one point calibration takes it out.
+    //
+    // On the physics front end the optical channel has no sensitivity to
+    // drift. It is ratiometric, so anything common to both emission bands
+    // divides out; the dye can bleach to half and the reading does not move.
+    // What survives is the *difference* between the two bands, one filter
+    // ageing faster than the other, and that is a much smaller number. It is
+    // also a much more damaging one, because the switch is steep: half a per
+    // cent on the ratio arrives as about one and a half per cent of glucose,
+    // and a one point gain calibration cannot remove it, since the inversion
+    // is a chemistry and not a gain. That is a real property of this
+    // transduction and the model shows it rather than hiding it.
+    //
+    // The amperometric channel is single ended, so on both front ends the
+    // drift is the transimpedance amplifier's gain and a calibration does
+    // take it out.
+    const sdA = this.probes ? raw(PHOTO.channelGainDriftSd) : sd;
+    const kickA = sdA * Math.sqrt((2 * dtDays) / tau);
     const kick = sd * Math.sqrt((2 * dtDays) / tau);
-    s.driftA += -(s.driftA - 1) * pull + kick * this.rng.stream("drift-a").normal();
+    s.driftA += -(s.driftA - 1) * pull + kickA * this.rng.stream("drift-a").normal();
     s.driftB += -(s.driftB - 1) * pull + kick * this.rng.stream("drift-b").normal();
     s.driftA = clamp(s.driftA, 0.6, 1.4);
     s.driftB = clamp(s.driftB, 0.6, 1.4);
@@ -667,17 +923,22 @@ export class SimEngine {
 
   private opticalCounts(): number {
     const s = this.state;
+    if (this.probes) {
+      // Real counts, from the reference channel of the last flash. The capsule
+      // does not dim them: the fibre and the gel are inside the housing and
+      // the light never crosses the tissue.
+      return this.probes.referenceCounts();
+    }
     const bleach = Math.exp(-s.tipA.flashes / AGEING.photobleachHalfScaleFlashes);
-    const capsuleLoss = Math.max(
-      0.05,
-      1 - OPTICAL.opticalLossPerMicron * s.tipA.capsuleMicron,
-    );
+    const capsuleLoss = Math.max(0.05, 1 - OPTICAL.opticalLossPerMicron * s.tipA.capsuleMicron);
     return OPTICAL.counts0 * bleach * capsuleLoss * s.tipA.wrapAttenuation;
   }
 
   private acquireOptical(knownTemperature: number, filterGain: number): ChannelReading {
     const s = this.state;
     if (!s.tipA.leadIntact) return { ...DEAD_READING };
+
+    if (this.probes) return this.acquireOpticalPhysics(filterGain);
 
     s.tipA.flashes += OPTICAL.flashesPerAcquisition;
 
@@ -694,8 +955,7 @@ export class SimEngine {
 
     // The device subtracts the temperature term it believes in, which is the
     // thermistor reading, or 37.0 C when the thermistor has failed.
-    const compensated =
-      ratio - OPTICAL.ratioPerDegC * (knownTemperature - SENSING.tipTemperatureC);
+    const compensated = ratio - OPTICAL.ratioPerDegC * (knownTemperature - SENSING.tipTemperatureC);
     const rawGlucose = (compensated - OPTICAL.ratioZero) / OPTICAL.ratioPerMmol;
     const glucose = s.calGainA * rawGlucose + s.calOffsetA;
 
@@ -717,7 +977,12 @@ export class SimEngine {
    * A step would be caught by the rate-of-change check, which would let the
    * supervisor blame tip B and would hide the point scenario 3 is making.
    */
-  private interferent(elapsedS: number | null, peakNa: number, tauAbsorb: number, halfLife: number): number {
+  private interferent(
+    elapsedS: number | null,
+    peakNa: number,
+    tauAbsorb: number,
+    halfLife: number,
+  ): number {
     if (elapsedS === null) return 0;
     const t = elapsedS / SECONDS_PER_MINUTE;
     const tauElim = halfLife / Math.LN2;
@@ -731,6 +996,8 @@ export class SimEngine {
   private acquireElectrochemical(knownTemperature: number, filterGain: number): ChannelReading {
     const s = this.state;
     if (!s.tipB.leadIntact) return { ...DEAD_READING };
+
+    if (this.probes) return this.acquireElectrochemicalPhysics(knownTemperature, filterGain);
 
     const glucoseLocal = s.tipB.localGlucose;
     // Oxygen limits the enzyme reaction only in the part of the signal above
@@ -748,7 +1015,7 @@ export class SimEngine {
     const interferents =
       this.interferent(
         s.paracetamolElapsedS,
-        ELECTROCHEMICAL.paracetamolPeakNa,
+        ELECTROCHEMICAL.paracetamolPeakNa * s.paracetamolGrams,
         ELECTROCHEMICAL.paracetamolTauAbsorbMin,
         ELECTROCHEMICAL.paracetamolHalfLifeMin,
       ) +
@@ -794,8 +1061,126 @@ export class SimEngine {
     return { glucose: value, instantaneous: value, uncertainty, raw: current, healthy: true };
   }
 
+  /**
+   * The optical channel, from the physics.
+   *
+   * The instrument's whole job is the ratio: it fires a flash, counts two
+   * bands, divides, and inverts the chemistry it was built around. Everything
+   * it gets wrong is already in that ratio by the time it arrives here, so
+   * there is no error term added anywhere below.
+   *
+   * `driftA` is the one thing that is not chemistry. A ratiometric measurement
+   * cancels anything common to both channels, which is why the dye can bleach
+   * to half and the reading not move; what it cannot cancel is a *differential*
+   * change, such as one emission filter ageing faster than the other. That is
+   * where the bench's slow gain drift belongs, and it is why a calibration
+   * still has something to correct.
+   */
+  private acquireOpticalPhysics(filterGain: number): ChannelReading {
+    const s = this.state;
+    const probes = this.probes!;
+    const inputs = this.probeInputs();
+    const channel = probes.acquireOptical(this.rng.stream("optical-noise"), inputs);
+    s.tipA.flashes = channel.flashes;
+
+    const ratio = channel.reading.ratio * s.driftA;
+    const knownTemperature = s.thermistorOk ? s.tipTemperatureC : SENSING.thermistorFallbackC;
+    const rawGlucose = probes.glucoseFromOpticalRatio(ratio, knownTemperature);
+    const glucose = s.calGainA * rawGlucose + s.calOffsetA;
+
+    // The probe states its own counting uncertainty. The rest is the
+    // instrument's: how long since it was calibrated, and whether it knows
+    // its own temperature.
+    const daysSinceCal = this.daysSinceCalibration();
+    const noiseTerm = raw(channel.reading.uncertainty) * s.calGainA * filterGain;
+    const calTerm = Math.min(1.5, SENSING.uncertaintyPerDaySinceCal * daysSinceCal);
+    const tempTerm = s.thermistorOk ? 0 : 0.35;
+    const uncertainty =
+      SENSING.uncertaintyFloor +
+      Math.sqrt(noiseTerm * noiseTerm + calTerm * calTerm + tempTerm * tempTerm);
+
+    const value = clamp(glucose, 0, 40);
+    return { glucose: value, instantaneous: value, uncertainty, raw: ratio, healthy: true };
+  }
+
+  /**
+   * The amperometric channel, from the physics.
+   *
+   * The current is the peroxide flux plus whatever else the platinum will
+   * oxidise, and the instrument cannot tell them apart: it puts the whole
+   * number through one factory calibration line. That is why an interferent
+   * reads as glucose here without any term saying so.
+   *
+   * There is no temperature correction, because on this front end there is
+   * almost nothing to correct. The response is set by the membranes rather
+   * than by the enzyme, and a membrane permeability does not care about a
+   * degree of fever the way a catalytic rate constant does. The placeholder
+   * carried a two per cent per degree term; the physics says it should not
+   * be there, and DECISIONS.md records that.
+   */
+  private acquireElectrochemicalPhysics(
+    knownTemperature: number,
+    filterGain: number,
+  ): ChannelReading {
+    const s = this.state;
+    const probes = this.probes!;
+    const channel = probes.readElectrochemical(this.probeInputs());
+
+    // The bench declares its amperometric noise in nanoamperes, against a
+    // nominal signal this front end does not produce: the physics delivers
+    // about a thirtieth of the placeholder's current, so carrying 0.35 nA
+    // across unchanged would bury the signal.
+    //
+    // What the declaration always meant is a noise in the units the reading is
+    // in, so that is what is carried across: 0.35 nA over 2.0 nA per mmol/L is
+    // 0.175 mmol/L, and it stays 0.175 mmol/L here.
+    //
+    // It is not derived, and it is worth being plain about why. The electrical
+    // noise of this measurement can be computed, and `electricalNoiseFloor`
+    // does: shot noise and Johnson noise at a nanoampere over a minute come to
+    // about a femtoampere, four orders of magnitude below the declared figure.
+    // The bench's number is dominated by micro-motion of the probe in tissue
+    // and by local perfusion, neither of which this model resolves. Replacing
+    // it with the derived value would make the channel almost noiseless and
+    // the whole bench dishonestly good.
+    const noiseInGlucose =
+      (ELECTROCHEMICAL.currentNoiseSdNa + ELECTROCHEMICAL.currentNoiseFoulingNa * s.tipB.fouling) /
+      ELECTROCHEMICAL.currentPerMmolNa;
+    const noiseSd = noiseInGlucose * probes.nominal.currentPerMmolNa;
+    const current =
+      channel.currentNa * s.driftB + this.rng.stream("electro-noise").gauss(0, noiseSd);
+
+    void knownTemperature;
+    const rawGlucose = probes.glucoseFromCurrent(current);
+    const glucose = s.calGainB * rawGlucose + s.calOffsetB;
+
+    const daysSinceCal = this.daysSinceCalibration();
+    const noiseTerm = noiseInGlucose * s.calGainB * filterGain;
+    const calTerm = Math.min(1.5, SENSING.uncertaintyPerDaySinceCal * daysSinceCal);
+    const foulTerm = SENSING.uncertaintyPerFouling * s.tipB.fouling;
+    const tempTerm = s.thermistorOk ? 0 : 0.35;
+    const uncertainty =
+      SENSING.uncertaintyFloor +
+      Math.sqrt(
+        noiseTerm * noiseTerm + calTerm * calTerm + foulTerm * foulTerm + tempTerm * tempTerm,
+      );
+
+    const value = clamp(glucose, 0, 40);
+    return { glucose: value, instantaneous: value, uncertainty, raw: current, healthy: true };
+  }
+
   private impedanceSweep(): void {
     const s = this.state;
+    if (this.probes) {
+      // A Randles cell at the probe frequency. A fractured lead is an open
+      // circuit inside the model, so there is no special case here.
+      const channel = this.probes.readElectrochemical(this.probeInputs());
+      s.impedanceKohm = channel.impedanceKohm * (1 + this.rng.stream("impedance").gauss(0, 0.01));
+      s.impedanceExpectedKohm = s.tipB.leadIntact
+        ? channel.impedanceKohm
+        : this.probes.nominal.impedanceKohm;
+      return;
+    }
     if (!s.tipB.leadIntact) {
       s.impedanceKohm = ELECTROCHEMICAL.impedanceOpenCircuitKohm;
       s.impedanceExpectedKohm = ELECTROCHEMICAL.impedanceBaseKohm;
@@ -845,18 +1230,27 @@ export class SimEngine {
   /** The optical glucose the front end would report before calibration gain. */
   private acquireOpticalUncalibrated(knownTemperature: number): number {
     const s = this.state;
+    if (this.probes) {
+      const inputs = this.probeInputs();
+      const ratio = this.probes.noiselessOpticalRatio(inputs) * s.driftA;
+      return this.probes.glucoseFromOpticalRatio(ratio, knownTemperature);
+    }
     const ratio =
       OPTICAL.ratioZero +
       OPTICAL.ratioPerMmol * s.driftA * s.tipA.localGlucose +
       (s.mannitolOn ? OPTICAL.mannitolOffset : 0) +
       OPTICAL.ratioPerDegC * (s.tipTemperatureC - SENSING.tipTemperatureC);
-    const compensated =
-      ratio - OPTICAL.ratioPerDegC * (knownTemperature - SENSING.tipTemperatureC);
+    const compensated = ratio - OPTICAL.ratioPerDegC * (knownTemperature - SENSING.tipTemperatureC);
     return (compensated - OPTICAL.ratioZero) / OPTICAL.ratioPerMmol;
   }
 
   private acquireElectroUncalibrated(knownTemperature: number): number {
     const s = this.state;
+    if (this.probes) {
+      const channel = this.probes.readElectrochemical(this.probeInputs());
+      void knownTemperature;
+      return this.probes.glucoseFromCurrent(channel.currentNa * s.driftB);
+    }
     const fO2 = Math.min(1, s.oxygenMmHg / ELECTROCHEMICAL.oxygenSaturationMmHg);
     const g = s.tipB.localGlucose;
     const effective =
@@ -872,8 +1266,7 @@ export class SimEngine {
       AGEING.chlorideOffsetNaPerMv * s.referenceDriftMv;
     const tempFactor = 1 + 0.02 * (knownTemperature - SENSING.tipTemperatureC);
     return (
-      (current - ELECTROCHEMICAL.currentZeroNa) /
-      (ELECTROCHEMICAL.currentPerMmolNa * tempFactor)
+      (current - ELECTROCHEMICAL.currentZeroNa) / (ELECTROCHEMICAL.currentPerMmolNa * tempFactor)
     );
   }
 
@@ -884,7 +1277,11 @@ export class SimEngine {
     // ask for a reference measurement. The device asks; it does not calibrate
     // itself out of the problem, because calibrating during an interferent
     // would bake the interferent into the gain.
-    if (s.arbitration === "invalid" && s.tipA.health >= ARBITRATION.healthFlagThreshold && s.tipB.health >= ARBITRATION.healthFlagThreshold) {
+    if (
+      s.arbitration === "invalid" &&
+      s.tipA.health >= ARBITRATION.healthFlagThreshold &&
+      s.tipB.health >= ARBITRATION.healthFlagThreshold
+    ) {
       this.disagreementS += DT_S;
       if (this.disagreementS === 60 * SECONDS_PER_MINUTE) {
         this.alert(
@@ -937,25 +1334,33 @@ export class SimEngine {
       let health = 1;
 
       if (!tip.leadIntact) {
-        flags.push(tip.id === "A" ? "Lead A open: no optical return" : "Lead B open: impedance out of range");
+        flags.push(
+          tip.id === "A" ? "Lead A open: no optical return" : "Lead B open: impedance out of range",
+        );
         health = 0;
       } else {
         if (tip.id === "B" && this.impedanceBaseline !== null) {
-          const deviation = Math.abs(s.impedanceKohm - this.impedanceBaseline) / this.impedanceBaseline;
+          const deviation =
+            Math.abs(s.impedanceKohm - this.impedanceBaseline) / this.impedanceBaseline;
           if (deviation > ARBITRATION.impedanceStepFlagFraction) {
-            flags.push(`Impedance step ${(deviation * 100).toFixed(0)} percent above its own baseline`);
+            flags.push(
+              `Impedance step ${(deviation * 100).toFixed(0)} percent above its own baseline`,
+            );
             health -= 0.5;
           }
         }
         if (tip.id === "A" && this.opticalBaseline !== null) {
           const fraction = counts / this.opticalBaseline;
           if (fraction < ARBITRATION.opticalLossFlagFraction) {
-            flags.push(`Optical return at ${(fraction * 100).toFixed(0)} percent of its own baseline`);
+            flags.push(
+              `Optical return at ${(fraction * 100).toFixed(0)} percent of its own baseline`,
+            );
             health -= 0.5;
           }
         }
         if (tip.fouling > ARBITRATION.foulingFlagLevel) {
-          const excess = (tip.fouling - ARBITRATION.foulingFlagLevel) / (1 - ARBITRATION.foulingFlagLevel);
+          const excess =
+            (tip.fouling - ARBITRATION.foulingFlagLevel) / (1 - ARBITRATION.foulingFlagLevel);
           flags.push(`Fouling at ${(tip.fouling * 100).toFixed(0)} percent`);
           health -= 0.6 * excess;
         }
@@ -1018,19 +1423,39 @@ export class SimEngine {
       reasons.push("Both tips are flagged by health evidence");
     } else if (flaggedA !== flaggedB) {
       next = "doubtful-one";
-      reasons.push(flaggedA ? "Tip A is flagged, tip B is trusted" : "Tip B is flagged, tip A is trusted");
+      reasons.push(
+        flaggedA ? "Tip A is flagged, tip B is trusted" : "Tip B is flagged, tip A is trusted",
+      );
     } else {
       const ga = a.glucose ?? 0;
       const gb = b.glucose ?? 0;
       const mean = (ga + gb) / 2;
       const window = Math.max(ARBITRATION.agreeAbsolute, ARBITRATION.agreeRelative * mean);
-      if (Math.abs(ga - gb) <= window) {
+      const apart = Math.abs(ga - gb);
+      // One acquisition outside the window is not evidence of anything. The
+      // two probes have genuinely different response times, so on a fast
+      // excursion they sit near the edge of the window and a single sample's
+      // noise decides which side of it they land on. Acting on that produces a
+      // one minute drop to invalid and straight back, which is a flap and not
+      // a safety decision.
+      //
+      // So the disagreement has to survive a second acquisition. The cost is
+      // one minute of latency before autonomy falls; the alternative is a
+      // supervisor that cries wolf every time the glucose moves quickly. The
+      // recovery direction already works this way, through `agreementHoldS`.
+      this.outsideWindowS = apart > window ? this.outsideWindowS + DT_S : 0;
+      const confirmed = apart > window && this.outsideWindowS > this.acquisitionPeriod();
+      if (!confirmed) {
         next = "valid";
-        reasons.push("Both tips healthy and in agreement");
+        reasons.push(
+          apart > window
+            ? "Tips outside the agreement window for one acquisition: waiting for a second"
+            : "Both tips healthy and in agreement",
+        );
       } else {
         next = "invalid";
         reasons.push(
-          `Tips disagree by ${Math.abs(ga - gb).toFixed(1)} mmol/L against a ${window.toFixed(1)} mmol/L window`,
+          `Tips disagree by ${apart.toFixed(1)} mmol/L against a ${window.toFixed(1)} mmol/L window`,
         );
         reasons.push("No health evidence points at either tip, so neither can be trusted");
       }
@@ -1255,13 +1680,7 @@ export class SimEngine {
     const sinceCorrection =
       s.lastCorrectionT === null ? Infinity : (s.t - s.lastCorrectionT) / SECONDS_PER_MINUTE;
     if (sinceCorrection >= CONTROLLER.correctionIntervalMin && s.bolusRemainingU <= 0) {
-      const units = computeCorrectionBolus(
-        env,
-        s.autonomy,
-        control.lowerBound,
-        s.fusedRate,
-        s.iob,
-      );
+      const units = computeCorrectionBolus(env, s.autonomy, control.lowerBound, s.fusedRate, s.iob);
       if (units > 0) {
         s.lastCorrectionT = s.t;
         this.deliverBolus(units, "correction");

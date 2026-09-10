@@ -1,3 +1,5 @@
+import type { Envelope } from "../src/engine/params.ts";
+import type { AutonomyLevel, SimEvent } from "../src/engine/types.ts";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -6,10 +8,10 @@ import {
   computeCorrectionBolus,
   computeMealBolus,
 } from "../src/engine/controller.ts";
-import { defaultEnvelope, type Envelope } from "../src/engine/params.ts";
+import { defaultEnvelope } from "../src/engine/params.ts";
 import { Rng } from "../src/engine/rng.ts";
 import { SimEngine } from "../src/engine/sim.ts";
-import { AUTONOMY, type AutonomyLevel, type SimEvent } from "../src/engine/types.ts";
+import { AUTONOMY } from "../src/engine/types.ts";
 
 const EPS = 1e-9;
 
@@ -18,7 +20,11 @@ function randomEvent(rand: () => number): SimEvent {
   const pick = Math.floor(rand() * 20);
   switch (pick) {
     case 0:
-      return { kind: "meal", grams: [30, 60, 90][Math.floor(rand() * 3)] ?? 60, announced: rand() < 0.5 };
+      return {
+        kind: "meal",
+        grams: [30, 60, 90][Math.floor(rand() * 3)] ?? 60,
+        announced: rand() < 0.5,
+      };
     case 1:
       return { kind: "paracetamol" };
     case 2:
@@ -92,7 +98,13 @@ describe("safety invariants over randomised fault sequences", () => {
       const rng = new Rng(0x5eed0000 + sequence);
       const rand = () => rng.stream("sequence").next();
 
-      const engine = new SimEngine({ seed: 900_000 + sequence });
+      // The front end is the physics one, as the bench ships. The probe
+      // stride is coarse because these invariants are properties of the
+      // supervisor and the controller rather than of the transport, and ten
+      // thousand sequences at the interactive stride would be twenty five
+      // minutes of test. At six hundred seconds the readings still come from
+      // the real stacks, just resolved less finely in time.
+      const engine = new SimEngine({ seed: 900_000 + sequence, probeStrideS: 600 });
       const schedule: Array<{ at: number; event: SimEvent }> = [];
       const count = 3 + Math.floor(rand() * 6);
       for (let i = 0; i < count; i += 1) {

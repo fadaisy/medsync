@@ -17,7 +17,8 @@
     "bench": "node --experimental-strip-types --no-warnings src/engine/runner.ts",
     "analyse": "node --experimental-strip-types --no-warnings src/engine/analyse.ts",
     "params": "node --experimental-strip-types --no-warnings scripts/param-table.ts",
-    "build:single": "vite build --config vite.config.singlefile.ts && node scripts/build-single.mjs"
+    "build:single": "vite build --config vite.config.singlefile.ts && node scripts/build-single.mjs",
+    "compare": "node --experimental-strip-types --no-warnings scripts/front-end-compare.ts"
   },
   "dependencies": {
     "framer-motion": "^12.40.0",

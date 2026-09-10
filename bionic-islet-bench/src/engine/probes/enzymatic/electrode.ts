@@ -43,6 +43,7 @@ import type {
   MolPerCubicMetre,
   Ohms,
   PermeabilityMPerS,
+  Seconds,
   Volts,
 } from "../units.ts";
 
@@ -232,6 +233,36 @@ export function randlesImpedance(elements: RandlesElements, omega: number): Impe
     magnitude: Math.hypot(real, imaginary),
     phase: (Math.atan2(imaginary, real) * 180) / Math.PI,
   };
+}
+
+/**
+ * The electrical noise floor of the measurement, amperes, over an integration
+ * time.
+ *
+ * Two terms, both computed rather than declared:
+ *
+ *   shot noise      sqrt( 2 q I / tau ),  the discreteness of the electrons
+ *   Johnson noise   sqrt( 4 k T / (R tau) ),  the thermal agitation of the cell
+ *
+ * This exists to be compared against, not to be used. At a nanoampere over a
+ * minute both come out around a femtoampere, four orders of magnitude below
+ * the noise the bench declares, which means the declared figure is dominated
+ * by something this model does not resolve: micro-motion of the probe in
+ * tissue and local changes in perfusion. Saying so is more useful than
+ * quietly substituting a derived number that would be far too small.
+ */
+export function electricalNoiseFloor(
+  current: Amperes,
+  cellResistance: Ohms,
+  integrationTime: Seconds,
+): Amperes {
+  const charge = raw(FUND.faraday) / raw(FUND.avogadro);
+  const tau = Math.max(raw(integrationTime), 1e-12);
+  const shot = (2 * charge * Math.abs(raw(current))) / tau;
+  const johnson =
+    (4 * raw(FUND.gasConstant) * raw(ENV.bodyTemperature)) /
+    (raw(FUND.avogadro) * Math.max(raw(cellResistance), 1) * tau);
+  return amperes(Math.sqrt(shot + johnson));
 }
 
 /** The frequency the bench's health check reads, in radians per second. */

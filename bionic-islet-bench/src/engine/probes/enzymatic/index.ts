@@ -78,7 +78,6 @@ import {
   catalyticTemperatureFactor,
   lactoneHydrolysisRate,
   localPh,
-  mutarotationRate,
   oxygenLimitationFraction,
   pseudoFirstOrderRate,
   turnoverRate,
@@ -108,6 +107,7 @@ export const ENZYMATIC_LAYERS = [
 export type EnzymaticLayerName = (typeof ENZYMATIC_LAYERS)[number];
 
 const ENZYME_LAYER = ENZYMATIC_LAYERS.indexOf("enzyme layer");
+const CAPSULE_LAYER = ENZYMATIC_LAYERS.indexOf("capsule");
 
 export type EnzymaticGeometry = {
   readonly capsuleThickness: Metres;
@@ -436,6 +436,15 @@ export class EnzymaticProbe {
     const recycle = this.recycleOxygen;
     const enzymeAt = this.enzymeSlots();
 
+    // The rate law's own constants, lifted out of the inner loop. This term is
+    // evaluated seven times per cell per Newton iteration, so an exponential
+    // left inside it costs more than the rest of the solve put together.
+    const vmaxPerEnzyme = raw(ENZ.kCat) * catalyticTemperatureFactor(temperature);
+    const kmGlucose = raw(ENZ.kmGlucose);
+    const kmOxygen = raw(ENZ.kmOxygen);
+    const kMut = raw(ENZ.mutarotation);
+    const betaEquilibrium = raw(ENZ.betaFractionEquilibrium);
+
     return (cell, concentration, out) => {
       const beta = concentration[0]!;
       const alpha = concentration[1]!;
@@ -443,13 +452,18 @@ export class EnzymaticProbe {
       const peroxide = concentration[3]!;
       const lactone = concentration[4]!;
 
-      const mutarotation = raw(mutarotationRate(molPerM3(alpha), molPerM3(beta)));
+      const totalGlucose = Math.max(alpha, 0) + Math.max(beta, 0);
+      const mutarotation = kMut * (betaEquilibrium * totalGlucose - beta);
+
       let turnover = 0;
       const slot = enzymeAt[cell]!;
       if (slot >= 0) {
-        turnover = raw(
-          turnoverRate(molPerM3(enzyme[slot]!), molPerM3(beta), molPerM3(oxygen), temperature),
-        );
+        const g = Math.max(beta, 0);
+        const o = Math.max(oxygen, 0);
+        const denominator = kmGlucose * o + kmOxygen * g + g * o;
+        if (denominator > 0) {
+          turnover = (vmaxPerEnzyme * Math.max(enzyme[slot]!, 0) * g * o) / denominator;
+        }
       }
       const hydrolysed = hydrolysis * Math.max(lactone, 0);
 
@@ -599,6 +613,23 @@ export class EnzymaticProbe {
    * Negative for a product on its way out. Summing it over the four species
    * that carry the glucose skeleton is how the carbon balance is checked.
    */
+  /**
+   * Total glucose, both anomers, at the inner face of the capsule: what the
+   * tissue has actually delivered to the probe, before the outer membrane
+   * throws almost all of it away.
+   */
+  glucoseAtMembrane(environment: EnzymaticEnvironment): number {
+    void environment;
+    let cell = 0;
+    for (let c = 0; c < this.grid.nCells; c += 1) {
+      if (this.grid.layerOf[c] === CAPSULE_LAYER) cell = c;
+    }
+    return (
+      concentrationAt(this.grid, this.field, BETA, cell) +
+      concentrationAt(this.grid, this.field, ALPHA, cell)
+    );
+  }
+
   outerFluxOf(species: string, environment: EnzymaticEnvironment): number {
     return outerFlux(this.grid, this.field, species, this.boundaries(environment));
   }
@@ -701,6 +732,19 @@ export class EnzymaticProbe {
   measure(stream: Stream, environment: EnzymaticEnvironment, noiseSd: Amperes): Amperes {
     const clean = raw(this.read(environment).current);
     return amperes(clean + stream.gauss(0, raw(noiseSd)));
+  }
+
+  /** The solved field, copied out, for warm starting an identical probe. */
+  snapshot(): Float64Array[] {
+    return this.field.map((a) => Float64Array.from(a));
+  }
+
+  restore(field: readonly Float64Array[]): void {
+    if (field.length !== this.field.length) return;
+    for (let i = 0; i < field.length; i += 1) {
+      if (field[i]!.length !== this.field[i]!.length) return;
+    }
+    this.field = field.map((a) => Float64Array.from(a));
   }
 
   /** Charge the reference has supplied so far, coulombs. */

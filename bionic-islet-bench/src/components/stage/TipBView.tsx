@@ -254,7 +254,7 @@ export function TipBView() {
       {/* Instrument panel for this tip. */}
       <g transform={`translate(694 ${TOP})`}>
         <text x={0} y={-14} className="fill-[var(--color-muted)] font-mono text-[12px]">
-          impedance at 1 kHz
+          impedance at 10 kHz
         </text>
         <rect x={0} y={0} width={172} height={14} rx={4} fill="#101a30" />
         <rect

@@ -47,7 +47,7 @@ export function Readouts() {
       emphasis: true,
     },
     {
-      label: "Impedance at 1 kHz",
+      label: "Impedance at 10 kHz",
       value:
         state.impedanceKohm >= ELECTROCHEMICAL.impedanceOpenCircuitKohm
           ? "open"

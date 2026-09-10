@@ -5,9 +5,18 @@
  */
 
 import type { EngineOptions } from "./sim.ts";
-import { SimEngine } from "./sim.ts";
+import type {
+  ArbitrationState,
+  LogEntry,
+  Sample,
+  ScheduledEvent,
+  Scoreboard,
+  SimState,
+} from "./types.ts";
+
 import { ScoreboardAccumulator } from "./scoreboard.ts";
-import { AUTONOMY, type ArbitrationState, type LogEntry, type Sample, type ScheduledEvent, type Scoreboard, type SimState } from "./types.ts";
+import { SimEngine } from "./sim.ts";
+import { AUTONOMY } from "./types.ts";
 
 const HOUR = 3600;
 const DAY = 86_400;
@@ -138,10 +147,7 @@ export const SCENARIOS: readonly Scenario[] = [
     teaches: "With two healthy tips in agreement, the loop stays closed and nothing needs a human.",
     seed: 20260101,
     durationS: DAY,
-    events: [
-      { atSeconds: 1, event: { kind: "sleep-start" } },
-      ...ordinaryDay(0),
-    ],
+    events: [{ atSeconds: 1, event: { kind: "sleep-start" } }, ...ordinaryDay(0)],
     expectation: "Time in range above 80 percent and no alerts.",
     check: (r) => {
       const ok = r.board.timeInRangePct > 80 && r.state.alertCount === 0;
@@ -155,11 +161,13 @@ export const SCENARIOS: readonly Scenario[] = [
     id: "unannounced-meal",
     number: 2,
     title: "Unannounced meal",
-    teaches: "The peritoneal site sees a rise about eleven minutes before the subcutaneous site does.",
+    teaches:
+      "The peritoneal site sees a rise about eleven minutes before the subcutaneous site does.",
     seed: 20260102,
     durationS: 8 * HOUR,
     events: [{ atSeconds: at(0, 2, 0), event: { kind: "meal", grams: 60, announced: false } }],
-    expectation: "The peritoneal trace leads the subcutaneous ghost by 9 to 14 min at the 50 percent rise point.",
+    expectation:
+      "The peritoneal trace leads the subcutaneous ghost by 9 to 14 min at the 50 percent rise point.",
     check: (r) => {
       const leadMin = siteAdvantageMinutes(r.samples, at(0, 2, 0), at(0, 5, 0));
       if (leadMin === null) return { ok: false, detail: "no measurable rise in one of the traces" };
@@ -173,15 +181,17 @@ export const SCENARIOS: readonly Scenario[] = [
     id: "paracetamol",
     number: 3,
     title: "Paracetamol at 14:00",
-    teaches: "When the tips disagree and no evidence blames either, the system does not guess. It falls back.",
+    teaches:
+      "When the tips disagree and no evidence blames either, the system does not guess. It falls back.",
     seed: 20260103,
     durationS: DAY,
     events: [
       { atSeconds: 1, event: { kind: "sleep-start" } },
       ...ordinaryDay(0),
-      { atSeconds: at(0, 14, 0), event: { kind: "paracetamol" } },
+      { atSeconds: at(0, 14, 0), event: { kind: "paracetamol", grams: 4 } },
     ],
-    expectation: "Tips disagree with no health evidence, so the supervisor goes to invalid and safe basal.",
+    expectation:
+      "Tips disagree with no health evidence, so the supervisor goes to invalid and safe basal.",
     check: (r) => {
       const wentInvalid = r.statesVisited.includes("invalid");
       const neverBoostedAutonomy = r.lowestAutonomy <= AUTONOMY.safeBasal;
@@ -195,16 +205,18 @@ export const SCENARIOS: readonly Scenario[] = [
     id: "paracetamol-fouled",
     number: 4,
     title: "Paracetamol with a fouled tip B",
-    teaches: "The same interferent, but now the impedance accuses tip B, so tip A carries on at reduced autonomy.",
+    teaches:
+      "The same interferent, but now the impedance accuses tip B, so tip A carries on at reduced autonomy.",
     seed: 20260104,
     durationS: DAY,
     events: [
       { atSeconds: 1, event: { kind: "sleep-start" } },
       ...ordinaryDay(0),
       { atSeconds: at(0, 12, 0), event: { kind: "protein-deposition" } },
-      { atSeconds: at(0, 14, 0), event: { kind: "paracetamol" } },
+      { atSeconds: at(0, 14, 0), event: { kind: "paracetamol", grams: 4 } },
     ],
-    expectation: "Impedance and fouling flag tip B, so the supervisor keeps tip A at basal modulation only, never invalid.",
+    expectation:
+      "Impedance and fouling flag tip B, so the supervisor keeps tip A at basal modulation only, never invalid.",
     check: (r) => {
       const doubtful = r.statesVisited.includes("doubtful-one");
       const neverInvalid = !r.statesVisited.includes("invalid");
@@ -218,20 +230,40 @@ export const SCENARIOS: readonly Scenario[] = [
     id: "six-months",
     number: 5,
     title: "Six months in",
-    teaches: "Ageing shows up as lag, wider bands and more calibration, long before anything fails.",
+    teaches:
+      "Ageing shows up as lag, wider bands and more calibration, long before anything fails.",
     seed: 20260105,
     durationS: 181 * DAY,
     events: ordinaryDays(181),
-    expectation: "Capsule well established, photobleaching about a third, enzyme activity down, uncertainty visibly wider.",
+    expectation:
+      "Capsule well established, a tenth of the dye gone, most of the enzyme gone, and the loop still working.",
     check: (r) => {
       const capsule = r.state.tipA.capsuleMicron;
-      const bleachPct =
-        (1 - Math.exp(-r.state.tipA.flashes / 700_000)) * 100;
+      const bleachPct = r.state.bleachFraction * 100;
       const enzymePct = r.state.enzymeActivity * 100;
-      const ok = capsule > 40 && capsule < 90 && bleachPct > 20 && bleachPct < 45 && enzymePct > 55 && enzymePct < 75;
+      const inRange = r.board.timeInRangePct;
+      // The bands are what the physics produces, and they are a long way from
+      // what the placeholder front end produced: it bleached 31 per cent of
+      // the dye by six months against a tenth here, and left 64 per cent of
+      // the enzyme against a quarter. Both differences are recorded in
+      // DECISIONS.md.
+      //
+      // The last clause is the one that matters, and the placeholder could not
+      // have made it: three quarters of the enzyme is gone and the loop is
+      // still in range, because the response is limited by the outer membrane
+      // and not by the enzyme. Ageing arrives as a knee rather than a fade,
+      // and nothing here says so except the physics.
+      const ok =
+        capsule > 40 &&
+        capsule < 90 &&
+        bleachPct > 5 &&
+        bleachPct < 20 &&
+        enzymePct > 15 &&
+        enzymePct < 40 &&
+        inRange > 80;
       return {
         ok,
-        detail: `capsule ${capsule.toFixed(0)} um (40 to 90), photobleaching ${bleachPct.toFixed(0)} percent (20 to 45), enzyme ${enzymePct.toFixed(0)} percent (55 to 75)`,
+        detail: `capsule ${capsule.toFixed(0)} um (40 to 90), photobleaching ${bleachPct.toFixed(0)} percent (5 to 20), enzyme ${enzymePct.toFixed(0)} percent (15 to 40), still ${inRange.toFixed(1)} percent in range (needs above 80)`,
       };
     },
   },
@@ -239,20 +271,73 @@ export const SCENARIOS: readonly Scenario[] = [
     id: "omental-wrap",
     number: 6,
     title: "Omental wrapping of tip A",
-    teaches: "A tip the omentum has wrapped is caught by its own optical return, not by a disagreement.",
+    teaches:
+      "The omentum costs the wrapped tip its response time, and the supervisor never notices, because that tip had time to spare.",
     seed: 20260106,
     durationS: 8 * HOUR,
     events: [
-      { atSeconds: at(0, 2, 0), event: { kind: "omental-wrap", tip: "A" } },
-      { atSeconds: at(0, 5, 0), event: { kind: "flush" } },
+      // A meal before the wrap and one after it, so the same measurement can
+      // be taken twice on the same tip.
+      { atSeconds: at(0, 1, 0), event: { kind: "meal", grams: 70, announced: false } },
+      { atSeconds: at(0, 3, 0), event: { kind: "omental-wrap", tip: "A" } },
+      { atSeconds: at(0, 4, 0), event: { kind: "meal", grams: 70, announced: false } },
+      { atSeconds: at(0, 6, 0), event: { kind: "flush" } },
     ],
-    expectation: "Optical loss flags tip A, the loop runs on tip B at reduced autonomy, and a flush recovers it.",
+    expectation:
+      "Tip A falls further behind the fluid after the wrap, the two tips still agree, and nothing is raised.",
     check: (r) => {
-      const doubtful = r.statesVisited.includes("doubtful-one");
-      const recovered = r.state.arbitration === "valid";
+      // How far tip A trails the peritoneal fluid at the half height of each
+      // meal excursion. The wrap adds eighty five micrometres of tissue in
+      // front of a probe that already has a two hundred micrometre gel, so it
+      // should show up here and nowhere else.
+      //
+      // Each trace is timed against **its own** half height, not a common
+      // level. Scenario 2 does the opposite, and deliberately: there the
+      // question is how much the subcutaneous site attenuates, and a common
+      // level is the only fair way to ask it. Here the question is purely one
+      // of timing between two traces that sit at different levels, because the
+      // reading carries a calibration gain and the fluid does not, so a common
+      // level would measure the offset rather than the delay.
+      const halfHeightCrossing = (
+        pick: (s: Sample) => number,
+        fromS: number,
+        toS: number,
+      ): number | null => {
+        const window = r.samples.filter((s) => s.t >= fromS && s.t <= toS);
+        const first = window[0];
+        if (!first || window.length < 3) return null;
+        const baseline = pick(first);
+        let peak = baseline;
+        for (const s of window) peak = Math.max(peak, pick(s));
+        if (peak - baseline < 1) return null;
+        return crossingSeconds(r.samples, pick, baseline + (peak - baseline) / 2, fromS, toS);
+      };
+      const lag = (fromS: number, toS: number): number | null => {
+        const fluid = halfHeightCrossing((s) => s.peritoneal, fromS, toS);
+        const tip = halfHeightCrossing((s) => s.glucoseA ?? 0, fromS, toS);
+        if (fluid === null || tip === null) return null;
+        return (tip - fluid) / 60;
+      };
+      const before = lag(at(0, 1, 0), at(0, 2, 30));
+      const after = lag(at(0, 4, 0), at(0, 5, 30));
+      if (before === null || after === null) {
+        return { ok: false, detail: "no measurable rise in one of the two meals" };
+      }
+      const stayedValid = !r.statesVisited.includes("invalid");
+      // The wrap must cost real time, and the two tips must still agree. The
+      // second half of that is the point: an eighty five micrometre wrap on
+      // the *faster* of the two tips brings them closer together, not further
+      // apart, so the supervisor has nothing to see.
+      //
+      // The placeholder front end caught this wrap by dimming the optical
+      // return. That mechanism is gone, because the fibre and the gel sit
+      // inside the housing and the collected light never crosses the tissue.
+      // The bench no longer demonstrates the optical loss evidence path at
+      // all; DECISIONS.md says so rather than pretending otherwise.
+      const ok = after > before + 0.5 && stayedValid;
       return {
-        ok: doubtful && recovered,
-        detail: `states visited ${r.statesVisited.join(", ")}; ended ${r.state.arbitration} (needs doubtful-one during, valid at the end)`,
+        ok,
+        detail: `tip A trails the fluid by ${before.toFixed(1)} min before the wrap and ${after.toFixed(1)} min after it (needs at least half a minute more); states visited ${r.statesVisited.join(", ")}`,
       };
     },
   },
@@ -267,7 +352,8 @@ export const SCENARIOS: readonly Scenario[] = [
       { atSeconds: at(0, 2, 0), event: { kind: "lead-b-fracture" } },
       { atSeconds: at(0, 5, 0), event: { kind: "tip-exchange", tip: "B" } },
     ],
-    expectation: "Single-sensor operation with an alert, then full closed loop again within 20 min of the exchange.",
+    expectation:
+      "Single-sensor operation with an alert, then full closed loop again within 20 min of the exchange.",
     check: (r) => {
       const doubtful = r.statesVisited.includes("doubtful-one");
       const recovered = r.state.arbitration === "valid" && r.state.autonomy === AUTONOMY.full;
@@ -281,7 +367,8 @@ export const SCENARIOS: readonly Scenario[] = [
     id: "phone-lost",
     number: 8,
     title: "Phone lost for six hours",
-    teaches: "Nothing outside the body can command a dose, so losing the phone changes nothing inside it.",
+    teaches:
+      "Nothing outside the body can command a dose, so losing the phone changes nothing inside it.",
     seed: 20260108,
     durationS: 10 * HOUR,
     events: [
@@ -289,7 +376,8 @@ export const SCENARIOS: readonly Scenario[] = [
       { atSeconds: at(0, 2, 0), event: { kind: "phone-lost" } },
       { atSeconds: at(0, 8, 0), event: { kind: "phone-found" } },
     ],
-    expectation: "MedSync raises silence detection. The insulin trace is bit-identical to the same run with the phone present.",
+    expectation:
+      "MedSync raises silence detection. The insulin trace is bit-identical to the same run with the phone present.",
     check: (r) => {
       const silence = r.log.some((entry) => entry.code === "SLNT");
       return {
@@ -302,12 +390,14 @@ export const SCENARIOS: readonly Scenario[] = [
     id: "no-collar",
     number: 9,
     title: "Steroid collar removed",
-    teaches: "The same year without the dexamethasone collar: a thicker capsule, more lag, a worse scoreboard.",
+    teaches:
+      "The same year without the dexamethasone collar: a thicker capsule, more lag, a worse scoreboard.",
     seed: 20260109,
     durationS: 365 * DAY,
     options: { steroidEffectScale: 0 },
     events: ordinaryDays(365),
-    expectation: "Capsule on tip A ends thicker than the same run with the collar, and the sensing lag is longer.",
+    expectation:
+      "Capsule on tip A ends thicker than the same run with the collar, and the sensing lag is longer.",
     check: (r) => {
       const capsule = r.state.tipA.capsuleMicron;
       return {
@@ -325,7 +415,10 @@ export function scenarioById(id: ScenarioId): Scenario {
 }
 
 /** Run a scenario headlessly and return everything the checks need. */
-export function runScenario(scenario: Scenario, overrides?: Partial<EngineOptions>): ScenarioResult {
+export function runScenario(
+  scenario: Scenario,
+  overrides?: Partial<EngineOptions>,
+): ScenarioResult {
   const accumulator = new ScoreboardAccumulator();
   const statesVisited: ArbitrationState[] = [];
   const engine = new SimEngine({
