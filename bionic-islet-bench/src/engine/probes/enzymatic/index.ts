@@ -634,6 +634,11 @@ export class EnzymaticProbe {
     return outerFlux(this.grid, this.field, species, this.boundaries(environment));
   }
 
+  /** The layers as built, so a caller can draw them without guessing. */
+  layerSpecs(): readonly LayerSpec[] {
+    return this.grid.layers;
+  }
+
   concentrationProfile(species: string): Float64Array {
     return profile(this.grid, this.field, species);
   }

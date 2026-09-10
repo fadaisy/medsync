@@ -1,4 +1,5 @@
 import { ZOOM_LEVELS, useBench, type ZoomLevel } from "../store/bench.ts";
+import { ProbeLab } from "./lab/ProbeLab.tsx";
 import { BodyView } from "./stage/BodyView.tsx";
 import { HousingView } from "./stage/HousingView.tsx";
 import { TipAView } from "./stage/TipAView.tsx";
@@ -14,7 +15,10 @@ import { TipBView } from "./stage/TipBView.tsx";
 export function DeviceStage() {
   const zoom = useBench((s) => s.zoom);
   const setZoom = useBench((s) => s.setZoom);
+  const stageMode = useBench((s) => s.stageMode);
+  const setStageMode = useBench((s) => s.setStageMode);
   const current = ZOOM_LEVELS.find((z) => z.id === zoom) ?? ZOOM_LEVELS[0]!;
+  const lab = stageMode === "lab";
 
   return (
     <section
@@ -24,51 +28,77 @@ export function DeviceStage() {
       <header className="border-b border-edge px-3 py-2">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h2 className="text-heading-s">{current.label}</h2>
-            <p className="text-micro text-muted">{current.caption}</p>
+            <h2 className="text-heading-s">{lab ? "Probe Lab" : current.label}</h2>
+            <p className="text-micro text-muted">
+              {lab
+                ? "The same two probe models, run on conditions you set"
+                : current.caption}
+            </p>
           </div>
           <div className="flex items-center gap-2">
-            <label htmlFor="zoom" className="text-micro text-muted">
-              Zoom
-            </label>
-            <input
-              id="zoom"
-              type="range"
-              min={1}
-              max={4}
-              step={1}
-              value={zoom}
-              onChange={(event) => setZoom(Number(event.target.value) as ZoomLevel)}
-              aria-valuetext={`${current.label}. ${current.caption}`}
-              className="w-32 accent-[var(--color-teal-bright)]"
-            />
-            <div role="group" aria-label="Zoom level" className="flex gap-1">
-              {ZOOM_LEVELS.map((level) => (
-                <button
-                  key={level.id}
-                  type="button"
-                  onClick={() => setZoom(level.id)}
-                  aria-pressed={zoom === level.id}
-                  title={level.caption}
-                  className={`rounded-[var(--radius-control)] border px-2 py-1 font-mono text-micro transition-colors duration-[var(--duration-instant)] ease-[var(--ease-medsync)] ${
-                    zoom === level.id
-                      ? "border-teal-bright bg-teal-bright/15 text-teal-bright"
-                      : "border-edge text-muted hover:border-teal-bright hover:text-teal-bright"
-                  }`}
-                >
-                  {level.id}
-                </button>
-              ))}
-            </div>
+            <button
+              type="button"
+              onClick={() => setStageMode(lab ? "device" : "lab")}
+              aria-pressed={lab}
+              className={`rounded-[var(--radius-control)] border px-2 py-1 text-micro transition-colors duration-[var(--duration-instant)] ease-[var(--ease-medsync)] ${
+                lab
+                  ? "border-teal-bright bg-teal-bright/15 text-teal-bright"
+                  : "border-edge text-muted hover:border-teal-bright hover:text-teal-bright"
+              }`}
+            >
+              Probe Lab
+            </button>
+            {lab ? null : (
+              <>
+              <label htmlFor="zoom" className="text-micro text-muted">
+                Zoom
+              </label>
+              <input
+                id="zoom"
+                type="range"
+                min={1}
+                max={4}
+                step={1}
+                value={zoom}
+                onChange={(event) => setZoom(Number(event.target.value) as ZoomLevel)}
+                aria-valuetext={`${current.label}. ${current.caption}`}
+                className="w-32 accent-[var(--color-teal-bright)]"
+              />
+              <div role="group" aria-label="Zoom level" className="flex gap-1">
+                {ZOOM_LEVELS.map((level) => (
+                  <button
+                    key={level.id}
+                    type="button"
+                    onClick={() => setZoom(level.id)}
+                    aria-pressed={zoom === level.id}
+                    title={level.caption}
+                    className={`rounded-[var(--radius-control)] border px-2 py-1 font-mono text-micro transition-colors duration-[var(--duration-instant)] ease-[var(--ease-medsync)] ${
+                      zoom === level.id
+                        ? "border-teal-bright bg-teal-bright/15 text-teal-bright"
+                        : "border-edge text-muted hover:border-teal-bright hover:text-teal-bright"
+                    }`}
+                  >
+                    {level.id}
+                  </button>
+                ))}
+              </div>
+              </>
+            )}
           </div>
         </div>
       </header>
 
       <div className="min-h-0 flex-1 overflow-hidden p-2">
-        {zoom === 1 ? <BodyView /> : null}
-        {zoom === 2 ? <HousingView /> : null}
-        {zoom === 3 ? <TipAView /> : null}
-        {zoom === 4 ? <TipBView /> : null}
+        {lab ? (
+          <ProbeLab />
+        ) : (
+          <>
+            {zoom === 1 ? <BodyView /> : null}
+            {zoom === 2 ? <HousingView /> : null}
+            {zoom === 3 ? <TipAView /> : null}
+            {zoom === 4 ? <TipBView /> : null}
+          </>
+        )}
       </div>
     </section>
   );

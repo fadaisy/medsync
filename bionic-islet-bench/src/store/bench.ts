@@ -16,6 +16,15 @@ import { applySnapshot, benchData, resetBenchData } from "./benchData.ts";
 
 export type TraceWindow = "30m" | "6h" | "24h" | "90d";
 export type ZoomLevel = 1 | 2 | 3 | 4;
+/**
+ * What the stage is showing.
+ *
+ * `device` is the running implant at one of four zoom levels. `lab` is the
+ * Probe Lab, which runs its own copy of the two probe models under conditions
+ * the reader sets. They share the stage because the bench is one screen and
+ * because they are two views of the same object: what it does, and why.
+ */
+export type StageMode = "device" | "lab";
 
 export const TRACE_WINDOWS: Array<{ id: TraceWindow; label: string; seconds: number }> = [
   { id: "30m", label: "30 min", seconds: 30 * 60 },
@@ -38,6 +47,7 @@ type BenchStore = {
   running: boolean;
   speed: number;
   zoom: ZoomLevel;
+  stageMode: StageMode;
   window: TraceWindow;
   seed: number;
   /** Non-null while a scenario or fast-forward is being computed. */
@@ -61,6 +71,7 @@ type BenchStore = {
   clearComparison: () => void;
   reset: (seed?: number) => void;
   setZoom: (zoom: ZoomLevel) => void;
+  setStageMode: (mode: StageMode) => void;
   setWindow: (window: TraceWindow) => void;
   changeEnvelope: (envelope: Partial<Envelope>, actor: string) => void;
 };
@@ -86,6 +97,7 @@ export const useBench = create<BenchStore>((set, get) => ({
   running: false,
   speed: 1,
   zoom: 1,
+  stageMode: "device",
   window: "6h",
   seed: DEFAULT_SEED,
   progress: null,
@@ -171,7 +183,8 @@ export const useBench = create<BenchStore>((set, get) => ({
     set({ running: false, scenario: null, comparison: null, seed: next, progress: null });
     sendToWorker({ type: "reset", seed: next });
   },
-  setZoom: (zoom) => set({ zoom }),
+  setZoom: (zoom) => set({ zoom, stageMode: "device" }),
+  setStageMode: (stageMode) => set({ stageMode }),
   setWindow: (window) => set({ window }),
   changeEnvelope: (envelope, actor) =>
     sendToWorker({ type: "event", event: { kind: "envelope-change", envelope, actor } }),

@@ -297,6 +297,11 @@ export class OpticalProbe {
     return profile(this.grid, this.field, GLUCOSE);
   }
 
+  /** The layers as built, so a caller can draw them without guessing. */
+  layerSpecs(): readonly LayerSpec[] {
+    return this.grid.layers;
+  }
+
   /** Cell centre depths from the outer face, metres. */
   depths(): Float64Array {
     return this.grid.x;

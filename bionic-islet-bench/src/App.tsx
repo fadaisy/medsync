@@ -16,6 +16,7 @@ import { useBench } from "./store/bench.ts";
 
 export default function App() {
   const connect = useBench((s) => s.connect);
+  const lab = useBench((s) => s.stageMode) === "lab";
   useEffect(() => connect(), [connect]);
 
   return (
@@ -39,25 +40,51 @@ export default function App() {
       <ProgressBar />
       <ScenarioCard />
 
-      <main className="grid min-h-0 flex-1 gap-3 p-3 xl:grid-cols-[236px_minmax(0,1fr)_352px]">
+      {/*
+        * The Probe Lab takes the instrument column as well as the stage. It is
+        * a reference surface with a lot on it, and the supervisor and the
+        * scoreboard are describing a run nobody is watching while they are in
+        * the lab. Giving it the width lets its charts sit two up instead of
+        * one above the other in a 500 pixel column.
+        */}
+      <main
+        className={`grid min-h-0 flex-1 gap-3 p-3 ${
+          lab ? "xl:grid-cols-[236px_minmax(0,1fr)]" : "xl:grid-cols-[236px_minmax(0,1fr)_352px]"
+        }`}
+      >
         <div className="order-2 min-w-0 xl:order-1 xl:min-h-0 xl:overflow-y-auto xl:pr-1">
           <ControlRail />
         </div>
 
-        <div className="order-1 grid min-h-0 min-w-0 gap-3 xl:order-2 xl:grid-rows-[minmax(0,1.05fr)_minmax(0,1fr)]">
-          <div className="min-h-[300px]">
+        {/*
+          * The Probe Lab takes the whole middle column rather than the stage's
+          * share of it. It is a different job from watching the traces: nobody
+          * asks what an oxygen tension does to the enzyme while also following
+          * a meal, and squeezed into half the column its charts fall below the
+          * fold and it is worse than useless.
+          */}
+        <div
+          className={`order-1 grid min-h-0 min-w-0 gap-3 xl:order-2 ${
+            lab ? "" : "xl:grid-rows-[minmax(0,1.05fr)_minmax(0,1fr)]"
+          }`}
+        >
+          <div className="min-h-[300px] min-w-0">
             <DeviceStage />
           </div>
-          <div className="min-h-[320px] min-w-0 rounded-[var(--radius-card)] border border-edge bg-panel p-3 shadow-card">
-            <Traces />
-          </div>
+          {lab ? null : (
+            <div className="min-h-[320px] min-w-0 rounded-[var(--radius-card)] border border-edge bg-panel p-3 shadow-card">
+              <Traces />
+            </div>
+          )}
         </div>
 
-        <div className="order-3 flex min-w-0 flex-col gap-3 xl:min-h-0 xl:overflow-y-auto xl:pr-1">
-          <StateCard />
-          <ScoreboardPanel />
-          <Readouts />
-        </div>
+        {lab ? null : (
+          <div className="order-3 flex min-w-0 flex-col gap-3 xl:min-h-0 xl:overflow-y-auto xl:pr-1">
+            <StateCard />
+            <ScoreboardPanel />
+            <Readouts />
+          </div>
+        )}
       </main>
 
       <div className="h-44 shrink-0 px-3 pb-3">
