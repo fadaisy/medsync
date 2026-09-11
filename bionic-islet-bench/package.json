@@ -1,0 +1,46 @@
+{
+  "name": "bionic-islet-sensor-bench",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Virtual prototype bench for the MedSync bionic islet glucose-sensing subsystem. Illustrative simulation, not a medical device.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "build:embed": "tsc --noEmit && vite build --base=/bioniccell/",
+    "build:only": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "bench": "node --experimental-strip-types --no-warnings src/engine/runner.ts",
+    "analyse": "node --experimental-strip-types --no-warnings src/engine/analyse.ts",
+    "params": "node --experimental-strip-types --no-warnings scripts/param-table.ts",
+    "build:single": "vite build --config vite.config.singlefile.ts && node scripts/build-single.mjs",
+    "compare": "node --experimental-strip-types --no-warnings scripts/front-end-compare.ts",
+    "check:layout": "node scripts/layout-check.mjs"
+  },
+  "dependencies": {
+    "framer-motion": "^12.40.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zustand": "^5.0.2"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.13.0",
+    "@tailwindcss/vite": "^4.1.14",
+    "@types/node": "^22.20.2",
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.4",
+    "axe-core": "^4.10.2",
+    "jsdom": "^25.0.1",
+    "lighthouse": "^13.4.1",
+    "playwright": "^1.63.0",
+    "tailwindcss": "^4.1.14",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.7",
+    "vitest": "^2.1.8"
+  }
+}

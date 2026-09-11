@@ -1,0 +1,8 @@
+# Kept out of the deployment upload. Everything else is needed: `npm run build`
+# runs the typechecker over src, tests and scripts before Vite builds, so the
+# build on Vercel is the same build that runs locally.
+node_modules
+dist
+coverage
+screenshots
+*.tsbuildinfo
