@@ -246,20 +246,9 @@ const ADA_S2_CLASSES: Citation = {
     "Type 1 diabetes (due to autoimmune β-cell destruction, usually leading to absolute insulin deficiency, including latent autoimmune diabetes in adults) 2. Type 2 diabetes (due to a nonautoimmune progressive loss of adequate β-cell insulin secretion, frequently on the background of insulin resistance)",
 };
 
-/**
- * The presentation that makes "DKA therefore type 1" wrong, and the reason this
- * catalog needs a second door out of a ketoacidotic admission.
- */
-const ADA_S2_KETOSIS_PRONE: Citation = {
-  standard: "ADA",
-  version: "Standards of Care in Diabetes—2026, Section 2",
-  title: "2. Diagnosis and Classification of Diabetes: Standards of Care in Diabetes—2026",
-  url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/",
-  retrieved: RETRIEVED,
-  csoSigned: false,
-  quote:
-    "Occasionally, people with type 2 diabetes may present with DKA in the context of ketosis-prone diabetes, particularly members of certain racial, ethnic, and ancestral groups (e.g., Black and Hispanic/Latino adults).",
-};
+/* Removed with `ketosis_prone_type_2_diabetes`: ADA_S2_KETOSIS_PRONE, which
+ * cited only that row. The presentation it quoted is still modelled — by the
+ * Classification `ketosis_prone_type_2` in diagnosis.ts, on WHO 2019. */
 
 /** The one place ADA says, in a recommendation, when to stop assuming type 1 or 2. */
 const ADA_S2_MONOGENIC: Citation = {
@@ -297,17 +286,10 @@ const ADA_S2_GLUCOCORTICOID: Citation = {
     "The prevalence of glucocorticoid-induced diabetes (hyperglycemia in the absence of preexisting diabetes) depends on the drug's half-life, dose, and frequency of administration as well as the duration of treatment.",
 };
 
-/** Type 3c, and ADA's own statement that it is commonly called something else. */
-const ADA_S2_PANCREATOGENIC: Citation = {
-  standard: "ADA",
-  version: "Standards of Care in Diabetes—2026, Section 2, rec 2.23",
-  title: "2. Diagnosis and Classification of Diabetes: Standards of Care in Diabetes—2026",
-  url: "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690183/",
-  retrieved: RETRIEVED,
-  csoSigned: false,
-  quote:
-    "Pancreatic diabetes (also termed pancreatogenic diabetes or type 3c diabetes) includes both structural and functional loss of insulin secretion in the context of exocrine pancreatic insufficiency and is commonly misdiagnosed as type 2 diabetes. … 2.23 Screen people for diabetes within 3–6 months following an episode of acute pancreatitis and annually thereafter.",
-};
+/* Removed with `pancreatogenic_diabetes`: ADA_S2_PANCREATOGENIC, which cited
+ * only that row. The quote it carried is the reason the row cannot be reached —
+ * ADA's definition requires exocrine pancreatic insufficiency, and no feature
+ * in this catalog records it. Restore both together, not one without the other. */
 
 /**
  * HIV and antiretroviral therapy. ADA writes a screening recommendation for it,
@@ -958,17 +940,32 @@ const FOOT: DifferentialCondition[] = [
  * `type_1_diabetes` is the examination saying "consider this"; a Classification
  * of `type_1` is the engine saying it is settled. Sharing a code would invite a
  * surface to render one as the other, which is the single confusion this layer
- * must never cause. `ketosis_prone_type_2_diabetes` below follows the same rule
- * against the Classification code `ketosis_prone_type_2`.
+ * must never cause. The rule bound this file to a classification once, in
+ * `ketosis_prone_type_2_diabetes`, and that row is now removed; the note at its
+ * former site below gives the reason.
  *
- * ── Secondary diabetes is now four rows, not one ─────────────────────────────
+ * ── Secondary diabetes is three rows, not one — and was briefly four ─────────
  * A single `secondary_diabetes` row could be raised but never argued for: it
  * collapsed causes with completely different examination findings and completely
- * different next actions into one line cited to an "e.g." list. The three that
- * the examination can genuinely argue for are split out — a Cushingoid habitus,
- * exocrine failure, an antiretroviral regimen — and `secondary_diabetes` is kept
- * as the residual for everything else, which is also what the referencing
- * feature files already point at.
+ * different next actions into one line cited to an "e.g." list. The split kept
+ * the two the catalog can genuinely argue for — a steroid started, an
+ * antiretroviral started or switched — with `secondary_diabetes` as the residual
+ * for everything else, which is also what the referencing feature files already
+ * point at. The third, `pancreatogenic_diabetes`, was removed: nothing in the
+ * feature set records exocrine failure, which is the half of ADA's definition
+ * that makes it that entity rather than any other. Its former site says so.
+ *
+ * Both surviving rows have rules written for them in `rules-aetiology.ts` and
+ * nothing else can reach them. Neither has a `discriminates` pointing at it, and
+ * that is correct rather than outstanding: a steroid on a drug list and "on
+ * antiretroviral therapy" are not findings that argue on their own, and ADR 0083
+ * puts compound discrimination in rules for exactly that reason.
+ *
+ * Those rules do not RUN yet. `AETIOLOGY_RULES` is not in `index.ts`'s `rules`
+ * array, which is the only thing `rankDifferential` reads, so both rows remain
+ * unreachable at runtime and the validator still says so. Wiring that array is a
+ * one-line change in a file neither of these two owns; until it lands, "reached
+ * by a rule" means the rule exists, not that anything ranks.
  *
  * Post-transplantation diabetes is deliberately NOT among them. ADA writes a
  * recommendation for it (2.26), but it is settled by a single history question
@@ -993,22 +990,58 @@ const AETIOLOGY: DifferentialCondition[] = [
     display: "Type 2 diabetes",
     citation: ADA_S2_CLASSES,
   },
-  {
-    /**
-     * The second door out of a ketoacidotic admission, and the one this catalog
-     * most needed. Without it a patient presenting in DKA could only ever have
-     * type 1 ranked — which in sub-Saharan Africa is the misclassification that
-     * commits somebody to lifelong insulin they may be able to come off, and it
-     * is the same harm the entry below cites as the reason to rank MODY.
-     *
-     * ADA names the presentation and names the populations it is described in.
-     * The examination cannot settle it — that needs the C-peptide and the
-     * autoantibodies diagnosis.ts asks for — so this ranks and does not decide.
-     */
-    code: "ketosis_prone_type_2_diabetes",
-    display: "Ketosis-prone type 2 diabetes",
-    citation: ADA_S2_KETOSIS_PRONE,
-  },
+  /*
+   * REMOVED: `ketosis_prone_type_2_diabetes`. It stays removed, but the argument
+   * for removing it was partly wrong and is corrected here rather than repeated.
+   *
+   * WHAT SURVIVES THE REVIEW. diagnosis.ts carries the Classification
+   * `ketosis_prone_type_2`, whose `discriminators` are `islet_autoantibodies`
+   * and `c_peptide`. `classify()` reports both, with their capture state, for
+   * EVERY patient, and returns `unclassified` with "the discriminating tests are
+   * not available or not done. Type is not inferred from phenotype." So the
+   * prompt to send those two tests is already produced unconditionally, and
+   * removing this row produced no silence: the classification surface still says
+   * the entity cannot be settled here.
+   *
+   * WHAT DOES NOT SURVIVE, and it was the old note's main argument: that a rule
+   * keyed on ketosis at presentation plus a phenotype "would infer a type from
+   * phenotype, which diagnosis.ts refuses in writing". diagnosis.ts refuses to
+   * CLASSIFY from phenotype. This layer is not classification — ADR 0083 gave it
+   * different code strings for exactly that reason — and it already ranks
+   * `type_1_diabetes` from wasting and unintentional weight loss at `moderate`,
+   * and `type_2_diabetes` from acanthosis nigricans and central adiposity. A
+   * standard the rows either side of this one do not meet is not a reason to
+   * delete the third.
+   *
+   * THE REASON IT IS STILL OUT is mechanical, and stating it plainly is the
+   * point, because it is fixable. The only rule reachable today would key on
+   * negative autoantibodies with a preserved C-peptide — restating a
+   * classification claim in a weaker construct — and both tests are `specialist`
+   * tier and declared available at NEITHER reference site. `rankDifferential`
+   * skips any rule whose criterion is not `met`, so such a rule would contribute
+   * no row, no score and no confirmatory list anywhere this catalog currently
+   * runs. It would clear the validator's unreachable warning while changing
+   * nothing a clinician sees, which is worse than the warning.
+   *
+   * WHAT WOULD BRING IT BACK, in the order it has to be done. (1) diagnosis.ts
+   * gains the second `supportedBy` criterion its own Classification is missing:
+   * today the only one requires `insulin_withdrawn_later`, so the entity can be
+   * recognised only AFTER the decision it exists to protect has been taken.
+   * Ketosis at presentation with negative autoantibodies and a preserved
+   * C-peptide would close that, in the construct that owns the question.
+   * (2) This row returns with a rule that fires at the BEDSIDE — ketosis at
+   * presentation alongside a type 2 phenotype — which is the patient the entity
+   * is actually about, and is not the lean, wasted young adult the type 1 row is
+   * about. That needs a source read and quoted for the presentation, and it may
+   * not encode ancestry, which is ADA's own marker and which this catalog will
+   * not hold.
+   *
+   * UNTIL THEN THE ASYMMETRY IS REAL and is recorded rather than argued away: at
+   * a ketoacidotic presentation `type_1_diabetes` is rankable and this is not.
+   * In sub-Saharan Africa that is the direction of the misclassification that
+   * commits somebody to lifelong insulin they may be able to come off, and it is
+   * the whole reason the entity was on the list.
+   */
   {
     /**
      * UNBANDED. It used to carry `["adolescent", "adult"]`, which contradicted
@@ -1041,37 +1074,81 @@ const AETIOLOGY: DifferentialCondition[] = [
   },
   {
     /**
-     * Steroid diabetes, split out because it is the secondary cause with an
-     * entire habitus attached: the moon face, the striae, the thin bruised skin
-     * and the proximal weakness are recorded at the general examination and mean
-     * nothing individually. It is also the one that may not need lifelong
-     * treatment, which is a different conversation from any other row here.
+     * Steroid diabetes, split out because it is the secondary cause that comes
+     * with a whole habitus attached — the moon face, the striae, the thin
+     * bruised skin, the proximal weakness — and because it is the one that may
+     * not need lifelong treatment, which is a different conversation from any
+     * other row here.
+     *
+     * NONE OF THOSE FOUR IS A FEATURE. An earlier version of this comment said
+     * they were "recorded at the general examination"; nothing in this catalog
+     * records a moon face, striae, thin or easily bruised skin, or proximal
+     * weakness. That is a capture gap rather than a judgement about the sign,
+     * and it is why the rule in `rules-aetiology.ts` has no Cushingoid arm. When
+     * those findings exist, they belong on that rule.
      */
     code: "glucocorticoid_induced_diabetes",
     display: "Glucocorticoid-induced diabetes",
     citation: ADA_S2_GLUCOCORTICOID,
   },
-  {
-    /**
-     * Type 3c. ADA states in its own words that it is COMMONLY MISDIAGNOSED as
-     * type 2, which is the entire case for ranking it: steatorrhoea, weight loss
-     * despite eating, and epigastric pain are findings the examination reaches,
-     * and the management diverges at the pancreatic enzymes as well as at the
-     * insulin.
-     */
-    code: "pancreatogenic_diabetes",
-    display: "Pancreatogenic (type 3c) diabetes",
-    citation: ADA_S2_PANCREATOGENIC,
-  },
+  /*
+   * REMOVED: `pancreatogenic_diabetes`. It was unreachable, and the entry's own
+   * justification turned out to describe findings this catalog does not capture.
+   * It claimed "steatorrhoea, weight loss despite eating, and epigastric pain
+   * are findings the examination reaches". Nothing records steatorrhoea,
+   * exocrine failure, pancreatic surgery, pancreatectomy, chronic pancreatitis
+   * or pancreatic calcification anywhere in the feature set, and ADA's own
+   * definition — "structural and functional loss of insulin secretion IN THE
+   * CONTEXT OF EXOCRINE PANCREATIC INSUFFICIENCY" — makes the missing half the
+   * defining half.
+   *
+   * The one adjacent field means something else. `illness_type` carries a
+   * `pancreatitis` option, but it is a property of `intercurrent_illness`
+   * ("Current infection or other illness") in the crisis-PRECIPITANTS section,
+   * and acute pancreatitis in uncontrolled diabetes is at least as often a
+   * consequence — of hypertriglyceridaemia, or of the crisis itself — as it is
+   * evidence of type 3c. A rule reading it aetiologically would assert a cause
+   * from a field that records an acute event, and would do so loudest in the
+   * patient whose real problem that hour is the abdomen.
+   *
+   * THE SAME OBJECTION APPLIES TO THE ROWS THAT SURVIVED, and it is recorded
+   * rather than waved through. Both drug rules in `rules-aetiology.ts` turn on
+   * `drug_change_non_diabetes`, which is a property of `new_or_changed_drug` in
+   * that same crisis-precipitant section, read aetiologically over months. Two
+   * things separate the cases, and neither makes the drug rules clean. First,
+   * `illness_type` would have been the ONLY evidence for this entity, whereas
+   * both drug rules conjoin the exposure with a glucose in the diagnostic range,
+   * so neither fires on the precipitant field alone. Second, the drug rules
+   * disclose the second reading on their citations and ask the CSO to ratify it;
+   * this entity had no way to disclose its way to a defensible rule, because the
+   * defining finding was absent rather than borrowed. A dedicated drug-exposure
+   * history, with a date, would retire the question for all three.
+   *
+   * `secondary_diabetes` remains, and already carries wasting, jaundice and
+   * hepatomegaly toward "consider a secondary cause" — the honest ceiling until
+   * a pancreatic-history feature exists. If one is added (prior pancreatitis,
+   * pancreatic surgery, steatorrhoea, faecal elastase), this row should return
+   * with a rule of its own; it is the capture that is missing, not the entity.
+   */
   {
     /**
      * The secondary cause with the largest population behind it here, and the
      * only one ADA writes a TIMED screening recommendation for — before starting
      * antiretroviral therapy, at a switch, and three to six months after either.
-     * The examination handle is real, since lipoatrophy and central fat
-     * accumulation are visible, and the antiretroviral regimen is already
-     * captured with a table of which combinations move the glucose and which do
-     * not — so this code is what that table can finally argue toward.
+     * Nothing in this catalog records WHEN a drug changed, so that window is
+     * guidance in the rule's notes rather than a predicate, and the rule says so.
+     *
+     * TWO earlier claims here were wrong and are corrected. The examination
+     * handle is NOT real today: `lipodystrophy` is the feature that would carry
+     * lipoatrophy, and it renders only when `glucose_lowering_therapy` includes
+     * insulin, so antiretroviral lipoatrophy in anybody else can never be
+     * recorded. And `art_regimen`'s option table is NOT a table of which
+     * combinations move the glucose — it is a table of which ones interfere with
+     * the HbA1c ASSAY (abacavir and zidovudine make the reading low for the
+     * glucose), it is labelled "Effect on HbA1c", and reading it as an
+     * attribution table would be exactly the misuse the validity layer exists to
+     * prevent. The row is reached by a rule on the drug change and a glucose,
+     * and by nothing else.
      */
     code: "hiv_art_associated_diabetes",
     display: "HIV- and antiretroviral-associated diabetes",
@@ -1112,12 +1189,17 @@ const CHRONIC: DifferentialCondition[] = [
      * looks. No frequency is asserted; the point is that the alternative has to
      * be nameable before any finding can argue for it.
      *
-     * ADA lists what should raise it, and every item is something this catalog
-     * either captures or can order: an active sediment, proteinuria climbing
-     * fast, nephrotic oedema, an eGFR falling fast, and — the one the
-     * examination owns outright — the ABSENCE of retinopathy. Without this code
-     * those findings could only ever argue FOR diabetic kidney disease or say
-     * nothing, which is a one-sided differential.
+     * ADA lists five reasons to raise it, and this catalog can reach TWO of
+     * them: the absence of retinopathy, which the examination owns outright,
+     * and a very high urine albumin-creatinine ratio, with the protein strip as
+     * the bedside proxy. The other three cannot be captured at all today —
+     * there is no urine-microscopy field for an active sediment, and `egfr` and
+     * `urine_acr` are single numbers rather than series, so neither a rapidly
+     * declining eGFR nor a rapidly rising albuminuria can be computed. An
+     * earlier version of this comment claimed every item was captured or
+     * orderable; it was not true, and `rules-aetiology.ts` says which two are.
+     * Without this code even those two findings could only ever argue FOR
+     * diabetic kidney disease or say nothing, which is a one-sided differential.
      */
     code: "non_diabetic_kidney_disease",
     display: "Non-diabetic kidney disease in a person with diabetes",

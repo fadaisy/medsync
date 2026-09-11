@@ -77,42 +77,38 @@ describe("diabetes catalog", () => {
   });
 
   /**
-   * Ships gated dark, so the unsigned warning is expected on every citation.
-   *
-   * ONE other class is tolerated while the catalog is being built out:
-   * `unreachable`, added with the discrimination layer (ADR 0083), which marks
-   * a condition nothing discriminates and no rule names. Tolerated but NOT
-   * ignored — the next test pins exactly which conditions are outstanding, so
-   * the list can only shrink, and a catalog cannot be signed while any remain.
-   * Any THIRD warning class is a failure.
+   * Ships gated dark: every warning should be the unsigned one, and nothing
+   * else. The `unreachable` class that appeared while the differential layer
+   * was being built out is now cleared, so this is back to a single class and
+   * any second one is a failure.
    */
-  it("warns only about being unsigned, and about conditions nothing can reach yet", () => {
+  it("is entirely unsigned, and that is its only warning class", () => {
     const warns = validateCatalog(cat).filter((i) => i.severity === "warning");
     expect(warns.length).toBeGreaterThan(0);
-    const classes = [...new Set(warns.map((w) => w.message.split(" — ")[0]))].sort();
-    expect(classes).toEqual(["not CSO-signed", "unreachable"]);
+    expect([...new Set(warns.map((w) => w.message.split(" — ")[0]))]).toEqual(["not CSO-signed"]);
   });
 
   /**
-   * The conditions still wired to nothing, named individually so the list is a
-   * ratchet: resolving one means deleting a line here, and adding an
-   * unreachable condition means a failing test rather than a silent warning.
+   * Every condition can be reached by something.
    *
-   * All five came from splitting an over-coarse `secondary_diabetes`, and each
-   * is either wired to a discriminating finding or removed before sign-off.
+   * A condition nothing discriminates and no rule names can never be ranked, so
+   * it makes the differential look more capable than it is — the parsimony rule
+   * one level up from findings. Five were outstanding while the layer was built;
+   * two were removed (`ketosis_prone_type_2_diabetes`, which diagnosis.ts
+   * already adjudicates as a Classification, and `pancreatogenic_diabetes`, for
+   * which nothing records the exocrine failure ADA's definition turns on) and
+   * three were wired in `rules-aetiology.ts`. Both removal sites carry the
+   * reason.
+   *
+   * Asserted as EMPTY rather than deleted: this is the ratchet. Adding a
+   * condition nothing can reach now fails the build instead of emitting a
+   * warning nobody reads.
    */
-  it("names every condition still waiting to be wired or removed", () => {
+  it("leaves no condition that nothing can reach", () => {
     const unreachable = validateCatalog(cat)
       .filter((i) => i.message.startsWith("unreachable"))
-      .map((i) => i.path.replace("conditions.", ""))
-      .sort();
-    expect(unreachable).toEqual([
-      "glucocorticoid_induced_diabetes",
-      "hiv_art_associated_diabetes",
-      "ketosis_prone_type_2_diabetes",
-      "non_diabetic_kidney_disease",
-      "pancreatogenic_diabetes",
-    ]);
+      .map((i) => i.path.replace("conditions.", ""));
+    expect(unreachable).toEqual([]);
   });
 
   /**

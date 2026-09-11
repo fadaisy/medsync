@@ -36,6 +36,7 @@ import { GENERAL_EXAM_FEATURES } from "@/lib/ncd/catalog/diabetes/general-exam";
 import { HBA1C_EVIDENCE_FEATURES, ORDERABLES } from "@/lib/ncd/catalog/diabetes/hba1c-evidence";
 import { INTERPRETATION } from "@/lib/ncd/catalog/diabetes/interpretation";
 import { ACUTE_RULES } from "@/lib/ncd/catalog/diabetes/rules-acute";
+import { AETIOLOGY_RULES } from "@/lib/ncd/catalog/diabetes/rules-aetiology";
 import { FOOT_RULES } from "@/lib/ncd/catalog/diabetes/rules-foot";
 import { SYMPTOM_FEATURES } from "@/lib/ncd/catalog/diabetes/symptoms";
 import { THERAPY_FLAGS } from "@/lib/ncd/catalog/diabetes/therapy-flags";
@@ -75,7 +76,7 @@ export const DIABETES_CATALOG: NcdCatalog = {
   orderables: ORDERABLES,
   /* The examination discrimination layer (ADR 0083). */
   conditions: DIABETES_CONDITIONS,
-  rules: [...ACUTE_RULES, ...FOOT_RULES],
+  rules: [...ACUTE_RULES, ...FOOT_RULES, ...AETIOLOGY_RULES],
 };
 
 /* ── Reference site profiles ─────────────────────────────────────────────── */
