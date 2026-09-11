@@ -266,7 +266,9 @@ describe("rules are combinations, and they carry their own escape hatches", () =
   it("surfaces the confirmatory set and the mimics — never a bare verdict", () => {
     const r = rank({ number_x: recorded(21), sign_a: recorded(true) });
     const alpha = r.conditions.find((c) => c.code === "alpha")!;
-    expect(alpha.confirmWith).toEqual(["sign_c", "number_x"]);
+    // Codes for traceability, display names for the clinician reading the panel.
+    expect(alpha.confirmWith.map((t) => t.code)).toEqual(["sign_c", "number_x"]);
+    expect(alpha.confirmWith.map((t) => t.display)).toEqual(["Sign C", "Number X"]);
     expect(alpha.mimicsToExclude).toEqual(["Something else entirely"]);
     expect(alpha.firedRules[0]!.notes).toContain("normal X");
   });

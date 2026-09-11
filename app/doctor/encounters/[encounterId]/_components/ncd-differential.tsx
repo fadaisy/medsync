@@ -231,18 +231,41 @@ function ConditionRow({
           {c.confirmWith.length > 0 ? (
             <div className="mt-2">
               <p className={OVERLINE}>Confirm with</p>
-              <p className="text-foreground/85 mt-1 font-mono text-[11px] leading-relaxed">
-                {c.confirmWith.join(" · ")}
-              </p>
+              <ul className="mt-1 flex flex-wrap gap-1">
+                {c.confirmWith.map((t) => (
+                  /* The clinician's words, with the catalog code kept as the
+                     audit anchor rather than as the label. */
+                  <li
+                    key={t.code}
+                    title={t.code}
+                    className="bg-muted/70 text-foreground/85 rounded px-1.5 py-0.5 text-[11px]"
+                  >
+                    {t.display}
+                  </li>
+                ))}
+              </ul>
             </div>
           ) : null}
 
           {c.mimicsToExclude.length > 0 ? (
             <div className="mt-2">
               <p className={OVERLINE}>Exclude first</p>
-              <p className="text-foreground/85 mt-1 text-[11.5px] leading-snug">
-                {c.mimicsToExclude.join(" · ")}
-              </p>
+              {/* One per line. Several of these are full sentences, and joining
+                  them into a single run of text is how a safety list stops
+                  being read. */}
+              <ul className="mt-1 space-y-0.5">
+                {c.mimicsToExclude.map((m) => (
+                  <li
+                    key={m}
+                    className="text-foreground/85 flex gap-1.5 text-[11.5px] leading-snug"
+                  >
+                    <span aria-hidden className="text-muted-foreground select-none">
+                      &middot;
+                    </span>
+                    <span className="min-w-0 flex-1">{m}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           ) : null}
         </div>
@@ -290,8 +313,8 @@ export function NcdDifferential({ result }: { result: DifferentialResult }) {
                 {c.display}
               </p>
               {c.confirmWith.length > 0 ? (
-                <p className="mt-0.5 font-mono text-[10.5px] text-red-800/85 dark:text-red-200/80">
-                  {c.confirmWith.join(" · ")}
+                <p className="mt-0.5 text-[10.5px] text-red-800/85 dark:text-red-200/80">
+                  {c.confirmWith.map((t) => t.display).join(" · ")}
                 </p>
               ) : null}
             </div>

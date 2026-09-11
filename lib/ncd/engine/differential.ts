@@ -122,12 +122,26 @@ export interface DifferentialEvidence {
   citation: Citation;
 }
 
+/**
+ * A confirmatory test, named twice on purpose.
+ *
+ * `code` is the traceability anchor and what the gaps list and the order form
+ * read. `display` is what goes on screen — a clinician asked to send
+ * "bohb, venous_ph" has to translate the catalog's identifiers in their head,
+ * and an interface that makes someone do that at a bedside is one they stop
+ * reading.
+ */
+export interface ConfirmatoryTest {
+  code: string;
+  display: string;
+}
+
 export interface FiredRule {
   id: string;
   display: string;
   posterior: Posterior;
   urgency: Urgency;
-  confirmWith: string[];
+  confirmWith: ConfirmatoryTest[];
   mimicsToExclude: string[];
   notes?: string;
   /** The criterion result that fired it — predicates, observed values and all. */
@@ -155,7 +169,7 @@ export interface RankedCondition {
   refuting: DifferentialEvidence[];
   firedRules: FiredRule[];
   /** Union of every fired rule's confirmatory set, de-duplicated, order-stable. */
-  confirmWith: string[];
+  confirmWith: ConfirmatoryTest[];
   /** Union of every fired rule's mimics. */
   mimicsToExclude: string[];
 }
@@ -264,6 +278,17 @@ function recordedState(code: string, ctx: EvalContext): "present" | "absent" | u
 /** Deduplicate, preserving first-seen order — output must be stable. */
 const uniq = (xs: string[]): string[] => [...new Set(xs)];
 
+/** The same, keyed — two rules naming the same test must not list it twice. */
+function uniqBy<T>(xs: T[], key: (x: T) => string): T[] {
+  const seen = new Set<string>();
+  return xs.filter((x) => {
+    const k = key(x);
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+}
+
 /* ── The ranking ─────────────────────────────────────────────────────────── */
 
 export function rankDifferential(catalog: NcdCatalog, ctx: EvalContext): DifferentialResult {
@@ -358,7 +383,12 @@ export function rankDifferential(catalog: NcdCatalog, ctx: EvalContext): Differe
       display: r.display,
       posterior: r.posterior,
       urgency: r.urgency,
-      confirmWith: r.confirmWith,
+      // An unknown code falls back to itself rather than vanishing: a typo must
+      // stay visible, not silently drop a confirmatory test off the list.
+      confirmWith: r.confirmWith.map((code) => ({
+        code,
+        display: ctx.features.get(code)?.display ?? code,
+      })),
       mimicsToExclude: r.mimicsToExclude,
       notes: r.notes,
       via: res,
@@ -405,7 +435,10 @@ export function rankDifferential(catalog: NcdCatalog, ctx: EvalContext): Differe
         supporting: b.supporting,
         refuting: b.refuting,
         firedRules: b.firedRules,
-        confirmWith: uniq(b.firedRules.flatMap((r) => r.confirmWith)),
+        confirmWith: uniqBy(
+          b.firedRules.flatMap((r) => r.confirmWith),
+          (t) => t.code,
+        ),
         mimicsToExclude: uniq(b.firedRules.flatMap((r) => r.mimicsToExclude)),
       };
     });
