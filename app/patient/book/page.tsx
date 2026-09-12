@@ -269,7 +269,12 @@ async function fetchBookableClinicians(hospitalId: string): Promise<ClinicianOpt
       .where(
         and(
           eq(availabilityBlocks.hospitalId, hospitalId),
-          eq(availabilityBlocks.kind, "bookable"),
+          // No kind filter, matching `pt-request-appointment`: the engine
+          // owns the definition of "bookable" and filters kind itself, and
+          // it needs the blocking kinds too — a `leave` row that never
+          // reaches it cannot subtract, so this page offered slots inside
+          // declared leave that the write path then refused with "refresh
+          // and pick again", and refreshing re-offered the same slot.
           eq(availabilityBlocks.state, "active"),
           inArray(availabilityBlocks.clinicianUserId, clinicianIds),
           or(
