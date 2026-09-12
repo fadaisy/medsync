@@ -28,7 +28,7 @@ export const RECEPTION_FEATURE_AREAS: ReadonlyArray<ReceptionFeatureArea> = [
   {
     slug: "expected",
     label: "Expected",
-    hint: "Today's booked patients — check them in on arrival",
+    hint: "Booked patients + declared arrivals — check them in",
     iconKey: "expected",
     placeholder: false,
   },
@@ -42,7 +42,7 @@ export const RECEPTION_FEATURE_AREAS: ReadonlyArray<ReceptionFeatureArea> = [
   {
     slug: "find",
     label: "Find",
-    hint: "Search by patient code",
+    hint: "By name on today's board, or by patient code",
     iconKey: "find",
     placeholder: false,
   },

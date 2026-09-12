@@ -2,10 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeftIcon, ClockIcon } from "lucide-react";
 
+import { Pill } from "@/components/ui/pill";
 import { fetchDeclaredIntakesToday, fetchExpectedArrivals } from "@/lib/reception/queries";
 import { requireReceptionScope } from "@/lib/reception/scope";
+import { CheckInDeclaredButton } from "../_components/check-in-declared-button";
 import { CheckInButton } from "./_components/check-in-button";
-import { CheckInDeclaredButton } from "./_components/check-in-declared-button";
 
 export const metadata: Metadata = { title: "Expected · Reception · MedSync" };
 export const dynamic = "force-dynamic";
@@ -55,24 +56,24 @@ export default async function ReceptionExpectedPage({ searchParams }: PageProps)
     <div className="stagger-children mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-8 lg:py-10">
       <Link
         href="/reception"
-        className="text-muted-foreground hover:text-foreground group inline-flex w-fit items-center gap-1 text-[12.5px] transition-colors"
+        className="text-muted-foreground hover:text-foreground text-body-s ease-expo-out group inline-flex w-fit items-center gap-1 transition-colors duration-150"
       >
         <ArrowLeftIcon
-          className="size-3.5 transition-transform duration-200 group-hover:-translate-x-0.5"
+          className="ease-expo-out size-3.5 transition-transform duration-150 group-hover:-translate-x-0.5"
           aria-hidden
         />
         Today
       </Link>
 
       <header className="flex flex-col gap-2">
-        <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
+        <span className="text-muted-foreground text-overline inline-flex items-center gap-1.5 font-mono uppercase">
           <span aria-hidden className="bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2" />
           {scope.hospitalName} · Expected arrivals
         </span>
-        <h1 className="font-display text-foreground text-[26px] leading-[1.15] font-medium tracking-[-0.015em]">
+        <h1 className="font-display text-foreground text-heading-l">
           Today&rsquo;s booked patients
         </h1>
-        <p className="text-muted-foreground max-w-[60ch] text-[12.5px] leading-relaxed">
+        <p className="text-muted-foreground text-body-s max-w-[60ch] leading-relaxed">
           When a patient arrives, hit <span className="font-mono">Check in</span> — they enter the
           queue + appear on the receiving team&rsquo;s board.
         </p>
@@ -80,12 +81,15 @@ export default async function ReceptionExpectedPage({ searchParams }: PageProps)
 
       {/* ── Patient-declared queue tickets today ─────────── */}
       {declared.length > 0 ? (
-        <section className="flex flex-col gap-2">
-          <h2 className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10.5px] tracking-[0.14em] uppercase">
+        <section aria-labelledby="declared-heading" className="flex flex-col gap-2">
+          <h2
+            id="declared-heading"
+            className="text-muted-foreground text-overline inline-flex items-center gap-1.5 font-mono uppercase"
+          >
             <ClockIcon className="size-3.5" aria-hidden />
             Declared today · awaiting check-in ({declared.length})
           </h2>
-          <p className="text-muted-foreground text-[11.5px] leading-relaxed">
+          <p className="text-muted-foreground text-caption leading-relaxed">
             These patients used the MedSync app to say they&rsquo;re coming in today. They&rsquo;re
             in line but not here yet — check them in when they arrive. Ask for the name: the code is
             on their phone, which may be at home.
@@ -94,13 +98,13 @@ export default async function ReceptionExpectedPage({ searchParams }: PageProps)
             {declared.map((d) => (
               <li
                 key={d.id}
-                className="hover:bg-brand-50/40 dark:hover:bg-brand-950/15 flex items-center justify-between gap-3 px-4 py-3 transition-colors"
+                className="hover:bg-brand-50/40 ease-expo-out flex items-center justify-between gap-3 px-4 py-3 transition-colors duration-150"
               >
                 <div className="flex min-w-0 flex-col gap-0.5">
-                  <span className="text-foreground truncate text-[13.5px] font-medium">
+                  <span className="text-foreground text-body-s truncate font-medium">
                     {d.displayName ?? d.patientCode ?? "Unknown patient"}
                   </span>
-                  <span className="text-muted-foreground truncate font-mono text-[10.5px] tabular-nums">
+                  <span className="text-muted-foreground text-caption truncate font-mono tabular-nums">
                     {[
                       d.displayName ? d.patientCode : null,
                       `declared ${formatTime(d.declaredAtIso)}`,
@@ -108,12 +112,15 @@ export default async function ReceptionExpectedPage({ searchParams }: PageProps)
                       .filter(Boolean)
                       .join(" · ")}
                   </span>
-                  <span className="text-muted-foreground text-[11.5px]">
+                  <span className="text-muted-foreground text-caption">
                     {d.departmentName ?? "—"}
                     {d.presentingComplaint ? ` · "${truncate(d.presentingComplaint, 80)}"` : ""}
                   </span>
                 </div>
-                <CheckInDeclaredButton intakeId={d.id} />
+                <CheckInDeclaredButton
+                  intakeId={d.id}
+                  patientLabel={d.displayName ?? d.patientCode ?? "unknown patient"}
+                />
               </li>
             ))}
           </ul>
@@ -133,10 +140,14 @@ export default async function ReceptionExpectedPage({ searchParams }: PageProps)
           </p>
         </div>
       ) : (
-        <div className="border-border bg-card overflow-hidden rounded-xl border">
+        <div className="border-border bg-card overflow-x-auto rounded-xl border">
           <table className="w-full border-collapse text-left">
+            <caption className="sr-only">
+              Booked appointments, earliest first. Each row carries its status and a check-in
+              control.
+            </caption>
             <thead className="border-border bg-muted/30 border-b">
-              <tr className="text-muted-foreground font-mono text-[10px] tracking-[0.14em] uppercase">
+              <tr className="text-muted-foreground text-overline font-mono uppercase">
                 <th scope="col" className="px-4 py-2.5 font-normal">
                   Time
                 </th>
@@ -149,41 +160,46 @@ export default async function ReceptionExpectedPage({ searchParams }: PageProps)
                 <th scope="col" className="px-4 py-2.5 font-normal">
                   Status
                 </th>
-                <th scope="col" className="px-4 py-2.5 font-normal" />
+                <th scope="col" className="px-4 py-2.5 font-normal">
+                  <span className="sr-only">Check in</span>
+                </th>
               </tr>
             </thead>
             <tbody className="divide-border/60 divide-y">
               {rows.map((r) => (
                 <tr
                   key={r.id}
-                  className="hover:bg-brand-50/40 dark:hover:bg-brand-950/15 transition-colors"
+                  className="hover:bg-brand-50/40 ease-expo-out transition-colors duration-150"
                 >
-                  <td className="text-foreground px-4 py-2.5 font-mono text-[12.5px] tabular-nums">
+                  <td className="text-foreground text-body-s px-4 py-2.5 font-mono tabular-nums">
                     {formatTime(r.startsAtIso)}
                   </td>
-                  <td className="text-foreground px-4 py-2.5 font-mono text-[12.5px] tabular-nums">
+                  <td className="text-foreground text-body-s px-4 py-2.5 font-mono tabular-nums">
                     {r.patientCode}
                   </td>
-                  <td className="text-foreground px-4 py-2.5 text-[12.5px]">
+                  <td className="text-foreground text-body-s px-4 py-2.5">
                     {r.clinicianName ?? "—"}
                     {r.departmentName ? (
                       <span className="text-muted-foreground"> · {r.departmentName}</span>
                     ) : null}
                     {r.type === "virtual" ? (
-                      <span className="text-muted-foreground/80 ml-2 font-mono text-[10px] uppercase">
+                      <span className="text-muted-foreground/80 text-overline ml-2 font-mono uppercase">
                         virtual
                       </span>
                     ) : null}
                   </td>
                   <td className="px-4 py-2.5">
-                    <span className="text-muted-foreground bg-muted inline-flex items-center rounded-full px-2 py-0.5 text-[10.5px]">
-                      {STATUS_LABEL[r.status] ?? r.status}
-                    </span>
+                    {/* Neutral for every status. `stable` and `admitted` mean
+                        vitals and a bed; an appointment status knows neither,
+                        and the Check in / Checked in control beside it already
+                        says whether this patient is in the building. */}
+                    <Pill tone="neutral">{STATUS_LABEL[r.status] ?? r.status}</Pill>
                   </td>
                   <td className="px-4 py-2.5 text-right">
                     <CheckInButton
                       appointmentId={r.id}
                       alreadyArrived={ARRIVED_STATES.has(r.status)}
+                      patientLabel={r.patientCode}
                     />
                   </td>
                 </tr>
@@ -193,7 +209,7 @@ export default async function ReceptionExpectedPage({ searchParams }: PageProps)
         </div>
       )}
 
-      <p className="fade-in-slow text-muted-foreground/80 text-caption leading-relaxed">
+      <p className="text-muted-foreground/80 text-caption leading-relaxed">
         Reception sees operational + demographic data, never clinical content. Names on the declared
         list are decrypted so you can match the person at the desk — each one is recorded against
         your account, as is every check-in.

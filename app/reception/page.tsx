@@ -16,26 +16,27 @@ export default async function ReceptionTodayPage() {
 
   const [counts, incoming] = await Promise.all([
     fetchReceptionTodayCounts({ hospitalId: scope.hospitalId }),
-    fetchHospitalIncomingIntakes({ hospitalId: scope.hospitalId, limit: 8 }),
+    // Present-and-waiting only. The shared panel is titled "Awaiting triage"
+    // and prints rows.length beside it; the default status set also carries
+    // 'declared' rows, which would put people who are still at home inside a
+    // count that claims they are in the building. Declared patients have their
+    // own honest surfaces — the Declared tile below, /reception/expected and
+    // /reception/flow.
+    fetchHospitalIncomingIntakes({
+      hospitalId: scope.hospitalId,
+      statuses: ["arrived", "awaiting_triage"],
+      limit: 8,
+    }),
   ]);
 
   return (
-    <div className="relative mx-auto flex w-full max-w-5xl flex-col gap-8 px-6 py-8 lg:py-10">
-      {/* Quiet atmosphere — a 5% teal wash behind the header, nothing louder. */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-56 bg-[radial-gradient(80%_100%_at_50%_0%,rgba(13,148,136,0.05),transparent_70%)]"
-      />
-
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-6 py-8 lg:py-10">
       <header className="reveal-up flex flex-col gap-2">
-        <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
-          <span
-            aria-hidden
-            className="pulse-dot bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2"
-          />
+        <span className="text-muted-foreground text-overline inline-flex items-center gap-1.5 font-mono uppercase">
+          <span aria-hidden className="bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2" />
           {scope.hospitalName} · Front desk
         </span>
-        <h1 className="font-display text-foreground text-heading-l leading-[1.15] font-medium tracking-[-0.015em] lg:text-[32px]">
+        <h1 className="font-display text-foreground text-heading-l">
           {firstName ? `Hi, ${firstName}.` : "Hi."}
         </h1>
         <p className="text-muted-foreground text-body-s max-w-[60ch] leading-relaxed">
@@ -52,8 +53,8 @@ export default async function ReceptionTodayPage() {
       >
         <StatTile label="Expected" value={counts.expectedToday} />
         <StatTile label="Declared" value={counts.declaredToday} tone="muted" />
-        <StatTile label="Arrived" value={counts.arrivedToday} tone="teal" />
-        <StatTile label="Awaiting triage" value={counts.awaitingTriage} tone="amber" />
+        <StatTile label="Arrived" value={counts.arrivedToday} tone="brand" />
+        <StatTile label="Awaiting triage" value={counts.awaitingTriage} tone="caution" />
         <StatTile label="No-shows" value={counts.noShowsToday} tone="muted" />
       </section>
 
@@ -62,7 +63,7 @@ export default async function ReceptionTodayPage() {
         <QuickAction
           href="/reception/expected"
           title="Check in"
-          subtitle="Today's booked patients"
+          subtitle="Booked patients · declared arrivals"
           Icon={ClipboardListIcon}
           tone="primary"
         />
@@ -76,7 +77,7 @@ export default async function ReceptionTodayPage() {
         <QuickAction
           href="/reception/find"
           title="Find a patient"
-          subtitle="By patient code (operational)"
+          subtitle="By name on today's board, or patient code"
           Icon={SearchIcon}
           tone="muted"
         />
@@ -103,24 +104,22 @@ function StatTile({
 }: {
   label: string;
   value: number;
-  tone?: "neutral" | "teal" | "amber" | "muted";
+  tone?: "neutral" | "brand" | "caution" | "muted";
 }) {
+  // The brand ramp inverts in dark mode, so a `dark:` twin fights the flip
+  // instead of helping it — one token per tone, both themes.
   const toneClass =
-    tone === "teal"
-      ? "text-brand-700 dark:text-brand-300"
-      : tone === "amber"
-        ? "text-amber-700 dark:text-amber-300"
+    tone === "brand"
+      ? "text-brand-700"
+      : tone === "caution"
+        ? "text-status-caution-fg"
         : tone === "muted"
           ? "text-muted-foreground"
           : "text-foreground";
   return (
-    <div className="border-border bg-card card-lift flex flex-col gap-1 rounded-xl border p-3">
-      <span className="text-muted-foreground font-mono text-[10px] tracking-[0.14em] uppercase">
-        {label}
-      </span>
-      <span
-        className={`font-display text-heading-l leading-none font-medium tabular-nums ${toneClass}`}
-      >
+    <div className="border-border bg-card flex flex-col gap-1 rounded-xl border p-3">
+      <span className="text-muted-foreground text-overline font-mono uppercase">{label}</span>
+      <span className={`font-display text-heading-l leading-none tabular-nums ${toneClass}`}>
         {value}
       </span>
     </div>
@@ -145,27 +144,27 @@ function QuickAction({
       href={href}
       className={
         tone === "primary"
-          ? "group card-lift tap bg-foreground text-background hover:bg-foreground/90 flex items-start gap-3 rounded-xl p-5 transition-colors"
-          : "group card-lift tap border-border bg-card hover:bg-muted/30 flex items-start gap-3 rounded-xl border p-5 transition-colors"
+          ? "group tap ease-expo-out bg-foreground text-background hover:bg-foreground/90 flex items-start gap-3 rounded-xl p-5 transition-colors duration-150"
+          : "group tap ease-expo-out border-border bg-card hover:bg-muted/30 flex items-start gap-3 rounded-xl border p-5 transition-colors duration-150"
       }
     >
       <span
         aria-hidden
         className={
           tone === "primary"
-            ? "bg-background/15 text-background inline-flex size-9 shrink-0 items-center justify-center rounded-full transition-transform duration-200 group-hover:scale-105"
-            : "bg-muted text-foreground/80 group-hover:bg-brand-50 group-hover:text-brand-700 dark:group-hover:bg-brand-950/40 dark:group-hover:text-brand-300 inline-flex size-9 shrink-0 items-center justify-center rounded-full transition-colors duration-200"
+            ? "bg-background/15 text-background inline-flex size-9 shrink-0 items-center justify-center rounded-full"
+            : "bg-muted text-foreground/80 group-hover:bg-brand-50 group-hover:text-brand-700 ease-expo-out inline-flex size-9 shrink-0 items-center justify-center rounded-full transition-colors duration-150"
         }
       >
         <Icon className="size-4" />
       </span>
       <span className="flex min-w-0 flex-1 flex-col">
-        <span className="text-[14.5px] font-medium">{title}</span>
+        <span className="text-body-m font-medium">{title}</span>
         <span
           className={
             tone === "primary"
-              ? "text-background/70 text-[12px]"
-              : "text-muted-foreground text-[12px]"
+              ? "text-background/70 text-body-s"
+              : "text-muted-foreground text-body-s"
           }
         >
           {subtitle}
@@ -175,8 +174,8 @@ function QuickAction({
         aria-hidden
         className={
           tone === "primary"
-            ? "text-background/50 text-body-s self-center transition-transform duration-200 group-hover:translate-x-0.5"
-            : "text-muted-foreground/50 group-hover:text-foreground/70 text-body-s self-center transition-all duration-200 group-hover:translate-x-0.5"
+            ? "text-background/50 text-body-s ease-expo-out self-center transition-transform duration-150 group-hover:translate-x-0.5"
+            : "text-muted-foreground/50 group-hover:text-foreground/70 text-body-s ease-expo-out self-center transition-all duration-150 group-hover:translate-x-0.5"
         }
       >
         →

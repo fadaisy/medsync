@@ -171,6 +171,12 @@ export async function fetchReceptionTodayCounts(args: {
         and(
           eq(patientIntakes.hospitalId, args.hospitalId),
           inArray(patientIntakes.status, ["arrived", "awaiting_triage"]),
+          // Windowed on presence like every sibling count in this function.
+          // Unbounded, one intake that never progressed past awaiting_triage
+          // inflated "Awaiting triage" under the "Today counts" heading
+          // forever — a number the database could not prove was today's.
+          gte(presenceAt, start),
+          lt(presenceAt, end),
         ),
       ),
     db
@@ -389,7 +395,10 @@ export async function fetchDeclaredIntakesToday(args: {
         lt(patientIntakes.arrivedAt, end),
       ),
     )
-    .orderBy(desc(patientIntakes.arrivedAt))
+    // Earliest declaration leads: this is a queue the desk works top-down,
+    // not a log. (On a still-declared row `checked_in_at` is null, so
+    // `arrived_at` IS the declaration — no presence split to make here.)
+    .orderBy(asc(patientIntakes.arrivedAt))
     .limit(args.limit ?? 100);
 
   const named = rows.map((r) => ({

@@ -45,7 +45,7 @@ export function ReceptionShell({
             MedSync
           </Link>
           <span
-            className="text-muted-foreground truncate font-mono text-[10px] tracking-[0.12em] uppercase"
+            className="text-muted-foreground text-overline truncate font-mono uppercase"
             title={scope.hospitalName}
           >
             {scope.hospitalName}
@@ -76,14 +76,11 @@ export function ReceptionShell({
               {initial}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-foreground truncate text-[12px] font-medium">
+              <p className="text-foreground text-body-s truncate font-medium">
                 {scope.fullName ?? scope.userEmail}
               </p>
-              <p className="text-muted-foreground inline-flex items-center gap-1 font-mono text-[10px] tracking-[0.1em] uppercase">
-                <ShieldCheckIcon
-                  className="text-brand-600 dark:text-brand-400 size-3"
-                  aria-hidden
-                />
+              <p className="text-muted-foreground text-overline inline-flex items-center gap-1 font-mono uppercase">
+                <ShieldCheckIcon className="text-brand-600 size-3" aria-hidden />
                 MFA · AAL2
               </p>
             </div>
@@ -105,11 +102,11 @@ export function ReceptionShell({
           <div className="hidden min-w-0 items-center gap-2 lg:flex">
             <span
               aria-label={`Signed into ${scope.hospitalName} as Reception`}
-              className="text-muted-foreground inline-flex min-w-0 items-center gap-1.5 font-mono text-[10px] tracking-[0.14em] uppercase"
+              className="text-muted-foreground text-overline inline-flex min-w-0 items-center gap-1.5 font-mono uppercase"
             >
               <span
                 aria-hidden
-                className="pulse-dot bg-brand-500 ring-brand-500/20 size-1.5 shrink-0 rounded-full ring-2"
+                className="bg-brand-500 ring-brand-500/20 size-1.5 shrink-0 rounded-full ring-2"
               />
               <span className="truncate" title={scope.hospitalName}>
                 {scope.hospitalName}
@@ -129,7 +126,7 @@ export function ReceptionShell({
                 administrative, not clinical. The chrome carries that
                 signal so the staff member knows their scope at a glance. */}
             <span
-              className="bg-muted text-muted-foreground border-border scale-in ml-2 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-mono text-[10px] tracking-[0.12em] uppercase"
+              className="bg-muted text-muted-foreground border-border text-overline ml-2 inline-flex items-center gap-1 rounded-full border px-2 py-0.5 font-mono uppercase"
               title="Reception / Records — non-clinical scope"
             >
               Reception · non-clinical
@@ -139,7 +136,7 @@ export function ReceptionShell({
           <div className="flex items-center justify-end gap-3">
             <Link
               href="/sign-out"
-              className="text-muted-foreground hover:text-foreground text-[12px] underline-offset-4 transition-colors hover:underline"
+              className="text-muted-foreground hover:text-foreground text-body-s ease-expo-out underline-offset-4 transition-colors duration-150 hover:underline"
             >
               Sign out
             </Link>

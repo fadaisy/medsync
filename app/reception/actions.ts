@@ -79,6 +79,7 @@ export async function checkInDeclaredIntakeAction(
   if (!result.ok) return { error: result.error };
   revalidatePath("/reception");
   revalidatePath("/reception/expected");
+  revalidatePath("/reception/find");
   revalidatePath("/reception/flow");
   return { ok: true };
 }

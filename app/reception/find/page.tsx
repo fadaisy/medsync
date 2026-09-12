@@ -5,6 +5,7 @@ import { ArrowLeftIcon, SearchIcon } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { searchPatientsByCode, searchTodaysBoard } from "@/lib/reception/queries";
 import { requireReceptionScope } from "@/lib/reception/scope";
+import { CheckInDeclaredButton } from "../_components/check-in-declared-button";
 
 export const metadata: Metadata = { title: "Find · Reception · MedSync" };
 export const dynamic = "force-dynamic";
@@ -59,24 +60,24 @@ export default async function ReceptionFindPage({ searchParams }: PageProps) {
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-6 py-8 lg:py-10">
       <Link
         href="/reception"
-        className="text-muted-foreground hover:text-foreground group reveal-up inline-flex w-fit items-center gap-1 text-[12.5px] transition-colors"
+        className="text-muted-foreground hover:text-foreground text-body-s ease-expo-out group reveal-up inline-flex w-fit items-center gap-1 transition-colors duration-150"
       >
         <ArrowLeftIcon
-          className="size-3.5 transition-transform duration-200 group-hover:-translate-x-0.5"
+          className="ease-expo-out size-3.5 transition-transform duration-150 group-hover:-translate-x-0.5"
           aria-hidden
         />
         Today
       </Link>
 
       <header className="reveal-up flex flex-col gap-2" style={{ animationDelay: "50ms" }}>
-        <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
+        <span className="text-muted-foreground text-overline inline-flex items-center gap-1.5 font-mono uppercase">
           <span aria-hidden className="bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2" />
           {scope.hospitalName} · Find a patient
         </span>
-        <h1 className="font-display text-foreground text-[26px] leading-[1.15] font-medium tracking-[-0.015em]">
+        <h1 className="font-display text-foreground text-heading-l">
           Search by name or patient code
         </h1>
-        <p className="text-muted-foreground max-w-[60ch] text-[12.5px] leading-relaxed">
+        <p className="text-muted-foreground text-body-s max-w-[60ch] leading-relaxed">
           A name finds only people on{" "}
           <strong className="font-medium">today&rsquo;s board here</strong> — the person in front of
           you, including anyone who declared from the app. A patient code finds any record. Every
@@ -85,35 +86,42 @@ export default async function ReceptionFindPage({ searchParams }: PageProps) {
       </header>
 
       <form
-        className="group reveal-up relative rounded-md transition-shadow duration-200 focus-within:shadow-[0_0_0_4px_rgba(20,184,166,0.08)]"
+        className="group reveal-up relative"
         style={{ animationDelay: "100ms" }}
         role="search"
         action="/reception/find"
       >
+        <label htmlFor="reception-find-q" className="sr-only">
+          Search today&rsquo;s board by name, or all records by patient code
+        </label>
         <span
           aria-hidden
-          className="text-muted-foreground group-focus-within:text-brand-600 dark:group-focus-within:text-brand-400 pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 transition-colors duration-200"
+          className="text-muted-foreground group-focus-within:text-brand-600 ease-expo-out pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 transition-colors duration-150"
         >
           <SearchIcon className="size-4" />
         </span>
         <Input
+          id="reception-find-q"
           type="search"
           name="q"
           defaultValue={query}
           placeholder="Surname, or patient code"
-          className="text-body-s h-10 w-full pr-3 pl-9 font-mono"
+          className="text-body-s min-h-11 w-full pr-3 pl-9 font-mono"
           minLength={3}
           autoFocus
         />
       </form>
 
       {query.length >= 3 ? (
-        <section className="flex flex-col gap-2">
-          <h2 className="text-muted-foreground font-mono text-[10.5px] tracking-[0.14em] uppercase">
+        <section aria-labelledby="board-heading" className="flex flex-col gap-2">
+          <h2
+            id="board-heading"
+            className="text-muted-foreground text-overline font-mono uppercase"
+          >
             On today&rsquo;s board · {board.length} {board.length === 1 ? "match" : "matches"}
           </h2>
           {board.length === 0 ? (
-            <p className="text-muted-foreground text-[12.5px]">
+            <p className="text-muted-foreground text-body-s">
               Nobody on today&rsquo;s board matches &ldquo;{query}&rdquo;. If they declared on the
               app they may have used a different hospital — otherwise register them below.
             </p>
@@ -125,10 +133,10 @@ export default async function ReceptionFindPage({ searchParams }: PageProps) {
                   className="border-border bg-card flex items-center justify-between gap-3 rounded-xl border p-4"
                 >
                   <div className="flex min-w-0 flex-col gap-0.5">
-                    <span className="text-foreground truncate text-[14px] font-medium">
+                    <span className="text-foreground text-body-s truncate font-medium">
                       {b.displayName}
                     </span>
-                    <span className="text-muted-foreground truncate font-mono text-[11px] tabular-nums">
+                    <span className="text-muted-foreground text-caption truncate font-mono tabular-nums">
                       {[
                         b.patientCode,
                         b.departmentName,
@@ -137,26 +145,18 @@ export default async function ReceptionFindPage({ searchParams }: PageProps) {
                         .filter(Boolean)
                         .join(" · ")}
                     </span>
-                    <span className="text-muted-foreground text-[11.5px]">
+                    <span className="text-muted-foreground text-caption">
                       {BOARD_STAGE_LABEL[b.status] ?? b.status}
                       {b.declaredByPatient ? " · from the app" : ""}
                     </span>
                   </div>
+                  {/* The whole point of the name search: the person is at the
+                      desk with no code. Check them in here, not on another
+                      page where the clerk has to find them a second time. */}
                   {b.status === "declared" ? (
-                    <Link
-                      href="/reception/expected"
-                      className="text-foreground border-foreground/15 hover:border-foreground/30 hover:bg-muted/40 tap group/cta inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-[12px] whitespace-nowrap transition-colors"
-                    >
-                      Check in
-                      <span
-                        aria-hidden
-                        className="inline-block transition-transform duration-200 group-hover/cta:translate-x-0.5"
-                      >
-                        →
-                      </span>
-                    </Link>
+                    <CheckInDeclaredButton intakeId={b.intakeId} patientLabel={b.displayName} />
                   ) : (
-                    <span className="text-muted-foreground text-[11.5px] whitespace-nowrap">
+                    <span className="text-muted-foreground text-caption whitespace-nowrap">
                       Already registered today
                     </span>
                   )}
@@ -167,8 +167,11 @@ export default async function ReceptionFindPage({ searchParams }: PageProps) {
         </section>
       ) : null}
 
-      <section className="flex flex-col gap-2">
-        <h2 className="text-muted-foreground font-mono text-[10.5px] tracking-[0.14em] uppercase">
+      <section aria-labelledby="records-heading" className="flex flex-col gap-2">
+        <h2
+          id="records-heading"
+          className="text-muted-foreground text-overline font-mono uppercase"
+        >
           {query.length < 3
             ? "Type ≥ 3 characters"
             : `Patient records · ${hits.length} ${hits.length === 1 ? "match" : "matches"}`}
@@ -195,7 +198,7 @@ export default async function ReceptionFindPage({ searchParams }: PageProps) {
               />
               <circle cx="27" cy="27" r="3" className="text-brand-500/30" fill="currentColor" />
             </svg>
-            <p className="text-muted-foreground text-[12.5px]">
+            <p className="text-muted-foreground text-body-s">
               No patient code matches &ldquo;{query}&rdquo;. If they&rsquo;re new, head to{" "}
               <Link
                 href="/reception/intake"
@@ -214,25 +217,26 @@ export default async function ReceptionFindPage({ searchParams }: PageProps) {
             {hits.map((h) => (
               <li
                 key={h.patientUserId}
-                className="border-border bg-card card-lift flex items-center justify-between gap-3 rounded-xl border p-4"
+                className="border-border bg-card flex items-center justify-between gap-3 rounded-xl border p-4"
               >
                 <div className="flex flex-col gap-0.5">
-                  <span className="text-foreground font-mono text-[14px] font-medium tabular-nums">
+                  <span className="text-foreground text-body-s font-mono font-medium tabular-nums">
                     {h.patientCode}
                   </span>
-                  <span className="text-muted-foreground text-[12px]">
+                  <span className="text-muted-foreground text-caption">
                     {SEX_LABEL[h.sex] ?? h.sex} · {computeAge(h.dateOfBirth)}y
                     {h.primaryHospitalName ? ` · primary: ${h.primaryHospitalName}` : ""}
                   </span>
                 </div>
                 <Link
                   href={`/reception/intake?patient=${h.patientUserId}`}
-                  className="text-foreground border-foreground/15 hover:border-foreground/30 hover:bg-muted/40 tap group/cta inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-[12px] whitespace-nowrap transition-colors"
+                  aria-label={`Register an entry for ${h.patientCode}`}
+                  className="text-foreground border-foreground/15 hover:border-foreground/30 hover:bg-muted/40 text-body-s ease-expo-out tap group/cta inline-flex min-h-11 items-center gap-1 rounded-full border px-4 whitespace-nowrap transition-colors duration-150"
                 >
                   Register an entry
                   <span
                     aria-hidden
-                    className="inline-block transition-transform duration-200 group-hover/cta:translate-x-0.5"
+                    className="ease-expo-out inline-block transition-transform duration-150 group-hover/cta:translate-x-0.5"
                   >
                     →
                   </span>

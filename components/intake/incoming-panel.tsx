@@ -35,13 +35,13 @@ export function IncomingIntakesPanel({
 }) {
   return (
     <section
-      aria-label="Incoming intakes — awaiting triage"
+      aria-label="Incoming intakes"
       className="border-border bg-card flex flex-col gap-3 rounded-xl border p-4"
     >
       <header className="flex items-baseline justify-between gap-2">
         <h2 className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10.5px] tracking-[0.14em] uppercase">
           <DoorOpenIcon className="size-3.5" aria-hidden />
-          Awaiting triage · {departmentName}
+          Incoming · {departmentName}
         </h2>
         <span className="text-muted-foreground font-mono text-[10.5px] tabular-nums">
           {rows.length}
@@ -50,7 +50,7 @@ export function IncomingIntakesPanel({
 
       {rows.length === 0 ? (
         <p className="text-muted-foreground text-[12.5px]">
-          No one awaiting triage in {departmentName} right now.
+          No one incoming in {departmentName} right now.
         </p>
       ) : (
         <ul className="divide-border/60 -mx-2 flex flex-col divide-y">

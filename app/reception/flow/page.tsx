@@ -1,7 +1,9 @@
+import type { PillProps } from "@/components/ui/pill";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeftIcon } from "lucide-react";
 
+import { Pill } from "@/components/ui/pill";
 import { fetchTodayFlow } from "@/lib/reception/queries";
 import { requireReceptionScope } from "@/lib/reception/scope";
 
@@ -16,16 +18,26 @@ const STAGE_LABEL: Record<string, string> = {
   awaiting_triage: "Awaiting triage",
 };
 
-const STAGE_TONE: Record<string, string> = {
-  // 'declared' = patient said they're coming, not here yet. Muted
-  // teal so it's visibly different from 'arrived' (solid teal) — the
-  // pre-queued/arrived distinction must be unmistakable.
-  declared:
-    "bg-brand-50/60 text-brand-700 ring-1 ring-brand-200/60 dark:bg-brand-950/30 dark:text-brand-300 dark:ring-brand-800/40",
-  expected: "bg-muted text-muted-foreground",
-  arrived: "bg-brand-50 text-brand-700 dark:bg-brand-950/40 dark:text-brand-300",
-  in_queue: "bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300",
-  awaiting_triage: "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300",
+/**
+ * Stage chips reuse the shared Pill, so a reception board reads identically to
+ * every other board in the app. Tokens only, and no `dark:` twin: the status
+ * pairs and the brand ramp both invert under .dark, so a second declaration
+ * lands on the wrong end of the scale.
+ *
+ * Only the two clinical-status tones that are honestly true here are used —
+ * `pending` ("awaiting action") and `caution`. `stable` and `admitted` mean
+ * vitals and a bed, neither of which an OPD stage knows anything about, so the
+ * present-in-the-building stages take brand tints instead. The word in the chip
+ * is what carries the meaning either way.
+ */
+const STAGE_PILL: Record<string, { tone?: PillProps["tone"]; className?: string }> = {
+  // Patient said they're coming, not here yet: neutral and outlined, so it
+  // cannot be mistaken for a tinted present-in-the-building row.
+  declared: { tone: "neutral", className: "ring-border ring-1 ring-inset" },
+  expected: { tone: "pending" },
+  arrived: { className: "bg-brand-50 text-brand-800" },
+  in_queue: { className: "bg-brand-100 text-brand-900" },
+  awaiting_triage: { tone: "caution" },
 };
 
 export default async function ReceptionFlowPage() {
@@ -36,24 +48,22 @@ export default async function ReceptionFlowPage() {
     <div className="stagger-children mx-auto flex w-full max-w-6xl flex-col gap-6 px-6 py-8 lg:py-10">
       <Link
         href="/reception"
-        className="text-muted-foreground hover:text-foreground group inline-flex w-fit items-center gap-1 text-[12.5px] transition-colors"
+        className="text-muted-foreground hover:text-foreground text-body-s ease-expo-out group inline-flex w-fit items-center gap-1 transition-colors duration-150"
       >
         <ArrowLeftIcon
-          className="size-3.5 transition-transform duration-200 group-hover:-translate-x-0.5"
+          className="ease-expo-out size-3.5 transition-transform duration-150 group-hover:-translate-x-0.5"
           aria-hidden
         />
         Today
       </Link>
 
       <header className="flex flex-col gap-2">
-        <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
+        <span className="text-muted-foreground text-overline inline-flex items-center gap-1.5 font-mono uppercase">
           <span aria-hidden className="bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2" />
           {scope.hospitalName} · Today&rsquo;s flow
         </span>
-        <h1 className="font-display text-foreground text-[26px] leading-[1.15] font-medium tracking-[-0.015em]">
-          Who&rsquo;s where
-        </h1>
-        <p className="text-muted-foreground max-w-[60ch] text-[12.5px] leading-relaxed">
+        <h1 className="font-display text-foreground text-heading-l">Who&rsquo;s where</h1>
+        <p className="text-muted-foreground text-body-s max-w-[60ch] leading-relaxed">
           Operational status only — answers &ldquo;has Mr. X arrived?&rdquo;, &ldquo;where is my
           patient in the queue?&rdquo;. No clinical detail.
         </p>
@@ -72,10 +82,10 @@ export default async function ReceptionFlowPage() {
           </p>
         </div>
       ) : (
-        <div className="border-border bg-card overflow-hidden rounded-xl border">
+        <div className="border-border bg-card overflow-x-auto rounded-xl border">
           <table className="w-full border-collapse text-left">
             <thead className="border-border bg-muted/30 border-b">
-              <tr className="text-muted-foreground font-mono text-[10px] tracking-[0.14em] uppercase">
+              <tr className="text-muted-foreground text-overline font-mono uppercase">
                 <th scope="col" className="px-4 py-2.5 font-normal">
                   Patient
                 </th>
@@ -99,25 +109,23 @@ export default async function ReceptionFlowPage() {
                 return (
                   <tr
                     key={`${r.patientUserId ?? "unknown"}-${i}`}
-                    className="hover:bg-brand-50/40 dark:hover:bg-brand-950/15 transition-colors"
+                    className="hover:bg-brand-50/40 ease-expo-out transition-colors duration-150"
                   >
-                    <td className="text-foreground px-4 py-2.5 font-mono text-[12.5px] tabular-nums">
+                    <td className="text-foreground text-body-s px-4 py-2.5 font-mono tabular-nums">
                       {who}
                     </td>
                     <td className="px-4 py-2.5">
-                      <span
-                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10.5px] font-medium ${STAGE_TONE[r.stage] ?? "bg-muted text-muted-foreground"}`}
-                      >
+                      <Pill {...(STAGE_PILL[r.stage] ?? {})}>
                         {STAGE_LABEL[r.stage] ?? r.stage}
-                      </span>
+                      </Pill>
                     </td>
-                    <td className="text-muted-foreground px-4 py-2.5 text-[12px]">
+                    <td className="text-muted-foreground text-body-s px-4 py-2.5">
                       {r.departmentName ?? "—"}
                     </td>
-                    <td className="text-muted-foreground px-4 py-2.5 font-mono text-[11.5px] tabular-nums">
+                    <td className="text-muted-foreground text-caption px-4 py-2.5 font-mono tabular-nums">
                       {formatTime(r.whenIso)}
                     </td>
-                    <td className="text-muted-foreground px-4 py-2.5 text-[11.5px]">{r.detail}</td>
+                    <td className="text-muted-foreground text-caption px-4 py-2.5">{r.detail}</td>
                   </tr>
                 );
               })}
