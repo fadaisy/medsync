@@ -146,3 +146,24 @@ export const patientIntakes = pgTable(
 
 export type PatientIntake = typeof patientIntakes.$inferSelect;
 export type NewPatientIntake = typeof patientIntakes.$inferInsert;
+
+/**
+ * Sort rank for `priority_hint`. ORDER BY this ASCENDING — urgent (0) first.
+ *
+ * `priority_hint` is TEXT constrained to ('routine','high','urgent'), so the
+ * obvious `desc(priorityHint)` sorts ALPHABETICALLY and yields
+ * urgent → routine → high: reception's escalation flag lands BELOW every
+ * routine patient on the nurse's un-triaged worklist. Both worklists shipped
+ * that inversion (`lib/triage/worklist.ts`, `lib/intake/queries.ts`) while
+ * their comments claimed "priority desc" — the intent was documented and the
+ * collation quietly did the opposite.
+ *
+ * Every surface that orders by clinical priority must use this, never a bare
+ * desc() on the column.
+ *
+ * ponytail: a CASE rather than a numeric column or a pg enum, because the
+ * ordering is a read concern and a migration would have to rewrite live
+ * intake rows. Ceiling: a fourth priority value means editing this expression.
+ * Upgrade path: `priority_rank smallint` written alongside the hint.
+ */
+export const priorityHintRank = sql`CASE ${patientIntakes.priorityHint} WHEN 'urgent' THEN 0 WHEN 'high' THEN 1 ELSE 2 END`;

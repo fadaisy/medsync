@@ -1,18 +1,61 @@
 import "server-only";
 
-import { and, asc, desc, eq, gte, inArray } from "drizzle-orm";
+import { and, asc, eq, gte, inArray, sql } from "drizzle-orm";
 
 import { db } from "@/db";
 import { hospitalDepartments } from "@/db/schema/hospital-departments";
 import { hospitals } from "@/db/schema/hospitals";
-import { entryTypes, patientIntakes } from "@/db/schema/patient-intakes";
+import { entryTypes, patientIntakes, priorityHintRank } from "@/db/schema/patient-intakes";
 import { patientProfiles } from "@/db/schema/patient-profiles";
 
 /**
  * Read helpers for patient_intakes. Patient names on these surfaces
  * stay as patient_code only — the audited PHI decrypt path (doctor /
- * nurse patient-access helpers) handles named summaries.
+ * nurse patient-access helpers, and lib/reception/queries.ts for the
+ * front desk) handles named rows.
  */
+
+/* ─── Presence, not intent (ADR 0084 §7b) ───────────────────────── */
+
+/**
+ * When the patient was PHYSICALLY at the hospital.
+ *
+ * `arrived_at` is `notNull().defaultNow()` and `pt-declare-intake` inserts a
+ * `declared` row without supplying it — so on a patient-declared intake
+ * `arrived_at` stamps the DECLARATION, made from home. `ha-check-in-patient`
+ * then flips the row to 'arrived' and stamps `checked_in_at`, leaving
+ * `arrived_at` untouched. Ordering by `arrived_at` therefore ranked someone
+ * who declared at 06:10 and walked in at 13:00 AHEAD of someone registered at
+ * the desk at 07:30 — all day, on every board.
+ *
+ * `coalesce` is right for every writer of the table:
+ *   - staff-created rows (`ha-register-intake`, booked check-in):
+ *     `checked_in_at` IS NULL and `arrived_at` IS the physical arrival.
+ *   - declared → arrived rows: `checked_in_at` is the arrival.
+ *   - still-`declared` rows: no arrival exists yet, so this is the
+ *     declaration — which is exactly why `declaredLast` keeps those rows out
+ *     of the physical line rather than letting this timestamp place them in it.
+ *
+ * Read-side only: migration 0035 already ships both columns. Order by this
+ * ASCENDING (longest-present first), never by `arrivedAt` directly.
+ */
+export const presenceAt = sql`coalesce(${patientIntakes.checkedInAt}, ${patientIntakes.arrivedAt})`;
+
+/**
+ * A `declared` row is a declaration of intent, not a position among present
+ * patients (ADR 0084 §7b). Booleans sort false → true, so present rows lead
+ * and declarations tail. ORDER BY this between `priorityHintRank` and
+ * `presenceAt`.
+ */
+export const declaredLast = sql`${patientIntakes.status} = 'declared'`;
+
+/**
+ * The JS half of `presenceAt`, for projecting a selected row. Same rule, same
+ * file, so the display timestamp and the sort key can never drift apart.
+ */
+export function presenceOf(row: { checkedInAt: Date | null; arrivedAt: Date }): Date {
+  return row.checkedInAt ?? row.arrivedAt;
+}
 
 export interface IntakeRow {
   id: string;
@@ -21,11 +64,15 @@ export interface IntakeRow {
   isEmergency: boolean;
   priorityHint: string;
   status: string;
+  /** PRESENCE, not declaration: `coalesce(checked_in_at, arrived_at)`.
+   * On a still-`declared` row no arrival exists, so this is the declaration
+   * time and the row carries `status==='declared'` to say so. Every surface
+   * rendering this as a waited-for duration gets the honest number. */
   arrivedAtIso: string;
   /** True when this intake was patient-initiated via book-or-queue
    * (migration 0035). When also status='declared', the patient hasn't
-   * physically arrived yet — surface a "Declared · not here yet" chip
-   * and rank below present-and-waiting rows. */
+   * physically arrived yet — surface a "Declared · not here yet" chip;
+   * the SQL order already ranks them below present-and-waiting rows. */
   declaredByPatient: boolean;
   /** Triage acuity once assigned (migration 0036). Null = not yet
    * triaged. Drives the acuity chip + sort on staff boards. */
@@ -66,6 +113,7 @@ export async function fetchHospitalIncomingIntakes(args: {
       priorityHint: patientIntakes.priorityHint,
       status: patientIntakes.status,
       arrivedAt: patientIntakes.arrivedAt,
+      checkedInAt: patientIntakes.checkedInAt,
       declaredByPatient: patientIntakes.declaredByPatient,
       triageLevel: patientIntakes.triageLevel,
       patientCode: patientProfiles.patientCode,
@@ -83,10 +131,17 @@ export async function fetchHospitalIncomingIntakes(args: {
     .leftJoin(hospitalDepartments, eq(hospitalDepartments.id, patientIntakes.receivingDepartmentId))
     .leftJoin(hospitals, eq(hospitals.id, patientIntakes.referringHospitalId))
     .where(and(...conditions))
-    // Emergency first (priority desc by hint), then oldest-waiting first.
-    // Declared-but-not-here rows get sorted to the tail in JS below,
-    // since they shouldn't push present-and-waiting patients down.
-    .orderBy(desc(patientIntakes.priorityHint), asc(patientIntakes.arrivedAt))
+    // Clinical priority first (priorityHintRank ASC — a bare desc() on the
+    // TEXT column sorts 'high' below 'routine'), then presence: people who
+    // are physically here, longest-present first, then declarations.
+    //
+    // The declared-to-the-tail split used to run in JS AFTER .limit(), which
+    // was the right instinct in the wrong place: it only caught rows still in
+    // 'declared' (a checked-in declarer re-entered the line on its 06:00
+    // declaration), and on a board with more declarations than `limit` the
+    // SQL window filled with not-here-yet rows and silently dropped present
+    // patients off the end. In SQL it happens before the cut.
+    .orderBy(priorityHintRank, declaredLast, presenceAt)
     .limit(args.limit ?? 50);
 
   const mapped: IntakeRow[] = rows.map((r) => ({
@@ -96,7 +151,7 @@ export async function fetchHospitalIncomingIntakes(args: {
     isEmergency: r.isEmergency,
     priorityHint: r.priorityHint,
     status: r.status,
-    arrivedAtIso: r.arrivedAt.toISOString(),
+    arrivedAtIso: presenceOf(r).toISOString(),
     declaredByPatient: r.declaredByPatient,
     triageLevel: r.triageLevel,
     patientCode: r.patientCode,
@@ -109,14 +164,7 @@ export async function fetchHospitalIncomingIntakes(args: {
     broughtBy: r.broughtBy,
   }));
 
-  // Stable rank: present rows first (current SQL order preserved),
-  // declared rows after (most-recent declaration first, since they're
-  // really a pre-queue, not a triage queue).
-  const present = mapped.filter((r) => r.status !== "declared");
-  const declared = mapped
-    .filter((r) => r.status === "declared")
-    .sort((a, b) => b.arrivedAtIso.localeCompare(a.arrivedAtIso));
-  return [...present, ...declared];
+  return mapped;
 }
 
 export interface EntryTypeRow {
@@ -179,9 +227,9 @@ export async function fetchTodayIntakeCount(args: {
     })
     .from(patientIntakes)
     .innerJoin(entryTypes, eq(entryTypes.code, patientIntakes.entryTypeCode))
-    .where(
-      and(eq(patientIntakes.hospitalId, args.hospitalId), gte(patientIntakes.arrivedAt, start)),
-    );
+    // Windowed on presence, so a patient who declared at 23:50 last night and
+    // checked in at 08:00 counts against today, not yesterday.
+    .where(and(eq(patientIntakes.hospitalId, args.hospitalId), gte(presenceAt, start)));
   let awaiting = 0;
   let emergency = 0;
   for (const r of rows) {

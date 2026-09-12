@@ -5,11 +5,12 @@ import { and, desc, eq, gte, inArray, lt, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { clinicalPhiAccessLog } from "@/db/schema/doctor-workspace";
 import { clinicalObservations } from "@/db/schema/nurse-workspace";
-import { entryTypes, patientIntakes } from "@/db/schema/patient-intakes";
+import { entryTypes, patientIntakes, priorityHintRank } from "@/db/schema/patient-intakes";
 import { patientProfiles } from "@/db/schema/patient-profiles";
 import { triageRecords } from "@/db/schema/triage";
 import { computeAgeYears } from "@/lib/age";
 import { decrypt } from "@/lib/encryption";
+import { presenceAt, presenceOf } from "@/lib/intake/queries";
 import { logger } from "@/lib/logger";
 
 /**
@@ -40,6 +41,10 @@ export interface TriageWorklistRow {
   isEmergency: boolean;
   priorityHint: string;
   presentingComplaint: string | null;
+  /** PRESENCE, not declaration — `coalesce(checked_in_at, arrived_at)`. A
+   * patient who declared from home at 06:10 and was checked in at 13:00 has
+   * waited since 13:00, and the "waited for" chip must say so. See
+   * `presenceAt` in lib/intake/queries.ts. */
   arrivedAtIso: string;
   status: string;
   /** Set once triaged — drives the "re-triage" affordance + prior chip. */
@@ -79,6 +84,7 @@ export async function fetchTriageWorklist(args: {
       priorityHint: patientIntakes.priorityHint,
       presentingComplaint: patientIntakes.presentingComplaint,
       arrivedAt: patientIntakes.arrivedAt,
+      checkedInAt: patientIntakes.checkedInAt,
       status: patientIntakes.status,
       triageLevel: patientIntakes.triageLevel,
     })
@@ -88,12 +94,17 @@ export async function fetchTriageWorklist(args: {
     .where(and(...conditions))
     // Un-triaged first (they NEED assessment): `triage_level IS NOT NULL`
     // sorts false→true, so nulls (un-triaged) lead. Within each group:
-    // higher priority hint, then oldest-waiting.
-    .orderBy(
-      sql`${patientIntakes.triageLevel} IS NOT NULL`,
-      desc(patientIntakes.priorityHint),
-      patientIntakes.arrivedAt,
-    )
+    // higher priority hint, then longest-present.
+    //
+    // `priorityHintRank` ASC, never `desc(priorityHint)` — the column is TEXT
+    // and a descending collation puts 'high' below 'routine'. See the helper.
+    //
+    // `presenceAt`, never `arrivedAt` — on a patient-declared intake
+    // `arrived_at` holds the DECLARATION, so a 06:10 declarer who walked in at
+    // 13:00 outranked an 07:30 desk registration all day. No 'declared' row
+    // reaches this worklist (the status filter above excludes them), so the
+    // declared/present split isn't needed here — only the timestamp is.
+    .orderBy(sql`${patientIntakes.triageLevel} IS NOT NULL`, priorityHintRank, presenceAt)
     .limit(args.limit ?? 100);
 
   const now = new Date();
@@ -119,7 +130,7 @@ export async function fetchTriageWorklist(args: {
       isEmergency: r.isEmergency,
       priorityHint: r.priorityHint,
       presentingComplaint: r.presentingComplaint,
-      arrivedAtIso: r.arrivedAt.toISOString(),
+      arrivedAtIso: presenceOf(r).toISOString(),
       status: r.status,
       priorLevel: r.triageLevel,
     };
@@ -175,6 +186,7 @@ export async function fetchTriageWorklistRow(args: {
       priorityHint: patientIntakes.priorityHint,
       presentingComplaint: patientIntakes.presentingComplaint,
       arrivedAt: patientIntakes.arrivedAt,
+      checkedInAt: patientIntakes.checkedInAt,
       status: patientIntakes.status,
       triageLevel: patientIntakes.triageLevel,
     })
@@ -227,7 +239,7 @@ export async function fetchTriageWorklistRow(args: {
     isEmergency: r.isEmergency,
     priorityHint: r.priorityHint,
     presentingComplaint: r.presentingComplaint,
-    arrivedAtIso: r.arrivedAt.toISOString(),
+    arrivedAtIso: presenceOf(r).toISOString(),
     status: r.status,
     priorLevel: r.triageLevel,
   };

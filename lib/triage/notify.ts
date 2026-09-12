@@ -1,5 +1,6 @@
 import "server-only";
 
+import type { NotificationSink } from "@/lib/notifications/sink";
 import type { createServiceClient } from "@/lib/supabase/service";
 import type { AcuityLevel } from "@/lib/triage/types";
 import { and, eq, inArray } from "drizzle-orm";
@@ -8,41 +9,29 @@ import { db } from "@/db";
 import { staffAffiliations } from "@/db/schema/clinician-profiles";
 import { cadres } from "@/db/schema/reference-data";
 import { logger } from "@/lib/logger";
+import { stubbedNotificationSink } from "@/lib/notifications/sink";
 
 /**
  * Triage Red/Orange alerting (R2). A high-acuity outcome (Level 1 or 2)
  * notifies the receiving department's active clinical staff IN-APP now
  * (one sa_notifications row each — own-row RLS already scopes reads).
  *
- * SMS/push ride the NotificationSink interface below, which currently
- * NO-OPS with a logged TODO. When a real gateway lands, swap the
- * implementation here — the triage action does not change. This is the
- * honest version of "push + SMS to the receiving team" given no
- * dispatcher exists yet (proposal §G.1).
+ * The sink itself moved to lib/notifications/sink.ts when appointment
+ * reminders became its second consumer; it is re-exported here so triage
+ * and resus (lib/resus/mobilise.ts) keep importing from one place.
+ *
+ * What changed underneath: an SMS transport now exists
+ * (lib/notifications/africastalking.ts), so the blocker on staff alerts is
+ * no longer transport but data — nothing in the schema stores a staff
+ * phone number. See the note on `stubbedNotificationSink`.
  */
 
 /** Acuity levels that trigger an alert. */
 const ALERT_LEVELS: ReadonlyArray<AcuityLevel> = [1, 2];
 
-export interface NotificationSink {
-  /** Best-effort out-of-band alert (SMS/push). Must never throw. */
-  sendUrgent(args: { recipientUserId: string; subject: string; body: string }): Promise<void>;
-}
-
-/**
- * The current sink: no real SMS/push transport exists, so we log the
- * intent (so it's observable + auditable in logs) and return. Swapping
- * in Africa's Talking / FCM later is a one-file change.
- */
-export const stubbedNotificationSink: NotificationSink = {
-  async sendUrgent({ recipientUserId, subject }) {
-    logger.info("triage.notify.sms_push.stubbed", {
-      recipient: recipientUserId,
-      subject,
-      todo: "wire real SMS/push dispatcher (proposal §G.1)",
-    });
-  },
-};
+// Re-exported, not forked: lib/resus/mobilise.ts imports both from here.
+export { stubbedNotificationSink };
+export type { NotificationSink };
 
 type ServiceClient = ReturnType<typeof createServiceClient>;
 
