@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowLeftIcon, SearchIcon } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
-import { searchPatientsByCode } from "@/lib/reception/queries";
+import { searchPatientsByCode, searchTodaysBoard } from "@/lib/reception/queries";
 import { requireReceptionScope } from "@/lib/reception/scope";
 
 export const metadata: Metadata = { title: "Find · Reception · MedSync" };
@@ -16,6 +16,14 @@ const SEX_LABEL: Record<string, string> = {
   prefer_not_say: "Prefer not to say",
 };
 
+/** Words, never colour alone — every board row states its stage in text. */
+const BOARD_STAGE_LABEL: Record<string, string> = {
+  declared: "Declared · not here yet",
+  arrived: "Checked in",
+  awaiting_triage: "Waiting for triage",
+  triaged: "Triaged",
+};
+
 interface PageProps {
   searchParams: Promise<{ q?: string }>;
 }
@@ -25,10 +33,27 @@ export default async function ReceptionFindPage({ searchParams }: PageProps) {
   const scope = await requireReceptionScope();
   const query = (q ?? "").trim();
 
-  const hits =
+  // Two searches, two different bases, kept visibly apart.
+  //
+  //   Board — by name, over live intakes at THIS hospital today. Names are
+  //   encrypted, so this reveal is decrypted and audited per row (ADR 0084
+  //   §11); the today-and-here scope is what justifies it.
+  //
+  //   Records — patient_code only, the plaintext operational identifier
+  //   ADR 0032 §2 already grants reception. No name search over the whole
+  //   hospital: that is deliberately not a thing reception can do.
+  const [board, hits] =
     query.length >= 3
-      ? await searchPatientsByCode({ hospitalId: scope.hospitalId, query, limit: 20 })
-      : [];
+      ? await Promise.all([
+          searchTodaysBoard({
+            hospitalId: scope.hospitalId,
+            receptionUserId: scope.userId,
+            query,
+            limit: 20,
+          }),
+          searchPatientsByCode({ hospitalId: scope.hospitalId, query, limit: 20 }),
+        ])
+      : [[], []];
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-6 py-8 lg:py-10">
@@ -49,11 +74,13 @@ export default async function ReceptionFindPage({ searchParams }: PageProps) {
           {scope.hospitalName} · Find a patient
         </span>
         <h1 className="font-display text-foreground text-[26px] leading-[1.15] font-medium tracking-[-0.015em]">
-          Search by patient code
+          Search by name or patient code
         </h1>
         <p className="text-muted-foreground max-w-[60ch] text-[12.5px] leading-relaxed">
-          The fast lookup. Name + phone search lands with the audited operational-decrypt path in a
-          follow-up — for now the patient code is what reception types.
+          A name finds only people on{" "}
+          <strong className="font-medium">today&rsquo;s board here</strong> — the person in front of
+          you, including anyone who declared from the app. A patient code finds any record. Every
+          name shown is recorded against your account.
         </p>
       </header>
 
@@ -73,18 +100,78 @@ export default async function ReceptionFindPage({ searchParams }: PageProps) {
           type="search"
           name="q"
           defaultValue={query}
-          placeholder="e.g. MS-2026-00"
+          placeholder="Surname, or patient code"
           className="text-body-s h-10 w-full pr-3 pl-9 font-mono"
           minLength={3}
           autoFocus
         />
       </form>
 
+      {query.length >= 3 ? (
+        <section className="flex flex-col gap-2">
+          <h2 className="text-muted-foreground font-mono text-[10.5px] tracking-[0.14em] uppercase">
+            On today&rsquo;s board · {board.length} {board.length === 1 ? "match" : "matches"}
+          </h2>
+          {board.length === 0 ? (
+            <p className="text-muted-foreground text-[12.5px]">
+              Nobody on today&rsquo;s board matches &ldquo;{query}&rdquo;. If they declared on the
+              app they may have used a different hospital — otherwise register them below.
+            </p>
+          ) : (
+            <ul key={`board-${query}`} className="stagger-children flex flex-col gap-2">
+              {board.map((b) => (
+                <li
+                  key={b.intakeId}
+                  className="border-border bg-card flex items-center justify-between gap-3 rounded-xl border p-4"
+                >
+                  <div className="flex min-w-0 flex-col gap-0.5">
+                    <span className="text-foreground truncate text-[14px] font-medium">
+                      {b.displayName}
+                    </span>
+                    <span className="text-muted-foreground truncate font-mono text-[11px] tabular-nums">
+                      {[
+                        b.patientCode,
+                        b.departmentName,
+                        `${b.status === "declared" ? "declared" : "here since"} ${formatTime(b.presenceAtIso)}`,
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </span>
+                    <span className="text-muted-foreground text-[11.5px]">
+                      {BOARD_STAGE_LABEL[b.status] ?? b.status}
+                      {b.declaredByPatient ? " · from the app" : ""}
+                    </span>
+                  </div>
+                  {b.status === "declared" ? (
+                    <Link
+                      href="/reception/expected"
+                      className="text-foreground border-foreground/15 hover:border-foreground/30 hover:bg-muted/40 tap group/cta inline-flex items-center gap-1 rounded-full border px-3 py-1.5 text-[12px] whitespace-nowrap transition-colors"
+                    >
+                      Check in
+                      <span
+                        aria-hidden
+                        className="inline-block transition-transform duration-200 group-hover/cta:translate-x-0.5"
+                      >
+                        →
+                      </span>
+                    </Link>
+                  ) : (
+                    <span className="text-muted-foreground text-[11.5px] whitespace-nowrap">
+                      Already registered today
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      ) : null}
+
       <section className="flex flex-col gap-2">
         <h2 className="text-muted-foreground font-mono text-[10.5px] tracking-[0.14em] uppercase">
           {query.length < 3
             ? "Type ≥ 3 characters"
-            : `${hits.length} ${hits.length === 1 ? "match" : "matches"}`}
+            : `Patient records · ${hits.length} ${hits.length === 1 ? "match" : "matches"}`}
         </h2>
 
         {query.length >= 3 && hits.length === 0 ? (
@@ -109,7 +196,7 @@ export default async function ReceptionFindPage({ searchParams }: PageProps) {
               <circle cx="27" cy="27" r="3" className="text-brand-500/30" fill="currentColor" />
             </svg>
             <p className="text-muted-foreground text-[12.5px]">
-              No patient matches &ldquo;{query}&rdquo;. If they&rsquo;re new, head to{" "}
+              No patient code matches &ldquo;{query}&rdquo;. If they&rsquo;re new, head to{" "}
               <Link
                 href="/reception/intake"
                 className="text-foreground underline-offset-2 hover:underline"
@@ -157,6 +244,10 @@ export default async function ReceptionFindPage({ searchParams }: PageProps) {
       </section>
     </div>
   );
+}
+
+function formatTime(iso: string): string {
+  return new Date(iso).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
 }
 
 function computeAge(iso: string): number {

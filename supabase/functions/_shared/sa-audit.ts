@@ -23,7 +23,7 @@ import { serviceClient } from "./auth.ts";
  */
 /**
  * Allowed action / targetKind values — kept in sync with the
- * sa_audit_log CHECK constraint (currently set by migration 0025).
+ * sa_audit_log CHECK constraint (currently set by migration 0054).
  * When you add a value here, ALSO add it to the migration; the union
  * is here so typecheck catches typos before they hit the DB.
  */
@@ -105,7 +105,10 @@ export type SaAuditAction =
   // Reception + lifecycle (migration 0033)
   | "check_in_patient"
   // Book-or-queue: patient-declared intake (migration 0035)
-  | "patient_declare_intake";
+  | "patient_declare_intake"
+  // Emergency phone (ADR 0084 §3, migration 0054 — GATED, and until the owner
+  // applies it sa-set-emergency-phone fails closed on the audit write).
+  | "set_emergency_phone";
 
 export type SaAuditTargetKind =
   | "staff_affiliation"

@@ -14,6 +14,10 @@ import { users } from "@/db/schema/users";
  * for a (clinician, date range) and normalises them into the
  * CalendarEvent shape the calendar component renders.
  *
+ * Rendering only. Whether a time is BOOKABLE is the slot engine's
+ * answer (`@/supabase/functions/_shared/slots`) and never this file's —
+ * see the weekly-expansion note below for why the two do not share code.
+ *
  * Patient names: we surface `patient_code` only by default (no PHI
  * decrypt on the calendar — the slide-out detail panel handles
  * audited decrypt when the doctor opens a specific appointment).
@@ -116,10 +120,34 @@ export async function fetchClinicianCalendarEvents(args: {
 
   for (const r of blockRows) {
     if (r.recurrence === "weekly" && r.recurrenceWeekday) {
-      // Expand into one event per weekly occurrence inside the
-      // visible window. Time-of-day comes from the template's
-      // starts_at / ends_at; the date walks Monday → Sunday hitting
-      // the matching weekday.
+      // Expand into one event per weekly occurrence in the window:
+      // time-of-day from the template's starts_at/ends_at, the date
+      // walking week by week to the matching weekday.
+      //
+      // The slot engine (`@/supabase/functions/_shared/slots`) grew its
+      // `expandBlocks` out of this loop, and this deliberately does NOT
+      // call it: nothing expansion-shaped is exported there. `buildSlots`
+      // is the closest thing, and every rule it applies is wrong for a
+      // calendar — it keeps `kind === 'bookable'` alone (this grid renders
+      // all six kinds), drops everything at or before `now` (past weeks
+      // would go blank), chops each window into slotMinutes rectangles,
+      // subtracts booked appointments and department opening hours, and
+      // returns bare instants carrying no id/kind/location to build an
+      // event from. The genuinely shared rule is the weekday arithmetic
+      // below; reaching it means exporting a bookable-only, identity-less
+      // `expandBlocks` and still re-deriving all of the above here.
+      //
+      // So: two copies, kept in sync by hand, and the things that must
+      // agree are the weekday convention and "time-of-day comes from the
+      // template". Where they already differ the calendar shows MORE than
+      // the engine will offer, never less — it renders the declared block
+      // whole where `recurrence_until` cuts an occurrence short, and its
+      // loop bound is the midnight cursor rather than the occurrence start.
+      // ponytail: showing what the clinician declared is what this view is
+      // for, and nothing here can make a time bookable. Ceiling: the day
+      // this grid gains a book-from-calendar affordance. Upgrade path: test
+      // occStart against recurrenceUntil and clamp occEnd to it, exactly as
+      // `expandBlocks` does.
       const durationMs = r.endsAt.getTime() - r.startsAt.getTime();
       const templateLocalH = r.startsAt.getHours();
       const templateLocalM = r.startsAt.getMinutes();
@@ -165,23 +193,25 @@ export async function fetchClinicianCalendarEvents(args: {
     // One-off block. If it spans multiple days, split into one event
     // per day so the time-grid renders each day's column correctly
     // (the time-grid buckets by start-day).
-    const spans = endOfDay(r.startsAt).getTime() < r.endsAt.getTime();
+    const firstMidnight = toMidnight(r.startsAt);
+    const nextDay = new Date(firstMidnight);
+    nextDay.setDate(nextDay.getDate() + 1);
+    const spans = r.endsAt >= nextDay;
     if (spans) {
-      const dayCursor = new Date(r.startsAt);
-      dayCursor.setHours(0, 0, 0, 0);
-      const blockEndDay = new Date(r.endsAt);
-      blockEndDay.setHours(0, 0, 0, 0);
+      const dayCursor = new Date(firstMidnight);
+      const blockEndDay = toMidnight(r.endsAt);
       let chunkIdx = 0;
       while (dayCursor <= blockEndDay) {
-        const chunkStart =
-          dayCursor.getTime() === toMidnight(r.startsAt).getTime()
-            ? r.startsAt
-            : new Date(dayCursor);
+        // dayCursor starts at midnight of startsAt and steps a day at a
+        // time, so it is the block's own start on the first pass only.
+        const chunkStart = chunkIdx === 0 ? r.startsAt : new Date(dayCursor);
         const nextMidnight = new Date(dayCursor);
         nextMidnight.setDate(nextMidnight.getDate() + 1);
         const chunkEnd = r.endsAt < nextMidnight ? r.endsAt : nextMidnight;
-        // Only emit chunks intersecting the window.
-        if (chunkEnd > args.rangeStart && chunkStart < args.rangeEnd) {
+        // Only emit chunks intersecting the window. A block ending exactly
+        // at midnight lands one zero-length chunk on the following day —
+        // a phantom 0-height event on a day the clinician isn't there.
+        if (chunkEnd > chunkStart && chunkEnd > args.rangeStart && chunkStart < args.rangeEnd) {
           events.push({
             id: `b-${r.id}-d${chunkIdx}`,
             kind: "availability",
@@ -237,11 +267,5 @@ export async function fetchClinicianCalendarEvents(args: {
 function toMidnight(d: Date): Date {
   const next = new Date(d);
   next.setHours(0, 0, 0, 0);
-  return next;
-}
-
-function endOfDay(d: Date): Date {
-  const next = toMidnight(d);
-  next.setHours(23, 59, 59, 999);
   return next;
 }

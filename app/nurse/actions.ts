@@ -3,10 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import { env } from "@/lib/env";
-import { logger } from "@/lib/logger";
 import { requireNurseScope } from "@/lib/nurse/scope";
-import { createClient } from "@/lib/supabase/server";
+import { callEdge } from "@/lib/supabase/edge";
 
 /**
  * Nurse workspace server actions. Thin wrappers around the four
@@ -23,44 +21,6 @@ export type NurseActionState = {
    * confirmation. */
   queuedForReview?: boolean;
 };
-
-async function callEdge(
-  name: string,
-  body: Record<string, unknown>,
-): Promise<{ ok: true; data: unknown } | { ok: false; error: string }> {
-  const supabase = await createClient();
-  const { data: session } = await supabase.auth.getSession();
-  const token = session.session?.access_token;
-  if (!token) return { ok: false, error: "Not authenticated." };
-  try {
-    const res = await fetch(`${env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/${name}`, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        authorization: `Bearer ${token}`,
-        "x-request-id": crypto.randomUUID(),
-      },
-      body: JSON.stringify(body),
-    });
-    const text = await res.text();
-    if (!res.ok) {
-      let detail = text;
-      try {
-        const parsed = JSON.parse(text) as { error?: string | { message?: string } };
-        if (typeof parsed.error === "string") detail = parsed.error;
-        else if (parsed.error?.message) detail = parsed.error.message;
-      } catch {
-        /* keep raw */
-      }
-      logger.warn(`nurse.${name}.failed`, { status: res.status });
-      return { ok: false, error: detail || `Edge Function returned ${res.status}.` };
-    }
-    return { ok: true, data: text ? JSON.parse(text) : {} };
-  } catch (e) {
-    logger.error(`nurse.${name}.network`, { reason: String(e) });
-    return { ok: false, error: `Couldn't reach ${name}.` };
-  }
-}
 
 /* ─── Observations ──────────────────────────────────────────────── */
 
@@ -117,16 +77,20 @@ export async function recordObservationAction(
     return { error: "Value 2 must be a number." };
   }
 
-  const result = await callEdge("ha-record-observation", {
-    hospital_id: scope.hospitalId,
-    patient_user_id: parsed.data.patient_user_id,
-    observation_kind: parsed.data.observation_kind,
-    numeric_value_1: numeric1,
-    numeric_value_2: numeric2,
-    unit: parsed.data.unit,
-    notes: parsed.data.notes,
-    reason: parsed.data.reason,
-  });
+  const result = await callEdge(
+    "ha-record-observation",
+    {
+      hospital_id: scope.hospitalId,
+      patient_user_id: parsed.data.patient_user_id,
+      observation_kind: parsed.data.observation_kind,
+      numeric_value_1: numeric1,
+      numeric_value_2: numeric2,
+      unit: parsed.data.unit,
+      notes: parsed.data.notes,
+      reason: parsed.data.reason,
+    },
+    "nurse",
+  );
   if (!result.ok) return { error: result.error };
   revalidatePath("/nurse");
   revalidatePath("/nurse/patients");
@@ -172,19 +136,23 @@ export async function administerMedicationAction(
 
   const scope = await requireNurseScope();
 
-  const result = await callEdge("ha-administer-medication", {
-    hospital_id: scope.hospitalId,
-    patient_user_id: parsed.data.patient_user_id,
-    drug_name: parsed.data.drug_name,
-    dose: parsed.data.dose,
-    route: parsed.data.route,
-    is_high_alert: parsed.data.is_high_alert,
-    state: parsed.data.state,
-    withheld_reason: parsed.data.withheld_reason,
-    notes: parsed.data.notes,
-    prescription_id: parsed.data.prescription_id,
-    reason: parsed.data.reason,
-  });
+  const result = await callEdge(
+    "ha-administer-medication",
+    {
+      hospital_id: scope.hospitalId,
+      patient_user_id: parsed.data.patient_user_id,
+      drug_name: parsed.data.drug_name,
+      dose: parsed.data.dose,
+      route: parsed.data.route,
+      is_high_alert: parsed.data.is_high_alert,
+      state: parsed.data.state,
+      withheld_reason: parsed.data.withheld_reason,
+      notes: parsed.data.notes,
+      prescription_id: parsed.data.prescription_id,
+      reason: parsed.data.reason,
+    },
+    "nurse",
+  );
   if (!result.ok) return { error: result.error };
 
   revalidatePath("/nurse");
@@ -223,13 +191,17 @@ export async function submitHandoverAction(
   }
 
   const scope = await requireNurseScope();
-  const result = await callEdge("ha-submit-handover", {
-    hospital_id: scope.hospitalId,
-    ward_id: parsed.data.ward_id,
-    shift_label: parsed.data.shift_label,
-    summary: parsed.data.summary,
-    reason: parsed.data.reason,
-  });
+  const result = await callEdge(
+    "ha-submit-handover",
+    {
+      hospital_id: scope.hospitalId,
+      ward_id: parsed.data.ward_id,
+      shift_label: parsed.data.shift_label,
+      summary: parsed.data.summary,
+      reason: parsed.data.reason,
+    },
+    "nurse",
+  );
   if (!result.ok) return { error: result.error };
   revalidatePath("/nurse/handover");
   return { ok: true };
@@ -261,15 +233,19 @@ export async function assignPatientToNurseAction(
     return { error: first ?? "Please check the values." };
   }
   const scope = await requireNurseScope();
-  const result = await callEdge("ha-assign-patient-to-nurse", {
-    hospital_id: scope.hospitalId,
-    department_id: scope.departmentId,
-    ward_id: parsed.data.ward_id ?? null,
-    nurse_user_id: parsed.data.nurse_user_id,
-    patient_user_id: parsed.data.patient_user_id,
-    relationship_kind: parsed.data.relationship_kind,
-    reason: parsed.data.reason,
-  });
+  const result = await callEdge(
+    "ha-assign-patient-to-nurse",
+    {
+      hospital_id: scope.hospitalId,
+      department_id: scope.departmentId,
+      ward_id: parsed.data.ward_id ?? null,
+      nurse_user_id: parsed.data.nurse_user_id,
+      patient_user_id: parsed.data.patient_user_id,
+      relationship_kind: parsed.data.relationship_kind,
+      reason: parsed.data.reason,
+    },
+    "nurse",
+  );
   if (!result.ok) return { error: result.error };
   revalidatePath("/nurse/assignments");
   revalidatePath("/nurse/patients");

@@ -3,10 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import { env } from "@/lib/env";
-import { logger } from "@/lib/logger";
 import { requireReceptionScope } from "@/lib/reception/scope";
-import { createClient } from "@/lib/supabase/server";
+import { callEdge } from "@/lib/supabase/edge";
 
 /**
  * Reception server actions. Thin wrappers around the Edge Functions
@@ -16,44 +14,6 @@ import { createClient } from "@/lib/supabase/server";
  */
 
 export type ReceptionActionState = { ok?: boolean; error?: string };
-
-async function callEdge(
-  name: string,
-  body: Record<string, unknown>,
-): Promise<{ ok: true; data: unknown } | { ok: false; error: string }> {
-  const supabase = await createClient();
-  const { data: session } = await supabase.auth.getSession();
-  const token = session.session?.access_token;
-  if (!token) return { ok: false, error: "Not authenticated." };
-  try {
-    const res = await fetch(`${env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/${name}`, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        authorization: `Bearer ${token}`,
-        "x-request-id": crypto.randomUUID(),
-      },
-      body: JSON.stringify(body),
-    });
-    const text = await res.text();
-    if (!res.ok) {
-      let detail = text;
-      try {
-        const parsed = JSON.parse(text) as { error?: string | { message?: string } };
-        if (typeof parsed.error === "string") detail = parsed.error;
-        else if (parsed.error?.message) detail = parsed.error.message;
-      } catch {
-        /* keep raw */
-      }
-      logger.warn(`reception.${name}.failed`, { status: res.status });
-      return { ok: false, error: detail || `Edge Function returned ${res.status}.` };
-    }
-    return { ok: true, data: text ? JSON.parse(text) : {} };
-  } catch (e) {
-    logger.error(`reception.${name}.network`, { reason: String(e) });
-    return { ok: false, error: `Couldn't reach ${name}.` };
-  }
-}
 
 /* ─── Check-in a booked patient ─────────────────────────────────── */
 
@@ -78,7 +38,7 @@ export async function checkInPatientAction(
     return { error: first ?? "Please check the values." };
   }
   await requireReceptionScope();
-  const result = await callEdge("ha-check-in-patient", parsed.data);
+  const result = await callEdge("ha-check-in-patient", parsed.data, "reception");
   if (!result.ok) return { error: result.error };
   revalidatePath("/reception");
   revalidatePath("/reception/expected");
@@ -115,7 +75,7 @@ export async function checkInDeclaredIntakeAction(
     return { error: first ?? "Please check the values." };
   }
   await requireReceptionScope();
-  const result = await callEdge("ha-check-in-patient", parsed.data);
+  const result = await callEdge("ha-check-in-patient", parsed.data, "reception");
   if (!result.ok) return { error: result.error };
   revalidatePath("/reception");
   revalidatePath("/reception/expected");
@@ -143,7 +103,7 @@ export async function cancelIntakeAction(
     return { error: first ?? "Please check the values." };
   }
   await requireReceptionScope();
-  const result = await callEdge("ha-cancel-intake", parsed.data);
+  const result = await callEdge("ha-cancel-intake", parsed.data, "reception");
   if (!result.ok) return { error: result.error };
   revalidatePath("/reception");
   revalidatePath("/reception/flow");

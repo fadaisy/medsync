@@ -4,9 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { requireDoctorScope } from "@/lib/doctor/scope";
-import { env } from "@/lib/env";
-import { logger } from "@/lib/logger";
-import { createClient } from "@/lib/supabase/server";
+import { callEdge } from "@/lib/supabase/edge";
 
 /**
  * Doctor scheduling actions — thin wrappers around existing Edge
@@ -14,50 +12,12 @@ import { createClient } from "@/lib/supabase/server";
  * one net-new Edge Function flagged in the GATE A proposal §2).
  *
  *   - confirm / decline a pending appointment (reuse existing fns)
- *   - mark a confirmed appointment as arrived (ha-mark-arrived)
  *   - record a walk-in (ha-record-walkin — net-new)
  *   - start an encounter (ha-start-encounter — existing)
+ *   - set scheduling settings (ha-set-clinician-settings — existing)
  */
 
 export type DoctorScheduleActionState = { ok?: boolean; error?: string };
-
-async function callEdge(
-  name: string,
-  body: Record<string, unknown>,
-): Promise<{ ok: true; data?: unknown } | { ok: false; error: string }> {
-  const supabase = await createClient();
-  const { data: session } = await supabase.auth.getSession();
-  const token = session.session?.access_token;
-  if (!token) return { ok: false, error: "Not authenticated." };
-  try {
-    const res = await fetch(`${env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/${name}`, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        authorization: `Bearer ${token}`,
-        "x-request-id": crypto.randomUUID(),
-      },
-      body: JSON.stringify(body),
-    });
-    if (!res.ok) {
-      let detail = await res.text();
-      try {
-        const parsed = JSON.parse(detail) as { error?: string | { message?: string } };
-        if (typeof parsed.error === "string") detail = parsed.error;
-        else if (parsed.error?.message) detail = parsed.error.message;
-      } catch {
-        /* keep raw */
-      }
-      logger.warn(`doctor.schedule.${name}.failed`, { status: res.status });
-      return { ok: false, error: detail || `Edge Function returned ${res.status}.` };
-    }
-    const data = (await res.json()) as unknown;
-    return { ok: true, data };
-  } catch (e) {
-    logger.error(`doctor.schedule.${name}.network`, { reason: String(e) });
-    return { ok: false, error: `Couldn't reach ${name}.` };
-  }
-}
 
 /* ─── Approve / decline a pending appointment ────────────────────── */
 
@@ -78,7 +38,7 @@ export async function approveAppointmentAction(
     return { error: parsed.error.flatten().fieldErrors.reason?.[0] ?? "Invalid input." };
   }
   await requireDoctorScope();
-  const result = await callEdge("ha-confirm-appointment-request", parsed.data);
+  const result = await callEdge("ha-confirm-appointment-request", parsed.data, "doctor.schedule");
   if (!result.ok) return { error: result.error };
   revalidatePath("/doctor/schedule");
   return { ok: true };
@@ -96,7 +56,7 @@ export async function declineAppointmentAction(
     return { error: parsed.error.flatten().fieldErrors.reason?.[0] ?? "Invalid input." };
   }
   await requireDoctorScope();
-  const result = await callEdge("ha-decline-appointment-request", parsed.data);
+  const result = await callEdge("ha-decline-appointment-request", parsed.data, "doctor.schedule");
   if (!result.ok) return { error: result.error };
   revalidatePath("/doctor/schedule");
   return { ok: true };
@@ -126,11 +86,11 @@ export async function recordWalkinAction(
     return { error: first ?? "Check the form values." };
   }
   const scope = await requireDoctorScope();
-  const result = await callEdge("ha-record-walkin", {
-    hospital_id: scope.hospitalId,
-    department_id: scope.departmentId,
-    ...parsed.data,
-  });
+  const result = await callEdge(
+    "ha-record-walkin",
+    { hospital_id: scope.hospitalId, department_id: scope.departmentId, ...parsed.data },
+    "doctor.schedule",
+  );
   if (!result.ok) return { error: result.error };
   revalidatePath("/doctor/schedule");
   return { ok: true };
@@ -161,7 +121,7 @@ export async function startEncounterAction(payload: {
     return { error: "Need an appointment or queue entry to start." };
   }
   await requireDoctorScope();
-  const result = await callEdge("ha-start-encounter", parsed.data);
+  const result = await callEdge("ha-start-encounter", parsed.data, "doctor.schedule");
   if (!result.ok) return { error: result.error };
   revalidatePath("/doctor/schedule");
   return { ok: true };
@@ -195,11 +155,11 @@ export async function updateSchedulingSettingsAction(
     return { error: first ?? "Check the values." };
   }
   const scope = await requireDoctorScope();
-  const result = await callEdge("ha-set-clinician-settings", {
-    clinician_user_id: scope.userId,
-    hospital_id: scope.hospitalId,
-    ...parsed.data,
-  });
+  const result = await callEdge(
+    "ha-set-clinician-settings",
+    { clinician_user_id: scope.userId, hospital_id: scope.hospitalId, ...parsed.data },
+    "doctor.schedule",
+  );
   if (!result.ok) return { error: result.error };
   revalidatePath("/doctor/schedule");
   return { ok: true };

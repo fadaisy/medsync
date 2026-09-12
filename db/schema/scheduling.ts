@@ -121,7 +121,10 @@ export const departmentSchedulingPolicy = pgTable(
     bookableWeekdays: smallint("bookable_weekdays").array().notNull().default([1, 2, 3, 4, 5]),
     bookableStartMinutesLocal: integer("bookable_start_minutes_local").notNull().default(480),
     bookableEndMinutesLocal: integer("bookable_end_minutes_local").notNull().default(1020),
-    reminderLeadMinutes: integer("reminder_lead_minutes").array().notNull().default([1440, 60]),
+    // ONE 24h reminder, not two (migration 0052). The array's LENGTH is the
+    // number of messages a booking queues, so this default is a per-booking
+    // spend multiplier for every department that never opens the editor.
+    reminderLeadMinutes: integer("reminder_lead_minutes").array().notNull().default([1440]),
     allowVirtual: boolean("allow_virtual").notNull().default(false),
     notes: text("notes"),
     updatedByUserId: uuid("updated_by_user_id").references(() => authUsers.id, {
@@ -136,6 +139,27 @@ export const departmentSchedulingPolicy = pgTable(
     check(
       "dept_policy_window_order",
       sql`${t.bookableEndMinutesLocal} > ${t.bookableStartMinutesLocal}`,
+    ),
+    // Shipped in 0028 but never mirrored here, so `db:check` reported drift
+    // and a regenerated migration would have proposed dropping it.
+    check(
+      "dept_policy_window_range",
+      sql`${t.bookableStartMinutesLocal} BETWEEN 0 AND 1440 AND ${t.bookableEndMinutesLocal} BETWEEN 0 AND 1440`,
+    ),
+    // Migration 0052. ISO weekdays, 1 = Monday … 7 = Sunday — the same
+    // convention as availability_blocks.recurrence_weekday, the slot engine
+    // and both walk-in readers. `<@` is element-wise containment, so an empty
+    // array passes: "closed every day" is a value an operator may want.
+    check(
+      "dept_policy_weekday_range",
+      sql`${t.bookableWeekdays} <@ ARRAY[1,2,3,4,5,6,7]::smallint[]`,
+    ),
+    // Migration 0052. The per-booking message ceiling, at the layer no writer
+    // can bypass. array_length of an empty array is NULL, so "no reminders"
+    // still passes.
+    check(
+      "dept_policy_reminder_count",
+      sql`array_length(${t.reminderLeadMinutes}, 1) IS NULL OR array_length(${t.reminderLeadMinutes}, 1) <= 2`,
     ),
   ],
 );
@@ -193,6 +217,18 @@ export const appointments = pgTable(
     check(
       "appointments_origin_check",
       sql`${t.origin} IN ('patient','clinician','nurse','reception','system_urgent','walk_in')`,
+    ),
+    // Migration 0053 / ADR 0084 §12. 'urgent_review' stays a legal reason —
+    // system-propose-urgent-appointment writes it with origin='system_urgent'
+    // and it is correct there. What leaves is the patient's ability to pick
+    // it: a self-rated "urgent" (kappa 0.166 / 0.07) must not sit one column
+    // from a system escalation under a near-identical name. `origin` is the
+    // discriminator because it is not patient-supplied — pt-request-appointment
+    // hard-codes it. The SQL applies this NOT VALID (existing rows keep their
+    // value, per the ADR); Drizzle has no way to say so.
+    check(
+      "appointments_patient_reason_check",
+      sql`${t.origin} <> 'patient' OR ${t.reason} <> 'urgent_review'`,
     ),
     check(
       "appointments_status_check",

@@ -43,7 +43,11 @@ export default async function ReceptionExpectedPage({ searchParams }: PageProps)
     // Reception flips them to 'arrived' via the same Edge Function as
     // booked-arrival check-in (intake_id branch). Migration 0035.
     !date || isToday(date)
-      ? fetchDeclaredIntakesToday({ hospitalId: scope.hospitalId, limit: 100 })
+      ? fetchDeclaredIntakesToday({
+          hospitalId: scope.hospitalId,
+          receptionUserId: scope.userId,
+          limit: 100,
+        })
       : Promise.resolve([]),
   ]);
 
@@ -83,7 +87,8 @@ export default async function ReceptionExpectedPage({ searchParams }: PageProps)
           </h2>
           <p className="text-muted-foreground text-[11.5px] leading-relaxed">
             These patients used the MedSync app to say they&rsquo;re coming in today. They&rsquo;re
-            in line but not here yet — check them in when they arrive.
+            in line but not here yet — check them in when they arrive. Ask for the name: the code is
+            on their phone, which may be at home.
           </p>
           <ul className="divide-border/60 border-border bg-card divide-y overflow-hidden rounded-xl border">
             {declared.map((d) => (
@@ -92,13 +97,16 @@ export default async function ReceptionExpectedPage({ searchParams }: PageProps)
                 className="hover:bg-brand-50/40 dark:hover:bg-brand-950/15 flex items-center justify-between gap-3 px-4 py-3 transition-colors"
               >
                 <div className="flex min-w-0 flex-col gap-0.5">
-                  <span className="text-foreground text-body-s inline-flex items-center gap-2">
-                    <span className="font-mono tabular-nums">
-                      {d.patientCode ?? "Unknown patient"}
-                    </span>
-                    <span className="text-muted-foreground font-mono text-[10.5px] tabular-nums">
-                      · declared {formatTime(d.declaredAtIso)}
-                    </span>
+                  <span className="text-foreground truncate text-[13.5px] font-medium">
+                    {d.displayName ?? d.patientCode ?? "Unknown patient"}
+                  </span>
+                  <span className="text-muted-foreground truncate font-mono text-[10.5px] tabular-nums">
+                    {[
+                      d.displayName ? d.patientCode : null,
+                      `declared ${formatTime(d.declaredAtIso)}`,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")}
                   </span>
                   <span className="text-muted-foreground text-[11.5px]">
                     {d.departmentName ?? "—"}
@@ -186,8 +194,9 @@ export default async function ReceptionExpectedPage({ searchParams }: PageProps)
       )}
 
       <p className="fade-in-slow text-muted-foreground/80 text-caption leading-relaxed">
-        Patient codes only — reception sees operational + demographic data, never clinical content.
-        Every check-in is audited.
+        Reception sees operational + demographic data, never clinical content. Names on the declared
+        list are decrypted so you can match the person at the desk — each one is recorded against
+        your account, as is every check-in.
       </p>
     </div>
   );

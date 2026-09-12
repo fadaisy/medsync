@@ -22,6 +22,12 @@
  *   3. Fallback: any active clinician at the hospital.
  *   For each candidate, find the EARLIEST bookable slot today
  *   (then tomorrow, then up to LOOKAHEAD_DAYS).
+ *   "Bookable" is `_shared/slots.ts`'s answer, not this file's — the
+ *   same engine /patient/book offers slots with and
+ *   pt-request-appointment validates them against. Slot LENGTH is the
+ *   clinician's (ADR 0029 §2), never the caller's: an alert cannot
+ *   lengthen someone's clinic slot, and a 15-minute appointment in a
+ *   30-minute grid is off-grid by another route.
  *
  * Output: creates an appointment with origin='system_urgent',
  * priority='urgent', status='confirmed' (urgent skips manual
@@ -33,6 +39,12 @@
  * column to a real FK.
  */
 
+import type {
+  AvailabilityBlockRow,
+  BookedAppointmentRow,
+  ClinicianSchedulingSettingsRow,
+  DepartmentSchedulingPolicyRow,
+} from "../_shared/slots.ts";
 import { z } from "npm:zod@4.4.3";
 
 import { getCaller, hasRole, serviceClient } from "../_shared/auth.ts";
@@ -48,6 +60,7 @@ import {
 } from "../_shared/errors.ts";
 import { makeLogger } from "../_shared/logger.ts";
 import { networkContext, recordSaAudit } from "../_shared/sa-audit.ts";
+import { buildSlots, DEFAULT_TIME_ZONE, LIVE_APPOINTMENT_STATUSES } from "../_shared/slots.ts";
 
 const log = makeLogger("system-propose-urgent-appointment");
 
@@ -64,8 +77,6 @@ const InputSchema = z.object({
   /** Opaque identifier for the upstream alert. Plain text until the
    * alerts table exists (then upgraded to a real FK). */
   alert_id_text: z.string().max(120).nullable().optional(),
-  /** Minutes to spend on the slot. Falls back to 15. */
-  slot_minutes: z.number().int().min(5).max(120).default(15),
 });
 
 const LOOKAHEAD_DAYS = 7;
@@ -147,7 +158,7 @@ Deno.serve(async (request: Request) => {
 
   // For each candidate, try to find the earliest bookable slot in the
   // lookahead window. Stop as soon as one is found.
-  const slot = await findEarliestSlot(sb, candidates, input.slot_minutes);
+  const slot = await findEarliestSlot(sb, input.hospital_id, candidates);
   if (!slot) {
     log.warn("no urgent slot found", { requestId, candidates: candidates.length });
     return notFound(
@@ -189,7 +200,9 @@ Deno.serve(async (request: Request) => {
   const reminderRows = [30, 5]
     .map((m) => ({
       appointment_id: created.id,
-      channel: "in_app" as const,
+      // See pt-request-appointment: SMS is the only channel with a transport,
+      // so queue it rather than leaving the dispatcher to substitute one.
+      channel: "sms" as const,
       scheduled_at: new Date(startsMs - m * 60_000).toISOString(),
     }))
     .filter((r) => new Date(r.scheduled_at).getTime() > Date.now());
@@ -249,9 +262,14 @@ async function findCandidates(
 ): Promise<Candidate[]> {
   const { data: rows, error } = await sb
     .from("staff_affiliations")
-    .select("user_id, department_id")
+    // Clinical cadres only. Without this an urgent alert can land a
+    // confirmed appointment on a records officer — reception has
+    // is_clinical = false (migration 0033) and the same filter gates the
+    // patient's clinician list and every clinical RLS policy.
+    .select("user_id, department_id, cadres!inner(is_clinical)")
     .eq("hospital_id", hospitalId)
-    .in("state", ["active", "approved"]);
+    .in("state", ["active", "approved"])
+    .eq("cadres.is_clinical", true);
   if (error || !rows) return [];
 
   const list: Candidate[] = rows.map((r: { user_id: string; department_id: string }) => ({
@@ -271,87 +289,134 @@ async function findCandidates(
   });
 }
 
+/**
+ * The earliest slot the engine would offer. One `buildSlots` per
+ * (clinician, department) pair, because `departmentPolicy` is a single
+ * row — pooling a clinician's two departments judges their Outreach
+ * blocks against Medicine's opening hours.
+ *
+ * ponytail: derives every candidate's whole 7-day grid to read
+ * `slots[0]`. Ceiling is a hospital-wide widening at Mulago's roster on a
+ * path that has no producer yet. Upgrade path: pass a per-candidate
+ * `rangeEnd` that walks forward a day at a time and stops at the first
+ * hit — no engine change, this loop gains an outer one.
+ */
 async function findEarliestSlot(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   sb: any,
+  hospitalId: string,
   candidates: ReadonlyArray<Candidate>,
-  slotMinutes: number,
 ): Promise<{
   clinicianUserId: string;
   departmentId: string;
   startsAtIso: string;
   endsAtIso: string;
 } | null> {
-  const since = new Date();
-  const until = new Date(Date.now() + LOOKAHEAD_DAYS * 24 * 60 * 60 * 1000);
-  const slotMs = slotMinutes * 60_000;
-
+  const now = new Date();
+  const until = new Date(now.getTime() + LOOKAHEAD_DAYS * 86_400_000);
   const clinicianIds = Array.from(new Set(candidates.map((c) => c.clinicianUserId)));
+  const departmentIds = Array.from(new Set(candidates.map((c) => c.departmentId)));
   if (clinicianIds.length === 0) return null;
 
-  const { data: blocks } = await sb
-    .from("availability_blocks")
-    .select("clinician_user_id, starts_at, ends_at")
-    .in("clinician_user_id", clinicianIds)
-    .eq("kind", "bookable")
-    .eq("state", "active")
-    .gte("ends_at", since.toISOString())
-    .lt("starts_at", until.toISOString());
-
-  const { data: live } = await sb
-    .from("appointments")
-    .select("clinician_user_id, starts_at, ends_at")
-    .in("clinician_user_id", clinicianIds)
-    .in("status", ["requested", "pending_approval", "confirmed", "arrived", "in_progress"])
-    .gte("ends_at", since.toISOString())
-    .lt("starts_at", until.toISOString());
-
-  const blocksByClin = new Map<string, Array<{ s: number; e: number }>>();
-  for (const b of (blocks ?? []) as Array<{
-    clinician_user_id: string;
-    starts_at: string;
-    ends_at: string;
-  }>) {
-    const list = blocksByClin.get(b.clinician_user_id) ?? [];
-    list.push({ s: new Date(b.starts_at).getTime(), e: new Date(b.ends_at).getTime() });
-    blocksByClin.set(b.clinician_user_id, list);
+  // Aliased to the camelCase the engine reads: an unmapped row is
+  // `undefined` there, which it throws on rather than deriving nothing.
+  const [blocksRes, apptsRes, settingsRes, policyRes] = await Promise.all([
+    sb
+      .from("availability_blocks")
+      .select(
+        "clinicianUserId:clinician_user_id, departmentId:department_id, kind, state, " +
+          "startsAt:starts_at, endsAt:ends_at, recurrence, " +
+          "recurrenceWeekday:recurrence_weekday, recurrenceUntil:recurrence_until",
+      )
+      .eq("hospital_id", hospitalId)
+      .in("clinician_user_id", clinicianIds)
+      // Widest bound that cannot drop a candidate: a one-off block has to
+      // overlap the window, a weekly template only has to have begun. Its
+      // own starts_at is the template — often months back — so windowing
+      // it like a one-off is what hid every weekly clinic from this path.
+      .lt("starts_at", until.toISOString())
+      .or(`ends_at.gte.${now.toISOString()},recurrence.eq.weekly`),
+    sb
+      .from("appointments")
+      // Not scoped to hospital or department: a clinician booked
+      // anywhere is still one person.
+      .select("clinicianUserId:clinician_user_id, startsAt:starts_at, endsAt:ends_at")
+      .in("clinician_user_id", clinicianIds)
+      .in("status", [...LIVE_APPOINTMENT_STATUSES])
+      .gte("ends_at", now.toISOString())
+      .lt("starts_at", until.toISOString()),
+    sb
+      .from("clinician_scheduling_settings")
+      .select(
+        "clinicianUserId:clinician_user_id, defaultSlotMinutes:default_slot_minutes, " +
+          "bufferMinutes:buffer_minutes, autoConfirm:auto_confirm, allowVirtual:allow_virtual",
+      )
+      .eq("hospital_id", hospitalId)
+      .in("clinician_user_id", clinicianIds),
+    sb
+      .from("department_scheduling_policy")
+      .select(
+        "departmentId:department_id, defaultSlotMinutes:default_slot_minutes, " +
+          "defaultBufferMinutes:default_buffer_minutes, " +
+          "defaultAutoConfirm:default_auto_confirm, allowVirtual:allow_virtual, " +
+          "bookableWeekdays:bookable_weekdays, " +
+          "bookableStartMinutesLocal:bookable_start_minutes_local, " +
+          "bookableEndMinutesLocal:bookable_end_minutes_local",
+      )
+      .in("department_id", departmentIds),
+  ]);
+  // Fail closed: an unread appointment list would propose a time on top
+  // of an existing patient. No slot is the documented escalation outcome.
+  if (blocksRes.error || apptsRes.error) {
+    log.error("urgent slot read failed", {
+      reason: blocksRes.error?.message ?? apptsRes.error?.message,
+    });
+    return null;
   }
-  const liveByClin = new Map<string, Array<{ s: number; e: number }>>();
-  for (const a of (live ?? []) as Array<{
-    clinician_user_id: string;
-    starts_at: string;
-    ends_at: string;
-  }>) {
-    const list = liveByClin.get(a.clinician_user_id) ?? [];
-    list.push({ s: new Date(a.starts_at).getTime(), e: new Date(a.ends_at).getTime() });
-    liveByClin.set(a.clinician_user_id, list);
-  }
 
-  // Walk candidates in widening-fallback order, pick the earliest
-  // available slot.
-  const nowMs = Date.now();
-  let best: { clin: Candidate; s: number } | null = null;
+  const blocks: Array<
+    AvailabilityBlockRow & { clinicianUserId: string; departmentId: string | null }
+  > = blocksRes.data ?? [];
+  const appts: Array<BookedAppointmentRow & { clinicianUserId: string }> = apptsRes.data ?? [];
+  const settings: Array<ClinicianSchedulingSettingsRow & { clinicianUserId: string }> =
+    settingsRes.data ?? [];
+  const policies: Array<DepartmentSchedulingPolicyRow & { departmentId: string }> =
+    policyRes.data ?? [];
+  const settingsByClinician = new Map(settings.map((r) => [r.clinicianUserId, r]));
+  const policyByDepartment = new Map(policies.map((r) => [r.departmentId, r]));
+
+  // Candidates arrive preferred-department-first and a strict `<` keeps
+  // that order as the tie-break — the selection this function already
+  // had. Unchanged on purpose; only the derivation moved.
+  let best: { cand: Candidate; startsAt: Date; endsAt: Date } | null = null;
   for (const cand of candidates) {
-    const blockList = (blocksByClin.get(cand.clinicianUserId) ?? []).sort((a, b) => a.s - b.s);
-    const liveList = liveByClin.get(cand.clinicianUserId) ?? [];
-    for (const block of blockList) {
-      const start = Math.max(block.s, nowMs);
-      for (let s = start; s + slotMs <= block.e; s += slotMs) {
-        const e = s + slotMs;
-        const taken = liveList.some((a) => s < a.e && e > a.s);
-        if (taken) continue;
-        if (!best || s < best.s) best = { clin: cand, s };
-        break; // earliest per block is enough
-      }
-      if (best && best.s === blockList[0]?.s) break;
+    const slots = buildSlots({
+      // A block naming another department belongs to that department's
+      // hours; one naming none is this clinician's general bookable time.
+      blocks: blocks.filter(
+        (b) =>
+          b.clinicianUserId === cand.clinicianUserId &&
+          (b.departmentId === null || b.departmentId === cand.departmentId),
+      ),
+      appointments: appts.filter((a) => a.clinicianUserId === cand.clinicianUserId),
+      clinicianSettings: settingsByClinician.get(cand.clinicianUserId) ?? null,
+      departmentPolicy: policyByDepartment.get(cand.departmentId) ?? null,
+      timeZone: DEFAULT_TIME_ZONE,
+      now,
+      rangeStart: now,
+      rangeEnd: until,
+    });
+    const first = slots[0];
+    if (first && (!best || first.startsAt < best.startsAt)) {
+      best = { cand, startsAt: first.startsAt, endsAt: first.endsAt };
     }
   }
 
   if (!best) return null;
   return {
-    clinicianUserId: best.clin.clinicianUserId,
-    departmentId: best.clin.departmentId,
-    startsAtIso: new Date(best.s).toISOString(),
-    endsAtIso: new Date(best.s + slotMs).toISOString(),
+    clinicianUserId: best.cand.clinicianUserId,
+    departmentId: best.cand.departmentId,
+    startsAtIso: best.startsAt.toISOString(),
+    endsAtIso: best.endsAt.toISOString(),
   };
 }

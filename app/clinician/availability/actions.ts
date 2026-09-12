@@ -4,9 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { requireClinicianScope } from "@/lib/clinician/scope";
-import { env } from "@/lib/env";
-import { logger } from "@/lib/logger";
-import { createClient } from "@/lib/supabase/server";
+import { callEdge } from "@/lib/supabase/edge";
 
 /**
  * Server Actions for the clinician availability editor.
@@ -53,47 +51,6 @@ const SettingsArgs = z.object({
 
 export type ActionState = { ok?: boolean; error?: string };
 
-async function callEdgeFunction(
-  name: string,
-  body: Record<string, unknown>,
-): Promise<{ ok: true } | { ok: false; error: string }> {
-  const supabase = await createClient();
-  const { data: session } = await supabase.auth.getSession();
-  const token = session.session?.access_token;
-  if (!token) return { ok: false, error: "Not authenticated." };
-
-  try {
-    const res = await fetch(`${env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/${name}`, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        authorization: `Bearer ${token}`,
-        "x-request-id": crypto.randomUUID(),
-      },
-      body: JSON.stringify(body),
-    });
-    if (!res.ok) {
-      let detail = await res.text();
-      try {
-        const parsed = JSON.parse(detail) as { error?: { message?: string } | string };
-        if (typeof parsed.error === "string") detail = parsed.error;
-        else if (parsed.error?.message) detail = parsed.error.message;
-      } catch {
-        /* keep raw */
-      }
-      logger.warn(`clinician.availability.${name}.failed`, { status: res.status });
-      return { ok: false, error: detail || `Edge Function returned ${res.status}.` };
-    }
-    return { ok: true };
-  } catch (e) {
-    logger.error(`clinician.availability.${name}.network`, { reason: String(e) });
-    return {
-      ok: false,
-      error: `Couldn't reach the ${name} service. If you're in local dev, deploy the Edge Function.`,
-    };
-  }
-}
-
 export async function setAvailabilityBlockAction(
   _prev: ActionState,
   formData: FormData,
@@ -121,12 +78,16 @@ export async function setAvailabilityBlockAction(
   }
 
   const scope = await requireClinicianScope();
-  const result = await callEdgeFunction("ha-set-clinician-availability", {
-    ...parsed.data,
-    hospital_id: scope.hospitalId,
-    clinician_user_id: scope.userId,
-    department_id: scope.departmentId,
-  });
+  const result = await callEdge(
+    "ha-set-clinician-availability",
+    {
+      ...parsed.data,
+      hospital_id: scope.hospitalId,
+      clinician_user_id: scope.userId,
+      department_id: scope.departmentId,
+    },
+    "clinician.availability",
+  );
   if (!result.ok) return { error: result.error };
   revalidatePath("/clinician/availability");
   revalidatePath("/doctor/schedule");
@@ -145,7 +106,11 @@ export async function cancelAvailabilityBlockAction(
     return { error: parsed.error.flatten().fieldErrors.reason?.[0] ?? "Invalid input." };
   }
   await requireClinicianScope();
-  const result = await callEdgeFunction("ha-cancel-clinician-availability", parsed.data);
+  const result = await callEdge(
+    "ha-cancel-clinician-availability",
+    parsed.data,
+    "clinician.availability",
+  );
   if (!result.ok) return { error: result.error };
   revalidatePath("/clinician/availability");
   revalidatePath("/doctor/schedule");
@@ -171,11 +136,11 @@ export async function setClinicianSettingsAction(
     return { error: first ?? "Invalid input." };
   }
   const scope = await requireClinicianScope();
-  const result = await callEdgeFunction("ha-set-clinician-settings", {
-    ...parsed.data,
-    hospital_id: scope.hospitalId,
-    clinician_user_id: scope.userId,
-  });
+  const result = await callEdge(
+    "ha-set-clinician-settings",
+    { ...parsed.data, hospital_id: scope.hospitalId, clinician_user_id: scope.userId },
+    "clinician.availability",
+  );
   if (!result.ok) return { error: result.error };
   revalidatePath("/clinician/availability");
   revalidatePath("/doctor/schedule");

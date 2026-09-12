@@ -40,6 +40,7 @@ import {
 } from "../_shared/errors.ts";
 import { makeLogger } from "../_shared/logger.ts";
 import { networkContext, recordSaAudit } from "../_shared/sa-audit.ts";
+import { DEFAULT_TIME_ZONE, localWeekdayAndMinutes } from "../_shared/slots.ts";
 
 const log = makeLogger("pt-declare-intake");
 
@@ -108,8 +109,18 @@ Deno.serve(async (request: Request) => {
   //    (Revises proposal §4 / ADR 0034 §2: policy-as-gate made the
   //    feature unusable for any hospital without booking policies set.)
   const now = new Date();
-  const weekday = now.getDay(); // 0 = Sunday … 6 = Saturday
-  const minutesLocal = now.getHours() * 60 + now.getMinutes();
+  // The HOSPITAL's clock, not the Edge runtime's. `getDay()`/`getHours()`
+  // read the host zone (UTC on Deno Deploy), which is the wrong weekday for
+  // the first three hours of every East African day and a walk-in window
+  // displaced by three hours for all of them — a legitimate 09:00 walk-in
+  // was refused as "outside walk-in hours" until 11:00. ISO 1 = Monday …
+  // 7 = Sunday, matching bookable_weekdays' CHECK (migration 0052) and the
+  // slot engine. The patient-facing page uses this same helper, so what the
+  // page shows as open and what this gate allows cannot drift.
+  const { isoWeekday: weekday, minutesOfDay: minutesLocal } = localWeekdayAndMinutes(
+    now,
+    DEFAULT_TIME_ZONE,
+  );
   const { data: policy } = await sb
     .from("department_scheduling_policy")
     .select("bookable_weekdays, bookable_start_minutes_local, bookable_end_minutes_local")

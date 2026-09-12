@@ -206,7 +206,9 @@ Deno.serve(async (request: Request) => {
     .filter((m) => m > 0)
     .map((m) => ({
       appointment_id: newRow.id,
-      channel: "in_app" as const,
+      // See pt-request-appointment: SMS is the only channel with a transport,
+      // so queue it rather than leaving the dispatcher to substitute one.
+      channel: "sms" as const,
       scheduled_at: new Date(startsMs - m * 60_000).toISOString(),
     }));
   if (reminderRows.length > 0) {
