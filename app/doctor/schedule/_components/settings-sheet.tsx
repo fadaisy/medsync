@@ -50,7 +50,14 @@ export function SchedulingSettingsSheet({ defaults }: { defaults: SettingsRow })
 
   return (
     <>
-      <Button type="button" variant="ghost" size="sm" onClick={() => setOpen(true)}>
+      {/* size="sm" is ~24px tall; min-h-11 restores the 44px touch floor. */}
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        className="min-h-11"
+        onClick={() => setOpen(true)}
+      >
         <SettingsIcon className="size-3.5" aria-hidden />
         Settings
       </Button>
@@ -68,7 +75,7 @@ export function SchedulingSettingsSheet({ defaults }: { defaults: SettingsRow })
             <form action={formAction} className="flex flex-col gap-5">
               {/* Auto-confirm toggle */}
               <fieldset className="flex flex-col gap-2">
-                <legend className="text-foreground text-[12.5px] font-medium">
+                <legend className="text-foreground text-body-s font-medium">
                   How are requests handled?
                 </legend>
                 <ToggleRow
@@ -80,53 +87,65 @@ export function SchedulingSettingsSheet({ defaults }: { defaults: SettingsRow })
                 />
               </fieldset>
 
-              {/* Slot length + buffer */}
-              <div className="grid grid-cols-2 gap-3">
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="default_slot_minutes" className="text-caption tracking-tight">
-                    Slot length (min)
-                    {defaults.usingDefaults.defaultSlotMinutes ? (
-                      <span className="text-muted-foreground/80 ml-1 font-normal">
-                        (dept default)
-                      </span>
-                    ) : null}
-                  </Label>
-                  <Input
-                    id="default_slot_minutes"
-                    name="default_slot_minutes"
-                    type="number"
-                    min={5}
-                    max={240}
-                    defaultValue={defaults.defaultSlotMinutes}
-                    className="font-mono tabular-nums"
-                    required
-                  />
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="buffer_minutes" className="text-caption tracking-tight">
-                    Buffer between (min)
-                    {defaults.usingDefaults.bufferMinutes ? (
-                      <span className="text-muted-foreground/80 ml-1 font-normal">
-                        (dept default)
-                      </span>
-                    ) : null}
-                  </Label>
-                  <Input
-                    id="buffer_minutes"
-                    name="buffer_minutes"
-                    type="number"
-                    min={0}
-                    max={60}
-                    defaultValue={defaults.bufferMinutes}
-                    className="font-mono tabular-nums"
-                    required
-                  />
+              {/* Slot length + buffer — these two are engine inputs, not
+                  labels. buildSlots() steps each bookable block by
+                  (slot + buffer), so saving here changes every time this
+                  clinician is offered for, on every patient's booking screen.
+                  A doctor moving a number deserves to know that before they
+                  save it, not after a patient tells them. */}
+              <div className="flex flex-col gap-2">
+                <p className="text-muted-foreground text-body-s leading-relaxed">
+                  Slot length and buffer are what the booking engine divides your bookable blocks
+                  by. Changing them changes the times patients are offered from the moment you save.
+                  Appointments already booked keep the length they were booked at.
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="default_slot_minutes" className="text-caption tracking-tight">
+                      Slot length (min)
+                      {defaults.usingDefaults.defaultSlotMinutes ? (
+                        <span className="text-muted-foreground/80 ml-1 font-normal">
+                          (dept default)
+                        </span>
+                      ) : null}
+                    </Label>
+                    <Input
+                      id="default_slot_minutes"
+                      name="default_slot_minutes"
+                      type="number"
+                      min={5}
+                      max={240}
+                      defaultValue={defaults.defaultSlotMinutes}
+                      className="font-mono tabular-nums"
+                      required
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="buffer_minutes" className="text-caption tracking-tight">
+                      Buffer between (min)
+                      {defaults.usingDefaults.bufferMinutes ? (
+                        <span className="text-muted-foreground/80 ml-1 font-normal">
+                          (dept default)
+                        </span>
+                      ) : null}
+                    </Label>
+                    <Input
+                      id="buffer_minutes"
+                      name="buffer_minutes"
+                      type="number"
+                      min={0}
+                      max={60}
+                      defaultValue={defaults.bufferMinutes}
+                      className="font-mono tabular-nums"
+                      required
+                    />
+                  </div>
                 </div>
               </div>
 
               {/* Virtual + OOH override */}
               <fieldset className="flex flex-col gap-2">
-                <legend className="text-foreground text-[12.5px] font-medium">Options</legend>
+                <legend className="text-foreground text-body-s font-medium">Options</legend>
                 <ToggleRow
                   name="allow_virtual"
                   defaultChecked={defaults.allowVirtual}
@@ -160,21 +179,34 @@ export function SchedulingSettingsSheet({ defaults }: { defaults: SettingsRow })
               </div>
 
               {state.error ? (
-                <p className="text-destructive border-destructive/30 bg-destructive/5 scale-in rounded-md border px-3 py-2 text-[12px] leading-relaxed">
+                <p
+                  role="alert"
+                  className="text-destructive border-destructive/30 bg-destructive/5 ncd-reveal text-body-s rounded-md border px-3 py-2 leading-relaxed"
+                >
                   {state.error}
                 </p>
               ) : null}
               {state.ok ? (
-                <p className="scale-in border-brand-500/30 bg-brand-50/50 text-brand-900 dark:bg-brand-950/30 dark:text-brand-200 rounded-md border px-3 py-2 text-[12.5px]">
-                  Saved.
+                // No `dark:` overrides: the brand ramp inverts in dark mode, so
+                // `dark:text-brand-200` would fight the flip and sit dark-on-dark.
+                <p
+                  role="status"
+                  className="border-brand-500/30 bg-brand-50/50 text-brand-900 ncd-reveal text-body-s rounded-md border px-3 py-2"
+                >
+                  Saved. Patients see the new slot grid from now on.
                 </p>
               ) : null}
 
               <SheetFooter className="px-0">
-                <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="min-h-11"
+                  onClick={() => setOpen(false)}
+                >
                   Close
                 </Button>
-                <Button type="submit" disabled={pending}>
+                <Button type="submit" className="min-h-11" disabled={pending}>
                   {pending ? "Saving…" : "Save settings"}
                 </Button>
               </SheetFooter>

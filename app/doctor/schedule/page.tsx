@@ -20,6 +20,12 @@ import { StatRail } from "./_components/stat-rail";
 export const metadata: Metadata = { title: "Schedule · Doctor · MedSync" };
 export const dynamic = "force-dynamic";
 
+/** `rangeEnd` is exclusive everywhere below, so the label names the last day actually fetched. */
+function formatWindowDate(d: Date, exclusiveEnd = false): string {
+  const shown = exclusiveEnd ? new Date(d.getTime() - 86_400_000) : d;
+  return shown.toLocaleDateString(undefined, { day: "numeric", month: "short" });
+}
+
 export default async function DoctorSchedulePage() {
   const scope = await requireDoctorScope();
 
@@ -67,10 +73,10 @@ export default async function DoctorSchedulePage() {
     <div className="stagger-children mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 lg:px-6 lg:py-9">
       <header className="flex flex-col gap-2">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
+          <span className="text-muted-foreground text-overline inline-flex items-center gap-1.5 font-mono uppercase">
             <span
               aria-hidden
-              className="pulse-dot bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2"
+              className="bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2"
             />
             {scope.hospitalName} · {scope.departmentName} · Schedule
           </span>
@@ -91,16 +97,16 @@ export default async function DoctorSchedulePage() {
         <h1 className="font-display text-foreground text-heading-l leading-[1.15] font-medium tracking-[-0.015em]">
           Your week
         </h1>
-        <p className="text-muted-foreground max-w-[60ch] text-[12.5px] leading-relaxed">
+        <p className="text-muted-foreground text-body-s max-w-[60ch] leading-relaxed">
           Appointments + availability blocks. Click an appointment for the detail panel.{" "}
           {settings.autoConfirm
             ? "Auto-confirm is on — patient requests confirm immediately."
             : "Manual approval is on — patient requests land in the rail on the right."}{" "}
-          Open <span className="font-mono">Availability</span> in the top bar to add or edit your
-          bookable + non-bookable blocks.
+          Open <span className="font-mono">Availability</span> to declare bookable hours, or to mark
+          leave — leave is what takes time back off the bookable grid.
         </p>
         {beingSeen?.patientCode ? (
-          <p className="text-muted-foreground text-[12px]">
+          <p className="text-muted-foreground text-body-s">
             <span className="font-mono">{scope.departmentName}</span> now seeing:{" "}
             <span className="text-foreground font-medium">{beingSeen.patientCode}</span>
             {beingSeen.calledAtIso ? (
@@ -120,7 +126,10 @@ export default async function DoctorSchedulePage() {
       <StatRail stats={stats} />
 
       <div className="grid gap-4 lg:grid-cols-[1fr_300px]">
-        <DoctorCalendar events={events} />
+        <DoctorCalendar
+          events={events}
+          windowLabel={`${formatWindowDate(rangeStart)} – ${formatWindowDate(rangeEnd, true)}`}
+        />
         <div className="flex flex-col gap-4 lg:max-w-[300px]">
           {!settings.autoConfirm ? <PendingApprovalsRail rows={pending} /> : null}
           <QueueRail entries={queue} />

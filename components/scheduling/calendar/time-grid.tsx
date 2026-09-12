@@ -151,16 +151,29 @@ export function TimeGrid({
                   );
                   const height = (minutesDuration / 60) * pxPerHour;
                   if (ev.kind === "availability") {
+                    const kindLabel =
+                      AVAILABILITY_KIND_LABEL[ev.availabilityKind] ?? ev.availabilityKind;
                     return (
                       <div
                         key={ev.id}
                         className={cn(
-                          "pointer-events-none absolute right-0.5 left-0.5 rounded-[3px]",
+                          "pointer-events-none absolute right-0.5 left-0.5 overflow-hidden rounded-[3px] px-1 py-0.5",
                           AVAILABILITY_KIND_CLASSES[ev.availabilityKind] ?? "bg-muted/40",
                         )}
                         style={{ top: `${top}px`, height: `${Math.max(16, height)}px` }}
-                        title={AVAILABILITY_KIND_LABEL[ev.availabilityKind] ?? ev.availabilityKind}
-                      />
+                        title={kindLabel}
+                      >
+                        {/* The kind was conveyed by fill alone, with a `title`
+                            as its only text — not an accessible name, and
+                            absent on touch. `leave` and `unavailable` read as
+                            the same grey as each other and as the background,
+                            and those two are exactly the kinds that subtract
+                            from bookable time. Design law: never colour alone
+                            for state, always a text label. */}
+                        <span className="text-muted-foreground/80 text-overline block truncate font-mono uppercase">
+                          {kindLabel}
+                        </span>
+                      </div>
                     );
                   }
                   return (

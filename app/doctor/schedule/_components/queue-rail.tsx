@@ -24,6 +24,7 @@ export interface QueueRow {
   state: string;
   arrivedAtIso: string;
   sequenceNumber: number;
+  priorityLabel: string | null;
   patientCode: string | null;
   appointmentId: string | null;
   notes: string | null;
@@ -51,10 +52,10 @@ export function QueueRail({ entries }: { entries: ReadonlyArray<QueueRow> }) {
       className="border-border bg-card flex h-full w-full flex-col gap-3 rounded-xl border p-3 lg:max-w-[280px]"
     >
       <header className="flex items-baseline justify-between gap-2">
-        <h2 className="text-muted-foreground font-mono text-[10.5px] tracking-[0.14em] uppercase">
+        <h2 className="text-muted-foreground text-overline font-mono uppercase">
           Today&rsquo;s queue
         </h2>
-        <span className="text-muted-foreground font-mono text-[10.5px] tabular-nums">
+        <span className="text-muted-foreground text-caption font-mono tabular-nums">
           {entries.length}
         </span>
       </header>
@@ -62,9 +63,7 @@ export function QueueRail({ entries }: { entries: ReadonlyArray<QueueRow> }) {
       {/* Being seen */}
       {beingSeen.length > 0 ? (
         <section className="flex flex-col gap-1.5">
-          <h3 className="text-muted-foreground font-mono text-[9.5px] tracking-[0.14em] uppercase">
-            Now seeing
-          </h3>
+          <h3 className="text-muted-foreground text-overline font-mono uppercase">Now seeing</h3>
           <ul className="stagger-children flex flex-col gap-1">
             {beingSeen.map((e) => (
               <li key={e.id}>
@@ -77,11 +76,11 @@ export function QueueRail({ entries }: { entries: ReadonlyArray<QueueRow> }) {
 
       {/* Waiting */}
       <section className="flex flex-col gap-1.5">
-        <h3 className="text-muted-foreground font-mono text-[9.5px] tracking-[0.14em] uppercase">
+        <h3 className="text-muted-foreground text-overline font-mono uppercase">
           Waiting · {waiting.length}
         </h3>
         {waiting.length === 0 ? (
-          <p className="text-muted-foreground text-[12px]">No one waiting right now.</p>
+          <p className="text-muted-foreground text-body-s">No one waiting right now.</p>
         ) : (
           <ul className="stagger-children flex flex-col gap-1">
             {waiting.map((e) => (
@@ -124,34 +123,49 @@ function QueueChip({ row, variant }: { row: QueueRow; variant: "waiting" | "bein
         !isUrgent && variant === "waiting" && "hover:bg-brand-50/30 hover:border-gray-300",
       )}
     >
-      <span aria-hidden className="text-muted-foreground font-mono text-[10.5px] tabular-nums">
+      <span aria-hidden className="text-muted-foreground text-caption font-mono tabular-nums">
         #{row.sequenceNumber}
       </span>
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="text-foreground inline-flex items-center gap-1 text-[12.5px] font-medium">
+        <span className="text-foreground text-body-s inline-flex items-center gap-1 font-medium">
           {row.patientCode ?? "Patient"}
           {isUrgent ? (
+            // The rose tint is never the only carrier of "urgent" — the
+            // KIND_LABEL line below spells out "Urgent walk-in" in text.
             <AlertTriangleIcon className="size-3 text-rose-600 dark:text-rose-400" aria-hidden />
           ) : null}
         </span>
-        <span className="text-muted-foreground inline-flex items-center gap-1 font-mono text-[10px] tabular-nums">
+        <span className="text-muted-foreground text-caption inline-flex items-center gap-1 font-mono tabular-nums">
           <ClockIcon className="size-2.5" aria-hidden />
           {formatRelative(row.arrivedAtIso)} · {KIND_LABEL[row.kind] ?? row.kind}
         </span>
+        {/* The rail orders by acuity before arrival, so the acuity is stated.
+            An unexplained reorder is the queue equivalent of colour-alone:
+            the doctor sees a patient jump #4 → top with nothing saying why.
+            `#{sequenceNumber}` stays the arrival ticket the desk issued. */}
+        {row.priorityLabel ? (
+          <span className="text-foreground/80 text-caption font-medium">{row.priorityLabel}</span>
+        ) : null}
         {row.notes ? (
           <span className="text-muted-foreground/90 text-caption italic">{row.notes}</span>
         ) : null}
-        {error ? <span className="text-destructive scale-in text-caption">{error}</span> : null}
+        {error ? (
+          <span role="alert" className="text-destructive ncd-reveal text-caption">
+            {error}
+          </span>
+        ) : null}
       </div>
       {variant === "waiting" ? (
+        // iconSm is 28px — min-h-11/min-w-11 grows only the hit area to the
+        // 44px floor; the ghost chrome stays as light as the rail needs.
         <Button
           type="button"
           variant="ghost"
           size="iconSm"
+          className="min-h-11 min-w-11"
           disabled={pending}
           onClick={call}
-          aria-label={`Call ${row.patientCode ?? "patient"}`}
-          title="Call + start encounter"
+          aria-label={`Call ${row.patientCode ?? "patient"} and start the encounter`}
         >
           <PlayIcon className="size-3.5" />
         </Button>
@@ -169,7 +183,7 @@ function RecordWalkinButton() {
         variant="secondary"
         size="sm"
         onClick={() => setOpen(true)}
-        className="mt-auto"
+        className="mt-auto min-h-11"
       >
         <UserPlusIcon className="size-3.5" aria-hidden />
         Record walk-in
@@ -220,7 +234,7 @@ function RecordWalkinForm({ onSuccess }: { onSuccess: () => void }) {
           name="patient_user_id"
           placeholder="A patient picker lands in a polish pass."
           required
-          className="font-mono text-[12px]"
+          className="text-body-s font-mono"
         />
         <p className="text-muted-foreground text-caption leading-relaxed">
           Paste the patient&rsquo;s UUID for now — the picker ships with the patient-directory
@@ -249,8 +263,15 @@ function RecordWalkinForm({ onSuccess }: { onSuccess: () => void }) {
         />
         <span className="flex flex-1 flex-col">
           <span className="text-foreground text-body-s font-medium">Mark as urgent</span>
-          <span className="text-muted-foreground text-[11.5px]">
-            Walks the queue to the front and flags the entry rose. Use sparingly.
+          {/* ha-record-walkin assigns sequence_number = (today's count + 1)
+              and never sets priority_order, so an urgent walk-in is
+              LABELLED, not moved: the rail's acuity key is null for it and
+              it sorts by arrival among the other un-triaged entries. Saying
+              otherwise would let a doctor assume a re-order the database
+              never made. Setting priority_order there is a product call. */}
+          <span className="text-muted-foreground text-caption">
+            Labels the entry &ldquo;Urgent walk-in&rdquo; for whoever calls next. It keeps its
+            arrival position among un-triaged patients — marking it urgent does not move it up.
           </span>
         </span>
       </label>
@@ -270,7 +291,10 @@ function RecordWalkinForm({ onSuccess }: { onSuccess: () => void }) {
       </div>
 
       {error ? (
-        <p className="text-destructive border-destructive/30 bg-destructive/5 scale-in rounded-md border px-3 py-2 text-[12px] leading-relaxed">
+        <p
+          role="alert"
+          className="text-destructive border-destructive/30 bg-destructive/5 ncd-reveal text-body-s rounded-md border px-3 py-2 leading-relaxed"
+        >
           {error}
         </p>
       ) : null}

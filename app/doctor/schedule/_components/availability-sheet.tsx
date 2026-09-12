@@ -41,8 +41,12 @@ const KIND_TONES: Record<string, PillTone> = {
   teaching: "admitted",
   ward_round: "pending",
   admin: "neutral",
+  // `leave` and `unavailable` share a tone because they share a consequence:
+  // the slot engine subtracts both from bookable time and neither of the
+  // others. `unavailable` used to be "critical" — red is reserved for genuine
+  // clinical emergencies, and a doctor's day off is not one.
   leave: "caution",
-  unavailable: "critical",
+  unavailable: "caution",
 };
 
 const KIND_LABEL: Record<string, string> = {
@@ -54,6 +58,15 @@ const KIND_LABEL: Record<string, string> = {
   unavailable: "Unavailable",
 };
 
+/**
+ * The kinds `buildSlots()` subtracts from bookable time — kept in step with
+ * BLOCKING_KINDS in `supabase/functions/_shared/slots.ts`, which is the only
+ * place that decides it. Teaching / ward rounds / admin are deliberately NOT
+ * here: they are the clinician's own commitments and do not stop a patient
+ * booking over them. This surface used to claim they did.
+ */
+const BLOCKS_BOOKING: ReadonlySet<string> = new Set(["leave", "unavailable"]);
+
 const WEEKDAY_LABEL = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 export function AvailabilitySheetButton({
@@ -64,6 +77,10 @@ export function AvailabilitySheetButton({
   const [listOpen, setListOpen] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<ClinicianAvailabilityRow | null>(null);
+  // A count of DECLARED blocking rows — not a count of slots removed. Only the
+  // engine can say how many slots a leave block cost, and this surface never
+  // runs it, so it never claims a number it cannot prove.
+  const blockingCount = blocks.filter((b) => BLOCKS_BOOKING.has(b.kind)).length;
 
   function openCreate(): void {
     setEditing(null);
@@ -90,7 +107,14 @@ export function AvailabilitySheetButton({
 
   return (
     <>
-      <Button type="button" variant="secondary" size="sm" onClick={() => setListOpen(true)}>
+      {/* size="sm" is ~24px tall; min-h-11 restores the 44px touch floor. */}
+      <Button
+        type="button"
+        variant="secondary"
+        size="sm"
+        className="min-h-11"
+        onClick={() => setListOpen(true)}
+      >
         <CalendarClockIcon className="size-3.5" aria-hidden />
         Availability
       </Button>
@@ -100,17 +124,20 @@ export function AvailabilitySheetButton({
           <SheetHeader>
             <SheetTitle>Your availability</SheetTitle>
             <SheetDescription>
-              Bookable blocks let patients request appointments. Mark teaching, ward rounds, and
-              admin as non-bookable so they aren&rsquo;t double-booked. Changes are audited.
+              Bookable blocks are the only time patients can request. Leave and Unavailable take
+              time back off that grid. Teaching, ward rounds and admin are yours to see — they do
+              not stop a patient booking over them, so declare Unavailable when you need the time
+              protected. Changes are audited.
             </SheetDescription>
           </SheetHeader>
 
           <SheetBody>
             <div className="mb-3 flex items-center justify-between gap-2">
-              <span className="text-muted-foreground font-mono text-[10.5px] tracking-[0.14em] uppercase">
+              <span className="text-muted-foreground text-overline font-mono uppercase">
                 Upcoming · {blocks.length}
+                {blockingCount > 0 ? ` · ${blockingCount} blocking` : ""}
               </span>
-              <Button type="button" size="sm" onClick={openCreate}>
+              <Button type="button" size="sm" className="min-h-11" onClick={openCreate}>
                 <CalendarPlusIcon className="size-3.5" aria-hidden />
                 Add block
               </Button>
@@ -118,22 +145,25 @@ export function AvailabilitySheetButton({
 
             {blocks.length === 0 ? (
               <div className="border-border bg-card flex flex-col items-start gap-3 rounded-xl border p-5">
+                {/* No `dark:` overrides: the brand ramp inverts in dark mode, so
+                    a hand-written dark step fights the flip and loses contrast. */}
                 <span
                   aria-hidden
-                  className="bg-brand-50 text-brand-700 ring-brand-200/70 dark:bg-brand-950/40 dark:text-brand-300 dark:ring-brand-800/40 inline-flex size-9 items-center justify-center rounded-full ring-1"
+                  className="bg-brand-50 text-brand-700 ring-brand-200/70 inline-flex size-9 items-center justify-center rounded-full ring-1"
                 >
                   <CalendarClockIcon className="size-4" />
                 </span>
                 <div className="flex flex-col gap-1">
-                  <span className="text-foreground text-[14px] font-medium">
+                  <span className="text-foreground text-body-m font-medium">
                     Nothing on your schedule yet
                   </span>
-                  <p className="text-muted-foreground max-w-[48ch] text-[12.5px] leading-relaxed">
-                    Add bookable hours so patients can book you. Mark teaching / ward rounds / admin
-                    as non-bookable so the system doesn&rsquo;t double-book over them.
+                  <p className="text-muted-foreground text-body-s max-w-[48ch] leading-relaxed">
+                    Add bookable hours so patients can book you. Teaching, ward rounds and admin
+                    show on your calendar but do not hold time against bookings — declare Leave or
+                    Unavailable for the hours you need protected.
                   </p>
                 </div>
-                <Button type="button" size="sm" onClick={openCreate}>
+                <Button type="button" size="sm" className="min-h-11" onClick={openCreate}>
                   <CalendarPlusIcon className="size-3.5" aria-hidden />
                   Add your first block
                 </Button>
@@ -192,13 +222,19 @@ function BlockRow({ block, onEdit }: { block: DoctorAvailabilityRow; onEdit: () 
       )}
     >
       <div className="flex w-28 shrink-0 flex-col">
-        <span className="text-foreground text-[12.5px] font-medium tabular-nums">{dateLabel}</span>
-        <span className="text-muted-foreground font-mono text-[10.5px] tabular-nums">
+        <span className="text-foreground text-body-s font-medium tabular-nums">{dateLabel}</span>
+        <span className="text-muted-foreground text-caption font-mono tabular-nums">
           {timeLabel}
         </span>
       </div>
 
       <Pill tone={KIND_TONES[block.kind] ?? "neutral"}>{KIND_LABEL[block.kind] ?? block.kind}</Pill>
+
+      {/* Spelled out, never carried by the pill's tint alone: this is the one
+          thing on the row that changes what patients can do to the diary. */}
+      {BLOCKS_BOOKING.has(block.kind) ? (
+        <span className="text-muted-foreground text-caption shrink-0">Blocks bookings</span>
+      ) : null}
 
       {block.recurrence === "weekly" && block.recurrenceWeekday ? (
         <span className="text-muted-foreground text-caption">
@@ -207,7 +243,7 @@ function BlockRow({ block, onEdit }: { block: DoctorAvailabilityRow; onEdit: () 
       ) : null}
 
       {block.location ? (
-        <span className="text-muted-foreground hidden truncate text-[11.5px] sm:inline">
+        <span className="text-muted-foreground text-caption hidden truncate sm:inline">
           {block.location}
         </span>
       ) : null}

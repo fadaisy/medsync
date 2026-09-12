@@ -50,19 +50,22 @@ export function StatRail({ stats }: { stats: SchedulingStats }) {
 function StatCard({ spec }: { spec: StatCardSpec }) {
   const Icon = spec.icon;
   return (
-    <div className="border-border bg-card card-lift flex flex-col gap-1 rounded-xl border p-3">
+    <div className="border-border bg-card flex flex-col gap-1 rounded-xl border p-3">
       <div className="flex items-center gap-1.5">
         <Icon
           aria-hidden
           className={cn(
             "size-3.5",
-            spec.tone === "teal" && "text-brand-600 dark:text-brand-400",
+            // No `dark:` on the brand step: the brand ramp inverts in dark mode
+            // (globals.css), so `dark:text-brand-400` would fight the flip and
+            // land darker than the card. The bare token flips on its own.
+            spec.tone === "teal" && "text-brand-600",
             spec.tone === "amber" && "text-amber-600 dark:text-amber-400",
             spec.tone === "rose" && "text-rose-600 dark:text-rose-400",
             (spec.tone === "neutral" || spec.tone === "muted") && "text-muted-foreground",
           )}
         />
-        <span className="text-muted-foreground font-mono text-[10px] tracking-[0.14em] uppercase">
+        <span className="text-muted-foreground text-overline font-mono uppercase">
           {spec.label}
         </span>
       </div>
