@@ -12,14 +12,25 @@ import { createClient } from "@/lib/supabase/server";
 const BookArgs = z.object({
   clinician_user_id: z.string().uuid(),
   department_id: z.string().uuid(),
-  reason: z.enum(["follow_up", "new_concern", "refill", "routine", "urgent_review", "other"]),
+  /**
+   * ADR 0084 §12 — `urgent_review` is gone from the patient-selectable set.
+   * It was already absent from the wizard's visible list and still accepted
+   * here, which is the gap that matters: a patient-picked "urgent" is not a
+   * triage signal (patient–clinician agreement kappa 0.166 / 0.07), yet it sat
+   * one query away from being read as one beside the system-driven
+   * `system_urgent` origin. The database now refuses the pair outright
+   * (`appointments_patient_reason_check`), so accepting it here could only
+   * ever produce a 500 for the patient.
+   */
+  reason: z.enum(["follow_up", "new_concern", "refill", "routine", "other"]),
   reason_note: z.string().max(500).optional(),
   starts_at: z.string().datetime({ offset: true }),
   ends_at: z.string().datetime({ offset: true }),
   type: z.enum(["in_person", "virtual"]).default("in_person"),
 });
 
-export type BookActionState = { ok?: boolean; error?: string; appointmentId?: string };
+/** No id field: the success path redirects, so nothing ever reads one back. */
+export type BookActionState = { ok?: boolean; error?: string };
 
 export async function bookAppointmentAction(
   _prev: BookActionState,
@@ -43,7 +54,7 @@ export async function bookAppointmentAction(
 
   const scope = await requirePatientScope();
   if (!scope.primaryHospitalId) {
-    return { error: "Set your primary hospital before booking." };
+    return { error: "Choose the hospital you go to first." };
   }
 
   const supabase = await createClient();
@@ -75,7 +86,7 @@ export async function bookAppointmentAction(
         /* keep raw */
       }
       logger.warn("patient.book.failed", { status: res.status });
-      return { error: detail || `Booking failed (status ${res.status}).` };
+      return { error: detail || `We could not send that (status ${res.status}).` };
     }
     const parsedBody = JSON.parse(text) as {
       data?: { appointment_id?: string; status?: string };
@@ -92,7 +103,7 @@ export async function bookAppointmentAction(
     // redirect() throws a NEXT_REDIRECT — re-throw so Next handles it.
     if (e && typeof e === "object" && "digest" in e) throw e;
     logger.error("patient.book.network", { reason: String(e) });
-    return { error: "Couldn't reach the booking service. Try again in a moment." };
+    return { error: "Couldn't reach the hospital's system. Try again in a moment." };
   }
 
   // Unreachable — redirect() above either redirects or throws.

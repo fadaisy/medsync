@@ -1,124 +1,140 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { ArrowLeftIcon, LockIcon } from "lucide-react";
+import { LockIcon } from "lucide-react";
 
 import { fetchPatientProfileView, ID_TYPE_LABEL, SEX_LABEL } from "@/lib/patient/profile";
 import { requirePatientScope } from "@/lib/patient/scope";
+import { cn } from "@/lib/utils";
+import { PatientPageHeader } from "../_components/page-header";
 import { ProfileForm } from "./_components/profile-form";
 
 export const metadata: Metadata = { title: "Profile · MedSync" };
 export const dynamic = "force-dynamic";
+
+/** Dates are DD MMM YYYY across the system. The column is a plain date, so
+ *  it is formatted in UTC — parsing "1994-03-12" as a local instant would
+ *  shift a birthday by a day for anyone west of Greenwich. */
+const DOB_FMT = new Intl.DateTimeFormat("en-GB", {
+  day: "2-digit",
+  month: "short",
+  year: "numeric",
+  timeZone: "UTC",
+});
 
 export default async function PatientProfilePage() {
   const scope = await requirePatientScope();
   const profile = await fetchPatientProfileView(scope.userId);
 
   return (
-    <div className="mx-auto flex w-full max-w-xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-9">
-      <Link
-        href="/patient/menu"
-        className="text-muted-foreground hover:text-foreground inline-flex w-fit items-center gap-1 text-[12.5px] transition-colors"
-      >
-        <ArrowLeftIcon className="size-3.5" aria-hidden />
-        Back to More
-      </Link>
+    <div className="flex flex-col gap-6">
+      <PatientPageHeader
+        eyebrow="MedSync · Profile"
+        title="Your profile"
+        description="Identity details stay locked — change them through support. Contact, language, and conditions are yours to edit any time."
+        backHref="/patient/menu"
+        backLabel="Back to More"
+      />
 
-      <header className="flex flex-col gap-1.5">
-        <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
-          <span aria-hidden className="bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2" />
-          MedSync · Profile
-        </span>
-        <h1 className="font-display text-foreground sm:text-heading-l text-[24px] leading-[1.15] font-medium tracking-[-0.015em]">
-          Your profile
-        </h1>
-        <p className="text-muted-foreground text-body-s max-w-[44ch] leading-relaxed">
-          Identity details stay locked — change them through support. Contact, language, and
-          conditions are yours to edit any time.
-        </p>
-      </header>
-
-      {/* ── Identity (read-only) ──────────────────────────────── */}
       {profile ? (
-        <section className="border-border bg-muted/20 flex flex-col gap-3 rounded-xl border p-4">
-          <div className="flex items-baseline justify-between gap-2">
-            <h2 className="text-muted-foreground font-mono text-[10.5px] tracking-[0.14em] uppercase">
-              Identity
-            </h2>
-            <span className="text-muted-foreground inline-flex items-center gap-1 font-mono text-[10px] tracking-[0.12em] uppercase">
-              <LockIcon className="size-3" aria-hidden />
-              Locked
-            </span>
-          </div>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <ReadField label="Patient code" value={profile.patientCode} mono />
-            <ReadField label="First name" value={profile.firstName} />
-            <ReadField label="Surname" value={profile.surname} />
-            <ReadField label="Sex" value={SEX_LABEL[profile.sex] ?? profile.sex} />
-            <ReadField label="Date of birth" value={profile.dateOfBirth} mono />
-            <ReadField
-              label="ID"
-              value={
-                profile.idType === "none"
-                  ? "Not on file"
-                  : `${ID_TYPE_LABEL[profile.idType] ?? profile.idType}${
-                      profile.idNumberLast4 ? ` · ⋯${profile.idNumberLast4}` : ""
-                    }`
-              }
-            />
-          </div>
-          <p className="text-muted-foreground mt-1 text-[11.5px] leading-relaxed">
-            Need to change any of these? They affect identity verification, so they go through
-            support — a request flow lands here soon.
-          </p>
-        </section>
+        // Identity comes first in source because that is the order a phone
+        // reads it in; at @5xl it takes the context column by explicit grid
+        // placement. Not `order-*`, which does nothing to the flex column
+        // this collapses back into below the breakpoint.
+        <div className="flex flex-col gap-4 @5xl/page:grid @5xl/page:grid-cols-[minmax(0,1fr)_20rem] @5xl/page:items-start @5xl/page:gap-6">
+          <section
+            aria-labelledby="identity-head"
+            className="bg-card dark:shadow-card flex flex-col gap-3 rounded-xl p-4 shadow-xs @5xl/page:sticky @5xl/page:top-17 @5xl/page:col-start-2 @5xl/page:row-start-1"
+          >
+            <div className="flex items-center justify-between gap-2">
+              <h2 id="identity-head" className="text-foreground text-heading-s font-medium">
+                Identity
+              </h2>
+              <span className="text-muted-foreground text-overline inline-flex shrink-0 items-center gap-1 uppercase">
+                <LockIcon className="size-3" aria-hidden />
+                Locked
+              </span>
+            </div>
+
+            <dl className="grid grid-cols-2 gap-x-4 gap-y-3">
+              <ReadField label="Patient code" value={profile.patientCode} mono />
+              <ReadField label="Date of birth" value={formatDob(profile.dateOfBirth)} mono />
+              <ReadField label="First name" value={profile.firstName} />
+              <ReadField label="Surname" value={profile.surname} />
+              <ReadField label="Sex" value={SEX_LABEL[profile.sex] ?? profile.sex} />
+              <ReadField
+                label="ID"
+                className="col-span-2"
+                value={
+                  profile.idType === "none"
+                    ? "Not on file"
+                    : `${ID_TYPE_LABEL[profile.idType] ?? profile.idType}${
+                        profile.idNumberLast4 ? ` · ⋯${profile.idNumberLast4}` : ""
+                      }`
+                }
+              />
+            </dl>
+
+            <p className="text-muted-foreground text-body-s leading-relaxed">
+              Need to change any of these? They affect identity verification, so they go through
+              support — a request flow lands here soon.
+            </p>
+          </section>
+
+          <ProfileForm
+            className="@5xl/page:col-start-1 @5xl/page:row-start-1"
+            defaults={{
+              phone: profile.phone,
+              villageAddress: profile.villageAddress,
+              preferredLanguage: profile.preferredLanguage,
+              knownConditions: profile.knownConditions,
+              nokName: profile.nokName,
+              nokRelationship: profile.nokRelationship,
+              nokPhone: profile.nokPhone,
+            }}
+          />
+        </div>
       ) : (
-        <section className="border-destructive/30 bg-destructive/5 rounded-xl border p-4">
-          <p className="text-destructive text-[12.5px] leading-relaxed">
-            We couldn&rsquo;t load your profile right now. Try again in a moment, or sign out and
-            back in.
+        // A decrypt failure is a genuinely failed read, which is one of the
+        // two places red is permitted on this surface.
+        <section
+          role="alert"
+          className="border-destructive/30 bg-destructive/5 rounded-xl border p-4"
+        >
+          <p className="text-destructive text-body-s leading-relaxed">
+            We can&rsquo;t show your profile right now — nothing is lost. Try again in a moment, or
+            sign out and back in.
           </p>
         </section>
       )}
-
-      {/* ── Editable fields ──────────────────────────────────── */}
-      {profile ? (
-        <ProfileForm
-          defaults={{
-            phone: profile.phone,
-            villageAddress: profile.villageAddress,
-            preferredLanguage: profile.preferredLanguage,
-            knownConditions: profile.knownConditions,
-            nokName: profile.nokName,
-            nokRelationship: profile.nokRelationship,
-            nokPhone: profile.nokPhone,
-          }}
-        />
-      ) : null}
     </div>
   );
+}
+
+/** `date_of_birth` is a Postgres `date`, so it arrives as 'YYYY-MM-DD'.
+ *  Anything else shows as stored rather than taking the page down. */
+function formatDob(iso: string): string {
+  const d = new Date(`${iso}T00:00:00Z`);
+  return Number.isNaN(d.getTime()) ? iso : DOB_FMT.format(d);
 }
 
 function ReadField({
   label,
   value,
   mono = false,
+  className,
 }: {
   label: string;
   value: string;
   mono?: boolean;
+  className?: string;
 }) {
   return (
-    <div className="flex flex-col gap-0.5">
-      <span className="text-muted-foreground text-[10.5px] tracking-tight uppercase">{label}</span>
-      <span
-        className={
-          mono
-            ? "text-foreground text-body-s font-mono tabular-nums"
-            : "text-foreground text-[13.5px]"
-        }
-      >
+    <div className={cn("flex min-w-0 flex-col gap-0.5", className)}>
+      {/* The one label treatment on this screen — the read fields and the
+          form's own <Label>s now share it. */}
+      <dt className="text-muted-foreground text-overline uppercase">{label}</dt>
+      <dd className={cn("text-foreground text-body-m break-words", mono && "tabular font-mono")}>
         {value}
-      </span>
+      </dd>
     </div>
   );
 }

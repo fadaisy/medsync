@@ -2,41 +2,33 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { CheckIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { selectPrimaryHospitalAction } from "../actions";
 
 /**
- * Pick / change primary hospital. Two states:
- *   - "Set as primary" → calls the action, optimistic flip to "Primary".
- *   - "Primary"        → static pill (no action).
+ * "Set as primary" on a hospital row.
+ *
+ * One state, not two: the page skips this control entirely on the row that
+ * already is primary, because that row says so with its own
+ * `<Pill tone="stable">Your hospital</Pill>` — a second "Your primary" chip
+ * here printed the same fact twice, so the branch that rendered it is gone
+ * along with the `isPrimary` prop that selected it.
+ *
+ * `min-h-11` because `size="sm"` is ~24px tall and this is the one control
+ * on the hospitals page a thumb has to hit.
  */
-export function SelectHospitalButton({
-  hospitalId,
-  isPrimary,
-}: {
-  hospitalId: string;
-  isPrimary: boolean;
-}) {
+export function SelectHospitalButton({ hospitalId }: { hospitalId: string }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
-
-  if (isPrimary) {
-    return (
-      <span className="bg-brand-50 text-brand-700 ring-brand-200/70 dark:bg-brand-950/40 dark:text-brand-300 dark:ring-brand-800/40 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[12px] font-medium ring-1">
-        <CheckIcon className="size-3.5" aria-hidden />
-        Your primary
-      </span>
-    );
-  }
 
   return (
     <div className="flex flex-col items-end gap-1">
       <Button
         type="button"
         size="sm"
+        className="min-h-11 px-3.5"
         disabled={pending}
         onClick={() => {
           setError(null);
@@ -52,7 +44,11 @@ export function SelectHospitalButton({
       >
         {pending ? "Saving…" : "Set as primary"}
       </Button>
-      {error ? <span className="text-destructive font-mono text-[10px]">{error}</span> : null}
+      {error ? (
+        <span role="alert" className="text-destructive ncd-reveal text-body-s">
+          {error}
+        </span>
+      ) : null}
     </div>
   );
 }

@@ -32,15 +32,30 @@ const NOK_RELATIONSHIPS = [
   "other",
 ] as const;
 
+/**
+ * The same Ugandan E.164 shape the four signup surfaces enforce
+ * (app/signup/{patient,hospital,non-clinical}/actions.ts). It matters more
+ * here than it looks: `patient_profiles.phone_encrypted` is the number the
+ * appointment-reminder cron decrypts and hands to Africa's Talking, which
+ * accepts `+<digits>` and nothing else. Signup stored E.164; this form was
+ * the one writer that took `min(4)` and let a patient overwrite it with the
+ * way everyone actually writes their number — `0700123456`. That row then
+ * fails every reminder for ever, at the transport, after the queue row has
+ * already been claimed — the patient is never told, and signup promised
+ * them "we'll text appointment reminders".
+ */
+const PHONE_E164_UG = /^\+2567\d{8}$|^\+256[23489]\d{7,8}$/;
+const PHONE_MESSAGE = "Enter a Ugandan phone number.";
+
 const UpdateSchema = z.object({
-  phone: z.string().min(4, "Phone is required.").max(40),
+  phone: z.string().regex(PHONE_E164_UG, PHONE_MESSAGE),
   village_address: z.string().max(240).optional(),
   preferred_language: z.string().max(40).optional(),
   // Conditions: comma-separated. We split + trim + de-dupe + drop blanks.
   known_conditions: z.string().max(500).optional(),
   nok_name: z.string().max(120).optional(),
   nok_relationship: z.enum(NOK_RELATIONSHIPS).or(z.literal("")).optional(),
-  nok_phone: z.string().max(40).optional(),
+  nok_phone: z.string().regex(PHONE_E164_UG, PHONE_MESSAGE).optional(),
 });
 
 export type ProfileUpdateState = {

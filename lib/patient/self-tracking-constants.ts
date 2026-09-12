@@ -21,6 +21,15 @@ export const READING_KIND_LABEL: Record<string, string> = {
 export const NUMERIC_READING_KINDS = ["glucose", "bp", "weight", "spo2", "temperature"] as const;
 export type NumericReadingKind = (typeof NUMERIC_READING_KINDS)[number];
 
+/**
+ * Every reading kind a patient can log. Derived from the numeric tuple rather
+ * than retyped, and canonical: the log form's picker, `log/page.tsx`'s `?kind=`
+ * allow-list and `logReadingAction`'s zod enum all read it from here. It was
+ * declared three times, so a ninth kind reached one of them and not the others.
+ */
+export const READING_KINDS = [...NUMERIC_READING_KINDS, "symptom", "note", "other"] as const;
+export type ReadingKind = (typeof READING_KINDS)[number];
+
 export const READING_UNIT_OPTIONS: Record<NumericReadingKind, ReadonlyArray<string>> = {
   glucose: ["mg/dL", "mmol/L"],
   bp: ["mmHg"],
@@ -72,6 +81,34 @@ export function formatReadingValue(r: {
   }
   if (!r.numericValue1) return null;
   return `${trimZeros(r.numericValue1)}${r.unit ? ` ${r.unit}` : ""}`;
+}
+
+/**
+ * When a reading was taken, as the patient's lists show it: 24-hour time on
+ * the day it happened, `DD MMM` before that, and the year once it stops being
+ * this one. `en-GB` so the field order can't drift with the server's locale.
+ *
+ * Home and the tracking hub render the same recent-readings list, so they
+ * render it the same way — they used to disagree ("3h ago" against "14:30").
+ */
+export function formatReadingWhen(iso: string, now: Date): string {
+  const d = new Date(iso);
+  if (
+    d.getFullYear() === now.getFullYear() &&
+    d.getMonth() === now.getMonth() &&
+    d.getDate() === now.getDate()
+  ) {
+    return new Intl.DateTimeFormat("en-GB", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }).format(d);
+  }
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "short",
+    ...(d.getFullYear() === now.getFullYear() ? {} : { year: "numeric" }),
+  }).format(d);
 }
 
 function trimZeros(value: string): string {

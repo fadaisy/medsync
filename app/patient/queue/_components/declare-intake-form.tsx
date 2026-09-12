@@ -2,121 +2,149 @@
 
 import type { DeclareIntakeState } from "../actions";
 import Link from "next/link";
-import { useActionState, useState } from "react";
-import { TicketIcon } from "lucide-react";
+import { useActionState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
 import { declareIntakeAction } from "../actions";
 
-interface DepartmentOption {
+export interface DepartmentOption {
   id: string;
   name: string;
   openNow: boolean;
-  /** Why it's closed if !openNow — surfaced honestly under the radio. */
+  /** Why it is closed if `!openNow` — surfaced verbatim, never invented. */
   reason: string | null;
-  ahead: number;
 }
 
 interface Props {
   departments: ReadonlyArray<DepartmentOption>;
-  /** If no department is open right now, we don't show the submit at all. */
-  anyOpen: boolean;
   hospitalName: string;
 }
 
 /**
- * The patient-side "what dept are you here for?" picker. Submits to
- * declareIntakeAction → pt-declare-intake Edge Function. The page
- * already surfaced the existing-intake / existing-appointment paths
- * before rendering this, so we only worry about the happy path +
- * error recovery here.
+ * The one POST behind the same-day door (ADR 0084 §2): department, an optional
+ * note, submit. The page has already surfaced the existing-intake and
+ * existing-booking paths, so this handles the happy path and error recovery.
+ *
+ * **The department stops being a wait-shopping decision (§5).** No count is
+ * rendered against any department, ever: "Cardiology · 34 in line" against
+ * "General Medicine · 4 in line" prices a differential by wait, and choosing
+ * between them is a clinical judgement the patient was never equipped to make.
+ *
+ * **What §5 actually asks for is a default we cannot yet resolve.** It wants
+ * the hospital's general-outpatient / assessment department pre-selected, with
+ * the rest behind a plain disclosure for returning patients who know their
+ * clinic — mirroring the building, where everyone passes assessment first. No
+ * such row exists at Mulago and no column marks one: `hospital_departments` is
+ * (id, hospital_id, parent_id, name, slug), and the seed (migration 0005) is
+ * Internal Medicine plus 13 sub-specialties. Guessing the default from the
+ * NAME would be a heuristic deciding where a patient is sent, which is exactly
+ * what §5 forbids.
+ *
+ * So the honest interim, in the ADR's own terms — ask only when the default
+ * cannot be resolved:
+ *
+ *   - **One department open** → nothing to ask. It is named, not chosen, and
+ *     travels in a hidden field. (This is Mulago today: the picker lists
+ *     top-level departments only, and the seed has exactly one.)
+ *   - **More than one** → we ask, as a flat unpriced list. Every count is
+ *     gone, but the question itself survives until the default row lands.
+ *
+ * When a default arrives, the fixed branch below becomes its home and the list
+ * moves behind the disclosure; the ask branch is what gets deleted.
  */
-export function DeclareIntakeForm({ departments, anyOpen, hospitalName }: Props) {
+export function DeclareIntakeForm({ departments, hospitalName }: Props) {
   const [state, action, pending] = useActionState<DeclareIntakeState, FormData>(
     declareIntakeAction,
     {},
   );
-  const [selected, setSelected] = useState<string | null>(null);
 
-  if (!anyOpen) {
+  const open = departments.filter((d) => d.openNow);
+  const closed = departments.filter((d) => !d.openNow);
+
+  // §11. Every department is inside a scheduling policy that has closed for
+  // the evening, and the patient has already said they are coming today.
+  // Handing them a calendar is under-triage by routing, so the primary exit is
+  // the building and booking is a plain link under it.
+  if (open.length === 0) {
     return (
-      <div className="border-border bg-card flex flex-col gap-2 rounded-xl border p-4">
-        <span className="text-foreground text-[13.5px] font-medium">
-          No departments are taking walk-ins right now at {hospitalName}.
-        </span>
-        <p className="text-muted-foreground text-[12.5px] leading-snug">
-          Same-day walk-in hours haven&rsquo;t been published, or none are open at the moment. You
-          can book a future visit instead.
-        </p>
+      <section
+        aria-labelledby="closed-heading"
+        className="bg-card dark:shadow-card flex flex-col gap-3 rounded-xl p-4 shadow-xs"
+      >
+        <h2 id="closed-heading" className="text-heading-s font-medium">
+          Go to the hospital.
+        </h2>
+        {/* The clause "the emergency entrance is open at all hours" belongs
+            here only where someone has verified it for this hospital. Nothing
+            in the database records that, so it is not written. */}
+        <p className="text-foreground text-body-m">Reception can register you when you arrive.</p>
+        <ClosedNote closed={closed} hospitalName={hospitalName} />
         <Link
           href="/patient/book"
-          className="bg-brand-600 hover:bg-brand-700 mt-1 inline-flex w-fit items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-medium text-white shadow-xs transition-colors"
+          className="text-primary text-body-s duration-fast ease-expo-out -my-2 inline-flex min-h-11 w-fit items-center rounded-md underline-offset-4 transition-colors hover:underline"
         >
-          Book a future visit
+          Ask for a day — the clinic confirms
         </Link>
-      </div>
+      </section>
     );
   }
 
+  const only = open.length === 1 ? open[0] : null;
+
   return (
     <form action={action} className="flex flex-col gap-4">
-      <fieldset className="flex flex-col gap-2">
-        <legend className="text-muted-foreground font-mono text-[10.5px] tracking-[0.14em] uppercase">
-          Department
-        </legend>
-        <ul className="flex flex-col gap-2">
-          {departments.map((d) => {
-            const id = `dept_${d.id}`;
-            const isSelected = selected === d.id;
-            return (
+      {only ? (
+        <>
+          <input type="hidden" name="receiving_department_id" value={only.id} />
+          <div className="bg-card dark:shadow-card flex flex-col gap-1 rounded-xl p-4 shadow-xs">
+            <span className="text-muted-foreground text-caption">Where you are going</span>
+            <span className="text-foreground text-body-m font-medium">{only.name}</span>
+            <span className="text-muted-foreground text-body-s">{hospitalName}</span>
+          </div>
+        </>
+      ) : (
+        <fieldset className="flex flex-col gap-2">
+          <legend className="text-heading-s mb-2 font-medium">
+            Which clinic were you told to go to?
+          </legend>
+          {/* A native radio, visible rather than sr-only: it is the control a
+              patient recognises, and `required` then blocks the submit and
+              focuses it without a line of JavaScript. */}
+          <ul className="flex flex-col gap-2">
+            {open.map((d) => (
               <li key={d.id}>
                 <label
-                  htmlFor={id}
-                  className={
-                    !d.openNow
-                      ? "border-border bg-card flex cursor-not-allowed items-center gap-3 rounded-xl border p-3.5 opacity-60"
-                      : isSelected
-                        ? "border-brand-500/50 bg-brand-50/50 ring-brand-500/30 dark:border-brand-400/40 dark:bg-brand-950/20 flex cursor-pointer items-center gap-3 rounded-xl border p-3.5 ring-1"
-                        : "border-border bg-card hover:border-brand-300 flex cursor-pointer items-center gap-3 rounded-xl border p-3.5 transition-colors"
-                  }
+                  className={cn(
+                    "tap bg-card dark:shadow-card flex min-h-16 cursor-pointer items-center gap-3 rounded-lg px-4 py-3 shadow-xs",
+                    "has-[:checked]:bg-accent has-[:checked]:ring-brand-300 has-[:checked]:ring-1",
+                    "has-[:focus-visible]:outline-ring has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2",
+                    "md:hover:brightness-[0.98] dark:md:hover:brightness-110",
+                  )}
                 >
                   <input
-                    id={id}
                     type="radio"
                     name="receiving_department_id"
                     value={d.id}
-                    disabled={!d.openNow}
-                    onChange={() => setSelected(d.id)}
-                    className="accent-brand-600 size-4"
                     required
+                    className="accent-brand-600 size-4"
                   />
-                  <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                    <span className="text-foreground text-[13.5px] font-medium">{d.name}</span>
-                    {d.openNow ? (
-                      <span className="text-muted-foreground text-[11.5px]">
-                        {d.ahead === 0 ? "No one in line" : `${d.ahead} ahead right now`}
-                      </span>
-                    ) : (
-                      <span className="text-muted-foreground text-[11.5px]">
-                        Not available — {d.reason}.
-                      </span>
-                    )}
-                  </div>
+                  <span className="text-foreground text-body-m font-medium">{d.name}</span>
                 </label>
               </li>
-            );
-          })}
-        </ul>
-      </fieldset>
+            ))}
+          </ul>
+        </fieldset>
+      )}
 
-      <div className="flex flex-col gap-1.5">
-        <label
-          htmlFor="presenting_complaint"
-          className="text-muted-foreground font-mono text-[10.5px] tracking-[0.14em] uppercase"
-        >
+      <ClosedNote closed={closed} hospitalName={hospitalName} />
+
+      <div className="flex flex-col">
+        <Label htmlFor="presenting_complaint">
           What brings you in?{" "}
-          <span className="text-muted-foreground/70 normal-case">(optional)</span>
-        </label>
+          <span className="text-muted-foreground/70 font-normal">(optional)</span>
+        </Label>
         <textarea
           id="presenting_complaint"
           name="presenting_complaint"
@@ -127,37 +155,56 @@ export function DeclareIntakeForm({ departments, anyOpen, hospitalName }: Props)
         />
       </div>
 
+      {/* The server's own message, verbatim. A 409 carries the row that blocked
+          it, so the patient gets the way to it rather than a dead end. */}
       {state.error ? (
-        <div className="border-destructive/30 bg-destructive/5 flex flex-col gap-1 rounded-md border p-3">
-          <p className="text-destructive text-[12.5px]">{state.error}</p>
+        <div className="flex flex-col gap-1">
+          <p role="alert" className="text-destructive text-body-s ncd-reveal">
+            {state.error}
+          </p>
           {state.existing_appointment_id ? (
             <Link
               href="/patient/appointments"
-              className="text-foreground hover:text-brand-700 dark:hover:text-brand-300 self-start text-[12px] font-medium underline underline-offset-2"
+              className="text-primary text-body-s duration-fast ease-expo-out -my-2 inline-flex min-h-11 w-fit items-center rounded-md underline-offset-4 transition-colors hover:underline"
             >
-              View today&rsquo;s booking →
+              See today&rsquo;s visit
             </Link>
           ) : null}
           {state.existing_intake_id ? (
             <Link
               href={`/patient/queue/${state.existing_intake_id}`}
-              className="text-foreground hover:text-brand-700 dark:hover:text-brand-300 self-start text-[12px] font-medium underline underline-offset-2"
+              className="text-primary text-body-s duration-fast ease-expo-out -my-2 inline-flex min-h-11 w-fit items-center rounded-md underline-offset-4 transition-colors hover:underline"
             >
-              View your queue ticket →
+              See the place we saved
             </Link>
           ) : null}
         </div>
       ) : null}
 
-      <Button type="submit" disabled={pending || !selected} className="w-full justify-center">
-        <TicketIcon className="size-3.5" aria-hidden />
-        {pending ? "Saving your spot…" : "Join today's queue"}
+      <Button type="submit" size="lg" disabled={pending} className="w-full">
+        {pending ? "Saving…" : "Save a place in line"}
       </Button>
-
-      <p className="text-muted-foreground text-caption text-center leading-snug">
-        A ticket isn&rsquo;t a guarantee of being seen by a specific clinician or at a fixed time.
-        The team works through the line in order.
-      </p>
     </form>
+  );
+}
+
+/**
+ * Which clinics are shut and why, in the hospital's own terms. Named rather
+ * than silently omitted: a patient told to go to a specific clinic has to be
+ * able to see that it is the clinic, not the app, that is closed.
+ */
+function ClosedNote({
+  closed,
+  hospitalName,
+}: {
+  closed: ReadonlyArray<DepartmentOption>;
+  hospitalName: string;
+}) {
+  if (closed.length === 0) return null;
+  return (
+    <p className="text-muted-foreground text-body-s">
+      Not taking walk-ins at {hospitalName} right now:{" "}
+      {closed.map((d) => `${d.name} (${d.reason})`).join(" · ")}.
+    </p>
   );
 }

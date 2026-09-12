@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { logger } from "@/lib/logger";
 import { requirePatientScope } from "@/lib/patient/scope";
+import { READING_KINDS } from "@/lib/patient/self-tracking-constants";
 import { createClient } from "@/lib/supabase/server";
 
 /**
@@ -15,17 +16,6 @@ import { createClient } from "@/lib/supabase/server";
  */
 
 /* ─── Log a reading ────────────────────────────────────────────── */
-
-const READING_KINDS = [
-  "glucose",
-  "bp",
-  "weight",
-  "spo2",
-  "temperature",
-  "symptom",
-  "note",
-  "other",
-] as const;
 
 const LogReadingSchema = z
   .object({
@@ -114,6 +104,7 @@ export async function logReadingAction(
 
   revalidatePath("/patient");
   revalidatePath("/patient/track");
+  revalidatePath("/patient/track/doses");
   return { ok: true };
 }
 
@@ -137,6 +128,7 @@ export async function deleteReadingAction(id: string): Promise<{ ok: boolean; er
   }
   revalidatePath("/patient");
   revalidatePath("/patient/track");
+  revalidatePath("/patient/track/doses");
   return { ok: true };
 }
 
@@ -150,11 +142,24 @@ const SCHEDULE_PATTERNS = [
   "custom",
 ] as const;
 
+/**
+ * One dose time on a 24-hour clock. A native `<input type="time">` hands back
+ * "HH:MM", but a `step` attribute can make it "HH:MM:SS" — trim to the minute
+ * rather than reject something the patient entered correctly.
+ */
+const ScheduleTimeSchema = z
+  .string()
+  .transform((v) => v.trim().slice(0, 5))
+  .refine((v) => /^([01]\d|2[0-3]):[0-5]\d$/.test(v), "Use 24-hour times like 08:00.");
+
+const ScheduleTimesSchema = z.array(ScheduleTimeSchema).max(6, "Up to 6 times a day.");
+
 const AddMedSchema = z.object({
   name: z.string().min(1, "Name is required.").max(120),
   dose: z.string().max(60).optional(),
   instructions: z.string().max(240).optional(),
   schedule_pattern: z.enum(SCHEDULE_PATTERNS).default("as_needed"),
+  schedule_times: ScheduleTimesSchema.optional(),
   notes: z.string().max(2000).optional(),
 });
 
@@ -169,6 +174,7 @@ export async function addMedicationAction(
     dose: stringOrUndef(formData.get("dose")),
     instructions: stringOrUndef(formData.get("instructions")),
     schedule_pattern: formData.get("schedule_pattern") ?? "as_needed",
+    schedule_times: stringsOrUndef(formData.getAll("schedule_times")),
     notes: stringOrUndef(formData.get("notes")),
   });
   if (!parsed.success) {
@@ -185,6 +191,7 @@ export async function addMedicationAction(
     dose: parsed.data.dose ?? null,
     instructions: parsed.data.instructions ?? null,
     schedule_pattern: parsed.data.schedule_pattern,
+    schedule_times: scheduleTimesForWrite(parsed.data.schedule_times),
     notes: parsed.data.notes ?? null,
   });
 
@@ -195,16 +202,74 @@ export async function addMedicationAction(
 
   revalidatePath("/patient");
   revalidatePath("/patient/track");
+  revalidatePath("/patient/track/doses");
+  revalidatePath("/patient/track/medications");
+  return { ok: true };
+}
+
+/* ─── Set the dose times on an existing medication ─────────────── */
+
+/**
+ * Backfill path. Every medication written before dose times existed has
+ * `schedule_times = NULL`, and a null-timed medication is invisible to the
+ * dose timeline — so without this the timeline would only ever show rows
+ * created after the add-form learned the field.
+ */
+export async function setMedicationTimesAction(
+  medicationId: string,
+  times: string[],
+): Promise<{ ok: boolean; error?: string }> {
+  if (!medicationId) return { ok: false, error: "Missing medication id." };
+
+  const parsed = ScheduleTimesSchema.safeParse(times);
+  if (!parsed.success) {
+    const first = parsed.error.issues.map((i) => i.message).find(Boolean);
+    return { ok: false, error: first ?? "Please check the times." };
+  }
+
+  const scope = await requirePatientScope();
+  const supabase = await createClient();
+
+  // `patient_user_id` is the ownership check RLS also enforces; keeping it in
+  // the statement means a mismatched id updates nothing rather than erroring.
+  const { error } = await supabase
+    .from("self_medications")
+    .update({ schedule_times: scheduleTimesForWrite(parsed.data) })
+    .eq("id", medicationId)
+    .eq("patient_user_id", scope.userId);
+
+  if (error) {
+    logger.warn("patient.track.set_med_times_failed", { reason: error.message });
+    return { ok: false, error: "Couldn't save those times — try again." };
+  }
+
+  revalidatePath("/patient");
+  revalidatePath("/patient/track");
+  revalidatePath("/patient/track/doses");
   revalidatePath("/patient/track/medications");
   return { ok: true };
 }
 
 /* ─── Mark a med as taken (today, now) ─────────────────────────── */
 
+/**
+ * `scheduledForIso` names the slot this take belongs to. Given it, dose
+ * attribution is recorded rather than inferred later by nearest-time guessing
+ * — which is what keeps a dose taken late from reading as a missed one.
+ * Omitted (an off-schedule or as-needed dose), the column stays null.
+ */
 export async function markMedicationTakenAction(
   medicationId: string,
+  scheduledForIso?: string,
 ): Promise<{ ok: boolean; error?: string }> {
   if (!medicationId) return { ok: false, error: "Missing medication id." };
+
+  let scheduledFor: string | null = null;
+  if (scheduledForIso) {
+    const slot = new Date(scheduledForIso);
+    if (Number.isNaN(slot.getTime())) return { ok: false, error: "Invalid dose time." };
+    scheduledFor = slot.toISOString();
+  }
 
   const scope = await requirePatientScope();
   const supabase = await createClient();
@@ -212,6 +277,7 @@ export async function markMedicationTakenAction(
   const { error } = await supabase.from("self_medication_takes").insert({
     medication_id: medicationId,
     patient_user_id: scope.userId,
+    scheduled_for: scheduledFor,
     taken_at: new Date().toISOString(),
   });
 
@@ -222,6 +288,7 @@ export async function markMedicationTakenAction(
 
   revalidatePath("/patient");
   revalidatePath("/patient/track");
+  revalidatePath("/patient/track/doses");
   revalidatePath("/patient/track/medications");
   return { ok: true };
 }
@@ -258,6 +325,7 @@ export async function setMedicationStateAction(
 
   revalidatePath("/patient");
   revalidatePath("/patient/track");
+  revalidatePath("/patient/track/doses");
   revalidatePath("/patient/track/medications");
   return { ok: true };
 }
@@ -268,4 +336,22 @@ function stringOrUndef(v: FormDataEntryValue | null): string | undefined {
   if (typeof v !== "string") return undefined;
   const t = v.trim();
   return t ? t : undefined;
+}
+
+/** Repeated form fields (the dose-time inputs), blanks dropped. */
+function stringsOrUndef(values: FormDataEntryValue[]): string[] | undefined {
+  const list = values.flatMap((v) => (typeof v === "string" && v.trim() ? [v.trim()] : []));
+  return list.length ? list : undefined;
+}
+
+/**
+ * PostgREST casts a JSON string array straight into a `time[]` column, so
+ * ["08:00","20:00"] needs no array literal or quoting — the plain array is the
+ * wire format. An empty selection writes NULL rather than `{}`: "no times set"
+ * is one state, and a zero-length array would be a second way to say it that
+ * every reader would then have to test for.
+ */
+function scheduleTimesForWrite(times: readonly string[] | undefined): string[] | null {
+  if (!times?.length) return null;
+  return [...new Set(times)].sort(); // zero-padded HH:MM sorts lexicographically
 }

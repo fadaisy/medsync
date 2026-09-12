@@ -60,27 +60,3 @@ export async function selectPrimaryHospitalAction(
   revalidatePath("/patient/menu");
   return { ok: true };
 }
-
-/**
- * Clear the primary hospital. Used by the "Disconnect" flow on the
- * hospitals directory (under a confirm).
- */
-export async function clearPrimaryHospitalAction(): Promise<SelectHospitalState> {
-  const scope = await requirePatientScope();
-  const supabase = await createClient();
-
-  const { error } = await supabase
-    .from("patient_profiles")
-    .update({ primary_facility_id: null })
-    .eq("id", scope.userId);
-
-  if (error) {
-    logger.warn("patient.hospitals.clear_failed", { reason: error.message });
-    return { error: "Couldn't update that." };
-  }
-
-  revalidatePath("/patient");
-  revalidatePath("/patient/hospitals");
-  revalidatePath("/patient/menu");
-  return { ok: true };
-}

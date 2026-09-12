@@ -1,16 +1,17 @@
+import type { DirectoryHospital } from "@/lib/patient/hospitals";
 import type { Metadata } from "next";
 import Link from "next/link";
-import {
-  ArrowLeftIcon,
-  CalendarPlusIcon,
-  HospitalIcon,
-  MapPinIcon,
-  SearchIcon,
-  TicketIcon,
-} from "lucide-react";
+import { HospitalIcon, MapPinIcon, SearchIcon } from "lucide-react";
 
+import { buttonVariants } from "@/components/ui/button";
+import { DataTableEmpty, Pill } from "@/components/ui/data-table";
+import { Input } from "@/components/ui/input";
 import { HOSPITAL_LEVEL_LABEL, listDirectoryHospitals } from "@/lib/patient/hospitals";
 import { requirePatientScope } from "@/lib/patient/scope";
+import { cn } from "@/lib/utils";
+import { PatientDoors } from "../_components/doors";
+import { EmergencyNotice } from "../_components/emergency-notice";
+import { PatientPageHeader } from "../_components/page-header";
 import { SelectHospitalButton } from "./_components/select-hospital-button";
 
 export const metadata: Metadata = { title: "Hospitals · MedSync" };
@@ -20,172 +21,212 @@ interface PageProps {
   searchParams: Promise<{ q?: string }>;
 }
 
+/**
+ * Region is the only geography a patient can act on — a district name means
+ * nothing without one, and the directory is national. Grouping by it turns a
+ * flat 60-row list into "is mine here?", which is the only question this page
+ * is asked. Rows already arrive name-ascending, so the groups inherit that.
+ */
+function groupByRegion(rows: DirectoryHospital[]): Array<[string, DirectoryHospital[]]> {
+  const groups = new Map<string, DirectoryHospital[]>();
+  for (const row of rows) {
+    const key = row.region ?? "";
+    const bucket = groups.get(key);
+    if (bucket) bucket.push(row);
+    else groups.set(key, [row]);
+  }
+  // The unnamed bucket sorts last: it is an absence, not a place.
+  return [...groups.entries()].sort(([a], [b]) =>
+    a === "" ? 1 : b === "" ? -1 : a.localeCompare(b),
+  );
+}
+
 export default async function PatientHospitalsPage({ searchParams }: PageProps) {
   const { q } = await searchParams;
   const scope = await requirePatientScope();
   const search = (q ?? "").trim();
   const results = await listDirectoryHospitals({ search });
+  const groups = groupByRegion(results);
+  // Names the emergency landmark when there is a hospital to name, and gates
+  // the doors on the primary-hospital card below. The fallback only fires if
+  // the hospital row behind an affiliation has gone — the name never reaches
+  // the emergency copy itself (ADR 0084 §3).
+  const hospitalName = scope.primaryHospitalId
+    ? (scope.primaryHospitalName ?? "Your hospital")
+    : null;
 
   return (
-    <div className="stagger-children relative mx-auto flex w-full max-w-xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-9">
-      <div
-        aria-hidden
-        className="bg-brand-500/5 dark:bg-brand-400/4 pointer-events-none absolute -top-20 left-1/2 -z-10 h-56 w-md max-w-full -translate-x-1/2 rounded-full blur-3xl"
+    <div className="stagger-children flex flex-col gap-6">
+      <PatientPageHeader
+        eyebrow="MedSync · Hospitals"
+        title={scope.primaryHospitalId ? "Hospitals on MedSync" : "Find your hospital"}
+        description={
+          scope.primaryHospitalId
+            ? "Browse the network — switch your primary hospital if you'd like, or just see who's here."
+            : "Pick one as your primary hospital. You can change it any time."
+        }
+        backHref="/patient"
+        backLabel="Back to home"
       />
-      <Link
-        href="/patient"
-        className="text-muted-foreground hover:text-foreground group inline-flex w-fit items-center gap-1 text-[12.5px] transition-colors"
-      >
-        <ArrowLeftIcon
-          className="size-3.5 transition-transform group-hover:-translate-x-0.5"
-          aria-hidden
-        />
-        Back to home
-      </Link>
 
-      <header className="flex flex-col gap-1.5">
-        <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
-          <span aria-hidden className="bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2" />
-          MedSync · Hospitals
-        </span>
-        <h1 className="font-display text-foreground sm:text-heading-l text-[24px] leading-[1.15] font-medium tracking-[-0.015em]">
-          {scope.primaryHospitalId ? "Hospitals on MedSync" : "Find your hospital"}
-        </h1>
-        <p className="text-muted-foreground text-body-s max-w-[44ch] leading-relaxed">
-          {scope.primaryHospitalId
-            ? "Browse the network — switch your primary if you'd like, or just check who's here."
-            : "Pick one as your primary hospital. You can change it any time."}
-        </p>
-      </header>
+      {/* First thing on the screen, above the doors further down this page —
+          not beside them (ADR 0084 §3). A patient browsing the directory may
+          be the one who should not be browsing anything.
 
-      {/* ── Search ─────────────────────────────────────────────── */}
-      <form className="relative" role="search" action="/patient/hospitals">
-        <span
-          aria-hidden
-          className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 -translate-y-1/2"
-        >
-          <SearchIcon className="size-4" />
-        </span>
-        <input
-          type="search"
-          name="q"
-          defaultValue={search}
-          placeholder="Search by name, district, or region"
-          className="border-input bg-background text-foreground placeholder:text-muted-foreground/70 focus-visible:ring-ring/50 focus-visible:border-ring text-body-s h-10 w-full rounded-lg border pr-3 pl-9 shadow-xs transition-[color,box-shadow] outline-none focus-visible:ring-[3px]"
-        />
+          Unconditional, and the argument is stronger here than on `/patient`:
+          this page's own header switches to "Find your hospital" for a patient
+          with no affiliation, so the unaffiliated patient is not an edge case
+          on this surface — they are its audience. Gating the instruction on a
+          primary hospital would hide it from exactly the people the page was
+          built for, while they browse rather than travel. With no hospital
+          there is no verified number either, so the block shows the
+          destination alone. */}
+      <EmergencyNotice hospitalName={hospitalName} emergencyPhone={scope.emergencyEntrancePhone} />
+
+      {/* Native GET form: search survives a reload, a shared link and no JS. */}
+      <form role="search" action="/patient/hospitals" className="flex items-center gap-2">
+        <div className="relative min-w-0 flex-1">
+          <SearchIcon
+            aria-hidden
+            className="text-muted-foreground pointer-events-none absolute top-1/2 left-3.5 size-4 -translate-y-1/2"
+          />
+          <Input
+            type="search"
+            name="q"
+            defaultValue={search}
+            aria-label="Search hospitals"
+            placeholder="Search by name, district, or region"
+            className="h-11 rounded-full pl-10"
+          />
+        </div>
+        {search ? (
+          <Link
+            href="/patient/hospitals"
+            className="text-muted-foreground hover:text-foreground text-body-s duration-fast ease-expo-out inline-flex min-h-11 shrink-0 items-center rounded-md px-3 transition-colors"
+          >
+            Clear
+          </Link>
+        ) : null}
       </form>
 
-      {/* ── Results ────────────────────────────────────────────── */}
-      <section className="flex flex-col gap-2">
-        <div className="flex items-baseline justify-between gap-2">
-          <h2 className="text-muted-foreground font-mono text-[10.5px] tracking-[0.14em] uppercase">
-            {search ? "Matches" : "Active hospitals"}
-          </h2>
-          <span className="text-muted-foreground text-caption font-mono tabular-nums">
+      <section className="flex flex-col gap-5">
+        <div className="flex items-baseline justify-between gap-3">
+          <h2 className="text-heading-s font-medium">{search ? "Matches" : "All hospitals"}</h2>
+          <span className="text-muted-foreground text-body-s tabular font-mono">
             {results.length} {results.length === 1 ? "result" : "results"}
           </span>
         </div>
 
         {results.length === 0 ? (
-          <div className="border-border bg-card flex flex-col items-center gap-2 rounded-xl border p-6 text-center">
-            <svg
-              viewBox="0 0 64 40"
-              aria-hidden
-              className="text-muted-foreground/40 h-10 w-16"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <rect x="14" y="10" width="36" height="26" rx="2" />
-              <path d="M26 36 V24 h12 v12" />
-              <path d="M32 14 v8 M28 18 h8" className="text-brand-500/60" stroke="currentColor" />
-            </svg>
-            <p className="text-muted-foreground max-w-[40ch] text-[12.5px] leading-relaxed">
-              {search
-                ? `No hospitals match "${search}". Try a shorter query, or clear the search.`
-                : "No active hospitals are listed right now. Check back soon."}
-            </p>
+          <div className="bg-card dark:shadow-card rounded-xl p-6 shadow-xs">
+            <DataTableEmpty
+              title={search ? `No hospitals match “${search}”` : "No hospitals listed yet"}
+              description={
+                search
+                  ? "Try a shorter search — a district or a region works too."
+                  : "No hospital in the network is accepting patients right now. Check back soon."
+              }
+              action={
+                search ? (
+                  <Link
+                    href="/patient/hospitals"
+                    className={buttonVariants({ variant: "secondary", size: "lg" })}
+                  >
+                    Clear search
+                  </Link>
+                ) : undefined
+              }
+            />
           </div>
         ) : (
-          <ul className="stagger-children flex flex-col gap-2">
-            {results.map((h) => {
-              const isPrimary = h.id === scope.primaryHospitalId;
-              return (
-                <li
-                  key={isPrimary ? `${h.id}-primary` : h.id}
-                  className={
-                    isPrimary
-                      ? "select-flare border-brand-500/40 bg-brand-50/40 ring-brand-500/20 dark:border-brand-400/30 dark:bg-brand-950/20 rounded-xl border p-4 ring-1"
-                      : "border-border bg-card rounded-xl border p-4 transition-colors hover:border-gray-300"
-                  }
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex min-w-0 flex-1 items-start gap-3">
-                      <span
-                        aria-hidden
-                        className={
-                          isPrimary
-                            ? "bg-brand-100 text-brand-700 ring-brand-200/80 dark:bg-brand-900/40 dark:text-brand-300 dark:ring-brand-800/40 inline-flex size-9 shrink-0 items-center justify-center rounded-full ring-1"
-                            : "bg-muted text-foreground/80 inline-flex size-9 shrink-0 items-center justify-center rounded-full"
-                        }
-                      >
-                        <HospitalIcon className="size-4" />
-                      </span>
-                      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-                        <span className="text-foreground truncate text-[14px] font-medium">
-                          {h.name}
-                        </span>
-                        <span className="text-muted-foreground text-[12px]">
-                          {HOSPITAL_LEVEL_LABEL[h.level] ?? h.level}
-                          {h.departmentCount > 0
-                            ? ` · ${h.departmentCount} department${h.departmentCount === 1 ? "" : "s"}`
-                            : ""}
-                        </span>
-                        {(h.district ?? h.region) ? (
-                          <span className="text-muted-foreground/80 inline-flex items-center gap-1 text-[11.5px]">
-                            <MapPinIcon className="size-3" aria-hidden />
-                            {[h.district, h.region].filter(Boolean).join(", ")}
-                          </span>
-                        ) : null}
-                      </div>
-                    </div>
-                    <SelectHospitalButton hospitalId={h.id} isPrimary={isPrimary} />
-                  </div>
-                  {isPrimary ? (
-                    <div className="border-brand-500/20 dark:border-brand-400/20 mt-3 flex flex-col gap-2.5 border-t pt-3">
-                      <p className="text-muted-foreground text-[11.5px] leading-snug">
-                        What would you like to do?
-                      </p>
-                      <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
-                        <Link
-                          href="/patient/queue"
-                          className="border-border bg-card tap text-brand-700 hover:border-brand-300 hover:bg-brand-50/30 dark:text-brand-300 dark:hover:bg-brand-50/5 inline-flex flex-1 items-center justify-center gap-1.5 rounded-full border px-3 py-2 text-[12.5px] font-medium transition-colors"
+          groups.map(([region, rows]) => (
+            <div key={region || "unlisted"} className="flex flex-col gap-2">
+              <div className="flex items-baseline justify-between gap-3">
+                <h3 className="text-body-m text-muted-foreground font-medium">
+                  {region || "Region not listed"}
+                </h3>
+                <span className="text-muted-foreground text-caption tabular font-mono">
+                  {rows.length}
+                </span>
+              </div>
+
+              <ul className="stagger-children grid gap-2 @3xl/page:grid-cols-2">
+                {rows.map((h) => {
+                  const isPrimary = h.id === scope.primaryHospitalId;
+                  const place = [h.district, h.region].filter(Boolean).join(", ");
+                  return (
+                    <li
+                      key={h.id}
+                      className={cn(
+                        "bg-card dark:shadow-card flex flex-col gap-3 rounded-xl p-4 shadow-xs",
+                        isPrimary && "bg-accent ring-brand-300 shadow-none ring-1 dark:shadow-none",
+                      )}
+                    >
+                      <div className="flex items-start gap-3">
+                        <span
+                          aria-hidden
+                          className="bg-brand-100 text-brand-800 grid size-11 shrink-0 place-items-center rounded-xl"
                         >
-                          <TicketIcon className="size-3.5" aria-hidden />
-                          Join today&rsquo;s queue
-                        </Link>
-                        <Link
-                          href="/patient/book"
-                          className="tap bg-brand-600 hover:bg-brand-700 inline-flex flex-1 items-center justify-center gap-1.5 rounded-full px-3 py-2 text-[12.5px] font-medium text-white shadow-xs transition-colors"
-                        >
-                          <CalendarPlusIcon className="size-3.5" aria-hidden />
-                          Book a future visit
-                        </Link>
+                          <HospitalIcon strokeWidth={1.5} className="size-5" />
+                        </span>
+
+                        <div className="flex min-w-0 flex-1 flex-col gap-1">
+                          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                            <h4 className="text-foreground text-body-m font-medium">{h.name}</h4>
+                            {isPrimary ? (
+                              // Keyed on the primary id so the flare replays when
+                              // the choice changes — never by remounting the row.
+                              <Pill
+                                key={scope.primaryHospitalId ?? "none"}
+                                tone="stable"
+                                className="select-flare"
+                              >
+                                Your hospital
+                              </Pill>
+                            ) : null}
+                          </div>
+
+                          <p className="text-muted-foreground text-body-s">
+                            {HOSPITAL_LEVEL_LABEL[h.level] ?? h.level}
+                          </p>
+
+                          {place ? (
+                            <p className="text-muted-foreground text-body-s inline-flex items-center gap-1">
+                              <MapPinIcon className="size-3.5 shrink-0" aria-hidden />
+                              {place}
+                            </p>
+                          ) : null}
+
+                          {h.departmentCount > 0 ? (
+                            <p className="text-muted-foreground text-body-s tabular font-mono">
+                              {h.departmentCount}{" "}
+                              {h.departmentCount === 1 ? "department" : "departments"}
+                            </p>
+                          ) : null}
+                        </div>
+
+                        {/* The primary row says so with its own pill; a second
+                            "Your primary" chip here would say it twice. */}
+                        {isPrimary ? null : <SelectHospitalButton hospitalId={h.id} />}
                       </div>
-                      <Link
-                        href="/patient"
-                        className="text-muted-foreground hover:text-foreground self-center text-[11.5px] transition-colors"
-                      >
-                        Not now — back to home
-                      </Link>
-                    </div>
-                  ) : null}
-                </li>
-              );
-            })}
-          </ul>
+
+                      {/* Two equal-width buttons with booking as the primary
+                          one: the asymmetry ran the wrong way, and equal
+                          weight would have been wrong too (ADR 0084 §1a). The
+                          ratified pair replaces both, so the words, the
+                          ordering and the missing icons are decided in one
+                          place rather than per surface. */}
+                      {isPrimary ? (
+                        <div className="border-brand-300/60 border-t pt-3">
+                          <PatientDoors />
+                        </div>
+                      ) : null}
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          ))
         )}
       </section>
     </div>

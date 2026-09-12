@@ -1,45 +1,36 @@
-import type { MobileTabBarItem } from "@/components/responsive/mobile-tab-bar";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { ActivityIcon, FileTextIcon, HomeIcon } from "lucide-react";
 
 import { MobileTabBar } from "@/components/responsive/mobile-tab-bar";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { requirePatientScope } from "@/lib/patient/scope";
+import { PatientNavRail } from "./_components/patient-nav-rail";
+import { PATIENT_NAV } from "./_lib/nav";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-// String iconKey on each row — lucide functions can't cross the
-// server → client boundary, so we hand the bar string keys and let
-// it resolve to the actual component internally.
-const TAB_ITEMS: ReadonlyArray<MobileTabBarItem> = [
-  { href: "/patient", label: "Home", iconKey: "home", exact: true },
-  { href: "/patient/track", label: "Track", iconKey: "activity" },
-  { href: "/patient/appointments", label: "Visits", iconKey: "file-text" },
-  { href: "/patient/menu", label: "More", iconKey: "menu" },
-];
-
-// Lucide components used by the desktop nav stay here (this file is
-// a Server Component but the icons render inline in JSX, so they
-// aren't passed across a boundary).
-const DESKTOP_NAV = [
-  { href: "/patient", label: "Home", Icon: HomeIcon },
-  { href: "/patient/track", label: "Track", Icon: ActivityIcon },
-  { href: "/patient/appointments", label: "Visits", Icon: FileTextIcon },
-];
-
 /**
  * Patient workspace shell.
  *
- *   - Mobile (default): top brand bar + bottom tab bar. Thumb-reachable
- *     nav, no sidebar.
- *   - Desktop (md+): top brand bar + horizontal nav (the tab bar is
- *     hidden by its own breakpoint).
+ *   - Below `md:`: sticky top bar + bottom tab bar. Thumb-reachable, no rail.
+ *   - `md:` and up: the same top bar + a persistent left rail (the tab bar
+ *     hides itself at that breakpoint). At `lg:` the rail grows labels.
  *
- * Per ADR-to-land: patient surfaces are mobile-first. The same
- * components reflow at md+; we don't duplicate trees.
+ * Both navs render `PATIENT_NAV`. They used to render two different arrays,
+ * which is why /patient/menu and everything under it had no desktop entry.
+ *
+ * The top bar is kept at every width on purpose. Dropping it at `lg:` would
+ * have invalidated every `sticky top-*` offset below it and the global
+ * `[data-section-anchor] { scroll-margin-top: 80px }`; keeping the 52px bar
+ * makes `top-13` the single sticky constant in the workspace.
+ *
+ * `@container/page` on the content wrapper is what pages size their second
+ * column against (`@5xl/page:`) — a container query, because with the rail
+ * and the gutters the content box is ~300px narrower than the viewport and
+ * a viewport breakpoint would fire at the wrong moment.
  */
 export default async function PatientLayout({ children }: { children: ReactNode }) {
   const scope = await requirePatientScope();
@@ -56,49 +47,46 @@ export default async function PatientLayout({ children }: { children: ReactNode 
           </Link>
           {scope.primaryHospitalName ? (
             <span
-              className="text-muted-foreground hidden truncate font-mono text-[10px] tracking-[0.12em] uppercase sm:inline"
+              className="text-muted-foreground text-caption hidden min-w-0 items-center gap-1.5 font-mono tracking-[0.16em] uppercase sm:inline-flex"
               title={scope.primaryHospitalName}
             >
+              {/* Static dot: nothing on this surface is live, so it doesn't pulse. */}
               <span
                 aria-hidden
-                className="bg-brand-500 ring-brand-500/20 mr-1.5 inline-block size-1 -translate-y-px rounded-full ring-2"
+                className="bg-brand-500 ring-brand-500/20 size-1 shrink-0 rounded-full ring-2"
               />
-              {scope.primaryHospitalName}
+              <span className="truncate">{scope.primaryHospitalName}</span>
             </span>
           ) : null}
         </div>
 
-        {/* Desktop nav — visible from md up. Tab bar handles mobile. */}
-        <nav aria-label="Patient navigation" className="hidden items-center gap-1 md:flex">
-          {DESKTOP_NAV.map(({ href, label, Icon }) => (
-            <Link
-              key={href}
-              href={href}
-              className="text-muted-foreground hover:text-foreground hover:bg-muted/60 tap inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[12.5px] font-medium transition-colors"
-            >
-              <Icon className="size-3.5" aria-hidden />
-              {label}
-            </Link>
-          ))}
+        <div className="flex shrink-0 items-center gap-3">
+          {/* The shipped toggle is a 28px bordered box. The 44px touch floor
+              is applied here rather than in the shared component, which five
+              other workspaces render at their own density — and the chrome
+              comes off with it, so a 44px target still reads as the bare
+              glyph this header wants beside a plain text link. */}
+          <ThemeToggle className="size-11 border-transparent bg-transparent" />
           <Link
             href="/sign-out"
-            className="text-muted-foreground hover:text-foreground ml-2 text-[12px] transition-colors"
+            className="text-muted-foreground hover:text-foreground decoration-border text-body-s inline-flex min-h-11 items-center underline-offset-4 transition-colors hover:underline"
           >
             Sign out
           </Link>
-        </nav>
-
-        <Link
-          href="/sign-out"
-          className="text-muted-foreground hover:text-foreground text-[12px] transition-colors md:hidden"
-        >
-          Sign out
-        </Link>
+        </div>
       </header>
 
-      <main className="min-w-0 flex-1 pb-24 md:pb-0">{children}</main>
+      <div className="flex min-h-0 flex-1">
+        <PatientNavRail hospitalName={scope.primaryHospitalName} />
 
-      <MobileTabBar items={TAB_ITEMS} />
+        <main className="bg-muted min-w-0 flex-1 pb-24 md:pb-0">
+          <div className="@container/page mx-auto w-full max-w-300 px-4 py-6 md:px-6 md:py-8">
+            {children}
+          </div>
+        </main>
+      </div>
+
+      <MobileTabBar items={PATIENT_NAV} />
     </div>
   );
 }

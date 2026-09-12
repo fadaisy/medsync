@@ -1,18 +1,24 @@
+import type { LucideIcon } from "lucide-react";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { and, asc, count, eq, gte, inArray, lt } from "drizzle-orm";
-import { ArrowLeftIcon, CheckCircleIcon, ClockIcon, TicketIcon } from "lucide-react";
+import { and, count, eq, gte, inArray, lt } from "drizzle-orm";
+import { CheckCircleIcon, ClockIcon, HospitalIcon, MinusIcon } from "lucide-react";
 
+import { buttonVariants } from "@/components/ui/button";
 import { db } from "@/db";
 import { hospitalDepartments } from "@/db/schema/hospital-departments";
 import { hospitals } from "@/db/schema/hospitals";
 import { patientIntakes } from "@/db/schema/patient-intakes";
+import { presenceAt, presenceOf } from "@/lib/intake/queries";
+import { TINT_GLYPH } from "@/lib/patient/doses";
 import { requirePatientScope } from "@/lib/patient/scope";
+import { cn } from "@/lib/utils";
+import { EmergencyNotice } from "../../_components/emergency-notice";
+import { PatientPageHeader } from "../../_components/page-header";
 import { CancelDeclaredIntakeButton } from "./_components/cancel-button";
 
 export const metadata: Metadata = {
-  title: "Your queue · MedSync",
+  title: "Your place in line · MedSync",
   robots: { index: false, follow: false },
 };
 export const dynamic = "force-dynamic";
@@ -22,26 +28,25 @@ interface PageProps {
 }
 
 /**
- * Live status of a single intake the patient declared. RLS already
- * gates this — the existing patient_intakes_select_scoped policy grants
- * SELECT to the patient themselves (patient_user_id = auth.uid()).
+ * The one screen a patient holds while they wait, and the only place in the
+ * product where "ahead of you" is a true sentence (ADR 0084 §6).
  *
- * Status surface: declared → arrived → awaiting_triage → triaged.
- * Terminal: completed / cancelled — shown with a one-line summary and
- * a "back to home" anchor.
+ * RLS already gates the read — `patient_intakes_select_scoped` grants SELECT
+ * to the patient themselves — and the ownership check below is belt and
+ * braces for a URL typed by hand.
  *
- * Auto-refresh: page is force-dynamic + meta-refresh every 30s so the
- * patient sees position updates without a manual reload. Polling is
- * the honest minimum until websockets land (separate ticket).
+ * Status surface: declared → arrived → awaiting_triage → triaged. Terminal:
+ * completed / cancelled.
  */
 export default async function PatientQueueDetailPage({ params }: PageProps) {
   const { intakeId } = await params;
   const scope = await requirePatientScope();
 
-  const startOfDay = new Date();
+  // One clock read for the whole render — the day window and the refresh
+  // interval below must agree about "now".
+  const now = new Date();
+  const startOfDay = new Date(now);
   startOfDay.setHours(0, 0, 0, 0);
-  const endOfDay = new Date(startOfDay);
-  endOfDay.setDate(endOfDay.getDate() + 1);
 
   const rows = await db
     .select({
@@ -49,6 +54,7 @@ export default async function PatientQueueDetailPage({ params }: PageProps) {
       status: patientIntakes.status,
       hospitalId: patientIntakes.hospitalId,
       hospitalName: hospitals.name,
+      emergencyPhone: hospitals.emergencyPhone,
       departmentId: patientIntakes.receivingDepartmentId,
       departmentName: hospitalDepartments.name,
       presentingComplaint: patientIntakes.presentingComplaint,
@@ -66,17 +72,26 @@ export default async function PatientQueueDetailPage({ params }: PageProps) {
   if (!intake) notFound();
   if (intake.patientUserId !== scope.userId) redirect("/patient/queue");
 
-  // Position-in-line = count of declared|arrived|awaiting_triage rows
-  // for the same dept today with arrived_at <= this intake. For triaged
-  // / completed / cancelled we skip — position is meaningless past
-  // triage. The kickoff is explicit: no fabricated wait estimate.
+  const isPresent = intake.status === "arrived" || intake.status === "awaiting_triage";
+
+  // "N ahead of you" = people from THIS intake's department who are in the
+  // building and got here before this patient. Counted only once the patient
+  // is physically here, because a `declared` row is not a position among
+  // present patients (§7b) — rendering a number against it would sell someone
+  // a place in a line they are not standing in. Past triage the count is
+  // meaningless and is skipped.
+  //
+  // PRESENCE, not intent, on both sides of the comparison (§6, §7b): the same
+  // `coalesce(checked_in_at, arrived_at)` the triage worklist and reception's
+  // boards order by, so the number the patient holds and the order the nurse
+  // works cannot disagree. Ordering on `arrived_at` counted a 06:10 declaration
+  // made from home as a place in front of a 07:30 desk registration, and
+  // counted thirty people who had not left home yet as "ahead of you".
+  //
+  // Never a wait estimate, and never a bare last place — the screen shows how
+  // many are in front, never an ordinal and never a total (§6, ADR 0034 §6).
   let positionAhead: number | null = null;
-  if (
-    intake.departmentId &&
-    (intake.status === "declared" ||
-      intake.status === "arrived" ||
-      intake.status === "awaiting_triage")
-  ) {
+  if (intake.departmentId && isPresent) {
     const aheadRows = await db
       .select({ n: count() })
       .from(patientIntakes)
@@ -84,228 +99,173 @@ export default async function PatientQueueDetailPage({ params }: PageProps) {
         and(
           eq(patientIntakes.hospitalId, intake.hospitalId),
           eq(patientIntakes.receivingDepartmentId, intake.departmentId),
-          inArray(patientIntakes.status, ["declared", "arrived", "awaiting_triage"]),
-          gte(patientIntakes.arrivedAt, startOfDay),
-          lt(patientIntakes.arrivedAt, endOfDay),
-          lt(patientIntakes.arrivedAt, intake.arrivedAt),
+          inArray(patientIntakes.status, ["arrived", "awaiting_triage"]),
+          gte(presenceAt, startOfDay),
+          // Bounded above by this patient's own presence, which is never
+          // later than `now` — so today's upper bound is already implied.
+          lt(presenceAt, presenceOf(intake)),
         ),
       );
     positionAhead = Number(aheadRows[0]?.n ?? 0);
   }
-  void asc; // import kept for future ordering needs
 
   const isTerminal = intake.status === "completed" || intake.status === "cancelled";
+  const stage: Stage = STAGES[intake.status as StageKey] ?? STAGES.declared;
+  const firstName = scope.fullName?.split(" ")[0];
+
+  // §15. The page used to reload every 30 seconds for the whole visit — about
+  // 690 full document loads across Mulago's documented 346-minute median wait,
+  // and every one of them a chance for a dropped signal to replace the ticket
+  // with a browser error page. It backs off to five minutes once the first
+  // five are past, and the patient owns the spend with the control below.
+  const sinceChange = now.getTime() - presenceOf(intake).getTime();
+  const refreshSeconds = sinceChange < 5 * 60_000 ? 30 : 300;
 
   return (
-    <div className="stagger-children relative mx-auto flex w-full max-w-xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-9">
-      {/* Polling refresh — 30s — until websockets land. Reduced-motion
-          users are unaffected (no animation). */}
-      {!isTerminal ? <meta httpEquiv="refresh" content="30" /> : null}
+    <div className="stagger-children mx-auto flex w-full max-w-xl flex-col gap-6">
+      {!isTerminal ? <meta httpEquiv="refresh" content={String(refreshSeconds)} /> : null}
 
-      <div
-        aria-hidden
-        className="bg-brand-500/5 dark:bg-brand-400/4 pointer-events-none absolute -top-20 left-1/2 -z-10 h-56 w-md max-w-full -translate-x-1/2 rounded-full blur-3xl"
+      <PatientPageHeader
+        eyebrow={intake.hospitalName}
+        title={headlineFor(intake.status, firstName)}
+        description={intake.departmentName ?? undefined}
+        backHref="/patient"
+        backLabel="Back to home"
       />
 
-      <Link
-        href="/patient"
-        className="text-muted-foreground hover:text-foreground group inline-flex w-fit items-center gap-1 text-[12.5px] transition-colors"
-      >
-        <ArrowLeftIcon
-          className="size-3.5 transition-transform group-hover:-translate-x-0.5"
-          aria-hidden
-        />
-        Back to home
-      </Link>
+      {/* The waiting room is where a patient is most likely to get worse with
+          nobody watching. The block names symptoms and one destination; it
+          asks nothing and writes nothing (ADR 0084 §3). */}
+      <EmergencyNotice hospitalName={intake.hospitalName} emergencyPhone={intake.emergencyPhone} />
 
-      <header className="flex flex-col gap-1.5">
-        <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
-          <span aria-hidden className="bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2" />
-          MedSync · Your queue ticket
-        </span>
-        <h1 className="font-display text-foreground sm:text-heading-l text-[24px] leading-[1.15] font-medium tracking-[-0.015em]">
-          {headlineFor(intake.status)}
-        </h1>
-        <p className="text-muted-foreground text-body-s leading-relaxed">
-          {intake.hospitalName}
-          {intake.departmentName ? ` · ${intake.departmentName}` : ""}
-        </p>
-      </header>
+      <section className="bg-card dark:shadow-card flex flex-col gap-3 rounded-xl p-4 shadow-xs">
+        <div className="flex items-center gap-3">
+          <span
+            aria-hidden
+            className={cn(
+              "grid size-10 shrink-0 place-items-center rounded-full",
+              TINT_GLYPH.brand,
+            )}
+          >
+            <stage.Icon strokeWidth={1.5} className="size-5" />
+          </span>
+          <p className="text-foreground text-body-m font-medium">{stage.lead}</p>
+        </div>
 
-      {/* ── Stage card ───────────────────────────────────────── */}
-      <StageCard status={intake.status} positionAhead={positionAhead} />
+        <p className="text-muted-foreground text-body-s leading-relaxed">{stage.body}</p>
 
-      {/* ── Ticket details ───────────────────────────────────── */}
-      <section className="border-border bg-card flex flex-col gap-3 rounded-xl border p-4">
-        <h2 className="text-muted-foreground font-mono text-[10.5px] tracking-[0.14em] uppercase">
-          Your ticket
-        </h2>
-        <dl className="flex flex-col gap-2">
-          <Row label="Hospital" value={intake.hospitalName} />
-          <Row label="Department" value={intake.departmentName ?? "—"} />
-          <Row label="Declared" value={formatTime(intake.arrivedAt)} mono />
-          {intake.checkedInAt ? (
-            <Row label="Checked in" value={formatTime(intake.checkedInAt)} mono />
-          ) : null}
-          {intake.presentingComplaint ? (
-            <Row label="Note to team" value={intake.presentingComplaint} />
-          ) : null}
-          <Row label="Ticket ID" value={shortId(intake.id)} mono />
-        </dl>
+        {positionAhead === null ? null : positionAhead === 0 ? (
+          <p className="text-foreground text-body-m font-medium">No one is ahead of you.</p>
+        ) : (
+          <>
+            <p className="text-foreground text-body-m flex items-baseline gap-2 font-medium">
+              <span className="text-heading-l font-mono leading-none font-medium tabular-nums">
+                {positionAhead}
+              </span>
+              ahead of you
+            </p>
+            {/* Maister's "uncertain waits feel longer" is answered with an
+                explanation, never with an estimate (§6). */}
+            <p className="text-muted-foreground text-body-s">
+              Sicker people are seen first, so this number can go up as well as down.
+            </p>
+          </>
+        )}
       </section>
 
-      {/* ── Cancel (declared only) ───────────────────────────── */}
+      {intake.presentingComplaint ? (
+        <section className="bg-card dark:shadow-card flex flex-col gap-1 rounded-xl p-4 shadow-xs">
+          <h2 className="text-muted-foreground text-caption">What you told us</h2>
+          <p className="text-foreground text-body-m">{intake.presentingComplaint}</p>
+        </section>
+      ) : null}
+
+      {/* Self-cancel while `declared` only (ADR 0034 §5) — once reception has
+          registered you, the desk owns the row. */}
       {intake.status === "declared" ? <CancelDeclaredIntakeButton intakeId={intake.id} /> : null}
 
-      <p className="text-muted-foreground text-caption inline-flex items-center justify-center gap-1.5 text-center">
-        {!isTerminal ? (
-          <span aria-hidden className="pulse-dot bg-brand-500 size-1.5 rounded-full" />
-        ) : null}
-        Status updates every 30 seconds while this page is open.
-      </p>
+      {!isTerminal ? (
+        <div className="flex flex-col items-center gap-2">
+          {/* A bare anchor, not `next/link`: this is the control that has to
+              work when the bundle never loaded or the signal died mid-wait,
+              which is the failure §15 is about. It reloads the page it is on. */}
+          <a
+            href={`/patient/queue/${intake.id}`}
+            className={cn(buttonVariants({ variant: "secondary", size: "lg" }), "w-full sm:w-fit")}
+          >
+            {positionAhead === null ? "Check for an update" : "Check my position"}
+          </a>
+          <p className="text-muted-foreground text-caption text-center">
+            This page also checks on its own every{" "}
+            {refreshSeconds === 30 ? "30 seconds" : "5 minutes"}.
+          </p>
+        </div>
+      ) : null}
     </div>
   );
 }
 
-/* ─── stage card ──────────────────────────────────────────────── */
+/* ─── copy ────────────────────────────────────────────────────── */
 
-function StageCard({ status, positionAhead }: { status: string; positionAhead: number | null }) {
-  if (status === "declared") {
-    return (
-      <article className="border-brand-500/40 bg-brand-50/40 ring-brand-500/10 dark:border-brand-400/30 dark:bg-brand-950/20 flex flex-col gap-2 rounded-xl border p-4 ring-1">
-        <div className="flex items-center gap-2">
-          <span
-            aria-hidden
-            className="scale-in bg-brand-100 text-brand-700 ring-brand-200/80 dark:bg-brand-900/40 dark:text-brand-300 dark:ring-brand-800/40 inline-flex size-7 items-center justify-center rounded-full ring-1"
-          >
-            <TicketIcon className="size-3.5" />
-          </span>
-          <span className="text-foreground text-[14px] font-medium">
-            Saved your spot · come in when you can
-          </span>
-        </div>
-        <p className="text-muted-foreground text-[12.5px] leading-snug">
-          You&rsquo;re in the line but haven&rsquo;t arrived yet. Check in at the front desk when
-          you get there — they&rsquo;ll flip your ticket to arrived.
-        </p>
-        {positionAhead !== null ? (
-          positionAhead === 0 ? (
-            <p className="text-foreground text-body-s font-medium">
-              No one ahead of you right now.
-            </p>
-          ) : (
-            <p className="text-foreground text-body-s flex items-baseline gap-2 font-medium">
-              <span className="scale-in text-heading-l font-mono leading-none font-medium tabular-nums">
-                {positionAhead}
-              </span>
-              ahead of you right now.
-            </p>
-          )
-        ) : null}
-      </article>
-    );
-  }
-  if (status === "arrived" || status === "awaiting_triage") {
-    return (
-      <article className="border-brand-500/40 bg-brand-50/40 ring-brand-500/10 dark:border-brand-400/30 dark:bg-brand-950/20 flex flex-col gap-2 rounded-xl border p-4 ring-1">
-        <div className="flex items-center gap-2">
-          <span
-            aria-hidden
-            className="scale-in bg-brand-100 text-brand-700 ring-brand-200/80 dark:bg-brand-900/40 dark:text-brand-300 dark:ring-brand-800/40 inline-flex size-7 items-center justify-center rounded-full ring-1"
-          >
-            <ClockIcon className="size-3.5" />
-          </span>
-          <span className="text-foreground text-[14px] font-medium">
-            You&rsquo;re here · awaiting triage
-          </span>
-        </div>
-        <p className="text-muted-foreground text-[12.5px] leading-snug">
-          A nurse will see you in turn for a quick triage. After that, you&rsquo;ll be assigned to a
-          clinician.
-        </p>
-        {positionAhead !== null ? (
-          positionAhead === 0 ? (
-            <p className="text-foreground text-body-s font-medium">You&rsquo;re next.</p>
-          ) : (
-            <p className="text-foreground text-body-s flex items-baseline gap-2 font-medium">
-              <span className="scale-in text-heading-l font-mono leading-none font-medium tabular-nums">
-                {positionAhead}
-              </span>
-              ahead of you.
-            </p>
-          )
-        ) : null}
-      </article>
-    );
-  }
-  if (status === "triaged") {
-    return (
-      <article className="border-border bg-card flex flex-col gap-2 rounded-xl border p-4">
-        <div className="flex items-center gap-2">
-          <span
-            aria-hidden
-            className="bg-brand-100 text-brand-700 ring-brand-200/80 dark:bg-brand-900/40 dark:text-brand-300 dark:ring-brand-800/40 inline-flex size-7 items-center justify-center rounded-full ring-1"
-          >
-            <CheckCircleIcon className="size-3.5" />
-          </span>
-          <span className="text-foreground text-[14px] font-medium">
-            Triage complete · follow the team&rsquo;s instructions
-          </span>
-        </div>
-      </article>
-    );
-  }
-  // completed / cancelled
-  return (
-    <article className="border-border bg-card flex flex-col gap-2 rounded-xl border p-4">
-      <span className="text-foreground text-[14px] font-medium">
-        {status === "completed" ? "Visit complete" : "Ticket cancelled"}
-      </span>
-      <p className="text-muted-foreground text-[12.5px] leading-snug">
-        {status === "completed"
-          ? "Hope it went well. You can join the queue again any time from home."
-          : "This ticket has been closed. You can join the queue again any time from home."}
-      </p>
-    </article>
-  );
+interface Stage {
+  Icon: LucideIcon;
+  /** One line naming where the patient stands. */
+  lead: string;
+  /** What happens next — and nothing about when. */
+  body: string;
 }
 
-/* ─── helpers ─────────────────────────────────────────────────── */
+const STAGES = {
+  declared: {
+    Icon: HospitalIcon,
+    lead: "Go to the hospital when you can.",
+    body: "Reception will register you at the desk when you arrive. You will be seen in turn. We cannot tell you the hour.",
+  },
+  arrived: {
+    Icon: ClockIcon,
+    lead: "You will be seen in turn.",
+    body: "We cannot tell you the hour. A nurse will see you first for a quick check.",
+  },
+  awaiting_triage: {
+    Icon: ClockIcon,
+    lead: "You will be seen in turn.",
+    body: "We cannot tell you the hour. A nurse will see you first for a quick check.",
+  },
+  triaged: {
+    Icon: CheckCircleIcon,
+    lead: "Follow the directions the team gave you.",
+    body: "If you are not sure where to go, ask at the desk.",
+  },
+  completed: {
+    Icon: CheckCircleIcon,
+    lead: "You can tell us again on any day you are coming in.",
+    body: "We save your place in line. You will be seen in turn.",
+  },
+  cancelled: {
+    Icon: MinusIcon,
+    lead: "Nothing is saved for you today.",
+    body: "You can tell us again any time you are coming in today.",
+  },
+} satisfies Record<string, Stage>;
 
-function headlineFor(status: string): string {
+type StageKey = keyof typeof STAGES;
+
+function headlineFor(status: string, firstName: string | undefined): string {
   switch (status) {
     case "declared":
-      return "You're in today's queue.";
+      // §2: the confirmation names the account holder, because the person
+      // holding the phone is routinely not the person who will arrive.
+      return firstName ? `We saved a place for ${firstName}.` : "We saved your place.";
     case "arrived":
-      return "You're checked in.";
     case "awaiting_triage":
-      return "You're checked in.";
+      return "You are in the line.";
     case "triaged":
-      return "Triage complete.";
+      return "The nurse has seen you.";
     case "completed":
       return "All done for today.";
     case "cancelled":
-      return "Ticket cancelled.";
+      return "We removed your place.";
     default:
-      return "Your queue ticket.";
+      return "Your place in line.";
   }
-}
-
-function Row({ label, value, mono }: { label: string; value: string; mono?: boolean }) {
-  return (
-    <div className="grid grid-cols-[110px_1fr] gap-x-3 text-[12.5px]">
-      <dt className="text-muted-foreground">{label}</dt>
-      <dd className={mono ? "text-foreground font-mono tabular-nums" : "text-foreground"}>
-        {value}
-      </dd>
-    </div>
-  );
-}
-
-function formatTime(d: Date): string {
-  return d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
-}
-
-function shortId(id: string): string {
-  return id.split("-")[0]?.toUpperCase() ?? id.slice(0, 8).toUpperCase();
 }

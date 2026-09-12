@@ -1,40 +1,56 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useOptimistic, useState, useTransition } from "react";
 import { CheckIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { markMedicationTakenAction } from "../actions";
 
 /**
- * Single-click "I took this" button for a self-medication. Optimistic
- * UI: turns into a "Taken" pill while the action settles. If the
- * server returns an error, falls back to the original state.
+ * Single-click "I took this" button for a self-medication. It turns into a
+ * "Taken" pill while the write settles, and falls back to the button with
+ * the server's own words underneath if the write fails.
+ *
+ * The confirmed look is `useOptimistic`, never a `useState` flag, and that
+ * is the whole design of this component. A local flag has no way to un-set
+ * itself: the track hub renders this button inside a row keyed on the
+ * *medication*, so React keeps the component across re-renders and the pill
+ * it flipped to stays flipped for the session — on a twice-daily medicine
+ * the evening dose then could not be recorded at all without a hard reload,
+ * and an as-needed medicine could be recorded exactly once. An optimistic
+ * value reverts by itself the moment the transition that set it settles,
+ * which is precisely when the revalidated server tree — the next slot, or
+ * the recorded one — arrives to replace it.
  */
 export function MarkTakenButton({
   medicationId,
+  scheduledForIso,
   label = "Take",
-  completedLabel = "Taken",
-  showCompleted = false,
+  size = "sm",
 }: {
   medicationId: string;
+  /** The slot this take fills, as an ISO instant. Omit for an off-schedule
+   * or as-needed dose — the take is then recorded against no slot. */
+  scheduledForIso?: string;
   label?: string;
-  completedLabel?: string;
-  /** Whether to render the completed look from server state (e.g. all
-   * expected doses already taken today). */
-  showCompleted?: boolean;
+  /** `iconLg` is the 44px control the dose timeline puts in a row beside the
+   * dose status; `label` becomes its accessible name. */
+  size?: "sm" | "iconLg";
 }) {
   const [pending, startTransition] = useTransition();
-  const [localTaken, setLocalTaken] = useState(false);
+  const [taken, markTaken] = useOptimistic<boolean, boolean>(false, (_was, next) => next);
   const [error, setError] = useState<string | null>(null);
 
-  const isDone = showCompleted || localTaken;
+  const iconOnly = size === "iconLg";
 
-  if (isDone) {
+  // No `dark:` overrides on the completed pill: `.dark` swaps --brand-50 and
+  // --brand-700 to each other's values, so this pair flips by itself. The
+  // overrides it used to carry inverted it a second time and washed it out.
+  if (taken) {
     return (
-      <span className="bg-brand-50 text-brand-700 ring-brand-200/70 dark:bg-brand-950/40 dark:text-brand-300 dark:ring-brand-800/40 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[12px] font-medium ring-1">
+      <span className="bg-brand-50 text-brand-700 ring-brand-200/70 text-body-s inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-medium ring-1">
         <CheckIcon className="size-3.5" aria-hidden />
-        {completedLabel}
+        Taken
       </span>
     );
   }
@@ -44,23 +60,30 @@ export function MarkTakenButton({
       <Button
         type="button"
         variant="secondary"
-        size="sm"
+        size={size}
+        // `sm` is ~24px tall; min-h-11 restores the 44px touch floor without
+        // inventing a size, as cancel-button and med-actions already do.
+        className={iconOnly ? undefined : "min-h-11"}
+        aria-label={iconOnly ? label : undefined}
         disabled={pending}
         onClick={() => {
           setError(null);
-          setLocalTaken(true);
           startTransition(async () => {
-            const res = await markMedicationTakenAction(medicationId);
-            if (!res.ok) {
-              setLocalTaken(false);
-              setError(res.error ?? "Couldn't record that.");
-            }
+            // Inside the transition, not before it: that is what ties the
+            // optimistic value to this write's lifetime.
+            markTaken(true);
+            const res = await markMedicationTakenAction(medicationId, scheduledForIso);
+            if (!res.ok) setError(res.error ?? "Couldn't record that.");
           });
         }}
       >
-        {pending ? "Saving…" : label}
+        {iconOnly ? <CheckIcon aria-hidden /> : pending ? "Saving…" : label}
       </Button>
-      {error ? <span className="text-destructive font-mono text-[10px]">{error}</span> : null}
+      {error ? (
+        // `ncd-reveal` — a 150ms opacity fade. Not `scale-in`: that one is
+        // `--ease-spring`, and a failed write is not a thing that should pop.
+        <span className="text-destructive ncd-reveal text-caption font-mono">{error}</span>
+      ) : null}
     </div>
   );
 }

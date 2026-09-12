@@ -272,53 +272,14 @@ export function DataTable<TRow>({
 }
 
 /**
- * Compact pill — for status, type, and other taxonomy values inside
- * a table cell. Tone maps to DESIGN-medsync.md clinical status colours.
+ * `Pill` moved to `components/ui/pill.tsx` — a `<span>` with a class map does
+ * not need this module's `"use client"`, and Server Components that show a
+ * status were pulling the whole sortable table into their bundle to get it.
+ * Re-exported here so every existing `from "@/components/ui/data-table"`
+ * importer keeps working unchanged; new call sites should import from
+ * `@/components/ui/pill` directly.
  */
-export type PillTone =
-  | "neutral"
-  | "stable"
-  | "caution"
-  | "critical"
-  | "admitted"
-  | "discharged"
-  | "pending"
-  | "sensitive";
-
-// The six clinical statuses resolve to the design-system status tokens, so a Pill
-// and a ClinicalBadge render the same status identically. The tokens are defined
-// in both :root and .dark (app/globals.css), so they flip on their own — no dark:
-// variants here, and none wanted: a hand-written override would drift again.
-const PILL_TONES: Record<PillTone, string> = {
-  neutral: "bg-gray-100 text-gray-700",
-  stable: "bg-status-stable-bg text-status-stable-fg",
-  caution: "bg-status-caution-bg text-status-caution-fg",
-  critical: "bg-status-critical-bg text-status-critical-fg",
-  admitted: "bg-status-admitted-bg text-status-admitted-fg",
-  discharged: "bg-status-discharged-bg text-status-discharged-fg",
-  pending: "bg-status-pending-bg text-status-pending-fg",
-  sensitive: "bg-status-caution-bg text-status-caution-fg ring-status-caution-fg/25 ring-1",
-};
-
-export interface PillProps {
-  tone?: PillTone;
-  children: ReactNode;
-  className?: string;
-}
-
-export function Pill({ tone = "neutral", children, className }: PillProps) {
-  return (
-    <span
-      className={cn(
-        "text-caption inline-flex items-center rounded px-2 py-0.5 font-medium",
-        PILL_TONES[tone],
-        className,
-      )}
-    >
-      {children}
-    </span>
-  );
-}
+export { Pill, type PillProps, type PillTone } from "./pill";
 
 /**
  * DataTableEmpty — default empty-state component, slotted into the

@@ -1,0 +1,71 @@
+import type { ReactNode } from "react";
+import Link from "next/link";
+import { ArrowLeftIcon } from "lucide-react";
+
+import { cn } from "@/lib/utils";
+
+export interface PatientPageHeaderProps {
+  /**
+   * The mono uppercase overline — "MedSync · Tracking". This component is the
+   * only sanctioned home for that treatment at page level; section headings
+   * inside a page are real `h2`s at `text-heading-s`. Required, so a page
+   * cannot quietly grow a second one.
+   */
+  eyebrow: string;
+  title: string;
+  description?: string;
+  backHref?: string;
+  backLabel?: string;
+  /** At most one control, right-aligned beside the title. */
+  action?: ReactNode;
+  className?: string;
+}
+
+/**
+ * The one page header for the patient workspace. It replaces the eyebrow +
+ * `font-display` h1 + muted sub-line that was hand-rolled in seven files at
+ * five different h1 sizes — this is where that size is decided once.
+ */
+export function PatientPageHeader({
+  eyebrow,
+  title,
+  description,
+  backHref,
+  backLabel = "Back",
+  action,
+  className,
+}: PatientPageHeaderProps) {
+  return (
+    <header className={cn("flex flex-col gap-1.5", className)}>
+      {backHref ? (
+        // Negative margins keep the 44px touch target from opening a visual
+        // gap the design doesn't ask for.
+        <Link
+          href={backHref}
+          className="text-muted-foreground hover:text-foreground text-body-s duration-fast ease-expo-out -mx-1 -mt-2 -mb-1 inline-flex min-h-11 w-fit items-center gap-1.5 rounded-md px-1 transition-colors"
+        >
+          <ArrowLeftIcon className="size-3.5" aria-hidden />
+          {backLabel}
+        </Link>
+      ) : null}
+
+      <span className="text-muted-foreground text-caption inline-flex items-center gap-1.5 font-mono tracking-[0.16em] uppercase">
+        <span aria-hidden className="bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2" />
+        {eyebrow}
+      </span>
+
+      <div className="flex items-start justify-between gap-3">
+        <h1 className="font-display text-foreground text-heading-m sm:text-heading-l font-medium text-balance">
+          {title}
+        </h1>
+        {action ? <div className="flex shrink-0 items-center gap-2">{action}</div> : null}
+      </div>
+
+      {description ? (
+        <p className="text-muted-foreground text-body-s max-w-[60ch] leading-relaxed text-pretty">
+          {description}
+        </p>
+      ) : null}
+    </header>
+  );
+}

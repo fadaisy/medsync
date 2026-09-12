@@ -1,498 +1,351 @@
-import type { PillTone } from "@/components/ui/data-table";
-import type { TrackingGlance } from "@/lib/patient/self-tracking";
+import type { HeroVariant } from "./_components/hero-card";
+import type { AppointmentRow } from "@/lib/patient/appointments";
+import type { ReadingRow, TrackingGlance } from "@/lib/patient/self-tracking";
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import Link from "next/link";
-import { and, asc, eq, gte, inArray } from "drizzle-orm";
-import {
-  ActivityIcon,
-  BuildingIcon,
-  CalendarPlusIcon,
-  HospitalIcon,
-  PlusIcon,
-  TicketIcon,
-} from "lucide-react";
 
-import { Pill } from "@/components/ui/data-table";
-import { db } from "@/db";
-import { hospitalDepartments } from "@/db/schema/hospital-departments";
-import { appointments } from "@/db/schema/scheduling";
-import { users } from "@/db/schema/users";
+import { Pill } from "@/components/ui/pill";
+import {
+  fetchAppointments,
+  formatWhen,
+  STATUS_LABEL,
+  STATUS_TONES,
+} from "@/lib/patient/appointments";
 import { requirePatientScope } from "@/lib/patient/scope";
 import {
   fetchTrackingGlance,
   formatReadingValue,
+  formatReadingWhen,
+  listRecentReadings,
   READING_KIND_LABEL,
 } from "@/lib/patient/self-tracking";
+import { PatientDoors } from "./_components/doors";
+import { EmergencyNotice } from "./_components/emergency-notice";
+import { HeroCard } from "./_components/hero-card";
+import { PatientPageHeader } from "./_components/page-header";
+import { TintedRow } from "./_components/tinted-row";
 
 export const metadata: Metadata = { title: "Home · MedSync" };
 export const dynamic = "force-dynamic";
 
-const STATUS_TONES: Record<string, PillTone> = {
-  requested: "pending",
-  pending_approval: "pending",
-  confirmed: "stable",
-  arrived: "admitted",
-  in_progress: "admitted",
-  completed: "discharged",
-  cancelled: "neutral",
-  no_show: "caution",
-  rescheduled: "neutral",
-  declined: "critical",
-};
-
-const STATUS_LABEL: Record<string, string> = {
-  requested: "Requested",
-  pending_approval: "Awaiting approval",
-  confirmed: "Confirmed",
-  arrived: "You've arrived",
-  in_progress: "In progress",
-  completed: "Completed",
-  cancelled: "Cancelled",
-  no_show: "Missed",
-  rescheduled: "Rescheduled",
-  declined: "Declined",
-};
-
+/**
+ * The patient home: one greeting, the emergency instruction, the two doors,
+ * then one saturated hero for the thing that matters next, the day's doses,
+ * the visits ahead, and what was last logged. Everything below the doors is a
+ * glance — the work happens one tap away.
+ *
+ * The doors used to live in the quick-actions aside, which at a wide content
+ * box is a 20rem context column but below that collapses into the single
+ * column **in source order** — landing them after the hero, the doses, the
+ * visits and the readings on the one device that matters. ADR 0084 §1 is
+ * explicit that primary is a layout fact, not a claim, so they moved into the
+ * main column instead. What is left in the aside is genuinely secondary, and
+ * is still written last for the same source-order reason.
+ */
 export default async function PatientHome() {
   const scope = await requirePatientScope();
-  const [upcoming, glance] = await Promise.all([
-    scope.primaryHospitalId ? fetchUpcoming(scope.userId) : Promise.resolve([]),
+
+  const [upcoming, glance, readings] = await Promise.all([
+    scope.primaryHospitalId ? fetchUpcomingVisits(scope.userId) : Promise.resolve([]),
     fetchTrackingGlance(scope.userId),
+    listRecentReadings(scope.userId, 3),
   ]);
 
+  const now = new Date();
   const firstName = scope.fullName?.split(" ")[0];
+  const doses = glance.todaySlots;
+  const nextVisit = upcoming[0];
+  // Gates the doors, and names the emergency landmark when there is a
+  // hospital to name. The fallback only fires if the hospital row behind an
+  // affiliation has gone; the name never reaches the emergency copy itself,
+  // which says "the hospital's emergency entrance" regardless (ADR 0084 §3).
+  const hospitalName = scope.primaryHospitalId
+    ? (scope.primaryHospitalName ?? "Your hospital")
+    : null;
+
+  // The ladder: a patient with no hospital has one job, a patient with a
+  // visit booked wants to see it, and after that the day's doses are the
+  // most useful thing we can prove. "Start with one reading" is last
+  // because it is the only branch that asks for something new.
+  const hero: HeroVariant = !scope.primaryHospitalId
+    ? { kind: "connect" }
+    : nextVisit
+      ? {
+          kind: "visit",
+          clinicianName: nextVisit.clinicianName,
+          departmentName: nextVisit.departmentName,
+          hospitalName: nextVisit.hospitalName,
+          startsAtIso: nextVisit.startsAtIso,
+          statusLabel: STATUS_LABEL[nextVisit.status] ?? nextVisit.status,
+        }
+      : doses.total > 0
+        ? { kind: "doses", taken: doses.taken, total: doses.total, next: doses.next }
+        : { kind: "first-reading" };
 
   return (
-    <div className="stagger-children relative mx-auto flex w-full max-w-xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-9">
-      {/* Quiet teal atmosphere behind the greeting — 90% monochrome rule intact. */}
-      <div
-        aria-hidden
-        className="bg-brand-500/5 dark:bg-brand-400/4 pointer-events-none absolute -top-24 left-1/2 -z-10 h-64 w-md max-w-full -translate-x-1/2 rounded-full blur-3xl"
-      />
-      {/* ── Greeting ───────────────────────────────────────────── */}
-      <section className="flex flex-col gap-1.5">
-        <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
-          <span aria-hidden className="bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2" />
-          MedSync · Your space
-        </span>
-        <h1 className="font-display text-foreground text-[26px] leading-[1.15] font-medium tracking-[-0.015em] sm:text-[30px]">
-          {firstName ? `Hello, ${firstName}.` : "Hello."}
-        </h1>
-        <p className="text-muted-foreground text-body-s max-w-[44ch] leading-relaxed">
-          {scope.primaryHospitalName
-            ? `${scope.primaryHospitalName} is your primary hospital. Track how you're doing, see your visits, and book when you need to.`
-            : "This is your private workspace. Track how you're doing day to day; when you're ready, connect to a hospital."}
-        </p>
-      </section>
+    <div className="grid gap-6 @5xl/page:grid-cols-[minmax(0,1fr)_20rem]">
+      <div className="stagger-children flex min-w-0 flex-col gap-6">
+        <PatientPageHeader
+          eyebrow="MedSync · Your space"
+          title={firstName ? `Hello, ${firstName}.` : "Hello."}
+          description={
+            scope.primaryHospitalName
+              ? // "…and book when you need to" is gone: ADR 0084 §2's no-jargon
+                // rule runs to confirmation, not just to the buttons, and the
+                // doors immediately below now say this better than a clause can.
+                `${scope.primaryHospitalName} is your hospital. Track how you're doing and see your visits.`
+              : "This is your private space. Track how you're doing day to day; connect to a hospital whenever you're ready."
+          }
+        />
 
-      {/* ── Connection-state banner ───────────────────────────── */}
-      <ConnectionBanner
-        primaryHospitalName={scope.primaryHospitalName}
-        primaryHospitalSlug={scope.primaryHospitalSlug}
-      />
+        {/* First thing under the greeting, in this order, on every surface
+            that carries a door (ADR 0084 §2, §3) — a patient mid-stroke may be
+            on any of them. Both are direct children of the stagger column, so
+            they reveal with everything else and neither carries motion of its
+            own.
 
-      {/* ── Today's tracking glance ───────────────────────────── */}
-      <TrackingGlanceCard glance={glance} />
+            The block is unconditional and only the doors are gated. A patient
+            with no hospital has nothing to book or queue for — but is the one
+            patient who would otherwise see no emergency instruction at all,
+            on the emptiest screen in the product. No hospital also means no
+            verified number, so the block shows the destination alone, which
+            is the ADR's correct failure rather than a missing feature. */}
+        <EmergencyNotice
+          hospitalName={hospitalName}
+          emergencyPhone={scope.emergencyEntrancePhone}
+        />
+        {hospitalName ? <PatientDoors /> : null}
 
-      {/* ── Quick actions ─────────────────────────────────────── */}
-      <section className="flex flex-col gap-2">
-        <h2 className="text-muted-foreground font-mono text-[10.5px] tracking-[0.14em] uppercase">
-          Quick actions
-        </h2>
-        <ul className="grid grid-cols-2 gap-2">
-          <QuickAction
-            href="/patient/track/log"
-            label="Log a reading"
-            sub="Glucose, BP, weight…"
-            Icon={PlusIcon}
-            tone="primary"
-          />
-          <QuickAction
-            href="/patient/track"
-            label="See trends"
-            sub="Your readings over time"
-            Icon={ActivityIcon}
-            tone="muted"
-          />
-          {scope.primaryHospitalId ? (
-            <>
-              <QuickAction
-                href="/patient/book"
-                label="Book a visit"
-                sub="Pick a future date"
-                Icon={CalendarPlusIcon}
-                tone="muted"
-              />
-              <QuickAction
-                href="/patient/queue"
-                label="Join today's queue"
-                sub="You're coming in today"
-                Icon={TicketIcon}
-                tone="muted"
-              />
-            </>
+        <HeroCard variant={hero} />
+
+        {/* The hero already *is* today's doses in that branch; a second
+            copy of the same ratio underneath it would say nothing new. */}
+        {hero.kind === "doses" ? null : (
+          <section className="flex flex-col gap-3">
+            <SectionHead
+              title="Today's doses"
+              linkHref="/patient/track/medications"
+              linkLabel="All medicines"
+            />
+            <ul className="stagger-children flex flex-col gap-2">
+              {doses.total > 0 ? (
+                <TintedRow
+                  tint="brand"
+                  iconKey="pill"
+                  title="Doses today"
+                  subtitle={doseSubtitle(doses)}
+                  href="/patient/track/doses"
+                  trailing={
+                    <span className="text-foreground text-body-m font-mono tabular-nums">
+                      {doses.taken}/{doses.total}
+                    </span>
+                  }
+                />
+              ) : (
+                <TintedRow
+                  tint="brand"
+                  iconKey="pill"
+                  title="Nothing scheduled today"
+                  subtitle="Add a medicine and its times to see them here"
+                  href="/patient/track/medications"
+                />
+              )}
+            </ul>
+          </section>
+        )}
+
+        {/* Hidden entirely when unaffiliated: there is nowhere to book yet,
+            so an empty "Upcoming visits" would be a dead section. */}
+        {scope.primaryHospitalId ? (
+          <section className="flex flex-col gap-3">
+            <SectionHead
+              title="Upcoming visits"
+              linkHref="/patient/appointments"
+              linkLabel="View all"
+            />
+            {/* The empty line is not "when you book a visit or join a queue":
+                this section reads appointments only, so a declared intake has
+                never landed here — and ADR 0084 §2 retires both words anyway. */}
+            {upcoming.length === 0 ? (
+              <EmptyLine>Nothing yet. A visit you have asked for shows up here.</EmptyLine>
+            ) : (
+              <ul className="stagger-children flex flex-col gap-2">
+                {upcoming.map((visit) => (
+                  <VisitRow key={visit.id} visit={visit} />
+                ))}
+              </ul>
+            )}
+          </section>
+        ) : null}
+
+        <section className="flex flex-col gap-3">
+          <SectionHead title="Recent readings" linkHref="/patient/track" linkLabel="See readings" />
+          {readings.length === 0 ? (
+            <EmptyLine>
+              Nothing logged yet. A glucose, blood-pressure or weight reading takes a moment.
+            </EmptyLine>
           ) : (
-            <>
-              <QuickAction
-                href="/patient/hospitals"
-                label="Browse hospitals"
-                sub="Find one near you"
-                Icon={BuildingIcon}
-                tone="muted"
-              />
-              <QuickAction
-                href="/patient/track/medications"
-                label="My medications"
-                sub="Self-managed list"
-                Icon={ActivityIcon}
-                tone="muted"
-              />
-            </>
-          )}
-        </ul>
-      </section>
-
-      {/* ── Upcoming visits (affiliated only) ─────────────────── */}
-      {scope.primaryHospitalId ? (
-        <section className="flex flex-col gap-2">
-          <div className="flex items-baseline justify-between gap-2">
-            <h2 className="text-muted-foreground font-mono text-[10.5px] tracking-[0.14em] uppercase">
-              Upcoming
-            </h2>
-            {upcoming.length > 0 ? (
-              <Link
-                href="/patient/appointments"
-                className="text-muted-foreground hover:text-foreground text-[11.5px] transition-colors"
-              >
-                See all →
-              </Link>
-            ) : null}
-          </div>
-          {upcoming.length === 0 ? (
-            <p className="text-muted-foreground border-border bg-card rounded-xl border p-4 text-[12.5px] leading-relaxed">
-              Nothing on your schedule. When you book, the next visit lands here.
-            </p>
-          ) : (
-            <ul className="flex flex-col gap-2">
-              {upcoming.map((a) => (
-                <li key={a.id}>
-                  <Link
-                    href="/patient/appointments"
-                    className="border-border bg-card hover:bg-muted/30 card-lift hover:border-brand-500/40 flex flex-col gap-2 rounded-xl border p-4"
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-foreground text-[14px] font-medium">
-                        {a.clinicianName}
-                      </span>
-                      <Pill tone={STATUS_TONES[a.status] ?? "neutral"}>
-                        {STATUS_LABEL[a.status] ?? a.status}
-                      </Pill>
-                    </div>
-                    <p className="text-muted-foreground text-[12.5px]">
-                      {a.departmentName} · {a.type === "virtual" ? "Virtual" : "In-person"}
-                    </p>
-                    <p className="text-foreground font-mono text-[12px] tabular-nums">
-                      {formatWhen(a.startsAtIso)}
-                    </p>
-                  </Link>
-                </li>
+            <ul className="stagger-children flex flex-col gap-2">
+              {readings.map((reading) => (
+                <ReadingRowItem key={reading.id} reading={reading} now={now} />
               ))}
             </ul>
           )}
         </section>
-      ) : null}
+      </div>
+
+      {/* Named, because at desktop the rail's <nav> is not the only landmark
+          in the document and an unnamed `complementary` is unnavigable. */}
+      <aside
+        aria-labelledby="quick-actions"
+        className="flex min-w-0 flex-col gap-3 @5xl/page:sticky @5xl/page:top-17 @5xl/page:self-start"
+      >
+        <h2 id="quick-actions" className="text-heading-s font-medium">
+          Quick actions
+        </h2>
+        {/* The two doors are not here any more (ADR 0084 §1b) — what remains
+            is the same two rows either way, so the affiliated fork went with
+            them. Mint on the hospital row keeps the pair from reading as two
+            identical brand rows; tint is recognition only, never meaning. */}
+        <ul className="stagger-children flex flex-col gap-2">
+          <TintedRow
+            tint="brand"
+            iconKey="activity"
+            title="Log a reading"
+            subtitle="Glucose, blood pressure, weight…"
+            href="/patient/track/log"
+          />
+          <TintedRow
+            tint="mint"
+            iconKey="hospital"
+            title={hospitalName ?? "Find your hospital"}
+            subtitle={hospitalName ? "Your hospital — change it here" : "Browse MedSync hospitals"}
+            href="/patient/hospitals"
+          />
+        </ul>
+      </aside>
     </div>
   );
 }
 
-/* ── Connection-state banner ──────────────────────────────────── */
+/* ── Sections ──────────────────────────────────────────────────── */
 
-function ConnectionBanner({
-  primaryHospitalName,
+function SectionHead({
+  title,
+  linkHref,
+  linkLabel,
 }: {
-  primaryHospitalName: string | null;
-  primaryHospitalSlug: string | null;
+  title: string;
+  linkHref: string;
+  linkLabel: string;
 }) {
-  if (primaryHospitalName) {
-    return (
-      <div className="border-border bg-card flex items-center justify-between gap-3 rounded-xl border p-3.5">
-        <div className="flex min-w-0 items-center gap-3">
-          <span
-            aria-hidden
-            className="bg-brand-50 text-brand-700 ring-brand-200/70 dark:bg-brand-950/40 dark:text-brand-300 dark:ring-brand-800/40 inline-flex size-9 shrink-0 items-center justify-center rounded-full ring-1"
-          >
-            <HospitalIcon className="size-4" />
-          </span>
-          <div className="flex min-w-0 flex-col">
-            <span className="text-muted-foreground font-mono text-[9.5px] tracking-[0.14em] uppercase">
-              Connected to
-            </span>
-            <span className="text-foreground truncate text-[13.5px] font-medium">
-              {primaryHospitalName}
-            </span>
-          </div>
-        </div>
-        <Link
-          href="/patient/hospitals"
-          className="text-muted-foreground hover:text-foreground rounded-md px-2 py-1 text-[11.5px] transition-colors"
-        >
-          Change
-        </Link>
-      </div>
-    );
-  }
-
-  // Unaffiliated — invite, not warn. The kickoff calls for "calm
-  // wellbeing tone, encouraging not shaming." A brand-tinted card with
-  // a single primary CTA carries the weight without an alert chrome.
-  return (
-    <Link
-      href="/patient/hospitals"
-      className="group card-lift border-brand-500/30 from-brand-50/80 via-brand-50/40 hover:border-brand-500/60 dark:border-brand-400/20 dark:from-brand-950/30 dark:via-brand-950/15 relative overflow-hidden rounded-xl border bg-linear-to-br to-transparent p-4 dark:to-transparent"
-    >
-      <div
-        aria-hidden
-        className="bg-brand-500/10 dark:bg-brand-400/10 absolute -top-12 -right-12 size-32 rounded-full blur-2xl transition-opacity group-hover:opacity-80"
-      />
-      <div className="relative flex items-start gap-3">
-        <span
-          aria-hidden
-          className="text-brand-700 ring-brand-200/80 dark:bg-brand-950/60 dark:text-brand-300 dark:ring-brand-800/40 inline-flex size-10 shrink-0 items-center justify-center rounded-full bg-white/80 ring-1"
-        >
-          <HospitalIcon className="size-5" />
-        </span>
-        <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <span className="font-display text-foreground text-[16px] font-medium tracking-[-0.005em]">
-            Connect to a hospital
-          </span>
-          <span className="text-muted-foreground max-w-[44ch] text-[12.5px] leading-relaxed">
-            Pick a MedSync hospital as your primary. You can book appointments and, when a clinician
-            connects, see your records here.
-          </span>
-          <span className="text-brand-700 dark:text-brand-300 mt-1 inline-flex items-center gap-1 text-[12px] font-medium">
-            Browse hospitals
-            <span aria-hidden className="transition-transform group-hover:translate-x-0.5">
-              →
-            </span>
-          </span>
-        </div>
-      </div>
-    </Link>
-  );
-}
-
-/* ── Today's tracking glance ───────────────────────────────────── */
-
-function TrackingGlanceCard({ glance }: { glance: TrackingGlance }) {
-  const hasReading = !!glance.latestReading;
-  const hasMeds = glance.activeMedicationCount > 0;
-
-  if (!hasReading && !hasMeds) {
-    // Calm, honest empty state. The kickoff is explicit that the
-    // home must be useful in the unaffiliated/empty state — so we
-    // make logging feel like the natural next step, not a chore.
-    return (
-      <section className="border-border bg-card relative overflow-hidden rounded-xl border p-4">
-        <div className="flex items-start gap-3">
-          <span
-            aria-hidden
-            className="bg-brand-50 text-brand-700 ring-brand-200/70 dark:bg-brand-950/40 dark:text-brand-300 dark:ring-brand-800/40 inline-flex size-9 shrink-0 items-center justify-center rounded-full ring-1"
-          >
-            <ActivityIcon className="size-4" />
-          </span>
-          <div className="flex flex-col gap-1">
-            <span className="text-foreground text-[13.5px] font-medium">Nothing logged yet</span>
-            <span className="text-muted-foreground max-w-[44ch] text-[12px] leading-relaxed">
-              When you log a reading or add a medicine, today&rsquo;s snapshot will live here. It
-              stays private until you decide otherwise.
-            </span>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
-  return (
-    <section className="border-border bg-card flex flex-col gap-3 rounded-xl border p-4">
-      <div className="flex items-baseline justify-between gap-2">
-        <span className="text-muted-foreground font-mono text-[10.5px] tracking-[0.14em] uppercase">
-          Today
-        </span>
-        <Link
-          href="/patient/track"
-          className="text-muted-foreground hover:text-foreground text-[11.5px] transition-colors"
-        >
-          Full view →
-        </Link>
-      </div>
-
-      {hasReading ? <LatestReadingRow latest={glance.latestReading!} /> : null}
-
-      {hasMeds ? (
-        <div className="border-border/60 flex items-center justify-between gap-3 border-t pt-3">
-          <div className="flex flex-col">
-            <span className="text-muted-foreground text-[11.5px]">Medications</span>
-            <span className="text-foreground text-body-s font-medium">
-              {glance.takesToday > 0
-                ? `${glance.takesToday} dose${glance.takesToday === 1 ? "" : "s"} taken today`
-                : "Nothing taken yet today"}
-            </span>
-          </div>
-          <span className="text-muted-foreground text-caption font-mono tabular-nums">
-            {glance.activeMedicationCount} active
-          </span>
-        </div>
-      ) : null}
-    </section>
-  );
-}
-
-function LatestReadingRow({ latest }: { latest: NonNullable<TrackingGlance["latestReading"]> }) {
-  const label = READING_KIND_LABEL[latest.kind] ?? "Reading";
-  const value = formatReadingValue(latest);
-  const when = formatRelative(latest.recordedAtIso);
-
   return (
     <div className="flex items-center justify-between gap-3">
-      <div className="flex min-w-0 flex-col">
-        <span className="text-muted-foreground text-[11.5px]">{label}</span>
-        <span className="text-foreground font-mono text-[16px] font-medium tabular-nums">
-          {value ?? (latest.note ? truncate(latest.note, 40) : "—")}
-        </span>
-      </div>
-      <span className="text-muted-foreground text-caption shrink-0 font-mono tabular-nums">
-        {when}
-      </span>
+      <h2 className="text-heading-s font-medium">{title}</h2>
+      {/* No underline at rest — blue-underlined "view all" is not in the
+          system; the negative margin keeps the 44px target invisible. */}
+      <Link
+        href={linkHref}
+        className="text-primary text-body-s duration-fast ease-expo-out -my-2 inline-flex min-h-11 shrink-0 items-center rounded-md underline-offset-4 transition-colors hover:underline focus-visible:underline"
+      >
+        {linkLabel}
+      </Link>
     </div>
   );
 }
 
-/* ── Quick action card ─────────────────────────────────────────── */
+function EmptyLine({ children }: { children: ReactNode }) {
+  return (
+    <p className="text-muted-foreground bg-card text-body-s dark:shadow-card rounded-xl p-4 leading-relaxed shadow-xs">
+      {children}
+    </p>
+  );
+}
 
-function QuickAction({
-  href,
-  label,
-  sub,
-  Icon,
-  tone,
-}: {
-  href: string;
-  label: string;
-  sub: string;
-  Icon: typeof PlusIcon;
-  tone: "primary" | "muted";
-}) {
+function VisitRow({ visit }: { visit: AppointmentRow }) {
   return (
     <li>
+      {/* The list is the detail view — there is no per-appointment route,
+          so the row anchors into the visits list instead of inventing one. */}
       <Link
-        href={href}
-        className={
-          tone === "primary"
-            ? "group bg-foreground text-background hover:bg-foreground/90 tap flex h-full flex-col gap-2 rounded-xl p-3.5 transition-colors"
-            : "group border-border bg-card hover:bg-muted/30 hover:border-foreground/15 card-lift tap flex h-full flex-col gap-2 rounded-xl border p-3.5"
-        }
+        href={`/patient/appointments#visit-${visit.id}`}
+        className="bg-card dark:shadow-card tap flex flex-col gap-1.5 rounded-lg p-4 shadow-xs md:hover:brightness-[0.98] dark:md:hover:brightness-110"
       >
-        <span
-          aria-hidden
-          className={
-            tone === "primary"
-              ? "bg-background/15 text-background inline-flex size-7 items-center justify-center rounded-full"
-              : "bg-muted text-foreground/80 inline-flex size-7 items-center justify-center rounded-full"
-          }
-        >
-          <Icon className="size-3.5" />
-        </span>
-        <span className="flex flex-col gap-0.5">
-          <span className="text-body-s font-medium">{label}</span>
-          <span
-            className={
-              tone === "primary"
-                ? "text-background/70 text-caption leading-tight"
-                : "text-muted-foreground text-caption leading-tight"
-            }
-          >
-            {sub}
+        <span className="flex items-start justify-between gap-3">
+          <span className="text-foreground text-body-m min-w-0 flex-1 truncate font-medium">
+            {visit.clinicianName}
           </span>
+          <Pill tone={STATUS_TONES[visit.status] ?? "neutral"} className="shrink-0">
+            {STATUS_LABEL[visit.status] ?? visit.status}
+          </Pill>
         </span>
+        <span className="text-muted-foreground text-body-s truncate">
+          {visit.departmentName} · {visit.type === "virtual" ? "Virtual" : "In person"}
+        </span>
+        <span className="text-foreground text-body-s">{formatWhen(visit.startsAtIso)}</span>
       </Link>
     </li>
   );
 }
 
-/* ── Data fetchers + format helpers ────────────────────────────── */
+function ReadingRowItem({ reading, now }: { reading: ReadingRow; now: Date }) {
+  const value = formatReadingValue(reading);
 
-interface UpcomingRow {
-  id: string;
-  startsAtIso: string;
-  status: string;
-  type: string;
-  clinicianName: string;
-  departmentName: string;
+  return (
+    <li className="bg-card dark:shadow-card flex min-h-16 items-center justify-between gap-3 rounded-lg px-4 py-3 shadow-xs">
+      <span className="min-w-0">
+        <span className="text-muted-foreground text-body-s block">
+          {READING_KIND_LABEL[reading.kind] ?? "Reading"}
+        </span>
+        {/* A note or a symptom has no numeric value, and an empty mono slot
+            reads as a missing number rather than a written entry — so the
+            prose stands in for it, clipped by the row, not by a slice. */}
+        {value ? (
+          <span className="text-foreground text-body-m block font-mono tabular-nums">{value}</span>
+        ) : reading.note ? (
+          <span className="text-foreground text-body-m block truncate">{reading.note}</span>
+        ) : reading.severity !== null ? (
+          <span className="text-foreground text-body-m block">
+            Severity <span className="font-mono tabular-nums">{reading.severity}</span> of 5
+          </span>
+        ) : (
+          <span className="text-muted-foreground text-body-m block">No value recorded</span>
+        )}
+      </span>
+      <time
+        dateTime={reading.recordedAtIso}
+        className="text-muted-foreground text-caption shrink-0 font-mono tabular-nums"
+      >
+        {formatReadingWhen(reading.recordedAtIso, now)}
+      </time>
+    </li>
+  );
 }
 
-async function fetchUpcoming(patientUserId: string): Promise<UpcomingRow[]> {
-  const rows = await db
-    .select({
-      id: appointments.id,
-      startsAt: appointments.startsAt,
-      status: appointments.status,
-      type: appointments.type,
-      clinicianName: users.fullName,
-      departmentName: hospitalDepartments.name,
-    })
-    .from(appointments)
-    .innerJoin(users, eq(users.id, appointments.clinicianUserId))
-    .innerJoin(hospitalDepartments, eq(hospitalDepartments.id, appointments.departmentId))
-    .where(
-      and(
-        eq(appointments.patientUserId, patientUserId),
-        gte(appointments.startsAt, new Date()),
-        inArray(appointments.status, [
-          "requested",
-          "pending_approval",
-          "confirmed",
-          "arrived",
-          "in_progress",
-        ]),
-      ),
-    )
-    .orderBy(asc(appointments.startsAt))
-    .limit(3);
+/* ── Data + format helpers ─────────────────────────────────────── */
 
-  return rows.map((r) => ({
-    id: r.id,
-    startsAtIso: r.startsAt.toISOString(),
-    status: r.status,
-    type: r.type,
-    clinicianName: r.clinicianName ?? "Your clinician",
-    departmentName: r.departmentName,
-  }));
+/**
+ * Home must survive a scheduling outage. Every other card on this page
+ * comes from self-tracking, so a failed appointments read renders the
+ * "nothing yet" line rather than taking the whole screen down with it.
+ */
+async function fetchUpcomingVisits(patientUserId: string): Promise<AppointmentRow[]> {
+  try {
+    return await fetchAppointments(patientUserId, "upcoming-active", 3);
+  } catch {
+    return [];
+  }
 }
 
-function formatWhen(iso: string): string {
-  const d = new Date(iso);
-  const date = d.toLocaleDateString(undefined, {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-  });
-  const time = d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
-  return `${date} · ${time}`;
-}
-
-function formatRelative(iso: string): string {
-  const then = new Date(iso).getTime();
-  const now = Date.now();
-  const diffMin = Math.round((now - then) / 60_000);
-  if (diffMin < 1) return "just now";
-  if (diffMin < 60) return `${diffMin} min ago`;
-  const diffH = Math.round(diffMin / 60);
-  if (diffH < 24) return `${diffH}h ago`;
-  const diffD = Math.round(diffH / 24);
-  if (diffD < 7) return `${diffD}d ago`;
-  return new Date(iso).toLocaleDateString(undefined, { month: "short", day: "numeric" });
-}
-
-function truncate(s: string, max: number): string {
-  return s.length <= max ? s : s.slice(0, max - 1).trimEnd() + "…";
+/**
+ * Never "all taken" when slots are still unrecorded: `next` is only the
+ * earliest slot still within its grace window, so a day with a missed
+ * 08:00 and nothing else due has no next dose and is not complete either.
+ * Naming the state is the timeline's job — this line only points at it.
+ */
+function doseSubtitle(doses: TrackingGlance["todaySlots"]): string {
+  if (doses.next) return `Next · ${doses.next.name} at ${doses.next.timeLabel}`;
+  if (doses.taken >= doses.total) return "Everything recorded for today";
+  return "Some doses have no entry yet";
 }

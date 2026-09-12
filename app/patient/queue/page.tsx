@@ -1,44 +1,46 @@
+import type { DepartmentOption } from "./_components/declare-intake-form";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { redirect } from "next/navigation";
-import { and, asc, count, eq, gte, inArray, isNull, lt } from "drizzle-orm";
-import {
-  AlertTriangleIcon,
-  ArrowLeftIcon,
-  CalendarPlusIcon,
-  CheckIcon,
-  HospitalIcon,
-  TicketIcon,
-} from "lucide-react";
+import { and, asc, eq, gte, inArray, isNull, lt } from "drizzle-orm";
 
 import { db } from "@/db";
 import { hospitalDepartments } from "@/db/schema/hospital-departments";
-import { hospitals } from "@/db/schema/hospitals";
 import { patientIntakes } from "@/db/schema/patient-intakes";
 import { appointments, departmentSchedulingPolicy } from "@/db/schema/scheduling";
 import { requirePatientScope } from "@/lib/patient/scope";
+import { DEFAULT_TIME_ZONE, localWeekdayAndMinutes } from "@/supabase/functions/_shared/slots";
+import { EmergencyNotice } from "../_components/emergency-notice";
+import { PatientPageHeader } from "../_components/page-header";
+import { TintedRow } from "../_components/tinted-row";
 import { DeclareIntakeForm } from "./_components/declare-intake-form";
 
 export const metadata: Metadata = {
-  title: "Join today's queue · MedSync",
+  title: "Coming to the hospital today · MedSync",
   robots: { index: false, follow: false },
 };
 export const dynamic = "force-dynamic";
 
 /**
- * /patient/queue — the "Join today's queue" door of the book-or-queue
- * choice point. Mobile-first, dept-picker only (no clinician choice —
- * queue is dept-scoped).
+ * /patient/queue — the same-day door (ADR 0084 §1), now the primary one.
  *
- * "Open for walk-in today?" reuses departmentSchedulingPolicy
- * (weekdays + window) — same heuristic the Edge Function applies, so
- * the page shows what the server would accept. Departments with no
- * policy row read as closed; we say so honestly and offer booking
- * instead.
+ * The head of the page carries §2's ratified words: it names the act the
+ * patient is performing ("Coming to the hospital today") and the only two
+ * things we can honestly say about what follows — a place, in turn, no hour.
  *
- * If the patient already has a live intake or a confirmed booking
- * today at this hospital, we surface that at the top instead of
- * letting them try and bounce off a 409.
+ * Walk-ins are open by DEFAULT (§14, ratifying the revision ADR 0034 §2 had
+ * only a code comment behind). A departmentSchedulingPolicy, when present,
+ * NARROWS the walk-in window to its hours; its absence is "no restriction",
+ * not "closed". Same helper and same rule as the gate in pt-declare-intake,
+ * so what this page offers and what the Edge Function accepts cannot drift.
+ *
+ * No count appears anywhere on this screen (§5, §6). `aheadByDept` used to
+ * price each department by its queue length, which made a differential
+ * ("Cardiology or General Medicine?") into a wait-shopping decision. The one
+ * place a count is honest is the ticket page, where it is computed against
+ * this patient's own row.
+ *
+ * If the patient already has a live intake or a booking today at this
+ * hospital, we surface that first instead of letting them bounce off a 409.
  */
 export default async function PatientQueuePage() {
   const scope = await requirePatientScope();
@@ -51,15 +53,19 @@ export default async function PatientQueuePage() {
   startOfDay.setHours(0, 0, 0, 0);
   const endOfDay = new Date(startOfDay);
   endOfDay.setDate(endOfDay.getDate() + 1);
-  const nowWeekday = startOfDay.getDay();
-  const nowMinutes = new Date().getHours() * 60 + new Date().getMinutes();
+  // The hospital's clock, never the server's. `getDay()`/`getHours()` here
+  // read whatever zone the host runs in — UTC on Vercel — which is the wrong
+  // WEEKDAY for the first three hours of every East African day and a
+  // walk-in window displaced by three hours for all of them. ISO 1-7, so a
+  // policy that ticks Sunday (stored as 7 under migration 0052) matches.
+  // Same helper as the server-side gate in pt-declare-intake, so the page
+  // and the 409 can never disagree.
+  const { isoWeekday: nowWeekday, minutesOfDay: nowMinutes } = localWeekdayAndMinutes(
+    new Date(),
+    DEFAULT_TIME_ZONE,
+  );
 
-  const [hospital, departments, existingIntake, existingAppointment] = await Promise.all([
-    db
-      .select({ name: hospitals.name })
-      .from(hospitals)
-      .where(eq(hospitals.id, hospitalId))
-      .limit(1),
+  const [departments, existingIntake, existingAppointment] = await Promise.all([
     db
       .select({
         id: hospitalDepartments.id,
@@ -120,41 +126,16 @@ export default async function PatientQueuePage() {
       .limit(1),
   ]);
 
-  // Per-dept count-ahead (live + waiting today). Run after we have the
-  // dept list so we only query depts that exist.
-  const deptIds = departments.map((d) => d.id);
-  const aheadRows =
-    deptIds.length > 0
-      ? await db
-          .select({
-            departmentId: patientIntakes.receivingDepartmentId,
-            n: count(),
-          })
-          .from(patientIntakes)
-          .where(
-            and(
-              eq(patientIntakes.hospitalId, hospitalId),
-              inArray(patientIntakes.receivingDepartmentId, deptIds),
-              inArray(patientIntakes.status, ["declared", "arrived", "awaiting_triage"]),
-              gte(patientIntakes.arrivedAt, startOfDay),
-              lt(patientIntakes.arrivedAt, endOfDay),
-            ),
-          )
-          .groupBy(patientIntakes.receivingDepartmentId)
-      : [];
-  const aheadByDept = new Map<string, number>();
-  for (const r of aheadRows) {
-    if (r.departmentId) aheadByDept.set(r.departmentId, Number(r.n));
-  }
-
-  const hospitalName = hospital[0]?.name ?? "your hospital";
+  // Both off the scope, which read this hospital's row once for the request:
+  // the name it already carried, and the emergency number §3's block needs.
+  const hospitalName = scope.primaryHospitalName ?? "your hospital";
   const liveIntake = existingIntake[0] ?? null;
   const liveAppt = existingAppointment[0] ?? null;
 
-  const items = departments.map((d) => {
-    // Open for walk-ins by DEFAULT. A scheduling policy, when present,
-    // narrows the window to its hours; its absence means "no
-    // restriction", not "closed". Mirrors the pt-declare-intake gate.
+  const items: DepartmentOption[] = departments.map((d) => {
+    // Open for walk-ins by DEFAULT (§14). A scheduling policy, when present,
+    // narrows the window to its hours; its absence means "no restriction",
+    // not "closed". Mirrors the pt-declare-intake gate.
     const hasPolicy = d.bookableWeekdays !== null;
     const inWeekday = hasPolicy && (d.bookableWeekdays ?? []).includes(nowWeekday);
     const inWindow =
@@ -169,167 +150,62 @@ export default async function PatientQueuePage() {
       name: d.name,
       openNow,
       reason: openNow ? null : !inWeekday ? "closed today" : "outside walk-in hours",
-      ahead: aheadByDept.get(d.id) ?? 0,
     };
   });
 
-  const anyOpen = items.some((i) => i.openNow);
-
   return (
-    <div className="stagger-children relative mx-auto flex w-full max-w-xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-9">
-      <div
-        aria-hidden
-        className="bg-brand-500/5 dark:bg-brand-400/4 pointer-events-none absolute -top-20 left-1/2 -z-10 h-56 w-md max-w-full -translate-x-1/2 rounded-full blur-3xl"
+    <div className="stagger-children mx-auto flex w-full max-w-xl flex-col gap-6">
+      {/* The hospital's name is the eyebrow because §2's screen opens with it:
+          the patient has to know which building the rest of the page is about
+          before it tells them to walk into one. */}
+      <PatientPageHeader
+        eyebrow={hospitalName}
+        title="Coming to the hospital today"
+        description="We save your place in line. You will be seen in turn. We cannot tell you the hour."
+        backHref="/patient"
+        backLabel="Back to home"
       />
-      <Link
-        href="/patient"
-        className="text-muted-foreground hover:text-foreground group inline-flex w-fit items-center gap-1 text-[12.5px] transition-colors"
-      >
-        <ArrowLeftIcon
-          className="size-3.5 transition-transform group-hover:-translate-x-0.5"
-          aria-hidden
-        />
-        Back to home
-      </Link>
 
-      <header className="flex flex-col gap-1.5">
-        <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
-          <span aria-hidden className="bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2" />
-          MedSync · Join today&rsquo;s queue
-        </span>
-        <h1 className="font-display text-foreground sm:text-heading-l text-[24px] leading-[1.15] font-medium tracking-[-0.015em]">
-          You&rsquo;re coming in today.
-        </h1>
-        <p className="text-muted-foreground text-body-s max-w-[44ch] leading-relaxed">
-          Pick the department you&rsquo;re heading to at <strong>{hospitalName}</strong>.
-          We&rsquo;ll save a spot in line. You&rsquo;ll see your position update live; check in at
-          the front desk when you arrive.
-        </p>
-      </header>
+      {/* First thing under the title, above the form and above the cards that
+          say what is already in flight — a patient mid-stroke may be on this
+          page (ADR 0084 §3). Unconditional, and never repainted from here. */}
+      <EmergencyNotice hospitalName={hospitalName} emergencyPhone={scope.emergencyEntrancePhone} />
 
-      {/* ── Already in flight today ──────────────────────────── */}
-      {liveIntake ? (
-        <ExistingIntakeCard intakeId={liveIntake.id} status={liveIntake.status} />
+      {liveIntake || liveAppt ? (
+        <ul className="stagger-children flex flex-col gap-2">
+          {liveIntake ? (
+            <TintedRow
+              tint="brand"
+              iconKey="hospital"
+              title={INTAKE_TITLE[liveIntake.status] ?? "You are already in today's line."}
+              subtitle="Open this for the latest."
+              href={`/patient/queue/${liveIntake.id}`}
+            />
+          ) : liveAppt ? (
+            <TintedRow
+              tint="mint"
+              iconKey="calendar"
+              // No clock numeral: the Luganda clock is dawn-anchored, so "9:00"
+              // on a patient surface is read six hours out (ADR 0084 §10). The
+              // row's destination is the visits list, which is where a time
+              // belongs if one is shown at all.
+              title="You already have a visit at the hospital today."
+              subtitle="Go to the front desk when you arrive."
+              href="/patient/appointments"
+            />
+          ) : null}
+        </ul>
       ) : null}
 
-      {liveAppt && !liveIntake ? (
-        <ExistingAppointmentCard
-          appointmentId={liveAppt.id}
-          startsAtIso={liveAppt.startsAt.toISOString()}
-        />
-      ) : null}
-
-      {/* ── Honest "emergency? not here" banner ──────────────── */}
-      <aside className="border-border bg-card flex items-start gap-3 rounded-xl border p-3.5">
-        <span
-          aria-hidden
-          className="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-amber-50 text-amber-700 ring-1 ring-amber-200/70 dark:bg-amber-950/30 dark:text-amber-300 dark:ring-amber-800/40"
-        >
-          <AlertTriangleIcon className="size-3.5" aria-hidden />
-        </span>
-        <div className="flex flex-col gap-0.5">
-          <span className="text-foreground text-[12.5px] font-medium">Emergency?</span>
-          <span className="text-muted-foreground text-[11.5px] leading-snug">
-            Don&rsquo;t use this — go straight to the hospital&rsquo;s emergency entrance. Staff
-            handle emergencies in person and never wait in line.
-          </span>
-        </div>
-      </aside>
-
-      {/* ── Form ─────────────────────────────────────────────── */}
-      {liveIntake ? null : (
-        <DeclareIntakeForm departments={items} anyOpen={anyOpen} hospitalName={hospitalName} />
-      )}
-
-      {/* ── Footer: book instead ─────────────────────────────── */}
-      <p className="text-muted-foreground text-center text-[11.5px]">
-        Not coming today?{" "}
-        <Link
-          href="/patient/book"
-          className="text-foreground hover:text-brand-700 dark:hover:text-brand-300 underline underline-offset-2"
-        >
-          Book a future visit
-        </Link>{" "}
-        instead.
-      </p>
+      {liveIntake ? null : <DeclareIntakeForm departments={items} hospitalName={hospitalName} />}
     </div>
   );
 }
 
-/* ─── small dumb display cards ─────────────────────────────────── */
-
-function ExistingIntakeCard({ intakeId, status }: { intakeId: string; status: string }) {
-  const label =
-    status === "declared"
-      ? "You're in today's queue — not checked in yet."
-      : status === "arrived"
-        ? "You're checked in — the team will see you in turn."
-        : status === "awaiting_triage"
-          ? "You're checked in — awaiting triage."
-          : "You've been triaged — follow the staff's directions.";
-  return (
-    <Link
-      href={`/patient/queue/${intakeId}`}
-      className="group card-lift border-brand-500/40 bg-brand-50/40 hover:border-brand-500/60 dark:border-brand-400/30 dark:bg-brand-950/20 flex items-start gap-3 rounded-xl border p-4"
-    >
-      <span
-        aria-hidden
-        className="scale-in bg-brand-100 text-brand-700 ring-brand-200/80 dark:bg-brand-900/40 dark:text-brand-300 dark:ring-brand-800/40 relative inline-flex size-9 shrink-0 items-center justify-center rounded-full ring-1"
-      >
-        <span
-          aria-hidden
-          className="pulse-dot bg-brand-500 dark:ring-brand-950 absolute -top-0.5 -right-0.5 size-2 rounded-full ring-2 ring-white"
-        />
-        <TicketIcon className="size-4" />
-      </span>
-      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="text-foreground text-[13.5px] font-medium">{label}</span>
-        <span className="text-muted-foreground text-[12px]">
-          Tap to see your live queue status.
-        </span>
-      </div>
-      <span className="text-brand-700 dark:text-brand-300 text-[12px] font-medium transition-transform group-hover:translate-x-0.5">
-        →
-      </span>
-    </Link>
-  );
-}
-
-function ExistingAppointmentCard({
-  appointmentId,
-  startsAtIso,
-}: {
-  appointmentId: string;
-  startsAtIso: string;
-}) {
-  void appointmentId;
-  const time = new Date(startsAtIso).toLocaleTimeString(undefined, {
-    hour: "numeric",
-    minute: "2-digit",
-  });
-  return (
-    <Link
-      href="/patient/appointments"
-      className="border-border bg-card card-lift hover:border-brand-500/40 flex items-start gap-3 rounded-xl border p-4"
-    >
-      <span
-        aria-hidden
-        className="bg-muted text-foreground/80 inline-flex size-9 shrink-0 items-center justify-center rounded-full"
-      >
-        <CalendarPlusIcon className="size-4" />
-      </span>
-      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="text-foreground text-[13.5px] font-medium">
-          You already have a booking at {time} today.
-        </span>
-        <span className="text-muted-foreground text-[12px]">
-          Just check in at the front desk when you arrive — no need to take a ticket.
-        </span>
-      </div>
-      <span className="text-muted-foreground text-[12px]">→</span>
-    </Link>
-  );
-}
-
-void HospitalIcon;
-void CheckIcon;
+/** What the patient is told they already have. No jargon, no mechanism. */
+const INTAKE_TITLE: Record<string, string> = {
+  declared: "We have already saved you a place today.",
+  arrived: "You are already at the hospital today.",
+  awaiting_triage: "You are already at the hospital today.",
+  triaged: "A nurse has already seen you today.",
+};

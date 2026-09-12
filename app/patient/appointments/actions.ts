@@ -13,6 +13,18 @@ const CancelArgs = z.object({
   reason: z.string().min(8, "Reason ≥ 8 chars required."),
 });
 
+/**
+ * `slot` is the radio's value: "<startsAtIso>|<endsAtIso>", both derived by
+ * the page from `buildSlots`. One field rather than two hidden inputs, so a
+ * start can never reach the Edge Function paired with someone else's end.
+ * ISO-8601 contains no "|", so the split is unambiguous.
+ */
+const RescheduleArgs = z.object({
+  appointment_id: z.string().uuid(),
+  slot: z.string().regex(/^[^|]+\|[^|]+$/, "Choose a day."),
+  reason: z.string().min(8, "Reason ≥ 8 chars required."),
+});
+
 export type PatientApptActionState = { ok?: boolean; error?: string };
 
 export async function cancelMyAppointmentAction(
@@ -27,20 +39,91 @@ export async function cancelMyAppointmentAction(
     return { error: parsed.error.flatten().fieldErrors.reason?.[0] ?? "Invalid input." };
   }
   await requirePatientScope();
+  return callAsPatient({
+    fn: "cancel-appointment",
+    logKey: "patient.appointments.cancel",
+    verb: "Cancel",
+    service: "cancel",
+    body: parsed.data,
+  });
+}
+
+/**
+ * ADR 0084 §13 — reschedule above cancel. A reminder with no way out pushed
+ * short-notice cancellations from 0.6% to 7.2% in the NHS QI series, and only
+ * 20 of 35 freed slots were reused for want of a clerk. `reschedule-appointment`
+ * mints the new row, flips the old one to 'rescheduled' and re-queues the SMS
+ * reminders itself — and because 'rescheduled' is not a live status, the old
+ * slot is back in `buildSlots`'s offer the moment this returns. No human in
+ * the loop, which is the whole point.
+ *
+ * The 14-day horizon is NOT re-enforced here: §8 confines it to
+ * `pt-request-appointment` so clinician- and system-created recall stay
+ * uncapped, and this Edge Function serves all three. The patient surface
+ * offers 14 days because that is what it derives, not because a guard says so.
+ */
+export async function rescheduleMyAppointmentAction(
+  _prev: PatientApptActionState,
+  formData: FormData,
+): Promise<PatientApptActionState> {
+  const parsed = RescheduleArgs.safeParse({
+    appointment_id: formData.get("appointment_id"),
+    slot: formData.get("slot"),
+    reason: formData.get("reason"),
+  });
+  if (!parsed.success) {
+    const fields = parsed.error.flatten().fieldErrors;
+    return { error: fields.slot?.[0] ?? fields.reason?.[0] ?? "Invalid input." };
+  }
+  const [newStartsAt, newEndsAt] = parsed.data.slot.split("|");
+  await requirePatientScope();
+  return callAsPatient({
+    fn: "reschedule-appointment",
+    logKey: "patient.appointments.reschedule",
+    verb: "Move",
+    service: "rescheduling",
+    body: {
+      appointment_id: parsed.data.appointment_id,
+      new_starts_at: newStartsAt,
+      new_ends_at: newEndsAt,
+      reason: parsed.data.reason,
+    },
+  });
+}
+
+/**
+ * POST to an Edge Function as the signed-in patient and surface the server's
+ * own message verbatim.
+ *
+ * Both mutations on this surface need the identical call — bearer token,
+ * `x-request-id`, JSON body — and the identical error discipline: a patient
+ * who cannot cancel or move a visit must be told exactly why, not "something
+ * went wrong". Two copies of that is how one of them loses its request id.
+ */
+async function callAsPatient(args: {
+  fn: string;
+  /** logger key prefix; `.failed` / `.network` are appended. */
+  logKey: string;
+  /** Sentence-case verb for the status fallback: "Cancel failed (status 500)." */
+  verb: string;
+  /** Lower-case noun for the network fallback: "Couldn't reach the cancel service." */
+  service: string;
+  body: Record<string, unknown>;
+}): Promise<PatientApptActionState> {
   const supabase = await createClient();
   const { data: session } = await supabase.auth.getSession();
   const token = session.session?.access_token;
   if (!token) return { error: "Not authenticated." };
 
   try {
-    const res = await fetch(`${env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/cancel-appointment`, {
+    const res = await fetch(`${env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/${args.fn}`, {
       method: "POST",
       headers: {
         "content-type": "application/json",
         authorization: `Bearer ${token}`,
         "x-request-id": crypto.randomUUID(),
       },
-      body: JSON.stringify(parsed.data),
+      body: JSON.stringify(args.body),
     });
     if (!res.ok) {
       let detail = await res.text();
@@ -51,12 +134,12 @@ export async function cancelMyAppointmentAction(
       } catch {
         /* keep */
       }
-      logger.warn("patient.appointments.cancel.failed", { status: res.status });
-      return { error: detail || `Cancel failed (status ${res.status}).` };
+      logger.warn(`${args.logKey}.failed`, { status: res.status });
+      return { error: detail || `${args.verb} failed (status ${res.status}).` };
     }
   } catch (e) {
-    logger.error("patient.appointments.cancel.network", { reason: String(e) });
-    return { error: "Couldn't reach the cancel service." };
+    logger.error(`${args.logKey}.network`, { reason: String(e) });
+    return { error: `Couldn't reach the ${args.service} service.` };
   }
   revalidatePath("/patient");
   revalidatePath("/patient/appointments");

@@ -98,13 +98,3 @@ export const ID_TYPE_LABEL: Record<string, string> = {
   passport: "Passport",
   none: "No ID on file",
 };
-
-export const NOK_RELATIONSHIP_LABEL: Record<string, string> = {
-  spouse: "Spouse",
-  parent: "Parent",
-  child: "Child",
-  sibling: "Sibling",
-  guardian: "Guardian",
-  friend: "Friend",
-  other: "Other",
-};
