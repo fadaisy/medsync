@@ -1,7 +1,7 @@
 import "server-only";
 
 import type { CalendarEvent } from "@/components/scheduling/calendar/types";
-import { and, asc, eq, gte, lt, lte, or } from "drizzle-orm";
+import { and, asc, eq, gte, isNull, lt, lte, or } from "drizzle-orm";
 
 import { db } from "@/db";
 import { hospitalDepartments } from "@/db/schema/hospital-departments";
@@ -105,7 +105,13 @@ export async function fetchClinicianCalendarEvents(args: {
               eq(availabilityBlocks.recurrence, "weekly"),
               lt(availabilityBlocks.startsAt, args.rangeEnd),
               or(
-                // recurrence_until null (open-ended) OR after window start
+                // recurrence_until null (open-ended) OR after window start.
+                // The isNull arm is load-bearing: `NULL >= x` is NULL, not
+                // true, so without it every open-ended weekly series was
+                // excluded here while the engine (which reads null as
+                // POSITIVE_INFINITY) went on offering those hours to
+                // patients — a doctor bookable on a block they cannot see.
+                isNull(availabilityBlocks.recurrenceUntil),
                 gte(availabilityBlocks.recurrenceUntil, args.rangeStart),
               )!,
             ),

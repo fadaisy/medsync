@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, desc, eq, gte, inArray, lt } from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, isNull, lt, or, sql } from "drizzle-orm";
 
 import { db } from "@/db";
 import { patientProfiles } from "@/db/schema/patient-profiles";
@@ -11,6 +11,7 @@ import {
   departmentSchedulingPolicy,
   queueEntries,
 } from "@/db/schema/scheduling";
+import { ACUITY_TIERS } from "@/lib/triage/constants";
 
 /**
  * Doctor-scheduling read helpers. Pure reads against the existing
@@ -143,6 +144,9 @@ export interface DepartmentQueueRow {
   arrivedAtIso: string;
   calledAtIso: string | null;
   sequenceNumber: number;
+  /** The triage acuity a nurse assigned, spelled out. Null = un-triaged.
+   *  The rail REORDERS on this, so it has to be able to say why. */
+  priorityLabel: string | null;
   patientUserId: string;
   patientCode: string | null;
   appointmentId: string | null;
@@ -165,6 +169,7 @@ export async function fetchDepartmentQueueToday(args: {
       arrivedAt: queueEntries.arrivedAt,
       calledAt: queueEntries.calledAt,
       sequenceNumber: queueEntries.sequenceNumber,
+      priorityOrder: queueEntries.priorityOrder,
       patientUserId: queueEntries.patientUserId,
       patientCode: patientProfiles.patientCode,
       appointmentId: queueEntries.appointmentId,
@@ -180,7 +185,15 @@ export async function fetchDepartmentQueueToday(args: {
         inArray(queueEntries.state, ["waiting", "being_seen"]),
       ),
     )
-    .orderBy(asc(queueEntries.sequenceNumber));
+    // Acuity first, arrival as the tiebreak — the contract migration 0036
+    // wrote for this column ("lower = seen sooner, sequence_number is the
+    // tiebreak"). `app/nurse/triage/actions.ts` sets `priority_order` to the
+    // assigned acuity on triage; ordering by sequence alone meant a patient
+    // triaged as immediate stayed at their FIFO position on the doctor's
+    // rail, so the nurse's re-rank reached the database and nothing else.
+    // NULLS LAST keeps un-triaged entries in plain arrival order behind the
+    // ones a nurse has actually assessed.
+    .orderBy(sql`${queueEntries.priorityOrder} ASC NULLS LAST`, asc(queueEntries.sequenceNumber));
 
   return rows.map((r) => ({
     id: r.id,
@@ -189,11 +202,24 @@ export async function fetchDepartmentQueueToday(args: {
     arrivedAtIso: r.arrivedAt.toISOString(),
     calledAtIso: r.calledAt?.toISOString() ?? null,
     sequenceNumber: r.sequenceNumber,
+    priorityLabel: acuityLabel(r.priorityOrder),
     patientUserId: r.patientUserId,
     patientCode: r.patientCode,
     appointmentId: r.appointmentId,
     notes: r.notes,
   }));
+}
+
+/**
+ * `queue_entries.priority_order` holds the acuity a nurse assigned at triage
+ * (`app/nurse/triage/actions.ts`). Rendered server-side so the rail gets a
+ * string and the browser never pays for the clinical constants module.
+ * An unrecognised value still prints its level rather than being swallowed.
+ */
+function acuityLabel(priorityOrder: number | null): string | null {
+  if (priorityOrder === null) return null;
+  const tier = ACUITY_TIERS.find((t) => t.level === priorityOrder);
+  return tier ? `Triaged L${tier.level} · ${tier.meaning}` : `Triaged L${priorityOrder}`;
 }
 
 /* ─── Settings + dept-policy resolver ────────────────────────────── */
@@ -350,7 +376,21 @@ export async function fetchClinicianAvailabilityBlocks(args: {
         eq(availabilityBlocks.clinicianUserId, args.clinicianUserId),
         eq(availabilityBlocks.hospitalId, args.hospitalId),
         eq(availabilityBlocks.state, "active"),
-        gte(availabilityBlocks.endsAt, since),
+        // A weekly template keeps its ORIGINAL starts_at/ends_at as the
+        // anchor, so `ends_at >= today` alone hid every series set up more
+        // than a week ago — the doctor could not see, edit or cancel a
+        // recurrence the engine was still offering to patients. Window the
+        // SERIES for those, matching `app/clinician/availability/page.tsx`.
+        or(
+          gte(availabilityBlocks.endsAt, since),
+          and(
+            eq(availabilityBlocks.recurrence, "weekly"),
+            or(
+              isNull(availabilityBlocks.recurrenceUntil),
+              gte(availabilityBlocks.recurrenceUntil, since),
+            ),
+          ),
+        ),
       ),
     )
     .orderBy(asc(availabilityBlocks.startsAt))
