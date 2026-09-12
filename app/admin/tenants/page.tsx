@@ -61,6 +61,7 @@ export default async function TenantsPage() {
     slug: h.slug,
     level: h.level,
     state: h.state,
+    emergencyPhone: h.emergencyPhone,
     adminCount: adminCountById.get(h.id) ?? 0,
     createdAtIso: h.createdAt.toISOString(),
   }));

@@ -1,6 +1,6 @@
 "use client";
 
-import type { ActivateState } from "../../tenants/actions";
+import type { ActivateState, SetEmergencyPhoneState } from "../../tenants/actions";
 import type { TenantItem } from "./types";
 import type { DataTableColumn, SortDirection } from "@/components/ui/data-table";
 import { useActionState, useEffect, useMemo, useState } from "react";
@@ -25,14 +25,15 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
-import { activateHospitalAction } from "../../tenants/actions";
+import { activateHospitalAction, setEmergencyPhoneAction } from "../../tenants/actions";
 import { CreateHospitalButton } from "./create-hospital-button";
 
 /**
  * Tenants table — every hospital on the platform with its lifecycle
- * state, admin count, and the activate action (only currently-
- * implemented mutation; suspend/deactivate are four-eyes-class and
- * deferred per the kickoff).
+ * state, admin count, whether it has a verified emergency line (ADR 0084
+ * §3), and the two implemented mutations: activate, and set/clear that
+ * number. Suspend / deactivate are four-eyes-class and deferred per the
+ * kickoff.
  *
  * Same DataTable + Sheet pattern Approvals uses. Filter chips switch
  * by state.
@@ -92,7 +93,11 @@ export function TenantsTable({ items }: TableProps) {
       else if (sortKey === "slug") cmp = a.slug.localeCompare(b.slug);
       else if (sortKey === "level") cmp = a.level.localeCompare(b.level);
       else if (sortKey === "state") cmp = a.state.localeCompare(b.state);
-      else if (sortKey === "admins") cmp = a.adminCount - b.adminCount;
+      // Missing numbers sort to the top ascending — one click on "Emergency
+      // line" is "show me every hospital that cannot ship" (ADR 0084 §3).
+      else if (sortKey === "emergency") {
+        cmp = (a.emergencyPhone ?? "").localeCompare(b.emergencyPhone ?? "");
+      } else if (sortKey === "admins") cmp = a.adminCount - b.adminCount;
       return sortDir === "asc" ? cmp : -cmp;
     });
     return copy;
@@ -121,6 +126,27 @@ export function TenantsTable({ items }: TableProps) {
         mono: true,
         cell: (row) => <span className="text-muted-foreground">{row.level}</span>,
         className: "w-[130px]",
+      },
+      {
+        id: "emergency",
+        header: "Emergency line",
+        sortable: true,
+        /**
+         * The launch blocker, on the list rather than one panel-open away.
+         * Never colour alone: the pill carries the words "Not set" and the
+         * header names what is missing. Caution, not critical — a hospital
+         * with no verified number is unshippable, not a clinical emergency,
+         * and ADR 0084 §3 keeps red off this datum entirely.
+         */
+        cell: (row) =>
+          row.emergencyPhone ? (
+            <span className="text-muted-foreground font-mono tabular-nums">
+              {row.emergencyPhone}
+            </span>
+          ) : (
+            <Pill tone="caution">Not set</Pill>
+          ),
+        className: "w-[160px]",
       },
       {
         id: "admins",
@@ -235,7 +261,7 @@ export function TenantsTable({ items }: TableProps) {
 }
 
 function TenantDetailContent({ item, onClose }: { item: TenantItem; onClose: () => void }) {
-  const [mode, setMode] = useState<"view" | "activate">("view");
+  const [mode, setMode] = useState<"view" | "activate" | "emergency">("view");
 
   return (
     <>
@@ -253,6 +279,11 @@ function TenantDetailContent({ item, onClose }: { item: TenantItem; onClose: () 
           <EvidenceRow label="Hospital ID" value={item.id} mono />
           <EvidenceRow label="Facility level" value={item.level} />
           <EvidenceRow label="State" value={item.state} />
+          <EvidenceRow
+            label="Emergency line"
+            value={item.emergencyPhone ?? "Not set — patients see the destination with no number"}
+            mono={!!item.emergencyPhone}
+          />
           <EvidenceRow label="Admin count" value={String(item.adminCount)} mono />
           <EvidenceRow label="Created" value={new Date(item.createdAtIso).toLocaleString()} mono />
         </dl>
@@ -271,14 +302,19 @@ function TenantDetailContent({ item, onClose }: { item: TenantItem; onClose: () 
             <Button variant="ghost" onClick={onClose}>
               Close
             </Button>
+            <Button variant="secondary" onClick={() => setMode("emergency")}>
+              {item.emergencyPhone ? "Emergency line…" : "Set emergency line…"}
+            </Button>
             {item.state !== "active" ? (
               <Button variant="primary" onClick={() => setMode("activate")}>
                 Activate…
               </Button>
             ) : null}
           </>
-        ) : (
+        ) : mode === "activate" ? (
           <ActivateForm item={item} onCancel={() => setMode("view")} onSuccess={onClose} />
+        ) : (
+          <EmergencyPhoneForm item={item} onCancel={() => setMode("view")} onSuccess={onClose} />
         )}
       </SheetFooter>
     </>
@@ -332,6 +368,91 @@ function ActivateForm({
         </Button>
         <Button type="submit" variant="primary" disabled={pending}>
           {pending ? "Activating…" : "Confirm activation"}
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+/**
+ * Record or clear hospitals.emergency_phone (ADR 0084 §3).
+ *
+ * The copy is the safety control. Nothing in the stack can tell whether a
+ * superadmin dialled the number or copied it off a form, so the label says
+ * which line it must be and the helper says it must be rung — and the
+ * verification note is what the audit row carries.
+ *
+ * Blank submits a clear. A number that turns out to be wrong has to be
+ * removable: the ADR makes "destination alone, no number" the correct state,
+ * and a wrong number on that block is the one thing worse than no number.
+ */
+function EmergencyPhoneForm({
+  item,
+  onCancel,
+  onSuccess,
+}: {
+  item: TenantItem;
+  onCancel: () => void;
+  onSuccess: () => void;
+}) {
+  const [state, formAction, pending] = useActionState<SetEmergencyPhoneState, FormData>(
+    setEmergencyPhoneAction,
+    {},
+  );
+
+  useEffect(() => {
+    if (state.ok) onSuccess();
+  }, [state.ok, onSuccess]);
+
+  return (
+    <form action={formAction} className="flex w-full flex-col gap-3">
+      <input type="hidden" name="hospital_id" value={item.id} />
+      <div className="flex flex-col gap-1.5 text-left">
+        <Label htmlFor="emergency_phone">
+          Emergency entrance line{" "}
+          <span className="text-muted-foreground font-normal">(patients dial this)</span>
+        </Label>
+        <Input
+          id="emergency_phone"
+          name="emergency_phone"
+          type="tel"
+          inputMode="tel"
+          autoFocus
+          defaultValue={item.emergencyPhone ?? ""}
+          placeholder="+256…"
+          aria-describedby="emergency_phone_help"
+          aria-invalid={!!state.error}
+        />
+        <p id="emergency_phone_help" className="text-muted-foreground text-[12px]">
+          Dial it yourself before saving — it must reach the emergency entrance, not the
+          switchboard. Leave blank to remove a number.
+        </p>
+      </div>
+      <div className="flex flex-col gap-1.5 text-left">
+        <Label htmlFor="emergency_reason">
+          Verification note{" "}
+          <span className="text-muted-foreground font-normal">(≥ 8 chars, audited)</span>
+        </Label>
+        <Input
+          id="emergency_reason"
+          name="reason"
+          required
+          minLength={8}
+          placeholder="e.g. Dialled 12 Sep; casualty desk answered."
+          aria-invalid={!!state.error}
+        />
+        {state.error ? (
+          <p role="alert" className="text-[12px] text-red-700 dark:text-red-300">
+            {state.error}
+          </p>
+        ) : null}
+      </div>
+      <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+        <Button type="button" variant="ghost" onClick={onCancel} disabled={pending}>
+          Cancel
+        </Button>
+        <Button type="submit" variant="primary" disabled={pending}>
+          {pending ? "Saving…" : "Save number"}
         </Button>
       </div>
     </form>

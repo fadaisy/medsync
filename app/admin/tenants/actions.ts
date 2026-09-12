@@ -57,6 +57,77 @@ export async function activateHospitalAction(
   }
 }
 
+/* ─── Emergency phone (ADR 0084 §3) ───────────────────────────────── */
+
+/**
+ * Records or clears the number the patient emergency block dials. The shape
+ * of the number is NOT validated here — `sa-set-emergency-phone` mirrors the
+ * `hospitals_emergency_phone_format` constraint and owns the rule, and a
+ * second copy in this file would be a second thing to drift. We forward, and
+ * surface its sentence verbatim.
+ *
+ * Blank input means "remove the number" — see the Edge Function header: a
+ * wrong number must be removable, because ADR 0084 §3 makes "no number" the
+ * correct safe state and a wrong one is not safe.
+ */
+const SetEmergencyPhoneSchema = z.object({
+  hospital_id: z.string().uuid(),
+  emergency_phone: z.string().nullable(),
+  reason: z.string().min(8),
+});
+
+export type SetEmergencyPhoneState = ActivateState;
+
+export async function setEmergencyPhoneAction(
+  _prev: SetEmergencyPhoneState,
+  formData: FormData,
+): Promise<SetEmergencyPhoneState> {
+  // Strip the spaces and hyphens a human reads a phone number in. The Edge
+  // Function's regex is deliberately strict; the typing surface should not be.
+  const raw = String(formData.get("emergency_phone") ?? "").replace(/[\s-]/g, "");
+  const parsed = SetEmergencyPhoneSchema.safeParse({
+    hospital_id: formData.get("hospital_id"),
+    emergency_phone: raw === "" ? null : raw,
+    reason: formData.get("reason"),
+  });
+  if (!parsed.success) {
+    return { error: parsed.error.flatten().fieldErrors.reason?.[0] ?? "Invalid input." };
+  }
+
+  const supabase = await createClient();
+  const { data: session } = await supabase.auth.getSession();
+  const token = session.session?.access_token;
+  if (!token) return { error: "Not authenticated." };
+
+  try {
+    const res = await fetch(`${env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/sa-set-emergency-phone`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${token}`,
+        "x-request-id": crypto.randomUUID(),
+      },
+      body: JSON.stringify(parsed.data),
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      logger.warn("admin.set-emergency-phone.failed", { status: res.status });
+      let message: string | undefined;
+      try {
+        message = (JSON.parse(text) as { error?: { message?: string } }).error?.message;
+      } catch {
+        /* keep the raw body */
+      }
+      return { error: message || text || `Edge Function returned ${res.status}.` };
+    }
+    revalidatePath("/admin/tenants");
+    return { ok: true };
+  } catch (e) {
+    logger.error("admin.set-emergency-phone.network", { reason: String(e) });
+    return { error: "Couldn't reach the emergency-phone service." };
+  }
+}
+
 /* ─── Superadmin-initiated hospital creation (GATE E) ─────────────── */
 
 const CreateHospitalSchema = z.object({
