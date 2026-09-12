@@ -37,27 +37,23 @@ export default async function ClinicianLayout({ children }: { children: ReactNod
             MedSync
           </Link>
           <span
-            className="text-muted-foreground hidden truncate font-mono text-[10px] tracking-[0.12em] uppercase sm:inline"
+            className="text-muted-foreground text-overline hidden truncate font-mono uppercase sm:inline"
             title={`${scope.hospitalName} · ${scope.departmentName}`}
           >
-            <span
-              aria-hidden
-              className="pulse-dot bg-brand-500 ring-brand-500/20 mr-1.5 inline-block size-1 -translate-y-px rounded-full ring-2"
-            />
             Clinician · {scope.hospitalName}
           </span>
         </div>
 
         <div className="flex items-center gap-3">
           <span
-            className={cn("text-muted-foreground truncate text-[12px]", "hidden sm:inline")}
+            className={cn("text-muted-foreground text-body-s truncate", "hidden sm:inline")}
             title={scope.userEmail}
           >
             {scope.fullName ?? scope.userEmail}
           </span>
           <Link
             href="/sign-out"
-            className="text-muted-foreground hover:text-foreground text-[12px] underline-offset-4 transition-colors hover:underline"
+            className="text-muted-foreground hover:text-foreground text-body-s underline-offset-4 transition-colors hover:underline"
           >
             Sign out
           </Link>

@@ -101,8 +101,8 @@ export function ScheduleList({
             fill="currentColor"
           />
         </svg>
-        <p className="text-foreground text-[14px] font-medium">Nothing booked</p>
-        <p className="text-muted-foreground max-w-md text-[12.5px] leading-relaxed">
+        <p className="text-foreground text-body-m font-medium">Nothing booked</p>
+        <p className="text-muted-foreground text-body-s max-w-md leading-relaxed">
           Patients can&apos;t book without your declared availability. Add bookable hours from{" "}
           <a className="underline-offset-2 hover:underline" href="/clinician/availability">
             Availability
@@ -118,9 +118,7 @@ export function ScheduleList({
       <ul className="stagger-children flex flex-col gap-4">
         {grouped.map(([day, dayRows]) => (
           <li key={day}>
-            <p className="text-muted-foreground mb-2 font-mono text-[10.5px] tracking-[0.14em] uppercase">
-              {day}
-            </p>
+            <p className="text-muted-foreground text-overline mb-2 font-mono uppercase">{day}</p>
             <ul className="border-border bg-card divide-border/70 flex flex-col divide-y rounded-lg border">
               {dayRows.map((r) => (
                 <li key={r.id}>
@@ -134,9 +132,9 @@ export function ScheduleList({
                         "bg-amber-50/40 hover:bg-amber-50/70 dark:bg-amber-950/15 dark:hover:bg-amber-950/25",
                     )}
                   >
-                    <div className="w-20 shrink-0 font-mono text-[12px] tabular-nums">
+                    <div className="text-caption w-20 shrink-0 font-mono tabular-nums">
                       <div className="text-foreground">{formatTime(r.startsAtIso)}</div>
-                      <div className="text-muted-foreground text-[10.5px]">
+                      <div className="text-muted-foreground text-caption">
                         → {formatTime(r.endsAtIso)}
                       </div>
                     </div>
@@ -148,16 +146,16 @@ export function ScheduleList({
                             aria-hidden
                           />
                         ) : null}
-                        <span className="text-foreground truncate text-[13.5px] font-medium">
+                        <span className="text-foreground text-body-s truncate font-medium">
                           {r.patientName}
                         </span>
                         {r.patientCode ? (
-                          <span className="text-muted-foreground font-mono text-[10.5px] tabular-nums">
+                          <span className="text-muted-foreground text-caption font-mono tabular-nums">
                             {r.patientCode}
                           </span>
                         ) : null}
                       </div>
-                      <div className="text-muted-foreground truncate text-[12px]">
+                      <div className="text-muted-foreground text-caption truncate">
                         {formatReason(r.reason)} · {r.type === "virtual" ? "Virtual" : "In-person"}
                       </div>
                     </div>

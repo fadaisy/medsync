@@ -69,7 +69,7 @@ function Content({ item, onClose }: { item: ScheduleAppointmentRow; onClose: () 
       </SheetHeader>
 
       <SheetBody>
-        <dl className="grid grid-cols-[100px_1fr] gap-x-4 gap-y-2 text-[12.5px]">
+        <dl className="text-body-s grid grid-cols-[100px_1fr] gap-x-4 gap-y-2">
           <dt className="text-muted-foreground">Patient code</dt>
           <dd className="text-foreground font-mono tabular-nums">{item.patientCode ?? "—"}</dd>
           <dt className="text-muted-foreground">Starts</dt>
@@ -84,10 +84,8 @@ function Content({ item, onClose }: { item: ScheduleAppointmentRow; onClose: () 
 
         {item.reasonNote ? (
           /* Patient's own words — quiet brand-tinted quote card (no edge bars). */
-          <div className="bg-brand-50/50 ring-brand-500/15 dark:bg-brand-950/20 mt-4 rounded-md px-3 py-2 ring-1">
-            <p className="text-muted-foreground font-mono text-[10.5px] tracking-[0.12em] uppercase">
-              Patient note
-            </p>
+          <div className="bg-brand-50/50 ring-brand-500/15 mt-4 rounded-md px-3 py-2 ring-1">
+            <p className="text-muted-foreground text-overline font-mono uppercase">Patient note</p>
             <p className="text-foreground text-body-s leading-relaxed italic">
               &ldquo;{item.reasonNote}&rdquo;
             </p>
@@ -215,7 +213,7 @@ function ActionForm({
           className={cn(sensitive && "border-amber-200")}
         />
         {state.error ? (
-          <p role="alert" className="text-[12px] text-red-700 dark:text-red-300">
+          <p role="alert" className="text-caption text-red-700 dark:text-red-300">
             {state.error}
           </p>
         ) : null}

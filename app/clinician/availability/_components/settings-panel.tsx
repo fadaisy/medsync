@@ -47,8 +47,8 @@ export function SettingsPanel({
           aria-hidden
         />
         <div className="flex min-w-0 flex-1 flex-col">
-          <span className="text-foreground text-[13.5px] font-medium">Scheduling settings</span>
-          <span className="text-muted-foreground truncate text-[11.5px]">
+          <span className="text-foreground text-body-s font-medium">Scheduling settings</span>
+          <span className="text-muted-foreground text-caption truncate">
             {settings.autoConfirm
               ? "Auto-confirm — requests confirm immediately"
               : "Manual approval — you confirm each request"}{" "}
@@ -123,7 +123,7 @@ export function SettingsPanel({
               aria-invalid={!!state.error}
             />
             {state.error ? (
-              <p role="alert" className="text-[12px] text-red-700 dark:text-red-300">
+              <p role="alert" className="text-caption text-red-700 dark:text-red-300">
                 {state.error}
               </p>
             ) : null}
@@ -161,7 +161,7 @@ function ToggleRow({
       />
       <div className="flex flex-col gap-0.5">
         <span className="text-foreground text-body-s font-medium">{label}</span>
-        <span className="text-muted-foreground text-[11.5px] leading-snug">{hint}</span>
+        <span className="text-muted-foreground text-caption leading-snug">{hint}</span>
       </div>
     </label>
   );

@@ -23,11 +23,11 @@ import { cancelAvailabilityBlockAction, setAvailabilityBlockAction } from "../ac
 
 const KIND_OPTIONS: ReadonlyArray<{ value: AvailabilityKind; label: string; hint: string }> = [
   { value: "bookable", label: "Bookable", hint: "Patients can book this." },
-  { value: "teaching", label: "Teaching", hint: "Non-bookable." },
-  { value: "ward_round", label: "Ward round", hint: "Non-bookable." },
-  { value: "admin", label: "Admin", hint: "Non-bookable." },
-  { value: "leave", label: "Leave", hint: "Non-bookable." },
-  { value: "unavailable", label: "Unavailable", hint: "Non-bookable." },
+  { value: "teaching", label: "Teaching", hint: "Recorded. Does not block booking." },
+  { value: "ward_round", label: "Ward round", hint: "Recorded. Does not block booking." },
+  { value: "admin", label: "Admin", hint: "Recorded. Does not block booking." },
+  { value: "leave", label: "Leave", hint: "Subtracts from bookable time." },
+  { value: "unavailable", label: "Unavailable", hint: "Subtracts from bookable time." },
 ];
 
 const WEEKDAYS = [
@@ -97,7 +97,7 @@ function FormContent({ block, onClose }: { block: AvailabilityRow | null; onClos
         <SheetDescription>
           {isEdit
             ? "Update the block, then save. Cancelling a bookable block with live appointments is refused — reschedule those first."
-            : "Declare a time window. Bookable blocks become slots patients can book; the rest carve gaps out of your bookable hours."}
+            : "Declare a time window. Bookable blocks become slots patients can book, and Leave or Unavailable subtracts from them. Teaching, ward rounds and admin are recorded but do not stop a booking."}
         </SheetDescription>
       </SheetHeader>
 
@@ -114,7 +114,7 @@ function FormContent({ block, onClose }: { block: AvailabilityRow | null; onClos
                   className={
                     "border-border hover:bg-muted/30 tap flex cursor-pointer items-start gap-2.5 rounded-md border p-2.5 transition-colors " +
                     (kind === k.value
-                      ? "select-flare border-brand-500/60 bg-brand-50/50 ring-brand-500/15 dark:bg-brand-950/20 ring-1"
+                      ? "select-flare border-brand-500/60 bg-brand-50/50 ring-brand-500/15 ring-1"
                       : "")
                   }
                 >
@@ -127,8 +127,8 @@ function FormContent({ block, onClose }: { block: AvailabilityRow | null; onClos
                     className="accent-brand-600 mt-0.5 size-4"
                   />
                   <div className="flex flex-col">
-                    <span className="text-foreground text-[12.5px] font-medium">{k.label}</span>
-                    <span className="text-muted-foreground text-[10.5px] leading-tight">
+                    <span className="text-foreground text-body-s font-medium">{k.label}</span>
+                    <span className="text-muted-foreground text-caption leading-tight">
                       {k.hint}
                     </span>
                   </div>
@@ -214,7 +214,7 @@ function FormContent({ block, onClose }: { block: AvailabilityRow | null; onClos
               rows={2}
               defaultValue={block?.notes ?? ""}
               maxLength={1000}
-              className="border-border text-foreground placeholder:text-muted-foreground text-body-s focus-visible:ring-brand-500/40 min-h-[60px] resize-y rounded-md border bg-transparent px-2.5 py-1.5 outline-none focus-visible:ring-2"
+              className="border-border text-foreground placeholder:text-muted-foreground text-body-s focus-visible:ring-brand-500/40 min-h-16 resize-y rounded-md border bg-transparent px-2.5 py-1.5 outline-none focus-visible:ring-2"
               placeholder="Visible only to you + your admins."
             />
           </div>
@@ -236,7 +236,7 @@ function FormContent({ block, onClose }: { block: AvailabilityRow | null; onClos
               aria-invalid={!!state.error}
             />
             {state.error ? (
-              <p role="alert" className="text-[12px] text-red-700 dark:text-red-300">
+              <p role="alert" className="text-caption text-red-700 dark:text-red-300">
                 {state.error}
               </p>
             ) : null}
@@ -249,12 +249,13 @@ function FormContent({ block, onClose }: { block: AvailabilityRow | null; onClos
             className="reveal-up mt-5 flex flex-col gap-2 rounded-md border border-amber-200 bg-amber-50/40 p-3 dark:border-amber-800/40 dark:bg-amber-950/20"
           >
             <input type="hidden" name="block_id" value={block.id} />
-            <p className="text-[12.5px] font-medium text-amber-900 dark:text-amber-200">
+            <p className="text-body-s font-medium text-amber-900 dark:text-amber-200">
               Cancel this block?
             </p>
-            <p className="text-[11.5px] leading-relaxed text-amber-900/80 dark:text-amber-100/80">
+            <p className="text-caption leading-relaxed text-amber-900/80 dark:text-amber-100/80">
               Bookable blocks with live appointments can&apos;t be cancelled — reschedule those
-              first. Non-bookable blocks (teaching, ward rounds, leave) cancel unconditionally.
+              first. Every other kind (teaching, ward round, admin, leave, unavailable) cancels
+              unconditionally.
             </p>
             <Input
               name="reason"
@@ -265,7 +266,7 @@ function FormContent({ block, onClose }: { block: AvailabilityRow | null; onClos
               aria-invalid={!!cancelState.error}
             />
             {cancelState.error ? (
-              <p role="alert" className="text-[11.5px] text-red-700 dark:text-red-300">
+              <p role="alert" className="text-caption text-red-700 dark:text-red-300">
                 {cancelState.error}
               </p>
             ) : null}
@@ -276,10 +277,17 @@ function FormContent({ block, onClose }: { block: AvailabilityRow | null; onClos
                 size="sm"
                 onClick={() => setConfirmingCancel(false)}
                 disabled={cancelPending}
+                className="min-h-11"
               >
                 Keep block
               </Button>
-              <Button type="submit" variant="secondary" size="sm" disabled={cancelPending}>
+              <Button
+                type="submit"
+                variant="secondary"
+                size="sm"
+                disabled={cancelPending}
+                className="min-h-11"
+              >
                 {cancelPending ? "Cancelling…" : "Confirm cancel"}
               </Button>
             </div>

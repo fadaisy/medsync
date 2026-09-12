@@ -86,22 +86,16 @@ export default async function ClinicianSchedulePage({ searchParams }: PageProps)
   const urgentCount = list.filter((r) => r.priority === "urgent").length;
 
   return (
-    <div className="relative mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8">
-      {/* Quiet atmosphere — a 5% teal wash behind the header, nothing louder. */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-48 bg-[radial-gradient(80%_100%_at_50%_0%,rgba(13,148,136,0.05),transparent_70%)]"
-      />
-
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8">
       <header className="reveal-up flex flex-col gap-2">
-        <span className="text-muted-foreground inline-flex w-fit items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
+        <span className="text-muted-foreground text-overline inline-flex w-fit items-center gap-1.5 font-mono uppercase">
           <span aria-hidden className="bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2" />
           {scope.hospitalName} · {scope.departmentName}
         </span>
-        <h1 className="font-display text-foreground sm:text-heading-l text-[24px] leading-[1.15] font-medium tracking-[-0.015em]">
+        <h1 className="font-display text-foreground text-heading-m sm:text-heading-l font-medium">
           Your schedule
         </h1>
-        <p className="text-muted-foreground max-w-2xl text-[13.5px] leading-relaxed">
+        <p className="text-muted-foreground text-body-s max-w-2xl leading-relaxed">
           Confirmed and pending appointments for the next 14 days.{" "}
           <Link
             href="/clinician/availability"
@@ -111,7 +105,7 @@ export default async function ClinicianSchedulePage({ searchParams }: PageProps)
           </Link>
           .
         </p>
-        <div className="bg-brand-500/60 dark:bg-brand-400/50 h-px w-10" aria-hidden />
+        <div className="bg-brand-500/60 h-px w-10" aria-hidden />
       </header>
 
       <section className="stagger-children grid grid-cols-3 gap-3">
@@ -145,16 +139,14 @@ function Kpi({
 }) {
   const cls =
     tone === "actionable"
-      ? "text-brand-700 dark:text-brand-300"
+      ? "text-brand-700"
       : tone === "critical"
         ? "text-red-700 dark:text-red-300"
         : "text-foreground";
   return (
-    <div className="border-border bg-card card-lift flex flex-col gap-1 rounded-lg border p-3.5">
-      <span className="text-muted-foreground font-mono text-[10.5px] tracking-[0.12em] uppercase">
-        {label}
-      </span>
-      <span className={"font-display text-[24px] leading-none font-medium tabular-nums " + cls}>
+    <div className="border-border bg-card flex flex-col gap-1 rounded-lg border p-3.5">
+      <span className="text-muted-foreground text-overline font-mono uppercase">{label}</span>
+      <span className={"font-display text-heading-m leading-none font-medium tabular-nums " + cls}>
         {value}
       </span>
     </div>

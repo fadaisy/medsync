@@ -79,11 +79,17 @@ export function AvailabilityList({
     <>
       <section className="border-border bg-card overflow-hidden rounded-lg border">
         <header className="border-border flex items-center gap-3 border-b px-4 py-3 sm:px-6">
-          <h2 className="text-foreground text-[13.5px] font-medium">Upcoming blocks</h2>
+          <h2 className="text-foreground text-body-s font-medium">Declared blocks</h2>
           <span className="text-muted-foreground text-caption ml-auto font-mono tabular-nums">
             {blocks.length} {blocks.length === 1 ? "block" : "blocks"}
           </span>
-          <Button type="button" variant="primary" size="sm" className="tap" onClick={openCreate}>
+          <Button
+            type="button"
+            variant="primary"
+            size="sm"
+            className="tap min-h-11"
+            onClick={openCreate}
+          >
             <CalendarPlusIcon className="size-3.5" />
             Add block
           </Button>
@@ -141,17 +147,18 @@ export function AvailabilityList({
                 fill="currentColor"
               />
             </svg>
-            <p className="text-foreground text-[14px] font-medium">Nothing on your schedule yet</p>
-            <p className="text-muted-foreground max-w-md text-[12.5px] leading-relaxed">
-              Add bookable hours so patients can book you. Mark teaching, ward rounds and admin as
-              non-bookable so they don&apos;t get double-booked.
+            <p className="text-foreground text-body-m font-medium">Nothing on your schedule yet</p>
+            <p className="text-muted-foreground text-body-s max-w-md leading-relaxed">
+              Add bookable hours so patients can book you. Teaching, ward rounds and admin are
+              recorded but do not stop a booking — declare Leave or Unavailable over time a patient
+              must not reach.
             </p>
             <Button
               type="button"
               variant="primary"
               size="sm"
               onClick={openCreate}
-              className="tap mt-2"
+              className="tap mt-2 min-h-11"
             >
               <CalendarPlusIcon className="size-3.5" />
               Add your first block
@@ -188,12 +195,17 @@ function BlockRow({ block, onOpen }: { block: AvailabilityRow; onOpen: () => voi
   const starts = new Date(block.startsAtIso);
   const ends = new Date(block.endsAtIso);
   const sameDay = starts.toDateString() === ends.toDateString();
+  const weekly = block.recurrence === "weekly" && !!block.recurrenceWeekday;
 
-  const dateLabel = starts.toLocaleDateString(undefined, {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-  });
+  // A weekly block's own date is the template's anchor, often months back.
+  // Headlining it read as "this happened in March"; the series is the fact.
+  const dateLabel = weekly
+    ? `Every ${WEEKDAY_LABEL[block.recurrenceWeekday! - 1]}`
+    : starts.toLocaleDateString(undefined, {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+      });
   const timeLabel = sameDay
     ? `${formatTime(starts)} – ${formatTime(ends)}`
     : `${formatTime(starts)} → ${ends.toLocaleString(undefined, {
@@ -222,19 +234,22 @@ function BlockRow({ block, onOpen }: { block: AvailabilityRow; onOpen: () => voi
 
         <Pill tone={KIND_TONES[block.kind]}>{KIND_LABEL[block.kind]}</Pill>
 
-        {block.recurrence === "weekly" && block.recurrenceWeekday ? (
-          <span className="text-muted-foreground text-[11.5px]">
-            Every {WEEKDAY_LABEL[block.recurrenceWeekday - 1]}
+        {weekly ? (
+          <span className="text-muted-foreground text-caption whitespace-nowrap">
+            from {shortDate(starts)}
+            {block.recurrenceUntilIso
+              ? ` until ${shortDate(new Date(block.recurrenceUntilIso))}`
+              : ""}
           </span>
         ) : null}
 
         {block.location ? (
-          <span className="text-muted-foreground hidden truncate text-[12px] sm:inline">
+          <span className="text-muted-foreground text-caption hidden truncate sm:inline">
             {block.location}
           </span>
         ) : null}
 
-        <span className="text-muted-foreground group-hover:text-foreground ml-auto inline-flex items-center gap-1 text-[11.5px] transition-colors">
+        <span className="text-muted-foreground group-hover:text-foreground text-caption ml-auto inline-flex items-center gap-1 transition-colors">
           Edit
           <span
             aria-hidden
@@ -250,4 +265,8 @@ function BlockRow({ block, onOpen }: { block: AvailabilityRow; onOpen: () => voi
 
 function formatTime(d: Date): string {
   return d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+}
+
+function shortDate(d: Date): string {
+  return d.toLocaleDateString(undefined, { day: "numeric", month: "short" });
 }
