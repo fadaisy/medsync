@@ -120,7 +120,7 @@ export async function StaffOverviewCard({
     >
       <header className="flex items-center justify-between gap-3">
         <h2 className="text-foreground inline-flex items-center gap-2 text-[14px] font-medium tracking-[-0.005em]">
-          <UsersIcon className="text-brand-600 dark:text-brand-400 size-4" aria-hidden />
+          <UsersIcon className="text-brand-600 size-4" aria-hidden />
           Staff
         </h2>
         <Link
@@ -180,7 +180,7 @@ function Stat({
 }) {
   const toneClass =
     tone === "actionable"
-      ? "text-brand-700 dark:text-brand-300"
+      ? "text-brand-700"
       : tone === "ok"
         ? "text-emerald-700 dark:text-emerald-300"
         : tone === "warning"
@@ -189,7 +189,7 @@ function Stat({
   return (
     <Link
       href={href}
-      className="border-border/60 hover:bg-muted/40 group card-lift tap focus-visible:ring-brand-500/40 flex flex-col gap-1 rounded-md border p-3 outline-none focus-visible:ring-2"
+      className="border-border/60 hover:bg-muted/40 group tap focus-visible:ring-brand-500/40 flex flex-col gap-1 rounded-md border p-3 outline-none focus-visible:ring-2"
     >
       <span className="text-muted-foreground font-mono text-[10.5px] tracking-[0.12em] uppercase">
         {label}

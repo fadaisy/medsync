@@ -14,6 +14,11 @@ import { cn } from "@/lib/utils";
  * renders standalone on the placeholder overview page.
  *
  * All counts are scoped to THIS hospital. No PHI.
+ *
+ * Reminder-dispatcher health is deliberately NOT here. One cron and one
+ * SMS account serve every tenant, a hospital admin can neither read the
+ * cross-tenant queue nor fix it, and appointment_reminders carries no
+ * hospital_id. It lives on /admin/scheduling-rollup instead.
  */
 
 export interface SchedulingOverviewCardProps {
@@ -31,7 +36,7 @@ interface SchedulingStats {
 
 const NO_SHOW_LOOKBACK_DAYS = 7;
 
-async function fetchStats(hospitalId: string): Promise<SchedulingStats> {
+async function fetchStats(hospitalId: string): Promise<SchedulingStats | null> {
   try {
     const now = new Date();
     const startOfToday = new Date(now);
@@ -88,7 +93,9 @@ async function fetchStats(hospitalId: string): Promise<SchedulingStats> {
       noShows7d: noShowRow[0]?.value ?? 0,
     };
   } catch {
-    return { todayBooked: 0, pendingApproval: 0, urgentToday: 0, noShows7d: 0 };
+    // Null, never zeroes: a failed query rendering "0 urgent today" is a
+    // number the database never proved, and it reads as an all-clear.
+    return null;
   }
 }
 
@@ -109,13 +116,13 @@ export async function SchedulingOverviewCard({
       )}
     >
       <header className="flex items-center justify-between gap-3">
-        <h2 className="text-foreground inline-flex items-center gap-2 text-[14px] font-medium tracking-[-0.005em]">
-          <CalendarClockIcon className="text-brand-600 dark:text-brand-400 size-4" aria-hidden />
+        <h2 className="text-foreground text-body-m inline-flex items-center gap-2 font-medium">
+          <CalendarClockIcon className="text-brand-600 size-4" aria-hidden />
           Scheduling
         </h2>
         <Link
           href="/hospital-admin/scheduling"
-          className="text-muted-foreground hover:text-foreground group inline-flex items-center gap-1 text-[11.5px] transition-colors"
+          className="text-muted-foreground hover:text-foreground text-caption focus-visible:ring-brand-500/40 group inline-flex min-h-11 items-center gap-1 rounded transition-colors outline-none focus-visible:ring-2"
         >
           View
           <ArrowRightIcon
@@ -125,30 +132,36 @@ export async function SchedulingOverviewCard({
         </Link>
       </header>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Stat label="Today" value={stats.todayBooked} tone="neutral" hint="confirmed bookings" />
-        <Stat
-          label="Pending"
-          value={stats.pendingApproval}
-          tone={stats.pendingApproval > 0 ? "actionable" : "neutral"}
-          hint="awaiting clinician"
-        />
-        <Stat
-          label="Urgent today"
-          value={stats.urgentToday}
-          tone={stats.urgentToday > 0 ? "critical" : "neutral"}
-          hint="alert-triggered"
-        />
-        <Stat
-          label="No-shows (7d)"
-          value={stats.noShows7d}
-          tone={stats.noShows7d > 0 ? "warning" : "neutral"}
-          hint="signal only"
-        />
-      </div>
+      {stats === null ? (
+        <p role="alert" className="text-muted-foreground text-body-s">
+          Scheduling counts unavailable — the query failed. Nothing here should be read as zero.
+        </p>
+      ) : (
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <Stat label="Today" value={stats.todayBooked} tone="neutral" hint="confirmed bookings" />
+          <Stat
+            label="Pending"
+            value={stats.pendingApproval}
+            tone={stats.pendingApproval > 0 ? "actionable" : "neutral"}
+            hint="awaiting clinician"
+          />
+          <Stat
+            label="Urgent today"
+            value={stats.urgentToday}
+            tone={stats.urgentToday > 0 ? "critical" : "neutral"}
+            hint="alert-triggered"
+          />
+          <Stat
+            label="No-shows (7d)"
+            value={stats.noShows7d}
+            tone={stats.noShows7d > 0 ? "warning" : "neutral"}
+            hint="signal only"
+          />
+        </div>
+      )}
 
       {isPanel ? (
-        <p className="text-muted-foreground border-border/60 border-t pt-3 text-[12px] leading-relaxed">
+        <p className="text-muted-foreground border-border/60 text-body-s border-t pt-3 leading-relaxed">
           Operational signals. Per-clinician schedules live in each clinician&apos;s workspace —
           this rolls up the hospital-wide view.
         </p>
@@ -168,9 +181,13 @@ function Stat({
   tone: "actionable" | "ok" | "critical" | "warning" | "neutral";
   hint?: string;
 }) {
+  // The brand ramp INVERTS in dark mode (app/globals.css: --brand-700 is
+  // #5545a8 light, #b7b1ff dark), so the `dark:text-brand-300` this file
+  // carried fought the flip and landed dark-on-dark. Red, emerald and
+  // amber are stock scales and do not invert, so those keep theirs.
   const cls =
     tone === "actionable"
-      ? "text-brand-700 dark:text-brand-300"
+      ? "text-brand-700"
       : tone === "ok"
         ? "text-emerald-700 dark:text-emerald-300"
         : tone === "critical"
@@ -179,14 +196,14 @@ function Stat({
             ? "text-amber-700 dark:text-amber-300"
             : "text-foreground";
   return (
-    <div className="border-border/60 rounded-md border p-3 transition-colors hover:border-gray-300">
-      <span className="text-muted-foreground font-mono text-[10px] tracking-[0.12em] uppercase">
-        {label}
-      </span>
-      <div className={cn("mt-1 font-mono text-[24px] leading-none font-medium tabular-nums", cls)}>
+    <div className="border-border/60 hover:border-border rounded-md border p-3 transition-colors">
+      <span className="text-muted-foreground text-overline font-mono uppercase">{label}</span>
+      <div
+        className={cn("text-heading-l mt-1 font-mono leading-none font-medium tabular-nums", cls)}
+      >
         {value}
       </div>
-      {hint ? <span className="text-muted-foreground text-[10.5px]">{hint}</span> : null}
+      {hint ? <span className="text-muted-foreground text-caption">{hint}</span> : null}
     </div>
   );
 }

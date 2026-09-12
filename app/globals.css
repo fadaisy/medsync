@@ -674,7 +674,7 @@
 /* One-shot confirmation flare — re-triggers via key change or class toggle. */
 @utility select-flare {
   @media (prefers-reduced-motion: no-preference) {
-    animation: medsync-select-flare 450ms var(--ease-expo-out) 1;
+    animation: medsync-select-flare 400ms var(--ease-expo-out) 1;
   }
 }
 

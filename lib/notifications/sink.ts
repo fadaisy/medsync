@@ -276,12 +276,17 @@ export function planReminderDispatch(args: {
       hold("not_due");
       continue;
     }
+    // The next three are deliberate skips, not dispatch failures: `cancelled`
+    // is what cancel-appointment and reschedule-appointment already write for
+    // a row that must never be sent. Only `unreadable_timestamp` above is a
+    // genuine defect, so it alone stays `failed` — which is what makes
+    // "failed" mean something an operator should act on.
     if (startsMs <= nowMs) {
-      reaps.push({ reminderId: row.reminderId, state: "failed", reason: "appointment_elapsed" });
+      reaps.push({ reminderId: row.reminderId, state: "cancelled", reason: "appointment_elapsed" });
       continue;
     }
     if (scheduledMs < staleBeforeMs) {
-      reaps.push({ reminderId: row.reminderId, state: "failed", reason: "stale" });
+      reaps.push({ reminderId: row.reminderId, state: "cancelled", reason: "stale" });
       continue;
     }
     if (row.appointmentStatus !== REMINDABLE_STATUS) {
@@ -304,7 +309,7 @@ export function planReminderDispatch(args: {
         ? [candidate, incumbent]
         : [incumbent, candidate];
     bestPerAppointment.set(candidate.row.appointmentId, winner);
-    reaps.push({ reminderId: loser.row.reminderId, state: "failed", reason: "superseded" });
+    reaps.push({ reminderId: loser.row.reminderId, state: "cancelled", reason: "superseded" });
   }
 
   // (8) Soonest appointment first, so a capped run spends on the most imminent.

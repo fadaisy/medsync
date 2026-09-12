@@ -91,7 +91,7 @@ describe("planReminderDispatch — what is refused", () => {
   it("never sends for an appointment that has already started", () => {
     const { sends, reaps } = plan([row({ appointmentStartsAtIso: minutes(-1) })]);
     expect(sends).toHaveLength(0);
-    expect(reaps[0]).toMatchObject({ state: "failed", reason: "appointment_elapsed" });
+    expect(reaps[0]).toMatchObject({ state: "cancelled", reason: "appointment_elapsed" });
   });
 
   it("drops a reminder stale past the grace window instead of blasting a backlog", () => {
@@ -103,7 +103,7 @@ describe("planReminderDispatch — what is refused", () => {
       scheduledAtIso: minutes(-(STALE_GRACE_MINUTES - 1)),
       appointmentStartsAtIso: minutes(600),
     });
-    expect(plan([stale]).reaps[0]).toMatchObject({ state: "failed", reason: "stale" });
+    expect(plan([stale]).reaps[0]).toMatchObject({ state: "cancelled", reason: "stale" });
     expect(plan([fresh]).sends).toHaveLength(1);
   });
 
@@ -115,7 +115,7 @@ describe("planReminderDispatch — what is refused", () => {
     }
   });
 
-  it("reaps an unreadable timestamp instead of sending on NaN", () => {
+  it("reaps an unreadable timestamp as the ONLY genuine failure state", () => {
     expect(plan([row({ scheduledAtIso: "not-a-date" })]).reaps[0]).toMatchObject({
       state: "failed",
       reason: "unreadable_timestamp",
@@ -143,7 +143,7 @@ describe("planReminderDispatch — the ceilings", () => {
     expect(sends).toHaveLength(1);
     expect(sends[0]?.reminderId).toBe(hourBefore.reminderId);
     expect(reaps).toEqual([
-      { reminderId: dayBefore.reminderId, state: "failed", reason: "superseded" },
+      { reminderId: dayBefore.reminderId, state: "cancelled", reason: "superseded" },
     ]);
   });
 });

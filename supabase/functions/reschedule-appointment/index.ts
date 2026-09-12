@@ -210,7 +210,13 @@ Deno.serve(async (request: Request) => {
       // so queue it rather than leaving the dispatcher to substitute one.
       channel: "sms" as const,
       scheduled_at: new Date(startsMs - m * 60_000).toISOString(),
-    }));
+    }))
+    // Drop leads that already elapsed. ADR-0084 made the same-day door
+    // primary, and a 1440-minute lead on a booking made this morning
+    // resolves to a `scheduled_at` ~23h in the PAST: the row is born
+    // outside the dispatcher's stale grace and is reaped on its very
+    // first run. Same filter as system-propose-urgent-appointment.
+    .filter((r) => new Date(r.scheduled_at).getTime() > Date.now());
   if (reminderRows.length > 0) {
     await sb.from("appointment_reminders").insert(reminderRows);
   }

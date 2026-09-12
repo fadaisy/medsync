@@ -170,7 +170,7 @@ export default async function StaffRollupPage() {
           <table className="w-full border-collapse text-left">
             <caption className="sr-only">Per-hospital staff aggregates</caption>
             <thead>
-              <tr className="border-border border-b bg-gray-50 dark:bg-gray-900/40">
+              <tr className="border-border border-b bg-gray-50">
                 <Th>Hospital</Th>
                 <Th align="right">Active</Th>
                 <Th align="right">Pending</Th>
@@ -385,7 +385,7 @@ function KpiCard({
 }) {
   const toneClass =
     tone === "actionable"
-      ? "text-brand-700 dark:text-brand-300"
+      ? "text-brand-700"
       : tone === "ok"
         ? "text-emerald-700 dark:text-emerald-300"
         : tone === "warning"
