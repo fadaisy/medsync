@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { env } from "@/lib/env";
 import { logger } from "@/lib/logger";
+import { materialiseClinicSessions } from "@/lib/scheduling/materialise-sessions";
 import { cleanupExpiredDrafts } from "@/lib/signup-drafts";
 
 export const dynamic = "force-dynamic";
@@ -20,6 +21,12 @@ export const dynamic = "force-dynamic";
  *
  * Idempotent — running it twice in a row just deletes nothing the
  * second time.
+ *
+ * Since ADR 0087 the same 02:00 run also materialises `clinic_sessions`
+ * 14 days ahead from every active session template (a fourth Vercel cron
+ * slot needs Pro). Idempotent too: UNIQUE (template_id, starts_at).
+ * The two jobs are independent — a failure in one is logged and does not
+ * stop the other.
  */
 export async function GET(request: Request) {
   const authHeader = request.headers.get("authorization") ?? "";
@@ -36,12 +43,21 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  let removed: number;
   try {
-    const removed = await cleanupExpiredDrafts();
+    removed = await cleanupExpiredDrafts();
     logger.info("cron.cleanup-drafts.ran", { removed });
-    return NextResponse.json({ ok: true, removed });
   } catch (e) {
     logger.error("cron.cleanup-drafts.failed", { reason: String(e) });
     return NextResponse.json({ error: "Cleanup failed" }, { status: 500 });
+  }
+
+  try {
+    const sessions = await materialiseClinicSessions();
+    logger.info("cron.materialise-sessions.ran", sessions);
+    return NextResponse.json({ ok: true, removed, sessions });
+  } catch (e) {
+    logger.error("cron.materialise-sessions.failed", { reason: String(e) });
+    return NextResponse.json({ error: "Session materialisation failed", removed }, { status: 500 });
   }
 }

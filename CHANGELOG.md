@@ -5,6 +5,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Capacity modes: service lines, session templates, clinic sessions (Gate B) — 2026-09-13
+
+[ADR 0087](docs/adr/0087-capacity-modes.md). **One GATED migration** (`0058_service_lines_and_sessions.sql`), additive except one flagged index re-scope; applied by the owner via `npm run db:migrate`.
+
+- **Three capacity modes on `service_lines.capacity_mode`** — `slot` (unchanged), `session` (default for new lines), `open_queue`. Every existing department is backfilled with one `slot` line, so nothing shipped changes behaviour. No holds (C12). `capacity_booked` defaults to 60 % of `capacity_total`, interleave 2:1 (Part 8 #4); time-to-care defaults are CSO-provisional (Part 8 #5). The dark-mode toggle stays (C8).
+- **`session_templates` → `clinic_sessions`**, materialised 14 days ahead by one pure helper (`expandSessionTemplate`, `_shared/slots.ts`) from both `ha-upsert-session-template` and the nightly `cleanup-drafts` cron — idempotent on `(template_id, starts_at)`. Deactivating a rule cancels only its future instances with no bookings.
+- **`appointments`** gains `idempotency_key`, `channel`, `session_id`/`position_number`, `arrival_window_*`, `booking_code`; `appointments_reason_check` widened to Appendix A's 13 codes (+ `urgent_review`, `other`). **The one non-additive step:** `appointments_no_double_booking` re-created with `session_id IS NULL` in its predicate — every shipped row satisfies it.
+- **Console** — `/hospital-admin/scheduling` gains "Service lines" and "Clinic sessions" editors posting to `ha-upsert-service-line` / `ha-upsert-session-template` (audited `update_service_line` / `update_session_template`).
+- **A′ hygiene** — `pt-request-appointment` / `reschedule-appointment` accept `idempotency_key` (a replay returns the same booking; 23505 on the double-booking index is a 409); every "today" boundary reads `startOfLocalDay(now, DEFAULT_TIME_ZONE)` instead of `setUTCHours(0)`/`setHours(0)`; `ha-complete-encounter` writes `appointments.status = 'completed'`; `ha-mark-no-show` admits any staff affiliation at the hospital, with a reception control on `/reception/expected`.
+- **Not in Gate B:** nothing books into a session (Gate C); no cancel-session (Gate E).
+
 ### Changed — Two doors stay; the labels, the horizon, and the surfaces behind them change — 2026-09-12
 
 The book-or-queue entry point, decided on research rather than instinct and then attacked twice ([ADR 0084](docs/adr/0084-book-or-queue-two-doors-relabelled.md)). **Partially supersedes** [ADR 0034](docs/adr/0034-book-or-queue-choice-point.md) — §§1, 3, 4, 5 stand, §2 is superseded, §6 is extended and its refresh interval revised, and the presentation is replaced. Evidence base: [`docs/booking-entry-points-research.md`](docs/booking-entry-points-research.md), 66 findings with sources and per-finding transfer assessments. **Three additive migrations** (`appointments.reason`, `hospitals.emergency_phone`, and the `sa_audit_log` verb that lets a superadmin write that number); none for the entry point.

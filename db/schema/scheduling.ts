@@ -10,11 +10,13 @@ import {
   smallint,
   text,
   timestamp,
+  unique,
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 
 import { authUsers } from "./_auth";
+import { clinicSessions } from "./clinic-sessions";
 import { hospitalDepartments } from "./hospital-departments";
 import { hospitals } from "./hospitals";
 
@@ -205,15 +207,39 @@ export const appointments = pgTable(
       onDelete: "set null",
     }),
     notifyLeadMinutes: integer("notify_lead_minutes").array(),
+
+    // ── Migration 0058 / ADR 0087 (proposal §5.5, §5.6) ──────────────
+    /** Client-generated once per wizard submission; a retry returns the same row. */
+    idempotencyKey: text("idempotency_key"),
+    /** 'web' | 'app' | 'ussd' | 'desk' | 'system' */
+    channel: text("channel").notNull().default("web"),
+    /** Session mode: the clinic_sessions row this booking holds a position in. */
+    sessionId: uuid("session_id").references(() => clinicSessions.id, { onDelete: "restrict" }),
+    /** Allocated from clinic_sessions.next_position at confirmation; never renumbered. */
+    positionNumber: smallint("position_number"),
+    /** Derived once at confirmation and stored so the SMS the patient holds never changes. */
+    arrivalWindowStart: timestamp("arrival_window_start", { withTimezone: true }),
+    arrivalWindowEnd: timestamp("arrival_window_end", { withTimezone: true }),
+    /** 6 chars, unambiguous alphabet, printed on the receipt (§3.6). */
+    bookingCode: text("booking_code"),
+
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
     check("appointments_time_order", sql`${t.endsAt} > ${t.startsAt}`),
+    // Migration 0058 (ruling C5): Appendix A's 13 codes plus the shipped
+    // 'urgent_review' (system-only, see below) and 'other'.
     check(
       "appointments_reason_check",
-      sql`${t.reason} IN ('follow_up','new_concern','refill','routine','urgent_review','other')`,
+      sql`${t.reason} IN ('follow_up','post_discharge','new_concern','refill','test_results','antenatal','immunisation','child_wellness','specialist_review','routine','procedure','counselling','second_opinion','urgent_review','other')`,
     ),
+    check("appointments_channel_check", sql`${t.channel} IN ('web','app','ussd','desk','system')`),
+    check(
+      "appointments_session_position_pair",
+      sql`(${t.sessionId} IS NULL) = (${t.positionNumber} IS NULL)`,
+    ),
+    unique("appointments_hospital_booking_code_unique").on(t.hospitalId, t.bookingCode),
     check(
       "appointments_origin_check",
       sql`${t.origin} IN ('patient','clinician','nurse','reception','system_urgent','walk_in')`,
@@ -239,12 +265,24 @@ export const appointments = pgTable(
     index("appointments_patient_idx").on(t.patientUserId, t.startsAt),
     index("appointments_clinician_idx").on(t.clinicianUserId, t.startsAt),
     index("appointments_hospital_status_idx").on(t.hospitalId, t.status, t.startsAt),
-    // Partial unique index — only enforced for live statuses.
+    // Partial unique index — only enforced for live SLOT bookings. Migration
+    // 0058 re-scoped it with `session_id IS NULL`: every position in a
+    // session shares the session's starts_at, and the allocator's counter is
+    // that mode's guard instead.
     uniqueIndex("appointments_no_double_booking")
       .on(t.clinicianUserId, t.startsAt)
       .where(
-        sql`${t.status} IN ('requested','pending_approval','confirmed','arrived','in_progress')`,
+        sql`${t.sessionId} IS NULL AND ${t.status} IN ('requested','pending_approval','confirmed','arrived','in_progress')`,
       ),
+    uniqueIndex("appointments_idempotency_unique")
+      .on(t.patientUserId, t.idempotencyKey)
+      .where(sql`${t.idempotencyKey} IS NOT NULL`),
+    uniqueIndex("appointments_session_position_unique")
+      .on(t.sessionId, t.positionNumber)
+      .where(sql`${t.sessionId} IS NOT NULL`),
+    index("appointments_session_idx")
+      .on(t.sessionId)
+      .where(sql`${t.sessionId} IS NOT NULL`),
   ],
 );
 

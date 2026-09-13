@@ -92,3 +92,7 @@ export * from "./clerkship-drafts";
 
 // ─── Visit ratings (migration 0056 — GATED, ADR 0085) ───────────────────
 export * from "./visit-ratings";
+
+// ─── Capacity model: service lines + sessions (migration 0058 — GATED, ADR 0087)
+export * from "./service-lines";
+export * from "./clinic-sessions";

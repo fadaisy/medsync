@@ -1,12 +1,22 @@
 "use server";
 
+import type { HospitalAdminScope } from "@/lib/hospital-admin/scope";
 import { revalidatePath } from "next/cache";
+import { eq } from "drizzle-orm";
 import { z } from "zod";
 
+import { db } from "@/db";
+import { CAPACITY_MODES, PAYMENT_POSTURES, serviceLines } from "@/db/schema";
 import { env } from "@/lib/env";
-import { requireHospitalAdminScope } from "@/lib/hospital-admin/scope";
+import {
+  assertScopeOwnsHospital,
+  requireHospitalAdminScope,
+  ScopeViolationError,
+} from "@/lib/hospital-admin/scope";
 import { logger } from "@/lib/logger";
+import { callEdge } from "@/lib/supabase/edge";
 import { createClient } from "@/lib/supabase/server";
+import { PATIENT_REASON_CODES } from "@/supabase/functions/_shared/sessions-sql";
 
 /**
  * Server Action proxying to ha-update-department-policy.
@@ -139,4 +149,169 @@ function stringOrNull(v: FormDataEntryValue | null): string | null {
   if (typeof v !== "string") return null;
   const t = v.trim();
   return t ? t : null;
+}
+
+/* ─── Gate B: service lines + session templates ─────────────────────── */
+
+/**
+ * Both editors post to Edge Functions written against the Gate B contract
+ * (`ha-upsert-service-line`, `ha-upsert-session-template`). As with the
+ * policy action: scope is resolved here, `hospital_id` is pinned from it,
+ * and the function owns role check, audit and the write. The schemas mirror
+ * the 0058 CHECKs so the operator gets a sentence instead of a 500.
+ */
+
+export type CapacityActionState = { ok?: boolean; error?: string };
+
+const SERVICE_LINE_REASON_CODES = [...PATIENT_REASON_CODES, "other"] as const;
+
+const ServiceLineSchema = z
+  .object({
+    id: z.string().uuid().optional(),
+    department_id: z.string().uuid("Pick a department."),
+    name: z.string().trim().min(2, "Name the service line.").max(120),
+    slug: z.string().optional(),
+    capacity_mode: z.enum(CAPACITY_MODES),
+    time_to_care_days: z.coerce.number().int().min(1).max(365),
+    continuity_default: z.boolean(),
+    confidential: z.boolean(),
+    payment_posture: z.enum(PAYMENT_POSTURES),
+    fee_ugx: z.coerce.number().int().min(0).nullable(),
+    deposit_ugx: z.coerce.number().int().min(0).nullable(),
+    reason_codes: z
+      .array(z.enum(SERVICE_LINE_REASON_CODES))
+      .min(1, "Tick at least one reason a patient can book this line for."),
+    is_default: z.boolean(),
+    active: z.boolean(),
+    reason: z.string().min(8, "Audit note ≥ 8 characters — this write is audited."),
+  })
+  .refine((v) => v.payment_posture === "none" || v.fee_ugx !== null, {
+    message: "A fee is required unless the payment posture is 'none'.",
+    path: ["fee_ugx"],
+  });
+
+export async function upsertServiceLineAction(
+  _prev: CapacityActionState,
+  formData: FormData,
+): Promise<CapacityActionState> {
+  const parsed = ServiceLineSchema.safeParse({
+    id: stringOrNull(formData.get("id")) ?? undefined,
+    department_id: formData.get("department_id"),
+    name: formData.get("name"),
+    slug: stringOrNull(formData.get("slug")) ?? undefined,
+    capacity_mode: formData.get("capacity_mode"),
+    time_to_care_days: formData.get("time_to_care_days"),
+    continuity_default: formData.get("continuity_default") === "on",
+    confidential: formData.get("confidential") === "on",
+    payment_posture: formData.get("payment_posture"),
+    fee_ugx: stringOrNull(formData.get("fee_ugx")),
+    deposit_ugx: stringOrNull(formData.get("deposit_ugx")),
+    reason_codes: formData.getAll("reason_codes"),
+    is_default: formData.get("is_default") === "on",
+    active: formData.get("active") === "on",
+    reason: formData.get("reason"),
+  });
+  if (!parsed.success) return { error: firstIssue(parsed.error) };
+
+  const scope = await requireHospitalAdminScope();
+  if (parsed.data.id) await assertLineOwned(scope, parsed.data.id);
+
+  const result = await callEdge(
+    "ha-upsert-service-line",
+    { hospital_id: scope.hospitalId, ...parsed.data },
+    "hospital-admin.scheduling",
+  );
+  if (!result.ok) return { error: result.error };
+  revalidatePath("/hospital-admin/scheduling");
+  return { ok: true };
+}
+
+const Ymd = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use a calendar date.");
+
+const SessionTemplateSchema = z
+  .object({
+    id: z.string().uuid().optional(),
+    service_line_id: z.string().uuid("Pick a service line."),
+    clinician_user_id: z.string().uuid().nullable(),
+    venue: z.string().trim().max(160).nullable(),
+    weekday: z.coerce.number().int().min(1).max(7),
+    start_minutes_local: z.number().int().min(0).max(1440),
+    duration_minutes: z.coerce.number().int().min(15).max(720),
+    capacity_total: z.coerce.number().int().min(1).max(500),
+    // Blank → the function applies Part 8 #4 (60 % of total, rounded up).
+    capacity_booked: z.coerce.number().int().min(1).max(500).optional(),
+    interleave_booked: z.coerce.number().int().min(1).max(20),
+    interleave_walk_in: z.coerce.number().int().min(1).max(20),
+    overbooking_factor: z.coerce.number().min(1).max(2),
+    valid_from: Ymd,
+    valid_until: Ymd.nullable(),
+    active: z.boolean(),
+    reason: z.string().min(8, "Audit note ≥ 8 characters — this write is audited."),
+  })
+  .refine((v) => v.capacity_booked === undefined || v.capacity_booked <= v.capacity_total, {
+    message: "Booked allocation cannot exceed the session's total capacity.",
+    path: ["capacity_booked"],
+  })
+  .refine((v) => v.valid_until === null || v.valid_until >= v.valid_from, {
+    message: "Valid-until must be on or after valid-from.",
+    path: ["valid_until"],
+  });
+
+export async function upsertSessionTemplateAction(
+  _prev: CapacityActionState,
+  formData: FormData,
+): Promise<CapacityActionState> {
+  const start = minutesFromTime(formData.get("start_local"));
+  if (start === null) return { error: "Start time is required (HH:MM)." };
+
+  const parsed = SessionTemplateSchema.safeParse({
+    id: stringOrNull(formData.get("id")) ?? undefined,
+    service_line_id: formData.get("service_line_id"),
+    clinician_user_id: stringOrNull(formData.get("clinician_user_id")),
+    venue: stringOrNull(formData.get("venue")),
+    weekday: formData.get("weekday"),
+    start_minutes_local: start,
+    duration_minutes: formData.get("duration_minutes"),
+    capacity_total: formData.get("capacity_total"),
+    capacity_booked: stringOrNull(formData.get("capacity_booked")) ?? undefined,
+    interleave_booked: formData.get("interleave_booked"),
+    interleave_walk_in: formData.get("interleave_walk_in"),
+    overbooking_factor: formData.get("overbooking_factor"),
+    valid_from: formData.get("valid_from"),
+    valid_until: stringOrNull(formData.get("valid_until")),
+    active: formData.get("active") === "on",
+    reason: formData.get("reason"),
+  });
+  if (!parsed.success) return { error: firstIssue(parsed.error) };
+
+  const scope = await requireHospitalAdminScope();
+  await assertLineOwned(scope, parsed.data.service_line_id);
+
+  const result = await callEdge(
+    "ha-upsert-session-template",
+    { hospital_id: scope.hospitalId, ...parsed.data },
+    "hospital-admin.scheduling",
+  );
+  if (!result.ok) return { error: result.error };
+  revalidatePath("/hospital-admin/scheduling");
+  return { ok: true };
+}
+
+/**
+ * The Edge Function re-checks this; the pre-check means a stale or forged
+ * id gets a clean scope violation here rather than a "service returned an
+ * error" round trip — the same defence-in-depth the staff actions use.
+ */
+async function assertLineOwned(scope: HospitalAdminScope, lineId: string): Promise<void> {
+  const [row] = await db
+    .select({ hospitalId: serviceLines.hospitalId })
+    .from(serviceLines)
+    .where(eq(serviceLines.id, lineId))
+    .limit(1);
+  if (!row) throw new ScopeViolationError("Service line does not exist for this admin's scope.");
+  assertScopeOwnsHospital(scope, row.hospitalId);
+}
+
+function firstIssue(error: z.ZodError): string {
+  return error.issues[0]?.message ?? "Please check the values.";
 }

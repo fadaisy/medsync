@@ -29,7 +29,7 @@ import { updateDepartmentPolicyAction } from "../actions";
  */
 
 /** ISO weekdays — 1 = Monday … 7 = Sunday, matching availability_blocks. */
-const WEEKDAYS = [
+export const WEEKDAYS = [
   { value: 1, label: "Mon" },
   { value: 2, label: "Tue" },
   { value: 3, label: "Wed" },
@@ -103,13 +103,13 @@ function toValues(option: DepartmentPolicyOption): Values {
 /** 480 → "08:00". Staff surface, so a clock numeral is read by someone
  *  fluent in the system's conventions (ADR 0084 §10 scopes the day-part rule
  *  to patient surfaces). */
-function timeFromMinutes(minutes: number): string {
+export function timeFromMinutes(minutes: number): string {
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
-function minutesFromTime(value: string): number | null {
+export function minutesFromTime(value: string): number | null {
   const match = /^(\d{2}):(\d{2})$/.exec(value);
   if (!match) return null;
   const h = Number(match[1]);
@@ -117,7 +117,7 @@ function minutesFromTime(value: string): number | null {
   return h > 23 || m > 59 ? null : h * 60 + m;
 }
 
-const INPUT_CLASS =
+export const INPUT_CLASS =
   "border-input bg-background text-foreground focus-visible:ring-ring/50 text-body-s rounded-md border px-3 py-2 outline-none focus-visible:ring-[3px]";
 
 export function PolicyForm({

@@ -1,13 +1,47 @@
+import type {
+  ClinicianOption,
+  ClinicSessionRow,
+  SessionTemplateRow,
+} from "./_components/clinic-sessions-section";
 import type { DepartmentPolicyOption } from "./_components/policy-form";
-import { asc, eq } from "drizzle-orm";
+import type { ServiceLineRow } from "./_components/service-lines-section";
+import { and, asc, eq, gte, inArray, lt } from "drizzle-orm";
 
 import { db } from "@/db";
+import { clinicSessions, sessionTemplates } from "@/db/schema/clinic-sessions";
+import { staffAffiliations } from "@/db/schema/clinician-profiles";
 import { hospitalDepartments } from "@/db/schema/hospital-departments";
+import { cadres } from "@/db/schema/reference-data";
 import { departmentSchedulingPolicy } from "@/db/schema/scheduling";
+import { serviceLines } from "@/db/schema/service-lines";
+import { users } from "@/db/schema/users";
 import { requireHospitalAdminScope } from "@/lib/hospital-admin/scope";
+import {
+  DEFAULT_TIME_ZONE,
+  localDateKey,
+  startOfLocalDay,
+} from "@/supabase/functions/_shared/slots";
 import { PlaceholderSurface } from "../_components/placeholder-surface";
 import { SchedulingOverviewCard } from "../_components/scheduling-overview-card";
+import { ClinicSessionsSection } from "./_components/clinic-sessions-section";
 import { PolicyForm } from "./_components/policy-form";
+import { ServiceLinesSection } from "./_components/service-lines-section";
+
+/** The console shows what the materialiser produces: 14 days ahead. */
+const SESSION_HORIZON_DAYS = 14;
+
+const DAY_FMT = new Intl.DateTimeFormat("en-GB", {
+  timeZone: DEFAULT_TIME_ZONE,
+  weekday: "short",
+  day: "numeric",
+  month: "short",
+});
+const TIME_FMT = new Intl.DateTimeFormat("en-GB", {
+  timeZone: DEFAULT_TIME_ZONE,
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false,
+});
 
 /**
  * Scheduling — hospital-admin surface.
@@ -72,6 +106,13 @@ export default async function SchedulingPage() {
 
   const unset = departments.filter((d) => !d.policy).length;
 
+  const [lines, templates, sessions, clinicians] = await Promise.all([
+    fetchServiceLines(scope.hospitalId),
+    fetchTemplates(scope.hospitalId),
+    fetchUpcomingSessions(scope.hospitalId),
+    fetchClinicians(scope.hospitalId),
+  ]);
+
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 py-8 sm:px-6 sm:py-10">
       <header className="flex flex-col gap-2">
@@ -83,13 +124,28 @@ export default async function SchedulingPage() {
           Scheduling
         </h1>
         <p className="text-muted-foreground max-w-2xl text-[13.5px] leading-relaxed">
-          Aggregate operational view and department booking policy. Per-clinician availability and
-          booked sessions live in each clinician&apos;s own workspace.
+          Service lines, clinic sessions and department booking policy. Per-clinician availability
+          and booked appointments live in each clinician&apos;s own workspace.
         </p>
         <div className="bg-brand-500/60 dark:bg-brand-400/50 h-px w-10" aria-hidden />
       </header>
 
       <SchedulingOverviewCard hospitalId={scope.hospitalId} variant="panel" />
+
+      <ServiceLinesSection
+        lines={lines}
+        departments={departments.map((d) => ({ id: d.departmentId, name: d.departmentName }))}
+      />
+
+      <ClinicSessionsSection
+        templates={templates}
+        sessions={sessions}
+        sessionLines={lines
+          .filter((l) => l.active && l.capacityMode === "session")
+          .map((l) => ({ id: l.id, name: l.name }))}
+        clinicians={clinicians}
+        todayYmd={localDateKey(new Date(), DEFAULT_TIME_ZONE)}
+      />
 
       {unset > 0 && departments.length > 0 ? (
         <p className="border-border bg-muted/50 text-muted-foreground text-body-s rounded-md border p-3 leading-relaxed">
@@ -117,4 +173,124 @@ export default async function SchedulingPage() {
       />
     </div>
   );
+}
+
+/* ─── Gate B reads ─────────────────────────────────────────────────── */
+
+async function fetchServiceLines(hospitalId: string): Promise<ServiceLineRow[]> {
+  const rows = await db
+    .select({
+      id: serviceLines.id,
+      name: serviceLines.name,
+      slug: serviceLines.slug,
+      departmentId: serviceLines.departmentId,
+      departmentName: hospitalDepartments.name,
+      capacityMode: serviceLines.capacityMode,
+      timeToCareDays: serviceLines.timeToCareDays,
+      continuityDefault: serviceLines.continuityDefault,
+      confidential: serviceLines.confidential,
+      paymentPosture: serviceLines.paymentPosture,
+      feeUgx: serviceLines.feeUgx,
+      depositUgx: serviceLines.depositUgx,
+      reasonCodes: serviceLines.reasonCodes,
+      isDefault: serviceLines.isDefault,
+      active: serviceLines.active,
+    })
+    .from(serviceLines)
+    .innerJoin(hospitalDepartments, eq(hospitalDepartments.id, serviceLines.departmentId))
+    .where(eq(serviceLines.hospitalId, hospitalId))
+    .orderBy(asc(serviceLines.name));
+  return rows;
+}
+
+async function fetchTemplates(hospitalId: string): Promise<SessionTemplateRow[]> {
+  const rows = await db
+    .select({
+      id: sessionTemplates.id,
+      serviceLineId: sessionTemplates.serviceLineId,
+      serviceLineName: serviceLines.name,
+      clinicianUserId: sessionTemplates.clinicianUserId,
+      clinicianName: users.fullName,
+      venue: sessionTemplates.venue,
+      weekday: sessionTemplates.weekday,
+      startMinutesLocal: sessionTemplates.startMinutesLocal,
+      durationMinutes: sessionTemplates.durationMinutes,
+      capacityTotal: sessionTemplates.capacityTotal,
+      capacityBooked: sessionTemplates.capacityBooked,
+      interleaveBooked: sessionTemplates.interleaveBooked,
+      interleaveWalkIn: sessionTemplates.interleaveWalkIn,
+      overbookingFactor: sessionTemplates.overbookingFactor,
+      validFrom: sessionTemplates.validFrom,
+      validUntil: sessionTemplates.validUntil,
+      active: sessionTemplates.active,
+    })
+    .from(sessionTemplates)
+    .innerJoin(serviceLines, eq(serviceLines.id, sessionTemplates.serviceLineId))
+    .leftJoin(users, eq(users.id, sessionTemplates.clinicianUserId))
+    .where(eq(sessionTemplates.hospitalId, hospitalId))
+    .orderBy(asc(sessionTemplates.weekday), asc(sessionTemplates.startMinutesLocal));
+  // numeric(3,2) arrives as a string ("1.00"); the editor wants a number.
+  return rows.map((r) => ({ ...r, overbookingFactor: Number(r.overbookingFactor) }));
+}
+
+async function fetchUpcomingSessions(hospitalId: string): Promise<ClinicSessionRow[]> {
+  const from = startOfLocalDay(new Date(), DEFAULT_TIME_ZONE);
+  const to = new Date(from.getTime() + SESSION_HORIZON_DAYS * 86_400_000);
+  const rows = await db
+    .select({
+      id: clinicSessions.id,
+      startsAt: clinicSessions.startsAt,
+      endsAt: clinicSessions.endsAt,
+      serviceLineName: serviceLines.name,
+      clinicianName: users.fullName,
+      bookedCount: clinicSessions.bookedCount,
+      capacityBooked: clinicSessions.capacityBooked,
+      capacityTotal: clinicSessions.capacityTotal,
+      overbookingFactor: clinicSessions.overbookingFactor,
+      status: clinicSessions.status,
+    })
+    .from(clinicSessions)
+    .innerJoin(serviceLines, eq(serviceLines.id, clinicSessions.serviceLineId))
+    .leftJoin(users, eq(users.id, clinicSessions.clinicianUserId))
+    .where(
+      and(
+        eq(clinicSessions.hospitalId, hospitalId),
+        gte(clinicSessions.startsAt, from),
+        lt(clinicSessions.startsAt, to),
+      ),
+    )
+    .orderBy(asc(clinicSessions.startsAt));
+  return rows.map((r) => ({
+    id: r.id,
+    dateLabel: DAY_FMT.format(r.startsAt),
+    timeLabel: `${TIME_FMT.format(r.startsAt)}–${TIME_FMT.format(r.endsAt)}`,
+    serviceLineName: r.serviceLineName,
+    clinicianName: r.clinicianName,
+    bookedCount: r.bookedCount,
+    capacityBooked: r.capacityBooked,
+    capacityTotal: r.capacityTotal,
+    overbookingFactor: Number(r.overbookingFactor),
+    status: r.status,
+  }));
+}
+
+/**
+ * Who a session can be assigned to: active clinical staff at this hospital
+ * — the same test `ha-upsert-session-template` applies to `clinician_user_id`.
+ */
+async function fetchClinicians(hospitalId: string): Promise<ClinicianOption[]> {
+  const rows = await db
+    .selectDistinct({ userId: users.id, fullName: users.fullName })
+    .from(staffAffiliations)
+    .innerJoin(users, eq(users.id, staffAffiliations.userId))
+    .innerJoin(cadres, eq(cadres.id, staffAffiliations.cadreId))
+    .where(
+      and(
+        eq(staffAffiliations.hospitalId, hospitalId),
+        inArray(staffAffiliations.state, ["active", "approved"]),
+        eq(cadres.isClinical, true),
+      ),
+    )
+    .orderBy(asc(users.fullName));
+  return rows;
 }

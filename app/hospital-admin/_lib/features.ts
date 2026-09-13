@@ -84,9 +84,9 @@ export const FEATURE_AREAS: ReadonlyArray<FeatureArea> = [
   {
     slug: "scheduling",
     label: "Scheduling",
-    hint: "Department scheduling policy · walk-in queues",
+    hint: "Service lines · clinic sessions · booking policy",
     iconKey: "scheduling",
-    placeholder: true,
+    placeholder: false,
   },
   {
     slug: "intake",
