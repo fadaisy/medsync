@@ -590,6 +590,97 @@ export function localSession(instant: Instant, timeZone: string): DaySession {
   return localWeekdayAndMinutes(instant, timeZone).minutesOfDay < 12 * 60 ? "morning" : "afternoon";
 }
 
+/**
+ * Local midnight of the civil day containing `instant`, as an instant.
+ *
+ * Every "today" boundary in the product goes through here: `setUTCHours(0)`
+ * puts a Kampala clinic's day boundary at 03:00 EAT, and `setHours(0)` puts
+ * it wherever the host happens to be. At 00:30 EAT on the 16th (21:30Z on
+ * the 15th) the answer is 21:00Z on the 15th — the 16th's midnight in
+ * Kampala — not 00:00Z on the 15th. DST-safe through `instantAtLocal`.
+ */
+export function startOfLocalDay(instant: Instant, timeZone: string): Date {
+  const p = localParts(toMs(instant, "instant"), timeZone);
+  return new Date(instantAtLocal(p.year, p.month, p.day, 0, timeZone));
+}
+
+/** The start of the NEXT civil day — the exclusive end of `instant`'s day. */
+export function endOfLocalDay(instant: Instant, timeZone: string): Date {
+  const p = localParts(toMs(instant, "instant"), timeZone);
+  const next = new Date(civilMidnight(p) + DAY_MS);
+  return new Date(
+    instantAtLocal(next.getUTCFullYear(), next.getUTCMonth() + 1, next.getUTCDate(), 0, timeZone),
+  );
+}
+
+/* ─── session templates → clinic sessions ────────────────────────── */
+
+/** A `session_templates` row (migration 0058), camelCased. Dates are `YYYY-MM-DD`. */
+export interface SessionTemplateRow {
+  /** ISO 1 = Monday … 7 = Sunday. */
+  weekday: number;
+  /** Minutes past local midnight in the hospital's zone. */
+  startMinutesLocal: number;
+  durationMinutes: number;
+  validFrom: string;
+  validUntil: string | null;
+}
+
+/**
+ * Every occurrence of a template's weekday inside [rangeStart, rangeEnd) ∩
+ * [validFrom, validUntil], at `startMinutesLocal` in `timeZone`. Ascending.
+ * Pure — the Edge Function that writes a template and the nightly cron both
+ * call this, which is what makes their `clinic_sessions` rows identical.
+ *
+ * Same arithmetic as `expandBlocks`: the civil date walks as a UTC-midnight
+ * day counter (no zone in it, so stepping 7 days never drifts across a DST
+ * shift), and each occurrence resolves through `instantAtLocal`. Never the
+ * host clock. `validFrom` / `validUntil` are civil DATES, inclusive on both
+ * ends, so a template valid until Tuesday still produces that Tuesday.
+ */
+export function expandSessionTemplate(
+  t: SessionTemplateRow,
+  rangeStart: Instant,
+  rangeEnd: Instant,
+  timeZone: string,
+): { startsAt: Date; endsAt: Date }[] {
+  const out: { startsAt: Date; endsAt: Date }[] = [];
+  if (t.weekday < 1 || t.weekday > 7 || t.durationMinutes <= 0) return out;
+
+  const rangeStartMs = toMs(rangeStart, "rangeStart");
+  const rangeEndMs = toMs(rangeEnd, "rangeEnd");
+  const durationMs = t.durationMinutes * 60_000;
+
+  // The earliest civil day that can matter: the later of validFrom and the
+  // day an occurrence would have to start on to still overlap the range.
+  const fromMs = civilDate(t.validFrom, "validFrom");
+  const untilMs = t.validUntil ? civilDate(t.validUntil, "validUntil") : Number.POSITIVE_INFINITY;
+  let civil = Math.max(fromMs, civilMidnight(localParts(rangeStartMs - durationMs, timeZone)));
+  civil += ((t.weekday - isoWeekday(civil) + 7) % 7) * DAY_MS;
+
+  for (; civil <= untilMs; civil += 7 * DAY_MS) {
+    const day = new Date(civil);
+    const startMs = instantAtLocal(
+      day.getUTCFullYear(),
+      day.getUTCMonth() + 1,
+      day.getUTCDate(),
+      t.startMinutesLocal,
+      timeZone,
+    );
+    if (startMs >= rangeEndMs) break;
+    const endMs = startMs + durationMs;
+    if (endMs > rangeStartMs) out.push({ startsAt: new Date(startMs), endsAt: new Date(endMs) });
+  }
+  return out;
+}
+
+/** "2026-09-15" → that civil date as a UTC-midnight day counter. Throws on anything else. */
+function civilDate(value: string, field: string): number {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!m) throw new TypeError(`slots: ${field} must be YYYY-MM-DD (got ${JSON.stringify(value)})`);
+  return Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+}
+
 /* ─── time, in a named zone ──────────────────────────────────────── */
 
 interface LocalParts {

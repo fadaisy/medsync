@@ -2,9 +2,11 @@ import type { EdgeResult } from "@/lib/edge";
 import type { ImagePickerOptions } from "expo-image-picker";
 import {
   DEFAULT_TIME_ZONE,
+  endOfLocalDay,
   LIVE_APPOINTMENT_STATUSES,
   localDateKey,
   localWeekdayAndMinutes,
+  startOfLocalDay,
 } from "@shared/slots";
 
 import { callEdge } from "@/lib/edge";
@@ -93,20 +95,6 @@ const DAY_FMT = new Intl.DateTimeFormat("en-GB", {
   day: "numeric",
   month: "short",
 });
-
-/**
- * Midnight today, in the clinic's zone, as an instant.
- *
- * Not `setHours(0,0,0,0)`, which reads the DEVICE's zone — the bug this whole
- * file is arranged to avoid. Every IANA offset is a whole number of minutes,
- * so epoch seconds and wall-clock seconds agree in every zone and `% 60_000`
- * strips the seconds the engine's helper does not report.
- */
-function startOfClinicDay(now: Date): Date {
-  const ms = now.getTime();
-  const { minutesOfDay } = localWeekdayAndMinutes(now, DEFAULT_TIME_ZONE);
-  return new Date(ms - minutesOfDay * 60_000 - (ms % 60_000));
-}
 
 /**
  * "9:30 AM" in the clinic's zone (ADR 0085 §3). 12-hour with the AM/PM word;
@@ -429,9 +417,11 @@ export async function fetchLiveIntake(hospitalId: string): Promise<LiveIntake | 
   const userId = await currentUserId();
   if (!userId) return null;
 
+  // Midnight today in the CLINIC's zone, never `setHours(0)` (the device's).
+  // The engine's helper, so the phone and every server window agree.
   const now = new Date();
-  const start = startOfClinicDay(now);
-  const end = new Date(start.getTime() + 86_400_000);
+  const start = startOfLocalDay(now, DEFAULT_TIME_ZONE);
+  const end = endOfLocalDay(now, DEFAULT_TIME_ZONE);
 
   const { data, error } = await supabase
     .from("patient_intakes")

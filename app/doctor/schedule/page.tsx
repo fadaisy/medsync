@@ -10,6 +10,7 @@ import {
   fetchPendingApprovals,
   fetchSchedulingStats,
 } from "@/lib/scheduling/doctor";
+import { DEFAULT_TIME_ZONE, startOfLocalDay } from "@/supabase/functions/_shared/slots";
 import { AvailabilitySheetButton } from "./_components/availability-sheet";
 import { DoctorCalendar } from "./_components/doctor-calendar";
 import { PendingApprovalsRail } from "./_components/pending-rail";
@@ -29,12 +30,10 @@ function formatWindowDate(d: Date, exclusiveEnd = false): string {
 export default async function DoctorSchedulePage() {
   const scope = await requireDoctorScope();
 
-  const rangeStart = new Date();
-  rangeStart.setDate(rangeStart.getDate() - 7);
-  rangeStart.setHours(0, 0, 0, 0);
-  const rangeEnd = new Date();
-  rangeEnd.setDate(rangeEnd.getDate() + 14);
-  rangeEnd.setHours(0, 0, 0, 0);
+  // Hospital-local midnights (not the host's), a week back and a fortnight on.
+  const now = new Date().getTime();
+  const rangeStart = startOfLocalDay(new Date(now - 7 * 86_400_000), DEFAULT_TIME_ZONE);
+  const rangeEnd = startOfLocalDay(new Date(now + 14 * 86_400_000), DEFAULT_TIME_ZONE);
 
   const [events, stats, pending, queue, settings, beingSeen, availabilityBlocks] =
     await Promise.all([

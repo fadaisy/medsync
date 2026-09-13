@@ -13,6 +13,7 @@ import { presenceAt, presenceOf } from "@/lib/intake/queries";
 import { TINT_GLYPH } from "@/lib/patient/doses";
 import { requirePatientScope } from "@/lib/patient/scope";
 import { cn } from "@/lib/utils";
+import { DEFAULT_TIME_ZONE, startOfLocalDay } from "@/supabase/functions/_shared/slots";
 import { EmergencyNotice } from "../../_components/emergency-notice";
 import { PatientPageHeader } from "../../_components/page-header";
 import { CancelDeclaredIntakeButton } from "./_components/cancel-button";
@@ -45,8 +46,9 @@ export default async function PatientQueueDetailPage({ params }: PageProps) {
   // One clock read for the whole render — the day window and the refresh
   // interval below must agree about "now".
   const now = new Date();
-  const startOfDay = new Date(now);
-  startOfDay.setHours(0, 0, 0, 0);
+  // The hospital's day, not the host's: "N ahead of you" counts today's
+  // tickets, and today does not begin at 03:00 EAT.
+  const startOfDay = startOfLocalDay(now, DEFAULT_TIME_ZONE);
 
   const rows = await db
     .select({

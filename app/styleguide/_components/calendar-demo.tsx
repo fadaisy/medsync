@@ -8,7 +8,8 @@ import { MedSyncCalendar } from "@/components/scheduling/calendar/calendar";
 /**
  * Fictional sample events for the styleguide. Kept deliberately
  * illustrative — never real clinical data. Generated on mount so
- * "today" anchors to the viewer's clock.
+ * "today" anchors to the viewer's clock — the one place the host's
+ * (browser's) zone is genuinely the right one: no hospital owns this day.
  */
 export function CalendarDemo() {
   const events = useMemo<CalendarEvent[]>(() => {

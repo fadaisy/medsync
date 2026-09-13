@@ -15,6 +15,7 @@ import {
   DEFAULT_TIME_ZONE,
   LIVE_APPOINTMENT_STATUSES,
   resolveSchedulingSettings,
+  startOfLocalDay,
 } from "@/supabase/functions/_shared/slots";
 import { AvailabilityList } from "./_components/availability-list";
 import { SettingsPanel } from "./_components/settings-panel";
@@ -166,10 +167,10 @@ async function fetchAvailability(
   clinicianUserId: string,
   hospitalId: string,
 ): Promise<AvailabilityFetch> {
-  // From the start of today, so a block finishing this morning is still
-  // editable — and every live weekly template regardless of its anchor.
-  const dayStart = new Date();
-  dayStart.setHours(0, 0, 0, 0);
+  // From the start of today — the hospital's, not the host's — so a block
+  // finishing this morning is still editable, and every live weekly
+  // template regardless of its anchor.
+  const dayStart = startOfLocalDay(new Date(), DEFAULT_TIME_ZONE);
 
   const rows = await db
     .select({

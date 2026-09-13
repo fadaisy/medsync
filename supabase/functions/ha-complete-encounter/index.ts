@@ -1,7 +1,7 @@
 /**
  * ha-complete-encounter — close out an in-progress encounter.
  *
- * Cascades the closure across the three tables that the patient-
+ * Cascades the closure across the tables that the patient-
  * handling-flow's "presence drops off" rule depends on:
  *   1. encounters.state → 'completed', ended_at = now(),
  *      completion_reason (optional)
@@ -12,9 +12,12 @@
  *      today
  *   4. nursing_assignments.ends_at = now() for active assignments of
  *      this patient at this hospital (the "auto-end" semantic)
+ *   5. appointments.status → 'completed' for the linked appointment
+ *      (encounters.appointment_id) if it is still arrived/in_progress —
+ *      before Gate A′ no code path ever wrote that status.
  *
- * One write → four boards updated. Per docs/patient-handling-flow-
- * gate-a-proposal.md §6.
+ * One write → five boards updated. Per docs/patient-handling-flow-
+ * gate-a-proposal.md §6 and docs/booking-app-gate-a-proposal.md §5.13 (c).
  *
  * Auth: the clinician on the encounter, hospital_admin (scoped), or
  * superadmin. (Nurses cannot complete a doctor's encounter; if a
@@ -36,6 +39,7 @@ import {
 import { requireHospitalAdminScope } from "../_shared/hospital-admin-scope.ts";
 import { makeLogger } from "../_shared/logger.ts";
 import { networkContext, recordSaAudit } from "../_shared/sa-audit.ts";
+import { DEFAULT_TIME_ZONE, startOfLocalDay } from "../_shared/slots.ts";
 
 const log = makeLogger("ha-complete-encounter");
 
@@ -70,7 +74,7 @@ Deno.serve(async (request: Request) => {
 
   const { data: enc, error: encErr } = await sb
     .from("encounters")
-    .select("id, hospital_id, patient_user_id, clinician_user_id, state")
+    .select("id, hospital_id, patient_user_id, clinician_user_id, state, appointment_id")
     .eq("id", input.encounter_id)
     .maybeSingle();
   if (encErr) return serverError(encErr.message, init);
@@ -101,7 +105,11 @@ Deno.serve(async (request: Request) => {
       ipAddress,
       userAgent,
       beforeData: { state: enc.state },
-      afterData: { state: "completed", completion_reason: input.completion_reason ?? null },
+      afterData: {
+        state: "completed",
+        completion_reason: input.completion_reason ?? null,
+        appointment_id: enc.appointment_id ?? null,
+      },
     });
   } catch (e) {
     log.error("sa_audit failed", { requestId, reason: String(e) });
@@ -109,8 +117,8 @@ Deno.serve(async (request: Request) => {
   }
 
   const now = new Date().toISOString();
-  const startOfDay = new Date();
-  startOfDay.setUTCHours(0, 0, 0, 0);
+  // The hospital's today, not UTC's: a queue row from 01:00 EAT is today's.
+  const startOfDay = startOfLocalDay(new Date(), DEFAULT_TIME_ZONE);
 
   // 1. Close the encounter.
   const { error: e1 } = await sb
@@ -159,22 +167,26 @@ Deno.serve(async (request: Request) => {
   if (e4)
     log.warn("nursing_assignments close failed (non-fatal)", { requestId, reason: e4.message });
 
-  log.info("encounter completed + cascaded", {
-    requestId,
-    encounter_id: enc.id,
+  // 5. Complete the linked appointment. Only from the two "in the building"
+  //    statuses: a no_show or cancelled row stays what the desk said it was.
+  let appointmentCount: number | null = 0;
+  if (enc.appointment_id) {
+    const { error: e5, count } = await sb
+      .from("appointments")
+      .update({ status: "completed" })
+      .eq("id", enc.appointment_id)
+      .in("status", ["arrived", "in_progress"])
+      .select("id", { count: "exact", head: true });
+    if (e5) log.warn("appointment complete failed (non-fatal)", { requestId, reason: e5.message });
+    appointmentCount = count;
+  }
+
+  const cascade = {
     queue_closed: queueCount ?? 0,
     intake_closed: intakeCount ?? 0,
     nursing_closed: naCount ?? 0,
-  });
-  return ok(
-    {
-      encounter_id: enc.id,
-      cascade: {
-        queue_closed: queueCount ?? 0,
-        intake_closed: intakeCount ?? 0,
-        nursing_closed: naCount ?? 0,
-      },
-    },
-    init,
-  );
+    appointment_completed: appointmentCount ?? 0,
+  };
+  log.info("encounter completed + cascaded", { requestId, encounter_id: enc.id, ...cascade });
+  return ok({ encounter_id: enc.id, cascade }, init);
 });

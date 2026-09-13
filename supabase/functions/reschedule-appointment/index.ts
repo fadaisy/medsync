@@ -17,7 +17,12 @@
  * Allowed by: patient (own appointment), clinician (own), admin, superadmin.
  *
  * Refuses to reschedule a finalised status (cancelled, declined,
- * completed, no_show, rescheduled).
+ * completed, no_show, rescheduled) — except a replay: the same
+ * `idempotency_key` sent again answers with the row the first attempt
+ * minted, same 200 body, even though the old row is 'rescheduled' by then
+ * (Gate A §5.5). A double-booked new slot is a 409 whether the wire check
+ * below or `appointments_no_double_booking` catches it (the index wins the
+ * race the check cannot see).
  */
 import { z } from "npm:zod@4.4.3";
 
@@ -44,6 +49,7 @@ const InputSchema = z.object({
   new_starts_at: z.string().datetime({ offset: true }),
   new_ends_at: z.string().datetime({ offset: true }),
   reason: z.string().min(8, "Reason ≥ 8 chars required."),
+  idempotency_key: z.string().min(1).max(128).optional(),
 });
 
 const RESCHEDULABLE = new Set(["requested", "pending_approval", "confirmed"]);
@@ -96,6 +102,25 @@ Deno.serve(async (request: Request) => {
     if (!scope.ok) return forbidden(init, scope.reason);
   }
 
+  // Replay? Answer with the row the first attempt minted. Checked after
+  // authorisation (so the lookup leaks nothing) and before the status gate
+  // (the old row is already 'rescheduled' by the time a 2G retry lands).
+  const replay = async () =>
+    input.idempotency_key
+      ? (
+          await sb
+            .from("appointments")
+            .select("id, status")
+            .eq("patient_user_id", appt.patient_user_id)
+            .eq("idempotency_key", input.idempotency_key)
+            .maybeSingle()
+        ).data
+      : null;
+  const replied = (row: { id: string; status: string }) =>
+    ok({ old_appointment_id: appt.id, new_appointment_id: row.id, new_status: row.status }, init);
+  const prior = await replay();
+  if (prior) return replied(prior);
+
   if (!RESCHEDULABLE.has(appt.status)) {
     return badRequest(
       `Appointment is in '${appt.status}' — reschedule isn't allowed from here.`,
@@ -103,7 +128,10 @@ Deno.serve(async (request: Request) => {
     );
   }
 
-  // Refuse double-book at the new slot.
+  // Refuse double-book at the new slot. The index is the real guard (its
+  // 23505 maps to the same 409 below); this check stays because the audit
+  // row is written BEFORE the insert, and a refused reschedule should not
+  // leave an audit row claiming it happened.
   const { data: dup } = await sb
     .from("appointments")
     .select("id")
@@ -112,7 +140,7 @@ Deno.serve(async (request: Request) => {
     .in("status", ["requested", "pending_approval", "confirmed", "arrived", "in_progress"])
     .limit(1)
     .maybeSingle();
-  if (dup) return conflict("Someone else has that slot — pick another.", init);
+  if (dup) return conflict("Someone just took this slot — pick another and try again.", init);
 
   // Look up the lead times to copy onto the new row's reminders.
   const leadMinutes: number[] = appt.notify_lead_minutes ??
@@ -168,10 +196,23 @@ Deno.serve(async (request: Request) => {
       rescheduled_from_appointment_id: appt.id,
       created_by_user_id: caller.id,
       notify_lead_minutes: leadMinutes,
+      // Omitted when absent so the row takes the column default (and a
+      // client that never sends one keeps working before migration 0058).
+      ...(input.idempotency_key ? { idempotency_key: input.idempotency_key } : {}),
     })
     .select("id, status")
     .single();
   if (insertError || !newRow) {
+    const violates = (index: string) =>
+      insertError?.code === "23505" && insertError.message.includes(index);
+    if (violates("appointments_no_double_booking")) {
+      return conflict("Someone just took this slot — pick another and try again.", init);
+    }
+    if (violates("appointments_idempotency_unique")) {
+      // Two retries of one submission raced past the replay check.
+      const winner = await replay();
+      if (winner) return replied(winner);
+    }
     log.error("new appointment insert failed", { requestId, reason: insertError?.message });
     return serverError("reschedule failed (new row)", init);
   }
@@ -226,12 +267,5 @@ Deno.serve(async (request: Request) => {
     old_id: appt.id,
     new_id: newRow.id,
   });
-  return ok(
-    {
-      old_appointment_id: appt.id,
-      new_appointment_id: newRow.id,
-      new_status: newRow.status,
-    },
-    init,
-  );
+  return replied(newRow);
 });

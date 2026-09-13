@@ -5,6 +5,11 @@ import { ArrowRightIcon, CalendarClockIcon } from "lucide-react";
 import { db } from "@/db";
 import { appointments } from "@/db/schema/scheduling";
 import { cn } from "@/lib/utils";
+import {
+  DEFAULT_TIME_ZONE,
+  endOfLocalDay,
+  startOfLocalDay,
+} from "@/supabase/functions/_shared/slots";
 
 /**
  * Scheduling summary tile for the hospital-admin Overview surface.
@@ -39,9 +44,9 @@ const NO_SHOW_LOOKBACK_DAYS = 7;
 async function fetchStats(hospitalId: string): Promise<SchedulingStats | null> {
   try {
     const now = new Date();
-    const startOfToday = new Date(now);
-    startOfToday.setUTCHours(0, 0, 0, 0);
-    const startOfTomorrow = new Date(startOfToday.getTime() + 86_400_000);
+    // The hospital's today, not UTC's (03:00 EAT).
+    const startOfToday = startOfLocalDay(now, DEFAULT_TIME_ZONE);
+    const startOfTomorrow = endOfLocalDay(now, DEFAULT_TIME_ZONE);
     const sevenDaysAgo = new Date(now.getTime() - NO_SHOW_LOOKBACK_DAYS * 86_400_000);
 
     const [todayCounts, pendingRow, noShowRow] = await Promise.all([

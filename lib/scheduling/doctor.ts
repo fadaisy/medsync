@@ -12,6 +12,11 @@ import {
   queueEntries,
 } from "@/db/schema/scheduling";
 import { ACUITY_TIERS } from "@/lib/triage/constants";
+import {
+  DEFAULT_TIME_ZONE,
+  endOfLocalDay,
+  startOfLocalDay,
+} from "@/supabase/functions/_shared/slots";
 
 /**
  * Doctor-scheduling read helpers. Pure reads against the existing
@@ -156,10 +161,10 @@ export interface DepartmentQueueRow {
 export async function fetchDepartmentQueueToday(args: {
   departmentId: string;
 }): Promise<DepartmentQueueRow[]> {
-  const start = new Date();
-  start.setHours(0, 0, 0, 0);
-  const end = new Date(start);
-  end.setDate(end.getDate() + 1);
+  // The hospital's day, not the host's (UTC on Vercel — 03:00 EAT).
+  const now = new Date();
+  const start = startOfLocalDay(now, DEFAULT_TIME_ZONE);
+  const end = endOfLocalDay(now, DEFAULT_TIME_ZONE);
 
   const rows = await db
     .select({
@@ -313,8 +318,7 @@ export async function fetchEffectiveSchedulingSettings(args: {
 export async function fetchCurrentlyBeingSeen(args: {
   departmentId: string;
 }): Promise<{ patientCode: string | null; calledAtIso: string | null } | null> {
-  const start = new Date();
-  start.setHours(0, 0, 0, 0);
+  const start = startOfLocalDay(new Date(), DEFAULT_TIME_ZONE);
 
   const [row] = await db
     .select({
@@ -356,8 +360,7 @@ export async function fetchClinicianAvailabilityBlocks(args: {
   hospitalId: string;
   limit?: number;
 }): Promise<AvailabilityRow[]> {
-  const since = new Date();
-  since.setHours(0, 0, 0, 0);
+  const since = startOfLocalDay(new Date(), DEFAULT_TIME_ZONE);
   const rows = await db
     .select({
       id: availabilityBlocks.id,

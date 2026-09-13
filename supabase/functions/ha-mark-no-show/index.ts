@@ -1,6 +1,8 @@
 /**
- * ha-mark-no-show — clinician (or nurse on assignment, or admin)
- * marks a confirmed appointment as no_show.
+ * ha-mark-no-show — the clinician, any staff member with an active or
+ * approved affiliation at the appointment's hospital (reception is the
+ * desk that watches the expected list), or an admin marks a confirmed
+ * appointment as no_show.
  *
  * Allowed when:
  *   - status ∈ {'confirmed','arrived'}
@@ -66,8 +68,18 @@ Deno.serve(async (request: Request) => {
 
   const isSuperadmin = await hasRole(caller.id, "superadmin");
   const isClinician = caller.id === appt.clinician_user_id;
-  const isNurse = await hasRole(caller.id, "nurse", appt.hospital_id);
-  if (!isSuperadmin && !isClinician && !isNurse) {
+  // Gate A′ (d): widened from nurse-only to any staff at THIS hospital —
+  // same affiliation test ha-check-in-patient uses to admit the desk.
+  const { data: aff } = await sb
+    .from("staff_affiliations")
+    .select("id")
+    .eq("user_id", caller.id)
+    .eq("hospital_id", appt.hospital_id)
+    .in("state", ["active", "approved"])
+    .limit(1)
+    .maybeSingle();
+  const isStaff = !!aff || (await hasRole(caller.id, "nurse", appt.hospital_id));
+  if (!isSuperadmin && !isClinician && !isStaff) {
     if (!(await hasRole(caller.id, "hospital_admin", appt.hospital_id))) {
       return forbidden(init);
     }

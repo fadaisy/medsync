@@ -187,6 +187,8 @@ export function fromDayIso(iso: string | undefined): Date | null {
   return Number.isNaN(out.getTime()) || out.getDate() !== Number(m[3]) ? null : out;
 }
 
+/** Host-local like `fromDayIso` above — the patient's calendar, not a
+ * hospital's; `lib/patient/doses.ts` says why the cluster moves together. */
 export function startOfDay(d: Date): Date {
   const out = new Date(d);
   out.setHours(0, 0, 0, 0);

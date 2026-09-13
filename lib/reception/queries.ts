@@ -13,6 +13,11 @@ import { users } from "@/db/schema/users";
 import { decrypt } from "@/lib/encryption";
 import { presenceAt, presenceOf } from "@/lib/intake/queries";
 import { logger } from "@/lib/logger";
+import {
+  DEFAULT_TIME_ZONE,
+  endOfLocalDay,
+  startOfLocalDay,
+} from "@/supabase/functions/_shared/slots";
 
 /**
  * Reception query layer. All reads are STRICTLY operational +
@@ -136,10 +141,10 @@ export interface ReceptionTodayCounts {
 export async function fetchReceptionTodayCounts(args: {
   hospitalId: string;
 }): Promise<ReceptionTodayCounts> {
-  const start = new Date();
-  start.setHours(0, 0, 0, 0);
-  const end = new Date(start);
-  end.setDate(end.getDate() + 1);
+  // The hospital's day, not the host's (UTC on Vercel — 03:00 EAT).
+  const now = new Date();
+  const start = startOfLocalDay(now, DEFAULT_TIME_ZONE);
+  const end = endOfLocalDay(now, DEFAULT_TIME_ZONE);
 
   const [expected, arrived, awaiting, noShows, declared] = await Promise.all([
     db
@@ -230,10 +235,11 @@ export async function fetchExpectedArrivals(args: {
   date?: Date;
   limit?: number;
 }): Promise<ExpectedArrival[]> {
-  const start = args.date ? new Date(args.date) : new Date();
-  start.setHours(0, 0, 0, 0);
-  const end = new Date(start);
-  end.setDate(end.getDate() + 1);
+  // The hospital's day containing `date` (a `?date=YYYY-MM-DD` parses as
+  // UTC midnight = 03:00 EAT, which lands on the right Kampala day).
+  const on = args.date ?? new Date();
+  const start = startOfLocalDay(on, DEFAULT_TIME_ZONE);
+  const end = endOfLocalDay(on, DEFAULT_TIME_ZONE);
 
   const rows = await db
     .select({
@@ -367,10 +373,9 @@ export async function fetchDeclaredIntakesToday(args: {
   receptionUserId: string;
   limit?: number;
 }): Promise<DeclaredIntakeRow[]> {
-  const start = new Date();
-  start.setHours(0, 0, 0, 0);
-  const end = new Date(start);
-  end.setDate(end.getDate() + 1);
+  const now = new Date();
+  const start = startOfLocalDay(now, DEFAULT_TIME_ZONE);
+  const end = endOfLocalDay(now, DEFAULT_TIME_ZONE);
 
   const rows = await db
     .select({
@@ -477,10 +482,9 @@ export async function searchTodaysBoard(args: {
   if (q.length < 3) return [];
   const limit = args.limit ?? 20;
 
-  const start = new Date();
-  start.setHours(0, 0, 0, 0);
-  const end = new Date(start);
-  end.setDate(end.getDate() + 1);
+  const now = new Date();
+  const start = startOfLocalDay(now, DEFAULT_TIME_ZONE);
+  const end = endOfLocalDay(now, DEFAULT_TIME_ZONE);
 
   const rows = await db
     .select({
@@ -567,10 +571,9 @@ export async function fetchTodayFlow(args: {
   hospitalId: string;
   limit?: number;
 }): Promise<FlowRow[]> {
-  const start = new Date();
-  start.setHours(0, 0, 0, 0);
-  const end = new Date(start);
-  end.setDate(end.getDate() + 1);
+  const now = new Date();
+  const start = startOfLocalDay(now, DEFAULT_TIME_ZONE);
+  const end = endOfLocalDay(now, DEFAULT_TIME_ZONE);
 
   // Today's bookings + arrivals via appointments.
   const apptRows = await db

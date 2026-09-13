@@ -35,6 +35,7 @@ import {
 import { requireHospitalAdminScope } from "../_shared/hospital-admin-scope.ts";
 import { makeLogger } from "../_shared/logger.ts";
 import { networkContext, recordSaAudit } from "../_shared/sa-audit.ts";
+import { DEFAULT_TIME_ZONE, startOfLocalDay } from "../_shared/slots.ts";
 
 const log = makeLogger("ha-check-in-patient");
 
@@ -273,8 +274,8 @@ async function insertQueueRow(
   },
 ): Promise<string | null> {
   if (!args.department_id) return null;
-  const startOfDay = new Date();
-  startOfDay.setUTCHours(0, 0, 0, 0);
+  // The hospital's today, not UTC's, or numbering restarts at 03:00 EAT.
+  const startOfDay = startOfLocalDay(new Date(), DEFAULT_TIME_ZONE);
   const { count } = await sb
     .from("queue_entries")
     .select("id", { count: "exact", head: true })

@@ -13,6 +13,11 @@ import { logger } from "@/lib/logger";
 import { STALE_GRACE_MINUTES } from "@/lib/notifications/sink";
 import { createServiceClient } from "@/lib/supabase/service";
 import { cn } from "@/lib/utils";
+import {
+  DEFAULT_TIME_ZONE,
+  endOfLocalDay,
+  startOfLocalDay,
+} from "@/supabase/functions/_shared/slots";
 
 export const metadata: Metadata = {
   title: "Scheduling rollup · Superadmin",
@@ -325,9 +330,9 @@ async function fetchRollup(): Promise<{
 
   try {
     const now = new Date();
-    const startOfToday = new Date(now);
-    startOfToday.setUTCHours(0, 0, 0, 0);
-    const startOfTomorrow = new Date(startOfToday.getTime() + 86_400_000);
+    // Every hospital's today is EAT, not UTC's (03:00 EAT).
+    const startOfToday = startOfLocalDay(now, DEFAULT_TIME_ZONE);
+    const startOfTomorrow = endOfLocalDay(now, DEFAULT_TIME_ZONE);
     const sevenDaysAgo = new Date(now.getTime() - NO_SHOW_LOOKBACK_DAYS * 86_400_000);
     const answerDeadline = new Date(now.getTime() + UNANSWERED_HORIZON_HOURS * 3_600_000);
 

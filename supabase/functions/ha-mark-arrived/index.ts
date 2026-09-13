@@ -27,6 +27,7 @@ import {
 import { requireHospitalAdminScope } from "../_shared/hospital-admin-scope.ts";
 import { makeLogger } from "../_shared/logger.ts";
 import { networkContext, recordSaAudit } from "../_shared/sa-audit.ts";
+import { DEFAULT_TIME_ZONE, startOfLocalDay } from "../_shared/slots.ts";
 
 const log = makeLogger("ha-mark-arrived");
 
@@ -116,9 +117,9 @@ Deno.serve(async (request: Request) => {
   // 2. Virtual appointments: no physical queue entry (PRD §1.5).
   let queueEntryId: string | null = null;
   if (appt.type !== "virtual") {
-    // Compute the next sequence_number for (hospital, department, today).
-    const startOfDay = new Date();
-    startOfDay.setUTCHours(0, 0, 0, 0);
+    // Compute the next sequence_number for (hospital, department, today) —
+    // the hospital's today, not UTC's, or numbering restarts at 03:00 EAT.
+    const startOfDay = startOfLocalDay(new Date(), DEFAULT_TIME_ZONE);
     const { count } = await sb
       .from("queue_entries")
       .select("id", { count: "exact", head: true })

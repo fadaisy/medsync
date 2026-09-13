@@ -7,6 +7,7 @@ import { hospitalDepartments } from "@/db/schema/hospital-departments";
 import { hospitals } from "@/db/schema/hospitals";
 import { entryTypes, patientIntakes, priorityHintRank } from "@/db/schema/patient-intakes";
 import { patientProfiles } from "@/db/schema/patient-profiles";
+import { DEFAULT_TIME_ZONE, startOfLocalDay } from "@/supabase/functions/_shared/slots";
 
 /**
  * Read helpers for patient_intakes. Patient names on these surfaces
@@ -218,8 +219,8 @@ export async function listActiveHospitals(): Promise<
 export async function fetchTodayIntakeCount(args: {
   hospitalId: string;
 }): Promise<{ awaitingTriage: number; emergencyAwaiting: number }> {
-  const start = new Date();
-  start.setHours(0, 0, 0, 0);
+  // The hospital's day, not the host's (UTC on Vercel — 03:00 EAT).
+  const start = startOfLocalDay(new Date(), DEFAULT_TIME_ZONE);
   const rows = await db
     .select({
       isEmergency: entryTypes.isEmergency,

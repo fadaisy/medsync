@@ -9,6 +9,7 @@ import { patientProfiles } from "@/db/schema/patient-profiles";
 import { appointments } from "@/db/schema/scheduling";
 import { users } from "@/db/schema/users";
 import { requireClinicianScope } from "@/lib/clinician/scope";
+import { DEFAULT_TIME_ZONE, startOfLocalDay } from "@/supabase/functions/_shared/slots";
 import { ScheduleList } from "./_components/schedule-list";
 
 export const metadata: Metadata = { title: "Schedule · MedSync" };
@@ -38,7 +39,8 @@ export default async function ClinicianSchedulePage({ searchParams }: PageProps)
   const scope = await requireClinicianScope();
   const params = await searchParams;
 
-  const today = startOfDayUTC();
+  // The hospital's today, not UTC's — a 01:00 EAT booking is today's.
+  const today = startOfLocalDay(new Date(), DEFAULT_TIME_ZONE);
   const fortnight = new Date(today.getTime() + 14 * 24 * 60 * 60 * 1000);
 
   const rows = await db
@@ -151,12 +153,6 @@ function Kpi({
       </span>
     </div>
   );
-}
-
-function startOfDayUTC(): Date {
-  const d = new Date();
-  d.setUTCHours(0, 0, 0, 0);
-  return d;
 }
 
 // Re-export the Pill component type so the child doesn't import twice.

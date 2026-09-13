@@ -9,6 +9,11 @@ import { patientProfiles } from "@/db/schema/patient-profiles";
 import { appointments, encounters } from "@/db/schema/scheduling";
 import { decrypt } from "@/lib/encryption";
 import { logger } from "@/lib/logger";
+import {
+  DEFAULT_TIME_ZONE,
+  endOfLocalDay,
+  startOfLocalDay,
+} from "@/supabase/functions/_shared/slots";
 
 /**
  * Patient-access enforcement + audited PHI decrypt for the nurse
@@ -50,6 +55,10 @@ export async function resolveNursePatientAccess(args: {
   patientUserId: string;
   inChargeWardIds: string[];
 }): Promise<AccessDecision> {
+  // One clock read for both "today" windows below — the hospital's day,
+  // not the host's (UTC on Vercel — 03:00 EAT).
+  const now = new Date();
+
   // 1. Assigned (fast path — single index lookup).
   const [assignment] = await db
     .select({ id: nursingAssignments.id })
@@ -74,10 +83,8 @@ export async function resolveNursePatientAccess(args: {
     // and trust the in-charge overlay grants visibility. This is
     // intentionally loose for in-charge (the in-charge sees their
     // ward; we widen if needed in a polish pass).
-    const todayStart = new Date();
-    todayStart.setHours(0, 0, 0, 0);
-    const todayEnd = new Date(todayStart);
-    todayEnd.setDate(todayEnd.getDate() + 1);
+    const todayStart = startOfLocalDay(now, DEFAULT_TIME_ZONE);
+    const todayEnd = endOfLocalDay(now, DEFAULT_TIME_ZONE);
 
     const [todayActivity] = await db
       .select({ id: appointments.id })
@@ -98,10 +105,8 @@ export async function resolveNursePatientAccess(args: {
   // nurse is assigned to that department. We approximate by checking
   // the nurse's current department matches the patient's recent
   // appointment department (ward FK isn't on appointments).
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
-  const todayEnd = new Date(todayStart);
-  todayEnd.setDate(todayEnd.getDate() + 1);
+  const todayStart = startOfLocalDay(now, DEFAULT_TIME_ZONE);
+  const todayEnd = endOfLocalDay(now, DEFAULT_TIME_ZONE);
 
   const [census] = await db
     .select({ id: appointments.id })
@@ -154,10 +159,10 @@ export async function listNursePatientPanel(args: {
   limit?: number;
 }): Promise<NursePatientRow[]> {
   const limit = args.limit ?? 100;
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
-  const todayEnd = new Date(todayStart);
-  todayEnd.setDate(todayEnd.getDate() + 1);
+  // The hospital's day, not the host's (UTC on Vercel — 03:00 EAT).
+  const now = new Date();
+  const todayStart = startOfLocalDay(now, DEFAULT_TIME_ZONE);
+  const todayEnd = endOfLocalDay(now, DEFAULT_TIME_ZONE);
 
   // 1. Assigned (always shown).
   const assignedRows = await db

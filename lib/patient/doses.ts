@@ -458,6 +458,14 @@ function withinDay(d: Date, dayStart: Date, dayEnd: Date): boolean {
   return d.getTime() >= dayStart.getTime() && d.getTime() < dayEnd.getTime();
 }
 
+/**
+ * Host-local, and NOT the engine's `startOfLocalDay(instant, zone)`: this
+ * module, `day-strip.tsx` (`fromDayIso`/`toDayIso`) and `self-tracking.ts`
+ * form one calendar in the PATIENT's zone — `atOnDay` and `timeLabelOf`
+ * read the same clock — and a patient is not a hospital. Re-basing one
+ * midnight alone would put "08:00" on the wrong day. See the ponytail note
+ * on `buildDayDoses` for the upgrade path (`patient_profiles.timezone`).
+ */
 function startOfLocalDay(d: Date): Date {
   const out = new Date(d);
   out.setHours(0, 0, 0, 0);

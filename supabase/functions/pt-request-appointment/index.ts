@@ -11,11 +11,14 @@
  *   - starts_at / ends_at ISO timestamps for the chosen slot
  *   - type               in_person | virtual (virtual only if clinician
  *                        + dept allow it)
+ *   - idempotency_key    optional; one per wizard submission, reused across
+ *                        retries. A replay returns the row the first attempt
+ *                        made, with the same 200 body (Gate A §5.5).
  *
  * Flow:
  *   1. Ask `_shared/slots.ts` whether this is a slot it would have
  *      offered — grid, buffer, weekly recurrence, department opening
- *      hours, already-taken time. Then refuse an exact duplicate.
+ *      hours, already-taken time.
  *   2. Read the clinician's settings to decide auto_confirm vs manual.
  *   3. INSERT appointments with the correct initial status:
  *        - clinician.auto_confirm = true  → 'confirmed'
@@ -29,9 +32,11 @@
  *     Booking-on-behalf is a SEPARATE Edge Function in GATE D.
  *   - hospital_id may be ANY active hospital (ADR 0086 superseded the
  *     primary-facility restriction of PRD §1.5 for self-booking).
- *   - We refuse to create a duplicate live booking at the same
- *     (clinician, starts_at) — the partial UNIQUE index would catch
- *     it anyway, but we surface a clean 409 with a sane message.
+ *   - A duplicate live booking at the same (clinician, starts_at) is
+ *     refused by `appointments_no_double_booking` alone, surfaced as a
+ *     409. There is no check-then-write before the INSERT: two patients
+ *     racing for one slot used to both pass the check and one of them
+ *     got a 500 from the index (Gate A §4.4).
  *   - ADR 0084 §8: a PATIENT may not hold a booking more than 14 days
  *     out. Enforced here and deliberately nowhere else — not as a CHECK
  *     on `appointments`, not in `_shared/slots.ts`, not in
@@ -94,6 +99,7 @@ const InputSchema = z.object({
   starts_at: z.string().datetime({ offset: true }),
   ends_at: z.string().datetime({ offset: true }),
   type: z.enum(["in_person", "virtual"]).default("in_person"),
+  idempotency_key: z.string().min(1).max(128).optional(),
 });
 
 Deno.serve(async (request: Request) => {
@@ -136,6 +142,23 @@ Deno.serve(async (request: Request) => {
   if (!caller) return unauthorized(init);
 
   const sb = serviceClient();
+
+  // 0. Replay? The same submission, retried, must answer with the booking
+  //    it already made — before the slot engine (step 3) sees that booking
+  //    as "taken" and refuses the patient their own appointment.
+  const replay = async () =>
+    input.idempotency_key
+      ? (
+          await sb
+            .from("appointments")
+            .select("id, status")
+            .eq("patient_user_id", caller.id)
+            .eq("idempotency_key", input.idempotency_key)
+            .maybeSingle()
+        ).data
+      : null;
+  const prior = await replay();
+  if (prior) return ok({ appointment_id: prior.id, status: prior.status }, init);
 
   // 1. Confirm the patient owns this booking (caller.id = patient,
   //    patient.state='active').
@@ -271,19 +294,7 @@ Deno.serve(async (request: Request) => {
   // Already patient-facing prose, and the only reason this is a 400.
   if (notOfferable) return badRequest(notOfferable, init);
 
-  // 4. Refuse double-booking at the wire (the partial UNIQUE index
-  //    would also reject, but a clean 409 is friendlier).
-  const { data: dup } = await sb
-    .from("appointments")
-    .select("id, status")
-    .eq("clinician_user_id", input.clinician_user_id)
-    .eq("starts_at", input.starts_at)
-    .in("status", ["requested", "pending_approval", "confirmed", "arrived", "in_progress"])
-    .limit(1)
-    .maybeSingle();
-  if (dup) {
-    return conflict("Someone just took this slot — pick another and try again.", init);
-  }
+  // 4. (Double-booking is the index's job — see step 7.)
 
   // 5. Virtual is refused unless something GRANTS it — ADR 0029 §2's chain,
   //    whose last rung is `allowVirtual: false`. The guard used to read
@@ -329,10 +340,23 @@ Deno.serve(async (request: Request) => {
       priority: "routine",
       type: input.type,
       created_by_user_id: caller.id,
+      // Omitted when absent so the row takes the column default (and a
+      // client that never sends one keeps working before migration 0058).
+      ...(input.idempotency_key ? { idempotency_key: input.idempotency_key } : {}),
     })
     .select("id, status")
     .single();
   if (insertError || !created) {
+    const violates = (index: string) =>
+      insertError?.code === "23505" && insertError.message.includes(index);
+    if (violates("appointments_no_double_booking")) {
+      return conflict("Someone just took this slot — pick another and try again.", init);
+    }
+    if (violates("appointments_idempotency_unique")) {
+      // Two retries of one submission raced past step 0; the other one won.
+      const winner = await replay();
+      if (winner) return ok({ appointment_id: winner.id, status: winner.status }, init);
+    }
     log.error("appointment insert failed", { requestId, reason: insertError?.message });
     return serverError("could not create appointment", init);
   }

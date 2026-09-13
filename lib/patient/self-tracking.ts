@@ -68,6 +68,9 @@ export interface TrackingGlance {
 }
 
 export async function fetchTrackingGlance(patientUserId: string): Promise<TrackingGlance> {
+  // Host-local on purpose: `buildDayDoses` re-derives its own host-local
+  // midnight from this `day`, so the two must read one clock (the
+  // patient's calendar, not a hospital's — see `lib/patient/doses.ts`).
   const startOfDay = new Date();
   startOfDay.setHours(0, 0, 0, 0);
 

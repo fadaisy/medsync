@@ -110,3 +110,37 @@ export async function cancelIntakeAction(
   revalidatePath("/reception/flow");
   return { ok: true };
 }
+
+/* ─── Mark a booked patient no-show ─────────────────────────────── */
+
+const NoShowSchema = z.object({
+  appointment_id: z.string().uuid(),
+  reason: z.string().min(8, "Reason ≥ 8 chars (audited)."),
+});
+
+/**
+ * Reception marks a confirmed, past-start booking as no_show. The Edge
+ * Function admits any active/approved affiliation at the appointment's
+ * hospital (Gate A′ (d)); the reason is typed, not defaulted — a no-show
+ * is a status the patient cannot undo, so the audit row says why.
+ */
+export async function markNoShowAction(
+  _prev: ReceptionActionState,
+  formData: FormData,
+): Promise<ReceptionActionState> {
+  const parsed = NoShowSchema.safeParse({
+    appointment_id: formData.get("appointment_id"),
+    reason: formData.get("reason"),
+  });
+  if (!parsed.success) {
+    const first = Object.values(parsed.error.flatten().fieldErrors).flat().find(Boolean);
+    return { error: first ?? "Please check the values." };
+  }
+  await requireReceptionScope();
+  const result = await callEdge("ha-mark-no-show", parsed.data, "reception");
+  if (!result.ok) return { error: result.error };
+  revalidatePath("/reception");
+  revalidatePath("/reception/expected");
+  revalidatePath("/reception/flow");
+  return { ok: true };
+}

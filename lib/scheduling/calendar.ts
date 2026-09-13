@@ -165,6 +165,12 @@ export async function fetchClinicianCalendarEvents(args: {
       const seriesEnd =
         r.recurrenceUntil && r.recurrenceUntil < args.rangeEnd ? r.recurrenceUntil : args.rangeEnd;
 
+      // Host-local on purpose, with `getHours()` above and `setHours(h, m)`
+      // below: the three read ONE zone, so each occurrence lands on the
+      // template's own instant whatever the host is. Moving only this
+      // midnight to `startOfLocalDay` would shift every occurrence by a
+      // day on a UTC host. Zone-correct rendering means re-basing the whole
+      // loop on `expandBlocks` — the note above says why that is not done.
       const cursor = new Date(seriesStart);
       cursor.setHours(0, 0, 0, 0);
       // Advance cursor to the first occurrence of targetJsDay on/after cursor.
@@ -270,6 +276,8 @@ export async function fetchClinicianCalendarEvents(args: {
   return events;
 }
 
+/** Host-local, like the weekly cursor above and for the same reason: the
+ * multi-day split must agree with the `setHours(h, m)` arithmetic beside it. */
 function toMidnight(d: Date): Date {
   const next = new Date(d);
   next.setHours(0, 0, 0, 0);

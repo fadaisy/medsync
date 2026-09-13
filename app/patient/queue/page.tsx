@@ -8,7 +8,12 @@ import { hospitalDepartments } from "@/db/schema/hospital-departments";
 import { patientIntakes } from "@/db/schema/patient-intakes";
 import { appointments, departmentSchedulingPolicy } from "@/db/schema/scheduling";
 import { requirePatientScope } from "@/lib/patient/scope";
-import { DEFAULT_TIME_ZONE, localWeekdayAndMinutes } from "@/supabase/functions/_shared/slots";
+import {
+  DEFAULT_TIME_ZONE,
+  endOfLocalDay,
+  localWeekdayAndMinutes,
+  startOfLocalDay,
+} from "@/supabase/functions/_shared/slots";
 import { EmergencyNotice } from "../_components/emergency-notice";
 import { PatientPageHeader } from "../_components/page-header";
 import { TintedRow } from "../_components/tinted-row";
@@ -49,10 +54,11 @@ export default async function PatientQueuePage() {
   }
   const hospitalId = scope.primaryHospitalId;
 
-  const startOfDay = new Date();
-  startOfDay.setHours(0, 0, 0, 0);
-  const endOfDay = new Date(startOfDay);
-  endOfDay.setDate(endOfDay.getDate() + 1);
+  // The hospital's day, never the server's — a ticket declared at 01:00 EAT
+  // is today's, not "yesterday's" as UTC midnight would have it.
+  const now = new Date();
+  const startOfDay = startOfLocalDay(now, DEFAULT_TIME_ZONE);
+  const endOfDay = endOfLocalDay(now, DEFAULT_TIME_ZONE);
   // The hospital's clock, never the server's. `getDay()`/`getHours()` here
   // read whatever zone the host runs in — UTC on Vercel — which is the wrong
   // WEEKDAY for the first three hours of every East African day and a
@@ -61,7 +67,7 @@ export default async function PatientQueuePage() {
   // Same helper as the server-side gate in pt-declare-intake, so the page
   // and the 409 can never disagree.
   const { isoWeekday: nowWeekday, minutesOfDay: nowMinutes } = localWeekdayAndMinutes(
-    new Date(),
+    now,
     DEFAULT_TIME_ZONE,
   );
 

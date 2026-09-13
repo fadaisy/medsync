@@ -9,10 +9,13 @@ import { describe, expect, it } from "vitest";
 import {
   buildSlots,
   checkSlot,
+  endOfLocalDay,
+  expandSessionTemplate,
   localDateKey,
   localSession,
   localWeekdayAndMinutes,
   resolveSchedulingSettings,
+  startOfLocalDay,
 } from "@/supabase/functions/_shared/slots";
 
 /**
@@ -789,5 +792,129 @@ describe("leave and unavailable subtract from bookable time", () => {
       rangeEnd: new Date("2026-09-30T00:00:00Z"),
     });
     expect(offered).toHaveLength(0);
+  });
+});
+
+describe("startOfLocalDay / endOfLocalDay — the day boundary in the hospital's zone", () => {
+  it("at 00:30 EAT the day began at 21:00Z the evening before, not at 00:00Z", () => {
+    // 21:30Z on the 15th is 00:30 EAT on the 16th. setUTCHours(0) says the
+    // 15th; the hospital says the 16th, which began at 21:00Z.
+    const at = new Date("2026-09-15T21:30:00Z");
+    expect(startOfLocalDay(at, KAMPALA).toISOString()).toBe("2026-09-15T21:00:00.000Z");
+    expect(endOfLocalDay(at, KAMPALA).toISOString()).toBe("2026-09-16T21:00:00.000Z");
+  });
+
+  it("accepts an ISO string and answers in the given zone, not the host's", () => {
+    expect(startOfLocalDay("2026-09-15T06:00:00Z", KAMPALA).toISOString()).toBe(
+      "2026-09-14T21:00:00.000Z",
+    );
+    expect(startOfLocalDay("2026-09-15T06:00:00Z", "UTC").toISOString()).toBe(
+      "2026-09-15T00:00:00.000Z",
+    );
+  });
+
+  it("is DST-safe: the day of a spring-forward is 23 hours long", () => {
+    // Europe/London, 2026-03-29: 01:00Z the clocks go to 02:00 BST.
+    const start = startOfLocalDay("2026-03-29T12:00:00Z", "Europe/London");
+    const end = endOfLocalDay("2026-03-29T12:00:00Z", "Europe/London");
+    expect(start.toISOString()).toBe("2026-03-29T00:00:00.000Z");
+    expect(end.toISOString()).toBe("2026-03-29T23:00:00.000Z");
+  });
+});
+
+describe("expandSessionTemplate — a weekly rule into dated sessions", () => {
+  /** Tuesday 08:00 EAT for four hours, from 2026-09-15 (a Tuesday). */
+  const tuesday = {
+    weekday: 2,
+    startMinutesLocal: 480,
+    durationMinutes: 240,
+    validFrom: "2026-09-15",
+    validUntil: null,
+  };
+
+  it("produces every Tuesday in the range at 08:00 EAT (05:00Z), ascending", () => {
+    const out = expandSessionTemplate(
+      tuesday,
+      "2026-09-14T00:00:00Z",
+      "2026-09-30T00:00:00Z",
+      KAMPALA,
+    );
+    expect(out.map((s) => s.startsAt.toISOString())).toEqual([
+      "2026-09-15T05:00:00.000Z",
+      "2026-09-22T05:00:00.000Z",
+      "2026-09-29T05:00:00.000Z",
+    ]);
+    expect(out[0]?.endsAt.toISOString()).toBe("2026-09-15T09:00:00.000Z");
+  });
+
+  it("honours valid_from: a range that starts before it yields nothing before it", () => {
+    const out = expandSessionTemplate(
+      { ...tuesday, validFrom: "2026-09-22" },
+      "2026-09-01T00:00:00Z",
+      "2026-09-30T00:00:00Z",
+      KAMPALA,
+    );
+    expect(out.map((s) => s.startsAt.toISOString())).toEqual([
+      "2026-09-22T05:00:00.000Z",
+      "2026-09-29T05:00:00.000Z",
+    ]);
+  });
+
+  it("honours valid_until inclusively: the Tuesday it names is still produced", () => {
+    const out = expandSessionTemplate(
+      { ...tuesday, validUntil: "2026-09-22" },
+      "2026-09-01T00:00:00Z",
+      "2026-10-31T00:00:00Z",
+      KAMPALA,
+    );
+    expect(out.map((s) => s.startsAt.toISOString())).toEqual([
+      "2026-09-15T05:00:00.000Z",
+      "2026-09-22T05:00:00.000Z",
+    ]);
+  });
+
+  it("treats weekday 7 as Sunday", () => {
+    const out = expandSessionTemplate(
+      { ...tuesday, weekday: 7, validFrom: "2026-09-13" },
+      "2026-09-13T00:00:00Z",
+      "2026-09-21T00:00:00Z",
+      KAMPALA,
+    );
+    // 2026-09-13 and 2026-09-20 are Sundays.
+    expect(out.map((s) => s.startsAt.toISOString())).toEqual([
+      "2026-09-13T05:00:00.000Z",
+      "2026-09-20T05:00:00.000Z",
+    ]);
+  });
+
+  it("is half-open on the range: a session starting exactly at rangeEnd is excluded", () => {
+    const out = expandSessionTemplate(
+      tuesday,
+      "2026-09-14T00:00:00Z",
+      "2026-09-22T05:00:00Z",
+      KAMPALA,
+    );
+    expect(out.map((s) => s.startsAt.toISOString())).toEqual(["2026-09-15T05:00:00.000Z"]);
+  });
+
+  it("keeps a session that started before the range and runs into it", () => {
+    const out = expandSessionTemplate(
+      tuesday,
+      "2026-09-15T07:00:00Z", // 10:00 EAT, mid-session
+      "2026-09-16T00:00:00Z",
+      KAMPALA,
+    );
+    expect(out.map((s) => s.startsAt.toISOString())).toEqual(["2026-09-15T05:00:00.000Z"]);
+  });
+
+  it("refuses a date that is not YYYY-MM-DD rather than guessing", () => {
+    expect(() =>
+      expandSessionTemplate(
+        { ...tuesday, validFrom: "15/09/2026" },
+        "2026-09-14T00:00:00Z",
+        "2026-09-30T00:00:00Z",
+        KAMPALA,
+      ),
+    ).toThrow(/validFrom/);
   });
 });

@@ -12,6 +12,7 @@ import { computeAgeYears } from "@/lib/age";
 import { decrypt } from "@/lib/encryption";
 import { presenceAt, presenceOf } from "@/lib/intake/queries";
 import { logger } from "@/lib/logger";
+import { DEFAULT_TIME_ZONE, startOfLocalDay } from "@/supabase/functions/_shared/slots";
 
 /**
  * Triage worklist + trend reads.
@@ -304,8 +305,8 @@ export interface TriageMetrics {
 export async function fetchTriageMetricsToday(args: {
   hospitalId: string;
 }): Promise<TriageMetrics> {
-  const start = new Date();
-  start.setHours(0, 0, 0, 0);
+  // The hospital's day, not the host's (UTC on Vercel — 03:00 EAT).
+  const start = startOfLocalDay(new Date(), DEFAULT_TIME_ZONE);
 
   const rows = await db
     .select({

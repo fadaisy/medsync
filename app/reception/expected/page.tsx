@@ -5,8 +5,10 @@ import { ArrowLeftIcon, ClockIcon } from "lucide-react";
 import { Pill } from "@/components/ui/pill";
 import { fetchDeclaredIntakesToday, fetchExpectedArrivals } from "@/lib/reception/queries";
 import { requireReceptionScope } from "@/lib/reception/scope";
+import { DEFAULT_TIME_ZONE, localDateKey } from "@/supabase/functions/_shared/slots";
 import { CheckInDeclaredButton } from "../_components/check-in-declared-button";
 import { CheckInButton } from "./_components/check-in-button";
+import { NoShowButton } from "./_components/no-show-button";
 
 export const metadata: Metadata = { title: "Expected · Reception · MedSync" };
 export const dynamic = "force-dynamic";
@@ -33,6 +35,8 @@ export default async function ReceptionExpectedPage({ searchParams }: PageProps)
   const { date: dateParam } = await searchParams;
   const scope = await requireReceptionScope();
   const date = dateParam ? new Date(dateParam) : undefined;
+  // One clock read: the rows' "time has passed" test and the day window agree.
+  const now = new Date();
 
   const [rows, declared] = await Promise.all([
     fetchExpectedArrivals({
@@ -43,7 +47,7 @@ export default async function ReceptionExpectedPage({ searchParams }: PageProps)
     // Patient-declared queue tickets that haven't been checked in yet.
     // Reception flips them to 'arrived' via the same Edge Function as
     // booked-arrival check-in (intake_id branch). Migration 0035.
-    !date || isToday(date)
+    !date || localDateKey(date, DEFAULT_TIME_ZONE) === localDateKey(now, DEFAULT_TIME_ZONE)
       ? fetchDeclaredIntakesToday({
           hospitalId: scope.hospitalId,
           receptionUserId: scope.userId,
@@ -144,7 +148,7 @@ export default async function ReceptionExpectedPage({ searchParams }: PageProps)
           <table className="w-full border-collapse text-left">
             <caption className="sr-only">
               Booked appointments, earliest first. Each row carries its status and a check-in
-              control.
+              control; a confirmed booking whose time has passed also offers no-show.
             </caption>
             <thead className="border-border bg-muted/30 border-b">
               <tr className="text-muted-foreground text-overline font-mono uppercase">
@@ -196,11 +200,16 @@ export default async function ReceptionExpectedPage({ searchParams }: PageProps)
                     <Pill tone="neutral">{STATUS_LABEL[r.status] ?? r.status}</Pill>
                   </td>
                   <td className="px-4 py-2.5 text-right">
-                    <CheckInButton
-                      appointmentId={r.id}
-                      alreadyArrived={ARRIVED_STATES.has(r.status)}
-                      patientLabel={r.patientCode}
-                    />
+                    <div className="flex flex-wrap items-start justify-end gap-2">
+                      {r.status === "confirmed" && new Date(r.startsAtIso) < now ? (
+                        <NoShowButton appointmentId={r.id} patientLabel={r.patientCode} />
+                      ) : null}
+                      <CheckInButton
+                        appointmentId={r.id}
+                        alreadyArrived={ARRIVED_STATES.has(r.status)}
+                        patientLabel={r.patientCode}
+                      />
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -221,15 +230,6 @@ export default async function ReceptionExpectedPage({ searchParams }: PageProps)
 function formatTime(iso: string): string {
   const d = new Date(iso);
   return d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
-}
-
-function isToday(d: Date): boolean {
-  const today = new Date();
-  return (
-    d.getFullYear() === today.getFullYear() &&
-    d.getMonth() === today.getMonth() &&
-    d.getDate() === today.getDate()
-  );
 }
 
 function truncate(s: string, max: number): string {
