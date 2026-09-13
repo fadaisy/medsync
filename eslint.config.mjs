@@ -24,7 +24,15 @@ const eslintConfig = defineConfig([
       eqeqeq: ["error", "smart"],
     },
   },
-  globalIgnores([".next/**", "out/**", "build/**", "node_modules/**", "next-env.d.ts"]),
+  globalIgnores([
+    ".next/**",
+    "out/**",
+    "build/**",
+    "node_modules/**",
+    "next-env.d.ts",
+    // The Expo app has its own eslint config, RN globals and plugin set.
+    "mobile/**",
+  ]),
 ]);
 
 export default eslintConfig;

@@ -13,3 +13,6 @@ yarn.lock
 .vercel
 .git
 next-env.d.ts
+
+# Expo app — formats itself via its own toolchain
+mobile
