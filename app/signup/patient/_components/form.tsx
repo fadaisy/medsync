@@ -22,6 +22,7 @@ import {
 } from "@/components/forms";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { SMS_CONSENT_COPY } from "@/lib/notifications/consent-copy";
 import { cn } from "@/lib/utils";
 
 /**
@@ -47,6 +48,13 @@ export interface PatientSignupFormProps {
     body: string;
     effectiveDate: string;
   };
+  /** Gate E: SMS about bookings — declinable (PRD §5.2). Null when no text is seeded yet. */
+  smsConsent: {
+    version: string;
+    bodySha256: string;
+    body: string;
+    effectiveDate: string;
+  } | null;
   loadSubcounties: typeof loadSubcountiesForDistrictAction;
   submit: typeof submitPatientSignupAction;
 }
@@ -75,6 +83,7 @@ const ID_TYPE_OPTIONS = [
 export function PatientSignupForm({
   districts,
   consent,
+  smsConsent,
   loadSubcounties,
   submit,
 }: PatientSignupFormProps) {
@@ -285,6 +294,21 @@ export function PatientSignupForm({
             label="I agree to MedSync's data-processing notice"
             description={`v${consent.version} · effective ${consent.effectiveDate}. The exact text above is recorded against your account.`}
           />
+
+          {/* Gate E (ADR 0090, PRD §5.2): its own box, never bundled with the
+              notice above. Unticked by default — consent is opt-in — and the
+              form submits either way. The honest sentence says what declining
+              means; nothing is lost but the SMS. */}
+          {smsConsent ? (
+            <ConsentCheckbox
+              name="sms_communication_consent"
+              invalid={!!errors.sms_communication_consent}
+              version={smsConsent.version}
+              bodySha256={smsConsent.bodySha256}
+              label={SMS_CONSENT_COPY.label}
+              description={`${smsConsent.body} ${SMS_CONSENT_COPY.declined} ${SMS_CONSENT_COPY.receiptException}`}
+            />
+          ) : null}
 
           {errors._form ? (
             <p

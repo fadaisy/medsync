@@ -5,12 +5,13 @@ import type {
 } from "./_components/clinic-sessions-section";
 import type { DepartmentPolicyOption } from "./_components/policy-form";
 import type { ServiceLineRow } from "./_components/service-lines-section";
-import { and, asc, eq, gte, inArray, isNull, lt } from "drizzle-orm";
+import { and, asc, eq, gte, inArray, isNull, lt, sql } from "drizzle-orm";
 
 import { db } from "@/db";
 import { clinicSessions, sessionTemplates } from "@/db/schema/clinic-sessions";
 import { staffAffiliations } from "@/db/schema/clinician-profiles";
 import { hospitalDepartments } from "@/db/schema/hospital-departments";
+import { notificationDispatches } from "@/db/schema/notifications";
 import { cadres } from "@/db/schema/reference-data";
 import { departmentSchedulingPolicy } from "@/db/schema/scheduling";
 import { serviceLines } from "@/db/schema/service-lines";
@@ -25,6 +26,7 @@ import { PlaceholderSurface } from "../_components/placeholder-surface";
 import { SchedulingOverviewCard } from "../_components/scheduling-overview-card";
 import { ClinicSessionsSection } from "./_components/clinic-sessions-section";
 import { PolicyForm } from "./_components/policy-form";
+import { SentTodayPanel } from "./_components/sent-today-panel";
 import { ServiceLinesSection } from "./_components/service-lines-section";
 
 /** The console shows what the materialiser produces: 14 days ahead. */
@@ -106,12 +108,13 @@ export default async function SchedulingPage() {
 
   const unset = departments.filter((d) => !d.policy).length;
 
-  const [lines, templates, sessions, clinicians, unstaffedSoon] = await Promise.all([
+  const [lines, templates, sessions, clinicians, unstaffedSoon, sentToday] = await Promise.all([
     fetchServiceLines(scope.hospitalId),
     fetchTemplates(scope.hospitalId),
     fetchUpcomingSessions(scope.hospitalId),
     fetchClinicians(scope.hospitalId),
     fetchUnstaffedSessionsSoon(scope.hospitalId),
+    fetchSentToday(scope.hospitalId),
   ]);
 
   return (
@@ -176,6 +179,8 @@ export default async function SchedulingPage() {
         clinicians={clinicians}
         todayYmd={localDateKey(new Date(), DEFAULT_TIME_ZONE)}
       />
+
+      <SentTodayPanel rows={sentToday} />
 
       {unset > 0 && departments.length > 0 ? (
         <p className="border-border bg-muted/50 text-muted-foreground text-body-s rounded-md border p-3 leading-relaxed">
@@ -278,6 +283,7 @@ async function fetchUpcomingSessions(hospitalId: string): Promise<ClinicSessionR
       capacityTotal: clinicSessions.capacityTotal,
       overbookingFactor: clinicSessions.overbookingFactor,
       status: clinicSessions.status,
+      delayMinutes: clinicSessions.delayMinutes,
     })
     .from(clinicSessions)
     .innerJoin(serviceLines, eq(serviceLines.id, clinicSessions.serviceLineId))
@@ -301,7 +307,42 @@ async function fetchUpcomingSessions(hospitalId: string): Promise<ClinicSessionR
     capacityTotal: r.capacityTotal,
     overbookingFactor: Number(r.overbookingFactor),
     status: r.status,
+    delayMinutes: r.delayMinutes,
   }));
+}
+
+/* ─── Gate E: "Sent today" (PRD §3.4 reports seed) ─────────────────── */
+
+interface SentTodayRow {
+  kind: string;
+  channel: string;
+  count: number;
+  cost: number;
+  currency: string | null;
+}
+
+/** Messages that left today, by kind and channel, with the SMS spend the provider reported. */
+async function fetchSentToday(hospitalId: string): Promise<SentTodayRow[]> {
+  const from = startOfLocalDay(new Date(), DEFAULT_TIME_ZONE);
+  const rows = await db
+    .select({
+      kind: notificationDispatches.kind,
+      channel: notificationDispatches.channel,
+      count: sql<number>`count(*)::int`,
+      cost: sql<string>`coalesce(sum(${notificationDispatches.costAmount}), 0)`,
+      currency: sql<string | null>`max(${notificationDispatches.costCurrency})`,
+    })
+    .from(notificationDispatches)
+    .where(
+      and(
+        eq(notificationDispatches.hospitalId, hospitalId),
+        inArray(notificationDispatches.state, ["sent", "delivered"]),
+        gte(notificationDispatches.sentAt, from),
+      ),
+    )
+    .groupBy(notificationDispatches.kind, notificationDispatches.channel)
+    .orderBy(asc(notificationDispatches.kind), asc(notificationDispatches.channel));
+  return rows.map((r) => ({ ...r, cost: Number(r.cost) }));
 }
 
 /** The T-12h rule (PRD §3.6): published, within 12 hours, no clinician. */

@@ -74,18 +74,22 @@ describe("one booking core (no duplicated allocator / code / receipt logic)", ()
     }
   });
 
-  it("the allocator, the code, the window, the receipt and the reminders live in book.ts alone", () => {
+  it("the allocator, the code, the window and the booking's dispatch rows live in book.ts alone", () => {
     for (const [path, src] of functionFiles) {
-      if (path === "_shared/book.ts" || path === "_shared/slots.ts") continue; // slots.ts DEFINES the helpers
-      // ponytail: reschedule-appointment still mints its own code + receipt for
-      // the NEW row of a slot reschedule (Gate C). Folding it into the core is
+      // slots.ts DEFINES the helpers; dispatches.ts DEFINES the row builder.
+      if (["_shared/book.ts", "_shared/slots.ts", "_shared/dispatches.ts"].includes(path)) continue;
+      // ponytail: reschedule-appointment still mints its own code + dispatch rows
+      // for the NEW row of a slot reschedule (Gate C). Folding it into the core is
       // a different input (release + book); until then it is the one exemption.
       if (path === "reschedule-appointment/index.ts") continue;
       expect(src, path).not.toContain('rpc("allocate_session_position"');
       // (release_session_position is also cancel-appointment's — a cancel gives the place back.)
       expect(src, path).not.toContain("bookingCode(");
       expect(src, path).not.toContain("arrivalWindow(");
+      // Gate E (ADR 0090): the receipt moved from appointment_reminders to
+      // notification_dispatches; the booking's rows come from ONE builder.
       expect(src, path).not.toContain('kind: "receipt"');
+      expect(src, path).not.toContain("bookingDispatchRows(");
     }
     const core = read("supabase/functions/_shared/book.ts");
     for (const needle of [
@@ -93,11 +97,12 @@ describe("one booking core (no duplicated allocator / code / receipt logic)", ()
       'rpc("release_session_position"',
       "bookingCode(",
       "arrivalWindow(",
-      'kind: "receipt"',
-      "reminder_lead_minutes",
+      "bookingDispatchRows(",
     ]) {
       expect(core).toContain(needle);
     }
+    // No new booking writes the legacy queue.
+    expect(core).not.toContain('from("appointment_reminders")');
   });
 
   it("the core refuses a confidential line when a patient books for someone else", () => {
@@ -109,6 +114,9 @@ describe("one booking core (no duplicated allocator / code / receipt logic)", ()
 
 describe("migration 0060 — RLS and CHECKs as written", () => {
   const SQL = read("supabase/migrations/0060_identity_and_lifecycle.sql");
+  // The sa_audit_log CHECKs are re-issued by every later migration that adds
+  // a verb; the LATEST one is what the DB holds (0061 at Gate E, ADR 0090).
+  const LATEST_AUDIT_SQL = read("supabase/migrations/0061_notifications_and_waitlist.sql");
   const policies = [...SQL.matchAll(/CREATE POLICY (\w+) ON public\.(\w+)\s+FOR (\w+)/g)].map(
     (m) => ({ name: m[1], table: m[2], cmd: m[3] }),
   );
@@ -189,8 +197,8 @@ describe("migration 0060 — RLS and CHECKs as written", () => {
       return [...ts.slice(start, end).matchAll(/"([a-z_]+)"/g)].map((m) => m[1] as string);
     };
     const check = (name: string) => {
-      const start = SQL.lastIndexOf(`${name} CHECK`);
-      return SQL.slice(start, SQL.indexOf(";", start));
+      const start = LATEST_AUDIT_SQL.lastIndexOf(`${name} CHECK`);
+      return LATEST_AUDIT_SQL.slice(start, LATEST_AUDIT_SQL.indexOf(";", start));
     };
     const actions = check("sa_audit_log_action_check");
     for (const a of union("SaAuditAction")) expect(actions, a).toContain(`'${a}'`);

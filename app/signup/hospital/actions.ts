@@ -515,12 +515,18 @@ export async function submitHospitalApplicationAction(
 
   // Applicant's personal data-processing consent (their data on the platform).
   const phoneCt = encrypt(input.applicant_phone);
-  await service.from("consent_records").insert({
+  // The row is the legal proof (DPPA 2019) — a failed write is logged, never
+  // swallowed. `version` is NOT NULL and `accepted_at` is the column's name.
+  const { error: consentError } = await service.from("consent_records").insert({
     user_id: userId,
     consent_type: "data_processing",
+    version: activeConsent.version,
     consent_text_sha256: activeConsent.bodySha256,
-    granted_at: new Date().toISOString(),
+    accepted_at: new Date().toISOString(),
   });
+  if (consentError) {
+    logger.error("signup.consent.insert_failed", { reason: consentError.message });
+  }
   await service
     .from("users")
     .update({ state: "pending_approval", phone: phoneCt })

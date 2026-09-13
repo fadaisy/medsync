@@ -275,6 +275,10 @@ export interface AppointmentRow {
    * this account (the functions check `patient_user_id = caller`).
    */
   forMember: string | null;
+  /** Gate E: the patient's answer to the T-24h confirmation request; null = not yet. */
+  confirmedByPatientAtIso: string | null;
+  /** Gate E: 'session_cancelled' when the clinic cancelled the day — the screen offers a rebooking. */
+  cancelledReason: string | null;
 }
 
 interface AppointmentQueryRow {
@@ -294,6 +298,8 @@ interface AppointmentQueryRow {
   position_number: number | null;
   arrival_window_start: string | null;
   arrival_window_end: string | null;
+  confirmed_by_patient_at: string | null;
+  cancelled_reason: string | null;
   hospital_departments: Embed<{ name: string }>;
   hospitals: Embed<{ name: string }>;
 }
@@ -337,7 +343,8 @@ export async function fetchAppointments(
     .select(
       "id, provisional_patient_id, hospital_id, department_id, clinician_user_id, starts_at, ends_at, status, type, " +
         "reason, reason_note, booking_code, session_id, position_number, " +
-        "arrival_window_start, arrival_window_end, hospital_departments(name), hospitals(name)",
+        "arrival_window_start, arrival_window_end, confirmed_by_patient_at, cancelled_reason, " +
+        "hospital_departments(name), hospitals(name)",
     )
     .or(`${own}${members}`);
   query = isPast ? query.lt("starts_at", nowIso) : query.gte("starts_at", nowIso);
@@ -379,6 +386,8 @@ export async function fetchAppointments(
       arrivalWindowStartIso: r.arrival_window_start,
       arrivalWindowEndIso: r.arrival_window_end,
       forMember,
+      confirmedByPatientAtIso: r.confirmed_by_patient_at,
+      cancelledReason: r.cancelled_reason,
     };
   });
 }

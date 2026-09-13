@@ -1,13 +1,16 @@
 "use client";
 
 import type { ClinicianOption, ElsewhereOption, LineOption, SessionOption } from "../_lib/booking";
+import type { JoinWaitlistInput } from "../actions";
 import type { ReactNode } from "react";
 import Link from "next/link";
 
 import { Pill } from "@/components/ui/pill";
 import { formatFullDate, formatShortDate, formatTime } from "@/lib/patient/booking-format";
 import { cn } from "@/lib/utils";
+import { DEFAULT_TIME_ZONE, localDateKey } from "@/supabase/functions/_shared/slots";
 import { accessAlternatives, splitDays, splitSessions, windowEndMs } from "../_lib/booking";
+import { WaitlistJoin } from "./waitlist-join";
 
 /**
  * The pick — a clinician's day and time, or a clinic day — and the pieces it
@@ -180,6 +183,7 @@ export function SessionStep({
   nowMs,
   desk = false,
   forMember = false,
+  waitlist,
   onPick,
 }: {
   line: LineOption;
@@ -189,11 +193,15 @@ export function SessionStep({
   desk?: boolean;
   /** Booking for a household member: no queue door. */
   forMember?: boolean;
+  /** Gate E: what a "Tell me if a place opens" join would send; absent on the desk. */
+  waitlist?: { reason: string; forProvisionalId?: string; todayYmd: string };
   onPick: (id: string) => void;
 }) {
   const endMs = windowEndMs(nowMs, line.timeToCareDays);
   const { within, beyond } = splitSessions(line.sessions, endMs);
   const alternatives = desk ? null : accessAlternatives(line, null, nowMs);
+  // Nothing takeable inside the target: every day is full, or there is none.
+  const nothingWithin = within.every((s) => s.placesLeft === 0);
   const toOption = (s: SessionOption): Choice<string> => ({
     value: s.id,
     title: formatFullDate(s.startsAtIso),
@@ -225,6 +233,18 @@ export function SessionStep({
           value={sessionId}
           onChange={onPick}
           options={within.map(toOption)}
+        />
+      ) : null}
+      {waitlist && nothingWithin ? (
+        <WaitlistJoin
+          clinicName={line.name}
+          input={{
+            service_line_id: line.id,
+            reason: waitlist.reason as JoinWaitlistInput["reason"],
+            preferred_from: waitlist.todayYmd,
+            preferred_to: ymdInKampala(endMs),
+            ...(waitlist.forProvisionalId ? { for_provisional_id: waitlist.forProvisionalId } : {}),
+          }}
         />
       ) : null}
       {beyond.length > 0 ? (
@@ -462,4 +482,9 @@ export function DayChips({
       </ul>
     </div>
   );
+}
+
+/** "YYYY-MM-DD" in the clinic's zone — the waitlist window's last day. */
+function ymdInKampala(ms: number): string {
+  return localDateKey(new Date(ms), DEFAULT_TIME_ZONE);
 }

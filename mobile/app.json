@@ -41,7 +41,8 @@
           "photosPermission": "MedSync uses your photo on your patient profile.",
           "cameraPermission": "MedSync uses your photo on your patient profile."
         }
-      ]
+      ],
+      "expo-notifications"
     ],
     "experiments": {
       "typedRoutes": true,

@@ -2,16 +2,17 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { ThemeToggle } from "@/components/theme-toggle";
+import { fetchSmsConsentVersion, hasSmsConsent } from "@/lib/notifications/consent";
 import { fetchPatientProfileView } from "@/lib/patient/profile";
 import { requirePatientScope } from "@/lib/patient/scope";
 import { PatientPageHeader } from "../_components/page-header";
+import { SmsConsentRow } from "./_components/sms-consent-row";
 
 export const metadata: Metadata = { title: "Settings · MedSync" };
 export const dynamic = "force-dynamic";
 
 /** Settings that do not exist yet. Named so the page is honest about its size. */
 const COMING_NEXT = [
-  "Notification preferences, once there is anything to notify you about",
   "Two-factor sign-in — optional for patients",
   "Download a copy of your data",
 ] as const;
@@ -25,7 +26,11 @@ export default async function PatientSettingsPage() {
   // ponytail: this decrypts the whole profile to read one cleartext column,
   // because it is the only reader that exists. A `preferredLanguage`-only
   // query is the upgrade path if this page ever gets hot.
-  const profile = await fetchPatientProfileView(scope.userId);
+  const [profile, smsVersion, smsOn] = await Promise.all([
+    fetchPatientProfileView(scope.userId),
+    fetchSmsConsentVersion(),
+    hasSmsConsent(scope.userId),
+  ]);
   const language = profile ? (profile.preferredLanguage ?? "Not set") : "Unavailable";
 
   return (
@@ -33,7 +38,7 @@ export default async function PatientSettingsPage() {
       <PatientPageHeader
         eyebrow="MedSync · Settings"
         title="Settings"
-        description="Two things you can change today. The rest is listed below, unbuilt."
+        description="What you can change today. The rest is listed below, unbuilt."
         backHref="/patient/menu"
         backLabel="Back to More"
       />
@@ -65,6 +70,9 @@ export default async function PatientSettingsPage() {
               Change
             </Link>
           </li>
+
+          {/* Gate E (ADR 0090): absent until migration 0061 seeds the text. */}
+          {smsVersion ? <SmsConsentRow initialOn={smsOn} /> : null}
         </ul>
       </section>
 

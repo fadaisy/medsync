@@ -1,8 +1,4 @@
-import type {
-  DispatchChannel,
-  DispatchInsert,
-  DispatchKind,
-} from "@/supabase/functions/_shared/dispatches";
+import type { DispatchInsert, DispatchKind } from "@/supabase/functions/_shared/dispatches";
 
 import { composeReceiptSms } from "@/lib/notifications/receipt";
 import { MAX_SENDS_PER_RUN, STALE_GRACE_MINUTES } from "@/lib/notifications/sink";
@@ -12,7 +8,11 @@ import {
   HELD_IN_QUIET_HOURS,
   SMS_WITHOUT_CONSENT,
 } from "@/supabase/functions/_shared/dispatches";
-import { DEFAULT_TIME_ZONE, localWeekdayAndMinutes, startOfLocalDay } from "@/supabase/functions/_shared/slots";
+import {
+  DEFAULT_TIME_ZONE,
+  localWeekdayAndMinutes,
+  startOfLocalDay,
+} from "@/supabase/functions/_shared/slots";
 
 /**
  * The `notification_dispatches` planner — the pure decision layer of the
@@ -338,8 +338,7 @@ export function planDispatch(args: PlanDispatchArgs): DispatchPlan {
       best.set(key, c);
       continue;
     }
-    const [winner, loser] =
-      c.scheduledMs > incumbent.scheduledMs ? [c, incumbent] : [incumbent, c];
+    const [winner, loser] = c.scheduledMs > incumbent.scheduledMs ? [c, incumbent] : [incumbent, c];
     best.set(key, winner);
     reap(loser.row.id, "cancelled", "superseded");
   }

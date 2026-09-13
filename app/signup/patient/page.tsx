@@ -3,6 +3,7 @@ import { desc, eq } from "drizzle-orm";
 
 import { db } from "@/db";
 import { consentVersions } from "@/db/schema/consent-versions";
+import { fetchSmsConsentVersion } from "@/lib/notifications/consent";
 import { listDistricts } from "@/lib/reference-data";
 import { SignupUnavailable } from "../_components/unavailable";
 import { PatientSignupForm } from "./_components/form";
@@ -32,12 +33,17 @@ export default async function PatientSignupPage() {
   const districts = await listDistricts();
   const districtItems = districts.map((d) => ({ value: d.id, label: d.name }));
 
-  const [activeConsent] = await db
-    .select()
-    .from(consentVersions)
-    .where(eq(consentVersions.consentType, "data_processing"))
-    .orderBy(desc(consentVersions.effectiveDate))
-    .limit(1);
+  const [[activeConsent], smsConsent] = await Promise.all([
+    db
+      .select()
+      .from(consentVersions)
+      .where(eq(consentVersions.consentType, "data_processing"))
+      .orderBy(desc(consentVersions.effectiveDate))
+      .limit(1),
+    // Gate E (ADR 0090): separately declinable SMS consent. Null before
+    // migration 0061 seeds v1.0 — the control is then simply absent.
+    fetchSmsConsentVersion(),
+  ]);
 
   if (!activeConsent) {
     return (
@@ -56,6 +62,7 @@ export default async function PatientSignupPage() {
         body: activeConsent.body,
         effectiveDate: activeConsent.effectiveDate,
       }}
+      smsConsent={smsConsent}
       loadSubcounties={loadSubcountiesForDistrictAction}
       submit={submitPatientSignupAction}
     />

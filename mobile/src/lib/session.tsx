@@ -2,6 +2,7 @@ import type { AuthSession } from "@supabase/supabase-js";
 import type { PropsWithChildren } from "react";
 import { createContext, use, useEffect, useState } from "react";
 
+import { unregisterPushToken } from "@/lib/push";
 import { supabase } from "@/lib/supabase";
 
 /**
@@ -40,6 +41,10 @@ const SessionContext = createContext<SessionValue | null>(null);
  * either way, and `onAuthStateChange` has already moved the gate.
  */
 async function signOut(): Promise<void> {
+  // The push token goes first (Gate E): after signOut the JWT is gone and RLS
+  // refuses the delete, and the next person on this phone would get this
+  // account's messages.
+  await unregisterPushToken();
   await supabase.auth.signOut();
 }
 

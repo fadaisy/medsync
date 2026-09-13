@@ -6,6 +6,7 @@ import { z } from "zod";
 import { env } from "@/lib/env";
 import { logger } from "@/lib/logger";
 import { requirePatientScope } from "@/lib/patient/scope";
+import { callEdge } from "@/lib/supabase/edge";
 import { createClient } from "@/lib/supabase/server";
 import { PATIENT_REASON_CODES } from "@/supabase/functions/_shared/sessions-sql";
 
@@ -123,4 +124,47 @@ export async function bookAppointmentAction(input: BookInput): Promise<BookActio
     logger.error("patient.book.network", { reason: String(e) });
     return { ok: false, error: "Couldn't reach the hospital's system. Try again in a moment." };
   }
+}
+
+/* ─── Gate E (ADR 0090): "Tell me if a place opens" ──────────────── */
+
+const JoinWaitlistArgs = z.object({
+  service_line_id: z.string().uuid(),
+  reason: z.enum(PATIENT_REASON_CODES),
+  preferred_from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  preferred_to: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
+  for_provisional_id: z.string().uuid().optional(),
+});
+
+export type JoinWaitlistInput = z.input<typeof JoinWaitlistArgs>;
+export type JoinWaitlistResult =
+  | { ok: true; position: number }
+  | { ok: false; error: string; alreadyOn?: boolean };
+
+/**
+ * Join the FIFO line for a clinic (PRD §3.3.3). No hold, no promise — the
+ * server answers with an honest position. A second join is a 409 from
+ * `pt-join-waitlist`; shown as the fact it is, not an error to retry.
+ */
+export async function joinWaitlistAction(input: JoinWaitlistInput): Promise<JoinWaitlistResult> {
+  const parsed = JoinWaitlistArgs.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "Please check your selections and try again." };
+  await requirePatientScope();
+  const result = await callEdge<{ data?: { position?: number } }>(
+    "pt-join-waitlist",
+    parsed.data,
+    "patient.waitlist",
+  );
+  if (!result.ok) {
+    return {
+      ok: false,
+      error: result.error,
+      alreadyOn: /already on/i.test(result.error),
+    };
+  }
+  revalidatePath("/patient/appointments");
+  return { ok: true, position: result.data?.data?.position ?? 1 };
 }

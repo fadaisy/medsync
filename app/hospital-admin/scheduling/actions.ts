@@ -6,7 +6,7 @@ import { eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { db } from "@/db";
-import { CAPACITY_MODES, PAYMENT_POSTURES, serviceLines } from "@/db/schema";
+import { CAPACITY_MODES, clinicSessions, PAYMENT_POSTURES, serviceLines } from "@/db/schema";
 import { env } from "@/lib/env";
 import {
   assertScopeOwnsHospital,
@@ -314,4 +314,98 @@ async function assertLineOwned(scope: HospitalAdminScope, lineId: string): Promi
 
 function firstIssue(error: z.ZodError): string {
   return error.issues[0]?.message ?? "Please check the values.";
+}
+
+/* ─── Gate E (ADR 0090): cancel a clinic day, set a delay ─────────── */
+
+export type CancelSessionState = {
+  ok?: boolean;
+  error?: string;
+  /** Answered by the dry run: how many live bookings the cancel will touch. */
+  preview?: { affected: number; nextSessionStartsAtIso: string | null };
+  /** Set after the real cancel. */
+  done?: { affected: number };
+};
+
+const CancelSessionSchema = z.object({
+  session_id: z.string().uuid(),
+  reason: z.string().trim().min(10, "Say why in at least 10 characters — every patient is told."),
+  dry_run: z.boolean(),
+});
+
+/**
+ * Two calls to `ha-cancel-session`: `dry_run: true` first, so the console
+ * shows the number of people affected before anyone confirms; then the
+ * real one. The function does the rest — every live booking cancelled with
+ * reason 'session_cancelled', one push + SMS per patient with the next
+ * equivalent day pre-selected, positions released. Nobody is dropped silently.
+ */
+export async function cancelSessionAction(
+  _prev: CancelSessionState,
+  formData: FormData,
+): Promise<CancelSessionState> {
+  const parsed = CancelSessionSchema.safeParse({
+    session_id: formData.get("session_id"),
+    reason: formData.get("reason"),
+    dry_run: formData.get("confirm") !== "on",
+  });
+  if (!parsed.success) return { error: firstIssue(parsed.error) };
+  const scope = await requireHospitalAdminScope();
+  await assertSessionOwned(scope, parsed.data.session_id);
+
+  const result = await callEdge<{
+    data?: { affected: number; next_session: { starts_at: string } | null; dry_run: boolean };
+  }>("ha-cancel-session", parsed.data, "hospital-admin.scheduling");
+  if (!result.ok) return { error: result.error };
+  const d = result.data?.data;
+  if (parsed.data.dry_run) {
+    return {
+      preview: {
+        affected: d?.affected ?? 0,
+        nextSessionStartsAtIso: d?.next_session?.starts_at ?? null,
+      },
+    };
+  }
+  revalidatePath("/hospital-admin/scheduling");
+  return { ok: true, done: { affected: d?.affected ?? 0 } };
+}
+
+export type SessionDelayState = { ok?: boolean; error?: string; notified?: number };
+
+const SessionDelaySchema = z.object({
+  session_id: z.string().uuid(),
+  delay_minutes: z.coerce.number().int().min(0).max(480),
+});
+
+/** "Running late by N minutes" — windows move; a message goes when the shift is ≥ 30 min. */
+export async function setSessionDelayAction(
+  _prev: SessionDelayState,
+  formData: FormData,
+): Promise<SessionDelayState> {
+  const parsed = SessionDelaySchema.safeParse({
+    session_id: formData.get("session_id"),
+    delay_minutes: formData.get("delay_minutes"),
+  });
+  if (!parsed.success) return { error: firstIssue(parsed.error) };
+  const scope = await requireHospitalAdminScope();
+  await assertSessionOwned(scope, parsed.data.session_id);
+
+  const result = await callEdge<{ data?: { notified: number } }>(
+    "ha-set-session-delay",
+    parsed.data,
+    "hospital-admin.scheduling",
+  );
+  if (!result.ok) return { error: result.error };
+  revalidatePath("/hospital-admin/scheduling");
+  return { ok: true, notified: result.data?.data?.notified ?? 0 };
+}
+
+async function assertSessionOwned(scope: HospitalAdminScope, sessionId: string): Promise<void> {
+  const [row] = await db
+    .select({ hospitalId: clinicSessions.hospitalId })
+    .from(clinicSessions)
+    .where(eq(clinicSessions.id, sessionId))
+    .limit(1);
+  if (!row) throw new ScopeViolationError("Clinic day does not exist for this admin's scope.");
+  assertScopeOwnsHospital(scope, row.hospitalId);
 }

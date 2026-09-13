@@ -3,8 +3,9 @@ import type { Palette } from "@/theme/tokens";
 import { useCallback, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
+import * as Notifications from "expo-notifications";
 import { useFocusEffect, useRouter } from "expo-router";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,9 @@ import {
   fetchPatientProfile,
   uploadAvatar,
 } from "@/lib/booking";
+import { SMS_CONSENT_COPY } from "@/lib/consent-copy";
+import { fetchSmsConsent, setSmsConsent } from "@/lib/notifications";
+import { registerPushToken } from "@/lib/push";
 import { useSession } from "@/lib/session";
 import { useStyles, useTheme } from "@/theme/theme";
 import { font, radius, space } from "@/theme/tokens";
@@ -47,6 +51,12 @@ export default function SettingsScreen() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [photoError, setPhotoError] = useState<string | null>(null);
+  // Gate E: SMS consent (PRD §5.2) and where this phone stands on push.
+  // `null` = not read yet; the rows draw nothing until they know.
+  const [smsOn, setSmsOn] = useState<boolean | null>(null);
+  const [smsBusy, setSmsBusy] = useState(false);
+  const [smsError, setSmsError] = useState<string | null>(null);
+  const [pushStatus, setPushStatus] = useState<"granted" | "denied" | "undetermined" | null>(null);
 
   // On focus, like the home. The code and the photo are conveniences on this
   // screen, not the screen: a failed read leaves the line out (or draws the
@@ -58,8 +68,46 @@ export default function SettingsScreen() {
         () => {},
       );
       void fetchMyAvatarUrl().then(setAvatarUrl);
+      void fetchSmsConsent().then(setSmsOn, () => {});
+      void Notifications.getPermissionsAsync().then(
+        (p) =>
+          setPushStatus(
+            p.status === "granted" ? "granted" : p.status === "denied" ? "denied" : "undetermined",
+          ),
+        () => {},
+      );
     }, []),
   );
+
+  const toggleSms = async () => {
+    if (smsOn === null || smsBusy) return;
+    setSmsBusy(true);
+    setSmsError(null);
+    const res = await setSmsConsent(!smsOn);
+    setSmsBusy(false);
+    if (!res.ok) {
+      setSmsError(res.error);
+      return;
+    }
+    setSmsOn(res.data.on);
+  };
+
+  // Ask again while the phone still allows asking; after a refusal only the
+  // phone's own Settings can turn it on, so that is where the row goes.
+  const onPush = async () => {
+    if (pushStatus === "denied") {
+      await Linking.openSettings();
+      return;
+    }
+    const token = await registerPushToken();
+    setPushStatus(
+      token
+        ? "granted"
+        : (await Notifications.getPermissionsAsync()).status === "denied"
+          ? "denied"
+          : "undetermined",
+    );
+  };
 
   // ADR 0085 §1: the system picker crops to a square and compresses, so what
   // reaches the bucket is already small. A cancelled pick is not an error and
@@ -143,6 +191,71 @@ export default function SettingsScreen() {
                 importantForAccessibility="no-hide-descendants"
               />
             </Pressable>
+          </View>
+        </View>
+
+        {/* Gate E (ADR 0090): how MedSync reaches this patient. State is a
+            word, never a colour; the honest sentence sits under SMS when off. */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Messages</Text>
+          <View style={styles.group}>
+            <View style={styles.row}>
+              <View style={styles.rowText}>
+                <Text style={styles.rowLabel}>
+                  Notifications on this phone ·{" "}
+                  {pushStatus === "granted" ? "On" : pushStatus === null ? "…" : "Off"}
+                </Text>
+                <Text style={styles.rowHint}>
+                  {pushStatus === "granted"
+                    ? "Your confirmations, reminders and offers arrive here first."
+                    : pushStatus === "denied"
+                      ? "MedSync is not allowed to notify you. Turn it on in your phone's Settings."
+                      : "Allow notifications so your reminders and offers reach this phone."}
+                </Text>
+              </View>
+              {pushStatus !== null && pushStatus !== "granted" ? (
+                <Button
+                  variant="link"
+                  label={pushStatus === "denied" ? "Open Settings" : "Allow"}
+                  onPress={() => void onPush()}
+                />
+              ) : null}
+            </View>
+            {smsOn !== null ? (
+              <View style={[styles.row, styles.rowDivider, styles.rowColumn]}>
+                <View style={styles.rowTop}>
+                  <View style={styles.rowText}>
+                    <Text style={styles.rowLabel}>
+                      {SMS_CONSENT_COPY.label} · {smsOn ? "On" : "Off"}
+                    </Text>
+                    <Text style={styles.rowHint}>{SMS_CONSENT_COPY.what}</Text>
+                  </View>
+                  <Button
+                    variant="link"
+                    label={smsOn ? "Turn off" : "Turn on"}
+                    busy={smsBusy}
+                    onPress={() => void toggleSms()}
+                  />
+                </View>
+                {!smsOn ? (
+                  <Text style={styles.rowHint}>
+                    {SMS_CONSENT_COPY.declined} {SMS_CONSENT_COPY.receiptException}
+                  </Text>
+                ) : null}
+                {smsError ? (
+                  <View style={styles.well}>
+                    <Ionicons
+                      name="alert-circle-outline"
+                      size={18}
+                      color={colors.status.cautionFg}
+                    />
+                    <Text style={styles.wellText} accessibilityLiveRegion="polite">
+                      {smsError}
+                    </Text>
+                  </View>
+                ) : null}
+              </View>
+            ) : null}
           </View>
         </View>
 
@@ -239,6 +352,9 @@ const makeStyles = (c: Palette) =>
       paddingVertical: space[3],
     },
     rowDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: c.border },
+    // A row that carries a sentence under its controls.
+    rowColumn: { flexDirection: "column", alignItems: "stretch", gap: space[2] },
+    rowTop: { flexDirection: "row", alignItems: "center", gap: space[3] },
     rowPressed: { backgroundColor: c.muted },
     rowText: { flex: 1, gap: 2 },
     rowLabel: { fontFamily: font.bodyMedium, fontSize: 16, lineHeight: 22, color: c.foreground },

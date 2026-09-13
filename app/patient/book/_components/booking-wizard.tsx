@@ -352,6 +352,15 @@ function Wizard({
             sessionId={session?.id ?? null}
             nowMs={nowMs}
             forMember={member !== null}
+            waitlist={
+              reason
+                ? {
+                    reason,
+                    todayYmd: todayIso,
+                    ...(member ? { forProvisionalId: member.provisionalPatientId } : {}),
+                  }
+                : undefined
+            }
             onPick={(sessionId) => update({ sessionId })}
           />
         ) : (

@@ -1,5 +1,10 @@
+import type {
+  DispatchCopyArgs,
+  DispatchInsert,
+  DispatchRow,
+  RelatedState,
+} from "@/lib/notifications/dispatches";
 import type { ReminderRow, SmsJob, SmsSender } from "@/lib/notifications/sink";
-import type { DispatchRow, RelatedState } from "@/lib/notifications/dispatches";
 import { NextResponse } from "next/server";
 import { and, asc, eq, gt, gte, inArray, isNotNull, isNull, lte, sql } from "drizzle-orm";
 
@@ -27,7 +32,6 @@ import {
   dispatchRows,
   OFFER_WINDOW_MS,
   planDispatch,
-  type DispatchCopyArgs,
 } from "@/lib/notifications/dispatches";
 import { fetchExpoReceipts, sendExpoPush } from "@/lib/notifications/expo-push";
 import {
@@ -132,7 +136,6 @@ export async function GET(request: Request) {
 /* ─── 1. the legacy queue (Gate C) — drained until empty, never dropped ── */
 
 async function drainReminders(sender: SmsSender, now: Date) {
-
   // Hits `appointment_reminders_dispatcher_idx (state, scheduled_at)
   // WHERE state='queued'` head-on, and is bounded so a backlog cannot
   // page the whole queue into the function.
@@ -211,10 +214,7 @@ async function drainReminders(sender: SmsSender, now: Date) {
       .update(appointmentReminders)
       .set({ state: group.state, failureReason: group.reason, updatedAt: now })
       .where(
-        and(
-          inArray(appointmentReminders.id, group.ids),
-          eq(appointmentReminders.state, "queued"),
-        ),
+        and(inArray(appointmentReminders.id, group.ids), eq(appointmentReminders.state, "queued")),
       );
   }
 
@@ -314,12 +314,34 @@ async function drainReminders(sender: SmsSender, now: Date) {
 /** What a message may say about its related row. Ciphertext stays ciphertext until send. */
 interface RelatedDetails {
   state: RelatedState;
-  copy: Omit<DispatchCopyArgs, "kind" | "offerExpiresAtIso" | "nextSessionStartsAtIso" | "delayMinutes">;
+  copy: Omit<
+    DispatchCopyArgs,
+    "kind" | "offerExpiresAtIso" | "nextSessionStartsAtIso" | "delayMinutes"
+  >;
   /** The provisional's phone, when the booking names one. */
   phoneEncrypted: string | null;
 }
 
 const NEVER: RelatedState = { live: false, status: null, startsAtIso: null };
+
+/** `dispatchRows()` speaks the wire shape (snake_case); Drizzle wants the column names. */
+function toDrizzleInsert(r: DispatchInsert): typeof notificationDispatches.$inferInsert {
+  return {
+    hospitalId: r.hospital_id,
+    kind: r.kind,
+    recipientUserId: r.recipient_user_id,
+    recipientPhoneEncrypted: r.recipient_phone_encrypted,
+    language: r.language,
+    channel: r.channel,
+    fallbackChannel: r.fallback_channel,
+    scheduledAt: new Date(r.scheduled_at),
+    fallbackAfter: r.fallback_after ? new Date(r.fallback_after) : null,
+    idempotencyKey: r.idempotency_key,
+    relatedKind: r.related_kind,
+    relatedId: r.related_id,
+    payload: r.payload,
+  };
+}
 
 async function drainDispatches(sender: SmsSender, now: Date) {
   // Hits notification_dispatches_dispatcher_idx head-on; bounded.
@@ -466,6 +488,7 @@ async function drainDispatches(sender: SmsSender, now: Date) {
           and(
             inArray(consentRecords.userId, userIds),
             eq(consentRecords.consentType, "sms_communication"),
+            isNull(consentRecords.revokedAt),
           ),
         ),
       db
@@ -473,7 +496,8 @@ async function drainDispatches(sender: SmsSender, now: Date) {
         .from(patientProfiles)
         .where(inArray(patientProfiles.id, userIds)),
     ]);
-    for (const t of tokens) tokensByUser.set(t.userId, [...(tokensByUser.get(t.userId) ?? []), t.token]);
+    for (const t of tokens)
+      tokensByUser.set(t.userId, [...(tokensByUser.get(t.userId) ?? []), t.token]);
     for (const c of consents) consentByUser.set(c.userId, true);
     for (const p of profiles) profilePhoneByUser.set(p.id, p.phone);
   }
@@ -515,7 +539,13 @@ async function drainDispatches(sender: SmsSender, now: Date) {
     related: related.get(`${r.relatedKind}:${r.relatedId}`)?.state ?? NEVER,
   }));
 
-  const plan = planDispatch({ rows: planRows, now, quietHoursByHospital, tokensByUser, consentByUser });
+  const plan = planDispatch({
+    rows: planRows,
+    now,
+    quietHoursByHospital,
+    tokensByUser,
+    consentByUser,
+  });
 
   // Reap first — cheap, and it shrinks the queue whatever the transport does.
   const reapGroups = new Map<string, { state: string; reason: string; ids: string[] }>();
@@ -555,23 +585,7 @@ async function drainDispatches(sender: SmsSender, now: Date) {
   if (plan.fallbacks.length > 0) {
     await db
       .insert(notificationDispatches)
-      .values(
-        plan.fallbacks.map((f) => ({
-          hospitalId: f.insert.hospital_id,
-          kind: f.insert.kind,
-          recipientUserId: f.insert.recipient_user_id,
-          recipientPhoneEncrypted: f.insert.recipient_phone_encrypted,
-          language: f.insert.language,
-          channel: f.insert.channel,
-          fallbackChannel: f.insert.fallback_channel,
-          scheduledAt: new Date(f.insert.scheduled_at),
-          fallbackAfter: f.insert.fallback_after ? new Date(f.insert.fallback_after) : null,
-          idempotencyKey: f.insert.idempotency_key,
-          relatedKind: f.insert.related_kind,
-          relatedId: f.insert.related_id,
-          payload: f.insert.payload,
-        })),
-      )
+      .values(plan.fallbacks.map((f) => toDrizzleInsert(f.insert)))
       .onConflictDoNothing({ target: notificationDispatches.idempotencyKey });
   }
 
@@ -616,7 +630,9 @@ async function drainDispatches(sender: SmsSender, now: Date) {
       arrivalWindowEndIso: d?.copy.arrivalWindowEndIso ?? null,
       offeredStartsAtIso: d?.copy.offeredStartsAtIso ?? null,
       offerExpiresAtIso:
-        r.kind === "waitlist_offer" ? new Date(now.getTime() + OFFER_WINDOW_MS).toISOString() : null,
+        r.kind === "waitlist_offer"
+          ? new Date(now.getTime() + OFFER_WINDOW_MS).toISOString()
+          : null,
       nextSessionStartsAtIso: p.next_session_starts_at ?? null,
       delayMinutes: p.delay_minutes ?? null,
     };
@@ -672,7 +688,12 @@ async function drainDispatches(sender: SmsSender, now: Date) {
       const ok = own.filter((t) => t.status === "ok");
       const dead = own.filter((t) => t.status === "error" && t.error === "DeviceNotRegistered");
       if (dead.length > 0) {
-        await db.delete(pushTokens).where(inArray(pushTokens.token, dead.map((t) => t.to)));
+        await db.delete(pushTokens).where(
+          inArray(
+            pushTokens.token,
+            dead.map((t) => t.to),
+          ),
+        );
       }
       if (ok.length > 0) {
         pushSent += 1;
@@ -743,7 +764,10 @@ async function drainDispatches(sender: SmsSender, now: Date) {
       .update(waitlistEntries)
       .set({ offerExpiresAt: new Date(now.getTime() + OFFER_WINDOW_MS) })
       .where(
-        and(inArray(waitlistEntries.id, [...new Set(offeredEntries)]), eq(waitlistEntries.state, "offered")),
+        and(
+          inArray(waitlistEntries.id, [...new Set(offeredEntries)]),
+          eq(waitlistEntries.state, "offered"),
+        ),
       );
   }
 
@@ -777,14 +801,21 @@ async function collectPushReceipts(now: Date) {
     .limit(1000);
   if (rows.length === 0) return { checked: 0, delivered: 0, failed: 0, tokensDropped: 0 };
 
-  const receipts = await fetchExpoReceipts(rows.flatMap((r) => (r.ids ?? "").split(",").filter(Boolean)));
+  const receipts = await fetchExpoReceipts(
+    rows.flatMap((r) => (r.ids ?? "").split(",").filter(Boolean)),
+  );
   let delivered = 0;
   let failed = 0;
   let tokensDropped = 0;
   for (const r of rows) {
-    const own = (r.ids ?? "").split(",").filter(Boolean).map((id) => receipts.get(id));
+    const own = (r.ids ?? "")
+      .split(",")
+      .filter(Boolean)
+      .map((id) => receipts.get(id));
     if (own.some((x) => x === undefined)) continue; // not processed yet
-    const dead = own.flatMap((x) => (x?.error === "DeviceNotRegistered" && x.expoPushToken ? [x.expoPushToken] : []));
+    const dead = own.flatMap((x) =>
+      x?.error === "DeviceNotRegistered" && x.expoPushToken ? [x.expoPushToken] : [],
+    );
     if (dead.length > 0) {
       await db.delete(pushTokens).where(inArray(pushTokens.token, dead));
       tokensDropped += dead.length;
@@ -801,7 +832,10 @@ async function collectPushReceipts(now: Date) {
         .update(notificationDispatches)
         .set({
           state: "failed",
-          failureReason: own.map((x) => x?.error ?? x?.message ?? "push_receipt_error").join("; ").slice(0, 300),
+          failureReason: own
+            .map((x) => x?.error ?? x?.message ?? "push_receipt_error")
+            .join("; ")
+            .slice(0, 300),
           updatedAt: now,
         })
         .where(and(eq(notificationDispatches.id, r.id), eq(notificationDispatches.state, "sent")));
@@ -844,23 +878,7 @@ async function offerToNext(appointmentId: string, now: Date): Promise<string | n
   });
   await db
     .insert(notificationDispatches)
-    .values(
-      rows.map((r) => ({
-        hospitalId: r.hospital_id,
-        kind: r.kind,
-        recipientUserId: r.recipient_user_id,
-        recipientPhoneEncrypted: r.recipient_phone_encrypted,
-        language: r.language,
-        channel: r.channel,
-        fallbackChannel: r.fallback_channel,
-        scheduledAt: new Date(r.scheduled_at),
-        fallbackAfter: r.fallback_after ? new Date(r.fallback_after) : null,
-        idempotencyKey: r.idempotency_key,
-        relatedKind: r.related_kind,
-        relatedId: r.related_id,
-        payload: r.payload,
-      })),
-    )
+    .values(rows.map(toDrizzleInsert))
     .onConflictDoNothing({ target: notificationDispatches.idempotencyKey });
   return offer.entry_id;
 }
@@ -878,7 +896,10 @@ async function expireWaitlistOffers(now: Date) {
         sql`not exists (select 1 from public.notification_dispatches d where d.related_kind = 'waitlist_entry' and d.related_id = ${waitlistEntries.id} and d.state in ('queued','held'))`,
       ),
     )
-    .returning({ id: waitlistEntries.id, releasedAppointmentId: waitlistEntries.releasedAppointmentId });
+    .returning({
+      id: waitlistEntries.id,
+      releasedAppointmentId: waitlistEntries.releasedAppointmentId,
+    });
   let cascaded = 0;
   for (const e of expired) {
     await db
@@ -964,23 +985,7 @@ async function releaseUnconfirmed(now: Date) {
       });
       await db
         .insert(notificationDispatches)
-        .values(
-          rows.map((r) => ({
-            hospitalId: r.hospital_id,
-            kind: r.kind,
-            recipientUserId: r.recipient_user_id,
-            recipientPhoneEncrypted: r.recipient_phone_encrypted,
-            language: r.language,
-            channel: r.channel,
-            fallbackChannel: r.fallback_channel,
-            scheduledAt: new Date(r.scheduled_at),
-            fallbackAfter: r.fallback_after ? new Date(r.fallback_after) : null,
-            idempotencyKey: r.idempotency_key,
-            relatedKind: r.related_kind,
-            relatedId: r.related_id,
-            payload: r.payload,
-          })),
-        )
+        .values(rows.map(toDrizzleInsert))
         .onConflictDoNothing({ target: notificationDispatches.idempotencyKey });
     }
     await offerToNext(a.id, now);

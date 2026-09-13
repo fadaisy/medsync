@@ -1,5 +1,6 @@
 import { Stack } from "expo-router";
 
+import { usePushNotifications } from "@/lib/push";
 import { useTheme } from "@/theme/theme";
 
 /**
@@ -19,6 +20,8 @@ export const unstable_settings = { anchor: "(tabs)" };
 
 export default function AppLayout() {
   const { colors } = useTheme();
+  // Gate E: this stack exists only with a session, so "mounted" is "signed in".
+  usePushNotifications(true);
 
   return (
     <Stack

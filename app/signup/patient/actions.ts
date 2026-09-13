@@ -12,6 +12,7 @@ import { signupDrafts } from "@/db/schema/signup-drafts";
 import { storeAvatar } from "@/lib/avatars";
 import { encrypt } from "@/lib/encryption";
 import { logger } from "@/lib/logger";
+import { fetchSmsConsentVersion, setSmsConsent } from "@/lib/notifications/consent";
 import { listSubcounties } from "@/lib/reference-data";
 import { clearDraft } from "@/lib/signup-drafts";
 import { createClient } from "@/lib/supabase/server";
@@ -109,6 +110,14 @@ const PatientSignupSchema = z.object({
   }),
   data_processing_consent_version: z.string().min(1),
   data_processing_consent_body_sha256: z.string().regex(/^[a-f0-9]{64}$/i),
+
+  // Gate E (ADR 0090): SMS about bookings — optional, separately declinable.
+  sms_communication_consent: z.literal("on").optional(),
+  sms_communication_consent_version: z.string().min(1).optional(),
+  sms_communication_consent_body_sha256: z
+    .string()
+    .regex(/^[a-f0-9]{64}$/i)
+    .optional(),
 });
 
 export type PatientSignupErrors = Partial<
@@ -273,12 +282,37 @@ export async function submitPatientSignupAction(
   if (photo instanceof File && photo.size > 0) await storeAvatar(userId, photo);
 
   // 5. consent_records — record exactly which text was accepted.
-  await service.from("consent_records").insert({
+  // The row is the legal proof (DPPA 2019) — a failed write is logged, never
+  // swallowed. `version` is NOT NULL and `accepted_at` is the column's name.
+  const { error: consentError } = await service.from("consent_records").insert({
     user_id: userId,
     consent_type: "data_processing",
+    version: activeConsent.version,
     consent_text_sha256: activeConsent.bodySha256,
-    granted_at: new Date().toISOString(),
+    accepted_at: new Date().toISOString(),
   });
+  if (consentError) {
+    logger.error("signup.consent.insert_failed", { reason: consentError.message });
+  }
+
+  // 5b. SMS consent, only when ticked, only against the live text — a stale
+  //     hash means the page showed words that are no longer the version, so
+  //     nothing is recorded (the patient can turn it on in Settings).
+  if (input.sms_communication_consent === "on" && input.sms_communication_consent_version) {
+    const sms = await fetchSmsConsentVersion();
+    if (
+      sms &&
+      sms.version === input.sms_communication_consent_version &&
+      sms.bodySha256.toLowerCase() ===
+        (input.sms_communication_consent_body_sha256 ?? "").toLowerCase()
+    ) {
+      await setSmsConsent(userId, true, sms).catch((e: unknown) =>
+        logger.error("signup.sms_consent.insert_failed", { reason: String(e) }),
+      );
+    } else {
+      logger.warn("patient-signup.sms_consent.stale_version", {});
+    }
+  }
 
   // 6. Bump lifecycle: 'unverified' → 'verified'. Real OTP wiring is
   //    a follow-up; today the signup completing IS the verification

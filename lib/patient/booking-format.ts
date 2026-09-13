@@ -1,4 +1,4 @@
-import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
+import { DEFAULT_TIME_ZONE, localDateKey } from "@/supabase/functions/_shared/slots";
 
 /**
  * How a booking is spoken on the patient web surfaces — the wizard, its
@@ -61,4 +61,19 @@ export function formatTime(iso: string): string {
  */
 export function formatArrivalWindow(startIso: string, endIso: string): string {
   return `${formatTime(startIso)} and ${formatTime(endIso)}`;
+}
+
+/**
+ * "3:40 PM today" / "9:00 AM tomorrow" / "9:00 AM on Tuesday 22 September" —
+ * when a waitlist offer closes, in full words (Gate E verifier: the expiry
+ * is stated, never "in 2h"). Judged on the clinic's calendar.
+ */
+export function formatOfferExpiry(iso: string, now: Date): string {
+  const at = new Date(iso);
+  const day = localDateKey(at, DEFAULT_TIME_ZONE);
+  const today = localDateKey(now, DEFAULT_TIME_ZONE);
+  const tomorrow = localDateKey(new Date(now.getTime() + 86_400_000), DEFAULT_TIME_ZONE);
+  const when =
+    day === today ? "today" : day === tomorrow ? "tomorrow" : `on ${formatFullDate(iso)}`;
+  return `${formatTime(iso)} ${when}`;
 }

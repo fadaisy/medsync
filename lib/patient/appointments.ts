@@ -96,6 +96,10 @@ export interface AppointmentRow {
   positionNumber: number | null;
   arrivalWindowStartIso: string | null;
   arrivalWindowEndIso: string | null;
+  /** Gate E: the patient's answer to the T-24h confirmation request; null = not yet. */
+  confirmedByPatientAtIso: string | null;
+  /** Gate E: 'session_cancelled' when the clinic cancelled the day (the card offers a rebooking). */
+  cancelledReason: string | null;
 }
 
 /**
@@ -138,6 +142,8 @@ export async function fetchAppointments(
       positionNumber: appointments.positionNumber,
       arrivalWindowStart: appointments.arrivalWindowStart,
       arrivalWindowEnd: appointments.arrivalWindowEnd,
+      confirmedByPatientAt: appointments.confirmedByPatientAt,
+      cancelledReason: appointments.cancelledReason,
     })
     .from(appointments)
     .innerJoin(users, eq(users.id, appointments.clinicianUserId))
@@ -167,7 +173,21 @@ export async function fetchAppointments(
     positionNumber: r.positionNumber,
     arrivalWindowStartIso: r.arrivalWindowStart?.toISOString() ?? null,
     arrivalWindowEndIso: r.arrivalWindowEnd?.toISOString() ?? null,
+    confirmedByPatientAtIso: r.confirmedByPatientAt?.toISOString() ?? null,
+    cancelledReason: r.cancelledReason,
   }));
+}
+
+/** Gate E: the T-24h confirmation request is open — confirmed, unanswered, inside the last day. */
+export const CONFIRM_WINDOW_MS = 24 * 3_600_000;
+export function confirmationPending(r: AppointmentRow, now: Date): boolean {
+  const startsMs = new Date(r.startsAtIso).getTime();
+  return (
+    r.status === "confirmed" &&
+    r.confirmedByPatientAtIso === null &&
+    startsMs > now.getTime() &&
+    startsMs - now.getTime() <= CONFIRM_WINDOW_MS
+  );
 }
 
 /**

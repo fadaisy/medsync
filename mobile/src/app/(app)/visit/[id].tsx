@@ -36,6 +36,7 @@ import {
   fetchAppointments,
   fetchBookableClinicians,
   fetchMyRating,
+  formatDateLong,
   formatTime,
   formatWindow,
   markArrived,
@@ -45,6 +46,12 @@ import {
   rescheduleAppointment,
   STATUS_LABEL,
 } from "@/lib/booking";
+import {
+  acceptRebooking,
+  confirmationPending,
+  confirmAttendance,
+  fetchRebookingOffer,
+} from "@/lib/notifications";
 import { useStyles, useTheme } from "@/theme/theme";
 import { font, motion, radius, space } from "@/theme/tokens";
 
@@ -135,6 +142,13 @@ export default function VisitScreen() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [arriving, setArriving] = useState(false);
+  // Gate E: the T-24h confirmation, and the cancelled-day rebooking.
+  const [confirming, setConfirming] = useState(false);
+  // `undefined` = not looked up; `null` = the clinic had no later day to offer.
+  const [rebook, setRebook] = useState<
+    { sessionId: string; startsAtIso: string } | null | undefined
+  >(undefined);
+  const [rebooking, setRebooking] = useState(false);
 
   // The rating (ADR 0085 §2). `rated` = a row exists, so the control says
   // "Update" rather than "Send"; the stars and comment are pre-filled from it.
@@ -171,6 +185,15 @@ export default function VisitScreen() {
         if (found && openMove) {
           if (RESCHEDULABLE.has(found.status)) void fetchOptions(found);
           else setMode("idle");
+        }
+        // The clinic cancelled this day (Gate E): what next day did the
+        // message offer? A failed read is "choose another day", not an error.
+        if (
+          found &&
+          found.status === "cancelled" &&
+          found.cancelledReason === "session_cancelled"
+        ) {
+          void fetchRebookingOffer(found.id).then(setRebook, () => setRebook(null));
         }
         // The patient's own rating, to pre-fill the card. A failed read is an
         // empty form, not an error: sending again replaces whatever the row
@@ -280,6 +303,40 @@ export default function VisitScreen() {
     setNotice(STATUS_LABEL.arrived);
   };
 
+  /** "Confirm I'm coming" (Gate E): answers the T-24h request; nothing changes if they don't. */
+  const submitConfirm = async () => {
+    if (!visit || confirming) return;
+    setConfirming(true);
+    setActionError(null);
+    setNotice(null);
+    const res = await confirmAttendance(visit.id);
+    setConfirming(false);
+    if (!res.ok) {
+      setActionError(res.error);
+      return;
+    }
+    setVisit({ ...visit, confirmedByPatientAtIso: res.data.confirmed_by_patient_at });
+    setNotice("Confirmed — the clinic expects you.");
+  };
+
+  /** One tap onto the pre-selected next day (Gate E, PRD §3.2.6). */
+  const submitRebook = async () => {
+    if (!visit || !rebook || rebooking) return;
+    setRebooking(true);
+    setActionError(null);
+    const res = await acceptRebooking({
+      cancelledAppointmentId: visit.id,
+      sessionId: rebook.sessionId,
+    });
+    setRebooking(false);
+    if (!res.ok) {
+      setActionError(res.error);
+      return;
+    }
+    // The new visit is the thing to look at now.
+    router.replace({ pathname: "/visit/[id]", params: { id: res.data.appointment_id } });
+  };
+
   const submitCancel = async () => {
     if (!visit || !reasonReady()) return;
     setBusy(true);
@@ -367,6 +424,10 @@ export default function VisitScreen() {
   const awaiting = AWAITING_CLINIC.has(visit.status);
   // Never for cancelled, missed or declined: those are not in `canRate`'s set.
   const ratable = mine && canRate(visit);
+  // Gate E: the T-24h request is open and today's arrival is not yet the act.
+  const confirmable = mine && !arrivable && confirmationPending(visit);
+  const clinicCancelled =
+    visit.status === "cancelled" && visit.cancelledReason === "session_cancelled";
 
   // Options arrive grouped by day, ascending; the strip shows each day once.
   const days = options ? Array.from(new Set(options.map((o) => o.dayKey))) : [];
@@ -375,14 +436,38 @@ export default function VisitScreen() {
   const hasOptions = options !== null && options.length > 0;
 
   let footer;
-  if (mode === "idle" && (arrivable || actionError)) {
+  if (mode === "idle" && (arrivable || confirmable || (clinicCancelled && rebook) || actionError)) {
     // Gate D: on the day itself, arriving is the one primary act of the
     // screen — the docked mint CTA, with the refusal sentence above it.
+    // Gate E: the day before, confirming is; after a cancelled day, rebooking.
     footer = (
       <>
         <ActionError text={actionError} />
         {arrivable ? (
           <Button label="I have arrived" busy={arriving} onPress={() => void submitArrived()} />
+        ) : confirmable ? (
+          <>
+            <Button
+              label="Confirm I'm coming"
+              busy={confirming}
+              onPress={() => void submitConfirm()}
+            />
+            {/* PRD §3.3.4: not confirming costs nothing by default — say only what the tap does. */}
+            <Text style={styles.footerHint}>
+              Tells the clinic to expect you. Nothing changes if you don&rsquo;t.
+            </Text>
+          </>
+        ) : clinicCancelled && rebook ? (
+          <>
+            <Button
+              label={`Book ${dayLabel(dateKey(new Date(rebook.startsAtIso)))}`}
+              busy={rebooking}
+              onPress={() => void submitRebook()}
+            />
+            <Text style={styles.footerHint}>
+              Same clinic, same reason. You get a new code and position.
+            </Text>
+          </>
         ) : null}
       </>
     );
@@ -484,7 +569,27 @@ export default function VisitScreen() {
             }
           />
 
-          {visit.bookingCode ? (
+          {clinicCancelled ? (
+            // PRD §3.2.6: nobody is dropped silently. Said first, in words; the
+            // one-tap rebooking is the docked CTA below.
+            <View style={styles.card}>
+              <Text style={styles.note}>This clinic day was cancelled. We are sorry.</Text>
+              <Text style={styles.body}>
+                {rebook === undefined
+                  ? "Looking for the next day…"
+                  : rebook
+                    ? `The next ${visit.departmentName} day is ${formatDateLong(rebook.startsAtIso)}.`
+                    : "No other day is open on MedSync yet."}
+              </Text>
+              <Button
+                label="Choose another day"
+                variant="link"
+                onPress={() => router.replace("/(app)/book")}
+              />
+            </View>
+          ) : null}
+
+          {visit.bookingCode && !clinicCancelled ? (
             <View style={[styles.card, styles.codeCard]}>
               <Text style={styles.meta}>Booking code</Text>
               <Text
@@ -751,6 +856,14 @@ const makeStyles = (c: Palette) =>
     body: { fontFamily: font.body, fontSize: 14.5, lineHeight: 21, color: c.mutedForeground },
     meta: { fontFamily: font.body, fontSize: 13.5, lineHeight: 19, color: c.mutedForeground },
     note: { fontFamily: font.body, fontSize: 14.5, lineHeight: 21, color: c.foreground },
+
+    footerHint: {
+      fontFamily: font.body,
+      fontSize: 13.5,
+      lineHeight: 19,
+      color: c.mutedForeground,
+      textAlign: "center",
+    },
 
     panel: { gap: space[5] },
     legend: { fontFamily: font.body, fontSize: 13.5, lineHeight: 19, color: c.mutedForeground },

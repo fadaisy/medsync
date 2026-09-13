@@ -1,4 +1,5 @@
 import type { AppointmentRow } from "@/lib/booking";
+import type { WaitlistEntry } from "@/lib/notifications";
 import type { Palette } from "@/theme/tokens";
 import { useCallback, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
@@ -15,6 +16,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { WaitlistCard } from "@/components/patient/waitlist-card";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Chip, ChipRow } from "@/components/ui/chip";
@@ -23,7 +25,8 @@ import { Pill } from "@/components/ui/pill";
 import { Screen } from "@/components/ui/screen";
 import { Section } from "@/components/ui/section";
 import { useTabBarClearance } from "@/components/ui/tab-bar";
-import { fetchAppointments, formatWhen } from "@/lib/booking";
+import { fetchAppointments, fetchHousehold, formatWhen } from "@/lib/booking";
+import { fetchWaitlist } from "@/lib/notifications";
 import { useStyles, useTheme } from "@/theme/theme";
 import { font, radius, space } from "@/theme/tokens";
 
@@ -80,6 +83,8 @@ export default function VisitsScreen() {
   const [rows, setRows] = useState<{ upcoming: AppointmentRow[]; past: AppointmentRow[] } | null>(
     null,
   );
+  // Gate E: the line the patient is in. Fails to empty — a card is a convenience here.
+  const [waitlist, setWaitlist] = useState<WaitlistEntry[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [view, setView] = useState<"upcoming" | "past">("upcoming");
@@ -89,11 +94,15 @@ export default function VisitsScreen() {
       // One instant for both halves: two `new Date()`s leave a sliver in which
       // a visit belongs to neither list.
       const now = new Date();
-      const [upcoming, past] = await Promise.all([
+      const [upcoming, past, entries] = await Promise.all([
         fetchAppointments("upcoming", 30, now),
         fetchAppointments("past", 30, now),
+        fetchHousehold()
+          .then((h) => fetchWaitlist(new Map(h.map((m) => [m.provisionalPatientId, m.label]))))
+          .catch(() => [] as WaitlistEntry[]),
       ]);
       setRows({ upcoming, past });
+      setWaitlist(entries);
       setError(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Couldn't load your visits.");
@@ -134,7 +143,7 @@ export default function VisitsScreen() {
       />
     );
   } else {
-    const empty = rows.upcoming.length === 0 && rows.past.length === 0;
+    const empty = rows.upcoming.length === 0 && rows.past.length === 0 && waitlist.length === 0;
     const shown = view === "upcoming" ? rows.upcoming : rows.past;
     body = (
       <ScrollView
@@ -186,6 +195,27 @@ export default function VisitsScreen() {
                 onPress={() => setView("past")}
               />
             </ChipRow>
+
+            {/* Gate E: an open offer is the most time-bound thing on the page. */}
+            {view === "upcoming" && waitlist.length > 0 ? (
+              <View style={styles.rows}>
+                {waitlist.map((entry) => (
+                  <WaitlistCard
+                    key={entry.id}
+                    entry={entry}
+                    onChanged={({ bookedAppointmentId }) => {
+                      void load();
+                      if (bookedAppointmentId) {
+                        router.push({
+                          pathname: "/visit/[id]",
+                          params: { id: bookedAppointmentId },
+                        });
+                      }
+                    }}
+                  />
+                ))}
+              </View>
+            ) : null}
 
             {shown.length === 0 ? (
               <Text style={styles.none}>

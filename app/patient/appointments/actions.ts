@@ -115,6 +115,88 @@ export async function rescheduleMyAppointmentAction(
   });
 }
 
+/* ─── Gate E (ADR 0090): confirm, rebook, waitlist ───────────────── */
+
+const IdArg = (key: string) => z.object({ [key]: z.string().uuid() });
+
+/** "Confirm I'm coming" — answers the T-24h request; no SMS fallback follows. */
+export async function confirmAttendanceAction(
+  _prev: PatientApptActionState,
+  formData: FormData,
+): Promise<PatientApptActionState> {
+  const parsed = IdArg("appointment_id").safeParse({
+    appointment_id: formData.get("appointment_id"),
+  });
+  if (!parsed.success) return { error: "Invalid input." };
+  await requirePatientScope();
+  return callAsPatient({
+    fn: "pt-confirm-attendance",
+    logKey: "patient.appointments.confirm",
+    verb: "Confirm",
+    service: "confirmation",
+    body: parsed.data,
+  });
+}
+
+/** One tap onto the pre-selected next clinic day after the clinic cancelled a day. */
+export async function acceptRebookingAction(
+  _prev: PatientApptActionState,
+  formData: FormData,
+): Promise<PatientApptActionState> {
+  const parsed = z
+    .object({ cancelled_appointment_id: z.string().uuid(), session_id: z.string().uuid() })
+    .safeParse({
+      cancelled_appointment_id: formData.get("cancelled_appointment_id"),
+      session_id: formData.get("session_id"),
+    });
+  if (!parsed.success) return { error: "Invalid input." };
+  await requirePatientScope();
+  return callAsPatient({
+    fn: "pt-accept-rebooking",
+    logKey: "patient.appointments.rebook",
+    verb: "Booking",
+    service: "booking",
+    body: parsed.data,
+  });
+}
+
+export async function withdrawWaitlistAction(
+  _prev: PatientApptActionState,
+  formData: FormData,
+): Promise<PatientApptActionState> {
+  const parsed = IdArg("waitlist_entry_id").safeParse({
+    waitlist_entry_id: formData.get("waitlist_entry_id"),
+  });
+  if (!parsed.success) return { error: "Invalid input." };
+  await requirePatientScope();
+  return callAsPatient({
+    fn: "pt-withdraw-waitlist",
+    logKey: "patient.waitlist.withdraw",
+    verb: "Leaving the list",
+    service: "waitlist",
+    body: parsed.data,
+  });
+}
+
+/** "Take this place" — books through the core with the entry id as the idempotency key. */
+export async function acceptWaitlistOfferAction(
+  _prev: PatientApptActionState,
+  formData: FormData,
+): Promise<PatientApptActionState> {
+  const parsed = IdArg("waitlist_entry_id").safeParse({
+    waitlist_entry_id: formData.get("waitlist_entry_id"),
+  });
+  if (!parsed.success) return { error: "Invalid input." };
+  await requirePatientScope();
+  return callAsPatient({
+    fn: "pt-accept-waitlist-offer",
+    logKey: "patient.waitlist.accept",
+    verb: "Booking",
+    service: "booking",
+    body: parsed.data,
+  });
+}
+
 /**
  * POST to an Edge Function as the signed-in patient and surface the server's
  * own message verbatim.

@@ -25,6 +25,7 @@ import { BookingDone } from "@/components/patient/booking-done";
 import { BookingInterstitial } from "@/components/patient/booking-interstitial";
 import { EmergencyButton } from "@/components/patient/emergency-button";
 import { NoSilentWait } from "@/components/patient/no-silent-wait";
+import { WaitlistJoin } from "@/components/patient/waitlist-join";
 import { Button } from "@/components/ui/button";
 import { Chip, ChipRow, Tile } from "@/components/ui/chip";
 import { Empty } from "@/components/ui/empty";
@@ -295,6 +296,18 @@ export default function ClinicScreen() {
   const beyond =
     limit !== null &&
     sessions.every((s) => s.placesLeft === 0 || dateKey(new Date(s.startsAtIso)) > limit);
+  // Gate E: nothing takeable inside the target — the line is the honest offer.
+  // Never for a confidential line booked for a member (the server refuses too).
+  const waitlistInput =
+    reason && limit && !(forMember && line.confidential)
+      ? {
+          serviceLineId: line.id,
+          reason,
+          preferredFrom: dateKey(new Date()),
+          preferredTo: limit,
+          ...(forMember ? { forProvisionalId: forMember.provisionalPatientId } : {}),
+        }
+      : null;
 
   const options: WaitOption[] = elsewhere.map(({ line: l, next }) => ({
     key: l.id,
@@ -414,6 +427,11 @@ export default function ClinicScreen() {
                 dayPicker
               )}
             </Section>
+          ) : null}
+
+          {/* Offers are released capacity: a line with no days at all has none to release. */}
+          {beyond && sessions.length > 0 ? (
+            <WaitlistJoin clinicName={line.name} input={waitlistInput} />
           ) : null}
 
           {sessions.length > 0 ? (

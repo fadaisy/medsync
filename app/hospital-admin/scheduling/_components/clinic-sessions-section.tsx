@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/sheet";
 import { upsertSessionTemplateAction } from "../actions";
 import { INPUT_CLASS, timeFromMinutes, WEEKDAYS } from "./policy-form";
+import { SessionActions } from "./session-actions";
 
 /**
  * Clinic sessions — the weekly rules ("Tuesday Diabetes Clinic, 08:00, 4 h,
@@ -27,8 +28,9 @@ import { INPUT_CLASS, timeFromMinutes, WEEKDAYS } from "./policy-form";
  * produced for the next 14 days. Editing a rule posts to
  * `upsertSessionTemplateAction` → `ha-upsert-session-template`, which writes
  * the template and materialises its instances; the list below is what that
- * produced, read straight from `clinic_sessions`. Nothing here books into a
- * session or cancels one — that is Gate C and Gate E.
+ * produced, read straight from `clinic_sessions`. Selecting a dated session
+ * opens its actions (Gate E): running late, or cancel the day with the
+ * affected count shown before confirming.
  */
 
 export interface SessionTemplateRow {
@@ -63,6 +65,8 @@ export interface ClinicSessionRow {
   capacityTotal: number;
   overbookingFactor: number;
   status: string;
+  /** Gate E: "running late by N minutes". */
+  delayMinutes: number;
 }
 
 export interface ServiceLineOption {
@@ -109,6 +113,7 @@ export function ClinicSessionsSection({
   todayYmd: string;
 }) {
   const [selected, setSelected] = useState<SessionTemplateRow | "new" | null>(null);
+  const [session, setSession] = useState<ClinicSessionRow | null>(null);
 
   const templateColumns: ReadonlyArray<DataTableColumn<SessionTemplateRow>> = [
     {
@@ -194,9 +199,14 @@ export function ClinicSessionsSection({
       id: "status",
       header: "Status",
       cell: (row) => (
-        <Pill tone={STATUS_TONE[row.status] ?? "neutral"}>
-          {STATUS_LABEL[row.status] ?? row.status}
-        </Pill>
+        <span className="inline-flex items-center gap-2">
+          <Pill tone={STATUS_TONE[row.status] ?? "neutral"}>
+            {STATUS_LABEL[row.status] ?? row.status}
+          </Pill>
+          {row.delayMinutes > 0 ? (
+            <span className="text-status-caution-fg text-caption">{row.delayMinutes} min late</span>
+          ) : null}
+        </span>
       ),
     },
   ];
@@ -248,14 +258,16 @@ export function ClinicSessionsSection({
       <div className="border-border flex flex-col gap-1 border-t px-6 py-4">
         <h3 className="text-foreground text-body-m font-medium">Next 14 days</h3>
         <p className="text-muted-foreground text-caption">
-          Sessions generated from the rules above, in East Africa Time. Positions are booked from
-          Gate C onwards; the booked column stays at zero until then.
+          Sessions generated from the rules above, in East Africa Time. Select a day to mark it
+          running late or to cancel it.
         </p>
       </div>
       <DataTable
         data={sessions}
         columns={sessionColumns}
         rowKey={(row) => row.id}
+        onRowSelect={(row) => setSession(row)}
+        selectedRowId={session?.id ?? null}
         caption="Clinic sessions in the next 14 days"
         empty={
           <DataTableEmpty
@@ -264,6 +276,14 @@ export function ClinicSessionsSection({
           />
         }
       />
+
+      <Sheet open={session !== null} onOpenChange={(open) => !open && setSession(null)}>
+        <SheetContent widthClassName="w-full sm:max-w-[520px]">
+          {session ? (
+            <SessionActions key={session.id} session={session} onClose={() => setSession(null)} />
+          ) : null}
+        </SheetContent>
+      </Sheet>
 
       <Sheet open={selected !== null} onOpenChange={(open) => !open && setSelected(null)}>
         <SheetContent widthClassName="w-full sm:max-w-[600px]">

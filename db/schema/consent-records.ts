@@ -35,6 +35,8 @@ export const consentRecords = pgTable(
     acceptedAt: timestamp("accepted_at", { withTimezone: true }).notNull().defaultNow(),
     acceptedIp: inet("accepted_ip"),
     acceptedUserAgent: text("accepted_user_agent"),
+    /** Migration 0061 / ADR 0090: withdrawn at; NULL = in force. The record itself never changes. */
+    revokedAt: timestamp("revoked_at", { withTimezone: true }),
   },
   (t) => [
     check(
@@ -43,6 +45,9 @@ export const consentRecords = pgTable(
     ),
     index("consent_records_user_type_idx").on(t.userId, t.consentType),
     uniqueIndex("consent_records_unique_version").on(t.userId, t.consentType, t.version),
+    index("consent_records_live_sms_idx")
+      .on(t.userId)
+      .where(sql`${t.consentType} = 'sms_communication' AND ${t.revokedAt} IS NULL`),
   ],
 );
 

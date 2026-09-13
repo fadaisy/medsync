@@ -1,5 +1,6 @@
 import type { SessionOption } from "./_lib/session-options";
 import type { AppointmentRow } from "@/lib/patient/appointments";
+import type { WaitlistCard } from "@/lib/patient/waitlist";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
@@ -17,13 +18,20 @@ import {
 } from "@/db/schema/scheduling";
 import {
   CANCELLABLE,
+  confirmationPending,
   fetchAppointments,
   formatWhen,
   STATUS_LABEL,
   STATUS_TONES,
 } from "@/lib/patient/appointments";
-import { formatArrivalWindow, formatShortDate } from "@/lib/patient/booking-format";
+import {
+  formatArrivalWindow,
+  formatFullDate,
+  formatOfferExpiry,
+  formatShortDate,
+} from "@/lib/patient/booking-format";
 import { requirePatientScope } from "@/lib/patient/scope";
+import { fetchRebookingOffers, fetchWaitlist } from "@/lib/patient/waitlist";
 import { cn } from "@/lib/utils";
 import {
   buildSlots,
@@ -35,8 +43,15 @@ import { PatientPageHeader } from "../_components/page-header";
 import { TintedRow } from "../_components/tinted-row";
 import { ArrivedButton } from "./_components/arrived-button";
 import { CancelButton } from "./_components/cancel-button";
+import { OneTapAction } from "./_components/one-tap-action";
 import { RescheduleSheet } from "./_components/reschedule-sheet";
 import { toSessionOptions } from "./_lib/session-options";
+import {
+  acceptRebookingAction,
+  acceptWaitlistOfferAction,
+  confirmAttendanceAction,
+  withdrawWaitlistAction,
+} from "./actions";
 
 export const metadata: Metadata = { title: "Visits · MedSync" };
 export const dynamic = "force-dynamic";
@@ -74,11 +89,16 @@ export default async function PatientAppointments() {
   // appointment belongs to neither list.
   const now = new Date();
   const todayKey = localDateKey(now, DEFAULT_TIME_ZONE);
-  const [upcoming, past, rescheduleOptions] = await Promise.all([
+  const [upcoming, past, rescheduleOptions, waitlist] = await Promise.all([
     fetchAppointments(scope.userId, "upcoming", PAST_LIMIT, now),
     fetchAppointments(scope.userId, "past", PAST_LIMIT, now),
     fetchRescheduleOptions(scope.userId, now),
+    fetchWaitlist(scope.userId),
   ]);
+  // Gate E: the pre-selected next day for each visit the clinic cancelled.
+  const rebooking = await fetchRebookingOffers(
+    upcoming.filter((r) => r.cancelledReason === "session_cancelled").map((r) => r.id),
+  );
 
   return (
     <div className="stagger-children flex flex-col gap-6">
@@ -116,6 +136,16 @@ export default async function PatientAppointments() {
           which is the order the phone shows them in. */}
       <div className="grid gap-6 @5xl/page:grid-cols-[minmax(0,1fr)_20rem]">
         <section aria-labelledby="visits-upcoming" className="flex flex-col gap-3">
+          {/* Gate E (ADR 0090): the line the patient is in, above the visits
+              they hold — an open offer is the most time-bound thing on the page. */}
+          {waitlist.length > 0 ? (
+            <ul className="stagger-children flex flex-col gap-3">
+              {waitlist.map((w) => (
+                <WaitlistRow key={w.id} card={w} now={now} />
+              ))}
+            </ul>
+          ) : null}
+
           <SectionHead id="visits-upcoming" title="Upcoming" count={upcoming.length} />
 
           {upcoming.length === 0 ? (
@@ -132,6 +162,8 @@ export default async function PatientAppointments() {
                   row={r}
                   moveTo={rescheduleOptions.get(r.id)}
                   canArrive={canArrive(r, todayKey)}
+                  confirmPending={confirmationPending(r, now)}
+                  rebook={rebooking.get(r.id) ?? null}
                 />
               ))}
             </ul>
@@ -217,13 +249,19 @@ function UpcomingVisit({
   /** Absent when the visit's status cannot be moved at all. */
   moveTo,
   canArrive,
+  confirmPending,
+  /** Gate E: set when the clinic cancelled this day — the pre-selected next day, or null when none is open. */
+  rebook,
 }: {
   row: AppointmentRow;
   moveTo: ReadonlyArray<SessionOption> | undefined;
   canArrive: boolean;
+  confirmPending: boolean;
+  rebook: { nextSessionId: string; nextSessionStartsAtIso: string } | null;
 }) {
   const initials = initialsOf(row.clinicianName);
   const summary = `${row.clinicianName} · ${row.departmentName} · ${formatWhen(row.startsAtIso)}`;
+  const clinicCancelled = row.status === "cancelled" && row.cancelledReason === "session_cancelled";
 
   return (
     <li
@@ -261,9 +299,51 @@ function UpcomingVisit({
         <span className="text-muted-foreground"> · {typeLabel(row.type)}</span>
       </p>
 
-      <BookingFacts row={row} />
+      {clinicCancelled ? (
+        // PRD §3.2.6: nobody is dropped silently. The next equivalent day is
+        // pre-selected and one tap away; "choose another day" is the way out.
+        <div className="bg-muted flex flex-col gap-3 rounded-lg px-4 py-3">
+          <p className="text-foreground text-body-s">
+            <span className="font-medium">This clinic day was cancelled.</span> We are sorry.
+            {rebook
+              ? ` The next ${row.departmentName} day is ${formatFullDate(rebook.nextSessionStartsAtIso)}.`
+              : " No other day is open on MedSync yet."}
+          </p>
+          {rebook ? (
+            <OneTapAction
+              action={acceptRebookingAction}
+              fields={{ cancelled_appointment_id: row.id, session_id: rebook.nextSessionId }}
+              label={`Book ${formatShortDate(rebook.nextSessionStartsAtIso)}`}
+              pendingLabel="Booking…"
+              doneLabel="Booked — see it under Upcoming"
+              hint="Same clinic, same reason. You get a new code and position."
+            />
+          ) : null}
+          <Link
+            href="/patient/book"
+            className="text-primary text-body-s underline-offset-4 hover:underline"
+          >
+            Choose another day
+          </Link>
+        </div>
+      ) : (
+        <BookingFacts row={row} />
+      )}
 
       {canArrive ? <ArrivedButton appointmentId={row.id} /> : null}
+
+      {confirmPending && !canArrive ? (
+        // The T-24h confirmation request (Gate E). Not confirming costs
+        // nothing by default (PRD §3.3.4) — the hint says only what it does.
+        <OneTapAction
+          action={confirmAttendanceAction}
+          fields={{ appointment_id: row.id }}
+          label="Confirm I'm coming"
+          pendingLabel="Confirming…"
+          doneLabel="Confirmed — see you there"
+          hint="Tells the clinic to expect you. Nothing changes if you don't."
+        />
+      ) : null}
 
       {row.reasonNote ? (
         <p className="text-muted-foreground text-body-s">Reason: {row.reasonNote}</p>
@@ -297,6 +377,66 @@ function UpcomingVisit({
       {CANCELLABLE.has(row.status) ? (
         <CancelButton appointmentId={row.id} summary={summary} />
       ) : null}
+    </li>
+  );
+}
+
+/**
+ * A place in the line (Gate E, ADR 0090; PRD §3.3.3). Two shapes: waiting —
+ * one sentence and a way out; offered — the day, "Take this place", and the
+ * expiry in full words. An offer is not a hold: the sentence says so.
+ */
+function WaitlistRow({ card, now }: { card: WaitlistCard; now: Date }) {
+  const who = card.memberName ? `${card.memberName} — ` : "";
+  const offered = card.state === "offered" && card.offeredStartsAtIso && card.offerExpiresAtIso;
+  return (
+    <li className="bg-card dark:shadow-card flex flex-col gap-3 rounded-xl p-4 shadow-xs">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 flex-col gap-0.5">
+          <span className="text-foreground text-body-m font-medium">
+            {offered ? "A place has opened" : "Waiting for a place"}
+          </span>
+          <span className="text-muted-foreground text-body-s">
+            {who}
+            {card.serviceLineName} · {card.hospitalName}
+          </span>
+        </div>
+        <Pill tone={offered ? "stable" : "pending"}>{offered ? "Offer" : "In line"}</Pill>
+      </div>
+      {offered ? (
+        <>
+          <p className="text-foreground text-body-s">
+            {formatFullDate(card.offeredStartsAtIso as string)}. This offer stays open until{" "}
+            <span className="font-medium">
+              {formatOfferExpiry(card.offerExpiresAtIso as string, now)}
+            </span>
+            . The place is not held for you until you take it.
+          </p>
+          <OneTapAction
+            action={acceptWaitlistOfferAction}
+            fields={{ waitlist_entry_id: card.id }}
+            label="Take this place"
+            pendingLabel="Booking…"
+            doneLabel="Booked — see it under Upcoming"
+          />
+        </>
+      ) : (
+        <p className="text-muted-foreground text-body-s">
+          We will tell you when a place opens
+          {card.preferredTo
+            ? ` between ${formatShortDate(card.preferredFrom)} and ${formatShortDate(card.preferredTo)}`
+            : ` from ${formatShortDate(card.preferredFrom)}`}
+          . Being in line does not hold a place.
+        </p>
+      )}
+      <OneTapAction
+        action={withdrawWaitlistAction}
+        fields={{ waitlist_entry_id: card.id }}
+        label="Leave the list"
+        pendingLabel="Leaving…"
+        doneLabel="You left the list"
+        variant="secondary"
+      />
     </li>
   );
 }

@@ -16,6 +16,7 @@
 --   5. department_scheduling_policy.release_unconfirmed_hours (NULL = off)
 --   6. clinic_sessions.delay_minutes; appointments.confirmed_by_patient_at
 --   7. consent_versions          sms_communication v1 (CSO-provisional copy)
+--   7b. consent_records.revoked_at  the patient turned SMS off (profile / STOP)
 --   8. sa_audit_log CHECKs       +5 actions, +2 target kinds
 --
 -- `appointment_reminders` is NOT dropped: the cron keeps draining it until
@@ -500,6 +501,24 @@ FROM (VALUES (
   'MedSync may send SMS about your bookings: confirmation, reminders and changes. No marketing. Reply STOP to opt out.'
 )) AS t(body)
 ON CONFLICT (consent_type, version) DO NOTHING;
+
+
+-- ─── 7b. consent_records.revoked_at ──────────────────────────────────
+--
+-- A consent can be withdrawn (Data Protection and Privacy Act 2019, s.7(3)).
+-- The record itself stays immutable — what was agreed, when, which text —
+-- and `revoked_at` says when it stopped applying. NULL = in force. The
+-- dispatcher's consent gate reads `revoked_at IS NULL`; the profile toggle
+-- and (Gate F) an inbound `STOP` set it; re-granting the same version
+-- clears it (the unique (user, type, version) index forbids a second row).
+-- Service-role writes only — no UPDATE policy is added.
+
+ALTER TABLE public.consent_records
+  ADD COLUMN IF NOT EXISTS revoked_at timestamptz;
+
+CREATE INDEX IF NOT EXISTS consent_records_live_sms_idx
+  ON public.consent_records (user_id)
+  WHERE consent_type = 'sms_communication' AND revoked_at IS NULL;
 
 
 -- ─── 8. sa_audit_log CHECKs re-issued ────────────────────────────────
