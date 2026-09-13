@@ -267,7 +267,14 @@ export default function HomeScreen() {
       const word = STATUS_LABEL[visit.status];
       hero = (
         <HeroCard
-          leading={<Avatar name={visit.clinicianName} size={56} tone="onPrimary" />}
+          leading={
+            <Avatar
+              name={visit.clinicianName}
+              uri={visit.clinicianPhotoUrl}
+              size={56}
+              tone="onPrimary"
+            />
+          }
           eyebrow={word ? `Your next visit · ${word}` : "Your next visit"}
           title={visit.clinicianName || "Your clinician"}
           subtitle={`${visit.departmentName} · ${visit.hospitalName}`}

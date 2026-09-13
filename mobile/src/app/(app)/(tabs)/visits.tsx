@@ -242,7 +242,7 @@ function VisitRow({
       onPress={() => onPress(row)}
       style={({ pressed }) => [styles.row, pressed && styles.pressed]}
     >
-      <Avatar name={row.clinicianName} size={56} />
+      <Avatar name={row.clinicianName} uri={row.clinicianPhotoUrl} size={56} />
       <View style={styles.text}>
         <Text style={styles.who} numberOfLines={1}>
           {row.clinicianName}

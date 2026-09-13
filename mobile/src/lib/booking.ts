@@ -239,8 +239,10 @@ export interface AppointmentRow {
   status: string;
   reason: string;
   reasonNote: string | null;
-  /** `users.full_name` is unreadable to a patient under RLS — see the header. */
+  /** From `clinician_directory` (migration 0057); "Your clinician" until that lands or when the row has none. */
   clinicianName: string;
+  /** A signed URL to the clinician's photograph, or null. */
+  clinicianPhotoUrl: string | null;
   departmentName: string;
   hospitalName: string;
   /** Carried because rescheduling has to rebuild this clinician's grid. */
@@ -301,6 +303,7 @@ export async function fetchAppointments(
   if (error) raise(error.message, "your visits");
 
   const rows = data ?? [];
+  const clinicians = await fetchClinicianCards(rows.map((r) => r.clinician_user_id));
   return rows.map((r) => ({
     id: r.id,
     startsAtIso: r.starts_at,
@@ -310,16 +313,61 @@ export async function fetchAppointments(
     reasonNote: r.reason_note,
     // The same fallback the web uses when `users.full_name` is null — a real
     // sentence, not a placeholder, and honest about what we actually know.
-    // Here it is ALWAYS taken: `users` is own-row-only under RLS and
-    // `appointments.clinician_user_id` points at `auth.users`, so there is no
-    // foreign key to embed `public.users` through either. See the header.
-    clinicianName: "Your clinician",
+    clinicianName: clinicians.get(r.clinician_user_id)?.name ?? "Your clinician",
+    clinicianPhotoUrl: clinicians.get(r.clinician_user_id)?.photoUrl ?? null,
     departmentName: embedded(r.hospital_departments)?.name ?? "Outpatients",
     hospitalName: embedded(r.hospitals)?.name ?? "Your hospital",
     hospitalId: r.hospital_id,
     departmentId: r.department_id,
     clinicianUserId: r.clinician_user_id,
   }));
+}
+
+/**
+ * Name and photograph for a set of clinicians, from `clinician_directory`
+ * (migration 0057) — the narrow view that exposes exactly those two columns
+ * of `users` for active clinical staff. One read and one signing call for
+ * the whole list, never one per row.
+ *
+ * Fails to EMPTY, never to an error: a visit card that cannot say who it is
+ * with still says when and where, and "Your clinician" is the honest word
+ * until the directory exists or the row has no name.
+ */
+async function fetchClinicianCards(
+  ids: readonly string[],
+): Promise<Map<string, { name: string | null; photoUrl: string | null }>> {
+  const unique = [...new Set(ids)];
+  const cards = new Map<string, { name: string | null; photoUrl: string | null }>();
+  if (unique.length === 0) return cards;
+
+  const { data, error } = await supabase
+    .from("clinician_directory")
+    .select("id, full_name, avatar_path")
+    .in("id", unique)
+    .overrideTypes<
+      { id: string; full_name: string | null; avatar_path: string | null }[],
+      { merge: false }
+    >();
+  if (error || !data) return cards;
+
+  const paths = data.map((d) => d.avatar_path).filter((p): p is string => !!p);
+  const urlByPath = new Map<string, string>();
+  if (paths.length > 0) {
+    const { data: signed } = await supabase.storage
+      .from("avatars")
+      .createSignedUrls(paths, AVATAR_URL_TTL_SECONDS);
+    for (const item of signed ?? []) {
+      if (item.path && item.signedUrl) urlByPath.set(item.path, item.signedUrl);
+    }
+  }
+
+  for (const d of data) {
+    cards.set(d.id, {
+      name: d.full_name?.trim() || null,
+      photoUrl: (d.avatar_path && urlByPath.get(d.avatar_path)) || null,
+    });
+  }
+  return cards;
 }
 
 /* ─── today's queue ticket ───────────────────────────────────────── */

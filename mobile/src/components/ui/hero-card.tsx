@@ -121,6 +121,10 @@ const makeStyles = (c: Palette) =>
       borderRadius: radius["2xl"],
       backgroundColor: c.primary,
       gap: space[4],
+      // The card's own colour as its shadow — an indigo card casting a grey
+      // shadow looks cut out and pasted on; casting its own tint it looks
+      // lit. Visible on the dark page too, where a black shadow would not be.
+      boxShadow: `0 10px 28px ${withAlpha(c.primary, 0.28)}`,
     },
     head: { flexDirection: "row", alignItems: "center", gap: space[3] },
     headText: { flex: 1, gap: 2 },

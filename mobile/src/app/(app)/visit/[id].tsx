@@ -394,7 +394,14 @@ export default function VisitScreen() {
           ) : null}
 
           <HeroCard
-            leading={<Avatar name={visit.clinicianName} size={56} tone="onPrimary" />}
+            leading={
+              <Avatar
+                name={visit.clinicianName}
+                uri={visit.clinicianPhotoUrl}
+                size={56}
+                tone="onPrimary"
+              />
+            }
             // The status as a word, here — never a pill on the hero.
             eyebrow={statusWord ? `Visit · ${statusWord}` : "Visit"}
             title={visit.clinicianName}
