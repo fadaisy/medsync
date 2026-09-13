@@ -9,6 +9,7 @@ import { z } from "zod";
 import { db } from "@/db";
 import { consentVersions } from "@/db/schema/consent-versions";
 import { signupDrafts } from "@/db/schema/signup-drafts";
+import { storeAvatar } from "@/lib/avatars";
 import { encrypt } from "@/lib/encryption";
 import { logger } from "@/lib/logger";
 import { listSubcounties } from "@/lib/reference-data";
@@ -123,12 +124,18 @@ export async function submitPatientSignupAction(
   _prev: PatientSignupState,
   formData: FormData,
 ): Promise<PatientSignupState> {
-  const raw = Object.fromEntries(formData.entries()) as Record<string, string>;
+  // The optional photo rides FormData as a File under `photo` — it is
+  // not part of the Zod object and must not be echoed back in `values`.
+  const photo = formData.get("photo");
+  const raw: Record<string, string> = {};
+  for (const [k, v] of formData.entries()) {
+    if (typeof v === "string") raw[k] = v;
+  }
   // Strip empty strings so Zod .optional() actually skips unfilled
   // optional UUID / regex fields (subcounty, primary_facility, NOK, etc.).
   const cleaned: Record<string, string> = {};
   for (const [k, v] of Object.entries(raw)) {
-    if (typeof v === "string" && v !== "") cleaned[k] = v;
+    if (v !== "") cleaned[k] = v;
   }
   const parsed = PatientSignupSchema.safeParse(cleaned);
 
@@ -261,6 +268,9 @@ export async function submitPatientSignupAction(
       values: raw,
     };
   }
+
+  // 4b. Photo — optional, never blocks the account (ADR 0085 §1).
+  if (photo instanceof File && photo.size > 0) await storeAvatar(userId, photo);
 
   // 5. consent_records — record exactly which text was accepted.
   await service.from("consent_records").insert({

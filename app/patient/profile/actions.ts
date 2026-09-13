@@ -1,11 +1,13 @@
 "use server";
 
+import type { PhotoState } from "@/components/forms";
 import { revalidatePath } from "next/cache";
 import { eq } from "drizzle-orm";
 import { z } from "zod";
 
 import { db } from "@/db";
 import { patientProfiles } from "@/db/schema/patient-profiles";
+import { storeAvatar } from "@/lib/avatars";
 import { encrypt } from "@/lib/encryption";
 import { logger } from "@/lib/logger";
 import { requirePatientScope } from "@/lib/patient/scope";
@@ -132,4 +134,18 @@ function parseConditions(raw: string | undefined): string[] {
     if (trimmed) out.add(trimmed);
   }
   return Array.from(out).slice(0, 24);
+}
+
+/** Replace the patient's photo (ADR 0085 §1). Field name: `photo`. */
+export async function updatePatientPhotoAction(
+  _prev: PhotoState,
+  formData: FormData,
+): Promise<PhotoState> {
+  const scope = await requirePatientScope();
+  const file = formData.get("photo");
+  if (!(file instanceof File) || file.size === 0) return { error: "Choose a photo first." };
+  const key = await storeAvatar(scope.userId, file);
+  if (!key) return { error: "We couldn't save that photo — try a JPEG or PNG under 8 MB." };
+  revalidatePath("/patient/profile");
+  return { ok: true };
 }

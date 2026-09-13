@@ -29,6 +29,8 @@ export interface PatientScope {
   userId: string;
   userEmail: string;
   fullName: string | null;
+  /** `users.avatar_path` — storage key of their photo, or null (ADR 0085 §1). */
+  avatarPath: string | null;
   /** May be null — caller decides whether to block. */
   primaryHospitalId: string | null;
   primaryHospitalName: string | null;
@@ -74,6 +76,7 @@ export const requirePatientScope = cache(async (): Promise<PatientScope> => {
     .select({
       userState: users.state,
       fullName: users.fullName,
+      avatarPath: users.avatarPath,
       primaryFacilityId: patientProfiles.primaryFacilityId,
     })
     .from(users)
@@ -121,6 +124,7 @@ export const requirePatientScope = cache(async (): Promise<PatientScope> => {
     userId: state.user.id,
     userEmail: state.user.email ?? "patient",
     fullName: me.fullName,
+    avatarPath: me.avatarPath,
     primaryHospitalId: me.primaryFacilityId ?? null,
     primaryHospitalName,
     primaryHospitalSlug,

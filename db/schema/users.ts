@@ -24,6 +24,11 @@ export const users = pgTable("users", {
   email: text("email").notNull().unique(),
   phone: text("phone"),
   /**
+   * Storage key of the person's photograph in the private `avatars` bucket
+   * (migration 0056, ADR 0085 §1), or null. Read through signed URLs only.
+   */
+  avatarPath: text("avatar_path"),
+  /**
    * Lifecycle state — Postgres enum `public.lifecycle_state`. Drizzle
    * sees it as text; runtime validation lives in lib/lifecycle.ts.
    */

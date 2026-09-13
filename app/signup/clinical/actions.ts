@@ -8,6 +8,7 @@ import { z } from "zod";
 
 import { db } from "@/db";
 import { consentVersions } from "@/db/schema/consent-versions";
+import { storeAvatar } from "@/lib/avatars";
 import { encrypt } from "@/lib/encryption";
 import { logger } from "@/lib/logger";
 import { listCadreGrades, listCadres, listDepartments, listRoles } from "@/lib/reference-data";
@@ -125,6 +126,7 @@ export async function submitClinicalSignupAction(
   // FormData entries include the licence File at `licence_document` —
   // pull it before turning the rest into a string map.
   const licenceFile = formData.get("licence_document");
+  const photo = formData.get("photo");
   const rawEntries: Array<[string, string]> = [];
   for (const [k, v] of formData.entries()) {
     if (typeof v === "string") rawEntries.push([k, v]);
@@ -236,6 +238,9 @@ export async function submitClinicalSignupAction(
       values: raw,
     };
   }
+
+  // 4b. Photo — optional, never blocks the account (ADR 0085 §1).
+  if (photo instanceof File && photo.size > 0) await storeAvatar(userId, photo);
 
   // 5. INSERT staff_affiliations (pending_approval).
   const { error: affiliationError } = await service.from("staff_affiliations").insert({

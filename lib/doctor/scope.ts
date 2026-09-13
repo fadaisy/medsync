@@ -53,6 +53,8 @@ export interface DoctorScope {
   userId: string;
   userEmail: string;
   fullName: string | null;
+  /** `users.avatar_path` — storage key of their photo, or null (ADR 0085 §1). */
+  avatarPath: string | null;
 
   affiliationId: string;
   hospitalId: string;
@@ -103,6 +105,7 @@ export async function requireDoctorScope(): Promise<DoctorScope> {
       specialtyId: staffAffiliations.specialtyId,
       fullName: users.fullName,
       userEmail: users.email,
+      avatarPath: users.avatarPath,
     })
     .from(staffAffiliations)
     .innerJoin(hospitals, eq(hospitals.id, staffAffiliations.hospitalId))
@@ -138,6 +141,7 @@ export async function requireDoctorScope(): Promise<DoctorScope> {
     userId: state.user.id,
     userEmail: me.userEmail ?? state.user.email ?? "doctor",
     fullName: me.fullName,
+    avatarPath: me.avatarPath,
     affiliationId: me.affiliationId,
     hospitalId: me.hospitalId,
     hospitalName: me.hospitalName,

@@ -45,7 +45,16 @@ const LEVEL_LABEL: Record<string, string> = {
   private: "Private",
 };
 
-export function DoctorShell({ scope, children }: { scope: DoctorScope; children: ReactNode }) {
+export function DoctorShell({
+  scope,
+  avatarUrl,
+  children,
+}: {
+  scope: DoctorScope;
+  /** Signed URL of the doctor's photo, or null → the initial disc. */
+  avatarUrl: string | null;
+  children: ReactNode;
+}) {
   const navItems = DOCTOR_FEATURE_AREAS.filter((f) => {
     if (f.visibleTo === "senior") return scope.isSenior;
     if (f.visibleTo === "consultant") return scope.isConsultantLevel;
@@ -104,15 +113,29 @@ export function DoctorShell({ scope, children }: { scope: DoctorScope; children:
             </ul>
           </nav>
 
-          {/* Identity + cadre */}
+          {/* Identity + cadre → /doctor/profile (photo lives there) */}
           <div className="border-border relative border-t p-3">
-            <div className="hover:bg-muted/60 flex items-center gap-2.5 rounded-lg px-1.5 py-1.5 transition-colors duration-200">
-              <div
-                aria-hidden
-                className="bg-brand-100 text-caption text-brand-800 ring-brand-200/70 dark:bg-brand-900/60 dark:text-brand-200 dark:ring-brand-800/50 flex size-7 shrink-0 items-center justify-center rounded-full font-mono font-semibold ring-1"
-              >
-                {initial}
-              </div>
+            <Link
+              href="/doctor/profile"
+              aria-label="Your profile"
+              className="hover:bg-muted/60 focus-visible:shadow-focus flex items-center gap-2.5 rounded-lg px-1.5 py-1.5 transition-colors duration-200 outline-none"
+            >
+              {avatarUrl ? (
+                // Signed Storage URLs are not on next/image's allowlist.
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={avatarUrl}
+                  alt=""
+                  className="ring-border size-7 shrink-0 rounded-full object-cover ring-1"
+                />
+              ) : (
+                <div
+                  aria-hidden
+                  className="bg-brand-100 text-caption text-brand-800 ring-brand-200/70 dark:bg-brand-900/60 dark:text-brand-200 dark:ring-brand-800/50 flex size-7 shrink-0 items-center justify-center rounded-full font-mono font-semibold ring-1"
+                >
+                  {initial}
+                </div>
+              )}
               <div className="min-w-0 flex-1">
                 <p className="text-foreground truncate text-[12px] font-medium">
                   {scope.fullName ?? scope.userEmail}
@@ -125,7 +148,7 @@ export function DoctorShell({ scope, children }: { scope: DoctorScope; children:
                   MFA · AAL2
                 </p>
               </div>
-            </div>
+            </Link>
           </div>
         </aside>
       </FullBleedGate>

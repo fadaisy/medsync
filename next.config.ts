@@ -3,6 +3,13 @@ import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
   // Vercel Analytics is loaded via @vercel/analytics in app/layout.tsx (0.8).
+  experimental: {
+    serverActions: {
+      // Default is 1 MB. Registration posts an optional photo (≤ 8 MB raw,
+      // ADR 0085 §1) and the hospital form two licence documents.
+      bodySizeLimit: "10mb",
+    },
+  },
 };
 
 /**

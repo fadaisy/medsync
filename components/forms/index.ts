@@ -26,6 +26,8 @@ export { DatePicker, type DatePickerProps } from "./date-picker";
 export { DateRangePicker, type DateRangePickerProps } from "./date-range-picker";
 export { OtpInput, type OtpInputProps } from "./otp-input";
 export { FileUpload, type FileUploadProps } from "./file-upload";
+export { AvatarUpload, type AvatarUploadProps } from "./avatar-upload";
+export { PhotoForm, type PhotoState } from "./photo-form";
 export {
   MultiStepForm,
   type MultiStepFormProps,

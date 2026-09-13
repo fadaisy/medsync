@@ -14,6 +14,7 @@ import { useActionState, useEffect, useState } from "react";
 import { TriangleAlertIcon } from "lucide-react";
 
 import {
+  AvatarUpload,
   CascadingCombobox,
   Combobox,
   ConsentCheckbox,
@@ -128,6 +129,13 @@ export function ClinicalSignupForm({
           </Field>
           <Field name="phone_e164" label="Mobile phone" required serverError={errors.phone_e164}>
             <PhoneInput name="phone_e164" invalid={!!errors.phone_e164} mobileOnly />
+          </Field>
+          <Field
+            name="photo"
+            label="Photo (optional)"
+            description="Shown to patients who can book you and to colleagues."
+          >
+            <AvatarUpload name="photo" />
           </Field>
         </>
       ),

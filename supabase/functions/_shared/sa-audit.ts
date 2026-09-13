@@ -108,7 +108,9 @@ export type SaAuditAction =
   | "patient_declare_intake"
   // Emergency phone (ADR 0084 §3, migration 0054 — GATED, and until the owner
   // applies it sa-set-emergency-phone fails closed on the audit write).
-  | "set_emergency_phone";
+  | "set_emergency_phone"
+  // Visit ratings (migration 0056, ADR 0085).
+  | "rate_visit";
 
 export type SaAuditTargetKind =
   | "staff_affiliation"

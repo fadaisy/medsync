@@ -89,3 +89,6 @@ export * from "./clerkship-picklist";
 
 // ─── Clerkship working-draft autosave (migration 0048 — GATED) ─────────
 export * from "./clerkship-drafts";
+
+// ─── Visit ratings (migration 0056 — GATED, ADR 0085) ───────────────────
+export * from "./visit-ratings";
