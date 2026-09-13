@@ -242,9 +242,9 @@ export default function DoctorScreen() {
     );
   }
 
-  // The doctor the row named has nothing open now — the days filled between
-  // the list and this tap, or the link is stale. The other door still works.
-  if (!doctor || !dayKey) {
+  // The row named someone the roster no longer has — the link is stale. A
+  // doctor with nothing open is a different case, drawn below with their name.
+  if (!doctor) {
     return (
       <Screen {...chrome}>
         <Empty
@@ -279,22 +279,24 @@ export default function DoctorScreen() {
       <Screen
         {...chrome}
         footer={
-          <>
-            {error ? (
-              <View style={styles.well}>
-                <Ionicons name="alert-circle-outline" size={18} color={colors.status.cautionFg} />
-                <Text style={styles.wellText} accessibilityLiveRegion="polite">
-                  {error}
-                </Text>
-              </View>
-            ) : null}
-            <Button
-              label="Book an appointment"
-              busy={busy}
-              disabled={!slot || !reason}
-              onPress={() => void onSubmit()}
-            />
-          </>
+          days.length === 0 ? undefined : (
+            <>
+              {error ? (
+                <View style={styles.well}>
+                  <Ionicons name="alert-circle-outline" size={18} color={colors.status.cautionFg} />
+                  <Text style={styles.wellText} accessibilityLiveRegion="polite">
+                    {error}
+                  </Text>
+                </View>
+              ) : null}
+              <Button
+                label="Book an appointment"
+                busy={busy}
+                disabled={!slot || !reason}
+                onPress={() => void onSubmit()}
+              />
+            </>
+          )
         }
       >
         <View style={styles.stack}>
@@ -317,73 +319,98 @@ export default function DoctorScreen() {
             <Text accessibilityRole="header" style={styles.name}>
               {doctor.fullName}
             </Text>
-            <Text style={styles.specialty}>{doctor.specialty ?? doctor.departmentName}</Text>
+            <Text style={styles.specialty}>{doctor.specialty ?? doctor.cadre}</Text>
             <Text style={styles.meta}>
               {doctor.departmentName} · {hospitalName}
             </Text>
           </View>
 
-          <Section title="Select date">
-            <DayStrip days={days} selected={dayKey} onSelect={pickDay} />
-          </Section>
+          {/* Nothing open in the next fortnight: say so under the name rather
+              than draw an empty strip, and point at the door that is open. */}
+          {days.length === 0 ? (
+            <Empty
+              icon="calendar-clear-outline"
+              title="No days open yet."
+              hint={`${doctor.fullName} has not put any clinic days on MedSync. You can still be seen — going to the hospital does not depend on this app.`}
+              action={
+                <Button
+                  variant="secondary"
+                  label="Coming to the hospital today"
+                  onPress={() => router.replace("/(app)/today")}
+                />
+              }
+            />
+          ) : null}
+
+          {days.length > 0 ? (
+            <Section title="Select date">
+              <DayStrip days={days} selected={dayKey} onSelect={pickDay} />
+            </Section>
+          ) : null}
 
           {/* The count is the length of the list under it — the one number
               §3 lets a screen print, and it says so by being that list. */}
-          <View style={styles.section}>
-            <View style={styles.sectionHead}>
-              <Text accessibilityRole="header" style={styles.sectionTitle}>
-                Select time
-              </Text>
-              <Text style={styles.count}>
-                {slots.length === 1 ? "1 slot" : `${slots.length} slots`}
-              </Text>
+          {days.length > 0 ? (
+            <View style={styles.section}>
+              <View style={styles.sectionHead}>
+                <Text accessibilityRole="header" style={styles.sectionTitle}>
+                  Select time
+                </Text>
+                <Text style={styles.count}>
+                  {slots.length === 1 ? "1 slot" : `${slots.length} slots`}
+                </Text>
+              </View>
+              <ChipRow>
+                {slots.map((s) => (
+                  <Chip
+                    key={s.startsAtIso}
+                    label={formatTime(s.startsAtIso)}
+                    selected={s.startsAtIso === slot?.startsAtIso}
+                    onPress={() => setSlot(s)}
+                  />
+                ))}
+              </ChipRow>
             </View>
-            <ChipRow>
-              {slots.map((s) => (
-                <Chip
-                  key={s.startsAtIso}
-                  label={formatTime(s.startsAtIso)}
-                  selected={s.startsAtIso === slot?.startsAtIso}
-                  onPress={() => setSlot(s)}
-                />
-              ))}
-            </ChipRow>
-          </View>
+          ) : null}
 
-          <Section title="Why are you coming?">
-            {/* Five plain choices. `urgent_review` is not one of them and
+          {days.length > 0 ? (
+            <Section title="Why are you coming?">
+              {/* Five plain choices. `urgent_review` is not one of them and
                 must not come back (ADR 0084 §12). */}
-            <ChipRow>
-              {APPOINTMENT_REASONS.map((r) => (
-                <Chip
-                  key={r.value}
-                  label={r.title}
-                  selected={r.value === reason}
-                  onPress={() => setReason(r.value)}
-                />
-              ))}
-            </ChipRow>
-            {picked ? <Text style={styles.hint}>{picked.hint}</Text> : null}
-          </Section>
+              <ChipRow>
+                {APPOINTMENT_REASONS.map((r) => (
+                  <Chip
+                    key={r.value}
+                    label={r.title}
+                    selected={r.value === reason}
+                    onPress={() => setReason(r.value)}
+                  />
+                ))}
+              </ChipRow>
+              {picked ? <Text style={styles.hint}>{picked.hint}</Text> : null}
+            </Section>
+          ) : null}
 
-          <View style={styles.field}>
-            <Text style={[styles.fieldLabel, noteFocused && styles.fieldLabelFocused]}>
-              Add a note for the clinic (optional)
-            </Text>
-            <TextInput
-              value={note}
-              onChangeText={setNote}
-              onFocus={() => setNoteFocused(true)}
-              onBlur={() => setNoteFocused(false)}
-              multiline
-              maxLength={500}
-              placeholder="e.g. The chest pain comes on after climbing stairs."
-              placeholderTextColor={colors.mutedForeground}
-              selectionColor={colors.primary}
-              accessibilityLabel="Add a note for the clinic. Optional."
-              style={[styles.input, noteFocused && styles.inputFocused]}
-            />
-          </View>
+          {days.length > 0 ? (
+            <View style={styles.field}>
+              <Text style={[styles.fieldLabel, noteFocused && styles.fieldLabelFocused]}>
+                Add a note for the clinic (optional)
+              </Text>
+              <TextInput
+                value={note}
+                onChangeText={setNote}
+                onFocus={() => setNoteFocused(true)}
+                onBlur={() => setNoteFocused(false)}
+                multiline
+                maxLength={500}
+                placeholder="e.g. The chest pain comes on after climbing stairs."
+                placeholderTextColor={colors.mutedForeground}
+                selectionColor={colors.primary}
+                accessibilityLabel="Add a note for the clinic. Optional."
+                style={[styles.input, noteFocused && styles.inputFocused]}
+              />
+            </View>
+          ) : null}
         </View>
       </Screen>
     </KeyboardAvoidingView>

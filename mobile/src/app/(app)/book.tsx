@@ -131,9 +131,9 @@ export default function BookScreen() {
             open (§11) — what replaces it is the other door, open by default (§14). */}
         {clinicians.length === 0 ? (
           <Empty
-            icon="calendar-clear-outline"
-            title="No days open yet."
-            hint="No hospital has put any clinic days on MedSync yet. You can still be seen — going to the hospital does not depend on this app."
+            icon="people-outline"
+            title="No doctors on MedSync yet."
+            hint="No hospital has an active clinician on MedSync yet. You can still be seen — going to the hospital does not depend on this app."
             action={
               <View style={styles.exit}>
                 <Button

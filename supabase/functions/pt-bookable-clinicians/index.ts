@@ -5,12 +5,14 @@
  *   - hospital_id   optional; one hospital, or every active hospital when
  *                   absent (ADR 0086 — a patient may book at any of them)
  *
- * Output: one row per (clinician, department) pair with at least one open day
- * in the next 14 days, earliest open day first — each carrying every open
- * slot keyed by clinic date (ADR 0085 §3: the phone shows a time grid and its
- * count), the clinician's name, specialty, a signed URL to their photograph
- * when they have one, and their rating summary when anyone has rated them
- * (ADR 0085 §1, §2). Slots, not the blocks and bookings they came from.
+ * Output: one row per (clinician, hospital, department) pair — EVERY active
+ * clinical affiliation, whether or not any day is open (ADR 0086: the list
+ * is the roster, and a clinician with nothing open says so on their row) —
+ * carrying every open slot keyed by clinic date (ADR 0085 §3: the phone shows
+ * a time grid and its count), the clinician's name, cadre, specialty, a
+ * signed URL to their photograph when they have one, and their rating summary
+ * when anyone has rated them (ADR 0085 §1, §2). Those with a day open come
+ * first, soonest first; the rest follow by name.
  *
  * Why a function and not a query: the rows the slot engine needs are not
  * patient-readable, and must not become so. Other patients' `appointments`
@@ -73,6 +75,8 @@ interface ClinicianOption {
   fullName: string;
   hospitalId: string;
   hospitalName: string;
+  /** "Senior Consultant", "Specialist Nurse" — the row says what kind of clinician this is. */
+  cadre: string;
   /** From `staff_affiliations.specialty_id`, or null — the reference's "Cardiology". */
   specialty: string | null;
   departmentId: string;
@@ -109,6 +113,7 @@ interface AffiliationRow {
   hospitals: { name: string } | null;
   hospital_departments: { name: string } | null;
   specialties: { name: string } | null;
+  cadres: { name: string; is_clinical: boolean } | null;
 }
 
 /** Settings are per (clinician, hospital); a clinician at two hospitals has two rows. */
@@ -164,7 +169,7 @@ Deno.serve(async (request: Request) => {
     // through it; names come from their own read below.
     .select(
       "user_id, hospital_id, department_id, hospitals!inner(name, state), " +
-        "hospital_departments(name), specialties(name), cadres!inner(is_clinical)",
+        "hospital_departments(name), specialties(name), cadres!inner(name, is_clinical)",
     )
     .in("state", ["active", "approved"])
     .eq("cadres.is_clinical", true)
@@ -338,6 +343,7 @@ Deno.serve(async (request: Request) => {
       fullName: user?.full_name?.trim() || "Your clinician",
       hospitalId: a.hospital_id,
       hospitalName: a.hospitals?.name ?? "Your hospital",
+      cadre: a.cadres?.name ?? "Clinician",
       specialty: a.specialties?.name ?? null,
       departmentId: a.department_id,
       departmentName: a.hospital_departments?.name ?? "Outpatients",
@@ -352,12 +358,16 @@ Deno.serve(async (request: Request) => {
     };
   });
 
-  // Only clinicians with a day to offer reach a screen, earliest open day
-  // first — `[0]` is the default assignment ADR 0084 §9 makes on the
-  // patient's behalf, and a reload lands on the same person.
-  const open = options
-    .filter((o) => Object.keys(o.slotsByDate).length > 0)
-    .sort((a, b) => firstOpenDay(a).localeCompare(firstOpenDay(b)));
+  // Everyone reaches the screen. Those with a day to offer first, soonest
+  // first — a reload lands on the same person — then the rest by name, so a
+  // clinician with nothing open is still findable and their row says so.
+  const open = options.sort((a, b) => {
+    const da = firstOpenDay(a);
+    const db = firstOpenDay(b);
+    if (da && db) return da.localeCompare(db);
+    if (da || db) return da ? -1 : 1;
+    return a.fullName.localeCompare(b.fullName);
+  });
 
   log.info("bookable clinicians served", {
     requestId,

@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { Avatar } from "@/components/ui/avatar";
 import { Rating } from "@/components/ui/rating";
+import { dayLabel } from "@/lib/booking";
 import { useStyles, useTheme } from "@/theme/theme";
 import { font, radius, space } from "@/theme/tokens";
 
@@ -14,13 +15,15 @@ import { font, radius, space } from "@/theme/tokens";
  * rating or its honest absence (ADR 0085 §1, §2). The home shows up to three;
  * the doctors list shows them all. Both import this so the row cannot drift.
  *
- * `onPress` opens the doctor page; the row itself claims nothing about days
- * or times — those live on that page, where the count is the length of the
- * list it sits beside.
+ * `onPress` opens the doctor page. The one thing the row says about days is
+ * whether there is one: "Next open: Thu 18 Sep" or "No days open yet" — so a
+ * patient scanning the roster (ADR 0086) is not sent into a page with nothing
+ * to pick. Times and counts live on that page.
  */
 export function DoctorRow({ option, onPress }: { option: ClinicianOption; onPress: () => void }) {
   const { colors } = useTheme();
   const styles = useStyles(makeStyles);
+  const nextOpen = Object.keys(option.slotsByDate).sort()[0];
 
   return (
     <Pressable
@@ -35,9 +38,12 @@ export function DoctorRow({ option, onPress }: { option: ClinicianOption; onPres
           {option.fullName}
         </Text>
         <Text style={styles.what} numberOfLines={1}>
-          {option.specialty ?? option.departmentName}
+          {option.specialty ?? option.cadre} · {option.departmentName}
         </Text>
         <Rating rating={option.rating} size="sm" />
+        <Text style={[styles.when, !nextOpen && styles.whenNone]} numberOfLines={1}>
+          {nextOpen ? `Next open: ${dayLabel(nextOpen)}` : "No days open yet"}
+        </Text>
       </View>
       <Ionicons
         name="chevron-forward"
@@ -70,4 +76,6 @@ const makeStyles = (c: Palette) =>
     text: { flex: 1, gap: 2 },
     who: { fontFamily: font.bodyMedium, fontSize: 16, lineHeight: 22, color: c.foreground },
     what: { fontFamily: font.body, fontSize: 13.5, lineHeight: 19, color: c.mutedForeground },
+    when: { fontFamily: font.bodyMedium, fontSize: 13, lineHeight: 18, color: c.primary },
+    whenNone: { fontFamily: font.body, color: c.mutedForeground },
   });
