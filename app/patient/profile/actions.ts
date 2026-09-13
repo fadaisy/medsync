@@ -8,7 +8,7 @@ import { z } from "zod";
 import { db } from "@/db";
 import { patientProfiles } from "@/db/schema/patient-profiles";
 import { storeAvatar } from "@/lib/avatars";
-import { encrypt } from "@/lib/encryption";
+import { blindIndex, encrypt } from "@/lib/encryption";
 import { logger } from "@/lib/logger";
 import { requirePatientScope } from "@/lib/patient/scope";
 
@@ -99,6 +99,7 @@ export async function updatePatientProfileAction(
       .update(patientProfiles)
       .set({
         phoneEncrypted: encrypt(parsed.data.phone.trim()),
+        phoneHmac: blindIndex(parsed.data.phone.trim()),
         villageAddressEncrypted: parsed.data.village_address
           ? encrypt(parsed.data.village_address.trim())
           : null,

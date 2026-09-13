@@ -60,6 +60,14 @@ export const env = createEnv({
      */
     EXPO_PUSH_ACCESS_TOKEN: z.string().optional(),
     SMS_WEBHOOK_SECRET: z.string().min(16, "SMS_WEBHOOK_SECRET should be ≥ 16 chars.").optional(),
+    /**
+     * Gate F (ADR 0091). USSD_WEBHOOK_SECRET is the path segment Africa's
+     * Talking posts USSD callbacks to: /api/ussd/<secret>. AT_CALLBACK_IPS is
+     * an optional comma-separated allowlist of AT's published source IPs,
+     * enforced on every AT webhook only when set (docs/ops-channels.md).
+     */
+    USSD_WEBHOOK_SECRET: z.string().min(16, "USSD_WEBHOOK_SECRET should be ≥ 16 chars.").optional(),
+    AT_CALLBACK_IPS: z.string().optional(),
 
     NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   },
@@ -87,6 +95,8 @@ export const env = createEnv({
     CRON_SECRET: process.env.CRON_SECRET,
     EXPO_PUSH_ACCESS_TOKEN: process.env.EXPO_PUSH_ACCESS_TOKEN,
     SMS_WEBHOOK_SECRET: process.env.SMS_WEBHOOK_SECRET,
+    USSD_WEBHOOK_SECRET: process.env.USSD_WEBHOOK_SECRET,
+    AT_CALLBACK_IPS: process.env.AT_CALLBACK_IPS,
     NODE_ENV: process.env.NODE_ENV,
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,

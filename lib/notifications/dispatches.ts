@@ -1,5 +1,7 @@
+import type { notificationDispatches } from "@/db/schema/notifications";
 import type { DispatchInsert, DispatchKind } from "@/supabase/functions/_shared/dispatches";
 
+import { DEFAULT_LANGUAGE, t } from "@/lib/channels/strings";
 import { composeReceiptSms } from "@/lib/notifications/receipt";
 import { MAX_SENDS_PER_RUN, STALE_GRACE_MINUTES } from "@/lib/notifications/sink";
 import {
@@ -44,6 +46,25 @@ export type {
   DispatchRelatedKind,
 } from "@/supabase/functions/_shared/dispatches";
 
+/** `dispatchRows()` speaks the wire shape (snake_case); Drizzle wants the column names. */
+export function toDispatchInsertRow(r: DispatchInsert): typeof notificationDispatches.$inferInsert {
+  return {
+    hospitalId: r.hospital_id,
+    kind: r.kind,
+    recipientUserId: r.recipient_user_id,
+    recipientPhoneEncrypted: r.recipient_phone_encrypted,
+    language: r.language,
+    channel: r.channel,
+    fallbackChannel: r.fallback_channel,
+    scheduledAt: new Date(r.scheduled_at),
+    fallbackAfter: r.fallback_after ? new Date(r.fallback_after) : null,
+    idempotencyKey: r.idempotency_key,
+    relatedKind: r.related_kind,
+    relatedId: r.related_id,
+    payload: r.payload,
+  };
+}
+
 /* ─── inputs ─────────────────────────────────────────────────────── */
 
 /** What the related row (appointment / waitlist entry) says about itself. */
@@ -59,7 +80,8 @@ export interface RelatedState {
 /** One `notification_dispatches` row as the planner sees it. No PHI. */
 export interface DispatchRow {
   id: string;
-  hospitalId: string;
+  /** Null (0062): a platform reply — default quiet hours, no facility's "Sent today". */
+  hospitalId: string | null;
   kind: string;
   channel: string;
   state: string;
@@ -103,7 +125,7 @@ export interface PushSend {
   recipientUserId: string;
   tokens: ReadonlyArray<string>;
   kind: string;
-  hospitalId: string;
+  hospitalId: string | null;
   relatedKind: string;
   relatedId: string;
   payload: Record<string, unknown>;
@@ -113,7 +135,7 @@ export interface SmsSend {
   dispatchId: string;
   recipientUserId: string | null;
   kind: string;
-  hospitalId: string;
+  hospitalId: string | null;
   relatedKind: string;
   relatedId: string;
   payload: Record<string, unknown>;
@@ -320,7 +342,9 @@ export function planDispatch(args: PlanDispatchArgs): DispatchPlan {
     }
     // I.
     if (HELD_IN_QUIET_HOURS.has(row.kind as DispatchKind)) {
-      const quiet = args.quietHoursByHospital.get(row.hospitalId) ?? DEFAULT_QUIET_HOURS;
+      const quiet =
+        (row.hospitalId ? args.quietHoursByHospital.get(row.hospitalId) : undefined) ??
+        DEFAULT_QUIET_HOURS;
       if (inQuietHours(args.now, quiet, timeZone)) {
         hold(row.id, "quiet_hours", quietHoursEnd(args.now, quiet, timeZone).toISOString());
         continue;
@@ -397,6 +421,8 @@ export interface DispatchCopyArgs {
   nextSessionStartsAtIso: string | null;
   /** window_shifted */
   delayMinutes: number | null;
+  /** sms_reply (Gate F): the reply key, rendered from lib/channels/strings.ts. */
+  replyKey?: string | null;
 }
 
 const MAX_CHARS = 160;
@@ -461,6 +487,8 @@ export function composeDispatchSms(a: DispatchCopyArgs): string {
         "MedSync: ",
         ` is running ${a.delayMinutes ?? 0} minutes late. Arrive ${range(a.arrivalWindowStartIso, a.arrivalWindowEndIso)} instead.${code}`,
       );
+    case "sms_reply":
+      return composeSmsReply(a.replyKey ?? null, a.bookingCode);
     default:
       return fit("MedSync: ", ` has an update about your visit. Open MedSync.${code}`);
   }
@@ -481,6 +509,33 @@ export function composeDispatchPush(a: DispatchCopyArgs): { title: string; body:
     title: titles[a.kind] ?? "MedSync",
     body: composeDispatchSms(a).replace(/^MedSync: /, ""),
   };
+}
+
+/**
+ * The one reply to an inbound keyword (Gate F, ADR 0091). Keys map onto
+ * `lib/channels/strings.ts`; an unknown key gets the help line so nobody
+ * receives an empty SMS.
+ */
+export function composeSmsReply(replyKey: string | null, bookingCode: string | null): string {
+  const code = bookingCode ? bookingCode.toUpperCase() : null;
+  switch (replyKey) {
+    case "confirmed":
+      return `MedSync: ${t(DEFAULT_LANGUAGE, "confirmed", { code })}`;
+    case "cancelled":
+      return `MedSync: ${t(DEFAULT_LANGUAGE, "cancelled", { code })}`;
+    case "not_confirmable":
+      return `MedSync: ${t(DEFAULT_LANGUAGE, "not_confirmable", { code })}`;
+    case "not_cancellable":
+      return `MedSync: ${t(DEFAULT_LANGUAGE, "not_cancellable", { code })}`;
+    case "unknown_code":
+      return `MedSync: ${t(DEFAULT_LANGUAGE, "code_unknown")} ${t(DEFAULT_LANGUAGE, "sms_help").replace(/^MedSync: /, "")}`;
+    case "stopped":
+      return t(DEFAULT_LANGUAGE, "sms_stopped");
+    case "too_many":
+      return t(DEFAULT_LANGUAGE, "sms_too_many");
+    default:
+      return t(DEFAULT_LANGUAGE, "sms_help");
+  }
 }
 
 /** "Tue 22 Sep" — East Africa Time. */

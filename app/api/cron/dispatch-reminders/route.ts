@@ -1,14 +1,10 @@
-import type {
-  DispatchCopyArgs,
-  DispatchInsert,
-  DispatchRow,
-  RelatedState,
-} from "@/lib/notifications/dispatches";
+import type { DispatchCopyArgs, DispatchRow, RelatedState } from "@/lib/notifications/dispatches";
 import type { ReminderRow, SmsJob, SmsSender } from "@/lib/notifications/sink";
 import { NextResponse } from "next/server";
 import { and, asc, eq, gt, gte, inArray, isNotNull, isNull, lte, sql } from "drizzle-orm";
 
 import { db } from "@/db";
+import { smsOptOuts } from "@/db/schema/channels";
 import { clinicSessions } from "@/db/schema/clinic-sessions";
 import { consentRecords } from "@/db/schema/consent-records";
 import { hospitalDepartments } from "@/db/schema/hospital-departments";
@@ -22,7 +18,7 @@ import {
   departmentSchedulingPolicy,
 } from "@/db/schema/scheduling";
 import { serviceLines } from "@/db/schema/service-lines";
-import { decrypt } from "@/lib/encryption";
+import { blindIndex, decrypt } from "@/lib/encryption";
 import { env } from "@/lib/env";
 import { logger } from "@/lib/logger";
 import { createAfricasTalkingSender } from "@/lib/notifications/africastalking";
@@ -32,6 +28,7 @@ import {
   dispatchRows,
   OFFER_WINDOW_MS,
   planDispatch,
+  toDispatchInsertRow,
 } from "@/lib/notifications/dispatches";
 import { fetchExpoReceipts, sendExpoPush } from "@/lib/notifications/expo-push";
 import {
@@ -324,25 +321,6 @@ interface RelatedDetails {
 
 const NEVER: RelatedState = { live: false, status: null, startsAtIso: null };
 
-/** `dispatchRows()` speaks the wire shape (snake_case); Drizzle wants the column names. */
-function toDrizzleInsert(r: DispatchInsert): typeof notificationDispatches.$inferInsert {
-  return {
-    hospitalId: r.hospital_id,
-    kind: r.kind,
-    recipientUserId: r.recipient_user_id,
-    recipientPhoneEncrypted: r.recipient_phone_encrypted,
-    language: r.language,
-    channel: r.channel,
-    fallbackChannel: r.fallback_channel,
-    scheduledAt: new Date(r.scheduled_at),
-    fallbackAfter: r.fallback_after ? new Date(r.fallback_after) : null,
-    idempotencyKey: r.idempotency_key,
-    relatedKind: r.related_kind,
-    relatedId: r.related_id,
-    payload: r.payload,
-  };
-}
-
 async function drainDispatches(sender: SmsSender, now: Date) {
   // Hits notification_dispatches_dispatcher_idx head-on; bounded.
   const due = await db
@@ -387,7 +365,7 @@ async function drainDispatches(sender: SmsSender, now: Date) {
     ...new Set(all.filter((r) => r.relatedKind === "waitlist_entry").map((r) => r.relatedId)),
   ];
   const userIds = [...new Set(all.flatMap((r) => (r.recipientUserId ? [r.recipientUserId] : [])))];
-  const hospitalIds = [...new Set(all.map((r) => r.hospitalId))];
+  const hospitalIds = [...new Set(all.flatMap((r) => (r.hospitalId ? [r.hospitalId] : [])))];
 
   const related = new Map<string, RelatedDetails>();
   if (appointmentIds.length > 0) {
@@ -472,6 +450,28 @@ async function drainDispatches(sender: SmsSender, now: Date) {
     }
   }
 
+  // Gate F: a reply to an inbound SMS relates to nothing that can expire —
+  // it is live until sent, and says what its payload key says.
+  for (const r of all) {
+    if (r.relatedKind !== "inbound_sms") continue;
+    related.set(`inbound_sms:${r.relatedId}`, {
+      state: { live: true, status: "received", startsAtIso: null },
+      copy: {
+        hospitalName: "",
+        serviceName: "",
+        startsAtIso: null,
+        bookingCode: ((r.payload as { booking_code?: string | null }).booking_code ?? null) as
+          | string
+          | null,
+        positionNumber: null,
+        arrivalWindowStartIso: null,
+        arrivalWindowEndIso: null,
+        offeredStartsAtIso: null,
+      },
+      phoneEncrypted: null,
+    });
+  }
+
   const tokensByUser = new Map<string, string[]>();
   const consentByUser = new Map<string, boolean>();
   const profilePhoneByUser = new Map<string, string>();
@@ -502,16 +502,18 @@ async function drainDispatches(sender: SmsSender, now: Date) {
     for (const p of profiles) profilePhoneByUser.set(p.id, p.phone);
   }
   const quietHoursByHospital = new Map(
-    (
-      await db
-        .select({
-          id: hospitals.id,
-          start: hospitals.quietHoursStartMinutesLocal,
-          end: hospitals.quietHoursEndMinutesLocal,
-        })
-        .from(hospitals)
-        .where(inArray(hospitals.id, hospitalIds))
-    ).map((h) => [h.id, { startMinutes: h.start, endMinutes: h.end }]),
+    hospitalIds.length === 0
+      ? []
+      : (
+          await db
+            .select({
+              id: hospitals.id,
+              start: hospitals.quietHoursStartMinutesLocal,
+              end: hospitals.quietHoursEndMinutesLocal,
+            })
+            .from(hospitals)
+            .where(inArray(hospitals.id, hospitalIds))
+        ).map((h) => [h.id, { startMinutes: h.start, endMinutes: h.end }]),
   );
 
   const ciphertextFor = (r: (typeof all)[number]) =>
@@ -585,7 +587,7 @@ async function drainDispatches(sender: SmsSender, now: Date) {
   if (plan.fallbacks.length > 0) {
     await db
       .insert(notificationDispatches)
-      .values(plan.fallbacks.map((f) => toDrizzleInsert(f.insert)))
+      .values(plan.fallbacks.map((f) => toDispatchInsertRow(f.insert)))
       .onConflictDoNothing({ target: notificationDispatches.idempotencyKey });
   }
 
@@ -615,10 +617,45 @@ async function drainDispatches(sender: SmsSender, now: Date) {
       .where(inArray(notificationDispatches.id, unreachable));
   }
 
+  // Gate F: "Reply STOP to opt out" — by phone, stronger than consent, the
+  // receipt included. The one SMS an opted-out phone still gets is the
+  // reply that confirms the STOP itself.
+  if (phoneByDispatch.size > 0) {
+    const hmacByDispatch = new Map(
+      [...phoneByDispatch].map(([id, phone]) => [id, blindIndex(phone)] as const),
+    );
+    const stopped = new Set(
+      (
+        await db
+          .select({ phoneHmac: smsOptOuts.phoneHmac })
+          .from(smsOptOuts)
+          .where(inArray(smsOptOuts.phoneHmac, [...new Set(hmacByDispatch.values())]))
+      ).map((r) => r.phoneHmac),
+    );
+    const optedOut = [...hmacByDispatch]
+      .filter(([id, hmac]) => {
+        if (!stopped.has(hmac)) return false;
+        const r = byId.get(id);
+        return !(r?.kind === "sms_reply" && (r.payload as { reply?: string }).reply === "stopped");
+      })
+      .map(([id]) => id);
+    if (optedOut.length > 0) {
+      for (const id of optedOut) phoneByDispatch.delete(id);
+      await db
+        .update(notificationDispatches)
+        .set({ state: "cancelled", failureReason: "sms_opted_out", updatedAt: now })
+        .where(inArray(notificationDispatches.id, optedOut));
+    }
+  }
+
   const copyFor = (dispatchId: string): DispatchCopyArgs => {
     const r = byId.get(dispatchId) as (typeof all)[number];
     const d = related.get(`${r.relatedKind}:${r.relatedId}`);
-    const p = r.payload as { next_session_starts_at?: string | null; delay_minutes?: number };
+    const p = r.payload as {
+      next_session_starts_at?: string | null;
+      delay_minutes?: number;
+      reply?: string;
+    };
     return {
       kind: r.kind,
       hospitalName: d?.copy.hospitalName ?? "",
@@ -635,6 +672,7 @@ async function drainDispatches(sender: SmsSender, now: Date) {
           : null,
       nextSessionStartsAtIso: p.next_session_starts_at ?? null,
       delayMinutes: p.delay_minutes ?? null,
+      replyKey: p.reply ?? null,
     };
   };
 
@@ -878,7 +916,7 @@ async function offerToNext(appointmentId: string, now: Date): Promise<string | n
   });
   await db
     .insert(notificationDispatches)
-    .values(rows.map(toDrizzleInsert))
+    .values(rows.map(toDispatchInsertRow))
     .onConflictDoNothing({ target: notificationDispatches.idempotencyKey });
   return offer.entry_id;
 }
@@ -985,7 +1023,7 @@ async function releaseUnconfirmed(now: Date) {
       });
       await db
         .insert(notificationDispatches)
-        .values(rows.map(toDrizzleInsert))
+        .values(rows.map(toDispatchInsertRow))
         .onConflictDoNothing({ target: notificationDispatches.idempotencyKey });
     }
     await offerToNext(a.id, now);

@@ -23,7 +23,7 @@ import { serviceClient } from "./auth.ts";
  */
 /**
  * Allowed action / targetKind values — kept in sync with the
- * sa_audit_log CHECK constraint (currently set by migration 0061).
+ * sa_audit_log CHECK constraint (currently set by migration 0062).
  * When you add a value here, ALSO add it to the migration; the union
  * is here so typecheck catches typos before they hit the DB.
  */
@@ -125,7 +125,9 @@ export type SaAuditAction =
   | "accept_waitlist_offer"
   | "accept_rebooking"
   | "confirm_attendance"
-  | "set_session_delay";
+  | "set_session_delay"
+  // Low-bandwidth channels (migration 0062 — GATED, ADR 0091).
+  | "sms_stop";
 
 export type SaAuditTargetKind =
   | "staff_affiliation"

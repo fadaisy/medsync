@@ -60,7 +60,10 @@ function headers(): Record<string, string> {
   return h;
 }
 
-async function post(url: string, body: unknown): Promise<{ ok: true; json: unknown } | { ok: false; reason: string }> {
+async function post(
+  url: string,
+  body: unknown,
+): Promise<{ ok: true; json: unknown } | { ok: false; reason: string }> {
   try {
     const res = await fetch(url, {
       method: "POST",
@@ -81,7 +84,9 @@ async function post(url: string, body: unknown): Promise<{ ok: true; json: unkno
 }
 
 /** One ticket per message, in order. Never throws. */
-export async function sendExpoPush(messages: ReadonlyArray<ExpoPushMessage>): Promise<ExpoTicket[]> {
+export async function sendExpoPush(
+  messages: ReadonlyArray<ExpoPushMessage>,
+): Promise<ExpoTicket[]> {
   const tickets: ExpoTicket[] = [];
   for (let i = 0; i < messages.length; i += SEND_CHUNK) {
     const chunk = messages.slice(i, i + SEND_CHUNK);
@@ -113,7 +118,9 @@ export async function sendExpoPush(messages: ReadonlyArray<ExpoPushMessage>): Pr
 }
 
 /** Receipts by ticket id. Ids Expo no longer knows (> 24 h) are simply absent. Never throws. */
-export async function fetchExpoReceipts(ids: ReadonlyArray<string>): Promise<Map<string, ExpoReceipt>> {
+export async function fetchExpoReceipts(
+  ids: ReadonlyArray<string>,
+): Promise<Map<string, ExpoReceipt>> {
   const out = new Map<string, ExpoReceipt>();
   for (let i = 0; i < ids.length; i += RECEIPT_CHUNK) {
     const chunk = ids.slice(i, i + RECEIPT_CHUNK);

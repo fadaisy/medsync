@@ -44,7 +44,9 @@ interface AfricasTalkingRecipient {
 }
 
 /** "UGX 35.0000" → { amount: "35.0000", currency: "UGX" }; anything else → undefined. */
-export function parseCost(cost: string | undefined): { amount: string; currency: string } | undefined {
+export function parseCost(
+  cost: string | undefined,
+): { amount: string; currency: string } | undefined {
   const m = /^([A-Z]{3})\s+(\d+(?:\.\d+)?)$/.exec((cost ?? "").trim());
   return m ? { currency: m[1] as string, amount: m[2] as string } : undefined;
 }

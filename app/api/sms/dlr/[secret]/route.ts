@@ -1,10 +1,10 @@
-import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { and, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 
 import { db } from "@/db";
 import { notificationDispatches } from "@/db/schema/notifications";
+import { webhookAuthorised } from "@/lib/channels/webhook-auth";
 import { env } from "@/lib/env";
 import { logger } from "@/lib/logger";
 
@@ -16,8 +16,8 @@ export const dynamic = "force-dynamic";
  * AT posts `application/x-www-form-urlencoded` — `id`, `status`,
  * `phoneNumber`, `networkCode`, and on failure `failureReason` — unsigned.
  * The secret is the path segment (`SMS_WEBHOOK_SECRET`, configured as the
- * callback URL in the AT dashboard); a wrong or missing one is a 404, not a
- * hint. `id` is the `messageId` the transport recorded as
+ * callback URL in the AT dashboard) plus the optional `AT_CALLBACK_IPS`
+ * allowlist (`lib/channels/webhook-auth.ts`); a wrong one is a 404, not a hint. `id` is the `messageId` the transport recorded as
  * `provider_message_id`, so the report is a single conditional UPDATE and
  * is idempotent: a second `Success` for a delivered row changes nothing.
  *
@@ -41,17 +41,11 @@ const Report = z.object({
 const DELIVERED = new Set(["Success"]);
 const FAILED = new Set(["Failed", "Rejected", "Expired"]);
 
-function secretMatches(supplied: string): boolean {
-  const expected = env.SMS_WEBHOOK_SECRET;
-  if (!expected) return false;
-  const a = Buffer.from(supplied);
-  const b = Buffer.from(expected);
-  return a.length === b.length && timingSafeEqual(a, b);
-}
-
 export async function POST(request: Request, ctx: { params: Promise<{ secret: string }> }) {
   const { secret } = await ctx.params;
-  if (!secretMatches(secret)) return new NextResponse(null, { status: 404 });
+  if (!webhookAuthorised(request, secret, env.SMS_WEBHOOK_SECRET)) {
+    return new NextResponse(null, { status: 404 });
+  }
 
   let form: URLSearchParams;
   try {
@@ -89,7 +83,8 @@ export async function POST(request: Request, ctx: { params: Promise<{ secret: st
         .update(notificationDispatches)
         .set({
           state: "failed",
-          failureReason: `dlr_${status.toLowerCase()}${failureReason ? `: ${failureReason}` : ""}`.slice(0, 300),
+          failureReason:
+            `dlr_${status.toLowerCase()}${failureReason ? `: ${failureReason}` : ""}`.slice(0, 300),
           updatedAt: now,
         })
         .where(

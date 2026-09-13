@@ -34,6 +34,8 @@ export const patientProfiles = pgTable(
     idType: text("id_type").notNull(),
     idNumberEncrypted: text("id_number_encrypted"),
     phoneEncrypted: text("phone_encrypted").notNull(),
+    /** Migration 0062 / ADR 0091: blind index of the phone (`blindIndex()`); NULL until written or backfilled. */
+    phoneHmac: text("phone_hmac"),
 
     districtId: uuid("district_id")
       .notNull()

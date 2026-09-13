@@ -257,7 +257,7 @@ export const appointments = pgTable(
     unique("appointments_hospital_booking_code_unique").on(t.hospitalId, t.bookingCode),
     check(
       "appointments_origin_check",
-      sql`${t.origin} IN ('patient','clinician','nurse','reception','system_urgent','walk_in')`,
+      sql`${t.origin} IN ('patient','clinician','nurse','reception','system_urgent','walk_in','ussd')`,
     ),
     // Migration 0053 / ADR 0084 §12. 'urgent_review' stays a legal reason —
     // system-propose-urgent-appointment writes it with origin='system_urgent'

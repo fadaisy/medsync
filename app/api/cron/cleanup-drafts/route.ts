@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { and, eq, isNull, lt, notExists } from "drizzle-orm";
 
 import { db } from "@/db";
+import { ussdSessions } from "@/db/schema/channels";
 import { bookingAgents, provisionalPatients } from "@/db/schema/provisional-patients";
 import { appointments } from "@/db/schema/scheduling";
 import { env } from "@/lib/env";
@@ -75,7 +76,15 @@ export async function GET(request: Request) {
   try {
     const provisionals = await sweepExpiredProvisionals();
     logger.info("cron.sweep-provisionals.ran", { removed: provisionals });
-    return NextResponse.json({ ok: true, removed, sessions, provisionals });
+    // Gate F (0062): USSD session state lives minutes (PRD §5.5); expired rows go.
+    const ussd = (
+      await db
+        .delete(ussdSessions)
+        .where(lt(ussdSessions.expiresAt, new Date()))
+        .returning({ id: ussdSessions.id })
+    ).length;
+    logger.info("cron.sweep-ussd-sessions.ran", { removed: ussd });
+    return NextResponse.json({ ok: true, removed, sessions, provisionals, ussd });
   } catch (e) {
     logger.error("cron.sweep-provisionals.failed", { reason: String(e) });
     return NextResponse.json(

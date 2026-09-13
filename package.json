@@ -15,6 +15,7 @@
     "format:check": "prettier --check .",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "node --experimental-strip-types scripts/migrate.ts",
+    "db:backfill-phone-hmac": "node --experimental-strip-types scripts/backfill-phone-hmac.ts",
     "db:migrate:drizzle": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",

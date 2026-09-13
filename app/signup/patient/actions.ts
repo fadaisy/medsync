@@ -10,7 +10,7 @@ import { db } from "@/db";
 import { consentVersions } from "@/db/schema/consent-versions";
 import { signupDrafts } from "@/db/schema/signup-drafts";
 import { storeAvatar } from "@/lib/avatars";
-import { encrypt } from "@/lib/encryption";
+import { blindIndex, encrypt } from "@/lib/encryption";
 import { logger } from "@/lib/logger";
 import { fetchSmsConsentVersion, setSmsConsent } from "@/lib/notifications/consent";
 import { listSubcounties } from "@/lib/reference-data";
@@ -254,6 +254,8 @@ export async function submitPatientSignupAction(
     id_type: input.id_type,
     id_number_encrypted: idNumberCt,
     phone_encrypted: phoneCt,
+    // Gate F (0062): the blind index USSD/SMS look this phone up by.
+    phone_hmac: blindIndex(input.phone_e164),
     district_id: input.district_id,
     subcounty_id: input.subcounty_id ?? null,
     village_address_encrypted: villageAddressCt,

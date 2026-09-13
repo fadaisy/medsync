@@ -114,9 +114,15 @@ describe("one booking core (no duplicated allocator / code / receipt logic)", ()
 
 describe("migration 0060 — RLS and CHECKs as written", () => {
   const SQL = read("supabase/migrations/0060_identity_and_lifecycle.sql");
-  // The sa_audit_log CHECKs are re-issued by every later migration that adds
-  // a verb; the LATEST one is what the DB holds (0061 at Gate E, ADR 0090).
-  const LATEST_AUDIT_SQL = read("supabase/migrations/0061_notifications_and_waitlist.sql");
+  // Each sa_audit_log CHECK is re-issued by whichever later migration adds a
+  // value; the LATEST re-issue of THAT check is what the DB holds — found,
+  // not named, so the next gate's migration is covered without touching this.
+  const MIGRATIONS = readdirSync(resolve(ROOT, "supabase/migrations"))
+    .filter((f) => f.endsWith(".sql"))
+    .sort()
+    .map((f) => read(`supabase/migrations/${f}`));
+  const latestWith = (needle: string) =>
+    MIGRATIONS.filter((sql) => sql.includes(needle)).at(-1) as string;
   const policies = [...SQL.matchAll(/CREATE POLICY (\w+) ON public\.(\w+)\s+FOR (\w+)/g)].map(
     (m) => ({ name: m[1], table: m[2], cmd: m[3] }),
   );
@@ -197,8 +203,9 @@ describe("migration 0060 — RLS and CHECKs as written", () => {
       return [...ts.slice(start, end).matchAll(/"([a-z_]+)"/g)].map((m) => m[1] as string);
     };
     const check = (name: string) => {
-      const start = LATEST_AUDIT_SQL.lastIndexOf(`${name} CHECK`);
-      return LATEST_AUDIT_SQL.slice(start, LATEST_AUDIT_SQL.indexOf(";", start));
+      const sql = latestWith(`${name} CHECK`);
+      const start = sql.lastIndexOf(`${name} CHECK`);
+      return sql.slice(start, sql.indexOf(";", start));
     };
     const actions = check("sa_audit_log_action_check");
     for (const a of union("SaAuditAction")) expect(actions, a).toContain(`'${a}'`);

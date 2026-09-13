@@ -135,7 +135,8 @@ describe("the dispatcher (at-most-once, cost, consent, DLR)", () => {
     // The form field is named in the doc comment only; the code never reads it.
     const code = dlr.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
     expect(code).not.toMatch(/phoneNumber/);
-    expect(dlr).toContain("timingSafeEqual");
+    expect(dlr).toContain("webhookAuthorised(request, secret, env.SMS_WEBHOOK_SECRET)");
+    expect(read("lib/channels/webhook-auth.ts")).toContain("timingSafeEqual(a, b)");
   });
 });
 

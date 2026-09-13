@@ -31,6 +31,7 @@
 
 import type { SupabaseClient } from "npm:@supabase/supabase-js@2.106.1";
 
+import { bookingDispatchRows } from "./dispatches.ts";
 import {
   badRequest,
   conflict,
@@ -40,7 +41,6 @@ import {
   serverError,
   tooManyRequests,
 } from "./errors.ts";
-import { bookingDispatchRows } from "./dispatches.ts";
 import { recordSaAudit } from "./sa-audit.ts";
 import {
   arrivalWindow,
@@ -94,8 +94,9 @@ export interface BookInput {
   patient: BookPatient;
   /** `created_by_user_id`; the replay and rate-limit key. */
   actorId: string;
-  origin: "patient" | "reception";
-  channel: "web" | "app" | "desk";
+  /** 'ussd' (Gate F): the caller is a carrier-verified phone with no account. */
+  origin: "patient" | "reception" | "ussd";
+  channel: "web" | "app" | "desk" | "ussd";
   hospitalId: string;
   reason: string;
   note: string | null;

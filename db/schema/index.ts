@@ -100,3 +100,6 @@ export * from "./clinic-sessions";
 
 // ─── Notifications + waitlist (migration 0061 — GATED, ADR 0090) ────────
 export * from "./notifications";
+
+// ─── Low-bandwidth channels (migration 0062 — GATED, ADR 0091) ──────────
+export * from "./channels";

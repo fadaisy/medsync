@@ -45,18 +45,37 @@ export type DispatchKind =
   | "position_called"
   | "payment"
   | "deterioration_flag"
-  | "unconfirmed_release";
+  | "unconfirmed_release"
+  /** Gate F (0062): the one reply to an inbound SMS keyword. */
+  | "sms_reply";
 
 export type DispatchChannel = "push" | "sms" | "in_app";
 
-export type DispatchRelatedKind = "appointment" | "waitlist_entry" | "clinic_session" | "intake";
+export type DispatchRelatedKind =
+  | "appointment"
+  | "waitlist_entry"
+  | "clinic_session"
+  | "intake"
+  | "inbound_sms";
+
+/** What an `sms_reply` says — a KEY rendered from `lib/channels/strings.ts`, never free text. */
+export type SmsReplyKey =
+  | "confirmed"
+  | "cancelled"
+  | "stopped"
+  | "help"
+  | "unknown_code"
+  | "not_confirmable"
+  | "not_cancellable"
+  | "too_many";
 
 /** Who receives it: an account, or a provisional patient's phone ciphertext. */
 export type DispatchRecipient = { userId: string } | { phoneEncrypted: string };
 
 /** Exactly the `notification_dispatches` INSERT shape (snake_case, as supabase-js takes it). */
 export interface DispatchInsert {
-  hospital_id: string;
+  /** NULL (0062) = a platform reply with no facility to bill. */
+  hospital_id: string | null;
   kind: DispatchKind;
   recipient_user_id: string | null;
   recipient_phone_encrypted: string | null;
@@ -72,7 +91,7 @@ export interface DispatchInsert {
 }
 
 interface EventBase {
-  hospitalId: string;
+  hospitalId: string | null;
   recipient: DispatchRecipient;
   /** ISO instant "now" — passed in so the builder stays pure. */
   nowIso: string;
@@ -83,7 +102,11 @@ export type DispatchEvent =
   | (EventBase & { kind: "booking_receipt"; appointmentId: string })
   | (EventBase & { kind: "confirmation_request"; appointmentId: string; startsAtIso: string })
   | (EventBase & { kind: "arrival_window"; appointmentId: string; startsAtIso: string })
-  | (EventBase & { kind: "waitlist_offer"; waitlistEntryId: string; offeredSessionId: string | null })
+  | (EventBase & {
+      kind: "waitlist_offer";
+      waitlistEntryId: string;
+      offeredSessionId: string | null;
+    })
   | (EventBase & {
       kind: "session_cancelled";
       appointmentId: string;
@@ -97,7 +120,13 @@ export type DispatchEvent =
       delayMinutes: number;
       shiftMinutes: number;
     })
-  | (EventBase & { kind: "unconfirmed_release"; appointmentId: string });
+  | (EventBase & { kind: "unconfirmed_release"; appointmentId: string })
+  | (EventBase & {
+      kind: "sms_reply";
+      inboundSmsId: string;
+      reply: SmsReplyKey;
+      bookingCode: string | null;
+    });
 
 /** Kinds sent by BOTH channels up front (PRD §1.5, §3.2.6). */
 export const BOTH_CHANNELS_ALWAYS: ReadonlySet<DispatchKind> = new Set([
@@ -206,12 +235,14 @@ export function dispatchRows(event: DispatchEvent): DispatchInsert[] {
       provisional
         ? [row("sms", scheduledMs, null)]
         : [row("push", scheduledMs, null), row("sms", scheduledMs, null)];
+    /** SMS alone, now — the reply to someone who wrote to us by SMS. */
+    const smsOnly = (scheduledMs: number): DispatchInsert[] => [row("sms", scheduledMs, null)];
     /** Push-first with an SMS fallback; one SMS for a provisional. */
     const pushFirst = (scheduledMs: number, fallbackDelayMs: number): DispatchInsert[] =>
       provisional
         ? [row("sms", scheduledMs, null)]
         : [row("push", scheduledMs, scheduledMs + fallbackDelayMs)];
-    return { both, pushFirst };
+    return { both, pushFirst, smsOnly };
   };
 
   switch (event.kind) {
@@ -250,6 +281,13 @@ export function dispatchRows(event: DispatchEvent): DispatchInsert[] {
 
     case "unconfirmed_release":
       return base("appointment", event.appointmentId, {}).both(nowMs);
+
+    case "sms_reply":
+      // The caller wrote to us by SMS: the answer goes the same way, once.
+      return base("inbound_sms", event.inboundSmsId, {
+        reply: event.reply,
+        booking_code: event.bookingCode,
+      }).smsOnly(nowMs);
 
     case "window_shifted":
       return base(

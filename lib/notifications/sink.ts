@@ -421,7 +421,9 @@ export async function deliverSms(args: {
             ? {
                 reminderId: job.reminderId,
                 ok: true,
-                ...(result.providerMessageId ? { providerMessageId: result.providerMessageId } : {}),
+                ...(result.providerMessageId
+                  ? { providerMessageId: result.providerMessageId }
+                  : {}),
                 ...(result.cost ? { cost: result.cost } : {}),
               }
             : { reminderId: job.reminderId, ok: false, reason: result.reason };

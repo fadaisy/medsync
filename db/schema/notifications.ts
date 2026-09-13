@@ -45,6 +45,8 @@ export const DISPATCH_KINDS = [
   "deterioration_flag",
   /** Beyond §5.11: PRD §3.2.3's release at T-minus-X must never be silent. */
   "unconfirmed_release",
+  /** Gate F (0062): the one reply to an inbound SMS keyword; payload = a reply key. */
+  "sms_reply",
 ] as const;
 export type DispatchKind = (typeof DISPATCH_KINDS)[number];
 
@@ -63,10 +65,8 @@ export const notificationDispatches = pgTable(
   "notification_dispatches",
   {
     id: uuid("id").primaryKey().defaultRandom(),
-    /** Cost attribution per facility (PRD §1.5). */
-    hospitalId: uuid("hospital_id")
-      .notNull()
-      .references(() => hospitals.id, { onDelete: "cascade" }),
+    /** Cost attribution per facility (PRD §1.5). NULL (0062) = a platform reply with no facility. */
+    hospitalId: uuid("hospital_id").references(() => hospitals.id, { onDelete: "cascade" }),
     kind: text("kind").notNull(),
     recipientUserId: uuid("recipient_user_id").references(() => authUsers.id, {
       onDelete: "cascade",
@@ -92,7 +92,7 @@ export const notificationDispatches = pgTable(
     costCurrency: text("cost_currency"),
     /** `${kind}:${related_kind}:${related_id}:${suffix}` — a retried writer ON CONFLICT DO NOTHING. */
     idempotencyKey: text("idempotency_key").notNull(),
-    /** 'appointment' | 'waitlist_entry' | 'clinic_session' | 'intake' */
+    /** 'appointment' | 'waitlist_entry' | 'clinic_session' | 'intake' | 'inbound_sms' */
     relatedKind: text("related_kind").notNull(),
     relatedId: uuid("related_id").notNull(),
     /** Ids only — never a name, never a phone. */
@@ -103,7 +103,7 @@ export const notificationDispatches = pgTable(
   (t) => [
     check(
       "notification_dispatches_kind_check",
-      sql`${t.kind} IN ('booking_receipt','confirmation_request','reminder','arrival_window','waitlist_offer','session_cancelled','window_shifted','position_called','payment','deterioration_flag','unconfirmed_release')`,
+      sql`${t.kind} IN ('booking_receipt','confirmation_request','reminder','arrival_window','waitlist_offer','session_cancelled','window_shifted','position_called','payment','deterioration_flag','unconfirmed_release','sms_reply')`,
     ),
     check(
       "notification_dispatches_recipient_check",
@@ -120,7 +120,7 @@ export const notificationDispatches = pgTable(
     ),
     check(
       "notification_dispatches_related_kind_check",
-      sql`${t.relatedKind} IN ('appointment','waitlist_entry','clinic_session','intake')`,
+      sql`${t.relatedKind} IN ('appointment','waitlist_entry','clinic_session','intake','inbound_sms')`,
     ),
     unique("notification_dispatches_idempotency_unique").on(t.idempotencyKey),
     index("notification_dispatches_dispatcher_idx")
