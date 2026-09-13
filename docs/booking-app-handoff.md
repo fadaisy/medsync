@@ -1,4 +1,4 @@
-# MedSync Book — handoff (2026-09-13)
+# MedSync Book — handoff (2026-09-13, after Gates E and F)
 
 **Read this first in the next session.** It says where the build stands, what is not applied yet, what was interrupted,
 and how to resume. The rules that govern everything are unchanged: `AGENTS.md`, the PRD at `docs/booking-app-prd.md`, the
@@ -9,81 +9,81 @@ Gate A proposal at `docs/booking-app-gate-a-proposal.md`, and ADRs 0084–0089.
 Branch **`feat/booking-app`** (cut from `feat/ncd-diabetes` at `2e3dcda`; nothing merged to `main` yet — C6 says merge
 `feat/ncd-diabetes` → `main` first, then rebase this branch; owner's call).
 
-| Commit | Gate | State |
-|---|---|---|
-| `2e3dcda` | PRD + Gate A proposal | done |
-| `dfa0258` | A′ hygiene | done, verified |
-| `45e4441` | B — service lines, session templates, clinic sessions, console | done, verified |
-| `49c7531` | C — booking flow over three modes (server, web wizard, PWA shell, phone) | done, verified |
-| `085a1d6` | D — provisional identity, reconciliation, book-on-behalf, self-arrival, household, FHIR | done, verified |
-| `wip` (next commit) | **E — INTERRUPTED mid-server-phase** | see §3 |
+| Commit    | Gate                                                                                    | State                            |
+| --------- | --------------------------------------------------------------------------------------- | -------------------------------- |
+| `2e3dcda` | PRD + Gate A proposal                                                                   | done                             |
+| `dfa0258` | A′ hygiene                                                                              | done, verified                   |
+| `45e4441` | B — service lines, session templates, clinic sessions, console                          | done, verified                   |
+| `49c7531` | C — booking flow over three modes (server, web wizard, PWA shell, phone)                | done, verified                   |
+| `085a1d6` | D — provisional identity, reconciliation, book-on-behalf, self-arrival, household, FHIR | done, verified                   |
+| `bb83ee2` | E — notifications, waitlist, cancel a clinic day, push, SMS consent (web + mobile)      | done, verified                   |
+| `38e67c0` | F — USSD menu, SMS keywords, STOP, system-\* functions, webhook auth                    | done, verified (no live AT call) |
 
 Before the booking work, the same session shipped on `feat/ncd-diabetes`: the Expo app (`mobile/`), the theme, the tab
 bar, the reference redesign, ADR 0085 (photos/ratings/times/emergency tab), ADR 0086 (any hospital), the roster list.
 
-## 2. Owner actions still pending — nothing below has been confirmed applied
+## 2. Owner actions still pending
 
-Run in this order. Each migration is GATED; each is additive except the one flagged index re-scope in 0058.
+**0055–0060 are applied** on the dev DB (`_medsync_migrations`, checked 2026-09-13). Still pending, in order —
+each GATED, each additive (0062 makes `notification_dispatches.hospital_id` nullable):
 
 ```sh
-npm run db:migrate          # applies whatever is pending of 0055 … 0060 (check: SELECT * FROM schema_migrations or the migrate log)
+npm run db:migrate                # 0061 (Gate E), 0062 (Gate F) — both dry-run clean in BEGIN/ROLLBACK
+npm run db:backfill-phone-hmac    # once: patient_profiles.phone_hmac for rows written before 0062
 ```
 
-| Migration | What it adds | Needed by |
-|---|---|---|
-| 0055 | `department_scheduling_policy` readable by authenticated | phone walk-in hours |
-| 0056 | `users.avatar_path`, private `avatars` bucket, `visit_ratings` + view, `rate_visit` verb | ADR 0085 |
-| 0057 | `clinician_directory` view | clinician name/photo on visit cards |
-| 0058 | `service_lines`, `session_templates`, `clinic_sessions`, appointments columns, index re-scope, 13 reasons | Gate B |
-| 0059 | `appointment_reminders.kind`, `allocate_session_position` + 2 SQL functions | Gate C — **before** deploying the Next app (the dispatcher reads `kind`) |
-| 0060 | `provisional_patients`, `booking_agents`, `void`, agent read policy | Gate D |
+| Migration | What it adds                                                                                                                                                                                                                            | Needed by                                                                           |
+| --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| 0055      | `department_scheduling_policy` readable by authenticated                                                                                                                                                                                | phone walk-in hours                                                                 |
+| 0056      | `users.avatar_path`, private `avatars` bucket, `visit_ratings` + view, `rate_visit` verb                                                                                                                                                | ADR 0085                                                                            |
+| 0057      | `clinician_directory` view                                                                                                                                                                                                              | clinician name/photo on visit cards                                                 |
+| 0058      | `service_lines`, `session_templates`, `clinic_sessions`, appointments columns, index re-scope, 13 reasons                                                                                                                               | Gate B                                                                              |
+| 0059      | `appointment_reminders.kind`, `allocate_session_position` + 2 SQL functions                                                                                                                                                             | Gate C — **before** deploying the Next app (the dispatcher reads `kind`)            |
+| 0060      | `provisional_patients`, `booking_agents`, `void`, agent read policy                                                                                                                                                                     | Gate D (applied)                                                                    |
+| 0061      | `notification_dispatches`, `push_tokens`, `waitlist_entries`, `offer_released_capacity()`, quiet hours, `release_unconfirmed_hours`, `delay_minutes`, `confirmed_by_patient_at`, `consent_records.revoked_at`, `sms_communication` v1.0 | Gate E — **before** deploying the Gate E functions and the re-deployed core callers |
+| 0062      | `ussd_sessions`, `inbound_sms`, `sms_opt_outs`, `patient_profiles.phone_hmac`, origin + `ussd`, dispatch kind + `sms_reply`, `hospital_id` nullable, audit + `sms_stop`                                                                 | Gate F                                                                              |
 
-Secrets: `MEDSYNC_PHI_KEY` is **set** on the Supabase project (done in-session; see §5 for a caveat). Still needed later:
-`SMS_WEBHOOK_SECRET`, `USSD_WEBHOOK_SECRET`, `AT_CALLBACK_IPS` (optional), `EXPO_PUSH_ACCESS_TOKEN` (optional), Vercel Pro for
-a fourth cron, `AFRICASTALKING_*` for live SMS.
+Secrets — Supabase Functions: `MEDSYNC_PHI_KEY` is **set** (see §5 caveat); **`MEDSYNC_SYSTEM_ACTOR_UUID`** is needed
+(a real `auth.users` id — create `system@medsync` with no role; the system-\_ functions 503 without it). Vercel:
+`SMS_WEBHOOK_SECRET`, `USSD_WEBHOOK_SECRET` (`openssl rand -hex 32` each), `AT_CALLBACK_IPS` (optional),
+`EXPO_PUSH_ACCESS_TOKEN` (optional), `AFRICASTALKING\__`when the owner provides them (after F — nothing in the repo
+calls AT in a test). Mobile:`extra.eas.projectId`in`mobile/app.json`before a real push token can mint; until then
+every message falls back to SMS. The full runbook, including the three AT dashboard callback URLs, is`docs/ops-channels.md`.
 
 Edge Functions to deploy (the union of every gate's list; deploy all, order irrelevant once migrations are in):
 
 ```sh
 npx supabase functions deploy pt-bookable-clinicians pt-rate-visit pt-request-appointment reschedule-appointment cancel-appointment \
   pt-declare-intake ha-complete-encounter ha-mark-no-show ha-mark-arrived ha-record-walkin ha-check-in-patient \
-  ha-upsert-service-line ha-upsert-session-template ha-book-on-behalf ha-reconcile-identity pt-add-household-member
+  ha-upsert-service-line ha-upsert-session-template ha-book-on-behalf ha-reconcile-identity pt-add-household-member \
+  ha-decline-appointment-request pt-join-waitlist pt-withdraw-waitlist pt-accept-waitlist-offer pt-confirm-attendance \
+  pt-accept-rebooking pt-ack-notification pt-set-sms-consent ha-cancel-session ha-set-session-delay \
+  system-ussd-book system-ussd-act
 ```
 
 Then deploy the Next app, then `cd mobile && npx expo start --lan -c`.
 
-## 3. Gate E — what was interrupted
+## 3. Where the build is, and what is next
 
-The E+F workflow was stopped by the owner during E's server phase; F never started. On disk (uncommitted at the time, committed
-next as **`wip(booking): Gate E server phase — interrupted, unverified, do not deploy`**):
+Gates E and F are built, verified and committed (ADRs 0090, 0091; CHANGELOG). Two facts found on the way:
 
-- `supabase/migrations/0061_notifications_and_waitlist.sql` — written, **not dry-run**
-- `db/schema/notifications.ts` + columns on hospitals / clinic_sessions / scheduling — written
-- `lib/notifications/dispatches.ts`, `supabase/functions/_shared/dispatches.ts` — builder + planner, one test file written
-- `lib/notifications/expo-push.ts`, `lib/notifications/sink.ts`, `africastalking.ts`, the dispatcher route — modified
-- `supabase/functions/_shared/{book,waitlist}.ts`, `cancel-appointment`, `ha-decline-appointment-request`, `reschedule-appointment`
-  — modified to write dispatches / release capacity
-- new functions: `ha-cancel-session`, `ha-set-session-delay`, `pt-accept-rebooking`, `pt-accept-waitlist-offer`,
-  `pt-ack-notification`, `pt-confirm-attendance`, `pt-join-waitlist`, `pt-withdraw-waitlist`
-- `app/api/sms/` (DLR webhook) — started
-- **NOT started**: web surfaces (2a), mobile push + surfaces (2b), both verifiers, ADR 0090, CHANGELOG.
+- **Consent records were never written.** Every signup's `consent_records` insert used a nonexistent `granted_at`
+  and omitted the NOT NULL `version`, unchecked — the DB had 5 patients and 0 consent records. Fixed in Gate E
+  (all four signup actions); the 5 existing patients have no `data_processing` record and cannot be backfilled
+  honestly (nobody knows which text they saw). Owner decision: ask them to re-accept on next sign-in (Gate H).
+- **`docs/booking-app-build/GATE-E-BUILD.md` / `GATE-F-BUILD.md`** were followed with these recorded deviations:
+  `consent_records.revoked_at` (withdrawal), `sms_opt_outs` (STOP by phone), `patient_profiles.phone_hmac`,
+  name+age on one USSD screen (the six-level budget), slot lines list "day time" on one screen, the USSD reason is
+  the line's first Appendix A code, the SMS control lives on Settings (web) rather than Profile.
 
-State at the stop: `npm run typecheck` clean; `npm run lint` failing; 2 tests failing in `tests/identity/gate-d-invariants.test.ts`
-(the audit-verb CHECK test parses 0060 and does not yet know 0061's verbs; the "one booking core" test sees receipt logic that
-moved into `_shared/dispatches.ts`). Both are expected mid-gate, not regressions — but the WIP has **not** been verified by anyone.
+**Gate G** — see the Gate A proposal §10. The payment half is blocked on Part 8 #8/#14 (legal); "Expo push only"
+is largely done by E's Phase 2b (token registration, ack, deep link). What remains of G is the EAS project id
+(owner) and any push-permission copy the CSO wants.
 
-**How to resume E**: read `docs/booking-app-build/GATE-E-BUILD.md` (the contract, verbatim), then diff the WIP against its
-"Phase 1" list; finish Phase 1 (dry-run 0061; fix the two invariant tests by teaching them 0061; lint), then run Phase 2a ∥ 2b and
-the two verifiers as the contract describes. The workflow script that was running is at
-`~/.claude/projects/-Users-airm1-Desktop-medsync/47696eac-05a1-469b-9122-d1a4c49147e9/workflows/scripts/booking-gates-e-f-wf_ce863efd-8ae.js`
-— reusable as a template, but a fresh run should re-read the disk rather than resume from cache.
-
-**Gate F** has its contract at `docs/booking-app-build/GATE-F-BUILD.md`; it depends on E's dispatch table and on the owner
-providing Africa's Talking credentials (the owner said they will, after E and F are built). Build against the AT callback
-contract in the doc; no live calls in tests.
-
-**Gates G, H** — see the Gate A proposal §10. G's payment half is blocked on Part 8 #8/#14 (legal); build G as "Expo push only"
-(most of which is E's Phase 2b). H is telemetry, reports, invariant tests, perf budgets, WCAG, and the parked rulings.
+**Gate H** — telemetry, reports, invariant tests, perf budgets, WCAG, the parked rulings (four-eyes on
+un-reconcile and cancel-session; cross-tenant un-reconcile; staff cancel reasons visible to a booking agent),
+re-granting SMS after STOP from the app (clear `sms_opt_outs`), removing a household member, the consent re-accept
+above, Luganda strings after CSO sign-off.
 
 ## 4. Rulings assumed so far (owner said "implement it" to the Gate A recommendations)
 
@@ -107,3 +107,7 @@ time-to-care values, confidential lines, translations) remain **provisional** ev
   considered sensitive (rotation needs a re-encrypt pass — no tooling exists yet, ADR-0008).
 - Build contracts for every gate, the mobile design contracts and the theme contract are in `docs/booking-app-build/`.
 - The Gate A review page: https://claude.ai/code/artifact/11b0210b-0170-423d-b186-ed834fd1ebcf
+- `MEDSYNC_SYSTEM_ACTOR_UUID` must be a REAL `auth.users` row: `sa_audit_log.actor_id` is a NOT NULL FK, so the
+  sentinel fallback in `system-propose-urgent-appointment` would fail its audit insert. Create the user first.
+- The test that checks `sa_audit_log` CHECKs against `sa-audit.ts` finds the latest migration re-issuing each CHECK
+  on its own — a new gate's migration needs no test edit.
