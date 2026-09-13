@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, asc, count, desc, eq, gte, ilike, inArray, lt } from "drizzle-orm";
+import { and, asc, count, desc, eq, gte, ilike, inArray, lt, sql } from "drizzle-orm";
 
 import { db } from "@/db";
 import { clinicalPhiAccessLog } from "@/db/schema/doctor-workspace";
@@ -8,11 +8,13 @@ import { hospitalDepartments } from "@/db/schema/hospital-departments";
 import { hospitals } from "@/db/schema/hospitals";
 import { patientIntakes } from "@/db/schema/patient-intakes";
 import { patientProfiles } from "@/db/schema/patient-profiles";
-import { appointments } from "@/db/schema/scheduling";
+import { provisionalPatients } from "@/db/schema/provisional-patients";
+import { appointments, encounters } from "@/db/schema/scheduling";
 import { users } from "@/db/schema/users";
 import { decrypt } from "@/lib/encryption";
 import { presenceAt, presenceOf } from "@/lib/intake/queries";
 import { logger } from "@/lib/logger";
+import { maskPhone, matchBasis } from "@/lib/reception/reconcile-basis";
 import {
   DEFAULT_TIME_ZONE,
   endOfLocalDay,
@@ -90,6 +92,17 @@ function decryptName(first: string | null, surname: string | null): string | nul
     return `${decrypt(first)} ${decrypt(surname)}`.trim();
   } catch (e) {
     logger.warn("reception.name_reveal.decrypt_failed", { reason: String(e) });
+    return null;
+  }
+}
+
+/** Decrypt one column, or null when the payload/key is unusable. */
+function decryptOrNull(payload: string | null): string | null {
+  if (!payload) return null;
+  try {
+    return decrypt(payload);
+  } catch (e) {
+    logger.warn("reception.decrypt_failed", { reason: String(e) });
     return null;
   }
 }
@@ -224,14 +237,38 @@ export interface ExpectedArrival {
   startsAtIso: string;
   status: string;
   type: string;
-  patientUserId: string;
-  patientCode: string;
+  /** Null for a provisional booking (migration 0060) until the desk confirms who it is for. */
+  patientUserId: string | null;
+  patientCode: string | null;
   clinicianName: string | null;
   departmentName: string | null;
+  /** Clinic-day bookings carry a position; slot bookings carry null. */
+  positionNumber: number | null;
+  /** An encounter for this booking reached state='completed' — the "Seen" stage. */
+  seen: boolean;
+  /**
+   * Gate D: the booking identity when there is no confirmed account yet.
+   * `declaredName` is the audited operational reveal (ADR 0084 §11) — the
+   * clerk must match the person at the desk to this row by name.
+   */
+  provisional: {
+    id: string;
+    declaredName: string | null;
+    state: string;
+  } | null;
 }
+
+/** An appointment with a completed encounter has been seen. */
+const seenSql = sql<boolean>`exists (
+  select 1 from ${encounters}
+  where ${encounters.appointmentId} = ${appointments.id}
+    and ${encounters.state} = 'completed'
+)`;
 
 export async function fetchExpectedArrivals(args: {
   hospitalId: string;
+  /** The scoped receptionist — required to audit provisional name reveals. */
+  receptionUserId: string;
   date?: Date;
   limit?: number;
 }): Promise<ExpectedArrival[]> {
@@ -251,9 +288,16 @@ export async function fetchExpectedArrivals(args: {
       patientCode: patientProfiles.patientCode,
       clinicianName: users.fullName,
       departmentName: hospitalDepartments.name,
+      positionNumber: appointments.positionNumber,
+      seen: seenSql,
+      provisionalId: provisionalPatients.id,
+      provisionalNameEncrypted: provisionalPatients.declaredNameEncrypted,
+      provisionalState: provisionalPatients.reconciliationState,
     })
     .from(appointments)
-    .innerJoin(patientProfiles, eq(patientProfiles.id, appointments.patientUserId))
+    // LEFT: a provisional booking has no profile until it is reconciled.
+    .leftJoin(patientProfiles, eq(patientProfiles.id, appointments.patientUserId))
+    .leftJoin(provisionalPatients, eq(provisionalPatients.id, appointments.provisionalPatientId))
     .leftJoin(users, eq(users.id, appointments.clinicianUserId))
     .leftJoin(hospitalDepartments, eq(hospitalDepartments.id, appointments.departmentId))
     .where(
@@ -275,7 +319,7 @@ export async function fetchExpectedArrivals(args: {
     .orderBy(asc(appointments.startsAt))
     .limit(args.limit ?? 100);
 
-  return rows.map((r) => ({
+  const out: ExpectedArrival[] = rows.map((r) => ({
     id: r.id,
     startsAtIso: r.startsAt.toISOString(),
     status: r.status,
@@ -284,7 +328,63 @@ export async function fetchExpectedArrivals(args: {
     patientCode: r.patientCode,
     clinicianName: r.clinicianName,
     departmentName: r.departmentName,
+    positionNumber: r.positionNumber,
+    seen: r.seen,
+    provisional: r.provisionalId
+      ? {
+          id: r.provisionalId,
+          // Only while the booking still has no patient: once confirmed the
+          // code is the identifier, and the declared name need not be shown.
+          declaredName: r.patientUserId ? null : decryptOrNull(r.provisionalNameEncrypted),
+          state: r.provisionalState ?? "unreconciled",
+        }
+      : null,
   }));
+
+  // A provisional row has no patient_user_id to audit against, so the reveal
+  // is logged against the provisional id in `surface` — one row per name.
+  const revealed = out.filter((r) => r.provisional?.declaredName);
+  if (revealed.length > 0) {
+    const audited = await auditProvisionalReveals({
+      hospitalId: args.hospitalId,
+      receptionUserId: args.receptionUserId,
+      surface: "reception_expected_list",
+      provisionalIds: revealed.map((r) => r.provisional!.id),
+    });
+    if (!audited) {
+      for (const r of out) if (r.provisional) r.provisional.declaredName = null;
+    }
+  }
+  return out;
+}
+
+/**
+ * The provisional twin of `auditNameReveals`. `clinical_phi_access_log`
+ * requires a patient_user_id and a provisional has none, so the record goes
+ * to the application log — a structured line per reveal, fail-closed like
+ * the profile path. UPGRADE PATH: a `provisional_patient_id` column on the
+ * access log (additive migration) once Gate H settles the audit shape.
+ */
+async function auditProvisionalReveals(args: {
+  hospitalId: string;
+  receptionUserId: string;
+  surface: string;
+  provisionalIds: ReadonlyArray<string>;
+}): Promise<boolean> {
+  try {
+    for (const provisionalId of new Set(args.provisionalIds)) {
+      logger.info("reception.provisional_name_reveal", {
+        hospital_id: args.hospitalId,
+        reception_user_id: args.receptionUserId,
+        surface: `${args.surface}${OPERATIONAL_BASIS_SUFFIX}`,
+        provisional_patient_id: provisionalId,
+      });
+    }
+    return true;
+  } catch (e) {
+    logger.error("reception.provisional_name_reveal.audit_failed", { reason: String(e) });
+    return false;
+  }
 }
 
 /* ─── Patient search (operational identifiers only) ─────────────── */
@@ -558,7 +658,7 @@ export interface FlowRow {
    * present. Distinct from `expected` (booked appointment, not yet
    * arrived) and `arrived` (here, not yet in a triage queue).
    * Migration 0035. */
-  stage: "declared" | "expected" | "arrived" | "in_queue" | "awaiting_triage";
+  stage: "declared" | "expected" | "arrived" | "in_queue" | "awaiting_triage" | "seen";
   departmentName: string | null;
   whenIso: string;
   detail: string;
@@ -580,12 +680,16 @@ export async function fetchTodayFlow(args: {
     .select({
       patientUserId: appointments.patientUserId,
       patientCode: patientProfiles.patientCode,
+      // A provisional booking (migration 0060) has no code yet; the board
+      // says so in words rather than naming the person.
+      provisionalId: appointments.provisionalPatientId,
       status: appointments.status,
       startsAt: appointments.startsAt,
       departmentName: hospitalDepartments.name,
+      seen: seenSql,
     })
     .from(appointments)
-    .innerJoin(patientProfiles, eq(patientProfiles.id, appointments.patientUserId))
+    .leftJoin(patientProfiles, eq(patientProfiles.id, appointments.patientUserId))
     .leftJoin(hospitalDepartments, eq(hospitalDepartments.id, appointments.departmentId))
     .where(
       and(
@@ -630,8 +734,9 @@ export async function fetchTodayFlow(args: {
   const out: FlowRow[] = [];
 
   for (const r of apptRows) {
-    const stage: FlowRow["stage"] =
-      r.status === "arrived" || r.status === "in_progress"
+    const stage: FlowRow["stage"] = r.seen
+      ? "seen"
+      : r.status === "arrived" || r.status === "in_progress"
         ? "in_queue"
         : r.status === "confirmed" || r.status === "pending_approval" || r.status === "requested"
           ? "expected"
@@ -639,7 +744,7 @@ export async function fetchTodayFlow(args: {
     out.push({
       patientUserId: r.patientUserId,
       patientCode: r.patientCode,
-      patientUnknownLabel: null,
+      patientUnknownLabel: r.patientUserId ? null : r.provisionalId ? "Identity to confirm" : null,
       stage,
       departmentName: r.departmentName,
       whenIso: r.startsAt.toISOString(),
@@ -648,14 +753,18 @@ export async function fetchTodayFlow(args: {
     });
   }
   for (const r of intakeRows) {
+    // 'completed' is set by ha-complete-encounter: the intake's encounter
+    // reached state='completed' — the same "Seen" the booking rows derive.
     const stage: FlowRow["stage"] =
-      r.status === "declared"
-        ? "declared"
-        : r.status === "awaiting_triage"
-          ? "awaiting_triage"
-          : r.status === "triaged"
-            ? "in_queue"
-            : "arrived";
+      r.status === "completed"
+        ? "seen"
+        : r.status === "declared"
+          ? "declared"
+          : r.status === "awaiting_triage"
+            ? "awaiting_triage"
+            : r.status === "triaged"
+              ? "in_queue"
+              : "arrived";
     const source = r.declaredByPatient ? "Self-declared" : "Intake";
     out.push({
       patientUserId: r.patientUserId,
@@ -672,4 +781,216 @@ export async function fetchTodayFlow(args: {
   // Stable sort: most-recent event first.
   out.sort((a, b) => b.whenIso.localeCompare(a.whenIso));
   return out.slice(0, args.limit ?? 100);
+}
+
+/* ─── Identity to confirm (Gate D, PRD §2.8) ─────────────────────── */
+
+export interface ProvisionalSummary {
+  id: string;
+  hospitalId: string | null;
+  declaredName: string | null;
+  /** "+256 7•• ••• 123" — last digits only, to check with the caller. */
+  phoneMasked: string | null;
+  dateOfBirth: string | null;
+  ageYears: number | null;
+  reconciliationState: string;
+  /** The appointment at this hospital the panel was opened from, if any. */
+  createdAtIso: string;
+}
+
+export interface ReconciliationCandidate {
+  patientUserId: string;
+  patientCode: string;
+  displayName: string;
+  dateOfBirth: string;
+  /** Words, never a score: "same phone", "same name and year of birth". */
+  basis: string[];
+}
+
+/**
+ * ponytail: candidates are found by decrypting this hospital's profiles and
+ * comparing — `patient_profiles` has no blind index, so `phone_hmac` (which
+ * migration 0060 put on provisional_patients) cannot be joined to it yet.
+ * The scan is bounded to the newest PROFILE_SCAN_ROWS profiles whose primary
+ * facility is this hospital. CEILING: a profile older than that window, or
+ * registered elsewhere, is not offered — the clerk still has "Register new"
+ * and the code search. UPGRADE PATH: a `phone_hmac` column on
+ * patient_profiles (additive migration + backfill via `blindIndex`), after
+ * which the phone leg becomes one indexed equality and only the name leg
+ * still decrypts.
+ */
+const PROFILE_SCAN_ROWS = 2000;
+
+interface ScannedProfile {
+  patientUserId: string;
+  patientCode: string;
+  dateOfBirth: string;
+  name: string;
+  phone: string;
+}
+
+/** Decrypt this hospital's profiles, newest first. Transient — never leaves the process undecided. */
+async function scanProfiles(hospitalId: string): Promise<ScannedProfile[]> {
+  const rows = await db
+    .select({
+      patientUserId: patientProfiles.id,
+      patientCode: patientProfiles.patientCode,
+      dateOfBirth: patientProfiles.dateOfBirth,
+      firstNameEncrypted: patientProfiles.firstNameEncrypted,
+      surnameEncrypted: patientProfiles.surnameEncrypted,
+      phoneEncrypted: patientProfiles.phoneEncrypted,
+    })
+    .from(patientProfiles)
+    .where(eq(patientProfiles.primaryFacilityId, hospitalId))
+    .orderBy(desc(patientProfiles.createdAt))
+    .limit(PROFILE_SCAN_ROWS);
+
+  const out: ScannedProfile[] = [];
+  for (const r of rows) {
+    const name = decryptName(r.firstNameEncrypted, r.surnameEncrypted);
+    const phone = decryptOrNull(r.phoneEncrypted);
+    if (!name || !phone) continue;
+    out.push({
+      patientUserId: r.patientUserId,
+      patientCode: r.patientCode,
+      dateOfBirth: r.dateOfBirth,
+      name,
+      phone,
+    });
+  }
+  return out;
+}
+
+export async function fetchProvisional(args: {
+  hospitalId: string;
+  provisionalPatientId: string;
+}): Promise<ProvisionalSummary | null> {
+  const [row] = await db
+    .select({
+      id: provisionalPatients.id,
+      hospitalId: provisionalPatients.hospitalId,
+      declaredNameEncrypted: provisionalPatients.declaredNameEncrypted,
+      phoneEncrypted: provisionalPatients.phoneEncrypted,
+      dateOfBirth: provisionalPatients.dateOfBirth,
+      ageYears: provisionalPatients.ageYears,
+      reconciliationState: provisionalPatients.reconciliationState,
+      createdAt: provisionalPatients.createdAt,
+      // Readable here only when created at this desk or booked here — the
+      // same clause as the RLS policy, restated for the service connection.
+      bookedHere: sql<boolean>`exists (
+        select 1 from ${appointments}
+        where ${appointments.provisionalPatientId} = ${provisionalPatients.id}
+          and ${appointments.hospitalId} = ${args.hospitalId}
+      )`,
+    })
+    .from(provisionalPatients)
+    .where(eq(provisionalPatients.id, args.provisionalPatientId))
+    .limit(1);
+  if (!row) return null;
+  if (row.hospitalId !== args.hospitalId && !row.bookedHere) return null;
+  const phone = decryptOrNull(row.phoneEncrypted);
+  return {
+    id: row.id,
+    hospitalId: row.hospitalId,
+    declaredName: decryptOrNull(row.declaredNameEncrypted),
+    phoneMasked: phone ? maskPhone(phone) : null,
+    dateOfBirth: row.dateOfBirth,
+    ageYears: row.ageYears,
+    reconciliationState: row.reconciliationState,
+    createdAtIso: row.createdAt.toISOString(),
+  };
+}
+
+/**
+ * Candidate matches for one provisional booking, each with its BASIS in
+ * words. Never ranked, never pre-selected: the clerk confirms, rejects, or
+ * registers a new patient. Every candidate named is audited; if the audit
+ * cannot be written, nothing is handed back.
+ */
+export async function fetchReconciliationCandidates(args: {
+  hospitalId: string;
+  receptionUserId: string;
+  provisionalPatientId: string;
+}): Promise<ReconciliationCandidate[]> {
+  const [row] = await db
+    .select({
+      hospitalId: provisionalPatients.hospitalId,
+      declaredNameEncrypted: provisionalPatients.declaredNameEncrypted,
+      phoneEncrypted: provisionalPatients.phoneEncrypted,
+      dateOfBirth: provisionalPatients.dateOfBirth,
+      ageYears: provisionalPatients.ageYears,
+    })
+    .from(provisionalPatients)
+    .where(eq(provisionalPatients.id, args.provisionalPatientId))
+    .limit(1);
+  if (!row) return [];
+  const name = decryptOrNull(row.declaredNameEncrypted);
+  const phone = decryptOrNull(row.phoneEncrypted);
+  if (!name || !phone) return [];
+  const declared = { name, phone, dateOfBirth: row.dateOfBirth, ageYears: row.ageYears };
+
+  const now = new Date();
+  const hits: ReconciliationCandidate[] = [];
+  for (const p of await scanProfiles(args.hospitalId)) {
+    const basis = matchBasis(
+      declared,
+      { name: p.name, phone: p.phone, dateOfBirth: p.dateOfBirth, ageYears: null },
+      now,
+    );
+    if (basis.length === 0) continue;
+    hits.push({
+      patientUserId: p.patientUserId,
+      patientCode: p.patientCode,
+      displayName: p.name,
+      dateOfBirth: p.dateOfBirth,
+      basis,
+    });
+  }
+  if (hits.length === 0) return [];
+
+  const audited = await auditNameReveals({
+    hospitalId: args.hospitalId,
+    receptionUserId: args.receptionUserId,
+    surface: "reception_reconcile_candidates",
+    patientUserIds: hits.map((h) => h.patientUserId),
+  });
+  return audited ? hits : [];
+}
+
+/* ─── Find a registered patient by phone (desk booking) ─────────── */
+
+export interface PhoneLookupHit {
+  patientUserId: string;
+  patientCode: string;
+  displayName: string;
+  dateOfBirth: string;
+}
+
+/**
+ * "The caller gives their number": the profiles at this hospital whose
+ * phone is exactly this E.164. Same bounded decrypt scan as reconciliation
+ * (see PROFILE_SCAN_ROWS). The names are revealed so the clerk can confirm
+ * "Is this Nakato Sarah?" with the caller, and are audited as such.
+ */
+export async function findPatientsByPhone(args: {
+  hospitalId: string;
+  receptionUserId: string;
+  phoneE164: string;
+}): Promise<PhoneLookupHit[]> {
+  const hits = (await scanProfiles(args.hospitalId))
+    .filter((p) => p.phone === args.phoneE164)
+    .map((p) => ({
+      patientUserId: p.patientUserId,
+      patientCode: p.patientCode,
+      displayName: p.name,
+      dateOfBirth: p.dateOfBirth,
+    }));
+  if (hits.length === 0) return [];
+  const audited = await auditNameReveals({
+    hospitalId: args.hospitalId,
+    receptionUserId: args.receptionUserId,
+    surface: "reception_phone_lookup",
+    patientUserIds: hits.map((h) => h.patientUserId),
+  });
+  return audited ? hits : [];
 }

@@ -23,6 +23,8 @@ const BookArgs = z
     reason: z.enum(PATIENT_REASON_CODES),
     reason_note: z.string().max(500).optional(),
     idempotency_key: z.string().uuid(),
+    /** Gate D: book for a household member. The Edge Function checks the list. */
+    for_provisional_id: z.string().uuid().optional(),
     slot: z
       .object({
         clinician_user_id: z.string().uuid(),
@@ -49,6 +51,7 @@ export interface BookingReceipt {
   position_number: number | null;
   arrival_window_start: string | null;
   arrival_window_end: string | null;
+  provisional_patient_id?: string | null;
 }
 
 export type BookActionResult =
@@ -114,6 +117,7 @@ export async function bookAppointmentAction(input: BookInput): Promise<BookActio
     }
     revalidatePath("/patient");
     revalidatePath("/patient/appointments");
+    revalidatePath("/patient/household");
     return { ok: true, receipt: body.data };
   } catch (e) {
     logger.error("patient.book.network", { reason: String(e) });

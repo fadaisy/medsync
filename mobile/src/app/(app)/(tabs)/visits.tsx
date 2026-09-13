@@ -244,6 +244,12 @@ function VisitRow({
     >
       <Avatar name={row.clinicianName} uri={row.clinicianPhotoUrl} size={56} />
       <View style={styles.text}>
+        {/* Gate D: a household member's visit, by the name the agent gave them. */}
+        {row.forMember ? (
+          <Text style={styles.forMember} numberOfLines={1}>
+            For {row.forMember}
+          </Text>
+        ) : null}
         <Text style={styles.who} numberOfLines={1}>
           {row.clinicianName}
         </Text>
@@ -298,6 +304,12 @@ const makeStyles = (c: Palette) =>
     pressed: { opacity: 0.88 },
 
     text: { flex: 1, gap: 2 },
+    forMember: {
+      fontFamily: font.body,
+      fontSize: 12.5,
+      letterSpacing: 0.3,
+      color: c.mutedForeground,
+    },
     who: { fontFamily: font.bodyMedium, fontSize: 16, lineHeight: 22, color: c.foreground },
     where: { fontFamily: font.body, fontSize: 13.5, lineHeight: 19, color: c.mutedForeground },
     when: { fontFamily: font.body, fontSize: 14, lineHeight: 19, color: c.foreground },

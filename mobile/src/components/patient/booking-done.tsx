@@ -21,12 +21,15 @@ export function BookingDone({
   receipt,
   startsAtIso,
   where,
+  forMember,
 }: {
   receipt: BookingReceipt;
   /** The clinic day's or the slot's start — the same instant the visits list prints. */
   startsAtIso: string;
   /** "{clinician or line} · {department} · {hospital}". */
   where: string;
+  /** The household member this was booked for (Gate D) — named, so the code is read to the right person. */
+  forMember?: string | null;
 }) {
   const { colors } = useTheme();
   const styles = useStyles(makeStyles);
@@ -51,6 +54,7 @@ export function BookingDone({
       <Text accessibilityRole="header" style={styles.title}>
         {title}
       </Text>
+      {forMember ? <Text style={styles.forMember}>For {forMember}</Text> : null}
 
       {receipt.booking_code ? (
         <View style={styles.codeCard}>
@@ -116,6 +120,14 @@ const makeStyles = (c: Palette) =>
       letterSpacing: -0.6,
       color: c.foreground,
       textAlign: "center",
+    },
+    forMember: {
+      fontFamily: font.bodyMedium,
+      fontSize: 15,
+      lineHeight: 21,
+      color: c.foreground,
+      textAlign: "center",
+      marginTop: -space[1],
     },
     codeCard: {
       alignSelf: "stretch",

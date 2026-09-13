@@ -23,6 +23,7 @@ import { HeroAction, HeroCard } from "@/components/ui/hero-card";
 import { Screen } from "@/components/ui/screen";
 import { Section } from "@/components/ui/section";
 import {
+  canArrive,
   dateKey,
   dayLabel,
   fetchAppointments,
@@ -33,6 +34,7 @@ import {
   fetchServiceLines,
   fetchSessions,
   formatTime,
+  markArrived,
   RESCHEDULABLE,
   STAGE_WORD,
   STATUS_LABEL,
@@ -116,6 +118,9 @@ export default function HomeScreen() {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [department, setDepartment] = useState<string | null>(null);
   const [signingOut, setSigningOut] = useState(false);
+  // Gate D: "I have arrived" from the hero, on the day itself.
+  const [arriving, setArriving] = useState(false);
+  const [arriveError, setArriveError] = useState<string | null>(null);
 
   // The account holder, the way the ticket names them: `full_name` is what
   // signup wrote to auth metadata — the same value `users.full_name` mirrors.
@@ -189,6 +194,25 @@ export default function HomeScreen() {
     useCallback(() => {
       void load();
     }, [load]),
+  );
+
+  // The function's own gate is `canArrive`; its refusal sentence lands in
+  // the well under the hero verbatim. Success re-reads the home so the hero
+  // says "You've arrived" from the row, not from a guess.
+  const onArrived = useCallback(
+    async (appointmentId: string) => {
+      if (arriving) return;
+      setArriving(true);
+      setArriveError(null);
+      const res = await markArrived(appointmentId);
+      setArriving(false);
+      if (!res.ok) {
+        setArriveError(res.error);
+        return;
+      }
+      void load();
+    },
+    [arriving, load],
   );
 
   const onSignOut = useCallback(async () => {
@@ -296,6 +320,7 @@ export default function HomeScreen() {
       );
     } else if (visit) {
       const word = STATUS_LABEL[visit.status];
+      const arrivable = canArrive(visit);
       hero = (
         <HeroCard
           leading={
@@ -306,7 +331,12 @@ export default function HomeScreen() {
               tone="onPrimary"
             />
           }
-          eyebrow={["Your next visit", word, visit.bookingCode ? `Code ${visit.bookingCode}` : null]
+          // A household member's visit says whose it is (Gate D).
+          eyebrow={[
+            visit.forMember ? `For ${visit.forMember}` : "Your next visit",
+            word,
+            visit.bookingCode ? `Code ${visit.bookingCode}` : null,
+          ]
             .filter(Boolean)
             .join(" · ")}
           title={visit.clinicianName || "Your clinician"}
@@ -323,16 +353,25 @@ export default function HomeScreen() {
               ? { icon: "people-outline", label: "Position", value: String(visit.positionNumber) }
               : { icon: "time-outline", label: "Time", value: formatTime(visit.startsAtIso) },
           ]}
+          // On the day itself, arriving is the white pill (Gate D); a
+          // member's visit is logistics only, so no "Move it" for it.
           actions={
             <>
+              {arrivable ? (
+                <HeroAction
+                  variant="primary"
+                  label="I have arrived"
+                  onPress={() => void onArrived(visit.id)}
+                />
+              ) : null}
               <HeroAction
-                variant="primary"
+                variant={arrivable ? "ghost" : "primary"}
                 label="See this visit"
                 onPress={() =>
                   router.push({ pathname: "/(app)/visit/[id]", params: { id: visit.id } })
                 }
               />
-              {RESCHEDULABLE.has(visit.status) ? (
+              {!arrivable && visit.forMember === null && RESCHEDULABLE.has(visit.status) ? (
                 <HeroAction
                   label="Move it"
                   onPress={() =>
@@ -361,7 +400,19 @@ export default function HomeScreen() {
           </Text>
         </View>
 
-        {hero ? <Section title="Coming up">{hero}</Section> : null}
+        {hero ? (
+          <Section title="Coming up">
+            {hero}
+            {arriveError ? (
+              <View style={styles.well}>
+                <Ionicons name="alert-circle-outline" size={18} color={colors.status.cautionFg} />
+                <Text style={styles.wellText} accessibilityLiveRegion="polite">
+                  {arriveError}
+                </Text>
+              </View>
+            ) : null}
+          </Section>
+        ) : null}
 
         {/* ⚠ RATIFIED PATIENT-FACING COPY — ADR 0084 §1 and §2. ⚠
             The words are the decision. Do not paraphrase, do not add a number
@@ -637,4 +688,23 @@ const makeStyles = (c: Palette) =>
 
     // Opacity, never scale — same rule as the buttons.
     pressed: { opacity: 0.88 },
+
+    // Amber, not red: a refused arrival is not a clinical emergency.
+    well: {
+      flexDirection: "row",
+      gap: space[2],
+      alignItems: "flex-start",
+      padding: space[3],
+      borderRadius: radius.lg,
+      backgroundColor: c.status.cautionBg,
+      borderWidth: 1,
+      borderColor: c.status.cautionFg,
+    },
+    wellText: {
+      flex: 1,
+      fontFamily: font.body,
+      fontSize: 14.5,
+      lineHeight: 21,
+      color: c.foreground,
+    },
   });

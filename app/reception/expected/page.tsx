@@ -3,12 +3,19 @@ import Link from "next/link";
 import { ArrowLeftIcon, ClockIcon } from "lucide-react";
 
 import { Pill } from "@/components/ui/pill";
-import { fetchDeclaredIntakesToday, fetchExpectedArrivals } from "@/lib/reception/queries";
+import {
+  fetchDeclaredIntakesToday,
+  fetchExpectedArrivals,
+  fetchProvisional,
+  fetchReconciliationCandidates,
+} from "@/lib/reception/queries";
 import { requireReceptionScope } from "@/lib/reception/scope";
 import { DEFAULT_TIME_ZONE, localDateKey } from "@/supabase/functions/_shared/slots";
+import { AutoRefresh } from "../_components/auto-refresh";
 import { CheckInDeclaredButton } from "../_components/check-in-declared-button";
 import { CheckInButton } from "./_components/check-in-button";
 import { NoShowButton } from "./_components/no-show-button";
+import { ReconcilePanel } from "./_components/reconcile-panel";
 
 export const metadata: Metadata = { title: "Expected · Reception · MedSync" };
 export const dynamic = "force-dynamic";
@@ -28,19 +35,25 @@ const STATUS_LABEL: Record<string, string> = {
 const ARRIVED_STATES = new Set(["arrived", "in_progress", "completed"]);
 
 interface PageProps {
-  searchParams: Promise<{ date?: string }>;
+  searchParams: Promise<{ date?: string; reconcile?: string }>;
 }
 
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export default async function ReceptionExpectedPage({ searchParams }: PageProps) {
-  const { date: dateParam } = await searchParams;
+  const { date: dateParam, reconcile } = await searchParams;
   const scope = await requireReceptionScope();
   const date = dateParam ? new Date(dateParam) : undefined;
   // One clock read: the rows' "time has passed" test and the day window agree.
   const now = new Date();
+  // The panel is opened from a row, one provisional at a time — candidates
+  // are a decrypt scan, not something to run for every row on every poll.
+  const reconcileId = reconcile && UUID.test(reconcile) ? reconcile : null;
 
-  const [rows, declared] = await Promise.all([
+  const [rows, declared, provisional, candidates] = await Promise.all([
     fetchExpectedArrivals({
       hospitalId: scope.hospitalId,
+      receptionUserId: scope.userId,
       date,
       limit: 200,
     }),
@@ -52,6 +65,16 @@ export default async function ReceptionExpectedPage({ searchParams }: PageProps)
           hospitalId: scope.hospitalId,
           receptionUserId: scope.userId,
           limit: 100,
+        })
+      : Promise.resolve([]),
+    reconcileId
+      ? fetchProvisional({ hospitalId: scope.hospitalId, provisionalPatientId: reconcileId })
+      : Promise.resolve(null),
+    reconcileId
+      ? fetchReconciliationCandidates({
+          hospitalId: scope.hospitalId,
+          receptionUserId: scope.userId,
+          provisionalPatientId: reconcileId,
         })
       : Promise.resolve([]),
   ]);
@@ -81,7 +104,12 @@ export default async function ReceptionExpectedPage({ searchParams }: PageProps)
           When a patient arrives, hit <span className="font-mono">Check in</span> — they enter the
           queue + appear on the receiving team&rsquo;s board.
         </p>
+        {/* Not while the panel is open: each refresh would re-run the
+            candidate scan and write another audit row per name. */}
+        {provisional ? null : <AutoRefresh />}
       </header>
+
+      {provisional ? <ReconcilePanel provisional={provisional} candidates={candidates} /> : null}
 
       {/* ── Patient-declared queue tickets today ─────────── */}
       {declared.length > 0 ? (
@@ -159,6 +187,11 @@ export default async function ReceptionExpectedPage({ searchParams }: PageProps)
                   Patient
                 </th>
                 <th scope="col" className="px-4 py-2.5 font-normal">
+                  <abbr title="Position in the clinic day" className="no-underline">
+                    Pos.
+                  </abbr>
+                </th>
+                <th scope="col" className="px-4 py-2.5 font-normal">
                   Clinician · Department
                 </th>
                 <th scope="col" className="px-4 py-2.5 font-normal">
@@ -178,8 +211,26 @@ export default async function ReceptionExpectedPage({ searchParams }: PageProps)
                   <td className="text-foreground text-body-s px-4 py-2.5 font-mono tabular-nums">
                     {formatTime(r.startsAtIso)}
                   </td>
+                  <td className="text-foreground text-body-s px-4 py-2.5">
+                    {r.patientCode ? (
+                      <span className="font-mono tabular-nums">{r.patientCode}</span>
+                    ) : r.provisional ? (
+                      // A booking with no patient record yet. The declared
+                      // name is the audited reveal; the words say the state.
+                      <span className="flex flex-col gap-1">
+                        <span className="font-medium">{r.provisional.declaredName ?? "—"}</span>
+                        <Pill tone="pending">
+                          {r.provisional.state === "rejected"
+                            ? "Not matched · register"
+                            : "Identity to confirm"}
+                        </Pill>
+                      </span>
+                    ) : (
+                      "—"
+                    )}
+                  </td>
                   <td className="text-foreground text-body-s px-4 py-2.5 font-mono tabular-nums">
-                    {r.patientCode}
+                    {r.positionNumber ?? "—"}
                   </td>
                   <td className="text-foreground text-body-s px-4 py-2.5">
                     {r.clinicianName ?? "—"}
@@ -197,18 +248,42 @@ export default async function ReceptionExpectedPage({ searchParams }: PageProps)
                         vitals and a bed; an appointment status knows neither,
                         and the Check in / Checked in control beside it already
                         says whether this patient is in the building. */}
-                    <Pill tone="neutral">{STATUS_LABEL[r.status] ?? r.status}</Pill>
+                    <Pill tone="neutral">
+                      {r.seen ? "Seen" : (STATUS_LABEL[r.status] ?? r.status)}
+                    </Pill>
                   </td>
                   <td className="px-4 py-2.5 text-right">
                     <div className="flex flex-wrap items-start justify-end gap-2">
-                      {r.status === "confirmed" && new Date(r.startsAtIso) < now ? (
-                        <NoShowButton appointmentId={r.id} patientLabel={r.patientCode} />
-                      ) : null}
-                      <CheckInButton
-                        appointmentId={r.id}
-                        alreadyArrived={ARRIVED_STATES.has(r.status)}
-                        patientLabel={r.patientCode}
-                      />
+                      {r.patientCode === null && r.provisional ? (
+                        // Check-in is refused until the desk says who this is
+                        // (ha-check-in-patient, 409). Offer the honest step.
+                        r.provisional.state === "unreconciled" ? (
+                          <Link
+                            href={`/reception/expected?reconcile=${r.provisional.id}`}
+                            className="text-foreground border-foreground/15 hover:border-foreground/30 hover:bg-muted/40 text-body-s ease-expo-out tap inline-flex min-h-11 items-center rounded-full border px-4 whitespace-nowrap transition-colors duration-150"
+                          >
+                            Confirm identity
+                          </Link>
+                        ) : (
+                          <span className="text-muted-foreground text-caption whitespace-nowrap">
+                            Register at the desk
+                          </span>
+                        )
+                      ) : (
+                        <>
+                          {r.status === "confirmed" && new Date(r.startsAtIso) < now ? (
+                            <NoShowButton
+                              appointmentId={r.id}
+                              patientLabel={r.patientCode ?? "this patient"}
+                            />
+                          ) : null}
+                          <CheckInButton
+                            appointmentId={r.id}
+                            alreadyArrived={ARRIVED_STATES.has(r.status)}
+                            patientLabel={r.patientCode ?? "this patient"}
+                          />
+                        </>
+                      )}
                     </div>
                   </td>
                 </tr>

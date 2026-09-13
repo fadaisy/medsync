@@ -189,7 +189,9 @@ export async function listNursePatientPanel(args: {
   // today's appt in the nurse's department).
   const deptRows = await db
     .select({
-      patientUserId: appointments.patientUserId,
+      // The inner join on patient_profiles makes this non-null; a provisional
+      // booking (migration 0060, patient_user_id NULL) is not in this list.
+      patientUserId: patientProfiles.id,
       patientCode: patientProfiles.patientCode,
       startsAt: appointments.startsAt,
       status: appointments.status,

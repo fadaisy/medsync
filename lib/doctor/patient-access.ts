@@ -131,7 +131,9 @@ export async function listDoctorPatientPanel(args: {
   // for a single UNION ALL.
   const fromAppts = await db
     .select({
-      patientUserId: appointments.patientUserId,
+      // The inner join on patient_profiles makes this non-null; a provisional
+      // booking (migration 0060, patient_user_id NULL) is not in this list.
+      patientUserId: patientProfiles.id,
       patientCode: patientProfiles.patientCode,
       seenAt: appointments.startsAt,
       status: appointments.status,

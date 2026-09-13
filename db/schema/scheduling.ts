@@ -19,6 +19,7 @@ import { authUsers } from "./_auth";
 import { clinicSessions } from "./clinic-sessions";
 import { hospitalDepartments } from "./hospital-departments";
 import { hospitals } from "./hospitals";
+import { provisionalPatients } from "./provisional-patients";
 
 /**
  * Scheduling, Appointments & Booking — migration 0028.
@@ -177,9 +178,12 @@ export const appointments = pgTable(
     departmentId: uuid("department_id")
       .notNull()
       .references(() => hospitalDepartments.id, { onDelete: "restrict" }),
-    patientUserId: uuid("patient_user_id")
-      .notNull()
-      .references(() => authUsers.id, { onDelete: "cascade" }),
+    /** NULL only for a booking made for a provisional patient (migration 0060); set by ha-reconcile-identity alone. */
+    patientUserId: uuid("patient_user_id").references(() => authUsers.id, { onDelete: "cascade" }),
+    /** Migration 0060 / ADR 0089: the PROVENANCE of a booking made without an account; stays set after reconciliation. */
+    provisionalPatientId: uuid("provisional_patient_id").references(() => provisionalPatients.id, {
+      onDelete: "restrict",
+    }),
     clinicianUserId: uuid("clinician_user_id")
       .notNull()
       .references(() => authUsers.id, { onDelete: "restrict" }),
@@ -256,9 +260,15 @@ export const appointments = pgTable(
       "appointments_patient_reason_check",
       sql`${t.origin} <> 'patient' OR ${t.reason} <> 'urgent_review'`,
     ),
+    // Migration 0060: 'void' (FHIR entered-in-error) joins the list. No
+    // writer at this gate; absent from LIVE_APPOINTMENT_STATUSES by construction.
     check(
       "appointments_status_check",
-      sql`${t.status} IN ('requested','pending_approval','confirmed','arrived','in_progress','completed','cancelled','no_show','rescheduled','declined')`,
+      sql`${t.status} IN ('requested','pending_approval','confirmed','arrived','in_progress','completed','cancelled','no_show','rescheduled','declined','void')`,
+    ),
+    check(
+      "appointments_patient_or_provisional",
+      sql`${t.patientUserId} IS NOT NULL OR ${t.provisionalPatientId} IS NOT NULL`,
     ),
     check("appointments_priority_check", sql`${t.priority} IN ('routine','urgent')`),
     check("appointments_type_check", sql`${t.type} IN ('in_person','virtual')`),
@@ -283,6 +293,14 @@ export const appointments = pgTable(
     index("appointments_session_idx")
       .on(t.sessionId)
       .where(sql`${t.sessionId} IS NOT NULL`),
+    // Migration 0060: replay safety keyed by the CREATOR, which the
+    // (patient_user_id, key) index cannot see for a provisional booking.
+    uniqueIndex("appointments_creator_idempotency_unique")
+      .on(t.createdByUserId, t.idempotencyKey)
+      .where(sql`${t.idempotencyKey} IS NOT NULL AND ${t.createdByUserId} IS NOT NULL`),
+    index("appointments_provisional_idx")
+      .on(t.provisionalPatientId)
+      .where(sql`${t.provisionalPatientId} IS NOT NULL`),
   ],
 );
 
@@ -468,6 +486,8 @@ export const APPOINTMENT_STATUSES = [
   "no_show",
   "rescheduled",
   "declined",
+  /** Migration 0060 / ADR 0089 — FHIR entered-in-error. No writer yet. */
+  "void",
 ] as const;
 export type AppointmentStatus = (typeof APPOINTMENT_STATUSES)[number];
 

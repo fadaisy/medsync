@@ -5,6 +5,7 @@ import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  CalendarPlusIcon,
   ClipboardListIcon,
   LayoutDashboardIcon,
   ListChecksIcon,
@@ -18,6 +19,7 @@ const ICONS: Record<ReceptionIconKey, LucideIcon> = {
   overview: LayoutDashboardIcon,
   expected: ClipboardListIcon,
   intake: UserPlusIcon,
+  book: CalendarPlusIcon,
   find: SearchIcon,
   flow: ListChecksIcon,
 };

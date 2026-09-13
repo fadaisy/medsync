@@ -6,6 +6,7 @@ import { ArrowLeftIcon } from "lucide-react";
 import { Pill } from "@/components/ui/pill";
 import { fetchTodayFlow } from "@/lib/reception/queries";
 import { requireReceptionScope } from "@/lib/reception/scope";
+import { AutoRefresh } from "../_components/auto-refresh";
 
 export const metadata: Metadata = { title: "Flow · Reception · MedSync" };
 export const dynamic = "force-dynamic";
@@ -16,6 +17,7 @@ const STAGE_LABEL: Record<string, string> = {
   arrived: "Arrived",
   in_queue: "In queue",
   awaiting_triage: "Awaiting triage",
+  seen: "Seen",
 };
 
 /**
@@ -38,6 +40,9 @@ const STAGE_PILL: Record<string, { tone?: PillProps["tone"]; className?: string 
   arrived: { className: "bg-brand-50 text-brand-800" },
   in_queue: { className: "bg-brand-100 text-brand-900" },
   awaiting_triage: { tone: "caution" },
+  // The encounter completed (Gate D): done, and honestly so — `discharged`
+  // is the one status token whose word means "this visit is over".
+  seen: { tone: "discharged" },
 };
 
 export default async function ReceptionFlowPage() {
@@ -67,6 +72,7 @@ export default async function ReceptionFlowPage() {
           Operational status only — answers &ldquo;has Mr. X arrived?&rdquo;, &ldquo;where is my
           patient in the queue?&rdquo;. No clinical detail.
         </p>
+        <AutoRefresh />
       </header>
 
       {rows.length === 0 ? (

@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
+import { and, eq, isNull, lt, notExists } from "drizzle-orm";
 
+import { db } from "@/db";
+import { bookingAgents, provisionalPatients } from "@/db/schema/provisional-patients";
+import { appointments } from "@/db/schema/scheduling";
 import { env } from "@/lib/env";
 import { logger } from "@/lib/logger";
 import { materialiseClinicSessions } from "@/lib/scheduling/materialise-sessions";
@@ -27,6 +31,13 @@ export const dynamic = "force-dynamic";
  * slot needs Pro). Idempotent too: UNIQUE (template_id, starts_at).
  * The two jobs are independent — a failure in one is logged and does not
  * stop the other.
+ *
+ * Since ADR 0089 a third job sweeps `provisional_patients` (migration 0060):
+ * rows still `unreconciled` past `expires_at` that hold NO appointment and
+ * NO live booking_agents link — a caller the desk booked for who never came
+ * and whose booking is gone, never a household member someone still books
+ * for. A row that holds a booking is the booking's provenance and stays
+ * (the FK is RESTRICT anyway).
  */
 export async function GET(request: Request) {
   const authHeader = request.headers.get("authorization") ?? "";
@@ -52,12 +63,55 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Cleanup failed" }, { status: 500 });
   }
 
+  let sessions: Awaited<ReturnType<typeof materialiseClinicSessions>>;
   try {
-    const sessions = await materialiseClinicSessions();
+    sessions = await materialiseClinicSessions();
     logger.info("cron.materialise-sessions.ran", sessions);
-    return NextResponse.json({ ok: true, removed, sessions });
   } catch (e) {
     logger.error("cron.materialise-sessions.failed", { reason: String(e) });
     return NextResponse.json({ error: "Session materialisation failed", removed }, { status: 500 });
   }
+
+  try {
+    const provisionals = await sweepExpiredProvisionals();
+    logger.info("cron.sweep-provisionals.ran", { removed: provisionals });
+    return NextResponse.json({ ok: true, removed, sessions, provisionals });
+  } catch (e) {
+    logger.error("cron.sweep-provisionals.failed", { reason: String(e) });
+    return NextResponse.json(
+      { error: "Provisional sweep failed", removed, sessions },
+      { status: 500 },
+    );
+  }
+}
+
+/** Unreconciled, expired, unbooked, unlinked — see the header. Idempotent. */
+async function sweepExpiredProvisionals(): Promise<number> {
+  const deleted = await db
+    .delete(provisionalPatients)
+    .where(
+      and(
+        eq(provisionalPatients.reconciliationState, "unreconciled"),
+        lt(provisionalPatients.expiresAt, new Date()),
+        notExists(
+          db
+            .select({ id: appointments.id })
+            .from(appointments)
+            .where(eq(appointments.provisionalPatientId, provisionalPatients.id)),
+        ),
+        notExists(
+          db
+            .select({ id: bookingAgents.id })
+            .from(bookingAgents)
+            .where(
+              and(
+                eq(bookingAgents.provisionalPatientId, provisionalPatients.id),
+                isNull(bookingAgents.revokedAt),
+              ),
+            ),
+        ),
+      ),
+    )
+    .returning({ id: provisionalPatients.id });
+  return deleted.length;
 }

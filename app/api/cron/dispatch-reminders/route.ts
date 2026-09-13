@@ -7,6 +7,7 @@ import { clinicSessions } from "@/db/schema/clinic-sessions";
 import { hospitalDepartments } from "@/db/schema/hospital-departments";
 import { hospitals } from "@/db/schema/hospitals";
 import { patientProfiles } from "@/db/schema/patient-profiles";
+import { provisionalPatients } from "@/db/schema/provisional-patients";
 import { appointmentReminders, appointments } from "@/db/schema/scheduling";
 import { serviceLines } from "@/db/schema/service-lines";
 import { decrypt } from "@/lib/encryption";
@@ -53,7 +54,13 @@ export const maxDuration = 60;
  * and that is the price.
  *
  * ── PHI ──
- * Patient phones live in `patient_profiles.phone_encrypted`. Ciphertext is
+ * Patient phones live in `patient_profiles.phone_encrypted`, or — for a
+ * booking made for someone with no account (migration 0060) — in
+ * `provisional_patients.phone_encrypted`. Either way the number is the
+ * MEMBER's, never the booking agent's: nothing here reads a phone by
+ * `created_by_user_id` (PRD §2.9 — a proxy sees logistics only, and a
+ * confidential line's SMS must never land on the booker's handset).
+ * A confidential line is never named in the text at all. Ciphertext is
  * selected for the due rows; only the rows the planner actually decided to
  * send are decrypted. No number, name, or appointment reason is logged or
  * returned, and no reason text rides the SMS (see composeReminderSms).
@@ -117,13 +124,19 @@ export async function GET(request: Request) {
         patientUserId: appointments.patientUserId,
         hospitalName: hospitals.name,
         // What a receipt names (ADR 0088): the service line when the booking
-        // holds a session, the department otherwise.
-        serviceName: sql<string>`coalesce(${serviceLines.name}, ${hospitalDepartments.name})`,
+        // holds a session, the department otherwise — and neither when the
+        // line is confidential (PRD §2.9): the handset may be shared. A SLOT
+        // booking records no line, so its department is masked whenever that
+        // department hosts a confidential line at all (conservative).
+        serviceName: sql<string>`case when ${serviceLines.confidential} or exists (select 1 from public.service_lines cl where cl.department_id = ${appointments.departmentId} and cl.confidential) then 'Appointment' else coalesce(${serviceLines.name}, ${hospitalDepartments.name}) end`,
         bookingCode: appointments.bookingCode,
         positionNumber: appointments.positionNumber,
         arrivalWindowStart: appointments.arrivalWindowStart,
         arrivalWindowEnd: appointments.arrivalWindowEnd,
-        phoneEncrypted: patientProfiles.phoneEncrypted,
+        // The patient's own phone; the provisional's when there is no account.
+        phoneEncrypted: sql<
+          string | null
+        >`coalesce(${patientProfiles.phoneEncrypted}, ${provisionalPatients.phoneEncrypted})`,
       })
       .from(appointmentReminders)
       .innerJoin(appointments, eq(appointments.id, appointmentReminders.appointmentId))
@@ -132,6 +145,7 @@ export async function GET(request: Request) {
       .leftJoin(clinicSessions, eq(clinicSessions.id, appointments.sessionId))
       .leftJoin(serviceLines, eq(serviceLines.id, clinicSessions.serviceLineId))
       .leftJoin(patientProfiles, eq(patientProfiles.id, appointments.patientUserId))
+      .leftJoin(provisionalPatients, eq(provisionalPatients.id, appointments.provisionalPatientId))
       .where(
         and(eq(appointmentReminders.state, "queued"), lte(appointmentReminders.scheduledAt, now)),
       )

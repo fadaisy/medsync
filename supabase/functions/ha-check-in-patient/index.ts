@@ -21,10 +21,11 @@
  */
 import { z } from "npm:zod@4.4.3";
 
-import { getCaller, hasRole, serviceClient } from "../_shared/auth.ts";
+import { getCaller, serviceClient } from "../_shared/auth.ts";
 import { preflight } from "../_shared/cors.ts";
 import {
   badRequest,
+  conflict,
   forbidden,
   methodNotAllowed,
   notFound,
@@ -32,7 +33,7 @@ import {
   serverError,
   unauthorized,
 } from "../_shared/errors.ts";
-import { requireHospitalAdminScope } from "../_shared/hospital-admin-scope.ts";
+import { authoriseAtHospital } from "../_shared/hospital-admin-scope.ts";
 import { makeLogger } from "../_shared/logger.ts";
 import { networkContext, recordSaAudit } from "../_shared/sa-audit.ts";
 import { DEFAULT_TIME_ZONE, startOfLocalDay } from "../_shared/slots.ts";
@@ -80,7 +81,9 @@ Deno.serve(async (request: Request) => {
   if (input.appointment_id) {
     const { data: appt, error: apptErr } = await sb
       .from("appointments")
-      .select("id, hospital_id, department_id, patient_user_id, status, type")
+      .select(
+        "id, hospital_id, department_id, patient_user_id, provisional_patient_id, status, type",
+      )
       .eq("id", input.appointment_id)
       .maybeSingle();
     if (apptErr) return serverError(apptErr.message, init);
@@ -89,8 +92,15 @@ Deno.serve(async (request: Request) => {
       return badRequest(`Appointment is in '${appt.status}' — only confirmed can check in.`, init);
     }
 
-    const authError = await authoriseAtHospital(sb, caller.id, appt.hospital_id);
+    const authError = await authoriseAtHospital(caller.id, appt.hospital_id);
     if (authError) return forbidden(init, authError);
+
+    // A provisional booking (migration 0060) is checked in only once the desk
+    // has confirmed who it is for — ha-reconcile-identity sets patient_user_id.
+    // queue_entries needs a patient, and the intake row would name nobody.
+    if (!appt.patient_user_id) {
+      return conflict("Confirm who this booking is for before checking in.", init);
+    }
 
     try {
       await recordSaAudit({
@@ -139,6 +149,9 @@ Deno.serve(async (request: Request) => {
         entry_point: appt.type === "virtual" ? "virtual" : "opd",
         receiving_department_id: appt.department_id,
         patient_user_id: appt.patient_user_id,
+        // Provenance of a booking made without an account (migration 0060),
+        // kept so an un-reconcile can null the patient without orphaning the row.
+        provisional_patient_id: appt.provisional_patient_id ?? null,
         appointment_id: appt.id,
         priority_hint: "routine",
         status: "awaiting_triage",
@@ -182,7 +195,7 @@ Deno.serve(async (request: Request) => {
     );
   }
 
-  const authError = await authoriseAtHospital(sb, caller.id, intake.hospital_id);
+  const authError = await authoriseAtHospital(caller.id, intake.hospital_id);
   if (authError) return forbidden(init, authError);
 
   try {
@@ -239,28 +252,6 @@ Deno.serve(async (request: Request) => {
 });
 
 /* ─── helpers ─────────────────────────────────────────────────────── */
-
-async function authoriseAtHospital(
-  sb: ReturnType<typeof serviceClient>,
-  callerId: string,
-  hospitalId: string,
-): Promise<string | null> {
-  const isSuperadmin = await hasRole(callerId, "superadmin");
-  if (isSuperadmin) return null;
-  if (await hasRole(callerId, "hospital_admin", hospitalId)) {
-    const scope = await requireHospitalAdminScope(callerId, hospitalId);
-    return scope.ok ? null : scope.reason;
-  }
-  const { data: aff } = await sb
-    .from("staff_affiliations")
-    .select("id")
-    .eq("user_id", callerId)
-    .eq("hospital_id", hospitalId)
-    .in("state", ["active", "approved"])
-    .limit(1)
-    .maybeSingle();
-  return aff ? null : "no active affiliation at this hospital";
-}
 
 async function insertQueueRow(
   sb: ReturnType<typeof serviceClient>,

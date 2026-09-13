@@ -1,6 +1,13 @@
 import "server-only";
 
-import { createCipheriv, createDecipheriv, randomBytes, timingSafeEqual } from "node:crypto";
+import {
+  createCipheriv,
+  createDecipheriv,
+  createHash,
+  createHmac,
+  randomBytes,
+  timingSafeEqual,
+} from "node:crypto";
 
 /**
  * App-level PHI encryption — AES-256-GCM.
@@ -26,12 +33,19 @@ import { createCipheriv, createDecipheriv, randomBytes, timingSafeEqual } from "
  * See `tests/encryption/encryption.test.ts` for the full contract:
  * round-trip, IV uniqueness, ciphertext-tamper rejection, auth-tag-tamper
  * rejection, wrong-key rejection, missing-key behaviour.
+ *
+ * The SAME wire format and the same `blindIndex` live in
+ * `supabase/functions/_shared/encryption.ts` on Web Crypto for the Edge
+ * Functions; `tests/encryption/cross-runtime.test.ts` proves Node-encrypt →
+ * port-decrypt and the reverse, so a column written by either runtime is
+ * readable by the other.
  */
 
 const ALGORITHM = "aes-256-gcm";
 const IV_BYTES = 12; // GCM-standard
 const KEY_BYTES = 32; // AES-256
 const SEGMENT_SEP = ":";
+const BLIND_INDEX_LABEL = "medsync-blind-index";
 
 function loadKey(): Buffer {
   const raw = process.env.MEDSYNC_PHI_KEY;
@@ -108,6 +122,22 @@ export function decrypt(payload: string): string {
   // GCM `final()` throws if auth tag doesn't validate.
   const plaintext = Buffer.concat([decipher.update(ciphertext), decipher.final()]);
   return plaintext.toString("utf8");
+}
+
+/**
+ * Blind index for an encrypted column (migration 0060 — `phone_hmac`):
+ * hex HMAC-SHA256 of the value, keyed by SHA-256("medsync-blind-index" ‖ key).
+ * Deterministic, so equality search works; keyed, so a leaked table cannot
+ * be joined to a phone book. Callers normalise first (E.164, no spaces).
+ * Byte-identical to `blindIndex()` in `_shared/encryption.ts`.
+ */
+export function blindIndex(value: string): string {
+  if (typeof value !== "string") throw new TypeError("blindIndex() expects a string");
+  const key = loadKey();
+  const hmacKey = createHash("sha256")
+    .update(Buffer.concat([Buffer.from(BLIND_INDEX_LABEL, "utf8"), key]))
+    .digest();
+  return createHmac("sha256", hmacKey).update(value, "utf8").digest("hex");
 }
 
 /**

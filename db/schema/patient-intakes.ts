@@ -16,6 +16,7 @@ import { authUsers } from "./_auth";
 import { hospitalDepartments } from "./hospital-departments";
 import { hospitalWards } from "./hospital-wards";
 import { hospitals } from "./hospitals";
+import { provisionalPatients } from "./provisional-patients";
 import { appointments } from "./scheduling";
 
 /**
@@ -74,6 +75,10 @@ export const patientIntakes = pgTable(
       onDelete: "set null",
     }),
     patientUnknownLabel: text("patient_unknown_label"),
+    /** Migration 0060: a booked arrival for a provisional patient names the provisional instead. */
+    provisionalPatientId: uuid("provisional_patient_id").references(() => provisionalPatients.id, {
+      onDelete: "restrict",
+    }),
 
     appointmentId: uuid("appointment_id").references(() => appointments.id, {
       onDelete: "set null",
@@ -131,7 +136,7 @@ export const patientIntakes = pgTable(
     ),
     check(
       "intakes_patient_or_unknown",
-      sql`${t.patientUserId} IS NOT NULL OR ${t.patientUnknownLabel} IS NOT NULL`,
+      sql`${t.patientUserId} IS NOT NULL OR ${t.provisionalPatientId} IS NOT NULL OR ${t.patientUnknownLabel} IS NOT NULL`,
     ),
     check(
       "intakes_triage_level_check",
@@ -139,6 +144,9 @@ export const patientIntakes = pgTable(
     ),
     index("patient_intakes_hospital_status_idx").on(t.hospitalId, t.status, t.arrivedAt),
     index("patient_intakes_patient_idx").on(t.patientUserId, t.arrivedAt),
+    index("patient_intakes_provisional_idx")
+      .on(t.provisionalPatientId)
+      .where(sql`${t.provisionalPatientId} IS NOT NULL`),
     index("patient_intakes_dept_idx").on(t.receivingDepartmentId, t.status, t.arrivedAt),
     index("patient_intakes_type_idx").on(t.entryTypeCode, t.arrivedAt),
   ],

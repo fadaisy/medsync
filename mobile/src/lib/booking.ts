@@ -248,6 +248,8 @@ export interface AppointmentRow {
   status: string;
   reason: string;
   reasonNote: string | null;
+  /** In person, or video/phone — a virtual visit has no arrival and no queue. */
+  type: "in_person" | "virtual";
   /** From `clinician_directory` (migration 0057); "Your clinician" until that lands or when the row has none. */
   clinicianName: string;
   /** A signed URL to the clinician's photograph, or null. */
@@ -266,16 +268,25 @@ export interface AppointmentRow {
   /** The arrival window stored at confirmation; never recomputed (ADR 0088 C10). */
   arrivalWindowStartIso: string | null;
   arrivalWindowEndIso: string | null;
+  /**
+   * The household member this visit was booked for, by the label the agent
+   * gave them (Gate D, PRD §2.9) — or null for the patient's own visit. A
+   * member's visit is logistics only: no move, cancel, arrival or rating from
+   * this account (the functions check `patient_user_id = caller`).
+   */
+  forMember: string | null;
 }
 
 interface AppointmentQueryRow {
   id: string;
+  provisional_patient_id: string | null;
   hospital_id: string;
   department_id: string;
   clinician_user_id: string;
   starts_at: string;
   ends_at: string;
   status: string;
+  type: "in_person" | "virtual";
   reason: string;
   reason_note: string | null;
   booking_code: string | null;
@@ -308,14 +319,27 @@ export async function fetchAppointments(
   const isPast = kind === "past";
   const nowIso = now.toISOString();
 
+  // The patient's own visits, plus the ones they made for a household member
+  // (RLS `appointments_select_agent` admits rows they created; the filter
+  // narrows that to their live members, so a nurse-patient's desk bookings
+  // never surface here). A reconciled member visit keeps its provisional id
+  // (the provenance), so it stays a member visit on this list.
+  const household = await fetchHousehold().catch(() => [] as HouseholdMember[]);
+  const labelByProvisional = new Map(household.map((m) => [m.provisionalPatientId, m.label]));
+  const own = `patient_user_id.eq.${userId}`;
+  const members =
+    household.length > 0
+      ? `,and(created_by_user_id.eq.${userId},provisional_patient_id.in.(${[...labelByProvisional.keys()].join(",")}))`
+      : "";
+
   let query = supabase
     .from("appointments")
     .select(
-      "id, hospital_id, department_id, clinician_user_id, starts_at, ends_at, status, " +
+      "id, provisional_patient_id, hospital_id, department_id, clinician_user_id, starts_at, ends_at, status, type, " +
         "reason, reason_note, booking_code, session_id, position_number, " +
         "arrival_window_start, arrival_window_end, hospital_departments(name), hospitals(name)",
     )
-    .eq("patient_user_id", userId);
+    .or(`${own}${members}`);
   query = isPast ? query.lt("starts_at", nowIso) : query.gte("starts_at", nowIso);
   if (kind === "upcoming-active") query = query.in("status", LIVE_STATUSES);
 
@@ -327,28 +351,36 @@ export async function fetchAppointments(
 
   const rows = data ?? [];
   const clinicians = await fetchClinicianCards(rows.map((r) => r.clinician_user_id));
-  return rows.map((r) => ({
-    id: r.id,
-    startsAtIso: r.starts_at,
-    endsAtIso: r.ends_at,
-    status: r.status,
-    reason: r.reason,
-    reasonNote: r.reason_note,
-    // The same fallback the web uses when `users.full_name` is null — a real
-    // sentence, not a placeholder, and honest about what we actually know.
-    clinicianName: clinicians.get(r.clinician_user_id)?.name ?? "Your clinician",
-    clinicianPhotoUrl: clinicians.get(r.clinician_user_id)?.photoUrl ?? null,
-    departmentName: embedded(r.hospital_departments)?.name ?? "Outpatients",
-    hospitalName: embedded(r.hospitals)?.name ?? "Your hospital",
-    hospitalId: r.hospital_id,
-    departmentId: r.department_id,
-    clinicianUserId: r.clinician_user_id,
-    bookingCode: r.booking_code,
-    sessionId: r.session_id,
-    positionNumber: r.position_number,
-    arrivalWindowStartIso: r.arrival_window_start,
-    arrivalWindowEndIso: r.arrival_window_end,
-  }));
+  return rows.map((r) => {
+    const forMember =
+      (r.provisional_patient_id && labelByProvisional.get(r.provisional_patient_id)) || null;
+    return {
+      id: r.id,
+      startsAtIso: r.starts_at,
+      endsAtIso: r.ends_at,
+      status: r.status,
+      type: r.type,
+      reason: r.reason,
+      // A member's visit is logistics only (PRD §2.9): the note is dropped
+      // here, so no screen has to remember to hide it.
+      reasonNote: forMember ? null : r.reason_note,
+      // The same fallback the web uses when `users.full_name` is null — a real
+      // sentence, not a placeholder, and honest about what we actually know.
+      clinicianName: clinicians.get(r.clinician_user_id)?.name ?? "Your clinician",
+      clinicianPhotoUrl: clinicians.get(r.clinician_user_id)?.photoUrl ?? null,
+      departmentName: embedded(r.hospital_departments)?.name ?? "Outpatients",
+      hospitalName: embedded(r.hospitals)?.name ?? "Your hospital",
+      hospitalId: r.hospital_id,
+      departmentId: r.department_id,
+      clinicianUserId: r.clinician_user_id,
+      bookingCode: r.booking_code,
+      sessionId: r.session_id,
+      positionNumber: r.position_number,
+      arrivalWindowStartIso: r.arrival_window_start,
+      arrivalWindowEndIso: r.arrival_window_end,
+      forMember,
+    };
+  });
 }
 
 /**
@@ -632,6 +664,11 @@ export interface ServiceLine {
   reasonCodes: string[];
   /** The facility's own target lead time — the no-silent-wait rule's window (PRD §2.4). */
   timeToCareDays: number;
+  /**
+   * PRD §2.9: a confidential line is never shown to, or bookable for, a
+   * household member — the server refuses; the page hides the choice first.
+   */
+  confidential: boolean;
 }
 
 interface ServiceLineRow {
@@ -642,12 +679,13 @@ interface ServiceLineRow {
   capacity_mode: string;
   reason_codes: string[];
   time_to_care_days: number;
+  confidential: boolean;
   hospital_departments: Embed<{ name: string }>;
   hospitals: Embed<{ name: string; emergency_phone: string | null }>;
 }
 
 const LINE_SELECT =
-  "id, name, hospital_id, department_id, capacity_mode, reason_codes, time_to_care_days, " +
+  "id, name, hospital_id, department_id, capacity_mode, reason_codes, time_to_care_days, confidential, " +
   "hospital_departments(name), hospitals(name, emergency_phone)";
 
 function toLine(r: ServiceLineRow): ServiceLine {
@@ -663,6 +701,7 @@ function toLine(r: ServiceLineRow): ServiceLine {
     capacityMode: r.capacity_mode,
     reasonCodes: r.reason_codes ?? [],
     timeToCareDays: r.time_to_care_days,
+    confidential: r.confidential,
   };
 }
 
@@ -880,6 +919,8 @@ export function requestAppointment(
     reason: AppointmentReason;
     reasonNote?: string | null;
     idempotencyKey: string;
+    /** A household member's provisional id — the server books it with `created_by` = this account (Gate D). */
+    forProvisionalId?: string;
   } & (
     | {
         slot: {
@@ -898,6 +939,8 @@ export function requestAppointment(
     reason_note: input.reasonNote ?? null,
     idempotency_key: input.idempotencyKey,
     channel: "app",
+    // Absent, not null: zod's `.optional()` takes undefined and JSON drops it.
+    ...(input.forProvisionalId ? { for_provisional_id: input.forProvisionalId } : {}),
     ...("slot" in input
       ? {
           slot: {
@@ -940,6 +983,36 @@ export function cancelIntake(intakeId: string): Promise<EdgeResult<{ intake_id: 
   });
 }
 
+/**
+ * Whether `ha-mark-arrived` would take "I have arrived" from this account:
+ * the patient's own visit, confirmed, on the hospital's today. Gate the
+ * control on this, not on a guess — the function's refusal sentence reaches
+ * the screen verbatim if the two ever disagree.
+ */
+export function canArrive(
+  row: Pick<AppointmentRow, "status" | "startsAtIso" | "forMember" | "type">,
+): boolean {
+  return (
+    row.status === "confirmed" &&
+    row.type !== "virtual" &&
+    row.forMember === null &&
+    dateKey(new Date(row.startsAtIso)) === dateKey(new Date())
+  );
+}
+
+/**
+ * The digital pre-queue (Gate D): confirmed → arrived, and a queue row. The
+ * reason is fixed so the audit log reads the same from every phone.
+ */
+export function markArrived(
+  appointmentId: string,
+): Promise<EdgeResult<{ appointment_id: string; queue_entry_id: string | null }>> {
+  return callEdge("ha-mark-arrived", {
+    appointment_id: appointmentId,
+    reason: "Patient marked their own arrival from the app.",
+  });
+}
+
 export function cancelAppointment(
   appointmentId: string,
   reason: string,
@@ -975,6 +1048,110 @@ export function rescheduleAppointment(input: {
     new_starts_at: input.newStartsAtIso,
     new_ends_at: input.newEndsAtIso,
     reason: input.reason.trim(),
+  });
+}
+
+/* ─── the household (Gate D, ADR 0089; PRD §2.9) ─────────────────── */
+
+/** `booking_agents.relationship` — the migration's CHECK list, with the words a patient picks. */
+export const HOUSEHOLD_RELATIONSHIPS = [
+  { value: "parent", label: "Parent" },
+  { value: "guardian", label: "Guardian" },
+  { value: "child", label: "Adult child" },
+  { value: "spouse", label: "Spouse" },
+  { value: "relative", label: "Relative" },
+  { value: "vht", label: "VHT" },
+  { value: "other", label: "Other" },
+] as const;
+
+export type HouseholdRelationship = (typeof HOUSEHOLD_RELATIONSHIPS)[number]["value"];
+
+/** Someone this account books for — a live `booking_agents` row about a provisional record. */
+export interface HouseholdMember {
+  id: string;
+  provisionalPatientId: string;
+  /** The name the agent gave — their own words, plaintext, agent-visible only (RLS). */
+  label: string;
+  relationship: HouseholdRelationship;
+}
+
+/**
+ * The people this account may book for. Live links only (RLS hides revoked
+ * ones); provisional members only, because that is the only kind
+ * `pt-add-household-member` creates and `for_provisional_id` accepts.
+ */
+export async function fetchHousehold(): Promise<HouseholdMember[]> {
+  const userId = await currentUserId();
+  if (!userId) return [];
+  const { data, error } = await supabase
+    .from("booking_agents")
+    .select("id, provisional_patient_id, member_label, relationship")
+    .eq("agent_user_id", userId)
+    .is("revoked_at", null)
+    .not("provisional_patient_id", "is", null)
+    .order("created_at")
+    .overrideTypes<
+      {
+        id: string;
+        provisional_patient_id: string;
+        member_label: string;
+        relationship: HouseholdRelationship;
+      }[],
+      { merge: false }
+    >();
+  if (error) raise(error.message, "the people you book for");
+  return (data ?? []).map((r) => ({
+    id: r.id,
+    provisionalPatientId: r.provisional_patient_id,
+    label: r.member_label,
+    relationship: r.relationship,
+  }));
+}
+
+/**
+ * "+256XXXXXXXXX" from the ways a Ugandan number gets typed — "0772 123 456",
+ * "256772123456". Spaces and dashes dropped, a leading 0 swapped for the
+ * country code. Anything else is sent as typed and the server's own sentence
+ * says what shape it wants.
+ */
+export function toUgandaE164(raw: string): string {
+  const digits = raw.replace(/[\s\-()]/g, "");
+  if (digits.startsWith("+")) return digits;
+  if (digits.startsWith("0")) return `+256${digits.slice(1)}`;
+  if (digits.startsWith("256")) return `+${digits}`;
+  return digits;
+}
+
+/**
+ * Add an adult this account books for. The phone cannot encrypt, so the
+ * provisional record is minted server-side; a minor is refused there with
+ * "Booking for a child is not available yet." and the sentence reaches the
+ * screen verbatim. Exactly one of `dateOfBirth` (YYYY-MM-DD) / `ageYears`
+ * is needed; both may be given.
+ */
+export function addHouseholdMember(input: {
+  label: string;
+  phone: string;
+  dateOfBirth?: string | null;
+  ageYears?: number | null;
+  declaredAdult: boolean;
+  relationship: HouseholdRelationship;
+}): Promise<
+  EdgeResult<{
+    booking_agent_id: string;
+    provisional_patient_id: string;
+    member_label: string;
+    relationship: string;
+    consent_basis: string;
+  }>
+> {
+  return callEdge("pt-add-household-member", {
+    member_label: input.label.trim(),
+    phone_e164: toUgandaE164(input.phone),
+    ...(input.dateOfBirth ? { date_of_birth: input.dateOfBirth } : {}),
+    ...(input.ageYears != null ? { age_years: input.ageYears } : {}),
+    declared_adult: input.declaredAdult,
+    relationship: input.relationship,
   });
 }
 

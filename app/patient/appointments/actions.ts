@@ -27,6 +27,30 @@ const RescheduleArgs = z.object({
 
 export type PatientApptActionState = { ok?: boolean; error?: string };
 
+const ArrivedArgs = z.object({ appointment_id: z.string().uuid() });
+
+/**
+ * PRD §3.5 — the patient's own "I have arrived", over the existing
+ * `ha-mark-arrived` (which already authorises a patient on their own
+ * confirmed appointment: confirmed → arrived + a queue entry). The refusal
+ * sentence, when there is one, is the Edge Function's own and is shown as is.
+ */
+export async function markArrivedAction(
+  _prev: PatientApptActionState,
+  formData: FormData,
+): Promise<PatientApptActionState> {
+  const parsed = ArrivedArgs.safeParse({ appointment_id: formData.get("appointment_id") });
+  if (!parsed.success) return { error: "Invalid input." };
+  await requirePatientScope();
+  return callAsPatient({
+    fn: "ha-mark-arrived",
+    logKey: "patient.appointments.arrived",
+    verb: "Arrival",
+    service: "arrival",
+    body: { ...parsed.data, reason: "Patient confirmed arrival from the app." },
+  });
+}
+
 export async function cancelMyAppointmentAction(
   _prev: PatientApptActionState,
   formData: FormData,

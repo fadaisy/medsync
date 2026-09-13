@@ -88,7 +88,7 @@ Deno.serve(async (request: Request) => {
   const { data: appt, error } = await sb
     .from("appointments")
     .select(
-      "id, hospital_id, department_id, patient_user_id, clinician_user_id, " +
+      "id, hospital_id, department_id, patient_user_id, provisional_patient_id, clinician_user_id, " +
         "status, reason, reason_note, type, priority, notify_lead_minutes, session_id, channel",
     )
     .eq("id", input.appointment_id)
@@ -116,7 +116,12 @@ Deno.serve(async (request: Request) => {
           await sb
             .from("appointments")
             .select("id, status")
-            .eq("patient_user_id", appt.patient_user_id)
+            // A provisional booking (0060) has no patient yet; its key is
+            // per creator (`appointments_creator_idempotency_unique`).
+            .eq(
+              appt.patient_user_id ? "patient_user_id" : "created_by_user_id",
+              appt.patient_user_id ?? caller.id,
+            )
             .eq("idempotency_key", input.idempotency_key)
             .maybeSingle()
         ).data
@@ -201,6 +206,9 @@ Deno.serve(async (request: Request) => {
         hospital_id: appt.hospital_id,
         department_id: appt.department_id,
         patient_user_id: appt.patient_user_id,
+        // Provenance travels with the booking (0060): a provisional row
+        // stays a provisional row, and an un-reconcile can still find it.
+        provisional_patient_id: appt.provisional_patient_id ?? null,
         clinician_user_id: appt.clinician_user_id,
         starts_at: input.new_starts_at,
         ends_at: input.new_ends_at,
@@ -236,7 +244,10 @@ Deno.serve(async (request: Request) => {
     if (violates("appointments_no_double_booking")) {
       return conflict("Someone just took this slot — pick another and try again.", init);
     }
-    if (violates("appointments_idempotency_unique")) {
+    if (
+      violates("appointments_idempotency_unique") ||
+      violates("appointments_creator_idempotency_unique")
+    ) {
       // Two retries of one submission raced past the replay check.
       const winner = await replay();
       if (winner) return replied(winner);

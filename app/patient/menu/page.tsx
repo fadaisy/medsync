@@ -58,6 +58,13 @@ export default async function PatientMenuPage() {
       tint: "mint",
     },
     {
+      href: "/patient/household",
+      label: "People I book for",
+      sub: "Book visits for adults in your household",
+      iconKey: "user",
+      tint: "brand",
+    },
+    {
       href: "/patient/settings",
       label: "Settings",
       sub: "Appearance and language",

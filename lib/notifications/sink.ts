@@ -131,7 +131,8 @@ export interface ReminderRow {
   scheduledAtIso: string;
   appointmentStartsAtIso: string;
   appointmentStatus: string;
-  patientUserId: string;
+  /** NULL for a booking made for a provisional patient (migration 0060). */
+  patientUserId: string | null;
   hospitalName: string;
   /**
    * Receipt fields — `composeReceiptSms` needs them and a reminder ignores
@@ -147,7 +148,7 @@ export interface ReminderRow {
 export interface ReminderSend {
   reminderId: string;
   appointmentId: string;
-  patientUserId: string;
+  patientUserId: string | null;
   body: string;
   /** Set when the queued channel had no transport and descended to SMS. */
   substitutedFrom?: string;

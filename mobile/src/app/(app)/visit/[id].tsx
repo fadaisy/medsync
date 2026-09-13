@@ -27,6 +27,7 @@ import { Screen } from "@/components/ui/screen";
 import { Section } from "@/components/ui/section";
 import {
   APPOINTMENT_REASONS,
+  canArrive,
   cancelAppointment,
   CANCELLABLE,
   canRate,
@@ -37,6 +38,7 @@ import {
   fetchMyRating,
   formatTime,
   formatWindow,
+  markArrived,
   MIN_REASON_CHARS,
   rateVisit,
   RESCHEDULABLE,
@@ -132,6 +134,7 @@ export default function VisitScreen() {
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [arriving, setArriving] = useState(false);
 
   // The rating (ADR 0085 §2). `rated` = a row exists, so the control says
   // "Update" rather than "Send"; the stars and comment are pre-filled from it.
@@ -257,6 +260,26 @@ export default function VisitScreen() {
     setNotice("Your visit has been moved.");
   };
 
+  /**
+   * "I have arrived" (Gate D): the digital pre-queue. Own confirmed visit,
+   * today — `canArrive` is the function's own gate; its refusal sentence
+   * lands in the well verbatim if the two ever disagree.
+   */
+  const submitArrived = async () => {
+    if (!visit || arriving) return;
+    setArriving(true);
+    setActionError(null);
+    setNotice(null);
+    const res = await markArrived(visit.id);
+    setArriving(false);
+    if (!res.ok) {
+      setActionError(res.error);
+      return;
+    }
+    setVisit({ ...visit, status: "arrived" });
+    setNotice(STATUS_LABEL.arrived);
+  };
+
   const submitCancel = async () => {
     if (!visit || !reasonReady()) return;
     setBusy(true);
@@ -328,16 +351,22 @@ export default function VisitScreen() {
 
   /* ─── the visit ──────────────────────────────────────────────── */
 
+  // A household member's visit (Gate D, PRD §2.9) is logistics only from
+  // this account: the functions check `patient_user_id = caller`, so no
+  // move, cancel, arrival or rating is offered — an affordance that would
+  // only ever be refused is a fake one.
+  const mine = visit.forMember === null;
   // A place in a clinic day is not a time: `reschedule-appointment` refuses
   // session rows ("Move this visit from the clinic day list."), so the
   // control is absent rather than a fake affordance (ADR 0088).
-  const canMove = RESCHEDULABLE.has(visit.status) && visit.sessionId === null;
-  const canCancel = CANCELLABLE.has(visit.status);
+  const canMove = mine && RESCHEDULABLE.has(visit.status) && visit.sessionId === null;
+  const canCancel = mine && CANCELLABLE.has(visit.status);
+  const arrivable = canArrive(visit);
   const statusWord = STATUS_LABEL[visit.status];
   const reasonTitle = APPOINTMENT_REASONS.find((r) => r.value === visit.reason)?.title ?? null;
   const awaiting = AWAITING_CLINIC.has(visit.status);
   // Never for cancelled, missed or declined: those are not in `canRate`'s set.
-  const ratable = canRate(visit);
+  const ratable = mine && canRate(visit);
 
   // Options arrive grouped by day, ascending; the strip shows each day once.
   const days = options ? Array.from(new Set(options.map((o) => o.dayKey))) : [];
@@ -346,7 +375,18 @@ export default function VisitScreen() {
   const hasOptions = options !== null && options.length > 0;
 
   let footer;
-  if (mode === "move") {
+  if (mode === "idle" && (arrivable || actionError)) {
+    // Gate D: on the day itself, arriving is the one primary act of the
+    // screen — the docked mint CTA, with the refusal sentence above it.
+    footer = (
+      <>
+        <ActionError text={actionError} />
+        {arrivable ? (
+          <Button label="I have arrived" busy={arriving} onPress={() => void submitArrived()} />
+        ) : null}
+      </>
+    );
+  } else if (mode === "move") {
     footer = (
       <>
         <ActionError text={actionError} />
@@ -406,8 +446,11 @@ export default function VisitScreen() {
                 tone="onPrimary"
               />
             }
-            // The status as a word, here — never a pill on the hero.
-            eyebrow={statusWord ? `Visit · ${statusWord}` : "Visit"}
+            // The status as a word, here — never a pill on the hero. A
+            // member's visit says whose it is where "Visit" would go.
+            eyebrow={[visit.forMember ? `For ${visit.forMember}` : "Visit", statusWord]
+              .filter(Boolean)
+              .join(" · ")}
             title={visit.clinicianName}
             subtitle={`${visit.departmentName} · ${visit.hospitalName}`}
             // The day always sits beside the time — ADR 0085 §3's one
@@ -463,7 +506,7 @@ export default function VisitScreen() {
             </View>
           ) : null}
 
-          {awaiting || reasonTitle || visit.reasonNote ? (
+          {mine && (awaiting || reasonTitle || visit.reasonNote) ? (
             <View style={styles.card}>
               {awaiting ? (
                 // No promise of a message: there is no transport to send one (§11).

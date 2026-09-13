@@ -3,6 +3,7 @@ import type {
   AppointmentReason,
   BookingReceipt,
   ClinicSession,
+  HouseholdMember,
   PatientProfile,
   ServiceLine,
 } from "@/lib/booking";
@@ -31,6 +32,7 @@ import { Screen } from "@/components/ui/screen";
 import { Section } from "@/components/ui/section";
 import {
   dateKey,
+  fetchHousehold,
   fetchPatientProfile,
   fetchServiceLine,
   fetchServiceLines,
@@ -94,6 +96,9 @@ export default function ClinicScreen() {
   const [limit, setLimit] = useState<string | null>(null);
   const [elsewhere, setElsewhere] = useState<{ line: ServiceLine; next: ClinicSession }[]>([]);
   const [loadFailed, setLoadFailed] = useState(false);
+  // Gate D: the adults this account books for; empty hides the choice.
+  const [household, setHousehold] = useState<HouseholdMember[]>([]);
+  const [forMember, setForMember] = useState<HouseholdMember | null>(null);
 
   const [reason, setReason] = useState<AppointmentReason | null>(null);
   const [interstitialSeen, setInterstitialSeen] = useState(false);
@@ -104,7 +109,11 @@ export default function ClinicScreen() {
   const keyRef = useRef<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [done, setDone] = useState<{ receipt: BookingReceipt; startsAtIso: string } | null>(null);
+  const [done, setDone] = useState<{
+    receipt: BookingReceipt;
+    startsAtIso: string;
+    forMember: string | null;
+  } | null>(null);
 
   const load = useCallback(() => {
     fetchPatientProfile()
@@ -115,6 +124,9 @@ export default function ClinicScreen() {
         }
         const found = await fetchServiceLine(id);
         setLine(found);
+        // Fails to empty: a household read that failed hides the chips, and
+        // the visit is then the patient's own.
+        setHousehold(await fetchHousehold().catch(() => []));
         if (found) {
           const rows = await fetchSessions({ serviceLineId: found.id });
           setSessions(rows);
@@ -140,17 +152,26 @@ export default function ClinicScreen() {
     setSession(s);
     keyRef.current = null;
   };
+  const pickFor = (m: HouseholdMember | null) => {
+    setForMember(m);
+    keyRef.current = null;
+  };
 
   const onSubmit = async () => {
     if (!profile || !line || !reason || !session || busy) return;
     setBusy(true);
     setError(null);
     keyRef.current ??= newIdempotencyKey();
+    // PRD §2.9: the member chips are hidden on a confidential line; if one
+    // was picked anyway, the server's refusal is shown — never a silent
+    // booking for someone else.
+    const member = forMember;
     const res = await requestAppointment({
       hospitalId: line.hospitalId,
       reason,
       reasonNote: note.trim() || null,
       idempotencyKey: keyRef.current,
+      forProvisionalId: member?.provisionalPatientId,
       session: { sessionId: session.id },
     });
     if (res.ok) {
@@ -165,6 +186,7 @@ export default function ClinicScreen() {
           arrival_window_end: null,
         },
         startsAtIso: session.startsAtIso,
+        forMember: member?.label ?? null,
       });
       return;
     }
@@ -238,6 +260,7 @@ export default function ClinicScreen() {
           receipt={done.receipt}
           startsAtIso={done.startsAtIso}
           where={line ? `${line.name} · ${line.departmentName} · ${line.hospitalName}` : ""}
+          forMember={done.forMember}
         />
       </Screen>
     );
@@ -344,8 +367,28 @@ export default function ClinicScreen() {
             />
           ) : null}
 
+          {/* Gate D: who the visit is for. Hidden for a confidential line —
+              never shown to, or bookable for, a member (PRD §2.9). */}
+          {sessions.length > 0 && household.length > 0 && !line.confidential ? (
+            <Section title="This visit is for">
+              <ChipRow>
+                <Chip label="Me" selected={forMember === null} onPress={() => pickFor(null)} />
+                {household.map((m) => (
+                  <Chip
+                    key={m.id}
+                    label={m.label}
+                    selected={forMember?.id === m.id}
+                    onPress={() => pickFor(m)}
+                  />
+                ))}
+              </ChipRow>
+            </Section>
+          ) : null}
+
           {sessions.length > 0 ? (
-            <Section title="Why are you coming?">
+            <Section
+              title={forMember ? `Why is ${forMember.label} coming?` : "Why are you coming?"}
+            >
               {/* Only the reasons this line takes; the server refuses any other. */}
               <ChipRow>
                 {reasons.map((r) => (

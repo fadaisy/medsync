@@ -5,9 +5,9 @@ import "server-only";
  * registries — same shape, smaller (deliberately thin workspace).
  */
 
-export type ReceptionIconKey = "overview" | "expected" | "intake" | "find" | "flow";
+export type ReceptionIconKey = "overview" | "expected" | "intake" | "book" | "find" | "flow";
 
-export type ReceptionFeatureSlug = "" | "expected" | "intake" | "find" | "flow";
+export type ReceptionFeatureSlug = "" | "expected" | "intake" | "book" | "find" | "flow";
 
 export interface ReceptionFeatureArea {
   slug: ReceptionFeatureSlug;
@@ -37,6 +37,13 @@ export const RECEPTION_FEATURE_AREAS: ReadonlyArray<ReceptionFeatureArea> = [
     label: "Register",
     hint: "Walk-in / referral / emergency intake",
     iconKey: "intake",
+    placeholder: false,
+  },
+  {
+    slug: "book",
+    label: "Book",
+    hint: "Book a visit on behalf of a caller",
+    iconKey: "book",
     placeholder: false,
   },
   {

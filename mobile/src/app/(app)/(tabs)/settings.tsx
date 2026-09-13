@@ -3,7 +3,7 @@ import type { Palette } from "@/theme/tokens";
 import { useCallback, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { Avatar } from "@/components/ui/avatar";
@@ -34,6 +34,7 @@ const APPEARANCE: { value: ThemePreference; label: string; hint: string }[] = [
 ];
 
 export default function SettingsScreen() {
+  const router = useRouter();
   const { session, signOut } = useSession();
   const { colors, preference, setPreference } = useTheme();
   const styles = useStyles(makeStyles);
@@ -118,6 +119,31 @@ export default function SettingsScreen() {
               </Text>
             </View>
           ) : null}
+        </View>
+
+        {/* Gate D: the household — adults this account books for (PRD §2.9). */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Household</Text>
+          <View style={styles.group}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityHint="Opens the people you book for"
+              onPress={() => router.push("/(app)/household")}
+              style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+            >
+              <View style={styles.rowText}>
+                <Text style={styles.rowLabel}>People I book for</Text>
+                <Text style={styles.rowHint}>Book a visit for an adult in your household.</Text>
+              </View>
+              <Ionicons
+                name="chevron-forward"
+                size={20}
+                color={colors.mutedForeground}
+                accessibilityElementsHidden
+                importantForAccessibility="no-hide-descendants"
+              />
+            </Pressable>
+          </View>
         </View>
 
         <View style={styles.section}>

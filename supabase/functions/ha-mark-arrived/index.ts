@@ -17,6 +17,7 @@ import { getCaller, hasRole, serviceClient } from "../_shared/auth.ts";
 import { preflight } from "../_shared/cors.ts";
 import {
   badRequest,
+  conflict,
   forbidden,
   methodNotAllowed,
   notFound,
@@ -65,6 +66,12 @@ Deno.serve(async (request: Request) => {
     .maybeSingle();
   if (error) return serverError(error.message, init);
   if (!appt) return notFound(init, "appointment not found");
+
+  // A provisional booking (migration 0060) has no patient until the desk
+  // confirms who it is for; the queue row needs one.
+  if (!appt.patient_user_id) {
+    return conflict("Confirm who this booking is for before marking arrival.", init);
+  }
 
   const isSuperadmin = await hasRole(caller.id, "superadmin");
   const isPatient = caller.id === appt.patient_user_id;

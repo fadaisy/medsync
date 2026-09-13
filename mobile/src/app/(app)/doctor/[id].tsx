@@ -3,6 +3,7 @@ import type {
   AppointmentReason,
   BookingReceipt,
   ClinicianOption,
+  HouseholdMember,
   PatientProfile,
   ServiceLine,
   SlotOffer,
@@ -39,6 +40,7 @@ import {
   dateKey,
   dayLabel,
   fetchBookableClinicians,
+  fetchHousehold,
   fetchPatientProfile,
   fetchServiceLines,
   formatTime,
@@ -129,6 +131,9 @@ export default function DoctorScreen() {
   const [doctor, setDoctor] = useState<ClinicianOption | null>(null);
   const [wait, setWait] = useState<Wait | null>(null);
   const [loadFailed, setLoadFailed] = useState(false);
+  // Gate D: the adults this account books for; empty hides the choice.
+  const [household, setHousehold] = useState<HouseholdMember[]>([]);
+  const [forMember, setForMember] = useState<HouseholdMember | null>(null);
 
   const [reason, setReason] = useState<AppointmentReason | null>(null);
   // Once per flow: dismissed stays dismissed even if the reason changes and comes back.
@@ -143,7 +148,11 @@ export default function DoctorScreen() {
   const keyRef = useRef<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [done, setDone] = useState<{ receipt: BookingReceipt; startsAtIso: string } | null>(null);
+  const [done, setDone] = useState<{
+    receipt: BookingReceipt;
+    startsAtIso: string;
+    forMember: string | null;
+  } | null>(null);
 
   const load = useCallback(() => {
     fetchPatientProfile()
@@ -159,6 +168,9 @@ export default function DoctorScreen() {
         setDoctor(found);
         setDayKey(found ? (openDays(found)[0] ?? null) : null);
         setWait(found ? await loadWait(found, here) : null);
+        // Fails to empty: a household read that failed hides the chips, and
+        // the visit is then the patient's own.
+        setHousehold(await fetchHousehold().catch(() => []));
         setProfile(p);
       })
       .catch(() => setLoadFailed(true));
@@ -186,17 +198,27 @@ export default function DoctorScreen() {
     setSlot(s);
     keyRef.current = null;
   };
+  const pickFor = (m: HouseholdMember | null) => {
+    setForMember(m);
+    keyRef.current = null;
+  };
+  // PRD §2.9: a confidential line is never offered for a member.
+  const confidential = wait?.line?.confidential === true;
 
   const onSubmit = async () => {
     if (!profile || !doctor || !reason || !dayKey || !slot || busy) return;
     setBusy(true);
     setError(null);
     keyRef.current ??= newIdempotencyKey();
+    // The chips are hidden on a confidential line; a pick that slipped past
+    // is refused by the server, never silently re-pointed at the patient.
+    const member = forMember;
     const res = await requestAppointment({
       hospitalId: doctor.hospitalId,
       reason,
       reasonNote: note.trim() || null,
       idempotencyKey: keyRef.current,
+      forProvisionalId: member?.provisionalPatientId,
       slot: {
         clinicianUserId: doctor.userId,
         departmentId: doctor.departmentId,
@@ -218,6 +240,7 @@ export default function DoctorScreen() {
           arrival_window_end: null,
         },
         startsAtIso: slot.startsAtIso,
+        forMember: member?.label ?? null,
       });
       return;
     }
@@ -303,6 +326,7 @@ export default function DoctorScreen() {
               ? `${doctor.fullName} · ${doctor.departmentName} · ${hospitalName}`
               : hospitalName
           }
+          forMember={done.forMember}
         />
       </Screen>
     );
@@ -440,8 +464,28 @@ export default function DoctorScreen() {
             />
           ) : null}
 
+          {/* Gate D: who the visit is for. Hidden for a confidential line —
+              never shown to, or bookable for, a member (PRD §2.9). */}
+          {days.length > 0 && household.length > 0 && !confidential ? (
+            <Section title="This visit is for">
+              <ChipRow>
+                <Chip label="Me" selected={forMember === null} onPress={() => pickFor(null)} />
+                {household.map((m) => (
+                  <Chip
+                    key={m.id}
+                    label={m.label}
+                    selected={forMember?.id === m.id}
+                    onPress={() => pickFor(m)}
+                  />
+                ))}
+              </ChipRow>
+            </Section>
+          ) : null}
+
           {days.length > 0 ? (
-            <Section title="Why are you coming?">
+            <Section
+              title={forMember ? `Why is ${forMember.label} coming?` : "Why are you coming?"}
+            >
               {/* Appendix A's words, or the department's own list. No entry
                   is a symptom; `urgent_review` is not one of them (ADR 0084 §12). */}
               <ChipRow>

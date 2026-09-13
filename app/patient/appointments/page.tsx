@@ -29,9 +29,11 @@ import {
   buildSlots,
   DEFAULT_TIME_ZONE,
   LIVE_APPOINTMENT_STATUSES,
+  localDateKey,
 } from "@/supabase/functions/_shared/slots";
 import { PatientPageHeader } from "../_components/page-header";
 import { TintedRow } from "../_components/tinted-row";
+import { ArrivedButton } from "./_components/arrived-button";
 import { CancelButton } from "./_components/cancel-button";
 import { RescheduleSheet } from "./_components/reschedule-sheet";
 import { toSessionOptions } from "./_lib/session-options";
@@ -71,6 +73,7 @@ export default async function PatientAppointments() {
   // One instant for both halves: two `new Date()`s leave a sliver in which an
   // appointment belongs to neither list.
   const now = new Date();
+  const todayKey = localDateKey(now, DEFAULT_TIME_ZONE);
   const [upcoming, past, rescheduleOptions] = await Promise.all([
     fetchAppointments(scope.userId, "upcoming", PAST_LIMIT, now),
     fetchAppointments(scope.userId, "past", PAST_LIMIT, now),
@@ -124,7 +127,12 @@ export default async function PatientAppointments() {
           ) : (
             <ul className="stagger-children flex flex-col gap-3">
               {upcoming.map((r) => (
-                <UpcomingVisit key={r.id} row={r} moveTo={rescheduleOptions.get(r.id)} />
+                <UpcomingVisit
+                  key={r.id}
+                  row={r}
+                  moveTo={rescheduleOptions.get(r.id)}
+                  canArrive={canArrive(r, todayKey)}
+                />
               ))}
             </ul>
           )}
@@ -144,7 +152,10 @@ export default async function PatientAppointments() {
                   </h3>
                   <ul className="stagger-children flex flex-col gap-2">
                     {group.rows.map((r) => (
-                      <PastVisit key={r.id} row={r} />
+                      // A clinic day starts before its arrival windows, so a
+                      // patient arriving inside their window finds today's
+                      // visit here, not under Upcoming. Same test, same button.
+                      <PastVisit key={r.id} row={r} canArrive={canArrive(r, todayKey)} />
                     ))}
                   </ul>
                 </div>
@@ -159,6 +170,18 @@ export default async function PatientAppointments() {
         </section>
       </div>
     </div>
+  );
+}
+
+/**
+ * PRD §3.5: only a confirmed, in-person visit on the clinic's own today can
+ * be arrived at. Judged on the server's clock, in the hospital's zone.
+ */
+function canArrive(r: AppointmentRow, todayKey: string): boolean {
+  return (
+    r.status === "confirmed" &&
+    r.type !== "virtual" &&
+    localDateKey(new Date(r.startsAtIso), DEFAULT_TIME_ZONE) === todayKey
   );
 }
 
@@ -193,9 +216,11 @@ function UpcomingVisit({
   row,
   /** Absent when the visit's status cannot be moved at all. */
   moveTo,
+  canArrive,
 }: {
   row: AppointmentRow;
   moveTo: ReadonlyArray<SessionOption> | undefined;
+  canArrive: boolean;
 }) {
   const initials = initialsOf(row.clinicianName);
   const summary = `${row.clinicianName} · ${row.departmentName} · ${formatWhen(row.startsAtIso)}`;
@@ -237,6 +262,8 @@ function UpcomingVisit({
       </p>
 
       <BookingFacts row={row} />
+
+      {canArrive ? <ArrivedButton appointmentId={row.id} /> : null}
 
       {row.reasonNote ? (
         <p className="text-muted-foreground text-body-s">Reason: {row.reasonNote}</p>
@@ -285,7 +312,7 @@ function UpcomingVisit({
  * grounds (#e5e5e5 on #fafafa, #262626 on #111111) while staying quieter
  * than the filled, shadowed cards the upcoming list uses.
  */
-function PastVisit({ row }: { row: AppointmentRow }) {
+function PastVisit({ row, canArrive }: { row: AppointmentRow; canArrive: boolean }) {
   return (
     <li className="border-border flex flex-col gap-1 rounded-lg border p-3">
       <div className="flex items-start justify-between gap-2">
@@ -302,6 +329,11 @@ function PastVisit({ row }: { row: AppointmentRow }) {
         <span className="text-muted-foreground text-body-s font-mono tracking-[0.08em]">
           {row.bookingCode}
         </span>
+      ) : null}
+      {canArrive ? (
+        <div className="pt-2">
+          <ArrivedButton appointmentId={row.id} />
+        </div>
       ) : null}
     </li>
   );

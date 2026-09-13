@@ -51,6 +51,7 @@ export const PATIENT_NAV: ReadonlyArray<PatientNavItem> = [
       "/patient/menu",
       "/patient/profile",
       "/patient/hospitals",
+      "/patient/household",
       "/patient/settings",
       "/patient/consent",
       "/patient/care",

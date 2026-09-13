@@ -144,3 +144,49 @@ export async function markNoShowAction(
   revalidatePath("/reception/flow");
   return { ok: true };
 }
+
+/* ─── Confirm who a provisional booking is for (Gate D, PRD §2.8) ── */
+
+const ReconcileSchema = z
+  .object({
+    provisional_patient_id: z.string().uuid(),
+    action: z.enum(["confirm", "reject"]),
+    patient_user_id: z.string().uuid().optional(),
+    reason: z.string().trim().max(500).optional(),
+  })
+  .refine((i) => i.action !== "confirm" || !!i.patient_user_id, {
+    message: "Choose the patient this booking is for.",
+  });
+
+/**
+ * Confirm or reject a candidate match. The chosen `patient_user_id` is
+ * whichever card the clerk pressed — nothing here picks one, and the panel
+ * never pre-selects one (a wrong merge is a wrong chart). Un-reconcile is a
+ * hospital-admin action and has no control on this surface.
+ */
+export async function reconcileIdentityAction(
+  _prev: ReceptionActionState,
+  formData: FormData,
+): Promise<ReceptionActionState> {
+  const parsed = ReconcileSchema.safeParse({
+    provisional_patient_id: formData.get("provisional_patient_id"),
+    action: formData.get("action"),
+    patient_user_id: formData.get("patient_user_id") || undefined,
+    reason: formData.get("reason") || undefined,
+  });
+  if (!parsed.success) {
+    const first = parsed.error.issues[0]?.message;
+    return { error: first ?? "Please check the values." };
+  }
+  const scope = await requireReceptionScope();
+  const result = await callEdge(
+    "ha-reconcile-identity",
+    { ...parsed.data, hospital_id: scope.hospitalId },
+    "reception",
+  );
+  if (!result.ok) return { error: result.error };
+  revalidatePath("/reception");
+  revalidatePath("/reception/expected");
+  revalidatePath("/reception/flow");
+  return { ok: true };
+}

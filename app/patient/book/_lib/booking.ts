@@ -127,6 +127,8 @@ export interface LineOption {
   id: string;
   name: string;
   capacityMode: CapacityMode;
+  /** PRD §2.9: never shown to, or bookable by, someone booking for another person. */
+  confidential: boolean;
   reasonCodes: string[];
   timeToCareDays: number;
   departmentId: string;
@@ -223,6 +225,8 @@ export function accessAlternatives(
 
 export interface BookingDraft {
   v: 1;
+  /** Gate D: a household member's provisional id, or null for "me". */
+  forProvisionalId: string | null;
   reason: PatientReasonCode | null;
   reasonNote: string;
   interstitialSeen: boolean;
@@ -245,6 +249,7 @@ export function parseDraft(raw: string | null): BookingDraft | null {
     if (d.v !== 1 || typeof d.idempotencyKey !== "string") return null;
     return {
       v: 1,
+      forProvisionalId: typeof d.forProvisionalId === "string" ? d.forProvisionalId : null,
       reason: REASONS.some((r) => r.value === d.reason) ? (d.reason as PatientReasonCode) : null,
       reasonNote: typeof d.reasonNote === "string" ? d.reasonNote.slice(0, 500) : "",
       interstitialSeen: d.interstitialSeen === true,

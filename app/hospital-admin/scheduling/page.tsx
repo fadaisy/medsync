@@ -5,7 +5,7 @@ import type {
 } from "./_components/clinic-sessions-section";
 import type { DepartmentPolicyOption } from "./_components/policy-form";
 import type { ServiceLineRow } from "./_components/service-lines-section";
-import { and, asc, eq, gte, inArray, lt } from "drizzle-orm";
+import { and, asc, eq, gte, inArray, isNull, lt } from "drizzle-orm";
 
 import { db } from "@/db";
 import { clinicSessions, sessionTemplates } from "@/db/schema/clinic-sessions";
@@ -106,11 +106,12 @@ export default async function SchedulingPage() {
 
   const unset = departments.filter((d) => !d.policy).length;
 
-  const [lines, templates, sessions, clinicians] = await Promise.all([
+  const [lines, templates, sessions, clinicians, unstaffedSoon] = await Promise.all([
     fetchServiceLines(scope.hospitalId),
     fetchTemplates(scope.hospitalId),
     fetchUpcomingSessions(scope.hospitalId),
     fetchClinicians(scope.hospitalId),
+    fetchUnstaffedSessionsSoon(scope.hospitalId),
   ]);
 
   return (
@@ -129,6 +130,35 @@ export default async function SchedulingPage() {
         </p>
         <div className="bg-brand-500/60 dark:bg-brand-400/50 h-px w-10" aria-hidden />
       </header>
+
+      {/* PRD §3.6: a published day starting within 12 hours with no clinician
+          named. Amber — the day still runs, and the app hides it as bookable
+          until someone is assigned; red is for emergencies alone. */}
+      {unstaffedSoon.length > 0 ? (
+        <section
+          role="status"
+          aria-labelledby="t12-heading"
+          className="bg-status-caution-bg text-status-caution-fg ring-status-caution-fg/25 flex flex-col gap-2 rounded-xl p-4 ring-1"
+        >
+          <h2 id="t12-heading" className="text-body-m font-medium">
+            {unstaffedSoon.length === 1
+              ? "1 clinic day starts within 12 hours with no clinician named"
+              : `${unstaffedSoon.length} clinic days start within 12 hours with no clinician named`}
+          </h2>
+          <ul className="text-body-s flex flex-col gap-1">
+            {unstaffedSoon.map((u) => (
+              <li key={u.id} className="tabular-nums">
+                {u.serviceLineName} · {u.dateLabel} · {u.timeLabel}
+                {u.bookedCount > 0 ? ` · ${u.bookedCount} booked` : ""}
+              </li>
+            ))}
+          </ul>
+          <p className="text-body-s">
+            Assign a clinician in the clinic days list below, or cancel the day so the people booked
+            are told.
+          </p>
+        </section>
+      ) : null}
 
       <SchedulingOverviewCard hospitalId={scope.hospitalId} variant="panel" />
 
@@ -271,6 +301,40 @@ async function fetchUpcomingSessions(hospitalId: string): Promise<ClinicSessionR
     capacityTotal: r.capacityTotal,
     overbookingFactor: Number(r.overbookingFactor),
     status: r.status,
+  }));
+}
+
+/** The T-12h rule (PRD §3.6): published, within 12 hours, no clinician. */
+const T12H_MS = 12 * 3_600_000;
+
+async function fetchUnstaffedSessionsSoon(hospitalId: string) {
+  const now = new Date();
+  const rows = await db
+    .select({
+      id: clinicSessions.id,
+      startsAt: clinicSessions.startsAt,
+      endsAt: clinicSessions.endsAt,
+      serviceLineName: serviceLines.name,
+      bookedCount: clinicSessions.bookedCount,
+    })
+    .from(clinicSessions)
+    .innerJoin(serviceLines, eq(serviceLines.id, clinicSessions.serviceLineId))
+    .where(
+      and(
+        eq(clinicSessions.hospitalId, hospitalId),
+        eq(clinicSessions.status, "published"),
+        isNull(clinicSessions.clinicianUserId),
+        gte(clinicSessions.startsAt, now),
+        lt(clinicSessions.startsAt, new Date(now.getTime() + T12H_MS)),
+      ),
+    )
+    .orderBy(asc(clinicSessions.startsAt));
+  return rows.map((r) => ({
+    id: r.id,
+    serviceLineName: r.serviceLineName,
+    dateLabel: DAY_FMT.format(r.startsAt),
+    timeLabel: `${TIME_FMT.format(r.startsAt)}–${TIME_FMT.format(r.endsAt)}`,
+    bookedCount: r.bookedCount,
   }));
 }
 

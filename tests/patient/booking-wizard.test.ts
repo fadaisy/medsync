@@ -64,6 +64,7 @@ function line(partial: Partial<LineOption>): LineOption {
     id: "line",
     name: "Diabetes Clinic",
     capacityMode: "slot",
+    confidential: false,
     reasonCodes: ["follow_up"],
     timeToCareDays: 7,
     departmentId: "dept",
@@ -157,6 +158,7 @@ describe("draft persistence", () => {
   it("round-trips a draft and refuses one it cannot trust", () => {
     const draft = {
       v: 1 as const,
+      forProvisionalId: null,
       reason: "follow_up" as const,
       reasonNote: "note",
       interstitialSeen: false,

@@ -1,4 +1,4 @@
-import { serviceClient } from "./auth.ts";
+import { hasRole, serviceClient } from "./auth.ts";
 
 /**
  * Hospital-admin scope check for Edge Functions.
@@ -86,4 +86,31 @@ export async function requireHospitalAdminScope(
   }
 
   return { ok: true, hospital };
+}
+
+/**
+ * The desk's authorisation: superadmin, a hospital_admin of THIS hospital
+ * (state-checked), or any active staff affiliation at it — reception,
+ * nurse, clinician alike. Returns null when allowed, else the reason.
+ * Lifted from ha-check-in-patient (Gate D) for ha-book-on-behalf and
+ * ha-reconcile-identity.
+ */
+export async function authoriseAtHospital(
+  callerId: string,
+  hospitalId: string,
+): Promise<string | null> {
+  if (await hasRole(callerId, "superadmin")) return null;
+  if (await hasRole(callerId, "hospital_admin", hospitalId)) {
+    const scope = await requireHospitalAdminScope(callerId, hospitalId);
+    return scope.ok ? null : scope.reason;
+  }
+  const { data: aff } = await serviceClient()
+    .from("staff_affiliations")
+    .select("id")
+    .eq("user_id", callerId)
+    .eq("hospital_id", hospitalId)
+    .in("state", ["active", "approved"])
+    .limit(1)
+    .maybeSingle();
+  return aff ? null : "no active affiliation at this hospital";
 }

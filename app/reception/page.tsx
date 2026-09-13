@@ -1,6 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ClipboardListIcon, ListChecksIcon, SearchIcon, UserPlusIcon } from "lucide-react";
+import {
+  CalendarPlusIcon,
+  ClipboardListIcon,
+  ListChecksIcon,
+  SearchIcon,
+  UserPlusIcon,
+} from "lucide-react";
 
 import { IncomingIntakesPanel } from "@/components/intake/incoming-panel";
 import { fetchHospitalIncomingIntakes } from "@/lib/intake/queries";
@@ -72,6 +78,13 @@ export default async function ReceptionTodayPage() {
           title="Register an entry"
           subtitle="Walk-in · referral · emergency"
           Icon={UserPlusIcon}
+          tone="muted"
+        />
+        <QuickAction
+          href="/reception/book"
+          title="Book on behalf"
+          subtitle="A caller · a new caller"
+          Icon={CalendarPlusIcon}
           tone="muted"
         />
         <QuickAction
