@@ -128,6 +128,11 @@ export const departmentSchedulingPolicy = pgTable(
     // number of messages a booking queues, so this default is a per-booking
     // spend multiplier for every department that never opens the editor.
     reminderLeadMinutes: integer("reminder_lead_minutes").array().notNull().default([1440]),
+    /**
+     * Migration 0061 / ADR 0090: "release at T-minus-X" (PRD §3.2.3). NULL =
+     * OFF, the default — no punitive automation unless the facility asks.
+     */
+    releaseUnconfirmedHours: smallint("release_unconfirmed_hours"),
     allowVirtual: boolean("allow_virtual").notNull().default(false),
     notes: text("notes"),
     updatedByUserId: uuid("updated_by_user_id").references(() => authUsers.id, {
@@ -137,6 +142,10 @@ export const departmentSchedulingPolicy = pgTable(
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
+    check(
+      "dept_policy_release_unconfirmed_range",
+      sql`${t.releaseUnconfirmedHours} IS NULL OR ${t.releaseUnconfirmedHours} BETWEEN 1 AND 20`,
+    ),
     check("dept_policy_slot_range", sql`${t.defaultSlotMinutes} BETWEEN 5 AND 240`),
     check("dept_policy_buffer_range", sql`${t.defaultBufferMinutes} BETWEEN 0 AND 60`),
     check(
@@ -226,6 +235,8 @@ export const appointments = pgTable(
     arrivalWindowEnd: timestamp("arrival_window_end", { withTimezone: true }),
     /** 6 chars, unambiguous alphabet, printed on the receipt (§3.6). */
     bookingCode: text("booking_code"),
+    /** Migration 0061 / ADR 0090: the patient's answer to the T-24h confirmation request. */
+    confirmedByPatientAt: timestamp("confirmed_by_patient_at", { withTimezone: true }),
 
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),

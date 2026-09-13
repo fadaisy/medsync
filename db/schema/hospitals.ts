@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { check, index, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { check, index, pgTable, smallint, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 /**
  * Hospital / facility. Uganda MoH facility taxonomy for `level`.
@@ -29,6 +29,14 @@ export const hospitals = pgTable(
      * alone. Entered by a superadmin during activation.
      */
     emergencyPhone: text("emergency_phone"),
+    /**
+     * Quiet hours (migration 0061, ADR 0090): minutes past local midnight,
+     * Africa/Kampala; wraps midnight when start > end. DEFAULT 21:00–07:00.
+     * The dispatcher HOLDS offers / confirmation requests / arrival windows
+     * inside the window; receipts and session cancellations are exempt.
+     */
+    quietHoursStartMinutesLocal: smallint("quiet_hours_start_minutes_local").notNull().default(1260),
+    quietHoursEndMinutesLocal: smallint("quiet_hours_end_minutes_local").notNull().default(420),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
@@ -44,6 +52,10 @@ export const hospitals = pgTable(
     check(
       "hospitals_emergency_phone_format",
       sql`${t.emergencyPhone} IS NULL OR ${t.emergencyPhone} ~ '^[+]2567[0-9]{8}$|^[+]256[23489][0-9]{7,8}$'`,
+    ),
+    check(
+      "hospitals_quiet_hours_range",
+      sql`${t.quietHoursStartMinutesLocal} BETWEEN 0 AND 1440 AND ${t.quietHoursEndMinutesLocal} BETWEEN 0 AND 1440`,
     ),
     index("hospitals_country_district_idx").on(t.country, t.district),
   ],

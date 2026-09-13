@@ -48,7 +48,12 @@ export const stubbedNotificationSink: NotificationSink = {
 /* ─── SMS transport ──────────────────────────────────────────────── */
 
 export type SmsSendResult =
-  | { ok: true; providerMessageId?: string }
+  | {
+      ok: true;
+      providerMessageId?: string;
+      /** Africa's Talking `cost`, e.g. "UGX 35.0000" — recorded per row (PRD §1.5). */
+      cost?: { amount: string; currency: string };
+    }
   | { ok: false; reason: string };
 
 /** One SMS to one number. Implementations must never throw. */
@@ -389,6 +394,8 @@ export interface SmsOutcome {
   reminderId: string;
   ok: boolean;
   reason?: string;
+  providerMessageId?: string;
+  cost?: { amount: string; currency: string };
 }
 
 /**
@@ -411,7 +418,12 @@ export async function deliverSms(args: {
         try {
           const result = await args.sender.send({ toE164: job.toE164, body: job.body });
           return result.ok
-            ? { reminderId: job.reminderId, ok: true }
+            ? {
+                reminderId: job.reminderId,
+                ok: true,
+                ...(result.providerMessageId ? { providerMessageId: result.providerMessageId } : {}),
+                ...(result.cost ? { cost: result.cost } : {}),
+              }
             : { reminderId: job.reminderId, ok: false, reason: result.reason };
         } catch (e) {
           return { reminderId: job.reminderId, ok: false, reason: String(e) };

@@ -9,8 +9,10 @@
  * Refuses to cancel statuses where cancel doesn't make sense
  * (already cancelled, declined, completed, no_show).
  *
- * Also cancels any queued reminders so they don't fire after the
- * appointment is gone.
+ * Also cancels any queued reminders / dispatches so they don't fire after
+ * the appointment is gone, and offers the freed place to the waitlist
+ * (`releaseCapacity`, Gate E — PRD §3.2.5: "cancellation immediately offers
+ * the released capacity to the waitlist").
  */
 import { z } from "npm:zod@4.4.3";
 
@@ -28,6 +30,7 @@ import {
 import { requireHospitalAdminScope } from "../_shared/hospital-admin-scope.ts";
 import { makeLogger } from "../_shared/logger.ts";
 import { networkContext, recordSaAudit } from "../_shared/sa-audit.ts";
+import { cancelPendingDispatches, releaseCapacity } from "../_shared/waitlist.ts";
 
 const log = makeLogger("cancel-appointment");
 
@@ -138,12 +141,16 @@ Deno.serve(async (request: Request) => {
     }
   }
 
-  // Reap queued reminders (best-effort).
+  // Reap queued reminders and dispatches (best-effort).
   await sb
     .from("appointment_reminders")
     .update({ state: "cancelled" })
     .eq("appointment_id", appt.id)
     .eq("state", "queued");
+  await cancelPendingDispatches(sb, "appointment", appt.id, "appointment_cancelled");
+
+  // The freed place goes to whoever is waiting (Gate E).
+  if (flipped) await releaseCapacity(sb, appt.id, log, requestId);
 
   log.info("appointment cancelled", { requestId, appointment_id: appt.id });
   return ok({ appointment_id: appt.id, status: "cancelled" }, init);

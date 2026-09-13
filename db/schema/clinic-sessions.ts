@@ -142,10 +142,13 @@ export const clinicSessions = pgTable(
       onDelete: "set null",
     }),
     cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
+    /** Migration 0061 / ADR 0090: "running late by N minutes"; stored windows of un-arrived positions shift with it. */
+    delayMinutes: smallint("delay_minutes").notNull().default(0),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
+    check("clinic_sessions_delay_range", sql`${t.delayMinutes} BETWEEN 0 AND 480`),
     check("clinic_sessions_time_order", sql`${t.endsAt} > ${t.startsAt}`),
     check("clinic_sessions_capacity_total_positive", sql`${t.capacityTotal} > 0`),
     check(

@@ -10,9 +10,10 @@
  *   - New row's status copies the original (a confirmed appointment
  *     stays confirmed; a pending_approval stays pending).
  *   - rescheduled_from_appointment_id on the new row links back.
- *   - Reminders for the old row are cancelled; new reminders are
- *     queued for the new row using the original notify_lead_minutes
- *     (or department defaults).
+ *   - Reminders / dispatches for the old row are cancelled; the new row
+ *     queues its own notification rows (Gate E: receipt + T-24h
+ *     confirmation request, `bookingDispatchRows`), and the old row's
+ *     slot is offered to the waitlist (`releaseCapacity`).
  *
  * Allowed by: patient (own appointment), clinician (own), admin, superadmin.
  *
@@ -41,7 +42,9 @@ import {
 import { requireHospitalAdminScope } from "../_shared/hospital-admin-scope.ts";
 import { makeLogger } from "../_shared/logger.ts";
 import { networkContext, recordSaAudit } from "../_shared/sa-audit.ts";
+import { bookingDispatchRows } from "../_shared/dispatches.ts";
 import { bookingCode } from "../_shared/slots.ts";
+import { cancelPendingDispatches, releaseCapacity } from "../_shared/waitlist.ts";
 
 const log = makeLogger("reschedule-appointment");
 
@@ -274,43 +277,43 @@ Deno.serve(async (request: Request) => {
     });
   }
 
-  // 4. Reap old reminders + queue new ones.
+  // 4. Reap the old row's reminders + dispatches; the old slot goes to the
+  //    waitlist; the new row gets its own receipt + confirmation request.
   await sb
     .from("appointment_reminders")
     .update({ state: "cancelled" })
     .eq("appointment_id", appt.id)
     .eq("state", "queued");
+  await cancelPendingDispatches(sb, "appointment", appt.id, "appointment_rescheduled");
+  await releaseCapacity(sb, appt.id, log, requestId);
 
-  // The receipt for the new row: kind 'receipt', due now (ADR 0088). Its
-  // own statement so a database that predates 0059 loses only the receipt.
-  const { error: receiptError } = await sb.from("appointment_reminders").insert({
-    appointment_id: newRow.id,
-    channel: "sms",
-    kind: "receipt",
-    scheduled_at: new Date().toISOString(),
-  });
-  if (receiptError) {
-    log.warn("receipt queue failed (continuing)", { requestId, reason: receiptError.message });
-  }
-
-  const startsMs = new Date(input.new_starts_at).getTime();
-  const reminderRows = leadMinutes
-    .filter((m) => m > 0)
-    .map((m) => ({
-      appointment_id: newRow.id,
-      // See pt-request-appointment: SMS is the only channel with a transport,
-      // so queue it rather than leaving the dispatcher to substitute one.
-      channel: "sms" as const,
-      scheduled_at: new Date(startsMs - m * 60_000).toISOString(),
-    }))
-    // Drop leads that already elapsed. ADR-0084 made the same-day door
-    // primary, and a 1440-minute lead on a booking made this morning
-    // resolves to a `scheduled_at` ~23h in the PAST: the row is born
-    // outside the dispatcher's stale grace and is reaped on its very
-    // first run. Same filter as system-propose-urgent-appointment.
-    .filter((r) => new Date(r.scheduled_at).getTime() > Date.now());
-  if (reminderRows.length > 0) {
-    await sb.from("appointment_reminders").insert(reminderRows);
+  const recipient = appt.patient_user_id
+    ? { userId: appt.patient_user_id as string }
+    : appt.provisional_patient_id
+      ? await (async () => {
+          const { data: prov } = await sb
+            .from("provisional_patients")
+            .select("phone_encrypted")
+            .eq("id", appt.provisional_patient_id)
+            .maybeSingle();
+          return prov?.phone_encrypted ? { phoneEncrypted: prov.phone_encrypted as string } : null;
+        })()
+      : null;
+  if (recipient) {
+    const { error: dispatchError } = await sb.from("notification_dispatches").upsert(
+      bookingDispatchRows({
+        hospitalId: appt.hospital_id,
+        recipient,
+        appointmentId: newRow.id,
+        startsAtIso: input.new_starts_at,
+        isSession: false,
+        nowIso: new Date().toISOString(),
+      }),
+      { onConflict: "idempotency_key", ignoreDuplicates: true },
+    );
+    if (dispatchError) {
+      log.warn("dispatch queue failed (continuing)", { requestId, reason: dispatchError.message });
+    }
   }
 
   log.info("appointment rescheduled", {

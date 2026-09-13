@@ -43,6 +43,12 @@ interface AfricasTalkingRecipient {
   cost?: string;
 }
 
+/** "UGX 35.0000" → { amount: "35.0000", currency: "UGX" }; anything else → undefined. */
+export function parseCost(cost: string | undefined): { amount: string; currency: string } | undefined {
+  const m = /^([A-Z]{3})\s+(\d+(?:\.\d+)?)$/.exec((cost ?? "").trim());
+  return m ? { currency: m[1] as string, amount: m[2] as string } : undefined;
+}
+
 /**
  * Build the sender, or `null` when the account is not configured. Null is
  * a deliberate return rather than a throw: the caller decides whether an
@@ -113,6 +119,7 @@ export function createAfricasTalkingSender(): SmsSender | null {
       return {
         ok: true,
         ...(recipient.messageId ? { providerMessageId: recipient.messageId } : {}),
+        ...(parseCost(recipient.cost) ? { cost: parseCost(recipient.cost) } : {}),
       };
     },
   };

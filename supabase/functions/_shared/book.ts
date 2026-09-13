@@ -7,9 +7,11 @@
  * without an account). Each does its OWN authorisation and hands in an
  * already-authorised input; this file does everything after that, exactly
  * as Gate C did — replay → the patient/provisional exists → rate limit →
- * the mode's checks → INSERT with a booking code → receipt + reminders →
- * audit. Nothing about the allocator, the code, the window, the receipt or
- * the reminders lives anywhere else (a test greps for that).
+ * the mode's checks → INSERT with a booking code → the notification rows
+ * (receipt, T-24h confirmation request, T-2h arrival window — Gate E,
+ * `notification_dispatches`) → audit. Nothing about the allocator, the code,
+ * the window or the booking's dispatch rows lives anywhere else (a test
+ * greps for that).
  *
  * The patient is EITHER an account (`{ userId }`) OR a provisional record
  * (`{ provisionalId }`, migration 0060). A provisional booking is inserted
@@ -38,6 +40,7 @@ import {
   serverError,
   tooManyRequests,
 } from "./errors.ts";
+import { bookingDispatchRows } from "./dispatches.ts";
 import { recordSaAudit } from "./sa-audit.ts";
 import {
   arrivalWindow,
@@ -177,8 +180,10 @@ export async function bookAppointment(ctx: BookContext, input: BookInput): Promi
   const prior = await findReplay(sb, input.actorId, input.idempotencyKey);
   if (prior) return { ok: true, row: prior, replayed: true };
 
-  // 1. The person the booking is for exists.
+  // 1. The person the booking is for exists. The provisional's phone
+  //    ciphertext is carried to the dispatch rows as-is (never decrypted here).
   const forSelf = "userId" in input.patient && input.patient.userId === input.actorId;
+  let provisionalPhoneEncrypted: string | null = null;
   if ("userId" in input.patient) {
     const { data: patient, error: patientError } = await sb
       .from("patient_profiles")
@@ -196,10 +201,11 @@ export async function bookAppointment(ctx: BookContext, input: BookInput): Promi
   } else {
     const { data: prov, error: provError } = await sb
       .from("provisional_patients")
-      .select("id, hospital_id, reconciliation_state")
+      .select("id, hospital_id, reconciliation_state, phone_encrypted")
       .eq("id", input.patient.provisionalId)
       .maybeSingle();
     if (provError) return fail(serverError(provError.message, init));
+    provisionalPhoneEncrypted = prov?.phone_encrypted ?? null;
     // A desk-created record is tenant-scoped; a household member's (NULL) may book anywhere.
     if (!prov || (prov.hospital_id !== null && prov.hospital_id !== input.hospitalId)) {
       return fail(notFound(init, "That person is not on this hospital's list."));
@@ -237,7 +243,6 @@ export async function bookAppointment(ctx: BookContext, input: BookInput): Promi
   //    `release` is the compensating step for a session allocation that an
   //    INSERT then failed to use.
   let row: Record<string, unknown>;
-  let departmentId: string;
   let startsAtIso: string;
   let release: (() => Promise<void>) | null = null;
 
@@ -315,7 +320,6 @@ export async function bookAppointment(ctx: BookContext, input: BookInput): Promi
       position,
     });
 
-    departmentId = session.department_id;
     startsAtIso = session.starts_at;
     row = {
       hospital_id: input.hospitalId,
@@ -466,7 +470,6 @@ export async function bookAppointment(ctx: BookContext, input: BookInput): Promi
     // The clinician's own row alone, NOT the resolved chain — reading the
     // department's default here would start auto-confirming at clinicians
     // who never configured it, a product decision ADR 0084 does not make.
-    departmentId = slot.department_id;
     startsAtIso = slot.starts_at;
     row = {
       hospital_id: input.hospitalId,
@@ -523,52 +526,43 @@ export async function bookAppointment(ctx: BookContext, input: BookInput): Promi
   }
   const created: BookedRow = inserted;
 
-  // 5. The receipt: kind 'receipt', due now, drained by the every-15-minute
-  //    dispatcher. Its own statement so a database that predates migration
-  //    0059 loses only the receipt, never the reminders. Best-effort.
-  const { error: receiptError } = await sb.from("appointment_reminders").insert({
-    appointment_id: created.id,
-    channel: "sms",
-    kind: "receipt",
-    scheduled_at: new Date().toISOString(),
-  });
-  if (receiptError) {
-    log.warn("receipt queue failed (continuing)", {
+  // 5. The notification rows (Gate E, ADR 0090): the receipt now (push +
+  //    SMS, the durable proof), the confirmation request at T-24h (push,
+  //    SMS if no ack by T-20h) and, for a clinic-day position, the arrival
+  //    window at T-2h. One insert, ON CONFLICT DO NOTHING on the idempotency
+  //    key, drained by the every-15-minute dispatcher. Best-effort.
+  const recipient =
+    "userId" in input.patient
+      ? { userId: input.patient.userId }
+      : provisionalPhoneEncrypted
+        ? { phoneEncrypted: provisionalPhoneEncrypted }
+        : null;
+  if (recipient) {
+    const dispatchInserts = bookingDispatchRows({
+      hospitalId: input.hospitalId,
+      recipient,
+      appointmentId: created.id,
+      startsAtIso,
+      isSession: !!input.session,
+      nowIso: new Date().toISOString(),
+    });
+    const { error: dispatchError } = await sb
+      .from("notification_dispatches")
+      .upsert(dispatchInserts, { onConflict: "idempotency_key", ignoreDuplicates: true });
+    if (dispatchError) {
+      log.warn("dispatch queue failed (continuing)", {
+        requestId: init.requestId,
+        reason: dispatchError.message,
+      });
+    }
+  } else {
+    log.warn("booking has no reachable recipient — no receipt queued", {
       requestId: init.requestId,
-      reason: receiptError.message,
+      appointment_id: created.id,
     });
   }
 
-  // 6. Reminders from the department policy's leads, default [1440, 60].
-  const { data: leadPolicy } = await sb
-    .from("department_scheduling_policy")
-    .select("reminder_lead_minutes")
-    .eq("department_id", departmentId)
-    .maybeSingle();
-  const reminderLeads: number[] = leadPolicy?.reminder_lead_minutes ?? [1440, 60];
-  const startsMs = new Date(startsAtIso).getTime();
-  const reminderRows = reminderLeads
-    .filter((mins) => mins > 0)
-    .map((mins) => ({
-      appointment_id: created.id,
-      // SMS is the only channel with a transport (lib/notifications/sink.ts).
-      channel: "sms" as const,
-      scheduled_at: new Date(startsMs - mins * 60_000).toISOString(),
-    }))
-    // Drop leads that already elapsed: a 1440-minute lead on a booking made
-    // this morning is born outside the dispatcher's stale grace.
-    .filter((r) => new Date(r.scheduled_at).getTime() > Date.now());
-  if (reminderRows.length > 0) {
-    const { error: remError } = await sb.from("appointment_reminders").insert(reminderRows);
-    if (remError) {
-      log.warn("reminder queue failed (continuing)", {
-        requestId: init.requestId,
-        reason: remError.message,
-      });
-    }
-  }
-
-  // 7. Audit.
+  // 6. Audit.
   try {
     await recordSaAudit({
       actorId: input.actorId,

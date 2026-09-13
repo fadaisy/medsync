@@ -97,3 +97,6 @@ export * from "./visit-ratings";
 export * from "./service-lines";
 export * from "./provisional-patients";
 export * from "./clinic-sessions";
+
+// ─── Notifications + waitlist (migration 0061 — GATED, ADR 0090) ────────
+export * from "./notifications";

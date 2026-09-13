@@ -2,7 +2,8 @@
  * ha-decline-appointment-request — clinician rejects a pending request.
  *
  * Sets status='declined', stores the reason in declined_reason
- * (visible to the patient).
+ * (visible to the patient). The freed slot is offered to the waitlist
+ * (`releaseCapacity`, Gate E).
  */
 import { z } from "npm:zod@4.4.3";
 
@@ -20,6 +21,7 @@ import {
 import { requireHospitalAdminScope } from "../_shared/hospital-admin-scope.ts";
 import { makeLogger } from "../_shared/logger.ts";
 import { networkContext, recordSaAudit } from "../_shared/sa-audit.ts";
+import { cancelPendingDispatches, releaseCapacity } from "../_shared/waitlist.ts";
 
 const log = makeLogger("ha-decline-appointment-request");
 
@@ -102,6 +104,15 @@ Deno.serve(async (request: Request) => {
     log.error("decline failed", { requestId, reason: updateError.message });
     return serverError("decline failed", init);
   }
+
+  // Its receipt / confirmation request were held awaiting this answer.
+  await cancelPendingDispatches(sb, "appointment", appt.id, "appointment_declined");
+  await sb
+    .from("appointment_reminders")
+    .update({ state: "cancelled" })
+    .eq("appointment_id", appt.id)
+    .eq("state", "queued");
+  await releaseCapacity(sb, appt.id, log, requestId);
 
   log.info("appointment declined", { requestId, appointment_id: appt.id });
   return ok({ appointment_id: appt.id, status: "declined" }, init);

@@ -53,6 +53,14 @@ export const env = createEnv({
      */
     CRON_SECRET: z.string().min(16, "CRON_SECRET should be ≥ 16 chars.").optional(),
 
+    /**
+     * Gate E (ADR 0090). EXPO_PUSH_ACCESS_TOKEN is optional (Expo's enhanced
+     * push security). SMS_WEBHOOK_SECRET is the path segment Africa's Talking
+     * posts delivery reports to: /api/sms/dlr/<secret>. `openssl rand -hex 32`.
+     */
+    EXPO_PUSH_ACCESS_TOKEN: z.string().optional(),
+    SMS_WEBHOOK_SECRET: z.string().min(16, "SMS_WEBHOOK_SECRET should be ≥ 16 chars.").optional(),
+
     NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   },
   client: {
@@ -77,6 +85,8 @@ export const env = createEnv({
     AFRICASTALKING_API_KEY: process.env.AFRICASTALKING_API_KEY,
     AFRICASTALKING_SENDER_ID: process.env.AFRICASTALKING_SENDER_ID,
     CRON_SECRET: process.env.CRON_SECRET,
+    EXPO_PUSH_ACCESS_TOKEN: process.env.EXPO_PUSH_ACCESS_TOKEN,
+    SMS_WEBHOOK_SECRET: process.env.SMS_WEBHOOK_SECRET,
     NODE_ENV: process.env.NODE_ENV,
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
