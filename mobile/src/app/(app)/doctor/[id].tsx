@@ -7,7 +7,6 @@ import {
   ActivityIndicator,
   Image,
   KeyboardAvoidingView,
-  Linking,
   Platform,
   StyleSheet,
   Text,
@@ -36,7 +35,6 @@ import { useStyles, useTheme } from "@/theme/theme";
 import { font, radius, space } from "@/theme/tokens";
 
 /** Where a patient with no hospital yet picks one, until the app owns that screen. */
-const CHOOSE_HOSPITAL_URL = "https://medsync-six.vercel.app/patient/hospitals";
 
 /** The days this clinician has anything open, earliest first. */
 const openDays = (c: ClinicianOption) => Object.keys(c.slotsByDate).sort();
@@ -62,7 +60,13 @@ function pick(list: ClinicianOption[], id: string, department?: string): Clinici
  */
 export default function DoctorScreen() {
   const router = useRouter();
-  const { id, department } = useLocalSearchParams<{ id: string; department?: string }>();
+  // `hospital` is the DOCTOR's hospital, carried by the row that was tapped —
+  // not the patient's, which need not be the same (ADR 0086).
+  const { id, department, hospital } = useLocalSearchParams<{
+    id: string;
+    department?: string;
+    hospital?: string;
+  }>();
   const { colors } = useTheme();
   const styles = useStyles(makeStyles);
 
@@ -89,21 +93,28 @@ export default function DoctorScreen() {
   const load = useCallback(() => {
     fetchPatientProfile()
       .then(async (p) => {
-        if (!p?.hospitalId) {
-          setProfile(p ?? null);
+        // A patient with no hospital of their own can still book at any of
+        // them; only a non-patient has nothing to do here.
+        if (!p) {
+          setProfile(null);
           return;
         }
-        const found = pick(await fetchBookableClinicians(p.hospitalId), id, department);
+        const found = pick(
+          await fetchBookableClinicians(hospital ?? p.hospitalId ?? undefined),
+          id,
+          department,
+        );
         setDoctor(found);
         setDayKey(found ? (openDays(found)[0] ?? null) : null);
         setProfile(p);
       })
       .catch(() => setLoadFailed(true));
-  }, [id, department]);
+  }, [id, department, hospital]);
 
   useEffect(load, [load]);
 
-  const hospitalName = profile?.hospitalName ?? "your hospital";
+  // The DOCTOR's hospital: the row names where the booking lands.
+  const hospitalName = doctor?.hospitalName ?? profile?.hospitalName ?? "your hospital";
   const days = doctor ? openDays(doctor) : [];
   const slots = doctor && dayKey ? (doctor.slotsByDate[dayKey] ?? []) : [];
 
@@ -113,12 +124,12 @@ export default function DoctorScreen() {
   };
 
   const onSubmit = async () => {
-    if (!profile?.hospitalId || !doctor || !reason || !dayKey || !slot || busy) return;
+    if (!profile || !doctor || !reason || !dayKey || !slot || busy) return;
     setBusy(true);
     setError(null);
     const res = await requestAppointment({
       clinicianUserId: doctor.userId,
-      hospitalId: profile.hospitalId,
+      hospitalId: doctor.hospitalId,
       departmentId: doctor.departmentId,
       reason,
       reasonNote: note.trim() || null,
@@ -139,7 +150,7 @@ export default function DoctorScreen() {
     // keep the pick only if it is still offered — otherwise the next tap would
     // ask for the same refused instant again.
     try {
-      const fresh = pick(await fetchBookableClinicians(profile.hospitalId), id, department);
+      const fresh = pick(await fetchBookableClinicians(doctor.hospitalId), id, department);
       setDoctor(fresh);
       const freshDays = fresh ? openDays(fresh) : [];
       const day = freshDays.includes(dayKey) ? dayKey : (freshDays[0] ?? null);
@@ -185,23 +196,13 @@ export default function DoctorScreen() {
     );
   }
 
-  if (!profile?.hospitalId) {
+  if (profile === null) {
     return (
       <Screen {...chrome}>
         <Empty
-          icon="business-outline"
-          title="Choose your hospital first."
-          hint="Both doors need to know which hospital you go to."
-          action={
-            <Button
-              variant="secondary"
-              label="Choose a hospital"
-              accessibilityLabel="Choose a hospital, opens in your browser"
-              onPress={() => {
-                Linking.openURL(CHOOSE_HOSPITAL_URL).catch(() => {});
-              }}
-            />
-          }
+          icon="person-circle-outline"
+          title="This is the patient app."
+          hint="Sign in with your patient account to book a doctor."
         />
       </Screen>
     );

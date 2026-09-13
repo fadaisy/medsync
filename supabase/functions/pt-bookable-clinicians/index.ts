@@ -2,7 +2,8 @@
  * pt-bookable-clinicians — the days a patient can ask for, at their hospital.
  *
  * Input:
- *   - hospital_id   must match the caller's primary_facility_id
+ *   - hospital_id   optional; one hospital, or every active hospital when
+ *                   absent (ADR 0086 — a patient may book at any of them)
  *
  * Output: one row per (clinician, department) pair with at least one open day
  * in the next 14 days, earliest open day first — each carrying every open
@@ -58,7 +59,7 @@ const log = makeLogger("pt-bookable-clinicians");
 const LOOKAHEAD_DAYS = 14;
 
 const InputSchema = z.object({
-  hospital_id: z.string().uuid(),
+  hospital_id: z.string().uuid().optional(),
 });
 
 /** One slot a patient can ask for — the instants the request will carry. */
@@ -70,6 +71,8 @@ interface SlotOffer {
 interface ClinicianOption {
   userId: string;
   fullName: string;
+  hospitalId: string;
+  hospitalName: string;
   /** From `staff_affiliations.specialty_id`, or null — the reference's "Cardiology". */
   specialty: string | null;
   departmentId: string;
@@ -87,17 +90,29 @@ interface ClinicianOption {
 const PHOTO_URL_TTL_SECONDS = 3600;
 
 /** The engine's row shapes, plus the ids used to group them by clinician. */
-type BlockRow = AvailabilityBlockRow & { clinician_user_id: string; department_id: string | null };
+type BlockRow = AvailabilityBlockRow & {
+  clinician_user_id: string;
+  hospital_id: string;
+  department_id: string | null;
+};
 type ApptRow = BookedAppointmentRow & { clinician_user_id: string };
-type SettingsRow = ClinicianSchedulingSettingsRow & { clinician_user_id: string };
+type SettingsRow = ClinicianSchedulingSettingsRow & {
+  clinician_user_id: string;
+  hospital_id: string;
+};
 type PolicyRow = DepartmentSchedulingPolicyRow & { department_id: string };
 
 interface AffiliationRow {
   user_id: string;
+  hospital_id: string;
   department_id: string;
+  hospitals: { name: string } | null;
   hospital_departments: { name: string } | null;
   specialties: { name: string } | null;
 }
+
+/** Settings are per (clinician, hospital); a clinician at two hospitals has two rows. */
+const settingsKey = (clinician: string, hospital: string) => `${clinician}:${hospital}`;
 
 Deno.serve(async (request: Request) => {
   const origin = request.headers.get("origin");
@@ -123,37 +138,46 @@ Deno.serve(async (request: Request) => {
 
   const sb = serviceClient();
 
-  // 1. The same boundary as the write path: a patient, at their own hospital.
+  // 1. A patient. Which hospital is no longer a boundary (ADR 0086): the
+  //    same caller may book at any active one, so the check is only that
+  //    this is a patient surface.
   const { data: patient, error: patientError } = await sb
     .from("patient_profiles")
-    .select("id, primary_facility_id")
+    .select("id")
     .eq("id", caller.id)
     .maybeSingle();
   if (patientError) return serverError(patientError.message, init);
   if (!patient) return forbidden(init, "only patients can see bookable days through this surface");
-  if (patient.primary_facility_id !== input.hospital_id) {
-    return forbidden(init, "booking is restricted to your primary hospital");
-  }
 
-  // 2. Active CLINICAL affiliations — the bookable set. The cadres join is
-  //    what keeps reception, lab and pharmacy staff out of a patient's
-  //    clinician list (same filter as app/patient/book/page.tsx).
-  const { data: affData, error: affError } = await sb
+  // 2. Active CLINICAL affiliations at active hospitals — the bookable set.
+  //    The cadres join is what keeps reception, lab and pharmacy staff out
+  //    of a patient's clinician list (same filter as app/patient/book/page.tsx);
+  //    the hospitals join keeps a suspended tenant's roster off it.
+  //
+  //    ponytail: with no hospital_id this is every clinician on the platform
+  //    and fourteen days of every one of their grids. Ceiling: a national
+  //    roster. Upgrade path: page by hospital, which the phone already groups
+  //    by — nothing else here moves.
+  let affQuery = sb
     .from("staff_affiliations")
     // `user_id` references auth.users, so `public.users` cannot be embedded
     // through it; names come from their own read below.
     .select(
-      "user_id, department_id, hospital_departments(name), specialties(name), cadres!inner(is_clinical)",
+      "user_id, hospital_id, department_id, hospitals!inner(name, state), " +
+        "hospital_departments(name), specialties(name), cadres!inner(is_clinical)",
     )
-    .eq("hospital_id", input.hospital_id)
     .in("state", ["active", "approved"])
-    .eq("cadres.is_clinical", true);
+    .eq("cadres.is_clinical", true)
+    .eq("hospitals.state", "active");
+  if (input.hospital_id) affQuery = affQuery.eq("hospital_id", input.hospital_id);
+  const { data: affData, error: affError } = await affQuery;
   if (affError) return serverError(affError.message, init);
 
   const affiliations = (affData ?? []) as unknown as AffiliationRow[];
   if (affiliations.length === 0) return ok([], init);
 
   const clinicianIds = [...new Set(affiliations.map((a) => a.user_id))];
+  const hospitalIds = [...new Set(affiliations.map((a) => a.hospital_id))];
   const departmentIds = [...new Set(affiliations.map((a) => a.department_id))];
   const now = new Date();
   const until = new Date(now.getTime() + LOOKAHEAD_DAYS * 86_400_000);
@@ -171,10 +195,11 @@ Deno.serve(async (request: Request) => {
       // cannot cancel the bookable block it overlaps, so the phone offers a
       // slot inside declared leave and the write path refuses it forever.
       .select(
-        "clinician_user_id, department_id, kind, state, startsAt:starts_at, endsAt:ends_at, " +
-          "recurrence, recurrenceWeekday:recurrence_weekday, recurrenceUntil:recurrence_until",
+        "clinician_user_id, hospital_id, department_id, kind, state, startsAt:starts_at, " +
+          "endsAt:ends_at, recurrence, recurrenceWeekday:recurrence_weekday, " +
+          "recurrenceUntil:recurrence_until",
       )
-      .eq("hospital_id", input.hospital_id)
+      .in("hospital_id", hospitalIds)
       .eq("state", "active")
       .in("clinician_user_id", clinicianIds)
       // A weekly block's own `starts_at` is the template — often months back.
@@ -198,10 +223,10 @@ Deno.serve(async (request: Request) => {
       // All four columns. The engine's settings type has no optional fields
       // on purpose: "not selected" and "no override" want opposite answers.
       .select(
-        "clinician_user_id, defaultSlotMinutes:default_slot_minutes, " +
+        "clinician_user_id, hospital_id, defaultSlotMinutes:default_slot_minutes, " +
           "bufferMinutes:buffer_minutes, autoConfirm:auto_confirm, allowVirtual:allow_virtual",
       )
-      .eq("hospital_id", input.hospital_id)
+      .in("hospital_id", hospitalIds)
       .in("clinician_user_id", clinicianIds),
     sb
       .from("department_scheduling_policy")
@@ -233,7 +258,10 @@ Deno.serve(async (request: Request) => {
   const blocks = (blocksRes.data ?? []) as unknown as BlockRow[];
   const appts = (apptsRes.data ?? []) as unknown as ApptRow[];
   const settingsByClinician = new Map(
-    ((settingsRes.data ?? []) as unknown as SettingsRow[]).map((s) => [s.clinician_user_id, s]),
+    ((settingsRes.data ?? []) as unknown as SettingsRow[]).map((s) => [
+      settingsKey(s.clinician_user_id, s.hospital_id),
+      s,
+    ]),
   );
   const policyByDepartment = new Map(
     ((policyRes.data ?? []) as unknown as PolicyRow[]).map((p) => [p.department_id, p]),
@@ -270,7 +298,8 @@ Deno.serve(async (request: Request) => {
   // 8. Derive. One row per (clinician, department) pair, each judged against
   //    its own department's policy.
   const options: ClinicianOption[] = affiliations.map((a) => {
-    const clinicianSettings = settingsByClinician.get(a.user_id) ?? null;
+    const clinicianSettings =
+      settingsByClinician.get(settingsKey(a.user_id, a.hospital_id)) ?? null;
     const departmentPolicy = policyByDepartment.get(a.department_id) ?? null;
 
     const slots = buildSlots({
@@ -279,6 +308,7 @@ Deno.serve(async (request: Request) => {
       blocks: blocks.filter(
         (b) =>
           b.clinician_user_id === a.user_id &&
+          b.hospital_id === a.hospital_id &&
           (b.department_id === null || b.department_id === a.department_id),
       ),
       // Appointments are NOT split by department or hospital: a clinician
@@ -306,6 +336,8 @@ Deno.serve(async (request: Request) => {
     return {
       userId: a.user_id,
       fullName: user?.full_name?.trim() || "Your clinician",
+      hospitalId: a.hospital_id,
+      hospitalName: a.hospitals?.name ?? "Your hospital",
       specialty: a.specialties?.name ?? null,
       departmentId: a.department_id,
       departmentName: a.hospital_departments?.name ?? "Outpatients",
@@ -329,7 +361,7 @@ Deno.serve(async (request: Request) => {
 
   log.info("bookable clinicians served", {
     requestId,
-    hospital_id: input.hospital_id,
+    hospital_id: input.hospital_id ?? "all",
     clinicians: open.length,
   });
   return ok(open, init);

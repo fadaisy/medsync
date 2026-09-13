@@ -3,7 +3,7 @@
  *
  * Inputs:
  *   - clinician_user_id  the clinician the patient is booking
- *   - hospital_id        must match the patient's primary_facility_id
+ *   - hospital_id        any active hospital (ADR 0086)
  *   - department_id      must belong to that hospital + clinician must
  *                        have an active affiliation there
  *   - reason             from APPOINTMENT_REASONS
@@ -27,9 +27,8 @@
  * Boundary rules:
  *   - The patient must be acting as themselves (caller.id = patient).
  *     Booking-on-behalf is a SEPARATE Edge Function in GATE D.
- *   - hospital_id MUST match patient.primary_facility_id. Cross-hospital
- *     booking is not allowed (per PRD section 1.5; referrals are out of
- *     scope).
+ *   - hospital_id may be ANY active hospital (ADR 0086 superseded the
+ *     primary-facility restriction of PRD §1.5 for self-booking).
  *   - We refuse to create a duplicate live booking at the same
  *     (clinician, starts_at) — the partial UNIQUE index would catch
  *     it anyway, but we surface a clean 409 with a sane message.
@@ -139,28 +138,36 @@ Deno.serve(async (request: Request) => {
   const sb = serviceClient();
 
   // 1. Confirm the patient owns this booking (caller.id = patient,
-  //    patient.state='active', primary_facility_id = hospital_id).
+  //    patient.state='active').
   const { data: patient, error: patientError } = await sb
     .from("patient_profiles")
-    .select("id, primary_facility_id")
+    .select("id")
     .eq("id", caller.id)
     .maybeSingle();
   if (patientError) return serverError(patientError.message, init);
   if (!patient)
     return forbidden(init, "only patients can request appointments through this surface");
-  if (patient.primary_facility_id !== input.hospital_id) {
-    return forbidden(init, "booking is restricted to your primary hospital");
-  }
+  // ADR 0086: the hospital is no longer a boundary. The clinician's active
+  // affiliation at (hospital, department), checked next, is what makes the
+  // booking real; the patient's primary facility is where they usually go,
+  // not the only place they may.
 
   // 2. Confirm the clinician has an active affiliation at this
   //    (hospital, department).
+  //    Since ADR 0086 this is the whole boundary, so it asks everything the
+  //    read path asks: a CLINICAL cadre (a receptionist with a bookable
+  //    block is not a doctor) at an ACTIVE hospital (a suspended tenant's
+  //    roster is not bookable). A stale or crafted POST for either gets the
+  //    same "refresh and pick again" the list would never have offered.
   const { data: aff, error: affError } = await sb
     .from("staff_affiliations")
-    .select("id, state")
+    .select("id, state, hospitals!inner(state), cadres!inner(is_clinical)")
     .eq("user_id", input.clinician_user_id)
     .eq("hospital_id", input.hospital_id)
     .eq("department_id", input.department_id)
     .in("state", ["active", "approved"])
+    .eq("hospitals.state", "active")
+    .eq("cadres.is_clinical", true)
     .limit(1)
     .maybeSingle();
   if (affError) return serverError(affError.message, init);

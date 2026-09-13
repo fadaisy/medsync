@@ -422,7 +422,7 @@ export default function HomeScreen() {
                   onPress={() =>
                     router.push({
                       pathname: "/(app)/doctor/[id]",
-                      params: { id: o.userId, department: o.departmentId },
+                      params: { id: o.userId, department: o.departmentId, hospital: o.hospitalId },
                     })
                   }
                 />

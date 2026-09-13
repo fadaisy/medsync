@@ -530,6 +530,9 @@ export interface ClinicianOption {
   userId: string;
   /** The clinician's name, read server-side; "Your clinician" if the row has none. */
   fullName: string;
+  /** The hospital this row books at — the doctor's, which need not be the patient's (ADR 0086). */
+  hospitalId: string;
+  hospitalName: string;
   /** From `staff_affiliations.specialty_id`, or null — screens fall back to the department. */
   specialty: string | null;
   departmentId: string;
@@ -557,11 +560,11 @@ export interface ClinicianOption {
 }
 
 /**
- * Every (clinician, department) pair at this hospital with at least one day
- * open in the next 14 days, EARLIEST OPEN DAY FIRST — so `[0]` is the default
- * assignment ADR 0084 §9 makes on the patient's behalf, and a reload lands on
- * the same person. Derived server-side by `pt-bookable-clinicians` from the
- * same engine the write path validates with; see rule 1 in the header.
+ * Every (clinician, department) pair — at one hospital, or at every active
+ * hospital when none is given (ADR 0086) — with at least one day open in the
+ * next 14 days, EARLIEST OPEN DAY FIRST, so `[0]` is the soonest and a reload
+ * lands on the same person. Derived server-side by `pt-bookable-clinicians`
+ * from the same engine the write path validates with; see rule 1 in the header.
  *
  * ponytail: "whoever has a day soonest" is the whole rota model, because there
  * is no rota table and §5's default assessment-department row does not exist
@@ -570,9 +573,10 @@ export interface ClinicianOption {
  * as the hospital's assessment clinic, the function filters to it before the
  * sort and nothing here moves.
  */
-export async function fetchBookableClinicians(hospitalId: string): Promise<ClinicianOption[]> {
+export async function fetchBookableClinicians(hospitalId?: string): Promise<ClinicianOption[]> {
   const res = await callEdge<ClinicianOption[]>("pt-bookable-clinicians", {
-    hospital_id: hospitalId,
+    // Absent, not null: zod's `.optional()` takes undefined and JSON drops it.
+    ...(hospitalId ? { hospital_id: hospitalId } : {}),
   });
   if (!res.ok) raise(res.error, "the clinic's open days");
   return res.data ?? [];

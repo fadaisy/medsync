@@ -2,7 +2,7 @@ import type { ClinicianOption, PatientProfile } from "@/lib/booking";
 import type { Palette } from "@/theme/tokens";
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "expo-router";
-import { ActivityIndicator, Linking, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
 import { DoctorRow } from "@/components/patient/doctor-row";
 import { EmergencyButton } from "@/components/patient/emergency-button";
@@ -10,20 +10,18 @@ import { Button } from "@/components/ui/button";
 import { Chip, ChipRow } from "@/components/ui/chip";
 import { Empty } from "@/components/ui/empty";
 import { Screen } from "@/components/ui/screen";
+import { Section } from "@/components/ui/section";
 import { fetchBookableClinicians, fetchPatientProfile } from "@/lib/booking";
 import { useStyles, useTheme } from "@/theme/theme";
 import { font, space } from "@/theme/tokens";
 
-/** Where a patient with no hospital yet picks one, until the app owns that screen. */
-const CHOOSE_HOSPITAL_URL = "https://medsync-six.vercel.app/patient/hospitals";
-
 /**
  * Door B — the doctors list (ADR 0085 §4; the "Ask for a day" door of 0084 §2
- * opens here). Every clinician with a day open in the next 14 days, in the
- * order the server sends them — soonest open day first, so the top row is the
- * default the app would once have chosen silently (§9, superseded). A tap
- * opens the doctor page, where the day, the time, the reason and the request
- * live.
+ * opens here). Every clinician with a day open in the next 14 days at EVERY
+ * active hospital (ADR 0086), grouped by hospital with the patient's own
+ * first; inside a group, the order the server sends — soonest open day first.
+ * A tap opens the doctor page, where the day, the time, the reason and the
+ * request live, at that doctor's hospital.
  *
  * The rows come from `pt-bookable-clinicians` exactly as returned: nothing
  * here derives a slot, re-sorts by rating, or counts anything. The department
@@ -38,17 +36,18 @@ export default function BookScreen() {
   const [profile, setProfile] = useState<PatientProfile | null | undefined>();
   const [clinicians, setClinicians] = useState<ClinicianOption[]>([]);
   const [loadFailed, setLoadFailed] = useState(false);
-  // `null` = every department.
-  const [departmentId, setDepartmentId] = useState<string | null>(null);
+  // `null` = every department. By NAME: the same clinic exists at several hospitals.
+  const [departmentName, setDepartmentName] = useState<string | null>(null);
 
   const load = useCallback(() => {
     fetchPatientProfile()
       .then(async (p) => {
-        if (!p?.hospitalId) {
-          setProfile(p ?? null);
+        if (!p) {
+          setProfile(null);
           return;
         }
-        setClinicians(await fetchBookableClinicians(p.hospitalId));
+        // No hospital argument: every active hospital (ADR 0086).
+        setClinicians(await fetchBookableClinicians());
         setProfile(p);
       })
       .catch(() => setLoadFailed(true));
@@ -90,43 +89,43 @@ export default function BookScreen() {
     );
   }
 
-  if (!profile?.hospitalId) {
+  if (profile === null) {
     return (
       <Screen {...chrome}>
         <Empty
-          icon="business-outline"
-          title="Choose your hospital first."
-          hint="Both doors need to know which hospital you go to."
-          action={
-            <Button
-              variant="secondary"
-              label="Choose a hospital"
-              accessibilityLabel="Choose a hospital, opens in your browser"
-              onPress={() => {
-                Linking.openURL(CHOOSE_HOSPITAL_URL).catch(() => {});
-              }}
-            />
-          }
+          icon="person-circle-outline"
+          title="This is the patient app."
+          hint="Sign in with your patient account to book a doctor."
         />
       </Screen>
     );
   }
 
-  // One chip per department present, in the order the departments first
-  // appear — which is the order of their soonest open day.
+  // One chip per department NAME present (the same clinic exists at several
+  // hospitals), in the order the names first appear — the order of their
+  // soonest open day.
   const departments = clinicians.filter(
-    (c, i, all) => all.findIndex((x) => x.departmentId === c.departmentId) === i,
+    (c, i, all) => all.findIndex((x) => x.departmentName === c.departmentName) === i,
   );
-  const shown = departmentId
-    ? clinicians.filter((c) => c.departmentId === departmentId)
+  const shown = departmentName
+    ? clinicians.filter((c) => c.departmentName === departmentName)
     : clinicians;
+
+  // Grouped by hospital, the patient's own first, then in the order the
+  // server sends them (a hospital's soonest open day). Rows inside a group
+  // keep the server's order.
+  const hospitals = shown
+    .filter((c, i, all) => all.findIndex((x) => x.hospitalId === c.hospitalId) === i)
+    .map((c) => ({ id: c.hospitalId, name: c.hospitalName }))
+    .sort((a, b) => Number(b.id === profile.hospitalId) - Number(a.id === profile.hospitalId));
 
   return (
     <Screen {...chrome} title="Doctors">
       <View style={styles.stack}>
-        <Text style={styles.eyebrow}>{profile.hospitalName ?? "your hospital"}</Text>
         {/* §2 and §8: the label names real availability, never the horizon. */}
-        <Text style={styles.lede}>Choose from the days the clinic has open.</Text>
+        <Text style={styles.lede}>
+          Every hospital on MedSync. Choose from the days the clinic has open.
+        </Text>
 
         {/* Day one's likely reality. Nothing here promises a message when days
             open (§11) — what replaces it is the other door, open by default (§14). */}
@@ -134,7 +133,7 @@ export default function BookScreen() {
           <Empty
             icon="calendar-clear-outline"
             title="No days open yet."
-            hint={`${profile.hospitalName ?? "This hospital"} has not put any clinic days on MedSync yet. You can still be seen — going to the hospital does not depend on this app.`}
+            hint="No hospital has put any clinic days on MedSync yet. You can still be seen — going to the hospital does not depend on this app."
             action={
               <View style={styles.exit}>
                 <Button
@@ -154,36 +153,46 @@ export default function BookScreen() {
                 <Chip
                   label="All"
                   role="button"
-                  selected={departmentId === null}
-                  onPress={() => setDepartmentId(null)}
+                  selected={departmentName === null}
+                  onPress={() => setDepartmentName(null)}
                 />
                 {departments.map((d) => (
                   <Chip
-                    key={d.departmentId}
+                    key={d.departmentName}
                     label={d.departmentName}
                     role="button"
-                    selected={d.departmentId === departmentId}
-                    onPress={() => setDepartmentId(d.departmentId)}
+                    selected={d.departmentName === departmentName}
+                    onPress={() => setDepartmentName(d.departmentName)}
                   />
                 ))}
               </ChipRow>
             ) : null}
 
-            <View style={styles.list}>
-              {shown.map((c) => (
-                <DoctorRow
-                  // A clinician can be bookable in two departments; each pair is a row.
-                  key={`${c.userId}:${c.departmentId}`}
-                  option={c}
-                  onPress={() =>
-                    router.push({
-                      pathname: "/(app)/doctor/[id]",
-                      params: { id: c.userId, department: c.departmentId },
-                    })
-                  }
-                />
-              ))}
-            </View>
+            {hospitals.map((h) => (
+              <Section key={h.id} title={h.name}>
+                <View style={styles.list}>
+                  {shown
+                    .filter((c) => c.hospitalId === h.id)
+                    .map((c) => (
+                      <DoctorRow
+                        // A clinician can be bookable in two departments; each pair is a row.
+                        key={`${c.userId}:${c.hospitalId}:${c.departmentId}`}
+                        option={c}
+                        onPress={() =>
+                          router.push({
+                            pathname: "/(app)/doctor/[id]",
+                            params: {
+                              id: c.userId,
+                              department: c.departmentId,
+                              hospital: c.hospitalId,
+                            },
+                          })
+                        }
+                      />
+                    ))}
+                </View>
+              </Section>
+            ))}
           </>
         )}
       </View>
@@ -197,13 +206,6 @@ const makeStyles = (c: Palette) =>
     stack: { flexGrow: 1, gap: space[5] },
     list: { gap: space[3] },
 
-    eyebrow: {
-      fontFamily: font.body,
-      fontSize: 12.5,
-      letterSpacing: 0.3,
-      color: c.mutedForeground,
-      marginTop: -space[3],
-    },
     lede: {
       fontFamily: font.body,
       fontSize: 14.5,
