@@ -5,6 +5,28 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Gate C web: the booking wizard over three capacity modes, the receipt on screen, the PWA shell — 2026-09-13
+
+[ADR 0088](docs/adr/0088-gate-c-booking-flow.md). No migration; no red anywhere.
+
+- **`/patient/book` rebuilt on `StepWizardShell`** — reason (Appendix A's 13, title + hint) → the interstitial when the reason is a new problem (static, CSO-provisional copy byte-identical to the phone, the hospital's emergency number as a Call control, one dismiss) → clinic (the lines that take the reason, with "Clinic day" / "Appointment time" / "Same-day queue"; a queue is a door to `/patient/queue`) → the pick (slot: clinician with "Seen you before" first, day, time; session: the line's published days with "N places left" or "Full") → check → the receipt with the **booking code big and monospace**, the position and "Arrive between …" for a clinic day. **No-silent-wait** (PRD §2.4) in order: another clinician in the line, the same-named line elsewhere, "Coming to the hospital today", then the beyond-target days labelled "Beyond this clinic's target of N days". One POST at the end, `channel: "web"`, an idempotency key minted per attempt and replaced on any change of pick; the draft lives in `localStorage` per hospital and is cleared on success. The slot engine's read is extended, not forked.
+- **Hospital directory** — a "Verified" pill on every (active) row; search also matches a department or service line name; "Accepting bookings" / "No days open" from one EXISTS over published clinic days and bookable blocks in the next 14 days.
+- **Visits** show the booking code and, for a clinic day, the position and arrival window; a session booking says plainly that it cannot be moved yet.
+- **Emergency, once** — `EmergencyNotice` renders from `app/patient/layout.tsx` on every patient screen (the per-page copies are gone); the sign-in page carries a plain text link to a static `/emergency` page.
+- **PWA shell** — `app/manifest.ts` (standalone, `start_url: /patient`, token colours, 192/512 icons) and `public/sw.js`, which precaches the static `/offline` page and serves it only when a navigation fails; nothing else is cached, no API response ever.
+
+### Added — Gate C server: booking into clinic days, the receipt, the rate limit — 2026-09-13
+
+[ADR 0088](docs/adr/0088-gate-c-booking-flow.md). **One GATED migration** (`0059_receipts.sql`), additive; applied by the owner via `npm run db:migrate`.
+
+- **`pt-request-appointment` books in two modes** — exactly one of `slot { clinician_user_id, department_id, starts_at, ends_at, type?, service_line_id? }` (unchanged behaviour, now with a booking code) or `session { session_id }`. A session booking **confirms at request**: the clinic day must be published, future, within the 14-day horizon, on an active `session`-mode line that takes the reason; capacity is consumed by `allocate_session_position()` (ADR 0087's one UPDATE as a `SECURITY DEFINER` SQL function, `service_role` only); NULL means full → 409 with the line's next two open days from `next_sessions_of_line()`. A failed INSERT after a successful allocation gives the place back (`release_session_position()`), as does cancelling a session booking. A clinic day with no clinician is refused (409) — `appointments.clinician_user_id` is NOT NULL.
+- **Booking code and arrival window** — six characters from an unambiguous alphabet, unique per hospital, retried on collision; `arrivalWindow()` derives a **range with a stated basis** (position × pace, ruling C10) once at confirmation and stores it. Response: `{ appointment_id, status, booking_code, position_number, arrival_window_start, arrival_window_end }`.
+- **`idempotency_key` is required** and a replay returns the first attempt's full body on both paths; **rate limit** five requests per patient per rolling hour → **429**; `channel` (`web` | `app`) is recorded; the reason vocabulary is Appendix A's 13 + `other`.
+- **The durable receipt** — one `appointment_reminders` row of `kind='receipt'` scheduled for now(), composed in one pure place (`lib/notifications/receipt.ts`, GSM-7, ≤160, names cut before the code ever is) and sent by the existing `*/15` dispatcher. A receipt is never stale, never supersedes a reminder, and for a slot request still awaiting approval goes out the run after the clinician confirms. Reminders are unchanged.
+- **`reschedule-appointment` refuses a session booking** ("Move this visit from the clinic day list.") — a position is not a time. A rescheduled slot booking's new row gets its own booking code and a receipt; the old row keeps its code.
+- **`cancel-appointment`** repeats the status guard in its UPDATE so two concurrent cancels release a session place once.
+- **Not in Gate C's server:** no waitlist, no cancel-session, no push, no session reschedule.
+
 ### Added — Capacity modes: service lines, session templates, clinic sessions (Gate B) — 2026-09-13
 
 [ADR 0087](docs/adr/0087-capacity-modes.md). **One GATED migration** (`0058_service_lines_and_sessions.sql`), additive except one flagged index re-scope; applied by the owner via `npm run db:migrate`.

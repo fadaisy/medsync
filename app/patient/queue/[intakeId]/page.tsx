@@ -14,7 +14,6 @@ import { TINT_GLYPH } from "@/lib/patient/doses";
 import { requirePatientScope } from "@/lib/patient/scope";
 import { cn } from "@/lib/utils";
 import { DEFAULT_TIME_ZONE, startOfLocalDay } from "@/supabase/functions/_shared/slots";
-import { EmergencyNotice } from "../../_components/emergency-notice";
 import { PatientPageHeader } from "../../_components/page-header";
 import { CancelDeclaredIntakeButton } from "./_components/cancel-button";
 
@@ -56,7 +55,6 @@ export default async function PatientQueueDetailPage({ params }: PageProps) {
       status: patientIntakes.status,
       hospitalId: patientIntakes.hospitalId,
       hospitalName: hospitals.name,
-      emergencyPhone: hospitals.emergencyPhone,
       departmentId: patientIntakes.receivingDepartmentId,
       departmentName: hospitalDepartments.name,
       presentingComplaint: patientIntakes.presentingComplaint,
@@ -134,11 +132,6 @@ export default async function PatientQueueDetailPage({ params }: PageProps) {
         backHref="/patient"
         backLabel="Back to home"
       />
-
-      {/* The waiting room is where a patient is most likely to get worse with
-          nobody watching. The block names symptoms and one destination; it
-          asks nothing and writes nothing (ADR 0084 §3). */}
-      <EmergencyNotice hospitalName={intake.hospitalName} emergencyPhone={intake.emergencyPhone} />
 
       <section className="bg-card dark:shadow-card flex flex-col gap-3 rounded-xl p-4 shadow-xs">
         <div className="flex items-center gap-3">

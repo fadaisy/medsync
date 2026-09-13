@@ -21,7 +21,6 @@ import {
   READING_KIND_LABEL,
 } from "@/lib/patient/self-tracking";
 import { PatientDoors } from "./_components/doors";
-import { EmergencyNotice } from "./_components/emergency-notice";
 import { HeroCard } from "./_components/hero-card";
 import { PatientPageHeader } from "./_components/page-header";
 import { TintedRow } from "./_components/tinted-row";
@@ -56,10 +55,8 @@ export default async function PatientHome() {
   const firstName = scope.fullName?.split(" ")[0];
   const doses = glance.todaySlots;
   const nextVisit = upcoming[0];
-  // Gates the doors, and names the emergency landmark when there is a
-  // hospital to name. The fallback only fires if the hospital row behind an
-  // affiliation has gone; the name never reaches the emergency copy itself,
-  // which says "the hospital's emergency entrance" regardless (ADR 0084 §3).
+  // Gates the doors. The fallback only fires if the hospital row behind an
+  // affiliation has gone.
   const hospitalName = scope.primaryHospitalId
     ? (scope.primaryHospitalName ?? "Your hospital")
     : null;
@@ -99,22 +96,8 @@ export default async function PatientHome() {
           }
         />
 
-        {/* First thing under the greeting, in this order, on every surface
-            that carries a door (ADR 0084 §2, §3) — a patient mid-stroke may be
-            on any of them. Both are direct children of the stagger column, so
-            they reveal with everything else and neither carries motion of its
-            own.
-
-            The block is unconditional and only the doors are gated. A patient
-            with no hospital has nothing to book or queue for — but is the one
-            patient who would otherwise see no emergency instruction at all,
-            on the emptiest screen in the product. No hospital also means no
-            verified number, so the block shows the destination alone, which
-            is the ADR's correct failure rather than a missing feature. */}
-        <EmergencyNotice
-          hospitalName={hospitalName}
-          emergencyPhone={scope.emergencyEntrancePhone}
-        />
+        {/* The emergency block is the layout's now (ADR 0088 C9); only the
+            doors are gated, on having a hospital to walk into. */}
         {hospitalName ? <PatientDoors /> : null}
 
         <HeroCard variant={hero} />

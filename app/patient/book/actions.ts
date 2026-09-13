@@ -1,67 +1,78 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { z } from "zod";
 
 import { env } from "@/lib/env";
 import { logger } from "@/lib/logger";
 import { requirePatientScope } from "@/lib/patient/scope";
 import { createClient } from "@/lib/supabase/server";
+import { PATIENT_REASON_CODES } from "@/supabase/functions/_shared/sessions-sql";
 
-const BookArgs = z.object({
-  clinician_user_id: z.string().uuid(),
-  department_id: z.string().uuid(),
-  /**
-   * ADR 0084 §12 — `urgent_review` is gone from the patient-selectable set.
-   * It was already absent from the wizard's visible list and still accepted
-   * here, which is the gap that matters: a patient-picked "urgent" is not a
-   * triage signal (patient–clinician agreement kappa 0.166 / 0.07), yet it sat
-   * one query away from being read as one beside the system-driven
-   * `system_urgent` origin. The database now refuses the pair outright
-   * (`appointments_patient_reason_check`), so accepting it here could only
-   * ever produce a 500 for the patient.
-   */
-  reason: z.enum(["follow_up", "new_concern", "refill", "routine", "other"]),
-  reason_note: z.string().max(500).optional(),
-  starts_at: z.string().datetime({ offset: true }),
-  ends_at: z.string().datetime({ offset: true }),
-  type: z.enum(["in_person", "virtual"]).default("in_person"),
-});
-
-/** No id field: the success path redirects, so nothing ever reads one back. */
-export type BookActionState = { ok?: boolean; error?: string };
-
-export async function bookAppointmentAction(
-  _prev: BookActionState,
-  formData: FormData,
-): Promise<BookActionState> {
-  const reasonNote = (formData.get("reason_note") as string | null) ?? undefined;
-  const parsed = BookArgs.safeParse({
-    clinician_user_id: formData.get("clinician_user_id"),
-    department_id: formData.get("department_id"),
-    reason: formData.get("reason"),
-    reason_note: reasonNote && reasonNote.trim() ? reasonNote.trim() : undefined,
-    starts_at: formData.get("starts_at"),
-    ends_at: formData.get("ends_at"),
-    type: formData.get("type") ?? "in_person",
+/**
+ * The wizard's one POST, mirroring `pt-request-appointment`'s three-mode
+ * contract (ADR 0088): exactly one of `slot` or `session`, an idempotency
+ * key the wizard minted once per attempt, and `channel: "web"`.
+ *
+ * Validated again here even though the Edge Function validates too — this
+ * is a Server Function reachable by a direct POST, and the message a patient
+ * sees for a malformed pick should be ours, not a zod flatten from Deno.
+ */
+const BookArgs = z
+  .object({
+    reason: z.enum(PATIENT_REASON_CODES),
+    reason_note: z.string().max(500).optional(),
+    idempotency_key: z.string().uuid(),
+    slot: z
+      .object({
+        clinician_user_id: z.string().uuid(),
+        department_id: z.string().uuid(),
+        service_line_id: z.string().uuid(),
+        starts_at: z.string().datetime({ offset: true }),
+        ends_at: z.string().datetime({ offset: true }),
+        type: z.enum(["in_person", "virtual"]).default("in_person"),
+      })
+      .optional(),
+    session: z.object({ session_id: z.string().uuid() }).optional(),
+  })
+  .refine((i) => (i.slot ? 1 : 0) + (i.session ? 1 : 0) === 1, {
+    message: "Choose a day first.",
   });
+
+export type BookInput = z.input<typeof BookArgs>;
+
+/** What `pt-request-appointment` returns on a fresh insert and on a replay alike. */
+export interface BookingReceipt {
+  appointment_id: string;
+  status: string;
+  booking_code: string | null;
+  position_number: number | null;
+  arrival_window_start: string | null;
+  arrival_window_end: string | null;
+}
+
+export type BookActionResult =
+  | { ok: true; receipt: BookingReceipt }
+  | { ok: false; error: string; status?: number };
+
+export async function bookAppointmentAction(input: BookInput): Promise<BookActionResult> {
+  const parsed = BookArgs.safeParse(input);
   if (!parsed.success) {
-    const fe = parsed.error.flatten().fieldErrors;
-    const first = Object.values(fe).flat().find(Boolean);
-    return { error: first ?? "Please check your selections and try again." };
+    const first = parsed.error.issues[0]?.message;
+    return { ok: false, error: first ?? "Please check your selections and try again." };
   }
 
   const scope = await requirePatientScope();
   if (!scope.primaryHospitalId) {
-    return { error: "Choose the hospital you go to first." };
+    return { ok: false, error: "Choose the hospital you go to first." };
   }
 
   const supabase = await createClient();
   const { data: session } = await supabase.auth.getSession();
   const token = session.session?.access_token;
-  if (!token) return { error: "You aren't signed in." };
+  if (!token) return { ok: false, error: "You aren't signed in." };
 
+  const { reason_note, ...rest } = parsed.data;
   try {
     const res = await fetch(`${env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/pt-request-appointment`, {
       method: "POST",
@@ -71,41 +82,41 @@ export async function bookAppointmentAction(
         "x-request-id": crypto.randomUUID(),
       },
       body: JSON.stringify({
-        ...parsed.data,
+        ...rest,
+        reason_note: reason_note?.trim() ? reason_note.trim() : null,
         hospital_id: scope.primaryHospitalId,
+        channel: "web",
       }),
     });
     const text = await res.text();
     if (!res.ok) {
+      // The Edge Function's sentence, word for word — it is written for the
+      // patient ("This clinic day is full — here are the next two.").
       let detail = text;
       try {
-        const parsedBody = JSON.parse(text) as { error?: string | { message?: string } };
-        if (typeof parsedBody.error === "string") detail = parsedBody.error;
-        else if (parsedBody.error?.message) detail = parsedBody.error.message;
+        const body = JSON.parse(text) as { error?: string | { message?: string } };
+        if (typeof body.error === "string") detail = body.error;
+        else if (body.error?.message) detail = body.error.message;
       } catch {
         /* keep raw */
       }
       logger.warn("patient.book.failed", { status: res.status });
-      return { error: detail || `We could not send that (status ${res.status}).` };
+      return {
+        ok: false,
+        status: res.status,
+        error: detail || `We could not send that (status ${res.status}).`,
+      };
     }
-    const parsedBody = JSON.parse(text) as {
-      data?: { appointment_id?: string; status?: string };
-    };
-    const appointmentId = parsedBody.data?.appointment_id;
+    const body = JSON.parse(text) as { data?: BookingReceipt };
+    if (!body.data?.appointment_id) {
+      logger.error("patient.book.malformed", {});
+      return { ok: false, error: "The hospital's system answered, but not with a booking." };
+    }
     revalidatePath("/patient");
     revalidatePath("/patient/appointments");
-    if (!appointmentId) return { ok: true };
-    // Hand the patient to the appointments list — their fresh booking
-    // sits at the top there. (Showing a dedicated success screen is a
-    // polish item.)
-    redirect("/patient/appointments");
+    return { ok: true, receipt: body.data };
   } catch (e) {
-    // redirect() throws a NEXT_REDIRECT — re-throw so Next handles it.
-    if (e && typeof e === "object" && "digest" in e) throw e;
     logger.error("patient.book.network", { reason: String(e) });
-    return { error: "Couldn't reach the hospital's system. Try again in a moment." };
+    return { ok: false, error: "Couldn't reach the hospital's system. Try again in a moment." };
   }
-
-  // Unreachable — redirect() above either redirects or throws.
-  return { ok: true };
 }

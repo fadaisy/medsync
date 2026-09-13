@@ -89,6 +89,13 @@ export interface AppointmentRow {
   clinicianName: string;
   departmentName: string;
   hospitalName: string;
+  /** Six characters the patient shows at the desk (ADR 0088); null on rows that predate Gate C. */
+  bookingCode: string | null;
+  /** Set together with `positionNumber` and the window: this is a place in a clinic day, not a time. */
+  sessionId: string | null;
+  positionNumber: number | null;
+  arrivalWindowStartIso: string | null;
+  arrivalWindowEndIso: string | null;
 }
 
 /**
@@ -126,6 +133,11 @@ export async function fetchAppointments(
       clinicianName: users.fullName,
       departmentName: hospitalDepartments.name,
       hospitalName: hospitals.name,
+      bookingCode: appointments.bookingCode,
+      sessionId: appointments.sessionId,
+      positionNumber: appointments.positionNumber,
+      arrivalWindowStart: appointments.arrivalWindowStart,
+      arrivalWindowEnd: appointments.arrivalWindowEnd,
     })
     .from(appointments)
     .innerJoin(users, eq(users.id, appointments.clinicianUserId))
@@ -150,6 +162,11 @@ export async function fetchAppointments(
     clinicianName: r.clinicianName ?? "Your clinician",
     departmentName: r.departmentName,
     hospitalName: r.hospitalName,
+    bookingCode: r.bookingCode,
+    sessionId: r.sessionId,
+    positionNumber: r.positionNumber,
+    arrivalWindowStartIso: r.arrivalWindowStart?.toISOString() ?? null,
+    arrivalWindowEndIso: r.arrivalWindowEnd?.toISOString() ?? null,
   }));
 }
 

@@ -14,7 +14,6 @@ import {
   localWeekdayAndMinutes,
   startOfLocalDay,
 } from "@/supabase/functions/_shared/slots";
-import { EmergencyNotice } from "../_components/emergency-notice";
 import { PatientPageHeader } from "../_components/page-header";
 import { TintedRow } from "../_components/tinted-row";
 import { DeclareIntakeForm } from "./_components/declare-intake-form";
@@ -171,11 +170,6 @@ export default async function PatientQueuePage() {
         backHref="/patient"
         backLabel="Back to home"
       />
-
-      {/* First thing under the title, above the form and above the cards that
-          say what is already in flight — a patient mid-stroke may be on this
-          page (ADR 0084 §3). Unconditional, and never repainted from here. */}
-      <EmergencyNotice hospitalName={hospitalName} emergencyPhone={scope.emergencyEntrancePhone} />
 
       {liveIntake || liveAppt ? (
         <ul className="stagger-children flex flex-col gap-2">

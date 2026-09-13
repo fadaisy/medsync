@@ -35,6 +35,11 @@ export type PatientReasonCode = (typeof PATIENT_REASON_CODES)[number];
  *
  *   $1 = clinic_sessions.id
  *
+ * supabase-js cannot run raw SQL, so migration 0059 installs this statement
+ * as `public.allocate_session_position(p_session uuid) RETURNS smallint`
+ * (SECURITY DEFINER, service_role only) and `pt-request-appointment` calls
+ * it over RPC. A test parses the migration to keep the two identical.
+ *
  * Zero rows back means the session is full, unpublished, or gone — the
  * caller answers 409 and offers `NEXT_SESSIONS_OF_LINE_SQL`. The table CHECK
  * `clinic_sessions_booked_count_range` is the belt; this WHERE is the braces.

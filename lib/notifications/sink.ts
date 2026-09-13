@@ -1,4 +1,5 @@
 import { logger } from "@/lib/logger";
+import { composeReceiptSms } from "@/lib/notifications/receipt";
 import { DEFAULT_TIME_ZONE, LIVE_APPOINTMENT_STATUSES } from "@/supabase/functions/_shared/slots";
 
 /**
@@ -122,11 +123,25 @@ export interface ReminderRow {
   /** The queued channel preference — see `hasTransport`. */
   channel: string;
   state: string;
+  /**
+   * `appointment_reminders.kind` (migration 0059, ADR 0088): 'reminder' |
+   * 'receipt'. Absent means 'reminder' (every row born before 0059).
+   */
+  kind?: string;
   scheduledAtIso: string;
   appointmentStartsAtIso: string;
   appointmentStatus: string;
   patientUserId: string;
   hospitalName: string;
+  /**
+   * Receipt fields — `composeReceiptSms` needs them and a reminder ignores
+   * them. `serviceName` is the service line's name, or the department's.
+   */
+  serviceName?: string | null;
+  bookingCode?: string | null;
+  positionNumber?: number | null;
+  arrivalWindowStartIso?: string | null;
+  arrivalWindowEndIso?: string | null;
 }
 
 export interface ReminderSend {
@@ -230,11 +245,16 @@ function asciiOnly(value: string): string {
  *   4. appointment already started — reaped `failed`; a reminder for a
  *      visit in progress is noise the patient pays attention tax on.
  *   5. stale past the grace window — reaped `failed`, so a backlog after
- *      downtime does not blast every patient at once.
+ *      downtime does not blast every patient at once. REMINDERS ONLY: a
+ *      receipt (kind 'receipt', ADR 0088) is the artifact the patient shows
+ *      at the desk, so it is sent whenever it is found, late or not.
  *   6. still awaiting confirmation — held while fresh, reaped by (5) later.
+ *      A receipt for a pending request is therefore sent the run after the
+ *      clinician confirms it, which is what makes it a receipt.
  *   7. two due reminders for one appointment — the nearer lead wins, the
  *      older is reaped `failed` as superseded. One text per patient per
- *      run, whatever the outage did to the queue.
+ *      run, whatever the outage did to the queue. Receipts stand apart: a
+ *      receipt and a reminder due together both go.
  *   8. over the send cap — held, soonest appointments first.
  */
 export function planReminderDispatch(args: {
@@ -285,8 +305,15 @@ export function planReminderDispatch(args: {
       reaps.push({ reminderId: row.reminderId, state: "cancelled", reason: "appointment_elapsed" });
       continue;
     }
-    if (scheduledMs < staleBeforeMs) {
+    const isReceipt = row.kind === "receipt";
+    if (!isReceipt && scheduledMs < staleBeforeMs) {
       reaps.push({ reminderId: row.reminderId, state: "cancelled", reason: "stale" });
+      continue;
+    }
+    if (isReceipt && !row.bookingCode) {
+      // Only the Gate C writer queues receipts and it always writes a code;
+      // a row without one is a defect, not a skip.
+      reaps.push({ reminderId: row.reminderId, state: "failed", reason: "receipt_missing_code" });
       continue;
     }
     if (row.appointmentStatus !== REMINDABLE_STATUS) {
@@ -297,18 +324,20 @@ export function planReminderDispatch(args: {
   }
 
   // (7) One reminder per appointment per run — the nearest lead wins.
+  //     Keyed by kind as well, so a receipt never supersedes a reminder.
   const bestPerAppointment = new Map<string, (typeof candidates)[number]>();
   for (const candidate of candidates) {
-    const incumbent = bestPerAppointment.get(candidate.row.appointmentId);
+    const key = `${candidate.row.kind === "receipt" ? "receipt" : "reminder"}:${candidate.row.appointmentId}`;
+    const incumbent = bestPerAppointment.get(key);
     if (!incumbent) {
-      bestPerAppointment.set(candidate.row.appointmentId, candidate);
+      bestPerAppointment.set(key, candidate);
       continue;
     }
     const [winner, loser] =
       candidate.scheduledMs > incumbent.scheduledMs
         ? [candidate, incumbent]
         : [incumbent, candidate];
-    bestPerAppointment.set(candidate.row.appointmentId, winner);
+    bestPerAppointment.set(key, winner);
     reaps.push({ reminderId: loser.row.reminderId, state: "cancelled", reason: "superseded" });
   }
 
@@ -325,10 +354,21 @@ export function planReminderDispatch(args: {
       reminderId: candidate.row.reminderId,
       appointmentId: candidate.row.appointmentId,
       patientUserId: candidate.row.patientUserId,
-      body: composeReminderSms({
-        startsAtIso: candidate.row.appointmentStartsAtIso,
-        hospitalName: candidate.row.hospitalName,
-      }),
+      body:
+        candidate.row.kind === "receipt"
+          ? composeReceiptSms({
+              hospitalName: candidate.row.hospitalName,
+              serviceName: candidate.row.serviceName ?? "",
+              startsAtIso: candidate.row.appointmentStartsAtIso,
+              bookingCode: candidate.row.bookingCode ?? "",
+              positionNumber: candidate.row.positionNumber,
+              arrivalWindowStartIso: candidate.row.arrivalWindowStartIso,
+              arrivalWindowEndIso: candidate.row.arrivalWindowEndIso,
+            })
+          : composeReminderSms({
+              startsAtIso: candidate.row.appointmentStartsAtIso,
+              hospitalName: candidate.row.hospitalName,
+            }),
       ...(substitutedFrom ? { substitutedFrom } : {}),
     });
   }

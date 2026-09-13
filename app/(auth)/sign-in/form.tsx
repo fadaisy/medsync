@@ -35,15 +35,27 @@ export function SignInForm() {
         )
       }
       footer={
-        <p className="text-body-s text-muted-foreground">
-          New here?{" "}
-          <Link
-            href="/get-started"
-            className="text-primary underline decoration-transparent underline-offset-2 transition-[text-decoration-color] duration-200 hover:decoration-current"
-          >
-            Get started
-          </Link>
-        </p>
+        <div className="flex flex-col gap-2">
+          <p className="text-body-s text-muted-foreground">
+            New here?{" "}
+            <Link
+              href="/get-started"
+              className="text-primary underline decoration-transparent underline-offset-2 transition-[text-decoration-color] duration-200 hover:decoration-current"
+            >
+              Get started
+            </Link>
+          </p>
+          {/* PRD §2.5's pre-auth affordance: plain text, no red, no question.
+              It leads to the one static page that signposts and asks nothing. */}
+          <p className="text-body-s text-muted-foreground">
+            <Link
+              href="/emergency"
+              className="underline decoration-transparent underline-offset-2 transition-[text-decoration-color] duration-200 hover:decoration-current"
+            >
+              Emergency? Go to the nearest emergency unit.
+            </Link>
+          </p>
+        </div>
       }
     >
       <form action={formAction} className="stagger-children flex flex-col gap-4">

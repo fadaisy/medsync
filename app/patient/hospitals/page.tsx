@@ -10,7 +10,6 @@ import { HOSPITAL_LEVEL_LABEL, listDirectoryHospitals } from "@/lib/patient/hosp
 import { requirePatientScope } from "@/lib/patient/scope";
 import { cn } from "@/lib/utils";
 import { PatientDoors } from "../_components/doors";
-import { EmergencyNotice } from "../_components/emergency-notice";
 import { PatientPageHeader } from "../_components/page-header";
 import { SelectHospitalButton } from "./_components/select-hospital-button";
 
@@ -47,14 +46,6 @@ export default async function PatientHospitalsPage({ searchParams }: PageProps) 
   const search = (q ?? "").trim();
   const results = await listDirectoryHospitals({ search });
   const groups = groupByRegion(results);
-  // Names the emergency landmark when there is a hospital to name, and gates
-  // the doors on the primary-hospital card below. The fallback only fires if
-  // the hospital row behind an affiliation has gone — the name never reaches
-  // the emergency copy itself (ADR 0084 §3).
-  const hospitalName = scope.primaryHospitalId
-    ? (scope.primaryHospitalName ?? "Your hospital")
-    : null;
-
   return (
     <div className="stagger-children flex flex-col gap-6">
       <PatientPageHeader
@@ -69,20 +60,6 @@ export default async function PatientHospitalsPage({ searchParams }: PageProps) 
         backLabel="Back to home"
       />
 
-      {/* First thing on the screen, above the doors further down this page —
-          not beside them (ADR 0084 §3). A patient browsing the directory may
-          be the one who should not be browsing anything.
-
-          Unconditional, and the argument is stronger here than on `/patient`:
-          this page's own header switches to "Find your hospital" for a patient
-          with no affiliation, so the unaffiliated patient is not an edge case
-          on this surface — they are its audience. Gating the instruction on a
-          primary hospital would hide it from exactly the people the page was
-          built for, while they browse rather than travel. With no hospital
-          there is no verified number either, so the block shows the
-          destination alone. */}
-      <EmergencyNotice hospitalName={hospitalName} emergencyPhone={scope.emergencyEntrancePhone} />
-
       {/* Native GET form: search survives a reload, a shared link and no JS. */}
       <form role="search" action="/patient/hospitals" className="flex items-center gap-2">
         <div className="relative min-w-0 flex-1">
@@ -95,7 +72,7 @@ export default async function PatientHospitalsPage({ searchParams }: PageProps) 
             name="q"
             defaultValue={search}
             aria-label="Search hospitals"
-            placeholder="Search by name, district, or region"
+            placeholder="Search by hospital, clinic, or district"
             className="h-11 rounded-full pl-10"
           />
         </div>
@@ -173,6 +150,10 @@ export default async function PatientHospitalsPage({ searchParams }: PageProps) 
                         <div className="flex min-w-0 flex-1 flex-col gap-1">
                           <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
                             <h4 className="text-foreground text-body-m font-medium">{h.name}</h4>
+                            {/* Every row here is `state = 'active'`, which is
+                                what the registration flow verifies (PRD
+                                §3.3.1). The pill says so in a word. */}
+                            <Pill tone="neutral">Verified</Pill>
                             {isPrimary ? (
                               // Keyed on the primary id so the flare replays when
                               // the choice changes — never by remounting the row.
@@ -188,6 +169,17 @@ export default async function PatientHospitalsPage({ searchParams }: PageProps) 
 
                           <p className="text-muted-foreground text-body-s">
                             {HOSPITAL_LEVEL_LABEL[h.level] ?? h.level}
+                          </p>
+
+                          {/* PRD §3.3.1's honesty rule: "accepting" only when
+                              a clinic day or a bookable block exists in the
+                              next 14 days. A word, never a colour alone. */}
+                          <p className="text-body-s">
+                            {h.acceptingBookings ? (
+                              <span className="text-status-stable-fg">Accepting bookings</span>
+                            ) : (
+                              <span className="text-muted-foreground">No days open</span>
+                            )}
                           </p>
 
                           {place ? (

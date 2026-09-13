@@ -62,7 +62,7 @@ Deno.serve(async (request: Request) => {
   const sb = serviceClient();
   const { data: appt, error } = await sb
     .from("appointments")
-    .select("id, hospital_id, clinician_user_id, patient_user_id, status")
+    .select("id, hospital_id, clinician_user_id, patient_user_id, status, session_id")
     .eq("id", input.appointment_id)
     .maybeSingle();
   if (error) return serverError(error.message, init);
@@ -105,17 +105,37 @@ Deno.serve(async (request: Request) => {
     return serverError("audit write failed", init);
   }
 
-  const { error: updateError } = await sb
+  // The status guard is repeated in the UPDATE so two concurrent cancels
+  // flip the row once — and release its session place once.
+  const { data: flipped, error: updateError } = await sb
     .from("appointments")
     .update({
       status: "cancelled",
       cancelled_reason: input.reason,
       cancelled_by_user_id: caller.id,
     })
-    .eq("id", appt.id);
+    .eq("id", appt.id)
+    .in("status", [...CANCELLABLE_STATES])
+    .select("id")
+    .maybeSingle();
   if (updateError) {
     log.error("cancel failed", { requestId, reason: updateError.message });
     return serverError("cancel failed", init);
+  }
+
+  // A session booking gives its place back (ADR 0088): booked_count only —
+  // next_position is monotonic, so the number is never re-issued.
+  if (appt.session_id && flipped) {
+    const { error: releaseError } = await sb.rpc("release_session_position", {
+      p_session: appt.session_id,
+    });
+    if (releaseError) {
+      log.error("release_session_position failed — a place is leaked", {
+        requestId,
+        session_id: appt.session_id,
+        reason: releaseError.message,
+      });
+    }
   }
 
   // Reap queued reminders (best-effort).

@@ -22,6 +22,7 @@ import {
   STATUS_LABEL,
   STATUS_TONES,
 } from "@/lib/patient/appointments";
+import { formatArrivalWindow, formatShortDate } from "@/lib/patient/booking-format";
 import { requirePatientScope } from "@/lib/patient/scope";
 import { cn } from "@/lib/utils";
 import {
@@ -235,6 +236,8 @@ function UpcomingVisit({
         <span className="text-muted-foreground"> · {typeLabel(row.type)}</span>
       </p>
 
+      <BookingFacts row={row} />
+
       {row.reasonNote ? (
         <p className="text-muted-foreground text-body-s">Reason: {row.reasonNote}</p>
       ) : null}
@@ -244,7 +247,14 @@ function UpcomingVisit({
           cancellations from 0.6% to 7.2%; the freed slot then needed a clerk
           nobody had. The `<li>` is already a column, so "above" costs no
           wrapper. */}
-      {moveTo ? (
+      {row.sessionId ? (
+        // A place in a clinic day is a position, not a time, and the server
+        // refuses to move it (ADR 0088). Said plainly rather than as a
+        // control that would fail.
+        <p className="text-muted-foreground text-body-s">
+          A place in a clinic day cannot be moved yet. Cancel it and book another day.
+        </p>
+      ) : moveTo ? (
         moveTo.length > 0 ? (
           <RescheduleSheet appointmentId={row.id} summary={summary} options={moveTo} />
         ) : (
@@ -288,7 +298,58 @@ function PastVisit({ row }: { row: AppointmentRow }) {
         {row.departmentName} · {row.hospitalName}
       </span>
       <span className="text-muted-foreground text-body-s">{formatWhen(row.startsAtIso)}</span>
+      {row.bookingCode ? (
+        <span className="text-muted-foreground text-body-s font-mono tracking-[0.08em]">
+          {row.bookingCode}
+        </span>
+      ) : null}
     </li>
+  );
+}
+
+/**
+ * The two things a patient reads aloud and shows at the desk (PRD §6.3):
+ * the booking code, and for a clinic day the position with its arrival
+ * window. Monospace and large for the code; the window is a range with a
+ * stated basis (ADR 0088 C10), never a single time. Rows that predate
+ * Gate C have no code and render nothing here.
+ */
+function BookingFacts({ row }: { row: AppointmentRow }) {
+  if (!row.bookingCode) return null;
+  const window =
+    row.sessionId !== null &&
+    row.positionNumber !== null &&
+    row.arrivalWindowStartIso !== null &&
+    row.arrivalWindowEndIso !== null
+      ? formatArrivalWindow(row.arrivalWindowStartIso, row.arrivalWindowEndIso)
+      : null;
+  return (
+    <dl className="bg-muted flex flex-wrap items-baseline gap-x-6 gap-y-2 rounded-lg px-4 py-3">
+      <div className="flex flex-col gap-0.5">
+        <dt className="text-overline text-muted-foreground">Booking code</dt>
+        <dd className="text-foreground text-heading-s font-mono tracking-[0.12em]">
+          {row.bookingCode}
+        </dd>
+      </div>
+      {window ? (
+        <>
+          <div className="flex flex-col gap-0.5">
+            <dt className="text-overline text-muted-foreground">Position</dt>
+            <dd className="text-foreground text-heading-s font-mono tabular-nums">
+              {row.positionNumber}
+            </dd>
+          </div>
+          <div className="flex min-w-0 flex-col gap-0.5">
+            <dt className="text-overline text-muted-foreground">
+              {formatShortDate(row.startsAtIso)}
+            </dt>
+            <dd className="text-foreground text-body-s">
+              Arrive between {window}. Arriving early does not change your position.
+            </dd>
+          </div>
+        </>
+      ) : null}
+    </dl>
   );
 }
 
@@ -371,6 +432,8 @@ async function fetchRescheduleOptions(
         eq(appointments.patientUserId, patientUserId),
         gte(appointments.startsAt, now),
         inArray(appointments.status, [...RESCHEDULABLE]),
+        // A clinic-day place has no slot to move into; the card says so.
+        isNull(appointments.sessionId),
       ),
     )
     .orderBy(asc(appointments.startsAt))

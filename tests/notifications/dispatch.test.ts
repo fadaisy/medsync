@@ -265,3 +265,60 @@ describe("deliverSms", () => {
     expect(outcomes.every((o) => o.reason === "body_would_multi_part")).toBe(true);
   });
 });
+
+describe("planReminderDispatch — receipts (ADR 0088)", () => {
+  const receipt = (over: Partial<ReminderRow> = {}) =>
+    row({
+      kind: "receipt",
+      serviceName: "Diabetes Clinic",
+      bookingCode: "ABC123",
+      positionNumber: 7,
+      arrivalWindowStartIso: minutes(30),
+      arrivalWindowEndIso: minutes(90),
+      ...over,
+    });
+
+  it("a due receipt is composed by the receipt composer, not the reminder one", () => {
+    const { sends } = plan([receipt()]);
+    expect(sends).toHaveLength(1);
+    expect(sends[0]?.body).toMatch(/^MedSync: Mulago NRH\. Diabetes Clinic\. /);
+    expect(sends[0]?.body).toContain("position 7");
+    expect(sends[0]?.body).toContain("Code ABC123.");
+    expect(sends[0]?.body.length).toBeLessThanOrEqual(SMS_MAX_BODY_CHARS);
+  });
+
+  it("a receipt is never stale — it goes whenever it is found", () => {
+    const late = minutes(-(STALE_GRACE_MINUTES + 600));
+    const { sends, reaps } = plan([receipt({ scheduledAtIso: late })]);
+    expect(sends).toHaveLength(1);
+    expect(reaps).toHaveLength(0);
+    // The same lateness still reaps a reminder.
+    expect(reasons([row({ scheduledAtIso: late })])).toEqual(["cancelled:stale"]);
+  });
+
+  it("a receipt for a request still awaiting confirmation is held, then sent once confirmed", () => {
+    const pending = receipt({ appointmentStatus: "pending_approval" });
+    expect(plan([pending]).held.awaiting_confirmation).toBe(1);
+    expect(plan([{ ...pending, appointmentStatus: "confirmed" }]).sends).toHaveLength(1);
+  });
+
+  it("a receipt and a reminder for one appointment both go — neither supersedes the other", () => {
+    const rem = row();
+    const rec = receipt({ appointmentId: rem.appointmentId });
+    const { sends, reaps } = plan([rem, rec]);
+    expect(sends.map((s) => s.reminderId).sort()).toEqual([rem.reminderId, rec.reminderId].sort());
+    expect(reaps).toHaveLength(0);
+  });
+
+  it("a receipt without a booking code is a defect, reaped failed", () => {
+    expect(reasons([receipt({ bookingCode: null })])).toEqual(["failed:receipt_missing_code"]);
+  });
+
+  it("a slot receipt carries the clock time, not a position", () => {
+    const { sends } = plan([
+      receipt({ positionNumber: null, arrivalWindowStartIso: null, arrivalWindowEndIso: null }),
+    ]);
+    expect(sends[0]?.body).not.toContain("position");
+    expect(sends[0]?.body).toMatch(/\d{1,2}:\d{2} (AM|PM)\. Code ABC123\./);
+  });
+});

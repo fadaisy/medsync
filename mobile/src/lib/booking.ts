@@ -1,4 +1,5 @@
 import type { EdgeResult } from "@/lib/edge";
+import type { PatientReasonCode } from "@shared/sessions-sql";
 import type { ImagePickerOptions } from "expo-image-picker";
 import {
   DEFAULT_TIME_ZONE,
@@ -9,7 +10,7 @@ import {
   startOfLocalDay,
 } from "@shared/slots";
 
-import { callEdge } from "@/lib/edge";
+import { callEdge, requestId } from "@/lib/edge";
 import { supabase } from "@/lib/supabase";
 
 /**
@@ -116,6 +117,26 @@ export function formatTime(iso: string): string {
 /** "Thu 18 Sep · 9:30 AM" — the day always accompanies the time. */
 export function formatWhen(iso: string): string {
   return `${DAY_FMT.format(new Date(iso))} · ${formatTime(iso)}`;
+}
+
+/**
+ * "Tuesday 22 September" — the date in full, for the things a patient reads
+ * aloud to a relative: a clinic day, a receipt (PRD §6.3, never relative-only).
+ */
+const LONG_DAY_FMT = new Intl.DateTimeFormat("en-GB", {
+  timeZone: DEFAULT_TIME_ZONE,
+  weekday: "long",
+  day: "numeric",
+  month: "long",
+});
+
+export function formatDateLong(iso: string): string {
+  return LONG_DAY_FMT.format(new Date(iso));
+}
+
+/** "9:30 AM and 11:00 AM" — the arrival window as a range with its basis said beside it (ADR 0088 C10). */
+export function formatWindow(startIso: string, endIso: string): string {
+  return `${formatTime(startIso)} and ${formatTime(endIso)}`;
 }
 
 /** "Today" / "Tomorrow" / "Thu 18 Sep" for a `dateKey` — ADR 0084 §10's day chips. */
@@ -237,6 +258,14 @@ export interface AppointmentRow {
   hospitalId: string;
   departmentId: string;
   clinicianUserId: string;
+  /** Six characters the desk searches by (Gate C). Null on rows booked before it. */
+  bookingCode: string | null;
+  /** Set only on a session booking — a place in a clinic day, not a time (ADR 0087). */
+  sessionId: string | null;
+  positionNumber: number | null;
+  /** The arrival window stored at confirmation; never recomputed (ADR 0088 C10). */
+  arrivalWindowStartIso: string | null;
+  arrivalWindowEndIso: string | null;
 }
 
 interface AppointmentQueryRow {
@@ -249,6 +278,11 @@ interface AppointmentQueryRow {
   status: string;
   reason: string;
   reason_note: string | null;
+  booking_code: string | null;
+  session_id: string | null;
+  position_number: number | null;
+  arrival_window_start: string | null;
+  arrival_window_end: string | null;
   hospital_departments: Embed<{ name: string }>;
   hospitals: Embed<{ name: string }>;
 }
@@ -278,7 +312,8 @@ export async function fetchAppointments(
     .from("appointments")
     .select(
       "id, hospital_id, department_id, clinician_user_id, starts_at, ends_at, status, " +
-        "reason, reason_note, hospital_departments(name), hospitals(name)",
+        "reason, reason_note, booking_code, session_id, position_number, " +
+        "arrival_window_start, arrival_window_end, hospital_departments(name), hospitals(name)",
     )
     .eq("patient_user_id", userId);
   query = isPast ? query.lt("starts_at", nowIso) : query.gte("starts_at", nowIso);
@@ -308,6 +343,11 @@ export async function fetchAppointments(
     hospitalId: r.hospital_id,
     departmentId: r.department_id,
     clinicianUserId: r.clinician_user_id,
+    bookingCode: r.booking_code,
+    sessionId: r.session_id,
+    positionNumber: r.position_number,
+    arrivalWindowStartIso: r.arrival_window_start,
+    arrivalWindowEndIso: r.arrival_window_end,
   }));
 }
 
@@ -575,30 +615,234 @@ export async function fetchBookableClinicians(hospitalId?: string): Promise<Clin
   return res.data ?? [];
 }
 
-/* ─── writes ─────────────────────────────────────────────────────── */
+/* ─── service lines and clinic days (Gate C, ADR 0087/0088) ────── */
 
-export type AppointmentReason = "follow_up" | "new_concern" | "refill" | "routine" | "other";
+export interface ServiceLine {
+  id: string;
+  name: string;
+  hospitalId: string;
+  hospitalName: string;
+  /** `hospitals.emergency_phone` for THIS line's hospital — the interstitial's Call control, or null. */
+  emergencyPhone: string | null;
+  departmentId: string;
+  departmentName: string;
+  /** slot | session | open_queue — decides which page books it. */
+  capacityMode: string;
+  /** The Appendix A codes this line takes; the server refuses any other. */
+  reasonCodes: string[];
+  /** The facility's own target lead time — the no-silent-wait rule's window (PRD §2.4). */
+  timeToCareDays: number;
+}
+
+interface ServiceLineRow {
+  id: string;
+  name: string;
+  hospital_id: string;
+  department_id: string;
+  capacity_mode: string;
+  reason_codes: string[];
+  time_to_care_days: number;
+  hospital_departments: Embed<{ name: string }>;
+  hospitals: Embed<{ name: string; emergency_phone: string | null }>;
+}
+
+const LINE_SELECT =
+  "id, name, hospital_id, department_id, capacity_mode, reason_codes, time_to_care_days, " +
+  "hospital_departments(name), hospitals(name, emergency_phone)";
+
+function toLine(r: ServiceLineRow): ServiceLine {
+  const hospital = embedded(r.hospitals);
+  return {
+    id: r.id,
+    name: r.name,
+    hospitalId: r.hospital_id,
+    hospitalName: hospital?.name ?? "Your hospital",
+    emergencyPhone: hospital?.emergency_phone ?? null,
+    departmentId: r.department_id,
+    departmentName: embedded(r.hospital_departments)?.name ?? "Outpatients",
+    capacityMode: r.capacity_mode,
+    reasonCodes: r.reason_codes ?? [],
+    timeToCareDays: r.time_to_care_days,
+  };
+}
 
 /**
- * The reasons a patient may pick, with the words the web already uses.
+ * The active service lines — at one hospital, or every hospital's lines of
+ * one NAME (the no-silent-wait rule's second option: the same service
+ * elsewhere). Readable by any signed-in user under RLS (0058).
+ */
+export async function fetchServiceLines(
+  scope: { hospitalId: string } | { name: string },
+): Promise<ServiceLine[]> {
+  let query = supabase.from("service_lines").select(LINE_SELECT).eq("active", true);
+  query =
+    "hospitalId" in scope
+      ? query.eq("hospital_id", scope.hospitalId)
+      : query.eq("name", scope.name);
+  const { data, error } = await query
+    .order("name")
+    .overrideTypes<ServiceLineRow[], { merge: false }>();
+  if (error) raise(error.message, "the clinics at this hospital");
+  return (data ?? []).map(toLine);
+}
+
+export async function fetchServiceLine(id: string): Promise<ServiceLine | null> {
+  const { data, error } = await supabase
+    .from("service_lines")
+    .select(LINE_SELECT)
+    .eq("id", id)
+    .maybeSingle()
+    .overrideTypes<ServiceLineRow, { merge: false }>();
+  if (error) raise(error.message, "this clinic");
+  return data ? toLine(data) : null;
+}
+
+/** One published clinic day a patient can take a place in. */
+export interface ClinicSession {
+  id: string;
+  serviceLineId: string;
+  startsAtIso: string;
+  endsAtIso: string;
+  clinicianUserId: string | null;
+  /** From `clinician_directory`, or "Clinic team" when the day names nobody yet. */
+  clinicianName: string;
+  venue: string | null;
+  /**
+   * ceil(capacity_booked × overbooking) − booked_count, floored at 0 — the
+   * same arithmetic as the allocator's WHERE, so what the tile says and what
+   * the server accepts cannot drift. 0 is "Full".
+   */
+  placesLeft: number;
+}
+
+interface SessionRow {
+  id: string;
+  service_line_id: string;
+  starts_at: string;
+  ends_at: string;
+  clinician_user_id: string | null;
+  venue: string | null;
+  capacity_booked: number;
+  overbooking_factor: number | string;
+  booked_count: number;
+}
+
+/** ADR 0084 §8: the server refuses a day past this; the list never offers one. */
+const HORIZON_MS = 14 * 86_400_000;
+
+/**
+ * Published, future clinic days within the 14-day horizon — every line at a
+ * hospital (the home's glance) or one line (its page). Soonest first. RLS
+ * shows published rows only, so a draft or cancelled day never appears.
+ */
+export async function fetchSessions(
+  scope: { hospitalId: string } | { serviceLineId: string },
+): Promise<ClinicSession[]> {
+  const now = Date.now();
+  let query = supabase
+    .from("clinic_sessions")
+    .select(
+      "id, service_line_id, starts_at, ends_at, clinician_user_id, venue, " +
+        "capacity_booked, overbooking_factor, booked_count",
+    )
+    .eq("status", "published")
+    .gt("starts_at", new Date(now).toISOString())
+    .lt("starts_at", new Date(now + HORIZON_MS).toISOString());
+  query =
+    "hospitalId" in scope
+      ? query.eq("hospital_id", scope.hospitalId)
+      : query.eq("service_line_id", scope.serviceLineId);
+  const { data, error } = await query
+    .order("starts_at")
+    .overrideTypes<SessionRow[], { merge: false }>();
+  if (error) raise(error.message, "the clinic days");
+
+  const rows = data ?? [];
+  const clinicians = await fetchClinicianCards(
+    rows.map((r) => r.clinician_user_id).filter((id): id is string => !!id),
+  );
+  return rows.map((r) => ({
+    id: r.id,
+    serviceLineId: r.service_line_id,
+    startsAtIso: r.starts_at,
+    endsAtIso: r.ends_at,
+    clinicianUserId: r.clinician_user_id,
+    clinicianName:
+      (r.clinician_user_id && clinicians.get(r.clinician_user_id)?.name) || "Clinic team",
+    venue: r.venue,
+    placesLeft: Math.max(
+      Math.ceil(r.capacity_booked * Number(r.overbooking_factor)) - r.booked_count,
+      0,
+    ),
+  }));
+}
+
+/* ─── writes ─────────────────────────────────────────────────────── */
+
+export type AppointmentReason = PatientReasonCode;
+
+/**
+ * Appendix A's 13 reasons (PRD §2.3), in its order, with its words as the
+ * titles. Administrative only: no entry is a symptom, and the hint under a
+ * chip says what kind of visit it is, never what is wrong.
  *
- * `urgent_review` is not here and must not come back (ADR 0084 §12). A
- * patient-picked "urgent" is not a triage signal, and it sat one query away
- * from being read as one beside the system-driven `system_urgent` origin.
- * `appointments_patient_reason_check` is the backstop; this list is the
- * message.
+ * `urgent_review` is not here and must not come back (ADR 0084 §12): a
+ * patient-picked "urgent" is not a triage signal.
+ * `appointments_reason_check` is the backstop; this list is the message.
  */
 export const APPOINTMENT_REASONS: readonly {
   value: AppointmentReason;
   title: string;
   hint: string;
 }[] = [
-  { value: "follow_up", title: "Follow-up", hint: "You have been seen for this before." },
-  { value: "new_concern", title: "New concern", hint: "Something you want looked at fresh." },
+  { value: "follow_up", title: "Routine follow-up", hint: "You have been seen for this before." },
+  {
+    value: "post_discharge",
+    title: "Post-discharge review",
+    hint: "A check after a hospital stay.",
+  },
+  {
+    value: "new_concern",
+    title: "New or worsening problem",
+    hint: "Something you want looked at fresh.",
+  },
   { value: "refill", title: "Medicine refill", hint: "You need more, or need it reviewed." },
-  { value: "routine", title: "Routine check-up", hint: "A regular check, not a new problem." },
-  { value: "other", title: "Something else", hint: "Use the note below to say what it is." },
+  {
+    value: "test_results",
+    title: "Test or scan results",
+    hint: "To go through results with the clinic.",
+  },
+  { value: "antenatal", title: "Antenatal visit", hint: "A pregnancy check." },
+  { value: "immunisation", title: "Child immunisation", hint: "A vaccine on the schedule." },
+  {
+    value: "child_wellness",
+    title: "Child wellness / growth",
+    hint: "A growth and development check.",
+  },
+  {
+    value: "specialist_review",
+    title: "Specialist review (referred)",
+    hint: "You were referred to a specialist.",
+  },
+  { value: "routine", title: "Screening or check-up", hint: "A regular check, not a new problem." },
+  {
+    value: "procedure",
+    title: "Procedure or dressing",
+    hint: "A planned procedure or a wound dressing.",
+  },
+  { value: "counselling", title: "Counselling or support", hint: "Time to talk with someone." },
+  { value: "second_opinion", title: "Second opinion", hint: "Another clinician's view." },
 ];
+
+/** The reasons a line takes, in Appendix A's order — for a page that books one line. */
+export function reasonsFor(line: Pick<ServiceLine, "reasonCodes">) {
+  return APPOINTMENT_REASONS.filter((r) => line.reasonCodes.includes(r.value));
+}
+
+/** Every reason that opens the emergency interstitial before any capacity step (PRD §2.5). */
+export const INTERSTITIAL_REASONS: ReadonlySet<string> = new Set<AppointmentReason>([
+  "new_concern",
+]);
 
 /**
  * `cancel-appointment` and `reschedule-appointment` both require a reason of
@@ -609,26 +853,63 @@ export const APPOINTMENT_REASONS: readonly {
  */
 export const MIN_REASON_CHARS = 8;
 
-/** ADR 0084 §2: one POST per door, completing on one round trip. */
-export function requestAppointment(input: {
-  clinicianUserId: string;
-  hospitalId: string;
-  departmentId: string;
-  reason: AppointmentReason;
-  reasonNote?: string | null;
-  startsAtIso: string;
-  endsAtIso: string;
-}): Promise<EdgeResult<{ appointment_id: string; status: string }>> {
+/**
+ * One key per submission attempt, reused across retries of it — a 2G retry
+ * then returns the first attempt's booking instead of making a second
+ * (PRD §3.3.2). A NEW key after success or after the pick changes.
+ */
+export const newIdempotencyKey = requestId;
+
+/** What `pt-request-appointment` returns — the receipt, on a fresh insert and on a replay alike. */
+export interface BookingReceipt {
+  appointment_id: string;
+  status: string;
+  booking_code: string | null;
+  position_number: number | null;
+  arrival_window_start: string | null;
+  arrival_window_end: string | null;
+}
+
+/**
+ * ADR 0084 §2: one POST per door, completing on one round trip. Exactly one
+ * of `slot` (a clinician's time) or `session` (a place in a clinic day).
+ */
+export function requestAppointment(
+  input: {
+    hospitalId: string;
+    reason: AppointmentReason;
+    reasonNote?: string | null;
+    idempotencyKey: string;
+  } & (
+    | {
+        slot: {
+          clinicianUserId: string;
+          departmentId: string;
+          startsAtIso: string;
+          endsAtIso: string;
+        };
+      }
+    | { session: { sessionId: string } }
+  ),
+): Promise<EdgeResult<BookingReceipt>> {
   return callEdge("pt-request-appointment", {
-    clinician_user_id: input.clinicianUserId,
     hospital_id: input.hospitalId,
-    department_id: input.departmentId,
     reason: input.reason,
     reason_note: input.reasonNote ?? null,
-    starts_at: input.startsAtIso,
-    ends_at: input.endsAtIso,
-    // `type` is deliberately omitted: the function defaults to `in_person`,
-    // and virtual is not a door this app opens.
+    idempotency_key: input.idempotencyKey,
+    channel: "app",
+    ...("slot" in input
+      ? {
+          slot: {
+            clinician_user_id: input.slot.clinicianUserId,
+            department_id: input.slot.departmentId,
+            starts_at: input.slot.startsAtIso,
+            ends_at: input.slot.endsAtIso,
+            // `type` is deliberately omitted: the function defaults to
+            // `in_person`, and virtual is not a door this app opens.
+          },
+        }
+      : { session: { session_id: input.session.sessionId } }),
   });
 }
 

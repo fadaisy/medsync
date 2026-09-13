@@ -817,3 +817,59 @@ function toIntervals(rows: ReadonlyArray<BookedAppointmentRow>): Interval[] {
     endMs: toMs(row.endsAt, "appointments.endsAt"),
   }));
 }
+
+/* ─── session bookings: code and arrival window (Gate C, ADR 0088) ── */
+
+/**
+ * The booking-code alphabet: 32 characters, no 0/O/1/I — the code is read
+ * aloud to a relative and typed by a receptionist (proposal §5.6).
+ */
+export const BOOKING_CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+export const BOOKING_CODE_LENGTH = 6;
+
+/**
+ * A 6-character booking code. `random` is injected (a `[0, 1)` source) so a
+ * test can pin the output; the writer passes a crypto-backed one. Uniqueness
+ * per hospital is the INDEX's job — the writer retries on 23505.
+ */
+export function bookingCode(random: () => number): string {
+  let out = "";
+  for (let i = 0; i < BOOKING_CODE_LENGTH; i++) {
+    const idx = Math.min(
+      BOOKING_CODE_ALPHABET.length - 1,
+      Math.max(0, Math.floor(random() * BOOKING_CODE_ALPHABET.length)),
+    );
+    out += BOOKING_CODE_ALPHABET[idx];
+  }
+  return out;
+}
+
+/**
+ * The arrival window a session position is told (ruling C10: a RANGE with a
+ * stated basis, never a point estimate). Basis = position × pace, where the
+ * pace is the session length divided by the bookable places.
+ *
+ *   len   = session length / ceil(capacityBooked × overbooking)
+ *   start = sessionStart + (position − 1) × len − len / 2, floored at sessionStart
+ *   end   = start + 2 × len, capped at sessionEnd
+ *
+ * Derived ONCE at confirmation and stored on the appointment so the SMS the
+ * patient holds never changes (proposal §5.6). Pure; no clock.
+ */
+export function arrivalWindow(args: {
+  sessionStartsAt: Instant;
+  sessionEndsAt: Instant;
+  capacityBooked: number;
+  overbookingFactor: number;
+  position: number;
+}): { start: Date; end: Date } {
+  const startMs = toMs(args.sessionStartsAt, "sessionStartsAt");
+  const endMs = toMs(args.sessionEndsAt, "sessionEndsAt");
+  const places = Math.max(1, Math.ceil(args.capacityBooked * args.overbookingFactor));
+  const len = Math.max(0, endMs - startMs) / places;
+  const position = Math.max(1, Math.floor(args.position));
+
+  const start = Math.min(endMs, Math.max(startMs, startMs + (position - 1) * len - len / 2));
+  const end = Math.min(endMs, start + 2 * len);
+  return { start: new Date(start), end: new Date(end) };
+}

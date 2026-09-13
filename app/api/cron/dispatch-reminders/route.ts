@@ -1,11 +1,14 @@
 import type { ReminderRow, SmsJob } from "@/lib/notifications/sink";
 import { NextResponse } from "next/server";
-import { and, asc, eq, inArray, lte } from "drizzle-orm";
+import { and, asc, eq, inArray, lte, sql } from "drizzle-orm";
 
 import { db } from "@/db";
+import { clinicSessions } from "@/db/schema/clinic-sessions";
+import { hospitalDepartments } from "@/db/schema/hospital-departments";
 import { hospitals } from "@/db/schema/hospitals";
 import { patientProfiles } from "@/db/schema/patient-profiles";
 import { appointmentReminders, appointments } from "@/db/schema/scheduling";
+import { serviceLines } from "@/db/schema/service-lines";
 import { decrypt } from "@/lib/encryption";
 import { env } from "@/lib/env";
 import { logger } from "@/lib/logger";
@@ -107,16 +110,27 @@ export async function GET(request: Request) {
         appointmentId: appointmentReminders.appointmentId,
         channel: appointmentReminders.channel,
         state: appointmentReminders.state,
+        kind: appointmentReminders.kind,
         scheduledAt: appointmentReminders.scheduledAt,
         appointmentStartsAt: appointments.startsAt,
         appointmentStatus: appointments.status,
         patientUserId: appointments.patientUserId,
         hospitalName: hospitals.name,
+        // What a receipt names (ADR 0088): the service line when the booking
+        // holds a session, the department otherwise.
+        serviceName: sql<string>`coalesce(${serviceLines.name}, ${hospitalDepartments.name})`,
+        bookingCode: appointments.bookingCode,
+        positionNumber: appointments.positionNumber,
+        arrivalWindowStart: appointments.arrivalWindowStart,
+        arrivalWindowEnd: appointments.arrivalWindowEnd,
         phoneEncrypted: patientProfiles.phoneEncrypted,
       })
       .from(appointmentReminders)
       .innerJoin(appointments, eq(appointments.id, appointmentReminders.appointmentId))
       .innerJoin(hospitals, eq(hospitals.id, appointments.hospitalId))
+      .innerJoin(hospitalDepartments, eq(hospitalDepartments.id, appointments.departmentId))
+      .leftJoin(clinicSessions, eq(clinicSessions.id, appointments.sessionId))
+      .leftJoin(serviceLines, eq(serviceLines.id, clinicSessions.serviceLineId))
       .leftJoin(patientProfiles, eq(patientProfiles.id, appointments.patientUserId))
       .where(
         and(eq(appointmentReminders.state, "queued"), lte(appointmentReminders.scheduledAt, now)),
@@ -129,11 +143,17 @@ export async function GET(request: Request) {
       appointmentId: r.appointmentId,
       channel: r.channel,
       state: r.state,
+      kind: r.kind,
       scheduledAtIso: r.scheduledAt.toISOString(),
       appointmentStartsAtIso: r.appointmentStartsAt.toISOString(),
       appointmentStatus: r.appointmentStatus,
       patientUserId: r.patientUserId,
       hospitalName: r.hospitalName,
+      serviceName: r.serviceName,
+      bookingCode: r.bookingCode,
+      positionNumber: r.positionNumber,
+      arrivalWindowStartIso: r.arrivalWindowStart?.toISOString() ?? null,
+      arrivalWindowEndIso: r.arrivalWindowEnd?.toISOString() ?? null,
     }));
 
     const plan = planReminderDispatch({ rows: planRows, now });

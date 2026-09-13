@@ -1,4 +1,11 @@
-import type { AppointmentRow, ClinicianOption, LiveIntake, PatientProfile } from "@/lib/booking";
+import type {
+  AppointmentRow,
+  ClinicianOption,
+  ClinicSession,
+  LiveIntake,
+  PatientProfile,
+  ServiceLine,
+} from "@/lib/booking";
 import type { Palette } from "@/theme/tokens";
 import type { ReactNode } from "react";
 import { useCallback, useState } from "react";
@@ -23,6 +30,8 @@ import {
   fetchLiveIntake,
   fetchMyAvatarUrl,
   fetchPatientProfile,
+  fetchServiceLines,
+  fetchSessions,
   formatTime,
   RESCHEDULABLE,
   STAGE_WORD,
@@ -77,6 +86,8 @@ type Home =
       ticket: LiveIntake | null;
       /** Null when the read failed — the section is then absent, not an error. */
       doctors: ClinicianOption[] | null;
+      /** Session-mode lines at this hospital (ADR 0087), with their open days; null = read failed. */
+      clinics: { line: ServiceLine; next: ClinicSession | null }[] | null;
     };
 
 /**
@@ -132,7 +143,14 @@ export default function HomeScreen() {
       return;
     }
     if (!profile.hospitalId) {
-      setHome({ kind: "ready", profile, visit: null, ticket: null, doctors: null });
+      setHome({
+        kind: "ready",
+        profile,
+        visit: null,
+        ticket: null,
+        doctors: null,
+        clinics: null,
+      });
       return;
     }
     // ponytail: the three glances fail to "absent", never to an error screen —
@@ -141,15 +159,28 @@ export default function HomeScreen() {
     // true; the doors still work and the server still refuses a duplicate with
     // its own sentence. Ceiling: a patient with a live ticket whose read failed
     // sees no ticket card. Upgrade path: a per-card "couldn't check" line.
-    const [visit, ticket, doctors] = await Promise.all([
+    const [visit, ticket, doctors, lines, sessions] = await Promise.all([
       fetchAppointments("upcoming-active", 1).then(
         (rows) => rows[0] ?? null,
         () => null,
       ),
       fetchLiveIntake(profile.hospitalId).catch(() => null),
       fetchBookableClinicians(profile.hospitalId).catch(() => null),
+      fetchServiceLines({ hospitalId: profile.hospitalId }).catch(() => null),
+      fetchSessions({ hospitalId: profile.hospitalId }).catch(() => null),
     ]);
-    setHome({ kind: "ready", profile, visit, ticket, doctors });
+    // The next open day per clinic — sessions arrive soonest first, so the
+    // first open one of a line is its next. A line with none says so.
+    const clinics =
+      lines && sessions
+        ? lines
+            .filter((l) => l.capacityMode === "session")
+            .map((line) => ({
+              line,
+              next: sessions.find((s) => s.serviceLineId === line.id && s.placesLeft > 0) ?? null,
+            }))
+        : null;
+    setHome({ kind: "ready", profile, visit, ticket, doctors, clinics });
   }, []);
 
   // On focus rather than on mount: a patient returning from the same-day door
@@ -224,7 +255,7 @@ export default function HomeScreen() {
       />
     );
   } else {
-    const { profile, visit, ticket, doctors } = home;
+    const { profile, visit, ticket, doctors, clinics } = home;
 
     // The departments present, in the order the server sends (soonest open
     // day first); a chip that no longer exists after a refresh falls back to
@@ -275,7 +306,9 @@ export default function HomeScreen() {
               tone="onPrimary"
             />
           }
-          eyebrow={word ? `Your next visit · ${word}` : "Your next visit"}
+          eyebrow={["Your next visit", word, visit.bookingCode ? `Code ${visit.bookingCode}` : null]
+            .filter(Boolean)
+            .join(" · ")}
           title={visit.clinicianName || "Your clinician"}
           subtitle={`${visit.departmentName} · ${visit.hospitalName}`}
           // The day always beside the time, in the hospital's zone (ADR 0085 §3).
@@ -285,7 +318,10 @@ export default function HomeScreen() {
               label: "Day",
               value: dayLabel(dateKey(new Date(visit.startsAtIso))),
             },
-            { icon: "time-outline", label: "Time", value: formatTime(visit.startsAtIso) },
+            // A clinic day is a position, not a time (ADR 0087).
+            visit.positionNumber !== null
+              ? { icon: "people-outline", label: "Position", value: String(visit.positionNumber) }
+              : { icon: "time-outline", label: "Time", value: formatTime(visit.startsAtIso) },
           ]}
           actions={
             <>
@@ -430,6 +466,56 @@ export default function HomeScreen() {
             </View>
           </Section>
         ) : null}
+
+        {/* ADR 0087: the clinics that book by the day — a place in a
+            published clinic day rather than a clinician's time. The next
+            open day and its places are the allocator's own numbers. */}
+        {clinics && clinics.length > 0 ? (
+          <Section title="Clinics">
+            <View style={styles.rows}>
+              {clinics.map(({ line, next }) => (
+                <Pressable
+                  key={line.id}
+                  accessibilityRole="button"
+                  accessibilityHint="Opens this clinic"
+                  onPress={() =>
+                    router.push({ pathname: "/(app)/clinic/[id]", params: { id: line.id } })
+                  }
+                  style={({ pressed }) => [styles.clinic, pressed && styles.pressed]}
+                >
+                  <View
+                    style={[styles.disc, styles.secondaryDisc]}
+                    accessibilityElementsHidden
+                    importantForAccessibility="no-hide-descendants"
+                  >
+                    <Ionicons name="medkit-outline" size={22} color={colors.accentForeground} />
+                  </View>
+                  <View style={styles.doorText}>
+                    <Text style={styles.secondaryTitle} numberOfLines={1}>
+                      {line.name}
+                    </Text>
+                    <Text style={styles.secondaryBody} numberOfLines={1}>
+                      {next
+                        ? `Next clinic day ${dayLabel(dateKey(new Date(next.startsAtIso)))} · ${
+                            next.placesLeft === 1
+                              ? "1 place left"
+                              : `${next.placesLeft} places left`
+                          }`
+                        : "No days open yet"}
+                    </Text>
+                  </View>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={20}
+                    color={colors.mutedForeground}
+                    accessibilityElementsHidden
+                    importantForAccessibility="no-hide-descendants"
+                  />
+                </Pressable>
+              ))}
+            </View>
+          </Section>
+        ) : null}
       </>
     );
   }
@@ -525,6 +611,17 @@ const makeStyles = (c: Palette) =>
       borderColor: c.border,
     },
     secondaryDisc: { backgroundColor: c.accent },
+    // The same card as the secondary door: a clinic is a booking door too.
+    clinic: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: space[3],
+      padding: space[4],
+      borderRadius: radius["2xl"],
+      backgroundColor: c.card,
+      borderWidth: 1,
+      borderColor: c.border,
+    },
     secondaryTitle: {
       fontFamily: font.bodyMedium,
       fontSize: 16,

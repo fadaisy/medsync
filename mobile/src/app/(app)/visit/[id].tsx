@@ -36,6 +36,7 @@ import {
   fetchBookableClinicians,
   fetchMyRating,
   formatTime,
+  formatWindow,
   MIN_REASON_CHARS,
   rateVisit,
   RESCHEDULABLE,
@@ -327,7 +328,10 @@ export default function VisitScreen() {
 
   /* ─── the visit ──────────────────────────────────────────────── */
 
-  const canMove = RESCHEDULABLE.has(visit.status);
+  // A place in a clinic day is not a time: `reschedule-appointment` refuses
+  // session rows ("Move this visit from the clinic day list."), so the
+  // control is absent rather than a fake affordance (ADR 0088).
+  const canMove = RESCHEDULABLE.has(visit.status) && visit.sessionId === null;
   const canCancel = CANCELLABLE.has(visit.status);
   const statusWord = STATUS_LABEL[visit.status];
   const reasonTitle = APPOINTMENT_REASONS.find((r) => r.value === visit.reason)?.title ?? null;
@@ -414,7 +418,9 @@ export default function VisitScreen() {
                 label: "Day",
                 value: dayLabel(dateKey(new Date(visit.startsAtIso))),
               },
-              { icon: "time-outline", label: "Time", value: formatTime(visit.startsAtIso) },
+              visit.positionNumber !== null
+                ? { icon: "people-outline", label: "Position", value: String(visit.positionNumber) }
+                : { icon: "time-outline", label: "Time", value: formatTime(visit.startsAtIso) },
             ]}
             // Move before cancel — §13. The white pill is the way to stay.
             actions={
@@ -434,6 +440,28 @@ export default function VisitScreen() {
               ) : undefined
             }
           />
+
+          {visit.bookingCode ? (
+            <View style={[styles.card, styles.codeCard]}>
+              <Text style={styles.meta}>Booking code</Text>
+              <Text
+                style={styles.code}
+                accessibilityLabel={`Booking code ${visit.bookingCode.split("").join(" ")}`}
+              >
+                {visit.bookingCode}
+              </Text>
+              {visit.positionNumber !== null ? (
+                <Text style={styles.position}>Position {visit.positionNumber}</Text>
+              ) : null}
+              {visit.arrivalWindowStartIso && visit.arrivalWindowEndIso ? (
+                <Text style={styles.body}>
+                  Arrive between{" "}
+                  {formatWindow(visit.arrivalWindowStartIso, visit.arrivalWindowEndIso)}
+                </Text>
+              ) : null}
+              <Text style={styles.body}>Show this at the desk.</Text>
+            </View>
+          ) : null}
 
           {awaiting || reasonTitle || visit.reasonNote ? (
             <View style={styles.card}>
@@ -667,6 +695,16 @@ const makeStyles = (c: Palette) =>
     },
     // Controls want more air between them than lines of text do.
     ratingCard: { gap: space[3] },
+    // The receipt: the code and the position big and monospaced (PRD §6.3).
+    codeCard: { alignItems: "center", gap: space[1] },
+    code: {
+      fontFamily: font.mono,
+      fontSize: 34,
+      lineHeight: 42,
+      letterSpacing: 5,
+      color: c.foreground,
+    },
+    position: { fontFamily: font.mono, fontSize: 20, lineHeight: 26, color: c.foreground },
     body: { fontFamily: font.body, fontSize: 14.5, lineHeight: 21, color: c.mutedForeground },
     meta: { fontFamily: font.body, fontSize: 13.5, lineHeight: 19, color: c.mutedForeground },
     note: { fontFamily: font.body, fontSize: 14.5, lineHeight: 21, color: c.foreground },

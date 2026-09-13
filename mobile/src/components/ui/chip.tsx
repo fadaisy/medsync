@@ -67,23 +67,28 @@ export function Tile({
   hint,
   selected = false,
   onPress,
+  disabled = false,
 }: {
   label: string;
   hint?: string;
   selected?: boolean;
   onPress: () => void;
+  /** A pick that exists but cannot be taken — a full clinic day. The hint says why. */
+  disabled?: boolean;
 }) {
   const styles = useStyles(makeStyles);
 
   return (
     <Pressable
       accessibilityRole="radio"
-      accessibilityState={{ checked: selected }}
+      accessibilityState={{ checked: selected, disabled }}
       accessibilityLabel={hint ? `${label}. ${hint}` : label}
+      disabled={disabled}
       onPress={onPress}
       style={({ pressed }) => [
         styles.tile,
         selected && styles.tileSelected,
+        disabled && styles.chipDisabled,
         pressed && styles.pressed,
       ]}
     >

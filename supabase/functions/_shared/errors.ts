@@ -45,6 +45,11 @@ export function conflict(message: string, init: ResponseInit, details?: unknown)
   return jsonResponse({ ok: false, error: { code: "conflict", message, details } }, 409, init);
 }
 
+/** 429 — a per-caller rate limit tripped. The message is patient-facing prose. */
+export function tooManyRequests(message: string, init: ResponseInit): Response {
+  return jsonResponse({ ok: false, error: { code: "rate_limited", message } }, 429, init);
+}
+
 export function notFound(init: ResponseInit, message = "Not found"): Response {
   return jsonResponse({ ok: false, error: { code: "not_found", message } }, 404, init);
 }

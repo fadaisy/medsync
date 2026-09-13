@@ -251,6 +251,14 @@ function VisitRow({
           {row.departmentName}
         </Text>
         <Text style={styles.when}>{formatWhen(row.startsAtIso)}</Text>
+        {/* The code the desk searches by, and the place held in a clinic day
+            (Gate C) — monospaced, the two things read aloud (PRD §6.3). */}
+        {row.bookingCode ? (
+          <Text style={styles.code}>
+            Code {row.bookingCode}
+            {row.positionNumber !== null ? ` · Position ${row.positionNumber}` : ""}
+          </Text>
+        ) : null}
         <View style={styles.pill}>
           <Pill status={row.status} />
         </View>
@@ -293,5 +301,6 @@ const makeStyles = (c: Palette) =>
     who: { fontFamily: font.bodyMedium, fontSize: 16, lineHeight: 22, color: c.foreground },
     where: { fontFamily: font.body, fontSize: 13.5, lineHeight: 19, color: c.mutedForeground },
     when: { fontFamily: font.body, fontSize: 14, lineHeight: 19, color: c.foreground },
+    code: { fontFamily: font.mono, fontSize: 13.5, lineHeight: 19, color: c.foreground },
     pill: { marginTop: space[1] },
   });

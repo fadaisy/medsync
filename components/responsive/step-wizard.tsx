@@ -56,31 +56,36 @@ export function StepWizardShell({
 }: StepWizardShellProps) {
   return (
     <div className="flex w-full flex-1 flex-col">
-      <header className="border-border/70 bg-background/95 supports-backdrop-filter:bg-background/80 sticky top-0 z-10 flex flex-col gap-3 border-b px-4 pt-3 pb-4 supports-backdrop-filter:backdrop-blur sm:px-6">
-        <div className="flex items-center gap-2">
-          {onBack ? (
-            <button
-              type="button"
-              onClick={onBack}
-              className="text-muted-foreground hover:text-foreground focus-visible:ring-brand-500/40 inline-flex items-center justify-center rounded-full p-1.5 transition-colors outline-none focus-visible:ring-2"
-              aria-label="Back"
-            >
-              <ChevronLeftIcon className="size-5" aria-hidden />
-            </button>
-          ) : (
-            <span className="size-8" aria-hidden />
-          )}
-          <StepIndicator steps={steps} currentStepIndex={currentStepIndex} />
-        </div>
-        <div className="flex flex-col gap-1 px-1">
-          <h1 className="font-display text-foreground text-heading-m leading-tight font-medium tracking-[-0.015em] sm:text-[26px]">
-            {title}
-          </h1>
-          {description ? (
-            <p className="text-muted-foreground text-body-s max-w-xl leading-relaxed">
-              {description}
-            </p>
-          ) : null}
+      {/* `top-13`: the patient workspace keeps its 52px bar at every width,
+          so that is the one sticky offset every surface under it shares. The
+          inner column matches the body's so the two never mis-align. */}
+      <header className="border-border/70 bg-background/95 supports-backdrop-filter:bg-background/80 sticky top-13 z-10 flex flex-col gap-3 border-b px-4 pt-3 pb-4 supports-backdrop-filter:backdrop-blur sm:px-6">
+        <div className="mx-auto flex w-full max-w-xl flex-col gap-3">
+          <div className="flex items-center gap-2">
+            {onBack ? (
+              <button
+                type="button"
+                onClick={onBack}
+                className="text-muted-foreground hover:text-foreground focus-visible:ring-brand-500/40 inline-flex items-center justify-center rounded-full p-1.5 transition-colors outline-none focus-visible:ring-2"
+                aria-label="Back"
+              >
+                <ChevronLeftIcon className="size-5" aria-hidden />
+              </button>
+            ) : (
+              <span className="size-8" aria-hidden />
+            )}
+            <StepIndicator steps={steps} currentStepIndex={currentStepIndex} />
+          </div>
+          <div className="flex flex-col gap-1 px-1">
+            <h1 className="font-display text-foreground text-heading-m leading-tight font-medium tracking-[-0.015em] sm:text-[26px]">
+              {title}
+            </h1>
+            {description ? (
+              <p className="text-muted-foreground text-body-s max-w-xl leading-relaxed">
+                {description}
+              </p>
+            ) : null}
+          </div>
         </div>
       </header>
 

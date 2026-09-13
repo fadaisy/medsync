@@ -400,6 +400,8 @@ export const appointmentReminders = pgTable(
       .notNull()
       .references(() => appointments.id, { onDelete: "cascade" }),
     channel: text("channel").notNull(),
+    /** Migration 0059 (ADR 0088): 'reminder' | 'receipt'. A receipt is scheduled for now() and never goes stale. */
+    kind: text("kind").notNull().default("reminder"),
     scheduledAt: timestamp("scheduled_at", { withTimezone: true }).notNull(),
     state: text("state").notNull().default("queued"),
     sentAt: timestamp("sent_at", { withTimezone: true }),
@@ -410,6 +412,7 @@ export const appointmentReminders = pgTable(
   (t) => [
     check("reminders_channel_check", sql`${t.channel} IN ('push','sms','email','in_app')`),
     check("reminders_state_check", sql`${t.state} IN ('queued','sent','failed','cancelled')`),
+    check("reminders_kind_check", sql`${t.kind} IN ('reminder','receipt')`),
     index("appointment_reminders_dispatcher_idx")
       .on(t.state, t.scheduledAt)
       .where(sql`${t.state} = 'queued'`),

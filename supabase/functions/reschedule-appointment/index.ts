@@ -41,8 +41,13 @@ import {
 import { requireHospitalAdminScope } from "../_shared/hospital-admin-scope.ts";
 import { makeLogger } from "../_shared/logger.ts";
 import { networkContext, recordSaAudit } from "../_shared/sa-audit.ts";
+import { bookingCode } from "../_shared/slots.ts";
 
 const log = makeLogger("reschedule-appointment");
+
+/** Retries on `appointments_hospital_booking_code_unique` — as pt-request-appointment. */
+const BOOKING_CODE_ATTEMPTS = 5;
+const cryptoRandom = () => (crypto.getRandomValues(new Uint32Array(1))[0] as number) / 2 ** 32;
 
 const InputSchema = z.object({
   appointment_id: z.string().uuid(),
@@ -84,7 +89,7 @@ Deno.serve(async (request: Request) => {
     .from("appointments")
     .select(
       "id, hospital_id, department_id, patient_user_id, clinician_user_id, " +
-        "status, reason, reason_note, type, priority, notify_lead_minutes",
+        "status, reason, reason_note, type, priority, notify_lead_minutes, session_id, channel",
     )
     .eq("id", input.appointment_id)
     .maybeSingle();
@@ -126,6 +131,12 @@ Deno.serve(async (request: Request) => {
       `Appointment is in '${appt.status}' — reschedule isn't allowed from here.`,
       init,
     );
+  }
+  // ADR 0088: a session booking holds a POSITION, not a time, so a new
+  // starts_at means nothing to it. Moving one is cancel-position + allocate
+  // in the target clinic day — a different input and a different function.
+  if (appt.session_id) {
+    return badRequest("Move this visit from the clinic day list.", init);
   }
 
   // Refuse double-book at the new slot. The index is the real guard (its
@@ -177,34 +188,51 @@ Deno.serve(async (request: Request) => {
     return serverError("audit write failed", init);
   }
 
-  // 2. Create the new appointment.
-  const { data: newRow, error: insertError } = await sb
-    .from("appointments")
-    .insert({
-      hospital_id: appt.hospital_id,
-      department_id: appt.department_id,
-      patient_user_id: appt.patient_user_id,
-      clinician_user_id: appt.clinician_user_id,
-      starts_at: input.new_starts_at,
-      ends_at: input.new_ends_at,
-      reason: appt.reason,
-      reason_note: appt.reason_note,
-      origin: isPatient ? "patient" : isClinician ? "clinician" : "reception",
-      status: appt.status,
-      priority: appt.priority,
-      type: appt.type,
-      rescheduled_from_appointment_id: appt.id,
-      created_by_user_id: caller.id,
-      notify_lead_minutes: leadMinutes,
-      // Omitted when absent so the row takes the column default (and a
-      // client that never sends one keeps working before migration 0058).
-      ...(input.idempotency_key ? { idempotency_key: input.idempotency_key } : {}),
-    })
-    .select("id, status")
-    .single();
-  if (insertError || !newRow) {
+  // 2. Create the new appointment — with its own booking code (ADR 0088):
+  //    the old row keeps the old code, so the desk can find either.
+  let newRow: { id: string; status: string } | null = null;
+  let insertError: { code?: string; message?: string } | null = null;
+  for (let attempt = 0; attempt < BOOKING_CODE_ATTEMPTS && !newRow; attempt++) {
+    const res = await sb
+      .from("appointments")
+      .insert({
+        booking_code: bookingCode(cryptoRandom),
+        channel: appt.channel,
+        hospital_id: appt.hospital_id,
+        department_id: appt.department_id,
+        patient_user_id: appt.patient_user_id,
+        clinician_user_id: appt.clinician_user_id,
+        starts_at: input.new_starts_at,
+        ends_at: input.new_ends_at,
+        reason: appt.reason,
+        reason_note: appt.reason_note,
+        origin: isPatient ? "patient" : isClinician ? "clinician" : "reception",
+        status: appt.status,
+        priority: appt.priority,
+        type: appt.type,
+        rescheduled_from_appointment_id: appt.id,
+        created_by_user_id: caller.id,
+        notify_lead_minutes: leadMinutes,
+        // Omitted when absent so the row takes the column default (and a
+        // client that never sends one keeps working before migration 0058).
+        ...(input.idempotency_key ? { idempotency_key: input.idempotency_key } : {}),
+      })
+      .select("id, status")
+      .single();
+    insertError = res.error;
+    if (res.data) newRow = res.data;
+    else if (
+      !(
+        res.error?.code === "23505" &&
+        res.error.message.includes("appointments_hospital_booking_code_unique")
+      )
+    ) {
+      break;
+    }
+  }
+  if (!newRow) {
     const violates = (index: string) =>
-      insertError?.code === "23505" && insertError.message.includes(index);
+      insertError?.code === "23505" && !!insertError.message?.includes(index);
     if (violates("appointments_no_double_booking")) {
       return conflict("Someone just took this slot — pick another and try again.", init);
     }
@@ -241,6 +269,18 @@ Deno.serve(async (request: Request) => {
     .update({ state: "cancelled" })
     .eq("appointment_id", appt.id)
     .eq("state", "queued");
+
+  // The receipt for the new row: kind 'receipt', due now (ADR 0088). Its
+  // own statement so a database that predates 0059 loses only the receipt.
+  const { error: receiptError } = await sb.from("appointment_reminders").insert({
+    appointment_id: newRow.id,
+    channel: "sms",
+    kind: "receipt",
+    scheduled_at: new Date().toISOString(),
+  });
+  if (receiptError) {
+    log.warn("receipt queue failed (continuing)", { requestId, reason: receiptError.message });
+  }
 
   const startsMs = new Date(input.new_starts_at).getTime();
   const reminderRows = leadMinutes

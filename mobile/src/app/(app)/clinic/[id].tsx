@@ -1,0 +1,460 @@
+import type { WaitOption } from "@/components/patient/no-silent-wait";
+import type {
+  AppointmentReason,
+  BookingReceipt,
+  ClinicSession,
+  PatientProfile,
+  ServiceLine,
+} from "@/lib/booking";
+import type { Palette } from "@/theme/tokens";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+
+import { BookingDone } from "@/components/patient/booking-done";
+import { BookingInterstitial } from "@/components/patient/booking-interstitial";
+import { EmergencyButton } from "@/components/patient/emergency-button";
+import { NoSilentWait } from "@/components/patient/no-silent-wait";
+import { Button } from "@/components/ui/button";
+import { Chip, ChipRow, Tile } from "@/components/ui/chip";
+import { Empty } from "@/components/ui/empty";
+import { Screen } from "@/components/ui/screen";
+import { Section } from "@/components/ui/section";
+import {
+  dateKey,
+  fetchPatientProfile,
+  fetchServiceLine,
+  fetchServiceLines,
+  fetchSessions,
+  formatDateLong,
+  INTERSTITIAL_REASONS,
+  newIdempotencyKey,
+  reasonsFor,
+  requestAppointment,
+} from "@/lib/booking";
+import { useStyles, useTheme } from "@/theme/theme";
+import { font, radius, space } from "@/theme/tokens";
+
+/** "12 places left" / "1 place left" / "Full" — the tile's second line. */
+function placesWord(n: number): string {
+  if (n === 0) return "Full";
+  return n === 1 ? "1 place left" : `${n} places left`;
+}
+
+/** The same clinic at another hospital, with a day inside the window (PRD §2.4 option 2). */
+async function loadElsewhere(
+  line: ServiceLine,
+  limitIso: string,
+): Promise<{ line: ServiceLine; next: ClinicSession }[]> {
+  const lines = (await fetchServiceLines({ name: line.name }).catch(() => [])).filter(
+    (l) => l.hospitalId !== line.hospitalId && l.capacityMode === "session",
+  );
+  const found = await Promise.all(
+    lines.map(async (l) => {
+      const next = (await fetchSessions({ serviceLineId: l.id }).catch(() => [])).find(
+        (s) => s.placesLeft > 0 && s.startsAtIso <= limitIso,
+      );
+      return next ? { line: l, next } : null;
+    }),
+  );
+  return found.filter((f): f is { line: ServiceLine; next: ClinicSession } => f !== null);
+}
+
+/**
+ * One clinic — a session-mode service line (ADR 0087): its published clinic
+ * days as tiles, the reasons it takes, a note, and the docked "Book a place".
+ * One POST at the end — `pt-request-appointment`'s session path — and the
+ * server allocates the position; the tile's count is the allocator's own
+ * arithmetic, so a day shown as open is a day the server will take.
+ *
+ * The reason comes first: a "new or worsening problem" opens the emergency
+ * interstitial before any clinic day is on screen (PRD §2.5). When no day
+ * falls inside the facility's own target, the no-silent-wait rule's options
+ * come before the days beyond it (PRD §2.4).
+ */
+export default function ClinicScreen() {
+  const router = useRouter();
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const { colors } = useTheme();
+  const styles = useStyles(makeStyles);
+
+  const [profile, setProfile] = useState<PatientProfile | null | undefined>();
+  const [line, setLine] = useState<ServiceLine | null>(null);
+  const [sessions, setSessions] = useState<ClinicSession[]>([]);
+  // `dateKey` of the window's last day, and what the rule found beyond it.
+  const [limit, setLimit] = useState<string | null>(null);
+  const [elsewhere, setElsewhere] = useState<{ line: ServiceLine; next: ClinicSession }[]>([]);
+  const [loadFailed, setLoadFailed] = useState(false);
+
+  const [reason, setReason] = useState<AppointmentReason | null>(null);
+  const [interstitialSeen, setInterstitialSeen] = useState(false);
+  const [session, setSession] = useState<ClinicSession | null>(null);
+  const [note, setNote] = useState("");
+  const [noteFocused, setNoteFocused] = useState(false);
+
+  const keyRef = useRef<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [done, setDone] = useState<{ receipt: BookingReceipt; startsAtIso: string } | null>(null);
+
+  const load = useCallback(() => {
+    fetchPatientProfile()
+      .then(async (p) => {
+        if (!p) {
+          setProfile(null);
+          return;
+        }
+        const found = await fetchServiceLine(id);
+        setLine(found);
+        if (found) {
+          const rows = await fetchSessions({ serviceLineId: found.id });
+          setSessions(rows);
+          const limitAt = new Date(Date.now() + found.timeToCareDays * 86_400_000);
+          setLimit(dateKey(limitAt));
+          const within = rows.some(
+            (s) => s.placesLeft > 0 && s.startsAtIso <= limitAt.toISOString(),
+          );
+          setElsewhere(within ? [] : await loadElsewhere(found, limitAt.toISOString()));
+        }
+        setProfile(p);
+      })
+      .catch(() => setLoadFailed(true));
+  }, [id]);
+
+  useEffect(load, [load]);
+
+  const pickReason = (r: AppointmentReason) => {
+    setReason(r);
+    keyRef.current = null;
+  };
+  const pickSession = (s: ClinicSession) => {
+    setSession(s);
+    keyRef.current = null;
+  };
+
+  const onSubmit = async () => {
+    if (!profile || !line || !reason || !session || busy) return;
+    setBusy(true);
+    setError(null);
+    keyRef.current ??= newIdempotencyKey();
+    const res = await requestAppointment({
+      hospitalId: line.hospitalId,
+      reason,
+      reasonNote: note.trim() || null,
+      idempotencyKey: keyRef.current,
+      session: { sessionId: session.id },
+    });
+    if (res.ok) {
+      keyRef.current = null;
+      setDone({
+        receipt: res.data ?? {
+          appointment_id: "",
+          status: "",
+          booking_code: null,
+          position_number: null,
+          arrival_window_start: null,
+          arrival_window_end: null,
+        },
+        startsAtIso: session.startsAtIso,
+      });
+      return;
+    }
+    // "This clinic day is full — here are the next two." — the server's
+    // sentence, verbatim; then re-read the days so the tiles say which.
+    setError(res.error);
+    setBusy(false);
+    try {
+      const fresh = await fetchSessions({ serviceLineId: line.id });
+      setSessions(fresh);
+      const still = fresh.find((s) => s.id === session.id);
+      setSession(still && still.placesLeft > 0 ? still : null);
+    } catch {
+      // Keep what is on screen; the sentence above already says to try again.
+    }
+  };
+
+  const chrome = { onBack: router.back, trailing: <EmergencyButton /> };
+
+  if (loadFailed) {
+    return (
+      <Screen {...chrome}>
+        <Empty
+          icon="cloud-offline-outline"
+          title="Couldn't load the days the clinic has open."
+          hint="Check your connection and try again."
+          action={
+            <Button
+              variant="secondary"
+              label="Try again"
+              onPress={() => {
+                setLoadFailed(false);
+                load();
+              }}
+            />
+          }
+        />
+      </Screen>
+    );
+  }
+
+  if (profile === undefined) {
+    return (
+      <Screen {...chrome}>
+        <View style={styles.center}>
+          <ActivityIndicator color={colors.primary} accessibilityLabel="Loading" />
+        </View>
+      </Screen>
+    );
+  }
+
+  if (profile === null) {
+    return (
+      <Screen {...chrome}>
+        <Empty
+          icon="person-circle-outline"
+          title="This is the patient app."
+          hint="Sign in with your patient account to book a clinic day."
+        />
+      </Screen>
+    );
+  }
+
+  if (done) {
+    return (
+      <Screen
+        trailing={<EmergencyButton />}
+        footer={<Button label="Done" onPress={() => router.dismissTo("/(app)/(tabs)")} />}
+      >
+        <BookingDone
+          receipt={done.receipt}
+          startsAtIso={done.startsAtIso}
+          where={line ? `${line.name} · ${line.departmentName} · ${line.hospitalName}` : ""}
+        />
+      </Screen>
+    );
+  }
+
+  // The link named a clinic that is no longer active, or never existed.
+  if (!line) {
+    return (
+      <Screen {...chrome}>
+        <Empty
+          icon="calendar-clear-outline"
+          title="This clinic is not open for booking."
+          hint="Go back and pull down to refresh."
+          action={<Button label="Back" variant="secondary" onPress={router.back} />}
+        />
+      </Screen>
+    );
+  }
+
+  if (reason && INTERSTITIAL_REASONS.has(reason) && !interstitialSeen) {
+    return (
+      <BookingInterstitial
+        hospitalName={line.hospitalName}
+        emergencyPhone={line.emergencyPhone}
+        onContinue={() => setInterstitialSeen(true)}
+      />
+    );
+  }
+
+  const reasons = reasonsFor(line);
+  const picked = reasons.find((r) => r.value === reason);
+  const beyond =
+    limit !== null &&
+    sessions.every((s) => s.placesLeft === 0 || dateKey(new Date(s.startsAtIso)) > limit);
+
+  const options: WaitOption[] = elsewhere.map(({ line: l, next }) => ({
+    key: l.id,
+    title: l.hospitalName,
+    subtitle: `${formatDateLong(next.startsAtIso)} · ${placesWord(next.placesLeft)}`,
+    onPress: () => router.replace({ pathname: "/(app)/clinic/[id]", params: { id: l.id } }),
+  }));
+
+  const dayPicker = (
+    <View style={styles.tiles} accessibilityRole="radiogroup">
+      {sessions.map((s) => (
+        <Tile
+          key={s.id}
+          label={formatDateLong(s.startsAtIso)}
+          hint={`${s.clinicianName} · ${placesWord(s.placesLeft)}`}
+          selected={s.id === session?.id}
+          disabled={s.placesLeft === 0}
+          onPress={() => pickSession(s)}
+        />
+      ))}
+    </View>
+  );
+
+  return (
+    <KeyboardAvoidingView
+      style={styles.fill}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <Screen
+        {...chrome}
+        title={line.name}
+        footer={
+          sessions.length === 0 ? undefined : (
+            <>
+              {error ? (
+                <View style={styles.well}>
+                  <Ionicons name="alert-circle-outline" size={18} color={colors.status.cautionFg} />
+                  <Text style={styles.wellText} accessibilityLiveRegion="polite">
+                    {error}
+                  </Text>
+                </View>
+              ) : null}
+              <Button
+                label="Book a place"
+                busy={busy}
+                disabled={!session || !reason}
+                onPress={() => void onSubmit()}
+              />
+            </>
+          )
+        }
+      >
+        <View style={styles.stack}>
+          <Text style={styles.meta}>
+            {line.departmentName} · {line.hospitalName}
+          </Text>
+
+          {sessions.length === 0 ? (
+            <Empty
+              icon="calendar-clear-outline"
+              title="No days open yet."
+              hint="This clinic has not put any clinic days on MedSync. You can still be seen — going to the hospital does not depend on this app."
+              action={
+                <Button
+                  variant="secondary"
+                  label="Coming to the hospital today"
+                  onPress={() => router.replace("/(app)/today")}
+                />
+              }
+            />
+          ) : null}
+
+          {sessions.length > 0 ? (
+            <Section title="Why are you coming?">
+              {/* Only the reasons this line takes; the server refuses any other. */}
+              <ChipRow>
+                {reasons.map((r) => (
+                  <Chip
+                    key={r.value}
+                    label={r.title}
+                    selected={r.value === reason}
+                    onPress={() => pickReason(r.value)}
+                  />
+                ))}
+              </ChipRow>
+              {picked ? <Text style={styles.hint}>{picked.hint}</Text> : null}
+            </Section>
+          ) : null}
+
+          {sessions.length > 0 ? (
+            <Section title="Select a clinic day">
+              {beyond ? (
+                <NoSilentWait targetDays={line.timeToCareDays} sameService={[]} elsewhere={options}>
+                  {dayPicker}
+                </NoSilentWait>
+              ) : (
+                dayPicker
+              )}
+            </Section>
+          ) : null}
+
+          {sessions.length > 0 ? (
+            <View style={styles.field}>
+              <Text style={[styles.fieldLabel, noteFocused && styles.fieldLabelFocused]}>
+                Add a note for the clinic (optional)
+              </Text>
+              <TextInput
+                value={note}
+                onChangeText={setNote}
+                onFocus={() => setNoteFocused(true)}
+                onBlur={() => setNoteFocused(false)}
+                multiline
+                maxLength={500}
+                placeholder="e.g. I can only come in the morning."
+                placeholderTextColor={colors.mutedForeground}
+                selectionColor={colors.primary}
+                accessibilityLabel="Add a note for the clinic. Optional."
+                style={[styles.input, noteFocused && styles.inputFocused]}
+              />
+            </View>
+          ) : null}
+        </View>
+      </Screen>
+    </KeyboardAvoidingView>
+  );
+}
+
+const makeStyles = (c: Palette) =>
+  StyleSheet.create({
+    fill: { flex: 1 },
+    center: { flexGrow: 1, alignItems: "center", justifyContent: "center" },
+    stack: { flexGrow: 1, gap: space[5] },
+    meta: {
+      fontFamily: font.body,
+      fontSize: 14.5,
+      lineHeight: 21,
+      color: c.mutedForeground,
+      marginTop: -space[3],
+    },
+    // One clinic day per row: a date in full and its clinician need the width.
+    tiles: { gap: space[2] },
+    hint: { fontFamily: font.body, fontSize: 13.5, lineHeight: 19, color: c.mutedForeground },
+
+    field: { gap: space[2] },
+    fieldLabel: {
+      fontFamily: font.body,
+      fontSize: 12.5,
+      letterSpacing: 0.3,
+      color: c.mutedForeground,
+    },
+    fieldLabelFocused: { fontFamily: font.bodyMedium, color: c.primary },
+    input: {
+      fontFamily: font.body,
+      fontSize: 14.5,
+      lineHeight: 21,
+      color: c.foreground,
+      minHeight: 48,
+      paddingHorizontal: space[4],
+      paddingVertical: space[3],
+      borderRadius: radius.lg,
+      backgroundColor: c.muted,
+      borderWidth: 1,
+      borderColor: c.border,
+      textAlignVertical: "top",
+    },
+    inputFocused: { borderColor: c.primary },
+
+    // Amber, not red: a full clinic day is not a clinical emergency.
+    well: {
+      flexDirection: "row",
+      gap: space[2],
+      alignItems: "flex-start",
+      padding: space[3],
+      borderRadius: radius.lg,
+      backgroundColor: c.status.cautionBg,
+      borderWidth: 1,
+      borderColor: c.status.cautionFg,
+    },
+    wellText: {
+      flex: 1,
+      fontFamily: font.body,
+      fontSize: 14.5,
+      lineHeight: 21,
+      color: c.foreground,
+    },
+  });

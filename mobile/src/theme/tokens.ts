@@ -18,6 +18,8 @@
  * editing the palette.
  */
 
+import { Platform } from "react-native";
+
 /** Indigo. The brand hue. Anchor #402a8e; the ramp is perceptually even in OKLab. */
 export const brand = {
   50: "#f4f3ff",
@@ -291,4 +293,10 @@ export const font = {
   displayItalic: "Fraunces_400Regular_Italic",
   body: "Geist_400Regular",
   bodyMedium: "Geist_500Medium",
+  /**
+   * The booking code and the position number — the two things a patient
+   * reads aloud and shows at a desk (PRD §6.3: big and monospaced). The
+   * platform's own mono: no font file, and 0/O, 1/I never share a shape.
+   */
+  mono: Platform.select({ ios: "Menlo", default: "monospace" }),
 } as const;

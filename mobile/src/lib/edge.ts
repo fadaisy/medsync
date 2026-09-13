@@ -47,7 +47,7 @@ const FUNCTIONS_URL = `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1`;
  * `expo-crypto` ever arrives for another reason, swap the body for
  * `Crypto.randomUUID()` and nothing else moves.
  */
-function requestId(): string {
+export function requestId(): string {
   return `mob-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 }
 

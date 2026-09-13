@@ -1,6 +1,14 @@
-import type { AppointmentReason, ClinicianOption, PatientProfile, SlotOffer } from "@/lib/booking";
+import type { WaitOption } from "@/components/patient/no-silent-wait";
+import type {
+  AppointmentReason,
+  BookingReceipt,
+  ClinicianOption,
+  PatientProfile,
+  ServiceLine,
+  SlotOffer,
+} from "@/lib/booking";
 import type { Palette } from "@/theme/tokens";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
@@ -14,8 +22,11 @@ import {
   View,
 } from "react-native";
 
+import { BookingDone } from "@/components/patient/booking-done";
+import { BookingInterstitial } from "@/components/patient/booking-interstitial";
 import { DayStrip } from "@/components/patient/day-strip";
 import { EmergencyButton } from "@/components/patient/emergency-button";
+import { NoSilentWait } from "@/components/patient/no-silent-wait";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Chip, ChipRow } from "@/components/ui/chip";
@@ -25,16 +36,19 @@ import { Screen } from "@/components/ui/screen";
 import { Section } from "@/components/ui/section";
 import {
   APPOINTMENT_REASONS,
+  dateKey,
+  dayLabel,
   fetchBookableClinicians,
   fetchPatientProfile,
+  fetchServiceLines,
   formatTime,
-  formatWhen,
+  INTERSTITIAL_REASONS,
+  newIdempotencyKey,
+  reasonsFor,
   requestAppointment,
 } from "@/lib/booking";
 import { useStyles, useTheme } from "@/theme/theme";
 import { font, radius, space } from "@/theme/tokens";
-
-/** Where a patient with no hospital yet picks one, until the app owns that screen. */
 
 /** The days this clinician has anything open, earliest first. */
 const openDays = (c: ClinicianOption) => Object.keys(c.slotsByDate).sort();
@@ -46,17 +60,56 @@ function pick(list: ClinicianOption[], id: string, department?: string): Clinici
   );
 }
 
+/** The last day inside the facility's target: today + N days, as a `dateKey`. */
+const windowKey = (days: number) => dateKey(new Date(Date.now() + days * 86_400_000));
+
+/**
+ * The no-silent-wait rule's inputs for a slot-mode page (PRD §2.4): the line
+ * whose target applies (the department's slot line), and — only when nothing
+ * of this doctor's falls inside it — the other clinicians here and elsewhere
+ * who have a day that does. Fetched once, with the doctor.
+ */
+interface Wait {
+  line: ServiceLine | null;
+  /** `dateKey` of the window's last day; null when no line sets a target. */
+  limit: string | null;
+  sameService: ClinicianOption[];
+  elsewhere: ClinicianOption[];
+}
+
+async function loadWait(doctor: ClinicianOption, here: ClinicianOption[]): Promise<Wait> {
+  const lines = await fetchServiceLines({ hospitalId: doctor.hospitalId }).catch(() => []);
+  const line =
+    lines.find((l) => l.departmentId === doctor.departmentId && l.capacityMode === "slot") ?? null;
+  if (!line) return { line: null, limit: null, sameService: [], elsewhere: [] };
+  const limit = windowKey(line.timeToCareDays);
+  const within = (c: ClinicianOption) => openDays(c).some((d) => d <= limit);
+  if (within(doctor)) return { line, limit, sameService: [], elsewhere: [] };
+  const sameService = here.filter(
+    (c) => c.departmentId === doctor.departmentId && c.userId !== doctor.userId && within(c),
+  );
+  // ADR 0086: every hospital's roster, narrowed to the same-named department.
+  const elsewhere = (await fetchBookableClinicians().catch(() => [])).filter(
+    (c) =>
+      c.hospitalId !== doctor.hospitalId && c.departmentName === doctor.departmentName && within(c),
+  );
+  return { line, limit, sameService, elsewhere };
+}
+
 /**
  * One doctor — the reference's second screen (ADR 0085 §4): photo, rating,
- * name, department; select a day, select a time, say why, and the docked
- * "Book an appointment". One POST at the end, the same
- * `pt-request-appointment` call as ever, carrying the chosen slot's instants.
+ * name, department; say why, select a day, select a time, and the docked
+ * "Book an appointment". One POST at the end — `pt-request-appointment`'s
+ * slot path — carrying the chosen slot's instants and a key that makes a
+ * retry safe.
  *
- * Everything shown is what the server offered: the days are the keys of
- * `slotsByDate`, the times are its entries, the count is the length of the
- * list beside it (§3), and the rating is `clinician_rating_summary` or "No
- * ratings yet" (§2). Nothing here derives, filters or rounds. A time is never
- * shown without its day — the strip above it, `formatWhen` after.
+ * The reason comes FIRST (PRD §3.3.2): a "new or worsening problem" opens
+ * the emergency interstitial before any day or time is on screen, once per
+ * flow. Everything shown is what the server offered: the days are the keys
+ * of `slotsByDate`, the times are its entries, the count is the length of
+ * the list beside it (§3), and the rating is `clinician_rating_summary` or
+ * "No ratings yet" (§2). Nothing here derives, filters or rounds. A time is
+ * never shown without its day.
  */
 export default function DoctorScreen() {
   const router = useRouter();
@@ -74,21 +127,23 @@ export default function DoctorScreen() {
   const [profile, setProfile] = useState<PatientProfile | null | undefined>();
   // `null` = this doctor has no day open any more (or never did).
   const [doctor, setDoctor] = useState<ClinicianOption | null>(null);
+  const [wait, setWait] = useState<Wait | null>(null);
   const [loadFailed, setLoadFailed] = useState(false);
 
+  const [reason, setReason] = useState<AppointmentReason | null>(null);
+  // Once per flow: dismissed stays dismissed even if the reason changes and comes back.
+  const [interstitialSeen, setInterstitialSeen] = useState(false);
   const [dayKey, setDayKey] = useState<string | null>(null);
   const [slot, setSlot] = useState<SlotOffer | null>(null);
-  const [reason, setReason] = useState<AppointmentReason | null>(null);
   const [note, setNote] = useState("");
   const [noteFocused, setNoteFocused] = useState(false);
 
+  // One key per submission attempt, minted on the first press and kept
+  // across retries; cleared when the pick changes or the booking lands.
+  const keyRef = useRef<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [done, setDone] = useState<{
-    /** What the database wrote — `confirmed` or `pending_approval` — or null if the reply carried none. */
-    status: string | null;
-    startsAtIso: string;
-  } | null>(null);
+  const [done, setDone] = useState<{ receipt: BookingReceipt; startsAtIso: string } | null>(null);
 
   const load = useCallback(() => {
     fetchPatientProfile()
@@ -99,13 +154,11 @@ export default function DoctorScreen() {
           setProfile(null);
           return;
         }
-        const found = pick(
-          await fetchBookableClinicians(hospital ?? p.hospitalId ?? undefined),
-          id,
-          department,
-        );
+        const here = await fetchBookableClinicians(hospital ?? p.hospitalId ?? undefined);
+        const found = pick(here, id, department);
         setDoctor(found);
         setDayKey(found ? (openDays(found)[0] ?? null) : null);
+        setWait(found ? await loadWait(found, here) : null);
         setProfile(p);
       })
       .catch(() => setLoadFailed(true));
@@ -117,29 +170,55 @@ export default function DoctorScreen() {
   const hospitalName = doctor?.hospitalName ?? profile?.hospitalName ?? "your hospital";
   const days = doctor ? openDays(doctor) : [];
   const slots = doctor && dayKey ? (doctor.slotsByDate[dayKey] ?? []) : [];
+  // The line's own list when the department has one; Appendix A's 13 otherwise.
+  const reasons = wait?.line ? reasonsFor(wait.line) : APPOINTMENT_REASONS;
 
+  const pickReason = (r: AppointmentReason) => {
+    setReason(r);
+    keyRef.current = null;
+  };
   const pickDay = (key: string) => {
     setDayKey(key);
     setSlot(null);
+    keyRef.current = null;
+  };
+  const pickSlot = (s: SlotOffer) => {
+    setSlot(s);
+    keyRef.current = null;
   };
 
   const onSubmit = async () => {
     if (!profile || !doctor || !reason || !dayKey || !slot || busy) return;
     setBusy(true);
     setError(null);
+    keyRef.current ??= newIdempotencyKey();
     const res = await requestAppointment({
-      clinicianUserId: doctor.userId,
       hospitalId: doctor.hospitalId,
-      departmentId: doctor.departmentId,
       reason,
       reasonNote: note.trim() || null,
-      startsAtIso: slot.startsAtIso,
-      endsAtIso: slot.endsAtIso,
+      idempotencyKey: keyRef.current,
+      slot: {
+        clinicianUserId: doctor.userId,
+        departmentId: doctor.departmentId,
+        startsAtIso: slot.startsAtIso,
+        endsAtIso: slot.endsAtIso,
+      },
     });
     if (res.ok) {
+      keyRef.current = null;
       // `data` is undefined on a 2xx with no body (see `callEdge`): the write
       // landed, and the confirmation under-promises rather than guess.
-      setDone({ status: res.data?.status ?? null, startsAtIso: slot.startsAtIso });
+      setDone({
+        receipt: res.data ?? {
+          appointment_id: "",
+          status: "",
+          booking_code: null,
+          position_number: null,
+          arrival_window_start: null,
+          arrival_window_end: null,
+        },
+        startsAtIso: slot.startsAtIso,
+      });
       return;
     }
     // The server's sentence, verbatim — "Someone just took this slot — pick
@@ -209,35 +288,22 @@ export default function DoctorScreen() {
   }
 
   if (done) {
-    const confirmed = done.status === "confirmed";
     // No back control: the request is filed, and a step back would offer the
     // same instant a second time.
     return (
-      <Screen footer={<Button label="Done" onPress={() => router.dismissTo("/(app)/(tabs)")} />}>
-        <View style={styles.doneRoot}>
-          {/* Decorative: the heading under it says what happened. */}
-          <View
-            style={styles.doneDisc}
-            accessibilityElementsHidden
-            importantForAccessibility="no-hide-descendants"
-          >
-            <Ionicons name="checkmark" size={32} color={colors.accentForeground} />
-          </View>
-          <Text accessibilityRole="header" style={styles.doneTitle}>
-            {confirmed ? "This time is yours" : "We asked the clinic for this time"}
-          </Text>
-          {/* The day beside the time, on the screen most likely to be read
-              aloud to somebody else — the same string the visits list prints. */}
-          <Text style={styles.doneWhen}>{formatWhen(done.startsAtIso)}</Text>
-          {doctor ? (
-            <Text style={styles.doneMuted}>
-              {doctor.fullName} · {doctor.departmentName} · {hospitalName}
-            </Text>
-          ) : null}
-          {/* §11: no notification is promised — there is no transport that
-              could carry one. What replaces it is where the answer will be. */}
-          <Text style={styles.doneMuted}>You will find the answer under Visits.</Text>
-        </View>
+      <Screen
+        trailing={<EmergencyButton />}
+        footer={<Button label="Done" onPress={() => router.dismissTo("/(app)/(tabs)")} />}
+      >
+        <BookingDone
+          receipt={done.receipt}
+          startsAtIso={done.startsAtIso}
+          where={
+            doctor
+              ? `${doctor.fullName} · ${doctor.departmentName} · ${hospitalName}`
+              : hospitalName
+          }
+        />
       </Screen>
     );
   }
@@ -266,7 +332,39 @@ export default function DoctorScreen() {
     );
   }
 
-  const picked = APPOINTMENT_REASONS.find((r) => r.value === reason);
+  // PRD §2.5: the static card, before any day or time, once per flow. The
+  // number is the DOCTOR's hospital's — the line carries it — or none.
+  if (reason && INTERSTITIAL_REASONS.has(reason) && !interstitialSeen) {
+    return (
+      <BookingInterstitial
+        hospitalName={hospitalName}
+        emergencyPhone={
+          wait?.line?.emergencyPhone ??
+          (doctor.hospitalId === profile.hospitalId ? profile.emergencyPhone : null)
+        }
+        onContinue={() => setInterstitialSeen(true)}
+      />
+    );
+  }
+
+  const picked = reasons.find((r) => r.value === reason);
+  // Nothing inside the facility's target: the rule's ordered options, then
+  // the beyond-window days under their label (PRD §2.4).
+  const limit = wait?.limit ?? null;
+  const beyond = limit !== null && days.every((d) => d > limit);
+
+  const toOption = (c: ClinicianOption): WaitOption => ({
+    key: `${c.userId}:${c.departmentId}`,
+    title: c.hospitalId === doctor.hospitalId ? c.fullName : `${c.hospitalName} · ${c.fullName}`,
+    subtitle: `Next open: ${dayLabel(openDays(c)[0] ?? "")}`,
+    onPress: () =>
+      router.replace({
+        pathname: "/(app)/doctor/[id]",
+        params: { id: c.userId, department: c.departmentId, hospital: c.hospitalId },
+      }),
+  });
+
+  const dayPicker = <DayStrip days={days} selected={dayKey} onSelect={pickDay} />;
 
   return (
     <KeyboardAvoidingView
@@ -343,8 +441,36 @@ export default function DoctorScreen() {
           ) : null}
 
           {days.length > 0 ? (
+            <Section title="Why are you coming?">
+              {/* Appendix A's words, or the department's own list. No entry
+                  is a symptom; `urgent_review` is not one of them (ADR 0084 §12). */}
+              <ChipRow>
+                {reasons.map((r) => (
+                  <Chip
+                    key={r.value}
+                    label={r.title}
+                    selected={r.value === reason}
+                    onPress={() => pickReason(r.value)}
+                  />
+                ))}
+              </ChipRow>
+              {picked ? <Text style={styles.hint}>{picked.hint}</Text> : null}
+            </Section>
+          ) : null}
+
+          {days.length > 0 ? (
             <Section title="Select date">
-              <DayStrip days={days} selected={dayKey} onSelect={pickDay} />
+              {beyond && wait?.line ? (
+                <NoSilentWait
+                  targetDays={wait.line.timeToCareDays}
+                  sameService={wait.sameService.map(toOption)}
+                  elsewhere={wait.elsewhere.map(toOption)}
+                >
+                  {dayPicker}
+                </NoSilentWait>
+              ) : (
+                dayPicker
+              )}
             </Section>
           ) : null}
 
@@ -366,29 +492,11 @@ export default function DoctorScreen() {
                     key={s.startsAtIso}
                     label={formatTime(s.startsAtIso)}
                     selected={s.startsAtIso === slot?.startsAtIso}
-                    onPress={() => setSlot(s)}
+                    onPress={() => pickSlot(s)}
                   />
                 ))}
               </ChipRow>
             </View>
-          ) : null}
-
-          {days.length > 0 ? (
-            <Section title="Why are you coming?">
-              {/* Five plain choices. `urgent_review` is not one of them and
-                must not come back (ADR 0084 §12). */}
-              <ChipRow>
-                {APPOINTMENT_REASONS.map((r) => (
-                  <Chip
-                    key={r.value}
-                    label={r.title}
-                    selected={r.value === reason}
-                    onPress={() => setReason(r.value)}
-                  />
-                ))}
-              </ChipRow>
-              {picked ? <Text style={styles.hint}>{picked.hint}</Text> : null}
-            </Section>
           ) : null}
 
           {days.length > 0 ? (
@@ -403,7 +511,7 @@ export default function DoctorScreen() {
                 onBlur={() => setNoteFocused(false)}
                 multiline
                 maxLength={500}
-                placeholder="e.g. The chest pain comes on after climbing stairs."
+                placeholder="e.g. I can only come in the morning."
                 placeholderTextColor={colors.mutedForeground}
                 selectionColor={colors.primary}
                 accessibilityLabel="Add a note for the clinic. Optional."
@@ -505,47 +613,6 @@ const makeStyles = (c: Palette) =>
       textAlignVertical: "top",
     },
     inputFocused: { borderColor: c.primary },
-
-    // The confirmation, centred like `Empty`: a mark, what happened, the facts.
-    doneRoot: {
-      flexGrow: 1,
-      alignItems: "center",
-      justifyContent: "center",
-      paddingVertical: space[8],
-      gap: space[3],
-    },
-    doneDisc: {
-      width: 72,
-      height: 72,
-      borderRadius: radius.full,
-      backgroundColor: c.accent,
-      alignItems: "center",
-      justifyContent: "center",
-      marginBottom: space[2],
-    },
-    doneTitle: {
-      fontFamily: font.display,
-      fontSize: 28,
-      lineHeight: 34,
-      letterSpacing: -0.6,
-      color: c.foreground,
-      textAlign: "center",
-    },
-    doneWhen: {
-      fontFamily: font.bodyMedium,
-      fontSize: 17,
-      lineHeight: 23,
-      color: c.foreground,
-      textAlign: "center",
-    },
-    doneMuted: {
-      fontFamily: font.body,
-      fontSize: 14.5,
-      lineHeight: 21,
-      color: c.mutedForeground,
-      textAlign: "center",
-      maxWidth: 300,
-    },
 
     exit: { width: "100%", gap: space[3], alignItems: "center" },
     exitBody: {

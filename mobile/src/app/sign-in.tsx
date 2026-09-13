@@ -267,6 +267,10 @@ export default function SignInScreen() {
               >
                 <Text style={styles.linkLabel}>Create an account instead</Text>
               </Pressable>
+              {/* PRD §2.5: the signpost before sign-in, as plain words — no
+                  hospital is chosen yet, so there is no verified number to
+                  ring and nothing to dial. Never red. */}
+              <Text style={styles.emergency}>Emergency? Go to the nearest emergency unit.</Text>
             </View>
           </Animated.View>
         </ScrollView>
@@ -442,4 +446,12 @@ const makeStyles = (c: Palette) =>
     links: { alignItems: "center", gap: space[2] },
     link: { minHeight: 44, justifyContent: "center" },
     linkLabel: { fontFamily: font.body, fontSize: 14.5, color: c.primary },
+    emergency: {
+      fontFamily: font.bodyMedium,
+      fontSize: 14.5,
+      lineHeight: 21,
+      color: c.foreground,
+      textAlign: "center",
+      marginTop: space[2],
+    },
   });
