@@ -143,10 +143,16 @@ Deno.serve(async (request: Request) => {
   // 4. Reconcile against today's bookings (same dept). If the patient
   //    has a live appointment at this dept today, they should check in
   //    against it — don't create a duplicate queue ticket.
-  const startOfDay = new Date(now);
-  startOfDay.setHours(0, 0, 0, 0);
-  const endOfDay = new Date(startOfDay);
-  endOfDay.setDate(endOfDay.getDate() + 1);
+  //    "Today" is the HOSPITAL's day, from the same helper as the gate
+  //    above — `setHours(0,0,0,0)` reads the host's midnight, which on a UTC
+  //    runtime is 03:00 EAT: a 01:00 walk-in was reconciled against
+  //    yesterday's bookings and the patient's phone, keying on the clinic
+  //    day, disagreed with this 409 for three hours every night. Every IANA
+  //    offset is a whole number of minutes, so subtracting the local
+  //    minutes-of-day (and the seconds the helper does not report) lands
+  //    exactly on local midnight.
+  const startOfDay = new Date(now.getTime() - minutesLocal * 60_000 - (now.getTime() % 60_000));
+  const endOfDay = new Date(startOfDay.getTime() + 86_400_000);
 
   const { data: existingAppt } = await sb
     .from("appointments")

@@ -564,6 +564,32 @@ export function localWeekdayAndMinutes(
   return { isoWeekday: isoWeekday(civilMidnight(local)), minutesOfDay: local.minutesOfDay };
 }
 
+/**
+ * "2026-09-15" — the civil date of `instant` in `timeZone`. Every patient
+ * surface groups a clinic's open sessions by this key, so it lives with the
+ * engine: a phone keying on its own zone and a server keying on the clinic's
+ * is a day chip that lands on the wrong day for three hours every night.
+ */
+export function localDateKey(instant: Instant, timeZone: string): string {
+  const p = localParts(toMs(instant, "instant"), timeZone);
+  return `${p.year}-${String(p.month).padStart(2, "0")}-${String(p.day).padStart(2, "0")}`;
+}
+
+export type DaySession = "morning" | "afternoon";
+
+/**
+ * ADR 0084 §10 — the day-part a patient is told instead of a clock numeral,
+ * split at local noon. Shared for the same reason as the key above: the
+ * server groups offers into sessions and the phone labels the one the patient
+ * chose, and both must call the same instant by the same word.
+ *
+ * ponytail: two words, because those are the two the ADR ratified. An evening
+ * list reads "afternoon". Upgrade path: a third word, once one is.
+ */
+export function localSession(instant: Instant, timeZone: string): DaySession {
+  return localWeekdayAndMinutes(instant, timeZone).minutesOfDay < 12 * 60 ? "morning" : "afternoon";
+}
+
 /* ─── time, in a named zone ──────────────────────────────────────── */
 
 interface LocalParts {

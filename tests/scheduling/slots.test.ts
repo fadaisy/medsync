@@ -9,6 +9,8 @@ import { describe, expect, it } from "vitest";
 import {
   buildSlots,
   checkSlot,
+  localDateKey,
+  localSession,
   localWeekdayAndMinutes,
   resolveSchedulingSettings,
 } from "@/supabase/functions/_shared/slots";
@@ -636,6 +638,21 @@ describe("localWeekdayAndMinutes — the walk-in door's clock", () => {
     expect(minutesOfDay).toBe(480);
     expect(minutesOfDay).toBeGreaterThanOrEqual(p.bookableStartMinutesLocal);
     expect(minutesOfDay).toBeLessThan(p.bookableEndMinutesLocal);
+  });
+});
+
+describe("localDateKey / localSession — the day chip and the day-part (ADR 0084 §10)", () => {
+  it("keys the day and names the session in the hospital's zone, not the host's", () => {
+    // 21:30Z Sunday is 00:30 Monday in Kampala: a different date AND a
+    // different day-part from what the host clock would say.
+    const at = new Date("2026-09-13T21:30:00Z");
+    expect(localDateKey(at, KAMPALA)).toBe("2026-09-14");
+    expect(localSession(at, KAMPALA)).toBe("morning");
+  });
+
+  it("splits at local noon — 12:00 EAT is the first afternoon minute", () => {
+    expect(localSession(new Date("2026-09-15T08:59:00Z"), KAMPALA)).toBe("morning"); // 11:59 EAT
+    expect(localSession(new Date("2026-09-15T09:00:00Z"), KAMPALA)).toBe("afternoon"); // 12:00 EAT
   });
 });
 
