@@ -34,6 +34,10 @@ describe("SMS keywords (pure)", () => {
     expect(parseKeyword("YES K7M2")).toEqual({ keyword: "help" });
     // No look-alike guessing: 0/O/1/I are not in the alphabet.
     expect(parseKeyword("YES K7M2X0")).toEqual({ keyword: "help" });
+    // A shared-shortcode keyword left in front by the operator is tolerated — one word only.
+    expect(parseKeyword("MEDSYNC YES K7M2XQ")).toEqual({ keyword: "confirm", code: "K7M2XQ" });
+    expect(parseKeyword("MEDSYNC STOP")).toEqual({ keyword: "stop" });
+    expect(parseKeyword("please medsync yes K7M2XQ")).toEqual({ keyword: "unknown" });
     expect(parseKeyword("hello there")).toEqual({ keyword: "unknown" });
     expect(parseKeyword("")).toEqual({ keyword: "unknown" });
   });
@@ -77,9 +81,22 @@ describe("the system-* functions: service role only, never a user JWT", () => {
     });
   }
 
-  it("isServiceRoleCall compares the whole header to the key — an empty key matches nothing", () => {
+  it("isServiceRoleCall: the injected key byte-for-byte, or a gateway-verified JWT whose role is service_role — nothing else", () => {
     const src = read("supabase/functions/_shared/system-actor.ts");
-    expect(src).toContain("return key.length > 0 && header === `Bearer ${key}`;");
+    expect(src).toContain('if (!header.startsWith("Bearer ")) return false;');
+    expect(src).toContain("if (key.length > 0 && bearer === key) return true;");
+    expect(src).toContain('return jwtRole(bearer) === "service_role";');
+    // The claim is trusted only because the gateway verified the signature:
+    // no deploy instruction anywhere may turn that off.
+    for (const doc of ["docs/ops-channels.md", "docs/booking-app-handoff.md", "CHANGELOG.md"]) {
+      // Mentioning the flag as a warning is fine; a deploy command carrying it is not.
+      expect(read(doc), doc).not.toMatch(/functions deploy[^\n]*--no-verify-jwt/);
+    }
+    expect(src).toMatch(/never pass --no-verify-jwt/);
+    // system-propose-urgent-appointment shares the check and fails closed on a missing actor.
+    const urgent = fnSrc("system-propose-urgent-appointment");
+    expect(urgent).toContain("isServiceRoleCall(request)");
+    expect(urgent).not.toContain("00000000-0000-0000-0000-000000000000");
   });
 
   it("system-ussd-book books THROUGH THE CORE with origin/channel ussd and never links a phone to an account", () => {

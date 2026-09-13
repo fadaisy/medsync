@@ -61,6 +61,7 @@ import {
 import { makeLogger } from "../_shared/logger.ts";
 import { networkContext, recordSaAudit } from "../_shared/sa-audit.ts";
 import { buildSlots, DEFAULT_TIME_ZONE, LIVE_APPOINTMENT_STATUSES } from "../_shared/slots.ts";
+import { isServiceRoleCall, systemActorId } from "../_shared/system-actor.ts";
 
 const log = makeLogger("system-propose-urgent-appointment");
 
@@ -110,13 +111,15 @@ Deno.serve(async (request: Request) => {
   // also returns null for service-role calls — so for those, the
   // Authorization header IS the SUPABASE_SERVICE_ROLE_KEY and we
   // gate on that explicitly.
-  const authHeader = request.headers.get("authorization") ?? "";
-  const isServiceRole = authHeader === `Bearer ${Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""}`;
   let callerId: string;
 
-  if (isServiceRole) {
-    // System call — attribute to a configurable system actor.
-    callerId = Deno.env.get("MEDSYNC_SYSTEM_ACTOR_UUID") ?? "00000000-0000-0000-0000-000000000000";
+  if (isServiceRoleCall(request)) {
+    // System call — attribute to the system actor (a real auth.users row:
+    // sa_audit_log.actor_id is a NOT NULL FK, so the old all-zero sentinel
+    // could only ever fail the audit insert). Fail closed when it is unset.
+    const actor = systemActorId();
+    if (!actor) return serverError("MEDSYNC_SYSTEM_ACTOR_UUID is not configured.", init);
+    callerId = actor;
   } else {
     const caller = await getCaller(request);
     if (!caller) return unauthorized(init);

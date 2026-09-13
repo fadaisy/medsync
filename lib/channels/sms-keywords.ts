@@ -37,8 +37,16 @@ export function normaliseCode(raw: string): string {
   return raw.toUpperCase().replace(/[\s-]/g, "");
 }
 
+const VERBS = new Set([...CONFIRM, ...CANCEL, ...STOP, ...HELP]);
+
 export function parseKeyword(body: string): ParsedKeyword {
-  const words = body.trim().toUpperCase().split(/\s+/).filter(Boolean);
+  let words = body.trim().toUpperCase().split(/\s+/).filter(Boolean);
+  // On a SHARED shortcode the operator's keyword may arrive unstripped
+  // ("MEDSYNC YES K7M2XQ"): when the first word is no verb but the second
+  // is, the first was the keyword. One word of tolerance, never more.
+  if (words.length > 1 && !VERBS.has(words[0] as string) && VERBS.has(words[1] as string)) {
+    words = words.slice(1);
+  }
   const verb = words[0] ?? "";
   if (!verb) return { keyword: "unknown" };
   if (STOP.has(verb)) return { keyword: "stop" };

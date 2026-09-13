@@ -6,19 +6,19 @@ steps, how to test without a live number, and the two notes that cost money.
 
 ## 1. Environment
 
-| Where              | Variable                    | What                                                                                                                                                                       |
-| ------------------ | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Vercel (Next)      | `AFRICASTALKING_USERNAME`   | AT app username (`sandbox` for the simulator)                                                                                                                              |
-| Vercel             | `AFRICASTALKING_API_KEY`    | AT API key                                                                                                                                                                 |
-| Vercel             | `AFRICASTALKING_SENDER_ID`  | Optional alphanumeric sender (needs UCC/AT approval); absent = AT's default shortcode                                                                                      |
-| Vercel             | `SMS_WEBHOOK_SECRET`        | `openssl rand -hex 32`. The path segment of the DLR and inbound-SMS callback URLs                                                                                          |
-| Vercel             | `USSD_WEBHOOK_SECRET`       | `openssl rand -hex 32`. The path segment of the USSD callback URL                                                                                                          |
-| Vercel             | `AT_CALLBACK_IPS`           | Optional, comma-separated. AT's published callback source IPs; enforced on all three webhooks only when set                                                                |
-| Vercel             | `SUPABASE_SERVICE_ROLE_KEY` | Already set. The USSD/inbound routes call `system-ussd-book` / `system-ussd-act` with it — never exposed                                                                   |
-| Vercel             | `MEDSYNC_PHI_KEY`           | Already set. Phones on `ussd_sessions` / `inbound_sms` are encrypted + blind-indexed with it                                                                               |
-| Supabase Functions | `MEDSYNC_SYSTEM_ACTOR_UUID` | A real `auth.users` id the system writes are audited as (`sa_audit_log.actor_id` is a NOT NULL FK). Create a dedicated user `system@medsync` with no role and paste its id |
-| Supabase Functions | `MEDSYNC_PHI_KEY`           | Already set                                                                                                                                                                |
-| Vercel (optional)  | `EXPO_PUSH_ACCESS_TOKEN`    | Expo enhanced push security                                                                                                                                                |
+| Where              | Variable                    | What                                                                                                                                                                                                                                                              |
+| ------------------ | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Vercel (Next)      | `AFRICASTALKING_USERNAME`   | AT app username (`sandbox` for the simulator)                                                                                                                                                                                                                     |
+| Vercel             | `AFRICASTALKING_API_KEY`    | AT API key                                                                                                                                                                                                                                                        |
+| Vercel             | `AFRICASTALKING_SENDER_ID`  | Optional alphanumeric sender (needs UCC/AT approval); absent = AT's default shortcode                                                                                                                                                                             |
+| Vercel             | `SMS_WEBHOOK_SECRET`        | `openssl rand -hex 32`. The path segment of the DLR and inbound-SMS callback URLs                                                                                                                                                                                 |
+| Vercel             | `USSD_WEBHOOK_SECRET`       | `openssl rand -hex 32`. The path segment of the USSD callback URL                                                                                                                                                                                                 |
+| Vercel             | `AT_CALLBACK_IPS`           | Optional, comma-separated. **Leave unset** unless Africa's Talking support has given you their current callback source IPs in writing — AT publishes no list and changed the IPs in its 2023 cloud migration; a wrong list turns every callback into a silent 404 |
+| Vercel             | `SUPABASE_SERVICE_ROLE_KEY` | Already set. The USSD/inbound routes call `system-ussd-book` / `system-ussd-act` with it — never exposed                                                                                                                                                          |
+| Vercel             | `MEDSYNC_PHI_KEY`           | Already set. Phones on `ussd_sessions` / `inbound_sms` are encrypted + blind-indexed with it                                                                                                                                                                      |
+| Supabase Functions | `MEDSYNC_SYSTEM_ACTOR_UUID` | A real `auth.users` id the system writes are audited as (`sa_audit_log.actor_id` is a NOT NULL FK). Create a dedicated user on a domain you control (e.g. `system@yourdomain.tld`) with no role and paste its id                                                  |
+| Supabase Functions | `MEDSYNC_PHI_KEY`           | Already set                                                                                                                                                                                                                                                       |
+| Vercel (optional)  | `EXPO_PUSH_ACCESS_TOKEN`    | Expo enhanced push security                                                                                                                                                                                                                                       |
 
 Rotate a webhook secret by setting the new value, redeploying, then updating the AT dashboard URL — the old
 URL answers 404 the moment the deploy is live.
@@ -28,15 +28,18 @@ URL answers 404 the moment the deploy is live.
 ```sh
 npm run db:migrate                       # 0061 (Gate E), 0062 (Gate F) — GATED, owner runs
 npm run db:backfill-phone-hmac           # once: patient_profiles.phone_hmac for rows written before 0062
-npx supabase functions deploy \
-  pt-request-appointment ha-book-on-behalf cancel-appointment ha-decline-appointment-request reschedule-appointment \
-  pt-join-waitlist pt-withdraw-waitlist pt-accept-waitlist-offer pt-confirm-attendance pt-accept-rebooking \
-  pt-ack-notification pt-set-sms-consent ha-cancel-session ha-set-session-delay \
-  system-ussd-book system-ussd-act
+# Every function: _shared/ changed (errors, sa-audit, system-actor), so a named subset would leave stale
+# bundles. --use-api bundles server-side (no Docker on this machine). Never pass --no-verify-jwt.
+npx supabase functions deploy --use-api
 ```
 
-Then deploy the Next app. `system-ussd-book` and `system-ussd-act` refuse any Bearer that is not the
-service-role key, so exposing them is safe; they still should not be advertised.
+Then deploy the Next app. Before that deploy: `vercel.json` schedules `/api/cron/dispatch-reminders` at
+`*/15 * * * *`, which Vercel's Hobby plan refuses at deploy time ("Hobby accounts are limited to daily cron
+jobs") — upgrade the team to Pro, or change the schedule and drive the 15-minute cadence externally with
+`Authorization: Bearer <CRON_SECRET>`. Vercel env changes reach only NEW deployments: add every variable
+first, deploy once. `system-ussd-book` and `system-ussd-act` refuse any Bearer that is not the service role
+(`_shared/system-actor.ts`: the injected key byte-for-byte, or a gateway-verified JWT with `role =
+service_role`), so exposing them is safe; they still should not be advertised.
 
 ## 3. Africa's Talking dashboard
 
@@ -48,9 +51,11 @@ Callback URLs (replace `<host>` and the secrets):
 | SMS → Inbound | SMS → Callback URLs → Incoming messages         | `https://<host>/api/sms/inbound/<SMS_WEBHOOK_SECRET>` | POST form: `from`, `to`, `text`, `date`, `id`, `linkId`                                          |
 | USSD          | USSD → Service codes → (shared code) → Callback | `https://<host>/api/ussd/<USSD_WEBHOOK_SECRET>`       | POST form: `sessionId`, `serviceCode`, `phoneNumber`, `text`; reply `text/plain` `CON …`/`END …` |
 
-AT does not sign callbacks. The secret path segment is the authentication; the IP allowlist is the second
-lock — take the list from AT's documentation ("Callback IP addresses") and set `AT_CALLBACK_IPS` once you
-have confirmed it against a real delivery report in the Vercel logs (`sms.dlr.received`).
+AT does not sign callbacks. The secret path segment is the authentication. The IP allowlist is an optional
+second lock: AT does **not** publish its callback source IPs (ask info@africastalking.com; they changed in
+AT's 2023 cloud migration), so leave `AT_CALLBACK_IPS` unset unless you hold a current list in writing — a
+wrong list makes every USSD/SMS callback a silent 404. Note that inbound SMS is retried by AT every minute
+for up to 12 hours while a callback fails; USSD is live and is simply lost.
 
 Shared USSD code: available immediately on MTN and Airtel through AT. A dedicated code needs UCC allocation.
 
