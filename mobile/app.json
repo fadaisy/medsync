@@ -17,10 +17,7 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false,
-      "permissions": [
-        "android.permission.RECORD_AUDIO"
-      ]
+      "predictiveBackGestureEnabled": false
     },
     "web": {
       "output": "static",
@@ -42,7 +39,8 @@
         "expo-image-picker",
         {
           "photosPermission": "MedSync uses your photo on your patient profile.",
-          "cameraPermission": "MedSync uses your photo on your patient profile."
+          "cameraPermission": "MedSync uses your photo on your patient profile.",
+          "microphonePermission": false
         }
       ],
       "expo-notifications"
