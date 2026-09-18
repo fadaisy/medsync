@@ -57,8 +57,18 @@ export const maxDuration = 60;
  * offers cascaded to the next in line, and — only where a facility set
  * `release_unconfirmed_hours` — unconfirmed places released to the line.
  *
- * Same `CRON_SECRET` Bearer auth as the other crons; `*∕15 * * * *` in
- * vercel.json (Vercel Pro for the cadence).
+ * Same `CRON_SECRET` Bearer auth as the other crons.
+ *
+ * ponytail: vercel.json schedules this DAILY (`0 5 * * *` ≈ 08:00 EAT), not
+ * every 15 minutes. Vercel's Hobby plan refuses any sub-daily expression at
+ * DEPLOY time, and billing is deferred — a daily tick costs nothing and
+ * blocks nothing while Africa's Talking is unconfigured (the run 503s before
+ * it touches the queue). Ceiling: with live SMS, a T-2h arrival window or a
+ * 2-hour waitlist offer sent once a day is worse than not sending it.
+ * Upgrade path, before the first real patient: restore `*∕15 * * * *` on
+ * Vercel Pro, or keep the daily entry and drive the real cadence for free
+ * from Supabase `pg_cron` + `pg_net` (GET this route with the CRON_SECRET
+ * bearer) — docs/ops-channels.md §2.
  *
  * ── Idempotency, and which way it is allowed to fail ──
  * Rows are CLAIMED before the transport is touched: one conditional

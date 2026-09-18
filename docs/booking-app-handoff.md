@@ -43,8 +43,9 @@ npm run db:backfill-phone-hmac    # once: patient_profiles.phone_hmac for rows w
 | 0061      | `notification_dispatches`, `push_tokens`, `waitlist_entries`, `offer_released_capacity()`, quiet hours, `release_unconfirmed_hours`, `delay_minutes`, `confirmed_by_patient_at`, `consent_records.revoked_at`, `sms_communication` v1.0 | Gate E — **before** deploying the Gate E functions and the re-deployed core callers |
 | 0062      | `ussd_sessions`, `inbound_sms`, `sms_opt_outs`, `patient_profiles.phone_hmac`, origin + `ussd`, dispatch kind + `sms_reply`, `hospital_id` nullable, audit + `sms_stop`                                                                 | Gate F                                                                              |
 
-Secrets — Supabase Functions: `MEDSYNC_PHI_KEY` is **set** (see §5 caveat); **`MEDSYNC_SYSTEM_ACTOR_UUID`** is needed
-(a real `auth.users` id — create `system@medsync` with no role; the system-\_ functions 503 without it). Vercel:
+Secrets — Supabase Functions: `MEDSYNC_PHI_KEY` and **`MEDSYNC_SYSTEM_ACTOR_UUID`** are both **set** (the actor is
+`fadhulusama+medsync-system@gmail.com`, created 2026-09-14, no role, mirrored as "MedSync System" — never delete it:
+`sa_audit_log.actor_id` is a NOT NULL FK). Vercel:
 `SMS_WEBHOOK_SECRET`, `USSD_WEBHOOK_SECRET` (`openssl rand -hex 32` each), `AT_CALLBACK_IPS` (optional),
 `EXPO_PUSH_ACCESS_TOKEN` (optional), `AFRICASTALKING\__`when the owner provides them (after F — nothing in the repo
 calls AT in a test). Mobile:`extra.eas.projectId`in`mobile/app.json`before a real push token can mint; until then
@@ -53,15 +54,20 @@ every message falls back to SMS. The full runbook, including the three AT dashbo
 Edge Functions to deploy (the union of every gate's list; deploy all, order irrelevant once migrations are in):
 
 ```sh
-npx supabase functions deploy pt-bookable-clinicians pt-rate-visit pt-request-appointment reschedule-appointment cancel-appointment \
-  pt-declare-intake ha-complete-encounter ha-mark-no-show ha-mark-arrived ha-record-walkin ha-check-in-patient \
-  ha-upsert-service-line ha-upsert-session-template ha-book-on-behalf ha-reconcile-identity pt-add-household-member \
-  ha-decline-appointment-request pt-join-waitlist pt-withdraw-waitlist pt-accept-waitlist-offer pt-confirm-attendance \
-  pt-accept-rebooking pt-ack-notification pt-set-sms-consent ha-cancel-session ha-set-session-delay \
-  system-ussd-book system-ussd-act
+# Every function, not a named subset: _shared/ changed (errors, sa-audit, system-actor), so a subset
+# leaves stale bundles. --use-api bundles server-side (no Docker here). Never pass --no-verify-jwt.
+npx supabase functions deploy --use-api
 ```
 
-Then deploy the Next app, then `cd mobile && npx expo start --lan -c`.
+Then deploy the Next app (`npx vercel deploy --prod` — production host is **`medsync-six.vercel.app`**; the
+project is GitHub-linked, so a push to `main` deploys too), then `cd mobile && npx expo start --lan -c`.
+
+**Billing is deferred (owner, 2026-09-18).** Nothing on the critical path costs money: the dispatcher cron is
+daily on Hobby (§2 of `docs/ops-channels.md`), Africa's Talking runs in the free **sandbox**, `eas init` and
+Firebase/FCM are free, and Android push works from a local or free-tier build. Held until billing resumes:
+Vercel Pro (the `*/15` cadence), AT live credentials + wallet top-up, an alphanumeric sender ID
+(UGX 250k/month) or shortcode (UGX 200k/month) — so no live SMS and no patient reply path — and the Apple
+Developer account ($99/yr) for iOS push.
 
 ## 3. Where the build is, and what is next
 

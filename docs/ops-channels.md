@@ -33,13 +33,28 @@ npm run db:backfill-phone-hmac           # once: patient_profiles.phone_hmac for
 npx supabase functions deploy --use-api
 ```
 
-Then deploy the Next app. Before that deploy: `vercel.json` schedules `/api/cron/dispatch-reminders` at
-`*/15 * * * *`, which Vercel's Hobby plan refuses at deploy time ("Hobby accounts are limited to daily cron
-jobs") — upgrade the team to Pro, or change the schedule and drive the 15-minute cadence externally with
-`Authorization: Bearer <CRON_SECRET>`. Vercel env changes reach only NEW deployments: add every variable
-first, deploy once. `system-ussd-book` and `system-ussd-act` refuse any Bearer that is not the service role
+Then deploy the Next app. Vercel env changes reach only NEW deployments, so add every variable first and
+deploy once. `system-ussd-book` and `system-ussd-act` refuse any Bearer that is not the service role
 (`_shared/system-actor.ts`: the injected key byte-for-byte, or a gateway-verified JWT with `role =
 service_role`), so exposing them is safe; they still should not be advertised.
+
+### The dispatcher's cadence, while billing is deferred
+
+`vercel.json` schedules `/api/cron/dispatch-reminders` **daily** (`0 5 * * *` ≈ 08:00 EAT, ±59 min — Hobby's
+precision). Vercel's Hobby plan allows 100 cron jobs per project but refuses any sub-daily expression **at
+deploy time** ("Hobby accounts are limited to daily cron jobs"), so `*/15 * * * *` would fail the deploy
+outright. Daily costs nothing and blocks nothing today: with `AFRICASTALKING_*` unset the run 503s before it
+touches either queue.
+
+**Before the first real patient message**, pick one — a T-2h arrival window or a 2-hour waitlist offer
+delivered once a day is worse than not delivering it:
+
+1. **Vercel Pro** — restore `"schedule": "*/15 * * * *"` in `vercel.json` and redeploy. One line.
+2. **Free, no upgrade** — leave the daily entry and drive the real cadence from Supabase `pg_cron` + `pg_net`
+   (both available on the free tier): a scheduled `net.http_get` to
+   `https://<host>/api/cron/dispatch-reminders` with an `Authorization: Bearer <CRON_SECRET>` header, the
+   secret held in Supabase Vault, scheduled by a GATED migration. Not built — it is one migration when
+   wanted.
 
 ## 3. Africa's Talking dashboard
 
