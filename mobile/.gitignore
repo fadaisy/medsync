@@ -41,3 +41,6 @@ example
 # generated native folders
 /ios
 /android
+
+# Firebase service account (FCM V1) — goes to EAS credentials, never to git
+*-firebase-adminsdk-*.json

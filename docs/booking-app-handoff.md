@@ -84,8 +84,13 @@ Gates E and F are built, verified and committed (ADRs 0090, 0091; CHANGELOG). Tw
 
 **Gate G — BUILT 2026-09-19** ([ADR 0092](adr/0092-fees-by-cadre.md); CHANGELOG has the full list). The reference
 design is on both platforms; fees by cadre ship as a sparse override with the quote snapshotted at booking;
-`0063_cadre_fees.sql` is GATED and must land before the redeployed core. Still owner-side: the Android push
-build (`GATE-G-BUILD.md` §2 — free), and iOS push (deferred, Apple Developer). The original contract follows.
+`0063_cadre_fees.sql` is GATED and must land before the redeployed core. Push repo-prep (`GATE-G-BUILD.md` §1) is
+done: `android.package`/`ios.bundleIdentifier` = `com.medsync.app` (permanent — confirm before creating the
+Firebase app), `android.googleServicesFile`, a tinted notification icon, `mobile/eas.json` carrying the two
+`EXPO_PUBLIC_*` values per profile (public by design), and `*-firebase-adminsdk-*.json` ignored. Still owner-side:
+§2 — Firebase project → Android app with that package → `google-services.json` into `mobile/` (committed) →
+FCM V1 service-account key to `npx eas-cli credentials` → `npx eas-cli build --profile development --platform android`
+(free). iOS push stays deferred (Apple Developer). The original contract follows.
 
 **Gate G** — contract at `docs/booking-app-build/GATE-G-BUILD.md`. Surveyed against the code 2026-09-19: most of
 it is already built. Push registration shipped at Gate E Phase 2b and `extra.eas.projectId` is set; session-mode
