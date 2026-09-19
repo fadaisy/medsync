@@ -20,7 +20,8 @@
  * must not sit in a column they can select. `cancelled_reason` carries a
  * closed CODE — `patient_cancelled` when the patient cancels their own visit,
  * `staff_cancelled` otherwise — and the free text lives in the
- * `cancel_appointment` sa_audit_log row alone, which staff surfaces read.
+ * `cancel_appointment` sa_audit_log row alone — readable on /admin/audit
+ * (superadmin); no hospital surface reads it today, by the ruling's own price.
  * Patient and agent surfaces map the code to one fixed sentence.
  */
 import { z } from "npm:zod@4.4.3";

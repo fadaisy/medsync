@@ -90,10 +90,45 @@ const each = (src: string, re: RegExp) => [...src.matchAll(re)].map((m) => m.ind
  * below) and `bg-/border-destructive/NN` (the tint of an announced failure,
  * also below). `bg-destructive` followed by anything but `/` is the solid.
  */
-const WEB_RED_FILL =
-  /(?:bg|ring|border|from|to|via|outline|shadow|fill|stroke|text|decoration)-status-critical|bg-destructive(?![/\w-])|border-destructive(?![/\w-])|ring-destructive|destructive-foreground|variant=["']destructive["']|["']critical["']|\b(?:bg|text|border|ring|fill|stroke|from|to|via|outline|shadow|decoration)-(?:red|rose)-\d|(?:bg|border|text)-alert-(?:bg|border|fg)|#(?:dc2626|fee2e2|fca5a5|450a0a|7f1d1d|b91c1c|991b1b|fef2f2)\b/i;
+/** Tailwind's full red and rose ramps — a raw hex is a raw hex whichever step it came from. */
+const RED_ROSE_HEX =
+  "fef2f2|fee2e2|fecaca|fca5a5|f87171|ef4444|dc2626|b91c1c|991b1b|7f1d1d|450a0a|fff1f2|ffe4e6|fecdd3|fda4af|fb7185|f43f5e|e11d48|be123c|9f1239|881337|4c0519";
+/** The Button variants components/ui/button.tsx paints red; asserted against the file below. */
+const RED_BUTTON_VARIANTS = ["emergency", "alert"] as const;
+const WEB_RED_FILL = new RegExp(
+  [
+    // A red status tone on any utility prefix, including directional borders
+    // (`border-l-red-600` is the left-edge accent bar DESIGN forbids).
+    String.raw`(?:bg|ring|border(?:-[lrtbxyse])?|from|to|via|outline|shadow|fill|stroke|text|decoration)-status-critical`,
+    String.raw`bg-destructive(?![/\w-])`,
+    String.raw`border(?:-[lrtbxyse])?-destructive(?![/\w-])`,
+    String.raw`(?:ring|outline|stroke|fill|shadow|from|to|via|decoration)-destructive`,
+    String.raw`destructive-foreground`,
+    // A red Button or Badge variant, literal or inside a ternary.
+    String.raw`variant=(?:["'](?:${RED_BUTTON_VARIANTS.join("|")}|destructive)["']|\{[^}]*["'](?:${RED_BUTTON_VARIANTS.join("|")}|destructive)["'])`,
+    String.raw`["']critical["']`,
+    String.raw`\b(?:bg|text|border(?:-[lrtbxyse])?|ring|fill|stroke|from|to|via|outline|shadow|decoration)-(?:red|rose)-\d`,
+    String.raw`(?:bg|border|text)-alert-(?:bg|border|fg)`,
+    String.raw`#(?:${RED_ROSE_HEX})\b`,
+  ].join("|"),
+  "i",
+);
 
 describe("red is reserved — web patient and booking surfaces", () => {
+  it("the red Button variants the regex knows are the ones components/ui/button.tsx paints red", () => {
+    const button = readFileSync(resolve(ROOT, "components/ui/button.tsx"), "utf8");
+    const variants = button.slice(button.indexOf("variant: {"), button.indexOf("size: {"));
+    const red = [...variants.matchAll(/^\s{8}(\w+):/gm)]
+      .map((m) => m[1] as string)
+      .filter((name) => {
+        const start = variants.indexOf(`${name}:`);
+        const next = variants.slice(start + name.length + 1).search(/^\s{8}\w+:/m);
+        const body = variants.slice(start, next < 0 ? undefined : start + name.length + 1 + next);
+        return /destructive|alert-|status-critical|red-/.test(body);
+      });
+    expect(red.sort()).toEqual([...RED_BUTTON_VARIANTS].sort());
+  });
+
   /**
    * Files allowed a red fill. EMPTY on purpose: the emergency block is amber by
    * decision (ADR 0084 §3, app/patient/_components/emergency-notice.tsx — "a
@@ -180,8 +215,18 @@ describe("red is reserved — the Expo app", () => {
     "mobile/src/components/patient/emergency-button.tsx",
     "mobile/src/app/(app)/(tabs)/_layout.tsx",
   ];
-  const MOBILE_RED =
-    /critical(?:Bg|Fg)\b|status\.critical|tone=["']critical["']|["']critical["']|#(?:dc2626|fee2e2|fca5a5|450a0a|7f1d1d|b91c1c|991b1b)\b/i;
+  const MOBILE_RED = new RegExp(
+    [
+      String.raw`critical(?:Bg|Fg)\b`,
+      String.raw`status\.critical`,
+      String.raw`tone=["']critical["']`,
+      String.raw`["']critical["']`,
+      String.raw`#(?:${RED_ROSE_HEX})\b`,
+      // A named colour is a raw colour too.
+      String.raw`["'](?:red|crimson|firebrick|darkred|tomato)["']`,
+    ].join("|"),
+    "i",
+  );
 
   it("the allowlist is real — every file in it exists and does use the pair", () => {
     for (const p of RED_ALLOWED) {

@@ -223,8 +223,16 @@ describe("ruling (f) — consent re-acceptance on next sign-in", () => {
     for (const p of files) {
       const src = stripComments(readFileSync(p, "utf8"));
       const ungated = /app\/patient\/(layout\.tsx|consent\/)/.test(p);
-      if (ungated) expect(src, p).not.toMatch(/\brequirePatientScope\(/);
-      else expect(src, p).not.toContain("resolvePatientScope");
+      if (ungated) {
+        expect(src, p).not.toMatch(/\brequirePatientScope\(/);
+        continue;
+      }
+      expect(src, p).not.toContain("resolvePatientScope");
+      // Every page and every server action calls the gate itself — a client
+      // component's form can post an action long after the page redirected.
+      if (/\/(page\.tsx|actions\.ts)$/.test(p)) {
+        expect(src, p).toMatch(/\brequirePatientScope\(/);
+      }
     }
     expect(read("app/patient/consent/page.tsx")).toContain("<AcceptConsentForm");
   });
@@ -241,11 +249,18 @@ describe("ruling (f) — consent re-acceptance on next sign-in", () => {
   it("phone: the same check on session load, and the gate is a Stack.Protected pair over every screen", () => {
     const session = stripComments(read("mobile/src/lib/session.tsx"));
     expect(session).toContain('.from("consent_versions")');
+    // THIS user's record: the RLS policy also admits a superadmin to every row.
+    expect(session).toContain('.eq("user_id", userId)');
     expect(session).toContain('.eq("consent_text_sha256", v.body_sha256)');
     expect(session).toContain('.is("revoked_at", null)');
     expect(session).toContain('.from("consent_records").insert({');
+    // A failed read is "unknown", never "clear"; a lost reply's 23505 is an acceptance.
+    expect(session).toContain('setConsentFor({ userId, state: { kind: "unknown" } })');
+    expect(session).toContain('error.code !== "23505"');
 
     const layout = stripComments(read("mobile/src/app/(app)/_layout.tsx"));
+    // Only `clear` opens the workspace — checking and unknown keep it closed.
+    expect(layout).toContain('const gated = consent.kind !== "clear";');
     expect(layout).toContain("<Stack.Protected guard={gated}>");
     expect(layout).toContain('<Stack.Screen name="consent" />');
     expect(layout).toContain("<Stack.Protected guard={!gated}>");
@@ -257,7 +272,10 @@ describe("ruling (f) — consent re-acceptance on next sign-in", () => {
     for (const r of new Set(routes)) expect(layout, r).toContain(`<Stack.Screen name="${r}" />`);
 
     const screen = stripComments(read("mobile/src/app/(app)/consent.tsx"));
-    expect(screen).toContain("acceptConsent(consentDue)");
-    expect(screen).toContain("consentAccepted()");
+    expect(screen).toContain("acceptConsent(due)");
+    expect(screen).toContain("onAccepted={consentAccepted}");
+    // The Emergency tab is behind the gate, so the block itself is on this screen (ADR 0085 §5).
+    expect(screen).toContain("<EmergencyNotice");
+    expect(screen).toContain('consent.kind === "unknown"');
   });
 });

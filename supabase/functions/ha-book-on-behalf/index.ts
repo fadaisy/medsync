@@ -148,15 +148,18 @@ Deno.serve(async (request: Request) => {
   if (!parsed.success) return badRequest("Invalid input", init, parsed.error.flatten());
   const input = parsed.data;
 
-  // Adults only: the typed age wins, else the date of birth against today in
-  // the hospital's zone — the desk form's own test, repeated where it binds.
+  // Adults only: EVERY number given must clear 18 — the typed age and the
+  // date of birth against today in the hospital's zone. "Age 18" beside a
+  // 2015 birthday is a child with a typo, and a child is refused.
   if (input.provisional) {
-    const statedAge =
-      input.provisional.age_years ??
-      yearsBetween(
-        input.provisional.date_of_birth as string,
-        localDateKey(new Date(), DEFAULT_TIME_ZONE),
-      );
+    const today = localDateKey(new Date(), DEFAULT_TIME_ZONE);
+    const statedAges = [
+      input.provisional.age_years,
+      input.provisional.date_of_birth
+        ? yearsBetween(input.provisional.date_of_birth, today)
+        : undefined,
+    ].filter((n): n is number => n !== undefined);
+    const statedAge = Math.min(...statedAges);
     if (statedAge < ADULT_YEARS) return badRequest(MINOR_REFUSAL, init);
   }
 

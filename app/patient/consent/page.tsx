@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { dataProcessingConsent, resolvePatientScope } from "@/lib/patient/scope";
+import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
 import { PatientPageHeader } from "../_components/page-header";
 import { TintedRow } from "../_components/tinted-row";
 import { AcceptConsentForm } from "./_components/accept-form";
@@ -70,7 +71,7 @@ export default async function PatientConsentPage() {
             tint="mint"
             iconKey="shield"
             title={`Data-processing notice v${consent.version} accepted`}
-            subtitle={`On ${consent.acceptedAt?.toLocaleDateString("en-GB", { dateStyle: "long" })}. The exact text is recorded against your account.`}
+            subtitle={`On ${consent.acceptedAt?.toLocaleDateString("en-GB", { dateStyle: "long", timeZone: DEFAULT_TIME_ZONE })}. The exact text is recorded against your account.`}
           />
         ) : null}
         {/* The one true statement this page can make today. */}

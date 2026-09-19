@@ -236,9 +236,11 @@ export function DataTable<TRow>({
                     key={key}
                     data-row="true"
                     data-selected={isSelected || undefined}
-                    tabIndex={0}
-                    onClick={() => onRowSelect?.(row)}
-                    onKeyDown={(e) => handleRowKeyDown(e, row)}
+                    // A row is a tab stop only when selecting it does something;
+                    // a read-only table's rows are content, not controls.
+                    tabIndex={onRowSelect ? 0 : undefined}
+                    onClick={onRowSelect ? () => onRowSelect(row) : undefined}
+                    onKeyDown={onRowSelect ? (e) => handleRowKeyDown(e, row) : undefined}
                     className={cn(
                       "border-border border-b transition-colors outline-none",
                       "hover:bg-muted/60 focus-visible:bg-muted/80",

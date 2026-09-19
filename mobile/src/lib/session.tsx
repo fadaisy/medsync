@@ -27,13 +27,16 @@ export type SessionValue = {
   /** Ends the session on this device. The gate follows on its own. */
   signOut: () => Promise<void>;
   /**
-   * Gate H (ADR 0094): the active data-processing text this patient has not
-   * accepted, or null — nothing due, still checking, or the check failed.
-   * `(app)/_layout.tsx` closes the workspace on it; `consent.tsx` opens it.
+   * Gate H (ADR 0094): where this patient stands with the active
+   * data-processing text. `(app)/_layout.tsx` opens the workspace on `clear`
+   * and on nothing else — "checking" and "unknown" keep it closed, because a
+   * gate that fails open is not a gate. `consent.tsx` renders the other three.
    */
-  consentDue: ConsentDue | null;
+  consent: ConsentCheck;
   /** The consent screen recorded the acceptance; the gate reopens. */
   consentAccepted: () => void;
+  /** The check failed (a dead connection); run it again. */
+  recheckConsent: () => void;
 };
 
 const SessionContext = createContext<SessionValue | null>(null);
@@ -62,29 +65,38 @@ export function SessionProvider({ children }: PropsWithChildren) {
   // variables are two things a caller can read in the wrong order.
   const [session, setSession] = useState<AuthSession | null | undefined>(undefined);
   // Keyed by the user it was read for, and DERIVED below, so a sign-out or a
-  // different account signing in clears it without a setState in the effect.
-  const [consentFor, setConsentFor] = useState<{ userId: string; due: ConsentDue } | null>(null);
+  // different account signing in resets it to "checking" without a setState
+  // in the effect. Every outcome is written — clear, due or unknown — so a
+  // stale answer for the same user cannot survive a sign-out and sign-in.
+  const [consentFor, setConsentFor] = useState<{ userId: string; state: ConsentCheck } | null>(
+    null,
+  );
+  const [consentAttempt, setConsentAttempt] = useState(0);
 
-  // Once per signed-in user, not per render. Null while it runs: the
-  // workspace mounts and, for the few patients it concerns, gives way to the
-  // consent screen when the answer lands — a blank hold on every cold start
-  // for everyone would cost more than that one flash for five. A failed read
-  // is null too: the web gate is the enforcement; this one mirrors it.
+  // Once per signed-in user (and once more per retry), not per render. The
+  // workspace stays closed until the answer lands: the ruling is "before
+  // anything else", and a failed read is "unknown", which the consent screen
+  // shows with a Retry — never "nothing due". Filtered by user_id on purpose:
+  // RLS lets a superadmin read every row, and the question is whether THIS
+  // person accepted, not whether anyone did.
   const userId = session?.user.id ?? null;
   useEffect(() => {
     if (!userId) return;
     let live = true;
-    fetchConsentDue().then(
+    fetchConsentDue(userId).then(
       (due) => {
-        if (live && due) setConsentFor({ userId, due });
+        if (live) setConsentFor({ userId, state: due ? { kind: "due", due } : { kind: "clear" } });
       },
-      () => {},
+      () => {
+        if (live) setConsentFor({ userId, state: { kind: "unknown" } });
+      },
     );
     return () => {
       live = false;
     };
-  }, [userId]);
-  const consentDue = consentFor && consentFor.userId === userId ? consentFor.due : null;
+  }, [userId, consentAttempt]);
+  const consent: ConsentCheck =
+    consentFor && consentFor.userId === userId ? consentFor.state : { kind: "checking" };
 
   useEffect(() => {
     let live = true;
@@ -127,8 +139,14 @@ export function SessionProvider({ children }: PropsWithChildren) {
         status: session === undefined ? "loading" : session ? "signedIn" : "signedOut",
         session: session ?? null,
         signOut,
-        consentDue,
-        consentAccepted: () => setConsentFor(null),
+        consent,
+        consentAccepted: () => {
+          if (userId) setConsentFor({ userId, state: { kind: "clear" } });
+        },
+        recheckConsent: () => {
+          setConsentFor(null);
+          setConsentAttempt((n) => n + 1);
+        },
       }}
     >
       {children}
@@ -158,16 +176,25 @@ export interface ConsentDue {
   effectiveDate: string;
 }
 
+/** The gate's four states; only `clear` opens the workspace. */
+export type ConsentCheck =
+  | { kind: "checking" }
+  | { kind: "clear" }
+  | { kind: "due"; due: ConsentDue }
+  | { kind: "unknown" };
+
 /**
  * The web's `dataProcessingConsent`, from the phone: the active text, and
  * whether a live record on the SAME version and hash exists for this user.
  * A record on other words proves nothing — the handoff's case is five
  * patients whose signup wrote no row at all, and nobody can say what they
  * saw, so nothing is backfilled and they are asked again. Both reads are
- * PostgREST under RLS: `consent_versions` is public, `consent_records` is
- * own rows. Throws on a read error; the provider decides what that means.
+ * PostgREST under RLS: `consent_versions` is public; `consent_records` is
+ * filtered to this user explicitly, because the policy also admits a
+ * superadmin to every row. Throws on a read error; the provider decides what
+ * that means.
  */
-async function fetchConsentDue(): Promise<ConsentDue | null> {
+async function fetchConsentDue(userId: string): Promise<ConsentDue | null> {
   const { data: v, error } = await supabase
     .from("consent_versions")
     .select("version, body, body_sha256, effective_date")
@@ -180,6 +207,7 @@ async function fetchConsentDue(): Promise<ConsentDue | null> {
   const { data: record, error: recordError } = await supabase
     .from("consent_records")
     .select("id")
+    .eq("user_id", userId)
     .eq("consent_type", "data_processing")
     .eq("version", v.version)
     .eq("consent_text_sha256", v.body_sha256)
@@ -216,6 +244,10 @@ export async function acceptConsent(
     consent_text_sha256: due.bodySha256,
     accepted_at: new Date().toISOString(),
   });
-  if (error) return { ok: false, error: "Could not save that. Try again." };
+  // 23505 on (user_id, consent_type, version): the row is already there — a
+  // first tap whose reply was lost on the way back. That is an acceptance.
+  if (error && error.code !== "23505") {
+    return { ok: false, error: "Could not save that. Try again." };
+  }
   return { ok: true };
 }

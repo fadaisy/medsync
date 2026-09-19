@@ -56,13 +56,19 @@ interface Props {
 const MINOR_REFUSAL = "Booking for a child is not available yet.";
 const ADULT_YEARS = 18;
 
-/** Years since a YYYY-MM-DD, or the typed age; null when neither is given. */
-function statedAge(caller: Caller, nowMs: number): number | null {
-  if (caller.ageYears !== "") return Number(caller.ageYears);
-  if (!caller.dateOfBirth) return null;
-  const dob = new Date(`${caller.dateOfBirth}T00:00:00Z`);
-  if (Number.isNaN(dob.getTime())) return null;
-  return (nowMs - dob.getTime()) / (365.25 * 24 * 3_600_000);
+/**
+ * The lower of the typed age and the whole years since the YYYY-MM-DD, against
+ * the hospital's date — the same arithmetic `ha-book-on-behalf` runs, so the
+ * desk and the server agree on an 18th birthday. Null when neither is given.
+ */
+function statedAge(caller: Caller, todayIso: string): number | null {
+  const ages: number[] = [];
+  if (caller.ageYears !== "") ages.push(Number(caller.ageYears));
+  if (/^\d{4}-\d{2}-\d{2}$/.test(caller.dateOfBirth)) {
+    const years = Number(todayIso.slice(0, 4)) - Number(caller.dateOfBirth.slice(0, 4));
+    ages.push(todayIso.slice(5) < caller.dateOfBirth.slice(5) ? years - 1 : years);
+  }
+  return ages.length > 0 ? Math.min(...ages) : null;
 }
 
 const EMPTY_CALLER: Caller = {
@@ -103,7 +109,7 @@ export function DeskBooking({ hospitalName, patient, lines, nowIso, todayIso }: 
 
   // Adults only at this gate (ADR 0089): the declaration AND the numbers
   // must agree. A ticked box beside an age of 12 is a child.
-  const age = statedAge(caller, nowMs);
+  const age = statedAge(caller, todayIso);
   const minor = age !== null && age < ADULT_YEARS;
   const callerOk =
     caller.declaredName.trim().length > 0 &&

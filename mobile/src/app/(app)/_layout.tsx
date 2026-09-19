@@ -17,8 +17,9 @@ import { useTheme } from "@/theme/theme";
  * the ticket and a visit push over it from here, full-screen, with a Back.
  *
  * The consent gate (Gate H, ADR 0094) is a second `Stack.Protected` pair, the
- * root gate's idiom: while `consentDue` names a text this patient has not
- * accepted, `consent` is the only screen in the navigator and every other
+ * root gate's idiom: until the check comes back `clear`, `consent` is the
+ * only screen in the navigator — it holds while checking, asks when a text
+ * is due, offers Retry when the read failed — and every other
  * one — the tabs, the doors, a visit a push could deep-link to — is dropped
  * from it, so nothing under the gate can be reached or swiped back to.
  * Every screen is listed so the guard covers it; none carries options here.
@@ -28,8 +29,8 @@ export const unstable_settings = { anchor: "(tabs)" };
 
 export default function AppLayout() {
   const { colors } = useTheme();
-  const { consentDue } = useSession();
-  const gated = consentDue !== null;
+  const { consent } = useSession();
+  const gated = consent.kind !== "clear";
   // Gate E: this stack exists only with a session, so "mounted" is "signed in".
   usePushNotifications(true);
 

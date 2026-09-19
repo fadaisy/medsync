@@ -142,7 +142,7 @@ export default async function ReportsPage({ searchParams }: PageProps) {
         <Metric
           label="No-show rate"
           value={percent(report.noShowRate)}
-          basis={`${basis(report.noShowRate, "held bookings")} whose time has passed`}
+          basis={`${basis(report.noShowRate, "held bookings")} whose day has ended`}
           note={`Held = still ${HELD_PAST_STATUSES.map((s) => s.replace("_", " ")).join(" / ")} when its day came; requests never answered and places given back are not counted. ${report.unmarked} of those are still "confirmed" — nobody marked them either way.`}
         />
         <Metric
@@ -153,8 +153,14 @@ export default async function ReportsPage({ searchParams }: PageProps) {
         />
         <Metric
           label="Demand vs capacity"
-          value={`${report.requests + report.waitlistJoined} / ${report.placesPublished}`}
-          basis={`${report.requests} bookings + ${report.waitlistJoined} waitlist entries, against ${report.placesPublished} places published`}
+          value={
+            report.placesPublished > 0 ? `${report.requests} / ${report.placesPublished}` : "—"
+          }
+          basis={
+            report.placesPublished > 0
+              ? `${report.requests} bookings for the clinic days that started in the window, against the ${report.placesPublished} places those days published; ${report.waitlistJoined} joined a waitlist in the window`
+              : `No clinic day started in the window, so there are no places to compare against; ${report.requests} session bookings and ${report.waitlistJoined} waitlist entries were made for it`
+          }
           note={
             report.waitlistWaitingNow > 0
               ? `${report.waitlistWaitingNow} still waiting on a list right now — a list that never drains is the signal.`

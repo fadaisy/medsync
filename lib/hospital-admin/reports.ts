@@ -119,13 +119,17 @@ export interface TenantAggregates {
   window: ReportWindow;
   /** booked_count ÷ ceil(capacity_booked × overbooking_factor), clinic days that have ended. */
   fillRate: Ratio;
-  /** status = 'no_show' ÷ HELD_PAST_STATUSES bookings whose start has passed. */
+  /** status = 'no_show' ÷ HELD_PAST_STATUSES bookings whose day (ends_at) has ended. */
   noShowRate: Ratio;
   /** Held past bookings still `confirmed` — nobody marked them arrived or no-show. */
   unmarked: number;
   /** called_at inside [arrival_window_start, arrival_window_end] ÷ called positions. */
   waitAccuracy: Ratio;
-  /** Bookings made in the window (any channel, any outcome except void). */
+  /**
+   * Session-mode bookings FOR clinic days starting in the window (any channel,
+   * any outcome except void; the old row of a move is not a second request) —
+   * the same days whose places `placesPublished` counts, so the two compare.
+   */
   requests: number;
   /** waitlist_entries created in the window. */
   waitlistJoined: number;
@@ -215,7 +219,11 @@ async function sessionAggregates(w: ReportWindow, hospitalId?: string) {
 async function appointmentAggregates(w: ReportWindow, hospitalId?: string) {
   const from = w.from.toISOString();
   const to = w.to.toISOString();
-  const past = sql`${appointments.startsAt} >= ${from} and ${appointments.startsAt} < ${to}`;
+  // "Past" is a day that has ENDED, the cut the fill rate uses: a session
+  // booking's starts_at is the clinic day's start, so a day in progress is
+  // full of positions not yet called and must not read as unmarked.
+  const past = sql`${appointments.startsAt} >= ${from} and ${appointments.endsAt} <= ${to}`;
+  const forDayInWindow = sql`${appointments.startsAt} >= ${from} and ${appointments.startsAt} < ${to}`;
   const held = sql`${appointments.status} in (${sql.join(
     HELD_PAST_STATUSES.map((s) => sql`${s}`),
     sql`, `,
@@ -226,14 +234,15 @@ async function appointmentAggregates(w: ReportWindow, hospitalId?: string) {
       noShow: sql<string>`count(*) filter (where ${appointments.status} = 'no_show' and ${past})`,
       held: sql<string>`count(*) filter (where ${held} and ${past})`,
       unmarked: sql<string>`count(*) filter (where ${appointments.status} = 'confirmed' and ${past})`,
-      requests: sql<string>`count(*) filter (where ${appointments.createdAt} >= ${from} and ${appointments.createdAt} < ${to} and ${appointments.status} <> 'void')`,
+      requests: sql<string>`count(*) filter (where ${appointments.sessionId} is not null and ${forDayInWindow} and ${appointments.status} not in ('void', 'rescheduled'))`,
       refillVisits: sql<string>`count(*) filter (where ${appointments.reason} = 'refill' and ${held} and ${past})`,
     })
     .from(appointments)
     .where(
       and(
         hospitalId ? eq(appointments.hospitalId, hospitalId) : undefined,
-        sql`(${appointments.startsAt} >= ${from} or ${appointments.createdAt} >= ${from})`,
+        gte(appointments.startsAt, w.from),
+        lt(appointments.startsAt, w.to),
       ),
     )
     .groupBy(appointments.hospitalId);

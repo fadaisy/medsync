@@ -8,7 +8,8 @@ import { consentRecords } from "@/db/schema/consent-records";
 import { logger } from "@/lib/logger";
 import { dataProcessingConsent, resolvePatientScope } from "@/lib/patient/scope";
 
-export type AcceptConsentState = { error?: string };
+/** `field` names the control at fault; a server-side failure names none, and paints nothing red. */
+export type AcceptConsentState = { error?: string; field?: "consent" };
 
 const Args = z.object({
   data_processing_consent: z.literal("on", { message: "Tick the box to continue." }),
@@ -29,7 +30,7 @@ export async function acceptDataProcessingConsentAction(
   formData: FormData,
 ): Promise<AcceptConsentState> {
   const parsed = Args.safeParse(Object.fromEntries(formData.entries()));
-  if (!parsed.success) return { error: "Tick the box to continue." };
+  if (!parsed.success) return { error: "Tick the box to continue.", field: "consent" };
   const scope = await resolvePatientScope();
 
   const active = await dataProcessingConsent(scope.userId);

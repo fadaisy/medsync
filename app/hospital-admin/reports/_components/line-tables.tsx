@@ -56,7 +56,8 @@ const LINE_COLUMNS: ReadonlyArray<DataTableColumn<LineRow>> = [
   {
     id: "flag",
     header: "Windows",
-    hideOnNarrow: true,
+    // Never hidden on a narrow screen: it is the one flag this page carries,
+    // and the section's sentence counts it.
     cell: (r) =>
       r.positionsNotHonoured ? (
         <Pill tone="caution">Positions not honoured</Pill>

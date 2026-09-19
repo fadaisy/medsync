@@ -787,8 +787,8 @@ function AccessPanel({
                 <RateCell ratio={r.access?.noShowRate} />
                 <RateCell ratio={r.access?.waitAccuracy} />
                 <td className="text-foreground text-body-s hidden px-4 py-2.5 text-right font-mono tabular-nums sm:table-cell sm:px-6">
-                  {r.access
-                    ? `${r.access.requests + r.access.waitlistJoined} / ${r.access.placesPublished}`
+                  {r.access && r.access.placesPublished > 0
+                    ? `${r.access.requests} / ${r.access.placesPublished}`
                     : "—"}
                 </td>
                 <td className="text-foreground text-body-s hidden px-4 py-2.5 text-right font-mono tabular-nums sm:table-cell sm:px-6">

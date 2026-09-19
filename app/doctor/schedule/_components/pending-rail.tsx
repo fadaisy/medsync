@@ -124,7 +124,7 @@ function PendingRow({ row }: { row: PendingRow }) {
             className="text-muted-foreground text-caption inline-flex items-center gap-1.5 tracking-tight"
           >
             <MessageSquareIcon className="size-3" aria-hidden />
-            Reason (≥ 8 chars · sent to the patient + audited)
+            Reason (≥ 8 chars · audited, staff only — the patient reads a fixed sentence)
           </label>
           <input type="hidden" name="appointment_id" value={row.id} />
           <textarea

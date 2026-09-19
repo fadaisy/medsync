@@ -29,6 +29,10 @@ on:
   push:
   pull_request:
 
+# The default GITHUB_TOKEN can write; nothing here needs more than a checkout.
+permissions:
+  contents: read
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -44,14 +48,6 @@ jobs:
     timeout-minutes: 30
     env:
       SKIP_ENV_VALIDATION: "1"
-      # Empty until the secrets above exist; the live-DB suites then skip.
-      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      DATABASE_DIRECT_URL: ${{ secrets.DATABASE_DIRECT_URL }}
-      MEDSYNC_PHI_KEY: ${{ secrets.MEDSYNC_PHI_KEY }}
-      MEDSYNC_ALLOW_RLS_DB_WRITES: ${{ secrets.MEDSYNC_ALLOW_RLS_DB_WRITES }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -66,8 +62,19 @@ jobs:
       # skips (with a printed reason) when there is none.
       - run: npm run build
       # tests/rls/_helpers.ts skips every live-DB suite (green ⊘, with the
-      # reason in the summary) when the secrets above are absent.
+      # reason in the summary) when the secrets are absent. They are scoped to
+      # this one step: a service-role key has no business in the environment
+      # of `npm ci`'s lifecycle scripts or of the build.
       - run: npm test
+        env:
+          # Empty until the secrets exist; the live-DB suites then skip.
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_DIRECT_URL: ${{ secrets.DATABASE_DIRECT_URL }}
+          MEDSYNC_PHI_KEY: ${{ secrets.MEDSYNC_PHI_KEY }}
+          MEDSYNC_ALLOW_RLS_DB_WRITES: ${{ secrets.MEDSYNC_ALLOW_RLS_DB_WRITES }}
       # scripts/check-budget.mjs — gzip first-load JS per /patient route.
       - run: npm run budget
 
@@ -95,6 +102,7 @@ jobs:
         working-directory: mobile
         run: |
           printf '/// <reference types="expo/types" />\n\n// NOTE: This file should not be edited and should be in your git ignore' > expo-env.d.ts
+          mkdir -p .expo/types
           node scripts/regen-typed-routes.cjs
       - run: npx tsc --noEmit
         working-directory: mobile

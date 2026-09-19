@@ -43,7 +43,9 @@ export function AcceptConsentForm({
       <ConsentCheckbox
         name="data_processing_consent"
         required
-        invalid={!!state.error}
+        // Red only when the box itself is the problem; a save that did not
+        // land is not the patient's error and the amber line below says so.
+        invalid={state.field === "consent"}
         version={version}
         bodySha256={bodySha256}
         label="I agree to MedSync's data-processing notice"

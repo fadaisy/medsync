@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 
 import { env } from "@/lib/env";
 import { logger } from "@/lib/logger";
+import { requirePatientScope } from "@/lib/patient/scope";
 import { createClient } from "@/lib/supabase/server";
 
 /**
@@ -15,6 +16,8 @@ import { createClient } from "@/lib/supabase/server";
 export async function cancelDeclaredIntakeAction(
   intakeId: string,
 ): Promise<{ ok: true } | { ok: false; error: string }> {
+  // Every patient action goes through the scope: it is also the consent gate (ADR 0094).
+  await requirePatientScope();
   const supabase = await createClient();
   const { data: session } = await supabase.auth.getSession();
   const token = session.session?.access_token;

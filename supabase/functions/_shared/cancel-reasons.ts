@@ -11,7 +11,9 @@
  * and a booking agent reads the rows they created, so hiding text in a UI is
  * not hiding it: whatever staff typed must not sit in the column at all. The
  * free text lives in the `sa_audit_log` row every cancel writer records
- * first, which staff surfaces read. Every patient and agent surface turns the
+ * first — readable on /admin/audit by a superadmin; no hospital surface reads
+ * it today (ADR 0094 names that as the ruling's price). Every patient and
+ * agent surface turns the
  * code into ONE of the sentences below and never prints the column itself —
  * `tests/booking/gate-h-rulings.test.ts` greps for that.
  *

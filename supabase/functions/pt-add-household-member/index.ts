@@ -97,9 +97,12 @@ Deno.serve(async (request: Request) => {
   if (!parsed.success) return badRequest("Invalid input", init, parsed.error.flatten());
   const input = parsed.data;
 
-  // Adults only: the declaration AND the numbers must agree.
-  const statedAge =
-    input.age_years ?? (input.date_of_birth ? yearsSince(input.date_of_birth) : null);
+  // Adults only: the declaration AND every number given must agree.
+  const statedAges = [
+    input.age_years,
+    input.date_of_birth ? yearsSince(input.date_of_birth) : undefined,
+  ].filter((n): n is number => n !== undefined);
+  const statedAge = statedAges.length > 0 ? Math.min(...statedAges) : null;
   if (!input.declared_adult || (statedAge !== null && statedAge < ADULT_YEARS)) {
     return badRequest(MINOR_REFUSAL, init);
   }
