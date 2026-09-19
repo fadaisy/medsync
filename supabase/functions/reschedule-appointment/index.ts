@@ -29,6 +29,7 @@ import { z } from "npm:zod@4.4.3";
 
 import { getCaller, hasRole, serviceClient } from "../_shared/auth.ts";
 import { preflight } from "../_shared/cors.ts";
+import { bookingDispatchRows } from "../_shared/dispatches.ts";
 import {
   badRequest,
   conflict,
@@ -42,7 +43,6 @@ import {
 import { requireHospitalAdminScope } from "../_shared/hospital-admin-scope.ts";
 import { makeLogger } from "../_shared/logger.ts";
 import { networkContext, recordSaAudit } from "../_shared/sa-audit.ts";
-import { bookingDispatchRows } from "../_shared/dispatches.ts";
 import { bookingCode } from "../_shared/slots.ts";
 import { cancelPendingDispatches, releaseCapacity } from "../_shared/waitlist.ts";
 
@@ -92,7 +92,8 @@ Deno.serve(async (request: Request) => {
     .from("appointments")
     .select(
       "id, hospital_id, department_id, patient_user_id, provisional_patient_id, clinician_user_id, " +
-        "status, reason, reason_note, type, priority, notify_lead_minutes, session_id, channel",
+        "status, reason, reason_note, type, priority, notify_lead_minutes, session_id, channel, " +
+        "quoted_fee_ugx, quoted_fee_label, quoted_fee_at",
     )
     .eq("id", input.appointment_id)
     .maybeSingle();
@@ -224,6 +225,13 @@ Deno.serve(async (request: Request) => {
         rescheduled_from_appointment_id: appt.id,
         created_by_user_id: caller.id,
         notify_lead_minutes: leadMinutes,
+        // The quote travels with the booking (ADR 0092): the patient was told
+        // a number, the same clinician sees them, the number stands. COPIED,
+        // never re-resolved — a later price change must not reach a booking
+        // someone holds, and only _shared/book.ts may mint a new quote.
+        quoted_fee_ugx: appt.quoted_fee_ugx ?? null,
+        quoted_fee_label: appt.quoted_fee_label ?? null,
+        quoted_fee_at: appt.quoted_fee_at ?? null,
         // Omitted when absent so the row takes the column default (and a
         // client that never sends one keeps working before migration 0058).
         ...(input.idempotency_key ? { idempotency_key: input.idempotency_key } : {}),

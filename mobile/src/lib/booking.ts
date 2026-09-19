@@ -1,4 +1,5 @@
 import type { EdgeResult } from "@/lib/edge";
+import type { FeeInputs } from "@shared/fees";
 import type { PatientReasonCode } from "@shared/sessions-sql";
 import type { ImagePickerOptions } from "expo-image-picker";
 import { feeRange, rangeLine } from "@shared/fees";
@@ -614,6 +615,8 @@ export interface ClinicianOption {
   hospitalName: string;
   /** "Senior Consultant", "Specialist Nurse" — what kind of clinician this row is. */
   cadre: string;
+  /** `cadres.id`, to resolve this clinician's own fee (ADR 0092). */
+  cadreId: string | null;
   /** From `staff_affiliations.specialty_id`, or null — screens fall back to the cadre. */
   specialty: string | null;
   departmentId: string;
@@ -696,6 +699,8 @@ export interface ServiceLine {
   confidential: boolean;
   /** The fee as a patient reads it — see `@shared/fees`; null when the line is free. */
   feeLine: string | null;
+  /** The raw pricing, for a screen that knows the cadre and can resolve one number. */
+  fee: FeeInputs;
 }
 
 interface ServiceLineRow {
@@ -724,6 +729,16 @@ const LINE_SELECT =
 
 function toLine(r: ServiceLineRow): ServiceLine {
   const hospital = embedded(r.hospitals);
+  const fee: FeeInputs = {
+    posture: r.payment_posture,
+    baseFeeUgx: r.fee_ugx,
+    lineName: r.name,
+    cadreFees: (r.service_line_fees ?? []).map((f) => ({
+      cadreId: f.cadre_id,
+      cadreName: embedded(f.cadres)?.name ?? r.name,
+      feeUgx: f.fee_ugx,
+    })),
+  };
   return {
     id: r.id,
     name: r.name,
@@ -739,18 +754,8 @@ function toLine(r: ServiceLineRow): ServiceLine {
     // What the clinic charges, resolved by the one shared rule (ADR 0092):
     // one number where the line charges one, a range over its cadre
     // overrides where it does not, null where it is free.
-    feeLine: rangeLine(
-      feeRange({
-        posture: r.payment_posture,
-        baseFeeUgx: r.fee_ugx,
-        lineName: r.name,
-        cadreFees: (r.service_line_fees ?? []).map((f) => ({
-          cadreId: f.cadre_id,
-          cadreName: embedded(f.cadres)?.name ?? r.name,
-          feeUgx: f.fee_ugx,
-        })),
-      }),
-    ),
+    feeLine: rangeLine(feeRange(fee)),
+    fee,
   };
 }
 
@@ -786,6 +791,15 @@ export async function fetchServiceLine(id: string): Promise<ServiceLine | null> 
 }
 
 /** One published clinic day a patient can take a place in. */
+/**
+ * A clinic day a patient can actually take: a place left AND a clinician
+ * named (PRD §3.6; the core 409s an unnamed day). One predicate for every
+ * "next", "within" and "still open" on the phone.
+ */
+export function sessionTakeable(s: Pick<ClinicSession, "placesLeft" | "clinicianUserId">): boolean {
+  return s.placesLeft > 0 && s.clinicianUserId !== null;
+}
+
 export interface ClinicSession {
   id: string;
   serviceLineId: string;
@@ -977,6 +991,12 @@ export function requestAppointment(
           departmentId: string;
           startsAtIso: string;
           endsAtIso: string;
+          /**
+           * The line the screen showed a fee for. Without it the core has no
+           * line to price against and snapshots NO quote (ADR 0092) — the
+           * patient would be told a number the record never kept.
+           */
+          serviceLineId?: string;
         };
       }
     | { session: { sessionId: string } }
@@ -997,6 +1017,7 @@ export function requestAppointment(
             department_id: input.slot.departmentId,
             starts_at: input.slot.startsAtIso,
             ends_at: input.slot.endsAtIso,
+            ...(input.slot.serviceLineId ? { service_line_id: input.slot.serviceLineId } : {}),
             // `type` is deliberately omitted: the function defaults to
             // `in_person`, and virtual is not a door this app opens.
           },

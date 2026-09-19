@@ -122,7 +122,12 @@ export default async function PatientHome() {
             not a decoration. */}
         {discovery.lines.length > 0 ? (
           <section aria-labelledby="find-care" className="flex flex-col gap-3">
-            <SectionHead title="Find care" linkHref="/patient/book" linkLabel="Book a visit" />
+            <SectionHead
+              id="find-care"
+              title="Find care"
+              linkHref="/patient/book"
+              linkLabel="Book a visit"
+            />
             <div className="grid gap-3 sm:grid-cols-2">
               {discovery.lines.slice(0, 4).map((line) => (
                 <ServiceLineCard
@@ -137,7 +142,12 @@ export default async function PatientHome() {
 
         {discovery.providers.length > 0 ? (
           <section aria-labelledby="find-doctor" className="flex flex-col gap-3">
-            <SectionHead title="Your clinicians" linkHref="/patient/book" linkLabel="See all" />
+            <SectionHead
+              id="find-doctor"
+              title="Your clinicians"
+              linkHref="/patient/book"
+              linkLabel="See all"
+            />
             {/* A scroller, not a grid: the reference's carousel, and on a
                 narrow phone it keeps the first card whole rather than
                 shrinking four into a row nobody can read. */}
@@ -264,17 +274,22 @@ export default async function PatientHome() {
 /* ── Sections ──────────────────────────────────────────────────── */
 
 function SectionHead({
+  id,
   title,
   linkHref,
   linkLabel,
 }: {
+  /** Set when a `<section aria-labelledby>` names this heading. */
+  id?: string;
   title: string;
   linkHref: string;
   linkLabel: string;
 }) {
   return (
     <div className="flex items-center justify-between gap-3">
-      <h2 className="text-heading-s font-medium">{title}</h2>
+      <h2 id={id} className="text-heading-s font-medium">
+        {title}
+      </h2>
       {/* No underline at rest — blue-underlined "view all" is not in the
           system; the negative margin keeps the 44px target invisible. */}
       <Link

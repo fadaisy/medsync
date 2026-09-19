@@ -77,6 +77,8 @@ interface ClinicianOption {
   hospitalName: string;
   /** "Senior Consultant", "Specialist Nurse" — the row says what kind of clinician this is. */
   cadre: string;
+  /** `cadres.id`, so a screen can resolve THIS clinician's fee rather than a line's range (ADR 0092). */
+  cadreId: string | null;
   /** From `staff_affiliations.specialty_id`, or null — the reference's "Cardiology". */
   specialty: string | null;
   departmentId: string;
@@ -122,6 +124,7 @@ interface AffiliationRow {
   hospital_departments: { name: string } | null;
   specialties: { name: string } | null;
   cadres: { name: string; is_clinical: boolean } | null;
+  cadre_id: string | null;
   created_at: string;
 }
 
@@ -177,7 +180,7 @@ Deno.serve(async (request: Request) => {
     // `user_id` references auth.users, so `public.users` cannot be embedded
     // through it; names come from their own read below.
     .select(
-      "user_id, hospital_id, department_id, created_at, hospitals!inner(name, state), " +
+      "user_id, hospital_id, department_id, cadre_id, created_at, hospitals!inner(name, state), " +
         "hospital_departments(name), specialties(name), cadres!inner(name, is_clinical)",
     )
     .in("state", ["active", "approved"])
@@ -266,7 +269,7 @@ Deno.serve(async (request: Request) => {
       // because RLS rightly hides other patients' rows from the phone.
       sb
         .from("appointments")
-        .select("clinician_user_id, patient_user_id")
+        .select("clinician_user_id, hospital_id, department_id, patient_user_id")
         .in("clinician_user_id", clinicianIds)
         .in("status", ["arrived", "in_progress", "completed"])
         .not("patient_user_id", "is", null),
@@ -281,15 +284,25 @@ Deno.serve(async (request: Request) => {
   }
   // Distinct patients per clinician. A failed read is a "—" on the strip,
   // never a failed screen — a count is a convenience, the grid is the screen.
+  // Keyed the way the web keys them (lib/patient/discover.ts), so the same
+  // clinician shows the same numbers on both surfaces: patients seen at THIS
+  // hospital; continuity (PRD §2.7) with THIS patient in THIS department.
   const patientsSeenBy = new Map<string, Set<string>>();
-  const seenBy = patientsSeenBy;
+  const seenBy = new Map<string, Set<string>>();
   for (const r of (seenRes.data ?? []) as {
     clinician_user_id: string;
+    hospital_id: string;
+    department_id: string;
     patient_user_id: string;
   }[]) {
-    const set = patientsSeenBy.get(r.clinician_user_id) ?? new Set<string>();
-    set.add(r.patient_user_id);
-    patientsSeenBy.set(r.clinician_user_id, set);
+    const byHospital = `${r.clinician_user_id}:${r.hospital_id}`;
+    const seen = patientsSeenBy.get(byHospital) ?? new Set<string>();
+    seen.add(r.patient_user_id);
+    patientsSeenBy.set(byHospital, seen);
+    const byDept = `${r.clinician_user_id}:${r.hospital_id}:${r.department_id}`;
+    const who = seenBy.get(byDept) ?? new Set<string>();
+    who.add(r.patient_user_id);
+    seenBy.set(byDept, who);
   }
 
   const blocks = (blocksRes.data ?? []) as unknown as BlockRow[];
@@ -376,6 +389,7 @@ Deno.serve(async (request: Request) => {
       hospitalId: a.hospital_id,
       hospitalName: a.hospitals?.name ?? "Your hospital",
       cadre: a.cadres?.name ?? "Clinician",
+      cadreId: a.cadre_id ?? null,
       specialty: a.specialties?.name ?? null,
       departmentId: a.department_id,
       departmentName: a.hospital_departments?.name ?? "Outpatients",
@@ -391,8 +405,9 @@ Deno.serve(async (request: Request) => {
       allowVirtual: clinicianSettings?.allowVirtual ?? departmentPolicy?.allowVirtual ?? false,
       // PRD §2.7 continuity: the caller has an attended visit with this
       // clinician in this department. The one badge that outranks a rating.
-      seenBefore: seenBy.get(a.user_id)?.has(caller.id) ?? false,
-      patientsSeen: patientsSeenBy.get(a.user_id)?.size ?? 0,
+      seenBefore:
+        seenBy.get(`${a.user_id}:${a.hospital_id}:${a.department_id}`)?.has(caller.id) ?? false,
+      patientsSeen: patientsSeenBy.get(`${a.user_id}:${a.hospital_id}`)?.size ?? 0,
       withUsSinceIso: a.created_at ?? null,
       slotsByDate,
     };

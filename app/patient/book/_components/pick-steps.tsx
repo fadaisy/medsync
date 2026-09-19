@@ -9,7 +9,13 @@ import { Pill } from "@/components/ui/pill";
 import { formatFullDate, formatShortDate, formatTime } from "@/lib/patient/booking-format";
 import { cn } from "@/lib/utils";
 import { DEFAULT_TIME_ZONE, localDateKey } from "@/supabase/functions/_shared/slots";
-import { accessAlternatives, splitDays, splitSessions, windowEndMs } from "../_lib/booking";
+import {
+  accessAlternatives,
+  sessionTakeable,
+  splitDays,
+  splitSessions,
+  windowEndMs,
+} from "../_lib/booking";
 import { WaitlistJoin } from "./waitlist-join";
 
 /**
@@ -200,8 +206,8 @@ export function SessionStep({
   const endMs = windowEndMs(nowMs, line.timeToCareDays);
   const { within, beyond } = splitSessions(line.sessions, endMs);
   const alternatives = desk ? null : accessAlternatives(line, null, nowMs);
-  // Nothing takeable inside the target: every day is full, or there is none.
-  const nothingWithin = within.every((s) => s.placesLeft === 0);
+  // Nothing takeable inside the target: full, unnamed, or none at all.
+  const nothingWithin = !within.some(sessionTakeable);
   const toOption = (s: SessionOption): Choice<string> => {
     // PRD §3.6: a day with no clinician is never offered as bookable, and
     // `_shared/book.ts` 409s it ("This clinic day has no clinician assigned

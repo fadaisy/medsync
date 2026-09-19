@@ -2,7 +2,7 @@
 
 import type { CapacityActionState, FeeActionState } from "../actions";
 import type { DataTableColumn, PillTone } from "@/components/ui/data-table";
-import { useActionState, useEffect, useState } from "react";
+import { startTransition, useActionState, useEffect, useState } from "react";
 import { PlusIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -586,7 +586,8 @@ function CadreFees({
     fd.set("cadre_id", override.cadreId);
     if (override.feeUgx !== null) fd.set("fee_ugx", override.feeUgx);
     fd.set("reason", reason);
-    action(fd);
+    // Outside a transition, useActionState's `pending` never flips (React 19).
+    startTransition(() => action(fd));
   };
 
   return (

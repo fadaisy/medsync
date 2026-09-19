@@ -168,8 +168,18 @@ export function clinicianWithin(c: ClinicianOption, endMs: number): boolean {
   return !!slot && new Date(slot.startsAtIso).getTime() <= endMs;
 }
 
+/**
+ * A clinic day a patient can actually take: a place left AND a clinician
+ * named. PRD §3.6 — "the app never shows a session with no clinician as
+ * bookable" — and the core 409s one; the gate lives HERE so every "soonest",
+ * "within" and "nothing open" reads it once and cannot drift.
+ */
+export function sessionTakeable(s: Pick<SessionOption, "placesLeft" | "clinicianUserId">): boolean {
+  return s.placesLeft > 0 && s.clinicianUserId !== null;
+}
+
 export function sessionWithin(s: SessionOption, endMs: number): boolean {
-  return s.placesLeft > 0 && new Date(s.startsAtIso).getTime() <= endMs;
+  return sessionTakeable(s) && new Date(s.startsAtIso).getTime() <= endMs;
 }
 
 /**

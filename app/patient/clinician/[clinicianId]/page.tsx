@@ -1,9 +1,14 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { feeLinesFor, fetchProviderDetail } from "@/lib/patient/discover";
+import { feeInputsFor, fetchProviderDetail } from "@/lib/patient/discover";
 import { requirePatientScope } from "@/lib/patient/scope";
-import { FEE_FOOTNOTE, WAIVER_NOTE } from "@/supabase/functions/_shared/fees";
+import {
+  FEE_FOOTNOTE,
+  quoteLine,
+  resolveFee,
+  WAIVER_NOTE,
+} from "@/supabase/functions/_shared/fees";
 import { ProviderScreen } from "./_components/provider-screen";
 
 export const metadata: Metadata = { title: "Clinician · MedSync" };
@@ -13,11 +18,10 @@ export const dynamic = "force-dynamic";
  * One clinician, and the booking that starts from them — ADR 0085 §4's
  * "doctor page", which that record names as the web's outstanding follow-up.
  *
- * The fee shown here is a RANGE, not a quote: this screen browses, and the
- * quote is only ever promised at the moment of booking, when the core resolves
- * it against the clinician's cadre and snapshots it (ADR 0092). Where a
- * facility has set no cadre overrides — the Ugandan norm — the range collapses
- * to the one number the line charges.
+ * The fee shown here is this clinician's own number, resolved against their
+ * cadre by the same rule the booking core will apply and snapshot (ADR 0092).
+ * The line's RANGE belongs on a clinic day whose clinician is not yet named;
+ * on a screen about one named person a range would be false.
  */
 export default async function ClinicianPage({
   params,
@@ -31,8 +35,10 @@ export default async function ClinicianPage({
   const provider = await fetchProviderDetail(scope.primaryHospitalId, scope.userId, clinicianId);
   if (!provider) notFound();
 
-  // What the line charges — the same read the home's tiles use (ADR 0092).
-  const feeLine = (await feeLinesFor([provider.lineId])).get(provider.lineId) ?? null;
+  // THIS clinician's quote — their cadre is known, so the number is one, not
+  // the line's range (ADR 0092: a range only where the price is unknowable).
+  const inputs = (await feeInputsFor([provider.lineId])).get(provider.lineId);
+  const feeLine = inputs ? quoteLine(resolveFee(inputs, provider.cadreId)) : null;
 
   return (
     <ProviderScreen

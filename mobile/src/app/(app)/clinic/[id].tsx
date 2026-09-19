@@ -44,6 +44,7 @@ import {
   newIdempotencyKey,
   reasonsFor,
   requestAppointment,
+  sessionTakeable,
 } from "@/lib/booking";
 import { useStyles, useTheme } from "@/theme/theme";
 import { font, radius, space } from "@/theme/tokens";
@@ -65,7 +66,7 @@ async function loadElsewhere(
   const found = await Promise.all(
     lines.map(async (l) => {
       const next = (await fetchSessions({ serviceLineId: l.id }).catch(() => [])).find(
-        (s) => s.placesLeft > 0 && s.startsAtIso <= limitIso,
+        (s) => sessionTakeable(s) && s.startsAtIso <= limitIso,
       );
       return next ? { line: l, next } : null;
     }),
@@ -135,7 +136,7 @@ export default function ClinicScreen() {
           const limitAt = new Date(Date.now() + found.timeToCareDays * 86_400_000);
           setLimit(dateKey(limitAt));
           const within = rows.some(
-            (s) => s.placesLeft > 0 && s.startsAtIso <= limitAt.toISOString(),
+            (s) => sessionTakeable(s) && s.startsAtIso <= limitAt.toISOString(),
           );
           setElsewhere(within ? [] : await loadElsewhere(found, limitAt.toISOString()));
         }
@@ -200,7 +201,7 @@ export default function ClinicScreen() {
       const fresh = await fetchSessions({ serviceLineId: line.id });
       setSessions(fresh);
       const still = fresh.find((s) => s.id === session.id);
-      setSession(still && still.placesLeft > 0 ? still : null);
+      setSession(still && sessionTakeable(still) ? still : null);
     } catch {
       // Keep what is on screen; the sentence above already says to try again.
     }
@@ -296,7 +297,7 @@ export default function ClinicScreen() {
   const picked = reasons.find((r) => r.value === reason);
   const beyond =
     limit !== null &&
-    sessions.every((s) => s.placesLeft === 0 || dateKey(new Date(s.startsAtIso)) > limit);
+    sessions.every((s) => !sessionTakeable(s) || dateKey(new Date(s.startsAtIso)) > limit);
   // Gate E: nothing takeable inside the target — the line is the honest offer.
   // Never for a confidential line booked for a member (the server refuses too).
   const waitlistInput =
@@ -328,7 +329,7 @@ export default function ClinicScreen() {
           }`}
           selected={s.id === session?.id}
           // PRD §3.6 / book.ts 409: a day with no clinician is not bookable.
-          disabled={s.placesLeft === 0 || s.clinicianUserId === null}
+          disabled={!sessionTakeable(s)}
           onPress={() => pickSession(s)}
         />
       ))}

@@ -1,6 +1,7 @@
 import type { ClinicSession, ServiceLine } from "@/lib/booking";
 import type { Palette } from "@/theme/tokens";
 import { Ionicons } from "@expo/vector-icons";
+import { FEE_FOOTNOTE, WAIVER_NOTE } from "@shared/fees";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { dateKey, dayLabel } from "@/lib/booking";
@@ -43,7 +44,8 @@ export function ServiceLineCard({
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`${line.name}, ${line.departmentName}`}
+      // No accessibilityLabel: it would REPLACE the children, silencing the
+      // mode word, the fee and "soonest". The children read in order.
       accessibilityHint="Opens this clinic"
       onPress={onPress}
       style={({ pressed }) => [
@@ -71,7 +73,12 @@ export function ServiceLineCard({
       {line.feeLine ? (
         <Text style={[styles.fee, emphasis && styles.onFilled]} numberOfLines={2}>
           {line.feeLine}
-          <Text style={[styles.feeNote, emphasis && styles.onFilledMuted]}> at the hospital</Text>
+        </Text>
+      ) : null}
+      {line.feeLine ? (
+        // Both sentences ride with every fee (ADR 0092).
+        <Text style={[styles.feeNote, emphasis && styles.onFilledMuted]} numberOfLines={3}>
+          {FEE_FOOTNOTE} {WAIVER_NOTE}
         </Text>
       ) : null}
 
@@ -141,7 +148,9 @@ const makeStyles = (c: Palette) =>
     },
     soonestDay: { fontFamily: font.bodyMedium, color: c.foreground },
     onFilled: { color: c.primaryForeground },
-    onFilledMuted: { color: c.primaryForeground, opacity: 0.8 },
+    // Full contrast on the filled tile: white at 0.8 over teal-700 fell
+    // below AA for small text. Hierarchy comes from size, not from fading.
+    onFilledMuted: { color: c.primaryForeground },
     arrow: {
       width: 34,
       height: 34,

@@ -11,7 +11,7 @@ import type {
 import type { Palette } from "@/theme/tokens";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
-import { FEE_FOOTNOTE, WAIVER_NOTE } from "@shared/fees";
+import { FEE_FOOTNOTE, quoteLine, resolveFee, WAIVER_NOTE } from "@shared/fees";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   ActivityIndicator,
@@ -223,6 +223,9 @@ export default function DoctorScreen() {
         departmentId: doctor.departmentId,
         startsAtIso: slot.startsAtIso,
         endsAtIso: slot.endsAtIso,
+        // The line whose fee this screen showed — so the core snapshots the
+        // quote (ADR 0092). Absent only when no line covers the department.
+        serviceLineId: wait?.line?.id,
       },
     });
     if (res.ok) {
@@ -531,10 +534,16 @@ export default function DoctorScreen() {
           {/* ADR 0092: what this clinician's line charges, before the patient
               commits. A single number where the line charges one; a range
               over its cadre fees otherwise — the quote is fixed at booking. */}
-          {days.length > 0 && wait?.line?.feeLine ? (
+          {days.length > 0 &&
+          wait?.line?.id &&
+          quoteLine(resolveFee(wait.line.fee, doctor.cadreId)) ? (
             <View style={styles.feeCard}>
               <Text style={styles.feeLabel}>Fee</Text>
-              <Text style={styles.feeValue}>{wait.line.feeLine}</Text>
+              {/* THIS clinician's number, resolved against their cadre — the
+                  rule the core applies at booking — never the line's range. */}
+              <Text style={styles.feeValue}>
+                {quoteLine(resolveFee(wait.line.fee, doctor.cadreId))}
+              </Text>
               <Text style={styles.feeNote}>{FEE_FOOTNOTE}</Text>
               <Text style={styles.feeNote}>{WAIVER_NOTE}</Text>
             </View>

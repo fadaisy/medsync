@@ -4,6 +4,7 @@ import { ArrowUpRightIcon } from "lucide-react";
 
 import { formatShortDate } from "@/lib/patient/booking-format";
 import { cn } from "@/lib/utils";
+import { FEE_FOOTNOTE, WAIVER_NOTE } from "@/supabase/functions/_shared/fees";
 
 /**
  * A clinic, as a category tile — the reference design's "General Visits" grid,
@@ -79,14 +80,19 @@ export function ServiceLineCard({ line, emphasis = false }: { line: Line; emphas
           )}
         >
           {line.feeLine}
-          <span
-            className={cn(
-              "text-caption ml-1.5 font-sans font-normal",
-              emphasis ? "text-brand-200" : "text-muted-foreground",
-            )}
-          >
-            at the hospital
-          </span>
+        </p>
+      ) : null}
+      {line.feeLine ? (
+        // Both sentences ride with every fee (ADR 0092): no payment happens
+        // here, and MoH §2.2(J) makes the waiver a duty — a price without
+        // it deters exactly the patient the waiver exists for.
+        <p
+          className={cn(
+            "text-caption leading-snug",
+            emphasis ? "text-brand-200" : "text-muted-foreground",
+          )}
+        >
+          {FEE_FOOTNOTE} {WAIVER_NOTE}
         </p>
       ) : null}
 

@@ -692,7 +692,7 @@ async function quoteFor(
 
   let cadreId = args.cadreId ?? null;
   if (!cadreId && args.clinicianUserId) {
-    const { data: aff } = await sb
+    const { data: aff, error: affError } = await sb
       .from("staff_affiliations")
       .select("cadre_id")
       .eq("user_id", args.clinicianUserId)
@@ -701,13 +701,27 @@ async function quoteFor(
       .in("state", ["active", "approved"])
       .limit(1)
       .maybeSingle();
+    if (affError) {
+      // Fail open to the base fee — but never silently: an override this
+      // patient should have been quoted may be lost, and someone must know.
+      console.warn("quoteFor: cadre read failed, quoting the base fee", {
+        line_id: args.lineId,
+        reason: affError.message,
+      });
+    }
     cadreId = (aff?.cadre_id as string | null) ?? null;
   }
 
-  const { data: rows } = await sb
+  const { data: rows, error: feesError } = await sb
     .from("service_line_fees")
     .select("cadre_id, fee_ugx, cadres!inner(name)")
     .eq("service_line_id", args.lineId);
+  if (feesError) {
+    console.warn("quoteFor: override read failed, quoting the base fee", {
+      line_id: args.lineId,
+      reason: feesError.message,
+    });
+  }
 
   const cadreFees: CadreFee[] = (
     (rows ?? []) as Array<{

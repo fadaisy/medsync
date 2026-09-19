@@ -21,7 +21,7 @@
  */
 import { z } from "npm:zod@4.4.3";
 
-import { getCaller, serviceClient } from "../_shared/auth.ts";
+import { getCaller, hasRole, serviceClient } from "../_shared/auth.ts";
 import { preflight } from "../_shared/cors.ts";
 import {
   badRequest,
@@ -33,7 +33,7 @@ import {
   serverError,
   unauthorized,
 } from "../_shared/errors.ts";
-import { authoriseAtHospital } from "../_shared/hospital-admin-scope.ts";
+import { requireHospitalAdminScope } from "../_shared/hospital-admin-scope.ts";
 import { makeLogger } from "../_shared/logger.ts";
 import { networkContext, recordSaAudit } from "../_shared/sa-audit.ts";
 
@@ -68,8 +68,16 @@ Deno.serve(async (request: Request) => {
 
   const caller = await getCaller(request);
   if (!caller) return unauthorized(init);
-  const denied = await authoriseAtHospital(caller.id, input.hospital_id);
-  if (denied) return forbidden(init, denied);
+  // NOT `authoriseAtHospital` — that is the desk's helper and admits any
+  // active affiliation (reception, nurse, lab). A price list is the
+  // hospital admin's to set, the same bar as `ha-upsert-service-line`.
+  if (!(await hasRole(caller.id, "superadmin"))) {
+    if (!(await hasRole(caller.id, "hospital_admin", input.hospital_id))) {
+      return forbidden(init, "only a hospital admin can set fees");
+    }
+    const scope = await requireHospitalAdminScope(caller.id, input.hospital_id);
+    if (!scope.ok) return forbidden(init, scope.reason);
+  }
   const sb = serviceClient();
 
   const { data: line, error: lineError } = await sb
@@ -92,12 +100,15 @@ Deno.serve(async (request: Request) => {
   if (!cadre) return notFound(init, "cadre not found");
   if (!cadre.is_clinical) return badRequest("Only a clinical cadre can carry a fee.", init);
 
-  const { data: existing } = await sb
+  const { data: existing, error: existingError } = await sb
     .from("service_line_fees")
     .select("id, fee_ugx")
     .eq("service_line_id", line.id)
     .eq("cadre_id", cadre.id)
     .maybeSingle();
+  // The audit row's before-data comes from this read; a failed read must not
+  // be recorded as "there was no fee".
+  if (existingError) return serverError(existingError.message, init);
 
   const { ipAddress, userAgent } = networkContext(request);
   try {

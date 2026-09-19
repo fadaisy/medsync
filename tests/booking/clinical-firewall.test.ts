@@ -234,9 +234,31 @@ describe("PRD §3.6 — a clinic day with no clinician is never offered as booka
     expect(src).not.toContain('"Clinic team"');
   });
 
-  it("the phone tile does the same", () => {
-    const src = read("mobile/src/app/(app)/clinic/[id].tsx");
-    expect(src).toContain("s.clinicianUserId === null");
-    expect(src).toMatch(/disabled=\{s\.placesLeft === 0 \|\| s\.clinicianUserId === null\}/);
+  it("every 'takeable' predicate on both platforms goes through the one gate", () => {
+    // Web: the gate is sessionTakeable(); nothing else may test places-left alone.
+    expect(read("app/patient/book/_lib/booking.ts")).toContain(
+      "return s.placesLeft > 0 && s.clinicianUserId !== null;",
+    );
+    for (const file of ["app/patient/book/_components/pick-steps.tsx", "lib/patient/discover.ts"]) {
+      const src = stripComments(read(file));
+      expect(src, file).toContain("sessionTakeable");
+      expect(src, `${file} tests placesLeft without the clinician gate`).not.toMatch(
+        /placesLeft\s*>\s*0(?![^;]*clinicianUserId)/,
+      );
+    }
+    // Phone: the same predicate in the data layer, used by the home and the clinic screen.
+    expect(read("mobile/src/lib/booking.ts")).toContain(
+      "return s.placesLeft > 0 && s.clinicianUserId !== null;",
+    );
+    for (const file of [
+      "mobile/src/app/(app)/(tabs)/index.tsx",
+      "mobile/src/app/(app)/clinic/[id].tsx",
+    ]) {
+      const src = stripComments(read(file));
+      expect(src, file).toContain("sessionTakeable(");
+      expect(src, `${file} tests placesLeft without the clinician gate`).not.toMatch(
+        /placesLeft\s*>\s*0(?![^;]*clinicianUserId)/,
+      );
+    }
   });
 });

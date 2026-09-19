@@ -158,8 +158,9 @@ function ActionCircle({
   const styles = useStyles(makeStyles);
   return (
     <View
+      accessible
+      accessibilityRole="image"
       accessibilityLabel={label}
-      accessibilityState={{ disabled: !available }}
       style={[styles.circle, !available && styles.circleOff]}
     >
       <Ionicons name={icon} size={18} color={available ? colors.primary : colors.mutedForeground} />
@@ -179,7 +180,11 @@ function Stat({
   const { colors } = useTheme();
   const styles = useStyles(makeStyles);
   return (
-    <View style={styles.stat} accessibilityLabel={`${label}: ${value}`}>
+    <View
+      accessible
+      style={styles.stat}
+      accessibilityLabel={`${label}: ${value === "—" ? "none yet" : value}`}
+    >
       <Ionicons name={icon} size={16} color={colors.primary} />
       <Text style={styles.statValue}>{value}</Text>
       <Text style={styles.statLabel}>{label}</Text>

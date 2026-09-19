@@ -17,7 +17,8 @@ import {
   VideoIcon,
 } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { BottomActionBar, BottomActionBarSpacer } from "@/components/responsive/bottom-action-bar";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { formatTime } from "@/lib/patient/booking-format";
 import { cn } from "@/lib/utils";
 
@@ -82,7 +83,7 @@ export function ProviderScreen({
   };
 
   return (
-    <div className="flex flex-col gap-5 pb-28">
+    <div className="flex flex-col gap-5">
       {/* ── The photo card ─────────────────────────────────────── */}
       <section className="bg-brand-50 relative overflow-hidden rounded-3xl">
         <div className="relative aspect-[4/5] w-full sm:aspect-[16/10]">
@@ -162,16 +163,19 @@ export function ProviderScreen({
                 ? "This clinician offers video visits"
                 : "This clinician sees patients in person only"
             }
+            caption={provider.allowVirtual ? "Video" : "In person"}
             available={provider.allowVirtual}
           />
           <ActionCircle
             icon={<PhoneIcon className="size-4" aria-hidden />}
             label="Calling a clinician is not available in MedSync"
+            caption="No calls"
             available={false}
           />
           <ActionCircle
             icon={<MessageSquareIcon className="size-4" aria-hidden />}
             label="Messaging a clinician is not available in MedSync"
+            caption="No chat"
             available={false}
           />
         </span>
@@ -221,7 +225,6 @@ export function ProviderScreen({
           </p>
         ) : (
           <ul
-            role="radiogroup"
             aria-label="Available days"
             className="-mx-1 flex snap-x gap-2 overflow-x-auto px-1 pb-1"
           >
@@ -232,8 +235,7 @@ export function ProviderScreen({
                 <li key={d} className="snap-start">
                   <button
                     type="button"
-                    role="radio"
-                    aria-checked={selected}
+                    aria-pressed={selected}
                     onClick={() => {
                       setDay(d);
                       setSlot(null);
@@ -278,8 +280,7 @@ export function ProviderScreen({
                 <li key={s.startsAtIso}>
                   <button
                     type="button"
-                    role="radio"
-                    aria-checked={selected}
+                    aria-pressed={selected}
                     onClick={() => setSlot(s.startsAtIso)}
                     className={cn(
                       "ease-expo-out duration-fast text-body-s min-h-11 rounded-full px-4 font-medium transition-colors focus-visible:ring-2 focus-visible:outline-none",
@@ -299,61 +300,72 @@ export function ProviderScreen({
 
       {/* ── The fee, stated before the patient commits (ADR 0092) ─ */}
       {feeLine ? (
-        <section className="bg-muted flex flex-col gap-1 rounded-2xl p-4">
+        <dl className="bg-muted flex flex-col gap-1 rounded-2xl p-4">
           <dt className="text-overline text-muted-foreground uppercase">Fee</dt>
           <dd className="text-foreground text-body-m font-medium">{feeLine}</dd>
           {feeNotes.map((note) => (
-            <p key={note} className="text-muted-foreground text-body-s">
+            <dd key={note} className="text-muted-foreground text-body-s">
               {note}
-            </p>
+            </dd>
           ))}
-        </section>
+        </dl>
       ) : null}
 
-      {/* ── Docked CTA ─────────────────────────────────────────── */}
-      <div className="bg-background/95 fixed inset-x-0 bottom-0 z-10 border-t p-4 backdrop-blur @5xl/page:static @5xl/page:border-0 @5xl/page:bg-transparent @5xl/page:p-0">
-        <div className="mx-auto flex max-w-2xl flex-col gap-2">
-          {slot ? (
-            <Link
-              href={`/patient/book?line=${provider.lineId}&clinician=${provider.userId}&slot=${encodeURIComponent(slot)}`}
-              className="contents"
-            >
-              <Button size="lg" className="w-full rounded-full">
-                Book this time
-              </Button>
-            </Link>
-          ) : (
-            <Button size="lg" disabled className="w-full rounded-full">
-              {days.length === 0 ? "No days open" : "Pick a day and time"}
-            </Button>
-          )}
-        </div>
-      </div>
+      {/* ── Docked CTA — the house sticky bar, which clears the tab bar; a
+          `fixed bottom-0` here sat UNDER `MobileTabBar` (z-30) and was
+          unreachable on a phone. */}
+      <BottomActionBar>
+        {slot ? (
+          <Link
+            href={`/patient/book?line=${provider.lineId}&clinician=${provider.userId}&slot=${encodeURIComponent(slot)}`}
+            className={cn(buttonVariants({ size: "lg" }), "w-full rounded-full")}
+          >
+            Book this time
+          </Link>
+        ) : (
+          <Button size="lg" disabled className="w-full rounded-full">
+            {days.length === 0 ? "No days open" : "Pick a day and time"}
+          </Button>
+        )}
+      </BottomActionBar>
+      <BottomActionBarSpacer />
     </div>
   );
 }
 
+/**
+ * One circle of the action row. `role="img"` so the label is exposed — an
+ * aria-label on a bare span is prohibited on the generic role and read by
+ * nothing — and the state is also in WORDS beside it (`caption`), never in
+ * the tint alone (DESIGN: no colour-only state).
+ */
 function ActionCircle({
   icon,
   label,
+  caption,
   available,
 }: {
   icon: React.ReactNode;
   label: string;
+  /** The one-word visible state: "Video" / "Not offered". */
+  caption: string;
   available: boolean;
 }) {
   return (
-    <span
-      title={label}
-      aria-label={label}
-      className={cn(
-        "grid size-11 place-items-center rounded-full",
-        available
-          ? "bg-card text-brand-700 dark:shadow-card shadow-xs"
-          : "bg-muted text-muted-foreground/60",
-      )}
-    >
-      {icon}
+    <span className="flex flex-col items-center gap-1">
+      <span
+        role="img"
+        aria-label={label}
+        className={cn(
+          "grid size-11 place-items-center rounded-full",
+          available
+            ? "bg-card text-brand-700 dark:shadow-card shadow-xs"
+            : "bg-muted text-muted-foreground/60",
+        )}
+      >
+        {icon}
+      </span>
+      <span className="text-caption text-muted-foreground">{caption}</span>
     </span>
   );
 }
@@ -364,8 +376,11 @@ function Stat({ icon, value, label }: { icon: React.ReactNode; value: string; la
       <span className="text-brand-700" aria-hidden>
         {icon}
       </span>
-      <dd className="text-foreground text-body-m font-mono font-medium tabular-nums">{value}</dd>
-      <dt className="text-muted-foreground text-caption">{label}</dt>
+      {/* dt before dd in the DOM; the visual order is the same, so no CSS reorder. */}
+      <dt className="text-muted-foreground text-caption order-2">{label}</dt>
+      <dd className="text-foreground text-body-m order-1 font-mono font-medium tabular-nums">
+        {value === "—" ? <span aria-label="none yet">—</span> : value}
+      </dd>
     </div>
   );
 }
@@ -385,7 +400,7 @@ function StepButton({
       onClick={onClick}
       disabled={disabled}
       aria-label={dir === "prev" ? "Previous month" : "Next month"}
-      className="text-muted-foreground hover:text-foreground focus-visible:ring-ring grid size-9 place-items-center rounded-full transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:opacity-40"
+      className="text-muted-foreground hover:text-foreground focus-visible:ring-ring grid size-11 place-items-center rounded-full transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:opacity-40"
     >
       {dir === "prev" ? (
         <ChevronLeftIcon className="size-4" aria-hidden />

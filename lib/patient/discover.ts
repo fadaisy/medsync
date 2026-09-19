@@ -1,9 +1,10 @@
 import "server-only";
 
 import type { LineOption } from "@/app/patient/book/_lib/booking";
+import type { FeeInputs } from "@/supabase/functions/_shared/fees";
 import { and, asc, eq, inArray, sql } from "drizzle-orm";
 
-import { firstOpenDay } from "@/app/patient/book/_lib/booking";
+import { firstOpenDay, sessionTakeable } from "@/app/patient/book/_lib/booking";
 import { db } from "@/db";
 import { staffAffiliations } from "@/db/schema/clinician-profiles";
 import { cadres } from "@/db/schema/reference-data";
@@ -106,7 +107,13 @@ export async function fetchDiscovery(
  * overrides; a free line costs nothing beyond the first.
  */
 export async function feeLinesFor(lineIds: string[]): Promise<Map<string, string | null>> {
-  const out = new Map<string, string | null>();
+  const inputs = await feeInputsFor(lineIds);
+  return new Map([...inputs].map(([id, i]) => [id, rangeLine(feeRange(i))]));
+}
+
+/** The raw pricing per line — posture, base, every cadre override — for callers that know the cadre. */
+export async function feeInputsFor(lineIds: string[]): Promise<Map<string, FeeInputs>> {
+  const out = new Map<string, FeeInputs>();
   if (lineIds.length === 0) return out;
   const [rows, overrides] = await Promise.all([
     db
@@ -130,17 +137,12 @@ export async function feeLinesFor(lineIds: string[]): Promise<Map<string, string
       .where(inArray(serviceLineFees.serviceLineId, lineIds)),
   ]);
   for (const r of rows) {
-    out.set(
-      r.id,
-      rangeLine(
-        feeRange({
-          posture: r.posture,
-          baseFeeUgx: r.baseFeeUgx,
-          lineName: r.name,
-          cadreFees: overrides.filter((o) => o.serviceLineId === r.id),
-        }),
-      ),
-    );
+    out.set(r.id, {
+      posture: r.posture,
+      baseFeeUgx: r.baseFeeUgx,
+      lineName: r.name,
+      cadreFees: overrides.filter((o) => o.serviceLineId === r.id),
+    });
   }
   return out;
 }
@@ -167,7 +169,7 @@ function toLineCard(line: LineOption, now: Date, feeLine: string | null): Servic
 function soonestIn(line: LineOption, now: Date): ServiceLineCard["soonest"] {
   if (line.capacityMode === "session") {
     const open = line.sessions
-      .filter((s) => s.placesLeft > 0 && new Date(s.startsAtIso).getTime() > now.getTime())
+      .filter((s) => sessionTakeable(s) && new Date(s.startsAtIso).getTime() > now.getTime())
       .sort((a, b) => a.startsAtIso.localeCompare(b.startsAtIso))[0];
     return open
       ? {
@@ -263,6 +265,8 @@ async function decorate(lines: LineOption[]): Promise<ProviderCard[]> {
 export interface ProviderDetail extends ProviderCard {
   /** The registered cadre — the reference's "MBBS, MD · Medicine Specialist" line. */
   cadreName: string | null;
+  /** Its id, so the fee shown on this screen is THIS clinician's quote, never the line's range. */
+  cadreId: string | null;
   /** Distinct patients with an attended visit. Zero on day one, and says so. */
   patientsSeen: number;
   /** When this clinician joined this hospital on MedSync, ISO — null if unknown. */
@@ -295,7 +299,11 @@ export async function fetchProviderDetail(
 
   const [affiliationRows, seen] = await Promise.all([
     db
-      .select({ createdAt: staffAffiliations.createdAt, cadreName: cadres.name })
+      .select({
+        createdAt: staffAffiliations.createdAt,
+        cadreName: cadres.name,
+        cadreId: cadres.id,
+      })
       .from(staffAffiliations)
       .innerJoin(cadres, eq(cadres.id, staffAffiliations.cadreId))
       .where(
@@ -323,6 +331,7 @@ export async function fetchProviderDetail(
   return {
     ...card,
     cadreName: affiliation?.cadreName ?? null,
+    cadreId: affiliation?.cadreId ?? null,
     patientsSeen: seen[0]?.n ?? 0,
     withUsSinceIso: affiliation?.createdAt?.toISOString() ?? null,
     allowVirtual: clinician.allowVirtual,

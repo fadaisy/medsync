@@ -67,6 +67,12 @@ interface BookingWizardProps {
   nowIso: string;
   /** "YYYY-MM-DD" today in the hospital's zone — never the device's. */
   todayIso: string;
+  /**
+   * A pick handed in by URL (the provider screen, a service-line tile). A
+   * VALID seed — a line the page offers, a clinician on it, a slot they have
+   * open — beats any stored draft; an invalid one is ignored, never half-used.
+   */
+  seed: { lineId: string; clinicianUserId: string | null; slotStartsAtIso: string | null } | null;
 }
 
 /**
@@ -144,6 +150,39 @@ function resumeStep(
   return "pick";
 }
 
+/**
+ * The draft a URL seed produces, or null when the seed names something the
+ * page does not offer. Starts at the reason step — the provider screen asks
+ * no reason — with the line, clinician and slot already held, so the pick
+ * step opens on the time the patient chose.
+ */
+function seededDraft(
+  seed: NonNullable<BookingWizardProps["seed"]>,
+  lines: ReadonlyArray<LineOption>,
+): BookingDraft | null {
+  const line = lines.find((l) => l.id === seed.lineId);
+  if (!line) return null;
+  const clinician = seed.clinicianUserId
+    ? line.clinicians.find((c) => c.userId === seed.clinicianUserId)
+    : undefined;
+  if (seed.clinicianUserId && !clinician) return null;
+  let dateIso = "";
+  if (seed.slotStartsAtIso && clinician) {
+    const day = Object.entries(clinician.slotsByDate).find(([, offers]) =>
+      offers.some((o) => o.startsAtIso === seed.slotStartsAtIso),
+    );
+    if (!day) return null; // the slot went while the patient was reading
+    dateIso = day[0];
+  }
+  return {
+    ...freshDraft(),
+    lineId: line.id,
+    clinicianUserId: clinician?.userId ?? null,
+    dateIso,
+    slotStartsAtIso: seed.slotStartsAtIso,
+  };
+}
+
 function Wizard({
   hospitalId,
   hospitalName,
@@ -152,9 +191,12 @@ function Wizard({
   household,
   nowIso,
   todayIso,
+  seed,
 }: BookingWizardProps) {
   const router = useRouter();
-  const [draft, setDraft] = useState<BookingDraft>(() => readDraft(hospitalId) ?? freshDraft());
+  const [draft, setDraft] = useState<BookingDraft>(
+    () => (seed ? seededDraft(seed, lines) : null) ?? readDraft(hospitalId) ?? freshDraft(),
+  );
   const [stepId, setStepId] = useState<StepId>(() => resumeStep(draft, lines, household));
   const [receipt, setReceipt] = useState<BookingReceipt | null>(null);
   const [error, setError] = useState<string | null>(null);

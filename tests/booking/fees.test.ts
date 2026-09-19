@@ -148,7 +148,7 @@ describe("invariants — a price stays what the patient was told", () => {
    * `arrival_window_start/end` already follows. One writer means no surface,
    * cron or Edge Function can retroactively reprice a held booking.
    */
-  it("only the booking core writes quoted_fee_*", () => {
+  it("only the booking core MINTS a quote; a reschedule may only copy the old row's", () => {
     const writers: string[] = [];
     for (const dir of ["app", "lib", "supabase/functions"]) {
       for (const p of walk(resolve(ROOT, dir))) {
@@ -157,7 +157,19 @@ describe("invariants — a price stays what the patient was told", () => {
         if (/quoted_fee_ugx\s*:/.test(src)) writers.push(p.slice(ROOT.length + 1));
       }
     }
-    expect(writers).toEqual(["supabase/functions/_shared/book.ts"]);
+    expect(writers.sort()).toEqual([
+      "supabase/functions/_shared/book.ts",
+      "supabase/functions/reschedule-appointment/index.ts",
+    ]);
+    // The reschedule copies the previous row's snapshot verbatim — it never
+    // calls the resolver, so a price change cannot reach a held booking.
+    const reschedule = readFileSync(
+      resolve(ROOT, "supabase/functions/reschedule-appointment/index.ts"),
+      "utf8",
+    );
+    expect(reschedule).toContain("quoted_fee_ugx: appt.quoted_fee_ugx ?? null");
+    expect(reschedule).not.toContain("resolveFee(");
+    expect(reschedule).not.toContain("quoteFor(");
   });
 
   /**

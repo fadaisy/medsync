@@ -16,7 +16,19 @@ import { firstOpenDay } from "./_lib/booking";
 export const metadata: Metadata = { title: "Ask for a day · MedSync" };
 export const dynamic = "force-dynamic";
 
-export default async function PatientBookPage() {
+/**
+ * A pick made elsewhere — the provider screen's "Book this time", or a
+ * service-line tile — arrives as search params and seeds the wizard. Without
+ * this the wizard read only localStorage, so the day and time a patient had
+ * just chosen were discarded, or worse a stale draft for another clinician
+ * resumed in their place.
+ */
+export default async function PatientBookPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ line?: string; clinician?: string; slot?: string }>;
+}) {
+  const seed = await searchParams;
   const scope = await requirePatientScope();
 
   if (!scope.primaryHospitalId) {
@@ -96,6 +108,15 @@ export default async function PatientBookPage() {
         }))}
         nowIso={now.toISOString()}
         todayIso={localDateKey(now, DEFAULT_TIME_ZONE)}
+        seed={
+          seed.line
+            ? {
+                lineId: seed.line,
+                clinicianUserId: seed.clinician ?? null,
+                slotStartsAtIso: seed.slot ?? null,
+              }
+            : null
+        }
       />
     </div>
   );

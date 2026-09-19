@@ -45,6 +45,7 @@ import {
   formatTime,
   markArrived,
   RESCHEDULABLE,
+  sessionTakeable,
   STAGE_WORD,
   STATUS_LABEL,
 } from "@/lib/booking";
@@ -191,7 +192,7 @@ export default function HomeScreen() {
             .filter((l) => l.capacityMode === "session")
             .map((line) => ({
               line,
-              next: sessions.find((s) => s.serviceLineId === line.id && s.placesLeft > 0) ?? null,
+              next: sessions.find((s) => s.serviceLineId === line.id && sessionTakeable(s)) ?? null,
             }))
         : null;
     setHome({ kind: "ready", profile, visit, ticket, doctors, clinics });
