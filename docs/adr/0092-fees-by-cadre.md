@@ -86,10 +86,9 @@ quoted_fee_at` are written once, by `_shared/book.ts` alone — the rule `arriva
 `service_line_fees` (UNIQUE (line, cadre); `cadre_id` ON DELETE RESTRICT — a cadre that prices something
 cannot be deleted out from under a published list; `fee_ugx` ≥ 0 and ≤ 10,000,000, since Annex I's highest
 figure is 3,000,000 and ten million is a typo); `appointments.quoted_fee_ugx / quoted_fee_label /
-quoted_fee_at` with a completeness CHECK; `sa_audit_log` CHECKs re-issued (+ `set_service_line_fee`,
-
-- `service_line_fee`). Dry-run BEGIN/ROLLBACK: clean. Sequencing: **0063 before the redeployed booking core
-  and its callers** — `book.ts` now writes the quote columns.
+quoted_fee_at` with a completeness CHECK; `sa_audit_log` CHECKs re-issued, adding the action
+`set_service_line_fee` and the target kind `service_line_fee`. Dry-run BEGIN/ROLLBACK: clean. Sequencing:
+**0063 before the redeployed booking core and its callers** — `book.ts` now writes the quote columns.
 
 ### Surfaces
 
