@@ -85,6 +85,14 @@ interface ClinicianOption {
   photoUrl: string | null;
   /** Null until someone has rated this clinician — shown as "No ratings yet". */
   rating: { average: number; count: number } | null;
+  /** A video visit is bookable with this clinician (their row, else the department's). */
+  allowVirtual: boolean;
+  /** PRD §2.7: the caller has an attended visit with this clinician here. */
+  seenBefore: boolean;
+  /** Distinct patients with an attended visit. The strip shows "—" for zero. */
+  patientsSeen: number;
+  /** When this affiliation was created — "With us" on the strip. Never a career length. */
+  withUsSinceIso: string | null;
   autoConfirm: boolean;
   /** Open slots keyed by clinic date, ascending within a day; days with nothing open absent. */
   slotsByDate: Record<string, SlotOffer[]>;
@@ -114,6 +122,7 @@ interface AffiliationRow {
   hospital_departments: { name: string } | null;
   specialties: { name: string } | null;
   cadres: { name: string; is_clinical: boolean } | null;
+  created_at: string;
 }
 
 /** Settings are per (clinician, hospital); a clinician at two hospitals has two rows. */
@@ -168,7 +177,7 @@ Deno.serve(async (request: Request) => {
     // `user_id` references auth.users, so `public.users` cannot be embedded
     // through it; names come from their own read below.
     .select(
-      "user_id, hospital_id, department_id, hospitals!inner(name, state), " +
+      "user_id, hospital_id, department_id, created_at, hospitals!inner(name, state), " +
         "hospital_departments(name), specialties(name), cadres!inner(name, is_clinical)",
     )
     .in("state", ["active", "approved"])
@@ -192,65 +201,76 @@ Deno.serve(async (request: Request) => {
   // 3-8. Independent of each other, all scoped by step 2's ids. Columns are
   //      aliased to the camelCase the engine reads — an unmapped row is
   //      `undefined` there, which it throws on rather than deriving nothing.
-  const [blocksRes, apptsRes, settingsRes, policyRes, namesRes, ratingsRes] = await Promise.all([
-    sb
-      .from("availability_blocks")
-      // NO kind filter: "bookable" is the engine's definition, and it needs
-      // the blocking kinds too — a `leave` row that never reaches the engine
-      // cannot cancel the bookable block it overlaps, so the phone offers a
-      // slot inside declared leave and the write path refuses it forever.
-      .select(
-        "clinician_user_id, hospital_id, department_id, kind, state, startsAt:starts_at, " +
-          "endsAt:ends_at, recurrence, recurrenceWeekday:recurrence_weekday, " +
-          "recurrenceUntil:recurrence_until",
-      )
-      .in("hospital_id", hospitalIds)
-      .eq("state", "active")
-      .in("clinician_user_id", clinicianIds)
-      // A weekly block's own `starts_at` is the template — often months back.
-      // Window it on the recurrence too, or the series never reaches the engine.
-      .or(
-        `and(ends_at.gte."${nowIso}",starts_at.lt."${untilIso}"),` +
-          `and(recurrence.eq.weekly,or(recurrence_until.is.null,recurrence_until.gte."${nowIso}"))`,
-      ),
-    sb
-      .from("appointments")
-      // NOT scoped to the hospital, and that is the point: the write path
-      // subtracts a clinician's live appointments everywhere, because a
-      // clinician booked at their other hospital is still one person.
-      .select("clinician_user_id, startsAt:starts_at, endsAt:ends_at")
-      .in("clinician_user_id", clinicianIds)
-      .in("status", [...LIVE_APPOINTMENT_STATUSES])
-      .gte("ends_at", nowIso)
-      .lt("starts_at", untilIso),
-    sb
-      .from("clinician_scheduling_settings")
-      // All four columns. The engine's settings type has no optional fields
-      // on purpose: "not selected" and "no override" want opposite answers.
-      .select(
-        "clinician_user_id, hospital_id, defaultSlotMinutes:default_slot_minutes, " +
-          "bufferMinutes:buffer_minutes, autoConfirm:auto_confirm, allowVirtual:allow_virtual",
-      )
-      .in("hospital_id", hospitalIds)
-      .in("clinician_user_id", clinicianIds),
-    sb
-      .from("department_scheduling_policy")
-      .select(
-        "department_id, defaultSlotMinutes:default_slot_minutes, " +
-          "defaultBufferMinutes:default_buffer_minutes, defaultAutoConfirm:default_auto_confirm, " +
-          "allowVirtual:allow_virtual, bookableWeekdays:bookable_weekdays, " +
-          "bookableStartMinutesLocal:bookable_start_minutes_local, " +
-          "bookableEndMinutesLocal:bookable_end_minutes_local",
-      )
-      .in("department_id", departmentIds),
-    // The name the patient will see, and the photograph if there is one.
-    sb.from("users").select("id, full_name, avatar_path").in("id", clinicianIds),
-    // Real ratings only (ADR 0085 §2); absent rows mean "No ratings yet".
-    sb
-      .from("clinician_rating_summary")
-      .select("clinician_user_id, average, count")
-      .in("clinician_user_id", clinicianIds),
-  ]);
+  const [blocksRes, apptsRes, settingsRes, policyRes, namesRes, ratingsRes, seenRes] =
+    await Promise.all([
+      sb
+        .from("availability_blocks")
+        // NO kind filter: "bookable" is the engine's definition, and it needs
+        // the blocking kinds too — a `leave` row that never reaches the engine
+        // cannot cancel the bookable block it overlaps, so the phone offers a
+        // slot inside declared leave and the write path refuses it forever.
+        .select(
+          "clinician_user_id, hospital_id, department_id, kind, state, startsAt:starts_at, " +
+            "endsAt:ends_at, recurrence, recurrenceWeekday:recurrence_weekday, " +
+            "recurrenceUntil:recurrence_until",
+        )
+        .in("hospital_id", hospitalIds)
+        .eq("state", "active")
+        .in("clinician_user_id", clinicianIds)
+        // A weekly block's own `starts_at` is the template — often months back.
+        // Window it on the recurrence too, or the series never reaches the engine.
+        .or(
+          `and(ends_at.gte."${nowIso}",starts_at.lt."${untilIso}"),` +
+            `and(recurrence.eq.weekly,or(recurrence_until.is.null,recurrence_until.gte."${nowIso}"))`,
+        ),
+      sb
+        .from("appointments")
+        // NOT scoped to the hospital, and that is the point: the write path
+        // subtracts a clinician's live appointments everywhere, because a
+        // clinician booked at their other hospital is still one person.
+        .select("clinician_user_id, startsAt:starts_at, endsAt:ends_at")
+        .in("clinician_user_id", clinicianIds)
+        .in("status", [...LIVE_APPOINTMENT_STATUSES])
+        .gte("ends_at", nowIso)
+        .lt("starts_at", untilIso),
+      sb
+        .from("clinician_scheduling_settings")
+        // All four columns. The engine's settings type has no optional fields
+        // on purpose: "not selected" and "no override" want opposite answers.
+        .select(
+          "clinician_user_id, hospital_id, defaultSlotMinutes:default_slot_minutes, " +
+            "bufferMinutes:buffer_minutes, autoConfirm:auto_confirm, allowVirtual:allow_virtual",
+        )
+        .in("hospital_id", hospitalIds)
+        .in("clinician_user_id", clinicianIds),
+      sb
+        .from("department_scheduling_policy")
+        .select(
+          "department_id, defaultSlotMinutes:default_slot_minutes, " +
+            "defaultBufferMinutes:default_buffer_minutes, defaultAutoConfirm:default_auto_confirm, " +
+            "allowVirtual:allow_virtual, bookableWeekdays:bookable_weekdays, " +
+            "bookableStartMinutesLocal:bookable_start_minutes_local, " +
+            "bookableEndMinutesLocal:bookable_end_minutes_local",
+        )
+        .in("department_id", departmentIds),
+      // The name the patient will see, and the photograph if there is one.
+      sb.from("users").select("id, full_name, avatar_path").in("id", clinicianIds),
+      // Real ratings only (ADR 0085 §2); absent rows mean "No ratings yet".
+      sb
+        .from("clinician_rating_summary")
+        .select("clinician_user_id, average, count")
+        .in("clinician_user_id", clinicianIds),
+      // Patients actually seen — the one "experience" number the tables hold.
+      // Attended statuses only (the set `pt-rate-visit` accepts): a booking
+      // that never happened is not a patient seen. Counted here, service-side,
+      // because RLS rightly hides other patients' rows from the phone.
+      sb
+        .from("appointments")
+        .select("clinician_user_id, patient_user_id")
+        .in("clinician_user_id", clinicianIds)
+        .in("status", ["arrived", "in_progress", "completed"])
+        .not("patient_user_id", "is", null),
+    ]);
   // Fail closed on all six: an unread block list offers nothing, an unread
   // appointment list offers a taken slot, and an unread settings row has the
   // engine on its 15-minute default while the write path reads the real 30 —
@@ -258,6 +278,18 @@ Deno.serve(async (request: Request) => {
   // minutes long".
   for (const res of [blocksRes, apptsRes, settingsRes, policyRes, namesRes, ratingsRes]) {
     if (res.error) return serverError(res.error.message, init);
+  }
+  // Distinct patients per clinician. A failed read is a "—" on the strip,
+  // never a failed screen — a count is a convenience, the grid is the screen.
+  const patientsSeenBy = new Map<string, Set<string>>();
+  const seenBy = patientsSeenBy;
+  for (const r of (seenRes.data ?? []) as {
+    clinician_user_id: string;
+    patient_user_id: string;
+  }[]) {
+    const set = patientsSeenBy.get(r.clinician_user_id) ?? new Set<string>();
+    set.add(r.patient_user_id);
+    patientsSeenBy.set(r.clinician_user_id, set);
   }
 
   const blocks = (blocksRes.data ?? []) as unknown as BlockRow[];
@@ -354,6 +386,14 @@ Deno.serve(async (request: Request) => {
       // default the write path does not honour must not become "this day is
       // yours as soon as you ask". Reading it this way can only under-promise.
       autoConfirm: clinicianSettings?.autoConfirm ?? false,
+      // A video visit is a real affordance only where it is allowed — the
+      // clinician's own row, else the department's policy, else no.
+      allowVirtual: clinicianSettings?.allowVirtual ?? departmentPolicy?.allowVirtual ?? false,
+      // PRD §2.7 continuity: the caller has an attended visit with this
+      // clinician in this department. The one badge that outranks a rating.
+      seenBefore: seenBy.get(a.user_id)?.has(caller.id) ?? false,
+      patientsSeen: patientsSeenBy.get(a.user_id)?.size ?? 0,
+      withUsSinceIso: a.created_at ?? null,
       slotsByDate,
     };
   });

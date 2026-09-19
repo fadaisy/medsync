@@ -334,7 +334,7 @@ const styles = StyleSheet.create({
     fontFamily: font.bodyMedium,
     fontSize: 16,
     letterSpacing: 0.1,
-    // The mint fill carries deep indigo text — the web's signature CTA pair.
+    // The mint fill carries deep teal text — the web's signature CTA pair.
     color: brand[900],
   },
 

@@ -14,7 +14,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   ActivityIndicator,
-  Image,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
@@ -28,11 +27,10 @@ import { BookingInterstitial } from "@/components/patient/booking-interstitial";
 import { DayStrip } from "@/components/patient/day-strip";
 import { EmergencyButton } from "@/components/patient/emergency-button";
 import { NoSilentWait } from "@/components/patient/no-silent-wait";
-import { Avatar } from "@/components/ui/avatar";
+import { ProviderHero } from "@/components/patient/provider-hero";
 import { Button } from "@/components/ui/button";
 import { Chip, ChipRow } from "@/components/ui/chip";
 import { Empty } from "@/components/ui/empty";
-import { Rating } from "@/components/ui/rating";
 import { Screen } from "@/components/ui/screen";
 import { Section } from "@/components/ui/section";
 import {
@@ -422,30 +420,16 @@ export default function DoctorScreen() {
         }
       >
         <View style={styles.stack}>
-          {/* The person. The photo is decorative — the name is written under
-              it — and a monogram when there is none (§1). */}
-          <View style={styles.head}>
-            {doctor.photoUrl ? (
-              <Image
-                source={{ uri: doctor.photoUrl }}
-                style={styles.photo}
-                accessibilityElementsHidden
-                importantForAccessibility="no-hide-descendants"
-              />
-            ) : (
-              <Avatar name={doctor.fullName} size={72} />
-            )}
-            <View style={styles.ratingPill}>
-              <Rating rating={doctor.rating} />
-            </View>
-            <Text accessibilityRole="header" style={styles.name}>
-              {doctor.fullName}
-            </Text>
-            <Text style={styles.specialty}>{doctor.specialty ?? doctor.cadre}</Text>
-            <Text style={styles.meta}>
-              {doctor.departmentName} · {hospitalName}
-            </Text>
-          </View>
+          {/* The person — the reference design's photo card, credential lines,
+              action row and stats strip, component for component. Every
+              number is one the tables hold (ADR 0085 §2). */}
+          <ProviderHero
+            doctor={doctor}
+            hospitalName={hospitalName}
+            allowVirtual={doctor.allowVirtual}
+            seenBefore={doctor.seenBefore}
+            onBack={router.back}
+          />
 
           {/* Nothing open in the next fortnight: say so under the name rather
               than draw an empty strip, and point at the door that is open. */}
@@ -575,41 +559,7 @@ const makeStyles = (c: Palette) =>
     center: { flexGrow: 1, alignItems: "center", justifyContent: "center" },
     stack: { flexGrow: 1, gap: space[5] },
 
-    head: { alignItems: "center", gap: space[2] },
-    photo: { width: 120, height: 120, borderRadius: radius["2xl"], backgroundColor: c.accent },
     // The rating rides on a raised pill so it reads as a badge, not a caption.
-    ratingPill: {
-      paddingHorizontal: space[3],
-      paddingVertical: space[1],
-      borderRadius: radius.full,
-      backgroundColor: c.card,
-      borderWidth: 1,
-      borderColor: c.border,
-    },
-    name: {
-      fontFamily: font.display,
-      fontSize: 28,
-      lineHeight: 34,
-      letterSpacing: -0.6,
-      color: c.foreground,
-      textAlign: "center",
-      marginTop: space[1],
-    },
-    specialty: {
-      fontFamily: font.body,
-      fontSize: 14.5,
-      lineHeight: 21,
-      color: c.mutedForeground,
-      textAlign: "center",
-      marginTop: -space[1],
-    },
-    meta: {
-      fontFamily: font.body,
-      fontSize: 13.5,
-      lineHeight: 19,
-      color: c.mutedForeground,
-      textAlign: "center",
-    },
 
     // `Section`'s own head, with a count where its link would go.
     section: { gap: space[3] },

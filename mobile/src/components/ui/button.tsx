@@ -9,7 +9,7 @@ import { font, radius, space } from "@/theme/tokens";
  * The three ways this app asks for a tap.
  *
  * `primary` is the signature pair the splash and sign-in already use — the
- * mint fill carrying deep indigo text — and there is exactly one of them on a
+ * mint fill carrying deep teal text — and there is exactly one of them on a
  * screen. `secondary` is the same shape outlined, for the real alternative
  * beside it. `link` is a plain word for the third thing, which on the booking
  * surfaces is usually the door the patient did not take (ADR 0084 §11

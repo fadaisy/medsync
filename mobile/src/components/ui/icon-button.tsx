@@ -22,7 +22,7 @@ export function IconButton({
   label: string;
   onPress: () => void;
   /**
-   * `card` sits on the page; `onPrimary` sits on the indigo hero; `critical`
+   * `card` sits on the page; `onPrimary` sits on the teal hero; `critical`
    * is the red disc, and it is drawn ONLY by `EmergencyButton` — red on a
    * MedSync surface means the emergency affordance and nothing else (ADR 0085 §5).
    */

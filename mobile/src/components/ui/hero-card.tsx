@@ -17,7 +17,7 @@ import { font, radius, space, withAlpha } from "@/theme/tokens";
  * §3), a day-part for the walk-in queue, a department — never a count the
  * engine did not derive (ADR 0084 §6). The tint behind each is
  * the card's own ink at low alpha rather than a palette role — white on the
- * light theme's indigo, deep indigo on the dark theme's lavender — because
+ * light theme's teal, deep teal on the dark theme's pale teal — because
  * every other role would fight the fill.
  */
 export function HeroCard({
@@ -121,7 +121,7 @@ const makeStyles = (c: Palette) =>
       borderRadius: radius["2xl"],
       backgroundColor: c.primary,
       gap: space[4],
-      // The card's own colour as its shadow — an indigo card casting a grey
+      // The card's own colour as its shadow — a teal card casting a grey
       // shadow looks cut out and pasted on; casting its own tint it looks
       // lit. Visible on the dark page too, where a black shadow would not be.
       boxShadow: `0 10px 28px ${withAlpha(c.primary, 0.28)}`,

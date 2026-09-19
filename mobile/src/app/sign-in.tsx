@@ -124,7 +124,7 @@ export default function SignInScreen() {
           scrim stays brand-950 (the one place outside `src/theme` that may
           name a ramp step). The lower stops dissolve into the page ground
           instead — white in light, black in dark — so the form rises on the
-          patient's own ground rather than on indigo. */}
+          patient's own ground rather than on teal. */}
       <LinearGradient
         colors={[
           withAlpha(brand[950], 0.72),

@@ -614,6 +614,14 @@ export interface ClinicianOption {
   photoUrl: string | null;
   /** Real ratings only; null renders as "No ratings yet" (ADR 0085 §2). */
   rating: { average: number; count: number } | null;
+  /** A video visit is bookable with this clinician (their row, else the department's). */
+  allowVirtual: boolean;
+  /** PRD §2.7: this patient has an attended visit with this clinician here. */
+  seenBefore: boolean;
+  /** Distinct patients with an attended visit, counted server-side. "—" for zero. */
+  patientsSeen: number;
+  /** When this affiliation began — "With us" on the strip. Never a career length. */
+  withUsSinceIso: string | null;
   /**
    * Whether asking for this day books it outright or files a request. Read the
    * NARROW way `pt-request-appointment` reads it — the clinician's own settings

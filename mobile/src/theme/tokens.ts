@@ -20,35 +20,26 @@
 
 import { Platform } from "react-native";
 
-/** Indigo. The brand hue. Anchor #402a8e; the ramp is perceptually even in OKLab. */
+/** Teal. The brand hue — `DESIGN-medsync.md` § Primary Teal; anchor teal-600. */
 export const brand = {
-  50: "#f4f3ff",
-  100: "#e7e6ff",
-  200: "#d1cfff",
-  300: "#b7b1ff",
-  400: "#9c91fe",
-  500: "#8476e7",
-  600: "#6d5dc9",
-  700: "#5545a8",
-  800: "#44358b",
-  900: "#352970",
-  950: "#21164d",
+  50: "#f0fdfa",
+  100: "#ccfbf1",
+  200: "#99f6e4",
+  300: "#5eead4",
+  400: "#2dd4bf",
+  500: "#14b8a6",
+  600: "#0d9488",
+  700: "#0f766e",
+  800: "#115e59",
+  900: "#134e4a",
+  950: "#042f2e",
 } as const;
 
-/** Mint. The accent, and the signature call-to-action fill. */
-export const mint = {
-  50: "#e5fef1",
-  100: "#cbfbe2",
-  200: "#a2f8ce",
-  300: "#74f4bb",
-  400: "#33e2a0",
-  500: "#00cb86",
-  600: "#00ae6d",
-  700: "#008e56",
-  800: "#007043",
-  900: "#005933",
-  950: "#00381d",
-} as const;
+/**
+ * The accent and the signature call-to-action fill. The design system has one
+ * hue, so this is the brand ramp under the name the screens were written to.
+ */
+export const mint = brand;
 
 export const gray = {
   50: "#fafafa",
@@ -176,10 +167,10 @@ export const light: Palette = {
   card: "#ffffff",
   muted: gray[50],
   mutedForeground: gray[500],
-  primary: brand[700],
+  primary: brand[600],
   primaryForeground: "#ffffff",
   accent: brand[50],
-  accentForeground: brand[700],
+  accentForeground: brand[600],
   cta: mint[300],
   ctaForeground: brand[950],
   ctaMuted: brand[900],
@@ -190,7 +181,7 @@ export const light: Palette = {
 };
 
 /**
- * `app/globals.css` `.dark`. A near-black ground, not an indigo one: the
+ * `app/globals.css` `.dark`. A near-black ground, not a teal one: the
  * brand lives in the text and the accents, where it can be read, rather than
  * behind everything, where it can only be endured.
  */
@@ -201,18 +192,18 @@ export const dark: Palette = {
   card: "#171717",
   muted: "#111111",
   mutedForeground: "#a3a3a3",
-  primary: brand[300],
+  primary: brand[400],
   primaryForeground: brand[950],
   accent: brand[950],
   accentForeground: brand[300],
-  // mint-400 rather than the web's darkened gradient: a filled control on a
+  // teal-400 rather than the web's darkened gradient: a filled control on a
   // near-black ground wants the accent bright enough to be the brightest thing
-  // on the screen, and its text dark enough to read on it (7.9:1).
+  // on the screen, and its text dark enough to read on it (7.8:1).
   cta: mint[400],
   ctaForeground: mint[950],
   ctaMuted: mint[900],
   border: "#262626",
-  ring: brand[500],
+  ring: brand[400],
   // Deeper, because a soft shadow on near-black is invisible and the bar then
   // has to rely on its hairline alone.
   shadow: withAlpha(gray[950], 0.6),

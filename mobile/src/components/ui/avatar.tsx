@@ -11,7 +11,7 @@ import { font, radius, withAlpha } from "@/theme/tokens";
  * ADR 0085 §1: the photo is a signed URL the server (or `fetchMyAvatarUrl`)
  * handed over, and no photo means initials on the brand tint — never a
  * placeholder face, never a stock image. `tone="onPrimary"` is for the hero
- * card, where the tint would vanish into the indigo.
+ * card, where the tint would vanish into the teal.
  */
 export function Avatar({
   name,
@@ -76,7 +76,7 @@ const makeStyles = (c: Palette) =>
       alignItems: "center",
       justifyContent: "center",
     },
-    // A translucent white on the indigo hero: the disc reads as part of the
+    // A translucent white on the teal hero: the disc reads as part of the
     // card rather than a hole in it.
     discOnPrimary: { backgroundColor: withAlpha(c.primaryForeground, 0.18) },
     // Clipped to the disc; the tint shows through until the bytes arrive.

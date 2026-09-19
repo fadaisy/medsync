@@ -12,9 +12,18 @@ import { useCallback, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { DEFAULT_TIME_ZONE, localWeekdayAndMinutes } from "@shared/slots";
 import { useFocusEffect, useRouter } from "expo-router";
-import { ActivityIndicator, Linking, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  Linking,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
-import { DoctorRow } from "@/components/patient/doctor-row";
+import { ProviderCard } from "@/components/patient/provider-card";
+import { ServiceLineCard } from "@/components/patient/service-line-card";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Chip, ChipRow } from "@/components/ui/chip";
@@ -501,11 +510,22 @@ export default function HomeScreen() {
                 />
               ))}
             </ChipRow>
-            <View style={styles.rows}>
+            {/* A horizontal carousel of cards — the reference's home row.
+                `contentContainerStyle` carries the gutter so the first card
+                is whole at the edge rather than cut by the page padding. */}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              snapToAlignment="start"
+              decelerationRate="fast"
+              contentContainerStyle={styles.carousel}
+              style={styles.carouselBleed}
+            >
               {shown.map((o) => (
-                <DoctorRow
+                <ProviderCard
                   key={`${o.userId}:${o.departmentId}`}
                   option={o}
+                  seenBefore={o.seenBefore}
                   onPress={() =>
                     router.push({
                       pathname: "/(app)/doctor/[id]",
@@ -514,7 +534,7 @@ export default function HomeScreen() {
                   }
                 />
               ))}
-            </View>
+            </ScrollView>
           </Section>
         ) : null}
 
@@ -522,47 +542,21 @@ export default function HomeScreen() {
             published clinic day rather than a clinician's time. The next
             open day and its places are the allocator's own numbers. */}
         {clinics && clinics.length > 0 ? (
-          <Section title="Clinics">
-            <View style={styles.rows}>
+          <Section title="Find care">
+            {/* The reference's category grid. The one filled tile is the
+                clinic with something open soonest — emphasis carrying a fact,
+                never a decoration. */}
+            <View style={styles.grid}>
               {clinics.map(({ line, next }) => (
-                <Pressable
+                <ServiceLineCard
                   key={line.id}
-                  accessibilityRole="button"
-                  accessibilityHint="Opens this clinic"
+                  line={line}
+                  soonest={next}
+                  emphasis={line.id === soonestClinicId(clinics)}
                   onPress={() =>
                     router.push({ pathname: "/(app)/clinic/[id]", params: { id: line.id } })
                   }
-                  style={({ pressed }) => [styles.clinic, pressed && styles.pressed]}
-                >
-                  <View
-                    style={[styles.disc, styles.secondaryDisc]}
-                    accessibilityElementsHidden
-                    importantForAccessibility="no-hide-descendants"
-                  >
-                    <Ionicons name="medkit-outline" size={22} color={colors.accentForeground} />
-                  </View>
-                  <View style={styles.doorText}>
-                    <Text style={styles.secondaryTitle} numberOfLines={1}>
-                      {line.name}
-                    </Text>
-                    <Text style={styles.secondaryBody} numberOfLines={1}>
-                      {next
-                        ? `Next clinic day ${dayLabel(dateKey(new Date(next.startsAtIso)))} · ${
-                            next.placesLeft === 1
-                              ? "1 place left"
-                              : `${next.placesLeft} places left`
-                          }`
-                        : "No days open yet"}
-                    </Text>
-                  </View>
-                  <Ionicons
-                    name="chevron-forward"
-                    size={20}
-                    color={colors.mutedForeground}
-                    accessibilityElementsHidden
-                    importantForAccessibility="no-hide-descendants"
-                  />
-                </Pressable>
+                />
               ))}
             </View>
           </Section>
@@ -599,6 +593,13 @@ const makeStyles = (c: Palette) =>
     column: { flexGrow: 1, gap: space[5] },
     loading: { marginTop: space[8] },
     rows: { gap: space[3] },
+    // The carousel bleeds to the screen edge (the Screen pads by space[5])
+    // and puts that gutter back inside, so a card sits flush at the start
+    // and the last one can scroll fully into view.
+    carouselBleed: { marginHorizontal: -space[5] },
+    carousel: { paddingHorizontal: space[5], gap: space[3] },
+    // Two tiles per row, equal height per row (the tiles stretch).
+    grid: { flexDirection: "row", flexWrap: "wrap", gap: space[3] },
 
     greeting: { flexDirection: "row", alignItems: "center", gap: space[3] },
     greetingWord: {
@@ -708,3 +709,14 @@ const makeStyles = (c: Palette) =>
       color: c.foreground,
     },
   });
+
+/** The clinic with a day open soonest — the one tile drawn filled; null when nothing is open. */
+function soonestClinicId(
+  clinics: readonly { line: ServiceLine; next: ClinicSession | null }[],
+): string | null {
+  const open = clinics.filter((c) => c.next !== null);
+  if (open.length === 0) return null;
+  return open.reduce((best, c) =>
+    (c.next as ClinicSession).startsAtIso < (best.next as ClinicSession).startsAtIso ? c : best,
+  ).line.id;
+}

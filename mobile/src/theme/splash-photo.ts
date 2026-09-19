@@ -12,7 +12,7 @@ import type { ImageSourcePropType } from "react-native";
  * app runs on the gradient alone until the asset lands, and enabling it is one
  * line in one file.
  *
- * When it is null the splash renders the indigo gradient by itself, which is a
+ * When it is null the splash renders the teal gradient by itself, which is a
  * deliberate design that stands on its own — not a broken state.
  *
  * Licence note: whatever ships here needs a licence that permits commercial
@@ -23,7 +23,7 @@ export const splashPhoto: ImageSourcePropType | null =
   require("../../assets/images/splash-bg.jpg") as ImageSourcePropType;
 
 /**
- * How hard the indigo wash sits on the photograph.
+ * How hard the teal wash sits on the photograph.
  *
  * Tuned for a low-key clinical photograph with warm window light behind a cool
  * foreground. Two things drive these numbers:
