@@ -5,6 +5,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Changed — brand colour back to teal — 2026-09-19
+
+`app/globals.css` had drifted from `DESIGN-medsync.md` § Primary Teal: an undocumented swap (in `94ab8ba`) made indigo the brand hue with a mint accent. Reverted at the token layer. `brand-*` and `mint-*` — the names ~190 components were written against — stay as utilities and now alias the teal ramp (light, dark, and inside `medsync-forced-dark`), so `bg-brand-700` is `bg-teal-700`; `--primary`, `--accent`, `--ring`, sidebar, chart, focus-ring and gradient tokens carry their original teal values. Mirrored in `mobile/src/theme/tokens.ts` (`mint` is `brand`), the native splash (`mobile/app.json`), the PWA `theme_color`, `/styleguide`, and the booking `THEME-CONTRACT`. No component markup changed.
+
 ### Added — Gate F: USSD and SMS keywords, the low-bandwidth channels — 2026-09-13
 
 [ADR 0091](docs/adr/0091-gate-f-low-bandwidth-channels.md). **One GATED migration** (`0062_ussd.sql`), additive throughout (`notification_dispatches.hospital_id` becomes nullable); dry-run clean after 0061. Owner actions before either channel works: `npm run db:migrate`, `npm run db:backfill-phone-hmac`, deploy `system-ussd-book` + `system-ussd-act` (and the re-deployed core callers — the core's `origin`/`channel` types gain `ussd`), set `MEDSYNC_SYSTEM_ACTOR_UUID` on Functions, `USSD_WEBHOOK_SECRET` (+ optional `AT_CALLBACK_IPS`) on Vercel, and the three callback URLs in the Africa's Talking dashboard — all in [docs/ops-channels.md](docs/ops-channels.md). No live AT call anywhere in the repo; credentials come after this gate.

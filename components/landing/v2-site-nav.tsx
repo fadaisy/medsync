@@ -214,7 +214,7 @@ export function V2SiteNav({ sections = DEFAULT_LANDING_SECTIONS }: V2SiteNavProp
                 "tap inline-flex items-center gap-1.5 rounded-md px-3.5 py-1.5 text-[12.5px] font-medium",
                 "bg-mint-300 text-brand-900 hover:bg-mint-400 shadow-sm transition-colors hover:shadow-md",
                 // The scales invert in dark, so re-pair to keep bright mint under
-                // deep indigo text (AA 9.05:1) instead of the 3.43:1 flip.
+                // deep teal text (AA 7.6:1) instead of the 3.6:1 flip.
                 "dark:bg-mint-700 dark:text-brand-100 dark:hover:bg-mint-600",
               )}
             >

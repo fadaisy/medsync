@@ -47,7 +47,7 @@ type Tone = (typeof COLUMNS)[number];
  * want the same colour — one is a risk state the patient lives in, the other is
  * a number that is off right now.
  *
- * Normal is GREEN. It was the brand indigo, which is the colour of every button
+ * Normal is GREEN. It was the brand teal, which is the colour of every button
  * and link on the page and therefore reads as chrome rather than as a verdict —
  * a clinician scanning a column of results has to stop and decode it. Green is
  * the one thing everyone already reads as "this one is fine", and the design

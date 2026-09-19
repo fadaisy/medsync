@@ -64,52 +64,44 @@ const darkNeutralScale: ReadonlyArray<SwatchSpec> = [
 ];
 
 const lightBrandScale: ReadonlyArray<SwatchSpec> = [
-  { name: "brand-50", hex: "#F4F3FF", textOnLight: true },
-  { name: "brand-100", hex: "#E7E6FF", textOnLight: true },
-  { name: "brand-200", hex: "#D1CFFF", textOnLight: true },
-  { name: "brand-300", hex: "#B7B1FF", textOnLight: true },
-  { name: "brand-400", hex: "#9C91FE", textOnLight: true },
-  { name: "brand-500", hex: "#8476E7", textOnLight: false },
-  { name: "brand-600", hex: "#6D5DC9", textOnLight: false },
-  { name: "brand-700", hex: "#5545A8", textOnLight: false },
-  { name: "brand-800", hex: "#44358B", textOnLight: false },
-  { name: "brand-900", hex: "#352970", textOnLight: false },
-  { name: "brand-950", hex: "#21164D", textOnLight: false },
+  { name: "brand-50", hex: "#F0FDFA", textOnLight: true },
+  { name: "brand-100", hex: "#CCFBF1", textOnLight: true },
+  { name: "brand-200", hex: "#99F6E4", textOnLight: true },
+  { name: "brand-300", hex: "#5EEAD4", textOnLight: true },
+  { name: "brand-400", hex: "#2DD4BF", textOnLight: true },
+  { name: "brand-500", hex: "#14B8A6", textOnLight: false },
+  { name: "brand-600", hex: "#0D9488", textOnLight: false },
+  { name: "brand-700", hex: "#0F766E", textOnLight: false },
+  { name: "brand-800", hex: "#115E59", textOnLight: false },
+  { name: "brand-900", hex: "#134E4A", textOnLight: false },
+  { name: "brand-950", hex: "#042F2E", textOnLight: false },
 ];
 
 const darkBrandScale: ReadonlyArray<SwatchSpec> = [
-  { name: "brand-50", hex: "#21164D", textOnLight: false },
-  { name: "brand-100", hex: "#352970", textOnLight: false },
-  { name: "brand-200", hex: "#44358B", textOnLight: false },
-  { name: "brand-300", hex: "#5545A8", textOnLight: false },
-  { name: "brand-400", hex: "#6D5DC9", textOnLight: false },
-  { name: "brand-500", hex: "#8476E7", textOnLight: false },
-  { name: "brand-600", hex: "#9C91FE", textOnLight: true },
-  { name: "brand-700", hex: "#B7B1FF", textOnLight: true },
-  { name: "brand-800", hex: "#D1CFFF", textOnLight: true },
-  { name: "brand-900", hex: "#E7E6FF", textOnLight: true },
-  { name: "brand-950", hex: "#F4F3FF", textOnLight: true },
+  { name: "brand-50", hex: "#042F2E", textOnLight: false },
+  { name: "brand-100", hex: "#064E45", textOnLight: false },
+  { name: "brand-200", hex: "#0F766E", textOnLight: false },
+  { name: "brand-300", hex: "#0D9488", textOnLight: false },
+  { name: "brand-400", hex: "#14B8A6", textOnLight: false },
+  { name: "brand-500", hex: "#2DD4BF", textOnLight: true },
+  { name: "brand-600", hex: "#5EEAD4", textOnLight: true },
+  { name: "brand-700", hex: "#99F6E4", textOnLight: true },
+  { name: "brand-800", hex: "#CCFBF1", textOnLight: true },
+  { name: "brand-900", hex: "#F0FDFA", textOnLight: true },
+  { name: "brand-950", hex: "#F0FDFA", textOnLight: true },
 ];
 
-const lightMintScale: ReadonlyArray<SwatchSpec> = [
-  { name: "mint-50", hex: "#E5FEF1", textOnLight: true },
-  { name: "mint-100", hex: "#CBFBE2", textOnLight: true },
-  { name: "mint-200", hex: "#A2F8CE", textOnLight: true },
-  { name: "mint-300", hex: "#74F4BB", textOnLight: true },
-  { name: "mint-400", hex: "#33E2A0", textOnLight: true },
-  { name: "mint-500", hex: "#00CB86", textOnLight: true },
-  { name: "mint-600", hex: "#00AE6D", textOnLight: false },
-  { name: "mint-700", hex: "#008E56", textOnLight: false },
-  { name: "mint-800", hex: "#007043", textOnLight: false },
-  { name: "mint-900", hex: "#005933", textOnLight: false },
-  { name: "mint-950", hex: "#00381D", textOnLight: false },
-];
+/** `mint-*` aliases the same teal ramp — one hue, two names the components use. */
+const lightMintScale: ReadonlyArray<SwatchSpec> = lightBrandScale.map((s) => ({
+  ...s,
+  name: s.name.replace("brand", "mint"),
+}));
 
 const gradientSpecs: ReadonlyArray<{ name: string; className: string; usage: string }> = [
   { name: "gradient-hero", className: "bg-gradient-hero", usage: "Full-bleed hero and final CTA" },
   { name: "gradient-band", className: "bg-gradient-band", usage: "Mid-page always-dark band" },
   { name: "gradient-wash", className: "bg-gradient-wash", usage: "Page background wash" },
-  { name: "gradient-accent", className: "bg-gradient-accent", usage: "Mint stat / highlight card" },
+  { name: "gradient-accent", className: "bg-gradient-accent", usage: "Stat / highlight card" },
   {
     name: "gradient-signature",
     className: "bg-gradient-signature",
@@ -289,8 +281,8 @@ export default function StyleguidePage() {
           {/* 03 — Teal scales */}
           <Section
             n={3}
-            title="Brand indigo + mint accent"
-            subtitle="Indigo anchors the brand (#402A8E sits at brand-800); mint is the accent (#74F4BB at mint-300). Ramps are perceptually even in OKLab."
+            title="Teal — clinical accent"
+            subtitle="Light anchor is teal-600 (#0D9488); dark anchor brightens to teal-500 (#2DD4BF). `brand-*` and `mint-*` are aliases of this one ramp."
           >
             <div className="flex flex-col gap-6">
               <div>
@@ -315,7 +307,7 @@ export default function StyleguidePage() {
               </div>
               <div>
                 <span className="text-caption text-muted-foreground mb-3 inline-block font-mono uppercase">
-                  Mint accent
+                  Mint (alias)
                 </span>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-5 lg:grid-cols-10">
                   {lightMintScale.map((s) => (

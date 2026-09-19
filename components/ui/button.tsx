@@ -26,7 +26,7 @@ const buttonVariants = cva(
         brandSoft:
           "bg-accent text-accent-foreground border border-brand-100 hover:bg-brand-100/70 hover:border-brand-200 dark:hover:bg-brand-100/40",
         // The reference palette's signature call to action: mint fill carrying
-        // deep-indigo text, rather than a filled brand button. Both scales flip
+        // deep-teal text, rather than a filled brand button. Both scales flip
         // in dark mode, so the pairing holds without a dark: override.
         mint: "bg-mint-300 text-brand-900 hover:bg-mint-200 active:bg-mint-400 dark:bg-mint-700 dark:text-brand-100 dark:hover:bg-mint-800",
         emergency: [

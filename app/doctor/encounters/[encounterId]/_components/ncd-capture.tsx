@@ -1497,7 +1497,7 @@ function FeatureRow({
  * Off-protocol capture: outside the card, unfilled, dashed, never brand.
  *
  * The distinction is a patient-safety property, not a stylistic one. Brand
- * indigo is what an engine-recognised selection looks like everywhere else on
+ * teal is what an engine-recognised selection looks like everywhere else on
  * this surface, so the absence of the accent IS the signal — and it has to hold
  * in every state, because an input that lit up on focus would, for that moment,
  * look exactly like a value the engine had accepted.

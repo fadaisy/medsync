@@ -72,7 +72,7 @@ function sessionOf(at: Date): string {
 }
 
 /**
- * The workspace's one saturated surface: deep indigo, light brand text, at
+ * The workspace's one saturated surface: deep teal, light brand text, at
  * most one per screen. It replaces the three hand-built gradient CTAs (home's
  * connection banner, appointments, care).
  *

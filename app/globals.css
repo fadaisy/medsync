@@ -42,12 +42,12 @@
   --color-teal-800: var(--teal-800);
   --color-teal-900: var(--teal-900);
 
-  /* ─── Brand: indigo + mint (adopted palette) ──────────────────────────
-     Indigo replaces teal as the brand hue; mint is the accent. Anchors are
-     sampled from the reference designs (indigo #402a8e, mint #74f4bb) and the
-     ramps are perceptually even in OKLab, so steps are visually equidistant.
-     Clinical status colours are deliberately NOT part of this — red still
-     means emergency. See DESIGN-medsync.md § Clinical Status Colors. */
+  /* ─── Brand + accent: aliases of the teal scale ───────────────────────
+     `brand-*` and `mint-*` are the names the components were written
+     against; both resolve to the teal ramp DESIGN-medsync.md specifies
+     (§ Primary Teal), so `bg-brand-700` is `bg-teal-700`. Keep the aliases,
+     change the values in one place. Clinical status colours are
+     deliberately NOT part of this — red still means emergency. */
   --color-brand-50: var(--brand-50);
   --color-brand-100: var(--brand-100);
   --color-brand-200: var(--brand-200);
@@ -298,72 +298,72 @@
   --card-foreground: #171717;
   --popover: #ffffff;
   --popover-foreground: #171717;
-  --primary: #5545a8;
+  --primary: #0d9488;
   --primary-foreground: #ffffff;
-  --primary-hover: #44358b;
-  --primary-active: #352970;
+  --primary-hover: #0f766e;
+  --primary-active: #115e59;
   --secondary: #ffffff;
   --secondary-foreground: #171717;
   --muted: #fafafa;
   --muted-foreground: #737373;
-  --accent: #f4f3ff;
-  --accent-foreground: #5545a8;
+  --accent: #f0fdfa;
+  --accent-foreground: #0d9488;
   --destructive: #dc2626;
   --destructive-foreground: #ffffff;
   --border: #e5e5e5;
   --input: #e5e5e5;
-  --ring: #8476e7;
+  --ring: #14b8a6;
 
   /* Sidebar */
   --sidebar: #fafafa;
   --sidebar-foreground: #171717;
-  --sidebar-primary: #5545a8;
+  --sidebar-primary: #0d9488;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f4f3ff;
-  --sidebar-accent-foreground: #5545a8;
+  --sidebar-accent: #f0fdfa;
+  --sidebar-accent-foreground: #0d9488;
   --sidebar-border: #e5e5e5;
-  --sidebar-ring: #8476e7;
+  --sidebar-ring: #14b8a6;
 
   /* Charts */
-  --chart-1: #5545a8;
-  --chart-2: #8476e7;
-  --chart-3: #00cb86;
-  --chart-4: #74f4bb;
-  --chart-5: #525252;
+  --chart-1: #0d9488;
+  --chart-2: #2dd4bf;
+  --chart-3: #5eead4;
+  --chart-4: #525252;
+  --chart-5: #171717;
 
-  /* Brand indigo — anchor #402a8e sits at 800 */
-  --brand-50: #f4f3ff;
-  --brand-100: #e7e6ff;
-  --brand-200: #d1cfff;
-  --brand-300: #b7b1ff;
-  --brand-400: #9c91fe;
-  --brand-500: #8476e7;
-  --brand-600: #6d5dc9;
-  --brand-700: #5545a8;
-  --brand-800: #44358b;
-  --brand-900: #352970;
-  --brand-950: #21164d;
+  /* Brand + mint — both alias the teal ramp (anchor teal-600 #0d9488) */
+  --teal-950: #042f2e;
+  --brand-50: var(--teal-50);
+  --brand-100: var(--teal-100);
+  --brand-200: var(--teal-200);
+  --brand-300: var(--teal-300);
+  --brand-400: var(--teal-400);
+  --brand-500: var(--teal-500);
+  --brand-600: var(--teal-600);
+  --brand-700: var(--teal-700);
+  --brand-800: var(--teal-800);
+  --brand-900: var(--teal-900);
+  --brand-950: var(--teal-950);
 
-  /* Mint accent — anchor #74f4bb sits at 300 */
-  --mint-50: #e5fef1;
-  --mint-100: #cbfbe2;
-  --mint-200: #a2f8ce;
-  --mint-300: #74f4bb;
-  --mint-400: #33e2a0;
-  --mint-500: #00cb86;
-  --mint-600: #00ae6d;
-  --mint-700: #008e56;
-  --mint-800: #007043;
-  --mint-900: #005933;
-  --mint-950: #00381d;
+  --mint-50: var(--teal-50);
+  --mint-100: var(--teal-100);
+  --mint-200: var(--teal-200);
+  --mint-300: var(--teal-300);
+  --mint-400: var(--teal-400);
+  --mint-500: var(--teal-500);
+  --mint-600: var(--teal-600);
+  --mint-700: var(--teal-700);
+  --mint-800: var(--teal-800);
+  --mint-900: var(--teal-900);
+  --mint-950: var(--teal-950);
 
   /* Gradients (light) */
-  --gradient-hero: linear-gradient(158deg, #352970 0%, #5545a8 58%, #6d5dc9 100%);
-  --gradient-band: linear-gradient(180deg, #44358b 0%, #5545a8 100%);
-  --gradient-wash: linear-gradient(180deg, #f4f3ff 0%, #ffffff 100%);
-  --gradient-accent: linear-gradient(150deg, #74f4bb 0%, #a2f8ce 100%);
-  --gradient-signature: linear-gradient(135deg, #5545a8 0%, #00cb86 100%);
-  --gradient-card: linear-gradient(165deg, #ffffff 0%, #f4f3ff 100%);
+  --gradient-hero: linear-gradient(158deg, #115e59 0%, #0f766e 58%, #0d9488 100%);
+  --gradient-band: linear-gradient(180deg, #115e59 0%, #0f766e 100%);
+  --gradient-wash: linear-gradient(180deg, #f0fdfa 0%, #ffffff 100%);
+  --gradient-accent: linear-gradient(150deg, #5eead4 0%, #99f6e4 100%);
+  --gradient-signature: linear-gradient(135deg, #0f766e 0%, #2dd4bf 100%);
+  --gradient-card: linear-gradient(165deg, #ffffff 0%, #f0fdfa 100%);
 
   /* Shadows (light) */
   --shadow-xs-value: 0 1px 2px rgba(0, 0, 0, 0.04);
@@ -372,7 +372,7 @@
   --shadow-lg-value: 0 10px 15px -3px rgba(0, 0, 0, 0.06), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
   --shadow-card-value: 0 0 0 1px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
   --shadow-popover-value: 0 0 0 1px rgba(0, 0, 0, 0.06), 0 12px 24px -4px rgba(0, 0, 0, 0.12);
-  --shadow-focus-value: 0 0 0 2px rgba(132, 118, 231, 0.45);
+  --shadow-focus-value: 0 0 0 2px rgba(20, 184, 166, 0.4);
 }
 
 /* ─── Dark mode ─────────────────────────────────────────────────────────── */
@@ -429,72 +429,73 @@
   --card-foreground: #e5e5e5;
   --popover: #171717;
   --popover-foreground: #e5e5e5;
-  --primary: #b7b1ff;
-  --primary-foreground: #21164d;
-  --primary-hover: #d1cfff;
-  --primary-active: #e7e6ff;
+  --primary: #2dd4bf;
+  --primary-foreground: #042f2e;
+  --primary-hover: #5eead4;
+  --primary-active: #99f6e4;
   --secondary: #262626;
   --secondary-foreground: #e5e5e5;
   --muted: #111111;
   --muted-foreground: #a3a3a3;
-  --accent: #21164d;
-  --accent-foreground: #b7b1ff;
+  --accent: #042f2e;
+  --accent-foreground: #5eead4;
   --destructive: #fca5a5;
   --destructive-foreground: #042f2e;
   --border: #262626;
   --input: #262626;
-  --ring: #8476e7;
+  --ring: #2dd4bf;
 
   /* Sidebar */
   --sidebar: #111111;
   --sidebar-foreground: #e5e5e5;
-  --sidebar-primary: #b7b1ff;
-  --sidebar-primary-foreground: #21164d;
-  --sidebar-accent: #21164d;
-  --sidebar-accent-foreground: #b7b1ff;
+  --sidebar-primary: #2dd4bf;
+  --sidebar-primary-foreground: #042f2e;
+  --sidebar-accent: #042f2e;
+  --sidebar-accent-foreground: #5eead4;
   --sidebar-border: #262626;
-  --sidebar-ring: #8476e7;
+  --sidebar-ring: #2dd4bf;
 
   /* Charts (brighter to read on dark) */
-  --chart-1: #b7b1ff;
-  --chart-2: #9c91fe;
-  --chart-3: #33e2a0;
-  --chart-4: #74f4bb;
-  --chart-5: #a3a3a3;
+  --chart-1: #2dd4bf;
+  --chart-2: #5eead4;
+  --chart-3: #99f6e4;
+  --chart-4: #a3a3a3;
+  --chart-5: #e5e5e5;
 
-  /* Brand indigo (dark — lifted so it holds on a near-black ground) */
-  --brand-50: #21164d;
-  --brand-100: #352970;
-  --brand-200: #44358b;
-  --brand-300: #5545a8;
-  --brand-400: #6d5dc9;
-  --brand-500: #8476e7;
-  --brand-600: #9c91fe;
-  --brand-700: #b7b1ff;
-  --brand-800: #d1cfff;
-  --brand-900: #e7e6ff;
-  --brand-950: #f4f3ff;
+  /* Brand + mint (dark) — alias the inverted teal ramp; 950 is the light
+     end so the scale flips like the rest (forced-dark pins it back). */
+  --teal-950: #f0fdfa;
+  --brand-50: var(--teal-50);
+  --brand-100: var(--teal-100);
+  --brand-200: var(--teal-200);
+  --brand-300: var(--teal-300);
+  --brand-400: var(--teal-400);
+  --brand-500: var(--teal-500);
+  --brand-600: var(--teal-600);
+  --brand-700: var(--teal-700);
+  --brand-800: var(--teal-800);
+  --brand-900: var(--teal-900);
+  --brand-950: var(--teal-950);
 
-  /* Mint accent (dark) */
-  --mint-50: #00381d;
-  --mint-100: #005933;
-  --mint-200: #007043;
-  --mint-300: #008e56;
-  --mint-400: #00ae6d;
-  --mint-500: #00cb86;
-  --mint-600: #33e2a0;
-  --mint-700: #74f4bb;
-  --mint-800: #a2f8ce;
-  --mint-900: #cbfbe2;
-  --mint-950: #e5fef1;
+  --mint-50: var(--teal-50);
+  --mint-100: var(--teal-100);
+  --mint-200: var(--teal-200);
+  --mint-300: var(--teal-300);
+  --mint-400: var(--teal-400);
+  --mint-500: var(--teal-500);
+  --mint-600: var(--teal-600);
+  --mint-700: var(--teal-700);
+  --mint-800: var(--teal-800);
+  --mint-900: var(--teal-900);
+  --mint-950: var(--teal-950);
 
   /* Gradients (dark — same hue, dropped in lightness so they read as depth) */
-  --gradient-hero: linear-gradient(158deg, #150e33 0%, #21164d 58%, #352970 100%);
-  --gradient-band: linear-gradient(180deg, #1a1140 0%, #2b2160 100%);
-  --gradient-wash: linear-gradient(180deg, #14102b 0%, #0a0a0a 100%);
-  --gradient-accent: linear-gradient(150deg, #008e56 0%, #007043 100%);
-  --gradient-signature: linear-gradient(135deg, #352970 0%, #008e56 100%);
-  --gradient-card: linear-gradient(165deg, #171717 0%, #1b1636 100%);
+  --gradient-hero: linear-gradient(158deg, #021a19 0%, #042f2e 58%, #134e4a 100%);
+  --gradient-band: linear-gradient(180deg, #042f2e 0%, #115e59 100%);
+  --gradient-wash: linear-gradient(180deg, #0b1a19 0%, #0a0a0a 100%);
+  --gradient-accent: linear-gradient(150deg, #0f766e 0%, #115e59 100%);
+  --gradient-signature: linear-gradient(135deg, #134e4a 0%, #0f766e 100%);
+  --gradient-card: linear-gradient(165deg, #171717 0%, #0f1f1e 100%);
 
   /* Shadows (dark — 3-5x stronger + faint white inner edge per spec) */
   --shadow-xs-value: 0 1px 2px rgba(0, 0, 0, 0.3);
@@ -503,7 +504,7 @@
   --shadow-lg-value: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -4px rgba(0, 0, 0, 0.3);
   --shadow-card-value: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 1px 3px rgba(0, 0, 0, 0.4);
   --shadow-popover-value: 0 0 0 1px rgba(255, 255, 255, 0.08), 0 12px 24px -4px rgba(0, 0, 0, 0.6);
-  --shadow-focus-value: 0 0 0 2px rgba(132, 118, 231, 0.35);
+  --shadow-focus-value: 0 0 0 2px rgba(45, 212, 191, 0.3);
 }
 
 /* ─── Landing-page animations ─────────────────────────────────────────────
@@ -561,10 +562,10 @@
 
 @keyframes medsync-select-flare {
   0% {
-    box-shadow: 0 0 0 0 rgba(132, 118, 231, 0.45);
+    box-shadow: 0 0 0 0 rgba(20, 184, 166, 0.45);
   }
   100% {
-    box-shadow: 0 0 0 6px rgba(132, 118, 231, 0);
+    box-shadow: 0 0 0 6px rgba(20, 184, 166, 0);
   }
 }
 
@@ -644,7 +645,7 @@
   /* Keyboard focus ring (always shown, never motion-gated) — teal, design-system. */
   &:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 2px rgba(132, 118, 231, 0.45);
+    box-shadow: 0 0 0 2px rgba(20, 184, 166, 0.45);
   }
 }
 
@@ -753,46 +754,59 @@
 
 /* ─── Forced-dark sections ───────────────────────────────────────────────
    The mid-band (§08) and final-CTA (§16) are intentionally always-dark
-   surfaces regardless of theme — light brand/mint text on a deep indigo
-   ground in both light and dark modes. But the brand and mint scales flip
-   between modes (brand-50 = #f4f3ff light, #21164d dark), so any brand
+   surfaces regardless of theme — light teal text on a deep teal ground in
+   both light and dark modes. But the brand/mint (= teal) scales flip
+   between modes (brand-50 = #f0fdfa light, #042f2e dark), so any brand
    utility on these sections would inverse in dark mode and the text would
    disappear into the background.
 
-   This utility pins every brand and mint variable to its light-mode value
-   within the scoped element and its descendants, so `text-brand-50` always
-   resolves to the light shade these dark surfaces were designed against.
-   Unlike the old teal version this must also pin the 950 step, because the
-   band's own background (`bg-brand-950`) is part of our scale now rather
-   than a Tailwind built-in, and would otherwise turn near-white in dark. */
+   This utility pins every teal variable to its light-mode value within the
+   scoped element and its descendants, and re-points brand/mint at them
+   there (a var() alias resolves on the element that declares it, so the
+   :root aliases would not follow). `text-brand-50` then always resolves
+   to the light shade these dark surfaces were designed against, and the
+   950 step stays deep so the band's own `bg-brand-950` does not turn
+   near-white in dark. */
 @utility medsync-forced-dark {
-  --brand-50: #f4f3ff;
-  --brand-100: #e7e6ff;
-  --brand-200: #d1cfff;
-  --brand-300: #b7b1ff;
-  --brand-400: #9c91fe;
-  --brand-500: #8476e7;
-  --brand-600: #6d5dc9;
-  --brand-700: #5545a8;
-  --brand-800: #44358b;
-  --brand-900: #352970;
-  --brand-950: #21164d;
+  --teal-50: #f0fdfa;
+  --teal-100: #ccfbf1;
+  --teal-200: #99f6e4;
+  --teal-300: #5eead4;
+  --teal-400: #2dd4bf;
+  --teal-500: #14b8a6;
+  --teal-600: #0d9488;
+  --teal-700: #0f766e;
+  --teal-800: #115e59;
+  --teal-900: #134e4a;
+  --teal-950: #042f2e;
 
-  --mint-50: #e5fef1;
-  --mint-100: #cbfbe2;
-  --mint-200: #a2f8ce;
-  --mint-300: #74f4bb;
-  --mint-400: #33e2a0;
-  --mint-500: #00cb86;
-  --mint-600: #00ae6d;
-  --mint-700: #008e56;
-  --mint-800: #007043;
-  --mint-900: #005933;
-  --mint-950: #00381d;
+  --brand-50: var(--teal-50);
+  --brand-100: var(--teal-100);
+  --brand-200: var(--teal-200);
+  --brand-300: var(--teal-300);
+  --brand-400: var(--teal-400);
+  --brand-500: var(--teal-500);
+  --brand-600: var(--teal-600);
+  --brand-700: var(--teal-700);
+  --brand-800: var(--teal-800);
+  --brand-900: var(--teal-900);
+  --brand-950: var(--teal-950);
+
+  --mint-50: var(--teal-50);
+  --mint-100: var(--teal-100);
+  --mint-200: var(--teal-200);
+  --mint-300: var(--teal-300);
+  --mint-400: var(--teal-400);
+  --mint-500: var(--teal-500);
+  --mint-600: var(--teal-600);
+  --mint-700: var(--teal-700);
+  --mint-800: var(--teal-800);
+  --mint-900: var(--teal-900);
+  --mint-950: var(--teal-950);
 
   /* Gradients on a forced-dark band use the deep end of the ramp in both modes. */
-  --gradient-hero: linear-gradient(158deg, #21164d 0%, #352970 58%, #5545a8 100%);
-  --gradient-band: linear-gradient(180deg, #21164d 0%, #44358b 100%);
+  --gradient-hero: linear-gradient(158deg, #042f2e 0%, #134e4a 58%, #0f766e 100%);
+  --gradient-band: linear-gradient(180deg, #042f2e 0%, #115e59 100%);
 }
 
 /* Base layer — minimal global rules. Components own their styles. */

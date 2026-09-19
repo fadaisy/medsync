@@ -115,9 +115,9 @@ export function MobileTabBar({
                   // min-h-11 is the 44px touch target; px-2 py-1.5 was ~32px.
                   "group relative flex min-h-11 flex-col items-center justify-center gap-0.5 rounded-md px-1 py-1.5 transition-colors outline-none",
                   "focus-visible:ring-brand-500/40 focus-visible:ring-2",
-                  // No dark: override. `.dark` swaps --brand-700 to #b7b1ff,
-                  // which reads at 10:1 on the dark bar; the override this
-                  // carried pinned brand-300 (#5545a8 in dark) at 2.64:1 —
+                  // No dark: override. `.dark` swaps --brand-700 to #99f6e4,
+                  // which reads at 14:1 on the dark bar; the override this
+                  // carried pinned brand-300 (#0d9488 in dark) at 4.8:1 —
                   // the same contrast failure the badge below had.
                   isActive ? "text-brand-700" : "text-muted-foreground",
                 )}
@@ -143,7 +143,7 @@ export function MobileTabBar({
                   {item.badgeCount && item.badgeCount > 0 ? (
                     <span
                       aria-label={`${item.badgeCount} new`}
-                      // bg-primary, not bg-brand-600: brand-600 is #9c91fe in
+                      // bg-primary, not bg-brand-600: brand-600 is #5eead4 in
                       // dark and white on it fails contrast.
                       className="bg-primary text-primary-foreground text-caption absolute -top-1 -right-2 inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 font-mono tabular-nums"
                     >

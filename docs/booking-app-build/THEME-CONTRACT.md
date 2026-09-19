@@ -1,7 +1,7 @@
 # Mobile theme contract (READ IN FULL before editing any screen)
 
 The MedSync Expo app (`/Users/airm1/Desktop/medsync/mobile`) is moving from a
-single dark design (brand-950 indigo ground, light-ramp values used as if they
+single dark design (brand-950 deep-teal ground, light-ramp values used as if they
 were a dark palette) to a real light/dark theme with a toggle. The owner's words:
 "I hate the purple background." The foundation is DONE and typechecks; your job is
 to re-express ONE file group in the semantic palette without changing layout,
@@ -19,28 +19,37 @@ copy, behaviour or hierarchy. This is a re-skin, not a redesign.
 - `src/app/_layout.tsx`, `src/app/(app)/_layout.tsx` — themed; `app.json` is
   `userInterfaceStyle: "automatic"`.
 - `src/app/(app)/settings.tsx` — NEW: Appearance radio group (Same as phone / Light / Dark)
-  + Sign out. Typed route `/(app)/settings` already exists in `.expo/types/router.d.ts`.
+  - Sign out. Typed route `/(app)/settings` already exists in `.expo/types/router.d.ts`.
 
 ## The Palette (`c` below) — the ONLY colours a screen may use
 
 ```ts
 interface Palette {
   scheme: "light" | "dark";
-  background: string;        // page ground                (light #ffffff  / dark #0a0a0a)
-  foreground: string;        // primary text               (#171717 / #e5e5e5)
-  card: string;              // raised surface: cards      (#ffffff / #171717)
-  muted: string;             // sunken: wells, quiet chips (#fafafa / #111111)
-  mutedForeground: string;   // secondary text             (#737373 / #a3a3a3)
-  primary: string;           // brand action: links, icons, back, wordmark (#5545a8 / #b7b1ff)
-  primaryForeground: string; // text on a primary fill     (#ffffff / #21164d)
-  accent: string;            // brand-tinted surface: selected chip, emphasis disc (#f4f3ff / #21164d)
-  accentForeground: string;  // text/icon on accent        (#5545a8 / #b7b1ff)
-  cta: string;               // THE signature mint fill — one per screen (#74f4bb / #33e2a0)
-  ctaForeground: string;     // headline on cta            (#21164d / #00381d)
-  ctaMuted: string;          // body text on cta           (#352970 / #005933)
-  border: string;            // hairlines, outlines        (#e5e5e5 / #262626)
-  ring: string;              // focus                      (#8476e7 both)
-  status: { stableBg, stableFg, cautionBg, cautionFg, criticalBg, criticalFg, pendingBg, pendingFg };
+  background: string; // page ground                (light #ffffff  / dark #0a0a0a)
+  foreground: string; // primary text               (#171717 / #e5e5e5)
+  card: string; // raised surface: cards      (#ffffff / #171717)
+  muted: string; // sunken: wells, quiet chips (#fafafa / #111111)
+  mutedForeground: string; // secondary text             (#737373 / #a3a3a3)
+  primary: string; // brand action: links, icons, back, wordmark (#0d9488 / #2dd4bf)
+  primaryForeground: string; // text on a primary fill     (#ffffff / #042f2e)
+  accent: string; // brand-tinted surface: selected chip, emphasis disc (#f0fdfa / #042f2e)
+  accentForeground: string; // text/icon on accent        (#0d9488 / #5eead4)
+  cta: string; // THE signature teal fill — one per screen (#5eead4 / #2dd4bf)
+  ctaForeground: string; // headline on cta            (#042f2e / #042f2e)
+  ctaMuted: string; // body text on cta           (#134e4a / #134e4a)
+  border: string; // hairlines, outlines        (#e5e5e5 / #262626)
+  ring: string; // focus                      (#14b8a6 / #2dd4bf)
+  status: {
+    stableBg;
+    stableFg;
+    cautionBg;
+    cautionFg;
+    criticalBg;
+    criticalFg;
+    pendingBg;
+    pendingFg;
+  };
 }
 ```
 
@@ -71,31 +80,33 @@ const makeStyles = (c: Palette) =>
 
 ## Mapping the old dark design → roles
 
-| Old (dark design)                                     | Now                                                      |
-|-------------------------------------------------------|----------------------------------------------------------|
-| page `brand[950]`                                     | `c.background`                                           |
-| headings / body `brand[50]`, `"#ffffff"`              | `c.foreground`                                           |
-| secondary text `brand[200]`/`brand[300]` (metadata, eyebrows, hints) | `c.mutedForeground`                       |
-| tappable label / link text in `brand[200]`            | `c.primary`                                              |
-| icon tint `brand[200]`/`brand[300]`                   | `c.primary` (actionable) or `c.mutedForeground` (decorative) |
-| card fill `brand[900]`                                | `c.card` + `borderWidth: 1, borderColor: c.border` (a white card on a white page needs an edge; keep the border in dark too) |
-| emphasis disc / selected chip fill `brand[800]`/`brand[900]` | `c.accent` with `c.accentForeground` ink              |
-| quiet well / unselected chip                          | `c.card` + `c.border` (chip) or `c.muted` (well)         |
-| hairline `brand[900]`/`brand[800]`/`withAlpha(brand[200], .28)` | `c.border`                                     |
-| mint door / CTA `mint[300]`                           | `c.cta`; title `brand[900]`→`c.ctaForeground`; body `brand[800]`→`c.ctaMuted` |
-| focus / selection `mint[300]`                         | `c.primary` (mint on white is 1.5:1 — unusable as a rule) |
-| placeholder `withAlpha(brand[200], .4)`               | `c.mutedForeground`                                      |
-| amber error text `"#fcd34d"` / `status.cautionFg` on the ground | the CAUTION WELL below                         |
-| disabled fill `withAlpha(mint[300], .3)`/`brand[800]` | `c.muted` + `borderWidth 1 c.border`, label `c.mutedForeground` |
-| chevron on a card `brand[300]`                        | `c.mutedForeground`                                      |
+| Old (dark design)                                                    | Now                                                                                                                          |
+| -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| page `brand[950]`                                                    | `c.background`                                                                                                               |
+| headings / body `brand[50]`, `"#ffffff"`                             | `c.foreground`                                                                                                               |
+| secondary text `brand[200]`/`brand[300]` (metadata, eyebrows, hints) | `c.mutedForeground`                                                                                                          |
+| tappable label / link text in `brand[200]`                           | `c.primary`                                                                                                                  |
+| icon tint `brand[200]`/`brand[300]`                                  | `c.primary` (actionable) or `c.mutedForeground` (decorative)                                                                 |
+| card fill `brand[900]`                                               | `c.card` + `borderWidth: 1, borderColor: c.border` (a white card on a white page needs an edge; keep the border in dark too) |
+| emphasis disc / selected chip fill `brand[800]`/`brand[900]`         | `c.accent` with `c.accentForeground` ink                                                                                     |
+| quiet well / unselected chip                                         | `c.card` + `c.border` (chip) or `c.muted` (well)                                                                             |
+| hairline `brand[900]`/`brand[800]`/`withAlpha(brand[200], .28)`      | `c.border`                                                                                                                   |
+| mint door / CTA `mint[300]`                                          | `c.cta`; title `brand[900]`→`c.ctaForeground`; body `brand[800]`→`c.ctaMuted`                                                |
+| focus / selection `mint[300]`                                        | `c.primary` (mint on white is 1.5:1 — unusable as a rule)                                                                    |
+| placeholder `withAlpha(brand[200], .4)`                              | `c.mutedForeground`                                                                                                          |
+| amber error text `"#fcd34d"` / `status.cautionFg` on the ground      | the CAUTION WELL below                                                                                                       |
+| disabled fill `withAlpha(mint[300], .3)`/`brand[800]`                | `c.muted` + `borderWidth 1 c.border`, label `c.mutedForeground`                                                              |
+| chevron on a card `brand[300]`                                       | `c.mutedForeground`                                                                                                          |
 
 **Caution well** (every error / refusal sentence — server sentences included):
+
 ```ts
 well: { flexDirection: "row", gap: space[2], alignItems: "flex-start", padding: space[3], borderRadius: radius.lg,
         backgroundColor: c.status.cautionBg, borderWidth: 1, borderColor: c.status.cautionFg },
 wellText: { flex: 1, fontFamily: font.body, fontSize: 14.5, lineHeight: 21, color: c.foreground },
 // + <Ionicons name="alert-circle-outline" size={18} color={colors.status.cautionFg} /> before the text
 ```
+
 Text is `c.foreground` (not cautionFg — #d97706 on white is 2.97:1 and fails AA). The
 amber is the frame and the glyph; the words carry the meaning. `accessibilityRole="alert"`
 where the old code had it.
@@ -131,5 +142,6 @@ npx eslint <your files> --max-warnings=0          # exit 0 — React Compiler ru
 npx prettier --check <your files>
 grep -nE "brand\[|mint\[|gray\[|status\.|#[0-9a-fA-F]{3,8}\b|\"white\"|\"black\"" <your files>   # must be empty (splash/sign-in scrim excepted)
 ```
+
 Report: files changed, every mapping decision that was NOT in the table above, any
 comment you rewrote, and anything you could not resolve without touching another file.

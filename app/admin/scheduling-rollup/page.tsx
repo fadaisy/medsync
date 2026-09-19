@@ -665,7 +665,7 @@ type Tone = "actionable" | "critical" | "warning" | "neutral";
 
 /**
  * The brand ramp INVERTS in dark mode (app/globals.css: --brand-700 is
- * #5545a8 light, #b7b1ff dark), so the `dark:text-brand-300` this file
+ * #0f766e light, #99f6e4 dark), so the `dark:text-brand-300` this file
  * used to carry fought the flip and landed dark-on-dark. One class,
  * both themes. Red and amber are stock scales and do not invert, so
  * those keep their dark variant.

@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 
 /**
  * A clinic, as a category tile — the reference design's "General Visits" grid,
- * in MedSync's palette. One tile is filled (the brand's deepest indigo) the way
+ * in MedSync's palette. One tile is filled (the brand's deepest teal) the way
  * the reference fills one: it is the clinic with something open soonest, so the
  * emphasis carries a fact rather than a decoration.
  *
