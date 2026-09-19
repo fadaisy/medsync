@@ -1,5 +1,6 @@
 import type { HeroVariant } from "./_components/hero-card";
 import type { AppointmentRow } from "@/lib/patient/appointments";
+import type { ServiceLineCard as LineCard } from "@/lib/patient/discover";
 import type { ReadingRow, TrackingGlance } from "@/lib/patient/self-tracking";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
@@ -12,6 +13,7 @@ import {
   STATUS_LABEL,
   STATUS_TONES,
 } from "@/lib/patient/appointments";
+import { fetchDiscovery } from "@/lib/patient/discover";
 import { requirePatientScope } from "@/lib/patient/scope";
 import {
   fetchTrackingGlance,
@@ -23,6 +25,8 @@ import {
 import { PatientDoors } from "./_components/doors";
 import { HeroCard } from "./_components/hero-card";
 import { PatientPageHeader } from "./_components/page-header";
+import { ProviderCard } from "./_components/provider-card";
+import { ServiceLineCard } from "./_components/service-line-card";
 import { TintedRow } from "./_components/tinted-row";
 
 export const metadata: Metadata = { title: "Home · MedSync" };
@@ -45,10 +49,19 @@ export const dynamic = "force-dynamic";
 export default async function PatientHome() {
   const scope = await requirePatientScope();
 
-  const [upcoming, glance, readings] = await Promise.all([
+  const [upcoming, glance, readings, discovery] = await Promise.all([
     scope.primaryHospitalId ? fetchUpcomingVisits(scope.userId) : Promise.resolve([]),
     fetchTrackingGlance(scope.userId),
     listRecentReadings(scope.userId, 3),
+    // ADR 0085 §4: the phone has shown clinics and clinicians since Gate C;
+    // this is the web half that record names as the outstanding follow-up.
+    // Fails to empty — a browse section is a convenience, never the screen.
+    scope.primaryHospitalId
+      ? fetchDiscovery(scope.primaryHospitalId, scope.userId).catch(() => ({
+          lines: [],
+          providers: [],
+        }))
+      : Promise.resolve({ lines: [], providers: [] }),
   ]);
 
   const now = new Date();
@@ -101,6 +114,42 @@ export default async function PatientHome() {
         {hospitalName ? <PatientDoors /> : null}
 
         <HeroCard variant={hero} />
+
+        {/* The clinics this hospital runs, and who a patient could pick.
+            ADR 0085 §4's presentation: a face, a real rating or "No ratings
+            yet", and the soonest day the engine actually derived. The one
+            filled tile is the clinic open soonest — emphasis carrying a fact,
+            not a decoration. */}
+        {discovery.lines.length > 0 ? (
+          <section aria-labelledby="find-care" className="flex flex-col gap-3">
+            <SectionHead title="Find care" linkHref="/patient/book" linkLabel="Book a visit" />
+            <div className="grid gap-3 sm:grid-cols-2">
+              {discovery.lines.slice(0, 4).map((line) => (
+                <ServiceLineCard
+                  key={line.id}
+                  line={line}
+                  emphasis={line.id === soonestLineId(discovery.lines)}
+                />
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        {discovery.providers.length > 0 ? (
+          <section aria-labelledby="find-doctor" className="flex flex-col gap-3">
+            <SectionHead title="Your clinicians" linkHref="/patient/book" linkLabel="See all" />
+            {/* A scroller, not a grid: the reference's carousel, and on a
+                narrow phone it keeps the first card whole rather than
+                shrinking four into a row nobody can read. */}
+            <ul className="-mx-1 flex snap-x snap-mandatory gap-3 overflow-x-auto px-1 pb-1">
+              {discovery.providers.slice(0, 8).map((p) => (
+                <li key={p.userId} className="snap-start">
+                  <ProviderCard provider={p} />
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
 
         {/* The hero already *is* today's doses in that branch; a second
             copy of the same ratio underneath it would say nothing new. */}
@@ -331,4 +380,19 @@ function doseSubtitle(doses: TrackingGlance["todaySlots"]): string {
   if (doses.next) return `Next · ${doses.next.name} at ${doses.next.timeLabel}`;
   if (doses.taken >= doses.total) return "Everything recorded for today";
   return "Some doses have no entry yet";
+}
+
+/**
+ * The clinic with something open soonest — the one tile drawn filled. Null
+ * when nothing is open anywhere, in which case no tile is emphasised rather
+ * than an arbitrary one being singled out.
+ */
+function soonestLineId(lines: ReadonlyArray<LineCard>): string | null {
+  const open = lines.filter((l) => l.soonest !== null);
+  if (open.length === 0) return null;
+  return open.reduce((best, l) =>
+    (l.soonest as { dateKey: string }).dateKey < (best.soonest as { dateKey: string }).dateKey
+      ? l
+      : best,
+  ).id;
 }
