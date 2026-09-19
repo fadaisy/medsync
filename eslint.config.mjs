@@ -1,5 +1,6 @@
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
+import jsxA11y from "eslint-plugin-jsx-a11y";
 import { defineConfig, globalIgnores } from "eslint/config";
 
 const eslintConfig = defineConfig([
@@ -23,6 +24,14 @@ const eslintConfig = defineConfig([
       "no-console": ["warn", { allow: ["warn", "error"] }],
       eqeqeq: ["error", "smart"],
     },
+  },
+  {
+    // Gate H (ADR 0094, PRD §4.5): the two surfaces a patient or a desk clerk
+    // meets on a phone get jsx-a11y's strict set as errors. eslint-config-next
+    // already registers the plugin (at "warn", a handful of rules); this only
+    // widens the rule set for these trees, so the plugin is not re-declared.
+    files: ["app/patient/**/*.{ts,tsx}", "app/reception/**/*.{ts,tsx}"],
+    rules: jsxA11y.flatConfigs.strict.rules,
   },
   globalIgnores([
     ".next/**",

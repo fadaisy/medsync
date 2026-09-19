@@ -273,7 +273,7 @@ export function ProviderScreen({
               {slots.length} {slots.length === 1 ? "time" : "times"} open
             </span>
           </div>
-          <ul role="radiogroup" aria-label="Available times" className="flex flex-wrap gap-2">
+          <ul aria-label="Available times" className="flex flex-wrap gap-2">
             {slots.map((s) => {
               const selected = s.startsAtIso === slot;
               return (

@@ -247,7 +247,7 @@ function MedStateIcon({ state }: { state: "taken" | "due" | "held" }) {
   const cls = "mt-0.5 inline-flex size-4 shrink-0 items-center justify-center rounded-full";
   if (state === "taken") {
     return (
-      <span className={cn(cls, "bg-status-stable-bg text-status-stable-fg")} aria-label="Taken">
+      <span className={cn(cls, "bg-status-stable-bg text-status-stable-fg")} aria-hidden>
         <CheckIcon className="size-2.5" strokeWidth={2.5} />
       </span>
     );
@@ -256,7 +256,7 @@ function MedStateIcon({ state }: { state: "taken" | "due" | "held" }) {
     return (
       <span
         className={cn(cls, "bg-brand-100 text-brand-800 dark:bg-brand-50/15 dark:text-brand-200")}
-        aria-label="Due now"
+        aria-hidden
       >
         <ClockIcon
           className="size-2.5 motion-safe:animate-pulse motion-reduce:animate-none"
@@ -266,10 +266,7 @@ function MedStateIcon({ state }: { state: "taken" | "due" | "held" }) {
     );
   }
   return (
-    <span
-      className={cn(cls, "bg-status-caution-bg text-status-caution-fg")}
-      aria-label="Held by care team"
-    >
+    <span className={cn(cls, "bg-status-caution-bg text-status-caution-fg")} aria-hidden>
       <PauseIcon className="size-2.5" strokeWidth={2.5} />
     </span>
   );

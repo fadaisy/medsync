@@ -553,9 +553,21 @@ export default function StyleguidePage() {
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-col gap-3">
-                    <ClinicalPath segments={["patient", "vitals"]} separator="→" />
-                    <ClinicalPath segments={["ward", "bed 12"]} separator="⋮" />
-                    <ClinicalPath segments={["labs", "hematology"]} separator="·" />
+                    <ClinicalPath
+                      aria-label="Path, arrow"
+                      segments={["patient", "vitals"]}
+                      separator="→"
+                    />
+                    <ClinicalPath
+                      aria-label="Path, dots"
+                      segments={["ward", "bed 12"]}
+                      separator="⋮"
+                    />
+                    <ClinicalPath
+                      aria-label="Path, middot"
+                      segments={["labs", "hematology"]}
+                      separator="·"
+                    />
                   </div>
                 </CardContent>
               </Card>

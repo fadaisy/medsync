@@ -24,7 +24,7 @@ import { cn } from "@/lib/utils";
  */
 export function ClinicianHomeMock() {
   return (
-    <section aria-label="Illustrative Clinician Home" className="relative w-full pb-16 sm:pb-24">
+    <figure aria-label="Illustrative Clinician Home" className="relative w-full pb-16 sm:pb-24">
       <div className="mx-auto w-full max-w-300 px-3 sm:px-8">
         <div
           className={cn(
@@ -79,7 +79,7 @@ export function ClinicianHomeMock() {
           />
         </div>
       </div>
-    </section>
+    </figure>
   );
 }
 
@@ -87,7 +87,7 @@ export function ClinicianHomeMock() {
 
 function Sidebar() {
   return (
-    <aside
+    <div
       className={cn(
         "col-span-3 hidden flex-col gap-3 border-r p-3 lg:flex",
         "border-border bg-muted/30",
@@ -108,7 +108,7 @@ function Sidebar() {
         <span>Patients, labs, drugs…</span>
       </div>
 
-      <nav className="flex flex-col gap-0.5 pt-2 text-[12.5px]">
+      <div className="flex flex-col gap-0.5 pt-2 text-[12.5px]">
         {[
           { icon: UsersIcon, label: "Patients", count: 86, active: true },
           { icon: BellIcon, label: "Alerts", count: 3, badge: "critical" as const },
@@ -143,12 +143,12 @@ function Sidebar() {
             ) : null}
           </div>
         ))}
-      </nav>
+      </div>
 
       <div className="text-muted-foreground mt-auto px-2 pt-3 font-mono text-[10px] tracking-wider uppercase">
         Mulago National &middot; IM ward
       </div>
-    </aside>
+    </div>
   );
 }
 
@@ -163,9 +163,9 @@ function MainColumn() {
           <p className="text-muted-foreground font-mono text-[10px] tracking-[0.18em] uppercase">
             Tuesday &middot; 22 May 2026 &middot; 07:42
           </p>
-          <h3 className="font-display text-foreground text-[20px] leading-tight font-medium sm:text-[24px]">
+          <p className="font-display text-foreground text-[20px] leading-tight font-medium sm:text-[24px]">
             Good morning, Dr. Fadhul.
-          </h3>
+          </p>
         </div>
         <div className="flex items-center gap-2">
           <span className="border-border bg-card flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-[12px]">

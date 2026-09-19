@@ -51,14 +51,9 @@ export function V2ScrollProgress() {
   }, []);
 
   return (
-    <div
-      role="progressbar"
-      aria-label="Page scroll progress"
-      aria-valuemin={0}
-      aria-valuemax={100}
-      aria-valuenow={Math.round(pct)}
-      className="pointer-events-none fixed inset-x-0 top-0 z-50 h-[2px]"
-    >
+    // Not a progressbar to assistive tech: the scrollbar already exposes the
+    // same fraction, and a live percentage outside every landmark is noise.
+    <div aria-hidden className="pointer-events-none fixed inset-x-0 top-0 z-50 h-[2px]">
       <div
         className={cn(
           "from-brand-600 to-brand-400 dark:from-brand-500 dark:to-brand-300 h-full bg-linear-to-r",

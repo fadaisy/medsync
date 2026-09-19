@@ -87,7 +87,6 @@ export function CancelButton({
                 name="reason"
                 required
                 minLength={8}
-                autoFocus
                 placeholder="e.g. I'm travelling that week"
                 aria-invalid={!!state.error}
                 aria-describedby={state.error ? errorId : undefined}

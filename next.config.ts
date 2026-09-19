@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import bundleAnalyzer from "@next/bundle-analyzer";
 import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
@@ -13,11 +14,20 @@ const nextConfig: NextConfig = {
 };
 
 /**
+ * Gate H (ADR 0094, PRD §4.5): `npm run analyze` writes .next/analyze/*.html
+ * treemaps. The plugin is webpack-only, so that script passes `--webpack`;
+ * a normal (Turbopack) build never sees it. The size gate itself is
+ * `npm run budget` (scripts/check-budget.mjs) — the analyzer is for finding
+ * WHAT grew, not for deciding whether it may.
+ */
+const withAnalyzer = bundleAnalyzer({ enabled: process.env.ANALYZE === "true" });
+
+/**
  * Wrap with Sentry only if a DSN is present — keeps local dev builds clean
  * for anyone working without a Sentry project.
  */
 export default process.env.SENTRY_DSN
-  ? withSentryConfig(nextConfig, {
+  ? withSentryConfig(withAnalyzer(nextConfig), {
       silent: !process.env.CI,
       // Org/project come from env so we don't hard-code Usama's account here.
       org: process.env.SENTRY_ORG,
@@ -30,4 +40,4 @@ export default process.env.SENTRY_DSN
       // Tunnel Sentry events through a Next route to bypass ad-blockers.
       tunnelRoute: "/monitoring",
     })
-  : nextConfig;
+  : withAnalyzer(nextConfig);

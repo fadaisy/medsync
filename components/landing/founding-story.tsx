@@ -363,7 +363,7 @@ function FounderBlock({ founder }: { founder: Founder }) {
   return (
     <article className="grid gap-10 md:grid-cols-12 md:gap-12 lg:gap-16">
       {/* Portrait + signature */}
-      <aside className="flex flex-col gap-4 md:col-span-4">
+      <div className="flex flex-col gap-4 md:col-span-4">
         <figure className="flex flex-col gap-4">
           <div className="ring-border relative aspect-[3/4] w-full max-w-xs overflow-hidden rounded-xl shadow-sm ring-1">
             <Image
@@ -385,7 +385,7 @@ function FounderBlock({ founder }: { founder: Founder }) {
             <span className="text-muted-foreground text-[12.5px]">{founder.title}</span>
           </figcaption>
         </figure>
-      </aside>
+      </div>
 
       {/* Story */}
       <div className="flex flex-col gap-5 md:col-span-8">

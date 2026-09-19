@@ -109,6 +109,9 @@ export default async function ReceptionBookPage({ searchParams }: PageProps) {
           placeholder="Patient code, or phone (07XX XXX XXX)"
           className="text-body-s min-h-11 w-full pr-3 pl-9 font-mono"
           minLength={3}
+          // The desk page IS this search: labelled (sr-only), first after the
+          // heading, and the clerk has a patient at the counter.
+          // eslint-disable-next-line jsx-a11y/no-autofocus
           autoFocus
         />
       </form>

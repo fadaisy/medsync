@@ -59,6 +59,9 @@ export function NoShowButton({
         name="reason"
         required
         minLength={8}
+        // The "No-show…" button that had focus is gone; without this, focus
+        // drops to <body> and a keyboard user has to find the field again.
+        // eslint-disable-next-line jsx-a11y/no-autofocus
         autoFocus
         placeholder="Why — e.g. didn't arrive; called, no answer"
         aria-label={`Reason for marking ${patientLabel} as no-show (at least 8 characters, audited)`}

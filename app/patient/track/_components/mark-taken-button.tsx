@@ -82,7 +82,9 @@ export function MarkTakenButton({
       {error ? (
         // `ncd-reveal` — a 150ms opacity fade. Not `scale-in`: that one is
         // `--ease-spring`, and a failed write is not a thing that should pop.
-        <span className="text-destructive ncd-reveal text-caption font-mono">{error}</span>
+        <span role="alert" className="text-destructive ncd-reveal text-caption font-mono">
+          {error}
+        </span>
       ) : null}
     </div>
   );

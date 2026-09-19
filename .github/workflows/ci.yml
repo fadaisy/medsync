@@ -1,0 +1,104 @@
+# Gate H (ADR 0094, PRD §4.5): the checks AGENTS.md asks for after every
+# change, run where the whole team sees them — plus the two gates that only
+# exist because CI does: the patient-route size budget and the axe pass over
+# the pre-rendered public pages.
+#
+# No secrets are configured, and nothing here needs one. Because of that:
+#
+#   - `SKIP_ENV_VALIDATION=1` is set for the web job. lib/env.ts validates the
+#     project's Supabase values at import and documents that flag for exactly
+#     this case; without it every module that touches @/db would throw. The
+#     build pre-renders only the public pages, so it never opens a connection.
+#   - The suites that talk to a live Supabase project — the files that import
+#     tests/rls/_helpers.ts (RLS policies, tenant isolation, the audit and
+#     auth triggers) — SKIP, because that helper gates them on the flag AND on
+#     the env being present. They are the ones that would prove RLS in CI; to
+#     run them, add these repository secrets, pointed at a DEDICATED test
+#     project (the helper's own warning: RLS tests write rows that cannot all
+#     be rolled back, and audit_log is append-only):
+#       NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY,
+#       SUPABASE_SERVICE_ROLE_KEY, DATABASE_URL, DATABASE_DIRECT_URL,
+#       MEDSYNC_PHI_KEY, and MEDSYNC_ALLOW_RLS_DB_WRITES=1
+#
+# Node 24 from .nvmrc — what the dev box runs; scripts/migrate.ts needs ≥ 22.6
+# for --experimental-strip-types.
+
+name: CI
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NEXT_TELEMETRY_DISABLED: "1"
+  EXPO_NO_TELEMETRY: "1"
+
+jobs:
+  web:
+    name: Web (Next.js)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      SKIP_ENV_VALIDATION: "1"
+      # Empty until the secrets above exist; the live-DB suites then skip.
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      DATABASE_DIRECT_URL: ${{ secrets.DATABASE_DIRECT_URL }}
+      MEDSYNC_PHI_KEY: ${{ secrets.MEDSYNC_PHI_KEY }}
+      MEDSYNC_ALLOW_RLS_DB_WRITES: ${{ secrets.MEDSYNC_ALLOW_RLS_DB_WRITES }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm run format:check
+      # Build before test: tests/a11y reads the pre-rendered HTML in .next and
+      # skips (with a printed reason) when there is none.
+      - run: npm run build
+      # tests/rls/_helpers.ts skips every live-DB suite (green ⊘, with the
+      # reason in the summary) when the secrets above are absent.
+      - run: npm test
+      # scripts/check-budget.mjs — gzip first-load JS per /patient route.
+      - run: npm run budget
+
+  mobile:
+    name: Mobile (Expo)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            mobile/package-lock.json
+      # The app has no prettier of its own: `npx prettier` from mobile/ walks up
+      # to the root's binary, .prettierrc.json and its two plugins.
+      - run: npm ci
+      - run: npm ci
+        working-directory: mobile
+      # Typed routes and expo-env.d.ts are gitignored and only Metro writes
+      # them; without them tsc lies (see mobile/scripts/regen-typed-routes.cjs).
+      - name: Generate the Expo type files
+        working-directory: mobile
+        run: |
+          printf '/// <reference types="expo/types" />\n\n// NOTE: This file should not be edited and should be in your git ignore' > expo-env.d.ts
+          node scripts/regen-typed-routes.cjs
+      - run: npx tsc --noEmit
+        working-directory: mobile
+      - run: npx eslint src --max-warnings=0
+        working-directory: mobile
+      - run: npx prettier --check "src/**/*.{ts,tsx}"
+        working-directory: mobile

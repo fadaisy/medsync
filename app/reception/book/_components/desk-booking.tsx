@@ -449,6 +449,9 @@ function CallerStep({
           onChange={(e) => onChange({ declaredName: e.target.value })}
           maxLength={120}
           autoComplete="off"
+          // `?caller=new` exists to fill this form; the field is labelled and
+          // first after the heading, so a screen reader lands on its name.
+          // eslint-disable-next-line jsx-a11y/no-autofocus
           autoFocus
         />
       </div>
