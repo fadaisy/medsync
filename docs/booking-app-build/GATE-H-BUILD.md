@@ -9,7 +9,7 @@ rulings earlier gates deliberately parked. Surveyed against the code on 2026-09-
 reports need already exists (`clinic_sessions`, `appointments`, `queue_entries`, `notification_dispatches`,
 `visit_ratings`, `encounters`, `prescriptions`). No migration is required for the reports themselves.
 
-## Rulings assumed (ADR 0093)
+## Rulings assumed (ADR 0094)
 
 - **A metric is operational, never a patient score.** PRD §3.3.4 forbids punitive automation; Gate E kept
   unconfirmed-release off by default for the same reason. No-show data measures a _clinic's_ access
@@ -92,7 +92,7 @@ Each needs a decision recorded in the ADR, and most need a small build:
 
 15. **FHIR mapping** — `lib/fhir/appointment-r4.ts` exists and is described inside ADR 0089, but the mapping
     has no ADR of its own. Write one; it is the interoperability claim MoH review will ask for.
-16. **ADR 0093** — this gate's rulings, plus the closeout: what shipped across A′–H, what is deferred
+16. **ADR 0094** — this gate's rulings, plus the closeout: what shipped across A′–H, what is deferred
     (payments, live SMS channels, iOS push), and what the next team must know.
 17. Mirror both in `CHANGELOG.md`.
 

@@ -24,12 +24,13 @@ bar, the reference redesign, ADR 0085 (photos/ratings/times/emergency tab), ADR 
 
 ## 2. Owner actions still pending
 
-**0055–0060 are applied** on the dev DB (`_medsync_migrations`, checked 2026-09-13). Still pending, in order —
-each GATED, each additive (0062 makes `notification_dispatches.hospital_id` nullable):
+**0055–0062 are applied** on the dev DB (`_medsync_migrations`, checked 2026-09-19). Still pending, in order —
+each GATED, each dry-run clean in BEGIN/ROLLBACK:
 
 ```sh
-npm run db:migrate                # 0061 (Gate E), 0062 (Gate F) — both dry-run clean in BEGIN/ROLLBACK
-npm run db:backfill-phone-hmac    # once: patient_profiles.phone_hmac for rows written before 0062
+npm run db:migrate                # 0063 (Gate G, cadre fees — BEFORE redeploying the booking core),
+                                  # 0064 (Gate H, cancel-reason codes — rewrites legacy words, then a CHECK)
+npm run db:backfill-phone-hmac    # once, if not yet run: patient_profiles.phone_hmac for rows before 0062
 ```
 
 | Migration | What it adds                                                                                                                                                                                                                            | Needed by                                                                           |
@@ -42,6 +43,8 @@ npm run db:backfill-phone-hmac    # once: patient_profiles.phone_hmac for rows w
 | 0060      | `provisional_patients`, `booking_agents`, `void`, agent read policy                                                                                                                                                                     | Gate D (applied)                                                                    |
 | 0061      | `notification_dispatches`, `push_tokens`, `waitlist_entries`, `offer_released_capacity()`, quiet hours, `release_unconfirmed_hours`, `delay_minutes`, `confirmed_by_patient_at`, `consent_records.revoked_at`, `sms_communication` v1.0 | Gate E — **before** deploying the Gate E functions and the re-deployed core callers |
 | 0062      | `ussd_sessions`, `inbound_sms`, `sms_opt_outs`, `patient_profiles.phone_hmac`, origin + `ussd`, dispatch kind + `sms_reply`, `hospital_id` nullable, audit + `sms_stop`                                                                 | Gate F                                                                              |
+| 0063      | `service_line_fees` (cadre override), `appointments.quoted_fee_ugx/_label/_at` + completeness CHECK, audit action `set_service_line_fee`                                                                                                | Gate G — **before** the redeployed core                                             |
+| 0064      | `appointments.cancelled_reason` legacy words → codes, `declined_reason` NULLed, CHECK `appointments_cancelled_reason_code`                                                                                                              | Gate H — data rewrite + CHECK; apply with the redeploy                              |
 
 Secrets — Supabase Functions: `MEDSYNC_PHI_KEY` and **`MEDSYNC_SYSTEM_ACTOR_UUID`** are both **set** (the actor is
 `fadhulusama+medsync-system@gmail.com`, created 2026-09-14, no role, mirrored as "MedSync System" — never delete it:
@@ -101,6 +104,17 @@ gitignored, so a cloud build boots with `EXPO_PUBLIC_*` undefined and `supabase.
 patient surface mentions money**, so a fee-required line books in silence. Payments themselves stay deferred
 (Part 8 #8/#14, legal + billing).
 
+**Gate H — BUILT 2026-09-19** ([ADR 0094](adr/0094-gate-h-rulings-and-closeout.md) — the rulings and the closeout;
+[ADR 0093](adr/0093-fhir-appointment-mapping.md) — the FHIR mapping's own record). `/hospital-admin/reports` with
+the six metrics and the §3.6 detector; the superadmin rollup's PHI-free aggregates; the red-reserved and
+gate-h-rulings tests beside the §5.4 firewall test; `.github/workflows/ci.yml` (typecheck, lint, format, build,
+test, `npm run budget` at 370 kB gzip per patient route; the phone's tsc/eslint/prettier); jsx-a11y strict on
+patient and reception; axe over the eight public pages; the six parked rulings built (server refuses minors,
+cross-tenant un-reconcile 409 unless superadmin, cancel reasons as codes with the words in the audit log,
+template edits re-stamp empty days only, consent re-accept on web and phone; four-eyes not added). GATED
+migration **0064**. CI's first run on GitHub will be the proof the budget bites where the team sees it. The
+original contract follows.
+
 **Gate H** — contract at `docs/booking-app-build/GATE-H-BUILD.md`: the PRD §5.4 invariant test (the
 not-a-medical-device boundary, currently untested), the §3.4 reports page (every table it needs already exists),
 the §3.6 honours-positions detector, budget tooling (there is no CI at all), accessibility, the six parked rulings,
@@ -110,10 +124,12 @@ and the FHIR + closeout ADRs.
 
 Recorded in ADRs 0087 (capacity modes; dark toggle stays), 0088 (Gate C: arrival window permitted, no holds, sessions confirm
 at request, receipt via dispatcher, 5/h rate limit, interstitial copy), 0089 (Gate D: provisional alongside accounts, single
-writer of the identity link, adults-only household, un-reconcile = hospital admin + reason). Parked for Gate H: four-eyes on
-un-reconcile; cross-tenant un-reconcile; desk booking a stated minor (client refuses, server does not); template edits leaving
-unbooked old instances published; staff cancel reasons visible to a booking agent. CSO items (symptom list, emergency numbers,
-time-to-care values, confidential lines, translations) remain **provisional** everywhere they appear.
+writer of the identity link, adults-only household, un-reconcile = hospital admin + reason), 0092 (fees by cadre as a
+sparse override; quote snapshotted), 0093 (FHIR R4 at the boundary), and 0094 (Gate H: the six formerly parked rulings —
+no four-eyes on un-reconcile; cross-tenant un-reconcile refused unless superadmin; the server refuses a stated minor;
+empty future clinic days follow a template edit, booked ones keep their promise; staff cancel reasons are staff only;
+consent re-acceptance). CSO items (symptom list, emergency numbers, time-to-care values, confidential lines,
+translations) remain **provisional** everywhere they appear.
 
 ## 5. Things the next session should know
 
