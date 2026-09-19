@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 
-import { requirePatientScope } from "@/lib/patient/scope";
+import { dataProcessingConsent, resolvePatientScope } from "@/lib/patient/scope";
 import { PatientPageHeader } from "../_components/page-header";
 import { TintedRow } from "../_components/tinted-row";
+import { AcceptConsentForm } from "./_components/accept-form";
 
 export const metadata: Metadata = { title: "Consent & sharing · MedSync" };
 export const dynamic = "force-dynamic";
@@ -16,16 +17,42 @@ const COMING_NEXT = [
 ] as const;
 
 /**
- * Consent is an empty room, and it says so — same shape as My care and
- * Settings, because three pages describing three unbuilt things should not
- * look like three different products.
+ * Two pages in one file (Gate H, ADR 0094).
  *
- * It used to render `PatientPlaceholderScreen`, which carried its own page
- * gutters (doubled inside the layout's wrapper) and a decorative blur blob.
- * That component had one caller left; this page is what replaced it.
+ * When the patient has no `data_processing` record against the ACTIVE text,
+ * this IS the gate: `requirePatientScope` sends every other page here, and
+ * this one shows the text and asks. `resolvePatientScope`, not `require` —
+ * the page the gate redirects to cannot itself be gated. No back link and
+ * no other rows while it is closed; the header's Sign out is the way out.
+ *
+ * Otherwise consent is an empty room, and it says so — same shape as My care
+ * and Settings, because three pages describing three unbuilt things should
+ * not look like three different products. It used to render
+ * `PatientPlaceholderScreen`, which carried its own page gutters (doubled
+ * inside the layout's wrapper) and a decorative blur blob. That component had
+ * one caller left; this page is what replaced it.
  */
 export default async function PatientConsentPage() {
-  await requirePatientScope();
+  const scope = await resolvePatientScope();
+  const consent = await dataProcessingConsent(scope.userId);
+
+  if (consent && consent.acceptedAt === null) {
+    return (
+      <div className="stagger-children flex flex-col gap-6">
+        <PatientPageHeader
+          eyebrow="MedSync · Consent"
+          title="Please read and accept"
+          description="We have no record of you accepting the current data-processing notice — your account may predate it. Read it below and agree to continue using MedSync."
+        />
+        <AcceptConsentForm
+          version={consent.version}
+          bodySha256={consent.bodySha256}
+          effectiveDate={consent.effectiveDate}
+          body={consent.body}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="stagger-children flex flex-col gap-6">
@@ -38,6 +65,14 @@ export default async function PatientConsentPage() {
       />
 
       <ul className="stagger-children flex flex-col gap-2">
+        {consent ? (
+          <TintedRow
+            tint="mint"
+            iconKey="shield"
+            title={`Data-processing notice v${consent.version} accepted`}
+            subtitle={`On ${consent.acceptedAt?.toLocaleDateString("en-GB", { dateStyle: "long" })}. The exact text is recorded against your account.`}
+          />
+        ) : null}
         {/* The one true statement this page can make today. */}
         <TintedRow
           tint="mint"

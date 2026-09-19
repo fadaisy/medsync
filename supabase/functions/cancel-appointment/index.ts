@@ -13,6 +13,15 @@
  * the appointment is gone, and offers the freed place to the waitlist
  * (`releaseCapacity`, Gate E — PRD §3.2.5: "cancellation immediately offers
  * the released capacity to the waitlist").
+ *
+ * The reason (Gate H ruling, ADR 0094): staff free text is STAFF ONLY. A
+ * patient reads their appointments rows straight through RLS (the phone uses
+ * supabase-js), and a booking agent reads the rows they created, so the text
+ * must not sit in a column they can select. `cancelled_reason` carries a
+ * closed CODE — `patient_cancelled` when the patient cancels their own visit,
+ * `staff_cancelled` otherwise — and the free text lives in the
+ * `cancel_appointment` sa_audit_log row alone, which staff surfaces read.
+ * Patient and agent surfaces map the code to one fixed sentence.
  */
 import { z } from "npm:zod@4.4.3";
 
@@ -40,6 +49,9 @@ const InputSchema = z.object({
 });
 
 const CANCELLABLE_STATES = new Set(["requested", "pending_approval", "confirmed", "arrived"]);
+
+/** The closed codes `appointments.cancelled_reason` may carry from here. */
+const CANCEL_CODES = { patient: "patient_cancelled", staff: "staff_cancelled" } as const;
 
 Deno.serve(async (request: Request) => {
   const origin = request.headers.get("origin");
@@ -89,6 +101,8 @@ Deno.serve(async (request: Request) => {
     );
   }
 
+  // The code the row carries; the words go to the audit row only.
+  const cancelledReason = isPatient ? CANCEL_CODES.patient : CANCEL_CODES.staff;
   const { ipAddress, userAgent } = networkContext(request);
   try {
     await recordSaAudit({
@@ -101,7 +115,7 @@ Deno.serve(async (request: Request) => {
       ipAddress,
       userAgent,
       beforeData: { status: appt.status },
-      afterData: { status: "cancelled", cancelled_reason: input.reason },
+      afterData: { status: "cancelled", cancelled_reason: cancelledReason },
     });
   } catch (e) {
     log.error("sa_audit failed; aborting", { requestId, reason: String(e) });
@@ -114,7 +128,7 @@ Deno.serve(async (request: Request) => {
     .from("appointments")
     .update({
       status: "cancelled",
-      cancelled_reason: input.reason,
+      cancelled_reason: cancelledReason,
       cancelled_by_user_id: caller.id,
     })
     .eq("id", appt.id)

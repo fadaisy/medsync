@@ -3,6 +3,7 @@ import type { Palette } from "@/theme/tokens";
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
+import { cancellationSentence } from "@shared/cancel-reasons";
 import { FEE_FOOTNOTE, quoteLine } from "@shared/fees";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
@@ -429,6 +430,9 @@ export default function VisitScreen() {
   const confirmable = mine && !arrivable && confirmationPending(visit);
   const clinicCancelled =
     visit.status === "cancelled" && visit.cancelledReason === "session_cancelled";
+  // Gate H (ADR 0094): the code mapped to one sentence — the column itself is
+  // never printed. Staff words live in the audit log, not on this phone.
+  const ended = clinicCancelled ? null : cancellationSentence(visit.status, visit.cancelledReason);
 
   // Options arrive grouped by day, ascending; the strip shows each day once.
   const days = options ? Array.from(new Set(options.map((o) => o.dayKey))) : [];
@@ -587,6 +591,12 @@ export default function VisitScreen() {
                 variant="link"
                 onPress={() => router.replace("/(app)/book")}
               />
+            </View>
+          ) : null}
+
+          {ended ? (
+            <View style={styles.card}>
+              <Text style={styles.body}>{ended}</Text>
             </View>
           ) : null}
 

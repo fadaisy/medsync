@@ -5,9 +5,10 @@
  * "Every Tuesday, 08:00, 4 hours, cap 60, 36 bookable" — the weekly rule a
  * clinic_sessions row is stamped from (ADR 0087, proposal §5.4). The
  * capacity columns are COPIED into each instance, so editing the rule never
- * rewrites a published session; the nightly cron (`app/api/cron/
- * cleanup-drafts`) runs the same `expandSessionTemplate` over the same
- * horizon, which is what makes the two writers produce identical rows.
+ * rewrites a session with bookings in it (empty ones follow the rule — see
+ * below); the nightly cron (`app/api/cron/cleanup-drafts`) runs the same
+ * `expandSessionTemplate` over the same horizon, which is what makes the two
+ * writers produce identical rows.
  *
  * Callable by a hospital_admin for a line at THEIR hospital, or by a
  * superadmin — the ha-update-department-policy shape, including
@@ -26,6 +27,14 @@
  *   bookings and leaves the rest published — a session with patients in it
  *   is a clinician's problem to cancel (Gate E), not a side effect of
  *   editing a rule.
+ *
+ *   Editing a template (Gate H ruling, ADR 0094): "empty future instances
+ *   follow the new rule; booked ones keep their promise." A published
+ *   future instance with booked_count = 0 is re-stamped from the new rule —
+ *   in place when the rule still names its start (the partial UNIQUE on
+ *   (template_id, starts_at) refuses a cancel-and-reinsert at the same
+ *   instant), cancelled by the deactivation path when it no longer does.
+ *   An instance holding a booking is not touched; the INSERT skips it.
  */
 
 import { z } from "npm:zod@4.4.3";
@@ -297,10 +306,11 @@ Deno.serve(async (request: Request) => {
 
   // ── Materialise ───────────────────────────────────────────────────
   // Same helper, same horizon, same zone as the nightly cron. Never
-  // overwrite a published instance: the partial UNIQUE
+  // overwrite an instance with bookings in it: the partial UNIQUE
   // clinic_sessions_template_start_unique makes a duplicate a 23505, and a
   // 23505 here means "already materialised" (by an earlier save or by the
-  // cron), not an error.
+  // cron), not an error. An EMPTY published instance of an edited rule is
+  // re-stamped in place before the INSERT loop reaches it (ADR 0094).
   //
   // ponytail: one INSERT per occurrence (≤ 3 for a weekly rule over 14 days).
   // PostgREST cannot express `ON CONFLICT (…) WHERE template_id IS NOT NULL`,
@@ -308,8 +318,33 @@ Deno.serve(async (request: Request) => {
   // ignoreDuplicates upsert would 500. Batch via an RPC if templates grow
   // sub-daily or the horizon grows.
   const now = new Date();
+  const nowIso = now.toISOString();
   let materialised = 0;
+  let restamped = 0;
   let cancelled = 0;
+
+  // The deactivation path, and what an edit does to empty instances the new
+  // rule no longer names. Guarded on booked_count = 0 in the UPDATE itself so
+  // a place taken since the read is a promise kept, not a booking cancelled.
+  const cancelEmpty = async (ids: string[] | null) => {
+    let q = sb
+      .from("clinic_sessions")
+      .update({
+        status: "cancelled",
+        cancelled_reason: input.reason,
+        cancelled_by_user_id: caller.id,
+        cancelled_at: nowIso,
+      })
+      .eq("template_id", id)
+      .eq("status", "published")
+      .eq("booked_count", 0)
+      .gt("starts_at", nowIso);
+    if (ids) q = q.in("id", ids);
+    const { data, error } = await q.select("id");
+    if (error) throw new Error(error.message);
+    return data?.length ?? 0;
+  };
+
   if (input.active) {
     const occurrences = expandSessionTemplate(
       {
@@ -323,21 +358,67 @@ Deno.serve(async (request: Request) => {
       new Date(now.getTime() + MATERIALISE_HORIZON_DAYS * 86_400_000),
       DEFAULT_TIME_ZONE,
     );
+    // The columns an instance copies from its rule; starts_at/ends_at are per occurrence.
+    const stamp = {
+      clinician_user_id: afterRow.clinician_user_id,
+      venue: afterRow.venue,
+      capacity_total: afterRow.capacity_total,
+      capacity_booked: afterRow.capacity_booked,
+      interleave_booked: afterRow.interleave_booked,
+      interleave_walk_in: afterRow.interleave_walk_in,
+      overbooking_factor: afterRow.overbooking_factor,
+    };
+
+    // An edit: the rule's empty future instances, by start instant.
+    //
+    // ponytail: a cancelled instance keeps its (template_id, starts_at), so a
+    // rule edited A → B → A leaves A's day cancelled (the INSERT sees 23505)
+    // — the same hole deactivate-then-reactivate has had since Gate C, and
+    // one the console fixes by deactivating the rule and creating a new one.
+    // Reviving cancelled rows is not safe here: ha-cancel-session also zeroes
+    // booked_count, and its patients were told that day is gone.
+    const emptyByStart = new Map<number, string>();
+    if (existing) {
+      const { data: empties, error: emptiesError } = await sb
+        .from("clinic_sessions")
+        .select("id, starts_at")
+        .eq("template_id", id)
+        .eq("status", "published")
+        .eq("booked_count", 0)
+        .gt("starts_at", nowIso);
+      if (emptiesError) {
+        log.error("empty instances read failed", { requestId, reason: emptiesError.message });
+        return serverError("template saved but its sessions could not be re-published", init);
+      }
+      for (const e of empties ?? []) emptyByStart.set(new Date(e.starts_at).getTime(), e.id);
+    }
+
     for (const { startsAt, endsAt } of occurrences) {
+      const inPlace = emptyByStart.get(startsAt.getTime());
+      if (inPlace) {
+        emptyByStart.delete(startsAt.getTime());
+        const { data: touched, error: updateError } = await sb
+          .from("clinic_sessions")
+          .update({ ...stamp, ends_at: endsAt.toISOString() })
+          .eq("id", inPlace)
+          .eq("status", "published")
+          .eq("booked_count", 0)
+          .select("id");
+        if (updateError) {
+          log.error("re-stamp failed", { requestId, reason: updateError.message });
+          return serverError("template saved but its sessions could not be re-published", init);
+        }
+        restamped += touched?.length ?? 0;
+        continue;
+      }
       const { error: insertError } = await sb.from("clinic_sessions").insert({
+        ...stamp,
         hospital_id: afterRow.hospital_id,
         department_id: afterRow.department_id,
         service_line_id: afterRow.service_line_id,
         template_id: id,
-        clinician_user_id: afterRow.clinician_user_id,
-        venue: afterRow.venue,
         starts_at: startsAt.toISOString(),
         ends_at: endsAt.toISOString(),
-        capacity_total: afterRow.capacity_total,
-        capacity_booked: afterRow.capacity_booked,
-        interleave_booked: afterRow.interleave_booked,
-        interleave_walk_in: afterRow.interleave_walk_in,
-        overbooking_factor: afterRow.overbooking_factor,
         status: "published",
       });
       if (insertError && insertError.code !== "23505") {
@@ -346,28 +427,27 @@ Deno.serve(async (request: Request) => {
       }
       if (!insertError) materialised += 1;
     }
+
+    // Empty instances the new rule no longer names go the way deactivation
+    // sends them.
+    if (emptyByStart.size > 0) {
+      try {
+        cancelled = await cancelEmpty([...emptyByStart.values()]);
+      } catch (e) {
+        log.error("cancel stale instances failed", { requestId, reason: String(e) });
+        return serverError("template saved but its stale sessions could not be cancelled", init);
+      }
+    }
   } else {
-    const { data: dropped, error: cancelError } = await sb
-      .from("clinic_sessions")
-      .update({
-        status: "cancelled",
-        cancelled_reason: input.reason,
-        cancelled_by_user_id: caller.id,
-        cancelled_at: now.toISOString(),
-      })
-      .eq("template_id", id)
-      .eq("status", "published")
-      .eq("booked_count", 0)
-      .gt("starts_at", now.toISOString())
-      .select("id");
-    if (cancelError) {
-      log.error("cancel empty instances failed", { requestId, reason: cancelError.message });
+    try {
+      cancelled = await cancelEmpty(null);
+    } catch (e) {
+      log.error("cancel empty instances failed", { requestId, reason: String(e) });
       return serverError(
         "template deactivated but its empty sessions could not be cancelled",
         init,
       );
     }
-    cancelled = dropped?.length ?? 0;
   }
 
   log.info("session template updated", {
@@ -378,7 +458,8 @@ Deno.serve(async (request: Request) => {
     created: !existing,
     active: input.active,
     materialised,
+    restamped,
     cancelled,
   });
-  return ok({ ok: true, id, created: !existing, materialised, cancelled }, init);
+  return ok({ ok: true, id, created: !existing, materialised, restamped, cancelled }, init);
 });

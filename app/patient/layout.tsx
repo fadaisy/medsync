@@ -4,7 +4,7 @@ import Link from "next/link";
 
 import { MobileTabBar } from "@/components/responsive/mobile-tab-bar";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { requirePatientScope } from "@/lib/patient/scope";
+import { resolvePatientScope } from "@/lib/patient/scope";
 import { EmergencyNotice } from "./_components/emergency-notice";
 import { PatientNavRail } from "./_components/patient-nav-rail";
 import { RegisterServiceWorker } from "./_components/register-sw";
@@ -33,9 +33,13 @@ export const metadata: Metadata = {
  * column against (`@5xl/page:`) — a container query, because with the rail
  * and the gutters the content box is ~300px narrower than the viewport and
  * a viewport breakpoint would fire at the wrong moment.
+ *
+ * `resolvePatientScope`, not `require`: the pages carry the consent gate
+ * (ADR 0094) and redirect to /patient/consent, which renders inside this
+ * shell — a layout that redirected too would loop.
  */
 export default async function PatientLayout({ children }: { children: ReactNode }) {
-  const scope = await requirePatientScope();
+  const scope = await resolvePatientScope();
   // Names the emergency landmark when there is a hospital to name. The name
   // never reaches the block's copy itself (ADR 0084 §3).
   const hospitalName = scope.primaryHospitalId

@@ -1,9 +1,11 @@
 /**
  * ha-decline-appointment-request — clinician rejects a pending request.
  *
- * Sets status='declined', stores the reason in declined_reason
- * (visible to the patient). The freed slot is offered to the waitlist
- * (`releaseCapacity`, Gate E).
+ * Sets status='declined'. The reason is STAFF ONLY (Gate H ruling, ADR
+ * 0094): it goes to the `decline_appointment_request` sa_audit_log row, never
+ * to `declined_reason` — a column the patient reads straight through RLS.
+ * The status is the closed code patient surfaces map to one fixed sentence.
+ * The freed slot is offered to the waitlist (`releaseCapacity`, Gate E).
  */
 import { z } from "npm:zod@4.4.3";
 
@@ -27,7 +29,7 @@ const log = makeLogger("ha-decline-appointment-request");
 
 const InputSchema = z.object({
   appointment_id: z.string().uuid(),
-  reason: z.string().min(8, "Reason ≥ 8 chars required (audited + shown to patient)."),
+  reason: z.string().min(8, "Reason ≥ 8 chars required (audited; staff only)."),
 });
 
 Deno.serve(async (request: Request) => {
@@ -89,7 +91,7 @@ Deno.serve(async (request: Request) => {
       ipAddress,
       userAgent,
       beforeData: { status: appt.status },
-      afterData: { status: "declined", declined_reason: input.reason },
+      afterData: { status: "declined" },
     });
   } catch (e) {
     log.error("sa_audit failed; aborting", { requestId, reason: String(e) });
@@ -98,7 +100,7 @@ Deno.serve(async (request: Request) => {
 
   const { error: updateError } = await sb
     .from("appointments")
-    .update({ status: "declined", declined_reason: input.reason })
+    .update({ status: "declined" })
     .eq("id", appt.id);
   if (updateError) {
     log.error("decline failed", { requestId, reason: updateError.message });

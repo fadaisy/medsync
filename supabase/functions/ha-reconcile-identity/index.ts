@@ -23,7 +23,17 @@
  *                NULL on this hospital's appointments/intakes that still name
  *                the reconciled patient. Encounters and queue rows already
  *                written against the patient are NOT touched — that is a
- *                clinical-record correction, flagged for Gate H (four-eyes).
+ *                clinical-record correction, outside this function.
+ *                Gate H rulings (ADR 0094):
+ *                  - No four-eyes step. hospital_admin + the 20-char reason +
+ *                    the audit row IS the bar; a second approver was
+ *                    considered and not required.
+ *                  - Cross-tenant: when appointments or intakes at OTHER
+ *                    hospitals name the reconciled patient under this
+ *                    provisional, a hospital_admin gets 409 with the count —
+ *                    no hospital edits another's rows. A superadmin may
+ *                    un-reconcile, and the reversal then applies at every
+ *                    hospital; the audit after-data says so.
  *
  * Auth: superadmin, hospital_admin of `hospital_id`, or any active staff
  * affiliation at it (reception). The provisional must belong to this
@@ -94,8 +104,10 @@ Deno.serve(async (request: Request) => {
   const caller = await getCaller(request);
   if (!caller) return unauthorized(init);
 
+  let isSuperadmin = false;
   if (input.action === "unreconcile") {
-    if (!(await hasRole(caller.id, "superadmin"))) {
+    isSuperadmin = await hasRole(caller.id, "superadmin");
+    if (!isSuperadmin) {
       if (!(await hasRole(caller.id, "hospital_admin", input.hospital_id))) {
         return forbidden(init, "Only a hospital admin can un-reconcile an identity.");
       }
@@ -268,38 +280,82 @@ Deno.serve(async (request: Request) => {
     return conflict("This record is not reconciled.", init);
   }
   const previous = prov.reconciled_patient_user_id as string;
-  const after = {
+
+  // Cross-tenant (Gate H, ADR 0094): rows at OTHER hospitals that name the
+  // patient under this provisional. The provisional row itself is global, so
+  // a one-hospital reversal would leave those rows naming a patient the
+  // record no longer confirms — a hospital admin is refused; a superadmin
+  // reverses everywhere.
+  const elsewhere = async (table: "appointments" | "patient_intakes") => {
+    const { count, error } = await sb
+      .from(table)
+      .select("id", { count: "exact", head: true })
+      .eq("provisional_patient_id", prov.id)
+      .eq("patient_user_id", previous)
+      .neq("hospital_id", input.hospital_id);
+    if (error) throw new Error(error.message);
+    return count ?? 0;
+  };
+  let rowsElsewhere: number;
+  try {
+    rowsElsewhere = (await elsewhere("appointments")) + (await elsewhere("patient_intakes"));
+  } catch (e) {
+    return serverError(String(e), init);
+  }
+  if (rowsElsewhere > 0 && !isSuperadmin) {
+    return conflict(
+      `${rowsElsewhere} booking${rowsElsewhere === 1 ? " or intake" : "s or intakes"} at other hospitals name this patient under this record. Only a superadmin can un-reconcile across hospitals.`,
+      init,
+    );
+  }
+  const everyHospital = isSuperadmin && rowsElsewhere > 0;
+
+  const reversal = {
     reconciliation_state: "unreconciled",
     reconciled_patient_user_id: null,
     reconciled_by_user_id: null,
     reconciled_at: null,
   };
+  // The audit also records what the reversal reached: this hospital only, or
+  // every hospital holding rows (superadmin). The count is the rows beyond
+  // this hospital.
+  const after = {
+    ...reversal,
+    scope: everyHospital ? "all_hospitals" : "this_hospital",
+    rows_at_other_hospitals: rowsElsewhere,
+  };
   const auditError = await audit("unreconcile_identity", input.reason as string, after);
   if (auditError) return auditError;
 
-  const { error: rowError } = await sb.from("provisional_patients").update(after).eq("id", prov.id);
+  const { error: rowError } = await sb
+    .from("provisional_patients")
+    .update(reversal)
+    .eq("id", prov.id);
   if (rowError) return serverError(rowError.message, init);
 
-  const { data: appts, error: apptError } = await sb
+  // The reversal reaches only this hospital's rows unless a superadmin is
+  // reversing across tenants (`everyHospital`), where the filter is dropped.
+  let apptQuery = sb
     .from("appointments")
     .update({ patient_user_id: null })
     .eq("provisional_patient_id", prov.id)
-    .eq("hospital_id", input.hospital_id)
-    .eq("patient_user_id", previous)
-    .select("id");
+    .eq("patient_user_id", previous);
+  if (!everyHospital) apptQuery = apptQuery.eq("hospital_id", input.hospital_id);
+  const { data: appts, error: apptError } = await apptQuery.select("id");
   if (apptError) return serverError(apptError.message, init);
-  const { data: intakes, error: intakeError } = await sb
+  let intakeQuery = sb
     .from("patient_intakes")
     .update({ patient_user_id: null })
     .eq("provisional_patient_id", prov.id)
-    .eq("hospital_id", input.hospital_id)
-    .eq("patient_user_id", previous)
-    .select("id");
+    .eq("patient_user_id", previous);
+  if (!everyHospital) intakeQuery = intakeQuery.eq("hospital_id", input.hospital_id);
+  const { data: intakes, error: intakeError } = await intakeQuery.select("id");
   if (intakeError) return serverError(intakeError.message, init);
 
   log.info("identity un-reconciled", {
     requestId,
     provisional_patient_id: prov.id,
+    every_hospital: everyHospital,
     appointments: appts?.length ?? 0,
     intakes: intakes?.length ?? 0,
   });
@@ -308,6 +364,7 @@ Deno.serve(async (request: Request) => {
       provisional_patient_id: prov.id,
       reconciliation_state: "unreconciled",
       patient_user_id: null,
+      every_hospital: everyHospital,
       appointments_unlinked: appts?.length ?? 0,
       intakes_unlinked: intakes?.length ?? 0,
     },

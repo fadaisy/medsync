@@ -33,6 +33,7 @@ import {
 import { requirePatientScope } from "@/lib/patient/scope";
 import { fetchRebookingOffers, fetchWaitlist } from "@/lib/patient/waitlist";
 import { cn } from "@/lib/utils";
+import { cancellationSentence } from "@/supabase/functions/_shared/cancel-reasons";
 import { FEE_FOOTNOTE, quoteLine } from "@/supabase/functions/_shared/fees";
 import {
   buildSlots,
@@ -263,6 +264,9 @@ function UpcomingVisit({
   const initials = initialsOf(row.clinicianName);
   const summary = `${row.clinicianName} · ${row.departmentName} · ${formatWhen(row.startsAtIso)}`;
   const clinicCancelled = row.status === "cancelled" && row.cancelledReason === "session_cancelled";
+  // Gate H (ADR 0094): the code mapped to one sentence — the column itself is
+  // never printed. Staff words live in the audit log, not here.
+  const ended = clinicCancelled ? null : cancellationSentence(row.status, row.cancelledReason);
 
   return (
     <li
@@ -330,6 +334,8 @@ function UpcomingVisit({
       ) : (
         <BookingFacts row={row} />
       )}
+
+      {ended ? <p className="text-muted-foreground text-body-s">{ended}</p> : null}
 
       {canArrive ? <ArrivedButton appointmentId={row.id} /> : null}
 

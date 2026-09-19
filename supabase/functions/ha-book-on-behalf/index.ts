@@ -18,6 +18,12 @@
  *         phone_verified: false      the desk cannot verify a phone; always false
  *       }
  *
+ * Adults only (Gate H ruling, ADR 0094): a provisional caller whose stated
+ * age, or whose date of birth on today's date in the hospital's zone, is
+ * under 18 is refused with the one sentence the desk form already shows —
+ * the server, not just the client. The same numbers pt-add-household-member
+ * applies to a household member.
+ *
  * A provisional caller becomes ONE `provisional_patients` row — name and
  * phone AES-256-GCM (`_shared/encryption.ts`, the same wire format the Next
  * side reads), `phone_hmac` the blind index — created by this desk user at
@@ -57,11 +63,21 @@ import { authoriseAtHospital } from "../_shared/hospital-admin-scope.ts";
 import { makeLogger } from "../_shared/logger.ts";
 import { networkContext } from "../_shared/sa-audit.ts";
 import { PATIENT_REASON_CODES } from "../_shared/sessions-sql.ts";
+import { DEFAULT_TIME_ZONE, localDateKey } from "../_shared/slots.ts";
 
 const log = makeLogger("ha-book-on-behalf");
 
 /** Bookings one desk user may make per rolling hour before a 429. */
 const RATE_LIMIT_PER_HOUR = 60;
+
+const MINOR_REFUSAL = "Booking for a child is not available yet.";
+const ADULT_YEARS = 18;
+
+/** Whole years from one YYYY-MM-DD to another — the birthday not yet reached this year does not count. */
+function yearsBetween(dob: string, today: string): number {
+  const years = Number(today.slice(0, 4)) - Number(dob.slice(0, 4));
+  return today.slice(5) < dob.slice(5) ? years - 1 : years;
+}
 
 /** The Ugandan E.164 shape migration 0053 checks on hospitals.emergency_phone. */
 const UG_E164 = /^[+]2567[0-9]{8}$|^[+]256[23489][0-9]{7,8}$/;
@@ -131,6 +147,18 @@ Deno.serve(async (request: Request) => {
   const parsed = InputSchema.safeParse(body);
   if (!parsed.success) return badRequest("Invalid input", init, parsed.error.flatten());
   const input = parsed.data;
+
+  // Adults only: the typed age wins, else the date of birth against today in
+  // the hospital's zone — the desk form's own test, repeated where it binds.
+  if (input.provisional) {
+    const statedAge =
+      input.provisional.age_years ??
+      yearsBetween(
+        input.provisional.date_of_birth as string,
+        localDateKey(new Date(), DEFAULT_TIME_ZONE),
+      );
+    if (statedAge < ADULT_YEARS) return badRequest(MINOR_REFUSAL, init);
+  }
 
   const caller = await getCaller(request);
   if (!caller) return unauthorized(init);

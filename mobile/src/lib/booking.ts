@@ -279,7 +279,11 @@ export interface AppointmentRow {
   forMember: string | null;
   /** Gate E: the patient's answer to the T-24h confirmation request; null = not yet. */
   confirmedByPatientAtIso: string | null;
-  /** Gate E: 'session_cancelled' when the clinic cancelled the day — the screen offers a rebooking. */
+  /**
+   * A closed code, never words (Gate H, ADR 0094 — `@shared/cancel-reasons`):
+   * 'session_cancelled' when the clinic cancelled the day (the screen offers
+   * a rebooking); otherwise only ever read through `cancellationSentence`.
+   */
   cancelledReason: string | null;
   /** ADR 0092: the fee quoted at booking, snapshotted on the row. Null = none quoted. */
   quotedFeeUgx: number | null;

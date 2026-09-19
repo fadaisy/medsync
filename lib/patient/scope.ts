@@ -2,9 +2,11 @@ import "server-only";
 
 import { redirect } from "next/navigation";
 import { cache } from "react";
-import { eq } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
+import { consentRecords } from "@/db/schema/consent-records";
+import { consentVersions } from "@/db/schema/consent-versions";
 import { hospitals } from "@/db/schema/hospitals";
 import { patientProfiles } from "@/db/schema/patient-profiles";
 import { users } from "@/db/schema/users";
@@ -60,8 +62,24 @@ export interface PatientScope {
  * before it mutates) React has no cache dispatcher and calls
  * straight through, so a scope changed by an action is never served
  * stale to the re-render that follows.
+ *
+ * Two entry points (Gate H, ADR 0094):
+ *   - `requirePatientScope` — every page and action. Also the consent
+ *     gate: a patient with no `data_processing` record against the
+ *     ACTIVE consent text is sent to /patient/consent to re-accept
+ *     before anything else.
+ *   - `resolvePatientScope` — the layout and the consent page itself,
+ *     which must render while the gate is closed (a layout cannot see
+ *     the pathname, so it cannot exempt itself from a redirect).
  */
 export const requirePatientScope = cache(async (): Promise<PatientScope> => {
+  const scope = await resolvePatientScope();
+  const consent = await dataProcessingConsent(scope.userId);
+  if (consent && consent.acceptedAt === null) redirect("/patient/consent");
+  return scope;
+});
+
+export const resolvePatientScope = cache(async (): Promise<PatientScope> => {
   const state = await getAuthState();
   if (!state.user) redirect("/sign-in?redirect=/patient");
   // Patients are MFA-optional (kickoff). Only enforce MFA if the user
@@ -131,3 +149,57 @@ export const requirePatientScope = cache(async (): Promise<PatientScope> => {
     emergencyEntrancePhone,
   };
 });
+
+/* ─── Consent re-acceptance (Gate H, ADR 0094) ────────────────────── */
+
+export interface DataProcessingConsent {
+  /** The active `consent_versions` row — latest effective_date for 'data_processing'. */
+  version: string;
+  body: string;
+  bodySha256: string;
+  effectiveDate: string;
+  /** When THIS patient accepted THIS text; null = they must (re-)accept. */
+  acceptedAt: Date | null;
+}
+
+/**
+ * The active data-processing text and whether this patient has accepted
+ * it. "Accepted" is a `consent_records` row on the same version AND the
+ * same body hash, not revoked — a record whose hash matches no shipped
+ * text proves nothing (the handoff's case: five patients whose signup
+ * never wrote a row; nobody can say what they saw, so nothing is
+ * backfilled and they are asked again).
+ *
+ * Null when no version is seeded at all (a DB before migration 0012):
+ * there is nothing to accept, so the gate stays open.
+ */
+export const dataProcessingConsent = cache(
+  async (userId: string): Promise<DataProcessingConsent | null> => {
+    const [active] = await db
+      .select({
+        version: consentVersions.version,
+        body: consentVersions.body,
+        bodySha256: consentVersions.bodySha256,
+        effectiveDate: consentVersions.effectiveDate,
+      })
+      .from(consentVersions)
+      .where(eq(consentVersions.consentType, "data_processing"))
+      .orderBy(desc(consentVersions.effectiveDate))
+      .limit(1);
+    if (!active) return null;
+    const [record] = await db
+      .select({ acceptedAt: consentRecords.acceptedAt })
+      .from(consentRecords)
+      .where(
+        and(
+          eq(consentRecords.userId, userId),
+          eq(consentRecords.consentType, "data_processing"),
+          eq(consentRecords.version, active.version),
+          eq(consentRecords.consentTextSha256, active.bodySha256),
+          isNull(consentRecords.revokedAt),
+        ),
+      )
+      .limit(1);
+    return { ...active, acceptedAt: record?.acceptedAt ?? null };
+  },
+);

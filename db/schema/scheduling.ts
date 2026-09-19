@@ -292,6 +292,11 @@ export const appointments = pgTable(
       sql`${t.patientUserId} IS NOT NULL OR ${t.provisionalPatientId} IS NOT NULL`,
     ),
     check("appointments_priority_check", sql`${t.priority} IN ('routine','urgent')`),
+    // A closed code, never staff words — the patient reads this column (0064, ADR 0094).
+    check(
+      "appointments_cancelled_reason_code",
+      sql`${t.cancelledReason} IS NULL OR ${t.cancelledReason} IN ('session_cancelled','patient_cancelled','staff_cancelled','unconfirmed_release','rescheduled')`,
+    ),
     check("appointments_type_check", sql`${t.type} IN ('in_person','virtual')`),
     index("appointments_patient_idx").on(t.patientUserId, t.startsAt),
     index("appointments_clinician_idx").on(t.clinicianUserId, t.startsAt),

@@ -98,7 +98,11 @@ export interface AppointmentRow {
   arrivalWindowEndIso: string | null;
   /** Gate E: the patient's answer to the T-24h confirmation request; null = not yet. */
   confirmedByPatientAtIso: string | null;
-  /** Gate E: 'session_cancelled' when the clinic cancelled the day (the card offers a rebooking). */
+  /**
+   * A closed code, never words (Gate H, ADR 0094 — `_shared/cancel-reasons.ts`):
+   * 'session_cancelled' when the clinic cancelled the day (the card offers a
+   * rebooking); otherwise only ever read through `cancellationSentence`.
+   */
   cancelledReason: string | null;
   /** ADR 0092: the fee quoted at booking, snapshotted — never re-read from the line. Null = none quoted. */
   quotedFeeUgx: number | null;

@@ -5,7 +5,7 @@
  *   - Mints a NEW appointments row at the new slot, copying everything
  *     else (clinician, department, patient, reason, type) from the
  *     original.
- *   - Old row gets status='rescheduled' + cancelled_reason naming
+ *   - Old row gets status='rescheduled' + cancelled_reason 'rescheduled' (a code, not
  *     the new row.
  *   - New row's status copies the original (a confirmed appointment
  *     stays confirmed; a pending_approval stays pending).
@@ -272,7 +272,9 @@ Deno.serve(async (request: Request) => {
     .from("appointments")
     .update({
       status: "rescheduled",
-      cancelled_reason: `Rescheduled to ${input.new_starts_at}`,
+      // A closed code (ADR 0094); the new row's `rescheduled_from_appointment_id`
+      // says where it went, so the instant need not be repeated here.
+      cancelled_reason: "rescheduled",
       cancelled_by_user_id: caller.id,
     })
     .eq("id", appt.id);

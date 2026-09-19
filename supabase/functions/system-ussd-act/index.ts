@@ -217,7 +217,11 @@ Deno.serve(async (request: Request) => {
       ipAddress,
       userAgent,
       beforeData: { status: appt.status },
-      afterData: { status: "cancelled", cancelled_reason: reason, channel: input.channel },
+      afterData: {
+        status: "cancelled",
+        cancelled_reason: "patient_cancelled",
+        channel: input.channel,
+      },
     });
   } catch (e) {
     log.error("sa_audit failed; aborting", { requestId, reason: String(e) });
@@ -225,7 +229,12 @@ Deno.serve(async (request: Request) => {
   }
   const { data: flipped, error: cancelError } = await sb
     .from("appointments")
-    .update({ status: "cancelled", cancelled_reason: reason, cancelled_by_user_id: actorId })
+    // A closed code, never words (ADR 0094): the patient reads this column.
+    .update({
+      status: "cancelled",
+      cancelled_reason: "patient_cancelled",
+      cancelled_by_user_id: actorId,
+    })
     .eq("id", appt.id)
     .in("status", [...CANCELLABLE_STATES])
     .select("id")

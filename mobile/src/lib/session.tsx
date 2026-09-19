@@ -26,6 +26,14 @@ export type SessionValue = {
   session: AuthSession | null;
   /** Ends the session on this device. The gate follows on its own. */
   signOut: () => Promise<void>;
+  /**
+   * Gate H (ADR 0094): the active data-processing text this patient has not
+   * accepted, or null — nothing due, still checking, or the check failed.
+   * `(app)/_layout.tsx` closes the workspace on it; `consent.tsx` opens it.
+   */
+  consentDue: ConsentDue | null;
+  /** The consent screen recorded the acceptance; the gate reopens. */
+  consentAccepted: () => void;
 };
 
 const SessionContext = createContext<SessionValue | null>(null);
@@ -53,6 +61,30 @@ export function SessionProvider({ children }: PropsWithChildren) {
   // One variable rather than a `session` + `loading` pair, because two
   // variables are two things a caller can read in the wrong order.
   const [session, setSession] = useState<AuthSession | null | undefined>(undefined);
+  // Keyed by the user it was read for, and DERIVED below, so a sign-out or a
+  // different account signing in clears it without a setState in the effect.
+  const [consentFor, setConsentFor] = useState<{ userId: string; due: ConsentDue } | null>(null);
+
+  // Once per signed-in user, not per render. Null while it runs: the
+  // workspace mounts and, for the few patients it concerns, gives way to the
+  // consent screen when the answer lands — a blank hold on every cold start
+  // for everyone would cost more than that one flash for five. A failed read
+  // is null too: the web gate is the enforcement; this one mirrors it.
+  const userId = session?.user.id ?? null;
+  useEffect(() => {
+    if (!userId) return;
+    let live = true;
+    fetchConsentDue().then(
+      (due) => {
+        if (live && due) setConsentFor({ userId, due });
+      },
+      () => {},
+    );
+    return () => {
+      live = false;
+    };
+  }, [userId]);
+  const consentDue = consentFor && consentFor.userId === userId ? consentFor.due : null;
 
   useEffect(() => {
     let live = true;
@@ -95,6 +127,8 @@ export function SessionProvider({ children }: PropsWithChildren) {
         status: session === undefined ? "loading" : session ? "signedIn" : "signedOut",
         session: session ?? null,
         signOut,
+        consentDue,
+        consentAccepted: () => setConsentFor(null),
       }}
     >
       {children}
@@ -112,4 +146,76 @@ export function useSession(): SessionValue {
     );
   }
   return value;
+}
+
+/* ─── Consent re-acceptance (Gate H, ADR 0094) ────────────────────── */
+
+/** The active `data_processing` row of `consent_versions` — what the screen shows and records. */
+export interface ConsentDue {
+  version: string;
+  body: string;
+  bodySha256: string;
+  effectiveDate: string;
+}
+
+/**
+ * The web's `dataProcessingConsent`, from the phone: the active text, and
+ * whether a live record on the SAME version and hash exists for this user.
+ * A record on other words proves nothing — the handoff's case is five
+ * patients whose signup wrote no row at all, and nobody can say what they
+ * saw, so nothing is backfilled and they are asked again. Both reads are
+ * PostgREST under RLS: `consent_versions` is public, `consent_records` is
+ * own rows. Throws on a read error; the provider decides what that means.
+ */
+async function fetchConsentDue(): Promise<ConsentDue | null> {
+  const { data: v, error } = await supabase
+    .from("consent_versions")
+    .select("version, body, body_sha256, effective_date")
+    .eq("consent_type", "data_processing")
+    .order("effective_date", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!v) return null;
+  const { data: record, error: recordError } = await supabase
+    .from("consent_records")
+    .select("id")
+    .eq("consent_type", "data_processing")
+    .eq("version", v.version)
+    .eq("consent_text_sha256", v.body_sha256)
+    .is("revoked_at", null)
+    .limit(1)
+    .maybeSingle();
+  if (recordError) throw new Error(recordError.message);
+  return record
+    ? null
+    : {
+        version: v.version,
+        body: v.body,
+        bodySha256: v.body_sha256,
+        effectiveDate: v.effective_date,
+      };
+}
+
+/**
+ * One `consent_records` row, the way the patient signup writes it. Straight
+ * through the client: RLS grants a patient INSERT on their own consent (0002),
+ * so this is the one write in the app that needs no Edge Function. The
+ * version + hash are the ones just read and shown, never retyped.
+ */
+export async function acceptConsent(
+  due: ConsentDue,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  const { data } = await supabase.auth.getSession();
+  const userId = data.session?.user.id;
+  if (!userId) return { ok: false, error: "You're signed out. Sign in and try again." };
+  const { error } = await supabase.from("consent_records").insert({
+    user_id: userId,
+    consent_type: "data_processing",
+    version: due.version,
+    consent_text_sha256: due.bodySha256,
+    accepted_at: new Date().toISOString(),
+  });
+  if (error) return { ok: false, error: "Could not save that. Try again." };
+  return { ok: true };
 }

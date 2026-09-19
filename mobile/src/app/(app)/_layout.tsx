@@ -1,6 +1,7 @@
 import { Stack } from "expo-router";
 
 import { usePushNotifications } from "@/lib/push";
+import { useSession } from "@/lib/session";
 import { useTheme } from "@/theme/theme";
 
 /**
@@ -14,12 +15,21 @@ import { useTheme } from "@/theme/theme";
  *
  * `(tabs)` holds home, visits and settings under the floating bar; the doors,
  * the ticket and a visit push over it from here, full-screen, with a Back.
+ *
+ * The consent gate (Gate H, ADR 0094) is a second `Stack.Protected` pair, the
+ * root gate's idiom: while `consentDue` names a text this patient has not
+ * accepted, `consent` is the only screen in the navigator and every other
+ * one — the tabs, the doors, a visit a push could deep-link to — is dropped
+ * from it, so nothing under the gate can be reached or swiped back to.
+ * Every screen is listed so the guard covers it; none carries options here.
  */
 /** The tabs are the floor of this stack: Back from any pushed screen lands on them. */
 export const unstable_settings = { anchor: "(tabs)" };
 
 export default function AppLayout() {
   const { colors } = useTheme();
+  const { consentDue } = useSession();
+  const gated = consentDue !== null;
   // Gate E: this stack exists only with a session, so "mounted" is "signed in".
   usePushNotifications(true);
 
@@ -29,6 +39,21 @@ export default function AppLayout() {
         headerShown: false,
         contentStyle: { backgroundColor: colors.background },
       }}
-    />
+    >
+      <Stack.Protected guard={gated}>
+        <Stack.Screen name="consent" />
+      </Stack.Protected>
+
+      <Stack.Protected guard={!gated}>
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="book" />
+        <Stack.Screen name="clinic/[id]" />
+        <Stack.Screen name="doctor/[id]" />
+        <Stack.Screen name="household" />
+        <Stack.Screen name="ticket" />
+        <Stack.Screen name="today" />
+        <Stack.Screen name="visit/[id]" />
+      </Stack.Protected>
+    </Stack>
   );
 }
