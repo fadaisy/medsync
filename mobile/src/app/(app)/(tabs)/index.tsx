@@ -19,6 +19,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
 
@@ -127,6 +128,8 @@ export default function HomeScreen() {
   const [home, setHome] = useState<Home>({ kind: "loading" });
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [department, setDepartment] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
+  const [searchFocused, setSearchFocused] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   // Gate D: "I have arrived" from the hero, on the day itself.
   const [arriving, setArriving] = useState(false);
@@ -298,9 +301,17 @@ export default function HomeScreen() {
       (o, i, all) => all.findIndex((x) => x.departmentId === o.departmentId) === i,
     );
     const filter = departments.some((d) => d.departmentId === department) ? department : null;
+    // The reference's "Let's find your doctor": one box that narrows both
+    // lists to what is already on the screen — a name, a department, a
+    // specialty, a clinic. Nothing is fetched to flatter a query.
+    const q = query.trim().toLowerCase();
+    const hit = (...parts: (string | null | undefined)[]) =>
+      q === "" || parts.some((p) => p?.toLowerCase().includes(q));
     const shown = (doctors ?? [])
       .filter((o) => filter === null || o.departmentId === filter)
+      .filter((o) => hit(o.fullName, o.departmentName, o.specialty))
       .slice(0, DOCTORS_ON_HOME);
+    const shownClinics = (clinics ?? []).filter(({ line }) => hit(line.name, line.departmentName));
 
     // One thing in motion, at most. A place saved today outranks a visit on
     // another day — same order the two glances always had.
@@ -404,7 +415,6 @@ export default function HomeScreen() {
             asks. Placed here rather than in the chrome so the greeting stays
             first and never shifts when the name arrives. */}
         <View style={styles.heading}>
-          {profile.hospitalName ? <Text style={styles.eyebrow}>{profile.hospitalName}</Text> : null}
           <Text accessibilityRole="header" style={styles.question}>
             How are you feeling today?
           </Text>
@@ -484,6 +494,37 @@ export default function HomeScreen() {
           </Pressable>
         </Section>
 
+        {(doctors && doctors.length > 0) || (clinics && clinics.length > 0) ? (
+          <Section
+            title="Let's find your doctor"
+            action={{ label: "Book a visit", onPress: () => router.push("/(app)/book") }}
+          >
+            <View style={[styles.search, searchFocused && styles.searchFocused]}>
+              <Ionicons name="search-outline" size={18} color={colors.mutedForeground} />
+              <TextInput
+                value={query}
+                onChangeText={setQuery}
+                onFocus={() => setSearchFocused(true)}
+                onBlur={() => setSearchFocused(false)}
+                placeholder="A clinician, a department, a clinic"
+                placeholderTextColor={colors.mutedForeground}
+                selectionColor={colors.primary}
+                autoCorrect={false}
+                returnKeyType="search"
+                clearButtonMode="while-editing"
+                accessibilityLabel="Search clinicians and clinics by name or department"
+                style={styles.searchInput}
+              />
+            </View>
+            {q !== "" ? (
+              <Text style={styles.searchCount} accessibilityLiveRegion="polite">
+                {shown.length} {shown.length === 1 ? "clinician" : "clinicians"} and{" "}
+                {shownClinics.length} {shownClinics.length === 1 ? "clinic" : "clinics"} match
+              </Text>
+            ) : null}
+          </Section>
+        ) : null}
+
         {/* ADR 0085 §4: the doctors, filtered by department, three at most —
             the full list is the booking door. Every photo and every rating
             here came from the server; a missing one is a monogram and
@@ -514,46 +555,56 @@ export default function HomeScreen() {
             {/* A horizontal carousel of cards — the reference's home row.
                 `contentContainerStyle` carries the gutter so the first card
                 is whole at the edge rather than cut by the page padding. */}
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              snapToAlignment="start"
-              decelerationRate="fast"
-              contentContainerStyle={styles.carousel}
-              style={styles.carouselBleed}
-            >
-              {shown.map((o) => (
-                <ProviderCard
-                  key={`${o.userId}:${o.departmentId}`}
-                  option={o}
-                  seenBefore={o.seenBefore}
-                  onPress={() =>
-                    router.push({
-                      pathname: "/(app)/doctor/[id]",
-                      params: { id: o.userId, department: o.departmentId, hospital: o.hospitalId },
-                    })
-                  }
-                />
-              ))}
-            </ScrollView>
+            {shown.length > 0 ? (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                snapToAlignment="start"
+                decelerationRate="fast"
+                contentContainerStyle={styles.carousel}
+                style={styles.carouselBleed}
+              >
+                {shown.map((o) => (
+                  <ProviderCard
+                    key={`${o.userId}:${o.departmentId}`}
+                    option={o}
+                    seenBefore={o.seenBefore}
+                    onPress={() =>
+                      router.push({
+                        pathname: "/(app)/doctor/[id]",
+                        params: {
+                          id: o.userId,
+                          department: o.departmentId,
+                          hospital: o.hospitalId,
+                        },
+                      })
+                    }
+                  />
+                ))}
+              </ScrollView>
+            ) : (
+              // The chips stay so the department can be reset; the query
+              // can be cleared from the box above.
+              <Text style={styles.searchCount}>No clinician here matches that.</Text>
+            )}
           </Section>
         ) : null}
 
         {/* ADR 0087: the clinics that book by the day — a place in a
             published clinic day rather than a clinician's time. The next
             open day and its places are the allocator's own numbers. */}
-        {clinics && clinics.length > 0 ? (
+        {shownClinics.length > 0 ? (
           <Section title="Find care">
             {/* The reference's category grid. The one filled tile is the
                 clinic with something open soonest — emphasis carrying a fact,
                 never a decoration. */}
             <View style={styles.grid}>
-              {clinics.map(({ line, next }) => (
+              {shownClinics.map(({ line, next }) => (
                 <ServiceLineCard
                   key={line.id}
                   line={line}
                   soonest={next}
-                  emphasis={line.id === soonestClinicId(clinics)}
+                  emphasis={line.id === soonestClinicId(shownClinics)}
                   onPress={() =>
                     router.push({ pathname: "/(app)/clinic/[id]", params: { id: line.id } })
                   }
@@ -569,18 +620,41 @@ export default function HomeScreen() {
   return (
     <Screen>
       <View style={styles.column}>
-        {/* The greeting needs no data, so it never moves; the photo fills in
-            when it arrives, over the monogram. */}
-        <View style={styles.greeting}>
-          <Avatar
-            name={typeof fullName === "string" ? fullName : undefined}
-            size={44}
-            uri={avatarUrl}
-          />
-          <View>
-            <Text style={styles.greetingWord}>{greeting}</Text>
-            {firstName ? <Text style={styles.name}>{firstName}</Text> : null}
+        {/* The reference's top strip, drawn as the web header is: the
+            wordmark, the hospital beside it, and on the right the one circle
+            that does something — the patient's own photo, which opens
+            Settings. No bell: there is no inbox to open. */}
+        <View style={styles.wordmarkRow}>
+          <View style={styles.wordmarkGroup}>
+            <Text style={styles.wordmark}>MedSync</Text>
+            {home.kind === "ready" && home.profile.hospitalName ? (
+              <View style={styles.hospitalTag}>
+                <View style={styles.dot} accessibilityElementsHidden />
+                <Text style={styles.hospitalName} numberOfLines={1}>
+                  {home.profile.hospitalName}
+                </Text>
+              </View>
+            ) : null}
           </View>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Your profile and settings"
+            onPress={() => router.push("/(app)/(tabs)/settings")}
+            hitSlop={8}
+            style={({ pressed }) => pressed && styles.pressed}
+          >
+            <Avatar
+              name={typeof fullName === "string" ? fullName : undefined}
+              size={44}
+              uri={avatarUrl}
+            />
+          </Pressable>
+        </View>
+
+        {/* The greeting needs no data, so it never moves. */}
+        <View style={styles.greeting}>
+          <Text style={styles.greetingWord}>{greeting}</Text>
+          {firstName ? <Text style={styles.name}>{firstName}</Text> : null}
         </View>
 
         {body}
@@ -602,7 +676,30 @@ const makeStyles = (c: Palette) =>
     // Two tiles per row, equal height per row (the tiles stretch).
     grid: { flexDirection: "row", flexWrap: "wrap", gap: space[3] },
 
-    greeting: { flexDirection: "row", alignItems: "center", gap: space[3] },
+    wordmarkRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: space[3],
+    },
+    wordmarkGroup: { flex: 1, flexDirection: "row", alignItems: "center", gap: space[3] },
+    wordmark: {
+      fontFamily: font.display,
+      fontSize: 17,
+      letterSpacing: -0.2,
+      color: c.foreground,
+    },
+    hospitalTag: { flex: 1, flexDirection: "row", alignItems: "center", gap: 6 },
+    dot: { width: 4, height: 4, borderRadius: 2, backgroundColor: c.primary },
+    hospitalName: {
+      flex: 1,
+      fontFamily: font.mono,
+      fontSize: 11,
+      letterSpacing: 1.2,
+      textTransform: "uppercase",
+      color: c.mutedForeground,
+    },
+    greeting: { gap: 2 },
     greetingWord: {
       fontFamily: font.body,
       fontSize: 13.5,
@@ -612,13 +709,26 @@ const makeStyles = (c: Palette) =>
     name: { fontFamily: font.bodyMedium, fontSize: 16, lineHeight: 22, color: c.foreground },
 
     heading: { gap: space[1] },
-    eyebrow: {
-      fontFamily: font.body,
-      fontSize: 12.5,
-      letterSpacing: 0.4,
-      textTransform: "uppercase",
-      color: c.mutedForeground,
+    search: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: space[2],
+      minHeight: 48,
+      paddingHorizontal: space[4],
+      borderRadius: radius.xl,
+      backgroundColor: c.card,
+      borderWidth: 1,
+      borderColor: c.border,
     },
+    searchFocused: { borderColor: c.primary },
+    searchInput: {
+      flex: 1,
+      fontFamily: font.body,
+      fontSize: 14.5,
+      color: c.foreground,
+      paddingVertical: space[3],
+    },
+    searchCount: { fontFamily: font.body, fontSize: 12.5, color: c.mutedForeground },
     question: {
       fontFamily: font.display,
       fontSize: 28,
