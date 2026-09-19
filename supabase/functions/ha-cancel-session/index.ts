@@ -93,7 +93,10 @@ Deno.serve(async (request: Request) => {
   const isSessionClinician = !!session.clinician_user_id && caller.id === session.clinician_user_id;
   if (!isSuperadmin && !isSessionClinician) {
     if (!(await hasRole(caller.id, "hospital_admin", session.hospital_id))) {
-      return forbidden(init, "only the hospital admin or this clinic day's clinician can cancel it");
+      return forbidden(
+        init,
+        "only the hospital admin or this clinic day's clinician can cancel it",
+      );
     }
     const scope = await requireHospitalAdminScope(caller.id, session.hospital_id);
     if (!scope.ok) return forbidden(init, scope.reason);
@@ -109,9 +112,7 @@ Deno.serve(async (request: Request) => {
   // Everyone who holds a live booking on this day, and how to reach them.
   const { data: live, error: liveError } = await sb
     .from("appointments")
-    .select(
-      "id, patient_user_id, provisional_patient_id, provisional_patients(phone_encrypted)",
-    )
+    .select("id, patient_user_id, provisional_patient_id, provisional_patients(phone_encrypted)")
     .eq("session_id", session.id)
     .in("status", [...LIVE_APPOINTMENT_STATUSES]);
   if (liveError) return serverError(liveError.message, init);

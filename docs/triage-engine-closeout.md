@@ -51,6 +51,6 @@ By signing, the CSO accepts the triage thresholds, discriminator list (§A.2), p
 - [ ] **§A.5** baseline-adjustment floor (absolute)
 - [ ] Scope limits 1–6 acknowledged
 
-**Signed:** **********\_\_\_\_********** **Date:** ****\_\_\_\_****
+**Signed:** \***\*\*\*\*\***\_\_\_\_\***\*\*\*\*\*** **Date:** \***\*\_\_\_\_\*\***
 
 _Decision support, not autonomous decision. The clinician owns every final triage. Bias to over-triage; never silently under-triage._

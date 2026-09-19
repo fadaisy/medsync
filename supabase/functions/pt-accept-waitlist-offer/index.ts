@@ -11,10 +11,10 @@
  * again, the core answers 409 and the entry goes back to `waiting` with its
  * ORIGINAL created_at, so the patient keeps their turn. The message says so.
  */
+import type { SlotInput } from "../_shared/book.ts";
 import { z } from "npm:zod@4.4.3";
 
 import { getCaller, serviceClient } from "../_shared/auth.ts";
-import type { SlotInput } from "../_shared/book.ts";
 import { bookAppointment, bookingResponse, toBookingResponse } from "../_shared/book.ts";
 import { preflight } from "../_shared/cors.ts";
 import {

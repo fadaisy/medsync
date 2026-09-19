@@ -16,3 +16,6 @@ next-env.d.ts
 
 # Expo app — formats itself via its own toolchain
 mobile
+
+# Vendored design/animation skills (emilkowalski/skills) — not ours to reformat
+.agents/

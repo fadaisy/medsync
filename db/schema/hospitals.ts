@@ -35,7 +35,9 @@ export const hospitals = pgTable(
      * The dispatcher HOLDS offers / confirmation requests / arrival windows
      * inside the window; receipts and session cancellations are exempt.
      */
-    quietHoursStartMinutesLocal: smallint("quiet_hours_start_minutes_local").notNull().default(1260),
+    quietHoursStartMinutesLocal: smallint("quiet_hours_start_minutes_local")
+      .notNull()
+      .default(1260),
     quietHoursEndMinutesLocal: smallint("quiet_hours_end_minutes_local").notNull().default(420),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),

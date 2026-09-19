@@ -13,6 +13,7 @@ on top of MedSync's palette, and we keep every ADR 0084 rule. This is a redesign
 styling. Copy, data calls, navigation targets and behaviour stay as they are unless this doc says otherwise.
 
 ## What the reference has that we deliberately do NOT (ADR 0084, owner-approved) — never add these
+
 - Doctor PHOTOS, star RATINGS, review counts, "popular" ranking → §12. Use `Avatar` monograms.
 - CLOCK NUMERALS ("9:30 AM", "8pm – 8:30 pm") → §10 (Luganda/Swahili dawn-anchored clock). Time is always
   a day + a day-part: `formatWhen`, `dayLabel`, `SESSION_LABEL`. Sessions are "Morning session" /
@@ -24,9 +25,10 @@ styling. Copy, data calls, navigation targets and behaviour stay as they are unl
 - Video-call icons. Bookmarks. Share.
 
 ## Palette + kit (all in `mobile/src`, all themed; read each file before use)
+
 - `theme/tokens.ts` `Palette`: background, foreground, card, muted, mutedForeground, primary (indigo),
   primaryForeground, accent (indigo tint), accentForeground, cta (MINT — the ONE primary CTA per screen),
-  ctaForeground, ctaMuted, border, ring, shadow, status.*. Use `useStyles(makeStyles)` / `useTheme()`.
+  ctaForeground, ctaMuted, border, ring, shadow, status.\*. Use `useStyles(makeStyles)` / `useTheme()`.
   NO raw ramps or hex/rgba literals in screens (the kit derives its on-primary tints via `withAlpha(c.primaryForeground, …)`).
 - `components/ui/screen.tsx` — `Screen({ title?, onBack?, footer?, scroll?, children })`. Chrome:
   round back `IconButton` on its own row when `onBack`, display title (Fraunces 28) below. No other slot.
@@ -51,6 +53,7 @@ styling. Copy, data calls, navigation targets and behaviour stay as they are unl
 - `components/patient/emergency-notice.tsx` — RESTYLE only (see home). Copy is CSO-provisional; byte-identical to web.
 
 ## Type scale (Fraunces 500 for display, Geist for everything else)
+
 display 28/34 (screen title, the home question) · section title 16.5/22 medium · card title 17/23 medium ·
 body 14.5/21 · meta 13.5/19 muted · eyebrow 12.5 letterSpacing .3 muted · tile value 14 medium.
 Radii: cards 20 (`radius["2xl"]`), tiles 12 (`lg`), chips/buttons full. Gutter 20 (`space[5]`). Card padding 16.
@@ -60,6 +63,7 @@ fill, no border, radius `lg`, 48 tall, `c.foreground` text, `c.mutedForeground` 
 ## Screen-by-screen composition
 
 ### Home `(tabs)/index.tsx` (+ restyle `emergency-notice.tsx`) — the reference's screen 1
+
 1. Greeting row (no Screen title): `Avatar(name, 44)` · "Good morning" / "Good afternoon" / "Good evening" by the
    HOSPITAL's clock (`localWeekdayAndMinutes(new Date(), DEFAULT_TIME_ZONE).minutesOfDay`: <720 morning, <1020
    afternoon, else evening — import from `@shared/slots`) as 13.5 muted, then the first name (16 medium) from
@@ -80,7 +84,7 @@ fill, no border, radius `lg`, 48 tall, `c.foreground` text, `c.mutedForeground` 
    - live ticket: eyebrow "Your place today"; title department; subtitle the existing INTAKE_TITLE sentence;
      tiles [{pricetag-outline, "Patient code", code}, {footsteps-outline, "Stage", stage word}]; action primary
      "Open your ticket" → ticket.
-   Nothing in motion → no section (not an empty card).
+     Nothing in motion → no section (not an empty card).
 5. `Section title="Get seen"`: the two doors, unequal (§2/§11):
    - primary door = mint card (`c.cta`), radius 2xl, padding 20: 40px disc `withAlpha(c.ctaForeground, .12)`
      with `walk-outline` in `c.ctaForeground`; title (Fraunces 21) "Coming to the hospital today"; body (14.5,
@@ -88,11 +92,12 @@ fill, no border, radius `lg`, 48 tall, `c.foreground` text, `c.mutedForeground` 
    - secondary door = `c.card` + 1px `c.border`, radius 2xl, padding 16: 40px `c.accent` disc with
      `calendar-outline` in `c.accentForeground`; title 16 medium `c.foreground` "Ask for a day — the clinic
      confirms"; body 14 muted "Choose from the days the clinic has open."; chevron muted.
-   Both are Pressables (role button), opacity on press.
+     Both are Pressables (role button), opacity on press.
 6. Loading / error / not-patient states keep their current logic; error uses `Empty`.
-No "Your visits" link, no gear (they are tabs).
+   No "Your visits" link, no gear (they are tabs).
 
 ### Book `book.tsx` (+ restyle `day-strip.tsx`) — the reference's screen 2
+
 - Keep the three steps, the step titles, the announce-on-step logic, the footer CTA (kit primary) and every data call.
 - Step 0 (reason): the options as a `ChipRow` of `Chip`s (radio) — title words only, the hint under the row as a
   13.5 muted line for the selected reason if the data has one; the note as a sunken input (see type scale).
@@ -113,6 +118,7 @@ No "Your visits" link, no gear (they are tabs).
 - Errors/refusals: the existing caution well recipe.
 
 ### Today `today.tsx` + Ticket `ticket.tsx`
+
 - Today: back IconButton, display title as now, lede; departments as a list of cards (`c.card`+border, radius 2xl,
   44px `c.accent` disc with `medkit-outline`, name 16 medium, the openNow word 13.5 muted ("Open now" /
   "Not open for same-day visits right now" — whatever the file already says), chevron). Selected department:
@@ -124,6 +130,7 @@ No "Your visits" link, no gear (they are tabs).
   muted), a 1px `c.border` connector between discs. Words carry state, never colour alone. Actions as today.
 
 ### Visits `(tabs)/visits.tsx` + Visit `visit/[id].tsx`
+
 - Visits: display title "Your visits"; if the file has an upcoming/past split, express it as a `ChipRow` of two
   `Chip`s (role "button", `selected`); month headings as `Section` titles; rows = the reference's doctor rows:
   `c.card`+border radius 2xl padding 12, `Avatar(clinicianName, 56)`, name 16 medium, "{department}" 13.5 muted,
@@ -135,11 +142,13 @@ No "Your visits" link, no gear (they are tabs).
   (reason, note, patient code if shown). Move panel = the SAME DayStrip + TileGrid as book. Reason inputs = sunken.
 
 ### Settings `(tabs)/settings.tsx`
+
 - Top: a profile card (`c.card`+border): `Avatar(name, 56)`, name 17 medium (from user_metadata like ticket.tsx),
   "Patient code {patientCode}" 13.5 muted (from `fetchPatientProfile` — if the screen does not have it, fetch it
   the way home does; failure → omit the line). Then the Appearance group and Sign out as they are.
 
 ## Hard rules
+
 1. Tokens only. Grep: `brand\[|mint\[|gray\[|#[0-9a-fA-F]{3,8}\b|rgba\(` must be empty in your files.
 2. Copy is frozen: every patient-facing sentence that exists today stays byte-identical unless this doc gives a
    new one. No new sentences beyond the ones listed here.
@@ -154,4 +163,5 @@ No "Your visits" link, no gear (they are tabs).
 7. Do not touch files outside your group. If a kit component needs a change, describe it in `needsOtherFile`.
 
 ## Verify (from /Users/airm1/Desktop/medsync/mobile)
+
 npx tsc --noEmit · npx eslint <files> --max-warnings=0 · npx prettier --check <files> · the grep above.

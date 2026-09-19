@@ -74,7 +74,10 @@ Deno.serve(async (request: Request) => {
   const isSessionClinician = !!session.clinician_user_id && caller.id === session.clinician_user_id;
   if (!isSuperadmin && !isSessionClinician) {
     if (!(await hasRole(caller.id, "hospital_admin", session.hospital_id))) {
-      return forbidden(init, "only the hospital admin or this clinic day's clinician can set a delay");
+      return forbidden(
+        init,
+        "only the hospital admin or this clinic day's clinician can set a delay",
+      );
     }
     const scope = await requireHospitalAdminScope(caller.id, session.hospital_id);
     if (!scope.ok) return forbidden(init, scope.reason);
@@ -175,7 +178,10 @@ Deno.serve(async (request: Request) => {
       .from("notification_dispatches")
       .upsert(rows, { onConflict: "idempotency_key", ignoreDuplicates: true });
     if (dispatchError) {
-      log.warn("window_shifted dispatch insert failed", { requestId, reason: dispatchError.message });
+      log.warn("window_shifted dispatch insert failed", {
+        requestId,
+        reason: dispatchError.message,
+      });
     }
   }
 

@@ -2,15 +2,16 @@
 
 Repo /Users/airm1/Desktop/medsync, branch feat/booking-app (do not commit). Inputs: docs/booking-app-gate-a-proposal.md (§5.12,
 §10 row F), docs/booking-app-prd.md (§3.2 journey 2, §3.3.7, §4.5 USSD budget, §4.7 webhooks, §6.4 language), ADRs 0087–0090,
-lib/notifications/africastalking.ts, supabase/functions/_shared/{book,encryption,dispatches,waitlist}.ts, Gate E's tables.
+lib/notifications/africastalking.ts, supabase/functions/\_shared/{book,encryption,dispatches,waitlist}.ts, Gate E's tables.
 Africa's Talking docs (read them via the installed knowledge you have; the owner will supply credentials AFTER this gate):
-USSD callback = POST form-encoded { sessionId, serviceCode, phoneNumber, text } where `text` is the full "*"-joined input
+USSD callback = POST form-encoded { sessionId, serviceCode, phoneNumber, text } where `text` is the full "\*"-joined input
 history; respond text/plain beginning "CON " (continue) or "END " (finish). Inbound SMS = POST form-encoded { from, to, text,
 date, id, linkId }. AT does not sign callbacks: security = an unguessable secret path segment (env `USSD_WEBHOOK_SECRET`,
 `SMS_WEBHOOK_SECRET`), plus an optional allowlist of AT's published source IPs (env `AT_CALLBACK_IPS`, comma-separated; enforced
 only when set). Document both in docs/ops-channels.md.
 
 ## Rulings assumed (ADR 0091)
+
 - English only at launch; `language` is stored and every user-facing string comes from one `lib/channels/strings.ts` table keyed
   by language so Luganda is a data change after CSO sign-off (§6.4 — no machine translation; a language is fully on or off).
 - Identity on USSD: the carrier-verified `phoneNumber` is the booking identity; the menu asks the caller's name once per session
@@ -30,6 +31,7 @@ only when set). Document both in docs/ops-channels.md.
 - Rate limits: 20 USSD sessions per phone per hour; 10 inbound SMS per phone per hour; over → END/reply with a sentence.
 
 ## Build
+
 1. Migration `0062_ussd.sql` (GATED): `ussd_sessions` per §5.12 (+ hospital_id NULL, service_line_id NULL, last_input, updated_at;
    zero RLS policies — service-role only; swept by cleanup-drafts when expired); `appointments_channel_check` already admits 'ussd';
    `appointments_origin_check` — add 'ussd' if absent (additive re-issue); audit verbs `ussd_booking`? no — the core audits
@@ -52,7 +54,8 @@ only when set). Document both in docs/ops-channels.md.
 6. ADR 0091 + CHANGELOG. Gates: typecheck, lint, test, build. No live AT calls in tests.
 
 ## Verify
+
 - Every reply ≤ 160 ASCII chars; ≤ 6 levels; resume works; idempotent callbacks (replay of the same sessionId+text yields the same
-  reply and no second booking); no auto-link of phone to patient; the secret path + IP allowlist enforced; system-* functions
+  reply and no second booking); no auto-link of phone to patient; the secret path + IP allowlist enforced; system-\* functions
   require the service-role header and are not callable with a user JWT; rate limits; strings table only (grep for literals in the
   machine); STOP revokes and replies once; nothing logs a phone in clear.

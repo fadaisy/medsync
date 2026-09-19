@@ -65,7 +65,10 @@ Deno.serve(async (request: Request) => {
     return forbidden(init, "this is not your visit");
   }
   if (appt.confirmed_by_patient_at) {
-    return ok({ appointment_id: appt.id, confirmed_by_patient_at: appt.confirmed_by_patient_at }, init);
+    return ok(
+      { appointment_id: appt.id, confirmed_by_patient_at: appt.confirmed_by_patient_at },
+      init,
+    );
   }
   if (appt.status !== "confirmed") {
     return conflict("This visit is not in a state that can be confirmed.", init, {

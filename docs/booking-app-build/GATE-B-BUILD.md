@@ -1,6 +1,7 @@
 # Gate A′ + Gate B build contract (READ IN FULL)
 
 Repo /Users/airm1/Desktop/medsync, branch `feat/booking-app`. Authoritative inputs, in order:
+
 1. docs/booking-app-gate-a-proposal.md — §5.2, §5.3, §5.4, §5.5, §5.6, §5.13, §10 rows A′ and B. Build EXACTLY those tables/columns.
 2. docs/booking-app-prd.md — §2.2, §3.4, §4.4, §7.0, §7.2.
 3. AGENTS.md (Next 16 — read node_modules/next/dist/docs before writing app code; Edge Function pattern; migrations immutable;
@@ -8,6 +9,7 @@ Repo /Users/airm1/Desktop/medsync, branch `feat/booking-app`. Authoritative inpu
 4. docs/hospital-admin-integration-contract.md for console surfaces.
 
 ## Rulings assumed (record them in ADR 0087; do not re-decide)
+
 - C2: capacity kinds `slot` | `session` | `open_queue` on `service_lines.capacity_mode`. Slot mode unchanged. DEFAULT for a
   NEWLY created service line = `session` (Part 8 #3). Backfilled lines for every existing department = `slot` (nothing shipped changes).
 - C5: `appointments_reason_check` widened to Appendix A's 13 codes: follow_up, post_discharge, new_concern, refill, test_results,
@@ -22,7 +24,9 @@ Repo /Users/airm1/Desktop/medsync, branch `feat/booking-app`. Authoritative inpu
   #12–#13): no code; arrival windows are STORED at confirmation (5.6) but nothing at Gate B renders them.
 
 ## Migration 0058 — `0058_service_lines_and_sessions.sql` (GATED header like 0056). Additive except the one flagged index re-scope.
+
 Sections, in order:
+
 1. `service_lines` per §5.2 (all columns; UNIQUE (hospital_id, slug); partial UNIQUE (hospital_id) WHERE is_default; index
    (hospital_id, active); RLS ENABLE+FORCE; policy `service_lines_select_authenticated FOR SELECT TO authenticated USING (true)`;
    `set_updated_at` trigger in the 0028 pattern — check the trigger function name used in 0028 and reuse it).
@@ -31,7 +35,7 @@ Sections, in order:
    is_default=false. ON CONFLICT DO NOTHING.
 2. `session_templates` per §5.4 (UNIQUE (service_line_id, weekday, start_minutes_local, valid_from); RLS: SELECT for
    hospital_admin/clinician/nurse at hospital — the `availability_blocks_select_scoped` shape from 0028:75-82 — plus superadmin).
-3. `clinic_sessions` per §5.3 (every column incl. booked_count/next_position/status/cancelled_*; CHECKs; indexes; UNIQUE
+3. `clinic_sessions` per §5.3 (every column incl. booked*count/next_position/status/cancelled*\*; CHECKs; indexes; UNIQUE
    (template_id, starts_at) WHERE template_id IS NOT NULL; RLS: SELECT authenticated USING (status='published') + staff-at-hospital
    all rows + superadmin; `set_updated_at`).
 4. `appointments` columns per §5.5/§5.6: idempotency_key text NULL + partial UNIQUE (patient_user_id, idempotency_key);
@@ -45,10 +49,11 @@ Sections, in order:
 6. `appointments_reason_check` widened (DROP + ADD with the 15 codes above). Existing rows all satisfy it.
 7. `sa_audit_log_action_check` re-issued (0056's list verbatim + 'update_service_line', 'update_session_template',
    'cancel_session', 'book_on_behalf'). Also add the same to `_shared/sa-audit.ts` SaAuditAction.
-Drizzle: `db/schema/service-lines.ts` (serviceLines), `db/schema/clinic-sessions.ts` (sessionTemplates, clinicSessions),
-appointments columns in `db/schema/scheduling.ts`, barrel exports. `npm run typecheck` green.
+   Drizzle: `db/schema/service-lines.ts` (serviceLines), `db/schema/clinic-sessions.ts` (sessionTemplates, clinicSessions),
+   appointments columns in `db/schema/scheduling.ts`, barrel exports. `npm run typecheck` green.
 
 ## Engine additions — `supabase/functions/_shared/slots.ts` (ZERO imports stays true)
+
 - `export function startOfLocalDay(instant: Instant, timeZone: string): Date` — local midnight of the civil day containing
   `instant`, as an instant (use the existing localParts/instantAtLocal; DST-safe). And `endOfLocalDay` = start of next civil day.
 - `export interface SessionTemplateRow { weekday: number; startMinutesLocal: number; durationMinutes: number; validFrom: string /*YYYY-MM-DD*/; validUntil: string | null }`
@@ -59,20 +64,22 @@ appointments columns in `db/schema/scheduling.ts`, barrel exports. `npm run type
   day = 21:00Z); expandSessionTemplate across a valid_from boundary and with valid_until; weekday 7 (Sunday) honoured.
 
 ## A′ hygiene (touches shipped files — owner OK assumed by "implement it")
+
 (a) 23505 on `appointments_no_double_booking` → 409 "Someone just took this slot — pick another and try again." at
-    pt-request-appointment (the insert error branch) and reschedule-appointment (its insert). 23505 on the new idempotency index
-    → SELECT the existing row for (patient, key) and return it as 200 (same shape as the success response).
+pt-request-appointment (the insert error branch) and reschedule-appointment (its insert). 23505 on the new idempotency index
+→ SELECT the existing row for (patient, key) and return it as 200 (same shape as the success response).
 (b) Replace every `setUTCHours(0,…)` / `setHours(0,…)` "today" boundary in app/, lib/, supabase/functions/, mobile/src with
-    `startOfLocalDay(now, DEFAULT_TIME_ZONE)` / `endOfLocalDay`. Find them: grep -rn "setUTCHours(0\|setHours(0" app lib supabase/functions mobile/src.
-    mobile's own `startOfClinicDay` in mobile/src/lib/booking.ts becomes a call to the shared helper. Where a site's zone is
-    genuinely the host's (none should be), say why in a comment.
+`startOfLocalDay(now, DEFAULT_TIME_ZONE)` / `endOfLocalDay`. Find them: grep -rn "setUTCHours(0\|setHours(0" app lib supabase/functions mobile/src.
+mobile's own `startOfClinicDay` in mobile/src/lib/booking.ts becomes a call to the shared helper. Where a site's zone is
+genuinely the host's (none should be), say why in a comment.
 (c) `ha-complete-encounter`: when the encounter has `appointment_id`, also UPDATE appointments SET status='completed' (if status in
-    arrived/in_progress) in the same flow, audited under the existing verb.
+arrived/in_progress) in the same flow, audited under the existing verb.
 (d) `ha-mark-no-show`: authorise any active/approved staff affiliation at the appointment's hospital (not only the clinician);
-    add a reception action + button on the reception expected/arrivals surface where the appointment is listed (find the surface:
-    app/reception/expected).
+add a reception action + button on the reception expected/arrivals surface where the appointment is listed (find the surface:
+app/reception/expected).
 
 ## Edge Functions (Gate B)
+
 - `ha-upsert-service-line` — input {hospital_id, id?, department_id, name, slug?, capacity_mode, time_to_care_days,
   continuity_default, confidential, payment_posture, fee_ugx?, deposit_ugx?, reason_codes[], is_default, active}. Auth:
   hospital_admin at hospital OR superadmin (copy ha-update-department-policy's shape incl. requireHospitalAdminScope). Validate
@@ -89,6 +96,7 @@ appointments columns in `db/schema/scheduling.ts`, barrel exports. `npm run type
   produce identical instances. Log counts. Idempotent.
 
 ## Console (Gate B) — `/hospital-admin/scheduling` gains two sections; reuse the HA shell + existing `policy-form.tsx` idioms
+
 - "Service lines": table of the hospital's lines (name, department, mode chip, time-to-care, confidential, posture, default) with an
   editor (sheet/form) posting to a server action that calls `ha-upsert-service-line` via lib/supabase/edge.ts `callEdge`.
 - "Clinic sessions": templates list (weekday, time, duration, cap, split, clinician) + editor → `ha-upsert-session-template`;
@@ -97,6 +105,7 @@ appointments columns in `db/schema/scheduling.ts`, barrel exports. `npm run type
   docs). Empty states written honestly ("No clinic sessions published yet").
 
 ## Tests + gates
+
 - Pure tests only (no DB): slots.test.ts additions; a `tests/scheduling/reason-codes.test.ts` asserting the 13-code list used by the
   functions equals the migration's (parse the SQL file); a `tests/scheduling/session-allocator.test.ts` that asserts the allocator
   SQL string in `_shared/sessions-sql.ts` (export the UPDATE … RETURNING statement as a constant so both functions use one string)

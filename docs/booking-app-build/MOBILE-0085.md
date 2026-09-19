@@ -3,11 +3,13 @@
 App: /Users/airm1/Desktop/medsync/mobile (Expo SDK 57, expo-router 57 headless tabs, RN 0.86, Reanimated 4.5,
 React Compiler ON, typed routes). Read in order: docs/adr/0085-marketplace-presentation-on-the-phone.md,
 the previous design contract docs/booking-app-build/REFERENCE-LANGUAGE.md
-(its kit, type scale and rules still apply except where this doc overrides), then src/theme/*, every file in
+(its kit, type scale and rules still apply except where this doc overrides), then src/theme/\*, every file in
 src/components/ui, src/lib/booking.ts, and the screens you own.
 
 ## Server contract (already deployed-ready; the owner deploys)
+
 `pt-bookable-clinicians` → `ClinicianOption[]`:
+
 ```ts
 { userId, fullName, specialty: string | null, departmentId, departmentName,
   photoUrl: string | null,               // signed, 1h
@@ -15,12 +17,14 @@ src/components/ui, src/lib/booking.ts, and the screens you own.
   autoConfirm: boolean,
   slotsByDate: Record<"YYYY-MM-DD", { startsAtIso: string; endsAtIso: string }[]> } // ascending; day count = length
 ```
+
 `pt-rate-visit` POST `{ appointment_id, stars: 1..5, comment?: string | null }` → `{ rating_id, stars }`; refuses
 (409 sentence "You can rate a visit once it has happened.") unless status ∈ arrived|in_progress|completed and ends_at < now.
 `users.avatar_path` is writable by the owner (RLS users_update_own); bucket `avatars` private, key `<uid>/<uuid>.jpg`,
 authenticated read, owner write. Signed URLs via `supabase.storage.from("avatars").createSignedUrl(path, 3600)`.
 
 ## Foundation (phase 1 — one agent; screens wait for it)
+
 - `src/lib/booking.ts`:
   - Replace `SessionOffer`/`sessionsByDate` with the server contract above (`SlotOffer`, `slotsByDate`). Delete
     `SESSION_LABEL`/`DaySession` re-exports if nothing else needs them (`localSession` stays in @shared/slots).
@@ -33,10 +37,8 @@ authenticated read, owner write. Signed URLs via `supabase.storage.from("avatars
   - `uploadAvatar(localUri: string, mime: string)` → downscale is NOT available in RN without a dep; use
     `expo-image-picker` with `quality: 0.7, allowsEditing: true, aspect: [1,1]` and `mediaTypes: ["images"]`
     (SDK 57 API — read node_modules/expo-image-picker/build/ImagePicker.d.ts) so the picked file is already
-    small; read it with `fetch(uri)` → `arrayBuffer()`; `storage.from("avatars").upload(\`${uid}/${id}.jpg\`, buf, { contentType, upsert: false })`
-    (id from `Crypto.randomUUID` in expo-crypto if installed, else the same time+random id edge.ts uses); then
-    `from("users").update({ avatar_path }).eq("id", uid)`; return the new signed URL. The foundation agent runs
-    `npx expo install expo-image-picker` (and expo-crypto only if needed) and adds the `expo-image-picker` plugin
+    small; read it with `fetch(uri)` → `arrayBuffer()`; `storage.from("avatars").upload(\`${uid}/${id}.jpg\`, buf, { contentType, upsert: false })`(id from`Crypto.randomUUID`in expo-crypto if installed, else the same time+random id edge.ts uses); then`from("users").update({ avatar_path }).eq("id", uid)`; return the new signed URL. The foundation agent runs
+`npx expo install expo-image-picker`(and expo-crypto only if needed) and adds the`expo-image-picker` plugin
     to app.json with photosPermission/cameraPermission strings ("MedSync uses your photo on your patient profile.").
   - Keep everything else (profile, appointments, intakes, walk-in departments, writes).
 - Kit:
@@ -59,7 +61,9 @@ authenticated read, owner write. Signed URLs via `supabase.storage.from("avatars
   node mobile/scripts/regen-typed-routes.cjs
 
 ## Screens (phase 2 — parallel, disjoint)
+
 ### A. Home `(tabs)/index.tsx` + Emergency tab `(tabs)/emergency.tsx` + `(tabs)/_layout.tsx`
+
 - Home, top to bottom: greeting row (Avatar now with `uri` from `fetchMyAvatarUrl()`, loaded on focus like the
   profile); display heading "How are you feeling today?" (Fraunces 28) with the hospital name as the eyebrow above;
   `Section "Coming up"` with the ONE HeroCard as before but the Day/Session tiles become Day / Time
@@ -76,7 +80,9 @@ authenticated read, owner write. Signed URLs via `supabase.storage.from("avatars
   focus; no number → the block's own no-number state. This is the only screen that renders EmergencyNotice.
 - `(tabs)/_layout.tsx`: four triggers in this order — index "Home", visits "Visits", emergency "Emergency"
   (`tone="critical"`, icon `alert-circle-outline`/`alert-circle`), settings "Settings".
+
 ### B. Doctors list `book.tsx` + Doctor page `doctor/[id].tsx`
+
 - `book.tsx` becomes the list: `Screen title="Doctors" onBack trailing={<EmergencyButton/>}`; lede
   "Choose from the days the clinic has open."; `ChipRow` department filter; `DoctorRow` per option (ordered as the
   server sends — soonest open day first); tap → `/(app)/doctor/[id]` with params `{ id: userId, department: departmentId }`.
@@ -93,15 +99,19 @@ authenticated read, owner write. Signed URLs via `supabase.storage.from("avatars
   when status confirmed else "We asked the clinic for this time"; `formatWhen`; "You will find the answer under
   Visits."; footer "Done" → `router.dismissTo("/(app)/(tabs)")`). After a refusal re-fetch and keep the pick if
   still offered, as the old wizard did. The request body is unchanged: `requestAppointment({ clinicianUserId,
-  hospitalId, departmentId, reason, reasonNote, startsAtIso, endsAtIso })`.
+hospitalId, departmentId, reason, reasonNote, startsAtIso, endsAtIso })`.
+
 ### C. Visits `(tabs)/visits.tsx` + Visit `visit/[id].tsx`
+
 - Rows and hero tiles use Day / Time (`formatTime`) — no session words anywhere on these two screens.
 - Visit detail: the move panel picks a day (DayStrip) then a time (ChipRow of `formatTime` chips) from the
   clinician's `slotsByDate`; `rescheduleAppointment` gets the chosen slot's instants.
 - Rating: when `canRate(visit)` — a `Section "Rate this visit"` card: `StarInput`, an optional comment (sunken,
   ≤ 500), a secondary Button "Send rating" → `rateVisit`; shows the existing rating (fetchMyRating) pre-filled with
   "Update rating"; the server's refusal sentence in the caution well. Never shown for cancelled/no_show/declined.
+
 ### D. Settings `(tabs)/settings.tsx` + Today `today.tsx` + Ticket `ticket.tsx`
+
 - Settings profile card: `Avatar(name, 72, uri)` + name + patient code + a link Button "Change photo" → the
   picker flow (`uploadAvatar`); busy state while uploading; a caution well on failure ("Couldn't save your photo.
   Try again."). Remove-photo is out of scope.
@@ -109,6 +119,7 @@ authenticated read, owner write. Signed URLs via `supabase.storage.from("avatars
   The walk-in door keeps its session words (a queue has no clock). Nothing else changes.
 
 ## Rules (unchanged from the previous contract + these)
+
 - Every star shown comes from `rating`/`fetchMyRating`; no rating → "No ratings yet". No invented counts; the slot
   count is `slotsByDate[day].length`.
 - Red only on the emergency affordances (tab, EmergencyButton). Everything else as before.
@@ -116,4 +127,5 @@ authenticated read, owner write. Signed URLs via `supabase.storage.from("avatars
 - Tokens only; both themes; a11y roles; React Compiler lint; no hooks in helpers.
 
 ## Verify (per agent, from mobile/): npx tsc --noEmit · npx eslint <files> --max-warnings=0 · npx prettier --check <files> ·
+
 grep raw colours. Route files → regen typed routes first.

@@ -3,9 +3,10 @@
 Repo /Users/airm1/Desktop/medsync, branch feat/booking-app (do not commit). Inputs: docs/booking-app-gate-a-proposal.md (§5.7,
 §5.11, §7, §10 row E), docs/booking-app-prd.md (§1.5 cost rules, §3.2 journeys 3/5/6, §3.3.3, §3.3.4, §3.3.6, §3.6, §4.6, §4.7),
 ADRs 0087–0089, AGENTS.md. Ground truth: lib/notifications/{sink,receipt,africastalking}.ts, app/api/cron/dispatch-reminders/
-route.ts, supabase/functions/_shared/book.ts, migrations 0058–0060, the mobile app (mobile/src).
+route.ts, supabase/functions/\_shared/book.ts, migrations 0058–0060, the mobile app (mobile/src).
 
 ## Rulings assumed (ADR 0090)
+
 - The "formally defined interface" is the `notification_dispatches` row (§5.11). New writers insert rows there; the ONE cron
   drains it (and keeps draining `appointment_reminders` until empty — never dropped). Gate C's receipt and the reminders move to
   the new table for new bookings.
@@ -32,24 +33,25 @@ route.ts, supabase/functions/_shared/book.ts, migrations 0058–0060, the mobile
   for un-arrived positions and a `window_shifted` dispatch goes when the shift is ≥ 30 minutes (PRD §3.6). Live position-called
   tracking is Gate H.
 - `MAX_SENDS_PER_RUN` applies per kind except `session_cancelled`, which is exempt (300 patients must hear within one run).
-- Vercel Pro is assumed for cron cadence (owner action already listed); the dispatcher stays at */15.
+- Vercel Pro is assumed for cron cadence (owner action already listed); the dispatcher stays at \*/15.
 
 ## Phase 1 — server + data (blocking)
+
 1. Migration `0061_notifications_and_waitlist.sql` (GATED): `notification_dispatches` per §5.11 exactly (all columns incl.
-   provider_message_id, cost_amount/currency, idempotency_key UNIQUE, related_kind/related_id, fallback_channel/fallback_after,
+   provider*message_id, cost_amount/currency, idempotency_key UNIQUE, related_kind/related_id, fallback_channel/fallback_after,
    acknowledged_at, state incl. 'held'; indexes (state, scheduled_at) partial on queued/held, (provider_message_id); RLS: recipient
    SELECT own (recipient_user_id = auth.uid()); staff at hospital SELECT; no writes); `push_tokens` (user_id FK, token text UNIQUE,
    platform CHECK ('ios','android'), last_seen_at; RLS own SELECT/INSERT/UPDATE/DELETE); `waitlist_entries` per §5.7 (+ RLS patient
-   own / agent created_by / staff at hospital); `hospitals.quiet_hours_*`; `department_scheduling_policy.release_unconfirmed_hours`;
-   `clinic_sessions.delay_minutes`; `appointments.confirmed_by_patient_at timestamptz NULL`; consent_versions INSERT for
-   `sms_communication` v1; audit verbs `cancel_session` (exists), `join_waitlist`, `accept_waitlist_offer`, `accept_rebooking`,
-   `confirm_attendance`, `set_session_delay`; target kinds `waitlist_entry`, `notification_dispatch`. Drizzle + barrel. Dry-run
+   own / agent created_by / staff at hospital); `hospitals.quiet_hours*\*`; `department_scheduling_policy.release_unconfirmed_hours`;
+`clinic_sessions.delay_minutes`; `appointments.confirmed_by_patient_at timestamptz NULL`; consent_versions INSERT for
+`sms_communication`v1; audit verbs`cancel_session`(exists),`join_waitlist`, `accept_waitlist_offer`, `accept_rebooking`,
+`confirm_attendance`, `set_session_delay`; target kinds `waitlist_entry`, `notification_dispatch`. Drizzle + barrel. Dry-run
    BEGIN/ROLLBACK.
 2. `lib/notifications/dispatches.ts` (Node) + `supabase/functions/_shared/dispatches.ts` (Deno, zero imports beyond types): a
    pure `dispatchRows(event)` builder that returns the rows to insert for each §4.6 event (kind, channel policy, fallback,
    scheduled_at, idempotency_key = `${kind}:${related_kind}:${related_id}:${suffix}`), used by every writer; a pure planner
    `planDispatch({ rows, now, quietHoursByHospital, tokensByUser, consentByUser }) → { pushSends, smsSends, holds, fallbacks,
-   reaps }` with tests: quiet hours hold/release, fallback after no ack, receipt exemption, session_cancelled exemption from the cap,
+reaps }` with tests: quiet hours hold/release, fallback after no ack, receipt exemption, session_cancelled exemption from the cap,
    consent gate, provisional recipients, one-per-(kind,related)-per-run, 300-booking cancellation all sent.
 3. Push sender `lib/notifications/expo-push.ts`: POST https://exp.host/--/api/v2/push/send in chunks of 100 (fetch, no SDK),
    `EXPO_PUSH_ACCESS_TOKEN` optional; receipts fetched next run via /--/api/v2/push/getReceipts to mark delivered/failed and
@@ -77,6 +79,7 @@ route.ts, supabase/functions/_shared/book.ts, migrations 0058–0060, the mobile
 7. ADR 0090 + CHANGELOG. Gates: npm run typecheck && npm run lint && npm run test -- --run.
 
 ## Phase 2a — web
+
 - Patient: "Confirm I'm coming" on the visit detail when a confirmation_request is pending (T-24h..T); waitlist: "Tell me if a
   place opens" on a full clinic day / a line with nothing in window (join), "Waiting for a place" card on Visits with withdraw,
   offer card with "Take this place" (accept) and the expiry in full words; session_cancelled: the visit shows "This clinic day was
@@ -86,6 +89,7 @@ route.ts, supabase/functions/_shared/book.ts, migrations 0058–0060, the mobile
 - Gates: typecheck, lint, test, build.
 
 ## Phase 2b — mobile (mobile/src)
+
 - `npx expo install expo-notifications` (expo-device is present); register the Expo push token after sign-in (permission prompt
   with a plain sentence), store via `push_tokens` under RLS, remove on sign-out; foreground/background receipt → `pt-ack-notification`;
   tapping a notification deep-links to the visit (`related_id`). app.json plugin config.
@@ -93,6 +97,7 @@ route.ts, supabase/functions/_shared/book.ts, migrations 0058–0060, the mobile
   toggle in Settings (with the honest sentence). Tokens only; both themes; a11y. Gates: tsc, eslint, prettier, expo export.
 
 ## Verify (two lenses)
+
 - Server: nobody dropped silently — a test builds a session with 300 live bookings and asserts 300 session_cancelled rows and
   300 push + 300 SMS sends across runs; fallback only after no ack; quiet hours; consent gate + receipt exception; provisional
   recipients; cost recorded; DLR idempotent; releaseCapacity called by all three release hooks (grep); offers FIFO and cascade on

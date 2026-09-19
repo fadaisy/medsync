@@ -1,6 +1,7 @@
 import type { DispatchRow } from "@/lib/notifications/dispatches";
 import { describe, expect, it } from "vitest";
 
+import { parseCost } from "@/lib/notifications/africastalking";
 import {
   bookingDispatchRows,
   composeDispatchPush,
@@ -14,7 +15,6 @@ import {
   quietHoursEnd,
 } from "@/lib/notifications/dispatches";
 import { isGsmSafe, MAX_SENDS_PER_RUN, SMS_MAX_BODY_CHARS } from "@/lib/notifications/sink";
-import { parseCost } from "@/lib/notifications/africastalking";
 
 /**
  * Gate E (ADR 0090) — the builder every writer uses and the planner the
@@ -63,8 +63,14 @@ const plan = (
     rows,
     now,
     quietHoursByHospital: new Map([["hosp-1", DEFAULT_QUIET_HOURS]]),
-    tokensByUser: new Map(rows.flatMap((r) => (r.recipientUserId ? [[r.recipientUserId, ["ExponentPushToken[x]"]]] : []))),
-    consentByUser: new Map(rows.flatMap((r) => (r.recipientUserId ? [[r.recipientUserId, true]] : []))),
+    tokensByUser: new Map(
+      rows.flatMap((r) =>
+        r.recipientUserId ? [[r.recipientUserId, ["ExponentPushToken[x]"]]] : [],
+      ),
+    ),
+    consentByUser: new Map(
+      rows.flatMap((r) => (r.recipientUserId ? [[r.recipientUserId, true]] : [])),
+    ),
     ...over,
   });
 
@@ -103,7 +109,12 @@ describe("dispatchRows — channel policy per kind", () => {
 
   it("a confirmation request is ONE push at T-24h with an SMS fallback at T-20h", () => {
     const startsAt = ms(60 * 48);
-    const rows = dispatchRows({ ...base, kind: "confirmation_request", appointmentId: "a1", startsAtIso: startsAt });
+    const rows = dispatchRows({
+      ...base,
+      kind: "confirmation_request",
+      appointmentId: "a1",
+      startsAtIso: startsAt,
+    });
     expect(rows).toHaveLength(1);
     expect(rows[0]).toMatchObject({
       channel: "push",
@@ -116,7 +127,12 @@ describe("dispatchRows — channel policy per kind", () => {
 
   it("a lead already in the past yields nothing (born stale)", () => {
     expect(
-      dispatchRows({ ...base, kind: "confirmation_request", appointmentId: "a1", startsAtIso: ms(60 * 12) }),
+      dispatchRows({
+        ...base,
+        kind: "confirmation_request",
+        appointmentId: "a1",
+        startsAtIso: ms(60 * 12),
+      }),
     ).toEqual([]);
     expect(
       dispatchRows({ ...base, kind: "arrival_window", appointmentId: "a1", startsAtIso: ms(60) }),
@@ -133,29 +149,58 @@ describe("dispatchRows — channel policy per kind", () => {
       recipient_phone_encrypted: "iv:tag:ct",
       fallback_channel: null,
     });
-    const offer = dispatchRows({ ...prov, kind: "waitlist_offer", waitlistEntryId: "w1", offeredSessionId: "s1" });
+    const offer = dispatchRows({
+      ...prov,
+      kind: "waitlist_offer",
+      waitlistEntryId: "w1",
+      offeredSessionId: "s1",
+    });
     expect(offer).toHaveLength(1);
     expect(offer[0]?.channel).toBe("sms");
     expect(offer[0]?.related_kind).toBe("waitlist_entry");
   });
 
   it("a window shift is keyed by the delay so re-sending the same value is a no-op", () => {
-    const a = dispatchRows({ ...base, kind: "window_shifted", appointmentId: "a1", delayMinutes: 40, shiftMinutes: 40 });
-    const b = dispatchRows({ ...base, kind: "window_shifted", appointmentId: "a1", delayMinutes: 90, shiftMinutes: 50 });
+    const a = dispatchRows({
+      ...base,
+      kind: "window_shifted",
+      appointmentId: "a1",
+      delayMinutes: 40,
+      shiftMinutes: 40,
+    });
+    const b = dispatchRows({
+      ...base,
+      kind: "window_shifted",
+      appointmentId: "a1",
+      delayMinutes: 90,
+      shiftMinutes: 50,
+    });
     expect(a[0]?.idempotency_key).toBe("window_shifted:appointment:a1:d40:push");
     expect(b[0]?.idempotency_key).toBe("window_shifted:appointment:a1:d90:push");
-    expect(fallbackKey(a[0]?.idempotency_key as string)).toBe("window_shifted:appointment:a1:d40:sms");
+    expect(fallbackKey(a[0]?.idempotency_key as string)).toBe(
+      "window_shifted:appointment:a1:d40:sms",
+    );
   });
 
   it("bookingDispatchRows: receipt + confirmation request, plus the arrival window for a clinic day", () => {
     const startsAt = ms(60 * 48);
-    const slot = bookingDispatchRows({ ...base, appointmentId: "a1", startsAtIso: startsAt, isSession: false });
+    const slot = bookingDispatchRows({
+      ...base,
+      appointmentId: "a1",
+      startsAtIso: startsAt,
+      isSession: false,
+    });
     expect(slot.map((r) => `${r.kind}:${r.channel}`)).toEqual([
       "booking_receipt:push",
       "booking_receipt:sms",
       "confirmation_request:push",
     ]);
-    const session = bookingDispatchRows({ ...base, appointmentId: "a1", startsAtIso: startsAt, isSession: true });
+    const session = bookingDispatchRows({
+      ...base,
+      appointmentId: "a1",
+      startsAtIso: startsAt,
+      isSession: true,
+    });
     expect(session.map((r) => r.kind)).toContain("arrival_window");
     expect(session.find((r) => r.kind === "arrival_window")).toMatchObject({
       scheduled_at: ms(60 * 46),
@@ -164,13 +209,28 @@ describe("dispatchRows — channel policy per kind", () => {
   });
 
   it("never carries PHI: no name, no phone, no reason in any row", () => {
-    const rows = bookingDispatchRows({ ...base, appointmentId: "a1", startsAtIso: ms(60 * 48), isSession: true });
+    const rows = bookingDispatchRows({
+      ...base,
+      appointmentId: "a1",
+      startsAtIso: ms(60 * 48),
+      isSession: true,
+    });
     for (const r of rows) {
       expect(Object.keys(r).sort()).toEqual(
         [
-          "channel", "fallback_after", "fallback_channel", "hospital_id", "idempotency_key", "kind",
-          "language", "payload", "recipient_phone_encrypted", "recipient_user_id", "related_id",
-          "related_kind", "scheduled_at",
+          "channel",
+          "fallback_after",
+          "fallback_channel",
+          "hospital_id",
+          "idempotency_key",
+          "kind",
+          "language",
+          "payload",
+          "recipient_phone_encrypted",
+          "recipient_user_id",
+          "related_id",
+          "related_kind",
+          "scheduled_at",
         ].sort(),
       );
     }
@@ -189,7 +249,10 @@ describe("planDispatch — what goes out", () => {
   });
 
   it("a row not yet due is held; a claimed row is never re-sent", () => {
-    const p = plan([row({ scheduledAtIso: ms(30) }), row({ state: "sent", fallbackAfterIso: ms(60) })]);
+    const p = plan([
+      row({ scheduledAtIso: ms(30) }),
+      row({ state: "sent", fallbackAfterIso: ms(60) }),
+    ]);
     expect(p.pushSends).toHaveLength(0);
     expect(p.holds.map((h) => h.reason).sort()).toEqual(["not_due", "not_queued"]);
   });
@@ -202,15 +265,27 @@ describe("planDispatch — what goes out", () => {
   it("reaps a row whose related visit is no longer live, or has started", () => {
     const p = plan([
       row({ related: { live: false, status: "cancelled", startsAtIso: ms(60) } }),
-      row({ kind: "arrival_window", related: { live: true, status: "confirmed", startsAtIso: ms(-1) } }),
+      row({
+        kind: "arrival_window",
+        related: { live: true, status: "confirmed", startsAtIso: ms(-1) },
+      }),
     ]);
-    expect(p.reaps.map((r) => r.reason).sort()).toEqual(["appointment_elapsed", "related_cancelled"]);
+    expect(p.reaps.map((r) => r.reason).sort()).toEqual([
+      "appointment_elapsed",
+      "related_cancelled",
+    ]);
   });
 
   it("holds a receipt while the slot request awaits the clinician; sends it once confirmed", () => {
-    const pending = row({ kind: "booking_receipt", channel: "sms", related: { live: true, status: "pending_approval", startsAtIso: ms(60 * 30) } });
+    const pending = row({
+      kind: "booking_receipt",
+      channel: "sms",
+      related: { live: true, status: "pending_approval", startsAtIso: ms(60 * 30) },
+    });
     expect(plan([pending]).holds.map((h) => h.reason)).toEqual(["awaiting_confirmation"]);
-    expect(plan([{ ...pending, related: { ...pending.related, status: "confirmed" } }]).smsSends).toHaveLength(1);
+    expect(
+      plan([{ ...pending, related: { ...pending.related, status: "confirmed" } }]).smsSends,
+    ).toHaveLength(1);
   });
 });
 
@@ -233,13 +308,22 @@ describe("planDispatch — push-first, SMS fallback", () => {
   });
 
   it("an ACKNOWLEDGED push never falls back; nor does one whose fallback instant is still ahead", () => {
-    expect(plan([row({ state: "sent", fallbackAfterIso: ms(-1), acknowledgedAtIso: ms(-30) })]).fallbacks).toHaveLength(0);
+    expect(
+      plan([row({ state: "sent", fallbackAfterIso: ms(-1), acknowledgedAtIso: ms(-30) })])
+        .fallbacks,
+    ).toHaveLength(0);
     expect(plan([row({ state: "sent", fallbackAfterIso: ms(30) })]).fallbacks).toHaveLength(0);
   });
 
   it("no fallback for a visit that stopped being live", () => {
     expect(
-      plan([row({ state: "sent", fallbackAfterIso: ms(-1), related: { live: false, status: "cancelled", startsAtIso: null } })]).fallbacks,
+      plan([
+        row({
+          state: "sent",
+          fallbackAfterIso: ms(-1),
+          related: { live: false, status: "cancelled", startsAtIso: null },
+        }),
+      ]).fallbacks,
     ).toHaveLength(0);
   });
 
@@ -268,15 +352,27 @@ describe("planDispatch — the SMS consent gate", () => {
 
   it("a session cancellation SMS still needs consent (the push goes regardless)", () => {
     const sms = row({ kind: "session_cancelled", channel: "sms" });
-    const push = row({ kind: "session_cancelled", channel: "push", fallbackChannel: null, fallbackAfterIso: null });
+    const push = row({
+      kind: "session_cancelled",
+      channel: "push",
+      fallbackChannel: null,
+      fallbackAfterIso: null,
+    });
     const p = plan([sms, push], { consentByUser: new Map() });
     expect(p.smsSends).toHaveLength(0);
     expect(p.pushSends).toHaveLength(1);
   });
 
   it("a provisional recipient (no account) is always reachable by SMS — their phone was given for this", () => {
-    const r = row({ kind: "waitlist_offer", channel: "sms", recipientUserId: null, relatedKind: "waitlist_entry", relatedId: "w1",
-      idempotencyKey: "waitlist_offer:waitlist_entry:w1:sms", related: { live: true, status: "offered", startsAtIso: ms(60 * 48) } });
+    const r = row({
+      kind: "waitlist_offer",
+      channel: "sms",
+      recipientUserId: null,
+      relatedKind: "waitlist_entry",
+      relatedId: "w1",
+      idempotencyKey: "waitlist_offer:waitlist_entry:w1:sms",
+      related: { live: true, status: "offered", startsAtIso: ms(60 * 48) },
+    });
     const p = plan([r], { consentByUser: new Map(), tokensByUser: new Map() });
     expect(p.smsSends).toHaveLength(1);
     expect(p.smsSends[0]?.recipientUserId).toBeNull();
@@ -284,7 +380,9 @@ describe("planDispatch — the SMS consent gate", () => {
 
   it("an SMS with no reachable phone fails visibly", () => {
     const r = row({ kind: "booking_receipt", channel: "sms", hasPhone: false });
-    expect(plan([r]).reaps).toEqual([{ dispatchId: r.id, state: "failed", reason: "no_reachable_phone" }]);
+    expect(plan([r]).reaps).toEqual([
+      { dispatchId: r.id, state: "failed", reason: "no_reachable_phone" },
+    ]);
   });
 });
 
@@ -296,16 +394,32 @@ describe("planDispatch — quiet hours (facility policy)", () => {
   });
 
   it("an offer due at night is HELD and re-scheduled to 07:00 EAT the next morning", () => {
-    const r = row({ kind: "waitlist_offer", relatedKind: "waitlist_entry", relatedId: "w1", related: { live: true, status: "offered", startsAtIso: ms(60 * 48, NIGHT) }, scheduledAtIso: ms(-5, NIGHT) });
+    const r = row({
+      kind: "waitlist_offer",
+      relatedKind: "waitlist_entry",
+      relatedId: "w1",
+      related: { live: true, status: "offered", startsAtIso: ms(60 * 48, NIGHT) },
+      scheduledAtIso: ms(-5, NIGHT),
+    });
     const p = plan([r], {}, NIGHT);
     expect(p.pushSends).toHaveLength(0);
-    expect(p.holds).toEqual([{ dispatchId: r.id, reason: "quiet_hours", releaseAtIso: "2026-09-16T04:00:00.000Z" }]);
-    expect(quietHoursEnd(NIGHT, DEFAULT_QUIET_HOURS).toISOString()).toBe("2026-09-16T04:00:00.000Z");
+    expect(p.holds).toEqual([
+      { dispatchId: r.id, reason: "quiet_hours", releaseAtIso: "2026-09-16T04:00:00.000Z" },
+    ]);
+    expect(quietHoursEnd(NIGHT, DEFAULT_QUIET_HOURS).toISOString()).toBe(
+      "2026-09-16T04:00:00.000Z",
+    );
   });
 
   it("a receipt and a session cancellation are exempt from quiet hours", () => {
     const receipt = row({ kind: "booking_receipt", channel: "sms", scheduledAtIso: ms(-5, NIGHT) });
-    const cancelled = row({ kind: "session_cancelled", channel: "push", fallbackChannel: null, fallbackAfterIso: null, scheduledAtIso: ms(-5, NIGHT) });
+    const cancelled = row({
+      kind: "session_cancelled",
+      channel: "push",
+      fallbackChannel: null,
+      fallbackAfterIso: null,
+      scheduledAtIso: ms(-5, NIGHT),
+    });
     const p = plan([receipt, cancelled], {}, NIGHT);
     expect(p.smsSends).toHaveLength(1);
     expect(p.pushSends).toHaveLength(1);
@@ -314,7 +428,11 @@ describe("planDispatch — quiet hours (facility policy)", () => {
 
   it("honours a facility's own window", () => {
     const r = row({ scheduledAtIso: ms(-5, NIGHT) });
-    const open = plan([r], { quietHoursByHospital: new Map([["hosp-1", { startMinutes: 60, endMinutes: 300 }]]) }, NIGHT);
+    const open = plan(
+      [r],
+      { quietHoursByHospital: new Map([["hosp-1", { startMinutes: 60, endMinutes: 300 }]]) },
+      NIGHT,
+    );
     expect(open.pushSends).toHaveLength(1);
   });
 
@@ -325,8 +443,18 @@ describe("planDispatch — quiet hours (facility policy)", () => {
 
 describe("planDispatch — one per (kind, related) per run, and the cap", () => {
   it("two due rows of one kind for one visit on one channel: the nearest wins, the other is superseded", () => {
-    const older = row({ kind: "reminder", channel: "sms", relatedId: "a1", scheduledAtIso: ms(-90) });
-    const nearer = row({ kind: "reminder", channel: "sms", relatedId: "a1", scheduledAtIso: ms(-5) });
+    const older = row({
+      kind: "reminder",
+      channel: "sms",
+      relatedId: "a1",
+      scheduledAtIso: ms(-90),
+    });
+    const nearer = row({
+      kind: "reminder",
+      channel: "sms",
+      relatedId: "a1",
+      scheduledAtIso: ms(-5),
+    });
     const p = plan([older, nearer]);
     expect(p.smsSends.map((s) => s.dispatchId)).toEqual([nearer.id]);
     expect(p.reaps).toEqual([{ dispatchId: older.id, state: "cancelled", reason: "superseded" }]);
@@ -334,7 +462,10 @@ describe("planDispatch — one per (kind, related) per run, and the cap", () => 
 
   it("the cap applies per kind: 150 confirmation requests send 100, hold 50 — soonest visits first", () => {
     const rows = Array.from({ length: 150 }, (_, i) =>
-      row({ channel: "sms", related: { live: true, status: "confirmed", startsAtIso: ms(60 * 24 + i) } }),
+      row({
+        channel: "sms",
+        related: { live: true, status: "confirmed", startsAtIso: ms(60 * 24 + i) },
+      }),
     );
     const p = plan(rows);
     expect(p.smsSends).toHaveLength(MAX_SENDS_PER_RUN);
@@ -395,7 +526,15 @@ describe("composeDispatchSms — one GSM-7 part, plain, never punitive", () => {
     nextSessionStartsAtIso: "2026-09-24T06:00:00.000Z",
     delayMinutes: 40,
   };
-  const kinds = ["booking_receipt", "confirmation_request", "arrival_window", "waitlist_offer", "session_cancelled", "window_shifted", "unconfirmed_release"];
+  const kinds = [
+    "booking_receipt",
+    "confirmation_request",
+    "arrival_window",
+    "waitlist_offer",
+    "session_cancelled",
+    "window_shifted",
+    "unconfirmed_release",
+  ];
 
   it.each(kinds)("%s fits in 160 GSM-7 characters", (kind) => {
     const body = composeDispatchSms({ ...args, kind });
@@ -405,12 +544,22 @@ describe("composeDispatchSms — one GSM-7 part, plain, never punitive", () => {
   });
 
   it("says the thing that matters, in words the patient can act on", () => {
-    expect(composeDispatchSms({ ...args, kind: "confirmation_request" })).toContain("confirm you are coming");
-    expect(composeDispatchSms({ ...args, kind: "arrival_window" })).toContain("Position 23, arrive 9:30-11:00 AM");
+    expect(composeDispatchSms({ ...args, kind: "confirmation_request" })).toContain(
+      "confirm you are coming",
+    );
+    expect(composeDispatchSms({ ...args, kind: "arrival_window" })).toContain(
+      "Position 23, arrive 9:30-11:00 AM",
+    );
     expect(composeDispatchSms({ ...args, kind: "waitlist_offer" })).toContain("open until 2:00 PM");
-    expect(composeDispatchSms({ ...args, kind: "session_cancelled" })).toContain("book Thu 24 Sep in one tap");
-    expect(composeDispatchSms({ ...args, kind: "session_cancelled", nextSessionStartsAtIso: null })).toContain("choose another day");
-    expect(composeDispatchSms({ ...args, kind: "window_shifted" })).toContain("running 40 minutes late");
+    expect(composeDispatchSms({ ...args, kind: "session_cancelled" })).toContain(
+      "book Thu 24 Sep in one tap",
+    );
+    expect(
+      composeDispatchSms({ ...args, kind: "session_cancelled", nextSessionStartsAtIso: null }),
+    ).toContain("choose another day");
+    expect(composeDispatchSms({ ...args, kind: "window_shifted" })).toContain(
+      "running 40 minutes late",
+    );
     expect(composeDispatchSms({ ...args, kind: "unconfirmed_release" })).toContain("book again");
   });
 
