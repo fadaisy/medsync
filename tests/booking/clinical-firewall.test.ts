@@ -211,3 +211,32 @@ describe("PRD §5.4 — the booking flow asks no clinical question", () => {
     expect(block).not.toContain("?");
   });
 });
+
+describe("PRD §3.6 — a clinic day with no clinician is never offered as bookable", () => {
+  /**
+   * `_shared/book.ts` refuses such a day with a 409 ("This clinic day has no
+   * clinician assigned yet."). Both browse surfaces used to offer it anyway,
+   * gated only on places-left, so a patient tapped a day the server would
+   * always refuse. The gate is the clinician ID, never the name: the name is a
+   * left-joined `users.full_name` and is also null for a named clinician with
+   * no name on file.
+   */
+  it("the booking core still refuses one — the rule the surfaces must mirror", () => {
+    const core = read("supabase/functions/_shared/book.ts");
+    expect(core).toContain("if (!session.clinician_user_id)");
+    expect(core).toContain("This clinic day has no clinician assigned yet.");
+  });
+
+  it("the web tile disables on the clinician id, not on the name", () => {
+    const src = read("app/patient/book/_components/pick-steps.tsx");
+    expect(src).toContain("const unnamed = s.clinicianUserId === null;");
+    expect(src).toContain("disabled: s.placesLeft === 0 || unnamed,");
+    expect(src).not.toContain('"Clinic team"');
+  });
+
+  it("the phone tile does the same", () => {
+    const src = read("mobile/src/app/(app)/clinic/[id].tsx");
+    expect(src).toContain("s.clinicianUserId === null");
+    expect(src).toMatch(/disabled=\{s\.placesLeft === 0 \|\| s\.clinicianUserId === null\}/);
+  });
+});

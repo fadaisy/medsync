@@ -109,7 +109,15 @@ export interface SessionOption {
   id: string;
   startsAtIso: string;
   endsAtIso: string;
-  /** Null renders as "Clinic team" — a day may name its clinician later (T-12h rule). */
+  /**
+   * The clinician the day names, or null. PRD §3.6: "The app never shows a
+   * session with no clinician as bookable" — and `_shared/book.ts` refuses one
+   * with a 409, so this is the field the tile must gate on. NOT `clinicianName`,
+   * which is a left-joined `users.full_name` and is also null for a named
+   * clinician who has no name on file.
+   */
+  clinicianUserId: string | null;
+  /** Null renders as "Clinician not yet named" — a day may name one later (T-12h rule). */
   clinicianName: string | null;
   venue: string | null;
   /** ceil(capacity_booked × overbooking) − booked_count; 0 is "Full". */

@@ -322,9 +322,12 @@ export default function ClinicScreen() {
         <Tile
           key={s.id}
           label={formatDateLong(s.startsAtIso)}
-          hint={`${s.clinicianName} · ${placesWord(s.placesLeft)}`}
+          hint={`${s.clinicianUserId === null ? "Clinician not yet named" : s.clinicianName} · ${
+            s.clinicianUserId === null ? "not open yet" : placesWord(s.placesLeft)
+          }`}
           selected={s.id === session?.id}
-          disabled={s.placesLeft === 0}
+          // PRD §3.6 / book.ts 409: a day with no clinician is not bookable.
+          disabled={s.placesLeft === 0 || s.clinicianUserId === null}
           onPress={() => pickSession(s)}
         />
       ))}

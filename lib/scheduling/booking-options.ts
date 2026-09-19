@@ -317,6 +317,7 @@ async function fetchSessions(
       serviceLineId: clinicSessions.serviceLineId,
       startsAt: clinicSessions.startsAt,
       endsAt: clinicSessions.endsAt,
+      clinicianUserId: clinicSessions.clinicianUserId,
       clinicianName: users.fullName,
       venue: clinicSessions.venue,
       // The allocator's own guard, restated (ADR 0087): what it will admit.
@@ -340,6 +341,7 @@ async function fetchSessions(
       id: r.id,
       startsAtIso: r.startsAt.toISOString(),
       endsAtIso: r.endsAt.toISOString(),
+      clinicianUserId: r.clinicianUserId,
       clinicianName: r.clinicianName,
       venue: r.venue,
       placesLeft: r.placesLeft,

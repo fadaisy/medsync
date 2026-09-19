@@ -202,20 +202,28 @@ export function SessionStep({
   const alternatives = desk ? null : accessAlternatives(line, null, nowMs);
   // Nothing takeable inside the target: every day is full, or there is none.
   const nothingWithin = within.every((s) => s.placesLeft === 0);
-  const toOption = (s: SessionOption): Choice<string> => ({
-    value: s.id,
-    title: formatFullDate(s.startsAtIso),
-    hint: [s.clinicianName ?? "Clinic team", s.venue].filter(Boolean).join(" · "),
-    disabled: s.placesLeft === 0,
-    trailing:
-      s.placesLeft === 0 ? (
+  const toOption = (s: SessionOption): Choice<string> => {
+    // PRD §3.6: a day with no clinician is never offered as bookable, and
+    // `_shared/book.ts` 409s it ("This clinic day has no clinician assigned
+    // yet."). Offering it anyway sent the patient into a refusal they could
+    // not have predicted.
+    const unnamed = s.clinicianUserId === null;
+    return {
+      value: s.id,
+      title: formatFullDate(s.startsAtIso),
+      hint: [s.clinicianName ?? "Clinician not yet named", s.venue].filter(Boolean).join(" · "),
+      disabled: s.placesLeft === 0 || unnamed,
+      trailing: unnamed ? (
+        <Pill tone="neutral">Not open yet</Pill>
+      ) : s.placesLeft === 0 ? (
         <Pill tone="neutral">Full</Pill>
       ) : (
         <span className="text-muted-foreground text-body-s whitespace-nowrap tabular-nums">
           {s.placesLeft} {s.placesLeft === 1 ? "place" : "places"} left
         </span>
       ),
-  });
+    };
+  };
 
   return (
     <div className="flex flex-col gap-5">

@@ -47,12 +47,19 @@ function clinician(userId: string, days: number[], seenBefore = false): Clinicia
   };
 }
 
-function session(id: string, day: number, placesLeft: number): SessionOption {
+function session(
+  id: string,
+  day: number,
+  placesLeft: number,
+  /** Null = the day names no clinician: not bookable (PRD §3.6). */
+  clinicianUserId: string | null = "clinician-1",
+): SessionOption {
   const startsAt = new Date(NOW_MS + day * DAY);
   return {
     id,
     startsAtIso: startsAt.toISOString(),
     endsAtIso: new Date(startsAt.getTime() + 4 * 3_600_000).toISOString(),
+    clinicianUserId,
     clinicianName: null,
     venue: null,
     placesLeft,
