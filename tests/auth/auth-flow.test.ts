@@ -1,6 +1,6 @@
 import { afterAll, describe, expect, test } from "vitest";
 
-import { closeSql, serviceSql, serviceSupabase } from "../rls/_helpers";
+import { closeSql, RLS_TESTS_ENABLED, serviceSql, serviceSupabase } from "../rls/_helpers";
 
 /**
  * Tests for the Phase 0.9 auth foundation:
@@ -20,7 +20,7 @@ afterAll(async () => {
   await closeSql();
 }, 60_000);
 
-describe("auth: auth.users → public.users mirror trigger", () => {
+describe.skipIf(!RLS_TESTS_ENABLED)("auth: auth.users → public.users mirror trigger", () => {
   test("creates a public.users row with full_name from metadata", async () => {
     const email = `mirror-meta-${Math.random().toString(36).slice(2, 8)}@medsync.local`;
     const admin = serviceSupabase();
@@ -82,33 +82,36 @@ describe("auth: auth.users → public.users mirror trigger", () => {
   }, 30_000);
 });
 
-describe("auth: getAuthenticatorAssuranceLevel before MFA enrolment", () => {
-  test("a fresh user has currentLevel=aal1, nextLevel=aal1 (MFA not enrolled)", async () => {
-    const email = `mfa-pre-${Math.random().toString(36).slice(2, 8)}@medsync.local`;
-    const admin = serviceSupabase();
-    const { data, error } = await admin.auth.admin.createUser({
-      email,
-      password: "test-password-mfa-1234",
-      email_confirm: true,
-    });
-    if (error || !data.user) throw error ?? new Error("create failed");
-    CREATED_USER_IDS.push(data.user.id);
+describe.skipIf(!RLS_TESTS_ENABLED)(
+  "auth: getAuthenticatorAssuranceLevel before MFA enrolment",
+  () => {
+    test("a fresh user has currentLevel=aal1, nextLevel=aal1 (MFA not enrolled)", async () => {
+      const email = `mfa-pre-${Math.random().toString(36).slice(2, 8)}@medsync.local`;
+      const admin = serviceSupabase();
+      const { data, error } = await admin.auth.admin.createUser({
+        email,
+        password: "test-password-mfa-1234",
+        email_confirm: true,
+      });
+      if (error || !data.user) throw error ?? new Error("create failed");
+      CREATED_USER_IDS.push(data.user.id);
 
-    // Sign in as them to get a usable client.
-    const { createClient } = await import("@supabase/supabase-js");
-    const client = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    );
-    const { error: signInErr } = await client.auth.signInWithPassword({
-      email,
-      password: "test-password-mfa-1234",
-    });
-    expect(signInErr).toBeNull();
+      // Sign in as them to get a usable client.
+      const { createClient } = await import("@supabase/supabase-js");
+      const client = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      );
+      const { error: signInErr } = await client.auth.signInWithPassword({
+        email,
+        password: "test-password-mfa-1234",
+      });
+      expect(signInErr).toBeNull();
 
-    const { data: aal, error: aalErr } = await client.auth.mfa.getAuthenticatorAssuranceLevel();
-    expect(aalErr).toBeNull();
-    expect(aal?.currentLevel).toBe("aal1");
-    expect(aal?.nextLevel).toBe("aal1");
-  }, 30_000);
-});
+      const { data: aal, error: aalErr } = await client.auth.mfa.getAuthenticatorAssuranceLevel();
+      expect(aalErr).toBeNull();
+      expect(aal?.currentLevel).toBe("aal1");
+      expect(aal?.nextLevel).toBe("aal1");
+    }, 30_000);
+  },
+);

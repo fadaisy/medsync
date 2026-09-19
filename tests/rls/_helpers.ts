@@ -29,9 +29,13 @@ const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const DATABASE_URL = process.env.DATABASE_URL;
 
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !SUPABASE_SERVICE_ROLE_KEY || !DATABASE_URL) {
-  throw new Error("Test env not loaded — tests/_setup.ts should have loaded .env.local");
-}
+/** Every value a live-DB suite needs; without them the suites SKIP, they do not error. */
+const DB_ENV_PRESENT = !!(
+  SUPABASE_URL &&
+  SUPABASE_ANON_KEY &&
+  SUPABASE_SERVICE_ROLE_KEY &&
+  DATABASE_URL
+);
 
 /**
  * SAFETY GUARD — RLS tests provision real auth.users + hospitals +
@@ -49,9 +53,10 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !SUPABASE_SERVICE_ROLE_KEY || !DATABA
  *
  * Test files use `describe.skipIf(!RLS_TESTS_ENABLED)(...)` so the
  * suites report SKIPPED (green ⊘) instead of ERROR when the flag
- * isn't set.
+ * isn't set — or when there is no database at all (CI without secrets,
+ * a fresh clone): this module must never throw at import.
  */
-export const RLS_TESTS_ENABLED = process.env.MEDSYNC_ALLOW_RLS_DB_WRITES === "1";
+export const RLS_TESTS_ENABLED = process.env.MEDSYNC_ALLOW_RLS_DB_WRITES === "1" && DB_ENV_PRESENT;
 
 const TEST_PASSWORD = "test-password-rls-only-1234567";
 
@@ -61,7 +66,12 @@ export function serviceSupabase(): SupabaseClient {
   });
 }
 
-const _sql = postgres(DATABASE_URL, { prepare: false, max: 1 });
+// postgres.js opens nothing until the first query, so a placeholder URL is
+// inert in a skipped run and a real one connects on demand.
+const _sql = postgres(DATABASE_URL ?? "postgres://skipped@localhost:1/skipped", {
+  prepare: false,
+  max: 1,
+});
 export const serviceSql = _sql;
 
 export interface TestUser {

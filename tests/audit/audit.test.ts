@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 
-import { closeSql, serviceSql } from "../rls/_helpers";
+import { closeSql, RLS_TESTS_ENABLED, serviceSql } from "../rls/_helpers";
 
 interface AuditRow {
   id: string;
@@ -21,7 +21,7 @@ async function readAuditFor(tableName: string, recordId: string): Promise<AuditR
   `) as unknown as AuditRow[];
 }
 
-describe("audit: log_changes trigger", () => {
+describe.skipIf(!RLS_TESTS_ENABLED)("audit: log_changes trigger", () => {
   let hospitalId: string;
   let slug: string;
 
@@ -77,7 +77,7 @@ describe("audit: log_changes trigger", () => {
   });
 });
 
-describe("audit: append-only protection on audit_log", () => {
+describe.skipIf(!RLS_TESTS_ENABLED)("audit: append-only protection on audit_log", () => {
   let auditRowId: string;
 
   beforeAll(async () => {
