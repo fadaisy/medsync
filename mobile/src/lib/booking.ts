@@ -1,6 +1,7 @@
 import type { EdgeResult } from "@/lib/edge";
 import type { PatientReasonCode } from "@shared/sessions-sql";
 import type { ImagePickerOptions } from "expo-image-picker";
+import { feeRange, rangeLine } from "@shared/fees";
 import {
   DEFAULT_TIME_ZONE,
   endOfLocalDay,
@@ -279,6 +280,9 @@ export interface AppointmentRow {
   confirmedByPatientAtIso: string | null;
   /** Gate E: 'session_cancelled' when the clinic cancelled the day — the screen offers a rebooking. */
   cancelledReason: string | null;
+  /** ADR 0092: the fee quoted at booking, snapshotted on the row. Null = none quoted. */
+  quotedFeeUgx: number | null;
+  quotedFeeLabel: string | null;
 }
 
 interface AppointmentQueryRow {
@@ -300,6 +304,8 @@ interface AppointmentQueryRow {
   arrival_window_end: string | null;
   confirmed_by_patient_at: string | null;
   cancelled_reason: string | null;
+  quoted_fee_ugx: number | null;
+  quoted_fee_label: string | null;
   hospital_departments: Embed<{ name: string }>;
   hospitals: Embed<{ name: string }>;
 }
@@ -344,7 +350,7 @@ export async function fetchAppointments(
       "id, provisional_patient_id, hospital_id, department_id, clinician_user_id, starts_at, ends_at, status, type, " +
         "reason, reason_note, booking_code, session_id, position_number, " +
         "arrival_window_start, arrival_window_end, confirmed_by_patient_at, cancelled_reason, " +
-        "hospital_departments(name), hospitals(name)",
+        "quoted_fee_ugx, quoted_fee_label, hospital_departments(name), hospitals(name)",
     )
     .or(`${own}${members}`);
   query = isPast ? query.lt("starts_at", nowIso) : query.gte("starts_at", nowIso);
@@ -388,6 +394,8 @@ export async function fetchAppointments(
       forMember,
       confirmedByPatientAtIso: r.confirmed_by_patient_at,
       cancelledReason: r.cancelled_reason,
+      quotedFeeUgx: r.quoted_fee_ugx,
+      quotedFeeLabel: r.quoted_fee_label,
     };
   });
 }
@@ -686,6 +694,8 @@ export interface ServiceLine {
    * household member — the server refuses; the page hides the choice first.
    */
   confidential: boolean;
+  /** The fee as a patient reads it — see `@shared/fees`; null when the line is free. */
+  feeLine: string | null;
 }
 
 interface ServiceLineRow {
@@ -697,12 +707,19 @@ interface ServiceLineRow {
   reason_codes: string[];
   time_to_care_days: number;
   confidential: boolean;
+  payment_posture: string;
+  fee_ugx: number | null;
+  /** Cadre overrides (migration 0063) — readable by any signed-in user (MoH §3.4.2). */
+  service_line_fees:
+    | { cadre_id: string; fee_ugx: number; cadres: Embed<{ name: string }> }[]
+    | null;
   hospital_departments: Embed<{ name: string }>;
   hospitals: Embed<{ name: string; emergency_phone: string | null }>;
 }
 
 const LINE_SELECT =
   "id, name, hospital_id, department_id, capacity_mode, reason_codes, time_to_care_days, confidential, " +
+  "payment_posture, fee_ugx, service_line_fees(cadre_id, fee_ugx, cadres(name)), " +
   "hospital_departments(name), hospitals(name, emergency_phone)";
 
 function toLine(r: ServiceLineRow): ServiceLine {
@@ -719,6 +736,21 @@ function toLine(r: ServiceLineRow): ServiceLine {
     reasonCodes: r.reason_codes ?? [],
     timeToCareDays: r.time_to_care_days,
     confidential: r.confidential,
+    // What the clinic charges, resolved by the one shared rule (ADR 0092):
+    // one number where the line charges one, a range over its cadre
+    // overrides where it does not, null where it is free.
+    feeLine: rangeLine(
+      feeRange({
+        posture: r.payment_posture,
+        baseFeeUgx: r.fee_ugx,
+        lineName: r.name,
+        cadreFees: (r.service_line_fees ?? []).map((f) => ({
+          cadreId: f.cadre_id,
+          cadreName: embedded(f.cadres)?.name ?? r.name,
+          feeUgx: f.fee_ugx,
+        })),
+      }),
+    ),
   };
 }
 

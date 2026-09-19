@@ -11,12 +11,12 @@ import { cn } from "@/lib/utils";
  * the reference fills one: it is the clinic with something open soonest, so the
  * emphasis carries a fact rather than a decoration.
  *
- * What the reference puts on these tiles is a price ("~$89 Per session"). That
- * is deliberately absent here. PRD §0 is explicit that MedSync "does NOT sell
- * appointment times" (ruling C2), and no fee is charged in the app at all. When
- * the cadre-fee work lands, this tile is where the fee belongs — stated as what
- * the hospital will ask for at the desk, in UGX, and only once we can say it
- * honestly for a clinic day whose clinician is not named until T-12h.
+ * The reference puts a price on each tile ("~$89 Per session"). This tile
+ * does too, honestly: the amount the hospital will ask for at the desk, in
+ * UGX — a single number where the line charges one, a range over its cadre
+ * overrides where it does not (ADR 0092). MoH §3.4.2 obliges a displayed
+ * price list; UMDPC §5(f) forbids a promotional one, so it is a plain current
+ * amount and never a teaser. Nothing is charged in the app (PRD §0, C2).
  *
  * The mode word matters more than a price would: a clinic day gives a position
  * and an arrival window, a slot gives a time, and a patient should know which
@@ -67,6 +67,28 @@ export function ServiceLineCard({ line, emphasis = false }: { line: Line; emphas
       >
         {MODE_WORD[line.capacityMode] ?? line.capacityMode}
       </p>
+
+      {/* The reference's price slot. A plain current amount (or an honest
+          range over the line's cadre fees), paid at the hospital — never a
+          lure, never "from" as a teaser (UMDPC 2019 §5(f)). */}
+      {line.feeLine ? (
+        <p
+          className={cn(
+            "text-body-m font-mono font-medium tabular-nums",
+            emphasis ? "text-brand-50" : "text-foreground",
+          )}
+        >
+          {line.feeLine}
+          <span
+            className={cn(
+              "text-caption ml-1.5 font-sans font-normal",
+              emphasis ? "text-brand-200" : "text-muted-foreground",
+            )}
+          >
+            at the hospital
+          </span>
+        </p>
+      ) : null}
 
       <div className="mt-auto flex items-end justify-between gap-2 pt-1">
         <span className={cn("text-body-s", emphasis ? "text-brand-100" : "text-muted-foreground")}>

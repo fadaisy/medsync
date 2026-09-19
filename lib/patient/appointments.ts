@@ -100,6 +100,9 @@ export interface AppointmentRow {
   confirmedByPatientAtIso: string | null;
   /** Gate E: 'session_cancelled' when the clinic cancelled the day (the card offers a rebooking). */
   cancelledReason: string | null;
+  /** ADR 0092: the fee quoted at booking, snapshotted — never re-read from the line. Null = none quoted. */
+  quotedFeeUgx: number | null;
+  quotedFeeLabel: string | null;
 }
 
 /**
@@ -144,6 +147,8 @@ export async function fetchAppointments(
       arrivalWindowEnd: appointments.arrivalWindowEnd,
       confirmedByPatientAt: appointments.confirmedByPatientAt,
       cancelledReason: appointments.cancelledReason,
+      quotedFeeUgx: appointments.quotedFeeUgx,
+      quotedFeeLabel: appointments.quotedFeeLabel,
     })
     .from(appointments)
     .innerJoin(users, eq(users.id, appointments.clinicianUserId))
@@ -175,6 +180,8 @@ export async function fetchAppointments(
     arrivalWindowEndIso: r.arrivalWindowEnd?.toISOString() ?? null,
     confirmedByPatientAtIso: r.confirmedByPatientAt?.toISOString() ?? null,
     cancelledReason: r.cancelledReason,
+    quotedFeeUgx: r.quotedFeeUgx,
+    quotedFeeLabel: r.quotedFeeLabel,
   }));
 }
 

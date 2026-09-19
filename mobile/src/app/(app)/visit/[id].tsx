@@ -3,6 +3,7 @@ import type { Palette } from "@/theme/tokens";
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
+import { FEE_FOOTNOTE, quoteLine } from "@shared/fees";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   ActivityIndicator,
@@ -605,6 +606,13 @@ export default function VisitScreen() {
                 <Text style={styles.body}>
                   Arrive between{" "}
                   {formatWindow(visit.arrivalWindowStartIso, visit.arrivalWindowEndIso)}
+                </Text>
+              ) : null}
+              {visit.quotedFeeUgx !== null ? (
+                // ADR 0092: the number they were told, as told.
+                <Text style={styles.body}>
+                  Fee {quoteLine({ feeUgx: visit.quotedFeeUgx, label: visit.quotedFeeLabel })} ·{" "}
+                  {FEE_FOOTNOTE}
                 </Text>
               ) : null}
               <Text style={styles.body}>Show this at the desk.</Text>

@@ -409,3 +409,43 @@ async function assertSessionOwned(scope: HospitalAdminScope, sessionId: string):
   if (!row) throw new ScopeViolationError("Clinic day does not exist for this admin's scope.");
   assertScopeOwnsHospital(scope, row.hospitalId);
 }
+
+/* ─── Gate G (ADR 0092): fees by cadre ────────────────────────────── */
+
+export type FeeActionState = { ok?: boolean; error?: string };
+
+const ServiceLineFeeSchema = z.object({
+  service_line_id: z.string().uuid(),
+  cadre_id: z.string().uuid("Pick a cadre."),
+  /** Empty clears the override; the line's flat fee answers again. */
+  fee_ugx: z.coerce.number().int().min(0).max(10_000_000).nullable(),
+  reason: z.string().min(8, "Audit note ≥ 8 characters — this write is audited."),
+});
+
+/**
+ * Set or clear what a line costs for one cadre. Bookings already held keep
+ * their own quote; this changes what future bookings are told, and only that.
+ */
+export async function setServiceLineFeeAction(
+  _prev: FeeActionState,
+  formData: FormData,
+): Promise<FeeActionState> {
+  const parsed = ServiceLineFeeSchema.safeParse({
+    service_line_id: formData.get("service_line_id"),
+    cadre_id: formData.get("cadre_id"),
+    fee_ugx: stringOrNull(formData.get("fee_ugx")),
+    reason: formData.get("reason"),
+  });
+  if (!parsed.success) return { error: firstIssue(parsed.error) };
+  const scope = await requireHospitalAdminScope();
+  await assertLineOwned(scope, parsed.data.service_line_id);
+
+  const result = await callEdge(
+    "ha-set-service-line-fee",
+    { hospital_id: scope.hospitalId, ...parsed.data },
+    "hospital-admin.scheduling",
+  );
+  if (!result.ok) return { error: result.error };
+  revalidatePath("/hospital-admin/scheduling");
+  return { ok: true };
+}

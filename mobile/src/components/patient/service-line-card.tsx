@@ -13,11 +13,10 @@ import { font, radius, space } from "@/theme/tokens";
  * the clinic with something open soonest, so the emphasis carries a fact.
  * Same component, same name, on the web.
  *
- * The reference puts a price on each tile. Here the tile carries the
- * capacity mode instead — a patient should know whether they are about to
- * get a position or a time before they tap (ADR 0088) — and, where the line
- * charges, the fee as a plain current amount on the clinic page, never as a
- * tile ornament (ADR 0092).
+ * The reference puts a price on each tile; so does this one, honestly — the
+ * amount the hospital asks for at the desk (ADR 0092), beside the capacity
+ * mode, so a patient knows both what they will pay and whether they are
+ * about to get a position or a time (ADR 0088).
  */
 
 const MODE_WORD: Record<string, string> = {
@@ -65,6 +64,16 @@ export function ServiceLineCard({
       <Text style={[styles.mode, emphasis && styles.onFilledMuted]} numberOfLines={2}>
         {MODE_WORD[line.capacityMode] ?? line.capacityMode}
       </Text>
+
+      {/* The reference's price slot: a plain current amount paid at the
+          hospital, never a teaser (UMDPC 2019 §5(f)); a range only where
+          the line's cadre fees genuinely differ (ADR 0092). */}
+      {line.feeLine ? (
+        <Text style={[styles.fee, emphasis && styles.onFilled]} numberOfLines={2}>
+          {line.feeLine}
+          <Text style={[styles.feeNote, emphasis && styles.onFilledMuted]}> at the hospital</Text>
+        </Text>
+      ) : null}
 
       <View style={styles.foot}>
         <Text style={[styles.soonest, emphasis && styles.onFilledMuted]} numberOfLines={2}>
@@ -114,6 +123,8 @@ const makeStyles = (c: Palette) =>
     name: { fontFamily: font.bodyMedium, fontSize: 15, lineHeight: 20, color: c.foreground },
     dept: { fontFamily: font.body, fontSize: 12.5, lineHeight: 17, color: c.mutedForeground },
     mode: { fontFamily: font.body, fontSize: 12.5, lineHeight: 17, color: c.mutedForeground },
+    fee: { fontFamily: font.mono, fontSize: 15, lineHeight: 20, color: c.foreground },
+    feeNote: { fontFamily: font.body, fontSize: 12.5, color: c.mutedForeground },
     foot: {
       flexDirection: "row",
       alignItems: "flex-end",

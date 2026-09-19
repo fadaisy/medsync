@@ -33,6 +33,7 @@ import {
 import { requirePatientScope } from "@/lib/patient/scope";
 import { fetchRebookingOffers, fetchWaitlist } from "@/lib/patient/waitlist";
 import { cn } from "@/lib/utils";
+import { FEE_FOOTNOTE, quoteLine } from "@/supabase/functions/_shared/fees";
 import {
   buildSlots,
   DEFAULT_TIME_ZONE,
@@ -503,6 +504,19 @@ function BookingFacts({ row }: { row: AppointmentRow }) {
           {row.bookingCode}
         </dd>
       </div>
+      {row.quotedFeeUgx !== null ? (
+        // ADR 0092: the number the patient was told, as told — stored on the
+        // booking, so a later price change at the desk console never moves it.
+        <div className="flex flex-col gap-0.5">
+          <dt className="text-overline text-muted-foreground">Fee</dt>
+          <dd className="text-foreground text-body-s">
+            <span className="font-mono tabular-nums">
+              {quoteLine({ feeUgx: row.quotedFeeUgx, label: row.quotedFeeLabel })}
+            </span>
+            <span className="text-muted-foreground"> · {FEE_FOOTNOTE}</span>
+          </dd>
+        </div>
+      ) : null}
       {window ? (
         <>
           <div className="flex flex-col gap-0.5">

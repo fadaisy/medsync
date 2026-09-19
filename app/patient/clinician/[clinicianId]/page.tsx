@@ -1,13 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { and, eq } from "drizzle-orm";
 
-import { db } from "@/db";
-import { cadres } from "@/db/schema/reference-data";
-import { serviceLineFees, serviceLines } from "@/db/schema/service-lines";
-import { fetchProviderDetail } from "@/lib/patient/discover";
+import { feeLinesFor, fetchProviderDetail } from "@/lib/patient/discover";
 import { requirePatientScope } from "@/lib/patient/scope";
-import { FEE_FOOTNOTE, feeRange, rangeLine, WAIVER_NOTE } from "@/supabase/functions/_shared/fees";
+import { FEE_FOOTNOTE, WAIVER_NOTE } from "@/supabase/functions/_shared/fees";
 import { ProviderScreen } from "./_components/provider-screen";
 
 export const metadata: Metadata = { title: "Clinician · MedSync" };
@@ -35,39 +31,8 @@ export default async function ClinicianPage({
   const provider = await fetchProviderDetail(scope.primaryHospitalId, scope.userId, clinicianId);
   if (!provider) notFound();
 
-  // What the line charges, spanning the base and any cadre override. Read
-  // here rather than in `fetchProviderDetail` so the browse read stays one
-  // query per screen and a free line costs nothing extra.
-  const [line] = await db
-    .select({
-      posture: serviceLines.paymentPosture,
-      baseFeeUgx: serviceLines.feeUgx,
-      name: serviceLines.name,
-    })
-    .from(serviceLines)
-    .where(eq(serviceLines.id, provider.lineId))
-    .limit(1);
-
-  let feeLine: string | null = null;
-  if (line && line.posture !== "none" && line.baseFeeUgx !== null) {
-    const overrides = await db
-      .select({
-        cadreId: serviceLineFees.cadreId,
-        cadreName: cadres.name,
-        feeUgx: serviceLineFees.feeUgx,
-      })
-      .from(serviceLineFees)
-      .innerJoin(cadres, eq(cadres.id, serviceLineFees.cadreId))
-      .where(and(eq(serviceLineFees.serviceLineId, provider.lineId)));
-    feeLine = rangeLine(
-      feeRange({
-        posture: line.posture,
-        baseFeeUgx: line.baseFeeUgx,
-        lineName: line.name,
-        cadreFees: overrides,
-      }),
-    );
-  }
+  // What the line charges — the same read the home's tiles use (ADR 0092).
+  const feeLine = (await feeLinesFor([provider.lineId])).get(provider.lineId) ?? null;
 
   return (
     <ProviderScreen

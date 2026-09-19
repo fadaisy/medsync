@@ -11,6 +11,7 @@ import type {
 import type { Palette } from "@/theme/tokens";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
+import { FEE_FOOTNOTE, WAIVER_NOTE } from "@shared/fees";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   ActivityIndicator,
@@ -527,6 +528,18 @@ export default function DoctorScreen() {
             </View>
           ) : null}
 
+          {/* ADR 0092: what this clinician's line charges, before the patient
+              commits. A single number where the line charges one; a range
+              over its cadre fees otherwise — the quote is fixed at booking. */}
+          {days.length > 0 && wait?.line?.feeLine ? (
+            <View style={styles.feeCard}>
+              <Text style={styles.feeLabel}>Fee</Text>
+              <Text style={styles.feeValue}>{wait.line.feeLine}</Text>
+              <Text style={styles.feeNote}>{FEE_FOOTNOTE}</Text>
+              <Text style={styles.feeNote}>{WAIVER_NOTE}</Text>
+            </View>
+          ) : null}
+
           {days.length > 0 ? (
             <View style={styles.field}>
               <Text style={[styles.fieldLabel, noteFocused && styles.fieldLabelFocused]}>
@@ -620,6 +633,16 @@ const makeStyles = (c: Palette) =>
 
     // Amber, not red: a refused request is not a clinical emergency. The amber
     // is the frame and the glyph; the words are in the page's own ink.
+    feeCard: { gap: 2, padding: space[4], borderRadius: radius.lg, backgroundColor: c.muted },
+    feeLabel: {
+      fontFamily: font.body,
+      fontSize: 12.5,
+      letterSpacing: 0.4,
+      textTransform: "uppercase",
+      color: c.mutedForeground,
+    },
+    feeValue: { fontFamily: font.mono, fontSize: 17, lineHeight: 23, color: c.foreground },
+    feeNote: { fontFamily: font.body, fontSize: 13.5, lineHeight: 19, color: c.mutedForeground },
     well: {
       flexDirection: "row",
       gap: space[2],

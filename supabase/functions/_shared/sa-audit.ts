@@ -23,7 +23,7 @@ import { serviceClient } from "./auth.ts";
  */
 /**
  * Allowed action / targetKind values — kept in sync with the
- * sa_audit_log CHECK constraint (currently set by migration 0062).
+ * sa_audit_log CHECK constraint (currently set by migration 0063).
  * When you add a value here, ALSO add it to the migration; the union
  * is here so typecheck catches typos before they hit the DB.
  */
@@ -127,7 +127,9 @@ export type SaAuditAction =
   | "confirm_attendance"
   | "set_session_delay"
   // Low-bandwidth channels (migration 0062 — GATED, ADR 0091).
-  | "sms_stop";
+  | "sms_stop"
+  // Cadre fees (migration 0063 — GATED, ADR 0092).
+  | "set_service_line_fee";
 
 export type SaAuditTargetKind =
   | "staff_affiliation"
@@ -169,7 +171,9 @@ export type SaAuditTargetKind =
   | "booking_agent"
   // Notifications + waitlist (migration 0061 — GATED, ADR 0090).
   | "waitlist_entry"
-  | "notification_dispatch";
+  | "notification_dispatch"
+  // Cadre fees (migration 0063 — GATED, ADR 0092).
+  | "service_line_fee";
 
 export async function recordSaAudit(params: {
   actorId: string;

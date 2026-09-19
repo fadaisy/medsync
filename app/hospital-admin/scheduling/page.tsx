@@ -4,7 +4,7 @@ import type {
   SessionTemplateRow,
 } from "./_components/clinic-sessions-section";
 import type { DepartmentPolicyOption } from "./_components/policy-form";
-import type { ServiceLineRow } from "./_components/service-lines-section";
+import type { CadreFeeRow, CadreOption, ServiceLineRow } from "./_components/service-lines-section";
 import { and, asc, eq, gte, inArray, isNull, lt, sql } from "drizzle-orm";
 
 import { db } from "@/db";
@@ -14,7 +14,7 @@ import { hospitalDepartments } from "@/db/schema/hospital-departments";
 import { notificationDispatches } from "@/db/schema/notifications";
 import { cadres } from "@/db/schema/reference-data";
 import { departmentSchedulingPolicy } from "@/db/schema/scheduling";
-import { serviceLines } from "@/db/schema/service-lines";
+import { serviceLineFees, serviceLines } from "@/db/schema/service-lines";
 import { users } from "@/db/schema/users";
 import { requireHospitalAdminScope } from "@/lib/hospital-admin/scope";
 import {
@@ -108,14 +108,17 @@ export default async function SchedulingPage() {
 
   const unset = departments.filter((d) => !d.policy).length;
 
-  const [lines, templates, sessions, clinicians, unstaffedSoon, sentToday] = await Promise.all([
-    fetchServiceLines(scope.hospitalId),
-    fetchTemplates(scope.hospitalId),
-    fetchUpcomingSessions(scope.hospitalId),
-    fetchClinicians(scope.hospitalId),
-    fetchUnstaffedSessionsSoon(scope.hospitalId),
-    fetchSentToday(scope.hospitalId),
-  ]);
+  const [lines, templates, sessions, clinicians, unstaffedSoon, sentToday, clinicalCadres, fees] =
+    await Promise.all([
+      fetchServiceLines(scope.hospitalId),
+      fetchTemplates(scope.hospitalId),
+      fetchUpcomingSessions(scope.hospitalId),
+      fetchClinicians(scope.hospitalId),
+      fetchUnstaffedSessionsSoon(scope.hospitalId),
+      fetchSentToday(scope.hospitalId),
+      fetchClinicalCadres(),
+      fetchCadreFees(scope.hospitalId),
+    ]);
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 py-8 sm:px-6 sm:py-10">
@@ -168,6 +171,8 @@ export default async function SchedulingPage() {
       <ServiceLinesSection
         lines={lines}
         departments={departments.map((d) => ({ id: d.departmentId, name: d.departmentName }))}
+        cadres={clinicalCadres}
+        fees={fees}
       />
 
       <ClinicSessionsSection
@@ -398,4 +403,31 @@ async function fetchClinicians(hospitalId: string): Promise<ClinicianOption[]> {
     )
     .orderBy(asc(users.fullName));
   return rows;
+}
+
+/* ─── Gate G (ADR 0092): fees by cadre ─────────────────────────────── */
+
+/** The clinical ladder a fee may attach to. */
+async function fetchClinicalCadres(): Promise<CadreOption[]> {
+  return db
+    .select({ id: cadres.id, name: cadres.name })
+    .from(cadres)
+    .where(eq(cadres.isClinical, true))
+    .orderBy(asc(cadres.name));
+}
+
+/** Every override at this hospital, keyed by line in the section. */
+async function fetchCadreFees(hospitalId: string): Promise<CadreFeeRow[]> {
+  return db
+    .select({
+      serviceLineId: serviceLineFees.serviceLineId,
+      cadreId: serviceLineFees.cadreId,
+      cadreName: cadres.name,
+      feeUgx: serviceLineFees.feeUgx,
+    })
+    .from(serviceLineFees)
+    .innerJoin(serviceLines, eq(serviceLines.id, serviceLineFees.serviceLineId))
+    .innerJoin(cadres, eq(cadres.id, serviceLineFees.cadreId))
+    .where(eq(serviceLines.hospitalId, hospitalId))
+    .orderBy(asc(cadres.name));
 }

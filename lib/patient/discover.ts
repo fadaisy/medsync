@@ -8,10 +8,12 @@ import { db } from "@/db";
 import { staffAffiliations } from "@/db/schema/clinician-profiles";
 import { cadres } from "@/db/schema/reference-data";
 import { appointments } from "@/db/schema/scheduling";
+import { serviceLineFees, serviceLines } from "@/db/schema/service-lines";
 import { users } from "@/db/schema/users";
 import { visitRatings } from "@/db/schema/visit-ratings";
 import { signedAvatarUrl } from "@/lib/avatars";
 import { fetchLines } from "@/lib/scheduling/booking-options";
+import { feeRange, rangeLine } from "@/supabase/functions/_shared/fees";
 import { DEFAULT_TIME_ZONE, localDateKey } from "@/supabase/functions/_shared/slots";
 
 /**
@@ -61,6 +63,12 @@ export interface ServiceLineCard {
   soonest: { dateKey: string; placesLeft: number | null } | null;
   /** How many clinicians a patient could pick here (slot mode); 0 in session mode. */
   clinicianCount: number;
+  /**
+   * What the clinic charges, as a plain current amount or a range over its
+   * cadre overrides (ADR 0092) — null when the line is free. Stated on the
+   * tile because MoH §3.4.2 obliges a displayed price list, never as a lure.
+   */
+  feeLine: string | null;
 }
 
 export interface Discovery {
@@ -82,12 +90,64 @@ export async function fetchDiscovery(
   const lines = all.filter((l) => !l.confidential);
   if (lines.length === 0) return { lines: [], providers: [] };
 
-  const providers = await decorate(lines);
-  return { lines: lines.map((l) => toLineCard(l, now)), providers };
+  const [providers, feeByLine] = await Promise.all([
+    decorate(lines),
+    feeLinesFor(lines.map((l) => l.id)),
+  ]);
+  return {
+    lines: lines.map((l) => toLineCard(l, now, feeByLine.get(l.id) ?? null)),
+    providers,
+  };
 }
 
-function toLineCard(line: LineOption, now: Date): ServiceLineCard {
+/**
+ * The fee line per service line: posture + base + every cadre override,
+ * resolved by the shared `feeRange`. One read for the lines, one for the
+ * overrides; a free line costs nothing beyond the first.
+ */
+export async function feeLinesFor(lineIds: string[]): Promise<Map<string, string | null>> {
+  const out = new Map<string, string | null>();
+  if (lineIds.length === 0) return out;
+  const [rows, overrides] = await Promise.all([
+    db
+      .select({
+        id: serviceLines.id,
+        name: serviceLines.name,
+        posture: serviceLines.paymentPosture,
+        baseFeeUgx: serviceLines.feeUgx,
+      })
+      .from(serviceLines)
+      .where(inArray(serviceLines.id, lineIds)),
+    db
+      .select({
+        serviceLineId: serviceLineFees.serviceLineId,
+        cadreId: serviceLineFees.cadreId,
+        cadreName: cadres.name,
+        feeUgx: serviceLineFees.feeUgx,
+      })
+      .from(serviceLineFees)
+      .innerJoin(cadres, eq(cadres.id, serviceLineFees.cadreId))
+      .where(inArray(serviceLineFees.serviceLineId, lineIds)),
+  ]);
+  for (const r of rows) {
+    out.set(
+      r.id,
+      rangeLine(
+        feeRange({
+          posture: r.posture,
+          baseFeeUgx: r.baseFeeUgx,
+          lineName: r.name,
+          cadreFees: overrides.filter((o) => o.serviceLineId === r.id),
+        }),
+      ),
+    );
+  }
+  return out;
+}
+
+function toLineCard(line: LineOption, now: Date, feeLine: string | null): ServiceLineCard {
   return {
+    feeLine,
     id: line.id,
     name: line.name,
     departmentName: line.departmentName,
