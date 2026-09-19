@@ -26,7 +26,7 @@ export function ProviderCard({ provider }: { provider: Provider }) {
 
   return (
     <Link
-      href={`/patient/book?line=${provider.lineId}&clinician=${provider.userId}`}
+      href={`/patient/clinician/${provider.userId}`}
       className={cn(
         "group bg-card dark:shadow-card ease-expo-out duration-fast relative flex min-w-56 flex-col gap-3 rounded-xl p-4 shadow-xs transition-shadow",
         "hover:shadow-card focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none",

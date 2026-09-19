@@ -1,10 +1,13 @@
 import "server-only";
 
 import type { LineOption } from "@/app/patient/book/_lib/booking";
-import { inArray, sql } from "drizzle-orm";
+import { and, asc, eq, inArray, sql } from "drizzle-orm";
 
 import { firstOpenDay } from "@/app/patient/book/_lib/booking";
 import { db } from "@/db";
+import { staffAffiliations } from "@/db/schema/clinician-profiles";
+import { cadres } from "@/db/schema/reference-data";
+import { appointments } from "@/db/schema/scheduling";
 import { users } from "@/db/schema/users";
 import { visitRatings } from "@/db/schema/visit-ratings";
 import { signedAvatarUrl } from "@/lib/avatars";
@@ -184,4 +187,87 @@ async function decorate(lines: LineOption[]): Promise<ProviderCard[]> {
       (a.firstOpenDate ?? "9999").localeCompare(b.firstOpenDate ?? "9999") ||
       a.fullName.localeCompare(b.fullName),
   );
+}
+
+/* ─── One clinician, in full — the reference design's first screen ── */
+
+/**
+ * Everything the provider screen shows. Each number is one the tables hold:
+ * `visit_ratings` for the stars and the review count, attended appointments
+ * for the patients seen, `staff_affiliations.created_at` for how long they
+ * have been on MedSync at this hospital. The reference's "8 Years Experience"
+ * is not among them — nothing records a career — so the slot states what we
+ * do know and labels it accurately (ADR 0085: never a number the table does
+ * not contain).
+ */
+export interface ProviderDetail extends ProviderCard {
+  /** The registered cadre — the reference's "MBBS, MD · Medicine Specialist" line. */
+  cadreName: string | null;
+  /** Distinct patients with an attended visit. Zero on day one, and says so. */
+  patientsSeen: number;
+  /** When this clinician joined this hospital on MedSync, ISO — null if unknown. */
+  withUsSinceIso: string | null;
+  /** A video visit is a real affordance only when the clinician allows one. */
+  allowVirtual: boolean;
+  /** Open slots by "YYYY-MM-DD", the day strip's source. */
+  slotsByDate: Record<string, ReadonlyArray<{ startsAtIso: string; endsAtIso: string }>>;
+  lineName: string;
+  departmentId: string;
+}
+
+/** Attended: the patient was actually there (the same set `pt-rate-visit` accepts). */
+const ATTENDED_STATUSES = ["arrived", "in_progress", "completed"] as const;
+
+export async function fetchProviderDetail(
+  hospitalId: string,
+  patientUserId: string,
+  clinicianUserId: string,
+  now: Date = new Date(),
+): Promise<ProviderDetail | null> {
+  const lines = (await fetchLines(hospitalId, patientUserId, now)).filter((l) => !l.confidential);
+  // The line this clinician covers — the one whose slots the screen books into.
+  const line = lines.find((l) => l.clinicians.some((c) => c.userId === clinicianUserId));
+  const clinician = line?.clinicians.find((c) => c.userId === clinicianUserId);
+  if (!line || !clinician) return null;
+
+  const [card] = await decorate([{ ...line, clinicians: [clinician] } as LineOption]);
+  if (!card) return null;
+
+  const [affiliationRows, seen] = await Promise.all([
+    db
+      .select({ createdAt: staffAffiliations.createdAt, cadreName: cadres.name })
+      .from(staffAffiliations)
+      .innerJoin(cadres, eq(cadres.id, staffAffiliations.cadreId))
+      .where(
+        and(
+          eq(staffAffiliations.userId, clinicianUserId),
+          eq(staffAffiliations.hospitalId, hospitalId),
+          inArray(staffAffiliations.state, ["active", "approved"]),
+        ),
+      )
+      .orderBy(asc(staffAffiliations.createdAt))
+      .limit(1),
+    db
+      .select({ n: sql<number>`count(distinct ${appointments.patientUserId})::int` })
+      .from(appointments)
+      .where(
+        and(
+          eq(appointments.clinicianUserId, clinicianUserId),
+          eq(appointments.hospitalId, hospitalId),
+          inArray(appointments.status, [...ATTENDED_STATUSES]),
+        ),
+      ),
+  ]);
+
+  const affiliation = affiliationRows[0] ?? null;
+  return {
+    ...card,
+    cadreName: affiliation?.cadreName ?? null,
+    patientsSeen: seen[0]?.n ?? 0,
+    withUsSinceIso: affiliation?.createdAt?.toISOString() ?? null,
+    allowVirtual: clinician.allowVirtual,
+    slotsByDate: clinician.slotsByDate,
+    lineName: line.name,
+    departmentId: line.departmentId,
+  };
 }
