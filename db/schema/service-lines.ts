@@ -15,6 +15,7 @@ import {
 
 import { hospitalDepartments } from "./hospital-departments";
 import { hospitals } from "./hospitals";
+import { cadres } from "./reference-data";
 
 /**
  * Service lines — migration 0058 (GATED), ADR 0087, proposal §5.2.
@@ -97,3 +98,42 @@ export type CapacityMode = (typeof CAPACITY_MODES)[number];
 
 export const PAYMENT_POSTURES = ["none", "deposit", "full"] as const;
 export type PaymentPosture = (typeof PAYMENT_POSTURES)[number];
+
+/* ─── service_line_fees (migration 0063 — GATED, ADR 0092) ────────── */
+
+/**
+ * A SPARSE override: what this line costs when a clinician of this cadre is
+ * the one seen. Zero rows is the common — and compliant — case: Uganda's MoH
+ * guidelines price by facility level, geography and service class, never by
+ * cadre, and Mulago's own private wing charges one consultation fee whoever
+ * sees you. Resolution is `COALESCE(override, service_lines.fee_ugx)`, in
+ * `supabase/functions/_shared/fees.ts`.
+ *
+ * `cadreId` is ON DELETE RESTRICT: a cadre that prices something cannot be
+ * deleted out from under a published price list.
+ */
+export const serviceLineFees = pgTable(
+  "service_line_fees",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    serviceLineId: uuid("service_line_id")
+      .notNull()
+      .references(() => serviceLines.id, { onDelete: "cascade" }),
+    cadreId: uuid("cadre_id")
+      .notNull()
+      .references(() => cadres.id, { onDelete: "restrict" }),
+    feeUgx: integer("fee_ugx").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    check("service_line_fees_nonneg", sql`${t.feeUgx} >= 0`),
+    /** The highest figure in MoH Annex I is UGX 3,000,000; ten million is a typo. */
+    check("service_line_fees_sane", sql`${t.feeUgx} <= 10000000`),
+    unique("service_line_fees_unique").on(t.serviceLineId, t.cadreId),
+    index("service_line_fees_line_idx").on(t.serviceLineId),
+  ],
+);
+
+export type ServiceLineFee = typeof serviceLineFees.$inferSelect;
+export type NewServiceLineFee = typeof serviceLineFees.$inferInsert;

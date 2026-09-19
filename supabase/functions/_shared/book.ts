@@ -28,7 +28,7 @@
  * A confidential line (PRD §2.9) is refused when a patient books for
  * someone else; the desk may book it.
  */
-
+import type { CadreFee } from "./fees.ts";
 import type { SupabaseClient } from "npm:@supabase/supabase-js@2.106.1";
 
 import { bookingDispatchRows } from "./dispatches.ts";
@@ -41,6 +41,7 @@ import {
   serverError,
   tooManyRequests,
 } from "./errors.ts";
+import { resolveFee } from "./fees.ts";
 import { recordSaAudit } from "./sa-audit.ts";
 import {
   arrivalWindow,
@@ -254,7 +255,8 @@ export async function bookAppointment(ctx: BookContext, input: BookInput): Promi
       .select(
         "id, hospital_id, department_id, service_line_id, clinician_user_id, starts_at, ends_at, " +
           "capacity_booked, overbooking_factor, " +
-          "service_lines!inner(active, capacity_mode, reason_codes, confidential), hospitals!inner(state)",
+          "service_lines!inner(id, name, active, capacity_mode, reason_codes, confidential, " +
+          "payment_posture, fee_ugx), hospitals!inner(state)",
       )
       .eq("id", input.session.sessionId)
       .eq("hospital_id", input.hospitalId)
@@ -275,7 +277,14 @@ export async function bookAppointment(ctx: BookContext, input: BookInput): Promi
       return beyondHorizon();
     }
 
-    const line = session.service_lines as { reason_codes: string[]; confidential: boolean };
+    const line = session.service_lines as {
+      id: string;
+      name: string;
+      reason_codes: string[];
+      confidential: boolean;
+      payment_posture: string;
+      fee_ugx: number | null;
+    };
     if (!line.reason_codes.includes(input.reason)) {
       return fail(badRequest("That clinic does not take this reason.", init));
     }
@@ -321,6 +330,19 @@ export async function bookAppointment(ctx: BookContext, input: BookInput): Promi
       position,
     });
 
+    // The cadre — and so the fee — is knowable precisely because the 409
+    // above guarantees a named clinician. One extra read, only when the line
+    // charges at all.
+    const quote = await quoteFor(sb, {
+      posture: line.payment_posture,
+      baseFeeUgx: line.fee_ugx,
+      lineName: line.name,
+      lineId: line.id,
+      clinicianUserId: session.clinician_user_id as string,
+      hospitalId: input.hospitalId,
+      departmentId: session.department_id as string,
+    });
+
     startsAtIso = session.starts_at;
     row = {
       hospital_id: input.hospitalId,
@@ -342,6 +364,11 @@ export async function bookAppointment(ctx: BookContext, input: BookInput): Promi
       arrival_window_end: window.end.toISOString(),
       channel: input.channel,
       idempotency_key: input.idempotencyKey,
+      // Snapshotted, never joined back to — the same rule the arrival window
+      // follows, so a facility editing its price never moves a held booking.
+      quoted_fee_ugx: quote.feeUgx,
+      quoted_fee_label: quote.label,
+      quoted_fee_at: quote.feeUgx === null ? null : new Date().toISOString(),
     };
   } else {
     // ── Slot path ─────────────────────────────────────────────────
@@ -351,7 +378,7 @@ export async function bookAppointment(ctx: BookContext, input: BookInput): Promi
     // whole boundary since ADR 0086: a CLINICAL cadre at an ACTIVE hospital.
     const { data: aff, error: affError } = await sb
       .from("staff_affiliations")
-      .select("id, state, hospitals!inner(state), cadres!inner(is_clinical)")
+      .select("id, state, cadre_id, hospitals!inner(state), cadres!inner(is_clinical, name)")
       .eq("user_id", slot.clinician_user_id)
       .eq("hospital_id", input.hospitalId)
       .eq("department_id", slot.department_id)
@@ -367,12 +394,19 @@ export async function bookAppointment(ctx: BookContext, input: BookInput): Promi
       );
     }
 
+    // A slot booked without a named line (the phone's path) carries no fee:
+    // nothing priced it, and inventing one would be worse than silence.
+    let slotQuote: { feeUgx: number | null; label: string | null } = {
+      feeUgx: null,
+      label: null,
+    };
+
     // A line, when the wizard named one, restricts the reason. The phone's
     // slot path names none and is accepted as before.
     if (slot.service_line_id) {
       const { data: line, error: lineError } = await sb
         .from("service_lines")
-        .select("reason_codes, confidential")
+        .select("id, name, reason_codes, confidential, payment_posture, fee_ugx")
         .eq("id", slot.service_line_id)
         .eq("hospital_id", input.hospitalId)
         .eq("department_id", slot.department_id)
@@ -384,6 +418,16 @@ export async function bookAppointment(ctx: BookContext, input: BookInput): Promi
         return fail(badRequest("That clinic does not take this reason.", init));
       }
       if (refuseConfidential && line.confidential) return confidentialRefusal();
+      // The cadre came free with the affiliation read above; only the
+      // override table is an extra query, and only when the line charges.
+      slotQuote = await quoteFor(sb, {
+        posture: line.payment_posture as string,
+        baseFeeUgx: (line.fee_ugx as number | null) ?? null,
+        lineName: line.name as string,
+        lineId: line.id as string,
+        cadreId: (aff.cadre_id as string | null) ?? null,
+        cadreName: (aff.cadres as { name?: string } | null)?.name ?? null,
+      });
     }
 
     // Is this a slot the engine would have offered? Four reads, then one
@@ -488,6 +532,9 @@ export async function bookAppointment(ctx: BookContext, input: BookInput): Promi
       created_by_user_id: input.actorId,
       channel: input.channel,
       idempotency_key: input.idempotencyKey,
+      quoted_fee_ugx: slotQuote.feeUgx,
+      quoted_fee_label: slotQuote.label,
+      quoted_fee_at: slotQuote.feeUgx === null ? null : new Date().toISOString(),
     };
   }
 
@@ -611,4 +658,76 @@ export async function bookAppointment(ctx: BookContext, input: BookInput): Promi
 /** Wrap a core result as the HTTP body every booking surface answers with. */
 export function bookingResponse(result: BookResult, init: BookContext["init"]): Response {
   return result.ok ? ok(toBookingResponse(result.row), init) : result.response;
+}
+
+/**
+ * The quote for one booking: the line's posture and base, plus any cadre
+ * override, resolved by the shared `resolveFee` (ADR 0092). Reads
+ * `service_line_fees` only when the line charges at all, so a free line and a
+ * facility that never sets an override both cost zero extra queries.
+ *
+ * Fails OPEN to the base fee: a price that cannot be refined is still a price
+ * the facility published, and refusing a booking over a fee lookup would put
+ * money in front of care — which this product does not do.
+ */
+async function quoteFor(
+  sb: SupabaseClient,
+  args: {
+    posture: string;
+    baseFeeUgx: number | null;
+    lineName: string;
+    lineId: string;
+    /** Slot path: the cadre came free with the affiliation read. */
+    cadreId?: string | null;
+    cadreName?: string | null;
+    /** Session path: look the cadre up from the named clinician. */
+    clinicianUserId?: string;
+    hospitalId?: string;
+    departmentId?: string;
+  },
+): Promise<{ feeUgx: number | null; label: string | null }> {
+  if (args.posture === "none" || args.baseFeeUgx === null) {
+    return { feeUgx: null, label: null };
+  }
+
+  let cadreId = args.cadreId ?? null;
+  if (!cadreId && args.clinicianUserId) {
+    const { data: aff } = await sb
+      .from("staff_affiliations")
+      .select("cadre_id")
+      .eq("user_id", args.clinicianUserId)
+      .eq("hospital_id", args.hospitalId as string)
+      .eq("department_id", args.departmentId as string)
+      .in("state", ["active", "approved"])
+      .limit(1)
+      .maybeSingle();
+    cadreId = (aff?.cadre_id as string | null) ?? null;
+  }
+
+  const { data: rows } = await sb
+    .from("service_line_fees")
+    .select("cadre_id, fee_ugx, cadres!inner(name)")
+    .eq("service_line_id", args.lineId);
+
+  const cadreFees: CadreFee[] = (
+    (rows ?? []) as Array<{
+      cadre_id: string;
+      fee_ugx: number;
+      cadres: { name: string } | null;
+    }>
+  ).map((r) => ({
+    cadreId: r.cadre_id,
+    cadreName: r.cadres?.name ?? args.lineName,
+    feeUgx: r.fee_ugx,
+  }));
+
+  return resolveFee(
+    {
+      posture: args.posture,
+      baseFeeUgx: args.baseFeeUgx,
+      lineName: args.lineName,
+      cadreFees,
+    },
+    cadreId,
+  );
 }

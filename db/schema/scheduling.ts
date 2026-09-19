@@ -233,6 +233,16 @@ export const appointments = pgTable(
     /** Derived once at confirmation and stored so the SMS the patient holds never changes. */
     arrivalWindowStart: timestamp("arrival_window_start", { withTimezone: true }),
     arrivalWindowEnd: timestamp("arrival_window_end", { withTimezone: true }),
+    /**
+     * Migration 0063 / ADR 0092: the fee the patient was told, snapshotted at
+     * booking by `_shared/book.ts` alone — the same rule the arrival window
+     * follows, so a facility editing its price never moves a held booking.
+     * NULL = no fee was quoted; that is not the same fact as zero.
+     */
+    quotedFeeUgx: integer("quoted_fee_ugx"),
+    /** The cadre's registered name, or the line's. Stored, never joined back to. */
+    quotedFeeLabel: text("quoted_fee_label"),
+    quotedFeeAt: timestamp("quoted_fee_at", { withTimezone: true }),
     /** 6 chars, unambiguous alphabet, printed on the receipt (§3.6). */
     bookingCode: text("booking_code"),
     /** Migration 0061 / ADR 0090: the patient's answer to the T-24h confirmation request. */
