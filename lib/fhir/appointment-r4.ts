@@ -22,9 +22,9 @@
  *                                      the new row points back at it)
  *   no_show                          → noshow
  *   void                             → entered-in-error
- *   (a waitlist row, no appointment) → waitlist — DERIVED from
- *                                      `waitlist_entries`, which does not
- *                                      exist yet (Gate E); the input is a stub
+ *   (a waitlist row, no appointment) → waitlist — DERIVED from a
+ *                                      `waitlist_entries` row (Gate E, 0061)
+ *                                      still `waiting` or `offered`
  *
  * checked-in is derived, never stored: `arrived` AND a `patient_intakes` row
  * exists for the appointment AND, when the booking was provisional, the desk
@@ -90,11 +90,13 @@ export interface FhirMapContext {
   /** The service line, for `serviceType`. */
   serviceLine?: { id: string; name: string } | null;
   /**
-   * STUB for Gate E: a `waitlist_entries` row in `waiting` | `offered` has no
-   * appointment and maps to a FHIR Appointment with status `waitlist`. Pass
-   * it instead of a row once the table exists.
+   * A `waitlist_entries` row (ADR 0090) has no appointment; one still
+   * `waiting` or `offered` maps to a FHIR Appointment with status `waitlist`.
+   * Pass it instead of a row. An entry that is `accepted`, `expired` or
+   * `withdrawn` is no longer a wish for a place and must not be passed —
+   * the accepted one has a real appointment row of its own.
    */
-  waitlist?: { id: string; state: "waiting" | "offered" | string } | null;
+  waitlist?: { id: string; state: "waiting" | "offered" } | null;
 }
 
 export function toFhirAppointmentStatus(

@@ -119,8 +119,16 @@ describe("toFhirAppointment", () => {
     expect(r.replaces).toEqual([{ reference: "Appointment/a0" }]);
   });
 
-  it("waitlist is derived from a waitlist row (stub until Gate E), whatever the status says", () => {
+  it("waitlist is derived from a live waitlist row, whatever the appointment status says", () => {
     const r = toFhirAppointment(ROW, { waitlist: { id: "w1", state: "waiting" } });
     expect(r.status).toBe("waitlist");
+    expect(toFhirAppointment(ROW, { waitlist: { id: "w1", state: "offered" } }).status).toBe(
+      "waitlist",
+    );
+  });
+
+  it("the reason is NOT emitted: Appendix A is administrative, and FHIR reasonCode is clinical", () => {
+    const r = toFhirAppointment({ ...ROW, reason: "follow_up" });
+    expect(JSON.stringify(r)).not.toMatch(/reason/i);
   });
 });
