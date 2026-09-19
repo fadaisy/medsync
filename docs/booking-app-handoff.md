@@ -82,14 +82,19 @@ Gates E and F are built, verified and committed (ADRs 0090, 0091; CHANGELOG). Tw
   name+age on one USSD screen (the six-level budget), slot lines list "day time" on one screen, the USSD reason is
   the line's first Appendix A code, the SMS control lives on Settings (web) rather than Profile.
 
-**Gate G** — see the Gate A proposal §10. The payment half is blocked on Part 8 #8/#14 (legal); "Expo push only"
-is largely done by E's Phase 2b (token registration, ack, deep link). What remains of G is the EAS project id
-(owner) and any push-permission copy the CSO wants.
+**Gate G** — contract at `docs/booking-app-build/GATE-G-BUILD.md`. Surveyed against the code 2026-09-19: most of
+it is already built. Push registration shipped at Gate E Phase 2b and `extra.eas.projectId` is set; session-mode
+screens exist; C8 is ruled closed (ADR 0087 — the theme toggle stays) and C2 keeps the slot screen. What remains is
+small: `android.package` + Firebase/FCM credentials + one Android dev build, the EAS-build env fix (`mobile/.env` is
+gitignored, so a cloud build boots with `EXPO_PUBLIC_*` undefined and `supabase.ts` throws), and one safety fix —
+`service_lines.payment_posture`/`fee_ugx` are writable from the console but **no booking path reads them and no
+patient surface mentions money**, so a fee-required line books in silence. Payments themselves stay deferred
+(Part 8 #8/#14, legal + billing).
 
-**Gate H** — telemetry, reports, invariant tests, perf budgets, WCAG, the parked rulings (four-eyes on
-un-reconcile and cancel-session; cross-tenant un-reconcile; staff cancel reasons visible to a booking agent),
-re-granting SMS after STOP from the app (clear `sms_opt_outs`), removing a household member, the consent re-accept
-above, Luganda strings after CSO sign-off.
+**Gate H** — contract at `docs/booking-app-build/GATE-H-BUILD.md`: the PRD §5.4 invariant test (the
+not-a-medical-device boundary, currently untested), the §3.4 reports page (every table it needs already exists),
+the §3.6 honours-positions detector, budget tooling (there is no CI at all), accessibility, the six parked rulings,
+and the FHIR + closeout ADRs.
 
 ## 4. Rulings assumed so far (owner said "implement it" to the Gate A recommendations)
 
