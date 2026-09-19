@@ -82,6 +82,11 @@ Gates E and F are built, verified and committed (ADRs 0090, 0091; CHANGELOG). Tw
   name+age on one USSD screen (the six-level budget), slot lines list "day time" on one screen, the USSD reason is
   the line's first Appendix A code, the SMS control lives on Settings (web) rather than Profile.
 
+**Gate G — BUILT 2026-09-19** ([ADR 0092](adr/0092-fees-by-cadre.md); CHANGELOG has the full list). The reference
+design is on both platforms; fees by cadre ship as a sparse override with the quote snapshotted at booking;
+`0063_cadre_fees.sql` is GATED and must land before the redeployed core. Still owner-side: the Android push
+build (`GATE-G-BUILD.md` §2 — free), and iOS push (deferred, Apple Developer). The original contract follows.
+
 **Gate G** — contract at `docs/booking-app-build/GATE-G-BUILD.md`. Surveyed against the code 2026-09-19: most of
 it is already built. Push registration shipped at Gate E Phase 2b and `extra.eas.projectId` is set; session-mode
 screens exist; C8 is ruled closed (ADR 0087 — the theme toggle stays) and C2 keeps the slot screen. What remains is
