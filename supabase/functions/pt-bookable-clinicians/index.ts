@@ -347,6 +347,16 @@ Deno.serve(async (request: Request) => {
 
   // 8. Derive. One row per (clinician, department) pair, each judged against
   //    its own department's policy.
+  // "With us" is the clinician's earliest active affiliation at the hospital,
+  // whichever row the patient opened — the same rule the web applies, so the
+  // two strips never disagree about one person.
+  const withUsSince = new Map<string, string>();
+  for (const a of affiliations) {
+    const k = `${a.user_id}:${a.hospital_id}`;
+    const prev = withUsSince.get(k);
+    if (!prev || a.created_at < prev) withUsSince.set(k, a.created_at);
+  }
+
   const options: ClinicianOption[] = affiliations.map((a) => {
     const clinicianSettings =
       settingsByClinician.get(settingsKey(a.user_id, a.hospital_id)) ?? null;
@@ -408,7 +418,7 @@ Deno.serve(async (request: Request) => {
       seenBefore:
         seenBy.get(`${a.user_id}:${a.hospital_id}:${a.department_id}`)?.has(caller.id) ?? false,
       patientsSeen: patientsSeenBy.get(`${a.user_id}:${a.hospital_id}`)?.size ?? 0,
-      withUsSinceIso: a.created_at ?? null,
+      withUsSinceIso: withUsSince.get(`${a.user_id}:${a.hospital_id}`) ?? null,
       slotsByDate,
     };
   });

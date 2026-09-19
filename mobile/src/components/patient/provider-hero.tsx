@@ -199,9 +199,9 @@ function yearsWithUs(iso: string | null): string {
   return years < 1 ? "New" : `${years} yr${years === 1 ? "" : "s"}`;
 }
 
-/** 3500 → "3.5k". Never a "+": the count is exact, so it is shown exactly. */
+/** 3549 → "3,549". Never rounded, never a "+": the count is exact, so it is shown exactly. */
 function compact(n: number): string {
-  return n >= 1000 ? `${(n / 1000).toFixed(1).replace(/\.0$/, "")}k` : String(n);
+  return n.toLocaleString("en-UG");
 }
 
 function initialsOf(name: string): string | null {
