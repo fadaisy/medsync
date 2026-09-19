@@ -4,6 +4,7 @@ import type { FeatureIconKey } from "../_lib/features";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  BarChart3Icon,
   Building2Icon,
   CalendarClockIcon,
   DoorOpenIcon,
@@ -27,6 +28,7 @@ import { cn } from "@/lib/utils";
 
 const ICONS: Record<FeatureIconKey, typeof LayoutDashboardIcon> = {
   overview: LayoutDashboardIcon,
+  reports: BarChart3Icon,
   staff: UsersIcon,
   departments: Building2Icon,
   scheduling: CalendarClockIcon,

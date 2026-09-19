@@ -33,6 +33,7 @@ export type FeatureIconKey =
   | "intake"
   | "admins"
   | "audit"
+  | "reports"
   | "profile";
 
 export type FeatureSlug =
@@ -41,6 +42,7 @@ export type FeatureSlug =
   | "departments"
   | "scheduling"
   | "intake"
+  | "reports"
   | "admins"
   | "audit"
   | "profile";
@@ -93,6 +95,13 @@ export const FEATURE_AREAS: ReadonlyArray<FeatureArea> = [
     label: "Intake",
     hint: "Register patient arrivals — walk-in, referral, emergency, transfer",
     iconKey: "intake",
+    placeholder: false,
+  },
+  {
+    slug: "reports",
+    label: "Reports",
+    hint: "Fill rate · no-shows · wait accuracy · demand · SMS spend",
+    iconKey: "reports",
     placeholder: false,
   },
   {

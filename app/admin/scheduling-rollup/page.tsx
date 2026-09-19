@@ -1,14 +1,22 @@
+import type { Ratio, ReportDays, TenantAggregates } from "@/lib/hospital-admin/reports";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { and, count, eq, gte, inArray, sql } from "drizzle-orm";
-import { BellRingIcon, CalendarClockIcon } from "lucide-react";
+import { BellRingIcon, CalendarClockIcon, GaugeIcon } from "lucide-react";
 
 import { Pill } from "@/components/ui/pill";
 import { db } from "@/db";
 import { hospitals } from "@/db/schema/hospitals";
 import { appointmentReminders, appointments } from "@/db/schema/scheduling";
 import { getAuthState } from "@/lib/auth";
+import {
+  fetchTenantAggregates,
+  MIN_RATE_SAMPLE,
+  parseReportDays,
+  REPORT_WINDOWS,
+  reportWindow,
+} from "@/lib/hospital-admin/reports";
 import { logger } from "@/lib/logger";
 import { STALE_GRACE_MINUTES } from "@/lib/notifications/sink";
 import { createServiceClient } from "@/lib/supabase/service";
@@ -38,6 +46,10 @@ export const dynamic = "force-dynamic";
  *     wide, total urgent today, no-shows in the last 7 days.
  *   - Reminder-dispatcher health (see below).
  *   - Per-hospital table: counts + an unanswered-request flag.
+ *   - Booked access per hospital (Gate H, PRD §3.5): the facility reports'
+ *     aggregates — fill, no-show, wait accuracy, demand, SMS spend — read
+ *     through lib/hospital-admin/reports so this page owns no query of
+ *     its own. Rates and counts per hospital, nothing finer.
  *   - Hospitals with no clinician availability declared get a soft
  *     warning row tint so the superadmin can spot tenants that
  *     onboarded but haven't set up scheduling yet.
@@ -125,7 +137,11 @@ interface HospitalRow {
   noShows7d: number;
 }
 
-export default async function SchedulingRollupPage() {
+interface PageProps {
+  searchParams: Promise<{ days?: string }>;
+}
+
+export default async function SchedulingRollupPage({ searchParams }: PageProps) {
   const state = await getAuthState();
   if (!state.user) redirect("/sign-in?redirect=/admin/scheduling-rollup");
 
@@ -136,9 +152,11 @@ export default async function SchedulingRollupPage() {
     .eq("user_id", state.user.id);
   if (!rolesData?.some((r) => r.role === "superadmin")) redirect("/");
 
-  const [{ perHospital, totals, errored }, dispatcher] = await Promise.all([
+  const days = parseReportDays((await searchParams).days);
+  const [{ perHospital, totals, errored }, dispatcher, access] = await Promise.all([
     fetchRollup(),
     fetchDispatcherHealth(),
+    fetchAccess(days),
   ]);
 
   return (
@@ -190,6 +208,16 @@ export default async function SchedulingRollupPage() {
       </section>
 
       <DispatcherPanel health={dispatcher} />
+
+      <AccessPanel
+        days={days}
+        rows={perHospital.map((h) => ({
+          hospitalId: h.hospitalId,
+          hospitalName: h.hospitalName,
+          access: access?.get(h.hospitalId) ?? null,
+        }))}
+        errored={access === null}
+      />
 
       <section
         aria-labelledby="per-hospital-heading"
@@ -657,6 +685,152 @@ function formatAge(minutes: number): string {
   const hours = Math.floor(minutes / 60);
   if (hours < 24) return `${hours}h ${String(minutes % 60).padStart(2, "0")}m`;
   return `${Math.floor(hours / 24)}d ${String(hours % 24).padStart(2, "0")}h`;
+}
+
+/* ─── booked access (Gate H) ───────────────────────────────────────── */
+
+/**
+ * The same aggregates the facility sees on /hospital-admin/reports, every
+ * tenant at once. The lib groups by hospital_id; a hospital with no row in
+ * the window is absent from the map and rendered as dashes. PHI-free by
+ * construction — the lib selects no name, code or phone at any grain, and
+ * this page shows only the per-hospital grain.
+ */
+async function fetchAccess(days: ReportDays): Promise<Map<string, TenantAggregates> | null> {
+  try {
+    return await fetchTenantAggregates(reportWindow(days));
+  } catch (e) {
+    logger.error("admin.scheduling-rollup.access_query_failed", { reason: String(e) });
+    return null;
+  }
+}
+
+interface AccessRow {
+  hospitalId: string;
+  hospitalName: string;
+  access: TenantAggregates | null;
+}
+
+function AccessPanel({
+  days,
+  rows,
+  errored,
+}: {
+  days: ReportDays;
+  rows: AccessRow[];
+  errored: boolean;
+}) {
+  return (
+    <section
+      aria-labelledby="access-heading"
+      className="border-border bg-card overflow-hidden rounded-lg border"
+    >
+      <header className="border-border flex flex-wrap items-center gap-2 border-b px-4 py-2.5 sm:px-6">
+        <GaugeIcon className="text-muted-foreground size-3.5" aria-hidden />
+        <h2 id="access-heading" className="text-foreground text-body-s font-medium">
+          Booked access
+        </h2>
+        <nav aria-label="Access window" className="ml-auto flex items-center gap-1">
+          {REPORT_WINDOWS.map((d) => (
+            <Link
+              key={d}
+              href={`/admin/scheduling-rollup?days=${d}`}
+              aria-current={d === days ? "page" : undefined}
+              className={cn(
+                "text-caption focus-visible:ring-brand-500/40 inline-flex min-h-11 items-center rounded px-2 font-mono transition-colors outline-none focus-visible:ring-2",
+                d === days
+                  ? "text-foreground font-medium"
+                  : "text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {d}d
+            </Link>
+          ))}
+        </nav>
+      </header>
+
+      {errored ? (
+        <p className="text-muted-foreground text-body-s p-8 text-center">
+          Access aggregates unavailable — the query failed. Check the Vercel function logs.
+        </p>
+      ) : rows.length === 0 ? (
+        <p className="text-muted-foreground text-body-s p-8 text-center">No active hospitals.</p>
+      ) : (
+        <table className="w-full border-collapse text-left">
+          <caption className="sr-only">
+            Booked-access aggregates per hospital, last {days} days
+          </caption>
+          <thead>
+            <tr className="border-border border-b bg-gray-50">
+              <Th>Hospital</Th>
+              <Th align="right">Fill</Th>
+              <Th align="right">No-show</Th>
+              <Th align="right">Wait accuracy</Th>
+              <Th align="right" className="hidden sm:table-cell">
+                Requests / places
+              </Th>
+              <Th align="right" className="hidden sm:table-cell">
+                SMS spend
+              </Th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr
+                key={r.hospitalId}
+                className="border-border hover:bg-muted/40 border-b transition-colors"
+              >
+                <td className="text-foreground text-body-s px-4 py-2.5 font-medium sm:px-6">
+                  {r.hospitalName}
+                </td>
+                <RateCell ratio={r.access?.fillRate} />
+                <RateCell ratio={r.access?.noShowRate} />
+                <RateCell ratio={r.access?.waitAccuracy} />
+                <td className="text-foreground text-body-s hidden px-4 py-2.5 text-right font-mono tabular-nums sm:table-cell sm:px-6">
+                  {r.access
+                    ? `${r.access.requests + r.access.waitlistJoined} / ${r.access.placesPublished}`
+                    : "—"}
+                </td>
+                <td className="text-foreground text-body-s hidden px-4 py-2.5 text-right font-mono tabular-nums sm:table-cell sm:px-6">
+                  {r.access && r.access.sms.messages > 0
+                    ? `${r.access.sms.currency ?? "UGX"} ${r.access.sms.cost.toFixed(0)}`
+                    : "—"}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+
+      <p className="text-muted-foreground text-caption border-border border-t px-4 py-3 leading-relaxed sm:px-6">
+        Same definitions as each hospital&apos;s own Reports page: fill = booked ÷ places on clinic
+        days that have ended; no-show = marked no-show ÷ bookings still held when their time came;
+        wait accuracy = booked arrivals called inside their promised window. A rate over fewer than{" "}
+        {MIN_RATE_SAMPLE} is shown as too few. Counts and rates per hospital only — these describe a
+        clinic&apos;s access, never a patient.
+      </p>
+    </section>
+  );
+}
+
+/** "68%" over its "n of d" basis, or "too few" — never a percentage on a thin sample. */
+function RateCell({ ratio }: { ratio: Ratio | undefined }) {
+  return (
+    <td className="px-4 py-2.5 text-right sm:px-6">
+      {ratio === undefined ? (
+        <span className="text-muted-foreground text-body-s font-mono tabular-nums">—</span>
+      ) : (
+        <span className="flex flex-col items-end leading-tight">
+          <span className="text-foreground text-body-s font-mono tabular-nums">
+            {ratio.share === null ? "too few" : `${Math.round(ratio.share * 100)}%`}
+          </span>
+          <span className="text-muted-foreground text-caption font-mono tabular-nums">
+            {ratio.numerator} of {ratio.denominator}
+          </span>
+        </span>
+      )}
+    </td>
+  );
 }
 
 /* ─── UI ───────────────────────────────────────────────────────────── */

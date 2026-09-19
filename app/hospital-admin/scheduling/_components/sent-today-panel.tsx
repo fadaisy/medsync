@@ -2,6 +2,11 @@
  * "Sent today" (Gate E, ADR 0090; PRD §3.4 reports seed): what left the
  * dispatcher today, by kind and channel, and what the SMS cost — the number
  * a facility watches (PRD §1.5). Server-rendered, no state.
+ *
+ * Gate H: the same panel over any range. `range` names the period ("the last
+ * 28 days") and `since` its start ("00:00 on 22 Aug"); both default to today,
+ * so the scheduling page calls it unchanged and /hospital-admin/reports
+ * passes its window.
  */
 const KIND_LABEL: Record<string, string> = {
   booking_receipt: "Booking receipts",
@@ -16,6 +21,8 @@ const KIND_LABEL: Record<string, string> = {
 
 export function SentTodayPanel({
   rows,
+  range = "today",
+  since = "midnight",
 }: {
   rows: ReadonlyArray<{
     kind: string;
@@ -24,6 +31,8 @@ export function SentTodayPanel({
     cost: number;
     currency: string | null;
   }>;
+  range?: string;
+  since?: string;
 }) {
   const smsCost = rows.filter((r) => r.channel === "sms").reduce((a, r) => a + r.cost, 0);
   const currency = rows.find((r) => r.currency)?.currency ?? "UGX";
@@ -32,9 +41,9 @@ export function SentTodayPanel({
   return (
     <section className="border-border bg-card flex flex-col rounded-lg border">
       <div className="flex flex-col gap-1 px-6 py-5">
-        <h2 className="text-foreground text-heading-s font-medium">Sent today</h2>
+        <h2 className="text-foreground text-heading-s font-medium">Sent {range}</h2>
         <p className="text-muted-foreground text-body-s max-w-xl leading-relaxed">
-          Messages the dispatcher sent since midnight, East Africa Time. SMS spend is what the
+          Messages the dispatcher sent since {since}, East Africa Time. SMS spend is what the
           provider reported per message; push is free.
         </p>
       </div>
@@ -49,7 +58,7 @@ export function SentTodayPanel({
       {rows.length > 0 ? (
         <div className="border-border overflow-x-auto border-t">
           <table className="w-full text-left">
-            <caption className="sr-only">Messages sent today by kind and channel</caption>
+            <caption className="sr-only">Messages sent {range} by kind and channel</caption>
             <thead className="bg-muted text-muted-foreground text-[10px] font-semibold tracking-[0.04em] uppercase">
               <tr>
                 <th className="px-6 py-2">Kind</th>
