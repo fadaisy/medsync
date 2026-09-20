@@ -426,55 +426,46 @@ export default function HomeScreen() {
             demoted by having less of everything. The glyphs are distinct and
             subordinate; the label carries the meaning. */}
         <Section title="Get seen">
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => router.push("/(app)/today")}
-            style={({ pressed }) => [styles.door, styles.primaryDoor, pressed && styles.pressed]}
-          >
-            <View
-              style={[styles.disc, styles.primaryDisc]}
-              accessibilityElementsHidden
-              importantForAccessibility="no-hide-descendants"
+          {/* Two doors in one row — the reference's tiles. The disc sits over
+              the title, the one sentence under it; the primary is the one
+              filled surface (ADR 0084 §1), the other a card with a hairline. */}
+          <View style={styles.doors}>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => router.push("/(app)/today")}
+              style={({ pressed }) => [styles.door, styles.primaryDoor, pressed && styles.pressed]}
             >
-              <Ionicons name="walk-outline" size={22} color={colors.ctaForeground} />
-            </View>
-            <View style={styles.doorText}>
+              <View
+                style={[styles.disc, styles.primaryDisc]}
+                accessibilityElementsHidden
+                importantForAccessibility="no-hide-descendants"
+              >
+                <Ionicons name="walk-outline" size={20} color={colors.ctaForeground} />
+              </View>
               <Text style={styles.primaryTitle}>Coming to the hospital today</Text>
               <Text style={styles.primaryBody}>We cannot tell you the hour.</Text>
-            </View>
-            <Ionicons
-              name="chevron-forward"
-              size={20}
-              color={colors.ctaForeground}
-              accessibilityElementsHidden
-              importantForAccessibility="no-hide-descendants"
-            />
-          </Pressable>
+            </Pressable>
 
-          <Pressable
-            accessibilityRole="button"
-            onPress={() => router.push("/(app)/book")}
-            style={({ pressed }) => [styles.door, styles.secondaryDoor, pressed && styles.pressed]}
-          >
-            <View
-              style={[styles.disc, styles.secondaryDisc]}
-              accessibilityElementsHidden
-              importantForAccessibility="no-hide-descendants"
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => router.push("/(app)/book")}
+              style={({ pressed }) => [
+                styles.door,
+                styles.secondaryDoor,
+                pressed && styles.pressed,
+              ]}
             >
-              <Ionicons name="calendar-outline" size={22} color={colors.accentForeground} />
-            </View>
-            <View style={styles.doorText}>
+              <View
+                style={[styles.disc, styles.secondaryDisc]}
+                accessibilityElementsHidden
+                importantForAccessibility="no-hide-descendants"
+              >
+                <Ionicons name="calendar-outline" size={20} color={colors.accentForeground} />
+              </View>
               <Text style={styles.secondaryTitle}>Ask for a day — the clinic confirms</Text>
               <Text style={styles.secondaryBody}>Choose from the days the clinic has open.</Text>
-            </View>
-            <Ionicons
-              name="chevron-forward"
-              size={20}
-              color={colors.mutedForeground}
-              accessibilityElementsHidden
-              importantForAccessibility="no-hide-descendants"
-            />
-          </Pressable>
+            </Pressable>
+          </View>
         </Section>
 
         {(doctors && doctors.length > 0) || (clinics && clinics.length > 0) ? (
@@ -865,16 +856,15 @@ const makeStyles = (c: Palette) =>
       color: c.foreground,
     },
 
+    doors: { flexDirection: "row", gap: space[3] },
     door: {
-      flexDirection: "row",
-      alignItems: "center",
-      gap: space[3],
+      flex: 1,
+      gap: space[2],
       borderRadius: radius["2xl"],
     },
-    doorText: { flex: 1, gap: space[1] },
     disc: {
-      width: 40,
-      height: 40,
+      width: 36,
+      height: 36,
       borderRadius: radius.full,
       alignItems: "center",
       justifyContent: "center",
@@ -882,16 +872,16 @@ const makeStyles = (c: Palette) =>
 
     // The signature pair — the mint fill and its dark ink — spent on the one
     // primary act of the screen, as a full-width surface rather than a pill.
-    primaryDoor: { padding: space[5], backgroundColor: c.cta },
+    primaryDoor: { padding: space[4], backgroundColor: c.cta },
     primaryDisc: { backgroundColor: withAlpha(c.ctaForeground, 0.12) },
     primaryTitle: {
       fontFamily: font.display,
-      fontSize: 21,
-      lineHeight: 27,
-      letterSpacing: -0.3,
+      fontSize: 17,
+      lineHeight: 22,
+      letterSpacing: -0.2,
       color: c.ctaForeground,
     },
-    primaryBody: { fontFamily: font.body, fontSize: 14.5, lineHeight: 21, color: c.ctaMuted },
+    primaryBody: { fontFamily: font.body, fontSize: 13, lineHeight: 18, color: c.ctaMuted },
 
     // A plain card with a hairline: the demotion is having less — no fill, a
     // smaller title, the page's own ink.
@@ -915,14 +905,14 @@ const makeStyles = (c: Palette) =>
     },
     secondaryTitle: {
       fontFamily: font.bodyMedium,
-      fontSize: 16,
-      lineHeight: 22,
+      fontSize: 15,
+      lineHeight: 20,
       color: c.foreground,
     },
     secondaryBody: {
       fontFamily: font.body,
-      fontSize: 14,
-      lineHeight: 20,
+      fontSize: 13,
+      lineHeight: 18,
       color: c.mutedForeground,
     },
 

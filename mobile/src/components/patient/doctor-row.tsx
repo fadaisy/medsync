@@ -20,10 +20,41 @@ import { font, radius, space } from "@/theme/tokens";
  * patient scanning the roster (ADR 0086) is not sent into a page with nothing
  * to pick. Times and counts live on that page.
  */
-export function DoctorRow({ option, onPress }: { option: ClinicianOption; onPress: () => void }) {
+export function DoctorRow({
+  option,
+  onPress,
+  tile = false,
+}: {
+  option: ClinicianOption;
+  onPress: () => void;
+  /** Two a row in a grid: avatar over name over the next open day; no chevron. */
+  tile?: boolean;
+}) {
   const { colors } = useTheme();
   const styles = useStyles(makeStyles);
   const nextOpen = Object.keys(option.slotsByDate).sort()[0];
+
+  if (tile) {
+    return (
+      <Pressable
+        accessibilityRole="button"
+        accessibilityHint="Opens this doctor"
+        onPress={onPress}
+        style={({ pressed }) => [styles.tile, pressed && styles.pressed]}
+      >
+        <Avatar name={option.fullName} size={44} uri={option.photoUrl} />
+        <Text style={styles.who} numberOfLines={1}>
+          {option.fullName}
+        </Text>
+        <Text style={styles.what} numberOfLines={1}>
+          {option.specialty ?? option.cadre}
+        </Text>
+        <Text style={[styles.when, !nextOpen && styles.whenNone]} numberOfLines={1}>
+          {nextOpen ? `Next ${dayLabel(nextOpen)}` : "No days open"}
+        </Text>
+      </Pressable>
+    );
+  }
 
   return (
     <Pressable
@@ -64,6 +95,14 @@ const makeStyles = (c: Palette) =>
       flexDirection: "row",
       alignItems: "center",
       gap: space[3],
+      padding: space[3],
+      borderRadius: radius["2xl"],
+      backgroundColor: c.card,
+      borderWidth: 1,
+      borderColor: c.border,
+    },
+    tile: {
+      gap: 2,
       padding: space[3],
       borderRadius: radius["2xl"],
       backgroundColor: c.card,

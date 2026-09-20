@@ -228,7 +228,9 @@ const makeStyles = (c: Palette) =>
       overflow: "hidden",
       backgroundColor: c.accent,
     },
-    photo: { width: "100%", aspectRatio: 4 / 5, backgroundColor: c.accent },
+    // 4:3, not 4:5: the days and times are the point of the screen and a
+    // taller photo pushed them a scroll away.
+    photo: { width: "100%", aspectRatio: 4 / 3, backgroundColor: c.accent },
     monogram: { alignItems: "center", justifyContent: "center" },
     initials: { fontFamily: font.mono, fontSize: 56, color: c.accentForeground },
     backSlot: { position: "absolute", top: space[4], left: space[4] },

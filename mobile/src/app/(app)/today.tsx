@@ -1,4 +1,4 @@
-import type { PatientProfile, WalkInDepartment } from "@/lib/booking";
+import type { HospitalOption, PatientProfile, WalkInDepartment } from "@/lib/booking";
 import type { Palette } from "@/theme/tokens";
 import { useCallback, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
@@ -16,11 +16,14 @@ import {
 
 import { EmergencyButton } from "@/components/patient/emergency-button";
 import { Button } from "@/components/ui/button";
+import { Chip, ChipRow } from "@/components/ui/chip";
 import { Empty } from "@/components/ui/empty";
 import { Screen } from "@/components/ui/screen";
 import { Section } from "@/components/ui/section";
 import {
+  choosePrimaryHospital,
   declareIntake,
+  fetchHospitals,
   fetchLiveIntake,
   fetchPatientProfile,
   fetchWalkInDepartments,
@@ -64,6 +67,9 @@ export default function TodayScreen() {
   const [noteFocused, setNoteFocused] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hospitals, setHospitals] = useState<HospitalOption[]>([]);
+  const [switching, setSwitching] = useState<string | null>(null);
+  const [allHospitalsShown, setAllHospitalsShown] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -74,9 +80,16 @@ export default function TodayScreen() {
         router.dismissTo("/(app)/(tabs)");
         return;
       }
-      const [live, depts] = await Promise.all([
+      const [live, depts, allHospitals] = await Promise.all([
         fetchLiveIntake(p.hospitalId),
         fetchWalkInDepartments(p.hospitalId),
+        // The chips: every active hospital, this one first. A failed read
+        // hides the chips, never the clinics.
+        fetchHospitals().catch(() => [] as HospitalOption[]),
+      ]);
+      setHospitals([
+        ...allHospitals.filter((h) => h.id === p.hospitalId),
+        ...allHospitals.filter((h) => h.id !== p.hospitalId),
       ]);
       // Already in today's line: the ticket IS the answer to "coming today".
       if (live) {
@@ -170,12 +183,53 @@ export default function TodayScreen() {
   }
 
   const hospitalName = profile.hospitalName ?? "your hospital";
+  const switchTo = async (id: string) => {
+    setSwitching(id);
+    setError(null);
+    try {
+      await choosePrimaryHospital(id);
+      setSelectedId(null);
+      await load();
+    } catch {
+      setError("Couldn't switch hospital — try again in a moment.");
+    } finally {
+      setSwitching(null);
+    }
+  };
+
   const head = (
     <>
-      <Text style={styles.eyebrow}>{hospitalName}</Text>
       <Text style={styles.lede}>
         We save your place in line. You will be seen in turn. We cannot tell you the hour.
       </Text>
+      {/* Yours first and filled, two beside it, the directory beyond that:
+          tapping another makes it your hospital (the same write the web's
+          chips make) and the clinics below follow. */}
+      {hospitals.length > 1 ? (
+        <ChipRow>
+          {(allHospitalsShown ? hospitals : hospitals.slice(0, 3)).map((h) => (
+            <Chip
+              key={h.id}
+              role="button"
+              label={switching === h.id ? "Switching…" : h.name}
+              selected={h.id === profile?.hospitalId}
+              onPress={() => {
+                if (h.id !== profile?.hospitalId && switching === null) void switchTo(h.id);
+              }}
+            />
+          ))}
+          {hospitals.length > 3 && !allHospitalsShown ? (
+            <Chip
+              role="button"
+              label={`View more (${hospitals.length - 3})`}
+              selected={false}
+              onPress={() => setAllHospitalsShown(true)}
+            />
+          ) : null}
+        </ChipRow>
+      ) : (
+        <Text style={styles.eyebrow}>{hospitalName}</Text>
+      )}
     </>
   );
   // Named rather than silently omitted: a patient told to go to a specific

@@ -170,25 +170,31 @@ export default function BookScreen() {
 
             {hospitals.map((h) => (
               <Section key={h.id} title={h.name}>
-                <View style={styles.list}>
+                {/* Two tiles a row: a department's doctors on one screen. */}
+                <View style={styles.grid}>
                   {shown
                     .filter((c) => c.hospitalId === h.id)
                     .map((c) => (
-                      <DoctorRow
-                        // A clinician can be bookable in two departments; each pair is a row.
+                      <View
                         key={`${c.userId}:${c.hospitalId}:${c.departmentId}`}
-                        option={c}
-                        onPress={() =>
-                          router.push({
-                            pathname: "/(app)/doctor/[id]",
-                            params: {
-                              id: c.userId,
-                              department: c.departmentId,
-                              hospital: c.hospitalId,
-                            },
-                          })
-                        }
-                      />
+                        style={styles.cell}
+                      >
+                        <DoctorRow
+                          // A clinician can be bookable in two departments; each pair is a tile.
+                          option={c}
+                          tile
+                          onPress={() =>
+                            router.push({
+                              pathname: "/(app)/doctor/[id]",
+                              params: {
+                                id: c.userId,
+                                department: c.departmentId,
+                                hospital: c.hospitalId,
+                              },
+                            })
+                          }
+                        />
+                      </View>
                     ))}
                 </View>
               </Section>
@@ -205,6 +211,8 @@ const makeStyles = (c: Palette) =>
     center: { flexGrow: 1, alignItems: "center", justifyContent: "center" },
     stack: { flexGrow: 1, gap: space[5] },
     list: { gap: space[3] },
+    grid: { flexDirection: "row", flexWrap: "wrap", gap: space[3] },
+    cell: { width: "47.5%" },
 
     lede: {
       fontFamily: font.body,
