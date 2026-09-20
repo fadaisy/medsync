@@ -22,8 +22,8 @@ import {
   localDateKey,
   startOfLocalDay,
 } from "@/supabase/functions/_shared/slots";
-import { PlaceholderSurface } from "../_components/placeholder-surface";
 import { SchedulingOverviewCard } from "../_components/scheduling-overview-card";
+import { SegmentedLink } from "../_components/segmented-link";
 import { ClinicSessionsSection } from "./_components/clinic-sessions-section";
 import { PolicyForm } from "./_components/policy-form";
 import { SentTodayPanel } from "./_components/sent-today-panel";
@@ -57,8 +57,27 @@ const TIME_FMT = new Intl.DateTimeFormat("en-GB", {
  * this is the only surface that wants "every department, with its policy or
  * the absence of one"; a shared query would be an abstraction with one caller.
  */
-export default async function SchedulingPage() {
+const TABS = [
+  ["lines", "Service lines"],
+  ["sessions", "Clinic sessions"],
+  ["policy", "Booking policy"],
+  ["messages", "Messages"],
+] as const;
+type Tab = (typeof TABS)[number][0];
+
+/**
+ * One page, four tabs by URL (`?tab=`): the sections used to stack into one
+ * scroll of forms and tables. Links, not client state, so a tab is a URL the
+ * sidebar and the browser's Back both understand.
+ */
+export default async function SchedulingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>;
+}) {
   const scope = await requireHospitalAdminScope();
+  const { tab: rawTab } = await searchParams;
+  const tab: Tab = TABS.some(([t]) => t === rawTab) ? (rawTab as Tab) : "lines";
 
   // Left join: a department with no policy row is unrestricted (ADR 0084
   // §14), and that is a state the editor must be able to show and replace —
@@ -122,7 +141,7 @@ export default async function SchedulingPage() {
     ]);
 
   return (
-    <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 py-8 sm:px-6 sm:py-10">
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-4 py-8 sm:px-6 sm:py-10">
       <header className="flex flex-col gap-2">
         <span className="text-muted-foreground inline-flex w-fit items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
           <span aria-hidden className="bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2" />
@@ -131,10 +150,6 @@ export default async function SchedulingPage() {
         <h1 className="font-display text-foreground sm:text-heading-l text-[24px] leading-[1.15] font-medium tracking-[-0.015em]">
           Scheduling
         </h1>
-        <p className="text-muted-foreground max-w-2xl text-[13.5px] leading-relaxed">
-          Service lines, clinic sessions and department booking policy. Per-clinician availability
-          and booked appointments live in each clinician&apos;s own workspace.
-        </p>
         <div className="bg-brand-500/60 dark:bg-brand-400/50 h-px w-10" aria-hidden />
       </header>
 
@@ -161,58 +176,84 @@ export default async function SchedulingPage() {
             ))}
           </ul>
           <p className="text-body-s">
-            Assign a clinician in the clinic days list below, or cancel the day so the people booked
-            are told.
+            Assign a clinician under Clinic sessions, or cancel the day so the people booked are
+            told.
           </p>
         </section>
       ) : null}
 
       <SchedulingOverviewCard hospitalId={scope.hospitalId} variant="panel" />
 
-      <ServiceLinesSection
-        lines={lines}
-        departments={departments.map((d) => ({ id: d.departmentId, name: d.departmentName }))}
-        cadres={clinicalCadres}
-        fees={fees}
-      />
+      <nav aria-label="Scheduling sections" className="flex flex-wrap gap-2">
+        {TABS.map(([id, label]) => (
+          <SegmentedLink key={id} href={`/hospital-admin/scheduling?tab=${id}`} active={id === tab}>
+            {label}
+            <Count
+              n={
+                id === "lines"
+                  ? lines.length
+                  : id === "sessions"
+                    ? sessions.length
+                    : id === "policy"
+                      ? unset
+                      : sentToday.reduce((a, r) => a + r.count, 0)
+              }
+              active={id === tab}
+            />
+          </SegmentedLink>
+        ))}
+      </nav>
 
-      <ClinicSessionsSection
-        templates={templates}
-        sessions={sessions}
-        sessionLines={lines
-          .filter((l) => l.active && l.capacityMode === "session")
-          .map((l) => ({ id: l.id, name: l.name }))}
-        clinicians={clinicians}
-        todayYmd={localDateKey(new Date(), DEFAULT_TIME_ZONE)}
-      />
-
-      <SentTodayPanel rows={sentToday} />
-
-      {unset > 0 && departments.length > 0 ? (
-        <p className="border-border bg-muted/50 text-muted-foreground text-body-s rounded-md border p-3 leading-relaxed">
-          <span className="text-foreground font-medium">
-            {unset} of {departments.length}{" "}
-            {departments.length === 1 ? "department has" : "departments have"} no booking policy.
-          </span>{" "}
-          Those departments are unrestricted — they accept same-day arrivals at any hour, and
-          booking follows each clinician&apos;s own availability alone. That is a working default,
-          not an error; set a policy only where you want to narrow it.
-        </p>
-      ) : null}
-
-      <PolicyForm departments={departments} />
-
-      <PlaceholderSurface
-        title="Utilisation analytics"
-        description="The policy editor above is live. The operational numbers that tell you whether it is working — utilisation, no-show patterns, and the declared → arrived conversion per department that ADR 0084 names as the measure of the same-day door — land in their own prompt."
-        upcoming={[
-          "Slot utilisation by clinician + department",
-          "Declared → arrived conversion per department",
-          "No-show pattern surfacing (operational signal, never patient-punitive)",
-          "Stale-pending-approval signal for clinicians sitting on requests",
-        ]}
-      />
+      {tab === "lines" ? (
+        <ServiceLinesSection
+          lines={lines}
+          departments={departments.map((d) => ({ id: d.departmentId, name: d.departmentName }))}
+          cadres={clinicalCadres}
+          fees={fees}
+        />
+      ) : tab === "sessions" ? (
+        <ClinicSessionsSection
+          templates={templates}
+          sessions={sessions}
+          sessionLines={lines
+            .filter((l) => l.active && l.capacityMode === "session")
+            .map((l) => ({ id: l.id, name: l.name }))}
+          clinicians={clinicians}
+          todayYmd={localDateKey(new Date(), DEFAULT_TIME_ZONE)}
+        />
+      ) : tab === "policy" ? (
+        <>
+          {unset > 0 && departments.length > 0 ? (
+            <p className="text-muted-foreground text-body-s">
+              <span className="text-foreground font-medium">
+                {unset} of {departments.length}{" "}
+                {departments.length === 1 ? "department has" : "departments have"} no policy
+              </span>{" "}
+              — unrestricted, which is a working default. Set one only to narrow it.
+            </p>
+          ) : null}
+          <PolicyForm departments={departments} />
+        </>
+      ) : (
+        <SentTodayPanel rows={sentToday} />
+      )}
     </div>
+  );
+}
+
+/** The small count beside a tab's label — the reference's badge, never a colour alone. */
+function Count({ n, active }: { n: number; active: boolean }) {
+  if (n === 0) return null;
+  return (
+    <span
+      className={
+        active
+          ? "bg-primary-foreground/20 rounded-full px-1.5 font-mono text-[11px] tabular-nums"
+          : "bg-muted text-muted-foreground rounded-full px-1.5 font-mono text-[11px] tabular-nums"
+      }
+    >
+      {n}
+    </span>
   );
 }
 

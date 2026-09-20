@@ -65,12 +65,6 @@ const MODE_TONE: Record<string, PillTone> = {
   open_queue: "discharged",
 };
 
-const POSTURE_LABEL: Record<string, string> = {
-  none: "No payment",
-  deposit: "Deposit",
-  full: "Full fee",
-};
-
 const REASON_LABEL: Record<string, string> = {
   follow_up: "Follow-up",
   post_discharge: "Post-discharge",
@@ -124,20 +118,16 @@ export function ServiceLinesSection({
       id: "name",
       header: "Service line",
       cell: (row) => (
-        <div className="flex min-w-0 flex-col">
-          <span className="text-foreground truncate font-medium">
-            {row.name}
-            {row.active ? "" : <span className="text-muted-foreground"> · inactive</span>}
+        <div className="flex min-w-0 flex-col gap-0.5">
+          <span className="flex min-w-0 items-center gap-1.5">
+            <span className="text-foreground truncate font-medium">{row.name}</span>
+            {row.isDefault ? <Pill tone="stable">Default</Pill> : null}
+            {row.confidential ? <Pill tone="sensitive">Confidential</Pill> : null}
+            {row.active ? null : <Pill tone="neutral">Inactive</Pill>}
           </span>
-          <span className="text-muted-foreground text-caption truncate font-mono">{row.slug}</span>
+          <span className="text-muted-foreground text-caption truncate">{row.departmentName}</span>
         </div>
       ),
-    },
-    {
-      id: "department",
-      header: "Department",
-      cell: (row) => <span className="truncate">{row.departmentName}</span>,
-      hideOnNarrow: true,
     },
     {
       id: "mode",
@@ -149,51 +139,36 @@ export function ServiceLinesSection({
       ),
     },
     {
+      id: "fee",
+      header: "Fee",
+      mono: true,
+      cell: (row) =>
+        row.paymentPosture === "none" || row.feeUgx === null ? (
+          <span className="text-muted-foreground">Free</span>
+        ) : (
+          `UGX ${row.feeUgx.toLocaleString("en-UG")}${row.paymentPosture === "deposit" ? " · deposit" : ""}`
+        ),
+    },
+    {
       id: "ttc",
       header: "Time to care",
       mono: true,
       cell: (row) => `${row.timeToCareDays} d`,
       hideOnNarrow: true,
     },
-    {
-      id: "confidential",
-      header: "Confidential",
-      cell: (row) =>
-        row.confidential ? (
-          <Pill tone="sensitive">Confidential</Pill>
-        ) : (
-          <span className="text-muted-foreground">—</span>
-        ),
-      hideOnNarrow: true,
-    },
-    {
-      id: "posture",
-      header: "Payment",
-      cell: (row) => POSTURE_LABEL[row.paymentPosture] ?? row.paymentPosture,
-      hideOnNarrow: true,
-    },
-    {
-      id: "default",
-      header: "Default",
-      cell: (row) =>
-        row.isDefault ? <Pill tone="stable">Default</Pill> : <span className="sr-only">No</span>,
-    },
   ];
 
   return (
     <section className="border-border bg-card flex flex-col rounded-lg border">
-      <div className="flex flex-col gap-3 px-6 py-5 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex flex-col gap-1">
+      <div className="flex items-center justify-between gap-3 px-6 py-4">
+        <div className="flex flex-col gap-0.5">
           <h2 className="text-foreground text-heading-s font-medium">Service lines</h2>
-          <p className="text-muted-foreground text-body-s max-w-xl leading-relaxed">
-            What patients can book and how each service takes its patients — a timed slot, a
-            numbered position in a clinic session, or a same-day queue. Every department already has
-            one slot-mode line; new lines default to session mode.
+          <p className="text-muted-foreground text-body-s">
+            What patients can book, and how each line takes them. Select a row to edit.
           </p>
         </div>
         <Button
           type="button"
-          variant="secondary"
           onClick={() => setSelected("new")}
           disabled={departments.length === 0}
           className="w-fit shrink-0"
@@ -214,7 +189,7 @@ export function ServiceLinesSection({
           empty={
             <DataTableEmpty
               title="No service lines yet"
-              description="Add a department first — each department gets a slot-mode line when it is created — or create a line here."
+              description="Add a department first, or create a line here."
             />
           }
         />
@@ -273,8 +248,8 @@ function ServiceLineEditor({
         <SheetTitle>{line ? line.name : "New service line"}</SheetTitle>
         <SheetDescription>
           {line
-            ? "Changes apply to new bookings. Sessions already published keep their own capacity."
-            : "A bookable service inside one department. Patients discover lines, not departments."}
+            ? "Applies to new bookings; published clinic days keep theirs."
+            : "One bookable service in one department."}
         </SheetDescription>
       </SheetHeader>
 
@@ -329,10 +304,10 @@ function ServiceLineEditor({
             </select>
             <span className="text-muted-foreground text-caption">
               {mode === "session"
-                ? "Publish weekly clinic sessions below; patients get a position and an arrival window."
+                ? "A position and an arrival window, from weekly rules."
                 : mode === "slot"
-                  ? "Uses the department booking policy and each clinician's availability."
-                  : "No sessions or slots; patients take a same-day ticket."}
+                  ? "A time, from each clinician's availability."
+                  : "A same-day ticket."}
             </span>
           </div>
         </div>
@@ -357,8 +332,7 @@ function ServiceLineEditor({
               className="sm:max-w-[160px]"
             />
             <span className="text-muted-foreground text-caption">
-              The longest wait this line should offer before it is flagged. Appendix A defaults are
-              provisional until CSO sign-off.
+              The longest wait before this line is flagged.
             </span>
           </div>
           <div className="flex flex-col gap-1.5">
@@ -392,9 +366,8 @@ function ServiceLineEditor({
             />
             <span className="flex flex-col gap-0.5">
               <span className="text-foreground font-medium">Offer continuity first</span>
-              <span className="text-muted-foreground text-caption leading-relaxed">
-                Returning patients are shown their last clinician first. Access still wins — the
-                soonest session is always offered.
+              <span className="text-muted-foreground text-caption">
+                Returning patients see their last clinician first.
               </span>
             </span>
           </label>
@@ -407,8 +380,8 @@ function ServiceLineEditor({
             />
             <span className="flex flex-col gap-0.5">
               <span className="text-foreground font-medium">Confidential service</span>
-              <span className="text-muted-foreground text-caption leading-relaxed">
-                Hidden from proxy bookers; messages never name the service.
+              <span className="text-muted-foreground text-caption">
+                Hidden from proxy bookers; never named in messages.
               </span>
             </span>
           </label>
@@ -418,8 +391,8 @@ function ServiceLineEditor({
           <legend className="text-muted-foreground -ml-1 px-1 font-mono text-[10.5px] tracking-[0.14em] uppercase">
             Payment posture
           </legend>
-          <p className="text-muted-foreground text-body-s leading-relaxed">
-            Posture only. No money moves until payments are switched on for this hospital.
+          <p className="text-muted-foreground text-caption">
+            Stated to patients; nothing is charged in the app.
           </p>
           <div className="grid gap-3 sm:grid-cols-3">
             <div className="flex flex-col gap-1.5">
@@ -484,9 +457,8 @@ function ServiceLineEditor({
             />
             <span className="flex flex-col gap-0.5">
               <span className="text-foreground font-medium">Hospital default</span>
-              <span className="text-muted-foreground text-caption leading-relaxed">
-                Where a patient lands when no service is chosen — usually General OPD. One per
-                hospital; ticking this here unticks the current default.
+              <span className="text-muted-foreground text-caption">
+                Where a patient lands with no service chosen. One per hospital.
               </span>
             </span>
           </label>
@@ -499,8 +471,8 @@ function ServiceLineEditor({
             />
             <span className="flex flex-col gap-0.5">
               <span className="text-foreground font-medium">Active</span>
-              <span className="text-muted-foreground text-caption leading-relaxed">
-                Inactive lines take no new bookings; existing ones are untouched.
+              <span className="text-muted-foreground text-caption">
+                Inactive: no new bookings; held ones stand.
               </span>
             </span>
           </label>
@@ -524,9 +496,7 @@ function ServiceLineEditor({
             required
             placeholder="Why this change — at least 8 characters"
           />
-          <span className="text-muted-foreground text-caption">
-            Recorded against your name in the hospital audit log.
-          </span>
+          <span className="text-muted-foreground text-caption">Goes to the audit log.</span>
         </div>
 
         {state.error ? (
@@ -594,10 +564,8 @@ function CadreFees({
     <div className="border-border flex flex-col gap-3 rounded-md border p-3">
       <div className="flex flex-col gap-1">
         <span className="text-foreground text-body-s font-medium">Fees by cadre</span>
-        <span className="text-muted-foreground text-caption leading-relaxed">
-          Optional. Without a row here, every clinician on this line charges the flat fee above —
-          which is how Ugandan public hospitals price. Add a row only where this facility charges
-          differently by cadre. Bookings already held keep the number they were told.
+        <span className="text-muted-foreground text-caption">
+          Optional. No rows = the flat fee above for everyone. Held bookings keep their quote.
         </span>
       </div>
 
@@ -669,7 +637,7 @@ function CadreFees({
           value={reason}
           onChange={(e) => setReason(e.target.value)}
           minLength={8}
-          placeholder="Why — at least 8 characters; also used when clearing a row"
+          placeholder="Why — at least 8 characters"
         />
       </div>
 

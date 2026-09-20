@@ -213,18 +213,16 @@ export function ClinicSessionsSection({
 
   return (
     <section className="border-border bg-card flex flex-col rounded-lg border">
-      <div className="flex flex-col gap-3 px-6 py-5 sm:flex-row sm:items-start sm:justify-between">
-        <div className="flex flex-col gap-1">
-          <h2 className="text-foreground text-heading-s font-medium">Clinic sessions</h2>
-          <p className="text-muted-foreground text-body-s max-w-xl leading-relaxed">
-            Weekly rules for session-mode lines. Each rule produces a dated session 14 days ahead,
-            with its booked and walk-in allocations fixed at the moment it is published — editing a
-            rule never changes a session patients already hold positions in.
+      <div className="flex items-center justify-between gap-3 px-6 py-4">
+        <div className="flex flex-col gap-0.5">
+          <h2 className="text-foreground text-heading-s font-medium">Weekly rules</h2>
+          <p className="text-muted-foreground text-body-s">
+            Each rule publishes its clinic days 14 days ahead. Days with bookings keep their
+            promise.
           </p>
         </div>
         <Button
           type="button"
-          variant="secondary"
           onClick={() => setSelected("new")}
           disabled={sessionLines.length === 0}
           className="w-fit shrink-0"
@@ -247,19 +245,18 @@ export function ClinicSessionsSection({
               title="No weekly rules yet"
               description={
                 sessionLines.length === 0
-                  ? "Rules hang on a service line in session mode. Set a line to session mode above, then add its clinic days here."
-                  : "Add a rule — the day, start time, length and capacity of a recurring clinic."
+                  ? "Set a service line to session mode first."
+                  : "Add a rule — day, start, length, capacity."
               }
             />
           }
         />
       </div>
 
-      <div className="border-border flex flex-col gap-1 border-t px-6 py-4">
+      <div className="border-border flex flex-col gap-0.5 border-t px-6 py-4">
         <h3 className="text-foreground text-body-m font-medium">Next 14 days</h3>
         <p className="text-muted-foreground text-caption">
-          Sessions generated from the rules above, in East Africa Time. Select a day to mark it
-          running late or to cancel it.
+          East Africa Time. Select a day to mark it late or cancel it.
         </p>
       </div>
       <DataTable
@@ -272,7 +269,7 @@ export function ClinicSessionsSection({
         empty={
           <DataTableEmpty
             title="No clinic sessions published yet"
-            description="Sessions appear here once a weekly rule is saved. They are generated 14 days ahead and topped up nightly."
+            description="Days appear once a weekly rule is saved."
           />
         }
       />

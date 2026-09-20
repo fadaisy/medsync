@@ -123,18 +123,20 @@ export async function SchedulingOverviewCard({
       <header className="flex items-center justify-between gap-3">
         <h2 className="text-foreground text-body-m inline-flex items-center gap-2 font-medium">
           <CalendarClockIcon className="text-brand-600 size-4" aria-hidden />
-          Scheduling
+          {isPanel ? "Today" : "Scheduling"}
         </h2>
-        <Link
-          href="/hospital-admin/scheduling"
-          className="text-muted-foreground hover:text-foreground text-caption focus-visible:ring-brand-500/40 group inline-flex min-h-11 items-center gap-1 rounded transition-colors outline-none focus-visible:ring-2"
-        >
-          View
-          <ArrowRightIcon
-            className="size-3 transition-transform group-hover:translate-x-0.5"
-            aria-hidden
-          />
-        </Link>
+        {isPanel ? null : (
+          <Link
+            href="/hospital-admin/scheduling"
+            className="text-muted-foreground hover:text-foreground text-caption focus-visible:ring-brand-500/40 group inline-flex min-h-11 items-center gap-1 rounded transition-colors outline-none focus-visible:ring-2"
+          >
+            View
+            <ArrowRightIcon
+              className="size-3 transition-transform group-hover:translate-x-0.5"
+              aria-hidden
+            />
+          </Link>
+        )}
       </header>
 
       {stats === null ? (
@@ -164,13 +166,6 @@ export async function SchedulingOverviewCard({
           />
         </div>
       )}
-
-      {isPanel ? (
-        <p className="text-muted-foreground border-border/60 text-body-s border-t pt-3 leading-relaxed">
-          Operational signals. Per-clinician schedules live in each clinician&apos;s workspace —
-          this rolls up the hospital-wide view.
-        </p>
-      ) : null}
     </section>
   );
 }

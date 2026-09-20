@@ -197,10 +197,9 @@ export function PolicyForm({
     >
       <div className="flex flex-col gap-1">
         <h2 className="text-foreground text-heading-s font-medium">Department booking policy</h2>
-        <p className="text-muted-foreground text-body-s leading-relaxed">
-          Slot length, turnaround, bookable days and hours, and how many reminders a booking queues.
-          A clinician&rsquo;s own settings override the slot length, buffer, auto-confirm and
-          virtual toggles for their own calendar; the days and hours here always apply.
+        <p className="text-muted-foreground text-body-s">
+          Slot length, hours and reminders per department. A clinician&rsquo;s own settings override
+          the slot mechanics; the days and hours always apply.
         </p>
       </div>
 
@@ -228,10 +227,8 @@ export function PolicyForm({
         <p className="border-border bg-muted/50 text-muted-foreground text-body-s flex items-start gap-2 rounded-md border p-3 leading-relaxed">
           <InfoIcon className="text-foreground mt-0.5 size-4 shrink-0" aria-hidden />
           <span>
-            <span className="text-foreground font-medium">This department has no policy yet.</span>{" "}
-            Right now it is unrestricted: same-day arrivals are accepted at any hour, and booking is
-            bounded only by each clinician&rsquo;s own availability. Saving below is a narrowing —
-            days and hours left unticked stop accepting both.
+            <span className="text-foreground font-medium">No policy yet — unrestricted.</span>{" "}
+            Saving narrows it: unticked days and hours stop accepting bookings.
           </span>
         </p>
       ) : null}

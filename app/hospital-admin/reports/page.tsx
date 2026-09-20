@@ -1,7 +1,6 @@
 import type { LineRow, SessionRow } from "./_components/line-tables";
-import type { Ratio, ReportDays } from "@/lib/hospital-admin/reports";
+import type { Ratio } from "@/lib/hospital-admin/reports";
 import type { Metadata } from "next";
-import Link from "next/link";
 
 import {
   fetchHospitalReport,
@@ -15,6 +14,7 @@ import {
 import { requireHospitalAdminScope } from "@/lib/hospital-admin/scope";
 import { cn } from "@/lib/utils";
 import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
+import { SegmentedLink } from "../_components/segmented-link";
 import { SentTodayPanel } from "../scheduling/_components/sent-today-panel";
 import { LineTable, SessionTable } from "./_components/line-tables";
 
@@ -108,7 +108,9 @@ export default async function ReportsPage({ searchParams }: PageProps) {
       <nav aria-label="Report window" className="flex flex-wrap items-center gap-2">
         <span className="text-muted-foreground text-body-s">Window</span>
         {REPORT_WINDOWS.map((d) => (
-          <WindowLink key={d} days={d} active={d === days} />
+          <SegmentedLink key={d} href={`/hospital-admin/reports?days=${d}`} active={d === days}>
+            {d} days
+          </SegmentedLink>
         ))}
         <span className="text-muted-foreground text-caption ml-auto font-mono">
           since {since}, East Africa Time
@@ -235,24 +237,6 @@ export default async function ReportsPage({ searchParams }: PageProps) {
 /** "68%" or the honest alternative. Rounded to whole points; the basis line carries the exact counts. */
 function percent(r: Ratio): string {
   return r.share === null ? "Too few to report" : `${Math.round(r.share * 100)}%`;
-}
-
-function WindowLink({ days, active }: { days: ReportDays; active: boolean }) {
-  return (
-    <Link
-      href={`/hospital-admin/reports?days=${days}`}
-      aria-current={active ? "page" : undefined}
-      className={cn(
-        "tap border-border text-body-s focus-visible:ring-brand-500/40 inline-flex min-h-11 items-center rounded-md border px-3 transition-colors outline-none focus-visible:ring-2",
-        // The same selected state the patient day strip uses: brand, not ink.
-        active
-          ? "bg-primary text-primary-foreground border-primary font-medium"
-          : "text-foreground hover:bg-muted",
-      )}
-    >
-      {days} days
-    </Link>
-  );
 }
 
 /**

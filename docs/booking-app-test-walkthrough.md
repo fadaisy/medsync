@@ -346,7 +346,7 @@ Sign in as the **doctor** (MFA). `/doctor/schedule`.
 
 ### 6.4 Running late / cancel a clinic day (hospital admin)
 
-- **Running late:** `/hospital-admin/scheduling` → the day → set 30 minutes. Patients' windows shift; a
+- **Running late:** `/hospital-admin/scheduling` → **Clinic sessions** tab → the day → set 30 minutes. Patients' windows shift; a
   "Window moved" message is queued for them.
 - **Cancel the day:** the two-step cancel with a reason. Every live booking becomes `cancelled` with the code
   `session_cancelled`; patients see "This clinic day was cancelled." and a one-tap **rebooking** offer of the
