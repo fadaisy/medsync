@@ -153,6 +153,43 @@ export function dayLabel(key: string): string {
 
 /* ─── the patient ────────────────────────────────────────────────── */
 
+/** A hospital a patient may choose (ADR 0086: any active one). */
+export interface HospitalOption {
+  id: string;
+  name: string;
+  level: string;
+  district: string | null;
+  region: string | null;
+}
+
+/** Every active hospital, by name — `hospitals` is readable by any signed-in user. */
+export async function fetchHospitals(): Promise<HospitalOption[]> {
+  const { data, error } = await supabase
+    .from("hospitals")
+    .select("id, name, level, district, region")
+    .eq("state", "active")
+    .order("name");
+  if (error) throw new Error(error.message);
+  return (data ?? []) as HospitalOption[];
+}
+
+/**
+ * Set the patient's primary hospital — the same write the web's
+ * `selectPrimaryHospitalAction` makes, straight through RLS (0011:
+ * `patient_profiles_update_own`). The list only offers active hospitals, and
+ * the web action's own check is the same `state = 'active'` filter.
+ */
+export async function choosePrimaryHospital(hospitalId: string): Promise<void> {
+  const { data } = await supabase.auth.getSession();
+  const userId = data.session?.user.id;
+  if (!userId) throw new Error("Signed out.");
+  const { error } = await supabase
+    .from("patient_profiles")
+    .update({ primary_facility_id: hospitalId })
+    .eq("id", userId);
+  if (error) throw new Error(error.message);
+}
+
 export interface PatientProfile {
   userId: string;
   /** DB-issued, NOT NULL. What reception matches against at the desk. */

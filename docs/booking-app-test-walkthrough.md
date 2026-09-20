@@ -128,8 +128,10 @@ Everything below happens at `/hospital-admin`.
 
 ## 3. Patient on the web
 
-Sign in as **Patient A**. Connect to the hospital first (`/patient/hospitals` → choose it) if the home shows
-the **Connect to a hospital** card (or `/patient/book` says "Choose your hospital first").
+Sign in as **Patient A**. A patient with no hospital yet lands on the directory ("Welcome, <name>. Choose
+your hospital…") — on the phone the same list is the home — and nothing about vitals or doses until one is
+chosen. Only **active** hospitals are listed: a hospital still `provisioning` (not yet activated at
+`/admin/tenants`) does not appear.
 
 ### 3.1 Consent re-acceptance (Gate H)
 

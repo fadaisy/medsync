@@ -48,17 +48,23 @@ export default async function PatientHospitalsPage({ searchParams }: PageProps) 
   const groups = groupByRegion(results);
   return (
     <div className="stagger-children flex flex-col gap-6">
-      <PatientPageHeader
-        eyebrow="MedSync · Hospitals"
-        title={scope.primaryHospitalId ? "Hospitals on MedSync" : "Find your hospital"}
-        description={
-          scope.primaryHospitalId
-            ? "Browse the network — switch your primary hospital if you'd like, or just see who's here."
-            : "Pick one as your primary hospital. You can change it any time."
-        }
-        backHref="/patient"
-        backLabel="Back to home"
-      />
+      {scope.primaryHospitalId ? (
+        <PatientPageHeader
+          eyebrow="MedSync · Hospitals"
+          title="Hospitals on MedSync"
+          description="Browse the network — switch your primary hospital if you'd like, or just see who's here."
+          backHref="/patient"
+          backLabel="Back to home"
+        />
+      ) : (
+        // The landing for a patient who has just signed in: no home behind
+        // it yet, so no Back, and the one question the app has for them.
+        <PatientPageHeader
+          eyebrow="MedSync · Welcome"
+          title={scope.fullName ? `Welcome, ${scope.fullName.split(" ")[0]}.` : "Welcome."}
+          description="Choose your hospital to see its clinics and book a visit. You can change it any time."
+        />
+      )}
 
       {/* Native GET form: search survives a reload, a shared link and no JS. */}
       <form role="search" action="/patient/hospitals" className="flex items-center gap-2">

@@ -2,19 +2,19 @@ import type {
   AppointmentRow,
   ClinicianOption,
   ClinicSession,
+  HospitalOption,
   LiveIntake,
   PatientProfile,
   ServiceLine,
 } from "@/lib/booking";
 import type { Palette } from "@/theme/tokens";
 import type { ReactNode } from "react";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { DEFAULT_TIME_ZONE, localWeekdayAndMinutes } from "@shared/slots";
 import { useFocusEffect, useRouter } from "expo-router";
 import {
   ActivityIndicator,
-  Linking,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -34,10 +34,12 @@ import { Screen } from "@/components/ui/screen";
 import { Section } from "@/components/ui/section";
 import {
   canArrive,
+  choosePrimaryHospital,
   dateKey,
   dayLabel,
   fetchAppointments,
   fetchBookableClinicians,
+  fetchHospitals,
   fetchLiveIntake,
   fetchMyAvatarUrl,
   fetchPatientProfile,
@@ -55,7 +57,6 @@ import { useStyles, useTheme } from "@/theme/theme";
 import { font, radius, space, withAlpha } from "@/theme/tokens";
 
 /** Choosing a hospital still lives on the web, like signup does. */
-const HOSPITALS_URL = "https://medsync-six.vercel.app/patient/hospitals";
 
 /**
  * What the patient is told they already have today. Lifted verbatim from
@@ -272,25 +273,9 @@ export default function HomeScreen() {
       />
     );
   } else if (!home.profile.hospitalId) {
-    // The doors need a hospital; the block above does not. Choosing one is a
-    // web flow, so the exit says so rather than pretending.
-    body = (
-      <Empty
-        icon="business-outline"
-        title="Choose your hospital first."
-        hint="Pick your hospital on the MedSync website, then come back here."
-        action={
-          <Button
-            variant="secondary"
-            label="Choose your hospital"
-            accessibilityLabel="Choose your hospital, opens in your browser"
-            onPress={() => {
-              Linking.openURL(HOSPITALS_URL).catch(() => {});
-            }}
-          />
-        }
-      />
-    );
+    // A new patient's home is the hospital list until they choose one —
+    // MedSync Book starts with "where". The web lands on the same page.
+    body = <HospitalPicker onChosen={() => void load()} />;
   } else {
     const { profile, visit, ticket, doctors, clinics } = home;
 
@@ -663,9 +648,154 @@ export default function HomeScreen() {
   );
 }
 
+/**
+ * The landing for a patient with no hospital yet: one question, every active
+ * hospital, one tap. Same words as the web's directory.
+ */
+function HospitalPicker({ onChosen }: { onChosen: () => void }) {
+  const { colors } = useTheme();
+  const styles = useStyles(makeStyles);
+  const [hospitals, setHospitals] = useState<HospitalOption[] | null | undefined>(undefined);
+  const [choosing, setChoosing] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let live = true;
+    fetchHospitals().then(
+      (rows) => {
+        if (live) setHospitals(rows);
+      },
+      () => {
+        if (live) setHospitals(null);
+      },
+    );
+    return () => {
+      live = false;
+    };
+  }, []);
+
+  const choose = async (id: string) => {
+    setChoosing(id);
+    setError(null);
+    try {
+      await choosePrimaryHospital(id);
+      onChosen();
+    } catch {
+      setError("Couldn't save that — try again in a moment.");
+      setChoosing(null);
+    }
+  };
+
+  return (
+    <View style={styles.picker}>
+      <View style={styles.heading}>
+        <Text accessibilityRole="header" style={styles.question}>
+          Choose your hospital
+        </Text>
+        <Text style={styles.pickerLead}>
+          See its clinics and book a visit. You can change it any time.
+        </Text>
+      </View>
+
+      {hospitals === undefined ? (
+        <ActivityIndicator style={styles.loading} accessibilityLabel="Loading hospitals" />
+      ) : hospitals === null ? (
+        <Empty
+          icon="cloud-offline-outline"
+          title="Couldn't load the hospitals."
+          hint="Check your connection and pull to refresh."
+        />
+      ) : hospitals.length === 0 ? (
+        <Empty
+          icon="business-outline"
+          title="No hospital is accepting patients yet."
+          hint="Check back soon."
+        />
+      ) : (
+        <View style={styles.rows}>
+          {hospitals.map((h) => {
+            const place = [h.district, h.region].filter(Boolean).join(", ");
+            return (
+              <View key={h.id} style={styles.hospital}>
+                <View style={styles.hospitalIcon} accessibilityElementsHidden>
+                  <Ionicons name="business-outline" size={20} color={colors.accentForeground} />
+                </View>
+                <View style={styles.hospitalText}>
+                  <Text style={styles.pickName}>{h.name}</Text>
+                  <Text style={styles.pickMeta}>
+                    {[HOSPITAL_LEVEL_LABEL[h.level] ?? h.level, place].filter(Boolean).join(" · ")}
+                  </Text>
+                </View>
+                <Button
+                  label={choosing === h.id ? "Saving…" : "Choose"}
+                  accessibilityLabel={`Choose ${h.name} as your hospital`}
+                  busy={choosing === h.id}
+                  disabled={choosing !== null}
+                  onPress={() => void choose(h.id)}
+                />
+              </View>
+            );
+          })}
+        </View>
+      )}
+
+      {error ? (
+        <View style={styles.well}>
+          <Ionicons name="alert-circle-outline" size={18} color={colors.status.cautionFg} />
+          <Text style={styles.wellText} accessibilityLiveRegion="polite">
+            {error}
+          </Text>
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+const HOSPITAL_LEVEL_LABEL: Record<string, string> = {
+  national_referral: "National referral",
+  regional: "Regional referral",
+  district: "District hospital",
+  hc4: "Health centre IV",
+  hc3: "Health centre III",
+  private: "Private hospital",
+};
+
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
     column: { flexGrow: 1, gap: space[5] },
+    picker: { gap: space[5] },
+    pickerLead: { fontFamily: font.body, fontSize: 14.5, lineHeight: 21, color: c.mutedForeground },
+    hospital: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: space[3],
+      padding: space[4],
+      borderRadius: radius["2xl"],
+      backgroundColor: c.card,
+      borderWidth: 1,
+      borderColor: c.border,
+    },
+    hospitalIcon: {
+      width: 44,
+      height: 44,
+      borderRadius: radius.lg,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: c.accent,
+    },
+    hospitalText: { flex: 1, gap: 2 },
+    pickName: {
+      fontFamily: font.bodyMedium,
+      fontSize: 15,
+      lineHeight: 20,
+      color: c.foreground,
+    },
+    pickMeta: {
+      fontFamily: font.body,
+      fontSize: 12.5,
+      lineHeight: 17,
+      color: c.mutedForeground,
+    },
     loading: { marginTop: space[8] },
     rows: { gap: space[3] },
     // The carousel bleeds to the screen edge (the Screen pads by space[5])

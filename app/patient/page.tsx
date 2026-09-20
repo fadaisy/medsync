@@ -4,6 +4,7 @@ import type { ReadingRow, TrackingGlance } from "@/lib/patient/self-tracking";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { Pill } from "@/components/ui/pill";
 import {
@@ -47,6 +48,9 @@ export const dynamic = "force-dynamic";
  */
 export default async function PatientHome() {
   const scope = await requirePatientScope();
+  // A new patient's home is the hospital directory until they choose one:
+  // MedSync Book starts with "where", not with a vitals log.
+  if (!scope.primaryHospitalId) redirect("/patient/hospitals");
 
   const [upcoming, glance, readings, discovery] = await Promise.all([
     scope.primaryHospitalId ? fetchUpcomingVisits(scope.userId) : Promise.resolve([]),
@@ -77,20 +81,18 @@ export default async function PatientHome() {
   // visit booked wants to see it, and after that the day's doses are the
   // most useful thing we can prove. "Start with one reading" is last
   // because it is the only branch that asks for something new.
-  const hero: HeroVariant = !scope.primaryHospitalId
-    ? { kind: "connect" }
-    : nextVisit
-      ? {
-          kind: "visit",
-          clinicianName: nextVisit.clinicianName,
-          departmentName: nextVisit.departmentName,
-          hospitalName: nextVisit.hospitalName,
-          startsAtIso: nextVisit.startsAtIso,
-          statusLabel: STATUS_LABEL[nextVisit.status] ?? nextVisit.status,
-        }
-      : doses.total > 0
-        ? { kind: "doses", taken: doses.taken, total: doses.total, next: doses.next }
-        : { kind: "first-reading" };
+  const hero: HeroVariant = nextVisit
+    ? {
+        kind: "visit",
+        clinicianName: nextVisit.clinicianName,
+        departmentName: nextVisit.departmentName,
+        hospitalName: nextVisit.hospitalName,
+        startsAtIso: nextVisit.startsAtIso,
+        statusLabel: STATUS_LABEL[nextVisit.status] ?? nextVisit.status,
+      }
+    : doses.total > 0
+      ? { kind: "doses", taken: doses.taken, total: doses.total, next: doses.next }
+      : { kind: "first-reading" };
 
   return (
     <div className="grid gap-6 @5xl/page:grid-cols-[minmax(0,1fr)_20rem]">
