@@ -5,6 +5,8 @@ import type { DataTableColumn, PillTone } from "@/components/ui/data-table";
 import { useActionState, useEffect, useState } from "react";
 import { PlusIcon } from "lucide-react";
 
+import { EditorDialog } from "@/components/medsync/editor-dialog";
+import { Panel } from "@/components/medsync/panel";
 import { Button } from "@/components/ui/button";
 import { DataTable, DataTableEmpty, Pill } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
@@ -17,8 +19,6 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { upsertSessionTemplateAction } from "../actions";
-import { EditorDialog } from "./editor-dialog";
-import { Panel } from "./panel";
 import { INPUT_CLASS, timeFromMinutes, WEEKDAYS } from "./policy-form";
 import { SessionActions } from "./session-actions";
 

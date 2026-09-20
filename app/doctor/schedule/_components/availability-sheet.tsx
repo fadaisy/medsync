@@ -8,16 +8,10 @@ import { useState } from "react";
 import { CalendarClockIcon, CalendarPlusIcon, PencilIcon } from "lucide-react";
 
 import { AvailabilityFormSheet } from "@/app/clinician/availability/_components/availability-form-sheet";
+import { EditorDialog } from "@/components/medsync/editor-dialog";
 import { Button } from "@/components/ui/button";
 import { Pill } from "@/components/ui/data-table";
-import {
-  Sheet,
-  SheetBody,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
+import { SheetBody, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 
 /**
@@ -119,8 +113,8 @@ export function AvailabilitySheetButton({
         Availability
       </Button>
 
-      <Sheet open={listOpen} onOpenChange={setListOpen}>
-        <SheetContent widthClassName="w-full sm:max-w-[520px]">
+      <EditorDialog width="medium" open={listOpen} onOpenChange={setListOpen}>
+        <div className="flex min-h-0 flex-1 flex-col">
           <SheetHeader>
             <SheetTitle>Your availability</SheetTitle>
             <SheetDescription>
@@ -178,8 +172,8 @@ export function AvailabilitySheetButton({
               </ul>
             )}
           </SheetBody>
-        </SheetContent>
-      </Sheet>
+        </div>
+      </EditorDialog>
 
       <AvailabilityFormSheet
         open={formOpen}

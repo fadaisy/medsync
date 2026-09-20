@@ -3,7 +3,11 @@ import type { PillTone } from "@/components/ui/data-table";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { and, asc, eq, gte, inArray, lt } from "drizzle-orm";
+import { AlertTriangleIcon, CalendarClockIcon, CircleIcon, ListChecksIcon } from "lucide-react";
 
+import { SectionRule } from "@/components/medsync/panel";
+import { StatCard } from "@/components/medsync/stat-card";
+import { buttonVariants } from "@/components/ui/button";
 import { db } from "@/db";
 import { patientProfiles } from "@/db/schema/patient-profiles";
 import { appointments } from "@/db/schema/scheduling";
@@ -88,36 +92,46 @@ export default async function ClinicianSchedulePage({ searchParams }: PageProps)
   const urgentCount = list.filter((r) => r.priority === "urgent").length;
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8">
-      <header className="reveal-up flex flex-col gap-2">
-        <span className="text-muted-foreground text-overline inline-flex w-fit items-center gap-1.5 font-mono uppercase">
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-4 py-5 sm:px-6">
+      <header className="flex flex-col gap-1">
+        <span className="text-muted-foreground inline-flex w-fit items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
           <span aria-hidden className="bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2" />
           {scope.hospitalName} · {scope.departmentName}
         </span>
-        <h1 className="font-display text-foreground text-heading-m sm:text-heading-l font-medium">
-          Your schedule
-        </h1>
-        <p className="text-muted-foreground text-body-s max-w-2xl leading-relaxed">
-          Confirmed and pending appointments for the next 14 days.{" "}
-          <Link
-            href="/clinician/availability"
-            className="text-foreground underline-offset-2 hover:underline"
-          >
-            Change availability
-          </Link>
-          .
-        </p>
-        <div className="bg-brand-500/60 h-px w-10" aria-hidden />
+        <SectionRule
+          title="Your schedule"
+          action={
+            <Link
+              href="/clinician/availability"
+              className={buttonVariants({ variant: "secondary" })}
+            >
+              <CalendarClockIcon className="size-3.5" aria-hidden />
+              Availability
+            </Link>
+          }
+        />
       </header>
 
-      <section className="stagger-children grid grid-cols-3 gap-3">
-        <Kpi label="Booked" value={list.length} tone="neutral" />
-        <Kpi
+      <section className="grid grid-cols-3 gap-3" aria-label="Schedule stats">
+        <StatCard
+          label="Booked"
+          value={list.length}
+          hint="next 14 days"
+          icon={<ListChecksIcon className="size-4" aria-hidden />}
+          tinted
+        />
+        <StatCard
           label="Awaiting approval"
           value={pendingCount}
-          tone={pendingCount > 0 ? "actionable" : "neutral"}
+          hint="need your answer"
+          icon={<CircleIcon className="size-4" aria-hidden />}
         />
-        <Kpi label="Urgent" value={urgentCount} tone={urgentCount > 0 ? "critical" : "neutral"} />
+        <StatCard
+          label="Urgent"
+          value={urgentCount}
+          hint="alert-triggered"
+          icon={<AlertTriangleIcon className="size-4" aria-hidden />}
+        />
       </section>
 
       <ScheduleList
@@ -126,31 +140,6 @@ export default async function ClinicianSchedulePage({ searchParams }: PageProps)
         statusTones={STATUS_TONES}
         statusLabel={STATUS_LABEL}
       />
-    </div>
-  );
-}
-
-function Kpi({
-  label,
-  value,
-  tone,
-}: {
-  label: string;
-  value: number;
-  tone: "actionable" | "critical" | "neutral";
-}) {
-  const cls =
-    tone === "actionable"
-      ? "text-brand-700"
-      : tone === "critical"
-        ? "text-red-700 dark:text-red-300"
-        : "text-foreground";
-  return (
-    <div className="border-border bg-card flex flex-col gap-1 rounded-lg border p-3.5">
-      <span className="text-muted-foreground text-overline font-mono uppercase">{label}</span>
-      <span className={"font-display text-heading-m leading-none font-medium tabular-nums " + cls}>
-        {value}
-      </span>
     </div>
   );
 }

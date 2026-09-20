@@ -7,76 +7,67 @@ import {
   XCircleIcon,
 } from "lucide-react";
 
-import { cn } from "@/lib/utils";
+import { StatCard } from "@/components/medsync/stat-card";
 
 /**
- * Stat rail above the calendar — Total / Confirmed / Pending / Urgent
- * / Completed / Cancelled for the visible range. Real counts, honest
- * zero state. Trend deltas vs prior period are deferred (need a
- * second query) — flagged as a future polish.
+ * The strip above the calendar — six real counts for the fetched window,
+ * honest at zero. Trend deltas would need a second window's query; not yet.
  */
-
-interface StatCardSpec {
-  label: string;
-  value: number;
-  icon: typeof ListChecksIcon;
-  tone: "neutral" | "teal" | "amber" | "rose" | "muted";
-}
-
-export function StatRail({ stats }: { stats: SchedulingStats }) {
-  const cards: ReadonlyArray<StatCardSpec> = [
-    { label: "Total", value: stats.total, icon: ListChecksIcon, tone: "neutral" },
-    { label: "Confirmed", value: stats.confirmed, icon: CheckCircle2Icon, tone: "teal" },
-    { label: "Pending", value: stats.pending, icon: CircleIcon, tone: "amber" },
-    { label: "Urgent", value: stats.urgent, icon: AlertTriangleIcon, tone: "rose" },
-    { label: "Completed", value: stats.completed, icon: CheckCircle2Icon, tone: "muted" },
-    { label: "Cancelled", value: stats.cancelled, icon: XCircleIcon, tone: "muted" },
-  ];
-
+export function StatRail({ stats, windowLabel }: { stats: SchedulingStats; windowLabel: string }) {
   return (
     <ul
-      className="stagger-children grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6"
+      className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6"
       aria-label="Scheduling stats"
     >
-      {cards.map((c) => (
-        <li key={c.label}>
-          <StatCard spec={c} />
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-function StatCard({ spec }: { spec: StatCardSpec }) {
-  const Icon = spec.icon;
-  return (
-    <div className="border-border bg-card flex flex-col gap-1 rounded-xl border p-3">
-      <div className="flex items-center gap-1.5">
-        <Icon
-          aria-hidden
-          className={cn(
-            "size-3.5",
-            // No `dark:` on the brand step: the brand ramp inverts in dark mode
-            // (globals.css), so `dark:text-brand-400` would fight the flip and
-            // land darker than the card. The bare token flips on its own.
-            spec.tone === "teal" && "text-brand-600",
-            spec.tone === "amber" && "text-amber-600 dark:text-amber-400",
-            spec.tone === "rose" && "text-rose-600 dark:text-rose-400",
-            (spec.tone === "neutral" || spec.tone === "muted") && "text-muted-foreground",
-          )}
+      <li>
+        <StatCard
+          label="Appointments"
+          value={stats.total}
+          hint={windowLabel}
+          icon={<ListChecksIcon className="size-4" aria-hidden />}
+          tinted
         />
-        <span className="text-muted-foreground text-overline font-mono uppercase">
-          {spec.label}
-        </span>
-      </div>
-      <span
-        className={cn(
-          "text-foreground text-heading-m font-mono leading-none font-medium tracking-tight tabular-nums",
-          spec.tone === "muted" && "text-muted-foreground",
-        )}
-      >
-        {spec.value}
-      </span>
-    </div>
+      </li>
+      <li>
+        <StatCard
+          label="Confirmed"
+          value={stats.confirmed}
+          hint="on the calendar"
+          icon={<CheckCircle2Icon className="size-4" aria-hidden />}
+        />
+      </li>
+      <li>
+        <StatCard
+          label="Pending"
+          value={stats.pending}
+          hint="awaiting you"
+          icon={<CircleIcon className="size-4" aria-hidden />}
+        />
+      </li>
+      <li>
+        <StatCard
+          label="Urgent"
+          value={stats.urgent}
+          hint="alert-triggered"
+          icon={<AlertTriangleIcon className="size-4" aria-hidden />}
+        />
+      </li>
+      <li>
+        <StatCard
+          label="Completed"
+          value={stats.completed}
+          hint="in the window"
+          icon={<CheckCircle2Icon className="size-4" aria-hidden />}
+        />
+      </li>
+      <li>
+        <StatCard
+          label="Cancelled"
+          value={stats.cancelled}
+          hint="in the window"
+          icon={<XCircleIcon className="size-4" aria-hidden />}
+        />
+      </li>
+    </ul>
   );
 }

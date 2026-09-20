@@ -4,10 +4,10 @@ import type { DepartmentPolicyOption } from "./policy-form";
 import { useState } from "react";
 import { PencilLineIcon } from "lucide-react";
 
+import { EditorDialog } from "@/components/medsync/editor-dialog";
+import { Panel } from "@/components/medsync/panel";
 import { Button } from "@/components/ui/button";
 import { Pill } from "@/components/ui/data-table";
-import { EditorDialog } from "./editor-dialog";
-import { Panel } from "./panel";
 import { PolicyForm, timeFromMinutes, WEEKDAYS } from "./policy-form";
 
 /**

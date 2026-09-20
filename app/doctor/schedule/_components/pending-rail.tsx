@@ -4,6 +4,7 @@ import type { DoctorScheduleActionState } from "../actions";
 import { useActionState, useState } from "react";
 import { AlertTriangleIcon, CheckIcon, MessageSquareIcon, XIcon } from "lucide-react";
 
+import { Panel } from "@/components/medsync/panel";
 import { Button } from "@/components/ui/button";
 import { approveAppointmentAction, declineAppointmentAction } from "../actions";
 
@@ -20,30 +21,20 @@ interface PendingRow {
 }
 
 export function PendingApprovalsRail({ rows }: { rows: ReadonlyArray<PendingRow> }) {
-  if (rows.length === 0) {
-    return (
-      <section className="border-border bg-card flex flex-col gap-2 rounded-xl border p-4">
-        <h2 className="text-muted-foreground text-overline font-mono uppercase">
-          Awaiting approval
-        </h2>
-        <p className="text-muted-foreground text-body-s">Nothing waiting for you right now.</p>
-      </section>
-    );
-  }
-
   return (
-    <section className="border-border bg-card flex flex-col gap-2 rounded-xl border p-4">
-      <h2 className="text-muted-foreground text-overline font-mono uppercase">
-        Awaiting approval · <span className="tabular-nums">{rows.length}</span>
-      </h2>
-      <ul className="divide-border/60 stagger-children -mx-2 divide-y">
-        {rows.map((r) => (
-          <li key={r.id} className="px-2 py-3">
-            <PendingRow row={r} />
-          </li>
-        ))}
-      </ul>
-    </section>
+    <Panel title="Awaiting approval" count={rows.length} className="max-h-[50%]">
+      {rows.length === 0 ? (
+        <p className="text-muted-foreground text-body-s px-5 py-4">Nothing waiting for you.</p>
+      ) : (
+        <ul className="divide-border/60 min-h-0 flex-1 divide-y overflow-auto px-3">
+          {rows.map((r) => (
+            <li key={r.id} className="px-2 py-3">
+              <PendingRow row={r} />
+            </li>
+          ))}
+        </ul>
+      )}
+    </Panel>
   );
 }
 

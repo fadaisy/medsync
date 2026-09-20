@@ -5,7 +5,6 @@ import type {
 } from "./_components/clinic-sessions-section";
 import type { DepartmentPolicyOption } from "./_components/policy-form";
 import type { CadreFeeRow, CadreOption, ServiceLineRow } from "./_components/service-lines-section";
-import type { ReactNode } from "react";
 import { and, asc, eq, gte, inArray, isNull, lt } from "drizzle-orm";
 import {
   AlertCircleIcon,
@@ -15,6 +14,8 @@ import {
   MessageSquareIcon,
 } from "lucide-react";
 
+import { SectionRule } from "@/components/medsync/panel";
+import { StatCard } from "@/components/medsync/stat-card";
 import { db } from "@/db";
 import { clinicSessions, sessionTemplates } from "@/db/schema/clinic-sessions";
 import { staffAffiliations } from "@/db/schema/clinician-profiles";
@@ -33,7 +34,6 @@ import {
 } from "@/supabase/functions/_shared/slots";
 import { fetchStats } from "../_components/scheduling-overview-card";
 import { ClinicSessionsSection } from "./_components/clinic-sessions-section";
-import { SectionRule } from "./_components/panel";
 import { PolicyPanel } from "./_components/policy-panel";
 import { ServiceLinesSection } from "./_components/service-lines-section";
 
@@ -273,45 +273,6 @@ export default async function SchedulingPage() {
 }
 
 /* ─── The strip and the capacity card ──────────────────────────────── */
-
-function StatCard({
-  label,
-  value,
-  hint,
-  icon,
-  tinted = false,
-}: {
-  label: string;
-  value: number | string;
-  hint: string;
-  icon: ReactNode;
-  tinted?: boolean;
-}) {
-  return (
-    <div
-      className={cn(
-        "flex items-center gap-3 rounded-xl border px-4 py-3 shadow-xs",
-        tinted ? "bg-accent border-brand-200 dark:border-brand-800" : "bg-card border-border",
-      )}
-    >
-      <div className="flex min-w-0 flex-1 flex-col">
-        <span className="text-muted-foreground text-caption truncate">{label}</span>
-        <span className="text-foreground font-mono text-[22px] leading-7 font-medium tabular-nums">
-          {value}
-        </span>
-        <span className="text-muted-foreground text-caption truncate">{hint}</span>
-      </div>
-      <span
-        className={cn(
-          "grid size-9 shrink-0 place-items-center rounded-lg",
-          tinted ? "bg-card text-brand-700" : "bg-muted text-brand-700",
-        )}
-      >
-        {icon}
-      </span>
-    </div>
-  );
-}
 
 /** The reference's "Room availability": one bar, four numbers, all from the published days. */
 function CapacityCard({

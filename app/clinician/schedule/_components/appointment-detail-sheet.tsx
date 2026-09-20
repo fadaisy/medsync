@@ -5,14 +5,13 @@ import type { ScheduleAppointmentRow } from "./schedule-list";
 import { useActionState, useEffect, useState } from "react";
 import { CheckIcon, UserXIcon, XIcon } from "lucide-react";
 
+import { EditorDialog } from "@/components/medsync/editor-dialog";
 import { Button } from "@/components/ui/button";
 import { Pill } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Sheet,
   SheetBody,
-  SheetContent,
   SheetDescription,
   SheetFooter,
   SheetHeader,
@@ -36,11 +35,11 @@ export function AppointmentDetailSheet({
   onOpenChange: (open: boolean) => void;
 }) {
   return (
-    <Sheet open={!!item} onOpenChange={onOpenChange}>
-      <SheetContent widthClassName="w-full sm:max-w-[560px]">
+    <EditorDialog width="medium" open={!!item} onOpenChange={onOpenChange}>
+      <div className="flex min-h-0 flex-1 flex-col">
         {item ? <Content key={item.id} item={item} onClose={() => onOpenChange(false)} /> : null}
-      </SheetContent>
-    </Sheet>
+      </div>
+    </EditorDialog>
   );
 }
 

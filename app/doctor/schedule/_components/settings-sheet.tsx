@@ -4,13 +4,12 @@ import type { DoctorScheduleActionState } from "../actions";
 import { useActionState, useState } from "react";
 import { SettingsIcon } from "lucide-react";
 
+import { EditorDialog } from "@/components/medsync/editor-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Sheet,
   SheetBody,
-  SheetContent,
   SheetDescription,
   SheetFooter,
   SheetHeader,
@@ -62,8 +61,8 @@ export function SchedulingSettingsSheet({ defaults }: { defaults: SettingsRow })
         Settings
       </Button>
 
-      <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent widthClassName="w-full sm:max-w-[480px]">
+      <EditorDialog width="medium" open={open} onOpenChange={setOpen}>
+        <div className="flex min-h-0 flex-1 flex-col">
           <SheetHeader>
             <SheetTitle>Scheduling settings</SheetTitle>
             <SheetDescription>
@@ -72,7 +71,7 @@ export function SchedulingSettingsSheet({ defaults }: { defaults: SettingsRow })
           </SheetHeader>
 
           <SheetBody>
-            <form action={formAction} className="flex flex-col gap-5">
+            <form action={formAction} className="grid items-start gap-5 sm:grid-cols-2">
               {/* Auto-confirm toggle */}
               <fieldset className="flex flex-col gap-2">
                 <legend className="text-foreground text-body-s font-medium">
@@ -212,8 +211,8 @@ export function SchedulingSettingsSheet({ defaults }: { defaults: SettingsRow })
               </SheetFooter>
             </form>
           </SheetBody>
-        </SheetContent>
-      </Sheet>
+        </div>
+      </EditorDialog>
     </>
   );
 }

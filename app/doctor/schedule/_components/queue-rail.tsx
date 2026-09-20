@@ -3,13 +3,13 @@
 import { useState, useTransition } from "react";
 import { AlertTriangleIcon, ClockIcon, PlayIcon, PlusIcon, UserPlusIcon } from "lucide-react";
 
+import { EditorDialog } from "@/components/medsync/editor-dialog";
+import { Panel } from "@/components/medsync/panel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Sheet,
   SheetBody,
-  SheetContent,
   SheetDescription,
   SheetFooter,
   SheetHeader,
@@ -47,53 +47,41 @@ export function QueueRail({ entries }: { entries: ReadonlyArray<QueueRow> }) {
   const beingSeen = entries.filter((e) => e.state === "being_seen");
 
   return (
-    <aside
-      aria-label="Department queue today"
-      className="border-border bg-card flex h-full w-full flex-col gap-3 rounded-xl border p-3 lg:max-w-[280px]"
-    >
-      <header className="flex items-baseline justify-between gap-2">
-        <h2 className="text-muted-foreground text-overline font-mono uppercase">
-          Today&rsquo;s queue
-        </h2>
-        <span className="text-muted-foreground text-caption font-mono tabular-nums">
-          {entries.length}
-        </span>
-      </header>
+    <Panel title="Today's queue" count={entries.length} action={<RecordWalkinButton />}>
+      <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-auto p-4">
+        {/* Being seen */}
+        {beingSeen.length > 0 ? (
+          <section className="flex flex-col gap-1.5">
+            <h3 className="text-muted-foreground text-overline font-mono uppercase">Now seeing</h3>
+            <ul className="stagger-children flex flex-col gap-1">
+              {beingSeen.map((e) => (
+                <li key={e.id}>
+                  <QueueChip row={e} variant="being_seen" />
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
 
-      {/* Being seen */}
-      {beingSeen.length > 0 ? (
+        {/* Waiting */}
         <section className="flex flex-col gap-1.5">
-          <h3 className="text-muted-foreground text-overline font-mono uppercase">Now seeing</h3>
-          <ul className="stagger-children flex flex-col gap-1">
-            {beingSeen.map((e) => (
-              <li key={e.id}>
-                <QueueChip row={e} variant="being_seen" />
-              </li>
-            ))}
-          </ul>
+          <h3 className="text-muted-foreground text-overline font-mono uppercase">
+            Waiting · {waiting.length}
+          </h3>
+          {waiting.length === 0 ? (
+            <p className="text-muted-foreground text-body-s">No one waiting right now.</p>
+          ) : (
+            <ul className="stagger-children flex flex-col gap-1">
+              {waiting.map((e) => (
+                <li key={e.id}>
+                  <QueueChip row={e} variant="waiting" />
+                </li>
+              ))}
+            </ul>
+          )}
         </section>
-      ) : null}
-
-      {/* Waiting */}
-      <section className="flex flex-col gap-1.5">
-        <h3 className="text-muted-foreground text-overline font-mono uppercase">
-          Waiting · {waiting.length}
-        </h3>
-        {waiting.length === 0 ? (
-          <p className="text-muted-foreground text-body-s">No one waiting right now.</p>
-        ) : (
-          <ul className="stagger-children flex flex-col gap-1">
-            {waiting.map((e) => (
-              <li key={e.id}>
-                <QueueChip row={e} variant="waiting" />
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <RecordWalkinButton />
-    </aside>
+      </div>
+    </Panel>
   );
 }
 
@@ -178,18 +166,12 @@ function RecordWalkinButton() {
   const [open, setOpen] = useState(false);
   return (
     <>
-      <Button
-        type="button"
-        variant="secondary"
-        size="sm"
-        onClick={() => setOpen(true)}
-        className="mt-auto min-h-11"
-      >
+      <Button type="button" variant="secondary" onClick={() => setOpen(true)}>
         <UserPlusIcon className="size-3.5" aria-hidden />
-        Record walk-in
+        Walk-in
       </Button>
-      <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent widthClassName="w-full sm:max-w-[420px]">
+      <EditorDialog width="medium" open={open} onOpenChange={setOpen}>
+        <div className="flex min-h-0 flex-1 flex-col">
           <SheetHeader>
             <SheetTitle>Record a walk-in</SheetTitle>
             <SheetDescription>
@@ -199,8 +181,8 @@ function RecordWalkinButton() {
           <SheetBody>
             <RecordWalkinForm onSuccess={() => setOpen(false)} />
           </SheetBody>
-        </SheetContent>
-      </Sheet>
+        </div>
+      </EditorDialog>
     </>
   );
 }

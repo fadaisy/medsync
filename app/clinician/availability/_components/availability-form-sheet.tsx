@@ -7,13 +7,12 @@ import type { ChangeEvent } from "react";
 import { useActionState, useEffect, useState } from "react";
 import { Trash2Icon } from "lucide-react";
 
+import { EditorDialog } from "@/components/medsync/editor-dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Sheet,
   SheetBody,
-  SheetContent,
   SheetDescription,
   SheetFooter,
   SheetHeader,
@@ -48,13 +47,13 @@ interface FormSheetProps {
 
 export function AvailabilityFormSheet({ open, block, onOpenChange }: FormSheetProps) {
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent widthClassName="w-full sm:max-w-[520px]">
+    <EditorDialog width="medium" open={open} onOpenChange={onOpenChange}>
+      <div className="flex min-h-0 flex-1 flex-col">
         {open ? (
           <FormContent key={block?.id ?? "new"} block={block} onClose={() => onOpenChange(false)} />
         ) : null}
-      </SheetContent>
-    </Sheet>
+      </div>
+    </EditorDialog>
   );
 }
 

@@ -40,10 +40,11 @@ export function DoctorCalendar({
   const [selected, setSelected] = useState<ScheduleAppointmentRow | null>(null);
 
   return (
-    <div className="flex min-w-0 flex-col gap-1.5">
+    <div className="flex min-h-0 min-w-0 flex-col gap-1.5">
       <MedSyncCalendar
         events={events}
         defaultView="week"
+        className="min-h-[480px] flex-1 xl:min-h-0"
         onEventClick={(ev) => {
           if (ev.kind !== "appointment") return;
           setSelected({
@@ -61,8 +62,7 @@ export function DoctorCalendar({
         }}
       />
       <p className="text-muted-foreground text-caption">
-        Showing {windowLabel}. Dates outside that range draw empty here until the page reloads —
-        that is this view&rsquo;s window, not a limit on how far ahead you can be booked.
+        Showing {windowLabel}; dates outside it draw empty until a reload.
       </p>
       <AppointmentDetailSheet item={selected} onOpenChange={(open) => !open && setSelected(null)} />
     </div>

@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 
+import { SectionRule } from "@/components/medsync/panel";
+import { Pill } from "@/components/ui/data-table";
 import { requireDoctorScope } from "@/lib/doctor/scope";
 import { fetchClinicianCalendarEvents } from "@/lib/scheduling/calendar";
 import {
   fetchClinicianAvailabilityBlocks,
-  fetchCurrentlyBeingSeen,
   fetchDepartmentQueueToday,
   fetchEffectiveSchedulingSettings,
   fetchPendingApprovals,
@@ -35,101 +36,82 @@ export default async function DoctorSchedulePage() {
   const rangeStart = startOfLocalDay(new Date(now - 7 * 86_400_000), DEFAULT_TIME_ZONE);
   const rangeEnd = startOfLocalDay(new Date(now + 14 * 86_400_000), DEFAULT_TIME_ZONE);
 
-  const [events, stats, pending, queue, settings, beingSeen, availabilityBlocks] =
-    await Promise.all([
-      fetchClinicianCalendarEvents({
-        clinicianUserId: scope.userId,
-        hospitalId: scope.hospitalId,
-        rangeStart,
-        rangeEnd,
-      }),
-      fetchSchedulingStats({
-        clinicianUserId: scope.userId,
-        hospitalId: scope.hospitalId,
-        rangeStart,
-        rangeEnd,
-      }),
-      fetchPendingApprovals({
-        clinicianUserId: scope.userId,
-        hospitalId: scope.hospitalId,
-        limit: 20,
-      }),
-      fetchDepartmentQueueToday({ departmentId: scope.departmentId }),
-      fetchEffectiveSchedulingSettings({
-        clinicianUserId: scope.userId,
-        hospitalId: scope.hospitalId,
-        departmentId: scope.departmentId,
-      }),
-      fetchCurrentlyBeingSeen({ departmentId: scope.departmentId }),
-      fetchClinicianAvailabilityBlocks({
-        clinicianUserId: scope.userId,
-        hospitalId: scope.hospitalId,
-        limit: 50,
-      }),
-    ]);
+  const [events, stats, pending, queue, settings, availabilityBlocks] = await Promise.all([
+    fetchClinicianCalendarEvents({
+      clinicianUserId: scope.userId,
+      hospitalId: scope.hospitalId,
+      rangeStart,
+      rangeEnd,
+    }),
+    fetchSchedulingStats({
+      clinicianUserId: scope.userId,
+      hospitalId: scope.hospitalId,
+      rangeStart,
+      rangeEnd,
+    }),
+    fetchPendingApprovals({
+      clinicianUserId: scope.userId,
+      hospitalId: scope.hospitalId,
+      limit: 20,
+    }),
+    fetchDepartmentQueueToday({ departmentId: scope.departmentId }),
+    fetchEffectiveSchedulingSettings({
+      clinicianUserId: scope.userId,
+      hospitalId: scope.hospitalId,
+      departmentId: scope.departmentId,
+    }),
+    fetchClinicianAvailabilityBlocks({
+      clinicianUserId: scope.userId,
+      hospitalId: scope.hospitalId,
+      limit: 50,
+    }),
+  ]);
+
+  const windowLabel = `${formatWindowDate(rangeStart)} – ${formatWindowDate(rangeEnd, true)}`;
 
   return (
-    <div className="stagger-children mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 lg:px-6 lg:py-9">
-      <header className="flex flex-col gap-2">
-        <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <span className="text-muted-foreground text-overline inline-flex items-center gap-1.5 font-mono uppercase">
+    // At xl the page is the viewport: title, the strip, then the week beside
+    // its two rails, each scrolling inside itself. Below xl it flows.
+    <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-5 sm:px-6 xl:grid xl:h-[calc(100svh-3.25rem)] xl:grid-rows-[auto_auto_minmax(0,1fr)]">
+      <header className="flex flex-col gap-1">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
             <span
               aria-hidden
               className="bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2"
             />
-            {scope.hospitalName} · {scope.departmentName} · Schedule
+            {scope.hospitalName} · {scope.departmentName}
           </span>
-          <div className="flex items-center gap-1.5">
-            <AvailabilitySheetButton blocks={availabilityBlocks} />
-            <SchedulingSettingsSheet
-              defaults={{
-                autoConfirm: settings.autoConfirm,
-                defaultSlotMinutes: settings.defaultSlotMinutes,
-                bufferMinutes: settings.bufferMinutes,
-                allowVirtual: settings.allowVirtual,
-                allowOutOfHoursOverride: settings.allowOutOfHoursOverride,
-                usingDefaults: settings.usingDefaults,
-              }}
-            />
-          </div>
+          {/* The one setting that changes what the page does, said in a word. */}
+          <Pill tone={settings.autoConfirm ? "stable" : "neutral"}>
+            {settings.autoConfirm ? "Auto-confirm on" : "Manual approval"}
+          </Pill>
         </div>
-        <h1 className="font-display text-foreground text-heading-l leading-[1.15] font-medium tracking-[-0.015em]">
-          Your week
-        </h1>
-        <p className="text-muted-foreground text-body-s max-w-[60ch] leading-relaxed">
-          Appointments + availability blocks. Click an appointment for the detail panel.{" "}
-          {settings.autoConfirm
-            ? "Auto-confirm is on — patient requests confirm immediately."
-            : "Manual approval is on — patient requests land in the rail on the right."}{" "}
-          Open <span className="font-mono">Availability</span> to declare bookable hours, or to mark
-          leave — leave is what takes time back off the bookable grid.
-        </p>
-        {beingSeen?.patientCode ? (
-          <p className="text-muted-foreground text-body-s">
-            <span className="font-mono">{scope.departmentName}</span> now seeing:{" "}
-            <span className="text-foreground font-medium">{beingSeen.patientCode}</span>
-            {beingSeen.calledAtIso ? (
-              <span className="text-muted-foreground/80">
-                {" "}
-                · called{" "}
-                {new Date(beingSeen.calledAtIso).toLocaleTimeString(undefined, {
-                  hour: "numeric",
-                  minute: "2-digit",
-                })}
-              </span>
-            ) : null}
-          </p>
-        ) : null}
+        <SectionRule
+          title="Your week"
+          action={
+            <div className="flex items-center gap-2">
+              <AvailabilitySheetButton blocks={availabilityBlocks} />
+              <SchedulingSettingsSheet
+                defaults={{
+                  autoConfirm: settings.autoConfirm,
+                  defaultSlotMinutes: settings.defaultSlotMinutes,
+                  bufferMinutes: settings.bufferMinutes,
+                  allowVirtual: settings.allowVirtual,
+                  allowOutOfHoursOverride: settings.allowOutOfHoursOverride,
+                  usingDefaults: settings.usingDefaults,
+                }}
+              />
+            </div>
+          }
+        />
       </header>
 
-      <StatRail stats={stats} />
+      <StatRail stats={stats} windowLabel={windowLabel} />
 
-      <div className="grid gap-4 lg:grid-cols-[1fr_300px]">
-        <DoctorCalendar
-          events={events}
-          windowLabel={`${formatWindowDate(rangeStart)} – ${formatWindowDate(rangeEnd, true)}`}
-        />
-        <div className="flex flex-col gap-4 lg:max-w-[300px]">
+      <div className="grid min-h-0 gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]">
+        <DoctorCalendar events={events} windowLabel={windowLabel} />
+        <div className="grid min-h-0 gap-4 xl:grid-rows-[auto_minmax(0,1fr)]">
           {!settings.autoConfirm ? <PendingApprovalsRail rows={pending} /> : null}
           <QueueRail entries={queue} />
         </div>
