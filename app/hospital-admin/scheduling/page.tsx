@@ -5,7 +5,15 @@ import type {
 } from "./_components/clinic-sessions-section";
 import type { DepartmentPolicyOption } from "./_components/policy-form";
 import type { CadreFeeRow, CadreOption, ServiceLineRow } from "./_components/service-lines-section";
+import type { ReactNode } from "react";
 import { and, asc, eq, gte, inArray, isNull, lt } from "drizzle-orm";
+import {
+  AlertCircleIcon,
+  CalendarCheckIcon,
+  CalendarDaysIcon,
+  ClockIcon,
+  MessageSquareIcon,
+} from "lucide-react";
 
 import { db } from "@/db";
 import { clinicSessions, sessionTemplates } from "@/db/schema/clinic-sessions";
@@ -17,16 +25,16 @@ import { serviceLineFees, serviceLines } from "@/db/schema/service-lines";
 import { users } from "@/db/schema/users";
 import { sentBreakdown } from "@/lib/hospital-admin/reports";
 import { requireHospitalAdminScope } from "@/lib/hospital-admin/scope";
+import { cn } from "@/lib/utils";
 import {
   DEFAULT_TIME_ZONE,
   localDateKey,
   startOfLocalDay,
 } from "@/supabase/functions/_shared/slots";
-import { SchedulingOverviewCard } from "../_components/scheduling-overview-card";
-import { SegmentedLink } from "../_components/segmented-link";
+import { fetchStats } from "../_components/scheduling-overview-card";
 import { ClinicSessionsSection } from "./_components/clinic-sessions-section";
-import { PolicyForm } from "./_components/policy-form";
-import { SentTodayPanel } from "./_components/sent-today-panel";
+import { SectionRule } from "./_components/panel";
+import { PolicyPanel } from "./_components/policy-panel";
 import { ServiceLinesSection } from "./_components/service-lines-section";
 
 /** The console shows what the materialiser produces: 14 days ahead. */
@@ -57,27 +65,13 @@ const TIME_FMT = new Intl.DateTimeFormat("en-GB", {
  * this is the only surface that wants "every department, with its policy or
  * the absence of one"; a shared query would be an abstraction with one caller.
  */
-const TABS = [
-  ["lines", "Service lines"],
-  ["sessions", "Clinic sessions"],
-  ["policy", "Booking policy"],
-  ["messages", "Messages"],
-] as const;
-type Tab = (typeof TABS)[number][0];
-
 /**
- * One page, four tabs by URL (`?tab=`): the sections used to stack into one
- * scroll of forms and tables. Links, not client state, so a tab is a URL the
- * sidebar and the browser's Back both understand.
+ * One screen, the reference dashboard's shape: a title with its rule and one
+ * primary action, a strip of five small numbers, then panels in a grid that
+ * crop their own content. Nothing here stacks a form under a table.
  */
-export default async function SchedulingPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ tab?: string }>;
-}) {
+export default async function SchedulingPage() {
   const scope = await requireHospitalAdminScope();
-  const { tab: rawTab } = await searchParams;
-  const tab: Tab = TABS.some(([t]) => t === rawTab) ? (rawTab as Tab) : "lines";
 
   // Left join: a department with no policy row is unrestricted (ADR 0084
   // §14), and that is a state the editor must be able to show and replace —
@@ -125,32 +119,49 @@ export default async function SchedulingPage({
           },
   }));
 
-  const unset = departments.filter((d) => !d.policy).length;
+  const [
+    lines,
+    templates,
+    sessions,
+    clinicians,
+    unstaffedSoon,
+    sentToday,
+    clinicalCadres,
+    fees,
+    stats,
+  ] = await Promise.all([
+    fetchServiceLines(scope.hospitalId),
+    fetchTemplates(scope.hospitalId),
+    fetchUpcomingSessions(scope.hospitalId),
+    fetchClinicians(scope.hospitalId),
+    fetchUnstaffedSessionsSoon(scope.hospitalId),
+    // Today's slice of the reports lib's range query (Gate H): one SQL, two pages.
+    sentBreakdown(startOfLocalDay(new Date(), DEFAULT_TIME_ZONE), new Date(), scope.hospitalId),
+    fetchClinicalCadres(),
+    fetchCadreFees(scope.hospitalId),
+    fetchStats(scope.hospitalId),
+  ]);
 
-  const [lines, templates, sessions, clinicians, unstaffedSoon, sentToday, clinicalCadres, fees] =
-    await Promise.all([
-      fetchServiceLines(scope.hospitalId),
-      fetchTemplates(scope.hospitalId),
-      fetchUpcomingSessions(scope.hospitalId),
-      fetchClinicians(scope.hospitalId),
-      fetchUnstaffedSessionsSoon(scope.hospitalId),
-      // Today's slice of the reports lib's range query (Gate H): one SQL, two pages.
-      sentBreakdown(startOfLocalDay(new Date(), DEFAULT_TIME_ZONE), new Date(), scope.hospitalId),
-      fetchClinicalCadres(),
-      fetchCadreFees(scope.hospitalId),
-    ]);
+  // The next 14 days as capacity: what was published, what is held.
+  const published = sessions.filter((x) => x.status === "published");
+  const places = published.reduce(
+    (n, x) => n + Math.ceil(x.capacityBooked * x.overbookingFactor),
+    0,
+  );
+  const booked = published.reduce((n, x) => n + x.bookedCount, 0);
+  const unstaffed = published.filter((x) => !x.clinicianName).length;
+  const smsToday = sentToday.filter((r) => r.channel === "sms");
+  const sentCount = sentToday.reduce((n, r) => n + r.count, 0);
+  const smsCost = smsToday.reduce((n, r) => n + r.cost, 0);
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-4 py-8 sm:px-6 sm:py-10">
-      <header className="flex flex-col gap-2">
+    <div className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-4 py-6 sm:px-6 sm:py-8">
+      <header className="flex flex-col gap-1">
         <span className="text-muted-foreground inline-flex w-fit items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
           <span aria-hidden className="bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2" />
           {scope.hospitalName} · Scheduling
         </span>
-        <h1 className="font-display text-foreground sm:text-heading-l text-[24px] leading-[1.15] font-medium tracking-[-0.015em]">
-          Scheduling
-        </h1>
-        <div className="bg-brand-500/60 dark:bg-brand-400/50 h-px w-10" aria-hidden />
+        <SectionRule title="Scheduling" />
       </header>
 
       {/* PRD §3.6: a published day starting within 12 hours with no clinician
@@ -160,100 +171,193 @@ export default async function SchedulingPage({
         <section
           role="status"
           aria-labelledby="t12-heading"
-          className="bg-status-caution-bg text-status-caution-fg ring-status-caution-fg/25 flex flex-col gap-2 rounded-xl p-4 ring-1"
+          className="bg-status-caution-bg text-status-caution-fg ring-status-caution-fg/25 flex flex-wrap items-baseline gap-x-3 gap-y-1 rounded-xl px-4 py-3 ring-1"
         >
-          <h2 id="t12-heading" className="text-body-m font-medium">
+          <h2 id="t12-heading" className="text-body-s font-medium">
             {unstaffedSoon.length === 1
               ? "1 clinic day starts within 12 hours with no clinician named"
               : `${unstaffedSoon.length} clinic days start within 12 hours with no clinician named`}
           </h2>
-          <ul className="text-body-s flex flex-col gap-1">
-            {unstaffedSoon.map((u) => (
-              <li key={u.id} className="tabular-nums">
-                {u.serviceLineName} · {u.dateLabel} · {u.timeLabel}
-                {u.bookedCount > 0 ? ` · ${u.bookedCount} booked` : ""}
-              </li>
-            ))}
-          </ul>
-          <p className="text-body-s">
-            Assign a clinician under Clinic sessions, or cancel the day so the people booked are
-            told.
-          </p>
+          <span className="text-body-s tabular-nums">
+            {unstaffedSoon
+              .map(
+                (u) =>
+                  `${u.serviceLineName} · ${u.dateLabel} ${u.timeLabel}${u.bookedCount > 0 ? ` · ${u.bookedCount} booked` : ""}`,
+              )
+              .join("  ·  ")}
+          </span>
+          <span className="text-body-s">
+            — assign a clinician under Next 14 days, or cancel the day.
+          </span>
         </section>
       ) : null}
 
-      <SchedulingOverviewCard hospitalId={scope.hospitalId} variant="panel" />
+      {/* The strip: five numbers, each with its basis. The first is tinted —
+          the reference's one highlighted card — because "today" is the one a
+          desk reads first. */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
+        <StatCard
+          label="Today"
+          value={stats?.todayBooked ?? "—"}
+          hint="confirmed bookings"
+          icon={<CalendarCheckIcon className="size-4" aria-hidden />}
+          tinted
+        />
+        <StatCard
+          label="Pending"
+          value={stats?.pendingApproval ?? "—"}
+          hint="awaiting a clinician"
+          icon={<ClockIcon className="size-4" aria-hidden />}
+        />
+        <StatCard
+          label="Urgent today"
+          value={stats?.urgentToday ?? "—"}
+          hint="alert-triggered"
+          icon={<AlertCircleIcon className="size-4" aria-hidden />}
+        />
+        <StatCard
+          label="Places, next 14 days"
+          value={places}
+          hint={`${booked} held · ${published.length} clinic days`}
+          icon={<CalendarDaysIcon className="size-4" aria-hidden />}
+        />
+        <StatCard
+          label="Sent today"
+          value={sentCount}
+          hint={
+            smsToday.length > 0
+              ? `SMS ${smsToday[0]?.currency ?? "UGX"} ${smsCost.toFixed(0)}`
+              : "no SMS yet"
+          }
+          icon={<MessageSquareIcon className="size-4" aria-hidden />}
+        />
+      </div>
 
-      <nav aria-label="Scheduling sections" className="flex flex-wrap gap-2">
-        {TABS.map(([id, label]) => (
-          <SegmentedLink key={id} href={`/hospital-admin/scheduling?tab=${id}`} active={id === tab}>
-            {label}
-            <Count
-              n={
-                id === "lines"
-                  ? lines.length
-                  : id === "sessions"
-                    ? sessions.length
-                    : id === "policy"
-                      ? unset
-                      : sentToday.reduce((a, r) => a + r.count, 0)
-              }
-              active={id === tab}
-            />
-          </SegmentedLink>
-        ))}
-      </nav>
-
-      {tab === "lines" ? (
+      <div className="grid gap-4 xl:grid-cols-3">
         <ServiceLinesSection
+          className="xl:col-span-2"
           lines={lines}
           departments={departments.map((d) => ({ id: d.departmentId, name: d.departmentName }))}
           cadres={clinicalCadres}
           fees={fees}
         />
-      ) : tab === "sessions" ? (
-        <ClinicSessionsSection
-          templates={templates}
-          sessions={sessions}
-          sessionLines={lines
-            .filter((l) => l.active && l.capacityMode === "session")
-            .map((l) => ({ id: l.id, name: l.name }))}
-          clinicians={clinicians}
-          todayYmd={localDateKey(new Date(), DEFAULT_TIME_ZONE)}
+        <CapacityCard
+          places={places}
+          booked={booked}
+          days={published.length}
+          unstaffed={unstaffed}
         />
-      ) : tab === "policy" ? (
-        <>
-          {unset > 0 && departments.length > 0 ? (
-            <p className="text-muted-foreground text-body-s">
-              <span className="text-foreground font-medium">
-                {unset} of {departments.length}{" "}
-                {departments.length === 1 ? "department has" : "departments have"} no policy
-              </span>{" "}
-              — unrestricted, which is a working default. Set one only to narrow it.
-            </p>
-          ) : null}
-          <PolicyForm departments={departments} />
-        </>
-      ) : (
-        <SentTodayPanel rows={sentToday} />
-      )}
+      </div>
+
+      <ClinicSessionsSection
+        templates={templates}
+        sessions={sessions}
+        sessionLines={lines
+          .filter((l) => l.active && l.capacityMode === "session")
+          .map((l) => ({ id: l.id, name: l.name }))}
+        clinicians={clinicians}
+        todayYmd={localDateKey(new Date(), DEFAULT_TIME_ZONE)}
+      />
+
+      <PolicyPanel departments={departments} />
     </div>
   );
 }
 
-/** The small count beside a tab's label — the reference's badge, never a colour alone. */
-function Count({ n, active }: { n: number; active: boolean }) {
-  if (n === 0) return null;
+/* ─── The strip and the capacity card ──────────────────────────────── */
+
+function StatCard({
+  label,
+  value,
+  hint,
+  icon,
+  tinted = false,
+}: {
+  label: string;
+  value: number | string;
+  hint: string;
+  icon: ReactNode;
+  tinted?: boolean;
+}) {
   return (
-    <span
-      className={
-        active
-          ? "bg-primary-foreground/20 rounded-full px-1.5 font-mono text-[11px] tabular-nums"
-          : "bg-muted text-muted-foreground rounded-full px-1.5 font-mono text-[11px] tabular-nums"
-      }
+    <div
+      className={cn(
+        "flex items-center gap-3 rounded-xl border px-4 py-3 shadow-xs",
+        tinted ? "bg-accent border-brand-200 dark:border-brand-800" : "bg-card border-border",
+      )}
     >
-      {n}
-    </span>
+      <div className="flex min-w-0 flex-1 flex-col">
+        <span className="text-muted-foreground text-caption truncate">{label}</span>
+        <span className="text-foreground font-mono text-[22px] leading-7 font-medium tabular-nums">
+          {value}
+        </span>
+        <span className="text-muted-foreground text-caption truncate">{hint}</span>
+      </div>
+      <span
+        className={cn(
+          "grid size-9 shrink-0 place-items-center rounded-lg",
+          tinted ? "bg-card text-brand-700" : "bg-muted text-brand-700",
+        )}
+      >
+        {icon}
+      </span>
+    </div>
+  );
+}
+
+/** The reference's "Room availability": one bar, four numbers, all from the published days. */
+function CapacityCard({
+  places,
+  booked,
+  days,
+  unstaffed,
+}: {
+  places: number;
+  booked: number;
+  days: number;
+  unstaffed: number;
+}) {
+  const free = Math.max(places - booked, 0);
+  const pct = places > 0 ? Math.round((booked / places) * 100) : 0;
+  return (
+    <section className="border-border bg-card flex flex-col gap-4 rounded-xl border p-5 shadow-xs">
+      <header className="flex items-baseline justify-between gap-3">
+        <h2 className="text-foreground text-body-m font-medium">Capacity, next 14 days</h2>
+        <span className="text-muted-foreground text-caption font-mono tabular-nums">
+          {places > 0 ? `${pct}% held` : "nothing published"}
+        </span>
+      </header>
+      <div
+        role="img"
+        aria-label={`${booked} of ${places} places held`}
+        className="bg-muted flex h-9 w-full overflow-hidden rounded-lg"
+      >
+        {places > 0 ? (
+          <>
+            <div className="bg-brand-600 h-full" style={{ width: `${pct}%` }} />
+            <div className="bg-brand-200 h-full flex-1" />
+          </>
+        ) : null}
+      </div>
+      <dl className="grid grid-cols-2 gap-x-4 gap-y-3">
+        <Legend swatch="bg-brand-600" label="Held" value={booked} />
+        <Legend swatch="bg-brand-200" label="Free" value={free} />
+        <Legend swatch="bg-muted-foreground/40" label="Clinic days" value={days} />
+        <Legend swatch="bg-status-caution-fg" label="Unstaffed days" value={unstaffed} />
+      </dl>
+    </section>
+  );
+}
+
+function Legend({ swatch, label, value }: { swatch: string; label: string; value: number }) {
+  return (
+    <div className="flex items-center gap-2.5">
+      <span className={cn("size-2.5 shrink-0 rounded-sm", swatch)} aria-hidden />
+      <div className="flex flex-col">
+        <dt className="text-muted-foreground text-caption">{label}</dt>
+        <dd className="text-foreground text-body-m font-mono font-medium tabular-nums">{value}</dd>
+      </div>
+    </div>
   );
 }
 

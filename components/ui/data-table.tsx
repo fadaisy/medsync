@@ -77,6 +77,11 @@ export interface DataTableProps<TRow> {
   caption: string;
 
   className?: string;
+  /**
+   * Classes for the scrolling wrapper — a `max-h-*` crops a long table to a
+   * panel and scrolls it under the sticky header instead of growing the page.
+   */
+  scrollClassName?: string;
 }
 
 export function DataTable<TRow>({
@@ -89,6 +94,7 @@ export function DataTable<TRow>({
   onRowSelect,
   selectedRowId,
   toolbar,
+  scrollClassName,
   empty,
   caption,
   className,
@@ -154,7 +160,7 @@ export function DataTable<TRow>({
         </div>
       ) : null}
 
-      <div className="relative overflow-x-auto">
+      <div className={cn("relative overflow-auto", scrollClassName)}>
         <table className="w-full border-collapse text-left">
           <caption className="sr-only">{caption}</caption>
 
@@ -162,7 +168,7 @@ export function DataTable<TRow>({
               gray-500 (per DESIGN-medsync.md "Patient Records Table"
               header pattern). */}
           <thead>
-            <tr className="border-border border-b bg-gray-50 dark:bg-gray-900/40">
+            <tr className="border-border sticky top-0 z-10 border-b bg-gray-50 dark:bg-gray-900/40">
               {columns.map((col) => {
                 const isSorted = sortKey === col.id && sortDir !== null;
                 return (

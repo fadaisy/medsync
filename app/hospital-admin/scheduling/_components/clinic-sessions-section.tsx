@@ -19,6 +19,7 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { upsertSessionTemplateAction } from "../actions";
+import { Panel } from "./panel";
 import { INPUT_CLASS, timeFromMinutes, WEEKDAYS } from "./policy-form";
 import { SessionActions } from "./session-actions";
 
@@ -125,9 +126,10 @@ export function ClinicSessionsSection({
             {row.serviceLineName}
             {row.active ? "" : <span className="text-muted-foreground"> · inactive</span>}
           </span>
-          {row.venue ? (
-            <span className="text-muted-foreground text-caption truncate">{row.venue}</span>
-          ) : null}
+          <span className="text-muted-foreground text-caption truncate">
+            {row.clinicianName ?? "Not yet assigned"}
+            {row.venue ? ` · ${row.venue}` : ""}
+          </span>
         </div>
       ),
     },
@@ -139,52 +141,38 @@ export function ClinicSessionsSection({
         `${WEEKDAY_LABEL[row.weekday] ?? row.weekday} ${timeFromMinutes(row.startMinutesLocal)}`,
     },
     {
-      id: "duration",
-      header: "Length",
-      mono: true,
-      cell: (row) => `${row.durationMinutes} min`,
-      hideOnNarrow: true,
-    },
-    {
       id: "cap",
-      header: "Cap",
-      mono: true,
-      cell: (row) => row.capacityTotal,
-    },
-    {
-      id: "split",
-      header: "Booked / walk-in",
+      header: "Booked / cap",
       mono: true,
       cell: (row) =>
-        `${row.capacityBooked} / ${row.capacityTotal - row.capacityBooked}` +
+        `${row.capacityBooked} / ${row.capacityTotal}` +
         (row.overbookingFactor > 1 ? ` · ×${row.overbookingFactor.toFixed(2)}` : ""),
-      hideOnNarrow: true,
-    },
-    {
-      id: "clinician",
-      header: "Clinician",
-      cell: (row) =>
-        row.clinicianName ?? <span className="text-muted-foreground">Not yet assigned</span>,
-      hideOnNarrow: true,
     },
   ];
 
   const sessionColumns: ReadonlyArray<DataTableColumn<ClinicSessionRow>> = [
-    { id: "date", header: "Date", mono: true, cell: (row) => row.dateLabel },
-    { id: "time", header: "Time", mono: true, cell: (row) => row.timeLabel },
+    {
+      id: "when",
+      header: "When",
+      mono: true,
+      cell: (row) => (
+        <span className="flex flex-col">
+          <span className="text-foreground">{row.dateLabel}</span>
+          <span className="text-muted-foreground text-caption">{row.timeLabel}</span>
+        </span>
+      ),
+    },
     {
       id: "line",
       header: "Clinic",
       cell: (row) => (
-        <span className="text-foreground truncate font-medium">{row.serviceLineName}</span>
+        <span className="flex min-w-0 flex-col">
+          <span className="text-foreground truncate font-medium">{row.serviceLineName}</span>
+          <span className="text-muted-foreground text-caption truncate">
+            {row.clinicianName ?? "Not yet assigned"}
+          </span>
+        </span>
       ),
-    },
-    {
-      id: "clinician",
-      header: "Clinician",
-      cell: (row) =>
-        row.clinicianName ?? <span className="text-muted-foreground">Not yet assigned</span>,
-      hideOnNarrow: true,
     },
     {
       id: "booked",
@@ -212,27 +200,40 @@ export function ClinicSessionsSection({
   ];
 
   return (
-    <section className="border-border bg-card flex flex-col rounded-lg border">
-      <div className="flex items-center justify-between gap-3 px-6 py-4">
-        <div className="flex flex-col gap-0.5">
-          <h2 className="text-foreground text-heading-s font-medium">Weekly rules</h2>
-          <p className="text-muted-foreground text-body-s">
-            Each rule publishes its clinic days 14 days ahead. Days with bookings keep their
-            promise.
-          </p>
-        </div>
-        <Button
-          type="button"
-          onClick={() => setSelected("new")}
-          disabled={sessionLines.length === 0}
-          className="w-fit shrink-0"
-        >
-          <PlusIcon className="size-3.5" />
-          New weekly rule
-        </Button>
-      </div>
+    <div className="grid gap-4 xl:grid-cols-5">
+      <Panel title="Next 14 days" count={sessions.length} className="xl:col-span-3">
+        <DataTable
+          data={sessions}
+          columns={sessionColumns}
+          rowKey={(row) => row.id}
+          onRowSelect={(row) => setSession(row)}
+          selectedRowId={session?.id ?? null}
+          caption="Clinic sessions in the next 14 days"
+          scrollClassName="max-h-[19rem]"
+          empty={
+            <DataTableEmpty
+              title="No clinic days yet"
+              description="Days appear once a weekly rule is saved."
+            />
+          }
+        />
+      </Panel>
 
-      <div className="border-border border-t">
+      <Panel
+        title="Weekly rules"
+        count={templates.length}
+        className="xl:col-span-2"
+        action={
+          <Button
+            type="button"
+            onClick={() => setSelected("new")}
+            disabled={sessionLines.length === 0}
+          >
+            <PlusIcon className="size-3.5" />
+            New rule
+          </Button>
+        }
+      >
         <DataTable
           data={templates}
           columns={templateColumns}
@@ -240,6 +241,7 @@ export function ClinicSessionsSection({
           onRowSelect={(row) => setSelected(row)}
           selectedRowId={selected && selected !== "new" ? selected.id : null}
           caption="Weekly session rules at this hospital"
+          scrollClassName="max-h-[19rem]"
           empty={
             <DataTableEmpty
               title="No weekly rules yet"
@@ -251,28 +253,7 @@ export function ClinicSessionsSection({
             />
           }
         />
-      </div>
-
-      <div className="border-border flex flex-col gap-0.5 border-t px-6 py-4">
-        <h3 className="text-foreground text-body-m font-medium">Next 14 days</h3>
-        <p className="text-muted-foreground text-caption">
-          East Africa Time. Select a day to mark it late or cancel it.
-        </p>
-      </div>
-      <DataTable
-        data={sessions}
-        columns={sessionColumns}
-        rowKey={(row) => row.id}
-        onRowSelect={(row) => setSession(row)}
-        selectedRowId={session?.id ?? null}
-        caption="Clinic sessions in the next 14 days"
-        empty={
-          <DataTableEmpty
-            title="No clinic sessions published yet"
-            description="Days appear once a weekly rule is saved."
-          />
-        }
-      />
+      </Panel>
 
       <Sheet open={session !== null} onOpenChange={(open) => !open && setSession(null)}>
         <SheetContent widthClassName="w-full sm:max-w-[520px]">
@@ -296,7 +277,7 @@ export function ClinicSessionsSection({
           ) : null}
         </SheetContent>
       </Sheet>
-    </section>
+    </div>
   );
 }
 

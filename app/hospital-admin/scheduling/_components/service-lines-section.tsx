@@ -3,7 +3,7 @@
 import type { CapacityActionState, FeeActionState } from "../actions";
 import type { DataTableColumn, PillTone } from "@/components/ui/data-table";
 import { startTransition, useActionState, useEffect, useState } from "react";
-import { PlusIcon } from "lucide-react";
+import { PlusIcon, SearchIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { DataTable, DataTableEmpty, Pill } from "@/components/ui/data-table";
@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/sheet";
 import { PATIENT_REASON_CODES } from "@/supabase/functions/_shared/sessions-sql";
 import { setServiceLineFeeAction, upsertServiceLineAction } from "../actions";
+import { Panel } from "./panel";
 import { INPUT_CLASS } from "./policy-form";
 
 /**
@@ -104,14 +105,23 @@ export function ServiceLinesSection({
   departments,
   cadres,
   fees,
+  className,
 }: {
   lines: ReadonlyArray<ServiceLineRow>;
   departments: ReadonlyArray<DepartmentOption>;
   cadres: ReadonlyArray<CadreOption>;
   fees: ReadonlyArray<CadreFeeRow>;
+  className?: string;
 }) {
   // null = closed; "new" = blank editor; a row = edit that row.
   const [selected, setSelected] = useState<ServiceLineRow | "new" | null>(null);
+  const [query, setQuery] = useState("");
+  const q = query.trim().toLowerCase();
+  const shown = q
+    ? lines.filter(
+        (l) => l.name.toLowerCase().includes(q) || l.departmentName.toLowerCase().includes(q),
+      )
+    : lines;
 
   const columns: ReadonlyArray<DataTableColumn<ServiceLineRow>> = [
     {
@@ -159,41 +169,57 @@ export function ServiceLinesSection({
   ];
 
   return (
-    <section className="border-border bg-card flex flex-col rounded-lg border">
-      <div className="flex items-center justify-between gap-3 px-6 py-4">
-        <div className="flex flex-col gap-0.5">
-          <h2 className="text-foreground text-heading-s font-medium">Service lines</h2>
-          <p className="text-muted-foreground text-body-s">
-            What patients can book, and how each line takes them. Select a row to edit.
-          </p>
-        </div>
-        <Button
-          type="button"
-          onClick={() => setSelected("new")}
-          disabled={departments.length === 0}
-          className="w-fit shrink-0"
-        >
-          <PlusIcon className="size-3.5" />
-          New service line
-        </Button>
-      </div>
-
-      <div className="border-border border-t">
-        <DataTable
-          data={lines}
-          columns={columns}
-          rowKey={(row) => row.id}
-          onRowSelect={(row) => setSelected(row)}
-          selectedRowId={selected && selected !== "new" ? selected.id : null}
-          caption="Service lines at this hospital"
-          empty={
-            <DataTableEmpty
-              title="No service lines yet"
-              description="Add a department first, or create a line here."
+    <Panel
+      title="Service lines"
+      count={lines.length}
+      className={className}
+      action={
+        <>
+          <label className="relative hidden sm:block">
+            <span className="sr-only">Search service lines</span>
+            <SearchIcon
+              aria-hidden
+              className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2"
             />
-          }
-        />
-      </div>
+            <Input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search line or department"
+              className="h-9 w-56 rounded-md pl-8"
+            />
+          </label>
+          <Button
+            type="button"
+            onClick={() => setSelected("new")}
+            disabled={departments.length === 0}
+          >
+            <PlusIcon className="size-3.5" />
+            New
+          </Button>
+        </>
+      }
+    >
+      <DataTable
+        data={shown}
+        columns={columns}
+        rowKey={(row) => row.id}
+        onRowSelect={(row) => setSelected(row)}
+        selectedRowId={selected && selected !== "new" ? selected.id : null}
+        caption="Service lines at this hospital"
+        // Cropped: the panel stays the height of the capacity card beside it.
+        scrollClassName="max-h-[21rem]"
+        empty={
+          <DataTableEmpty
+            title={q ? "Nothing matches" : "No service lines yet"}
+            description={
+              q
+                ? "Try the line's name or its department."
+                : "Add a department first, or create a line here."
+            }
+          />
+        }
+      />
 
       <Sheet open={selected !== null} onOpenChange={(open) => !open && setSelected(null)}>
         <SheetContent widthClassName="w-full sm:max-w-[600px]">
@@ -209,7 +235,7 @@ export function ServiceLinesSection({
           ) : null}
         </SheetContent>
       </Sheet>
-    </section>
+    </Panel>
   );
 }
 

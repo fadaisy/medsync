@@ -112,10 +112,10 @@ Everything below happens at `/hospital-admin`.
 
 ### 2.4 Weekly rules → clinic days
 
-- **Do:** **Clinic sessions** → **New weekly rule** on _General clinic_: the doctor as clinician, a weekday,
+- **Do:** **Weekly rules** panel → **New rule** on _General clinic_: the doctor as clinician, a weekday,
   09:00, 180 min, total 60 / bookable 10, interleave 2/1, overbooking 1.00. Add a **second** rule with **no
   clinician**.
-- **Expect:** both rules' days for the next 14 days appear in the **Next 14 days** table as `published`; the
+- **Expect:** both rules' days appear in the **Next 14 days** panel as `published`; the
   unnamed rule's rows read **Not yet assigned** in the Clinician column.
 
 ### 2.5 Availability for the slot line
@@ -346,7 +346,7 @@ Sign in as the **doctor** (MFA). `/doctor/schedule`.
 
 ### 6.4 Running late / cancel a clinic day (hospital admin)
 
-- **Running late:** `/hospital-admin/scheduling` → **Clinic sessions** tab → the day → set 30 minutes. Patients' windows shift; a
+- **Running late:** `/hospital-admin/scheduling` → **Next 14 days** → the day → set 30 minutes. Patients' windows shift; a
   "Window moved" message is queued for them.
 - **Cancel the day:** the two-step cancel with a reason. Every live booking becomes `cancelled` with the code
   `session_cancelled`; patients see "This clinic day was cancelled." and a one-tap **rebooking** offer of the

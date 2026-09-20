@@ -32,7 +32,7 @@ export interface SchedulingOverviewCardProps {
   className?: string;
 }
 
-interface SchedulingStats {
+export interface SchedulingStats {
   todayBooked: number;
   pendingApproval: number;
   urgentToday: number;
@@ -41,7 +41,7 @@ interface SchedulingStats {
 
 const NO_SHOW_LOOKBACK_DAYS = 7;
 
-async function fetchStats(hospitalId: string): Promise<SchedulingStats | null> {
+export async function fetchStats(hospitalId: string): Promise<SchedulingStats | null> {
   try {
     const now = new Date();
     // The hospital's today, not UTC's (03:00 EAT).
