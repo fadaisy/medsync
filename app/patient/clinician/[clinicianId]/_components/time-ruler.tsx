@@ -7,15 +7,16 @@ import { cn } from "@/lib/utils";
 import { DEFAULT_TIME_ZONE, localWeekdayAndMinutes } from "@/supabase/functions/_shared/slots";
 
 /**
- * The reference's "Select Time": a ruler of tick marks with a label every
- * half hour and a raised bracket over the chosen appointment. Every open
- * time is a tick you can press; the marks between them are only the ruler.
+ * The reference's "Select Time": a dense ruler — a mark every five minutes,
+ * taller on the quarter and half hour, a label on the half hour — with the
+ * chosen appointment sitting on it as a tinted block under a brand bar, its
+ * marks inked. Every open time is a press target as wide as the visit it
+ * books, so a thumb lands on it; the tick where it starts stands taller so
+ * the open times can be seen before any is chosen.
  *
- * It is a radio group underneath — each open time is a `<button
- * aria-pressed>` with its full time as its name, arrow keys walk the open
- * times, and the chosen range is read out in words under the ruler — so the
- * shape is the mock-up's and the control is still one a screen reader and a
- * keyboard can use. Times are the hospital's, 24-hour.
+ * Underneath it is a control everyone can use: each open time is a `<button
+ * aria-pressed>` named by its full range, arrow keys walk the open times, and
+ * the chosen range is written out beside the ruler. Times are the hospital's.
  */
 export function TimeRuler({
   slots,
@@ -27,117 +28,113 @@ export function TimeRuler({
   onChange: (startsAtIso: string) => void;
 }) {
   const model = useMemo(() => layout(slots), [slots]);
-  const listRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Keep the chosen tick in view when it changes from outside (a seed from
-  // the provider's Book link, a day change).
+  // Keep the chosen block in view when the day or a seed changes it.
   useEffect(() => {
-    if (!value || !listRef.current) return;
-    const el = listRef.current.querySelector<HTMLElement>(`[data-slot="${value}"]`);
+    if (!value || !scrollRef.current) return;
+    const el = scrollRef.current.querySelector<HTMLElement>(`[data-slot="${value}"]`);
     el?.scrollIntoView({ block: "nearest", inline: "center", behavior: "smooth" });
   }, [value]);
 
   if (!model) return null;
-  const { ticks, tickPx, slotMinutes } = model;
-  const chosen = slots.find((s) => s.startsAtIso === value) ?? null;
+  const { ticks, spans, slotMinutes, width } = model;
+  const chosen = spans.find((s) => s.startsAtIso === value) ?? null;
 
-  const moveFocus = (from: number, dir: 1 | -1) => {
-    const open = ticks.filter((t) => t.slot);
-    const i = open.findIndex((t) => t.index === from);
-    const next = open[i + dir];
+  const moveFocus = (fromIso: string, dir: 1 | -1) => {
+    const i = spans.findIndex((s) => s.startsAtIso === fromIso);
+    const next = spans[i + dir];
     if (!next) return;
-    onChange(next.slot!.startsAtIso);
-    listRef.current?.querySelector<HTMLElement>(`[data-slot="${next.slot!.startsAtIso}"]`)?.focus();
+    onChange(next.startsAtIso);
+    scrollRef.current?.querySelector<HTMLElement>(`[data-slot="${next.startsAtIso}"]`)?.focus();
   };
 
   return (
-    <div className="flex flex-col gap-2">
-      <div
-        ref={listRef}
-        role="group"
-        aria-label="Available times"
-        className="-mx-1 overflow-x-auto px-1 pt-4 pb-1"
-      >
-        <div className="relative flex h-14 items-end" style={{ width: ticks.length * tickPx }}>
-          {/* The bracket over the chosen appointment: its whole length, so a
-              30-minute visit reads as 30 minutes of the ruler. */}
+    <div className="bg-card dark:shadow-card flex flex-col gap-3 rounded-2xl p-4 shadow-xs">
+      <div ref={scrollRef} className="-mx-2 overflow-x-auto px-2">
+        <div
+          role="group"
+          aria-label="Available times"
+          className="relative mx-auto"
+          style={{ width }}
+        >
+          {/* The chosen visit: a tinted block the marks stand on, a brand bar over it. */}
           {chosen ? (
             <div
               aria-hidden
-              className="bg-primary ease-expo-out duration-fast absolute -top-3 h-1.5 rounded-full transition-[left]"
-              style={{
-                left: ticks.findIndex((t) => t.slot?.startsAtIso === chosen.startsAtIso) * tickPx,
-                width: Math.max(tickPx, (slotMinutes / TICK_MINUTES) * tickPx),
-              }}
-            />
+              className="ease-expo-out duration-fast absolute top-0 bottom-6 rounded-lg transition-[left]"
+              style={{ left: chosen.left, width: chosen.width }}
+            >
+              <div className="bg-accent absolute inset-0 rounded-lg" />
+              <div className="bg-primary absolute inset-x-1 top-0 h-1 rounded-full" />
+            </div>
           ) : null}
 
-          {ticks.map((t) => {
-            if (t.slot) {
-              const selected = t.slot.startsAtIso === value;
+          {/* The marks. */}
+          <div aria-hidden className="flex h-12 items-end" style={{ width }}>
+            {ticks.map((t) => {
+              const inChosen = chosen !== null && t.min >= chosen.startMin && t.min < chosen.endMin;
               return (
-                <button
-                  key={t.index}
-                  type="button"
-                  data-slot={t.slot.startsAtIso}
-                  aria-pressed={selected}
-                  aria-label={`${formatTime(t.slot.startsAtIso)} to ${formatTime(t.slot.endsAtIso)}`}
-                  onClick={() => onChange(t.slot!.startsAtIso)}
-                  onKeyDown={(e) => {
-                    if (e.key === "ArrowRight") moveFocus(t.index, 1);
-                    if (e.key === "ArrowLeft") moveFocus(t.index, -1);
-                  }}
-                  className="group focus-visible:ring-ring flex h-full shrink-0 flex-col items-center justify-end rounded-sm outline-none focus-visible:ring-2"
-                  style={{ width: tickPx }}
-                >
-                  <span
-                    aria-hidden
+                <div key={t.min} className="flex justify-center" style={{ width: TICK_PX }}>
+                  <div
                     className={cn(
-                      "ease-expo-out duration-fast w-0.5 rounded-full transition-[height,background-color]",
-                      selected
-                        ? "bg-primary h-8"
-                        : "bg-brand-400 group-hover:bg-brand-600 dark:bg-brand-600 h-6 group-hover:h-8",
+                      "w-px rounded-full",
+                      t.opens
+                        ? "bg-brand-500 dark:bg-brand-400 h-6 w-0.5"
+                        : t.min % 30 === 0
+                          ? "h-4"
+                          : t.min % 15 === 0
+                            ? "h-3"
+                            : "h-2",
+                      inChosen ? "bg-brand-700 dark:bg-brand-300" : t.opens ? "" : "bg-border",
                     )}
                   />
-                  <span
-                    aria-hidden
-                    className={cn(
-                      "text-caption mt-1.5 h-4 font-mono tabular-nums",
-                      t.label ? "" : "invisible",
-                      selected ? "text-foreground font-medium" : "text-muted-foreground",
-                    )}
-                  >
-                    {t.label ?? "·"}
-                  </span>
-                </button>
+                </div>
               );
-            }
-            // A mark between open times: only the ruler.
-            return (
-              <div
-                key={t.index}
-                aria-hidden
-                className="flex h-full shrink-0 flex-col items-center justify-end"
-                style={{ width: tickPx }}
-              >
+            })}
+          </div>
+
+          {/* The labels, on the half hour. */}
+          <div aria-hidden className="relative h-5" style={{ width }}>
+            {ticks
+              .filter((t) => t.label)
+              .map((t) => (
                 <span
-                  className={cn("bg-border w-px rounded-full", t.label !== null ? "h-4" : "h-2.5")}
-                />
-                <span
+                  key={t.min}
                   className={cn(
-                    "text-caption text-muted-foreground mt-1.5 h-4 font-mono tabular-nums",
-                    t.label ? "" : "invisible",
+                    "text-caption absolute top-1 -translate-x-1/2 font-mono whitespace-nowrap tabular-nums",
+                    chosen && t.min >= chosen.startMin && t.min <= chosen.endMin
+                      ? "text-foreground font-medium"
+                      : "text-muted-foreground",
                   )}
+                  style={{ left: t.left + TICK_PX / 2 }}
                 >
-                  {t.label ?? "·"}
+                  {t.label}
                 </span>
-              </div>
-            );
-          })}
+              ))}
+          </div>
+
+          {/* The press targets: one per open time, as wide as the visit. */}
+          {spans.map((s) => (
+            <button
+              key={s.startsAtIso}
+              type="button"
+              data-slot={s.startsAtIso}
+              aria-pressed={s.startsAtIso === value}
+              aria-label={`${formatTime(s.startsAtIso)} to ${formatTime(s.endsAtIso)}`}
+              onClick={() => onChange(s.startsAtIso)}
+              onKeyDown={(e) => {
+                if (e.key === "ArrowRight") moveFocus(s.startsAtIso, 1);
+                if (e.key === "ArrowLeft") moveFocus(s.startsAtIso, -1);
+              }}
+              className="focus-visible:ring-ring hover:bg-brand-500/10 absolute top-0 bottom-6 rounded-lg outline-none focus-visible:ring-2"
+              style={{ left: s.left, width: s.width }}
+            />
+          ))}
         </div>
       </div>
 
-      {/* The choice in words, for everyone: the bracket alone is colour and shape. */}
+      {/* The choice in words, for everyone: the block alone is colour and shape. */}
       <p className="text-body-s text-muted-foreground" aria-live="polite">
         {chosen ? (
           <>
@@ -147,7 +144,7 @@ export function TimeRuler({
             · {slotMinutes} min
           </>
         ) : (
-          `${slots.length} ${slots.length === 1 ? "time" : "times"} open — tap a mark`
+          `${slots.length} ${slots.length === 1 ? "time" : "times"} open — the tall marks. Tap one.`
         )}
       </p>
     </div>
@@ -156,23 +153,31 @@ export function TimeRuler({
 
 /* ─── The ruler's geometry ──────────────────────────────────────── */
 
-/** One mark every quarter hour; a label on the half hour. */
-const TICK_MINUTES = 15;
-const TICK_PX = 22;
+/** A mark every five minutes, eight pixels apart: a 30-minute visit is 48px of ruler. */
+const TICK_MINUTES = 5;
+const TICK_PX = 8;
 
 interface Tick {
-  index: number;
-  /** "07:30" on the half hour, else null. */
+  /** Minutes since the hospital's midnight. */
+  min: number;
+  left: number;
   label: string | null;
-  /** The open time that starts on this mark, if any. */
-  slot: { startsAtIso: string; endsAtIso: string } | null;
+  /** An open time starts on this mark. */
+  opens: boolean;
+}
+
+interface Span {
+  startsAtIso: string;
+  endsAtIso: string;
+  startMin: number;
+  endMin: number;
+  left: number;
+  width: number;
 }
 
 /**
- * Lays the open times on a quarter-hour ruler from the first open time to
- * the end of the last, in the hospital's clock. A time that does not sit
- * on a quarter hour is snapped to the nearest mark for its position only —
- * its own name still says the exact minute.
+ * Lays the open times on a five-minute ruler from a half hour before the
+ * first to a half hour after the last, in the hospital's clock.
  */
 function layout(slots: ReadonlyArray<{ startsAtIso: string; endsAtIso: string }>) {
   if (slots.length === 0) return null;
@@ -187,25 +192,37 @@ function layout(slots: ReadonlyArray<{ startsAtIso: string; endsAtIso: string }>
       (new Date(first.endsAtIso).getTime() - new Date(first.startsAtIso).getTime()) / 60_000,
     ),
   );
-  const startMin = Math.floor(minutesOf(first.startsAtIso) / TICK_MINUTES) * TICK_MINUTES;
-  const endMin = Math.ceil(minutesOf(last.endsAtIso) / TICK_MINUTES) * TICK_MINUTES;
-  const byMark = new Map<number, { startsAtIso: string; endsAtIso: string }>();
-  for (const s of sorted) {
-    const mark = Math.round(minutesOf(s.startsAtIso) / TICK_MINUTES) * TICK_MINUTES;
-    if (!byMark.has(mark)) byMark.set(mark, s);
-  }
-  // Labels through the patient app's own clock format (the same words the
-  // chosen range prints), built from the first open time's instant.
+  const startMin = Math.max(0, Math.floor(minutesOf(first.startsAtIso) / 30) * 30 - 30);
+  const endMin = Math.min(24 * 60, Math.ceil(minutesOf(last.endsAtIso) / 30) * 30 + 30);
+  const leftOf = (min: number) => ((min - startMin) / TICK_MINUTES) * TICK_PX;
+
+  const spans: Span[] = sorted.map((s) => {
+    const a = minutesOf(s.startsAtIso);
+    const b = Math.max(a + TICK_MINUTES, minutesOf(s.endsAtIso) || a + slotMinutes);
+    return {
+      startsAtIso: s.startsAtIso,
+      endsAtIso: s.endsAtIso,
+      startMin: a,
+      endMin: b,
+      left: leftOf(a),
+      width: leftOf(b) - leftOf(a),
+    };
+  });
+  const opens = new Set(spans.map((s) => Math.round(s.startMin / TICK_MINUTES) * TICK_MINUTES));
+
+  // Labels through the app's own clock format, built from the first open
+  // time's instant so they say what the chosen range will say.
   const firstMs = new Date(first.startsAtIso).getTime();
   const firstMin = minutesOf(first.startsAtIso);
   const ticks: Tick[] = [];
-  for (let m = startMin, i = 0; m <= endMin; m += TICK_MINUTES, i++) {
+  for (let m = startMin; m <= endMin; m += TICK_MINUTES) {
     ticks.push({
-      index: i,
+      min: m,
+      left: leftOf(m),
       label:
         m % 30 === 0 ? formatTime(new Date(firstMs + (m - firstMin) * 60_000).toISOString()) : null,
-      slot: byMark.get(m) ?? null,
+      opens: opens.has(m),
     });
   }
-  return { ticks, tickPx: TICK_PX, slotMinutes };
+  return { ticks, spans, slotMinutes, width: ticks.length * TICK_PX };
 }

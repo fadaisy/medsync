@@ -90,11 +90,10 @@ export function ProviderHero({
         <Text accessibilityRole="header" style={styles.name}>
           {doctor.fullName}
         </Text>
-        <Text style={styles.credential}>
-          {[doctor.cadre, doctor.specialty ?? doctor.departmentName].filter(Boolean).join(" · ")}
-        </Text>
-        <Text style={styles.meta}>
-          {doctor.departmentName} · {hospitalName}
+        <Text style={styles.credential} numberOfLines={2}>
+          {[doctor.cadre, doctor.specialty ?? doctor.departmentName, hospitalName]
+            .filter(Boolean)
+            .join(" · ")}
         </Text>
       </View>
 
@@ -218,7 +217,7 @@ function initialsOf(name: string): string | null {
 
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
-    stack: { gap: space[4] },
+    stack: { gap: space[3] },
 
     // The photo card: the brand's lightest tint as a flat ground — the
     // reference's gradient is a decorative ground, which DESIGN forbids.
@@ -230,7 +229,7 @@ const makeStyles = (c: Palette) =>
     },
     // 4:3, not 4:5: the days and times are the point of the screen and a
     // taller photo pushed them a scroll away.
-    photo: { width: "100%", aspectRatio: 4 / 3, backgroundColor: c.accent },
+    photo: { width: "100%", aspectRatio: 16 / 10, backgroundColor: c.accent },
     monogram: { alignItems: "center", justifyContent: "center" },
     initials: { fontFamily: font.mono, fontSize: 56, color: c.accentForeground },
     backSlot: { position: "absolute", top: space[4], left: space[4] },
@@ -259,7 +258,6 @@ const makeStyles = (c: Palette) =>
       color: c.foreground,
     },
     credential: { fontFamily: font.body, fontSize: 14.5, lineHeight: 21, color: c.mutedForeground },
-    meta: { fontFamily: font.body, fontSize: 13.5, lineHeight: 19, color: c.mutedForeground },
 
     actions: { flexDirection: "row", alignItems: "center", gap: space[2] },
     detailsPill: {

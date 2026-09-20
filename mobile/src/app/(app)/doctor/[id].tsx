@@ -16,7 +16,10 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
+  Modal,
   Platform,
+  Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -43,6 +46,7 @@ import {
   fetchHousehold,
   fetchPatientProfile,
   fetchServiceLines,
+  formatTime,
   INTERSTITIAL_REASONS,
   newIdempotencyKey,
   reasonsFor,
@@ -137,6 +141,10 @@ export default function DoctorScreen() {
   const [reason, setReason] = useState<AppointmentReason | null>(null);
   // Once per flow: dismissed stays dismissed even if the reason changes and comes back.
   const [interstitialSeen, setInterstitialSeen] = useState(false);
+  // The reference's screen ends at "Book Session"; who the visit is for, why,
+  // the note and the fee live in a sheet that button opens — the choice of a
+  // day and a time stays on one screen.
+  const [confirming, setConfirming] = useState(false);
   const [dayKey, setDayKey] = useState<string | null>(null);
   const [slot, setSlot] = useState<SlotOffer | null>(null);
   const [note, setNote] = useState("");
@@ -404,22 +412,7 @@ export default function DoctorScreen() {
         {...chrome}
         footer={
           days.length === 0 ? undefined : (
-            <>
-              {error ? (
-                <View style={styles.well}>
-                  <Ionicons name="alert-circle-outline" size={18} color={colors.status.cautionFg} />
-                  <Text style={styles.wellText} accessibilityLiveRegion="polite">
-                    {error}
-                  </Text>
-                </View>
-              ) : null}
-              <Button
-                label="Book an appointment"
-                busy={busy}
-                disabled={!slot || !reason}
-                onPress={() => void onSubmit()}
-              />
-            </>
+            <Button label="Book session" disabled={!slot} onPress={() => setConfirming(true)} />
           )
         }
       >
@@ -450,44 +443,6 @@ export default function DoctorScreen() {
                 />
               }
             />
-          ) : null}
-
-          {/* Gate D: who the visit is for. Hidden for a confidential line —
-              never shown to, or bookable for, a member (PRD §2.9). */}
-          {days.length > 0 && household.length > 0 && !confidential ? (
-            <Section title="This visit is for">
-              <ChipRow>
-                <Chip label="Me" selected={forMember === null} onPress={() => pickFor(null)} />
-                {household.map((m) => (
-                  <Chip
-                    key={m.id}
-                    label={m.label}
-                    selected={forMember?.id === m.id}
-                    onPress={() => pickFor(m)}
-                  />
-                ))}
-              </ChipRow>
-            </Section>
-          ) : null}
-
-          {days.length > 0 ? (
-            <Section
-              title={forMember ? `Why is ${forMember.label} coming?` : "Why are you coming?"}
-            >
-              {/* Appendix A's words, or the department's own list. No entry
-                  is a symptom; `urgent_review` is not one of them (ADR 0084 §12). */}
-              <ChipRow>
-                {reasons.map((r) => (
-                  <Chip
-                    key={r.value}
-                    label={r.title}
-                    selected={r.value === reason}
-                    onPress={() => pickReason(r.value)}
-                  />
-                ))}
-              </ChipRow>
-              {picked ? <Text style={styles.hint}>{picked.hint}</Text> : null}
-            </Section>
           ) : null}
 
           {days.length > 0 ? (
@@ -521,26 +476,91 @@ export default function DoctorScreen() {
               <TimeRuler slots={slots} value={slot?.startsAtIso ?? null} onChange={pickSlot} />
             </View>
           ) : null}
+        </View>
+      </Screen>
 
-          {/* ADR 0092: what this clinician's line charges, before the patient
+      {/* The confirm sheet: everything the booking needs beyond a day and a
+          time. Slides up over the screen; the screen itself never scrolls
+          for it. */}
+      <Modal
+        visible={confirming}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setConfirming(false)}
+      >
+        <View style={styles.sheet}>
+          <View style={styles.sheetHead}>
+            <Text accessibilityRole="header" style={styles.sheetTitle}>
+              Confirm your visit
+            </Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Close"
+              onPress={() => setConfirming(false)}
+              hitSlop={8}
+              style={styles.sheetClose}
+            >
+              <Ionicons name="close" size={22} color={colors.foreground} />
+            </Pressable>
+          </View>
+          {slot && dayKey ? (
+            <Text style={styles.sheetSummary}>
+              {doctor.fullName} · {dayLabel(dayKey)} · {formatTime(slot.startsAtIso)}
+            </Text>
+          ) : null}
+          <ScrollView contentContainerStyle={styles.sheetBody} keyboardShouldPersistTaps="handled">
+            {/* Gate D: who the visit is for. Hidden for a confidential line —
+              never shown to, or bookable for, a member (PRD §2.9). */}
+            {household.length > 0 && !confidential ? (
+              <Section title="This visit is for">
+                <ChipRow>
+                  <Chip label="Me" selected={forMember === null} onPress={() => pickFor(null)} />
+                  {household.map((m) => (
+                    <Chip
+                      key={m.id}
+                      label={m.label}
+                      selected={forMember?.id === m.id}
+                      onPress={() => pickFor(m)}
+                    />
+                  ))}
+                </ChipRow>
+              </Section>
+            ) : null}
+
+            <Section
+              title={forMember ? `Why is ${forMember.label} coming?` : "Why are you coming?"}
+            >
+              {/* Appendix A's words, or the department's own list. No entry
+                  is a symptom; `urgent_review` is not one of them (ADR 0084 §12). */}
+              <ChipRow>
+                {reasons.map((r) => (
+                  <Chip
+                    key={r.value}
+                    label={r.title}
+                    selected={r.value === reason}
+                    onPress={() => pickReason(r.value)}
+                  />
+                ))}
+              </ChipRow>
+              {picked ? <Text style={styles.hint}>{picked.hint}</Text> : null}
+            </Section>
+
+            {/* ADR 0092: what this clinician's line charges, before the patient
               commits. A single number where the line charges one; a range
               over its cadre fees otherwise — the quote is fixed at booking. */}
-          {days.length > 0 &&
-          wait?.line?.id &&
-          quoteLine(resolveFee(wait.line.fee, doctor.cadreId)) ? (
-            <View style={styles.feeCard}>
-              <Text style={styles.feeLabel}>Fee</Text>
-              {/* THIS clinician's number, resolved against their cadre — the
+            {wait?.line?.id && quoteLine(resolveFee(wait.line.fee, doctor.cadreId)) ? (
+              <View style={styles.feeCard}>
+                <Text style={styles.feeLabel}>Fee</Text>
+                {/* THIS clinician's number, resolved against their cadre — the
                   rule the core applies at booking — never the line's range. */}
-              <Text style={styles.feeValue}>
-                {quoteLine(resolveFee(wait.line.fee, doctor.cadreId))}
-              </Text>
-              <Text style={styles.feeNote}>{FEE_FOOTNOTE}</Text>
-              <Text style={styles.feeNote}>{WAIVER_NOTE}</Text>
-            </View>
-          ) : null}
+                <Text style={styles.feeValue}>
+                  {quoteLine(resolveFee(wait.line.fee, doctor.cadreId))}
+                </Text>
+                <Text style={styles.feeNote}>{FEE_FOOTNOTE}</Text>
+                <Text style={styles.feeNote}>{WAIVER_NOTE}</Text>
+              </View>
+            ) : null}
 
-          {days.length > 0 ? (
             <View style={styles.field}>
               <Text style={[styles.fieldLabel, noteFocused && styles.fieldLabelFocused]}>
                 Add a note for the clinic (optional)
@@ -559,9 +579,26 @@ export default function DoctorScreen() {
                 style={[styles.input, noteFocused && styles.inputFocused]}
               />
             </View>
-          ) : null}
+
+            {error ? (
+              <View style={styles.well}>
+                <Ionicons name="alert-circle-outline" size={18} color={colors.status.cautionFg} />
+                <Text style={styles.wellText} accessibilityLiveRegion="polite">
+                  {error}
+                </Text>
+              </View>
+            ) : null}
+          </ScrollView>
+          <View style={styles.sheetFoot}>
+            <Button
+              label="Confirm booking"
+              busy={busy}
+              disabled={!slot || !reason}
+              onPress={() => void onSubmit()}
+            />
+          </View>
         </View>
-      </Screen>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
@@ -570,7 +607,47 @@ const makeStyles = (c: Palette) =>
   StyleSheet.create({
     fill: { flex: 1 },
     center: { flexGrow: 1, alignItems: "center", justifyContent: "center" },
-    stack: { flexGrow: 1, gap: space[5] },
+    stack: { flexGrow: 1, gap: space[4] },
+    sheet: { flex: 1, backgroundColor: c.background },
+    sheetHead: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: space[5],
+      paddingTop: space[5],
+      paddingBottom: space[2],
+    },
+    sheetTitle: {
+      fontFamily: font.display,
+      fontSize: 22,
+      lineHeight: 28,
+      letterSpacing: -0.3,
+      color: c.foreground,
+    },
+    sheetClose: {
+      width: 44,
+      height: 44,
+      borderRadius: 22,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: c.muted,
+    },
+    sheetSummary: {
+      fontFamily: font.body,
+      fontSize: 14.5,
+      lineHeight: 21,
+      color: c.mutedForeground,
+      paddingHorizontal: space[5],
+      paddingBottom: space[3],
+    },
+    sheetBody: { paddingHorizontal: space[5], paddingBottom: space[5], gap: space[5] },
+    sheetFoot: {
+      paddingHorizontal: space[5],
+      paddingVertical: space[4],
+      borderTopWidth: 1,
+      borderTopColor: c.border,
+      backgroundColor: c.background,
+    },
 
     // The rating rides on a raised pill so it reads as a badge, not a caption.
 
