@@ -152,7 +152,7 @@ function ConsentForm({
 
         <View style={styles.card}>
           <Text style={styles.meta}>
-            Data-processing notice · v{due.version}, effective {due.effectiveDate}
+            Data-processing notice · {due.version}, effective {due.effectiveDate}
           </Text>
           <Text style={styles.body}>{due.body}</Text>
         </View>

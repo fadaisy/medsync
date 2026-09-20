@@ -70,7 +70,7 @@ export default async function PatientConsentPage() {
           <TintedRow
             tint="mint"
             iconKey="shield"
-            title={`Data-processing notice v${consent.version} accepted`}
+            title={`Data-processing notice ${consent.version} accepted`}
             subtitle={`On ${consent.acceptedAt?.toLocaleDateString("en-GB", { dateStyle: "long", timeZone: DEFAULT_TIME_ZONE })}. The exact text is recorded against your account.`}
           />
         ) : null}

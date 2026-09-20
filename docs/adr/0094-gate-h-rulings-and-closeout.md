@@ -99,8 +99,9 @@ money, and the things that do are listed at the end as deferred, not forgotten.
    desk form's own sentence ("Booking for a child is not available yet.") when **either** number given — the
    typed age, or the date of birth against today in the hospital's zone — is under 18: "age 18" beside a 2015
    birthday is a child with a typo. Before the audit row, before any write. The desk form computes whole
-   calendar years the same way, so the two agree on an 18th birthday. This matches ADR 0089 (adults only until
-   the CSO/legal guardian model exists); child-health lines wait for that model. No shared helper was
+   calendar years the same way, so the two agree on an 18th birthday. `system-ussd-book` refuses the same way —
+   a feature phone is a desk with no clerk, and the sentence fits an END screen. This matches ADR 0089 (adults
+   only until the CSO/legal guardian model exists); child-health lines wait for that model. No shared helper was
    extracted: `pt-add-household-member` (which now also checks both numbers) computes "today" in UTC and the
    ruling asks for the hospital's zone, so sharing would have changed one of them.
 4. **Template edits — empty future days follow the new rule; booked days keep their promise** (build

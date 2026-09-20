@@ -43,11 +43,22 @@ import {
 } from "../_shared/errors.ts";
 import { makeLogger } from "../_shared/logger.ts";
 import { networkContext } from "../_shared/sa-audit.ts";
+import { DEFAULT_TIME_ZONE, localDateKey } from "../_shared/slots.ts";
 import { isServiceRoleCall, systemActorId } from "../_shared/system-actor.ts";
 
 const log = makeLogger("system-ussd-book");
 
 const PHONE_E164_UG = /^\+2567\d{8}$|^\+256[23489]\d{7,8}$/;
+
+/** The desk's refusal (ha-book-on-behalf), repeated here: a feature phone is a desk with no clerk. */
+const MINOR_REFUSAL = "Booking for a child is not available yet.";
+const ADULT_YEARS = 18;
+
+/** Whole years from one YYYY-MM-DD to another — the birthday not yet reached this year does not count. */
+function yearsBetween(dob: string, today: string): number {
+  const years = Number(today.slice(0, 4)) - Number(dob.slice(0, 4));
+  return today.slice(5) < dob.slice(5) ? years - 1 : years;
+}
 
 const InputSchema = z
   .object({
@@ -98,6 +109,18 @@ Deno.serve(async (request: Request) => {
   const parsed = InputSchema.safeParse(body);
   if (!parsed.success) return badRequest("Invalid input", init, parsed.error.flatten());
   const input = parsed.data;
+
+  // Adults only (ADR 0094 ruling 3, as on the desk): every number given must
+  // clear 18, in the hospital's zone. The sentence fits a USSD END screen.
+  const today = localDateKey(new Date(), DEFAULT_TIME_ZONE);
+  const statedAges = [
+    input.age_years,
+    input.date_of_birth ? yearsBetween(input.date_of_birth, today) : undefined,
+  ].filter((n): n is number => n !== undefined);
+  if (statedAges.length > 0 && Math.min(...statedAges) < ADULT_YEARS) {
+    return badRequest(MINOR_REFUSAL, init);
+  }
+
   const sb = serviceClient();
 
   // A replayed callback answers with the booking it already made.

@@ -82,6 +82,15 @@ describe("ruling (c) — the server refuses a stated minor at the desk", () => {
       'const MINOR_REFUSAL = "Booking for a child is not available yet.";',
     );
   });
+
+  it("USSD is a desk with no clerk: system-ussd-book refuses the same way, before any write", () => {
+    const src = stripComments(fn("system-ussd-book"));
+    expect(src).toContain('const MINOR_REFUSAL = "Booking for a child is not available yet.";');
+    expect(src).toContain("Math.min(...statedAges) < ADULT_YEARS");
+    expect(src.indexOf("return badRequest(MINOR_REFUSAL, init);")).toBeLessThan(
+      src.indexOf("findReplay(sb"),
+    );
+  });
 });
 
 describe("ruling (d) — staff cancel reasons are staff only", () => {
