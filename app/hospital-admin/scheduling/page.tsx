@@ -10,7 +10,6 @@ import {
   AlertCircleIcon,
   CalendarCheckIcon,
   CalendarDaysIcon,
-  ClockIcon,
   MessageSquareIcon,
 } from "lucide-react";
 
@@ -24,6 +23,7 @@ import { cadres } from "@/db/schema/reference-data";
 import { departmentSchedulingPolicy } from "@/db/schema/scheduling";
 import { serviceLineFees, serviceLines } from "@/db/schema/service-lines";
 import { users } from "@/db/schema/users";
+import { fetchPendingRequests } from "@/lib/hospital-admin/pending";
 import { sentBreakdown } from "@/lib/hospital-admin/reports";
 import { requireHospitalAdminScope } from "@/lib/hospital-admin/scope";
 import { cn } from "@/lib/utils";
@@ -34,6 +34,7 @@ import {
 } from "@/supabase/functions/_shared/slots";
 import { fetchStats } from "../_components/scheduling-overview-card";
 import { ClinicSessionsSection } from "./_components/clinic-sessions-section";
+import { PendingDialog } from "./_components/pending-dialog";
 import { PolicyPanel } from "./_components/policy-panel";
 import { ServiceLinesSection } from "./_components/service-lines-section";
 
@@ -129,6 +130,7 @@ export default async function SchedulingPage() {
     clinicalCadres,
     fees,
     stats,
+    pending,
   ] = await Promise.all([
     fetchServiceLines(scope.hospitalId),
     fetchTemplates(scope.hospitalId),
@@ -140,6 +142,7 @@ export default async function SchedulingPage() {
     fetchClinicalCadres(),
     fetchCadreFees(scope.hospitalId),
     fetchStats(scope.hospitalId),
+    fetchPendingRequests(scope.hospitalId),
   ]);
 
   // The next 14 days as capacity: what was published, what is held.
@@ -210,12 +213,9 @@ export default async function SchedulingPage() {
           icon={<CalendarCheckIcon className="size-4" aria-hidden />}
           tinted
         />
-        <StatCard
-          label="Pending"
-          value={stats?.pendingApproval ?? "—"}
-          hint="awaiting a clinician"
-          icon={<ClockIcon className="size-4" aria-hidden />}
-        />
+        {/* The one card that opens: the rows behind the number. When the
+            stats query failed, the list itself is the count. */}
+        <PendingDialog rows={pending} value={stats?.pendingApproval ?? pending.length} />
         <StatCard
           label="Urgent today"
           value={stats?.urgentToday ?? "—"}

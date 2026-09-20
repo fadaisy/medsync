@@ -65,7 +65,7 @@ const MODE_TONE: Record<string, PillTone> = {
   open_queue: "discharged",
 };
 
-const REASON_LABEL: Record<string, string> = {
+export const REASON_LABEL: Record<string, string> = {
   follow_up: "Follow-up",
   post_discharge: "Post-discharge",
   new_concern: "New concern",
