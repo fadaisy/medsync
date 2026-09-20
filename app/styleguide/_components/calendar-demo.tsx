@@ -70,6 +70,19 @@ export function CalendarDemo() {
       appt("a3", at(0, 11, 30), 30, "pending_approval", "MRN-2026-00457", "New concern"),
       appt("a4", at(0, 14, 0), 20, "confirmed", "MRN-2026-00088", "Urgent review", "urgent"),
       block("b2", at(0, 16, 0), at(0, 17, 0), "teaching"),
+      // A clinic day from a weekly rule (Gate B), as the doctor's calendar draws it.
+      {
+        id: "s1",
+        kind: "session",
+        startsAtIso: at(2, 9, 0).toISOString(),
+        endsAtIso: at(2, 12, 0).toISOString(),
+        serviceLineName: "Diabetes clinic",
+        venue: "OPD Room 4",
+        bookedCount: 12,
+        capacity: 20,
+        status: "published",
+        delayMinutes: 0,
+      },
 
       // Tomorrow
       appt("a5", at(1, 9, 30), 30, "confirmed", "MRN-2026-00211", "Refill"),

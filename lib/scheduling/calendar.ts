@@ -1,18 +1,21 @@
 import "server-only";
 
 import type { CalendarEvent } from "@/components/scheduling/calendar/types";
-import { and, asc, eq, gte, isNull, lt, lte, or } from "drizzle-orm";
+import { and, asc, eq, gte, inArray, isNull, lt, lte, or } from "drizzle-orm";
 
 import { db } from "@/db";
+import { clinicSessions } from "@/db/schema/clinic-sessions";
 import { hospitalDepartments } from "@/db/schema/hospital-departments";
 import { patientProfiles } from "@/db/schema/patient-profiles";
 import { appointments, availabilityBlocks } from "@/db/schema/scheduling";
+import { serviceLines } from "@/db/schema/service-lines";
 import { users } from "@/db/schema/users";
 
 /**
- * Calendar data fetcher — pulls appointments + availability blocks
- * for a (clinician, date range) and normalises them into the
- * CalendarEvent shape the calendar component renders.
+ * Calendar data fetcher — pulls appointments, availability blocks and
+ * clinic days (the hospital admin's weekly session rules, materialised
+ * into `clinic_sessions` for this clinician) for a (clinician, date range)
+ * and normalises them into the CalendarEvent shape the calendar renders.
  *
  * Rendering only. Whether a time is BOOKABLE is the slot engine's
  * answer (`@/supabase/functions/_shared/slots`) and never this file's —
@@ -29,12 +32,13 @@ export async function fetchClinicianCalendarEvents(args: {
   rangeStart: Date;
   rangeEnd: Date;
 }): Promise<CalendarEvent[]> {
-  const [apptRows, blockRows] = await Promise.all([
+  const [apptRows, blockRows, sessionRows] = await Promise.all([
     db
       .select({
         id: appointments.id,
         startsAt: appointments.startsAt,
         endsAt: appointments.endsAt,
+        sessionId: appointments.sessionId,
         status: appointments.status,
         priority: appointments.priority,
         type: appointments.type,
@@ -120,6 +124,35 @@ export async function fetchClinicianCalendarEvents(args: {
       )
       .orderBy(asc(availabilityBlocks.startsAt))
       .limit(500),
+
+    // Drafts are the admin's alone; a published, closed or cancelled day is
+    // the doctor's to see — cancelled included, so a day that vanished says so.
+    db
+      .select({
+        id: clinicSessions.id,
+        startsAt: clinicSessions.startsAt,
+        endsAt: clinicSessions.endsAt,
+        venue: clinicSessions.venue,
+        bookedCount: clinicSessions.bookedCount,
+        capacityBooked: clinicSessions.capacityBooked,
+        overbookingFactor: clinicSessions.overbookingFactor,
+        status: clinicSessions.status,
+        delayMinutes: clinicSessions.delayMinutes,
+        serviceLineName: serviceLines.name,
+      })
+      .from(clinicSessions)
+      .innerJoin(serviceLines, eq(serviceLines.id, clinicSessions.serviceLineId))
+      .where(
+        and(
+          eq(clinicSessions.clinicianUserId, args.clinicianUserId),
+          eq(clinicSessions.hospitalId, args.hospitalId),
+          inArray(clinicSessions.status, ["published", "closed", "cancelled"]),
+          gte(clinicSessions.startsAt, args.rangeStart),
+          lt(clinicSessions.startsAt, args.rangeEnd),
+        ),
+      )
+      .orderBy(asc(clinicSessions.startsAt))
+      .limit(200),
   ]);
 
   const events: CalendarEvent[] = [];
@@ -252,12 +285,29 @@ export async function fetchClinicianCalendarEvents(args: {
     });
   }
 
+  for (const r of sessionRows) {
+    events.push({
+      id: `s-${r.id}`,
+      kind: "session",
+      startsAtIso: r.startsAt.toISOString(),
+      endsAtIso: r.endsAt.toISOString(),
+      serviceLineName: r.serviceLineName,
+      venue: r.venue,
+      bookedCount: r.bookedCount,
+      // The same ceiling the allocator and the reports use.
+      capacity: Math.ceil(r.capacityBooked * Number(r.overbookingFactor)),
+      status: r.status,
+      delayMinutes: r.delayMinutes,
+    });
+  }
+
   for (const r of apptRows) {
     events.push({
       id: `a-${r.id}`,
       kind: "appointment",
       startsAtIso: r.startsAt.toISOString(),
       endsAtIso: r.endsAt.toISOString(),
+      sessionId: r.sessionId,
       status: r.status,
       priority: (r.priority === "urgent" ? "urgent" : "routine") as "routine" | "urgent",
       type: (r.type === "virtual" ? "virtual" : "in_person") as "in_person" | "virtual",

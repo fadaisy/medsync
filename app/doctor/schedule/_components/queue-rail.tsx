@@ -47,7 +47,13 @@ export function QueueRail({ entries }: { entries: ReadonlyArray<QueueRow> }) {
   const beingSeen = entries.filter((e) => e.state === "being_seen");
 
   return (
-    <Panel title="Today's queue" count={entries.length} action={<RecordWalkinButton />}>
+    // Capped at the calendar's height beside it; the queue scrolls inside.
+    <Panel
+      title="Today's queue"
+      count={entries.length}
+      action={<RecordWalkinButton />}
+      className="max-h-[60svh] lg:max-h-[min(72svh,760px)]"
+    >
       <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-auto p-4">
         {/* Being seen */}
         {beingSeen.length > 0 ? (

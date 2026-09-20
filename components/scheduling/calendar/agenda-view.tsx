@@ -2,16 +2,16 @@
 
 import type { CalendarEvent, OnEventClick } from "./types";
 
+import { Pill } from "@/components/ui/pill";
 import { cn } from "@/lib/utils";
 import {
   daysBetween,
+  describeEvent,
   endOfWeek,
   formatDay,
-  formatTime,
+  formatTimeRange,
   isToday,
   startOfWeek,
-  STATUS_LABEL,
-  STATUS_TONES,
 } from "./helpers";
 
 type ParsedEvent = CalendarEvent & { startsAt: Date; endsAt: Date };
@@ -19,6 +19,10 @@ type ParsedEvent = CalendarEvent & { startsAt: Date; endsAt: Date };
 /**
  * Chronological agenda for the week containing `cursor`. Compact;
  * groups by day; designed to read top-to-bottom for a quick scan.
+ * Lists appointments and clinic days — every session-held booking too,
+ * since a list is where twenty names for one clinic morning belong.
+ * Availability blocks stay off it, as on the day's own column they are
+ * background.
  */
 export function AgendaView({
   cursor,
@@ -30,13 +34,13 @@ export function AgendaView({
   onEventClick?: OnEventClick;
 }) {
   const days = daysBetween({ start: startOfWeek(cursor), end: endOfWeek(cursor) });
-  const byDay = bucketByDay(events);
+  const byDay = bucketByDay(events.filter((e) => e.kind !== "availability"));
 
   return (
     <div className="h-full overflow-y-auto" role="list" aria-label="Agenda">
       <ul className="divide-border/60 divide-y">
         {days.map((d) => {
-          const dayEvents = (byDay.get(keyOf(d)) ?? []).filter((e) => e.kind === "appointment");
+          const dayEvents = byDay.get(keyOf(d)) ?? [];
           return (
             <li key={keyOf(d)} className="flex flex-col gap-1 px-3 py-2 sm:px-4">
               <div className="flex items-baseline gap-2">
@@ -54,7 +58,7 @@ export function AgendaView({
                   </span>
                 ) : null}
                 <span className="text-muted-foreground/80 ml-auto font-mono text-[10.5px] tabular-nums">
-                  {dayEvents.length} {dayEvents.length === 1 ? "appt" : "appts"}
+                  {dayEvents.length} {dayEvents.length === 1 ? "item" : "items"}
                 </span>
               </div>
 
@@ -62,40 +66,54 @@ export function AgendaView({
                 <p className="text-muted-foreground/80 text-[12px]">Nothing scheduled.</p>
               ) : (
                 <ul className="flex flex-col gap-1.5">
-                  {dayEvents.map((ev) => (
-                    <li key={ev.id}>
-                      <button
-                        type="button"
-                        onClick={() => onEventClick?.(ev)}
-                        className="border-border hover:bg-muted/40 hover:border-foreground/15 flex w-full items-start gap-3 rounded-md border px-3 py-2 text-left transition-colors"
-                      >
-                        <span className="text-foreground shrink-0 font-mono text-[12px] tabular-nums">
-                          {formatTime(ev.startsAt)}
-                        </span>
-                        <span className="flex min-w-0 flex-1 flex-col">
-                          <span className="text-foreground text-body-s truncate font-medium">
-                            {ev.patientName}
-                          </span>
-                          <span className="text-muted-foreground truncate text-[11.5px]">
-                            {ev.reason} · {ev.type === "virtual" ? "Virtual" : "In-person"}
-                          </span>
-                        </span>
-                        <span
+                  {dayEvents.map((ev) => {
+                    const desc = describeEvent(ev);
+                    return (
+                      <li key={ev.id}>
+                        <button
+                          type="button"
+                          onClick={() => onEventClick?.(ev)}
+                          aria-label={`${desc.kindLabel}, ${desc.title}, ${formatTimeRange(ev.startsAt, ev.endsAt)}`}
                           className={cn(
-                            "font-mono text-[10px] tracking-[0.06em] uppercase tabular-nums",
-                            toneText(ev.status),
+                            "border-border hover:bg-muted/40 hover:border-foreground/15 ease-expo-out flex w-full items-start gap-3 rounded-md border px-3 py-2 text-left transition-colors duration-150",
+                            desc.urgent && "ring-1 ring-rose-500/60",
                           )}
                         >
-                          {STATUS_LABEL[ev.status] ?? ev.status}
-                        </span>
-                        {ev.priority === "urgent" ? (
-                          <span className="rounded-full bg-rose-100 px-1.5 py-0.5 font-mono text-[9.5px] font-medium text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">
-                            URGENT
+                          <span className="text-foreground w-[7.5rem] shrink-0 font-mono text-[11.5px] tabular-nums">
+                            {formatTimeRange(ev.startsAt, ev.endsAt)}
                           </span>
-                        ) : null}
-                      </button>
-                    </li>
-                  ))}
+                          <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+                            <span className="flex min-w-0 items-center gap-1.5">
+                              <Pill
+                                tone={desc.pillTone}
+                                className="shrink-0 rounded-full px-1.5 py-0 text-[10px]"
+                              >
+                                {desc.kindLabel}
+                              </Pill>
+                              {desc.statusWord ? (
+                                <span className="text-muted-foreground truncate text-[10.5px]">
+                                  {desc.statusWord}
+                                </span>
+                              ) : null}
+                            </span>
+                            <span
+                              className={cn(
+                                "text-foreground text-body-s truncate font-medium",
+                                desc.struck && "text-muted-foreground line-through",
+                              )}
+                            >
+                              {desc.title}
+                            </span>
+                            {desc.subtitle ? (
+                              <span className="text-muted-foreground truncate text-[11.5px]">
+                                {desc.subtitle}
+                              </span>
+                            ) : null}
+                          </span>
+                        </button>
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
             </li>
@@ -104,15 +122,6 @@ export function AgendaView({
       </ul>
     </div>
   );
-}
-
-function toneText(status: string): string {
-  const t = STATUS_TONES[status] ?? "pending";
-  if (t === "confirmed") return "text-brand-700 dark:text-brand-300";
-  if (t === "arrived") return "text-blue-700 dark:text-blue-300";
-  if (t === "no_show") return "text-rose-700 dark:text-rose-300";
-  if (t === "cancelled" || t === "completed") return "text-muted-foreground";
-  return "text-amber-700 dark:text-amber-300";
 }
 
 function keyOf(d: Date): string {

@@ -1,10 +1,11 @@
 /**
  * Calendar event shape — the unified surface that month / week / day
- * views all render. Appointments + availability blocks are both
- * represented here; the `kind` discriminator decides rendering.
+ * views all render. Appointments, availability blocks and clinic days
+ * (sessions) are all represented here; the `kind` discriminator decides
+ * rendering.
  */
 
-export type CalendarEventKind = "appointment" | "availability";
+export type CalendarEventKind = "appointment" | "availability" | "session";
 
 export interface CalendarEventBase {
   id: string;
@@ -24,6 +25,13 @@ export interface CalendarAppointment extends CalendarEventBase {
   patientCode: string | null;
   clinicianName: string | null;
   departmentName: string | null;
+  /**
+   * Session mode: the clinic day this booking holds a position in. Such a
+   * row carries the session's own starts_at/ends_at, so on a timeline it
+   * would sit exactly under its clinic-day card — the grids let the card
+   * stand for it and the agenda lists it.
+   */
+  sessionId?: string | null;
 }
 
 export interface CalendarAvailability extends CalendarEventBase {
@@ -33,7 +41,19 @@ export interface CalendarAvailability extends CalendarEventBase {
   location: string | null;
 }
 
-export type CalendarEvent = CalendarAppointment | CalendarAvailability;
+/** One dated clinic day — the hospital admin's weekly rule, materialised. */
+export interface CalendarSession extends CalendarEventBase {
+  kind: "session";
+  serviceLineName: string;
+  venue: string | null;
+  bookedCount: number;
+  /** ceil(capacity_booked × overbooking_factor) — the places the allocator will hand out. */
+  capacity: number;
+  status: string; // published / closed / cancelled
+  delayMinutes: number;
+}
+
+export type CalendarEvent = CalendarAppointment | CalendarAvailability | CalendarSession;
 
 /**
  * Click handler — the calendar passes the raw event back; the caller

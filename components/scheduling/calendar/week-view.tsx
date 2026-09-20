@@ -11,11 +11,20 @@ export function WeekView({
   cursor,
   events,
   onEventClick,
+  timeZoneLabel,
 }: {
   cursor: Date;
   events: ReadonlyArray<ParsedEvent>;
   onEventClick?: OnEventClick;
+  timeZoneLabel: string;
 }) {
   const days = daysBetween({ start: startOfWeek(cursor), end: endOfWeek(cursor) });
-  return <TimeGrid days={days} events={events} onEventClick={onEventClick} />;
+  return (
+    <TimeGrid
+      days={days}
+      events={events}
+      onEventClick={onEventClick}
+      timeZoneLabel={timeZoneLabel}
+    />
+  );
 }

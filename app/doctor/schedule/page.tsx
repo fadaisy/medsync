@@ -70,9 +70,10 @@ export default async function DoctorSchedulePage() {
   const windowLabel = `${formatWindowDate(rangeStart)} – ${formatWindowDate(rangeEnd, true)}`;
 
   return (
-    // At xl the page is the viewport: title, the strip, then the week beside
-    // its two rails, each scrolling inside itself. Below xl it flows.
-    <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-5 sm:px-6 xl:grid xl:h-[calc(100svh-3.25rem)] xl:grid-rows-[auto_auto_minmax(0,1fr)]">
+    // The page flows: title, the strip, then the calendar at its fixed height
+    // beside its two rails, each rail capped at that height and scrolling
+    // inside. The shell's sidebar sits to the left of all of it on lg+.
+    <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-5 sm:px-6">
       <header className="flex flex-col gap-1">
         <div className="flex flex-wrap items-center gap-2">
           <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
@@ -90,28 +91,29 @@ export default async function DoctorSchedulePage() {
         <SectionRule
           title="Your week"
           action={
-            <div className="flex items-center gap-2">
-              <AvailabilitySheetButton blocks={availabilityBlocks} />
-              <SchedulingSettingsSheet
-                defaults={{
-                  autoConfirm: settings.autoConfirm,
-                  defaultSlotMinutes: settings.defaultSlotMinutes,
-                  bufferMinutes: settings.bufferMinutes,
-                  allowVirtual: settings.allowVirtual,
-                  allowOutOfHoursOverride: settings.allowOutOfHoursOverride,
-                  usingDefaults: settings.usingDefaults,
-                }}
-              />
-            </div>
+            <SchedulingSettingsSheet
+              defaults={{
+                autoConfirm: settings.autoConfirm,
+                defaultSlotMinutes: settings.defaultSlotMinutes,
+                bufferMinutes: settings.bufferMinutes,
+                allowVirtual: settings.allowVirtual,
+                allowOutOfHoursOverride: settings.allowOutOfHoursOverride,
+                usingDefaults: settings.usingDefaults,
+              }}
+            />
           }
         />
       </header>
 
       <StatRail stats={stats} windowLabel={windowLabel} />
 
-      <div className="grid min-h-0 gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]">
-        <DoctorCalendar events={events} windowLabel={windowLabel} />
-        <div className="grid min-h-0 gap-4 xl:grid-rows-[auto_minmax(0,1fr)]">
+      <div className="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <DoctorCalendar
+          events={events}
+          windowLabel={windowLabel}
+          action={<AvailabilitySheetButton blocks={availabilityBlocks} />}
+        />
+        <div className="flex min-w-0 flex-col gap-4">
           {!settings.autoConfirm ? <PendingApprovalsRail rows={pending} /> : null}
           <QueueRail entries={queue} />
         </div>

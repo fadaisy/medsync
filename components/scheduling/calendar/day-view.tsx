@@ -11,10 +11,21 @@ export function DayView({
   cursor,
   events,
   onEventClick,
+  timeZoneLabel,
 }: {
   cursor: Date;
   events: ReadonlyArray<ParsedEvent>;
   onEventClick?: OnEventClick;
+  timeZoneLabel: string;
 }) {
-  return <TimeGrid days={[startOfDay(cursor)]} events={events} onEventClick={onEventClick} />;
+  const day = startOfDay(cursor);
+  return (
+    <TimeGrid
+      days={[day]}
+      selectedDay={day}
+      events={events}
+      onEventClick={onEventClick}
+      timeZoneLabel={timeZoneLabel}
+    />
+  );
 }

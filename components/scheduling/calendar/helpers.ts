@@ -1,3 +1,6 @@
+import type { CalendarEvent } from "./types";
+import type { PillTone } from "@/components/ui/pill";
+
 /**
  * Calendar date math + status helpers. Native Date + Intl only —
  * deliberately no date-fns / luxon so the bundle stays light and the
@@ -16,7 +19,7 @@ export interface DateRange {
   end: Date;
 }
 
-/** Status semantic colour tone — feeds the calendar event block. */
+/** Status semantic colour tone — feeds the calendar event card. */
 export type StatusTone =
   | "pending"
   | "confirmed"
@@ -51,30 +54,10 @@ export const STATUS_LABEL: Record<string, string> = {
   rescheduled: "Rescheduled",
 };
 
-/** Map a status tone to Tailwind classes per DESIGN-medsync.md (semantic only). */
-export const STATUS_BLOCK_CLASSES: Record<StatusTone, string> = {
-  pending:
-    "bg-amber-50 text-amber-900 border-l-2 border-l-amber-500 dark:bg-amber-950/30 dark:text-amber-100 dark:border-l-amber-400",
-  confirmed:
-    "bg-brand-50 text-brand-900 border-l-2 border-l-brand-600 dark:bg-brand-950/30 dark:text-brand-100 dark:border-l-brand-400",
-  arrived:
-    "bg-blue-50 text-blue-900 border-l-2 border-l-blue-600 dark:bg-blue-950/30 dark:text-blue-100 dark:border-l-blue-400",
-  completed: "bg-muted text-muted-foreground border-l-2 border-l-border",
-  cancelled: "bg-muted/60 text-muted-foreground line-through border-l-2 border-l-border opacity-70",
-  no_show:
-    "bg-rose-50 text-rose-900 border-l-2 border-l-rose-600 dark:bg-rose-950/30 dark:text-rose-100 dark:border-l-rose-400",
-};
-
-/** Availability block kinds → background classes (recede behind appointments). */
-export const AVAILABILITY_KIND_CLASSES: Record<string, string> = {
-  bookable: "bg-brand-50/50 dark:bg-brand-950/15",
-  teaching:
-    "bg-[repeating-linear-gradient(45deg,transparent_0,transparent_6px,rgba(0,0,0,0.04)_6px,rgba(0,0,0,0.04)_8px)] dark:bg-[repeating-linear-gradient(45deg,transparent_0,transparent_6px,rgba(255,255,255,0.04)_6px,rgba(255,255,255,0.04)_8px)]",
-  ward_round:
-    "bg-[repeating-linear-gradient(45deg,transparent_0,transparent_6px,rgba(0,0,0,0.04)_6px,rgba(0,0,0,0.04)_8px)] dark:bg-[repeating-linear-gradient(45deg,transparent_0,transparent_6px,rgba(255,255,255,0.04)_6px,rgba(255,255,255,0.04)_8px)]",
-  admin: "bg-muted/40",
-  leave: "bg-muted/60 opacity-60",
-  unavailable: "bg-muted/70 opacity-60",
+export const SESSION_STATUS_LABEL: Record<string, string> = {
+  published: "Published",
+  closed: "Closed",
+  cancelled: "Cancelled",
 };
 
 export const AVAILABILITY_KIND_LABEL: Record<string, string> = {
@@ -85,6 +68,142 @@ export const AVAILABILITY_KIND_LABEL: Record<string, string> = {
   leave: "Leave",
   unavailable: "Unavailable",
 };
+
+/**
+ * Card fill + border per tone (DESIGN-medsync.md status pairs and brand
+ * tints). No left-edge bars — state is the tint plus the label pill's word.
+ * A missed appointment is muted, not red: red is for genuine emergencies,
+ * and the urgent ring is the one place the calendar spends it.
+ */
+export const CARD_TONE_CLASSES: Record<StatusTone, string> = {
+  pending: "bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-900",
+  confirmed: "bg-brand-50 border-brand-200 dark:bg-brand-950/30 dark:border-brand-900",
+  arrived: "bg-green-50 border-green-200 dark:bg-green-950/30 dark:border-green-900",
+  completed: "bg-muted border-border text-muted-foreground",
+  cancelled: "bg-muted/60 border-border text-muted-foreground",
+  no_show: "bg-muted border-border text-muted-foreground",
+};
+
+export const SESSION_CARD_CLASSES =
+  "bg-brand-100 border-brand-300 dark:bg-brand-900/30 dark:border-brand-700";
+export const MUTED_CARD_CLASSES = "bg-muted/50 border-border/70 text-muted-foreground";
+
+/** Bookable is the one block a doctor wants to spot; the rest recede. */
+export const AVAILABILITY_CARD_CLASSES: Record<string, string> = {
+  bookable: "bg-brand-50/40 border-brand-100/70 dark:bg-brand-950/15 dark:border-brand-900/50",
+};
+
+/** What a card says and how it is tinted — one description shared by every view and the search. */
+export interface EventDescription {
+  /** The kind, as a word: "Appointment", "Clinic day", "Leave", … Carries "Urgent" for an urgent appointment. */
+  kindLabel: string;
+  pillTone: PillTone;
+  /** The status word beside the pill, when the kind has a status. */
+  statusWord: string | null;
+  title: string;
+  subtitle: string | null;
+  /** Monogram chip text: patient initials, or a clinic day's booked count. */
+  monogram: string | null;
+  cardClasses: string;
+  urgent: boolean;
+  /** Cancelled / missed / completed — the title is struck through. */
+  struck: boolean;
+  clickable: boolean;
+}
+
+export function describeEvent(ev: CalendarEvent): EventDescription {
+  if (ev.kind === "appointment") {
+    const tone = STATUS_TONES[ev.status] ?? "pending";
+    const urgent = ev.priority === "urgent";
+    const kind = ev.type === "virtual" ? "Video visit" : "Appointment";
+    return {
+      kindLabel: urgent ? `Urgent ${kind.toLowerCase()}` : kind,
+      pillTone: urgent ? "critical" : APPOINTMENT_PILL_TONE[tone],
+      statusWord: STATUS_LABEL[ev.status] ?? ev.status,
+      title: ev.patientName,
+      subtitle: ev.reason.replace(/_/g, " "),
+      monogram: initials(ev.patientName),
+      cardClasses: CARD_TONE_CLASSES[tone],
+      urgent,
+      struck: tone === "cancelled" || tone === "no_show",
+      clickable: true,
+    };
+  }
+  if (ev.kind === "session") {
+    const live = ev.status === "published";
+    return {
+      kindLabel: "Clinic day",
+      pillTone: live ? "admitted" : "neutral",
+      statusWord: live ? null : (SESSION_STATUS_LABEL[ev.status] ?? ev.status),
+      title: ev.serviceLineName,
+      subtitle: `${ev.bookedCount} of ${ev.capacity} places`,
+      monogram: String(ev.bookedCount),
+      cardClasses: live ? SESSION_CARD_CLASSES : MUTED_CARD_CLASSES,
+      urgent: false,
+      struck: ev.status === "cancelled",
+      clickable: true,
+    };
+  }
+  return {
+    kindLabel: AVAILABILITY_KIND_LABEL[ev.availabilityKind] ?? ev.availabilityKind,
+    pillTone: ev.availabilityKind === "bookable" ? "stable" : "neutral",
+    statusWord: null,
+    title: AVAILABILITY_KIND_LABEL[ev.availabilityKind] ?? ev.availabilityKind,
+    subtitle: ev.location,
+    monogram: null,
+    cardClasses: AVAILABILITY_CARD_CLASSES[ev.availabilityKind] ?? MUTED_CARD_CLASSES,
+    urgent: false,
+    struck: false,
+    clickable: false,
+  };
+}
+
+const APPOINTMENT_PILL_TONE: Record<StatusTone, PillTone> = {
+  pending: "caution",
+  confirmed: "admitted",
+  arrived: "stable",
+  completed: "neutral",
+  cancelled: "neutral",
+  no_show: "neutral",
+};
+
+/** "Amina Okello" → "AO"; a bare code "MRN-2026-00012" → "MR". */
+export function initials(name: string): string {
+  const words = name.trim().split(/\s+/).filter(Boolean);
+  if (words.length >= 2) return (words[0]![0]! + words[1]![0]!).toUpperCase();
+  return name.trim().slice(0, 2).toUpperCase();
+}
+
+/**
+ * Which rows a timeline card has room for, by its pixel height. The title
+ * always shows; everything else earns its line. At 64 px/hour a 30-minute
+ * appointment (32 px) reads as pill + title, an hour as pill + title +
+ * time, a two-hour clinic as the whole card with its footer.
+ */
+export function cardRows(heightPx: number): {
+  pill: boolean;
+  title: true;
+  time: boolean;
+  subtitle: boolean;
+  footer: boolean;
+} {
+  return {
+    pill: heightPx >= 28,
+    title: true,
+    time: heightPx >= 56,
+    subtitle: heightPx >= 80,
+    footer: heightPx >= 112,
+  };
+}
+
+/** Case-insensitive match on the words a card shows: title, patient name and code. */
+export function eventMatches(ev: CalendarEvent, query: string): boolean {
+  const q = query.trim().toLowerCase();
+  if (!q) return true;
+  const hay = [describeEvent(ev).title];
+  if (ev.kind === "appointment") hay.push(ev.patientName, ev.patientCode ?? "");
+  return hay.some((h) => h.toLowerCase().includes(q));
+}
 
 /* ─── Date math ─────────────────────────────────────────────────── */
 
@@ -197,6 +316,10 @@ export function formatDay(d: Date): string {
 
 export function formatTime(d: Date): string {
   return d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+}
+
+export function formatTimeRange(start: Date, end: Date): string {
+  return `${formatTime(start)} – ${formatTime(end)}`;
 }
 
 export function formatHourLabel(hour: number): string {

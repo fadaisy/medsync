@@ -22,7 +22,12 @@ interface PendingRow {
 
 export function PendingApprovalsRail({ rows }: { rows: ReadonlyArray<PendingRow> }) {
   return (
-    <Panel title="Awaiting approval" count={rows.length} className="max-h-[50%]">
+    // Capped at the calendar's height beside it; the list scrolls inside.
+    <Panel
+      title="Awaiting approval"
+      count={rows.length}
+      className="max-h-[60svh] lg:max-h-[min(72svh,760px)]"
+    >
       {rows.length === 0 ? (
         <p className="text-muted-foreground text-body-s px-5 py-4">Nothing waiting for you.</p>
       ) : (

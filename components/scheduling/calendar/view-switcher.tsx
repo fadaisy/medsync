@@ -15,9 +15,9 @@ import { cn } from "@/lib/utils";
  */
 
 const VIEWS: ReadonlyArray<{ key: CalendarView; label: string; icon: typeof CalendarDaysIcon }> = [
-  { key: "month", label: "Month", icon: CalendarDaysIcon },
-  { key: "week", label: "Week", icon: ColumnsIcon },
   { key: "day", label: "Day", icon: GridIcon },
+  { key: "week", label: "Week", icon: ColumnsIcon },
+  { key: "month", label: "Month", icon: CalendarDaysIcon },
   { key: "agenda", label: "Agenda", icon: ListIcon },
 ];
 
@@ -37,6 +37,7 @@ export function CalendarViewSwitcher({
     <div
       role="tablist"
       aria-label="Calendar view"
+      // 40px tabs inside the 2px rail meet the 44px touch floor.
       className="border-border bg-card inline-flex items-center gap-px rounded-md border p-0.5"
     >
       {items.map((v) => {
@@ -50,7 +51,7 @@ export function CalendarViewSwitcher({
             aria-selected={isActive}
             onClick={() => onChange(v.key)}
             className={cn(
-              "inline-flex items-center gap-1.5 rounded-[5px] px-2.5 py-1 text-[12px] font-medium transition-colors",
+              "ease-expo-out inline-flex min-h-10 items-center gap-1.5 rounded-[5px] px-2.5 py-1 text-[12px] font-medium transition-colors duration-150",
               isActive
                 ? "bg-foreground text-background"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground",
