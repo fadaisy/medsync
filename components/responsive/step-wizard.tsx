@@ -60,7 +60,7 @@ export function StepWizardShell({
           so that is the one sticky offset every surface under it shares. The
           inner column matches the body's so the two never mis-align. */}
       <header className="border-border/70 bg-background/95 supports-backdrop-filter:bg-background/80 sticky top-13 z-10 flex flex-col gap-3 border-b px-4 pt-3 pb-4 supports-backdrop-filter:backdrop-blur sm:px-6">
-        <div className="mx-auto flex w-full max-w-xl flex-col gap-3">
+        <div className="mx-auto flex w-full max-w-3xl flex-col gap-3">
           <div className="flex items-center gap-2">
             {onBack ? (
               <button
@@ -89,7 +89,7 @@ export function StepWizardShell({
         </div>
       </header>
 
-      <div className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-4 px-4 py-5 sm:px-6 sm:py-6">
+      <div className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-4 px-4 py-5 sm:px-6 sm:py-6">
         {children}
       </div>
     </div>

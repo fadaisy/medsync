@@ -88,10 +88,10 @@ export function SlotStep({
       </p>
 
       {line.clinicians.length > 1 ? (
-        <details>
-          <summary className="text-primary text-body-s min-h-11 cursor-pointer py-3 underline-offset-4 hover:underline">
-            Choose a different clinician
-          </summary>
+        <div className="flex flex-col gap-2">
+          <h3 className="text-foreground text-body-s font-medium">Clinician</h3>
+          {/* A tile grid in the open, not a list behind a disclosure: every
+              clinician on the line is one tap and one screen away. */}
           <ChoiceList
             name="clinician"
             value={clinician.userId}
@@ -102,7 +102,7 @@ export function SlotStep({
               hint: c.seenBefore && !forMember ? "Seen you before" : line.departmentName,
             }))}
           />
-        </details>
+        </div>
       ) : null}
 
       {alternatives ? (
@@ -384,17 +384,20 @@ export function ChoiceList<T extends string>({
   onChange: (v: T) => void;
   options: ReadonlyArray<Choice<T>>;
 }) {
+  // Tiles in a grid, not rows in a column: fourteen reasons or a hospital's
+  // clinics fit one screen instead of a scroll. The native radio stays
+  // visible — it is the control a patient recognises.
   return (
-    <ul className="flex flex-col gap-2">
+    <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
       {options.map((o) => {
         const selected = o.value === value;
         return (
-          <li key={o.value}>
+          <li key={o.value} className="min-w-0">
             <label
               className={cn(
-                "tap has-[:focus-visible]:shadow-focus flex min-h-16 items-start gap-3 rounded-xl px-4 py-3",
+                "tap has-[:focus-visible]:shadow-focus flex min-h-12 items-center gap-2.5 rounded-lg px-3 py-2",
                 o.disabled ? "cursor-not-allowed opacity-60" : "cursor-pointer",
-                selected ? "bg-accent" : "bg-card dark:shadow-card shadow-xs",
+                selected ? "bg-accent ring-brand-300 ring-1" : "bg-card dark:shadow-card shadow-xs",
               )}
             >
               <input
@@ -404,15 +407,15 @@ export function ChoiceList<T extends string>({
                 checked={selected}
                 disabled={o.disabled}
                 onChange={() => onChange(o.value)}
-                className="accent-brand-500 mt-1 size-4 shrink-0 outline-none"
+                className="accent-brand-500 size-4 shrink-0 outline-none"
               />
-              <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                <span className="text-foreground text-body-m font-medium">{o.title}</span>
+              <span className="flex min-w-0 flex-1 flex-col">
+                <span className="text-foreground text-body-s truncate font-medium">{o.title}</span>
                 {o.hint ? (
-                  <span className="text-muted-foreground text-body-s">{o.hint}</span>
+                  <span className="text-muted-foreground text-caption truncate">{o.hint}</span>
                 ) : null}
               </span>
-              {o.trailing ? <span className="mt-0.5 shrink-0">{o.trailing}</span> : null}
+              {o.trailing ? <span className="shrink-0">{o.trailing}</span> : null}
             </label>
           </li>
         );

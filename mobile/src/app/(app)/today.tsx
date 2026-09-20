@@ -258,14 +258,18 @@ export default function TodayScreen() {
             </View>
           ) : (
             <Section title="Which clinic were you told to go to?">
-              <View style={styles.group} accessibilityRole="radiogroup">
+              {/* Two tiles a row: a hospital's clinics on one screen, not a
+                  scroll of 76px rows. */}
+              <View style={styles.grid} accessibilityRole="radiogroup">
                 {open.map((d) => (
-                  <DepartmentCard
-                    key={d.id}
-                    name={d.name}
-                    checked={d.id === selectedId}
-                    onPress={() => setSelectedId(d.id)}
-                  />
+                  <View key={d.id} style={styles.gridCell}>
+                    <DepartmentCard
+                      name={d.name}
+                      checked={d.id === selectedId}
+                      onPress={() => setSelectedId(d.id)}
+                      compact
+                    />
+                  </View>
                 ))}
               </View>
             </Section>
@@ -306,10 +310,13 @@ function DepartmentCard({
   name,
   checked = false,
   onPress,
+  compact = false,
 }: {
   name: string;
   checked?: boolean;
   onPress?: () => void;
+  /** A grid tile: smaller disc, the name on two lines at most, no chevron. */
+  compact?: boolean;
 }) {
   const { colors } = useTheme();
   const styles = useStyles(makeStyles);
@@ -319,21 +326,32 @@ function DepartmentCard({
       {/* The disc flips to the brand fill when chosen, so the pick is a shape
           and not only a tint. Decorative: the name is beside it. */}
       <View
-        style={[styles.disc, checked && styles.discChecked]}
+        style={[styles.disc, compact && styles.discCompact, checked && styles.discChecked]}
         accessibilityElementsHidden
         importantForAccessibility="no-hide-descendants"
       >
         <Ionicons
           name="medkit-outline"
-          size={22}
+          size={compact ? 18 : 22}
           color={checked ? colors.primaryForeground : colors.accentForeground}
         />
       </View>
       <View style={styles.optionText}>
-        <Text style={[styles.optionName, checked && styles.optionInkChecked]}>{name}</Text>
-        <Text style={[styles.optionMeta, checked && styles.optionInkChecked]}>Open now</Text>
+        <Text
+          style={[
+            styles.optionName,
+            compact && styles.optionNameCompact,
+            checked && styles.optionInkChecked,
+          ]}
+          numberOfLines={2}
+        >
+          {name}
+        </Text>
+        {compact ? null : (
+          <Text style={[styles.optionMeta, checked && styles.optionInkChecked]}>Open now</Text>
+        )}
       </View>
-      {onPress ? (
+      {onPress && !compact ? (
         <Ionicons
           name="chevron-forward"
           size={20}
@@ -354,6 +372,7 @@ function DepartmentCard({
       onPress={onPress}
       style={({ pressed }) => [
         styles.option,
+        compact && styles.optionCompact,
         checked && styles.optionChecked,
         pressed && styles.pressed,
       ]}
@@ -404,6 +423,11 @@ const makeStyles = (c: Palette) =>
     muted: { fontFamily: font.body, fontSize: 13.5, lineHeight: 19, color: c.mutedForeground },
 
     group: { gap: space[2] },
+    grid: { flexDirection: "row", flexWrap: "wrap", gap: space[2] },
+    gridCell: { width: "48.5%" },
+    optionCompact: { minHeight: 56, padding: space[3], gap: space[2], borderRadius: radius.xl },
+    discCompact: { width: 32, height: 32, borderRadius: 16 },
+    optionNameCompact: { fontSize: 14, lineHeight: 19 },
     option: {
       flexDirection: "row",
       alignItems: "center",

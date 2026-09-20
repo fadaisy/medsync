@@ -84,250 +84,280 @@ export function ProviderScreen({
 
   return (
     <div className="flex flex-col gap-5">
-      {/* ── The photo card ─────────────────────────────────────── */}
-      <section className="bg-brand-50 relative overflow-hidden rounded-3xl">
-        <div className="relative aspect-[4/5] w-full sm:aspect-[16/10]">
-          {provider.photoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element -- a signed, expiring Supabase URL
-            <img
-              src={provider.photoUrl}
-              alt=""
-              className="size-full object-cover"
-              decoding="async"
-            />
-          ) : (
-            <span className="grid size-full place-items-center">
-              {initials ? (
-                <span className="text-brand-700 font-mono text-5xl font-medium">{initials}</span>
-              ) : (
-                <StethoscopeIcon
-                  strokeWidth={1.25}
-                  className="text-brand-700 size-16"
-                  aria-hidden
+      {/* Two columns on a desk — who they are on the left, when you can see
+          them on the right — so the whole choice sits on one screen; one
+          column on a phone, where the docked bar carries the button. */}
+      <div className="md:grid md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] md:items-start md:gap-6">
+        <div className="flex flex-col gap-4">
+          {/* ── The photo card ─────────────────────────────────────── */}
+          <section className="bg-brand-50 relative overflow-hidden rounded-3xl">
+            <div className="relative aspect-[4/5] w-full sm:aspect-[16/10] md:aspect-[4/3]">
+              {provider.photoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element -- a signed, expiring Supabase URL
+                <img
+                  src={provider.photoUrl}
+                  alt=""
+                  className="size-full object-cover"
+                  decoding="async"
                 />
+              ) : (
+                <span className="grid size-full place-items-center">
+                  {initials ? (
+                    <span className="text-brand-700 font-mono text-5xl font-medium">
+                      {initials}
+                    </span>
+                  ) : (
+                    <StethoscopeIcon
+                      strokeWidth={1.25}
+                      className="text-brand-700 size-16"
+                      aria-hidden
+                    />
+                  )}
+                </span>
               )}
-            </span>
-          )}
-        </div>
+            </div>
 
-        <button
-          type="button"
-          onClick={() => router.back()}
-          aria-label="Back"
-          className="bg-card text-foreground focus-visible:ring-ring absolute top-4 left-4 grid size-11 place-items-center rounded-full shadow-xs focus-visible:ring-2 focus-visible:outline-none"
-        >
-          <ChevronLeftIcon className="size-5" aria-hidden />
-        </button>
+            <button
+              type="button"
+              onClick={() => router.back()}
+              aria-label="Back"
+              className="bg-card text-foreground focus-visible:ring-ring absolute top-4 left-4 grid size-11 place-items-center rounded-full shadow-xs focus-visible:ring-2 focus-visible:outline-none"
+            >
+              <ChevronLeftIcon className="size-5" aria-hidden />
+            </button>
 
-        {/* The reference's heart is a saved-doctors feature MedSync has no
+            {/* The reference's heart is a saved-doctors feature MedSync has no
             table for. Rather than a control that forgets, this slot carries
             the one fact that earns the position: continuity (PRD §2.7). */}
-        {provider.seenBefore ? (
-          <span className="bg-card text-brand-700 text-caption absolute top-4 right-4 rounded-full px-3 py-2 font-medium shadow-xs">
-            Seen you before
-          </span>
-        ) : null}
+            {provider.seenBefore ? (
+              <span className="bg-card text-brand-700 text-caption absolute top-4 right-4 rounded-full px-3 py-2 font-medium shadow-xs">
+                Seen you before
+              </span>
+            ) : null}
 
-        {provider.rating ? (
-          <span className="bg-card text-foreground text-body-s absolute bottom-4 left-4 inline-flex items-center gap-1 rounded-full px-3 py-1.5 font-medium shadow-xs">
-            <StarIcon className="fill-brand-500 text-brand-500 size-3.5" aria-hidden />
-            <span className="font-mono tabular-nums">{provider.rating.average.toFixed(1)}</span>
-          </span>
-        ) : null}
-      </section>
+            {provider.rating ? (
+              <span className="bg-card text-foreground text-body-s absolute bottom-4 left-4 inline-flex items-center gap-1 rounded-full px-3 py-1.5 font-medium shadow-xs">
+                <StarIcon className="fill-brand-500 text-brand-500 size-3.5" aria-hidden />
+                <span className="font-mono tabular-nums">{provider.rating.average.toFixed(1)}</span>
+              </span>
+            ) : null}
+          </section>
 
-      {/* ── Name and credentials ───────────────────────────────── */}
-      <header className="flex flex-col gap-1">
-        <h1 className="font-display text-foreground text-heading-l leading-tight font-medium tracking-[-0.015em]">
-          {provider.fullName}
-        </h1>
-        <p className="text-muted-foreground text-body-s">
-          {[provider.cadreName, provider.departmentName].filter(Boolean).join(" · ")}
-        </p>
-      </header>
+          {/* ── Name and credentials ───────────────────────────────── */}
+          <header className="flex flex-col gap-1">
+            <h1 className="font-display text-foreground text-heading-l leading-tight font-medium tracking-[-0.015em]">
+              {provider.fullName}
+            </h1>
+            <p className="text-muted-foreground text-body-s">
+              {[provider.cadreName, provider.departmentName].filter(Boolean).join(" · ")}
+            </p>
+          </header>
 
-      {/* ── Action row ─────────────────────────────────────────── */}
-      <div className="flex items-center gap-2">
-        <span className="bg-brand-50 text-brand-700 text-body-s inline-flex min-h-11 items-center gap-1.5 rounded-full px-4 font-medium">
-          <InfoIcon className="size-4" aria-hidden />
-          Details
-        </span>
-        <span className="flex items-center gap-2">
-          {/* Only affordances that do something. A phone or chat button with
+          {/* ── Action row ─────────────────────────────────────────── */}
+          <div className="flex items-center gap-2">
+            <span className="bg-brand-50 text-brand-700 text-body-s inline-flex min-h-11 items-center gap-1.5 rounded-full px-4 font-medium">
+              <InfoIcon className="size-4" aria-hidden />
+              Details
+            </span>
+            <span className="flex items-center gap-2">
+              {/* Only affordances that do something. A phone or chat button with
               no transport behind it is a fake affordance; `allow_virtual` is
               real, and a video visit is bookable as `type: "virtual"`. */}
-          <ActionCircle
-            icon={<VideoIcon className="size-4" aria-hidden />}
-            label={
-              provider.allowVirtual
-                ? "This clinician offers video visits"
-                : "This clinician sees patients in person only"
-            }
-            caption={provider.allowVirtual ? "Video" : "In person"}
-            available={provider.allowVirtual}
-          />
-          <ActionCircle
-            icon={<PhoneIcon className="size-4" aria-hidden />}
-            label="Calling a clinician is not available in MedSync"
-            caption="No calls"
-            available={false}
-          />
-          <ActionCircle
-            icon={<MessageSquareIcon className="size-4" aria-hidden />}
-            label="Messaging a clinician is not available in MedSync"
-            caption="No chat"
-            available={false}
-          />
-        </span>
-      </div>
-
-      {/* ── Stats strip ────────────────────────────────────────── */}
-      <dl className="bg-card dark:shadow-card grid grid-cols-3 gap-2 rounded-2xl p-4 shadow-xs">
-        <Stat
-          icon={<ClockIcon className="size-4" aria-hidden />}
-          value={yearsWithUs(provider.withUsSinceIso)}
-          label="With us"
-        />
-        <Stat
-          icon={<UsersIcon className="size-4" aria-hidden />}
-          value={provider.patientsSeen > 0 ? compact(provider.patientsSeen) : "—"}
-          label="Patients"
-        />
-        <Stat
-          icon={<StarIcon className="size-4" aria-hidden />}
-          value={provider.rating ? compact(provider.rating.count) : "—"}
-          label="Reviews"
-        />
-      </dl>
-
-      {/* ── Select Date ────────────────────────────────────────── */}
-      <section className="flex flex-col gap-3">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-foreground text-body-m font-medium">Select date</h2>
-          {monthOf ? (
-            <div className="flex items-center gap-1">
-              <StepButton dir="prev" disabled={monthIndex <= 0} onClick={() => stepMonth(-1)} />
-              <span className="text-foreground text-body-s min-w-24 text-center font-medium">
-                {MONTH_LONG.format(new Date(`${monthOf}-01T12:00:00Z`))}
-              </span>
-              <StepButton
-                dir="next"
-                disabled={monthIndex < 0 || monthIndex >= months.length - 1}
-                onClick={() => stepMonth(1)}
+              <ActionCircle
+                icon={<VideoIcon className="size-4" aria-hidden />}
+                label={
+                  provider.allowVirtual
+                    ? "This clinician offers video visits"
+                    : "This clinician sees patients in person only"
+                }
+                caption={provider.allowVirtual ? "Video" : "In person"}
+                available={provider.allowVirtual}
               />
-            </div>
-          ) : null}
-        </div>
-
-        {days.length === 0 ? (
-          <p className="text-muted-foreground bg-card text-body-s dark:shadow-card rounded-xl p-4 shadow-xs">
-            {provider.fullName} has no days open on MedSync yet.
-          </p>
-        ) : (
-          <ul
-            aria-label="Available days"
-            className="-mx-1 flex snap-x gap-2 overflow-x-auto px-1 pb-1"
-          >
-            {days.map((d) => {
-              const at = new Date(`${d}T12:00:00Z`);
-              const selected = d === day;
-              return (
-                <li key={d} className="snap-start">
-                  <button
-                    type="button"
-                    aria-pressed={selected}
-                    onClick={() => {
-                      setDay(d);
-                      setSlot(null);
-                    }}
-                    className={cn(
-                      "ease-expo-out duration-fast flex min-h-20 w-18 flex-col items-center justify-center gap-0.5 rounded-2xl px-3 transition-colors focus-visible:ring-2 focus-visible:outline-none",
-                      selected
-                        ? "bg-brand-900 text-brand-50 focus-visible:ring-brand-300"
-                        : "bg-card text-foreground dark:shadow-card focus-visible:ring-ring shadow-xs",
-                    )}
-                  >
-                    <span className="text-heading-s font-mono tabular-nums">{at.getUTCDate()}</span>
-                    <span
-                      className={cn(
-                        "text-caption",
-                        selected ? "text-brand-200" : "text-muted-foreground",
-                      )}
-                    >
-                      {DAY_LONG.format(at).slice(0, 3)}
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </section>
-
-      {/* ── Select Time ────────────────────────────────────────── */}
-      {day && slots.length > 0 ? (
-        <section className="flex flex-col gap-3">
-          <div className="flex items-baseline justify-between gap-3">
-            <h2 className="text-foreground text-body-m font-medium">Select time</h2>
-            <span className="text-muted-foreground text-caption tabular-nums">
-              {slots.length} {slots.length === 1 ? "time" : "times"} open
+              <ActionCircle
+                icon={<PhoneIcon className="size-4" aria-hidden />}
+                label="Calling a clinician is not available in MedSync"
+                caption="No calls"
+                available={false}
+              />
+              <ActionCircle
+                icon={<MessageSquareIcon className="size-4" aria-hidden />}
+                label="Messaging a clinician is not available in MedSync"
+                caption="No chat"
+                available={false}
+              />
             </span>
           </div>
-          <ul aria-label="Available times" className="flex flex-wrap gap-2">
-            {slots.map((s) => {
-              const selected = s.startsAtIso === slot;
-              return (
-                <li key={s.startsAtIso}>
-                  <button
-                    type="button"
-                    aria-pressed={selected}
-                    onClick={() => setSlot(s.startsAtIso)}
-                    className={cn(
-                      "ease-expo-out duration-fast text-body-s min-h-11 rounded-full px-4 font-medium transition-colors focus-visible:ring-2 focus-visible:outline-none",
-                      selected
-                        ? "bg-brand-900 text-brand-50 focus-visible:ring-brand-300"
-                        : "bg-card text-foreground dark:shadow-card focus-visible:ring-ring shadow-xs",
-                    )}
-                  >
-                    {formatTime(s.startsAtIso)}
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        </section>
-      ) : null}
 
-      {/* ── The fee, stated before the patient commits (ADR 0092) ─ */}
-      {feeLine ? (
-        <dl className="bg-muted flex flex-col gap-1 rounded-2xl p-4">
-          <dt className="text-overline text-muted-foreground uppercase">Fee</dt>
-          <dd className="text-foreground text-body-m font-medium">{feeLine}</dd>
-          {feeNotes.map((note) => (
-            <dd key={note} className="text-muted-foreground text-body-s">
-              {note}
-            </dd>
-          ))}
-        </dl>
-      ) : null}
+          {/* ── Stats strip ────────────────────────────────────────── */}
+          <dl className="bg-card dark:shadow-card grid grid-cols-3 gap-2 rounded-2xl p-4 shadow-xs">
+            <Stat
+              icon={<ClockIcon className="size-4" aria-hidden />}
+              value={yearsWithUs(provider.withUsSinceIso)}
+              label="With us"
+            />
+            <Stat
+              icon={<UsersIcon className="size-4" aria-hidden />}
+              value={provider.patientsSeen > 0 ? compact(provider.patientsSeen) : "—"}
+              label="Patients"
+            />
+            <Stat
+              icon={<StarIcon className="size-4" aria-hidden />}
+              value={provider.rating ? compact(provider.rating.count) : "—"}
+              label="Reviews"
+            />
+          </dl>
+        </div>
 
-      {/* ── Docked CTA — the house sticky bar, which clears the tab bar; a
+        <div className="flex flex-col gap-4">
+          {/* ── Select Date ────────────────────────────────────────── */}
+          <section className="flex flex-col gap-3">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-foreground text-body-m font-medium">Select date</h2>
+              {monthOf ? (
+                <div className="flex items-center gap-1">
+                  <StepButton dir="prev" disabled={monthIndex <= 0} onClick={() => stepMonth(-1)} />
+                  <span className="text-foreground text-body-s min-w-24 text-center font-medium">
+                    {MONTH_LONG.format(new Date(`${monthOf}-01T12:00:00Z`))}
+                  </span>
+                  <StepButton
+                    dir="next"
+                    disabled={monthIndex < 0 || monthIndex >= months.length - 1}
+                    onClick={() => stepMonth(1)}
+                  />
+                </div>
+              ) : null}
+            </div>
+
+            {days.length === 0 ? (
+              <p className="text-muted-foreground bg-card text-body-s dark:shadow-card rounded-xl p-4 shadow-xs">
+                {provider.fullName} has no days open on MedSync yet.
+              </p>
+            ) : (
+              <ul
+                aria-label="Available days"
+                className="-mx-1 flex snap-x gap-2 overflow-x-auto px-1 pb-1"
+              >
+                {days.map((d) => {
+                  const at = new Date(`${d}T12:00:00Z`);
+                  const selected = d === day;
+                  return (
+                    <li key={d} className="snap-start">
+                      <button
+                        type="button"
+                        aria-pressed={selected}
+                        onClick={() => {
+                          setDay(d);
+                          setSlot(null);
+                        }}
+                        className={cn(
+                          "ease-expo-out duration-fast flex min-h-20 w-18 flex-col items-center justify-center gap-0.5 rounded-2xl px-3 transition-colors focus-visible:ring-2 focus-visible:outline-none",
+                          selected
+                            ? "bg-brand-900 text-brand-50 focus-visible:ring-brand-300"
+                            : "bg-card text-foreground dark:shadow-card focus-visible:ring-ring shadow-xs",
+                        )}
+                      >
+                        <span className="text-heading-s font-mono tabular-nums">
+                          {at.getUTCDate()}
+                        </span>
+                        <span
+                          className={cn(
+                            "text-caption",
+                            selected ? "text-brand-200" : "text-muted-foreground",
+                          )}
+                        >
+                          {DAY_LONG.format(at).slice(0, 3)}
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </section>
+
+          {/* ── Select Time ────────────────────────────────────────── */}
+          {day && slots.length > 0 ? (
+            <section className="flex flex-col gap-3">
+              <div className="flex items-baseline justify-between gap-3">
+                <h2 className="text-foreground text-body-m font-medium">Select time</h2>
+                <span className="text-muted-foreground text-caption tabular-nums">
+                  {slots.length} {slots.length === 1 ? "time" : "times"} open
+                </span>
+              </div>
+              <ul aria-label="Available times" className="flex flex-wrap gap-2">
+                {slots.map((s) => {
+                  const selected = s.startsAtIso === slot;
+                  return (
+                    <li key={s.startsAtIso}>
+                      <button
+                        type="button"
+                        aria-pressed={selected}
+                        onClick={() => setSlot(s.startsAtIso)}
+                        className={cn(
+                          "ease-expo-out duration-fast text-body-s min-h-11 rounded-full px-4 font-medium transition-colors focus-visible:ring-2 focus-visible:outline-none",
+                          selected
+                            ? "bg-brand-900 text-brand-50 focus-visible:ring-brand-300"
+                            : "bg-card text-foreground dark:shadow-card focus-visible:ring-ring shadow-xs",
+                        )}
+                      >
+                        {formatTime(s.startsAtIso)}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          ) : null}
+
+          {/* ── The fee, stated before the patient commits (ADR 0092) ─ */}
+          {feeLine ? (
+            <dl className="bg-muted flex flex-col gap-1 rounded-2xl p-4">
+              <dt className="text-overline text-muted-foreground uppercase">Fee</dt>
+              <dd className="text-foreground text-body-m font-medium">{feeLine}</dd>
+              {feeNotes.map((note) => (
+                <dd key={note} className="text-muted-foreground text-body-s">
+                  {note}
+                </dd>
+              ))}
+            </dl>
+          ) : null}
+
+          <div className="hidden md:block">
+            {slot ? (
+              <Link
+                href={`/patient/book?line=${provider.lineId}&clinician=${provider.userId}&slot=${encodeURIComponent(slot)}`}
+                className={cn(buttonVariants({ size: "lg" }), "w-full rounded-full")}
+              >
+                Book this time
+              </Link>
+            ) : (
+              <Button size="lg" disabled className="w-full rounded-full">
+                {days.length === 0 ? "No days open" : "Pick a day and time"}
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="md:hidden">
+        {/* ── Docked CTA — the house sticky bar, which clears the tab bar; a
           `fixed bottom-0` here sat UNDER `MobileTabBar` (z-30) and was
           unreachable on a phone. */}
-      <BottomActionBar>
-        {slot ? (
-          <Link
-            href={`/patient/book?line=${provider.lineId}&clinician=${provider.userId}&slot=${encodeURIComponent(slot)}`}
-            className={cn(buttonVariants({ size: "lg" }), "w-full rounded-full")}
-          >
-            Book this time
-          </Link>
-        ) : (
-          <Button size="lg" disabled className="w-full rounded-full">
-            {days.length === 0 ? "No days open" : "Pick a day and time"}
-          </Button>
-        )}
-      </BottomActionBar>
+        <BottomActionBar>
+          {slot ? (
+            <Link
+              href={`/patient/book?line=${provider.lineId}&clinician=${provider.userId}&slot=${encodeURIComponent(slot)}`}
+              className={cn(buttonVariants({ size: "lg" }), "w-full rounded-full")}
+            >
+              Book this time
+            </Link>
+          ) : (
+            <Button size="lg" disabled className="w-full rounded-full">
+              {days.length === 0 ? "No days open" : "Pick a day and time"}
+            </Button>
+          )}
+        </BottomActionBar>
+      </div>
       <BottomActionBarSpacer />
     </div>
   );

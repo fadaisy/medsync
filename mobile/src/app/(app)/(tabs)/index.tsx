@@ -440,9 +440,7 @@ export default function HomeScreen() {
             </View>
             <View style={styles.doorText}>
               <Text style={styles.primaryTitle}>Coming to the hospital today</Text>
-              <Text style={styles.primaryBody}>
-                We save your place in line. You will be seen in turn. We cannot tell you the hour.
-              </Text>
+              <Text style={styles.primaryBody}>We cannot tell you the hour.</Text>
             </View>
             <Ionicons
               name="chevron-forward"

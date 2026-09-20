@@ -61,7 +61,6 @@ export function DeclareIntakeForm({ departments, hospitalName }: Props) {
   );
 
   const open = departments.filter((d) => d.openNow);
-  const closed = departments.filter((d) => !d.openNow);
 
   // §11. Every department is inside a scheduling policy that has closed for
   // the evening, and the patient has already said they are coming today.
@@ -80,7 +79,6 @@ export function DeclareIntakeForm({ departments, hospitalName }: Props) {
             here only where someone has verified it for this hospital. Nothing
             in the database records that, so it is not written. */}
         <p className="text-foreground text-body-m">Reception can register you when you arrive.</p>
-        <ClosedNote closed={closed} hospitalName={hospitalName} />
         <Link
           href="/patient/book"
           className="text-primary text-body-s duration-fast ease-expo-out -my-2 inline-flex min-h-11 w-fit items-center rounded-md underline-offset-4 transition-colors hover:underline"
@@ -112,12 +110,16 @@ export function DeclareIntakeForm({ departments, hospitalName }: Props) {
           {/* A native radio, visible rather than sr-only: it is the control a
               patient recognises, and `required` then blocks the submit and
               focuses it without a line of JavaScript. */}
-          <ul className="flex flex-col gap-2">
-            {open.map((d) => (
-              <li key={d.id}>
+          {/* Tiles, not rows: fourteen clinics fit one screen. A closed clinic
+              stays on the grid, disabled, with its reason — the patient told
+              to go there has to see it is the clinic that is shut. */}
+          <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {departments.map((d) => (
+              <li key={d.id} className="min-w-0">
                 <label
                   className={cn(
-                    "tap bg-card dark:shadow-card flex min-h-16 cursor-pointer items-center gap-3 rounded-lg px-4 py-3 shadow-xs",
+                    "tap bg-card dark:shadow-card flex min-h-12 items-center gap-2.5 rounded-lg px-3 py-2 shadow-xs",
+                    d.openNow ? "cursor-pointer" : "cursor-not-allowed opacity-60",
                     "has-[:checked]:bg-accent has-[:checked]:ring-brand-300 has-[:checked]:ring-1",
                     "has-[:focus-visible]:outline-ring has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2",
                     "md:hover:brightness-[0.98] dark:md:hover:brightness-110",
@@ -128,17 +130,25 @@ export function DeclareIntakeForm({ departments, hospitalName }: Props) {
                     name="receiving_department_id"
                     value={d.id}
                     required
-                    className="accent-brand-600 size-4"
+                    disabled={!d.openNow}
+                    className="accent-brand-600 size-4 shrink-0"
                   />
-                  <span className="text-foreground text-body-m font-medium">{d.name}</span>
+                  <span className="flex min-w-0 flex-col">
+                    <span className="text-foreground text-body-s truncate font-medium">
+                      {d.name}
+                    </span>
+                    {d.reason ? (
+                      <span className="text-muted-foreground text-caption truncate">
+                        {d.reason}
+                      </span>
+                    ) : null}
+                  </span>
                 </label>
               </li>
             ))}
           </ul>
         </fieldset>
       )}
-
-      <ClosedNote closed={closed} hospitalName={hospitalName} />
 
       <div className="flex flex-col">
         <Label htmlFor="presenting_complaint">
@@ -185,26 +195,5 @@ export function DeclareIntakeForm({ departments, hospitalName }: Props) {
         {pending ? "Saving…" : "Save a place in line"}
       </Button>
     </form>
-  );
-}
-
-/**
- * Which clinics are shut and why, in the hospital's own terms. Named rather
- * than silently omitted: a patient told to go to a specific clinic has to be
- * able to see that it is the clinic, not the app, that is closed.
- */
-function ClosedNote({
-  closed,
-  hospitalName,
-}: {
-  closed: ReadonlyArray<DepartmentOption>;
-  hospitalName: string;
-}) {
-  if (closed.length === 0) return null;
-  return (
-    <p className="text-muted-foreground text-body-s">
-      Not taking walk-ins at {hospitalName} right now:{" "}
-      {closed.map((d) => `${d.name} (${d.reason})`).join(" · ")}.
-    </p>
   );
 }

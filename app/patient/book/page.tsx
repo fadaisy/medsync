@@ -33,7 +33,7 @@ export default async function PatientBookPage({
 
   if (!scope.primaryHospitalId) {
     return (
-      <div className="stagger-children mx-auto flex w-full max-w-xl flex-col gap-6">
+      <div className="stagger-children mx-auto flex w-full max-w-3xl flex-col gap-6">
         <PatientPageHeader
           eyebrow="MedSync"
           title="Choose your hospital first"
@@ -68,7 +68,7 @@ export default async function PatientBookPage({
 
   if (open.every((l) => l.capacityMode === "open_queue")) {
     return (
-      <div className="stagger-children mx-auto flex w-full max-w-xl flex-col gap-6">
+      <div className="stagger-children mx-auto flex w-full max-w-3xl flex-col gap-6">
         <PatientPageHeader
           eyebrow={hospitalName}
           title="No days open yet"

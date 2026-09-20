@@ -5,6 +5,7 @@ import { and, asc, eq, gte, inArray, isNull, lt } from "drizzle-orm";
 
 import { db } from "@/db";
 import { hospitalDepartments } from "@/db/schema/hospital-departments";
+import { hospitals } from "@/db/schema/hospitals";
 import { patientIntakes } from "@/db/schema/patient-intakes";
 import { appointments, departmentSchedulingPolicy } from "@/db/schema/scheduling";
 import { requirePatientScope } from "@/lib/patient/scope";
@@ -17,6 +18,7 @@ import {
 import { PatientPageHeader } from "../_components/page-header";
 import { TintedRow } from "../_components/tinted-row";
 import { DeclareIntakeForm } from "./_components/declare-intake-form";
+import { HospitalChips } from "./_components/hospital-chips";
 
 export const metadata: Metadata = {
   title: "Coming to the hospital today · MedSync",
@@ -52,6 +54,16 @@ export default async function PatientQueuePage() {
     redirect("/patient/hospitals");
   }
   const hospitalId = scope.primaryHospitalId;
+  // Every active hospital, this one first: the chips above the clinics.
+  const activeHospitals = await db
+    .select({ id: hospitals.id, name: hospitals.name })
+    .from(hospitals)
+    .where(eq(hospitals.state, "active"))
+    .orderBy(asc(hospitals.name));
+  const hospitalChips = [
+    ...activeHospitals.filter((h) => h.id === hospitalId),
+    ...activeHospitals.filter((h) => h.id !== hospitalId),
+  ];
 
   // The hospital's day, never the server's — a ticket declared at 01:00 EAT
   // is today's, not "yesterday's" as UTC midnight would have it.
@@ -159,7 +171,7 @@ export default async function PatientQueuePage() {
   });
 
   return (
-    <div className="stagger-children mx-auto flex w-full max-w-xl flex-col gap-6">
+    <div className="stagger-children mx-auto flex w-full max-w-3xl flex-col gap-5">
       {/* The hospital's name is the eyebrow because §2's screen opens with it:
           the patient has to know which building the rest of the page is about
           before it tells them to walk into one. */}
@@ -170,6 +182,8 @@ export default async function PatientQueuePage() {
         backHref="/patient"
         backLabel="Back to home"
       />
+
+      <HospitalChips hospitals={hospitalChips} currentId={hospitalId} />
 
       {liveIntake || liveAppt ? (
         <ul className="stagger-children flex flex-col gap-2">
