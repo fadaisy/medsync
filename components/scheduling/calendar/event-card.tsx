@@ -109,7 +109,9 @@ export function EventCard({
     <button
       type="button"
       onClick={() => onEventClick?.(event)}
-      aria-label={`${d.kindLabel}, ${d.title}, ${timeRange}`}
+      aria-label={[d.kindLabel, d.statusWord, d.title, d.subtitle, timeRange]
+        .filter(Boolean)
+        .join(", ")}
       className={classes}
       style={style}
     >

@@ -142,19 +142,19 @@ export function MedSyncCalendar({
           <Button
             type="button"
             variant="ghost"
-            size="iconSm"
+            size="icon"
             onClick={() => shift(-1)}
             aria-label="Previous"
           >
             <ChevronLeftIcon className="size-4" />
           </Button>
-          <Button type="button" variant="ghost" size="sm" onClick={goToday}>
+          <Button type="button" variant="ghost" className="min-h-11" onClick={goToday}>
             Today
           </Button>
           <Button
             type="button"
             variant="ghost"
-            size="iconSm"
+            size="icon"
             onClick={() => shift(1)}
             aria-label="Next"
           >

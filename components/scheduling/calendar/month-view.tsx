@@ -4,8 +4,10 @@ import type { CalendarEvent, OnEventClick } from "./types";
 
 import { cn } from "@/lib/utils";
 import {
+  dayKey,
   daysBetween,
   describeEvent,
+  eventDayKey,
   isSameMonth,
   isToday,
   monthGridRange,
@@ -52,14 +54,14 @@ export function MonthView({
       {/* Day cells */}
       <div className="grid min-h-120 flex-1 auto-rows-fr grid-cols-7">
         {days.map((d) => {
-          const dayEvents = byDay.get(keyOf(d)) ?? [];
+          const dayEvents = byDay.get(dayKey(d)) ?? [];
           const inMonth = isSameMonth(d, cursor);
           const today = isToday(d);
           const visible = dayEvents.slice(0, 3);
           const extra = dayEvents.length - visible.length;
           return (
             <button
-              key={keyOf(d)}
+              key={dayKey(d)}
               type="button"
               role="gridcell"
               aria-label={d.toLocaleDateString(undefined, { dateStyle: "full" })}
@@ -73,7 +75,7 @@ export function MonthView({
                 className={cn(
                   "text-caption inline-flex h-5 w-5 items-center justify-center self-start rounded-full font-mono tabular-nums",
                   today
-                    ? "bg-brand-600 text-white"
+                    ? "bg-primary text-primary-foreground"
                     : inMonth
                       ? "text-foreground"
                       : "text-muted-foreground/60",
@@ -120,16 +122,17 @@ export function MonthView({
   );
 }
 
-function keyOf(d: Date): string {
-  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
-}
-
 function bucketByDay(events: ReadonlyArray<ParsedEvent>): Map<string, ParsedEvent[]> {
   const out = new Map<string, ParsedEvent[]>();
+  const drawnSessions = new Set(
+    events.filter((e) => e.kind === "session").map((e) => e.id.replace(/^s-/, "")),
+  );
   for (const ev of events) {
-    // A session-held booking is one of the clinic day's places; the day's pill stands for it.
-    if (ev.kind === "appointment" && ev.sessionId) continue;
-    const k = keyOf(ev.startsAt);
+    // Availability is the grid's background, not a pill that crowds bookings out of a cell.
+    if (ev.kind === "availability") continue;
+    // A session-held booking is one of the clinic day's places; the day's pill stands for it while drawn.
+    if (ev.kind === "appointment" && ev.sessionId && drawnSessions.has(ev.sessionId)) continue;
+    const k = eventDayKey(ev.startsAt);
     const list = out.get(k);
     if (list) list.push(ev);
     else out.set(k, [ev]);

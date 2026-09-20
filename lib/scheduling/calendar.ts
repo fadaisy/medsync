@@ -1,7 +1,7 @@
 import "server-only";
 
 import type { CalendarEvent } from "@/components/scheduling/calendar/types";
-import { and, asc, eq, gte, inArray, isNull, lt, lte, or } from "drizzle-orm";
+import { and, asc, eq, gte, inArray, isNull, lt, lte, or, sql } from "drizzle-orm";
 
 import { db } from "@/db";
 import { clinicSessions } from "@/db/schema/clinic-sessions";
@@ -134,8 +134,12 @@ export async function fetchClinicianCalendarEvents(args: {
         endsAt: clinicSessions.endsAt,
         venue: clinicSessions.venue,
         bookedCount: clinicSessions.bookedCount,
-        capacityBooked: clinicSessions.capacityBooked,
-        overbookingFactor: clinicSessions.overbookingFactor,
+        // ceil in SQL on the numeric(3,2), exactly as the CHECK, the allocator
+        // and the reports compute it — not a binary-float ceil in JS.
+        capacity:
+          sql<number>`ceil(${clinicSessions.capacityBooked} * ${clinicSessions.overbookingFactor})`.mapWith(
+            Number,
+          ),
         status: clinicSessions.status,
         delayMinutes: clinicSessions.delayMinutes,
         serviceLineName: serviceLines.name,
@@ -295,7 +299,7 @@ export async function fetchClinicianCalendarEvents(args: {
       venue: r.venue,
       bookedCount: r.bookedCount,
       // The same ceiling the allocator and the reports use.
-      capacity: Math.ceil(r.capacityBooked * Number(r.overbookingFactor)),
+      capacity: r.capacity,
       status: r.status,
       delayMinutes: r.delayMinutes,
     });

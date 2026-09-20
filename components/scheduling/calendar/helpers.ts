@@ -1,6 +1,12 @@
 import type { CalendarEvent } from "./types";
 import type { PillTone } from "@/components/ui/pill";
 
+import {
+  DEFAULT_TIME_ZONE,
+  localDateKey,
+  localWeekdayAndMinutes,
+} from "@/supabase/functions/_shared/slots";
+
 /**
  * Calendar date math + status helpers. Native Date + Intl only —
  * deliberately no date-fns / luxon so the bundle stays light and the
@@ -167,11 +173,16 @@ const APPOINTMENT_PILL_TONE: Record<StatusTone, PillTone> = {
   no_show: "neutral",
 };
 
-/** "Amina Okello" → "AO"; a bare code "MRN-2026-00012" → "MR". */
+/**
+ * "Amina Okello" → "AO". A bare code ("MRN-2026-00012", or "MS-…") is not a
+ * name: its LAST four characters are what a desk reads out, so the chip
+ * shows those rather than a meaningless "MR".
+ */
 export function initials(name: string): string {
   const words = name.trim().split(/\s+/).filter(Boolean);
   if (words.length >= 2) return (words[0]![0]! + words[1]![0]!).toUpperCase();
-  return name.trim().slice(0, 2).toUpperCase();
+  const one = name.trim();
+  return /[-\d]/.test(one) ? one.slice(-4).toUpperCase() : one.slice(0, 2).toUpperCase();
 }
 
 /**
@@ -266,8 +277,30 @@ export function sameDay(a: Date, b: Date): boolean {
   );
 }
 
+/**
+ * A day cell's key — the browser-local calendar date the `days` array was
+ * built from. Events are bucketed by `eventDayKey` (the hospital's date), so
+ * the two agree on "Mon 14" whatever zone the laptop is set to.
+ */
+export function dayKey(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+/** The hospital's date for an instant — where an event belongs. */
+export function eventDayKey(instant: Date): string {
+  return localDateKey(instant, DEFAULT_TIME_ZONE);
+}
+
+/** The hospital's date today. */
+export function todayKey(): string {
+  return localDateKey(new Date(), DEFAULT_TIME_ZONE);
+}
+
 export function isToday(d: Date): boolean {
-  return sameDay(d, new Date());
+  return dayKey(d) === todayKey();
 }
 
 export function isSameMonth(a: Date, b: Date): boolean {
@@ -314,8 +347,16 @@ export function formatDay(d: Date): string {
   });
 }
 
+/** 24-hour, on the hospital's clock (DESIGN "Clinical data display"). */
+const TIME_FMT = new Intl.DateTimeFormat("en-GB", {
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+  timeZone: DEFAULT_TIME_ZONE,
+});
+
 export function formatTime(d: Date): string {
-  return d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+  return TIME_FMT.format(d);
 }
 
 export function formatTimeRange(start: Date, end: Date): string {
@@ -323,14 +364,12 @@ export function formatTimeRange(start: Date, end: Date): string {
 }
 
 export function formatHourLabel(hour: number): string {
-  const d = new Date();
-  d.setHours(hour, 0, 0, 0);
-  return d.toLocaleTimeString(undefined, { hour: "numeric" });
+  return `${String(hour).padStart(2, "0")}:00`;
 }
 
-/** Minutes-since-midnight for a Date (local time). */
+/** Minutes since midnight on the HOSPITAL's clock — where a card sits on the grid. */
 export function minutesSinceMidnight(d: Date): number {
-  return d.getHours() * 60 + d.getMinutes();
+  return localWeekdayAndMinutes(d, DEFAULT_TIME_ZONE).minutesOfDay;
 }
 
 export const WEEKDAY_SHORT = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];

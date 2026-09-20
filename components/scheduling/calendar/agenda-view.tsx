@@ -5,9 +5,11 @@ import type { CalendarEvent, OnEventClick } from "./types";
 import { Pill } from "@/components/ui/pill";
 import { cn } from "@/lib/utils";
 import {
+  dayKey,
   daysBetween,
   describeEvent,
   endOfWeek,
+  eventDayKey,
   formatDay,
   formatTimeRange,
   isToday,
@@ -40,9 +42,9 @@ export function AgendaView({
     <div className="h-full overflow-y-auto" role="list" aria-label="Agenda">
       <ul className="divide-border/60 divide-y">
         {days.map((d) => {
-          const dayEvents = byDay.get(keyOf(d)) ?? [];
+          const dayEvents = byDay.get(dayKey(d)) ?? [];
           return (
-            <li key={keyOf(d)} className="flex flex-col gap-1 px-3 py-2 sm:px-4">
+            <li key={dayKey(d)} className="flex flex-col gap-1 px-3 py-2 sm:px-4">
               <div className="flex items-baseline gap-2">
                 <span
                   className={cn(
@@ -73,7 +75,15 @@ export function AgendaView({
                         <button
                           type="button"
                           onClick={() => onEventClick?.(ev)}
-                          aria-label={`${desc.kindLabel}, ${desc.title}, ${formatTimeRange(ev.startsAt, ev.endsAt)}`}
+                          aria-label={[
+                            desc.kindLabel,
+                            desc.statusWord,
+                            desc.title,
+                            desc.subtitle,
+                            formatTimeRange(ev.startsAt, ev.endsAt),
+                          ]
+                            .filter(Boolean)
+                            .join(", ")}
                           className={cn(
                             "border-border hover:bg-muted/40 hover:border-foreground/15 ease-expo-out flex w-full items-start gap-3 rounded-md border px-3 py-2 text-left transition-colors duration-150",
                             desc.urgent && "ring-1 ring-rose-500/60",
@@ -124,14 +134,10 @@ export function AgendaView({
   );
 }
 
-function keyOf(d: Date): string {
-  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
-}
-
 function bucketByDay(events: ReadonlyArray<ParsedEvent>): Map<string, ParsedEvent[]> {
   const out = new Map<string, ParsedEvent[]>();
   for (const ev of events) {
-    const k = keyOf(ev.startsAt);
+    const k = eventDayKey(ev.startsAt);
     const list = out.get(k);
     if (list) list.push(ev);
     else out.set(k, [ev]);

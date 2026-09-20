@@ -48,7 +48,10 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export default async function ReceptionExpectedPage({ searchParams }: PageProps) {
   const { date: dateParam, reconcile } = await searchParams;
   const scope = await requireReceptionScope();
-  const parsed = dateParam ? new Date(dateParam) : undefined;
+  // Only the shape the strip emits; anything else is today. (V8 parses far
+  // stranger strings into far stranger years.)
+  const parsed =
+    dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam) ? new Date(dateParam) : undefined;
   const date = parsed && !Number.isNaN(parsed.getTime()) ? parsed : undefined;
   // One clock read: the rows' "time has passed" test and the day window agree.
   const now = new Date();
@@ -106,7 +109,7 @@ export default async function ReceptionExpectedPage({ searchParams }: PageProps)
           className="ease-expo-out size-3.5 transition-transform duration-150 group-hover:-translate-x-0.5"
           aria-hidden
         />
-        Today
+        Front desk
       </Link>
 
       <header className="flex flex-col gap-2">

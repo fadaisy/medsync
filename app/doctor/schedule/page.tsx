@@ -25,7 +25,13 @@ export const dynamic = "force-dynamic";
 /** `rangeEnd` is exclusive everywhere below, so the label names the last day actually fetched. */
 function formatWindowDate(d: Date, exclusiveEnd = false): string {
   const shown = exclusiveEnd ? new Date(d.getTime() - 86_400_000) : d;
-  return shown.toLocaleDateString(undefined, { day: "numeric", month: "short" });
+  // The hospital's calendar, not the host's: on a UTC host these instants are
+  // EAT midnights and would otherwise print the previous day.
+  return shown.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    timeZone: DEFAULT_TIME_ZONE,
+  });
 }
 
 export default async function DoctorSchedulePage() {

@@ -143,6 +143,9 @@ export function PendingDialog({
               {rows.length === 1
                 ? "1 request is waiting to be confirmed or declined."
                 : `${rows.length} requests are waiting to be confirmed or declined.`}
+              {typeof value === "number" && value > rows.length
+                ? ` Showing the oldest ${rows.length} of ${value}.`
+                : ""}
             </SheetDescription>
           </SheetHeader>
 

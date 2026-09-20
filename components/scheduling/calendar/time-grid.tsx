@@ -1,11 +1,19 @@
 "use client";
 
 import type { CalendarEvent, OnEventClick } from "./types";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useSyncExternalStore } from "react";
 
 import { cn } from "@/lib/utils";
 import { EventCard } from "./event-card";
-import { formatHourLabel, formatTime, isToday, minutesSinceMidnight, sameDay } from "./helpers";
+import {
+  dayKey,
+  eventDayKey,
+  formatHourLabel,
+  formatTime,
+  isToday,
+  minutesSinceMidnight,
+  sameDay,
+} from "./helpers";
 
 /**
  * Shared time-grid primitive for week + day views.
@@ -58,29 +66,44 @@ export function TimeGrid({
   const now = useNow();
   const columns = `${GUTTER_PX}px repeat(${days.length}, minmax(0,1fr))`;
 
-  const dayKeys = days.map(keyOf);
+  const dayKeys = days.map(dayKey);
+  // A session-held booking sits exactly under its clinic-day card, and the
+  // card stands for it — but only while the card is actually drawn (a search
+  // that matched the patient and not the clinic must still show the patient).
+  const drawnSessions = new Set(
+    events.filter((e) => e.kind === "session").map((e) => e.id.replace(/^s-/, "")),
+  );
   const eventsByDay = new Map<string, ParsedEvent[]>();
   for (const ev of events) {
-    // A session-held booking sits exactly under its clinic-day card; the card stands for it.
-    if (ev.kind === "appointment" && ev.sessionId) continue;
-    const k = keyOf(ev.startsAt);
+    if (ev.kind === "appointment" && ev.sessionId && drawnSessions.has(ev.sessionId)) continue;
+    const k = eventDayKey(ev.startsAt);
     if (!dayKeys.includes(k)) continue;
     const list = eventsByDay.get(k);
     if (list) list.push(ev);
     else eventsByDay.set(k, [ev]);
   }
+  // Struck bookings paint first so a live one at the same time is on top.
+  for (const list of eventsByDay.values()) {
+    list.sort(
+      (a, b) => struckRank(a) - struckRank(b) || a.startsAt.getTime() - b.startsAt.getTime(),
+    );
+  }
 
-  const nowOffset = minutesSinceMidnight(now) - hourStart * 60;
+  const nowOffset = now ? minutesSinceMidnight(now) - hourStart * 60 : -1;
   const nowY = (nowOffset / 60) * pxPerHour;
-  const showNow = days.some(isToday) && nowOffset >= 0 && nowOffset <= totalHours * 60;
+  const showNow =
+    now !== null && days.some(isToday) && nowOffset >= 0 && nowOffset <= totalHours * 60;
 
   const scrollRef = useRef<HTMLDivElement>(null);
+  const scrolledOnce = useRef(false);
   useEffect(() => {
-    // Open on the current hour rather than 7 AM; runs once per mount.
+    // Open on the current hour rather than 07:00 — once, on the first render
+    // that knows the time (the server pass and hydration do not).
     const el = scrollRef.current;
-    if (el && showNow) el.scrollTop = Math.max(0, nowY - 120);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (!el || !showNow || scrolledOnce.current) return;
+    scrolledOnce.current = true;
+    el.scrollTop = Math.max(0, nowY - 120);
+  }, [showNow, nowY]);
 
   return (
     <div
@@ -98,7 +121,7 @@ export function TimeGrid({
           const selected = selectedDay ? sameDay(d, selectedDay) : false;
           return (
             <div
-              key={keyOf(d)}
+              key={dayKey(d)}
               className={cn(
                 "border-border/60 flex min-w-0 flex-col items-center gap-0.5 border-l py-2 first:border-l-0",
                 today && "bg-brand-50/40 dark:bg-brand-950/20",
@@ -111,10 +134,11 @@ export function TimeGrid({
               <span
                 className={cn(
                   "inline-flex size-7 items-center justify-center rounded-full font-mono text-[13px] tabular-nums",
-                  today ? "bg-brand-600 text-white" : "text-foreground",
+                  today ? "bg-primary text-primary-foreground" : "text-foreground",
                 )}
               >
                 {d.getDate()}
+                {today ? <span className="sr-only">, today</span> : null}
               </span>
             </div>
           );
@@ -142,10 +166,10 @@ export function TimeGrid({
 
           {/* Day columns */}
           {days.map((d) => {
-            const dayEvents = eventsByDay.get(keyOf(d)) ?? [];
+            const dayEvents = eventsByDay.get(dayKey(d)) ?? [];
             return (
               <div
-                key={keyOf(d)}
+                key={dayKey(d)}
                 className={cn(
                   "border-border/60 relative min-w-0 border-l first:border-l-0",
                   isToday(d) && "bg-brand-50/20 dark:bg-brand-950/10",
@@ -162,16 +186,18 @@ export function TimeGrid({
 
                 {/* Event cards */}
                 {dayEvents.map((ev) => {
-                  const top = positionForMinute(
-                    minutesSinceMidnight(ev.startsAt),
-                    hourStart,
-                    pxPerHour,
+                  // Clamped to the grid's hours at both ends: an event that
+                  // crosses 07:00 or 20:00 is cut, never shifted or overflowed.
+                  const startMin = Math.max(minutesSinceMidnight(ev.startsAt), hourStart * 60);
+                  const endMin = Math.min(
+                    eventDayKey(ev.endsAt) === eventDayKey(ev.startsAt)
+                      ? minutesSinceMidnight(ev.endsAt)
+                      : 24 * 60,
+                    hourEnd * 60,
                   );
-                  const minutesDuration = Math.max(
-                    15,
-                    (ev.endsAt.getTime() - ev.startsAt.getTime()) / 60_000,
-                  );
-                  const height = Math.max(24, (minutesDuration / 60) * pxPerHour);
+                  if (endMin <= startMin) return null;
+                  const top = ((startMin - hourStart * 60) / 60) * pxPerHour;
+                  const height = Math.max(24, ((endMin - startMin) / 60) * pxPerHour);
                   return (
                     <EventCard
                       key={ev.id}
@@ -199,7 +225,7 @@ export function TimeGrid({
                 style={{ left: 0, width: GUTTER_PX }}
               >
                 <span className="bg-brand-600 rounded-full px-1.5 py-0.5 font-mono text-[10px] font-medium text-white tabular-nums">
-                  {formatTime(now)}
+                  {now ? formatTime(now) : ""}
                 </span>
               </span>
             </div>
@@ -210,20 +236,29 @@ export function TimeGrid({
   );
 }
 
-function positionForMinute(minute: number, hourStart: number, pxPerHour: number): number {
-  const offset = minute - hourStart * 60;
-  return Math.max(0, (offset / 60) * pxPerHour);
+/** Cancelled, declined, moved or missed — the bookings that no longer hold the time. */
+function struckRank(ev: ParsedEvent): number {
+  return ev.kind === "appointment" &&
+    ["cancelled", "declined", "rescheduled", "no_show", "void"].includes(ev.status)
+    ? 0
+    : 1;
 }
 
-function keyOf(d: Date): string {
-  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
+function useNow(): Date | null {
+  // Null on the server pass and the first client render: the now-line is a
+  // client fact, and seeding it on both sides gives two different HTML trees.
+  // `useSyncExternalStore` is React's sanctioned way to read a browser-only
+  // value with a server fallback, with no setState inside an effect.
+  const tick = useSyncExternalStore(
+    subscribeMinute,
+    () => Math.floor(Date.now() / 60_000),
+    () => null,
+  );
+  return tick === null ? null : new Date(tick * 60_000);
 }
 
-function useNow(): Date {
-  const [now, setNow] = useState<Date>(() => new Date());
-  useEffect(() => {
-    const t = setInterval(() => setNow(new Date()), 60_000);
-    return () => clearInterval(t);
-  }, []);
-  return now;
+/** Wakes subscribers once a minute; the store value is the minute itself. */
+function subscribeMinute(onChange: () => void): () => void {
+  const t = setInterval(onChange, 60_000);
+  return () => clearInterval(t);
 }

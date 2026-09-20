@@ -393,7 +393,7 @@ async function auditProvisionalReveals(args: {
 export interface ExpectedDayCounts {
   /** "2026-09-22" — the hospital's civil date. */
   dateKey: string;
-  /** Booked for the day and not cancelled: confirmed + arrived + in progress + completed. */
+  /** On the board for the day: every booking not cancelled, pending ones included (as the table lists). */
   expected: number;
   /** The subset of `expected` who got here. */
   arrived: number;
@@ -440,8 +440,12 @@ export async function fetchExpectedCountsByDay(args: {
           eq(appointments.hospitalId, args.hospitalId),
           gte(appointments.startsAt, start),
           lt(appointments.startsAt, end),
+          // The board's own list (fetchExpectedArrivals): one definition of
+          // "expected" for the strip, the panel and the table beneath them.
           inArray(appointments.status, [
             "confirmed",
+            "pending_approval",
+            "requested",
             "arrived",
             "in_progress",
             "completed",
@@ -470,7 +474,7 @@ export async function fetchExpectedCountsByDay(args: {
     if (a.status === "no_show") day.noShow++;
     else {
       day.expected++;
-      if (a.status !== "confirmed") day.arrived++;
+      if (["arrived", "in_progress", "completed"].includes(a.status)) day.arrived++;
     }
   }
   for (const d of declared) {

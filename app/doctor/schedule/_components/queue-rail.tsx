@@ -52,7 +52,7 @@ export function QueueRail({ entries }: { entries: ReadonlyArray<QueueRow> }) {
       title="Today's queue"
       count={entries.length}
       action={<RecordWalkinButton />}
-      className="max-h-[60svh] lg:max-h-[min(72svh,760px)]"
+      className="max-h-[max(60svh,520px)] lg:max-h-[min(72svh,760px)]"
     >
       <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-auto p-4">
         {/* Being seen */}

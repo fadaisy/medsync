@@ -38,6 +38,9 @@ export interface PendingRequest {
   type: string;
 }
 
+/** Shipped to the client on every load; the dialog says when the list is cut. */
+export const PENDING_LIMIT = 200;
+
 export async function fetchPendingRequests(hospitalId: string): Promise<PendingRequest[]> {
   return db
     .select({
@@ -62,5 +65,6 @@ export async function fetchPendingRequests(hospitalId: string): Promise<PendingR
     .where(
       and(eq(appointments.hospitalId, hospitalId), eq(appointments.status, "pending_approval")),
     )
-    .orderBy(asc(appointments.createdAt));
+    .orderBy(asc(appointments.createdAt))
+    .limit(PENDING_LIMIT);
 }

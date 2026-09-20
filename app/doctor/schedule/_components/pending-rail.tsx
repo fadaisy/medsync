@@ -26,7 +26,7 @@ export function PendingApprovalsRail({ rows }: { rows: ReadonlyArray<PendingRow>
     <Panel
       title="Awaiting approval"
       count={rows.length}
-      className="max-h-[60svh] lg:max-h-[min(72svh,760px)]"
+      className="max-h-[max(60svh,520px)] lg:max-h-[min(72svh,760px)]"
     >
       {rows.length === 0 ? (
         <p className="text-muted-foreground text-body-s px-5 py-4">Nothing waiting for you.</p>

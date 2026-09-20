@@ -49,9 +49,10 @@ export function CalendarViewSwitcher({
             type="button"
             role="tab"
             aria-selected={isActive}
+            aria-label={v.label}
             onClick={() => onChange(v.key)}
             className={cn(
-              "ease-expo-out inline-flex min-h-10 items-center gap-1.5 rounded-[5px] px-2.5 py-1 text-[12px] font-medium transition-colors duration-150",
+              "ease-expo-out inline-flex min-h-11 min-w-11 items-center justify-center gap-1.5 rounded-[5px] px-2.5 py-1 text-[12px] font-medium transition-colors duration-150",
               isActive
                 ? "bg-foreground text-background"
                 : "text-muted-foreground hover:bg-muted hover:text-foreground",
