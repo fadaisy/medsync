@@ -29,6 +29,7 @@ import { DayStrip } from "@/components/patient/day-strip";
 import { EmergencyButton } from "@/components/patient/emergency-button";
 import { NoSilentWait } from "@/components/patient/no-silent-wait";
 import { ProviderHero } from "@/components/patient/provider-hero";
+import { TimeRuler } from "@/components/patient/time-ruler";
 import { Button } from "@/components/ui/button";
 import { Chip, ChipRow } from "@/components/ui/chip";
 import { Empty } from "@/components/ui/empty";
@@ -42,7 +43,6 @@ import {
   fetchHousehold,
   fetchPatientProfile,
   fetchServiceLines,
-  formatTime,
   INTERSTITIAL_REASONS,
   newIdempotencyKey,
   reasonsFor,
@@ -518,16 +518,7 @@ export default function DoctorScreen() {
                   {slots.length === 1 ? "1 slot" : `${slots.length} slots`}
                 </Text>
               </View>
-              <ChipRow>
-                {slots.map((s) => (
-                  <Chip
-                    key={s.startsAtIso}
-                    label={formatTime(s.startsAtIso)}
-                    selected={s.startsAtIso === slot?.startsAtIso}
-                    onPress={() => pickSlot(s)}
-                  />
-                ))}
-              </ChipRow>
+              <TimeRuler slots={slots} value={slot?.startsAtIso ?? null} onChange={pickSlot} />
             </View>
           ) : null}
 

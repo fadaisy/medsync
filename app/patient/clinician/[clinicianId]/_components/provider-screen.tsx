@@ -19,8 +19,8 @@ import {
 
 import { BottomActionBar, BottomActionBarSpacer } from "@/components/responsive/bottom-action-bar";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { formatTime } from "@/lib/patient/booking-format";
 import { cn } from "@/lib/utils";
+import { TimeRuler } from "./time-ruler";
 
 /**
  * The provider screen — the reference design's first panel, component for
@@ -252,7 +252,7 @@ export function ProviderScreen({
                         className={cn(
                           "ease-expo-out duration-fast flex min-h-20 w-18 flex-col items-center justify-center gap-0.5 rounded-2xl px-3 transition-colors focus-visible:ring-2 focus-visible:outline-none",
                           selected
-                            ? "bg-brand-900 text-brand-50 focus-visible:ring-brand-300"
+                            ? "bg-accent text-accent-foreground ring-brand-300 focus-visible:ring-brand-500 ring-1"
                             : "bg-card text-foreground dark:shadow-card focus-visible:ring-ring shadow-xs",
                         )}
                       >
@@ -262,7 +262,7 @@ export function ProviderScreen({
                         <span
                           className={cn(
                             "text-caption",
-                            selected ? "text-brand-200" : "text-muted-foreground",
+                            selected ? "text-accent-foreground/80" : "text-muted-foreground",
                           )}
                         >
                           {DAY_LONG.format(at).slice(0, 3)}
@@ -284,28 +284,7 @@ export function ProviderScreen({
                   {slots.length} {slots.length === 1 ? "time" : "times"} open
                 </span>
               </div>
-              <ul aria-label="Available times" className="flex flex-wrap gap-2">
-                {slots.map((s) => {
-                  const selected = s.startsAtIso === slot;
-                  return (
-                    <li key={s.startsAtIso}>
-                      <button
-                        type="button"
-                        aria-pressed={selected}
-                        onClick={() => setSlot(s.startsAtIso)}
-                        className={cn(
-                          "ease-expo-out duration-fast text-body-s min-h-11 rounded-full px-4 font-medium transition-colors focus-visible:ring-2 focus-visible:outline-none",
-                          selected
-                            ? "bg-brand-900 text-brand-50 focus-visible:ring-brand-300"
-                            : "bg-card text-foreground dark:shadow-card focus-visible:ring-ring shadow-xs",
-                        )}
-                      >
-                        {formatTime(s.startsAtIso)}
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
+              <TimeRuler slots={slots} value={slot} onChange={setSlot} />
             </section>
           ) : null}
 
