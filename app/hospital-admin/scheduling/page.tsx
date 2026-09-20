@@ -155,42 +155,49 @@ export default async function SchedulingPage() {
   const smsCost = smsToday.reduce((n, r) => n + r.cost, 0);
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-4 py-6 sm:px-6 sm:py-8">
-      <header className="flex flex-col gap-1">
-        <span className="text-muted-foreground inline-flex w-fit items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
-          <span aria-hidden className="bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2" />
-          {scope.hospitalName} · Scheduling
-        </span>
-        <SectionRule title="Scheduling" />
-      </header>
+    // At xl the page is the viewport: four rows (title, strip, two rows of
+    // panels) and every panel scrolls inside itself. Below xl it flows.
+    <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-5 sm:px-6 xl:grid xl:h-[calc(100svh-3.25rem)] xl:grid-rows-[auto_auto_minmax(0,1fr)_minmax(0,1fr)]">
+      <header className="flex flex-col gap-3">
+        <div className="flex flex-col gap-1">
+          <span className="text-muted-foreground inline-flex w-fit items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
+            <span
+              aria-hidden
+              className="bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2"
+            />
+            {scope.hospitalName} · Scheduling
+          </span>
+          <SectionRule title="Scheduling" />
+        </div>
 
-      {/* PRD §3.6: a published day starting within 12 hours with no clinician
+        {/* PRD §3.6: a published day starting within 12 hours with no clinician
           named. Amber — the day still runs, and the app hides it as bookable
           until someone is assigned; red is for emergencies alone. */}
-      {unstaffedSoon.length > 0 ? (
-        <section
-          role="status"
-          aria-labelledby="t12-heading"
-          className="bg-status-caution-bg text-status-caution-fg ring-status-caution-fg/25 flex flex-wrap items-baseline gap-x-3 gap-y-1 rounded-xl px-4 py-3 ring-1"
-        >
-          <h2 id="t12-heading" className="text-body-s font-medium">
-            {unstaffedSoon.length === 1
-              ? "1 clinic day starts within 12 hours with no clinician named"
-              : `${unstaffedSoon.length} clinic days start within 12 hours with no clinician named`}
-          </h2>
-          <span className="text-body-s tabular-nums">
-            {unstaffedSoon
-              .map(
-                (u) =>
-                  `${u.serviceLineName} · ${u.dateLabel} ${u.timeLabel}${u.bookedCount > 0 ? ` · ${u.bookedCount} booked` : ""}`,
-              )
-              .join("  ·  ")}
-          </span>
-          <span className="text-body-s">
-            — assign a clinician under Next 14 days, or cancel the day.
-          </span>
-        </section>
-      ) : null}
+        {unstaffedSoon.length > 0 ? (
+          <section
+            role="status"
+            aria-labelledby="t12-heading"
+            className="bg-status-caution-bg text-status-caution-fg ring-status-caution-fg/25 flex flex-wrap items-baseline gap-x-3 gap-y-1 rounded-xl px-4 py-3 ring-1"
+          >
+            <h2 id="t12-heading" className="text-body-s font-medium">
+              {unstaffedSoon.length === 1
+                ? "1 clinic day starts within 12 hours with no clinician named"
+                : `${unstaffedSoon.length} clinic days start within 12 hours with no clinician named`}
+            </h2>
+            <span className="text-body-s tabular-nums">
+              {unstaffedSoon
+                .map(
+                  (u) =>
+                    `${u.serviceLineName} · ${u.dateLabel} ${u.timeLabel}${u.bookedCount > 0 ? ` · ${u.bookedCount} booked` : ""}`,
+                )
+                .join("  ·  ")}
+            </span>
+            <span className="text-body-s">
+              — assign a clinician under Next 14 days, or cancel the day.
+            </span>
+          </section>
+        ) : null}
+      </header>
 
       {/* The strip: five numbers, each with its basis. The first is tinted —
           the reference's one highlighted card — because "today" is the one a
@@ -233,7 +240,7 @@ export default async function SchedulingPage() {
         />
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-3">
+      <div className="grid min-h-0 gap-4 xl:grid-cols-3">
         <ServiceLinesSection
           className="xl:col-span-2"
           lines={lines}
@@ -249,17 +256,18 @@ export default async function SchedulingPage() {
         />
       </div>
 
-      <ClinicSessionsSection
-        templates={templates}
-        sessions={sessions}
-        sessionLines={lines
-          .filter((l) => l.active && l.capacityMode === "session")
-          .map((l) => ({ id: l.id, name: l.name }))}
-        clinicians={clinicians}
-        todayYmd={localDateKey(new Date(), DEFAULT_TIME_ZONE)}
-      />
-
-      <PolicyPanel departments={departments} />
+      <div className="grid min-h-0 gap-4 xl:grid-cols-3">
+        <ClinicSessionsSection
+          templates={templates}
+          sessions={sessions}
+          sessionLines={lines
+            .filter((l) => l.active && l.capacityMode === "session")
+            .map((l) => ({ id: l.id, name: l.name }))}
+          clinicians={clinicians}
+          todayYmd={localDateKey(new Date(), DEFAULT_TIME_ZONE)}
+        />
+        <PolicyPanel departments={departments} />
+      </div>
     </div>
   );
 }
@@ -320,7 +328,7 @@ function CapacityCard({
   const free = Math.max(places - booked, 0);
   const pct = places > 0 ? Math.round((booked / places) * 100) : 0;
   return (
-    <section className="border-border bg-card flex flex-col gap-4 rounded-xl border p-5 shadow-xs">
+    <section className="border-border bg-card flex min-h-0 flex-col gap-4 rounded-xl border p-5 shadow-xs">
       <header className="flex items-baseline justify-between gap-3">
         <h2 className="text-foreground text-body-m font-medium">Capacity, next 14 days</h2>
         <span className="text-muted-foreground text-caption font-mono tabular-nums">

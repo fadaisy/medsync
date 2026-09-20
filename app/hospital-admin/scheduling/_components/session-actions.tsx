@@ -42,7 +42,7 @@ export function SessionActions({
         </SheetDescription>
       </SheetHeader>
 
-      <SheetBody className="flex flex-col gap-8">
+      <SheetBody className="grid items-start gap-6 sm:grid-cols-2">
         {live ? <DelayForm session={session} /> : null}
         {live || session.status === "draft" ? (
           <CancelForm session={session} onDone={onClose} />
@@ -68,7 +68,10 @@ function DelayForm({ session }: { session: ClinicSessionRow }) {
     {},
   );
   return (
-    <form action={formAction} className="flex flex-col gap-3">
+    <form
+      action={formAction}
+      className="border-border bg-background/40 flex flex-col gap-3 rounded-md border p-4"
+    >
       <input type="hidden" name="session_id" value={session.id} />
       <div className="flex flex-col gap-1">
         <h3 className="text-foreground text-body-m font-medium">Running late</h3>
@@ -127,7 +130,10 @@ function CancelForm({ session, onDone }: { session: ClinicSessionRow; onDone: ()
 
   const preview = state.preview;
   return (
-    <form action={formAction} className="flex flex-col gap-3">
+    <form
+      action={formAction}
+      className="border-border bg-background/40 flex flex-col gap-3 rounded-md border p-4"
+    >
       <input type="hidden" name="session_id" value={session.id} />
       <div className="flex flex-col gap-1">
         <h3 className="text-foreground text-body-m font-medium">Cancel this clinic day</h3>

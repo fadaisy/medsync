@@ -6,7 +6,7 @@ import { PencilLineIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Pill } from "@/components/ui/data-table";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { EditorDialog } from "./editor-dialog";
 import { Panel } from "./panel";
 import { PolicyForm, timeFromMinutes, WEEKDAYS } from "./policy-form";
 
@@ -43,11 +43,11 @@ export function PolicyPanel({
       {departments.length === 0 ? (
         <p className="text-muted-foreground text-body-s px-5 py-4">No departments yet.</p>
       ) : (
-        <ul className="grid gap-x-6 sm:grid-cols-2 xl:grid-cols-3">
+        <ul className="grid min-h-0 flex-1 gap-x-6 overflow-auto sm:grid-cols-2 xl:grid-cols-1">
           {departments.map((d) => (
             <li
               key={d.departmentId}
-              className="border-border flex min-h-11 items-center justify-between gap-3 border-b px-5 py-2 last:border-b-0 sm:[&:nth-last-child(-n+2)]:border-b-0 xl:[&:nth-last-child(-n+3)]:border-b-0"
+              className="border-border flex min-h-11 items-center justify-between gap-3 border-b px-5 py-2 last:border-b-0"
             >
               <span className="flex min-w-0 flex-col">
                 <span className="text-foreground text-body-s truncate font-medium">
@@ -63,13 +63,9 @@ export function PolicyPanel({
         </ul>
       )}
 
-      <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent widthClassName="w-full sm:max-w-[640px]" className="overflow-y-auto">
-          <div className="p-1">
-            <PolicyForm departments={departments} />
-          </div>
-        </SheetContent>
-      </Sheet>
+      <EditorDialog open={open} onOpenChange={setOpen}>
+        <PolicyForm departments={departments} onClose={() => setOpen(false)} />
+      </EditorDialog>
     </Panel>
   );
 }

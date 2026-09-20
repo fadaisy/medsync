@@ -7,6 +7,13 @@ import { CheckCircle2Icon, InfoIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  SheetBody,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { updateDepartmentPolicyAction } from "../actions";
 
 /**
@@ -122,8 +129,11 @@ export const INPUT_CLASS =
 
 export function PolicyForm({
   departments,
+  onClose,
 }: {
   departments: ReadonlyArray<DepartmentPolicyOption>;
+  /** Present when the form sits in a dialog: the footer's way out. */
+  onClose?: () => void;
 }) {
   const [state, formAction, pending] = useActionState<PolicyFormState, FormData>(
     updateDepartmentPolicyAction,
@@ -191,357 +201,361 @@ export function PolicyForm({
   }
 
   return (
-    <form
-      action={formAction}
-      className="border-border bg-card flex flex-col gap-5 rounded-lg border p-6"
-    >
-      <div className="flex flex-col gap-1">
-        <h2 className="text-foreground text-heading-s font-medium">Department booking policy</h2>
-        <p className="text-muted-foreground text-body-s">
+    <form action={formAction} className="flex min-h-0 flex-1 flex-col">
+      <SheetHeader>
+        <SheetTitle>Department booking policy</SheetTitle>
+        <SheetDescription>
           Slot length, hours and reminders per department. A clinician&rsquo;s own settings override
           the slot mechanics; the days and hours always apply.
-        </p>
-      </div>
+        </SheetDescription>
+      </SheetHeader>
 
-      <div className="flex flex-col gap-1.5">
-        <Label htmlFor="department_id" className="text-caption tracking-tight">
-          Department
-        </Label>
-        <select
-          id="department_id"
-          name="department_id"
-          value={departmentId}
-          onChange={(e) => selectDepartment(e.target.value)}
-          className={INPUT_CLASS}
-        >
-          {departments.map((d) => (
-            <option key={d.departmentId} value={d.departmentId}>
-              {d.departmentName}
-              {d.policy ? "" : " — no policy set"}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {isNew ? (
-        <p className="border-border bg-muted/50 text-muted-foreground text-body-s flex items-start gap-2 rounded-md border p-3 leading-relaxed">
-          <InfoIcon className="text-foreground mt-0.5 size-4 shrink-0" aria-hidden />
-          <span>
-            <span className="text-foreground font-medium">No policy yet — unrestricted.</span>{" "}
-            Saving narrows it: unticked days and hours stop accepting bookings.
-          </span>
-        </p>
-      ) : null}
-
-      {/* Slot mechanics */}
-      <fieldset className="border-border bg-background/40 flex flex-col gap-3 rounded-md border p-4">
-        <legend className="text-muted-foreground -ml-1 px-1 font-mono text-[10.5px] tracking-[0.14em] uppercase">
-          Appointment length
-        </legend>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="default_slot_minutes" className="text-caption tracking-tight">
-              Slot length (minutes)
-            </Label>
-            <Input
-              id="default_slot_minutes"
-              name="default_slot_minutes"
-              type="number"
-              inputMode="numeric"
-              min={5}
-              max={240}
-              required
-              value={values.slot}
-              aria-invalid={values.slot < 5 || values.slot > 240}
-              onChange={(e) => setValues((v) => ({ ...v, slot: Number(e.target.value) }))}
-            />
-            <span className="text-muted-foreground text-caption">5–240.</span>
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="default_buffer_minutes" className="text-caption tracking-tight">
-              Turnaround between patients (minutes)
-            </Label>
-            <Input
-              id="default_buffer_minutes"
-              name="default_buffer_minutes"
-              type="number"
-              inputMode="numeric"
-              min={0}
-              max={60}
-              required
-              value={values.buffer}
-              aria-invalid={values.buffer < 0 || values.buffer > 60}
-              onChange={(e) => setValues((v) => ({ ...v, buffer: Number(e.target.value) }))}
-            />
-            <span className="text-muted-foreground text-caption">0–60.</span>
-          </div>
-        </div>
-        <p className="text-muted-foreground text-body-s leading-relaxed">
-          At these settings a clinician working the full window is offered{" "}
-          <span className="text-foreground font-mono tabular-nums">{slotsPerDay}</span>{" "}
-          {slotsPerDay === 1 ? "slot" : "slots"} a day. That is the ceiling — each clinician&rsquo;s
-          declared availability narrows it.
-        </p>
-      </fieldset>
-
-      {/* Open days + hours */}
-      <fieldset className="border-border bg-background/40 flex flex-col gap-3 rounded-md border p-4">
-        <legend className="text-muted-foreground -ml-1 px-1 font-mono text-[10.5px] tracking-[0.14em] uppercase">
-          Bookable days &amp; hours
-        </legend>
-        <div className="flex flex-col gap-1.5">
-          <span
-            id="weekday-label"
-            className="text-caption text-foreground font-medium tracking-tight"
+      <SheetBody className="grid items-start gap-5 lg:grid-cols-2">
+        <div className="flex flex-col gap-1.5 lg:col-span-2">
+          <Label htmlFor="department_id" className="text-caption tracking-tight">
+            Department
+          </Label>
+          <select
+            id="department_id"
+            name="department_id"
+            value={departmentId}
+            onChange={(e) => selectDepartment(e.target.value)}
+            className={INPUT_CLASS}
           >
-            Days open
-          </span>
-          <div role="group" aria-labelledby="weekday-label" className="flex flex-wrap gap-1.5">
-            {WEEKDAYS.map((day) => {
-              const checked = values.weekdays.includes(day.value);
-              return (
-                <label
-                  key={day.value}
-                  className={[
-                    "text-body-s ease-expo-out cursor-pointer rounded-md border px-3 py-2 transition-colors duration-150",
-                    "focus-within:border-brand-500 focus-within:shadow-[0_0_0_2px_rgba(132,118,231,0.18)]",
-                    checked
-                      ? "border-brand-300 bg-accent text-accent-foreground font-medium"
-                      : "border-input bg-background text-muted-foreground hover:border-gray-300",
-                  ].join(" ")}
-                >
-                  <input
-                    type="checkbox"
-                    name="bookable_weekdays"
-                    value={day.value}
-                    checked={checked}
-                    onChange={(e) =>
-                      setValues((v) => ({
-                        ...v,
-                        weekdays: e.target.checked
-                          ? [...v.weekdays, day.value].sort((a, b) => a - b)
-                          : v.weekdays.filter((w) => w !== day.value),
-                      }))
-                    }
-                    className="sr-only"
-                  />
-                  {day.label}
-                </label>
-              );
-            })}
-          </div>
-          <span className="text-muted-foreground text-caption">
-            Ticked days accept bookings and app walk-ins. Unticked days accept neither.
-          </span>
+            {departments.map((d) => (
+              <option key={d.departmentId} value={d.departmentId}>
+                {d.departmentName}
+                {d.policy ? "" : " — no policy set"}
+              </option>
+            ))}
+          </select>
         </div>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="bookable_start_local" className="text-caption tracking-tight">
-              Opens (East Africa Time)
-            </Label>
-            <Input
-              id="bookable_start_local"
-              name="bookable_start_local"
-              type="time"
-              step={300}
-              required
-              value={values.start}
-              onChange={(e) => setValues((v) => ({ ...v, start: e.target.value }))}
-            />
-          </div>
-          <div className="flex flex-col gap-1.5">
-            <Label htmlFor="bookable_end_local" className="text-caption tracking-tight">
-              Closes (East Africa Time)
-            </Label>
-            <Input
-              id="bookable_end_local"
-              name="bookable_end_local"
-              type="time"
-              step={300}
-              required
-              value={values.end}
-              aria-invalid={
-                startMinutes !== null && endMinutes !== null && endMinutes <= startMinutes
-              }
-              onChange={(e) => setValues((v) => ({ ...v, end: e.target.value }))}
-            />
-          </div>
-        </div>
-        <p className="text-muted-foreground text-body-s leading-relaxed">
-          A whole appointment has to fit inside the window, so the last slot offered is the last one
-          that ends by closing time.
-        </p>
-      </fieldset>
 
-      {/* Reminders — the spend lever */}
-      <fieldset className="border-border bg-background/40 flex flex-col gap-3 rounded-md border p-4">
-        <legend className="text-muted-foreground -ml-1 px-1 font-mono text-[10.5px] tracking-[0.14em] uppercase">
-          Reminders
-        </legend>
-        <p className="text-muted-foreground text-body-s leading-relaxed">
-          Every reminder is one message per booking. Reminders queue in-app today — nothing is
-          billed until SMS goes live — but this setting is what will be billed, per appointment, for
-          every booking this department takes.
-        </p>
-        <div className="flex flex-col gap-2">
-          <label
-            className={[
-              "text-body-s ease-expo-out flex cursor-pointer items-start gap-3 rounded-md border p-3 transition-colors duration-150",
-              "focus-within:border-brand-500 focus-within:shadow-[0_0_0_2px_rgba(132,118,231,0.18)]",
-              values.twoReminders
-                ? "border-input bg-background hover:border-gray-300"
-                : "border-brand-300 bg-accent",
-            ].join(" ")}
-          >
+        {isNew ? (
+          <p className="border-border bg-muted/50 text-muted-foreground text-body-s flex items-start gap-2 rounded-md border p-3 leading-relaxed lg:col-span-2">
+            <InfoIcon className="text-foreground mt-0.5 size-4 shrink-0" aria-hidden />
+            <span>
+              <span className="text-foreground font-medium">No policy yet — unrestricted.</span>{" "}
+              Saving narrows it: unticked days and hours stop accepting bookings.
+            </span>
+          </p>
+        ) : null}
+
+        {/* Slot mechanics */}
+        <fieldset className="border-border bg-background/40 flex flex-col gap-3 rounded-md border p-4">
+          <legend className="text-muted-foreground -ml-1 px-1 font-mono text-[10.5px] tracking-[0.14em] uppercase">
+            Appointment length
+          </legend>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="default_slot_minutes" className="text-caption tracking-tight">
+                Slot length (minutes)
+              </Label>
+              <Input
+                id="default_slot_minutes"
+                name="default_slot_minutes"
+                type="number"
+                inputMode="numeric"
+                min={5}
+                max={240}
+                required
+                value={values.slot}
+                aria-invalid={values.slot < 5 || values.slot > 240}
+                onChange={(e) => setValues((v) => ({ ...v, slot: Number(e.target.value) }))}
+              />
+              <span className="text-muted-foreground text-caption">5–240.</span>
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="default_buffer_minutes" className="text-caption tracking-tight">
+                Turnaround between patients (minutes)
+              </Label>
+              <Input
+                id="default_buffer_minutes"
+                name="default_buffer_minutes"
+                type="number"
+                inputMode="numeric"
+                min={0}
+                max={60}
+                required
+                value={values.buffer}
+                aria-invalid={values.buffer < 0 || values.buffer > 60}
+                onChange={(e) => setValues((v) => ({ ...v, buffer: Number(e.target.value) }))}
+              />
+              <span className="text-muted-foreground text-caption">0–60.</span>
+            </div>
+          </div>
+          <p className="text-muted-foreground text-body-s leading-relaxed">
+            At these settings a clinician working the full window is offered{" "}
+            <span className="text-foreground font-mono tabular-nums">{slotsPerDay}</span>{" "}
+            {slotsPerDay === 1 ? "slot" : "slots"} a day. That is the ceiling — each
+            clinician&rsquo;s declared availability narrows it.
+          </p>
+        </fieldset>
+
+        {/* Open days + hours */}
+        <fieldset className="border-border bg-background/40 flex flex-col gap-3 rounded-md border p-4">
+          <legend className="text-muted-foreground -ml-1 px-1 font-mono text-[10.5px] tracking-[0.14em] uppercase">
+            Bookable days &amp; hours
+          </legend>
+          <div className="flex flex-col gap-1.5">
+            <span
+              id="weekday-label"
+              className="text-caption text-foreground font-medium tracking-tight"
+            >
+              Days open
+            </span>
+            <div role="group" aria-labelledby="weekday-label" className="flex flex-wrap gap-1.5">
+              {WEEKDAYS.map((day) => {
+                const checked = values.weekdays.includes(day.value);
+                return (
+                  <label
+                    key={day.value}
+                    className={[
+                      "text-body-s ease-expo-out cursor-pointer rounded-md border px-3 py-2 transition-colors duration-150",
+                      "focus-within:border-brand-500 focus-within:shadow-[0_0_0_2px_rgba(132,118,231,0.18)]",
+                      checked
+                        ? "border-brand-300 bg-accent text-accent-foreground font-medium"
+                        : "border-input bg-background text-muted-foreground hover:border-gray-300",
+                    ].join(" ")}
+                  >
+                    <input
+                      type="checkbox"
+                      name="bookable_weekdays"
+                      value={day.value}
+                      checked={checked}
+                      onChange={(e) =>
+                        setValues((v) => ({
+                          ...v,
+                          weekdays: e.target.checked
+                            ? [...v.weekdays, day.value].sort((a, b) => a - b)
+                            : v.weekdays.filter((w) => w !== day.value),
+                        }))
+                      }
+                      className="sr-only"
+                    />
+                    {day.label}
+                  </label>
+                );
+              })}
+            </div>
+            <span className="text-muted-foreground text-caption">
+              Ticked days accept bookings and app walk-ins. Unticked days accept neither.
+            </span>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="bookable_start_local" className="text-caption tracking-tight">
+                Opens (East Africa Time)
+              </Label>
+              <Input
+                id="bookable_start_local"
+                name="bookable_start_local"
+                type="time"
+                step={300}
+                required
+                value={values.start}
+                onChange={(e) => setValues((v) => ({ ...v, start: e.target.value }))}
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="bookable_end_local" className="text-caption tracking-tight">
+                Closes (East Africa Time)
+              </Label>
+              <Input
+                id="bookable_end_local"
+                name="bookable_end_local"
+                type="time"
+                step={300}
+                required
+                value={values.end}
+                aria-invalid={
+                  startMinutes !== null && endMinutes !== null && endMinutes <= startMinutes
+                }
+                onChange={(e) => setValues((v) => ({ ...v, end: e.target.value }))}
+              />
+            </div>
+          </div>
+          <p className="text-muted-foreground text-body-s leading-relaxed">
+            A whole appointment has to fit inside the window, so the last slot offered is the last
+            one that ends by closing time.
+          </p>
+        </fieldset>
+
+        {/* Reminders — the spend lever */}
+        <fieldset className="border-border bg-background/40 flex flex-col gap-3 rounded-md border p-4">
+          <legend className="text-muted-foreground -ml-1 px-1 font-mono text-[10.5px] tracking-[0.14em] uppercase">
+            Reminders
+          </legend>
+          <p className="text-muted-foreground text-body-s leading-relaxed">
+            Every reminder is one message per booking. Reminders queue in-app today — nothing is
+            billed until SMS goes live — but this setting is what will be billed, per appointment,
+            for every booking this department takes.
+          </p>
+          <div className="flex flex-col gap-2">
+            <label
+              className={[
+                "text-body-s ease-expo-out flex cursor-pointer items-start gap-3 rounded-md border p-3 transition-colors duration-150",
+                "focus-within:border-brand-500 focus-within:shadow-[0_0_0_2px_rgba(132,118,231,0.18)]",
+                values.twoReminders
+                  ? "border-input bg-background hover:border-gray-300"
+                  : "border-brand-300 bg-accent",
+              ].join(" ")}
+            >
+              <input
+                type="radio"
+                name="reminder_plan"
+                value="one"
+                checked={!values.twoReminders}
+                onChange={() => setValues((v) => ({ ...v, twoReminders: false }))}
+                className="accent-brand-600 mt-0.5 size-4"
+              />
+              <span className="flex flex-col gap-0.5">
+                <span className="text-foreground font-medium">
+                  One reminder — 24 hours before{" "}
+                  <span className="text-muted-foreground font-normal">(recommended)</span>
+                </span>
+                <span className="text-muted-foreground text-caption leading-relaxed">
+                  One message per booking. The day-before message is the one that reaches a patient
+                  while the decision to travel is still open.
+                </span>
+              </span>
+            </label>
+            <label
+              className={[
+                "text-body-s ease-expo-out flex cursor-pointer items-start gap-3 rounded-md border p-3 transition-colors duration-150",
+                "focus-within:border-brand-500 focus-within:shadow-[0_0_0_2px_rgba(132,118,231,0.18)]",
+                values.twoReminders
+                  ? "border-brand-300 bg-accent"
+                  : "border-input bg-background hover:border-gray-300",
+              ].join(" ")}
+            >
+              <input
+                type="radio"
+                name="reminder_plan"
+                value="two"
+                checked={values.twoReminders}
+                onChange={() => setValues((v) => ({ ...v, twoReminders: true }))}
+                className="accent-brand-600 mt-0.5 size-4"
+              />
+              <span className="flex flex-col gap-0.5">
+                <span className="text-foreground font-medium">
+                  Two reminders — 24 hours and 1 hour before
+                </span>
+                <span className="text-muted-foreground text-caption leading-relaxed">
+                  Two messages per booking — double the cost. The one-hour message arrives after
+                  most patients have already travelled or already decided not to.
+                </span>
+              </span>
+            </label>
+          </div>
+        </fieldset>
+
+        {/* Confirmation + virtual */}
+        <fieldset className="border-border bg-background/40 flex flex-col gap-3 rounded-md border p-4">
+          <legend className="text-muted-foreground -ml-1 px-1 font-mono text-[10.5px] tracking-[0.14em] uppercase">
+            Defaults
+          </legend>
+          <label className="text-body-s flex cursor-pointer items-start gap-3">
             <input
-              type="radio"
-              name="reminder_plan"
-              value="one"
-              checked={!values.twoReminders}
-              onChange={() => setValues((v) => ({ ...v, twoReminders: false }))}
+              type="checkbox"
+              name="default_auto_confirm"
+              checked={values.autoConfirm}
+              onChange={(e) => setValues((v) => ({ ...v, autoConfirm: e.target.checked }))}
               className="accent-brand-600 mt-0.5 size-4"
             />
             <span className="flex flex-col gap-0.5">
-              <span className="text-foreground font-medium">
-                One reminder — 24 hours before{" "}
-                <span className="text-muted-foreground font-normal">(recommended)</span>
-              </span>
+              <span className="text-foreground font-medium">Confirm requests automatically</span>
               <span className="text-muted-foreground text-caption leading-relaxed">
-                One message per booking. The day-before message is the one that reaches a patient
-                while the decision to travel is still open.
+                Off means a clinician reviews every request before it becomes an appointment. A
+                clinician who has set their own preference keeps it.
               </span>
             </span>
           </label>
-          <label
-            className={[
-              "text-body-s ease-expo-out flex cursor-pointer items-start gap-3 rounded-md border p-3 transition-colors duration-150",
-              "focus-within:border-brand-500 focus-within:shadow-[0_0_0_2px_rgba(132,118,231,0.18)]",
-              values.twoReminders
-                ? "border-brand-300 bg-accent"
-                : "border-input bg-background hover:border-gray-300",
-            ].join(" ")}
-          >
+          <label className="text-body-s flex cursor-pointer items-start gap-3">
             <input
-              type="radio"
-              name="reminder_plan"
-              value="two"
-              checked={values.twoReminders}
-              onChange={() => setValues((v) => ({ ...v, twoReminders: true }))}
+              type="checkbox"
+              name="allow_virtual"
+              checked={values.allowVirtual}
+              onChange={(e) => setValues((v) => ({ ...v, allowVirtual: e.target.checked }))}
               className="accent-brand-600 mt-0.5 size-4"
             />
             <span className="flex flex-col gap-0.5">
-              <span className="text-foreground font-medium">
-                Two reminders — 24 hours and 1 hour before
-              </span>
+              <span className="text-foreground font-medium">Allow virtual appointments</span>
               <span className="text-muted-foreground text-caption leading-relaxed">
-                Two messages per booking — double the cost. The one-hour message arrives after most
-                patients have already travelled or already decided not to.
+                Patients may request a virtual visit with clinicians in this department.
               </span>
             </span>
           </label>
-        </div>
-      </fieldset>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="notes" className="text-caption tracking-tight">
+              Notes (optional)
+            </Label>
+            <Input
+              id="notes"
+              name="notes"
+              maxLength={500}
+              value={values.notes}
+              placeholder="e.g. Friday clinic is teaching-only from 14:00"
+              onChange={(e) => setValues((v) => ({ ...v, notes: e.target.value }))}
+            />
+          </div>
+        </fieldset>
 
-      {/* Confirmation + virtual */}
-      <fieldset className="border-border bg-background/40 flex flex-col gap-3 rounded-md border p-4">
-        <legend className="text-muted-foreground -ml-1 px-1 font-mono text-[10.5px] tracking-[0.14em] uppercase">
-          Defaults
-        </legend>
-        <label className="text-body-s flex cursor-pointer items-start gap-3">
-          <input
-            type="checkbox"
-            name="default_auto_confirm"
-            checked={values.autoConfirm}
-            onChange={(e) => setValues((v) => ({ ...v, autoConfirm: e.target.checked }))}
-            className="accent-brand-600 mt-0.5 size-4"
-          />
-          <span className="flex flex-col gap-0.5">
-            <span className="text-foreground font-medium">Confirm requests automatically</span>
-            <span className="text-muted-foreground text-caption leading-relaxed">
-              Off means a clinician reviews every request before it becomes an appointment. A
-              clinician who has set their own preference keeps it.
-            </span>
-          </span>
-        </label>
-        <label className="text-body-s flex cursor-pointer items-start gap-3">
-          <input
-            type="checkbox"
-            name="allow_virtual"
-            checked={values.allowVirtual}
-            onChange={(e) => setValues((v) => ({ ...v, allowVirtual: e.target.checked }))}
-            className="accent-brand-600 mt-0.5 size-4"
-          />
-          <span className="flex flex-col gap-0.5">
-            <span className="text-foreground font-medium">Allow virtual appointments</span>
-            <span className="text-muted-foreground text-caption leading-relaxed">
-              Patients may request a virtual visit with clinicians in this department.
-            </span>
-          </span>
-        </label>
-        <div className="flex flex-col gap-1.5">
-          <Label htmlFor="notes" className="text-caption tracking-tight">
-            Notes (optional)
+        <div className="flex flex-col gap-1.5 lg:col-span-2">
+          <Label htmlFor="reason" className="text-caption tracking-tight">
+            Audit note
           </Label>
           <Input
-            id="notes"
-            name="notes"
-            maxLength={500}
-            value={values.notes}
-            placeholder="e.g. Friday clinic is teaching-only from 14:00"
-            onChange={(e) => setValues((v) => ({ ...v, notes: e.target.value }))}
+            id="reason"
+            name="reason"
+            minLength={8}
+            required
+            placeholder="Why this change — at least 8 characters"
+            defaultValue=""
           />
+          <span className="text-muted-foreground text-caption">Goes to the audit log.</span>
         </div>
-      </fieldset>
 
-      <div className="flex flex-col gap-1.5">
-        <Label htmlFor="reason" className="text-caption tracking-tight">
-          Audit note
-        </Label>
-        <Input
-          id="reason"
-          name="reason"
-          minLength={8}
-          required
-          placeholder="Why this change — at least 8 characters"
-          defaultValue=""
-        />
-        <span className="text-muted-foreground text-caption">
-          Recorded against your name in the hospital audit log.
-        </span>
-      </div>
+        {errors.length > 0 ? (
+          <ul className="border-alert-border bg-alert-bg text-alert-fg text-body-s flex flex-col gap-1 rounded-md border p-3 lg:col-span-2">
+            {errors.map((e) => (
+              <li key={e}>{e}</li>
+            ))}
+          </ul>
+        ) : null}
 
-      {errors.length > 0 ? (
-        <ul className="border-alert-border bg-alert-bg text-alert-fg text-body-s flex flex-col gap-1 rounded-md border p-3">
-          {errors.map((e) => (
-            <li key={e}>{e}</li>
-          ))}
-        </ul>
-      ) : null}
+        {state.error ? (
+          <p
+            role="alert"
+            className="border-alert-border bg-alert-bg text-alert-fg text-body-s rounded-md border p-3 lg:col-span-2"
+          >
+            {state.error}
+          </p>
+        ) : null}
 
-      {state.error ? (
-        <p
-          role="alert"
-          className="border-alert-border bg-alert-bg text-alert-fg text-body-s rounded-md border p-3"
-        >
-          {state.error}
-        </p>
-      ) : null}
+        {state.ok ? (
+          <p
+            role="status"
+            className="border-border bg-status-stable-bg text-status-stable-fg text-body-s flex items-center gap-2 rounded-md border p-3 lg:col-span-2"
+          >
+            <CheckCircle2Icon className="size-4 shrink-0" aria-hidden />
+            {state.created
+              ? "Policy created — this department is now restricted to the days and hours above."
+              : "Policy saved."}
+          </p>
+        ) : null}
+      </SheetBody>
 
-      {state.ok ? (
-        <p
-          role="status"
-          className="border-border bg-status-stable-bg text-status-stable-fg text-body-s flex items-center gap-2 rounded-md border p-3"
-        >
-          <CheckCircle2Icon className="size-4 shrink-0" aria-hidden />
-          {state.created
-            ? "Policy created — this department is now restricted to the days and hours above."
-            : "Policy saved."}
-        </p>
-      ) : null}
-
-      <Button type="submit" disabled={pending || errors.length > 0} className="w-fit">
-        {pending ? "Saving…" : isNew ? "Create policy" : "Save policy"}
-      </Button>
+      <SheetFooter>
+        {onClose ? (
+          <Button type="button" variant="ghost" onClick={onClose} disabled={pending}>
+            Close
+          </Button>
+        ) : null}
+        <Button type="submit" disabled={pending || errors.length > 0}>
+          {pending ? "Saving…" : isNew ? "Create policy" : "Save policy"}
+        </Button>
+      </SheetFooter>
     </form>
   );
 }

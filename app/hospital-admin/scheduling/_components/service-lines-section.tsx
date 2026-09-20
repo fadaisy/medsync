@@ -10,9 +10,7 @@ import { DataTable, DataTableEmpty, Pill } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Sheet,
   SheetBody,
-  SheetContent,
   SheetDescription,
   SheetFooter,
   SheetHeader,
@@ -20,6 +18,7 @@ import {
 } from "@/components/ui/sheet";
 import { PATIENT_REASON_CODES } from "@/supabase/functions/_shared/sessions-sql";
 import { setServiceLineFeeAction, upsertServiceLineAction } from "../actions";
+import { EditorDialog } from "./editor-dialog";
 import { Panel } from "./panel";
 import { INPUT_CLASS } from "./policy-form";
 
@@ -207,8 +206,9 @@ export function ServiceLinesSection({
         onRowSelect={(row) => setSelected(row)}
         selectedRowId={selected && selected !== "new" ? selected.id : null}
         caption="Service lines at this hospital"
-        // Cropped: the panel stays the height of the capacity card beside it.
-        scrollClassName="max-h-[21rem]"
+        // Cropped: the panel is its grid row's height, never the table's.
+        className="min-h-0 flex-1"
+        scrollClassName="max-h-[21rem] min-h-0 flex-1 xl:max-h-none"
         empty={
           <DataTableEmpty
             title={q ? "Nothing matches" : "No service lines yet"}
@@ -221,20 +221,18 @@ export function ServiceLinesSection({
         }
       />
 
-      <Sheet open={selected !== null} onOpenChange={(open) => !open && setSelected(null)}>
-        <SheetContent widthClassName="w-full sm:max-w-[600px]">
-          {selected !== null ? (
-            <ServiceLineEditor
-              key={selected === "new" ? "new" : selected.id}
-              line={selected === "new" ? null : selected}
-              departments={departments}
-              cadres={cadres}
-              fees={selected === "new" ? [] : fees.filter((f) => f.serviceLineId === selected.id)}
-              onClose={() => setSelected(null)}
-            />
-          ) : null}
-        </SheetContent>
-      </Sheet>
+      <EditorDialog open={selected !== null} onOpenChange={(open) => !open && setSelected(null)}>
+        {selected !== null ? (
+          <ServiceLineEditor
+            key={selected === "new" ? "new" : selected.id}
+            line={selected === "new" ? null : selected}
+            departments={departments}
+            cadres={cadres}
+            fees={selected === "new" ? [] : fees.filter((f) => f.serviceLineId === selected.id)}
+            onClose={() => setSelected(null)}
+          />
+        ) : null}
+      </EditorDialog>
     </Panel>
   );
 }
@@ -279,9 +277,12 @@ function ServiceLineEditor({
         </SheetDescription>
       </SheetHeader>
 
-      <SheetBody className="flex flex-col gap-5">
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className="flex flex-col gap-1.5 sm:col-span-2">
+      <SheetBody className="grid items-start gap-5 lg:grid-cols-3">
+        <fieldset className="border-border bg-background/40 flex flex-col gap-3 rounded-md border p-4">
+          <legend className="text-muted-foreground -ml-1 px-1 font-mono text-[10.5px] tracking-[0.14em] uppercase">
+            Line
+          </legend>
+          <div className="flex flex-col gap-1.5">
             <Label htmlFor="sl-name" className="text-caption tracking-tight">
               Name
             </Label>
@@ -336,7 +337,7 @@ function ServiceLineEditor({
                   : "A same-day ticket."}
             </span>
           </div>
-        </div>
+        </fieldset>
 
         <fieldset className="border-border bg-background/40 flex flex-col gap-3 rounded-md border p-4">
           <legend className="text-muted-foreground -ml-1 px-1 font-mono text-[10.5px] tracking-[0.14em] uppercase">
@@ -413,105 +414,109 @@ function ServiceLineEditor({
           </label>
         </fieldset>
 
-        <fieldset className="border-border bg-background/40 flex flex-col gap-3 rounded-md border p-4">
-          <legend className="text-muted-foreground -ml-1 px-1 font-mono text-[10.5px] tracking-[0.14em] uppercase">
-            Payment posture
-          </legend>
-          <p className="text-muted-foreground text-caption">
-            Stated to patients; nothing is charged in the app.
-          </p>
-          <div className="grid gap-3 sm:grid-cols-3">
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="sl-posture" className="text-caption tracking-tight">
-                Posture
-              </Label>
-              <select
-                id="sl-posture"
-                name="payment_posture"
-                value={posture}
-                onChange={(e) => setPosture(e.target.value)}
-                className={INPUT_CLASS}
-              >
-                <option value="none">No payment</option>
-                <option value="deposit">Deposit to book</option>
-                <option value="full">Full fee to book</option>
-              </select>
+        <div className="flex flex-col gap-5">
+          <fieldset className="border-border bg-background/40 flex flex-col gap-3 rounded-md border p-4">
+            <legend className="text-muted-foreground -ml-1 px-1 font-mono text-[10.5px] tracking-[0.14em] uppercase">
+              Payment posture
+            </legend>
+            <p className="text-muted-foreground text-caption">
+              Stated to patients; nothing is charged in the app.
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="sl-posture" className="text-caption tracking-tight">
+                  Posture
+                </Label>
+                <select
+                  id="sl-posture"
+                  name="payment_posture"
+                  value={posture}
+                  onChange={(e) => setPosture(e.target.value)}
+                  className={INPUT_CLASS}
+                >
+                  <option value="none">No payment</option>
+                  <option value="deposit">Deposit to book</option>
+                  <option value="full">Full fee to book</option>
+                </select>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="sl-fee" className="text-caption tracking-tight">
+                  Fee (UGX)
+                </Label>
+                <Input
+                  id="sl-fee"
+                  name="fee_ugx"
+                  type="number"
+                  inputMode="numeric"
+                  min={0}
+                  step={100}
+                  required={posture !== "none"}
+                  defaultValue={line?.feeUgx ?? ""}
+                />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="sl-deposit" className="text-caption tracking-tight">
+                  Deposit (UGX)
+                </Label>
+                <Input
+                  id="sl-deposit"
+                  name="deposit_ugx"
+                  type="number"
+                  inputMode="numeric"
+                  min={0}
+                  step={100}
+                  disabled={posture !== "deposit"}
+                  defaultValue={line?.depositUgx ?? ""}
+                />
+              </div>
             </div>
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="sl-fee" className="text-caption tracking-tight">
-                Fee (UGX)
-              </Label>
-              <Input
-                id="sl-fee"
-                name="fee_ugx"
-                type="number"
-                inputMode="numeric"
-                min={0}
-                step={100}
-                required={posture !== "none"}
-                defaultValue={line?.feeUgx ?? ""}
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Label htmlFor="sl-deposit" className="text-caption tracking-tight">
-                Deposit (UGX)
-              </Label>
-              <Input
-                id="sl-deposit"
-                name="deposit_ugx"
-                type="number"
-                inputMode="numeric"
-                min={0}
-                step={100}
-                disabled={posture !== "deposit"}
-                defaultValue={line?.depositUgx ?? ""}
-              />
-            </div>
-          </div>
-        </fieldset>
+          </fieldset>
 
-        <fieldset className="border-border bg-background/40 flex flex-col gap-3 rounded-md border p-4">
-          <legend className="text-muted-foreground -ml-1 px-1 font-mono text-[10.5px] tracking-[0.14em] uppercase">
-            Status
-          </legend>
-          <label className="text-body-s flex cursor-pointer items-start gap-3">
-            <input
-              type="checkbox"
-              name="is_default"
-              defaultChecked={line?.isDefault ?? false}
-              className="accent-brand-600 mt-0.5 size-4"
-            />
-            <span className="flex flex-col gap-0.5">
-              <span className="text-foreground font-medium">Hospital default</span>
-              <span className="text-muted-foreground text-caption">
-                Where a patient lands with no service chosen. One per hospital.
+          <fieldset className="border-border bg-background/40 flex flex-col gap-3 rounded-md border p-4">
+            <legend className="text-muted-foreground -ml-1 px-1 font-mono text-[10.5px] tracking-[0.14em] uppercase">
+              Status
+            </legend>
+            <label className="text-body-s flex cursor-pointer items-start gap-3">
+              <input
+                type="checkbox"
+                name="is_default"
+                defaultChecked={line?.isDefault ?? false}
+                className="accent-brand-600 mt-0.5 size-4"
+              />
+              <span className="flex flex-col gap-0.5">
+                <span className="text-foreground font-medium">Hospital default</span>
+                <span className="text-muted-foreground text-caption">
+                  Where a patient lands with no service chosen. One per hospital.
+                </span>
               </span>
-            </span>
-          </label>
-          <label className="text-body-s flex cursor-pointer items-start gap-3">
-            <input
-              type="checkbox"
-              name="active"
-              defaultChecked={line?.active ?? true}
-              className="accent-brand-600 mt-0.5 size-4"
-            />
-            <span className="flex flex-col gap-0.5">
-              <span className="text-foreground font-medium">Active</span>
-              <span className="text-muted-foreground text-caption">
-                Inactive: no new bookings; held ones stand.
+            </label>
+            <label className="text-body-s flex cursor-pointer items-start gap-3">
+              <input
+                type="checkbox"
+                name="active"
+                defaultChecked={line?.active ?? true}
+                className="accent-brand-600 mt-0.5 size-4"
+              />
+              <span className="flex flex-col gap-0.5">
+                <span className="text-foreground font-medium">Active</span>
+                <span className="text-muted-foreground text-caption">
+                  Inactive: no new bookings; held ones stand.
+                </span>
               </span>
-            </span>
-          </label>
-        </fieldset>
+            </label>
+          </fieldset>
 
-        {/* ADR 0092: what this line costs per cadre — a sparse override on the
+          {/* ADR 0092: what this line costs per cadre — a sparse override on the
             flat fee above. Only for a saved, charging line: an override on a
             free line is a contradiction, and the row must exist to attach to.
             Its controls are not part of this form (nested forms are invalid);
             the action is driven directly. */}
-        {line && posture !== "none" ? <CadreFees line={line} cadres={cadres} fees={fees} /> : null}
+          {line && posture !== "none" ? (
+            <CadreFees line={line} cadres={cadres} fees={fees} />
+          ) : null}
+        </div>
 
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-1.5 lg:col-span-3">
           <Label htmlFor="sl-reason" className="text-caption tracking-tight">
             Audit note
           </Label>
@@ -528,7 +533,7 @@ function ServiceLineEditor({
         {state.error ? (
           <p
             role="alert"
-            className="border-alert-border bg-alert-bg text-alert-fg text-body-s rounded-md border p-3"
+            className="border-alert-border bg-alert-bg text-alert-fg text-body-s rounded-md border p-3 lg:col-span-3"
           >
             {state.error}
           </p>

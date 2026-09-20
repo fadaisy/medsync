@@ -10,15 +10,14 @@ import { DataTable, DataTableEmpty, Pill } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Sheet,
   SheetBody,
-  SheetContent,
   SheetDescription,
   SheetFooter,
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
 import { upsertSessionTemplateAction } from "../actions";
+import { EditorDialog } from "./editor-dialog";
 import { Panel } from "./panel";
 import { INPUT_CLASS, timeFromMinutes, WEEKDAYS } from "./policy-form";
 import { SessionActions } from "./session-actions";
@@ -200,8 +199,8 @@ export function ClinicSessionsSection({
   ];
 
   return (
-    <div className="grid gap-4 xl:grid-cols-5">
-      <Panel title="Next 14 days" count={sessions.length} className="xl:col-span-3">
+    <>
+      <Panel title="Next 14 days" count={sessions.length}>
         <DataTable
           data={sessions}
           columns={sessionColumns}
@@ -209,7 +208,8 @@ export function ClinicSessionsSection({
           onRowSelect={(row) => setSession(row)}
           selectedRowId={session?.id ?? null}
           caption="Clinic sessions in the next 14 days"
-          scrollClassName="max-h-[19rem]"
+          className="min-h-0 flex-1"
+          scrollClassName="max-h-[19rem] min-h-0 flex-1 xl:max-h-none"
           empty={
             <DataTableEmpty
               title="No clinic days yet"
@@ -222,7 +222,6 @@ export function ClinicSessionsSection({
       <Panel
         title="Weekly rules"
         count={templates.length}
-        className="xl:col-span-2"
         action={
           <Button
             type="button"
@@ -241,7 +240,8 @@ export function ClinicSessionsSection({
           onRowSelect={(row) => setSelected(row)}
           selectedRowId={selected && selected !== "new" ? selected.id : null}
           caption="Weekly session rules at this hospital"
-          scrollClassName="max-h-[19rem]"
+          className="min-h-0 flex-1"
+          scrollClassName="max-h-[19rem] min-h-0 flex-1 xl:max-h-none"
           empty={
             <DataTableEmpty
               title="No weekly rules yet"
@@ -255,29 +255,29 @@ export function ClinicSessionsSection({
         />
       </Panel>
 
-      <Sheet open={session !== null} onOpenChange={(open) => !open && setSession(null)}>
-        <SheetContent widthClassName="w-full sm:max-w-[520px]">
-          {session ? (
-            <SessionActions key={session.id} session={session} onClose={() => setSession(null)} />
-          ) : null}
-        </SheetContent>
-      </Sheet>
+      <EditorDialog
+        width="medium"
+        open={session !== null}
+        onOpenChange={(open) => !open && setSession(null)}
+      >
+        {session ? (
+          <SessionActions key={session.id} session={session} onClose={() => setSession(null)} />
+        ) : null}
+      </EditorDialog>
 
-      <Sheet open={selected !== null} onOpenChange={(open) => !open && setSelected(null)}>
-        <SheetContent widthClassName="w-full sm:max-w-[600px]">
-          {selected !== null ? (
-            <TemplateEditor
-              key={selected === "new" ? "new" : selected.id}
-              template={selected === "new" ? null : selected}
-              sessionLines={sessionLines}
-              clinicians={clinicians}
-              todayYmd={todayYmd}
-              onClose={() => setSelected(null)}
-            />
-          ) : null}
-        </SheetContent>
-      </Sheet>
-    </div>
+      <EditorDialog open={selected !== null} onOpenChange={(open) => !open && setSelected(null)}>
+        {selected !== null ? (
+          <TemplateEditor
+            key={selected === "new" ? "new" : selected.id}
+            template={selected === "new" ? null : selected}
+            sessionLines={sessionLines}
+            clinicians={clinicians}
+            todayYmd={todayYmd}
+            onClose={() => setSelected(null)}
+          />
+        ) : null}
+      </EditorDialog>
+    </>
   );
 }
 
@@ -335,9 +335,12 @@ function TemplateEditor({
         </SheetDescription>
       </SheetHeader>
 
-      <SheetBody className="flex flex-col gap-5">
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className="flex flex-col gap-1.5 sm:col-span-2">
+      <SheetBody className="grid items-start gap-5 lg:grid-cols-3">
+        <fieldset className="border-border bg-background/40 flex flex-col gap-3 rounded-md border p-4">
+          <legend className="text-muted-foreground -ml-1 px-1 font-mono text-[10.5px] tracking-[0.14em] uppercase">
+            Clinic
+          </legend>
+          <div className="flex flex-col gap-1.5">
             <Label htmlFor="st-line" className="text-caption tracking-tight">
               Service line
             </Label>
@@ -392,7 +395,21 @@ function TemplateEditor({
               placeholder="e.g. OPD Room 4"
             />
           </div>
-        </div>
+          <label className="text-body-s flex cursor-pointer items-start gap-3">
+            <input
+              type="checkbox"
+              name="active"
+              defaultChecked={template?.active ?? true}
+              className="accent-brand-600 mt-0.5 size-4"
+            />
+            <span className="flex flex-col gap-0.5">
+              <span className="text-foreground font-medium">Active</span>
+              <span className="text-muted-foreground text-caption">
+                Unticking cancels this rule&rsquo;s empty future days; booked ones stay.
+              </span>
+            </span>
+          </label>
+        </fieldset>
 
         <fieldset className="border-border bg-background/40 flex flex-col gap-3 rounded-md border p-4">
           <legend className="text-muted-foreground -ml-1 px-1 font-mono text-[10.5px] tracking-[0.14em] uppercase">
@@ -580,23 +597,7 @@ function TemplateEditor({
           </p>
         </fieldset>
 
-        <label className="text-body-s flex cursor-pointer items-start gap-3">
-          <input
-            type="checkbox"
-            name="active"
-            defaultChecked={template?.active ?? true}
-            className="accent-brand-600 mt-0.5 size-4"
-          />
-          <span className="flex flex-col gap-0.5">
-            <span className="text-foreground font-medium">Active</span>
-            <span className="text-muted-foreground text-caption leading-relaxed">
-              Unticking cancels this rule&rsquo;s future sessions that nobody has booked into.
-              Sessions with bookings stay published and are listed below until they run.
-            </span>
-          </span>
-        </label>
-
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-1.5 lg:col-span-3">
           <Label htmlFor="st-reason" className="text-caption tracking-tight">
             Audit note
           </Label>
@@ -607,15 +608,13 @@ function TemplateEditor({
             required
             placeholder="Why this change — at least 8 characters"
           />
-          <span className="text-muted-foreground text-caption">
-            Recorded against your name in the hospital audit log.
-          </span>
+          <span className="text-muted-foreground text-caption">Goes to the audit log.</span>
         </div>
 
         {state.error ? (
           <p
             role="alert"
-            className="border-alert-border bg-alert-bg text-alert-fg text-body-s rounded-md border p-3"
+            className="border-alert-border bg-alert-bg text-alert-fg text-body-s rounded-md border p-3 lg:col-span-3"
           >
             {state.error}
           </p>
