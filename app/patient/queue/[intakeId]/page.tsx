@@ -9,7 +9,7 @@ import { db } from "@/db";
 import { hospitalDepartments } from "@/db/schema/hospital-departments";
 import { hospitals } from "@/db/schema/hospitals";
 import { patientIntakes } from "@/db/schema/patient-intakes";
-import { presenceAt, presenceOf } from "@/lib/intake/queries";
+import { presenceAt, presenceOf, ts } from "@/lib/intake/queries";
 import { TINT_GLYPH } from "@/lib/patient/doses";
 import { requirePatientScope } from "@/lib/patient/scope";
 import { cn } from "@/lib/utils";
@@ -100,10 +100,10 @@ export default async function PatientQueueDetailPage({ params }: PageProps) {
           eq(patientIntakes.hospitalId, intake.hospitalId),
           eq(patientIntakes.receivingDepartmentId, intake.departmentId),
           inArray(patientIntakes.status, ["arrived", "awaiting_triage"]),
-          gte(presenceAt, startOfDay),
+          gte(presenceAt, ts(startOfDay)),
           // Bounded above by this patient's own presence, which is never
           // later than `now` — so today's upper bound is already implied.
-          lt(presenceAt, presenceOf(intake)),
+          lt(presenceAt, ts(presenceOf(intake))),
         ),
       );
     positionAhead = Number(aheadRows[0]?.n ?? 0);

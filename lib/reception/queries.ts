@@ -12,7 +12,7 @@ import { provisionalPatients } from "@/db/schema/provisional-patients";
 import { appointments, encounters } from "@/db/schema/scheduling";
 import { users } from "@/db/schema/users";
 import { decrypt } from "@/lib/encryption";
-import { presenceAt, presenceOf } from "@/lib/intake/queries";
+import { presenceAt, presenceOf, ts } from "@/lib/intake/queries";
 import { logger } from "@/lib/logger";
 import { maskPhone, matchBasis } from "@/lib/reception/reconcile-basis";
 import {
@@ -193,8 +193,8 @@ export async function fetchReceptionTodayCounts(args: {
           // Unbounded, one intake that never progressed past awaiting_triage
           // inflated "Awaiting triage" under the "Today counts" heading
           // forever — a number the database could not prove was today's.
-          gte(presenceAt, start),
-          lt(presenceAt, end),
+          gte(presenceAt, ts(start)),
+          lt(presenceAt, ts(end)),
         ),
       ),
     db
@@ -608,8 +608,8 @@ export async function searchTodaysBoard(args: {
       and(
         eq(patientIntakes.hospitalId, args.hospitalId),
         inArray(patientIntakes.status, ["declared", "arrived", "awaiting_triage", "triaged"]),
-        gte(presenceAt, start),
-        lt(presenceAt, end),
+        gte(presenceAt, ts(start)),
+        lt(presenceAt, ts(end)),
       ),
     )
     .orderBy(presenceAt)
@@ -724,8 +724,8 @@ export async function fetchTodayFlow(args: {
     .where(
       and(
         eq(patientIntakes.hospitalId, args.hospitalId),
-        gte(presenceAt, start),
-        lt(presenceAt, end),
+        gte(presenceAt, ts(start)),
+        lt(presenceAt, ts(end)),
       ),
     )
     .orderBy(desc(presenceAt))

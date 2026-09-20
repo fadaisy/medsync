@@ -43,6 +43,15 @@ import { DEFAULT_TIME_ZONE, startOfLocalDay } from "@/supabase/functions/_shared
 export const presenceAt = sql`coalesce(${patientIntakes.checkedInAt}, ${patientIntakes.arrivedAt})`;
 
 /**
+ * A Date bound beside `presenceAt`. Drizzle can type a parameter against a
+ * COLUMN; against a raw expression it hands postgres.js a bare Date, which
+ * the driver refuses ("Received an instance of Date") — and every reception
+ * count 500'd. So the instant goes over as text with an explicit cast.
+ * `tests/reception/presence-params.test.ts` holds the rule.
+ */
+export const ts = (d: Date) => sql`${d.toISOString()}::timestamptz`;
+
+/**
  * A `declared` row is a declaration of intent, not a position among present
  * patients (ADR 0084 §7b). Booleans sort false → true, so present rows lead
  * and declarations tail. ORDER BY this between `priorityHintRank` and
@@ -230,7 +239,7 @@ export async function fetchTodayIntakeCount(args: {
     .innerJoin(entryTypes, eq(entryTypes.code, patientIntakes.entryTypeCode))
     // Windowed on presence, so a patient who declared at 23:50 last night and
     // checked in at 08:00 counts against today, not yesterday.
-    .where(and(eq(patientIntakes.hospitalId, args.hospitalId), gte(presenceAt, start)));
+    .where(and(eq(patientIntakes.hospitalId, args.hospitalId), gte(presenceAt, ts(start))));
   let awaiting = 0;
   let emergency = 0;
   for (const r of rows) {
