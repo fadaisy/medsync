@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { formatTime } from "@/lib/patient/booking-format";
 import { cn } from "@/lib/utils";
@@ -27,8 +27,21 @@ export function TimeRuler({
   value: string | null;
   onChange: (startsAtIso: string) => void;
 }) {
-  const model = useMemo(() => layout(slots), [slots]);
   const scrollRef = useRef<HTMLDivElement>(null);
+  // One hour fills the ruler's width; the day scrolls past it. Measured, so
+  // the twelve five-minute marks of an hour sit exactly across the card.
+  const [rulerWidth, setRulerWidth] = useState<number>(0);
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const measure = () => setRulerWidth(el.clientWidth);
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  const tickPx = rulerWidth > 0 ? rulerWidth / (60 / TICK_MINUTES) : 24;
+  const model = useMemo(() => layout(slots, tickPx), [slots, tickPx]);
 
   // Keep the chosen block in view when the day or a seed changes it.
   useEffect(() => {
@@ -38,7 +51,7 @@ export function TimeRuler({
   }, [value]);
 
   if (!model) return null;
-  const { ticks, spans, slotMinutes, width } = model;
+  const { ticks, spans, slotMinutes, width, tickPx: tw } = model;
   const chosen = spans.find((s) => s.startsAtIso === value) ?? null;
 
   const moveFocus = (fromIso: string, dir: 1 | -1) => {
@@ -51,7 +64,7 @@ export function TimeRuler({
 
   return (
     <div className="bg-card dark:shadow-card flex flex-col gap-3 rounded-2xl p-4 shadow-xs">
-      <div ref={scrollRef} className="-mx-2 overflow-x-auto px-2">
+      <div ref={scrollRef} className="overflow-x-auto">
         <div
           role="group"
           aria-label="Available times"
@@ -75,18 +88,22 @@ export function TimeRuler({
             {ticks.map((t) => {
               const inChosen = chosen !== null && t.min >= chosen.startMin && t.min < chosen.endMin;
               return (
-                <div key={t.min} className="flex justify-center" style={{ width: TICK_PX }}>
+                <div key={t.min} className="flex justify-center" style={{ width: tw }}>
                   <div
                     className={cn(
-                      "w-px rounded-full",
+                      "rounded-full",
                       t.opens
-                        ? "bg-brand-500 dark:bg-brand-400 h-6 w-0.5"
+                        ? "bg-brand-500 dark:bg-brand-400 h-7 w-[3px]"
                         : t.min % 30 === 0
-                          ? "h-4"
+                          ? "h-5 w-[3px]"
                           : t.min % 15 === 0
-                            ? "h-3"
-                            : "h-2",
-                      inChosen ? "bg-brand-700 dark:bg-brand-300" : t.opens ? "" : "bg-border",
+                            ? "h-4 w-0.5"
+                            : "h-2.5 w-0.5",
+                      inChosen
+                        ? "bg-brand-700 dark:bg-brand-300"
+                        : t.opens
+                          ? ""
+                          : "bg-gray-300 dark:bg-gray-600",
                     )}
                   />
                 </div>
@@ -107,7 +124,7 @@ export function TimeRuler({
                       ? "text-foreground font-medium"
                       : "text-muted-foreground",
                   )}
-                  style={{ left: t.left + TICK_PX / 2 }}
+                  style={{ left: t.left + tw / 2 }}
                 >
                   {t.label}
                 </span>
@@ -153,9 +170,8 @@ export function TimeRuler({
 
 /* ─── The ruler's geometry ──────────────────────────────────────── */
 
-/** A mark every five minutes, eight pixels apart: a 30-minute visit is 48px of ruler. */
+/** A mark every five minutes; an hour of them fills the ruler. */
 const TICK_MINUTES = 5;
-const TICK_PX = 8;
 
 interface Tick {
   /** Minutes since the hospital's midnight. */
@@ -179,7 +195,7 @@ interface Span {
  * Lays the open times on a five-minute ruler from a half hour before the
  * first to a half hour after the last, in the hospital's clock.
  */
-function layout(slots: ReadonlyArray<{ startsAtIso: string; endsAtIso: string }>) {
+function layout(slots: ReadonlyArray<{ startsAtIso: string; endsAtIso: string }>, tickPx: number) {
   if (slots.length === 0) return null;
   const minutesOf = (iso: string) =>
     localWeekdayAndMinutes(new Date(iso), DEFAULT_TIME_ZONE).minutesOfDay;
@@ -194,7 +210,7 @@ function layout(slots: ReadonlyArray<{ startsAtIso: string; endsAtIso: string }>
   );
   const startMin = Math.max(0, Math.floor(minutesOf(first.startsAtIso) / 30) * 30 - 30);
   const endMin = Math.min(24 * 60, Math.ceil(minutesOf(last.endsAtIso) / 30) * 30 + 30);
-  const leftOf = (min: number) => ((min - startMin) / TICK_MINUTES) * TICK_PX;
+  const leftOf = (min: number) => ((min - startMin) / TICK_MINUTES) * tickPx;
 
   const spans: Span[] = sorted.map((s) => {
     const a = minutesOf(s.startsAtIso);
@@ -224,5 +240,5 @@ function layout(slots: ReadonlyArray<{ startsAtIso: string; endsAtIso: string }>
       opens: opens.has(m),
     });
   }
-  return { ticks, spans, slotMinutes, width: ticks.length * TICK_PX };
+  return { ticks, spans, slotMinutes, width: ticks.length * tickPx, tickPx };
 }

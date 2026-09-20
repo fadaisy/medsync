@@ -1,6 +1,6 @@
 import type { SlotOffer } from "@/lib/booking";
 import type { Palette } from "@/theme/tokens";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { DEFAULT_TIME_ZONE, localWeekdayAndMinutes } from "@shared/slots";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
@@ -27,8 +27,11 @@ export function TimeRuler({
   onChange: (slot: SlotOffer) => void;
 }) {
   const styles = useStyles(makeStyles);
-  const model = useMemo(() => layout(slots), [slots]);
   const scrollRef = useRef<ScrollView>(null);
+  // One hour fills the ruler's width; the day scrolls past it.
+  const [rulerWidth, setRulerWidth] = useState(0);
+  const tickW = rulerWidth > 0 ? rulerWidth / (60 / TICK_MINUTES) : 24;
+  const model = useMemo(() => layout(slots, tickW), [slots, tickW]);
 
   useEffect(() => {
     if (!model || !value) return;
@@ -37,7 +40,7 @@ export function TimeRuler({
   }, [model, value]);
 
   if (!model) return null;
-  const { ticks, spans, slotMinutes, width } = model;
+  const { ticks, spans, slotMinutes, width, tickW: tw } = model;
   const chosen = spans.find((s) => s.startsAtIso === value) ?? null;
 
   return (
@@ -47,6 +50,7 @@ export function TimeRuler({
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scroll}
+        onLayout={(e) => setRulerWidth(e.nativeEvent.layout.width)}
       >
         <View
           style={[styles.track, { width }]}
@@ -67,7 +71,7 @@ export function TimeRuler({
             {ticks.map((t) => {
               const inChosen = chosen !== null && t.min >= chosen.startMin && t.min < chosen.endMin;
               return (
-                <View key={t.min} style={styles.tickCell}>
+                <View key={t.min} style={[styles.tickCell, { width: tw }]}>
                   <View
                     style={[
                       styles.mark,
@@ -90,7 +94,7 @@ export function TimeRuler({
                   key={t.min}
                   style={[
                     styles.label,
-                    { left: t.left + TICK_W / 2 - 24 },
+                    { left: t.left + tw / 2 - 24 },
                     chosen &&
                       t.min >= chosen.startMin &&
                       t.min <= chosen.endMin &&
@@ -134,9 +138,8 @@ export function TimeRuler({
 
 /* ─── The ruler's geometry ─────────────────────────────────────── */
 
-/** A mark every five minutes, eight points apart: a 30-minute visit is 48pt of ruler. */
+/** A mark every five minutes; an hour of them fills the ruler. */
 const TICK_MINUTES = 5;
-const TICK_W = 8;
 const MARKS_H = 48;
 const LABELS_H = 20;
 
@@ -156,7 +159,7 @@ interface Span {
   width: number;
 }
 
-function layout(slots: readonly SlotOffer[]) {
+function layout(slots: readonly SlotOffer[], tickW: number) {
   if (slots.length === 0) return null;
   const minutesOf = (iso: string) =>
     localWeekdayAndMinutes(new Date(iso), DEFAULT_TIME_ZONE).minutesOfDay;
@@ -171,7 +174,7 @@ function layout(slots: readonly SlotOffer[]) {
   );
   const startMin = Math.max(0, Math.floor(minutesOf(first.startsAtIso) / 30) * 30 - 30);
   const endMin = Math.min(24 * 60, Math.ceil(minutesOf(last.endsAtIso) / 30) * 30 + 30);
-  const leftOf = (min: number) => ((min - startMin) / TICK_MINUTES) * TICK_W;
+  const leftOf = (min: number) => ((min - startMin) / TICK_MINUTES) * tickW;
   const spans: Span[] = sorted.map((s) => {
     const a = minutesOf(s.startsAtIso);
     const b = Math.max(a + TICK_MINUTES, minutesOf(s.endsAtIso) || a + slotMinutes);
@@ -197,7 +200,7 @@ function layout(slots: readonly SlotOffer[]) {
       opens: opens.has(m),
     });
   }
-  return { ticks, spans, slotMinutes, width: ticks.length * TICK_W };
+  return { ticks, spans, slotMinutes, width: ticks.length * tickW, tickW };
 }
 
 const makeStyles = (c: Palette) =>
@@ -229,11 +232,12 @@ const makeStyles = (c: Palette) =>
       backgroundColor: c.primary,
     },
     marks: { flexDirection: "row", alignItems: "flex-end", height: MARKS_H },
-    tickCell: { width: TICK_W, alignItems: "center" },
-    mark: { width: 1, height: 8, borderRadius: 1, backgroundColor: c.border },
-    markQuarter: { height: 12 },
-    markHalf: { height: 16 },
-    markOpen: { width: 2, height: 24, backgroundColor: c.primary },
+    tickCell: { alignItems: "center" },
+    // Heavier marks: two points for the minutes, three for the half hours and the open times.
+    mark: { width: 2, height: 10, borderRadius: 1.5, backgroundColor: c.border },
+    markQuarter: { height: 16 },
+    markHalf: { width: 3, height: 20 },
+    markOpen: { width: 3, height: 28, backgroundColor: c.primary },
     markChosen: { backgroundColor: c.accentForeground },
     labels: { height: LABELS_H },
     label: {
