@@ -58,3 +58,11 @@ export const PATIENT_NAV: ReadonlyArray<PatientNavItem> = [
     ],
   },
 ];
+
+/**
+ * Before a hospital is chosen the app is a directory: the tracking tools are
+ * not hidden features, they are simply not the question yet.
+ */
+export const LANDING_NAV: ReadonlyArray<PatientNavItem> = PATIENT_NAV.filter(
+  (item) => !item.href.startsWith("/patient/track"),
+);

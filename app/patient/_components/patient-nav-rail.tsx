@@ -1,5 +1,6 @@
 "use client";
 
+import type { PatientNavItem } from "../_lib/nav";
 import type { MobileTabIconKey } from "@/components/responsive/mobile-tab-bar";
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
@@ -42,9 +43,15 @@ const ICONS: Record<MobileTabIconKey, LucideIcon> = {
  * sticky offset in the workspace and the global
  * `[data-section-anchor] { scroll-margin-top: 80px }` stays true.
  */
-export function PatientNavRail({ hospitalName }: { hospitalName: string | null }) {
+export function PatientNavRail({
+  hospitalName,
+  items = PATIENT_NAV,
+}: {
+  hospitalName: string | null;
+  items?: ReadonlyArray<PatientNavItem>;
+}) {
   const pathname = usePathname();
-  const activeHref = activeNavHref(PATIENT_NAV, pathname);
+  const activeHref = activeNavHref(items, pathname);
 
   return (
     // A plain <div>, not an <aside>: the <nav> inside is already the
@@ -53,7 +60,7 @@ export function PatientNavRail({ hospitalName }: { hospitalName: string | null }
     <div className="border-sidebar-border bg-sidebar sticky top-13 hidden h-[calc(100svh-52px)] w-14 shrink-0 flex-col border-r p-2 md:flex lg:w-60 lg:p-3">
       <nav aria-label="Patient navigation" className="min-w-0">
         <ul className="flex flex-col gap-0.5">
-          {PATIENT_NAV.map((item) => {
+          {items.map((item) => {
             const isActive = item.href === activeHref;
             const Icon = ICONS[item.iconKey];
             return (

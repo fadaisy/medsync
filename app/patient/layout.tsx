@@ -8,7 +8,7 @@ import { dataProcessingConsent, resolvePatientScope } from "@/lib/patient/scope"
 import { EmergencyNotice } from "./_components/emergency-notice";
 import { PatientNavRail } from "./_components/patient-nav-rail";
 import { RegisterServiceWorker } from "./_components/register-sw";
-import { PATIENT_NAV } from "./_lib/nav";
+import { LANDING_NAV, PATIENT_NAV } from "./_lib/nav";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -46,6 +46,7 @@ export default async function PatientLayout({ children }: { children: ReactNode 
   // Both `cache()`d, so the page's own gate check costs no second query.
   const consent = await dataProcessingConsent(scope.userId);
   const gated = consent !== null && consent.acceptedAt === null;
+  const nav = scope.primaryHospitalId ? PATIENT_NAV : LANDING_NAV;
   // Names the emergency landmark when there is a hospital to name. The name
   // never reaches the block's copy itself (ADR 0084 §3).
   const hospitalName = scope.primaryHospitalId
@@ -95,7 +96,7 @@ export default async function PatientLayout({ children }: { children: ReactNode 
       </header>
 
       <div className="flex min-h-0 flex-1">
-        {gated ? null : <PatientNavRail hospitalName={scope.primaryHospitalName} />}
+        {gated ? null : <PatientNavRail hospitalName={scope.primaryHospitalName} items={nav} />}
 
         <main className="bg-muted min-w-0 flex-1 pb-24 md:pb-0">
           <div className="@container/page mx-auto w-full max-w-300 px-4 py-6 md:px-6 md:py-8">
@@ -114,7 +115,7 @@ export default async function PatientLayout({ children }: { children: ReactNode 
         </main>
       </div>
 
-      {gated ? null : <MobileTabBar items={PATIENT_NAV} />}
+      {gated ? null : <MobileTabBar items={nav} />}
     </div>
   );
 }

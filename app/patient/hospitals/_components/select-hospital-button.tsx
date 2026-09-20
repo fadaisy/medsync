@@ -18,17 +18,22 @@ import { selectPrimaryHospitalAction } from "../actions";
  * `min-h-11` because `size="sm"` is ~24px tall and this is the one control
  * on the hospitals page a thumb has to hit.
  */
-export function SelectHospitalButton({ hospitalId }: { hospitalId: string }) {
+export function SelectHospitalButton({
+  hospitalId,
+  label = "Set as primary",
+}: {
+  hospitalId: string;
+  label?: string;
+}) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
   return (
-    <div className="flex flex-col items-end gap-1">
+    <div className="flex flex-col gap-1">
       <Button
         type="button"
-        size="sm"
-        className="min-h-11 px-3.5"
+        className="min-h-11 w-full"
         disabled={pending}
         onClick={() => {
           setError(null);
@@ -42,7 +47,7 @@ export function SelectHospitalButton({ hospitalId }: { hospitalId: string }) {
           });
         }}
       >
-        {pending ? "Saving…" : "Set as primary"}
+        {pending ? "Saving…" : label}
       </Button>
       {error ? (
         <span role="alert" className="text-destructive ncd-reveal text-body-s">
