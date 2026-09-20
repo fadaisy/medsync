@@ -138,7 +138,14 @@ describe("red is reserved — web patient and booking surfaces", () => {
    * `variant="secondary"`). A genuine emergency surface added here goes in
    * this list WITH the ADR that sanctions it.
    */
-  const RED_FILL_ALLOWED: readonly string[] = [];
+  const RED_FILL_ALLOWED: readonly string[] = [
+    // The desk's queue names a triage level 1 patient — the triage scale's
+    // "immediate" — with the critical pair and the words "Triage L1". That
+    // is a clinical emergency by definition (DESIGN "Clinical Status
+    // Badges"; the nurse and doctor boards draw the same level the same
+    // way), not a booking state.
+    "app/reception/expected/_components/queue-panel.tsx",
+  ];
 
   it("no file paints a red fill, ring, chip, button or `critical` tone", () => {
     for (const [path, src] of WEB) {

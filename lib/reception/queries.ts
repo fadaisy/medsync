@@ -6,18 +6,19 @@ import { db } from "@/db";
 import { clinicalPhiAccessLog } from "@/db/schema/doctor-workspace";
 import { hospitalDepartments } from "@/db/schema/hospital-departments";
 import { hospitals } from "@/db/schema/hospitals";
-import { patientIntakes } from "@/db/schema/patient-intakes";
+import { entryTypes, patientIntakes, priorityHintRank } from "@/db/schema/patient-intakes";
 import { patientProfiles } from "@/db/schema/patient-profiles";
 import { provisionalPatients } from "@/db/schema/provisional-patients";
-import { appointments, encounters } from "@/db/schema/scheduling";
+import { appointments, encounters, queueEntries } from "@/db/schema/scheduling";
 import { users } from "@/db/schema/users";
 import { decrypt } from "@/lib/encryption";
-import { presenceAt, presenceOf, ts } from "@/lib/intake/queries";
+import { declaredLast, presenceAt, presenceOf, ts } from "@/lib/intake/queries";
 import { logger } from "@/lib/logger";
 import { maskPhone, matchBasis } from "@/lib/reception/reconcile-basis";
 import {
   DEFAULT_TIME_ZONE,
   endOfLocalDay,
+  localDateKey,
   startOfLocalDay,
 } from "@/supabase/functions/_shared/slots";
 
@@ -385,6 +386,203 @@ async function auditProvisionalReveals(args: {
     logger.error("reception.provisional_name_reveal.audit_failed", { reason: String(e) });
     return false;
   }
+}
+
+/* ─── The week strip: counts per hospital-local day ──────────────── */
+
+export interface ExpectedDayCounts {
+  /** "2026-09-22" — the hospital's civil date. */
+  dateKey: string;
+  /** Booked for the day and not cancelled: confirmed + arrived + in progress + completed. */
+  expected: number;
+  /** The subset of `expected` who got here. */
+  arrived: number;
+  noShow: number;
+  /** Patient-declared tickets still in 'declared' — said they were coming, not here (yet). */
+  declared: number;
+}
+
+const DAY_MS = 86_400_000;
+
+/**
+ * One row per day from the day containing `from`, `days` long, zeros filled.
+ * Two window reads and a JS bucket on `localDateKey`, so the day boundary is
+ * the same helper every other "today" in the product uses — a GROUP BY on
+ * `starts_at at time zone` would restate it in SQL and drift.
+ */
+export async function fetchExpectedCountsByDay(args: {
+  hospitalId: string;
+  from: Date;
+  days: number;
+}): Promise<ExpectedDayCounts[]> {
+  const start = startOfLocalDay(args.from, DEFAULT_TIME_ZONE);
+  // Noon of the last day, so DST (none in Kampala, but the helper is zone-agnostic) can't skip it.
+  const end = endOfLocalDay(
+    new Date(start.getTime() + (args.days - 1) * DAY_MS + DAY_MS / 2),
+    DEFAULT_TIME_ZONE,
+  );
+
+  const byKey = new Map<string, ExpectedDayCounts>();
+  for (let i = 0; i < args.days; i++) {
+    const dateKey = localDateKey(
+      new Date(start.getTime() + i * DAY_MS + DAY_MS / 2),
+      DEFAULT_TIME_ZONE,
+    );
+    byKey.set(dateKey, { dateKey, expected: 0, arrived: 0, noShow: 0, declared: 0 });
+  }
+
+  const [appts, declared] = await Promise.all([
+    db
+      .select({ startsAt: appointments.startsAt, status: appointments.status })
+      .from(appointments)
+      .where(
+        and(
+          eq(appointments.hospitalId, args.hospitalId),
+          gte(appointments.startsAt, start),
+          lt(appointments.startsAt, end),
+          inArray(appointments.status, [
+            "confirmed",
+            "arrived",
+            "in_progress",
+            "completed",
+            "no_show",
+          ]),
+        ),
+      ),
+    // On a still-declared row `checked_in_at` is null, so `arrived_at` IS
+    // the declaration — the same window `fetchReceptionTodayCounts` uses.
+    db
+      .select({ arrivedAt: patientIntakes.arrivedAt })
+      .from(patientIntakes)
+      .where(
+        and(
+          eq(patientIntakes.hospitalId, args.hospitalId),
+          eq(patientIntakes.status, "declared"),
+          gte(patientIntakes.arrivedAt, start),
+          lt(patientIntakes.arrivedAt, end),
+        ),
+      ),
+  ]);
+
+  for (const a of appts) {
+    const day = byKey.get(localDateKey(a.startsAt, DEFAULT_TIME_ZONE));
+    if (!day) continue;
+    if (a.status === "no_show") day.noShow++;
+    else {
+      day.expected++;
+      if (a.status !== "confirmed") day.arrived++;
+    }
+  }
+  for (const d of declared) {
+    const day = byKey.get(localDateKey(d.arrivedAt, DEFAULT_TIME_ZONE));
+    if (day) day.declared++;
+  }
+  return [...byKey.values()];
+}
+
+/* ─── The day's queue (operational only, codes not names) ─────────── */
+
+export interface DayQueueRow {
+  id: string;
+  /**
+   * `seeing` — a `queue_entries` row for this patient at this hospital today
+   * is 'being_seen' (ha-start-encounter); the intake itself has no such
+   * status. `waiting` — arrived / awaiting_triage / triaged and not called.
+   * `declared` — a ticket from home, not in the building. `done` —
+   * completed or cancelled.
+   */
+  bucket: "seeing" | "waiting" | "declared" | "done";
+  status: string;
+  patientCode: string | null;
+  patientUnknownLabel: string | null;
+  departmentName: string | null;
+  entryTypeName: string;
+  /** `coalesce(checked_in_at, arrived_at)` — see `presenceAt`. */
+  presenceAtIso: string;
+  triageLevel: number | null;
+  priorityHint: string;
+}
+
+/** The patient's open queue row at this hospital today has been called. */
+function beingSeenSql(start: Date, end: Date) {
+  return sql<boolean>`exists (
+    select 1 from ${queueEntries}
+    where ${queueEntries.patientUserId} = ${patientIntakes.patientUserId}
+      and ${queueEntries.hospitalId} = ${patientIntakes.hospitalId}
+      and ${queueEntries.state} = 'being_seen'
+      and ${queueEntries.arrivedAt} >= ${ts(start)}
+      and ${queueEntries.arrivedAt} < ${ts(end)}
+  )`;
+}
+
+/**
+ * Every intake on the hospital's board for one day, in board order
+ * (priority, then present before declared, then longest-present first).
+ * Codes only: the desk needs a name to CHECK SOMEONE IN, and the declared
+ * list on the same page already reveals those through the audited path.
+ * Naming every waiting and seen patient on every poll would widen the
+ * reveal past the job (ADR 0084 §11) and write an audit row per patient per
+ * refresh.
+ */
+export async function fetchQueueForDay(args: {
+  hospitalId: string;
+  date: Date;
+  limit?: number;
+}): Promise<DayQueueRow[]> {
+  const start = startOfLocalDay(args.date, DEFAULT_TIME_ZONE);
+  const end = endOfLocalDay(args.date, DEFAULT_TIME_ZONE);
+
+  const rows = await db
+    .select({
+      id: patientIntakes.id,
+      status: patientIntakes.status,
+      patientUserId: patientIntakes.patientUserId,
+      patientCode: patientProfiles.patientCode,
+      patientUnknownLabel: patientIntakes.patientUnknownLabel,
+      provisionalId: patientIntakes.provisionalPatientId,
+      departmentName: hospitalDepartments.name,
+      entryTypeName: entryTypes.name,
+      arrivedAt: patientIntakes.arrivedAt,
+      checkedInAt: patientIntakes.checkedInAt,
+      triageLevel: patientIntakes.triageLevel,
+      priorityHint: patientIntakes.priorityHint,
+      beingSeen: beingSeenSql(start, end),
+    })
+    .from(patientIntakes)
+    .innerJoin(entryTypes, eq(entryTypes.code, patientIntakes.entryTypeCode))
+    .leftJoin(patientProfiles, eq(patientProfiles.id, patientIntakes.patientUserId))
+    .leftJoin(hospitalDepartments, eq(hospitalDepartments.id, patientIntakes.receivingDepartmentId))
+    .where(
+      and(
+        eq(patientIntakes.hospitalId, args.hospitalId),
+        gte(presenceAt, ts(start)),
+        lt(presenceAt, ts(end)),
+      ),
+    )
+    .orderBy(priorityHintRank, declaredLast, presenceAt)
+    .limit(args.limit ?? 300);
+
+  return rows.map((r) => ({
+    id: r.id,
+    bucket:
+      r.status === "declared"
+        ? "declared"
+        : r.status === "completed" || r.status === "cancelled"
+          ? "done"
+          : r.beingSeen
+            ? "seeing"
+            : "waiting",
+    status: r.status,
+    patientCode: r.patientCode,
+    // A provisional booking's arrival has no code yet; say so rather than name them.
+    patientUnknownLabel:
+      r.patientUnknownLabel ?? (!r.patientUserId && r.provisionalId ? "Identity to confirm" : null),
+    departmentName: r.departmentName,
+    entryTypeName: r.entryTypeName,
+    presenceAtIso: presenceOf(r).toISOString(),
+    triageLevel: r.triageLevel,
+    priorityHint: r.priorityHint,
+  }));
 }
 
 /* ─── Patient search (operational identifiers only) ─────────────── */
