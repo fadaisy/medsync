@@ -1,5 +1,6 @@
 import type {
   AppointmentRow,
+  BookingSymptomOption,
   ClinicianOption,
   ClinicSession,
   HospitalOption,
@@ -25,6 +26,7 @@ import {
 
 import { ProviderCard } from "@/components/patient/provider-card";
 import { ServiceLineCard } from "@/components/patient/service-line-card";
+import { SymptomQuickPick } from "@/components/patient/symptom-quick-pick";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Chip, ChipRow } from "@/components/ui/chip";
@@ -45,6 +47,7 @@ import {
   fetchPatientProfile,
   fetchServiceLines,
   fetchSessions,
+  fetchSymptomCatalog,
   formatTime,
   markArrived,
   RESCHEDULABLE,
@@ -118,8 +121,10 @@ type Home =
  * place" case, and the server's refusal reaches the patient verbatim if the
  * two ever disagree.
  *
- * "How are you feeling today?" is a heading, not an input: nothing reads it,
- * and the patient is never asked to rate their own urgency (ADR 0085 §4).
+ * "How are you feeling today?" is the heading over a descriptive shortlist
+ * (ADR 0096): words the booking carries, `duration: null` until the booking
+ * asks. Nothing reads the picks before a booking is filed, and nothing
+ * orders, routes or colours by them.
  */
 export default function HomeScreen() {
   const router = useRouter();
@@ -129,6 +134,8 @@ export default function HomeScreen() {
   const [home, setHome] = useState<Home>({ kind: "loading" });
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [department, setDepartment] = useState<string | null>(null);
+  // ADR 0096: the shortlist's words. Empty (a failed read) hides the chips.
+  const [catalog, setCatalog] = useState<BookingSymptomOption[]>([]);
   const [query, setQuery] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
@@ -178,7 +185,7 @@ export default function HomeScreen() {
     // true; the doors still work and the server still refuses a duplicate with
     // its own sentence. Ceiling: a patient with a live ticket whose read failed
     // sees no ticket card. Upgrade path: a per-card "couldn't check" line.
-    const [visit, ticket, doctors, lines, sessions] = await Promise.all([
+    const [visit, ticket, doctors, lines, sessions, catalogue] = await Promise.all([
       fetchAppointments("upcoming-active", 1).then(
         (rows) => rows[0] ?? null,
         () => null,
@@ -187,7 +194,9 @@ export default function HomeScreen() {
       fetchBookableClinicians(profile.hospitalId).catch(() => null),
       fetchServiceLines({ hospitalId: profile.hospitalId }).catch(() => null),
       fetchSessions({ hospitalId: profile.hospitalId }).catch(() => null),
+      fetchSymptomCatalog().catch(() => []),
     ]);
+    setCatalog(catalogue);
     // The next open day per clinic — sessions arrive soonest first, so the
     // first open one of a line is its next. A line with none says so.
     const clinics =
@@ -404,6 +413,7 @@ export default function HomeScreen() {
             How are you feeling today?
           </Text>
         </View>
+        {catalog.length > 0 ? <SymptomQuickPick options={catalog} /> : null}
 
         {hero ? (
           <Section title="Coming up">

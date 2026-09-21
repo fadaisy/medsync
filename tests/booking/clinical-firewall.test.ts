@@ -244,6 +244,9 @@ describe("PRD §5.4 — the booking flow asks no clinical question", () => {
     "app/patient/book/_components/symptom-picker.tsx",
     "app/patient/book/_components/booking-wizard.tsx",
     "app/reception/book/_components/desk-booking.tsx",
+    // ADR 0096 §5: the home's shortlist is a selector too.
+    "app/patient/_components/symptom-quick-pick.tsx",
+    "mobile/src/components/patient/symptom-quick-pick.tsx",
     "mobile/src/components/patient/symptom-picker.tsx",
     "mobile/src/app/(app)/clinic/[id].tsx",
     "mobile/src/app/(app)/doctor/[id].tsx",
@@ -301,9 +304,12 @@ describe("PRD §5.4 — the booking flow asks no clinical question", () => {
   });
 
   it("every selector shows the one sentence that states the boundary (SYMPTOMS_NOTE)", () => {
-    // The web picker serves the wizard and the desk; the phone has its own.
+    // The web picker serves the wizard and the desk; the phone has its own;
+    // the home's shortlist (ADR 0096 §3) shows the sentence as well.
     for (const [path, module] of [
       ["app/patient/book/_components/symptom-picker.tsx", "@/supabase/functions/_shared/symptoms"],
+      ["app/patient/_components/symptom-quick-pick.tsx", "@/supabase/functions/_shared/symptoms"],
+      ["mobile/src/components/patient/symptom-quick-pick.tsx", "@shared/symptoms"],
       ["mobile/src/components/patient/symptom-picker.tsx", "@shared/symptoms"],
     ] as const) {
       const src = stripComments(readRequired(path));

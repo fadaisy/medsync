@@ -55,6 +55,11 @@ import {
   reasonsFor,
   requestAppointment,
 } from "@/lib/booking";
+import {
+  clearPendingSymptoms,
+  getPendingSymptoms,
+  setPendingSymptoms,
+} from "@/lib/pending-symptoms";
 import { useStyles, useTheme } from "@/theme/theme";
 import { font, radius, space } from "@/theme/tokens";
 
@@ -153,8 +158,9 @@ export default function DoctorScreen() {
   const [note, setNote] = useState("");
   const [noteFocused, setNoteFocused] = useState(false);
   // ADR 0095: words for the clinic, optional. An empty catalogue hides the picker.
+  // Starts from what the home's shortlist took (ADR 0096) and writes back.
   const [catalog, setCatalog] = useState<BookingSymptomOption[]>([]);
-  const [symptoms, setSymptoms] = useState<SymptomDraft[]>([]);
+  const [symptoms, setSymptoms] = useState<SymptomDraft[]>(getPendingSymptoms);
 
   // One key per submission attempt, minted on the first press and kept
   // across retries; cleared when the pick changes or the booking lands.
@@ -223,6 +229,7 @@ export default function DoctorScreen() {
   };
   const pickSymptoms = (next: SymptomDraft[]) => {
     setSymptoms(next);
+    setPendingSymptoms(next);
     keyRef.current = null;
   };
   // Null while a chosen entry still has no duration — Confirm waits for it.
@@ -257,6 +264,7 @@ export default function DoctorScreen() {
     });
     if (res.ok) {
       keyRef.current = null;
+      clearPendingSymptoms();
       // `data` is undefined on a 2xx with no body (see `callEdge`): the write
       // landed, and the confirmation under-promises rather than guess.
       setDone({
@@ -567,7 +575,7 @@ export default function DoctorScreen() {
 
             {/* ADR 0095: what is bothering them, as words for the clinic.
                 Hidden when the catalogue did not load; the booking stands. */}
-            {catalog.length > 0 ? (
+            {catalog.length > 0 || symptoms.length > 0 ? (
               <SymptomPicker options={catalog} value={symptoms} onChange={pickSymptoms} />
             ) : null}
 

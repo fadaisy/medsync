@@ -17,6 +17,7 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Pill } from "@/components/ui/pill";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatArrivalWindow, formatFullDate, formatTime } from "@/lib/patient/booking-format";
+import { clearPendingSymptoms, readPendingSymptoms } from "@/lib/patient/pending-symptoms";
 import { cn } from "@/lib/utils";
 import { formatSymptoms } from "@/supabase/functions/_shared/symptoms";
 import {
@@ -152,7 +153,9 @@ function resumeStep(
   household: ReadonlyArray<HouseholdChoice>,
 ): StepId {
   if (household.length > 0 && !d.reason) return "who";
-  if (!d.reason) return "reason";
+  // A draft carrying words that still need a duration (the home's shortlist,
+  // ADR 0096) opens on the step that asks for it, whatever else it holds.
+  if (!d.reason || d.symptoms.some((s) => s.duration === null)) return "reason";
   if (d.reason === INTERSTITIAL_REASON && !d.interstitialSeen) return "emergency";
   const line = lines.find((l) => l.id === d.lineId && l.reasonCodes.includes(d.reason as string));
   if (!line) return "line";
@@ -204,9 +207,19 @@ function Wizard({
   seed,
 }: BookingWizardProps) {
   const router = useRouter();
-  const [draft, setDraft] = useState<BookingDraft>(
-    () => (seed ? seededDraft(seed, lines) : null) ?? readDraft(hospitalId) ?? freshDraft(),
-  );
+  // Client-only, like readDraft: the shell mounts Wizard once the client owns the tree.
+  const [draft, setDraft] = useState<BookingDraft>(() => {
+    const d = (seed ? seededDraft(seed, lines) : null) ?? readDraft(hospitalId) ?? freshDraft();
+    // ADR 0096 §4: what the home's shortlist recorded seeds a draft that has
+    // nothing yet; a draft with its own words keeps them.
+    if (d.symptoms.length > 0) return d;
+    const pending = readPendingSymptoms();
+    if (pending.length === 0) return d;
+    // Consumed once: the draft owns the words from here, so a pick removed
+    // in the wizard does not come back from the home on the next load.
+    clearPendingSymptoms();
+    return { ...d, symptoms: pending };
+  });
   const [stepId, setStepId] = useState<StepId>(() => resumeStep(draft, lines, household));
   const [receipt, setReceipt] = useState<BookingReceipt | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -299,6 +312,7 @@ function Wizard({
       const res = await bookAppointmentAction(input);
       if (res.ok) {
         writeDraft(hospitalId, null);
+        clearPendingSymptoms();
         setReceipt(res.receipt);
         return;
       }

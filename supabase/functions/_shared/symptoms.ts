@@ -53,6 +53,24 @@ export interface BookingSymptom {
 export const SYMPTOMS_NOTE =
   "This is passed to the clinic as you wrote it. It does not change your place in line or your time.";
 
+/**
+ * The shortlist under "How are you feeling today?" on the patient home
+ * (ADR 0096): the catalogue's first eight in ITS OWN order (`sort_order`
+ * 10…80 of the IM-first seed, migration 0042) — a rule, not a curation.
+ * Rendered flat, in this order; "More…" reaches the whole catalogue. To show
+ * a different eight, change this list — not the catalogue.
+ */
+export const QUICK_PICK_CODES = [
+  "chest_pain",
+  "dyspnoea",
+  "cough",
+  "palpitations",
+  "oedema",
+  "abdominal_pain",
+  "headache",
+  "fever",
+] as const;
+
 /** The catalogue's body systems, in the order a patient scans them, with lay names. */
 export const SYMPTOM_SYSTEMS = [
   { code: "general", label: "General" },

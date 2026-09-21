@@ -50,6 +50,11 @@ import {
   requestAppointment,
   sessionTakeable,
 } from "@/lib/booking";
+import {
+  clearPendingSymptoms,
+  getPendingSymptoms,
+  setPendingSymptoms,
+} from "@/lib/pending-symptoms";
 import { useStyles, useTheme } from "@/theme/theme";
 import { font, radius, space } from "@/theme/tokens";
 
@@ -113,8 +118,9 @@ export default function ClinicScreen() {
   const [note, setNote] = useState("");
   const [noteFocused, setNoteFocused] = useState(false);
   // ADR 0095: words for the clinic, optional. An empty catalogue hides the picker.
+  // Starts from what the home's shortlist took (ADR 0096) and writes back.
   const [catalog, setCatalog] = useState<BookingSymptomOption[]>([]);
-  const [symptoms, setSymptoms] = useState<SymptomDraft[]>([]);
+  const [symptoms, setSymptoms] = useState<SymptomDraft[]>(getPendingSymptoms);
 
   const keyRef = useRef<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -175,6 +181,7 @@ export default function ClinicScreen() {
   };
   const pickSymptoms = (next: SymptomDraft[]) => {
     setSymptoms(next);
+    setPendingSymptoms(next);
     keyRef.current = null;
   };
   // Null while a chosen entry still has no duration — Confirm waits for it.
@@ -200,6 +207,7 @@ export default function ClinicScreen() {
     });
     if (res.ok) {
       keyRef.current = null;
+      clearPendingSymptoms();
       setDone({
         receipt: res.data ?? {
           appointment_id: "",
@@ -447,7 +455,7 @@ export default function ClinicScreen() {
 
           {/* ADR 0095: what is bothering them, as words for the clinic.
               Hidden when the catalogue did not load; the booking stands. */}
-          {sessions.length > 0 && catalog.length > 0 ? (
+          {sessions.length > 0 && (catalog.length > 0 || symptoms.length > 0) ? (
             <SymptomPicker options={catalog} value={symptoms} onChange={pickSymptoms} />
           ) : null}
 

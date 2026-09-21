@@ -7,6 +7,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { Pill } from "@/components/ui/pill";
+import { loadBookingSymptoms } from "@/lib/catalog/symptoms";
 import {
   fetchAppointments,
   formatWhen,
@@ -22,11 +23,13 @@ import {
   listRecentReadings,
   READING_KIND_LABEL,
 } from "@/lib/patient/self-tracking";
+import { QUICK_PICK_CODES } from "@/supabase/functions/_shared/symptoms";
 import { DiscoverySearch } from "./_components/discovery-search";
 import { PatientDoors } from "./_components/doors";
 import { HeroCard } from "./_components/hero-card";
 import { PatientPageHeader } from "./_components/page-header";
 import { SectionHead } from "./_components/section-head";
+import { SymptomQuickPick } from "./_components/symptom-quick-pick";
 import { TintedRow } from "./_components/tinted-row";
 
 export const metadata: Metadata = { title: "Home · MedSync" };
@@ -52,7 +55,7 @@ export default async function PatientHome() {
   // MedSync Book starts with "where", not with a vitals log.
   if (!scope.primaryHospitalId) redirect("/patient/hospitals");
 
-  const [upcoming, glance, readings, discovery] = await Promise.all([
+  const [upcoming, glance, readings, discovery, catalogue] = await Promise.all([
     scope.primaryHospitalId ? fetchUpcomingVisits(scope.userId) : Promise.resolve([]),
     fetchTrackingGlance(scope.userId),
     listRecentReadings(scope.userId, 3),
@@ -65,7 +68,14 @@ export default async function PatientHome() {
           providers: [],
         }))
       : Promise.resolve({ lines: [], providers: [] }),
+    // ADR 0096: the shortlist's words come from the catalogue, never from code.
+    loadBookingSymptoms().catch(() => []),
   ]);
+  // The shared list's order, skipping any code the catalogue no longer carries.
+  const quickPicks = QUICK_PICK_CODES.flatMap((code) => {
+    const row = catalogue.find((r) => r.code === code);
+    return row ? [{ code: row.code, display: row.display }] : [];
+  });
 
   const now = new Date();
   const firstName = scope.fullName?.split(" ")[0];
@@ -111,7 +121,8 @@ export default async function PatientHome() {
         />
 
         {/* The emergency block is the layout's now (ADR 0088 C9); only the
-            doors are gated, on having a hospital to walk into. */}
+            shortlist and the doors are gated, on having a hospital to walk into. */}
+        {hospitalName && quickPicks.length > 0 ? <SymptomQuickPick options={quickPicks} /> : null}
         {hospitalName ? <PatientDoors /> : null}
 
         <HeroCard variant={hero} />
