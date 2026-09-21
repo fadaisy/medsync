@@ -750,6 +750,18 @@ describe("leave and unavailable subtract from bookable time", () => {
     expect(offered).toHaveLength(6);
   });
 
+  it("a custom block (ADR 0095) neither produces slots nor subtracts — inert", () => {
+    const custom = {
+      kind: "custom",
+      state: "active",
+      recurrence: "none",
+      startsAt: "2026-09-14T08:00:00Z",
+      endsAt: "2026-09-14T10:00:00Z",
+    };
+    expect(buildSlots({ ...ctx, blocks: [custom] })).toHaveLength(0);
+    expect(buildSlots({ ...ctx, blocks: [bookable, custom] })).toHaveLength(6);
+  });
+
   it("the write path agrees: checkSlot refuses a slot inside leave", () => {
     const leave = {
       kind: "leave",

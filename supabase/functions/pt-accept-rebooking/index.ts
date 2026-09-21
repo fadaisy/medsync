@@ -12,7 +12,7 @@
  * The caller must be the cancelled booking's patient or the agent who made
  * it. The new booking goes THROUGH THE CORE with idempotency key
  * `rebook:<cancelled_appointment_id>` — one rebooking per cancelled visit,
- * retried safely. The reason and note are copied from the cancelled row.
+ * retried safely. The reason, note and symptoms are copied from the cancelled row.
  */
 import { z } from "npm:zod@4.4.3";
 
@@ -64,7 +64,7 @@ Deno.serve(async (request: Request) => {
   const { data: old, error } = await sb
     .from("appointments")
     .select(
-      "id, hospital_id, status, cancelled_reason, reason, reason_note, patient_user_id, " +
+      "id, hospital_id, status, cancelled_reason, reason, reason_note, symptoms, patient_user_id, " +
         "provisional_patient_id, created_by_user_id, session_id, clinic_sessions(service_line_id)",
     )
     .eq("id", input.cancelled_appointment_id)
@@ -104,6 +104,7 @@ Deno.serve(async (request: Request) => {
       hospitalId: old.hospital_id,
       reason: old.reason,
       note: old.reason_note ?? null,
+      symptoms: old.symptoms ?? null,
       idempotencyKey: `rebook:${old.id}`,
       session: { sessionId: target.id },
       horizonDays: null,

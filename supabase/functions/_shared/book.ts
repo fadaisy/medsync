@@ -29,6 +29,7 @@
  * someone else; the desk may book it.
  */
 import type { CadreFee } from "./fees.ts";
+import type { BookingSymptom } from "./symptoms.ts";
 import type { SupabaseClient } from "npm:@supabase/supabase-js@2.106.1";
 
 import { bookingDispatchRows } from "./dispatches.ts";
@@ -101,6 +102,8 @@ export interface BookInput {
   hospitalId: string;
   reason: string;
   note: string | null;
+  /** What the patient said is bothering them — words for the clinic, never routed (ADR 0095). */
+  symptoms?: BookingSymptom[] | null;
   idempotencyKey: string;
   slot?: SlotInput;
   session?: { sessionId: string };
@@ -353,6 +356,7 @@ export async function bookAppointment(ctx: BookContext, input: BookInput): Promi
       ends_at: session.ends_at,
       reason: input.reason,
       reason_note: input.note ?? null,
+      symptoms: input.symptoms?.length ? input.symptoms : null,
       origin: input.origin,
       status: "confirmed",
       priority: "routine",
@@ -525,6 +529,7 @@ export async function bookAppointment(ctx: BookContext, input: BookInput): Promi
       ends_at: slot.ends_at,
       reason: input.reason,
       reason_note: input.note ?? null,
+      symptoms: input.symptoms?.length ? input.symptoms : null,
       origin: input.origin,
       status: settings?.auto_confirm ? "confirmed" : "pending_approval",
       priority: "routine",
@@ -635,6 +640,8 @@ export async function bookAppointment(ctx: BookContext, input: BookInput): Promi
         session_id: (row.session_id as string | undefined) ?? null,
         position_number: created.position_number,
         booking_code: created.booking_code,
+        // A count, never the words: free text in sa_audit_log is PHI-adjacent.
+        symptom_count: input.symptoms?.length ?? 0,
       },
     });
   } catch (e) {

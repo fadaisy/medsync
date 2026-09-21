@@ -92,7 +92,7 @@ Deno.serve(async (request: Request) => {
     .from("appointments")
     .select(
       "id, hospital_id, department_id, patient_user_id, provisional_patient_id, clinician_user_id, " +
-        "status, reason, reason_note, type, priority, notify_lead_minutes, session_id, channel, " +
+        "status, reason, reason_note, symptoms, type, priority, notify_lead_minutes, session_id, channel, " +
         "quoted_fee_ugx, quoted_fee_label, quoted_fee_at",
     )
     .eq("id", input.appointment_id)
@@ -218,6 +218,7 @@ Deno.serve(async (request: Request) => {
         ends_at: input.new_ends_at,
         reason: appt.reason,
         reason_note: appt.reason_note,
+        symptoms: appt.symptoms ?? null,
         origin: isPatient ? "patient" : isClinician ? "clinician" : "reception",
         status: appt.status,
         priority: appt.priority,

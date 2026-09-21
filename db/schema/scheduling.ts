@@ -1,3 +1,4 @@
+import type { BookingSymptom } from "../../supabase/functions/_shared/symptoms";
 import type { AnyPgColumn } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
 import {
@@ -5,6 +6,7 @@ import {
   check,
   index,
   integer,
+  jsonb,
   pgTable,
   primaryKey,
   smallint,
@@ -62,6 +64,11 @@ export const availabilityBlocks = pgTable(
     recurrenceUntil: timestamp("recurrence_until", { withTimezone: true }),
     location: text("location"),
     notes: text("notes"),
+    /**
+     * Migration 0065 / ADR 0095: the clinician's own name for a `custom`
+     * block (≤ 40 chars). Required when kind = custom; ignored otherwise.
+     */
+    label: text("label"),
     state: text("state").notNull().default("active"),
     createdByUserId: uuid("created_by_user_id").references(() => authUsers.id, {
       onDelete: "set null",
@@ -70,9 +77,19 @@ export const availabilityBlocks = pgTable(
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
+    // Migration 0065 / ADR 0095 added 'custom' — inert to the slot engine,
+    // like teaching, ward_round and admin.
     check(
       "availability_blocks_kind_check",
-      sql`${t.kind} IN ('bookable','teaching','ward_round','admin','leave','unavailable')`,
+      sql`${t.kind} IN ('bookable','teaching','ward_round','admin','leave','unavailable','custom')`,
+    ),
+    check(
+      "availability_blocks_label_length",
+      sql`${t.label} IS NULL OR char_length(${t.label}) BETWEEN 1 AND 40`,
+    ),
+    check(
+      "availability_blocks_custom_has_label",
+      sql`${t.kind} <> 'custom' OR ${t.label} IS NOT NULL`,
     ),
     check("availability_blocks_recurrence_check", sql`${t.recurrence} IN ('none','weekly')`),
     check("availability_blocks_state_check", sql`${t.state} IN ('active','cancelled')`),
@@ -243,6 +260,14 @@ export const appointments = pgTable(
     /** The cadre's registered name, or the line's. Stored, never joined back to. */
     quotedFeeLabel: text("quoted_fee_label"),
     quotedFeeAt: timestamp("quoted_fee_at", { withTimezone: true }),
+    /**
+     * Migration 0065 / ADR 0095: what the patient said is bothering them, as
+     * they said it — a list of {code, label, duration}, or NULL when they
+     * said nothing. Descriptive only: never ranked, routed or scored, and
+     * never read by triage, clerkship or encounter code (the clinical
+     * firewall test holds that line). Shape owned by `_shared/symptoms.ts`.
+     */
+    symptoms: jsonb("symptoms").$type<BookingSymptom[]>(),
     /** 6 chars, unambiguous alphabet, printed on the receipt (§3.6). */
     bookingCode: text("booking_code"),
     /** Migration 0061 / ADR 0090: the patient's answer to the T-24h confirmation request. */
@@ -260,6 +285,11 @@ export const appointments = pgTable(
       sql`${t.reason} IN ('follow_up','post_discharge','new_concern','refill','test_results','antenatal','immunisation','child_wellness','specialist_review','routine','procedure','counselling','second_opinion','urgent_review','other')`,
     ),
     check("appointments_channel_check", sql`${t.channel} IN ('web','app','ussd','desk','system')`),
+    // Migration 0065: the container is a list; the element shape is every writer's job.
+    check(
+      "appointments_symptoms_is_list",
+      sql`${t.symptoms} IS NULL OR jsonb_typeof(${t.symptoms}) = 'array'`,
+    ),
     check(
       "appointments_session_position_pair",
       sql`(${t.sessionId} IS NULL) = (${t.positionNumber} IS NULL)`,
@@ -530,6 +560,8 @@ export const AVAILABILITY_KINDS = [
   "admin",
   "leave",
   "unavailable",
+  // Migration 0065 / ADR 0095: the clinician's own, labelled; inert to the slot engine.
+  "custom",
 ] as const;
 export type AvailabilityKind = (typeof AVAILABILITY_KINDS)[number];
 

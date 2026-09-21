@@ -7,7 +7,9 @@
  *
  * Input:
  *   - hospital_id, idempotency_key (16–128 chars, one per submission),
- *     channel 'desk', reason (Appendix A's 13 + 'other'), note?
+ *     channel 'desk', reason (Appendix A's 13 + 'other'), note?,
+ *     symptoms? (ADR 0095: the caller's own words, each with a duration —
+ *     stored as said, never routed on)
  *   - EXACTLY ONE of slot { … } | session { session_id }  — as pt-request-appointment
  *   - EXACTLY ONE of
  *       patient_user_id            an existing patient account
@@ -64,6 +66,7 @@ import { makeLogger } from "../_shared/logger.ts";
 import { networkContext } from "../_shared/sa-audit.ts";
 import { PATIENT_REASON_CODES } from "../_shared/sessions-sql.ts";
 import { DEFAULT_TIME_ZONE, localDateKey } from "../_shared/slots.ts";
+import { MAX_SYMPTOM_LABEL, MAX_SYMPTOMS, SYMPTOM_DURATION_CODES } from "../_shared/symptoms.ts";
 
 const log = makeLogger("ha-book-on-behalf");
 
@@ -117,6 +120,17 @@ const InputSchema = z
     channel: z.literal("desk"),
     reason: z.enum([...PATIENT_REASON_CODES, "other"]),
     note: z.string().max(500).nullable().optional(),
+    symptoms: z
+      .array(
+        z.object({
+          code: z.string().max(64).nullable(),
+          label: z.string().trim().min(1).max(MAX_SYMPTOM_LABEL),
+          duration: z.enum(SYMPTOM_DURATION_CODES),
+        }),
+      )
+      .max(MAX_SYMPTOMS)
+      .nullable()
+      .optional(),
     slot: SlotSchema.optional(),
     session: z.object({ session_id: z.string().uuid() }).optional(),
     patient_user_id: z.string().uuid().optional(),
@@ -221,6 +235,7 @@ Deno.serve(async (request: Request) => {
       hospitalId: input.hospital_id,
       reason: input.reason,
       note: input.note ?? null,
+      symptoms: input.symptoms ?? null,
       idempotencyKey: input.idempotency_key,
       slot: input.slot,
       session: input.session ? { sessionId: input.session.session_id } : undefined,

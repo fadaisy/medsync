@@ -35,22 +35,29 @@ import { networkContext, recordSaAudit } from "../_shared/sa-audit.ts";
 
 const log = makeLogger("ha-set-clinician-availability");
 
-const InputSchema = z.object({
-  /** Omit for INSERT, supply for UPDATE. */
-  block_id: z.string().uuid().optional(),
-  hospital_id: z.string().uuid(),
-  clinician_user_id: z.string().uuid(),
-  department_id: z.string().uuid().nullable().optional(),
-  kind: z.enum(["bookable", "teaching", "ward_round", "admin", "leave", "unavailable"]),
-  starts_at: z.string().datetime({ offset: true }),
-  ends_at: z.string().datetime({ offset: true }),
-  recurrence: z.enum(["none", "weekly"]).default("none"),
-  recurrence_weekday: z.number().int().min(1).max(7).nullable().optional(),
-  recurrence_until: z.string().datetime({ offset: true }).nullable().optional(),
-  location: z.string().max(160).nullable().optional(),
-  notes: z.string().max(1000).nullable().optional(),
-  reason: z.string().min(8, "Reason ≥ 8 chars required (audited)."),
-});
+const InputSchema = z
+  .object({
+    /** Omit for INSERT, supply for UPDATE. */
+    block_id: z.string().uuid().optional(),
+    hospital_id: z.string().uuid(),
+    clinician_user_id: z.string().uuid(),
+    department_id: z.string().uuid().nullable().optional(),
+    kind: z.enum(["bookable", "teaching", "ward_round", "admin", "leave", "unavailable", "custom"]),
+    starts_at: z.string().datetime({ offset: true }),
+    ends_at: z.string().datetime({ offset: true }),
+    recurrence: z.enum(["none", "weekly"]).default("none"),
+    recurrence_weekday: z.number().int().min(1).max(7).nullable().optional(),
+    recurrence_until: z.string().datetime({ offset: true }).nullable().optional(),
+    location: z.string().max(160).nullable().optional(),
+    notes: z.string().max(1000).nullable().optional(),
+    /** ADR 0095: a custom block's own name — migration 0065's CHECK requires it for that kind. */
+    label: z.string().trim().min(1).max(40).nullable().optional(),
+    reason: z.string().min(8, "Reason ≥ 8 chars required (audited)."),
+  })
+  .refine((v) => v.kind !== "custom" || !!v.label, {
+    path: ["label"],
+    message: "kind='custom' requires a label (1..40 chars).",
+  });
 
 Deno.serve(async (request: Request) => {
   const origin = request.headers.get("origin");
@@ -126,7 +133,9 @@ Deno.serve(async (request: Request) => {
   if (input.block_id) {
     const { data: existing, error } = await sb
       .from("availability_blocks")
-      .select("id, hospital_id, clinician_user_id, kind, starts_at, ends_at, recurrence, state")
+      .select(
+        "id, hospital_id, clinician_user_id, kind, label, starts_at, ends_at, recurrence, state",
+      )
       .eq("id", input.block_id)
       .maybeSingle();
     if (error) return serverError(error.message, init);
@@ -153,6 +162,8 @@ Deno.serve(async (request: Request) => {
     recurrence_until: input.recurrence_until ?? null,
     location: input.location ?? null,
     notes: input.notes ?? null,
+    // Null unless custom: a name typed then the kind switched away must not linger.
+    label: input.kind === "custom" ? input.label : null,
   };
 
   try {

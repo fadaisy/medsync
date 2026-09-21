@@ -7,6 +7,9 @@
  *   - hospital_id        any active hospital (ADR 0086)
  *   - reason             one of the 13 Appendix A codes, or "other"
  *   - reason_note        optional patient-supplied context
+ *   - symptoms           optional (ADR 0095): what the patient said is
+ *                        bothering them, each with a duration — words for
+ *                        the clinic, stored as written, never routed on
  *   - idempotency_key    REQUIRED. One per wizard submission, reused across
  *                        retries; a replay returns the row the first attempt
  *                        made, with the same 200 body (Gate A §5.5).
@@ -48,6 +51,7 @@ import {
 import { makeLogger } from "../_shared/logger.ts";
 import { networkContext } from "../_shared/sa-audit.ts";
 import { PATIENT_REASON_CODES } from "../_shared/sessions-sql.ts";
+import { MAX_SYMPTOM_LABEL, MAX_SYMPTOMS, SYMPTOM_DURATION_CODES } from "../_shared/symptoms.ts";
 
 const log = makeLogger("pt-request-appointment");
 
@@ -88,6 +92,17 @@ const InputSchema = z
      */
     reason: z.enum([...PATIENT_REASON_CODES, "other"]),
     reason_note: z.string().max(500).nullable().optional(),
+    symptoms: z
+      .array(
+        z.object({
+          code: z.string().max(64).nullable(),
+          label: z.string().trim().min(1).max(MAX_SYMPTOM_LABEL),
+          duration: z.enum(SYMPTOM_DURATION_CODES),
+        }),
+      )
+      .max(MAX_SYMPTOMS)
+      .nullable()
+      .optional(),
     /**
      * A uuid from `crypto.randomUUID()` is what both clients send; any opaque
      * 16–128 char string is accepted so a client with no uuid source still
@@ -179,6 +194,7 @@ Deno.serve(async (request: Request) => {
       hospitalId: input.hospital_id,
       reason: input.reason,
       note: input.reason_note ?? null,
+      symptoms: input.symptoms ?? null,
       idempotencyKey: input.idempotency_key,
       slot: input.slot,
       session: input.session ? { sessionId: input.session.session_id } : undefined,

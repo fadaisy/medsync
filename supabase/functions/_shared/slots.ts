@@ -54,7 +54,7 @@ export type Instant = Date | string;
  * Medicine's opening hours if the caller pools them.
  */
 export interface AvailabilityBlockRow {
-  /** 'bookable' | 'teaching' | 'ward_round' | 'admin' | 'leave' | 'unavailable' */
+  /** 'bookable' | 'teaching' | 'ward_round' | 'admin' | 'leave' | 'unavailable' | 'custom' */
   kind: string;
   /** 'active' | 'cancelled' */
   state: string;
@@ -381,10 +381,11 @@ const DAY_MS = 86_400_000;
  * *because* it documents this suppression as happening. A comment asserting
  * behaviour the engine did not implement is worse than the gap it described.
  *
- * `teaching` / `ward_round` / `admin` are NOT here: they are a clinician's
- * own commitments, and a hospital that wants them to block bookable time can
- * say so by declaring `unavailable` over them. Only an explicit "I am not
- * here" subtracts.
+ * `teaching` / `ward_round` / `admin` / `custom` are NOT here: they are a
+ * clinician's own commitments (`custom` is one they named themselves, ADR
+ * 0095), and a hospital that wants them to block bookable time can say so by
+ * declaring `unavailable` over them. Only an explicit "I am not here"
+ * subtracts.
  */
 const BLOCKING_KINDS: ReadonlySet<string> = new Set(["leave", "unavailable"]);
 const BOOKABLE_KINDS: ReadonlySet<string> = new Set(["bookable"]);
