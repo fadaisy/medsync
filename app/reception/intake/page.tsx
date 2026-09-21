@@ -1,25 +1,55 @@
+import type { ExpectedPick } from "@/components/intake/front-door-form";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeftIcon } from "lucide-react";
 
-import { IntakeForm } from "@/app/hospital-admin/intake/_components/intake-form";
+import { FrontDoorForm } from "@/components/intake/front-door-form";
+import { loadBookingSymptoms } from "@/lib/catalog/symptoms";
 import { listActiveHospitals, listEntryTypes, listHospitalDepartments } from "@/lib/intake/queries";
+import { fetchExpectedArrivals } from "@/lib/reception/queries";
 import { requireReceptionScope } from "@/lib/reception/scope";
-import { receptionRegisterIntakeAction } from "./actions";
+import { receptionRegisterIntakeAction, receptionSearchPatientsAction } from "./actions";
 
 export const metadata: Metadata = { title: "Register · Reception · MedSync" };
 export const dynamic = "force-dynamic";
 
 export default async function ReceptionIntakePage() {
   const scope = await requireReceptionScope();
-  const [entryTypes, departments, hospitals] = await Promise.all([
+  const [entryTypes, departments, hospitals, symptomOptions, arrivals] = await Promise.all([
     listEntryTypes(),
     listHospitalDepartments(scope.hospitalId),
     listActiveHospitals(),
+    loadBookingSymptoms(),
+    // Today (the query defaults to the hospital's current day, as /reception/expected does with no ?date).
+    // Only confirmed bookings: check-in refuses every other status, so the
+    // pick offers nothing it cannot act on — and reveals no other name.
+    fetchExpectedArrivals({
+      hospitalId: scope.hospitalId,
+      receptionUserId: scope.userId,
+      limit: 200,
+      surface: "reception_intake_pick",
+      statuses: ["confirmed"],
+    }),
   ]);
+  // A provisional booking has no patient to check in until the desk
+  // confirms who it is (/reception/expected → Confirm identity).
+  const expected: ExpectedPick[] = arrivals.flatMap((r) =>
+    r.patientUserId
+      ? [
+          {
+            appointmentId: r.id,
+            patientUserId: r.patientUserId,
+            patientCode: r.patientCode,
+            identity: r.identity,
+            startsAtIso: r.startsAtIso,
+            clinicianName: r.clinicianName,
+          },
+        ]
+      : [],
+  );
 
   return (
-    <div className="stagger-children mx-auto flex w-full max-w-4xl flex-col gap-6 px-6 py-8 lg:py-10">
+    <div className="stagger-children mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-5 sm:px-6">
       <Link
         href="/reception"
         className="text-muted-foreground hover:text-foreground text-body-s ease-expo-out group inline-flex w-fit items-center gap-1 transition-colors duration-150"
@@ -31,7 +61,7 @@ export default async function ReceptionIntakePage() {
         Today
       </Link>
 
-      <header className="flex flex-col gap-2">
+      <header className="flex flex-col gap-1">
         <span className="text-muted-foreground text-overline inline-flex items-center gap-1.5 font-mono uppercase">
           <span aria-hidden className="bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2" />
           {scope.hospitalName} · Register an entry
@@ -43,11 +73,16 @@ export default async function ReceptionIntakePage() {
         </p>
       </header>
 
-      <IntakeForm
+      <FrontDoorForm
         entryTypes={entryTypes}
         departments={departments}
-        hospitals={hospitals}
+        hospitals={hospitals.filter((h) => h.id !== scope.hospitalId)}
+        symptomOptions={symptomOptions}
         submitAction={receptionRegisterIntakeAction}
+        searchAction={receptionSearchPatientsAction}
+        expected={expected}
+        homeHref="/reception"
+        todayHref="/reception"
       />
     </div>
   );

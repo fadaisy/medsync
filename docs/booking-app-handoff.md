@@ -11,6 +11,19 @@ All gates A′–H are built (H closed at `28b6edb`, ADR 0094). Everything since
 **2026-09-21 feature round** below. The owner drives the UI by screenshot: "does this UI make you happy?" → rework.
 0063, 0064 and **0065** are applied (§2); the round is deployed — functions and web (`a6a92e3`, 2026-09-21).
 
+### 2026-09-21, later — symptoms before booking (ADR 0096) and the Front door station
+
+- **The shortlist** under "How are you feeling today?" on both homes (`app/patient/_components/symptom-quick-pick.tsx`,
+  `mobile/src/components/patient/symptom-quick-pick.tsx`): `QUICK_PICK_CODES` in `_shared/symptoms.ts` is the eight
+  shown — the catalogue's first eight in its own order; change the list, not the catalogue. Picks travel via
+  `lib/patient/pending-symptoms.ts` (sessionStorage, consumed once by the wizard) and
+  `mobile/src/lib/pending-symptoms.ts` (in-memory store, written back by both booking screens, cleared on success).
+- **Front door** rebuilt as `components/intake/front-door-form.tsx` (shared by reception and hospital-admin): code
+  search (code-only hits, ADR 0032), a booked-arrival pick list from today's **confirmed** bookings that goes through
+  `ha-check-in-patient` (never a second intake), the symptom picker for the presenting complaint (duration holds
+  Register, ADR 0095), a docked action row. The old `app/hospital-admin/intake/_components/intake-form.tsx` is gone.
+- No migration; web deploy + `expo start -c`.
+
 ### 2026-09-21 feature round — what shipped, and the owner actions
 
 [ADR 0095](adr/0095-symptoms-at-booking-staff-card-custom-blocks.md); CHANGELOG has the full list. Three owner

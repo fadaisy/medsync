@@ -1,12 +1,15 @@
 "use server";
 
 import type { RegisterIntakeState } from "../../hospital-admin/intake/actions";
+import type { ReceptionPatientHit } from "@/lib/reception/queries";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { env } from "@/lib/env";
 import { logger } from "@/lib/logger";
+import { searchPatientsByCode } from "@/lib/reception/queries";
 import { requireReceptionScope } from "@/lib/reception/scope";
+import { callEdge } from "@/lib/supabase/edge";
 import { createClient } from "@/lib/supabase/server";
 
 /**
@@ -78,6 +81,27 @@ export async function receptionRegisterIntakeAction(
   }
 
   const scope = await requireReceptionScope();
+
+  // A booked arrival is CHECKED IN (as /reception/expected does): the Edge
+  // Function flips the booking to arrived and writes the queue row and the
+  // intake. ha-register-intake with an appointment_id only links, and the
+  // desk's next Check in would then make a second intake for the same visit.
+  if (parsed.data.appointment_id) {
+    const result = await callEdge(
+      "ha-check-in-patient",
+      { appointment_id: parsed.data.appointment_id, reason: parsed.data.reason },
+      "reception.intake",
+    );
+    if (!result.ok) return { error: result.error };
+    revalidatePath("/reception");
+    revalidatePath("/reception/intake");
+    revalidatePath("/reception/expected");
+    revalidatePath("/reception/flow");
+    revalidatePath("/nurse");
+    revalidatePath("/doctor");
+    return { ok: true, checkedIn: true };
+  }
+
   const supabase = await createClient();
   const { data: session } = await supabase.auth.getSession();
   const token = session.session?.access_token;
@@ -126,6 +150,12 @@ export async function receptionRegisterIntakeAction(
     logger.error("reception.intake.register.network", { reason: String(e) });
     return { error: "Couldn't reach the intake service." };
   }
+}
+
+/** The front-door form's patient lookup: code-prefix only, no name reveal (lib/reception/queries). */
+export async function receptionSearchPatientsAction(query: string): Promise<ReceptionPatientHit[]> {
+  const scope = await requireReceptionScope();
+  return searchPatientsByCode({ hospitalId: scope.hospitalId, query, limit: 12 });
 }
 
 function stringOrUndef(v: FormDataEntryValue | null): string | undefined {

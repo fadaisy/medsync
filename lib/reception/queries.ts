@@ -296,7 +296,12 @@ export async function fetchExpectedArrivals(args: {
   receptionUserId: string;
   date?: Date;
   limit?: number;
+  /** What the reveal is audited under; the board by default. */
+  surface?: string;
+  /** Narrow the day's statuses — the intake pick wants only what check-in accepts. */
+  statuses?: string[];
 }): Promise<ExpectedArrival[]> {
+  const surface = args.surface ?? "reception_expected_list";
   // The hospital's day containing `date` (a `?date=YYYY-MM-DD` parses as
   // UTC midnight = 03:00 EAT, which lands on the right Kampala day).
   const on = args.date ?? new Date();
@@ -343,15 +348,18 @@ export async function fetchExpectedArrivals(args: {
         eq(appointments.hospitalId, args.hospitalId),
         gte(appointments.startsAt, start),
         lt(appointments.startsAt, end),
-        inArray(appointments.status, [
-          "confirmed",
-          "pending_approval",
-          "requested",
-          "arrived",
-          "in_progress",
-          "completed",
-          "no_show",
-        ]),
+        inArray(
+          appointments.status,
+          args.statuses ?? [
+            "confirmed",
+            "pending_approval",
+            "requested",
+            "arrived",
+            "in_progress",
+            "completed",
+            "no_show",
+          ],
+        ),
       ),
     )
     .orderBy(asc(appointments.startsAt))
@@ -399,7 +407,7 @@ export async function fetchExpectedArrivals(args: {
   const audited = await auditNameReveals({
     hospitalId: args.hospitalId,
     receptionUserId: args.receptionUserId,
-    surface: "reception_expected_list",
+    surface,
     patientUserIds: revealedPatients.map((r) => r.patientUserId!),
   });
   if (audited) {
@@ -418,7 +426,7 @@ export async function fetchExpectedArrivals(args: {
     const provisionalAudited = await auditProvisionalReveals({
       hospitalId: args.hospitalId,
       receptionUserId: args.receptionUserId,
-      surface: "reception_expected_list",
+      surface,
       provisionalIds: revealed.map((r) => r.provisional!.id),
     });
     if (!provisionalAudited) {

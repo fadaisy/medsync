@@ -1,11 +1,14 @@
 "use server";
 
+import type { ReceptionPatientHit } from "@/lib/reception/queries";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { env } from "@/lib/env";
 import { requireHospitalAdminScope } from "@/lib/hospital-admin/scope";
 import { logger } from "@/lib/logger";
+import { searchPatientsByCode } from "@/lib/reception/queries";
+import { callEdge } from "@/lib/supabase/edge";
 import { createClient } from "@/lib/supabase/server";
 
 export type RegisterIntakeState = {
@@ -13,6 +16,8 @@ export type RegisterIntakeState = {
   error?: string;
   intakeId?: string;
   isEmergency?: boolean;
+  /** A booked arrival went through check-in, not registration: the booking is arrived and queued. */
+  checkedIn?: boolean;
 };
 
 const RegisterSchema = z.object({
@@ -76,6 +81,25 @@ export async function registerIntakeAction(
   }
 
   const scope = await requireHospitalAdminScope();
+
+  // A booked arrival is CHECKED IN: ha-check-in-patient flips the booking to
+  // arrived and writes the queue row and the intake itself. ha-register-intake
+  // with an appointment_id only links, and the desk's next Check in would
+  // then make a second intake for the same visit.
+  if (parsed.data.appointment_id) {
+    const result = await callEdge(
+      "ha-check-in-patient",
+      { appointment_id: parsed.data.appointment_id, reason: parsed.data.reason },
+      "intake",
+    );
+    if (!result.ok) return { error: result.error };
+    revalidatePath("/hospital-admin/intake");
+    revalidatePath("/nurse");
+    revalidatePath("/doctor");
+    revalidatePath("/reception/expected");
+    return { ok: true, checkedIn: true };
+  }
+
   const supabase = await createClient();
   const { data: session } = await supabase.auth.getSession();
   const token = session.session?.access_token;
@@ -122,6 +146,12 @@ export async function registerIntakeAction(
     logger.error("intake.register.network", { reason: String(e) });
     return { error: "Couldn't reach the intake service." };
   }
+}
+
+/** Admin's patient lookup for the same form: code-prefix hits only, so the ADR 0032 boundary holds. */
+export async function searchPatientsAction(query: string): Promise<ReceptionPatientHit[]> {
+  const scope = await requireHospitalAdminScope();
+  return searchPatientsByCode({ hospitalId: scope.hospitalId, query, limit: 12 });
 }
 
 function stringOrUndef(v: FormDataEntryValue | null): string | undefined {

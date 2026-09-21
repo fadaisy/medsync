@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { AlertTriangleIcon, UserPlusIcon } from "lucide-react";
 
+import { FrontDoorForm } from "@/components/intake/front-door-form";
+import { loadBookingSymptoms } from "@/lib/catalog/symptoms";
 import { requireHospitalAdminScope } from "@/lib/hospital-admin/scope";
 import {
   fetchHospitalIncomingIntakes,
@@ -10,22 +12,24 @@ import {
   listHospitalDepartments,
 } from "@/lib/intake/queries";
 import { fetchTriageMetricsToday } from "@/lib/triage/worklist";
-import { IntakeForm } from "./_components/intake-form";
 import { TriageAcuitySnippet } from "./_components/triage-acuity-snippet";
+import { registerIntakeAction, searchPatientsAction } from "./actions";
 
 export const metadata: Metadata = { title: "Intake · Hospital admin · MedSync" };
 export const dynamic = "force-dynamic";
 
 export default async function HospitalAdminIntakePage() {
   const scope = await requireHospitalAdminScope();
-  const [entryTypes, departments, hospitals, today, awaiting, triageMetrics] = await Promise.all([
-    listEntryTypes(),
-    listHospitalDepartments(scope.hospitalId),
-    listActiveHospitals(),
-    fetchTodayIntakeCount({ hospitalId: scope.hospitalId }),
-    fetchHospitalIncomingIntakes({ hospitalId: scope.hospitalId, limit: 30 }),
-    fetchTriageMetricsToday({ hospitalId: scope.hospitalId }),
-  ]);
+  const [entryTypes, departments, hospitals, symptomOptions, today, awaiting, triageMetrics] =
+    await Promise.all([
+      listEntryTypes(),
+      listHospitalDepartments(scope.hospitalId),
+      listActiveHospitals(),
+      loadBookingSymptoms(),
+      fetchTodayIntakeCount({ hospitalId: scope.hospitalId }),
+      fetchHospitalIncomingIntakes({ hospitalId: scope.hospitalId, limit: 30 }),
+      fetchTriageMetricsToday({ hospitalId: scope.hospitalId }),
+    ]);
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-8 lg:py-10">
@@ -87,63 +91,65 @@ export default async function HospitalAdminIntakePage() {
       {/* Triage acuity snippet (GATE E) — aggregate, scoped, no PHI. */}
       <TriageAcuitySnippet metrics={triageMetrics} />
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_340px]">
-        {/* Capture form */}
-        <section className="border-border bg-card flex flex-col gap-4 rounded-xl border p-5">
-          <h2 className="text-muted-foreground font-mono text-[10.5px] tracking-[0.14em] uppercase">
-            Register a new intake
-          </h2>
-          <IntakeForm
-            entryTypes={entryTypes}
-            departments={departments}
-            hospitals={hospitals.filter((h) => h.id !== scope.hospitalId)}
-          />
-        </section>
+      {/* The workstation is two panels of its own, so it takes the full width; the
+          awaiting list sits beneath it. Admin is code-only (ADR 0032): no `expected`. */}
+      <FrontDoorForm
+        entryTypes={entryTypes}
+        departments={departments}
+        hospitals={hospitals.filter((h) => h.id !== scope.hospitalId)}
+        symptomOptions={symptomOptions}
+        submitAction={registerIntakeAction}
+        searchAction={searchPatientsAction}
+        homeHref="/hospital-admin"
+        todayHref="#awaiting"
+      />
 
-        {/* Awaiting-triage list */}
-        <aside className="border-border bg-card flex flex-col gap-2 rounded-xl border p-4">
-          <h2 className="text-muted-foreground font-mono text-[10.5px] tracking-[0.14em] uppercase">
-            Awaiting triage · {awaiting.length}
-          </h2>
-          {awaiting.length === 0 ? (
-            <p className="text-muted-foreground text-[12.5px]">No one waiting right now.</p>
-          ) : (
-            <ul className="divide-border/60 -mx-2 divide-y">
-              {awaiting.map((i) => (
-                <li
-                  key={i.id}
-                  className={
-                    i.isEmergency
-                      ? "flex flex-col gap-1 rounded-md bg-rose-50/60 px-2 py-2 ring-1 ring-rose-500/30 ring-inset dark:bg-rose-950/20"
-                      : "flex flex-col gap-1 px-2 py-2"
-                  }
-                >
-                  <div className="flex items-baseline justify-between gap-2">
-                    <span className="text-foreground inline-flex items-center gap-1 text-[12.5px] font-medium">
-                      {i.patientCode ?? i.patientUnknownLabel ?? "Patient"}
-                      {i.isEmergency ? (
-                        <AlertTriangleIcon className="size-3 text-rose-600" aria-hidden />
-                      ) : null}
-                    </span>
-                    <span className="text-muted-foreground font-mono text-[10px] tabular-nums">
-                      {formatRelative(i.arrivedAtIso)}
-                    </span>
-                  </div>
-                  <span className="text-muted-foreground text-[11.5px]">
-                    {i.entryTypeName}
-                    {i.receivingDepartmentName ? ` · ${i.receivingDepartmentName}` : ""}
+      {/* Awaiting-triage list */}
+      <aside
+        id="awaiting"
+        className="border-border bg-card flex flex-col gap-2 rounded-xl border p-4"
+      >
+        <h2 className="text-muted-foreground font-mono text-[10.5px] tracking-[0.14em] uppercase">
+          Awaiting triage · {awaiting.length}
+        </h2>
+        {awaiting.length === 0 ? (
+          <p className="text-muted-foreground text-[12.5px]">No one waiting right now.</p>
+        ) : (
+          <ul className="divide-border/60 -mx-2 divide-y">
+            {awaiting.map((i) => (
+              <li
+                key={i.id}
+                className={
+                  i.isEmergency
+                    ? "flex flex-col gap-1 rounded-md bg-rose-50/60 px-2 py-2 ring-1 ring-rose-500/30 ring-inset dark:bg-rose-950/20"
+                    : "flex flex-col gap-1 px-2 py-2"
+                }
+              >
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="text-foreground inline-flex items-center gap-1 text-[12.5px] font-medium">
+                    {i.patientCode ?? i.patientUnknownLabel ?? "Patient"}
+                    {i.isEmergency ? (
+                      <AlertTriangleIcon className="size-3 text-rose-600" aria-hidden />
+                    ) : null}
                   </span>
-                  {i.presentingComplaint ? (
-                    <span className="text-muted-foreground/90 line-clamp-1 text-[11.5px] italic">
-                      {i.presentingComplaint}
-                    </span>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          )}
-        </aside>
-      </div>
+                  <span className="text-muted-foreground font-mono text-[10px] tabular-nums">
+                    {formatRelative(i.arrivedAtIso)}
+                  </span>
+                </div>
+                <span className="text-muted-foreground text-[11.5px]">
+                  {i.entryTypeName}
+                  {i.receivingDepartmentName ? ` · ${i.receivingDepartmentName}` : ""}
+                </span>
+                {i.presentingComplaint ? (
+                  <span className="text-muted-foreground/90 line-clamp-1 text-[11.5px] italic">
+                    {i.presentingComplaint}
+                  </span>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        )}
+      </aside>
     </div>
   );
 }

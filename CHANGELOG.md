@@ -5,6 +5,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Symptoms before booking, and the Front door station reworked — 2026-09-21
+
+[ADR 0096](docs/adr/0096-symptoms-before-booking.md) (owner ruling 2026-09-21, later the same day; carries ADR 0095's PROVISIONAL mark). No migration. Deploy: `npx vercel deploy --prod --yes`; phone `npx expo start -c`.
+
+- **The shortlist under "How are you feeling today?"** on the patient home, web and phone: the catalogue's first eight in its own order (`QUICK_PICK_CODES`, one line to change), toggle chips, "More…" to the whole catalogue with search, the boundary sentence beneath. Picks carry no duration yet; the booking wizard and the phone's booking screens open on them and ask the duration as before. Web carries them in `sessionStorage` (consumed once by the wizard); the phone in an in-memory store both booking screens write back to. The firewall test treats both shortlist components as selector surfaces.
+- **Front door (`/reception/intake`, `/hospital-admin/intake`) as a workstation** (`components/intake/front-door-form.tsx`): two columns — who is arriving (arrival modes grouped Booked / Emergency / Referral and transfer / Routine; a patient **code search** in place of the "paste a UUID" box; for a booked arrival, today's confirmed bookings as a pick list) and where and what (department, door, referral, the symptom picker + "In their words" writing one `presenting_complaint` line, brought by, priority, audit note, a docked Register). A booked arrival goes through **check-in** (`ha-check-in-patient`), never a second intake. Success card routes per surface; "Register another" really starts over.
+- **Fixed:** the reception success card pointed at the hospital-admin list; the emergency chip did not move the entry door; a server-side error wiped the form's fields; Enter in a search box submitted the intake; the picker's duration prompt contradicted a "dropped at Register" caption (the duration now holds Register, per ADR 0095).
+
 ### Added — Symptoms at booking, the clinic's patient card, coloured and custom blocks — 2026-09-21
 
 [ADR 0095](docs/adr/0095-symptoms-at-booking-staff-card-custom-blocks.md) (owner rulings 2026-09-21; **PROVISIONAL** pending CSO review of the amended PRD §5.4). **One GATED migration** (`0065_symptoms_and_custom_blocks.sql`): `appointments.symptoms jsonb` (list CHECK), `availability_blocks.kind` + `custom`, `availability_blocks.label` (≤ 40, required for custom); additive, dry-run clean. Owner actions, in order: `npm run db:migrate` (0065 — **before** the functions and the web: `pt-request-appointment`, `ha-book-on-behalf`, `reschedule-appointment`, `pt-accept-rebooking` and `ha-set-clinician-availability` write the new columns, the Next app selects them), then `npx supabase functions deploy --use-api`, then `npx vercel deploy --prod`.
