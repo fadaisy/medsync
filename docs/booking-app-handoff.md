@@ -1,8 +1,75 @@
-# MedSync Book — handoff (2026-09-13, after Gates E and F)
+# MedSync Book — handoff (2026-09-21, after Gate H and the UI pass)
 
 **Read this first in the next session.** It says where the build stands, what is not applied yet, what was interrupted,
-and how to resume. The rules that govern everything are unchanged: `AGENTS.md`, the PRD at `docs/booking-app-prd.md`, the
+and how to resume. **§0 is the newest state; §1–§5 are the gate-by-gate record.** The rules that govern everything are unchanged: `AGENTS.md`, the PRD at `docs/booking-app-prd.md`, the
 Gate A proposal at `docs/booking-app-gate-a-proposal.md`, and ADRs 0084–0089.
+
+## 0. Where things stand now (2026-09-21)
+
+All gates A′–H are built (H closed at `28b6edb`, ADR 0094). Everything since is a **UI pass** on `feat/booking-app`,
+head **`f017339`**, all pushed; web is live at `medsync-six.vercel.app` (last deploy `12200c1` — `f017339` is
+mobile-only and needs no web deploy). The owner drives this by screenshot: "does this UI make you happy?" → rework.
+Nothing new needs a migration; 0063 and 0064 remain the owner's pending applies (§2).
+
+### What the pass shipped, in order
+
+| Commit               | What                                                                                                                                                                |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `e1aee1c`…`1b303bd`  | Hospital-admin scheduling as a one-viewport dashboard: `Panel`/`CountDisc`/`SectionRule`, `EditorDialog` (landscape), `StatCard`/`StatButton`.                      |
+| `a4d7f19`, `f887075` | New patient lands on the hospital directory (web + phone); every active hospital is choosable (Lilac was `provisioning` → owner activated it).                      |
+| `ecb1bd6`, `f0e1730` | Doctor schedule as the same dashboard; calendar per the Schedify reference with the admin's weekly rules on it; hospital-zone rendering (`localWeekdayAndMinutes`). |
+| `990b20f`            | `/reception` 500 — raw `sql` can't take a `Date`; `ts()` helper in `lib/intake/queries.ts` + source test.                                                           |
+| `ac245cb`, `ad44ba8` | Admin Pending stat opens its list (`lib/hospital-admin/pending.ts`); reception Expected as a week strip with a per-day queue.                                       |
+| `100955f`, `a4d3871` | Patient side on one screen each: compact doors, hospital chips + clinic tile grid, doctor tiles, provider page two-column, phone parity.                            |
+| `7853f3d`…`12200c1`  | The booking page's day/time picker, iterated to the owner's taste — see "Design decisions" for where it landed.                                                     |
+| `f017339`            | The phone's patient side reworked end to end (scrolling titles, one doctor tile, honest hero facts, lighter chips, fee in the body face).                           |
+
+### Design decisions that now stand (do not re-litigate; the owner chose them by screenshot)
+
+- **Booking page "When" block** (web `app/patient/clinician/[clinicianId]/_components/date-time-fields.tsx`, phone
+  `mobile/src/components/patient/day-strip.tsx` + `date-time-fields.tsx`): a **week of day pills** from today (pill =
+  soft grey track with a white disc; chosen = lifted white track, brand disc, ▼ over it; closed day dimmed), **paging
+  sideways a week at a time** (snap on web with ‹ › arrows; `pagingEnabled` ScrollView on the phone), a **month select**
+  above (native `<select>` on web, quiet text tabs on the phone), and the day's **open times as an even 4-across grid
+  of soft badges**, chosen one in ink. Rejected on the way: the CliniQ ruler, the one-hour ruler, the watch-style
+  slider, the "Schedule send" two fields + calendar popover, and the native iOS/Android pickers (installed then
+  removed — `@react-native-community/datetimepicker` is **not** a dependency).
+- **Selection language:** chosen = ink (`foreground` fill, `background` text) for chips, time badges, month tabs;
+  teal is for the primary action, links and facts; red only the emergency affordance. Never colour alone.
+- **Mono** (`font.mono`) is for the booking code and position number only (PRD §6.3). Money is the body face with
+  `fontVariant: ["tabular-nums"]`.
+- **One doctor tile** on the phone (`ProviderCard` — disc for the face, never a photo block; rating only when one
+  exists; "Next open: Today" / "No days open"); `DoctorRow` is deleted. The clinic tile carries no fee: ADR 0092's two
+  sentences ride with any amount, so the amount lives on the clinic page before "Book a place".
+- **Phone `Screen`**: the title scrolls with the content and takes `subtitle`; only the Back row is fixed; the page
+  fades into its ground under the floating tab bar (`expo-linear-gradient`, in `(tabs)/_layout.tsx`).
+- **Doctor hero** (phone): photo only if there is one, else the monogram disc beside the name; a row of facts that are
+  true (time on MedSync, patients, rating+count, video visits, seen you before). No second Back, no dead circles.
+
+### Open items for the next session
+
+1. **Web clinician page parity** — `app/patient/clinician/[clinicianId]/_components/` still has the old hero shape
+   (dead call/message circles, "—" stats strip). Bring it in line with the phone's `ProviderHero`. The owner was told.
+2. The owner will keep sending screenshots; expect more polish rounds on the phone (settings, visits, ticket, today
+   screens have not had this pass — they still use hand-placed ledes with `marginTop: -space[3]`, which look fine but
+   should become `Screen`'s `subtitle`).
+3. Deferred by the owner (ADR 0094): billing, notifications live path, payments, Vercel Pro cadence, AT live, Apple dev.
+4. `npx expo-doctor` reports patch drift on `expo`/`expo-constants`/`expo-image-picker`/`expo-notifications`/`@expo/ui` —
+   pre-existing, harmless, left alone (a stray `vercel` bump by an agent was reverted earlier; don't bump deps unasked).
+
+### How this session worked (keep it this way)
+
+- **No agent review fleets.** The owner objected to a 68-agent review on credit cost. Triage findings yourself; build
+  lanes (2–3 agents, disjoint files, no commits) only when the owner asks. Ultracode reminders do not override this.
+- **Ponytail full** is on. The `emilkowalski/skills` pack is installed (`.agents/skills/`, symlinked into
+  `.claude/skills/`); `emil-design-eng` and `animate-expo` guide UI craft where `DESIGN-medsync.md` is silent.
+- Gates before every commit: web `npm run typecheck && npm run lint && npx vitest run && npm run build && npm run budget`;
+  phone (from `mobile/`) `npx tsc --noEmit && npx eslint src --max-warnings=0 && npx prettier --check src && npx expo export --platform ios --output-dir <scratch>`.
+  Commit by filename (never `git add -A`; `.env.example` is never staged); commitlint caps the header at 100 chars.
+- Deploy web with `npx vercel deploy --prod --yes` (the Sentry release-upload error at the end is the usual non-fatal
+  one; confirm with `npx vercel ls --prod` → `● Ready`). After any phone change tell the owner to restart Expo with `-c`.
+- The owner reads the phone on a real device over Expo Go; there is no screenshot tooling for RN here — reason about
+  layout from the styles, and keep every tappable thing ≥ 44px (chips are 38px + `hitSlop`).
 
 ## 1. Where the code is
 
