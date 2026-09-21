@@ -1,19 +1,19 @@
 import type { Palette } from "@/theme/tokens";
-import { useMemo } from "react";
+import { useMemo, useRef, useState } from "react";
 import { DEFAULT_TIME_ZONE } from "@shared/slots";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { dateKey, dayLabel } from "@/lib/booking";
 import { useStyles } from "@/theme/theme";
-import { font, space } from "@/theme/tokens";
+import { font, radius, space } from "@/theme/tokens";
 
 /**
  * ADR 0084 §10's day strip, drawn as the reference: a pill per day with its
- * number in a disc and the weekday letter above, seven to a row from today.
- * The chosen day is raised with the brand disc and a ▼ over it; a day the
- * clinic has nothing open is sunk and grey, and not a target. Rows wrap so
- * every day the horizon holds is on screen at once — a tile hidden off the
- * edge is a day the patient never sees.
+ * number in a disc and the weekday letter above — one week across, from
+ * today, swiping sideways a week at a time for the rest of the horizon. The
+ * month chips above jump to a month and name the week on view. The chosen
+ * day is raised with the brand disc and a ▼ over it; a day the clinic has
+ * nothing open is sunk and grey, and not a target.
  *
  * The keys are whatever the data layer returned: the horizon is a server rule
  * (§8), so nothing here filters or re-sorts; the calendar days between are
@@ -34,50 +34,99 @@ export function DayStrip({
   const today = dateKey(new Date());
   const open = useMemo(() => new Set(days), [days]);
   const cells = useMemo(() => weekRows(today, days[days.length - 1] ?? today), [today, days]);
+  const months = useMemo(() => [...new Set(cells.map((k) => k.slice(0, 7)))], [cells]);
+
+  const strip = useRef<ScrollView>(null);
+  // The strip's width is the page; a cell is a seventh of it.
+  const [width, setWidth] = useState(0);
+  const [page, setPage] = useState(0);
+  const month = cells[page * 7]!.slice(0, 7);
+
+  const goTo = (p: number) => {
+    strip.current?.scrollTo({ x: p * width, animated: true });
+    setPage(p);
+  };
 
   return (
-    <View style={styles.strip} accessibilityRole="radiogroup">
-      {cells.map((key) => {
-        const isOpen = open.has(key);
-        const checked = key === selected;
-        return (
-          <View key={key} style={styles.cell}>
+    <View style={styles.stack}>
+      <View style={styles.months} accessibilityRole="radiogroup">
+        {months.map((m) => {
+          const checked = m === month;
+          return (
             <Pressable
+              key={m}
               accessibilityRole="radio"
-              accessibilityState={{ checked, disabled: !isOpen }}
-              accessibilityLabel={`${dayLabel(key)}${isOpen ? "" : ", nothing open"}`}
-              disabled={!isOpen}
-              onPress={() => onSelect(key)}
-              style={({ pressed }) => [styles.column, pressed && styles.pressed]}
+              accessibilityState={{ checked }}
+              onPress={() => goTo(Math.floor(cells.findIndex((k) => k.startsWith(m)) / 7))}
+              style={({ pressed }) => [
+                styles.monthChip,
+                checked && styles.monthChipChecked,
+                pressed && styles.pressed,
+              ]}
             >
-              <Text style={styles.marker}>{checked ? "▼" : ""}</Text>
-              <Text style={styles.weekday}>{WEEKDAY_LETTER.format(atNoon(key))}</Text>
-              <View
-                style={[
-                  styles.pill,
-                  checked ? styles.pillChecked : isOpen ? styles.pillOpen : styles.pillClosed,
-                ]}
+              <Text style={[styles.monthText, checked && styles.monthTextChecked]}>
+                {MONTH_LONG.format(atNoon(`${m}-01`))}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+
+      <ScrollView
+        ref={strip}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.stripContent}
+        onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
+        onMomentumScrollEnd={(e) => {
+          const p = Math.round(e.nativeEvent.contentOffset.x / Math.max(width, 1));
+          if (p !== page) setPage(p);
+        }}
+        accessibilityRole="radiogroup"
+      >
+        {cells.map((key) => {
+          const isOpen = open.has(key);
+          const checked = key === selected;
+          return (
+            <View key={key} style={[styles.cell, { width: width / 7 }]}>
+              <Pressable
+                accessibilityRole="radio"
+                accessibilityState={{ checked, disabled: !isOpen }}
+                accessibilityLabel={`${dayLabel(key)}${isOpen ? "" : ", nothing open"}`}
+                disabled={!isOpen}
+                onPress={() => onSelect(key)}
+                style={({ pressed }) => [styles.column, pressed && styles.pressed]}
               >
+                <Text style={styles.marker}>{checked ? "▼" : ""}</Text>
+                <Text style={styles.weekday}>{WEEKDAY_LETTER.format(atNoon(key))}</Text>
                 <View
                   style={[
-                    styles.disc,
-                    checked ? styles.discChecked : isOpen ? styles.discOpen : styles.discClosed,
+                    styles.pill,
+                    checked ? styles.pillChecked : isOpen ? styles.pillOpen : styles.pillClosed,
                   ]}
                 >
-                  <Text
+                  <View
                     style={[
-                      styles.day,
-                      checked ? styles.dayChecked : isOpen ? null : styles.dayClosed,
+                      styles.disc,
+                      checked ? styles.discChecked : isOpen ? styles.discOpen : styles.discClosed,
                     ]}
                   >
-                    {Number(key.slice(8, 10))}
-                  </Text>
+                    <Text
+                      style={[
+                        styles.day,
+                        checked ? styles.dayChecked : isOpen ? null : styles.dayClosed,
+                      ]}
+                    >
+                      {Number(key.slice(8, 10))}
+                    </Text>
+                  </View>
                 </View>
-              </View>
-            </Pressable>
-          </View>
-        );
-      })}
+              </Pressable>
+            </View>
+          );
+        })}
+      </ScrollView>
     </View>
   );
 }
@@ -86,12 +135,13 @@ const WEEKDAY_LETTER = new Intl.DateTimeFormat("en-GB", {
   weekday: "narrow",
   timeZone: DEFAULT_TIME_ZONE,
 });
+const MONTH_LONG = new Intl.DateTimeFormat("en-GB", { month: "long", timeZone: "UTC" });
 
 function atNoon(key: string): Date {
   return new Date(`${key}T12:00:00Z`);
 }
 
-/** Every day from `from` through `to`, padded to whole rows of seven. */
+/** Every day from `from` through `to`, padded to whole weeks of seven. */
 function weekRows(from: string, to: string): string[] {
   const out: string[] = [];
   const t = atNoon(from);
@@ -105,8 +155,24 @@ function weekRows(from: string, to: string): string[] {
 
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
-    strip: { flexDirection: "row", flexWrap: "wrap", rowGap: space[3] },
-    cell: { width: `${100 / 7}%`, alignItems: "center" },
+    stack: { gap: space[3] },
+    months: { flexDirection: "row", gap: space[2] },
+    monthChip: {
+      minHeight: 36,
+      paddingHorizontal: 14,
+      borderRadius: radius.lg,
+      justifyContent: "center",
+      backgroundColor: c.card,
+      borderWidth: 1,
+      borderColor: c.border,
+    },
+    monthChipChecked: { backgroundColor: c.foreground, borderColor: c.foreground },
+    monthText: { fontFamily: font.bodyMedium, fontSize: 14, color: c.foreground },
+    monthTextChecked: { color: c.background },
+
+    // Room under the row for the raised pill's shadow.
+    stripContent: { paddingBottom: 12 },
+    cell: { alignItems: "center", paddingTop: 2 },
     column: { alignItems: "center", gap: 4 },
     // Opacity, never scale — the same rule as the buttons.
     pressed: { opacity: 0.7 },
