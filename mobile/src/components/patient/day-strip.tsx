@@ -5,7 +5,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { dateKey, dayLabel } from "@/lib/booking";
 import { useStyles } from "@/theme/theme";
-import { font, radius, space } from "@/theme/tokens";
+import { font, space } from "@/theme/tokens";
 
 /**
  * ADR 0084 §10's day strip, drawn as the reference: a pill per day with its
@@ -37,9 +37,12 @@ export function DayStrip({
   const months = useMemo(() => [...new Set(cells.map((k) => k.slice(0, 7)))], [cells]);
 
   const strip = useRef<ScrollView>(null);
-  // The strip's width is the page; a cell is a seventh of it.
+  // The strip's width is the page; a cell is a seventh of it. It opens on
+  // the chosen day's week.
   const [width, setWidth] = useState(0);
-  const [page, setPage] = useState(0);
+  const [page, setPage] = useState(() =>
+    Math.max(0, Math.floor(cells.indexOf(selected ?? "") / 7)),
+  );
   const month = cells[page * 7]!.slice(0, 7);
 
   const goTo = (p: number) => {
@@ -58,11 +61,7 @@ export function DayStrip({
               accessibilityRole="radio"
               accessibilityState={{ checked }}
               onPress={() => goTo(Math.floor(cells.findIndex((k) => k.startsWith(m)) / 7))}
-              style={({ pressed }) => [
-                styles.monthChip,
-                checked && styles.monthChipChecked,
-                pressed && styles.pressed,
-              ]}
+              style={({ pressed }) => [styles.monthTab, pressed && styles.pressed]}
             >
               <Text style={[styles.monthText, checked && styles.monthTextChecked]}>
                 {MONTH_LONG.format(atNoon(`${m}-01`))}
@@ -78,7 +77,11 @@ export function DayStrip({
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.stripContent}
-        onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
+        onLayout={(e) => {
+          const w = e.nativeEvent.layout.width;
+          setWidth(w);
+          strip.current?.scrollTo({ x: page * w, animated: false });
+        }}
         onMomentumScrollEnd={(e) => {
           const p = Math.round(e.nativeEvent.contentOffset.x / Math.max(width, 1));
           if (p !== page) setPage(p);
@@ -155,20 +158,12 @@ function weekRows(from: string, to: string): string[] {
 
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
-    stack: { gap: space[3] },
-    months: { flexDirection: "row", gap: space[2] },
-    monthChip: {
-      minHeight: 36,
-      paddingHorizontal: 14,
-      borderRadius: radius.lg,
-      justifyContent: "center",
-      backgroundColor: c.card,
-      borderWidth: 1,
-      borderColor: c.border,
-    },
-    monthChipChecked: { backgroundColor: c.foreground, borderColor: c.foreground },
-    monthText: { fontFamily: font.bodyMedium, fontSize: 14, color: c.foreground },
-    monthTextChecked: { color: c.background },
+    stack: { gap: space[1] },
+    // The months as quiet text: the one on view in ink, the rest muted.
+    months: { flexDirection: "row", gap: space[4] },
+    monthTab: { minHeight: 36, justifyContent: "center" },
+    monthText: { fontFamily: font.bodyMedium, fontSize: 15, color: c.mutedForeground },
+    monthTextChecked: { color: c.foreground },
 
     // Room under the row for the raised pill's shadow.
     stripContent: { paddingBottom: 12 },
@@ -183,25 +178,27 @@ const makeStyles = (c: Palette) =>
       lineHeight: 16,
       color: c.mutedForeground,
     },
-    // 40×68 — a 44px-tall target with the disc near the top, as the reference.
+    // 40×64 — a 44px-tall target. A soft track with a crisp disc in it; the
+    // chosen day's track is white and lifted, its disc the brand.
     pill: {
       width: 40,
-      height: 68,
+      height: 64,
       borderRadius: 20,
       alignItems: "center",
       paddingTop: 4,
+      backgroundColor: c.muted,
     },
     pillChecked: {
       backgroundColor: c.card,
       shadowColor: "#000",
-      shadowOpacity: 0.16,
-      shadowRadius: 12,
-      shadowOffset: { width: 0, height: 8 },
-      elevation: 6,
+      shadowOpacity: 0.14,
+      shadowRadius: 10,
+      shadowOffset: { width: 0, height: 6 },
+      elevation: 5,
       transform: [{ translateY: -2 }],
     },
-    pillOpen: { backgroundColor: c.card, borderWidth: 1, borderColor: c.border },
-    pillClosed: { backgroundColor: c.muted },
+    pillOpen: {},
+    pillClosed: { opacity: 0.55 },
     disc: {
       width: 32,
       height: 32,
@@ -210,9 +207,9 @@ const makeStyles = (c: Palette) =>
       justifyContent: "center",
     },
     discChecked: { backgroundColor: c.primary },
-    discOpen: { borderWidth: 1, borderColor: c.border },
+    discOpen: { backgroundColor: c.card },
     discClosed: { backgroundColor: c.border },
-    day: { fontFamily: font.mono, fontSize: 14, lineHeight: 18, color: c.foreground },
-    dayChecked: { color: c.primaryForeground, fontFamily: font.bodyMedium },
-    dayClosed: { color: c.mutedForeground, opacity: 0.6 },
+    day: { fontFamily: font.bodyMedium, fontSize: 15, lineHeight: 20, color: c.foreground },
+    dayChecked: { color: c.primaryForeground },
+    dayClosed: { color: c.mutedForeground },
   });

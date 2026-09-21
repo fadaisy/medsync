@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 
 import { formatTime } from "@/lib/patient/booking-format";
@@ -13,8 +13,8 @@ import { DEFAULT_TIME_ZONE, localDateKey } from "@/supabase/functions/_shared/sl
  * week at a time for the rest of the horizon. A month select above jumps to
  * a month and names the week on view; the arrows page for a mouse. The
  * chosen day is raised with the brand disc and a ▼ over it; a closed day is
- * sunk and grey. Under it, the day's open times as plain badges. Same
- * component, same name, on the phone.
+ * dimmed. Under it, the day's open times as an even grid of soft badges,
+ * four across. Same component, same name, on the phone.
  */
 export function DateTimeFields({
   slotsByDate,
@@ -37,9 +37,16 @@ export function DateTimeFields({
   const slots = day ? (slotsByDate[day] ?? []) : [];
 
   const strip = useRef<HTMLDivElement>(null);
-  // The week on view; the month select follows it.
-  const [page, setPage] = useState(0);
+  // The week on view; the month select follows it. It opens on the chosen
+  // day's week.
+  const [page, setPage] = useState(() => Math.max(0, Math.floor(cells.indexOf(day ?? "") / 7)));
   const month = cells[page * 7]!.slice(0, 7);
+  useEffect(() => {
+    const el = strip.current;
+    if (el && page > 0) el.scrollLeft = page * (el.clientWidth + GAP);
+    // Once, on mount: land on the chosen week without a scroll animation.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const goTo = (p: number) => {
     const el = strip.current;
@@ -49,7 +56,7 @@ export function DateTimeFields({
   };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <label className="relative">
           <span className="sr-only">Month</span>
@@ -129,23 +136,23 @@ export function DateTimeFields({
               </span>
               <span
                 className={cn(
-                  "flex h-[4.5rem] w-11 flex-col items-center rounded-full pt-1 transition-[transform,box-shadow] duration-150 ease-[cubic-bezier(0.16,1,0.3,1)]",
+                  "flex h-16 w-11 flex-col items-center rounded-full pt-1 transition-[transform,box-shadow] duration-150 ease-[cubic-bezier(0.16,1,0.3,1)]",
                   "group-focus-visible:ring-ring group-focus-visible:ring-2 group-focus-visible:ring-offset-2",
                   chosen
-                    ? "bg-card ring-foreground/5 -translate-y-0.5 shadow-[0_12px_24px_-10px_rgb(0_0_0/0.35)] ring-1"
+                    ? "bg-card ring-foreground/5 -translate-y-0.5 shadow-[0_10px_20px_-8px_rgb(0_0_0/0.3)] ring-1"
                     : isOpen
-                      ? "bg-card border-border group-hover:border-foreground/20 border"
-                      : "bg-muted",
+                      ? "bg-muted group-hover:bg-foreground/10"
+                      : "bg-muted opacity-55",
                 )}
               >
                 <span
                   className={cn(
-                    "grid size-9 place-items-center rounded-full font-mono text-[15px] tabular-nums",
+                    "text-body-s grid size-9 place-items-center rounded-full font-medium tabular-nums",
                     chosen
-                      ? "bg-primary text-primary-foreground font-medium"
+                      ? "bg-primary text-primary-foreground"
                       : isOpen
-                        ? "text-foreground ring-border ring-1"
-                        : "bg-foreground/5 text-muted-foreground/60",
+                        ? "bg-card text-foreground"
+                        : "bg-border text-muted-foreground",
                   )}
                 >
                   {Number(key.slice(8, 10))}
@@ -159,7 +166,7 @@ export function DateTimeFields({
       {day === null ? null : slots.length === 0 ? (
         <p className="text-body-s text-muted-foreground">Nothing open that day.</p>
       ) : (
-        <div className="flex flex-wrap gap-2" role="radiogroup" aria-label="Time">
+        <div className="grid grid-cols-4 gap-2" role="radiogroup" aria-label="Time">
           {slots.map((s) => {
             const chosen = s.startsAtIso === slot;
             return (
@@ -171,10 +178,10 @@ export function DateTimeFields({
                 aria-label={`${formatTime(s.startsAtIso)} to ${formatTime(s.endsAtIso)}`}
                 onClick={() => onSlot(s.startsAtIso)}
                 className={cn(
-                  "focus-visible:ring-ring h-9 rounded-full border px-3.5 font-mono text-[13px] tabular-nums outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
+                  "text-body-s focus-visible:ring-ring h-10 rounded-lg font-medium tabular-nums outline-none focus-visible:ring-2 focus-visible:ring-offset-2",
                   chosen
-                    ? "bg-foreground text-background border-foreground"
-                    : "bg-card text-foreground border-border hover:border-foreground/20",
+                    ? "bg-foreground text-background"
+                    : "bg-muted text-foreground hover:bg-foreground/10",
                 )}
               >
                 {formatTime(s.startsAtIso)}

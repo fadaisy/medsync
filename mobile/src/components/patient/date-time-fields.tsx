@@ -5,11 +5,12 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { DayStrip } from "@/components/patient/day-strip";
 import { formatTime } from "@/lib/booking";
 import { useStyles } from "@/theme/theme";
-import { font, space } from "@/theme/tokens";
+import { font, radius, space } from "@/theme/tokens";
 
 /**
- * The day strip, and under it the chosen day's open times as plain badges —
- * the chosen one filled. Same component, same name, on the web.
+ * The day strip, and under it the chosen day's open times as an even grid
+ * of soft badges, four across — the chosen one in ink. Same component, same
+ * name, on the web.
  */
 export function DateTimeFields({
   slotsByDate,
@@ -34,26 +35,27 @@ export function DateTimeFields({
       {day === null ? null : slots.length === 0 ? (
         <Text style={styles.none}>Nothing open that day.</Text>
       ) : (
-        <View style={styles.badges} accessibilityRole="radiogroup">
+        <View style={styles.grid} accessibilityRole="radiogroup">
           {slots.map((s) => {
             const checked = s.startsAtIso === slot?.startsAtIso;
             return (
-              <Pressable
-                key={s.startsAtIso}
-                accessibilityRole="radio"
-                accessibilityState={{ checked }}
-                accessibilityLabel={`${formatTime(s.startsAtIso)} to ${formatTime(s.endsAtIso)}`}
-                onPress={() => onSlot(s)}
-                style={({ pressed }) => [
-                  styles.badge,
-                  checked && styles.badgeChecked,
-                  pressed && styles.pressed,
-                ]}
-              >
-                <Text style={[styles.badgeText, checked && styles.badgeTextChecked]}>
-                  {formatTime(s.startsAtIso)}
-                </Text>
-              </Pressable>
+              <View key={s.startsAtIso} style={styles.cell}>
+                <Pressable
+                  accessibilityRole="radio"
+                  accessibilityState={{ checked }}
+                  accessibilityLabel={`${formatTime(s.startsAtIso)} to ${formatTime(s.endsAtIso)}`}
+                  onPress={() => onSlot(s)}
+                  style={({ pressed }) => [
+                    styles.badge,
+                    checked && styles.badgeChecked,
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <Text style={[styles.badgeText, checked && styles.badgeTextChecked]}>
+                    {formatTime(s.startsAtIso)}
+                  </Text>
+                </Pressable>
+              </View>
             );
           })}
         </View>
@@ -64,20 +66,20 @@ export function DateTimeFields({
 
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
-    stack: { gap: space[5] },
+    stack: { gap: space[3] },
     none: { fontFamily: font.body, fontSize: 14, color: c.mutedForeground },
-    badges: { flexDirection: "row", flexWrap: "wrap", gap: space[2] },
+    // Four across; the gutter is each cell's padding, pulled back at the edges.
+    grid: { flexDirection: "row", flexWrap: "wrap", marginHorizontal: -4 },
+    cell: { width: "25%", padding: 4 },
     badge: {
-      minHeight: 36,
-      paddingHorizontal: 14,
-      borderRadius: 18,
+      height: 40,
+      borderRadius: radius.md,
+      alignItems: "center",
       justifyContent: "center",
-      backgroundColor: c.card,
-      borderWidth: 1,
-      borderColor: c.border,
+      backgroundColor: c.muted,
     },
-    badgeChecked: { backgroundColor: c.foreground, borderColor: c.foreground },
+    badgeChecked: { backgroundColor: c.foreground },
     pressed: { opacity: 0.7 },
-    badgeText: { fontFamily: font.mono, fontSize: 13, color: c.foreground },
+    badgeText: { fontFamily: font.bodyMedium, fontSize: 13.5, color: c.foreground },
     badgeTextChecked: { color: c.background },
   });
