@@ -21,7 +21,10 @@ styling. Copy, data calls, navigation targets and behaviour stay as they are unl
   `partly-sunny-outline` (afternoon) or `calendar-outline` for a day.
 - SLOT COUNTS ("8 Slots"), positions, wait estimates → §6, §12.
 - A search bar (nothing to search), a notification bell (reminders are SMS; nothing to open),
-  "How are you feeling today?" (a self-rating prompt — the emergency block names symptoms instead, §3).
+  "How are you feeling today?" (a self-rating prompt — the emergency block names symptoms instead, §3). The
+  sanctioned wording for the optional symptom selector (ADR 0095) is **"What is bothering you?"** with the lede
+  "Optional. Choose anything that fits, or type your own." — it asks for a statement, not a rating, and the
+  chips carry the duration so the copy never asks "how long" or "how bad".
 - Video-call icons. Bookmarks. Share.
 
 ## Palette + kit (all in `mobile/src`, all themed; read each file before use)

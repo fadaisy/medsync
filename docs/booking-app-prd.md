@@ -138,6 +138,8 @@ This is the part of the document that makes the difference between a booking app
 
 **The corollary that makes it safe rather than merely defensible:** because the app refuses to assess, it must be **aggressive about routing people to assessment**. That is the rest of this Part.
 
+> **Amended by [ADR 0095](adr/0095-symptoms-at-booking-staff-card-custom-blocks.md) (2026-09-21).** The "Symptom checklists, severity scales, duration questions" row is narrowed: a patient **may state** the symptoms bothering them, each with a duration, from a flat catalogue or in their own words, as an optional list stored on the booking and shown to the clinic as written — the same treatment as the free-text row (stored, never parsed, never used to route). Severity scales, self-rating and any score, colour, category or priority derived from the list remain prohibited and are tested (`tests/booking/clinical-firewall.test.ts`). Provisional pending CSO review.
+
 ## 2.2 The three capacity modes
 
 The facility configures each service as slot, session or open queue. The clinical and operational rationale for each:
@@ -170,6 +172,8 @@ A controlled vocabulary, facility-extensible, deliberately administrative. Start
 - **No reason is a symptom.** "New problem" is a reason. "Chest pain" is not, and never appears as a selectable option.
 - Reasons carry a **time-to-care policy** (2.4) and a **continuity default** (2.7).
 - Reasons are the hook for later modules: "medicine refill" is the seam to e-pharmacy, "test results" is the seam to the encounter record, and neither is built here.
+
+> **Amended by [ADR 0095](adr/0095-symptoms-at-booking-staff-card-custom-blocks.md) (2026-09-21).** "No reason is a symptom" stands — the reason list is unchanged and still administrative. Symptoms now live in a **separate, optional** `appointments.symptoms` list beside the reason; they never map to a service line, carry no time-to-care policy, and select nothing.
 
 ## 2.4 Time-to-care policy and the no-silent-wait rule
 
@@ -566,6 +570,8 @@ MedSync Book performs no medical purpose. It does not diagnose, does not prognos
 
 This prohibition is enforced by test, not just by policy: an invariant test asserts that no booking-flow field feeds any scoring or routing function.
 
+> **Amended by [ADR 0095](adr/0095-symptoms-at-booking-staff-card-custom-blocks.md) (2026-09-21).** Bullet 1 is superseded **in part**: a booking may carry the symptoms the patient chose to state, each with a duration, as words for the clinic — optional, never ranked, routed, scored or coloured, never read by the triage, clerkship or encounter engines, with the catalogue's decision-support flags never shown. Severity and clinical history stay out; bullets 2–5 and the invariant test stand (the test is rewritten for the amended rule and asserts each of the invariants above). The positioning is **provisional** until the CSO re-reads it.
+
 ## 5.5 Retention and deletion
 
 - Booking records: retained per Uganda's clinical record-keeping requirements where reconciled to a patient, since they evidence care-seeking. `[GATE — legal]` confirm the applicable period.
@@ -649,6 +655,7 @@ Phase 0; onboarding and the reference-data layer; hospital registration and veri
 ## 7.2 Hard rules for this module
 
 1. **No clinical assessment anywhere in the booking path.** No symptom input, no severity, no scoring, no routing from patient-entered clinical text. Enforced by an invariant test.
+   > **Amended by [ADR 0095](adr/0095-symptoms-at-booking-staff-card-custom-blocks.md) (2026-09-21).** "No symptom input" is superseded: an optional, descriptive symptom list (`_shared/symptoms.ts`) is permitted. No severity, no scoring, no routing and no engine reads it — still enforced by the invariant test.
 2. **No auto-merge into the MPI.** Provisional records only; human reconciliation; audited.
 3. **Red only on the emergency affordance and interstitial.** Invariant test.
 4. **Every booking mutation is idempotent** and capacity decrements are atomic.

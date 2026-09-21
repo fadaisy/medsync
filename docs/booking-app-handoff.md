@@ -6,10 +6,36 @@ Gate A proposal at `docs/booking-app-gate-a-proposal.md`, and ADRs 0084–0089.
 
 ## 0. Where things stand now (2026-09-21)
 
-All gates A′–H are built (H closed at `28b6edb`, ADR 0094). Everything since is a **UI pass** on `feat/booking-app`,
-head **`f017339`**, all pushed; web is live at `medsync-six.vercel.app` (last deploy `12200c1` — `f017339` is
-mobile-only and needs no web deploy). The owner drives this by screenshot: "does this UI make you happy?" → rework.
-Nothing new needs a migration; 0063 and 0064 remain the owner's pending applies (§2).
+All gates A′–H are built (H closed at `28b6edb`, ADR 0094). Everything since is a **UI pass** on `feat/booking-app`
+(head `64f7d8b` at the time of writing, all pushed; web is live at `medsync-six.vercel.app`) and, after it, the
+**2026-09-21 feature round** below. The owner drives the UI by screenshot: "does this UI make you happy?" → rework.
+0063 and 0064 are applied (§2); the feature round adds **0065**, GATED and pending.
+
+### 2026-09-21 feature round — what shipped, and the owner actions
+
+[ADR 0095](adr/0095-symptoms-at-booking-staff-card-custom-blocks.md); CHANGELOG has the full list. Three owner
+rulings, built as lanes over disjoint files (no commits by the lanes):
+
+- **Symptoms at booking, words only** (PRD §5.4 / §7.2 rule 1 amended in part; **provisional** until the CSO
+  re-reads §5.4). `appointments.symptoms jsonb` — ≤ 8 of `{code, label, duration}` from the 89 shared catalogue rows
+  or typed in; one contract `supabase/functions/_shared/symptoms.ts` (zero-import; Next
+  `@/supabase/functions/_shared/symptoms`, Deno `../_shared/symptoms.ts`, phone `@shared/symptoms`); written by
+  the core `_shared/book.ts`, copied unchanged on reschedule/rebooking. The selector ("What is bothering you?") on the web wizard, the reception desk and the phone.
+  `tests/booking/clinical-firewall.test.ts` is rewritten for the amended rule — read its header before touching it.
+- **The clinic's patient card** — name, photo, age, sex, complaint on the doctor's schedule, the clinician list and
+  reception's expected board; audited per patient per fetch (`lib/scheduling/patient-identity.ts`), fail-closed to
+  the code. Hospital admin stays code-only; `lib/hospital-admin` must never import the reveal.
+- **Coloured and custom availability blocks** — one map in `components/scheduling/calendar/helpers.ts`, two new
+  `Pill` tones (`info`, `notice`), a `custom` kind with a ≤ 40 label that is inert to the slot engine, a legend under
+  the doctor's calendar.
+
+Owner actions, **in this order** (the functions and the web write/select columns 0065 adds):
+
+```sh
+npm run db:migrate                          # 0065_symptoms_and_custom_blocks.sql (GATED, additive, dry-run clean)
+npx supabase functions deploy --use-api     # every function — _shared/ changed again (book.ts, slots.ts, symptoms.ts)
+npx vercel deploy --prod --yes              # then the web; then `cd mobile && npx expo start --lan -c`
+```
 
 ### What the pass shipped, in order
 
@@ -48,8 +74,8 @@ Nothing new needs a migration; 0063 and 0064 remain the owner's pending applies 
 
 ### Open items for the next session
 
-1. **Web clinician page parity** — `app/patient/clinician/[clinicianId]/_components/` still has the old hero shape
-   (dead call/message circles, "—" stats strip). Bring it in line with the phone's `ProviderHero`. The owner was told.
+1. ~~**Web clinician page parity**~~ — **done at `64f7d8b`**: the web hero is the phone's (photo only if one, monogram
+   disc, true facts; the dead call/message circles and the "—" stats strip are gone).
 2. The owner will keep sending screenshots; expect more polish rounds on the phone (settings, visits, ticket, today
    screens have not had this pass — they still use hand-placed ledes with `marginTop: -space[3]`, which look fine but
    should become `Screen`'s `subtitle`).
@@ -91,12 +117,11 @@ bar, the reference redesign, ADR 0085 (photos/ratings/times/emergency tab), ADR 
 
 ## 2. Owner actions still pending
 
-**0055–0062 are applied** on the dev DB (`_medsync_migrations`, checked 2026-09-19). Still pending, in order —
-each GATED, each dry-run clean in BEGIN/ROLLBACK:
+**0055–0064 are applied** on the dev DB (`_medsync_migrations`, verified 2026-09-21). Still pending — GATED,
+dry-run clean in BEGIN/ROLLBACK:
 
 ```sh
-npm run db:migrate                # 0063 (Gate G, cadre fees — BEFORE redeploying the booking core),
-                                  # 0064 (Gate H, cancel-reason codes — rewrites legacy words, then a CHECK)
+npm run db:migrate                # 0065 (ADR 0095, symptoms + custom blocks — BEFORE deploying the functions and the web)
 npm run db:backfill-phone-hmac    # once, if not yet run: patient_profiles.phone_hmac for rows before 0062
 ```
 
@@ -112,6 +137,7 @@ npm run db:backfill-phone-hmac    # once, if not yet run: patient_profiles.phone
 | 0062      | `ussd_sessions`, `inbound_sms`, `sms_opt_outs`, `patient_profiles.phone_hmac`, origin + `ussd`, dispatch kind + `sms_reply`, `hospital_id` nullable, audit + `sms_stop`                                                                 | Gate F                                                                              |
 | 0063      | `service_line_fees` (cadre override), `appointments.quoted_fee_ugx/_label/_at` + completeness CHECK, audit action `set_service_line_fee`                                                                                                | Gate G — **before** the redeployed core                                             |
 | 0064      | `appointments.cancelled_reason` legacy words → codes, `declined_reason` NULLed, CHECK `appointments_cancelled_reason_code`                                                                                                              | Gate H — data rewrite + CHECK; apply with the redeploy                              |
+| 0065      | `appointments.symptoms jsonb` (list CHECK), `availability_blocks.kind` + `custom`, `availability_blocks.label` (≤ 40, required for custom)                                                                                              | ADR 0095 — **before** the functions and the web (pending)                           |
 
 Secrets — Supabase Functions: `MEDSYNC_PHI_KEY` and **`MEDSYNC_SYSTEM_ACTOR_UUID`** are both **set** (the actor is
 `fadhulusama+medsync-system@gmail.com`, created 2026-09-14, no role, mirrored as "MedSync System" — never delete it:
