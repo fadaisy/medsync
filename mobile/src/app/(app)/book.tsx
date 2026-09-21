@@ -4,8 +4,8 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "expo-router";
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
-import { DoctorRow } from "@/components/patient/doctor-row";
 import { EmergencyButton } from "@/components/patient/emergency-button";
+import { ProviderCard } from "@/components/patient/provider-card";
 import { Button } from "@/components/ui/button";
 import { Chip, ChipRow } from "@/components/ui/chip";
 import { Empty } from "@/components/ui/empty";
@@ -120,13 +120,13 @@ export default function BookScreen() {
     .sort((a, b) => Number(b.id === profile.hospitalId) - Number(a.id === profile.hospitalId));
 
   return (
-    <Screen {...chrome} title="Doctors">
+    // §2 and §8: the subtitle names real availability, never the horizon.
+    <Screen
+      {...chrome}
+      title="Doctors"
+      subtitle="Every hospital on MedSync. Choose from the days the clinic has open."
+    >
       <View style={styles.stack}>
-        {/* §2 and §8: the label names real availability, never the horizon. */}
-        <Text style={styles.lede}>
-          Every hospital on MedSync. Choose from the days the clinic has open.
-        </Text>
-
         {/* Day one's likely reality. Nothing here promises a message when days
             open (§11) — what replaces it is the other door, open by default (§14). */}
         {clinicians.length === 0 ? (
@@ -175,26 +175,23 @@ export default function BookScreen() {
                   {shown
                     .filter((c) => c.hospitalId === h.id)
                     .map((c) => (
-                      <View
+                      <ProviderCard
+                        // A clinician can be bookable in two departments; each pair is a tile.
                         key={`${c.userId}:${c.hospitalId}:${c.departmentId}`}
-                        style={styles.cell}
-                      >
-                        <DoctorRow
-                          // A clinician can be bookable in two departments; each pair is a tile.
-                          option={c}
-                          tile
-                          onPress={() =>
-                            router.push({
-                              pathname: "/(app)/doctor/[id]",
-                              params: {
-                                id: c.userId,
-                                department: c.departmentId,
-                                hospital: c.hospitalId,
-                              },
-                            })
-                          }
-                        />
-                      </View>
+                        option={c}
+                        seenBefore={c.seenBefore}
+                        width="47.5%"
+                        onPress={() =>
+                          router.push({
+                            pathname: "/(app)/doctor/[id]",
+                            params: {
+                              id: c.userId,
+                              department: c.departmentId,
+                              hospital: c.hospitalId,
+                            },
+                          })
+                        }
+                      />
                     ))}
                 </View>
               </Section>
@@ -210,17 +207,7 @@ const makeStyles = (c: Palette) =>
   StyleSheet.create({
     center: { flexGrow: 1, alignItems: "center", justifyContent: "center" },
     stack: { flexGrow: 1, gap: space[5] },
-    list: { gap: space[3] },
     grid: { flexDirection: "row", flexWrap: "wrap", gap: space[3] },
-    cell: { width: "47.5%" },
-
-    lede: {
-      fontFamily: font.body,
-      fontSize: 14.5,
-      lineHeight: 21,
-      color: c.foreground,
-      marginTop: -space[2],
-    },
 
     exit: { width: "100%", gap: space[3], alignItems: "center" },
     exitBody: {

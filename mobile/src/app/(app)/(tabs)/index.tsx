@@ -543,6 +543,7 @@ export default function HomeScreen() {
                     key={`${o.userId}:${o.departmentId}`}
                     option={o}
                     seenBefore={o.seenBefore}
+                    width={168}
                     onPress={() =>
                       router.push({
                         pathname: "/(app)/doctor/[id]",
@@ -812,10 +813,8 @@ const makeStyles = (c: Palette) =>
     dot: { width: 4, height: 4, borderRadius: 2, backgroundColor: c.primary },
     hospitalName: {
       flex: 1,
-      fontFamily: font.mono,
-      fontSize: 11,
-      letterSpacing: 1.2,
-      textTransform: "uppercase",
+      fontFamily: font.body,
+      fontSize: 13,
       color: c.mutedForeground,
     },
     greeting: { gap: 2 },

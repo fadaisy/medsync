@@ -32,14 +32,22 @@ import { font, space } from "@/theme/tokens";
  */
 export function Screen({
   title,
+  subtitle,
   onBack,
   trailing,
   footer,
   scroll = true,
   children,
 }: {
-  /** The screen's heading, and the only element with the header role. */
+  /**
+   * The screen's heading, and the only element with the header role. On a
+   * scrolling screen it scrolls with the content — a large title that goes
+   * away as you read, the platform's own shape — so nothing is ever cut off
+   * under a fixed band. Only the back row stays.
+   */
   title?: string;
+  /** One quiet line under the title: where you are, or what the list is. */
+  subtitle?: string;
   /**
    * Renders the back control when present. Pass `router.back` for the normal
    * case; a wizard passes its own step-back so the control means "one step",
@@ -67,32 +75,39 @@ export function Screen({
   // Zero off the tabs; the bar's footprint on them, so nothing scrolls to a
   // stop underneath it.
   const clearance = useTabBarClearance();
+  const hasBackRow = Boolean(onBack || trailing);
+
+  const heading =
+    title || subtitle ? (
+      <View style={styles.heading}>
+        {title ? (
+          <Text accessibilityRole="header" style={styles.title}>
+            {title}
+          </Text>
+        ) : null}
+        {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+      </View>
+    ) : null;
 
   return (
     <View style={styles.root}>
       {/* The bar's glyphs, not the ground — light glyphs on a dark theme. */}
       <StatusBar style={colors.scheme === "dark" ? "light" : "dark"} />
 
-      <View style={[styles.header, { paddingTop: insets.top + space[2] }]}>
-        {onBack || trailing ? (
-          <View style={styles.backRow}>
-            {onBack ? <IconButton icon="arrow-back" label="Back" onPress={onBack} /> : null}
-            {trailing ? <View style={styles.trailing}>{trailing}</View> : null}
-          </View>
-        ) : null}
-
-        {title ? (
-          <Text accessibilityRole="header" style={styles.title}>
-            {title}
-          </Text>
-        ) : null}
-      </View>
+      {hasBackRow ? (
+        <View style={[styles.backRow, { paddingTop: insets.top + space[2] }]}>
+          {onBack ? <IconButton icon="arrow-back" label="Back" onPress={onBack} /> : null}
+          {trailing ? <View style={styles.trailing}>{trailing}</View> : null}
+        </View>
+      ) : null}
 
       {scroll ? (
         <ScrollView
           style={styles.fill}
           contentContainerStyle={[
             styles.content,
+            // No back row: the content starts under the status bar itself.
+            { paddingTop: hasBackRow ? space[4] : insets.top + space[3] },
             // The footer owns the bottom inset when there is one, or the two
             // would both pad for the home indicator and leave a gap.
             { paddingBottom: footer ? space[6] : insets.bottom + clearance + space[8] },
@@ -100,10 +115,20 @@ export function Screen({
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
+          {heading}
           {children}
         </ScrollView>
       ) : (
-        <View style={[styles.fill, styles.content]}>{children}</View>
+        <View
+          style={[
+            styles.fill,
+            styles.content,
+            { paddingTop: hasBackRow ? space[4] : insets.top + space[3] },
+          ]}
+        >
+          {heading}
+          {children}
+        </View>
       )}
 
       {footer ? (
@@ -120,17 +145,23 @@ const makeStyles = (c: Palette) =>
     root: { flex: 1, backgroundColor: c.background },
     fill: { flex: 1 },
 
-    header: { paddingHorizontal: space[5], paddingBottom: space[4], gap: space[4] },
-    backRow: { flexDirection: "row", alignItems: "center", minHeight: 44 },
+    backRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      minHeight: 44,
+      paddingHorizontal: space[5],
+    },
     trailing: { marginLeft: "auto" },
 
+    heading: { gap: space[1], marginBottom: space[5] },
     title: {
       fontFamily: font.display,
-      fontSize: 28,
-      lineHeight: 34,
+      fontSize: 30,
+      lineHeight: 36,
       letterSpacing: -0.6,
       color: c.foreground,
     },
+    subtitle: { fontFamily: font.body, fontSize: 14.5, lineHeight: 21, color: c.mutedForeground },
 
     content: { paddingHorizontal: space[5], flexGrow: 1 },
 

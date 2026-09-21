@@ -5,197 +5,96 @@ import { Image } from "expo-image";
 import { StyleSheet, Text, View } from "react-native";
 
 import { Avatar } from "@/components/ui/avatar";
-import { IconButton } from "@/components/ui/icon-button";
 import { useStyles, useTheme } from "@/theme/theme";
 import { font, radius, space } from "@/theme/tokens";
 
 /**
- * The top of the provider screen — the reference design's photo card, name
- * and credential lines, action row and three-column stats strip, in this
- * app's palette. The web's `app/patient/clinician/[id]` draws the same
- * components in the same order; the two are kept in step by name.
+ * The top of the provider screen: the person, then the facts.
  *
- * Every number on the strip is one the tables hold (ADR 0085 §2): patients
- * seen and reviews are counted server-side by `pt-bookable-clinicians`, and
- * "With us" is the affiliation's own start. The reference's "8 Years
- * Experience" is not reproduced — nothing records a career — and a count of
- * zero reads "—", never a flattering 0.
- *
- * The action row keeps only affordances that do something. Video is real when
- * the clinician allows a virtual visit; a phone or chat circle with no
- * transport behind it would be a fake affordance, so those render as
- * unavailable with the reason in their label.
+ * A photograph, when there is one, is the reference's photo card; without
+ * one the monogram sits beside the name as a disc, and no pale block stands
+ * in for a face. Under the name, a row of facts — and only facts the tables
+ * hold (ADR 0085 §2): time on MedSync, patients seen, the rating with its
+ * count, video visits. A count of zero is not a fact and is not drawn; the
+ * old strip of "—" is gone. Nothing here is an affordance that does nothing:
+ * the call and message circles had no transport behind them.
  */
 export function ProviderHero({
   doctor,
   hospitalName,
   allowVirtual,
   seenBefore,
-  onBack,
 }: {
   doctor: ClinicianOption;
   hospitalName: string;
   allowVirtual: boolean;
-  /** PRD §2.7 continuity — takes the reference's "save" position. */
+  /** PRD §2.7 continuity. */
   seenBefore: boolean;
-  onBack: () => void;
 }) {
   const { colors } = useTheme();
   const styles = useStyles(makeStyles);
-  const initials = initialsOf(doctor.fullName);
+
+  const facts: { icon: keyof typeof Ionicons.glyphMap; text: string }[] = [];
+  const years = yearsWithUs(doctor.withUsSinceIso);
+  if (years) facts.push({ icon: "time-outline", text: years });
+  if (doctor.patientsSeen > 0)
+    facts.push({ icon: "people-outline", text: `${compact(doctor.patientsSeen)} patients` });
+  if (doctor.rating)
+    facts.push({
+      icon: "star",
+      text: `${doctor.rating.average.toFixed(1)} · ${compact(doctor.rating.count)} ${
+        doctor.rating.count === 1 ? "review" : "reviews"
+      }`,
+    });
+  if (allowVirtual) facts.push({ icon: "videocam-outline", text: "Video visits" });
+  if (seenBefore) facts.push({ icon: "checkmark-circle-outline", text: "Seen you before" });
 
   return (
     <View style={styles.stack}>
-      {/* ── The photo card ────────────────────────────────────── */}
-      <View style={styles.card}>
-        {doctor.photoUrl ? (
-          <Image
-            source={{ uri: doctor.photoUrl }}
-            style={styles.photo}
-            contentFit="cover"
-            transition={150}
-            accessibilityElementsHidden
-            importantForAccessibility="no-hide-descendants"
-          />
-        ) : (
-          <View style={[styles.photo, styles.monogram]}>
-            {initials ? (
-              <Text style={styles.initials}>{initials}</Text>
-            ) : (
-              <Avatar name={doctor.fullName} size={72} />
-            )}
-          </View>
-        )}
+      {doctor.photoUrl ? (
+        <Image
+          source={{ uri: doctor.photoUrl }}
+          style={styles.photo}
+          contentFit="cover"
+          transition={150}
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+        />
+      ) : null}
 
-        <View style={styles.backSlot}>
-          <IconButton icon="chevron-back" label="Back" onPress={onBack} tone="card" />
-        </View>
-
-        {seenBefore ? (
-          <View style={[styles.badge, styles.badgeTopRight]}>
-            <Text style={styles.badgeText}>Seen you before</Text>
-          </View>
-        ) : null}
-
-        {doctor.rating ? (
-          <View style={[styles.badge, styles.badgeBottomLeft]}>
-            <Ionicons name="star" size={13} color={colors.primary} />
-            <Text style={styles.badgeText}>{doctor.rating.average.toFixed(1)}</Text>
-          </View>
-        ) : null}
-      </View>
-
-      {/* ── Name and credentials ──────────────────────────────── */}
       <View style={styles.head}>
-        <Text accessibilityRole="header" style={styles.name}>
-          {doctor.fullName}
-        </Text>
-        <Text style={styles.credential} numberOfLines={2}>
-          {[doctor.cadre, doctor.specialty ?? doctor.departmentName, hospitalName]
-            .filter(Boolean)
-            .join(" · ")}
-        </Text>
-      </View>
-
-      {/* ── Action row ────────────────────────────────────────── */}
-      <View style={styles.actions}>
-        <View style={styles.detailsPill}>
-          <Ionicons name="information-circle-outline" size={16} color={colors.primary} />
-          <Text style={styles.detailsText}>Details</Text>
-        </View>
-        <View style={styles.circles}>
-          <ActionCircle
-            icon="videocam-outline"
-            label={
-              allowVirtual
-                ? "This clinician offers video visits"
-                : "This clinician sees patients in person only"
-            }
-            available={allowVirtual}
-          />
-          <ActionCircle
-            icon="call-outline"
-            label="Calling a clinician is not available in MedSync"
-            available={false}
-          />
-          <ActionCircle
-            icon="chatbubble-ellipses-outline"
-            label="Messaging a clinician is not available in MedSync"
-            available={false}
-          />
+        {doctor.photoUrl ? null : <Avatar name={doctor.fullName} size={56} />}
+        <View style={styles.names}>
+          <Text accessibilityRole="header" style={styles.name}>
+            {doctor.fullName}
+          </Text>
+          <Text style={styles.credential} numberOfLines={2}>
+            {[doctor.cadre, doctor.specialty ?? doctor.departmentName, hospitalName]
+              .filter(Boolean)
+              .join(" · ")}
+          </Text>
         </View>
       </View>
 
-      {/* ── Stats strip ───────────────────────────────────────── */}
-      <View style={styles.strip} accessibilityRole="summary">
-        <Stat icon="time-outline" value={yearsWithUs(doctor.withUsSinceIso)} label="With us" />
-        <Stat
-          icon="people-outline"
-          value={doctor.patientsSeen > 0 ? compact(doctor.patientsSeen) : "—"}
-          label="Patients"
-        />
-        <Stat
-          icon="star-outline"
-          value={doctor.rating ? compact(doctor.rating.count) : "—"}
-          label="Reviews"
-        />
-      </View>
+      {facts.length > 0 ? (
+        <View style={styles.facts} accessibilityRole="summary">
+          {facts.map((f) => (
+            <View key={f.text} style={styles.fact}>
+              <Ionicons name={f.icon} size={13} color={colors.mutedForeground} />
+              <Text style={styles.factText}>{f.text}</Text>
+            </View>
+          ))}
+        </View>
+      ) : null}
     </View>
   );
 }
 
-function ActionCircle({
-  icon,
-  label,
-  available,
-}: {
-  icon: keyof typeof Ionicons.glyphMap;
-  label: string;
-  available: boolean;
-}) {
-  const { colors } = useTheme();
-  const styles = useStyles(makeStyles);
-  return (
-    <View
-      accessible
-      accessibilityRole="image"
-      accessibilityLabel={label}
-      style={[styles.circle, !available && styles.circleOff]}
-    >
-      <Ionicons name={icon} size={18} color={available ? colors.primary : colors.mutedForeground} />
-    </View>
-  );
-}
-
-function Stat({
-  icon,
-  value,
-  label,
-}: {
-  icon: keyof typeof Ionicons.glyphMap;
-  value: string;
-  label: string;
-}) {
-  const { colors } = useTheme();
-  const styles = useStyles(makeStyles);
-  return (
-    <View
-      accessible
-      style={styles.stat}
-      accessibilityLabel={`${label}: ${value === "—" ? "none yet" : value}`}
-    >
-      <Ionicons name={icon} size={16} color={colors.primary} />
-      <Text style={styles.statValue}>{value}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
-    </View>
-  );
-}
-
-/** "3 yrs" / "New" — time on MedSync at this hospital, which is all we know. */
-function yearsWithUs(iso: string | null): string {
-  if (!iso) return "—";
+/** "New on MedSync" / "3 yrs on MedSync" — time at this hospital, which is all we know. */
+function yearsWithUs(iso: string | null): string | null {
+  if (!iso) return null;
   const years = Math.floor((Date.now() - new Date(iso).getTime()) / (365.25 * 86_400_000));
-  return years < 1 ? "New" : `${years} yr${years === 1 ? "" : "s"}`;
+  return years < 1 ? "New on MedSync" : `${years} yr${years === 1 ? "" : "s"} on MedSync`;
 }
 
 /** 3549 → "3,549". Never rounded, never a "+": the count is exact, so it is shown exactly. */
@@ -203,95 +102,38 @@ function compact(n: number): string {
   return n.toLocaleString("en-UG");
 }
 
-function initialsOf(name: string): string | null {
-  if (name === "Your clinician") return null;
-  const letters = name
-    .split(/\s+/)
-    .map((p) => p[0])
-    .filter((c): c is string => !!c && /\p{L}/u.test(c))
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
-  return letters || null;
-}
-
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
-    stack: { gap: space[3] },
-
-    // The photo card: the brand's lightest tint as a flat ground — the
-    // reference's gradient is a decorative ground, which DESIGN forbids.
-    card: {
-      position: "relative",
+    stack: { gap: space[4] },
+    // 16:10, not 4:5: the days and times are the point of the screen and a
+    // taller photo pushed them a scroll away.
+    photo: {
+      width: "100%",
+      aspectRatio: 16 / 10,
       borderRadius: radius["2xl"],
-      overflow: "hidden",
       backgroundColor: c.accent,
     },
-    // 4:3, not 4:5: the days and times are the point of the screen and a
-    // taller photo pushed them a scroll away.
-    photo: { width: "100%", aspectRatio: 16 / 10, backgroundColor: c.accent },
-    monogram: { alignItems: "center", justifyContent: "center" },
-    initials: { fontFamily: font.mono, fontSize: 56, color: c.accentForeground },
-    backSlot: { position: "absolute", top: space[4], left: space[4] },
-    badge: {
-      position: "absolute",
-      flexDirection: "row",
-      alignItems: "center",
-      gap: 4,
-      paddingHorizontal: space[3],
-      paddingVertical: space[2],
-      borderRadius: radius.full,
-      backgroundColor: c.card,
-      borderWidth: 1,
-      borderColor: c.border,
-    },
-    badgeTopRight: { top: space[4], right: space[4] },
-    badgeBottomLeft: { bottom: space[4], left: space[4] },
-    badgeText: { fontFamily: font.bodyMedium, fontSize: 13.5, color: c.foreground },
-
-    head: { gap: 2 },
+    head: { flexDirection: "row", alignItems: "center", gap: space[3] },
+    names: { flex: 1, gap: 2 },
     name: {
       fontFamily: font.display,
-      fontSize: 28,
-      lineHeight: 34,
+      fontSize: 26,
+      lineHeight: 32,
       letterSpacing: -0.4,
       color: c.foreground,
     },
-    credential: { fontFamily: font.body, fontSize: 14.5, lineHeight: 21, color: c.mutedForeground },
-
-    actions: { flexDirection: "row", alignItems: "center", gap: space[2] },
-    detailsPill: {
+    credential: { fontFamily: font.body, fontSize: 14, lineHeight: 20, color: c.mutedForeground },
+    facts: { flexDirection: "row", flexWrap: "wrap", gap: space[2] },
+    fact: {
       flexDirection: "row",
       alignItems: "center",
-      gap: 6,
-      minHeight: 44,
-      paddingHorizontal: space[4],
+      gap: 5,
+      minHeight: 30,
+      paddingHorizontal: space[3],
       borderRadius: radius.full,
-      backgroundColor: c.accent,
-    },
-    detailsText: { fontFamily: font.bodyMedium, fontSize: 14.5, color: c.accentForeground },
-    circles: { flexDirection: "row", gap: space[2] },
-    circle: {
-      width: 44,
-      height: 44,
-      borderRadius: 22,
-      alignItems: "center",
-      justifyContent: "center",
-      backgroundColor: c.card,
+      backgroundColor: c.muted,
       borderWidth: 1,
       borderColor: c.border,
     },
-    circleOff: { backgroundColor: c.muted, borderColor: c.muted },
-
-    strip: {
-      flexDirection: "row",
-      padding: space[4],
-      borderRadius: radius["2xl"],
-      backgroundColor: c.card,
-      borderWidth: 1,
-      borderColor: c.border,
-    },
-    stat: { flex: 1, alignItems: "center", gap: 2 },
-    statValue: { fontFamily: font.mono, fontSize: 16, lineHeight: 22, color: c.foreground },
-    statLabel: { fontFamily: font.body, fontSize: 12.5, color: c.mutedForeground },
+    factText: { fontFamily: font.bodyMedium, fontSize: 12.5, color: c.foreground },
   });

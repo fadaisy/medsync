@@ -1,12 +1,19 @@
+import { LinearGradient } from "expo-linear-gradient";
 import { TabList, Tabs, TabSlot, TabTrigger } from "expo-router/ui";
+import { StyleSheet } from "react-native";
 import Animated from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
+  TAB_BAR_GAP,
+  TAB_BAR_HEIGHT,
   TAB_TRANSITION,
   TabBarClearance,
   TabButton,
   useTabBarFrame,
 } from "@/components/ui/tab-bar";
+import { useTheme } from "@/theme/theme";
+import { withAlpha } from "@/theme/tokens";
 
 /**
  * The four places a patient can stand: home (the two doors), their visits,
@@ -26,11 +33,21 @@ import {
  */
 export default function TabsLayout() {
   const frame = useTabBarFrame();
+  const insets = useSafeAreaInsets();
+  const { colors } = useTheme();
 
   return (
     <TabBarClearance>
       <Tabs>
         <TabSlot />
+        {/* The page dissolves into its own ground under the bar, so a list
+            scrolling past it fades out rather than colliding with it. */}
+        <LinearGradient
+          pointerEvents="none"
+          colors={[withAlpha(colors.background, 0), colors.background]}
+          locations={[0, 0.55]}
+          style={[styles.fade, { height: insets.bottom + TAB_BAR_GAP * 2 + TAB_BAR_HEIGHT + 24 }]}
+        />
         {/* `asChild` so the pill itself can animate its width as the chip
             moves — the plain TabList View cannot take a layout transition. */}
         <TabList asChild>
@@ -58,3 +75,7 @@ export default function TabsLayout() {
     </TabBarClearance>
   );
 }
+
+const styles = StyleSheet.create({
+  fade: { position: "absolute", left: 0, right: 0, bottom: 0 },
+});

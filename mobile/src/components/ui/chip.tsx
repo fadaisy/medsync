@@ -1,8 +1,9 @@
 import type { Palette } from "@/theme/tokens";
 import type { ReactNode } from "react";
+import { Ionicons } from "@expo/vector-icons";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
-import { useStyles } from "@/theme/theme";
+import { useStyles, useTheme } from "@/theme/theme";
 import { font, radius, space } from "@/theme/tokens";
 
 /**
@@ -36,6 +37,8 @@ export function Chip({
       }
       disabled={disabled}
       onPress={onPress}
+      // A 38px pill reads lighter than a 44px one; the slop keeps the target.
+      hitSlop={{ top: 4, bottom: 4 }}
       style={({ pressed }) => [
         styles.chip,
         selected && styles.chipSelected,
@@ -59,8 +62,9 @@ export function ChipRow({ children }: { children: ReactNode }) {
 }
 
 /**
- * A larger, boxed pick — the reference's time grid. Same semantics as `Chip`,
- * squarer, and it fills its cell so a grid of them lines up.
+ * A larger, boxed pick — a clinic day, a time. Same semantics as `Chip`, a
+ * row with its label and hint on the left and a check on the right once
+ * chosen, so the choice is a mark as well as a tint.
  */
 export function Tile({
   label,
@@ -77,6 +81,7 @@ export function Tile({
   disabled?: boolean;
 }) {
   const styles = useStyles(makeStyles);
+  const { colors } = useTheme();
 
   return (
     <Pressable
@@ -92,15 +97,18 @@ export function Tile({
         pressed && styles.pressed,
       ]}
     >
-      <Text style={[styles.tileLabel, selected && styles.tileLabelSelected]}>{label}</Text>
-      {hint ? (
-        <Text style={[styles.tileHint, selected && styles.tileLabelSelected]}>{hint}</Text>
-      ) : null}
+      <View style={styles.tileText}>
+        <Text style={[styles.tileLabel, selected && styles.tileLabelSelected]}>{label}</Text>
+        {hint ? <Text style={styles.tileHint}>{hint}</Text> : null}
+      </View>
+      <View style={[styles.mark, selected && styles.markSelected]} accessibilityElementsHidden>
+        {selected ? <Ionicons name="checkmark" size={16} color={colors.primaryForeground} /> : null}
+      </View>
     </Pressable>
   );
 }
 
-/** Tiles two to a row. */
+/** Tiles stacked, one to a row. */
 export function TileGrid({ children }: { children: ReactNode }) {
   const styles = useStyles(makeStyles);
   return (
@@ -115,39 +123,49 @@ const makeStyles = (c: Palette) =>
     row: { flexDirection: "row", flexWrap: "wrap", gap: space[2] },
 
     chip: {
-      // A 44px target, like every other tappable thing.
-      minHeight: 44,
-      paddingHorizontal: space[4],
+      minHeight: 38,
+      paddingHorizontal: 14,
       paddingVertical: space[2],
       borderRadius: radius.full,
-      backgroundColor: c.accent,
+      backgroundColor: c.muted,
+      borderWidth: 1,
+      borderColor: c.border,
       justifyContent: "center",
     },
-    chipSelected: { backgroundColor: c.primary },
+    chipSelected: { backgroundColor: c.foreground, borderColor: c.foreground },
     chipDisabled: { opacity: 0.45 },
-    label: { fontFamily: font.body, fontSize: 14.5, color: c.accentForeground },
-    labelSelected: { fontFamily: font.bodyMedium, color: c.primaryForeground },
+    label: { fontFamily: font.bodyMedium, fontSize: 14, color: c.foreground },
+    labelSelected: { color: c.background },
 
-    grid: { flexDirection: "row", flexWrap: "wrap", gap: space[3] },
+    grid: { gap: space[2] },
     tile: {
-      // Two per row inside a 20px-gutter page with a 12px gap.
-      flexBasis: "47%",
-      flexGrow: 1,
+      flexDirection: "row",
+      alignItems: "center",
+      gap: space[3],
       minHeight: 56,
       paddingHorizontal: space[4],
       paddingVertical: space[3],
-      borderRadius: radius.lg,
+      borderRadius: radius.xl,
       backgroundColor: c.card,
       borderWidth: 1,
       borderColor: c.border,
-      alignItems: "center",
-      justifyContent: "center",
-      gap: 2,
     },
     tileSelected: { backgroundColor: c.accent, borderColor: c.primary },
-    tileLabel: { fontFamily: font.bodyMedium, fontSize: 15, color: c.foreground },
+    tileText: { flex: 1, gap: 2 },
+    tileLabel: { fontFamily: font.bodyMedium, fontSize: 15, lineHeight: 20, color: c.foreground },
     tileLabelSelected: { color: c.accentForeground },
-    tileHint: { fontFamily: font.body, fontSize: 12.5, color: c.mutedForeground },
+    tileHint: { fontFamily: font.body, fontSize: 12.5, lineHeight: 17, color: c.mutedForeground },
+    // An empty ring until chosen; the brand disc with a check after.
+    mark: {
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      borderWidth: 1.5,
+      borderColor: c.border,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    markSelected: { backgroundColor: c.primary, borderColor: c.primary },
 
     pressed: { opacity: 0.7 },
   });

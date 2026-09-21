@@ -344,6 +344,7 @@ export default function ClinicScreen() {
       <Screen
         {...chrome}
         title={line.name}
+        subtitle={`${line.departmentName} · ${line.hospitalName}`}
         footer={
           sessions.length === 0 ? undefined : (
             <>
@@ -366,10 +367,6 @@ export default function ClinicScreen() {
         }
       >
         <View style={styles.stack}>
-          <Text style={styles.meta}>
-            {line.departmentName} · {line.hospitalName}
-          </Text>
-
           {sessions.length === 0 ? (
             <Empty
               icon="calendar-clear-outline"
@@ -481,13 +478,6 @@ const makeStyles = (c: Palette) =>
     fill: { flex: 1 },
     center: { flexGrow: 1, alignItems: "center", justifyContent: "center" },
     stack: { flexGrow: 1, gap: space[5] },
-    meta: {
-      fontFamily: font.body,
-      fontSize: 14.5,
-      lineHeight: 21,
-      color: c.mutedForeground,
-      marginTop: -space[3],
-    },
     // One clinic day per row: a date in full and its clinician need the width.
     tiles: { gap: space[2] },
     hint: { fontFamily: font.body, fontSize: 13.5, lineHeight: 19, color: c.mutedForeground },
@@ -530,7 +520,13 @@ const makeStyles = (c: Palette) =>
       textTransform: "uppercase",
       color: c.mutedForeground,
     },
-    feeValue: { fontFamily: font.mono, fontSize: 17, lineHeight: 23, color: c.foreground },
+    feeValue: {
+      fontFamily: font.bodyMedium,
+      fontSize: 20,
+      lineHeight: 26,
+      color: c.foreground,
+      fontVariant: ["tabular-nums"],
+    },
     feeNote: { fontFamily: font.body, fontSize: 13.5, lineHeight: 19, color: c.mutedForeground },
     well: {
       flexDirection: "row",

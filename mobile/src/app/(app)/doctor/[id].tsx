@@ -433,7 +433,6 @@ export default function DoctorScreen() {
             hospitalName={hospitalName}
             allowVirtual={doctor.allowVirtual}
             seenBefore={doctor.seenBefore}
-            onBack={router.back}
           />
 
           {/* Nothing open in the next fortnight: say so under the name rather
@@ -710,7 +709,13 @@ const makeStyles = (c: Palette) =>
       textTransform: "uppercase",
       color: c.mutedForeground,
     },
-    feeValue: { fontFamily: font.mono, fontSize: 17, lineHeight: 23, color: c.foreground },
+    feeValue: {
+      fontFamily: font.bodyMedium,
+      fontSize: 20,
+      lineHeight: 26,
+      color: c.foreground,
+      fontVariant: ["tabular-nums"],
+    },
     feeNote: { fontFamily: font.body, fontSize: 13.5, lineHeight: 19, color: c.mutedForeground },
     well: {
       flexDirection: "row",

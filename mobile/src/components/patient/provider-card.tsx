@@ -1,7 +1,7 @@
 import type { ClinicianOption } from "@/lib/booking";
 import type { Palette } from "@/theme/tokens";
+import type { DimensionValue } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Image } from "expo-image";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
 import { Avatar } from "@/components/ui/avatar";
@@ -10,20 +10,27 @@ import { useStyles, useTheme } from "@/theme/theme";
 import { font, radius, space } from "@/theme/tokens";
 
 /**
- * A clinician as a carousel card — the reference design's home-screen doctor
- * card, in this palette: the photo (or monogram) on the brand's lightest
- * tint, the name and department on a panel beneath, the rating or "No ratings
- * yet", and the circular arrow. Same component, same name, on the web.
+ * A clinician as a tile — the one shape a doctor takes everywhere: the home
+ * row and the doctors list draw this same card, so a face and a name look
+ * the same wherever they are met.
  *
- * `DoctorRow` remains the list form for "View all"; this is the glance.
+ * The photo (or monogram) is a disc, never a block: most clinicians have no
+ * photo on day one, and a card built around a photo is a card built around
+ * an empty tint. Under it the name, the specialty, and the one fact about
+ * days — "Next open: Today" in the brand, or "No days open" quietly. A
+ * rating shows only when there is one (ADR 0085 §2); its absence is not
+ * announced. The whole card is the target; there is no arrow to aim at.
  */
 export function ProviderCard({
   option,
   seenBefore = false,
+  width,
   onPress,
 }: {
   option: ClinicianOption;
   seenBefore?: boolean;
+  /** A fixed width in a carousel; a percentage in a grid. */
+  width?: DimensionValue;
   onPress: () => void;
 }) {
   const { colors } = useTheme();
@@ -33,61 +40,43 @@ export function ProviderCard({
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`${option.fullName}, ${option.departmentName}`}
+      accessibilityLabel={`${option.fullName}, ${option.specialty ?? option.cadre}, ${option.departmentName}. ${
+        nextOpen ? `Next open ${dayLabel(nextOpen)}` : "No days open"
+      }`}
       accessibilityHint="Opens this clinician"
       onPress={onPress}
-      style={({ pressed }) => [styles.card, pressed && styles.pressed]}
+      style={({ pressed }) => [
+        styles.card,
+        width !== undefined && { width },
+        pressed && styles.pressed,
+      ]}
     >
-      <View style={styles.photoWrap}>
-        {option.photoUrl ? (
-          <Image
-            source={{ uri: option.photoUrl }}
-            style={styles.photo}
-            contentFit="cover"
-            transition={150}
-            accessibilityElementsHidden
-            importantForAccessibility="no-hide-descendants"
-          />
-        ) : (
-          <View style={[styles.photo, styles.monogram]}>
-            <Avatar name={option.fullName} size={56} />
+      <View style={styles.top}>
+        <Avatar name={option.fullName} size={56} uri={option.photoUrl} />
+        {option.rating ? (
+          <View style={styles.rating}>
+            <Ionicons name="star" size={11} color={colors.primary} />
+            <Text style={styles.ratingText}>{option.rating.average.toFixed(1)}</Text>
           </View>
-        )}
-        {seenBefore ? (
-          <View style={styles.badge}>
-            <Text style={styles.badgeText}>Seen you before</Text>
+        ) : seenBefore ? (
+          <View style={styles.rating}>
+            <Text style={styles.ratingText}>Seen you</Text>
           </View>
         ) : null}
       </View>
 
-      <View style={styles.panel}>
+      <View style={styles.text}>
         <Text style={styles.name} numberOfLines={1}>
           {option.fullName}
         </Text>
         <Text style={styles.dept} numberOfLines={1}>
-          {option.specialty ?? option.departmentName}
+          {option.specialty ?? option.cadre}
         </Text>
-
-        <View style={styles.foot}>
-          <View style={styles.footText}>
-            {option.rating ? (
-              <View style={styles.ratingRow}>
-                <Ionicons name="star" size={12} color={colors.primary} />
-                <Text style={styles.rating}>{option.rating.average.toFixed(1)}</Text>
-                <Text style={styles.ratingCount}>· {option.rating.count}</Text>
-              </View>
-            ) : (
-              <Text style={styles.ratingCount}>No ratings yet</Text>
-            )}
-            <Text style={styles.next} numberOfLines={1}>
-              {nextOpen ? `Next ${dayLabel(nextOpen)}` : "No days open yet"}
-            </Text>
-          </View>
-          <View style={styles.arrow} accessibilityElementsHidden>
-            <Ionicons name="arrow-forward" size={16} color={colors.primaryForeground} />
-          </View>
-        </View>
       </View>
+
+      <Text style={[styles.next, !nextOpen && styles.nextNone]} numberOfLines={1}>
+        {nextOpen ? `Next open: ${dayLabel(nextOpen)}` : "No days open"}
+      </Text>
     </Pressable>
   );
 }
@@ -95,50 +84,28 @@ export function ProviderCard({
 const makeStyles = (c: Palette) =>
   StyleSheet.create({
     card: {
-      width: 200,
+      gap: space[3],
+      padding: space[4],
       borderRadius: radius["2xl"],
       backgroundColor: c.card,
       borderWidth: 1,
       borderColor: c.border,
-      overflow: "hidden",
     },
     pressed: { opacity: 0.88 },
-    photoWrap: { position: "relative" },
-    photo: { width: "100%", aspectRatio: 4 / 3, backgroundColor: c.accent },
-    monogram: { alignItems: "center", justifyContent: "center" },
-    badge: {
-      position: "absolute",
-      top: space[2],
-      right: space[2],
+    top: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between" },
+    rating: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 3,
       paddingHorizontal: space[2],
       paddingVertical: 3,
       borderRadius: radius.full,
-      backgroundColor: c.card,
+      backgroundColor: c.accent,
     },
-    badgeText: { fontFamily: font.bodyMedium, fontSize: 11.5, color: c.accentForeground },
-
-    panel: { padding: space[3], gap: 2 },
+    ratingText: { fontFamily: font.bodyMedium, fontSize: 11.5, color: c.accentForeground },
+    text: { gap: 1 },
     name: { fontFamily: font.bodyMedium, fontSize: 15, lineHeight: 20, color: c.foreground },
     dept: { fontFamily: font.body, fontSize: 12.5, lineHeight: 17, color: c.mutedForeground },
-    foot: {
-      flexDirection: "row",
-      alignItems: "flex-end",
-      justifyContent: "space-between",
-      gap: space[2],
-      marginTop: space[2],
-    },
-    footText: { flex: 1, gap: 2 },
-    ratingRow: { flexDirection: "row", alignItems: "center", gap: 3 },
-    rating: { fontFamily: font.mono, fontSize: 12.5, color: c.foreground },
-    ratingCount: { fontFamily: font.body, fontSize: 12.5, color: c.mutedForeground },
-    next: { fontFamily: font.body, fontSize: 12.5, color: c.mutedForeground },
-    // The reference's dark circle: the brand's deepest ramp, never a ground.
-    arrow: {
-      width: 34,
-      height: 34,
-      borderRadius: 17,
-      alignItems: "center",
-      justifyContent: "center",
-      backgroundColor: c.primary,
-    },
+    next: { fontFamily: font.bodyMedium, fontSize: 12.5, lineHeight: 17, color: c.primary },
+    nextNone: { fontFamily: font.body, color: c.mutedForeground },
   });
