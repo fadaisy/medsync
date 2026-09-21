@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import {
   ChevronLeftIcon,
-  ChevronRightIcon,
   ClockIcon,
   InfoIcon,
   MessageSquareIcon,
@@ -20,7 +19,7 @@ import {
 import { BottomActionBar, BottomActionBarSpacer } from "@/components/responsive/bottom-action-bar";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { TimeSlider } from "./time-slider";
+import { DateTimeFields } from "./date-time-fields";
 
 /**
  * The provider screen — the reference design's first panel, component for
@@ -46,9 +45,6 @@ import { TimeSlider } from "./time-slider";
  * the layout, an affordance that survives a screen reader.
  */
 
-const DAY_LONG = new Intl.DateTimeFormat("en-GB", { weekday: "long", timeZone: "UTC" });
-const MONTH_LONG = new Intl.DateTimeFormat("en-GB", { month: "long", timeZone: "UTC" });
-
 export function ProviderScreen({
   provider,
   /** Rendered when the line charges — resolved server-side (ADR 0092). */
@@ -64,23 +60,7 @@ export function ProviderScreen({
   const [day, setDay] = useState<string | null>(days[0] ?? null);
   const [slot, setSlot] = useState<string | null>(null);
 
-  const slots = day ? (provider.slotsByDate[day] ?? []) : [];
   const initials = initialsOf(provider.fullName);
-  // The month stepper walks the days the engine returned, never a calendar:
-  // a month with nothing open is a month with nothing to step to.
-  const months = useMemo(() => [...new Set(days.map((d) => d.slice(0, 7)))], [days]);
-  const monthOf = day?.slice(0, 7) ?? months[0] ?? null;
-  const monthIndex = monthOf ? months.indexOf(monthOf) : -1;
-
-  const stepMonth = (delta: number) => {
-    const next = months[monthIndex + delta];
-    if (!next) return;
-    const firstOfMonth = days.find((d) => d.startsWith(next));
-    if (firstOfMonth) {
-      setDay(firstOfMonth);
-      setSlot(null);
-    }
-  };
 
   return (
     <div className="flex flex-col gap-5">
@@ -209,84 +189,28 @@ export function ProviderScreen({
         </div>
 
         <div className="flex flex-col gap-4">
-          {/* ── Select Date ────────────────────────────────────────── */}
+          {/* ── When: the day and the time, as two fields (the reference's
+              "Schedule send"); the calendar behind the first, the day's open
+              times behind the second. */}
           <section className="flex flex-col gap-3">
-            <div className="flex items-center justify-between gap-3">
-              <h2 className="text-foreground text-body-m font-medium">Select date</h2>
-              {monthOf ? (
-                <div className="flex items-center gap-1">
-                  <StepButton dir="prev" disabled={monthIndex <= 0} onClick={() => stepMonth(-1)} />
-                  <span className="text-foreground text-body-s min-w-24 text-center font-medium">
-                    {MONTH_LONG.format(new Date(`${monthOf}-01T12:00:00Z`))}
-                  </span>
-                  <StepButton
-                    dir="next"
-                    disabled={monthIndex < 0 || monthIndex >= months.length - 1}
-                    onClick={() => stepMonth(1)}
-                  />
-                </div>
-              ) : null}
-            </div>
-
+            <h2 className="text-foreground text-body-m font-medium">When</h2>
             {days.length === 0 ? (
               <p className="text-muted-foreground bg-card text-body-s dark:shadow-card rounded-xl p-4 shadow-xs">
                 {provider.fullName} has no days open on MedSync yet.
               </p>
             ) : (
-              <ul
-                aria-label="Available days"
-                className="-mx-1 flex snap-x gap-2 overflow-x-auto px-1 pb-1"
-              >
-                {days.map((d) => {
-                  const at = new Date(`${d}T12:00:00Z`);
-                  const selected = d === day;
-                  return (
-                    <li key={d} className="snap-start">
-                      <button
-                        type="button"
-                        aria-pressed={selected}
-                        onClick={() => {
-                          setDay(d);
-                          setSlot(null);
-                        }}
-                        className={cn(
-                          "ease-expo-out duration-fast flex min-h-20 w-18 flex-col items-center justify-center gap-0.5 rounded-2xl px-3 transition-colors focus-visible:ring-2 focus-visible:outline-none",
-                          selected
-                            ? "bg-accent text-accent-foreground ring-brand-300 focus-visible:ring-brand-500 ring-1"
-                            : "bg-card text-foreground dark:shadow-card focus-visible:ring-ring shadow-xs",
-                        )}
-                      >
-                        <span className="text-heading-s font-mono tabular-nums">
-                          {at.getUTCDate()}
-                        </span>
-                        <span
-                          className={cn(
-                            "text-caption",
-                            selected ? "text-accent-foreground/80" : "text-muted-foreground",
-                          )}
-                        >
-                          {DAY_LONG.format(at).slice(0, 3)}
-                        </span>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
+              <DateTimeFields
+                slotsByDate={provider.slotsByDate}
+                day={day}
+                slot={slot}
+                onDay={(d) => {
+                  setDay(d);
+                  setSlot(null);
+                }}
+                onSlot={setSlot}
+              />
             )}
           </section>
-
-          {/* ── Select Time ────────────────────────────────────────── */}
-          {day && slots.length > 0 ? (
-            <section className="flex flex-col gap-3">
-              <div className="flex items-baseline justify-between gap-3">
-                <h2 className="text-foreground text-body-m font-medium">Select time</h2>
-                <span className="text-muted-foreground text-caption tabular-nums">
-                  {slots.length} {slots.length === 1 ? "time" : "times"} open
-                </span>
-              </div>
-              <TimeSlider slots={slots} value={slot} onChange={setSlot} />
-            </section>
-          ) : null}
 
           {/* ── The fee, stated before the patient commits (ADR 0092) ─ */}
           {feeLine ? (
@@ -391,32 +315,6 @@ function Stat({ icon, value, label }: { icon: React.ReactNode; value: string; la
         {value === "—" ? <span aria-label="none yet">—</span> : value}
       </dd>
     </div>
-  );
-}
-
-function StepButton({
-  dir,
-  disabled,
-  onClick,
-}: {
-  dir: "prev" | "next";
-  disabled: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      aria-label={dir === "prev" ? "Previous month" : "Next month"}
-      className="text-muted-foreground hover:text-foreground focus-visible:ring-ring grid size-11 place-items-center rounded-full transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:opacity-40"
-    >
-      {dir === "prev" ? (
-        <ChevronLeftIcon className="size-4" aria-hidden />
-      ) : (
-        <ChevronRightIcon className="size-4" aria-hidden />
-      )}
-    </button>
   );
 }
 

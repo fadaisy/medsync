@@ -28,11 +28,10 @@ import {
 
 import { BookingDone } from "@/components/patient/booking-done";
 import { BookingInterstitial } from "@/components/patient/booking-interstitial";
-import { DayStrip } from "@/components/patient/day-strip";
+import { DateTimeFields } from "@/components/patient/date-time-fields";
 import { EmergencyButton } from "@/components/patient/emergency-button";
 import { NoSilentWait } from "@/components/patient/no-silent-wait";
 import { ProviderHero } from "@/components/patient/provider-hero";
-import { TimeSlider } from "@/components/patient/time-slider";
 import { Button } from "@/components/ui/button";
 import { Chip, ChipRow } from "@/components/ui/chip";
 import { Empty } from "@/components/ui/empty";
@@ -188,7 +187,6 @@ export default function DoctorScreen() {
   // The DOCTOR's hospital: the row names where the booking lands.
   const hospitalName = doctor?.hospitalName ?? profile?.hospitalName ?? "your hospital";
   const days = doctor ? openDays(doctor) : [];
-  const slots = doctor && dayKey ? (doctor.slotsByDate[dayKey] ?? []) : [];
   // The line's own list when the department has one; Appendix A's 13 otherwise.
   const reasons = wait?.line ? reasonsFor(wait.line) : APPOINTMENT_REASONS;
 
@@ -398,7 +396,17 @@ export default function DoctorScreen() {
       }),
   });
 
-  const dayPicker = <DayStrip days={days} selected={dayKey} onSelect={pickDay} />;
+  // The reference's two fields: the day (a calendar behind it) and the time
+  // (the day's open times behind it).
+  const picker = (
+    <DateTimeFields
+      slotsByDate={doctor.slotsByDate}
+      day={dayKey}
+      slot={slot}
+      onDay={pickDay}
+      onSlot={pickSlot}
+    />
+  );
 
   return (
     <KeyboardAvoidingView
@@ -446,35 +454,19 @@ export default function DoctorScreen() {
           ) : null}
 
           {days.length > 0 ? (
-            <Section title="Select date">
+            <Section title="When">
               {beyond && wait?.line ? (
                 <NoSilentWait
                   targetDays={wait.line.timeToCareDays}
                   sameService={wait.sameService.map(toOption)}
                   elsewhere={wait.elsewhere.map(toOption)}
                 >
-                  {dayPicker}
+                  {picker}
                 </NoSilentWait>
               ) : (
-                dayPicker
+                picker
               )}
             </Section>
-          ) : null}
-
-          {/* The count is the length of the list under it — the one number
-              §3 lets a screen print, and it says so by being that list. */}
-          {days.length > 0 ? (
-            <View style={styles.section}>
-              <View style={styles.sectionHead}>
-                <Text accessibilityRole="header" style={styles.sectionTitle}>
-                  Select time
-                </Text>
-                <Text style={styles.count}>
-                  {slots.length === 1 ? "1 slot" : `${slots.length} slots`}
-                </Text>
-              </View>
-              <TimeSlider slots={slots} value={slot?.startsAtIso ?? null} onChange={pickSlot} />
-            </View>
           ) : null}
         </View>
       </Screen>
