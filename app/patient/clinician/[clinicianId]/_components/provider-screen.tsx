@@ -2,14 +2,11 @@
 
 import type { ProviderDetail } from "@/lib/patient/discover";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import {
-  ChevronLeftIcon,
+  ArrowLeftIcon,
+  CheckCircleIcon,
   ClockIcon,
-  InfoIcon,
-  MessageSquareIcon,
-  PhoneIcon,
   StarIcon,
   StethoscopeIcon,
   UsersIcon,
@@ -22,21 +19,21 @@ import { cn } from "@/lib/utils";
 import { DateTimeFields } from "./date-time-fields";
 
 /**
- * The provider screen — the reference design's first panel, component for
- * component: the photo card with its back and save controls, the rating
- * badge, the name and credential lines, the action row, the three-column
- * stats strip, "Select Date" with its month stepper and day cards, "Select
- * Time", and the docked booking control.
+ * The provider screen — the person, then when you can see them; the same
+ * shape as the phone's `ProviderHero`.
  *
- * The palette is ours (DESIGN-medsync.md): the reference's navy is
- * `brand-900`, its tinted grounds are `brand-50`, and its photo gradient is a
- * flat tint — decorative grounds are an anti-pattern here.
+ * A photograph, when there is one, is the reference's photo card; without
+ * one the monogram sits beside the name as a disc, and no pale block stands
+ * in for a face. Under the name, a row of facts — and only facts the tables
+ * hold (ADR 0085 §2): time on MedSync, patients seen, the rating with its
+ * count, video visits, continuity. A count of zero is not a fact and is not
+ * drawn; there is no strip of "—". Nothing here is an affordance that does
+ * nothing: the reference's call and message circles have no transport
+ * behind them and are not drawn.
  *
- * Every number in the strip is one the tables hold (ADR 0085). The reference
- * reads "8 Years Experience · 3.5k+ Patients · 2.8k+ Reviews"; nothing in
- * MedSync records a career, so that slot states when this clinician joined
- * this hospital and is labelled as exactly that. Patients and reviews are
- * counted, and read "—" before there are any rather than a flattering zero.
+ * The palette is ours (DESIGN-medsync.md): the reference's tinted grounds
+ * are `brand-50`, and its photo gradient is a flat tint — decorative grounds
+ * are an anti-pattern here.
  *
  * Time is a chip grid, not the reference's tick-mark ruler. A ruler is a
  * slider over discrete values: it loses the 44px target, arrow-key traversal
@@ -55,12 +52,27 @@ export function ProviderScreen({
   feeLine: string | null;
   feeNotes: ReadonlyArray<string>;
 }) {
-  const router = useRouter();
   const days = useMemo(() => Object.keys(provider.slotsByDate).sort(), [provider.slotsByDate]);
   const [day, setDay] = useState<string | null>(days[0] ?? null);
   const [slot, setSlot] = useState<string | null>(null);
 
   const initials = initialsOf(provider.fullName);
+
+  const facts: { icon: typeof ClockIcon; text: string }[] = [];
+  const years = yearsWithUs(provider.withUsSinceIso);
+  if (years) facts.push({ icon: ClockIcon, text: years });
+  if (provider.patientsSeen > 0)
+    facts.push({ icon: UsersIcon, text: `${compact(provider.patientsSeen)} patients` });
+  if (provider.rating)
+    facts.push({
+      icon: StarIcon,
+      text: `${provider.rating.average.toFixed(1)} · ${compact(provider.rating.count)} ${
+        provider.rating.count === 1 ? "review" : "reviews"
+      }`,
+    });
+  if (provider.allowVirtual) facts.push({ icon: VideoIcon, text: "Video visits" });
+  // PRD §2.7 continuity — the one fact worth more than a star average.
+  if (provider.seenBefore) facts.push({ icon: CheckCircleIcon, text: "Seen you before" });
 
   return (
     <div className="flex flex-col gap-5">
@@ -69,129 +81,68 @@ export function ProviderScreen({
           column on a phone, where the docked bar carries the button. */}
       <div className="md:grid md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)] md:items-start md:gap-6">
         <div className="flex flex-col gap-4">
-          {/* ── The photo card ─────────────────────────────────────── */}
-          <section className="bg-brand-50 relative overflow-hidden rounded-3xl">
-            <div className="relative aspect-[4/5] w-full sm:aspect-[16/10] md:aspect-[4/3]">
-              {provider.photoUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element -- a signed, expiring Supabase URL
-                <img
-                  src={provider.photoUrl}
-                  alt=""
-                  className="size-full object-cover"
-                  decoding="async"
-                />
-              ) : (
-                <span className="grid size-full place-items-center">
-                  {initials ? (
-                    <span className="text-brand-700 font-mono text-5xl font-medium">
-                      {initials}
-                    </span>
-                  ) : (
-                    <StethoscopeIcon
-                      strokeWidth={1.25}
-                      className="text-brand-700 size-16"
-                      aria-hidden
-                    />
-                  )}
-                </span>
-              )}
+          {/* The only way in is the directory, so Back is an honest link — it
+              works in a fresh tab, where `router.back()` would leave the site. */}
+          <Link
+            href="/patient"
+            className="text-muted-foreground hover:text-foreground text-body-s duration-fast ease-expo-out -mx-1 -mt-2 -mb-1 inline-flex min-h-11 w-fit items-center gap-1.5 rounded-md px-1 transition-colors"
+          >
+            <ArrowLeftIcon className="size-3.5" aria-hidden />
+            Back
+          </Link>
+
+          {/* ── The photograph, only when there is one ─────────────── */}
+          {provider.photoUrl ? (
+            <div className="bg-brand-50 aspect-[16/10] w-full overflow-hidden rounded-3xl">
+              {/* eslint-disable-next-line @next/next/no-img-element -- a signed, expiring Supabase URL */}
+              <img
+                src={provider.photoUrl}
+                alt=""
+                className="size-full object-cover"
+                decoding="async"
+              />
             </div>
+          ) : null}
 
-            <button
-              type="button"
-              onClick={() => router.back()}
-              aria-label="Back"
-              className="bg-card text-foreground focus-visible:ring-ring absolute top-4 left-4 grid size-11 place-items-center rounded-full shadow-xs focus-visible:ring-2 focus-visible:outline-none"
-            >
-              <ChevronLeftIcon className="size-5" aria-hidden />
-            </button>
-
-            {/* The reference's heart is a saved-doctors feature MedSync has no
-            table for. Rather than a control that forgets, this slot carries
-            the one fact that earns the position: continuity (PRD §2.7). */}
-            {provider.seenBefore ? (
-              <span className="bg-card text-brand-700 text-caption absolute top-4 right-4 rounded-full px-3 py-2 font-medium shadow-xs">
-                Seen you before
+          {/* ── Name and credentials, the monogram beside them ─────── */}
+          <header className="flex items-center gap-3">
+            {provider.photoUrl ? null : (
+              <span
+                aria-hidden
+                className="bg-brand-50 text-brand-700 text-heading-s grid size-14 shrink-0 place-items-center rounded-full font-mono font-medium"
+              >
+                {initials ?? <StethoscopeIcon strokeWidth={1.5} className="size-6" />}
               </span>
-            ) : null}
-
-            {provider.rating ? (
-              <span className="bg-card text-foreground text-body-s absolute bottom-4 left-4 inline-flex items-center gap-1 rounded-full px-3 py-1.5 font-medium shadow-xs">
-                <StarIcon className="fill-brand-500 text-brand-500 size-3.5" aria-hidden />
-                <span className="font-mono tabular-nums">{provider.rating.average.toFixed(1)}</span>
-              </span>
-            ) : null}
-          </section>
-
-          {/* ── Name and credentials ───────────────────────────────── */}
-          <header className="flex flex-col gap-1">
-            <h1 className="font-display text-foreground text-heading-l leading-tight font-medium tracking-[-0.015em]">
-              {provider.fullName}
-            </h1>
-            <p className="text-muted-foreground text-body-s">
-              {[provider.cadreName, provider.departmentName].filter(Boolean).join(" · ")}
-            </p>
+            )}
+            <div className="flex min-w-0 flex-col gap-0.5">
+              <h1 className="font-display text-foreground text-heading-l leading-tight font-medium tracking-[-0.015em]">
+                {provider.fullName}
+              </h1>
+              <p className="text-muted-foreground text-body-s">
+                {[provider.cadreName, provider.departmentName].filter(Boolean).join(" · ")}
+              </p>
+            </div>
           </header>
 
-          {/* ── Action row ─────────────────────────────────────────── */}
-          <div className="flex items-center gap-2">
-            <span className="bg-brand-50 text-brand-700 text-body-s inline-flex min-h-11 items-center gap-1.5 rounded-full px-4 font-medium">
-              <InfoIcon className="size-4" aria-hidden />
-              Details
-            </span>
-            <span className="flex items-center gap-2">
-              {/* Only affordances that do something. A phone or chat button with
-              no transport behind it is a fake affordance; `allow_virtual` is
-              real, and a video visit is bookable as `type: "virtual"`. */}
-              <ActionCircle
-                icon={<VideoIcon className="size-4" aria-hidden />}
-                label={
-                  provider.allowVirtual
-                    ? "This clinician offers video visits"
-                    : "This clinician sees patients in person only"
-                }
-                caption={provider.allowVirtual ? "Video" : "In person"}
-                available={provider.allowVirtual}
-              />
-              <ActionCircle
-                icon={<PhoneIcon className="size-4" aria-hidden />}
-                label="Calling a clinician is not available in MedSync"
-                caption="No calls"
-                available={false}
-              />
-              <ActionCircle
-                icon={<MessageSquareIcon className="size-4" aria-hidden />}
-                label="Messaging a clinician is not available in MedSync"
-                caption="No chat"
-                available={false}
-              />
-            </span>
-          </div>
-
-          {/* ── Stats strip ────────────────────────────────────────── */}
-          <dl className="bg-card dark:shadow-card grid grid-cols-3 gap-2 rounded-2xl p-4 shadow-xs">
-            <Stat
-              icon={<ClockIcon className="size-4" aria-hidden />}
-              value={yearsWithUs(provider.withUsSinceIso)}
-              label="With us"
-            />
-            <Stat
-              icon={<UsersIcon className="size-4" aria-hidden />}
-              value={provider.patientsSeen > 0 ? compact(provider.patientsSeen) : "—"}
-              label="Patients"
-            />
-            <Stat
-              icon={<StarIcon className="size-4" aria-hidden />}
-              value={provider.rating ? compact(provider.rating.count) : "—"}
-              label="Reviews"
-            />
-          </dl>
+          {/* ── The facts, each drawn only when it is one ─────────── */}
+          {facts.length > 0 ? (
+            <ul className="flex flex-wrap gap-2" aria-label="About this clinician">
+              {facts.map(({ icon: Icon, text }) => (
+                <li
+                  key={text}
+                  className="bg-muted border-border text-foreground text-caption inline-flex min-h-[30px] items-center gap-1.5 rounded-full border px-3 font-medium"
+                >
+                  <Icon className="text-muted-foreground size-3.5" aria-hidden />
+                  {text}
+                </li>
+              ))}
+            </ul>
+          ) : null}
         </div>
 
         <div className="flex flex-col gap-4">
-          {/* ── When: the day and the time, as two fields (the reference's
-              "Schedule send"); the calendar behind the first, the day's open
-              times behind the second. */}
+          {/* ── When: a week of day pills under a month select, and the day's
+              open times as a grid of badges (the owner's pick by screenshot). */}
           <section className="flex flex-col gap-3">
             <h2 className="text-foreground text-body-m font-medium">When</h2>
             {days.length === 0 ? (
@@ -266,63 +217,11 @@ export function ProviderScreen({
   );
 }
 
-/**
- * One circle of the action row. `role="img"` so the label is exposed — an
- * aria-label on a bare span is prohibited on the generic role and read by
- * nothing — and the state is also in WORDS beside it (`caption`), never in
- * the tint alone (DESIGN: no colour-only state).
- */
-function ActionCircle({
-  icon,
-  label,
-  caption,
-  available,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  /** The one-word visible state: "Video" / "Not offered". */
-  caption: string;
-  available: boolean;
-}) {
-  return (
-    <span className="flex flex-col items-center gap-1">
-      <span
-        role="img"
-        aria-label={label}
-        className={cn(
-          "grid size-11 place-items-center rounded-full",
-          available
-            ? "bg-card text-brand-700 dark:shadow-card shadow-xs"
-            : "bg-muted text-muted-foreground/60",
-        )}
-      >
-        {icon}
-      </span>
-      <span className="text-caption text-muted-foreground">{caption}</span>
-    </span>
-  );
-}
-
-function Stat({ icon, value, label }: { icon: React.ReactNode; value: string; label: string }) {
-  return (
-    <div className="flex flex-col items-center gap-0.5">
-      <span className="text-brand-700" aria-hidden>
-        {icon}
-      </span>
-      {/* dt before dd in the DOM; the visual order is the same, so no CSS reorder. */}
-      <dt className="text-muted-foreground text-caption order-2">{label}</dt>
-      <dd className="text-foreground text-body-m order-1 font-mono font-medium tabular-nums">
-        {value === "—" ? <span aria-label="none yet">—</span> : value}
-      </dd>
-    </div>
-  );
-}
-
-/** "3 yrs" / "New" — what we actually know, which is time on MedSync here. */
-function yearsWithUs(iso: string | null): string {
-  if (!iso) return "—";
+/** "New on MedSync" / "3 yrs on MedSync" — time at this hospital, which is all we know. */
+function yearsWithUs(iso: string | null): string | null {
+  if (!iso) return null;
   const years = Math.floor((Date.now() - new Date(iso).getTime()) / (365.25 * 86_400_000));
-  return years < 1 ? "New" : `${years} yr${years === 1 ? "" : "s"}`;
+  return years < 1 ? "New on MedSync" : `${years} yr${years === 1 ? "" : "s"} on MedSync`;
 }
 
 /** 3549 → "3,549". Never rounded, never a "+": the count is exact, so it is shown exactly. */
