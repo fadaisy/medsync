@@ -9,7 +9,7 @@ Gate A proposal at `docs/booking-app-gate-a-proposal.md`, and ADRs 0084–0089.
 All gates A′–H are built (H closed at `28b6edb`, ADR 0094). Everything since is a **UI pass** on `feat/booking-app`
 (head `64f7d8b` at the time of writing, all pushed; web is live at `medsync-six.vercel.app`) and, after it, the
 **2026-09-21 feature round** below. The owner drives the UI by screenshot: "does this UI make you happy?" → rework.
-0063 and 0064 are applied (§2); the feature round adds **0065**, GATED and pending.
+0063, 0064 and **0065** are applied (§2); the round is deployed — functions and web (`a6a92e3`, 2026-09-21).
 
 ### 2026-09-21 feature round — what shipped, and the owner actions
 
@@ -29,13 +29,9 @@ rulings, built as lanes over disjoint files (no commits by the lanes):
   `Pill` tones (`info`, `notice`), a `custom` kind with a ≤ 40 label that is inert to the slot engine, a legend under
   the doctor's calendar.
 
-Owner actions, **in this order** (the functions and the web write/select columns 0065 adds):
-
-```sh
-npm run db:migrate                          # 0065_symptoms_and_custom_blocks.sql (GATED, additive, dry-run clean)
-npx supabase functions deploy --use-api     # every function — _shared/ changed again (book.ts, slots.ts, symptoms.ts)
-npx vercel deploy --prod --yes              # then the web; then `cd mobile && npx expo start --lan -c`
-```
+Deployed 2026-09-21 with the owner's named authorisation, in this order: `npm run db:migrate` (0065),
+`npx supabase functions deploy --use-api` (all 63), `npx vercel deploy --prod --yes` (● Ready). Left for the owner:
+`cd mobile && npx expo start --lan -c` to see the phone side.
 
 ### What the pass shipped, in order
 
@@ -117,11 +113,9 @@ bar, the reference redesign, ADR 0085 (photos/ratings/times/emergency tab), ADR 
 
 ## 2. Owner actions still pending
 
-**0055–0064 are applied** on the dev DB (`_medsync_migrations`, verified 2026-09-21). Still pending — GATED,
-dry-run clean in BEGIN/ROLLBACK:
+**0055–0065 are applied** on the dev DB (`_medsync_migrations`, verified 2026-09-21). Still pending:
 
 ```sh
-npm run db:migrate                # 0065 (ADR 0095, symptoms + custom blocks — BEFORE deploying the functions and the web)
 npm run db:backfill-phone-hmac    # once, if not yet run: patient_profiles.phone_hmac for rows before 0062
 ```
 
@@ -137,7 +131,7 @@ npm run db:backfill-phone-hmac    # once, if not yet run: patient_profiles.phone
 | 0062      | `ussd_sessions`, `inbound_sms`, `sms_opt_outs`, `patient_profiles.phone_hmac`, origin + `ussd`, dispatch kind + `sms_reply`, `hospital_id` nullable, audit + `sms_stop`                                                                 | Gate F                                                                              |
 | 0063      | `service_line_fees` (cadre override), `appointments.quoted_fee_ugx/_label/_at` + completeness CHECK, audit action `set_service_line_fee`                                                                                                | Gate G — **before** the redeployed core                                             |
 | 0064      | `appointments.cancelled_reason` legacy words → codes, `declined_reason` NULLed, CHECK `appointments_cancelled_reason_code`                                                                                                              | Gate H — data rewrite + CHECK; apply with the redeploy                              |
-| 0065      | `appointments.symptoms jsonb` (list CHECK), `availability_blocks.kind` + `custom`, `availability_blocks.label` (≤ 40, required for custom)                                                                                              | ADR 0095 — **before** the functions and the web (pending)                           |
+| 0065      | `appointments.symptoms jsonb` (list CHECK), `availability_blocks.kind` + `custom`, `availability_blocks.label` (≤ 40, required for custom)                                                                                              | ADR 0095 — applied 2026-09-21                                                       |
 
 Secrets — Supabase Functions: `MEDSYNC_PHI_KEY` and **`MEDSYNC_SYSTEM_ACTOR_UUID`** are both **set** (the actor is
 `fadhulusama+medsync-system@gmail.com`, created 2026-09-14, no role, mirrored as "MedSync System" — never delete it:
