@@ -2,18 +2,25 @@ import type { SlotOffer } from "@/lib/booking";
 import type { Palette } from "@/theme/tokens";
 import { useMemo, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import DateTimePicker, { DateTimePickerAndroid } from "@react-native-community/datetimepicker";
+import { DEFAULT_TIME_ZONE } from "@shared/slots";
+import { Modal, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 
 import { dateKey, dayLabel, formatTime } from "@/lib/booking";
 import { useStyles, useTheme } from "@/theme/theme";
 import { font, radius, space } from "@/theme/tokens";
 
 /**
- * The reference's "Schedule send": two fields side by side — the day, with a
- * calendar icon, that opens a month grid; the time, with a clock icon, that
- * opens the day's open times — and nothing else. The grid enables only days
- * with something open; the chosen day is the one filled square. Each field
- * opens a sheet from the bottom. Same component, same name, on the web.
+ * The reference's "Schedule send" on the phone: two fields side by side — the
+ * day with a calendar icon, the time with a clock icon — each opening the
+ * platform's own picker. Android shows its dialogs; iOS gets its inline
+ * calendar and time wheel in a sheet, since iOS has no dialog to call.
+ *
+ * A native picker knows nothing about the clinic: it cannot grey out a closed
+ * day or offer only the open times. So the day is bounded to the open range
+ * and a closed day reads "No times"; a picked time snaps to the nearest open
+ * one, and the wheel steps at the clinic's interval when the times share
+ * one. Same component, same name, on the web.
  */
 export function DateTimeFields({
   slotsByDate,
@@ -31,18 +38,68 @@ export function DateTimeFields({
   const { colors } = useTheme();
   const styles = useStyles(makeStyles);
   const days = useMemo(() => Object.keys(slotsByDate).sort(), [slotsByDate]);
-  const openDays = useMemo(() => new Set(days), [days]);
   const slots = day ? (slotsByDate[day] ?? []) : [];
-  const today = dateKey(new Date());
   const [sheet, setSheet] = useState<"day" | "time" | null>(null);
-  const [month, setMonth] = useState<string>(() => (day ?? days[0] ?? today).slice(0, 7));
+  // The wheel's own value while the sheet is up; committed on Done.
+  const [draft, setDraft] = useState<Date | null>(null);
+
+  // The bounds are the open range, end to end; a picker starts from the
+  // chosen time, else the day's first, else the first open one.
+  const firstOpen = days[0] ? new Date(slotsByDate[days[0]]![0]!.startsAtIso) : undefined;
+  const lastDay = days[days.length - 1];
+  const lastOpen = lastDay ? new Date(slotsByDate[lastDay]!.at(-1)!.endsAtIso) : undefined;
+  const startAt = () =>
+    slot
+      ? new Date(slot.startsAtIso)
+      : slots[0]
+        ? new Date(slots[0].startsAtIso)
+        : (firstOpen ?? new Date());
+  const interval = wheelStep(slots);
+
+  const pickDay = (d: Date) => onDay(dateKey(d));
+  const pickTime = (d: Date) => {
+    const s = nearest(slots, d);
+    if (s) onSlot(s);
+  };
+
+  const open = (which: "day" | "time") => {
+    const anchor = startAt();
+    if (Platform.OS === "android") {
+      if (which === "day") {
+        DateTimePickerAndroid.open({
+          value: anchor,
+          mode: "date",
+          minimumDate: firstOpen,
+          maximumDate: lastOpen,
+          timeZoneName: DEFAULT_TIME_ZONE,
+          onValueChange: (_, d) => pickDay(d),
+        });
+      } else {
+        DateTimePickerAndroid.open({
+          value: anchor,
+          mode: "time",
+          is24Hour: false,
+          minuteInterval: interval,
+          timeZoneName: DEFAULT_TIME_ZONE,
+          onValueChange: (_, d) => pickTime(d),
+        });
+      }
+      return;
+    }
+    setDraft(anchor);
+    setSheet(which);
+  };
+  const close = () => {
+    setSheet(null);
+    setDraft(null);
+  };
 
   return (
     <View style={styles.row}>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`Day: ${day ? dayLabel(day) : "not chosen"}. Opens a calendar`}
-        onPress={() => setSheet("day")}
+        accessibilityLabel={`Day: ${day ? dayLabel(day) : "not chosen"}. Opens the calendar`}
+        onPress={() => open("day")}
         style={({ pressed }) => [styles.field, pressed && styles.pressed]}
       >
         <Ionicons name="calendar-outline" size={18} color={colors.mutedForeground} />
@@ -54,9 +111,9 @@ export function DateTimeFields({
 
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`Time: ${slot ? formatTime(slot.startsAtIso) : "not chosen"}. Opens the open times`}
+        accessibilityLabel={`Time: ${slot ? formatTime(slot.startsAtIso) : "not chosen"}. Opens the time picker`}
         disabled={slots.length === 0}
-        onPress={() => setSheet("time")}
+        onPress={() => open("time")}
         style={({ pressed }) => [
           styles.field,
           slots.length === 0 && styles.fieldOff,
@@ -70,182 +127,95 @@ export function DateTimeFields({
         <Ionicons name="chevron-down" size={16} color={colors.mutedForeground} />
       </Pressable>
 
-      <Modal
-        visible={sheet !== null}
-        animationType="slide"
-        presentationStyle="pageSheet"
-        onRequestClose={() => setSheet(null)}
-      >
-        <View style={styles.sheet}>
-          <View style={styles.sheetHead}>
-            <Text accessibilityRole="header" style={styles.sheetTitle}>
-              {sheet === "day" ? "Choose a day" : "Choose a time"}
-            </Text>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Close"
-              onPress={() => setSheet(null)}
-              hitSlop={8}
-              style={styles.close}
-            >
-              <Ionicons name="close" size={22} color={colors.foreground} />
-            </Pressable>
+      {Platform.OS === "ios" ? (
+        <Modal
+          visible={sheet !== null}
+          animationType="slide"
+          presentationStyle="pageSheet"
+          onRequestClose={close}
+        >
+          <View style={styles.sheet}>
+            <View style={styles.sheetHead}>
+              <Text accessibilityRole="header" style={styles.sheetTitle}>
+                {sheet === "day" ? "Choose a day" : "Choose a time"}
+              </Text>
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => {
+                  if (sheet === "time" && draft) pickTime(draft);
+                  close();
+                }}
+                hitSlop={8}
+                style={styles.done}
+              >
+                <Text style={styles.doneText}>Done</Text>
+              </Pressable>
+            </View>
+            {sheet === "day" ? (
+              <DateTimePicker
+                value={draft ?? EPOCH}
+                mode="date"
+                display="inline"
+                minimumDate={firstOpen}
+                maximumDate={lastOpen}
+                timeZoneName={DEFAULT_TIME_ZONE}
+                accentColor={colors.primary}
+                onValueChange={(_, d) => {
+                  pickDay(d);
+                  close();
+                }}
+              />
+            ) : sheet === "time" ? (
+              <DateTimePicker
+                value={draft ?? EPOCH}
+                mode="time"
+                display="spinner"
+                minuteInterval={interval}
+                timeZoneName={DEFAULT_TIME_ZONE}
+                onValueChange={(_, d) => setDraft(d)}
+              />
+            ) : null}
           </View>
-
-          {sheet === "day" ? (
-            <MonthGrid
-              month={month}
-              day={day}
-              today={today}
-              openDays={openDays}
-              onMonth={setMonth}
-              onPick={(d) => {
-                onDay(d);
-                setSheet(null);
-              }}
-            />
-          ) : (
-            <ScrollView contentContainerStyle={styles.times}>
-              {slots.map((s) => {
-                const chosen = s.startsAtIso === slot?.startsAtIso;
-                return (
-                  <Pressable
-                    key={s.startsAtIso}
-                    accessibilityRole="radio"
-                    accessibilityState={{ checked: chosen }}
-                    onPress={() => {
-                      onSlot(s);
-                      setSheet(null);
-                    }}
-                    style={({ pressed }) => [
-                      styles.time,
-                      chosen && styles.timeChosen,
-                      pressed && styles.pressed,
-                    ]}
-                  >
-                    <Text style={[styles.timeText, chosen && styles.timeTextChosen]}>
-                      {formatTime(s.startsAtIso)} – {formatTime(s.endsAtIso)}
-                    </Text>
-                    {chosen ? (
-                      <Ionicons name="checkmark" size={18} color={colors.primaryForeground} />
-                    ) : null}
-                  </Pressable>
-                );
-              })}
-            </ScrollView>
-          )}
-        </View>
-      </Modal>
+        </Modal>
+      ) : null}
     </View>
   );
 }
 
-/* ─── The month grid ────────────────────────────────────────────── */
+/** Unreachable: the draft is set before the sheet opens. Keeps `value` a Date. */
+const EPOCH = new Date(0);
 
-const WEEKDAYS = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
-const MONTH_YEAR = new Intl.DateTimeFormat("en-GB", {
-  month: "long",
-  year: "numeric",
-  timeZone: "UTC",
-});
+/** The open time whose start is closest to the instant picked. */
+function nearest(slots: readonly SlotOffer[], at: Date): SlotOffer | null {
+  const t = at.getTime();
+  let best: SlotOffer | null = null;
+  let gap = Infinity;
+  for (const s of slots) {
+    const g = Math.abs(Date.parse(s.startsAtIso) - t);
+    if (g < gap) {
+      gap = g;
+      best = s;
+    }
+  }
+  return best;
+}
 
-function MonthGrid({
-  month,
-  day,
-  today,
-  openDays,
-  onMonth,
-  onPick,
-}: {
-  month: string;
-  day: string | null;
-  today: string;
-  openDays: Set<string>;
-  onMonth: (month: string) => void;
-  onPick: (day: string) => void;
-}) {
-  const { colors } = useTheme();
-  const styles = useStyles(makeStyles);
-  const first = new Date(`${month}-01T12:00:00Z`);
-  const daysInMonth = new Date(
-    Date.UTC(first.getUTCFullYear(), first.getUTCMonth() + 1, 0),
-  ).getUTCDate();
-  const lead = (first.getUTCDay() + 6) % 7;
-  const cells: (string | null)[] = [
-    ...Array.from({ length: lead }, () => null),
-    ...Array.from({ length: daysInMonth }, (_, i) => `${month}-${String(i + 1).padStart(2, "0")}`),
-  ];
-  const step = (delta: number) => {
-    const d = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth() + delta, 1));
-    onMonth(d.toISOString().slice(0, 7));
-  };
+/** The steps the iOS wheel accepts (the picker's own `MinuteInterval`, unexported). */
+type WheelStep = 1 | 2 | 3 | 4 | 5 | 6 | 10 | 12 | 15 | 20 | 30;
+const WHEEL_STEPS: readonly WheelStep[] = [1, 2, 3, 4, 5, 6, 10, 12, 15, 20, 30];
 
-  return (
-    <View style={styles.grid}>
-      <View style={styles.monthRow}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Previous month"
-          onPress={() => step(-1)}
-          style={styles.monthStep}
-        >
-          <Ionicons name="chevron-back" size={18} color={colors.foreground} />
-        </Pressable>
-        <Text style={styles.monthTitle} accessibilityLiveRegion="polite">
-          {MONTH_YEAR.format(first)}
-        </Text>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Next month"
-          onPress={() => step(1)}
-          style={styles.monthStep}
-        >
-          <Ionicons name="chevron-forward" size={18} color={colors.foreground} />
-        </Pressable>
-      </View>
-      <View style={styles.week}>
-        {WEEKDAYS.map((w) => (
-          <Text key={w} style={styles.weekday}>
-            {w}
-          </Text>
-        ))}
-      </View>
-      <View style={styles.cells}>
-        {cells.map((d, i) => {
-          if (d === null) return <View key={`pad-${i}`} style={styles.cell} />;
-          const open = openDays.has(d);
-          const chosen = d === day;
-          return (
-            <View key={d} style={styles.cell}>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityState={{ selected: chosen, disabled: !open }}
-                accessibilityLabel={`${dayLabel(d)}${open ? "" : ", nothing open"}`}
-                disabled={!open}
-                onPress={() => onPick(d)}
-                style={({ pressed }) => [
-                  styles.dayBtn,
-                  chosen && styles.dayChosen,
-                  d === today && !chosen && styles.dayToday,
-                  pressed && styles.pressed,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.dayText,
-                    !open && styles.dayTextOff,
-                    chosen && styles.dayTextChosen,
-                  ]}
-                >
-                  {Number(d.slice(8, 10))}
-                </Text>
-              </Pressable>
-            </View>
-          );
-        })}
-      </View>
-    </View>
-  );
+/**
+ * The wheel's minute step when every open time sits on one the wheel can
+ * do, so the wheel lands on real times; undefined lets it run by the minute.
+ * ponytail: alignment is checked in UTC minutes, right for whole-hour zones
+ * (the hospital's is); a half-hour zone would need the local minute.
+ */
+function wheelStep(slots: readonly SlotOffer[]): WheelStep | undefined {
+  if (slots.length < 2) return undefined;
+  const gap = (Date.parse(slots[1]!.startsAtIso) - Date.parse(slots[0]!.startsAtIso)) / 60_000;
+  const step = WHEEL_STEPS.find((m) => m === gap);
+  if (!step) return undefined;
+  return slots.every((s) => (Date.parse(s.startsAtIso) / 60_000) % step === 0) ? step : undefined;
 }
 
 const makeStyles = (c: Palette) =>
@@ -283,62 +253,13 @@ const makeStyles = (c: Palette) =>
       letterSpacing: -0.3,
       color: c.foreground,
     },
-    close: {
-      width: 44,
-      height: 44,
-      borderRadius: 22,
-      alignItems: "center",
-      justifyContent: "center",
-      backgroundColor: c.muted,
-    },
-
-    grid: { gap: space[2] },
-    monthRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-    monthStep: {
-      width: 44,
-      height: 44,
-      borderRadius: radius.lg,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    monthTitle: { fontFamily: font.bodyMedium, fontSize: 16.5, color: c.foreground },
-    week: { flexDirection: "row" },
-    weekday: {
-      flex: 1,
-      textAlign: "center",
-      paddingVertical: space[1],
-      fontFamily: font.body,
-      fontSize: 12.5,
-      color: c.mutedForeground,
-    },
-    cells: { flexDirection: "row", flexWrap: "wrap" },
-    cell: { width: `${100 / 7}%`, alignItems: "center", paddingVertical: 2 },
-    dayBtn: {
-      width: 44,
-      height: 44,
-      borderRadius: radius.lg,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    dayChosen: { backgroundColor: c.foreground },
-    dayToday: { borderWidth: 1, borderColor: c.border },
-    dayText: { fontFamily: font.mono, fontSize: 15, color: c.foreground },
-    dayTextOff: { color: c.mutedForeground, opacity: 0.5 },
-    dayTextChosen: { color: c.background, fontFamily: font.bodyMedium },
-
-    times: { gap: space[2], paddingBottom: space[6] },
-    time: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      minHeight: 48,
+    done: {
+      minHeight: 44,
       paddingHorizontal: space[4],
-      borderRadius: radius.xl,
-      backgroundColor: c.card,
-      borderWidth: 1,
-      borderColor: c.border,
+      borderRadius: radius.lg,
+      alignItems: "center",
+      justifyContent: "center",
+      backgroundColor: c.primary,
     },
-    timeChosen: { backgroundColor: c.primary, borderColor: c.primary },
-    timeText: { fontFamily: font.bodyMedium, fontSize: 15, color: c.foreground },
-    timeTextChosen: { color: c.primaryForeground },
+    doneText: { fontFamily: font.bodyMedium, fontSize: 15, color: c.primaryForeground },
   });
