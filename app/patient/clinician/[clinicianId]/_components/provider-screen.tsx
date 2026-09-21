@@ -20,7 +20,7 @@ import {
 import { BottomActionBar, BottomActionBarSpacer } from "@/components/responsive/bottom-action-bar";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { TimeRuler } from "./time-ruler";
+import { TimeSlider } from "./time-slider";
 
 /**
  * The provider screen — the reference design's first panel, component for
@@ -284,7 +284,7 @@ export function ProviderScreen({
                   {slots.length} {slots.length === 1 ? "time" : "times"} open
                 </span>
               </div>
-              <TimeRuler slots={slots} value={slot} onChange={setSlot} />
+              <TimeSlider slots={slots} value={slot} onChange={setSlot} />
             </section>
           ) : null}
 

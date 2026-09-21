@@ -32,7 +32,7 @@ import { DayStrip } from "@/components/patient/day-strip";
 import { EmergencyButton } from "@/components/patient/emergency-button";
 import { NoSilentWait } from "@/components/patient/no-silent-wait";
 import { ProviderHero } from "@/components/patient/provider-hero";
-import { TimeRuler } from "@/components/patient/time-ruler";
+import { TimeSlider } from "@/components/patient/time-slider";
 import { Button } from "@/components/ui/button";
 import { Chip, ChipRow } from "@/components/ui/chip";
 import { Empty } from "@/components/ui/empty";
@@ -473,7 +473,7 @@ export default function DoctorScreen() {
                   {slots.length === 1 ? "1 slot" : `${slots.length} slots`}
                 </Text>
               </View>
-              <TimeRuler slots={slots} value={slot?.startsAtIso ?? null} onChange={pickSlot} />
+              <TimeSlider slots={slots} value={slot?.startsAtIso ?? null} onChange={pickSlot} />
             </View>
           ) : null}
         </View>
