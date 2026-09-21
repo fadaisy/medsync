@@ -49,6 +49,8 @@ export interface AvailabilityRow {
   recurrenceUntilIso: string | null;
   location: string | null;
   notes: string | null;
+  /** ADR 0095: the clinician's own name for a `custom` block; null otherwise. */
+  label: string | null;
 }
 
 export interface SettingsRow {
@@ -185,6 +187,7 @@ async function fetchAvailability(
       recurrenceUntil: availabilityBlocks.recurrenceUntil,
       location: availabilityBlocks.location,
       notes: availabilityBlocks.notes,
+      label: availabilityBlocks.label,
     })
     .from(availabilityBlocks)
     .where(
@@ -230,6 +233,7 @@ async function fetchAvailability(
       recurrenceUntilIso: r.recurrenceUntil ? r.recurrenceUntil.toISOString() : null,
       location: r.location,
       notes: r.notes,
+      label: r.label,
     })),
   };
 }

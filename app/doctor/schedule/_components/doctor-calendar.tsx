@@ -7,6 +7,7 @@ import { useState } from "react";
 
 import { AppointmentDetailSheet } from "@/app/clinician/schedule/_components/appointment-detail-sheet";
 import { EditorDialog } from "@/components/medsync/editor-dialog";
+import { AvailabilityLegend } from "@/components/scheduling/calendar/availability-legend";
 import { MedSyncCalendar } from "@/components/scheduling/calendar/calendar";
 import { Button } from "@/components/ui/button";
 import { Pill } from "@/components/ui/data-table";
@@ -79,12 +80,25 @@ export function DoctorCalendar({
             endsAtIso: ev.endsAtIso,
             patientName: ev.patientName,
             patientCode: ev.patientCode,
+            photoUrl: ev.photoUrl,
+            ageYears: ev.ageYears,
+            sex: ev.sex,
+            complaint: ev.complaint,
           });
         }}
       />
-      <p className="text-muted-foreground text-caption">
-        Showing {windowLabel}; dates outside it draw empty until a reload.
-      </p>
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+        <p className="text-muted-foreground text-caption">
+          Showing {windowLabel}; dates outside it draw empty until a reload.
+        </p>
+        <AvailabilityLegend
+          kinds={[
+            ...new Set(
+              events.flatMap((e) => (e.kind === "availability" ? [e.availabilityKind] : [])),
+            ),
+          ]}
+        />
+      </div>
       <AppointmentDetailSheet item={selected} onOpenChange={(open) => !open && setSelected(null)} />
       <ClinicDayDialog session={session} onClose={() => setSession(null)} />
     </div>

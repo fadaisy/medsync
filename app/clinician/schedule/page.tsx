@@ -13,6 +13,7 @@ import { patientProfiles } from "@/db/schema/patient-profiles";
 import { appointments } from "@/db/schema/scheduling";
 import { users } from "@/db/schema/users";
 import { requireClinicianScope } from "@/lib/clinician/scope";
+import { revealPatientIdentities, toPatientIdentity } from "@/lib/scheduling/patient-identity";
 import { DEFAULT_TIME_ZONE, startOfLocalDay } from "@/supabase/functions/_shared/slots";
 import { ScheduleList } from "./_components/schedule-list";
 
@@ -57,9 +58,14 @@ export default async function ClinicianSchedulePage({ searchParams }: PageProps)
       reasonNote: appointments.reasonNote,
       startsAt: appointments.startsAt,
       endsAt: appointments.endsAt,
+      symptoms: appointments.symptoms,
       patientUserId: appointments.patientUserId,
-      patientName: users.fullName,
       patientCode: patientProfiles.patientCode,
+      firstNameEncrypted: patientProfiles.firstNameEncrypted,
+      surnameEncrypted: patientProfiles.surnameEncrypted,
+      sex: patientProfiles.sex,
+      dateOfBirth: patientProfiles.dateOfBirth,
+      avatarPath: users.avatarPath,
     })
     .from(appointments)
     .innerJoin(users, eq(users.id, appointments.patientUserId))
@@ -75,18 +81,34 @@ export default async function ClinicianSchedulePage({ searchParams }: PageProps)
     )
     .orderBy(asc(appointments.startsAt));
 
-  const list: ScheduleAppointmentRow[] = rows.map((r) => ({
-    id: r.id,
-    status: r.status,
-    priority: r.priority,
-    type: r.type,
-    reason: r.reason,
-    reasonNote: r.reasonNote,
-    startsAtIso: r.startsAt.toISOString(),
-    endsAtIso: r.endsAt.toISOString(),
-    patientName: r.patientName ?? "Patient",
-    patientCode: r.patientCode ?? null,
-  }));
+  // The audited reveal (ADR 0095) — the booking is the care relationship.
+  // `users.full_name` is not read: it is unaudited and, for a patient, not
+  // the profile's name.
+  const revealed = await revealPatientIdentities({
+    viewer: { userId: scope.userId, hospitalId: scope.hospitalId },
+    surface: "clinician_schedule",
+    patients: rows,
+  });
+
+  const list: ScheduleAppointmentRow[] = rows.map((r) => {
+    const who = toPatientIdentity(r, revealed);
+    return {
+      id: r.id,
+      status: r.status,
+      priority: r.priority,
+      type: r.type,
+      reason: r.reason,
+      reasonNote: r.reasonNote,
+      startsAtIso: r.startsAt.toISOString(),
+      endsAtIso: r.endsAt.toISOString(),
+      patientName: who.displayName ?? who.patientCode ?? "Patient",
+      patientCode: r.patientCode ?? null,
+      photoUrl: who.photoUrl,
+      ageYears: who.ageYears,
+      sex: who.sex,
+      complaint: who.complaint,
+    };
+  });
 
   const pendingCount = list.filter((r) => r.status === "pending_approval").length;
   const urgentCount = list.filter((r) => r.priority === "urgent").length;

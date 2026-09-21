@@ -1,10 +1,12 @@
 "use client";
 
+import type { PatientIdentity } from "@/components/medsync/patient-identity";
 import type { PillTone } from "@/components/ui/data-table";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo } from "react";
 import { AlertCircleIcon } from "lucide-react";
 
+import { PatientIdentityCard } from "@/components/medsync/patient-identity";
 import { Pill } from "@/components/ui/data-table";
 import { cn } from "@/lib/utils";
 import { AppointmentDetailSheet } from "./appointment-detail-sheet";
@@ -18,8 +20,25 @@ export interface ScheduleAppointmentRow {
   reasonNote: string | null;
   startsAtIso: string;
   endsAtIso: string;
+  /** The audited reveal (ADR 0095), or the code when it was withheld — never a placeholder. */
   patientName: string;
   patientCode: string | null;
+  photoUrl?: string | null;
+  ageYears?: number | null;
+  sex?: string | null;
+  complaint?: string | null;
+}
+
+/** The card's shape from a row. `patientName` falls back to the code, so a name equal to it is no name. */
+export function identityOf(row: ScheduleAppointmentRow): PatientIdentity {
+  return {
+    patientCode: row.patientCode,
+    displayName: row.patientName === (row.patientCode ?? "Patient") ? null : row.patientName,
+    photoUrl: row.photoUrl ?? null,
+    ageYears: row.ageYears ?? null,
+    sex: row.sex ?? null,
+    complaint: row.complaint ?? null,
+  };
 }
 
 interface ScheduleListProps {
@@ -33,6 +52,8 @@ interface ScheduleListProps {
  * Day-grouped schedule list. URL drives the open detail sheet via
  * ?aff=<uuid>. Pending requests render at the top of their day with
  * a soft amber background; urgent appointments get a red accent dot.
+ * Each row is the patient card (ADR 0095): photo or monogram, name or
+ * code, age and sex, what they said is bothering them.
  */
 export function ScheduleList({
   rows,
@@ -138,27 +159,21 @@ export function ScheduleList({
                         → {formatTime(r.endsAtIso)}
                       </div>
                     </div>
-                    <div className="flex min-w-0 flex-1 flex-col">
-                      <div className="flex items-center gap-2">
-                        {r.priority === "urgent" ? (
+                    <PatientIdentityCard
+                      patient={identityOf(r)}
+                      className="flex-1"
+                      trailing={
+                        r.priority === "urgent" ? (
                           <AlertCircleIcon
                             className="size-3.5 shrink-0 text-red-600 dark:text-red-400"
                             aria-hidden
                           />
-                        ) : null}
-                        <span className="text-foreground text-body-s truncate font-medium">
-                          {r.patientName}
-                        </span>
-                        {r.patientCode ? (
-                          <span className="text-muted-foreground text-caption font-mono tabular-nums">
-                            {r.patientCode}
-                          </span>
-                        ) : null}
-                      </div>
-                      <div className="text-muted-foreground text-caption truncate">
-                        {formatReason(r.reason)} · {r.type === "virtual" ? "Virtual" : "In-person"}
-                      </div>
-                    </div>
+                        ) : null
+                      }
+                    />
+                    <span className="text-muted-foreground text-caption hidden shrink-0 sm:inline">
+                      {formatReason(r.reason)} · {r.type === "virtual" ? "Virtual" : "In-person"}
+                    </span>
                     <Pill tone={statusTones[r.status] ?? "neutral"}>
                       {statusLabel[r.status] ?? r.status}
                     </Pill>

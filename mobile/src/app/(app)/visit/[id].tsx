@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { cancellationSentence } from "@shared/cancel-reasons";
 import { FEE_FOOTNOTE, quoteLine } from "@shared/fees";
+import { formatSymptoms } from "@shared/symptoms";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   ActivityIndicator,
@@ -629,7 +630,7 @@ export default function VisitScreen() {
             </View>
           ) : null}
 
-          {mine && (awaiting || reasonTitle || visit.reasonNote) ? (
+          {mine && (awaiting || reasonTitle || visit.reasonNote || visit.symptoms?.length) ? (
             <View style={styles.card}>
               {awaiting ? (
                 // No promise of a message: there is no transport to send one (§11).
@@ -637,6 +638,13 @@ export default function VisitScreen() {
               ) : null}
               {reasonTitle ? <Text style={styles.meta}>Reason · {reasonTitle}</Text> : null}
               {visit.reasonNote ? <Text style={styles.note}>{visit.reasonNote}</Text> : null}
+              {/* ADR 0095: read back as written — words, never a state. */}
+              {visit.symptoms?.length ? (
+                <>
+                  <Text style={styles.meta}>What you said was bothering you</Text>
+                  <Text style={styles.note}>{formatSymptoms(visit.symptoms)}</Text>
+                </>
+              ) : null}
             </View>
           ) : null}
 

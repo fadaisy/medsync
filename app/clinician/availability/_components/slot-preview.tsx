@@ -78,7 +78,10 @@ export function SlotPreview({
   const bookableBlocks = kindCounts.bookable ?? 0;
   const blockingBlocks = (kindCounts.leave ?? 0) + (kindCounts.unavailable ?? 0);
   const recordedOnlyBlocks =
-    (kindCounts.teaching ?? 0) + (kindCounts.ward_round ?? 0) + (kindCounts.admin ?? 0);
+    (kindCounts.teaching ?? 0) +
+    (kindCounts.ward_round ?? 0) +
+    (kindCounts.admin ?? 0) +
+    (kindCounts.custom ?? 0);
 
   return (
     <section
@@ -129,9 +132,9 @@ export function SlotPreview({
           ) : null}
           {recordedOnlyBlocks > 0 ? (
             <li>
-              Teaching, ward rounds and admin are recorded but do not stop a booking — declare{" "}
-              <span className="text-foreground font-medium">Unavailable</span> over time a patient
-              must not reach.
+              Teaching, ward rounds, admin and custom blocks are recorded but do not stop a booking
+              — declare <span className="text-foreground font-medium">Unavailable</span> over time a
+              patient must not reach.
             </li>
           ) : null}
         </ul>

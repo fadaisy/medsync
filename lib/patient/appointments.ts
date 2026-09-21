@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { PillTone } from "@/components/ui/data-table";
+import type { BookingSymptom } from "@/supabase/functions/_shared/symptoms";
 import { and, asc, desc, eq, gte, inArray, lt } from "drizzle-orm";
 
 import { db } from "@/db";
@@ -9,6 +10,7 @@ import { hospitals } from "@/db/schema/hospitals";
 import { appointments } from "@/db/schema/scheduling";
 import { users } from "@/db/schema/users";
 import { DEFAULT_TIME_ZONE, localWeekdayAndMinutes } from "@/supabase/functions/_shared/slots";
+import { normaliseSymptoms } from "@/supabase/functions/_shared/symptoms";
 
 /**
  * Patient-facing appointment reads + the status vocabulary that goes
@@ -85,6 +87,8 @@ export interface AppointmentRow {
   status: string;
   type: string;
   reasonNote: string | null;
+  /** ADR 0095: what the patient said at booking, read back as words; empty when none. */
+  symptoms: BookingSymptom[];
   /** `users.fullName` is nullable; falls back to "Your clinician". */
   clinicianName: string;
   departmentName: string;
@@ -141,6 +145,7 @@ export async function fetchAppointments(
       status: appointments.status,
       type: appointments.type,
       reasonNote: appointments.reasonNote,
+      symptoms: appointments.symptoms,
       clinicianName: users.fullName,
       departmentName: hospitalDepartments.name,
       hospitalName: hospitals.name,
@@ -174,6 +179,7 @@ export async function fetchAppointments(
     status: r.status,
     type: r.type,
     reasonNote: r.reasonNote,
+    symptoms: normaliseSymptoms(r.symptoms) ?? [],
     clinicianName: r.clinicianName ?? "Your clinician",
     departmentName: r.departmentName,
     hospitalName: r.hospitalName,

@@ -1,10 +1,12 @@
 "use client";
 
+import type { PatientIdentity } from "@/components/medsync/patient-identity";
 import { useState, useTransition } from "react";
 import { AlertTriangleIcon, ClockIcon, PlayIcon, PlusIcon, UserPlusIcon } from "lucide-react";
 
 import { EditorDialog } from "@/components/medsync/editor-dialog";
 import { Panel } from "@/components/medsync/panel";
+import { PatientIdentityCard } from "@/components/medsync/patient-identity";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,6 +28,7 @@ export interface QueueRow {
   sequenceNumber: number;
   priorityLabel: string | null;
   patientCode: string | null;
+  identity: PatientIdentity;
   appointmentId: string | null;
   notes: string | null;
 }
@@ -121,14 +124,16 @@ function QueueChip({ row, variant }: { row: QueueRow; variant: "waiting" | "bein
         #{row.sequenceNumber}
       </span>
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="text-foreground text-body-s inline-flex items-center gap-1 font-medium">
-          {row.patientCode ?? "Patient"}
-          {isUrgent ? (
-            // The rose tint is never the only carrier of "urgent" — the
-            // KIND_LABEL line below spells out "Urgent walk-in" in text.
-            <AlertTriangleIcon className="size-3 text-rose-600 dark:text-rose-400" aria-hidden />
-          ) : null}
-        </span>
+        <PatientIdentityCard
+          patient={row.identity}
+          trailing={
+            isUrgent ? (
+              // The rose tint is never the only carrier of "urgent" — the
+              // KIND_LABEL line below spells out "Urgent walk-in" in text.
+              <AlertTriangleIcon className="size-3 text-rose-600 dark:text-rose-400" aria-hidden />
+            ) : null
+          }
+        />
         <span className="text-muted-foreground text-caption inline-flex items-center gap-1 font-mono tabular-nums">
           <ClockIcon className="size-2.5" aria-hidden />
           {formatRelative(row.arrivedAtIso)} · {KIND_LABEL[row.kind] ?? row.kind}
@@ -159,7 +164,7 @@ function QueueChip({ row, variant }: { row: QueueRow; variant: "waiting" | "bein
           className="min-h-11 min-w-11"
           disabled={pending}
           onClick={call}
-          aria-label={`Call ${row.patientCode ?? "patient"} and start the encounter`}
+          aria-label={`Call ${row.identity.displayName ?? row.patientCode ?? "patient"} and start the encounter`}
         >
           <PlayIcon className="size-3.5" />
         </Button>

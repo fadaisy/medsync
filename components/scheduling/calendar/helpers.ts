@@ -73,6 +73,7 @@ export const AVAILABILITY_KIND_LABEL: Record<string, string> = {
   admin: "Admin",
   leave: "Leave",
   unavailable: "Unavailable",
+  custom: "Custom",
 };
 
 /**
@@ -83,20 +84,48 @@ export const AVAILABILITY_KIND_LABEL: Record<string, string> = {
  */
 export const CARD_TONE_CLASSES: Record<StatusTone, string> = {
   pending: "bg-amber-50 border-amber-200 dark:bg-amber-950/30 dark:border-amber-900",
-  confirmed: "bg-brand-50 border-brand-200 dark:bg-brand-950/30 dark:border-brand-900",
+  // brand-* and gray-* are role-inverted by `.dark` in globals.css — no `dark:` override.
+  confirmed: "bg-brand-50 border-brand-200",
   arrived: "bg-green-50 border-green-200 dark:bg-green-950/30 dark:border-green-900",
   completed: "bg-muted border-border text-muted-foreground",
   cancelled: "bg-muted/60 border-border text-muted-foreground",
   no_show: "bg-muted border-border text-muted-foreground",
 };
 
-export const SESSION_CARD_CLASSES =
-  "bg-brand-100 border-brand-300 dark:bg-brand-900/30 dark:border-brand-700";
+export const SESSION_CARD_CLASSES = "bg-brand-100 border-brand-300";
 export const MUTED_CARD_CLASSES = "bg-muted/50 border-border/70 text-muted-foreground";
 
-/** Bookable is the one block a doctor wants to spot; the rest recede. */
+/**
+ * Pill tone per availability kind — the one map every list, sheet and
+ * legend reads (ADR 0095). `leave` and `unavailable` used to share "caution";
+ * the owner asked to tell every kind apart at a glance, so each has its own
+ * tint — and the word still carries the state, never the colour alone.
+ * Nothing here is "critical": red is for genuine emergencies, and a
+ * doctor's day off is not one.
+ */
+export const AVAILABILITY_KIND_TONES: Record<string, PillTone> = {
+  bookable: "admitted",
+  teaching: "info",
+  ward_round: "discharged",
+  admin: "neutral",
+  leave: "caution",
+  unavailable: "notice",
+  custom: "stable",
+};
+
+/**
+ * Card fill + border per kind, matching the pill tones above. Bookable used
+ * to be the only tinted block with the rest receding into the muted grey;
+ * ADR 0095 gives each its own tint for the same reason as the tones.
+ */
 export const AVAILABILITY_CARD_CLASSES: Record<string, string> = {
-  bookable: "bg-brand-50/40 border-brand-100/70 dark:bg-brand-950/15 dark:border-brand-900/50",
+  bookable: "bg-brand-50 border-brand-200",
+  teaching: "bg-blue-50 border-blue-200 dark:bg-blue-950/30 dark:border-blue-900",
+  ward_round: "bg-status-discharged-bg border-violet-200 dark:border-violet-900",
+  admin: "bg-gray-100 border-gray-300",
+  leave: "bg-status-caution-bg border-amber-300 dark:border-amber-800",
+  unavailable: "bg-orange-50 border-orange-300 dark:bg-orange-950/30 dark:border-orange-800",
+  custom: "bg-status-stable-bg border-green-300 dark:border-green-800",
 };
 
 /** What a card says and how it is tinted — one description shared by every view and the search. */
@@ -150,11 +179,13 @@ export function describeEvent(ev: CalendarEvent): EventDescription {
       clickable: true,
     };
   }
+  // A custom block IS its label; the pill still says "Custom" so the kind is named.
+  const kindLabel = AVAILABILITY_KIND_LABEL[ev.availabilityKind] ?? ev.availabilityKind;
   return {
-    kindLabel: AVAILABILITY_KIND_LABEL[ev.availabilityKind] ?? ev.availabilityKind,
-    pillTone: ev.availabilityKind === "bookable" ? "stable" : "neutral",
+    kindLabel,
+    pillTone: AVAILABILITY_KIND_TONES[ev.availabilityKind] ?? "neutral",
     statusWord: null,
-    title: AVAILABILITY_KIND_LABEL[ev.availabilityKind] ?? ev.availabilityKind,
+    title: ev.availabilityKind === "custom" ? (ev.label ?? "Custom") : kindLabel,
     subtitle: ev.location,
     monogram: null,
     cardClasses: AVAILABILITY_CARD_CLASSES[ev.availabilityKind] ?? MUTED_CARD_CLASSES,

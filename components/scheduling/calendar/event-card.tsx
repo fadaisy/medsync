@@ -4,6 +4,7 @@ import type { CalendarEvent, OnEventClick } from "./types";
 import type { CSSProperties } from "react";
 import { ArrowUpRightIcon, ClockIcon } from "lucide-react";
 
+import { PatientAvatar } from "@/components/medsync/patient-identity";
 import { Pill } from "@/components/ui/pill";
 import { cn } from "@/lib/utils";
 import { cardRows, describeEvent, formatTimeRange } from "./helpers";
@@ -15,7 +16,9 @@ type ParsedEvent = CalendarEvent & { startsAt: Date; endsAt: Date };
  * (and the status word beside it), the title, a muted subtitle, the time
  * with a clock, then a footer of monogram chip and the open-arrow. Which
  * rows show is `cardRows()`'s call, by height — a 15-minute slot is the
- * title alone.
+ * title alone. An appointment's chip is the patient's photo or monogram
+ * (ADR 0095), and its subtitle is what they said is bothering them when
+ * they said anything, else the reason code.
  *
  * Appointments and clinic days are buttons — the whole card opens the
  * detail, so the arrow at the corner is decoration, not a second control
@@ -36,6 +39,7 @@ export function EventCard({
   const d = describeEvent(event);
   const rows = cardRows(heightPx);
   const timeRange = formatTimeRange(event.startsAt, event.endsAt);
+  const subtitle = (event.kind === "appointment" && event.complaint) || d.subtitle;
   const classes = cn(
     "absolute inset-x-1 flex flex-col overflow-hidden rounded-lg border px-2 text-left",
     // Vertical room follows the rows: a pill-and-title card has 2px to spare.
@@ -68,9 +72,9 @@ export function EventCard({
       >
         {d.title}
       </span>
-      {rows.subtitle && d.subtitle ? (
+      {rows.subtitle && subtitle ? (
         <span className="text-muted-foreground truncate text-[11.5px] leading-tight">
-          {d.subtitle}
+          {subtitle}
         </span>
       ) : null}
       {rows.time ? (
@@ -81,12 +85,16 @@ export function EventCard({
       ) : null}
       {rows.footer && d.clickable ? (
         <span className="mt-auto flex items-center justify-between pt-1">
-          <span
-            aria-hidden
-            className="bg-card text-foreground ring-border grid size-6 place-items-center rounded-full font-mono text-[10px] font-medium tabular-nums ring-1"
-          >
-            {d.monogram}
-          </span>
+          {event.kind === "appointment" ? (
+            <PatientAvatar size="xs" name={event.patientName} photoUrl={event.photoUrl ?? null} />
+          ) : (
+            <span
+              aria-hidden
+              className="bg-card text-foreground ring-border grid size-6 place-items-center rounded-full font-mono text-[10px] font-medium tabular-nums ring-1"
+            >
+              {d.monogram}
+            </span>
+          )}
           <span
             aria-hidden
             className="bg-card text-foreground ring-border grid size-6 place-items-center rounded-full ring-1"
@@ -109,7 +117,7 @@ export function EventCard({
     <button
       type="button"
       onClick={() => onEventClick?.(event)}
-      aria-label={[d.kindLabel, d.statusWord, d.title, d.subtitle, timeRange]
+      aria-label={[d.kindLabel, d.statusWord, d.title, subtitle, timeRange]
         .filter(Boolean)
         .join(", ")}
       className={classes}

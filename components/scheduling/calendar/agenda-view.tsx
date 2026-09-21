@@ -2,6 +2,7 @@
 
 import type { CalendarEvent, OnEventClick } from "./types";
 
+import { PatientAvatar } from "@/components/medsync/patient-identity";
 import { Pill } from "@/components/ui/pill";
 import { cn } from "@/lib/utils";
 import {
@@ -24,7 +25,9 @@ type ParsedEvent = CalendarEvent & { startsAt: Date; endsAt: Date };
  * Lists appointments and clinic days — every session-held booking too,
  * since a list is where twenty names for one clinic morning belong.
  * Availability blocks stay off it, as on the day's own column they are
- * background.
+ * background. A booking's row leads with the patient's photo or monogram
+ * and prefers what they said is bothering them over the reason code
+ * (ADR 0095).
  */
 export function AgendaView({
   cursor,
@@ -70,6 +73,7 @@ export function AgendaView({
                 <ul className="flex flex-col gap-1.5">
                   {dayEvents.map((ev) => {
                     const desc = describeEvent(ev);
+                    const subtitle = (ev.kind === "appointment" && ev.complaint) || desc.subtitle;
                     return (
                       <li key={ev.id}>
                         <button
@@ -79,7 +83,7 @@ export function AgendaView({
                             desc.kindLabel,
                             desc.statusWord,
                             desc.title,
-                            desc.subtitle,
+                            subtitle,
                             formatTimeRange(ev.startsAt, ev.endsAt),
                           ]
                             .filter(Boolean)
@@ -92,6 +96,13 @@ export function AgendaView({
                           <span className="text-foreground w-[7.5rem] shrink-0 font-mono text-[11.5px] tabular-nums">
                             {formatTimeRange(ev.startsAt, ev.endsAt)}
                           </span>
+                          {ev.kind === "appointment" ? (
+                            <PatientAvatar
+                              size="sm"
+                              name={ev.patientName}
+                              photoUrl={ev.photoUrl ?? null}
+                            />
+                          ) : null}
                           <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                             <span className="flex min-w-0 items-center gap-1.5">
                               <Pill
@@ -114,9 +125,9 @@ export function AgendaView({
                             >
                               {desc.title}
                             </span>
-                            {desc.subtitle ? (
+                            {subtitle ? (
                               <span className="text-muted-foreground truncate text-[11.5px]">
-                                {desc.subtitle}
+                                {subtitle}
                               </span>
                             ) : null}
                           </span>

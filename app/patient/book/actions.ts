@@ -9,6 +9,11 @@ import { requirePatientScope } from "@/lib/patient/scope";
 import { callEdge } from "@/lib/supabase/edge";
 import { createClient } from "@/lib/supabase/server";
 import { PATIENT_REASON_CODES } from "@/supabase/functions/_shared/sessions-sql";
+import {
+  MAX_SYMPTOM_LABEL,
+  MAX_SYMPTOMS,
+  SYMPTOM_DURATION_CODES,
+} from "@/supabase/functions/_shared/symptoms";
 
 /**
  * The wizard's one POST, mirroring `pt-request-appointment`'s three-mode
@@ -23,6 +28,17 @@ const BookArgs = z
   .object({
     reason: z.enum(PATIENT_REASON_CODES),
     reason_note: z.string().max(500).optional(),
+    /** ADR 0095: what the patient chose to say, as words for the clinic — never routed on. */
+    symptoms: z
+      .array(
+        z.object({
+          code: z.string().max(64).nullable(),
+          label: z.string().trim().min(1).max(MAX_SYMPTOM_LABEL),
+          duration: z.enum(SYMPTOM_DURATION_CODES),
+        }),
+      )
+      .max(MAX_SYMPTOMS)
+      .optional(),
     idempotency_key: z.string().uuid(),
     /** Gate D: book for a household member. The Edge Function checks the list. */
     for_provisional_id: z.string().uuid().optional(),

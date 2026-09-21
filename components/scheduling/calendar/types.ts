@@ -21,8 +21,19 @@ export interface CalendarAppointment extends CalendarEventBase {
   type: "in_person" | "virtual";
   reason: string;
   reasonNote: string | null;
-  patientName: string; // pre-formatted (display only)
+  /**
+   * The name the clinic sees — the audited reveal (ADR 0095), or the patient
+   * code when no name could be revealed. Pre-formatted, display only.
+   */
+  patientName: string;
   patientCode: string | null;
+  /** Signed, expiring URL of the patient's photo, or null → a monogram. */
+  photoUrl?: string | null;
+  ageYears?: number | null;
+  /** The raw enum ('male' | 'female' | 'intersex' | 'prefer_not_say'); the card labels it. */
+  sex?: string | null;
+  /** What the patient said is bothering them, already formatted — ADR 0095. */
+  complaint?: string | null;
   clinicianName: string | null;
   departmentName: string | null;
   /**
@@ -36,9 +47,11 @@ export interface CalendarAppointment extends CalendarEventBase {
 
 export interface CalendarAvailability extends CalendarEventBase {
   kind: "availability";
-  availabilityKind: string; // bookable / teaching / ward_round / admin / leave / unavailable
+  availabilityKind: string; // bookable / teaching / ward_round / admin / leave / unavailable / custom
   recurrence: string;
   location: string | null;
+  /** ADR 0095: the clinician's own name for a `custom` block; null for every other kind. */
+  label: string | null;
 }
 
 /** One dated clinic day — the hospital admin's weekly rule, materialised. */

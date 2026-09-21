@@ -84,9 +84,17 @@ describe("no clinical question, red only for emergencies", () => {
     "app/patient/appointments/_components/arrived-button.tsx",
     "app/hospital-admin/scheduling/page.tsx",
   ];
+  // ADR 0095: the desk mounts the descriptive picker, so the word "symptom"
+  // is now allowed on the two booking files — as a module name, never as a
+  // question. Every other word and the red-class ban stand.
+  const BOOKING = new Set([
+    "app/reception/book/_components/desk-booking.tsx",
+    "app/reception/book/page.tsx",
+  ]);
   it.each(surfaces)("%s", (rel) => {
     const src = read(rel);
-    expect(src).not.toMatch(/symptom|pain|fever|bleed|how (bad|severe)/i);
+    expect(src).not.toMatch(/pain|fever|bleed|how (bad|severe)/i);
+    if (!BOOKING.has(rel)) expect(src).not.toMatch(/symptom/i);
     expect(src).not.toMatch(/text-destructive|status-critical|bg-red|text-red/);
   });
 });

@@ -27,6 +27,11 @@ const KIND_OPTIONS: ReadonlyArray<{ value: AvailabilityKind; label: string; hint
   { value: "admin", label: "Admin", hint: "Recorded. Does not block booking." },
   { value: "leave", label: "Leave", hint: "Subtracts from bookable time." },
   { value: "unavailable", label: "Unavailable", hint: "Subtracts from bookable time." },
+  {
+    value: "custom",
+    label: "Custom",
+    hint: "Your own name for it. Drawn on your calendar; does not stop a booking.",
+  },
 ];
 
 const WEEKDAYS = [
@@ -96,7 +101,7 @@ function FormContent({ block, onClose }: { block: AvailabilityRow | null; onClos
         <SheetDescription>
           {isEdit
             ? "Update the block, then save. Cancelling a bookable block with live appointments is refused — reschedule those first."
-            : "Declare a time window. Bookable blocks become slots patients can book, and Leave or Unavailable subtracts from them. Teaching, ward rounds and admin are recorded but do not stop a booking."}
+            : "Declare a time window. Bookable blocks become slots patients can book, and Leave or Unavailable subtracts from them. Teaching, ward rounds, admin and your own custom blocks are recorded but do not stop a booking."}
         </SheetDescription>
       </SheetHeader>
 
@@ -135,6 +140,21 @@ function FormContent({ block, onClose }: { block: AvailabilityRow | null; onClos
               ))}
             </div>
           </div>
+
+          {/* A custom block IS its name (0065 CHECK: custom ⇒ label). */}
+          {kind === "custom" ? (
+            <div className="flex flex-col gap-1">
+              <Label htmlFor="label">Name</Label>
+              <Input
+                id="label"
+                name="label"
+                required
+                maxLength={40}
+                placeholder="e.g. Clinic at Kiruddu"
+                defaultValue={block?.label ?? ""}
+              />
+            </div>
+          ) : null}
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div className="flex flex-col gap-1">
@@ -253,8 +273,8 @@ function FormContent({ block, onClose }: { block: AvailabilityRow | null; onClos
             </p>
             <p className="text-caption leading-relaxed text-amber-900/80 dark:text-amber-100/80">
               Bookable blocks with live appointments can&apos;t be cancelled — reschedule those
-              first. Every other kind (teaching, ward round, admin, leave, unavailable) cancels
-              unconditionally.
+              first. Every other kind (teaching, ward round, admin, leave, unavailable, custom)
+              cancels unconditionally.
             </p>
             <Input
               name="reason"

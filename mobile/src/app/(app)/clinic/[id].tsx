@@ -1,7 +1,9 @@
 import type { WaitOption } from "@/components/patient/no-silent-wait";
+import type { SymptomDraft } from "@/components/patient/symptom-picker";
 import type {
   AppointmentReason,
   BookingReceipt,
+  BookingSymptomOption,
   ClinicSession,
   HouseholdMember,
   PatientProfile,
@@ -26,6 +28,7 @@ import { BookingDone } from "@/components/patient/booking-done";
 import { BookingInterstitial } from "@/components/patient/booking-interstitial";
 import { EmergencyButton } from "@/components/patient/emergency-button";
 import { NoSilentWait } from "@/components/patient/no-silent-wait";
+import { completeSymptoms, SymptomPicker } from "@/components/patient/symptom-picker";
 import { WaitlistJoin } from "@/components/patient/waitlist-join";
 import { Button } from "@/components/ui/button";
 import { Chip, ChipRow, Tile } from "@/components/ui/chip";
@@ -39,6 +42,7 @@ import {
   fetchServiceLine,
   fetchServiceLines,
   fetchSessions,
+  fetchSymptomCatalog,
   formatDateLong,
   INTERSTITIAL_REASONS,
   newIdempotencyKey,
@@ -108,6 +112,9 @@ export default function ClinicScreen() {
   const [session, setSession] = useState<ClinicSession | null>(null);
   const [note, setNote] = useState("");
   const [noteFocused, setNoteFocused] = useState(false);
+  // ADR 0095: words for the clinic, optional. An empty catalogue hides the picker.
+  const [catalog, setCatalog] = useState<BookingSymptomOption[]>([]);
+  const [symptoms, setSymptoms] = useState<SymptomDraft[]>([]);
 
   const keyRef = useRef<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -127,9 +134,16 @@ export default function ClinicScreen() {
         }
         const found = await fetchServiceLine(id);
         setLine(found);
-        // Fails to empty: a household read that failed hides the chips, and
-        // the visit is then the patient's own.
-        setHousehold(await fetchHousehold().catch(() => []));
+        // Both fail to empty: a household read that failed hides the chips
+        // (the visit is then the patient's own), a catalogue that failed hides
+        // the picker. Read together — neither gates the other, and the
+        // catalogue is only needed once the sheet opens.
+        const [members, catalogue] = await Promise.all([
+          fetchHousehold().catch(() => []),
+          fetchSymptomCatalog().catch(() => []),
+        ]);
+        setHousehold(members);
+        setCatalog(catalogue);
         if (found) {
           const rows = await fetchSessions({ serviceLineId: found.id });
           setSessions(rows);
@@ -159,6 +173,12 @@ export default function ClinicScreen() {
     setForMember(m);
     keyRef.current = null;
   };
+  const pickSymptoms = (next: SymptomDraft[]) => {
+    setSymptoms(next);
+    keyRef.current = null;
+  };
+  // Null while a chosen entry still has no duration — Confirm waits for it.
+  const symptomsReady = completeSymptoms(symptoms);
 
   const onSubmit = async () => {
     if (!profile || !line || !reason || !session || busy) return;
@@ -173,6 +193,7 @@ export default function ClinicScreen() {
       hospitalId: line.hospitalId,
       reason,
       reasonNote: note.trim() || null,
+      symptoms: symptomsReady,
       idempotencyKey: keyRef.current,
       forProvisionalId: member?.provisionalPatientId,
       session: { sessionId: session.id },
@@ -356,10 +377,15 @@ export default function ClinicScreen() {
                   </Text>
                 </View>
               ) : null}
+              {symptomsReady === null ? (
+                <Text style={styles.hint} accessibilityLiveRegion="polite">
+                  Choose a duration for each one.
+                </Text>
+              ) : null}
               <Button
                 label="Book a place"
                 busy={busy}
-                disabled={!session || !reason}
+                disabled={!session || !reason || symptomsReady === null}
                 onPress={() => void onSubmit()}
               />
             </>
@@ -417,6 +443,12 @@ export default function ClinicScreen() {
               </ChipRow>
               {picked ? <Text style={styles.hint}>{picked.hint}</Text> : null}
             </Section>
+          ) : null}
+
+          {/* ADR 0095: what is bothering them, as words for the clinic.
+              Hidden when the catalogue did not load; the booking stands. */}
+          {sessions.length > 0 && catalog.length > 0 ? (
+            <SymptomPicker options={catalog} value={symptoms} onChange={pickSymptoms} />
           ) : null}
 
           {sessions.length > 0 ? (

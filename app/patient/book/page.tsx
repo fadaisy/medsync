@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { buttonVariants } from "@/components/ui/button";
+import { loadBookingSymptoms } from "@/lib/catalog/symptoms";
 import { fetchHousehold } from "@/lib/patient/household";
 import { requirePatientScope } from "@/lib/patient/scope";
 import { fetchLines } from "@/lib/scheduling/booking-options";
@@ -51,9 +52,10 @@ export default async function PatientBookPage({
 
   const hospitalName = scope.primaryHospitalName ?? "This hospital";
   const now = new Date();
-  const [lines, household] = await Promise.all([
+  const [lines, household, symptomOptions] = await Promise.all([
     fetchLines(scope.primaryHospitalId, scope.userId, now),
     fetchHousehold(scope.userId),
+    loadBookingSymptoms(),
   ]);
   // A line the patient can act on: an open-queue door, a clinician with a
   // day, or a clinic day published. Lines with nothing are dropped before
@@ -108,6 +110,7 @@ export default async function PatientBookPage({
         }))}
         nowIso={now.toISOString()}
         todayIso={localDateKey(now, DEFAULT_TIME_ZONE)}
+        symptomOptions={symptomOptions}
         seed={
           seed.line
             ? {

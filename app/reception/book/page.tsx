@@ -9,6 +9,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { db } from "@/db";
 import { patientProfiles } from "@/db/schema/patient-profiles";
+import { loadBookingSymptoms } from "@/lib/catalog/symptoms";
 import { findPatientsByPhone, searchPatientsByCode } from "@/lib/reception/queries";
 import { requireReceptionScope } from "@/lib/reception/scope";
 import { fetchLines } from "@/lib/scheduling/booking-options";
@@ -41,7 +42,10 @@ export default async function ReceptionBookPage({ searchParams }: PageProps) {
 
   if (patient || newCaller) {
     const now = new Date();
-    const lines = await fetchLines(scope.hospitalId, patient?.patientUserId ?? null, now);
+    const [lines, symptomOptions] = await Promise.all([
+      fetchLines(scope.hospitalId, patient?.patientUserId ?? null, now),
+      loadBookingSymptoms(),
+    ]);
     const open = lines.filter(
       (l) =>
         l.capacityMode !== "open_queue" &&
@@ -63,6 +67,7 @@ export default async function ReceptionBookPage({ searchParams }: PageProps) {
             lines={open}
             nowIso={now.toISOString()}
             todayIso={localDateKey(now, DEFAULT_TIME_ZONE)}
+            symptomOptions={symptomOptions}
           />
         )}
       </div>

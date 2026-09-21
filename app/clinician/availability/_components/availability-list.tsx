@@ -1,35 +1,19 @@
 "use client";
 
 import type { AvailabilityRow } from "../page";
-import type { PillTone } from "@/components/ui/data-table";
-import type { AvailabilityKind } from "@/db/schema/scheduling";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo } from "react";
 import { CalendarPlusIcon } from "lucide-react";
 
+import {
+  AVAILABILITY_KIND_LABEL,
+  AVAILABILITY_KIND_TONES,
+} from "@/components/scheduling/calendar/helpers";
 import { Button } from "@/components/ui/button";
 import { Pill } from "@/components/ui/data-table";
 import { cn } from "@/lib/utils";
 import { AvailabilityFormSheet } from "./availability-form-sheet";
-
-const KIND_TONES: Record<AvailabilityKind, PillTone> = {
-  bookable: "stable",
-  teaching: "admitted",
-  ward_round: "pending",
-  admin: "neutral",
-  leave: "caution",
-  unavailable: "critical",
-};
-
-const KIND_LABEL: Record<AvailabilityKind, string> = {
-  bookable: "Bookable",
-  teaching: "Teaching",
-  ward_round: "Ward round",
-  admin: "Admin",
-  leave: "Leave",
-  unavailable: "Unavailable",
-};
 
 const WEEKDAY_LABEL = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -232,7 +216,14 @@ function BlockRow({ block, onOpen }: { block: AvailabilityRow; onOpen: () => voi
           </span>
         </div>
 
-        <Pill tone={KIND_TONES[block.kind]}>{KIND_LABEL[block.kind]}</Pill>
+        <Pill tone={AVAILABILITY_KIND_TONES[block.kind]}>
+          {AVAILABILITY_KIND_LABEL[block.kind]}
+        </Pill>
+
+        {/* A custom block is its own name (ADR 0095); the pill still says the kind. */}
+        {block.kind === "custom" && block.label ? (
+          <span className="text-foreground text-body-s truncate font-medium">{block.label}</span>
+        ) : null}
 
         {weekly ? (
           <span className="text-muted-foreground text-caption whitespace-nowrap">

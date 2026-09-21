@@ -41,6 +41,7 @@ import {
   LIVE_APPOINTMENT_STATUSES,
   localDateKey,
 } from "@/supabase/functions/_shared/slots";
+import { formatSymptoms } from "@/supabase/functions/_shared/symptoms";
 import { PatientPageHeader } from "../_components/page-header";
 import { TintedRow } from "../_components/tinted-row";
 import { ArrivedButton } from "./_components/arrived-button";
@@ -354,6 +355,11 @@ function UpcomingVisit({
 
       {row.reasonNote ? (
         <p className="text-muted-foreground text-body-s">Reason: {row.reasonNote}</p>
+      ) : null}
+      {row.symptoms.length > 0 ? (
+        <p className="text-muted-foreground text-body-s">
+          You said: {formatSymptoms(row.symptoms)}
+        </p>
       ) : null}
 
       {/* ADR 0084 §13 — reschedule ABOVE cancel, in DOM order and in weight.

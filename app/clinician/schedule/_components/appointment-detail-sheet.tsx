@@ -6,6 +6,7 @@ import { useActionState, useEffect, useState } from "react";
 import { CheckIcon, UserXIcon, XIcon } from "lucide-react";
 
 import { EditorDialog } from "@/components/medsync/editor-dialog";
+import { PatientIdentityCard } from "@/components/medsync/patient-identity";
 import { Button } from "@/components/ui/button";
 import { Pill } from "@/components/ui/data-table";
 import { Input } from "@/components/ui/input";
@@ -24,6 +25,7 @@ import {
   declineAppointmentAction,
   markNoShowAction,
 } from "../actions";
+import { identityOf } from "./schedule-list";
 
 type Mode = "view" | "confirm" | "decline" | "cancel" | "no_show";
 
@@ -60,7 +62,10 @@ function Content({ item, onClose }: { item: ScheduleAppointmentRow; onClose: () 
           <Pill tone="neutral">{item.type === "virtual" ? "Virtual" : "In-person"}</Pill>
           {item.priority === "urgent" ? <Pill tone="critical">Urgent</Pill> : null}
         </div>
-        <SheetTitle>{item.patientName}</SheetTitle>
+        {/* The DESIGN "Patient Summary Card" header (ADR 0095); the sr-only
+            title keeps the dialog named for assistive tech. */}
+        <SheetTitle className="sr-only">{item.patientName}</SheetTitle>
+        <PatientIdentityCard patient={identityOf(item)} density="card" />
         <SheetDescription>
           {formatWhen(item.startsAtIso)}{" "}
           <span className="text-muted-foreground">· {item.reason.replace(/_/g, " ")}</span>
@@ -81,15 +86,8 @@ function Content({ item, onClose }: { item: ScheduleAppointmentRow; onClose: () 
           </dd>
         </dl>
 
-        {item.reasonNote ? (
-          /* Patient's own words — quiet brand-tinted quote card (no edge bars). */
-          <div className="bg-brand-50/50 ring-brand-500/15 mt-4 rounded-md px-3 py-2 ring-1">
-            <p className="text-muted-foreground text-overline font-mono uppercase">Patient note</p>
-            <p className="text-foreground text-body-s leading-relaxed italic">
-              &ldquo;{item.reasonNote}&rdquo;
-            </p>
-          </div>
-        ) : null}
+        {/* The patient's own words ride the card's complaint line above, in
+            quotes (complaintLine) — a second "Patient note" block printed them twice. */}
       </SheetBody>
 
       <SheetFooter>

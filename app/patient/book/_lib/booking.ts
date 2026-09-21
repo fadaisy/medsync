@@ -5,11 +5,15 @@
  * is offered.
  *
  * Nothing in this file asks a clinical question (PRD §7.2 rule 1). A reason
- * is an administrative word from Appendix A; no entry is a symptom.
+ * is an administrative word from Appendix A; no entry is a symptom. What a
+ * patient chooses to say beside it (ADR 0095) is carried as words only.
  */
 
 import type { CapacityMode } from "@/db/schema/service-lines";
 import type { PatientReasonCode } from "@/supabase/functions/_shared/sessions-sql";
+import type { BookingSymptom } from "@/supabase/functions/_shared/symptoms";
+
+import { normaliseSymptoms } from "@/supabase/functions/_shared/symptoms";
 
 /* ─── Reasons (PRD Appendix A) ────────────────────────────────────── */
 
@@ -241,12 +245,23 @@ export function accessAlternatives(
 
 /* ─── Draft persistence ───────────────────────────────────────────── */
 
+/**
+ * ADR 0095: a word the patient chose, whose duration may still be unpicked
+ * mid-step. Only complete entries leave the wizard — the step will not
+ * advance until every one has its duration.
+ */
+export type DraftSymptom = Omit<BookingSymptom, "duration"> & {
+  duration: BookingSymptom["duration"] | null;
+};
+
 export interface BookingDraft {
   v: 1;
   /** Gate D: a household member's provisional id, or null for "me". */
   forProvisionalId: string | null;
   reason: PatientReasonCode | null;
   reasonNote: string;
+  /** Descriptive only (ADR 0095): what they chose to say, never read by an engine. */
+  symptoms: DraftSymptom[];
   interstitialSeen: boolean;
   lineId: string | null;
   clinicianUserId: string | null;
@@ -270,6 +285,8 @@ export function parseDraft(raw: string | null): BookingDraft | null {
       forProvisionalId: typeof d.forProvisionalId === "string" ? d.forProvisionalId : null,
       reason: REASONS.some((r) => r.value === d.reason) ? (d.reason as PatientReasonCode) : null,
       reasonNote: typeof d.reasonNote === "string" ? d.reasonNote.slice(0, 500) : "",
+      // An entry left without a duration does not survive a reload; the rest do.
+      symptoms: normaliseSymptoms(d.symptoms) ?? [],
       interstitialSeen: d.interstitialSeen === true,
       lineId: typeof d.lineId === "string" ? d.lineId : null,
       clinicianUserId: typeof d.clinicianUserId === "string" ? d.clinicianUserId : null,

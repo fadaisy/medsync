@@ -3,6 +3,7 @@
 import type { CalendarEvent } from "@/components/scheduling/calendar/types";
 import { useMemo } from "react";
 
+import { AvailabilityLegend } from "@/components/scheduling/calendar/availability-legend";
 import { MedSyncCalendar } from "@/components/scheduling/calendar/calendar";
 
 /**
@@ -50,7 +51,13 @@ export function CalendarDemo() {
       };
     }
 
-    function block(id: string, start: Date, end: Date, kind: string): CalendarEvent {
+    function block(
+      id: string,
+      start: Date,
+      end: Date,
+      kind: string,
+      label: string | null = null,
+    ): CalendarEvent {
       return {
         id,
         kind: "availability",
@@ -59,6 +66,7 @@ export function CalendarDemo() {
         availabilityKind: kind,
         recurrence: "none",
         location: null,
+        label,
       };
     }
 
@@ -85,14 +93,21 @@ export function CalendarDemo() {
       },
 
       // Tomorrow
+      block("b4", at(1, 8, 0), at(1, 9, 0), "bookable"),
       appt("a5", at(1, 9, 30), 30, "confirmed", "MRN-2026-00211", "Refill"),
       appt("a6", at(1, 11, 0), 30, "confirmed", "MRN-2026-00322", "Routine"),
       block("b3", at(1, 13, 0), at(1, 14, 0), "admin"),
       appt("a7", at(1, 15, 0), 60, "confirmed", "MRN-2026-00133", "Long consult"),
+      // ADR 0095: a custom block is its own name; all seven tints on one demo.
+      block("b5", at(1, 16, 30), at(1, 18, 0), "custom", "Clinic at Kiruddu"),
 
       // Day after
       appt("a8", at(2, 10, 0), 30, "completed", "MRN-2026-00077", "Routine"),
       appt("a9", at(2, 12, 0), 30, "no_show", "MRN-2026-00432", "Follow-up"),
+      block("b6", at(2, 14, 0), at(2, 15, 0), "unavailable"),
+
+      // +3 days
+      block("b7", at(3, 8, 0), at(3, 17, 0), "leave"),
 
       // -2 days
       appt("a10", at(-2, 9, 0), 30, "completed", "MRN-2026-00501", "Routine"),
@@ -102,9 +117,12 @@ export function CalendarDemo() {
     ];
   }, []);
 
+  const kinds = events.flatMap((e) => (e.kind === "availability" ? [e.availabilityKind] : []));
+
   return (
     <div className="flex flex-col gap-3">
       <MedSyncCalendar events={events} defaultView="week" />
+      <AvailabilityLegend kinds={kinds} />
       <p className="text-muted-foreground max-w-prose text-[11.5px] italic">
         Sample data only — illustrative, never real clinical content. Status colours follow{" "}
         <code className="font-mono">DESIGN-medsync.md</code> semantic tokens; red is reserved for

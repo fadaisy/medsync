@@ -1,7 +1,9 @@
 import type { WaitOption } from "@/components/patient/no-silent-wait";
+import type { SymptomDraft } from "@/components/patient/symptom-picker";
 import type {
   AppointmentReason,
   BookingReceipt,
+  BookingSymptomOption,
   ClinicianOption,
   HouseholdMember,
   PatientProfile,
@@ -32,6 +34,7 @@ import { DateTimeFields } from "@/components/patient/date-time-fields";
 import { EmergencyButton } from "@/components/patient/emergency-button";
 import { NoSilentWait } from "@/components/patient/no-silent-wait";
 import { ProviderHero } from "@/components/patient/provider-hero";
+import { completeSymptoms, SymptomPicker } from "@/components/patient/symptom-picker";
 import { Button } from "@/components/ui/button";
 import { Chip, ChipRow } from "@/components/ui/chip";
 import { Empty } from "@/components/ui/empty";
@@ -45,6 +48,7 @@ import {
   fetchHousehold,
   fetchPatientProfile,
   fetchServiceLines,
+  fetchSymptomCatalog,
   formatTime,
   INTERSTITIAL_REASONS,
   newIdempotencyKey,
@@ -148,6 +152,9 @@ export default function DoctorScreen() {
   const [slot, setSlot] = useState<SlotOffer | null>(null);
   const [note, setNote] = useState("");
   const [noteFocused, setNoteFocused] = useState(false);
+  // ADR 0095: words for the clinic, optional. An empty catalogue hides the picker.
+  const [catalog, setCatalog] = useState<BookingSymptomOption[]>([]);
+  const [symptoms, setSymptoms] = useState<SymptomDraft[]>([]);
 
   // One key per submission attempt, minted on the first press and kept
   // across retries; cleared when the pick changes or the booking lands.
@@ -174,9 +181,16 @@ export default function DoctorScreen() {
         setDoctor(found);
         setDayKey(found ? (openDays(found)[0] ?? null) : null);
         setWait(found ? await loadWait(found, here) : null);
-        // Fails to empty: a household read that failed hides the chips, and
-        // the visit is then the patient's own.
-        setHousehold(await fetchHousehold().catch(() => []));
+        // Both fail to empty: a household read that failed hides the chips
+        // (the visit is then the patient's own), a catalogue that failed hides
+        // the picker. Read together — neither gates the other, and the
+        // catalogue is only needed once the sheet opens.
+        const [members, catalogue] = await Promise.all([
+          fetchHousehold().catch(() => []),
+          fetchSymptomCatalog().catch(() => []),
+        ]);
+        setHousehold(members);
+        setCatalog(catalogue);
         setProfile(p);
       })
       .catch(() => setLoadFailed(true));
@@ -207,6 +221,12 @@ export default function DoctorScreen() {
     setForMember(m);
     keyRef.current = null;
   };
+  const pickSymptoms = (next: SymptomDraft[]) => {
+    setSymptoms(next);
+    keyRef.current = null;
+  };
+  // Null while a chosen entry still has no duration — Confirm waits for it.
+  const symptomsReady = completeSymptoms(symptoms);
   // PRD §2.9: a confidential line is never offered for a member.
   const confidential = wait?.line?.confidential === true;
 
@@ -222,6 +242,7 @@ export default function DoctorScreen() {
       hospitalId: doctor.hospitalId,
       reason,
       reasonNote: note.trim() || null,
+      symptoms: symptomsReady,
       idempotencyKey: keyRef.current,
       forProvisionalId: member?.provisionalPatientId,
       slot: {
@@ -499,7 +520,15 @@ export default function DoctorScreen() {
               {doctor.fullName} · {dayLabel(dayKey)} · {formatTime(slot.startsAtIso)}
             </Text>
           ) : null}
-          <ScrollView contentContainerStyle={styles.sheetBody} keyboardShouldPersistTaps="handled">
+          {/* A pageSheet is its own view controller on iOS, so the page's
+              KeyboardAvoidingView never reaches it; the ScrollView pads for
+              the keyboard itself, or the search / "Something else" / note
+              inputs sit under it. */}
+          <ScrollView
+            contentContainerStyle={styles.sheetBody}
+            keyboardShouldPersistTaps="handled"
+            automaticallyAdjustKeyboardInsets
+          >
             {/* Gate D: who the visit is for. Hidden for a confidential line —
               never shown to, or bookable for, a member (PRD §2.9). */}
             {household.length > 0 && !confidential ? (
@@ -535,6 +564,12 @@ export default function DoctorScreen() {
               </ChipRow>
               {picked ? <Text style={styles.hint}>{picked.hint}</Text> : null}
             </Section>
+
+            {/* ADR 0095: what is bothering them, as words for the clinic.
+                Hidden when the catalogue did not load; the booking stands. */}
+            {catalog.length > 0 ? (
+              <SymptomPicker options={catalog} value={symptoms} onChange={pickSymptoms} />
+            ) : null}
 
             {/* ADR 0092: what this clinician's line charges, before the patient
               commits. A single number where the line charges one; a range
@@ -581,10 +616,15 @@ export default function DoctorScreen() {
             ) : null}
           </ScrollView>
           <View style={styles.sheetFoot}>
+            {symptomsReady === null ? (
+              <Text style={styles.hint} accessibilityLiveRegion="polite">
+                Choose a duration for each one.
+              </Text>
+            ) : null}
             <Button
               label="Confirm booking"
               busy={busy}
-              disabled={!slot || !reason}
+              disabled={!slot || !reason || symptomsReady === null}
               onPress={() => void onSubmit()}
             />
           </View>
@@ -633,6 +673,7 @@ const makeStyles = (c: Palette) =>
     },
     sheetBody: { paddingHorizontal: space[5], paddingBottom: space[5], gap: space[5] },
     sheetFoot: {
+      gap: space[2],
       paddingHorizontal: space[5],
       paddingVertical: space[4],
       borderTopWidth: 1,

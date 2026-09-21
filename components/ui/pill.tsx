@@ -22,7 +22,9 @@ export type PillTone =
   | "admitted"
   | "discharged"
   | "pending"
-  | "sensitive";
+  | "sensitive"
+  | "info"
+  | "notice";
 
 // The six clinical statuses resolve to the design-system status tokens, so a Pill
 // and a ClinicalBadge render the same status identically. The tokens are defined
@@ -37,6 +39,10 @@ const PILL_TONES: Record<PillTone, string> = {
   discharged: "bg-status-discharged-bg text-status-discharged-fg",
   pending: "bg-status-pending-bg text-status-pending-fg",
   sensitive: "bg-status-caution-bg text-status-caution-fg ring-status-caution-fg/25 ring-1",
+  // ADR 0095: two more non-clinical tones so every availability kind has its
+  // own tint. Tailwind's own ramps, so these carry dark: variants themselves.
+  info: "bg-blue-100 text-blue-800 dark:bg-blue-950/50 dark:text-blue-200",
+  notice: "bg-orange-100 text-orange-800 dark:bg-orange-950/50 dark:text-orange-200",
 };
 
 export interface PillProps {

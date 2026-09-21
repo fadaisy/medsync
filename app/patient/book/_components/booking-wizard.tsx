@@ -2,7 +2,9 @@
 
 import type { BookingDraft, ClinicianOption, LineOption, SessionOption } from "../_lib/booking";
 import type { BookingReceipt, BookInput } from "../actions";
+import type { BookingSymptomOption } from "@/lib/catalog/symptoms";
 import type { PatientReasonCode } from "@/supabase/functions/_shared/sessions-sql";
+import type { BookingSymptom } from "@/supabase/functions/_shared/symptoms";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useSyncExternalStore, useTransition } from "react";
@@ -16,6 +18,7 @@ import { Pill } from "@/components/ui/pill";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatArrivalWindow, formatFullDate, formatTime } from "@/lib/patient/booking-format";
 import { cn } from "@/lib/utils";
+import { formatSymptoms } from "@/supabase/functions/_shared/symptoms";
 import {
   draftKey,
   firstOpenDay,
@@ -27,6 +30,7 @@ import {
 } from "../_lib/booking";
 import { bookAppointmentAction } from "../actions";
 import { ChoiceList, SessionStep, SlotStep } from "./pick-steps";
+import { SymptomPicker } from "./symptom-picker";
 
 /**
  * "Ask for a day — the clinic confirms" over three capacity modes (ADR 0088).
@@ -45,7 +49,9 @@ import { ChoiceList, SessionStep, SlotStep } from "./pick-steps";
  *
  * No clinical question anywhere in this file, and none may be added: a
  * reason is an administrative word, the interstitial asks nothing, and the
- * note's example is about logistics (PRD §7.2 rule 1).
+ * note's example is about logistics (PRD §7.2 rule 1). The one exception is
+ * ADR 0095's picker, mounted on the reason step: what the patient chooses to
+ * say, as words for the clinic, never read by anything that ranks or routes.
  */
 
 type StepId = "who" | "reason" | "emergency" | "line" | "pick" | "check";
@@ -67,6 +73,8 @@ interface BookingWizardProps {
   nowIso: string;
   /** "YYYY-MM-DD" today in the hospital's zone — never the device's. */
   todayIso: string;
+  /** ADR 0095: the shared catalogue, words only. */
+  symptomOptions: ReadonlyArray<BookingSymptomOption>;
   /**
    * A pick handed in by URL (the provider screen, a service-line tile). A
    * VALID seed — a line the page offers, a clinician on it, a slot they have
@@ -108,6 +116,7 @@ function freshDraft(): BookingDraft {
     forProvisionalId: null,
     reason: null,
     reasonNote: "",
+    symptoms: [],
     interstitialSeen: false,
     lineId: null,
     clinicianUserId: null,
@@ -191,6 +200,7 @@ function Wizard({
   household,
   nowIso,
   todayIso,
+  symptomOptions,
   seed,
 }: BookingWizardProps) {
   const router = useRouter();
@@ -252,7 +262,7 @@ function Wizard({
     stepId === "who"
       ? true
       : stepId === "reason"
-        ? reason !== null
+        ? reason !== null && draft.symptoms.every((s) => s.duration !== null)
         : stepId === "emergency"
           ? true
           : stepId === "line"
@@ -261,9 +271,12 @@ function Wizard({
 
   const submit = () => {
     if (!line || !reason || !picked) return;
+    // canAdvance held the reason step until every duration was picked.
+    const symptoms = draft.symptoms.filter((s): s is BookingSymptom => s.duration !== null);
     const input: BookInput = {
       reason,
       reason_note: draft.reasonNote || undefined,
+      symptoms: symptoms.length ? symptoms : undefined,
       idempotency_key: draft.idempotencyKey,
       for_provisional_id: member?.provisionalPatientId,
       ...(line.capacityMode === "session" && session
@@ -360,8 +373,11 @@ function Wizard({
         <ReasonStep
           reason={reason}
           note={draft.reasonNote}
+          symptoms={draft.symptoms}
+          symptomOptions={symptomOptions}
           onReason={(value) => update({ reason: value, interstitialSeen: false, lineId: null })}
           onNote={(reasonNote) => update({ reasonNote })}
+          onSymptoms={(symptoms) => update({ symptoms })}
         />
       ) : null}
 
@@ -440,6 +456,7 @@ function Wizard({
           whenIso={session?.startsAtIso ?? slot?.startsAtIso ?? null}
           reason={reason}
           reasonNote={draft.reasonNote}
+          symptoms={draft.symptoms}
           appointmentType={draft.appointmentType}
         />
       ) : null}
@@ -493,17 +510,24 @@ function Wizard({
 function ReasonStep({
   reason,
   note,
+  symptoms,
+  symptomOptions,
   onReason,
   onNote,
+  onSymptoms,
 }: {
   reason: PatientReasonCode | null;
   note: string;
+  symptoms: BookingDraft["symptoms"];
+  symptomOptions: ReadonlyArray<BookingSymptomOption>;
   onReason: (v: PatientReasonCode) => void;
   onNote: (v: string) => void;
+  onSymptoms: (v: BookingDraft["symptoms"]) => void;
 }) {
   return (
     <div className="flex flex-col gap-4">
       <ChoiceList name="reason" value={reason} onChange={onReason} options={REASONS} />
+      <SymptomPicker options={symptomOptions} value={symptoms} onChange={onSymptoms} />
       <div className="flex flex-col gap-1.5">
         <label htmlFor="reason-note" className="text-foreground text-body-s font-medium">
           Add a note for the clinic{" "}
@@ -632,6 +656,7 @@ function CheckStep({
   whenIso,
   reason,
   reasonNote,
+  symptoms,
   appointmentType,
 }: {
   line: LineOption;
@@ -643,6 +668,7 @@ function CheckStep({
   whenIso: string | null;
   reason: PatientReasonCode | null;
   reasonNote: string;
+  symptoms: BookingDraft["symptoms"];
   appointmentType: "in_person" | "virtual";
 }) {
   if (!whenIso || !reason) {
@@ -651,6 +677,7 @@ function CheckStep({
     );
   }
   const isSession = line.capacityMode === "session";
+  const said = formatSymptoms(symptoms.filter((s): s is BookingSymptom => s.duration !== null));
   return (
     <div className="flex flex-col gap-4">
       <ul className="flex flex-col gap-2">
@@ -683,6 +710,13 @@ function CheckStep({
           subtitle={appointmentType === "virtual" ? "Video or phone" : "At the clinic"}
         />
       </ul>
+
+      {said ? (
+        <div className="bg-card dark:shadow-card flex flex-col gap-1 rounded-xl p-4 shadow-xs">
+          <span className="text-overline text-muted-foreground">What is bothering you</span>
+          <p className="text-foreground text-body-s leading-relaxed">{said}</p>
+        </div>
+      ) : null}
 
       {reasonNote ? (
         <div className="bg-card dark:shadow-card flex flex-col gap-1 rounded-xl p-4 shadow-xs">

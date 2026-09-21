@@ -1,6 +1,8 @@
 import "server-only";
 
+import type { PatientIdentity } from "@/components/medsync/patient-identity";
 import { and, asc, count, desc, eq, gte, ilike, inArray, lt, sql } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 
 import { db } from "@/db";
 import { clinicalPhiAccessLog } from "@/db/schema/doctor-workspace";
@@ -11,6 +13,8 @@ import { patientProfiles } from "@/db/schema/patient-profiles";
 import { provisionalPatients } from "@/db/schema/provisional-patients";
 import { appointments, encounters, queueEntries } from "@/db/schema/scheduling";
 import { users } from "@/db/schema/users";
+import { computeAgeYears } from "@/lib/age";
+import { signedAvatarUrl } from "@/lib/avatars";
 import { decrypt } from "@/lib/encryption";
 import { declaredLast, presenceAt, presenceOf, ts } from "@/lib/intake/queries";
 import { logger } from "@/lib/logger";
@@ -21,6 +25,7 @@ import {
   localDateKey,
   startOfLocalDay,
 } from "@/supabase/functions/_shared/slots";
+import { complaintLine } from "@/supabase/functions/_shared/symptoms";
 
 /**
  * Reception query layer. All reads are STRICTLY operational +
@@ -139,6 +144,19 @@ async function auditNameReveals(args: {
   }
 }
 
+/**
+ * A signed URL per DISTINCT storage path — one Storage call per photo, not
+ * per row. A photo is PHI like the name (ADR 0095): callers sign only after
+ * the reveal is audited, so a failed audit leaves `photoUrl` null too.
+ */
+async function signAvatars(
+  paths: ReadonlyArray<string | null>,
+): Promise<Map<string, string | null>> {
+  const unique = [...new Set(paths.filter((p): p is string => !!p))];
+  const urls = await Promise.all(unique.map((p) => signedAvatarUrl(p)));
+  return new Map(unique.map((p, i) => [p, urls[i] ?? null]));
+}
+
 /* ─── Today's front-desk counts ─────────────────────────────────── */
 
 export interface ReceptionTodayCounts {
@@ -248,6 +266,12 @@ export interface ExpectedArrival {
   /** An encounter for this booking reached state='completed' — the "Seen" stage. */
   seen: boolean;
   /**
+   * The patient card (ADR 0095): the audited name reveal, photo, age, sex and
+   * what they said is bothering them. For a provisional booking the title is
+   * the declared name (photo null); fail-closed like `displayName` elsewhere.
+   */
+  identity: PatientIdentity;
+  /**
    * Gate D: the booking identity when there is no confirmed account yet.
    * `declaredName` is the audited operational reveal (ADR 0084 §11) — the
    * clerk must match the person at the desk to this row by name.
@@ -278,6 +302,9 @@ export async function fetchExpectedArrivals(args: {
   const on = args.date ?? new Date();
   const start = startOfLocalDay(on, DEFAULT_TIME_ZONE);
   const end = endOfLocalDay(on, DEFAULT_TIME_ZONE);
+  const now = new Date();
+  // `users` is already the clinician's row; the patient's photo needs its own.
+  const patientUsers = alias(users, "patient_users");
 
   const rows = await db
     .select({
@@ -287,6 +314,13 @@ export async function fetchExpectedArrivals(args: {
       type: appointments.type,
       patientUserId: appointments.patientUserId,
       patientCode: patientProfiles.patientCode,
+      firstNameEncrypted: patientProfiles.firstNameEncrypted,
+      surnameEncrypted: patientProfiles.surnameEncrypted,
+      sex: patientProfiles.sex,
+      dateOfBirth: patientProfiles.dateOfBirth,
+      avatarPath: patientUsers.avatarPath,
+      symptoms: appointments.symptoms,
+      reasonNote: appointments.reasonNote,
       clinicianName: users.fullName,
       departmentName: hospitalDepartments.name,
       positionNumber: appointments.positionNumber,
@@ -294,10 +328,13 @@ export async function fetchExpectedArrivals(args: {
       provisionalId: provisionalPatients.id,
       provisionalNameEncrypted: provisionalPatients.declaredNameEncrypted,
       provisionalState: provisionalPatients.reconciliationState,
+      provisionalDateOfBirth: provisionalPatients.dateOfBirth,
+      provisionalAgeYears: provisionalPatients.ageYears,
     })
     .from(appointments)
     // LEFT: a provisional booking has no profile until it is reconciled.
     .leftJoin(patientProfiles, eq(patientProfiles.id, appointments.patientUserId))
+    .leftJoin(patientUsers, eq(patientUsers.id, appointments.patientUserId))
     .leftJoin(provisionalPatients, eq(provisionalPatients.id, appointments.provisionalPatientId))
     .leftJoin(users, eq(users.id, appointments.clinicianUserId))
     .leftJoin(hospitalDepartments, eq(hospitalDepartments.id, appointments.departmentId))
@@ -320,40 +357,75 @@ export async function fetchExpectedArrivals(args: {
     .orderBy(asc(appointments.startsAt))
     .limit(args.limit ?? 100);
 
-  const out: ExpectedArrival[] = rows.map((r) => ({
-    id: r.id,
-    startsAtIso: r.startsAt.toISOString(),
-    status: r.status,
-    type: r.type,
-    patientUserId: r.patientUserId,
-    patientCode: r.patientCode,
-    clinicianName: r.clinicianName,
-    departmentName: r.departmentName,
-    positionNumber: r.positionNumber,
-    seen: r.seen,
-    provisional: r.provisionalId
-      ? {
-          id: r.provisionalId,
-          // Only while the booking still has no patient: once confirmed the
-          // code is the identifier, and the declared name need not be shown.
-          declaredName: r.patientUserId ? null : decryptOrNull(r.provisionalNameEncrypted),
-          state: r.provisionalState ?? "unreconciled",
-        }
-      : null,
-  }));
+  const out: ExpectedArrival[] = rows.map((r) => {
+    // Only while the booking still has no patient: once confirmed the
+    // code is the identifier, and the declared name need not be shown.
+    const declaredName = r.patientUserId ? null : decryptOrNull(r.provisionalNameEncrypted);
+    return {
+      id: r.id,
+      startsAtIso: r.startsAt.toISOString(),
+      status: r.status,
+      type: r.type,
+      patientUserId: r.patientUserId,
+      patientCode: r.patientCode,
+      clinicianName: r.clinicianName,
+      departmentName: r.departmentName,
+      positionNumber: r.positionNumber,
+      seen: r.seen,
+      identity: {
+        patientCode: r.patientCode,
+        displayName: r.patientUserId
+          ? decryptName(r.firstNameEncrypted, r.surnameEncrypted)
+          : declaredName,
+        // Signed below, only once the reveal is audited.
+        photoUrl: null,
+        ageYears: r.patientUserId
+          ? computeAgeYears(r.dateOfBirth, now)
+          : (computeAgeYears(r.provisionalDateOfBirth, now) ?? r.provisionalAgeYears),
+        sex: r.patientUserId ? r.sex : null,
+        complaint: complaintLine(r.symptoms, r.reasonNote),
+      },
+      provisional: r.provisionalId
+        ? { id: r.provisionalId, declaredName, state: r.provisionalState ?? "unreconciled" }
+        : null,
+    };
+  });
+
+  // The profile reveals — name or photo — through the same audited path as
+  // the declared list, one row per patient. Fail closed: no audit, no PHI.
+  const revealedPatients = rows.filter(
+    (r, i) => r.patientUserId && (out[i]!.identity.displayName || r.avatarPath),
+  );
+  const audited = await auditNameReveals({
+    hospitalId: args.hospitalId,
+    receptionUserId: args.receptionUserId,
+    surface: "reception_expected_list",
+    patientUserIds: revealedPatients.map((r) => r.patientUserId!),
+  });
+  if (audited) {
+    const urls = await signAvatars(rows.map((r) => r.avatarPath));
+    rows.forEach((r, i) => {
+      if (r.avatarPath) out[i]!.identity.photoUrl = urls.get(r.avatarPath) ?? null;
+    });
+  } else {
+    for (const r of out) if (r.patientUserId) r.identity.displayName = null;
+  }
 
   // A provisional row has no patient_user_id to audit against, so the reveal
   // is logged against the provisional id in `surface` — one row per name.
   const revealed = out.filter((r) => r.provisional?.declaredName);
   if (revealed.length > 0) {
-    const audited = await auditProvisionalReveals({
+    const provisionalAudited = await auditProvisionalReveals({
       hospitalId: args.hospitalId,
       receptionUserId: args.receptionUserId,
       surface: "reception_expected_list",
       provisionalIds: revealed.map((r) => r.provisional!.id),
     });
-    if (!audited) {
-      for (const r of out) if (r.provisional) r.provisional.declaredName = null;
+    if (!provisionalAudited) {
+      for (const r of out) {
+        if (r.provisional) r.provisional.declaredName = null;
+        if (!r.patientUserId) r.identity.displayName = null;
+      }
     }
   }
   return out;
@@ -659,6 +731,8 @@ export interface DeclaredIntakeRow {
   departmentId: string | null;
   departmentName: string | null;
   presentingComplaint: string | null;
+  /** The patient card (ADR 0095) — same name reveal, plus photo, age, sex and the complaint. */
+  identity: PatientIdentity;
 }
 
 /**
@@ -686,6 +760,9 @@ export async function fetchDeclaredIntakesToday(args: {
       patientCode: patientProfiles.patientCode,
       firstNameEncrypted: patientProfiles.firstNameEncrypted,
       surnameEncrypted: patientProfiles.surnameEncrypted,
+      sex: patientProfiles.sex,
+      dateOfBirth: patientProfiles.dateOfBirth,
+      avatarPath: users.avatarPath,
       declaredAt: patientIntakes.arrivedAt,
       departmentId: patientIntakes.receivingDepartmentId,
       departmentName: hospitalDepartments.name,
@@ -693,6 +770,7 @@ export async function fetchDeclaredIntakesToday(args: {
     })
     .from(patientIntakes)
     .leftJoin(patientProfiles, eq(patientProfiles.id, patientIntakes.patientUserId))
+    .leftJoin(users, eq(users.id, patientIntakes.patientUserId))
     .leftJoin(hospitalDepartments, eq(hospitalDepartments.id, patientIntakes.receivingDepartmentId))
     .where(
       and(
@@ -708,18 +786,34 @@ export async function fetchDeclaredIntakesToday(args: {
     .orderBy(asc(patientIntakes.arrivedAt))
     .limit(args.limit ?? 100);
 
-  const named = rows.map((r) => ({
-    id: r.id,
-    patientCode: r.patientCode,
-    patientUserId: r.patientUserId,
-    displayName: r.patientUserId ? decryptName(r.firstNameEncrypted, r.surnameEncrypted) : null,
-    declaredAtIso: r.declaredAt.toISOString(),
-    departmentId: r.departmentId,
-    departmentName: r.departmentName,
-    presentingComplaint: r.presentingComplaint,
-  }));
+  const named: DeclaredIntakeRow[] = rows.map((r) => {
+    const displayName = r.patientUserId
+      ? decryptName(r.firstNameEncrypted, r.surnameEncrypted)
+      : null;
+    return {
+      id: r.id,
+      patientCode: r.patientCode,
+      patientUserId: r.patientUserId,
+      displayName,
+      declaredAtIso: r.declaredAt.toISOString(),
+      departmentId: r.departmentId,
+      departmentName: r.departmentName,
+      presentingComplaint: r.presentingComplaint,
+      identity: {
+        patientCode: r.patientCode,
+        displayName,
+        // Signed below, only once the reveal is audited.
+        photoUrl: null,
+        ageYears: r.patientUserId ? computeAgeYears(r.dateOfBirth, now) : null,
+        sex: r.patientUserId ? r.sex : null,
+        complaint: complaintLine(null, r.presentingComplaint),
+      },
+    };
+  });
 
-  const revealed = named.filter((r) => r.displayName && r.patientUserId);
+  const revealed = rows.filter(
+    (r, i) => r.patientUserId && (named[i]!.displayName || r.avatarPath),
+  );
   const audited = await auditNameReveals({
     hospitalId: args.hospitalId,
     receptionUserId: args.receptionUserId,
@@ -728,7 +822,18 @@ export async function fetchDeclaredIntakesToday(args: {
   });
   // Fail closed: unaudited PHI is not shown. The list still renders, on
   // patient codes, so check-in keeps working.
-  return audited ? named : named.map((r) => ({ ...r, displayName: null }));
+  if (!audited) {
+    return named.map((r) => ({
+      ...r,
+      displayName: null,
+      identity: { ...r.identity, displayName: null },
+    }));
+  }
+  const urls = await signAvatars(rows.map((r) => r.avatarPath));
+  rows.forEach((r, i) => {
+    if (r.avatarPath) named[i]!.identity.photoUrl = urls.get(r.avatarPath) ?? null;
+  });
+  return named;
 }
 
 /* ─── Find a person on today's board (ADR 0084 §11) ─────────────── */

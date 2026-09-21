@@ -1,5 +1,6 @@
 import "server-only";
 
+import type { PatientIdentity } from "@/components/medsync/patient-identity";
 import { and, asc, desc, eq, gte, inArray, isNull, lt, or, sql } from "drizzle-orm";
 
 import { db } from "@/db";
@@ -11,6 +12,8 @@ import {
   departmentSchedulingPolicy,
   queueEntries,
 } from "@/db/schema/scheduling";
+import { users } from "@/db/schema/users";
+import { revealPatientIdentities, toPatientIdentity } from "@/lib/scheduling/patient-identity";
 import { ACUITY_TIERS } from "@/lib/triage/constants";
 import {
   DEFAULT_TIME_ZONE,
@@ -96,6 +99,8 @@ export interface PendingApprovalRow {
   reasonNote: string | null;
   patientName: string;
   patientCode: string;
+  /** The audited reveal (ADR 0095) — name, photo, age, sex, what they said is bothering them. */
+  identity: PatientIdentity;
   priority: string;
 }
 
@@ -112,11 +117,19 @@ export async function fetchPendingApprovals(args: {
       type: appointments.type,
       reason: appointments.reason,
       reasonNote: appointments.reasonNote,
+      symptoms: appointments.symptoms,
       priority: appointments.priority,
+      patientUserId: appointments.patientUserId,
       patientCode: patientProfiles.patientCode,
+      firstNameEncrypted: patientProfiles.firstNameEncrypted,
+      surnameEncrypted: patientProfiles.surnameEncrypted,
+      sex: patientProfiles.sex,
+      dateOfBirth: patientProfiles.dateOfBirth,
+      avatarPath: users.avatarPath,
     })
     .from(appointments)
     .innerJoin(patientProfiles, eq(patientProfiles.id, appointments.patientUserId))
+    .leftJoin(users, eq(users.id, appointments.patientUserId))
     .where(
       and(
         eq(appointments.clinicianUserId, args.clinicianUserId),
@@ -127,17 +140,27 @@ export async function fetchPendingApprovals(args: {
     .orderBy(asc(appointments.startsAt))
     .limit(args.limit ?? 20);
 
-  return rows.map((r) => ({
-    id: r.id,
-    startsAtIso: r.startsAt.toISOString(),
-    endsAtIso: r.endsAt.toISOString(),
-    type: r.type,
-    reason: r.reason,
-    reasonNote: r.reasonNote,
-    patientName: r.patientCode, // PHI-safe — patient code on the calendar
-    patientCode: r.patientCode,
-    priority: r.priority,
-  }));
+  const revealed = await revealPatientIdentities({
+    viewer: { userId: args.clinicianUserId, hospitalId: args.hospitalId },
+    surface: "doctor_pending_rail",
+    patients: rows,
+  });
+
+  return rows.map((r) => {
+    const identity = toPatientIdentity(r, revealed);
+    return {
+      id: r.id,
+      startsAtIso: r.startsAt.toISOString(),
+      endsAtIso: r.endsAt.toISOString(),
+      type: r.type,
+      reason: r.reason,
+      reasonNote: r.reasonNote,
+      patientName: identity.displayName ?? r.patientCode,
+      patientCode: r.patientCode,
+      identity,
+      priority: r.priority,
+    };
+  });
 }
 
 /* ─── Day's queue rail ───────────────────────────────────────────── */
@@ -154,12 +177,15 @@ export interface DepartmentQueueRow {
   priorityLabel: string | null;
   patientUserId: string;
   patientCode: string | null;
+  /** The audited reveal (ADR 0095). A walk-in has no booking, so no complaint line. */
+  identity: PatientIdentity;
   appointmentId: string | null;
   notes: string | null;
 }
 
 export async function fetchDepartmentQueueToday(args: {
   departmentId: string;
+  viewer: { userId: string; hospitalId: string };
 }): Promise<DepartmentQueueRow[]> {
   // The hospital's day, not the host's (UTC on Vercel — 03:00 EAT).
   const now = new Date();
@@ -177,11 +203,20 @@ export async function fetchDepartmentQueueToday(args: {
       priorityOrder: queueEntries.priorityOrder,
       patientUserId: queueEntries.patientUserId,
       patientCode: patientProfiles.patientCode,
+      firstNameEncrypted: patientProfiles.firstNameEncrypted,
+      surnameEncrypted: patientProfiles.surnameEncrypted,
+      sex: patientProfiles.sex,
+      dateOfBirth: patientProfiles.dateOfBirth,
+      avatarPath: users.avatarPath,
       appointmentId: queueEntries.appointmentId,
+      symptoms: appointments.symptoms,
+      reasonNote: appointments.reasonNote,
       notes: queueEntries.notes,
     })
     .from(queueEntries)
     .leftJoin(patientProfiles, eq(patientProfiles.id, queueEntries.patientUserId))
+    .leftJoin(users, eq(users.id, queueEntries.patientUserId))
+    .leftJoin(appointments, eq(appointments.id, queueEntries.appointmentId))
     .where(
       and(
         eq(queueEntries.departmentId, args.departmentId),
@@ -200,6 +235,12 @@ export async function fetchDepartmentQueueToday(args: {
     // ones a nurse has actually assessed.
     .orderBy(sql`${queueEntries.priorityOrder} ASC NULLS LAST`, asc(queueEntries.sequenceNumber));
 
+  const revealed = await revealPatientIdentities({
+    viewer: args.viewer,
+    surface: "doctor_queue_rail",
+    patients: rows,
+  });
+
   return rows.map((r) => ({
     id: r.id,
     kind: r.kind,
@@ -210,6 +251,7 @@ export async function fetchDepartmentQueueToday(args: {
     priorityLabel: acuityLabel(r.priorityOrder),
     patientUserId: r.patientUserId,
     patientCode: r.patientCode,
+    identity: toPatientIdentity(r, revealed),
     appointmentId: r.appointmentId,
     notes: r.notes,
   }));
@@ -353,6 +395,8 @@ export interface AvailabilityRow {
   recurrenceUntilIso: string | null;
   location: string | null;
   notes: string | null;
+  /** ADR 0095: the clinician's own name for a `custom` block. */
+  label: string | null;
 }
 
 export async function fetchClinicianAvailabilityBlocks(args: {
@@ -372,6 +416,7 @@ export async function fetchClinicianAvailabilityBlocks(args: {
       recurrenceUntil: availabilityBlocks.recurrenceUntil,
       location: availabilityBlocks.location,
       notes: availabilityBlocks.notes,
+      label: availabilityBlocks.label,
     })
     .from(availabilityBlocks)
     .where(
@@ -409,5 +454,6 @@ export async function fetchClinicianAvailabilityBlocks(args: {
     recurrenceUntilIso: r.recurrenceUntil?.toISOString() ?? null,
     location: r.location,
     notes: r.notes,
+    label: r.label,
   }));
 }

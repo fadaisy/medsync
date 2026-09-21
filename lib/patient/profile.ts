@@ -86,12 +86,7 @@ export async function fetchPatientProfileView(
   }
 }
 
-export const SEX_LABEL: Record<string, string> = {
-  male: "Male",
-  female: "Female",
-  intersex: "Intersex",
-  prefer_not_say: "Prefer not to say",
-};
+export { SEX_LABEL } from "./sex";
 
 export const ID_TYPE_LABEL: Record<string, string> = {
   nin: "National ID (NIN)",

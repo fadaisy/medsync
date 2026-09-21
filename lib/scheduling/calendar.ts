@@ -2,6 +2,7 @@ import "server-only";
 
 import type { CalendarEvent } from "@/components/scheduling/calendar/types";
 import { and, asc, eq, gte, inArray, isNull, lt, lte, or, sql } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 
 import { db } from "@/db";
 import { clinicSessions } from "@/db/schema/clinic-sessions";
@@ -10,6 +11,7 @@ import { patientProfiles } from "@/db/schema/patient-profiles";
 import { appointments, availabilityBlocks } from "@/db/schema/scheduling";
 import { serviceLines } from "@/db/schema/service-lines";
 import { users } from "@/db/schema/users";
+import { revealPatientIdentities, toPatientIdentity } from "@/lib/scheduling/patient-identity";
 
 /**
  * Calendar data fetcher — pulls appointments, availability blocks and
@@ -21,10 +23,10 @@ import { users } from "@/db/schema/users";
  * answer (`@/supabase/functions/_shared/slots`) and never this file's —
  * see the weekly-expansion note below for why the two do not share code.
  *
- * Patient names: we surface `patient_code` only by default (no PHI
- * decrypt on the calendar — the slide-out detail panel handles
- * audited decrypt when the doctor opens a specific appointment).
- * Calendar reads stay outside the audited PHI path.
+ * Patient identity (ADR 0095): the booking is the care relationship, so
+ * the calendar names and pictures its patients through the audited reveal
+ * in lib/scheduling/patient-identity — one log row per patient per fetch,
+ * fail-closed to the code. Their stated symptoms ride along as words only.
  */
 export async function fetchClinicianCalendarEvents(args: {
   clinicianUserId: string;
@@ -32,6 +34,9 @@ export async function fetchClinicianCalendarEvents(args: {
   rangeStart: Date;
   rangeEnd: Date;
 }): Promise<CalendarEvent[]> {
+  // `users` is already the clinician's row on this query; the patient's photo
+  // needs the same table a second time.
+  const patientUsers = alias(users, "patient_users");
   const [apptRows, blockRows, sessionRows] = await Promise.all([
     db
       .select({
@@ -44,12 +49,20 @@ export async function fetchClinicianCalendarEvents(args: {
         type: appointments.type,
         reason: appointments.reason,
         reasonNote: appointments.reasonNote,
+        symptoms: appointments.symptoms,
+        patientUserId: appointments.patientUserId,
         patientCode: patientProfiles.patientCode,
+        firstNameEncrypted: patientProfiles.firstNameEncrypted,
+        surnameEncrypted: patientProfiles.surnameEncrypted,
+        sex: patientProfiles.sex,
+        dateOfBirth: patientProfiles.dateOfBirth,
+        avatarPath: patientUsers.avatarPath,
         clinicianName: users.fullName,
         departmentName: hospitalDepartments.name,
       })
       .from(appointments)
       .innerJoin(patientProfiles, eq(patientProfiles.id, appointments.patientUserId))
+      .leftJoin(patientUsers, eq(patientUsers.id, appointments.patientUserId))
       .leftJoin(users, eq(users.id, appointments.clinicianUserId))
       .leftJoin(hospitalDepartments, eq(hospitalDepartments.id, appointments.departmentId))
       .where(
@@ -73,6 +86,7 @@ export async function fetchClinicianCalendarEvents(args: {
         recurrenceWeekday: availabilityBlocks.recurrenceWeekday,
         recurrenceUntil: availabilityBlocks.recurrenceUntil,
         location: availabilityBlocks.location,
+        label: availabilityBlocks.label,
       })
       .from(availabilityBlocks)
       .where(
@@ -159,6 +173,12 @@ export async function fetchClinicianCalendarEvents(args: {
       .limit(200),
   ]);
 
+  const revealed = await revealPatientIdentities({
+    viewer: { userId: args.clinicianUserId, hospitalId: args.hospitalId },
+    surface: "doctor_calendar",
+    patients: apptRows,
+  });
+
   const events: CalendarEvent[] = [];
 
   for (const r of blockRows) {
@@ -229,6 +249,7 @@ export async function fetchClinicianCalendarEvents(args: {
             availabilityKind: r.kind,
             recurrence: r.recurrence,
             location: r.location,
+            label: r.label,
           });
         }
         cursor.setDate(cursor.getDate() + 7);
@@ -269,6 +290,7 @@ export async function fetchClinicianCalendarEvents(args: {
             availabilityKind: r.kind,
             recurrence: r.recurrence,
             location: r.location,
+            label: r.label,
           });
         }
         dayCursor.setDate(dayCursor.getDate() + 1);
@@ -286,6 +308,7 @@ export async function fetchClinicianCalendarEvents(args: {
       availabilityKind: r.kind,
       recurrence: r.recurrence,
       location: r.location,
+      label: r.label,
     });
   }
 
@@ -306,6 +329,7 @@ export async function fetchClinicianCalendarEvents(args: {
   }
 
   for (const r of apptRows) {
+    const who = toPatientIdentity(r, revealed);
     events.push({
       id: `a-${r.id}`,
       kind: "appointment",
@@ -317,11 +341,13 @@ export async function fetchClinicianCalendarEvents(args: {
       type: (r.type === "virtual" ? "virtual" : "in_person") as "in_person" | "virtual",
       reason: r.reason,
       reasonNote: r.reasonNote,
-      // Patient name surface: PHI is encrypted; show patient_code on
-      // the calendar grid. The slide-out detail panel (audited) shows
-      // the decrypted name.
-      patientName: r.patientCode ?? "Patient",
+      // The audited reveal, or the code when it was withheld — never a placeholder name.
+      patientName: who.displayName ?? who.patientCode ?? "Patient",
       patientCode: r.patientCode,
+      photoUrl: who.photoUrl,
+      ageYears: who.ageYears,
+      sex: who.sex,
+      complaint: who.complaint,
       clinicianName: r.clinicianName,
       departmentName: r.departmentName,
     });

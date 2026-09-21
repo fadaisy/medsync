@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowLeftIcon, ClockIcon } from "lucide-react";
 
 import { SectionRule } from "@/components/medsync/panel";
+import { PatientIdentityCard } from "@/components/medsync/patient-identity";
 import { Pill } from "@/components/ui/pill";
 import {
   fetchDeclaredIntakesToday,
@@ -168,29 +169,23 @@ export default async function ReceptionExpectedPage({ searchParams }: PageProps)
                 {declared.map((d) => (
                   <li
                     key={d.id}
-                    className="hover:bg-brand-50/40 ease-expo-out flex items-center justify-between gap-3 px-4 py-3 transition-colors duration-150"
+                    className="hover:bg-brand-50/40 ease-expo-out flex flex-col gap-1 px-4 py-3 transition-colors duration-150"
                   >
-                    <div className="flex min-w-0 flex-col gap-0.5">
-                      <span className="text-foreground text-body-s truncate font-medium">
-                        {d.displayName ?? d.patientCode ?? "Unknown patient"}
-                      </span>
-                      <span className="text-muted-foreground text-caption truncate font-mono tabular-nums">
-                        {[
-                          d.displayName ? d.patientCode : null,
-                          `declared ${formatTime(d.declaredAtIso)}`,
-                        ]
-                          .filter(Boolean)
-                          .join(" · ")}
-                      </span>
-                      <span className="text-muted-foreground text-caption">
-                        {d.departmentName ?? "—"}
-                        {d.presentingComplaint ? ` · "${truncate(d.presentingComplaint, 80)}"` : ""}
-                      </span>
-                    </div>
-                    <CheckInDeclaredButton
-                      intakeId={d.id}
-                      patientLabel={d.displayName ?? d.patientCode ?? "unknown patient"}
+                    <PatientIdentityCard
+                      patient={d.identity}
+                      trailing={
+                        <CheckInDeclaredButton
+                          intakeId={d.id}
+                          patientLabel={d.displayName ?? d.patientCode ?? "unknown patient"}
+                        />
+                      }
                     />
+                    {/* Under the name (32px disc + gap), where the card's own lines sit. */}
+                    <span className="text-muted-foreground text-caption pl-11 tabular-nums">
+                      {[d.departmentName, `declared ${formatTime(d.declaredAtIso)}`]
+                        .filter(Boolean)
+                        .join(" · ")}
+                    </span>
                   </li>
                 ))}
               </ul>
@@ -266,23 +261,21 @@ export default async function ReceptionExpectedPage({ searchParams }: PageProps)
                       <td className="text-foreground text-body-s px-4 py-2.5 font-mono tabular-nums">
                         {formatTime(r.startsAtIso)}
                       </td>
-                      <td className="text-foreground text-body-s px-4 py-2.5">
-                        {r.patientCode ? (
-                          <span className="font-mono tabular-nums">{r.patientCode}</span>
-                        ) : r.provisional ? (
-                          // A booking with no patient record yet. The declared
-                          // name is the audited reveal; the words say the state.
-                          <span className="flex flex-col gap-1">
-                            <span className="font-medium">{r.provisional.declaredName ?? "—"}</span>
-                            <Pill tone="pending">
-                              {r.provisional.state === "rejected"
-                                ? "Not matched · register"
-                                : "Identity to confirm"}
-                            </Pill>
-                          </span>
-                        ) : (
-                          "—"
-                        )}
+                      <td className="min-w-64 px-4 py-2.5">
+                        {/* A booking with no patient record yet titles itself with
+                        the declared name (the audited reveal); the pill says the state. */}
+                        <PatientIdentityCard
+                          patient={r.identity}
+                          trailing={
+                            !r.patientCode && r.provisional ? (
+                              <Pill tone="pending">
+                                {r.provisional.state === "rejected"
+                                  ? "Not matched · register"
+                                  : "Identity to confirm"}
+                              </Pill>
+                            ) : undefined
+                          }
+                        />
                       </td>
                       <td className="text-foreground text-body-s px-4 py-2.5 font-mono tabular-nums">
                         {r.positionNumber ?? "—"}
@@ -353,9 +346,9 @@ export default async function ReceptionExpectedPage({ searchParams }: PageProps)
       </div>
 
       <p className="text-muted-foreground/80 text-caption leading-relaxed">
-        Reception sees operational + demographic data, never clinical content. Names on the declared
-        list are decrypted so you can match the person at the desk — each one is recorded against
-        your account, as is every check-in.
+        Reception sees operational + demographic data, never clinical content. Names and photos on
+        this board are decrypted so you can match the person at the desk — each one is recorded
+        against your account, as is every check-in.
       </p>
     </div>
   );
@@ -369,8 +362,4 @@ function formatTime(iso: string): string {
     hourCycle: "h23",
     timeZone: DEFAULT_TIME_ZONE,
   });
-}
-
-function truncate(s: string, max: number): string {
-  return s.length <= max ? s : s.slice(0, max - 1).trimEnd() + "…";
 }

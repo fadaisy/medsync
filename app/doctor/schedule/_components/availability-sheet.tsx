@@ -1,7 +1,6 @@
 "use client";
 
 import type { AvailabilityRow as ClinicianAvailabilityRow } from "@/app/clinician/availability/page";
-import type { PillTone } from "@/components/ui/data-table";
 import type { AvailabilityKind } from "@/db/schema/scheduling";
 import type { AvailabilityRow as DoctorAvailabilityRow } from "@/lib/scheduling/doctor";
 import { useState } from "react";
@@ -9,6 +8,10 @@ import { CalendarClockIcon, CalendarPlusIcon, PencilIcon } from "lucide-react";
 
 import { AvailabilityFormSheet } from "@/app/clinician/availability/_components/availability-form-sheet";
 import { EditorDialog } from "@/components/medsync/editor-dialog";
+import {
+  AVAILABILITY_KIND_LABEL,
+  AVAILABILITY_KIND_TONES,
+} from "@/components/scheduling/calendar/helpers";
 import { Button } from "@/components/ui/button";
 import { Pill } from "@/components/ui/data-table";
 import { SheetBody, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -29,28 +32,6 @@ import { cn } from "@/lib/utils";
  * dialogs, and the two roles (browse the list vs author one block)
  * are distinct enough to deserve separate surfaces.
  */
-
-const KIND_TONES: Record<string, PillTone> = {
-  bookable: "stable",
-  teaching: "admitted",
-  ward_round: "pending",
-  admin: "neutral",
-  // `leave` and `unavailable` share a tone because they share a consequence:
-  // the slot engine subtracts both from bookable time and neither of the
-  // others. `unavailable` used to be "critical" — red is reserved for genuine
-  // clinical emergencies, and a doctor's day off is not one.
-  leave: "caution",
-  unavailable: "caution",
-};
-
-const KIND_LABEL: Record<string, string> = {
-  bookable: "Bookable",
-  teaching: "Teaching",
-  ward_round: "Ward round",
-  admin: "Admin",
-  leave: "Leave",
-  unavailable: "Unavailable",
-};
 
 /**
  * The kinds `buildSlots()` subtracts from bookable time — kept in step with
@@ -95,6 +76,7 @@ export function AvailabilitySheetButton({
       recurrenceUntilIso: block.recurrenceUntilIso,
       location: block.location,
       notes: block.notes,
+      label: block.label,
     });
     setFormOpen(true);
   }
@@ -222,7 +204,14 @@ function BlockRow({ block, onEdit }: { block: DoctorAvailabilityRow; onEdit: () 
         </span>
       </div>
 
-      <Pill tone={KIND_TONES[block.kind] ?? "neutral"}>{KIND_LABEL[block.kind] ?? block.kind}</Pill>
+      <Pill tone={AVAILABILITY_KIND_TONES[block.kind] ?? "neutral"}>
+        {AVAILABILITY_KIND_LABEL[block.kind] ?? block.kind}
+      </Pill>
+
+      {/* A custom block is its own name (ADR 0095); the pill still says the kind. */}
+      {block.kind === "custom" && block.label ? (
+        <span className="text-foreground text-body-s truncate font-medium">{block.label}</span>
+      ) : null}
 
       {/* Spelled out, never carried by the pill's tint alone: this is the one
           thing on the row that changes what patients can do to the diary. */}

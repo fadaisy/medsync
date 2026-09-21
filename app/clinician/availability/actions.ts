@@ -19,21 +19,36 @@ import { callEdge } from "@/lib/supabase/edge";
  */
 
 const Iso = z.string().datetime({ offset: true });
-const Kind = z.enum(["bookable", "teaching", "ward_round", "admin", "leave", "unavailable"]);
+const Kind = z.enum([
+  "bookable",
+  "teaching",
+  "ward_round",
+  "admin",
+  "leave",
+  "unavailable",
+  "custom",
+]);
 const Recurrence = z.enum(["none", "weekly"]);
 
-const SetBlockArgs = z.object({
-  block_id: z.string().uuid().optional(),
-  kind: Kind,
-  starts_at: Iso,
-  ends_at: Iso,
-  recurrence: Recurrence,
-  recurrence_weekday: z.number().int().min(1).max(7).nullable().optional(),
-  recurrence_until: Iso.nullable().optional(),
-  location: z.string().max(160).nullable().optional(),
-  notes: z.string().max(1000).nullable().optional(),
-  reason: z.string().min(8, "Reason ≥ 8 chars required."),
-});
+const SetBlockArgs = z
+  .object({
+    block_id: z.string().uuid().optional(),
+    kind: Kind,
+    starts_at: Iso,
+    ends_at: Iso,
+    recurrence: Recurrence,
+    recurrence_weekday: z.number().int().min(1).max(7).nullable().optional(),
+    recurrence_until: Iso.nullable().optional(),
+    location: z.string().max(160).nullable().optional(),
+    notes: z.string().max(1000).nullable().optional(),
+    /** ADR 0095: a custom block's own name — the 0065 CHECK requires it for that kind. */
+    label: z.string().trim().min(1).max(40).nullable().optional(),
+    reason: z.string().min(8, "Reason ≥ 8 chars required."),
+  })
+  .refine((v) => v.kind !== "custom" || !!v.label, {
+    path: ["label"],
+    message: "Give the custom block a name.",
+  });
 
 const CancelBlockArgs = z.object({
   block_id: z.string().uuid(),
@@ -68,6 +83,7 @@ export async function setAvailabilityBlockAction(
     recurrence_until: (formData.get("recurrence_until") as string) || null,
     location: (formData.get("location") as string) || null,
     notes: (formData.get("notes") as string) || null,
+    label: (formData.get("label") as string) || null,
     reason: formData.get("reason"),
   };
   const parsed = SetBlockArgs.safeParse(raw);

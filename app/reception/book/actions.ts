@@ -6,6 +6,11 @@ import { z } from "zod";
 import { requireReceptionScope } from "@/lib/reception/scope";
 import { callEdge } from "@/lib/supabase/edge";
 import { PATIENT_REASON_CODES } from "@/supabase/functions/_shared/sessions-sql";
+import {
+  MAX_SYMPTOM_LABEL,
+  MAX_SYMPTOMS,
+  SYMPTOM_DURATION_CODES,
+} from "@/supabase/functions/_shared/symptoms";
 
 /**
  * The desk's one POST — `ha-book-on-behalf` (Gate D). Same slot | session
@@ -15,7 +20,8 @@ import { PATIENT_REASON_CODES } from "@/supabase/functions/_shared/sessions-sql"
  * booking is never merged into a record here: the desk reconciles it on the
  * Expected board when the person arrives (PRD §2.8).
  *
- * Nothing clinical is asked or sent (PRD §7.2 rule 1).
+ * Nothing is scored or routed on what is sent (PRD §7.2 rule 1 as amended
+ * by ADR 0095: symptoms travel as the caller's words, descriptive only).
  */
 const Provisional = z
   .object({
@@ -36,6 +42,17 @@ const BookArgs = z
   .object({
     reason: z.enum([...PATIENT_REASON_CODES, "other"]),
     note: z.string().max(500).optional(),
+    /** ADR 0095: the caller's own words, each with a duration — never routed on. */
+    symptoms: z
+      .array(
+        z.object({
+          code: z.string().max(64).nullable(),
+          label: z.string().trim().min(1).max(MAX_SYMPTOM_LABEL),
+          duration: z.enum(SYMPTOM_DURATION_CODES),
+        }),
+      )
+      .max(MAX_SYMPTOMS)
+      .optional(),
     idempotency_key: z.string().uuid(),
     patient_user_id: z.string().uuid().optional(),
     provisional: Provisional.optional(),

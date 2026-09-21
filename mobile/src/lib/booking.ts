@@ -1,6 +1,7 @@
 import type { EdgeResult } from "@/lib/edge";
 import type { FeeInputs } from "@shared/fees";
 import type { PatientReasonCode } from "@shared/sessions-sql";
+import type { BookingSymptom } from "@shared/symptoms";
 import type { ImagePickerOptions } from "expo-image-picker";
 import { feeRange, rangeLine } from "@shared/fees";
 import {
@@ -11,6 +12,7 @@ import {
   localWeekdayAndMinutes,
   startOfLocalDay,
 } from "@shared/slots";
+import { normaliseSymptoms } from "@shared/symptoms";
 
 import { callEdge, requestId } from "@/lib/edge";
 import { supabase } from "@/lib/supabase";
@@ -190,6 +192,41 @@ export async function choosePrimaryHospital(hospitalId: string): Promise<void> {
   if (error) throw new Error(error.message);
 }
 
+/** One catalogue entry a patient can tap — the words, never the flags (ADR 0095). */
+export interface BookingSymptomOption {
+  code: string;
+  display: string;
+  synonyms: string[];
+  system: string;
+}
+
+/**
+ * The shared symptom catalogue, in the order it is shown. Any signed-in user
+ * may read shared rows; ONLY the display columns are selected — `must_not_miss`,
+ * `is_pain`, `uganda_flag`, `ros_screen` are decision-support and never reach
+ * a booking surface (PRD §5.4 as amended by ADR 0095).
+ */
+export async function fetchSymptomCatalog(): Promise<BookingSymptomOption[]> {
+  const { data, error } = await supabase
+    .from("symptom_catalog")
+    .select("code, display, synonyms, system, sort_order")
+    .eq("scope", "shared")
+    .eq("active", true)
+    .order("system")
+    .order("sort_order")
+    .overrideTypes<
+      { code: string; display: string; synonyms: string[] | null; system: string }[],
+      { merge: false }
+    >();
+  if (error) throw new Error(error.message);
+  return (data ?? []).map((r) => ({
+    code: r.code,
+    display: r.display,
+    synonyms: r.synonyms ?? [],
+    system: r.system,
+  }));
+}
+
 export interface PatientProfile {
   userId: string;
   /** DB-issued, NOT NULL. What reception matches against at the desk. */
@@ -287,6 +324,8 @@ export interface AppointmentRow {
   status: string;
   reason: string;
   reasonNote: string | null;
+  /** What the patient said was bothering them, as words (ADR 0095). Null when none. */
+  symptoms: BookingSymptom[] | null;
   /** In person, or video/phone — a virtual visit has no arrival and no queue. */
   type: "in_person" | "virtual";
   /** From `clinician_directory` (migration 0057); "Your clinician" until that lands or when the row has none. */
@@ -339,6 +378,7 @@ interface AppointmentQueryRow {
   type: "in_person" | "virtual";
   reason: string;
   reason_note: string | null;
+  symptoms: unknown;
   booking_code: string | null;
   session_id: string | null;
   position_number: number | null;
@@ -390,7 +430,7 @@ export async function fetchAppointments(
     .from("appointments")
     .select(
       "id, provisional_patient_id, hospital_id, department_id, clinician_user_id, starts_at, ends_at, status, type, " +
-        "reason, reason_note, booking_code, session_id, position_number, " +
+        "reason, reason_note, symptoms, booking_code, session_id, position_number, " +
         "arrival_window_start, arrival_window_end, confirmed_by_patient_at, cancelled_reason, " +
         "quoted_fee_ugx, quoted_fee_label, hospital_departments(name), hospitals(name)",
     )
@@ -419,6 +459,7 @@ export async function fetchAppointments(
       // A member's visit is logistics only (PRD §2.9): the note is dropped
       // here, so no screen has to remember to hide it.
       reasonNote: forMember ? null : r.reason_note,
+      symptoms: forMember ? null : normaliseSymptoms(r.symptoms),
       // The same fallback the web uses when `users.full_name` is null — a real
       // sentence, not a placeholder, and honest about what we actually know.
       clinicianName: clinicians.get(r.clinician_user_id)?.name ?? "Your clinician",
@@ -1022,6 +1063,8 @@ export function requestAppointment(
     hospitalId: string;
     reason: AppointmentReason;
     reasonNote?: string | null;
+    /** Descriptive only (ADR 0095): passed to the clinic as words, never routed on. */
+    symptoms?: BookingSymptom[] | null;
     idempotencyKey: string;
     /** A household member's provisional id — the server books it with `created_by` = this account (Gate D). */
     forProvisionalId?: string;
@@ -1051,6 +1094,7 @@ export function requestAppointment(
     channel: "app",
     // Absent, not null: zod's `.optional()` takes undefined and JSON drops it.
     ...(input.forProvisionalId ? { for_provisional_id: input.forProvisionalId } : {}),
+    ...(input.symptoms?.length ? { symptoms: input.symptoms } : {}),
     ...("slot" in input
       ? {
           slot: {

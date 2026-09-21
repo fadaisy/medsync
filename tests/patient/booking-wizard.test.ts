@@ -150,6 +150,19 @@ describe("no clinical question anywhere in the booking path (PRD §7.2 rule 1)",
   }
 });
 
+describe("what is bothering you (ADR 0095) — words only, in its own file", () => {
+  it("the wizard and the desk mount one picker, which shows the boundary sentence verbatim", () => {
+    const read = (rel: string) => readFileSync(resolve(process.cwd(), rel), "utf8");
+    const picker = read("app/patient/book/_components/symptom-picker.tsx");
+    expect(picker).toContain("SYMPTOMS_NOTE");
+    expect(picker).toContain("What is bothering you?");
+    expect(read("app/patient/book/_components/booking-wizard.tsx")).toContain("<SymptomPicker");
+    expect(read("app/reception/book/_components/desk-booking.tsx")).toContain("<SymptomPicker");
+    // Descriptive: no flag from the catalogue reaches the selector.
+    expect(read("lib/catalog/symptoms.ts")).not.toMatch(/mustNotMiss|isPain|ugandaFlag|rosScreen/);
+  });
+});
+
 describe("interstitial copy (ADR 0088, byte-identical on the phone)", () => {
   it("is the ratified ASCII", () => {
     expect(INTERSTITIAL.title).toBe("Booking is for care that can wait.");
@@ -168,6 +181,7 @@ describe("draft persistence", () => {
       forProvisionalId: null,
       reason: "follow_up" as const,
       reasonNote: "note",
+      symptoms: [{ code: "fatigue", label: "Tiredness", duration: "days" as const }],
       interstitialSeen: false,
       lineId: "l",
       clinicianUserId: "c",
@@ -179,6 +193,12 @@ describe("draft persistence", () => {
     };
     expect(parseDraft(JSON.stringify(draft))).toEqual(draft);
     expect(parseDraft(JSON.stringify({ ...draft, reason: "urgent_review" }))?.reason).toBeNull();
+    // ADR 0095: a pick left without its duration does not survive a reload.
+    expect(
+      parseDraft(
+        JSON.stringify({ ...draft, symptoms: [{ code: null, label: "x", duration: null }] }),
+      )?.symptoms,
+    ).toEqual([]);
     expect(parseDraft(JSON.stringify({ ...draft, v: 2 }))).toBeNull();
     expect(parseDraft("not json")).toBeNull();
     expect(parseDraft(null)).toBeNull();

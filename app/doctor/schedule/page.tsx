@@ -60,7 +60,10 @@ export default async function DoctorSchedulePage() {
       hospitalId: scope.hospitalId,
       limit: 20,
     }),
-    fetchDepartmentQueueToday({ departmentId: scope.departmentId }),
+    fetchDepartmentQueueToday({
+      departmentId: scope.departmentId,
+      viewer: { userId: scope.userId, hospitalId: scope.hospitalId },
+    }),
     fetchEffectiveSchedulingSettings({
       clinicianUserId: scope.userId,
       hospitalId: scope.hospitalId,

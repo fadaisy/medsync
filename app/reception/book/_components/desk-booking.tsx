@@ -1,14 +1,17 @@
 "use client";
 
 import type { DeskBookingReceipt, DeskBookInput } from "../actions";
-import type { LineOption } from "@/app/patient/book/_lib/booking";
+import type { DraftSymptom, LineOption } from "@/app/patient/book/_lib/booking";
+import type { BookingSymptomOption } from "@/lib/catalog/symptoms";
 import type { PatientReasonCode } from "@/supabase/functions/_shared/sessions-sql";
+import type { BookingSymptom } from "@/supabase/functions/_shared/symptoms";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useId, useState, useTransition } from "react";
 import { ArrowLeftIcon, CheckIcon } from "lucide-react";
 
 import { ChoiceList, SessionStep, SlotStep } from "@/app/patient/book/_components/pick-steps";
+import { SymptomPicker } from "@/app/patient/book/_components/symptom-picker";
 import { firstOpenDay, MODE_LABEL, REASONS } from "@/app/patient/book/_lib/booking";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +19,7 @@ import { Label } from "@/components/ui/label";
 import { Pill } from "@/components/ui/pill";
 import { formatArrivalWindow, formatFullDate, formatTime } from "@/lib/patient/booking-format";
 import { cn } from "@/lib/utils";
+import { formatSymptoms } from "@/supabase/functions/_shared/symptoms";
 import { bookOnBehalfAction } from "../actions";
 
 /**
@@ -25,7 +29,8 @@ import { bookOnBehalfAction } from "../actions";
  *
  * A "new caller" is a declared identity — name, phone, date of birth or age,
  * an adult declaration — and nothing else. No clinical question is asked
- * anywhere on this surface, and none may be added.
+ * anywhere on this surface, and none may be added; what the caller chooses
+ * to say (ADR 0095) is the patient wizard's own picker, words only.
  */
 
 export interface DeskPatient {
@@ -51,6 +56,7 @@ interface Props {
   lines: ReadonlyArray<LineOption>;
   nowIso: string;
   todayIso: string;
+  symptomOptions: ReadonlyArray<BookingSymptomOption>;
 }
 
 const MINOR_REFUSAL = "Booking for a child is not available yet.";
@@ -79,12 +85,20 @@ const EMPTY_CALLER: Caller = {
   declaredAdult: false,
 };
 
-export function DeskBooking({ hospitalName, patient, lines, nowIso, todayIso }: Props) {
+export function DeskBooking({
+  hospitalName,
+  patient,
+  lines,
+  nowIso,
+  todayIso,
+  symptomOptions,
+}: Props) {
   const router = useRouter();
   const [stepId, setStepId] = useState<StepId>(patient ? "reason" : "who");
   const [caller, setCaller] = useState<Caller>(EMPTY_CALLER);
   const [reason, setReason] = useState<PatientReasonCode | null>(null);
   const [note, setNote] = useState("");
+  const [symptoms, setSymptoms] = useState<DraftSymptom[]>([]);
   const [lineId, setLineId] = useState<string | null>(null);
   const [clinicianUserId, setClinicianUserId] = useState<string | null>(null);
   const [dateIso, setDateIso] = useState("");
@@ -138,7 +152,7 @@ export function DeskBooking({ hospitalName, patient, lines, nowIso, todayIso }: 
     stepId === "who"
       ? callerOk
       : stepId === "reason"
-        ? reason !== null
+        ? reason !== null && symptoms.every((s) => s.duration !== null)
         : stepId === "line"
           ? line !== null
           : picked;
@@ -147,9 +161,11 @@ export function DeskBooking({ hospitalName, patient, lines, nowIso, todayIso }: 
 
   const submit = () => {
     if (!line || !reason || !picked) return;
+    const said = symptoms.filter((s): s is BookingSymptom => s.duration !== null);
     const input: DeskBookInput = {
       reason,
       note: note || undefined,
+      symptoms: said.length ? said : undefined,
       idempotency_key: idempotencyKey,
       ...(patient
         ? { patient_user_id: patient.patientUserId }
@@ -257,6 +273,15 @@ export function DeskBooking({ hospitalName, patient, lines, nowIso, todayIso }: 
               bump();
             }}
             options={REASONS}
+          />
+          <SymptomPicker
+            idPrefix="desk"
+            options={symptomOptions}
+            value={symptoms}
+            onChange={(next) => {
+              setSymptoms(next);
+              bump();
+            }}
           />
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="desk-note">
@@ -379,6 +404,11 @@ export function DeskBooking({ hospitalName, patient, lines, nowIso, todayIso }: 
             {REASONS.find((r) => r.value === reason)?.title ?? reason}
             {appointmentType === "virtual" ? " · video or phone" : ""}
           </Fact>
+          {symptoms.length ? (
+            <Fact label="What is bothering them">
+              {formatSymptoms(symptoms.filter((s): s is BookingSymptom => s.duration !== null))}
+            </Fact>
+          ) : null}
           {note ? <Fact label="Note">{note}</Fact> : null}
         </dl>
       ) : null}

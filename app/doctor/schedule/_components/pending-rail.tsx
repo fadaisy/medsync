@@ -1,10 +1,12 @@
 "use client";
 
 import type { DoctorScheduleActionState } from "../actions";
+import type { PatientIdentity } from "@/components/medsync/patient-identity";
 import { useActionState, useState } from "react";
 import { AlertTriangleIcon, CheckIcon, MessageSquareIcon, XIcon } from "lucide-react";
 
 import { Panel } from "@/components/medsync/panel";
+import { PatientIdentityCard } from "@/components/medsync/patient-identity";
 import { Button } from "@/components/ui/button";
 import { approveAppointmentAction, declineAppointmentAction } from "../actions";
 
@@ -17,6 +19,7 @@ interface PendingRow {
   reasonNote: string | null;
   patientName: string;
   patientCode: string;
+  identity: PatientIdentity;
   priority: string;
 }
 
@@ -54,64 +57,60 @@ function PendingRow({ row }: { row: PendingRow }) {
     FormData
   >(declineAppointmentAction, {});
 
+  // Approve/Decline name the person when the reveal came through, else the code.
+  const who = row.identity.displayName ?? row.patientCode;
+
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex min-w-0 flex-col gap-0.5">
-          <div className="flex items-baseline gap-2">
-            <span className="text-foreground text-body-s font-medium">{row.patientCode}</span>
-            {row.priority === "urgent" ? (
-              // No entrance animation on the chip: `scale-in` overshoots on
-              // --ease-spring, and a priority flag that pops is motion without
-              // meaning on a clinical surface.
-              <span className="text-caption inline-flex items-center gap-0.5 rounded-full bg-rose-100 px-1.5 py-0.5 font-mono font-medium text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">
-                <AlertTriangleIcon className="size-2.5" aria-hidden />
-                URGENT
-              </span>
-            ) : null}
-          </div>
-          <span className="text-muted-foreground text-body-s">
-            {formatWhen(row.startsAtIso)} · {row.reason}
-            {row.type === "virtual" ? " · Virtual" : ""}
+      {/* The rail is 20rem wide: the card takes the row and the actions take
+          their own — beside each other they left the name ~60px. */}
+      <PatientIdentityCard patient={row.identity} />
+      {/* The card carries the note inside its complaint line; the when-line stays its own row. */}
+      <span className="text-muted-foreground text-body-s inline-flex flex-wrap items-center gap-x-2 gap-y-1">
+        {formatWhen(row.startsAtIso)} · {row.reason}
+        {row.type === "virtual" ? " · Virtual" : ""}
+        {row.priority === "urgent" ? (
+          // No entrance animation on the chip: `scale-in` overshoots on
+          // --ease-spring, and a priority flag that pops is motion without
+          // meaning on a clinical surface.
+          <span className="text-caption inline-flex items-center gap-0.5 rounded-full bg-rose-100 px-1.5 py-0.5 font-mono font-medium text-rose-700 dark:bg-rose-950/40 dark:text-rose-300">
+            <AlertTriangleIcon className="size-2.5" aria-hidden />
+            URGENT
           </span>
-          {row.reasonNote ? (
-            <span className="text-muted-foreground bg-muted/50 text-caption mt-0.5 w-fit rounded-md px-2 py-1 italic">
-              &ldquo;{row.reasonNote}&rdquo;
-            </span>
-          ) : null}
-        </div>
-        {mode === "view" ? (
-          <div className="flex shrink-0 items-center gap-1.5">
-            <form action={approveAction}>
-              <input type="hidden" name="appointment_id" value={row.id} />
-              <input type="hidden" name="reason" value="Approved from pending rail." />
-              {/* size="sm" is ~24px tall; min-h-11 restores the 44px touch
-                  floor without changing the dense chrome. */}
-              <Button
-                type="submit"
-                size="sm"
-                className="min-h-11"
-                disabled={approvePending}
-                aria-label={`Approve ${row.patientCode}`}
-              >
-                <CheckIcon className="size-3.5" aria-hidden />
-                Accept
-              </Button>
-            </form>
+        ) : null}
+      </span>
+
+      {mode === "view" ? (
+        <div className="flex items-center justify-end gap-1.5">
+          <form action={approveAction}>
+            <input type="hidden" name="appointment_id" value={row.id} />
+            <input type="hidden" name="reason" value="Approved from pending rail." />
+            {/* size="sm" is ~24px tall; min-h-11 restores the 44px touch
+                    floor without changing the dense chrome. */}
             <Button
-              type="button"
-              variant="ghost"
+              type="submit"
               size="sm"
               className="min-h-11"
-              onClick={() => setMode("decline")}
-              aria-label={`Decline ${row.patientCode}`}
+              disabled={approvePending}
+              aria-label={`Approve ${who}`}
             >
-              <XIcon className="size-3.5" aria-hidden />
-              Decline
+              <CheckIcon className="size-3.5" aria-hidden />
+              Accept
             </Button>
-          </div>
-        ) : null}
-      </div>
+          </form>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="min-h-11"
+            onClick={() => setMode("decline")}
+            aria-label={`Decline ${who}`}
+          >
+            <XIcon className="size-3.5" aria-hidden />
+            Decline
+          </Button>
+        </div>
+      ) : null}
 
       {mode === "decline" ? (
         <form action={declineAction} className="reveal-up flex flex-col gap-2 pt-1">

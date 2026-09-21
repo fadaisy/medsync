@@ -4,7 +4,9 @@ import type { CalendarEvent } from "@/components/scheduling/calendar/types";
 import { describe, expect, it } from "vitest";
 
 import {
+  AVAILABILITY_CARD_CLASSES,
   AVAILABILITY_KIND_LABEL,
+  AVAILABILITY_KIND_TONES,
   cardRows,
   describeEvent,
   eventMatches,
@@ -92,10 +94,32 @@ describe("the label pill", () => {
         availabilityKind: kind,
         recurrence: "none",
         location: null,
+        label: null,
       });
       expect(d.kindLabel).toBe(AVAILABILITY_KIND_LABEL[kind]);
       expect(d.clickable).toBe(false);
+      // ADR 0095: every kind has its own tint, and none of them is red.
+      expect(AVAILABILITY_KIND_TONES[kind], kind).toBeTruthy();
+      expect(AVAILABILITY_KIND_TONES[kind], kind).not.toBe("critical");
+      expect(d.pillTone).toBe(AVAILABILITY_KIND_TONES[kind]);
+      expect(AVAILABILITY_CARD_CLASSES[kind], kind).toBeTruthy();
+      expect(d.cardClasses).toBe(AVAILABILITY_CARD_CLASSES[kind]);
     }
+  });
+
+  it("a custom block is titled by its own name, with the kind on the pill", () => {
+    const d = describeEvent({
+      id: "b-custom",
+      kind: "availability",
+      startsAtIso: session.startsAtIso,
+      endsAtIso: session.endsAtIso,
+      availabilityKind: "custom",
+      recurrence: "none",
+      location: null,
+      label: "Kiruddu clinic",
+    });
+    expect(d.title).toBe("Kiruddu clinic");
+    expect(d.kindLabel).toBe("Custom");
   });
 
   it("names the kind of an appointment and keeps 'Urgent' in the word", () => {
