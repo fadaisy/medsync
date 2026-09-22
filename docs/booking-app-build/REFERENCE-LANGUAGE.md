@@ -168,3 +168,30 @@ fill, no border, radius `lg`, 48 tall, `c.foreground` text, `c.mutedForeground` 
 ## Verify (from /Users/airm1/Desktop/medsync/mobile)
 
 npx tsc --noEmit · npx eslint <files> --max-warnings=0 · npx prettier --check <files> · the grep above.
+
+## Ratified copy — the symptom catalog and the Emergency Pathway (ADR 0098, 2026-09-22)
+
+These sentences are sanctioned alongside the frozen set above; hard rule 2 applies to them from now on. The
+"How are you feeling today?" ban stands — the catalog's landing asks **"Who is this about?"** (web) / **"Who is this
+for?"** (phone), then **"What is happening?"**. Nothing here rates a feeling.
+
+- Tiers, three words each, from `i18n/en.json` (`tier.E/U/R`): **Get help now** · **Be seen today** · **Book a visit**.
+- Catalog: "Tell us what you feel or see. Pick an area, or search. This does not replace a clinician." ·
+  "Search — e.g. fits, pressure, sugar" · "When did it start?" · "When were they last normal?" (stroke items only) ·
+  "Anything else to tell the clinic? Optional." · "In your own words. The clinic reads this; nothing else does." ·
+  "Your report and the next step" · "What you chose" · "Book a visit instead" · "Book a visit today" ·
+  "This is not happening now" (the interrupt's decline) · "Unsigned clinical content" (the non-prod watermark).
+- Emergency sheet (E1): "Emergency — get help now" · "Go to the nearest emergency unit" (no verified number) ·
+  "Nearest hospital" · "Other numbers" · "Tell a hospital I'm coming" · "They prepare before you arrive. Calling
+  still comes first." · "Someone to talk to" · "After sexual violence".
+- Pre-alert (E2): "Tell a hospital" · "Which hospital" · "Arriving in" · "Getting there by" · "Callback number" ·
+  "Enter a number the hospital can call back." · "Use my location to sort hospitals" · "Share my location with this
+  hospital" · "Send by SMS instead" / "Send the details by SMS" · "We couldn't send this. Your choices are kept here —
+  try again when you are connected." · "You seem to be offline — we'll keep trying."
+- Status (E3): "Your pre-alert" · "The hospital sees your alert on its board." · "See the pre-alert you sent" ·
+  "Emergency entrance".
+- Calm routes: "You are not alone" · "Talking to someone now can help. These people are there to listen." ·
+  "Care is here" · "Nothing about what happened is recorded in this app. At the hospital you can ask to speak to
+  someone privately."
+- Never: "not serious", "you can wait", "nothing to worry about", "probably fine", any drug name, dose or numeric
+  threshold, any literal emergency number in a component (`tests/booking/clinical-firewall.test.ts`).

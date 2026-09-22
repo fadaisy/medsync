@@ -1,15 +1,48 @@
-# MedSync Book — handoff (2026-09-21, after Gate H and the UI pass)
+# MedSync Book — handoff (2026-09-22, after ADR 0098)
 
 **Read this first in the next session.** It says where the build stands, what is not applied yet, what was interrupted,
 and how to resume. **§0 is the newest state; §1–§5 are the gate-by-gate record.** The rules that govern everything are unchanged: `AGENTS.md`, the PRD at `docs/booking-app-prd.md`, the
 Gate A proposal at `docs/booking-app-gate-a-proposal.md`, and ADRs 0084–0089.
 
-## 0. Where things stand now (2026-09-21)
+## 0. Where things stand now (2026-09-22)
 
 All gates A′–H are built (H closed at `28b6edb`, ADR 0094). Everything since is a **UI pass** on `feat/booking-app`
 (head `64f7d8b` at the time of writing, all pushed; web is live at `medsync-six.vercel.app`) and, after it, the
 **2026-09-21 feature round** below. The owner drives the UI by screenshot: "does this UI make you happy?" → rework.
 0063, 0064 and **0065** are applied (§2); the round is deployed — functions and web (`a6a92e3`, 2026-09-21).
+
+### 2026-09-22 — the symptom catalog and the Emergency Pathway (ADR 0098, PRD MS-PRD-SYM-001)
+
+Read [ADR 0098](adr/0098-symptom-catalog-and-emergency-pathway.md) end to end (rulings, Gate A table, build record,
+flags matrix, gate handover) and PRD §15 before touching any of it. The short version:
+
+- **Production is unchanged until the owner acts.** Every flag defaults off; `catalogRenderMode` returns `off` with
+  no `signed` version, so `/patient` keeps the ADR 0095/0096 picker; the Emergency sheet is live at `/emergency`
+  (public prefix) but shows `verified` contacts only — none are — so it falls back to the hospital's registered
+  `emergency_phone`. The red pill is on every route (`app/layout.tsx`); the amber block left `app/patient/layout.tsx`.
+- **Owner actions, in order:** `npm run db:migrate` (0066, GATED) → `npm run db:seed-symptom-catalog` (add
+  `-- --dev-mulago` on dev to switch Mulago on for pre-alerts) → `npx supabase functions deploy --use-api` →
+  `npx vercel deploy --prod --yes` → `cd mobile && npx expo start --lan -c`. Then the gates: dial and verify the
+  numbers (`docs/runbooks/emergency-contacts-verification.md`), sign the catalog (Gate CS, `/admin/emergency`), flip
+  `FEATURE_*` (Gate CG). Facilities: `docs/runbooks/pre-alert-facility-onboarding.md`.
+- **Where things live.** Content package `supabase/functions/_shared/symptom-catalog/` (edit the JSON, run
+  `node scripts/gen-symptom-catalog.mjs`, the checksum changes → a new version, never a silent edit of a signed one).
+  Engines: `_shared/{intake,urgent-slot,pre-arrival,submission-symptoms}.ts`; eleven new functions (ADR build
+  record). Web read models `lib/emergency/`; flags `lib/emergency/feature.ts`. Patient UI `app/patient/symptoms/`,
+  `app/emergency/`, `components/emergency/`; phone `mobile/src/{components,lib}/{symptoms,emergency}*`, root
+  `app/emergency.tsx` (pre-auth E1), `(tabs)/emergency.tsx`. Hospital side `app/reception/incoming/`,
+  `app/nurse/incoming/`, `app/hospital-admin/profile/` (Emergency panel), `app/admin/emergency/`,
+  `components/intake/desk-catalog.tsx`. Sweeper `app/api/cron/sweep-pre-arrivals` (daily 04:00 UTC, `vercel.json`).
+- **The tests that hold the line now:** `tests/booking/clinical-firewall.test.ts` (third posture — read its header),
+  `tests/design/red-reserved.test.ts` (allowlist = the PRD's list, calm routes red-free), `tests/symptom-catalog/*`,
+  `tests/emergency/*`. No Playwright/Lighthouse/fast-check (ruling 11).
+- **Known gap:** four-eyes has no second-approval executor anywhere; contact verification self-executes only with
+  one real superadmin.
+- **A second session is working in this tree** on ADR 0097 (plum accent): `DESIGN-medsync.md`, `app/styleguide/**`,
+  `components/landing/**`, `mobile/src/theme/tokens.ts`, the plum token lines in `app/globals.css`, and one plum line
+  in each shell/sidebar-item. Those hunks are theirs — never stage them from here. The 0098 commits staged only their
+  own hunks of the shared files (`app/globals.css` forced-light utility; the admin shell/sidebar Emergency entry;
+  reception/nurse sidebar `incoming` icon; `CHANGELOG.md` entry).
 
 ### 2026-09-21, later — symptoms before booking (ADR 0096) and the Front door station
 
