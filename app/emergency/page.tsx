@@ -74,7 +74,7 @@ export default async function EmergencyPage({ searchParams }: { searchParams: Pr
   const preAlert = preAlertLive();
 
   const numbers = (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-5 sm:gap-6">
       <EmergencySheet
         primary={primary}
         secondaries={secondaries}
@@ -102,7 +102,7 @@ export default async function EmergencyPage({ searchParams }: { searchParams: Pr
     <div className="medsync-forced-light bg-background text-foreground min-h-svh">
       <main
         className={cn(
-          "mx-auto flex w-full flex-col gap-6 px-4 py-6 sm:px-6",
+          "mx-auto flex w-full flex-col gap-4 px-4 py-4 sm:gap-6 sm:px-6 sm:py-6",
           preAlert ? "max-w-5xl lg:py-10" : "max-w-xl",
         )}
       >
@@ -116,12 +116,12 @@ export default async function EmergencyPage({ searchParams }: { searchParams: Pr
         </nav>
 
         {preAlert ? (
-          <div className="grid gap-10 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:items-start lg:gap-14">
+          <div className="grid gap-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:items-start lg:gap-14">
             <div className="lg:sticky lg:top-10 lg:self-start">{numbers}</div>
             <section
               id="tell"
               aria-labelledby="tell-heading"
-              className="border-border flex flex-col gap-6 border-t pt-8 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-14"
+              className="border-border flex flex-col gap-5 border-t pt-6 sm:gap-6 lg:border-t-0 lg:border-l lg:pt-0 lg:pl-14"
             >
               <header className="flex flex-col gap-2">
                 <p className="text-muted-foreground text-overline font-mono uppercase">

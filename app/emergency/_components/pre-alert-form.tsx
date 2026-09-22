@@ -383,7 +383,7 @@ export function PreAlertForm({
             variant="secondary"
             size="md"
             onClick={() => askLocation()}
-            className="w-fit"
+            className="w-full sm:w-fit"
           >
             <MapPinIcon aria-hidden />
             Use my location to sort hospitals
@@ -486,7 +486,7 @@ export function PreAlertForm({
             ({items.length === 0 ? `${E2_DEFAULTS.what} — tap any` : "tap to change"})
           </span>
         </legend>
-        <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2" aria-label="Danger signs">
+        <ul className="grid grid-cols-2 gap-2" aria-label="Danger signs">
           {tileRows.map((tile) => {
             const Icon = TILE_ICON[tile.icon] ?? CircleAlertIcon;
             const chosen = items.includes(tile.key);
@@ -614,7 +614,17 @@ export function PreAlertForm({
         </p>
       ) : null}
 
-      <div className="flex flex-col gap-2">
+      {/* On a phone the actions dock to the bottom edge so Send is never a
+          scroll away; from md up they sit in the flow. The pill is hidden on
+          this route, so nothing overlaps. */}
+      <div
+        className={cn(
+          "flex flex-col gap-2",
+          "border-border bg-background/95 supports-backdrop-filter:bg-background/80 sticky bottom-0 z-10 -mx-4 border-t px-4 pt-3 supports-backdrop-filter:backdrop-blur sm:-mx-6 sm:px-6",
+          "pb-[max(env(safe-area-inset-bottom),0.75rem)]",
+          "md:static md:m-0 md:border-0 md:bg-transparent md:p-0",
+        )}
+      >
         {state.kind === "failed" && state.callOnly ? null : (
           <Button
             type="submit"
@@ -672,7 +682,7 @@ function Chips<K extends string>({
       <legend className="text-foreground text-body-m mb-2 font-medium">{legend}</legend>
       {/* Toggle buttons, not a radiogroup: each is its own tab stop and the
           fieldset's legend names the group — no arrow-key contract to break. */}
-      <div className="flex flex-wrap gap-2">
+      <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
         {options.map((o) => {
           const chosen = o.key === value;
           return (
@@ -683,6 +693,7 @@ function Chips<K extends string>({
               onClick={() => onChange(o.key)}
               className={cn(
                 "text-body-s focus-visible:shadow-focus min-h-11 rounded-full px-4 font-medium outline-none",
+                "w-full sm:w-auto",
                 chosen
                   ? "bg-foreground text-background"
                   : "bg-muted text-foreground hover:bg-foreground/10",

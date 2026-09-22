@@ -24,7 +24,7 @@ export interface EmergencySheetProps {
 
 export function EmergencySheet({ primary, secondaries, drafts }: EmergencySheetProps) {
   return (
-    <section aria-labelledby="emergency-heading" className="flex flex-col gap-5">
+    <section aria-labelledby="emergency-heading" className="flex flex-col gap-4 sm:gap-5">
       <header className="flex flex-col gap-2">
         <h1
           id="emergency-heading"
