@@ -4,7 +4,19 @@ import { describe, expect, it } from "vitest";
 
 /**
  * PRD §5.4 — the not-a-medical-device boundary, enforced by test, as amended
- * by ADR 0095 (owner ruling 2026-09-21).
+ * by ADR 0095 (owner ruling 2026-09-21) and again by ADR 0098 (the owner and
+ * CSO's PRD MS-PRD-SYM-001, the same day).
+ *
+ * THE THIRD POSTURE (ADR 0098). Symptom input may now produce an ADVISORY
+ * tier — "get help now", "be seen today", "book a visit" — from a versioned,
+ * CSO-signed content package and a pure classifier
+ * (`_shared/symptom-catalog/`). What keeps that from being a diagnosis is
+ * what the last describe holds: the classifier is pure and reads only the
+ * package; no engine under lib/triage, lib/encounter, lib/clerkship or
+ * lib/ncd reads a booking-flow field, the free text, or the advisory tier;
+ * no patient copy reassures, names a drug or a dose, or states a numeric
+ * threshold; the catalogue's decision-support flags never reach a patient
+ * surface; and production renders only signed content (Gate CS).
  *
  * The PRD says the prohibition on clinical questions at booking "is enforced
  * by test, not just by policy: an invariant test asserts that no booking-flow
@@ -103,6 +115,16 @@ const BOOKING_INPUT_FIELDS = [
   "waitlist_entries",
   "ussd_sessions",
   "inbound_sms",
+  // ADR 0098: the catalog's free text and its advisory tier are the patient's
+  // words and advice to the patient — never an engine's input.
+  "free_text",
+  "freeText",
+  "free_text_enc",
+  "computed_tier",
+  "computedTier",
+  "symptom_tier",
+  "symptomTier",
+  "rule_trace",
 ];
 
 /** Every path on which a visit is requested, on any surface or channel. */
@@ -121,7 +143,26 @@ const BOOKING_PATHS = [
   "mobile/src/components/patient",
   "mobile/src/app/(app)/doctor",
   "mobile/src/app/(app)/clinic",
+  // ADR 0098: the catalog, the Emergency Pathway and the desk's catalog. The
+  // ONE sanctioned display join — lib/emergency/labels.ts reading a
+  // discriminator's LABEL — lives under lib/emergency, outside this list.
+  "app/patient/symptoms",
+  "app/emergency",
+  "components/emergency",
+  "components/intake",
+  "mobile/src/components/symptoms",
+  "mobile/src/components/emergency",
+  "mobile/src/app/(app)/symptoms.tsx",
+  "mobile/src/app/(app)/emergency",
+  "supabase/functions/_shared/symptom-catalog",
+  "supabase/functions/pt-submit-symptoms",
+  "supabase/functions/pt-request-same-day",
+  "supabase/functions/pt-create-pre-arrival",
 ];
+
+/** The clerkship catalogue's decision-support flags — never named on a patient or desk surface. */
+const DECISION_SUPPORT_FLAGS =
+  /\b(must_not_miss|mustNotMiss|uganda_flag|ugandaFlag|is_pain|isPain|ros_screen|rosScreen)\b/;
 
 /** Importing any of these from a booking path would wire the flow to an engine. */
 const ENGINE_IMPORTS = [
@@ -346,8 +387,6 @@ describe("ADR 0095 — a symptom at booking is descriptive, never decision suppo
    * synonyms, system, sort order — so none of these names may appear on one:
    * a selected flag is a ranking, and a ranking is triage.
    */
-  const DECISION_SUPPORT_FLAGS =
-    /\b(must_not_miss|mustNotMiss|uganda_flag|ugandaFlag|is_pain|isPain|ros_screen|rosScreen)\b/;
 
   it("no booking path selects or names a catalogue decision-support flag", () => {
     const targets = [
@@ -403,6 +442,96 @@ describe("ADR 0095 — a symptom at booking is descriptive, never decision suppo
             `${path}: ${m[0]} names the complaint`,
           ).not.toMatch(/\b(complaint|symptoms)\b/);
         }
+      }
+    }
+  });
+});
+
+describe("ADR 0098 — advisory tiering: a pure classifier over signed content, and nothing else", () => {
+  const CATALOG_DIR = "supabase/functions/_shared/symptom-catalog";
+  const PATIENT_COPY_TREES = [
+    "app/patient/symptoms",
+    "app/emergency",
+    "components/emergency",
+    "mobile/src/components/symptoms",
+    "mobile/src/components/emergency",
+    "mobile/src/app/(app)/symptoms.tsx",
+    "mobile/src/app/(app)/emergency",
+    "mobile/src/app/emergency.tsx",
+    "mobile/src/app/(app)/(tabs)/emergency.tsx",
+  ];
+  /** Words the app never says to a patient (PRD §2 non-goals, §5.1 principle 5). */
+  const REASSURANCE =
+    /\b(not serious|you can wait|nothing to worry|probably fine|likely fine|no need to worry|(?:you|it|this|that|they)(?:'re|'s| are| is) (?:fine|okay|ok))\b/i;
+  /** A dose or a numeric vital threshold in patient copy (Law 4). */
+  const DOSE_OR_THRESHOLD = /\b\d+(?:\.\d+)?\s?(mg|ml|mmol|mcg|bpm|mmHg|°C|breaths?\/min)\b/i;
+
+  it("the classifier is pure: no I/O, no clock, no randomness, no import outside its folder", () => {
+    const src = stripComments(read(`${CATALOG_DIR}/classify.ts`));
+    expect(src).not.toMatch(
+      /\b(fetch|Date\.now|new Date|Math\.random|localStorage|Deno\.|process\.env)\b/,
+    );
+    for (const m of src.matchAll(/from\s+"([^"]+)"/g)) {
+      expect(m[1], m[1]).toMatch(/^\.\/[a-z0-9.-]+(?:\.ts)?$/);
+    }
+  });
+
+  it("no scoring engine imports the package or reads the advisory tier", () => {
+    for (const tree of [...SCORING_TREES, "lib/ncd"]) {
+      for (const [path, src] of sourcesUnder(tree)) {
+        expect(stripComments(src), `${path} imports the symptom catalog`).not.toMatch(
+          /symptom-catalog|symptom_submissions|symptomSubmissions/,
+        );
+      }
+    }
+  });
+
+  it("the catalogue's decision-support flags never reach a patient or desk surface", () => {
+    for (const target of [...PATIENT_COPY_TREES, "components/intake"]) {
+      for (const [path, src] of sourcesAt(target)) {
+        expect(stripComments(src), `${path} names a decision-support flag`).not.toMatch(
+          DECISION_SUPPORT_FLAGS,
+        );
+      }
+    }
+  });
+
+  it("patient copy never reassures, and never states a dose or a numeric threshold", () => {
+    const en = read(`${CATALOG_DIR}/i18n/en.json`);
+    expect(en).not.toMatch(REASSURANCE);
+    expect(en).not.toMatch(DOSE_OR_THRESHOLD);
+    for (const target of PATIENT_COPY_TREES) {
+      for (const [path, src] of sourcesAt(target)) {
+        const code = stripComments(src);
+        expect(code, `${path} reassures`).not.toMatch(REASSURANCE);
+        expect(code, `${path} states a dose or threshold`).not.toMatch(DOSE_OR_THRESHOLD);
+      }
+    }
+  });
+
+  it("production renders signed content only: every catalog render mode goes through the feature gate", () => {
+    const feature = stripComments(read("lib/emergency/feature.ts"));
+    expect(feature).toMatch(/production/);
+    expect(feature).toMatch(/signed/);
+    for (const path of ["app/patient/symptoms/page.tsx", "app/patient/page.tsx"]) {
+      expect(stripComments(read(path)), path).toContain("catalogRenderMode(");
+    }
+    expect(stripComments(read("mobile/src/lib/symptoms.ts"))).toMatch(/signed/);
+  });
+
+  it("the emergency numbers come from data: no national number is a literal in source", () => {
+    for (const target of [
+      "app/emergency",
+      "components/emergency",
+      "mobile/src/components/emergency",
+      "mobile/src/app/(app)/(tabs)/emergency.tsx",
+      "mobile/src/app/emergency.tsx",
+    ]) {
+      for (const [path, src] of sourcesAt(target)) {
+        // A bare word too (`<p>Dial 999</p>`), the phone test's own regex.
+        expect(stripComments(src), `${path} hard-codes an emergency number`).not.toMatch(
+          /\b(?:112|999|912)\b/,
+        );
       }
     }
   });

@@ -43,15 +43,26 @@ import { beyondHorizonMessage, bookAppointment, bookingResponse } from "../_shar
 import { preflight } from "../_shared/cors.ts";
 import {
   badRequest,
+  conflict,
   forbidden,
   methodNotAllowed,
+  notFound,
   serverError,
   unauthorized,
 } from "../_shared/errors.ts";
 import { makeLogger } from "../_shared/logger.ts";
 import { networkContext } from "../_shared/sa-audit.ts";
 import { PATIENT_REASON_CODES } from "../_shared/sessions-sql.ts";
-import { MAX_SYMPTOM_LABEL, MAX_SYMPTOMS, SYMPTOM_DURATION_CODES } from "../_shared/symptoms.ts";
+import { submissionSymptoms } from "../_shared/submission-symptoms.ts";
+import { CATALOG } from "../_shared/symptom-catalog/catalog.v0.1.ts";
+import {
+  MAX_QUALIFIER_KEY,
+  MAX_QUALIFIER_LABEL,
+  MAX_SYMPTOM_LABEL,
+  MAX_SYMPTOM_QUALIFIERS,
+  MAX_SYMPTOMS,
+  SYMPTOM_DURATION_CODES,
+} from "../_shared/symptoms.ts";
 
 const log = makeLogger("pt-request-appointment");
 
@@ -97,12 +108,30 @@ const InputSchema = z
         z.object({
           code: z.string().max(64).nullable(),
           label: z.string().trim().min(1).max(MAX_SYMPTOM_LABEL),
-          duration: z.enum(SYMPTOM_DURATION_CODES),
+          // v2 (ADR 0098 ruling 3): a catalog item carries qualifiers, not a chip.
+          duration: z.enum(SYMPTOM_DURATION_CODES).nullable().optional(),
+          qualifiers: z
+            .array(
+              z.object({
+                key: z.string().trim().min(1).max(MAX_QUALIFIER_KEY),
+                option: z.string().trim().min(1).max(MAX_QUALIFIER_KEY),
+                label: z.string().trim().min(1).max(MAX_QUALIFIER_LABEL),
+              }),
+            )
+            .max(MAX_SYMPTOM_QUALIFIERS)
+            .optional(),
         }),
       )
       .max(MAX_SYMPTOMS)
       .nullable()
       .optional(),
+    /**
+     * ADR 0098 / PRD G5: the catalog pre-step's submission. When present the
+     * server reads the report and its tier from the row it wrote itself —
+     * a client-supplied tier is never trusted — and the descriptive
+     * `symptoms` above are ignored in favour of the catalog's own.
+     */
+    symptom_submission_id: z.string().uuid().optional(),
     /**
      * A uuid from `crypto.randomUUID()` is what both clients send; any opaque
      * 16–128 char string is accepted so a client with no uuid source still
@@ -183,6 +212,40 @@ Deno.serve(async (request: Request) => {
     patient = { provisionalId: input.for_provisional_id };
   }
 
+  // The catalog pre-step's report, when there was one: the caller's own row,
+  // or a 404 that does not confirm anyone else's exists.
+  let symptoms = input.symptoms ?? null;
+  let symptomTier: "E" | "U" | "R" | null = null;
+  if (input.symptom_submission_id) {
+    const { data: subRow, error: subError } = await sb
+      .from("symptom_submissions")
+      .select("id, patient_user_id, items, qualifiers, computed_tier, outcome")
+      .eq("id", input.symptom_submission_id)
+      .maybeSingle();
+    if (subError) return serverError(subError.message, init);
+    const sub = subRow as {
+      id: string;
+      patient_user_id: string | null;
+      items: unknown;
+      qualifiers: unknown;
+      computed_tier: "E" | "U" | "R";
+      outcome: string;
+    } | null;
+    if (!sub || sub.patient_user_id !== caller.id) {
+      return notFound(init, "That report was not found.");
+    }
+    // An emergency-tier report books only after the interrupt was declined
+    // (`pt-emergency-event` → `emergency_declined`) — the same gate as
+    // `pt-request-same-day`. A client that skipped the interrupt gets a 409.
+    if (sub.computed_tier === "E" && sub.outcome !== "emergency_declined") {
+      return conflict("This report needs the Emergency sheet first.", init, {
+        tier: sub.computed_tier,
+      });
+    }
+    symptoms = submissionSymptoms(CATALOG, sub);
+    symptomTier = sub.computed_tier;
+  }
+
   const { ipAddress, userAgent } = networkContext(request);
   const result = await bookAppointment(
     { sb, init, log },
@@ -194,7 +257,9 @@ Deno.serve(async (request: Request) => {
       hospitalId: input.hospital_id,
       reason: input.reason,
       note: input.reason_note ?? null,
-      symptoms: input.symptoms ?? null,
+      symptoms,
+      symptomTier,
+      symptomSubmissionId: input.symptom_submission_id ?? null,
       idempotencyKey: input.idempotency_key,
       slot: input.slot,
       session: input.session ? { sessionId: input.session.session_id } : undefined,
@@ -214,5 +279,14 @@ Deno.serve(async (request: Request) => {
       },
     },
   );
+  if (result.ok && input.symptom_submission_id) {
+    // The link back is a second write; a failure leaves the booking whole.
+    const { error: linkError } = await sb
+      .from("symptom_submissions")
+      .update({ outcome: "booked", appointment_id: result.row.id })
+      .eq("id", input.symptom_submission_id)
+      .eq("patient_user_id", caller.id);
+    if (linkError) log.warn("submission link failed", { requestId, reason: linkError.message });
+  }
   return bookingResponse(result, init);
 });

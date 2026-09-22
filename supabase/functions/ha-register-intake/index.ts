@@ -12,7 +12,14 @@
  *
  * Auth: superadmin OR hospital_admin (scoped) OR any active clinical
  * affiliation at the hospital (nurse / doctor / other clinician).
+ *
+ * The write itself — entry-type rules, priority, audit-first, INSERT — is
+ * `_shared/intake.ts` (ADR 0098 ruling 10), which a pre-alerted arrival
+ * calls too so no door creates a second intake. This file keeps the
+ * checks that are the desk's own: the patient and appointment exist, the
+ * caller may register here.
  */
+import type { EntryTypeRow } from "../_shared/intake.ts";
 import { z } from "npm:zod@4.4.3";
 
 import { getCaller, hasRole, serviceClient } from "../_shared/auth.ts";
@@ -27,8 +34,9 @@ import {
   unauthorized,
 } from "../_shared/errors.ts";
 import { requireHospitalAdminScope } from "../_shared/hospital-admin-scope.ts";
+import { entryTypeRequirementsError, lookupEntryType, registerIntake } from "../_shared/intake.ts";
 import { makeLogger } from "../_shared/logger.ts";
-import { networkContext, recordSaAudit } from "../_shared/sa-audit.ts";
+import { networkContext } from "../_shared/sa-audit.ts";
 
 const log = makeLogger("ha-register-intake");
 
@@ -61,6 +69,8 @@ const InputSchema = z
 
     notes: z.string().max(2000).optional(),
     arrived_at: z.string().datetime({ offset: true }).optional(),
+    /** ADR 0098: the desk's catalog report (pt-submit-symptoms), linked on the intake. */
+    symptom_submission_id: z.string().uuid().optional(),
 
     reason: z.string().min(8, "Reason ≥ 8 chars required (audited)."),
   })
@@ -92,35 +102,22 @@ Deno.serve(async (request: Request) => {
   const sb = serviceClient();
 
   // Look up entry type — drives priority + the never-block rule.
-  const { data: entryType, error: etErr } = await sb
-    .from("entry_types")
-    .select("code, is_emergency, default_priority_hint, requires_referral, allows_unknown_patient")
-    .eq("code", input.entry_type_code)
-    .maybeSingle();
-  if (etErr) return serverError(etErr.message, init);
+  let entryType: EntryTypeRow | null;
+  try {
+    entryType = await lookupEntryType(sb, input.entry_type_code);
+  } catch (e) {
+    return serverError(e instanceof Error ? e.message : String(e), init);
+  }
   if (!entryType) return badRequest(`Unknown entry_type_code: ${input.entry_type_code}`, init);
 
   // Non-emergency types: validate the type-specific requirements.
   // Emergency types skip — capture-fast.
-  if (!entryType.is_emergency) {
-    if (!input.patient_user_id) {
-      // Non-emergency must identify the patient.
-      if (!entryType.allows_unknown_patient) {
-        return badRequest(
-          `${entryType.code} requires a known patient — search or register first`,
-          init,
-        );
-      }
-    }
-    if (entryType.requires_referral) {
-      if (!input.referring_hospital_id && !input.referring_facility_other) {
-        return badRequest(
-          `${entryType.code} requires a referring facility (in-network or 'other')`,
-          init,
-        );
-      }
-    }
-  }
+  const unmet = entryTypeRequirementsError(entryType, {
+    patientUserId: input.patient_user_id,
+    referringHospitalId: input.referring_hospital_id,
+    referringFacilityOther: input.referring_facility_other,
+  });
+  if (unmet) return badRequest(unmet, init);
 
   // Verify patient exists if supplied.
   if (input.patient_user_id) {
@@ -167,78 +164,43 @@ Deno.serve(async (request: Request) => {
     }
   }
 
-  const priorityHint = input.priority_hint_override ?? entryType.default_priority_hint ?? "routine";
-  const arrivedAt = input.arrived_at ?? new Date().toISOString();
-
   const { ipAddress, userAgent } = networkContext(request);
-  try {
-    await recordSaAudit({
-      actorId: caller.id,
-      action: "register_intake",
-      targetKind: "patient_intake",
-      targetId: input.patient_user_id ?? input.hospital_id,
-      reason: input.reason,
-      requestId,
-      ipAddress,
-      userAgent,
-      beforeData: null,
-      afterData: {
-        entry_type_code: input.entry_type_code,
-        is_emergency: entryType.is_emergency,
-        priority_hint: priorityHint,
-        arrived_at: arrivedAt,
-      },
-    });
-  } catch (e) {
-    log.error("sa_audit failed; aborting", { requestId, reason: String(e) });
-    return serverError("audit write failed", init);
-  }
+  const result = await registerIntake(
+    { sb, init, log },
+    {
+      hospitalId: input.hospital_id,
+      entryTypeCode: input.entry_type_code,
+      entryType,
+      entryPoint: input.entry_point,
+      receivingDepartmentId: input.receiving_department_id,
+      receivingWardId: input.receiving_ward_id,
+      patientUserId: input.patient_user_id,
+      patientUnknownLabel: input.patient_unknown_label,
+      appointmentId: input.appointment_id,
+      referringHospitalId: input.referring_hospital_id,
+      referringFacilityOther: input.referring_facility_other,
+      referringClinicianName: input.referring_clinician_name,
+      referralReason: input.referral_reason,
+      referralDocumentUrl: input.referral_document_url,
+      referralDate: input.referral_date,
+      presentingComplaint: input.presenting_complaint,
+      broughtBy: input.brought_by,
+      priorityHintOverride: input.priority_hint_override,
+      notes: input.notes,
+      arrivedAt: input.arrived_at,
+      registeredByUserId: caller.id,
+      symptomSubmissionId: input.symptom_submission_id,
+      audit: { actorId: caller.id, reason: input.reason, requestId, ipAddress, userAgent },
+    },
+  );
+  if (!result.ok) return result.response;
 
-  const { data: intake, error: insertError } = await sb
-    .from("patient_intakes")
-    .insert({
-      hospital_id: input.hospital_id,
-      entry_type_code: input.entry_type_code,
-      entry_point: input.entry_point ?? null,
-      receiving_department_id: input.receiving_department_id ?? null,
-      receiving_ward_id: input.receiving_ward_id ?? null,
-      patient_user_id: input.patient_user_id ?? null,
-      patient_unknown_label: input.patient_unknown_label ?? null,
-      appointment_id: input.appointment_id ?? null,
-      referring_hospital_id: input.referring_hospital_id ?? null,
-      referring_facility_other: input.referring_facility_other ?? null,
-      referring_clinician_name: input.referring_clinician_name ?? null,
-      referral_reason: input.referral_reason ?? null,
-      referral_document_url: input.referral_document_url ?? null,
-      referral_date: input.referral_date ?? null,
-      presenting_complaint: input.presenting_complaint ?? null,
-      brought_by: input.brought_by ?? null,
-      priority_hint: priorityHint,
-      status: "awaiting_triage",
-      arrived_at: arrivedAt,
-      registered_by_user_id: caller.id,
-      notes: input.notes ?? null,
-    })
-    .select("id, priority_hint, status")
-    .single();
-  if (insertError) {
-    log.error("intake insert failed", { requestId, reason: insertError.message });
-    return serverError("intake insert failed", init);
-  }
-
-  log.info("intake registered", {
-    requestId,
-    intake_id: intake.id,
-    entry_type_code: input.entry_type_code,
-    is_emergency: entryType.is_emergency,
-    priority_hint: intake.priority_hint,
-  });
   return ok(
     {
-      intake_id: intake.id,
-      priority_hint: intake.priority_hint,
-      status: intake.status,
-      is_emergency: entryType.is_emergency,
+      intake_id: result.intakeId,
+      priority_hint: result.priorityHint,
+      status: result.status,
+      is_emergency: result.isEmergency,
     },
     init,
   );

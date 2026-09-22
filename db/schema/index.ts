@@ -51,6 +51,9 @@ export * from "./hospital-application-specialties";
 // ─── Scheduling, Appointments & Booking (migration 0028) ───────────────
 export * from "./scheduling";
 
+// ─── Symptom catalog + Emergency Pathway (migration 0066, ADR 0098) ────
+export * from "./emergency";
+
 // ─── Patient self-tracking (migration 0029) ────────────────────────────
 export * from "./patient-self-tracking";
 

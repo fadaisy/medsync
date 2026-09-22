@@ -268,6 +268,14 @@ export const appointments = pgTable(
      * firewall test holds that line). Shape owned by `_shared/symptoms.ts`.
      */
     symptoms: jsonb("symptoms").$type<BookingSymptom[]>(),
+    /**
+     * Migration 0066 / ADR 0098: the advisory tier the catalog computed for
+     * this booking (E/U/R) and the submission it came from. On the
+     * appointment, not the element, so no list can be coloured by it.
+     */
+    symptomTier: text("symptom_tier"),
+    /** FK in migration 0066 (→ symptom_submissions); not declared here — `db/schema/emergency.ts` imports this file, and a lazy back-reference would close an import cycle. */
+    symptomSubmissionId: uuid("symptom_submission_id"),
     /** 6 chars, unambiguous alphabet, printed on the receipt (§3.6). */
     bookingCode: text("booking_code"),
     /** Migration 0061 / ADR 0090: the patient's answer to the T-24h confirmation request. */
@@ -285,6 +293,10 @@ export const appointments = pgTable(
       sql`${t.reason} IN ('follow_up','post_discharge','new_concern','refill','test_results','antenatal','immunisation','child_wellness','specialist_review','routine','procedure','counselling','second_opinion','urgent_review','other')`,
     ),
     check("appointments_channel_check", sql`${t.channel} IN ('web','app','ussd','desk','system')`),
+    check(
+      "appointments_symptom_tier_check",
+      sql`${t.symptomTier} IS NULL OR ${t.symptomTier} IN ('E','U','R')`,
+    ),
     // Migration 0065: the container is a list; the element shape is every writer's job.
     check(
       "appointments_symptoms_is_list",

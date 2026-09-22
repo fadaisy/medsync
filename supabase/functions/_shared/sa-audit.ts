@@ -23,7 +23,7 @@ import { serviceClient } from "./auth.ts";
  */
 /**
  * Allowed action / targetKind values — kept in sync with the
- * sa_audit_log CHECK constraint (currently set by migration 0063).
+ * sa_audit_log CHECK constraint (currently set by migration 0066).
  * When you add a value here, ALSO add it to the migration; the union
  * is here so typecheck catches typos before they hit the DB.
  */
@@ -129,7 +129,18 @@ export type SaAuditAction =
   // Low-bandwidth channels (migration 0062 — GATED, ADR 0091).
   | "sms_stop"
   // Cadre fees (migration 0063 — GATED, ADR 0092).
-  | "set_service_line_fee";
+  | "set_service_line_fee"
+  // Symptom catalog + Emergency Pathway (migration 0066 — GATED, ADR 0098).
+  | "submit_symptoms"
+  | "emergency_interrupt_shown"
+  | "emergency_declined"
+  | "emergency_call_tapped"
+  | "request_same_day"
+  | "create_pre_arrival"
+  | "update_pre_arrival"
+  | "sign_catalog_version"
+  | "verify_emergency_contact"
+  | "set_hospital_emergency_settings";
 
 export type SaAuditTargetKind =
   | "staff_affiliation"
@@ -173,7 +184,12 @@ export type SaAuditTargetKind =
   | "waitlist_entry"
   | "notification_dispatch"
   // Cadre fees (migration 0063 — GATED, ADR 0092).
-  | "service_line_fee";
+  | "service_line_fee"
+  // Symptom catalog + Emergency Pathway (migration 0066 — GATED, ADR 0098).
+  | "symptom_submission"
+  | "emergency_pre_arrival"
+  | "emergency_contact"
+  | "patient_symptom_catalog_version";
 
 export async function recordSaAudit(params: {
   actorId: string;

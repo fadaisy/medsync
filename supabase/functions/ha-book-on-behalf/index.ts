@@ -66,7 +66,14 @@ import { makeLogger } from "../_shared/logger.ts";
 import { networkContext } from "../_shared/sa-audit.ts";
 import { PATIENT_REASON_CODES } from "../_shared/sessions-sql.ts";
 import { DEFAULT_TIME_ZONE, localDateKey } from "../_shared/slots.ts";
-import { MAX_SYMPTOM_LABEL, MAX_SYMPTOMS, SYMPTOM_DURATION_CODES } from "../_shared/symptoms.ts";
+import {
+  MAX_QUALIFIER_KEY,
+  MAX_QUALIFIER_LABEL,
+  MAX_SYMPTOM_LABEL,
+  MAX_SYMPTOM_QUALIFIERS,
+  MAX_SYMPTOMS,
+  SYMPTOM_DURATION_CODES,
+} from "../_shared/symptoms.ts";
 
 const log = makeLogger("ha-book-on-behalf");
 
@@ -125,7 +132,18 @@ const InputSchema = z
         z.object({
           code: z.string().max(64).nullable(),
           label: z.string().trim().min(1).max(MAX_SYMPTOM_LABEL),
-          duration: z.enum(SYMPTOM_DURATION_CODES),
+          // v2 (ADR 0098 ruling 3): a catalog item carries qualifiers, not a chip.
+          duration: z.enum(SYMPTOM_DURATION_CODES).nullable().optional(),
+          qualifiers: z
+            .array(
+              z.object({
+                key: z.string().trim().min(1).max(MAX_QUALIFIER_KEY),
+                option: z.string().trim().min(1).max(MAX_QUALIFIER_KEY),
+                label: z.string().trim().min(1).max(MAX_QUALIFIER_LABEL),
+              }),
+            )
+            .max(MAX_SYMPTOM_QUALIFIERS)
+            .optional(),
         }),
       )
       .max(MAX_SYMPTOMS)

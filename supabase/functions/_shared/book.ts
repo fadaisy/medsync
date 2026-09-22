@@ -104,6 +104,14 @@ export interface BookInput {
   note: string | null;
   /** What the patient said is bothering them — words for the clinic, never routed (ADR 0095). */
   symptoms?: BookingSymptom[] | null;
+  /**
+   * ADR 0098 ruling 6: the patient-callable same-day path books `urgent`;
+   * every other caller leaves this out and gets `routine`, as before.
+   */
+  priority?: "routine" | "urgent";
+  /** The advisory tier from a signed catalog (ruling 3) — on the row, never on an element. */
+  symptomTier?: "E" | "U" | "R" | null;
+  symptomSubmissionId?: string | null;
   idempotencyKey: string;
   slot?: SlotInput;
   session?: { sessionId: string };
@@ -357,9 +365,11 @@ export async function bookAppointment(ctx: BookContext, input: BookInput): Promi
       reason: input.reason,
       reason_note: input.note ?? null,
       symptoms: input.symptoms?.length ? input.symptoms : null,
+      symptom_tier: input.symptomTier ?? null,
+      symptom_submission_id: input.symptomSubmissionId ?? null,
       origin: input.origin,
       status: "confirmed",
-      priority: "routine",
+      priority: input.priority ?? "routine",
       type: "in_person",
       created_by_user_id: input.actorId,
       session_id: session.id,
@@ -530,9 +540,11 @@ export async function bookAppointment(ctx: BookContext, input: BookInput): Promi
       reason: input.reason,
       reason_note: input.note ?? null,
       symptoms: input.symptoms?.length ? input.symptoms : null,
+      symptom_tier: input.symptomTier ?? null,
+      symptom_submission_id: input.symptomSubmissionId ?? null,
       origin: input.origin,
       status: settings?.auto_confirm ? "confirmed" : "pending_approval",
-      priority: "routine",
+      priority: input.priority ?? "routine",
       type: slot.type,
       created_by_user_id: input.actorId,
       channel: input.channel,
@@ -642,6 +654,8 @@ export async function bookAppointment(ctx: BookContext, input: BookInput): Promi
         booking_code: created.booking_code,
         // A count, never the words: free text in sa_audit_log is PHI-adjacent.
         symptom_count: input.symptoms?.length ?? 0,
+        priority: row.priority,
+        symptom_tier: row.symptom_tier ?? null,
       },
     });
   } catch (e) {

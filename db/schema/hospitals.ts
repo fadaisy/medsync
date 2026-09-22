@@ -1,5 +1,15 @@
 import { sql } from "drizzle-orm";
-import { check, index, pgTable, smallint, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  check,
+  doublePrecision,
+  index,
+  pgTable,
+  smallint,
+  text,
+  timestamp,
+  uuid,
+} from "drizzle-orm/pg-core";
 
 /**
  * Hospital / facility. Uganda MoH facility taxonomy for `level`.
@@ -39,6 +49,22 @@ export const hospitals = pgTable(
       .notNull()
       .default(1260),
     quietHoursEndMinutesLocal: smallint("quiet_hours_end_minutes_local").notNull().default(420),
+    /**
+     * Migration 0066 / ADR 0098 — the Emergency Pathway's facility side.
+     * `emergencyCapability` none|daytime|24h; `preAlertEnabled` needs a named
+     * board owner per shift (`boardOwnerNote`) — a board nobody owns is a
+     * board nobody watches (PRD §12). Directions and numbers are what the
+     * status screen and the SMS fallback print. Coordinates are nullable and
+     * empty today: "nearest" falls back to an honest ordering without them.
+     */
+    emergencyCapability: text("emergency_capability").notNull().default("none"),
+    preAlertEnabled: boolean("pre_alert_enabled").notNull().default(false),
+    boardOwnerNote: text("board_owner_note"),
+    emergencyEntranceDirections: text("emergency_entrance_directions"),
+    emergencySmsNumber: text("emergency_sms_number"),
+    ambulanceNumber: text("ambulance_number"),
+    latitude: doublePrecision("latitude"),
+    longitude: doublePrecision("longitude"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
@@ -58,6 +84,27 @@ export const hospitals = pgTable(
     check(
       "hospitals_quiet_hours_range",
       sql`${t.quietHoursStartMinutesLocal} BETWEEN 0 AND 1440 AND ${t.quietHoursEndMinutesLocal} BETWEEN 0 AND 1440`,
+    ),
+    // Migration 0066 / ADR 0098.
+    check(
+      "hospitals_emergency_capability_check",
+      sql`${t.emergencyCapability} IN ('none','daytime','24h')`,
+    ),
+    check(
+      "hospitals_pre_alert_has_owner",
+      sql`${t.preAlertEnabled} = false OR ${t.boardOwnerNote} IS NOT NULL`,
+    ),
+    check(
+      "hospitals_emergency_sms_format",
+      sql`${t.emergencySmsNumber} IS NULL OR ${t.emergencySmsNumber} ~ '^[+]2567[0-9]{8}$|^[+]256[23489][0-9]{7,8}$'`,
+    ),
+    check(
+      "hospitals_ambulance_format",
+      sql`${t.ambulanceNumber} IS NULL OR ${t.ambulanceNumber} ~ '^[+]2567[0-9]{8}$|^[+]256[23489][0-9]{7,8}$|^0800[0-9]{6}$'`,
+    ),
+    check(
+      "hospitals_coordinates_range",
+      sql`(${t.latitude} IS NULL AND ${t.longitude} IS NULL) OR (${t.latitude} BETWEEN -2 AND 5 AND ${t.longitude} BETWEEN 29 AND 36)`,
     ),
     index("hospitals_country_district_idx").on(t.country, t.district),
   ],

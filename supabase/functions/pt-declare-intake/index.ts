@@ -22,8 +22,16 @@
  *     today at this hospital — one queue ticket per patient per day.
  *   - Emergencies do NOT route here — see kickoff §6. The UI keeps the
  *     in-person emergency-care guidance separate.
+ *   - ADR 0098 ruling 6: a symptom report (`pt-submit-symptoms`) may come
+ *     along. When it is the caller's own, the ticket carries its advisory
+ *     tier as `priority_hint` (E→urgent, U→high, R→routine — the same
+ *     table the same-day path reads), the catalog's lay labels as the
+ *     presenting complaint, and the report is marked `queued`. A report
+ *     that is not the caller's is a 404, never a silent drop: the id alone
+ *     must not confirm a report exists.
  */
 
+import type { Tier } from "../_shared/symptom-catalog/types.ts";
 import { z } from "npm:zod@4.4.3";
 
 import { getCaller, serviceClient } from "../_shared/auth.ts";
@@ -41,6 +49,9 @@ import {
 import { makeLogger } from "../_shared/logger.ts";
 import { networkContext, recordSaAudit } from "../_shared/sa-audit.ts";
 import { DEFAULT_TIME_ZONE, localWeekdayAndMinutes } from "../_shared/slots.ts";
+import { submissionSymptoms, TIER_PRIORITY_HINT } from "../_shared/submission-symptoms.ts";
+import { CATALOG } from "../_shared/symptom-catalog/index.ts";
+import { complaintLine } from "../_shared/symptoms.ts";
 
 const log = makeLogger("pt-declare-intake");
 
@@ -48,7 +59,19 @@ const InputSchema = z.object({
   hospital_id: z.string().uuid(),
   receiving_department_id: z.string().uuid(),
   presenting_complaint: z.string().max(500).nullable().optional(),
+  /** ADR 0098 ruling 6: the caller's own symptom report, if the queue door was reached through one. */
+  symptom_submission_id: z.string().uuid().optional(),
 });
+
+/** The columns the queue door reads off a report; `submissionSymptoms` turns the first two into words. */
+interface SubmissionRow {
+  id: string;
+  patient_user_id: string | null;
+  items: unknown;
+  qualifiers: unknown;
+  computed_tier: Tier;
+  outcome: string;
+}
 
 Deno.serve(async (request: Request) => {
   const origin = request.headers.get("origin");
@@ -192,9 +215,44 @@ Deno.serve(async (request: Request) => {
     });
   }
 
+  // 5b. The symptom report, when one came along (ADR 0098 ruling 6). Its
+  //     tier sets the priority hint; its lay labels lead the complaint,
+  //     the patient's own words follow in quotes (`complaintLine`). The
+  //     words the clinic reads come from the server's package, never from
+  //     the client. Absent a report, the row is exactly what it always was.
+  let submission: SubmissionRow | null = null;
+  if (input.symptom_submission_id) {
+    const { data: subRow, error: subError } = await sb
+      .from("symptom_submissions")
+      .select("id, patient_user_id, items, qualifiers, computed_tier, outcome")
+      .eq("id", input.symptom_submission_id)
+      .maybeSingle();
+    if (subError) return serverError(subError.message, init);
+    submission = subRow as SubmissionRow | null;
+    if (!submission || submission.patient_user_id !== caller.id) {
+      return notFound(init, "That symptom report was not found.");
+    }
+    // Same gate as booking and same-day: an E report joins the queue only
+    // after the interrupt was declined.
+    if (submission.computed_tier === "E" && submission.outcome !== "emergency_declined") {
+      return conflict("This report needs the Emergency sheet first.", init, {
+        tier: submission.computed_tier,
+      });
+    }
+  }
+  const presentingComplaint = submission
+    ? (complaintLine(submissionSymptoms(CATALOG, submission), input.presenting_complaint)?.slice(
+        0,
+        500,
+      ) ?? null)
+    : (input.presenting_complaint ?? null);
+  const priorityHint = submission ? TIER_PRIORITY_HINT[submission.computed_tier] : "routine";
+
   // 6. INSERT. Reuse 'walk_in' entry type — status='declared' carries
   //    the "haven't shown up yet" semantic. registered_by_user_id is
-  //    the patient themselves (their declaration).
+  //    the patient themselves (their declaration). The linkage column is
+  //    written only when a report exists, so the INSERT on a DB without
+  //    migration 0066 is byte-identical to before.
   const { data: created, error: insertError } = await sb
     .from("patient_intakes")
     .insert({
@@ -202,11 +260,12 @@ Deno.serve(async (request: Request) => {
       entry_type_code: "walk_in",
       receiving_department_id: input.receiving_department_id,
       patient_user_id: caller.id,
-      presenting_complaint: input.presenting_complaint ?? null,
-      priority_hint: "routine",
+      presenting_complaint: presentingComplaint,
+      priority_hint: priorityHint,
       status: "declared",
       declared_by_patient: true,
       registered_by_user_id: caller.id,
+      ...(submission ? { symptom_submission_id: submission.id } : {}),
     })
     .select("id, status, hospital_id, receiving_department_id, arrived_at")
     .single();
@@ -215,8 +274,26 @@ Deno.serve(async (request: Request) => {
     return serverError("could not create your queue ticket", init);
   }
 
+  // 6b. Link the report to what became of it. The ticket stands either
+  //     way; a failed link is logged, not surfaced — the patient is queued.
+  if (submission) {
+    const { error: linkError } = await sb
+      .from("symptom_submissions")
+      .update({ outcome: "queued", intake_id: created.id })
+      .eq("id", submission.id);
+    if (linkError) {
+      log.warn("submission link failed (intake already created)", {
+        requestId,
+        intake_id: created.id,
+        submission_id: submission.id,
+        reason: linkError.message,
+      });
+    }
+  }
+
   // 7. Audit. Best-effort — failure here doesn't roll back the intake
-  //    (mirrors pt-request-appointment §8).
+  //    (mirrors pt-request-appointment §8). The tier travels; the words
+  //    do not.
   const { ipAddress, userAgent } = networkContext(request);
   try {
     await recordSaAudit({
@@ -236,6 +313,13 @@ Deno.serve(async (request: Request) => {
         receiving_department_id: created.receiving_department_id,
         status: created.status,
         entry_type_code: "walk_in",
+        ...(submission
+          ? {
+              symptom_submission_id: submission.id,
+              symptom_tier: submission.computed_tier,
+              priority_hint: priorityHint,
+            }
+          : {}),
       },
     });
   } catch (e) {

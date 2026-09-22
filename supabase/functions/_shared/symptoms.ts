@@ -35,14 +35,35 @@ export const MAX_SYMPTOMS = 8;
 export const MAX_SYMPTOM_LABEL = 80;
 
 /**
- * One entry of `appointments.symptoms`. `code` is a `symptom_catalog.code`
- * when the patient tapped a catalogue entry, null when they typed their
- * own; `label` is always the words shown to the clinic.
+ * A catalog item carries at most two qualifiers (`MAX_QUALIFIERS_PER_ITEM`
+ * in symptom-catalog/types.ts — restated here because this module imports
+ * nothing). Key and option are catalog keys; the label is the option's words.
+ */
+export const MAX_SYMPTOM_QUALIFIERS = 2;
+export const MAX_QUALIFIER_KEY = 64;
+export const MAX_QUALIFIER_LABEL = 80;
+
+/** One answered qualifier on a catalog item, e.g. spreading → "to the arm". */
+export interface SymptomQualifier {
+  key: string;
+  option: string;
+  label: string;
+}
+
+/**
+ * One entry of `appointments.symptoms` (v2, ADR 0098 ruling 3). `code` is a
+ * `symptom_catalog.code` (descriptive picker) or a patient-catalog item key
+ * when the patient tapped an entry, null when they typed their own; `label`
+ * is always the words shown to the clinic. `duration` is optional since v2:
+ * a catalog item carries its own qualifiers instead of the generic chips,
+ * and an old row always has one. The tier is never on an element — it lives
+ * on the submission and the appointment, so no card can colour a list by it.
  */
 export interface BookingSymptom {
   code: string | null;
   label: string;
-  duration: SymptomDuration;
+  duration?: SymptomDuration | null;
+  qualifiers?: SymptomQualifier[];
 }
 
 /**
@@ -97,12 +118,18 @@ export function symptomDurationLabel(code: string): string {
 
 /**
  * The one line a staff card prints: "Headache (a few days) · Fever (started
- * today)". Lower-cased duration so it reads as a clause, not a heading.
+ * today)". Lower-cased duration so it reads as a clause, not a heading; the
+ * parenthesis only when a duration was given, then each qualifier's words as
+ * ", to the arm" — so a v1 row prints exactly as it always did.
  */
 export function formatSymptoms(symptoms: ReadonlyArray<BookingSymptom> | null | undefined): string {
   if (!symptoms || symptoms.length === 0) return "";
   return symptoms
-    .map((s) => `${s.label} (${symptomDurationLabel(s.duration).toLowerCase()})`)
+    .map((s) => {
+      const when = s.duration ? ` (${symptomDurationLabel(s.duration).toLowerCase()})` : "";
+      const how = (s.qualifiers ?? []).map((q) => `, ${q.label}`).join("");
+      return `${s.label}${when}${how}`;
+    })
     .join(" · ");
 }
 
@@ -125,6 +152,9 @@ export function complaintLine(
  * Hand validation for runtimes without zod (the phone) and for reading a
  * jsonb column back defensively: returns the well-formed entries, or null
  * when the value is not a list. Trims and caps labels; drops anything else.
+ * An entry with NO duration is kept (v2: catalog items carry qualifiers
+ * instead); one with a duration that is not a chip is malformed and dropped,
+ * as before. Malformed qualifiers are dropped one by one, never the entry.
  */
 export function normaliseSymptoms(raw: unknown): BookingSymptom[] | null {
   if (!Array.isArray(raw)) return null;
@@ -132,16 +162,38 @@ export function normaliseSymptoms(raw: unknown): BookingSymptom[] | null {
   for (const item of raw) {
     if (out.length >= MAX_SYMPTOMS) break;
     if (!item || typeof item !== "object") continue;
-    const { code, label, duration } = item as Record<string, unknown>;
-    if (typeof label !== "string" || typeof duration !== "string") continue;
-    if (!SYMPTOM_DURATION_CODES.includes(duration as SymptomDuration)) continue;
+    const { code, label, duration, qualifiers } = item as Record<string, unknown>;
+    if (typeof label !== "string") continue;
+    const hasDuration = duration !== undefined && duration !== null;
+    if (hasDuration && !SYMPTOM_DURATION_CODES.includes(duration as SymptomDuration)) continue;
     const text = label.trim().slice(0, MAX_SYMPTOM_LABEL);
     if (!text) continue;
-    out.push({
+    const entry: BookingSymptom = {
       code: typeof code === "string" && code ? code : null,
       label: text,
-      duration: duration as SymptomDuration,
-    });
+    };
+    if (hasDuration) entry.duration = duration as SymptomDuration;
+    const qs = normaliseQualifiers(qualifiers);
+    if (qs.length) entry.qualifiers = qs;
+    out.push(entry);
+  }
+  return out;
+}
+
+function normaliseQualifiers(raw: unknown): SymptomQualifier[] {
+  if (!Array.isArray(raw)) return [];
+  const out: SymptomQualifier[] = [];
+  for (const q of raw) {
+    if (out.length >= MAX_SYMPTOM_QUALIFIERS) break;
+    if (!q || typeof q !== "object") continue;
+    const { key, option, label } = q as Record<string, unknown>;
+    if (typeof key !== "string" || typeof option !== "string" || typeof label !== "string")
+      continue;
+    const k = key.trim().slice(0, MAX_QUALIFIER_KEY);
+    const o = option.trim().slice(0, MAX_QUALIFIER_KEY);
+    const l = label.trim().slice(0, MAX_QUALIFIER_LABEL);
+    if (!k || !o || !l) continue;
+    out.push({ key: k, option: o, label: l });
   }
   return out;
 }

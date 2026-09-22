@@ -124,6 +124,11 @@ export const patientIntakes = pgTable(
       onDelete: "set null",
     }),
     notes: text("notes"),
+    /** Migration 0066 / ADR 0098: the pre-alert this arrival came from, and what was reported. */
+    /** FK in migration 0066 (→ emergency_pre_arrivals); see symptomSubmissionId. */
+    preArrivalId: uuid("pre_arrival_id"),
+    /** FK in migration 0066 (→ symptom_submissions); not declared here — `db/schema/emergency.ts` imports this file, and a lazy back-reference would close an import cycle. */
+    symptomSubmissionId: uuid("symptom_submission_id"),
 
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),

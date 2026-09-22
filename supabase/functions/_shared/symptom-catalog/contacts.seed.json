@@ -1,0 +1,79 @@
+[
+  {
+    "key": "UG.NATIONAL.112",
+    "label": "General emergency (mobile)",
+    "number": "112",
+    "scope": "national",
+    "district": null,
+    "kind": "general",
+    "priority": 1,
+    "verificationStatus": "unverified",
+    "basis": "Uganda Police National Emergency Call Centre; gov.ug emergency services page. Likely live — verify."
+  },
+  {
+    "key": "UG.NATIONAL.999",
+    "label": "General emergency",
+    "number": "999",
+    "scope": "national",
+    "district": null,
+    "kind": "general",
+    "priority": 2,
+    "verificationStatus": "unverified",
+    "basis": "Uganda Police National Emergency Call Centre; gov.ug emergency services page. Likely live — verify."
+  },
+  {
+    "key": "UG.NATIONAL.912",
+    "label": "MoH ambulance short code",
+    "number": "912",
+    "scope": "national",
+    "district": null,
+    "kind": "ambulance",
+    "priority": 3,
+    "verificationStatus": "unverified",
+    "basis": "MoH DGHS statement, Nov 2025 — announced, launch status unknown."
+  },
+  {
+    "key": "UG.KAMPALA.KCCA_AMBULANCE",
+    "label": "KCCA city ambulance (toll-free)",
+    "number": "0800 299 000",
+    "scope": "district",
+    "district": "Kampala",
+    "kind": "ambulance",
+    "priority": 4,
+    "verificationStatus": "unverified",
+    "basis": "KCCA ambulance launch announcement. Verify."
+  },
+  {
+    "key": "UG.NATIONAL.RED_CROSS_HIGHWAY",
+    "label": "Uganda Red Cross highway ambulances",
+    "number": null,
+    "scope": "national",
+    "district": null,
+    "kind": "ambulance",
+    "priority": 5,
+    "verificationStatus": "to_source",
+    "basis": "Uganda Red Cross Society — number to source."
+  },
+  {
+    "key": "UG.NATIONAL.CRISIS",
+    "label": "Crisis / mental health",
+    "number": null,
+    "scope": "national",
+    "district": null,
+    "kind": "crisis",
+    "priority": 6,
+    "verificationStatus": "to_source",
+    "basis": "gov.ug listing; Butabika NRH switchboard as interim candidate. To source and verify."
+  },
+  {
+    "key": "UG.NATIONAL.SV",
+    "label": "Sexual violence support",
+    "number": null,
+    "scope": "national",
+    "district": null,
+    "kind": "sv",
+    "priority": 7,
+    "verificationStatus": "to_source",
+    "basis": "To source and verify."
+  }
+]

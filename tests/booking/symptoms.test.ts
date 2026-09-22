@@ -98,6 +98,86 @@ describe("normaliseSymptoms — defensive read of the jsonb column", () => {
   });
 });
 
+describe("v2 (ADR 0098 ruling 3) — a duration is optional, a catalog item carries qualifiers", () => {
+  const chest: BookingSymptom = {
+    code: "SYM.CHEST.PAIN_SPREADING",
+    label: "Chest pain spreading to arm or jaw",
+    qualifiers: [
+      { key: "spreading", option: "arm", label: "to the arm" },
+      { key: "sweating", option: "yes", label: "with sweating" },
+    ],
+  };
+
+  it("keeps an entry with no duration, and one with an explicit null", () => {
+    expect(
+      normaliseSymptoms([
+        { code: "x", label: "Chest pain" },
+        { code: null, label: "Fever", duration: null },
+      ]),
+    ).toEqual([
+      { code: "x", label: "Chest pain" },
+      { code: null, label: "Fever" },
+    ]);
+  });
+
+  it("validates qualifiers: trims, caps at two, drops a malformed one — never the entry", () => {
+    const out = normaliseSymptoms([
+      {
+        ...chest,
+        qualifiers: [
+          ...chest.qualifiers!,
+          { key: "third", option: "x", label: "over the cap" },
+          { key: 42, option: "y", label: "not a string" },
+        ],
+      },
+      { code: null, label: "Cough", qualifiers: [{ key: "", option: "x", label: "blank key" }] },
+      { code: null, label: "Rash", qualifiers: "spots" },
+    ]);
+    expect(out).toEqual([chest, { code: null, label: "Cough" }, { code: null, label: "Rash" }]);
+  });
+
+  it("formats label, then (duration) only when given, then each qualifier as ', words'", () => {
+    expect(formatSymptoms([chest])).toBe(
+      "Chest pain spreading to arm or jaw, to the arm, with sweating",
+    );
+    expect(formatSymptoms([{ ...chest, duration: "today" }])).toBe(
+      "Chest pain spreading to arm or jaw (started today), to the arm, with sweating",
+    );
+    expect(formatSymptoms([{ code: null, label: "Cough" }, headache])).toBe(
+      "Cough · Headache (a few days)",
+    );
+    // An old row prints exactly as it always did.
+    expect(complaintLine([headache, fever], null)).toBe(
+      "Headache (a few days) · Fever (started today)",
+    );
+  });
+
+  it("every zod mirror accepts a missing or null duration and the qualifier caps", () => {
+    for (const path of [
+      "supabase/functions/pt-request-appointment/index.ts",
+      "supabase/functions/ha-book-on-behalf/index.ts",
+      "app/patient/book/actions.ts",
+      "app/reception/book/actions.ts",
+    ]) {
+      const src = read(path);
+      expect(src, path).toContain("duration: z.enum(SYMPTOM_DURATION_CODES).nullable().optional()");
+      expect(src, path).toContain(".max(MAX_SYMPTOM_QUALIFIERS)");
+      expect(src, path).toContain("MAX_QUALIFIER_KEY");
+      expect(src, path).toContain("MAX_QUALIFIER_LABEL");
+    }
+  });
+
+  it("the booking core writes the tier and submission on the ROW, never on an element", () => {
+    const core = read("supabase/functions/_shared/book.ts");
+    expect(core.match(/^\s+symptom_tier: input\.symptomTier \?\? null,$/gm)).toHaveLength(2);
+    expect(
+      core.match(/^\s+symptom_submission_id: input\.symptomSubmissionId \?\? null,$/gm),
+    ).toHaveLength(2);
+    expect(core.match(/^\s+priority: input\.priority \?\? "routine",$/gm)).toHaveLength(2);
+    expect(core).toContain("symptom_tier: row.symptom_tier ?? null");
+  });
+});
+
 describe("the writers, at the source", () => {
   it("the booking core writes `symptoms:` in exactly its two row literals, and audits a count only", () => {
     const core = read("supabase/functions/_shared/book.ts");
@@ -116,7 +196,9 @@ describe("the writers, at the source", () => {
       expect(src, fn).toContain("SYMPTOM_DURATION_CODES");
       expect(src, fn).toContain("MAX_SYMPTOM_LABEL");
       expect(src, fn).toContain(".max(MAX_SYMPTOMS)");
-      expect(src, fn).toContain("symptoms: input.symptoms ?? null");
+      // The validated list reaches the core — directly, or via the local the
+      // patient function narrows when a catalog submission replaces it (ADR 0098).
+      expect(src, fn).toMatch(/symptoms(?::| =) input\.symptoms \?\? null/);
     }
     for (const action of ["app/patient/book/actions.ts", "app/reception/book/actions.ts"]) {
       const src = read(action);
