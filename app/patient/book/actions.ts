@@ -10,7 +10,10 @@ import { callEdge } from "@/lib/supabase/edge";
 import { createClient } from "@/lib/supabase/server";
 import { PATIENT_REASON_CODES } from "@/supabase/functions/_shared/sessions-sql";
 import {
+  MAX_QUALIFIER_KEY,
+  MAX_QUALIFIER_LABEL,
   MAX_SYMPTOM_LABEL,
+  MAX_SYMPTOM_QUALIFIERS,
   MAX_SYMPTOMS,
   SYMPTOM_DURATION_CODES,
 } from "@/supabase/functions/_shared/symptoms";
@@ -34,11 +37,24 @@ const BookArgs = z
         z.object({
           code: z.string().max(64).nullable(),
           label: z.string().trim().min(1).max(MAX_SYMPTOM_LABEL),
-          duration: z.enum(SYMPTOM_DURATION_CODES),
+          // v2 (ADR 0098 ruling 3): a catalog item carries qualifiers, not a chip.
+          duration: z.enum(SYMPTOM_DURATION_CODES).nullable().optional(),
+          qualifiers: z
+            .array(
+              z.object({
+                key: z.string().trim().min(1).max(MAX_QUALIFIER_KEY),
+                option: z.string().trim().min(1).max(MAX_QUALIFIER_KEY),
+                label: z.string().trim().min(1).max(MAX_QUALIFIER_LABEL),
+              }),
+            )
+            .max(MAX_SYMPTOM_QUALIFIERS)
+            .optional(),
         }),
       )
       .max(MAX_SYMPTOMS)
       .optional(),
+    /** ADR 0098: the catalog pre-step's submission; the server derives tier and symptoms from it. */
+    symptom_submission_id: z.string().uuid().optional(),
     idempotency_key: z.string().uuid(),
     /** Gate D: book for a household member. The Edge Function checks the list. */
     for_provisional_id: z.string().uuid().optional(),

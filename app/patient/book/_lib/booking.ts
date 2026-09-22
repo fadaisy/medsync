@@ -251,7 +251,8 @@ export function accessAlternatives(
  * advance until every one has its duration.
  */
 export type DraftSymptom = Omit<BookingSymptom, "duration"> & {
-  duration: BookingSymptom["duration"] | null;
+  /** Optional on the wire since v2 (ADR 0098); the wizard still sets it to null until picked. */
+  duration?: BookingSymptom["duration"] | null;
 };
 
 export interface BookingDraft {
@@ -285,8 +286,10 @@ export function parseDraft(raw: string | null): BookingDraft | null {
       forProvisionalId: typeof d.forProvisionalId === "string" ? d.forProvisionalId : null,
       reason: REASONS.some((r) => r.value === d.reason) ? (d.reason as PatientReasonCode) : null,
       reasonNote: typeof d.reasonNote === "string" ? d.reasonNote.slice(0, 500) : "",
-      // An entry left without a duration does not survive a reload; the rest do.
-      symptoms: normaliseSymptoms(d.symptoms) ?? [],
+      // An entry left without a duration does not survive a reload; the rest
+      // do. Since v2 `normaliseSymptoms` keeps such entries (ADR 0098 ruling
+      // 3) — this wizard's chips still ask one, so it drops them itself.
+      symptoms: (normaliseSymptoms(d.symptoms) ?? []).filter((s) => s.duration != null),
       interstitialSeen: d.interstitialSeen === true,
       lineId: typeof d.lineId === "string" ? d.lineId : null,
       clinicianUserId: typeof d.clinicianUserId === "string" ? d.clinicianUserId : null,

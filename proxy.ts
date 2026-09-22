@@ -36,6 +36,9 @@ const PUBLIC_PREFIXES = [
   // Phase 1 onboarding — intent selector + the three role-specific
   // signup flows. All public (signup pages run unauth by definition).
   "/signup", // covers /signup/{patient,clinical,hospital}
+  // The Emergency Pathway (ADR 0098 ruling 7): a patient mid-emergency is
+  // never locked behind sign-in. E1–E3, crisis and sexual-violence routes.
+  "/emergency",
 ];
 
 const PUBLIC_EXACT = new Set(["/", "/sign-out", "/get-started"]);

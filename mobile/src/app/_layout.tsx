@@ -95,6 +95,10 @@ function RootNavigator() {
       <Stack.Protected guard={signedIn}>
         <Stack.Screen name="(app)" />
       </Stack.Protected>
+
+      {/* ADR 0098 Law 5: the Emergency sheet is reachable signed out — the
+          pre-auth screens' red disc opens it. Signed in, the tab is E1. */}
+      <Stack.Screen name="emergency" />
     </Stack>
   );
 }

@@ -13,6 +13,8 @@ import type { Palette } from "@/theme/tokens";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { FEE_FOOTNOTE, WAIVER_NOTE } from "@shared/fees";
+import { CATALOG } from "@shared/symptom-catalog/catalog.v0.1";
+import { t } from "@shared/symptom-catalog/classify";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   ActivityIndicator,
@@ -51,9 +53,11 @@ import {
   sessionTakeable,
 } from "@/lib/booking";
 import {
+  clearPendingCatalogDraft,
   clearPendingSymptoms,
   getPendingSymptoms,
   setPendingSymptoms,
+  usePendingCatalogDraft,
 } from "@/lib/pending-symptoms";
 import { useStyles, useTheme } from "@/theme/theme";
 import { font, radius, space } from "@/theme/tokens";
@@ -121,6 +125,15 @@ export default function ClinicScreen() {
   // Starts from what the home's shortlist took (ADR 0096) and writes back.
   const [catalog, setCatalog] = useState<BookingSymptomOption[]>([]);
   const [symptoms, setSymptoms] = useState<SymptomDraft[]>(getPendingSymptoms);
+  // ADR 0098: a catalog report already filed stands in for the descriptive
+  // picker — its lay words shown read-only, its id sent, the server deriving
+  // the rest. "Change" goes back to the catalog.
+  const draft = usePendingCatalogDraft();
+  const report = draft?.submissionId ? draft : null;
+  const reportLabels = (report?.items ?? [])
+    .map((key) => CATALOG.items.find((i) => i.key === key))
+    .filter((i) => i !== undefined)
+    .map((i) => t(CATALOG, i.labelKey));
 
   const keyRef = useRef<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -185,7 +198,8 @@ export default function ClinicScreen() {
     keyRef.current = null;
   };
   // Null while a chosen entry still has no duration — Confirm waits for it.
-  const symptomsReady = completeSymptoms(symptoms);
+  // A catalog report carries its own words: nothing to complete.
+  const symptomsReady = report ? [] : completeSymptoms(symptoms);
 
   const onSubmit = async () => {
     if (!profile || !line || !reason || !session || busy) return;
@@ -200,7 +214,8 @@ export default function ClinicScreen() {
       hospitalId: line.hospitalId,
       reason,
       reasonNote: note.trim() || null,
-      symptoms: symptomsReady,
+      symptoms: report ? null : symptomsReady,
+      symptomSubmissionId: report?.submissionId,
       idempotencyKey: keyRef.current,
       forProvisionalId: member?.provisionalPatientId,
       session: { sessionId: session.id },
@@ -208,6 +223,7 @@ export default function ClinicScreen() {
     if (res.ok) {
       keyRef.current = null;
       clearPendingSymptoms();
+      clearPendingCatalogDraft();
       setDone({
         receipt: res.data ?? {
           appointment_id: "",
@@ -455,7 +471,18 @@ export default function ClinicScreen() {
 
           {/* ADR 0095: what is bothering them, as words for the clinic.
               Hidden when the catalogue did not load; the booking stands. */}
-          {sessions.length > 0 && (catalog.length > 0 || symptoms.length > 0) ? (
+          {sessions.length > 0 && report ? (
+            <Section
+              title="What you told us"
+              action={{ label: "Change", onPress: () => router.push("/(app)/symptoms") }}
+            >
+              {reportLabels.map((label) => (
+                <Text key={label} style={styles.reportLine}>
+                  {label}
+                </Text>
+              ))}
+            </Section>
+          ) : sessions.length > 0 && (catalog.length > 0 || symptoms.length > 0) ? (
             <SymptomPicker options={catalog} value={symptoms} onChange={pickSymptoms} />
           ) : null}
 
@@ -521,6 +548,7 @@ const makeStyles = (c: Palette) =>
     // One clinic day per row: a date in full and its clinician need the width.
     tiles: { gap: space[2] },
     hint: { fontFamily: font.body, fontSize: 13.5, lineHeight: 19, color: c.mutedForeground },
+    reportLine: { fontFamily: font.body, fontSize: 14.5, lineHeight: 21, color: c.foreground },
 
     field: { gap: space[2] },
     fieldLabel: {

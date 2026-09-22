@@ -13,6 +13,8 @@ import type { ReactNode } from "react";
 import { useCallback, useEffect, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { DEFAULT_TIME_ZONE, localWeekdayAndMinutes } from "@shared/slots";
+import { CATALOG } from "@shared/symptom-catalog/catalog.v0.1";
+import { dangerSigns, visibleItems } from "@shared/symptom-catalog/classify";
 import { useFocusEffect, useRouter } from "expo-router";
 import {
   ActivityIndicator,
@@ -27,6 +29,8 @@ import {
 import { ProviderCard } from "@/components/patient/provider-card";
 import { ServiceLineCard } from "@/components/patient/service-line-card";
 import { SymptomQuickPick } from "@/components/patient/symptom-quick-pick";
+import { DangerStrip } from "@/components/symptoms/danger-strip";
+import { Watermark } from "@/components/symptoms/watermark";
 import { Avatar } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Chip, ChipRow } from "@/components/ui/chip";
@@ -56,6 +60,7 @@ import {
   STATUS_LABEL,
 } from "@/lib/booking";
 import { useSession } from "@/lib/session";
+import { useCatalogMode } from "@/lib/symptoms";
 import { useStyles, useTheme } from "@/theme/theme";
 import { font, radius, space, withAlpha } from "@/theme/tokens";
 
@@ -136,6 +141,8 @@ export default function HomeScreen() {
   const [department, setDepartment] = useState<string | null>(null);
   // ADR 0096: the shortlist's words. Empty (a failed read) hides the chips.
   const [catalog, setCatalog] = useState<BookingSymptomOption[]>([]);
+  // ADR 0098 Gate CS: the tiered catalog replaces the shortlist only when it may render.
+  const catalogMode = useCatalogMode();
   const [query, setQuery] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
@@ -413,7 +420,27 @@ export default function HomeScreen() {
             How are you feeling today?
           </Text>
         </View>
-        {catalog.length > 0 ? <SymptomQuickPick options={catalog} /> : null}
+        {/* ADR 0098 ruling 2: with the catalog live, the adult danger signs
+            and the door to "What's wrong?" stand here; a draft says so. With
+            it off (production until Gate CS), the ADR 0096 shortlist exactly
+            as shipped. Nothing shows until the mode is known. */}
+        {catalogMode === "off" && catalog.length > 0 ? (
+          <SymptomQuickPick options={catalog} />
+        ) : null}
+        {catalogMode === "signed" || catalogMode === "draft_watermarked" ? (
+          <View style={styles.catalogBlock}>
+            {catalogMode === "draft_watermarked" ? <Watermark /> : null}
+            <DangerStrip
+              items={dangerSigns(CATALOG, "adult")}
+              onPress={(item) =>
+                router.push({ pathname: "/(app)/symptoms", params: { item: item.key } })
+              }
+              allCount={visibleItems(CATALOG, "adult").filter((i) => i.tier === "E").length}
+              onAll={() => router.push("/(app)/symptoms")}
+            />
+            <Button label="What's wrong? Tell us" onPress={() => router.push("/(app)/symptoms")} />
+          </View>
+        ) : null}
 
         {hero ? (
           <Section title="Coming up">
@@ -837,6 +864,7 @@ const makeStyles = (c: Palette) =>
     name: { fontFamily: font.bodyMedium, fontSize: 16, lineHeight: 22, color: c.foreground },
 
     heading: { gap: space[1] },
+    catalogBlock: { gap: space[3] },
     search: {
       flexDirection: "row",
       alignItems: "center",

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Fraunces, Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 
+import { EmergencyPill } from "@/components/emergency/emergency-pill";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL } from "@/lib/site-config";
 import { Providers } from "./providers";
 
@@ -114,7 +115,13 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="bg-background text-foreground flex min-h-full flex-col font-sans">
-        <Providers>{children}</Providers>
+        <Providers>
+          {children}
+          {/* ADR 0098 ruling 7 (Law 5): the Emergency pill on every route,
+              signed in or out, staff workspaces included. It hides itself
+              on /emergency/**. */}
+          <EmergencyPill />
+        </Providers>
         <Analytics />
         <script
           type="application/ld+json"

@@ -20,6 +20,8 @@ export interface DepartmentOption {
 interface Props {
   departments: ReadonlyArray<DepartmentOption>;
   hospitalName: string;
+  /** ADR 0098: the catalog report this place in line is for, if it came from one. */
+  submissionId?: string | null;
 }
 
 /**
@@ -54,7 +56,7 @@ interface Props {
  * When a default arrives, the fixed branch below becomes its home and the list
  * moves behind the disclosure; the ask branch is what gets deleted.
  */
-export function DeclareIntakeForm({ departments, hospitalName }: Props) {
+export function DeclareIntakeForm({ departments, hospitalName, submissionId = null }: Props) {
   const [state, action, pending] = useActionState<DeclareIntakeState, FormData>(
     declareIntakeAction,
     {},
@@ -93,6 +95,9 @@ export function DeclareIntakeForm({ departments, hospitalName }: Props) {
 
   return (
     <form action={action} className="flex flex-col gap-4">
+      {submissionId ? (
+        <input type="hidden" name="symptom_submission_id" value={submissionId} />
+      ) : null}
       {only ? (
         <>
           <input type="hidden" name="receiving_department_id" value={only.id} />

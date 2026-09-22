@@ -12,6 +12,8 @@ import { createClient } from "@/lib/supabase/server";
 const DeclareArgs = z.object({
   receiving_department_id: z.string().uuid(),
   presenting_complaint: z.string().max(500).optional(),
+  /** ADR 0098: the catalog report behind "Join today's queue"; the server links it and reads its tier. */
+  symptom_submission_id: z.string().uuid().optional(),
 });
 
 export type DeclareIntakeState = {
@@ -28,9 +30,12 @@ export async function declareIntakeAction(
   formData: FormData,
 ): Promise<DeclareIntakeState> {
   const note = (formData.get("presenting_complaint") as string | null) ?? undefined;
+  const submissionId = formData.get("symptom_submission_id");
   const parsed = DeclareArgs.safeParse({
     receiving_department_id: formData.get("receiving_department_id"),
     presenting_complaint: note && note.trim() ? note.trim() : undefined,
+    symptom_submission_id:
+      typeof submissionId === "string" && submissionId ? submissionId : undefined,
   });
   if (!parsed.success) {
     const fe = parsed.error.flatten().fieldErrors;

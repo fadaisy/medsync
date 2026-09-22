@@ -21,6 +21,7 @@ import {
 import Animated, { FadeIn } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { EmergencyButton } from "@/components/patient/emergency-button";
 import { supabase } from "@/lib/supabase";
 import { splashPhoto } from "@/theme/splash-photo";
 import { useStyles, useTheme } from "@/theme/theme";
@@ -143,6 +144,10 @@ export default function SignInScreen() {
           have moved rather than been replaced. Same gutter, same size. */}
       <View style={[styles.wordmarkAnchor, { left: space[5], top: insets.top + space[2] }]}>
         <Text style={styles.wordmark}>medsync</Text>
+      </View>
+      {/* ADR 0098 ruling 7: the red disc, to the root Emergency sheet. */}
+      <View style={[styles.discAnchor, { right: space[5], top: insets.top + space[2] }]}>
+        <EmergencyButton href="/emergency" />
       </View>
 
       <KeyboardAvoidingView
@@ -343,6 +348,7 @@ const makeStyles = (c: Palette) =>
     photo: { position: "absolute", top: 0, left: 0 },
 
     wordmarkAnchor: { position: "absolute", zIndex: 2 },
+    discAnchor: { position: "absolute", zIndex: 2 },
     wordmark: {
       fontFamily: font.wordmark,
       // 46 × the splash's 0.46 dock scale — the mark arrives at exactly the size

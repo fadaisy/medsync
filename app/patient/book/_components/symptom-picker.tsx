@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 import {
   MAX_SYMPTOM_LABEL,
   MAX_SYMPTOMS,
+  QUICK_PICK_CODES,
   SYMPTOM_DURATIONS,
   SYMPTOM_SYSTEMS,
   SYMPTOMS_NOTE,
@@ -38,13 +39,22 @@ interface Props {
   value: ReadonlyArray<DraftSymptom>;
   onChange: (next: DraftSymptom[]) => void;
   idPrefix?: string;
+  /**
+   * The desk's mode: the whole catalogue drawn inline is a wall of chips on a
+   * form that has other things to say. Compact shows search plus the eight
+   * quick picks (ADR 0096's shortlist) and folds the rest behind "Show all";
+   * a search term always searches everything.
+   */
+  compact?: boolean;
 }
 
-export function SymptomPicker({ options, value, onChange, idPrefix }: Props) {
+export function SymptomPicker({ options, value, onChange, idPrefix, compact = false }: Props) {
   const reactId = useId();
   const id = idPrefix ?? reactId;
   const [query, setQuery] = useState("");
   const [custom, setCustom] = useState("");
+  const [showAll, setShowAll] = useState(false);
+  const folded = compact && !showAll && !query.trim();
   const full = value.length >= MAX_SYMPTOMS;
   const q = query.trim().toLowerCase();
   const shown = q
@@ -53,7 +63,9 @@ export function SymptomPicker({ options, value, onChange, idPrefix }: Props) {
           o.display.toLowerCase().includes(q) ||
           o.synonyms.some((s) => s.toLowerCase().includes(q)),
       )
-    : options;
+    : folded
+      ? QUICK_PICK_CODES.flatMap((code) => options.filter((o) => o.code === code))
+      : options;
   // The catalogue's systems in the lay order, then anything it does not name.
   const systems = [
     ...new Set([...SYMPTOM_SYSTEMS.map((s) => s.code), ...shown.map((o) => o.system)]),
@@ -175,6 +187,25 @@ export function SymptomPicker({ options, value, onChange, idPrefix }: Props) {
         <p className="text-muted-foreground text-body-s">
           Nothing in the list matches. Type it under Something else.
         </p>
+      ) : folded ? (
+        <div className="flex flex-col gap-2">
+          <ul className="flex flex-wrap gap-2" aria-label="Common">
+            {shown.map((o) => (
+              <li key={o.code}>
+                <Chip selected={chosen(o)} onSelect={() => toggle(o)}>
+                  {o.display}
+                </Chip>
+              </li>
+            ))}
+          </ul>
+          <button
+            type="button"
+            onClick={() => setShowAll(true)}
+            className="text-body-s text-primary hover:text-primary-hover min-h-11 w-fit underline-offset-4 hover:underline"
+          >
+            Show all ({options.length})
+          </button>
+        </div>
       ) : (
         systems.map((code) => (
           <div key={code} className="flex flex-col gap-2">

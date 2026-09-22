@@ -28,6 +28,7 @@ import {
   fetchPatientProfile,
   fetchWalkInDepartments,
 } from "@/lib/booking";
+import { clearPendingCatalogDraft, getPendingCatalogDraft } from "@/lib/pending-symptoms";
 import { useStyles, useTheme } from "@/theme/theme";
 import { font, radius, space } from "@/theme/tokens";
 
@@ -124,10 +125,14 @@ export default function TodayScreen() {
     if (!hospitalId || !chosenId || busy) return;
     setBusy(true);
     setError(null);
+    // ADR 0098: a catalog report filed before this door rides with the ticket;
+    // the server links it and reads its tier.
+    const report = getPendingCatalogDraft();
     const res = await declareIntake({
       hospitalId,
       receivingDepartmentId: chosenId,
       presentingComplaint: note.trim() || null,
+      symptomSubmissionId: report?.submissionId,
     });
     if (!res.ok) {
       // A 409 for an existing ticket carries its id in `details`, which the
@@ -143,6 +148,7 @@ export default function TodayScreen() {
         return;
       }
     }
+    clearPendingCatalogDraft();
     router.replace("/(app)/ticket");
   };
 

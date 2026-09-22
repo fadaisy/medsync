@@ -22,6 +22,7 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { EcgLoader } from "@/components/brand/ecg-loader";
+import { EmergencyButton } from "@/components/patient/emergency-button";
 import { useSplashSequence } from "@/hooks/use-splash-sequence";
 import { useSession } from "@/lib/session";
 import { splashPhoto } from "@/theme/splash-photo";
@@ -247,6 +248,12 @@ export default function SplashScreen() {
         </Text>
       </Animated.View>
 
+      {/* ADR 0098 ruling 7: the pre-auth screens carry the red disc, and here
+          it opens the root Emergency sheet — signed out, there is no tab. */}
+      <View style={[styles.discAnchor, { top: insets.top + space[2], right: space[5] }]}>
+        <EmergencyButton href="/emergency" />
+      </View>
+
       <View style={[styles.content, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
         <View style={styles.middle} />
 
@@ -289,6 +296,7 @@ const styles = StyleSheet.create({
   photo: { position: "absolute", top: 0, left: 0 },
 
   wordmarkAnchor: { position: "absolute", transformOrigin: "left top" },
+  discAnchor: { position: "absolute", zIndex: 2 },
   wordmark: {
     fontFamily: font.wordmark,
     fontSize: WORDMARK_SIZE,

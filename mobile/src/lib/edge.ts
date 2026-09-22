@@ -25,8 +25,15 @@ import { supabase } from "@/lib/supabase";
 
 export type EdgeResult<T> =
   | { ok: true; data: T }
-  /** The server's own sentence. Render it; do not rewrite it. */
-  | { ok: false; error: string };
+  /**
+   * The server's own sentence. Render it; do not rewrite it. `code` is the
+   * function's `error.code` when it sent one (`call_only`, `rate_limited`,
+   * `no_same_day_slot`) or `"offline"` when the request never left the
+   * phone; `status` is the HTTP status. The Emergency Pathway branches on
+   * these — a refused pre-alert keeps the call button up, an offline one
+   * queues — and nothing else needs them.
+   */
+  | { ok: false; error: string; code?: string; status?: number };
 
 /**
  * `supabase.ts` throws at import when this is missing, and this module imports
@@ -52,7 +59,13 @@ export function requestId(): string {
 }
 
 /**
- * POST `body` to the named Edge Function as the signed-in patient.
+ * POST `body` to the named Edge Function as the signed-in patient — or, with
+ * no session, as the anonymous caller. The gateway's `verify_jwt` accepts
+ * the anon key as a Bearer, and the functions whose caller is OPTIONAL
+ * (`pt-emergency-sheet`, `pt-create-pre-arrival`, `pt-pre-arrival-status`,
+ * `pt-emergency-event` — ADR 0098 ruling 7: the Emergency sheet opens signed
+ * out) read `getCaller` as null and carry on. A function that requires a
+ * caller answers 401 with its own sentence, which is rendered like any other.
  *
  * `data` is the payload out of the function's `{ ok: true, data }` envelope —
  * so `requestAppointment` hands back `{ appointment_id, status }`, not the
@@ -68,8 +81,7 @@ export async function callEdge<T = unknown>(
   body: Record<string, unknown>,
 ): Promise<EdgeResult<T>> {
   const { data: session } = await supabase.auth.getSession();
-  const token = session.session?.access_token;
-  if (!token) return { ok: false, error: "You're signed out. Sign in and try again." };
+  const token = session.session?.access_token ?? process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
 
   try {
     const res = await fetch(`${FUNCTIONS_URL}/${name}`, {
@@ -89,14 +101,23 @@ export async function callEdge<T = unknown>(
       // a helper that understands only one of the two shapes is how a real
       // sentence turns into a raw JSON blob on a patient's screen.
       let detail = text;
+      let code: string | undefined;
       try {
-        const parsed = JSON.parse(text) as { error?: string | { message?: string } };
+        const parsed = JSON.parse(text) as {
+          error?: string | { code?: string; message?: string };
+        };
         if (typeof parsed.error === "string") detail = parsed.error;
         else if (parsed.error?.message) detail = parsed.error.message;
+        if (typeof parsed.error === "object") code = parsed.error?.code;
       } catch {
         /* not JSON — keep the raw body */
       }
-      return { ok: false, error: detail || `MedSync couldn't complete that (${res.status}).` };
+      return {
+        ok: false,
+        error: detail || `MedSync couldn't complete that (${res.status}).`,
+        code,
+        status: res.status,
+      };
     }
 
     try {
@@ -114,6 +135,10 @@ export async function callEdge<T = unknown>(
     // the same sentence sign-in already uses for the same condition, and
     // deliberately not "Couldn't reach pt-request-appointment" — a function
     // name is not something a patient can act on.
-    return { ok: false, error: "Couldn't reach MedSync. Check your connection and try again." };
+    return {
+      ok: false,
+      error: "Couldn't reach MedSync. Check your connection and try again.",
+      code: "offline",
+    };
   }
 }

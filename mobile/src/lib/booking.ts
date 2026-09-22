@@ -242,12 +242,15 @@ export interface PatientProfile {
    * datum in the product.
    */
   emergencyPhone: string | null;
+  /** `patient_profiles.sex` — the catalog shows the pregnancy toggle for female or unknown (ADR 0098). */
+  sex: string;
 }
 
 interface ProfileRow {
   id: string;
   patient_code: string;
   primary_facility_id: string | null;
+  sex: string;
   hospitals: Embed<{ name: string; emergency_phone: string | null }>;
 }
 
@@ -262,7 +265,7 @@ export async function fetchPatientProfile(): Promise<PatientProfile | null> {
 
   const { data, error } = await supabase
     .from("patient_profiles")
-    .select("id, patient_code, primary_facility_id, hospitals(name, emergency_phone)")
+    .select("id, patient_code, primary_facility_id, sex, hospitals(name, emergency_phone)")
     .eq("id", userId)
     .maybeSingle()
     .overrideTypes<ProfileRow, { merge: false }>();
@@ -275,6 +278,7 @@ export async function fetchPatientProfile(): Promise<PatientProfile | null> {
     hospitalId: data.primary_facility_id,
     hospitalName: hospital?.name ?? null,
     emergencyPhone: hospital?.emergency_phone ?? null,
+    sex: data.sex,
   };
 }
 
@@ -1065,6 +1069,11 @@ export function requestAppointment(
     reasonNote?: string | null;
     /** Descriptive only (ADR 0095): passed to the clinic as words, never routed on. */
     symptoms?: BookingSymptom[] | null;
+    /**
+     * The catalog report this visit follows (ADR 0098): the server derives the
+     * tier and the words from the row, so `symptoms` is not sent beside it.
+     */
+    symptomSubmissionId?: string | null;
     idempotencyKey: string;
     /** A household member's provisional id — the server books it with `created_by` = this account (Gate D). */
     forProvisionalId?: string;
@@ -1095,6 +1104,7 @@ export function requestAppointment(
     // Absent, not null: zod's `.optional()` takes undefined and JSON drops it.
     ...(input.forProvisionalId ? { for_provisional_id: input.forProvisionalId } : {}),
     ...(input.symptoms?.length ? { symptoms: input.symptoms } : {}),
+    ...(input.symptomSubmissionId ? { symptom_submission_id: input.symptomSubmissionId } : {}),
     ...("slot" in input
       ? {
           slot: {
@@ -1115,11 +1125,14 @@ export function declareIntake(input: {
   hospitalId: string;
   receivingDepartmentId: string;
   presentingComplaint?: string | null;
+  /** The catalog report behind this visit (ADR 0098): the server links it and reads its tier. */
+  symptomSubmissionId?: string | null;
 }): Promise<EdgeResult<{ intake_id: string; status: string }>> {
   return callEdge("pt-declare-intake", {
     hospital_id: input.hospitalId,
     receiving_department_id: input.receivingDepartmentId,
     presenting_complaint: input.presentingComplaint ?? null,
+    ...(input.symptomSubmissionId ? { symptom_submission_id: input.symptomSubmissionId } : {}),
   });
 }
 

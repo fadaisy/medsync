@@ -17,8 +17,15 @@ import { Button, buttonVariants } from "@/components/ui/button";
 import { Pill } from "@/components/ui/pill";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatArrivalWindow, formatFullDate, formatTime } from "@/lib/patient/booking-format";
-import { clearPendingSymptoms, readPendingSymptoms } from "@/lib/patient/pending-symptoms";
+import {
+  clearPendingCatalogDraft,
+  clearPendingSymptoms,
+  readPendingCatalogDraft,
+  readPendingSymptoms,
+} from "@/lib/patient/pending-symptoms";
 import { cn } from "@/lib/utils";
+import { CATALOG } from "@/supabase/functions/_shared/symptom-catalog/catalog.v0.1";
+import { t } from "@/supabase/functions/_shared/symptom-catalog/classify";
 import { formatSymptoms } from "@/supabase/functions/_shared/symptoms";
 import {
   draftKey,
@@ -53,6 +60,12 @@ import { SymptomPicker } from "./symptom-picker";
  * note's example is about logistics (PRD §7.2 rule 1). The one exception is
  * ADR 0095's picker, mounted on the reason step: what the patient chooses to
  * say, as words for the clinic, never read by anything that ranks or routes.
+ *
+ * ADR 0098: when the catalog pre-step has filed a report (a `CatalogDraft`
+ * with a submission id in sessionStorage), the picker gives way to a
+ * read-only summary of it and the POST carries `symptom_submission_id`
+ * instead of `symptoms` — the server derives tier and words from the report
+ * it wrote itself. Nothing here reads the tier.
  */
 
 type StepId = "who" | "reason" | "emergency" | "line" | "pick" | "check";
@@ -220,6 +233,12 @@ function Wizard({
     clearPendingSymptoms();
     return { ...d, symptoms: pending };
   });
+  // ADR 0098: the catalog's filed report, read once; the draft's own words are
+  // not used on this path and the summary below stands in for the picker.
+  const [catalogDraft] = useState(() => {
+    const d = readPendingCatalogDraft();
+    return d?.submissionId ? d : null;
+  });
   const [stepId, setStepId] = useState<StepId>(() => resumeStep(draft, lines, household));
   const [receipt, setReceipt] = useState<BookingReceipt | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -275,7 +294,10 @@ function Wizard({
     stepId === "who"
       ? true
       : stepId === "reason"
-        ? reason !== null && draft.symptoms.every((s) => s.duration !== null)
+        ? reason !== null &&
+          // The duration gate guards the descriptive picker; with a catalog
+          // report on screen those words are neither shown nor sent.
+          (catalogDraft?.items ? true : draft.symptoms.every((s) => s.duration !== null))
         : stepId === "emergency"
           ? true
           : stepId === "line"
@@ -289,7 +311,9 @@ function Wizard({
     const input: BookInput = {
       reason,
       reason_note: draft.reasonNote || undefined,
-      symptoms: symptoms.length ? symptoms : undefined,
+      ...(catalogDraft?.submissionId
+        ? { symptom_submission_id: catalogDraft.submissionId }
+        : { symptoms: symptoms.length ? symptoms : undefined }),
       idempotency_key: draft.idempotencyKey,
       for_provisional_id: member?.provisionalPatientId,
       ...(line.capacityMode === "session" && session
@@ -313,6 +337,7 @@ function Wizard({
       if (res.ok) {
         writeDraft(hospitalId, null);
         clearPendingSymptoms();
+        clearPendingCatalogDraft();
         setReceipt(res.receipt);
         return;
       }
@@ -389,6 +414,7 @@ function Wizard({
           note={draft.reasonNote}
           symptoms={draft.symptoms}
           symptomOptions={symptomOptions}
+          catalogItems={catalogDraft?.items ?? null}
           onReason={(value) => update({ reason: value, interstitialSeen: false, lineId: null })}
           onNote={(reasonNote) => update({ reasonNote })}
           onSymptoms={(symptoms) => update({ symptoms })}
@@ -526,6 +552,7 @@ function ReasonStep({
   note,
   symptoms,
   symptomOptions,
+  catalogItems,
   onReason,
   onNote,
   onSymptoms,
@@ -534,6 +561,8 @@ function ReasonStep({
   note: string;
   symptoms: BookingDraft["symptoms"];
   symptomOptions: ReadonlyArray<BookingSymptomOption>;
+  /** ADR 0098: the catalog report's item keys — shown read-only in place of the picker. */
+  catalogItems: ReadonlyArray<string> | null;
   onReason: (v: PatientReasonCode) => void;
   onNote: (v: string) => void;
   onSymptoms: (v: BookingDraft["symptoms"]) => void;
@@ -541,7 +570,11 @@ function ReasonStep({
   return (
     <div className="flex flex-col gap-4">
       <ChoiceList name="reason" value={reason} onChange={onReason} options={REASONS} />
-      <SymptomPicker options={symptomOptions} value={symptoms} onChange={onSymptoms} />
+      {catalogItems ? (
+        <CatalogSummary items={catalogItems} />
+      ) : (
+        <SymptomPicker options={symptomOptions} value={symptoms} onChange={onSymptoms} />
+      )}
       <div className="flex flex-col gap-1.5">
         <label htmlFor="reason-note" className="text-foreground text-body-s font-medium">
           Add a note for the clinic{" "}
@@ -558,6 +591,34 @@ function ReasonStep({
         />
         <p className="text-muted-foreground text-caption tabular">{note.length} / 500</p>
       </div>
+    </div>
+  );
+}
+
+/** What the catalog recorded, in its lay words, with the one way to change it: the catalog. */
+function CatalogSummary({ items }: { items: ReadonlyArray<string> }) {
+  const labels = items.flatMap((key) => {
+    const item = CATALOG.items.find((i) => i.key === key);
+    return item ? [t(CATALOG, item.labelKey)] : [];
+  });
+  return (
+    <div className="bg-card dark:shadow-card flex flex-col gap-2 rounded-xl p-4 shadow-xs">
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-overline text-muted-foreground">What is bothering you</span>
+        <Link
+          href="/patient/symptoms"
+          className="text-primary text-body-s inline-flex min-h-11 items-center underline-offset-4 hover:underline"
+        >
+          Change
+        </Link>
+      </div>
+      <ul className="flex flex-col gap-1">
+        {labels.map((l) => (
+          <li key={l} className="text-foreground text-body-s leading-relaxed">
+            {l}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

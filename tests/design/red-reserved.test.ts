@@ -54,6 +54,10 @@ const WEB = tree(
   "components/responsive",
   "lib/patient",
   "lib/reception",
+  // ADR 0098: the Emergency Pathway's trees are scanned with the same rule —
+  // red only in the allowlist below, and never on the calm routes.
+  "app/emergency",
+  "components/emergency",
 );
 const MOBILE = tree("mobile/src");
 
@@ -145,7 +149,28 @@ describe("red is reserved — web patient and booking surfaces", () => {
     // Badges"; the nurse and doctor boards draw the same level the same
     // way), not a booking state.
     "app/reception/expected/_components/queue-panel.tsx",
+    // ADR 0098 (PRD MS-PRD-SYM-001 §7.1): the Emergency Pathway's red — the
+    // emergency-tier row marker and the interrupt banner on the catalog, the
+    // Incoming card on the desk. E1–E3 and the pill live outside these trees
+    // (app/emergency, components/emergency) and are scanned by their own
+    // describe below.
+    "app/patient/symptoms/_components/item-row.tsx",
+    "app/patient/symptoms/_components/emergency-interrupt.tsx",
+    "app/reception/incoming/_components/incoming-card.tsx",
+    // The pill, the sheet's header and primary actions, the pre-alert's Send,
+    // the status panel (PRD §7.1's allowlist, ADR 0098 ruling 7).
+    "components/emergency/emergency-pill.tsx",
+    "app/emergency/_components/emergency-sheet.tsx",
+    "app/emergency/tell/_components/pre-alert-form.tsx",
   ];
+
+  it("the calm routes carry no red at all (PRD §5.5): crisis and sexual violence", () => {
+    for (const [path, src] of WEB) {
+      if (!/app\/emergency\/(crisis|sexual-violence)\//.test(path)) continue;
+      const m = WEB_RED_FILL.exec(src);
+      expect(m, `${path}: ${m?.[0]}`).toBeNull();
+    }
+  });
 
   it("no file paints a red fill, ring, chip, button or `critical` tone", () => {
     for (const [path, src] of WEB) {
@@ -221,6 +246,14 @@ describe("red is reserved — the Expo app", () => {
     "mobile/src/components/ui/tab-bar.tsx",
     "mobile/src/components/patient/emergency-button.tsx",
     "mobile/src/app/(app)/(tabs)/_layout.tsx",
+    // ADR 0098 (PRD §7.1): the Emergency sheet's header and primary actions,
+    // the pre-alert's Send, the status panel, the catalog's emergency-tier
+    // row marker and interrupt banner. Nothing else.
+    "mobile/src/components/emergency/emergency-sheet.tsx",
+    "mobile/src/components/emergency/pre-alert-form.tsx",
+    "mobile/src/components/emergency/status-panel.tsx",
+    "mobile/src/components/symptoms/item-row.tsx",
+    "mobile/src/components/symptoms/emergency-interrupt.tsx",
   ];
   const MOBILE_RED = new RegExp(
     [
@@ -234,6 +267,14 @@ describe("red is reserved — the Expo app", () => {
     ].join("|"),
     "i",
   );
+
+  it("the calm routes carry no red at all (PRD §5.5): crisis, sexual violence, the calm screen", () => {
+    for (const [path, src] of MOBILE) {
+      if (!/emergency\/(crisis|sv)\.tsx$|calm-screen\.tsx$/.test(path)) continue;
+      const m = MOBILE_RED.exec(src);
+      expect(m, `${path}: ${m?.[0]}`).toBeNull();
+    }
+  });
 
   it("the allowlist is real — every file in it exists and does use the pair", () => {
     for (const p of RED_ALLOWED) {

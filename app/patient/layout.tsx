@@ -5,7 +5,6 @@ import Link from "next/link";
 import { MobileTabBar } from "@/components/responsive/mobile-tab-bar";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { dataProcessingConsent, resolvePatientScope } from "@/lib/patient/scope";
-import { EmergencyNotice } from "./_components/emergency-notice";
 import { PatientNavRail } from "./_components/patient-nav-rail";
 import { RegisterServiceWorker } from "./_components/register-sw";
 import { LANDING_NAV, PATIENT_NAV } from "./_lib/nav";
@@ -47,11 +46,6 @@ export default async function PatientLayout({ children }: { children: ReactNode 
   const consent = await dataProcessingConsent(scope.userId);
   const gated = consent !== null && consent.acceptedAt === null;
   const nav = scope.primaryHospitalId ? PATIENT_NAV : LANDING_NAV;
-  // Names the emergency landmark when there is a hospital to name. The name
-  // never reaches the block's copy itself (ADR 0084 §3).
-  const hospitalName = scope.primaryHospitalId
-    ? (scope.primaryHospitalName ?? "Your hospital")
-    : null;
 
   return (
     <div className="bg-background text-foreground flex min-h-svh flex-col">
@@ -100,16 +94,10 @@ export default async function PatientLayout({ children }: { children: ReactNode 
 
         <main className="bg-muted min-w-0 flex-1 pb-24 md:pb-0">
           <div className="@container/page mx-auto w-full max-w-300 px-4 py-6 md:px-6 md:py-8">
-            {/* Once, here, on every patient screen (PRD §2.5, ADR 0088 C9):
-                the pages used to render their own copies, and a screen that
-                forgot was a screen with no emergency instruction. It takes
-                the scope's verified number and shows the destination alone
-                without one — never an invented number. */}
-            <EmergencyNotice
-              hospitalName={hospitalName}
-              emergencyPhone={scope.emergencyEntrancePhone}
-              className="mb-6"
-            />
+            {/* The in-flow amber emergency block left this shell (ADR 0098
+                ruling 7): the red pill in the root layout is the affordance
+                on every screen, and /emergency carries the hospital's
+                verified number. The consent gate keeps its own block. */}
             {children}
           </div>
         </main>

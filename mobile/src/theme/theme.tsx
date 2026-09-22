@@ -78,6 +78,29 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ * ADR 0098 Law 3: the Emergency Pathway and the symptom catalog are
+ * permanently light. Wrap a screen's tree in this to pin the light palette
+ * whatever the phone or the patient's preference says; the preference
+ * itself is untouched and the rest of the app keeps following it.
+ */
+export function ForcedScheme({
+  scheme,
+  children,
+}: {
+  scheme: "light" | "dark";
+  children: ReactNode;
+}) {
+  const parent = useContext(ThemeContext);
+  const value: ThemeContextValue = {
+    colors: scheme === "dark" ? dark : light,
+    preference: parent?.preference ?? "system",
+    setPreference: parent?.setPreference ?? (() => {}),
+    ready: parent?.ready ?? true,
+  };
+  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+}
+
 export function useTheme(): ThemeContextValue {
   const value = useContext(ThemeContext);
   if (!value) throw new Error("useTheme must be used inside <ThemeProvider>");

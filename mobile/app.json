@@ -52,6 +52,13 @@
           "icon": "./assets/images/notification-icon.png",
           "color": "#0f766e"
         }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "MedSync uses your location only to list the nearest hospitals when you ask for emergency help. It stays on your phone unless you choose to share it with a hospital.",
+          "isAndroidBackgroundLocationEnabled": false
+        }
       ]
     ],
     "experiments": {

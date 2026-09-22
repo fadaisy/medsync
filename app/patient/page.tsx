@@ -6,8 +6,11 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import { buttonVariants } from "@/components/ui/button";
 import { Pill } from "@/components/ui/pill";
 import { loadBookingSymptoms } from "@/lib/catalog/symptoms";
+import { catalogRenderMode } from "@/lib/emergency/feature";
+import { fetchCatalogVersionStatus } from "@/lib/emergency/queries";
 import {
   fetchAppointments,
   formatWhen,
@@ -23,6 +26,12 @@ import {
   listRecentReadings,
   READING_KIND_LABEL,
 } from "@/lib/patient/self-tracking";
+import { cn } from "@/lib/utils";
+import {
+  CATALOG,
+  CATALOG_CHECKSUM,
+} from "@/supabase/functions/_shared/symptom-catalog/catalog.v0.1";
+import { dangerSigns, visibleItems } from "@/supabase/functions/_shared/symptom-catalog/classify";
 import { QUICK_PICK_CODES } from "@/supabase/functions/_shared/symptoms";
 import { DiscoverySearch } from "./_components/discovery-search";
 import { PatientDoors } from "./_components/doors";
@@ -31,6 +40,8 @@ import { PatientPageHeader } from "./_components/page-header";
 import { SectionHead } from "./_components/section-head";
 import { SymptomQuickPick } from "./_components/symptom-quick-pick";
 import { TintedRow } from "./_components/tinted-row";
+import { DangerStrip } from "./symptoms/_components/danger-strip";
+import { Watermark } from "./symptoms/_components/watermark";
 
 export const metadata: Metadata = { title: "Home · MedSync" };
 export const dynamic = "force-dynamic";
@@ -55,7 +66,7 @@ export default async function PatientHome() {
   // MedSync Book starts with "where", not with a vitals log.
   if (!scope.primaryHospitalId) redirect("/patient/hospitals");
 
-  const [upcoming, glance, readings, discovery, catalogue] = await Promise.all([
+  const [upcoming, glance, readings, discovery, catalogue, catalogStatus] = await Promise.all([
     scope.primaryHospitalId ? fetchUpcomingVisits(scope.userId) : Promise.resolve([]),
     fetchTrackingGlance(scope.userId),
     listRecentReadings(scope.userId, 3),
@@ -70,7 +81,11 @@ export default async function PatientHome() {
       : Promise.resolve({ lines: [], providers: [] }),
     // ADR 0096: the shortlist's words come from the catalogue, never from code.
     loadBookingSymptoms().catch(() => []),
+    // ADR 0098 Gate CS: a database before migration 0066 reads as "not signed".
+    fetchCatalogVersionStatus(CATALOG.version, CATALOG_CHECKSUM).catch(() => null),
   ]);
+  // `off` keeps the ADR 0096 shortlist exactly as shipped (ruling 2).
+  const catalogMode = catalogRenderMode(catalogStatus?.signed === true);
   // The shared list's order, skipping any code the catalogue no longer carries.
   const quickPicks = QUICK_PICK_CODES.flatMap((code) => {
     const row = catalogue.find((r) => r.code === code);
@@ -122,7 +137,11 @@ export default async function PatientHome() {
 
         {/* The emergency block is the layout's now (ADR 0088 C9); only the
             shortlist and the doors are gated, on having a hospital to walk into. */}
-        {hospitalName && quickPicks.length > 0 ? <SymptomQuickPick options={quickPicks} /> : null}
+        {hospitalName && catalogMode !== "off" ? (
+          <CatalogEntry watermark={catalogMode === "draft_watermarked"} />
+        ) : hospitalName && quickPicks.length > 0 ? (
+          <SymptomQuickPick options={quickPicks} />
+        ) : null}
         {hospitalName ? <PatientDoors /> : null}
 
         <HeroCard variant={hero} />
@@ -243,6 +262,37 @@ export default async function PatientHome() {
 }
 
 /* ── Sections ──────────────────────────────────────────────────── */
+
+/**
+ * The catalog's door on the home (ADR 0098): the adult danger strip as links
+ * that land on /patient/symptoms with the sign already chosen, and the
+ * primary way in. The strip is the landing's own (Appendix A.0), so a
+ * danger sign is one tap from here and the interrupt fires on arrival.
+ */
+function CatalogEntry({ watermark }: { watermark: boolean }) {
+  const strip = dangerSigns(CATALOG, "adult");
+  const allCount = visibleItems(CATALOG, "adult").filter((i) => i.tier === "E").length;
+  return (
+    <section aria-labelledby="whats-wrong" className="flex flex-col gap-3">
+      <div className="flex flex-col gap-1">
+        <h2 id="whats-wrong" className="text-heading-s font-medium">
+          What&rsquo;s wrong?
+        </h2>
+        <p className="text-muted-foreground text-body-s">
+          Tell us what you feel or see, and we will say how soon to be seen.
+        </p>
+      </div>
+      {watermark ? <Watermark /> : null}
+      <DangerStrip items={strip} allCount={allCount} />
+      <Link
+        href="/patient/symptoms"
+        className={cn(buttonVariants({ size: "lg" }), "min-h-12 w-full sm:w-fit")}
+      >
+        What&rsquo;s wrong? Tell us
+      </Link>
+    </section>
+  );
+}
 
 function EmptyLine({ children }: { children: ReactNode }) {
   return (

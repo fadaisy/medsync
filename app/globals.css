@@ -806,6 +806,116 @@
 
   /* Gradients on a forced-dark band use the deep end of the ramp in both modes. */
   --gradient-hero: linear-gradient(158deg, #042f2e 0%, #134e4a 58%, #0f766e 100%);
+/* ADR 0098 Law 3: the Emergency Pathway and the symptom catalog are
+   permanently light. This re-pins every :root token on the scoped element
+   so its subtree ignores `.dark` — the forced-dark utility above, mirrored.
+   Applied to the E1–E3, crisis/SV and S1–S4 wrappers only. */
+@utility medsync-forced-light {
+  color-scheme: light;
+  --gray-50: #fafafa;
+  --gray-100: #f5f5f5;
+  --gray-150: #efefef;
+  --gray-200: #e5e5e5;
+  --gray-300: #d4d4d4;
+  --gray-400: #a3a3a3;
+  --gray-500: #737373;
+  --gray-600: #525252;
+  --gray-700: #404040;
+  --gray-800: #262626;
+  --gray-900: #171717;
+  --gray-950: #0a0a0a;
+  --teal-50: #f0fdfa;
+  --teal-100: #ccfbf1;
+  --teal-200: #99f6e4;
+  --teal-300: #5eead4;
+  --teal-400: #2dd4bf;
+  --teal-500: #14b8a6;
+  --teal-600: #0d9488;
+  --teal-700: #0f766e;
+  --teal-800: #115e59;
+  --teal-900: #134e4a;
+  --status-stable-bg: #dcfce7;
+  --status-stable-fg: #15803d;
+  --status-critical-bg: #fee2e2;
+  --status-critical-fg: #dc2626;
+  --status-caution-bg: #fef3c7;
+  --status-caution-fg: #d97706;
+  --status-admitted-bg: #ccfbf1;
+  --status-admitted-fg: #0f766e;
+  --status-discharged-bg: #f3e8ff;
+  --status-discharged-fg: #7c3aed;
+  --status-pending-bg: #f5f5f5;
+  --status-pending-fg: #525252;
+  --alert-bg: #fef2f2;
+  --alert-border: #fee2e2;
+  --alert-fg: #dc2626;
+  --background: #ffffff;
+  --foreground: #171717;
+  --card: #ffffff;
+  --card-foreground: #171717;
+  --popover: #ffffff;
+  --popover-foreground: #171717;
+  --primary: #0d9488;
+  --primary-foreground: #ffffff;
+  --primary-hover: #0f766e;
+  --primary-active: #115e59;
+  --secondary: #ffffff;
+  --secondary-foreground: #171717;
+  --muted: #fafafa;
+  --muted-foreground: #737373;
+  --accent: #f0fdfa;
+  --accent-foreground: #0d9488;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --border: #e5e5e5;
+  --input: #e5e5e5;
+  --ring: #14b8a6;
+  --sidebar: #fafafa;
+  --sidebar-foreground: #171717;
+  --sidebar-primary: #0d9488;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-border: #e5e5e5;
+  --sidebar-ring: #14b8a6;
+  --chart-1: #0d9488;
+  --chart-3: #5eead4;
+  --chart-4: #525252;
+  --chart-5: #171717;
+  --teal-950: #042f2e;
+  --brand-50: var(--teal-50);
+  --brand-100: var(--teal-100);
+  --brand-200: var(--teal-200);
+  --brand-300: var(--teal-300);
+  --brand-400: var(--teal-400);
+  --brand-500: var(--teal-500);
+  --brand-600: var(--teal-600);
+  --brand-700: var(--teal-700);
+  --brand-800: var(--teal-800);
+  --brand-900: var(--teal-900);
+  --brand-950: var(--teal-950);
+  --mint-50: var(--teal-50);
+  --mint-100: var(--teal-100);
+  --mint-200: var(--teal-200);
+  --mint-300: var(--teal-300);
+  --mint-400: var(--teal-400);
+  --mint-500: var(--teal-500);
+  --mint-600: var(--teal-600);
+  --mint-700: var(--teal-700);
+  --mint-800: var(--teal-800);
+  --mint-900: var(--teal-900);
+  --mint-950: var(--teal-950);
+  --gradient-wash: linear-gradient(180deg, #f0fdfa 0%, #ffffff 100%);
+  --gradient-accent: linear-gradient(150deg, #5eead4 0%, #99f6e4 100%);
+  --gradient-signature: linear-gradient(135deg, #0f766e 0%, #2dd4bf 100%);
+  --gradient-card: linear-gradient(165deg, #ffffff 0%, #f0fdfa 100%);
+  --shadow-xs-value: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-sm-value: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md-value: 0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+  --shadow-lg-value: 0 10px 15px -3px rgba(0, 0, 0, 0.06), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+  --shadow-card-value: 0 0 0 1px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-popover-value: 0 0 0 1px rgba(0, 0, 0, 0.06), 0 12px 24px -4px rgba(0, 0, 0, 0.12);
+  --shadow-focus-value: 0 0 0 2px rgba(20, 184, 166, 0.4);
+}
+
   --gradient-band: linear-gradient(180deg, #042f2e 0%, #115e59 100%);
 }
 

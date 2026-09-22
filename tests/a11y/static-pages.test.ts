@@ -15,7 +15,12 @@ import { assert, describe, expect, it } from "vitest";
  * (eslint.config.mjs) — a static pass cannot render them without a session.
  *
  * Runs against the build the orchestrator or CI just made; without one it
- * skips and says so rather than passing vacuously. The HTML is loaded into
+ * skips and says so rather than passing vacuously.
+ *
+ * /emergency left this list with ADR 0098: E1 now reads the session to name
+ * the patient's own hospital (ruling 8's fallback number), and the crisis
+ * and sexual-violence routes do the same, so none of them pre-renders.
+ * tests/emergency/web-pathway.test.ts holds their source-level checks. The HTML is loaded into
  * jsdom with no stylesheet, so layout- and colour-dependent rules
  * (color-contrast, target-size) come back "incomplete", not as violations —
  * those are the design tokens' job and DESIGN-medsync.md's contrast table.
@@ -27,7 +32,6 @@ const PAGES = [
   "sign-in",
   "sign-up",
   "get-started",
-  "emergency",
   "offline",
   "_not-found",
 ] as const;

@@ -14,6 +14,8 @@ import type { Palette } from "@/theme/tokens";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Ionicons } from "@expo/vector-icons";
 import { FEE_FOOTNOTE, quoteLine, resolveFee, WAIVER_NOTE } from "@shared/fees";
+import { CATALOG } from "@shared/symptom-catalog/catalog.v0.1";
+import { t } from "@shared/symptom-catalog/classify";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   ActivityIndicator,
@@ -56,9 +58,11 @@ import {
   requestAppointment,
 } from "@/lib/booking";
 import {
+  clearPendingCatalogDraft,
   clearPendingSymptoms,
   getPendingSymptoms,
   setPendingSymptoms,
+  usePendingCatalogDraft,
 } from "@/lib/pending-symptoms";
 import { useStyles, useTheme } from "@/theme/theme";
 import { font, radius, space } from "@/theme/tokens";
@@ -161,6 +165,15 @@ export default function DoctorScreen() {
   // Starts from what the home's shortlist took (ADR 0096) and writes back.
   const [catalog, setCatalog] = useState<BookingSymptomOption[]>([]);
   const [symptoms, setSymptoms] = useState<SymptomDraft[]>(getPendingSymptoms);
+  // ADR 0098: a catalog report already filed stands in for the descriptive
+  // picker — its lay words shown read-only, its id sent, the server deriving
+  // the rest. "Change" goes back to the catalog.
+  const draft = usePendingCatalogDraft();
+  const report = draft?.submissionId ? draft : null;
+  const reportLabels = (report?.items ?? [])
+    .map((key) => CATALOG.items.find((i) => i.key === key))
+    .filter((i) => i !== undefined)
+    .map((i) => t(CATALOG, i.labelKey));
 
   // One key per submission attempt, minted on the first press and kept
   // across retries; cleared when the pick changes or the booking lands.
@@ -233,7 +246,8 @@ export default function DoctorScreen() {
     keyRef.current = null;
   };
   // Null while a chosen entry still has no duration — Confirm waits for it.
-  const symptomsReady = completeSymptoms(symptoms);
+  // A catalog report carries its own words: nothing to complete.
+  const symptomsReady = report ? [] : completeSymptoms(symptoms);
   // PRD §2.9: a confidential line is never offered for a member.
   const confidential = wait?.line?.confidential === true;
 
@@ -249,7 +263,8 @@ export default function DoctorScreen() {
       hospitalId: doctor.hospitalId,
       reason,
       reasonNote: note.trim() || null,
-      symptoms: symptomsReady,
+      symptoms: report ? null : symptomsReady,
+      symptomSubmissionId: report?.submissionId,
       idempotencyKey: keyRef.current,
       forProvisionalId: member?.provisionalPatientId,
       slot: {
@@ -265,6 +280,7 @@ export default function DoctorScreen() {
     if (res.ok) {
       keyRef.current = null;
       clearPendingSymptoms();
+      clearPendingCatalogDraft();
       // `data` is undefined on a 2xx with no body (see `callEdge`): the write
       // landed, and the confirmation under-promises rather than guess.
       setDone({
@@ -575,7 +591,18 @@ export default function DoctorScreen() {
 
             {/* ADR 0095: what is bothering them, as words for the clinic.
                 Hidden when the catalogue did not load; the booking stands. */}
-            {catalog.length > 0 || symptoms.length > 0 ? (
+            {report ? (
+              <Section
+                title="What you told us"
+                action={{ label: "Change", onPress: () => router.push("/(app)/symptoms") }}
+              >
+                {reportLabels.map((label) => (
+                  <Text key={label} style={styles.reportLine}>
+                    {label}
+                  </Text>
+                ))}
+              </Section>
+            ) : catalog.length > 0 || symptoms.length > 0 ? (
               <SymptomPicker options={catalog} value={symptoms} onChange={pickSymptoms} />
             ) : null}
 
@@ -708,6 +735,7 @@ const makeStyles = (c: Palette) =>
     count: { fontFamily: font.body, fontSize: 13.5, lineHeight: 19, color: c.mutedForeground },
 
     hint: { fontFamily: font.body, fontSize: 13.5, lineHeight: 19, color: c.mutedForeground },
+    reportLine: { fontFamily: font.body, fontSize: 14.5, lineHeight: 21, color: c.foreground },
 
     // The sunken input: a muted well, no edge until it has focus — and the
     // label lifts in weight too, so focus is never colour alone.

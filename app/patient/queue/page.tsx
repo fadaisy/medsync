@@ -48,8 +48,17 @@ export const dynamic = "force-dynamic";
  * If the patient already has a live intake or a booking today at this
  * hospital, we surface that first instead of letting them bounce off a 409.
  */
-export default async function PatientQueuePage() {
+export default async function PatientQueuePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ submission?: string }>;
+}) {
   const scope = await requirePatientScope();
+  // ADR 0098: the catalog's "Join today's queue" hands its report id along; a
+  // malformed one is dropped here rather than bounced by the Edge Function.
+  const { submission } = await searchParams;
+  const submissionId =
+    typeof submission === "string" && /^[0-9a-f-]{36}$/i.test(submission) ? submission : null;
   if (!scope.primaryHospitalId) {
     redirect("/patient/hospitals");
   }
@@ -211,7 +220,13 @@ export default async function PatientQueuePage() {
         </ul>
       ) : null}
 
-      {liveIntake ? null : <DeclareIntakeForm departments={items} hospitalName={hospitalName} />}
+      {liveIntake ? null : (
+        <DeclareIntakeForm
+          departments={items}
+          hospitalName={hospitalName}
+          submissionId={submissionId}
+        />
+      )}
     </div>
   );
 }

@@ -1,58 +1,53 @@
-import type { PatientProfile } from "@/lib/booking";
-import type { Palette } from "@/theme/tokens";
 import { useCallback, useState } from "react";
-import { useFocusEffect } from "expo-router";
-import { StyleSheet, Text, View } from "react-native";
+import { useFocusEffect, useLocalSearchParams, useRouter } from "expo-router";
 
-import { EmergencyNotice } from "@/components/patient/emergency-notice";
-import { Screen } from "@/components/ui/screen";
+import { EmergencySheet } from "@/components/emergency/emergency-sheet";
 import { fetchPatientProfile } from "@/lib/booking";
-import { useStyles } from "@/theme/theme";
-import { font, space } from "@/theme/tokens";
+import { draftContactsVisible } from "@/lib/emergency";
 
 /**
- * The Emergency tab — ADR 0085 §5. The emergency block of ADR 0084 §3, byte
- * for byte, on its own screen behind the one red tab in the app; this is the
- * only screen that renders it.
+ * The Emergency tab is E1 (ADR 0098 ruling 7; PRD §8.2) — the sheet with
+ * the patient's own hospital, whose registered emergency line rides first.
+ * `from=catalog` is the symptom catalog's interrupt: no tiles, one haptic.
  *
- * The block is drawn before anything is fetched: the instruction needs no
- * data, and a patient mid-stroke on a 2G connection should not wait for
- * PostgREST to be told where to go. The profile arrives on focus and adds the
- * hospital's name and its verified number — or nothing, which is the block's
- * own no-number state. A failed read is the same as no profile: the words
- * still stand, and no number is ever invented in their place.
+ * The sheet draws before anything is fetched: its last good answer is
+ * cached on the phone, and a patient mid-stroke on a 2G connection should
+ * not wait for a profile read to be told where to go. A failed read is the
+ * same as no profile — the national sheet — and no number is ever invented.
  */
 export default function EmergencyScreen() {
-  const styles = useStyles(makeStyles);
-  const [profile, setProfile] = useState<PatientProfile | null>(null);
+  const router = useRouter();
+  const { from } = useLocalSearchParams<{ from?: string }>();
+  const [hospitalId, setHospitalId] = useState<string | null>(null);
 
   useFocusEffect(
     useCallback(() => {
-      fetchPatientProfile().then(setProfile, () => {});
-    }, []),
+      fetchPatientProfile().then(
+        (p) => setHospitalId(p?.hospitalId ?? null),
+        () => {},
+      );
+      // `from=catalog` is one arrival's context: a tab keeps its params, so
+      // it is cleared on the way out or the tiles would stay hidden all session.
+      return () => {
+        if (from) router.setParams({ from: undefined });
+      };
+    }, [from, router]),
   );
 
   return (
-    <Screen title="Emergency">
-      <View style={styles.column}>
-        {profile?.hospitalName ? <Text style={styles.eyebrow}>{profile.hospitalName}</Text> : null}
-        <EmergencyNotice
-          hospitalName={profile?.hospitalName}
-          emergencyPhone={profile?.emergencyPhone}
-        />
-      </View>
-    </Screen>
+    <EmergencySheet
+      hospitalId={hospitalId}
+      from={from}
+      showDrafts={draftContactsVisible()}
+      onTell={(picks) =>
+        router.push({ pathname: "/(app)/emergency/tell", params: { picks: picks.join(",") } })
+      }
+      onOpenStatus={(p) =>
+        router.push({
+          pathname: "/(app)/emergency/status",
+          params: { id: p.id, token: p.token, sentAt: p.sentAt, smsBody: p.smsBody ?? "" },
+        })
+      }
+    />
   );
 }
-
-const makeStyles = (c: Palette) =>
-  StyleSheet.create({
-    column: { gap: space[3] },
-    eyebrow: {
-      fontFamily: font.body,
-      fontSize: 12.5,
-      letterSpacing: 0.4,
-      textTransform: "uppercase",
-      color: c.mutedForeground,
-    },
-  });

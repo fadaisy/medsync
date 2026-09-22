@@ -54,6 +54,13 @@ export default function AppLayout() {
         <Stack.Screen name="ticket" />
         <Stack.Screen name="today" />
         <Stack.Screen name="visit/[id]" />
+        {/* ADR 0098: the symptom catalog pre-step and the Emergency Pathway's
+            pre-alert, status and calm routes. E1 itself is the Emergency tab. */}
+        <Stack.Screen name="symptoms" />
+        <Stack.Screen name="emergency/tell" />
+        <Stack.Screen name="emergency/status" />
+        <Stack.Screen name="emergency/crisis" />
+        <Stack.Screen name="emergency/sv" />
       </Stack.Protected>
     </Stack>
   );

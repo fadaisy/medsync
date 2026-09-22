@@ -26,7 +26,45 @@ export async function callEdge<T = unknown>(
   const { data: session } = await supabase.auth.getSession();
   const token = session.session?.access_token;
   if (!token) return { ok: false, error: "Not authenticated." };
+  const r = await post<T>(name, body, logPrefix, token);
+  // The staff contract is the flat shape; the status and code are E2's.
+  return r.ok ? r : { ok: false, error: r.error };
+}
 
+export type EdgeFailure = {
+  ok: false;
+  error: string;
+  /** HTTP status, or 0 when the function was unreachable. */
+  status: number;
+  /** The envelope's `error.code` when it carried one (`call_only`, `rate_limited`, …). */
+  code: string | null;
+};
+
+/**
+ * The same transport for the functions whose CALLER IS OPTIONAL (ADR 0098:
+ * the Emergency Pathway — a bystander must be able to act). A signed-in
+ * session's JWT is forwarded when there is one; otherwise the anon key
+ * carries the request past the gateway and the function sees no caller.
+ * Keeps the status and error code, because E2 branches on 403 `call_only`
+ * and 429 `rate_limited` to keep the call buttons up.
+ */
+export async function callEdgePublic<T = unknown>(
+  name: string,
+  body: Record<string, unknown>,
+  logPrefix: string,
+): Promise<{ ok: true; data: T } | EdgeFailure> {
+  const supabase = await createClient();
+  const { data: session } = await supabase.auth.getSession();
+  const token = session.session?.access_token ?? env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  return post<T>(name, body, logPrefix, token);
+}
+
+async function post<T>(
+  name: string,
+  body: Record<string, unknown>,
+  logPrefix: string,
+  token: string,
+): Promise<{ ok: true; data: T } | EdgeFailure> {
   try {
     const res = await fetch(`${env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/${name}`, {
       method: "POST",
@@ -40,15 +78,24 @@ export async function callEdge<T = unknown>(
     const text = await res.text();
     if (!res.ok) {
       let detail = text;
+      let code: string | null = null;
       try {
-        const parsed = JSON.parse(text) as { error?: string | { message?: string } };
+        const parsed = JSON.parse(text) as {
+          error?: string | { message?: string; code?: string };
+        };
         if (typeof parsed.error === "string") detail = parsed.error;
         else if (parsed.error?.message) detail = parsed.error.message;
+        if (typeof parsed.error === "object" && parsed.error?.code) code = parsed.error.code;
       } catch {
         /* keep raw */
       }
       logger.warn(`${logPrefix}.${name}.failed`, { status: res.status });
-      return { ok: false, error: detail || `Edge Function returned ${res.status}.` };
+      return {
+        ok: false,
+        error: detail || `Edge Function returned ${res.status}.`,
+        status: res.status,
+        code,
+      };
     }
     try {
       return { ok: true, data: JSON.parse(text) as T };
@@ -60,6 +107,6 @@ export async function callEdge<T = unknown>(
     }
   } catch (e) {
     logger.error(`${logPrefix}.${name}.network`, { reason: String(e) });
-    return { ok: false, error: `Couldn't reach ${name}.` };
+    return { ok: false, error: `Couldn't reach ${name}.`, status: 0, code: null };
   }
 }
