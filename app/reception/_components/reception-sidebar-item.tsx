@@ -9,6 +9,7 @@ import {
   ClipboardListIcon,
   LayoutDashboardIcon,
   ListChecksIcon,
+  RadioIcon,
   SearchIcon,
   UserPlusIcon,
 } from "lucide-react";
@@ -17,6 +18,7 @@ import { cn } from "@/lib/utils";
 
 const ICONS: Record<ReceptionIconKey, LucideIcon> = {
   overview: LayoutDashboardIcon,
+  incoming: RadioIcon,
   expected: ClipboardListIcon,
   intake: UserPlusIcon,
   book: CalendarPlusIcon,

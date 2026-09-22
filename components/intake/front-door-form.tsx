@@ -2,8 +2,10 @@
 
 import type { RegisterIntakeState } from "@/app/hospital-admin/intake/actions";
 import type { DraftSymptom } from "@/app/patient/book/_lib/booking";
+import type { DeskCatalogValue } from "@/components/intake/desk-catalog";
 import type { PatientIdentity } from "@/components/medsync/patient-identity";
 import type { BookingSymptomOption } from "@/lib/catalog/symptoms";
+import type { CatalogRenderMode } from "@/lib/emergency/feature";
 import type { ReceptionPatientHit } from "@/lib/reception/queries";
 import type { BookingSymptom } from "@/supabase/functions/_shared/symptoms";
 import Link from "next/link";
@@ -12,6 +14,7 @@ import { useActionState, useEffect, useState, useTransition } from "react";
 import { AlertTriangleIcon, CheckCircle2Icon, UserPlusIcon } from "lucide-react";
 
 import { DURATION_MISSING, SymptomPicker } from "@/app/patient/book/_components/symptom-picker";
+import { DeskCatalog } from "@/components/intake/desk-catalog";
 import { Panel } from "@/components/medsync/panel";
 import { PatientIdentityCard } from "@/components/medsync/patient-identity";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -20,6 +23,8 @@ import { Label } from "@/components/ui/label";
 import { computeAgeYears } from "@/lib/age";
 import { cn } from "@/lib/utils";
 import { DEFAULT_TIME_ZONE } from "@/supabase/functions/_shared/slots";
+import { CATALOG } from "@/supabase/functions/_shared/symptom-catalog/catalog.v0.1";
+import { t } from "@/supabase/functions/_shared/symptom-catalog/classify";
 import { complaintLine, formatSymptoms } from "@/supabase/functions/_shared/symptoms";
 
 /**
@@ -36,6 +41,13 @@ import { complaintLine, formatSymptoms } from "@/supabase/functions/_shared/symp
  * A booked arrival picked from the list is CHECKED IN, not registered: the
  * booking already carries what the patient said, and ha-check-in-patient
  * writes the intake itself. Only the audit note goes with it.
+ *
+ * The complaint block (ADR 0098, Gate CS): with `catalogMode` off — production
+ * until the owner signs — the descriptive picker stands exactly as shipped.
+ * Otherwise the desk asks the tiered catalog's question (`DeskCatalog`), the
+ * complaint is composed from the catalog's lay labels, the report goes with
+ * the POST, and the tier SUGGESTS the priority hint: it never writes the
+ * field silently — the receptionist can override, and an override sticks.
  */
 
 export type IntakeSubmitAction = (
@@ -130,6 +142,8 @@ interface FrontDoorFormProps {
   expected?: ReadonlyArray<ExpectedPick>;
   homeHref: string;
   todayHref: string;
+  /** Gate CS: what the complaint block asks with. Absent = `off` = the descriptive picker. */
+  catalogMode?: CatalogRenderMode;
 }
 
 /** "Register another" remounts the form: the success state lives in the client, so a refresh would leave the card up. */
@@ -149,6 +163,7 @@ function Form({
   homeHref,
   todayHref,
   onAnother,
+  catalogMode = "off",
 }: FrontDoorFormProps & { onAnother: () => void }) {
   const router = useRouter();
   const [state, formAction, actionPending] = useActionState<RegisterIntakeState, FormData>(
@@ -167,6 +182,10 @@ function Form({
   const [byCode, setByCode] = useState(false);
   const [symptoms, setSymptoms] = useState<DraftSymptom[]>([]);
   const [words, setWords] = useState("");
+  const [report, setReport] = useState<DeskCatalogValue | null>(null);
+  /** The receptionist chose a priority: the suggestion no longer moves the select. */
+  const [priorityTouched, setPriorityTouched] = useState(false);
+  const [priorityChoice, setPriorityChoice] = useState("");
 
   const activeType = entryTypes.find((t) => t.code === typeCode);
   const isEmergency = !!activeType?.isEmergency;
@@ -177,16 +196,34 @@ function Form({
   // to one that does not must not leave the form in unknown mode.
   const mode = activeType?.allowsUnknownPatient ? patientMode : "known";
 
+  const catalogOn = catalogMode !== "off";
   // A chosen symptom without a duration holds the action (ADR 0095), so the
-  // list that leaves is always the whole list.
-  const complete = symptoms.filter((s): s is BookingSymptom => s.duration !== null);
-  const durationMissing = complete.length < symptoms.length;
+  // list that leaves is always the whole list. A catalog item carries its
+  // qualifiers instead of a duration (ADR 0098 ruling 3).
+  const complete: BookingSymptom[] = catalogOn
+    ? (report?.items ?? []).flatMap((key) => {
+        const item = CATALOG.items.find((i) => i.key === key);
+        if (!item) return [];
+        const answers = report?.qualifiers[key] ?? {};
+        const qualifiers = (item.qualifiers ?? []).flatMap((q) => {
+          const o = q.options.find((opt) => opt.key === answers[q.key]);
+          return o ? [{ key: q.key, option: o.key, label: t(CATALOG, o.labelKey) }] : [];
+        });
+        return [{ code: key, label: t(CATALOG, item.labelKey), qualifiers }];
+      })
+    : symptoms.filter((s): s is BookingSymptom => s.duration !== null);
+  const durationMissing = !catalogOn && complete.length < symptoms.length;
   const head = formatSymptoms(complete);
   // `complaintLine` adds " — " and the quotes around the words. Words typed
   // before the symptoms can overrun the cap; the clip is the value shown.
   const wordsMax = Math.max(0, MAX_COMPLAINT - head.length - (head ? 3 : 0) - 2);
   const shownWords = words.slice(0, wordsMax);
   const complaint = complaintLine(complete, shownWords) ?? "";
+  // The tier suggests; the entry type's default stands for R. Never written
+  // silently: the select shows it, captioned, until the receptionist chooses.
+  const suggestedPriority =
+    catalogOn && report?.items.length ? { E: "urgent", U: "high", R: "" }[report.tier] : "";
+  const priorityValue = priorityTouched ? priorityChoice : suggestedPriority;
 
   const pickPatient = (p: Picked | null) => {
     setPicked(p);
@@ -269,6 +306,18 @@ function Form({
         <input type="hidden" name="appointment_id" value={picked!.appointmentId!} />
       ) : null}
       {checkIn ? null : <input type="hidden" name="presenting_complaint" value={complaint} />}
+      {/* The structured report rides with the POST; the action files it first (pt-submit-symptoms). */}
+      {!checkIn && catalogOn && report?.items.length ? (
+        <>
+          <input type="hidden" name="symptom_audience" value={report.audience} />
+          <input type="hidden" name="symptom_items" value={JSON.stringify(report.items)} />
+          <input
+            type="hidden"
+            name="symptom_qualifiers"
+            value={JSON.stringify(report.qualifiers)}
+          />
+        </>
+      ) : null}
 
       {/* ── Left: who is arriving ─────────────────────────────── */}
       <Panel title="Who is arriving">
@@ -397,6 +446,47 @@ function Form({
               </>
             )}
           </fieldset>
+
+          {/* What they said, beside who they are: the complaint belongs with
+              the patient, and the right column had grown a wall of chips
+              under two selects. Hidden for a booked check-in — the booking
+              already carries the patient's own words. */}
+          {checkIn ? null : (
+            <div className="flex flex-col gap-3">
+              <span className={OVERLINE_CLASS}>Presenting complaint · triage will refine</span>
+              {/* The picker's own chips are bg-card; a muted well keeps them legible inside the panel. */}
+              <div className="bg-muted/30 rounded-lg p-3">
+                {catalogOn ? (
+                  <DeskCatalog
+                    mode={catalogMode}
+                    showPregnancyForMe={picked?.identity.sex !== "male"}
+                    onChange={setReport}
+                  />
+                ) : (
+                  <SymptomPicker
+                    options={symptomOptions}
+                    value={symptoms}
+                    onChange={setSymptoms}
+                    idPrefix="front-door-symptoms"
+                    compact
+                  />
+                )}
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="complaint_words">In their words (optional)</Label>
+                <textarea
+                  id="complaint_words"
+                  name="complaint_words"
+                  rows={2}
+                  maxLength={wordsMax}
+                  value={shownWords}
+                  onChange={(e) => setWords(e.target.value)}
+                  placeholder="What did the patient (or carer) say at the desk?"
+                  className={TEXTAREA_CLASS}
+                />
+              </div>
+            </div>
+          )}
         </div>
       </Panel>
 
@@ -513,32 +603,6 @@ function Form({
                 </fieldset>
               ) : null}
 
-              <div className="flex flex-col gap-3">
-                <span className={OVERLINE_CLASS}>Presenting complaint · triage will refine</span>
-                {/* The picker's own chips are bg-card; a muted well keeps them legible inside the panel. */}
-                <div className="bg-muted/30 rounded-lg p-3">
-                  <SymptomPicker
-                    options={symptomOptions}
-                    value={symptoms}
-                    onChange={setSymptoms}
-                    idPrefix="front-door-symptoms"
-                  />
-                </div>
-                <div className="flex flex-col gap-1.5">
-                  <Label htmlFor="complaint_words">In their words (optional)</Label>
-                  <textarea
-                    id="complaint_words"
-                    name="complaint_words"
-                    rows={2}
-                    maxLength={wordsMax}
-                    value={shownWords}
-                    onChange={(e) => setWords(e.target.value)}
-                    placeholder="What did the patient (or carer) say at the desk?"
-                    className={TEXTAREA_CLASS}
-                  />
-                </div>
-              </div>
-
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div className="flex flex-col gap-1.5">
                   <Label htmlFor="brought_by">Brought by (optional)</Label>
@@ -559,7 +623,14 @@ function Form({
                   <select
                     id="priority_hint_override"
                     name="priority_hint_override"
-                    defaultValue=""
+                    value={priorityValue}
+                    onChange={(e) => {
+                      setPriorityTouched(true);
+                      setPriorityChoice(e.target.value);
+                    }}
+                    aria-describedby={
+                      !priorityTouched && suggestedPriority ? "priority-suggested" : undefined
+                    }
                     className={SELECT_CLASS}
                   >
                     <option value="">Use default</option>
@@ -567,6 +638,11 @@ function Form({
                     <option value="high">High</option>
                     <option value="urgent">Urgent</option>
                   </select>
+                  {!priorityTouched && suggestedPriority ? (
+                    <span id="priority-suggested" className="text-muted-foreground text-caption">
+                      Suggested from what they said — change it if the desk sees otherwise.
+                    </span>
+                  ) : null}
                 </div>
               </div>
 

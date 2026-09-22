@@ -3,6 +3,8 @@ import { AlertTriangleIcon, UserPlusIcon } from "lucide-react";
 
 import { FrontDoorForm } from "@/components/intake/front-door-form";
 import { loadBookingSymptoms } from "@/lib/catalog/symptoms";
+import { catalogRenderMode } from "@/lib/emergency/feature";
+import { fetchCatalogVersionStatus } from "@/lib/emergency/queries";
 import { requireHospitalAdminScope } from "@/lib/hospital-admin/scope";
 import {
   fetchHospitalIncomingIntakes,
@@ -12,6 +14,10 @@ import {
   listHospitalDepartments,
 } from "@/lib/intake/queries";
 import { fetchTriageMetricsToday } from "@/lib/triage/worklist";
+import {
+  CATALOG,
+  CATALOG_CHECKSUM,
+} from "@/supabase/functions/_shared/symptom-catalog/catalog.v0.1";
 import { TriageAcuitySnippet } from "./_components/triage-acuity-snippet";
 import { registerIntakeAction, searchPatientsAction } from "./actions";
 
@@ -20,16 +26,28 @@ export const dynamic = "force-dynamic";
 
 export default async function HospitalAdminIntakePage() {
   const scope = await requireHospitalAdminScope();
-  const [entryTypes, departments, hospitals, symptomOptions, today, awaiting, triageMetrics] =
-    await Promise.all([
-      listEntryTypes(),
-      listHospitalDepartments(scope.hospitalId),
-      listActiveHospitals(),
-      loadBookingSymptoms(),
-      fetchTodayIntakeCount({ hospitalId: scope.hospitalId }),
-      fetchHospitalIncomingIntakes({ hospitalId: scope.hospitalId, limit: 30 }),
-      fetchTriageMetricsToday({ hospitalId: scope.hospitalId }),
-    ]);
+  const [
+    entryTypes,
+    departments,
+    hospitals,
+    symptomOptions,
+    catalogStatus,
+    today,
+    awaiting,
+    triageMetrics,
+  ] = await Promise.all([
+    listEntryTypes(),
+    listHospitalDepartments(scope.hospitalId),
+    listActiveHospitals(),
+    loadBookingSymptoms(),
+    // Gate CS (ADR 0098): a database before migration 0066 has no versions
+    // table — "not signed", never a crash at the desk. Fails closed to `off`.
+    fetchCatalogVersionStatus(CATALOG.version, CATALOG_CHECKSUM).catch(() => null),
+    fetchTodayIntakeCount({ hospitalId: scope.hospitalId }),
+    fetchHospitalIncomingIntakes({ hospitalId: scope.hospitalId, limit: 30 }),
+    fetchTriageMetricsToday({ hospitalId: scope.hospitalId }),
+  ]);
+  const catalogMode = catalogRenderMode(catalogStatus?.signed === true);
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-8 lg:py-10">
@@ -102,6 +120,7 @@ export default async function HospitalAdminIntakePage() {
         searchAction={searchPatientsAction}
         homeHref="/hospital-admin"
         todayHref="#awaiting"
+        catalogMode={catalogMode}
       />
 
       {/* Awaiting-triage list */}

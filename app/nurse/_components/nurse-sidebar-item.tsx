@@ -15,6 +15,7 @@ import {
   LayoutDashboardIcon,
   ListChecksIcon,
   PillIcon,
+  RadioIcon,
   ScrollTextIcon,
   SirenIcon,
   UsersIcon,
@@ -24,6 +25,7 @@ import { cn } from "@/lib/utils";
 
 const ICONS: Record<NurseIconKey, LucideIcon> = {
   overview: LayoutDashboardIcon,
+  incoming: RadioIcon,
   triage: ClipboardPlusIcon,
   resus: SirenIcon,
   patients: UsersIcon,

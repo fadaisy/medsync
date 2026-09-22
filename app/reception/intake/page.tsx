@@ -5,9 +5,15 @@ import { ArrowLeftIcon } from "lucide-react";
 
 import { FrontDoorForm } from "@/components/intake/front-door-form";
 import { loadBookingSymptoms } from "@/lib/catalog/symptoms";
+import { catalogRenderMode } from "@/lib/emergency/feature";
+import { fetchCatalogVersionStatus } from "@/lib/emergency/queries";
 import { listActiveHospitals, listEntryTypes, listHospitalDepartments } from "@/lib/intake/queries";
 import { fetchExpectedArrivals } from "@/lib/reception/queries";
 import { requireReceptionScope } from "@/lib/reception/scope";
+import {
+  CATALOG,
+  CATALOG_CHECKSUM,
+} from "@/supabase/functions/_shared/symptom-catalog/catalog.v0.1";
 import { receptionRegisterIntakeAction, receptionSearchPatientsAction } from "./actions";
 
 export const metadata: Metadata = { title: "Register · Reception · MedSync" };
@@ -15,22 +21,27 @@ export const dynamic = "force-dynamic";
 
 export default async function ReceptionIntakePage() {
   const scope = await requireReceptionScope();
-  const [entryTypes, departments, hospitals, symptomOptions, arrivals] = await Promise.all([
-    listEntryTypes(),
-    listHospitalDepartments(scope.hospitalId),
-    listActiveHospitals(),
-    loadBookingSymptoms(),
-    // Today (the query defaults to the hospital's current day, as /reception/expected does with no ?date).
-    // Only confirmed bookings: check-in refuses every other status, so the
-    // pick offers nothing it cannot act on — and reveals no other name.
-    fetchExpectedArrivals({
-      hospitalId: scope.hospitalId,
-      receptionUserId: scope.userId,
-      limit: 200,
-      surface: "reception_intake_pick",
-      statuses: ["confirmed"],
-    }),
-  ]);
+  const [entryTypes, departments, hospitals, symptomOptions, catalogStatus, arrivals] =
+    await Promise.all([
+      listEntryTypes(),
+      listHospitalDepartments(scope.hospitalId),
+      listActiveHospitals(),
+      loadBookingSymptoms(),
+      // Gate CS (ADR 0098): a database before migration 0066 has no versions
+      // table — "not signed", never a crash at the desk. Fails closed to `off`.
+      fetchCatalogVersionStatus(CATALOG.version, CATALOG_CHECKSUM).catch(() => null),
+      // Today (the query defaults to the hospital's current day, as /reception/expected does with no ?date).
+      // Only confirmed bookings: check-in refuses every other status, so the
+      // pick offers nothing it cannot act on — and reveals no other name.
+      fetchExpectedArrivals({
+        hospitalId: scope.hospitalId,
+        receptionUserId: scope.userId,
+        limit: 200,
+        surface: "reception_intake_pick",
+        statuses: ["confirmed"],
+      }),
+    ]);
+  const catalogMode = catalogRenderMode(catalogStatus?.signed === true);
   // A provisional booking has no patient to check in until the desk
   // confirms who it is (/reception/expected → Confirm identity).
   const expected: ExpectedPick[] = arrivals.flatMap((r) =>
@@ -83,6 +94,7 @@ export default async function ReceptionIntakePage() {
         expected={expected}
         homeHref="/reception"
         todayHref="/reception"
+        catalogMode={catalogMode}
       />
     </div>
   );

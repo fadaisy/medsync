@@ -10,6 +10,7 @@ import {
   KeyIcon,
   ScrollTextIcon,
   ShieldAlertIcon,
+  SirenIcon,
   UserCogIcon,
   UsersRoundIcon,
 } from "lucide-react";
@@ -36,6 +37,7 @@ export type SidebarIconKey =
   | "catalog"
   | "audit"
   | "health"
+  | "emergency"
   | "break-glass";
 
 const ICONS: Record<SidebarIconKey, typeof ClipboardCheckIcon> = {
@@ -45,6 +47,7 @@ const ICONS: Record<SidebarIconKey, typeof ClipboardCheckIcon> = {
   "staff-rollup": UsersRoundIcon,
   "scheduling-rollup": CalendarClockIcon,
   catalog: KeyIcon,
+  emergency: SirenIcon,
   audit: ScrollTextIcon,
   health: GaugeIcon,
   "break-glass": ShieldAlertIcon,

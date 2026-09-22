@@ -5,9 +5,23 @@ import "server-only";
  * registries — same shape, smaller (deliberately thin workspace).
  */
 
-export type ReceptionIconKey = "overview" | "expected" | "intake" | "book" | "find" | "flow";
+export type ReceptionIconKey =
+  | "overview"
+  | "incoming"
+  | "expected"
+  | "intake"
+  | "book"
+  | "find"
+  | "flow";
 
-export type ReceptionFeatureSlug = "" | "expected" | "intake" | "book" | "find" | "flow";
+export type ReceptionFeatureSlug =
+  | ""
+  | "incoming"
+  | "expected"
+  | "intake"
+  | "book"
+  | "find"
+  | "flow";
 
 export interface ReceptionFeatureArea {
   slug: ReceptionFeatureSlug;
@@ -23,6 +37,13 @@ export const RECEPTION_FEATURE_AREAS: ReadonlyArray<ReceptionFeatureArea> = [
     label: "Today",
     hint: "Front-desk overview — expected, arrived, waiting, no-show",
     iconKey: "overview",
+    placeholder: false,
+  },
+  {
+    slug: "incoming",
+    label: "Incoming",
+    hint: "Pre-alerts — patients on their way",
+    iconKey: "incoming",
     placeholder: false,
   },
   {

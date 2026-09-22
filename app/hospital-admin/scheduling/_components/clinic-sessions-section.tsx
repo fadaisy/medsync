@@ -136,6 +136,8 @@ export function ClinicSessionsSection({
       id: "when",
       header: "When",
       mono: true,
+      // A time never wraps: the Clinic column is the one that gives.
+      className: "w-px whitespace-nowrap",
       cell: (row) =>
         `${WEEKDAY_LABEL[row.weekday] ?? row.weekday} ${timeFromMinutes(row.startMinutesLocal)}`,
     },
@@ -143,6 +145,8 @@ export function ClinicSessionsSection({
       id: "cap",
       header: "Booked / cap",
       mono: true,
+      className: "w-px whitespace-nowrap",
+      headerClassName: "whitespace-nowrap",
       cell: (row) =>
         `${row.capacityBooked} / ${row.capacityTotal}` +
         (row.overbookingFactor > 1 ? ` · ×${row.overbookingFactor.toFixed(2)}` : ""),
@@ -154,6 +158,7 @@ export function ClinicSessionsSection({
       id: "when",
       header: "When",
       mono: true,
+      className: "w-px whitespace-nowrap",
       cell: (row) => (
         <span className="flex flex-col">
           <span className="text-foreground">{row.dateLabel}</span>
@@ -177,6 +182,8 @@ export function ClinicSessionsSection({
       id: "booked",
       header: "Booked / cap",
       mono: true,
+      className: "w-px whitespace-nowrap",
+      headerClassName: "whitespace-nowrap",
       cell: (row) => {
         const cap = Math.ceil(row.capacityBooked * row.overbookingFactor);
         return `${row.bookedCount} / ${cap}`;

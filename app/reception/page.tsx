@@ -4,14 +4,17 @@ import {
   CalendarPlusIcon,
   ClipboardListIcon,
   ListChecksIcon,
+  RadioIcon,
   SearchIcon,
   UserPlusIcon,
 } from "lucide-react";
 
 import { IncomingIntakesPanel } from "@/components/intake/incoming-panel";
+import { fetchIncomingPreArrivals } from "@/lib/emergency/queries";
 import { fetchHospitalIncomingIntakes } from "@/lib/intake/queries";
 import { fetchReceptionTodayCounts } from "@/lib/reception/queries";
 import { requireReceptionScope } from "@/lib/reception/scope";
+import { ETA_BAND_LABEL } from "@/supabase/functions/_shared/pre-arrival";
 
 export const metadata: Metadata = { title: "Today · Reception · MedSync" };
 export const dynamic = "force-dynamic";
@@ -20,8 +23,11 @@ export default async function ReceptionTodayPage() {
   const scope = await requireReceptionScope();
   const firstName = scope.fullName?.split(" ")[0];
 
-  const [counts, incoming] = await Promise.all([
+  const [counts, preArrivals, incoming] = await Promise.all([
     fetchReceptionTodayCounts({ hospitalId: scope.hospitalId }),
+    // Open pre-alerts (ADR 0098): the strip at the top says how many are on
+    // their way so nobody misses one; the board itself is /reception/incoming.
+    fetchIncomingPreArrivals({ facilityId: scope.hospitalId }),
     // Present-and-waiting only. The shared panel is titled "Awaiting triage"
     // and prints rows.length beside it; the default status set also carries
     // 'declared' rows, which would put people who are still at home inside a
@@ -34,9 +40,32 @@ export default async function ReceptionTodayPage() {
       limit: 8,
     }),
   ]);
+  // Newest first from the query; the oldest is the one who has waited longest.
+  const oldest = preArrivals.at(-1);
+  const unacknowledged = preArrivals.filter((r) => r.acknowledgedAt === null).length;
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-6 py-8 lg:py-10">
+      {oldest ? (
+        <Link
+          href="/reception/incoming"
+          className="group tap ease-expo-out bg-foreground text-background hover:bg-foreground/90 reveal-up flex items-center gap-3 rounded-xl px-5 py-3 transition-colors duration-150"
+        >
+          <RadioIcon className="size-4 shrink-0" aria-hidden />
+          <span className="text-body-m font-medium">Incoming ({preArrivals.length})</span>
+          <span className="text-background/70 text-body-s">
+            oldest ETA {ETA_BAND_LABEL[oldest.etaBand]} · {unacknowledged} unacknowledged
+          </span>
+          <span className="ml-auto flex items-center gap-2">
+            <span className="bg-background text-foreground grid size-5 shrink-0 place-items-center rounded-full font-mono text-[11px] font-medium tabular-nums">
+              {unacknowledged}
+            </span>
+            <span aria-hidden className="text-background/50 text-body-s">
+              →
+            </span>
+          </span>
+        </Link>
+      ) : null}
       <header className="reveal-up flex flex-col gap-2">
         <span className="text-muted-foreground text-overline inline-flex items-center gap-1.5 font-mono uppercase">
           <span aria-hidden className="bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2" />

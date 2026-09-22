@@ -256,7 +256,10 @@ export default async function SchedulingPage() {
         />
       </div>
 
-      <div className="grid min-h-0 gap-4 xl:grid-cols-3">
+      {/* Two tables and a list: the tables carry a date, a name and a count
+          per row and were cramped at a third each — they take the room, the
+          policy list is the narrow column. */}
+      <div className="grid min-h-0 gap-4 xl:grid-cols-[minmax(0,5fr)_minmax(0,5fr)_minmax(0,4fr)]">
         <ClinicSessionsSection
           templates={templates}
           sessions={sessions}

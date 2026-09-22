@@ -42,6 +42,27 @@ const RegisterSchema = z.object({
   reason: z.string().min(8, "Audit note ≥ 8 chars.").default("Patient registered at front desk."),
 });
 
+/**
+ * The desk's catalog report (ADR 0098), posted by the form only when the
+ * tiered catalog rendered and an item was chosen. Filed FIRST through
+ * pt-submit-symptoms — the desk's own user is the caller, the function
+ * attributes the row to the reporter — so the intake can link it.
+ */
+const SymptomReportSchema = z.object({
+  audience: z.enum(["adult", "child_u2m", "child_2m_5y", "child_5_12", "pregnant"]),
+  items: z.array(z.string().min(1).max(64)).min(1).max(12),
+  qualifiers: z.record(z.string().max(64), z.record(z.string().max(64), z.string().max(64))),
+});
+
+function parseJson(v: string | undefined): unknown {
+  if (!v) return undefined;
+  try {
+    return JSON.parse(v);
+  } catch {
+    return undefined;
+  }
+}
+
 export async function receptionRegisterIntakeAction(
   _prev: RegisterIntakeState,
   formData: FormData,
@@ -102,6 +123,38 @@ export async function receptionRegisterIntakeAction(
     return { ok: true, checkedIn: true };
   }
 
+  // The catalog report, when the form sent one: filed before the intake so
+  // the intake carries its id. A malformed report is a bug, not a reason to
+  // lose the registration — it is dropped and the entry goes in without it.
+  let symptomSubmissionId: string | undefined;
+  const rawItems = stringOrUndef(formData.get("symptom_items"));
+  if (rawItems) {
+    const report = SymptomReportSchema.safeParse({
+      audience: stringOrUndef(formData.get("symptom_audience")),
+      items: parseJson(rawItems),
+      qualifiers: parseJson(stringOrUndef(formData.get("symptom_qualifiers"))) ?? {},
+    });
+    if (report.success) {
+      const filed = await callEdge<{ data?: { submission_id?: string } }>(
+        "pt-submit-symptoms",
+        {
+          audience: report.data.audience,
+          pregnant: report.data.audience === "pregnant",
+          items: report.data.items,
+          qualifiers: report.data.qualifiers,
+          channel: "desk",
+          hospital_id: scope.hospitalId,
+        },
+        "reception.intake",
+      );
+      // Never blocks the registration (emergency never blocks): the words are
+      // already in presenting_complaint; only the link is lost, and logged.
+      if (filed.ok) symptomSubmissionId = filed.data?.data?.submission_id;
+    } else {
+      logger.warn("reception.intake.symptom_report.malformed");
+    }
+  }
+
   const supabase = await createClient();
   const { data: session } = await supabase.auth.getSession();
   const token = session.session?.access_token;
@@ -118,6 +171,7 @@ export async function receptionRegisterIntakeAction(
       body: JSON.stringify({
         hospital_id: scope.hospitalId,
         ...parsed.data,
+        ...(symptomSubmissionId ? { symptom_submission_id: symptomSubmissionId } : {}),
       }),
     });
     const text = await res.text();

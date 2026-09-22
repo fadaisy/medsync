@@ -282,6 +282,7 @@ export function DeskBooking({
               setSymptoms(next);
               bump();
             }}
+            compact
           />
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="desk-note">
