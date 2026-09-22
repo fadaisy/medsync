@@ -161,7 +161,7 @@ describe("red is reserved — web patient and booking surfaces", () => {
     // the status panel (PRD §7.1's allowlist, ADR 0098 ruling 7).
     "components/emergency/emergency-pill.tsx",
     "app/emergency/_components/emergency-sheet.tsx",
-    "app/emergency/tell/_components/pre-alert-form.tsx",
+    "app/emergency/_components/pre-alert-form.tsx",
   ];
 
   it("the calm routes carry no red at all (PRD §5.5): crisis and sexual violence", () => {

@@ -21,6 +21,7 @@ import {
   readPendingCatalogDraft,
   writePendingCatalogDraft,
 } from "@/lib/patient/pending-symptoms";
+import { cn } from "@/lib/utils";
 import { CATALOG } from "@/supabase/functions/_shared/symptom-catalog/catalog.v0.1";
 import {
   classify,
@@ -490,11 +491,20 @@ function CatalogInner({
       />
       {mode === "draft_watermarked" ? <Watermark /> : null}
 
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Below md the review replaces S1; from md up it is the right pane. */}
-        <div className={step === "review" && !wide ? "hidden" : undefined}>{s1}</div>
+      <div className="grid gap-6 md:grid-cols-2 md:items-start">
+        {/* Below md the review replaces S1; from md up it is the right pane.
+            From md up S1 stays put (sticky under the workspace bar) while the
+            pane scrolls inside its own container. */}
+        <div
+          className={cn(
+            step === "review" && !wide && "hidden",
+            "md:sticky md:top-[calc(3.25rem+2rem)] md:self-start",
+          )}
+        >
+          {s1}
+        </div>
         {wide ? (
-          <div className="min-w-0">
+          <div className="min-w-0 md:sticky md:top-[calc(3.25rem+2rem)] md:self-start">
             {step === "review" ? (
               review
             ) : paneProps ? (

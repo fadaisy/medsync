@@ -61,6 +61,7 @@ export function EmergencyInterrupt({
         aria-labelledby="interrupt-title"
         aria-describedby="interrupt-item"
         showCloseButton={false}
+        desktop="center"
         widthClassName="md:max-w-[480px] md:w-full"
         // Portalled out of the page: the forced-light wrapper is re-applied here (Law 3).
         className={cn(

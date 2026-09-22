@@ -39,6 +39,13 @@ interface ResponsiveSheetContentProps extends DialogPrimitive.Popup.Props {
   /** Optional max-height on mobile (defaults to 92svh so the top edge stays peek-able). */
   mobileMaxHeightClassName?: string;
   showCloseButton?: boolean;
+  /**
+   * Where the sheet sits on md+: `side` (the default — a right-anchored
+   * panel, for lists and editors) or `center` (a dialog in the middle of
+   * the screen, for something that must be answered before anything else —
+   * the catalog's emergency interrupt). Below md both are the bottom sheet.
+   */
+  desktop?: "side" | "center";
 }
 
 function ResponsiveSheetContent({
@@ -47,6 +54,7 @@ function ResponsiveSheetContent({
   widthClassName = "md:max-w-[560px] md:w-full",
   mobileMaxHeightClassName = "max-h-[92svh]",
   showCloseButton = true,
+  desktop = "side",
   ...props
 }: ResponsiveSheetContentProps) {
   return (
@@ -68,9 +76,15 @@ function ResponsiveSheetContent({
           "flex w-full flex-col overflow-hidden rounded-t-2xl border-t shadow-2xl outline-none",
           mobileMaxHeightClassName,
           "data-open:animate-in data-open:slide-in-from-bottom data-closed:animate-out data-closed:slide-out-to-bottom",
-          // Desktop (md+): override to right-anchored full-height.
-          "md:inset-y-0 md:right-0 md:bottom-auto md:left-auto md:max-h-none md:rounded-none md:border-t-0 md:border-l",
-          "md:data-open:slide-in-from-right md:data-closed:slide-out-to-right",
+          // Desktop (md+): a right-anchored full-height panel, or a centred
+          // dialog (inset-0 + auto margins + fit height — no transforms, so
+          // the enter/exit animation never fights the resting position).
+          desktop === "center"
+            ? "md:shadow-popover md:inset-0 md:m-auto md:h-fit md:max-h-[calc(100svh-4rem)] md:rounded-2xl md:border"
+            : "md:inset-y-0 md:right-0 md:bottom-auto md:left-auto md:max-h-none md:rounded-none md:border-t-0 md:border-l",
+          desktop === "center"
+            ? "md:data-open:slide-in-from-bottom-0 md:data-open:zoom-in-95 md:data-closed:slide-out-to-bottom-0 md:data-closed:zoom-out-95"
+            : "md:data-open:slide-in-from-right md:data-closed:slide-out-to-right",
           widthClassName,
           "ease-expo-out duration-250",
           "motion-reduce:animate-none motion-reduce:duration-0",

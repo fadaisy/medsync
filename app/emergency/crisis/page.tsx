@@ -93,7 +93,7 @@ export default async function CrisisPage() {
 
         {preAlertLive() ? (
           <Link
-            href={`/emergency/tell?items=${SELF_HARM_KEY}`}
+            href={`/emergency?items=${SELF_HARM_KEY}#tell`}
             className={cn(
               buttonVariants({ variant: "secondary", size: "lg" }),
               "min-h-12 w-full rounded-xl",

@@ -38,7 +38,7 @@ export default async function StatusPage({ searchParams }: { searchParams: Promi
           <p className="text-foreground text-body-m">
             No pre-alert to show.{" "}
             <Link
-              href="/emergency/tell"
+              href="/emergency#tell"
               className="text-primary underline-offset-4 hover:underline"
             >
               Tell a hospital you&rsquo;re coming

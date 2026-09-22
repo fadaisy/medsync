@@ -1,14 +1,32 @@
 "use client";
 
-import type { PreArrivalInput } from "../../actions";
+import type { PreArrivalInput } from "../actions";
 import type { LatLng } from "@/lib/emergency/nearest";
 import type { PreAlertFacility } from "@/lib/emergency/queries";
 import type { EtaBand, TransportMode } from "@/supabase/functions/_shared/pre-arrival";
 import type { SubmissionAudience, Tier } from "@/supabase/functions/_shared/symptom-catalog/types";
+import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { MapPinIcon, PhoneIcon, XIcon } from "lucide-react";
+import {
+  BabyIcon,
+  BandageIcon,
+  BoneIcon,
+  BrainIcon,
+  CircleAlertIcon,
+  CircleDotIcon,
+  DropletIcon,
+  EyeIcon,
+  GaugeIcon,
+  HandIcon,
+  HeartIcon,
+  MapPinIcon,
+  MicIcon,
+  PhoneIcon,
+  ThermometerIcon,
+  WindIcon,
+} from "lucide-react";
 
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,12 +40,15 @@ import {
   ETA_BANDS,
   TRANSPORT_MODES,
 } from "@/supabase/functions/_shared/pre-arrival";
-import { smsHref as smsLink, telHref, writeStoredPreArrival } from "../../_lib/client";
-import { createPreArrivalAction } from "../../actions";
+import { smsHref as smsLink, telHref, writeStoredPreArrival } from "../_lib/client";
+import { createPreArrivalAction } from "../actions";
 
 /**
- * E2 — the pre-alert form (PRD MS-PRD-SYM-001 §8.3; ADR 0098 rulings 6, 9).
- * Every field is pre-filled so Send is two taps from E1. Nearest is computed
+ * E2 — the pre-alert form (PRD MS-PRD-SYM-001 §8.3; ADR 0098 rulings 6, 9),
+ * rendered on the ONE Emergency page beside the numbers. Every field is
+ * pre-filled so Send is one tap once a hospital is chosen. "What's
+ * happening" is the tile grid from E1 (the danger-sign strip plus the next
+ * emergency items) with a select for the rest. Nearest is computed
  * HERE from the cached facility list — a location leaves the phone only on
  * the explicit per-alert toggle, and only for a facility that runs its own
  * ambulance. Offline or unreachable: the alert queues, resends when the
@@ -40,6 +61,13 @@ export interface EItem {
   label: string;
   stroke: boolean;
   isolation: boolean;
+}
+
+/** A "What's happening" tile: the strip's items plus the next emergency items, with an icon. */
+export interface Tile {
+  key: string;
+  label: string;
+  icon: string;
 }
 
 /** PRD §8.3 defaults — tests/emergency/web-pathway pins these. */
@@ -73,6 +101,24 @@ const CHILD_BANDS: { key: ChildBand; label: string }[] = [
   { key: "child_2m_5y", label: "2 months to 5 years" },
   { key: "child_5_12", label: "5 to 12 years" },
 ];
+
+/** Catalog icon keys → Lucide (the phone resolves the same keys to Ionicons). */
+const TILE_ICON: Record<string, LucideIcon> = {
+  lungs: WindIcon,
+  heart: HeartIcon,
+  brain: BrainIcon,
+  thermometer: ThermometerIcon,
+  bandage: BandageIcon,
+  child: BabyIcon,
+  gauge: GaugeIcon,
+  eye: EyeIcon,
+  throat: MicIcon,
+  droplet: DropletIcon,
+  bone: BoneIcon,
+  hand: HandIcon,
+  mind: BrainIcon,
+  belly: CircleDotIcon,
+};
 
 const DEVICE_KEY = "medsync:device-id";
 function deviceHash(): string {
@@ -112,6 +158,7 @@ export function PreAlertForm({
   ownHospitalId,
   signedIn,
   eItems,
+  tiles,
   initialItems,
   submissionId,
 }: {
@@ -119,6 +166,7 @@ export function PreAlertForm({
   ownHospitalId: string | null;
   signedIn: boolean;
   eItems: EItem[];
+  tiles: Tile[];
   initialItems: string[];
   submissionId: string | null;
 }) {
@@ -173,6 +221,16 @@ export function PreAlertForm({
   const [shareLocation, setShareLocation] = useState<boolean>(E2_DEFAULTS.shareLocation);
   const [state, setState] = useState<SendState>({ kind: "idle" });
 
+  // The tiles, plus anything chosen that is not among them (a catalog pick,
+  // a select pick) so every choice is visible and un-tickable in one place.
+  const tileRows: Tile[] = [
+    ...tiles,
+    ...items
+      .filter((k) => !tiles.some((tl) => tl.key === k))
+      .map((k) => ({ key: k, label: byKey.get(k)?.label ?? k, icon: "alert" })),
+  ];
+  const toggleItem = (k: string) =>
+    setItems((xs) => (xs.includes(k) ? xs.filter((x) => x !== k) : [...xs, k]));
   const stroke = items.some((k) => byKey.get(k)?.stroke);
   const isolation = items.some((k) => byKey.get(k)?.isolation);
   const audience: SubmissionAudience =
@@ -335,7 +393,7 @@ export function PreAlertForm({
         ) : null}
         {ordered.length === 0 ? (
           <p className="text-muted-foreground text-body-s">
-            No hospital takes pre-alerts yet. Please call the numbers on the previous page.
+            No hospital takes pre-alerts yet. Please call one of the emergency numbers.
           </p>
         ) : (
           <ul className="flex flex-col gap-2">
@@ -420,32 +478,40 @@ export function PreAlertForm({
         </label>
       )}
 
-      {/* What */}
-      <fieldset className="flex flex-col gap-2">
+      {/* What — the tiles (E1's strip), then anything chosen beyond them, then the rest by select. */}
+      <fieldset className="flex flex-col gap-3">
         <legend className="text-foreground text-body-m mb-2 font-medium">
-          What&rsquo;s happening
+          What&rsquo;s happening{" "}
+          <span className="text-muted-foreground font-normal">
+            ({items.length === 0 ? `${E2_DEFAULTS.what} — tap any` : "tap to change"})
+          </span>
         </legend>
-        {items.length === 0 ? (
-          <p className="text-muted-foreground text-body-s">{E2_DEFAULTS.what}</p>
-        ) : (
-          <ul className="flex flex-wrap gap-2" aria-label="Chosen danger signs">
-            {items.map((k) => (
-              <li key={k}>
+        <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2" aria-label="Danger signs">
+          {tileRows.map((tile) => {
+            const Icon = TILE_ICON[tile.icon] ?? CircleAlertIcon;
+            const chosen = items.includes(tile.key);
+            return (
+              <li key={tile.key}>
                 <button
                   type="button"
-                  onClick={() => setItems((xs) => xs.filter((x) => x !== k))}
-                  className="bg-foreground text-background text-body-s inline-flex min-h-11 items-center gap-1.5 rounded-full py-1 pr-2 pl-3"
-                  aria-label={`Remove ${byKey.get(k)?.label ?? k}`}
+                  aria-pressed={chosen}
+                  onClick={() => toggleItem(tile.key)}
+                  className={cn(
+                    "focus-visible:shadow-focus flex min-h-14 w-full items-center gap-2.5 rounded-xl border px-3 py-2 text-left outline-none select-none",
+                    chosen
+                      ? "bg-foreground text-background border-foreground"
+                      : "border-border bg-card text-foreground hover:bg-muted",
+                  )}
                 >
-                  {byKey.get(k)?.label ?? k}
-                  <XIcon aria-hidden className="size-4" />
+                  <Icon aria-hidden className="size-5 shrink-0" strokeWidth={1.75} />
+                  <span className="text-body-s leading-snug">{tile.label}</span>
                 </button>
               </li>
-            ))}
-          </ul>
-        )}
+            );
+          })}
+        </ul>
         <div className="flex flex-col">
-          <Label htmlFor="add-sign">Add a danger sign</Label>
+          <Label htmlFor="add-sign">Another danger sign</Label>
           <select
             id="add-sign"
             value=""
@@ -457,7 +523,7 @@ export function PreAlertForm({
           >
             <option value="">Choose…</option>
             {eItems
-              .filter((i) => !items.includes(i.key))
+              .filter((i) => !items.includes(i.key) && !tiles.some((tl) => tl.key === i.key))
               .map((i) => (
                 <option key={i.key} value={i.key}>
                   {i.label}

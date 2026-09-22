@@ -127,7 +127,11 @@ describe("E1 — the sheet", () => {
   it("wraps every page in medsync-forced-light (Law 3) and reads the tier words from the catalog, never hard-coded", () => {
     const pages = EMERGENCY.filter(([p]) => /[\\/]page\.tsx$/.test(p));
     expect(pages.length).toBe(5);
-    for (const [p, s] of pages) expect(s, p).toMatch(/medsync-forced-light/);
+    for (const [p, s] of pages) {
+      // /emergency/tell only redirects to the one page now (E1 + E2 together).
+      if (/tell[\\/]page\.tsx$/.test(p)) expect(s, p).toMatch(/permanentRedirect\(`\/emergency/);
+      else expect(s, p).toMatch(/medsync-forced-light/);
+    }
     expect(src("app/emergency/sexual-violence/page.tsx")).toMatch(/t\(CATALOG, "tier\.U"\)/);
   });
 
@@ -142,7 +146,7 @@ describe("E1 — the sheet", () => {
 describe("red is reserved — the pathway's own allowlist", () => {
   const ALLOWED = [
     "app/emergency/_components/emergency-sheet.tsx",
-    "app/emergency/tell/_components/pre-alert-form.tsx",
+    "app/emergency/_components/pre-alert-form.tsx",
   ];
 
   it("only the sheet and E2's Send paint red; crisis, sexual-violence, status and the pages carry none", () => {
@@ -155,7 +159,7 @@ describe("red is reserved — the pathway's own allowlist", () => {
   });
 
   it("E2's only red is the Send button", () => {
-    const form = src("app/emergency/tell/_components/pre-alert-form.tsx");
+    const form = src("app/emergency/_components/pre-alert-form.tsx");
     const reds = form.match(/variant="emergency"/g) ?? [];
     expect(reds.length).toBe(1);
     expect(form).not.toMatch(/status-critical|bg-destructive|variant="alert"/);
@@ -163,7 +167,7 @@ describe("red is reserved — the pathway's own allowlist", () => {
 });
 
 describe("E2 — defaults make Send two taps (PRD §8.3)", () => {
-  const form = src("app/emergency/tell/_components/pre-alert-form.tsx");
+  const form = src("app/emergency/_components/pre-alert-form.tsx");
 
   it("what = Not sure, when = Just now, transport = boda, arriving = 15–30 min, location sharing off", () => {
     expect(form).toMatch(/what: "Not sure"/);

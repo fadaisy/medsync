@@ -50,12 +50,17 @@ function ItemList(p: PaneProps) {
 
 /**
  * S2 on a wide screen: the right pane of the two-pane layout (PRD §7.2
- * desktop — nothing modal but the Emergency sheet). ≤ 8 rows of 56px.
+ * desktop — nothing modal but the Emergency sheet). A card with its own
+ * scroll: the title stays, the list moves, and S1 on the left never does.
+ * Height follows the viewport under the workspace bar and page padding.
  */
 export function CategoryPane(p: PaneProps) {
   return (
-    <section aria-labelledby="pane-title" className="flex flex-col gap-3">
-      <div className="flex items-start justify-between gap-3">
+    <section
+      aria-labelledby="pane-title"
+      className="border-border bg-muted/40 flex max-h-[calc(100svh-3.25rem-4rem)] flex-col rounded-xl border"
+    >
+      <div className="border-border flex shrink-0 items-start justify-between gap-3 border-b px-4 py-3">
         <h2 id="pane-title" className="font-display text-heading-s font-medium">
           {p.title}
         </h2>
@@ -63,8 +68,10 @@ export function CategoryPane(p: PaneProps) {
           <XIcon aria-hidden className="size-4" />
         </Button>
       </div>
-      <ItemList {...p} />
-      {p.footer}
+      <div className="min-h-0 flex-1 overflow-y-auto p-3">
+        <ItemList {...p} />
+      </div>
+      {p.footer ? <div className="border-border shrink-0 border-t p-3">{p.footer}</div> : null}
     </section>
   );
 }
