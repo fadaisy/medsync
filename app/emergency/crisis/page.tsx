@@ -31,7 +31,7 @@ export default async function CrisisPage() {
   const talk = crisis.length > 0 ? crisis : primary ? [primary] : [];
 
   return (
-    <div className="medsync-forced-light bg-background text-foreground min-h-svh">
+    <div className="bg-background text-foreground min-h-svh">
       <main className="mx-auto flex w-full max-w-xl flex-col gap-6 px-4 py-6 sm:px-6">
         <nav aria-label="Back" className="flex justify-between">
           <Link

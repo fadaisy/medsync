@@ -3,6 +3,7 @@ import type { CatalogItem } from "@/supabase/functions/_shared/symptom-catalog/t
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { ThemeToggle } from "@/components/theme-toggle";
 import { firstAidCardsLive, preAlertLive } from "@/lib/emergency/feature";
 import { cn } from "@/lib/utils";
 import { CATALOG } from "@/supabase/functions/_shared/symptom-catalog/catalog.v0.1";
@@ -11,6 +12,7 @@ import {
   t,
   visibleItems,
 } from "@/supabase/functions/_shared/symptom-catalog/classify";
+import { CloseLink } from "./_components/close-link";
 import { EmergencySheet, FirstAidCards } from "./_components/emergency-sheet";
 import { PreAlertForm } from "./_components/pre-alert-form";
 import { loadEmergencyContext, splitContacts } from "./_lib/sheet";
@@ -24,9 +26,10 @@ export const metadata: Metadata = {
  * THE Emergency page (PRD MS-PRD-SYM-001 §8.2–§8.3; ADR 0098 ruling 7):
  * E1 and E2 together — the numbers first, the pre-alert beside them. Public,
  * signed in or out, one tap from the pill and two to a call; with pre-alerts
- * on, Send is one tap once a hospital is chosen. Permanently light (Law 3).
- * Reads the session only to name the patient's own hospital — never
- * redirects.
+ * on, Send is one tap once a hospital is chosen. Follows the site theme
+ * (owner decision 2026-09-23, superseding PRD Law 3's forced light), with
+ * its own toggle beside Close. Reads the session only to name the
+ * patient's own hospital — never redirects.
  *
  * Wide screens: two columns, the numbers pinned on the left while the form
  * scrolls on the right — the call button never leaves the screen. Narrow:
@@ -99,20 +102,16 @@ export default async function EmergencyPage({ searchParams }: { searchParams: Pr
   );
 
   return (
-    <div className="medsync-forced-light bg-background text-foreground min-h-svh">
+    <div className="bg-background text-foreground min-h-svh">
       <main
         className={cn(
           "mx-auto flex w-full flex-col gap-4 px-4 py-4 sm:gap-6 sm:px-6 sm:py-6",
           preAlert ? "max-w-5xl lg:py-10" : "max-w-xl",
         )}
       >
-        <nav aria-label="Leave" className="flex justify-end">
-          <Link
-            href={ctx.signedIn ? "/patient" : "/"}
-            className="text-muted-foreground hover:text-foreground text-body-s inline-flex min-h-11 items-center underline-offset-4 hover:underline"
-          >
-            Close
-          </Link>
+        <nav aria-label="Leave" className="flex items-center justify-end gap-3">
+          <ThemeToggle className="size-9" />
+          <CloseLink className="text-muted-foreground hover:text-foreground text-body-s inline-flex min-h-11 items-center underline-offset-4 hover:underline" />
         </nav>
 
         {preAlert ? (

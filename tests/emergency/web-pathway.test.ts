@@ -124,14 +124,21 @@ describe("E1 — the sheet", () => {
     }
   });
 
-  it("wraps every page in medsync-forced-light (Law 3) and reads the tier words from the catalog, never hard-coded", () => {
+  it("every page follows the site theme (owner, 2026-09-23 — no forced light) and reads the tier words from the catalog", () => {
     const pages = EMERGENCY.filter(([p]) => /[\\/]page\.tsx$/.test(p));
     expect(pages.length).toBe(5);
     for (const [p, s] of pages) {
       // /emergency/tell only redirects to the one page now (E1 + E2 together).
       if (/tell[\\/]page\.tsx$/.test(p)) expect(s, p).toMatch(/permanentRedirect\(`\/emergency/);
-      else expect(s, p).toMatch(/medsync-forced-light/);
+      else {
+        expect(s, p).not.toMatch(/medsync-forced-light/);
+        expect(s, p).toMatch(/bg-background text-foreground/);
+      }
     }
+    expect(src("app/emergency/page.tsx")).toMatch(/<ThemeToggle/);
+    // Close goes back to where the pill was pressed, never to a fixed workspace.
+    expect(src("app/emergency/_components/close-link.tsx")).toMatch(/router\.back\(\)/);
+    expect(src("app/emergency/page.tsx")).not.toMatch(/"\/patient"/);
     expect(src("app/emergency/sexual-violence/page.tsx")).toMatch(/t\(CATALOG, "tier\.U"\)/);
   });
 
