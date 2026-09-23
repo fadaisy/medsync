@@ -1,0 +1,46 @@
+{
+  "_comment": "EXAMPLE of the file format for scripts/seed-resus-units.ts. It describes no real hospital: replace every value with what the hospital itself declares. A bay's energySequenceJ comes from biomedical engineering (manufacturer sequence, CSO-approved) or stays null.",
+  "hospitalId": "00000000-0000-0000-0000-000000000000",
+  "settings": { "antiarrhythmic": "amiodarone" },
+  "units": [
+    {
+      "name": "Example ICU",
+      "unitType": "icu",
+      "ageGroup": "adult",
+      "capabilities": [
+        "continuous_ecg",
+        "arterial_line",
+        "vasopressors",
+        "niv_cpap",
+        "invasive_ventilation"
+      ],
+      "active": true
+    },
+    {
+      "name": "Example HDU",
+      "unitType": "hdu",
+      "ageGroup": "adult",
+      "capabilities": ["continuous_ecg", "vasopressors", "niv_cpap"],
+      "active": true
+    },
+    {
+      "name": "Example medical ward",
+      "unitType": "ward",
+      "ageGroup": "adult",
+      "capabilities": [],
+      "active": true
+    }
+  ],
+  "bays": [
+    {
+      "bayLabel": "Bay 1",
+      "deviceModel": null,
+      "waveform": "unknown",
+      "energySequenceJ": null,
+      "capnography": false,
+      "ultrasound": false,
+      "mechanicalCpr": false,
+      "verifiedBy": null
+    }
+  ]
+}

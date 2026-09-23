@@ -11,8 +11,8 @@
  * 2026-06-02) + resuscitation-abcde-clinical-reference.md.
  */
 
-/** The five primary-survey steps, plus the pre-survey and arrest exits. */
-export const ABCDE_STEPS = ["pre", "A", "B", "C", "D", "E", "arrest"] as const;
+/** The five primary-survey steps, plus the pre-survey, arrest and post-ROSC exits. */
+export const ABCDE_STEPS = ["pre", "A", "B", "C", "D", "E", "arrest", "post"] as const;
 export type AbcdeStep = (typeof ABCDE_STEPS)[number];
 
 /** The five letters that carry assess→action content (excludes pre/arrest). */
@@ -38,6 +38,13 @@ export const RESUS_EVENT_KINDS = [
   "cpr_started", // CPR commenced (prompted; performed by the team)
   "handover", // SBAR / RSVP handover recorded
   "note", // free narrative (encrypted at rest)
+  // v2 (migration 0068) — explicit kinds for Utstein-critical events + context.
+  "context", // the patient-level context flags (latest wins; never an assessment)
+  "rhythm_check", // a rhythm check during an arrest (VF/pVT, PEA, asystole, organised)
+  "shock", // a defibrillation shock (energy recorded)
+  "rosc", // return of spontaneous circulation (signs recorded)
+  "resuscitation_stopped", // the team stopped resuscitation (termination review)
+  "death_confirmed", // death confirmed after cardiorespiratory arrest (AoMRC 2025)
 ] as const;
 export type ResusEventKind = (typeof RESUS_EVENT_KINDS)[number];
 
@@ -63,7 +70,11 @@ export type ResusDisposition =
   | "ward"
   | "mortuary"
   | "transferred"
-  | "deceased";
+  | "deceased"
+  // v2 (0068)
+  | "hdu"
+  | "labour_ward"
+  | "discharged";
 
 /**
  * An immutable timeline event as stored. `recordedAt` is the CLINICAL
@@ -85,6 +96,12 @@ export interface TimelineEvent {
   payload: Record<string, unknown>;
   /** Non-null when this event is a correction of an earlier one. */
   supersedesEventId: string | null;
+  /** v2: the arrest this event belongs to (1-based), when it is arrest-scoped. */
+  arrestSeq?: number | null;
+  /** v2: the client's idempotency key (unique per episode). */
+  clientEventId?: string | null;
+  /** v2: bedside time differs materially from entry time ("entered 17:40 for 17:05"). */
+  lateEntry?: boolean;
 }
 
 /** A role-assignment row. Current roster = rows with `endedAt === null`. */

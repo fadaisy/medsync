@@ -82,7 +82,7 @@ export function reassessPromptFor(step: AbcdeLetter): string {
 /** A minimal event shape for deriving progress (kind + step + payload). */
 export interface ProgressEvent {
   kind: ResusEventKind;
-  step: AbcdeLetter | "pre" | "arrest" | null;
+  step: AbcdeLetter | "pre" | "arrest" | "post" | null;
   payload?: Record<string, unknown>;
 }
 
@@ -102,7 +102,7 @@ export function deriveProgress(events: readonly ProgressEvent[]): StepProgress[]
   ) as Record<AbcdeLetter, StepProgress>;
 
   for (const e of events) {
-    if (e.step === null || e.step === "pre" || e.step === "arrest") continue;
+    if (e.step === null || e.step === "pre" || e.step === "arrest" || e.step === "post") continue;
     const p = base[e.step];
     if (e.kind === "assessment" || e.kind === "vital" || e.kind === "reassessment") {
       p.assessed = true;

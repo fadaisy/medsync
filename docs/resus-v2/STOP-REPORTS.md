@@ -55,3 +55,55 @@ build continues. The CSO sign-off this implies is recorded, decision by decision
 ### Failing tests (by design)
 
 `tests/resus/v2/step-bar-regression.test.ts`: 7 of 8 fail against the v1 derivation (P3 × 5, P4 × 2); the control passes. The 332 existing resus tests pass. The only other red test in the suite, `tests/a11y/static-pages.test.ts`, needs a `next build` first (pre-existing).
+
+---
+
+## STOP 1 — GATE A (2026-09-23)
+
+`docs/resus-v2-gate-a-proposal.md` + the three CSO catalogs (`docs/clinical/resus-{als,post-rosc,closeout}-clinical-catalog.md`).
+Every number was re-verified against its primary source the same day by three independent passes:
+
+| Source family                                               | Result                                                                                                                                                                                                                                                                   |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| RCUK 2025 ALS / BLS / SC / PRC / Ethics                     | 42 + 32 + 20 items **match**, verbatim-checked (downloaded and text-searched). No mismatch.                                                                                                                                                                              |
+| AoMRC 2025 (death confirmation), ICS 2021, NEWS2            | **Match.** AoMRC adds three rules the reference omitted (5 min starts at mechanical asystole; disconnect the ventilator first; tell the family the time may differ) — added as ALS-DTH-02/03/08. ICS BMI > 40 cases added (CO-R15/16). NEWS2 middle band is "5 or more". |
+| ERC 2025 Ethics                                             | 20-min criterion **matches** the accepted author version (publisher page blocked).                                                                                                                                                                                       |
+| ERC 2025 ALS/BLS/SC, AHA 2025, Utstein 2019/1997, ILCOR LRS | **Blocked** (403 / closed). No AHA number is displayed; Utstein 20-min sustained ROSC shown as signed with a browser re-read before go-live (D25).                                                                                                                       |
+| Divergences logged                                          | ANZCOR potassium 5 mmol vs RCUK 20+10 (D23); ANZCOR 1:1,000 IV adrenaline (D22); gluconate substitute not encoded (D17); IM-suppression is a CSO rule (D21).                                                                                                             |
+
+Signed by instruction ("go through all gates") — decisions D1–D25, E1–E7 in GATE A §12, with the open sub-questions answered
+conservatively and marked "confirm".
+
+---
+
+## STOP 2 — data layer (2026-09-23)
+
+**Migration** `supabase/migrations/0068_resus_desk_v2.sql` (+ Drizzle `db/schema/resus.ts`): episode phase + close-out columns;
+timeline kinds/step/arrest_seq/client_event_id/late_entry; six new tables; activity + PHI-free broadcast triggers; an episode
+audit trigger that no longer fires on the activity clock alone; realtime topic authorisation; notification + audit CHECKs;
+legacy backfill. **Not applied** — owner action (`npm run db:migrate`). It must be applied **before** the web ships (v1 reads
+`select *` from `resus_episodes`).
+
+**Offline verification** — every migration `0000`–`0068` (incl. `0067` from the main tree) replayed into an embedded Postgres
+(PGlite, local harness only) over a minimal Supabase bootstrap, then **71 / 71 probes pass**:
+
+| Area                   | Probes                                                                                                                                                  |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Legacy backfill        | arrested episode → `arrest`, seq 1, activity = last event; plain → `survey`, seq 0, activity = started_at; **nothing closed**                           |
+| Timeline               | new kinds / step `post` / arrest_seq accepted; bad kind/step/seq rejected; UPDATE & DELETE still blocked; idempotent insert (`ON CONFLICT … WHERE`)     |
+| Activity + audit       | insert bumps `last_activity_at` with **no** episode audit row; a phase change **is** audited                                                            |
+| Realtime               | broadcast to private `resus:<episode>` with PHI-free payload `{eventId, kind, recordedAt}`; phase change → `resus-board:<hospital>` + `resus:<episode>` |
+| CHECKs                 | phase, outcome_code (only when concluded), closure_kind, levels, mismatch, disposition (`hdu`, `labour_ward`, `discharged`), bay energy 1–400 J         |
+| Immutability           | arrest records and after-death tasks append-only; debrief editable as draft, immutable once submitted, never deleted                                    |
+| RLS (6 new tables)     | same-hospital clinician reads; other hospital, reception cadre, no affiliation read nothing; client INSERT/DELETE denied                                |
+| Realtime authorisation | `resus:<id>` and `resus-board:<hospital>`: same-hospital clinician may listen; other hospital, reception and malformed topics may not                   |
+
+**Live-DB suites** (`tests/rls/resus-tables.test.ts`, `tests/rls/resus-v2-tables.test.ts`, 71 cases) skip locally — no test
+Supabase project; `.env.local` is production.
+
+**Legacy episodes flagged idle:** cannot be counted offline (production data). After `db:migrate`, every active episode with
+`last_activity_at` older than 2 h appears under "Needs closing" — the 112-day episode from the screenshot among them.
+
+**Deviations from the prompt:** no seed rows (no fabricated hospital facts — `scripts/seed-resus-units.ts` loads what the hospital
+declares); idle thresholds stay signed constants, not a hospital setting; writes use one Drizzle transaction (event + header +
+audit) instead of the REST service client, which cannot span statements.

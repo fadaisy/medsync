@@ -287,9 +287,11 @@ client_event_id)`, `late_entry bool default false`.
   `record_resus_arrest_record`, `submit_resus_debrief`, `record_resus_after_death_task`, `update_resus_settings`;
   target kinds + `resus_arrest_record`, `resus_debrief`, `resus_after_death_task`, `hospital_care_unit`,
   `resus_bay_profile`, `hospital_resus_settings`.
-- **Seeds:** Mulago care units (Medical ICU, HDU, wards) and a bay profile with **no** energy sequence (so the
-  console shows "highest available setting" until biomedical engineering registers one). Test Hospital-1 is a
-  runtime tenant with no fixed id — seeded through the superadmin-only data path, not the migration.
+- **Seeds:** none in the migration. A unit's capabilities and a bay's defibrillator are facts about a real
+  hospital (owner rule: no fabricated data), so the hospital declares them in a JSON file loaded by
+  `scripts/seed-resus-units.ts` (format: `docs/resus-v2/hospital-resus.example.json`). Until then the close-out
+  sheet lists no units (destination chosen manually) and the console shows "highest available setting".
+  Idle thresholds are signed constants (D14), not a per-hospital setting.
 - **Legacy plan:** backfill `last_activity_at = max(created_at)` of each episode's events (else `started_at`),
   `phase = 'arrest'` when `arrest_detected_at` is set and the episode is active, else `'survey'`; nothing else is
   altered and nothing is closed. Legacy episodes idle ≥ 2 h appear under "Needs closing".

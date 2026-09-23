@@ -58,8 +58,8 @@ describe.skipIf(!RLS_TESTS_ENABLED)("RLS: resus tables", () => {
     const [role] = await serviceSql<{ id: string }[]>`SELECT id FROM public.roles LIMIT 1`;
     await serviceSql`
       INSERT INTO public.staff_affiliations
-        (user_id, hospital_id, department_id, cadre_id, role_id, employment_type, state)
-      VALUES (${user.id}, ${hospitalId}, ${dept!.id}, ${cadre!.id}, ${role!.id}, 'full_time', 'active')`;
+        (user_id, hospital_id, department_id, cadre_id, role_id, employment_type, state, approved_at)
+      VALUES (${user.id}, ${hospitalId}, ${dept!.id}, ${cadre!.id}, ${role!.id}, 'full_time', 'active', now())`;
   }
 
   beforeAll(async () => {

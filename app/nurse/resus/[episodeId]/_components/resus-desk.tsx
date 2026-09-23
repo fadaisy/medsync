@@ -287,7 +287,9 @@ export function ResusDesk({
     if (!active) return;
     setPendingLabel(String(payload.label ?? payload.item ?? kind));
     startTransition(async () => {
-      await logResusEvent({ episodeId: episode.id, kind, step, payload });
+      // The legacy desk only logs v1 kinds; v2 kinds have their own actions.
+      const v1Kind = kind as Parameters<typeof logResusEvent>[0]["kind"];
+      await logResusEvent({ episodeId: episode.id, kind: v1Kind, step, payload });
       setPendingLabel(null);
       router.refresh();
     });
