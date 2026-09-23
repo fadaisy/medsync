@@ -806,6 +806,9 @@
 
   /* Gradients on a forced-dark band use the deep end of the ramp in both modes. */
   --gradient-hero: linear-gradient(158deg, #042f2e 0%, #134e4a 58%, #0f766e 100%);
+  --gradient-band: linear-gradient(180deg, #042f2e 0%, #115e59 100%);
+}
+
 /* ADR 0098 Law 3: the Emergency Pathway and the symptom catalog are
    permanently light. This re-pins every :root token on the scoped element
    so its subtree ignores `.dark` — the forced-dark utility above, mirrored.
@@ -914,9 +917,6 @@
   --shadow-card-value: 0 0 0 1px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04);
   --shadow-popover-value: 0 0 0 1px rgba(0, 0, 0, 0.06), 0 12px 24px -4px rgba(0, 0, 0, 0.12);
   --shadow-focus-value: 0 0 0 2px rgba(20, 184, 166, 0.4);
-}
-
-  --gradient-band: linear-gradient(180deg, #042f2e 0%, #115e59 100%);
 }
 
 /* Base layer — minimal global rules. Components own their styles. */
