@@ -3,8 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
+import { subscribeResusBoard } from "@/lib/resus/board-channel";
 import { formatIdle } from "@/lib/resus/closeout/idle";
-import { createClient } from "@/lib/supabase/client";
 
 /**
  * Resus board v2 — the live parts: leaf clocks (server-anchored, each ticks on
@@ -49,39 +49,30 @@ export function useLiveBoard(hospitalId: string): boolean {
   const router = useRouter();
   const [live, setLive] = useState(false);
   useEffect(() => {
-    const supabase = createClient();
-    let cancelled = false;
     let poll = setInterval(() => router.refresh(), POLL_MS);
     let debounce: ReturnType<typeof setTimeout> | null = null;
     const repoll = (ms: number) => {
       clearInterval(poll);
       poll = setInterval(() => router.refresh(), ms);
     };
-    const channel = supabase.channel(`resus-board:${hospitalId}`, { config: { private: true } });
-    channel.on("broadcast", { event: "*" }, () => {
-      if (debounce) return;
-      debounce = setTimeout(() => {
-        debounce = null;
-        router.refresh();
-      }, 400);
+    // Shared with the arrest alarm: one channel per topic (lib/resus/board-channel.ts).
+    const unsubscribe = subscribeResusBoard(hospitalId, {
+      onEpisode: () => {
+        if (debounce) return;
+        debounce = setTimeout(() => {
+          debounce = null;
+          router.refresh();
+        }, 400);
+      },
+      onStatus: (up) => {
+        setLive(up);
+        repoll(up ? SAFETY_POLL_MS : POLL_MS);
+      },
     });
-    void supabase.realtime
-      .setAuth()
-      .catch(() => undefined)
-      .then(() => {
-        if (cancelled) return;
-        channel.subscribe((status) => {
-          if (cancelled) return;
-          const up = status === "SUBSCRIBED";
-          setLive(up);
-          repoll(up ? SAFETY_POLL_MS : POLL_MS);
-        });
-      });
     return () => {
-      cancelled = true;
+      unsubscribe();
       clearInterval(poll);
       if (debounce) clearTimeout(debounce);
-      void supabase.removeChannel(channel);
     };
   }, [hospitalId, router]);
   return live;

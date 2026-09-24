@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
 
+import { ArrestAlarm } from "@/components/resus/arrest-alarm";
 import { requireClinicianScope } from "@/lib/clinician/scope";
+import { resusDeskV2 } from "@/lib/resus/feature";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -61,6 +63,8 @@ export default async function ClinicianLayout({ children }: { children: ReactNod
       </header>
 
       <main className="min-w-0 flex-1">{children}</main>
+      {/* No resus route in this workspace: the banner names the place, without "Open resus". */}
+      {resusDeskV2() ? <ArrestAlarm hospitalId={scope.hospitalId} resusBase={null} /> : null}
     </div>
   );
 }
