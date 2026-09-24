@@ -3,9 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import { env } from "@/lib/env";
-import { logger } from "@/lib/logger";
-import { createClient } from "@/lib/supabase/server";
+import { callEdge } from "@/lib/supabase/edge";
 
 const OpenSchema = z.object({
   patient_id: z.string().uuid(),
@@ -27,43 +25,6 @@ const CloseSchema = z.object({
 
 export type BreakGlassState = { ok?: boolean; error?: string; grantId?: string };
 
-async function callEdgeFunction(
-  name: string,
-  body: Record<string, unknown>,
-): Promise<{ ok: true; data: unknown } | { ok: false; error: string }> {
-  const supabase = await createClient();
-  const { data: session } = await supabase.auth.getSession();
-  const token = session.session?.access_token;
-  if (!token) return { ok: false, error: "Not authenticated." };
-  try {
-    const res = await fetch(`${env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/${name}`, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        authorization: `Bearer ${token}`,
-        "x-request-id": crypto.randomUUID(),
-      },
-      body: JSON.stringify(body),
-    });
-    const text = await res.text();
-    let parsed: unknown = null;
-    try {
-      parsed = JSON.parse(text);
-    } catch {
-      /* keep text */
-    }
-    if (!res.ok) {
-      logger.warn(`admin.break-glass.${name}.failed`, { status: res.status });
-      const err = (parsed as { error?: string } | null)?.error ?? text ?? `Edge ${res.status}.`;
-      return { ok: false, error: err };
-    }
-    return { ok: true, data: parsed };
-  } catch (e) {
-    logger.error(`admin.break-glass.${name}.network`, { reason: String(e) });
-    return { ok: false, error: `Couldn't reach ${name}.` };
-  }
-}
-
 export async function openBreakGlassAction(
   _prev: BreakGlassState,
   formData: FormData,
@@ -84,7 +45,7 @@ export async function openBreakGlassAction(
       "Invalid input.";
     return { error: firstError };
   }
-  const result = await callEdgeFunction("sa-open-break-glass", parsed.data);
+  const result = await callEdge("sa-open-break-glass", parsed.data, "admin.break-glass");
   if (!result.ok) return { error: result.error };
   const data = result.data as { grant_id?: string } | null;
   revalidatePath("/admin/break-glass");
@@ -100,7 +61,7 @@ export async function closeBreakGlassAction(
     reason: formData.get("reason"),
   });
   if (!parsed.success) return { error: "Invalid input." };
-  const result = await callEdgeFunction("sa-close-break-glass", parsed.data);
+  const result = await callEdge("sa-close-break-glass", parsed.data, "admin.break-glass");
   if (!result.ok) return { error: result.error };
   revalidatePath("/admin/break-glass");
   return { ok: true };

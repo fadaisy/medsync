@@ -3,8 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import { env } from "@/lib/env";
 import { logger } from "@/lib/logger";
+import { callEdge } from "@/lib/supabase/edge";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 
@@ -33,50 +33,6 @@ export type ReviewState = {
   error?: string;
 };
 
-async function callEdgeFunction(
-  name: string,
-  body: Record<string, unknown>,
-): Promise<{ ok: true } | { ok: false; error: string }> {
-  const supabase = await createClient();
-  const { data: session } = await supabase.auth.getSession();
-  const token = session.session?.access_token;
-  if (!token) return { ok: false, error: "Not authenticated." };
-
-  const url = `${env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/${name}`;
-  try {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        authorization: `Bearer ${token}`,
-        "x-request-id": crypto.randomUUID(),
-      },
-      body: JSON.stringify(body),
-    });
-    if (!res.ok) {
-      let detail = await res.text();
-      try {
-        const parsed = JSON.parse(detail) as { error?: string };
-        detail = parsed.error ?? detail;
-      } catch {
-        // body wasn't JSON; use the raw text
-      }
-      logger.warn(`admin.edge.${name}.failed`, { status: res.status });
-      return { ok: false, error: detail || `Edge Function returned ${res.status}.` };
-    }
-    return { ok: true };
-  } catch (e) {
-    logger.error(`admin.edge.${name}.network`, { reason: String(e) });
-    return {
-      ok: false,
-      error:
-        "Couldn't reach the approval service. If you're in local dev, deploy the Edge Function (supabase functions deploy " +
-        name +
-        ").",
-    };
-  }
-}
-
 /* ─── Staff affiliations ──────────────────────────────────────────────── */
 
 export async function approveStaffAffiliationAction(
@@ -90,10 +46,14 @@ export async function approveStaffAffiliationAction(
   if (!parsed.success) {
     return { error: parsed.error.flatten().fieldErrors.reason?.[0] ?? "Invalid input." };
   }
-  const result = await callEdgeFunction("approve-staff-affiliation", {
-    affiliation_id: parsed.data.id,
-    reason: parsed.data.reason,
-  });
+  const result = await callEdge(
+    "approve-staff-affiliation",
+    {
+      affiliation_id: parsed.data.id,
+      reason: parsed.data.reason,
+    },
+    "admin",
+  );
   if (!result.ok) return { error: result.error };
   revalidatePath("/admin");
   return { ok: true };
@@ -110,10 +70,14 @@ export async function rejectStaffAffiliationAction(
   if (!parsed.success) {
     return { error: parsed.error.flatten().fieldErrors.reason?.[0] ?? "Invalid input." };
   }
-  const result = await callEdgeFunction("reject-staff-affiliation", {
-    affiliation_id: parsed.data.id,
-    reason: parsed.data.reason,
-  });
+  const result = await callEdge(
+    "reject-staff-affiliation",
+    {
+      affiliation_id: parsed.data.id,
+      reason: parsed.data.reason,
+    },
+    "admin",
+  );
   if (!result.ok) return { error: result.error };
   revalidatePath("/admin");
   return { ok: true };
@@ -132,10 +96,14 @@ export async function approveHospitalApplicationAction(
   if (!parsed.success) {
     return { error: parsed.error.flatten().fieldErrors.reason?.[0] ?? "Invalid input." };
   }
-  const result = await callEdgeFunction("approve-hospital-application", {
-    application_id: parsed.data.id,
-    reason: parsed.data.reason,
-  });
+  const result = await callEdge(
+    "approve-hospital-application",
+    {
+      application_id: parsed.data.id,
+      reason: parsed.data.reason,
+    },
+    "admin",
+  );
   if (!result.ok) return { error: result.error };
   revalidatePath("/admin");
   return { ok: true };
@@ -152,10 +120,14 @@ export async function rejectHospitalApplicationAction(
   if (!parsed.success) {
     return { error: parsed.error.flatten().fieldErrors.reason?.[0] ?? "Invalid input." };
   }
-  const result = await callEdgeFunction("reject-hospital-application", {
-    application_id: parsed.data.id,
-    reason: parsed.data.reason,
-  });
+  const result = await callEdge(
+    "reject-hospital-application",
+    {
+      application_id: parsed.data.id,
+      reason: parsed.data.reason,
+    },
+    "admin",
+  );
   if (!result.ok) return { error: result.error };
   revalidatePath("/admin");
   return { ok: true };
