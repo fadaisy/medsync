@@ -126,14 +126,25 @@ describe("CO-R — the recommender input from the record", () => {
     expect(suggestLevel(r, []).reasons.map((x) => x.ruleId)).toContain("CO-R10");
   });
 
-  it("CO-R10: an active seizure → status epilepticus", () => {
-    expect(input([dAssess({ present: ["active_seizure"] })]).statusEpilepticus).toBe(true);
+  it("CO-R10: an active seizure alone is not status needing anaesthesia", () => {
+    const r = input([dAssess({ present: ["active_seizure"] })]);
+    expect(r.statusEpilepticus).toBe(false);
+    expect(suggestLevel(r, []).reasons.map((x) => x.ruleId)).not.toContain("CO-R10");
   });
 
-  it("CO-R12: a complete adult vital set → NEWS2 0 → Ward", () => {
+  it("CO-R10: refractory status → anaesthetic infusion on → L3", () => {
+    for (const state of ["performed", "in_progress"]) {
+      const r = input([action("D", "d_anaesthesia_eeg", state)]);
+      expect(r.statusEpilepticus).toBe(true);
+      expect(suggestLevel(r, []).level).toBe("l3");
+    }
+    expect(input([action("D", "d_anaesthesia_eeg", "indicated")]).statusEpilepticus).toBe(false);
+  });
+
+  it("CO-R12: a complete adult vital set → NEWS2 0 → Ward, no transfer", () => {
     const r = input([vitals(5, NORMAL_VITALS)]);
     expect(r.news2).toEqual({ total: 0, hasSingleParameterThree: false });
-    expect(suggestLevel(r, []).level).toBe("ward");
+    expect(suggestLevel(r, [])).toMatchObject({ level: "ward", transferSuggested: false });
   });
 
   it("CO-R12: a missing parameter → NEWS2 null (never guessed)", () => {

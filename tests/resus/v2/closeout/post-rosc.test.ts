@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { bundleState, obeysCommands, postRoscPins } from "@/lib/resus/closeout/post-rosc";
 import { POST_ROSC_BUNDLE, POST_ROSC_REF } from "@/lib/resus/reference/post-rosc-catalog";
-import { decision, ev } from "./fixtures";
+import { arrest, decision, ev, rosc } from "./fixtures";
 
 const item = (minsAgo: number, itemId: string, state: string) =>
   decision(minsAgo, { decision: "post_rosc_item", itemId, state });
@@ -101,5 +101,21 @@ describe("PR-D-01 — obeys commands", () => {
 
   it("PR-D-01: a non-boolean value is ignored", () => {
     expect(obeysCommands([decision(2, { decision: "obeys_commands", value: "yes" })])).toBeNull();
+  });
+
+  it("PR-D-01: an answer before a re-arrest does not count after the next ROSC", () => {
+    const before = [
+      arrest(120),
+      rosc(100),
+      decision(90, { decision: "obeys_commands", value: true }),
+    ];
+    expect(obeysCommands(before)).toBe(true);
+    expect(obeysCommands([...before, arrest(40, 2), rosc(20, 2)])).toBeNull();
+  });
+
+  it("PR-C-05: bundle states reset at a re-arrest", () => {
+    const tl = [arrest(120), rosc(100), item(90, "PR-C-05", "done"), arrest(40, 2), rosc(20, 2)];
+    expect(bundleState(tl)["PR-C-05"]).toBe("open");
+    expect(bundleState([...tl, item(10, "PR-C-05", "done")])["PR-C-05"]).toBe("done");
   });
 });

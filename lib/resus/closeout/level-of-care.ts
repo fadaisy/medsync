@@ -11,10 +11,9 @@ import {
   identifyShockType,
   latestCirculationAssessment,
 } from "@/lib/resus/circulation";
-import { obeysCommands } from "@/lib/resus/closeout/post-rosc";
+import { bundleState, obeysCommands } from "@/lib/resus/closeout/post-rosc";
 import {
   buildDisabilityActions,
-  classifyDisability,
   gcsTotal,
   latestDisabilityAssessment,
 } from "@/lib/resus/disability";
@@ -30,6 +29,7 @@ import {
   REQUIRED_CAPABILITIES,
   RRT_RULE_IDS,
 } from "@/lib/resus/reference/levels-of-care";
+import { artefactFields } from "@/lib/resus/survey/vitals-bands";
 import { reconstructTimeline } from "@/lib/resus/timeline";
 import { buildResusVitals } from "@/lib/resus/vitals";
 import { scoreNews2 } from "@/lib/triage/scoring/news2";
@@ -41,8 +41,8 @@ import { scoreNews2 } from "@/lib/triage/scoring/news2";
  * The recommender SUGGESTS; the leader chooses. The suggestion is the highest
  * level any matching rule gives; no matching rule → no suggestion ("insufficient
  * data — choose"), never a silent Ward. NEWS2 reuses the triage `scoreNews2`
- * and is null (never guessed) when a parameter is missing or the patient is a
- * child.
+ * on one vital set (news2VitalSet) and is null (never guessed) when that set
+ * lacks a parameter or the patient is a child.
  */
 
 /* ─── Record codes the recommender reads (from the step + drug catalogs) ── */
@@ -67,6 +67,10 @@ export const VASOPRESSOR_DRUG_KEYS: readonly string[] = ["vasopressor", "vasopre
 export const ANAPHYLAXIS_IM_DRUG_ID = "adrenaline_anaphylaxis_im";
 /** CO-R9: "no improvement after 2 IM doses". */
 export const REFRACTORY_ANAPHYLAXIS_IM_DOSES = 2;
+/** CO-R10: refractory status → anaesthetic infusion (state `performed` or `in_progress`). */
+export const STATUS_ANAESTHESIA_ACTION_CODE = "d_anaesthesia_eeg";
+/** CO-DST-04: C findings that put a pulmonary (not coronary) clot on the thrombosis tile. */
+export const PE_EVIDENCE_CODES: readonly string[] = ["ecg_pe", "us_rv_strain"];
 
 /* ─── Input ─────────────────────────────────────────────────────────────── */
 
@@ -101,6 +105,7 @@ export interface LevelInput {
   riskOfEscalation: boolean;
   refractoryAnaphylaxis: boolean;
   gcsTotal: number | null;
+  /** Status epilepticus needing an anaesthetic infusion (d_anaesthesia_eeg on). */
   statusEpilepticus: boolean;
   news2: { total: number; hasSingleParameterThree: boolean } | null;
   rrtNeeded: boolean;
@@ -119,7 +124,7 @@ function isPaediatric(ageYears: number | null): boolean {
   return ageYears !== null && ageYears < ADULT_MIN_AGE_YEARS;
 }
 
-/** NEWS2 on the latest vitals — null when any parameter is missing or for a child. */
+/** NEWS2 on one vital set — null when any parameter is missing or for a child. */
 export function news2FromVitals(v: VitalSnapshot, ageYears: number | null): LevelInput["news2"] {
   if (isPaediatric(ageYears)) return null;
   const adult: AdultVitals = {
@@ -136,6 +141,40 @@ export function news2FromVitals(v: VitalSnapshot, ageYears: number | null): Leve
   return r.provisional
     ? null
     : { total: r.total, hasSingleParameterThree: r.hasSingleParameterThree };
+}
+
+const NEWS2_KEYS = [
+  "rr",
+  "spo2",
+  "oxygen",
+  "systolicBp",
+  "hr",
+  "consciousness",
+  "temperature",
+] as const satisfies readonly (keyof VitalSnapshot)[];
+
+/**
+ * CO-R11/CO-R12: the vital set NEWS2 is scored on — the newest set recorded in
+ * the resus that carries any NEWS2 parameter, with its artefact-marked values
+ * removed (SV-VIT-16). One contemporaneous set: a parameter it lacks is never
+ * filled from an older set (NEWS2 is then null). The carried-in triage reading
+ * is not a resus set (SV-VIT-15). Null when there is none.
+ */
+export function news2VitalSet(events: readonly TimelineEvent[]): VitalSnapshot | null {
+  const tl = reconstructTimeline(events);
+  const artefact = artefactFields(tl);
+  for (const e of tl.toReversed()) {
+    if (e.kind !== "vital" || e.payload.carriedFromTriage === true) continue;
+    const raw = e.payload.snapshot;
+    const snapshot = Object.fromEntries(
+      Object.entries(raw && typeof raw === "object" ? raw : {}).filter(
+        ([k]) => !artefact.has(`${e.id}:${k}`),
+      ),
+    );
+    const set = buildResusVitals([{ ...e, payload: { ...e.payload, snapshot } }]).latest;
+    if (NEWS2_KEYS.some((k) => set[k] != null)) return set;
+  }
+  return null;
 }
 
 function prescribing(e: TimelineEvent): { drugId?: unknown; drugKey?: unknown; route?: unknown } {
@@ -192,17 +231,27 @@ export function levelInputFromRecord(
   const d = latestDisabilityAssessment(tl);
   const x = latestExposureAssessment(tl);
   const pci = actionOn(["c_pci_activate"], ON);
-  const prC05Done = tl.some(
-    (e) =>
-      e.kind === "decision" &&
-      e.payload.decision === "post_rosc_item" &&
-      e.payload.itemId === "PR-C-05" &&
-      e.payload.state === "done",
-  );
+  const prC05Done = bundleState(tl)["PR-C-05"] === "done";
+  // A C assessment recorded during CPR carries the arrest flags; strip them so
+  // the shock type still reads after ROSC (as the ALS cause tiles do).
+  const shockType = c
+    ? identifyShockType({
+        ...c,
+        present: c.present.filter((p) => p !== "no_pulse"),
+        context: { ...c.context, noPulse: false },
+      })
+    : null;
+  // The thrombosis tile may be coronary; PE evidence without ischaemia makes it pulmonary.
+  const peOnC =
+    !!c &&
+    PE_EVIDENCE_CODES.some((code) => c.present.includes(code)) &&
+    !c.present.includes("ecg_ischaemia");
   const nonCoronaryTile = [...causeState.values()].some(
     (t) =>
-      t.cause !== "thrombosis" && ["suspected", "treating", "treated"].includes(String(t.state)),
+      (t.cause !== "thrombosis" || peOnC) &&
+      ["suspected", "treating", "treated"].includes(String(t.state)),
   );
+  const vitalSet = news2VitalSet(tl);
 
   return {
     ageYears: extras.ageYears,
@@ -216,18 +265,21 @@ export function levelInputFromRecord(
     riskOfEscalation: !!extras.riskOfEscalation,
     refractoryAnaphylaxis: imDoses >= REFRACTORY_ANAPHYLAXIS_IM_DOSES && adrenalineInfusion,
     gcsTotal: d ? gcsTotal(d.gcs) : null,
-    statusEpilepticus: !!d && classifyDisability(d) === "active_seizure_status",
-    news2: news2FromVitals(buildResusVitals(tl).latest, extras.ageYears),
+    statusEpilepticus: actionOn([STATUS_ANAESTHESIA_ACTION_CODE], ON),
+    news2: vitalSet ? news2FromVitals(vitalSet, extras.ageYears) : null,
     rrtNeeded: !!extras.rrtNeeded,
     renalSetting: !!extras.renalSetting,
     bmiOver40: flags.bmiOver40 === true,
     stemi: !!c?.present.includes("ecg_ischaemia") || pci || prC05Done,
     haemorrhage:
-      (!!c && identifyShockType(c) === "hypovolaemic_haemorrhagic") ||
+      shockType === "hypovolaemic_haemorrhagic" ||
       (!!x && identifyExposureDiagnosis(x) === "occult_haemorrhage"),
     pregnancyRelated: flags.pregnancy === "confirmed" || flags.pregnancy === "postpartum",
     headInjury: flags.headInjury === true,
-    nonCoronaryCause: nonCoronaryTile || !!extras.nonCoronaryCauseSuspected,
+    nonCoronaryCause:
+      nonCoronaryTile ||
+      (arrested && flags.peSuspected === true) ||
+      !!extras.nonCoronaryCauseSuspected,
   };
 }
 
@@ -320,7 +372,9 @@ export function suggestLevel(input: LevelInput, units: readonly CareUnit[]): Lev
     extraDestinations,
     requiredCapabilities,
     qualifyingUnits,
-    transferSuggested: qualifyingUnits.length === 0,
+    // Ward needs no capability; with no units declared the destination is chosen
+    // manually (GATE A §8) — transfer only when declared units all fall short.
+    transferSuggested: level !== "ward" && units.length > 0 && qualifyingUnits.length === 0,
   };
 }
 

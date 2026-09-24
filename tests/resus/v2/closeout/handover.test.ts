@@ -2,6 +2,7 @@ import type { HandoverInput } from "@/lib/resus/closeout/handover";
 import { describe, expect, it } from "vitest";
 
 import { buildSbar } from "@/lib/resus/closeout/handover";
+import { NO_SUGGESTION_TEXT } from "@/lib/resus/reference/levels-of-care";
 
 const FULL: HandoverInput = {
   patient: { label: "Bed 3", ageYears: 54, sex: "Female" },
@@ -160,10 +161,33 @@ describe("CO-HO — SBAR draft", () => {
     );
   });
 
-  it("CO-HO-02: R — nothing outstanding reads 'none'; no suggestion reads 'none'", () => {
+  it("CO-HO-02: R — nothing outstanding reads 'none'; no suggestion reads the signed text", () => {
     const r = buildSbar(EMPTY).recommendation;
     expect(r).toContain("Outstanding actions: none.");
-    expect(r).toContain("Level of care: suggested none; chosen none.");
+    expect(r).toContain(`Level of care: suggested ${NO_SUGGESTION_TEXT}; chosen not chosen.`);
+    expect(r).not.toContain("suggested none");
+  });
+
+  it("CO-HO-02: R — after a death no level-of-care line is written", () => {
+    for (const outcome of ["died_after_cpr", "died_cpr_not_attempted"] as const)
+      expect(buildSbar({ ...EMPTY, outcome }).recommendation).not.toContain("Level of care");
+  });
+
+  it("CO-HO-02: uncollected devices, investigations and escort read 'not recorded', never 'none'", () => {
+    const text = Object.values(buildSbar(EMPTY)).join("\n");
+    expect(text).toContain("Lines, tubes, devices: not recorded.");
+    expect(text).toContain("Pending investigations: not recorded.");
+    expect(text).toContain("Escort: not recorded.");
+  });
+
+  it("CO-HO-02: B — a v2 AMPLE (pastHistory) prints its past history", () => {
+    const ample = { allergies: [], pastHistory: "Hypertension" };
+    expect(buildSbar({ ...EMPTY, ample }).background).toContain("Past history: Hypertension.");
+  });
+
+  it("CO-HO-02: B — an explicit NKDA reads 'none known', not 'not recorded'", () => {
+    const b = buildSbar({ ...EMPTY, ample: { allergies: [], nkda: true } }).background;
+    expect(b).toContain("Allergies: none known (NKDA).");
   });
 
   it("CO-HO-03: the same record gives the same text", () => {

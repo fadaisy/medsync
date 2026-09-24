@@ -3,7 +3,7 @@ import type { CareLevel, EpisodePhase, OutcomeCode, Rhythm } from "@/lib/resus/m
 import type { AbcdeLetter } from "@/lib/resus/types";
 import type { VitalSnapshot } from "@/lib/resus/vitals";
 
-import { LEVELS_OF_CARE } from "@/lib/resus/reference/levels-of-care";
+import { LEVELS_OF_CARE, NO_SUGGESTION_TEXT } from "@/lib/resus/reference/levels-of-care";
 import { ABCDE_LETTERS } from "@/lib/resus/types";
 import { TREND_VITALS } from "@/lib/resus/vitals";
 
@@ -11,8 +11,13 @@ import { TREND_VITALS } from "@/lib/resus/vitals";
  * SBAR handover draft (docs/clinical/resus-closeout-clinical-catalog.md §1,
  * CO-HO-01..03) — PURE and deterministic: the same input gives the same text.
  * It only restates what the input carries; missing items read "not recorded"
- * rather than being inferred. The leader edits the draft before signing.
+ * rather than being inferred — an empty devices, investigations or escort list
+ * was not collected, so it never reads "none". The leader edits the draft
+ * before signing.
  */
+
+/** AMPLE as stored: v1 writes `past`; v2 writes `pastHistory` and `nkda`. */
+export type HandoverAmple = AmpleHistory & { pastHistory?: string; nkda?: boolean };
 
 export interface HandoverInput {
   patient: { label: string; ageYears: number | null; sex: string | null };
@@ -22,7 +27,7 @@ export interface HandoverInput {
   outcome: OutcomeCode | null;
   /** Treatment-limitation decision summary, if any. */
   treatmentLimitation: string | null;
-  ample: AmpleHistory | null;
+  ample: HandoverAmple | null;
   weightKg: number | null;
   /** Final A–E states (display labels) with key-finding labels. */
   steps: { step: AbcdeLetter; state: string | null; findings: string[] }[];
@@ -78,8 +83,17 @@ const RHYTHM_LABEL: Record<Rhythm, string> = {
   organised: "Organised rhythm",
 };
 
-const list = (items: readonly string[]) => (items.length > 0 ? items.join("; ") : "none");
-const levelLabel = (l: CareLevel | null) => (l ? LEVELS_OF_CARE[l].label : "none");
+const DIED: readonly (OutcomeCode | null)[] = ["died_after_cpr", "died_cpr_not_attempted"];
+
+/** Empty reads `empty`: "none" only where the list is derived from the record. */
+const list = (items: readonly string[], empty: string) =>
+  items.length > 0 ? items.join("; ") : empty;
+const levelLabel = (l: CareLevel | null, empty: string) => (l ? LEVELS_OF_CARE[l].label : empty);
+
+function allergies(a: HandoverAmple | null): string {
+  if (a && a.allergies.length > 0) return a.allergies.join(", ");
+  return a?.nkda ? "none known (NKDA)" : NR;
+}
 
 function vitalsLine(v: VitalSnapshot): string {
   const parts: string[] = TREND_VITALS.flatMap(({ key, label, unit }) => {
@@ -109,9 +123,9 @@ function situation(i: HandoverInput): string {
 function background(i: HandoverInput): string {
   const a = i.ample;
   const lines = [
-    `Allergies: ${a && a.allergies.length > 0 ? a.allergies.join(", ") : NR}.`,
+    `Allergies: ${allergies(a)}.`,
     `Medications: ${a?.medications || NR}.`,
-    `Past history: ${a?.past || NR}.`,
+    `Past history: ${a?.pastHistory || a?.past || NR}.`,
     `Last meal: ${a?.lastMeal || NR}.`,
     `Events: ${a?.events || NR}.`,
   ];
@@ -137,24 +151,30 @@ function assessment(i: HandoverInput): string {
     const parts = [
       `first rhythm ${r.firstRhythm ? RHYTHM_LABEL[r.firstRhythm] : NR}`,
       `shocks ${r.shocks}`,
-      `drugs ${list(r.drugs)}`,
+      `drugs ${list(r.drugs, "none")}`,
       `time to ROSC ${r.timeToRoscMin !== null ? `${r.timeToRoscMin} min` : NR}`,
       `total CPR ${r.totalCprMin !== null ? `${r.totalCprMin} min` : NR}`,
       `ROSC ${r.sustained === null ? NR : r.sustained ? "sustained" : "not sustained"}`,
     ];
     lines.push(`Arrest: ${parts.join(", ")}.`);
   }
-  lines.push(`Lines, tubes, devices: ${list(i.devices)}.`);
+  lines.push(`Lines, tubes, devices: ${list(i.devices, NR)}.`);
   return lines.join("\n");
 }
 
 function recommendation(i: HandoverInput): string {
+  // CO-R: no suggestion reads the signed "insufficient data — choose"; after a death no level applies.
+  const level = DIED.includes(i.outcome)
+    ? []
+    : [
+        `Level of care: suggested ${levelLabel(i.level.suggested, NO_SUGGESTION_TEXT)}; chosen ${levelLabel(i.level.chosen, "not chosen")}.`,
+      ];
   return [
-    `Outstanding actions: ${list(i.outstandingActions)}.`,
-    `Targets: ${list(i.targets)}.`,
-    `Pending investigations: ${list(i.pendingInvestigations)}.`,
-    `Level of care: suggested ${levelLabel(i.level.suggested)}; chosen ${levelLabel(i.level.chosen)}.`,
-    `Escort: ${list(i.escortNeeds)}.`,
+    `Outstanding actions: ${list(i.outstandingActions, "none")}.`,
+    `Targets: ${list(i.targets, "none")}.`,
+    `Pending investigations: ${list(i.pendingInvestigations, NR)}.`,
+    ...level,
+    `Escort: ${list(i.escortNeeds, NR)}.`,
   ].join("\n");
 }
 
