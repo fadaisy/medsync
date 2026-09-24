@@ -7,6 +7,7 @@ import { ArrowRightLeftIcon, ChevronDownIcon, TimerIcon } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
@@ -115,17 +116,20 @@ export function CyclePanel({
             <ChevronDownIcon aria-hidden className="size-4" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-64">
-            <DropdownMenuLabel className="text-caption">Swap to…</DropdownMenuLabel>
-            {people.map((p) => (
-              <DropdownMenuItem
-                key={p.userId}
-                className="text-body-s min-h-11 px-3"
-                onClick={() => onSwap(p)}
-              >
-                {p.name}
-                {p.you ? " (you)" : ""}
-              </DropdownMenuItem>
-            ))}
+            {/* Base UI: a GroupLabel outside Menu.Group throws (#31) and takes the desk down. */}
+            <DropdownMenuGroup>
+              <DropdownMenuLabel className="text-caption">Swap to…</DropdownMenuLabel>
+              {people.map((p) => (
+                <DropdownMenuItem
+                  key={p.userId}
+                  className="text-body-s min-h-11 px-3"
+                  onClick={() => onSwap(p)}
+                >
+                  {p.name}
+                  {p.you ? " (you)" : ""}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

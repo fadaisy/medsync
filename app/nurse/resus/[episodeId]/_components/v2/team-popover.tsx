@@ -9,6 +9,7 @@ import { respondV2, setRoleV2 } from "@/app/nurse/resus/_v2/actions-survey";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuTrigger,
@@ -167,16 +168,20 @@ export function TeamChip() {
                           Assign…
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-64">
-                          <DropdownMenuLabel className="text-caption">Assign to…</DropdownMenuLabel>
-                          {others.map(([id, name]) => (
-                            <DropdownMenuItem
-                              key={id}
-                              className="text-body-s min-h-11 px-3"
-                              onClick={() => setRole(role, id)}
-                            >
-                              {name}
-                            </DropdownMenuItem>
-                          ))}
+                          <DropdownMenuGroup>
+                            <DropdownMenuLabel className="text-caption">
+                              Assign to…
+                            </DropdownMenuLabel>
+                            {others.map(([id, name]) => (
+                              <DropdownMenuItem
+                                key={id}
+                                className="text-body-s min-h-11 px-3"
+                                onClick={() => setRole(role, id)}
+                              >
+                                {name}
+                              </DropdownMenuItem>
+                            ))}
+                          </DropdownMenuGroup>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     ) : null}
