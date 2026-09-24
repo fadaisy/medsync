@@ -8,10 +8,12 @@ own clock. An arrest is recorded by several people on several devices in a room 
 ## Decision
 
 1. **Idempotent writes.** Every v2 write carries a `clientEventId` (uuid, unique per episode) and the bedside
-   `recordedAt`; one Drizzle transaction locks the episode, inserts the event(s), updates the header (`phase`,
-   `last_activity_at`, arrest sequence) and writes the audit row. A duplicate `clientEventId` returns the existing
-   row. Entries recorded more than 60 s before the server receives them are marked `lateEntry`. Concluded or
-   cancelled episodes answer read-only.
+   `recordedAt`; one Drizzle transaction locks the episode, re-reads the timeline, inserts the event(s), derives the
+   header from the timeline (`phase`, arrest sequence, first-arrest time — never from what the action intended) and
+   writes the audit row. A retry whose event already landed returns the stored result and writes nothing else;
+   actions may pass the row count their checks used, and a moved record is refused so the queue retries on a fresh
+   read. A bedside time more than 60 s in the future or before the resus started is refused; one that differs from
+   receipt by more than 60 s is marked `lateEntry`. Concluded or cancelled episodes answer read-only.
 2. **Optimistic queue** (`useDesk`): the desk shows an entry at once as _pending_, sends in order, retries with
    backoff (cap 10 s) while online, pauses offline, and flushes on reconnect; a `beforeunload` guard warns while
    anything is pending; an amber "Offline — N entries waiting" chip shows the backlog. The queue is in memory (E1)

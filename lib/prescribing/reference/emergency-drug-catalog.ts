@@ -1083,6 +1083,11 @@ export const RECOMMENDATION_DRUG_MAP: Record<string, EmergencyDrugId[]> = {
   a_anaphylaxis_adrenaline: ["adrenaline_anaphylaxis_im"],
   // Cross-cutting (the resus anaphylaxis bar)
   anaphylaxis_im_adrenaline: ["adrenaline_anaphylaxis_im"],
+  // Resus Desk v2 arrest console — the fast path's fallback dialog (ALS-DRG-05).
+  // Mappings only: the drugs are the existing verified arrest entries.
+  als_adrenaline: ["adrenaline_arrest_iv"],
+  als_amiodarone: ["amiodarone_arrest_iv"],
+  als_lidocaine: ["lidocaine_arrest_iv"],
   // Circulation (C) — drugs route through the prescribing tool
   c_crystalloid_bolus: ["crystalloid_bolus"],
   c_txa: ["txa_trauma"],

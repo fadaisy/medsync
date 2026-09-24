@@ -27,6 +27,9 @@ export interface VitalSnapshot {
   urineOutput?: number | null;
   consciousness?: "A" | "C" | "V" | "P" | "U" | null;
   oxygen?: "air" | "oxygen" | null;
+  /** v2: supplemental O₂ device and flow (NEWS2 needs air vs O₂). */
+  o2Device?: string | null;
+  o2FlowLpm?: number | null;
 }
 
 /** The numeric vitals that get a trend series + their display metadata. */
@@ -120,6 +123,9 @@ export function buildResusVitals(events: readonly TimelineEvent[]): ResusVitalsV
     if (snap.consciousness)
       latest.consciousness = snap.consciousness as VitalSnapshot["consciousness"];
     if (snap.oxygen) latest.oxygen = snap.oxygen as VitalSnapshot["oxygen"];
+    if (typeof snap.o2Device === "string") latest.o2Device = snap.o2Device;
+    const flow = num(snap.o2FlowLpm);
+    if (flow !== null) latest.o2FlowLpm = flow;
   }
 
   // Per-vital trend series (only vitals with at least one point).

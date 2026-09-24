@@ -315,6 +315,10 @@ export const resusBayProfiles = pgTable(
       "rbp_waveform_check",
       sql`${t.waveform} IN ('monophasic','biphasic_truncated_exponential','rectilinear_biphasic','pulsed_biphasic','unknown')`,
     ),
+    check(
+      "rbp_energy_positive",
+      sql`${t.energySequenceJ} IS NULL OR (cardinality(${t.energySequenceJ}) BETWEEN 1 AND 10 AND 0 < ALL (${t.energySequenceJ}) AND 400 >= ALL (${t.energySequenceJ}))`,
+    ),
     uniqueIndex("rbp_bay_unique").on(t.hospitalId, t.bayLabel),
   ],
 );
@@ -388,6 +392,7 @@ export const resusDebriefs = pgTable(
   },
   (t) => [
     check("rdb_status_check", sql`${t.status} IN ('draft','submitted')`),
+    check("rdb_attendees_check", sql`${t.attendeeCount} IS NULL OR ${t.attendeeCount} >= 0`),
     uniqueIndex("rdb_episode_unique").on(t.episodeId),
   ],
 );
@@ -409,6 +414,7 @@ export const resusAfterDeathTasks = pgTable(
   },
   (t) => [
     check("radt_state_check", sql`${t.state} IN ('done','not_applicable','pending')`),
+    check("radt_task_check", sql`${t.taskId} ~ '^CO-ADT-[0-9]{2}$'`),
     index("resus_after_death_tasks_episode_idx").on(t.episodeId, t.taskId, t.recordedAt),
   ],
 );
