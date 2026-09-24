@@ -107,3 +107,152 @@ Supabase project; `.env.local` is production.
 **Deviations from the prompt:** no seed rows (no fabricated hospital facts — `scripts/seed-resus-units.ts` loads what the hospital
 declares); idle thresholds stay signed constants, not a hospital setting; writes use one Drizzle transaction (event + header +
 audit) instead of the REST service client, which cannot span statements.
+
+## STOP 3 — engines (2026-09-24)
+
+All engines are pure (`lib/resus/**`, no I/O) and read numbers only through signed reference entries (Law 3).
+`npx vitest run tests/resus`: **65 files, 1,290 tests, 0 failing** (332 v1 tests unchanged).
+
+### Tests per module
+
+| Module                                                                   | Tests |
+| ------------------------------------------------------------------------ | ----: |
+| v1 (existing, unchanged)                                                 |   332 |
+| `als/**`: engine, timing, shocks, drugs, modifiers, causes, ROSC, S1–S5  |   314 |
+| `closeout/**`: lifecycle, level of care, handover, idle, post-ROSC rules |   247 |
+| `survey/vitals-bands.ts` (SV-VIT, one-measurement pairs)                 |    94 |
+| Equivalence suites (SV-EQ-01..13)                                        |    56 |
+| `survey/context.ts` (+ context events)                                   |    53 |
+| `survey/floor.ts` (+ floor after ROSC)                                   |    36 |
+| Payload parity v1 ↔ v2                                                   |    33 |
+| `survey/do-now.ts` (+ evidence wording)                                  |    26 |
+| `survey/disclosure.ts`                                                   |    22 |
+| Law 3 reference reachability                                             |    22 |
+| Write rules (`v2-rules.ts`: core + arrest)                               |    29 |
+| `reference/presentation.ts`                                              |    11 |
+| P3/P4 step-bar regression                                                |     8 |
+| Rule-ID coverage                                                         |     7 |
+
+### Rule-ID coverage
+
+`tests/resus/v2/rule-coverage.test.ts` reads every rule ID a signed catalog defines and fails on any ID without a test whose
+title starts with it. The allow-list is empty.
+
+| Source                                        | IDs | Uncovered |
+| --------------------------------------------- | --: | --------: |
+| `resus-als-clinical-catalog.md` (ALS-\*)      | 116 |         0 |
+| `resus-post-rosc-clinical-catalog.md` (PR-\*) |  29 |         0 |
+| `resus-closeout-clinical-catalog.md` (CO-\*)  |  62 |         0 |
+| Survey (SV-CTX/VIT/FLR/DIS/DN/EQ)             |  83 |         0 |
+| Lifecycle (LC-\*)                             |  10 |         0 |
+
+### Equivalence (§7.1)
+
+- **SV-EQ-01..04:** every legacy context key has one v2 input; every legacy context combination per step is reproduced exactly
+  (A 16, B 64, C 256, D 256, E 32, arrest state and D's `abcAbnormal` included); classify / triggered actions / identify give
+  identical output for v1-style and v2 contexts.
+- **SV-EQ-05..07:** the co-variance list equals GATE A §4; no other input moves more than one step; 512 seeded combinations
+  each set exactly the union of their separate effects.
+- **SV-EQ-08..10:** worsen-only holds exhaustively (every recorded set × every subset of derived codes × context × arrest) and
+  over 600 seeded timelines; the floor calls the engines' own functions.
+- **SV-EQ-11..13:** 324 in-band adult vitals derive nothing; vitals alone never produce "Clear"; ages null / 0–15 derive nothing.
+
+### Review
+
+Six review lenses over engines, references, actions and the migration raised 64 findings; two skeptics each confirmed 47, all
+fixed with tests (e.g. arrest state now clears on ROSC; MAP / pulse pressure / shock index come from one measurement;
+post-ROSC answers are scoped to the latest arrest; the stored phase is derived from the timeline under the row lock; retries
+are idempotent for companion rows; bedside times are bounded).
+
+### For the CSO (wording / behaviour chosen during fixes)
+
+1. ALS-DRG-06 / MOD-01 / MOD-10: the anaphylaxis and modifier text now say "≤ 1 µg/kg" with LAST and "adrenaline withheld
+   while core < 30 °C" below 30 °C, instead of "1 mg IV".
+2. Lidocaine below 30 °C or with LAST shows no dose ("no signed lidocaine rule — senior decision"); a signed row is needed.
+3. ALS-RC-09: the low-ETCO₂ PE hint no longer marks Thrombosis "suspected" by itself (the record cannot show adequate
+   minute volume and good compressions).
+4. NEWS2 for level of care scores the newest resus vital set only and is null when that set is incomplete.
+5. SV-CTX-18: a flag recorded on a legacy (v1) assessment is kept even when the context bar later turns it off.
+6. Unknown age is treated as adult for targets and arrest protocol (shown as "age not recorded" in the console).
+7. Kept for v1 parity, flagged: during an arrest an empty A/B/C assessment classifies from the arrest context; D/E can read
+   "Clear" during an arrest.
+
+## STOP 4–7 — UI, hardening scope and final report (2026-09-24)
+
+Condensed into one report at the owner's request (the separate STOP 4–6 write-ups and the remaining Phase 7 suites were
+cut for time; what that leaves open is listed under "Deferred").
+
+**Branch** `feat/resus-desk-v2` (from `aa1fe46`), 11 commits, `43a754c`..`e54d570`. `npx vitest run tests/resus`: **76
+files, 1,388 tests, 0 failing** (with `tests/design` + `tests/emergency`: 87 files, 1,570). `tsc` (app + functions),
+ESLint and Prettier clean; `next build` with `RESUS_DESK_V2=1` exits 0.
+
+### UI review (Phase 4–6)
+
+Browser harness (fixture route, no database): 9 scenarios × 4 widths × light/dark. Five review lenses (sync, clinical
+safety, accessibility, design system, spec) raised 81 findings; two skeptics each confirmed 71; seven fixer groups plus a
+follow-up pass fixed them together with 35 harness findings. Highlights: refused writes no longer drive mode, clocks or
+decision support (amber banner, Retry / Discard); console shortcuts cannot fire from inputs or dialogs; one-tap Undo only for
+reversible entries (ROSC, stop, death, arrest declaration need Correct… with a reason); a server-blocked fast-path drug
+stays visible as "Not saved — needs the prescribe dialog"; withheld / hypothermia-delayed drugs never fast-path (client and
+server); End resus after a stop or death offers only "Died" / "Opened in error"; the post-ROSC bundle collapses by section;
+phones show every vital and all five steps without sideways scrolling; dark mode uses the semantic primary tokens.
+
+### Section 14 numbers
+
+| Metric                                                 | Baseline       | Target    | Result                                                                                        |
+| ------------------------------------------------------ | -------------- | --------- | --------------------------------------------------------------------------------------------- |
+| Finding chips visible on load per step (A/B/C/D/E)     | 38/50/58/47/28 | ≤ 12      | 11 / 9 / 12 / 8 / 11 (survey-assessed, max promotion)                                         |
+| Interactive elements in a step's findings area on load | —              | ≤ 22      | max 21                                                                                        |
+| Controls per action row                                | 5              | ≤ 3       | 3                                                                                             |
+| Taps per arrest event                                  | —              | 1         | 1 (rhythm, shock, drug, airway, access, ETCO₂, ROSC; re-arrest one tap + Undo)                |
+| Tap-to-visible p95                                     | —              | < 100 ms  | 13.2 ms (key-sign chip, 20 taps); 13.2 ms (arrest log, 20 taps)                               |
+| Timer drift across devices                             | —              | ≤ 1 s     | not measured — needs realtime on a test project (owner check)                                 |
+| Tests: existing / new / equivalence                    | 332 / – / –    | all green | 332 unchanged / 1,056 new / 56 equivalence — all green                                        |
+| Rule IDs without a test                                | —              | 0         | 0 (300 IDs)                                                                                   |
+| RLS probes passed                                      | —              | 100%      | 71 / 71 offline (PGlite replay); live suites skip — no test project                           |
+| axe serious/critical                                   | —              | 0         | dark: 0 on every screen; light: only white on `#0D9488` (3.74:1, the design system's primary) |
+| Legacy episodes flagged idle / closed administratively | —              | report    | cannot be counted offline (production data); every active episode idle ≥ 2 h shows after 0068 |
+
+The last three non-primary light-mode contrast failures (tone toggle, two small teal links in the console) were fixed after
+the final measurement and not re-measured.
+
+### Owner actions before the flag goes on
+
+1. Apply `0067` then `0068_resus_desk_v2.sql` (`npm run db:migrate`) — the web must not ship before 0068.
+2. Load the hospital's care units and bay defibrillators: `scripts/seed-resus-units.ts` with a JSON in the format of
+   `docs/resus-v2/hospital-resus.example.json` (nothing is seeded; without it the close-out lists no units and the console
+   says "highest available setting").
+3. Set `RESUS_DESK_V2=1` on a test deployment first; run the live RLS suites against a test Supabase project
+   (`MEDSYNC_ALLOW_RLS_DB_WRITES`, never production).
+4. Re-read in a browser the sources automation could not (D25: Utstein 20-min sustained ROSC, the new-attempt rule; ERC /
+   AHA 2025 primary texts).
+
+### For the CSO (confirm or change)
+
+- **Re-arrest after ROSC is one tap + Undo** (signed ALS-ROSC-07 taken over D20's confirm dialog; the first arrest still
+  confirms).
+- **Unknown age = adult protocol**, shown as "Age not recorded — adult protocol" (children < 16 get no numbers).
+- **Light-mode primary buttons** (white on `#0D9488`, 3.74:1) fail WCAG AA at body size — a design-system decision.
+- **Phones:** the vitals strip and step rail wrap instead of scrolling (a deliberate deviation from §5.1 so a critical value
+  is never off-screen); on phones the step rail shows the state word, the "from vitals · not assessed" qualifier is in the
+  accessible name only.
+- GCS verbal "T" is stored as 1 with `intubated` (v1 behaviour: E3 VT M5 = 9).
+- Record findings is disabled while nothing changed, so an "unchanged on reassessment" timestamp can no longer be written.
+- A death confirmation queued offline records the server's receive time, not the bedside tap.
+- Leaving the resus area after CPR stops but before death is confirmed is refused as "transferred out".
+- Wording chosen during fixes: ALS-DRG-06 / MOD-01 / MOD-10 ("≤ 1 µg/kg" with LAST, "withheld while core < 30 °C"),
+  lidocaine with no signed hypothermia / LAST row, the ALS-RC-09 PE hint no longer pre-marking Thrombosis, the child PE-lysis
+  and ALS-MOD-15 ("standard energy") texts, the gestation prompt for postpartum, and the drug-dose display format.
+- NEWS2 scores the newest resus vital set only (null when incomplete); SV-CTX-18 keeps v1-recorded flags.
+
+### Deferred (not built or not measured in this build)
+
+- Scenario scripts S0 and S7–S11 (engine-level; the rules under each are unit-tested) and S6 (two devices).
+- Phase 7 suites: 60 s network drop mid-arrest, realtime reconnect, mode switch < 150 ms, zero layout shift on clock
+  ticks, 500-event recompute < 8 ms at 4× throttle, added JS on the desk route (gzipped).
+- A resus red-scarcity source test for the v2 components, and fast-path tests for the look-alike guard and the
+  controlled-drug witness rule (the behaviour exists; these would guard regressions).
+- The daily idle-sweep cron (`/api/cron/sweep-idle-resus`): the 12 h notice is sent when the board renders.
+- "Not available here" bundle answers are recorded but not yet fed into capability data; the board keeps the floating
+  Emergency button until it has its own header link.
+- Device click-throughs of S0–S11 on phone and tablet need a test database (server actions need a session).
