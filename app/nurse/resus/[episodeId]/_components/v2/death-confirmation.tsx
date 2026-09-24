@@ -93,8 +93,10 @@ export function DeathConfirmation() {
   const elapsed = Math.min(obs.elapsedMs, DEATH_OBSERVATION_MS);
   const [before, after] = [DEATH_CHECKLIST.slice(0, 3), DEATH_CHECKLIST.slice(3, 5)];
 
-  // No optimistic row: time of death is the server's, and "Death confirmed" is never
-  // shown before the server has accepted it. A failed attempt is discarded and re-sent.
+  // Time of death is the bedside moment the clinician is satisfied (AoMRC 2025): the
+  // server-anchored tap time, kept when the send is queued offline. No optimistic row:
+  // "Death confirmed" is never shown before the server has accepted it. A failed
+  // attempt is discarded and re-sent.
   const confirm = () => {
     if (sentId) store.discard(sentId);
     const payload = {
@@ -107,8 +109,8 @@ export function DeathConfirmation() {
     setSentId(
       store.submit({
         label: "Confirm death",
-        run: async ({ clientEventId }) =>
-          toOutcome(await confirmDeathV2({ ...payload, episodeId, clientEventId })),
+        run: async ({ clientEventId, recordedAt }) =>
+          toOutcome(await confirmDeathV2({ ...payload, episodeId, clientEventId, recordedAt })),
       }),
     );
   };

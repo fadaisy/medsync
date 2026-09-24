@@ -169,7 +169,8 @@ export function activeModifiers(
   if (f.bmiOver40) {
     out.push({
       id: "obesity",
-      label: "BMI > 40 — standard ALS, standard energy",
+      // ALS-MOD-16: a child gets no energies, so the energy half is adult-only.
+      label: child ? "BMI > 40 — standard ALS" : "BMI > 40 — standard ALS, standard energy",
       ruleIds: ["ALS-MOD-15", "ALS-NRG-04"],
     });
   }

@@ -161,6 +161,13 @@ describe("context modifiers", () => {
     expect(mods({}, { bmiOver40: true }).modifiers[0]?.label).toMatch(/standard energy/);
   });
 
+  it("ALS-MOD-15: a child with BMI > 40 gets no energy wording (ALS-MOD-16: no energies)", () => {
+    const label = mods({ ageYears: 12 }, { bmiOver40: true }).modifiers.find(
+      (m) => m.id === "obesity",
+    )?.label;
+    expect(label).toBe("BMI > 40 — standard ALS");
+  });
+
   it("ALS-MOD-16: age < 16 → paediatric, with the clocks-only modifier and prompt", () => {
     const s = mods({ ageYears: 15 });
     expect(s.paediatric).toBe(true);
