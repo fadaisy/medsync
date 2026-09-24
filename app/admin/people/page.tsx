@@ -1,6 +1,6 @@
 import type { PeopleItem } from "../_components/people/types";
 import type { Metadata } from "next";
-import { asc, ilike, or, sql } from "drizzle-orm";
+import { asc, ilike, inArray, or } from "drizzle-orm";
 
 import { db } from "@/db";
 import { userRoles } from "@/db/schema/user-roles";
@@ -75,7 +75,7 @@ export default async function PeoplePage({
             hospitalId: userRoles.hospitalId,
           })
           .from(userRoles)
-          .where(sql`${userRoles.userId} = ANY(${ids})`);
+          .where(inArray(userRoles.userId, ids));
   const rolesByUser = new Map<string, Array<{ role: string; hospitalId: string | null }>>();
   for (const r of rolesRows) {
     const arr = rolesByUser.get(r.userId) ?? [];
