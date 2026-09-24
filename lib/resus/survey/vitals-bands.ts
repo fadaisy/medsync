@@ -12,12 +12,13 @@
 import type { TimelineEvent } from "@/lib/resus/types";
 
 import { gcsTrend } from "@/lib/resus/disability";
+import { ADULT_MIN_AGE_YEARS } from "@/lib/resus/reference/als-catalog";
 import { GCS_AIRWAY_THRESHOLD } from "@/lib/resus/reference/disability-catalog";
 import { SHOCK_INDEX } from "@/lib/triage/constants";
 import { computeDerivedMetrics } from "@/lib/triage/scoring/derived";
 
-/** SV-VIT-14: derivation is for adults only (age ≥ 16). */
-export const ADULT_MIN_AGE_YEARS = 16;
+/** SV-VIT-14: derivation is for adults only (age ≥ 16) — the one signed constant (als-catalog). */
+export { ADULT_MIN_AGE_YEARS };
 /** SV-VIT-15: a reading is fresh for 15 minutes (D18). */
 export const FRESH_WINDOW_MIN = 15;
 

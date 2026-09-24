@@ -4,6 +4,7 @@ import type { AbcdeLetter, TimelineEvent } from "@/lib/resus/types";
 
 import { BUNDLE_ITEM_STATES } from "@/lib/resus/model";
 import {
+  OXIMETRY_CAVEAT_ID,
   POST_ROSC_BUNDLE,
   POST_ROSC_PIN_STEP,
   POST_ROSC_REF,
@@ -34,7 +35,7 @@ function sinceLatestArrest(events: readonly TimelineEvent[]): TimelineEvent[] {
   return tl.slice(tl.findLastIndex((e) => e.kind === "arrest_detected") + 1);
 }
 
-/** Every checklist item (PR-NEVER-01 excluded) → its latest state since the latest arrest, or "open". */
+/** Every checklist item (PR-NEVER-01 and the PR-B-04 caveat excluded) → its latest state since the latest arrest, or "open". */
 export function bundleState(events: readonly TimelineEvent[]): Record<string, BundleItemView> {
   const out: Record<string, BundleItemView> = {};
   for (const item of POST_ROSC_BUNDLE) if (item.checklist) out[item.id] = "open";
@@ -46,11 +47,18 @@ export function bundleState(events: readonly TimelineEvent[]): Record<string, Bu
   return out;
 }
 
-/** The post-ROSC survey pins for a step (PR-PIN-B/C/D/E; A has none). */
+/**
+ * The post-ROSC survey pins for a step (PR-PIN-B/C/D/E; A has none). PR-B-04:
+ * the SpO₂ pin always carries the oximetry caveat, right after it.
+ */
 export function postRoscPins(step: AbcdeLetter): RefEntry[] {
   return Object.entries(POST_ROSC_PIN_STEP)
     .filter(([, s]) => s === step)
-    .map(([id]) => POST_ROSC_REF[id]!);
+    .flatMap(([id]) =>
+      id === "PR-PIN-B"
+        ? [POST_ROSC_REF[id]!, POST_ROSC_REF[OXIMETRY_CAVEAT_ID]!]
+        : [POST_ROSC_REF[id]!],
+    );
 }
 
 /** PR-D-01: the latest "obeys commands?" answer since the latest arrest, or null (not guessed). */

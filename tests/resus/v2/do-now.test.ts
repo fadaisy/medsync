@@ -18,6 +18,7 @@ const sig = (over: Partial<SurveySignals> = {}): SurveySignals => ({
   coreTempMissing: false,
   glucoseMissing: false,
   vitalsStale: false,
+  lastVitalsMin: 5,
   ...over,
 });
 const act = (step: AbcdeLetter, code: string, over: Partial<BoardAction> = {}): BoardAction => ({

@@ -14,7 +14,8 @@
  *     opioid toxicity → "Naloxone → back to B" (the D action, with its reason).
  *     A return absorbs its own engine action so it is listed once.
  *  5. SV-DN-06..10 the rest: allergies before a first drug, glucose missing,
- *     re-check vitals after an intervention, core temperature missing (a prompt
+ *     re-check vitals after an intervention or once the last set is older than
+ *     the fresh window (SV-VIT-15), core temperature missing (a prompt
  *     is emitted only when the step board does not already carry its engine
  *     action), then every other outstanding action.
  * `top` = the first 3; `rest` = the remainder. Nothing outstanding is dropped.
@@ -26,7 +27,7 @@ import type { AbcdeLetter } from "@/lib/resus/types";
 
 import { orderResusActions } from "@/lib/resus/action-order";
 import { GCS_AIRWAY_THRESHOLD } from "@/lib/resus/reference/disability-catalog";
-import { passes, VITAL_BAND_RULES } from "@/lib/resus/survey/vitals-bands";
+import { FRESH_WINDOW_MIN, passes, VITAL_BAND_RULES } from "@/lib/resus/survey/vitals-bands";
 import { ABCDE_LETTERS } from "@/lib/resus/types";
 
 export interface DoNowInput {
@@ -174,9 +175,21 @@ export function computeDoNow(input: DoNowInput): { top: DoNowItem[]; rest: DoNow
     items.push(prompt("allergies", "E", "Record allergies before the first drug", null));
   if (signals.glucoseMissing && !onBoard("D", "d_check_glucose"))
     items.push(prompt("glucose", "D", "Check glucose", "not yet recorded"));
-  if (signals.vitalsStale)
+  // SV-DN-08: stale = an intervention since the last set, or a set past the fresh window.
+  const age = signals.lastVitalsMin;
+  const old = age != null && age > FRESH_WINDOW_MIN;
+  if (signals.vitalsStale || old)
     items.push(
-      prompt("vitals_stale", null, "Re-check vitals", "an intervention since the last set"),
+      age == null
+        ? prompt("vitals_stale", null, "Record vitals", "an intervention and no vitals yet")
+        : prompt(
+            "vitals_stale",
+            null,
+            "Re-check vitals",
+            signals.vitalsStale
+              ? "an intervention since the last set"
+              : `last set older than ${FRESH_WINDOW_MIN} min`,
+          ),
     );
   if (signals.coreTempMissing && !onBoard("E", "e_measure_temp"))
     items.push(prompt("core_temp", "E", "Measure core temperature", "not yet recorded"));

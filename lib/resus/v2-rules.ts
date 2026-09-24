@@ -1,18 +1,19 @@
-import type { EpisodePhase, OUTCOME_CODES } from "@/lib/resus/model";
+import type { EpisodePhase } from "@/lib/resus/model";
 import type { TimelineEvent } from "@/lib/resus/types";
 
 import { arrestSeqForDeclaration } from "@/lib/resus/als/rosc";
 import { arrestSlice, arrestStatus, currentArrestSeq, tMs } from "@/lib/resus/als/timing";
 import { projectPhase } from "@/lib/resus/closeout/lifecycle";
+import { latestExposureAssessment } from "@/lib/resus/exposure";
 import {
   ADRENALINE_DOSE_TEXT,
   ADULT_MIN_AGE_YEARS,
   AMIODARONE_FIRST_MG,
   AMIODARONE_SECOND_MG,
+  HYPOTHERMIA_WITHHOLD_BELOW_C,
   LIDOCAINE_FIRST_MG,
   LIDOCAINE_SECOND_MG,
 } from "@/lib/resus/reference/als-catalog";
-import { arrestActive } from "@/lib/resus/survey/context";
 import { reconstructTimeline } from "@/lib/resus/timeline";
 
 /**
@@ -171,28 +172,6 @@ export function roscProblem(
   return null;
 }
 
-/**
- * LC-02 / CO-UTS-08: the outcome must match the record. A death needs a confirmed
- * death and the mortuary; a ROSC outcome needs a ROSC and NO arrest running (a
- * re-arrest after ROSC is still an arrest); "stabilised" needs no arrest running.
- */
-export function closeOutcomeProblem(
-  outcomeCode: (typeof OUTCOME_CODES)[number],
-  destination: string,
-  events: readonly TimelineEvent[],
-): string | null {
-  const kinds = new Set(events.map((e) => e.kind));
-  const died = outcomeCode === "died_after_cpr" || outcomeCode === "died_cpr_not_attempted";
-  const rosc = outcomeCode === "rosc_sustained" || outcomeCode === "rosc_not_sustained";
-  if (died && !kinds.has("death_confirmed")) return "Confirm death first (5-minute observation).";
-  if (rosc && !kinds.has("rosc")) return "No ROSC is recorded in this resus.";
-  if ((rosc || outcomeCode === "stabilised") && arrestActive(events))
-    return 'An arrest is running — record ROSC, stop resuscitation, or choose "transferred out".';
-  if (died && destination !== "mortuary")
-    return "After a confirmed death the destination is the mortuary.";
-  return null;
-}
-
 /* ─── The arrest call (GATE A §9) ────────────────────────────────────── */
 
 /** Where responders converge when the episode has no department on record. */
@@ -231,6 +210,24 @@ export type FastPathDrug = keyof typeof FAST_PATH_DRUGS;
 export function fastPathDoseMg(drug: FastPathDrug, givenThisArrest: number): number | null {
   const doses: readonly number[] | null = FAST_PATH_DRUGS[drug].doses;
   return doses === null ? ADRENALINE_MG : (doses[givenThisArrest] ?? null);
+}
+
+/**
+ * D4: the fast path never records what the console holds back. Core < 30 °C (the
+ * latest E core temperature — the console's input, tempBand "below_30"):
+ * adrenaline is withheld (ALS-MOD-01), amiodarone is the loading dose only
+ * (ALS-MOD-03) and lidocaine has no signed rule (ALS-AA-04). Null when clear.
+ */
+export function fastPathHoldReason(
+  drug: FastPathDrug,
+  events: readonly TimelineEvent[],
+  givenThisArrest: number,
+): string | null {
+  const core = latestExposureAssessment(events)?.coreTempC ?? null;
+  if (core === null || core >= HYPOTHERMIA_WITHHOLD_BELOW_C) return null;
+  if (drug === "adrenaline") return "Adrenaline withheld — core < 30 °C";
+  if (drug === "lidocaine" || givenThisArrest > 0) return "Antiarrhythmic delayed — hypothermia";
+  return null;
 }
 
 /** ALS-MOD-16: a child (< 16 y) is dosed by weight through the dialog, never the fast path. */

@@ -196,8 +196,13 @@ export function levelInputFromRecord(
   for (const e of tl) {
     if (e.kind === "arrest_detected") [arrested, postRosc] = [true, false];
     if (e.kind === "rosc") postRosc = true;
-    if (e.kind === "context" && e.payload.flags && typeof e.payload.flags === "object")
-      flags = e.payload.flags as Record<string, unknown>;
+    // SV-CTX-01: a patch row merges over the context so far; a full row replaces it.
+    if (e.kind === "context") {
+      const pt = e.payload.patch;
+      if (pt && typeof pt === "object") flags = { ...flags, ...(pt as Record<string, unknown>) };
+      else if (e.payload.flags && typeof e.payload.flags === "object")
+        flags = e.payload.flags as Record<string, unknown>;
+    }
     if (e.kind === "decision" && e.payload.decision === "reversible_cause")
       causeState.set(`${String(e.payload.arrestSeq)}:${String(e.payload.cause)}`, {
         cause: e.payload.cause,

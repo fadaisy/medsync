@@ -6,6 +6,7 @@ import type { HeaderPatch, V2EventInput } from "@/lib/resus/v2-record";
 import type { FastPathDrug } from "@/lib/resus/v2-rules";
 import { z } from "zod";
 
+import { clockOf, shockLabel } from "@/app/nurse/resus/[episodeId]/_components/v2/record-format";
 import { arrestSlice, arrestStatus, currentArrestSeq } from "@/lib/resus/als/timing";
 import { detectArrest } from "@/lib/resus/arrest";
 import { sendArrestCall } from "@/lib/resus/mobilise";
@@ -19,14 +20,17 @@ import {
 import { reconstructTimeline } from "@/lib/resus/timeline";
 import { commitResusEvents } from "@/lib/resus/v2-record";
 import {
+  arrestAt,
   arrestCallTarget,
   declarationSeqAt,
   FAST_PATH_DRUGS,
   fastPathDoseMg,
+  fastPathHoldReason,
   isChild,
   roscProblem,
   stopProblem,
 } from "@/lib/resus/v2-rules";
+import { cprNotAttemptedProblem, priorDeathConfirmation } from "@/lib/resus/v2-rules-closeout";
 import { createServiceClient } from "@/lib/supabase/service";
 import { fail, prelude, WriteBase } from "./common";
 
@@ -72,7 +76,23 @@ export async function declareArrestV2(input: {
     );
   const p = await prelude(parsed.data.episodeId, parsed.data.clientEventId);
   if (!p.ok) return p;
-  if (p.replay) return { ...p.replay, arrestSeq: p.replay.arrestSeq ?? 1 };
+  if (p.replay) {
+    // Undo supersedes both rows of the declaration: a replay names the CPR-started row too.
+    const decl = p.events.find((e) => e.id === p.replay!.eventIds[0]);
+    const cpr =
+      decl &&
+      p.events.find(
+        (e) =>
+          e.kind === "cpr_started" &&
+          e.arrestSeq === decl.arrestSeq &&
+          Date.parse(e.recordedAt) === Date.parse(decl.recordedAt),
+      );
+    return {
+      ...p.replay,
+      eventIds: cpr ? [...p.replay.eventIds, cpr.id] : p.replay.eventIds,
+      arrestSeq: p.replay.arrestSeq ?? 1,
+    };
+  }
   const tl = reconstructTimeline(p.events);
   const running = currentArrestSeq(tl);
   if (running > 0 && arrestStatus(arrestSlice(tl, running)!) === "in_arrest")
@@ -193,8 +213,11 @@ export async function updateArrestDetailsV2(input: {
 }
 
 /**
- * One arrest-scoped event with a fixed kind — the console's one-tap writes. A
- * `check` is judged at the bedside time and must still hold at commit.
+ * One event with a fixed kind — the console's one-tap writes. An arrest-scoped
+ * row (one carrying `arrestSeq`) takes its arrest from the record at the
+ * bedside time, never from the client (R1: a shock queued behind a re-arrest
+ * lands in the new arrest). A `check` is judged at the bedside time, on that
+ * arrest, and must still hold at commit.
  */
 async function arrestEvent(
   base: { episodeId: string; clientEventId: string; recordedAt?: string },
@@ -202,16 +225,22 @@ async function arrestEvent(
   reason: string,
   opts: {
     header?: HeaderPatch;
-    check?: (events: TimelineEvent[], atMs: number) => string | null;
+    check?: (events: TimelineEvent[], atMs: number, seq: number) => string | null;
   } = {},
 ): Promise<ActionResult> {
   const p = await prelude(base.episodeId, base.clientEventId);
   if (!p.ok) return p;
   if (p.replay) return p.replay;
-  const problem = opts.check?.(
-    p.events,
-    base.recordedAt ? Date.parse(base.recordedAt) : Date.now(),
-  );
+  const atMs = base.recordedAt ? Date.parse(base.recordedAt) : Date.now();
+  let row = e;
+  let seq = 0;
+  if (e.arrestSeq != null) {
+    const a = arrestAt(p.events, atMs);
+    if (!a) return fail("No arrest is recorded — declare the arrest first.");
+    seq = a.seq;
+    row = { ...e, arrestSeq: a.seq, payload: { ...e.payload, arrestSeq: a.seq } };
+  }
+  const problem = opts.check?.(p.events, atMs, seq);
   if (problem) return fail(problem);
   const { header } = opts;
   return done(
@@ -219,7 +248,7 @@ async function arrestEvent(
       scopeUserId: p.scope.userId,
       hospitalId: p.scope.hospitalId,
       episodeId: base.episodeId,
-      events: [{ ...e, clientEventId: base.clientEventId, recordedAt: base.recordedAt }],
+      events: [{ ...row, clientEventId: base.clientEventId, recordedAt: base.recordedAt }],
       header,
       expectRows: opts.check ? p.rows : undefined,
       audit: { action: "record_resus_event", reason },
@@ -279,7 +308,8 @@ export async function recordShockV2(input: {
   }).safeParse(input);
   if (!parsed.success) return fail("Invalid shock.");
   const { arrestSeq, energyJ, energySource, stacked } = parsed.data;
-  const label = `Shock ${energyJ != null ? `${energyJ} J` : "— highest setting"}${stacked ? " (stacked)" : ""}`;
+  // The record's wording: a child's shock logged without an energy is "energy not recorded".
+  const label = shockLabel(energyJ, energySource, stacked);
   return arrestEvent(
     parsed.data,
     {
@@ -402,14 +432,14 @@ export async function recordRoscV2(input: {
     parsed.data,
     { kind: "rosc", step: "arrest", arrestSeq, payload: { arrestSeq, signs, label } },
     label,
-    { check: (events, atMs) => roscProblem(events, arrestSeq, atMs) },
+    { check: (events, atMs, seq) => roscProblem(events, seq, atMs) },
   );
 }
 /* ─── Fast-path arrest drugs (D4, ALS-DRG-05) ───────────────────────── */
 
 export type FastPathResult =
   | { ok: true; serverTime: string; eventIds: string[]; warnings: string[] }
-  | { ok: false; error: string; readOnly?: boolean }
+  | { ok: false; error: string; readOnly?: boolean; signedOut?: boolean }
   | {
       ok: false;
       /** The safety check blocked (or the case needs weighing): open the prescribe dialog pre-filled. */
@@ -422,7 +452,8 @@ export type FastPathResult =
 /**
  * One tap logs a protocol arrest drug when the prescribing safety check is
  * clear: the drug event (same accountability payload as the prescribe dialog)
- * with the signed default. Any block (allergy, age < 16, dose), a LAST context
+ * with the signed default. Any block (allergy, age < 16, dose), what the console
+ * holds back (core < 30 °C: ALS-MOD-01/03, ALS-AA-04), a LAST context
  * (weight-based adrenaline) or a dose beyond the protocol returns `openDialog`
  * — the existing dialog then applies the signed override-with-reason rule.
  * Arrest drugs are not controlled; controlled drugs never use this path.
@@ -459,7 +490,11 @@ export async function recordArrestDrugV2(input: {
   if (p.replay) return { ...p.replay, warnings: [] };
 
   const tl = reconstructTimeline(p.events);
-  const slice = arrestSlice(tl, parsed.data.arrestSeq);
+  // R1: the arrest at the bedside time, never the client's number.
+  const at = parsed.data.recordedAt ? Date.parse(parsed.data.recordedAt) : Date.now();
+  const a = arrestAt(p.events, at);
+  if (!a) return fail("No arrest is recorded — declare the arrest first.");
+  const slice = arrestSlice(tl, a.seq);
   const givenThisArrest = (slice?.events ?? []).filter((e) => {
     const pr = e.payload.prescribing as { drugId?: string } | undefined;
     return e.kind === "drug" && pr?.drugId === spec.drugId;
@@ -471,7 +506,9 @@ export async function recordArrestDrugV2(input: {
   const flags = latestContext(p.events);
   const reasons: string[] = [];
   if (doseMg === null) reasons.push("Both protocol doses are already recorded in this arrest.");
+  const hold = fastPathHoldReason(parsed.data.drug, p.events, givenThisArrest);
   if (isChild(ageYears)) reasons.push("Child — weight-based dose (PLS not built).");
+  else if (hold) reasons.push(hold);
   if (parsed.data.drug === "adrenaline" && flags.localAnaestheticToxicity)
     reasons.push("Local anaesthetic toxicity: adrenaline ≤ 1 µg/kg — enter the weight-based dose.");
   const allergies = mergeAllergyLists(
@@ -513,9 +550,9 @@ export async function recordArrestDrugV2(input: {
         recordedAt: parsed.data.recordedAt,
         kind: "drug",
         step: "arrest",
-        arrestSeq: parsed.data.arrestSeq,
+        arrestSeq: a.seq,
         payload: {
-          arrestSeq: parsed.data.arrestSeq,
+          arrestSeq: a.seq,
           arrestDrug: parsed.data.drug,
           fastPath: true,
           prescribing: {
@@ -666,6 +703,8 @@ export async function recordCprNotAttemptedV2(input: {
   const p = await prelude(parsed.data.episodeId, parsed.data.clientEventId);
   if (!p.ok) return p;
   if (p.replay) return p.replay;
+  const problem = cprNotAttemptedProblem(p.events);
+  if (problem) return fail(problem);
   const label = `CPR not attempted — ${parsed.data.reason === "treatment_limitation" ? "valid treatment-limitation decision" : "obvious irreversible death"}: ${parsed.data.detail}`;
   return done(
     await commitResusEvents({
@@ -742,6 +781,12 @@ export async function confirmDeathV2(input: {
     return fail("Signs of life were recorded after the stop — resume, then observe again.");
   if (!obs.complete)
     return fail(`Observe ${Math.ceil(obs.remainingMs / 1000)} s more (5 minutes, ALS-DTH-01).`);
+  // ALS-DTH-07: one time of death — a second device's confirmation is refused, never stacked.
+  const prior = priorDeathConfirmation(p.events);
+  if (prior)
+    return fail(
+      `Death is already confirmed at ${clockOf(prior.recordedAt, false)} by ${(prior.payload.confirmingName as string | null | undefined) ?? "a clinician"}.`,
+    );
   const confirmedAtIso = new Date(atMs).toISOString();
   return done(
     await commitResusEvents({

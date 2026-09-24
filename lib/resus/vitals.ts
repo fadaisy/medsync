@@ -44,6 +44,34 @@ export const TREND_VITALS = [
   { key: "etco2", label: "EtCO₂", unit: "kPa" },
 ] as const satisfies ReadonlyArray<{ key: keyof VitalSnapshot; label: string; unit: string }>;
 
+/**
+ * Input plausibility (R2) — a typo guard at entry and on the server, not a
+ * clinical threshold, and never shown as a number. Glucose and temperature
+ * are the D/E step panel's existing bounds (StepFindings glucoseMmol /
+ * coreTempC); SpO₂ is a percentage. Every other numeric field only has to be
+ * a finite number ≥ 0.
+ */
+export const VITAL_INPUT_BOUNDS = {
+  spo2: { min: 0, max: 100 },
+  temperature: { min: 10, max: 45 },
+  glucose: { min: 0, max: 60 },
+} as const satisfies Partial<Record<keyof VitalSnapshot, { min: number; max: number }>>;
+
+/** True when `n` is a value the `key` field can hold (VITAL_INPUT_BOUNDS). */
+export function vitalPlausible(key: string, n: number): boolean {
+  if (!Number.isFinite(n) || n < 0) return false;
+  const b = (VITAL_INPUT_BOUNDS as Record<string, { min: number; max: number }>)[key];
+  return !b || (n >= b.min && n <= b.max);
+}
+
+/** 1 kPa = 7.50062 mmHg (unit definition). EtCO₂ is stored in kPa. */
+export const MMHG_PER_KPA = 7.50062;
+
+/** An EtCO₂ read off an mmHg monitor → kPa, one decimal (the strip's precision). */
+export function etco2KpaFromMmHg(mmHg: number): number {
+  return Math.round((mmHg / MMHG_PER_KPA) * 10) / 10;
+}
+
 export interface TrendPoint {
   t: string;
   value: number;

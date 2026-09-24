@@ -98,6 +98,11 @@ describe("PR — airway and breathing", () => {
     expect(ref("PR-B-04").value).toBeUndefined();
   });
 
+  it("PR-B-04: the caveat is not a checklist item — nothing to tick, never counted as open", () => {
+    expect(row("PR-B-04").checklist).toBe(false);
+    expect(bundleState(ROSC)).not.toHaveProperty("PR-B-04");
+  });
+
   it("PR-B-04: the bundle prints the caveat under the SpO₂ target row (PR-B-02), never as its own row", () => {
     expect(ref("PR-B-02").text).toContain("SpO₂");
     // post-rosc-bundle.tsx is a React file — read, not rendered (as after-death.tsx in closeout-rules-2).
@@ -119,9 +124,16 @@ describe("PR — airway and breathing", () => {
     expect(spo2Pins).toHaveLength(1);
     expect(spo2Pins[0]).toContain("94–98 %");
     expect(spo2Pins[0]).toContain("(with the oximetry caveat)");
+    // The caveat text itself, right after the SpO₂ pin — at B only, once.
+    const caveat = refValue(ref("PR-B-04"));
+    expect(postRoscPins("B").map((p) => p.id)).toEqual(["PR-PIN-B", "PR-B-04"]);
+    expect(pinned.indexOf(caveat)).toBe(pinned.indexOf(spo2Pins[0]!) + 1);
+    expect(pinned.filter((t) => t === caveat)).toHaveLength(1);
     const spo2Handover = ADULT_TARGETS.filter((t) => t.includes("SpO₂"));
     expect(spo2Handover).toEqual(spo2Pins);
+    expect(ADULT_TARGETS.indexOf(caveat)).toBe(ADULT_TARGETS.indexOf(spo2Pins[0]!) + 1);
     expect(CHILD_TARGETS.some((t) => t.includes("SpO₂"))).toBe(false);
+    expect(CHILD_TARGETS).not.toContain(caveat);
   });
 
   it("PR-B-06: Vt 6–8 mL/kg ideal body weight shows exactly as signed, only while signed", () => {

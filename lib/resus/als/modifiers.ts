@@ -136,7 +136,9 @@ export function activeModifiers(
   if (lysisAtMs !== null) {
     out.push({
       id: "pe_lysis",
-      label: `PE thrombolysis recorded — consider CPR for ${PE_LYSIS_CPR_MIN_MIN}–${PE_LYSIS_CPR_MAX_MIN} min after administration`,
+      label: child
+        ? "PE thrombolysis recorded — prolonged resuscitation (weight-based — PLS module not built)"
+        : `PE thrombolysis recorded — consider CPR for ${PE_LYSIS_CPR_MIN_MIN}–${PE_LYSIS_CPR_MAX_MIN} min after administration`,
       ruleIds: ["ALS-MOD-11", "ALS-DRG-04"],
     });
   }

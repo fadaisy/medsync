@@ -145,12 +145,25 @@ function latestOf(events: readonly TimelineEvent[], kinds: ReadonlySet<string>) 
   return latest;
 }
 
-/** SV-CTX-01: the latest `context` event's flags (missing keys → EMPTY_CONTEXT). */
+const isObject = (v: unknown): v is Record<string, unknown> => !!v && typeof v === "object";
+
+/**
+ * SV-CTX-01: the patient context, folded over the `context` events in clinical
+ * time. A row carrying `patch` (the keys one toggle changed) applies only those
+ * keys, so two devices toggling different flags never erase each other, and a
+ * queued patch that lands late still applies unless a later row changed the
+ * same key. A row without `patch` (a full set, v1 and early v2) replaces the
+ * whole context; missing keys fall back to EMPTY_CONTEXT.
+ */
 export function latestContext(events: readonly TimelineEvent[]): PatientContextFlags {
-  const e = latestOf(events, new Set(["context"]));
-  const flags = e?.payload.flags;
-  if (!flags || typeof flags !== "object") return EMPTY_CONTEXT;
-  return { ...EMPTY_CONTEXT, ...(flags as Partial<PatientContextFlags>) };
+  let out: PatientContextFlags = EMPTY_CONTEXT;
+  for (const e of events.filter((x) => x.kind === "context").sort(byTime)) {
+    const { patch, flags } = e.payload;
+    if (isObject(patch)) out = { ...out, ...(patch as Partial<PatientContextFlags>) };
+    else if (isObject(flags))
+      out = { ...EMPTY_CONTEXT, ...(flags as Partial<PatientContextFlags>) };
+  }
+  return out;
 }
 
 const ARREST_END_KINDS: ReadonlySet<string> = new Set([

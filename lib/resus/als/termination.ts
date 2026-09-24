@@ -88,6 +88,8 @@ function continueFlags(
 ): ContinueFlag[] {
   const out: ContinueFlag[] = [];
   const add = (id: string, text: string) => out.push({ id, ruleId: "ALS-TOR-07", text });
+  // ALS-MOD-16 / Law 7: a child's reasons to continue carry no adult duration.
+  const child = arrest.paediatric;
   const band = tempBand(ctx);
   if (band === "below_30" || band === "30_to_35")
     add("hypothermia", `Hypothermia (core ${ctx.coreTempC} °C) — rewarm before deciding`);
@@ -102,12 +104,19 @@ function continueFlags(
     toxins?.state === "suspected" ||
     toxins?.state === "treating"
   )
-    add("toxins", "Toxins / local anaesthetic toxicity — plan prolonged resuscitation (> 1 h)");
+    add(
+      "toxins",
+      `Toxins / local anaesthetic toxicity — plan prolonged resuscitation${child ? "" : " (> 1 h)"}`,
+    );
   const lysisAt = peLysisAtMs(tl);
   if (lysisAt !== null && nowMs - lysisAt < PE_LYSIS_CPR_MAX_MIN * MIN)
     add(
       "pe_lysis",
-      `PE thrombolysis ${Math.floor((nowMs - lysisAt) / MIN)} min ago — consider CPR for ${PE_LYSIS_CPR_MIN_MIN}–${PE_LYSIS_CPR_MAX_MIN} min after administration`,
+      `PE thrombolysis ${Math.floor((nowMs - lysisAt) / MIN)} min ago — ${
+        child
+          ? "prolonged resuscitation (weight-based — PLS module not built)"
+          : `consider CPR for ${PE_LYSIS_CPR_MIN_MIN}–${PE_LYSIS_CPR_MAX_MIN} min after administration`
+      }`,
     );
   const rs = arrest.rhythms;
   if (arrest.currentRhythm === "vf_pvt") add("shockable", "Persistent shockable rhythm");

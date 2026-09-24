@@ -36,7 +36,8 @@ import {
   identifyExposureDiagnosis,
   tempStage,
 } from "@/lib/resus/exposure";
-import { mobiliseResusTeam } from "@/lib/resus/mobilise";
+import { resusDeskV2 } from "@/lib/resus/feature";
+import { mobiliseResusTeam, sendArrestCall } from "@/lib/resus/mobilise";
 import {
   acknowledgeResusAlert,
   appendResusEvent,
@@ -60,8 +61,11 @@ import {
 } from "@/lib/resus/reference/exposure-catalog";
 import { requireResusScope } from "@/lib/resus/scope";
 import { RESUS_ROLES } from "@/lib/resus/types";
+import { commitResusEvents } from "@/lib/resus/v2-record";
+import { arrestCallTarget } from "@/lib/resus/v2-rules";
 import { vitalsFromTriageSnapshot } from "@/lib/resus/vitals";
 import { createServiceClient } from "@/lib/supabase/service";
+import { loadHeader } from "./_v2/common";
 
 /**
  * Resus server actions (GATE C). Decision-support: these RECORD what the
@@ -155,6 +159,65 @@ async function openResusForTriageRecord(
       recordedAt: tr.triagedAt.toISOString(),
     });
     if ("error" in ev) logger.warn("resus.open.seed_vitals_failed", { episode: result.episodeId });
+  }
+
+  // Resus Desk v2, scenario S0 (GATE A §1): rapid Red "no palpable pulse" opens
+  // straight into the arrest — arrest #1 + CPR started, the arrest call, then
+  // the desk. The reason string is rapid-red-button.tsx LIFE_THREATS[2] (a
+  // client module, so it cannot be imported here). Best-effort: a failure
+  // leaves a normal resus the team can declare the arrest in (one tap).
+  if (resusDeskV2() && reason === "No palpable pulse / cardiac arrest") {
+    const at = new Date();
+    const arrest = await commitResusEvents({
+      scopeUserId: scope.userId,
+      hospitalId: scope.hospitalId,
+      episodeId: result.episodeId,
+      events: [
+        {
+          clientEventId: crypto.randomUUID(),
+          recordedAt: at.toISOString(),
+          kind: "arrest_detected",
+          step: "arrest",
+          arrestSeq: 1,
+          payload: {
+            arrestSeq: 1,
+            reason,
+            source: "triage_rapid_red",
+            witnessed: null,
+            monitored: null,
+            label: `Cardiac arrest — ${reason} (rapid Red at triage)`,
+          },
+        },
+        {
+          clientEventId: crypto.randomUUID(),
+          recordedAt: at.toISOString(),
+          kind: "cpr_started",
+          step: "arrest",
+          arrestSeq: 1,
+          payload: { arrestSeq: 1, label: "CPR started" },
+        },
+      ],
+      header: { phase: "arrest", currentArrestSeq: 1, arrestDetectedAt: at },
+      audit: {
+        action: "detect_resus_arrest",
+        reason: `Arrest #1: ${reason} (rapid Red at triage)`,
+      },
+    });
+    if (arrest.ok) {
+      // The call names the episode's department (where the patient is), as declareArrestV2 does.
+      const header = await loadHeader(scope, result.episodeId);
+      await sendArrestCall({
+        service: createServiceClient(),
+        episodeId: result.episodeId,
+        hospitalId: scope.hospitalId,
+        ...arrestCallTarget(
+          header ?? { departmentId: tr.departmentId ?? scope.departmentId, departmentName: null },
+        ),
+        arrestSeq: 1,
+      });
+    } else {
+      logger.warn("resus.open.s0_arrest_failed", { episode: result.episodeId });
+    }
   }
 
   // Fire team mobilisation (recognition → call → response).

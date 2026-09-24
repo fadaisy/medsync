@@ -100,10 +100,11 @@ export function computeArrestState(
   const readings = etco2Values(slice, artefactFields(tl));
   const etco2 = etco2State(readings, airway);
   const lastEtco2 = readings[readings.length - 1];
+  // ALS-MOD-16 / Law 7: the RC-09 threshold is an adult number — a child's tile never shows it.
   const causes = causeTiles(
     tl,
     ctx,
-    etco2.lowPeHint && lastEtco2
+    !paediatric && etco2.lowPeHint && lastEtco2
       ? {
           eventId: lastEtco2.eventId,
           label: `ETCO₂ ${lastEtco2.value} kPa (< ${ETCO2_PE_HINT_BELOW_KPA}) with a confirmed tube — a PE hint only with adequate minute volume and good compressions; not a diagnosis`,
@@ -269,7 +270,11 @@ function buildPrompts(
     add(
       "pe_lysis",
       "ALS-DRG-04",
-      `PE thrombolysis ${Math.floor((nowMs - lysisAtMs) / 60_000)} min ago — consider CPR for ${PE_LYSIS_CPR_MIN_MIN}–${PE_LYSIS_CPR_MAX_MIN} min after administration`,
+      `PE thrombolysis ${Math.floor((nowMs - lysisAtMs) / 60_000)} min ago — ${
+        child
+          ? "prolonged resuscitation (weight-based — PLS module not built)"
+          : `consider CPR for ${PE_LYSIS_CPR_MIN_MIN}–${PE_LYSIS_CPR_MAX_MIN} min after administration`
+      }`,
       "info",
     );
   if (child)

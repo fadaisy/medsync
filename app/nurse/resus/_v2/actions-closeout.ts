@@ -2,7 +2,7 @@
 
 import type { ActionResult } from "./common";
 import type { HeaderPatch, V2EventInput } from "@/lib/resus/v2-record";
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { db } from "@/db";
@@ -19,8 +19,8 @@ import { CARE_LEVELS, DESTINATIONS, LEVEL_MISMATCH_CODES, OUTCOME_CODES } from "
 import { reconstructTimeline } from "@/lib/resus/timeline";
 import { projectArrestRecord } from "@/lib/resus/utstein/project";
 import { commitResusEvents } from "@/lib/resus/v2-record";
-import { closeOutcomeProblem } from "@/lib/resus/v2-rules";
-import { fail, prelude, WriteBase } from "./common";
+import { afterDeathTaskProblem, closeOutcomeProblem } from "@/lib/resus/v2-rules-closeout";
+import { fail, prelude, resusScopeOrNull, SIGNED_OUT, WriteBase } from "./common";
 
 /**
  * Resus Desk v2 — close-out server actions (docs/clinical/resus-closeout-clinical-catalog.md,
@@ -60,9 +60,19 @@ const DispositionSchema = z.object({
   mismatch: z.enum(LEVEL_MISMATCH_CODES).nullable(),
   mismatchNote: z.string().max(300).nullable(),
   ruleIds: z.array(z.string().max(16)).max(20),
+  /** §5.12 step 2 — defaulted so a client that does not send them yet still closes. */
+  bed: z.enum(["requested", "accepted", "not_available"]).nullable().default(null),
+  bedAcceptedBy: z.string().trim().max(60).nullable().default(null),
 });
 
 type Disposition = z.infer<typeof DispositionSchema>;
+type DispositionInput = z.input<typeof DispositionSchema>;
+
+const BED_LABEL = {
+  requested: "bed requested",
+  accepted: "bed accepted",
+  not_available: "no bed available",
+} as const;
 
 function mismatchProblem(d: Disposition): string | null {
   if (d.suggestedLevel && d.chosenLevel && mismatchRequired(d.suggestedLevel, d.chosenLevel)) {
@@ -84,8 +94,8 @@ function dispositionEvents(d: Disposition, recordedAt: string | undefined): V2Ev
       payload: {
         decision: "disposition",
         ...d,
-        bed: null,
-        label: `Destination: ${d.destination.replace(/_/g, " ")}${d.chosenLevel ? ` (${d.chosenLevel.toUpperCase()})` : ""}${d.mismatch ? ` — below suggestion: ${d.mismatch.replace(/_/g, " ")}` : ""}`,
+        bedAcceptedBy: d.bed === "accepted" ? d.bedAcceptedBy || null : null,
+        label: `Destination: ${d.destination.replace(/_/g, " ")}${d.chosenLevel ? ` (${d.chosenLevel.toUpperCase()})` : ""}${d.mismatch ? ` — below suggestion: ${d.mismatch.replace(/_/g, " ")}` : ""}${d.bed ? ` — ${BED_LABEL[d.bed]}${d.bed === "accepted" && d.bedAcceptedBy ? ` by ${d.bedAcceptedBy}` : ""}` : ""}`,
       },
     },
   ];
@@ -110,7 +120,8 @@ function dispositionEvents(d: Disposition, recordedAt: string | undefined): V2Ev
 
 /**
  * End the resus (LC-02). The outcome must match the record (closeOutcomeProblem):
- * a death needs a confirmed death; ROSC outcomes need a ROSC and no arrest running;
+ * a death needs a confirmed death, and after a stop or a confirmed death only a
+ * death fits; ROSC outcomes need a ROSC and no arrest running;
  * "stabilised" needs no arrest running. Mid-arrest, "transferred out" records
  * leaving with CPR ongoing.
  */
@@ -119,7 +130,7 @@ export async function closeResusV2(input: {
   clientEventId: string;
   recordedAt?: string;
   outcomeCode: (typeof OUTCOME_CODES)[number];
-  disposition: Disposition;
+  disposition: DispositionInput;
   sbar: z.infer<typeof SbarSchema>;
   receiving: { unit: string; cadre: string } | null;
   escort: string | null;
@@ -282,7 +293,7 @@ export async function startBoardingV2(input: {
   episodeId: string;
   clientEventId: string;
   recordedAt?: string;
-  disposition: Disposition;
+  disposition: DispositionInput;
 }): Promise<ActionResult> {
   const parsed = WriteBase.extend({ disposition: DispositionSchema }).safeParse(input);
   if (!parsed.success) return fail("Invalid disposition.");
@@ -335,18 +346,25 @@ export async function startBoardingV2(input: {
     }),
   );
 }
-/** Re-activate from boarding (CO-BRD-03): back to the survey, same episode. */
+/**
+ * Re-activate from boarding (CO-BRD-03): back to the survey, same episode. LC-08
+ * needs no reason (allowedActions: requiresReason false); one given is recorded.
+ */
 export async function reactivateResusV2(input: {
   episodeId: string;
   clientEventId: string;
-  reason: string;
+  recordedAt?: string;
+  reason?: string | null;
 }): Promise<ActionResult> {
-  const parsed = WriteBase.extend({ reason: z.string().trim().min(2).max(300) }).safeParse(input);
-  if (!parsed.success) return fail("Say why (e.g. deteriorating).");
+  const parsed = WriteBase.extend({
+    reason: z.string().trim().max(300).nullable().optional(),
+  }).safeParse(input);
+  if (!parsed.success) return fail("Invalid re-activation.");
   const p = await prelude(parsed.data.episodeId, parsed.data.clientEventId);
   if (!p.ok) return p;
   if (p.replay) return p.replay;
   if (p.header.phase !== "boarding") return fail("Only a boarding patient is re-activated.");
+  const why = parsed.data.reason || null;
   return done(
     await commitResusEvents({
       scopeUserId: p.scope.userId,
@@ -355,18 +373,19 @@ export async function reactivateResusV2(input: {
       events: [
         {
           clientEventId: parsed.data.clientEventId,
+          recordedAt: parsed.data.recordedAt,
           kind: "decision",
           step: "pre",
           payload: {
             decision: "phase",
             phase: "survey",
-            reason: parsed.data.reason,
-            label: `Resus re-activated — ${parsed.data.reason}`,
+            reason: why,
+            label: `Resus re-activated${why ? ` — ${why}` : ""}`,
           },
         },
       ],
       expectRows: p.rows,
-      audit: { action: "reactivate_resus", reason: parsed.data.reason },
+      audit: { action: "reactivate_resus", reason: why ?? "Resus re-activated" },
     }),
   );
 }
@@ -375,6 +394,7 @@ export async function reactivateResusV2(input: {
 export async function cancelResusV2(input: {
   episodeId: string;
   clientEventId: string;
+  recordedAt?: string;
   reason: string;
 }): Promise<ActionResult> {
   const parsed = WriteBase.extend({ reason: z.string().trim().min(3).max(300) }).safeParse(input);
@@ -390,6 +410,7 @@ export async function cancelResusV2(input: {
       events: [
         {
           clientEventId: parsed.data.clientEventId,
+          recordedAt: parsed.data.recordedAt,
           kind: "decision",
           step: "pre",
           payload: {
@@ -403,7 +424,7 @@ export async function cancelResusV2(input: {
         state: "cancelled",
         cancelReason: parsed.data.reason,
         closedBy: p.scope.userId,
-        endedAt: new Date(),
+        endedAt: new Date(parsed.data.recordedAt ?? Date.now()),
       },
       audit: { action: "cancel_resus_episode", reason: parsed.data.reason },
     }),
@@ -418,6 +439,7 @@ export async function cancelResusV2(input: {
 export async function adminCloseResusV2(input: {
   episodeId: string;
   clientEventId: string;
+  recordedAt?: string;
   reason: string;
 }): Promise<ActionResult> {
   const parsed = WriteBase.extend({ reason: z.string().trim().min(3).max(300) }).safeParse(input);
@@ -446,6 +468,7 @@ export async function adminCloseResusV2(input: {
       events: [
         {
           clientEventId: parsed.data.clientEventId,
+          recordedAt: parsed.data.recordedAt,
           kind: "decision",
           step: "pre",
           payload: {
@@ -461,7 +484,7 @@ export async function adminCloseResusV2(input: {
         state: "concluded",
         closureKind: "administrative",
         closedBy: p.scope.userId,
-        endedAt: new Date(),
+        endedAt: new Date(parsed.data.recordedAt ?? Date.now()),
       },
       audit: { action: "close_resus_administratively", reason: parsed.data.reason },
     }),
@@ -471,6 +494,21 @@ export async function adminCloseResusV2(input: {
 /* ─── After close: the after-death checklist and the debrief (D16: ≤ 24 h) ─ */
 
 const AFTER_CLOSE_MS = 24 * 3600_000;
+
+/**
+ * R6: after-close records write no timeline row, so nothing else wakes the
+ * other desks — say "something changed" on the episode topic (ids only, no
+ * PHI). A failing realtime layer never fails the save.
+ */
+async function broadcastAfterClose(episodeId: string, what: "after_death_task" | "debrief") {
+  try {
+    await db.execute(
+      sql`SELECT realtime.send(${JSON.stringify({ episodeId, what })}::jsonb, 'after_close', ${`resus:${episodeId}`}, true)`,
+    );
+  } catch (e) {
+    logger.warn("resus.v2.after_close_broadcast_failed", { reason: String(e) });
+  }
+}
 
 async function withinAfterCloseWindow(episodeId: string, hospitalId: string): Promise<boolean> {
   const [ep] = await db
@@ -490,17 +528,19 @@ export async function recordAfterDeathTaskV2(input: {
   note?: string | null;
 }): Promise<{ ok: true } | { ok: false; error: string }> {
   const { resusAfterDeathTasks } = await import("@/db/schema/resus");
-  const { requireResusScope } = await import("@/lib/resus/scope");
   const parsed = z
     .object({
       episodeId: z.string().uuid(),
-      taskId: z.string().regex(/^CO-ADT-\d{2}$/),
+      taskId: z.string().max(16),
       state: z.enum(["done", "not_applicable", "pending"]),
       note: z.string().max(500).nullable().optional(),
     })
     .safeParse(input);
   if (!parsed.success) return fail("Invalid task.");
-  const scope = await requireResusScope();
+  const taskProblem = afterDeathTaskProblem(parsed.data.taskId);
+  if (taskProblem) return fail(taskProblem);
+  const scope = await resusScopeOrNull();
+  if (!scope) return fail(SIGNED_OUT);
   if (!(await withinAfterCloseWindow(parsed.data.episodeId, scope.hospitalId)))
     return fail("The after-death checklist closes 24 h after the resus ends.");
   await db.transaction(async (tx) => {
@@ -521,8 +561,11 @@ export async function recordAfterDeathTaskV2(input: {
       afterData: { taskId: parsed.data.taskId, state: parsed.data.state },
     });
   });
+  await broadcastAfterClose(parsed.data.episodeId, "after_death_task");
   return { ok: true };
 }
+
+const SUBMITTED = "This debrief was already submitted — it can no longer be edited.";
 
 export async function saveDebriefV2(input: {
   episodeId: string;
@@ -533,9 +576,13 @@ export async function saveDebriefV2(input: {
   equipmentIssues: string;
   welfareCheckDone: boolean;
   submit: boolean;
-}): Promise<{ ok: true } | { ok: false; error: string }> {
+  /** The saved version this device last saw (null: none yet) — R6, no blind overwrite. */
+  baseUpdatedAtIso: string | null;
+}): Promise<
+  | { ok: true; updatedAtIso: string }
+  | { ok: false; error: string; stale?: true; updatedAtIso?: string | null }
+> {
   const { resusDebriefs } = await import("@/db/schema/resus");
-  const { requireResusScope } = await import("@/lib/resus/scope");
   const { debriefMetrics } = await import("@/lib/resus/debrief/metrics");
   const { fetchActiveResusEvents } = await import("@/lib/resus/v2-record");
   const T = z.string().max(4000);
@@ -549,10 +596,12 @@ export async function saveDebriefV2(input: {
       equipmentIssues: T,
       welfareCheckDone: z.boolean(),
       submit: z.boolean(),
+      baseUpdatedAtIso: z.string().datetime({ offset: true }).nullable(),
     })
     .safeParse(input);
   if (!parsed.success) return fail("Invalid debrief.");
-  const scope = await requireResusScope();
+  const scope = await resusScopeOrNull();
+  if (!scope) return fail(SIGNED_OUT);
   const d = parsed.data;
   if (!(await withinAfterCloseWindow(d.episodeId, scope.hospitalId)))
     return fail("The debrief closes 24 h after the resus ends.");
@@ -569,12 +618,22 @@ export async function saveDebriefV2(input: {
     status: d.submit ? "submitted" : "draft",
     submittedAt: d.submit ? new Date() : null,
   };
+  let savedAt: Date | null;
   try {
-    await db.transaction(async (tx) => {
-      await tx
+    savedAt = await db.transaction(async (tx) => {
+      const [row] = await tx
         .insert(resusDebriefs)
         .values({ episodeId: d.episodeId, ...values })
-        .onConflictDoUpdate({ target: resusDebriefs.episodeId, set: values });
+        .onConflictDoUpdate({
+          target: resusDebriefs.episodeId,
+          set: values,
+          // Only over the version this device saw (updated_at is microsecond; the client ms).
+          setWhere: d.baseUpdatedAtIso
+            ? sql`date_trunc('milliseconds', ${resusDebriefs.updatedAt}) = ${d.baseUpdatedAtIso}::timestamptz`
+            : sql`false`,
+        })
+        .returning({ updatedAt: resusDebriefs.updatedAt });
+      if (!row) return null;
       await tx.insert(saAuditLog).values({
         actorId: scope.userId,
         action: "submit_resus_debrief",
@@ -584,11 +643,29 @@ export async function saveDebriefV2(input: {
         beforeData: null,
         afterData: { status: values.status },
       });
+      return row.updatedAt;
     });
   } catch (e) {
-    // The DB trigger refuses edits to a submitted debrief.
-    logger.warn("resus.v2.debrief_save_failed", { reason: String(e) });
-    return fail("This debrief was already submitted — it can no longer be edited.");
+    const reason = `${String(e)} ${e instanceof Error ? String(e.cause ?? "") : ""}`;
+    // The DB trigger refuses edits to a submitted debrief; anything else is worth a retry.
+    if (/immutable once submitted/.test(reason)) return fail(SUBMITTED);
+    logger.warn("resus.v2.debrief_save_failed", { reason });
+    return fail("Could not save the debrief — try again.");
   }
-  return { ok: true };
+  if (!savedAt) {
+    const [cur] = await db
+      .select({ status: resusDebriefs.status, updatedAt: resusDebriefs.updatedAt })
+      .from(resusDebriefs)
+      .where(eq(resusDebriefs.episodeId, d.episodeId))
+      .limit(1);
+    if (cur?.status === "submitted") return fail(SUBMITTED);
+    return {
+      ok: false,
+      error: "Another device saved this debrief since you opened it — save again to replace it.",
+      stale: true,
+      updatedAtIso: cur?.updatedAt.toISOString() ?? null,
+    };
+  }
+  await broadcastAfterClose(d.episodeId, "debrief");
+  return { ok: true, updatedAtIso: savedAt.toISOString() };
 }

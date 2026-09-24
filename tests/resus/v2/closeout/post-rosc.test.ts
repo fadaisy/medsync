@@ -64,7 +64,7 @@ describe("PR — bundle item states", () => {
 describe("PR-PIN — post-ROSC survey pins", () => {
   it("PR-PIN-B: B pins SpO₂ 94–98 % and PaCO₂ 4.7–6.0 kPa", () => {
     const pins = postRoscPins("B");
-    expect(pins.map((p) => p.id)).toEqual(["PR-PIN-B"]);
+    expect(pins.map((p) => p.id)).toEqual(["PR-PIN-B", "PR-B-04"]);
     expect(pins[0]!.text).toContain("94–98 %");
     expect(pins[0]!.text).toContain("4.7–6.0 kPa");
   });

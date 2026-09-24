@@ -6,7 +6,8 @@
  * are byte-for-byte the v1 shapes (app/nurse/resus/actions.ts record*Findings /
  * set*ActionState), so every signed engine reads v2 rows exactly as it reads v1.
  */
-import type { AbcdeLetter, ResusEventKind } from "@/lib/resus/types";
+import type { AbcdeLetter, ResusEventKind, TimelineEvent } from "@/lib/resus/types";
+import { z } from "zod";
 
 import { AIRWAY_ACTION_STATES, classifyAirway } from "@/lib/resus/airway";
 import { classifyBreathing } from "@/lib/resus/breathing";
@@ -160,10 +161,55 @@ export function buildActionStatePayload(input: {
   };
 }
 
+/**
+ * D GCS components in the v1 shape (lib/resus/disability.ts GcsComponents): a
+ * verbal "T" (intubated) is stored as verbal 1 + `intubated`, so gcsTotal scores
+ * it as v1 does instead of returning null.
+ */
+export const GcsSchema = z
+  .object({
+    eye: z.number().int().min(1).max(4).nullable(),
+    verbal: z.union([z.number().int().min(1).max(5), z.literal("T")]).nullable(),
+    motor: z.number().int().min(1).max(6).nullable(),
+    intubated: z.boolean().optional(),
+  })
+  .transform(({ verbal, intubated, ...g }) =>
+    verbal === "T" || intubated ? { ...g, verbal: 1, intubated: true } : { ...g, verbal },
+  );
+
 /** The AMPLE allergy note written alongside E findings (feeds prescribing). */
 export function buildAllergyNote(substances: string[], nkda: boolean): Record<string, unknown> {
   return {
     allergyCapture: { substances: nkda ? [] : substances, nkda },
     label: nkda ? "Allergies: none known (NKDA)" : `Allergies: ${substances.join(", ")}`,
   };
+}
+
+/** An allergy capture's content, order- and case-blind ("" = nothing recorded). */
+function allergyKey(substances: readonly string[], nkda: boolean): string {
+  if (nkda && substances.length === 0) return "nkda";
+  return [...new Set(substances.map((x) => x.trim().toLowerCase()))].sort().join("\n");
+}
+
+/**
+ * The allergy note for an E write, or null when there is nothing new to record:
+ * AMPLE is carried forward, so re-recording E repeats the latest capture (by
+ * bedside time, as prescribing reads it) and must not write it again.
+ */
+export function allergyNoteIfChanged(
+  events: readonly TimelineEvent[],
+  substances: string[],
+  nkda: boolean,
+): Record<string, unknown> | null {
+  const next = allergyKey(substances, nkda);
+  if (next === "") return null;
+  let latest: { at: string; key: string } | null = null;
+  for (const e of events) {
+    const cap = (e.payload as { allergyCapture?: { substances?: string[]; nkda?: boolean } })
+      .allergyCapture;
+    if (cap && (!latest || e.recordedAt > latest.at))
+      latest = { at: e.recordedAt, key: allergyKey(cap.substances ?? [], cap.nkda === true) };
+  }
+  if (latest?.key === next) return null;
+  return buildAllergyNote(substances, nkda && substances.length === 0);
 }

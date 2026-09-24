@@ -35,7 +35,10 @@ export interface PostRoscBundleItem {
   text: string;
   /** The catalog's "Target / number" column carries a number (not "—" / NOT ENCODED). */
   showsNumber: boolean;
-  /** A done / not-indicated / not-available item (PR-NEVER-01 is a standing rule, not a task). */
+  /**
+   * A done / not-indicated / not-available item (PR-NEVER-01 is a standing rule
+   * and PR-B-04 a caveat on the SpO₂ row — neither is a task).
+   */
   checklist: boolean;
 }
 
@@ -219,13 +222,16 @@ const BUNDLE_ROWS: [string, PostRoscDomain, string, string | undefined, SourceCo
   ],
 ];
 
+/** PR-B-04: a caveat printed with the SpO₂ target, never a task of its own. */
+export const OXIMETRY_CAVEAT_ID = "PR-B-04";
+
 export const POST_ROSC_BUNDLE: readonly PostRoscBundleItem[] = BUNDLE_ROWS.map(
   ([id, domain, text, target]) => ({
     id,
     domain,
     text,
     showsNumber: target !== undefined,
-    checklist: id !== "PR-NEVER-01",
+    checklist: id !== "PR-NEVER-01" && id !== OXIMETRY_CAVEAT_ID,
   }),
 );
 

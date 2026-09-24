@@ -375,6 +375,8 @@ export interface SurveySignals {
   glucoseMissing: boolean;
   /** An intervention is newer than the last vital (vitalsStale). */
   vitalsStale: boolean;
+  /** Whole minutes since the latest vitals set (SV-DN-08 age); null = none recorded. */
+  lastVitalsMin: number | null;
 }
 
 export interface Survey {
@@ -402,6 +404,13 @@ export function vitalsStale(events: readonly TimelineEvent[]): boolean {
       lastIntervention = e.recordedAt;
   }
   return lastIntervention !== "" && lastIntervention > lastVital;
+}
+
+/** SV-DN-08: whole minutes since the latest vitals set; null when none is recorded. */
+export function lastVitalsMin(events: readonly TimelineEvent[], nowMs: number): number | null {
+  let last = -Infinity;
+  for (const e of events) if (e.kind === "vital") last = Math.max(last, Date.parse(e.recordedAt));
+  return Number.isFinite(last) ? Math.max(0, Math.floor((nowMs - last) / 60_000)) : null;
 }
 
 /** The v2 survey: all five steps, their action boards, the derived findings and signals. */
@@ -433,6 +442,7 @@ export function computeSurvey(events: readonly TimelineEvent[], input: SurveyInp
       coreTempMissing: e.recordedFs === null || temperatureMissing(e.recordedFs),
       glucoseMissing: mandatoryGlucoseMissing(d.combined),
       vitalsStale: vitalsStale(events),
+      lastVitalsMin: lastVitalsMin(events, input.nowMs),
     },
   };
 }

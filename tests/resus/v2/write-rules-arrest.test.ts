@@ -11,13 +11,13 @@ import {
 import {
   ARREST_CALL_FALLBACK_PLACE,
   arrestCallTarget,
-  closeOutcomeProblem,
   declarationSeqAt,
   fastPathDoseMg,
   isChild,
   roscProblem,
   stopProblem,
 } from "@/lib/resus/v2-rules";
+import { closeOutcomeProblem } from "@/lib/resus/v2-rules-closeout";
 import { declare, ev, min, rosc, started, stop } from "./als/fixtures";
 
 /**

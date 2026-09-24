@@ -2,6 +2,7 @@ import "server-only";
 
 import type { ResusScope } from "@/lib/resus/scope";
 import type { TimelineEvent } from "@/lib/resus/types";
+import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { and, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 
@@ -19,9 +20,26 @@ import { fetchAllResusEvents } from "@/lib/resus/v2-record";
 /**
  * Shared plumbing for the Resus Desk v2 server actions (not itself a "use
  * server" module). Every action: Zod input with a client idempotency key and
- * optional bedside time → AAL2 + clinical scope (requireResusScope) → episode in
+ * optional bedside time → AAL2 + clinical scope (resusScopeOrNull) → episode in
  * the caller's hospital → one transaction via commitResusEvents.
  */
+
+/** The session ended or lost AAL2: the entry stays queued ("will retry" → the client retries). */
+export const SIGNED_OUT = "Signed out — sign in again (new tab); entries are kept and will retry.";
+
+/**
+ * requireResusScope without its redirect. A redirect() thrown from a server
+ * action navigates the desk away mid-resus and drops the in-memory queue, so a
+ * lapsed session (or AAL) is null here — the caller answers SIGNED_OUT instead.
+ */
+export async function resusScopeOrNull(): Promise<ResusScope | null> {
+  try {
+    return await requireResusScope();
+  } catch (e) {
+    if (isRedirectError(e)) return null;
+    throw e;
+  }
+}
 
 export const WriteBase = z.object({
   episodeId: z.string().uuid(),
@@ -32,7 +50,7 @@ export const WriteBase = z.object({
 
 export type ActionResult<T extends object = object> =
   | ({ ok: true; serverTime: string; eventIds: string[] } & T)
-  | { ok: false; error: string; readOnly?: boolean };
+  | { ok: false; error: string; readOnly?: boolean; signedOut?: boolean };
 
 export interface EpisodeHeader {
   id: string;
@@ -96,9 +114,10 @@ export async function prelude(
       rows: number;
       replay: Replay | null;
     }
-  | { ok: false; error: string }
+  | { ok: false; error: string; signedOut?: boolean }
 > {
-  const scope = await requireResusScope();
+  const scope = await resusScopeOrNull();
+  if (!scope) return { ok: false, error: SIGNED_OUT, signedOut: true };
   const header = await loadHeader(scope, episodeId);
   if (!header) return { ok: false, error: "Resus episode not found in your hospital." };
   const all = await fetchAllResusEvents(episodeId);

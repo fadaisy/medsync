@@ -22,12 +22,14 @@ import { computeStepStates } from "@/lib/resus/survey/floor";
 import { RESUS_ROLES } from "@/lib/resus/types";
 import {
   ACTION_STATES,
+  allergyNoteIfChanged,
   buildActionStatePayload,
-  buildAllergyNote,
   buildAssessmentPayload,
+  GcsSchema,
 } from "@/lib/resus/v2-payloads";
 import { commitResusEvents, fetchResusEventsSince } from "@/lib/resus/v2-record";
 import { mirroredKinds, observationRows } from "@/lib/resus/v2-rules";
+import { VITAL_INPUT_BOUNDS, vitalPlausible } from "@/lib/resus/vitals";
 import { fail, isClinicalStaffAt, patientAgeYears, prelude, WriteBase } from "./common";
 
 /**
@@ -53,7 +55,7 @@ export async function fetchResusDeltaV2(input: { episodeId: string; sinceIso: st
       header: { state: string; phase: EpisodePhase; currentArrestSeq: number };
       serverTime: string;
     }
-  | { ok: false; error: string }
+  | { ok: false; error: string; signedOut?: boolean }
 > {
   const parsed = z
     .object({ episodeId: z.string().uuid(), sinceIso: z.string().datetime({ offset: true }) })
@@ -104,16 +106,24 @@ export async function setPatientContextV2(input: {
   clientEventId: string;
   recordedAt?: string;
   flags: PatientContextFlags;
+  /** SV-CTX-01: only what this tap changed, merged over the record's latest context. */
+  patch?: Partial<PatientContextFlags>;
 }): Promise<ActionResult> {
-  const parsed = WriteBase.extend({ flags: FlagsSchema }).safeParse(input);
+  const parsed = WriteBase.extend({
+    flags: FlagsSchema,
+    patch: FlagsSchema.partial().optional(),
+  }).safeParse(input);
   if (!parsed.success) return fail("Invalid patient context.");
   const p = await prelude(parsed.data.episodeId, parsed.data.clientEventId);
   if (!p.ok) return p;
   if (p.replay) return p.replay;
-  const on = Object.entries(parsed.data.flags)
+  // Two devices flipping different flags both land: the patch merges over the latest.
+  const patch = parsed.data.patch;
+  const flags = patch ? { ...latestContext(p.events), ...patch } : parsed.data.flags;
+  const on = Object.entries(flags)
     .filter(([k, v]) => v === true && k in EMPTY_CONTEXT)
     .map(([k]) => k);
-  if (parsed.data.flags.pregnancy !== "none") on.push(`pregnancy ${parsed.data.flags.pregnancy}`);
+  if (flags.pregnancy !== "none") on.push(`pregnancy ${flags.pregnancy}`);
   return done(
     await commitResusEvents({
       scopeUserId: p.scope.userId,
@@ -126,7 +136,8 @@ export async function setPatientContextV2(input: {
           kind: "context",
           step: "pre",
           payload: {
-            flags: parsed.data.flags,
+            flags,
+            ...(patch ? { patch } : {}),
             label: on.length ? `Context: ${on.join(", ")}` : "Context cleared",
           },
         },
@@ -149,19 +160,22 @@ const FindingsSchema = z.object({
   patency: z.string().max(40).nullable().optional(),
   present: z.array(z.string().max(64)).max(80),
   difficulty: z.array(z.string().max(64)).max(10).optional(),
-  gcs: z
-    .object({
-      eye: z.number().int().min(1).max(4).nullable(),
-      verbal: z.union([z.number().int().min(1).max(5), z.literal("T")]).nullable(),
-      motor: z.number().int().min(1).max(6).nullable(),
-    })
+  gcs: GcsSchema.nullable().optional(),
+  avpu: z.enum(["A", "V", "P", "U"]).nullable().optional(),
+  glucoseMmol: z
+    .number()
+    .min(VITAL_INPUT_BOUNDS.glucose.min)
+    .max(VITAL_INPUT_BOUNDS.glucose.max)
     .nullable()
     .optional(),
-  avpu: z.enum(["A", "V", "P", "U"]).nullable().optional(),
-  glucoseMmol: z.number().min(0).max(60).nullable().optional(),
   focalOnset: z.string().max(80).nullable().optional(),
   seizureDurationMin: z.number().min(0).max(600).nullable().optional(),
-  coreTempC: z.number().min(10).max(45).nullable().optional(),
+  coreTempC: z
+    .number()
+    .min(VITAL_INPUT_BOUNDS.temperature.min)
+    .max(VITAL_INPUT_BOUNDS.temperature.max)
+    .nullable()
+    .optional(),
   ample: z
     .object({
       allergies: z.array(z.string().max(80)).max(30).default([]),
@@ -228,16 +242,19 @@ export async function recordStepFindingsV2(input: {
       payload: buildAssessmentPayload(step, findingSet),
     },
   ];
-  const allergies = step === "E" ? (ample?.allergies ?? []) : [];
-  if (allergies.length > 0 || (step === "E" && ample?.nkda)) {
+  // AMPLE is carried forward: re-recording E writes the allergy note only when it changed.
+  const allergyNote =
+    step === "E" && ample
+      ? allergyNoteIfChanged(p.events, ample.allergies, ample.nkda === true)
+      : null;
+  if (allergyNote)
     events.push({
       clientEventId: crypto.randomUUID(),
       recordedAt: parsed.data.recordedAt,
       kind: "note",
       step: null,
-      payload: buildAllergyNote(allergies, ample?.nkda === true && allergies.length === 0),
+      payload: allergyNote,
     });
-  }
   return done(
     await commitResusEvents({
       scopeUserId: p.scope.userId,
@@ -295,23 +312,30 @@ export async function setStepActionStateV2(input: {
 }
 /* ─── Vitals (+ supplemental O₂), artefact annotation ───────────────── */
 
-const Num = z.number().finite().nullable().optional();
-const SnapshotSchema = z.object({
-  hr: Num,
-  rr: Num,
-  spo2: Num,
-  systolicBp: Num,
-  diastolicBp: Num,
-  temperature: Num,
-  glucose: Num,
-  gcs: Num,
-  etco2: Num,
-  urineOutput: Num,
-  consciousness: z.enum(["A", "C", "V", "P", "U"]).nullable().optional(),
-  oxygen: z.enum(["air", "oxygen"]).nullable().optional(),
-  o2Device: z.string().max(40).nullable().optional(),
-  o2FlowLpm: Num,
-});
+const Num = z.number().finite().nonnegative().nullable().optional();
+const SnapshotSchema = z
+  .object({
+    hr: Num,
+    rr: Num,
+    spo2: Num,
+    systolicBp: Num,
+    diastolicBp: Num,
+    temperature: Num,
+    glucose: Num,
+    gcs: Num,
+    etco2: Num,
+    urineOutput: Num,
+    consciousness: z.enum(["A", "C", "V", "P", "U"]).nullable().optional(),
+    oxygen: z.enum(["air", "oxygen"]).nullable().optional(),
+    o2Device: z.string().max(40).nullable().optional(),
+    o2FlowLpm: Num,
+  })
+  .superRefine((s, ctx) => {
+    // R2: the same plausibility the capture form applies (SpO₂ 970, 375 °C are typos).
+    for (const [k, v] of Object.entries(s))
+      if (typeof v === "number" && !vitalPlausible(k, v))
+        ctx.addIssue({ code: "custom", path: [k], message: "Not a possible reading" });
+  });
 
 /**
  * Retract a resus vital's longitudinal copy (artefact mark or undo): the mirrored
