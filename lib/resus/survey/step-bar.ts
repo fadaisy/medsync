@@ -1,4 +1,5 @@
 import type { StepStatus } from "@/lib/resus/engine";
+import type { StepState } from "@/lib/resus/model";
 import type { AbcdeLetter, TimelineEvent } from "@/lib/resus/types";
 
 import { classifyAirway, latestAirwayAssessment } from "@/lib/resus/airway";
@@ -25,6 +26,7 @@ import {
   triggeredActions as exposureTriggered,
   latestExposureAssessment,
 } from "@/lib/resus/exposure";
+import { computeStepStates } from "@/lib/resus/survey/floor";
 import { ABCDE_LETTERS } from "@/lib/resus/types";
 
 export interface StepBarContext {
@@ -33,23 +35,25 @@ export interface StepBarContext {
   nowMs: number;
 }
 
-export interface StepBarState extends StepBarEntry {
-  /** A classifiable findings set exists for this step. */
-  assessed: boolean;
-  /** The visual state was worsened by vitals-derived Measure findings. */
-  fromVitals: boolean;
-}
+/** A step-bar entry: the full v2 step state (`visual`, `assessed`, `fromVitals`, …). */
+export type StepBarState = StepState;
 
-/** Phase 0: still the v1 derivation (P3/P4 regression tests fail against it). */
+export { computeStepStates } from "@/lib/resus/survey/floor";
+
+/**
+ * The v2 step bar (GATE A §5 "P4 root cause and fix"): each step from its own
+ * engine over recorded ∪ fresh-adult-vitals findings, worsen-only
+ * (lib/resus/survey/floor.ts). `arrestDetected` is the one arrest state (D20).
+ */
 export function computeStepBar(
   timeline: readonly TimelineEvent[],
   ctx: StepBarContext,
 ): StepBarState[] {
-  return legacyStepBar(timeline, ctx.arrestDetected).map((e) => ({
-    ...e,
-    assessed: e.visual !== "pending",
-    fromVitals: false,
-  }));
+  return computeStepStates(timeline, {
+    ageYears: ctx.ageYears,
+    nowMs: ctx.nowMs,
+    inArrest: ctx.arrestDetected,
+  });
 }
 
 /** The step-bar's visual state (ADR 0049). */
