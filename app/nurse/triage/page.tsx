@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { resusDeskV2 } from "@/lib/resus/feature";
 import { requireTriageScope } from "@/lib/triage/scope";
 import { fetchTriageWorklist } from "@/lib/triage/worklist";
 import { TriageWorklist } from "./_components/triage-worklist";
@@ -55,7 +56,11 @@ export default async function TriagePage() {
         <div className="bg-mint-500/60 dark:bg-mint-400/50 h-px w-10" aria-hidden />
       </header>
 
-      <TriageWorklist rows={rows} departmentName={scope.departmentName} />
+      <TriageWorklist
+        rows={rows}
+        departmentName={scope.departmentName}
+        openResusOnArrest={resusDeskV2()}
+      />
     </div>
   );
 }

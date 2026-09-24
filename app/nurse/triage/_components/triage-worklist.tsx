@@ -27,6 +27,7 @@ export function TriageWorklist({
   departmentName,
   basePath = "/nurse/triage",
   resusBasePath = "/nurse/resus",
+  openResusOnArrest = false,
 }: {
   rows: ReadonlyArray<TriageWorklistRow>;
   departmentName: string;
@@ -34,6 +35,8 @@ export function TriageWorklist({
   basePath?: string;
   /** Workspace base for the open-resus redirect target. */
   resusBasePath?: string;
+  /** Resus Desk v2 S0: the server page passes `resusDeskV2()` (read on the server only). */
+  openResusOnArrest?: boolean;
 }) {
   if (rows.length === 0) {
     return (
@@ -133,6 +136,8 @@ export function TriageWorklist({
                 intakeId={r.intakeId}
                 patientUserId={r.patientUserId}
                 patientLabel={name}
+                openResusOnArrest={openResusOnArrest}
+                resusBase={resusBasePath}
               />
             )}
           </li>

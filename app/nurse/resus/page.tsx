@@ -1,8 +1,12 @@
 import type { Metadata } from "next";
 
+import { canAdminCloseResus } from "@/lib/resus/authority";
 import { fetchResusBoard } from "@/lib/resus/board";
+import { fetchResusBoardV2 } from "@/lib/resus/board-v2";
+import { resusDeskV2 } from "@/lib/resus/feature";
 import { requireResusScope } from "@/lib/resus/scope";
 import { cn } from "@/lib/utils";
+import { ResusBoardV2 } from "./_components/board-v2";
 import { ResusBoard } from "./_components/resus-board";
 
 export const metadata: Metadata = {
@@ -18,6 +22,23 @@ export const dynamic = "force-dynamic";
  */
 export default async function ResusBoardPage() {
   const scope = await requireResusScope();
+  if (resusDeskV2()) {
+    const [boardV2, canAdminClose] = await Promise.all([
+      fetchResusBoardV2({ hospitalId: scope.hospitalId, clinicianUserId: scope.userId }),
+      canAdminCloseResus(scope.userId, scope.hospitalId, scope.cadreCode),
+    ]);
+    return (
+      <ResusBoardV2
+        board={boardV2}
+        basePath="/nurse/resus"
+        me={{
+          canAdminClose,
+          leaderRecommended: scope.leaderRecommended,
+          place: `${scope.hospitalName} · ${scope.departmentName}`,
+        }}
+      />
+    );
+  }
   const board = await fetchResusBoard({
     hospitalId: scope.hospitalId,
     clinicianUserId: scope.userId,

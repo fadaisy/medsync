@@ -190,11 +190,17 @@ export function TriageDesk({
   row,
   mayDownTriage,
   basePath = "/nurse/triage",
+  resusBase = "/nurse/resus",
+  openResusOnArrest = false,
 }: {
   row: TriageWorklistRow;
   mayDownTriage: boolean;
   /** Workspace base for the back-to-worklist nav (/nurse/triage or /doctor/triage). */
   basePath?: string;
+  /** Workspace base the rapid-Red arrest jump lands in (/nurse/resus or /doctor/resus). */
+  resusBase?: string;
+  /** Resus Desk v2 S0: the server page passes `resusDeskV2()` — never read here (client). */
+  openResusOnArrest?: boolean;
 }) {
   const router = useRouter();
   const onClose = useCallback(() => router.push(basePath), [router, basePath]);
@@ -872,6 +878,8 @@ export function TriageDesk({
             intakeId={row.intakeId}
             patientUserId={row.patientUserId}
             patientLabel={name}
+            openResusOnArrest={openResusOnArrest}
+            resusBase={resusBase}
           />
           {/* Next Steps — beside the acuity/Resus, live (lg+). */}
           <div className="hidden lg:block">{nextSteps}</div>

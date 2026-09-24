@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { TriageWorklist } from "@/app/nurse/triage/_components/triage-worklist";
+import { resusDeskV2 } from "@/lib/resus/feature";
 import { requireTriageScope } from "@/lib/triage/scope";
 import { fetchTriageWorklist } from "@/lib/triage/worklist";
 
@@ -53,6 +54,7 @@ export default async function DoctorTriagePage() {
         departmentName={scope.departmentName}
         basePath="/doctor/triage"
         resusBasePath="/doctor/resus"
+        openResusOnArrest={resusDeskV2()}
       />
     </div>
   );

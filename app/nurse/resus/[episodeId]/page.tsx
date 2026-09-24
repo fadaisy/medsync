@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 
 import { resolveCapabilities } from "@/lib/doctor/capabilities";
 import { fetchResusPatient } from "@/lib/resus/board";
+import { loadDeskV2 } from "@/lib/resus/desk-v2-loader";
+import { resusDeskV2 } from "@/lib/resus/feature";
 import {
   fetchResusEpisode,
   fetchResusResponders,
@@ -11,6 +13,7 @@ import {
 } from "@/lib/resus/record";
 import { requireResusScope } from "@/lib/resus/scope";
 import { ResusDesk } from "./_components/resus-desk";
+import { ResusDeskV2 } from "./_components/v2/desk";
 
 export const metadata: Metadata = {
   title: "Resus desk · MedSync",
@@ -29,6 +32,11 @@ export default async function ResusDeskPage({
   params: Promise<{ episodeId: string }>;
 }) {
   const { episodeId } = await params;
+  if (resusDeskV2()) {
+    const initial = await loadDeskV2({ episodeId, basePath: "/nurse/resus" });
+    if (!initial) notFound();
+    return <ResusDeskV2 initial={initial} />;
+  }
   const scope = await requireResusScope(`/nurse/resus/${episodeId}`);
 
   const episode = await fetchResusEpisode({ episodeId, hospitalId: scope.hospitalId });

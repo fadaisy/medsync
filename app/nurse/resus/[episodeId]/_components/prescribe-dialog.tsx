@@ -103,10 +103,13 @@ export function PrescribeDialog({
   timeline,
   onClose,
   onDone,
+  reasons,
 }: {
   episodeId: string;
   recCode: string;
   recLabel: string;
+  /** Why a one-tap entry was not logged (the fast path's block) — amber, never red. */
+  reasons?: string[];
   patientAgeYears: number | null;
   prescribeAuthority: PrescribeAuthority;
   timeline: TimelineEvent[];
@@ -347,6 +350,11 @@ export function PrescribeDialog({
         </div>
 
         <div className="flex flex-col gap-3 overflow-y-auto px-4 py-3">
+          {reasons && reasons.length > 0 ? (
+            <p className="text-body-s rounded-md border border-amber-400/70 bg-amber-50/70 px-3 py-2 text-amber-900 dark:bg-amber-950/25 dark:text-amber-200">
+              <span className="font-medium">One tap was not logged:</span> {reasons.join(" · ")}
+            </p>
+          ) : null}
           {/* Option picker (e.g. hydrocortisone IV vs prednisolone PO) */}
           {options.length > 1 ? (
             <div className="flex flex-wrap gap-1.5">

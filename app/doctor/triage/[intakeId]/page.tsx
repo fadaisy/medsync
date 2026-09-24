@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { TriageDesk } from "@/app/nurse/triage/_components/triage-desk";
+import { resusDeskV2 } from "@/lib/resus/feature";
 import { requireTriageScope } from "@/lib/triage/scope";
 import { fetchTriageWorklistRow } from "@/lib/triage/worklist";
 
@@ -31,6 +32,12 @@ export default async function DoctorTriageDeskPage({
   if (!row) notFound();
 
   return (
-    <TriageDesk row={row} mayDownTriage={scope.authority.mayDownTriage} basePath="/doctor/triage" />
+    <TriageDesk
+      row={row}
+      mayDownTriage={scope.authority.mayDownTriage}
+      basePath="/doctor/triage"
+      resusBase="/doctor/resus"
+      openResusOnArrest={resusDeskV2()}
+    />
   );
 }

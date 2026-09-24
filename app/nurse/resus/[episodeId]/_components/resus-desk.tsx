@@ -1,6 +1,7 @@
 "use client";
 
 import type { PrescribeAuthority } from "./prescribe-dialog";
+import type { VitalCellSkin } from "./v2/vitals-cells";
 import type { ResusPatientView } from "@/lib/resus/board";
 import type { StepStatus } from "@/lib/resus/engine";
 import type { ResponderEntry, RosterEntry } from "@/lib/resus/record";
@@ -11,7 +12,7 @@ import type { ClinicalDirection, VitalTrend } from "@/lib/resus/vital-trend";
 import type { ResusVitalsView, VitalSnapshot } from "@/lib/resus/vitals";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { ArrowLeftIcon, RotateCcwIcon } from "lucide-react";
 
 import { classifyAirway, latestAirwayAssessment } from "@/lib/resus/airway";
@@ -51,7 +52,7 @@ import {
 } from "@/lib/resus/reference/abcde-catalog";
 import { getResusDose } from "@/lib/resus/reference/doses";
 import { ABCDE_LETTERS, RESUS_ROLES } from "@/lib/resus/types";
-import { VITAL_REFERENCE, vitalBand, vitalTrend, vitalTrendLabel } from "@/lib/resus/vital-trend";
+import { vitalBand, vitalTrend } from "@/lib/resus/vital-trend";
 import { buildResusVitals, TREND_VITALS } from "@/lib/resus/vitals";
 import { cn } from "@/lib/utils";
 import {
@@ -67,6 +68,7 @@ import { CirculationPanel } from "./circulation-panel";
 import { DisabilityPanel } from "./disability-panel";
 import { ExposurePanel } from "./exposure-panel";
 import { PrescribeDialog } from "./prescribe-dialog";
+import { VitalCell } from "./v2/vitals-cells";
 
 interface DeskEpisode {
   id: string;
@@ -606,7 +608,6 @@ const TREND_DIR_CLASS: Record<ClinicalDirection, string> = {
   deteriorating: "text-rose-700 dark:text-rose-300",
   neutral: "text-muted-foreground",
 };
-const TREND_GLYPH: Record<"up" | "down" | "same", string> = { up: "↑", down: "↓", same: "→" };
 
 /** Trend-coloured CELL tones — deteriorating (rose) / improving (teal). */
 const TREND_CELL_CLASS: Record<"deteriorating" | "improving", string> = {
@@ -631,289 +632,23 @@ function cellTrendClass(tone: VitalTone, trend: VitalTrend | null): string {
   return VITAL_TONE_CLASS[tone];
 }
 
-/** The at-a-glance trend arrow — glyph = raw direction, colour = clinical
- *  meaning (improving/deteriorating/neutral). Never colour alone. */
-function TrendArrow({ trend, decimals }: { trend: VitalTrend; decimals?: number }) {
-  if (!trend.hasTrend || trend.rawDirection == null || trend.clinicalDirection == null) return null;
-  const deltaText =
-    trend.delta != null && trend.delta !== 0
-      ? decimals != null
-        ? Math.abs(trend.delta).toFixed(decimals)
-        : Math.abs(trend.delta)
-      : "";
-  return (
-    <span
-      className={cn(
-        "text-caption font-mono leading-none font-semibold",
-        TREND_DIR_CLASS[trend.clinicalDirection],
-      )}
-      aria-hidden
-    >
-      {TREND_GLYPH[trend.rawDirection]}
-      {deltaText}
-    </span>
-  );
-}
-
-interface GraphPoints {
-  t: string;
-  value: number;
-}
-
-/**
- * The hover/tap trend graph — a clean time-aware line over the resus, with the
- * NORMAL band shaded + the danger threshold(s) marked (clinical-normal, from the
- * shared `vitalBand` cutoffs). BP plots SBP + DBP as a two-line pair. Latest
- * point emphasised. Reduced-motion-safe (it appears without animation).
- */
-function VitalTrendGraph({
-  seriesKey,
-  label,
-  unit,
-  points,
-  secondary,
-}: {
-  seriesKey: string;
-  label: string;
-  unit: string;
-  points: GraphPoints[];
-  secondary?: { label: string; points: GraphPoints[] } | null;
-}) {
-  const all = [...points, ...(secondary?.points ?? [])];
-  if (all.length < 2) {
-    return (
-      <p className="text-muted-foreground/70 px-1 py-2 text-center text-[10.5px]">
-        Needs ≥ 2 readings to trend.
-      </p>
-    );
-  }
-  const ref = VITAL_REFERENCE[seriesKey] ?? {};
-  const w = 208;
-  const h = 92;
-  const padX = 6;
-  const padY = 10;
-
-  const times = all.map((p) => new Date(p.t).getTime());
-  const t0 = Math.min(...times);
-  const tN = Math.max(...times);
-  const tSpan = tN - t0 || 1;
-
-  const refVals = [ref.normalLow, ref.normalHigh, ref.dangerLow, ref.dangerHigh].filter(
-    (n): n is number => typeof n === "number",
-  );
-  const lo = Math.min(...all.map((p) => p.value), ...refVals);
-  const hi = Math.max(...all.map((p) => p.value), ...refVals);
-  const span = hi - lo || 1;
-  const x = (t: string) => padX + ((new Date(t).getTime() - t0) / tSpan) * (w - 2 * padX);
-  const y = (v: number) => padY + (1 - (v - lo) / span) * (h - 2 * padY);
-
-  const path = (pp: GraphPoints[]) =>
-    pp
-      .map((p, i) => `${i === 0 ? "M" : "L"}${x(p.t).toFixed(1)},${y(p.value).toFixed(1)}`)
-      .join(" ");
-
-  const last = points[points.length - 1]!;
-
-  return (
-    <div className="flex flex-col gap-1">
-      <div className="flex items-baseline justify-between gap-2">
-        <span className="text-foreground text-caption font-semibold">
-          {label} <span className="text-muted-foreground/70 font-normal">{unit}</span>
-        </span>
-        <span className="text-muted-foreground/70 font-mono text-[9px]">{all.length} readings</span>
-      </div>
-      <svg
-        width={w}
-        height={h}
-        className="overflow-visible"
-        role="img"
-        aria-label={`${label} trend graph`}
-      >
-        {/* Normal band (clinical-normal) shaded */}
-        {ref.normalLow != null || ref.normalHigh != null ? (
-          <rect
-            x={padX}
-            width={w - 2 * padX}
-            y={y(ref.normalHigh ?? hi)}
-            height={Math.max(0, y(ref.normalLow ?? lo) - y(ref.normalHigh ?? hi))}
-            className="fill-mint-500/10"
-          />
-        ) : null}
-        {/* Danger threshold lines */}
-        {[ref.dangerLow, ref.dangerHigh]
-          .filter((n): n is number => typeof n === "number")
-          .map((n) => (
-            <line
-              key={n}
-              x1={padX}
-              x2={w - padX}
-              y1={y(n)}
-              y2={y(n)}
-              className="stroke-rose-500/40"
-              strokeWidth="1"
-              strokeDasharray="3 2"
-            />
-          ))}
-        {/* DBP (secondary) line for BP */}
-        {secondary && secondary.points.length >= 2 ? (
-          <path
-            d={path(secondary.points)}
-            fill="none"
-            className="stroke-muted-foreground/50"
-            strokeWidth="1.25"
-          />
-        ) : null}
-        {/* Primary line + points */}
-        <path d={path(points)} fill="none" className="stroke-foreground/70" strokeWidth="1.5" />
-        {points.map((p) => (
-          <circle key={p.t} cx={x(p.t)} cy={y(p.value)} r={1.6} className="fill-foreground/50" />
-        ))}
-        {/* Latest point emphasised */}
-        <circle cx={x(last.t)} cy={y(last.value)} r={3} className="fill-foreground" />
-      </svg>
-      <div className="text-muted-foreground/80 flex items-center justify-between font-mono text-[9px] tabular-nums">
-        <span>now {last.value}</span>
-        {secondary && secondary.points.length > 0 ? (
-          <span>
-            {secondary.label} {secondary.points[secondary.points.length - 1]!.value}
-          </span>
-        ) : null}
-        {ref.normalLow != null || ref.normalHigh != null ? (
-          <span className="text-mint-700/70 dark:text-mint-300/70">
-            normal {ref.normalLow ?? "≤"}
-            {ref.normalLow != null && ref.normalHigh != null ? "–" : ""}
-            {ref.normalHigh ?? (ref.normalLow != null ? "+" : "")}
-          </span>
-        ) : null}
-      </div>
-    </div>
-  );
-}
-
-/**
- * A vitals-strip cell — current + previous (secondary) + the clinically-coloured
- * trend arrow; on HOVER (desktop) or TAP (touch) it reveals the trend graph.
- */
-function VitalCell({
-  tile,
-  value,
-  tone,
-  trend,
-  points,
-  secondary,
-  decimals,
-}: {
-  tile: { key: string; label: string; unit: string };
-  value: number | null | undefined;
-  tone: VitalTone;
-  trend: VitalTrend | null;
-  points: GraphPoints[];
-  secondary?: { label: string; points: GraphPoints[] } | null;
-  /** Decimal places for fine-grained metrics (e.g. shock index → 2). */
-  decimals?: number;
-}) {
-  const cellRef = useRef<HTMLDivElement>(null);
-  const touchRef = useRef(false);
-  const [open, setOpen] = useState(false);
-  // The popover is position:FIXED (anchored to the cell rect) so the strip's
-  // `overflow-x-auto` can't clip it — that clipping is why hover showed nothing.
-  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
-  const canGraph = points.length >= 2 || (secondary?.points.length ?? 0) >= 2;
-  const fmt = (n: number) => (decimals != null ? n.toFixed(decimals) : String(n));
-  const valueText = value == null ? "—" : fmt(value);
-  const prevText = trend?.hasTrend && trend.previous != null ? `was ${fmt(trend.previous)}` : null;
-
-  function show() {
-    if (!canGraph) return;
-    const r = cellRef.current?.getBoundingClientRect();
-    if (r) {
-      const width = 224; // w-56
-      setPos({
-        top: r.bottom + 4,
-        left: Math.max(8, Math.min(r.left, window.innerWidth - width - 8)),
-      });
-    }
-    setOpen(true);
-  }
-  const hide = () => setOpen(false);
-
-  // Close on Escape / scroll (the strip scrolls horizontally → stale position).
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
-    const onScroll = () => setOpen(false);
-    window.addEventListener("keydown", onKey);
-    window.addEventListener("scroll", onScroll, true);
-    return () => {
-      window.removeEventListener("keydown", onKey);
-      window.removeEventListener("scroll", onScroll, true);
-    };
-  }, [open]);
-
-  return (
-    <div className="shrink-0">
-      <div
-        ref={cellRef}
-        className={cn(
-          "flex flex-col rounded-lg border px-2 py-1",
-          cellTrendClass(tone, trend),
-          canGraph && "cursor-pointer",
-        )}
-        role={canGraph ? "button" : undefined}
-        tabIndex={canGraph ? 0 : undefined}
-        aria-label={
-          trend ? vitalTrendLabel(tile.label, tile.unit, trend) : `${tile.label} not recorded`
-        }
-        onTouchStart={() => {
-          touchRef.current = true;
-        }}
-        onMouseEnter={() => {
-          if (!touchRef.current) show();
-        }}
-        onMouseLeave={() => {
-          if (!touchRef.current) hide();
-        }}
-        onClick={() => (open ? hide() : show())}
-        onKeyDown={(e) => {
-          if (canGraph && (e.key === "Enter" || e.key === " ")) {
-            e.preventDefault();
-            if (open) hide();
-            else show();
-          }
-        }}
-      >
-        <span className="font-mono text-[9px] tracking-[0.1em] uppercase opacity-70">
-          {tile.label}
-        </span>
-        <span className="flex items-baseline gap-1">
-          <span className="text-body-m font-mono leading-none font-semibold tabular-nums">
-            {valueText}
-          </span>
-          {trend ? <TrendArrow trend={trend} decimals={decimals} /> : null}
-        </span>
-        {prevText ? (
-          <span className="text-muted-foreground/60 font-mono text-[9px] tabular-nums">
-            {prevText}
-          </span>
-        ) : null}
-      </div>
-      {canGraph && open && pos ? (
-        <div
-          style={{ position: "fixed", top: pos.top, left: pos.left }}
-          className="border-border bg-popover scale-in z-50 w-56 origin-top-left rounded-lg border p-2 shadow-lg"
-        >
-          <VitalTrendGraph
-            seriesKey={tile.key}
-            label={tile.label}
-            unit={tile.unit}
-            points={points}
-            secondary={secondary}
-          />
-        </div>
-      ) : null}
-    </div>
-  );
-}
+/** The v1 skin for the shared vitals cell (v2/vitals-cells.tsx) — the v1 class
+ *  strings, unchanged, so this band renders exactly as before the move. */
+const LEGACY_VITAL_SKIN: VitalCellSkin = {
+  cellBase: "flex flex-col rounded-lg border px-2 py-1",
+  cellTone: cellTrendClass,
+  label: "font-mono text-[9px] tracking-[0.1em] uppercase opacity-70",
+  value: () => "text-body-m font-mono leading-none font-semibold tabular-nums",
+  prev: "text-muted-foreground/60 font-mono text-[9px] tabular-nums",
+  arrowDir: TREND_DIR_CLASS,
+  popover:
+    "border-border bg-popover scale-in z-50 w-56 origin-top-left rounded-lg border p-2 shadow-lg",
+  graphNote: "text-muted-foreground/70 px-1 py-2 text-center text-[10.5px]",
+  graphMeta: "text-muted-foreground/70 font-mono text-[9px]",
+  graphFooter:
+    "text-muted-foreground/80 flex items-center justify-between font-mono text-[9px] tabular-nums",
+  dangerLine: "stroke-rose-500/40",
+};
 
 /** Series-backed derived metrics with a self-contained (SBP-independent) band
  *  that get the prev→current + trend-graph cell. Shock index shows 2 dp.
@@ -1000,6 +735,7 @@ function VitalsBand({
             return (
               <VitalCell
                 key={t.key}
+                skin={LEGACY_VITAL_SKIN}
                 tile={t}
                 value={value}
                 tone={vitalTone(t.key, value)}
@@ -1016,6 +752,7 @@ function VitalsBand({
             return (
               <VitalCell
                 key={t.key}
+                skin={LEGACY_VITAL_SKIN}
                 tile={t}
                 value={value}
                 tone={vitalTone(t.key, value)}

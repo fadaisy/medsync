@@ -12,6 +12,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { openResusFromTriage } from "../../resus/actions";
 import { rapidRedAction } from "../actions";
 
 /**
@@ -36,19 +37,39 @@ const LIFE_THREATS = [
   "Critically low SpO₂",
 ] as const;
 
+/** Resus Desk v2 S0: this reason opens the resus straight into the arrest (server side). */
+const ARREST_REASON: (typeof LIFE_THREATS)[number] = "No palpable pulse / cardiac arrest";
+
 export function RapidRedButton({
   intakeId,
   patientUserId,
   patientLabel,
+  openResusOnArrest = false,
+  resusBase = "/nurse/resus",
 }: {
   intakeId: string;
   patientUserId: string | null;
   patientLabel: string;
+  /**
+   * Resus Desk v2 (S0) — the server page passes `resusDeskV2()`. When on and the
+   * reason is "no palpable pulse", a successful rapid Red opens the resus at once
+   * (arrest recorded, desk in arrest mode) instead of staying on the board.
+   */
+  openResusOnArrest?: boolean;
+  /** Workspace base the opened resus lands in (/nurse/resus or /doctor/resus). */
+  resusBase?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState<string>(LIFE_THREATS[0]);
   const [error, setError] = useState<string | null>(null);
+  const [openedFor, setOpenedFor] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+
+  /** Redirects to the desk on success; returns only on error. */
+  async function openArrestResus(triageRecordId: string) {
+    const opened = await openResusFromTriage(triageRecordId, resusBase);
+    setError(`Level 1 is recorded, but the resus did not open: ${opened.error} Try again.`);
+  }
 
   function confirm() {
     setError(null);
@@ -57,8 +78,13 @@ export function RapidRedButton({
     if (patientUserId) fd.set("patient_user_id", patientUserId);
     fd.set("reason", reason);
     startTransition(async () => {
+      // S0 retry: the Level 1 is already recorded — only re-open, never re-triage.
+      if (openedFor) return openArrestResus(openedFor);
       const res = await rapidRedAction({}, fd);
-      if (res.ok) {
+      if (res.ok && openResusOnArrest && reason === ARREST_REASON && res.triageRecordId) {
+        setOpenedFor(res.triageRecordId);
+        await openArrestResus(res.triageRecordId);
+      } else if (res.ok) {
         setOpen(false);
       } else {
         setError(res.error ?? "Could not record the resus triage. Please try again.");

@@ -21,7 +21,10 @@ import { cn } from "@/lib/utils";
  * is never covered; elsewhere on phones it sits on the safe-area edge.
  * `z-30` like the tab bar — below dialogs, so a modal can cover it.
  *
- * Hidden on /emergency/** itself: the sheet IS the affordance there.
+ * Hidden on /emergency/** itself: the sheet IS the affordance there. It also
+ * stands down on any page that renders its own Emergency link marked
+ * `data-emergency-inline` (the resus desk header, PROMPT §5.7 / P11), so it
+ * never floats over bedside controls — and never leaves a page without one.
  * Pulses once on mount (PRD §7.5), `motion-safe:` only — no continuous
  * pulse, no pulse at all for reduced-motion users.
  */
@@ -43,6 +46,7 @@ export function EmergencyPill() {
         // While the catalog's tray is unfolded the bar grows past the pill's
         // resting height: the pill moves to the top-right for that moment.
         "[body:has([data-bottom-bar-expanded])_&]:top-4 [body:has([data-bottom-bar-expanded])_&]:bottom-auto",
+        "[body:has([data-emergency-inline])_&]:hidden",
       )}
     >
       <Link

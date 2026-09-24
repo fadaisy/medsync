@@ -2,8 +2,11 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { ResusDesk } from "@/app/nurse/resus/[episodeId]/_components/resus-desk";
+import { ResusDeskV2 } from "@/app/nurse/resus/[episodeId]/_components/v2/desk";
 import { resolveCapabilities } from "@/lib/doctor/capabilities";
 import { fetchResusPatient } from "@/lib/resus/board";
+import { loadDeskV2 } from "@/lib/resus/desk-v2-loader";
+import { resusDeskV2 } from "@/lib/resus/feature";
 import {
   fetchResusEpisode,
   fetchResusResponders,
@@ -29,6 +32,11 @@ export default async function DoctorResusDeskPage({
   params: Promise<{ episodeId: string }>;
 }) {
   const { episodeId } = await params;
+  if (resusDeskV2()) {
+    const initial = await loadDeskV2({ episodeId, basePath: "/doctor/resus" });
+    if (!initial) notFound();
+    return <ResusDeskV2 initial={initial} />;
+  }
   const scope = await requireResusScope(`/doctor/resus/${episodeId}`);
 
   const episode = await fetchResusEpisode({ episodeId, hospitalId: scope.hospitalId });
