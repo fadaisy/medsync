@@ -54,7 +54,7 @@ export default async function AdminApprovalsPage() {
     .filter((r) => r.role === "hospital_admin" && r.hospital_id)
     .map((r) => r.hospital_id as string);
 
-  // ─── Staff affiliations ─────────────────────────────────────────────
+  // --- Staff affiliations ---------------------------------------------
   const staffItems: ApprovalItem[] = [];
 
   if (isSuperadmin || hospitalAdminScopes.length > 0) {
@@ -146,7 +146,7 @@ export default async function AdminApprovalsPage() {
     }
   }
 
-  // ─── Hospital applications (superadmin only) ────────────────────────
+  // --- Hospital applications (superadmin only) ------------------------
   const hospitalItems: ApprovalItem[] = [];
 
   if (isSuperadmin) {
@@ -238,7 +238,7 @@ export default async function AdminApprovalsPage() {
           }`,
           createdAtIso: r.createdAt.toISOString(),
           evidence: [
-            /* ─── Institution profile (§B) ─── */
+            /* --- Institution profile (§B) --- */
             { section: "Institution", label: "Official name", value: r.hospitalName },
             ...(r.hospitalAka
               ? [{ section: "Institution", label: "Also known as", value: r.hospitalAka }]
@@ -301,7 +301,7 @@ export default async function AdminApprovalsPage() {
               : []),
             ...(r.website ? [{ section: "Institution", label: "Website", value: r.website }] : []),
 
-            /* ─── Clinical & operating (§C–§E5) ─── */
+            /* --- Clinical & operating (§C–§E5) --- */
             { section: "Clinical & operating", label: "Departments", value: allDepts },
             ...(primaryDept
               ? [
@@ -428,7 +428,7 @@ export default async function AdminApprovalsPage() {
                 ]
               : []),
 
-            /* ─── Verification & authority (§E6) ─── */
+            /* --- Verification & authority (§E6) --- */
             {
               section: "Verification",
               label: "Reg number",
@@ -477,7 +477,7 @@ export default async function AdminApprovalsPage() {
                   },
                 ]),
 
-            /* ─── Applicant ─── */
+            /* --- Applicant --- */
             ...(r.applicantFullName
               ? [{ section: "Applicant", label: "Full name", value: r.applicantFullName }]
               : []),
@@ -524,7 +524,7 @@ export default async function AdminApprovalsPage() {
                 ]
               : []),
 
-            /* ─── Authority anchor ─── */
+            /* --- Authority anchor --- */
             ...(r.authorityOfficerName
               ? [{ section: "Authority", label: "Officer name", value: r.authorityOfficerName }]
               : []),
@@ -565,7 +565,7 @@ export default async function AdminApprovalsPage() {
                 ]
               : []),
 
-            /* ─── Agreement (§E7) ─── */
+            /* --- Agreement (§E7) --- */
             ...(r.signatoryName
               ? [{ section: "Agreement", label: "Signatory", value: r.signatoryName }]
               : []),
@@ -605,7 +605,7 @@ export default async function AdminApprovalsPage() {
                 ]
               : []),
 
-            /* ─── Meta ─── */
+            /* --- Meta --- */
             {
               section: "Meta",
               label: "Submitted",
@@ -657,7 +657,7 @@ export default async function AdminApprovalsPage() {
   return <ApprovalsQueue items={allItems} canSeeHospitalQueue={isSuperadmin} />;
 }
 
-/* ─── Local helpers ────────────────────────────────────────────────── */
+/* --- Local helpers -------------------------------------------------- */
 
 /** Humanise a stored code ("INTERNAL_MEDICINE" → "Internal Medicine"). */
 function humanise(code: string): string {
