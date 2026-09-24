@@ -73,7 +73,7 @@ const FIELD =
 export function AmpleDrawer({ open, onClose }: { open: boolean; onClose: () => void }) {
   return (
     <Sheet open={open} onOpenChange={(o) => (o ? undefined : onClose())}>
-      <SheetContent widthClassName="w-full sm:max-w-[480px]">
+      <SheetContent side="center" widthClassName="max-w-[960px]">
         <AmpleForm onClose={onClose} />
       </SheetContent>
     </Sheet>
@@ -194,75 +194,79 @@ function AmpleForm({ onClose }: { onClose: () => void }) {
         <SheetTitle>AMPLE history</SheetTitle>
         <SheetDescription>Allergies feed the prescribing allergy check.</SheetDescription>
       </SheetHeader>
-      <SheetBody className="flex flex-col gap-5">
-        <fieldset className="flex flex-col gap-2">
-          <legend className="text-caption text-muted-foreground mb-1">Allergies</legend>
-          {allergies.length > 0 ? (
-            <div className="flex flex-wrap gap-2">
-              {allergies.map((a) => (
+      <SheetBody className="grid content-start gap-5 md:grid-cols-2 md:gap-x-8">
+        <div className="flex min-w-0 flex-col gap-5">
+          <fieldset className="flex flex-col gap-2">
+            <legend className="text-caption text-muted-foreground mb-1">Allergies</legend>
+            {allergies.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {allergies.map((a) => (
+                  <button
+                    key={a}
+                    type="button"
+                    disabled={readOnly}
+                    onClick={() => setAllergies(allergies.filter((x) => x !== a))}
+                    aria-label={`Remove ${a}`}
+                    className="tap text-body-s inline-flex min-h-11 items-center gap-1.5 rounded-md bg-amber-100 px-3 text-amber-800 disabled:opacity-60 dark:bg-amber-900/40 dark:text-amber-200"
+                  >
+                    {a}
+                    {readOnly ? null : <XIcon className="size-3.5" aria-hidden />}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+            {readOnly ? null : (
+              <div className="flex gap-2">
+                <input
+                  value={entry}
+                  maxLength={400}
+                  onChange={(e) => setEntry(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      add();
+                    }
+                  }}
+                  placeholder="e.g. penicillin, peanut"
+                  aria-label="Add an allergy"
+                  className={FIELD}
+                />
                 <button
-                  key={a}
                   type="button"
-                  disabled={readOnly}
-                  onClick={() => setAllergies(allergies.filter((x) => x !== a))}
-                  aria-label={`Remove ${a}`}
-                  className="tap text-body-s inline-flex min-h-11 items-center gap-1.5 rounded-md bg-amber-100 px-3 text-amber-800 disabled:opacity-60 dark:bg-amber-900/40 dark:text-amber-200"
+                  onClick={add}
+                  className="tap border-border text-body-s hover:bg-muted min-h-11 shrink-0 rounded-md border px-4 font-medium"
                 >
-                  {a}
-                  {readOnly ? null : <XIcon className="size-3.5" aria-hidden />}
+                  Add
                 </button>
-              ))}
-            </div>
-          ) : null}
-          {readOnly ? null : (
-            <div className="flex gap-2">
+              </div>
+            )}
+            <label className="text-body-s text-foreground flex min-h-11 items-center gap-2">
               <input
-                value={entry}
-                maxLength={400}
-                onChange={(e) => setEntry(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    e.preventDefault();
-                    add();
-                  }
-                }}
-                placeholder="e.g. penicillin, peanut"
-                aria-label="Add an allergy"
-                className={FIELD}
+                type="checkbox"
+                className="size-4 accent-teal-600"
+                checked={nkda && withEntry.length === 0}
+                disabled={readOnly || withEntry.length > 0}
+                onChange={(e) => setNkda(e.target.checked)}
               />
-              <button
-                type="button"
-                onClick={add}
-                className="tap border-border text-body-s hover:bg-muted min-h-11 shrink-0 rounded-md border px-4 font-medium"
-              >
-                Add
-              </button>
-            </div>
-          )}
-          <label className="text-body-s text-foreground flex min-h-11 items-center gap-2">
+              No known drug allergies (NKDA)
+            </label>
+          </fieldset>
+          {text("Medications (incl. patches / anticoagulants)", meds, setMeds, 500)}
+        </div>
+        <div className="flex min-w-0 flex-col gap-5">
+          {text("Past history", past, setPast, 500)}
+          <label className="flex flex-col gap-1">
+            <span className="text-caption text-muted-foreground">Last meal</span>
             <input
-              type="checkbox"
-              className="size-4 accent-teal-600"
-              checked={nkda && withEntry.length === 0}
-              disabled={readOnly || withEntry.length > 0}
-              onChange={(e) => setNkda(e.target.checked)}
+              value={meal}
+              maxLength={200}
+              disabled={readOnly}
+              onChange={(e) => setMeal(e.target.value)}
+              className={FIELD}
             />
-            No known drug allergies (NKDA)
           </label>
-        </fieldset>
-        {text("Medications (incl. patches / anticoagulants)", meds, setMeds, 500)}
-        {text("Past history", past, setPast, 500)}
-        <label className="flex flex-col gap-1">
-          <span className="text-caption text-muted-foreground">Last meal</span>
-          <input
-            value={meal}
-            maxLength={200}
-            disabled={readOnly}
-            onChange={(e) => setMeal(e.target.value)}
-            className={FIELD}
-          />
-        </label>
-        {text("Events / environment (mechanism, timeline, toxins)", events, setEvents, 500)}
+          {text("Events / environment (mechanism, timeline, toxins)", events, setEvents, 500)}
+        </div>
       </SheetBody>
       <SheetFooter>
         <button

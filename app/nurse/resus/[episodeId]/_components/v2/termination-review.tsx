@@ -59,7 +59,12 @@ const FAMILY_LABEL: Record<Family, string> = {
 export function TerminationReview({ open, onClose }: { open: boolean; onClose: () => void }) {
   return (
     <Sheet open={open} onOpenChange={(o) => (o ? undefined : onClose())}>
-      <SheetContent widthClassName="w-full sm:max-w-[680px]" data-testid="termination-review">
+      <SheetContent
+        side="center"
+        widthClassName="max-w-[1120px]"
+        className="lg:h-[min(780px,calc(100dvh-2rem))]"
+        data-testid="termination-review"
+      >
         {open ? <ReviewBody onClose={onClose} /> : null}
       </SheetContent>
     </Sheet>
@@ -148,106 +153,111 @@ function ReviewBody({ onClose }: { onClose: () => void }) {
         <SheetTitle>Stop resuscitation?</SheetTitle>
         <SheetDescription>Leader decision · team-based</SheetDescription>
       </SheetHeader>
-      <SheetBody className="py-1">
-        <ReviewFacts review={review} paediatric={arrest.paediatric} />
-
-        <ReviewRow label="Team">
-          <div className="flex flex-wrap gap-2">
-            <Choice
-              selected={team === "no_objection"}
-              onClick={() => setTeam(team === "no_objection" ? "not_asked" : "no_objection")}
-            >
-              Team asked — no objection
-            </Choice>
-            <Choice
-              selected={team === "objection"}
-              onClick={() => setTeam(team === "objection" ? "not_asked" : "objection")}
-            >
-              Objection raised
-            </Choice>
-          </div>
-          {team === "objection" ? (
-            <input
-              aria-label="Objection"
-              placeholder="Objection: who, and what they said"
-              value={objection}
-              onChange={(e) => setObjection(e.target.value)}
-              maxLength={500}
-              className={FIELD}
-            />
-          ) : null}
-          <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto] sm:items-center">
-            <input
-              aria-label="Senior consulted — name"
-              placeholder="Senior consulted: name"
-              value={senior.name}
-              onChange={(e) => setSenior({ ...senior, name: e.target.value })}
-              maxLength={80}
-              className={FIELD}
-            />
-            <input
-              aria-label="Senior consulted — cadre"
-              placeholder="Cadre"
-              value={senior.cadre}
-              onChange={(e) => setSenior({ ...senior, cadre: e.target.value })}
-              maxLength={60}
-              className={FIELD}
-            />
-            <div className="flex gap-2" role="group" aria-label="Consulted how">
+      {/* Landscape: what the leader reviews (left), the decision (right). */}
+      {/* Each column scrolls on its own, so the decision never scrolls away with the facts. */}
+      <SheetBody className="grid gap-x-8 py-1 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:grid-rows-[minmax(0,1fr)] lg:overflow-hidden lg:py-0">
+        <div className="lg:border-border min-w-0 lg:overflow-y-auto lg:border-r lg:py-1 lg:pr-8">
+          <ReviewFacts review={review} paediatric={arrest.paediatric} />
+        </div>
+        <div className="min-w-0 lg:overflow-y-auto lg:py-1">
+          <ReviewRow label="Team">
+            <div className="flex flex-wrap gap-2">
               <Choice
-                selected={senior.mode === "in_person"}
-                onClick={() => setSenior({ ...senior, mode: "in_person" })}
+                selected={team === "no_objection"}
+                onClick={() => setTeam(team === "no_objection" ? "not_asked" : "no_objection")}
               >
-                In person
+                Team asked — no objection
               </Choice>
               <Choice
-                selected={senior.mode === "phone"}
-                onClick={() => setSenior({ ...senior, mode: "phone" })}
+                selected={team === "objection"}
+                onClick={() => setTeam(team === "objection" ? "not_asked" : "objection")}
               >
-                Phone
+                Objection raised
               </Choice>
             </div>
-          </div>
-        </ReviewRow>
+            {team === "objection" ? (
+              <input
+                aria-label="Objection"
+                placeholder="Objection: who, and what they said"
+                value={objection}
+                onChange={(e) => setObjection(e.target.value)}
+                maxLength={500}
+                className={FIELD}
+              />
+            ) : null}
+            <div className="grid gap-2 sm:grid-cols-[1fr_1fr_auto] sm:items-center">
+              <input
+                aria-label="Senior consulted — name"
+                placeholder="Senior consulted: name"
+                value={senior.name}
+                onChange={(e) => setSenior({ ...senior, name: e.target.value })}
+                maxLength={80}
+                className={FIELD}
+              />
+              <input
+                aria-label="Senior consulted — cadre"
+                placeholder="Cadre"
+                value={senior.cadre}
+                onChange={(e) => setSenior({ ...senior, cadre: e.target.value })}
+                maxLength={60}
+                className={FIELD}
+              />
+              <div className="flex gap-2" role="group" aria-label="Consulted how">
+                <Choice
+                  selected={senior.mode === "in_person"}
+                  onClick={() => setSenior({ ...senior, mode: "in_person" })}
+                >
+                  In person
+                </Choice>
+                <Choice
+                  selected={senior.mode === "phone"}
+                  onClick={() => setSenior({ ...senior, mode: "phone" })}
+                >
+                  Phone
+                </Choice>
+              </div>
+            </div>
+          </ReviewRow>
 
-        <ReviewRow label="Family">
-          <div className="flex flex-wrap gap-2" role="group" aria-label="Family">
-            {(Object.keys(FAMILY_LABEL) as Family[]).map((f) => (
-              <Choice
-                key={f}
-                selected={family === f}
-                onClick={() => setFamily(family === f ? null : f)}
-              >
-                {FAMILY_LABEL[f]}
-              </Choice>
-            ))}
-          </div>
-        </ReviewRow>
+          <ReviewRow label="Family">
+            <div className="flex flex-wrap gap-2" role="group" aria-label="Family">
+              {(Object.keys(FAMILY_LABEL) as Family[]).map((f) => (
+                <Choice
+                  key={f}
+                  selected={family === f}
+                  onClick={() => setFamily(family === f ? null : f)}
+                >
+                  {FAMILY_LABEL[f]}
+                </Choice>
+              ))}
+            </div>
+          </ReviewRow>
 
-        <ReviewRow label="Reasons">
-          <div className="flex flex-wrap gap-2" role="group" aria-label="Reasons (one or more)">
-            {STOP_REASONS.map((r) => (
-              <Choice key={r} selected={reasons.includes(r)} onClick={() => toggleReason(r)}>
-                {REASON_LABEL[r]}
-              </Choice>
-            ))}
-          </div>
-          {reasons.includes("other") ? (
-            <input
-              aria-label="Other reason"
-              placeholder="Other reason"
-              value={other}
-              onChange={(e) => setOther(e.target.value)}
-              maxLength={300}
-              className={FIELD}
-            />
-          ) : null}
-        </ReviewRow>
+          <ReviewRow label="Reasons">
+            <div className="flex flex-wrap gap-2" role="group" aria-label="Reasons (one or more)">
+              {STOP_REASONS.map((r) => (
+                <Choice key={r} selected={reasons.includes(r)} onClick={() => toggleReason(r)}>
+                  {REASON_LABEL[r]}
+                </Choice>
+              ))}
+            </div>
+            {reasons.includes("other") ? (
+              <input
+                aria-label="Other reason"
+                placeholder="Other reason"
+                value={other}
+                onChange={(e) => setOther(e.target.value)}
+                maxLength={300}
+                className={FIELD}
+              />
+            ) : null}
+          </ReviewRow>
 
-        {/* CPR not attempted is decided before CPR, in the arrest confirm only (§5.11, ALS-REC-07). */}
-        <ReviewRow label="Other decisions">
-          <TreatmentLimitation />
-        </ReviewRow>
+          {/* CPR not attempted is decided before CPR, in the arrest confirm only (§5.11, ALS-REC-07). */}
+          <ReviewRow label="Other decisions">
+            <TreatmentLimitation />
+          </ReviewRow>
+        </div>
       </SheetBody>
       <SheetFooter className="flex-col items-stretch sm:flex-row sm:items-center">
         <p className="text-body-s text-muted-foreground mr-auto inline-flex items-start gap-1.5 self-center">

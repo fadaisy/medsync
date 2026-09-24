@@ -59,8 +59,9 @@ function SheetOverlay({ className, ...props }: DialogPrimitive.Backdrop.Props) {
 }
 
 interface SheetContentProps extends DialogPrimitive.Popup.Props {
-  side?: "right" | "left";
-  /** Width class — e.g. "w-[480px]" or "sm:max-w-md w-full". */
+  /** "center": a centred landscape panel (a max-w-* width; height follows the content). */
+  side?: "right" | "left" | "center";
+  /** Width class — e.g. "w-[480px]" or "sm:max-w-md w-full"; for "center", a max-w-*. */
   widthClassName?: string;
   showCloseButton?: boolean;
 }
@@ -71,24 +72,32 @@ function SheetContent({
   side = "right",
   widthClassName = "w-full sm:max-w-[560px]",
   showCloseButton = true,
+  initialFocus,
   ...props
 }: SheetContentProps) {
+  // A centred panel focuses itself on open: its title is announced, and focusing the
+  // first control would scroll a long column (the stop review's facts) half-way down.
+  const popupRef = React.useRef<HTMLDivElement>(null);
   const sideClasses =
-    side === "right"
-      ? "right-0 data-open:slide-in-from-right data-closed:slide-out-to-right border-l"
-      : "left-0 data-open:slide-in-from-left data-closed:slide-out-to-left border-r";
+    side === "center"
+      ? "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100vw-2rem)] max-h-[calc(100dvh-2rem)] rounded-xl border data-open:zoom-in-95 data-closed:zoom-out-95"
+      : side === "right"
+        ? "inset-y-0 right-0 data-open:slide-in-from-right data-closed:slide-out-to-right border-l"
+        : "inset-y-0 left-0 data-open:slide-in-from-left data-closed:slide-out-to-left border-r";
 
   return (
     <DialogPrimitive.Portal>
       <SheetOverlay />
       <DialogPrimitive.Popup
+        ref={popupRef}
+        initialFocus={initialFocus ?? (side === "center" ? popupRef : undefined)}
         data-slot="sheet-content"
         className={cn(
-          // Position: full-height anchored to one edge
-          "bg-background text-foreground border-border fixed inset-y-0 z-50 flex flex-col shadow-2xl outline-none",
+          // Position: full-height on one edge, or centred
+          "bg-background text-foreground border-border fixed z-50 flex flex-col shadow-2xl outline-none",
           sideClasses,
           widthClassName,
-          // Motion: slide + fade, expo-out, reduced-motion safe
+          // Motion: slide (edge) or scale (centre) + fade, expo-out, reduced-motion safe
           "data-open:animate-in data-open:fade-in-0 data-closed:animate-out data-closed:fade-out-0",
           "ease-expo-out duration-250",
           "motion-reduce:animate-none motion-reduce:duration-0",
@@ -153,7 +162,7 @@ function SheetBody({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="sheet-body"
-      className={cn("flex-1 overflow-y-auto px-6 py-5", className)}
+      className={cn("min-h-0 flex-1 overflow-y-auto px-6 py-5", className)}
       {...props}
     />
   );

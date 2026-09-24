@@ -196,7 +196,7 @@ export function DeskBottomBar({
   );
 }
 
-/** The Resus record below 1280 px (a sheet; a full-width sheet on a phone). */
+/** The Resus record below 1280 px (a centred panel). */
 export function RecordSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   return (
     <Sheet
@@ -205,7 +205,7 @@ export function RecordSheet({ open, onClose }: { open: boolean; onClose: () => v
         if (!o) onClose();
       }}
     >
-      <SheetContent widthClassName="w-full sm:max-w-md">
+      <SheetContent side="center" widthClassName="max-w-[880px]">
         <SheetHeader>
           <SheetTitle>Resus record</SheetTitle>
         </SheetHeader>

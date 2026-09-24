@@ -55,7 +55,7 @@ export function CloseOutSheet({
 }) {
   return (
     <Sheet open={open} onOpenChange={(o) => (o ? undefined : onClose())}>
-      <SheetContent data-testid="close-out-sheet" widthClassName="w-full sm:max-w-[640px]">
+      <SheetContent side="center" data-testid="close-out-sheet" widthClassName="max-w-[1080px]">
         {open ? <CloseOutFlow arrestEnding={arrestEnding} onClose={onClose} /> : null}
       </SheetContent>
     </Sheet>
@@ -169,7 +169,7 @@ function CloseOutFlow({ arrestEnding, onClose }: { arrestEnding: boolean; onClos
   const stepProps = { draft, patch, facts };
   return (
     <>
-      <SheetHeader className="gap-3 pr-12">
+      <SheetHeader className="pr-12">
         <SheetTitle>End resuscitation</SheetTitle>
         <SheetDescription>
           {inArrest
@@ -178,48 +178,53 @@ function CloseOutFlow({ arrestEnding, onClose }: { arrestEnding: boolean; onClos
               ? "The arrest has ended — record the outcome, destination and handover."
               : "Outcome, destination and handover. The leader chooses; the desk suggests."}
         </SheetDescription>
-        <ol className="flex flex-wrap gap-1.5" aria-label="Steps">
-          {STEPS.map((label, i) => {
-            const n = (i + 1) as StepNo;
-            const current = n === step;
-            const done = n < step;
-            return (
-              <li key={label}>
-                <button
-                  type="button"
-                  disabled={n > reachable || busy}
-                  aria-current={current ? "step" : undefined}
-                  onClick={() => setStep(n)}
-                  className={cn(
-                    "tap text-caption focus-visible:shadow-focus inline-flex min-h-11 items-center gap-1.5 rounded-md border px-2.5 outline-none disabled:opacity-50",
-                    current
-                      ? "border-teal-600 bg-teal-50 text-teal-800"
-                      : "border-border text-muted-foreground hover:bg-muted",
-                  )}
-                >
-                  {done ? (
-                    <CheckIcon aria-hidden className="size-3.5" />
-                  ) : (
-                    <span aria-hidden>{n}</span>
-                  )}
-                  {label}
-                </button>
-              </li>
-            );
-          })}
-        </ol>
       </SheetHeader>
 
-      <SheetBody className="flex flex-col gap-5">
-        {failed.length > 0 ? (
-          <FailedEntries entries={failed} onRetry={d.store.retry} onDiscard={d.store.discard} />
-        ) : null}
-        {step === 1 ? (
-          <OutcomeStep {...stepProps} actions={actions} busy={busy} blocked={blocked} />
-        ) : null}
-        {step === 2 ? <DestinationStep {...stepProps} died={died} /> : null}
-        {step === 3 ? <HandoverStep {...stepProps} /> : null}
-        {step === 4 ? <SignStep {...stepProps} receivingUnit={receivingUnit} /> : null}
+      {/* Landscape: the steps on the left, the current step on the right. */}
+      <SheetBody className="grid content-start gap-5 md:grid-cols-[12rem_minmax(0,1fr)] md:gap-x-8">
+        <nav aria-label="End resuscitation steps">
+          <ol className="flex flex-wrap gap-1.5 md:sticky md:top-0 md:flex-col" aria-label="Steps">
+            {STEPS.map((label, i) => {
+              const n = (i + 1) as StepNo;
+              const current = n === step;
+              const done = n < step;
+              return (
+                <li key={label}>
+                  <button
+                    type="button"
+                    disabled={n > reachable || busy}
+                    aria-current={current ? "step" : undefined}
+                    onClick={() => setStep(n)}
+                    className={cn(
+                      "tap text-caption focus-visible:shadow-focus inline-flex min-h-11 items-center gap-1.5 rounded-md border px-2.5 outline-none disabled:opacity-50 md:w-full md:justify-start md:px-3",
+                      current
+                        ? "border-teal-600 bg-teal-50 text-teal-800"
+                        : "border-border text-muted-foreground hover:bg-muted",
+                    )}
+                  >
+                    {done ? (
+                      <CheckIcon aria-hidden className="size-3.5" />
+                    ) : (
+                      <span aria-hidden>{n}</span>
+                    )}
+                    {label}
+                  </button>
+                </li>
+              );
+            })}
+          </ol>
+        </nav>
+        <div className="flex min-w-0 flex-col gap-5">
+          {failed.length > 0 ? (
+            <FailedEntries entries={failed} onRetry={d.store.retry} onDiscard={d.store.discard} />
+          ) : null}
+          {step === 1 ? (
+            <OutcomeStep {...stepProps} actions={actions} busy={busy} blocked={blocked} />
+          ) : null}
+          {step === 2 ? <DestinationStep {...stepProps} died={died} /> : null}
+          {step === 3 ? <HandoverStep {...stepProps} /> : null}
+          {step === 4 ? <SignStep {...stepProps} receivingUnit={receivingUnit} /> : null}
+        </div>
       </SheetBody>
 
       <SheetFooter className="sm:items-center">
