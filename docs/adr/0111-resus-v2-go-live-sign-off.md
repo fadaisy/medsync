@@ -7,7 +7,7 @@ clinical flag is switched on". The build is complete (`docs/resus-v2/STOP-REPORT
 
 **How to use it:** every item says what the desk does now, where to look, and a recommendation. Tick **Confirm** or write
 the change you want. Items marked **(CSO action)** need you to read or test something yourself; everything else is a
-decision on the evidence given. When every box is ticked, sign part F.
+decision on the evidence given. When every box is ticked, sign the Decision block at the end.
 
 ## A. GATE A answers marked "confirm" (`docs/resus-v2-gate-a-proposal.md` §12)
 
