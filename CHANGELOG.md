@@ -16,6 +16,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 - **Fixed:** the Front door's negative space — the complaint sits in the left panel, the picker opens compact (eight quick picks, "Show all"); the scheduling dashboard's _Next 14 days_ and _Weekly rules_ tables no longer squash their When and capacity columns.
 - **Deviations recorded (ADR 0098 ruling 11):** no Playwright, Lighthouse or fast-check — source-level Vitest checks instead; E1 is server-rendered, not static; `expo-location` and `expo-haptics` added (PRD requirements, Expo Go compatible). **Known gap:** no four-eyes action has a second-approval executor, so contact verification self-executes only while one real superadmin exists.
 
+### Changed — Plum, the second hue: place, never state — 2026-09-21
+
+[ADR 0097](docs/adr/0097-secondary-accent-plum.md) (owner decision 2026-09-21). No migration. Deploy: `npx vercel deploy --prod --yes`.
+
+- **A plum ramp** (`--plum-50…950`, mulberry at OKLCH hue 342, AA on every anchor in both modes) beside teal in `app/globals.css`, flipping with the theme like teal and pinned by `medsync-forced-dark`. Teal stays the only action colour, red the only alarm; plum means _where you are_ — never a button, a chip or a state.
+- **Where it shows — the whole product:** every atmosphere (the landing's lavender hue 286 radials and both dark bands, the auth / signup / onboarding / not-found pages, the doctor and nurse homes, triage, the encounter page) is now plum; a plum corner glow in `--gradient-hero` and `--gradient-band`; the active nav item in every shell and the patient rail (`--sidebar-accent`), the phone tab bar, the site-nav underline and scroll progress; `SectionNumber`, section markers and the current step of every multi-step form (done steps stay teal); every monogram and avatar disc, decorative icon tiles, empty states, the tinted `StatCard`, headline emphasis; `--chart-2` and `--gradient-signature`. The phone mirrors the ramp (`plum` / `plumDark`) behind two new roles, `place` / `placeForeground`. Buttons, links, focus, selected controls, count badges and every status stay teal or their status hue.
+- `DESIGN-medsync.md` § Secondary Plum (light and dark tables, the where / never rule, the re-pin mechanism for a per-workspace hue); `/styleguide` §04.
+
 ### Added — Symptoms before booking, and the Front door station reworked — 2026-09-21
 
 [ADR 0096](docs/adr/0096-symptoms-before-booking.md) (owner ruling 2026-09-21, later the same day; carries ADR 0095's PROVISIONAL mark). No migration. Deploy: `npx vercel deploy --prod --yes`; phone `npx expo start -c`.
