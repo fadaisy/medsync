@@ -20,9 +20,37 @@ import {
 } from "@/lib/doctor/cosign";
 import { requireDoctorScope } from "@/lib/doctor/scope";
 import { fetchHospitalIncomingIntakes } from "@/lib/intake/queries";
+import { doctorWorkspace } from "@/lib/workspace/feature";
+import { Workspace } from "../_components/workspace/workspace";
 
-export const metadata: Metadata = { title: "Overview · Doctor · MedSync" };
 export const dynamic = "force-dynamic";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const scope = await requireDoctorScope();
+  return {
+    title: doctorWorkspace(scope.hospitalId)
+      ? "Workspace · Doctor · MedSync"
+      : "Overview · Doctor · MedSync",
+  };
+}
+
+/**
+ * /doctor — with DOCTOR_WORKSPACE on for this hospital, the Workspace (the one
+ * board that replaces Triage, Assigned, Encounters and the Resus board); off,
+ * the Overview exactly as before.
+ */
+export default async function DoctorHomePage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const scope = await requireDoctorScope();
+  if (!doctorWorkspace(scope.hospitalId)) return <DoctorOverview />;
+  const { scope: scopeParam } = await searchParams;
+  return (
+    <Workspace scope={scope} scopeMode={scopeParam === "department" ? "department" : "mine"} />
+  );
+}
 
 /**
  * Doctor workspace overview — different shapes per cadre:
@@ -40,7 +68,8 @@ export const dynamic = "force-dynamic";
  * The "directional" surface cards land for everyone (patient panel +
  * placeholders for engines that haven't shipped).
  */
-export default async function DoctorOverviewPage() {
+/** The Overview, unchanged — what /doctor shows while the workspace flag is off. */
+async function DoctorOverview() {
   const scope = await requireDoctorScope();
   const firstName = scope.fullName?.split(" ")[0];
 
@@ -67,7 +96,7 @@ export default async function DoctorOverviewPage() {
       {/* Quiet teal atmosphere behind the header */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-[radial-gradient(90%_100%_at_50%_0%,rgba(13,148,136,0.05),transparent_70%)]"
+        className="pointer-events-none absolute inset-x-0 top-0 h-64 bg-[radial-gradient(90%_100%_at_50%_0%,rgba(159,47,126,0.05),transparent_70%)]"
       />
 
       <div className="stagger-children relative mx-auto flex w-full max-w-5xl flex-col gap-8 px-6 py-8 lg:py-10">
@@ -121,10 +150,14 @@ export default async function DoctorOverviewPage() {
             subtitle="Lands when the monitoring engine ships"
             Icon={ActivityIcon}
           />
-          <PlaceholderCard
-            title="Encounters"
-            subtitle="Lands with the clinical module"
+          {/* Where visits are called and ended (ADR 0101 R3) — live whether or
+              not the encounter engine is, so no longer a placeholder. */}
+          <DirectionCard
+            href="/doctor/schedule"
+            title="Today's queue"
+            subtitle="Call the next patient · end a visit"
             Icon={StethoscopeIcon}
+            tone="muted"
           />
           <PlaceholderCard
             title="Care team"
@@ -161,7 +194,7 @@ function SupervisorCard({
         <div className="flex items-center gap-3">
           <span
             aria-hidden
-            className="bg-brand-50 text-brand-700 ring-brand-200/70 dark:bg-brand-950/40 dark:text-brand-300 dark:ring-brand-800/40 inline-flex size-10 items-center justify-center rounded-full ring-1"
+            className="bg-plum-50 text-plum-700 ring-plum-200/70 inline-flex size-10 items-center justify-center rounded-full ring-1"
           >
             <GraduationCapIcon className="size-5" />
           </span>
