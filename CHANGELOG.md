@@ -5,6 +5,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Changed — Sign-ups reopened in production — 2026-09-23
+
+[ADR 0112](docs/adr/0112-signups-reopened-before-legal-basics.md) (owner decision; supersedes landing v4 S8 D1): `signupsOwnerOverride` in `lib/legal.ts` brings the patient, clinical, non-clinical and hospital forms back in production, removes the `/get-started` closed note and switches the FAQ to its "register now" answer. The privacy notice and PDPO registration are still outstanding. Set the override to `false` to restore the holding page.
+
 ### Added — The symptom catalog and the Emergency Pathway — 2026-09-22
 
 [ADR 0098](docs/adr/0098-symptom-catalog-and-emergency-pathway.md) (owner + CSO decision via PRD MS-PRD-SYM-001, `docs/prd/`; **PROVISIONAL** — clinical content ships `draft`, production renders only `signed` content, every flag off). **One GATED migration** (`0066_symptom_catalog_and_emergency_pathway.sql`): six tables with RLS (`patient_symptom_catalog_versions`, `patient_symptom_catalog_items`, `symptom_submissions`, `emergency_pre_arrivals` — published to Realtime —, `emergency_contacts`, `pre_arrival_outbox`), `hospitals` gains capability, pre-alert, board owner, directions, SMS/ambulance numbers and coordinates, `appointments` gains `symptom_tier` + `symptom_submission_id`, `patient_intakes` gains `pre_arrival_id` + `symptom_submission_id`, entry type `self_presentation_prealerted`, eleven audit actions; Appendix B seeded **unverified**. Owner actions, in order: `npm run db:migrate` (0066) → `npm run db:seed-symptom-catalog` (`-- --dev-mulago` on dev only) → `npx supabase functions deploy --use-api` → `npx vercel deploy --prod --yes` → `cd mobile && npx expo start -c`. Nothing to set in production: the flags default off. Runbooks: `docs/runbooks/emergency-contacts-verification.md`, `docs/runbooks/pre-alert-facility-onboarding.md`.
