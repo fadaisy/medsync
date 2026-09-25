@@ -419,10 +419,12 @@ describe.skipIf(!fresh)("rendered: /sign-in and /get-started", () => {
   }
 
   it("9 get-started — four door rows, keyboard reachable, no ↗ arrows", () => {
-    const { doc, html } = page("get-started");
+    const { doc } = page("get-started");
     const rows = [...doc.querySelectorAll("a[data-door]")];
     expect(rows.map((a) => a.getAttribute("href"))).toEqual(DOORS.map((d) => `/signup/${d}`));
     expect(rows.filter((a) => a.getAttribute("tabindex") === "-1")).toEqual([]);
-    expect(html).not.toContain("arrow-up-right");
+    // The rendered page, not the raw HTML: Next inlines the 404 boundary's flight
+    // payload into every page, and the 404's CTA cluster carries ↗ on purpose.
+    expect(doc.querySelector(".lucide-arrow-up-right")).toBeNull();
   });
 });

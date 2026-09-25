@@ -389,7 +389,11 @@ export default function StyleguidePage() {
                     N
                   </span>
                   <span className="text-plum-700 font-display text-heading-s italic">Emphasis</span>
-                  <span className="bg-plum-600 h-2 w-24 rounded-full" aria-label="Chart series 2" />
+                  <span
+                    role="img"
+                    className="bg-plum-600 h-2 w-24 rounded-full"
+                    aria-label="Chart series 2"
+                  />
                 </div>
               </div>
             </div>
