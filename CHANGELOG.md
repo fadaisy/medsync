@@ -5,6 +5,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Fixed — Signing out on one device no longer signs you out everywhere — 2026-09-25
+
+No migration. Deploy: `npx vercel deploy --prod --yes`; the phone change ships with the next app build.
+
+- **Sign-out is per device.** `/sign-out` and the phone app called `supabase.auth.signOut()`, whose default scope is `global`: it revoked every session the user held, so signing out of a shared ward PC also signed the clinician out of their phone and every other tab (and a patient signing out on the phone lost the web). Both now pass `{ scope: "local" }`.
+- **Redirects keep the refreshed session.** `proxy.ts` built fresh `NextResponse.redirect`s for sign-in, the second factor and MFA enrolment, dropping the cookies `updateSession` had just rotated; the browser kept a spent refresh token and the session could end early. Redirects now carry those cookies (`tests/auth/mfa-gate.test.ts`, `tests/auth/sign-out.test.ts`).
+
 ### Added — The Doctor Workspace, dark behind `DOCTOR_WORKSPACE` — 2026-09-24
 
 [ADR 0113](docs/adr/0113-doctor-workspace-replaces-the-four-list-pages.md), [0114](docs/adr/0114-patient-flow-projection-and-integrity-report.md), [0115](docs/adr/0115-death-read-from-the-records-that-hold-it.md), [0116](docs/adr/0116-assignment-supersession-on-the-planned-encounter.md), [0117](docs/adr/0117-triage-in-a-sheet-intercepting-route.md), [0118](docs/adr/0118-workspace-live-updates.md) (owner: "go through all gates"; **CSO signature pending** on D2, D3, D4, D9 and D11 — `docs/doctor-workspace/gate-a-proposal.md` §9). **One GATED migration** (`0069_doctor_workspace.sql`): the `retire_assignment` audit action, PHI-free broadcast triggers on intakes, triage records and encounters, and the `workspace:<hospital>` realtime policy. Owner actions, in order: the CSO signature → `npm run db:migrate` (0069) → `tests/rls/workspace-realtime.test.ts` against a test project and `docs/doctor-workspace/integrity-probe.sql` (read-only) → `npx vercel deploy --prod --yes` → set `DOCTOR_WORKSPACE` (`1` or hospital ids) with `ENCOUNTER_ENGINE_LIVE=1` and `RESUS_DESK_V2=1`. No Edge Function changes. Reports: `docs/doctor-workspace/STOP-REPORTS.md`.
