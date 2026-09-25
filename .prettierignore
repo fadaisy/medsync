@@ -19,3 +19,6 @@ mobile
 
 # Vendored design/animation skills (emilkowalski/skills) — not ours to reformat
 .agents/
+
+# Self-contained Vite subproject (the sensor bench) with its own toolchain
+bionic-islet-bench

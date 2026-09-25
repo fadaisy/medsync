@@ -9,6 +9,8 @@
     "analyze": "ANALYZE=true next build --webpack",
     "budget": "node scripts/check-budget.mjs",
     "start": "next start",
+    "bench:build": "npm --prefix bionic-islet-bench install --no-audit --no-fund && npm --prefix bionic-islet-bench run build:embed",
+    "bench:embed": "npm run bench:build && node scripts/embed-bench.mjs",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "typecheck": "tsc --noEmit && tsc --noEmit -p supabase/functions/tsconfig.json",

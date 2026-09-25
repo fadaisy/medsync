@@ -1,0 +1,8 @@
+# Bionic islet sensor bench.
+#
+# An illustrative simulation of a device that does not exist. If you are
+# deploying this somewhere it could be mistaken for a product, consider
+# disallowing crawling here as well as leaving the honesty strip in place.
+
+User-agent: *
+Allow: /

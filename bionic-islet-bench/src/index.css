@@ -1,0 +1,269 @@
+@import "tailwindcss";
+
+/*
+ * MedSync design tokens, as used on the bench.
+ *
+ * The bench runs on the dark bench background the brief allows, because the
+ * device reads better on it. The palette is otherwise unchanged. Two tints
+ * were added purely for contrast on the dark ground and are documented in
+ * DECISIONS.md, decision 18:
+ *
+ *   --color-muted   secondary text. #6B7280 on #0B1220 is 3.9:1, below AA.
+ *   --color-red-text  red text. #DC2626 on #0B1220 is 3.9:1, below AA.
+ *                     #DC2626 itself is kept for the insulin line and status
+ *                     fills, where the 3:1 graphics threshold applies.
+ */
+@theme {
+  --color-teal-900: #134e4a;
+  --color-teal-600: #0d9488;
+  --color-teal-100: #ccfbf1;
+  --color-mint: #f0fdfa;
+  --color-ink: #18181b;
+  --color-grey: #6b7280;
+  --color-line: #d4d4d8;
+  --color-zebra: #fafafa;
+  --color-amber: #fde68a;
+  --color-red: #dc2626;
+
+  --color-bench: #0b1220;
+  --color-panel: #111a2b;
+  --color-panel-raised: #16203485;
+  --color-edge: #24304a;
+  --color-muted: #9aa4b2;
+  --color-red-text: #f87171;
+  /*
+   * Interactive teal on the dark bench. DESIGN-medsync's dark palette maps
+   * teal-600 to #5EEAD4 in dark mode, and it is what passes AA here: white
+   * on #0D9488 is 3.7:1, whereas #0B1220 on #5EEAD4 is 12.7:1.
+   */
+  --color-teal-bright: #5eead4;
+
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    sans-serif;
+  --font-mono:
+    ui-monospace, "SF Mono", "JetBrains Mono", "Fira Code", Menlo, Consolas, monospace;
+
+  --text-display-l: 28px;
+  --text-heading-m: 20px;
+  --text-heading-s: 15px;
+  --text-body: 13px;
+  --text-small: 12px;
+  --text-micro: 11px;
+
+  --radius-card: 12px;
+  --radius-control: 8px;
+
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px rgb(0 0 0 / 0.25);
+
+  --ease-medsync: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+/*
+ * The page body never scrolls horizontally. `clip` rather than `hidden`,
+ * because `hidden` would make body a scroll container and break the sticky
+ * honesty strip. Tables and the traces get their own overflow-x containers.
+ */
+html,
+body {
+  overflow-x: clip;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bench);
+  color: #e8edf5;
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Headings are weight 500, never bold. Clinical surface rule. */
+h1,
+h2,
+h3,
+h4 {
+  font-weight: 500;
+  margin: 0;
+}
+
+/*
+ * Motion. The design system allows exactly one curve and four durations, and
+ * no decorative animation. Everything here carries meaning: a value changing,
+ * a panel opening, a dose being commanded.
+ */
+:root {
+  --duration-instant: 100ms;
+  --duration-quick: 150ms;
+  --duration-settled: 250ms;
+  --duration-considered: 400ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /*
+   * Freeze animation, keep the simulation and the numbers. Transitions
+   * collapse to nothing rather than being removed, so layout is unchanged.
+   */
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Focus is always visible, and always on the teal anchor. */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-teal-600);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.tabular {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Screen-reader-only, for the text alternatives to the canvas traces. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.sr-only:focus-within,
+.sr-only.is-shown {
+  position: static;
+  width: auto;
+  height: auto;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/*
+ * Particle motion on the tip views.
+ *
+ * These are CSS animations rather than a JavaScript particle system for three
+ * reasons: they run on the compositor so they cost nothing at 1440 times real
+ * time, their duration is a rendered property that the visual-binding check
+ * can read back, and prefers-reduced-motion freezes them through the rule
+ * above without any code knowing about it.
+ *
+ * Each duration is set inline from engine state. Nothing here is decorative:
+ * a molecule crossing a membrane, an electron arriving at the platinum and a
+ * flash going down a fibre are all things the model says are happening.
+ */
+/*
+ * The focus view's one transition.
+ *
+ * Moving the lens along the stack is a discrete choice, so the lens itself
+ * jumps rather than sliding: sliding would suggest a continuous scan that the
+ * stations are not. What does need to say "this is a different thing now" is
+ * the drawing underneath, and a single quick fade does that. The rule above
+ * collapses it to nothing under reduced motion.
+ */
+@keyframes focus-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.focus-in {
+  animation: focus-in var(--duration-quick) var(--ease-medsync) both;
+}
+
+@keyframes travel-x {
+  from {
+    transform: translateX(0);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  88% {
+    opacity: 1;
+  }
+  to {
+    transform: translateX(var(--travel, 100px));
+    opacity: 0;
+  }
+}
+
+@keyframes dock {
+  0% {
+    transform: translate(var(--from-x, 0), var(--from-y, 0));
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  45%,
+  60% {
+    transform: translate(0, 0);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--from-x, 0), var(--from-y, 0));
+    opacity: 0;
+  }
+}
+
+@keyframes bounce-off {
+  0% {
+    transform: translateX(0);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  55% {
+    transform: translateX(var(--travel, 60px));
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 0;
+  }
+}
+
+@keyframes flash-down {
+  from {
+    transform: translateX(0);
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  to {
+    transform: translateX(var(--travel, 200px));
+    opacity: 0;
+  }
+}
+
+.particle {
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform;
+}

@@ -36,5 +36,5 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules", "supabase/functions", "mobile"]
+  "exclude": ["node_modules", "supabase/functions", "mobile", "bionic-islet-bench"]
 }

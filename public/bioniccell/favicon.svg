@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Bionic islet sensor bench">
+  <rect width="32" height="32" rx="7" fill="#0B1220"/>
+  <circle cx="16" cy="16" r="7.5" fill="none" stroke="#0D9488" stroke-width="2"/>
+  <circle cx="16" cy="16" r="3" fill="#5EEAD4"/>
+  <path d="M4 16h4M24 16h4" stroke="#5EEAD4" stroke-width="2" stroke-linecap="round"/>
+</svg>

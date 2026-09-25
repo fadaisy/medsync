@@ -41,6 +41,11 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // The Expo app has its own eslint config, RN globals and plugin set.
     "mobile/**",
+    // Self-contained Vite subproject with its own toolchain.
+    "bionic-islet-bench/**",
+    // Static assets served verbatim, including the sensor bench's built
+    // bundle. Never source, never linted.
+    "public/**",
   ]),
 ]);
 

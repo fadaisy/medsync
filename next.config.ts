@@ -21,6 +21,17 @@ const nextConfig: NextConfig = {
       permanent: true,
     }));
   },
+
+  async rewrites() {
+    return [
+      // The bionic islet sensor bench. A self-contained static build that
+      // lives in public/bioniccell/, so Next already serves
+      // /bioniccell/index.html verbatim; this makes the bare /bioniccell work
+      // too, which is the URL people will type and share. Regenerate the
+      // build with `npm run bench:embed` whenever the bench changes.
+      { source: "/bioniccell", destination: "/bioniccell/index.html" },
+    ];
+  },
 };
 
 /**
