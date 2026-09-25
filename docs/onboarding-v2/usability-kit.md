@@ -11,12 +11,12 @@ For Fadhul, to run with real testers (Phase 7). Each session takes 15–20 minut
 
 ## Who (5 per form)
 
-| Form | Testers |
-|---|---|
-| Patient | 5, with at least 2 aged 50+ or less confident with phones |
-| Clinical | a doctor, a nurse and an allied professional (+2 of any) |
+| Form         | Testers                                                     |
+| ------------ | ----------------------------------------------------------- |
+| Patient      | 5, with at least 2 aged 50+ or less confident with phones   |
+| Clinical     | a doctor, a nurse and an allied professional (+2 of any)    |
 | Non-clinical | a receptionist if possible (+4 front-desk or records staff) |
-| Hospital | an administrator with no clinical background (+4 of any) |
+| Hospital     | an administrator with no clinical background (+4 of any)    |
 
 ## Tasks (read aloud)
 
@@ -28,8 +28,8 @@ For Fadhul, to run with real testers (Phase 7). Each session takes 15–20 minut
 ## Results sheet (one row per tester)
 
 | Tester | Form | Completed (y/n) | Time to submit (mm:ss) | Errors seen (how many, which fields) | SEQ 1–7 ("Overall, how easy was it?") | "What was most tiring?" | Notes |
-|---|---|---|---|---|---|---|---|
-| | | | | | | | |
+| ------ | ---- | --------------- | ---------------------- | ------------------------------------ | ------------------------------------- | ----------------------- | ----- |
+|        |      |                 |                        |                                      |                                       |                         |       |
 
 ## Targets (§12)
 

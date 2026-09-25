@@ -4,13 +4,13 @@
 
 **The five paths.**
 
-| Who | Route | Shape | After submit |
-|---|---|---|---|
-| Patient | `/signup/patient` | 3-step form | Account live immediately |
-| Clinical staff (doctors, nurses, midwives, pharmacists, allied) | `/signup/clinical` | 4-step form | Pending hospital-admin approval, then MFA |
-| Doctor | same as clinical: there is **no separate doctor form**. A doctor picks the UMDPC council and a doctor cadre (§5) | — | — |
-| Non-clinical staff (reception / records) | `/signup/non-clinical` | Single page, 4 sections | Pending hospital-admin approval, then MFA |
-| Hospital | `/signup/hospital` | 7-step form | Reviewed by MedSync super-admin |
+| Who                                                             | Route                                                                                                            | Shape                   | After submit                              |
+| --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ----------------------- | ----------------------------------------- |
+| Patient                                                         | `/signup/patient`                                                                                                | 3-step form             | Account live immediately                  |
+| Clinical staff (doctors, nurses, midwives, pharmacists, allied) | `/signup/clinical`                                                                                               | 4-step form             | Pending hospital-admin approval, then MFA |
+| Doctor                                                          | same as clinical: there is **no separate doctor form**. A doctor picks the UMDPC council and a doctor cadre (§5) | —                       | —                                         |
+| Non-clinical staff (reception / records)                        | `/signup/non-clinical`                                                                                           | Single page, 4 sections | Pending hospital-admin approval, then MFA |
+| Hospital                                                        | `/signup/hospital`                                                                                               | 7-step form             | Reviewed by MedSync super-admin           |
 
 Legend used below: **\*** = required. "Optional" = the server accepts it empty.
 
@@ -23,12 +23,12 @@ Legend used below: **\*** = required. "Optional" = the server accepts it empty.
 - **Production notice (only shown while sign-ups are closed; currently not shown):** Registration opens once our privacy notice is published. Until then, email hello@medsync.health.
 - Each option shows **"You'll need:"** + a list + the next step.
 
-| Group | Door title | Description | You'll need | Next |
-|---|---|---|---|---|
-| For you | I'm a patient | Your health record, readings and reminders in one place. Your care team sees them once your hospital is on MedSync. | an email address and a Ugandan mobile number | Ready as soon as you sign up |
-| For hospital staff | I'm a clinician | Doctor, nurse, midwife, pharmacist or allied health professional. | your council registration number (a photo of your practising licence helps) | Approved by your hospital admin, then you set up two-step verification |
-| For hospital staff | I'm non-clinical staff | Reception or records. No access to clinical notes. | your National ID number (NIN) and the name of your hospital | Approved by your hospital admin, then you set up two-step verification |
-| For hospitals | I represent a hospital | Apply to join as a founding pilot hospital. | the facility's registration number and licence, and a signed letter authorising you | Reviewed by MedSync |
+| Group              | Door title             | Description                                                                                                         | You'll need                                                                         | Next                                                                   |
+| ------------------ | ---------------------- | ------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| For you            | I'm a patient          | Your health record, readings and reminders in one place. Your care team sees them once your hospital is on MedSync. | an email address and a Ugandan mobile number                                        | Ready as soon as you sign up                                           |
+| For hospital staff | I'm a clinician        | Doctor, nurse, midwife, pharmacist or allied health professional.                                                   | your council registration number (a photo of your practising licence helps)         | Approved by your hospital admin, then you set up two-step verification |
+| For hospital staff | I'm non-clinical staff | Reception or records. No access to clinical notes.                                                                  | your National ID number (NIN) and the name of your hospital                         | Approved by your hospital admin, then you set up two-step verification |
+| For hospitals      | I represent a hospital | Apply to join as a founding pilot hospital.                                                                         | the facility's registration number and licence, and a signed letter authorising you | Reviewed by MedSync                                                    |
 
 Footer: "Already have an account? Sign in →"
 
@@ -55,49 +55,54 @@ Footer: "Already have an account? Sign in →"
 Page title "Patient signup · MedSync". 3-step form (flow label "Patient signup"), with Back / Continue between steps. All steps post together at the end.
 
 ### Step 1: "About you"
+
 **Heading:** Tell us who you are
 **Intro:** All identifying details are encrypted before they reach the database. We never store your ID number in plaintext.
 
-| Label | Key | Input | Req | Options / validation | Helper text |
-|---|---|---|---|---|---|
-| Title | `title_code` | segmented | optional | Mr · Ms · Mrs · Dr · Other | — |
-| First name | `first_name` | text | \* | max 80 | — |
-| Surname | `surname` | text | \* | max 80 | — |
-| Sex at birth | `sex` | segmented | \* | Male · Female · Intersex · Prefer not to say | — |
-| Date of birth | `date_of_birth` | date picker | \* | 0–120 years ago; not in the future ("Date can't be in the future.") | Used for age-appropriate care. |
-| ID type | `id_type` | segmented | \* | **NIN** (Uganda National ID, default) · **Passport** (International travel doc) · **None** (No formal ID on hand) | — |
-| ID number | `id_number` | text | \* unless ID type = None (hidden when None) | max 40; error "Required for the ID type selected." | Encrypted at rest. Visible only to you and care teams you authorise. |
-| Phone | `phone_e164` | phone, mobile only | \* | Ugandan number | We'll text appointment reminders. Visible only to you and care teams you authorise. |
-| Photo (optional) | `photo` | avatar upload | optional | see §2 | Shown to the care team who see your record. |
+| Label            | Key             | Input              | Req                                         | Options / validation                                                                                              | Helper text                                                                         |
+| ---------------- | --------------- | ------------------ | ------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| Title            | `title_code`    | segmented          | optional                                    | Mr · Ms · Mrs · Dr · Other                                                                                        | —                                                                                   |
+| First name       | `first_name`    | text               | \*                                          | max 80                                                                                                            | —                                                                                   |
+| Surname          | `surname`       | text               | \*                                          | max 80                                                                                                            | —                                                                                   |
+| Sex at birth     | `sex`           | segmented          | \*                                          | Male · Female · Intersex · Prefer not to say                                                                      | —                                                                                   |
+| Date of birth    | `date_of_birth` | date picker        | \*                                          | 0–120 years ago; not in the future ("Date can't be in the future.")                                               | Used for age-appropriate care.                                                      |
+| ID type          | `id_type`       | segmented          | \*                                          | **NIN** (Uganda National ID, default) · **Passport** (International travel doc) · **None** (No formal ID on hand) | —                                                                                   |
+| ID number        | `id_number`     | text               | \* unless ID type = None (hidden when None) | max 40; error "Required for the ID type selected."                                                                | Encrypted at rest. Visible only to you and care teams you authorise.                |
+| Phone            | `phone_e164`    | phone, mobile only | \*                                          | Ugandan number                                                                                                    | We'll text appointment reminders. Visible only to you and care teams you authorise. |
+| Photo (optional) | `photo`         | avatar upload      | optional                                    | see §2                                                                                                            | Shown to the care team who see your record.                                         |
 
 ### Step 2: "Where & care"
+
 **Heading:** Where you live & your home facility
 **Intro:** We use this to route SMS, suggest nearby queues, and connect you to your usual hospital.
 
-| Label | Key | Input | Req | Options / validation | Helper text |
-|---|---|---|---|---|---|
-| District | `district_id` | searchable combobox ("Search districts…") | \* | list in §9.1 | — |
-| Subcounty | `subcounty_id` | searchable combobox ("Search subcounties…"), loads after district | optional | list in §9.1 | — |
-| Village or street address (optional) | `village_address` | text | optional | max 200 | Free-text. Encrypted at rest. |
-| Preferred language for communications (optional) | `preferred_language` | text | optional | max 60; placeholder "e.g. English, Luganda, Runyoro" | — |
+| Label                                            | Key                  | Input                                                             | Req      | Options / validation                                 | Helper text                   |
+| ------------------------------------------------ | -------------------- | ----------------------------------------------------------------- | -------- | ---------------------------------------------------- | ----------------------------- |
+| District                                         | `district_id`        | searchable combobox ("Search districts…")                         | \*       | list in §9.1                                         | —                             |
+| Subcounty                                        | `subcounty_id`       | searchable combobox ("Search subcounties…"), loads after district | optional | list in §9.1                                         | —                             |
+| Village or street address (optional)             | `village_address`    | text                                                              | optional | max 200                                              | Free-text. Encrypted at rest. |
+| Preferred language for communications (optional) | `preferred_language` | text                                                              | optional | max 60; placeholder "e.g. English, Luganda, Runyoro" | —                             |
 
 ### Step 3: "Account"
+
 **Heading:** Create your account
 **Intro:** You'll sign in with this email. Pick a long password — a passphrase works well.
 
-| Label | Key | Input | Req | Validation | Helper text |
-|---|---|---|---|---|---|
-| Name to display | `full_name` | text | \* | max 120 | — |
-| Email | `email` | email | \* | valid email | — |
-| Password | `password` | password (show/hide) | \* | 12–72 chars | At least 12 characters. |
+| Label           | Key         | Input                | Req | Validation  | Helper text             |
+| --------------- | ----------- | -------------------- | --- | ----------- | ----------------------- |
+| Name to display | `full_name` | text                 | \*  | max 120     | —                       |
+| Email           | `email`     | email                | \*  | valid email | —                       |
+| Password        | `password`  | password (show/hide) | \*  | 12–72 chars | At least 12 characters. |
 
 Then:
+
 - Expandable panel: **"Read the consent text (v1.0, effective 2026-05-23)"**, which shows the full data-processing notice (§10.1).
 - Checkbox \* **"I agree to MedSync's data-processing notice"**. Sub-text: "v1.0 · effective 2026-05-23. The exact text above is recorded against your account." Error: "Consent is required to create an account."
 - Checkbox (optional, **unticked by default**, a separate box) **"Send me SMS about my bookings"**. Sub-text: "MedSync may send SMS about your bookings: confirmation, reminders and changes. No marketing. Reply STOP to opt out. Without SMS we can only reach you inside the app. People who turn this off miss visits more often. You will still get one SMS with the code each time you book."
 - Button: **Create account** (while submitting: "Creating account…")
 
 ### What happens on submit
+
 1. Validate everything; check the consent hash.
 2. Create the login account → encrypt personal details → save the patient profile (the database issues a **patient code**) → save the photo → record consent (and SMS consent if ticked).
 3. Account state goes straight to **verified**. The phone is **not** verified by SMS code yet (the one-time-code UI exists but no SMS provider is wired).
@@ -114,55 +119,60 @@ Error messages: "The consent text has been updated. Please reload the page, re-r
 Page title "Clinical staff signup · MedSync". 4-step form (flow label "Clinical staff signup").
 
 ### Step 1: "About you"
+
 **Heading:** Tell us who you are
 **Intro:** We'll use these details to contact you about your verification.
 
-| Label | Key | Input | Req | Validation | Helper text |
-|---|---|---|---|---|---|
-| Full name | `full_name` | text | \* | max 120 | — |
-| Email | `email` | email | \* | valid email | — |
-| Mobile phone | `phone_e164` | phone, mobile only | \* | Ugandan number | — |
-| Photo (optional) | `photo` | avatar upload | optional | see §2 | Shown to patients who can book you and to colleagues. |
+| Label            | Key          | Input              | Req      | Validation     | Helper text                                           |
+| ---------------- | ------------ | ------------------ | -------- | -------------- | ----------------------------------------------------- |
+| Full name        | `full_name`  | text               | \*       | max 120        | —                                                     |
+| Email            | `email`      | email              | \*       | valid email    | —                                                     |
+| Mobile phone     | `phone_e164` | phone, mobile only | \*       | Ugandan number | —                                                     |
+| Photo (optional) | `photo`      | avatar upload      | optional | see §2         | Shown to patients who can book you and to colleagues. |
 
 ### Step 2: "Professional"
+
 **Heading:** Your council registration
 **Intro:** We verify your registration number against the relevant council before granting clinical access. Your licence document is stored privately and only shared with your hospital admin and our verification team.
 
-| Label | Key | Input | Req | Options / validation | Helper text |
-|---|---|---|---|---|---|
-| Regulatory council | `council_id` | searchable combobox ("Search councils…", also matches council code) | \* | 4 councils (§9.2) | — |
-| Cadre | `cadre_id` | searchable combobox ("Search cadres…"), filtered by council | \* | §9.3 | — |
-| Cadre grade (optional) | `cadre_grade_id` | combobox; placeholder "Pick a cadre first" → "Loading…" → "Search grades…" | optional | §9.4 (only 4 cadres have grades) | — |
-| Role | `role_id` | combobox; placeholder "Pick a cadre first" → "Loading…" → "Search roles…" | \* | filtered by cadre (§9.5) | — |
-| Registration number | `registration_number` | text | \* | max 60 | As printed on your practising certificate. |
-| Practising certificate expiry (optional) | `registration_expiry` | date | optional | YYYY-MM-DD | If your practising certificate has an expiry, we'll prompt you to re-upload before it lapses. |
-| Practising licence (PDF or photo) | `licence_document` | file upload (camera allowed) | optional | PDF/JPG/PNG ≤ 5 MB; hint "PDF, JPG or PNG · max 5MB" | ≤ 5 MB. Stored privately. Re-validated server-side. |
+| Label                                    | Key                   | Input                                                                      | Req      | Options / validation                                 | Helper text                                                                                   |
+| ---------------------------------------- | --------------------- | -------------------------------------------------------------------------- | -------- | ---------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Regulatory council                       | `council_id`          | searchable combobox ("Search councils…", also matches council code)        | \*       | 4 councils (§9.2)                                    | —                                                                                             |
+| Cadre                                    | `cadre_id`            | searchable combobox ("Search cadres…"), filtered by council                | \*       | §9.3                                                 | —                                                                                             |
+| Cadre grade (optional)                   | `cadre_grade_id`      | combobox; placeholder "Pick a cadre first" → "Loading…" → "Search grades…" | optional | §9.4 (only 4 cadres have grades)                     | —                                                                                             |
+| Role                                     | `role_id`             | combobox; placeholder "Pick a cadre first" → "Loading…" → "Search roles…"  | \*       | filtered by cadre (§9.5)                             | —                                                                                             |
+| Registration number                      | `registration_number` | text                                                                       | \*       | max 60                                               | As printed on your practising certificate.                                                    |
+| Practising certificate expiry (optional) | `registration_expiry` | date                                                                       | optional | YYYY-MM-DD                                           | If your practising certificate has an expiry, we'll prompt you to re-upload before it lapses. |
+| Practising licence (PDF or photo)        | `licence_document`    | file upload (camera allowed)                                               | optional | PDF/JPG/PNG ≤ 5 MB; hint "PDF, JPG or PNG · max 5MB" | ≤ 5 MB. Stored privately. Re-validated server-side.                                           |
 
 Changing the council clears the cadre; changing the cadre reloads grades and roles.
 
 ### Step 3: "Affiliation"
+
 **Heading:** Where you'll work
 **Intro:** Your hospital admin will get an approval request as soon as you submit. You won't have clinical access until they approve.
 
-| Label | Key | Input | Req | Options | Helper text |
-|---|---|---|---|---|---|
-| Hospital | `hospital_id` | searchable combobox ("Search hospitals…") | \* | every hospital on MedSync (seeded: Mulago National Referral Hospital) | — |
-| Department | `department_id` | searchable combobox ("Search departments…"), loads after hospital | \* | that hospital's departments (Mulago seed: Internal Medicine + 13 sub-specialties, §9.6) | — |
-| Employment type | `employment_type` | segmented | \* | **Full-time** (default) · Visiting · Locum | — |
+| Label           | Key               | Input                                                             | Req | Options                                                                                 | Helper text |
+| --------------- | ----------------- | ----------------------------------------------------------------- | --- | --------------------------------------------------------------------------------------- | ----------- |
+| Hospital        | `hospital_id`     | searchable combobox ("Search hospitals…")                         | \*  | every hospital on MedSync (seeded: Mulago National Referral Hospital)                   | —           |
+| Department      | `department_id`   | searchable combobox ("Search departments…"), loads after hospital | \*  | that hospital's departments (Mulago seed: Internal Medicine + 13 sub-specialties, §9.6) | —           |
+| Employment type | `employment_type` | segmented                                                         | \*  | **Full-time** (default) · Visiting · Locum                                              | —           |
 
 ### Step 4: "Account"
+
 **Heading:** Set up your account
 **Intro:** MFA enrollment is required before you can access clinical surfaces.
 
-| Label | Key | Input | Req | Validation | Helper text |
-|---|---|---|---|---|---|
-| Password | `password` | password | \* | 12–72 chars | At least 12 characters. |
+| Label    | Key        | Input    | Req | Validation  | Helper text             |
+| -------- | ---------- | -------- | --- | ----------- | ----------------------- |
+| Password | `password` | password | \*  | 12–72 chars | At least 12 characters. |
 
 - Expandable "Read the consent text (v1.0, effective 2026-05-23)" (§10.1).
 - Checkbox \* "I agree to MedSync's data-processing notice". Sub-text: "v1.0 · effective 2026-05-23." Error: "Consent is required."
 - Button: **Submit for review** (while submitting: "Submitting for review…")
 
 ### What happens on submit
+
 1. Create the login account → upload the licence (if the storage bucket is missing, the upload is skipped with a warning and signup continues) → save the clinician profile (council, registration number, expiry, licence path) → save the photo.
 2. Create the **staff affiliation** (hospital, department, cadre, grade, role, employment type) in state **pending_approval** → record consent → user state **pending_approval** (the phone is saved encrypted on the user).
 3. Redirect to `/onboarding/clinical-pending` (§8.1).
@@ -181,15 +191,15 @@ There is no doctor-specific form. A doctor uses `/signup/clinical` and picks:
 - **Regulatory council:** Uganda Medical and Dental Practitioners Council (UMDPC)
 - **Cadre** (in this order) → **Role** options that then appear:
 
-| Cadre | Roles offered |
-|---|---|
-| Intern Doctor | Intern Doctor — Internal Medicine |
-| Medical Officer | Medical Officer — Internal Medicine |
-| Medical Officer (Special Grade) | Medical Officer SG — Internal Medicine |
-| Consultant | Consultant Physician — Cardiology · — Nephrology · — Endocrinology · — Pulmonology · — Gastroenterology · — Hepatology · — Neurology · — Infectious Diseases · — Oncology · — Haematology · — Rheumatology · — Dermatology · — Geriatrics |
-| Senior Consultant | Senior Consultant · Senior Consultant — Internal Medicine · — Surgery · — Paediatrics · — Obstetrics & Gynaecology |
-| Dental Officer | Dental Officer |
-| Dental Surgeon | Dental Surgeon |
+| Cadre                           | Roles offered                                                                                                                                                                                                                             |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Intern Doctor                   | Intern Doctor — Internal Medicine                                                                                                                                                                                                         |
+| Medical Officer                 | Medical Officer — Internal Medicine                                                                                                                                                                                                       |
+| Medical Officer (Special Grade) | Medical Officer SG — Internal Medicine                                                                                                                                                                                                    |
+| Consultant                      | Consultant Physician — Cardiology · — Nephrology · — Endocrinology · — Pulmonology · — Gastroenterology · — Hepatology · — Neurology · — Infectious Diseases · — Oncology · — Haematology · — Rheumatology · — Dermatology · — Geriatrics |
+| Senior Consultant               | Senior Consultant · Senior Consultant — Internal Medicine · — Surgery · — Paediatrics · — Obstetrics & Gynaecology                                                                                                                        |
+| Dental Officer                  | Dental Officer                                                                                                                                                                                                                            |
+| Dental Surgeon                  | Dental Surgeon                                                                                                                                                                                                                            |
 
 - **Cadre grade:** no doctor cadre has grades, so this dropdown stays empty.
 - Everything else is the clinical form (§4): registration number = UMDPC number, practising-licence upload, hospital + department, employment type.
@@ -209,41 +219,44 @@ Page title "Non-clinical staff signup · MedSync". **One page** (not multi-step)
 
 ### Section "Account"
 
-| Label | Key | Input | Req | Validation | Helper text |
-|---|---|---|---|---|---|
-| Full name | `full_name` | text | \* | 2–120 chars | — |
-| Work email | `email` | email | \* | valid email | Use your hospital email if you have one — it helps your admin recognise you. |
-| Phone | `phone_e164` | phone, mobile only | \* | Ugandan number | — |
-| Password | `password` | password | \* | **min 8** ("Use at least 8 characters.") | — |
+| Label      | Key          | Input              | Req | Validation                               | Helper text                                                                  |
+| ---------- | ------------ | ------------------ | --- | ---------------------------------------- | ---------------------------------------------------------------------------- |
+| Full name  | `full_name`  | text               | \*  | 2–120 chars                              | —                                                                            |
+| Work email | `email`      | email              | \*  | valid email                              | Use your hospital email if you have one — it helps your admin recognise you. |
+| Phone      | `phone_e164` | phone, mobile only | \*  | Ugandan number                           | —                                                                            |
+| Password   | `password`   | password           | \*  | **min 8** ("Use at least 8 characters.") | —                                                                            |
 
 ### Section "Identity"
-Note: *Reception staff don't hold a professional council registration. The hospital admin who approves your account is verifying that you're genuinely employed. We use your **NIN** for identity; everything else is optional but strengthens trust.*
 
-| Label | Key | Input | Req | Validation | Helper text |
-|---|---|---|---|---|---|
-| National ID (NIN) | `nin` | text (monospace, uppercased) | \* | 8–16 letters/digits; error "Enter your National ID number (NIN)." | As printed on your national ID. Stored encrypted. |
-| Internal staff number (optional) | `staff_number` | text | optional | max 60 | If your hospital has assigned you one. |
-| Authorising officer (optional) | `authorising_officer_name` | text | optional | max 120 | A senior who can vouch for you. |
-| Their role (optional) | `authorising_officer_role` | text | optional | max 120 | E.g. Records HOD, Front-Desk Lead. |
-| Appointment letter (optional) | `appointment_letter` | file upload | optional | PDF/JPG/PNG ≤ 5 MB | PDF or image, ≤ 5MB. Helps your admin approve faster. |
+Note: _Reception staff don't hold a professional council registration. The hospital admin who approves your account is verifying that you're genuinely employed. We use your **NIN** for identity; everything else is optional but strengthens trust._
+
+| Label                            | Key                        | Input                        | Req      | Validation                                                        | Helper text                                           |
+| -------------------------------- | -------------------------- | ---------------------------- | -------- | ----------------------------------------------------------------- | ----------------------------------------------------- |
+| National ID (NIN)                | `nin`                      | text (monospace, uppercased) | \*       | 8–16 letters/digits; error "Enter your National ID number (NIN)." | As printed on your national ID. Stored encrypted.     |
+| Internal staff number (optional) | `staff_number`             | text                         | optional | max 60                                                            | If your hospital has assigned you one.                |
+| Authorising officer (optional)   | `authorising_officer_name` | text                         | optional | max 120                                                           | A senior who can vouch for you.                       |
+| Their role (optional)            | `authorising_officer_role` | text                         | optional | max 120                                                           | E.g. Records HOD, Front-Desk Lead.                    |
+| Appointment letter (optional)    | `appointment_letter`       | file upload                  | optional | PDF/JPG/PNG ≤ 5 MB                                                | PDF or image, ≤ 5MB. Helps your admin approve faster. |
 
 ### Section "Where you work"
 
-| Label | Key | Input | Req | Options | Helper text |
-|---|---|---|---|---|---|
-| Role category | `cadre_id` | native select ("Choose…") | \* | **Reception / Records Officer** (the only non-clinical cadre) | Reception is the only non-clinical option today. |
-| Role | `role_id` | native select ("Pick a role category first") | \* | **Reception / Records Officer** | — |
-| Hospital | `hospital_id` | native select ("Choose your hospital") | \* | every hospital on MedSync | — |
-| Department / unit | `department_id` | native select ("Pick a hospital first") | \* | that hospital's departments | — |
-| Employment | `employment_type` | native select | \* | Full-time (default) · **Part-time** (stored as `visiting`) · Locum | — |
+| Label             | Key               | Input                                        | Req | Options                                                            | Helper text                                      |
+| ----------------- | ----------------- | -------------------------------------------- | --- | ------------------------------------------------------------------ | ------------------------------------------------ |
+| Role category     | `cadre_id`        | native select ("Choose…")                    | \*  | **Reception / Records Officer** (the only non-clinical cadre)      | Reception is the only non-clinical option today. |
+| Role              | `role_id`         | native select ("Pick a role category first") | \*  | **Reception / Records Officer**                                    | —                                                |
+| Hospital          | `hospital_id`     | native select ("Choose your hospital")       | \*  | every hospital on MedSync                                          | —                                                |
+| Department / unit | `department_id`   | native select ("Pick a hospital first")      | \*  | that hospital's departments                                        | —                                                |
+| Employment        | `employment_type` | native select                                | \*  | Full-time (default) · **Part-time** (stored as `visiting`) · Locum | —                                                |
 
 ### Section "Consent"
+
 - Checkbox \* **"I agree to MedSync's data-processing terms"**. Sub-text: "We process the data you've entered to verify your role and provide the workspace." (The full notice text is **not** displayed on this page.)
 
 Button: **Create my account** (while submitting: "Creating account…")
 Footnote: "We'll create your account in a `pending` state. Your hospital admin reviews and approves. Once approved you'll sign in to the reception workspace."
 
 ### What happens on submit
+
 Create the login account → encrypt the NIN (uppercased) and phone → upload the appointment letter (skipped with a warning on failure) → save the staff identity profile → staff affiliation **pending_approval** (no grade, no specialty) → record consent → user **pending_approval** → redirect to **`/onboarding/clinical-pending`** (the same page clinicians see, §8.1). After approval: MFA, then the `/reception` workspace. Basis of verification: the hospital admin's approval stands as employer attestation.
 
 ---
@@ -253,46 +266,49 @@ Create the login account → encrypt the NIN (uppercased) and phone → upload t
 Page title "Hospital application · MedSync". 7-step form (flow label "Hospital application"). **Each step is validated when Continue is pressed** (same rules as the server). The applicant's account becomes the hospital's **first hospital admin** once approved.
 
 ### Step 1: "Institution"
+
 **Heading:** About the hospital
 **Intro:** We'll cross-check this against the MoH facility list during verification.
 
-| Label | Key | Input | Req | Options / validation | Helper text |
-|---|---|---|---|---|---|
-| Official hospital name | `hospital_name` | text | \* | max 160 | — |
-| Also known as (optional) | `hospital_aka` | text | optional | max 160 | — |
-| Facility level | `facility_level` | combobox ("Pick the MoH level") | \* | Health Centre II · Health Centre III · Health Centre IV · General Hospital · Regional Referral Hospital · National Referral Hospital · Private hospital / clinic · Other | — |
-| Ownership model | `ownership` | radio cards | \* | **Government / Public — MoH** "Government-owned." · **Private / Private for-profit** "Fee-for-service." · **PNFP / Private not-for-profit** "Faith / mission-led." · **Clinic / Private clinic** "Solo / small group." | — |
-| Year established (optional) | `year_established` | number | optional | 1900 to the current year ("Year cannot be in the future.") | Year between 1900 and now. |
-| Region (optional) | `region_id` | combobox ("Pick the region") | optional | Central · Eastern · Northern · Western | Auto-fills from district where possible. |
-| District | `district_id` | searchable combobox | \* | §9.1 | — |
-| Subcounty (optional) | `subcounty_id` | searchable combobox | optional | §9.1 | — |
-| Physical address | `physical_address` | text | \* | max 400 | — |
-| Main phone | `main_phone` | phone (landline allowed) | \* | Ugandan number | — |
-| Official email | `official_email` | email | \* | valid email | — |
-| Website (optional) | `website` | url (placeholder "https://") | optional | valid URL, max 300 | — |
+| Label                       | Key                | Input                           | Req      | Options / validation                                                                                                                                                                                                   | Helper text                              |
+| --------------------------- | ------------------ | ------------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
+| Official hospital name      | `hospital_name`    | text                            | \*       | max 160                                                                                                                                                                                                                | —                                        |
+| Also known as (optional)    | `hospital_aka`     | text                            | optional | max 160                                                                                                                                                                                                                | —                                        |
+| Facility level              | `facility_level`   | combobox ("Pick the MoH level") | \*       | Health Centre II · Health Centre III · Health Centre IV · General Hospital · Regional Referral Hospital · National Referral Hospital · Private hospital / clinic · Other                                               | —                                        |
+| Ownership model             | `ownership`        | radio cards                     | \*       | **Government / Public — MoH** "Government-owned." · **Private / Private for-profit** "Fee-for-service." · **PNFP / Private not-for-profit** "Faith / mission-led." · **Clinic / Private clinic** "Solo / small group." | —                                        |
+| Year established (optional) | `year_established` | number                          | optional | 1900 to the current year ("Year cannot be in the future.")                                                                                                                                                             | Year between 1900 and now.               |
+| Region (optional)           | `region_id`        | combobox ("Pick the region")    | optional | Central · Eastern · Northern · Western                                                                                                                                                                                 | Auto-fills from district where possible. |
+| District                    | `district_id`      | searchable combobox             | \*       | §9.1                                                                                                                                                                                                                   | —                                        |
+| Subcounty (optional)        | `subcounty_id`     | searchable combobox             | optional | §9.1                                                                                                                                                                                                                   | —                                        |
+| Physical address            | `physical_address` | text                            | \*       | max 400                                                                                                                                                                                                                | —                                        |
+| Main phone                  | `main_phone`       | phone (landline allowed)        | \*       | Ugandan number                                                                                                                                                                                                         | —                                        |
+| Official email              | `official_email`   | email                           | \*       | valid email                                                                                                                                                                                                            | —                                        |
+| Website (optional)          | `website`          | url (placeholder "https://")    | optional | valid URL, max 300                                                                                                                                                                                                     | —                                        |
 
 ### Step 2: "Departments"
+
 **Heading:** Clinical departments
 **Intro:** Tick the departments you actively run. Pick the one to launch MedSync in first.
 
 Checkboxes (`departments`, **at least one**: "Pick at least one department."), grouped:
 
-| Group | Departments (code) |
-|---|---|
-| Medicine | Internal Medicine (`INTERNAL_MEDICINE`) · Family Medicine (`FAMILY_MEDICINE`) |
-| Surgery | General Surgery · Orthopaedics · Urology · Neurosurgery · Cardiothoracic · Paediatric Surgery · Plastic / Reconstructive · ENT · Maxillofacial |
-| Women & children | Obstetrics & Gynaecology · Paediatrics & Child Health · Neonatology |
-| Acute & critical | Emergency / Casualty · Anaesthesia · Intensive Care (ICU/HDU) |
-| Mental & rehab | Psychiatry / Mental Health · Physiotherapy & Rehabilitation · Palliative Care |
-| Other | Dental / Oral Health · Public / Community Health · Ophthalmology |
+| Group            | Departments (code)                                                                                                                             |
+| ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Medicine         | Internal Medicine (`INTERNAL_MEDICINE`) · Family Medicine (`FAMILY_MEDICINE`)                                                                  |
+| Surgery          | General Surgery · Orthopaedics · Urology · Neurosurgery · Cardiothoracic · Paediatric Surgery · Plastic / Reconstructive · ENT · Maxillofacial |
+| Women & children | Obstetrics & Gynaecology · Paediatrics & Child Health · Neonatology                                                                            |
+| Acute & critical | Emergency / Casualty · Anaesthesia · Intensive Care (ICU/HDU)                                                                                  |
+| Mental & rehab   | Psychiatry / Mental Health · Physiotherapy & Rehabilitation · Palliative Care                                                                  |
+| Other            | Dental / Oral Health · Public / Community Health · Ophthalmology                                                                               |
 
 Inside the Medicine group: **"Internal Medicine sub-specialties"** (`im_subspecialties`, optional multi-select), greyed out until Internal Medicine is ticked. Caption: "Tick Internal Medicine above to enable." → "Pick the ones you actively run." Options: Cardiology · Nephrology · Endocrinology / Diabetology · Pulmonology · Gastroenterology · Hepatology · Neurology · Infectious Diseases · Oncology · Haematology · Rheumatology · Dermatology · Geriatrics.
 
-| Label | Key | Input | Req | Validation | Helper text |
-|---|---|---|---|---|---|
-| Primary department for MedSync rollout | `primary_department` | combobox ("Pick one of your ticked departments") | \* | must be one of the ticked departments: "Primary must be one of your selected departments." | The first deployable slice. |
+| Label                                  | Key                  | Input                                            | Req | Validation                                                                                 | Helper text                 |
+| -------------------------------------- | -------------------- | ------------------------------------------------ | --- | ------------------------------------------------------------------------------------------ | --------------------------- |
+| Primary department for MedSync rollout | `primary_department` | combobox ("Pick one of your ticked departments") | \*  | must be one of the ticked departments: "Primary must be one of your selected departments." | The first deployable slice. |
 
 ### Step 3: "Clinical services"
+
 **Heading:** Specialised clinics & diagnostics
 **Intro:** Selection only — these become the basis for clinic / lab modules later.
 
@@ -302,79 +318,84 @@ Inside the Medicine group: **"Internal Medicine sub-specialties"** (`im_subspeci
 - **On-site pharmacy?** \* (`has_onsite_pharmacy`, segmented): Yes · No
 
 ### Step 4: "Operating"
+
 **Heading:** Operating profile
 **Intro:** Capacity bands + infrastructure — drives offline-first / SMS configuration later.
 
-| Label | Key | Input | Req | Options |
-|---|---|---|---|---|
-| Services offered | `services_offered` | checkboxes | optional | OPD · Inpatient · Day-care · Emergency 24/7 · Referral |
-| Bed capacity | `bed_capacity_band` | combobox ("Pick a range") | optional | Under 25 · 25–99 · 100–299 · 300–799 · 800+ |
-| Clinical staff count | `clinical_staff_band` | combobox | optional | Under 10 · 10–49 · 50–199 · 200–499 · 500+ |
-| Daily OPD volume | `daily_opd_band` | combobox | optional | Under 25 · 25–99 · 100–299 · 300–799 · 800+ |
-| Internet connectivity | `internet_connectivity` | segmented | \* | Reliable · Intermittent · Limited |
-| Power / backup | `power_backup` | segmented | optional | Reliable · With generator backup · Unreliable |
-| Existing EMR | `existing_emr` | combobox ("None / Paper / Existing") | optional | None · Paper · Existing EMR |
-| Existing EMR name (if Existing) | `existing_emr_name` | text, max 160 | optional | Helper: "Skip if you don't run an EMR today." (saved only when Existing EMR is chosen) |
+| Label                           | Key                     | Input                                | Req      | Options                                                                                |
+| ------------------------------- | ----------------------- | ------------------------------------ | -------- | -------------------------------------------------------------------------------------- |
+| Services offered                | `services_offered`      | checkboxes                           | optional | OPD · Inpatient · Day-care · Emergency 24/7 · Referral                                 |
+| Bed capacity                    | `bed_capacity_band`     | combobox ("Pick a range")            | optional | Under 25 · 25–99 · 100–299 · 300–799 · 800+                                            |
+| Clinical staff count            | `clinical_staff_band`   | combobox                             | optional | Under 10 · 10–49 · 50–199 · 200–499 · 500+                                             |
+| Daily OPD volume                | `daily_opd_band`        | combobox                             | optional | Under 25 · 25–99 · 100–299 · 300–799 · 800+                                            |
+| Internet connectivity           | `internet_connectivity` | segmented                            | \*       | Reliable · Intermittent · Limited                                                      |
+| Power / backup                  | `power_backup`          | segmented                            | optional | Reliable · With generator backup · Unreliable                                          |
+| Existing EMR                    | `existing_emr`          | combobox ("None / Paper / Existing") | optional | None · Paper · Existing EMR                                                            |
+| Existing EMR name (if Existing) | `existing_emr_name`     | text, max 160                        | optional | Helper: "Skip if you don't run an EMR today." (saved only when Existing EMR is chosen) |
 
 ### Step 5: "Verification"
+
 **Heading:** Verification & authority
 **Intro:** This is the trust anchor — superadmin uses the callback contact to confirm you have authority to apply.
 
-| Label | Key | Input | Req | Options / validation | Helper text |
-|---|---|---|---|---|---|
-| Facility licence / registration number | `registration_number` | text | \* | max 120 | — |
-| Issuing authority (optional, free text) | `registration_authority` | text (placeholder "e.g. MoH Facility List, UMDPC") | optional | max 160 | — |
-| Licensing body | `licensing_body` | combobox | \* | Ministry of Health · UMDPC · Other | — |
-| Facility licence document | `facility_licence_document` | file upload (camera allowed; hint "Licence / registration certificate") | \* | PDF/JPG/PNG ≤ 5 MB | PDF / JPG / PNG, ≤ 5 MB. Stored privately. |
-| Institutional email domain | `institutional_email_domain` | text (placeholder "mulago.go.ug") | \* | a domain; error "Enter a domain like mulago.go.ug." | e.g. mulago.go.ug — your work email below must match this. |
+| Label                                   | Key                          | Input                                                                   | Req      | Options / validation                                | Helper text                                                |
+| --------------------------------------- | ---------------------------- | ----------------------------------------------------------------------- | -------- | --------------------------------------------------- | ---------------------------------------------------------- |
+| Facility licence / registration number  | `registration_number`        | text                                                                    | \*       | max 120                                             | —                                                          |
+| Issuing authority (optional, free text) | `registration_authority`     | text (placeholder "e.g. MoH Facility List, UMDPC")                      | optional | max 160                                             | —                                                          |
+| Licensing body                          | `licensing_body`             | combobox                                                                | \*       | Ministry of Health · UMDPC · Other                  | —                                                          |
+| Facility licence document               | `facility_licence_document`  | file upload (camera allowed; hint "Licence / registration certificate") | \*       | PDF/JPG/PNG ≤ 5 MB                                  | PDF / JPG / PNG, ≤ 5 MB. Stored privately.                 |
+| Institutional email domain              | `institutional_email_domain` | text (placeholder "mulago.go.ug")                                       | \*       | a domain; error "Enter a domain like mulago.go.ug." | e.g. mulago.go.ug — your work email below must match this. |
 
-*"About you (the applicant):"*
+_"About you (the applicant):"_
 
-| Label | Key | Input | Req | Options / validation | Helper text |
-|---|---|---|---|---|---|
-| Your full name | `applicant_full_name` | text | \* | max 120 | — |
-| Your role / title | `applicant_role` | combobox ("Pick your role") | \* | Medical Superintendent · Hospital Director · Administrator · Head of Department · IT · Other | — |
-| Your work email | `applicant_work_email` | email | \* | valid email. **This becomes the login.** | Must use the institutional domain above (mismatch is flagged for stricter review, never silently rejected). |
-| Your phone | `applicant_phone` | phone | \* | Ugandan number | — |
-| Professional council number (optional, adds weight) | `applicant_council_number` | text | optional | max 80 | UMDPC / nursing / pharmacy council, etc. |
+| Label                                               | Key                        | Input                       | Req      | Options / validation                                                                         | Helper text                                                                                                 |
+| --------------------------------------------------- | -------------------------- | --------------------------- | -------- | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Your full name                                      | `applicant_full_name`      | text                        | \*       | max 120                                                                                      | —                                                                                                           |
+| Your role / title                                   | `applicant_role`           | combobox ("Pick your role") | \*       | Medical Superintendent · Hospital Director · Administrator · Head of Department · IT · Other | —                                                                                                           |
+| Your work email                                     | `applicant_work_email`     | email                       | \*       | valid email. **This becomes the login.**                                                     | Must use the institutional domain above (mismatch is flagged for stricter review, never silently rejected). |
+| Your phone                                          | `applicant_phone`          | phone                       | \*       | Ugandan number                                                                               | —                                                                                                           |
+| Professional council number (optional, adds weight) | `applicant_council_number` | text                        | optional | max 80                                                                                       | UMDPC / nursing / pharmacy council, etc.                                                                    |
 
-*"Independent callback contact — a senior officer (NOT you) who can confirm your authority by phone or email."*
+_"Independent callback contact — a senior officer (NOT you) who can confirm your authority by phone or email."_
 
-| Label | Key | Input | Req | Options / validation | Helper text |
-|---|---|---|---|---|---|
-| Senior officer's name | `authority_officer_name` | text | \* | max 120 | — |
-| Senior officer's title | `authority_officer_title` | combobox | \* | same 6 titles as above | — |
-| Signed authorisation letter | `authority_letter_document` | file upload (hint "Letter on letterhead") | \* | PDF/JPG/PNG ≤ 5 MB | On letterhead, naming you as the authorised applicant. PDF / JPG / PNG, ≤ 5 MB. |
-| Callback channel | `callback_contact_kind` | segmented | \* | Phone · Email | — |
-| Callback contact | `callback_contact_value` | text | \* | max 200 (format not checked) | Phone (Ugandan E.164) or email — the officer's, not yours. Encrypted at rest. |
+| Label                       | Key                         | Input                                     | Req | Options / validation         | Helper text                                                                     |
+| --------------------------- | --------------------------- | ----------------------------------------- | --- | ---------------------------- | ------------------------------------------------------------------------------- |
+| Senior officer's name       | `authority_officer_name`    | text                                      | \*  | max 120                      | —                                                                               |
+| Senior officer's title      | `authority_officer_title`   | combobox                                  | \*  | same 6 titles as above       | —                                                                               |
+| Signed authorisation letter | `authority_letter_document` | file upload (hint "Letter on letterhead") | \*  | PDF/JPG/PNG ≤ 5 MB           | On letterhead, naming you as the authorised applicant. PDF / JPG / PNG, ≤ 5 MB. |
+| Callback channel            | `callback_contact_kind`     | segmented                                 | \*  | Phone · Email                | —                                                                               |
+| Callback contact            | `callback_contact_value`    | text                                      | \*  | max 200 (format not checked) | Phone (Ugandan E.164) or email — the officer's, not yours. Encrypted at rest.   |
 
 ### Step 6: "Agreement"
+
 **Heading:** Data-Processing Agreement
 **Intro:** An authorised signatory accepts on behalf of the institution. Acceptance is recorded with the SHA-256 of the exact text shown.
 
 - Amber banner (while the DPA is a placeholder): "This is a placeholder DPA pending Ugandan-counsel review. Acceptance is recorded; hospitals on the placeholder will be re-prompted when the approved version lands."
 - Scrollable box with the full DPA text (§10.3), then "Version: v0.placeholder · SHA-256 (first 12): …"
 
-| Label | Key | Input | Req | Options / validation |
-|---|---|---|---|---|
-| Authorised signatory — full name | `signatory_name` | text | \* | max 120 |
-| Signatory title | `signatory_title` | combobox | \* | same 6 titles |
-| I am authorised to bind this institution to this agreement. | `authorised_to_bind` | checkbox | \* | "You must confirm authority." |
-| I accept the Data-Processing Agreement above. | `accept_agreement` | checkbox | \* | "Acceptance is required." |
+| Label                                                       | Key                  | Input    | Req | Options / validation          |
+| ----------------------------------------------------------- | -------------------- | -------- | --- | ----------------------------- |
+| Authorised signatory — full name                            | `signatory_name`     | text     | \*  | max 120                       |
+| Signatory title                                             | `signatory_title`    | combobox | \*  | same 6 titles                 |
+| I am authorised to bind this institution to this agreement. | `authorised_to_bind` | checkbox | \*  | "You must confirm authority." |
+| I accept the Data-Processing Agreement above.               | `accept_agreement`   | checkbox | \*  | "Acceptance is required."     |
 
 ### Step 7: "Account"
+
 **Heading:** Create your account
 **Intro:** Your account becomes the first hospital admin after approval. The work email + password sign you in.
 Note: "We'll create the account with the work email you entered on the Verification step."
 
-| Label | Key | Input | Req | Validation | Helper text |
-|---|---|---|---|---|---|
-| Password | `applicant_password` | password | \* | 12–72 chars | At least 12 characters. |
-| I consent to MedSync processing my personal data as described in the privacy notice. | `data_processing_consent` | checkbox | \* | "Consent is required." (the notice text is not displayed on this step) | — |
+| Label                                                                                | Key                       | Input    | Req | Validation                                                             | Helper text             |
+| ------------------------------------------------------------------------------------ | ------------------------- | -------- | --- | ---------------------------------------------------------------------- | ----------------------- |
+| Password                                                                             | `applicant_password`      | password | \*  | 12–72 chars                                                            | At least 12 characters. |
+| I consent to MedSync processing my personal data as described in the privacy notice. | `data_processing_consent` | checkbox | \*  | "Consent is required." (the notice text is not displayed on this step) | —                       |
 
 Button: **Submit application** (while submitting: "Submitting application…")
 
 ### What happens on submit
+
 1. Check that the primary department is among the ticked ones, that both documents are present, and the consent and DPA hashes. Flag `email_domain_mismatch` if the work email's domain differs from the declared domain (flagged, not rejected).
 2. Create the applicant's login account (work email) → upload both documents to the private `hospital-authorisations` bucket (if either fails, the account is rolled back: "Couldn't upload your documents. Try again with smaller files.") → encrypt the callback contact → save the application → save departments (with the primary marked) and IM sub-specialties → record consent → applicant **pending_approval**.
 3. Redirect to `/onboarding/hospital-pending` (§8.2).
@@ -390,6 +411,7 @@ Button: **Submit application** (while submitting: "Submitting application…")
 Status labels used: Unverified · Verified · Pending approval · Approved · Active · Rejected · Suspended · Deactivated · Under review · Agreement signed · Provisioning · Offboarded · Agreement expired.
 
 ### 8.1 `/onboarding/clinical-pending` (clinical **and** non-clinical staff)
+
 Header: MedSync · Sign out. Status pill shows the affiliation state.
 
 - **Under review:** H1 "We're verifying your affiliation". Body: "Thanks, {first name}. We've sent your affiliation with **{hospital}** to that hospital's admin team for verification against the {cadre} council registry. You'll be emailed the moment a decision is made."
@@ -402,6 +424,7 @@ Header: MedSync · Sign out. Status pill shows the affiliation state.
 - Footer: "You can close this tab — we'll notify you by email." (approved: "We'll email you the moment the clinical workspace is available.")
 
 ### 8.2 `/onboarding/hospital-pending`
+
 - **Under review:** H1 "We're reviewing your application". Body: "Thanks for applying on behalf of **{hospital}**. A superadmin is verifying the documents you uploaded and confirming with the senior officer on your callback contact. We'll email {work email} the moment a decision is made."
   - What happens next: 1. A platform superadmin reviews your facility licence + authorisation letter. 2. They call the senior officer on your callback contact to confirm authority. 3. On approval: your account is upgraded to hospital admin, a tenant is provisioned, and you complete a short setup wizard (departments, wards, backup admin) before going live.
 - **Rejected:** H1 "Your application wasn't approved". Body: "Our review found: {reason}. Reach out if you'd like to discuss next steps."
@@ -416,19 +439,22 @@ Header: MedSync · Sign out. Status pill shows the affiliation state.
 The live database may have more rows added through the admin tools.
 
 ### 9.1 Geography: **placeholder subset**, pending the full UBOS NPHC 2024 dataset
+
 - **Regions:** Central, Eastern, Northern, Western
 - **Districts (21, alphabetical in the dropdown):** Central: Kampala, Wakiso, Mukono, Mpigi, Luwero, Masaka · Eastern: Jinja, Mbale, Soroti, Tororo, Iganga · Northern: Gulu, Lira, Arua, Kitgum, Moroto · Western: Mbarara, Kabale, Kasese, Hoima, Fort Portal
 - **Subcounties:** Kampala only: Kampala Central Division, Kawempe Division, Makindye Division, Nakawa Division, Rubaga Division. Every other district has **no subcounties** yet.
 
 ### 9.2 Councils (dropdown sorted by name)
-| Code | Name | Regulates |
-|---|---|---|
-| AHPC | Allied Health Professionals Council | clinical officers, lab, radiography, physiotherapy, other allied disciplines |
-| PHARM_BOARD | Pharmacy Board | pharmacists & pharmacy cadres (with the National Drug Authority) |
-| UMDPC | Uganda Medical and Dental Practitioners Council | doctors and dentists |
-| UNMC | Uganda Nurses and Midwives Council | nurses and midwives (enrolled vs registered) |
+
+| Code        | Name                                            | Regulates                                                                    |
+| ----------- | ----------------------------------------------- | ---------------------------------------------------------------------------- |
+| AHPC        | Allied Health Professionals Council             | clinical officers, lab, radiography, physiotherapy, other allied disciplines |
+| PHARM_BOARD | Pharmacy Board                                  | pharmacists & pharmacy cadres (with the National Drug Authority)             |
+| UMDPC       | Uganda Medical and Dental Practitioners Council | doctors and dentists                                                         |
+| UNMC        | Uganda Nurses and Midwives Council              | nurses and midwives (enrolled vs registered)                                 |
 
 ### 9.3 Cadres by council
+
 - **UMDPC:** Intern Doctor · Medical Officer · Medical Officer (Special Grade) · Consultant · Senior Consultant · Dental Officer · Dental Surgeon
 - **UNMC:** Nurse · Midwife · Specialist Nurse
 - **AHPC:** Clinical Officer · Laboratory Technician · Laboratory Technologist · Radiographer · Physiotherapist · Occupational Therapist · Nutritionist
@@ -436,6 +462,7 @@ The live database may have more rows added through the admin tools.
 - **Non-clinical (no council):** Reception / Records Officer
 
 ### 9.4 Cadre grades
+
 - Nurse: Enrolled Nurse · Registered Nurse · Specialist Nurse
 - Midwife: Enrolled Midwife · Registered Midwife
 - Clinical Officer: Diploma · Bachelor's
@@ -443,30 +470,32 @@ The live database may have more rows added through the admin tools.
 - All other cadres: none
 
 ### 9.5 Roles by cadre
-| Cadre | Roles |
-|---|---|
-| Intern Doctor | Intern Doctor — Internal Medicine |
-| Medical Officer | Medical Officer — Internal Medicine |
-| Medical Officer (Special Grade) | Medical Officer SG — Internal Medicine |
-| Consultant | Consultant Physician — {Cardiology, Nephrology, Endocrinology, Pulmonology, Gastroenterology, Hepatology, Neurology, Infectious Diseases, Oncology, Haematology, Rheumatology, Dermatology, Geriatrics} |
-| Senior Consultant | Senior Consultant · — Internal Medicine · — Surgery · — Paediatrics · — Obstetrics & Gynaecology |
-| Dental Officer | Dental Officer |
-| Dental Surgeon | Dental Surgeon |
-| Nurse | Nurse — Internal Medicine |
-| Midwife | Midwife |
-| Specialist Nurse | Specialist Nurse — Internal Medicine |
-| Clinical Officer | Clinical Officer — Internal Medicine |
-| Laboratory Technician | Laboratory Technician — IM |
-| Laboratory Technologist | Laboratory Technologist |
-| Radiographer | Radiographer |
-| Physiotherapist | Physiotherapist |
-| Occupational Therapist | Occupational Therapist |
-| Nutritionist | Nutritionist |
-| Pharmacist | Ward Pharmacist |
-| Pharmacy Technician | Pharmacy Technician |
-| Reception / Records Officer | Reception / Records Officer |
+
+| Cadre                           | Roles                                                                                                                                                                                                   |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Intern Doctor                   | Intern Doctor — Internal Medicine                                                                                                                                                                       |
+| Medical Officer                 | Medical Officer — Internal Medicine                                                                                                                                                                     |
+| Medical Officer (Special Grade) | Medical Officer SG — Internal Medicine                                                                                                                                                                  |
+| Consultant                      | Consultant Physician — {Cardiology, Nephrology, Endocrinology, Pulmonology, Gastroenterology, Hepatology, Neurology, Infectious Diseases, Oncology, Haematology, Rheumatology, Dermatology, Geriatrics} |
+| Senior Consultant               | Senior Consultant · — Internal Medicine · — Surgery · — Paediatrics · — Obstetrics & Gynaecology                                                                                                        |
+| Dental Officer                  | Dental Officer                                                                                                                                                                                          |
+| Dental Surgeon                  | Dental Surgeon                                                                                                                                                                                          |
+| Nurse                           | Nurse — Internal Medicine                                                                                                                                                                               |
+| Midwife                         | Midwife                                                                                                                                                                                                 |
+| Specialist Nurse                | Specialist Nurse — Internal Medicine                                                                                                                                                                    |
+| Clinical Officer                | Clinical Officer — Internal Medicine                                                                                                                                                                    |
+| Laboratory Technician           | Laboratory Technician — IM                                                                                                                                                                              |
+| Laboratory Technologist         | Laboratory Technologist                                                                                                                                                                                 |
+| Radiographer                    | Radiographer                                                                                                                                                                                            |
+| Physiotherapist                 | Physiotherapist                                                                                                                                                                                         |
+| Occupational Therapist          | Occupational Therapist                                                                                                                                                                                  |
+| Nutritionist                    | Nutritionist                                                                                                                                                                                            |
+| Pharmacist                      | Ward Pharmacist                                                                                                                                                                                         |
+| Pharmacy Technician             | Pharmacy Technician                                                                                                                                                                                     |
+| Reception / Records Officer     | Reception / Records Officer                                                                                                                                                                             |
 
 ### 9.6 Specialties / seeded hospital
+
 - Internal Medicine + 13 sub-specialties: Cardiology, Nephrology, Endocrinology / Diabetology, Pulmonology, Gastroenterology, Hepatology, Neurology, Infectious Diseases, Oncology, Haematology, Rheumatology, Dermatology, Geriatrics.
 - Seeded hospital: **Mulago National Referral Hospital** (Central, Kampala), with departments Internal Medicine plus the 13 sub-specialties above.
 
@@ -475,6 +504,7 @@ The live database may have more rows added through the admin tools.
 ## 10. Consent and agreement texts (verbatim)
 
 ### 10.1 Data-processing notice, `data_processing` v1.0, effective 2026-05-23 (all four forms)
+
 > PLACEHOLDER — MedSync Data Processing Notice (v1.0)
 >
 > This is interim text pending review by counsel. By signing up you agree that MedSync may process the personal and health information you provide for the purpose of (a) creating and operating your account, (b) issuing you a patient code, (c) connecting you to partner facilities, and (d) producing aggregate, de-identified statistics for service improvement. We will not share identifying information with third parties for marketing. You can request a copy of your data or its deletion at any time by contacting support.
@@ -482,11 +512,13 @@ The live database may have more rows added through the admin tools.
 > A finalised consent notice will supersede this one before any patient data is used for purposes beyond the four named above. Acceptance of this version is recorded in consent_records with the SHA-256 of this exact text so we can prove which version you saw.
 
 ### 10.2 SMS consent, `sms_communication` v1.0, effective 2026-09-13 (patient only, optional)
+
 > MedSync may send SMS about your bookings: confirmation, reminders and changes. No marketing. Reply STOP to opt out.
 
 UI copy around it (marked provisional, pending Clinical Safety Officer sign-off): label "Send me SMS about my bookings"; "Without SMS we can only reach you inside the app. People who turn this off miss visits more often."; "You will still get one SMS with the code each time you book."
 
 ### 10.3 Hospital Data-Processing Agreement, `v0.placeholder` (hospital only)
+
 > {{LEGAL REVIEW — PLACEHOLDER}}
 >
 > This Data-Processing Agreement (DPA) is a placeholder pending review by Ugandan counsel. It captures the structural intent of the agreement between MedSync and the institution accepting it.

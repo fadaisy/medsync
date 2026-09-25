@@ -22,3 +22,6 @@ mobile
 
 # Self-contained Vite subproject (the sensor bench) with its own toolchain
 bionic-islet-bench
+
+# Generated datasets (COD-AB geography, MoH NHFR registry, password list): regenerated, never hand-formatted
+data/

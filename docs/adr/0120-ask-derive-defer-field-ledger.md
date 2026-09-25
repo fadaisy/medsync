@@ -11,6 +11,7 @@ The forms asked for things approval never uses (hospital: 30+ operating facts) a
 A field stays on a signup form only if account creation or verification needs it before approval. The ledger is Appendix A of `docs/onboarding-v2/PROMPT-ONBOARDING-V2.md`, as corrected in `gate-a-proposal.md` §10.
 
 **Derived, not asked:**
+
 - region, from the district;
 - council, grade and role, from the profession;
 - display name, from first name + surname;
@@ -18,6 +19,7 @@ A field stays on a signup form only if account creation or verification needs it
 - a registry facility's name, level, ownership and place.
 
 **Deferred to where they are used:**
+
 - **Patient:** ID (NIN, passport, refugee ID, other: D12), next of kin, usual hospital, photo and title go to `/patient/profile` ("Complete your profile").
 - **Staff:** photo and optional grades go to the staff pending page; the approver records licence expiry.
 - **Hospital:** departments, services, operating profile and contacts go to the setup checklist.

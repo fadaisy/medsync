@@ -14,7 +14,10 @@ import { anonClient, cleanup, createTestUser, RLS_TESTS_ENABLED, serviceSql } fr
  * project with 0069 applied.
  */
 
-type Channelable = { channel: TestUser["client"]["channel"]; realtime: TestUser["client"]["realtime"] };
+type Channelable = {
+  channel: TestUser["client"]["channel"];
+  realtime: TestUser["client"]["realtime"];
+};
 
 /** Subscribe to a private topic and report how the server answered. */
 async function listen(client: Channelable, topic: string): Promise<string> {

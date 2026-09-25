@@ -10,14 +10,14 @@ Scope: `PROMPT-ONBOARDING-V2.md`. Baseline: `extraction-2026-09-25.md`. Discover
 
 ## 1. Visual design plan (inside DESIGN-medsync.md)
 
-| Token role | Value | Rule |
-|---|---|---|
-| Ground | `bg-background` (#fff) / section cards `bg-card`, `shadow-card`, radius 12 | DESIGN § Cards |
-| Action | teal-600 `#0D9488` (the submit, links, focus ring `#14B8A6`) | one primary button per page |
-| Place | plum-500 dot (`#C953A3`) on the section in view; `SectionNumber` `[01]` (plum, ADR 0097) | never on a selected control |
+| Token role | Value                                                                                            | Rule                                                                      |
+| ---------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------- |
+| Ground     | `bg-background` (#fff) / section cards `bg-card`, `shadow-card`, radius 12                       | DESIGN § Cards                                                            |
+| Action     | teal-600 `#0D9488` (the submit, links, focus ring `#14B8A6`)                                     | one primary button per page                                               |
+| Place      | plum-500 dot (`#C953A3`) on the section in view; `SectionNumber` `[01]` (plum, ADR 0097)         | never on a selected control                                               |
 | Validation | amber: border `#D97706`, fill `#FFFBEB`, text amber-800 `#92400E` + `TriangleAlert` icon + words | Law 9. Scoped to the v2 kit, so the shared `Field`/`Input` stay untouched |
-| Done | neutral ink `#171717` check + the word "Done" | never green |
-| Alarm | `#DC2626` only in the header Emergency button | red-scarcity test on every signup and onboarding route |
+| Done       | neutral ink `#171717` check + the word "Done"                                                    | never green                                                               |
+| Alarm      | `#DC2626` only in the header Emergency button                                                    | red-scarcity test on every signup and onboarding route                    |
 
 - **Type:** Fraunces 500 for the H1 (as `/get-started`); Geist Sans for UI, with labels at 13/500 (Body S). A mobile form label is 13 px, not DESIGN's 11 px: 11 px is too small for 50+ testers on a low-end Android. Geist Mono only for the NIN and registry codes.
 - **The one memorable thing:** the progress rail. A calm, exact "where you are" that follows scroll (IntersectionObserver): the plum dot moves to the section in view, and each item carries its state word. Everything else stays quiet.
@@ -105,27 +105,31 @@ Scope: `PROMPT-ONBOARDING-V2.md`. Baseline: `extraction-2026-09-25.md`. Discover
    - **The officer contact split** replaces `callback_*` for **new** rows only. The 5 existing rows keep `callback_*` because SQL can't decrypt app-encrypted values, and the admin view reads both.
 
 **Edge functions changed** (they deploy with the web):
+
 - `approve-hospital-application`: the verify step, `verified` added as a starting state, and it now sets `hospitals.district`/`region` text (emergency contacts match on it; today it is NULL for every onboarded hospital).
 - `reject-hospital-application`: accepts `verified`.
 - `approve-staff-affiliation`: the DOC-1 licence guard for clinical cadres, plus an optional `licence_valid_until`.
 
 ## 7. Copy deck
+
 Every visible v2 string lives in **`content/onboarding.ts`** (data, as in `content/auth.ts`). A test enforces the invariants: no "email you", "we'll text", "notify you by email", "cadre", "affiliation" or "tenant" on public v2 surfaces, and reading grade ≤ 8 on patient copy.
+
 - **PROVISIONAL (CSO + lawyer):**
-  - the under-18 message: *"MedSync accounts for people under 18 need a parent or guardian. This isn't available online yet."*
+  - the under-18 message: _"MedSync accounts for people under 18 need a parent or guardian. This isn't available online yet."_
   - the three "How we use your details" lines, each restating one v1.0 clause: (a)+(c) running your account and connecting you with partner facilities; no identifying data shared for marketing; a copy or deletion on request.
 - **D19 (lawyer):** v1.0 names no staff-verification purpose. The staff forms show the same three lines, with nothing added.
 
 ## 8. Test plan
 
-| Layer | Where | What |
-|---|---|---|
-| Engine units | `tests/onboarding-v2/*.test.ts` (vitest, node) | LOC-1..10, REG-1..6, PRO-1..4, DOC-1..4, EV-1..3 rule ids; phone normalisation; NIN soft check; password policy; under-18; idempotency; the email-typo hint; the copy invariants; red scarcity on the v2 kit and routes |
-| SQL | harness `pg/probe.mjs` (PGlite, all 71 migrations) | LOC-1 and LOC-4 triggers; the legacy mapping; generated `documents_complete`; RLS probes for `facility_locations` and `onboarding_events` (anon, patient, same-hospital staff, other-hospital staff, hospital admin, superadmin) |
-| UI | harness `cdp.mjs` (headless Chrome) | S1–S15 at 360 px and 1440 px: screenshots, axe, mocked geolocation, network drop, the Emergency overlap measure, first-load JS against the §11 budgets |
-| Live | after the owner applies 0070 | one lifecycle run per form on a test account, cleaned up afterwards |
+| Layer        | Where                                              | What                                                                                                                                                                                                                             |
+| ------------ | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Engine units | `tests/onboarding-v2/*.test.ts` (vitest, node)     | LOC-1..10, REG-1..6, PRO-1..4, DOC-1..4, EV-1..3 rule ids; phone normalisation; NIN soft check; password policy; under-18; idempotency; the email-typo hint; the copy invariants; red scarcity on the v2 kit and routes          |
+| SQL          | harness `pg/probe.mjs` (PGlite, all 71 migrations) | LOC-1 and LOC-4 triggers; the legacy mapping; generated `documents_complete`; RLS probes for `facility_locations` and `onboarding_events` (anon, patient, same-hospital staff, other-hospital staff, hospital admin, superadmin) |
+| UI           | harness `cdp.mjs` (headless Chrome)                | S1–S15 at 360 px and 1440 px: screenshots, axe, mocked geolocation, network drop, the Emergency overlap measure, first-load JS against the §11 budgets                                                                           |
+| Live         | after the owner applies 0070                       | one lifecycle run per form on a test account, cleaned up afterwards                                                                                                                                                              |
 
 ## 9. ADR drafts (0119–0128)
+
 - 0119: one page per form, no Next.
 - 0120: the field ledger (ask, derive, defer).
 - 0121: the location engine.
@@ -140,6 +144,7 @@ Every visible v2 string lives in **`content/onboarding.ts`** (data, as in `conte
 Written at STOP 7 from the build record.
 
 ## 10. Appendix A and B corrections
+
 - **Appendix A** holds, with these changes:
   - `physical_address` (NOT NULL) is derived from the place path at application; "directions or landmark" in the setup checklist refines it.
   - `institutional_email_domain` (NOT NULL) is derived from the work email.
@@ -151,33 +156,34 @@ Written at STOP 7 from the build record.
   - Grades for Clinical officer and Lab technician are optional on the pending page, not in the form.
 
 ## 11–12. Performance budgets and final numbers
+
 As in the prompt §11–§12. Baseline first-load JS (gz, measured 25 Sep):
 
-| Route | kB |
-|---|---|
-| `/signup/patient` | 313.3 |
-| `/signup/clinical` | 313.3 |
-| `/signup/non-clinical` | 313.1 |
-| `/signup/hospital` | 381.8 |
+| Route                   | kB    |
+| ----------------------- | ----- |
+| `/signup/patient`       | 313.3 |
+| `/signup/clinical`      | 313.3 |
+| `/signup/non-clinical`  | 313.1 |
+| `/signup/hospital`      | 381.8 |
 | `/onboarding/*-pending` | 236.6 |
-| `/admin/setup` | 313.9 |
-| `/patient/profile` | 316.1 |
+| `/admin/setup`          | 313.9 |
+| `/patient/profile`      | 316.1 |
 
 ## 13. Decisions
 
 D1–D19 and E1–E6 as recommended in the prompt, with these amendments:
 
-| # | Amendment |
-|---|---|
-| D2a | The catalogue lists stay at 8 / 4 / 6 until the validated JSON is supplied (Q8). **Owner action: send the JSON.** |
-| D3 | The dataset is COD-AB v01 (UBOS 2020). Parish and village are deferred until a UBOS parish list with codes is supplied. |
-| D5 | NHFR public API (live). MFL 2018 is not needed. |
-| D7 | Implemented as Verify → sign → Approve & provision (§2.7). |
-| D9 | AHPC is included in the private licence list; **its scope still needs confirming (PROVISIONAL)**. |
-| D12 | ID types: NIN, passport, refugee ID, other. |
-| D16 | The funnel report is a script (`scripts/onboarding-funnel.mjs`), which is smaller than a page. |
-| E1 | Per-level tables (§3). |
-| E2 | In-process search (§3). |
+| #   | Amendment                                                                                                                                                                                                                                |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| D2a | The catalogue lists stay at 8 / 4 / 6 until the validated JSON is supplied (Q8). **Owner action: send the JSON.**                                                                                                                        |
+| D3  | The dataset is COD-AB v01 (UBOS 2020). Parish and village are deferred until a UBOS parish list with codes is supplied.                                                                                                                  |
+| D5  | NHFR public API (live). MFL 2018 is not needed.                                                                                                                                                                                          |
+| D7  | Implemented as Verify → sign → Approve & provision (§2.7).                                                                                                                                                                               |
+| D9  | AHPC is included in the private licence list; **its scope still needs confirming (PROVISIONAL)**.                                                                                                                                        |
+| D12 | ID types: NIN, passport, refugee ID, other.                                                                                                                                                                                              |
+| D16 | The funnel report is a script (`scripts/onboarding-funnel.mjs`), which is smaller than a page.                                                                                                                                           |
+| E1  | Per-level tables (§3).                                                                                                                                                                                                                   |
+| E2  | In-process search (§3).                                                                                                                                                                                                                  |
 | New | A per-browser preview: visiting `/signup/preview` sets a cookie that turns v2 on for that browser only. `ONBOARDING_V2=1` turns it on for everyone. This lets the owner see v2 in production while the old forms stay the default (D18). |
 
 **Signature:** the owner, by instruction "go through all gates", 25 Sep 2026.
