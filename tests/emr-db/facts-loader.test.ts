@@ -342,6 +342,35 @@ describe.skipIf(!laneOn)("loadFactSnapshot on the PGlite lane", () => {
     expect(denied.facts).toEqual([]);
   });
 
+  it("reader path names a backfilled allergy from its source (0073 allergy_source_text)", async () => {
+    const p = await newPatient();
+    const src = (
+      await lane.pg.query<{ id: string }>(
+        `INSERT INTO public.patient_allergies (hospital_id, patient_user_id, substance, recorded_by_user_id)
+         VALUES ($1, $2, 'Sulfa drugs', $3) RETURNING id`,
+        [h, p, doc],
+      )
+    ).rows[0]!.id;
+    // The shape 0071's backfill writes: no text, no recorder, the source named by legacy_ref.
+    await lane.pg.query(
+      `INSERT INTO public.allergies (id, logical_id, hospital_id, patient_user_id, effective_at, source, trust,
+         informant, legacy_ref)
+       SELECT n, n, $1, $2, now(), 'clinician', 3, 'record',
+              jsonb_build_object('table', 'patient_allergies', 'id', $3::text) FROM gen_random_uuid() n`,
+      [h, p, src],
+    );
+    const asOf = new Date(Date.now() + 60_000);
+    const text = (s: FactSnapshot) =>
+      s.facts.flatMap((f) => (f.kind === "allergy" ? [f.substance.text] : []));
+    const reader = await asClinicalReader(
+      { userId: doc, hospitalId: h },
+      (tx) =>
+        loadFactSnapshot(tx as EmrTx, p, { manifest: ["allergy"], asOf, purpose: "interactive" }),
+      lane.db,
+    );
+    expect(text(reader)).toEqual(["Sulfa drugs"]);
+  });
+
   it("p95 of loadFactSnapshot for a patient with 2,000 facts", async () => {
     const p = await newPatient();
     // 500 each of four concepts over two years, one version each.

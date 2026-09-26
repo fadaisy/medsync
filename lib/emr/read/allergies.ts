@@ -2,7 +2,7 @@ import "server-only";
 
 import type { AllergyRow, AllergyStatus } from "@/lib/emr/allergy";
 import type { EmrDb, EmrTx } from "@/lib/emr/db";
-import { eq, inArray } from "drizzle-orm";
+import { eq, inArray, sql } from "drizzle-orm";
 
 import { allergies, allergyStatusAssertions } from "@/db/schema/emr";
 import { patientAllergies } from "@/db/schema/prescribing";
@@ -35,30 +35,64 @@ export async function loadAllergyInput(
       .where(eq(allergyStatusAssertions.patientUserId, patientUserId)),
   ]);
 
-  const legacy = await legacyTexts(
-    tx,
-    rows.filter((r) => !r.substanceTextCiphertext).map((r) => r.legacyRef as LegacyRef | null),
-  );
-  const text = (r: (typeof rows)[number]): string | null => {
-    if (r.substanceTextCiphertext) return decrypt(r.substanceTextCiphertext);
-    const ref = r.legacyRef as LegacyRef | null;
-    return ref ? (legacy.get(refKey(ref)) ?? null) : null;
-  };
-
-  // A later version written without text (a status change) keeps its logical item's substance.
-  const byLogical = new Map<string, string>();
-  const resolved: AllergyRow[] = rows
-    .sort((a, b) => a.version - b.version)
-    .map((r) => {
-      const t = text(r) ?? byLogical.get(r.logicalId) ?? null;
-      if (t) byLogical.set(r.logicalId, t);
-      return { ...r, substanceText: t };
-    });
-
+  const resolved = await resolveAllergyTexts(tx, rows, "owner");
   return {
     ...prescribingAllergyInput(resolved, episodeCaptures),
     status: resolveAllergyStatus(resolved, assertions),
   };
+}
+
+type AllergyDbRow = typeof allergies.$inferSelect;
+
+/**
+ * The substance text of every allergy row: the decrypted text, or a backfilled row's text from its
+ * source. `owner` reads the sources directly (the resus desk path); `reader` goes through
+ * private.allergy_source_text (0073), because medsync_clinical_reader holds no grant on them. A later
+ * version written without text (a status change) keeps its logical item's substance.
+ */
+export async function resolveAllergyTexts(
+  tx: EmrTx | EmrDb,
+  rows: readonly AllergyDbRow[],
+  via: "owner" | "reader",
+): Promise<AllergyRow[]> {
+  const untexted = rows.filter((r) => !r.substanceTextCiphertext && r.legacyRef);
+  const sourceText = new Map<string, string>();
+  if (via === "owner") {
+    const legacy = await legacyTexts(
+      tx,
+      untexted.map((r) => r.legacyRef as LegacyRef),
+    );
+    for (const r of untexted) {
+      const t = legacy.get(refKey(r.legacyRef as LegacyRef));
+      if (t) sourceText.set(r.id, t);
+    }
+  } else if (untexted.length > 0) {
+    const found = await tx
+      .select({
+        id: allergies.id,
+        text: sql<string | null>`private.allergy_source_text(${allergies.id})`,
+      })
+      .from(allergies)
+      .where(
+        inArray(
+          allergies.id,
+          untexted.map((r) => r.id),
+        ),
+      );
+    for (const f of found) if (f.text) sourceText.set(f.id, f.text);
+  }
+
+  const byLogical = new Map<string, string>();
+  return [...rows]
+    .sort((a, b) => a.version - b.version)
+    .map((r) => {
+      const own = r.substanceTextCiphertext
+        ? decrypt(r.substanceTextCiphertext)
+        : (sourceText.get(r.id) ?? null);
+      const t = own ?? byLogical.get(r.logicalId) ?? null;
+      if (t) byLogical.set(r.logicalId, t);
+      return { ...r, substanceText: t };
+    });
 }
 
 const refKey = (ref: LegacyRef) => `${ref.table}:${ref.id}:${ref.index ?? ""}`;

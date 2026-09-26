@@ -146,3 +146,65 @@ Both are recorded as open budget items, not hidden.
   `sensitivityFor`; addenda inherit the parent's restriction.
 - The `ENCOUNTER_IDLE_MS` constant moves to `lib/workspace/flow.ts`.
 - Legacy `resulted` orders never enter Results to review; only events-lifecycle orders do.
+
+## STOP 4 — Write paths, handoffs, lanes, realtime (2026-09-26)
+
+The first run was cut by the session limit after W3 finished (committed b2fd76e). W1 and W2 resumed from their partial
+files, then W4 and W5 ran.
+
+**Scenarios on the PGlite lane (`tests/emr-db/scenarios.test.ts`): 10/10.**
+
+| | Result |
+|---|---|
+| A1 | ✅ triage prefill (vitals projected), diagnosis, mRDT + fasting glucose (fasting chip enforced), result, acknowledgement, completion `home` (only the unsigned-note warning) |
+| A2 | ✅ an OPD-coded amiodarone allergy is refused by the resus re-check; an allergy written through resus AMPLE shows in the safety bar, **named** (fixed at this gate) |
+| A3 | ✅ critical with a TEST-signed entry: flag, communication, Critical results lane, acknowledgement clears. Shipped time frame → `timeframe_not_signed`; TEST-signed and elapsed → escalate |
+| A4 | ✅ signed note immutable (trigger), addendum threaded, entered in error struck with its reason, the note-born fact leaves the snapshot |
+| A5 | ◐ encounter + signed ISBAR note + flag cleared. Outstanding actions are not turned into proposed orders: the resus close-out has no structured action list |
+| A6 | ✅ stale encounter → Needs closing, stays open; administrative closure needs a reason |
+| A7 | ✅ reception refused (even with forged `isClinical`), other hospital refused; an intern's note awaits co-sign while their orders commit |
+| A8 | ✅ 30 s offline with a reply dropped mid-flight: nothing lost, in order, the draft coalesced |
+| A9 | ✅ notifiable (TEST-signed IDSR class): confirm payload, pending intent (an encounter event), IPC prompt, never blocks |
+
+**Audit completeness:** 40/40 EMR rows written in the scenarios have audit rows with the acting user, across 12 tables.
+
+**Totals:**
+- `EMR_PGLITE=1` over tests/emr, tests/emr-db and tests/workspace: 46 files, **3,084 tests**.
+- Pre-existing suites (prescribing, resus, encounter, triage, ncd, lab): 120 files, 2,169 passed, 1 skipped.
+- App `tsc`: 0; `typecheck:functions`: 0; ESLint: 0.
+- The harness replays **74 migrations** (0073 = realtime + reader grants + allergy source text).
+
+**Built:**
+- Write functions and `'use server'` actions for encounters (through the two Edge Functions: start reuses the open
+  encounter; complete takes disposition, follow-up and closure), notes (draft, sign with HMAC + note-born facts in one
+  tx, co-sign through `clinical_cosign_requests.sign_note`, addendum, entered in error), facts (observations with the
+  unit check, allergies, assertions, problems, diagnoses with one primary, medicines, reconciliation, pregnancy,
+  procedures, generic entered in error), orders (placed, collected with the fasting chip, received, rejected,
+  preliminary/final/amended results, acknowledgement, critical communication) and triage suggestions (accept/dismiss).
+- `/lab` actions re-pointed under `EMR_V1`, each in one transaction.
+- NCD bridge (`lib/ncd/cfc-map.ts`, 47 rules); drafts now encrypted.
+- Resus AMPLE writes through to the allergy record; every prescribe path reads it, with a server-side re-check.
+- Workspace: 3 new lanes (critical results, results to review, to co-sign) with the 400-seed property test green;
+  one idle constant.
+- 0073: PHI-free `chart:<patient>` broadcasts, receive-RLS through `private.may_hear_chart`.
+- `lib/emr/sync` write queue and server clock.
+- Resus close-out consumes the handoff after its commit.
+
+**Fixed at this gate (both found by the integration agent in Phase 3 code):**
+1. The chart styled a critical value as critical only when its context was complete. A critical glucose with an
+   unknown fasting state would have lost its alarm. Missing context never hides an alarm now (test added).
+2. The loader projected uncoded and backfilled allergies without their text, so the safety bar showed "substance not
+   named". One resolver (`resolveAllergyTexts`) now serves the prescribe path and the loader. Under RLS, backfilled
+   text comes through `private.allergy_source_text` (0073), which returns only that string and only with a basis
+   (test added).
+
+**Open, recorded for the owner:**
+- If the record cannot be read at emergency administration, the dose is still recorded and stamped
+  `allergyRecord='unavailable'` after the amber warning. CSO to confirm, or require an override reason.
+- A close-out with no access basis leaves `pending_encounter_handoff` set; the chart offers to bring the handover in
+  (P5).
+- Duplicate vitals are flagged, not merged (10-minute window → O-9).
+- New lanes use hotkeys 8, 9 and 0 (keys 1–7 unchanged).
+- Chart broadcast payload is `{kind, at}` (no id).
+- **Deploy order:** 0071–0073 must be applied **before** this branch is deployed. Drizzle's encounter inserts name the
+  0071 columns, which is the house rule for gated migrations.

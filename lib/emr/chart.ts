@@ -643,7 +643,7 @@ function flowsheet(
       at,
       value: valueText(f),
       flag: labFlag(rv).text,
-      critical: f.interpretable.ok && detectCritical(rv, input.criticalRefs).isCritical,
+      critical: detectCritical(rv, input.criticalRefs).isCritical,
     });
     if (f.value.type === "quantity")
       row.series.push({ id: f.id, restricted, at, value: f.value.canonical.value });
@@ -702,7 +702,7 @@ export function buildChartPayload(input: ChartInput): ChartPayload {
         value: valueText(f),
         flag: flag.text,
         abnormal: flag.flag !== null && ABNORMAL.has(flag.flag),
-        critical: f.interpretable.ok && detectCritical(rv, input.criticalRefs).isCritical,
+        critical: detectCritical(rv, input.criticalRefs).isCritical,
       };
     })
     .sort(

@@ -23,6 +23,7 @@ import { clinicalObservations } from "@/db/schema/nurse-workspace";
 import { patientProfiles } from "@/db/schema/patient-profiles";
 import { encounters } from "@/db/schema/scheduling";
 import { triageRecords } from "@/db/schema/triage";
+import { resolveAllergyTexts } from "@/lib/emr/read/allergies";
 import { snapshotHash } from "./hash";
 import { projectAllergy, projectAllergyAssertion } from "./project/allergy";
 import {
@@ -319,7 +320,13 @@ export async function loadFactSnapshot(
       .select()
       .from(allergies)
       .where(and(eq(allergies.patientUserId, patientUserId), lte(allergies.recordedAt, asOf)));
-    for (const row of newest(rows)) parts.push(projectAllergy(row));
+    // Uncoded text is encrypted and backfilled text lives in its source: without resolving both,
+    // the safety bar would name no substance. The definer-function path works under the reader.
+    const texts = new Map(
+      (await resolveAllergyTexts(tx, rows, "reader")).map((r) => [r.id, r.substanceText]),
+    );
+    for (const row of newest(rows))
+      parts.push(projectAllergy(row, { text: texts.get(row.id) ?? undefined }));
     const asserted = await tx
       .select()
       .from(allergyStatusAssertions)

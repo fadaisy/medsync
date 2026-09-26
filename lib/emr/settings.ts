@@ -1,5 +1,7 @@
 import type { FlowSettings } from "@/lib/workspace/flow";
 
+import { ENCOUNTER_IDLE_MS } from "@/lib/workspace/flow";
+
 /**
  * Operational hospital settings for the EMR (gate-a-proposal §H.2). These are engineering and
  * workflow defaults, not clinical numbers, and they are NOT in the signed GATE A list:
@@ -36,9 +38,8 @@ const HOUR_MS = 60 * 60_000;
 export const EMR_SETTINGS_DEFAULTS: Readonly<EmrSettings> = Object.freeze({
   autosaveDebounceMs: 1_500,
   lateEntryWindowMs: 24 * HOUR_MS,
-  // = ENCOUNTER_IDLE_MS (lib/workspace/queries.ts, server-only, so not importable by a pure
-  // module); tests/emr/encounter.test.ts pins the two together.
-  encounterIdleMs: 24 * HOUR_MS,
+  // The Workspace's D3 constant itself (lib/workspace/flow.ts, pure), so the two never drift.
+  encounterIdleMs: ENCOUNTER_IDLE_MS,
   closureReasonCodes: CLOSURE_REASON_CODES,
 });
 

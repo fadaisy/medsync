@@ -1,14 +1,22 @@
 "use server";
 
-import type { ActionResult } from "./common";
+import type { ActionResult, EpisodeHeader } from "./common";
+import type { EmrTx } from "@/lib/emr/db";
+import type { WriteCtx } from "@/lib/emr/write/context";
 import type { EpisodePhase, PatientContextFlags } from "@/lib/resus/model";
+import type { ResusScope } from "@/lib/resus/scope";
 import type { AbcdeLetter, TimelineEvent } from "@/lib/resus/types";
 import type { ResusTx, V2EventInput } from "@/lib/resus/v2-record";
-import { and, eq, inArray, isNull } from "drizzle-orm";
+import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 
 import { clinicalObservations } from "@/db/schema/nurse-workspace";
-import { resusRoleAssignments } from "@/db/schema/resus";
+import { resusRoleAssignments, resusTimelineEvents } from "@/db/schema/resus";
+import { resolveEmrAccess } from "@/lib/emr/access";
+import { emrV1LiveFor } from "@/lib/emr/feature";
+import { loadAllergyInput } from "@/lib/emr/read/allergies";
+import { assertAllergyStatus, recordAllergy } from "@/lib/emr/write/facts";
+import { logger } from "@/lib/logger";
 import { EMPTY_CONTEXT, PREGNANCY_STATES } from "@/lib/resus/model";
 import { acknowledgeResusAlert } from "@/lib/resus/record";
 import { STEP_PRESENTATION } from "@/lib/resus/reference/presentation";
@@ -247,14 +255,18 @@ export async function recordStepFindingsV2(input: {
     step === "E" && ample
       ? allergyNoteIfChanged(p.events, ample.allergies, ample.nkda === true)
       : null;
+  const noteClientEventId = crypto.randomUUID();
   if (allergyNote)
     events.push({
-      clientEventId: crypto.randomUUID(),
+      clientEventId: noteClientEventId,
       recordedAt: parsed.data.recordedAt,
       kind: "note",
       step: null,
       payload: allergyNote,
     });
+  const capture = allergyNote?.allergyCapture as
+    | { substances: string[]; nkda: boolean }
+    | undefined;
   return done(
     await commitResusEvents({
       scopeUserId: p.scope.userId,
@@ -262,8 +274,102 @@ export async function recordStepFindingsV2(input: {
       episodeId: parsed.data.episodeId,
       events,
       audit: { action: "record_resus_event", reason: `Resus ${step} findings` },
+      ...(capture
+        ? {
+            also: (tx: ResusTx) => ampleToRecord(tx, p.scope, p.header, noteClientEventId, capture),
+          }
+        : {}),
     }),
   );
+}
+
+/**
+ * R1 (HARMONISATION §2, ADR 0135): the AMPLE capture also lands on the allergy record, in the same
+ * transaction as the timeline note — each substance not already on the record through
+ * recordAllergy (informant: the patient; provenance: this capture), NKDA through assertAllergyStatus.
+ * It runs under a savepoint and never fails the resus entry: the timeline note is kept either way, and
+ * the 0071 backfill (keyed on the same capture) can copy a skipped one later. The desk looks the same.
+ */
+async function ampleToRecord(
+  tx: ResusTx,
+  scope: ResusScope,
+  header: EpisodeHeader,
+  noteClientEventId: string,
+  capture: { substances: string[]; nkda: boolean },
+): Promise<void> {
+  const patientUserId = header.patientUserId;
+  if (!patientUserId || !emrV1LiveFor(scope.hospitalId)) return;
+  try {
+    await tx.transaction(async (sp) => {
+      const etx = sp as unknown as EmrTx;
+      // Identity for the audit triggers, as lib/emr/db.ts asClinicalWriter sets it.
+      await etx.execute(
+        sql`SELECT set_config('app.user_id', ${scope.userId}, true),
+                   set_config('app.hospital_id', ${scope.hospitalId}, true),
+                   set_config('request.jwt.claim.sub', ${scope.userId}, true)`,
+      );
+      const access = await resolveEmrAccess(etx, {
+        userId: scope.userId,
+        patientUserId,
+        hospitalId: scope.hospitalId,
+      });
+      if (!access.allowed) {
+        logger.warn("resus.ample.no_record_basis", { episodeId: header.id });
+        return;
+      }
+      const [note] = await etx
+        .select({ id: resusTimelineEvents.id })
+        .from(resusTimelineEvents)
+        .where(
+          and(
+            eq(resusTimelineEvents.episodeId, header.id),
+            eq(resusTimelineEvents.clientEventId, noteClientEventId),
+          ),
+        );
+      if (!note) return;
+      const ctx: WriteCtx = {
+        tx: etx,
+        actor: {
+          userId: scope.userId,
+          fullName: scope.fullName,
+          hospitalId: scope.hospitalId,
+          departmentId: scope.departmentId,
+          affiliationId: scope.affiliationId,
+          cadreCode: scope.cadreCode,
+          isClinical: true,
+          surface: "nurse",
+        },
+        basis: access.basis,
+        now: new Date(),
+      };
+      const onRecord = new Set(
+        (await loadAllergyInput(etx, patientUserId)).entries.map((e) => e.value.toLowerCase()),
+      );
+      for (const [i, raw] of capture.substances.entries()) {
+        const text = raw.trim();
+        if (!text || onRecord.has(text.toLowerCase())) continue;
+        onRecord.add(text.toLowerCase());
+        await recordAllergy(ctx, {
+          patientUserId,
+          encounterId: null,
+          clientKey: `ample:${note.id}:${i}`,
+          substance: { text },
+          informant: "patient",
+          legacyRef: { table: "resus_timeline_events", id: note.id, index: String(i) },
+        });
+      }
+      if (capture.nkda && capture.substances.length === 0)
+        await assertAllergyStatus(ctx, {
+          patientUserId,
+          encounterId: null,
+          clientKey: `ample:${note.id}:nkda`,
+          assertion: "no_known_drug_allergies",
+          legacyRef: { table: "resus_timeline_events", id: note.id },
+        });
+    });
+  } catch (e) {
+    logger.warn("resus.ample.record_write_failed", { episodeId: header.id, reason: String(e) });
+  }
 }
 
 export async function setStepActionStateV2(input: {

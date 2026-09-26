@@ -16,10 +16,13 @@ import { OverflowMenu, PrimaryAction } from "./row-actions";
 /** Time in stage, in the lane's own words (elapsed only — Law 5). */
 const TIME_WORD: Record<LaneId, [string, string]> = {
   resus: ["T+", ""],
+  critical_results: ["released", "ago"],
   triage: ["waiting", ""],
   unassigned: ["triaged", "ago"],
   waiting: ["waiting", ""],
   in_progress: ["active", "ago"],
+  results_to_review: ["released", "ago"],
+  to_cosign: ["requested", "ago"],
   needs_closing: ["open", ""],
   done: ["", ""],
 };

@@ -495,6 +495,14 @@ describe("flowsheet", () => {
     const b = build({ facts: one, criticalRefs: [testSigned] });
     expect(b.flowsheet.rows[0]!.cells[0]!.critical).toBe(true);
     expect(b.summary.results[0]!.critical).toBe(true);
+
+    // Missing context (no specimen) makes a value non-interpretable for rules that need it,
+    // but it must never hide an alarm.
+    const noSpecimen = facts(k("2026-03-11T08:00:00Z", "9", { specimen: null }));
+    expect(noSpecimen[0]!.interpretable.ok).toBe(false);
+    const c = build({ facts: noSpecimen, criticalRefs: [testSigned] });
+    expect(c.flowsheet.rows[0]!.cells[0]!.critical).toBe(true);
+    expect(c.summary.results[0]!.critical).toBe(true);
   });
   it("words coded values", () => {
     const f = build({ facts: facts(projectObservation(cfcRowFor("obs.hiv_test"))) }).flowsheet;
