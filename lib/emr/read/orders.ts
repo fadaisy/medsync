@@ -145,6 +145,57 @@ async function logRead(
 
 const AVAILABILITY: readonly string[] = ["available", "intermittent", "unavailable"];
 
+type TestRow = typeof testCatalogue.$inferSelect;
+
+/** The facility's test menu from its catalogue rows and capability statuses. */
+function buildTestMenu(tests: TestRow[], capRows: { id: string; status: string }[]): MenuTest[] {
+  // A test menu entry keeps the "local" row when a hospital overrides a default by code.
+  const byCode = new Map<string, TestRow>();
+  for (const t of tests) if (!byCode.has(t.code) || t.hospitalId !== null) byCode.set(t.code, t);
+  const caps = new Map(capRows.map((c) => [c.id, c.status]));
+  return [...byCode.values()].map((t) => ({
+    id: t.id,
+    code: t.code,
+    display: t.display,
+    kind: t.kind,
+    components: t.components.map((c) => conceptDef(c)?.display ?? c),
+    specimenType: t.specimenType,
+    container: t.container,
+    fastingRequired: t.fastingRequired,
+    ionising: t.ionising,
+    inHouse: t.inHouse,
+    favouriteRank: t.favouriteRank,
+    availability: (t.capabilityId && AVAILABILITY.includes(caps.get(t.capabilityId) ?? "")
+      ? caps.get(t.capabilityId)
+      : "unknown") as Availability,
+    restricted: t.components.some((c) => sensitivityFor(c as FactConcept, null) === "restricted"),
+  }));
+}
+
+/**
+ * The test menu as the order sheet reads it (defaults, a local row winning by code, with
+ * availability). Also the resus close-out's "Outstanding tests" (PROMPT §5.12).
+ */
+export async function loadTestMenu(
+  tx: Pick<EmrDb, "select">,
+  hospitalId: string,
+): Promise<MenuTest[]> {
+  const tests = await tx
+    .select()
+    .from(testCatalogue)
+    .where(
+      and(
+        eq(testCatalogue.active, true),
+        or(isNull(testCatalogue.hospitalId), eq(testCatalogue.hospitalId, hospitalId)),
+      ),
+    );
+  const caps = await tx
+    .select({ id: facilityCapabilities.capabilityId, status: facilityCapabilities.status })
+    .from(facilityCapabilities)
+    .where(eq(facilityCapabilities.hospitalId, hospitalId));
+  return buildTestMenu(tests, caps);
+}
+
 export async function loadEncounterOrders(
   actor: EmrActor,
   encounterId: string,
@@ -209,28 +260,7 @@ export async function loadEncounterOrders(
     opts.database,
   );
 
-  // A test menu entry keeps the "local" row when a hospital overrides a default by code.
-  const byCode = new Map<string, (typeof rec.tests)[number]>();
-  for (const t of rec.tests)
-    if (!byCode.has(t.code) || t.hospitalId !== null) byCode.set(t.code, t);
-  const caps = new Map(rec.caps.map((c) => [c.id, c.status]));
-  const menu: MenuTest[] = [...byCode.values()].map((t) => ({
-    id: t.id,
-    code: t.code,
-    display: t.display,
-    kind: t.kind,
-    components: t.components.map((c) => conceptDef(c)?.display ?? c),
-    specimenType: t.specimenType,
-    container: t.container,
-    fastingRequired: t.fastingRequired,
-    ionising: t.ionising,
-    inHouse: t.inHouse,
-    favouriteRank: t.favouriteRank,
-    availability: (t.capabilityId && AVAILABILITY.includes(caps.get(t.capabilityId) ?? "")
-      ? caps.get(t.capabilityId)
-      : "unknown") as Availability,
-    restricted: t.components.some((c) => sensitivityFor(c as FactConcept, null) === "restricted"),
-  }));
+  const menu = buildTestMenu(rec.tests, rec.caps);
 
   // Current versions only: not superseded, not withdrawn, not refuted.
   const superseded = new Set(rec.dx.map((d) => d.supersedesId).filter(Boolean));
@@ -317,7 +347,7 @@ export async function loadEncounterOrders(
       };
   }
 
-  await logRead(actor, patientUserId, head.basis, "emr_orders_doctor", opts.database);
+  await logRead(actor, patientUserId, head.basis, `emr_orders_${actor.surface}`, opts.database);
   return {
     encounterId,
     patientUserId,

@@ -480,9 +480,19 @@ export function DeskClient({
         [pick, o],
       ),
     onSuggestion: (key: string, a: { accept: string } | { dismiss: true }) => {
+      const s = p.suggestions.find((x) => x.key === key);
+      if (s?.source === "resus_handover") {
+        // Already a proposed order on this visit: accept places it, dismiss records it.
+        const proposal = { surface, patientUserId, encounterId, proposedOrderId: key };
+        return void run(
+          `suggestion:${key}`,
+          () => ("accept" in a ? acceptSuggestedOrder(proposal) : dismissSuggestedOrder(proposal)),
+          "accept" in a ? "Ordered" : "Suggestion dismissed",
+          a,
+        );
+      }
       const triageRecordId = p.encounter.triageRecordId;
       if (!triageRecordId) return;
-      const s = p.suggestions.find((x) => x.key === key);
       const ref = { surface, patientUserId, encounterId, triageRecordId, recommendationKey: key };
       void run(
         `suggestion:${key}`,

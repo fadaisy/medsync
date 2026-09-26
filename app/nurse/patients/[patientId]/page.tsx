@@ -15,6 +15,7 @@ import { loadCfcVitals } from "@/lib/emr/read/vitals";
 import { toEncounterScope } from "@/lib/encounter/workspace-scope";
 import { fetchNursePatientSummaryAudited } from "@/lib/nurse/patient-access";
 import { requireNurseScope } from "@/lib/nurse/scope";
+import { NurseOrders } from "./_orders/nurse-orders";
 
 export const metadata: Metadata = { title: "Patient · Nurse · MedSync" };
 export const dynamic = "force-dynamic";
@@ -60,7 +61,12 @@ export default async function NursePatientSummaryPage({ params }: PageProps) {
   // EMR v1 (gate-a E.2): the chart. Flag off, everything below renders exactly as before.
   if (emrV1LiveFor(scope.hospitalId)) {
     const chart = await loadChart("nurse", patientId);
-    return chart ? <EmrChart chart={chart} surface="nurse" /> : <NoAccessScreen />;
+    if (!chart) return <NoAccessScreen />;
+    // The open visit's orders: collect the specimen, print the label (no ordering here).
+    const orders = chart.openEncounterId ? (
+      <NurseOrders encounterId={chart.openEncounterId} />
+    ) : null;
+    return <EmrChart chart={chart} surface="nurse" orders={orders} />;
   }
 
   const summary = await fetchNursePatientSummaryAudited({

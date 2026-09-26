@@ -1,4 +1,5 @@
 import type * as Common from "@/app/nurse/resus/_v2/common";
+import type * as CloseRules from "@/lib/resus/v2-rules-closeout";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
@@ -37,6 +38,16 @@ vi.mock("@/lib/resus/v2-record", () => ({
   fetchAllResusEvents: vi.fn(async () => []),
   fetchActiveResusEvents: vi.fn(async () => []),
 }));
+// A death outcome needs a confirmed death in the record; the A5 died case skips that rule.
+const outcomeRuleOff = vi.hoisted(() => ({ value: false }));
+vi.mock("@/lib/resus/v2-rules-closeout", async (importOriginal) => {
+  const real = await importOriginal<typeof CloseRules>();
+  return {
+    ...real,
+    closeOutcomeProblem: (...a: Parameters<typeof real.closeOutcomeProblem>) =>
+      outcomeRuleOff.value ? null : real.closeOutcomeProblem(...a),
+  };
+});
 vi.mock("@/app/nurse/resus/_v2/common", async (importOriginal) => {
   const real = await importOriginal<typeof Common>();
   return { ...real, prelude: vi.fn(real.prelude) };
@@ -80,7 +91,7 @@ function prelude(patientUserId: string | null = PATIENT) {
   });
 }
 
-const close = () =>
+const close = (extra: Partial<Parameters<typeof closeResusV2>[0]> = {}) =>
   closeResusV2({
     episodeId: EPISODE,
     clientEventId: crypto.randomUUID(),
@@ -97,6 +108,7 @@ const close = () =>
     sbar: { situation: "", background: "", assessment: "", recommendation: "" },
     receiving: null,
     escort: null,
+    ...extra,
   });
 
 const header = () => (commit.mock.calls[0]![0] as { header: Record<string, unknown> }).header;
@@ -104,6 +116,7 @@ const header = () => (commit.mock.calls[0]![0] as { header: Record<string, unkno
 beforeEach(() => {
   order.length = 0;
   emrOn.value = true;
+  outcomeRuleOff.value = false;
   for (const m of [commit, openEncounter, write, consume]) m.mockReset();
   commit.mockImplementation(async () => {
     order.push("commit");
@@ -169,5 +182,69 @@ describe("flag off: the pre-EMR seam, unchanged", () => {
     expect(header()).toMatchObject({ pendingEncounterHandoff: false, encounterId: "enc-old" });
     expect(write).not.toHaveBeenCalled();
     expect(r).toMatchObject({ ok: true, encounterId: "enc-old" });
+  });
+});
+
+describe("outstanding tests on the handover event (A5)", () => {
+  const TROPONIN = "85bce91e-1271-53d4-a176-bc4a95172f45";
+  const LACTATE = "0f3fe0a8-5ada-56d2-a9dc-d1314609d1b4";
+  const handover = () =>
+    (commit.mock.calls[0]![0] as { events: { kind: string; payload: Record<string, unknown> }[] })
+      .events[0]!;
+
+  it("stores test ids and the reason beside the SBAR; a repeat collapses to the first", async () => {
+    prelude();
+    const r = await close({
+      outstandingTests: [
+        { testId: TROPONIN, reason: "  Chest pain  " },
+        { testId: LACTATE, reason: "" },
+        { testId: TROPONIN, reason: "again" },
+      ],
+    });
+    expect(r.ok).toBe(true);
+    expect(handover().kind).toBe("handover");
+    expect(handover().payload.outstandingTests).toEqual([
+      { testId: TROPONIN, reason: "Chest pain" },
+      { testId: LACTATE, reason: null },
+    ]);
+  });
+
+  it("optional: a close-out without any (an older client) stores none", async () => {
+    prelude();
+    expect((await close()).ok).toBe(true);
+    expect(handover().payload).not.toHaveProperty("outstandingTests");
+  });
+
+  it("a malformed list is refused before anything is written", async () => {
+    prelude();
+    const r = await close({ outstandingTests: [{ testId: "troponin", reason: null }] });
+    expect(r).toMatchObject({ ok: false });
+    const tooMany = Array.from({ length: 21 }, () => ({
+      testId: crypto.randomUUID(),
+      reason: null,
+    }));
+    expect((await close({ outstandingTests: tooMany })).ok).toBe(false);
+    expect(commit).not.toHaveBeenCalled();
+  });
+
+  it("a death hands nothing off, so it stores none", async () => {
+    outcomeRuleOff.value = true;
+    prelude();
+    const r = await close({
+      outcomeCode: "died_after_cpr",
+      disposition: {
+        suggestedLevel: null,
+        chosenLevel: null,
+        destination: "mortuary",
+        unitId: null,
+        mismatch: null,
+        mismatchNote: null,
+        ruleIds: [],
+      },
+      outstandingTests: [{ testId: TROPONIN, reason: null }],
+    });
+    expect(r.ok).toBe(true);
+    expect(handover().payload).not.toHaveProperty("outstandingTests");
+    expect(write).not.toHaveBeenCalled();
   });
 });

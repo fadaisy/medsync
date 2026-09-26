@@ -17,6 +17,7 @@ import { openEncounterFromTriage } from "@/lib/encounter/handoff";
 import { logger } from "@/lib/logger";
 import { arrestSlice, currentArrestSeq } from "@/lib/resus/als/timing";
 import { canAdminCloseResus } from "@/lib/resus/authority";
+import { OUTSTANDING_REASON_MAX, OUTSTANDING_TESTS_MAX } from "@/lib/resus/closeout/handover";
 import { mismatchRequired } from "@/lib/resus/closeout/level-of-care";
 import { allowedActions } from "@/lib/resus/closeout/lifecycle";
 import { CARE_LEVELS, DESTINATIONS, LEVEL_MISMATCH_CODES, OUTCOME_CODES } from "@/lib/resus/model";
@@ -68,6 +69,18 @@ const DispositionSchema = z.object({
   bed: z.enum(["requested", "accepted", "not_available"]).nullable().default(null),
   bedAcceptedBy: z.string().trim().max(60).nullable().default(null),
 });
+
+/** A5: optional; a client that does not send them closes as before. Test ids and a short reason,
+ *  stored beside the SBAR as it is (the EMR handoff proposes each; nothing is ordered here). */
+const OutstandingTestsSchema = z
+  .array(
+    z.object({
+      testId: z.string().uuid(),
+      reason: z.string().trim().max(OUTSTANDING_REASON_MAX).nullable(),
+    }),
+  )
+  .max(OUTSTANDING_TESTS_MAX)
+  .default([]);
 
 type Disposition = z.infer<typeof DispositionSchema>;
 type DispositionInput = z.input<typeof DispositionSchema>;
@@ -139,6 +152,7 @@ export async function closeResusV2(input: {
   receiving: { unit: string; cadre: string } | null;
   escort: string | null;
   cprOngoing?: boolean;
+  outstandingTests?: z.input<typeof OutstandingTestsSchema>;
 }): Promise<ActionResult<{ encounterId?: string | null }>> {
   const parsed = WriteBase.extend({
     outcomeCode: z.enum(OUTCOME_CODES),
@@ -147,6 +161,7 @@ export async function closeResusV2(input: {
     receiving: z.object({ unit: z.string().max(120), cadre: z.string().max(60) }).nullable(),
     escort: z.string().max(200).nullable(),
     cprOngoing: z.boolean().optional(),
+    outstandingTests: OutstandingTestsSchema,
   }).safeParse(input);
   if (!parsed.success) return fail("Invalid close-out.");
   const d = parsed.data;
@@ -182,6 +197,14 @@ export async function closeResusV2(input: {
         receiving: d.receiving,
         escort: d.escort,
         cprOngoing: d.cprOngoing ?? false,
+        // Additive: older handover events have none. Repeats collapse to the first.
+        ...(d.outstandingTests.length && !died
+          ? {
+              outstandingTests: d.outstandingTests
+                .filter((t, i, all) => all.findIndex((x) => x.testId === t.testId) === i)
+                .map((t) => ({ testId: t.testId, reason: t.reason || null })),
+            }
+          : {}),
         label: `Handover${d.receiving ? ` to ${d.receiving.unit} (${d.receiving.cadre})` : ""}${d.cprOngoing ? " — CPR ongoing" : ""}`,
       },
     },

@@ -85,7 +85,9 @@ describe.skipIf(!laneOn)("prescriptions from the encounter (PGlite lane)", () =>
   async function policy(hospitalId: string, cadre: string, kind: string, requirement: string) {
     await q(
       `INSERT INTO public.clinical_cosign_policies (hospital_id, cadre_code, action_kind, requirement)
-       VALUES ($1, $2, $3, $4)`,
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT (hospital_id, COALESCE(department_id, '00000000-0000-0000-0000-000000000000'::uuid),
+                    cadre_code, action_kind) DO UPDATE SET requirement = EXCLUDED.requirement`,
       [hospitalId, cadre, kind, requirement],
     );
   }
@@ -131,6 +133,8 @@ describe.skipIf(!laneOn)("prescriptions from the encounter (PGlite lane)", () =>
     };
     await policy(other, "MEDICAL_OFFICER", "prescription_routine", "allowed");
     const bare = await hospital(lane.pg, "No policy");
+    // 0075 seeds every new hospital; remove them to keep a hospital with no policy at all.
+    await q(`DELETE FROM public.clinical_cosign_policies WHERE hospital_id = $1`, [bare]);
     const bareDept = await department(lane.pg, bare);
     unset = {
       ...actor(

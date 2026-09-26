@@ -36,10 +36,12 @@ import { carryMedicines, carryProblems, triagePrefill } from "@/lib/emr/carry-fo
 import { asClinicalReader, asClinicalWriter } from "@/lib/emr/db";
 import { completionWarnings, isOpen } from "@/lib/emr/encounter";
 import { getTemplate, noteStatus } from "@/lib/emr/notes";
+import { orderStatusText } from "@/lib/emr/orders";
 import { loadChartFor } from "@/lib/emr/read/chart";
 import { deskTemplateOf, generalSigns, loadRosScreen, vitalConcepts } from "@/lib/emr/read/terms";
 import { EMR_SETTINGS_DEFAULTS } from "@/lib/emr/settings";
 import { SENIOR_CADRES } from "@/lib/emr/write/facts";
+import { HANDOVER_REASON } from "@/lib/emr/write/handoff";
 import { sourceIntentId } from "@/lib/emr/write/intents";
 import { clerkshipWriteAuthority } from "@/lib/encounter/access";
 import { ncdClerkshipLive } from "@/lib/encounter/feature";
@@ -280,6 +282,15 @@ export async function loadDeskFor(
             eq(encounterOrders.intentSource, "triage_recommendation"),
           ),
         );
+      const handover = await tx
+        .select({ id: encounterOrders.id, reason: encounterOrders.reasonTextCiphertext })
+        .from(encounterOrders)
+        .where(
+          and(
+            eq(encounterOrders.encounterId, enc.id),
+            eq(encounterOrders.intentSource, "resus_handover"),
+          ),
+        );
       const [triage] = enc.triageRecordId
         ? await tx
             .select({
@@ -304,7 +315,17 @@ export async function loadDeskFor(
             or(isNull(testCatalogue.hospitalId), eq(testCatalogue.hospitalId, actor.hospitalId)),
           ),
         );
-      return { notes, events, conditionRows, medicineRows, terms, suggested, triage, tests };
+      return {
+        notes,
+        events,
+        conditionRows,
+        medicineRows,
+        terms,
+        suggested,
+        handover,
+        triage,
+        tests,
+      };
     },
     opts.database,
   );
@@ -471,6 +492,25 @@ export async function loadDeskFor(
       // A malformed snapshot suggests nothing; the triage panel still shows what was recorded.
       suggestions = [];
     }
+  }
+
+  // The resus handover's suggestions: proposed orders on this visit (PROMPT §5.12), decided in place.
+  const chartOrder = new Map(chart.orders.map((o) => [o.id, o]));
+  const PROPOSED = orderStatusText({ state: "proposed" }, "lab");
+  const DISMISSED = orderStatusText({ state: "cancelled", via: "dismissed", reason: null }, "lab");
+  for (const h of rec.handover) {
+    const o = chartOrder.get(h.id);
+    if (!o?.testId) continue;
+    const reason = safeDecrypt(h.reason);
+    suggestions.push({
+      key: h.id,
+      source: "resus_handover",
+      text: o.display,
+      rationale: reason === HANDOVER_REASON ? "" : (reason ?? ""),
+      tests: [{ testId: o.testId, display: o.display }],
+      state:
+        o.statusText === PROPOSED ? "open" : o.statusText === DISMISSED ? "dismissed" : "accepted",
+    });
   }
 
   // Carried forward: problems and medicines, "still true?".

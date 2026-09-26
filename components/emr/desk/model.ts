@@ -78,8 +78,10 @@ export interface TriageContext {
 }
 
 export interface Suggestion {
-  /** lib/triage/recommend.ts code ("invx_glucose"). */
+  /** lib/triage/recommend.ts code ("invx_glucose"); for the resus handover, its proposed order's id. */
   key: string;
+  /** Absent: triage. The resus handover's suggestions are proposed orders already on the visit. */
+  source?: "resus_handover";
   text: string;
   rationale: string;
   tests: { testId: string; display: string }[];

@@ -24,11 +24,14 @@ import {
   diagnosticReports,
   resultAcknowledgements,
 } from "@/db/schema/emr";
+import { encounterOrders } from "@/db/schema/encounter";
 import { triageRecords } from "@/db/schema/triage";
 import { triagePrefill } from "@/lib/emr/carry-forward";
 import { buildChartPayload } from "@/lib/emr/chart";
 import { asClinicalWriter } from "@/lib/emr/db";
+import { deriveOrderStatus } from "@/lib/emr/orders";
 import { loadAllergyInput } from "@/lib/emr/read/allergies";
+import { loadDeskFor } from "@/lib/emr/read/desk";
 import { CRITICAL_REFS, REF_CRIT_TIMEFRAME } from "@/lib/emr/reference/critical";
 import { REF_IDSR_CLASSES } from "@/lib/emr/reference/idsr";
 import { ackState, escalationState } from "@/lib/emr/results";
@@ -37,15 +40,16 @@ import { actionError, withPatientWrite } from "@/lib/emr/write/context";
 import { planAdministrativeClosure, planCompletion } from "@/lib/emr/write/encounter";
 import { IPC_PROMPT, recordAllergy, recordEncounterDiagnosis } from "@/lib/emr/write/facts";
 import { consumeResusHandoff } from "@/lib/emr/write/handoff";
+import { acceptSuggestedOrder, dismissSuggestedOrder } from "@/lib/emr/write/intents";
 import * as notes from "@/lib/emr/write/notes";
-import { placeOrders } from "@/lib/emr/write/orders";
+import { loadOrderRecords, placeOrders } from "@/lib/emr/write/orders";
 import {
   acknowledgeResults,
   enterResults,
   recordCriticalCommunication,
 } from "@/lib/emr/write/results";
 import { collectSpecimen, receiveSpecimen } from "@/lib/emr/write/specimens";
-import { decrypt, generateKey } from "@/lib/encryption";
+import { decrypt, encrypt, generateKey } from "@/lib/encryption";
 import { loadFactSnapshot } from "@/lib/facts/loader";
 import { recordedAllergiesFromTimeline } from "@/lib/prescribing/administration";
 import { allergyRecheck, mergeAllergyLists } from "@/lib/prescribing/allergy-merge";
@@ -125,6 +129,7 @@ const { loadEmrTasks } = await import("@/lib/workspace/queries");
 const HMAC_KEY = Buffer.alloc(32, 5).toString("base64");
 const GLUCOSE_FASTING = "79a7098d-6585-5bff-ab14-3a4a09b3bf68";
 const MALARIA_RDT = "461e61e7-1f95-589b-a8e4-87e9e007d16e";
+const GLUCOSE_RANDOM = "c2ba5229-00b1-5233-96b9-7c2a730e4400";
 const MALARIA_UNCOMPLICATED = "08c91b1d-8305-53ef-9ccd-6c829c87aae5";
 const key = () => `k-${randomUUID()}`;
 const drug = (k: string) => EMERGENCY_DRUGS.find((d) => d.drugKey === k)!;
@@ -712,7 +717,7 @@ describe.skipIf(!laneOn)("Phase 4 scenarios A1–A9 (PGlite lane)", () => {
     expect(item.addenda.map((a) => a.id)).toEqual([add.id]);
   });
 
-  it("A5 resus handover consumed: encounter + ISBAR note + flag cleared", async () => {
+  it("A5 resus handover consumed: encounter + ISBAR note + flag cleared + 2 proposed orders; accept one, dismiss one; re-consume adds nothing", async () => {
     const p = await patient(lane.pg);
     patients.push(p);
     await intake(lane.pg, { hospitalId: h, patientUserId: p });
@@ -739,12 +744,17 @@ describe.skipIf(!laneOn)("Phase 4 scenarios A1–A9 (PGlite lane)", () => {
             assessment: "Perfusing.",
             recommendation: "Repeat glucose.",
           },
+          // The close-out's two outstanding tests (test ids and a reason, as the SBAR is kept).
+          outstandingTests: [
+            { testId: GLUCOSE_RANDOM, reason: "Recheck after dextrose" },
+            { testId: MALARIA_RDT, reason: null },
+          ],
         }),
       ],
     );
-    const r = await as(nurse, p, (ctx) =>
-      consumeResusHandoff(ctx, { patientUserId: p, episodeId: ep!.id }),
-    );
+    const consume = () =>
+      as(nurse, p, (ctx) => consumeResusHandoff(ctx, { patientUserId: p, episodeId: ep!.id }));
+    const r = await consume();
     expect(
       (
         await q(`SELECT note_type, template_id, state FROM clinical_notes WHERE id = $1`, [r.id])
@@ -758,8 +768,89 @@ describe.skipIf(!laneOn)("Phase 4 scenarios A1–A9 (PGlite lane)", () => {
         )
       )[0],
     ).toEqual({ pending_encounter_handoff: false, encounter_id: r.encounterId });
-    // Proposed orders from outstanding actions (A5's last clause) are not built: the close-out has
-    // no structured action list to propose from (W1 open item).
+
+    // Two PROPOSED orders on the encounter, not active: nothing is ordered without an accept.
+    const proposed = () =>
+      q<{ id: string; test_id: string; source_intent_id: string }>(
+        `SELECT id, test_id, source_intent_id FROM encounter_orders
+          WHERE encounter_id = $1 AND intent_source = 'resus_handover' ORDER BY created_at, test_id`,
+        [r.encounterId],
+      );
+    const rows = await proposed();
+    expect(rows.map((o) => o.source_intent_id).sort()).toEqual(
+      [`${ep!.id}:${GLUCOSE_RANDOM}`, `${ep!.id}:${MALARIA_RDT}`].sort(),
+    );
+    const byTest = Object.fromEntries(rows.map((o) => [o.test_id, o.id]));
+    const eventKinds = async (orderId: string) =>
+      (
+        await q<{ kind: string }>(
+          `SELECT kind FROM encounter_order_events WHERE order_id = $1 ORDER BY recorded_at`,
+          [orderId],
+        )
+      ).map((e) => e.kind);
+    expect(await eventKinds(byTest[GLUCOSE_RANDOM]!)).toEqual(["proposed"]);
+
+    // The desk Plan shows them as the resus handover's suggestions, with accept and dismiss.
+    await lane.pg.query(
+      `INSERT INTO public.patient_profiles (id, first_name_encrypted, surname_encrypted, sex, date_of_birth, id_type,
+         phone_encrypted, district_id)
+       VALUES ($1, $2, $3, 'female', '1988-07-01', 'none', $4, (SELECT id FROM public.districts LIMIT 1))`,
+      [p, encrypt("Test"), encrypt("Patient"), encrypt("0700000000")],
+    );
+    const planOf = async () =>
+      (await loadDeskFor(mo, r.encounterId, { database: lane.db }))!.payload.suggestions
+        .filter((x) => x.source === "resus_handover")
+        .map((x) => ({ key: x.key, state: x.state, rationale: x.rationale }))
+        .sort((a, b) => a.key.localeCompare(b.key));
+    const expected = (states: Record<string, string>) =>
+      [
+        { key: byTest[GLUCOSE_RANDOM]!, state: states.g, rationale: "Recheck after dextrose" },
+        { key: byTest[MALARIA_RDT]!, state: states.m, rationale: "" },
+      ].sort((a, b) => a.key.localeCompare(b.key));
+    expect(await planOf()).toEqual(expected({ g: "open", m: "open" }));
+    // A suggestion is not an order: completing now warns of no uncollected specimen.
+    const uncollected = async () =>
+      (
+        await as(mo, p, (ctx) =>
+          planCompletion(ctx, {
+            patientUserId: p,
+            encounterId: r.encounterId,
+            disposition: "home",
+          }),
+        )
+      ).warnings.filter((w) => /no specimen collected/.test(w));
+    expect(await uncollected()).toEqual([]);
+
+    // The clinician accepts one (it becomes the active order) and dismisses the other (recorded).
+    const ref = (id: string) => ({
+      patientUserId: p,
+      encounterId: r.encounterId,
+      proposedOrderId: id,
+    });
+    await as(mo, p, (ctx) => acceptSuggestedOrder(ctx, ref(byTest[GLUCOSE_RANDOM]!)));
+    await as(mo, p, (ctx) => dismissSuggestedOrder(ctx, ref(byTest[MALARIA_RDT]!)));
+    expect(await eventKinds(byTest[GLUCOSE_RANDOM]!)).toEqual(["proposed", "placed"]);
+    expect(await eventKinds(byTest[MALARIA_RDT]!)).toEqual(["proposed", "dismissed"]);
+    const [orderRow] = await lane.db
+      .select()
+      .from(encounterOrders)
+      .where(eq(encounterOrders.id, byTest[GLUCOSE_RANDOM]!));
+    const records = await lane.db.transaction((tx) =>
+      loadOrderRecords(tx as EmrTx, [byTest[GLUCOSE_RANDOM]!, byTest[MALARIA_RDT]!]),
+    );
+    expect(deriveOrderStatus(orderRow!, records).status).toEqual({
+      state: "active",
+      rejection: null,
+    });
+
+    expect(await planOf()).toEqual(expected({ g: "accepted", m: "dismissed" }));
+    // The accepted one is now an order to collect; the dismissed one never is.
+    expect(await uncollected()).toEqual(["1 order has no specimen collected yet."]);
+
+    // Re-consumed (the chart's "Bring in resus handover"): no second note, encounter or proposal.
+    expect(await consume()).toEqual(r);
+    expect(await proposed()).toHaveLength(2);
+    expect(await eventKinds(byTest[MALARIA_RDT]!)).toEqual(["proposed", "dismissed"]);
   });
 
   it("A6 a stale encounter sits in Needs closing, never closes itself, and closes administratively with a reason", async () => {

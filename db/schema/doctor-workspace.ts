@@ -86,7 +86,8 @@ export const clinicalCosignPolicies = pgTable(
     ),
     check(
       "cosign_policy_action_check",
-      sql`${t.actionKind} IN ('prescription_routine','prescription_controlled','order_high_cost_imaging','admit_patient','discharge_patient')`,
+      // 0036 widened the policy kinds; mirror it so db:generate never narrows them.
+      sql`${t.actionKind} IN ('prescription_routine','prescription_controlled','order_high_cost_imaging','admit_patient','discharge_patient','high_alert_med_administration','independent_complex_procedure','triage_patient','triage_downgrade')`,
     ),
     index("cosign_policy_lookup_idx").on(t.hospitalId, t.cadreCode, t.actionKind),
   ],

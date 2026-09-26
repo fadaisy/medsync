@@ -132,20 +132,28 @@ export async function planCompletion(
         ).map((s) => s.orderId)
       : [],
   );
+  const orderEvents = ids.length
+    ? await ctx.tx
+        .select({ orderId: encounterOrderEvents.orderId, kind: encounterOrderEvents.kind })
+        .from(encounterOrderEvents)
+        .where(
+          and(
+            inArray(encounterOrderEvents.orderId, ids),
+            inArray(encounterOrderEvents.kind, ["cancelled", "dismissed", "proposed", "placed"]),
+          ),
+        )
+    : [];
+  const placed = new Set(orderEvents.filter((e) => e.kind === "placed").map((e) => e.orderId));
+  // A dismissed suggestion, or one nobody accepted, is not an order: there is nothing to collect.
   const cancelled = new Set(
-    ids.length
-      ? (
-          await ctx.tx
-            .select({ orderId: encounterOrderEvents.orderId })
-            .from(encounterOrderEvents)
-            .where(
-              and(
-                inArray(encounterOrderEvents.orderId, ids),
-                eq(encounterOrderEvents.kind, "cancelled"),
-              ),
-            )
-        ).map((c) => c.orderId)
-      : [],
+    orderEvents
+      .filter(
+        (e) =>
+          e.kind === "cancelled" ||
+          e.kind === "dismissed" ||
+          (e.kind === "proposed" && !placed.has(e.orderId)),
+      )
+      .map((e) => e.orderId),
   );
 
   const warnings = completionWarnings({

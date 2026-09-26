@@ -16,8 +16,8 @@
   npm, Vitest, server actions. There is no Prisma, pnpm, `prisma dev` or new Edge Function.
 - **Naming:** use the repo's names. `hospital_id`, not `tenant_id`. `patient_user_id`, not `patient_id`. Text + CHECK,
   not pg enums. A CHECK change is DROP-then-ADD (see 0069).
-- **Migrations:** `0071_emr_record_spine.sql` (schema), `0072_emr_reference_seed.sql` (generated seeds) and
-  `0073_emr_realtime.sql` (broadcast triggers). All three carry the GATED header like 0069: the owner applies them
+- **Migrations:** `0071_emr_record_spine.sql` (schema), `0072_emr_reference_seed.sql` (generated seeds),
+  `0073_emr_realtime.sql` (broadcast triggers), `0074_emr_prescriptions.sql` (OPD prescriptions) and `0075_cosign_policy_defaults.sql` (co-sign defaults for every hospital). All five carry the GATED header like 0069: the owner applies them
   with `npm run db:migrate`. **Never edit 0000–0070.** Verify every migration with the PGlite harness:
   `cd ~/Desktop/emr-harness/pg && node run.mjs`, which replays everything.
 - **Machine:** 8 GB RAM. Do not run `npm run build`, full `npm run typecheck` or the full `npm run test` unless your
@@ -170,11 +170,11 @@ gate proceeds on green checks.
 - O-4: count the legacy rows (queries in the final report).
 - O-5: re-encrypt the old plaintext NCD drafts (script provided, dry-run first).
 - O-6: decide on Playwright.
-- O-7: apply 0071–0073 in prod (`npm run db:migrate`), deploy the two changed Edge Functions, then set `EMR_V1`.
+- O-7: apply 0071–0075 in prod (`npm run db:migrate`), deploy the two changed Edge Functions, then set `EMR_V1`.
 
 ## 9. Merge rule with the Departments & services hub (feat/hospital-services-hub, owner-signed)
 
-Agreed with that session on 2026-09-26. The hub uses migration 0080 and ADRs 0150–0160; the EMR uses 0071–0073 and
+Agreed with that session on 2026-09-26. The hub uses migration 0080 and ADRs 0150–0160; the EMR uses 0071–0075 and
 0130–0139.
 
 - **Test menu:** `test_catalogue` owns the _orderable definition_ (components as concept ids, specimen, container,
@@ -187,8 +187,8 @@ capabilityId)`. Today that reads `facility_capabilities`; at merge it reads the 
   writer.
 - **Capabilities:** the `cap.*` ids map onto the hub's `capability_values` keys through one mapping table at merge.
 - **Migration coexistence (verified 2026-09-26):**
-  - The EMR's 0071–0073 and the hub's 0080 share no table CHECK they redefine.
-  - Both apply cleanly in PGlite, in name order and in production order (0080 first, then 0071–0073).
+  - The EMR's 0071–0075 and the hub's 0080 share no table CHECK they redefine.
+  - Both apply cleanly in PGlite, in name order and in production order (0080 first, then 0071–0075).
   - `scripts/migrate.ts` applies any unrecorded file by name, so a late 0071 still runs.
 - **`sa_audit_log_action_check` rule:** if an EMR migration ever redefines it, the list must be the current
   `SaAuditAction` union (`supabase/functions/_shared/sa-audit.ts`), hub verbs included. Otherwise every hub operation's

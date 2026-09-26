@@ -3,13 +3,17 @@
  * the encounter, writes the signed ISBAR handover note authored by the resus leader, and clears
  * pending_encounter_handoff; a second call changes nothing. EMR_PGLITE=1.
  */
+import { randomUUID } from "node:crypto";
 import type { Lane } from "./_pglite";
 import type { EmrActor } from "@/lib/emr/actor";
 import { beforeAll, describe, expect, it } from "vitest";
 
+import { deriveOrderStatus } from "@/lib/emr/orders";
 import { withPatientWrite } from "@/lib/emr/write/context";
-import { consumeResusHandoff } from "@/lib/emr/write/handoff";
+import { consumeResusHandoff, HANDOVER_REASON } from "@/lib/emr/write/handoff";
+import { acceptSuggestedOrder, dismissSuggestedOrder } from "@/lib/emr/write/intents";
 import { saveNoteDraft } from "@/lib/emr/write/notes";
+import { loadOrderRecords } from "@/lib/emr/write/orders";
 import { decrypt, generateKey } from "@/lib/encryption";
 import {
   bootLane,
@@ -23,6 +27,10 @@ import {
 } from "./_pglite";
 
 const HMAC_KEY = Buffer.alloc(32, 9).toString("base64");
+// Default-menu tests (0072 seeds); ids only, no clinical values.
+const TROPONIN = "85bce91e-1271-53d4-a176-bc4a95172f45";
+const LACTATE = "0f3fe0a8-5ada-56d2-a9dc-d1314609d1b4";
+const CHEST_XRAY = "6b303538-8f18-5044-8131-66a1db67bc3e";
 
 describe.skipIf(!laneOn)("resus → encounter handoff (PGlite lane)", () => {
   let lane: Lane;
@@ -40,6 +48,7 @@ describe.skipIf(!laneOn)("resus → encounter handoff (PGlite lane)", () => {
     p: string | null,
     state: "active" | "concluded" = "concluded",
     recommendation = "Repeat glucose hourly.",
+    outstandingTests?: unknown,
   ): Promise<string> {
     const ep = (
       await lane.pg.query<{ id: string }>(
@@ -69,11 +78,46 @@ describe.skipIf(!laneOn)("resus → encounter handoff (PGlite lane)", () => {
             recommendation,
           },
           receiving: { unit: "Medical ward", cadre: "MEDICAL_OFFICER" },
+          ...(outstandingTests === undefined ? {} : { outstandingTests }),
         }),
       ],
     );
     return ep;
   }
+
+  let mo: EmrActor;
+
+  const proposals = (encounterId: string) =>
+    lane.pg
+      .query<{
+        id: string;
+        test_id: string;
+        lifecycle: string;
+        intent_source: string;
+        source_intent_id: string;
+        authored_by_user_id: string;
+        requester_cadre: string;
+        priority: string;
+        reason_text_ciphertext: string;
+      }>(
+        `SELECT id, test_id, lifecycle, intent_source, source_intent_id, authored_by_user_id, requester_cadre,
+                priority, reason_text_ciphertext
+           FROM public.encounter_orders WHERE encounter_id = $1 ORDER BY source_intent_id`,
+        [encounterId],
+      )
+      .then((r) => r.rows);
+  const stateOf = async (orderId: string) => {
+    const [o] = (
+      await lane.pg.query<{ id: string; lifecycle: string; status: string; kind: string }>(
+        `SELECT id, lifecycle, status, kind FROM public.encounter_orders WHERE id = $1`,
+        [orderId],
+      )
+    ).rows;
+    const records = await lane.db.transaction((tx) => loadOrderRecords(tx as never, [orderId]));
+    return deriveOrderStatus(o!, records).status.state;
+  };
+  const as = <T>(a: EmrActor, p: string, fn: Parameters<typeof withPatientWrite<T>>[2]) =>
+    withPatientWrite(a, p, fn, { database: lane.db });
 
   beforeAll(async () => {
     process.env.MEDSYNC_PHI_KEY ??= generateKey();
@@ -95,6 +139,13 @@ describe.skipIf(!laneOn)("resus → encounter handoff (PGlite lane)", () => {
     leaderId = (
       await staff(lane.pg, { hospitalId: h, departmentId: dept, cadre: "MEDICAL_OFFICER" })
     ).userId;
+    const m = await staff(lane.pg, { hospitalId: h, departmentId: dept, cadre: "MEDICAL_OFFICER" });
+    mo = {
+      ...nurse,
+      userId: m.userId,
+      affiliationId: m.affiliationId,
+      cadreCode: "MEDICAL_OFFICER",
+    };
   }, 180_000);
 
   it("creates the encounter, writes the ISBAR note as the leader, clears the flag; idempotent", async () => {
@@ -213,5 +264,109 @@ describe.skipIf(!laneOn)("resus → encounter handoff (PGlite lane)", () => {
     );
     // The action's Zod refuses a ':' key; this is the write function reached past it.
     await expect(consume(p, ep)).rejects.toMatchObject({ code: "conflict" });
+  });
+  it("outstanding tests become proposed orders by the leader; a re-consume proposes nothing twice", async () => {
+    const p = await patient(lane.pg);
+    await intake(lane.pg, { hospitalId: h, patientUserId: p });
+    const ep = await episode(p, "concluded", "Repeat glucose hourly.", [
+      { testId: TROPONIN, reason: "  Chest pain before the arrest " },
+      { testId: LACTATE, reason: null },
+      { testId: TROPONIN, reason: "a repeat is dropped" },
+      { testId: randomUUID(), reason: "not on the menu: left out" },
+      { testId: "not-a-uuid" },
+    ]);
+    const r = await consume(p, ep);
+    const rows = await proposals(r.encounterId);
+    expect(rows.map((o) => o.test_id).sort()).toEqual([LACTATE, TROPONIN].sort());
+    for (const o of rows) {
+      expect(o).toMatchObject({
+        lifecycle: "events",
+        intent_source: "resus_handover",
+        source_intent_id: `${ep}:${o.test_id}`,
+        authored_by_user_id: leaderId,
+        requester_cadre: "MEDICAL_OFFICER",
+        priority: "routine",
+      });
+      expect(await stateOf(o.id)).toBe("proposed");
+    }
+    const reasons = Object.fromEntries(
+      rows.map((o) => [o.test_id, decrypt(o.reason_text_ciphertext)]),
+    );
+    expect(reasons).toEqual({
+      [TROPONIN]: "Chest pain before the arrest",
+      [LACTATE]: HANDOVER_REASON,
+    });
+
+    // Re-consume, including after the flag was set again: nothing twice.
+    expect(await consume(p, ep)).toEqual(r);
+    await lane.pg.query(
+      `UPDATE public.resus_episodes SET pending_encounter_handoff = true WHERE id = $1`,
+      [ep],
+    );
+    expect(await consume(p, ep)).toEqual(r);
+    expect(await proposals(r.encounterId)).toHaveLength(2);
+    // An older handover event (no list) proposes nothing.
+    const plain = await patient(lane.pg);
+    await intake(lane.pg, { hospitalId: h, patientUserId: plain });
+    const r2 = await consume(plain, await episode(plain));
+    expect(await proposals(r2.encounterId)).toEqual([]);
+  });
+
+  it("accept places the proposal (the same order), dismiss records it; both idempotent; nurse refused", async () => {
+    const p = await patient(lane.pg);
+    await intake(lane.pg, { hospitalId: h, patientUserId: p });
+    const ep = await episode(p, "concluded", "", [
+      { testId: TROPONIN, reason: null },
+      { testId: CHEST_XRAY, reason: null },
+      { testId: LACTATE, reason: null },
+    ]);
+    const { encounterId } = await consume(p, ep);
+    const byTest = Object.fromEntries((await proposals(encounterId)).map((o) => [o.test_id, o.id]));
+    const ref = (id: string) => ({ patientUserId: p, encounterId, proposedOrderId: id });
+
+    // Law 6: a nurse proposes through the handoff but never accepts or dismisses.
+    await expect(
+      as(nurse, p, (ctx) => acceptSuggestedOrder(ctx, ref(byTest[TROPONIN]!))),
+    ).rejects.toMatchObject({ code: "forbidden" });
+    await expect(
+      as(nurse, p, (ctx) => dismissSuggestedOrder(ctx, ref(byTest[TROPONIN]!))),
+    ).rejects.toMatchObject({ code: "forbidden" });
+
+    const a = await as(mo, p, (ctx) => acceptSuggestedOrder(ctx, ref(byTest[TROPONIN]!)));
+    expect(a).toEqual({ id: byTest[TROPONIN], orderIds: [byTest[TROPONIN]] });
+    expect(await stateOf(byTest[TROPONIN]!)).toBe("active");
+    expect(await as(mo, p, (ctx) => acceptSuggestedOrder(ctx, ref(byTest[TROPONIN]!)))).toEqual(a);
+    const xr = await as(mo, p, (ctx) => acceptSuggestedOrder(ctx, ref(byTest[CHEST_XRAY]!)));
+    expect(xr.warnings?.[0]).toMatch(/ionising radiation/);
+
+    await as(mo, p, (ctx) => dismissSuggestedOrder(ctx, ref(byTest[LACTATE]!)));
+    await as(mo, p, (ctx) => dismissSuggestedOrder(ctx, ref(byTest[LACTATE]!)));
+    expect(await stateOf(byTest[LACTATE]!)).toBe("cancelled");
+    const kinds = (
+      await lane.pg.query<{ kind: string; reason_code: string | null; actor_user_id: string }>(
+        `SELECT kind, reason_code, actor_user_id FROM public.encounter_order_events WHERE order_id = $1 ORDER BY recorded_at, kind DESC`,
+        [byTest[LACTATE]],
+      )
+    ).rows;
+    expect(kinds).toEqual([
+      { kind: "proposed", reason_code: null, actor_user_id: leaderId },
+      { kind: "dismissed", reason_code: "suggestion_dismissed", actor_user_id: mo.userId },
+    ]);
+
+    // Decided one way, never the other; a clinician's own order is not a suggestion.
+    await expect(
+      as(mo, p, (ctx) => acceptSuggestedOrder(ctx, ref(byTest[LACTATE]!))),
+    ).rejects.toMatchObject({ code: "conflict" });
+    await expect(
+      as(mo, p, (ctx) => dismissSuggestedOrder(ctx, ref(byTest[TROPONIN]!))),
+    ).rejects.toMatchObject({ code: "conflict" });
+    await expect(
+      as(mo, p, (ctx) => acceptSuggestedOrder(ctx, ref(randomUUID()))),
+    ).rejects.toMatchObject({ code: "not_found" });
+    await expect(
+      as(mo, p, (ctx) =>
+        acceptSuggestedOrder(ctx, { ...ref(byTest[TROPONIN]!), encounterId: randomUUID() }),
+      ),
+    ).rejects.toMatchObject({ code: "not_found" });
   });
 });

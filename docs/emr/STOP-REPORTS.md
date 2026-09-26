@@ -382,14 +382,14 @@ Phase 0 took no product measurements: no build and no database access (STOP 0, Q
 
 ### Final checks (this worktree, uncommitted fixes applied)
 
-| Check                                                                  | Result                                                                                                                                                                                                                                                                                                                                                                                                              |
-| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| PGlite harness                                                         | 75 migrations applied (0000–0074)                                                                                                                                                                                                                                                                                                                                                                                   |
-| `EMR_PGLITE=1` over tests/emr, emr-db, workspace, functions and design | **60 files, 3,354 passed, 0 failed** (emr-db 306/306)                                                                                                                                                                                                                                                                                                                                                               |
-| Full suite (`npx vitest run`, dead-DB env)                             | **239 files passed, 38 skipped; 6,199 passed, 539 skipped, 0 failed.** Every skipped file is gated on the environment: 18 emr-db and `workspace/emr-lanes` (PGlite lane, green above); 12 `rls` files, 3 hospital-admin, 1 scheduling, audit and auth-flow (need a live database); `a11y/static-pages` (needs a build)                                                                                              |
-| App `tsc --noEmit` (fresh `.next/types`)                               | 0 errors                                                                                                                                                                                                                                                                                                                                                                                                            |
-| `typecheck:functions`                                                  | 0 errors                                                                                                                                                                                                                                                                                                                                                                                                            |
-| ESLint                                                                 | 0 errors, 2 warnings (`scripts/embed-bench.mjs` console, bench commit aae1c08, not EMR)                                                                                                                                                                                                                                                                                                                             |
+| Check                                                                  | Result                                                                                                                                                                                                                                                                                                                                                                                                           |
+| ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| PGlite harness                                                         | 75 migrations applied (0000–0074)                                                                                                                                                                                                                                                                                                                                                                                |
+| `EMR_PGLITE=1` over tests/emr, emr-db, workspace, functions and design | **60 files, 3,354 passed, 0 failed** (emr-db 306/306)                                                                                                                                                                                                                                                                                                                                                            |
+| Full suite (`npx vitest run`, dead-DB env)                             | **239 files passed, 38 skipped; 6,199 passed, 539 skipped, 0 failed.** Every skipped file is gated on the environment: 18 emr-db and `workspace/emr-lanes` (PGlite lane, green above); 12 `rls` files, 3 hospital-admin, 1 scheduling, audit and auth-flow (need a live database); `a11y/static-pages` (needs a build)                                                                                           |
+| App `tsc --noEmit` (fresh `.next/types`)                               | 0 errors                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `typecheck:functions`                                                  | 0 errors                                                                                                                                                                                                                                                                                                                                                                                                         |
+| ESLint                                                                 | 0 errors, 2 warnings (`scripts/embed-bench.mjs` console, bench commit aae1c08, not EMR)                                                                                                                                                                                                                                                                                                                          |
 | Prettier, files changed since 004772d                                  | Clean after `--write`, except these, which were left unformatted on purpose: the five signed specs stay byte-identical (`PROMPT-ENCOUNTER-EMR.md`, `SPEC-CLINICAL-FACT-CONTRACT-v1.md`, `SPEC-NCD-ENGINE-DIABETES-PACK-v1.md`, `emr-clinical-reference.md`, `clinical-fact-concepts.v1.json`), and the `.sql` migrations have no Prettier parser. They are now in `.prettierignore`, so they stay byte-identical |
 
 ### Open, recorded for the owner and CSO
@@ -423,8 +423,58 @@ Phase 0 took no product measurements: no build and no database access (STOP 0, Q
   browser (12 runs) 0 serious / 0 critical. The 4 moderate findings are harness-page headings.
 - **Clerking-route client JS, from the route's client-reference manifest:** entry chunks 317.4 KB gz, against 215.5 KB
   before the EMR (+101.9 KB, including the Phase 7 prescribing panel) and 305.2 KB at STOP 5–6.
-  - The manifest lists every client module the route *can* reach, with the flag on or off.
+  - The manifest lists every client module the route _can_ reach, with the flag on or off.
   - The desk now loads through `next/dynamic`, and `tests/emr/ui/flag-off.test.ts` proves the flag-off page never
     statically imports it.
   - What a flag-off visit actually downloads needs one real signed-in render (runbook §7).
   - **Treat the 90 KB budget as not yet met** until that render says otherwise.
+
+### Owner-support round (2026-09-26)
+
+Five pieces of build work from the runbook's open list, plus the checks below. Nothing committed. No new dependency,
+no new env var; `.env.example` untouched; no clinical numbers.
+
+**Built:**
+
+- **Owner scripts** (`scripts/emr/`, shared `_cli.ts`). All dry-run by default, `--apply --actor <auth user uuid>` to
+  write, idempotent, audited under the actor, host printed first:
+  - `npm run emr:legacy-counts`: the §4 O-4 SQL verbatim, plus the post-0071 block when `public.allergies` exists.
+  - `npm run emr:backfill-allergies`: replays 0071 §15 for AMPLE captures made while the flag was off.
+  - `npm run emr:reencrypt-drafts`: plaintext `clerkship_drafts` → `{enc}` (O-5).
+  - `npm run emr:encrypt-allergy-text`: next version with `substance_text_ciphertext` for backfilled allergies (O-5).
+- **Hosted RLS twin**: `tests/rls/emr-access.test.ts`, a subset of the 2,400-probe matrix over supabase-js and the
+  reader role. Skips without `MEDSYNC_ALLOW_RLS_DB_WRITES=1`; never yet run against a real project.
+- **0075 co-sign policy defaults** (GATED): `private.seed_cosign_policy_defaults`, a backfill for hospitals with no
+  policy row, and an AFTER INSERT trigger on `hospitals`. Replaces the §8 "seed policies first" step.
+- **Nurse orders panel**: collect specimen and print label on `/nurse/patients/[patientId]`, behind `EMR_V1`.
+- **Resus handover → proposed orders**: an optional "Outstanding tests" picker on the close-out; the handoff turns each
+  into a proposed order that the desk Plan accepts or dismisses. **Scenario A5 is now full (11/11).**
+
+**Numbers:**
+
+| Check                                                                        | Result                                                                                                                                 |
+| ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| PGlite harness (`node run.mjs`)                                              | **76 migrations**, last = 0075                                                                                                         |
+| Hub interleave (`node both-orders.mjs`)                                      | name order ok; production order (0000–0070, 0080, then 0071–0075) ok                                                                   |
+| `EMR_PGLITE=1` over emr, emr-db, workspace, functions, design, resus and rls | **141 files passed, 13 skipped (all `tests/rls`, env-gated); 4,789 passed, 147 skipped, 0 failed.** emr-db alone: 20 files, 327 passed |
+| Full suite (dead-DB env, no PGlite)                                          | **242 files passed, 40 skipped; 6,227 passed, 560 skipped, 0 failed**                                                                  |
+| App `tsc --noEmit` (fresh `.next/types`) / `typecheck:functions`             | 0 errors / 0 errors                                                                                                                    |
+| ESLint                                                                       | 0 errors, the same 2 warnings (`scripts/embed-bench.mjs`, not EMR)                                                                     |
+| Prettier over every changed and new file                                     | clean                                                                                                                                  |
+
+Not run: `next build`, a browser/axe pass on the close-out picker and the nurse panel.
+
+**Still the owner's:**
+
+- Apply 0075 (and 0071–0074) with `npm run db:migrate`; the before/after hospital count is in runbook §5.
+- Run the scripts in the runbook order: §4 counts, §8 backfill, §9 drafts then allergy text. Dry run first each time,
+  check the printed host, then `--apply --actor <uuid>`.
+- Run the hosted twin on the dev project once it exists (§3); its fixture SQL is unverified until then.
+- Measure `/nurse/patients/[patientId]` with the clerking route in the §7 JS check (the panel is a static import).
+- Clinical calls: results routing for accepted resus proposals (authored by the leader, so review follows the leader);
+  proposal priority fixed at routine; no typed dismissal reason; a test dropped from the menu before handoff is left
+  out silently.
+- Small code follow-ups for whoever owns the files: `lib/emr/read/orders.ts` logs the nurse panel read under
+  `emr_orders_doctor` (fix: `emr_orders_${actor.surface}`); the Drizzle copy of `cosign_policy_action_check` still lists
+  0030's five kinds (pinned in drizzle-parity); `tests/emr-db/write-prescriptions.test.ts` fixture was changed to
+  upsert policies because of 0075's trigger; `HARMONISATION.md` still lists the EMR migrations as 0071–0073.

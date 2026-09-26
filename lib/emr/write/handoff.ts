@@ -1,16 +1,20 @@
 import "server-only";
 
 import type { WriteCtx } from "./context";
-import type { WriteResult } from "./orders";
-import { and, desc, eq, inArray, isNull } from "drizzle-orm";
+import type { OrderLine, WriteResult } from "./orders";
+import { and, desc, eq, inArray, isNull, or } from "drizzle-orm";
 
 import { staffAffiliations } from "@/db/schema/clinician-profiles";
+import { testCatalogue } from "@/db/schema/emr";
+import { encounterOrders } from "@/db/schema/encounter";
 import { patientProfiles } from "@/db/schema/patient-profiles";
 import { cadres } from "@/db/schema/reference-data";
 import { resusEpisodes, resusRoleAssignments, resusTimelineEvents } from "@/db/schema/resus";
 import { encounters } from "@/db/schema/scheduling";
+import { outstandingTestsOf } from "@/lib/resus/closeout/handover";
 import { EmrWriteError } from "./context";
 import { insertSignedNote } from "./notes";
+import { placeOrders, replayed } from "./orders";
 
 /**
  * The resus → encounter handoff (PROMPT §5.12, HARMONISATION R4). Runs AFTER the resus close-out has
@@ -19,9 +23,15 @@ import { insertSignedNote } from "./notes";
  * the record, S/B/A/R from the close-out's SBAR) and clears `pending_encounter_handoff`. A second call
  * finds the flag cleared and returns the same note.
  *
- * ponytail: outstanding resus actions are not yet carried as proposed orders (PROMPT §5.12, A5): the
- * close-out has no structured action list to map to the test menu. Add once it does.
+ * The close-out's outstanding tests (A5) become PROPOSED orders on the encounter, authored like the
+ * note (intent_source 'resus_handover', source_intent_id '<episodeId>:<testId>'). They show in the
+ * desk Plan as suggestions; nothing is ordered until a clinician accepts one (Law 6). A test no
+ * longer on this hospital's menu is left out rather than failing the handoff; a re-consume proposes
+ * nothing twice (each line's key is the episode and the test).
  */
+
+/** The proposal's reason when the close-out gave none (an order always carries one). */
+export const HANDOVER_REASON = "Suggested by the resus handover";
 
 type Sbar = {
   situation?: string;
@@ -173,7 +183,56 @@ export async function consumeResusHandoff(
     clientKey,
   });
 
-  // 3. Clear the flag and link the episode.
+  // 3. The outstanding tests, proposed (never placed) by the note's author.
+  const wanted = outstandingTestsOf(handover?.payload);
+  const onMenu = new Set(
+    wanted.length
+      ? (
+          await tx
+            .select({ id: testCatalogue.id })
+            .from(testCatalogue)
+            .where(
+              and(
+                inArray(
+                  testCatalogue.id,
+                  wanted.map((t) => t.testId),
+                ),
+                eq(testCatalogue.active, true),
+                or(isNull(testCatalogue.hospitalId), eq(testCatalogue.hospitalId, ep.hospitalId)),
+              ),
+            )
+        ).map((t) => t.id)
+      : [],
+  );
+  const lines: OrderLine[] = [];
+  for (const t of wanted) {
+    const line: OrderLine = {
+      clientKey: `resus-handover:${ep.id}:${t.testId}`,
+      testId: t.testId,
+      priority: "routine",
+      reasonText: t.reason ?? HANDOVER_REASON,
+      intentSource: "resus_handover",
+      sourceIntentId: `${ep.id}:${t.testId}`,
+    };
+    if (
+      onMenu.has(t.testId) &&
+      !(await replayed(tx, encounterOrders, line.clientKey, ep.patientUserId))
+    )
+      lines.push(line);
+  }
+  if (lines.length)
+    await placeOrders(
+      leader?.userId
+        ? {
+            ...ctx,
+            actor: { ...actor, userId: leader.userId, cadreCode: leader.cadreCode ?? "UNKNOWN" },
+          }
+        : ctx,
+      { patientUserId: ep.patientUserId, encounterId, orders: lines },
+      { propose: true },
+    );
+
+  // 4. Clear the flag and link the episode.
   await tx
     .update(resusEpisodes)
     .set({ pendingEncounterHandoff: false, encounterId })

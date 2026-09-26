@@ -218,11 +218,17 @@ export interface WriteResult {
   warnings?: string[];
 }
 
+/**
+ * `propose`: write each line as a suggestion (a 'proposed' order event, PROMPT §5.12) instead of an
+ * order. Proposing needs no ordering cadre: nothing is ordered until a clinician accepts it
+ * (lib/emr/write/intents.ts).
+ */
 export async function placeOrders(
   ctx: WriteCtx,
   input: PlaceOrdersInput,
+  opts: { propose?: boolean } = {},
 ): Promise<WriteResult & { orderIds: string[] }> {
-  requireCadre(ctx, ORDERING_CADRES, "place orders");
+  if (!opts.propose) requireCadre(ctx, ORDERING_CADRES, "place orders");
   if (input.orders.length === 0) throw new EmrWriteError("invalid", "Nothing to order.");
   const encounter = await openEncounter(ctx, input.patientUserId, input.encounterId);
   const { actor, tx, now } = ctx;
@@ -297,13 +303,13 @@ export async function placeOrders(
       orderId: order!.id,
       hospitalId: actor.hospitalId,
       patientUserId: input.patientUserId,
-      kind: "placed",
+      kind: opts.propose ? "proposed" : "placed",
       actorUserId: actor.userId,
       actorCadre: actor.cadreCode,
       recordedAt: now,
     });
     // D-EMR-12: ionising imaging prompts for pregnancy status; it never blocks.
-    if (test.ionising)
+    if (test.ionising && !opts.propose)
       warnings.push(`${test.display} uses ionising radiation: check pregnancy status.`);
     orderIds.push(order!.id);
   }

@@ -43,6 +43,9 @@ export interface ChartViewProps {
   handoff?: ReactNode;
   /** The live island (subscription + offline words). */
   live?: ReactNode;
+  /** This visit's orders with the actions the surface may take (the nurse's collection panel),
+   *  shown under the Orders section; withheld with the other actions after a recorded death. */
+  ordersPanel?: ReactNode;
 }
 
 export function ChartView({
@@ -53,6 +56,7 @@ export function ChartView({
   links: linksIn = {},
   handoff,
   live,
+  ordersPanel,
 }: ChartViewProps) {
   const bar = payload.safetyBar;
   // A recorded death removes the clinical actions (ordering, recording allergies) here as it does
@@ -92,12 +96,15 @@ export function ChartView({
     ),
     notes: <NotesView notes={payload.notes} ctx={ctx} headingId={h("notes")} />,
     orders: (
-      <OrdersView
-        pending={payload.summary.pendingOrders}
-        timeline={payload.timeline}
-        ctx={ctx}
-        headingId={h("orders")}
-      />
+      <div className="flex flex-col gap-8">
+        <OrdersView
+          pending={payload.summary.pendingOrders}
+          timeline={payload.timeline}
+          ctx={ctx}
+          headingId={h("orders")}
+        />
+        {bar.actionsAllowed ? ordersPanel : null}
+      </div>
     ),
     medicines: (
       <MedicinesView

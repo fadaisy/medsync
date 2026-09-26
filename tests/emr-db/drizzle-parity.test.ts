@@ -45,7 +45,6 @@ const LEGACY_STALE_CHECKS = new Set([
   "sa_audit_log_action_check",
   "sa_audit_log_target_kind_check",
   "sa_notifications_kind_check",
-  "cosign_policy_action_check",
 ]);
 
 const dialect = new PgDialect();

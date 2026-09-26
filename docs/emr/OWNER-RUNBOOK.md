@@ -17,8 +17,8 @@ tick each box. Nothing in the EMR is live until step 8, and with `EMR_V1` unset 
 - [ ] Create a hosted Supabase project for development with **synthetic data only** (E1, ADR 0133).
 - [ ] Put its pooler URL (port 6543) in a local `.env.local` as `DATABASE_URL`, with its `NEXT_PUBLIC_SUPABASE_URL`,
       `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY`. Keep it separate from production.
-- [ ] Apply every migration there: `npm run db:migrate` (0000–0074; `0074_emr_prescriptions.sql` is committed with
-      Phase 7).
+- [ ] Apply every migration there: `npm run db:migrate` (0000–0075; `0074_emr_prescriptions.sql` is committed with
+      Phase 7, `0075_cosign_policy_defaults.sql` with the owner-support round).
 
 ## 2. Generate the note-signing key (O-2)
 
@@ -32,13 +32,19 @@ Without the key, signing refuses with "Notes cannot be signed yet… Your draft 
 
 ## 3. Check the lane and RLS against the dev project
 
-- [ ] Locally, the PGlite lane (no database needed): `npm run test:emr-db`. Expected: all green (284 lane tests at
-      STOP 5–6). Needs the PGlite symlink `node_modules/@electric-sql → ~/Desktop/emr-harness/pg/node_modules/@electric-sql`;
+- [ ] Locally, the PGlite lane (no database needed): `npm run test:emr-db`. Expected: all green (327 lane tests after the
+      owner-support round). Needs the PGlite symlink `node_modules/@electric-sql → ~/Desktop/emr-harness/pg/node_modules/@electric-sql`;
       without it every lane test skips.
 - [ ] Against the dev project, the hosted RLS suites: `MEDSYNC_ALLOW_RLS_DB_WRITES=1 npx vitest run tests/rls`
       (they write fixtures; **dev project only, never production**).
-- [ ] The EMR probes are PGlite-only; there is no hosted twin yet. Run this **read-only** check in the dev project's
-      SQL editor. Every row should say `true`:
+- [ ] The EMR probes' hosted twin, `tests/rls/emr-access.test.ts`, runs with the command above; to run it alone:
+      `MEDSYNC_ALLOW_RLS_DB_WRITES=1 npx vitest run tests/rls/emr-access.test.ts` (**dev project only**). It probes a
+      subset of the PGlite matrix (4 tables, 5 actors, the reader path over `DATABASE_URL` and
+      `private.patient_access_basis`, the client path through supabase-js). It leaves two fixture hospitals (slugs
+      `rls-emr-fixture`, `rls-emr-fixture-b`), `rls-emr-*` users and append-only EMR rows behind; RESTRICT keys stop
+      their deletion, as with the resus-v2 suite. Its fixture SQL has never met a real project, so a first failure may
+      be the fixture, not the policy.
+- [ ] Also run this **read-only** check in the dev project's SQL editor. Every row should say `true`:
 
 ```sql
 -- RLS is enabled and FORCED on every new clinical table.
@@ -79,7 +85,11 @@ WHERE conrelid IN ('public.diagnosis_terms'::regclass, 'public.conditions'::regc
 
 ## 4. Count the legacy rows (O-4) — before anything is retired
 
-- [ ] Run in **production**, read-only. Keep the output with the release notes.
+- [ ] Run in **production**, read-only: `npm run emr:legacy-counts` (takes `DATABASE_URL` from the environment or
+      `.env.local` and prints the target host first; check it). It runs the SQL below verbatim, and adds the "after
+      0071" block by itself once `public.allergies` exists. Keep the output with the release notes.
+
+For reference, the SQL it runs:
 
 ```sql
 -- O-4: legacy EMR rows. Read-only.
@@ -104,7 +114,7 @@ UNION ALL SELECT 'resus handoffs pending', count(*) FROM public.resus_episodes
   WHERE pending_encounter_handoff;
 ```
 
-After 0071 is applied, add these (the columns exist only then):
+After 0071 is applied, the script adds these (the columns exist only then):
 
 ```sql
 SELECT 'clinical_observations (legacy)' AS tbl, count(*) FROM public.clinical_observations WHERE concept_id IS NULL
@@ -117,8 +127,29 @@ UNION ALL SELECT 'allergies backfilled, no v2 yet (O-5)', count(*) FROM public.a
 ## 5. Apply the migrations in production (O-7)
 
 - [ ] Confirm steps 1–3 are green on the dev project.
-- [ ] `npm run db:migrate` with the **production** `DATABASE_URL`. It applies 0071, 0072, 0073 and 0074 in name order, one transaction per file, and records each in `_medsync_migrations`. It also applies the
-      hub's 0080 if that is pending; the two sets coexist in either order (HARMONISATION §9).
+- [ ] `npm run db:migrate` with the **production** `DATABASE_URL`. It applies 0071, 0072, 0073, 0074 and 0075 in name order, one transaction per
+      file, and records each in `_medsync_migrations`. It also applies the hub's 0080 if that is pending; the sets
+      coexist in either order (HARMONISATION §9; replayed in PGlite both ways, 0071–0075 after 0080 included).
+- [ ] 0075 (co-sign policy defaults) does not depend on 0071–0074 and may go first. Before applying, count the
+      hospitals it will backfill (those with no policy row at all); afterwards the same query must return 0:
+
+```sql
+SELECT count(*) FROM public.hospitals h
+WHERE NOT EXISTS (SELECT 1 FROM public.clinical_cosign_policies p WHERE p.hospital_id = h.id);
+```
+
+- [ ] A hospital with only **some** of the default rows is not backfilled (possible if 0030, 0031 and 0036 went in at
+      different times with a hospital created between). Find them, and fill only the missing defaults for one
+      (existing rows are never overwritten):
+
+```sql
+SELECT h.id, h.name, count(p.id) FROM public.hospitals h
+JOIN public.clinical_cosign_policies p ON p.hospital_id = h.id AND p.department_id IS NULL
+GROUP BY 1, 2 HAVING count(p.id) < 54;
+-- then, per hospital id listed:
+SELECT private.seed_cosign_policy_defaults('<hospital id>');
+```
+
 - [ ] Re-run the step 3 SQL in production. The backfill copies allergies once; a re-run adds nothing.
 
 ## 6. Deploy the two changed Edge Functions
@@ -147,21 +178,33 @@ Both keep their old behaviour for callers that send none of the new fields (ADR 
       `EMR_V1` is on).
       A senior's "returned" co-sign cancels the prescription and stops its medication statement in the same
       transaction (closed after STOP 7–8), so the desk, the printout and the chart's Medicines agree it is not valid.
-      Seed `clinical_cosign_policies` for hospitals created after 0030 first; prescribing fails closed without them.
-- [ ] When the flag first goes on, AMPLE allergies captured while it was off need copying into the record. The script
-      for that (`scripts/emr/backfill-allergies.ts`, proposal §H.3) **is not written yet**; until it is, those captures
-      stay readable only in their resus episode.
+      Co-sign defaults are seeded for every hospital by 0075 (and for new hospitals at creation). **Check** first that
+      the step 5 count is 0; prescribing fails closed for a hospital with no policy rows.
+- [ ] When the flag first goes on, copy the AMPLE allergies captured while it was off into the record
+      (`scripts/emr/backfill-allergies.ts`, proposal §H.3). It replays 0071 §15, so it copies nothing twice.
+  - Dry run: `npm run emr:backfill-allergies`. Prints the host, then "Would copy: N allergies, M NKDA assertions"
+    (it runs the inserts in a transaction and rolls back: brief locks, possible sequence gaps, nothing saved).
+  - Apply: `npm run emr:backfill-allergies -- --apply --actor <your auth.users id>`. A second `--apply` reports 0/0.
 
 ## 9. Re-encrypt old plaintext (O-5)
 
-**No script exists yet; both are to be written** (ADR 0132, ADR 0135). What each must do:
+Two scripts (ADR 0132, ADR 0135). Both read `DATABASE_URL` from the environment or `.env.local`, print the target
+host first, and only count without `--apply`. `MEDSYNC_PHI_KEY` must be the **production** key. `--actor` must be an
+existing `auth.users` id (it is the audit identity and `recorded_by`); `--apply` without a valid uuid is refused before
+any connection. Both are idempotent.
 
-- [ ] **Old NCD drafts:** for each `clerkship_drafts` row whose `payload` has no `enc` key, write
-      `{ "enc": encrypt(JSON.stringify(payload)) }` with `lib/encryption.ts`. Dry-run first (count only), then apply;
-      the reader already accepts both shapes, so it can run at any time.
-- [ ] **Backfilled allergies:** for each `allergies` row with `legacy_ref` and no later version, insert version 2
-      (same `logical_id`, `supersedes_id` = the v1 id) carrying `substance_text_ciphertext` encrypted from the untouched
-      source text. Must finish **before** any legacy table is retired.
+- [ ] **Old NCD drafts:** each `clerkship_drafts` row whose `payload` has no `enc` key becomes
+      `{ "enc": encrypt(JSON.stringify(payload)) }` (`lib/encryption.ts`; `updated_at` unchanged). The reader accepts
+      both shapes, so it can run at any time.
+  - `npm run emr:reencrypt-drafts`, then `npm run emr:reencrypt-drafts -- --apply --actor <uuid>`.
+  - A re-run says "Plaintext drafts: 0".
+- [ ] **Backfilled allergies** (run the §8 backfill first): the current version of each item with a `legacy_ref` and no
+      ciphertext gets a next version (same `logical_id`, `supersedes_id` = that version) carrying
+      `substance_text_ciphertext` encrypted from the untouched source text. Must finish **before** any legacy table is
+      retired.
+  - `npm run emr:encrypt-allergy-text`, then `npm run emr:encrypt-allergy-text -- --apply --actor <uuid>`.
+  - Rows whose source text is gone are left unchanged and counted as "Source text missing": look at them before
+    retiring anything. Afterwards, the §4 row "allergies backfilled, no v2 yet" is 0 or equals that missing count.
 
 ## 10. Owner decisions
 
@@ -218,8 +261,10 @@ signed.
 
 ## 12. Known open items (not owner actions, recorded so nobody is surprised)
 
-- The nurse chart has no orders panel. Printouts leave encrypted narrative as write-in lines. "Page x of y" needs
-  Chrome ≥ 131.
-- Scenario A5 is partial: the resus close-out has no structured action list to turn into proposed orders.
+- Printouts leave encrypted narrative as write-in lines. "Page x of y" needs Chrome ≥ 131.
+- The nurse orders panel (collect specimen, print label) shows this visit's orders a second time below the chart's
+  read-only list. UX polish, not a safety issue.
+- Resus-handover proposed orders stay authored by the resus leader, so results-to-review follows the leader, not the
+  clinician who accepted (clinical decision; STOP-REPORTS owner-support round).
 - The legacy TS access resolvers still decide legacy surfaces (convergence, HARMONISATION §7). 0040 still lets a
   patient read their own legacy rows.

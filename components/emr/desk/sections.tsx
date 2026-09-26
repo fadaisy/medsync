@@ -934,6 +934,11 @@ function ImpressionBody({ sid, ctx }: { sid: string; ctx: SectionCtx }) {
 
 /* ─── Plan ────────────────────────────────────────────────────────── */
 
+const SUGGESTION_GROUPS = [
+  [undefined, "Suggested by triage"],
+  ["resus_handover", "Suggested by the resus handover"],
+] as const;
+
 function PlanBody({ sid, ctx }: { sid: string; ctx: SectionCtx }) {
   const statement = itemsOf(ctx.content, sid, "plan_statement")[0];
   const open = ctx.p.suggestions.filter((s) => s.state === "open");
@@ -986,59 +991,64 @@ function PlanBody({ sid, ctx }: { sid: string; ctx: SectionCtx }) {
         )}
       </div>
 
-      {ctx.p.suggestions.length ? (
-        <div className="flex flex-col gap-2">
-          <SubHeading>Suggested by triage</SubHeading>
-          <p className="text-caption text-muted-foreground">
-            Suggestions, not orders: nothing is ordered until you accept it.
-          </p>
-          <ul className="divide-border flex flex-col divide-y">
-            {ctx.p.suggestions.map((s) => (
-              <li key={s.key} className="flex flex-col gap-2 py-2">
-                <p className="text-body-s text-foreground">{s.text}</p>
-                <p className="text-caption text-muted-foreground">{s.rationale}</p>
-                <div className="flex flex-wrap items-center gap-2">
-                  {s.state === "open" && ctx.act ? (
-                    <>
-                      {s.tests.map((t) => (
+      {SUGGESTION_GROUPS.map(([source, heading]) => {
+        const group = ctx.p.suggestions.filter((s) => s.source === source);
+        return group.length ? (
+          <div key={heading} className="flex flex-col gap-2">
+            <SubHeading>{heading}</SubHeading>
+            <p className="text-caption text-muted-foreground">
+              Suggestions, not orders: nothing is ordered until you accept it.
+            </p>
+            <ul className="divide-border flex flex-col divide-y">
+              {group.map((s) => (
+                <li key={s.key} className="flex flex-col gap-2 py-2">
+                  <p className="text-body-s text-foreground">{s.text}</p>
+                  {s.rationale ? (
+                    <p className="text-caption text-muted-foreground">{s.rationale}</p>
+                  ) : null}
+                  <div className="flex flex-wrap items-center gap-2">
+                    {s.state === "open" && ctx.act ? (
+                      <>
+                        {s.tests.map((t) => (
+                          <Button
+                            key={t.testId}
+                            variant="secondary"
+                            size="sm"
+                            className={PRESS}
+                            disabled={ctx.busy === `suggestion:${s.key}`}
+                            onClick={() => ctx.on.onSuggestion?.(s.key, { accept: t.testId })}
+                          >
+                            {`Order ${t.display}`}
+                          </Button>
+                        ))}
                         <Button
-                          key={t.testId}
-                          variant="secondary"
+                          variant="ghost"
                           size="sm"
-                          className={PRESS}
                           disabled={ctx.busy === `suggestion:${s.key}`}
-                          onClick={() => ctx.on.onSuggestion?.(s.key, { accept: t.testId })}
+                          onClick={() => ctx.on.onSuggestion?.(s.key, { dismiss: true })}
                         >
-                          {`Order ${t.display}`}
+                          Dismiss
                         </Button>
-                      ))}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        disabled={ctx.busy === `suggestion:${s.key}`}
-                        onClick={() => ctx.on.onSuggestion?.(s.key, { dismiss: true })}
-                      >
-                        Dismiss
-                      </Button>
-                    </>
-                  ) : (
-                    <StatusWord tone="neutral">
-                      {s.state === "accepted"
-                        ? "Ordered"
-                        : s.state === "dismissed"
-                          ? "Dismissed"
-                          : "Open"}
-                    </StatusWord>
-                  )}
-                </div>
-              </li>
-            ))}
-          </ul>
-          {open.length === 0 ? null : (
-            <span className="sr-only">{`${open.length} suggestions waiting for a decision`}</span>
-          )}
-        </div>
-      ) : null}
+                      </>
+                    ) : (
+                      <StatusWord tone="neutral">
+                        {s.state === "accepted"
+                          ? "Ordered"
+                          : s.state === "dismissed"
+                            ? "Dismissed"
+                            : "Open"}
+                      </StatusWord>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null;
+      })}
+      {open.length === 0 ? null : (
+        <span className="sr-only">{`${open.length} suggestions waiting for a decision`}</span>
+      )}
 
       {ctx.editable ? (
         <div className="flex max-w-[68ch] flex-col gap-1.5">
