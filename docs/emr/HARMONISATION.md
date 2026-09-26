@@ -169,3 +169,17 @@ gate proceeds on green checks.
 - O-5: re-encrypt the old plaintext NCD drafts (script provided, dry-run first).
 - O-6: decide on Playwright.
 - O-7: apply 0071–0073 in prod (`npm run db:migrate`), deploy the two changed Edge Functions, then set `EMR_V1`.
+
+## 9. Merge rule with the Departments & services hub (feat/hospital-services-hub, owner-signed)
+
+Agreed with that session on 2026-09-26. The hub uses migration 0080 and ADRs 0150–0160; the EMR uses 0071–0073 and
+0130–0139.
+- **Test menu:** `test_catalogue` owns the *orderable definition* (components as concept ids, specimen, container,
+  fasting). The hub's `diagnostic_offerings` owns per-facility *where, hours, stated TAT and referred_to*. The EMR seeds
+  only the default menu (`hospital_id` NULL) and writes no per-hospital rows. At merge, reconcile by code through a
+  nullable offering code on `test_catalogue`.
+- **Availability:** the EMR reads it only through `lib/emr/capability.ts` `getCapabilityStatus(hospitalId,
+  capabilityId)`. Today that reads `facility_capabilities`; at merge it reads the hub's `getOrderingAvailability`
+  projection, which informs and never blocks. There is one store (the hub's); `facility_capabilities` gets no new
+  writer.
+- **Capabilities:** the `cap.*` ids map onto the hub's `capability_values` keys through one mapping table at merge.
