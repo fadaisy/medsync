@@ -70,7 +70,9 @@ export async function stampActivity(
   await ctx.tx
     .update(encounters)
     .set({
-      lastActivityAt: sql`GREATEST(COALESCE(${encounters.lastActivityAt}, ${ctx.now}), ${ctx.now})`,
+      // An ISO string cast in SQL: postgres-js cannot bind a raw Date inside a sql`` fragment
+      // (prepare: false gives it no type to infer), and every note save failed on it in production.
+      lastActivityAt: sql`GREATEST(COALESCE(${encounters.lastActivityAt}, ${ctx.now.toISOString()}::timestamptz), ${ctx.now.toISOString()}::timestamptz)`,
     })
     .where(eq(encounters.id, encounterId));
 }
