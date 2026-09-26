@@ -10,6 +10,7 @@ import { db } from "@/db";
 import { encounters } from "@/db/schema/scheduling";
 import { fetchPatientSummaryAudited } from "@/lib/doctor/patient-access";
 import { requireDoctorScope } from "@/lib/doctor/scope";
+import { emrV1LiveFor } from "@/lib/emr/feature";
 import { encounterEngineLive, ncdClerkshipLive } from "@/lib/encounter/feature";
 import { loadEncounterRecord } from "@/lib/encounter/record";
 import { toEncounterScope } from "@/lib/encounter/workspace-scope";
@@ -20,6 +21,7 @@ import { doctorWorkspace } from "@/lib/workspace/feature";
 import { EncounterRail, NextPatient } from "../../_components/workspace/encounter-extras";
 import { NcdClerkship } from "./_components/ncd-clerkship";
 import { VisitStatus } from "./_components/visit-status";
+import { DeskPage } from "./_desk/desk-page";
 import { saveNcdDraftAction } from "./actions";
 
 export const metadata: Metadata = { title: "Encounter · Doctor · MedSync" };
@@ -32,6 +34,9 @@ interface PageProps {
 export default async function DoctorEncounterPage({ params }: PageProps) {
   const { encounterId } = await params;
   const scope = await requireDoctorScope();
+
+  // EMR v1 (flag per hospital): the clerking desk. Off, everything below renders as before.
+  if (emrV1LiveFor(scope.hospitalId)) return <DeskPage encounterId={encounterId} scope={scope} />;
 
   if (!encounterEngineLive()) {
     return (

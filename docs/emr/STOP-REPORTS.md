@@ -208,3 +208,63 @@ files, then W4 and W5 ran.
 - Chart broadcast payload is `{kind, at}` (no id).
 - **Deploy order:** 0071–0073 must be applied **before** this branch is deployed. Drizzle's encounter inserts name the
   0071 columns, which is the house rule for gated migrations.
+
+## STOP 5–6 — Chart, clerking desk, orders and results UI (2026-09-26)
+
+**Built, all behind `emrV1LiveFor(hospital)`:**
+- **Chart** at `/doctor/patients/[id]` and `/nurse/patients/[id]`: the safety bar; a section index (Summary, Timeline,
+  Results flowsheet with sparklines and table alternatives, Notes, Orders, Medicines, Problems & allergies); a value
+  provenance popover; live updates on `chart:<patient>` with a poll fallback; and "Bring in resus handover" when a
+  handoff is pending.
+- **Clerking desk** at `/doctor/encounters/[id]`:
+  - three columns, a context sheet on tablet, one section at a time on phone;
+  - template sections with bracket numbers, tri-state finding chips, the ROS grid, "still true?" carry-forward,
+    medicines reconciliation, the allergy editor sheet, vitals with the unit prompt;
+  - the diagnosis picker (all 85 terms reachable in ≤ 4 keystrokes);
+  - Plan with the order sheet and triage suggestions;
+  - NCD section; autosave through `lib/emr/sync` (neutral "Saved hh:mm", amber offline);
+  - sign, co-sign, addendum, entered in error; completion sheet with disposition and administrative closure;
+  - keyboard `/` `j` `k` `Ctrl/Cmd+Enter` `?`, none animated.
+- **Orders and results:**
+  - order sheet (favourites, panels, reason required, fasting marker);
+  - specimen collection (two identifiers required, fasting chip) and label print;
+  - `/lab` worklist with one-screen-per-panel entry (comparators, units, preliminary/final, reject);
+  - amend view and critical-call record;
+  - `/doctor/results` review with batch acknowledgement;
+  - `sign_note` requests readable in `/doctor/cosign-queue`.
+- **Print:** visit summary, referral, lab request, specimen label. Two identifiers; restricted items excluded unless
+  added one by one.
+
+**Checks:**
+
+| Check | Result |
+|---|---|
+| App `tsc` | 0 errors |
+| ESLint (96 changed files) | 0 |
+| Tests (emr, a11y, workspace, design, lab, doctor, encounter) | 3,031 passed, 0 failed |
+| PGlite lane (`tests/emr-db`) | 284 / 284 |
+| UI tests added | chart views, desk (64), orders + results (41), flag-off (5) |
+| Flag-off proof | `tests/emr/ui/flag-off.test.ts`: `emrV1LiveFor` false with `EMR_V1` unset; every EMR import sits behind one early return on the 4 pages |
+| axe, jsdom over server HTML, 39 screens | serious 0, critical 0 |
+| axe in the browser with CSS, 156 runs (39 screens × 4 viewport/theme pairs) | serious 0, critical 0 (from 83 contrast findings) |
+| Screenshots | **234** (39 screens × 390×844, 834×1194, 1440×900 × light/dark), scratch harness `~/Desktop/emr-harness/shots/` |
+| JS added, clerking route | +89.7 KB gz (budget 90). Chart routes +58.2 KB; `/lab` +1.7 KB |
+| Red scarcity | only `components/emr/status-word.tsx` (a critical value, shown only when the payload says critical) and the allowlisted Emergency link |
+
+**Defects found in the screenshots and fixed (20):** flowsheet overflow and oldest-first scroll; the desk scrolling
+into blank space at xl; the Emergency pill covering the phone action bar; a deceased patient's chart still offering
+"Order a test"; UCUM codes on screen (`Cel`, `10*9/L`) replaced by unit words; nested `<main>`; unlabelled chip groups;
+Fraunces on sheet titles; and contrast (caution 2.8:1, critical pill 3.9:1, teal links 3.7:1). The contrast fixes are
+**EMR files only**.
+
+**Open:**
+- The desk is imported unconditionally, so flag-off users may download its code: move it behind a dynamic import
+  (P8 fix).
+- **Design-system tokens fail WCAG AA product-wide:** teal-600 text 3.7:1, caution pair 2.8:1, critical pair 3.9:1.
+  The owner decides in `DESIGN-medsync.md` (the doctor-workspace session found the critical pair too).
+- `/lab` under the flag lists only events-lifecycle orders, so drain legacy in-flight orders before switching.
+- A covering clinician sees "Restricted result" + lock and can still acknowledge → CSO confirms.
+- Nurse chart has no orders panel.
+- Printouts leave encrypted narrative fields as write-in lines.
+- `@page` "Page x of y" needs Chrome ≥ 131.
+- The old encounter page keeps its design drift: it is the flag-off page and is left untouched.

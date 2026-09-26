@@ -7,7 +7,23 @@ import { ACTION_LABEL } from "@/lib/doctor/capabilities";
 import { listPendingCosignRequests } from "@/lib/doctor/cosign";
 import { requireDoctorScope } from "@/lib/doctor/scope";
 import { DoctorEmptyState } from "../_components/empty-state";
+import { CosignNoteForm } from "./_components/cosign-note-form";
 import { ReviewForm } from "./_components/review-form";
+
+/** EMR note co-signatures (sign_note) carry a PHI-free payload: the note's id, type and visit. */
+const noteRequest = (r: { actionKind: string; actionPayload: Record<string, unknown> }) =>
+  r.actionKind === "sign_note" &&
+  typeof r.actionPayload.noteId === "string" &&
+  typeof r.actionPayload.encounterId === "string"
+    ? {
+        noteId: r.actionPayload.noteId,
+        encounterId: r.actionPayload.encounterId,
+        noteType:
+          typeof r.actionPayload.noteType === "string"
+            ? `${r.actionPayload.noteType.charAt(0).toUpperCase()}${r.actionPayload.noteType.slice(1).replace(/_/g, " ")} note`
+            : "Note",
+      }
+    : null;
 
 export const metadata: Metadata = { title: "Review queue · Doctor · MedSync" };
 export const dynamic = "force-dynamic";
@@ -56,7 +72,9 @@ export default async function DoctorCosignQueuePage() {
               <div className="flex items-start justify-between gap-3">
                 <div className="flex flex-col gap-1">
                   <span className="text-foreground text-[14px] font-medium">
-                    {ACTION_LABEL[r.actionKind as keyof typeof ACTION_LABEL] ?? r.actionKind}
+                    {r.actionKind === "sign_note"
+                      ? `Co-sign: ${noteRequest(r)?.noteType ?? "Note"}`
+                      : (ACTION_LABEL[r.actionKind as keyof typeof ACTION_LABEL] ?? r.actionKind)}
                   </span>
                   <span className="text-muted-foreground text-[11.5px]">
                     Proposed by <span className="text-foreground">{r.requestedByName ?? "—"}</span>{" "}
@@ -90,7 +108,17 @@ export default async function DoctorCosignQueuePage() {
                 ))}
               </dl>
 
-              <ReviewForm cosignRequestId={r.id} />
+              {r.actionKind === "sign_note" ? (
+                noteRequest(r) ? (
+                  <CosignNoteForm
+                    patientUserId={r.patientUserId}
+                    noteId={noteRequest(r)!.noteId}
+                    encounterId={noteRequest(r)!.encounterId}
+                  />
+                ) : null
+              ) : (
+                <ReviewForm cosignRequestId={r.id} />
+              )}
             </li>
           ))}
         </ul>
@@ -106,6 +134,8 @@ function payloadFields(payload: Record<string, unknown>): Array<[string, string]
     ["Route", payload.route],
     ["Duration", payload.duration],
     ["Reason", payload.reason],
+    // sign_note: the note's type in words (its content is read on the visit, never copied here).
+    ["Note", typeof payload.noteType === "string" ? payload.noteType.replace(/_/g, " ") : null],
   ];
   return interesting
     .filter(([, v]) => typeof v === "string" && v.length > 0)

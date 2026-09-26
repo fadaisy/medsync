@@ -26,6 +26,7 @@ import { NOTE_TEMPLATES, noteStatus, threadNotes } from "./notes";
 import { orderStatusText } from "./orders";
 import { REF_PREG_AGE } from "./reference/pregnancy";
 import { detectCritical, labFlag } from "./results";
+import { unitWords } from "./unit-words";
 
 /**
  * The chart and safety-bar payload (PROMPT §5.1–5.2, gate-a-proposal E.1/E.2). PURE: the route
@@ -298,7 +299,10 @@ function ageSex(p: ChartPatient): string {
 
 function valueText(f: ObservationFact): string {
   const v = f.value;
-  if (v.type === "quantity") return `${v.comparator ?? ""}${v.value} ${v.unit}`;
+  if (v.type === "quantity") {
+    const unit = unitWords(v.unit);
+    return `${v.comparator ?? ""}${v.value}${unit ? ` ${unit}` : ""}`;
+  }
   if (v.type === "coded") return humanise(v.code);
   return v.value ? "Yes" : "No";
 }
@@ -629,7 +633,7 @@ function flowsheet(
         .set(f.concept, {
           conceptId: f.concept,
           display: display(f.concept),
-          unit: def(f.concept)?.canonicalUnit ?? null,
+          unit: unitWords(def(f.concept)?.canonicalUnit),
           cells: [],
           series: [],
         })

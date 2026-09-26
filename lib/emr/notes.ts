@@ -1,8 +1,10 @@
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
+import type { NoteContent, NoteItem, SignContext, SignValidation } from "./note-rules";
 import type { ClinicalNote, ClinicalNoteEvent } from "@/db/schema/emr";
 import { z } from "zod";
 
 import rawTemplates from "@/data/emr/note-templates.v1.json";
+import { validateForSigning } from "./note-rules";
 
 /**
  * The note model (PROMPT §5.9, gate-a-proposal §A.4, ADR 0134). PURE apart from node:crypto:
@@ -126,103 +128,17 @@ export function getTemplate(id: string): NoteTemplate {
   return t;
 }
 
-/* ─── Draft content (the decrypted content_ciphertext) ────────────── */
-
-export interface NoteItem {
-  kind: string;
-  /** item_true (time-out confirmed). */
-  confirmed?: boolean;
-  /** diagnosis_deferred needs one to count. */
-  reason?: string;
-  [key: string]: unknown;
-}
-
-export interface NoteSection {
-  narrative?: string;
-  items?: NoteItem[];
-  fields?: Record<string, string | null | undefined>;
-}
-
-export interface NoteContent {
-  header?: Record<string, unknown>;
-  sections: Record<string, NoteSection>;
-}
-
-export interface SignContext {
-  /** From lib/emr/allergy.ts resolveAllergyStatus(...).kind. */
-  allergyStatus?: "listed" | "no_known_drug_allergies" | "unable_to_assess" | "not_recorded";
-  /** Every current medication statement has a reconciliation this encounter. */
-  medicinesReconciled?: boolean;
-}
-
-const filled = (v: unknown): boolean => typeof v === "string" && v.trim().length > 0;
-
-/** An item counts when it is really there: a deferred diagnosis only with its reason. */
-function itemCounts(item: NoteItem): boolean {
-  return item.kind !== "diagnosis_deferred" || filled(item.reason);
-}
-
-function sectionHasContent(s: NoteSection | undefined): boolean {
-  if (!s) return false;
-  return (
-    filled(s.narrative) ||
-    (s.items ?? []).some(itemCounts) ||
-    Object.values(s.fields ?? {}).some(filled)
-  );
-}
-
-/** field_present names its field by rule id (req.reason → reason), except where the form's
- *  field name differs. */
-const RULE_FIELD: Record<string, string> = { "req.receiving": "receiving_facility" };
-function fieldOf(rule: SignRule): string {
-  return rule.field ?? RULE_FIELD[rule.id] ?? rule.id.slice(rule.id.indexOf(".") + 1);
-}
-
-export function checkRule(rule: SignRule, content: NoteContent, ctx: SignContext): boolean {
-  const section = rule.section ? content.sections[rule.section] : undefined;
-  const kinds = new Set(rule.itemKinds ?? []);
-  switch (rule.check) {
-    case "section_has_any":
-      return (section?.items ?? []).some((i) => kinds.has(i.kind) && itemCounts(i));
-    case "section_has_content":
-      return sectionHasContent(section);
-    case "any_section_has_content":
-      return (rule.sections ?? []).some((id) => sectionHasContent(content.sections[id]));
-    case "field_present":
-      return filled(section?.fields?.[fieldOf(rule)]);
-    case "item_true":
-      return (section?.items ?? []).some((i) => kinds.has(i.kind) && i.confirmed === true);
-    case "allergy_status_recorded":
-      return !!ctx.allergyStatus && ctx.allergyStatus !== "not_recorded";
-    case "medicines_reconciled":
-      return ctx.medicinesReconciled === true;
-  }
-}
-
-export interface SignValidation {
-  canSign: boolean;
-  /** Required rules not met: Sign stays disabled. */
-  missing: { id: string; message: string }[];
-  /** Prompted rules not met: shown, never blocking. */
-  warnings: { id: string; message: string }[];
-}
-
-/** Minimum to sign (clinical reference 2.11). Signing never blocks care; this only gates Sign. */
-export function validateForSigning(
-  template: NoteTemplate,
-  content: NoteContent,
-  ctx: SignContext = {},
-): SignValidation {
-  const unmet = (rules: SignRule[]) =>
-    rules.filter((r) => !checkRule(r, content, ctx)).map((r) => ({ id: r.id, message: r.message }));
-  const missing = unmet(template.minimumToSign.required);
-  return {
-    canSign: missing.length === 0,
-    missing,
-    warnings: unmet(template.minimumToSign.prompted),
-  };
-}
-
+/* ─── Draft content and minimum-to-sign ───────────────────────────── */
+// Crypto-free, so the clerking desk runs the same check in the browser (lib/emr/note-rules.ts).
+export {
+  checkRule,
+  validateForSigning,
+  type NoteContent,
+  type NoteItem,
+  type NoteSection,
+  type SignContext,
+  type SignValidation,
+} from "./note-rules";
 /** Note-born structured items commit as facts at signing (D-EMR-01); everything else was a chart
  *  action that committed at once. */
 const NOTE_BORN = new Set(["complaint_token", "finding", "exam_finding", "ros_grid"]);

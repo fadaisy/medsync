@@ -4,11 +4,13 @@ import Link from "next/link";
 import { and, desc, eq } from "drizzle-orm";
 import { ArrowLeftIcon, HeartPulseIcon, PhoneIcon, PillIcon, ShieldAlertIcon } from "lucide-react";
 
+import { EmrChart } from "@/components/emr/chart/emr-chart";
 import { PatientClinicalRecordPanel } from "@/components/encounter/patient-clinical-record-panel";
 import { Button } from "@/components/ui/button";
 import { db } from "@/db";
 import { clinicalObservations, medicationAdministrationRecords } from "@/db/schema/nurse-workspace";
-import { emrV1Live } from "@/lib/emr/feature";
+import { emrV1Live, emrV1LiveFor } from "@/lib/emr/feature";
+import { loadChart } from "@/lib/emr/read/chart";
 import { loadCfcVitals } from "@/lib/emr/read/vitals";
 import { toEncounterScope } from "@/lib/encounter/workspace-scope";
 import { fetchNursePatientSummaryAudited } from "@/lib/nurse/patient-access";
@@ -54,6 +56,12 @@ const OBS_LABEL: Record<string, string> = {
 export default async function NursePatientSummaryPage({ params }: PageProps) {
   const { patientId } = await params;
   const scope = await requireNurseScope();
+
+  // EMR v1 (gate-a E.2): the chart. Flag off, everything below renders exactly as before.
+  if (emrV1LiveFor(scope.hospitalId)) {
+    const chart = await loadChart("nurse", patientId);
+    return chart ? <EmrChart chart={chart} surface="nurse" /> : <NoAccessScreen />;
+  }
 
   const summary = await fetchNursePatientSummaryAudited({
     nurse: {
