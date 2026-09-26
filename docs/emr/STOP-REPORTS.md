@@ -103,3 +103,46 @@ dry-run over a PGlite replay of 0000–0070; that run found and fixed 2 bugs (a 
 - `mg/dL` urea is read as urea nitrogen (the spec's factor), so a urea-mass report needs a separate unit (CSO note).
 - Ionising flag on the chest X-ray menu item → CSO confirms.
 - Pre-existing Drizzle drift outside the EMR is listed in the parity test and not fixed here.
+
+## STOP 3 — Engines (2026-09-26)
+
+`EMR_PGLITE=1 npx vitest run tests/emr tests/emr-db`: **18 files, 2,384 tests, all green**. App `tsc`: 0 errors.
+ESLint clean.
+
+| Module | Tests | PROMPT §6 minimum |
+|---|---|---|
+| units | 103 | 30 |
+| facts (round trip of all 204 concepts, contract, legacy, loader lane) | 821 + 7 | every concept |
+| encounter (5 actions × 5 states) | 66 | every transition |
+| notes | 313 | 40 |
+| carry-forward | 22 | 20 |
+| allergy | 230 | 25 |
+| orders | 442 | 30 + property |
+| results | 76 | 40 |
+| hmis | 36 | 20 |
+| chart | 39 | 25 |
+| fhir (12 resources) | 19 | a round trip per resource |
+
+**Property tests:**
+- A signed note's canonical form and HMAC never change (200 seeds).
+- Nothing ordered disappears (400 seeds, plus state coverage).
+- Never NKDA while an active allergy exists (200).
+- No restricted item reaches a patient-facing payload (200).
+- Same snapshot, same hash (200).
+
+**Loader:** p95 **91 ms** at 2,000 facts on PGlite (WASM, in-process), against a 60 ms budget set for Postgres; measure
+on the dev project (O-1). Payload **1.4 MB** against 1 MB: the v1 fact shape repeats the envelope on every fact.
+Both are recorded as open budget items, not hidden.
+
+**CFC errata recorded (ADR 0130):**
+- `MedicationFact.status` collides with the envelope's status, so it is renamed `medicationStatus`.
+- `ContextFact.setting` is optional.
+- `PregnancyFact` has no EDD basis slot.
+- `rpt.ecg` `device` clashes with the blood-pressure device enum.
+
+**Carried to P4:**
+- Reader-role grants for `patient_profiles` (column-limited), `encounter_medications` and `hospitals`.
+- Invariants every write path must keep: each version keeps its concept; sensitivity is set at insert with
+  `sensitivityFor`; addenda inherit the parent's restriction.
+- The `ENCOUNTER_IDLE_MS` constant moves to `lib/workspace/flow.ts`.
+- Legacy `resulted` orders never enter Results to review; only events-lifecycle orders do.
