@@ -223,6 +223,16 @@ export function DeskClient({
     [autosave],
   );
 
+  // Another clerking form: the server renders the desk with it (the page keys this island by
+  // template), and the first autosave creates the draft with it.
+  const switchTemplate = useCallback(
+    (id: string) =>
+      router.replace(`/doctor/encounters/${encounterId}?template=${encodeURIComponent(id)}`, {
+        scroll: false,
+      }),
+    [router, encounterId],
+  );
+
   const validation = deskValidation(p, content);
   const editable = p.draft !== null;
   const openSign = useCallback(() => {
@@ -323,6 +333,7 @@ export function DeskClient({
     onSection: (id: string) => go(id),
     onFocusSection: (id: string) => setCurrent(id),
     onSign: openSign,
+    onTemplate: autosave.ids().noteId ? undefined : switchTemplate,
     onComplete: () => {
       setSheetMsg(null);
       setSheet("complete");

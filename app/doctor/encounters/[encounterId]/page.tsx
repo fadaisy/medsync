@@ -34,14 +34,24 @@ export const dynamic = "force-dynamic";
 
 interface PageProps {
   params: Promise<{ encounterId: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
-export default async function DoctorEncounterPage({ params }: PageProps) {
+export default async function DoctorEncounterPage({ params, searchParams }: PageProps) {
   const { encounterId } = await params;
   const scope = await requireDoctorScope();
 
   // EMR v1 (flag per hospital): the clerking desk. Off, everything below renders as before.
-  if (emrV1LiveFor(scope.hospitalId)) return <EmrDesk encounterId={encounterId} scope={scope} />;
+  if (emrV1LiveFor(scope.hospitalId)) {
+    const { template } = await searchParams;
+    return (
+      <EmrDesk
+        encounterId={encounterId}
+        scope={scope}
+        template={typeof template === "string" ? template : undefined}
+      />
+    );
+  }
 
   if (!encounterEngineLive()) {
     return (

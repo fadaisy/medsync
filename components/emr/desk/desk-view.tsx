@@ -9,13 +9,22 @@ import type { NoteContent } from "@/lib/emr/note-rules";
 import type { ReactNode } from "react";
 import { CheckIcon } from "lucide-react";
 
+import { SegmentedControl } from "@/components/forms/segmented-control";
 import { cn } from "@/lib/utils";
 import { formatters } from "../format";
 import { ChoiceChips } from "../orders/choice-chips";
 import { SectionIndexView } from "../section-index";
 import { StatusWord } from "../status-word";
 import { ContextRailView } from "./context-rail";
-import { deskIndex, deskValidation, hasContent, requiredCount, sectionPosition } from "./model";
+import {
+  blankNote,
+  CLERKING_FORMS,
+  deskIndex,
+  deskValidation,
+  hasContent,
+  requiredCount,
+  sectionPosition,
+} from "./model";
 import { proseOnly, SectionBody } from "./sections";
 import { NoteRowsView, SignBarView } from "./sign";
 
@@ -40,6 +49,8 @@ export interface DeskViewHandlers extends SectionHandlers, NoteHandlers {
   onFocusSection?: (id: string) => void;
   onSign?: () => void;
   onComplete?: () => void;
+  /** Switch clerking form; passed only while no draft has been saved. */
+  onTemplate?: (templateId: string) => void;
 }
 
 export interface DeskViewProps {
@@ -148,6 +159,14 @@ export function DeskView(props: DeskViewProps) {
   };
   const header = content.header ?? {};
   const signedNote = p.draft === null ? p.signed : null;
+  // The form can change only before anything is written (no saved draft, nothing typed).
+  const canSwitch =
+    !!on.onTemplate &&
+    editable &&
+    !signedNote &&
+    p.draft?.noteId === null &&
+    CLERKING_FORMS.some((f) => f.value === p.template.id) &&
+    blankNote(content);
   const shownSections = signedNote
     ? p.template.sections.filter((s) => hasContent(signedNote.content, s.id))
     : p.template.sections;
@@ -177,6 +196,27 @@ export function DeskView(props: DeskViewProps) {
         <div className="border-border flex flex-col gap-3 border-b px-4 py-4 md:px-8">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
             <h2 className="text-heading-m text-foreground font-medium">{p.template.title}</h2>
+            {canSwitch ? (
+              <SegmentedControl
+                name="desk-form"
+                ariaLabel="Clerking form"
+                value={p.template.id}
+                onValueChange={on.onTemplate}
+                stackOnMobile={false}
+                className="w-auto [&>label]:transition-none max-sm:[&>label]:py-3"
+                options={CLERKING_FORMS.map((f) => ({
+                  value: f.value,
+                  label: (
+                    <span className="inline-flex items-center gap-1.5">
+                      {f.value === p.template.id ? (
+                        <CheckIcon aria-hidden className="size-3.5 text-teal-700" />
+                      ) : null}
+                      {f.label}
+                    </span>
+                  ),
+                }))}
+              />
+            ) : null}
             {signedNote ? (
               <StatusWord tone={signedNote.note.tone === "caution" ? "caution" : "neutral"}>
                 {`${signedNote.note.statusText} ${fmt.time(signedNote.note.at)}`}

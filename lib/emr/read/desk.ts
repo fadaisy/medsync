@@ -14,9 +14,14 @@ import type { NoteItem as ChartNoteItem } from "@/lib/emr/chart";
 import type { EmrDb } from "@/lib/emr/db";
 import type { NoteContent } from "@/lib/emr/notes";
 import type { AcuityLevel, FiredDiscriminator, TriageVitals } from "@/lib/triage/types";
-import { and, eq, inArray, isNull, or } from "drizzle-orm";
+import { and, eq, inArray, isNull, ne, or } from "drizzle-orm";
 
-import { initialContent, sectionWith, unitWords } from "@/components/emr/desk/model";
+import {
+  CLERKING_FORMS,
+  initialContent,
+  sectionWith,
+  unitWords,
+} from "@/components/emr/desk/model";
 import {
   clinicalNoteEvents,
   clinicalNotes,
@@ -28,6 +33,7 @@ import {
 import { encounterEvents, encounterOrders } from "@/db/schema/encounter";
 import { patientIntakes } from "@/db/schema/patient-intakes";
 import { patientProfiles } from "@/db/schema/patient-profiles";
+import { resusEpisodes } from "@/db/schema/resus";
 import { encounters } from "@/db/schema/scheduling";
 import { triageRecords } from "@/db/schema/triage";
 import { computeAgeYears } from "@/lib/age";
@@ -109,17 +115,45 @@ const SUBSTANCES: DeskPayload["substances"] = [
   ).values(),
 ];
 
-export function templateFor(encounter: { templateId: string | null; encounterType: string }) {
-  if (encounter.templateId) {
-    try {
-      return getTemplate(encounter.templateId);
-    } catch {
-      /* fall through to the type default */
-    }
+/** The top acuity level lib/triage defines (types.ts: "1 = most acute"; ACUITY_TIERS: red, immediate). */
+const TOP_ACUITY = Math.min(...ACUITY_TIERS.map((t) => t.level));
+
+/**
+ * The clerking form by default (clinical reference §2.2): the emergency clerking only when the patient
+ * came through resus (an episode linked to this encounter or its triage record) or was triaged at the
+ * top acuity level; every other visit, whatever its type, gets the full clerkship (§2.1).
+ */
+export function defaultClerkingId(e: { resusLinked: boolean; triageLevel: number | null }) {
+  return e.resusLinked || e.triageLevel === TOP_ACUITY
+    ? "tpl.clerking.emergency"
+    : "tpl.clerking.adult_opd";
+}
+
+const templateOr = (id: string | null | undefined) => {
+  if (!id) return null;
+  try {
+    return getTemplate(id);
+  } catch {
+    return null;
   }
-  return getTemplate(
-    encounter.encounterType === "emergency" ? "tpl.clerking.emergency" : "tpl.clerking.adult_opd",
-  );
+};
+
+/**
+ * The desk's template. The author's own note on this visit wins (reloading never switches the form
+ * under someone), then the desk switch's choice (between the two clerking forms only), then an
+ * explicit encounters.template_id, then the default rule.
+ */
+export function templateFor(e: {
+  templateId: string | null;
+  ownTemplateId?: string | null;
+  chosen?: string | null;
+  resusLinked: boolean;
+  triageLevel: number | null;
+}) {
+  const base = templateOr(e.templateId) ?? getTemplate(defaultClerkingId(e));
+  const clerking = (id: string | null | undefined) =>
+    CLERKING_FORMS.some((f) => f.value === id) ? templateOr(id) : null;
+  return templateOr(e.ownTemplateId) ?? (clerking(base.id) ? clerking(e.chosen) : null) ?? base;
 }
 
 const rowIdOf = (factId: string, table: string) =>
@@ -146,15 +180,18 @@ export interface DeskLoad {
   patientSex: string | null;
 }
 
-export async function loadDesk(encounterId: string): Promise<DeskLoad | null> {
+export async function loadDesk(
+  encounterId: string,
+  template?: string | null,
+): Promise<DeskLoad | null> {
   const actor = await requireEmrActor("doctor");
-  return loadDeskFor(actor, encounterId);
+  return loadDeskFor(actor, encounterId, { template });
 }
 
 export async function loadDeskFor(
   actor: EmrActor,
   encounterId: string,
-  opts: { database?: EmrDb; now?: Date } = {},
+  opts: { database?: EmrDb; now?: Date; template?: string | null } = {},
 ): Promise<DeskLoad | null> {
   const scope = { userId: actor.userId, hospitalId: actor.hospitalId };
   const now = opts.now ?? new Date();
@@ -189,8 +226,6 @@ export async function loadDeskFor(
     now,
   });
   if (!chart) return null;
-
-  const template = templateFor(enc);
 
   // 3. The note, carried items, diagnoses, orders, triage (as the clinician).
   const rec = await asClinicalReader(
@@ -330,12 +365,7 @@ export async function loadDeskFor(
     opts.database,
   );
 
-  // Registries and the visit (owner): intake complaint, demographics, ROS screen, dismissals.
-  const ros = template.sections.flatMap((s) =>
-    s.items
-      .filter((i) => i.kind === "ros_grid")
-      .flatMap((i) => (i as { systems?: string[] }).systems ?? []),
-  );
+  // Registries and the visit (owner): intake complaint, demographics, dismissals, the resus link.
   const side = await asClinicalWriter(
     scope,
     async (tx) => {
@@ -370,9 +400,46 @@ export async function loadDeskFor(
               ),
             )
         : [];
-      return { complaint: intake?.complaint ?? null, profile, dismissed };
+      // Came through resus: an episode (not a cancelled one) on this visit or its triage record.
+      const [resus] = await tx
+        .select({ id: resusEpisodes.id })
+        .from(resusEpisodes)
+        .where(
+          and(
+            eq(resusEpisodes.hospitalId, actor.hospitalId),
+            ne(resusEpisodes.state, "cancelled"),
+            or(
+              eq(resusEpisodes.encounterId, enc.id),
+              enc.triageRecordId ? eq(resusEpisodes.triageRecordId, enc.triageRecordId) : undefined,
+            ),
+          ),
+        )
+        .limit(1);
+      return { complaint: intake?.complaint ?? null, profile, dismissed, resusLinked: !!resus };
     },
     opts.database,
+  );
+
+  // The template: the author's own clerking note here (draft first, else the newest signed) wins.
+  const forms = new Set<string | null>([enc.templateId, ...CLERKING_FORMS.map((f) => f.value)]);
+  const own = rec.notes
+    .filter((n) => n.authorUserId === actor.userId && !n.addendumTo && forms.has(n.templateId))
+    .sort(
+      (a, b) =>
+        Number(b.state === "draft") - Number(a.state === "draft") ||
+        (b.signedAt?.getTime() ?? 0) - (a.signedAt?.getTime() ?? 0),
+    )[0];
+  const template = templateFor({
+    templateId: enc.templateId,
+    ownTemplateId: own?.templateId,
+    chosen: opts.template,
+    resusLinked: side.resusLinked,
+    triageLevel: rec.triage?.assignedLevel ?? null,
+  });
+  const ros = template.sections.flatMap((s) =>
+    s.items
+      .filter((i) => i.kind === "ros_grid")
+      .flatMap((i) => (i as { systems?: string[] }).systems ?? []),
   );
   const rosScreen = ros.length ? await loadRosScreen(ros, opts.database) : [];
 

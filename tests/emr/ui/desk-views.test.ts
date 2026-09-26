@@ -256,6 +256,42 @@ describe("the desk's slots and templates", () => {
   });
 });
 
+describe("the clerking form switch", () => {
+  const fresh = () => {
+    const p = standardVisitMidway();
+    p.draft = { noteId: null, revision: null, content: { sections: {} } };
+    return p;
+  };
+  const onTemplate = () => {};
+
+  it("no draft yet and nothing written: Full / Emergency clerking beside the title, no motion", () => {
+    const m = desk(fresh(), { content: { sections: {} }, on: { onTemplate } });
+    expect(m).toContain('role="radiogroup" aria-label="Clerking form"');
+    expect(text(m)).toMatch(/Adult outpatient clerking Full clerking Emergency clerking/);
+    expect(m).toContain('checked="" value="tpl.clerking.adult_opd"');
+    expect(m).toContain("[&amp;&gt;label]:transition-none");
+  });
+
+  it("the seeded triage complaint alone still counts as nothing written", () => {
+    const content = {
+      sections: { s01: { items: [{ kind: "complaint_token", label: "Fever", source: "triage" }] } },
+    };
+    expect(desk(fresh(), { content, on: { onTemplate } })).toContain('aria-label="Clerking form"');
+  });
+
+  it("hidden once the note has content, once a draft is saved, when signed or not switchable", () => {
+    const typed = { sections: { s02: { narrative: "Three days of fever" } } };
+    expect(desk(fresh(), { content: typed, on: { onTemplate } })).not.toContain("Clerking form");
+    // standardVisitMidway: a saved draft with content.
+    expect(desk(standardVisitMidway(), { on: { onTemplate } })).not.toContain("Clerking form");
+    expect(desk(internAwaitingCosign("intern"), { on: { onTemplate } })).not.toContain(
+      "Clerking form",
+    );
+    // The client withholds the handler once autosave has created the draft.
+    expect(desk(fresh(), { content: { sections: {} } })).not.toContain("Clerking form");
+  });
+});
+
 describe("sign check (gate-a E.11)", () => {
   it("required met with checks, warnings amber and non-blocking, what commits, the intern notice", () => {
     const p = standardVisitMidway();

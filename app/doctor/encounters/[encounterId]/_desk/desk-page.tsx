@@ -25,11 +25,14 @@ import { DeskClient } from "./desk-client";
 export async function DeskPage({
   encounterId,
   scope,
+  template,
 }: {
   encounterId: string;
   scope: DoctorScope;
+  /** The desk switch's clerking form (?template=), honoured only before a draft exists. */
+  template?: string;
 }) {
-  const load = await loadDesk(encounterId);
+  const load = await loadDesk(encounterId, template);
   const workspace = doctorWorkspace(scope.hospitalId);
   const back = workspace
     ? { href: "/doctor", label: "Workspace" }
@@ -112,6 +115,7 @@ export async function DeskPage({
         </Suspense>
       ) : null}
       <DeskClient
+        key={p.template.id}
         p={p}
         ncdSeed={ncdSeed}
         orders={

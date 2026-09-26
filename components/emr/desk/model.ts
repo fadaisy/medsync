@@ -402,6 +402,24 @@ export function initialContent(
   };
 }
 
+/** The two clerking forms the desk switches between (clinical reference §2.1, §2.2). */
+export const CLERKING_FORMS = [
+  { value: "tpl.clerking.adult_opd", label: "Full clerking" },
+  { value: "tpl.clerking.emergency", label: "Emergency clerking" },
+] as const;
+
+/** Nothing the author wrote yet: at most what the desk seeded (the triage complaint). */
+export function blankNote(c: NoteContent): boolean {
+  if (Object.values(c.header ?? {}).some((v) => v !== null && v !== undefined && v !== ""))
+    return false;
+  return Object.values(c.sections).every(
+    (s) =>
+      !s.narrative?.trim() &&
+      Object.values(s.fields ?? {}).every((v) => !v?.trim()) &&
+      (s.items ?? []).every((i) => i.kind === "complaint_token" && i.source === "triage"),
+  );
+}
+
 /** The first section whose items include `kind` ("exam_finding:general" names a group). */
 export function sectionWith(t: Pick<DeskTemplate, "sections">, kind: string): string | null {
   return t.sections.find((s) => s.itemKinds.includes(kind))?.id ?? null;

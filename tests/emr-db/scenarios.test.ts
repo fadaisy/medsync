@@ -851,6 +851,30 @@ describe.skipIf(!laneOn)("Phase 4 scenarios A1–A9 (PGlite lane)", () => {
     expect(await consume()).toEqual(r);
     expect(await proposed()).toHaveLength(2);
     expect(await eventKinds(byTest[MALARIA_RDT]!)).toEqual(["proposed", "dismissed"]);
+
+    // The clerking form (clinical reference §2.2): this emergency visit came through resus, so the
+    // emergency clerking; without the resus (and no top-level triage) the full clerkship; the switch
+    // picks before a draft exists, and the author's draft then keeps its form.
+    const form = async (template?: string) =>
+      (await loadDeskFor(mo, r.encounterId, { database: lane.db, template }))!.payload.template.id;
+    expect(await form()).toBe("tpl.clerking.emergency");
+    expect(await form("tpl.clerking.adult_opd")).toBe("tpl.clerking.adult_opd");
+    await q(`UPDATE public.resus_episodes SET encounter_id = NULL WHERE id = $1`, [ep!.id]);
+    expect(
+      await q(`SELECT encounter_type FROM public.encounters WHERE id = $1`, [r.encounterId]),
+    ).toEqual([{ encounter_type: "emergency" }]);
+    expect(await form()).toBe("tpl.clerking.adult_opd");
+    await as(mo, p, (ctx) =>
+      notes.saveNoteDraft(ctx, {
+        patientUserId: p,
+        encounterId: r.encounterId,
+        templateId: "tpl.clerking.emergency",
+        content: { sections: { s01: { narrative: "Collapsed at home" } } },
+        clientKey: key(),
+      }),
+    );
+    expect(await form()).toBe("tpl.clerking.emergency");
+    expect(await form("tpl.clerking.adult_opd")).toBe("tpl.clerking.emergency");
   });
 
   it("A6 a stale encounter sits in Needs closing, never closes itself, and closes administratively with a reason", async () => {
