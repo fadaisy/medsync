@@ -34,9 +34,12 @@ A role-based digital-hospital platform for Ugandan hospitals (IM-first, Mulago b
 
 Scope helpers (`requireDoctorScope`, `requireNurseScope`, `requireClinicianScope`) gate every workspace.
 
+The EMR (ADRs 0130–0139, `docs/emr/`): `emr` (the record — pure engines `encounter`/`notes`/`allergy`/`orders`/`results`/`chart`/`fhir`, `db.ts` with `asClinicalReader`/`asClinicalWriter`, `write/` transactions, `read/`, `actions/`, `sync/`, `reference/` = `pending_cso` `RefEntry` files with no numbers) · `facts` (Clinical Fact Contract: types, generated catalogue, `loadFactSnapshot`, `project/` legacy projections) · `units` (canonical units and conversions). Flags in `lib/emr/feature.ts`: `EMR_V1` (`1` or hospital ids; needs `ENCOUNTER_ENGINE_LIVE`) and `EMR_PRESCRIBING` (Phase 7, only where `EMR_V1` is on); off, every page is unchanged.
+
 ### `components/`
 
 - `ui/` — shadcn primitives. `landing/` — the public landing `/` and `/about` (v4 "Slim", ADR 0099): `primitives.tsx` (section shell, header, kicker, CTAs), one file or folder per section (`hero/`, `trust/`, `founders/` are folders), `mocks/` (illustrative product mocks, roles and readings only), `site-nav`/`site-footer`; `_`-prefixed files survive only for `/styleguide` and the 404. `forms/` — shared multi-step form primitives. `medsync/`, `intake/`, etc.
+- `emr/` — the chart, clerking desk, orders and results UI: pure `*View` components over precomputed payloads (fixture-renderable); red only in `status-word.tsx`.
 
 ### `content/` — landing copy as data
 
@@ -48,6 +51,10 @@ Scope helpers (`requireDoctorScope`, `requireNurseScope`, `requireClinicianScope
 
 - `migrations/` — ordered SQL (`0001…`). **Immutable once shipped.** Some are **GATED** (clinical reference data / RLS) — applied by the owner via `npm run db:migrate`, never auto-run.
 - `functions/` — Deno Edge Functions for privileged mutations: `ha-*` (hospital-admin), `sa-*` (super-admin), `pt-*` (patient), `approve-*`/`reject-*` (governance), plus `_shared`/`_types`. Typechecked separately (`supabase/functions/tsconfig.json`).
+
+### `tests/` — Vitest
+
+`emr-db/` is the **PGlite lane** (EMR migrations, RLS probes, write paths, scenarios A1–A9): runs only with `EMR_PGLITE=1` (`npm run test:emr-db`) and a local symlink `node_modules/@electric-sql` → `~/Desktop/emr-harness/pg/node_modules/@electric-sql` (never a dependency; ADR 0133), else skips.
 
 ### `docs/adr/` — Architecture Decision Records (numbered, immutable; see below).
 
