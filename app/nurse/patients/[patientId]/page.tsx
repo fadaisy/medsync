@@ -1,3 +1,4 @@
+import type { EmrDb } from "@/lib/emr/db";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { and, desc, eq } from "drizzle-orm";
@@ -7,6 +8,8 @@ import { PatientClinicalRecordPanel } from "@/components/encounter/patient-clini
 import { Button } from "@/components/ui/button";
 import { db } from "@/db";
 import { clinicalObservations, medicationAdministrationRecords } from "@/db/schema/nurse-workspace";
+import { emrV1Live } from "@/lib/emr/feature";
+import { loadCfcVitals } from "@/lib/emr/read/vitals";
 import { toEncounterScope } from "@/lib/encounter/workspace-scope";
 import { fetchNursePatientSummaryAudited } from "@/lib/nurse/patient-access";
 import { requireNurseScope } from "@/lib/nurse/scope";
@@ -69,7 +72,7 @@ export default async function NursePatientSummaryPage({ params }: PageProps) {
   // Pull recent obs + MAR in parallel (read-side; both tables have
   // broad-clinical SELECT policies so we can read with the user-context
   // db without extra audit — the AUDITED PHI read happened above).
-  const [recentObs, recentMar] = await Promise.all([
+  const [legacyObs, cfcObs, recentMar] = await Promise.all([
     db
       .select({
         id: clinicalObservations.id,
@@ -89,6 +92,10 @@ export default async function NursePatientSummaryPage({ params }: PageProps) {
       )
       .orderBy(desc(clinicalObservations.recordedAt))
       .limit(10),
+    // EMR v1: CFC vital-sign rows join the list (STOP 2), so one series shows everywhere.
+    emrV1Live()
+      ? loadCfcVitals(db as unknown as EmrDb, summary.patientUserId, { limit: 10 })
+      : Promise.resolve([]),
     db
       .select({
         id: medicationAdministrationRecords.id,
@@ -104,6 +111,21 @@ export default async function NursePatientSummaryPage({ params }: PageProps) {
       .orderBy(desc(medicationAdministrationRecords.administeredAt))
       .limit(10),
   ]);
+
+  const recentObs = [
+    ...legacyObs,
+    ...cfcObs.map((v) => ({
+      id: v.id,
+      kind: v.kind,
+      recordedAt: v.recordedAt,
+      numericValue1: v.value1 === null ? null : String(v.value1),
+      numericValue2: v.value2 === null ? null : String(v.value2),
+      unit: v.unit,
+      notes: null,
+    })),
+  ]
+    .sort((a, b) => b.recordedAt.getTime() - a.recordedAt.getTime())
+    .slice(0, 10);
 
   const ageYears = computeAgeYears(summary.dateOfBirth);
 

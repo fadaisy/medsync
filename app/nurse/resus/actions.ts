@@ -1,5 +1,6 @@
 "use server";
 
+import type { EmrDb } from "@/lib/emr/db";
 import type { ResusScope } from "@/lib/resus/scope";
 import type { AbcdeStep, ResusEventKind, ResusRole } from "@/lib/resus/types";
 import { revalidatePath } from "next/cache";
@@ -12,8 +13,12 @@ import { patientAllergies } from "@/db/schema/prescribing";
 import { resusEpisodes } from "@/db/schema/resus";
 import { triageRecords } from "@/db/schema/triage";
 import { resolveCapabilities } from "@/lib/doctor/capabilities";
+import { emrV1LiveFor } from "@/lib/emr/feature";
+import { loadAllergyInput } from "@/lib/emr/read/allergies";
 import { encounterEngineLive } from "@/lib/encounter/feature";
 import { logger } from "@/lib/logger";
+import { recordedAllergiesFromTimeline } from "@/lib/prescribing/administration";
+import { allergyRecheck, mergeAllergyLists } from "@/lib/prescribing/allergy-merge";
 import { getEmergencyDrug } from "@/lib/prescribing/reference/emergency-drug-catalog";
 import { AIRWAY_ACTION_STATES, classifyAirway } from "@/lib/resus/airway";
 import { detectArrest } from "@/lib/resus/arrest";
@@ -43,6 +48,8 @@ import {
   appendResusEvent,
   assignResusRole,
   concludeResusEpisode,
+  fetchResusEpisode,
+  fetchResusTimeline,
   markResusArrest,
   openResusEpisode,
 } from "@/lib/resus/record";
@@ -1181,6 +1188,40 @@ export async function recordEmergencyAdministration(
   if (drug.controlled && !parsed.data.witnessUserId && !parsed.data.witnessName?.trim())
     return { error: "Controlled drug — a witness is required." };
 
+  // Server re-check of the allergy block (Phase 0 safety finding): the record's allergies plus
+  // this episode's captures, whatever the client sent. A failed record read never blocks a
+  // grab-and-give (the dialog already showed "could not be loaded"); it is recorded instead.
+  const ep = await fetchResusEpisode({
+    episodeId: parsed.data.episodeId,
+    hospitalId: scope.hospitalId,
+  });
+  if (!ep) return { error: "Episode not found." };
+  let recordAllergies: string[] = [];
+  let allergyRecord: "checked" | "unavailable" | "not_read" = "not_read";
+  if (ep.patientUserId && encounterEngineLive()) {
+    try {
+      recordAllergies = (await recordAllergiesFor(ep.patientUserId, scope.hospitalId)).allergies;
+      allergyRecord = "checked";
+    } catch (e) {
+      logger.error("resus.administration.allergy_record_unavailable", {
+        episode: parsed.data.episodeId,
+        reason: (e as Error).message,
+      });
+      allergyRecord = "unavailable";
+    }
+  }
+  const recheck = allergyRecheck(
+    drug,
+    mergeAllergyLists(
+      recordedAllergiesFromTimeline(await fetchResusTimeline(parsed.data.episodeId)),
+      recordAllergies,
+    ),
+    parsed.data.overrideReason,
+  );
+  if (recheck.refusal) return { error: recheck.refusal };
+  const overriddenFlags = parsed.data.overriddenFlags ?? [];
+  if (recheck.matched && !overriddenFlags.includes("allergy")) overriddenFlags.push("allergy");
+
   const step: AbcdeStep | null =
     drug.abcdeStep === "cross_cutting" ? "B" : (drug.abcdeStep as AbcdeStep);
 
@@ -1240,7 +1281,8 @@ export async function recordEmergencyAdministration(
         witnessName: parsed.data.witnessName ?? null,
         controlled: drug.controlled,
         overrideReason: parsed.data.overrideReason ?? null,
-        overriddenFlags: parsed.data.overriddenFlags ?? [],
+        overriddenFlags,
+        allergyRecord,
         // Edit provenance — the guideline default, the edited values, + the log.
         edited,
         edits,
@@ -1382,27 +1424,43 @@ export async function concludeResus(
   return { ok: true };
 }
 
-/**
- * Persistent (clerked) allergies for the episode's patient — the encounter
- * engine's `patient_allergies`, unioned into the resus prescribing safety check
- * so a clerked allergy gates emergency prescribing (the kickoff's launch-blocker).
- *
- * Guarded by encounterEngineLive(): returns [] WITHOUT querying until migration
- * 0040 is applied (the table doesn't exist before then), so resus prescribing is
- * byte-for-byte unchanged pre-launch. Authorised by the resus scope.
- */
-export async function loadPersistentAllergiesForEpisode(episodeId: string): Promise<string[]> {
-  if (!encounterEngineLive()) return [];
-  await requireResusScope();
-  const [ep] = await db
-    .select({ patientUserId: resusEpisodes.patientUserId })
-    .from(resusEpisodes)
-    .where(eq(resusEpisodes.id, episodeId))
-    .limit(1);
-  if (!ep?.patientUserId) return [];
+/** The record's allergies for a patient, and whether the record says anything (listed or NKDA).
+ *  Under EMR v1 that is `lib/emr/read/allergies.ts` (every hospital, backfilled resus captures from
+ *  earlier episodes included); otherwise the legacy `patient_allergies` read, unchanged. Read as the
+ *  owner: the resus scope has already authorised the episode. */
+async function recordAllergiesFor(
+  patientUserId: string,
+  hospitalId: string,
+): Promise<{ allergies: string[]; recorded: boolean }> {
+  if (emrV1LiveFor(hospitalId)) {
+    const input = await loadAllergyInput(db as unknown as EmrDb, patientUserId);
+    return {
+      allergies: input.allergies,
+      recorded: input.status.kind === "listed" || input.status.kind === "no_known_drug_allergies",
+    };
+  }
   const rows = await db
     .select({ substance: patientAllergies.substance })
     .from(patientAllergies)
-    .where(eq(patientAllergies.patientUserId, ep.patientUserId));
-  return rows.map((r) => r.substance);
+    .where(eq(patientAllergies.patientUserId, patientUserId));
+  const allergies = rows.map((r) => r.substance);
+  return { allergies, recorded: allergies.length > 0 };
+}
+
+/**
+ * Persistent (clerked) allergies for the episode's patient, unioned into the resus prescribing
+ * safety check so a recorded allergy gates emergency prescribing (the kickoff's launch-blocker).
+ *
+ * Guarded by encounterEngineLive(): returns nothing WITHOUT querying until migration 0040 is
+ * applied (the table doesn't exist before then). Authorised by the resus scope. A failed read
+ * throws, so the dialog can say so instead of checking against an empty list.
+ */
+export async function loadPersistentAllergiesForEpisode(
+  episodeId: string,
+): Promise<{ allergies: string[]; recorded: boolean }> {
+  if (!encounterEngineLive()) return { allergies: [], recorded: false };
+  const scope = await requireResusScope();
+  const ep = await fetchResusEpisode({ episodeId, hospitalId: scope.hospitalId });
+  if (!ep?.patientUserId) return { allergies: [], recorded: false };
+  return recordAllergiesFor(ep.patientUserId, scope.hospitalId);
 }
