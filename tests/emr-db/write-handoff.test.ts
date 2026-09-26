@@ -9,6 +9,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 
 import { withPatientWrite } from "@/lib/emr/write/context";
 import { consumeResusHandoff } from "@/lib/emr/write/handoff";
+import { saveNoteDraft } from "@/lib/emr/write/notes";
 import { decrypt, generateKey } from "@/lib/encryption";
 import {
   bootLane,
@@ -38,6 +39,7 @@ describe.skipIf(!laneOn)("resus → encounter handoff (PGlite lane)", () => {
   async function episode(
     p: string | null,
     state: "active" | "concluded" = "concluded",
+    recommendation = "Repeat glucose hourly.",
   ): Promise<string> {
     const ep = (
       await lane.pg.query<{ id: string }>(
@@ -64,7 +66,7 @@ describe.skipIf(!laneOn)("resus → encounter handoff (PGlite lane)", () => {
             situation: "Stabilised after fluids.",
             background: "Known diabetic.",
             assessment: "Airway patent, perfusing.",
-            recommendation: "Repeat glucose hourly.",
+            recommendation,
           },
           receiving: { unit: "Medical ward", cadre: "MEDICAL_OFFICER" },
         }),
@@ -171,5 +173,41 @@ describe.skipIf(!laneOn)("resus → encounter handoff (PGlite lane)", () => {
     // The access check ran for p: another patient's episode is refused.
     const other = await patient(lane.pg);
     await expect(consume(p, await episode(other))).rejects.toMatchObject({ code: "forbidden" });
+  });
+
+  it("an empty recommendation is written as not recorded, never as 'none'", async () => {
+    const p = await patient(lane.pg);
+    await intake(lane.pg, { hospitalId: h, patientUserId: p });
+    const r = await consume(p, await episode(p, "concluded", ""));
+    const [row] = (
+      await lane.pg.query<{ c: string }>(
+        `SELECT content_ciphertext c FROM public.clinical_notes WHERE id = $1`,
+        [r.id],
+      )
+    ).rows;
+    const tasks = JSON.parse(decrypt(row!.c)).sections.s05.items[0];
+    expect(tasks).toEqual({ kind: "tasks", text: null, notRecorded: true });
+  });
+
+  it("a draft that took the server's handoff key is not mistaken for the handover", async () => {
+    const p = await patient(lane.pg);
+    await intake(lane.pg, { hospitalId: h, patientUserId: p });
+    const ep = await episode(p);
+    const enc = await encounter(lane.pg, { hospitalId: h, patientUserId: p, clinicianUserId: nurse.userId });
+    await withPatientWrite(
+      nurse,
+      p,
+      (ctx) =>
+        saveNoteDraft(ctx, {
+          patientUserId: p,
+          encounterId: enc,
+          templateId: "tpl.nursing",
+          clientKey: `resus-handoff:${ep}`,
+          content: { sections: {} },
+        }),
+      { database: lane.db },
+    );
+    // The action's Zod refuses a ':' key; this is the write function reached past it.
+    await expect(consume(p, ep)).rejects.toMatchObject({ code: "conflict" });
   });
 });

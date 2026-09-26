@@ -36,9 +36,12 @@ A role-based digital-hospital platform for Ugandan hospitals (IM-first, Mulago b
 
 `auth` · `clerkship` (symptom engine, catalogs, governance) · `encounter` (EMR engine, clerkship mapper, records) · `resus` (ABCDE) · `prescribing` · `triage` · `intake` · `scheduling` · `doctor` / `nurse` / `clinician` / `reception` / `hospital-admin` / `patient` (per-area scope + queries) · `supabase` (clients) · `logger`. Scope helpers (`requireDoctorScope`, `requireNurseScope`, `requireClinicianScope`) gate every workspace.
 
+The EMR (ADRs 0130–0139, `docs/emr/`): `emr` (the record — pure engines `encounter`/`notes`/`allergy`/`orders`/`results`/`chart`/`fhir`, `db.ts` with `asClinicalReader`/`asClinicalWriter`, `write/` transactions, `read/`, `actions/`, `sync/`, `reference/` = `pending_cso` `RefEntry` files with no numbers) · `facts` (Clinical Fact Contract: types, generated catalogue, `loadFactSnapshot`, `project/` legacy projections) · `units` (canonical units and conversions). Flags in `lib/emr/feature.ts`: `EMR_V1` (`1` or hospital ids; needs `ENCOUNTER_ENGINE_LIVE`) and `EMR_PRESCRIBING` (Phase 7, only where `EMR_V1` is on); off, every page is unchanged.
+
 ### `components/`
 
 - `ui/` — shadcn primitives. `landing/` — the public landing `/` and `/about` (v4 "Slim", ADR 0099): `primitives.tsx` (section shell, header, kicker, CTAs), one file or folder per section (`hero/`, `trust/`, `founders/` are folders), `mocks/` (illustrative product mocks, roles and readings only), `site-nav`/`site-footer`; `_`-prefixed files survive only for `/styleguide` and the 404. `forms/` — shared multi-step form primitives. `medsync/`, `intake/`, etc.
+- `emr/` — the chart, clerking desk, orders and results UI: pure `*View` components over precomputed payloads (fixture-renderable); red only in `status-word.tsx`.
 
 ### `content/` — landing copy as data
 
@@ -55,7 +58,7 @@ Auth/users/roles, hospitals + departments/wards, staff affiliations & invitation
 
 ### `tests/` — Vitest
 
-`rls/` (row-level-security policies) · `encounter` · `clerkship` · `resus` · `prescribing` · `triage` · `scheduling` · `auth` · `audit` · `encryption` · `lifecycle` · `hospital-admin` · `logger` · `_stubs`.
+`rls/` (row-level-security policies) · `encounter` · `clerkship` · `resus` · `prescribing` · `triage` · `scheduling` · `auth` · `audit` · `encryption` · `lifecycle` · `hospital-admin` · `logger` · `_stubs`. `emr/` (pure EMR engines, always run) · `emr-db/` — the **PGlite lane**: migrations, RLS probes, write paths and scenarios A1–A9 on a real in-process Postgres; runs only with `EMR_PGLITE=1` (`npm run test:emr-db`) and a local symlink `node_modules/@electric-sql` → `~/Desktop/emr-harness/pg/node_modules/@electric-sql` (never a dependency; ADR 0133), else skips.
 
 ### `docs/adr/` — Architecture Decision Records (numbered, immutable; see below).
 

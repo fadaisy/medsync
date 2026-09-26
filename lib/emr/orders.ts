@@ -64,7 +64,7 @@ export type OrderStatus =
       state: "resulted";
       reportId: string | null;
       reportStatus: ReportStatus | "legacy";
-      review: "not_released" | "needs_review" | "needs_re_ack" | "legacy";
+      review: "not_released" | "needs_review" | "needs_re_ack" | "forwarded" | "legacy";
     }
   | { state: "acknowledged"; reportId: string; action: AckAction }
   /** `reason` is null only for a legacy row, which never recorded one. */
@@ -153,7 +153,13 @@ export function deriveOrderStatus(order: OrderInput, records: OrderRecords = {})
     if (phase === "cancelled" || phase === "dismissed")
       anomalies.push(`result present on a ${phase} order; the result is shown`);
     // The least-advanced chain decides: one unacknowledged result keeps the order open.
-    const RANK = { needs_re_ack: 0, needs_review: 1, not_released: 2, acknowledged: 3 } as const;
+    const RANK = {
+      needs_re_ack: 0,
+      needs_review: 1,
+      forwarded: 1,
+      not_released: 2,
+      acknowledged: 3,
+    } as const;
     live.sort(
       (a, b) =>
         RANK[a.ack.kind as keyof typeof RANK] - RANK[b.ack.kind as keyof typeof RANK] ||
@@ -173,7 +179,7 @@ export function deriveOrderStatus(order: OrderInput, records: OrderRecords = {})
         state: "resulted",
         reportId: cur.id,
         reportStatus: cur.status as ReportStatus,
-        review: ack.kind as "not_released" | "needs_review" | "needs_re_ack",
+        review: ack.kind as "not_released" | "needs_review" | "needs_re_ack" | "forwarded",
       },
       anomalies,
     );
@@ -233,6 +239,7 @@ export function orderStatusText(status: OrderStatus, kind: string): string {
       if (status.review === "needs_re_ack") return "Amended — acknowledge again";
       if (status.review === "not_released") return "Preliminary result";
       if (status.review === "legacy") return "Resulted";
+      if (status.review === "forwarded") return "Forwarded — awaiting acknowledgement";
       return "Result available — awaiting acknowledgement";
     case "acknowledged":
       return `Acknowledged (${status.action})`;

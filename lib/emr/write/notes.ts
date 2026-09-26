@@ -556,7 +556,16 @@ export async function insertSignedNote(
   input: InsertSignedNoteInput,
 ): Promise<string> {
   const replay = await replayed(ctx.tx, clinicalNotes, input.clientKey, input.patientUserId);
-  if (replay) return replay;
+  if (replay) {
+    // Only this same signed note counts as the replay: never trust a key alone.
+    const [r] = await ctx.tx
+      .select({ state: clinicalNotes.state, templateId: clinicalNotes.templateId })
+      .from(clinicalNotes)
+      .where(eq(clinicalNotes.id, replay));
+    if (r?.state !== "signed" || r.templateId !== input.templateId)
+      throw new EmrWriteError("conflict", "That key belongs to another note.");
+    return replay;
+  }
   const template = getTemplateOr(input.templateId);
   if (!template.noteType) throw invalid("That template is not a note of its own.");
   const key = hmacKey();

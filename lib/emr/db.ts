@@ -66,3 +66,15 @@ export function asClinicalWriter<T>(
 ): Promise<T> {
   return withIdentity(scope, false, fn, database);
 }
+
+/**
+ * Inside a writer transaction, run a read under RLS as the clinician (the reader role), then return
+ * to the owner. For a write that needs hospital-scoped facts: the owner would see every hospital's.
+ * No finally: if `fn` throws, the transaction aborts and the role ends with it.
+ */
+export async function readAsClinician<T>(tx: EmrTx, fn: () => Promise<T>): Promise<T> {
+  await tx.execute(sql`SET LOCAL ROLE medsync_clinical_reader`);
+  const out = await fn();
+  await tx.execute(sql`SET LOCAL ROLE NONE`);
+  return out;
+}

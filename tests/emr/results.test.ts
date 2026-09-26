@@ -320,13 +320,14 @@ describe("acknowledgement per version", () => {
     const s = ackState([rep("a", 1, "final", 0)], [ack("a", action, 3)]);
     expect(s).toMatchObject({ kind: "acknowledged", action, byUserId: "dr-1", at: t(3) });
   });
-  it("forwarded names the colleague", () => {
+  it("forwarded names the colleague and stays open until seen or acted", () => {
     const s = ackState([rep("a", 1, "final", 0)], [ack("a", "forwarded", 3, "dr-2")]);
-    expect(s).toMatchObject({
-      kind: "acknowledged",
-      action: "forwarded",
-      forwardedToUserId: "dr-2",
-    });
+    expect(s).toMatchObject({ kind: "forwarded", toUserId: "dr-2" });
+    const closed = ackState(
+      [rep("a", 1, "final", 0)],
+      [ack("a", "forwarded", 3, "dr-2"), ack("a", "seen", 5)],
+    );
+    expect(closed).toMatchObject({ kind: "acknowledged", action: "seen" });
   });
   it("the latest acknowledgement wins", () => {
     const s = ackState([rep("a", 1, "final", 0)], [ack("a", "acted", 9), ack("a", "seen", 3)]);

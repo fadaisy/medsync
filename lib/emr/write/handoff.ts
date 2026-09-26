@@ -149,7 +149,12 @@ export async function consumeResusHandoff(
         s03: { narrative: text(sbar.background) },
         s04: { narrative: text(sbar.assessment) },
         s05: {
-          items: [{ kind: "tasks", text: recommendation || "none" }],
+          // Missing is not normal: an empty recommendation is recorded as not recorded, never "none".
+          items: [
+            recommendation
+              ? { kind: "tasks", text: recommendation }
+              : { kind: "tasks", text: null, notRecorded: true },
+          ],
           narrative: recommendation,
         },
         s06: {

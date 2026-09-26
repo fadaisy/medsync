@@ -40,6 +40,12 @@ export const PRIORITY_WORD: Record<string, string> = {
   immediate: "Immediate",
 };
 
+/** The test words on a specimen label: a restricted test is printed only when added by hand, like
+ *  every other printout (the requisition and label numbers identify it for the laboratory). */
+export function labelTestWords(test: string, restricted: boolean, included: boolean): string {
+  return restricted && !included ? "Restricted — see requisition" : test;
+}
+
 export type Availability = "available" | "intermittent" | "unavailable" | "unknown";
 
 export interface MenuTest {

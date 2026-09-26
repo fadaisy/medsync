@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { ArrowLeftIcon } from "lucide-react";
 
 import { sectionWith } from "@/components/emr/desk/model";
+import { EncounterPrescriptions } from "@/components/emr/prescribing/encounter-prescriptions";
 import { SafetyBarView } from "@/components/emr/safety-bar";
 import { loadDesk } from "@/lib/emr/read/desk";
 import { DIABETES_CATALOG } from "@/lib/ncd/catalog/diabetes";
@@ -117,6 +118,11 @@ export async function DeskPage({
           p.flags.actionsAllowed && p.draft ? (
             <Suspense fallback={null}>
               <EncounterOrders encounterId={encounterId} />
+              {/* Renders nothing unless EMR_PRESCRIBING is on here (PROMPT Phase 7). */}
+              <EncounterPrescriptions
+                encounterId={encounterId}
+                identity={{ name: p.safetyBar.name, mrn: p.safetyBar.mrn }}
+              />
             </Suspense>
           ) : null
         }

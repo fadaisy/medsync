@@ -16,7 +16,12 @@ import type { FactConcept } from "@/lib/facts/types";
 import { and, eq, inArray, isNull, or } from "drizzle-orm";
 
 import { formatters } from "@/components/emr/format";
-import { ageSexWords, containerWords, PRIORITY_WORD } from "@/components/emr/orders/model";
+import {
+  ageSexWords,
+  containerWords,
+  labelTestWords,
+  PRIORITY_WORD,
+} from "@/components/emr/orders/model";
 import {
   conditions,
   diagnosisTerms,
@@ -326,13 +331,14 @@ export async function loadEncounterOrders(
   };
 }
 
-/** The label for one specimen of this encounter (two identifiers, test, container, time). */
+/** The label for one specimen of this encounter (two identifiers, test, container, time). A
+ *  restricted test's name is printed only when `include` holds the specimen id. */
 export async function loadSpecimenLabel(
   actor: EmrActor,
   encounterId: string,
   specimenId: string,
-  opts: { database?: EmrDb } = {},
-): Promise<LabelData | null> {
+  opts: { database?: EmrDb; include?: ReadonlySet<string> } = {},
+): Promise<{ data: LabelData; restricted: { id: string; label: string } | null } | null> {
   const head = await identityHead(actor, encounterId, opts.database);
   if (!head) return null;
   const row = await asClinicalReader(
@@ -344,6 +350,7 @@ export async function loadSpecimenLabel(
           collectedAt: specimens.collectedAt,
           labelNo: specimens.labelNo,
           test: encounterOrders.text,
+          sensitivity: encounterOrders.sensitivity,
           requisitionNo: encounterOrders.requisitionNo,
           priority: encounterOrders.priority,
         })
@@ -364,14 +371,18 @@ export async function loadSpecimenLabel(
   if (!row) return null;
   await logRead(actor, head.patientUserId, head.basis, "emr_specimen_label", opts.database);
   const f = formatters(DEFAULT_TIME_ZONE);
+  const restricted = row.sensitivity === "restricted";
   return {
-    identity: head.identity,
-    dob: head.dob ? f.date(`${head.dob}T12:00:00Z`) : null,
-    test: row.test,
-    container: containerWords(row.container),
-    collectedAt: f.dateTime(row.collectedAt.toISOString()),
-    requisitionNo: row.requisitionNo,
-    priority: row.priority ? (PRIORITY_WORD[row.priority] ?? row.priority) : null,
-    labelNo: row.labelNo,
+    data: {
+      identity: head.identity,
+      dob: head.dob ? f.date(`${head.dob}T12:00:00Z`) : null,
+      test: labelTestWords(row.test, restricted, !!opts.include?.has(specimenId)),
+      container: containerWords(row.container),
+      collectedAt: f.dateTime(row.collectedAt.toISOString()),
+      requisitionNo: row.requisitionNo,
+      priority: row.priority ? (PRIORITY_WORD[row.priority] ?? row.priority) : null,
+      labelNo: row.labelNo,
+    },
+    restricted: restricted ? { id: specimenId, label: row.test } : null,
   };
 }

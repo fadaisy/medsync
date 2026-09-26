@@ -31,6 +31,7 @@ import { triageRecords } from "@/db/schema/triage";
 import { users } from "@/db/schema/users";
 import { computeAgeYears } from "@/lib/age";
 import { emrV1LiveFor } from "@/lib/emr/feature";
+import { OPEN_RESULT_ORDER, openResultFor } from "@/lib/emr/read/results";
 import { SENIOR_CADRES } from "@/lib/emr/write/facts";
 import { fetchResusBoardV2, OPENABLE_LOOKBACK_MS } from "@/lib/resus/board-v2";
 import { revealPatientIdentities } from "@/lib/scheduling/patient-identity";
@@ -427,15 +428,11 @@ export async function loadEmrTasks(database: EmrDb, viewer: WorkspaceViewer): Pr
           inArray(r.status, RELEASED),
           // The current version of the chain, and nobody has acknowledged that version.
           sql`not exists (select 1 from ${diagnosticReports} n where n.logical_id = ${r.logicalId} and n.version > ${r.version})`,
-          sql`not exists (select 1 from result_acknowledgements a where a.report_id = ${r.id})`,
-          or(
-            eq(o.authoredByUserId, viewer.userId),
-            sql`exists (select 1 from ${staffAffiliations} sa where sa.user_id = ${o.authoredByUserId}
-                  and sa.hospital_id = ${viewer.hospitalId} and sa.department_id = ${viewer.departmentId}
-                  and sa.state in ('active','approved'))`,
-          ),
+          // Unacknowledged and mine (placed or covered), or forwarded to me.
+          openResultFor(viewer),
         ),
       )
+      .orderBy(...OPEN_RESULT_ORDER)
       .limit(ROW_CAP),
     // cosignNote's own cadre rule, so the lane never offers what the write refuses.
     SENIOR_CADRES.includes(viewer.cadreCode)

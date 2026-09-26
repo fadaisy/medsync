@@ -323,7 +323,14 @@ export async function loadDeskFor(
         ? await tx
             .select({ complaint: patientIntakes.presentingComplaint })
             .from(patientIntakes)
-            .where(eq(patientIntakes.id, intakeId))
+            .where(
+              and(
+                eq(patientIntakes.id, intakeId),
+                // The visit link is caller-supplied at start: never read another patient's complaint.
+                eq(patientIntakes.patientUserId, enc.patientUserId),
+                eq(patientIntakes.hospitalId, actor.hospitalId),
+              ),
+            )
             .limit(1)
         : [];
       const [profile] = await tx

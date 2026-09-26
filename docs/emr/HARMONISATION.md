@@ -183,3 +183,10 @@ Agreed with that session on 2026-09-26. The hub uses migration 0080 and ADRs 015
   projection, which informs and never blocks. There is one store (the hub's); `facility_capabilities` gets no new
   writer.
 - **Capabilities:** the `cap.*` ids map onto the hub's `capability_values` keys through one mapping table at merge.
+- **Migration coexistence (verified 2026-09-26):**
+  - The EMR's 0071–0073 and the hub's 0080 share no table CHECK they redefine.
+  - Both apply cleanly in PGlite, in name order and in production order (0080 first, then 0071–0073).
+  - `scripts/migrate.ts` applies any unrecorded file by name, so a late 0071 still runs.
+- **`sa_audit_log_action_check` rule:** if an EMR migration ever redefines it, the list must be the current
+  `SaAuditAction` union (`supabase/functions/_shared/sa-audit.ts`), hub verbs included. Otherwise every hub operation's
+  audit row would start failing. No EMR migration touches it today.

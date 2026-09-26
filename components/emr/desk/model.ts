@@ -713,6 +713,12 @@ export function itemWords(i: NoteItem): string | null {
         : "Diagnosis deferred";
     case "plan_statement":
       return typeof i.text === "string" ? i.text : null;
+    case "tasks":
+      return i.notRecorded === true
+        ? "Outstanding tasks not recorded at handover"
+        : typeof i.text === "string"
+          ? i.text
+          : null;
     default:
       return label;
   }

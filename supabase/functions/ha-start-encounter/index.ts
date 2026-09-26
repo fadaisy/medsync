@@ -90,6 +90,26 @@ function emrColumns(input: Input): Record<string, string> {
 const OPEN_INTAKE = ["arrived", "awaiting_triage", "triaged"];
 
 /**
+ * A caller-supplied `visit_id` must be this patient's intake at this hospital. The FK only proves the
+ * intake exists; without this a caller could attach another patient's visit and read its complaint.
+ */
+async function visitBelongs(
+  visitId: string | undefined,
+  patientUserId: string,
+  hospitalId: string,
+): Promise<boolean> {
+  if (!visitId) return true;
+  const { data } = await serviceClient()
+    .from("patient_intakes")
+    .select("id")
+    .eq("id", visitId)
+    .eq("patient_user_id", patientUserId)
+    .eq("hospital_id", hospitalId)
+    .maybeSingle();
+  return !!data;
+}
+
+/**
  * The open encounter this visit already has, if any: linked by the given visit, by the booking, or
  * through the patient's open intake for this visit (its encounter, or an encounter whose visit it is).
  */
@@ -108,7 +128,14 @@ async function findOpenEncounter(o: {
     .eq("patient_user_id", o.patientUserId)
     .in("status", OPEN_INTAKE);
   if (o.appointmentId) intakes = intakes.eq("appointment_id", o.appointmentId);
-  else if (o.departmentId) intakes = intakes.eq("receiving_department_id", o.departmentId);
+  else if (o.departmentId) {
+    // Today's visit only, like the intake link below: a stale open encounter from an earlier day
+    // belongs in Needs closing and must not be reused or block today's call.
+    const startOfDay = startOfLocalDay(new Date(), DEFAULT_TIME_ZONE).toISOString();
+    intakes = intakes
+      .eq("receiving_department_id", o.departmentId)
+      .or(`arrived_at.gte."${startOfDay}",checked_in_at.gte."${startOfDay}"`);
+  }
   else intakes = intakes.eq("id", o.visitId ?? crypto.randomUUID());
   const { data } = await intakes;
   const rows = (data ?? []) as { id: string; encounter_id: string | null }[];
@@ -234,6 +261,9 @@ Deno.serve(async (request: Request) => {
   // (no arrived step, no queue entry).
   const okFromArrived = appt.status === "arrived";
   const okFromConfirmedVirtual = appt.status === "confirmed" && appt.type === "virtual";
+  if (!(await visitBelongs(input.visit_id, appt.patient_user_id, appt.hospital_id))) {
+    return badRequest("visit_id is not this patient's visit at this hospital", init);
+  }
   const open = await findOpenEncounter({
     hospitalId: appt.hospital_id,
     patientUserId: appt.patient_user_id,
@@ -418,6 +448,9 @@ async function startFromQueueRow(
   }
   if (qe.state !== "waiting") {
     return badRequest(`Queue entry is '${qe.state}' — only a waiting patient can be called.`, init);
+  }
+  if (!(await visitBelongs(input.visit_id, qe.patient_user_id, qe.hospital_id))) {
+    return badRequest("visit_id is not this patient's visit at this hospital", init);
   }
 
   const { ipAddress, userAgent } = networkContext(request);

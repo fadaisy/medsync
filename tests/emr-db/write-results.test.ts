@@ -13,6 +13,7 @@ import type { ResultValueInput } from "@/lib/emr/write/results";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { CRITICAL_REFS } from "@/lib/emr/reference/critical";
+import { loadResultsToReview } from "@/lib/emr/read/results";
 import { withPatientWrite } from "@/lib/emr/write/context";
 import { loadOrder, orderStatus, placeOrders } from "@/lib/emr/write/orders";
 import {
@@ -289,6 +290,28 @@ describe.skipIf(!laneOn)("results (PGlite lane)", () => {
     // The forward target may now acknowledge, as may the same-department cover.
     await ack(elsewhere, p, r.id, "seen");
     await ack(cover, p, r.id, "seen");
+    expect(await status(p, orderId)).toMatchObject({ state: "acknowledged" });
+  });
+
+  it("a forward hands the result over: open for the forwardee, off the orderer's list, until seen", async () => {
+    const { p, orderId } = await received();
+    const r = await enter(lab, p, orderId, "final");
+    const review = async (a: EmrActor) =>
+      (await loadResultsToReview(a, { database: lane.db })).map((i) => i.reportId);
+    expect(await review(doctor)).toContain(r.id);
+    expect(await review(elsewhere)).not.toContain(r.id);
+    await as(doctor, p, (ctx) =>
+      acknowledgeResults(ctx, {
+        patientUserId: p,
+        items: [{ reportId: r.id, action: "forwarded", forwardedToUserId: elsewhere.userId }],
+        clientKey: key(),
+      }),
+    );
+    expect(await review(elsewhere)).toContain(r.id);
+    expect(await review(doctor)).not.toContain(r.id);
+    expect(await status(p, orderId)).toMatchObject({ state: "resulted", review: "forwarded" });
+    await ack(elsewhere, p, r.id, "seen");
+    expect(await review(elsewhere)).not.toContain(r.id);
     expect(await status(p, orderId)).toMatchObject({ state: "acknowledged" });
   });
 

@@ -399,6 +399,31 @@ describe.skipIf(!laneOn)("EMR access matrix (PGlite lane)", () => {
     expect(r).toMatchObject({ ok: true, rows: [{ n: 0 }] });
   });
 
+  it("a patient reads their standard order but not a restricted one through the client key", async () => {
+    const { P, H1 } = world;
+    const [standard] = world.records.P1.encounter_orders;
+    // Events orders are immutable, so the restricted twin is a new row copied from the standard one.
+    const restricted = (
+      await pg.query<{ id: string }>(
+        `INSERT INTO public.encounter_orders (encounter_id, patient_user_id, kind, text, authored_by_user_id, lifecycle,
+           hospital_id, priority, performer, intent_source, requester_cadre, effective_at, reason_text_ciphertext, sensitivity)
+         SELECT encounter_id, patient_user_id, kind, 'Restricted test', authored_by_user_id, lifecycle, hospital_id,
+           priority, performer, intent_source, requester_cadre, effective_at, reason_text_ciphertext, 'restricted'
+           FROM public.encounter_orders WHERE id = $1 RETURNING id`,
+        [standard],
+      )
+    ).rows[0]!.id;
+    const read = (id: string) =>
+      probe(
+        pg,
+        { userId: P.P1, role: "authenticated", hospitalId: H1 },
+        `SELECT count(*)::int AS n FROM public.encounter_orders WHERE id = $1`,
+        [id],
+      );
+    expect(await read(standard)).toMatchObject({ ok: true, rows: [{ n: 1 }] });
+    expect(await read(restricted)).toMatchObject({ ok: true, rows: [{ n: 0 }] });
+  });
+
   describe("private.patient_access_basis", () => {
     const basis = async (user: string, patientId: string, hospitalId: string) =>
       (

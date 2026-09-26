@@ -1308,6 +1308,12 @@ DROP POLICY IF EXISTS clinical_observations_cfc_not_client ON public.clinical_ob
 CREATE POLICY clinical_observations_cfc_not_client ON public.clinical_observations
   AS RESTRICTIVE FOR SELECT TO authenticated
   USING (concept_id IS NULL);
+-- Same reason for orders: 0040's enc_order_select_scoped lets a patient read their own orders, and an
+-- events-lifecycle order can be restricted (an HIV viral load names the workup). Legacy rows are 'standard'.
+DROP POLICY IF EXISTS encounter_orders_restricted_not_client ON public.encounter_orders;
+CREATE POLICY encounter_orders_restricted_not_client ON public.encounter_orders
+  AS RESTRICTIVE FOR SELECT TO authenticated
+  USING (sensitivity = 'standard' OR patient_user_id IS DISTINCT FROM auth.uid());
 DROP POLICY IF EXISTS triage_records_select_clinical ON public.triage_records;
 CREATE POLICY triage_records_select_clinical ON public.triage_records FOR SELECT TO medsync_clinical_reader
   USING (hospital_id = (SELECT private.current_hospital_id())

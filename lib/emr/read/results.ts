@@ -15,7 +15,7 @@ import type {
 import type { EmrActor } from "@/lib/emr/actor";
 import type { EmrDb } from "@/lib/emr/db";
 import type { ReportStatus } from "@/lib/emr/results";
-import { and, eq, inArray, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, or, sql } from "drizzle-orm";
 
 import { ageSexWords } from "@/components/emr/orders/model";
 import { staffAffiliations } from "@/db/schema/clinician-profiles";
@@ -355,8 +355,45 @@ export async function loadResultEntry(
 /* ─── Results to review ─────────────────────────────────────────────── */
 
 /**
- * Released results on events orders here whose CURRENT version nobody has acknowledged, where I
- * placed the order or cover its orderer (same department) — loadEmrTasks' rule, with the values.
+ * A released result is open work for this viewer when its current version has no acknowledgement
+ * and the viewer placed the order or covers its orderer (same department here: requireResponsible's
+ * rule), or when its latest acknowledgement forwarded it to the viewer. Seen or acted closes it; a
+ * forward hands it over. Shared by the Workspace lanes and /doctor/results.
+ */
+export function openResultFor(viewer: {
+  userId: string;
+  hospitalId: string;
+  departmentId: string | null;
+}) {
+  const r = diagnosticReports;
+  const o = encounterOrders;
+  return or(
+    and(
+      sql`not exists (select 1 from result_acknowledgements a where a.report_id = ${r.id})`,
+      or(
+        eq(o.authoredByUserId, viewer.userId),
+        viewer.departmentId
+          ? sql`exists (select 1 from ${staffAffiliations} sa where sa.user_id = ${o.authoredByUserId}
+                and sa.hospital_id = ${viewer.hospitalId} and sa.department_id = ${viewer.departmentId}
+                and sa.state in ('active','approved'))`
+          : sql`false`,
+      ),
+    ),
+    sql`exists (select 1 from (select a.action, a.forwarded_to_user_id from result_acknowledgements a
+          where a.report_id = ${r.id} order by a.recorded_at desc limit 1) l
+          where l.action = 'forwarded' and l.forwarded_to_user_id = ${viewer.userId})`,
+  );
+}
+
+/** Critical first, then oldest first, before any cap: a cap never drops a critical result. */
+export const OPEN_RESULT_ORDER = [
+  desc(diagnosticReports.critical),
+  asc(diagnosticReports.recordedAt),
+] as const;
+
+/**
+ * Released results on events orders here whose CURRENT version is open work for me
+ * (openResultFor) — loadEmrTasks' rule, with the values.
  * A restricted result shows its values to the orderer only; a cover sees the lock and opens the
  * chart, where the access rule decides.
  */
@@ -389,17 +426,10 @@ export async function loadResultsToReview(
         eq(o.lifecycle, "events"),
         inArray(r.status, RELEASED),
         sql`not exists (select 1 from ${diagnosticReports} n where n.logical_id = ${r.logicalId} and n.version > ${r.version})`,
-        sql`not exists (select 1 from result_acknowledgements a where a.report_id = ${r.id})`,
-        or(
-          eq(o.authoredByUserId, actor.userId),
-          actor.departmentId
-            ? sql`exists (select 1 from ${staffAffiliations} sa where sa.user_id = ${o.authoredByUserId}
-                  and sa.hospital_id = ${actor.hospitalId} and sa.department_id = ${actor.departmentId}
-                  and sa.state in ('active','approved'))`
-            : sql`false`,
-        ),
+        openResultFor(actor),
       ),
     )
+    .orderBy(...OPEN_RESULT_ORDER)
     .limit(200);
   if (rows.length === 0) return [];
 
@@ -455,7 +485,9 @@ export async function loadResultsToReview(
   for (const x of rows) {
     const chain = chainRows.filter((c) => c.logicalId === x.logicalId);
     const ack = ackState(chain, acks);
-    if (ack.kind !== "needs_review" && ack.kind !== "needs_re_ack") continue;
+    if (ack.kind === "forwarded" && ack.toUserId !== actor.userId) continue;
+    if (ack.kind !== "needs_review" && ack.kind !== "needs_re_ack" && ack.kind !== "forwarded")
+      continue;
     const shown = !x.restricted || x.orderer === actor.userId;
     const vals = reviewValues(values.filter((v) => v.reportId === x.id));
     const critical = x.critical || vals.some((v) => v.critical);
@@ -469,7 +501,8 @@ export async function loadResultsToReview(
       },
       test: shown ? x.text : "Restricted result",
       releasedAtIso: x.recordedAt.toISOString(),
-      state: ack.kind,
+      // Forwarded to me: mine to acknowledge now.
+      state: ack.kind === "forwarded" ? "needs_review" : ack.kind,
       critical,
       restricted: x.restricted,
       values: shown ? vals : [],

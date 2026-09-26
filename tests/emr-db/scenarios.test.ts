@@ -65,7 +65,11 @@ import {
 
 // The app modules driven for real (the resus AMPLE action, the lane loader) read the app's db; the
 // lane hands them its own. Identity is the only other stub.
-const held = vi.hoisted(() => ({ db: undefined as unknown, resusScope: undefined as unknown }));
+const held = vi.hoisted(() => ({
+  db: undefined as unknown,
+  pg: undefined as unknown,
+  resusScope: undefined as unknown,
+}));
 vi.mock("@/db", () => ({
   get db() {
     return held.db;
@@ -85,6 +89,28 @@ vi.mock("@/lib/resus/board-v2", () => ({
     openable: [],
     ended: [],
   })),
+}));
+// The v1 resus desk appends through the Supabase service client: the lane stands in for it.
+vi.mock("@/lib/supabase/service", () => ({
+  createServiceClient: () => ({
+    from: (table: string) => ({
+      insert: (row: Record<string, unknown>) => {
+        const run = async () => {
+          if (table !== "resus_timeline_events") return { data: null, error: null };
+          const keys = Object.keys(row);
+          const vals = keys.map((k) =>
+            row[k] !== null && typeof row[k] === "object" ? JSON.stringify(row[k]) : row[k],
+          );
+          const r = await (held.pg as { query: (s: string, p: unknown[]) => Promise<{ rows: { id: string }[] }> }).query(
+            `INSERT INTO public.${table} (${keys.join(", ")}) VALUES (${keys.map((_, i) => `$${i + 1}`).join(", ")}) RETURNING id`,
+            vals,
+          );
+          return { data: r.rows[0] ?? null, error: null };
+        };
+        return { select: () => ({ single: run }), then: (f: (v: unknown) => unknown) => run().then(f) };
+      },
+    }),
+  }),
 }));
 vi.mock("@/lib/scheduling/patient-identity", () => ({
   revealPatientIdentities: vi.fn(async () => new Map()),
@@ -255,6 +281,7 @@ describe.skipIf(!laneOn)("Phase 4 scenarios A1–A9 (PGlite lane)", () => {
     process.env.MEDSYNC_NOTE_HMAC_KEY = HMAC_KEY;
     lane = await bootLane();
     held.db = lane.db;
+    held.pg = lane.pg;
     h = await hospital(lane.pg);
     dept = await department(lane.pg, h);
     const labDept = await department(lane.pg, h, "Laboratory");
@@ -448,6 +475,60 @@ describe.skipIf(!laneOn)("Phase 4 scenarios A1–A9 (PGlite lane)", () => {
     // so the bar's words come from the reader until the chart route supplies them.
     expect((await loadAllergyInput(lane.db, p)).allergies).toEqual(
       expect.arrayContaining(["amiodarone", "Lidocaine"]),
+    );
+  });
+
+  it("A2b the v1 desk's captures (prescribe dialog, exposure AMPLE) reach the record, with EMR off at this hospital", async () => {
+    const { p } = await present();
+    // EMR v1 is on only at another hospital: the allergy record crosses hospitals, so the resus
+    // desk here still writes to it and reads it (STOP 1).
+    vi.stubEnv("ENCOUNTER_ENGINE_LIVE", "1");
+    vi.stubEnv("EMR_V1", randomUUID());
+    vi.stubEnv("SKIP_ENV_VALIDATION", "1");
+    const [ep] = await q<{ id: string }>(
+      `INSERT INTO public.resus_episodes (hospital_id, department_id, patient_user_id, trigger_kind, state, opened_by_user_id)
+       VALUES ($1, $2, $3, 'triage_red', 'active', $4) RETURNING id`,
+      [h, dept, p, nurse.userId],
+    );
+    held.resusScope = {
+      userId: nurse.userId,
+      fullName: null,
+      affiliationId: nurse.affiliationId,
+      hospitalId: h,
+      hospitalName: "Lane",
+      departmentId: dept,
+      departmentName: "Medicine",
+      cadreCode: "NURSE",
+      cadreName: "Nurse",
+      roleName: "nurse",
+      leaderRecommended: false,
+    };
+    const v1 = await import("@/app/nurse/resus/actions");
+    expect(
+      await v1.recordResusAllergies({ episodeId: ep!.id, substances: ["Penicillin"] }),
+    ).toEqual({ ok: true });
+    expect(
+      await v1.recordExposureFindings({
+        episodeId: ep!.id,
+        findingSet: {
+          state: null,
+          present: [],
+          coreTempC: null,
+          ample: { allergies: ["Ceftriaxone"] },
+        },
+      }),
+    ).toMatchObject({ ok: true });
+    const read = await v1.loadPersistentAllergiesForEpisode(ep!.id);
+    vi.unstubAllEnvs();
+    const rows = await q<{ legacy_ref: { table: string } }>(
+      `SELECT legacy_ref FROM allergies WHERE patient_user_id = $1 AND legacy_ref IS NOT NULL`,
+      [p],
+    );
+    expect(rows).toHaveLength(2);
+    expect(rows.every((r) => r.legacy_ref.table === "resus_timeline_events")).toBe(true);
+    expect(read.allergies).toEqual(expect.arrayContaining(["Penicillin", "Ceftriaxone"]));
+    expect((await loadAllergyInput(lane.db, p)).allergies).toEqual(
+      expect.arrayContaining(["Penicillin", "Ceftriaxone"]),
     );
   });
 

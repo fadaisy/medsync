@@ -14,7 +14,14 @@ import { runEmrWrite } from "@/lib/emr/write/orders";
 
 const surface = z.enum(["doctor", "nurse", "clinician"]);
 const uuid = z.uuid();
-const clientKey = z.string().trim().min(8).max(120);
+// ':' namespaces the keys the server derives (`resus-handoff:<episode>`, `<key>:event`), which share
+// the unique client_key index: a client key may not contain one.
+const clientKey = z
+  .string()
+  .trim()
+  .min(8)
+  .max(120)
+  .refine((k) => !k.includes(":"), "That key is reserved.");
 const base = { surface, patientUserId: uuid };
 
 const Item = z.object({ kind: z.string().max(60) }).catchall(z.unknown());

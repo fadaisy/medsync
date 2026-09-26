@@ -310,6 +310,8 @@ export type AckState =
   | { kind: "needs_review" }
   /** A later version (amended, corrected) of a report already acknowledged. */
   | { kind: "needs_re_ack"; previousAction: AckAction }
+  /** Handed to a colleague: still open work (theirs), and a critical clock keeps running. */
+  | { kind: "forwarded"; toUserId: string | null; byUserId: string; at: Date }
   | {
       kind: "acknowledged";
       action: AckAction;
@@ -333,6 +335,14 @@ export function ackState(chain: readonly ReportVersion[], acks: readonly Ack[]):
   if (!current) throw new Error("ackState: empty report chain");
   if (isWithdrawn(current.status)) return { kind: "withdrawn", status: current.status };
   const mine = latestAck(acks, new Set([current.id]));
+  // A forward hands the result over; only seen or acted closes it.
+  if (mine?.action === "forwarded")
+    return {
+      kind: "forwarded",
+      toUserId: mine.forwardedToUserId,
+      byUserId: mine.acknowledgedByUserId,
+      at: mine.recordedAt,
+    };
   if (mine)
     return {
       kind: "acknowledged",

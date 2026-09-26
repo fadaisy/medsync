@@ -269,13 +269,22 @@ describe("results and acknowledgement", () => {
     expect(d.open).toBe(false);
     expect(orderStatusText(d.status, "lab")).toBe("Acknowledged (acted)");
   });
-  it("forwarded counts as acknowledged", () => {
-    expect(
-      derive({ ...base, reports: [rp("r1", 1, "final", 3)], acks: [ak("r1", "forwarded", 4)] })
-        .status,
-    ).toMatchObject({
-      action: "forwarded",
+  it("forwarded is a handover, not a closure: the order stays open", () => {
+    const d = derive({
+      ...base,
+      reports: [rp("r1", 1, "final", 3)],
+      acks: [ak("r1", "forwarded", 4)],
     });
+    expect(d.status).toMatchObject({ state: "resulted", review: "forwarded" });
+    expect(d.open).toBe(true);
+    expect(orderStatusText(d.status, "lab")).toBe("Forwarded — awaiting acknowledgement");
+    expect(
+      derive({
+        ...base,
+        reports: [rp("r1", 1, "final", 3)],
+        acks: [ak("r1", "forwarded", 4), ak("r1", "seen", 5)],
+      }).status.state,
+    ).toBe("acknowledged");
   });
   it("an amendment after acknowledgement re-opens it for re-acknowledgement", () => {
     const reports = [rp("r1", 1, "final", 3), rp("r2", 2, "amended", 9)];
