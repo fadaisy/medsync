@@ -8,6 +8,7 @@ import {
   ClipboardCheckIcon,
   GaugeIcon,
   KeyIcon,
+  MessageSquareTextIcon,
   ScrollTextIcon,
   ShieldAlertIcon,
   SirenIcon,
@@ -37,6 +38,7 @@ export type SidebarIconKey =
   | "catalog"
   | "audit"
   | "health"
+  | "feedback"
   | "emergency"
   | "break-glass";
 
@@ -50,6 +52,7 @@ const ICONS: Record<SidebarIconKey, typeof ClipboardCheckIcon> = {
   emergency: SirenIcon,
   audit: ScrollTextIcon,
   health: GaugeIcon,
+  feedback: MessageSquareTextIcon,
   "break-glass": ShieldAlertIcon,
 };
 

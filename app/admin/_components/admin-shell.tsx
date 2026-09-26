@@ -70,6 +70,7 @@ const NAV_ITEMS: ReadonlyArray<NavItem> = [
   { href: "/admin/emergency", label: "Emergency", iconKey: "emergency", superadminOnly: true },
   { href: "/admin/audit", label: "Audit", iconKey: "audit", superadminOnly: true },
   { href: "/admin/health", label: "Health", iconKey: "health" },
+  { href: "/admin/feedback", label: "Tester feedback", iconKey: "feedback", superadminOnly: true },
   {
     href: "/admin/break-glass",
     label: "Break-glass",
