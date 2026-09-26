@@ -8,16 +8,9 @@ import { useState, useTransition } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Sheet,
-  SheetBody,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
 import { prescribe } from "@/lib/emr/actions/prescriptions";
 import { cn } from "@/lib/utils";
+import { EmrDialog } from "../emr-dialog";
 import { PRESS } from "../orders/choice-chips";
 import { StatusWord } from "../status-word";
 import {
@@ -37,8 +30,8 @@ import { ROUTE_WORD } from "./views";
  * The prescribe sheet (PROMPT Phase 7). `PrescribeSheetView` is PURE: the flags are
  * lib/prescribing's, computed exactly as the server re-computes them. A check that fires is amber
  * words and a reason box, never red and never a silent pass; a block the engine does not let anyone
- * override stays a block. Nothing on this sheet proposes a dose. The sheet enters in 250 ms from the
- * right and leaves faster (components/ui/sheet); nothing inside animates.
+ * override stays a block. Nothing on this sheet proposes a dose. It opens as a centred dialog
+ * (EmrDialog, ADR 0161); nothing inside animates.
  */
 
 export function PrescribeSheet({
@@ -85,42 +78,34 @@ export function PrescribeSheet({
     });
 
   return (
-    <Sheet
+    <EmrDialog
       open={open}
       onOpenChange={(o) => {
         onOpenChange(o);
         if (!o) setMessage(null);
       }}
+      title="Prescribe"
+      description={`${identity.name}, ${identity.mrn}`}
     >
-      <SheetContent widthClassName="w-full sm:max-w-[640px]">
-        <SheetHeader>
-          <SheetTitle className="font-sans">Prescribe</SheetTitle>
-          <SheetDescription>
-            {identity.name}, {identity.mrn}
-          </SheetDescription>
-        </SheetHeader>
-        <SheetBody>
-          <PrescribeSheetView
-            patient={patient}
-            draft={draft}
-            query={query}
-            pending={pending}
-            message={message}
-            onQuery={setQuery}
-            onPick={(drugId) => {
-              setMessage(null);
-              // A different medicine is a different prescription: its fields start again.
-              setDraft((d) => ({ ...emptyDraft(d.clientKey), drugId }));
-            }}
-            onField={(f, v) => {
-              setMessage(null);
-              setDraft((d) => ({ ...d, [f]: v }));
-            }}
-            onSubmit={submit}
-          />
-        </SheetBody>
-      </SheetContent>
-    </Sheet>
+      <PrescribeSheetView
+        patient={patient}
+        draft={draft}
+        query={query}
+        pending={pending}
+        message={message}
+        onQuery={setQuery}
+        onPick={(drugId) => {
+          setMessage(null);
+          // A different medicine is a different prescription: its fields start again.
+          setDraft((d) => ({ ...emptyDraft(d.clientKey), drugId }));
+        }}
+        onField={(f, v) => {
+          setMessage(null);
+          setDraft((d) => ({ ...d, [f]: v }));
+        }}
+        onSubmit={submit}
+      />
+    </EmrDialog>
   );
 }
 

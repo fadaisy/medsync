@@ -10,17 +10,10 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 
 import { createIntentKeys, UNKNOWN_OUTCOME } from "@/components/emr/desk/flows";
+import { EmrDialog } from "@/components/emr/emr-dialog";
 import { CollectView } from "@/components/emr/orders/collect-view";
 import { EncounterOrdersView } from "@/components/emr/orders/encounter-orders-view";
 import { EMPTY_COLLECT, toCollectInput } from "@/components/emr/orders/model";
-import {
-  Sheet,
-  SheetBody,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
 import { collectSpecimen } from "@/lib/emr/actions/orders";
 
 /** The nurse's label route for a specimen of this visit. */
@@ -101,38 +94,33 @@ export function NurseOrdersPanel({
           setTarget(t);
         }}
       />
-      <Sheet open={target !== null} onOpenChange={(open) => (open ? null : close())}>
-        <SheetContent widthClassName="w-full sm:max-w-[640px]">
-          <SheetHeader>
-            <SheetTitle className="font-sans">Collect specimen</SheetTitle>
-            <SheetDescription>
-              {identity.name}, {identity.mrn}
-            </SheetDescription>
-          </SheetHeader>
-          <SheetBody>
-            {target ? (
-              <CollectView
-                identity={identity}
-                target={target}
-                draft={collect}
-                collectorName={collectorName}
-                pending={pending}
-                message={message}
-                labelHref={labelHref}
-                onConfirm={(identifiersConfirmed) =>
-                  setCollect((d) => ({ ...d, identifiersConfirmed }))
-                }
-                onFasting={(fastingState) => setCollect((d) => ({ ...d, fastingState }))}
-                onFastingHours={(fastingHours) => setCollect((d) => ({ ...d, fastingHours }))}
-                onCollectedAt={(collectedAt) => setCollect((d) => ({ ...d, collectedAt }))}
-                onSpecimen={(specimenType) => setCollect((d) => ({ ...d, specimenType }))}
-                onContainer={(container) => setCollect((d) => ({ ...d, container }))}
-                onSave={save}
-              />
-            ) : null}
-          </SheetBody>
-        </SheetContent>
-      </Sheet>
+      <EmrDialog
+        open={target !== null}
+        onOpenChange={(open) => (open ? null : close())}
+        title="Collect specimen"
+        description={`${identity.name}, ${identity.mrn}`}
+      >
+        {target ? (
+          <CollectView
+            identity={identity}
+            target={target}
+            draft={collect}
+            collectorName={collectorName}
+            pending={pending}
+            message={message}
+            labelHref={labelHref}
+            onConfirm={(identifiersConfirmed) =>
+              setCollect((d) => ({ ...d, identifiersConfirmed }))
+            }
+            onFasting={(fastingState) => setCollect((d) => ({ ...d, fastingState }))}
+            onFastingHours={(fastingHours) => setCollect((d) => ({ ...d, fastingHours }))}
+            onCollectedAt={(collectedAt) => setCollect((d) => ({ ...d, collectedAt }))}
+            onSpecimen={(specimenType) => setCollect((d) => ({ ...d, specimenType }))}
+            onContainer={(container) => setCollect((d) => ({ ...d, container }))}
+            onSave={save}
+          />
+        ) : null}
+      </EmrDialog>
     </>
   );
 }

@@ -12,7 +12,7 @@ const PrescribeSheet = dynamic(() => import("./sheet").then((m) => m.PrescribeSh
   ssr: false,
 });
 
-/** The desk's prescribing island: the visit's prescriptions and, once opened, the prescribe sheet. */
+/** The desk's prescribing island: the visit's prescriptions and, once opened, the prescribe dialog. */
 export function PrescriptionsPanel({
   encounterId,
   patientUserId,

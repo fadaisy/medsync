@@ -25,9 +25,9 @@ import { NoteRowsView, SignBarView } from "./sign";
  *  - ≥ 1280 px: three columns — the Workspace rail above the note's section index; the note set for
  *    reading (≤ 68ch, line height 1.6, bracket numbers because the template IS a sequence); the
  *    context rail.
- *  - Tablet: an index strip of numbers above the note; the context rail in a bottom sheet
- *    ("Context", the island's slot).
- *  - Phone: one section at a time, the index in a sheet, the action bar fixed at the bottom.
+ *  - Tablet: an index strip of numbers above the note; the context rail in a centred dialog
+ *    ("Context", the island's slot; ADR 0161).
+ *  - Phone: one section at a time, the index in a centred dialog, the action bar fixed at the bottom.
  *
  * Plum marks the current section (place, never state). Section switches are instant: every
  * section is rendered and the current one is only marked (and, on a phone, the only one shown).
@@ -63,10 +63,10 @@ export interface DeskViewProps {
     rail?: ReactNode;
     ncd?: ReactNode;
     orders?: ReactNode;
-    /** Phone: the trigger and sheet for the section index. */
-    indexSheet?: ReactNode;
-    /** Below xl: the "Context" trigger and bottom sheet. */
-    contextSheet?: ReactNode;
+    /** Phone: the trigger and dialog for the section index. */
+    indexDialog?: ReactNode;
+    /** Below xl: the "Context" trigger and dialog. */
+    contextDialog?: ReactNode;
     /** The insert menu and the keyboard help triggers. */
     tools?: ReactNode;
   };
@@ -197,7 +197,7 @@ export function DeskView(props: DeskViewProps) {
             ) : null}
             <span className="flex-1" />
             {slots.tools}
-            <span className="xl:hidden">{slots.contextSheet}</span>
+            <span className="xl:hidden">{slots.contextDialog}</span>
           </div>
           <p className="text-caption text-muted-foreground flex flex-wrap gap-x-3">
             <span>{p.encounter.typeWord}</span>
@@ -269,7 +269,7 @@ export function DeskView(props: DeskViewProps) {
             </a>
           ))}
         </nav>
-        <div className="border-border border-b px-4 py-2 md:hidden">{slots.indexSheet}</div>
+        <div className="border-border border-b px-4 py-2 md:hidden">{slots.indexDialog}</div>
 
         {props.announce ? (
           <p role="status" className="px-4 pt-3 md:px-8">

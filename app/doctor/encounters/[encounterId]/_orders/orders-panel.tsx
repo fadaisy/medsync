@@ -5,6 +5,7 @@ import type { EncounterOrdersLoad } from "@/lib/emr/read/orders";
 import { useRouter } from "next/navigation";
 import { useReducer, useState, useTransition } from "react";
 
+import { EmrDialog } from "@/components/emr/emr-dialog";
 import { CollectView } from "@/components/emr/orders/collect-view";
 import { EncounterOrdersView } from "@/components/emr/orders/encounter-orders-view";
 import {
@@ -17,14 +18,6 @@ import {
 } from "@/components/emr/orders/model";
 import { OrderSheetView } from "@/components/emr/orders/order-sheet-view";
 import { ResultEntry } from "@/components/emr/results/result-entry";
-import {
-  Sheet,
-  SheetBody,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
 import { collectSpecimen, placeOrders } from "@/lib/emr/actions/orders";
 
 type Msg = { ok: boolean; text: string } | null;
@@ -32,8 +25,8 @@ type Msg = { ok: boolean; text: string } | null;
 /**
  * The desk's orders island: the visit's order list, the order sheet (gate-a E.7), the bedside
  * collection sheet (E.8) and the transcription sheet for a paper or imaging report (E.9, as a
- * transcription). Sheets enter in 250 ms from the right and leave faster (components/ui/sheet);
- * nothing inside them animates. Every write carries a fresh client key.
+ * transcription). Each opens as a centred dialog (EmrDialog, ADR 0161); nothing inside
+ * animates. Every write carries a fresh client key.
  */
 export function OrdersPanel({ load }: { load: EncounterOrdersLoad }) {
   const router = useRouter();
@@ -112,79 +105,74 @@ export function OrdersPanel({ load }: { load: EncounterOrdersLoad }) {
         {said}
       </p>
 
-      <Sheet open={sheet !== null} onOpenChange={(open) => (open ? null : close())}>
-        <SheetContent widthClassName="w-full sm:max-w-[640px]">
-          <SheetHeader>
-            <SheetTitle className="font-sans">
-              {sheet?.kind === "collect"
-                ? "Collect specimen"
-                : sheet?.kind === "transcribe"
-                  ? "Enter result"
-                  : "Order"}
-            </SheetTitle>
-            <SheetDescription>
-              {load.identity.name}, {load.identity.mrn}
-            </SheetDescription>
-          </SheetHeader>
-          <SheetBody>
-            {sheet?.kind === "order" ? (
-              <OrderSheetView
-                identity={load.identity}
-                menu={load.menu}
-                reasons={load.reasons}
-                draft={draft}
-                query={query}
-                pending={pending}
-                message={message}
-                onQuery={setQuery}
-                onToggle={(testId) =>
-                  dispatch({
-                    type: "toggle",
-                    testId,
-                    clientKey: crypto.randomUUID(),
-                    defaultReasonIds: defaultReasonIds(load.reasons),
-                  })
-                }
-                onPriority={(testId, priority) => dispatch({ type: "priority", testId, priority })}
-                onReason={(testId, reasonId) => dispatch({ type: "reason", testId, reasonId })}
-                onReasonText={(testId, text) => dispatch({ type: "reasonText", testId, text })}
-                onPlace={place}
-              />
-            ) : null}
-            {target ? (
-              <CollectView
-                identity={load.identity}
-                target={target}
-                draft={collect}
-                collectorName={load.collectorName}
-                pending={pending}
-                message={message}
-                labelHref={labelHref}
-                onConfirm={(identifiersConfirmed) =>
-                  setCollect((d) => ({ ...d, identifiersConfirmed }))
-                }
-                onFasting={(fastingState) => setCollect((d) => ({ ...d, fastingState }))}
-                onFastingHours={(fastingHours) => setCollect((d) => ({ ...d, fastingHours }))}
-                onCollectedAt={(collectedAt) => setCollect((d) => ({ ...d, collectedAt }))}
-                onSpecimen={(specimenType) => setCollect((d) => ({ ...d, specimenType }))}
-                onContainer={(container) => setCollect((d) => ({ ...d, container }))}
-                onSave={saveCollect}
-              />
-            ) : null}
-            {entry ? (
-              <ResultEntry
-                data={entry}
-                surface="doctor"
-                onDone={() => {
-                  setSaid("Result saved.");
-                  close();
-                  router.refresh();
-                }}
-              />
-            ) : null}
-          </SheetBody>
-        </SheetContent>
-      </Sheet>
+      <EmrDialog
+        open={sheet !== null}
+        onOpenChange={(open) => (open ? null : close())}
+        title={
+          sheet?.kind === "collect"
+            ? "Collect specimen"
+            : sheet?.kind === "transcribe"
+              ? "Enter result"
+              : "Order"
+        }
+        description={`${load.identity.name}, ${load.identity.mrn}`}
+      >
+        {sheet?.kind === "order" ? (
+          <OrderSheetView
+            identity={load.identity}
+            menu={load.menu}
+            reasons={load.reasons}
+            draft={draft}
+            query={query}
+            pending={pending}
+            message={message}
+            onQuery={setQuery}
+            onToggle={(testId) =>
+              dispatch({
+                type: "toggle",
+                testId,
+                clientKey: crypto.randomUUID(),
+                defaultReasonIds: defaultReasonIds(load.reasons),
+              })
+            }
+            onPriority={(testId, priority) => dispatch({ type: "priority", testId, priority })}
+            onReason={(testId, reasonId) => dispatch({ type: "reason", testId, reasonId })}
+            onReasonText={(testId, text) => dispatch({ type: "reasonText", testId, text })}
+            onPlace={place}
+          />
+        ) : null}
+        {target ? (
+          <CollectView
+            identity={load.identity}
+            target={target}
+            draft={collect}
+            collectorName={load.collectorName}
+            pending={pending}
+            message={message}
+            labelHref={labelHref}
+            onConfirm={(identifiersConfirmed) =>
+              setCollect((d) => ({ ...d, identifiersConfirmed }))
+            }
+            onFasting={(fastingState) => setCollect((d) => ({ ...d, fastingState }))}
+            onFastingHours={(fastingHours) => setCollect((d) => ({ ...d, fastingHours }))}
+            onCollectedAt={(collectedAt) => setCollect((d) => ({ ...d, collectedAt }))}
+            onSpecimen={(specimenType) => setCollect((d) => ({ ...d, specimenType }))}
+            onContainer={(container) => setCollect((d) => ({ ...d, container }))}
+            onSave={saveCollect}
+          />
+        ) : null}
+        {entry ? (
+          <ResultEntry
+            data={entry}
+            surface="doctor"
+            onDone={() => {
+              setSaid("Result saved.");
+              close();
+              router.refresh();
+            }}
+          />
+        ) : null}
+      </EmrDialog>
     </>
   );
 }

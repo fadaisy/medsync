@@ -43,26 +43,12 @@ import {
   syncRecorded,
 } from "@/components/emr/desk/model";
 import { SignCheckView } from "@/components/emr/desk/sign";
+import { EmrDialog } from "@/components/emr/emr-dialog";
 import { formatters } from "@/components/emr/format";
 import { SectionIndexView } from "@/components/emr/section-index";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { DialogTrigger } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import {
-  Sheet,
-  SheetBody,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
 import { closeEncounterAdministratively, completeEncounter } from "@/lib/emr/actions/encounter";
 import {
   assertAllergyStatus,
@@ -89,7 +75,8 @@ import { deskFindingIndex, deskTermIndex, deskTermSearch } from "./actions";
 /**
  * The clerking desk's one client island: it holds the note content, the current section and the
  * write queue, and wires the pure DeskView to the server actions. Keys (UI-BRIEF §4) never
- * animate; sheets and dialogs are the primitives' own (250 ms in, reduced motion drops movement).
+ * animate; every pop-up is a centred dialog (EmrDialog, ADR 0161: 150 ms, centred origin, reduced
+ * motion drops movement).
  * After a chart action lands, router.refresh() reloads the payload; the note content stays here.
  */
 
@@ -641,53 +628,53 @@ export function DeskClient({
     </span>
   );
 
-  const indexSheet = (
-    <Sheet open={sheet === "index"} onOpenChange={(o) => setSheet(o ? "index" : null)}>
-      <SheetTrigger className="border-border text-body-s focus-visible:shadow-focus inline-flex min-h-11 w-full items-center justify-between rounded-md border px-3 outline-none">
-        <span className="text-muted-foreground font-mono tabular-nums">
-          {sectionPosition(index, current)}
-        </span>
-        <span className="text-foreground font-medium">{index[at]?.title}</span>
-      </SheetTrigger>
-      <SheetContent side="left" widthClassName="w-[min(20rem,85vw)]">
-        <SheetHeader>
-          <SheetTitle className="font-sans">This note</SheetTitle>
-        </SheetHeader>
-        <div className="overflow-y-auto px-3 pb-4">
-          <SectionIndexView
-            label="Note sections"
-            items={index.map((e) => ({
-              id: e.id,
-              label: `${e.number} ${e.title}`,
-              href: `#desk-${e.id}`,
-            }))}
-            current={current}
-            onSelect={(id, e) => {
-              e.preventDefault();
-              go(id);
-            }}
-          />
-        </div>
-      </SheetContent>
-    </Sheet>
+  const indexDialog = (
+    <EmrDialog
+      open={sheet === "index"}
+      onOpenChange={(o) => setSheet(o ? "index" : null)}
+      title="This note"
+      trigger={
+        <DialogTrigger className="border-border text-body-s focus-visible:shadow-focus inline-flex min-h-11 w-full items-center justify-between rounded-md border px-3 outline-none">
+          <span className="text-muted-foreground font-mono tabular-nums">
+            {sectionPosition(index, current)}
+          </span>
+          <span className="text-foreground font-medium">{index[at]?.title}</span>
+        </DialogTrigger>
+      }
+    >
+      <SectionIndexView
+        label="Note sections"
+        items={index.map((e) => ({
+          id: e.id,
+          label: `${e.number} ${e.title}`,
+          href: `#desk-${e.id}`,
+        }))}
+        current={current}
+        onSelect={(id, e) => {
+          e.preventDefault();
+          go(id);
+        }}
+      />
+    </EmrDialog>
   );
 
-  const contextSheet = (
-    <Sheet open={sheet === "context"} onOpenChange={(o) => setSheet(o ? "context" : null)}>
-      <SheetTrigger render={<Button variant="secondary" size="sm" />}>Context</SheetTrigger>
-      <SheetContent side="bottom" widthClassName="w-full" className="data-closed:duration-150">
-        <SheetHeader>
-          <SheetTitle className="font-sans">Context</SheetTitle>
-          <SheetDescription>
-            <span>{p.patient.name}</span>{" "}
-            <span className="font-mono tabular-nums">{p.patient.mrn}</span>
-          </SheetDescription>
-        </SheetHeader>
-        <SheetBody>
-          <ContextRailView p={p} fmt={fmt} />
-        </SheetBody>
-      </SheetContent>
-    </Sheet>
+  const contextDialog = (
+    <EmrDialog
+      open={sheet === "context"}
+      onOpenChange={(o) => setSheet(o ? "context" : null)}
+      title="Context"
+      description={
+        <>
+          <span>{p.patient.name}</span>{" "}
+          <span className="font-mono tabular-nums">{p.patient.mrn}</span>
+        </>
+      }
+      trigger={
+        <DialogTrigger render={<Button variant="secondary" size="sm" />}>Context</DialogTrigger>
+      }
+    >
+      <ContextRailView p={p} fmt={fmt} />
+    </EmrDialog>
   );
 
   return (
@@ -703,14 +690,25 @@ export function DeskClient({
         busy={busy}
         signing={signing}
         loaders={{ findings: deskFindingIndex, terms: deskTermIndex, searchTerms: deskTermSearch }}
-        slots={{ rail, ncd, orders, indexSheet, contextSheet, tools }}
+        slots={{ rail, ncd, orders, indexDialog, contextDialog, tools }}
       />
 
-      <Dialog open={sheet === "sign"} onOpenChange={(o) => setSheet(o ? "sign" : null)}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Sign note</DialogTitle>
-          </DialogHeader>
+      <EmrDialog
+        open={sheet === "sign"}
+        onOpenChange={(o) => setSheet(o ? "sign" : null)}
+        title="Sign note"
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setSheet(null)}>
+              Cancel
+            </Button>
+            <Button onClick={() => void doSign()} disabled={!validation.canSign || signing}>
+              Sign note
+            </Button>
+          </>
+        }
+      >
+        <div className="flex flex-col gap-4">
           <SignCheckView
             validation={validation}
             requiredMessages={p.template.minimumToSign.required.map((r) => ({
@@ -725,22 +723,15 @@ export function DeskClient({
               {sheetMsg.text}
             </p>
           ) : null}
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setSheet(null)}>
-              Cancel
-            </Button>
-            <Button onClick={() => void doSign()} disabled={!validation.canSign || signing}>
-              Sign note
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </div>
+      </EmrDialog>
 
-      <Dialog open={sheet === "help"} onOpenChange={(o) => setSheet(o ? "help" : null)}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Keys on the clerking desk</DialogTitle>
-          </DialogHeader>
+      <EmrDialog
+        open={sheet === "help"}
+        onOpenChange={(o) => setSheet(o ? "help" : null)}
+        title="Keys on the clerking desk"
+      >
+        <div className="flex flex-col gap-4">
           <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2">
             {KEY_HELP.map(([k, what]) => (
               <div key={k} className="contents">
@@ -752,114 +743,107 @@ export function DeskClient({
           <p className="text-caption text-muted-foreground">
             Off inside text fields, except the sign keys and / at the start of an empty line.
           </p>
-        </DialogContent>
-      </Dialog>
+        </div>
+      </EmrDialog>
 
-      <Sheet open={sheet === "allergy"} onOpenChange={(o) => setSheet(o ? "allergy" : null)}>
-        <SheetContent side="right" className="data-closed:duration-150">
-          <SheetHeader>
-            <SheetTitle className="font-sans">Allergies</SheetTitle>
-          </SheetHeader>
-          <SheetBody>
-            <AllergyEditorView
-              line={p.safetyBar.allergy}
-              patient={p.patient}
-              substances={p.substances}
-              pending={busy === "allergy"}
-              message={sheetMsg}
-              onAssert={(assertion) =>
-                void run(
-                  "allergy",
-                  (clientKey) =>
-                    assertAllergyStatus({ ...base, clientKey, encounterId, assertion }),
-                  assertion === "no_known_drug_allergies"
-                    ? "No known drug allergies recorded"
-                    : "Unable to assess recorded",
-                  assertion,
-                ).then((r) =>
-                  setSheetMsg(
-                    r.ok
-                      ? { ok: true, text: "Allergy status saved" }
-                      : { ok: false, text: r.error },
-                  ),
-                )
-              }
-              onSave={(d) =>
-                void run(
-                  "allergy",
-                  (clientKey) =>
-                    recordAllergy({
-                      ...base,
-                      clientKey,
-                      encounterId,
-                      substance: substanceOf(d.text, p.substances),
-                      category: d.category,
-                      allergyType: d.allergyType,
-                      manifestations: d.manifestations,
-                      ...(d.severity ? { severity: d.severity } : {}),
-                      ...(d.criticality ? { criticality: d.criticality } : {}),
-                      verification: d.verification,
-                      informant: d.informant,
-                    }),
-                  "Allergy saved",
-                  d,
-                ).then((r) =>
-                  setSheetMsg(
-                    r.ok ? { ok: true, text: "Allergy saved" } : { ok: false, text: r.error },
-                  ),
-                )
-              }
-            />
-          </SheetBody>
-        </SheetContent>
-      </Sheet>
+      <EmrDialog
+        open={sheet === "allergy"}
+        onOpenChange={(o) => setSheet(o ? "allergy" : null)}
+        title="Allergies"
+      >
+        <AllergyEditorView
+          line={p.safetyBar.allergy}
+          patient={p.patient}
+          substances={p.substances}
+          pending={busy === "allergy"}
+          message={sheetMsg}
+          onAssert={(assertion) =>
+            void run(
+              "allergy",
+              (clientKey) => assertAllergyStatus({ ...base, clientKey, encounterId, assertion }),
+              assertion === "no_known_drug_allergies"
+                ? "No known drug allergies recorded"
+                : "Unable to assess recorded",
+              assertion,
+            ).then((r) =>
+              setSheetMsg(
+                r.ok ? { ok: true, text: "Allergy status saved" } : { ok: false, text: r.error },
+              ),
+            )
+          }
+          onSave={(d) =>
+            void run(
+              "allergy",
+              (clientKey) =>
+                recordAllergy({
+                  ...base,
+                  clientKey,
+                  encounterId,
+                  substance: substanceOf(d.text, p.substances),
+                  category: d.category,
+                  allergyType: d.allergyType,
+                  manifestations: d.manifestations,
+                  ...(d.severity ? { severity: d.severity } : {}),
+                  ...(d.criticality ? { criticality: d.criticality } : {}),
+                  verification: d.verification,
+                  informant: d.informant,
+                }),
+              "Allergy saved",
+              d,
+            ).then((r) =>
+              setSheetMsg(
+                r.ok ? { ok: true, text: "Allergy saved" } : { ok: false, text: r.error },
+              ),
+            )
+          }
+        />
+      </EmrDialog>
 
-      <Sheet open={sheet === "complete"} onOpenChange={(o) => setSheet(o ? "complete" : null)}>
-        <SheetContent side="right" className="data-closed:duration-150">
-          <SheetHeader>
-            <SheetTitle className="font-sans">Complete visit</SheetTitle>
-            <SheetDescription>
-              <span>{p.patient.name}</span>{" "}
-              <span className="font-mono tabular-nums">{p.patient.mrn}</span>
-            </SheetDescription>
-          </SheetHeader>
-          <SheetBody>
-            <CompleteVisitView
-              p={p}
-              pending={busy === "complete"}
-              message={sheetMsg}
-              onComplete={(input) =>
-                void (async () => {
-                  autosave.flush();
-                  setBusy("complete");
-                  const r = await completeFlow(
-                    (i) => completeEncounter({ ...base, encounterId, ...i }),
-                    input,
-                  );
-                  setBusy(null);
-                  setSheetMsg({
-                    ok: r.ok,
-                    text: r.ok ? [r.message, ...r.warnings].join(" ") : r.message,
-                  });
-                  if (r.ok) router.refresh();
-                })()
-              }
-              onClose={(input) =>
-                void (async () => {
-                  setBusy("complete");
-                  const r = await closeFlow(
-                    (i) => closeEncounterAdministratively({ ...base, encounterId, ...i }),
-                    input,
-                  );
-                  setBusy(null);
-                  setSheetMsg({ ok: r.ok, text: r.message });
-                  if (r.ok) router.refresh();
-                })()
-              }
-            />
-          </SheetBody>
-        </SheetContent>
-      </Sheet>
+      <EmrDialog
+        open={sheet === "complete"}
+        onOpenChange={(o) => setSheet(o ? "complete" : null)}
+        title="Complete visit"
+        description={
+          <>
+            <span>{p.patient.name}</span>{" "}
+            <span className="font-mono tabular-nums">{p.patient.mrn}</span>
+          </>
+        }
+      >
+        <CompleteVisitView
+          p={p}
+          pending={busy === "complete"}
+          message={sheetMsg}
+          onComplete={(input) =>
+            void (async () => {
+              autosave.flush();
+              setBusy("complete");
+              const r = await completeFlow(
+                (i) => completeEncounter({ ...base, encounterId, ...i }),
+                input,
+              );
+              setBusy(null);
+              setSheetMsg({
+                ok: r.ok,
+                text: r.ok ? [r.message, ...r.warnings].join(" ") : r.message,
+              });
+              if (r.ok) router.refresh();
+            })()
+          }
+          onClose={(input) =>
+            void (async () => {
+              setBusy("complete");
+              const r = await closeFlow(
+                (i) => closeEncounterAdministratively({ ...base, encounterId, ...i }),
+                input,
+              );
+              setBusy(null);
+              setSheetMsg({ ok: r.ok, text: r.message });
+              if (r.ok) router.refresh();
+            })()
+          }
+        />
+      </EmrDialog>
     </>
   );
 }

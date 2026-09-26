@@ -61,8 +61,8 @@ This brief is what they add up to. Read it with those files; do not re-derive it
   - middle: the note, set for reading (measure < 80ch, generous line height, bracket section numbers `[01]`, because the
     template **is** a sequence);
   - right: the context rail (triage, vitals, results, medicines, problems).
-    Tablet portrait: the context rail becomes a bottom `Sheet` titled "Context". Phone: one section at a time, the index
-    in a sheet, and the primary action bar fixed at the bottom.
+    Tablet portrait: the context rail opens in a centred dialog titled "Context". Phone: one section at a time, the
+    index in a centred dialog, and the primary action bar fixed at the bottom (ADR 0161: no sheets from an edge).
 - **Structured items sit inline as chips** with value and source mark. Never dot-joined meta strings. For multi-part
   metadata, use separate spans with spacing.
 - **Avoid the template tells:**
@@ -87,7 +87,7 @@ This brief is what they add up to. Read it with those files; do not re-derive it
 - **Diagnosis picker:** a base-ui Combobox over `diagnosis_terms`. The clinician picks a term, never a code. Each row
   shows the term, the ICD-11 code with its verification mark, and flags (chronic, restricted). Budget: ≤ 4 keystrokes
   plus Enter for the top 50.
-- **Allergy editor:** a sheet. An uncoded entry is labelled "Matched by name only — code it for class checks" (amber).
+- **Allergy editor:** a centred dialog (ADR 0161). An uncoded entry is labelled "Matched by name only — code it for class checks" (amber).
 - **Result entry:** one screen per panel, units defaulted, a comparator allowed. A unit-mismatch prompt asks and never
   rejects.
 - **Empty and error states** direct the user; they never set a mood:
@@ -105,7 +105,7 @@ This brief is what they add up to. Read it with those files; do not re-derive it
 | Keyboard actions (`j`/`k`, `/` menu, section switch, chip toggle by key) | **none**: instant                                                                                                   |
 | Chip press, button press                                                 | colour change + `scale(0.97)` on `:active`, 100 ms expo-out; no entrance animation (used dozens of times per visit) |
 | Popover and combobox (diagnosis picker, insert menu)                     | 150 ms expo-out, opacity + `scale(0.97)`, `transform-origin: var(--transform-origin)` (origin-aware, base-ui)       |
-| Sheets (allergy editor, completion, context on tablet)                   | enter 250 ms expo-out `translate` by percentage; exit faster, 150 ms                                                |
+| Dialogs (allergy editor, completion, context on tablet; ADR 0161)        | 150 ms expo-out, opacity + scale, centred origin (`EmrDialog`)                                                      |
 | Modal confirm (notifiable diagnosis, sign)                               | 150 ms, centred origin                                                                                              |
 | Autosave status, new result arrival                                      | no motion: a text swap and a polite live region                                                                     |
 | Hover                                                                    | only under `@media (hover:hover) and (pointer:fine)`                                                                |

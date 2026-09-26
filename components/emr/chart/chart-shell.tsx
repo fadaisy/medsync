@@ -4,14 +4,16 @@ import type { IndexItem } from "../section-index";
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { DialogTrigger } from "@/components/ui/dialog";
+import { EmrDialog } from "../emr-dialog";
 import { SectionIndexView } from "../section-index";
 
 /**
  * The chart's one interactive frame: which section is showing. Every section is server-rendered
  * (so a switch is a local, instant toggle — well under the 100 ms budget, and nothing animates),
  * the URL hash keeps the place (`#chart-results`, so links in the safety bar work), and the new
- * section's heading takes focus. Below `md` the index moves into a sheet (UI-BRIEF §3).
+ * section's heading takes focus. Below `md` the index opens in a centred dialog (ADR 0161: in-page, so not the
+ * nav-menu exception).
  */
 export function ChartShell({
   items,
@@ -23,7 +25,7 @@ export function ChartShell({
   initial: string;
 }) {
   const [current, setCurrent] = useState(initial);
-  const [sheetOpen, setSheetOpen] = useState(false);
+  const [indexOpen, setIndexOpen] = useState(false);
 
   useEffect(() => {
     const fromHash = () => {
@@ -38,7 +40,7 @@ export function ChartShell({
   const select = (id: string, e: { preventDefault(): void }) => {
     e.preventDefault();
     setCurrent(id);
-    setSheetOpen(false);
+    setIndexOpen(false);
     window.history.replaceState(null, "", `#chart-${id}`);
     // After the panel is shown: move focus to its heading so a keyboard user starts there.
     requestAnimationFrame(() => document.getElementById(`chart-${id}-heading`)?.focus());
@@ -48,25 +50,24 @@ export function ChartShell({
   return (
     <div className="flex flex-col gap-4 md:grid md:grid-cols-[13rem_1fr] md:gap-8">
       <div className="md:hidden">
-        <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-          <SheetTrigger className="border-border text-body-s focus-visible:shadow-focus inline-flex min-h-11 w-full items-center justify-between rounded-md border px-3 outline-none">
-            <span className="text-muted-foreground">Section</span>
-            <span className="text-foreground font-medium">{label}</span>
-          </SheetTrigger>
-          <SheetContent side="left" widthClassName="w-[min(20rem,85vw)]">
-            <SheetHeader>
-              <SheetTitle className="font-sans">Chart</SheetTitle>
-            </SheetHeader>
-            <div className="px-3 pb-4">
-              <SectionIndexView
-                label="Chart sections"
-                items={items}
-                current={current}
-                onSelect={select}
-              />
-            </div>
-          </SheetContent>
-        </Sheet>
+        <EmrDialog
+          open={indexOpen}
+          onOpenChange={setIndexOpen}
+          title="Chart"
+          trigger={
+            <DialogTrigger className="border-border text-body-s focus-visible:shadow-focus inline-flex min-h-11 w-full items-center justify-between rounded-md border px-3 outline-none">
+              <span className="text-muted-foreground">Section</span>
+              <span className="text-foreground font-medium">{label}</span>
+            </DialogTrigger>
+          }
+        >
+          <SectionIndexView
+            label="Chart sections"
+            items={items}
+            current={current}
+            onSelect={select}
+          />
+        </EmrDialog>
       </div>
       <SectionIndexView
         label="Chart sections"

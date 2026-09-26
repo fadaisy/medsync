@@ -369,3 +369,19 @@ describe("context rail and vitals entry", () => {
     });
   });
 });
+
+describe("pop-ups (ADR 0161)", () => {
+  it("nothing in the EMR slides in from an edge: every pop-up is the centred EmrDialog", () => {
+    for (const f of [
+      "app/doctor/encounters/[encounterId]/_desk/desk-client.tsx",
+      "app/doctor/encounters/[encounterId]/_orders/orders-panel.tsx",
+      "app/nurse/patients/[patientId]/_orders/nurse-orders-panel.tsx",
+      "components/emr/chart/chart-shell.tsx",
+      "components/emr/prescribing/sheet.tsx",
+    ]) {
+      const src = readFileSync(resolve(process.cwd(), f), "utf8");
+      expect(src, f).not.toMatch(/<SheetContent|<Sheet\b|<DialogContent/);
+      expect(src, f).toMatch(/<EmrDialog/);
+    }
+  });
+});
