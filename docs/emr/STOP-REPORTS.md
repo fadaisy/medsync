@@ -1,0 +1,74 @@
+# EMR build — STOP reports
+
+Gate record for PROMPT-ENCOUNTER-EMR on `feat/emr-engine`. Owner and CSO sign-off: every GATE A decision was signed as
+recommended on 2026-09-26, in session. Harmonisations: `HARMONISATION.md`.
+
+## STOP 0 — Discovery (2026-09-26)
+
+Five read-only agents answered Q1–Q18. The evidence is in `discovery/{data-layer,clinical-objects,safety-seams,access-workspace,design-ui-terms}.md`,
+cited file:line.
+
+| Q | Answer (short) |
+|---|---|
+| Q1 | Drizzle + postgres-js; hand-written SQL in `supabase/migrations`, one tx per file; text + CHECK; GATED header from 0039; next free is **0071** |
+| Q2 | No `set_config` anywhere. Clinical reads and writes use the owner-role Drizzle client, which bypasses RLS. Scoping is in TS (`resolveEncounterAccess`); reads are logged to `clinical_phi_access_log` |
+| Q3 | Hosted Supabase only (pooler :6543, `prepare:false`). RLS suites skip without env. A dev project for E1 does not exist yet |
+| Q4 | The visit is `patient_intakes`, linked three ways (intake.encounter_id, triage.intake_id, appointment_id). Assignment is a *planned encounter* with `triage_record_id` |
+| Q5 | `encounters` has type, state (incl. planned) and disposition (0040), but no `last_activity_at`. End visit = Edge `ha-complete-encounter` (no disposition). The clerking page stores only NCD drafts |
+| Q6 | `clinical_observations` is mutable; written by the Edge obs function and the resus v1/v2 mirrors; triage never writes it; Drizzle CHECK drifted |
+| Q7 | Allergies: `patient_allergies` (no live writer) + resus timeline captures (current episode only). Resus prescribing checks on the client only |
+| Q8 | `pending_encounter_handoff` is set and never read; the handover is SBAR (4 fields); the death-certificate intent is a checklist tick; triage recommendations are never stored |
+| Q9 | Lab cadres exist (LAB_TECH, LAB_TECHNOLOGIST) with `/lab`. `clerkshipWriteAuthority` covers 5 medical cadres + CO; intern co-sign is soft |
+| Q10 | Four divergent access rules; none checks the hospital; break-glass is superadmin-only |
+| Q11 | `lib/encryption.ts` encrypt/decrypt (AES-256-GCM) and blindIndex; one key; no separate HMAC key |
+| Q12 | Chart homes are `/doctor/patients/[id]` and `/nurse/patients/[id]` (shared `PatientClinicalRecordPanel`) |
+| Q13 | Workspace merged. A lane is a LaneId + LANES + FW-2 branch + loader (no registry). Realtime is the 0069 broadcast pattern. The resus queue is typed to resus |
+| Q14 | Four file-based reference shapes. The resus `RefEntry` is chosen for the EMR |
+| Q15 | Row counts not measured (no DB access); owner action O-4 |
+| Q16 | Flags are env vars in `lib/<area>/feature.ts`. Playwright absent; axe-core present; no print CSS |
+| Q17 | Tokens: `bg-status-critical-bg/-fg`, `bg-status-caution-bg/-fg`, `<Pill>`, `ClinicalBadge`, `PageHeader`, plum-50/800 for place, Fraunces/Geist, expo-out 100/150/250/400 ms |
+| Q18 | Clerking page: 6 client islands, 4,599 lines (ncd-capture 2,110). Autosave only when a section is left. Not measured (no build at P0) |
+
+**R1–R9:** R1 confirmed, and worse (resus allergies are lost even to the next episode). R2 confirmed in practice.
+R3 partly refuted (the link exists; acknowledgement is missing). R4 confirmed. R5 confirmed (triage never writes
+observations). R6 confirmed in practice (the tables exist; there is no writer). R7 refuted (no Prisma). R8 confirmed
+(plaintext `section_data` and drafts). R9 confirmed, and worse (ICD-10 is already committed).
+
+**Additional safety findings:**
+- The resus emergency administration never re-runs the allergy check on the server.
+- `recordClerkshipVersion` and lab release are not transactional.
+- `ha-start-encounter` can open a second encounter for one visit.
+- NCD drafts can be written to completed encounters without an access check.
+
+All are addressed in HARMONISATION §2.
+
+**Baseline deferred:** screenshots and timings of the current clerking page need a build. They are taken once, in the
+P5 harness, before the new UI is switched on; with the flag off, the old page is served unchanged.
+
+## STOP 1 — GATE A proposal (2026-09-26)
+
+Pack: `gate-a-proposal.md` (1,783 lines: full 0071 SQL, the one access rule, RLS/grants, backfill, ADR drafts 0130–0139,
+permission matrix, 13 wireframes, test plan, decision table + signature), `cfc-v1.1-addendum.md`, and
+`data/emr/{note-templates.v1,clinical-fact-concepts.v1.1,diagnosis-terms.v1,test-catalogue.v1}.json`. The 0071 SQL was
+dry-run over a PGlite replay of 0000–0070; that run found and fixed 2 bugs (a stray AND; new fact rows leaking into the
+3 legacy observation readers, fixed with `state='fact'`).
+
+- **Signature:** every decision was signed as recommended by Fadhul (owner, CSO), 2026-09-26, in session.
+- **Terms:** 85 draft diagnosis terms, 13 of them restricted. Every ICD-11 code was checked against the findacode MMS v2026-01
+  mirror (verified-mirror, not yet confirmed at icd.who.int), with its unmodified title kept. ICD-10 is null throughout (R9).
+- **Test menu:** 35 tests, no reference ranges, no turnaround numbers.
+
+**Decisions taken at this gate (the owner was not available; recorded for confirmation):**
+- The operational defaults in §H.2 (autosave debounce 1.5 s, late-entry window 24 h, administrative-closure reasons)
+  are hospital settings with defaults → owner confirms (O-9).
+- **Allergies cross hospitals [H, safety-positive]:** a clinician with a legitimate basis for the patient at their own
+  hospital sees, and the prescribing check uses, that patient's allergies from every hospital, each labelled with where it
+  was recorded. Everything else stays hospital-scoped. This keeps today's behaviour (the legacy read had no hospital
+  filter) → owner/CSO confirms (O-8).
+- **CFC enum extension (addendum):** specimen `sputum`; containers `sodium_citrate`, `blood_culture_bottle`,
+  `sterile_container`.
+- **Erratum, recorded rather than edited:** in `clinical-fact-concepts.v1.json`, `cond.dka`/`cond.hhs`/`cond.hypoglycaemia_in_dm`
+  cite the wrong findacode page. The codes themselves check out.
+- **ACVPU `C`** (new confusion) has no AVPU answer, so those readings are quarantined (C11) until a concept is signed.
+- **R1–R3 reproductions** are realised as PGlite-lane scenarios A2 (R1), A1/A3 (R3) and A6 (R2). The legacy code has no
+  server-side seam a unit test could hold.
