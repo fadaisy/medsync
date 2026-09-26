@@ -28,6 +28,7 @@
     "db:check": "drizzle-kit check",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:emr-db": "EMR_PGLITE=1 vitest run tests/emr-db",
     "ncd:manifest": "tsx scripts/ncd-manifest.ts",
     "ncd:check": "tsx scripts/ncd-check.ts",
     "prepare": "husky"

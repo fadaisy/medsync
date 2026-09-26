@@ -24,6 +24,14 @@
     "1": "Patient-typed, or imported without verification"
   },
   "enumsAdded": {
+    "specimen": [
+      "sputum"
+    ],
+    "container": [
+      "sodium_citrate",
+      "blood_culture_bottle",
+      "sterile_container"
+    ],
     "crpMethod": [
       "quantitative",
       "semi_quantitative"

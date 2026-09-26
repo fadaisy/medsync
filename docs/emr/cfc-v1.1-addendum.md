@@ -164,3 +164,4 @@ vocabulary.
 | `FactKind` | + `allergy` only. Reports are `diagnostic_reports` rows plus observation facts |
 | Other legacy projections | `problem_list`, `encounter_diagnoses` → condition facts (`verification` working→provisional, final→confirmed, excluded→refuted); `encounter_results` → observation facts with `entry_mode='direct'`, `labInterpretation` from the stored flag only; `encounter_medications` → medication facts with `medicationSource='patient_reported'` |
 | Integrity job (§3.7) | Runs over CFC rows only; legacy rows are re-projected, never recomputed in place |
+| Enum extension (STOP 1) | `specimen` + `sputum`; `container` + `sodium_citrate`, `blood_culture_bottle`, `sterile_container`, recorded in the v1.1 JSON `enumsAdded` (appended to the v1 lists) so the test menu's specimens and containers are expressible |

@@ -107,3 +107,6 @@ export * from "./notifications";
 // ─── Low-bandwidth channels (migration 0062 — GATED, ADR 0091) ──────────
 export * from "./channels";
 export * from "./onboarding";
+
+// ─── EMR record spine (migration 0071 — GATED, HARMONISATION §3) ────────
+export * from "./emr";
