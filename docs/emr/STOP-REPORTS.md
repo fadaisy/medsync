@@ -413,3 +413,18 @@ Phase 0 took no product measurements: no build and no database access (STOP 0, Q
 - A voided NKDA or unable-to-assess assertion appears in no section history.
 - ~~Resolved-problem strikethrough~~ **closed**: the resolved problem shows the word, not a strike.
 - The co-sign queue page has no rendering test; `prescriptionsForCosign` is tested on PGlite.
+
+### After STOP 7–8: re-shoot, build and axe on the final code (2026-09-26)
+
+- **Production build of the branch** (the scratch harness copy: repo code + the fixture route): `next build` succeeds.
+- **Screenshots:** all **240** re-shot on the final code (40 screens, now including the Phase 7 prescriptions view, × 3
+  viewports × light/dark). 0 horizontal overflow, 0 console errors.
+- **axe on the Phase 7 prescribing view and the changed desk and chart screens:** jsdom 0 serious / 0 critical; in the
+  browser (12 runs) 0 serious / 0 critical. The 4 moderate findings are harness-page headings.
+- **Clerking-route client JS, from the route's client-reference manifest:** entry chunks 317.4 KB gz, against 215.5 KB
+  before the EMR (+101.9 KB, including the Phase 7 prescribing panel) and 305.2 KB at STOP 5–6.
+  - The manifest lists every client module the route *can* reach, with the flag on or off.
+  - The desk now loads through `next/dynamic`, and `tests/emr/ui/flag-off.test.ts` proves the flag-off page never
+    statically imports it.
+  - What a flag-off visit actually downloads needs one real signed-in render (runbook §7).
+  - **Treat the 90 KB budget as not yet met** until that render says otherwise.

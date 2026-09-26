@@ -17,8 +17,8 @@ tick each box. Nothing in the EMR is live until step 8, and with `EMR_V1` unset 
 - [ ] Create a hosted Supabase project for development with **synthetic data only** (E1, ADR 0133).
 - [ ] Put its pooler URL (port 6543) in a local `.env.local` as `DATABASE_URL`, with its `NEXT_PUBLIC_SUPABASE_URL`,
       `NEXT_PUBLIC_SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY`. Keep it separate from production.
-- [ ] Apply every migration there: `npm run db:migrate` (0000–0073, plus `0074_emr_prescriptions.sql` once Phase 7 is committed; it is
-      on the tree, in progress, at the time of writing).
+- [ ] Apply every migration there: `npm run db:migrate` (0000–0074; `0074_emr_prescriptions.sql` is committed with
+      Phase 7).
 
 ## 2. Generate the note-signing key (O-2)
 
@@ -117,8 +117,7 @@ UNION ALL SELECT 'allergies backfilled, no v2 yet (O-5)', count(*) FROM public.a
 ## 5. Apply the migrations in production (O-7)
 
 - [ ] Confirm steps 1–3 are green on the dev project.
-- [ ] `npm run db:migrate` with the **production** `DATABASE_URL`. It applies 0071, 0072, 0073 (and 0074 once Phase 7
-      is committed and signed off) in name order, one transaction per file, and records each in `_medsync_migrations`. It also applies the
+- [ ] `npm run db:migrate` with the **production** `DATABASE_URL`. It applies 0071, 0072, 0073 and 0074 in name order, one transaction per file, and records each in `_medsync_migrations`. It also applies the
       hub's 0080 if that is pending; the two sets coexist in either order (HARMONISATION §9).
 - [ ] Re-run the step 3 SQL in production. The backfill copies allergies once; a re-run adds nothing.
 
