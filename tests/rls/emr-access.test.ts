@@ -23,8 +23,9 @@ describe.skipIf(!RLS_TESTS_ENABLED)("RLS: EMR record access (hosted twin)", () =
   let treating: TestUser; // active encounter with the patient at H1
   let noBasis: TestUser; // clinician at H1, no relationship
   let otherHosp: TestUser; // clinician with a real basis for the patient — at H2
-  let reception: TestUser; // non-clinical at H1, the patient present today
-  let pt: TestUser;
+  let reception: TestUser; // non-clinical at H1
+  let pt: TestUser; // the record's patient: encounters at H1 and H2, not present anywhere today
+  let present: TestUser; // a second patient, present at H1 today (an open intake)
   let H1: string;
   let H2: string;
   const ids: Record<"note" | "allergy" | "condition" | "observation", string> = {
@@ -71,6 +72,7 @@ describe.skipIf(!RLS_TESTS_ENABLED)("RLS: EMR record access (hosted twin)", () =
     otherHosp = await createTestUser("emr", "otherhosp");
     reception = await createTestUser("emr", "reception");
     pt = await createTestUser("emr", "patient");
+    present = await createTestUser("emr", "present");
     H1 = await fixtureHospital("rls-emr-fixture");
     H2 = await fixtureHospital("rls-emr-fixture-b");
     await affiliate(treating, H1, "MEDICAL_OFFICER");
@@ -86,7 +88,7 @@ describe.skipIf(!RLS_TESTS_ENABLED)("RLS: EMR record access (hosted twin)", () =
       VALUES (${H2}, ${pt.id}, ${otherHosp.id}, 'in_progress')`;
     await serviceSql`
       INSERT INTO public.patient_intakes (hospital_id, entry_type_code, patient_user_id, status, arrived_at)
-      VALUES (${H1}, 'walk_in', ${pt.id}, 'arrived', now())`;
+      VALUES (${H1}, 'walk_in', ${present.id}, 'arrived', now())`;
 
     const e = enc!.id;
     const [note] = await serviceSql<{ id: string }[]>`
@@ -125,7 +127,7 @@ describe.skipIf(!RLS_TESTS_ENABLED)("RLS: EMR record access (hosted twin)", () =
 
   afterAll(async () => {
     await cleanup();
-  }, 60_000);
+  }, 120_000);
 
   /** Rows of `table` with id `id` visible to `user` through medsync_clinical_reader at `hospitalId`. */
   async function readerSees(user: TestUser, hospitalId: string, table: string, id: string) {
@@ -138,10 +140,10 @@ describe.skipIf(!RLS_TESTS_ENABLED)("RLS: EMR record access (hosted twin)", () =
     });
   }
 
-  const basis = async (user: TestUser, hospitalId: string) =>
+  const basis = async (user: TestUser, hospitalId: string, patient: TestUser = pt) =>
     (
       await serviceSql<{ b: string | null }[]>`
-        SELECT private.patient_access_basis(${user.id}, ${pt.id}, ${hospitalId}) AS b`
+        SELECT private.patient_access_basis(${user.id}, ${patient.id}, ${hospitalId}) AS b`
     )[0]!.b;
 
   test("the one access rule: a basis only for the treating clinician at their hospital", async () => {
@@ -149,7 +151,11 @@ describe.skipIf(!RLS_TESTS_ENABLED)("RLS: EMR record access (hosted twin)", () =
     expect(await basis(otherHosp, H2)).toBe("active_encounter");
     expect(await basis(otherHosp, H1)).toBeNull();
     expect(await basis(noBasis, H1)).toBeNull();
-    expect(await basis(reception, H1)).toBeNull(); // patient present, but reception is not clinical
+    expect(await basis(reception, H1)).toBeNull();
+    // A patient present at H1 today: every clinical member of staff there has a basis (open_intake),
+    // reception never does.
+    expect(await basis(noBasis, H1, present)).toBe("open_intake");
+    expect(await basis(reception, H1, present)).toBeNull();
     expect(await basis(pt, H1)).toBeNull();
   });
 
