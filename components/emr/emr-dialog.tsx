@@ -46,7 +46,7 @@ export function EmrDialog({
       onOpenChange={onOpenChange}
       width={width}
       trigger={trigger}
-      className="ease-expo-out duration-150"
+      className="ease-expo-out duration-100"
     >
       <SheetHeader className="pr-14">
         <SheetTitle className="font-sans">{title}</SheetTitle>

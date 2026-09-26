@@ -106,7 +106,7 @@ This brief is what they add up to. Read it with those files; do not re-derive it
 | Chip press, button press                                                 | colour change + `scale(0.97)` on `:active`, 100 ms expo-out; no entrance animation (used dozens of times per visit) |
 | Popover and combobox (diagnosis picker, insert menu)                     | 150 ms expo-out, opacity + `scale(0.97)`, `transform-origin: var(--transform-origin)` (origin-aware, base-ui)       |
 | Dialogs (allergy editor, completion, context on tablet; ADR 0161)        | 150 ms expo-out, opacity + scale, centred origin (`EmrDialog`)                                                      |
-| Modal confirm (notifiable diagnosis, sign)                               | 150 ms, centred origin                                                                                              |
+| Modal confirm (notifiable diagnosis, sign)                               | 100 ms (as EditorDialog), centred origin                                                                                              |
 | Autosave status, new result arrival                                      | no motion: a text swap and a polite live region                                                                     |
 | Hover                                                                    | only under `@media (hover:hover) and (pointer:fine)`                                                                |
 | Reduced motion                                                           | keep opacity, drop every transform                                                                                  |
