@@ -36,7 +36,7 @@
  *   instant), cancelled by the deactivation path when it no longer does.
  *   An instance holding a booking is not touched; the INSERT skips it.
  */
-
+import type { ClosureWindow } from "../_shared/services-hub.ts";
 import { z } from "npm:zod@4.4.3";
 
 import { getCaller, hasRole, serviceClient } from "../_shared/auth.ts";
@@ -54,6 +54,7 @@ import {
 import { requireHospitalAdminScope } from "../_shared/hospital-admin-scope.ts";
 import { makeLogger } from "../_shared/logger.ts";
 import { networkContext, recordSaAudit } from "../_shared/sa-audit.ts";
+import { skipDayFor } from "../_shared/services-hub.ts";
 import { DEFAULT_TIME_ZONE, expandSessionTemplate } from "../_shared/slots.ts";
 
 const log = makeLogger("ha-upsert-session-template");
@@ -89,7 +90,20 @@ const InputSchema = z
     valid_from: IsoDate,
     valid_until: IsoDate.nullable().optional(),
     active: z.boolean(),
+    // CLN-3 (0080): every N weeks, or the nth weekday of the month; one-off = valid_from = valid_until.
+    repeat_every_weeks: z.number().int().min(1).max(8).optional(),
+    nth_weekday: z
+      .union([z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(5), z.literal(-1)])
+      .nullable()
+      .optional(),
+    // CLN-4 (0080): public holidays are skipped unless the clinic runs on them.
+    runs_on_holidays: z.boolean().optional(),
+    place_id: z.string().uuid().nullable().optional(),
     reason: z.string().min(8, "Reason ≥ 8 chars required (audited)."),
+  })
+  .refine((v) => !(v.nth_weekday != null && (v.repeat_every_weeks ?? 1) > 1), {
+    message: "Choose every N weeks or the nth weekday of the month, not both.",
+    path: ["nth_weekday"],
   })
   .refine((v) => v.capacity_booked === undefined || v.capacity_booked <= v.capacity_total, {
     message: "Bookable share cannot exceed the session's total capacity.",
@@ -138,7 +152,7 @@ Deno.serve(async (request: Request) => {
   // hospital. The department comes from the line — never from the body.
   const { data: line, error: lineError } = await sb
     .from("service_lines")
-    .select("id, hospital_id, department_id, capacity_mode, active")
+    .select("id, hospital_id, department_id, unit_id, capacity_mode, active, archived_at")
     .eq("id", input.service_line_id)
     .maybeSingle();
   if (lineError) {
@@ -149,7 +163,9 @@ Deno.serve(async (request: Request) => {
   if (line.hospital_id !== input.hospital_id) {
     return forbidden(init, "service line belongs to another hospital");
   }
-  if (!line.active) return badRequest("This service line is inactive — reactivate it first.", init);
+  // 0080: a Planned clinic (inactive) may hold its days before it goes live; its sessions publish
+  // once it is live (the nightly materialiser, or the hub's go-live). An archived one may not.
+  if (line.archived_at) return badRequest("This clinic is archived — restore it first.", init);
   if (line.capacity_mode !== "session") {
     return badRequest(
       `This service line runs in '${line.capacity_mode}' mode — session templates need 'session' mode.`,
@@ -206,6 +222,19 @@ Deno.serve(async (request: Request) => {
   }
   const id = input.id ?? crypto.randomUUID();
 
+  // The place must be this hospital's; its name becomes the venue existing readers show.
+  let venue = input.venue || null;
+  if (input.place_id) {
+    const { data: place } = await sb
+      .from("hospital_places")
+      .select("id, name")
+      .eq("id", input.place_id)
+      .eq("hospital_id", input.hospital_id)
+      .maybeSingle();
+    if (!place) return badRequest("That place isn't at this hospital.", init);
+    venue = venue ?? place.name;
+  }
+
   // The predictable conflict answered before the audit row exists;
   // session_templates_unique_rule remains the backstop for the race.
   const { data: clash, error: clashError } = await sb
@@ -236,7 +265,7 @@ Deno.serve(async (request: Request) => {
     hospital_id: input.hospital_id,
     department_id: line.department_id,
     clinician_user_id: input.clinician_user_id ?? null,
-    venue: input.venue || null,
+    venue,
     weekday: input.weekday,
     start_minutes_local: input.start_minutes_local,
     duration_minutes: input.duration_minutes,
@@ -249,6 +278,10 @@ Deno.serve(async (request: Request) => {
     valid_from: input.valid_from,
     valid_until: input.valid_until ?? null,
     active: input.active,
+    repeat_every_weeks: input.repeat_every_weeks ?? 1,
+    nth_weekday: input.nth_weekday ?? null,
+    runs_on_holidays: input.runs_on_holidays ?? false,
+    place_id: input.place_id ?? null,
   };
 
   const auditShape = (row: Record<string, unknown> | null) =>
@@ -268,6 +301,10 @@ Deno.serve(async (request: Request) => {
           valid_from: row.valid_from,
           valid_until: row.valid_until,
           active: row.active,
+          repeat_every_weeks: row.repeat_every_weeks,
+          nth_weekday: row.nth_weekday,
+          runs_on_holidays: row.runs_on_holidays,
+          place_id: row.place_id,
         }
       : null;
 
@@ -345,7 +382,49 @@ Deno.serve(async (request: Request) => {
     return data?.length ?? 0;
   };
 
-  if (input.active) {
+  if (input.active && line.active) {
+    // CLN-4: public holidays (unless the clinic runs on them) and closures (always) are skipped.
+    const horizonEnd = new Date(now.getTime() + MATERIALISE_HORIZON_DAYS * 86_400_000);
+    const ymd = (d: Date) => d.toISOString().slice(0, 10);
+    const [{ data: holidays, error: hErr }, { data: closures, error: cErr }] = await Promise.all([
+      sb
+        .from("public_holidays")
+        .select("holiday_date")
+        .gte("holiday_date", ymd(now))
+        .lte("holiday_date", ymd(horizonEnd)),
+      sb
+        .from("service_closures")
+        .select("scope, department_id, service_line_id, starts_on, ends_on")
+        .eq("hospital_id", input.hospital_id)
+        .is("lifted_at", null)
+        .lte("starts_on", ymd(horizonEnd))
+        .gte("ends_on", ymd(now)),
+    ]);
+    if (hErr || cErr) {
+      log.error("calendar read failed", { requestId, reason: (hErr ?? cErr)!.message });
+      return serverError("template saved but the calendar could not be read", init);
+    }
+    const skip = skipDayFor({
+      holidays: (holidays ?? []).map((h: { holiday_date: string }) => h.holiday_date),
+      closures: (closures ?? []).map(
+        (c: {
+          scope: string;
+          department_id: string | null;
+          service_line_id: string | null;
+          starts_on: string;
+          ends_on: string;
+        }): ClosureWindow => ({
+          scope: c.scope as ClosureWindow["scope"],
+          departmentId: c.department_id,
+          serviceLineId: c.service_line_id,
+          startsOn: c.starts_on,
+          endsOn: c.ends_on,
+        }),
+      ),
+      runsOnHolidays: afterRow.runs_on_holidays,
+      departmentIds: [line.department_id, ...(line.unit_id ? [line.unit_id] : [])],
+      serviceLineId: line.id,
+    });
     const occurrences = expandSessionTemplate(
       {
         weekday: afterRow.weekday,
@@ -353,10 +432,13 @@ Deno.serve(async (request: Request) => {
         durationMinutes: afterRow.duration_minutes,
         validFrom: afterRow.valid_from,
         validUntil: afterRow.valid_until,
+        repeatEveryWeeks: afterRow.repeat_every_weeks,
+        nthWeekday: afterRow.nth_weekday,
       },
       now,
-      new Date(now.getTime() + MATERIALISE_HORIZON_DAYS * 86_400_000),
+      horizonEnd,
       DEFAULT_TIME_ZONE,
+      skip,
     );
     // The columns an instance copies from its rule; starts_at/ends_at are per occurrence.
     const stamp = {
@@ -438,7 +520,7 @@ Deno.serve(async (request: Request) => {
         return serverError("template saved but its stale sessions could not be cancelled", init);
       }
     }
-  } else {
+  } else if (!input.active) {
     try {
       cancelled = await cancelEmpty(null);
     } catch (e) {

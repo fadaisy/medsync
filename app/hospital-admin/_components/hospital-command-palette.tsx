@@ -5,18 +5,26 @@ import { useEffect, useId, useMemo, useState } from "react";
 import { Combobox as ComboboxPrimitive } from "@base-ui/react/combobox";
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
 import {
+  AlertTriangleIcon,
   ArrowRightIcon,
+  BedIcon,
   Building2Icon,
   CalendarClockIcon,
+  CalendarPlusIcon,
   FileTextIcon,
+  FlaskConicalIcon,
   LayoutDashboardIcon,
+  PrinterIcon,
   ScrollTextIcon,
   SearchIcon,
   ShieldCheckIcon,
+  StethoscopeIcon,
+  UserCheckIcon,
   UsersIcon,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
+import { hubPaletteEntries } from "../departments/palette-actions";
 import { useHospitalScope } from "./scope-provider";
 
 /**
@@ -46,7 +54,56 @@ interface NavEntry {
   hint: string;
   href: string;
   icon: typeof LayoutDashboardIcon;
+  /** Palette group: "Navigate", "Actions", or a feature's entity group (contract §6). */
+  group: string;
 }
+
+/**
+ * Departments & services actions (§5.11). Each routes to the hub's own screen — the palette never
+ * performs the action itself, so every safeguard stays with the surface that owns it.
+ */
+const HUB_ACTIONS: ReadonlyArray<NavEntry> = [
+  {
+    id: "act-add-clinic",
+    group: "Actions",
+    label: "Add a clinic",
+    hint: "Departments & services · Clinics",
+    href: "/hospital-admin/departments/clinics?add=1",
+    icon: CalendarPlusIcon,
+  },
+  {
+    id: "act-report",
+    group: "Actions",
+    label: "Report a problem",
+    hint: "Something unavailable — a test, a ward, equipment",
+    href: "/hospital-admin/departments/availability?report=1",
+    icon: AlertTriangleIcon,
+  },
+  {
+    id: "act-print",
+    group: "Actions",
+    label: "Print clinic timetable",
+    hint: "One A4 landscape page per week",
+    href: "/hospital-admin/departments/clinics?view=timetable&print=1",
+    icon: PrinterIcon,
+  },
+  {
+    id: "act-head",
+    group: "Actions",
+    label: "Assign a head of department",
+    hint: "Choose the department, then its head",
+    href: "/hospital-admin/departments?assign=head",
+    icon: UserCheckIcon,
+  },
+];
+
+const GROUP_ICONS: Record<string, typeof LayoutDashboardIcon> = {
+  Departments: Building2Icon,
+  Wards: BedIcon,
+  Clinics: StethoscopeIcon,
+  Tests: FlaskConicalIcon,
+};
+const GROUP_ORDER = ["Navigate", "Actions", "Departments", "Wards", "Clinics", "Tests"];
 
 interface HospitalCommandPaletteProps {
   /** Pre-built nav entries from the shell (mirror of FEATURE_AREAS). */
@@ -74,7 +131,25 @@ export function HospitalCommandPalette({ navEntries }: HospitalCommandPalettePro
   const scope = useHospitalScope();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [entities, setEntities] = useState<ReadonlyArray<NavEntry> | null>(null);
   const inputId = useId();
+
+  // Entities load once, the first time the palette opens (pre-scoped on the server).
+  useEffect(() => {
+    if (!open || entities) return;
+    let live = true;
+    hubPaletteEntries()
+      .then((rows) => {
+        if (live)
+          setEntities(
+            rows.map((r) => ({ ...r, icon: GROUP_ICONS[r.group] ?? LayoutDashboardIcon })),
+          );
+      })
+      .catch(() => live && setEntities([]));
+    return () => {
+      live = false;
+    };
+  }, [open, entities]);
   const titleId = useId();
 
   useEffect(() => {
@@ -97,17 +172,29 @@ export function HospitalCommandPalette({ navEntries }: HospitalCommandPalettePro
         hint: e.hint,
         href: e.href,
         icon: PALETTE_ICONS[e.iconKey] ?? LayoutDashboardIcon,
+        group: "Navigate",
       })),
     [navEntries],
   );
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return entries;
-    return entries.filter(
-      (item) => item.label.toLowerCase().includes(q) || item.hint.toLowerCase().includes(q),
-    );
-  }, [query, entries]);
+    // Entities only once the admin types: an empty palette stays the short list of places.
+    const all = q
+      ? [...entries, ...HUB_ACTIONS, ...(entities ?? [])]
+      : [...entries, ...HUB_ACTIONS];
+    if (!q) return all;
+    return all
+      .filter((item) => item.label.toLowerCase().includes(q) || item.hint.toLowerCase().includes(q))
+      .slice(0, 40);
+  }, [query, entries, entities]);
+  const groups = useMemo(
+    () =>
+      GROUP_ORDER.map((g) => ({ g, items: filtered.filter((i) => i.group === g) })).filter(
+        (x) => x.items.length > 0,
+      ),
+    [filtered],
+  );
 
   function handleSelect(item: NavEntry) {
     setOpen(false);
@@ -135,7 +222,7 @@ export function HospitalCommandPalette({ navEntries }: HospitalCommandPalettePro
         <span className="hidden md:inline">Jump to…</span>
         <kbd
           aria-hidden
-          className="border-border text-muted-foreground hidden rounded border bg-gray-50 px-1.5 py-0.5 font-mono text-[10px] tracking-wider md:inline-flex dark:bg-gray-900"
+          className="border-border text-muted-foreground hidden rounded border bg-gray-50 px-1.5 py-0.5 font-mono text-[10px] tracking-wider md:inline-flex"
         >
           {modKey} K
         </kbd>
@@ -183,7 +270,7 @@ export function HospitalCommandPalette({ navEntries }: HospitalCommandPalettePro
                 </label>
                 <ComboboxPrimitive.Input
                   id={inputId}
-                  placeholder="Jump to a section…"
+                  placeholder="Jump to a section, department, ward, clinic or test…"
                   autoFocus
                   className={cn(
                     "text-foreground placeholder:text-muted-foreground flex-1 bg-transparent text-[14px] tracking-[-0.004em] outline-none",
@@ -191,48 +278,50 @@ export function HospitalCommandPalette({ navEntries }: HospitalCommandPalettePro
                 />
                 <kbd
                   aria-hidden
-                  className="border-border text-muted-foreground hidden rounded border bg-gray-50 px-1.5 py-0.5 font-mono text-[10px] tracking-wider sm:inline-flex dark:bg-gray-900"
+                  className="border-border text-muted-foreground hidden rounded border bg-gray-50 px-1.5 py-0.5 font-mono text-[10px] tracking-wider sm:inline-flex"
                 >
                   ESC
                 </kbd>
               </div>
 
               <ComboboxPrimitive.List className="max-h-[60svh] overflow-y-auto p-2">
-                <ComboboxPrimitive.Empty className="text-muted-foreground text-body-s px-3 py-8 text-center">
+                <ComboboxPrimitive.Empty className="text-muted-foreground text-body-s px-3 py-8 text-center empty:hidden">
                   No matches for &ldquo;{query}&rdquo;.
                 </ComboboxPrimitive.Empty>
 
-                <ComboboxPrimitive.Group items={filtered}>
-                  <ComboboxPrimitive.GroupLabel className="text-muted-foreground px-3 pt-3 pb-1 font-mono text-[10px] font-semibold tracking-[0.14em] uppercase">
-                    Navigate
-                  </ComboboxPrimitive.GroupLabel>
-                  {filtered.map((item) => (
-                    <ComboboxPrimitive.Item
-                      key={item.id}
-                      value={item}
-                      onClick={() => handleSelect(item)}
-                      className={cn(
-                        "group flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-[13.5px] outline-none",
-                        "data-highlighted:bg-muted",
-                      )}
-                    >
-                      <item.icon
-                        className="text-muted-foreground group-data-highlighted:text-foreground size-4 shrink-0"
-                        aria-hidden
-                      />
-                      <span className="flex-1 truncate">
-                        <span className="text-foreground font-medium">{item.label}</span>
-                        <span className="text-muted-foreground ml-2 text-[12.5px]">
-                          {item.hint}
+                {groups.map(({ g, items }) => (
+                  <ComboboxPrimitive.Group key={g} items={items}>
+                    <ComboboxPrimitive.GroupLabel className="text-muted-foreground px-3 pt-3 pb-1 font-mono text-[10px] font-semibold tracking-[0.14em] uppercase">
+                      {g}
+                    </ComboboxPrimitive.GroupLabel>
+                    {items.map((item) => (
+                      <ComboboxPrimitive.Item
+                        key={item.id}
+                        value={item}
+                        onClick={() => handleSelect(item)}
+                        className={cn(
+                          "group flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 text-[13.5px] outline-none",
+                          "data-highlighted:bg-muted",
+                        )}
+                      >
+                        <item.icon
+                          className="text-muted-foreground group-data-highlighted:text-foreground size-4 shrink-0"
+                          aria-hidden
+                        />
+                        <span className="flex-1 truncate">
+                          <span className="text-foreground font-medium">{item.label}</span>
+                          <span className="text-muted-foreground ml-2 text-[12.5px]">
+                            {item.hint}
+                          </span>
                         </span>
-                      </span>
-                      <ArrowRightIcon
-                        className="text-muted-foreground size-3.5 shrink-0 opacity-0 transition-opacity group-data-highlighted:opacity-100"
-                        aria-hidden
-                      />
-                    </ComboboxPrimitive.Item>
-                  ))}
-                </ComboboxPrimitive.Group>
+                        <ArrowRightIcon
+                          className="text-muted-foreground size-3.5 shrink-0 opacity-0 transition-opacity group-data-highlighted:opacity-100"
+                          aria-hidden
+                        />
+                      </ComboboxPrimitive.Item>
+                    ))}
+                  </ComboboxPrimitive.Group>
+                ))}
               </ComboboxPrimitive.List>
 
               <div className="border-border bg-muted/30 text-muted-foreground text-caption flex items-center justify-between border-t px-4 py-2">

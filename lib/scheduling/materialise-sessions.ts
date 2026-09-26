@@ -1,10 +1,13 @@
 import "server-only";
 
-import { and, eq, sql } from "drizzle-orm";
+import type { ClosureWindow } from "@/supabase/functions/_shared/services-hub";
+import { and, eq, gte, isNull, lte, sql } from "drizzle-orm";
 
 import { db } from "@/db";
 import { clinicSessions, sessionTemplates } from "@/db/schema/clinic-sessions";
 import { serviceLines } from "@/db/schema/service-lines";
+import { publicHolidays, serviceClosures } from "@/db/schema/services-hub";
+import { skipDayFor } from "@/supabase/functions/_shared/services-hub";
 import { DEFAULT_TIME_ZONE, expandSessionTemplate } from "@/supabase/functions/_shared/slots";
 
 /** Same horizon as pt-request-appointment's PATIENT_BOOKING_HORIZON_DAYS. */
@@ -17,6 +20,10 @@ const MATERIALISE_HORIZON_DAYS = 14;
  * writers produce identical `clinic_sessions` rows, and the horizon rolls
  * forward one day at a time as the cron fires.
  *
+ * 0080 (CLN-3, CLN-4): the same recurrence (every N weeks, nth weekday) and the same skip rule
+ * (public holidays unless the clinic runs on them; closures always) as the Edge Function, through
+ * the one `skipDayFor`. Also run on demand when the hub sets a clinic live (idempotent).
+ *
  * Idempotent on `clinic_sessions_template_start_unique` (a partial UNIQUE,
  * hence the `where` on the conflict target — inference needs the predicate).
  * A published instance is never rewritten: an edited rule reaches only the
@@ -26,15 +33,39 @@ export async function materialiseClinicSessions(
   now = new Date(),
 ): Promise<{ templates: number; candidates: number; inserted: number }> {
   // An inactive line publishes nothing, whatever its rules say.
-  const templates = await db
-    .select({ t: sessionTemplates })
+  const rows0 = await db
+    .select({ t: sessionTemplates, unitId: serviceLines.unitId })
     .from(sessionTemplates)
     .innerJoin(serviceLines, eq(serviceLines.id, sessionTemplates.serviceLineId))
-    .where(and(eq(sessionTemplates.active, true), eq(serviceLines.active, true)))
-    .then((rows) => rows.map((r) => r.t));
+    .where(and(eq(sessionTemplates.active, true), eq(serviceLines.active, true)));
+  const templates = rows0.map((r) => r.t);
 
   const rangeEnd = new Date(now.getTime() + MATERIALISE_HORIZON_DAYS * 86_400_000);
-  const rows = templates.flatMap((t) =>
+  const ymd = (d: Date) => d.toISOString().slice(0, 10);
+  const [holidays, closures] = await Promise.all([
+    db
+      .select({ date: publicHolidays.holidayDate })
+      .from(publicHolidays)
+      .where(
+        and(
+          gte(publicHolidays.holidayDate, ymd(now)),
+          lte(publicHolidays.holidayDate, ymd(rangeEnd)),
+        ),
+      ),
+    db
+      .select()
+      .from(serviceClosures)
+      .where(
+        and(
+          isNull(serviceClosures.liftedAt),
+          lte(serviceClosures.startsOn, ymd(rangeEnd)),
+          gte(serviceClosures.endsOn, ymd(now)),
+        ),
+      ),
+  ]);
+  const holidayDates = holidays.map((h) => h.date);
+
+  const rows = rows0.flatMap(({ t, unitId }) =>
     expandSessionTemplate(
       {
         weekday: t.weekday,
@@ -42,10 +73,29 @@ export async function materialiseClinicSessions(
         durationMinutes: t.durationMinutes,
         validFrom: t.validFrom,
         validUntil: t.validUntil,
+        repeatEveryWeeks: t.repeatEveryWeeks,
+        nthWeekday: t.nthWeekday,
       },
       now,
       rangeEnd,
       DEFAULT_TIME_ZONE,
+      skipDayFor({
+        holidays: holidayDates,
+        closures: closures
+          .filter((c) => c.hospitalId === t.hospitalId)
+          .map(
+            (c): ClosureWindow => ({
+              scope: c.scope as ClosureWindow["scope"],
+              departmentId: c.departmentId,
+              serviceLineId: c.serviceLineId,
+              startsOn: c.startsOn,
+              endsOn: c.endsOn,
+            }),
+          ),
+        runsOnHolidays: t.runsOnHolidays,
+        departmentIds: [t.departmentId, ...(unitId ? [unitId] : [])],
+        serviceLineId: t.serviceLineId,
+      }),
     ).map(({ startsAt, endsAt }) => ({
       hospitalId: t.hospitalId,
       departmentId: t.departmentId,

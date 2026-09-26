@@ -96,13 +96,15 @@ export const wardInChargeAssignments = pgTable(
       onDelete: "set null",
     }),
     notes: text("notes"),
+    /** 0080: an acting in-charge sits beside the substantive one (STR-3). */
+    acting: boolean("acting").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
     check("wic_time_order", sql`${t.endsAt} IS NULL OR ${t.endsAt} >= ${t.startsAt}`),
-    uniqueIndex("ward_in_charge_one_active")
-      .on(t.wardId)
+    uniqueIndex("ward_in_charge_one_open")
+      .on(t.wardId, t.acting)
       .where(sql`${t.endsAt} IS NULL`),
     index("ward_in_charge_nurse_idx").on(t.nurseUserId, t.startsAt),
   ],

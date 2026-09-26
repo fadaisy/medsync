@@ -58,6 +58,9 @@ const WEB = tree(
   // red only in the allowlist below, and never on the calm routes.
   "app/emergency",
   "components/emergency",
+  // ADR 0150: the Departments & services hub — amber for what's down, never red.
+  "app/hospital-admin/departments",
+  "lib/services",
 );
 const MOBILE = tree("mobile/src");
 

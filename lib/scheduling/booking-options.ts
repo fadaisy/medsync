@@ -69,6 +69,11 @@ export async function fetchLines(
   /** Null when there is no account to read continuity for (a provisional caller). */
   patientUserId: string | null,
   now: Date,
+  /**
+   * 0080 (§5.5): patient-facing callers see only clinics patients book directly; the Desk
+   * (reception) books every audience. Defaults to the patient view so a new caller is safe.
+   */
+  forPatients = true,
 ): Promise<LineOption[]> {
   const until = new Date(now.getTime() + LOOKAHEAD_DAYS * DAY_MS);
 
@@ -85,7 +90,16 @@ export async function fetchLines(
     })
     .from(serviceLines)
     .innerJoin(hospitalDepartments, eq(hospitalDepartments.id, serviceLines.departmentId))
-    .where(and(eq(serviceLines.hospitalId, hospitalId), eq(serviceLines.active, true)))
+    .where(
+      and(
+        eq(serviceLines.hospitalId, hospitalId),
+        eq(serviceLines.active, true),
+        // D-SVC-02: a clinic is bookable only while its department is live and not archived.
+        sql`${hospitalDepartments.medsyncLiveAt} IS NOT NULL`,
+        sql`${hospitalDepartments.archivedAt} IS NULL`,
+        forPatients ? eq(serviceLines.audience, "patients") : undefined,
+      ),
+    )
     .orderBy(asc(hospitalDepartments.name), asc(serviceLines.name));
   if (lineRows.length === 0) return [];
 

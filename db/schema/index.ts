@@ -107,3 +107,6 @@ export * from "./notifications";
 // ─── Low-bandwidth channels (migration 0062 — GATED, ADR 0091) ──────────
 export * from "./channels";
 export * from "./onboarding";
+
+// ─── Departments & services hub (migration 0080 — GATED, ADRs 0150–0160) ─
+export * from "./services-hub";

@@ -143,7 +143,27 @@ export type SaAuditAction =
   | "update_pre_arrival"
   | "sign_catalog_version"
   | "verify_emergency_contact"
-  | "set_hospital_emergency_settings";
+  | "set_hospital_emergency_settings"
+  // Departments & services hub (migration 0080 — GATED, ADRs 0150–0160).
+  | "update_department"
+  | "set_department_live"
+  | "set_start_department"
+  | "assign_department_head"
+  | "end_department_head"
+  | "archive_structure"
+  | "unarchive_structure"
+  | "update_ward"
+  | "update_beds"
+  | "update_place"
+  | "update_diagnostics"
+  | "set_capability"
+  | "verify_capability"
+  | "reject_capability"
+  | "report_availability"
+  | "add_closure"
+  | "lift_closure"
+  | "apply_service_preset"
+  | "import_legacy_services";
 
 export type SaAuditTargetKind =
   | "staff_affiliation"

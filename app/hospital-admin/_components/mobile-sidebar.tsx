@@ -20,6 +20,8 @@ export interface MobileHospitalNavItem {
   label: string;
   iconKey: FeatureIconKey;
   badgeCount?: number;
+  badgeTone?: "brand" | "caution";
+  badgeLabel?: string;
 }
 
 interface Props {
@@ -71,6 +73,8 @@ export function MobileSidebar({ items, hospitalName, adminEmail }: Props) {
                     label={item.label}
                     iconKey={item.iconKey}
                     badgeCount={item.badgeCount}
+                    badgeTone={item.badgeTone}
+                    badgeLabel={item.badgeLabel}
                   />
                 </SheetClose>
               </li>

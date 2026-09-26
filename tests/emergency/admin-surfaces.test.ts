@@ -58,34 +58,29 @@ describe("/hospital-admin/profile — the emergency settings form", () => {
     expect(SRC.profilePage).toContain('title="Emergency"');
   });
 
-  it("the form reveals a required board_owner_note only while pre_alert_enabled is on", () => {
+  // ADR 0158 (CAP-5): the routing values moved to Departments & services, where a second admin
+  // verifies them. The board-owner rule now lives in the hub's value check (tests/hospital-services).
+  it("the routing values are shown read-only and change in Departments & services", () => {
     const form = SRC.profileForm;
-    expect(form).toContain('name="pre_alert_enabled"');
-    const reveal = form.slice(form.indexOf("{preAlert ? ("), form.indexOf(") : ("));
-    expect(reveal).toContain('name="board_owner_note"');
-    expect(reveal).toMatch(/required/);
-    expect(reveal).toContain("A board nobody owns is a board nobody watches.");
-  });
-
-  it("the capability is three worded radio cards, and the hints are honest", () => {
-    for (const v of ['value: "none"', 'value: "daytime"', 'value: "24h"']) {
-      expect(SRC.profileForm).toContain(v);
-    }
-    expect(SRC.profileForm).toContain('type="radio"');
-    expect(SRC.profileForm).toContain(
-      "Enters the emergency contacts as unverified until a superadmin verifies it.",
-    );
-    expect(SRC.profileForm).toMatch(/orders hospitals by name/);
     for (const name of [
+      "emergency_capability",
+      "pre_alert_enabled",
+      "board_owner_note",
       "emergency_entrance_directions",
       "emergency_sms_number",
       "ambulance_number",
-      "latitude",
-      "longitude",
-      "reason",
     ]) {
+      expect(form, name).not.toContain(`name="${name}"`);
+    }
+    expect(form).toContain('href="/hospital-admin/departments/emergency"');
+    expect(form).toMatch(/second admin to verify/);
+  });
+
+  it("the coordinates stay editable here, with the honest 'nearest' hint and an audit note", () => {
+    for (const name of ["latitude", "longitude", "reason"]) {
       expect(SRC.profileForm, name).toContain(`name="${name}"`);
     }
+    expect(SRC.profileForm).toMatch(/orders hospitals by\s+name/);
   });
 
   it("the action resolves the scope, never trusts a hospital_id from the form, and calls the function", () => {

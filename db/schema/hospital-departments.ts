@@ -1,5 +1,5 @@
 import type { AnyPgColumn } from "drizzle-orm/pg-core";
-import { index, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { boolean, index, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 
 import { hospitals } from "./hospitals";
 
@@ -20,6 +20,18 @@ export const hospitalDepartments = pgTable(
     }),
     name: text("name").notNull(),
     slug: text("slug").notNull(),
+    /** 0080: 'clinical' | 'diagnostic' | 'support' | 'administrative' (STR-1). */
+    kind: text("kind").notNull().default("clinical"),
+    /** 0080: the hub catalogue code (INTERNAL_MEDICINE, LABORATORY, a lab section code …). */
+    catalogueCode: text("catalogue_code"),
+    /** 0080: live on MedSync — only live departments reach sign-up, queues and booking (D-SVC-02). */
+    medsyncLiveAt: timestamp("medsync_live_at", { withTimezone: true }),
+    /** 0080: archived, never deleted (STR-4). */
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
+    /** 0080: where this hospital starts with MedSync — one per hospital (STR-2). */
+    isStart: boolean("is_start").notNull().default(false),
+    placeId: uuid("place_id"),
+    serviceHours: text("service_hours"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },

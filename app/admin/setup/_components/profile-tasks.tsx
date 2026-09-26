@@ -6,19 +6,15 @@ import { useActionState, useState } from "react";
 import {
   BED_CAPACITY_BANDS,
   CONNECTIVITY_CHOICES,
-  DIAGNOSTIC_CHOICES,
   EMR_CHOICES,
   POWER_CHOICES,
-  SERVICE_OFFERED_CHOICES,
-  SPECIALISED_CLINIC_CHOICES,
   STAFF_BANDS,
-  SUPPORT_SERVICE_CHOICES,
 } from "@/app/signup/hospital/_lib/catalog";
 import { CHECKLIST, OPD_BANDS_V2 } from "@/content/onboarding-setup";
 import { formatUgPhone } from "@/lib/onboarding/fields";
 import { cn } from "@/lib/utils";
-import { saveContactsAction, saveOperatingAction, saveServicesAction } from "../checklist-actions";
-import { CheckGroup, fieldClass, FormStatus, SaveButton, SelectField, TextField } from "./ui";
+import { saveContactsAction, saveOperatingAction } from "../checklist-actions";
+import { fieldClass, FormStatus, SaveButton, SelectField, TextField } from "./ui";
 
 /** The application columns the Recommended and Optional tasks edit (§5.10). */
 export interface ProfileData {
@@ -42,64 +38,8 @@ export interface ProfileData {
   physicalAddress: string;
 }
 
-const S = CHECKLIST.services;
 const O = CHECKLIST.operating;
 const C = CHECKLIST.contacts;
-
-export function ServicesTask({ hospitalId, p }: { hospitalId: string; p: ProfileData }) {
-  const [state, action, pending] = useActionState<StepState, FormData>(saveServicesAction, {});
-  return (
-    <form action={action} className="flex flex-col gap-5">
-      <input type="hidden" name="hospital_id" value={hospitalId} />
-      <CheckGroup
-        legend={S.offered}
-        name="services_offered"
-        choices={SERVICE_OFFERED_CHOICES}
-        checked={p.servicesOffered}
-      />
-      <CheckGroup
-        legend={S.clinics}
-        name="specialised_clinics"
-        choices={SPECIALISED_CLINIC_CHOICES}
-        checked={p.specialisedClinics}
-      />
-      <CheckGroup
-        legend={S.diagnostics}
-        name="diagnostic_services"
-        choices={DIAGNOSTIC_CHOICES}
-        checked={p.diagnosticServices}
-      />
-      <CheckGroup
-        legend={S.support}
-        name="support_services"
-        choices={SUPPORT_SERVICE_CHOICES}
-        checked={p.supportServices}
-      />
-      <fieldset className="flex flex-col gap-1">
-        <legend className="text-body-s text-foreground mb-1 font-medium">{S.pharmacy}</legend>
-        <div className="flex gap-6">
-          {(["yes", "no"] as const).map((v) => (
-            <label
-              key={v}
-              className="text-body-s text-foreground/90 flex min-h-11 cursor-pointer items-center gap-2.5"
-            >
-              <input
-                type="radio"
-                name="has_onsite_pharmacy"
-                value={v}
-                defaultChecked={p.hasOnsitePharmacy === (v === "yes")}
-                className="size-4 accent-teal-600"
-              />
-              {CHECKLIST[v]}
-            </label>
-          ))}
-        </div>
-      </fieldset>
-      <FormStatus state={state} />
-      <SaveButton pending={pending} />
-    </form>
-  );
-}
 
 export function OperatingTask({ hospitalId, p }: { hospitalId: string; p: ProfileData }) {
   const [state, action, pending] = useActionState<StepState, FormData>(saveOperatingAction, {});

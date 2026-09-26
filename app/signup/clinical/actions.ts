@@ -33,6 +33,8 @@ export async function submitClinicalSignup(input: unknown, key: unknown): Promis
     service
       .from("hospital_departments")
       .select("id")
+      .not("medsync_live_at", "is", null)
+      .is("archived_at", null)
       .eq("id", v.departmentId)
       .eq("hospital_id", v.hospitalId)
       .maybeSingle(),

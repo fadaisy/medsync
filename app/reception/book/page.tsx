@@ -43,7 +43,7 @@ export default async function ReceptionBookPage({ searchParams }: PageProps) {
   if (patient || newCaller) {
     const now = new Date();
     const [lines, symptomOptions] = await Promise.all([
-      fetchLines(scope.hospitalId, patient?.patientUserId ?? null, now),
+      fetchLines(scope.hospitalId, patient?.patientUserId ?? null, now, false),
       loadBookingSymptoms(),
     ]);
     const open = lines.filter(

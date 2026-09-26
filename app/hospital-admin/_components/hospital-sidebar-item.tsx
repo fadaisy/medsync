@@ -4,6 +4,7 @@ import type { FeatureIconKey } from "../_lib/features";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  AlertTriangleIcon,
   BarChart3Icon,
   Building2Icon,
   CalendarClockIcon,
@@ -44,9 +45,20 @@ interface Props {
   iconKey: FeatureIconKey;
   /** Optional badge count (shown only when > 0). */
   badgeCount?: number;
+  /** "caution" = something is wrong (amber, with its icon and words); default = waiting for you. */
+  badgeTone?: "brand" | "caution";
+  /** What the count means, for screen readers ("2 services unavailable"). */
+  badgeLabel?: string;
 }
 
-export function HospitalSidebarItem({ href, label, iconKey, badgeCount }: Props) {
+export function HospitalSidebarItem({
+  href,
+  label,
+  iconKey,
+  badgeCount,
+  badgeTone = "brand",
+  badgeLabel,
+}: Props) {
   const pathname = usePathname();
   // Index route ("/hospital-admin") matches exactly; nested routes
   // match prefix-with-slash so /staff doesn't accidentally light up
@@ -76,20 +88,30 @@ export function HospitalSidebarItem({ href, label, iconKey, badgeCount }: Props)
         )}
         aria-hidden
       />
-      <span className="flex-1 truncate font-medium">{label}</span>
+      <span className="min-w-0 flex-1 leading-snug font-medium">{label}</span>
 
       {badgeCount && badgeCount > 0 ? (
-        <span
-          aria-label={`${badgeCount} pending`}
-          className={cn(
-            "scale-in rounded-full px-1.5 py-0.5 font-mono text-[10px] font-semibold tabular-nums",
-            isActive
-              ? "bg-brand-600 text-white"
-              : "bg-brand-100 text-brand-800 dark:bg-brand-900/60 dark:text-brand-200",
-          )}
-        >
-          {badgeCount}
-        </span>
+        badgeTone === "caution" ? (
+          <span
+            aria-label={badgeLabel ?? `${badgeCount} need attention`}
+            className="scale-in bg-status-caution-bg dark:text-status-caution-fg inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 font-mono text-[10px] font-semibold text-amber-800 tabular-nums"
+          >
+            <AlertTriangleIcon className="size-2.5" aria-hidden />
+            {badgeCount}
+          </span>
+        ) : (
+          <span
+            aria-label={badgeLabel ?? `${badgeCount} pending`}
+            className={cn(
+              "scale-in rounded-full px-1.5 py-0.5 font-mono text-[10px] font-semibold tabular-nums",
+              isActive
+                ? "bg-brand-600 text-white"
+                : "bg-brand-100 text-brand-800 dark:bg-brand-900/60 dark:text-brand-200",
+            )}
+          >
+            {badgeCount}
+          </span>
+        )
       ) : null}
     </Link>
   );

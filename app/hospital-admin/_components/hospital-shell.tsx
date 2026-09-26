@@ -35,6 +35,8 @@ interface HospitalShellProps {
   mfaActive: boolean;
   /** Live count for the Staff badge (pending affiliations for THIS hospital). */
   staffPendingCount: number;
+  /** Departments & services: things unavailable right now (amber badge; ADR 0157). */
+  servicesProblemCount?: number;
   children: ReactNode;
 }
 
@@ -56,13 +58,24 @@ export function HospitalShell({
   adminEmail,
   mfaActive,
   staffPendingCount,
+  servicesProblemCount = 0,
   children,
 }: HospitalShellProps) {
   const navItems = FEATURE_AREAS.map((f) => ({
     href: featurePath(f.slug),
     label: f.label,
     iconKey: f.iconKey,
-    badgeCount: f.slug === "staff" ? staffPendingCount : undefined,
+    badgeCount:
+      f.slug === "staff"
+        ? staffPendingCount
+        : f.slug === "departments"
+          ? servicesProblemCount
+          : undefined,
+    badgeTone: f.slug === "departments" ? ("caution" as const) : ("brand" as const),
+    badgeLabel:
+      f.slug === "departments" && servicesProblemCount > 0
+        ? `${servicesProblemCount} ${servicesProblemCount === 1 ? "thing" : "things"} unavailable`
+        : undefined,
   }));
 
   const paletteEntries = FEATURE_AREAS.map((f) => ({
@@ -107,6 +120,8 @@ export function HospitalShell({
                     label={item.label}
                     iconKey={item.iconKey}
                     badgeCount={item.badgeCount}
+                    badgeTone={item.badgeTone}
+                    badgeLabel={item.badgeLabel}
                   />
                 </li>
               ))}
@@ -189,7 +204,7 @@ export function HospitalShell({
                 <span className="text-muted-foreground/70" aria-hidden>
                   ·
                 </span>
-                <span className="text-muted-foreground/70">{formatLevel(scope.level)}</span>
+                <span className="text-muted-foreground">{formatLevel(scope.level)}</span>
                 {scope.state !== "active" ? (
                   <>
                     <span className="text-muted-foreground/70" aria-hidden>

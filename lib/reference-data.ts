@@ -30,7 +30,7 @@ import type {
   Subcounty,
 } from "@/db/schema/reference-data";
 import { unstable_cache } from "next/cache";
-import { and, asc, eq, isNull } from "drizzle-orm";
+import { and, asc, eq, isNotNull, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
 import { hospitalDepartments } from "@/db/schema/hospital-departments";
@@ -203,6 +203,10 @@ export const listDepartments = cached(
         and(
           eq(hospitalDepartments.hospitalId, opts.hospitalId),
           isNull(hospitalDepartments.parentId),
+          // D-SVC-02: only departments live on MedSync, of every kind (reception gets
+          // Reception & front desk once it's live); archived ones never.
+          isNotNull(hospitalDepartments.medsyncLiveAt),
+          isNull(hospitalDepartments.archivedAt),
         ),
       )
       .orderBy(asc(hospitalDepartments.name)),

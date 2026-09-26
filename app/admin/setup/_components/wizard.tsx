@@ -1,12 +1,12 @@
 "use client";
 
 import type { StepState } from "../_lib/rules";
-import type { DepartmentsData } from "./departments-task";
 import type { ProfileData } from "./profile-tasks";
 import type { ReactNode } from "react";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useActionState } from "react";
-import { CheckIcon, PlusIcon, TrashIcon } from "lucide-react";
+import { ArrowUpRightIcon, CheckIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,22 +15,12 @@ import { Pill } from "@/components/ui/pill";
 import { SETUP } from "@/content/onboarding";
 import { CHECKLIST, OPD_BANDS_V2 } from "@/content/onboarding-setup";
 import { cn } from "@/lib/utils";
-import { countDone, departmentLabel, neededTasks } from "../_lib/rules";
-import {
-  addWardAction,
-  finaliseSetupAction,
-  inviteBackupAdminAction,
-  inviteStaffAction,
-  removeWardAction,
-} from "../actions";
-import { DepartmentsTask } from "./departments-task";
+import { countDone, neededTasks } from "../_lib/rules";
+import { finaliseSetupAction, inviteBackupAdminAction, inviteStaffAction } from "../actions";
 import { formatDay, FormStatus } from "./ui";
 
 // The recommended/optional tasks sit in collapsed rows: their code loads after the page does (Law 10).
 const LocationTask = dynamic(() => import("./location-task").then((m) => m.LocationTask), {
-  ssr: false,
-});
-const ServicesTask = dynamic(() => import("./profile-tasks").then((m) => m.ServicesTask), {
   ssr: false,
 });
 const OperatingTask = dynamic(() => import("./profile-tasks").then((m) => m.OperatingTask), {
@@ -51,8 +41,17 @@ const ContactsTask = dynamic(() => import("./profile-tasks").then((m) => m.Conta
 interface WizardProps {
   hospital: { id: string; name: string };
   hasApplication: boolean;
-  departments: DepartmentsData & { confirmedCount: number; startConfirmed: boolean };
-  wards: ReadonlyArray<{ id: string; name: string; bedCount: number }>;
+  /** Departments & services facts (D-SVC-17): the checklist links there for all of these. */
+  hub: {
+    departments: number;
+    live: number;
+    start: string | null;
+    wards: number;
+    beds: number;
+    clinics: number;
+    diagnostics: number;
+    capabilities: number;
+  };
   roster: ReadonlyArray<{ id: string; designation: string; email: string; fullName: string }>;
   pendingInvitations: ReadonlyArray<{ id: string; email: string; invitedAtIso: string }>;
   location: { accuracyM: number; atIso: string | null } | null;
@@ -63,20 +62,19 @@ interface WizardProps {
 const A = CHECKLIST.action;
 
 export function SetupWizard(props: WizardProps) {
-  const { departments: d, profile: p } = props;
+  const { hub, profile: p } = props;
   const hasBackup = props.roster.some((r) => r.designation === "backup");
   const primaryDone = props.roster.some((r) => r.designation === "primary");
   const needed = neededTasks({
-    departments: d.confirmedCount,
-    startChosen: d.startConfirmed,
+    departments: hub.live,
+    startChosen: !!hub.start,
     backup: hasBackup,
-    wards: props.wards.length,
+    wards: hub.wards,
   });
   const neededTotal = Object.keys(needed).length;
   const neededDone = countDone(needed);
   const ready = neededDone === neededTotal && primaryDone;
 
-  const servicesDone = !!p && p.servicesOffered.length > 0;
   const operatingDone =
     !!p &&
     [
@@ -109,16 +107,19 @@ export function SetupWizard(props: WizardProps) {
         <Task
           title={CHECKLIST.departments.title}
           done={needed.departments}
-          summary={CHECKLIST.departments.summary(
-            d.confirmedCount,
-            d.start ? departmentLabel(d.start) : null,
-          )}
+          summary={
+            hub.start
+              ? `${hub.live} live · MedSync starts in ${hub.start}`
+              : hub.departments
+                ? `${hub.departments} set up, none live yet — set one live to start`
+                : "Choose the departments you run and where MedSync starts"
+          }
           action={needed.departments ? A.change : A.start}
         >
-          <DepartmentsTask
-            hospitalId={props.hospital.id}
-            hasApplication={props.hasApplication}
-            data={d}
+          <HubLink
+            href="/hospital-admin/departments"
+            label="Open Departments"
+            lead="Pick your departments (or start from the MoH standard for your level), set one live, and it becomes where MedSync starts. Heads of department and units are there too."
           />
         </Task>
         <Task
@@ -132,14 +133,60 @@ export function SetupWizard(props: WizardProps) {
         <Task
           title={CHECKLIST.wards.title}
           done={needed.wards}
-          summary={CHECKLIST.wards.summary(props.wards.length)}
+          summary={
+            hub.wards
+              ? `${hub.wards} ward${hub.wards === 1 ? "" : "s"} · ${hub.beds} beds`
+              : CHECKLIST.wards.summary(0)
+          }
           action={needed.wards ? A.change : A.start}
         >
-          <StepWards hospitalId={props.hospital.id} wards={props.wards} />
+          <HubLink
+            href="/hospital-admin/departments/wards"
+            label="Open Wards & beds"
+            lead="Add each ward with its department, type and bed count. ICU, HDU, isolation and NICU beds feed your emergency profile."
+          />
         </Task>
       </Group>
 
       <Group title={SETUP.recommendedTitle}>
+        <Task
+          title="Clinics and clinic days"
+          done={hub.clinics > 0}
+          summary={
+            hub.clinics ? `${hub.clinics} clinic${hub.clinics === 1 ? "" : "s"}` : "Not started"
+          }
+          action={hub.clinics ? A.change : A.start}
+        >
+          <HubLink
+            href="/hospital-admin/departments/clinics"
+            label="Open Clinics"
+            lead="Add your clinics from the catalogue and set their days, hours and places — the timetable patients book from."
+          />
+        </Task>
+        <Task
+          title="Lab tests and imaging"
+          done={hub.diagnostics > 0}
+          summary={hub.diagnostics ? `${hub.diagnostics} set` : "Not started"}
+          action={hub.diagnostics ? A.change : A.start}
+        >
+          <HubLink
+            href="/hospital-admin/departments/diagnostics"
+            label="Open Diagnostics"
+            lead="Say which tests you run in-house, which you refer out, and the imaging you have."
+          />
+        </Task>
+        <Task
+          title="Emergency and support services"
+          done={hub.capabilities > 0}
+          summary={hub.capabilities ? "Started" : "Not started"}
+          action={hub.capabilities ? A.change : A.start}
+        >
+          <HubLink
+            href="/hospital-admin/departments/emergency"
+            label="Open Emergency & support"
+            lead="Emergency department hours, theatres, blood, oxygen and the rest. Values that route emergencies need a second admin to verify them."
+          />
+        </Task>
         <Task
           title={SETUP.location}
           done={!!props.location}
@@ -151,18 +198,6 @@ export function SetupWizard(props: WizardProps) {
           action={props.location ? A.change : A.set}
         >
           <LocationTask hospitalId={props.hospital.id} saved={props.location} />
-        </Task>
-        <Task
-          title={SETUP.services}
-          done={servicesDone}
-          summary={
-            servicesDone
-              ? CHECKLIST.services.summaryDone(p.servicesOffered.length)
-              : CHECKLIST.services.summaryTodo
-          }
-          action={servicesDone ? A.change : A.start}
-        >
-          {p ? <ServicesTask hospitalId={props.hospital.id} p={p} /> : noApp}
         </Task>
         <Task
           title={SETUP.operating}
@@ -287,98 +322,19 @@ function Task({
   );
 }
 
-/* ─── Wards ──────────────────────────────────────────────────────── */
+/* ─── A link into Departments & services (D-SVC-17: links, not a second set of forms) ── */
 
-function StepWards({
-  hospitalId,
-  wards,
-}: {
-  hospitalId: string;
-  wards: ReadonlyArray<{ id: string; name: string; bedCount: number }>;
-}) {
+function HubLink({ href, label, lead }: { href: string; label: string; lead: string }) {
   return (
     <div className="flex flex-col gap-3">
-      {wards.length > 0 ? (
-        <ul className="flex flex-col gap-1.5">
-          {wards.map((w) => (
-            <li
-              key={w.id}
-              className="border-border bg-muted/30 text-body-s flex items-center justify-between gap-3 rounded-md border py-1 pr-1 pl-3"
-            >
-              <span className="text-foreground flex-1 font-medium">{w.name}</span>
-              <span className="text-muted-foreground font-mono tabular-nums">
-                {CHECKLIST.wards.bedCount(w.bedCount)}
-              </span>
-              <RemoveWardForm hospitalId={hospitalId} wardId={w.id} />
-            </li>
-          ))}
-        </ul>
-      ) : null}
-      <AddWardForm hospitalId={hospitalId} />
-    </div>
-  );
-}
-
-function AddWardForm({ hospitalId }: { hospitalId: string }) {
-  const [state, action, pending] = useActionState<StepState, FormData>(addWardAction, {});
-  return (
-    <form action={action} className="flex flex-col gap-2">
-      <input type="hidden" name="hospital_id" value={hospitalId} />
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
-        <div className="flex flex-1 flex-col gap-1">
-          <Label htmlFor="ward_name" className="text-body-s">
-            {CHECKLIST.wards.name}
-          </Label>
-          <Input
-            id="ward_name"
-            name="name"
-            placeholder={CHECKLIST.wards.namePlaceholder}
-            required
-            maxLength={120}
-            className="h-11"
-          />
-        </div>
-        <div className="flex flex-col gap-1 sm:w-[120px]">
-          <Label htmlFor="bed_count" className="text-body-s">
-            {CHECKLIST.wards.beds}
-          </Label>
-          <Input
-            id="bed_count"
-            name="bed_count"
-            type="number"
-            inputMode="numeric"
-            min={0}
-            defaultValue={0}
-            required
-            className="h-11"
-          />
-        </div>
-        <Button type="submit" variant="secondary" size="md" className="min-h-11" disabled={pending}>
-          <PlusIcon aria-hidden className="size-3.5" /> {CHECKLIST.wards.add}
-        </Button>
-      </div>
-      <FormStatus state={state} />
-    </form>
-  );
-}
-
-function RemoveWardForm({ hospitalId, wardId }: { hospitalId: string; wardId: string }) {
-  const [, action, pending] = useActionState<StepState, FormData>(removeWardAction, {});
-  return (
-    <form action={action}>
-      <input type="hidden" name="hospital_id" value={hospitalId} />
-      <input type="hidden" name="ward_id" value={wardId} />
-      <Button
-        type="submit"
-        variant="ghost"
-        size="iconSm"
-        className="size-11"
-        disabled={pending}
-        aria-label={CHECKLIST.wards.remove}
+      <p className="text-body-s text-muted-foreground">{lead}</p>
+      <Link
+        href={href}
+        className="text-body-s inline-flex min-h-11 items-center gap-1.5 self-start rounded-md bg-teal-700 px-[18px] py-2 font-medium text-white hover:bg-teal-800 dark:bg-teal-500 dark:text-teal-950"
       >
-        <TrashIcon className="size-3.5" />
-      </Button>
-    </form>
+        {label} <ArrowUpRightIcon className="size-3.5" aria-hidden />
+      </Link>
+    </div>
   );
 }
 

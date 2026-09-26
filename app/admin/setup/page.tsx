@@ -5,7 +5,6 @@ import { and, asc, desc, eq, inArray, isNull } from "drizzle-orm";
 import { db } from "@/db";
 import { hospitalAdminRoster } from "@/db/schema/hospital-admin-roster";
 import { hospitalAgreements } from "@/db/schema/hospital-agreements";
-import { hospitalApplicationDepartments } from "@/db/schema/hospital-application-departments";
 import { hospitalApplications } from "@/db/schema/hospital-applications";
 import { hospitalDepartments } from "@/db/schema/hospital-departments";
 import { hospitalDpaVersions } from "@/db/schema/hospital-dpa-versions";
@@ -13,12 +12,12 @@ import { hospitalStaffInvitations } from "@/db/schema/hospital-staff-invitations
 import { hospitalWards } from "@/db/schema/hospital-wards";
 import { hospitals } from "@/db/schema/hospitals";
 import { facilityLocations } from "@/db/schema/onboarding";
-import { specialties } from "@/db/schema/reference-data";
+import { serviceLines } from "@/db/schema/service-lines";
+import { capabilityValues, diagnosticOfferings } from "@/db/schema/services-hub";
 import { users } from "@/db/schema/users";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { SetupWizard } from "./_components/wizard";
-import { catalogCodeForSlug, imParentId, slugify } from "./_lib/rules";
 
 export const metadata: Metadata = {
   title: "Set up your hospital · MedSync",
@@ -26,9 +25,6 @@ export const metadata: Metadata = {
 };
 
 export const dynamic = "force-dynamic";
-
-/** The seeded Internal Medicine specialty (0009); its children are the IM sub-specialties. */
-const IM_SPECIALTY_ID = "00000000-0000-0000-0000-000000000f00";
 
 /**
  * Hospital setup checklist (kickoff §F, GATE D; onboarding v2 §5.10).
@@ -78,43 +74,42 @@ export default async function HospitalSetupPage() {
     .limit(1);
 
   const [
-    junction,
     deptRows,
-    imSubs,
     wards,
+    lines,
+    offerings,
+    capabilities,
     rosterRows,
     pendingInvitations,
     [location],
     [agreement],
   ] = await Promise.all([
-    app
-      ? db
-          .select({
-            code: hospitalApplicationDepartments.departmentFamily,
-            isPrimary: hospitalApplicationDepartments.isPrimary,
-          })
-          .from(hospitalApplicationDepartments)
-          .where(eq(hospitalApplicationDepartments.applicationId, app.id))
-      : Promise.resolve([]),
     db
       .select({
-        id: hospitalDepartments.id,
-        parentId: hospitalDepartments.parentId,
-        slug: hospitalDepartments.slug,
         name: hospitalDepartments.name,
+        parentId: hospitalDepartments.parentId,
+        live: hospitalDepartments.medsyncLiveAt,
+        archived: hospitalDepartments.archivedAt,
+        isStart: hospitalDepartments.isStart,
       })
       .from(hospitalDepartments)
       .where(eq(hospitalDepartments.hospitalId, hospitalId)),
     db
-      .select({ id: specialties.id, name: specialties.name })
-      .from(specialties)
-      .where(eq(specialties.parentId, IM_SPECIALTY_ID))
-      .orderBy(asc(specialties.name)),
-    db
-      .select()
+      .select({ bedCount: hospitalWards.bedCount })
       .from(hospitalWards)
-      .where(eq(hospitalWards.hospitalId, hospitalId))
-      .orderBy(asc(hospitalWards.name)),
+      .where(and(eq(hospitalWards.hospitalId, hospitalId), isNull(hospitalWards.archivedAt))),
+    db
+      .select({ id: serviceLines.id })
+      .from(serviceLines)
+      .where(and(eq(serviceLines.hospitalId, hospitalId), isNull(serviceLines.archivedAt))),
+    db
+      .select({ code: diagnosticOfferings.code })
+      .from(diagnosticOfferings)
+      .where(eq(diagnosticOfferings.hospitalId, hospitalId)),
+    db
+      .select({ key: capabilityValues.key })
+      .from(capabilityValues)
+      .where(eq(capabilityValues.hospitalId, hospitalId)),
     db
       .select({
         id: hospitalAdminRoster.id,
@@ -161,35 +156,24 @@ export default async function HospitalSetupPage() {
       .limit(1),
   ]);
 
-  // Departments: confirmed rows win; before any exist, the application's picks pre-fill.
-  const topRows = deptRows.filter((d) => d.parentId === null);
-  const confirmedCodes = [
-    ...new Set(topRows.map((d) => catalogCodeForSlug(d.slug)).filter((c) => c !== null)),
-  ];
-  const others = topRows.filter((d) => catalogCodeForSlug(d.slug) === null).map((d) => d.name);
-  const ticked = topRows.length > 0 ? confirmedCodes : junction.map((d) => d.code);
-  const imId = imParentId(deptRows);
-  const subSlugs = new Set(deptRows.filter((d) => imId && d.parentId === imId).map((d) => d.slug));
-  const primary = junction.find((d) => d.isPrimary)?.code ?? null;
-  const start = primary && ticked.includes(primary) ? primary : null;
-
+  // Departments & services (D-SVC-17): the checklist links there; "Departments" is done once a
+  // start department is live on MedSync.
+  const top = deptRows.filter((d) => d.parentId === null && !d.archived);
+  const start = top.find((d) => d.isStart && d.live) ?? null;
   return (
     <SetupWizard
       hospital={{ id: hospitalId, name: provisioning.name }}
       hasApplication={!!app}
-      departments={{
-        confirmedCount: topRows.length,
-        startConfirmed: !app || (!!start && confirmedCodes.includes(start)),
-        ticked,
-        others,
-        start,
-        subspecialties: imSubs.map((s) => ({
-          id: s.id,
-          name: s.name,
-          checked: subSlugs.has(slugify(s.name)),
-        })),
+      hub={{
+        departments: top.length,
+        live: top.filter((d) => d.live).length,
+        start: start?.name ?? null,
+        wards: wards.length,
+        beds: wards.reduce((n, w) => n + w.bedCount, 0),
+        clinics: lines.length,
+        diagnostics: offerings.length,
+        capabilities: capabilities.length,
       }}
-      wards={wards.map((w) => ({ id: w.id, name: w.name, bedCount: w.bedCount }))}
       roster={rosterRows.map((r) => ({
         id: r.id,
         designation: r.designation,

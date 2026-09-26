@@ -5,6 +5,41 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Departments & services: one place for what a hospital runs, where and when — 2026-09-26
+
+[ADR 0150](docs/adr/0150-services-hub-single-editor.md), [0151](docs/adr/0151-services-hub-reuse-map.md), [0152](docs/adr/0152-department-kinds-and-live-status.md), [0153](docs/adr/0153-effective-dated-heads-and-in-charges.md), [0154](docs/adr/0154-clinics-days-holidays-closures.md), [0155](docs/adr/0155-confidential-clinics-in-messages.md), [0156](docs/adr/0156-test-menu-overlay.md), [0157](docs/adr/0157-availability-events.md), [0158](docs/adr/0158-four-eyes-routing-capabilities.md), [0159](docs/adr/0159-capability-profile.md), [0160](docs/adr/0160-level-presets.md). Gate record: `docs/hospital-services/STOP-REPORTS.md`.
+
+Migration `0080_hospital_services_hub.sql` (GATED, additive: every existing department is backfilled live, so no reader changes on apply). Edge Functions: `ha-services-hub` (new), `ha-upsert-session-template` and `ha-set-hospital-emergency-settings` (changed).
+
+- **`/hospital-admin/departments` becomes Departments & services**, with seven tabs: Departments, Wards & beds, Clinics, Diagnostics, Emergency & support, Availability, Hours & places. Every write goes through `ha-services-hub` (30 ops), and the audit row is written first.
+- **Departments:**
+  - four kinds, with units;
+  - a "Live on MedSync" switch: only live departments reach sign-up, queues, intake, booking and USSD;
+  - one start department;
+  - effective-dated heads and acting heads;
+  - archive instead of delete.
+- **Wards & beds:** type, sex and age group; an optional bed register; in-charges and acting in-charges (reusing 0031); temporary closures. ICU, HDU, isolation and NICU counts are derived from wards.
+- **Clinics are the booking engine's services.** Clinic days are its templates, which now support every N weeks, the nth weekday, and public holidays (seeded 2026–27, with their source).
+  - Closures preview the affected sessions and bookings, then run the existing cancel flow.
+  - The timetable prints on one A4 landscape page.
+  - HIV/ART, TB, mental health, family planning and SRH clinics are confidential by default.
+- **Diagnostics:** a per-hospital overlay on the ordering catalogue: in-house or referred, hours, stated turnaround. Plus imaging and other tests.
+- **Emergency & support:** typed capability values. **Routing values need a second admin to verify them**, and the profile's emergency form no longer edits them (CAP-5).
+- **Availability:** an append-only problem log. A problem turns "unconfirmed" after its expected-back date. It informs ordering and booking and never blocks them.
+- **Presets:** five level presets (MoH 2016, signed) and a one-time import of the application's answers. Both add items as Planned only.
+- **Also:**
+  - a capability profile for three audiences, with no personal data;
+  - ⌘K groups for departments, wards, clinics and tests;
+  - an amber "unavailable" badge on the nav item;
+  - the onboarding checklist links into the hub.
+- **Numbers:**
+  - tab switch p95 33 ms;
+  - 6–14 KB gz of JS per tab;
+  - axe clean on 27 scans;
+  - 95/95 RLS probes;
+  - all 30 ops run end to end against PGlite, 60/60 checks.
+- **Not met:** the ≥ 70 % preset interaction target, which is met for the structure a preset adds (72 %) but not for the whole setup (~14 %). See STOP 7.
+
 ### Fixed — Signing out on one device no longer signs you out everywhere — 2026-09-25
 
 No migration. Deploy: `npx vercel deploy --prod --yes`; the phone change ships with the next app build.

@@ -23,6 +23,11 @@
  *
  * `emergency_phone` (the one number ADR 0084 §3 trusts) stays
  * sa-set-emergency-phone's — superadmin-only, dialled first.
+ *
+ * 0080 (ADR 0158, CAP-5): the ROUTING values — emergency capability, pre-alerts and their board
+ * owner, directions, the SMS and ambulance numbers — change only through the Departments &
+ * services hub, where a second admin verifies them. This function now keeps the coordinates and
+ * refuses any change to a routing value (sending the current value unchanged is fine).
  */
 
 import { z } from "npm:zod@4.4.3";
@@ -31,6 +36,7 @@ import { getCaller, hasRole, serviceClient } from "../_shared/auth.ts";
 import { preflight } from "../_shared/cors.ts";
 import {
   badRequest,
+  conflict,
   forbidden,
   methodNotAllowed,
   notFound,
@@ -52,8 +58,8 @@ const NUMBER_HINT = "Use the full international form with no spaces, e.g. +256XX
 const InputSchema = z
   .object({
     hospital_id: z.string().uuid(),
-    emergency_capability: z.enum(["none", "daytime", "24h"]),
-    pre_alert_enabled: z.boolean(),
+    emergency_capability: z.enum(["none", "daytime", "24h"]).optional(),
+    pre_alert_enabled: z.boolean().optional(),
     board_owner_note: z.string().trim().min(3).max(240).nullable().optional(),
     emergency_entrance_directions: z.string().trim().min(1).max(500).nullable().optional(),
     emergency_sms_number: z.string().trim().regex(UG_E164, NUMBER_HINT).nullable().optional(),
@@ -100,6 +106,16 @@ const SETTING_KEYS = [
   "longitude",
 ] as const;
 
+/** The routing values (CAP-5): only the hub's verify step writes them now. */
+const ROUTING_KEYS = [
+  "emergency_capability",
+  "pre_alert_enabled",
+  "board_owner_note",
+  "emergency_entrance_directions",
+  "emergency_sms_number",
+  "ambulance_number",
+] as const;
+
 Deno.serve(async (request: Request) => {
   const origin = request.headers.get("origin");
   const requestId = request.headers.get("x-request-id") ?? crypto.randomUUID();
@@ -142,6 +158,18 @@ Deno.serve(async (request: Request) => {
   // Absent = untouched, null = cleared.
   const patch: Partial<Record<(typeof SETTING_KEYS)[number], unknown>> = {};
   for (const key of SETTING_KEYS) if (input[key] !== undefined) patch[key] = input[key];
+
+  // CAP-5: one person may not change where an emergency goes.
+  const changedRouting = ROUTING_KEYS.filter(
+    (key) => key in patch && (patch[key] ?? null) !== (hospital[key] ?? null),
+  );
+  if (changedRouting.length > 0) {
+    return conflict(
+      "Emergency routing values change in Departments & services → Emergency & support, where a second admin verifies them.",
+      init,
+      { fields: changedRouting },
+    );
+  }
   const next = { ...hospital, ...patch } as HospitalRow;
 
   if (next.pre_alert_enabled && !next.board_owner_note) {
