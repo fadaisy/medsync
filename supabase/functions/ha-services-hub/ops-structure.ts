@@ -34,6 +34,8 @@ export const StructureOpSchema = z.discriminatedUnion("op", [
       .array(z.object({ name: z.string().trim().min(2).max(80), kind }))
       .max(5)
       .default([]),
+    /** Live on MedSync at once (the hub's default). Absent = the older "Not on MedSync yet". */
+    live: z.boolean().default(false),
     reason,
   }),
   z.object({
@@ -49,6 +51,11 @@ export const StructureOpSchema = z.discriminatedUnion("op", [
     op: z.literal("set_department_live"),
     department_id: uuid,
     live: z.boolean(),
+    reason,
+  }),
+  z.object({
+    op: z.literal("set_departments_live"),
+    department_ids: z.array(uuid).min(1).max(40),
     reason,
   }),
   z.object({ op: z.literal("set_start_department"), department_id: uuid, reason }),
@@ -254,6 +261,18 @@ const addDepartments: OpHandler = async (ctx, i) => {
     });
   }
   if (!rows.length) throw new HubError("Those departments are already set up.", 409);
+  // Live on add: the first live department a hospital has is where it starts (as liveChange does).
+  let start: string | null = null;
+  if (i.live) {
+    const at = nowIso();
+    // Every row carries both keys: a multi-row insert fills a missing key with NULL, not its default.
+    for (const r of rows) Object.assign(r, { medsync_live_at: at, is_start: false });
+    if (!existing.some((d) => d.is_start)) {
+      const first = rows.find((r) => r.kind === "clinical") ?? rows[0]!;
+      first.is_start = true;
+      start = first.name as string;
+    }
+  }
   const names = rows.map((r) => r.name as string);
   return {
     audit: {
@@ -262,11 +281,11 @@ const addDepartments: OpHandler = async (ctx, i) => {
         i.reason,
         `Added ${rows.length} department(s): ${names.join(", ")}`.slice(0, 480),
       ),
-      after: { added: names, skipped },
+      after: { added: names, skipped, live: i.live, start },
     },
     apply: async () => {
       must(await ctx.sb.from("hospital_departments").insert(rows), "insert departments");
-      return { added: names.length, skipped };
+      return { added: names.length, skipped, start };
     },
   };
 };
@@ -348,6 +367,48 @@ const setDepartmentLive: OpHandler = async (ctx, i) => {
         );
       }
       return { live: i.live, became_start: verdict.makeStart };
+    },
+  };
+};
+
+/** "Set them live" for the departments still Not on MedSync yet: one audit row, the same start rule. */
+const setDepartmentsLive: OpHandler = async (ctx, i) => {
+  const all = await allDepartments(ctx);
+  const picked = (i.department_ids as string[]).map((id) => all.find((d) => d.id === id));
+  if (picked.some((d) => !d || d.parent_id !== null || d.archived_at !== null))
+    throw new HubError("Only this hospital's current top-level departments can be set live here.");
+  const off = picked.filter((d) => d!.medsync_live_at === null).map((d) => d!);
+  if (!off.length) throw new HubError("Those departments are already live.", 409);
+  const start = all.some((d) => d.is_start)
+    ? null
+    : (off.find((d) => d.kind === "clinical") ?? off[0]!);
+  const ids = off.flatMap((d) => [
+    d.id,
+    ...all.filter((u) => u.parent_id === d.id).map((u) => u.id),
+  ]);
+  const names = off.map((d) => d.name);
+  return {
+    audit: {
+      action: "set_department_live",
+      reason: reasonOr(i.reason, `Set live on MedSync: ${names.join(", ")}`.slice(0, 480)),
+      before: { department_ids: off.map((d) => d.id), live: false },
+      after: { live: true, start: start?.name ?? null },
+    },
+    apply: async () => {
+      must(
+        await ctx.sb
+          .from("hospital_departments")
+          .update({ medsync_live_at: nowIso() })
+          .in("id", ids),
+        "live",
+      );
+      if (start) {
+        must(
+          await ctx.sb.from("hospital_departments").update({ is_start: true }).eq("id", start.id),
+          "start",
+        );
+      }
+      return { live: names.length, start: start?.name ?? null };
     },
   };
 };
@@ -989,6 +1050,7 @@ export const STRUCTURE_OPS: Record<string, OpHandler> = {
   add_departments: addDepartments,
   update_department: updateDepartment,
   set_department_live: setDepartmentLive,
+  set_departments_live: setDepartmentsLive,
   set_start_department: setStartDepartment,
   assign_head: assignHead,
   end_head: endHead,

@@ -286,6 +286,13 @@ All buttons: font-weight 500, letter-spacing -0.01em, transition `all 150ms cubi
 
 ---
 
+### Pop-ups (ADR 0161)
+
+- **Every pop-up is a centred landscape card:** `components/medsync/editor-dialog.tsx`, `EditorDialog`. It has a header, a scrolling body (at most 88svh) and a footer, and ✕, Esc or the backdrop close it.
+  - Use `wide` (5xl) for detail panels and catalogues, with sections side by side.
+  - Use `medium` (3xl) for short forms.
+- **No side sheets or drawers** slide in from an edge for content. The phone navigation menu is the only exception, because it is navigation.
+
 ## Interaction & Motion
 
 ### Easing

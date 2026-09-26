@@ -784,14 +784,12 @@ const confirmStillDown: OpHandler = async (ctx, i) => {
     },
     apply: async () => {
       must(
-        await ctx.sb
-          .from("availability_events")
-          .insert(
-            eventRow(ctx, base, {
-              event: "confirmed",
-              expected_back_at: i.expected_back_at ?? null,
-            }),
-          ),
+        await ctx.sb.from("availability_events").insert(
+          eventRow(ctx, base, {
+            event: "confirmed",
+            expected_back_at: i.expected_back_at ?? null,
+          }),
+        ),
         "confirm",
       );
     },

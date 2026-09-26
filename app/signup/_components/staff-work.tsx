@@ -106,17 +106,19 @@ function DepartmentField({ hospitalId, label }: { hospitalId: string; label: str
   const { control } = useFormContext();
   const { field } = useController({ name: "departmentId", control });
   const a11y = useFieldA11y("departmentId", false);
-  const [loaded, setLoaded] = useState<{ for: string; rows: { id: string; name: string }[] }>({
-    for: "",
-    rows: [],
-  });
+  const [loaded, setLoaded] = useState<{
+    for: string;
+    rows: { id: string; name: string }[];
+    failed?: boolean;
+  }>({ for: "", rows: [] });
 
   useEffect(() => {
     if (!hospitalId) return;
     let live = true;
     void departmentsAction(hospitalId)
       .then((rows) => live && setLoaded({ for: hospitalId, rows }))
-      .catch(() => live && setLoaded({ for: hospitalId, rows: [] }));
+      // A failed lookup must not read as "no departments" (that sends people to the wrong fix).
+      .catch(() => live && setLoaded({ for: hospitalId, rows: [], failed: true }));
     return () => {
       live = false;
     };
@@ -130,7 +132,9 @@ function DepartmentField({ hospitalId, label }: { hospitalId: string; label: str
       ? STAFF.departmentLoading
       : rows.length
         ? STAFF.departmentPlaceholder
-        : STAFF.departmentNone;
+        : loaded.failed
+          ? STAFF.departmentFailed
+          : STAFF.departmentNone;
 
   return (
     <FieldShell name="departmentId" label={label}>

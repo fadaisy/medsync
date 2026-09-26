@@ -4,13 +4,13 @@ import type { HubResult } from "../_lib/types";
 import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { AlertTriangleIcon, ChevronRightIcon } from "lucide-react";
+import { AlertTriangleIcon, ChevronRightIcon, XIcon } from "lucide-react";
 
+import { EditorDialog } from "@/components/medsync/editor-dialog";
 import { Button } from "@/components/ui/button";
 import {
-  Sheet,
   SheetBody,
-  SheetContent,
+  SheetClose,
   SheetDescription,
   SheetFooter,
   SheetHeader,
@@ -112,7 +112,11 @@ export function ErrorLine({ error }: { error: string | null }) {
   );
 }
 
-/** The one slide-out panel shape every row opens (contract §5). Reduced motion is the primitive's. */
+/**
+ * The one pop-up every row opens: a centred landscape card (the console's EditorDialog), never a
+ * drawer from the edge (ADR 0161). `wide` seats two columns side by side (`PanelColumns`); the
+ * default is the medium card for short forms. Reduced motion is the primitive's.
+ */
 export function HubPanel({
   open,
   onClose,
@@ -120,6 +124,7 @@ export function HubPanel({
   description,
   children,
   footer,
+  wide = false,
 }: {
   open: boolean;
   onClose: () => void;
@@ -127,18 +132,43 @@ export function HubPanel({
   description?: ReactNode;
   children: ReactNode;
   footer?: ReactNode;
+  wide?: boolean;
 }) {
   return (
-    <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
-      <SheetContent widthClassName="w-full sm:max-w-[600px]">
-        <SheetHeader>
-          <SheetTitle>{title}</SheetTitle>
-          {description ? <SheetDescription>{description}</SheetDescription> : null}
-        </SheetHeader>
-        <SheetBody className="flex flex-col gap-6">{children}</SheetBody>
-        {footer ? <SheetFooter>{footer}</SheetFooter> : null}
-      </SheetContent>
-    </Sheet>
+    <EditorDialog
+      open={open}
+      onOpenChange={(o) => !o && onClose()}
+      width={wide ? "wide" : "medium"}
+    >
+      <SheetHeader className="relative pr-14">
+        <SheetTitle>{title}</SheetTitle>
+        {description ? <SheetDescription>{description}</SheetDescription> : null}
+        <SheetClose
+          render={
+            <Button
+              variant="ghost"
+              size="iconSm"
+              aria-label="Close"
+              className="absolute top-4 right-4"
+            />
+          }
+        >
+          <XIcon className="size-4" />
+        </SheetClose>
+      </SheetHeader>
+      <SheetBody className="flex flex-col gap-6">{children}</SheetBody>
+      {footer ? <SheetFooter>{footer}</SheetFooter> : null}
+    </EditorDialog>
+  );
+}
+
+/** A wide panel's two stacks: side by side on a landscape screen, one after the other on a phone. */
+export function PanelColumns({ left, right }: { left: ReactNode; right: ReactNode }) {
+  return (
+    <div className="grid gap-x-10 gap-y-6 lg:grid-cols-2 lg:items-start">
+      <div className="flex min-w-0 flex-col gap-6">{left}</div>
+      <div className="flex min-w-0 flex-col gap-6">{right}</div>
+    </div>
   );
 }
 

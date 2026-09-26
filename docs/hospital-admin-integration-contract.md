@@ -131,24 +131,19 @@ registry is the contract; the shell is the consumer.
 
 ---
 
-## 5. Slide-out panel API
+## 5. Pop-up API (ADR 0161: centred landscape dialogs, never side sheets)
 
-The shell exposes the existing `<Sheet>` primitive from
-`components/ui/sheet.tsx`. No new wrapper. Features open detail panels
-exactly like the superadmin approvals queue does today:
+Features open detail panels and editors in the console's centred landscape card, `EditorDialog` from `components/medsync/editor-dialog.tsx`, with the Sheet's header, body and footer pieces inside. This is what Scheduling does today:
 
 ```tsx
-<Sheet open={!!selected} onOpenChange={(o) => setSelected(o ? selected : null)}>
-  <SheetContent widthClassName="w-full sm:max-w-[600px]">
-    <SheetHeader>{/* ... */}</SheetHeader>
-    <SheetBody>{/* ... */}</SheetBody>
-    <SheetFooter>{/* approve / reject buttons */}</SheetFooter>
-  </SheetContent>
-</Sheet>
+<EditorDialog open={!!selected} onOpenChange={(o) => !o && setSelected(null)} width="wide">
+  <SheetHeader>{/* title, description, ✕ */}</SheetHeader>
+  <SheetBody>{/* sections; `wide` seats them side by side */}</SheetBody>
+  <SheetFooter>{/* primary action */}</SheetFooter>
+</EditorDialog>
 ```
 
-The primitive handles focus trap, Esc-to-close, backdrop dismiss, and
-reduced-motion safely. Features supply content + buttons.
+The dialog primitive handles the focus trap, Esc to close, dismissing from the backdrop, and reduced motion. Features supply the content and the buttons. Do not use `SheetContent`, because nothing slides in from an edge. Departments & services wraps this as `HubPanel` and `PanelColumns`.
 
 ---
 

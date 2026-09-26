@@ -17,6 +17,7 @@ import {
   HonestLine,
   HubPanel,
   inputClass,
+  PanelColumns,
   RowButton,
   Select,
   StatusChip,
@@ -212,18 +213,8 @@ function WardPanel({
       () => !ward && onClose(),
     );
 
-  return (
-    <HubPanel
-      open
-      onClose={onClose}
-      title={ward ? ward.name : "Add a ward"}
-      description={
-        ward
-          ? "Every change is audited."
-          : "Name, department and beds are enough to start; the rest can follow."
-      }
-    >
-      <ErrorLine error={hub.error} />
+  const details = (
+    <>
       <section className="grid gap-3 sm:grid-cols-2">
         <Field label="Ward name">
           <input
@@ -287,30 +278,57 @@ function WardPanel({
           {hub.pending ? "Saving…" : ward ? "Save ward" : "Add ward"}
         </Button>
       </div>
+    </>
+  );
+
+  return (
+    <HubPanel
+      open
+      wide={!!ward && !ward.archived}
+      onClose={onClose}
+      title={ward ? ward.name : "Add a ward"}
+      description={
+        ward
+          ? "Every change is audited."
+          : "Name, department and beds are enough to start; the rest can follow."
+      }
+    >
+      <ErrorLine error={hub.error} />
 
       {ward && !ward.archived ? (
-        <>
-          <InCharge ward={ward} nurses={nurses} />
-          <BedRegister ward={ward} />
-          <Closure ward={ward} />
-          <section className="border-border border-t pt-4">
-            <ConfirmBlock
-              verb="Archive ward"
-              tone="caution"
-              pending={hub.pending}
-              consequence={
-                <>
-                  It leaves every list and its beds stop counting. Its history stays, and you can
-                  restore it.
-                </>
-              }
-              onConfirm={(reason) =>
-                hub.run({ op: "archive", target: "ward", id: ward.id, reason }, onClose)
-              }
-            />
-          </section>
-        </>
-      ) : null}
+        <PanelColumns
+          left={
+            <>
+              {details}
+              <Closure ward={ward} />
+              <section className="border-border border-t pt-4">
+                <ConfirmBlock
+                  verb="Archive ward"
+                  tone="caution"
+                  pending={hub.pending}
+                  consequence={
+                    <>
+                      It leaves every list and its beds stop counting. Its history stays, and you
+                      can restore it.
+                    </>
+                  }
+                  onConfirm={(reason) =>
+                    hub.run({ op: "archive", target: "ward", id: ward.id, reason }, onClose)
+                  }
+                />
+              </section>
+            </>
+          }
+          right={
+            <>
+              <InCharge ward={ward} nurses={nurses} />
+              <BedRegister ward={ward} />
+            </>
+          }
+        />
+      ) : (
+        details
+      )}
       {ward?.archived ? (
         <Button
           variant="secondary"

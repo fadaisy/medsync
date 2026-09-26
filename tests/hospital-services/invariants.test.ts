@@ -72,7 +72,7 @@ describe("ha-services-hub — the contract's action pattern (Law 10)", () => {
     const handled = [...maps.matchAll(/^\s*([a-z_]+)(?::\s*[a-zA-Z]+)?,$/gm)]
       .map((m) => m[1])
       .sort();
-    expect(declared.length).toBe(30);
+    expect(declared.length).toBe(31);
     expect(handled).toEqual(declared);
   });
 });
@@ -203,5 +203,25 @@ describe("H10 — honest numbers: no occupancy figure without its engine", () =>
       expect(src, p).not.toMatch(/occupan\w*\s*[:=]\s*[^"'`]/i);
       expect(src, p).not.toMatch(/occupiedBeds\s*[:=]\s*[1-9a-z]/);
     }
+  });
+});
+
+describe("sign-up sees the hub at once, and pop-ups are centred (ADR 0161)", () => {
+  it("listDepartments is not behind the hour-long reference-data cache", () => {
+    const src = read("lib/reference-data.ts");
+    expect(src).toMatch(/export async function listDepartments\(/);
+    expect(src).not.toMatch(/cached\(\s*"listDepartments"/);
+  });
+
+  it("a failed department lookup never reads as 'no departments'", () => {
+    const src = read("app/signup/_components/staff-work.tsx");
+    expect(src).toMatch(/failed: true/);
+    expect(src).toMatch(/STAFF\.departmentFailed/);
+  });
+
+  it("nothing in the hub slides in from an edge: HubPanel is the centred EditorDialog", () => {
+    for (const f of walk("app/hospital-admin/departments").filter((p) => p.endsWith(".tsx")))
+      expect(read(f), f).not.toMatch(/<SheetContent|<Sheet\b/);
+    expect(read("app/hospital-admin/departments/_components/hub-ui.tsx")).toMatch(/<EditorDialog/);
   });
 });

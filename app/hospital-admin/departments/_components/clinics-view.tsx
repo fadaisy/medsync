@@ -18,6 +18,7 @@ import {
   fmtDay,
   HubPanel,
   inputClass,
+  PanelColumns,
   RowButton,
   Select,
   StatusChip,
@@ -625,6 +626,7 @@ function ClinicPanel({
   return (
     <HubPanel
       open
+      wide
       onClose={onClose}
       title={clinic.name}
       description={
@@ -654,207 +656,225 @@ function ClinicPanel({
           Restore from the archive
         </Button>
       ) : (
-        <>
-          <section className="flex flex-col gap-2">
-            <h3 className="text-foreground text-body-s font-medium">Booking</h3>
-            {planned ? (
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-body-s text-muted-foreground">
-                  Planned — nobody can book it yet.
-                </span>
-                <Button
-                  size="sm"
-                  disabled={hub.pending || !dept?.live}
-                  onClick={() => hub.call(() => setClinicLive(clinic.id, true))}
-                >
-                  Set live for booking
-                </Button>
-                {!dept?.live ? (
-                  <span className="text-muted-foreground text-caption">
-                    Set {dept?.name ?? "its department"} live first.
-                  </span>
-                ) : null}
-              </div>
-            ) : (
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-body-s text-muted-foreground">
-                  Live — bookable in the days below.
-                </span>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  disabled={hub.pending}
-                  onClick={() => hub.call(() => setClinicLive(clinic.id, false))}
-                >
-                  Back to planned
-                </Button>
-              </div>
-            )}
-          </section>
-
-          <section className="grid gap-3 sm:grid-cols-2">
-            <Field label="Who can book">
-              <Select
-                value={clinic.audience}
-                onChange={(v) =>
-                  hub.run({ op: "update_clinic", service_line_id: clinic.id, audience: v })
-                }
-                options={AUDIENCE}
-              />
-            </Field>
-            <Field label="Place">
-              <Select
-                value={clinic.placeId ?? ""}
-                placeholder="No place set"
-                onChange={(v) =>
-                  hub.run({ op: "update_clinic", service_line_id: clinic.id, place_id: v || null })
-                }
-                options={places.map((p) => ({ value: p.id, label: p.name }))}
-              />
-            </Field>
-            <Field label="Department">
-              <Select
-                value={clinic.departmentId}
-                onChange={(v) =>
-                  hub.run({
-                    op: "update_clinic",
-                    service_line_id: clinic.id,
-                    department_id: v,
-                    unit_id: null,
-                  })
-                }
-                options={top.map((d) => ({ value: d.id, label: d.name }))}
-              />
-            </Field>
-            <Field label="Unit (optional)">
-              <Select
-                value={clinic.unitId ?? ""}
-                placeholder="The whole department"
-                onChange={(v) =>
-                  hub.run({ op: "update_clinic", service_line_id: clinic.id, unit_id: v || null })
-                }
-                options={units.map((u) => ({ value: u.id, label: u.name }))}
-              />
-            </Field>
-          </section>
-
-          <section className="flex flex-col gap-1.5">
-            <h3 className="text-foreground text-body-s font-medium">Confidential</h3>
-            <YesNo
-              name="Confidential"
-              value={clinic.confidential}
-              onChange={(v) =>
-                hub.run({ op: "update_clinic", service_line_id: clinic.id, confidential: v })
-              }
-            />
-            <p className="text-muted-foreground text-caption">
-              Patient messages won&apos;t name this clinic.
-            </p>
-          </section>
-
-          <section className="flex flex-col gap-2">
-            <div className="flex items-center justify-between gap-2">
-              <h3 className="text-foreground text-body-s font-medium">Clinic days</h3>
-              {sessionMode ? (
-                <span className="flex gap-1.5">
-                  <Button size="sm" variant="secondary" onClick={() => setEditing("new")}>
-                    <PlusIcon aria-hidden /> Add days
-                  </Button>
-                  <Button size="sm" variant="ghost" onClick={() => setEditing("one_off")}>
-                    One-off session
-                  </Button>
-                </span>
-              ) : null}
-            </div>
-            {!sessionMode ? (
-              <p className="text-body-s text-muted-foreground">
-                This line books by clinician slots. Its days live in each clinician&apos;s schedule
-                —{" "}
-                <Link href="/hospital-admin/scheduling" className="text-teal-700 hover:underline">
-                  Scheduling
-                </Link>
-                .
-              </p>
-            ) : days.length ? (
-              <ul className="divide-border border-border divide-y rounded-md border">
-                {days.map((t) => (
-                  <li key={t.id} className="flex flex-wrap items-center gap-2 px-3 py-2">
-                    <span className="text-foreground text-body-s flex-1">
-                      {patternText(t)}, {hhmm(t.startMinutesLocal)}–
-                      {hhmm(t.startMinutesLocal + t.durationMinutes)}
-                      <span className="text-muted-foreground text-caption block">
-                        {t.capacityTotal} places · {t.capacityBooked} booked /{" "}
-                        {t.capacityTotal - t.capacityBooked} walk-in
-                        {t.venue ? ` · ${t.venue}` : ""}
-                        {t.runsOnHolidays ? " · runs on public holidays" : ""}
-                      </span>
+        <PanelColumns
+          left={
+            <>
+              <section className="flex flex-col gap-2">
+                <h3 className="text-foreground text-body-s font-medium">Booking</h3>
+                {planned ? (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-body-s text-muted-foreground">
+                      Planned — nobody can book it yet.
                     </span>
-                    <Button size="sm" variant="ghost" onClick={() => setEditing(t)}>
-                      Change
+                    <Button
+                      size="sm"
+                      disabled={hub.pending || !dept?.live}
+                      onClick={() => hub.call(() => setClinicLive(clinic.id, true))}
+                    >
+                      Set live for booking
                     </Button>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="text-body-s text-muted-foreground">No days yet.</p>
-            )}
-            {editing ? (
-              <DayForm
-                key={typeof editing === "string" ? editing : editing.id}
-                clinicId={clinic.id}
-                existing={typeof editing === "string" ? null : editing}
-                oneOff={editing === "one_off"}
-                places={places}
-                clinicians={clinicians}
-                onDone={() => setEditing(null)}
-              />
-            ) : null}
-          </section>
+                    {!dept?.live ? (
+                      <span className="text-muted-foreground text-caption">
+                        Set {dept?.name ?? "its department"} live first.
+                      </span>
+                    ) : null}
+                  </div>
+                ) : (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-body-s text-muted-foreground">
+                      Live — bookable in the days below.
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      disabled={hub.pending}
+                      onClick={() => hub.call(() => setClinicLive(clinic.id, false))}
+                    >
+                      Back to planned
+                    </Button>
+                  </div>
+                )}
+              </section>
 
-          {exceptions.length || closures.length ? (
-            <section className="flex flex-col gap-1.5">
-              <h3 className="text-foreground text-body-s font-medium">Upcoming exceptions</h3>
-              <ul className="text-body-s text-muted-foreground flex flex-col gap-1">
-                {exceptions.map((h) => (
-                  <li key={h.date}>
-                    {fmtDay(h.date)} — {h.name}: skipped
-                  </li>
-                ))}
-                {closures.map((c, i) => (
-                  <li key={i} className="flex flex-wrap items-center gap-2">
-                    {c.startsOn >
-                    new Date().toLocaleDateString("en-CA", { timeZone: "Africa/Kampala" }) ? (
-                      <StatusChip status="planned" />
-                    ) : (
-                      <Amber>Closed</Amber>
-                    )}{" "}
-                    {fmtDay(c.startsOn)}
-                    {c.endsOn !== c.startsOn ? ` – ${fmtDay(c.endsOn)}` : ""}: {c.reason}
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ) : null}
+              <section className="grid gap-3 sm:grid-cols-2">
+                <Field label="Who can book">
+                  <Select
+                    value={clinic.audience}
+                    onChange={(v) =>
+                      hub.run({ op: "update_clinic", service_line_id: clinic.id, audience: v })
+                    }
+                    options={AUDIENCE}
+                  />
+                </Field>
+                <Field label="Place">
+                  <Select
+                    value={clinic.placeId ?? ""}
+                    placeholder="No place set"
+                    onChange={(v) =>
+                      hub.run({
+                        op: "update_clinic",
+                        service_line_id: clinic.id,
+                        place_id: v || null,
+                      })
+                    }
+                    options={places.map((p) => ({ value: p.id, label: p.name }))}
+                  />
+                </Field>
+                <Field label="Department">
+                  <Select
+                    value={clinic.departmentId}
+                    onChange={(v) =>
+                      hub.run({
+                        op: "update_clinic",
+                        service_line_id: clinic.id,
+                        department_id: v,
+                        unit_id: null,
+                      })
+                    }
+                    options={top.map((d) => ({ value: d.id, label: d.name }))}
+                  />
+                </Field>
+                <Field label="Unit (optional)">
+                  <Select
+                    value={clinic.unitId ?? ""}
+                    placeholder="The whole department"
+                    onChange={(v) =>
+                      hub.run({
+                        op: "update_clinic",
+                        service_line_id: clinic.id,
+                        unit_id: v || null,
+                      })
+                    }
+                    options={units.map((u) => ({ value: u.id, label: u.name }))}
+                  />
+                </Field>
+              </section>
 
-          <CloseForDates clinicId={clinic.id} />
+              <section className="flex flex-col gap-1.5">
+                <h3 className="text-foreground text-body-s font-medium">Confidential</h3>
+                <YesNo
+                  name="Confidential"
+                  value={clinic.confidential}
+                  onChange={(v) =>
+                    hub.run({ op: "update_clinic", service_line_id: clinic.id, confidential: v })
+                  }
+                />
+                <p className="text-muted-foreground text-caption">
+                  Patient messages won&apos;t name this clinic.
+                </p>
+              </section>
+            </>
+          }
+          right={
+            <>
+              <section className="flex flex-col gap-2">
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="text-foreground text-body-s font-medium">Clinic days</h3>
+                  {sessionMode ? (
+                    <span className="flex gap-1.5">
+                      <Button size="sm" variant="secondary" onClick={() => setEditing("new")}>
+                        <PlusIcon aria-hidden /> Add days
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => setEditing("one_off")}>
+                        One-off session
+                      </Button>
+                    </span>
+                  ) : null}
+                </div>
+                {!sessionMode ? (
+                  <p className="text-body-s text-muted-foreground">
+                    This line books by clinician slots. Its days live in each clinician&apos;s
+                    schedule —{" "}
+                    <Link
+                      href="/hospital-admin/scheduling"
+                      className="text-teal-700 hover:underline"
+                    >
+                      Scheduling
+                    </Link>
+                    .
+                  </p>
+                ) : days.length ? (
+                  <ul className="divide-border border-border divide-y rounded-md border">
+                    {days.map((t) => (
+                      <li key={t.id} className="flex flex-wrap items-center gap-2 px-3 py-2">
+                        <span className="text-foreground text-body-s flex-1">
+                          {patternText(t)}, {hhmm(t.startMinutesLocal)}–
+                          {hhmm(t.startMinutesLocal + t.durationMinutes)}
+                          <span className="text-muted-foreground text-caption block">
+                            {t.capacityTotal} places · {t.capacityBooked} booked /{" "}
+                            {t.capacityTotal - t.capacityBooked} walk-in
+                            {t.venue ? ` · ${t.venue}` : ""}
+                            {t.runsOnHolidays ? " · runs on public holidays" : ""}
+                          </span>
+                        </span>
+                        <Button size="sm" variant="ghost" onClick={() => setEditing(t)}>
+                          Change
+                        </Button>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-body-s text-muted-foreground">No days yet.</p>
+                )}
+                {editing ? (
+                  <DayForm
+                    key={typeof editing === "string" ? editing : editing.id}
+                    clinicId={clinic.id}
+                    existing={typeof editing === "string" ? null : editing}
+                    oneOff={editing === "one_off"}
+                    places={places}
+                    clinicians={clinicians}
+                    onDone={() => setEditing(null)}
+                  />
+                ) : null}
+              </section>
 
-          <section className="border-border border-t pt-4">
-            <ConfirmBlock
-              verb="Archive clinic"
-              tone="caution"
-              pending={hub.pending}
-              consequence={
-                <>
-                  It stops taking bookings and leaves every list. Refused while future sessions hold
-                  bookings — close those days first.
-                </>
-              }
-              onConfirm={(reason) =>
-                hub.run({ op: "archive", target: "clinic", id: clinic.id, reason }, onClose)
-              }
-            />
-          </section>
-        </>
+              {exceptions.length || closures.length ? (
+                <section className="flex flex-col gap-1.5">
+                  <h3 className="text-foreground text-body-s font-medium">Upcoming exceptions</h3>
+                  <ul className="text-body-s text-muted-foreground flex flex-col gap-1">
+                    {exceptions.map((h) => (
+                      <li key={h.date}>
+                        {fmtDay(h.date)} — {h.name}: skipped
+                      </li>
+                    ))}
+                    {closures.map((c, i) => (
+                      <li key={i} className="flex flex-wrap items-center gap-2">
+                        {c.startsOn >
+                        new Date().toLocaleDateString("en-CA", { timeZone: "Africa/Kampala" }) ? (
+                          <StatusChip status="planned" />
+                        ) : (
+                          <Amber>Closed</Amber>
+                        )}{" "}
+                        {fmtDay(c.startsOn)}
+                        {c.endsOn !== c.startsOn ? ` – ${fmtDay(c.endsOn)}` : ""}: {c.reason}
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ) : null}
+
+              <CloseForDates clinicId={clinic.id} />
+
+              <section className="border-border border-t pt-4">
+                <ConfirmBlock
+                  verb="Archive clinic"
+                  tone="caution"
+                  pending={hub.pending}
+                  consequence={
+                    <>
+                      It stops taking bookings and leaves every list. Refused while future sessions
+                      hold bookings — close those days first.
+                    </>
+                  }
+                  onConfirm={(reason) =>
+                    hub.run({ op: "archive", target: "clinic", id: clinic.id, reason }, onClose)
+                  }
+                />
+              </section>
+            </>
+          }
+        />
       )}
     </HubPanel>
   );

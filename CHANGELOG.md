@@ -5,6 +5,27 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Fixed — Departments set up in the hub reach staff sign-up; every pop-up is a centred card — 2026-09-26
+
+[ADR 0161](docs/adr/0161-pop-ups-are-centred-landscape-dialogs.md). No migration. Deploy the `ha-services-hub` Edge Function **before** the app (it gains the ops the new buttons call), then `npx vercel deploy --prod --yes`.
+
+- **Why clinician sign-up said "no departments set up".** Two causes:
+  - `listDepartments` sat in the hour-long reference-data cache that nothing clears, so sign-up missed departments for up to an hour after the hub changed them. It is no longer cached.
+  - Departments added in the hub started as Not on MedSync yet, which sign-up hides.
+- **What changed for departments:**
+  - **Add departments** now adds them live by default, with a "Live on MedSync now" choice. The first live department becomes the start department.
+  - The Departments tab says when any aren't live, with **Set all N live** (new op `set_departments_live`).
+  - Sign-up now says a hospital has no departments _open on MedSync yet_, and says so separately when the lookup fails, instead of blaming the hospital.
+- **Pop-ups are centred landscape cards, never side sheets (owner rule).**
+  - Every Departments & services panel opens as the console's `EditorDialog`.
+  - The department, clinic and ward panels put their settings and their related lists side by side. Add departments shows its catalogue in three columns.
+  - The rule is in ADR 0161, `DESIGN-medsync.md` and `AGENTS.md`.
+- **Also fixed:** "Archive department:not possible" was missing its space.
+- **Checks:**
+  - Vitest 3,853 passed;
+  - all 31 ops run end to end (65/65), with a stand-in that now fills missing keys with NULL the way PostgREST does;
+  - axe clean on 27 scans.
+
 ### Added — Departments & services: one place for what a hospital runs, where and when — 2026-09-26
 
 [ADR 0150](docs/adr/0150-services-hub-single-editor.md), [0151](docs/adr/0151-services-hub-reuse-map.md), [0152](docs/adr/0152-department-kinds-and-live-status.md), [0153](docs/adr/0153-effective-dated-heads-and-in-charges.md), [0154](docs/adr/0154-clinics-days-holidays-closures.md), [0155](docs/adr/0155-confidential-clinics-in-messages.md), [0156](docs/adr/0156-test-menu-overlay.md), [0157](docs/adr/0157-availability-events.md), [0158](docs/adr/0158-four-eyes-routing-capabilities.md), [0159](docs/adr/0159-capability-profile.md), [0160](docs/adr/0160-level-presets.md). Gate record: `docs/hospital-services/STOP-REPORTS.md`.
