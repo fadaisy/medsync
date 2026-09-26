@@ -579,6 +579,116 @@ describe("timeline", () => {
   });
 });
 
+/* ─── Entered in error: withdrawn, never vanished (Law 4) ────────────── */
+
+describe("entered in error", () => {
+  const voided = () => {
+    const bp = facts(
+      projectObservation(
+        cfcRowFor("obs.potassium", undefined, {
+          status: "entered_in_error",
+          effectiveAt: at("2026-03-03T08:00:00Z"),
+          valueNum: "5",
+          valueCanonical: "5",
+        }),
+      ),
+    );
+    const dx = facts(
+      projectCondition(
+        conditionRow({ conceptId: "cond.hypertension", status: "entered_in_error" }),
+      ),
+    );
+    const allergy = facts(
+      projectAllergy(allergyRow({ substanceCode: "penicillin", status: "entered_in_error" })),
+    );
+    const med = facts(projectMedication(medicationRow({ status: "entered_in_error" })));
+    const secret = facts(
+      projectCondition(
+        conditionRow({
+          conceptId: "cond.hiv",
+          status: "entered_in_error",
+          sensitivity: "restricted",
+        }),
+      ),
+    );
+    return { bp: bp[0]!, dx: dx[0]!, allergy: allergy[0]!, med: med[0]!, secret: secret[0]! };
+  };
+
+  it("carries voided facts struck, with the reason, in the Timeline and each section's history", () => {
+    const v = voided();
+    const eieEncounter = encounter({ state: "entered_in_error", closureReason: "opened_in_error" });
+    const p = build({
+      facts: [v.bp, v.dx, v.allergy, v.med, v.secret],
+      encounters: [eieEncounter],
+      eieReasons: {
+        [v.bp.provenance.rowId]: { code: null, text: "Wrong patient: transcribed onto this chart" },
+        [v.dx.provenance.rowId]: { code: "wrong_patient", text: null },
+      },
+    });
+    // The engines' view is unchanged: nothing voided counts as current.
+    expect(p.summary.problems).toEqual([]);
+    expect(p.summary.medicines).toEqual([]);
+    expect(p.summary.allergies.state).toBe("not_recorded");
+    expect(p.flowsheet.rows).toEqual([]);
+    expect(p.summary.encounters).toEqual([]);
+
+    const bySection = (s: string) => p.enteredInError.filter((i) => i.section === s);
+    expect(bySection("results")).toMatchObject([
+      {
+        id: v.bp.id,
+        title: "Potassium 5 mmol/L",
+        reason: "Wrong patient: transcribed onto this chart",
+      },
+    ]);
+    expect(
+      bySection("problems")
+        .map((i) => [i.title, i.reason, i.restricted])
+        .sort(),
+    ).toEqual([
+      ["HIV infection", "Reason not recorded", true],
+      ["Hypertension", "Wrong patient", false],
+    ]);
+    expect(bySection("allergies")).toHaveLength(1);
+    expect(bySection("medicines")).toHaveLength(1);
+
+    const struck = p.timeline.filter((t) => t.struck);
+    expect(struck.map((t) => t.id).sort()).toEqual(
+      [v.bp.id, v.dx.id, v.allergy.id, v.med.id, v.secret.id, eieEncounter.id].sort(),
+    );
+    expect(struck.find((t) => t.id === eieEncounter.id)).toMatchObject({
+      kind: "encounter",
+      detail: "Entered in error — Opened in error",
+    });
+    expect(struck.find((t) => t.id === v.bp.id)!.detail).toBe(
+      "Entered in error — Wrong patient: transcribed onto this chart",
+    );
+  });
+
+  it("a struck note is struck in the Timeline too", () => {
+    const n = note();
+    const t = build({ notes: [n], noteEvents: [eie(n.id)] }).timeline;
+    expect(t).toMatchObject([{ id: n.id, kind: "note", struck: true }]);
+  });
+
+  it("shows a patient none of it: no voided item, no reason", () => {
+    const v = voided();
+    const n = note();
+    const pf = toPatientFacing(
+      build({
+        facts: [v.bp, v.dx],
+        notes: [n],
+        noteEvents: [eie(n.id, { reasonCode: null, reasonText: "Documented on the wrong chart" })],
+        eieReasons: { [v.bp.provenance.rowId]: { code: null, text: "Transcription slip" } },
+      }),
+    );
+    expect(pf.enteredInError).toEqual([]);
+    expect(pf.timeline.some((t) => t.struck)).toBe(false);
+    const json = JSON.stringify(pf);
+    for (const s of [v.bp.id, v.dx.id, "Transcription slip", "Documented on the wrong chart"])
+      expect(json).not.toContain(s);
+  });
+});
+
 /* ─── Patient-facing ──────────────────────────────────────────────── */
 
 describe("toPatientFacing", () => {

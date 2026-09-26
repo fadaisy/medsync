@@ -108,7 +108,9 @@ export async function loadWorkspace(args: {
   const dayStart = startOfLocalDay(new Date(nowMs), DEFAULT_TIME_ZONE);
   // 0071's columns and tables exist only once the owner applied it, which EMR v1 waits for.
   const emr = emrV1LiveFor(viewer.hospitalId);
-  const unsignedDraft = sql`exists (select 1 from ${clinicalNotes} where ${clinicalNotes.encounterId} = ${encounters.id} and ${clinicalNotes.state} = 'draft')`;
+  // The encounter clinician's own drafts only: a reviewer's draft is theirs to sign, not the owner's.
+  const ownDraft = sql`${clinicalNotes.encounterId} = ${encounters.id} and ${clinicalNotes.state} = 'draft' and ${clinicalNotes.authorUserId} = ${encounters.clinicianUserId}`;
+  const unsignedDraft = sql`exists (select 1 from ${clinicalNotes} where ${ownDraft})`;
 
   /* ── A ─────────────────────────────────────────────────────────────── */
   const openIntakePatients = db
@@ -162,7 +164,7 @@ export async function loadWorkspace(args: {
           encounters.lastActivityAt,
         ),
         unsignedNoteAt: (emr
-          ? sql`(select max(${clinicalNotes.updatedAt}) from ${clinicalNotes} where ${clinicalNotes.encounterId} = ${encounters.id} and ${clinicalNotes.state} = 'draft')`
+          ? sql`(select max(${clinicalNotes.updatedAt}) from ${clinicalNotes} where ${ownDraft})`
           : sql`null`
         ).mapWith(clinicalNotes.updatedAt),
       })

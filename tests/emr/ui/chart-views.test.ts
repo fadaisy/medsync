@@ -384,6 +384,60 @@ describe("summary and sections", () => {
 
 /* ─── Shared primitives ──────────────────────────────────────────── */
 
+describe("entered in error (Law 4)", () => {
+  const at = "2026-03-03T08:00:00.000Z";
+  const items = [
+    ["results", "Potassium 5 mmol/L", "Wrong patient"],
+    ["problems", "Hypertension", "Duplicate entry"],
+    ["allergies", "Penicillin", "Recorded on the wrong chart"],
+    ["medicines", "Metformin", "Never prescribed"],
+  ].map(([section, title, reason], i) => ({
+    id: `eie-${i}`,
+    restricted: false,
+    section: section as "results",
+    at,
+    title: title!,
+    reason: reason!,
+  }));
+  const struck = (m: string, words: string) =>
+    new RegExp(`<s[^>]*>(?:(?!</s>).)*${words}(?:(?!</s>).)*</s>`).test(m);
+
+  it("each section keeps its voided items struck through, with the reason in words", () => {
+    const base = adultOpdFever().payload;
+    const m = html(
+      h(ChartView, { payload: { ...base, enteredInError: items }, timeZone: "Africa/Kampala" }),
+    );
+    for (const i of items) {
+      expect(struck(m, i.title), i.title).toBe(true);
+      expect(text(m)).toContain(`Reason: ${i.reason}`);
+    }
+    expect(m).not.toMatch(CRITICAL_CLASS);
+  });
+
+  it("the Timeline strikes a voided item and filters to them", () => {
+    const m = html(
+      h(TimelineView, {
+        items: [
+          {
+            id: "eie-0",
+            restricted: false,
+            kind: "entered_in_error",
+            at,
+            title: "Potassium 5 mmol/L",
+            detail: "Entered in error — Wrong patient",
+            struck: true,
+          },
+        ],
+        timeZone: "Africa/Kampala",
+        initialKind: "entered_in_error",
+      }),
+    );
+    expect(struck(m, "Potassium 5 mmol/L")).toBe(true);
+    expect(text(m)).toContain("Entered in error — Wrong patient");
+    expect(m).toMatch(/aria-pressed="true"[^>]*>Entered in error</);
+  });
+});
+
 describe("shared primitives", () => {
   it("finding chip: three states, the value in its accessible name, not asked by default order", () => {
     expect(nextFindingState("not_asked")).toBe("present");
@@ -393,6 +447,14 @@ describe("shared primitives", () => {
     expect(m).toContain('aria-label="Chills, present"');
     expect(m).toContain("scale-[0.97]");
     expect(m).not.toContain("transition-all");
+  });
+
+  it("finding chip: absent is a pertinent negative, never struck (strikethrough is entered in error)", () => {
+    const m = html(h(FindingChip, { label: "Neck stiffness", state: "absent" }));
+    expect(m).toContain('aria-label="Neck stiffness, absent"');
+    expect(m).not.toContain("line-through");
+    expect(text(m)).toBe("Neck stiffness Absent");
+    expect(m).toMatch(/<svg[^>]*aria-hidden/); // a minus mark beside the word, not colour alone
   });
 
   it("fact chip: value, unit and source mark as separate parts", () => {

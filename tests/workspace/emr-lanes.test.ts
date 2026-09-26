@@ -264,4 +264,31 @@ describe.skipIf(!laneOn)("E8 lane sources on the PGlite lane", () => {
       vi.unstubAllEnvs();
     }
   });
+
+  it("someone else's draft on my visit is not my unsigned note (only its author can sign it)", async () => {
+    vi.stubEnv("ENCOUNTER_ENGINE_LIVE", "1");
+    vi.stubEnv("EMR_V1", h);
+    try {
+      // A senior opened the orderer's visit to review it; the desk left the senior a draft.
+      const r = await patient(lane.pg);
+      const done = await encounter(lane.pg, {
+        hospitalId: h,
+        patientUserId: r,
+        clinicianUserId: who.orderer!.userId,
+        departmentId: medicine,
+        state: "completed",
+        startedAt: new Date(Date.now() - 3 * 86_400_000).toISOString(),
+      });
+      await lane.pg.query(
+        `INSERT INTO public.clinical_notes (hospital_id, patient_user_id, encounter_id, note_type, template_id,
+           template_version, author_user_id, author_cadre, content_ciphertext, effective_at)
+         VALUES ($1, $2, $3, 'clerking', 'lane', '1', $4, 'MEDICAL_OFFICER', 'iv:tag:ct', now())`,
+        [h, r, done, who.cover!.userId],
+      );
+      const data = await loadWorkspace({ viewer: who.orderer!, scope: "mine" });
+      expect(data.flow.rows.find((x) => x.patientId === r)).toBeUndefined();
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
 });

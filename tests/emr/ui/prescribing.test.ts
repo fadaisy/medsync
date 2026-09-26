@@ -1,7 +1,6 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import type { PrescribeDraft } from "@/components/emr/prescribing/model";
-import type { PrescribePatient } from "@/lib/prescribing/engine";
+import type { PrescribeDraft, PrescribeSheetPatient } from "@/components/emr/prescribing/model";
 import type { EmergencyDrug } from "@/lib/prescribing/reference/emergency-drug-catalog";
 import type { ReactElement } from "react";
 import { createElement as h } from "react";
@@ -74,7 +73,13 @@ const FREE_TEXT = EMERGENCY_DRUGS.find((d) => !d.recordOnly && !m.mgChecked(d))!
 const WEIGHT_BASED = EMERGENCY_DRUGS.find(
   (d) => d.adult && d.paediatric.weightBased && d.unitDoseMg != null,
 )!;
-const ADULT: PrescribePatient = { ageYears: 40, weightKg: null, allergies: [], conditions: [] };
+const ADULT: PrescribeSheetPatient = {
+  ageYears: 40,
+  weightKg: null,
+  allergies: [],
+  conditions: [],
+  allergyStatus: "no_known_drug_allergies",
+};
 const complete = (o: Partial<PrescribeDraft> = {}): PrescribeDraft => ({
   ...m.emptyDraft("key-00000001"),
   drugId: ORAL.id,
@@ -142,6 +147,20 @@ describe("the prescribe sheet: checks from lib/prescribing", () => {
     expect(m.draftIssue(ORAL, { ...d, confirmReason: "Benefit outweighs risk" }, flags)).toBeNull();
   });
 
+  it("an unknown allergy status is amber words, never the NKDA sentence", () => {
+    const nkda = text(sheet(complete()));
+    expect(nkda).toContain("The allergy record lists no allergy to check against.");
+    for (const [allergyStatus, words] of [
+      ["not_recorded", "Allergy status not recorded — check before prescribing"],
+      ["unable_to_assess", "Allergy status: unable to assess — check before prescribing"],
+    ] as const) {
+      const markup = sheet(complete(), { ...ADULT, allergyStatus });
+      expect(text(markup)).toContain(words);
+      expect(text(markup)).not.toContain("lists no allergy");
+      expect(markup).toContain("bg-status-caution-bg");
+    }
+  });
+
   it("a block the engine lets no one override stays a block, reason or not", () => {
     const child = { ...ADULT, ageYears: Math.floor(PAEDIATRIC_AGE_THRESHOLD / 2) };
     const d = complete({
@@ -193,6 +212,7 @@ describe("the visit's prescriptions", () => {
             quantity: null,
             instructions: null,
             awaitingCosign: true,
+            cosignWithheld: false,
             restricted: false,
           },
         ],
@@ -203,6 +223,34 @@ describe("the visit's prescriptions", () => {
     expect(t).toContain("Awaiting senior co-sign");
     expect(t).toContain("Print prescription");
     expect(markup).not.toMatch(/status-critical|text-red-|bg-red-/);
+  });
+
+  it("says a prescription the senior did not co-sign is not valid", () => {
+    const t = text(
+      html(
+        h(PrescriptionsView, {
+          identity,
+          printHref: "/print",
+          items: [
+            {
+              id: "rx-1",
+              drugName: ORAL.name,
+              dose: "As written",
+              route: "oral",
+              frequency: "Once daily",
+              duration: "5 days",
+              quantity: null,
+              instructions: null,
+              awaitingCosign: false,
+              cosignWithheld: true,
+              restricted: false,
+            },
+          ],
+        }),
+      ),
+    );
+    expect(t).toContain("Not co-signed by a senior — not valid");
+    expect(t).not.toContain("Awaiting senior co-sign");
   });
 
   it("says when nothing is prescribed, with no print link", () => {

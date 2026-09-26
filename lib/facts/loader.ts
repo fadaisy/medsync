@@ -68,6 +68,9 @@ export type LoadOptions = {
   lookbackYears?: number;
   /** The most recent N facts per concept. */
   perConceptCap?: number;
+  /** Display only (the chart): keep items whose newest version is entered in error, so they stay
+   *  visible struck through (Law 4). Engines never pass it: for them a voided item is gone. */
+  keepEnteredInError?: boolean;
 };
 
 const DROPPED = new Set(["entered_in_error", "cancelled"]);
@@ -420,7 +423,7 @@ export async function loadFactSnapshot(
   let facts = all.facts.filter(
     (f) =>
       wanted.has(f.concept) &&
-      !DROPPED.has(f.status) &&
+      (!DROPPED.has(f.status) || (opts.keepEnteredInError && f.status === "entered_in_error")) &&
       !(cutoff && (f.kind === "observation" || f.kind === "finding") && at(f) < cutoff),
   );
   facts.sort(compareFacts);

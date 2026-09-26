@@ -1,12 +1,12 @@
 import type { ChartContext } from "./parts";
-import type { ChartPayload } from "@/lib/emr/chart";
+import type { ChartPayload, EnteredInErrorItem } from "@/lib/emr/chart";
 import Link from "next/link";
 
 import { RestrictedMark } from "../chips";
 import { EmptyState } from "../empty-state";
 import { withoutNameOnly } from "../format";
 import { StatusWord } from "../status-word";
-import { SectionHeading, SubHeading } from "./parts";
+import { EnteredInErrorList, SectionHeading, SubHeading } from "./parts";
 
 /**
  * Problems and allergies. Every active problem (the bar shows three). The allergy record states one
@@ -17,12 +17,20 @@ export function ProblemsAllergiesView({
   allergies,
   ctx,
   headingId,
+  enteredInError = [],
 }: {
   problems: ChartPayload["summary"]["problems"];
   allergies: ChartPayload["summary"]["allergies"];
   ctx: ChartContext;
   headingId?: string;
+  enteredInError?: readonly EnteredInErrorItem[];
 }) {
+  const voided = (s: EnteredInErrorItem["section"]) => (
+    <EnteredInErrorList
+      items={enteredInError.filter((i) => i.section === s)}
+      timeZone={ctx.timeZone}
+    />
+  );
   const record = ctx.links.allergies
     ? {
         label: allergies.state === "listed" ? "Edit allergies" : "Record allergies",
@@ -63,6 +71,7 @@ export function ProblemsAllergiesView({
             ))}
           </ul>
         )}
+        {voided("problems")}
       </section>
       <section className="flex flex-col gap-2">
         <SubHeading>Allergies</SubHeading>
@@ -102,6 +111,7 @@ export function ProblemsAllergiesView({
             <StatusWord tone={allergies.tone}>{allergies.text}</StatusWord>
           </EmptyState>
         )}
+        {voided("allergies")}
       </section>
     </div>
   );

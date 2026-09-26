@@ -245,9 +245,25 @@ function selectKey(v: CaptureValue): string | undefined {
   return undefined;
 }
 
+/** A quantity capture as readings: a series is its readings, a number is one at `at`. */
+function readingsOf(
+  a: Extract<Assessed<CaptureValue>, { state: "recorded" }>,
+  at: string,
+): { value: number; at: string }[] {
+  if (isSeries(a.value)) return a.value.map((r) => ({ value: r.value, at: r.at }));
+  return typeof a.value === "number" ? [{ value: a.value, at: a.at ?? at }] : [];
+}
+
 /** The facts an NCD capture commits at signing. `at` is the note's effective time; a value with
- *  its own time (a series reading, a timed entry) keeps it. */
-export function factsFromCapture(values: CaptureMap, at: string): CfcObservation[] {
+ *  its own time (a series reading, a timed entry) keeps it. `pulled` is what the form was pre-filled
+ *  with from the record (triage, ward, lab): a reading still exactly as pulled (same value, same
+ *  time) is already on the record, projected, so it is never written again as the clinician's own
+ *  point-of-care value (HARMONISATION §5.1). */
+export function factsFromCapture(
+  values: CaptureMap,
+  at: string,
+  pulled: CaptureMap = {},
+): CfcObservation[] {
   const out: CfcObservation[] = [];
   for (const rule of NCD_CFC_RULES) {
     const a = recordedValue(values[rule.feature]);
@@ -255,13 +271,11 @@ export function factsFromCapture(values: CaptureMap, at: string): CfcObservation
     const effectiveAt = a.at ?? at;
     if (rule.kind === "quantity") {
       if (rule.readOnly) continue;
-      const readings = isSeries(a.value)
-        ? a.value.map((r) => ({ value: r.value, at: r.at }))
-        : typeof a.value === "number"
-          ? [{ value: a.value, at: effectiveAt }]
-          : [];
-      for (const r of readings) {
+      const p = recordedValue(pulled[rule.feature]);
+      const fromRecord = p ? readingsOf(p, "") : [];
+      for (const r of readingsOf(a, effectiveAt)) {
         if (!Number.isFinite(r.value)) continue;
+        if (fromRecord.some((x) => x.value === r.value && x.at === r.at)) continue;
         out.push({
           conceptId: rule.concept,
           effectiveAt: r.at,
@@ -332,10 +346,14 @@ export function captureFromFacts(facts: readonly ClinicalFact[]): CaptureMap {
 /** The note section that carries the NCD capture: `{ items: [{ kind: "ncd_capture", values }] }`. */
 export const NCD_NOTE_SECTION = "ncd";
 
-export function captureFromNote(content: {
-  sections: Record<string, { items?: { kind: string; [k: string]: unknown }[] }>;
-}): CaptureMap | undefined {
+export function captureFromNote(
+  content: {
+    sections: Record<string, { items?: { kind: string; [k: string]: unknown }[] }>;
+  },
+  /** `pulled`: what the form was pre-filled with from the record (kept beside the values). */
+  field: "values" | "pulled" = "values",
+): CaptureMap | undefined {
   const item = content.sections[NCD_NOTE_SECTION]?.items?.find((i) => i.kind === "ncd_capture");
-  const values = item?.values;
+  const values = item?.[field];
   return values && typeof values === "object" ? (values as CaptureMap) : undefined;
 }

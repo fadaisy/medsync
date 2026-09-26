@@ -9,6 +9,7 @@ import {
   completeFlow,
   cosignFlow,
   createAutosave,
+  createIntentKeys,
   enteredInErrorFlow,
   signFlow,
 } from "@/components/emr/desk/flows";
@@ -143,6 +144,66 @@ describe("autosave through the write queue (PROMPT §9)", () => {
     await vi.advanceTimersByTimeAsync(0);
     expect(queue.getSnapshot()[0]!.status).toBe("failed");
     await expect(autosave.idle()).rejects.toThrow(/another tab/);
+  });
+
+  it("a late reply to a save the queue timed out and resent never rolls the revision back", async () => {
+    let late!: (r: ActionResult<{ id: string; revision: number }>) => void;
+    let rev = 0;
+    const save = vi
+      .fn<SaveDraft>()
+      .mockImplementationOnce(() => new Promise((res) => (late = res)))
+      .mockImplementation(async () => ok({ id: "n1", revision: ++rev }));
+    const { autosave } = rig(save, { noteId: "n1", revision: 0 });
+    autosave.change(text("a"));
+    autosave.flush();
+    await vi.advanceTimersByTimeAsync(15_000 + 1_100); // timed out, backed off, resent: rev 1
+    autosave.change(text("ab"));
+    autosave.flush();
+    await vi.advanceTimersByTimeAsync(0); // rev 2
+    expect(autosave.ids()).toEqual({ noteId: "n1", revision: 2 });
+    late(ok({ id: "n1", revision: 1 }));
+    await vi.advanceTimersByTimeAsync(0);
+    expect(autosave.ids()).toEqual({ noteId: "n1", revision: 2 });
+    autosave.change(text("abc"));
+    autosave.flush();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(save.mock.lastCall![0]).toMatchObject({ revision: 2 });
+  });
+
+  it("content mirrored on open is not saved until the viewer edits or signs (no stray draft)", async () => {
+    const save = vi.fn<SaveDraft>(async () => ok({ id: "n1", revision: 1 }));
+    const { autosave } = rig(save);
+    autosave.adopt(text("from triage"));
+    autosave.flush();
+    await vi.advanceTimersByTimeAsync(10_000);
+    expect(save).not.toHaveBeenCalled();
+    expect(autosave.dirty()).toBe(false);
+    const r = signFlow({ autosave, sign: async () => ok() });
+    await vi.advanceTimersByTimeAsync(0);
+    expect((await r).ok).toBe(true);
+    expect(save.mock.calls[0]![0].content).toEqual(text("from triage"));
+    // Once a draft exists, mirrored content saves like any change.
+    autosave.adopt(text("from triage, dx"));
+    await vi.advanceTimersByTimeAsync(1500);
+    expect(save).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("chart actions: one client key per intent", () => {
+  it("a retry after no reply reuses the key (the server replays it); a reply or a changed entry gets a new one", async () => {
+    let n = 0;
+    const intents = createIntentKeys(() => `k${++n}`);
+    const keys: string[] = [];
+    const drop = async (k: string) => {
+      keys.push(k);
+      throw new Error("network");
+    };
+    const land = async (k: string) => (keys.push(k), ok());
+    await expect(intents.run('vitals:[{"v":"120"}]', drop)).rejects.toThrow();
+    await intents.run('vitals:[{"v":"120"}]', land);
+    await intents.run('vitals:[{"v":"120"}]', land); // a new reading, taken again
+    await expect(intents.run('vitals:[{"v":"121"}]', drop)).rejects.toThrow();
+    expect(keys).toEqual(["k1", "k1", "k2", "k3"]);
   });
 });
 

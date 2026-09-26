@@ -1109,6 +1109,31 @@ export async function confirmCurrentMedicines(
   return { id: ids[0]!, ids };
 }
 
+/**
+ * Stop a statement outside a reconciliation, e.g. its prescription was withdrawn because a senior
+ * returned the co-sign. A new version, never an edit (C7), carrying the reason; replay-safe on the key.
+ */
+export async function stopMedicationStatement(
+  ctx: WriteCtx,
+  input: { patientUserId: string; statementId: string; reasonCode: string; clientKey: string },
+): Promise<string> {
+  const replay = await replayed(ctx.tx, medicationStatements, input.clientKey, input.patientUserId);
+  if (replay) return replay;
+  const prev = await currentVersion(ctx, "medication", input.statementId, input.patientUserId);
+  return insertNextVersion(
+    ctx,
+    "medication",
+    prev,
+    {
+      medicationStatus: "stopped",
+      periodEnd: ctx.now.toISOString().slice(0, 10),
+      effectiveAt: ctx.now,
+      ...reasonCols(input.reasonCode),
+    },
+    input.clientKey,
+  );
+}
+
 /* ─── Pregnancy and procedures ───────────────────────────────────── */
 
 type PregnancyInsert = typeof pregnancyEpisodes.$inferInsert;

@@ -208,4 +208,36 @@ describe("NCD ↔ CFC map", () => {
     ).toEqual(values);
     expect(captureFromNote({ sections: {} })).toBeUndefined();
   });
+
+  it("a value still exactly as pulled from the record is projected, never copied (HARMONISATION §5.1)", () => {
+    const TRIAGE = "2026-09-26T07:10:00.000Z";
+    const pulled = {
+      capillary_glucose: rec(11.2, TRIAGE),
+      pulse: rec([{ value: 96, at: TRIAGE }]),
+      weight_kg: rec(88, TRIAGE),
+    } as CaptureMap;
+    const values = {
+      capillary_glucose: rec(11.2, TRIAGE), // untouched: triage's (maybe venous, maybe lab)
+      pulse: rec([
+        { value: 96, at: TRIAGE },
+        { value: 104, at: AT }, // the clinician's own reading
+      ]),
+      weight_kg: rec(86), // changed: now the clinician's
+    } as CaptureMap;
+    const out = factsFromCapture(values, AT, pulled);
+    expect(out.map((o) => [o.conceptId, (o.value as { value: number }).value])).toEqual([
+      ["obs.heart_rate", 104],
+      ["obs.weight", 86],
+    ]);
+    expect(
+      captureFromNote(
+        {
+          sections: {
+            [NCD_NOTE_SECTION]: { items: [{ kind: "ncd_capture", values, pulled }] },
+          },
+        },
+        "pulled",
+      ),
+    ).toEqual(pulled);
+  });
 });

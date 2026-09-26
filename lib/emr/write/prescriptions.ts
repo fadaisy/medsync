@@ -2,9 +2,9 @@ import "server-only";
 
 import type { WriteCtx } from "./context";
 import type { WriteResult } from "./orders";
+import type { PrescribeSheetPatient } from "@/components/emr/prescribing/model";
 import type { EmrTx } from "@/lib/emr/db";
 import type { DemographicFact, ObservationFact, PregnancyFact } from "@/lib/facts/types";
-import type { PrescribePatient } from "@/lib/prescribing/engine";
 import type { AdminRoute } from "@/lib/prescribing/reference/emergency-drug-catalog";
 import { and, asc, eq, inArray, isNull, or } from "drizzle-orm";
 
@@ -18,7 +18,7 @@ import { encrypt } from "@/lib/encryption";
 import { loadFactSnapshot } from "@/lib/facts/loader";
 import { getEmergencyDrug } from "@/lib/prescribing/reference/emergency-drug-catalog";
 import { EmrWriteError } from "./context";
-import { recordMedicationStatements } from "./facts";
+import { recordMedicationStatements, stopMedicationStatement } from "./facts";
 import { openEncounter, ORDERING_CADRES, replayed, requireCadre } from "./orders";
 
 /**
@@ -41,7 +41,7 @@ export async function loadPrescribePatient(
   tx: EmrTx,
   patientUserId: string,
   now: Date,
-): Promise<PrescribePatient> {
+): Promise<PrescribeSheetPatient> {
   // Allergies cross hospitals by decision (STOP 1, O-8), so they are read as the owner. Age, weight
   // and pregnancy stay hospital-scoped: read under RLS, or another hospital's restricted pregnancy
   // would print "Pregnant" here.
@@ -67,6 +67,7 @@ export async function loadPrescribePatient(
         : null,
     allergies: allergy.allergies,
     conditions: pregnancy?.state === "pregnant" ? ["pregnancy"] : [],
+    allergyStatus: allergy.status.kind,
   };
 }
 
@@ -259,13 +260,65 @@ export async function prescribe(
   return { id: row!.id, statementId: statement.id, warnings };
 }
 
+/**
+ * A senior returned the co-sign, so the prescription is not valid: cancel it and stop its
+ * medication statement in the reviewer's transaction. Otherwise the chart's Medicines would keep
+ * listing a drug nobody may give. Replay-safe (the statement key is the request's).
+ */
+export async function withdrawReturnedPrescription(
+  ctx: WriteCtx,
+  input: { patientUserId: string; prescriptionId: string; cosignRequestId: string },
+): Promise<void> {
+  const [rx] = await ctx.tx
+    .select({
+      id: prescriptions.id,
+      state: prescriptions.state,
+      statementId: prescriptions.medicationStatementId,
+    })
+    .from(prescriptions)
+    .where(
+      and(
+        eq(prescriptions.id, input.prescriptionId),
+        eq(prescriptions.patientUserId, input.patientUserId),
+        eq(prescriptions.hospitalId, ctx.actor.hospitalId),
+      ),
+    );
+  if (!rx)
+    throw new EmrWriteError("not_found", "That prescription is not in this hospital's record.");
+  if (rx.state === "active")
+    await ctx.tx
+      .update(prescriptions)
+      .set({ state: "cancelled", updatedAt: ctx.now })
+      .where(eq(prescriptions.id, rx.id));
+  if (rx.statementId)
+    await stopMedicationStatement(ctx, {
+      patientUserId: input.patientUserId,
+      statementId: rx.statementId,
+      reasonCode: "cosign_returned",
+      clientKey: `cosign-return:${input.cosignRequestId}`,
+    });
+}
+
 /* ─── Reads for the desk and the printout (owner tx, after the access check) ─── */
 
-export type PrescriptionRow = typeof prescriptions.$inferSelect & { awaitingCosign: boolean };
+/** A co-sign request closed without approval (returned by the senior; cancelled or expired). */
+const WITHHELD = new Set(["returned", "cancelled", "expired"]);
+
+export type PrescriptionRow = typeof prescriptions.$inferSelect & {
+  awaitingCosign: boolean;
+  /** The senior did not co-sign it: not a valid prescription. */
+  cosignWithheld: boolean;
+};
 
 export async function encounterPrescriptions(
   tx: EmrTx,
-  input: { hospitalId: string; patientUserId: string; encounterId: string },
+  input: {
+    hospitalId: string;
+    patientUserId: string;
+    encounterId: string;
+    /** The printout is the dispensing document: a withheld prescription never prints. */
+    forPrint?: boolean;
+  },
 ): Promise<PrescriptionRow[]> {
   const rows = await tx
     .select()
@@ -279,14 +332,16 @@ export async function encounterPrescriptions(
       ),
     )
     .orderBy(asc(prescriptions.createdAt));
-  const pending = rows.length
+  const requests = rows.length
     ? await tx
-        .select({ payload: clinicalCosignRequests.actionPayload })
+        .select({
+          payload: clinicalCosignRequests.actionPayload,
+          state: clinicalCosignRequests.state,
+        })
         .from(clinicalCosignRequests)
         .where(
           and(
             eq(clinicalCosignRequests.patientUserId, input.patientUserId),
-            eq(clinicalCosignRequests.state, "pending_review"),
             inArray(clinicalCosignRequests.actionKind, [
               "prescription_routine",
               "prescription_controlled",
@@ -294,8 +349,40 @@ export async function encounterPrescriptions(
           ),
         )
     : [];
-  const waiting = new Set(
-    pending.map((p) => (p.payload as { prescriptionId?: string }).prescriptionId),
+  const state = new Map(
+    requests.map((q) => [(q.payload as { prescriptionId?: string }).prescriptionId, q.state]),
   );
-  return rows.map((r) => ({ ...r, awaitingCosign: waiting.has(r.id) }));
+  return rows
+    .map((r) => ({
+      ...r,
+      awaitingCosign: state.get(r.id) === "pending_review",
+      cosignWithheld: WITHHELD.has(state.get(r.id) ?? ""),
+    }))
+    .filter((r) => !(input.forPrint && r.cosignWithheld));
+}
+
+/**
+ * The co-sign queue's words for prescription requests. The request payload is PHI-free by design
+ * (gate-a-proposal A.5), so the drug, dose, route, frequency and duration are resolved here, for
+ * the reviewing senior's own hospital only: a senior never reviews blind.
+ */
+export async function prescriptionsForCosign(
+  tx: EmrTx,
+  hospitalId: string,
+  ids: readonly string[],
+) {
+  const rows = ids.length
+    ? await tx
+        .select({
+          id: prescriptions.id,
+          drugName: prescriptions.drugName,
+          dose: prescriptions.dose,
+          route: prescriptions.route,
+          frequency: prescriptions.frequency,
+          duration: prescriptions.duration,
+        })
+        .from(prescriptions)
+        .where(and(inArray(prescriptions.id, [...ids]), eq(prescriptions.hospitalId, hospitalId)))
+    : [];
+  return new Map(rows.map((r) => [r.id, r]));
 }

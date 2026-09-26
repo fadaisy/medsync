@@ -1,5 +1,5 @@
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { existsSync, readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { emrV1LiveFor } from "@/lib/emr/feature";
@@ -13,13 +13,16 @@ import { emrV1LiveFor } from "@/lib/emr/feature";
 const PAGES: Record<string, readonly string[]> = {
   "app/doctor/patients/[patientId]/page.tsx": ["EmrChart", "loadChart"],
   "app/nurse/patients/[patientId]/page.tsx": ["EmrChart", "loadChart"],
-  "app/doctor/encounters/[encounterId]/page.tsx": ["DeskPage"],
+  "app/doctor/encounters/[encounterId]/page.tsx": ["DeskPage", "EmrDesk"],
   "app/lab/page.tsx": ["EmrLabWorklist"],
 };
 
-/** The source with its import lines and the gated early return cut out. */
+/** The source with its import lines (static, and a `lazy(() => import(…))` binding) and the gated
+ *  early return cut out. */
 function outsideGate(src: string): string {
-  const body = src.replace(/^import[\s\S]*?;$/gm, "");
+  const body = src
+    .replace(/^import[\s\S]*?;$/gm, "")
+    .replace(/^const \w+ = lazy\(\(\) =>[\s\S]*?\);$/gm, "");
   const at = body.indexOf("if (emrV1LiveFor(");
   expect(at).toBeGreaterThan(-1);
   let i = body.indexOf("))", at) + 1; // the end of `if (emrV1LiveFor(…))`
@@ -50,6 +53,38 @@ describe("EMR v1 flag off", () => {
     expect(emrV1LiveFor("h-1")).toBe(false);
     process.env.EMR_V1 = "h-2";
     expect(emrV1LiveFor("h-1")).toBe(false);
+  });
+
+  it("the encounter page's static module graph never reaches the desk (flag-off JS unchanged)", () => {
+    // Every local module the page imports statically, transitively: what its route bundles up
+    // front. The desk is reached only through next/dynamic, loaded once the flag is on.
+    const root = process.cwd();
+    const seen = new Set<string>();
+    const file = (spec: string, from: string): string | null => {
+      const base = spec.startsWith("@/")
+        ? resolve(root, spec.slice(2))
+        : resolve(dirname(from), spec);
+      for (const ext of ["", ".ts", ".tsx", "/index.ts", "/index.tsx"])
+        if (existsSync(base + ext) && !base.endsWith("/") && (ext || /\.tsx?$/.test(base)))
+          return base + ext;
+      return null;
+    };
+    const walk = (f: string) => {
+      if (seen.has(f)) return;
+      seen.add(f);
+      const src = readFileSync(f, "utf8");
+      for (const m of src.matchAll(
+        /^\s*(?:import|export)\s[^;]*?from\s+"([^"]+)"|^\s*import\s+"([^"]+)"/gm,
+      )) {
+        const spec = m[1] ?? m[2]!;
+        if (!/^(\.|@\/)/.test(spec)) continue;
+        const next = file(spec, f);
+        if (next) walk(next);
+      }
+    };
+    walk(resolve(root, "app/doctor/encounters/[encounterId]/page.tsx"));
+    expect(seen.size).toBeGreaterThan(20);
+    expect([...seen].filter((f) => f.includes("/_desk/"))).toEqual([]);
   });
 
   for (const [page, names] of Object.entries(PAGES)) {

@@ -12,9 +12,10 @@ import type { WriteCtx } from "@/lib/emr/write/context";
 import type { ResultValueInput } from "@/lib/emr/write/results";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
-import { CRITICAL_REFS } from "@/lib/emr/reference/critical";
 import { loadResultsToReview } from "@/lib/emr/read/results";
+import { CRITICAL_REFS } from "@/lib/emr/reference/critical";
 import { withPatientWrite } from "@/lib/emr/write/context";
+import { markFactEnteredInError } from "@/lib/emr/write/facts";
 import { loadOrder, orderStatus, placeOrders } from "@/lib/emr/write/orders";
 import {
   acknowledgeResults,
@@ -409,6 +410,32 @@ describe.skipIf(!laneOn)("results (PGlite lane)", () => {
         ),
       ),
     ).toBe("conflict");
+  });
+
+  it("a value voided on a preliminary stays voided through release (no duplicate version)", async () => {
+    const { p, orderId } = await received();
+    const prelim = await enter(lab, p, orderId, "preliminary");
+    const [o] = await obs(prelim.id);
+    await as(lab, p, (ctx) =>
+      markFactEnteredInError(ctx, {
+        kind: "observation",
+        patientUserId: p,
+        id: o!.id as string,
+        reasonText: "Wrong sample",
+        clientKey: key(),
+      }),
+    );
+    const final = await as(lab, p, (ctx) =>
+      releaseResults(ctx, { patientUserId: p, reportId: prelim.id, clientKey: key() }),
+    );
+    const v = await obs(final.id);
+    expect(v).toHaveLength(1);
+    expect(v[0]).toMatchObject({
+      logical_id: o!.logical_id,
+      version: 3,
+      status: "entered_in_error",
+    });
+    expect(decrypt(v[0]!.note_ciphertext as string)).toBe("Wrong sample");
   });
 
   it("asks before saving a unit-mismatch value, keeps comparators, stores uncatalogued as typed", async () => {

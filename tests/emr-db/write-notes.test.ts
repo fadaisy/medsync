@@ -163,6 +163,52 @@ describe.skipIf(!laneOn)("note writes (PGlite lane)", () => {
     expect(JSON.parse(decrypt(String(row.content_ciphertext)))).toEqual(changed);
   });
 
+  it("a save that never saw the draft cannot overwrite it (a late first save, a second tab)", async () => {
+    const e = await encounter(lane.pg, {
+      hospitalId: h,
+      patientUserId: p,
+      clinicianUserId: mo.userId,
+    });
+    const say = (s: string) => ({ sections: { s01: { narrative: s } } });
+    const save = (clientKey: string, content: ReturnType<typeof say>, extra = {}) =>
+      draft(mo, { encounterId: e, clientKey, content, ...extra });
+    const stored = async (id: string) =>
+      JSON.parse(
+        decrypt(
+          String(
+            (
+              await lane.pg.query(
+                `SELECT content_ciphertext FROM public.clinical_notes WHERE id = $1`,
+                [id],
+              )
+            ).rows[0]!.content_ciphertext,
+          ),
+        ),
+      );
+    // First save A timed out; the queue coalesced it into B, which created the draft.
+    const a = key();
+    const b = await save(key(), say("B, newer"));
+    // A's delayed request runs now: it never saw B's draft.
+    await expect(save(a, say("A, older"))).rejects.toMatchObject({ code: "conflict" });
+    // Tab 2, opened before any draft existed, makes its first save.
+    await expect(save(key(), say("tab 2"))).rejects.toMatchObject({ code: "conflict" });
+    expect(await stored(b.id)).toEqual(say("B, newer"));
+    // B's own resend after a later save replays its create, and writes nothing.
+    const bKey = key();
+    const e2 = await encounter(lane.pg, {
+      hospitalId: h,
+      patientUserId: p,
+      clinicianUserId: mo.userId,
+    });
+    const first = await draft(mo, { encounterId: e2, clientKey: bKey, content: say("one") });
+    await draft(mo, { encounterId: e2, noteId: first.id, revision: 0, content: say("two") });
+    expect(await draft(mo, { encounterId: e2, clientKey: bKey, content: say("one") })).toEqual({
+      id: first.id,
+      revision: 1,
+    });
+    expect(await stored(first.id)).toEqual(say("two"));
+  });
+
   it("refuses the wrong cadre, reception, another hospital and no basis", async () => {
     await expect(draft(nurse)).rejects.toMatchObject({ code: "forbidden" });
     expect(

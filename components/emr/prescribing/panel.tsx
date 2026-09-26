@@ -1,7 +1,7 @@
 "use client";
 
+import type { PrescribeSheetPatient } from "./model";
 import type { PrescriptionItem } from "./views";
-import type { PrescribePatient } from "@/lib/prescribing/engine";
 import dynamic from "next/dynamic";
 import { useState } from "react";
 
@@ -23,7 +23,7 @@ export function PrescriptionsPanel({
   encounterId: string;
   patientUserId: string;
   identity: { name: string; mrn: string };
-  patient: PrescribePatient;
+  patient: PrescribeSheetPatient;
   items: readonly PrescriptionItem[];
 }) {
   const [open, setOpen] = useState(false);

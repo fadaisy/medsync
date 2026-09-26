@@ -551,6 +551,16 @@ export function deskIndex(p: DeskPayload, content: NoteContent): DeskIndexEntry[
   });
 }
 
+/** "02 of 13": the phone's one position, counted over the visible sections. The template's
+ *  numbers skip hidden ones (the obstetric history) and the NCD module has none. */
+export function sectionPosition(index: readonly DeskIndexEntry[], current: string): string {
+  const at = Math.max(
+    0,
+    index.findIndex((e) => e.id === current),
+  );
+  return `${String(at + 1).padStart(2, "0")} of ${index.length}`;
+}
+
 /* ─── Keyboard (UI-BRIEF §4) ──────────────────────────────────────── */
 
 export interface KeyInput {

@@ -238,12 +238,16 @@ async function writeReportVersion(
   if (kind !== "lab" && kind !== "imaging" && kind !== "ecg")
     throw invalid("Only laboratory, imaging and ECG orders carry a report.");
 
-  const priorObs = prior
+  const priorRows = prior
     ? await tx
         .select()
         .from(clinicalObservations)
         .where(eq(clinicalObservations.reportId, prior.id))
     : [];
+  // Only each value's current version: a value voided on this report (voidObservation keeps the
+  // report_id) leaves its superseded version here too, and carrying both forward would collide.
+  const superseded = new Set(priorRows.map((o) => o.supersedesId));
+  const priorObs = priorRows.filter((o) => !superseded.has(o.id));
   const id = randomUUID();
   const trust = resultTrust({
     entryMode: entry.entryMode,
@@ -323,7 +327,7 @@ async function writeReportVersion(
   // amendment that touches one component of a panel).
   for (const o of priorObs) {
     if (used.has(o.id)) continue;
-    const { id: _id, createdAt: _c, updatedAt: _u, ...rest } = o;
+    const { id: _id, createdAt: _c, updatedAt: _u, clientKey: _k, ...rest } = o;
     const obsId = randomUUID();
     rows.push({
       ...rest,
@@ -332,6 +336,8 @@ async function writeReportVersion(
       logicalId: o.logicalId ?? o.id,
       version: (o.version ?? 1) + 1,
       supersedesId: o.id,
+      // A voided value stays voided, with its reason (note_ciphertext, carried in `rest`).
+      status: o.status === "entered_in_error" ? o.status : status,
       sensitivity: inherited ? "restricted" : o.sensitivity,
     });
   }
@@ -339,6 +345,7 @@ async function writeReportVersion(
 
   const critical = rows.some(
     (r) =>
+      r.status !== "entered_in_error" &&
       detectCritical(
         {
           conceptId: r.conceptId ?? null,

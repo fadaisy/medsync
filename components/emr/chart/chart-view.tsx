@@ -87,6 +87,7 @@ export function ChartView({
         timeline={payload.timeline}
         ctx={ctx}
         headingId={h("results")}
+        enteredInError={payload.enteredInError}
       />
     ),
     notes: <NotesView notes={payload.notes} ctx={ctx} headingId={h("notes")} />,
@@ -99,7 +100,12 @@ export function ChartView({
       />
     ),
     medicines: (
-      <MedicinesView medicines={payload.summary.medicines} ctx={ctx} headingId={h("medicines")} />
+      <MedicinesView
+        medicines={payload.summary.medicines}
+        ctx={ctx}
+        headingId={h("medicines")}
+        enteredInError={payload.enteredInError}
+      />
     ),
     problems: (
       <ProblemsAllergiesView
@@ -107,6 +113,7 @@ export function ChartView({
         allergies={payload.summary.allergies}
         ctx={ctx}
         headingId={h("problems")}
+        enteredInError={payload.enteredInError}
       />
     ),
   };

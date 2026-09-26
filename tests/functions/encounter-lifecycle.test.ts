@@ -141,9 +141,16 @@ describe("ha-start-encounter — a queue row with no appointment can be started"
 describe("ha-start-encounter — the visit it links is this patient's, today's", () => {
   const src = stripComments(fn("ha-start-encounter"));
   const walkIn = src.slice(src.indexOf("async function startFromQueueRow("));
-  const booked = src.slice(src.indexOf("Deno.serve("), src.indexOf("async function startFromQueueRow("));
+  const booked = src.slice(
+    src.indexOf("Deno.serve("),
+    src.indexOf("async function startFromQueueRow("),
+  );
   const helper = between(src, "async function visitBelongs(", "\n}\n");
-  const finder = between(src, "async function findOpenEncounter(", "const { data } = await intakes;");
+  const finder = between(
+    src,
+    "async function findOpenEncounter(",
+    "const { data } = await intakes;",
+  );
 
   it("accepts a caller's visit_id only for the same patient at the same hospital", () => {
     expect(helper).toContain('.eq("id", visitId)');
@@ -152,7 +159,9 @@ describe("ha-start-encounter — the visit it links is this patient's, today's",
   });
 
   it("both paths refuse a foreign visit before anything is written", () => {
-    const b = booked.indexOf("visitBelongs(input.visit_id, appt.patient_user_id, appt.hospital_id)");
+    const b = booked.indexOf(
+      "visitBelongs(input.visit_id, appt.patient_user_id, appt.hospital_id)",
+    );
     expect(b).toBeGreaterThan(-1);
     expect(b).toBeLessThan(booked.indexOf("recordSaAudit({"));
     const w = walkIn.indexOf("visitBelongs(input.visit_id, qe.patient_user_id, qe.hospital_id)");

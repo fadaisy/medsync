@@ -22,6 +22,7 @@ const KINDS: { id: TimelineKind; label: string }[] = [
   { id: "result", label: "Results" },
   { id: "order", label: "Orders" },
   { id: "procedure", label: "Procedures" },
+  { id: "entered_in_error", label: "Entered in error" },
 ];
 const KIND_WORD: Record<TimelineKind, string> = {
   encounter: "Encounter",
@@ -29,6 +30,7 @@ const KIND_WORD: Record<TimelineKind, string> = {
   result: "Result",
   order: "Order",
   procedure: "Procedure",
+  entered_in_error: "Entered in error",
 };
 
 export function TimelineView({
@@ -98,13 +100,21 @@ export function TimelineView({
               <Time iso={t.at}>{fmt.dateTime(t.at)}</Time>
               <span className="text-muted-foreground">{KIND_WORD[t.kind]}</span>
               <span className="col-span-2 inline-flex flex-wrap items-center gap-x-3 gap-y-0.5 sm:col-span-1">
-                <span className="text-foreground">
-                  {parts(t.title).map((p, i) => (
-                    <span key={i} className="mr-3 last:mr-0">
-                      {p}
-                    </span>
-                  ))}
-                </span>
+                {t.struck ? (
+                  // Withdrawn, never vanished (Law 4): struck through; the reason is the detail.
+                  <s className="text-muted-foreground decoration-1">
+                    <span className="sr-only">Entered in error: </span>
+                    {t.title}
+                  </s>
+                ) : (
+                  <span className="text-foreground">
+                    {parts(t.title).map((p, i) => (
+                      <span key={i} className="mr-3 last:mr-0">
+                        {p}
+                      </span>
+                    ))}
+                  </span>
+                )}
                 {parts(t.detail).map((p, i) => (
                   <span key={i} className="text-muted-foreground">
                     {p}

@@ -1,7 +1,7 @@
 "use client";
 
-import type { PrescribeDraft } from "./model";
-import type { PrescribePatient, SafetyFlag } from "@/lib/prescribing/engine";
+import type { PrescribeDraft, PrescribeSheetPatient } from "./model";
+import type { SafetyFlag } from "@/lib/prescribing/engine";
 import type { ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
@@ -55,7 +55,7 @@ export function PrescribeSheet({
   encounterId: string;
   patientUserId: string;
   identity: { name: string; mrn: string };
-  patient: PrescribePatient;
+  patient: PrescribeSheetPatient;
   onDone: (said: string) => void;
 }) {
   const router = useRouter();
@@ -146,7 +146,7 @@ export function PrescribeSheetView({
   onField,
   onSubmit,
 }: {
-  patient: PrescribePatient;
+  patient: PrescribeSheetPatient;
   draft: PrescribeDraft;
   query: string;
   pending?: boolean;
@@ -320,7 +320,7 @@ export function PrescribeSheetView({
   );
 }
 
-function PatientContext({ patient }: { patient: PrescribePatient }) {
+function PatientContext({ patient }: { patient: PrescribeSheetPatient }) {
   const bits: ReactNode[] = [
     <span key="age">
       {patient.ageYears == null ? "Age not recorded" : `Age ${patient.ageYears} years`}
@@ -334,9 +334,18 @@ function PatientContext({ patient }: { patient: PrescribePatient }) {
     <div className="text-body-s flex flex-col gap-1">
       <p className="text-muted-foreground flex flex-wrap gap-x-3">{bits}</p>
       <p>
-        {patient.allergies.length
-          ? `Checked against the allergy record: ${patient.allergies.join("; ")}`
-          : "The allergy record lists no allergy to check against."}
+        {patient.allergies.length ? (
+          `Checked against the allergy record: ${patient.allergies.join("; ")}`
+        ) : patient.allergyStatus === "no_known_drug_allergies" ? (
+          "The allergy record lists no allergy to check against."
+        ) : (
+          // Unknown is never read as none (the resus dialog's rule): amber words, before prescribing.
+          <StatusWord tone="caution">
+            {patient.allergyStatus === "unable_to_assess"
+              ? "Allergy status: unable to assess — check before prescribing"
+              : "Allergy status not recorded — check before prescribing"}
+          </StatusWord>
+        )}
       </p>
     </div>
   );

@@ -9,16 +9,16 @@
 > **Rule** No clinical number appears here. Critical limits, plausibility bounds, HMIS, IDSR, REF-PREG-AGE and the fasting
 > definition ship as `RefEntry` files with `status: 'pending_cso'` and the value withheld.
 
-| § | Contents |
-|---|---|
-| A | Schema diff for `0071_emr_record_spine.sql`: conventions, SQL table by table, guards, views, indexes, private functions, RLS and grants, backfill |
-| B | Evolve versus new, and the legacy-data plan |
-| C | ADR drafts 0130–0139 |
-| D | Permission matrix (cadre × action) |
-| E | Annotated wireframes |
-| F | Test plan |
-| G | Decision table and signature block |
-| H | Deviations, operational defaults, owner actions, open confirmations |
+| §   | Contents                                                                                                                                          |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A   | Schema diff for `0071_emr_record_spine.sql`: conventions, SQL table by table, guards, views, indexes, private functions, RLS and grants, backfill |
+| B   | Evolve versus new, and the legacy-data plan                                                                                                       |
+| C   | ADR drafts 0130–0139                                                                                                                              |
+| D   | Permission matrix (cadre × action)                                                                                                                |
+| E   | Annotated wireframes                                                                                                                              |
+| F   | Test plan                                                                                                                                         |
+| G   | Decision table and signature block                                                                                                                |
+| H   | Deviations, operational defaults, owner actions, open confirmations                                                                               |
 
 ---
 
@@ -26,18 +26,18 @@
 
 ### A.0 Conventions (apply to every statement below)
 
-| Rule | Applied as |
-|---|---|
-| Header | `-- GATED: owner-applied (npm run db:migrate)` + "until it runs, `EMR_V1` stays off and every page behaves as before" (0069:15) |
-| Enum style | text + CHECK. A CHECK change is DROP-then-ADD of the whole prior list, verbatim (0069:21-27) |
-| Names | `hospital_id`, `patient_user_id`, `*_user_id`; ciphertext is `text` in the `lib/encryption.ts` wire format (`iv:tag:ct`), like `resus_timeline_events.narrative_encrypted` (0038:107) |
-| FKs from new tables | `ON DELETE RESTRICT`. A CASCADE or SET NULL into an immutable row would fire the guard; clinical rows are never deleted (PROMPT §10) |
-| Two clocks | `effective_at` (clinical) NOT NULL; `recorded_at` (knowledge) DEFAULT now() |
-| Idempotency | `client_key text`, unique per table where not null |
-| Audit | `public.audit_log_changes()` (0003:20) AFTER INSERT OR UPDATE OR DELETE on every new and evolved table |
-| Insert-only | `public.block_modify_append_only()` (0040:118) BEFORE UPDATE OR DELETE **[D1]** |
-| RLS | ENABLE + FORCE on every new table. One SELECT policy `TO medsync_clinical_reader`. No policy for `anon`/`authenticated`, so patient, reception and anonymous reads are denied; `REVOKE INSERT, UPDATE, DELETE, TRUNCATE … FROM anon, authenticated` |
-| Nothing existing altered | No UPDATE or DELETE of an existing row. `ADD COLUMN … DEFAULT <constant>` is catalogue-only (PG ≥ 11), rewrites nothing and fires no trigger |
+| Rule                     | Applied as                                                                                                                                                                                                                                          |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Header                   | `-- GATED: owner-applied (npm run db:migrate)` + "until it runs, `EMR_V1` stays off and every page behaves as before" (0069:15)                                                                                                                     |
+| Enum style               | text + CHECK. A CHECK change is DROP-then-ADD of the whole prior list, verbatim (0069:21-27)                                                                                                                                                        |
+| Names                    | `hospital_id`, `patient_user_id`, `*_user_id`; ciphertext is `text` in the `lib/encryption.ts` wire format (`iv:tag:ct`), like `resus_timeline_events.narrative_encrypted` (0038:107)                                                               |
+| FKs from new tables      | `ON DELETE RESTRICT`. A CASCADE or SET NULL into an immutable row would fire the guard; clinical rows are never deleted (PROMPT §10)                                                                                                                |
+| Two clocks               | `effective_at` (clinical) NOT NULL; `recorded_at` (knowledge) DEFAULT now()                                                                                                                                                                         |
+| Idempotency              | `client_key text`, unique per table where not null                                                                                                                                                                                                  |
+| Audit                    | `public.audit_log_changes()` (0003:20) AFTER INSERT OR UPDATE OR DELETE on every new and evolved table                                                                                                                                              |
+| Insert-only              | `public.block_modify_append_only()` (0040:118) BEFORE UPDATE OR DELETE **[D1]**                                                                                                                                                                     |
+| RLS                      | ENABLE + FORCE on every new table. One SELECT policy `TO medsync_clinical_reader`. No policy for `anon`/`authenticated`, so patient, reception and anonymous reads are denied; `REVOKE INSERT, UPDATE, DELETE, TRUNCATE … FROM anon, authenticated` |
+| Nothing existing altered | No UPDATE or DELETE of an existing row. `ADD COLUMN … DEFAULT <constant>` is catalogue-only (PG ≥ 11), rewrites nothing and fires no trigger                                                                                                        |
 
 Statement order in the file: §A.1 private + role → A.2 registries → A.3 encounters → A.4 notes → A.5 co-sign →
 A.6 orders, specimens, reports → A.7 observations → A.8 conditions, medicines, pregnancy, procedures → A.9 allergies →
@@ -331,6 +331,7 @@ CREATE INDEX cosign_note_idx ON public.clinical_cosign_requests (note_id) WHERE 
 ALTER TABLE public.clinical_note_events ADD CONSTRAINT cne_cosign_request_fk
   FOREIGN KEY (cosign_request_id) REFERENCES public.clinical_cosign_requests(id) ON DELETE RESTRICT;
 ```
+
 `action_payload` for `sign_note` is PHI-free: `{noteId, noteType, encounterId}`. The requirement comes from
 `clerkshipWriteAuthority().requiresCosign` (`lib/encounter/access.ts:42`; HARMONISATION calls it `mustCosign`), not
 from `clinical_cosign_policies`, so the policies CHECK is unchanged. Drizzle drift fixed in
@@ -606,6 +607,7 @@ END $$;
 CREATE TRIGGER clinical_observations_guard BEFORE UPDATE OR DELETE ON public.clinical_observations
   FOR EACH ROW EXECUTE FUNCTION private.clinical_observations_guard();
 ```
+
 Drizzle drift fixed in `db/schema/nurse-workspace.ts:153` (+ `etco2`, `urine_output`, `fact`). Note: the guard makes
 `ON DELETE SET NULL` from `encounters` and `ON DELETE CASCADE` from `auth.users`/`hospitals` fail while observations
 exist. Nothing deletes those today; clinical retention wants exactly that.
@@ -724,6 +726,7 @@ CREATE UNIQUE INDEX asa_legacy_ref_uidx ON public.allergy_status_assertions ((le
 CREATE INDEX asa_patient_time ON public.allergy_status_assertions (patient_user_id, asserted_at DESC);
 -- + client_key unique index, no_mutation and audit triggers on both tables.
 ```
+
 Backfilled text **[D2]**: SQL cannot produce `lib/encryption.ts` ciphertext, so backfilled rows carry `legacy_ref` and
 no ciphertext; the projection reads the display text from the untouched source (already plaintext there, never
 copied). O-5 (extended) inserts version 2 of each with ciphertext, before O-4 retires any legacy table.
@@ -948,6 +951,7 @@ CREATE POLICY <r>_select ON public.<r> FOR SELECT TO authenticated, medsync_clin
 REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON public.<r> FROM anon, authenticated;
 GRANT SELECT ON public.<r> TO medsync_clinical_reader;
 ```
+
 Demographics for the safety bar come through the existing audited `fetchPatientSummaryAudited` after the same
 `patient_access_basis` check; the reader gets no grant on profile tables. Patient-facing and export views are not
 built: patient access waits for Gate CG and FHIR is test-only (the projection filters restricted facts; property-tested).
@@ -1022,40 +1026,40 @@ ON CONFLICT ((legacy_ref->>'table'), (legacy_ref->>'id')) WHERE legacy_ref IS NO
 DROP TABLE _emr_resus_caps;                                       -- explicit: the harness replays outside a tx
 ```
 
-| Backfill consequence | Handling |
-|---|---|
-| Episode 1 lists penicillin, a later episode records NKDA | Both copied; the resolver shows penicillin (an active allergy outranks an assertion). Safe direction; CSO reviews migrated items (`verification='unconfirmed'`) |
-| Earlier captures within one episode | Not copied (they were superseded at the bedside, exactly as prescribing read them). Count reported at STOP 2 |
-| Unknown-patient episodes; NKDA with no recorder | Skipped; counted at STOP 2 |
-| Duplicate rows (re-clerked `patient_allergies`, repeat episodes) | Kept with provenance; the resolver groups by coded substance, else normalised text |
-| Captures written after 0071 while `EMR_V1` is off | `scripts/emr/backfill-allergies.ts` re-runs these statements (idempotent on `legacy_ref`) when the flag goes on (O-7) |
+| Backfill consequence                                             | Handling                                                                                                                                                        |
+| ---------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Episode 1 lists penicillin, a later episode records NKDA         | Both copied; the resolver shows penicillin (an active allergy outranks an assertion). Safe direction; CSO reviews migrated items (`verification='unconfirmed'`) |
+| Earlier captures within one episode                              | Not copied (they were superseded at the bedside, exactly as prescribing read them). Count reported at STOP 2                                                    |
+| Unknown-patient episodes; NKDA with no recorder                  | Skipped; counted at STOP 2                                                                                                                                      |
+| Duplicate rows (re-clerked `patient_allergies`, repeat episodes) | Kept with provenance; the resolver groups by coded substance, else normalised text                                                                              |
+| Captures written after 0071 while `EMR_V1` is off                | `scripts/emr/backfill-allergies.ts` re-runs these statements (idempotent on `legacy_ref`) when the flag goes on (O-7)                                           |
 
 ---
 
 ## B. Evolve versus new, and the legacy-data plan
 
 **Rule: flag, never alter.** 0071 issues no UPDATE or DELETE against an existing row. Legacy rows are tagged by a
-catalogue-only default or recognised by a null column, and are *projected* read-only by the loader, so the chart shows
+catalogue-only default or recognised by a null column, and are _projected_ read-only by the loader, so the chart shows
 one list per fact kind while the old rows stay byte-identical.
 
-| Object | Decision | Legacy rows | Existing readers and writers |
-|---|---|---|---|
-| `encounters` | **Evolve** (§A.3) | New columns null; `attendance_type='unknown'`; completed rows keep `closure_kind` null ("legacy completed"). Open encounters stay open and surface in Needs closing; nothing auto-closes | Unchanged; `ha-start-encounter` gains the open-encounter reuse, `ha-complete-encounter` gains disposition + follow-up (P4) |
-| `clinical_observations` | **Evolve** (E3 **[H]**) | Untouched; guard allows only `active→corrected`; projected by `lib/facts/project/legacy-observation.ts` | NCD prefill, triage worklist, nurse page, resus mirror unchanged |
-| `triage_records.vitals_snapshot` | **Project**, never copy | Untouched | `lib/facts/project/triage-vitals.ts` |
-| `encounter_orders` | **Evolve** (`lifecycle`) | Tagged `legacy`; mutable status kept for `/lab` with `EMR_V1` off | `/lab` re-pointed to reports under `EMR_V1` (P4) |
-| `encounter_results` | **Legacy, projected** | Untouched | Read-only projection into observation facts |
-| `clinical_cosign_requests` | **Evolve** (`sign_note`) | Untouched | `/doctor/cosign-queue` gains note rows |
-| `clinical_phi_access_log` | **Evolve** (basis CHECK) | Untouched | The nurse resolver's `#basis` workaround can log the true basis |
-| `patient_allergies` | **Copy once**, then frozen | Untouched; copied with `legacy_ref` | `loadPersistentAllergiesForEpisode` re-pointed to `lib/emr/allergy.ts` in P4 |
-| Resus timeline captures | **Copy once** (latest per episode) | Untouched (append-only) | Resus UI unchanged; AMPLE writes through `recordAllergy` from P4 |
-| `problem_list`, `encounter_diagnoses` | **Legacy, projected** into condition facts | Untouched; they have no live writer | New writes go to `conditions` only |
-| `encounter_medications` | **Legacy, projected** (`patient_reported`) | Untouched | New writes go to `medication_statements` |
-| `clinical_documentation` | **Legacy**, append-only already | Plaintext `section_data` recorded as a known gap (R8) | Shown read-only under Notes as "Earlier clerking (legacy)" |
-| `clerkship_drafts` | **Legacy** | Old plaintext drafts stay until O-5 | New drafts written `{ "enc": … }` and read both shapes (E4) |
-| `encounter_events` | **Reused** as-is | — | Records suggestion dismissals (kind `order`) and state events |
-| `care_plan` | Untouched, unused | — | — |
-| 14 clinical tables, 7 registries, 5 views, `private` schema, reader role | **New** | — | — |
+| Object                                                                   | Decision                                   | Legacy rows                                                                                                                                                                              | Existing readers and writers                                                                                               |
+| ------------------------------------------------------------------------ | ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `encounters`                                                             | **Evolve** (§A.3)                          | New columns null; `attendance_type='unknown'`; completed rows keep `closure_kind` null ("legacy completed"). Open encounters stay open and surface in Needs closing; nothing auto-closes | Unchanged; `ha-start-encounter` gains the open-encounter reuse, `ha-complete-encounter` gains disposition + follow-up (P4) |
+| `clinical_observations`                                                  | **Evolve** (E3 **[H]**)                    | Untouched; guard allows only `active→corrected`; projected by `lib/facts/project/legacy-observation.ts`                                                                                  | NCD prefill, triage worklist, nurse page, resus mirror unchanged                                                           |
+| `triage_records.vitals_snapshot`                                         | **Project**, never copy                    | Untouched                                                                                                                                                                                | `lib/facts/project/triage-vitals.ts`                                                                                       |
+| `encounter_orders`                                                       | **Evolve** (`lifecycle`)                   | Tagged `legacy`; mutable status kept for `/lab` with `EMR_V1` off                                                                                                                        | `/lab` re-pointed to reports under `EMR_V1` (P4)                                                                           |
+| `encounter_results`                                                      | **Legacy, projected**                      | Untouched                                                                                                                                                                                | Read-only projection into observation facts                                                                                |
+| `clinical_cosign_requests`                                               | **Evolve** (`sign_note`)                   | Untouched                                                                                                                                                                                | `/doctor/cosign-queue` gains note rows                                                                                     |
+| `clinical_phi_access_log`                                                | **Evolve** (basis CHECK)                   | Untouched                                                                                                                                                                                | The nurse resolver's `#basis` workaround can log the true basis                                                            |
+| `patient_allergies`                                                      | **Copy once**, then frozen                 | Untouched; copied with `legacy_ref`                                                                                                                                                      | `loadPersistentAllergiesForEpisode` re-pointed to `lib/emr/allergy.ts` in P4                                               |
+| Resus timeline captures                                                  | **Copy once** (latest per episode)         | Untouched (append-only)                                                                                                                                                                  | Resus UI unchanged; AMPLE writes through `recordAllergy` from P4                                                           |
+| `problem_list`, `encounter_diagnoses`                                    | **Legacy, projected** into condition facts | Untouched; they have no live writer                                                                                                                                                      | New writes go to `conditions` only                                                                                         |
+| `encounter_medications`                                                  | **Legacy, projected** (`patient_reported`) | Untouched                                                                                                                                                                                | New writes go to `medication_statements`                                                                                   |
+| `clinical_documentation`                                                 | **Legacy**, append-only already            | Plaintext `section_data` recorded as a known gap (R8)                                                                                                                                    | Shown read-only under Notes as "Earlier clerking (legacy)"                                                                 |
+| `clerkship_drafts`                                                       | **Legacy**                                 | Old plaintext drafts stay until O-5                                                                                                                                                      | New drafts written `{ "enc": … }` and read both shapes (E4)                                                                |
+| `encounter_events`                                                       | **Reused** as-is                           | —                                                                                                                                                                                        | Records suggestion dismissals (kind `order`) and state events                                                              |
+| `care_plan`                                                              | Untouched, unused                          | —                                                                                                                                                                                        | —                                                                                                                          |
+| 14 clinical tables, 7 registries, 5 views, `private` schema, reader role | **New**                                    | —                                                                                                                                                                                        | —                                                                                                                          |
 
 Retirement of legacy tables waits for O-4 (row counts) and O-5 (re-materialised allergy text); until then their
 projections keep old data readable (§7 convergence).
@@ -1067,6 +1071,7 @@ projections keep old data readable (§7 convergence).
 ADRs are immutable once merged; these are drafts for P8. Each mirrors into `CHANGELOG.md`.
 
 ### 0130 — Clinical fact store: CFC adoption and harmonisation
+
 - **Context.** Four engines needed one truth; the repo already had half an EMR (0040, 0050/51) with no writers, a mutable
   observation table and no results model. Five specs assumed a different stack.
 - **Decision.** Adopt MS-DATA-CFC-001 with the v1.1 addendum. Evolve `encounters`, `clinical_observations`,
@@ -1076,6 +1081,7 @@ ADRs are immutable once merged; these are drafts for P8. Each mirrors into `CHAN
   mutated; retirement is a later owner decision. Engines read `loadFactSnapshot` only.
 
 ### 0131 — RLS identity propagation (E2)
+
 - **Context.** Clinical reads ran as the Drizzle owner and bypassed RLS; four TS resolvers disagreed and none checked the
   hospital.
 - **Decision.** `private.current_user_id()`/`current_hospital_id()` read transaction-local GUCs (never honoured for
@@ -1087,6 +1093,7 @@ ADRs are immutable once merged; these are drafts for P8. Each mirrors into `CHAN
   patient read their own legacy rows; recorded as a known gap.
 
 ### 0132 — Encryption boundary and the note HMAC key (E4, E10)
+
 - **Context.** Encrypting every column blocks sweeps and trends; `section_data` and NCD drafts are plaintext today; the
   only HMAC is derived from the PHI key.
 - **Decision.** Structured coded values are plaintext under RLS and at-rest encryption; identifiers, narrative, free
@@ -1098,6 +1105,7 @@ ADRs are immutable once merged; these are drafts for P8. Each mirrors into `CHAN
   stays plaintext (append-only; recorded).
 
 ### 0133 — Database runtime and the PGlite lane (E1)
+
 - **Context.** Only a hosted, production-like database exists; RLS suites skip without env; the machine has 8 GB.
 - **Decision.** E1 stands (a hosted Supabase dev project, O-1). Until it exists, `tests/emr-db/**` runs on PGlite
   when `EMR_PGLITE_MODULES` points at the harness `node_modules`, booting the harness Supabase bootstrap and replaying
@@ -1106,6 +1114,7 @@ ADRs are immutable once merged; these are drafts for P8. Each mirrors into `CHAN
   are proven only on the dev project (O-1).
 
 ### 0134 — The note model
+
 - **Context.** No note store; the NCD clerking writes drafts only; `recordClerkshipVersion` is not transactional.
 - **Decision.** `clinical_notes`: per-author drafts (updatable, encrypted, revision-checked autosave); signing
   validates the template minimum, composes canonically, HMACs, and writes the note plus note-born facts in one
@@ -1116,6 +1125,7 @@ ADRs are immutable once merged; these are drafts for P8. Each mirrors into `CHAN
   becomes a note section whose values commit as facts through `lib/ncd/cfc-map.ts`.
 
 ### 0135 — The allergy record as the single source
+
 - **Context.** R1, worse than stated: resus allergies were invisible even to the next episode; `patient_allergies` had
   no live writer; the resus emergency administration checked only on the client.
 - **Decision.** `allergies` + `allergy_status_assertions`, four statuses, an active allergy always outranks an
@@ -1126,6 +1136,7 @@ ADRs are immutable once merged; these are drafts for P8. Each mirrors into `CHAN
   every row; cross-facility sharing is an open owner decision (H.4).
 
 ### 0136 — Results acknowledgement and critical results
+
 - **Context.** Results had entry and release but no acknowledgement, no transaction and abnormal ≡ critical.
 - **Decision.** Versioned `diagnostic_reports`; values are observation rows; release is a new final version in one
   transaction. `result_acknowledgements` per version (an amendment needs re-acknowledgement).
@@ -1135,6 +1146,7 @@ ADRs are immutable once merged; these are drafts for P8. Each mirrors into `CHAN
   escalation timer shows no number until REF-CRIT-TIMEFRAME is signed.
 
 ### 0137 — Coding and terminology licensing (E6)
+
 - **Context.** 0041 and `reference-codes.ts` already commit WHO ICD-10 content without a licence; no notices file.
 - **Decision.** ICD-11 first (CC BY-ND 3.0 IGO: unmodified, attributed). `icd10_who_code` is CHECK-constrained to null
   on terms and conditions until O-3 records the WHO licence. `THIRD-PARTY-NOTICES.md` records ICD-11 attribution, the
@@ -1143,12 +1155,14 @@ ADRs are immutable once merged; these are drafts for P8. Each mirrors into `CHAN
 - **Consequences.** Dropping the ICD-10 CHECK is a deliberate future migration after O-3.
 
 ### 0138 — FHIR R4 projection (E7)
+
 - **Context.** Uganda uses FHIR R4; no DPA/MoU exists for sharing.
 - **Decision.** `lib/emr/fhir.ts` projects 12 resources for export tests only; no endpoint. Restricted facts and
   candidate codes never appear in output (property-tested).
 - **Consequences.** An endpoint is a later decision behind the DPA/MoU.
 
 ### 0139 — Encounter completion and administrative closure
+
 - **Context.** End visit wrote no disposition; emergency encounters stayed open; a second encounter could open for one
   visit.
 - **Decision.** One completion path, `ha-complete-encounter`, now takes disposition and follow-up; warnings (unsigned
@@ -1169,19 +1183,19 @@ needs AAL2, an active clinical affiliation at the hospital and a non-null `patie
 
 Legend: ✓ allowed · ✓c allowed, co-sign surfaced (never blocks) · P per `clinical_cosign_policies` · ✗ denied.
 
-| Actor (cadre) | Start | Document / sign | Co-sign | Complete | Order | Collect specimen | Enter results | Release | Acknowledge | Resolve problem / final dx | Entered in error | Prescribe (P7) | Allergy / NKDA |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| INTERN_DOCTOR | ✓ | ✓c (all doctor notes) | ✗ | ✓ | ✓ (high-cost imaging P: co-sign) | ✓ | ✓ transcribed | ✗ | ✓ own / covered | ✗ (working only) | ✓ own items | P: routine co-sign, controlled blocked | ✓ |
-| CLINICAL_OFFICER | ✓ | ✓ | ✗ | ✓ | ✓ (imaging P: co-sign) | ✓ | ✓ transcribed | ✗ | ✓ own / covered | ✓ | ✓ own items | P: routine co-sign, controlled blocked | ✓ |
-| MEDICAL_OFFICER | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ transcribed | ✗ | ✓ own / covered | ✓ | ✓ own; supervisor of others | P: routine ✓, controlled co-sign | ✓ |
-| MO_SG, CONSULTANT, SENIOR_CONSULTANT | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ transcribed | ✗ | ✓ own / covered | ✓ | ✓ own; supervisor of others | P: ✓ | ✓ |
-| NURSE, MIDWIFE | ✓ on behalf of the booked clinician (as `ha-start-encounter` today) | ✓ nursing, handover | ✗ | ✗ | ✗ | ✓ | ✓ point-of-care only | ✗ | ✗ | ✗ | ✓ own items | ✗ | ✓ |
-| SPECIALIST_NURSE | as NURSE | as NURSE | ✗ | ✗ | ✗ | ✓ | ✓ point-of-care only | ✗ | ✗ | ✗ | ✓ own items | ✗ | ✓ |
-| LAB_TECH, LAB_TECHNOLOGIST | ✗ | ✗ (reports, not notes) | ✗ | ✗ | ✗ | ✓ | ✓ direct | ✓ | ✗ | ✗ | ✓ own reports (new version) | ✗ | ✗ |
-| Dental, allied (RADIOGRAPHER, PHYSIO, OT, NUTRITIONIST), PHARMACIST, PHARMACY_TECH | walk-in queue only (as today) | ✗ in v1 (seam) | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✓ (any clinical cadre) |
-| RECEPTION (`is_clinical=false`) | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ |
-| hospital_admin (role, non-clinical) | ✗ | ✗ | ✗ | administrative closure only (reason required) | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ | ✗ |
-| superadmin | break-glass read only (logged); no writes | | | | | | | | | | | | |
+| Actor (cadre)                                                                      | Start                                                               | Document / sign        | Co-sign | Complete                                      | Order                            | Collect specimen | Enter results        | Release | Acknowledge     | Resolve problem / final dx | Entered in error            | Prescribe (P7)                         | Allergy / NKDA         |
+| ---------------------------------------------------------------------------------- | ------------------------------------------------------------------- | ---------------------- | ------- | --------------------------------------------- | -------------------------------- | ---------------- | -------------------- | ------- | --------------- | -------------------------- | --------------------------- | -------------------------------------- | ---------------------- |
+| INTERN_DOCTOR                                                                      | ✓                                                                   | ✓c (all doctor notes)  | ✗       | ✓                                             | ✓ (high-cost imaging P: co-sign) | ✓                | ✓ transcribed        | ✗       | ✓ own / covered | ✗ (working only)           | ✓ own items                 | P: routine co-sign, controlled blocked | ✓                      |
+| CLINICAL_OFFICER                                                                   | ✓                                                                   | ✓                      | ✗       | ✓                                             | ✓ (imaging P: co-sign)           | ✓                | ✓ transcribed        | ✗       | ✓ own / covered | ✓                          | ✓ own items                 | P: routine co-sign, controlled blocked | ✓                      |
+| MEDICAL_OFFICER                                                                    | ✓                                                                   | ✓                      | ✓       | ✓                                             | ✓                                | ✓                | ✓ transcribed        | ✗       | ✓ own / covered | ✓                          | ✓ own; supervisor of others | P: routine ✓, controlled co-sign       | ✓                      |
+| MO_SG, CONSULTANT, SENIOR_CONSULTANT                                               | ✓                                                                   | ✓                      | ✓       | ✓                                             | ✓                                | ✓                | ✓ transcribed        | ✗       | ✓ own / covered | ✓                          | ✓ own; supervisor of others | P: ✓                                   | ✓                      |
+| NURSE, MIDWIFE                                                                     | ✓ on behalf of the booked clinician (as `ha-start-encounter` today) | ✓ nursing, handover    | ✗       | ✗                                             | ✗                                | ✓                | ✓ point-of-care only | ✗       | ✗               | ✗                          | ✓ own items                 | ✗                                      | ✓                      |
+| SPECIALIST_NURSE                                                                   | as NURSE                                                            | as NURSE               | ✗       | ✗                                             | ✗                                | ✓                | ✓ point-of-care only | ✗       | ✗               | ✗                          | ✓ own items                 | ✗                                      | ✓                      |
+| LAB_TECH, LAB_TECHNOLOGIST                                                         | ✗                                                                   | ✗ (reports, not notes) | ✗       | ✗                                             | ✗                                | ✓                | ✓ direct             | ✓       | ✗               | ✗                          | ✓ own reports (new version) | ✗                                      | ✗                      |
+| Dental, allied (RADIOGRAPHER, PHYSIO, OT, NUTRITIONIST), PHARMACIST, PHARMACY_TECH | walk-in queue only (as today)                                       | ✗ in v1 (seam)         | ✗       | ✗                                             | ✗                                | ✗                | ✗                    | ✗       | ✗               | ✗                          | ✗                           | ✗                                      | ✓ (any clinical cadre) |
+| RECEPTION (`is_clinical=false`)                                                    | ✗                                                                   | ✗                      | ✗       | ✗                                             | ✗                                | ✗                | ✗                    | ✗       | ✗               | ✗                          | ✗                           | ✗                                      | ✗                      |
+| hospital_admin (role, non-clinical)                                                | ✗                                                                   | ✗                      | ✗       | administrative closure only (reason required) | ✗                                | ✗                | ✗                    | ✗       | ✗               | ✗                          | ✗                           | ✗                                      | ✗                      |
+| superadmin                                                                         | break-glass read only (logged); no writes                           |                        |         |                                               |                                  |                  |                      |         |                 |                            |                             |                                        |                        |
 
 Notes. "Supervisor" = a senior (MO and above) at the same hospital with access. "Covered" = the orderer's cover
 (forwarded to, or the in-charge after escalation). Nurses may view results but do not acknowledge them (D-EMR-07 puts
@@ -1196,13 +1210,13 @@ junior definition differs between `lib/doctor/scope.ts` (INTERN + CO) and `acces
 Illustrative patients and values. `‹…›` = a value that comes from a signed reference or the laboratory and is shown
 only when it exists. **Colour marks** (every colour ships with a word or an icon plus a word; DESIGN-medsync.md wins):
 
-| Mark | Token | Meaning — and the only places it appears |
-|---|---|---|
-| `[T]` | `bg-primary` / teal-600, `shadow-focus` | an action: buttons, links, the focus ring, checked controls |
-| `[P]` | `bg-plum-50 text-plum-800` + plum-500 dot | place: the current chart section, the current note section, active nav. A fill and a dot, **never a left bar** |
-| `[A]` | `bg-status-caution-bg text-status-caution-fg` | awaiting, overdue, unsigned, offline, not recorded, unable to assess |
-| `[R]` | `text-status-critical-fg font-bold font-mono` | **only** a critical result value (signed REF-CRIT entry) and the Emergency affordance |
-| `[N]` | `<Pill>` default gray-100/700 | record states: draft, signed, completed, entered in error, late entry |
+| Mark  | Token                                         | Meaning — and the only places it appears                                                                       |
+| ----- | --------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `[T]` | `bg-primary` / teal-600, `shadow-focus`       | an action: buttons, links, the focus ring, checked controls                                                    |
+| `[P]` | `bg-plum-50 text-plum-800` + plum-500 dot     | place: the current chart section, the current note section, active nav. A fill and a dot, **never a left bar** |
+| `[A]` | `bg-status-caution-bg text-status-caution-fg` | awaiting, overdue, unsigned, offline, not recorded, unable to assess                                           |
+| `[R]` | `text-status-critical-fg font-bold font-mono` | **only** a critical result value (signed REF-CRIT entry) and the Emergency affordance                          |
+| `[N]` | `<Pill>` default gray-100/700                 | record states: draft, signed, completed, entered in error, late entry                                          |
 
 Headings are weight 500 (`font-medium`), the patient name is Fraunces, everything else Geist, numbers and MRN
 Geist Mono with tabular numerals. No motion on the clerking desk (seen 100+ times a day); sheets and dialogs use
@@ -1235,6 +1249,7 @@ Phone (390 px)
 │ Details ▾ [T]                      │ ⑧
 └────────────────────────────────────┘
 ```
+
 ① The Emergency affordance stays in the page header, far right, as on every doctor page. ② Two identifiers, age and
 sex in words; accessible summary read first ("Amina Nakato, 52, female, MRN 2024-04812. Allergy: penicillin,
 anaphylaxis. One critical result awaiting acknowledgement."). ③ The lock plus the word; it reveals nothing. ④ Worst
@@ -1285,6 +1300,7 @@ Notes
 │ 10 Mar 16:40  Adult outpatient clerking   Dr P. Mugisha (Intern)  [A] Awaiting co-signature │
 │ 02 Feb        Earlier clerking (legacy, read-only)                                          │
 ```
+
 The index is `<nav>` with `aria-current="page"`; the current item is plum fill + dot (DESIGN §Plum: active nav).
 **Improvements:** a count badge (neutral) on Orders and a `▲` with the word in its tooltip on Results; the lab's own
 flag is always text ("H (lab)"); legacy clerkings are shown, labelled, never merged. Timeline: reverse order, kind
@@ -1293,6 +1309,7 @@ filter chips (Encounters, Notes, Results, Orders, Procedures, State), paged by 5
 ### E.3 The clerking desk (encounter level)
 
 Desktop ≥ 1280 px
+
 ```
 ┌ Safety bar (sticky) ──────────────────────────────────────────────────────────────────────────────────────┐
 ├ Workspace ────────┬ Adult outpatient clerking ─────────────── [N] Draft · Saved 10:42 ┬ Context ──────────────┤
@@ -1315,12 +1332,14 @@ Desktop ≥ 1280 px
 │                   │ [ Sign note  ⌘↵ ] [T]   Required 3/3 ✓           Complete visit [T]│                       │
 └───────────────────┴────────────────────────────────────────────────────────────────────┴───────────────────────┘
 ```
+
 Rail: the Workspace rail sits above the section index; the current section is plum; `*` marks required-to-sign; the
 allergy section shows `[A]` with "Not recorded" in its accessible name. `ᵀ` is the source mark (from triage; projected,
 never copied; 0 taps). Narrative column ~68 ch, line height 1.6, bracket numbers per DESIGN §Section numbering. Keys
 (off inside text fields): `/` insert menu at an empty line start, `j`/`k` sections, `⌘/Ctrl+Enter` sign, `?` help.
 
 Tablet portrait 834 px
+
 ```
 ┌ Safety bar ────────────────────────────────────────────┐
 ├ 01 02 03 … 14 ▸ (index strip; [P] on current) ─────────┤
@@ -1331,7 +1350,9 @@ Tablet portrait 834 px
 │ ▴ Context — Triage L3 · T 38.9 · mRDT awaiting          │ ← bottom sheet, labelled "Context"
 └─────────────────────────────────────────────────────────┘
 ```
+
 Phone 390 px
+
 ```
 ┌ Safety bar (compact) ──────────────┐
 │ 02 of 14 · History ▾ [T]           │ ← opens the section index as a sheet
@@ -1342,6 +1363,7 @@ Phone 390 px
 │ [‹ Prev]   [ Sign ] [T]   [Next ›] │ ← fixed action bar
 └────────────────────────────────────┘
 ```
+
 **Improvements:** the required-to-sign count lives beside Sign, so the doctor sees what is missing before pressing;
 suggestions from triage sit in Context, labelled, never inserted; the offline banner names the count.
 
@@ -1354,6 +1376,7 @@ Review of systems — Respiratory                                  Mark all as a
   Cough            ( Present ) ( Absent ) (●Not asked )
   Haemoptysis      ( Present ) ( Absent ) (●Not asked )
 ```
+
 A `role="radiogroup"` per finding; accessible name "Chills, present". Selected = teal fill with a check and the word
 (DESIGN: checked controls are teal, never plum). Not asked is the default and leaves no fact (C3). Search uses the
 token catalogue `symptom_catalog ∪ clinical_concepts(finding)` **[H]**. "Mark all as absent" is an explicit act, one
@@ -1381,6 +1404,7 @@ tap per system. Differential suggestions, when present, render in Context as "Su
 │ [ Confirm and continue ] [T]      Cancel         │
 └──────────────────────────────────────────────────┘
 ```
+
 Term, then code, then flags as words. Four keystrokes + Enter for a top-50 term (client term index, no dependency).
 Final is disabled for an intern with the words "Final needs a senior — it will be surfaced for co-sign". Resolving or
 refuting a problem opens reason chips. Until REF-IDSR-CLASSES is signed no term carries a class, so the sheet never
@@ -1409,6 +1433,7 @@ opens; until REF-DX-TESTFIRST is signed there is no "test expected" prompt.
 │ C̶o̶-̶t̶r̶i̶m̶o̶x̶a̶z̶o̶l̶e̶ ̶—̶ ̶r̶a̶s̶h̶   Refuted 03 Jan 2026 — "tolerated a full course since"          │
 └──────────────────────────────────────────────────────────────────────────────────────┘
 ```
+
 Saving an active allergy supersedes NKDA automatically (resolver, not an update). Refuting needs a reason. The resus
 AMPLE editor keeps its look and writes through the same `recordAllergy` action (P4). **Improvement:** migrated items
 are listed with their provenance and a one-tap Confirm, so the CSO's review of the backfill happens in the flow.
@@ -1430,6 +1455,7 @@ are listed with their provenance and a one-tap Confirm, so the CSO's review of t
 Ionising imaging, female within REF-PREG-AGE:
 │ [A] Pregnancy status not recorded — ( Pregnant ) ( Not pregnant ) ( Not known ) before ordering │
 ```
+
 A favourite plus the pre-filled primary-diagnosis reason is two taps. Capability status comes from
 `facility_capabilities`; intermittent is amber and words, never a block.
 
@@ -1452,6 +1478,7 @@ Label (print CSS)                    Rejection (laboratory)
 │ Req R-0001234   Urgent        │
 └──────────────────────────────┘
 ```
+
 "Not sure" is stored as `unknown` and never read as fasting. While REF-DM-FASTING-DEF is pending the chip shows no
 definition text.
 
@@ -1470,6 +1497,7 @@ definition text.
 │ [ Save preliminary ] [T]    [ Release final ] [T]         Uncatalogued test? Enter as typed   │
 └──────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
+
 Five analytes on one screen. The mismatch prompt is a signed D-CFC-14 rule: it asks and never rejects; the trigger
 value is not shown. `<` and `>` are comparators, never lost. Release writes a new final version in one transaction.
 An amendment later asks the orderer to acknowledge again.
@@ -1494,6 +1522,7 @@ An amendment later asks the orderer to acknowledge again.
 │ Escalates to the in-charge after ‹REF-CRIT-TIMEFRAME›                       │
 └────────────────────────────────────────────────────────────────────────────┘
 ```
+
 Only the value is red, and only for a signed definition; the row and the lane stay amber. "Critical results" lane
 sits after Resus; "Results to review" after In progress; "To co-sign" after it (E8). Live region: polite for new
 results, assertive once per critical result.
@@ -1512,6 +1541,7 @@ results, assertive once per critical result.
 │ [ Sign ] [T]    Cancel                                      │   Entered in error: reason chips + text → stays
 └─────────────────────────────────────────────────────────────┘   visible, struck through, reason shown
 ```
+
 A missing required item reads "[A] ▲ Impression missing — add a diagnosis or 'diagnosis deferred'" and Sign stays
 disabled until it is added; orders and prescriptions never wait for signing. An intern sees "This note will await
 co-signature by a senior. Your orders are not held." One tap + confirm to sign.
@@ -1537,6 +1567,7 @@ co-signature by a senior. Your orders are not held." One tap + confirm to sign.
 │ [ Close encounter ] [T]                                                  │
 └──────────────────────────────────────────────────────────────────────────┘
 ```
+
 Died stores `deceased` and opens the cause-of-death record; Referred out opens the referral note; Admitted is the ward
 seam. "Died" uses neutral styling (a record state), never red.
 
@@ -1559,6 +1590,7 @@ Visit summary (for the patient)                 Referral note (HMIS 032 fields) 
 │ Amina Nakato · MRN-2024-04812  Page 1/1│      │ Amina Nakato · MRN   Page 1 of 2  │     │ Amina Nakato · MRN  Page 1/1 │
 └───────────────────────────────────────┘      └──────────────────────────────────┘     └──────────────────────────────┘
 ```
+
 Plain-language diagnoses on the patient summary. Restricted items are excluded unless the clinician includes them item
 by item in the print dialog ("2 restricted items not printed — include…"); the printout itself never says that
 anything was withheld.
@@ -1573,43 +1605,43 @@ style of `tests/workspace/flow-property.test.ts` (no new dependency). Agents run
 
 ### F.1 Pure tests (minimums from PROMPT §6, raised where the data says so)
 
-| Module | Minimum | Must cover |
-|---|---|---|
-| `lib/units` | 40 | ≥ 30 known pairs over the 14 v1 + 8 v1.1 conversions, both directions (126 mg/dL ↔ 7.0 mmol/L; 6.5 % ↔ 48 mmol/mol; bilirubin, calcium, magnesium, phosphate, uric acid, lactate, albumin); every D-CFC-14 rule prompts and does not prompt on either side; a prompt never rejects |
-| `lib/facts` | 204 + 30 | round-trip for every concept (145 v1 + 59 v1.1); legacy projection per legacy kind and snapshot key (A6 table), ACVPU quarantined with a reason; as-of reproducibility (same asOf → same hash); quarantine path; correction propagation; manifest least privilege (C10); `obs.uncatalogued` never in a snapshot; SR-PREG-MINOR incl. imprecise DOB |
-| `lib/emr/encounter.ts` | every transition | valid: planned→in_progress, planned→cancelled, in_progress→completed (clinical, needs disposition), open→completed (administrative, needs reason), open→entered_in_error (reason); every invalid one (from completed, cancelled, entered_in_error; clinical without disposition); legacy disposition mapping (admit→admitted, discharge→home, refer→referred_out, transfer→transferred, deceased→died); the three completion warnings |
-| `lib/emr/notes.ts` | 40 | template JSON schema; each of the 27 required and 4 prompted rules passing and failing; canonical composition stable under key order and whitespace; HMAC input bytes; addendum threading; late entry at the setting's boundary; commit plan lists note-born facts only |
-| `lib/emr/carry-forward.ts` | 20 | triage prefill (0 taps; source mark), problems, allergies, medicines with "still true?" states; narrative never carried |
-| `lib/emr/allergy.ts` | 25 | four statuses; an active allergy outranks NKDA; refuted and entered-in-error excluded; voided assertion; migrated rows; duplicates grouped; prescribing input includes uncoded text **[H]**; "by name only" label |
-| `lib/emr/orders.ts` | 30 + property | proposed → placed/dismissed → collected → rejected → recollect → in progress → resulted → acknowledged; cancelled with reason; on hold/resumed |
-| `lib/emr/results.ts` | 40 | preliminary/final/amended/corrected; lab flag as text; critical only from a signed entry (none signed → never); acknowledgement per version; amendment needs re-acknowledgement; escalation state with an unsigned timeframe; D-EMR-08 trust table |
-| `lib/emr/hmis.ts` | 20 | attendance type, age band, HMIS category, IDSR class: each returns `unknown` while its reference is `pending_cso` |
-| `lib/emr/chart.ts` | 25 | safety-bar payload variants (E.1), restricted flag, deceased, pregnancy line absent while REF-PREG-AGE pending, top three problems |
-| `lib/emr/fhir.ts` | 12 | round-trip per resource (Patient, Encounter, Condition, Observation, AllergyIntolerance, MedicationStatement, MedicationRequest, ServiceRequest, Specimen, DiagnosticReport, Procedure, Composition) |
-| Data files | 6 | the generator assertions as Vitest: concept ids unique and disjoint from v1; LOINC candidates only; `symptomCode` unique and present in the 0042/0045 seed; every accepted unit has a conversion; every sign rule names a real, non-optional section; every template concept exists |
-| Red scarcity | per component | extend the invariant to `components/emr/**`: `#DC2626`/`status-critical` only on a critical value and Emergency |
+| Module                     | Minimum          | Must cover                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| -------------------------- | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `lib/units`                | 40               | ≥ 30 known pairs over the 14 v1 + 8 v1.1 conversions, both directions (126 mg/dL ↔ 7.0 mmol/L; 6.5 % ↔ 48 mmol/mol; bilirubin, calcium, magnesium, phosphate, uric acid, lactate, albumin); every D-CFC-14 rule prompts and does not prompt on either side; a prompt never rejects                                                                                                                                                    |
+| `lib/facts`                | 204 + 30         | round-trip for every concept (145 v1 + 59 v1.1); legacy projection per legacy kind and snapshot key (A6 table), ACVPU quarantined with a reason; as-of reproducibility (same asOf → same hash); quarantine path; correction propagation; manifest least privilege (C10); `obs.uncatalogued` never in a snapshot; SR-PREG-MINOR incl. imprecise DOB                                                                                    |
+| `lib/emr/encounter.ts`     | every transition | valid: planned→in_progress, planned→cancelled, in_progress→completed (clinical, needs disposition), open→completed (administrative, needs reason), open→entered_in_error (reason); every invalid one (from completed, cancelled, entered_in_error; clinical without disposition); legacy disposition mapping (admit→admitted, discharge→home, refer→referred_out, transfer→transferred, deceased→died); the three completion warnings |
+| `lib/emr/notes.ts`         | 40               | template JSON schema; each of the 27 required and 4 prompted rules passing and failing; canonical composition stable under key order and whitespace; HMAC input bytes; addendum threading; late entry at the setting's boundary; commit plan lists note-born facts only                                                                                                                                                               |
+| `lib/emr/carry-forward.ts` | 20               | triage prefill (0 taps; source mark), problems, allergies, medicines with "still true?" states; narrative never carried                                                                                                                                                                                                                                                                                                               |
+| `lib/emr/allergy.ts`       | 25               | four statuses; an active allergy outranks NKDA; refuted and entered-in-error excluded; voided assertion; migrated rows; duplicates grouped; prescribing input includes uncoded text **[H]**; "by name only" label                                                                                                                                                                                                                     |
+| `lib/emr/orders.ts`        | 30 + property    | proposed → placed/dismissed → collected → rejected → recollect → in progress → resulted → acknowledged; cancelled with reason; on hold/resumed                                                                                                                                                                                                                                                                                        |
+| `lib/emr/results.ts`       | 40               | preliminary/final/amended/corrected; lab flag as text; critical only from a signed entry (none signed → never); acknowledgement per version; amendment needs re-acknowledgement; escalation state with an unsigned timeframe; D-EMR-08 trust table                                                                                                                                                                                    |
+| `lib/emr/hmis.ts`          | 20               | attendance type, age band, HMIS category, IDSR class: each returns `unknown` while its reference is `pending_cso`                                                                                                                                                                                                                                                                                                                     |
+| `lib/emr/chart.ts`         | 25               | safety-bar payload variants (E.1), restricted flag, deceased, pregnancy line absent while REF-PREG-AGE pending, top three problems                                                                                                                                                                                                                                                                                                    |
+| `lib/emr/fhir.ts`          | 12               | round-trip per resource (Patient, Encounter, Condition, Observation, AllergyIntolerance, MedicationStatement, MedicationRequest, ServiceRequest, Specimen, DiagnosticReport, Procedure, Composition)                                                                                                                                                                                                                                  |
+| Data files                 | 6                | the generator assertions as Vitest: concept ids unique and disjoint from v1; LOINC candidates only; `symptomCode` unique and present in the 0042/0045 seed; every accepted unit has a conversion; every sign rule names a real, non-optional section; every template concept exists                                                                                                                                                   |
+| Red scarcity               | per component    | extend the invariant to `components/emr/**`: `#DC2626`/`status-critical` only on a critical value and Emergency                                                                                                                                                                                                                                                                                                                       |
 
 ### F.2 Property tests
 
-| Property | Where |
-|---|---|
-| A signed note's canonical content and HMAC never change | pure + PGlite (UPDATE refused) |
-| Nothing ordered disappears: every order ends acknowledged, cancelled with a reason, or visibly open | pure |
-| Allergy status is never NKDA while an active allergy exists | pure |
-| A restricted fact never appears in a patient-facing payload (visit summary, FHIR export) | pure |
-| The same snapshot always gives the same hash | pure |
-| `patient_access_basis(u,p,h) IS NOT NULL` ⟺ `p ∈ accessible_patient_ids()` for random fixtures | PGlite |
+| Property                                                                                            | Where                          |
+| --------------------------------------------------------------------------------------------------- | ------------------------------ |
+| A signed note's canonical content and HMAC never change                                             | pure + PGlite (UPDATE refused) |
+| Nothing ordered disappears: every order ends acknowledged, cancelled with a reason, or visibly open | pure                           |
+| Allergy status is never NKDA while an active allergy exists                                         | pure                           |
+| A restricted fact never appears in a patient-facing payload (visit summary, FHIR export)            | pure                           |
+| The same snapshot always gives the same hash                                                        | pure                           |
+| `patient_access_basis(u,p,h) IS NOT NULL` ⟺ `p ∈ accessible_patient_ids()` for random fixtures      | PGlite                         |
 
 ### F.3 PGlite lane
 
-| Suite | Content |
-|---|---|
-| Migration replay | 0000 → 0073 green on the harness bootstrap; 0071 adds 0 rows to and changes 0 rows in any existing table (row hashes before/after) |
-| Guards | signed note UPDATE/DELETE refused; draft identity change refused; CFC observation UPDATE refused; legacy `active→corrected` allowed, any other legacy change and every DELETE refused; events order refused, legacy order status update allowed; every insert-only table refuses UPDATE/DELETE |
-| RLS probe matrix | every object (14 new clinical tables, 5 views, 8 evolved or projected tables, 7 registries = 34) × every actor below × SELECT/INSERT/UPDATE/DELETE |
-| Write paths | each §8 write function `(tx, input, actor)`: expected rows, exactly one audit row, idempotent on `client_key` (second call: same id, 0 new rows), refused without a basis |
-| Backfill | fixtures for four `patient_allergies` severities and resus captures (latest wins, NKDA, superseded, unknown patient, null recorder); re-run gives the same counts |
-| Scenarios A1–A9 | integration tests over the real write functions **[H]**: A1 walk-in → triage → start → dx + mRDT → collect (fasting chip) → result → ack → complete home; A2 OPD allergy blocks resus prescribing and a resus AMPLE allergy shows in the OPD safety bar; A3 critical path (runs with a test-signed REF-CRIT fixture, never a real value); A4 signed note immutable, addendum threaded, entered-in-error visible and reversing; A5 resus handover → encounter + ISBAR note + proposed orders, flag cleared; A6 administrative closure with reason, nothing auto-closes; A7 reception and other hospital denied, intern note awaits co-sign and orders go through; A8 offline drill (queue model pure + ordered flush on PGlite); A9 notifiable dx → confirm sheet → notification intent + IPC prompt (test-signed IDSR fixture) |
+| Suite            | Content                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Migration replay | 0000 → 0073 green on the harness bootstrap; 0071 adds 0 rows to and changes 0 rows in any existing table (row hashes before/after)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| Guards           | signed note UPDATE/DELETE refused; draft identity change refused; CFC observation UPDATE refused; legacy `active→corrected` allowed, any other legacy change and every DELETE refused; events order refused, legacy order status update allowed; every insert-only table refuses UPDATE/DELETE                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| RLS probe matrix | every object (14 new clinical tables, 5 views, 8 evolved or projected tables, 7 registries = 34) × every actor below × SELECT/INSERT/UPDATE/DELETE                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| Write paths      | each §8 write function `(tx, input, actor)`: expected rows, exactly one audit row, idempotent on `client_key` (second call: same id, 0 new rows), refused without a basis                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| Backfill         | fixtures for four `patient_allergies` severities and resus captures (latest wins, NKDA, superseded, unknown patient, null recorder); re-run gives the same counts                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| Scenarios A1–A9  | integration tests over the real write functions **[H]**: A1 walk-in → triage → start → dx + mRDT → collect (fasting chip) → result → ack → complete home; A2 OPD allergy blocks resus prescribing and a resus AMPLE allergy shows in the OPD safety bar; A3 critical path (runs with a test-signed REF-CRIT fixture, never a real value); A4 signed note immutable, addendum threaded, entered-in-error visible and reversing; A5 resus handover → encounter + ISBAR note + proposed orders, flag cleared; A6 administrative closure with reason, nothing auto-closes; A7 reception and other hospital denied, intern note awaits co-sign and orders go through; A8 offline drill (queue model pure + ordered flush on PGlite); A9 notifiable dx → confirm sheet → notification intent + IPC prompt (test-signed IDSR fixture) |
 
 RLS actors: same-hospital clinician holding each basis in turn (active_encounter, assigned, open_intake,
 department_recent) · same-hospital clinician with no basis · other-hospital clinician with a basis there · reception
@@ -1632,97 +1664,97 @@ Every row below was signed as recommended. "Realised as" names the harmonised me
 
 **Engineering (PROMPT §15)**
 
-| ID | Decision (recommendation signed) | Realised as |
-|---|---|---|
-| E1 | Hosted Supabase dev project, synthetic data | **[H]** O-1; meanwhile the PGlite lane (ADR 0133) |
-| E2 | Transaction-local identity, one helper, FORCE RLS, non-owner reads | **[H]** `private.*`, `medsync_clinical_reader`, `asClinicalReader`/`asClinicalWriter` (§A.1, A.13; ADR 0131) |
-| E3 | Evolve `clinical_observations`, no second table | **[H]** guard trigger, no backfill mutation, projection (§A.7) |
-| E4 | Plaintext structured values; identifiers and free text encrypted | ADR 0132; NCD drafts `{enc}`; O-5 |
-| E5 | Server autosave + in memory; IndexedDB only on DPPA acceptance | in memory (not accepted) |
-| E6 | ICD-11 first; ICD-10 empty until licensed; LOINC notice; confirm CIEL | CHECK on `icd10_who_code`; `THIRD-PARTY-NOTICES.md`; O-3 (ADR 0137) |
-| E7 | FHIR projection for export tests only | ADR 0138 |
-| E8 | Critical results after Resus; Results to review after In progress; To co-sign after it | **[H]** `LaneId` + `LANES` + FW-2 branch + loader (no registry exists) |
-| E9 | Print CSS only | §E.13 |
-| E10 | HMAC-SHA-256, dedicated key | `MEDSYNC_NOTE_HMAC_KEY` (O-2), `hmac_key_id` |
+| ID  | Decision (recommendation signed)                                                       | Realised as                                                                                                  |
+| --- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| E1  | Hosted Supabase dev project, synthetic data                                            | **[H]** O-1; meanwhile the PGlite lane (ADR 0133)                                                            |
+| E2  | Transaction-local identity, one helper, FORCE RLS, non-owner reads                     | **[H]** `private.*`, `medsync_clinical_reader`, `asClinicalReader`/`asClinicalWriter` (§A.1, A.13; ADR 0131) |
+| E3  | Evolve `clinical_observations`, no second table                                        | **[H]** guard trigger, no backfill mutation, projection (§A.7)                                               |
+| E4  | Plaintext structured values; identifiers and free text encrypted                       | ADR 0132; NCD drafts `{enc}`; O-5                                                                            |
+| E5  | Server autosave + in memory; IndexedDB only on DPPA acceptance                         | in memory (not accepted)                                                                                     |
+| E6  | ICD-11 first; ICD-10 empty until licensed; LOINC notice; confirm CIEL                  | CHECK on `icd10_who_code`; `THIRD-PARTY-NOTICES.md`; O-3 (ADR 0137)                                          |
+| E7  | FHIR projection for export tests only                                                  | ADR 0138                                                                                                     |
+| E8  | Critical results after Resus; Results to review after In progress; To co-sign after it | **[H]** `LaneId` + `LANES` + FW-2 branch + loader (no registry exists)                                       |
+| E9  | Print CSS only                                                                         | §E.13                                                                                                        |
+| E10 | HMAC-SHA-256, dedicated key                                                            | `MEDSYNC_NOTE_HMAC_KEY` (O-2), `hmac_key_id`                                                                 |
 
 **Clinical (PROMPT §15)**
 
-| ID | Decision (recommendation signed) | Realised as |
-|---|---|---|
-| D-EMR-01 | Chart actions commit at once; narrative and note-born findings at signing | NCD capture commits via `lib/ncd/cfc-map.ts` at signing |
-| D-EMR-02 | Signed is immutable; addenda; late entry labelled; entered in error with reason by author or supervisor | notes guard; `clinical_note_events`; §D |
-| D-EMR-03 | Co-sign mechanism now; sets follow the co-sign decision; never blocks care | reuses `clinical_cosign_requests` (`sign_note`); set = `clerkshipWriteAuthority` (intern) |
-| D-EMR-04 | One allergy record; NKDA an assertion; unable to assess a state; resus migrated; prescribing reads the record | **[H]** uncoded text still name-matched (safety-positive) |
-| D-EMR-05 | Problem list and diagnoses separate; one primary; symptom dx allowed; reason to resolve or refute | `conditions`; legacy projected |
-| D-EMR-06 | Critical definitions signed with the lab lead; read-back; escalation; red on the value only | none signed yet → nothing flagged; lab flag shown as text |
-| D-EMR-07 | Orderer or cover acknowledges; amended needs re-acknowledgement | ack per report version |
-| D-EMR-08 | Trust T4 direct final / interface; T3 transcribed until verified; T3 POC | addendum A7 |
-| D-EMR-09 | Disposition required; warnings not blocks; administrative closure needs a reason; nothing auto-closes | **[H]** died stored as `deceased` (ADR 0115 reads it); one path `ha-complete-encounter` |
-| D-EMR-10 | Capture attendance type, primary dx category, referrals now | `attendance_type`, `referral_in`, `hmis_category_id` (null until signed) |
-| D-EMR-11 | IDSR flag → confirm sheet, pending notification intent, IPC prompt; never blocks | §E.5 |
-| D-EMR-12 | Pregnancy status within a signed age range; imaging and prescribing triggers | `ionising` on the test menu; line hidden while REF-PREG-AGE pending |
-| D-EMR-13 | Restricted content excluded from patient prints and channels; item-by-item inclusion | §E.13; FHIR filter |
-| D-EMR-14 | Include prescription records (Phase 7) | `EMR_PRESCRIBING` |
-| D-EMR-15 | Templates and minimum-to-sign as reference 2.1–2.11 | `data/emr/note-templates.v1.json` |
-| D-EMR-16 | Permission matrix by cadre | §D |
+| ID       | Decision (recommendation signed)                                                                              | Realised as                                                                               |
+| -------- | ------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| D-EMR-01 | Chart actions commit at once; narrative and note-born findings at signing                                     | NCD capture commits via `lib/ncd/cfc-map.ts` at signing                                   |
+| D-EMR-02 | Signed is immutable; addenda; late entry labelled; entered in error with reason by author or supervisor       | notes guard; `clinical_note_events`; §D                                                   |
+| D-EMR-03 | Co-sign mechanism now; sets follow the co-sign decision; never blocks care                                    | reuses `clinical_cosign_requests` (`sign_note`); set = `clerkshipWriteAuthority` (intern) |
+| D-EMR-04 | One allergy record; NKDA an assertion; unable to assess a state; resus migrated; prescribing reads the record | **[H]** uncoded text still name-matched (safety-positive)                                 |
+| D-EMR-05 | Problem list and diagnoses separate; one primary; symptom dx allowed; reason to resolve or refute             | `conditions`; legacy projected                                                            |
+| D-EMR-06 | Critical definitions signed with the lab lead; read-back; escalation; red on the value only                   | none signed yet → nothing flagged; lab flag shown as text                                 |
+| D-EMR-07 | Orderer or cover acknowledges; amended needs re-acknowledgement                                               | ack per report version                                                                    |
+| D-EMR-08 | Trust T4 direct final / interface; T3 transcribed until verified; T3 POC                                      | addendum A7                                                                               |
+| D-EMR-09 | Disposition required; warnings not blocks; administrative closure needs a reason; nothing auto-closes         | **[H]** died stored as `deceased` (ADR 0115 reads it); one path `ha-complete-encounter`   |
+| D-EMR-10 | Capture attendance type, primary dx category, referrals now                                                   | `attendance_type`, `referral_in`, `hmis_category_id` (null until signed)                  |
+| D-EMR-11 | IDSR flag → confirm sheet, pending notification intent, IPC prompt; never blocks                              | §E.5                                                                                      |
+| D-EMR-12 | Pregnancy status within a signed age range; imaging and prescribing triggers                                  | `ionising` on the test menu; line hidden while REF-PREG-AGE pending                       |
+| D-EMR-13 | Restricted content excluded from patient prints and channels; item-by-item inclusion                          | §E.13; FHIR filter                                                                        |
+| D-EMR-14 | Include prescription records (Phase 7)                                                                        | `EMR_PRESCRIBING`                                                                         |
+| D-EMR-15 | Templates and minimum-to-sign as reference 2.1–2.11                                                           | `data/emr/note-templates.v1.json`                                                         |
+| D-EMR-16 | Permission matrix by cadre                                                                                    | §D                                                                                        |
 
 **Clinical Fact Contract (MS-DATA-CFC-001 §11)**
 
-| ID | Decision (signed) | Realised as |
-|---|---|---|
-| D-CFC-01 | MedSync concept ids primary; codes are verified mappings | `clinical_concepts.codes` with status |
-| D-CFC-02 | One insert-only observation store; CGM separate | **[H]** via E3 |
-| D-CFC-03 | Versioned, bitemporal tables with as-of snapshots | fact envelope; `created_at` is knowledge time on `clinical_observations` |
-| D-CFC-04 | Encryption boundary | = E4 |
-| D-CFC-05 | Canonical units as §5 | `lib/units` |
-| D-CFC-06 | eGFR by one signed equation (interim CKD-EPI 2021, ARK caveat) | NCD scope; nothing built here |
-| D-CFC-07 | Trust T1–T4; rules declare a minimum | envelope `trust` |
-| D-CFC-08 | Location out of the read contract | loader |
-| D-CFC-09 | Restricted classes; pregnancy restricted for minors | `sensitivity`; SR-PREG-MINOR |
-| D-CFC-10 | WHO ICD-10 + ICD-11 now; CIEL mapping | narrowed by E6: ICD-10 empty until O-3; CIEL column present, terms confirmed first |
-| D-CFC-11 | Finding concepts join the shared token catalogue | **[H]** `symptom_catalog ∪ clinical_concepts(finding)`, `symptom_code` |
-| D-CFC-12 | Imprecise DOB handled conservatively | SR-PREG-MINOR; HMIS age bands |
-| D-CFC-13 | `facility_capabilities` with intermittent | §A.2; hospital setup |
-| D-CFC-14 | Unit-mismatch triggers as proposed | the five v1 rules; none added |
-| D-CFC-15 | Plausibility bounds per quantity concept, signed in the dossier | mechanism ships; `RefEntry` pending_cso |
+| ID       | Decision (signed)                                               | Realised as                                                                        |
+| -------- | --------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| D-CFC-01 | MedSync concept ids primary; codes are verified mappings        | `clinical_concepts.codes` with status                                              |
+| D-CFC-02 | One insert-only observation store; CGM separate                 | **[H]** via E3                                                                     |
+| D-CFC-03 | Versioned, bitemporal tables with as-of snapshots               | fact envelope; `created_at` is knowledge time on `clinical_observations`           |
+| D-CFC-04 | Encryption boundary                                             | = E4                                                                               |
+| D-CFC-05 | Canonical units as §5                                           | `lib/units`                                                                        |
+| D-CFC-06 | eGFR by one signed equation (interim CKD-EPI 2021, ARK caveat)  | NCD scope; nothing built here                                                      |
+| D-CFC-07 | Trust T1–T4; rules declare a minimum                            | envelope `trust`                                                                   |
+| D-CFC-08 | Location out of the read contract                               | loader                                                                             |
+| D-CFC-09 | Restricted classes; pregnancy restricted for minors             | `sensitivity`; SR-PREG-MINOR                                                       |
+| D-CFC-10 | WHO ICD-10 + ICD-11 now; CIEL mapping                           | narrowed by E6: ICD-10 empty until O-3; CIEL column present, terms confirmed first |
+| D-CFC-11 | Finding concepts join the shared token catalogue                | **[H]** `symptom_catalog ∪ clinical_concepts(finding)`, `symptom_code`             |
+| D-CFC-12 | Imprecise DOB handled conservatively                            | SR-PREG-MINOR; HMIS age bands                                                      |
+| D-CFC-13 | `facility_capabilities` with intermittent                       | §A.2; hospital setup                                                               |
+| D-CFC-14 | Unit-mismatch triggers as proposed                              | the five v1 rules; none added                                                      |
+| D-CFC-15 | Plausibility bounds per quantity concept, signed in the dossier | mechanism ships; `RefEntry` pending_cso                                            |
 
 **NCD engine (MS-NCD-ENG-001) — context only; nothing of the engine is built here**
 
-| ID | Decision (signed) | Touches this build |
-|---|---|---|
-| D-NCD-01 | Intended-use statement | — |
-| D-NCD-02 | Logic in code, numbers in signed catalogues; no rules DSL | templates' sign checks are a closed list, not a DSL |
-| D-NCD-03 | State ownership; engine never enters clinician-owned states | — |
-| D-NCD-04 | Acute routing: in-facility to triage recommendations | recommendation intents render in Plan |
-| D-NCD-05 | Engines exchange facts and confirmed states only | `loadFactSnapshot` |
-| D-NCD-06 | Proposal eligibility by cadre incl. clinical officers | §D |
-| D-NCD-07 | Decline reasons and snooze windows | — |
-| D-NCD-08 | Workspace badge plus a Tasks source, one row per patient | FW-2 respected by the new lanes |
-| D-NCD-09 | "With complications" = clinician-confirmed components | — |
-| D-NCD-10 | Shadow mode and go-live gates | — |
-| D-NCD-11 | Default criteria set: UCG 2023 | — |
-| D-NCD-12 | Under-16 scope: recognition, classification support, referral | paediatric module has no dosing |
-| D-NCD-13 | Patient-facing output only after confirmation; neutral SMS | restricted exclusion |
-| D-NCD-14 | Small-cell suppression threshold for registries (proposed 5) | — |
-| D-NCD-15 | Dev-only fixture preview for design review | the P5 fixture harness is the same exception |
-| D-NCD-16 | Roadmap insertion Tier 3 item 4 | — |
-| D-NCD-17 | Four-eyes pack signing | — |
+| ID       | Decision (signed)                                             | Touches this build                                  |
+| -------- | ------------------------------------------------------------- | --------------------------------------------------- |
+| D-NCD-01 | Intended-use statement                                        | —                                                   |
+| D-NCD-02 | Logic in code, numbers in signed catalogues; no rules DSL     | templates' sign checks are a closed list, not a DSL |
+| D-NCD-03 | State ownership; engine never enters clinician-owned states   | —                                                   |
+| D-NCD-04 | Acute routing: in-facility to triage recommendations          | recommendation intents render in Plan               |
+| D-NCD-05 | Engines exchange facts and confirmed states only              | `loadFactSnapshot`                                  |
+| D-NCD-06 | Proposal eligibility by cadre incl. clinical officers         | §D                                                  |
+| D-NCD-07 | Decline reasons and snooze windows                            | —                                                   |
+| D-NCD-08 | Workspace badge plus a Tasks source, one row per patient      | FW-2 respected by the new lanes                     |
+| D-NCD-09 | "With complications" = clinician-confirmed components         | —                                                   |
+| D-NCD-10 | Shadow mode and go-live gates                                 | —                                                   |
+| D-NCD-11 | Default criteria set: UCG 2023                                | —                                                   |
+| D-NCD-12 | Under-16 scope: recognition, classification support, referral | paediatric module has no dosing                     |
+| D-NCD-13 | Patient-facing output only after confirmation; neutral SMS    | restricted exclusion                                |
+| D-NCD-14 | Small-cell suppression threshold for registries (proposed 5)  | —                                                   |
+| D-NCD-15 | Dev-only fixture preview for design review                    | the P5 fixture harness is the same exception        |
+| D-NCD-16 | Roadmap insertion Tier 3 item 4                               | —                                                   |
+| D-NCD-17 | Four-eyes pack signing                                        | —                                                   |
 
-**Clinical reference register (MS-EMR-CLIN-001 [12]).** Structure signed; reference *values* are separate
+**Clinical reference register (MS-EMR-CLIN-001 [12]).** Structure signed; reference _values_ are separate
 `RefEntry` files, `pending_cso`, value withheld, and each mechanism shows no number until its entry is signed.
 
-| Item | Structure | Values |
-|---|---|---|
-| Principles 1–9; templates 2.1–2.10; minimum to sign 2.11; script 2.12 | signed | — |
-| Findings rules | signed | REF-IDSR-SCREEN pending |
-| Diagnosis rules | signed | REF-DX-TERMS (starter terms, ICD-11), REF-DX-TESTFIRST pending |
-| Allergy model; medicines reconciliation; orders, specimens, results, acknowledgement | signed | — |
-| Critical-results policy | signed | REF-CRIT-*, REF-CRIT-TIMEFRAME pending (with the laboratory lead) |
-| Concept extension and conversions | signed (`clinical-fact-concepts.v1.1.json`) | codes candidate |
-| Pregnancy | signed | REF-PREG-AGE, postpartum window pending |
-| Restricted classes; minors default | signed | — |
-| HMIS and IDSR capture | signed | REF-HMIS-ATTENDANCE, REF-HMIS-AGEBANDS, REF-HMIS-MAP, REF-IDSR-CLASSES pending |
-| Fasting definition (CFC 4.1) | — | REF-DM-FASTING-DEF pending |
+| Item                                                                                 | Structure                                   | Values                                                                         |
+| ------------------------------------------------------------------------------------ | ------------------------------------------- | ------------------------------------------------------------------------------ |
+| Principles 1–9; templates 2.1–2.10; minimum to sign 2.11; script 2.12                | signed                                      | —                                                                              |
+| Findings rules                                                                       | signed                                      | REF-IDSR-SCREEN pending                                                        |
+| Diagnosis rules                                                                      | signed                                      | REF-DX-TERMS (starter terms, ICD-11), REF-DX-TESTFIRST pending                 |
+| Allergy model; medicines reconciliation; orders, specimens, results, acknowledgement | signed                                      | —                                                                              |
+| Critical-results policy                                                              | signed                                      | REF-CRIT-\*, REF-CRIT-TIMEFRAME pending (with the laboratory lead)             |
+| Concept extension and conversions                                                    | signed (`clinical-fact-concepts.v1.1.json`) | codes candidate                                                                |
+| Pregnancy                                                                            | signed                                      | REF-PREG-AGE, postpartum window pending                                        |
+| Restricted classes; minors default                                                   | signed                                      | —                                                                              |
+| HMIS and IDSR capture                                                                | signed                                      | REF-HMIS-ATTENDANCE, REF-HMIS-AGEBANDS, REF-HMIS-MAP, REF-IDSR-CLASSES pending |
+| Fasting definition (CFC 4.1)                                                         | —                                           | REF-DM-FASTING-DEF pending                                                     |
 
 ### Signature
 
@@ -1739,45 +1771,45 @@ Every row below was signed as recommended. "Realised as" names the harmonised me
 
 ### H.1 Deviations from HARMONISATION wording (intent unchanged)
 
-| # | HARMONISATION says | This pack does | Why |
-|---|---|---|---|
-| D1 | `private.block_mutation()` | reuses `public.block_modify_append_only()` (0040:118) | the same function already exists; no second copy |
-| D2 | 0071 copies allergies | copies rows but not the text: backfilled rows carry `legacy_ref`; the projection reads the untouched source; O-5 (extended) inserts version 2 with ciphertext | SQL cannot produce `lib/encryption.ts` ciphertext, and a plaintext copy would break E4 |
-| D3 | `closure_reason`; allergy `source`; `recorded_by` | `closure_reason` is a code + `closure_note_ciphertext`; the §7.5 informant list is `informant` (the table also carries the CFC `source`); `recorded_by_user_id` | E4 (free text encrypted); one column cannot hold two vocabularies; repo naming |
+| #   | HARMONISATION says                                | This pack does                                                                                                                                                  | Why                                                                                    |
+| --- | ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| D1  | `private.block_mutation()`                        | reuses `public.block_modify_append_only()` (0040:118)                                                                                                           | the same function already exists; no second copy                                       |
+| D2  | 0071 copies allergies                             | copies rows but not the text: backfilled rows carry `legacy_ref`; the projection reads the untouched source; O-5 (extended) inserts version 2 with ciphertext   | SQL cannot produce `lib/encryption.ts` ciphertext, and a plaintext copy would break E4 |
+| D3  | `closure_reason`; allergy `source`; `recorded_by` | `closure_reason` is a code + `closure_note_ciphertext`; the §7.5 informant list is `informant` (the table also carries the CFC `source`); `recorded_by_user_id` | E4 (free text encrypted); one column cannot hold two vocabularies; repo naming         |
 
 ### H.2 Operational defaults proposed here (hospital settings; not in the signed list)
 
-| Setting | Default | Basis |
-|---|---|---|
-| Note autosave debounce | 1,500 ms after typing pauses, plus on section change and `visibilitychange` | today's page saves only on section change and loses the last section on close |
-| Draft idle → Needs closing | 24 h | existing `ENCOUNTER_IDLE_MS` (`lib/workspace/queries.ts:54`) |
-| Late-entry window | 24 h between effective and signed time | notes are routinely written after the patient leaves; resus keeps its own 60 s bedside rule |
-| Server-clock skew warning | 30 s; offset refetch every 5 min | PROMPT §9 |
-| Realtime fallback poll | 15 s while visible | PROMPT §9, 0069 precedent |
-| Administrative-closure reason chips | left before seen, duplicate encounter, documented elsewhere, opened in error, other (text) | administrative, not clinical |
+| Setting                             | Default                                                                                    | Basis                                                                                       |
+| ----------------------------------- | ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------- |
+| Note autosave debounce              | 1,500 ms after typing pauses, plus on section change and `visibilitychange`                | today's page saves only on section change and loses the last section on close               |
+| Draft idle → Needs closing          | 24 h                                                                                       | existing `ENCOUNTER_IDLE_MS` (`lib/workspace/queries.ts:54`)                                |
+| Late-entry window                   | 24 h between effective and signed time                                                     | notes are routinely written after the patient leaves; resus keeps its own 60 s bedside rule |
+| Server-clock skew warning           | 30 s; offset refetch every 5 min                                                           | PROMPT §9                                                                                   |
+| Realtime fallback poll              | 15 s while visible                                                                         | PROMPT §9, 0069 precedent                                                                   |
+| Administrative-closure reason chips | left before seen, duplicate encounter, documented elsewhere, opened in error, other (text) | administrative, not clinical                                                                |
 
 ### H.3 Owner actions (HARMONISATION §8, extended)
 
-| # | Action |
-|---|---|
-| O-1 | Create the hosted Supabase dev project; apply 0000–0073; run the RLS suites and the `authenticator` probe there |
-| O-2 | Set `MEDSYNC_NOTE_HMAC_KEY` in Vercel (32 random bytes, base64) |
-| O-3 | Apply for the WHO ICD-10 commercial licence |
-| O-4 | Count legacy rows (queries in the final report) before any retirement |
-| O-5 | Re-encrypt old plaintext NCD drafts (script, dry-run first). **Extended:** insert version 2 with ciphertext for every backfilled allergy, before O-4 retires a legacy table |
-| O-6 | Decide on Playwright |
+| #   | Action                                                                                                                                                                                                               |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| O-1 | Create the hosted Supabase dev project; apply 0000–0073; run the RLS suites and the `authenticator` probe there                                                                                                      |
+| O-2 | Set `MEDSYNC_NOTE_HMAC_KEY` in Vercel (32 random bytes, base64)                                                                                                                                                      |
+| O-3 | Apply for the WHO ICD-10 commercial licence                                                                                                                                                                          |
+| O-4 | Count legacy rows (queries in the final report) before any retirement                                                                                                                                                |
+| O-5 | Re-encrypt old plaintext NCD drafts (script, dry-run first). **Extended:** insert version 2 with ciphertext for every backfilled allergy, before O-4 retires a legacy table                                          |
+| O-6 | Decide on Playwright                                                                                                                                                                                                 |
 | O-7 | Apply 0071–0073 in prod, deploy `ha-start-encounter` and `ha-complete-encounter`, set `EMR_V1`. **Extended:** run `scripts/emr/backfill-allergies.ts` once when the flag goes on (captures written while it was off) |
 
 ### H.4 Open confirmations (outside the signature; none blocks P2)
 
-| Item | Needed for | Proposed handling until confirmed |
-|---|---|---|
-| All `pending_cso` reference values (§G register) | the mechanisms that use them | mechanisms ship and show no number |
-| Pregnancy line while REF-PREG-AGE is pending | safety bar, imaging prompt | module offered collapsed for female patients; bar line and imaging prompt off |
-| Cross-facility allergy visibility | prescribing safety at a second hospital | rows are hospital-scoped like every row; the prescribing input could read the patient's allergies across hospitals server-side (safety-positive) — owner and CSO decide with the DPA/MoU in view |
-| HMIS 032 field list; national cause-of-death form and MPDSR pathway; PF3/PF3A forms; UCG 2023 malaria wording and page | referral print, cause-of-death record, medico-legal seam, test-first prompt | fields as in reference 2.8/2.9; medico-legal is a note type with no template |
-| Minor and guardian model | restricted content for minors | conservative default (reference [10]) |
-| ACVPU "C" has no AVPU answer | projecting triage consciousness | quarantined with a reason, never dropped |
-| Dipstick answer sets, Xpert result wording (concept JSON `openConfirmations`) | result entry | v1 dipstick scale reused |
-| Q18 baseline (TTFB, JS size, timings) | budgets | taken once in the P5 harness before the new UI is switched on |
-| CIEL dictionary shipped by UgandaEMR | `ciel_id` values | column present, empty |
+| Item                                                                                                                   | Needed for                                                                  | Proposed handling until confirmed                                                                                                                                                                |
+| ---------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| All `pending_cso` reference values (§G register)                                                                       | the mechanisms that use them                                                | mechanisms ship and show no number                                                                                                                                                               |
+| Pregnancy line while REF-PREG-AGE is pending                                                                           | safety bar, imaging prompt                                                  | module offered collapsed for female patients; bar line and imaging prompt off                                                                                                                    |
+| Cross-facility allergy visibility                                                                                      | prescribing safety at a second hospital                                     | rows are hospital-scoped like every row; the prescribing input could read the patient's allergies across hospitals server-side (safety-positive) — owner and CSO decide with the DPA/MoU in view |
+| HMIS 032 field list; national cause-of-death form and MPDSR pathway; PF3/PF3A forms; UCG 2023 malaria wording and page | referral print, cause-of-death record, medico-legal seam, test-first prompt | fields as in reference 2.8/2.9; medico-legal is a note type with no template                                                                                                                     |
+| Minor and guardian model                                                                                               | restricted content for minors                                               | conservative default (reference [10])                                                                                                                                                            |
+| ACVPU "C" has no AVPU answer                                                                                           | projecting triage consciousness                                             | quarantined with a reason, never dropped                                                                                                                                                         |
+| Dipstick answer sets, Xpert result wording (concept JSON `openConfirmations`)                                          | result entry                                                                | v1 dipstick scale reused                                                                                                                                                                         |
+| Q18 baseline (TTFB, JS size, timings)                                                                                  | budgets                                                                     | taken once in the P5 harness before the new UI is switched on                                                                                                                                    |
+| CIEL dictionary shipped by UgandaEMR                                                                                   | `ciel_id` values                                                            | column present, empty                                                                                                                                                                            |

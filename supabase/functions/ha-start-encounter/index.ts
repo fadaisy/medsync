@@ -135,8 +135,7 @@ async function findOpenEncounter(o: {
     intakes = intakes
       .eq("receiving_department_id", o.departmentId)
       .or(`arrived_at.gte."${startOfDay}",checked_in_at.gte."${startOfDay}"`);
-  }
-  else intakes = intakes.eq("id", o.visitId ?? crypto.randomUUID());
+  } else intakes = intakes.eq("id", o.visitId ?? crypto.randomUUID());
   const { data } = await intakes;
   const rows = (data ?? []) as { id: string; encounter_id: string | null }[];
   const visitIds = [...new Set([o.visitId, ...rows.map((r) => r.id)].filter(Boolean))];

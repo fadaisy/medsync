@@ -61,7 +61,10 @@ export type ChartEncounterInput = Pick<
   | "startedAt"
   | "endedAt"
   | "disposition"
-> & { sensitivity?: Sensitivity };
+> & {
+  sensitivity?: Sensitivity;
+  /** Why it was closed; required when entered in error. */ closureReason?: string | null;
+};
 export interface ChartOrderInput {
   derivation: OrderDerivation;
   kind: string;
@@ -113,6 +116,9 @@ export interface ChartInput {
   death: FlowDeath | null;
   /** userId → display name, for authors and asserters. */
   names?: Readonly<Record<string, string>>;
+  /** Entered-in-error reasons by source row id (provenance.rowId), decrypted when the reader may
+   *  see them. The snapshot carries the voided facts themselves (loadFactSnapshot keepEnteredInError). */
+  eieReasons?: Readonly<Record<string, { code: string | null; text: string | null }>>;
   timeZone?: string;
   /** Test seams; production reads the shipped (pending) entries. */
   criticalRefs?: readonly CriticalRef[];
@@ -173,12 +179,27 @@ export interface OrderItem extends Item {
   priority: string | null;
   at: string;
 }
-export type TimelineKind = "encounter" | "note" | "result" | "order" | "procedure";
+export type TimelineKind =
+  | "encounter"
+  | "note"
+  | "result"
+  | "order"
+  | "procedure"
+  | "entered_in_error";
 export interface TimelineItem extends Item {
   kind: TimelineKind;
   at: string;
   title: string;
   detail: string;
+  /** Entered in error: shown struck through, the reason in `detail`. */
+  struck?: boolean;
+}
+/** A voided fact, kept visible in its section's history (Law 4): struck, with its reason. */
+export interface EnteredInErrorItem extends Item {
+  section: "problems" | "allergies" | "medicines" | "results" | "other";
+  at: string;
+  title: string;
+  reason: string;
 }
 export interface FlowCell extends Item {
   date: string;
@@ -243,6 +264,8 @@ export interface ChartPayload {
   timeline: TimelineItem[];
   flowsheet: { dates: string[]; rows: FlowRow[] };
   notes: NoteItem[];
+  /** Newest first. Clinician views only: toPatientFacing empties it. */
+  enteredInError: EnteredInErrorItem[];
 }
 
 /* ─── Words ───────────────────────────────────────────────────────── */
@@ -617,6 +640,45 @@ function notesList(input: ChartInput, names: Record<string, string>): NoteItem[]
     .reverse();
 }
 
+const EIE_SECTION: Partial<Record<ClinicalFact["kind"], EnteredInErrorItem["section"]>> = {
+  condition: "problems",
+  allergy: "allergies",
+  medication: "medicines",
+  observation: "results",
+  procedure: "other",
+  pregnancy: "other",
+};
+
+function eieWords(r: { code: string | null; text: string | null } | undefined): string {
+  return r?.text?.trim() || (r?.code ? humanise(r.code) : "Reason not recorded");
+}
+
+function enteredInErrorList(input: ChartInput): EnteredInErrorItem[] {
+  return input.snapshot.facts
+    .filter((f) => f.status === "entered_in_error" && EIE_SECTION[f.kind])
+    .map((f) => ({
+      id: f.id,
+      restricted: isRestricted(f.sensitivity),
+      section: EIE_SECTION[f.kind]!,
+      at: effectiveAt(f),
+      title:
+        f.kind === "observation"
+          ? `${display(f.concept)} ${valueText(f)}`
+          : f.kind === "allergy"
+            ? f.substance.text?.trim() ||
+              (f.substance.code ? humanise(f.substance.code) : "Substance not named")
+            : f.kind === "medication"
+              ? f.drug
+                ? humanise(f.drug)
+                : "Medicine not named"
+              : f.kind === "pregnancy"
+                ? "Pregnancy record"
+                : display(f.concept),
+      reason: eieWords(input.eieReasons?.[f.provenance.rowId]),
+    }))
+    .sort((a, b) => b.at.localeCompare(a.at) || a.id.localeCompare(b.id));
+}
+
 function flowsheet(
   obs: readonly ObservationFact[],
   input: ChartInput,
@@ -684,6 +746,7 @@ export function buildChartPayload(input: ChartInput): ChartPayload {
     .filter((e) => e.state !== "entered_in_error")
     .sort((a, b) => b.startedAt.getTime() - a.startedAt.getTime())
     .map((e) => encounterItem(e, fmt));
+  const enteredInError = enteredInErrorList(input);
 
   // Recent results: the newest value per concept, critical first, then abnormal, then newest.
   const newest = new Map<string, ObservationFact>();
@@ -731,6 +794,24 @@ export function buildChartPayload(input: ChartInput): ChartPayload {
 
   const timeline: TimelineItem[] = [
     ...encounters.map((e) => ({ ...e, kind: "encounter" as const })),
+    // A voided encounter leaves the summary but stays in the Timeline, struck, with its reason.
+    ...input.encounters
+      .filter((e) => e.state === "entered_in_error")
+      .map((e) => ({
+        ...encounterItem(e, fmt),
+        kind: "encounter" as const,
+        detail: `Entered in error — ${eieWords({ code: e.closureReason ?? null, text: null })}`,
+        struck: true,
+      })),
+    ...enteredInError.map((i) => ({
+      id: i.id,
+      restricted: i.restricted,
+      kind: "entered_in_error" as const,
+      at: i.at,
+      title: i.title,
+      detail: `Entered in error — ${i.reason}`,
+      struck: true,
+    })),
     ...flattenNotes(notes).map((n) => ({
       id: n.id,
       restricted: n.restricted,
@@ -738,6 +819,7 @@ export function buildChartPayload(input: ChartInput): ChartPayload {
       at: n.at,
       title: n.title,
       detail: n.statusText,
+      ...(n.struck ? { struck: true } : {}),
     })),
     ...input.results.map((r) => ({
       id: r.reportId,
@@ -805,6 +887,7 @@ export function buildChartPayload(input: ChartInput): ChartPayload {
     timeline,
     flowsheet: flowsheet(obs, input, fmt),
     notes,
+    enteredInError,
   };
   // The marker: any restricted item anywhere in the payload (it reveals nothing itself).
   payload.safetyBar.restricted =
@@ -843,8 +926,15 @@ function finishBar(bar: SafetyBar): SafetyBar {
 /* ─── Patient-facing ──────────────────────────────────────────────── */
 
 const keep = <T extends Item>(xs: readonly T[]): T[] => xs.filter((x) => !x.restricted);
+/** A patient sees that a note was withdrawn, never why (the reason is clinical record-keeping). */
 const keepNotes = (xs: readonly NoteItem[]): NoteItem[] =>
-  keep(xs).map((n) => ({ ...n, addenda: keepNotes(n.addenda) }));
+  keep(xs).map((n) => ({
+    ...n,
+    ...(n.struck
+      ? { eieReason: null, statusText: `Entered in error${n.lateEntry ? " · Late entry" : ""}` }
+      : {}),
+    addenda: keepNotes(n.addenda),
+  }));
 
 /** Allergy line without restricted items. Stripping never turns into "no known allergies": a list
  *  emptied by the filter reads "not recorded", the honest word for what this reader can see. */
@@ -875,12 +965,14 @@ export function toPatientFacing(p: ChartPayload): ChartPayload {
       results: keep(p.summary.results),
       pendingOrders: keep(p.summary.pendingOrders),
     },
-    timeline: keep(p.timeline),
+    // Voided items are clinician-only: the patient's view shows the current record.
+    timeline: keep(p.timeline).filter((t) => !t.struck),
     flowsheet: flowsheetOf(
       p.flowsheet.rows
         .map((r) => ({ ...r, cells: keep(r.cells), series: keep(r.series) }))
         .filter((r) => r.cells.length > 0),
     ),
     notes: keepNotes(p.notes),
+    enteredInError: [],
   };
 }

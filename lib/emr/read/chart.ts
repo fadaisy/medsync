@@ -11,13 +11,18 @@ import type {
 } from "@/lib/emr/chart";
 import type { EmrDb } from "@/lib/emr/db";
 import type { ReportInput } from "@/lib/emr/orders";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, getTableName, inArray } from "drizzle-orm";
 
 import { provenanceFor } from "@/components/emr/provenance";
 import {
+  allergies,
   clinicalNoteEvents,
   clinicalNotes,
+  conditions,
   diagnosticReports,
+  medicationStatements,
+  pregnancyEpisodes,
+  procedures,
   resultAcknowledgements,
   testCatalogue,
 } from "@/db/schema/emr";
@@ -180,7 +185,40 @@ export async function loadChartFor(
         asOf: now,
         purpose: "interactive",
         perConceptCap: PER_CONCEPT_CAP,
+        // Voided items stay on the chart, struck through with their reason (Law 4).
+        keepEnteredInError: true,
       });
+      // Their reasons: an observation's is its note; the versioned tables carry reason columns.
+      const voided = (table: string) =>
+        snapshot.facts
+          .filter((f) => f.status === "entered_in_error" && f.provenance.table === table)
+          .map((f) => f.provenance.rowId);
+      const obsVoided = voided("clinical_observations");
+      const eieRows = [
+        ...(obsVoided.length
+          ? (
+              await tx
+                .select({ id: clinicalObservations.id, text: clinicalObservations.noteCiphertext })
+                .from(clinicalObservations)
+                .where(inArray(clinicalObservations.id, obsVoided))
+            ).map((r) => ({ ...r, code: null }))
+          : []),
+        ...(
+          await Promise.all(
+            [conditions, medicationStatements, allergies, procedures, pregnancyEpisodes].map(
+              (t) => {
+                const ids = voided(getTableName(t));
+                return ids.length
+                  ? tx
+                      .select({ id: t.id, code: t.reasonCode, text: t.reasonCiphertext })
+                      .from(t)
+                      .where(inArray(t.id, ids))
+                  : [];
+              },
+            ),
+          )
+        ).flat(),
+      ];
       const encounterRows = await tx
         .select({
           id: encounters.id,
@@ -191,6 +229,7 @@ export async function loadChartFor(
           startedAt: encounters.startedAt,
           endedAt: encounters.endedAt,
           disposition: encounters.disposition,
+          closureReason: encounters.closureReason,
           followUp: encounters.followUp,
           dispositionDetail: encounters.dispositionDetail,
           clinicianUserId: encounters.clinicianUserId,
@@ -307,6 +346,7 @@ export async function loadChartFor(
         tests,
         notes,
         noteEvents,
+        eieRows,
       };
     },
     opts.database,
@@ -408,6 +448,9 @@ export async function loadChartFor(
     results,
     notes: rec.notes,
     noteEvents,
+    eieReasons: Object.fromEntries(
+      rec.eieRows.map((r) => [r.id, { code: r.code, text: r.text ? decrypt(r.text) : null }]),
+    ),
     death,
     names,
     timeZone: DEFAULT_TIME_ZONE,

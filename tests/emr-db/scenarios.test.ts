@@ -101,13 +101,18 @@ vi.mock("@/lib/supabase/service", () => ({
           const vals = keys.map((k) =>
             row[k] !== null && typeof row[k] === "object" ? JSON.stringify(row[k]) : row[k],
           );
-          const r = await (held.pg as { query: (s: string, p: unknown[]) => Promise<{ rows: { id: string }[] }> }).query(
+          const r = await (
+            held.pg as { query: (s: string, p: unknown[]) => Promise<{ rows: { id: string }[] }> }
+          ).query(
             `INSERT INTO public.${table} (${keys.join(", ")}) VALUES (${keys.map((_, i) => `$${i + 1}`).join(", ")}) RETURNING id`,
             vals,
           );
           return { data: r.rows[0] ?? null, error: null };
         };
-        return { select: () => ({ single: run }), then: (f: (v: unknown) => unknown) => run().then(f) };
+        return {
+          select: () => ({ single: run }),
+          then: (f: (v: unknown) => unknown) => run().then(f),
+        };
       },
     }),
   }),

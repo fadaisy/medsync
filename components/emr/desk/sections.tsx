@@ -427,9 +427,8 @@ function ProblemsBody({ sid, ctx }: { sid: string; ctx: SectionCtx }) {
           })}
           {resolvedHere.map((i) => (
             <li key={String(i.conditionId)} className="flex items-center gap-3 py-2">
-              <span className="text-body-s text-muted-foreground flex-1 line-through">
-                {String(i.display)}
-              </span>
+              {/* Not struck: strikethrough means "entered in error" in the record. */}
+              <span className="text-body-s text-muted-foreground flex-1">{String(i.display)}</span>
               <StatusWord tone="neutral">Resolved this visit</StatusWord>
             </li>
           ))}

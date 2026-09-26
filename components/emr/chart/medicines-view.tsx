@@ -1,20 +1,22 @@
 import type { ChartContext } from "./parts";
-import type { ChartPayload } from "@/lib/emr/chart";
+import type { ChartPayload, EnteredInErrorItem } from "@/lib/emr/chart";
 
 import { RestrictedMark } from "../chips";
 import { EmptyState } from "../empty-state";
 import { StatusWord } from "../status-word";
-import { SectionHeading } from "./parts";
+import { EnteredInErrorList, SectionHeading } from "./parts";
 
 /** Current medicines (active, on hold, intended). Reconciliation happens on the clerking desk. */
 export function MedicinesView({
   medicines,
   ctx,
   headingId,
+  enteredInError = [],
 }: {
   medicines: ChartPayload["summary"]["medicines"];
   ctx: ChartContext;
   headingId?: string;
+  enteredInError?: readonly EnteredInErrorItem[];
 }) {
   return (
     <div className="flex flex-col gap-4">
@@ -41,6 +43,10 @@ export function MedicinesView({
           ))}
         </ul>
       )}
+      <EnteredInErrorList
+        items={enteredInError.filter((i) => i.section === "medicines")}
+        timeZone={ctx.timeZone}
+      />
     </div>
   );
 }

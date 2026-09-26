@@ -131,6 +131,10 @@ Both keep their old behaviour for callers that send none of the new fields (ADR 
 
 ## 7. Deploy the branch
 
+- [ ] Run `npm run build` once before deploying. In the build output, check that `/doctor/encounters/[encounterId]`
+      does not load the desk's code when `EMR_V1` is unset. The desk now loads through `next/dynamic`, but the size of
+      that split has not been measured. Record the route's added JS against the 90 KB gz budget: it was +89.7 KB at
+      STOP 5–6, and the P7 prescriptions panel has been added since.
 - [ ] `npx vercel deploy --prod --yes`. With `EMR_V1` unset, every page is the page it was.
 
 ## 8. Switch the EMR on
@@ -142,6 +146,9 @@ Both keep their old behaviour for callers that send none of the new fields (ADR 
 - [ ] Then `EMR_V1=1` for every hospital.
 - [ ] **Later**, after Phase 7 and its own sign-off: `EMR_PRESCRIBING=1` (prescribing from the encounter; only where
       `EMR_V1` is on).
+      A senior's "returned" co-sign cancels the prescription and stops its medication statement in the same
+      transaction (closed after STOP 7–8), so the desk, the printout and the chart's Medicines agree it is not valid.
+      Seed `clinical_cosign_policies` for hospitals created after 0030 first; prescribing fails closed without them.
 - [ ] When the flag first goes on, AMPLE allergies captured while it was off need copying into the record. The script
       for that (`scripts/emr/backfill-allergies.ts`, proposal §H.3) **is not written yet**; until it is, those captures
       stay readable only in their resus episode.
@@ -203,12 +210,15 @@ signed.
   - [ ] REF-DX-TESTFIRST.
 - [ ] **The 85 draft diagnosis terms** (13 restricted; REF-DX-TERMS): confirm each ICD-11 code at icd.who.int (today
       verified-mirror only) and sign.
+- [ ] **Entered-in-error notes seen by the patient** show "Entered in error" without the reason; before, the reason
+      reached the patient. Confirm.
+- [ ] **Prescribing with the allergy status unknown** ("not recorded" or "unable to assess"): the sheet shows amber
+      words and the server records nothing. Decide whether a confirm reason is required.
 - [ ] **Forms to confirm:** the HMIS 032 referral field list, the national cause-of-death form and MPDSR pathway, PF3/PF3A,
       the UCG 2023 malaria wording and page, and the minor/guardian model.
 
 ## 12. Known open items (not owner actions, recorded so nobody is surprised)
 
-- The desk is imported unconditionally on the flag-off page (a dynamic import is the planned fix).
 - The nurse chart has no orders panel. Printouts leave encrypted narrative as write-in lines. "Page x of y" needs
   Chrome ≥ 131.
 - Scenario A5 is partial: the resus close-out has no structured action list to turn into proposed orders.

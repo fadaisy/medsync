@@ -1,8 +1,10 @@
 import type { Provenance } from "../provenance";
+import type { EnteredInErrorItem } from "@/lib/emr/chart";
 import type { ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
-import { parts } from "../format";
+import { RestrictedMark } from "../chips";
+import { formatters, parts } from "../format";
 
 /** Small pieces every chart section shares. Pure. */
 
@@ -46,6 +48,40 @@ export function Parts({ text, className }: { text: string; className?: string })
         <span key={`${i}:${p}`}>{p}</span>
       ))}
     </span>
+  );
+}
+
+/** A section's voided entries (Law 4): withdrawn, never vanished. Struck through, the reason in
+ *  words, newest first; nothing when there are none. */
+export function EnteredInErrorList({
+  items,
+  timeZone,
+}: {
+  items: readonly EnteredInErrorItem[];
+  timeZone?: string;
+}) {
+  if (items.length === 0) return null;
+  const fmt = formatters(timeZone);
+  return (
+    <section className="flex flex-col gap-2">
+      <SubHeading>Entered in error</SubHeading>
+      <ul className="flex flex-col">
+        {items.map((i) => (
+          <li
+            key={i.id}
+            className="border-border/60 text-body-s flex flex-wrap items-baseline gap-x-4 gap-y-1 border-b py-2 last:border-0"
+          >
+            <Time iso={i.at}>{fmt.dateTime(i.at)}</Time>
+            <s className="text-muted-foreground decoration-1">
+              <span className="sr-only">Entered in error: </span>
+              {i.title}
+            </s>
+            <span className="text-muted-foreground">{`Reason: ${i.reason}`}</span>
+            {i.restricted ? <RestrictedMark /> : null}
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 

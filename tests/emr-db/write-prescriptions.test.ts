@@ -14,7 +14,13 @@ import { beforeAll, describe, expect, it } from "vitest";
 
 import { withPatientWrite } from "@/lib/emr/write/context";
 import { recordAllergy, recordObservations, recordPregnancy } from "@/lib/emr/write/facts";
-import { loadPrescribePatient, prescribe } from "@/lib/emr/write/prescriptions";
+import {
+  encounterPrescriptions,
+  loadPrescribePatient,
+  prescribe,
+  prescriptionsForCosign,
+  withdrawReturnedPrescription,
+} from "@/lib/emr/write/prescriptions";
 import { decrypt, generateKey } from "@/lib/encryption";
 import { PAEDIATRIC_AGE_THRESHOLD } from "@/lib/prescribing/engine";
 import { EMERGENCY_DRUGS as CATALOG } from "@/lib/prescribing/reference/emergency-drug-catalog";
@@ -354,6 +360,8 @@ describe.skipIf(!laneOn)("prescriptions from the encounter (PGlite lane)", () =>
       ageYears: Math.floor(PAEDIATRIC_AGE_THRESHOLD / 2),
       weightKg: 20,
       conditions: ["pregnancy"],
+      // No allergy and no NKDA assertion: unknown, never "no allergy".
+      allergyStatus: "not_recorded",
     });
   });
 
@@ -407,6 +415,79 @@ describe.skipIf(!laneOn)("prescriptions from the encounter (PGlite lane)", () =>
         ),
       ),
     ).rejects.toThrow(/above your scope/);
+  });
+
+  it("a returned co-sign is not valid: marked on the desk, withheld from the printout; the queue sees the drug", async () => {
+    const { p, enc } = await visit();
+    const r = await as(intern, p, (ctx) => prescribe(ctx, rx(p, enc)));
+    const read = (forPrint?: boolean) =>
+      as(mo, p, (ctx) =>
+        encounterPrescriptions(ctx.tx, {
+          hospitalId: h,
+          patientUserId: p,
+          encounterId: enc,
+          forPrint,
+        }),
+      );
+    expect(await read()).toMatchObject([{ id: r.id, awaitingCosign: true, cosignWithheld: false }]);
+    expect(await read(true)).toHaveLength(1);
+    // The request's payload is PHI-free: the senior's queue resolves the drug here, same hospital only.
+    const shown = await as(mo, p, (ctx) => prescriptionsForCosign(ctx.tx, h, [r.id]));
+    expect(shown.get(r.id)).toMatchObject({
+      drugName: ORAL.name,
+      dose: `${refMg(ORAL)} mg`,
+      route: "oral",
+      frequency: "Once daily",
+      duration: "5 days",
+    });
+    const elsewhere = await as(mo, p, (ctx) =>
+      prescriptionsForCosign(ctx.tx, stranger.hospitalId, [r.id]),
+    );
+    expect(elsewhere.size).toBe(0);
+
+    await q(
+      `UPDATE clinical_cosign_requests SET state = 'returned', reviewed_by_user_id = $2,
+         reviewed_at = now(), review_note = 'Not indicated here'
+       WHERE patient_user_id = $1`,
+      [p, mo.userId],
+    );
+    expect(await read()).toMatchObject([{ id: r.id, awaitingCosign: false, cosignWithheld: true }]);
+    expect(await read(true)).toEqual([]);
+
+    // The return withdraws it: the prescription is cancelled and its statement stopped (a new
+    // version), so the chart no longer lists the drug as current. Replaying changes nothing.
+    const [req] = await q<{ id: string }>(
+      `SELECT id FROM clinical_cosign_requests WHERE patient_user_id = $1`,
+      [p],
+    );
+    const withdraw = () =>
+      as(mo, p, (ctx) =>
+        withdrawReturnedPrescription(ctx, {
+          patientUserId: p,
+          prescriptionId: r.id,
+          cosignRequestId: req!.id,
+        }),
+      );
+    await withdraw();
+    await withdraw();
+    const [rxRow] = await q<{ state: string }>(`SELECT state FROM prescriptions WHERE id = $1`, [
+      r.id,
+    ]);
+    expect(rxRow!.state).toBe("cancelled");
+    const versions = await q<{
+      version: number;
+      medication_status: string;
+      reason_code: string | null;
+    }>(
+      `SELECT version, medication_status, reason_code FROM medication_statements
+        WHERE logical_id = (SELECT logical_id FROM medication_statements WHERE id = $1)
+        ORDER BY version`,
+      [r.statementId],
+    );
+    expect(versions).toEqual([
+      { version: 1, medication_status: "active", reason_code: null },
+      { version: 2, medication_status: "stopped", reason_code: "cosign_returned" },
+    ]);
   });
 
   it("refuses those who may not prescribe, and fails closed with no policy", async () => {

@@ -150,6 +150,17 @@ export async function saveNoteDraft(
       throw new EmrWriteError("conflict", "The note is signed: add an addendum instead.");
     if (existing.templateId !== template.id) throw invalid("A draft keeps its template.");
     const same = stableStringify(readContent(existing)) === stableStringify(input.content);
+    // No revision: a first save. Its own create replayed (byKey) writes nothing, since anything
+    // newer came after it; a draft it never saw (a late first save, a second tab) is not its to
+    // overwrite.
+    if (input.revision === undefined) {
+      if (byKey) return { id: existing.id, revision: existing.revision };
+      if (!same)
+        throw new EmrWriteError(
+          "conflict",
+          "This note was changed in another tab or device. Reload to see the latest version.",
+        );
+    }
     if (input.revision !== undefined && input.revision !== existing.revision) {
       // A retried save that already landed is not a conflict.
       if (same) return { id: existing.id, revision: existing.revision };
@@ -388,7 +399,10 @@ export async function signNote(ctx: WriteCtx, input: SignNoteInput): Promise<Wri
     unmapped += r.unmapped;
   }
   const ncd = captureFromNote(content);
-  if (ncd) lines.push(...factsFromCapture(ncd, note.effectiveAt.toISOString()));
+  if (ncd)
+    lines.push(
+      ...factsFromCapture(ncd, note.effectiveAt.toISOString(), captureFromNote(content, "pulled")),
+    );
   const facts = await insertObservations(ctx, {
     patientUserId: note.patientUserId,
     encounterId: note.encounterId,

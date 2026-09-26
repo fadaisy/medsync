@@ -26,8 +26,14 @@ export type SaveDraft = (input: {
 export interface Autosave {
   /** Content changed: (re)start the debounce. Typing is never blocked. */
   change: (content: NoteContent) => void;
-  /** Submit what is waiting now (section change, tab hidden, before signing). */
-  flush: () => void;
+  /**
+   * Content the viewer did not type (mirrored from the record on mount or refresh). Saved like a
+   * change once a draft exists; before that it is held until the first edit or signing, so merely
+   * opening someone's encounter (a senior reviewing) leaves no draft that only they could sign.
+   */
+  adopt: (content: NoteContent) => void;
+  /** Submit what is waiting now (section change, tab hidden); `held` also sends adopted content (signing). */
+  flush: (opts?: { held?: boolean }) => void;
   /** Content changed and not yet submitted. */
   dirty: () => boolean;
   ids: () => DraftIds;
@@ -51,11 +57,16 @@ export function createAutosave(opts: {
 }): Autosave {
   let ids: DraftIds = { ...opts.initial };
   let pending: NoteContent | null = null;
+  let held: NoteContent | null = null;
   let timer: ReturnType<typeof setTimeout> | null = null;
 
-  const flush = () => {
+  const flush = (o?: { held?: boolean }) => {
     if (timer) clearTimeout(timer);
     timer = null;
+    if (o?.held) {
+      pending ??= held;
+      held = null;
+    }
     if (!pending) return;
     const content = pending;
     pending = null;
@@ -69,7 +80,14 @@ export function createAutosave(opts: {
           ...(ids.revision !== null ? { revision: ids.revision } : {}),
           content,
         });
-        if (r.ok && r.data) ids = { noteId: r.data.id, revision: r.data.revision };
+        // Monotonic: a late reply to a save the queue already timed out and resent must not roll
+        // the revision back (every later save would then be refused as another tab's change).
+        if (
+          r.ok &&
+          r.data &&
+          (r.data.id !== ids.noteId || ids.revision === null || r.data.revision > ids.revision)
+        )
+          ids = { noteId: r.data.id, revision: r.data.revision };
         return r;
       },
       onSaved: (r) => opts.onSaved?.(r),
@@ -77,12 +95,20 @@ export function createAutosave(opts: {
     opts.onChange?.();
   };
 
+  const change = (content: NoteContent) => {
+    held = null;
+    pending = content;
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(flush, opts.debounceMs);
+    opts.onChange?.();
+  };
+
   return {
-    change(content) {
-      pending = content;
-      if (timer) clearTimeout(timer);
-      timer = setTimeout(flush, opts.debounceMs);
-      opts.onChange?.();
+    change,
+    adopt(content) {
+      // A draft exists, or the viewer's first edit is already on its way: save as usual.
+      if (ids.noteId || pending) change(content);
+      else held = content;
     },
     flush,
     dirty: () => pending !== null,
@@ -111,6 +137,31 @@ export function createAutosave(opts: {
   };
 }
 
+/* ─── Chart actions: one client key per intent ────────────────────── */
+
+/** A chart action that threw (no reply): the server may have committed it. */
+export const UNKNOWN_OUTCOME =
+  "No response, so it may already be recorded. Try again: the same entry is never recorded twice.";
+
+/**
+ * Chart actions (vitals, diagnosis, problem, medicine, allergy, suggestion) commit at once, outside
+ * the queue. The client key belongs to the intent, not the attempt: an attempt that got no reply
+ * keeps its key, so tapping again with the same entry is a replay the server recognises, never a
+ * second row. Any reply (saved or refused) closes the intent; a changed entry is a new intent.
+ */
+export function createIntentKeys(newKey: () => string) {
+  const open = new Map<string, string>();
+  return {
+    async run<T>(intent: string, act: (clientKey: string) => Promise<T>): Promise<T> {
+      const key = open.get(intent) ?? newKey();
+      open.set(intent, key);
+      const r = await act(key); // thrown: the key stays for the retry
+      open.delete(intent);
+      return r;
+    },
+  };
+}
+
 /* ─── Outcomes in words ───────────────────────────────────────────── */
 
 export type FlowOutcome =
@@ -128,7 +179,7 @@ export async function signFlow(deps: {
   autosave: Pick<Autosave, "flush" | "idle" | "ids">;
   sign: (input: { noteId: string; revision?: number }) => Promise<ActionResult<unknown>>;
 }): Promise<FlowOutcome> {
-  deps.autosave.flush();
+  deps.autosave.flush({ held: true });
   try {
     await deps.autosave.idle();
   } catch (e) {

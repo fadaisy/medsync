@@ -1018,7 +1018,8 @@ export async function recordExposureFindings(
         label: `Allergies (AMPLE): ${allergies.join(", ")}`,
       },
     });
-    if ("eventId" in note) await captureToRecord(scope, parsed.data.episodeId, note.eventId, capture);
+    if ("eventId" in note)
+      await captureToRecord(scope, parsed.data.episodeId, note.eventId, capture);
   }
 
   revalidatePath(`/nurse/resus/${parsed.data.episodeId}`);

@@ -1,7 +1,7 @@
 import "server-only";
 
 import type { EmrDb, EmrTx } from "@/lib/emr/db";
-import { and, desc, eq, gte, inArray, notInArray, sql } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, isNull, notInArray, sql } from "drizzle-orm";
 
 import { clinicalObservations } from "@/db/schema/nurse-workspace";
 import { LEGACY_KIND_CONCEPTS } from "@/lib/facts/project/legacy-observation";
@@ -12,7 +12,9 @@ import { conceptDef } from "@/lib/facts/project/shared";
  * the NCD prefill, the triage trend and the nurse patient page show one vital-signs series under
  * EMR v1. The legacy readers keep `state = 'active'`, which never matches a CFC row (`state =
  * 'fact'`), so merging these in cannot double count. Current version only; voided rows dropped.
- * Values are canonical (the concept's unit), so a Fahrenheit entry reads in Celsius.
+ * Values are canonical (the concept's unit), so a Fahrenheit entry reads in Celsius. A value a lab
+ * report carries (a venous glucose) is a result, not a vital, and never joins the series: the NCD
+ * prefill would otherwise take it as a capillary point-of-care glucose.
  *
  * Callers gate on `emrV1Live()` (on anywhere = 0071 applied), not per hospital: a vital is the
  * patient's wherever it was taken, and the legacy reads it joins have no hospital filter either.
@@ -60,6 +62,7 @@ export async function loadCfcVitals(
         eq(co.patientUserId, patientUserId),
         inArray(co.conceptId, [...KIND_OF.keys()]),
         notInArray(co.status, ["entered_in_error", "cancelled"]),
+        isNull(co.reportId),
         sql`NOT EXISTS (SELECT 1 FROM public.clinical_observations s WHERE s.supersedes_id = ${co.id})`,
         opts.since ? gte(co.effectiveAt, opts.since) : undefined,
       ),

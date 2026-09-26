@@ -22,8 +22,10 @@ import {
   completeFlow,
   cosignFlow,
   createAutosave,
+  createIntentKeys,
   enteredInErrorFlow,
   signFlow,
+  UNKNOWN_OUTCOME,
 } from "@/components/emr/desk/flows";
 import {
   answerProblem,
@@ -36,6 +38,7 @@ import {
   KEY_HELP,
   putItem,
   saveWords,
+  sectionPosition,
   sectionWith,
   syncRecorded,
 } from "@/components/emr/desk/model";
@@ -201,16 +204,19 @@ export function DeskClient({
   );
 
   // A refreshed payload may hold new diagnoses or orders: mirror them into the note. A new draft
-  // that starts with the triage complaint is saved at once, so there is a note to sign.
+  // that starts with the triage complaint is held (autosave.adopt) until the viewer's first edit
+  // or signing: opening someone's encounter to review it must not leave a draft in their name.
   const firstSave = useRef(p.draft !== null && p.draft.noteId === null);
   useEffect(() => {
     if (p.draft === null) return;
     const next = syncRecorded(contentRef.current, p);
     if (next !== contentRef.current || (firstSave.current && Object.keys(next.sections).length)) {
       firstSave.current = false;
-      change(next);
+      contentRef.current = next;
+      setContent(next);
+      autosave.adopt(next);
     }
-  }, [p, change]);
+  }, [p, autosave]);
 
   /* ─── Sections and keys (instant, never animated) ──────────────── */
 
@@ -295,18 +301,21 @@ export function DeskClient({
 
   /* ─── Chart actions (commit at once) ────────────────────────────── */
 
+  // One client key per intent (the entry as tapped), reused when a tap got no reply.
+  const [intents] = useState(() => createIntentKeys(newKey));
   const run = useCallback(
-    async (key: string, act: () => Promise<ActionResult<unknown>>, words: string) => {
+    async (
+      key: string,
+      act: (clientKey: string) => Promise<ActionResult<unknown>>,
+      words: string,
+      entry?: unknown,
+    ) => {
       setBusy(key);
       let r: ActionResult<unknown>;
       try {
-        r = await act();
+        r = await intents.run(`${key}:${JSON.stringify(entry ?? null)}`, act);
       } catch {
-        r = {
-          ok: false,
-          code: "conflict",
-          error: "No connection: nothing was recorded. Try again.",
-        };
+        r = { ok: false, code: "conflict", error: UNKNOWN_OUTCOME };
       }
       setBusy(null);
       if (r.ok) {
@@ -315,7 +324,7 @@ export function DeskClient({
       } else setAnnounce({ ok: false, text: r.error });
       return r;
     },
-    [router],
+    [router, intents],
   );
   const base = { surface, patientUserId };
   const problemSection = sectionWith(p.template, "problem_list");
@@ -348,15 +357,16 @@ export function DeskClient({
         );
       void run(
         `problem:${id}`,
-        () =>
+        (clientKey) =>
           updateProblemStatus({
             ...base,
-            clientKey: newKey(),
+            clientKey,
             id,
             clinicalStatus: "resolved",
             reasonCode,
           }),
         "Problem resolved",
+        reasonCode,
       ).then((r) => {
         if (r.ok)
           change(
@@ -373,14 +383,15 @@ export function DeskClient({
     onAddProblem: (pick: DxPick) =>
       void run(
         "problem:add",
-        () =>
+        (clientKey) =>
           recordProblem({
             ...base,
-            clientKey: newKey(),
+            clientKey,
             encounterId,
             ...("term" in pick ? { termId: pick.term.id } : { text: pick.typed }),
           }),
         "Problem added",
+        pick,
       ),
     onMedicine: (
       id: string,
@@ -389,37 +400,39 @@ export function DeskClient({
     ) =>
       void run(
         `med:${id}`,
-        () =>
+        (clientKey) =>
           confirmCurrentMedicines({
             ...base,
-            clientKey: newKey(),
+            clientKey,
             encounterId,
             items: [{ id, reconciliation, ...(reasonCode ? { reasonCode } : {}) }],
           }),
         reconciliation === "continued" ? "Medicine continued" : `Medicine ${reconciliation}`,
+        [reconciliation, reasonCode],
       ),
     onAddMedicine: (text: string) =>
       void run(
         "med:add",
-        () =>
+        (clientKey) =>
           recordMedicationStatements({
             ...base,
-            clientKey: newKey(),
+            clientKey,
             encounterId,
             statements: [
               { drugText: text, medicationStatus: "active", medicationSource: "patient_reported" },
             ],
           }),
         "Medicine added",
+        text,
       ),
     onVitals: (list: VitalEntry[]) => {
-      const readingSetId = newKey();
       void run(
         "vitals",
-        () =>
+        // The reading set is the intent's key too, so a retried set is the same set.
+        (readingSetId) =>
           recordObservations({
             ...base,
-            clientKey: newKey(),
+            clientKey: readingSetId,
             encounterId,
             observations: list.map((e) => {
               const c = p.vitalConcepts.find((v) => v.conceptId === e.conceptId);
@@ -439,6 +452,7 @@ export function DeskClient({
             }),
           }),
         "Vital signs recorded",
+        list,
       ).then((r) => {
         if (r.ok && vitalsSection)
           change(
@@ -452,10 +466,10 @@ export function DeskClient({
     onDiagnosis: (pick: DxPick, o: DxOptions) =>
       void run(
         "dx",
-        () =>
+        (clientKey) =>
           recordEncounterDiagnosis({
             ...base,
-            clientKey: newKey(),
+            clientKey,
             encounterId,
             ...("term" in pick ? { termId: pick.term.id } : { text: pick.typed }),
             verification: o.verification,
@@ -463,6 +477,7 @@ export function DeskClient({
             addToProblemList: o.addToProblemList ?? false,
           }),
         "Diagnosis added",
+        [pick, o],
       ),
     onSuggestion: (key: string, a: { accept: string } | { dismiss: true }) => {
       const triageRecordId = p.encounter.triageRecordId;
@@ -471,12 +486,12 @@ export function DeskClient({
       const ref = { surface, patientUserId, encounterId, triageRecordId, recommendationKey: key };
       void run(
         `suggestion:${key}`,
-        () =>
+        (clientKey) =>
           "accept" in a
             ? acceptSuggestedOrder({
                 ...ref,
                 order: {
-                  clientKey: newKey(),
+                  clientKey,
                   testId: a.accept,
                   priority: "routine",
                   ...(primaryId
@@ -486,6 +501,7 @@ export function DeskClient({
               })
             : dismissSuggestedOrder(ref),
         "accept" in a ? "Ordered" : "Suggestion dismissed",
+        a,
       );
     },
     onCosign: (noteId: string, withAddendum?: { text: string; reason: string }) =>
@@ -493,7 +509,10 @@ export function DeskClient({
         setBusy(`cosign:${noteId}`);
         if (withAddendum) {
           const a = await addendumFlow(
-            (i) => addAddendum({ ...base, clientKey: newKey(), parentNoteId: noteId, ...i }),
+            (i) =>
+              intents.run(`addendum:${noteId}:${JSON.stringify(i)}`, (clientKey) =>
+                addAddendum({ ...base, clientKey, parentNoteId: noteId, ...i }),
+              ),
             withAddendum,
           );
           if (!a.ok) {
@@ -501,14 +520,21 @@ export function DeskClient({
             return setAnnounce({ ok: false, text: a.message });
           }
         }
-        const r = await cosignFlow(() => cosignNote({ ...base, noteId, clientKey: newKey() }));
+        const r = await cosignFlow(() =>
+          intents.run(`cosign:${noteId}`, (clientKey) =>
+            cosignNote({ ...base, noteId, clientKey }),
+          ),
+        );
         setBusy(null);
         setAnnounce({ ok: r.ok, text: r.message });
         if (r.ok) router.refresh();
       })(),
     onAddendum: (noteId: string, text: string, reason: string) =>
       void addendumFlow(
-        (i) => addAddendum({ ...base, clientKey: newKey(), parentNoteId: noteId, ...i }),
+        (i) =>
+          intents.run(`addendum:${noteId}:${JSON.stringify(i)}`, (clientKey) =>
+            addAddendum({ ...base, clientKey, parentNoteId: noteId, ...i }),
+          ),
         { text, reason },
       ).then((r) => {
         setAnnounce({ ok: r.ok, text: r.message });
@@ -516,7 +542,10 @@ export function DeskClient({
       }),
     onEnteredInError: (noteId: string, reasonCode: string | null, reasonText: string) =>
       void enteredInErrorFlow(
-        (i) => markNoteEnteredInError({ ...base, noteId, clientKey: newKey(), ...i }),
+        (i) =>
+          intents.run(`eie:${noteId}:${JSON.stringify(i)}`, (clientKey) =>
+            markNoteEnteredInError({ ...base, noteId, clientKey, ...i }),
+          ),
         { reasonCode, reasonText },
       ).then((r) => {
         setAnnounce({ ok: r.ok, text: r.message });
@@ -541,6 +570,8 @@ export function DeskClient({
             putItem(contentRef.current, ncdSection, (i) => i.kind === "ncd_capture", {
               kind: "ncd_capture",
               values,
+              // What was pre-filled from the record: signing projects it, never copies it.
+              ...(ncdSeed.pulled ? { pulled: ncdSeed.pulled.values } : {}),
             }),
           )
         }
@@ -603,7 +634,9 @@ export function DeskClient({
   const indexSheet = (
     <Sheet open={sheet === "index"} onOpenChange={(o) => setSheet(o ? "index" : null)}>
       <SheetTrigger className="border-border text-body-s focus-visible:shadow-focus inline-flex min-h-11 w-full items-center justify-between rounded-md border px-3 outline-none">
-        <span className="text-muted-foreground font-mono tabular-nums">{`${index[at]?.number ?? ""} of ${index.length}`}</span>
+        <span className="text-muted-foreground font-mono tabular-nums">
+          {sectionPosition(index, current)}
+        </span>
         <span className="text-foreground font-medium">{index[at]?.title}</span>
       </SheetTrigger>
       <SheetContent side="left" widthClassName="w-[min(20rem,85vw)]">
@@ -727,11 +760,12 @@ export function DeskClient({
               onAssert={(assertion) =>
                 void run(
                   "allergy",
-                  () =>
-                    assertAllergyStatus({ ...base, clientKey: newKey(), encounterId, assertion }),
+                  (clientKey) =>
+                    assertAllergyStatus({ ...base, clientKey, encounterId, assertion }),
                   assertion === "no_known_drug_allergies"
                     ? "No known drug allergies recorded"
                     : "Unable to assess recorded",
+                  assertion,
                 ).then((r) =>
                   setSheetMsg(
                     r.ok
@@ -743,10 +777,10 @@ export function DeskClient({
               onSave={(d) =>
                 void run(
                   "allergy",
-                  () =>
+                  (clientKey) =>
                     recordAllergy({
                       ...base,
-                      clientKey: newKey(),
+                      clientKey,
                       encounterId,
                       substance: substanceOf(d.text, p.substances),
                       category: d.category,
@@ -758,6 +792,7 @@ export function DeskClient({
                       informant: d.informant,
                     }),
                   "Allergy saved",
+                  d,
                 ).then((r) =>
                   setSheetMsg(
                     r.ok ? { ok: true, text: "Allergy saved" } : { ok: false, text: r.error },

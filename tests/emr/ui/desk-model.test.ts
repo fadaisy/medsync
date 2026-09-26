@@ -16,6 +16,7 @@ import {
   parseDuration,
   requiredCount,
   saveWords,
+  sectionPosition,
   sectionWith,
   setFinding,
   setGrid,
@@ -170,6 +171,14 @@ describe("signing check and the index", () => {
       "warn.allergy_status",
     );
   });
+  it("the phone's section position counts the visible sections, never the template's numbering", () => {
+    const p = standardVisitMidway(); // male: s10 (obstetric) hidden, so s11 is the tenth shown
+    const idx = deskIndex(p, p.draft!.content);
+    expect(idx).toHaveLength(13);
+    expect(sectionPosition(idx, "s02")).toBe("02 of 13");
+    expect(sectionPosition(idx, "s11")).toBe("10 of 13");
+  });
+
   it("sections come from the template: the obstetric history only for a female patient", () => {
     expect(standardVisitMidway().template.sections.map((s) => s.id)).not.toContain("s10");
     expect(internAwaitingCosign().template.sections.map((s) => s.id)).toContain("s10");

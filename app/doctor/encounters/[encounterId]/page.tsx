@@ -1,6 +1,7 @@
 import type { PatientSummary } from "@/lib/doctor/patient-access";
 import type { CaptureMap } from "@/lib/ncd/engine/evaluate";
 import type { Metadata } from "next";
+import lazy from "next/dynamic";
 import Link from "next/link";
 import { Suspense } from "react";
 import { eq } from "drizzle-orm";
@@ -21,8 +22,12 @@ import { doctorWorkspace } from "@/lib/workspace/feature";
 import { EncounterRail, NextPatient } from "../../_components/workspace/encounter-extras";
 import { NcdClerkship } from "./_components/ncd-clerkship";
 import { VisitStatus } from "./_components/visit-status";
-import { DeskPage } from "./_desk/desk-page";
 import { saveNcdDraftAction } from "./actions";
+
+// The clerking desk loads only under EMR v1: next/dynamic keeps it (and its client island) out of
+// this route's static graph, so a flag-off visit downloads nothing new (lazy-loading guide,
+// "Importing Server Components"; tests/emr/ui/flag-off.test.ts walks the graph).
+const EmrDesk = lazy(() => import("./_desk/desk-page").then((m) => m.DeskPage));
 
 export const metadata: Metadata = { title: "Encounter · Doctor · MedSync" };
 export const dynamic = "force-dynamic";
@@ -36,7 +41,7 @@ export default async function DoctorEncounterPage({ params }: PageProps) {
   const scope = await requireDoctorScope();
 
   // EMR v1 (flag per hospital): the clerking desk. Off, everything below renders as before.
-  if (emrV1LiveFor(scope.hospitalId)) return <DeskPage encounterId={encounterId} scope={scope} />;
+  if (emrV1LiveFor(scope.hospitalId)) return <EmrDesk encounterId={encounterId} scope={scope} />;
 
   if (!encounterEngineLive()) {
     return (

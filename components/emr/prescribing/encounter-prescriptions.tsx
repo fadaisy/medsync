@@ -64,6 +64,7 @@ export async function EncounterPrescriptions({
     quantity: r.quantity,
     instructions: r.instructionsCiphertext ? decrypt(r.instructionsCiphertext) : null,
     awaitingCosign: r.awaitingCosign,
+    cosignWithheld: r.cosignWithheld,
     restricted: r.sensitivity === "restricted",
   }));
   return (

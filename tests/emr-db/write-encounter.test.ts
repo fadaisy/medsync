@@ -152,6 +152,26 @@ describe.skipIf(!laneOn)("encounter completion planning (PGlite lane)", () => {
     ).rejects.toMatchObject({ code: "forbidden" }); // closed: no active basis left for this patient
   });
 
+  it("a reviewer's draft is not the owner's unsigned note (only its author can sign it)", async () => {
+    const p = await patient(lane.pg);
+    const e = await encounter(lane.pg, {
+      hospitalId: h,
+      patientUserId: p,
+      clinicianUserId: mo.userId,
+    });
+    const senior = await actorOf(lane.pg, "MEDICAL_OFFICER", h, dept);
+    await lane.pg.query(
+      `INSERT INTO public.clinical_notes (hospital_id, patient_user_id, encounter_id, note_type, template_id, template_version,
+         author_user_id, author_cadre, content_ciphertext, effective_at)
+       VALUES ($1, $2, $3, 'clerking', 'tpl.clerking.adult_opd', '1.0.0', $4, 'MEDICAL_OFFICER', 'iv:tag:ct', now())`,
+      [h, p, e, senior.userId],
+    );
+    const plan = await as(mo, p, (ctx) =>
+      planCompletion(ctx, { patientUserId: p, encounterId: e, disposition: "home" }),
+    );
+    expect(plan.warnings.join(" ")).not.toMatch(/not signed/);
+  });
+
   it("refuses a closed encounter, a missing review date, a nurse, reception and another hospital", async () => {
     const p = await patient(lane.pg);
     await intake(lane.pg, { hospitalId: h, patientUserId: p });

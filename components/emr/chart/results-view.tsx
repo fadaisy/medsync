@@ -1,7 +1,7 @@
 "use client";
 
 import type { ChartContext } from "./parts";
-import type { ChartPayload, FlowCell, FlowRow } from "@/lib/emr/chart";
+import type { ChartPayload, EnteredInErrorItem, FlowCell, FlowRow } from "@/lib/emr/chart";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ import { dayLabel, formatters } from "../format";
 import { Sparkline } from "../sparkline";
 import { ResultValueText, StatusWord } from "../status-word";
 import { ValuePopover } from "../value-popover";
-import { LabFlag, SectionHeading, SubHeading, Time } from "./parts";
+import { EnteredInErrorList, LabFlag, SectionHeading, SubHeading, Time } from "./parts";
 
 /**
  * Results (gate-a E.2): a flowsheet, concepts down and dates across. Values are right-aligned
@@ -39,12 +39,14 @@ export function ResultsView({
   ctx,
   headingId,
   showAllDates = false,
+  enteredInError = [],
 }: {
   flowsheet: ChartPayload["flowsheet"];
   timeline: ChartPayload["timeline"];
   ctx: ChartContext;
   headingId?: string;
   showAllDates?: boolean;
+  enteredInError?: readonly EnteredInErrorItem[];
 }) {
   const [all, setAll] = useState(showAllDates);
   const fmt = formatters(ctx.timeZone);
@@ -144,6 +146,10 @@ export function ResultsView({
           </ul>
         )}
       </section>
+      <EnteredInErrorList
+        items={enteredInError.filter((i) => i.section === "results")}
+        timeZone={ctx.timeZone}
+      />
     </div>
   );
 }

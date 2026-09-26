@@ -15,7 +15,7 @@ import { ChoiceChips } from "../orders/choice-chips";
 import { SectionIndexView } from "../section-index";
 import { StatusWord } from "../status-word";
 import { ContextRailView } from "./context-rail";
-import { deskIndex, deskValidation, hasContent, requiredCount } from "./model";
+import { deskIndex, deskValidation, hasContent, requiredCount, sectionPosition } from "./model";
 import { proseOnly, SectionBody } from "./sections";
 import { NoteRowsView, SignBarView } from "./sign";
 
@@ -360,7 +360,7 @@ export function DeskView(props: DeskViewProps) {
           onSign={on.onSign}
           onComplete={on.onComplete}
           phone={{
-            label: `${index[at]?.number ?? ""} of ${index.length}`,
+            label: sectionPosition(index, current),
             onPrev: at > 0 ? () => on.onSection?.(index[at - 1]!.id) : undefined,
             onNext: at < index.length - 1 ? () => on.onSection?.(index[at + 1]!.id) : undefined,
           }}

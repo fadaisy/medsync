@@ -193,7 +193,11 @@ describe.skipIf(!laneOn)("resus → encounter handoff (PGlite lane)", () => {
     const p = await patient(lane.pg);
     await intake(lane.pg, { hospitalId: h, patientUserId: p });
     const ep = await episode(p);
-    const enc = await encounter(lane.pg, { hospitalId: h, patientUserId: p, clinicianUserId: nurse.userId });
+    const enc = await encounter(lane.pg, {
+      hospitalId: h,
+      patientUserId: p,
+      clinicianUserId: nurse.userId,
+    });
     await withPatientWrite(
       nurse,
       p,

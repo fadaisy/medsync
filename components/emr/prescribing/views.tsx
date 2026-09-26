@@ -39,6 +39,8 @@ export interface PrescriptionItem {
   quantity: string | null;
   instructions: string | null;
   awaitingCosign: boolean;
+  /** The senior returned it (or the request closed unapproved): not a valid prescription. */
+  cosignWithheld: boolean;
   restricted: boolean;
 }
 
@@ -96,6 +98,9 @@ export function PrescriptionsView({
               </div>
               {i.awaitingCosign ? (
                 <StatusWord tone="caution">Awaiting senior co-sign</StatusWord>
+              ) : null}
+              {i.cosignWithheld ? (
+                <StatusWord tone="caution">Not co-signed by a senior — not valid</StatusWord>
               ) : null}
             </li>
           ))}

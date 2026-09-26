@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { LockIcon } from "lucide-react";
+import { LockIcon, MinusIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -9,7 +9,8 @@ import { cn } from "@/lib/utils";
  * FindingChip — three states, default "not asked". The accessible name says the value in words
  * ("Chills, present"), never the colour. Space and Enter cycle (a native button); the change is
  * instant — keyboard actions never animate — and a pointer press gets scale(0.97) for 100 ms.
- * Present is the selected teal state; absent is a struck neutral word; not asked is quiet.
+ * Present is the selected teal state; absent is neutral with a minus mark and the word (a
+ * pertinent negative, so never struck: strikethrough means entered in error); not asked is quiet.
  *
  * FactChip — a recorded value with its source mark ("Triage", "Lab"), each part its own span.
  */
@@ -53,8 +54,9 @@ export function FindingChip({
         state === "not_asked" && "border-border text-muted-foreground bg-transparent",
       )}
     >
-      <span className={cn(state === "absent" && "line-through decoration-1")}>{label}</span>
-      <span aria-hidden className="text-caption">
+      <span>{label}</span>
+      <span aria-hidden className="text-caption inline-flex items-center gap-0.5">
+        {state === "absent" ? <MinusIcon aria-hidden className="size-3" /> : null}
         {state === "present" ? "Present" : state === "absent" ? "Absent" : "Not asked"}
       </span>
     </button>

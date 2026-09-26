@@ -95,6 +95,7 @@ export async function planCompletion(
     .select({
       id: clinicalNotes.id,
       state: clinicalNotes.state,
+      authorUserId: clinicalNotes.authorUserId,
       contentCiphertext: clinicalNotes.contentCiphertext,
     })
     .from(clinicalNotes)
@@ -148,7 +149,8 @@ export async function planCompletion(
   );
 
   const warnings = completionWarnings({
-    notes,
+    // Only the encounter clinician's drafts: a reviewer's draft is theirs to sign (as the Workspace).
+    notes: notes.filter((n) => n.state !== "draft" || n.authorUserId === e.clinicianUserId),
     diagnoses: [...newest.values()],
     diagnosisDeferred,
     orders: orders.map((o) => ({

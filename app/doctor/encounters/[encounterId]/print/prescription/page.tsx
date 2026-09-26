@@ -23,6 +23,7 @@ export const dynamic = "force-dynamic";
 /**
  * The printed prescription (PROMPT Phase 7): the visit's prescriptions with both identifiers on
  * every page (PrintLayout), the date, and each prescriber's name and cadre with a line to sign.
+ * A prescription the senior did not co-sign never prints (encounterPrescriptions forPrint).
  * Restricted items print only when included one by one. loadPrint has already applied the access
  * rule and logged the read; flag off, the route is not found.
  */
@@ -40,6 +41,7 @@ export default async function PrescriptionPrintPage({ params, searchParams }: Pr
         hospitalId: actor.hospitalId,
         patientUserId: chart.patientUserId,
         encounterId,
+        forPrint: true,
       });
       const ids = [...new Set(rows.map((r) => r.prescriberUserId))];
       const names = ids.length

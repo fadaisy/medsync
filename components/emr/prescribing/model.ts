@@ -1,3 +1,4 @@
+import type { AllergyStatus } from "@/lib/emr/allergy";
 import type { PrescribePatient, SafetyFlag } from "@/lib/prescribing/engine";
 import type { AdminRoute, EmergencyDrug } from "@/lib/prescribing/reference/emergency-drug-catalog";
 
@@ -8,6 +9,10 @@ import { EMERGENCY_DRUGS } from "@/lib/prescribing/reference/emergency-drug-cata
  * The prescribe sheet's pure model, shared by the screen and the server (which re-runs the same
  * checks). lib/prescribing owns the formulary and the checks: nothing here suggests a dose.
  */
+
+/** The engine's patient plus what the allergy record says: an empty list is only "no allergy"
+ *  when NKDA is asserted; not recorded and unable to assess are unknowns the sheet must say. */
+export type PrescribeSheetPatient = PrescribePatient & { allergyStatus: AllergyStatus["kind"] };
 
 /** Record-only entries (RSI agents, operator-titrated infusions) are never prescribed. */
 export const FORMULARY: readonly EmergencyDrug[] = (

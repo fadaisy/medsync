@@ -58,6 +58,21 @@ function desk(p: DeskPayload, over: Partial<DeskViewProps> = {}) {
   );
 }
 
+describe("phone position", () => {
+  it("the top trigger and the bottom bar say one position: the visible sections", async () => {
+    const p = standardVisitMidway(); // male: s10 hidden, so s11 is the tenth section shown
+    const m = desk(p, { current: "s11" });
+    expect(text(m)).not.toContain("11 of 13");
+    expect(text(m)).toContain("10 of 13");
+    const src = readFileSync(
+      resolve(process.cwd(), "app/doctor/encounters/[encounterId]/_desk/desk-client.tsx"),
+      "utf8",
+    );
+    expect(src).toContain("sectionPosition(index, current)");
+    expect(src).not.toMatch(/number \?\? ""\} of \$\{index\.length/);
+  });
+});
+
 describe("the desk, standard visit midway (gate-a E.3)", () => {
   const p = standardVisitMidway();
   const m = desk(p);
