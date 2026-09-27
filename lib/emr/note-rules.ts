@@ -49,6 +49,8 @@ export interface NoteContent {
   schema?: 2;
   catalogueVersion?: string;
   history?: { complaints?: unknown[] } & Record<string, unknown>;
+  /** Step 07, the structured examination (lib/clerking/exam/payload ExamSchema). */
+  exam?: { entries?: Record<string, unknown> } & Record<string, unknown>;
   /** Composer blocks the clinician edited (edit lock). */
   edited?: Record<string, string>;
   /** The Flags panel as the clinician saw it, written just before signing (D-CV-05). */
@@ -85,11 +87,23 @@ function fieldOf(rule: SignRule): string {
   return rule.field ?? RULE_FIELD[rule.id] ?? rule.id.slice(rule.id.indexOf(".") + 1);
 }
 
+function examRecorded(c: NoteContent): boolean {
+  const e = c.exam as { entries?: object; blocks?: object; vitalsSavedAt?: string } | undefined;
+  return (
+    !!e &&
+    (Object.keys(e.entries ?? {}).length > 0 ||
+      Object.keys(e.blocks ?? {}).length > 0 ||
+      !!e.vitalsSavedAt)
+  );
+}
+
 export function checkRule(rule: SignRule, content: NoteContent, ctx: SignContext): boolean {
   const section = rule.section ? content.sections[rule.section] : undefined;
   const kinds = new Set(rule.itemKinds ?? []);
   switch (rule.check) {
     case "section_has_any":
+      // The structured examination (exam v2) never writes v1's s11: its record counts for s11.
+      if (rule.section === "s11" && examRecorded(content)) return true;
       return (section?.items ?? []).some((i) => kinds.has(i.kind) && itemCounts(i));
     case "section_has_content":
       return sectionHasContent(section);

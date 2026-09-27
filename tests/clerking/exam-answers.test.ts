@@ -326,3 +326,142 @@ describe("one owner per fact (E3, property)", () => {
     }
   });
 });
+
+describe("payload bounds", () => {
+  it("accepts an adult peak flow up to 1000 L/min", () => {
+    const d = { ...emptyExam(ecat.version), panels: { peakFlow: { best: 620, reference: 700 } } };
+    expect(ExamSchema.safeParse(d).success).toBe(true);
+  });
+});
+
+describe("tap budgets (§4, §14)", () => {
+  const NON_INTIMATE = [
+    "general",
+    "cardiovascular",
+    "respiratory",
+    "abdomen",
+    "nervous",
+    "spine_joints",
+    "skin",
+    "eyes_ent_neck",
+  ];
+
+  it("a complete normal adult examination of General and seven systems takes 25 taps (budget 26)", () => {
+    let d = emptyExam(ecat.version);
+    let taps = 0;
+    const tap = (fn: () => void) => (fn(), taps++);
+    for (const sys of NON_INTIMATE) {
+      tap(() => {}); // the system's pill
+      tap(() => (d = A.everythingElseNormal(ecat, d, sys, { sex: "male" }).draft)); // Everything else normal
+    }
+    tap(() => {}); // General: Consciousness tab
+    tap(() => (d = A.setBlocks(d, { consciousness: { method: "gcs", E: 4, V: 5, M: 6 } }))); // GCS 15/15
+    tap(() => {}); // General: Attachments tab
+    tap(() => (d = A.setChoice(ecat, d, "ex.general.oxygen", "room_air"))); // Room air
+    tap(() => {}); // Cardiovascular: Palpation tab
+    tap(() => (d = A.fillGrid(d, "pulses", ecat.grids.pulses, "present"))); // All present
+    tap(() => {}); // Nervous: Motor tab
+    tap(
+      () =>
+        (d = A.fillGrid(
+          d,
+          "power",
+          ecat.grids.power.map((r) => r.movement),
+          "5",
+        )),
+    ); // All 5
+    tap(
+      () =>
+        (d = A.fillGrid(
+          d,
+          "reflexes",
+          ecat.grids.reflexes.map((r) => r.reflex),
+          2,
+        )),
+    ); // All 2
+    expect(taps).toBe(25);
+    // Complete: every item with a normal answer is answered; oxygen, consciousness and grids too.
+    for (const sys of NON_INTIMATE)
+      for (const it of ecat.itemsOf(sys))
+        if (A.normalAnswerFor(it) && it.applies_to_sex !== "female")
+          expect(d.entries[it.id], it.id).toBeDefined();
+    expect(d.entries["ex.general.oxygen"]?.choice).toBe("room_air");
+    expect(Object.keys(d.blocks.pulses!)).toHaveLength(ecat.grids.pulses.length);
+  });
+
+  it("the back-pain focused examination takes 19 taps (budget 28)", () => {
+    let d = emptyExam(ecat.version);
+    let taps = 0;
+    const tap = (fn: () => void = () => {}) => (fn(), taps++);
+    tap(); // Spine and joints pill
+    tap(); // Feel tab
+    tap(() => (d = A.setState(ecat, d, "ex.spine_joints.spinal_tenderness", "negative")));
+    tap(() => (d = A.everythingElseNormal(ecat, d, "spine_joints", { sex: "male" }).draft));
+    tap(); // Nervous system pill
+    tap(); // Motor tab
+    tap(
+      () =>
+        (d = A.fillGrid(
+          d,
+          "power",
+          ecat.grids.power.map((r) => r.movement),
+          "5",
+        )),
+    );
+    tap(
+      () =>
+        (d = A.fillGrid(
+          d,
+          "reflexes",
+          ecat.grids.reflexes.map((r) => r.reflex),
+          2,
+        )),
+    );
+    tap(() => (d = A.setBlocks(d, { plantars: { R: "flexor" } })));
+    tap(() => (d = A.setBlocks(d, { plantars: { R: "flexor", L: "flexor" } })));
+    tap(); // Sensory tab
+    tap(() => (d = A.setState(ecat, d, "ex.nervous.saddle_sensation", "negative")));
+    tap(); // Rectal and genital pill
+    // The gate: reason prefilled from the back-pain suggestion; the chaperone's name is typed.
+    tap(); // Verbal consent given
+    tap(); // Offered and present
+    tap(
+      () =>
+        (d = {
+          ...d,
+          gate: {
+            reason: "Back pain with red flags",
+            consent: "verbal",
+            chaperone: "present",
+            name: "N. Akello",
+            role: "nurse",
+            at: "t",
+            by: "doctor",
+          },
+        }),
+    ); // Record and unlock
+    tap(); // Digital rectal tab
+    tap(() => (d = A.setState(ecat, d, "ex.rectal_genital.anal_tone", "negative")));
+    tap(() => (d = A.setState(ecat, d, "ex.rectal_genital.prostate", "negative")));
+    expect(taps).toBe(19);
+    expect(d.entries["ex.rectal_genital.prostate"]?.state).toBe("negative");
+  });
+});
+
+describe("the standard visit (clinical reference 2.12, step 6)", () => {
+  it("General's seven signs take 2 taps (15 before), 6 with consciousness and air or oxygen", () => {
+    let d = emptyExam(ecat.version);
+    d = A.everythingElseNormal(ecat, d, "general", { sex: "male" }).draft; // pill + Everything else normal
+    for (const id of [
+      "ex.general.pallor",
+      "ex.general.jaundice",
+      "ex.general.cyanosis",
+      "ex.general.clubbing",
+      "ex.general.lymph_nodes",
+      "ex.general.oedema",
+    ])
+      expect(d.entries[id]?.state, id).toBe("negative");
+    // Hydration is classified: E2 leaves it for an explicit "No signs" (one more tap), as it must.
+    expect(d.entries["ex.general.hydration"]).toBeUndefined();
+  });
+});

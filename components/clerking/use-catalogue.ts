@@ -1,47 +1,63 @@
 "use client";
 
 import type { Catalogue } from "@/lib/clerking/catalogue";
+import type { ExamCatalogue } from "@/lib/clerking/exam/catalogue";
 import { useEffect, useState } from "react";
 
 import { parseCatalogue } from "@/lib/clerking/catalogue";
+import { parseExamCatalogue } from "@/lib/clerking/exam/catalogue";
 
 /**
- * The clerking catalogue in the browser: fetched once per session from the desk payload's
+ * The clerking catalogues in the browser: each fetched once per session from the desk payload's
  * immutable URL (keyed by its hash) and parsed once; every desk on the page shares the promise.
  * A failed fetch is forgotten so the next mount retries.
  */
-const cache = new Map<string, Promise<Catalogue>>();
+const cache = new Map<string, Promise<unknown>>();
 
-export function loadCatalogue(url: string): Promise<Catalogue> {
-  let p = cache.get(url);
+function load<T>(url: string, parse: (json: unknown) => T): Promise<T> {
+  let p = cache.get(url) as Promise<T> | undefined;
   if (!p) {
     p = fetch(url)
       .then((r) => {
         if (!r.ok) throw new Error(`Catalogue ${r.status}`);
         return r.json() as Promise<unknown>;
       })
-      .then(parseCatalogue);
+      .then(parse);
     p.catch(() => cache.delete(url));
     cache.set(url, p);
   }
   return p;
 }
 
-export function useCatalogue(url: string | undefined): { cat: Catalogue | null; failed: boolean } {
-  const [state, setState] = useState<{ cat: Catalogue | null; failed: boolean }>({
+export const loadCatalogue = (url: string) => load(url, parseCatalogue);
+
+function useParsed<T>(url: string | undefined, parse: (json: unknown) => T) {
+  const [state, setState] = useState<{ cat: T | null; failed: boolean }>({
     cat: null,
     failed: false,
   });
   useEffect(() => {
     if (!url) return;
     let live = true;
-    loadCatalogue(url).then(
+    load(url, parse).then(
       (cat) => live && setState({ cat, failed: false }),
       () => live && setState({ cat: null, failed: true }),
     );
     return () => {
       live = false;
     };
-  }, [url]);
+  }, [url, parse]);
   return state;
+}
+
+export function useCatalogue(url: string | undefined): { cat: Catalogue | null; failed: boolean } {
+  return useParsed(url, parseCatalogue);
+}
+
+/** The examination catalogue (MS-EMR-EXAM-CAT-001). */
+export function useExamCatalogue(url: string | undefined): {
+  cat: ExamCatalogue | null;
+  failed: boolean;
+} {
+  return useParsed(url, parseExamCatalogue);
 }

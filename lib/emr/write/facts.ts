@@ -224,6 +224,9 @@ export interface ObservationInput {
   specimen?: string;
   calibration?: string;
   fastingState?: string;
+  /** A challenge before the sample (CFC `challenge`), e.g. a meal two hours earlier. */
+  challenge?: string;
+  challengeMinutes?: number;
   method?: string;
   pointOfCare?: boolean;
   deviceId?: string;
@@ -459,6 +462,8 @@ export async function insertObservations(
       specimen,
       calibration,
       fastingState: line.fastingState ?? null,
+      challenge: line.challenge ?? null,
+      challengeMinutes: line.challengeMinutes ?? null,
       method: line.method?.trim() || null,
       pointOfCare,
       deviceId: line.deviceId ?? null,

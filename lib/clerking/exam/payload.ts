@@ -79,8 +79,8 @@ export const PanelsSchema = z.object({
     .optional(),
   peakFlow: z
     .object({
-      best: num.max(1000).optional(),
-      reference: num.max(1000).optional(),
+      best: z.number().min(0).max(1000).optional(),
+      reference: z.number().min(0).max(1000).optional(),
       referenceKind: z.enum(["personal_best", "predicted"]).optional(),
     })
     .optional(),

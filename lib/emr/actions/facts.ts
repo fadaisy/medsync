@@ -48,6 +48,9 @@ const Observation = z.object({
   specimen: z.enum(ENUMS.specimen).optional(),
   calibration: z.enum(ENUMS.calibration).optional(),
   fastingState: z.enum(ENUMS.fastingState).optional(),
+  /** A glucose two hours after food (exam GATE A, HX1). */
+  challenge: z.enum(ENUMS.challenge).optional(),
+  challengeMinutes: z.number().int().min(1).max(600).optional(),
   method: z.string().max(80).optional(),
   pointOfCare: z.boolean().optional(),
   deviceId: uuid.optional(),

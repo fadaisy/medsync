@@ -6,6 +6,8 @@ import type { ObservationInput } from "./facts";
 import type { WriteResult } from "./orders";
 import type { ClinicalNote } from "@/db/schema/emr";
 import type { History } from "@/lib/clerking/answers";
+import type { ExamContext } from "@/lib/clerking/exam/context";
+import type { ExamDraft } from "@/lib/clerking/exam/payload";
 import type { NoteContent, NoteItem, SignContext } from "@/lib/emr/notes";
 import { and, desc, eq, inArray, like, notInArray, sql } from "drizzle-orm";
 
@@ -14,8 +16,13 @@ import { clinicalNoteEvents, clinicalNotes, medicationStatements } from "@/db/sc
 import { clinicalObservations } from "@/db/schema/nurse-workspace";
 import { patientProfiles } from "@/db/schema/patient-profiles";
 import { encounters } from "@/db/schema/scheduling";
+import { emptyHistory } from "@/lib/clerking/answers";
 import { familyConditions, v2CommitLines } from "@/lib/clerking/commit";
 import { convertV1Draft } from "@/lib/clerking/convert";
+import { examCommitLines } from "@/lib/clerking/exam/commit";
+import { NO_VITALS } from "@/lib/clerking/exam/context";
+import { EXAM_CATALOGUE } from "@/lib/clerking/exam/load";
+import { linkedAnswers } from "@/lib/clerking/linkage";
 import { CLERKING_CATALOGUE, CLERKING_TOKEN_MAP } from "@/lib/clerking/load";
 import { isOpen } from "@/lib/emr/encounter";
 import {
@@ -473,6 +480,33 @@ export async function signNote(ctx: WriteCtx, input: SignNoteInput): Promise<Wri
         restricted: f.restricted,
         effectiveAt: note.effectiveAt,
       });
+  }
+  // Examination v2 (GATE A HX5): the findings with an existing CFC concept; the rest stay in the note.
+  if (content.schema === 2 && content.exam) {
+    const history = (content.history ?? {}) as unknown as History;
+    const answers = {
+      ...emptyHistory(),
+      ...history,
+      past: { ...emptyHistory().past, ...history.past },
+    };
+    const exam = content.exam as unknown as ExamDraft;
+    const x: ExamContext = {
+      cat: EXAM_CATALOGUE,
+      history: {
+        cat: CLERKING_CATALOGUE,
+        answers,
+        linked: linkedAnswers(CLERKING_CATALOGUE, answers.complaints ?? []),
+      },
+      exam,
+      patient: { ageYears: null, sex: null, pregnant: null },
+      settings: { outbreakMode: false },
+      medicines: [],
+      vitals: NO_VITALS,
+      news2Latest: null,
+    };
+    const ex = examCommitLines(EXAM_CATALOGUE, exam, x);
+    lines.push(...ex.lines.map((l) => ({ ...l, effectiveAt: note.effectiveAt })));
+    unmapped += ex.unmapped;
   }
   const ncd = captureFromNote(content);
   if (ncd)

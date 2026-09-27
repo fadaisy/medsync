@@ -48,4 +48,45 @@ export interface ClerkingDeskData {
   outbreakMode: boolean;
   canSeeRestricted: boolean;
   signoff: Signoff;
+  /** The examination catalogue's immutable URL (keyed by its hash) and its signature. */
+  exam: {
+    catalogueUrl: string;
+    catalogueVersion: string;
+    signoff: {
+      flagRules: "all" | string[];
+      referenceEntries: "all" | string[];
+      classifiers: "all" | string[];
+      withheld: string[];
+    };
+    /** The newest reading of each vital and measurement on the chart (triage projected in). */
+    latest: {
+      sbp: number | null;
+      dbp: number | null;
+      pulse: number | null;
+      rr: number | null;
+      spo2: number | null;
+      temp: number | null;
+      glucose: number | null;
+      weight: number | null;
+      height: number | null;
+      waist: number | null;
+    };
+    /** The newest set saved from an examination at this visit, with its qualifiers (D-EX-11). */
+    set: null | {
+      at: string;
+      fields: string[];
+      arm: string | null;
+      position: string | null;
+      rhythm: string | null;
+      site: string | null;
+      glucoseContext: string | null;
+      oxygen: "air" | "oxygen" | null;
+      oxygenModality: string | null;
+      /** ACVPU as saved with the set (C lives only here until the CFC addendum, HX3). */
+      acvpu: "A" | "C" | "V" | "P" | "U" | null;
+      confirmed: string[];
+    };
+    /** An open pregnancy episode (BMI and IMAM rules); null when none is recorded. */
+    pregnant: boolean | null;
+  };
 }

@@ -194,13 +194,9 @@ export interface VitalLine {
   plausibilityConfirmed?: boolean;
 }
 
-const AVPU_CODE: Record<string, string> = {
-  A: "alert",
-  C: "new_confusion", // CFC addendum (GATE A, HX3)
-  V: "voice",
-  P: "pain",
-  U: "unresponsive",
-};
+/** CFC `obs.avpu` answers. ACVPU C has none yet (HX3: the answer waits for the CFC addendum's
+ *  own seed), so a set with C writes no `obs.avpu` and carries `acvpu` in every line's context. */
+const AVPU_CODE: Record<string, string> = { A: "alert", V: "voice", P: "pain", U: "unresponsive" };
 const CUFF: Record<string, string> = {
   standard_adult: "adult",
   large_adult: "large_adult",
@@ -239,7 +235,12 @@ export function saveLines(cat: ExamCatalogue, d: ExamDraft, readingSetId: string
   ): VitalLine => ({
     conceptId,
     value: { type: "quantity", value, unit },
-    context: { readingSetId, ...context },
+    context: {
+      readingSetId,
+      acvpu,
+      ...context,
+      ...(key && confirmed.has(key) ? { plausibilityConfirmed: true } : {}),
+    },
     ...(key && confirmed.has(key) ? { plausibilityConfirmed: true } : {}),
   });
   const lines: VitalLine[] = [];
@@ -310,11 +311,12 @@ export function saveLines(cat: ExamCatalogue, d: ExamDraft, readingSetId: string
   if (x.waist !== null)
     lines.push(q("obs.waist", x.waist, "cm", { protocol: "who_midpoint" }, "waist"));
   const c = d.blocks.consciousness;
-  lines.push({
-    conceptId: "obs.avpu",
-    value: { type: "coded", code: AVPU_CODE[acvpu!]! },
-    context: { readingSetId, method: c?.method ?? "acvpu" },
-  });
+  if (AVPU_CODE[acvpu!])
+    lines.push({
+      conceptId: "obs.avpu",
+      value: { type: "coded", code: AVPU_CODE[acvpu!]! },
+      context: { readingSetId, acvpu, method: c?.method ?? "acvpu" },
+    });
   const t = gcsTotal(c);
   if (t !== null) lines.push(q("obs.gcs", t, "{score}", { eye: c!.E, verbal: c!.V, motor: c!.M }));
   return { ok: true, lines };

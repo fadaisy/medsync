@@ -265,3 +265,73 @@ Every numeric reference a classifier or flag reads is covered (a test checks tha
 - **CRB65's confusion point** is "no" once orientation is recorded as full, even without an AMTS. It is "not recorded" only when neither is known.
 - **The pulses grid, power grid and reflexes** are keyed by the scale's row labels ("Dorsalis pedis"), with lowercase values.
 - **Old items without a `side`** (Feet skin and nails before TM3) are treated as either side.
+
+## STOP 3: Vital signs and General (2026-09-28)
+
+Behind `CLERKING_V2`, like the rest of v2: with the flag off the v1 desk is untouched (its code paths changed nowhere; the only shared rule change, below, applies only to a draft that holds an examination).
+
+**Built** (`components/clerking/exam/`):
+
+| File                      | What                                                                                                                                                                                                                                                                                                                                                   |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `model.ts`                | `deriveExam`: the context, classifier results, flags, suggestions, the note paragraph, the vitals draft as numbers with its NEWS2, each system's status                                                                                                                                                                                                |
+| `exam-step.tsx`           | The card: suggestion strip (edge scroll buttons), systems grid (11 pills, lock on Rectal and genital), the system panel (counts, Clear with undo, Everything else normal, Not examined… with reasons and equipment), segmented part tabs, the intimate gate, classifier panels (asthma, CRB65, ROSIER, West Haven, the three Feet pills), keys (§5.16) |
+| `item-row.tsx`            | Rows by response type in the item's own words; the attribute box (150 px label column; chips, steppers, body maps, the 0–10 strip, shared attributes, mirrors with "Recorded in …"); links that read and open their owner                                                                                                                              |
+| `blocks.tsx` (agent)      | Consciousness (GCS with NT, GCS 15/15 one tap, known baseline, GCS-P, orientation, ACVPU with the suggestion), AMTS, motor grids (MRC with 4− and 4+, NINDS, plantars, the pattern hint), pulses grid                                                                                                                                                  |
+| `vitals-card.tsx` (agent) | Previous set and Now, one-field BP, rhythm with apical count, SpO₂ with scale 2 only on a recorded target, temperature site, glucose with its required context and unit, the air-or-oxygen and consciousness lines from General, the NEWS2 line, anthropometry with its pills, the three panels, "Save as a new set", Enter advances                   |
+| `result-pill.tsx`         | Tone scale ok / caution / strong with icon and words; never red                                                                                                                                                                                                                                                                                        |
+
+**Wiring:** the desk loads the examination catalogue from `/api/clerking/exam-catalogue?v=<hash>` (immutable, like the history's); `deriveDesk` merges examination flags into the Flags panel and writes the examination paragraph into the note; an exam badge opens its system and part; step 07's keys are the step's own (`[ ]` parts, `{ }` systems, `a p e x g`), `j k` and digits still move steps.
+
+**Write paths:**
+
+| Path                          | What                                                                                                                                                                                                                                                                                                                                                                                                                                                                 | Proof                                               |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| Save as a new set             | One `recordObservations` batch keyed by the reading-set id: BP with position, arm, cuff, device, setting, readingIndex; pulse with rhythm; SpO₂ with `oxygenSupport`, modality, flow and scale; temperature with site; glucose with `fastingState` and, two hours after food, `challenge: meal`, 120 min (HX1: the writer and action now accept `challenge`); weight and height with how obtained; waist with the WHO protocol; `obs.avpu`; `obs.gcs` with its parts | Lane test: rows and contexts; a replay adds nothing |
+| The loader reads the set back | Air or oxygen and ACVPU come back into NEWS2 (E-3 resolved)                                                                                                                                                                                                                                                                                                                                                                                                          | Lane test                                           |
+| Signing                       | Mapped findings as CFC facts with qualifiers and `elicitedBy: examination` (pallor, jaundice, cyanosis, clubbing, nodes, oedema, neck stiffness, foot findings with laterality, ketotic breath, Kussmaul, callus), GTFCC as `sign.dehydration` (none, some, severe only), MUAC, capillary refill, pain score; the rest stay in the note and the warning counts them                                                                                                  | Lane test                                           |
+| Minimum to sign               | A draft with an examination satisfies "No examination recorded" (`checkRule`, the one shared function)                                                                                                                                                                                                                                                                                                                                                               | Lane test                                           |
+
+**Deviations (the repo wins):**
+
+- **HX3, ACVPU C.** Adding `new_confusion` to `obs.avpu` means regenerating the CFC registry, which rewrites the shipped seed migration 0072. Instead, until the CFC addendum ships its own seed, a set with ACVPU C writes no `obs.avpu` and carries `acvpu` in every line's context; the loader reads it back (lane test). A, V, P and U write `obs.avpu` as before.
+- **Derived BMI and waist-to-height** are not charted at signing yet (the concepts need a formula context). They are recomputed from the charted weight, height and waist, and written in the note.
+- **Temperature example.** The prompt's message "Temperature up from 32.5 to 35.8 °C; it no longer scores" is wrong: 35.8 °C still scores 1 in NEWS2 (35.1–36.0). The card says "it now scores 1".
+- **BP field** uses a text keyboard on phones: the iOS decimal pad has no "/".
+- **Qualifiers appear once their value is typed** (arm, position and cuff after BP; rhythm after pulse; site after temperature). The glucose context is always shown: it is required.
+
+**Numbers:**
+
+| Measure                                                                           | Result                                                                                                                    |
+| --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Screens against E01–E07 (and all of E08–E19 plus Feet), light and dark, 1440×1024 | 40 captured in `after/`; page scroll 0 on every one                                                                       |
+| axe serious or critical                                                           | **0** on all 40 (light and dark)                                                                                          |
+| Console errors                                                                    | 0                                                                                                                         |
+| NEWS2 parity with the triage engine                                               | 200 random sets identical (engine test)                                                                                   |
+| System switch / part switch, p95 (includes two animation frames)                  | 35 ms / 35 ms (budget 100 ms)                                                                                             |
+| Red-scarcity                                                                      | the existing scan covers `components/clerking/**`: 0 red classes in the exam files (and a markup test)                    |
+| Baseline tests                                                                    | E-2, E-3, E-8 flipped from `it.fails` to `it`, passing                                                                    |
+| Flag off                                                                          | Unchanged by construction (every change is inside the v2 desk, or conditional on `content.exam`); pixel-diffed at Phase 7 |
+
+## STOP 4: Cardiovascular, Respiratory, Abdomen (2026-09-28)
+
+Because rows render by type, these systems came with Phase 3's components; this phase checked them against E08–E12.
+
+- Pulses grid (table with row and column headers, radiogroups with arrow keys, "All present"); lung map (front and back, the patient's right on your left, back view mirrored, a text list alternative); abdomen map (3×3 with region names); liver stigmata with mirrors from Hand signs and Odour and a clinician-chosen West Haven grade with its suggestion; the asthma panel (confirm, suppressed with a hypercapnic target, the criteria that fired, a link to peak flow); CRB65 with each point.
+- Screens E08–E12: captured, 0 serious axe, no page scroll.
+- Fixtures 2, 4 and 5: badges and composer snapshots (STOP 2), unchanged.
+
+## STOP 5: Nervous system, Spine and joints, Skin, Eyes ENT and neck (2026-09-28)
+
+- AMTS with the Uganda wording marked; visual fields; meninges hints; cranial nerves with pupils per side (GCS-P); motor grids with the hint "not written to the note"; sensory with saddle sensation; ROSIER panel (syncope and seizure for this episode, each +1 sign confirmed new, hidden until glucose); spine ladder map; skin and ENT.
+- Screens E13–E17: captured, 0 serious axe.
+- Fixtures 1, 6 and 7 (STOP 2).
+- **Back-pain focused examination: 19 taps** (budget 28), replayed through the same functions the buttons call (`tests/clerking/exam-answers.test.ts`).
+
+## STOP 6: Rectal and genital gate, Feet, suggestions (2026-09-28)
+
+- **The gate:** reason (prefilled from the suggestion), consent (verbal / best interests / declined → "Not examined: patient declined"), chaperone (present with name and role / declined / not offered: emergency), "A relative may stay … is not a chaperone"; items are `inert` until complete; the pill carries a lock announced "locked, needs consent and chaperone". The gate record is in the draft (audited by the `clinical_notes` trigger on the save that records it, HX10) and written into the note ("Chaperone: Sr N. Akello, nurse. Verbal consent.").
+- **Restricted:** HIV-associated signs, genital findings, and the TM2 options carry locks and never reach patient-facing text (composer property test).
+- **Feet:** IWGDF risk (per foot, "incomplete" until both feet, the active-ulcer note), IWGDF/IDSA grade with "(O)", SINBAD with each part; fixture 3 gives 3 / 3 / 3.
+- **Suggestions:** all 47 rules exercised in Vitest (Playwright is not in the repo, H7/HX11), with done states and order.
+- Screens E18, E19 and two Feet screens: captured, 0 serious axe.

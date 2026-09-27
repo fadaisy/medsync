@@ -1,7 +1,9 @@
+import type { ExamView } from "./exam/model";
 import type { DeskPayload, KeyInput } from "@/components/emr/desk/model";
 import type { History, HistoryHeader, SymptomEntry, YesNo } from "@/lib/clerking/answers";
 import type { Catalogue, PatientSex, Symptom } from "@/lib/clerking/catalogue";
 import type { Block } from "@/lib/clerking/compose";
+import type { ExamCatalogue } from "@/lib/clerking/exam/catalogue";
 import type { Badge, Flag, Signoff } from "@/lib/clerking/flags";
 import type { Linked } from "@/lib/clerking/linkage";
 import type { SectionId, SectionStatus, Tone } from "@/lib/clerking/status";
@@ -25,6 +27,7 @@ import {
   NEWS2_TEMPERATURE,
 } from "@/lib/triage/constants";
 import { scoreNews2 } from "@/lib/triage/scoring/news2";
+import { deriveExam, previousFormat } from "./exam/model";
 
 /**
  * Clerking desk v2's pure view model (PROMPT-CLERKING-DESK-V2 §5): no React, no I/O. What the shell
@@ -101,13 +104,19 @@ function sectionWords(c: NoteContent, sid: string): string[] {
 export function sectionText(
   p: DeskPayload,
   c: NoteContent,
+  /** The structured examination's paragraph (exam v2); replaces v1's s11 words. */
+  examBody?: string,
 ): Partial<Record<"exam" | "impression" | "plan", string>> {
   const exam: string[] = [];
-  if (p.context.vitals.length)
-    exam.push(
-      `Vital signs: ${p.context.vitals.map((v) => `${v.label} ${v.value}${v.unit ? ` ${v.unit}` : ""}`).join(", ")}.`,
-    );
-  exam.push(...sectionWords(c, "s11"));
+  if (examBody !== undefined) {
+    if (examBody) exam.push(examBody);
+  } else {
+    if (p.context.vitals.length)
+      exam.push(
+        `Vital signs: ${p.context.vitals.map((v) => `${v.label} ${v.value}${v.unit ? ` ${v.unit}` : ""}`).join(", ")}.`,
+      );
+    exam.push(...sectionWords(c, "s11"));
+  }
   const summary = sectionWords(c, "s12");
   if (summary.length) exam.push(`Summary: ${summary.join(" ")}`);
 
@@ -131,9 +140,22 @@ export function examTone(p: DeskPayload, c: NoteContent): Tone {
   return signs || vitals || hasContent(c, "s11") ? "partial" : "open";
 }
 
+/** Examination's status from the structured examination: done once a set is saved (or the record
+ *  holds vitals), consciousness and air or oxygen are answered, and a system beyond General has
+ *  findings; partly while anything is recorded. */
+export function examViewTone(e: ExamView): Tone {
+  if (!e.hasContent) return "open";
+  const general = !!e.exam.blocks.consciousness && !!e.exam.entries["ex.general.oxygen"];
+  const vitals = !!e.exam.vitalsSavedAt || e.news2Latest !== null;
+  const system = e.ecat.systems.some((s) => s.id !== "general" && e.systems[s.id]!.tone !== "open");
+  return general && vitals && system ? "done" : "partial";
+}
+
 /* ─── Everything the shell derives, in one pure pass ─────────────── */
 
 export interface Derived {
+  /** The structured examination (null while its catalogue loads, or for a previous-format draft). */
+  exam: ExamView | null;
   history: History;
   header: HistoryHeader;
   linked: Map<string, Linked>;
@@ -146,11 +168,21 @@ export interface Derived {
   validation: SignValidation;
 }
 
-export function deriveDesk(cat: Catalogue, p: DeskPayload, c: NoteContent): Derived {
+export function deriveDesk(
+  cat: Catalogue,
+  p: DeskPayload,
+  c: NoteContent,
+  ecat: ExamCatalogue | null = null,
+  timeOf?: (iso: string) => string,
+): Derived {
   const k = p.clerking!;
   const history = historyOf(c);
   const header = headerOf(c);
   const linked = linkedAnswers(cat, history.complaints);
+  const exam =
+    ecat && !previousFormat(c)
+      ? deriveExam({ ecat, cat, p, content: c, history, linked, timeOf })
+      : null;
   const news2 = k.vitalsAt ? scoreNews2(k.vitals) : null;
   const patient = { ageYears: k.ageYears, sex: k.sex };
   const flags = evaluateFlags(cat, {
@@ -165,7 +197,7 @@ export function deriveDesk(cat: Catalogue, p: DeskPayload, c: NoteContent): Deri
     },
     news2,
     signoff: k.signoff,
-  });
+  }).concat(exam?.flags ?? []);
   const allergiesConfirmed = k.allergies.touchedThisVisit || !!history.past.allergiesConfirmed;
   const blocks = compose({
     cat,
@@ -186,7 +218,7 @@ export function deriveDesk(cat: Catalogue, p: DeskPayload, c: NoteContent): Deri
       confirmedThisVisit: allergiesConfirmed,
       items: k.allergies.items,
     },
-    sectionText: sectionText(p, c),
+    sectionText: sectionText(p, c, exam ? exam.text : undefined),
     edited: c.edited ?? {},
     audience: "clinical",
   });
@@ -197,10 +229,11 @@ export function deriveDesk(cat: Catalogue, p: DeskPayload, c: NoteContent): Deri
     linked,
     sex: k.sex,
     allergyConfirmedThisVisit: allergiesConfirmed,
-    exam: examTone(p, c),
+    exam: exam ? examViewTone(exam) : examTone(p, c),
     missing: validation.missing.map((m) => m.id),
   });
   return {
+    exam,
     history,
     header,
     linked,
@@ -535,6 +568,12 @@ export const CLERKING_KEY_HELP: readonly [string, string][] = [
   ["/", "Search complaints"],
   ["Ctrl or ⌘ + Enter", "Sign note"],
   ["?", "Show these keys"],
+  ["Examination: [ and ]", "Previous or next part"],
+  ["Examination: { and }", "Previous or next system"],
+  ["Examination: a / p", "The negative or positive answer of the focused row"],
+  ["Examination: e", "Everything else normal (asks first)"],
+  ["Examination: x", "Not examined"],
+  ["Examination: g", "Go to consciousness (GCS)"],
 ];
 
 /* ─── "Show all" complaints (Complaint quality of life) ──────────── */

@@ -1,5 +1,7 @@
 "use client";
 
+import type { ExamPlace } from "./exam/exam-step";
+import type { SaveSet } from "./exam/model";
 import type { HistoryBodyProps } from "./history-sections";
 import type { Derived, VitalsView } from "./model";
 import type { PastHistoryHandlers } from "./past-history-body";
@@ -9,6 +11,8 @@ import type { SectionCtx } from "@/components/emr/desk/sections";
 import type { HistoryHeader } from "@/lib/clerking/answers";
 import type { Catalogue } from "@/lib/clerking/catalogue";
 import type { BlockKey } from "@/lib/clerking/compose";
+import type { ExamCatalogue } from "@/lib/clerking/exam/catalogue";
+import type { ExamDraft } from "@/lib/clerking/exam/payload";
 import type { DeskSection } from "@/lib/clerking/flags";
 import type { SectionId, SectionStatus } from "@/lib/clerking/status";
 import type { NoteContent } from "@/lib/emr/note-rules";
@@ -26,8 +30,12 @@ import { PRESS } from "@/components/emr/orders/choice-chips";
 import { StatusWord } from "@/components/emr/status-word";
 import { Button } from "@/components/ui/button";
 import { SECTION_BLOCK } from "@/lib/clerking/compose";
+import { ruleTarget } from "@/lib/clerking/exam/flags";
+import { emptyExam } from "@/lib/clerking/exam/payload";
 import { SECTIONS } from "@/lib/clerking/status";
 import { cn } from "@/lib/utils";
+import { ExamStep } from "./exam/exam-step";
+import { examOf, previousFormat, VITALS, withExam } from "./exam/model";
 import { FamilyBody, SocialBody } from "./family-social";
 import { FlagsPanel } from "./flags-panel";
 import { ComplaintBody, HistoryBody } from "./history-sections";
@@ -68,6 +76,14 @@ export interface ClerkingDeskProps {
   /** null while the catalogue loads (the shell, rail and note header render first). */
   cat: Catalogue | null;
   catalogueFailed?: boolean;
+  /** The examination catalogue (null while it loads). */
+  ecat?: ExamCatalogue | null;
+  /** "Save as a new set" (one batch through recordObservations). */
+  onSaveSet?: SaveSet;
+  /** Who is signed in (the intimate gate's record). */
+  actor?: string;
+  /** Where the examination opens (tests and the harness; default Vital signs). */
+  examPlace?: ExamPlace;
   content: NoteContent;
   current: string;
   save: DeskViewProps["save"];
@@ -417,7 +433,14 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
   const editable = !signedNote && p.draft !== null && (p.encounter.open || p.draft.noteId !== null);
   const act = p.flags.actionsAllowed && editable;
 
-  const derived: Derived | null = cat ? deriveDesk(cat, p, view) : null;
+  const [examPlace, setExamPlace] = useState<ExamPlace>(props.examPlace ?? { system: VITALS });
+  const derived: Derived | null = cat
+    ? deriveDesk(cat, p, view, props.ecat ?? null, fmt.time)
+    : null;
+  const onExam = (fn: (d: ExamDraft) => ExamDraft) =>
+    on.onContent?.(
+      withExam(content, fn(examOf(content, props.ecat?.version ?? "")), k.catalogueVersion),
+    );
   const validation = derived?.validation ?? deskValidation(p, view);
   const vitals = k.vitalsAt ? vitalsView(k.vitals, p.context.vitals) : null;
   const alarm = derived
@@ -464,9 +487,66 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
   };
 
   const body = (() => {
+    if (cur.id === "exam" && !previousFormat(view)) {
+      if (!derived?.exam)
+        return (
+          <p role="status" className="text-body-s text-muted-foreground">
+            {props.catalogueFailed
+              ? "The clerking catalogue did not load. Reload the page to try again."
+              : "Loading the examination…"}
+          </p>
+        );
+      return (
+        <ExamStep
+          v={derived.exam}
+          editable={editable}
+          act={act}
+          sex={k.sex}
+          ageYears={k.ageYears}
+          onExam={onExam}
+          onSave={props.onSaveSet ?? (async () => false)}
+          triage={{
+            label: k.vitalsAt
+              ? `${k.vitalsFromTriage ? "Triage" : "Last set"} ${fmt.time(k.vitalsAt)}`
+              : "Previous",
+            at: k.vitalsAt,
+            values: k.exam.latest,
+            news2: derived.exam.news2Latest,
+            acvpu: k.vitals.consciousness,
+            oxygen: k.vitals.oxygen,
+          }}
+          time={fmt.time}
+          place={examPlace}
+          onPlace={setExamPlace}
+          actor={props.actor ?? "clinician"}
+        />
+      );
+    }
     const sid = V1_SECTION[cur.id];
     if (sid) {
       const s = p.template.sections.find((x) => x.id === sid);
+      if (cur.id === "exam" && s)
+        return (
+          <div className="flex flex-col gap-3">
+            <p className="text-body-s text-foreground flex flex-wrap items-center gap-2">
+              <StatusWord tone="neutral">Previous format</StatusWord>
+              This examination was written in the previous format. It stays as written.
+              {editable && props.ecat ? (
+                <Button
+                  size="sm"
+                  onClick={() =>
+                    on.onContent?.(
+                      withExam(content, emptyExam(props.ecat!.version), k.catalogueVersion),
+                    )
+                  }
+                >
+                  Continue in the new format
+                </Button>
+              ) : null}
+            </p>
+            <SectionBody s={s} ctx={{ ...ctx, editable: false, act: false }} />
+          </div>
+        );
       return s ? <SectionBody s={s} ctx={ctx} /> : null;
     }
     if (!cat || !derived)
@@ -538,7 +618,17 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
           )}
         </p>
       ) : null}
-      <FlagsPanel badges={derived?.badges ?? []} onGo={(s: DeskSection) => go(s)} />
+      <FlagsPanel
+        badges={derived?.badges ?? []}
+        onGo={(s: DeskSection, b) => {
+          const rule = derived?.exam?.ecat.data.flag_rules.find((r) => b.ruleIds.includes(r.id));
+          if (s === "exam" && rule && derived?.exam) {
+            const t = ruleTarget(derived.exam.x, rule);
+            setExamPlace({ system: t.system, part: t.part });
+          }
+          go(s);
+        }}
+      />
       <div className="border-border border-t" />
       {derived ? (
         <NotePane

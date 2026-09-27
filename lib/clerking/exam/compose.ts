@@ -479,3 +479,14 @@ export function composeExam(i: ComposeInput): ExamBlock[] {
 }
 
 export const examText = (blocks: readonly ExamBlock[]) => blocks.map((b) => b.text).join("\n");
+
+/** One item's clause as the note writes it (the row's live summary on the desk). */
+export function itemSummary(
+  x: ExamContext,
+  results: ReadonlyMap<string, ClassifierResult>,
+  item: ExamItem,
+  entry: ExamEntry | undefined,
+): { positive: boolean; text: string } | null {
+  if (!entry) return null;
+  return itemText({ x, results, saved: null, audience: "clinician" }, item, entry);
+}

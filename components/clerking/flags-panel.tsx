@@ -26,7 +26,8 @@ export function FlagsPanel({
   onGo,
 }: {
   badges: readonly Badge[];
-  onGo?: (section: DeskSection) => void;
+  /** The badge too, so an examination badge can open the system and part it came from. */
+  onGo?: (section: DeskSection, badge: Badge) => void;
 }) {
   const id = useId();
   const urgent = badges.filter((b) => b.level === "urgent").length;
@@ -63,7 +64,7 @@ export function FlagsPanel({
                   title={reasons}
                   aria-label={`${b.label}, ${b.level === "urgent" ? "urgent" : "needs attention"}`}
                   aria-describedby={`${id}-${i}`}
-                  onClick={() => onGo?.(b.section)}
+                  onClick={() => onGo?.(b.section, b)}
                   className={cn(
                     "text-caption focus-visible:shadow-focus inline-flex h-[26px] items-center gap-1.5 rounded-full px-2.5 font-semibold outline-none pointer-coarse:h-11",
                     b.level === "urgent" ? URGENT : CAUTION,

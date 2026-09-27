@@ -25,7 +25,7 @@ import {
   v2CommittedWords,
   withConditionOnList,
 } from "@/components/clerking/model";
-import { useCatalogue } from "@/components/clerking/use-catalogue";
+import { useCatalogue, useExamCatalogue } from "@/components/clerking/use-catalogue";
 import { AllergyEditorView, substanceOf } from "@/components/emr/desk/allergy-editor";
 import { CompleteVisitView } from "@/components/emr/desk/complete";
 import { ContextRailView } from "@/components/emr/desk/context-rail";
@@ -132,6 +132,7 @@ export function DeskClient({
   // Clerking desk v2 (CLERKING_V2 on, the v2 template in use): its own shell and steps.
   const v2 = !!p.clerking;
   const { cat, failed: catalogueFailed } = useCatalogue(p.clerking?.catalogueUrl);
+  const { cat: ecat, failed: examFailed } = useExamCatalogue(p.clerking?.exam.catalogueUrl);
   const [current, setCurrent] = useState(() => (v2 ? SECTIONS[0].id : (index[0]?.id ?? "")));
   const [announce, setAnnounce] = useState<Msg>(null);
   const [busy, setBusy] = useState<string | null>(null);
@@ -296,6 +297,17 @@ export function DeskClient({
       const inField = !!t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
       const ta = t instanceof HTMLTextAreaElement ? t : null;
       if (v2) {
+        // Examination (exam v2 §5.16): [ ] move parts, { } systems, a p e x g act on the step; the
+        // step's own listener handles them. j, k and the number keys still move steps.
+        if (
+          current === "exam" &&
+          !inField &&
+          !e.ctrlKey &&
+          !e.metaKey &&
+          !e.altKey &&
+          /^[[\]{}apexg]$/.test(e.key)
+        )
+          return;
         // Inside a pop-up only the sign chord acts; y, n and d act on the focused yes/no row.
         const row = t?.closest<HTMLElement>("[data-yesno]") ?? null;
         const k = clerkingKey(
@@ -895,7 +907,24 @@ export function DeskClient({
         <ClerkingDesk
           p={p}
           cat={cat}
-          catalogueFailed={catalogueFailed}
+          catalogueFailed={catalogueFailed || examFailed}
+          ecat={ecat}
+          actor={p.viewer.cadreWord}
+          onSaveSet={(lines, readingSetId) =>
+            run(
+              "vitals",
+              // One set, one batch: the reading-set id is the batch key, so a retry is the same set.
+              () =>
+                recordObservations({
+                  ...base,
+                  clientKey: readingSetId,
+                  encounterId,
+                  observations: lines,
+                }),
+              "Vital signs saved as a new set",
+              readingSetId,
+            ).then((r) => r.ok)
+          }
           content={content}
           current={current}
           save={save}

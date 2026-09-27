@@ -328,7 +328,7 @@ export function ScaleStrip({
                 on
                   ? caution
                     ? CAUTION
-                    : "border-teal-700 bg-teal-700 text-white"
+                    : "border-teal-700 bg-teal-700 text-white dark:text-teal-50"
                   : "border-border bg-card text-foreground hover:bg-muted",
               )}
             >
