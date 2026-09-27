@@ -268,3 +268,15 @@ signed.
   clinician who accepted (clinical decision; STOP-REPORTS owner-support round).
 - The legacy TS access resolvers still decide legacy surfaces (convergence, HARMONISATION §7). 0040 still lets a
   patient read their own legacy rows.
+
+## 13. Clerking desk v2 (ADRs 0163–0168, `docs/emr/clerking-v2/`)
+
+- [ ] **Apply migration 0076 before deploying this branch** (dev first, then production: `npm run db:migrate`). The desk reads 0076's medicine columns even with the flag off.
+- [ ] Deploy as usual. With `CLERKING_V2` unset, the desk is the v1 desk.
+- [ ] Switch it on for one hospital: `CLERKING_V2=<hospital id>` (only where `EMR_V1` is on), redeploy, and watch a working day. Then `CLERKING_V2=1`.
+- [ ] **Outbreak mode:** Hospital admin → Profile → Outbreak mode, with a reason (audited). It turns on the outbreak VHF screen. Fever with an exposure is always screened.
+- [ ] **CSO:**
+  - sign the CFC v1.2 finding addendum (`cfc-v1.2-addendum.md`);
+  - sign the "Not an allergy" reasons and the composer snapshots;
+  - confirm the badge differences listed at STOP 2.
+- [ ] Run the clinician trial (`clerking-v2/clinician-trial.md`).

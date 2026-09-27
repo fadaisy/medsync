@@ -203,7 +203,20 @@ export function v2Payload(history = patientThree3()): DeskPayload {
       name: "Patient Three-3",
       mrn: "MS-2026-00004",
       ageSex: "76 y · Male",
-      allergy: { state: "listed", text: "Cold", tone: "caution", items: [] },
+      allergy: {
+        state: "listed",
+        text: "Cold",
+        tone: "caution",
+        items: [
+          {
+            id: "allergy-cold",
+            restricted: false,
+            text: "Cold",
+            byNameOnly: true,
+            hospitalIds: [],
+          },
+        ],
+      },
     },
     template: deskTemplateOf(getTemplate("tpl.clerking.adult_v2"), { sex: "male", ncd: false }),
     fullForm: "tpl.clerking.adult_v2",
