@@ -1,3 +1,4 @@
+import type { ClerkingDeskData } from "@/lib/clerking/desk-data";
 import type { MedicineItem, OrderItem, ProblemItem, SafetyBar, Tone } from "@/lib/emr/chart";
 import type { NoteContent, NoteItem, SignRule, SignValidation } from "@/lib/emr/note-rules";
 
@@ -148,7 +149,7 @@ export interface DeskNoteRow {
 
 export interface DeskPayload {
   /** Clerking desk v2 only (CLERKING_V2 on and the v2 template in use). */
-  clerking?: import("@/lib/clerking/desk-data").ClerkingDeskData;
+  clerking?: ClerkingDeskData;
   /** The full clerking form this hospital uses (v2 where CLERKING_V2 is on). */
   fullForm?: string;
   encounter: {
