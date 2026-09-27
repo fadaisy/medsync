@@ -50,3 +50,59 @@ Fadhul (owner and CSO) signed in session, as recommended:
 - **all 75 flag rules and 19 reference values as drafted.**
 
 The signature is recorded in `data/clerking/catalogue-signoff.v1.json`, pinned to the catalogue's SHA-256. The engine fires a rule only if it is signed there, and never if its reference is withheld (Law 7). The runtime catalogue is `data/clerking/clerking-history-catalogue.v1.json`, byte-identical to the handoff copy; a test holds them equal.
+
+## STOP 2 — Catalogue and engines (2026-09-27)
+
+**Built**, pure (no I/O) and shared by the server and the browser, in `lib/clerking/`:
+
+| Module | Job |
+|---|---|
+| `catalogue.ts` | Zod schema, indexes, resolved property lists (overrides, extra families, extra properties, hidden), sex applicability |
+| `answers.ts` | Payload v2 answer model and its updates |
+| `linkage.ts` | Linked answers, derived and never stored |
+| `flags.ts` | The rule language; the sign-off gate; NEWS2 through `lib/triage/scoring/news2.ts`; badge merging |
+| `compose.ts` | The note, by the catalogue's composer rules |
+| `status.ts` | Section and system statuses |
+
+**Also:** the `npm run clerking:catalogue-check` script, which validates the schema, the sign-off hash and every id and reference, and prints the counts.
+
+**Tests:** `tests/clerking/engines.test.ts`, **111 passing**, plus the 3 baseline `it.fails`.
+
+- **Rule coverage: 75 of 75, both ways.**
+  - 69 symptom rules get a positive and a negative case generated from each rule's own `when` tree, so coverage cannot fall behind the data.
+  - The 6 record rules (medicines 1, allergies 2, vital signs 3) are written by hand.
+- **Law 7:** a withheld rule, a withheld reference, or an empty sign-off fires nothing.
+- **D-CV-04 corrections:**
+  - (a) ACS regardless of the pain score, and 12–72 hours is caution;
+  - (b) a single cauda equina flag is urgent;
+  - (c) fever plus an exposure fires without bleeding, and animal contact only in outbreak mode;
+  - (e) NEWS2 5 is urgent;
+  - (f) iron never silences melaena;
+  - (g) risk factors never make a badge;
+  - restricted flags are filtered by access.
+- **Property tests:**
+  - linked answers and the review of systems never disagree (300 random histories);
+  - every yes appears in the note and no not-asked item appears as a negative (150);
+  - statuses are monotonic;
+  - merging is idempotent.
+- **Catalogue:** 96 of 96 symptoms render a property editor; adding a symptom to a fixture catalogue needs no code; the runtime catalogue is byte-identical to the handed-over copy and to the signed hash.
+- **C2 and C3 are fixed in the engines:** a man sees no gynaecology and no menstrual items, and the complaint answers the review of systems.
+
+**Recompute:** flags, badges, note and statuses for the chest-pain fixture take a p95 of **0.25 ms** (1.0 ms at a 4× throttle, against a 16 ms budget).
+
+**Badges against the prototype, after the D-CV-04 corrections** (for you to confirm):
+
+- **Patient Three-3**
+  - urgent: Temperature 32.5 °C, **NEWS2 5** (urgent, was caution: correction e);
+  - caution: Pain at night or at rest, Weight loss, **Change in bowel habit** (new: FLAG-BOWEL-CHANGE, NG12 FIT), Bone pain 7/10, Misses amlodipine.
+- **Chest-pain variant:** all of the above, plus
+  - urgent **Chest pain** (ACS features within the window, not the 10/10 score: correction a);
+  - caution **Chest pain 10/10**, from FLAG-PAIN-SEVERE, which applies to every pain as the catalogue is written. It is shown separately because it has different words.
+
+**Composer:** the house-style snapshots are in `tests/clerking/__snapshots__/engines.test.ts.snap`, for you to sign (D-CV-16). The fixes made while reading them:
+
+- no capitals mid-sentence;
+- "radiates to the …";
+- properties a symptom adds carry their label ("last episode now");
+- a symptom in two systems is written once;
+- "(for example …)" hints are dropped from running text.
