@@ -63,13 +63,13 @@ export function NotePane({
               aria-current={here ? "true" : undefined}
               className={cn(
                 "-mx-2 flex flex-col gap-1 rounded-md px-2 py-2",
-                here && "bg-plum-50 ring-plum-200 dark:bg-plum-950 ring-1",
+                here && "bg-plum-50 ring-plum-200 ring-1",
               )}
             >
               <h3
                 className={cn(
                   "text-caption tracking-[0.06em] uppercase",
-                  here ? "text-plum-800 dark:text-plum-200" : "text-muted-foreground",
+                  here ? "text-plum-800" : "text-muted-foreground",
                 )}
               >
                 {b.head}

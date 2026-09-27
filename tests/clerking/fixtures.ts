@@ -197,7 +197,14 @@ export function v2Payload(history = patientThree3()): DeskPayload {
   return {
     ...base,
     patient: { ...base.patient, name: "Patient Three-3" },
-    safetyBar: { ...base.safetyBar, name: "Patient Three-3" },
+    // One consistent synthetic patient: the v1 base fixture is a 34-year-old with no allergies.
+    safetyBar: {
+      ...base.safetyBar,
+      name: "Patient Three-3",
+      mrn: "MS-2026-00004",
+      ageSex: "76 y · Male",
+      allergy: { state: "listed", text: "Cold", tone: "caution", items: [] },
+    },
     template: deskTemplateOf(getTemplate("tpl.clerking.adult_v2"), { sex: "male", ncd: false }),
     fullForm: "tpl.clerking.adult_v2",
     draft: {

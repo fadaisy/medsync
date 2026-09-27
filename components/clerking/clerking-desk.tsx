@@ -216,7 +216,7 @@ function StepButton({
         "focus-visible:shadow-focus flex min-h-11 items-center gap-1.5 rounded-md py-1 pr-1.5 pl-1 text-left outline-none",
         wide ? "w-full" : "shrink-0",
         current
-          ? "bg-plum-50 text-plum-800 ring-plum-200 dark:bg-plum-950 dark:text-plum-100 ring-1"
+          ? "bg-plum-50 text-plum-800 ring-plum-200 ring-1"
           : "text-foreground hover:bg-muted",
       )}
     >
@@ -225,7 +225,7 @@ function StepButton({
         className={cn(
           "text-caption inline-flex size-[22px] shrink-0 items-center justify-center rounded-full font-mono font-semibold",
           current
-            ? "bg-plum-700 text-white"
+            ? "bg-plum-800 text-plum-50"
             : done
               ? "bg-teal-600 text-white"
               : required
@@ -243,11 +243,15 @@ function StepButton({
               // Never truncated (§5.1): a long status wraps to a second line instead.
               "text-caption leading-tight",
               !wide && "max-w-[8.5rem]",
-              required
-                ? "dark:text-status-caution-fg text-amber-800"
-                : done
-                  ? "text-teal-700 dark:text-teal-300"
-                  : "text-muted-foreground",
+              // On the current step the status takes the step's own (place) colour: the tokens
+              // invert in dark, so no dark: override is needed.
+              current
+                ? "text-plum-800"
+                : required
+                  ? "dark:text-status-caution-fg text-amber-800"
+                  : done
+                    ? "text-teal-700 dark:text-teal-300"
+                    : "text-muted-foreground",
             )}
           >
             {status.text}
@@ -274,6 +278,10 @@ function SectionBar({
     document
       .querySelector(`nav[data-slot="clerking-steps"] [data-step="${current}"]`)
       ?.scrollIntoView?.({ block: "nearest", inline: "nearest" });
+    // The note: bring the block this section writes into view (§5.10), instantly.
+    document
+      .querySelector('[data-block][data-current="true"]')
+      ?.scrollIntoView?.({ block: "nearest" });
   }, [current]);
   return (
     <nav
@@ -634,10 +642,7 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
               <header className="border-border flex items-start justify-between gap-4 border-b px-5 py-4">
                 <div className="flex flex-col gap-0.5">
                   <div className="flex items-baseline gap-2.5">
-                    <span
-                      aria-hidden
-                      className="text-caption text-plum-700 dark:text-plum-300 font-mono"
-                    >
+                    <span aria-hidden className="text-caption text-plum-700 font-mono">
                       {`[${cur.num}]`}
                     </span>
                     <h2
