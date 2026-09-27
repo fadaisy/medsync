@@ -247,6 +247,7 @@ export function v2Payload(history = patientThree3()): DeskPayload {
           adherence: "sometimes_misses",
           informant: "medicine_card",
           restricted: false,
+          addedHere: false,
         },
       ],
       allergies: {
@@ -261,6 +262,7 @@ export function v2Payload(history = patientThree3()): DeskPayload {
             severity: null,
             source: null,
             restricted: false,
+            addedHere: true,
           },
         ],
       },

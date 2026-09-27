@@ -412,7 +412,7 @@ export function DeskClient({
     },
     // Clerking v2 Past history: medicines and allergies write at once (D-CV-10).
     onRecordMedicine: (m: MedicineAdd) =>
-      void run(
+      run(
         "med:add",
         (clientKey) =>
           recordMedicationStatements({
@@ -431,7 +431,7 @@ export function DeskClient({
           }),
         "Medicine added",
         m,
-      ),
+      ).then((r) => r.ok),
     onMedicineDetails: (statementId: string, patch: MedicinePatch) =>
       void run(
         `med:${statementId}`,
@@ -441,7 +441,7 @@ export function DeskClient({
         patch,
       ),
     onAllergy: (a: AllergyWrite) =>
-      void run(
+      run(
         a.supersedesId ? `allergy:${a.supersedesId}` : "allergy:add",
         (clientKey) =>
           recordAllergy({
@@ -458,7 +458,23 @@ export function DeskClient({
           }),
         a.verification === "refuted" ? "Recorded as not an allergy" : "Allergy saved",
         a,
-      ),
+      ).then((r) => r.ok),
+    // X on a medicine or allergy first recorded here by this clinician: void it, no questions.
+    onRemoveAddedHere: (kind: "medication" | "allergy", id: string) =>
+      run(
+        `${kind === "medication" ? "med" : "allergy"}:${id}`,
+        (clientKey) =>
+          markFactEnteredInError({
+            ...base,
+            clientKey,
+            kind,
+            id,
+            reasonCode: "recorded_in_error",
+            reasonText: "Removed at clerking, the visit it was added",
+          }),
+        "Removed",
+        [kind, id],
+      ).then((r) => r.ok),
     onCodeAllergy: (id: string, name: string) => {
       setSheetMsg(null);
       setCoding({ id, name });
@@ -541,7 +557,7 @@ export function DeskClient({
       reconciliation: "continued" | "stopped" | "changed",
       reasonCode?: string,
     ) =>
-      void run(
+      run(
         `med:${id}`,
         (clientKey) =>
           confirmCurrentMedicines({
@@ -552,7 +568,7 @@ export function DeskClient({
           }),
         reconciliation === "continued" ? "Medicine continued" : `Medicine ${reconciliation}`,
         [reconciliation, reasonCode],
-      ),
+      ).then((r) => r.ok),
     onAddMedicine: (text: string) =>
       void run(
         "med:add",

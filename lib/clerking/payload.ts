@@ -43,6 +43,7 @@ export const HistorySchema = z.object({
           .array(
             z.object({
               text: text(200),
+              code: id.optional(),
               year: z.number().int().min(1900).max(2100).optional(),
               where: text(200).optional(),
             }),
@@ -68,6 +69,7 @@ export const HistorySchema = z.object({
     quitWhen: id.optional(),
     alcohol: id.optional(),
     drinks: z.array(id).max(10).optional(),
+    cage: z.record(id, yn).optional(),
     substances: z.array(id).max(10).optional(),
     living: id.optional(),
     activity: id.optional(),

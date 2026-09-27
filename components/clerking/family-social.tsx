@@ -6,9 +6,19 @@ import type { Option } from "@/lib/clerking/catalogue";
 import type { ReactNode } from "react";
 import { LockIcon } from "lucide-react";
 
-import { packYears, setAlcohol, setTobacco, toggleEntry, toggleIn } from "@/lib/clerking/answers";
+import { StatusWord } from "@/components/emr/status-word";
+import CAGE from "@/data/clerking/cage.v1.json";
+import {
+  cageScore,
+  packYears,
+  setAlcohol,
+  setTobacco,
+  toggleAnswer,
+  toggleEntry,
+  toggleIn,
+} from "@/lib/clerking/answers";
 import { isRestricted } from "@/lib/clerking/catalogue";
-import { Chip, Stepper, YesNoRow } from "./controls";
+import { Chip, YesNoRow } from "./controls";
 
 /**
  * [05] Family history (§5.7) and [06] Social history (§5.8). Both are note-only in the draft:
@@ -130,6 +140,17 @@ function Chips({
   );
 }
 
+/** Quick picks for cigarettes a day: a pack is 20. */
+const DAY_PICKS = [
+  [5, "5"],
+  [10, "10"],
+  [20, "20 (a pack)"],
+  [40, "40 (two packs)"],
+] as const;
+
+const NUM =
+  "border-input bg-card text-body-s text-foreground focus-visible:shadow-focus min-h-8 w-16 rounded-sm border px-2 text-center font-mono tabular-nums outline-none pointer-coarse:min-h-11 disabled:opacity-60";
+
 const INPUT =
   "border-input bg-card text-body-s text-foreground focus-visible:shadow-focus min-h-8 w-full max-w-sm rounded-sm border px-2.5 outline-none pointer-coarse:min-h-11 disabled:opacity-60";
 
@@ -153,8 +174,15 @@ export function SocialBody({ cat, history, onHistory, editable }: HistoryBodyPro
       if (!list) delete next[key];
       return next;
     });
-  const step = (key: "perDay" | "years", max: number) => (d: 1 | -1) =>
-    put((s) => ({ ...s, [key]: Math.min(max, Math.max(0, (s[key] ?? 0) + d)) }));
+  const count = (key: "perDay" | "years", v: string, max: number) =>
+    put((s) => {
+      const n = Number.parseInt(v.replace(/\D/g, ""), 10);
+      const next = { ...s };
+      if (Number.isFinite(n)) next[key] = Math.min(max, n);
+      else delete next[key];
+      return next;
+    });
+  const cage = cageScore(so.cage, CAGE.items);
   const smoker = so.tobacco === "former" || so.tobacco === "current";
   const py = packYears(so.perDay, so.years);
   const drinks = !!so.alcohol && so.alcohol !== "none";
@@ -172,27 +200,45 @@ export function SocialBody({ cat, history, onHistory, editable }: HistoryBodyPro
         {smoker ? (
           <>
             <div className="text-body-s text-muted-foreground flex flex-wrap items-center gap-2">
-              <Stepper
-                label="Cigarettes a day"
-                value={so.perDay ?? null}
-                onStep={step("perDay", 999)}
+              <input
+                aria-label="Cigarettes a day"
+                inputMode="numeric"
+                placeholder="–"
+                className={NUM}
+                value={so.perDay ?? ""}
                 disabled={off}
+                onChange={(e) => count("perDay", e.target.value, 999)}
               />
-              <span>a day</span>
-              <span>for</span>
-              <Stepper
-                label="Years smoked"
-                value={so.years ?? null}
-                onStep={step("years", 120)}
+              <span>a day for</span>
+              <input
+                aria-label="Years smoked"
+                inputMode="numeric"
+                placeholder="–"
+                className={NUM}
+                value={so.years ?? ""}
                 disabled={off}
+                onChange={(e) => count("years", e.target.value, 120)}
               />
               <span>years</span>
-              {py !== null ? (
-                <output
-                  aria-label="Pack-years"
-                  className="text-foreground ml-2 font-mono tabular-nums"
-                >{`${py} pack-years`}</output>
-              ) : null}
+              <output
+                aria-label="Pack-years"
+                aria-live="polite"
+                className="text-foreground ml-2 font-mono tabular-nums"
+              >
+                {py !== null ? `= ${py} pack-years` : "= – pack-years"}
+              </output>
+            </div>
+            <div role="group" aria-label="A day" className="flex flex-wrap items-center gap-1.5">
+              {DAY_PICKS.map(([n, label]) => (
+                <Chip
+                  key={n}
+                  selected={so.perDay === n}
+                  disabled={off}
+                  onPress={() => count("perDay", String(so.perDay === n ? "" : n), 999)}
+                >
+                  {label}
+                </Chip>
+              ))}
             </div>
             <Chips
               label="Other forms of tobacco"
@@ -222,13 +268,52 @@ export function SocialBody({ cat, history, onHistory, editable }: HistoryBodyPro
           disabled={off}
         />
         {drinks ? (
-          <Chips
-            label="Drinks"
-            options={sh.alcohol.types}
-            selected={(id) => !!so.drinks?.includes(id)}
-            onPress={(id) => many("drinks", id)}
-            disabled={off}
-          />
+          <>
+            <Chips
+              label="Drinks"
+              options={sh.alcohol.types}
+              selected={(id) => !!so.drinks?.includes(id)}
+              onPress={(id) => many("drinks", id)}
+              disabled={off}
+            />
+            <section
+              aria-labelledby="clerking-cage"
+              className="border-border flex flex-col rounded-md border px-3 py-2"
+            >
+              <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                <h4 id="clerking-cage" className="text-body-s text-foreground font-medium">
+                  CAGE
+                </h4>
+                <output aria-live="polite" className="text-caption inline-flex items-center gap-2">
+                  <span className="text-foreground font-mono tabular-nums">
+                    {`${cage.yes} of ${cage.of}`}
+                  </span>
+                  {cage.asked < cage.of ? (
+                    <span className="text-muted-foreground">{`${cage.of - cage.asked} not asked`}</span>
+                  ) : null}
+                  {cage.yes >= CAGE.positive_from ? (
+                    <StatusWord tone="caution">{CAGE.positive_text}</StatusWord>
+                  ) : null}
+                </output>
+              </div>
+              {CAGE.items.map((q) => (
+                <YesNoRow
+                  key={q.id}
+                  label={q.question}
+                  value={so.cage?.[q.id]}
+                  disabled={off}
+                  onAnswer={(a) =>
+                    put((s) => {
+                      const cage = toggleAnswer(s.cage ?? {}, q.id, a);
+                      const next: History["social"] = { ...s, cage };
+                      if (!Object.keys(cage).length) delete next.cage;
+                      return next;
+                    })
+                  }
+                />
+              ))}
+            </section>
+          </>
         ) : null}
       </Row>
       <Row label="Other substances" lock={substancesLocked}>

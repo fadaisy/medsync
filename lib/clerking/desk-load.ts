@@ -4,9 +4,9 @@ import type { ClerkingDeskData } from "./desk-data";
 import type { FlowRow } from "@/lib/emr/chart";
 import type { EmrDb } from "@/lib/emr/db";
 import type { Acvpu } from "@/lib/triage/types";
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 
-import { allergies, allergyStatusAssertions } from "@/db/schema/emr";
+import { allergies, allergyStatusAssertions, medicationStatements } from "@/db/schema/emr";
 import { asClinicalReader } from "@/lib/emr/db";
 import { loadAllergyInput } from "@/lib/emr/read/allergies";
 import { conceptForToken } from "@/lib/emr/write/notes";
@@ -36,6 +36,36 @@ const numberOf = (v: string | undefined) => {
   return Number.isFinite(n) ? n : null;
 };
 
+/** Which of these current versions began (version 1) at this visit, recorded by this clinician. */
+async function addedHere(
+  db: EmrDb,
+  t: typeof medicationStatements | typeof allergies,
+  ids: string[],
+  i: { scope: { userId: string }; encounterId: string },
+): Promise<Set<string>> {
+  if (!ids.length) return new Set();
+  const current = await db
+    .select({ id: t.id, logicalId: t.logicalId })
+    .from(t)
+    .where(inArray(t.id, ids));
+  const firsts = await db
+    .select({ logicalId: t.logicalId })
+    .from(t)
+    .where(
+      and(
+        inArray(
+          t.logicalId,
+          current.map((c) => c.logicalId),
+        ),
+        eq(t.version, 1),
+        eq(t.encounterId, i.encounterId),
+        eq(t.recordedByUserId, i.scope.userId),
+      ),
+    );
+  const here = new Set(firsts.map((f) => f.logicalId));
+  return new Set(current.filter((c) => here.has(c.logicalId)).map((c) => c.id));
+}
+
 export async function clerkingData(i: {
   scope: { userId: string; hospitalId: string };
   database?: EmrDb;
@@ -44,7 +74,7 @@ export async function clerkingData(i: {
   sex: string | null;
   ageYears: number | null;
   rows: readonly FlowRow[];
-  medicines: ClerkingDeskData["medicines"];
+  medicines: Omit<ClerkingDeskData["medicines"][number], "addedHere">[];
 }): Promise<ClerkingDeskData> {
   const owner = i.database ?? ((await import("@/db")).db as unknown as EmrDb);
 
@@ -92,6 +122,21 @@ export async function clerkingData(i: {
   );
 
   const status = allergy.status;
+  const listed = status.kind === "listed" ? status.allergies : [];
+  const [medsHere, allergiesHere] = await Promise.all([
+    addedHere(
+      owner,
+      medicationStatements,
+      i.medicines.map((m) => m.statementId),
+      i,
+    ),
+    addedHere(
+      owner,
+      allergies,
+      listed.map((l) => l.allergy.id),
+      i,
+    ),
+  ]);
   return {
     catalogueUrl: `/api/clerking/catalogue?v=${CLERKING_SIGNOFF.catalogueSha256.slice(0, 16)}`,
     catalogueVersion: CLERKING_CATALOGUE.version,
@@ -110,13 +155,13 @@ export async function clerkingData(i: {
     vitalsAt: latest,
     vitalsFromTriage:
       present.length > 0 && present.every((c) => c!.id.startsWith("triage_records:")),
-    medicines: i.medicines,
+    medicines: i.medicines.map((m) => ({ ...m, addedHere: medsHere.has(m.statementId) })),
     allergies: {
       status: status.kind,
       touchedThisVisit: !!touchedAllergy || !!touchedAssertion,
       items:
         status.kind === "listed"
-          ? status.allergies.map((l) => ({
+          ? listed.map((l) => ({
               id: l.allergy.id,
               name: l.allergy.substanceText ?? l.allergy.substanceCode ?? "Allergy",
               coded: l.coded,
@@ -128,6 +173,7 @@ export async function clerkingData(i: {
                 ? (INFORMANT_TO_ALLERGY_SOURCE[l.allergy.informant] ?? null)
                 : null,
               restricted: false,
+              addedHere: allergiesHere.has(l.allergy.id),
             }))
           : [],
     },

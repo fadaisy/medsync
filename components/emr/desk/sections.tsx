@@ -83,7 +83,7 @@ export interface SectionHandlers {
     id: string,
     answer: Exclude<MedicineAnswer, "pending">,
     reasonCode?: string,
-  ) => void;
+  ) => void | Promise<boolean>;
   onAddMedicine?: (text: string) => void;
   onVitals?: (entries: VitalEntry[]) => void;
   onAllergyEditor?: () => void;

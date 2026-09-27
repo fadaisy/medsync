@@ -34,7 +34,8 @@ export interface History {
   past: {
     /** `onProblemList`: the clinician confirmed it on the problem list (D-CV-09; display only). */
     conditions: Record<string, { answer: YesNo; since?: string; onProblemList?: boolean }>;
-    operations?: "none" | { text: string; year?: number; where?: string }[];
+    /** A pick carries its MS-EMR-CLERK-OPS-001 id beside the label; typed words have none. */
+    operations?: "none" | { text: string; code?: string; year?: number; where?: string }[];
     transfusions?: "none" | { when?: string; reaction?: string }[];
     /** "Still true today": the listed allergies were confirmed at this visit (note only). */
     allergiesConfirmed?: boolean;
@@ -50,6 +51,8 @@ export interface History {
     quitWhen?: string;
     alcohol?: string;
     drinks?: string[];
+    /** CAGE (data/clerking/cage.v1.json), per question; a missing key was not asked. */
+    cage?: Record<string, YesNo>;
     substances?: string[];
     living?: string;
     activity?: string;
@@ -236,7 +239,10 @@ export function setTobacco(s: Social, id: string): Social {
 export function setAlcohol(s: Social, id: string): Social {
   const alcohol = s.alcohol === id ? undefined : id;
   const next: Social = { ...s, alcohol };
-  if (!alcohol || alcohol === "none") delete next.drinks;
+  if (!alcohol || alcohol === "none") {
+    delete next.drinks;
+    delete next.cage;
+  }
   if (!alcohol) delete next.alcohol;
   return next;
 }
@@ -288,6 +294,16 @@ export const durationDays = (d: SymptomEntry["duration"]): number | null =>
 export function durationText(d: SymptomEntry["duration"]): string {
   if (!d) return "";
   return `${d.value} ${d.value === 1 ? d.unit.replace(/s$/, "") : d.unit}`;
+}
+
+/** CAGE: one point per yes, out of the questions asked (a question not asked scores nothing). */
+export function cageScore(
+  cage: Record<string, YesNo> | undefined,
+  items: readonly { id: string }[],
+) {
+  const asked = items.filter((q) => cage?.[q.id]).length;
+  const yes = items.filter((q) => cage?.[q.id] === "yes").length;
+  return { yes, asked, of: items.length };
 }
 
 /** Pack-years: cigarettes a day ÷ 20 × years, one decimal (derived, never typed). */

@@ -8,10 +8,10 @@ import type { History } from "@/lib/clerking/answers";
 import type { Catalogue, Option } from "@/lib/clerking/catalogue";
 import type { ClerkingDeskData } from "@/lib/clerking/desk-data";
 import type { ReactNode } from "react";
-import { useState } from "react";
-import { CheckIcon, LockIcon, PlusIcon, XIcon } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { CheckIcon, LayoutGridIcon, LockIcon, PlusIcon, XIcon } from "lucide-react";
 
-import { REFUTE_ALLERGY_REASONS, STOP_REASONS } from "@/components/emr/desk/model";
+import { REFUTE_ALLERGY_REASONS } from "@/components/emr/desk/model";
 import { DiagnosisPicker } from "@/components/emr/desk/pickers";
 import { ReasonChoice } from "@/components/emr/desk/sections";
 import { EmrDialog } from "@/components/emr/emr-dialog";
@@ -20,8 +20,10 @@ import { Button } from "@/components/ui/button";
 import { toggleEntry } from "@/lib/clerking/answers";
 import { isRestricted } from "@/lib/clerking/catalogue";
 import { lc } from "@/lib/clerking/compose";
+import { operationById, operationGroups } from "@/lib/clerking/operations";
 import { REACTION_TO_MANIFESTATION } from "@/lib/clerking/record-map";
 import { Chip, FieldRow, YesNoRow } from "./controls";
+import { PickAllDialog } from "./pick-all-dialog";
 
 /**
  * [04] Past medical history (§5.6), two columns. Left: conditions (a yes offers "known for" and a
@@ -54,10 +56,15 @@ export interface AllergyWrite {
   reasonCode?: string;
 }
 
+/** A write's outcome, so the cards can show a change at once and undo it when the write fails. */
+type Saved = Promise<boolean> | void;
+
 export interface PastHistoryHandlers {
-  onRecordMedicine?: (m: MedicineAdd) => void;
+  onRecordMedicine?: (m: MedicineAdd) => Saved;
   onMedicineDetails?: (statementId: string, patch: MedicinePatch) => void;
-  onAllergy?: (a: AllergyWrite) => void;
+  onAllergy?: (a: AllergyWrite) => Saved;
+  /** X on an item first recorded at this visit by this clinician: entered in error. */
+  onRemoveAddedHere?: (kind: "medication" | "allergy", id: string) => Saved;
   /** "Code it": the allergy editor, started from this allergy. */
   onCodeAllergy?: (id: string, name: string) => void;
   onAssertAllergy?: (a: "no_known_drug_allergies") => void;
@@ -99,6 +106,63 @@ function Heading({ children, aside }: { children: ReactNode; aside?: ReactNode }
 
 const INPUT =
   "border-input bg-card text-body-s text-foreground focus-visible:shadow-focus min-h-8 min-w-0 rounded-sm border px-2.5 outline-none pointer-coarse:min-h-11 disabled:opacity-60";
+
+/* ─── Shown at once ─────────────────────────────────────────────── */
+
+/**
+ * A tap shows at once: an add as a "Saving" card, a removal hidden. A failed write undoes its
+ * change; a saved one gives way when the refreshed record arrives with it.
+ */
+function usePending<R>(record: R) {
+  const [adds, setAdds] = useState<{ key: number; name: string; savedWith?: R }[]>([]);
+  const [gone, setGone] = useState<ReadonlySet<string>>(() => new Set());
+  const latest = useRef(record);
+  useEffect(() => {
+    latest.current = record;
+  });
+  const next = useRef(0);
+  return {
+    gone,
+    adding: (names: ReadonlySet<string>) =>
+      adds.filter(
+        (a) => !names.has(a.name.toLowerCase()) && (!a.savedWith || a.savedWith === record),
+      ),
+    add(name: string, write: Promise<boolean> | void) {
+      const key = next.current++;
+      setAdds((l) => [
+        ...l.filter((a) => !a.savedWith || a.savedWith === latest.current),
+        { key, name },
+      ]);
+      void Promise.resolve(write).then((ok) =>
+        setAdds((l) =>
+          ok === false
+            ? l.filter((a) => a.key !== key)
+            : l.map((a) => (a.key === key ? { ...a, savedWith: latest.current } : a)),
+        ),
+      );
+    },
+    remove(id: string, write: Promise<boolean> | void) {
+      setGone((g) => new Set(g).add(id));
+      void Promise.resolve(write).then((ok) => {
+        if (ok === false)
+          setGone((g) => {
+            const n = new Set(g);
+            n.delete(id);
+            return n;
+          });
+      });
+    },
+  };
+}
+
+function SavingCard({ name }: { name: string }) {
+  return (
+    <li className="border-border bg-card flex flex-col rounded-lg border py-2 pr-2 pl-3 opacity-70">
+      <span className="text-body-s text-foreground font-medium">{name}</span>
+      <span className="text-caption text-muted-foreground">Saving…</span>
+    </li>
+  );
+}
 
 /* ─── Words ─────────────────────────────────────────────────────── */
 
@@ -304,10 +368,12 @@ function Conditions({
 
 /* ─── Operations and transfusions (note only) ────────────────────── */
 
-type Op = { text: string; year?: number; where?: string };
+type Op = { text: string; code?: string; year?: number; where?: string };
 type Tf = { when?: string; reaction?: string };
 
-function OperationsAndTransfusions({ cat, history, onHistory, editable }: PastHistoryProps) {
+function OperationsAndTransfusions({ cat, history, onHistory, editable, sex }: PastHistoryProps) {
+  const [picking, setPicking] = useState(false);
+  const groups = operationGroups(sex ?? null);
   const t = cat.data.past_history.transfusions;
   const when = t.fields.find((f) => f.id === "when")?.options ?? [];
   const reaction = t.fields.find((f) => f.id === "reaction")?.options ?? [];
@@ -322,9 +388,30 @@ function OperationsAndTransfusions({ cat, history, onHistory, editable }: PastHi
   const setOp = (i: number, patch: Partial<Op>) =>
     onHistory((h) => {
       const list = Array.isArray(h.past.operations) ? [...h.past.operations] : [];
-      list[i] = { ...list[i]!, ...patch };
+      const next: Op = { ...list[i]!, ...patch };
+      // Typed words keep the pick's id only while they still read as its label.
+      if ("text" in patch) {
+        const hit = groups
+          .flatMap((g) => g.items)
+          .find((o) => o.label.toLowerCase() === next.text.trim().toLowerCase());
+        if (hit) next.code = hit.id;
+        else delete next.code;
+      }
+      list[i] = next;
       return { ...h, past: { ...h.past, operations: list } };
     });
+  const picked = new Set(opList.flatMap((o) => (o.code ? [o.code] : [])));
+  const pick = (id: string) => {
+    const op = operationById(id);
+    if (!op) return;
+    past({
+      operations: picked.has(id)
+        ? opList.filter((o) => o.code !== id).length
+          ? opList.filter((o) => o.code !== id)
+          : undefined
+        : [...opList.filter((o) => o.text.trim()), { text: op.label, code: op.id }],
+    });
+  };
   const setTf = (i: number, key: keyof Tf, id: string) =>
     onHistory((h) => {
       const list = Array.isArray(h.past.transfusions) ? [...h.past.transfusions] : [];
@@ -362,6 +449,10 @@ function OperationsAndTransfusions({ cat, history, onHistory, editable }: PastHi
           <PlusIcon aria-hidden className="size-3.5" />
           Operation
         </Chip>
+        <Chip dashed selected={false} disabled={!editable} onPress={() => setPicking(true)}>
+          <LayoutGridIcon aria-hidden className="size-3.5" />
+          Choose operations
+        </Chip>
         <Chip
           dashed
           selected={false}
@@ -381,7 +472,9 @@ function OperationsAndTransfusions({ cat, history, onHistory, editable }: PastHi
         >
           <input
             aria-label="Operation"
-            placeholder="Operation"
+            placeholder="Type or choose an operation"
+            list="clerking-ops-list"
+            autoComplete="off"
             className={`${INPUT} flex-1`}
             value={o.text}
             disabled={!editable}
@@ -471,6 +564,28 @@ function OperationsAndTransfusions({ cat, history, onHistory, editable }: PastHi
         </div>
       ))}
       {note ? <p className="text-caption text-muted-foreground">{note}</p> : null}
+      <datalist id="clerking-ops-list">
+        {groups
+          .flatMap((g) => g.items)
+          .map((o) => (
+            <option key={o.id} value={o.label} />
+          ))}
+      </datalist>
+      <PickAllDialog
+        open={picking}
+        onOpenChange={setPicking}
+        kicker="Past surgical history"
+        title="Operations"
+        description="By specialty. Tap to add or remove; the list stays open. Anything else, type it as they name it."
+        empty="Nothing matches. Close this and type it as they name it."
+        groups={groups.map((g) => ({
+          id: g.id,
+          label: g.label,
+          items: g.items.map((o) => ({ ...o, restricted: isRestricted(o.sensitivity) })),
+        }))}
+        added={picked}
+        onPick={pick}
+      />
     </section>
   );
 }
@@ -489,18 +604,31 @@ function Medicines({
   on,
 }: PastHistoryProps) {
   const [open, setOpen] = useState<string | null>(null);
-  const [stopping, setStopping] = useState<string | null>(null);
   const [typed, setTyped] = useState("");
   const l = cat.data.medicines;
-  const meds = record.medicines;
+  const shown = usePending(record.medicines);
+  const meds = record.medicines.filter((m) => !shown.gone.has(m.statementId));
   const pending = !!busy?.startsWith("med");
   const can = act && !pending;
   // Who is telling us, as a medicine source when the words match (patient, carer, letter).
   const informant = l.source.some((o) => o.id === header.historian) ? header.historian : undefined;
   const names = new Set(meds.map((m) => m.name.toLowerCase()));
-  const picks = l.quick_picks.filter((q) => !names.has(q.label.toLowerCase()));
+  const adding = shown.adding(names);
+  const taken = new Set([...names, ...adding.map((a) => a.name.toLowerCase())]);
+  const picks = l.quick_picks.filter((q) => !taken.has(q.label.toLowerCase()));
   const add = (drugText: string, restricted: boolean) =>
-    on.onRecordMedicine?.({ drugText, restricted, ...(informant ? { informant } : {}) });
+    shown.add(
+      drugText,
+      on.onRecordMedicine?.({ drugText, restricted, ...(informant ? { informant } : {}) }),
+    );
+  // X: a medicine added here was a slip (void it); one from before, they no longer take it.
+  const removeMed = (m: (typeof meds)[number]) =>
+    shown.remove(
+      m.statementId,
+      m.addedHere
+        ? on.onRemoveAddedHere?.("medication", m.statementId)
+        : on.onMedicine?.(m.statementId, "stopped", "not_taking"),
+    );
   const chips = (
     m: (typeof meds)[number],
     field: "frequencyCode" | "adherence" | "informant",
@@ -523,7 +651,7 @@ function Medicines({
       <Heading aside={`${meds.length} ${meds.length === 1 ? "medicine" : "medicines"}`}>
         <span id="clerking-pmh-meds">Medicines</span>
       </Heading>
-      {meds.length ? (
+      {meds.length || adding.length ? (
         <ul className="flex flex-col gap-2">
           {meds.map((m) => {
             const isOpen = open === m.statementId;
@@ -554,28 +682,13 @@ function Medicines({
                       variant="ghost"
                       size="iconSm"
                       aria-label={`Remove ${m.name}`}
-                      title="Stopped: remove with a reason"
-                      disabled={pending}
-                      onClick={() => setStopping(stopping === m.statementId ? null : m.statementId)}
+                      title={m.addedHere ? "Remove" : "No longer taking it: remove"}
+                      onClick={() => removeMed(m)}
                     >
                       <XIcon aria-hidden />
                     </Button>
                   ) : null}
                 </div>
-                {stopping === m.statementId ? (
-                  <div className="border-border border-t px-3 py-2">
-                    <ReasonChoice
-                      name={`clerking-stop-${m.statementId}`}
-                      label={`Why is ${m.name} stopped`}
-                      reasons={STOP_REASONS}
-                      onChoose={(code) => {
-                        setStopping(null);
-                        on.onMedicine?.(m.statementId, "stopped", code);
-                      }}
-                      onCancel={() => setStopping(null)}
-                    />
-                  </div>
-                ) : null}
                 {isOpen ? (
                   <div
                     id={`clerking-med-${m.statementId}`}
@@ -605,6 +718,9 @@ function Medicines({
               </li>
             );
           })}
+          {adding.map((a) => (
+            <SavingCard key={a.key} name={a.name} />
+          ))}
         </ul>
       ) : (
         <Chip
@@ -630,7 +746,6 @@ function Medicines({
                 key={q.id}
                 dashed
                 selected={false}
-                disabled={pending}
                 onPress={() => add(q.label, isRestricted(q.sensitivity))}
               >
                 <PlusIcon aria-hidden className="size-3.5" />
@@ -643,7 +758,6 @@ function Medicines({
             aria-label="Add a medicine as they name it"
             placeholder="Another medicine, as they name it"
             value={typed}
-            disabled={pending}
             className={`${INPUT} w-full`}
             onChange={(e) => setTyped(e.target.value)}
             onKeyDown={(e) => {
@@ -678,7 +792,11 @@ function Allergies({
   const [open, setOpen] = useState<string | null>(null);
   const [refuting, setRefuting] = useState<string | null>(null);
   const l = cat.data.allergies;
-  const a = record.allergies;
+  const shown = usePending(record.allergies);
+  const a = {
+    ...record.allergies,
+    items: record.allergies.items.filter((x) => !shown.gone.has(x.id)),
+  };
   const confirmed = a.touchedThisVisit || !!history.past.allergiesConfirmed;
   const status = allergyStatus(a, confirmed);
   const pending = !!busy?.startsWith("allergy");
@@ -686,7 +804,9 @@ function Allergies({
   // "Not known" records no reaction (GATE A H2): the empty list says it, so it has no chip.
   const reactions = l.reactions.filter((r) => REACTION_TO_MANIFESTATION[r.id] !== null);
   const names = new Set(a.items.map((x) => x.name.toLowerCase()));
-  const picks = l.quick_picks.filter((q) => !names.has(q.label.toLowerCase()));
+  const adding = shown.adding(names);
+  const taken = new Set([...names, ...adding.map((x) => x.name.toLowerCase())]);
+  const picks = l.quick_picks.filter((q) => !taken.has(q.label.toLowerCase()));
   const nkda = a.status === "no_known_drug_allergies" && a.touchedThisVisit;
   const informant = l.source.some((o) => o.id === header.historian) ? header.historian : undefined;
   return (
@@ -703,7 +823,7 @@ function Allergies({
           )}
         </span>
       </div>
-      {a.items.length ? (
+      {a.items.length || adding.length ? (
         <ul className="flex flex-col gap-2">
           {a.items.map((x) => {
             const isOpen = open === x.id;
@@ -756,10 +876,13 @@ function Allergies({
                     <Button
                       variant="ghost"
                       size="iconSm"
-                      aria-label={`Not an allergy: ${x.name}`}
-                      title="Not an allergy: remove with a reason"
-                      disabled={pending}
-                      onClick={() => setRefuting(refuting === x.id ? null : x.id)}
+                      aria-label={x.addedHere ? `Remove ${x.name}` : `Not an allergy: ${x.name}`}
+                      title={x.addedHere ? "Remove" : "Not an allergy: remove with a reason"}
+                      onClick={() =>
+                        x.addedHere
+                          ? shown.remove(x.id, on.onRemoveAddedHere?.("allergy", x.id))
+                          : setRefuting(refuting === x.id ? null : x.id)
+                      }
                     >
                       <XIcon aria-hidden />
                     </Button>
@@ -773,11 +896,14 @@ function Allergies({
                       reasons={REFUTE_ALLERGY_REASONS}
                       onChoose={(code) => {
                         setRefuting(null);
-                        on.onAllergy?.({
-                          supersedesId: x.id,
-                          verification: "refuted",
-                          reasonCode: code,
-                        });
+                        shown.remove(
+                          x.id,
+                          on.onAllergy?.({
+                            supersedesId: x.id,
+                            verification: "refuted",
+                            reasonCode: code,
+                          }),
+                        );
                       }}
                       onCancel={() => setRefuting(null)}
                     />
@@ -835,6 +961,9 @@ function Allergies({
               </li>
             );
           })}
+          {adding.map((x) => (
+            <SavingCard key={x.key} name={x.name} />
+          ))}
         </ul>
       ) : null}
       <div className="flex flex-wrap gap-1.5">
@@ -870,9 +999,11 @@ function Allergies({
               key={q.id}
               dashed
               selected={false}
-              disabled={pending}
               onPress={() =>
-                on.onAllergy?.({ substanceText: q.label, ...(informant ? { informant } : {}) })
+                shown.add(
+                  q.label,
+                  on.onAllergy?.({ substanceText: q.label, ...(informant ? { informant } : {}) }),
+                )
               }
             >
               <PlusIcon aria-hidden className="size-3.5" />

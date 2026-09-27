@@ -453,13 +453,27 @@ describe("family history (§5.7)", () => {
 });
 
 describe("social history (§5.8)", () => {
-  it("pack-years derived in mono; steppers; never smoked clears the rest", () => {
+  it("pack-years derived in mono; typed counts and a-day picks; never smoked clears the rest", () => {
     const st = store(patientThree3());
     const m = renderToStaticMarkup(h(SocialBody, base(st.s.h, st.onHistory)));
-    expect(m).toMatch(/font-mono[^>]*>10 pack-years/);
-    const els = walk(h(SocialBody, base(st.s.h, st.onHistory)));
-    press(els.find((e) => e.props["aria-label"] === "Cigarettes a day: more"));
-    expect(st.s.h.social.perDay).toBe(11);
+    expect(m).toMatch(/font-mono[^>]*>= 10 pack-years/);
+    let els = walk(h(SocialBody, base(st.s.h, st.onHistory)));
+    const typed = (label: string, value: string) =>
+      (els.find((e) => e.props["aria-label"] === label)!.props.onChange as (e: unknown) => void)({
+        target: { value },
+      });
+    typed("Cigarettes a day", "15");
+    expect(st.s.h.social.perDay).toBe(15);
+    typed("Years smoked", "");
+    expect(st.s.h.social.years).toBeUndefined();
+    expect(renderToStaticMarkup(h(SocialBody, base(st.s.h, st.onHistory)))).toContain(
+      "= – pack-years",
+    );
+    els = walk(h(SocialBody, base(st.s.h, st.onHistory)));
+    press(
+      inGroup(els, "A day").find((e) => words(e as unknown as ReactNode).trim() === "20 (a pack)"),
+    );
+    expect(st.s.h.social.perDay).toBe(20);
     press(inGroup(els, "Tobacco").find((e) => words(e as unknown as ReactNode).trim() === "Never"));
     expect(st.s.h.social).toMatchObject({ tobacco: "never" });
     expect(st.s.h.social.perDay).toBeUndefined();

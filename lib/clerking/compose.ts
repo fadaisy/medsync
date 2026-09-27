@@ -2,8 +2,10 @@ import type { Complaint, History, HistoryHeader, SymptomEntry } from "./answers"
 import type { Catalogue, Option, PatientSex, Symptom } from "./catalogue";
 import type { Linked } from "./linkage";
 
-import { durationText, packYears } from "./answers";
+import CAGE from "@/data/clerking/cage.v1.json";
+import { cageScore, durationText, packYears } from "./answers";
 import { isRestricted, rosSystemsFor } from "./catalogue";
+import { operationById } from "./operations";
 
 /**
  * The note writes itself (catalogue `composer.rules`, D-CV-16): deterministic sentences from the
@@ -281,7 +283,11 @@ export function compose(i: ComposeInput): Block[] {
   if (py.length) past.push(`${cap(list(py))}.`);
   if (pn.length) past.push(`No ${list(pn, "or")}.`);
   const ops =
-    h.past.operations === "none" ? "none" : h.past.operations?.filter((o) => o.text.trim());
+    h.past.operations === "none"
+      ? "none"
+      : h.past.operations?.filter(
+          (o) => o.text.trim() && !hide(operationById(o.code)?.sensitivity),
+        );
   if (ops === "none") past.push("No operations.");
   else if (ops?.length)
     past.push(
@@ -379,8 +385,10 @@ export function compose(i: ComposeInput): Block[] {
       .map((x) => labelOf(sh.alcohol.types, x))
       .filter((x): x is string => !!x)
       .map(words);
+    const cage = cageScore(so.cage, CAGE.items);
+    const missing = cage.of - cage.asked;
     s.push(
-      `drinks alcohol ${lc(labelOf(sh.alcohol.pattern, so.alcohol) ?? "")}${drinks.length ? ` (${list(drinks)})` : ""}`,
+      `drinks alcohol ${lc(labelOf(sh.alcohol.pattern, so.alcohol) ?? "")}${drinks.length ? ` (${list(drinks)})` : ""}${cage.asked ? `, CAGE ${cage.yes}/${cage.of}${missing ? ` (${missing} not asked)` : ""}` : ""}`,
     );
   }
   if (i.audience === "clinical" && so.substances?.length) {

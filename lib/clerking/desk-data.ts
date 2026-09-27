@@ -23,6 +23,8 @@ export interface ClerkingDeskData {
     adherence: string | null;
     informant: string | null;
     restricted: boolean;
+    /** First recorded at this visit by this clinician: its X voids it (entered in error). */
+    addedHere: boolean;
   }[];
   allergies: {
     status: "listed" | "no_known_drug_allergies" | "unable_to_assess" | "not_recorded";
@@ -36,6 +38,8 @@ export interface ClerkingDeskData {
       severity: string | null;
       source: string | null;
       restricted: boolean;
+      /** First recorded at this visit by this clinician: its X voids it without a reason prompt. */
+      addedHere: boolean;
     }[];
   };
   /** Catalogue symptoms whose token charts as a CFC finding at signing (token map ∘ concept), so

@@ -370,6 +370,35 @@ describe.skipIf(!laneOn)("clerking desk v2 (PGlite lane)", () => {
     expect(on.clerking!.chartable).toContain("sym.polyuria");
     expect(on.clerking!.chartable.length).toBeGreaterThan(5);
     expect(on.clerking!.catalogueUrl).toMatch(/^\/api\/clerking\/catalogue\?v=[0-9a-f]{16}$/);
+    // X: only what began at this visit, by this clinician, is voided without a question.
+    expect(on.clerking!.medicines.find((m) => m.name === "Amlodipine")!.addedHere).toBe(false);
+    const slip = await as(mo, (ctx) =>
+      facts.recordMedicationStatements(ctx, {
+        patientUserId: p,
+        encounterId: enc2,
+        clientKey: key(),
+        statements: [
+          {
+            drugText: "Paracetamol",
+            medicationStatus: "active",
+            medicationSource: "patient_reported",
+          },
+        ],
+      }),
+    );
+    const after = (await loadDeskFor(mo, enc2, { database: lane.db, clerkingV2: true }))!.payload;
+    expect(after.clerking!.medicines.find((m) => m.name === "Paracetamol")!.addedHere).toBe(true);
+    await as(mo, (ctx) =>
+      facts.markFactEnteredInError(ctx, {
+        patientUserId: p,
+        kind: "medication",
+        id: slip.id,
+        reasonCode: "recorded_in_error",
+        clientKey: key(),
+      }),
+    );
+    const gone = (await loadDeskFor(mo, enc2, { database: lane.db, clerkingV2: true }))!.payload;
+    expect(gone.clerking!.medicines.map((m) => m.name)).not.toContain("Paracetamol");
   });
 
   it("Continue in the new format: the author's own unsigned v1 draft only, mapping what maps", async () => {
