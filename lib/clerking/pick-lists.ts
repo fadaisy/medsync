@@ -1,16 +1,18 @@
 import type { PatientSex } from "./catalogue";
 import { z } from "zod";
 
+import occupationsRaw from "@/data/clerking/occupations.v1.json";
 import raw from "@/data/clerking/operations.v1.json";
 import { appliesTo } from "./catalogue";
 
 /**
- * The past-operations pick list (MS-EMR-CLERK-OPS-001), grouped by specialty. A pick stores its id
- * beside the label as text; anything else is typed as the patient names it (text, no id).
+ * Pick lists beside a free-text field: past operations (MS-EMR-CLERK-OPS-001, by specialty) and
+ * occupations (MS-EMR-CLERK-OCC-001, by kind of work). A pick stores its id beside the label as text;
+ * anything else is typed as the patient names it (text, no id).
  */
 
 const Item = z.object({
-  id: z.string().regex(/^op\.[a-z0-9_]+$/),
+  id: z.string().regex(/^(op|occ)\.[a-z0-9_]+$/),
   label: z.string().min(1),
   terms: z.array(z.string()).default([]),
   applies_to_sex: z.enum(["female", "male"]).optional(),
@@ -34,3 +36,10 @@ export function operationGroups(sex: PatientSex) {
     .map((g) => ({ ...g, items: g.items.filter((o) => appliesTo(o.applies_to_sex, sex)) }))
     .filter((g) => g.items.length);
 }
+
+export const OCCUPATIONS = File.parse(occupationsRaw);
+const OCC_BY_LABEL = new Map(
+  OCCUPATIONS.groups.flatMap((g) => g.items.map((o) => [o.label.toLowerCase(), o] as const)),
+);
+/** The list's occupation these words name exactly (any case), if any. */
+export const occupationByLabel = (text: string) => OCC_BY_LABEL.get(text.trim().toLowerCase());

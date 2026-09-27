@@ -8,10 +8,15 @@ import CAGE from "@/data/clerking/cage.v1.json";
 import { cageScore, setAlcohol } from "@/lib/clerking/answers";
 import { compose } from "@/lib/clerking/compose";
 import { linkedAnswers } from "@/lib/clerking/linkage";
-import { operationGroups, OPERATIONS } from "@/lib/clerking/operations";
 import { HistorySchema } from "@/lib/clerking/payload";
+import {
+  occupationByLabel,
+  OCCUPATIONS,
+  operationGroups,
+  OPERATIONS,
+} from "@/lib/clerking/pick-lists";
 import { allergies, cat, header, medicines, patient, patientThree3 } from "./fixtures";
-import { text } from "./press";
+import { text, walk } from "./press";
 
 /** Past operations pick list (MS-EMR-CLERK-OPS-001) and CAGE (MS-EMR-CLERK-CAGE-001). */
 
@@ -112,3 +117,37 @@ function props(history: History) {
     cautionFrom: 7,
   };
 }
+
+describe("occupations list", () => {
+  const all = OCCUPATIONS.groups.flatMap((g) => g.items);
+
+  it("ids and labels are unique; every catalogue hint but one is a list label", () => {
+    expect(new Set(all.map((o) => o.id)).size).toBe(all.length);
+    expect(new Set(all.map((o) => o.label.toLowerCase())).size).toBe(all.length);
+    const unmatched = cat.data.social_history.occupation.hints.filter((x) => !occupationByLabel(x));
+    expect(unmatched).toEqual(["Health worker"]);
+  });
+
+  it("words that are a label keep its id; anything else is text only; the payload keeps both", () => {
+    const hx = patientThree3();
+    let social = hx.social;
+    const els = walk(
+      h(SocialBody, {
+        ...props(hx),
+        onHistory: (fn: (x: History) => History) => {
+          social = fn({ ...hx, social }).social;
+        },
+      }),
+    );
+    const hints = els.find((e) => e.props["aria-label"] === "Occupation hints")!;
+    const fisher = walk(hints.props.children as React.ReactNode).find(
+      (e) => text(renderToStaticMarkup(e)) === "Fisher",
+    )!;
+    (fisher.props.onClick as () => void)();
+    expect(social).toMatchObject({ occupation: "Fisher", occupationCode: "occ.fisher" });
+    expect(occupationByLabel("  boda BODA rider ")?.id).toBe("occ.boda");
+    expect(occupationByLabel("Retired teacher")).toBeUndefined();
+    hx.social = { ...hx.social, occupation: "Fisher", occupationCode: "occ.fisher" };
+    expect(HistorySchema.parse(hx).social.occupationCode).toBe("occ.fisher");
+  });
+});

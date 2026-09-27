@@ -4,9 +4,11 @@ import type { HistoryBodyProps } from "./history-sections";
 import type { History } from "@/lib/clerking/answers";
 import type { Option } from "@/lib/clerking/catalogue";
 import type { ReactNode } from "react";
-import { LockIcon } from "lucide-react";
+import { memo, useState } from "react";
+import { LayoutGridIcon, LockIcon } from "lucide-react";
 
 import { StatusWord } from "@/components/emr/status-word";
+import { Button } from "@/components/ui/button";
 import CAGE from "@/data/clerking/cage.v1.json";
 import {
   cageScore,
@@ -18,7 +20,9 @@ import {
   toggleIn,
 } from "@/lib/clerking/answers";
 import { isRestricted } from "@/lib/clerking/catalogue";
+import { occupationByLabel, OCCUPATIONS } from "@/lib/clerking/pick-lists";
 import { Chip, YesNoRow } from "./controls";
+import { PickAllDialog } from "./pick-all-dialog";
 
 /**
  * [05] Family history (§5.7) and [06] Social history (§5.8). Both are note-only in the draft:
@@ -148,6 +152,70 @@ const DAY_PICKS = [
   [40, "40 (two packs)"],
 ] as const;
 
+/**
+ * The occupation box: type it, or choose from the list (one pick, the pop-up closes). A memo so the
+ * hook-free views around it stay pressable in tests.
+ */
+const OccupationField = memo(function OccupationField({
+  value,
+  disabled,
+  onChange,
+}: {
+  value: string;
+  disabled: boolean;
+  onChange: (v: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const current = occupationByLabel(value)?.id;
+  return (
+    <div className="flex w-full max-w-md flex-wrap items-center gap-2">
+      <input
+        aria-label="Occupation"
+        placeholder="Type or choose"
+        list="clerking-occupations"
+        autoComplete="off"
+        className={`${INPUT} min-w-0 flex-1`}
+        value={value}
+        disabled={disabled}
+        onChange={(e) => onChange(e.target.value)}
+      />
+      <Button
+        type="button"
+        variant="secondary"
+        size="sm"
+        disabled={disabled}
+        aria-haspopup="dialog"
+        onClick={() => setOpen(true)}
+      >
+        <LayoutGridIcon aria-hidden />
+        Choose
+      </Button>
+      <datalist id="clerking-occupations">
+        {OCCUPATIONS.groups
+          .flatMap((g) => g.items)
+          .map((o) => (
+            <option key={o.id} value={o.label} />
+          ))}
+      </datalist>
+      <PickAllDialog
+        open={open}
+        onOpenChange={setOpen}
+        kicker="Social history"
+        title="Occupation"
+        description="By kind of work. Tap one to choose it. Anything else, type it as they say it."
+        empty="Nothing matches. Close this and type it as they say it."
+        groups={OCCUPATIONS.groups}
+        added={new Set(current ? [current] : [])}
+        onPick={(id) => {
+          const o = OCCUPATIONS.groups.flatMap((g) => g.items).find((x) => x.id === id);
+          onChange(o && o.id !== current ? o.label : "");
+          setOpen(false);
+        }}
+      />
+    </div>
+  );
+});
+
 const NUM =
   "border-input bg-card text-body-s text-foreground focus-visible:shadow-focus min-h-8 w-16 rounded-sm border px-2 text-center font-mono tabular-nums outline-none pointer-coarse:min-h-11 disabled:opacity-60";
 
@@ -183,6 +251,16 @@ export function SocialBody({ cat, history, onHistory, editable }: HistoryBodyPro
       return next;
     });
   const cage = cageScore(so.cage, CAGE.items);
+  // Words that are a list item's label keep its id; anything else is text only.
+  const setOccupation = (v: string) =>
+    put((s) => {
+      const next: History["social"] = { ...s, occupation: v };
+      const hit = occupationByLabel(v);
+      if (hit) next.occupationCode = hit.id;
+      else delete next.occupationCode;
+      if (!v) delete next.occupation;
+      return next;
+    });
   const smoker = so.tobacco === "former" || so.tobacco === "current";
   const py = packYears(so.perDay, so.years);
   const drinks = !!so.alcohol && so.alcohol !== "none";
@@ -344,20 +422,7 @@ export function SocialBody({ cat, history, onHistory, editable }: HistoryBodyPro
         />
       </Row>
       <Row label="Occupation">
-        <input
-          aria-label="Occupation"
-          className={INPUT}
-          value={so.occupation ?? ""}
-          disabled={off}
-          onChange={(e) => {
-            const v = e.target.value;
-            put((s) => {
-              const next: History["social"] = { ...s, occupation: v };
-              if (!v) delete next.occupation;
-              return next;
-            });
-          }}
-        />
+        <OccupationField value={so.occupation ?? ""} disabled={off} onChange={setOccupation} />
         <div role="group" aria-label="Occupation hints" className="flex flex-wrap gap-1.5">
           {sh.occupation.hints.map((hint) => (
             <Chip
@@ -365,7 +430,7 @@ export function SocialBody({ cat, history, onHistory, editable }: HistoryBodyPro
               dashed
               selected={false}
               disabled={off}
-              onPress={() => put((s) => ({ ...s, occupation: hint }))}
+              onPress={() => setOccupation(hint)}
             >
               {hint}
             </Chip>

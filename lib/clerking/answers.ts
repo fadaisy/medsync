@@ -57,6 +57,8 @@ export interface History {
     living?: string;
     activity?: string;
     occupation?: string;
+    /** The MS-EMR-CLERK-OCC-001 id while the words are that list item's label. */
+    occupationCode?: string;
     travel?: string;
     travelDetail?: string;
     diet?: string;

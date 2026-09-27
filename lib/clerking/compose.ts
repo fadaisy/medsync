@@ -5,7 +5,7 @@ import type { Linked } from "./linkage";
 import CAGE from "@/data/clerking/cage.v1.json";
 import { cageScore, durationText, packYears } from "./answers";
 import { isRestricted, rosSystemsFor } from "./catalogue";
-import { operationById } from "./operations";
+import { operationById } from "./pick-lists";
 
 /**
  * The note writes itself (catalogue `composer.rules`, D-CV-16): deterministic sentences from the

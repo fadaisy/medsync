@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button";
 import { toggleEntry } from "@/lib/clerking/answers";
 import { isRestricted } from "@/lib/clerking/catalogue";
 import { lc } from "@/lib/clerking/compose";
-import { operationById, operationGroups } from "@/lib/clerking/operations";
+import { operationById, operationGroups } from "@/lib/clerking/pick-lists";
 import { REACTION_TO_MANIFESTATION } from "@/lib/clerking/record-map";
 import { Chip, FieldRow, YesNoRow } from "./controls";
 import { PickAllDialog } from "./pick-all-dialog";

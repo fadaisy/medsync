@@ -74,6 +74,7 @@ export const HistorySchema = z.object({
     living: id.optional(),
     activity: id.optional(),
     occupation: text(200).optional(),
+    occupationCode: id.optional(),
     travel: id.optional(),
     travelDetail: text(500).optional(),
     diet: id.optional(),
