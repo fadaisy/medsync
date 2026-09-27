@@ -31,3 +31,9 @@ docs/emr/SPEC-CLINICAL-FACT-CONTRACT-v1.md
 docs/emr/SPEC-NCD-ENGINE-DIABETES-PACK-v1.md
 docs/emr/emr-clinical-reference.md
 docs/emr/clinical-fact-concepts.v1.json
+# Clerking v2 handoff pack: kept byte-identical to what the owner handed over.
+docs/emr/clerking-v2/PROMPT-CLERKING-DESK-V2.md
+docs/emr/clerking-v2/README.md
+docs/emr/clerking-v2/clerking-history-catalogue.v1.json
+docs/emr/clerking-v2/prototype/
+docs/emr/clerking-v2/ds/
