@@ -335,3 +335,51 @@ Because rows render by type, these systems came with Phase 3's components; this 
 - **Feet:** IWGDF risk (per foot, "incomplete" until both feet, the active-ulcer note), IWGDF/IDSA grade with "(O)", SINBAD with each part; fixture 3 gives 3 / 3 / 3.
 - **Suggestions:** all 47 rules exercised in Vitest (Playwright is not in the repo, H7/HX11), with done states and order.
 - Screens E18, E19 and two Feet screens: captured, 0 serious axe.
+
+## STOP 7 (final): hardening (2026-09-28)
+
+**Phase 7 work:** the attribute box opens as a bottom sheet with Done below 640 px (the inline box is hidden there by CSS, so first paint does not shift); a one-tap "GCS 15/15" (an explicit answer); offline, "Save as a new set" is queued in the desk's write queue, shown as pending, and marked saved when it lands (the reading-set id keeps a resend idempotent); dark-mode fixes (teal and plum tokens already invert, so `dark:` overrides were removed); ADRs 0170–0175; CHANGELOG.
+
+**Checks:** typecheck, lint (the 2 warnings predate this build), `clerking:catalogue-check`, the full suite (SKIP_ENV_VALIDATION=1 EMR_PGLITE=1), and the harness.
+
+### §14, the numbers
+
+| Metric                                                              | Baseline                                                     | Target           | Result                                                                                                               |
+| ------------------------------------------------------------------- | ------------------------------------------------------------ | ---------------- | -------------------------------------------------------------------------------------------------------------------- |
+| Page-level scroll on 1440×900                                       | 0 (the card scrolls inside)                                  | none             | **none** on all 40 screens (and at 1440×900)                                                                         |
+| NEWS2 sets saved incomplete for lack of air/oxygen or ACVPU         | every set (the loader passed `oxygen: null`; no ACVPU input) | 0                | **0**: Save requires both, and the loader reads them back (lane test)                                                |
+| Glucose values without a context                                    | fasting chip with "Not sure"; no random or two-hour          | 0                | **0**: one field, context required to save (random, fasting, 2 hours after food)                                     |
+| The same fact answerable in two places with different values        | pallor and nodes: a chip plus the free-text box              | 0                | **0**: links, mirrors (22) and shared attributes; E-8 test                                                           |
+| "Normal/Abnormal" on a non-`state` item or in a counter             | v1 had none structured                                       | 0                | **0** (catalogue test and a markup test over every part)                                                             |
+| Taps, complete normal adult examination (General and seven systems) | not possible by tap (typed)                                  | ≤ 26             | **25**                                                                                                               |
+| Taps, back-pain focused examination                                 | —                                                            | ≤ 28             | **19**                                                                                                               |
+| Taps, standard visit examination (2.12)                             | 15                                                           | ≤ 7.5            | **3** for the seven General signs (7 with consciousness and air or oxygen)                                           |
+| Catalogue items rendering by type                                   | —                                                            | 140 of 140       | **140 of 140** (markup test over every part; every item composes)                                                    |
+| Classifier band edges tested                                        | —                                                            | all REF edges    | **all** numeric references (53 edge rows, a test fails if one is missing) plus the GTFCC truth table                 |
+| Flag rules with positive and negative tests                         | —                                                            | 84 of 84         | **87 of 87** (84 + SC1–SC2)                                                                                          |
+| Suggestion rules with fixtures                                      | —                                                            | 47 of 47         | **47 of 47**                                                                                                         |
+| Rules or classifiers live on an unsigned reference                  | —                                                            | 0                | **0** (withheld references never fire; tested)                                                                       |
+| NEWS2 parity with the triage engine                                 | —                                                            | 100%             | **100%** (200 random sets)                                                                                           |
+| Intimate examinations without a gate record                         | no chaperone record at all                                   | 0                | **0**: items are locked until the gate is complete                                                                   |
+| Restricted items in patient-facing outputs                          | —                                                            | 0                | **0** (composer property test; TM2 options too)                                                                      |
+| axe serious or critical                                             | 0                                                            | 0                | **0**: 40 desktop screens and 20 phone and tablet screens, light and dark                                            |
+| JS added / catalogue gzipped                                        | —                                                            | ≤ 45 KB / report | **42.3 KB** (route first load 362.8 → 405.1 KB gz) / **58.7 KB** gzipped minified (the handoff's 61.8)               |
+| Clinician trial: median examination time, old and new               | not measured                                                 | lower            | **Not run:** needs three to five clinicians (owner's; protocol as for v2, `docs/emr/clerking-v2/clinician-trial.md`) |
+
+**Other budgets:**
+
+| Measure                                               | Result                                                                                                                                                                       |
+| ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| System or part switch, p95                            | 35 ms including two animation frames (budget 100 ms)                                                                                                                         |
+| Classifier, flag and note recompute after a tap       | 0.6 ms p50 / 0.8 ms p95 for the whole desk in Node (about 3 ms at 4×); a tap to the next frame in Chromium is 17.6 ms p95 at 1× and 20.4 ms at 4×, most of it the frame wait |
+| Flag off                                              | the four v1 desk screens and the v2 opening step are **pixel-identical** to a build of `eec6f5c` at 1440 and 834                                                             |
+| Phone (390×844) and tablet (834×1194), light and dark | no horizontal scroll; no examination control under the fixed bars; 0 serious axe                                                                                             |
+
+### Deviations and open items
+
+- **HX3 interim:** ACVPU C is carried in each set line's context until the CFC addendum adds `new_confusion` with its own seed (regenerating the registry would rewrite shipped migration 0072).
+- **Derived BMI and waist-to-height** are not charted as facts yet (recomputed from charted measurements; written in the note).
+- **The CFC v1.3 examination addendum** (165 proposed concepts) and the history addendum's seven duplicate symptom codes (TM4) are the owner's next signature.
+- **The prompt's NEWS2 example** ("35.8 °C no longer scores") is wrong: 35.8 °C scores 1; the card says so.
+- **Not done here:** the clinician trial; real-device timing on a mid-range Android at 4×; production counts beyond the one read-only query (the session's permission check refused the rest; the queries are in STOP 0).
+- **Before deploying:** migration 0076 (clerking v2) must be applied, as before. This build adds **no migration**. The harness build needed `NODE_OPTIONS=--max-old-space-size=6144`; watch the Vercel build's memory.

@@ -253,5 +253,10 @@ export function deriveExam(i: DeriveExamInput): ExamView {
   return { ...base, systems };
 }
 
-/** The handler the desk passes for "Save as a new set" (one batch through recordObservations). */
-export type SaveSet = (lines: VitalLine[], readingSetId: string) => Promise<boolean>;
+/** The handler the desk passes for "Save as a new set" (one batch through recordObservations):
+ *  true when saved, false when refused, "queued" when offline (sent from the queue later). */
+export type SaveSet = (
+  lines: VitalLine[],
+  readingSetId: string,
+  fields: string[],
+) => Promise<boolean | "queued">;

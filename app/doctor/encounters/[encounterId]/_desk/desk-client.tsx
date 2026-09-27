@@ -18,6 +18,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 
 import { ClerkingDesk } from "@/components/clerking/clerking-desk";
+import { examOf, withExam } from "@/components/clerking/exam/model";
 import {
   CLERKING_KEY_HELP,
   clerkingKey,
@@ -910,21 +911,43 @@ export function DeskClient({
           catalogueFailed={catalogueFailed || examFailed}
           ecat={ecat}
           actor={p.viewer.cadreWord}
-          onSaveSet={(lines, readingSetId) =>
-            run(
-              "vitals",
-              // One set, one batch: the reading-set id is the batch key, so a retry is the same set.
-              () =>
-                recordObservations({
-                  ...base,
-                  clientKey: readingSetId,
-                  encounterId,
-                  observations: lines,
-                }),
-              "Vital signs saved as a new set",
-              readingSetId,
-            ).then((r) => r.ok)
-          }
+          onSaveSet={(lines, readingSetId, fields) => {
+            const send = () =>
+              recordObservations({
+                ...base,
+                // One set, one batch: the reading-set id is the batch key, so a resend is the same set.
+                clientKey: readingSetId,
+                encounterId,
+                observations: lines,
+              });
+            if (typeof navigator !== "undefined" && !navigator.onLine) {
+              // Offline (exam v2 §11 Phase 7): the desk's write queue sends it when back online.
+              queue.submit({
+                label: "Vital signs",
+                run: async () => (await send()) as ActionResult<{ id: string }>,
+                onSaved: () => {
+                  const exam = examOf(contentRef.current, ecat?.version ?? "");
+                  change(
+                    withExam(
+                      contentRef.current,
+                      {
+                        ...exam,
+                        vitalsDraft: undefined,
+                        vitalsSavedAt: new Date().toISOString(),
+                        vitalsSavedFields: fields,
+                      },
+                      p.clerking!.catalogueVersion,
+                    ),
+                  );
+                  router.refresh();
+                },
+              });
+              return Promise.resolve("queued" as const);
+            }
+            return run("vitals", send, "Vital signs saved as a new set", readingSetId).then(
+              (r) => r.ok,
+            );
+          }}
           content={content}
           current={current}
           save={save}

@@ -310,6 +310,7 @@ export function VitalsCard(p: VitalsCardProps): JSX.Element {
   const [saving, setSaving] = useState(false);
   const [tried, setTried] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [queued, setQueued] = useState(false);
   // "More measurements": open when a suggestion names a panel, and again whenever it names one.
   const [more, setMore] = useState(!!p.openPanel);
   const [askedFor, setAskedFor] = useState(p.openPanel ?? null);
@@ -523,6 +524,7 @@ export function VitalsCard(p: VitalsCardProps): JSX.Element {
   const savedAt = v.exam.vitalsSavedAt && !v.exam.vitalsDraft ? v.exam.vitalsSavedAt : null;
   const save = async () => {
     const id = crypto.randomUUID();
+    setQueued(false);
     const r = saveLines(v.ecat, v.exam, id);
     setTried(true);
     setFailed(false);
@@ -530,7 +532,12 @@ export function VitalsCard(p: VitalsCardProps): JSX.Element {
     const fields = savedFields(x);
     setSaving(true);
     try {
-      if (await p.onSave(r.lines, id)) {
+      const done = await p.onSave(r.lines, id, fields);
+      if (done === "queued") {
+        // Offline: the desk's queue sends it when back online and marks it saved then.
+        setQueued(true);
+        setTried(false);
+      } else if (done) {
         p.onExam((d) => ({
           ...d,
           vitalsDraft: undefined,
@@ -895,7 +902,7 @@ export function VitalsCard(p: VitalsCardProps): JSX.Element {
 
           <div className="flex flex-wrap items-center gap-3 pb-3">
             {editable && p.act && !savedAt ? (
-              <Button onClick={save} disabled={saving} className={TAP}>
+              <Button onClick={save} disabled={saving || queued} className={TAP}>
                 {saving ? "Saving…" : "Save as a new set"}
               </Button>
             ) : null}
@@ -905,6 +912,8 @@ export function VitalsCard(p: VitalsCardProps): JSX.Element {
                   <CheckIcon aria-hidden className="size-3.5 shrink-0" />
                   {`Saved at ${p.time(savedAt)} as a new set`}
                 </p>
+              ) : queued ? (
+                <Caution>Pending: this set saves when the connection is back.</Caution>
               ) : failed ? (
                 <Caution>The set was not saved. Try again.</Caution>
               ) : missing ? (

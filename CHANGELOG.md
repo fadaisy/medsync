@@ -5,6 +5,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Clerking desk v2: a structured examination, dark behind `CLERKING_V2` — 2026-09-28
+
+- Step 07 is rebuilt from the examination catalogue (MS-EMR-EXAM-CAT-001, GATE A signed; ADRs 0170–0175):
+  - vital signs typed in clinical order with one-field BP, glucose with a required context, and air or oxygen and consciousness read from General, saved at once as a new observation set, so NEWS2 is no longer "incomplete" for lack of them;
+  - General with GCS or ACVPU, attachments (11 oxygen modalities, lines, catheters, tubes), graded signs, GTFCC hydration and Uganda IMAM nutrition;
+  - eight systems and a new IWGDF foot screen, each finding in its own words, with body maps, power, reflex and pulse grids, and classifiers shown with their inputs;
+  - an intimate-examination gate (reason, consent, chaperone) before rectal and genital items;
+  - suggestions from the history, examination flags in the Flags panel, and the examination paragraph in the note.
+- Signing charts the findings that have a CFC concept; the rest stay in the note until the CFC examination addendum.
+- With the flag off the desk is pixel-identical to before.
+
 ### Added — Clerking desk v2 on a phone — 2026-09-27
 
 - Below 640 px the v2 desk is laid out for a phone (ADR 0169, D-CM-01 to D-CM-07):

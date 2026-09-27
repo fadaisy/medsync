@@ -4,8 +4,11 @@ import type { ExamView } from "./model";
 import type { ExamAttribute, ExamItem } from "@/lib/clerking/exam/catalogue";
 import type { AttrValue, ExamDraft } from "@/lib/clerking/exam/payload";
 import type { KeyboardEvent } from "react";
+import { useState } from "react";
 import { ArrowUpRightIcon, CheckIcon, LockIcon, MinusIcon } from "lucide-react";
 
+import { EmrDialog } from "@/components/emr/emr-dialog";
+import { Button } from "@/components/ui/button";
 import * as A from "@/lib/clerking/exam/answers";
 import { appliesToSex } from "@/lib/clerking/exam/catalogue";
 import { itemSummary } from "@/lib/clerking/exam/compose";
@@ -373,8 +376,13 @@ function LinkLine({ p }: { p: RowProps }) {
   );
 }
 
+/** Below 640 px the attribute box opens as a bottom sheet with Done (§5.15). */
+const phoneNow = () =>
+  typeof window !== "undefined" && window.matchMedia("(max-width: 639.98px)").matches;
+
 export function ItemRow(p: RowProps) {
   const { v, item, editable, onExam } = p;
+  const [sheet, setSheet] = useState(false);
   const r = item.response;
   if (r.type === "link") return <LinkLine p={p} />;
   const e = v.exam.entries[item.id];
@@ -397,7 +405,16 @@ export function ItemRow(p: RowProps) {
           positive={words.positive}
           value={e?.state === "not_examined" ? undefined : e?.state}
           disabled={!editable}
-          onAnswer={(s) => onExam((d) => A.setState(v.ecat, d, item.id, s))}
+          onAnswer={(s) => {
+            onExam((d) => A.setState(v.ecat, d, item.id, s));
+            if (
+              s === "positive" &&
+              e?.state !== "positive" &&
+              item.attributes?.length &&
+              phoneNow()
+            )
+              setSheet(true);
+          }}
         />
       );
     if (r.type === "choice")
@@ -423,7 +440,16 @@ export function ItemRow(p: RowProps) {
           positive="Signs"
           value={e?.state === "not_examined" ? undefined : e?.state}
           disabled={!editable}
-          onAnswer={(s) => onExam((d) => A.setState(v.ecat, d, item.id, s))}
+          onAnswer={(s) => {
+            onExam((d) => A.setState(v.ecat, d, item.id, s));
+            if (
+              s === "positive" &&
+              e?.state !== "positive" &&
+              item.attributes?.length &&
+              phoneNow()
+            )
+              setSheet(true);
+          }}
         />
       );
     if (r.type === "measured") {
@@ -488,7 +514,33 @@ export function ItemRow(p: RowProps) {
       ) : null}
       {r.type === "measured" ||
       (e && e.state !== "not_examined" && (e.state === "positive" || r.type === "choice")) ? (
-        <AttributeBox {...p} />
+        <>
+          <div className="max-sm:hidden">
+            <AttributeBox {...p} />
+          </div>
+          {A.visibleAttributes(item, e, p.sex).length ? (
+            <div className="sm:hidden">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setSheet(true)}
+                aria-haspopup="dialog"
+              >
+                {`Details${Object.keys(e?.attrs ?? {}).length ? ` (${Object.keys(e?.attrs ?? {}).length})` : ""}`}
+              </Button>
+              <EmrDialog
+                open={sheet}
+                onOpenChange={setSheet}
+                title={item.label}
+                description={summary?.text ?? ""}
+                sheet="tall"
+                footer={<Button onClick={() => setSheet(false)}>Done</Button>}
+              >
+                <AttributeBox {...p} />
+              </EmrDialog>
+            </div>
+          ) : null}
+        </>
       ) : null}
     </div>
   );
