@@ -335,7 +335,7 @@ function RosBody({ sid, ctx }: { sid: string; ctx: SectionCtx }) {
 
 /* ─── Past history: problems, still true? ─────────────────────────── */
 
-function ReasonChoice({
+export function ReasonChoice({
   name,
   label,
   reasons,

@@ -32,11 +32,14 @@ export interface History {
   ros: Record<string, YesNo>;
   rosDetail: Record<string, SymptomEntry>;
   past: {
-    conditions: Record<string, { answer: YesNo; since?: string }>;
+    /** `onProblemList`: the clinician confirmed it on the problem list (D-CV-09; display only). */
+    conditions: Record<string, { answer: YesNo; since?: string; onProblemList?: boolean }>;
     operations?: "none" | { text: string; year?: number; where?: string }[];
     transfusions?: "none" | { when?: string; reaction?: string }[];
     /** "Still true today": the listed allergies were confirmed at this visit (note only). */
     allergiesConfirmed?: boolean;
+    /** "Takes none, including herbal" (note only; shown only while no medicine is recorded). */
+    medicinesNone?: boolean;
   };
   family: Record<string, { answer: YesNo; relations?: string[] }>;
   social: {
@@ -181,6 +184,61 @@ export function toggleAnswer<T extends Record<string, YesNo>>(m: T, id: string, 
   if (next[id] === answer) delete next[id];
   else next[id] = answer;
   return next as T;
+}
+
+/** A yes/no that carries detail (past conditions, family): tapping the same answer clears it; a new
+ *  answer starts afresh, so "known for" or relatives never outlive the yes they described. */
+export function toggleEntry<E extends { answer: YesNo }>(
+  m: Readonly<Record<string, E>>,
+  id: string,
+  answer: YesNo,
+): Record<string, E> {
+  const next = { ...m };
+  if (next[id]?.answer === answer) delete next[id];
+  else next[id] = { answer } as E;
+  return next;
+}
+
+/** A many-chip list: toggle `id`; an exclusive id ("none") clears the rest and the rest clear it. */
+export function toggleIn(
+  list: readonly string[] | undefined,
+  id: string,
+  exclusive: readonly string[] = [],
+): string[] | undefined {
+  const cur = list ?? [];
+  const next = cur.includes(id)
+    ? cur.filter((x) => x !== id)
+    : exclusive.includes(id)
+      ? [id]
+      : [...cur.filter((x) => !exclusive.includes(x)), id];
+  return next.length ? next : undefined;
+}
+
+type Social = History["social"];
+const SMOKED = new Set(["former", "current"]);
+
+/** Tobacco status (tap again clears). Cigarettes, years and other forms belong to a smoker; "when
+ *  they quit" to a former one, so they go when the status stops fitting (commit.ts reads them). */
+export function setTobacco(s: Social, id: string): Social {
+  const tobacco = s.tobacco === id ? undefined : id;
+  const next: Social = { ...s, tobacco };
+  if (!tobacco || !SMOKED.has(tobacco)) {
+    delete next.perDay;
+    delete next.years;
+    delete next.otherForms;
+  }
+  if (tobacco !== "former") delete next.quitWhen;
+  if (!tobacco) delete next.tobacco;
+  return next;
+}
+
+/** Alcohol pattern (tap again clears); drink types only while they drink. */
+export function setAlcohol(s: Social, id: string): Social {
+  const alcohol = s.alcohol === id ? undefined : id;
+  const next: Social = { ...s, alcohol };
+  if (!alcohol || alcohol === "none") delete next.drinks;
+  if (!alcohol) delete next.alcohol;
+  return next;
 }
 
 export function setRos(h: History, symptom: string, answer: YesNo): History {

@@ -2,6 +2,7 @@
 
 import type { HistoryBodyProps } from "./history-sections";
 import type { Derived, VitalsView } from "./model";
+import type { PastHistoryHandlers } from "./past-history-body";
 import type { DeskViewHandlers, DeskViewProps } from "@/components/emr/desk/desk-view";
 import type { DeskPayload } from "@/components/emr/desk/model";
 import type { SectionCtx } from "@/components/emr/desk/sections";
@@ -27,8 +28,9 @@ import { Button } from "@/components/ui/button";
 import { SECTION_BLOCK } from "@/lib/clerking/compose";
 import { SECTIONS } from "@/lib/clerking/status";
 import { cn } from "@/lib/utils";
+import { FamilyBody, SocialBody } from "./family-social";
 import { FlagsPanel } from "./flags-panel";
-import { ComplaintBody, HistoryBody, PendingBody } from "./history-sections";
+import { ComplaintBody, HistoryBody } from "./history-sections";
 import {
   BLURB,
   deriveDesk,
@@ -40,7 +42,9 @@ import {
   withHistory,
 } from "./model";
 import { NotePane } from "./note-pane";
+import { PastHistoryBody } from "./past-history-body";
 import { ClerkingRail } from "./rail";
+import { SystemsBody } from "./systems-body";
 
 /**
  * Clerking desk v2 (PROMPT-CLERKING-DESK-V2 §4–5): the shell. The page never scrolls at 1440×900:
@@ -62,7 +66,7 @@ export interface ClerkingDeskProps {
   save: DeskViewProps["save"];
   clockWarning?: boolean;
   announce?: DeskViewProps["announce"];
-  on: DeskViewHandlers;
+  on: DeskViewHandlers & PastHistoryHandlers;
   loaders: DeskViewProps["loaders"];
   busy?: string | null;
   signing?: boolean;
@@ -235,9 +239,10 @@ function StepButton({
         <span className="text-body-s font-medium whitespace-nowrap">{s.short}</span>
         {status ? (
           <span
-            title={status.text}
             className={cn(
-              wide ? "text-caption" : "text-caption max-w-[7rem] truncate",
+              // Never truncated (§5.1): a long status wraps to a second line instead.
+              "text-caption leading-tight",
+              !wide && "max-w-[8.5rem]",
               required
                 ? "dark:text-status-caution-fg text-amber-800"
                 : done
@@ -383,6 +388,8 @@ function SignBar({
 export function ClerkingDesk(props: ClerkingDeskProps) {
   const { p, cat, content, on, slots = {} } = props;
   const [dialog, setDialog] = useState<null | "context" | "note" | "steps">(null);
+  // A linked answer in Systems opens its complaint card in Complaint (D-CV-08).
+  const [openComplaint, setOpenComplaint] = useState<string | null>(null);
   const fmt = formatters(p.timeZone);
   const k = p.clerking!;
   const signedNote = p.draft === null ? p.signed : null;
@@ -403,6 +410,7 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
   const next = SECTIONS[at + 1];
   const go = (id: string) => {
     setDialog(null);
+    if (id !== "complaint") setOpenComplaint(null);
     on.onSection?.(id);
   };
 
@@ -457,10 +465,31 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
       onHistory,
       editable,
       cautionFrom: signedRef(cat, k.signoff, "REF-FLAG-PAIN-SEVERE"),
+      sex: k.sex,
+      patient: { name: p.patient.name, mrn: p.patient.mrn },
+      openKey: openComplaint,
+      onOpenComplaint: (key) => {
+        setOpenComplaint(key);
+        go("complaint");
+      },
     };
     if (cur.id === "complaint") return <ComplaintBody {...hp} />;
     if (cur.id === "history") return <HistoryBody {...hp} />;
-    return <PendingBody section={cur.id} />;
+    if (cur.id === "systems") return <SystemsBody {...hp} />;
+    if (cur.id === "fh") return <FamilyBody {...hp} />;
+    if (cur.id === "social") return <SocialBody {...hp} />;
+    return (
+      <PastHistoryBody
+        {...hp}
+        record={k}
+        problems={p.safetyBar.problems.map((x) => x.display)}
+        act={act}
+        busy={props.busy ?? null}
+        on={on}
+        loadTerms={props.loaders.terms}
+        searchTerms={props.loaders.searchTerms}
+      />
+    );
   })();
 
   const rail = (

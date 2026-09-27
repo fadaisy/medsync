@@ -113,6 +113,7 @@ export function DiagnosisPicker({
   onPick,
   onHighlight,
   disabled,
+  initialQuery = "",
 }: {
   id: string;
   label: string;
@@ -123,9 +124,11 @@ export function DiagnosisPicker({
   /** The highlighted term (the picker's "Add to problem list" follows its chronic flag). */
   onHighlight?: (t: DxTerm | null) => void;
   disabled?: boolean;
+  /** Words to start the search with (a past condition confirmed on the problem list). */
+  initialQuery?: string;
 }) {
   const { index, failed, start } = useIndex(load);
-  const [q, setQ] = useState("");
+  const [q, setQ] = useState(initialQuery);
   const [remote, setRemote] = useState<DxTerm[]>([]);
   useEffect(() => {
     if (index || !search || !q.trim()) return;

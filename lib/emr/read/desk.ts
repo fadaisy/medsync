@@ -694,18 +694,21 @@ export async function loadDeskFor(
           sex: side.profile?.sex ?? null,
           ageYears: computeAgeYears(side.profile?.dob ?? null, now),
           rows: payload.flowsheet.rows,
-          medicines: medicines.map((m) => {
-            const row = currentMeds.find((x) => x.id === m.id)!;
-            return {
-              statementId: m.id,
-              name: m.display,
-              doseText: safeDecrypt(row.doseTextCiphertext),
-              frequencyCode: row.frequencyCode,
-              adherence: row.adherence,
-              informant: row.informant,
-              restricted: row.sensitivity === "restricted",
-            };
-          }),
+          // A medicine stopped at this visit leaves Past history's cards (the v1 list keeps it).
+          medicines: medicines
+            .filter((m) => m.answer !== "stopped")
+            .map((m) => {
+              const row = currentMeds.find((x) => x.id === m.id)!;
+              return {
+                statementId: m.id,
+                name: m.display,
+                doseText: safeDecrypt(row.doseTextCiphertext),
+                frequencyCode: row.frequencyCode,
+                adherence: row.adherence,
+                informant: row.informant,
+                restricted: row.sensitivity === "restricted",
+              };
+            }),
         })
       : undefined;
 

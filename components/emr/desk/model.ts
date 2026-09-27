@@ -724,6 +724,14 @@ export const STOP_REASONS: readonly { code: string; label: string }[] = [
   { code: "other", label: "Other" },
 ];
 
+/** "Not an allergy": the allergy's next version is refuted, with one of these (clerking v2). */
+export const REFUTE_ALLERGY_REASONS: readonly { code: string; label: string }[] = [
+  { code: "tolerated_since", label: "Has taken it since without a reaction" },
+  { code: "side_effect", label: "A side effect, not an allergy" },
+  { code: "recorded_in_error", label: "Recorded in error" },
+  { code: "other", label: "Other" },
+];
+
 export const RESOLVE_REASONS: readonly { code: string; label: string }[] = [
   { code: "resolved", label: "Resolved" },
   { code: "not_present", label: "No longer present" },

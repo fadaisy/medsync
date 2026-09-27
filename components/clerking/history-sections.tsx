@@ -1,8 +1,7 @@
 "use client";
 
 import type { History, HistoryHeader } from "@/lib/clerking/answers";
-import type { Catalogue } from "@/lib/clerking/catalogue";
-import type { SectionId } from "@/lib/clerking/status";
+import type { Catalogue, PatientSex } from "@/lib/clerking/catalogue";
 import { useMemo, useState } from "react";
 import { PlusIcon, SearchIcon, XIcon } from "lucide-react";
 
@@ -27,8 +26,8 @@ import {
 import { PropertyEditor } from "./property-editor";
 
 /**
- * The history half's section bodies built so far: [01] Complaint (§5.2) and [02] History (§5.3).
- * Systems, Past history, Family and Social are Phase 5–6 (PendingBody below marks the seam).
+ * [01] Complaint (§5.2) and [02] History (§5.3), and the props every history section body takes.
+ * Systems, Past history, Family and Social live in their own files.
  */
 
 export interface HistoryBodyProps {
@@ -40,6 +39,14 @@ export interface HistoryBodyProps {
   editable: boolean;
   /** The signed REF-FLAG-PAIN-SEVERE value, or null. */
   cautionFrom: number | null;
+  /** The recorded sex (sex-appropriate systems, C2). */
+  sex?: PatientSex;
+  /** Two identifiers for the pop-ups (Law 9). */
+  patient?: { name: string; mrn: string };
+  /** Complaint: open this card first (a linked answer tapped in Systems, D-CV-08). */
+  openKey?: string | null;
+  /** Systems: a linked answer opens its complaint. */
+  onOpenComplaint?: (key: string) => void;
 }
 
 const INPUT =
@@ -49,7 +56,9 @@ const INPUT =
 
 export function ComplaintBody(props: HistoryBodyProps) {
   const { cat, header, history, onHeader, onHistory, editable, cautionFrom } = props;
-  const [open, setOpen] = useState<string | null>(() => history.complaints.at(-1)?.key ?? null);
+  const [open, setOpen] = useState<string | null>(
+    () => props.openKey ?? history.complaints.at(-1)?.key ?? null,
+  );
   const [q, setQ] = useState("");
   const index = useMemo(() => complaintIndex(cat), [cat]);
   const hits = q.trim() ? searchComplaints(index, q) : [];
@@ -303,20 +312,5 @@ export function HistoryBody({ cat, history, onHistory, editable }: HistoryBodyPr
         These questions follow the complaint. A different complaint brings its own.
       </p>
     </div>
-  );
-}
-
-/* ─── Phase 5–6 seam ────────────────────────────────────────────── */
-
-/**
- * TODO(clerking-v2 Phase 5: Systems; Phase 6: Past history, Family, Social): replace with
- * SystemsBody / PastHistoryBody / FamilyBody / SocialBody, each taking HistoryBodyProps (plus, for
- * Past history, the medicine and allergy handlers from the desk's `on`).
- */
-export function PendingBody({ section }: { section: SectionId }) {
-  return (
-    <p data-pending={section} className="text-body-s text-muted-foreground">
-      This section is not built yet on the new desk.
-    </p>
   );
 }

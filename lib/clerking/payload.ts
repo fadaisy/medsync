@@ -32,7 +32,10 @@ export const HistorySchema = z.object({
   ros: z.record(id, yn),
   rosDetail: z.record(id, z.object(entry)),
   past: z.object({
-    conditions: z.record(id, z.object({ answer: yn, since: id.optional() })),
+    conditions: z.record(
+      id,
+      z.object({ answer: yn, since: id.optional(), onProblemList: z.boolean().optional() }),
+    ),
     operations: z
       .union([
         z.literal("none"),
@@ -54,6 +57,7 @@ export const HistorySchema = z.object({
       ])
       .optional(),
     allergiesConfirmed: z.boolean().optional(),
+    medicinesNone: z.boolean().optional(),
   }),
   family: z.record(id, z.object({ answer: yn, relations: z.array(id).max(6).optional() })),
   social: z.object({

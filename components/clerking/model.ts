@@ -1,6 +1,6 @@
 import type { DeskPayload, KeyInput } from "@/components/emr/desk/model";
 import type { History, HistoryHeader, SymptomEntry, YesNo } from "@/lib/clerking/answers";
-import type { Catalogue, Symptom } from "@/lib/clerking/catalogue";
+import type { Catalogue, PatientSex, Symptom } from "@/lib/clerking/catalogue";
 import type { Block } from "@/lib/clerking/compose";
 import type { Badge, Flag, Signoff } from "@/lib/clerking/flags";
 import type { Linked } from "@/lib/clerking/linkage";
@@ -10,7 +10,8 @@ import type { AdultVitals, News2Result } from "@/lib/triage/types";
 
 import { deskValidation, hasContent, itemsOf, itemWords } from "@/components/emr/desk/model";
 import { rank } from "@/components/emr/desk/search";
-import { emptyHistory } from "@/lib/clerking/answers";
+import { durationText, emptyHistory } from "@/lib/clerking/answers";
+import { familyConditions, v2CommitLines } from "@/lib/clerking/commit";
 import { compose, lc, list } from "@/lib/clerking/compose";
 import { evaluateFlags, toBadges } from "@/lib/clerking/flags";
 import { linkedAnswers } from "@/lib/clerking/linkage";
@@ -242,6 +243,61 @@ export function entrySummary(cat: Catalogue, s: Symptom, e: SymptomEntry): strin
   const yes = s.red_flags.filter((f) => e.flags[f.id] === "yes").length;
   if (yes) out.push(`${yes} red ${yes === 1 ? "flag" : "flags"}`);
   return out.join(" · ");
+}
+
+/** The same with the duration first ("2 months · ribs · dull, aching"), for a system symptom. */
+export function detailSummary(cat: Catalogue, s: Symptom, e: SymptomEntry | undefined): string {
+  if (!e) return "";
+  return [durationText(e.duration), entrySummary(cat, s, e)].filter(Boolean).join(" · ");
+}
+
+/** A past condition confirmed on the problem list (D-CV-09): marked in the draft, display only. */
+export function withConditionOnList(
+  c: NoteContent,
+  condition: string,
+  catalogueVersion: string,
+): NoteContent {
+  const h = historyOf(c);
+  const cur = h.past.conditions[condition];
+  if (cur?.answer !== "yes") return c;
+  return withHistory(
+    c,
+    {
+      ...h,
+      past: {
+        ...h.past,
+        conditions: { ...h.past.conditions, [condition]: { ...cur, onProblemList: true } },
+      },
+    },
+    catalogueVersion,
+  );
+}
+
+/**
+ * "Committed with this note" for a v2 draft: what signing charts (lib/clerking/commit.ts, the same
+ * pure functions the server runs, over the chartable set the loader sends), the family conditions
+ * written at signing (H13), and whatever the v1 sections s11–s14 commit (`v1`).
+ */
+export function v2CommittedWords(
+  cat: Catalogue,
+  k: { sex: PatientSex; chartable: readonly string[] },
+  c: NoteContent,
+  v1: string | null,
+): string | null {
+  const h = historyOf(c);
+  const map = Object.fromEntries(k.chartable.map((s) => [s, s]));
+  const { lines, unmapped } = v2CommitLines(cat, map, (t) => t, h, k.sex);
+  const findings = lines.filter((l) => l.conceptId !== "soc.tobacco").length;
+  const tobacco = lines.length - findings;
+  const family = familyConditions(cat, h).length;
+  const parts = [
+    findings ? `${findings} ${findings === 1 ? "finding" : "findings"}` : null,
+    tobacco ? "tobacco status" : null,
+    family ? `${family} family history ${family === 1 ? "entry" : "entries"}` : null,
+    unmapped ? `${unmapped} kept in the note only (not charted yet)` : null,
+    v1,
+  ].filter(Boolean);
+  return parts.length ? parts.join(", ") : null;
 }
 
 export interface ComplaintHit {

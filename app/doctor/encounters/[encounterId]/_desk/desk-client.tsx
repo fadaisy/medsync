@@ -1,6 +1,11 @@
 "use client";
 
 import type { NcdSeed } from "./ncd-section";
+import type {
+  AllergyWrite,
+  MedicineAdd,
+  MedicinePatch,
+} from "@/components/clerking/past-history-body";
 import type { DeskPayload } from "@/components/emr/desk/model";
 import type { DxPick } from "@/components/emr/desk/pickers";
 import type { DxOptions, VitalEntry } from "@/components/emr/desk/sections";
@@ -13,7 +18,13 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 
 import { ClerkingDesk } from "@/components/clerking/clerking-desk";
-import { CLERKING_KEY_HELP, clerkingKey, deriveDesk } from "@/components/clerking/model";
+import {
+  CLERKING_KEY_HELP,
+  clerkingKey,
+  deriveDesk,
+  v2CommittedWords,
+  withConditionOnList,
+} from "@/components/clerking/model";
 import { useCatalogue } from "@/components/clerking/use-catalogue";
 import { AllergyEditorView, substanceOf } from "@/components/emr/desk/allergy-editor";
 import { CompleteVisitView } from "@/components/emr/desk/complete";
@@ -52,16 +63,19 @@ import { SectionIndexView } from "@/components/emr/section-index";
 import { Button } from "@/components/ui/button";
 import { DialogTrigger } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ALLERGY_SOURCE_TO_INFORMANT, medicationSourceFor } from "@/lib/clerking/record-map";
 import { SECTIONS } from "@/lib/clerking/status";
 import { closeEncounterAdministratively, completeEncounter } from "@/lib/emr/actions/encounter";
 import {
   assertAllergyStatus,
   confirmCurrentMedicines,
+  markFactEnteredInError,
   recordAllergy,
   recordEncounterDiagnosis,
   recordMedicationStatements,
   recordObservations,
   recordProblem,
+  updateMedicineDetails,
   updateProblemStatus,
 } from "@/lib/emr/actions/facts";
 import { acceptSuggestedOrder, dismissSuggestedOrder } from "@/lib/emr/actions/intents";
@@ -127,6 +141,9 @@ export function DeskClient({
   >(null);
   const [insertOpen, setInsertOpen] = useState(false);
   const [sheetMsg, setSheetMsg] = useState<Msg>(null);
+  // "Code it" (clerking v2): the allergy editor starts from this uncoded allergy, which is marked a
+  // duplicate once the coded one is saved.
+  const [coding, setCoding] = useState<{ id: string; name: string } | null>(null);
   const [savedAt, setSavedAt] = useState<string | null>(null);
   // The server-anchored clock: the queue reads the latest sample; the page shows its warning.
   const [clock, setClock] = useState(() => initialClock(p.serverTime, Date.now()));
@@ -390,8 +407,86 @@ export function DeskClient({
     },
     onAllergyEditor: () => {
       setSheetMsg(null);
+      setCoding(null);
       setSheet("allergy");
     },
+    // Clerking v2 Past history: medicines and allergies write at once (D-CV-10).
+    onRecordMedicine: (m: MedicineAdd) =>
+      void run(
+        "med:add",
+        (clientKey) =>
+          recordMedicationStatements({
+            ...base,
+            clientKey,
+            encounterId,
+            statements: [
+              {
+                drugText: m.drugText,
+                medicationStatus: "active",
+                medicationSource: medicationSourceFor(m.informant),
+                ...(m.informant ? { informant: m.informant } : {}),
+                ...(m.restricted ? { restricted: true } : {}),
+              },
+            ],
+          }),
+        "Medicine added",
+        m,
+      ),
+    onMedicineDetails: (statementId: string, patch: MedicinePatch) =>
+      void run(
+        `med:${statementId}`,
+        (clientKey) =>
+          updateMedicineDetails({ ...base, clientKey, encounterId, statementId, ...patch }),
+        "Medicine updated",
+        patch,
+      ),
+    onAllergy: (a: AllergyWrite) =>
+      void run(
+        a.supersedesId ? `allergy:${a.supersedesId}` : "allergy:add",
+        (clientKey) =>
+          recordAllergy({
+            ...base,
+            clientKey,
+            encounterId,
+            ...(a.supersedesId
+              ? { supersedesId: a.supersedesId }
+              : { substance: substanceOf(a.substanceText ?? "", p.substances) }),
+            ...(a.manifestations ? { manifestations: a.manifestations } : {}),
+            ...(a.severity ? { severity: a.severity } : {}),
+            ...(a.informant ? { informant: ALLERGY_SOURCE_TO_INFORMANT[a.informant] } : {}),
+            ...(a.verification ? { verification: a.verification, reasonCode: a.reasonCode } : {}),
+          }),
+        a.verification === "refuted" ? "Recorded as not an allergy" : "Allergy saved",
+        a,
+      ),
+    onCodeAllergy: (id: string, name: string) => {
+      setSheetMsg(null);
+      setCoding({ id, name });
+      setSheet("allergy");
+    },
+    onAssertAllergy: (assertion: "no_known_drug_allergies") =>
+      void run(
+        "allergy:status",
+        (clientKey) => assertAllergyStatus({ ...base, clientKey, encounterId, assertion }),
+        "No known drug allergies recorded",
+        assertion,
+      ),
+    onConfirmCondition: (condition: string, pick: DxPick) =>
+      void run(
+        `problem:add:${condition}`,
+        (clientKey) =>
+          recordProblem({
+            ...base,
+            clientKey,
+            encounterId,
+            ...("term" in pick ? { termId: pick.term.id } : { text: pick.typed }),
+          }),
+        "Problem added",
+        pick,
+      ).then((r) => {
+        if (r.ok && p.clerking)
+          change(withConditionOnList(contentRef.current, condition, p.clerking.catalogueVersion));
+      }),
     onProblem: (
       id: string,
       display: string,
@@ -846,7 +941,11 @@ export function DeskClient({
               id: r.id,
               message: r.message,
             }))}
-            committed={committedWords(content)}
+            committed={
+              p.clerking && cat
+                ? v2CommittedWords(cat, p.clerking, content, committedWords(content))
+                : committedWords(content)
+            }
             mustCosign={p.viewer.mustCosign}
           />
           {sheetMsg && !sheetMsg.ok ? (
@@ -881,10 +980,15 @@ export function DeskClient({
 
       <EmrDialog
         open={sheet === "allergy"}
-        onOpenChange={(o) => setSheet(o ? "allergy" : null)}
+        onOpenChange={(o) => {
+          setSheet(o ? "allergy" : null);
+          if (!o) setCoding(null);
+        }}
         title="Allergies"
       >
         <AllergyEditorView
+          key={coding?.id ?? "new"}
+          initialText={coding?.name}
           line={p.safetyBar.allergy}
           patient={p.patient}
           substances={p.substances}
@@ -923,11 +1027,31 @@ export function DeskClient({
                 }),
               "Allergy saved",
               d,
-            ).then((r) =>
+            ).then(async (r) => {
+              // Coded from an uncoded entry: that entry is now a duplicate of this one. Saved first,
+              // voided second, so a failure leaves both listed, never neither.
+              if (r.ok && coding) {
+                const was = coding;
+                setCoding(null);
+                await run(
+                  `allergy:${was.id}`,
+                  (clientKey) =>
+                    markFactEnteredInError({
+                      ...base,
+                      clientKey,
+                      kind: "allergy",
+                      id: was.id,
+                      reasonCode: "duplicate",
+                      reasonText: `Recorded again, coded: ${d.text.trim()}`.slice(0, 1000),
+                    }),
+                  "Allergy coded",
+                  was,
+                );
+              }
               setSheetMsg(
                 r.ok ? { ok: true, text: "Allergy saved" } : { ok: false, text: r.error },
-              ),
-            )
+              );
+            })
           }
         />
       </EmrDialog>

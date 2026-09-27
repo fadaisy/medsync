@@ -25,6 +25,7 @@ export function EmrDialog({
   open,
   onOpenChange,
   title,
+  kicker,
   description,
   trigger,
   footer,
@@ -34,6 +35,8 @@ export function EmrDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: ReactNode;
+  /** A small line above the title ("Review of systems · Cardiovascular"); not part of the name. */
+  kicker?: ReactNode;
   description?: ReactNode;
   trigger?: ReactNode;
   footer?: ReactNode;
@@ -49,6 +52,9 @@ export function EmrDialog({
       className="ease-expo-out duration-100"
     >
       <SheetHeader className="pr-14">
+        {kicker ? (
+          <p className="text-caption text-muted-foreground tracking-[0.06em] uppercase">{kicker}</p>
+        ) : null}
         <SheetTitle className="font-sans">{title}</SheetTitle>
         {description ? <SheetDescription>{description}</SheetDescription> : null}
       </SheetHeader>

@@ -14,15 +14,20 @@ import {
   nothingElse,
   packYears,
   removeComplaint,
+  setAlcohol,
   setDuration,
   setFlag,
   setRos,
+  setTobacco,
+  toggleEntry,
+  toggleIn,
   updateComplaint,
 } from "@/lib/clerking/answers";
 import { parseCatalogue, rosSystemsFor } from "@/lib/clerking/catalogue";
 import { compose } from "@/lib/clerking/compose";
 import { evaluateFlags, toBadges } from "@/lib/clerking/flags";
 import { linkedAnswers, rosAnswer } from "@/lib/clerking/linkage";
+import { HistorySchema } from "@/lib/clerking/payload";
 import { doneCount, sectionStatuses } from "@/lib/clerking/status";
 import {
   allergies,
@@ -586,6 +591,99 @@ describe("composer", () => {
           }
         }
     }
+  });
+});
+
+/* ─── Past, family and social answers (Phase 6) ─────────────────── */
+
+describe("past, family and social answers", () => {
+  it("toggleEntry: same answer clears; a new answer drops the detail it carried", () => {
+    const m = { hypertension: { answer: "yes" as const, since: "over_5_years" } };
+    expect(toggleEntry(m, "hypertension", "yes")).toEqual({});
+    expect(toggleEntry(m, "hypertension", "no")).toEqual({ hypertension: { answer: "no" } });
+    expect(toggleEntry({}, "stroke", "no")).toEqual({ stroke: { answer: "no" } });
+  });
+
+  it("toggleIn: toggles, an exclusive id clears the rest and the rest clear it, empty is absent", () => {
+    expect(toggleIn(undefined, "mother")).toEqual(["mother"]);
+    expect(toggleIn(["mother"], "father")).toEqual(["mother", "father"]);
+    expect(toggleIn(["mother"], "mother")).toBeUndefined();
+    expect(toggleIn(["khat", "cannabis"], "none", ["none"])).toEqual(["none"]);
+    expect(toggleIn(["none"], "khat", ["none"])).toEqual(["khat"]);
+  });
+
+  it("setTobacco: smoker's numbers only for a smoker, quit-when only for a former one", () => {
+    const s = {
+      tobacco: "former",
+      perDay: 10,
+      years: 20,
+      otherForms: ["snuff"],
+      quitWhen: "over_10_years",
+    };
+    expect(setTobacco(s, "current")).toEqual({
+      tobacco: "current",
+      perDay: 10,
+      years: 20,
+      otherForms: ["snuff"],
+    });
+    expect(setTobacco(s, "never")).toEqual({ tobacco: "never" });
+    expect(setTobacco(s, "former")).toEqual({}); // tap again clears
+    expect(packYears(10, 20)).toBe(10);
+  });
+
+  it("setAlcohol: drink types only while they drink; tap again clears", () => {
+    const s = { alcohol: "daily", drinks: ["beer"] };
+    expect(setAlcohol(s, "none")).toEqual({ alcohol: "none" });
+    expect(setAlcohol(s, "weekends")).toEqual({ alcohol: "weekends", drinks: ["beer"] });
+    expect(setAlcohol(s, "daily")).toEqual({});
+  });
+
+  it("the payload schema keeps medicinesNone and onProblemList (they would be stripped otherwise)", () => {
+    const h = patientThree3();
+    h.past.medicinesNone = true;
+    h.past.conditions.hypertension!.onProblemList = true;
+    const parsed = HistorySchema.parse(h);
+    expect(parsed.past.medicinesNone).toBe(true);
+    expect(parsed.past.conditions.hypertension!.onProblemList).toBe(true);
+  });
+
+  it("composer: 'takes none' only when no medicine is recorded; an empty operation row is not written", () => {
+    const h = patientThree3();
+    h.past.medicinesNone = true;
+    h.past.operations = [{ text: "" }, { text: "Appendicectomy", year: 1990 }];
+    const run = (meds: typeof medicines) =>
+      compose({
+        cat,
+        header,
+        history: h,
+        linked: linkedAnswers(cat, h.complaints),
+        patient,
+        medicines: meds,
+        allergies,
+        sectionText: {},
+        edited: {},
+        audience: "clinical",
+      }).find((b) => b.key === "pmh")!.text;
+    expect(run([])).toContain("No regular medicines, including herbal.");
+    expect(run(medicines)).not.toContain("No regular medicines");
+    expect(run([])).toContain("Operations: Appendicectomy (1990).");
+  });
+
+  it("the patient audience drops restricted past, family and substance answers (Law 10)", () => {
+    const h = patientThree3();
+    h.past.conditions.tuberculosis = { answer: "yes" };
+    h.family.tb_in_the_household = { answer: "yes", relations: ["sibling"] };
+    h.social.substances = ["khat"];
+    const pt = blocks(h, "patient")
+      .map((b) => b.text)
+      .join(" ");
+    const cl = blocks(h)
+      .map((b) => b.text)
+      .join(" ");
+    expect(cl).toMatch(/tuberculosis/i);
+    expect(cl).toMatch(/TB in the household/);
+    expect(cl).toMatch(/khat/i);
+    expect(pt).not.toMatch(/tuberculosis|TB in the household|khat/i);
   });
 });
 

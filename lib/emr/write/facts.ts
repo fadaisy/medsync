@@ -997,6 +997,8 @@ export interface MedicationStatementLine {
   frequencyCode?: MedicationInsert["frequencyCode"];
   adherence?: MedicationInsert["adherence"];
   informant?: MedicationInsert["informant"];
+  /** Restrict the row whatever its tags say (clerking v2: a restricted catalogue pick, Law 10). */
+  restricted?: boolean;
 }
 
 const restrictedTag = (tag: string) =>
@@ -1042,7 +1044,7 @@ export async function recordMedicationStatements(
       source: "clinician",
       trust: s.medicationSource === "patient_reported" ? 1 : 3,
       status: "final",
-      sensitivity: tags.some(restrictedTag) ? "restricted" : "standard",
+      sensitivity: s.restricted || tags.some(restrictedTag) ? "restricted" : "standard",
       drugCode: s.drugCode ?? null,
       drugTextCiphertext: text ? encrypt(text) : null,
       productKind: s.productKind ?? "medicine",

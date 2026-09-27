@@ -170,6 +170,8 @@ const MedicationLine = z.object({
     "patient_reported",
     "external_record",
   ]),
+  /** A restricted catalogue item (clerking v2: antiretrovirals, TB treatment); only ever raises. */
+  restricted: z.boolean().optional(),
   ...MedicineDetails,
 });
 const RecordMedicationStatements = z.object({

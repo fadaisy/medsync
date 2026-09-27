@@ -241,6 +241,52 @@ describe.skipIf(!laneOn)("clerking desk v2 (PGlite lane)", () => {
     ).rejects.toThrow();
   });
 
+  it("a restricted catalogue pick (antiretrovirals) is stored restricted; a typed one is not (Law 10)", async () => {
+    const r = await as(mo, (ctx) =>
+      facts.recordMedicationStatements(ctx, {
+        patientUserId: p,
+        encounterId: enc,
+        clientKey: key(),
+        statements: [
+          {
+            drugText: "Antiretrovirals",
+            medicationStatus: "active",
+            medicationSource: "patient_reported",
+            informant: "patient",
+            restricted: true,
+          },
+          {
+            drugText: "Herbal medicine",
+            medicationStatus: "active",
+            medicationSource: "patient_reported",
+          },
+        ],
+      }),
+    );
+    const rows = await lane.pg.query<{ id: string; sensitivity: string }>(
+      `SELECT id, sensitivity FROM public.medication_statements WHERE id = ANY($1::uuid[])`,
+      [r.ids],
+    );
+    const by = new Map(rows.rows.map((x) => [x.id, x.sensitivity]));
+    expect(by.get(r.ids[0]!)).toBe("restricted");
+    expect(by.get(r.ids[1]!)).toBe("standard");
+    // A details change keeps it restricted (the next version never lowers sensitivity).
+    const u = await as(mo, (ctx) =>
+      facts.updateMedicineDetails(ctx, {
+        patientUserId: p,
+        encounterId: enc,
+        clientKey: key(),
+        statementId: r.ids[0]!,
+        adherence: "as_prescribed",
+      }),
+    );
+    const next = await lane.pg.query<{ sensitivity: string }>(
+      `SELECT sensitivity FROM public.medication_statements WHERE id = $1`,
+      [u.id],
+    );
+    expect(next.rows[0]!.sensitivity).toBe("restricted");
+  });
+
   it("a v2 draft saves and signs; complaints and review answers commit as findings, tobacco as soc.tobacco", async () => {
     const d = await as(mo, (ctx) =>
       notes.saveNoteDraft(ctx, {
@@ -320,6 +366,9 @@ describe.skipIf(!laneOn)("clerking desk v2 (PGlite lane)", () => {
     // A typed medicine is named in the chart too, not "Medicine not named".
     expect(on.context.medicines.map((m) => m.display)).toContain("Amlodipine");
     expect(on.clerking).toMatchObject({ sex: "male", ageYears: expect.any(Number) });
+    // What signing charts, for the sign dialog's count: symptoms whose token has a CFC concept.
+    expect(on.clerking!.chartable).toContain("sym.polyuria");
+    expect(on.clerking!.chartable.length).toBeGreaterThan(5);
     expect(on.clerking!.catalogueUrl).toMatch(/^\/api\/clerking\/catalogue\?v=[0-9a-f]{16}$/);
   });
 

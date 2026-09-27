@@ -244,6 +244,7 @@ export function v2Payload(history = patientThree3()): DeskPayload {
           },
         ],
       },
+      chartable: ["sym.polyuria", "sym.weight_loss", "sym.chest_pain", "sym.cough", "sym.fever"],
       outbreakMode: false,
       canSeeRestricted: true,
       signoff: SIGNED,

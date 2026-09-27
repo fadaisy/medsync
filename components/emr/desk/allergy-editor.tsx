@@ -77,6 +77,7 @@ export function AllergyEditorView({
   message,
   onAssert,
   onSave,
+  initialText = "",
 }: {
   line: AllergyLine;
   patient: { name: string; mrn: string };
@@ -85,8 +86,10 @@ export function AllergyEditorView({
   message?: { ok: boolean; text: string } | null;
   onAssert?: (a: "no_known_drug_allergies" | "unable_to_assess") => void;
   onSave?: (d: AllergyDraft) => void;
+  /** The substance to start from (clerking v2 "Code it": an uncoded allergy's name). */
+  initialText?: string;
 }) {
-  const [d, setD] = useState<AllergyDraft>(EMPTY_ALLERGY);
+  const [d, setD] = useState<AllergyDraft>(() => ({ ...EMPTY_ALLERGY, text: initialText }));
   const put = (patch: Partial<AllergyDraft>) => setD((x) => ({ ...x, ...patch }));
   const coded = d.text.trim() ? "code" in substanceOf(d.text, substances) : true;
   return (

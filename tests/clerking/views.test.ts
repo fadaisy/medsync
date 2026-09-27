@@ -1,8 +1,9 @@
 import { readFileSync } from "node:fs";
+import type { El } from "./press";
 import type { DeskPayload } from "@/components/emr/desk/model";
 import type { SymptomEntry } from "@/lib/clerking/answers";
-import type { ReactElement, ReactNode } from "react";
-import { createElement as h, isValidElement } from "react";
+import type { ReactNode } from "react";
+import { createElement as h } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
@@ -23,6 +24,7 @@ import { linkedAnswers } from "@/lib/clerking/linkage";
 import { SECTIONS } from "@/lib/clerking/status";
 import { standardVisitMidway } from "../emr/ui/desk-fixtures";
 import { cat, header, patientThree3, SIGNED, THREE3_VITALS, v2Payload } from "./fixtures";
+import { text, walk, words } from "./press";
 
 /**
  * Clerking desk v2's views (PROMPT-CLERKING-DESK-V2 §5, Phases 3–4), rendered to static markup from
@@ -37,15 +39,6 @@ const { ComplaintBody, HistoryBody } = await import("@/components/clerking/histo
 const { PropertyEditor } = await import("@/components/clerking/property-editor");
 const { DeskView } = await import("@/components/emr/desk/desk-view");
 const { formatters } = await import("@/components/emr/format");
-
-const text = (m: string) =>
-  m
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&#x27;/g, "'")
-    .replace(/&quot;/g, '"')
-    .replace(/\s+/g, " ")
-    .trim();
 
 function desk(p: DeskPayload, current = "complaint") {
   return renderToStaticMarkup(
@@ -62,29 +55,6 @@ function desk(p: DeskPayload, current = "complaint") {
 }
 
 /* ─── Pressing a hook-free component's buttons ──────────────────── */
-
-type El = ReactElement<Record<string, unknown>>;
-function walk(node: ReactNode, out: El[] = []): El[] {
-  if (Array.isArray(node)) {
-    for (const n of node) walk(n as ReactNode, out);
-    return out;
-  }
-  if (!isValidElement(node)) return out;
-  const el = node as El;
-  if (typeof el.type === "function")
-    return walk((el.type as (p: unknown) => ReactNode)(el.props), out);
-  if (typeof el.type === "string") out.push(el);
-  walk(el.props.children as ReactNode, out);
-  return out;
-}
-const words = (node: ReactNode): string => {
-  if (typeof node === "string" || typeof node === "number") return String(node);
-  if (Array.isArray(node)) return node.map((n) => words(n as ReactNode)).join("");
-  if (!isValidElement(node)) return "";
-  const el = node as El;
-  if (typeof el.type === "function") return words((el.type as (p: unknown) => ReactNode)(el.props));
-  return typeof el.type === "string" ? words(el.props.children as ReactNode) : "";
-};
 
 function editor(symptom: string, start: SymptomEntry = emptyEntry()) {
   const s = cat.symptom(symptom)!;
@@ -228,9 +198,16 @@ describe("clerking desk v2 shell — Patient Three-3", () => {
     expect(st.exam).toContain("Pallor, absent");
   });
 
-  it("Systems, Past history, Family and Social are the Phase 5–6 seam", () => {
-    for (const s of ["systems", "pmh", "fh", "social"])
-      expect(desk(p, s)).toContain(`data-pending="${s}"`);
+  it("Systems, Past history, Family and Social render their bodies (Phases 5–6)", () => {
+    expect(text(desk(p, "systems"))).toContain("Linked answers follow the complaint");
+    expect(text(desk(p, "pmh"))).toContain("Hypertension: known for");
+    expect(text(desk(p, "fh"))).toContain("In a parent, sibling or child");
+    expect(text(desk(p, "social"))).toContain("10 pack-years");
+  });
+
+  it("no step status is truncated: a long one wraps (§5.1)", () => {
+    const bar = m.slice(m.indexOf('data-slot="clerking-steps"'), m.indexOf("</nav>"));
+    expect(bar).not.toMatch(/\btruncate\b/);
   });
 });
 

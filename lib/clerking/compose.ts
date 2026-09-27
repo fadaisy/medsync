@@ -280,11 +280,12 @@ export function compose(i: ComposeInput): Block[] {
   const pn = conds.filter((c) => h.past.conditions[c.id]?.answer === "no").map((c) => lc(c.label));
   if (py.length) past.push(`${cap(list(py))}.`);
   if (pn.length) past.push(`No ${list(pn, "or")}.`);
-  const ops = h.past.operations;
+  const ops =
+    h.past.operations === "none" ? "none" : h.past.operations?.filter((o) => o.text.trim());
   if (ops === "none") past.push("No operations.");
   else if (ops?.length)
     past.push(
-      `Operations: ${ops.map((o) => `${o.text}${o.year ? ` (${o.year})` : ""}`).join("; ")}.`,
+      `Operations: ${ops.map((o) => `${o.text.trim()}${o.year ? ` (${o.year})` : ""}`).join("; ")}.`,
     );
   const tf = h.past.transfusions;
   if (tf === "none") past.push("No transfusions.");
@@ -311,6 +312,7 @@ export function compose(i: ComposeInput): Block[] {
         })
         .join("; ")}.`,
     );
+  else if (h.past.medicinesNone) past.push("No regular medicines, including herbal.");
   const a = cat.data.allergies;
   const al = i.allergies.items.filter((x) => !(i.audience === "patient" && x.restricted));
   if (i.allergies.status === "listed" && al.length) {

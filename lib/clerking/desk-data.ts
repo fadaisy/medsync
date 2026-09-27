@@ -38,6 +38,9 @@ export interface ClerkingDeskData {
       restricted: boolean;
     }[];
   };
+  /** Catalogue symptoms whose token charts as a CFC finding at signing (token map ∘ concept), so
+   *  the sign dialog can count what signing commits without shipping the fact catalogue. */
+  chartable: string[];
   outbreakMode: boolean;
   canSeeRestricted: boolean;
   signoff: Signoff;

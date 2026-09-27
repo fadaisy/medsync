@@ -9,7 +9,8 @@ import { and, eq } from "drizzle-orm";
 import { allergies, allergyStatusAssertions } from "@/db/schema/emr";
 import { asClinicalReader } from "@/lib/emr/db";
 import { loadAllergyInput } from "@/lib/emr/read/allergies";
-import { CLERKING_CATALOGUE, CLERKING_SIGNOFF } from "./load";
+import { conceptForToken } from "@/lib/emr/write/notes";
+import { CLERKING_CATALOGUE, CLERKING_SIGNOFF, CLERKING_TOKEN_MAP } from "./load";
 import { readOutbreakMode } from "./outbreak";
 import { INFORMANT_TO_ALLERGY_SOURCE, MANIFESTATION_TO_REACTION } from "./record-map";
 
@@ -18,6 +19,11 @@ import { INFORMANT_TO_ALLERGY_SOURCE, MANIFESTATION_TO_REACTION } from "./record
  * reading of each NEWS2 input in the chart's flowsheet (the observation store, triage projected in);
  * allergies come from the one allergy record, across hospitals by decision (STOP 1, O-8).
  */
+
+/** What signing charts (lib/emr/write/notes.ts uses the same map and resolver). */
+const CHARTABLE = Object.entries(CLERKING_TOKEN_MAP)
+  .filter(([, token]) => conceptForToken(token))
+  .map(([symptom]) => symptom);
 
 const AVPU: Record<string, Acvpu> = { alert: "A", voice: "V", pain: "P", unresponsive: "U" };
 
@@ -125,6 +131,7 @@ export async function clerkingData(i: {
             }))
           : [],
     },
+    chartable: CHARTABLE,
     outbreakMode,
     canSeeRestricted: true, // the treating clinician, with an access basis (the desk's gate)
     signoff: {
