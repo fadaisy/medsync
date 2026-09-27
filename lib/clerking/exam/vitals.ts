@@ -194,9 +194,15 @@ export interface VitalLine {
   plausibilityConfirmed?: boolean;
 }
 
-/** CFC `obs.avpu` answers. ACVPU C has none yet (HX3: the answer waits for the CFC addendum's
- *  own seed), so a set with C writes no `obs.avpu` and carries `acvpu` in every line's context. */
-const AVPU_CODE: Record<string, string> = { A: "alert", V: "voice", P: "pain", U: "unresponsive" };
+/** CFC `obs.avpu` answers; `new_confusion` is ACVPU C (CFC v1.3, 0083). Every line also carries
+ *  `acvpu` in its context (how sets saved before 0083 recorded C). */
+const AVPU_CODE: Record<string, string> = {
+  A: "alert",
+  C: "new_confusion",
+  V: "voice",
+  P: "pain",
+  U: "unresponsive",
+};
 const CUFF: Record<string, string> = {
   standard_adult: "adult",
   large_adult: "large_adult",

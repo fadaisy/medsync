@@ -383,3 +383,10 @@ Because rows render by type, these systems came with Phase 3's components; this 
 - **The prompt's NEWS2 example** ("35.8 °C no longer scores") is wrong: 35.8 °C scores 1; the card says so.
 - **Not done here:** the clinician trial; real-device timing on a mid-range Android at 4×; production counts beyond the one read-only query (the session's permission check refused the rest; the queries are in STOP 0).
 - **Before deploying:** migration 0076 (clerking v2) must be applied, as before. This build adds **no migration**. The harness build needed `NODE_OPTIONS=--max-old-space-size=6144`; watch the Vercel build's memory.
+
+## After STOP 7: the CFC addenda (2026-09-28)
+
+The owner signed the CFC migrations (`docs/emr/cfc/cfc-migrations-proposal.md`, M1–M5). This ends two deviations above:
+
+- **HX3:** ACVPU C is now written as `obs.avpu` `new_confusion` (0083 adds the answer).
+- **HX5:** examination findings chart at signing through `data/clerking/exam-token-map.v1.json` (141 items, 81 option-level findings, the GCS parts, AMTS, orientation, the grids, GTFCC and foot infection), once 0083 is applied; until then they stay in the note (M5).

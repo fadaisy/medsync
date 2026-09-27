@@ -1,0 +1,637 @@
+{
+ "catalogue": "MS-EMR-EXAM-CAT-001",
+ "catalogueVersion": "1.0.1-draft",
+ "source": "docs/emr/clerking-v2/exam/exam-token-map.csv (GATE A; CFC v1.3 signed 2026-09-28)",
+ "note": "Item → CFC concept, and option-level findings (present only when ticked). Blocks (GCS parts, AMTS, grids) and vital signs are mapped in lib/clerking/exam/commit.ts; conditions go through the problem list.",
+ "items": {
+  "ex.abdomen.aorta": "sign.expansile_aorta",
+  "ex.abdomen.ascites": "sign.ascites",
+  "ex.abdomen.bladder": "sign.palpable_bladder",
+  "ex.abdomen.bowel_sounds": "exam.bowel_sounds",
+  "ex.abdomen.bruits": "sign.bruit",
+  "ex.abdomen.contour": "exam.abdominal_contour",
+  "ex.abdomen.hernias": "sign.hernia",
+  "ex.abdomen.kidneys": "exam.kidneys",
+  "ex.abdomen.liver": "sign.palpable_liver",
+  "ex.abdomen.liver_span": "exam.liver_span",
+  "ex.abdomen.liver_stigmata": "sign.chronic_liver_disease_stigmata",
+  "ex.abdomen.masses": "sign.abdominal_mass",
+  "ex.abdomen.moves_with_breathing": "sign.abdomen_not_moving_with_respiration",
+  "ex.abdomen.percussion_note": "exam.abdominal_percussion_note",
+  "ex.abdomen.spleen": "sign.splenomegaly",
+  "ex.abdomen.succussion_splash": "sign.succussion_splash",
+  "ex.abdomen.tenderness": "sign.abdominal_tenderness",
+  "ex.abdomen.umbilicus": "exam.umbilicus",
+  "ex.abdomen.wall_findings": "sign.abdominal_wall_findings",
+  "ex.cardiovascular.added_sounds": "sign.added_heart_sounds",
+  "ex.cardiovascular.apex_beat": "exam.apex_beat",
+  "ex.cardiovascular.bruits": "sign.bruit",
+  "ex.cardiovascular.calves": "exam.calves",
+  "ex.cardiovascular.capillary_refill": "obs.capillary_refill",
+  "ex.cardiovascular.cardiac_dullness": "sign.increased_cardiac_dullness",
+  "ex.cardiovascular.heart_sounds": "exam.heart_sounds",
+  "ex.cardiovascular.heaves_thrills": "sign.heave_or_thrill",
+  "ex.cardiovascular.jvp": "sign.raised_jvp",
+  "ex.cardiovascular.murmurs": "sign.heart_murmur",
+  "ex.cardiovascular.peripheral_stigmata": "sign.cardiac_peripheral_stigmata",
+  "ex.cardiovascular.precordium": "exam.precordium",
+  "ex.cardiovascular.radial_pulse": "exam.radial_pulse",
+  "ex.eyes_ent_neck.fundoscopy": "exam.fundoscopy",
+  "ex.eyes_ent_neck.goitre": "sx.neck_swelling",
+  "ex.eyes_ent_neck.nose": "exam.nose",
+  "ex.eyes_ent_neck.otoscopy": "exam.otoscopy",
+  "ex.eyes_ent_neck.red_eye": "sign.red_eye",
+  "ex.eyes_ent_neck.throat": "exam.throat",
+  "ex.feet.deformity": "sign.foot_deformity",
+  "ex.feet.foot_temperature": "exam.foot_temperature",
+  "ex.feet.gangrene": "sign.gangrene",
+  "ex.feet.ipswich_touch": "exam.ipswich_touch_test",
+  "ex.feet.monofilament": "exam.monofilament",
+  "ex.feet.skin_nails": "exam.foot_skin_nails",
+  "ex.feet.ulcer": "sign.foot_ulcer",
+  "ex.feet.vibration_128": "exam.vibration_128hz",
+  "ex.general.appearance": "exam.general_appearance",
+  "ex.general.bleeding_signs": "sign.bleeding",
+  "ex.general.build": "exam.body_build",
+  "ex.general.clubbing": "sign.clubbing",
+  "ex.general.consciousness": "obs.gcs",
+  "ex.general.cyanosis": "sign.cyanosis",
+  "ex.general.distress": "sign.distress",
+  "ex.general.drains_stomas_splints": "dev.drain_stoma_splint",
+  "ex.general.enteral_tube": "dev.enteral_tube",
+  "ex.general.facies": "sign.characteristic_facies",
+  "ex.general.hand_signs": "sign.hand_nail_signs",
+  "ex.general.hiv_associated_signs": "sign.hiv_associated_signs",
+  "ex.general.hydration": "sign.dehydration",
+  "ex.general.jaundice": "sign.jaundice",
+  "ex.general.lymph_nodes": "sign.lymphadenopathy",
+  "ex.general.mobility": "exam.mobility",
+  "ex.general.mouth": "exam.mouth",
+  "ex.general.nutrition": "obs.muac",
+  "ex.general.odour": "sign.abnormal_odour",
+  "ex.general.oedema": "sign.oedema",
+  "ex.general.oxygen": "dev.oxygen_delivery",
+  "ex.general.pallor": "sign.pallor",
+  "ex.general.posture": "exam.posture",
+  "ex.general.urinary_catheter": "dev.urinary_catheter",
+  "ex.general.vascular_access": "dev.vascular_access",
+  "ex.nervous.amts": "obs.amts",
+  "ex.nervous.ankle_clonus": "sign.ankle_clonus",
+  "ex.nervous.behaviour": "exam.behaviour",
+  "ex.nervous.brudzinski": "sign.brudzinski",
+  "ex.nervous.cn_i": "exam.cn_i",
+  "ex.nervous.cn_ii": "exam.cn_ii",
+  "ex.nervous.cn_iii_iv_vi": "exam.cn_iii_iv_vi",
+  "ex.nervous.cn_ix_x": "exam.cn_ix_x",
+  "ex.nervous.cn_v": "exam.cn_v",
+  "ex.nervous.cn_vii": "exam.cn_vii",
+  "ex.nervous.cn_viii": "exam.cn_viii",
+  "ex.nervous.cn_xi": "exam.cn_xi",
+  "ex.nervous.cn_xii": "exam.cn_xii",
+  "ex.nervous.dysdiadochokinesia": "sign.dysdiadochokinesia",
+  "ex.nervous.finger_nose": "exam.finger_nose",
+  "ex.nervous.gait": "exam.gait",
+  "ex.nervous.heel_shin": "exam.heel_shin",
+  "ex.nervous.hoffmann": "sign.hoffmann",
+  "ex.nervous.joint_position": "exam.joint_position_sense",
+  "ex.nervous.kernig": "sign.kernig",
+  "ex.nervous.light_touch": "exam.light_touch",
+  "ex.nervous.memory": "exam.memory",
+  "ex.nervous.neck_stiffness": "sign.neck_stiffness",
+  "ex.nervous.pinprick": "exam.pinprick",
+  "ex.nervous.pronator_drift": "sign.pronator_drift",
+  "ex.nervous.pupils": "exam.pupils",
+  "ex.nervous.romberg": "sign.romberg",
+  "ex.nervous.saddle_sensation": "sign.saddle_anaesthesia",
+  "ex.nervous.speech": "exam.speech",
+  "ex.nervous.tandem_gait": "exam.tandem_gait",
+  "ex.nervous.tone": "exam.tone",
+  "ex.nervous.vibration": "exam.vibration_sense",
+  "ex.nervous.visual_fields": "sign.visual_field_defect",
+  "ex.nervous.wasting_involuntary": "sign.motor_inspection_findings",
+  "ex.rectal_genital.anal_tone": "sign.reduced_anal_tone",
+  "ex.rectal_genital.external_genitalia": "exam.external_genitalia",
+  "ex.rectal_genital.glove": "exam.rectal_glove",
+  "ex.rectal_genital.perianal": "exam.perianal",
+  "ex.rectal_genital.prostate": "exam.prostate",
+  "ex.rectal_genital.rectal_mass": "sign.rectal_mass",
+  "ex.rectal_genital.scrotum_testes": "exam.scrotum_testes",
+  "ex.respiratory.audible_sounds": "sign.audible_breath_sounds",
+  "ex.respiratory.breath_sounds": "exam.breath_sounds",
+  "ex.respiratory.breathing_pattern": "exam.breathing_pattern",
+  "ex.respiratory.chest_shape": "exam.chest_shape",
+  "ex.respiratory.crackles": "sign.chest_crackles",
+  "ex.respiratory.expansion": "sign.reduced_chest_expansion",
+  "ex.respiratory.percussion_note": "exam.chest_percussion_note",
+  "ex.respiratory.pleural_rub": "sign.pleural_rub",
+  "ex.respiratory.sputum": "sx.sputum",
+  "ex.respiratory.surgical_emphysema": "sign.subcutaneous_emphysema",
+  "ex.respiratory.tactile_fremitus": "exam.tactile_vocal_fremitus",
+  "ex.respiratory.trachea": "sign.tracheal_deviation",
+  "ex.respiratory.vocal_resonance": "exam.vocal_resonance",
+  "ex.respiratory.wheeze": "sx.wheeze",
+  "ex.respiratory.work_of_breathing": "sign.increased_work_of_breathing",
+  "ex.skin.lesions": "sign.skin_lesions",
+  "ex.skin.petechiae_purpura": "sign.petechiae_purpura",
+  "ex.skin.pressure_injury": "sign.pressure_injury",
+  "ex.skin.rash": "sx.rash",
+  "ex.skin.temperature": "exam.skin_temperature",
+  "ex.spine_joints.curvature": "exam.spinal_curvature",
+  "ex.spine_joints.femoral_stretch": "sign.femoral_stretch",
+  "ex.spine_joints.gals_screen": "exam.joints_gals",
+  "ex.spine_joints.paraspinal": "sign.paraspinal_spasm_or_tenderness",
+  "ex.spine_joints.range_of_movement": "exam.spinal_range_of_movement",
+  "ex.spine_joints.skin_over_spine": "exam.skin_over_spine",
+  "ex.spine_joints.spinal_tenderness": "sign.spinal_tenderness",
+  "ex.spine_joints.step_deformity": "sign.spinal_step_deformity",
+  "ex.spine_joints.straight_leg_raise": "sign.straight_leg_raise"
+ },
+ "options": [
+  {
+   "item": "ex.general.facies",
+   "attribute": "type",
+   "option": "malar_flush",
+   "concept": "sign.malar_flush"
+  },
+  {
+   "item": "ex.general.distress",
+   "attribute": "type",
+   "option": "respiratory",
+   "concept": "sign.increased_work_of_breathing"
+  },
+  {
+   "item": "ex.general.odour",
+   "attribute": "smells",
+   "option": "ketones_fruity",
+   "concept": "sign.ketotic_breath"
+  },
+  {
+   "item": "ex.general.odour",
+   "attribute": "smells",
+   "option": "fetor_hepaticus",
+   "concept": "sign.fetor_hepaticus"
+  },
+  {
+   "item": "ex.general.urinary_catheter",
+   "attribute": "urine",
+   "option": "blood_stained",
+   "concept": "sx.haematuria"
+  },
+  {
+   "item": "ex.general.enteral_tube",
+   "attribute": "aspirate",
+   "option": "coffee_grounds",
+   "concept": "sign.blood_in_gastric_aspirate"
+  },
+  {
+   "item": "ex.general.enteral_tube",
+   "attribute": "aspirate",
+   "option": "fresh_blood",
+   "concept": "sign.blood_in_gastric_aspirate"
+  },
+  {
+   "item": "ex.general.drains_stomas_splints",
+   "attribute": "what",
+   "option": "chest_drain",
+   "concept": "dev.chest_drain"
+  },
+  {
+   "item": "ex.general.drains_stomas_splints",
+   "attribute": "what",
+   "option": "stoma_bag",
+   "concept": "dev.stoma"
+  },
+  {
+   "item": "ex.general.cyanosis",
+   "attribute": "type",
+   "option": "central_tongue_lips",
+   "concept": "sign.cyanosis"
+  },
+  {
+   "item": "ex.general.cyanosis",
+   "attribute": "type",
+   "option": "peripheral_fingers_toes",
+   "concept": "sign.cyanosis"
+  },
+  {
+   "item": "ex.general.lymph_nodes",
+   "attribute": "where",
+   "option": "generalised",
+   "concept": "sign.lymphadenopathy"
+  },
+  {
+   "item": "ex.general.bleeding_signs",
+   "attribute": "seen",
+   "option": "bruising_or_ecchymoses",
+   "concept": "sign.bruising"
+  },
+  {
+   "item": "ex.general.bleeding_signs",
+   "attribute": "seen",
+   "option": "blood_in_urine_catheter",
+   "concept": "sx.haematuria"
+  },
+  {
+   "item": "ex.general.bleeding_signs",
+   "attribute": "seen",
+   "option": "blood_from_the_rectum_on_examination",
+   "concept": "sign.fresh_blood_per_rectum"
+  },
+  {
+   "item": "ex.general.hand_signs",
+   "attribute": "signs",
+   "option": "asterixis_flap",
+   "concept": "sign.asterixis"
+  },
+  {
+   "item": "ex.general.hand_signs",
+   "attribute": "signs",
+   "option": "palmar_erythema",
+   "concept": "sign.palmar_erythema"
+  },
+  {
+   "item": "ex.general.hand_signs",
+   "attribute": "signs",
+   "option": "leukonychia",
+   "concept": "sign.leukonychia"
+  },
+  {
+   "item": "ex.general.hand_signs",
+   "attribute": "signs",
+   "option": "dupuytrens_contracture",
+   "concept": "sign.dupuytrens_contracture"
+  },
+  {
+   "item": "ex.general.hand_signs",
+   "attribute": "signs",
+   "option": "splinter_haemorrhages",
+   "concept": "sign.splinter_haemorrhages"
+  },
+  {
+   "item": "ex.general.hand_signs",
+   "attribute": "signs",
+   "option": "fine_tremor",
+   "concept": "sx.tremor"
+  },
+  {
+   "item": "ex.general.mouth",
+   "attribute": "signs",
+   "option": "oral_thrush",
+   "concept": "sign.oral_candidiasis"
+  },
+  {
+   "item": "ex.general.mouth",
+   "attribute": "signs",
+   "option": "purple_kaposi_like_lesion",
+   "concept": "sign.kaposi_like_lesion"
+  },
+  {
+   "item": "ex.general.mouth",
+   "attribute": "signs",
+   "option": "angular_cheilitis",
+   "concept": "sign.angular_cheilitis"
+  },
+  {
+   "item": "ex.general.mouth",
+   "attribute": "signs",
+   "option": "ulcers",
+   "concept": "sx.mouth_ulcers"
+  },
+  {
+   "item": "ex.general.hiv_associated_signs",
+   "attribute": "seen",
+   "option": "oral_candidiasis",
+   "concept": "sign.oral_candidiasis"
+  },
+  {
+   "item": "ex.general.hiv_associated_signs",
+   "attribute": "seen",
+   "option": "kaposi_sarcoma_lesions",
+   "concept": "sign.kaposi_like_lesion"
+  },
+  {
+   "item": "ex.general.hiv_associated_signs",
+   "attribute": "seen",
+   "option": "herpes_zoster_scars",
+   "concept": "sign.herpes_zoster_scars"
+  },
+  {
+   "item": "ex.general.hiv_associated_signs",
+   "attribute": "seen",
+   "option": "angular_cheilitis",
+   "concept": "sign.angular_cheilitis"
+  },
+  {
+   "item": "ex.general.hiv_associated_signs",
+   "attribute": "seen",
+   "option": "generalised_lymphadenopathy",
+   "concept": "sign.lymphadenopathy"
+  },
+  {
+   "item": "ex.general.hiv_associated_signs",
+   "attribute": "seen",
+   "option": "recurrent_oral_ulcers",
+   "concept": "sx.mouth_ulcers"
+  },
+  {
+   "item": "ex.general.hiv_associated_signs",
+   "attribute": "seen",
+   "option": "fungal_nail_infection",
+   "concept": "sign.fungal_nail_infection"
+  },
+  {
+   "item": "ex.general.hydration",
+   "attribute": "signs_present",
+   "option": "sunken_eyes",
+   "concept": "sign.sunken_eyes"
+  },
+  {
+   "item": "ex.general.hydration",
+   "attribute": "signs_present",
+   "option": "skin_pinch_goes_back_slowly",
+   "concept": "sign.reduced_skin_turgor"
+  },
+  {
+   "item": "ex.general.hydration",
+   "attribute": "signs_present",
+   "option": "skin_pinch_goes_back_very_slowly",
+   "concept": "sign.reduced_skin_turgor"
+  },
+  {
+   "item": "ex.general.nutrition",
+   "attribute": "signs",
+   "option": "bilateral_pitting_oedema_of_the_feet",
+   "concept": "sign.oedema"
+  },
+  {
+   "item": "ex.cardiovascular.precordium",
+   "attribute": "seen",
+   "option": "pacemaker_or_device",
+   "concept": "dev.cardiac_implanted_device"
+  },
+  {
+   "item": "ex.cardiovascular.peripheral_stigmata",
+   "attribute": "seen",
+   "option": "splinter_haemorrhages",
+   "concept": "sign.splinter_haemorrhages"
+  },
+  {
+   "item": "ex.cardiovascular.peripheral_stigmata",
+   "attribute": "seen",
+   "option": "malar_flush",
+   "concept": "sign.malar_flush"
+  },
+  {
+   "item": "ex.cardiovascular.radial_pulse",
+   "attribute": "rhythm",
+   "option": "irregularly_irregular",
+   "concept": "sign.irregular_pulse"
+  },
+  {
+   "item": "ex.cardiovascular.radial_pulse",
+   "attribute": "rhythm",
+   "option": "regularly_irregular",
+   "concept": "sign.irregular_pulse"
+  },
+  {
+   "item": "ex.cardiovascular.radial_pulse",
+   "attribute": "character",
+   "option": "pulsus_paradoxus",
+   "concept": "sign.pulsus_paradoxus"
+  },
+  {
+   "item": "ex.cardiovascular.heart_sounds",
+   "attribute": "heard",
+   "option": "muffled_sounds",
+   "concept": "sign.muffled_heart_sounds"
+  },
+  {
+   "item": "ex.cardiovascular.heart_sounds",
+   "attribute": "heard",
+   "option": "mechanical_valve_clicks",
+   "concept": "dev.prosthetic_heart_valve"
+  },
+  {
+   "item": "ex.respiratory.breathing_pattern",
+   "attribute": "pattern",
+   "option": "kussmaul_deep_sighing",
+   "concept": "sign.kussmaul_breathing"
+  },
+  {
+   "item": "ex.respiratory.chest_shape",
+   "attribute": "seen",
+   "option": "chest_drain",
+   "concept": "dev.chest_drain"
+  },
+  {
+   "item": "ex.respiratory.audible_sounds",
+   "attribute": "heard",
+   "option": "stridor",
+   "concept": "sign.stridor"
+  },
+  {
+   "item": "ex.respiratory.audible_sounds",
+   "attribute": "heard",
+   "option": "audible_wheeze",
+   "concept": "sx.wheeze"
+  },
+  {
+   "item": "ex.respiratory.sputum",
+   "attribute": "looks",
+   "option": "blood_stained",
+   "concept": "sx.coughing_blood"
+  },
+  {
+   "item": "ex.respiratory.sputum",
+   "attribute": "looks",
+   "option": "frothy_pink",
+   "concept": "sign.frothy_pink_sputum"
+  },
+  {
+   "item": "ex.abdomen.contour",
+   "attribute": "shape",
+   "option": "distended",
+   "concept": "sign.abdominal_distension"
+  },
+  {
+   "item": "ex.abdomen.wall_findings",
+   "attribute": "seen",
+   "option": "stoma",
+   "concept": "dev.stoma"
+  },
+  {
+   "item": "ex.abdomen.liver_stigmata",
+   "attribute": "seen",
+   "option": "palmar_erythema",
+   "concept": "sign.palmar_erythema"
+  },
+  {
+   "item": "ex.abdomen.liver_stigmata",
+   "attribute": "seen",
+   "option": "leuconychia",
+   "concept": "sign.leukonychia"
+  },
+  {
+   "item": "ex.abdomen.liver_stigmata",
+   "attribute": "seen",
+   "option": "dupuytrens_contracture",
+   "concept": "sign.dupuytrens_contracture"
+  },
+  {
+   "item": "ex.abdomen.liver_stigmata",
+   "attribute": "seen",
+   "option": "asterixis_flapping_tremor",
+   "concept": "sign.asterixis"
+  },
+  {
+   "item": "ex.abdomen.liver_stigmata",
+   "attribute": "seen",
+   "option": "fetor_hepaticus",
+   "concept": "sign.fetor_hepaticus"
+  },
+  {
+   "item": "ex.abdomen.liver_stigmata",
+   "attribute": "seen",
+   "option": "bruising",
+   "concept": "sign.bruising"
+  },
+  {
+   "item": "ex.abdomen.hernias",
+   "attribute": "cough_impulse",
+   "option": "irreducible",
+   "concept": "sign.irreducible_hernia"
+  },
+  {
+   "item": "ex.abdomen.tenderness",
+   "attribute": "with",
+   "option": "guarding",
+   "concept": "sign.peritonism"
+  },
+  {
+   "item": "ex.abdomen.tenderness",
+   "attribute": "with",
+   "option": "rigidity",
+   "concept": "sign.peritonism"
+  },
+  {
+   "item": "ex.abdomen.tenderness",
+   "attribute": "with",
+   "option": "rebound_tenderness",
+   "concept": "sign.peritonism"
+  },
+  {
+   "item": "ex.abdomen.masses",
+   "attribute": "features",
+   "option": "expansile",
+   "concept": "sign.expansile_abdominal_mass"
+  },
+  {
+   "item": "ex.nervous.behaviour",
+   "attribute": "seen",
+   "option": "responding_to_unseen_stimuli",
+   "concept": "sx.unusual_experiences"
+  },
+  {
+   "item": "ex.nervous.cn_ii",
+   "attribute": "found",
+   "option": "papilloedema",
+   "concept": "sign.papilloedema"
+  },
+  {
+   "item": "ex.nervous.cn_ii",
+   "attribute": "found",
+   "option": "field_defect",
+   "concept": "sign.visual_field_defect"
+  },
+  {
+   "item": "ex.nervous.wasting_involuntary",
+   "attribute": "seen",
+   "option": "resting_tremor",
+   "concept": "sx.tremor"
+  },
+  {
+   "item": "ex.nervous.wasting_involuntary",
+   "attribute": "seen",
+   "option": "postural_tremor",
+   "concept": "sx.tremor"
+  },
+  {
+   "item": "ex.spine_joints.gals_screen",
+   "attribute": "signs",
+   "option": "swelling",
+   "concept": "sx.joint_swelling"
+  },
+  {
+   "item": "ex.skin.petechiae_purpura",
+   "attribute": "blanching",
+   "option": "non_blanching",
+   "concept": "sign.non_blanching_rash"
+  },
+  {
+   "item": "ex.skin.lesions",
+   "attribute": "type",
+   "option": "purple_plaque_or_nodule",
+   "concept": "sign.kaposi_like_lesion"
+  },
+  {
+   "item": "ex.skin.lesions",
+   "attribute": "type",
+   "option": "scars_of_old_herpes_zoster",
+   "concept": "sign.herpes_zoster_scars"
+  },
+  {
+   "item": "ex.eyes_ent_neck.fundoscopy",
+   "attribute": "seen",
+   "option": "papilloedema",
+   "concept": "sign.papilloedema"
+  },
+  {
+   "item": "ex.eyes_ent_neck.fundoscopy",
+   "attribute": "seen",
+   "option": "diabetic_retinopathy",
+   "concept": "sign.diabetic_retinopathy"
+  },
+  {
+   "item": "ex.rectal_genital.glove",
+   "attribute": "found",
+   "option": "fresh_blood",
+   "concept": "sign.fresh_blood_per_rectum"
+  },
+  {
+   "item": "ex.rectal_genital.external_genitalia",
+   "attribute": "seen",
+   "option": "ulcer",
+   "concept": "sx.genital_sore"
+  },
+  {
+   "item": "ex.rectal_genital.external_genitalia",
+   "attribute": "seen",
+   "option": "urethral_discharge",
+   "concept": "sx.urethral_discharge"
+  },
+  {
+   "item": "ex.feet.skin_nails",
+   "attribute": "seen",
+   "option": "callus",
+   "concept": "sign.foot_callus"
+  },
+  {
+   "item": "ex.feet.skin_nails",
+   "attribute": "seen",
+   "option": "fungal_nails",
+   "concept": "sign.fungal_nail_infection"
+  },
+  {
+   "item": "ex.feet.foot_risk_history",
+   "attribute": "history",
+   "option": "previous_foot_ulcer",
+   "concept": "hist.foot_ulcer"
+  },
+  {
+   "item": "ex.feet.foot_risk_history",
+   "attribute": "history",
+   "option": "end_stage_kidney_disease_or_dialysis",
+   "concept": "hist.eskd_or_dialysis"
+  }
+ ]
+}

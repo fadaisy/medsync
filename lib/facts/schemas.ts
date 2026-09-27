@@ -16,6 +16,12 @@ const tags = Object.keys(DRUG_CLASS_TAGS) as [
   ...T.MedicationFact["classTags"],
 ];
 
+/** Catalogue qualifiers: option ids (one or several) and numbers (CFC v1.3, M4). */
+const Qualifiers = z.record(
+  z.string(),
+  z.union([z.string(), z.number(), z.boolean(), z.array(z.string())]),
+);
+
 export const InterpretableSchema = z.union([
   z.strictObject({ ok: z.literal(true) }),
   z.strictObject({ ok: z.literal(false), missing: z.array(z.string()).min(1) }),
@@ -124,7 +130,7 @@ export const ObservationContextSchema = z.strictObject({
   windowDays: finite.optional(),
   sensorWearPercent: finite.optional(),
   laterality: z.enum(ENUMS.laterality).optional(),
-  qualifiers: z.record(z.string(), z.union([z.string(), z.number(), z.boolean()])).optional(),
+  qualifiers: Qualifiers.optional(),
 });
 
 export const ObservationFactSchema = z.strictObject({
@@ -144,6 +150,8 @@ export const FindingFactSchema = z.strictObject({
   durationDays: finite.optional(),
   severity: z.enum(ENUMS.severity).optional(),
   laterality: z.enum(ENUMS.laterality).optional(),
+  /** The catalogue's option ids for this finding (CFC v1.3, M4). */
+  qualifiers: Qualifiers.optional(),
 });
 
 export const ConditionFactSchema = z.strictObject({

@@ -12,7 +12,12 @@ import type { NoteContent, NoteItem, SignContext } from "@/lib/emr/notes";
 import { and, desc, eq, inArray, like, notInArray, sql } from "drizzle-orm";
 
 import { clinicalCosignRequests } from "@/db/schema/doctor-workspace";
-import { clinicalNoteEvents, clinicalNotes, medicationStatements } from "@/db/schema/emr";
+import {
+  clinicalConcepts,
+  clinicalNoteEvents,
+  clinicalNotes,
+  medicationStatements,
+} from "@/db/schema/emr";
 import { clinicalObservations } from "@/db/schema/nurse-workspace";
 import { patientProfiles } from "@/db/schema/patient-profiles";
 import { encounters } from "@/db/schema/scheduling";
@@ -513,6 +518,22 @@ export async function signNote(ctx: WriteCtx, input: SignNoteInput): Promise<Wri
     lines.push(
       ...factsFromCapture(ncd, note.effectiveAt.toISOString(), captureFromNote(content, "pulled")),
     );
+  // CFC M5: chart only concepts already seeded (0082 and 0083 are owner-applied), so code deployed
+  // before a migration never fails a signature; the rest stay in the note and are counted.
+  if (lines.length) {
+    const ids = [...new Set(lines.map((l) => l.conceptId))];
+    const seeded = new Set(
+      (
+        await ctx.tx
+          .select({ id: clinicalConcepts.id })
+          .from(clinicalConcepts)
+          .where(inArray(clinicalConcepts.id, ids))
+      ).map((r) => r.id),
+    );
+    const kept = lines.filter((l) => seeded.has(l.conceptId));
+    unmapped += lines.length - kept.length;
+    lines.splice(0, lines.length, ...kept);
+  }
   const facts = await insertObservations(ctx, {
     patientUserId: note.patientUserId,
     encounterId: note.encounterId,

@@ -18,11 +18,15 @@ import prettier from "prettier";
 export const SEED_SOURCES = {
   v1: "docs/emr/clinical-fact-concepts.v1.json",
   v11: "data/emr/clinical-fact-concepts.v1.1.json",
+  v12: "data/emr/clinical-fact-concepts.v1.2.json",
+  v13: "data/emr/clinical-fact-concepts.v1.3.json",
   tests: "data/emr/test-catalogue.v1.json",
   terms: "data/emr/diagnosis-terms.v1.json",
 } as const;
 export const SEED_OUTPUTS = {
   sql: "supabase/migrations/0072_emr_reference_seed.sql",
+  sql12: "supabase/migrations/0082_cfc_v1_2_clerking_findings.sql",
+  sql13: "supabase/migrations/0083_cfc_v1_3_examination.sql",
   ts: "lib/facts/catalogue.generated.ts",
 } as const;
 
@@ -30,6 +34,16 @@ export const SEED_OUTPUTS = {
 // released versions (brief C).
 const V1_VERSION = "1.0.0";
 const V11_VERSION = "1.1.0";
+// The addenda carry their own versions (docs/emr/cfc/cfc-migrations-proposal.md, signed 2026-09-28).
+const ADDENDA = [
+  {
+    key: "v12",
+    version: "1.2.0",
+    sql: "sql12",
+    title: "0082 — CFC v1.2: clerking history findings",
+  },
+  { key: "v13", version: "1.3.0", sql: "sql13", title: "0083 — CFC v1.3: the examination" },
+] as const;
 
 // Fixed namespace for the uuid-keyed registries (test_catalogue, diagnosis_terms have no text key column).
 // Changing it re-keys every seeded row, so it never changes.
@@ -57,6 +71,8 @@ export function readSeedSources(root: string) {
   return {
     v1: read(SEED_SOURCES.v1),
     v11: read(SEED_SOURCES.v11),
+    v12: read(SEED_SOURCES.v12),
+    v13: read(SEED_SOURCES.v13),
     tests: read(SEED_SOURCES.tests),
     terms: read(SEED_SOURCES.terms),
   };
@@ -100,6 +116,30 @@ export function allConcepts(src: SeedSources) {
   ].sort(byId((c: Json) => c.id)) as Json[];
 }
 
+/** The registry the engines read: 0072's concepts, then each addendum's (with its answer extensions
+ *  applied to the concepts it extends). */
+export function registryConcepts(src: SeedSources) {
+  const base = allConcepts(src).map((c) => ({ ...c }));
+  for (const a of ADDENDA) {
+    const add = src[a.key];
+    for (const [id, answers] of Object.entries(
+      (add.answerExtensions ?? {}) as Record<string, string[]>,
+    )) {
+      const c = base.find((x) => x.id === id);
+      if (!c) throw new Error(`${a.key} extends unknown concept ${id}`);
+      c.answers = [...(c.answers ?? []), ...answers.filter((x) => !(c.answers ?? []).includes(x))];
+    }
+    base.push(
+      ...add.concepts.map((c: Json) => ({
+        ...c,
+        version: a.version,
+        symptomCode: c.symptomCode ?? null,
+      })),
+    );
+  }
+  return base.sort(byId((c: Json) => c.id)) as Json[];
+}
+
 /** SR-PREG-MINOR and friends: `appliesTo` names a concept id or `kind:<kind>`. */
 function sensitivityRuleFor(src: SeedSources, c: Json): Json | null {
   return (
@@ -122,6 +162,51 @@ export function mergedEnums(src: SeedSources): Enums {
     ...new Set([...allConcepts(src).map((c) => c.valueType), ...out.valueType]),
   ].sort();
   return out;
+}
+
+const CONCEPT_COLS = [
+  "id",
+  "display",
+  "kind",
+  "concept_group",
+  "value_type",
+  "canonical_unit",
+  "accepted_units",
+  "answers",
+  "context_required",
+  "context_conditional",
+  "context_optional",
+  "codes",
+  "lanes",
+  "sensitivity",
+  "sensitivity_rule",
+  "symptom_code",
+  "phase",
+  "catalogue_version",
+];
+
+function conceptRow(src: SeedSources, c: Json): string[] {
+  const rule = sensitivityRuleFor(src, c);
+  return [
+    lit(c.id),
+    lit(c.display),
+    lit(c.kind),
+    lit(c.group),
+    lit(c.valueType),
+    lit(c.canonicalUnit),
+    jsonb(c.acceptedUnits ?? []),
+    arr(c.answers ?? null),
+    arr(c.contextRequired),
+    jsonb(c.contextConditional ?? {}),
+    arr(c.contextOptional ?? []),
+    jsonb(c.codes),
+    arr(c.lanes),
+    lit(c.sensitivity),
+    rule ? jsonb(rule) : "NULL",
+    lit(c.symptomCode),
+    lit(c.phase),
+    lit(c.version),
+  ];
 }
 
 // ─── 0072 ────────────────────────────────────────────────────────────
@@ -177,49 +262,8 @@ function buildSql(src: SeedSources): string {
 
   const conceptSql = insert(
     "clinical_concepts",
-    [
-      "id",
-      "display",
-      "kind",
-      "concept_group",
-      "value_type",
-      "canonical_unit",
-      "accepted_units",
-      "answers",
-      "context_required",
-      "context_conditional",
-      "context_optional",
-      "codes",
-      "lanes",
-      "sensitivity",
-      "sensitivity_rule",
-      "symptom_code",
-      "phase",
-      "catalogue_version",
-    ],
-    concepts.map((c) => {
-      const rule = sensitivityRuleFor(src, c);
-      return [
-        lit(c.id),
-        lit(c.display),
-        lit(c.kind),
-        lit(c.group),
-        lit(c.valueType),
-        lit(c.canonicalUnit),
-        jsonb(c.acceptedUnits ?? []),
-        arr(c.answers ?? null),
-        arr(c.contextRequired),
-        jsonb(c.contextConditional ?? {}),
-        arr(c.contextOptional ?? []),
-        jsonb(c.codes),
-        arr(c.lanes),
-        lit(c.sensitivity),
-        rule ? jsonb(rule) : "NULL",
-        lit(c.symptomCode),
-        lit(c.phase),
-        lit(c.version),
-      ];
-    }),
+    CONCEPT_COLS,
+    concepts.map((c) => conceptRow(src, c)),
   );
 
   const testSql = insert(
@@ -313,9 +357,54 @@ function buildSql(src: SeedSources): string {
   ].join("\n");
 }
 
+// ─── 0082, 0083: the CFC addenda ─────────────────────────────────────
+function buildAddendumSql(src: SeedSources, a: (typeof ADDENDA)[number]): string {
+  const add = src[a.key];
+  const concepts = [...add.concepts]
+    .map((c: Json) => ({ ...c, version: a.version, symptomCode: c.symptomCode ?? null }))
+    .sort(byId((c: Json) => c.id));
+  const ext = Object.entries((add.answerExtensions ?? {}) as Record<string, string[]>);
+  const withCode = concepts.filter((c: Json) => c.symptomCode).length;
+  const header = `-- ${a.title}
+--
+-- GENERATED by scripts/emr/gen-seed.ts from ${SEED_SOURCES[a.key]} (${add.status}, ${add.signedBy},
+-- ${add.signedAt}; ${add.signature}). Do not edit: regenerate with \`npx tsx scripts/emr/gen-seed.ts\`;
+-- tests/emr/seed.test.ts fails while this file drifts from the data.
+--
+-- ADDITIVE. Inserts only, ON CONFLICT DO NOTHING; an answer is appended only when absent. A re-run adds
+-- nothing and never overwrites a registry row a hospital has since edited.
+--   clinical_concepts   ${concepts.length} at ${a.version} (${withCode} carry a symptom_catalog code${ext.length ? `; answers added to ${ext.map(([id]) => id).join(", ")}` : ""})
+--
+-- GATED: owner-applied (\`npm run db:migrate\`), after 0076 (symptom_code references symptom_catalog codes
+-- 0076 adds) and after ${a.key === "v12" ? "0072" : "0082 (v1.3 reuses v1.2 concepts)"}. Until it runs, signing keeps these findings in the note only
+-- (it charts only concepts present in clinical_concepts).
+`;
+  const extSql = ext.map(
+    ([id, answers]) =>
+      answers
+        .map(
+          (x) =>
+            `UPDATE public.clinical_concepts SET answers = array_append(answers, ${lit(x)})\n  WHERE id = ${lit(id)} AND NOT (${lit(x)} = ANY (answers));`,
+        )
+        .join("\n") + "\n",
+  );
+  return [
+    header,
+    "-- ─── clinical_concepts ──────────────────────────────────────────────",
+    insert(
+      "clinical_concepts",
+      CONCEPT_COLS,
+      concepts.map((c) => conceptRow(src, c)),
+    ),
+    ...(extSql.length
+      ? ["-- ─── answers added to existing concepts ─────────────────────────────", ...extSql]
+      : []),
+  ].join("\n");
+}
+
 // ─── catalogue.generated.ts ──────────────────────────────────────────
 function buildTs(src: SeedSources): string {
-  const concepts = allConcepts(src);
+  const concepts = registryConcepts(src);
   const enums = mergedEnums(src);
   const union = (xs: string[]) =>
     [...new Set(xs)]
@@ -359,12 +448,12 @@ function buildTs(src: SeedSources): string {
   const sensitivityRuleIds = src.v11.sensitivityRules.map((r: Json) => r.id);
   const minorTerms = [...src.terms.conditionalSensitivity.termIds].sort();
 
-  return `// GENERATED — do not edit. Sources: ${SEED_SOURCES.v1}, ${SEED_SOURCES.v11},
+  return `// GENERATED — do not edit. Sources: ${SEED_SOURCES.v1}, ${SEED_SOURCES.v11}, ${SEED_SOURCES.v12}, ${SEED_SOURCES.v13},
 // ${SEED_SOURCES.tests}, ${SEED_SOURCES.terms}.
 // Regenerate with \`npx tsx scripts/emr/gen-seed.ts\`; tests/emr/seed.test.ts fails while it drifts.
 /**
- * The clinical concept registry (CFC v1 ${V1_VERSION} + v1.1 ${V11_VERSION}) as a typed const, the same rows
- * 0072 seeds into clinical_concepts, drug_class_tags and capabilities. Codes, notes and the conditional-context
+ * The clinical concept registry (CFC v1 ${V1_VERSION} + v1.1 ${V11_VERSION} + v1.2 + v1.3) as a typed const, the
+ * same rows 0072, 0082 and 0083 seed into clinical_concepts, drug_class_tags and capabilities. Codes, notes and the conditional-context
  * wording stay in the database and the data files; this carries only what code branches on.
  */
 
@@ -424,21 +513,25 @@ export const DIAGNOSIS_TERMS_RESTRICTED_FOR_MINORS = ${JSON.stringify(
 /** The pure core: data in, file contents out. Nothing is written. */
 export async function generateSeed(
   root: string = process.cwd(),
-): Promise<{ sql: string; ts: string }> {
+): Promise<{ sql: string; ts: string; sql12: string; sql13: string }> {
   const src = readSeedSources(root);
   const tsPath = join(root, SEED_OUTPUTS.ts);
   const config = (await prettier.resolveConfig(tsPath)) ?? {};
   return {
     sql: buildSql(src),
+    sql12: buildAddendumSql(src, ADDENDA[0]),
+    sql13: buildAddendumSql(src, ADDENDA[1]),
     ts: await prettier.format(buildTs(src), { ...config, filepath: tsPath }),
   };
 }
 
 if (process.argv[1]?.endsWith("gen-seed.ts")) {
   const root = process.cwd();
-  generateSeed(root).then(({ sql, ts }) => {
+  generateSeed(root).then(({ sql, ts, sql12, sql13 }) => {
     writeFileSync(join(root, SEED_OUTPUTS.sql), sql);
+    writeFileSync(join(root, SEED_OUTPUTS.sql12), sql12);
+    writeFileSync(join(root, SEED_OUTPUTS.sql13), sql13);
     writeFileSync(join(root, SEED_OUTPUTS.ts), ts);
-    console.log(`wrote ${SEED_OUTPUTS.sql} and ${SEED_OUTPUTS.ts}`);
+    console.log(`wrote ${Object.values(SEED_OUTPUTS).join(", ")}`);
   });
 }

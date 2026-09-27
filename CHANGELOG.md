@@ -5,6 +5,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — CFC addenda v1.2 and v1.3: clerking findings chart as facts — 2026-09-28
+
+- Two GATED seed migrations, generated from signed data like 0072 (ADR 0176): `0082` (86 history concepts) and `0083` (165 examination concepts, and ACVPU C as `new_confusion` on `obs.avpu`). Apply after 0076, in that order.
+- One code, one meaning: a concept carries a symptom-catalogue code only when the code means exactly that finding; the seven duplicate codes are gone and 35 symptoms map to their own concept.
+- Findings expose their qualifiers to the engines. Signing charts only concepts already seeded, so deploying before the migrations is safe.
+
 ### Added — Clerking desk v2: a structured examination, dark behind `CLERKING_V2` — 2026-09-28
 
 - Step 07 is rebuilt from the examination catalogue (MS-EMR-EXAM-CAT-001, GATE A signed; ADRs 0170–0175):

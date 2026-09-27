@@ -1,4 +1,6 @@
-# CFC v1.2 addendum — clerking v2 findings (PROPOSED, for CSO signature)
+# CFC v1.2 addendum — clerking v2 findings (SIGNED 2026-09-28, seeded by 0082)
+
+> Signed with M1 (`docs/emr/cfc/cfc-migrations-proposal.md`): a concept carries a symptom-catalogue code only when the code means exactly that finding; 49 of 84 do. Data: `data/emr/clinical-fact-concepts.v1.2.json`.
 
 **Why:** a clerking finding becomes a charted fact only through a CFC concept. The CFC has 35 finding concepts, so 12 of the catalogue's 96 symptoms chart today. The other 84 are kept in the signed note with their catalogue ids, which is correct but not charted, so the chart, engines and exports cannot read them.
 

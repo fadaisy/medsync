@@ -15,10 +15,12 @@ const root = process.cwd();
 const src = readSeedSources(root);
 const committed = (rel: string) => readFileSync(join(root, rel), "utf8");
 
-describe("EMR reference seed (0072 + catalogue.generated.ts)", () => {
+describe("EMR reference seed (0072, 0082, 0083 + catalogue.generated.ts)", () => {
   it("regenerating from the data reproduces the committed files byte-for-byte", async () => {
-    const { sql, ts } = await generateSeed(root);
+    const { sql, ts, sql12, sql13 } = await generateSeed(root);
     expect(sql).toBe(committed(SEED_OUTPUTS.sql));
+    expect(sql12).toBe(committed(SEED_OUTPUTS.sql12));
+    expect(sql13).toBe(committed(SEED_OUTPUTS.sql13));
     expect(ts).toBe(committed(SEED_OUTPUTS.ts));
   });
 
@@ -27,7 +29,7 @@ describe("EMR reference seed (0072 + catalogue.generated.ts)", () => {
     expect(src.v1.drugClassTags).toHaveLength(21);
     expect(src.v1.capabilities).toHaveLength(29);
     expect(src.v11.concepts).toHaveLength(59);
-    expect(Object.keys(CONCEPTS)).toHaveLength(145 + 59);
+    expect(Object.keys(CONCEPTS)).toHaveLength(145 + 59 + 86 + 165); // + v1.2 and v1.3 (0082, 0083)
     expect(Object.keys(DRUG_CLASS_TAGS)).toHaveLength(21);
     expect(CAPABILITY_IDS).toHaveLength(29);
     const sql = committed(SEED_OUTPUTS.sql);
@@ -61,7 +63,29 @@ describe("EMR reference seed (0072 + catalogue.generated.ts)", () => {
       c.symptomCode ? [c.symptomCode] : [],
     );
     expect(new Set(symptomCodes).size).toBe(symptomCodes.length);
-    expect(symptomCodes).toHaveLength(8); // addendum B3: 6 v1 + jaundice, oedema
+    // addendum B3: 6 v1 + jaundice, oedema; v1.2 adds 49 (M1: a code only when it means exactly the finding)
+    expect(symptomCodes).toHaveLength(8 + 49);
+  });
+
+  it("the addenda: signed, additive, never redefining an earlier concept, one code one meaning", () => {
+    const earlier = new Set(allConcepts(src).map((c) => c.id));
+    const v12 = src.v12.concepts.map((c: { id: string }) => c.id);
+    const v13 = src.v13.concepts.map((c: { id: string }) => c.id);
+    for (const id of [...v12, ...v13]) expect(earlier.has(id), id).toBe(false);
+    expect(new Set([...v12, ...v13]).size).toBe(v12.length + v13.length);
+    expect([src.v12.status, src.v13.status]).toEqual(["signed", "signed"]);
+    expect(src.v12.concepts).toHaveLength(86);
+    expect(src.v13.concepts).toHaveLength(165);
+    // M1: no concept carries a code the rule lists as a broader screen, a shared code or a narrower one.
+    for (const [id] of Object.entries(src.v12.broaderRosScreens as Record<string, string>))
+      expect(CONCEPTS[id as keyof typeof CONCEPTS].symptomCode, id).toBeNull();
+    expect(CONCEPTS["obs.avpu"].answers).toContain("new_confusion");
+    for (const f of [SEED_OUTPUTS.sql12, SEED_OUTPUTS.sql13]) {
+      const sql = committed(f);
+      expect(sql, f).toMatch(/^-- GATED: owner-applied/m);
+      expect(sql, f).not.toMatch(/\b(DELETE|DROP|TRUNCATE|ALTER)\b/);
+      expect(sql, f).toMatch(/ON CONFLICT DO NOTHING;/);
+    }
   });
 
   it("every test menu component, capability, specimen and container resolves", () => {

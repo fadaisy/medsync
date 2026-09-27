@@ -182,10 +182,13 @@ describe.skipIf(!laneOn)("clerking examination v2 (PGlite lane)", () => {
     expect(k.exam.catalogueUrl).toMatch(/^\/api\/clerking\/exam-catalogue\?v=[0-9a-f]{16}$/);
   });
 
-  it("ACVPU C writes no obs.avpu (no CFC answer yet) and reads back from the set (HX3 interim)", async () => {
+  it("ACVPU C is written as obs.avpu new_confusion (CFC v1.3, 0083) and reads back as C", async () => {
     const set = saveLines(ecat, examDraft("C"), "set-2");
     if (!set.ok) throw new Error("not ok");
-    expect(set.lines.some((l) => l.conceptId === "obs.avpu")).toBe(false);
+    expect(set.lines.find((l) => l.conceptId === "obs.avpu")!.value).toEqual({
+      type: "coded",
+      code: "new_confusion",
+    });
     await as(mo, (ctx) =>
       facts.recordObservations(ctx, {
         patientUserId: p,
@@ -229,9 +232,7 @@ describe.skipIf(!laneOn)("clerking examination v2 (PGlite lane)", () => {
       }),
     );
     const signed = await as(mo, (ctx) => notes.signNote(ctx, { patientUserId: p, noteId: d.id }));
-    expect((signed.warnings ?? []).join(" ")).toMatch(
-      /finding\(s\) have no catalogue concept: kept in the note/,
-    );
+    expect((signed.warnings ?? []).join(" ")).not.toMatch(/no catalogue concept/); // with 0082 and 0083, all chart
     expect(signed.warnings ?? []).not.toContain("No examination recorded.");
     const rows = await lane.pg.query<{
       concept_id: string;
@@ -240,7 +241,7 @@ describe.skipIf(!laneOn)("clerking examination v2 (PGlite lane)", () => {
       context: Record<string, unknown>;
     }>(
       `SELECT concept_id, presence, value_num, context FROM public.clinical_observations
-        WHERE patient_user_id = $1 AND concept_id IN ('sign.pallor','sign.jaundice','obs.muac')`,
+        WHERE patient_user_id = $1 AND concept_id IN ('sign.pallor','sign.jaundice','obs.muac','sign.chest_crackles','sx.cough')`,
       [p],
     );
     const by = new Map(rows.rows.map((r) => [r.concept_id, r]));
@@ -252,5 +253,108 @@ describe.skipIf(!laneOn)("clerking examination v2 (PGlite lane)", () => {
     });
     expect(by.get("sign.jaundice")).toMatchObject({ presence: "absent" });
     expect(Number(by.get("obs.muac")!.value_num)).toBe(21);
+    expect(by.get("sign.chest_crackles")).toMatchObject({ presence: "present" });
+    expect(by.get("sx.cough")).toMatchObject({ presence: "present" }); // history, CFC v1.2
   });
+
+  it("M5: a concept not yet seeded stays in the note and never fails the signature", async () => {
+    const enc3 = await encounter(lane.pg, {
+      hospitalId: h,
+      patientUserId: p,
+      clinicianUserId: mo.userId,
+      departmentId: dept,
+    });
+    await lane.pg.exec(`DELETE FROM public.clinical_concepts WHERE id = 'sign.pleural_rub'`);
+    const exam = A.setState(
+      ecat,
+      A.setState(ecat, emptyExam(ecat.version), "ex.respiratory.pleural_rub", "positive"),
+      "ex.general.pallor",
+      "negative",
+    );
+    const content: NoteContent = {
+      schema: 2,
+      catalogueVersion: "1.0.0-draft",
+      header: { historian: "patient" },
+      history: {
+        ...emptyHistory(),
+        complaints: [{ key: "c", symptom: "sym.cough", props: {}, flags: {} }],
+      } as unknown as NoteContent["history"],
+      exam: exam as unknown as NoteContent["exam"],
+      sections: {
+        s13: { items: [{ kind: "diagnosis_deferred", reason: "Awaiting results" }] },
+        s14: { items: [{ kind: "plan_statement", text: "Review" }] },
+      },
+      edited: {},
+    };
+    const d = await as(mo, (ctx) =>
+      notes.saveNoteDraft(ctx, {
+        patientUserId: p,
+        encounterId: enc3,
+        templateId: "tpl.clerking.adult_v2",
+        content,
+        clientKey: key(),
+      }),
+    );
+    const signed = await as(mo, (ctx) => notes.signNote(ctx, { patientUserId: p, noteId: d.id }));
+    expect((signed.warnings ?? []).join(" ")).toMatch(
+      /1 finding\(s\) have no catalogue concept: kept in the note/,
+    );
+    const rows = await lane.pg.query(
+      `SELECT concept_id FROM public.clinical_observations WHERE encounter_id = $1 AND concept_id IS NOT NULL`,
+      [enc3],
+    );
+    expect(rows.rows.map((r) => (r as { concept_id: string }).concept_id).sort()).toEqual([
+      "sign.pallor",
+      "sx.cough",
+    ]);
+    // Re-seed from 0083 (a re-run restores only what is missing).
+    const { readFileSync } = await import("node:fs");
+    await lane.pg.exec(readFileSync("supabase/migrations/0083_cfc_v1_3_examination.sql", "utf8"));
+  });
+});
+
+describe.skipIf(!laneOn)("CFC addenda 0082 and 0083 (PGlite lane)", () => {
+  it("apply cleanly after 0076: codes resolve to symptom_catalog, one code one concept, ACVPU C answerable", async () => {
+    const lane = await bootLane();
+    const q = async (sql: string) => (await lane.pg.query<Record<string, unknown>>(sql)).rows;
+    expect(
+      (
+        await q(
+          `SELECT count(*)::int n FROM public.clinical_concepts WHERE catalogue_version = '1.2.0'`,
+        )
+      )[0]!.n,
+    ).toBe(86);
+    expect(
+      (
+        await q(
+          `SELECT count(*)::int n FROM public.clinical_concepts WHERE catalogue_version = '1.3.0'`,
+        )
+      )[0]!.n,
+    ).toBe(165);
+    expect(
+      await q(`SELECT symptom_code FROM public.clinical_concepts WHERE id = 'sx.fever'`),
+    ).toEqual([{ symptom_code: "fever" }]);
+    expect(
+      await q(
+        `SELECT symptom_code FROM public.clinical_concepts WHERE id IN ('sx.tinnitus','sx.hearing_loss')`,
+      ),
+    ).toEqual([{ symptom_code: null }, { symptom_code: null }]);
+    expect(
+      (await q(`SELECT answers FROM public.clinical_concepts WHERE id = 'obs.avpu'`))[0]!.answers,
+    ).toContain("new_confusion");
+    // Re-running both is a no-op.
+    const { readFileSync } = await import("node:fs");
+    for (const f of ["0082_cfc_v1_2_clerking_findings.sql", "0083_cfc_v1_3_examination.sql"])
+      await lane.pg.exec(readFileSync(`supabase/migrations/${f}`, "utf8"));
+    expect(
+      (
+        await q(
+          `SELECT count(*)::int n FROM public.clinical_concepts WHERE catalogue_version IN ('1.2.0','1.3.0')`,
+        )
+      )[0]!.n,
+    ).toBe(251);
+    const avpu = (await q(`SELECT answers FROM public.clinical_concepts WHERE id = 'obs.avpu'`))[0]!
+      .answers as string[];
+    expect(avpu.filter((a) => a === "new_confusion")).toHaveLength(1);
+  }, 180_000);
 });

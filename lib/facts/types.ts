@@ -169,8 +169,8 @@ export interface ObservationContext {
   windowDays?: number;
   sensorWearPercent?: number;
   laterality?: "left" | "right" | "bilateral";
-  /** Concept-specific extras (e.g. pain `scale`, SpO2 `oxygenSupport`). */
-  qualifiers?: Record<string, string | number | boolean>;
+  /** Concept-specific extras (e.g. pain `scale`, SpO2 `oxygenSupport`), and catalogue option ids. */
+  qualifiers?: Record<string, string | number | boolean | string[]>;
 }
 
 export interface ObservationFact extends FactEnvelope {
@@ -190,6 +190,8 @@ export interface FindingFact extends FactEnvelope {
   durationDays?: number;
   severity?: "mild" | "moderate" | "severe";
   laterality?: "left" | "right" | "bilateral";
+  /** The catalogue's option ids for this finding (CFC v1.3, M4): readable by the engines. */
+  qualifiers?: Record<string, string | number | boolean | string[]>;
 }
 
 export interface ConditionFact extends FactEnvelope {

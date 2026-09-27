@@ -41,7 +41,14 @@ const CONTEXT_KEYS = new Set<string>([
   "laterality",
 ]);
 /** Finding attributes that live in the jsonb for a presence row. */
-const FINDING_KEYS = ["elicitedBy", "onset", "durationDays", "severity", "laterality"] as const;
+const FINDING_KEYS = [
+  "elicitedBy",
+  "onset",
+  "durationDays",
+  "severity",
+  "laterality",
+  "qualifiers", // CFC v1.3, M4
+] as const;
 
 const record = (v: unknown): Record<string, unknown> =>
   v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : {};
