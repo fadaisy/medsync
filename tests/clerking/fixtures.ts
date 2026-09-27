@@ -1,10 +1,15 @@
+import type { DeskPayload } from "@/components/emr/desk/model";
 import type { History, HistoryHeader } from "@/lib/clerking/answers";
 import type { Signoff } from "@/lib/clerking/flags";
+import type { NoteContent } from "@/lib/emr/note-rules";
 import type { AdultVitals } from "@/lib/triage/types";
 
 import raw from "@/data/clerking/clerking-history-catalogue.v1.json";
 import { parseCatalogue } from "@/lib/clerking/catalogue";
+import { getTemplate } from "@/lib/emr/notes";
+import { deskTemplateOf } from "@/lib/emr/read/terms";
 import { scoreNews2 } from "@/lib/triage/scoring/news2";
+import { standardVisitMidway } from "../emr/ui/desk-fixtures";
 
 /**
  * The prototype's two patients (Main.dc.html `base()`), in catalogue ids. Synthetic: "Patient
@@ -183,3 +188,65 @@ export const allergies = {
   items: [{ name: "Cold", coded: false, reactions: [] as string[] }],
 };
 export const news2 = () => scoreNews2(THREE3_VITALS);
+
+/** A v2 desk payload for Patient Three-3: the standard visit's record and Examination, Impression
+ *  and Plan, the v2 template, and the prototype's history, vitals, medicine and allergy. */
+export function v2Payload(history = patientThree3()): DeskPayload {
+  const base = standardVisitMidway();
+  const s = base.draft!.content.sections;
+  return {
+    ...base,
+    patient: { ...base.patient, name: "Patient Three-3" },
+    safetyBar: { ...base.safetyBar, name: "Patient Three-3" },
+    template: deskTemplateOf(getTemplate("tpl.clerking.adult_v2"), { sex: "male", ncd: false }),
+    fullForm: "tpl.clerking.adult_v2",
+    draft: {
+      ...base.draft!,
+      content: {
+        header: { ...header },
+        sections: { s11: s.s11!, s13: s.s13!, s14: s.s14! },
+        schema: 2,
+        catalogueVersion: cat.version,
+        history: history as unknown as NoteContent["history"],
+      },
+    },
+    clerking: {
+      catalogueUrl: "/api/clerking/catalogue?v=test",
+      catalogueVersion: cat.version,
+      sex: "male",
+      ageYears: 76,
+      vitals: THREE3_VITALS,
+      vitalsAt: "2026-09-27T20:00:00.000Z",
+      vitalsFromTriage: true,
+      medicines: [
+        {
+          statementId: "m1",
+          name: "Amlodipine",
+          doseText: "5 mg",
+          frequencyCode: "od",
+          adherence: "sometimes_misses",
+          informant: "medicine_card",
+          restricted: false,
+        },
+      ],
+      allergies: {
+        status: "listed",
+        touchedThisVisit: false,
+        items: [
+          {
+            id: "a1",
+            name: "Cold",
+            coded: false,
+            reactions: [],
+            severity: null,
+            source: null,
+            restricted: false,
+          },
+        ],
+      },
+      outbreakMode: false,
+      canSeeRestricted: true,
+      signoff: SIGNED,
+    },
+  };
+}

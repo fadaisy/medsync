@@ -101,14 +101,17 @@ export async function DeskPage({
           <EmergencyInlineLink />
         </div>
       </header>
-      <SafetyBarView
-        bar={p.safetyBar}
-        links={{
-          allergies: p.flags.actionsAllowed && allergySection ? `#desk-${allergySection}` : null,
-          problems: `${p.links.chart}#chart-problems`,
-          results: p.links.results,
-        }}
-      />
+      {/* Clerking desk v2 draws its own safety bar (Draft, saved time, the NEWS2 chip). */}
+      {p.clerking ? null : (
+        <SafetyBarView
+          bar={p.safetyBar}
+          links={{
+            allergies: p.flags.actionsAllowed && allergySection ? `#desk-${allergySection}` : null,
+            problems: `${p.links.chart}#chart-problems`,
+            results: p.links.results,
+          }}
+        />
+      )}
       {workspace && !p.encounter.open ? (
         <Suspense fallback={null}>
           <NextPatient scope={scope} />

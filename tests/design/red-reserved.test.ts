@@ -338,6 +338,58 @@ describe("red is reserved — the EMR chart and printouts", () => {
   });
 });
 
+// ─── Clerking desk v2 (Law 8 as amended by D-CV-03) ──────────────────────────
+
+describe("red is reserved — clerking desk v2", () => {
+  const CLERKING = tree("components/clerking", "app/doctor/encounters/[encounterId]/_desk");
+
+  /**
+   * Red in the new desk, and nowhere else: an urgent badge in the Flags panel (critical tint,
+   * octagon, "urgent" in its name) and a NEWS2 score of 3 on the rail (its badge, value and arrow,
+   * with the number). Each file keeps its red in named constants so the rule can be read here.
+   */
+  const RED_ALLOWED: Record<string, readonly string[]> = {
+    "components/clerking/flags-panel.tsx": ["URGENT"],
+    "components/clerking/rail.tsx": ["SCORE3", "SCORE3_TEXT"],
+  };
+
+  it("the allowlist is real — each file exists and paints red", () => {
+    for (const p of Object.keys(RED_ALLOWED))
+      expect(stripComments(readFileSync(resolve(ROOT, p), "utf8")), p).toMatch(WEB_RED_FILL);
+  });
+
+  it("no other clerking file (or the desk island) names the critical token, a red class or hex", () => {
+    expect(CLERKING.length).toBeGreaterThan(8);
+    for (const [path, src] of CLERKING) {
+      if (path in RED_ALLOWED) continue;
+      const m = WEB_RED_FILL.exec(src);
+      expect(m, `${path}: ${m?.[0]}`).toBeNull();
+    }
+  });
+
+  it("in the two allowed files red lives only in its named constants", () => {
+    for (const [p, names] of Object.entries(RED_ALLOWED)) {
+      const src = stripComments(readFileSync(resolve(ROOT, p), "utf8"));
+      for (const line of src.split("\n").filter((l) => WEB_RED_FILL.test(l)))
+        expect(
+          names.some((n) => line.startsWith(`const ${n} =`)),
+          `${p}: ${line}`,
+        ).toBe(true);
+    }
+  });
+
+  it("an urgent badge always travels with the octagon and the word; a score of 3 with its number", () => {
+    const flags = readFileSync(resolve(ROOT, "components/clerking/flags-panel.tsx"), "utf8");
+    expect(flags).toMatch(/b\.level === "urgent" \? OctagonAlertIcon : TriangleAlertIcon/);
+    expect(flags).toMatch(/b\.level === "urgent" \? "urgent" : "needs attention"/);
+    expect(flags).toMatch(/b\.level === "urgent" \? URGENT : CAUTION/);
+    const rail = readFileSync(resolve(ROOT, "components/clerking/rail.tsx"), "utf8");
+    expect(rail).toMatch(/three \? SCORE3 : SCORE12/);
+    expect(rail).toMatch(/title=\{`NEWS2 score \$\{r\.points\}`\}/);
+    expect(rail).toMatch(/const three = r\.points === 3;/);
+  });
+});
+
 describe("never colour alone — web status indicators carry a word", () => {
   it("every Pill / Badge / ClinicalBadge has visible children and is not aria-hidden", () => {
     for (const [path, src] of WEB) {

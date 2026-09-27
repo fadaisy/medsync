@@ -12,6 +12,9 @@ import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 
+import { ClerkingDesk } from "@/components/clerking/clerking-desk";
+import { CLERKING_KEY_HELP, clerkingKey, deriveDesk } from "@/components/clerking/model";
+import { useCatalogue } from "@/components/clerking/use-catalogue";
 import { AllergyEditorView, substanceOf } from "@/components/emr/desk/allergy-editor";
 import { CompleteVisitView } from "@/components/emr/desk/complete";
 import { ContextRailView } from "@/components/emr/desk/context-rail";
@@ -49,6 +52,7 @@ import { SectionIndexView } from "@/components/emr/section-index";
 import { Button } from "@/components/ui/button";
 import { DialogTrigger } from "@/components/ui/dialog";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { SECTIONS } from "@/lib/clerking/status";
 import { closeEncounterAdministratively, completeEncounter } from "@/lib/emr/actions/encounter";
 import {
   assertAllergyStatus,
@@ -63,6 +67,7 @@ import {
 import { acceptSuggestedOrder, dismissSuggestedOrder } from "@/lib/emr/actions/intents";
 import {
   addAddendum,
+  convertDraftToV2,
   cosignNote,
   markNoteEnteredInError,
   saveNoteDraft,
@@ -110,7 +115,10 @@ export function DeskClient({
   const [content, setContent] = useState<NoteContent>(() => p.draft?.content ?? { sections: {} });
   const contentRef = useRef(content);
   const index = useMemo(() => deskIndex(p, content), [p, content]);
-  const [current, setCurrent] = useState(() => index[0]?.id ?? "");
+  // Clerking desk v2 (CLERKING_V2 on, the v2 template in use): its own shell and steps.
+  const v2 = !!p.clerking;
+  const { cat, failed: catalogueFailed } = useCatalogue(p.clerking?.catalogueUrl);
+  const [current, setCurrent] = useState(() => (v2 ? SECTIONS[0].id : (index[0]?.id ?? "")));
   const [announce, setAnnounce] = useState<Msg>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [signing, setSigning] = useState(false);
@@ -242,6 +250,14 @@ export function DeskClient({
   }, [editable]);
 
   const doSign = useCallback(async () => {
+    if (p.clerking) {
+      // D-CV-05: the Flags panel as the clinician sees it goes into the note before signing.
+      if (!cat) {
+        setSheetMsg({ ok: false, text: "The clerking catalogue is still loading. Try again." });
+        return;
+      }
+      change({ ...contentRef.current, flags: deriveDesk(cat, p, contentRef.current).badges });
+    }
     setSigning(true);
     const r = await signFlow({
       autosave,
@@ -255,13 +271,47 @@ export function DeskClient({
     setSheet(null);
     setAnnounce({ ok: true, text: [r.message, ...r.warnings].join(" ") });
     router.refresh();
-  }, [autosave, patientUserId, router]);
+  }, [autosave, patientUserId, router, p, cat, change]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement | null;
       const inField = !!t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
       const ta = t instanceof HTMLTextAreaElement ? t : null;
+      if (v2) {
+        // Inside a pop-up only the sign chord acts; y, n and d act on the focused yes/no row.
+        const row = t?.closest<HTMLElement>("[data-yesno]") ?? null;
+        const k = clerkingKey(
+          {
+            key: e.key,
+            ctrlKey: e.ctrlKey,
+            metaKey: e.metaKey,
+            altKey: e.altKey,
+            inField,
+            inYesNo: !!row,
+          },
+          {
+            current: Math.max(
+              0,
+              SECTIONS.findIndex((x) => x.id === current),
+            ),
+            count: SECTIONS.length,
+          },
+        );
+        if (!k || ((sheet || t?.closest('[role="dialog"]')) && k.type !== "sign")) return;
+        if (k.type === "sign" && sheet && sheet !== "sign") return;
+        e.preventDefault();
+        if (k.type === "section") go(SECTIONS[k.index]!.id);
+        else if (k.type === "search") go("complaint", "clerking-complaint-search");
+        else if (k.type === "help") setSheet("help");
+        else if (k.type === "answer")
+          row?.querySelector<HTMLButtonElement>(`[data-answer="${k.answer}"]`)?.click();
+        else if (k.type === "details")
+          row?.querySelector<HTMLButtonElement>("[data-details]")?.click();
+        else if (sheet !== "sign") openSign();
+        else if (validation.canSign) void doSign();
+        return;
+      }
       const a = deskKey(
         {
           key: e.key,
@@ -294,7 +344,7 @@ export function DeskClient({
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [index, current, sheet, go, openSign, doSign, validation.canSign]);
+  }, [v2, index, current, sheet, go, openSign, doSign, validation.canSign]);
 
   /* ─── Chart actions (commit at once) ────────────────────────────── */
 
@@ -688,21 +738,91 @@ export function DeskClient({
     </EmrDialog>
   );
 
+  // A v1 draft on a hospital whose full form is now v2: the old desk as before, plus a way over.
+  // Never automatic (payload v2, v1 coexistence).
+  const convertible =
+    !v2 &&
+    p.template.id === "tpl.clerking.adult_opd" &&
+    p.fullForm === "tpl.clerking.adult_v2" &&
+    !!p.draft?.noteId;
+  const convert = async () => {
+    setBusy("convert");
+    autosave.flush();
+    try {
+      await autosave.idle();
+    } catch {
+      /* the conversion answers with the revision conflict itself */
+    }
+    const { noteId, revision } = autosave.ids();
+    const r = noteId
+      ? await convertDraftToV2({ surface, patientUserId, noteId, revision: revision ?? 0 })
+      : null;
+    setBusy(null);
+    if (r && !r.ok) setAnnounce({ ok: false, text: r.error });
+    else router.refresh();
+  };
+  const loaders = { findings: deskFindingIndex, terms: deskTermIndex, searchTerms: deskTermSearch };
+
   return (
     <>
-      <DeskView
-        p={p}
-        content={content}
-        current={current}
-        save={save}
-        clockWarning={clockWarning(clock)}
-        announce={announce}
-        on={on}
-        busy={busy}
-        signing={signing}
-        loaders={{ findings: deskFindingIndex, terms: deskTermIndex, searchTerms: deskTermSearch }}
-        slots={{ rail, ncd, orders, indexDialog, contextDialog, tools }}
-      />
+      {convertible ? (
+        <div className="border-border bg-card flex flex-wrap items-center gap-x-4 gap-y-2 border-b px-4 py-3 md:px-8">
+          <p className="text-body-s text-foreground">
+            This draft was started in the previous format.
+          </p>
+          <Button
+            variant="secondary"
+            size="sm"
+            disabled={busy === "convert"}
+            onClick={() => void convert()}
+          >
+            Continue in the new format
+          </Button>
+        </div>
+      ) : null}
+      {v2 ? (
+        <ClerkingDesk
+          p={p}
+          cat={cat}
+          catalogueFailed={catalogueFailed}
+          content={content}
+          current={current}
+          save={save}
+          clockWarning={clockWarning(clock)}
+          announce={announce}
+          on={on}
+          busy={busy}
+          signing={signing}
+          loaders={loaders}
+          slots={{
+            orders,
+            tools: (
+              <Button
+                variant="ghost"
+                size="sm"
+                aria-keyshortcuts="?"
+                onClick={() => setSheet("help")}
+              >
+                Keys <kbd className="font-mono">?</kbd>
+              </Button>
+            ),
+          }}
+        />
+      ) : (
+        <DeskView
+          p={p}
+          content={content}
+          current={current}
+          save={save}
+          clockWarning={clockWarning(clock)}
+          announce={announce}
+          on={on}
+          busy={busy}
+          signing={signing}
+          loaders={loaders}
+          slots={{ rail, ncd, orders, indexDialog, contextDialog, tools }}
+        />
+      )}
 
       <EmrDialog
         open={sheet === "sign"}
@@ -744,7 +864,7 @@ export function DeskClient({
       >
         <div className="flex flex-col gap-4">
           <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2">
-            {KEY_HELP.map(([k, what]) => (
+            {(v2 ? CLERKING_KEY_HELP : KEY_HELP).map(([k, what]) => (
               <div key={k} className="contents">
                 <dt className="text-body-s font-mono">{k}</dt>
                 <dd className="text-body-s text-muted-foreground">{what}</dd>
@@ -752,7 +872,9 @@ export function DeskClient({
             ))}
           </dl>
           <p className="text-caption text-muted-foreground">
-            Off inside text fields, except the sign keys and / at the start of an empty line.
+            {v2
+              ? "Off inside text fields, except the sign keys."
+              : "Off inside text fields, except the sign keys and / at the start of an empty line."}
           </p>
         </div>
       </EmrDialog>
