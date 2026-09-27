@@ -47,7 +47,7 @@ export function PropertyEditor({
             disabled={disabled}
             onStep={(delta) => onEntry((e) => setDuration(e, { delta }))}
           />
-          <span role="group" aria-label="Unit" className="flex flex-wrap gap-1.5">
+          <span role="group" aria-label="Unit" className="flex flex-wrap gap-1.5 max-sm:gap-2">
             {units.map((u) => (
               <Chip
                 key={u.id}

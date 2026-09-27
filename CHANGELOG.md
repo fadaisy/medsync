@@ -5,6 +5,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Clerking desk v2 on a phone — 2026-09-27
+
+- Below 640 px the v2 desk is laid out for a phone (ADR 0169, D-CM-01 to D-CM-07):
+  - a 50 px top bar with Emergency and an account menu;
+  - a patient header with four context tiles;
+  - a sticky step bar that shows the step once and carries name and MRN when the header has scrolled away;
+  - one panel per form group;
+  - a fixed Previous / Next bar;
+  - bottom sheets for everything that opens.
+- The review of systems shows every status in full. History from wraps as chips. Social has one panel per group.
+- Tablet and desktop are unchanged. The v1 desk keeps its old top bar.
+
 ### Added — Clerking desk v2: a tap-first history, dark behind `CLERKING_V2` — 2026-09-27
 
 [ADR 0163](docs/adr/0163-clerking-desk-v2-tap-first-history.md), [0164](docs/adr/0164-clerking-catalogue-as-data.md), [0165](docs/adr/0165-clerking-flag-engine.md), [0166](docs/adr/0166-flags-panel-red-amendment.md), [0167](docs/adr/0167-draft-payload-v2.md), [0168](docs/adr/0168-outbreak-mode.md). Gate record: `docs/emr/clerking-v2/STOP-REPORTS.md`.

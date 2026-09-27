@@ -12,9 +12,9 @@ import { DIABETES_CATALOG } from "@/lib/ncd/catalog/diabetes";
 import { initialCapture, loadLatestVitals, loadPatientDemographics } from "@/lib/ncd/vitals";
 import { doctorWorkspace } from "@/lib/workspace/feature";
 import { EncounterOrders } from "../_orders/encounter-orders";
-import { EmergencyInlineLink } from "../../../_components/emergency-inline-link";
 import { EncounterRail, NextPatient } from "../../../_components/workspace/encounter-extras";
 import { DeskClient } from "./desk-client";
+import { DeskTopBar } from "./desk-top-bar";
 
 /**
  * The clerking desk route body under EMR v1 (UI-BRIEF §3, gate-a E.3). Server-rendered: the top
@@ -79,28 +79,14 @@ export async function DeskPage({
 
   return (
     <div className="bg-background text-foreground flex min-h-svh flex-col xl:h-dvh xl:overflow-hidden">
-      <header className="border-border bg-background sticky top-0 z-30 flex min-h-13 flex-wrap items-center justify-between gap-x-4 gap-y-1 border-b px-4 py-1 md:px-6">
-        <div className="flex min-w-0 items-center gap-3">
-          <BackLink {...back} />
-          <span className="text-body-s text-foreground hidden truncate font-medium sm:inline">
-            Clerking
-          </span>
-        </div>
-        <div className="text-caption text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1">
-          <span className="hidden lg:inline">{scope.hospitalName}</span>
-          <span className="hidden lg:inline">{scope.departmentName}</span>
-          <span className="text-foreground">{p.viewer.cadreWord}</span>
-          <Link
-            href="/sign-out"
-            className="text-body-s hover:text-foreground underline-offset-4 hover:underline"
-          >
-            Sign out
-          </Link>
-          {/* The global Emergency affordance, in the bar: it stands the floating pill down so the
-              pill never covers the desk's fixed action bar on a phone or tablet. */}
-          <EmergencyInlineLink />
-        </div>
-      </header>
+      <DeskTopBar
+        back={back}
+        hospital={scope.hospitalName}
+        department={scope.departmentName}
+        cadreWord={p.viewer.cadreWord}
+        name={scope.fullName}
+        phone={!!p.clerking}
+      />
       {/* Clerking desk v2 draws its own safety bar (Draft, saved time, the NEWS2 chip). */}
       {p.clerking ? null : (
         <SafetyBarView

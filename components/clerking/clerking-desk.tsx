@@ -13,7 +13,7 @@ import type { DeskSection } from "@/lib/clerking/flags";
 import type { SectionId, SectionStatus } from "@/lib/clerking/status";
 import type { NoteContent } from "@/lib/emr/note-rules";
 import type { ReactNode } from "react";
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { CheckIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 
 import { RestrictedMark } from "@/components/emr/chips";
@@ -43,6 +43,13 @@ import {
 } from "./model";
 import { NotePane } from "./note-pane";
 import { PastHistoryBody } from "./past-history-body";
+import {
+  PhoneBottomBar,
+  PhoneHeader,
+  PhoneStepBar,
+  usePhone,
+  useScrolledPast,
+} from "./phone-shell";
 import { ClerkingRail } from "./rail";
 import { SystemsBody } from "./systems-body";
 
@@ -111,7 +118,7 @@ function SafetyBar({
       aria-labelledby="safety-bar-name"
       aria-describedby="safety-bar-summary"
       data-slot="safety-bar"
-      className="bg-background border-border shrink-0 border-b px-4 py-3 md:px-5"
+      className="bg-background border-border shrink-0 border-b px-4 py-3 max-sm:hidden md:px-5"
     >
       <p id="safety-bar-summary" className="sr-only">
         {bar.accessibleSummary}
@@ -396,6 +403,11 @@ function SignBar({
 export function ClerkingDesk(props: ClerkingDeskProps) {
   const { p, cat, content, on, slots = {} } = props;
   const [dialog, setDialog] = useState<null | "context" | "note" | "steps">(null);
+  // Below 640 px: pop-ups are bottom sheets, and the step bar carries the identifiers once the
+  // patient header has scrolled away (D-CM-02, D-CM-05).
+  const phone = usePhone();
+  const headerRef = useRef<HTMLElement | null>(null);
+  const headerGone = useScrolledPast(headerRef);
   // A linked answer in Systems opens its complaint card in Complaint (D-CV-08).
   const [openComplaint, setOpenComplaint] = useState<string | null>(null);
   const fmt = formatters(p.timeZone);
@@ -475,6 +487,7 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
       cautionFrom: signedRef(cat, k.signoff, "REF-FLAG-PAIN-SEVERE"),
       sex: k.sex,
       patient: { name: p.patient.name, mrn: p.patient.mrn },
+      badges: derived.badges,
       openKey: openComplaint,
       onOpenComplaint: (key) => {
         setOpenComplaint(key);
@@ -509,8 +522,22 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
       onRecord={act ? () => go("exam") : undefined}
     />
   );
+  const required = requiredCount(p, validation);
+  const ready = validation.missing.length === 0;
   const noteAndFlags = (inDialog: boolean) => (
     <>
+      {inDialog && phone && editable ? (
+        <p aria-live="polite" className="px-5 pt-1 sm:hidden">
+          {ready ? (
+            <span className="text-body-s inline-flex items-center gap-1 text-teal-700 dark:text-teal-300">
+              <CheckIcon aria-hidden className="size-3.5" />
+              {`Required ${required.met} of ${required.of}`}
+            </span>
+          ) : (
+            <StatusWord tone="caution">{`Required ${required.met} of ${required.of}`}</StatusWord>
+          )}
+        </p>
+      ) : null}
       <FlagsPanel badges={derived?.badges ?? []} onGo={(s: DeskSection) => go(s)} />
       <div className="border-border border-t" />
       {derived ? (
@@ -536,8 +563,8 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
   );
   const signBar = (
     <SignBar
-      required={requiredCount(p, validation)}
-      ready={validation.missing.length === 0}
+      required={required}
+      ready={ready}
       canSign={editable}
       signing={props.signing}
       complete={p.encounter.open}
@@ -579,16 +606,67 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
     </span>
   );
 
+  const phoneStatus = signedNote ? (
+    <StatusWord tone={signedNote.note.tone === "caution" ? "caution" : "neutral"}>
+      {`${signedNote.note.statusText} ${fmt.time(signedNote.note.at)}`}
+    </StatusWord>
+  ) : (
+    <StatusWord tone="neutral">Draft</StatusWord>
+  );
+  const phoneSaved = signedNote ? null : (
+    <span role="status" aria-live="polite" className="inline-flex shrink-0">
+      {props.save.tone === "caution" ? (
+        <StatusWord tone="caution">{props.save.text}</StatusWord>
+      ) : (
+        <span
+          className={cn(
+            "text-body-s inline-flex items-center gap-1 tabular-nums",
+            props.save.text.startsWith("Saved")
+              ? "text-teal-700 dark:text-teal-300"
+              : "text-muted-foreground",
+          )}
+        >
+          {props.save.text.startsWith("Saved") ? (
+            <CheckIcon aria-hidden className="size-3.5" />
+          ) : null}
+          {props.save.text}
+        </span>
+      )}
+    </span>
+  );
+
   return (
-    <div className="flex min-h-0 flex-1 flex-col" data-slot="clerking-desk">
+    // Phone: fields at 16 px so iOS never zooms into them (§5).
+    <div
+      className="flex min-h-0 flex-1 flex-col max-sm:[&_input]:text-base max-sm:[&_textarea]:text-base"
+      data-slot="clerking-desk"
+    >
       <SafetyBar p={p} vitals={vitals} alarm={alarm} status={status} tools={slots.tools} />
+      <PhoneHeader
+        p={p}
+        fmt={fmt}
+        vitals={vitals}
+        alarm={alarm}
+        status={phoneStatus}
+        saved={phoneSaved}
+        headerRef={headerRef}
+        onContext={() => setDialog("context")}
+      />
+      <PhoneStepBar
+        at={at}
+        statuses={derived?.statuses ?? null}
+        badges={derived?.badges ?? []}
+        identity={headerGone ? { name: p.safetyBar.name, mrn: p.safetyBar.mrn } : null}
+        onSteps={() => setDialog("steps")}
+        onNote={() => setDialog("note")}
+      />
       <SectionBar
         statuses={derived?.statuses ?? null}
         current={cur.id}
         done={derived?.done ?? null}
         onSection={go}
       />
-      <div className="border-border flex flex-wrap items-center gap-2 border-b px-4 py-2 xl:hidden">
+      <div className="border-border flex flex-wrap items-center gap-2 border-b px-4 py-2 max-sm:hidden xl:hidden">
         <button
           type="button"
           onClick={() => setDialog("steps")}
@@ -616,7 +694,7 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
         </aside>
 
         <main className="bg-muted/40 flex min-w-0 flex-1 flex-col xl:min-h-0">
-          <div className="relative flex flex-1 flex-col gap-3 p-4 md:p-6 xl:min-h-0 xl:overflow-y-auto">
+          <div className="relative flex flex-1 flex-col gap-3 p-4 max-sm:px-3.5 max-sm:pb-[calc(5.5rem+env(safe-area-inset-bottom))] md:p-6 xl:min-h-0 xl:overflow-y-auto">
             {props.announce ? (
               <p role="status">
                 {props.announce.ok ? (
@@ -637,32 +715,39 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
             <section
               id={`desk-${cur.id}`}
               aria-labelledby={`desk-${cur.id}-heading`}
-              className="bg-card shadow-card rounded-lg"
+              // Phone: no card around the step; its groups are the panels (§3 rule 5).
+              className="bg-card shadow-card rounded-lg max-sm:rounded-none max-sm:bg-transparent max-sm:shadow-none"
             >
-              <header className="border-border flex items-start justify-between gap-4 border-b px-5 py-4">
+              <header className="border-border flex items-start justify-between gap-4 border-b px-5 py-4 max-sm:border-0 max-sm:px-0.5 max-sm:pt-0 max-sm:pb-3">
                 <div className="flex flex-col gap-0.5">
                   <div className="flex items-baseline gap-2.5">
-                    <span aria-hidden className="text-caption text-plum-700 font-mono">
+                    <span
+                      aria-hidden
+                      className="text-caption text-plum-700 font-mono max-sm:hidden"
+                    >
                       {`[${cur.num}]`}
                     </span>
                     <h2
                       id={`desk-${cur.id}-heading`}
                       tabIndex={-1}
-                      className="text-heading-s text-foreground font-medium outline-none"
+                      className="text-heading-s text-foreground max-sm:text-heading-m font-medium outline-none"
                     >
                       {cur.title}
                     </h2>
                   </div>
-                  <p className="text-body-s text-muted-foreground">{BLURB[cur.id]}</p>
+                  <p className="text-body-s text-muted-foreground max-sm:text-body-m">
+                    {BLURB[cur.id]}
+                  </p>
                 </div>
-                <span className="text-caption text-muted-foreground shrink-0 pt-1 font-mono whitespace-nowrap tabular-nums">
+                {/* One step label on the phone: the step bar's (§3 rule 3). */}
+                <span className="text-caption text-muted-foreground shrink-0 pt-1 font-mono whitespace-nowrap tabular-nums max-sm:hidden">
                   {`Step ${at + 1} of ${SECTIONS.length}`}
                 </span>
               </header>
-              <div className="px-5 py-5">{body}</div>
+              <div className="px-5 py-5 max-sm:p-0">{body}</div>
             </section>
           </div>
-          <footer className="border-border bg-background flex shrink-0 items-center justify-between gap-3 border-t px-4 py-3 md:px-6">
+          <footer className="border-border bg-background flex shrink-0 items-center justify-between gap-3 border-t px-4 py-3 max-sm:hidden md:px-6">
             {prev ? (
               <Button
                 variant="secondary"
@@ -691,34 +776,56 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
           <div className="min-h-0 flex-1 overflow-y-auto">{noteAndFlags(false)}</div>
           {signBar}
         </aside>
-        <div className="xl:hidden">{signBar}</div>
+        <div className="max-sm:hidden xl:hidden">{signBar}</div>
       </div>
+      <PhoneBottomBar prev={prev} next={next} onGo={go} onReview={() => setDialog("note")} />
 
       <EmrDialog
         open={dialog === "steps"}
         onOpenChange={(o) => setDialog(o ? "steps" : null)}
-        title="Clerking sections"
-        description={who}
+        title={phone ? "Steps" : "Clerking sections"}
+        description={
+          <>
+            {phone && derived ? (
+              <span className="block">{`${derived.done} of ${SECTIONS.length} done`}</span>
+            ) : null}
+            {who}
+          </>
+        }
+        sheet
       >
-        <ol className="flex flex-col gap-1">
-          {SECTIONS.map((s) => (
-            <li key={s.id}>
-              <StepButton
-                s={s}
-                wide
-                status={derived?.statuses[s.id]}
-                current={s.id === cur.id}
-                onSection={go}
-              />
-            </li>
+        <div className="flex flex-col gap-4">
+          {GROUPS.map((g) => (
+            <section key={g.id} aria-labelledby={`clerking-steps-sheet-${g.id}`}>
+              <h3
+                id={`clerking-steps-sheet-${g.id}`}
+                className="text-caption text-muted-foreground mb-1 tracking-[0.06em] uppercase"
+              >
+                {g.label}
+              </h3>
+              <ol className="flex flex-col gap-1">
+                {SECTIONS.filter((s) => s.group === g.id).map((s) => (
+                  <li key={s.id}>
+                    <StepButton
+                      s={s}
+                      wide
+                      status={derived?.statuses[s.id]}
+                      current={s.id === cur.id}
+                      onSection={go}
+                    />
+                  </li>
+                ))}
+              </ol>
+            </section>
           ))}
-        </ol>
+        </div>
       </EmrDialog>
       <EmrDialog
         open={dialog === "context"}
         onOpenChange={(o) => setDialog(o ? "context" : null)}
         title="Context"
         description={who}
+        sheet
       >
         {rail}
       </EmrDialog>
@@ -728,6 +835,23 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
         title="Note and flags"
         description={who}
         width="wide"
+        sheet="tall"
+        footer={
+          phone ? (
+            <>
+              {p.encounter.open ? (
+                <Button variant="secondary" className={PRESS} onClick={on.onComplete}>
+                  Complete visit
+                </Button>
+              ) : null}
+              {editable ? (
+                <Button className={PRESS} onClick={on.onSign} disabled={!ready || props.signing}>
+                  Sign note
+                </Button>
+              ) : null}
+            </>
+          ) : undefined
+        }
       >
         {noteAndFlags(true)}
       </EmrDialog>

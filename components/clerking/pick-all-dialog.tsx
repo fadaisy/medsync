@@ -60,6 +60,7 @@ export function PickAllDialog({
         if (!o) setFilter("");
       }}
       width="wide"
+      sheet="tall"
       kicker={kicker}
       title={title}
       description={description}
@@ -94,7 +95,7 @@ export function PickAllDialog({
                 <h3 id={`pick-all-${g.id}`} className="text-body-s text-foreground font-medium">
                   {g.label}
                 </h3>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="flex flex-wrap gap-1.5 max-sm:gap-2">
                   {g.items.map((s) => {
                     const on = added.has(s.id);
                     return (

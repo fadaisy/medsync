@@ -22,7 +22,8 @@ import { isRestricted } from "@/lib/clerking/catalogue";
 import { lc } from "@/lib/clerking/compose";
 import { operationById, operationGroups } from "@/lib/clerking/pick-lists";
 import { REACTION_TO_MANIFESTATION } from "@/lib/clerking/record-map";
-import { Chip, FieldRow, YesNoRow } from "./controls";
+import { cn } from "@/lib/utils";
+import { Chip, FieldRow, PANEL, PANEL_HEAD, YesNoRow } from "./controls";
 import { PickAllDialog } from "./pick-all-dialog";
 
 /**
@@ -98,7 +99,7 @@ function Lock() {
 function Heading({ children, aside }: { children: ReactNode; aside?: ReactNode }) {
   return (
     <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-      <h3 className="text-body-s text-foreground font-medium">{children}</h3>
+      <h3 className={cn("text-body-s text-foreground font-medium", PANEL_HEAD)}>{children}</h3>
       {aside ? <span className="text-caption text-muted-foreground">{aside}</span> : null}
     </div>
   );
@@ -157,7 +158,7 @@ function usePending<R>(record: R) {
 
 function SavingCard({ name }: { name: string }) {
   return (
-    <li className="border-border bg-card flex flex-col rounded-lg border py-2 pr-2 pl-3 opacity-70">
+    <li className="border-border bg-card flex flex-col rounded-lg border py-2 pr-2 pl-3 opacity-70 max-sm:rounded-none max-sm:border-0 max-sm:border-t max-sm:px-0 max-sm:py-3">
       <span className="text-body-s text-foreground font-medium">{name}</span>
       <span className="text-caption text-muted-foreground">Saving…</span>
     </li>
@@ -225,16 +226,18 @@ export function PastHistoryBody(props: PastHistoryProps) {
   const [confirming, setConfirming] = useState<string | null>(null);
   const cond = props.cat.data.past_history.conditions.find((c) => c.id === confirming);
   return (
-    <div className="grid gap-x-8 gap-y-6 lg:grid-cols-2">
-      <div className="flex min-w-0 flex-col gap-6">
+    // Phone: one column of panels, allergies first (§4.8); the column wrappers dissolve.
+    <div className="grid gap-x-8 gap-y-6 max-sm:flex max-sm:flex-col max-sm:gap-3 lg:grid-cols-2">
+      <div className="flex min-w-0 flex-col gap-6 max-sm:contents">
         <Conditions {...props} onConfirm={setConfirming} />
         <OperationsAndTransfusions {...props} />
       </div>
-      <div className="flex min-w-0 flex-col gap-6">
+      <div className="flex min-w-0 flex-col gap-6 max-sm:contents">
         <Medicines {...props} />
         <Allergies {...props} />
       </div>
       <EmrDialog
+        sheet
         open={!!cond}
         onOpenChange={(o) => (o ? undefined : setConfirming(null))}
         title="Confirm on the problem list"
@@ -288,7 +291,10 @@ function Conditions({
   const yes = list.filter((c) => history.past.conditions[c.id]?.answer === "yes");
   const listed = new Set(problems.map((x) => x.toLowerCase()));
   return (
-    <section aria-labelledby="clerking-pmh-conditions" className="flex flex-col gap-2">
+    <section
+      aria-labelledby="clerking-pmh-conditions"
+      className={cn("flex flex-col gap-2 max-sm:order-3", PANEL)}
+    >
       <Heading aside="Any of these?">
         <span id="clerking-pmh-conditions">Conditions</span>
       </Heading>
@@ -311,13 +317,13 @@ function Conditions({
           <div
             key={c.id}
             data-condition={c.id}
-            className="bg-muted/40 border-border flex flex-col gap-2 rounded-md border p-3"
+            className="bg-muted/40 border-border flex flex-col gap-2 rounded-md border p-3 max-sm:rounded-xl max-sm:border-0"
           >
             <span className="text-body-s text-foreground font-medium">{`${c.label}: known for`}</span>
             <div
               role="group"
               aria-label={`${c.label}: known for`}
-              className="flex flex-wrap gap-1.5"
+              className="flex flex-wrap gap-1.5 max-sm:gap-2"
             >
               {since.map((o) => (
                 <Chip
@@ -422,11 +428,14 @@ function OperationsAndTransfusions({ cat, history, onHistory, editable, sex }: P
       return { ...h, past: { ...h.past, transfusions: list } };
     });
   return (
-    <section aria-labelledby="clerking-pmh-ops" className="flex flex-col gap-2">
+    <section
+      aria-labelledby="clerking-pmh-ops"
+      className={cn("flex flex-col gap-2 max-sm:order-4", PANEL)}
+    >
       <Heading>
         <span id="clerking-pmh-ops">Operations and transfusions</span>
       </Heading>
-      <div className="flex flex-wrap gap-1.5">
+      <div className="flex flex-wrap gap-1.5 max-sm:gap-2">
         <Chip
           selected={none}
           disabled={!editable}
@@ -518,7 +527,7 @@ function OperationsAndTransfusions({ cat, history, onHistory, editable, sex }: P
       {tfList.map((tf, i) => (
         <div
           key={`tf-${i}`}
-          className="border-border flex flex-col gap-2 rounded-md border p-2.5"
+          className="border-border max-sm:bg-muted/40 flex flex-col gap-2 rounded-md border p-2.5 max-sm:rounded-xl max-sm:border-0"
           data-transfusion={i}
         >
           <div className="flex items-center justify-between gap-2">
@@ -647,21 +656,24 @@ function Medicines({
       </Chip>
     ));
   return (
-    <section aria-labelledby="clerking-pmh-meds" className="flex flex-col gap-2">
+    <section
+      aria-labelledby="clerking-pmh-meds"
+      className={cn("flex flex-col gap-2 max-sm:order-2", PANEL)}
+    >
       <Heading aside={`${meds.length} ${meds.length === 1 ? "medicine" : "medicines"}`}>
         <span id="clerking-pmh-meds">Medicines</span>
       </Heading>
       {meds.length || adding.length ? (
-        <ul className="flex flex-col gap-2">
+        <ul className="flex flex-col gap-2 max-sm:gap-0">
           {meds.map((m) => {
             const isOpen = open === m.statementId;
             return (
               <li
                 key={m.statementId}
                 data-medicine={m.statementId}
-                className="border-border bg-card rounded-lg border"
+                className="border-border bg-card rounded-lg border max-sm:rounded-none max-sm:border-0 max-sm:border-t"
               >
-                <div className="flex items-center gap-2 py-2 pr-2 pl-3">
+                <div className="flex items-center gap-2 py-2 pr-2 pl-3 max-sm:py-3 max-sm:pr-0 max-sm:pl-0">
                   <button
                     type="button"
                     aria-expanded={isOpen}
@@ -669,11 +681,11 @@ function Medicines({
                     onClick={() => setOpen(isOpen ? null : m.statementId)}
                     className="focus-visible:shadow-focus flex min-w-0 flex-1 flex-col rounded-sm text-left outline-none"
                   >
-                    <span className="text-body-s text-foreground inline-flex items-center gap-1.5 font-medium">
+                    <span className="text-body-s text-foreground max-sm:text-body-m inline-flex items-center gap-1.5 font-medium">
                       {m.name}
                       {m.restricted ? <Lock /> : null}
                     </span>
-                    <span className="text-caption text-muted-foreground truncate">
+                    <span className="text-caption text-muted-foreground max-sm:text-body-s truncate max-sm:whitespace-normal">
                       {medicineSummary(cat, m)}
                     </span>
                   </button>
@@ -740,7 +752,11 @@ function Medicines({
       )}
       {act ? (
         <>
-          <div role="group" aria-label="Common medicines" className="flex flex-wrap gap-1.5">
+          <div
+            role="group"
+            aria-label="Common medicines"
+            className="flex flex-wrap gap-1.5 max-sm:gap-2"
+          >
             {picks.map((q) => (
               <Chip
                 key={q.id}
@@ -810,9 +826,15 @@ function Allergies({
   const nkda = a.status === "no_known_drug_allergies" && a.touchedThisVisit;
   const informant = l.source.some((o) => o.id === header.historian) ? header.historian : undefined;
   return (
-    <section aria-labelledby="clerking-pmh-allergies" className="flex flex-col gap-2">
+    <section
+      aria-labelledby="clerking-pmh-allergies"
+      className={cn("flex flex-col gap-2 max-sm:order-1", PANEL)}
+    >
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-        <h3 id="clerking-pmh-allergies" className="text-body-s text-foreground font-medium">
+        <h3
+          id="clerking-pmh-allergies"
+          className={cn("text-body-s text-foreground font-medium", PANEL_HEAD)}
+        >
           Allergies
         </h3>
         <span aria-live="polite">
@@ -824,7 +846,7 @@ function Allergies({
         </span>
       </div>
       {a.items.length || adding.length ? (
-        <ul className="flex flex-col gap-2">
+        <ul className="flex flex-col gap-2 max-sm:gap-0">
           {a.items.map((x) => {
             const isOpen = open === x.id;
             const toggleReaction = (id: string) => {
@@ -840,9 +862,9 @@ function Allergies({
               <li
                 key={x.id}
                 data-allergy={x.id}
-                className="border-border bg-card rounded-lg border"
+                className="border-border bg-card rounded-lg border max-sm:rounded-none max-sm:border-0 max-sm:border-t"
               >
-                <div className="flex items-center gap-2 py-2 pr-2 pl-3">
+                <div className="flex items-center gap-2 py-2 pr-2 pl-3 max-sm:py-3 max-sm:pr-0 max-sm:pl-0">
                   <button
                     type="button"
                     aria-expanded={isOpen}
@@ -850,13 +872,13 @@ function Allergies({
                     onClick={() => setOpen(isOpen ? null : x.id)}
                     className="focus-visible:shadow-focus flex min-w-0 flex-1 flex-col rounded-sm text-left outline-none"
                   >
-                    <span className="text-body-s text-foreground inline-flex flex-wrap items-center gap-1.5 font-medium">
+                    <span className="text-body-s text-foreground max-sm:text-body-m inline-flex flex-wrap items-center gap-1.5 font-medium">
                       {x.name}
                       {x.restricted ? <Lock /> : null}
                       {x.coded ? null : <StatusWord tone="caution">Uncoded</StatusWord>}
                       {highRisk(cat, x) ? <StatusWord tone="caution">High risk</StatusWord> : null}
                     </span>
-                    <span className="text-caption text-muted-foreground truncate">
+                    <span className="text-caption text-muted-foreground max-sm:text-body-s truncate max-sm:whitespace-normal">
                       {allergySummary(cat, x)}
                     </span>
                   </button>
@@ -966,7 +988,7 @@ function Allergies({
           ))}
         </ul>
       ) : null}
-      <div className="flex flex-wrap gap-1.5">
+      <div className="flex flex-wrap gap-1.5 max-sm:gap-2">
         {a.items.length ? (
           <Chip
             selected={!!history.past.allergiesConfirmed}
@@ -993,7 +1015,11 @@ function Allergies({
         ) : null}
       </div>
       {act ? (
-        <div role="group" aria-label="Common allergies" className="flex flex-wrap gap-1.5">
+        <div
+          role="group"
+          aria-label="Common allergies"
+          className="flex flex-wrap gap-1.5 max-sm:gap-2"
+        >
           {picks.map((q) => (
             <Chip
               key={q.id}

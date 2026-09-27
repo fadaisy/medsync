@@ -14,6 +14,18 @@ import { cn } from "@/lib/utils";
 
 const FOCUS = "outline-none focus-visible:shadow-focus";
 const TALL = "min-h-[30px] pointer-coarse:min-h-11";
+
+/**
+ * Below 640 px (PROMPT-CLERKING-MOBILE §3, §5): each form group is one panel on the grey page, and
+ * controls are 36 px (chips) or 32 px (yes/no) to the eye with a 44 px touch area from hit slop
+ * (D-CM-07). Every phone rule is `max-sm:`, so 640 px and up are unchanged.
+ */
+export const PANEL =
+  "max-sm:bg-card max-sm:ring-border max-sm:flex max-sm:flex-col max-sm:gap-3 max-sm:rounded-2xl max-sm:p-3.5 max-sm:shadow-xs max-sm:ring-1";
+/** The panel's heading on the phone (the desktop's own label, restyled). */
+export const PANEL_HEAD = "max-sm:text-body-m max-sm:text-foreground max-sm:font-medium";
+const PHONE_CHIP =
+  "max-sm:text-body-m max-sm:relative max-sm:min-h-9 max-sm:rounded-[10px] max-sm:px-3 max-sm:pointer-coarse:min-h-9 max-sm:after:absolute max-sm:after:inset-x-0 max-sm:after:-inset-y-1";
 const CAUTION = "border-amber-600 bg-status-caution-bg text-amber-800 dark:text-status-caution-fg";
 
 /** A label column (92 px) and its controls, wrapping. */
@@ -28,17 +40,17 @@ export function FieldRow({
   group?: boolean;
 }) {
   return (
-    <div className="flex flex-col gap-1.5 sm:flex-row sm:items-start sm:gap-3">
+    <div className="flex flex-col gap-1.5 max-sm:gap-2 sm:flex-row sm:items-start sm:gap-3">
       <span
         aria-hidden={group || undefined}
-        className="text-caption text-muted-foreground sm:w-[92px] sm:shrink-0 sm:pt-2"
+        className="text-caption text-muted-foreground max-sm:text-body-s sm:w-[92px] sm:shrink-0 sm:pt-2"
       >
         {label}
       </span>
       <div
         role={group ? "group" : undefined}
         aria-label={group ? label : undefined}
-        className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5"
+        className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5 max-sm:gap-2"
       >
         {children}
       </div>
@@ -72,6 +84,7 @@ export function Chip({
         TALL,
         FOCUS,
         PRESS,
+        PHONE_CHIP,
         dashed && "border-dashed",
         selected
           ? "border-teal-600 bg-teal-50 text-teal-800"
@@ -215,6 +228,8 @@ export function YesNoRow({
         onClick={() => onAnswer(a)}
         className={cn(
           "text-caption inline-flex min-h-7 items-center gap-1 rounded-sm px-2.5 pointer-coarse:min-h-11",
+          // Phone: 32 px, 50 px wide, 44 px to the finger (slop stays inside the 48 px row).
+          "max-sm:text-body-s max-sm:relative max-sm:min-h-8 max-sm:min-w-[50px] max-sm:justify-center max-sm:font-medium max-sm:after:absolute max-sm:after:inset-x-0 max-sm:after:-inset-y-1.5 max-sm:pointer-coarse:min-h-8",
           FOCUS,
           on
             ? a === "yes"
@@ -235,8 +250,11 @@ export function YesNoRow({
     );
   };
   return (
-    <div data-yesno className="flex min-h-[34px] items-center justify-between gap-3">
-      <span className="text-body-s text-foreground inline-flex items-center gap-1.5">
+    <div
+      data-yesno
+      className="flex min-h-[34px] items-center justify-between gap-3 max-sm:min-h-12"
+    >
+      <span className="text-body-s text-foreground max-sm:text-body-m inline-flex min-w-0 items-center gap-1.5">
         {label}
         {restricted ? (
           <span title="Restricted" className="text-muted-foreground inline-flex">
@@ -247,7 +265,11 @@ export function YesNoRow({
       </span>
       <span className="inline-flex shrink-0 items-center gap-2">
         {children}
-        <span role="group" aria-label={label} className="bg-muted inline-flex rounded-md p-0.5">
+        <span
+          role="group"
+          aria-label={label}
+          className="bg-muted inline-flex rounded-md p-0.5 max-sm:rounded-[10px]"
+        >
           {btn("yes", "Yes")}
           {btn("no", "No")}
         </span>

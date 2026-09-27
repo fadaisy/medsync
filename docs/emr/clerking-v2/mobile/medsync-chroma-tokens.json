@@ -1,0 +1,1674 @@
+{
+ "name": "MedSync Chroma",
+ "version": 1,
+ "meta": {
+  "source": "drafted from the MedSync design system (tokens, README, components) with an Attio-style craft pass",
+  "base": "https://claude.ai/artifact/1WpFTrcCaPeD4vL8WWP9qy",
+  "status": "draft"
+ },
+ "color": {
+  "themes": [
+   {
+    "id": "light",
+    "name": "Light"
+   },
+   {
+    "id": "dark",
+    "name": "Dark"
+   }
+  ],
+  "tokens": [
+   {
+    "name": "ink-0",
+    "value": {
+     "light": "#ffffff",
+     "dark": "#16181b"
+    },
+    "usage": "Cards and inputs; the brightest surface."
+   },
+   {
+    "name": "ink-25",
+    "value": {
+     "light": "#fbfbfc",
+     "dark": "#131417"
+    },
+    "usage": "Sidebar and table header ground."
+   },
+   {
+    "name": "ink-50",
+    "value": {
+     "light": "#f6f7f8",
+     "dark": "#1a1c20"
+    },
+    "usage": "Raised neutral fill: segmented control track, code, kbd."
+   },
+   {
+    "name": "ink-100",
+    "value": {
+     "light": "#f0f1f3",
+     "dark": "#1f2226"
+    },
+    "usage": "Hover fill for rows, nav items and ghost buttons; neutral cover tiles."
+   },
+   {
+    "name": "ink-150",
+    "value": {
+     "light": "#e9eaed",
+     "dark": "#262a2f"
+    },
+    "usage": "Pressed fill; hairline inside dense tables."
+   },
+   {
+    "name": "ink-200",
+    "value": {
+     "light": "#e3e5e8",
+     "dark": "#2c3036"
+    },
+    "usage": "Default 1px border."
+   },
+   {
+    "name": "ink-300",
+    "value": {
+     "light": "#d0d3d9",
+     "dark": "#3a3f46"
+    },
+    "usage": "Strong border: inputs at rest, secondary button edge."
+   },
+   {
+    "name": "ink-400",
+    "value": {
+     "light": "#a0a5ae",
+     "dark": "#5b616a"
+    },
+    "usage": "Placeholders and disabled glyphs only (below AA by design)."
+   },
+   {
+    "name": "ink-500",
+    "value": {
+     "light": "#6c717b",
+     "dark": "#8a9099"
+    },
+    "usage": "Tertiary text: timestamps, units, attribute labels (4.5:1 on ink-0 and ink-25)."
+   },
+   {
+    "name": "ink-600",
+    "value": {
+     "light": "#545963",
+     "dark": "#a9aeb6"
+    },
+    "usage": "Secondary text: descriptions, table cells that are not the key."
+   },
+   {
+    "name": "ink-700",
+    "value": {
+     "light": "#3d4149",
+     "dark": "#c8ccd2"
+    },
+    "usage": "Icons in neutral UI; slate tag text."
+   },
+   {
+    "name": "ink-800",
+    "value": {
+     "light": "#272a30",
+     "dark": "#e1e3e7"
+    },
+    "usage": "Strong neutral fill (count discs, kbd in dark)."
+   },
+   {
+    "name": "ink-900",
+    "value": {
+     "light": "#17191d",
+     "dark": "#eef0f2"
+    },
+    "usage": "Primary text."
+   },
+   {
+    "name": "ink-950",
+    "value": {
+     "light": "#0f1012",
+     "dark": "#f7f8f9"
+    },
+    "usage": "Deepest ink: dark bands, the cover ink block."
+   },
+   {
+    "name": "teal-50",
+    "value": {
+     "light": "#f0fdfa",
+     "dark": "#042f2e"
+    },
+    "usage": "Teal ramp, carried unchanged from MedSync. Selected row, soft-button fill."
+   },
+   {
+    "name": "teal-100",
+    "value": {
+     "light": "#ccfbf1",
+     "dark": "#064e45"
+    },
+    "usage": "Teal ramp, carried unchanged from MedSync. Soft-button border; selected hover."
+   },
+   {
+    "name": "teal-200",
+    "value": {
+     "light": "#99f6e4",
+     "dark": "#0f766e"
+    },
+    "usage": "Teal ramp, carried unchanged from MedSync. Selected-control border."
+   },
+   {
+    "name": "teal-300",
+    "value": {
+     "light": "#5eead4",
+     "dark": "#0d9488"
+    },
+    "usage": "Teal ramp, carried unchanged from MedSync. Chart band fill."
+   },
+   {
+    "name": "teal-400",
+    "value": {
+     "light": "#2dd4bf",
+     "dark": "#14b8a6"
+    },
+    "usage": "Teal ramp, carried unchanged from MedSync. Chart line (secondary)."
+   },
+   {
+    "name": "teal-500",
+    "value": {
+     "light": "#14b8a6",
+     "dark": "#2dd4bf"
+    },
+    "usage": "Teal ramp, carried unchanged from MedSync. Loader trace; dark-theme action fill."
+   },
+   {
+    "name": "teal-600",
+    "value": {
+     "light": "#0d9488",
+     "dark": "#5eead4"
+    },
+    "usage": "Teal ramp, carried unchanged from MedSync. Focus ring, links, checked controls (light)."
+   },
+   {
+    "name": "teal-700",
+    "value": {
+     "light": "#0f766e",
+     "dark": "#99f6e4"
+    },
+    "usage": "Teal ramp, carried unchanged from MedSync. Primary button fill (light); link text."
+   },
+   {
+    "name": "teal-800",
+    "value": {
+     "light": "#115e59",
+     "dark": "#ccfbf1"
+    },
+    "usage": "Teal ramp, carried unchanged from MedSync. Primary hover (light)."
+   },
+   {
+    "name": "teal-900",
+    "value": {
+     "light": "#134e4a",
+     "dark": "#f0fdfa"
+    },
+    "usage": "Teal ramp, carried unchanged from MedSync. Italic headline accent."
+   },
+   {
+    "name": "teal-950",
+    "value": {
+     "light": "#042f2e",
+     "dark": "#f0fdfa"
+    },
+    "usage": "Teal ramp, carried unchanged from MedSync. Deepest teal band."
+   },
+   {
+    "name": "sky-50",
+    "value": {
+     "light": "#f0f9ff",
+     "dark": "#082f49"
+    },
+    "usage": "Sky ramp (tint fill). Flips with the theme like teal."
+   },
+   {
+    "name": "sky-100",
+    "value": {
+     "light": "#e0f2fe",
+     "dark": "#0c4a6e"
+    },
+    "usage": "Sky ramp (hover tint, avatar ground). Flips with the theme like teal."
+   },
+   {
+    "name": "sky-200",
+    "value": {
+     "light": "#bae6fd",
+     "dark": "#075985"
+    },
+    "usage": "Sky ramp (tint border). Flips with the theme like teal."
+   },
+   {
+    "name": "sky-300",
+    "value": {
+     "light": "#7dd3fc",
+     "dark": "#0369a1"
+    },
+    "usage": "Sky ramp (chart band). Flips with the theme like teal."
+   },
+   {
+    "name": "sky-400",
+    "value": {
+     "light": "#38bdf8",
+     "dark": "#0284c7"
+    },
+    "usage": "Sky ramp (chart line (dark solid)). Flips with the theme like teal."
+   },
+   {
+    "name": "sky-500",
+    "value": {
+     "light": "#0ea5e9",
+     "dark": "#38bdf8"
+    },
+    "usage": "Sky ramp (dot, icon glyph on tint). Flips with the theme like teal."
+   },
+   {
+    "name": "sky-600",
+    "value": {
+     "light": "#0284c7",
+     "dark": "#7dd3fc"
+    },
+    "usage": "Sky ramp (solid block with white text). Flips with the theme like teal."
+   },
+   {
+    "name": "sky-700",
+    "value": {
+     "light": "#0369a1",
+     "dark": "#bae6fd"
+    },
+    "usage": "Sky ramp (text on tint). Flips with the theme like teal."
+   },
+   {
+    "name": "sky-800",
+    "value": {
+     "light": "#075985",
+     "dark": "#e0f2fe"
+    },
+    "usage": "Sky ramp (text on 100). Flips with the theme like teal."
+   },
+   {
+    "name": "sky-900",
+    "value": {
+     "light": "#0c4a6e",
+     "dark": "#f0f9ff"
+    },
+    "usage": "Sky ramp (deep band). Flips with the theme like teal."
+   },
+   {
+    "name": "sky-950",
+    "value": {
+     "light": "#082f49",
+     "dark": "#f0f9ff"
+    },
+    "usage": "Sky ramp (deepest band). Flips with the theme like teal."
+   },
+   {
+    "name": "iris-50",
+    "value": {
+     "light": "#eef2ff",
+     "dark": "#1e1b4b"
+    },
+    "usage": "Iris ramp (tint fill). Flips with the theme like teal."
+   },
+   {
+    "name": "iris-100",
+    "value": {
+     "light": "#e0e7ff",
+     "dark": "#312e81"
+    },
+    "usage": "Iris ramp (hover tint, avatar ground). Flips with the theme like teal."
+   },
+   {
+    "name": "iris-200",
+    "value": {
+     "light": "#c7d2fe",
+     "dark": "#3730a3"
+    },
+    "usage": "Iris ramp (tint border). Flips with the theme like teal."
+   },
+   {
+    "name": "iris-300",
+    "value": {
+     "light": "#a5b4fc",
+     "dark": "#4338ca"
+    },
+    "usage": "Iris ramp (chart band). Flips with the theme like teal."
+   },
+   {
+    "name": "iris-400",
+    "value": {
+     "light": "#818cf8",
+     "dark": "#4f46e5"
+    },
+    "usage": "Iris ramp (chart line (dark solid)). Flips with the theme like teal."
+   },
+   {
+    "name": "iris-500",
+    "value": {
+     "light": "#6366f1",
+     "dark": "#818cf8"
+    },
+    "usage": "Iris ramp (dot, icon glyph on tint). Flips with the theme like teal."
+   },
+   {
+    "name": "iris-600",
+    "value": {
+     "light": "#4f46e5",
+     "dark": "#a5b4fc"
+    },
+    "usage": "Iris ramp (solid block with white text). Flips with the theme like teal."
+   },
+   {
+    "name": "iris-700",
+    "value": {
+     "light": "#4338ca",
+     "dark": "#c7d2fe"
+    },
+    "usage": "Iris ramp (text on tint). Flips with the theme like teal."
+   },
+   {
+    "name": "iris-800",
+    "value": {
+     "light": "#3730a3",
+     "dark": "#e0e7ff"
+    },
+    "usage": "Iris ramp (text on 100). Flips with the theme like teal."
+   },
+   {
+    "name": "iris-900",
+    "value": {
+     "light": "#312e81",
+     "dark": "#eef2ff"
+    },
+    "usage": "Iris ramp (deep band). Flips with the theme like teal."
+   },
+   {
+    "name": "iris-950",
+    "value": {
+     "light": "#1e1b4b",
+     "dark": "#eef2ff"
+    },
+    "usage": "Iris ramp (deepest band). Flips with the theme like teal."
+   },
+   {
+    "name": "grape-50",
+    "value": {
+     "light": "#f5f3ff",
+     "dark": "#2e1065"
+    },
+    "usage": "Grape ramp (tint fill). Flips with the theme like teal."
+   },
+   {
+    "name": "grape-100",
+    "value": {
+     "light": "#ede9fe",
+     "dark": "#4c1d95"
+    },
+    "usage": "Grape ramp (hover tint, avatar ground). Flips with the theme like teal."
+   },
+   {
+    "name": "grape-200",
+    "value": {
+     "light": "#ddd6fe",
+     "dark": "#5b21b6"
+    },
+    "usage": "Grape ramp (tint border). Flips with the theme like teal."
+   },
+   {
+    "name": "grape-300",
+    "value": {
+     "light": "#c4b5fd",
+     "dark": "#6d28d9"
+    },
+    "usage": "Grape ramp (chart band). Flips with the theme like teal."
+   },
+   {
+    "name": "grape-400",
+    "value": {
+     "light": "#a78bfa",
+     "dark": "#7c3aed"
+    },
+    "usage": "Grape ramp (chart line (dark solid)). Flips with the theme like teal."
+   },
+   {
+    "name": "grape-500",
+    "value": {
+     "light": "#8b5cf6",
+     "dark": "#a78bfa"
+    },
+    "usage": "Grape ramp (dot, icon glyph on tint). Flips with the theme like teal."
+   },
+   {
+    "name": "grape-600",
+    "value": {
+     "light": "#7c3aed",
+     "dark": "#c4b5fd"
+    },
+    "usage": "Grape ramp (solid block with white text). Flips with the theme like teal."
+   },
+   {
+    "name": "grape-700",
+    "value": {
+     "light": "#6d28d9",
+     "dark": "#ddd6fe"
+    },
+    "usage": "Grape ramp (text on tint). Flips with the theme like teal."
+   },
+   {
+    "name": "grape-800",
+    "value": {
+     "light": "#5b21b6",
+     "dark": "#ede9fe"
+    },
+    "usage": "Grape ramp (text on 100). Flips with the theme like teal."
+   },
+   {
+    "name": "grape-900",
+    "value": {
+     "light": "#4c1d95",
+     "dark": "#f5f3ff"
+    },
+    "usage": "Grape ramp (deep band). Flips with the theme like teal."
+   },
+   {
+    "name": "grape-950",
+    "value": {
+     "light": "#2e1065",
+     "dark": "#f5f3ff"
+    },
+    "usage": "Grape ramp (deepest band). Flips with the theme like teal."
+   },
+   {
+    "name": "plum-50",
+    "value": {
+     "light": "#fdf3f9",
+     "dark": "#321227"
+    },
+    "usage": "Plum ramp, carried unchanged from MedSync (tint fill)."
+   },
+   {
+    "name": "plum-100",
+    "value": {
+     "light": "#fee4f3",
+     "dark": "#4a173a"
+    },
+    "usage": "Plum ramp, carried unchanged from MedSync (hover tint, avatar ground)."
+   },
+   {
+    "name": "plum-200",
+    "value": {
+     "light": "#fecbe9",
+     "dark": "#671e51"
+    },
+    "usage": "Plum ramp, carried unchanged from MedSync (tint border)."
+   },
+   {
+    "name": "plum-300",
+    "value": {
+     "light": "#fea2dc",
+     "dark": "#862e6b"
+    },
+    "usage": "Plum ramp, carried unchanged from MedSync (chart band)."
+   },
+   {
+    "name": "plum-400",
+    "value": {
+     "light": "#ea7bc4",
+     "dark": "#a94088"
+    },
+    "usage": "Plum ramp, carried unchanged from MedSync (chart line (dark solid))."
+   },
+   {
+    "name": "plum-500",
+    "value": {
+     "light": "#c953a3",
+     "dark": "#cb58a6"
+    },
+    "usage": "Plum ramp, carried unchanged from MedSync (dot, icon glyph on tint)."
+   },
+   {
+    "name": "plum-600",
+    "value": {
+     "light": "#9f2f7e",
+     "dark": "#ed85c8"
+    },
+    "usage": "Plum ramp, carried unchanged from MedSync (solid block with white text)."
+   },
+   {
+    "name": "plum-700",
+    "value": {
+     "light": "#87236a",
+     "dark": "#fda8dd"
+    },
+    "usage": "Plum ramp, carried unchanged from MedSync (text on tint)."
+   },
+   {
+    "name": "plum-800",
+    "value": {
+     "light": "#6a1952",
+     "dark": "#ffcdeb"
+    },
+    "usage": "Plum ramp, carried unchanged from MedSync (text on 100)."
+   },
+   {
+    "name": "plum-900",
+    "value": {
+     "light": "#4e113c",
+     "dark": "#fde7f4"
+    },
+    "usage": "Plum ramp, carried unchanged from MedSync (deep band)."
+   },
+   {
+    "name": "plum-950",
+    "value": {
+     "light": "#321227",
+     "dark": "#fdf3f9"
+    },
+    "usage": "Plum ramp, carried unchanged from MedSync (deepest band)."
+   },
+   {
+    "name": "teal-solid",
+    "value": {
+     "light": "#0f766e",
+     "dark": "#2dd4bf"
+    },
+    "usage": "Action role. Full-strength block: domain tile ground, cover block, marketing band, chart series. Pair with teal-on-solid."
+   },
+   {
+    "name": "teal-on-solid",
+    "value": {
+     "light": "#ffffff",
+     "dark": "#042f2e"
+    },
+    "usage": "Action role. Text and glyphs on teal-solid (at least 4.5:1 in both themes)."
+   },
+   {
+    "name": "teal-tint",
+    "value": {
+     "light": "#f0fdfa",
+     "dark": "#0b2926"
+    },
+    "usage": "Action role. Tag and tile ground, selected nav item in this domain, record-header wash."
+   },
+   {
+    "name": "teal-edge",
+    "value": {
+     "light": "#ccfbf1",
+     "dark": "#134e4a"
+    },
+    "usage": "Action role. 1px border around a teal-tint surface."
+   },
+   {
+    "name": "teal-text",
+    "value": {
+     "light": "#0f766e",
+     "dark": "#5eead4"
+    },
+    "usage": "Action role. Words on teal-tint (tag labels, domain nav label). At least 4.5:1 on teal-tint and ink-0."
+   },
+   {
+    "name": "teal-icon",
+    "value": {
+     "light": "#0d9488",
+     "dark": "#2dd4bf"
+    },
+    "usage": "Action role. Glyph or 8px tag dot on teal-tint or ink-0 (at least 3:1)."
+   },
+   {
+    "name": "sky-solid",
+    "value": {
+     "light": "#0369a1",
+     "dark": "#38bdf8"
+    },
+    "usage": "Full-strength block: domain tile ground, cover block, marketing band, chart series. Pair with sky-on-solid."
+   },
+   {
+    "name": "sky-on-solid",
+    "value": {
+     "light": "#ffffff",
+     "dark": "#082f49"
+    },
+    "usage": "Text and glyphs on sky-solid (at least 4.5:1 in both themes)."
+   },
+   {
+    "name": "sky-tint",
+    "value": {
+     "light": "#f0f9ff",
+     "dark": "#0c2533"
+    },
+    "usage": "Tag and tile ground, selected nav item in this domain, record-header wash."
+   },
+   {
+    "name": "sky-edge",
+    "value": {
+     "light": "#bae6fd",
+     "dark": "#0c4a6e"
+    },
+    "usage": "1px border around a sky-tint surface."
+   },
+   {
+    "name": "sky-text",
+    "value": {
+     "light": "#0369a1",
+     "dark": "#7dd3fc"
+    },
+    "usage": "Words on sky-tint (tag labels, domain nav label). At least 4.5:1 on sky-tint and ink-0."
+   },
+   {
+    "name": "sky-icon",
+    "value": {
+     "light": "#0284c7",
+     "dark": "#38bdf8"
+    },
+    "usage": "Glyph or 8px tag dot on sky-tint or ink-0 (at least 3:1)."
+   },
+   {
+    "name": "iris-solid",
+    "value": {
+     "light": "#4f46e5",
+     "dark": "#818cf8"
+    },
+    "usage": "Full-strength block: domain tile ground, cover block, marketing band, chart series. Pair with iris-on-solid."
+   },
+   {
+    "name": "iris-on-solid",
+    "value": {
+     "light": "#ffffff",
+     "dark": "#1e1b4b"
+    },
+    "usage": "Text and glyphs on iris-solid (at least 4.5:1 in both themes)."
+   },
+   {
+    "name": "iris-tint",
+    "value": {
+     "light": "#eef2ff",
+     "dark": "#1d1f3d"
+    },
+    "usage": "Tag and tile ground, selected nav item in this domain, record-header wash."
+   },
+   {
+    "name": "iris-edge",
+    "value": {
+     "light": "#c7d2fe",
+     "dark": "#312e81"
+    },
+    "usage": "1px border around a iris-tint surface."
+   },
+   {
+    "name": "iris-text",
+    "value": {
+     "light": "#4338ca",
+     "dark": "#a5b4fc"
+    },
+    "usage": "Words on iris-tint (tag labels, domain nav label). At least 4.5:1 on iris-tint and ink-0."
+   },
+   {
+    "name": "iris-icon",
+    "value": {
+     "light": "#4f46e5",
+     "dark": "#818cf8"
+    },
+    "usage": "Glyph or 8px tag dot on iris-tint or ink-0 (at least 3:1)."
+   },
+   {
+    "name": "grape-solid",
+    "value": {
+     "light": "#7c3aed",
+     "dark": "#a78bfa"
+    },
+    "usage": "Full-strength block: domain tile ground, cover block, marketing band, chart series. Pair with grape-on-solid."
+   },
+   {
+    "name": "grape-on-solid",
+    "value": {
+     "light": "#ffffff",
+     "dark": "#2e1065"
+    },
+    "usage": "Text and glyphs on grape-solid (at least 4.5:1 in both themes)."
+   },
+   {
+    "name": "grape-tint",
+    "value": {
+     "light": "#f5f3ff",
+     "dark": "#231a3d"
+    },
+    "usage": "Tag and tile ground, selected nav item in this domain, record-header wash."
+   },
+   {
+    "name": "grape-edge",
+    "value": {
+     "light": "#ddd6fe",
+     "dark": "#4c1d95"
+    },
+    "usage": "1px border around a grape-tint surface."
+   },
+   {
+    "name": "grape-text",
+    "value": {
+     "light": "#6d28d9",
+     "dark": "#c4b5fd"
+    },
+    "usage": "Words on grape-tint (tag labels, domain nav label). At least 4.5:1 on grape-tint and ink-0."
+   },
+   {
+    "name": "grape-icon",
+    "value": {
+     "light": "#7c3aed",
+     "dark": "#a78bfa"
+    },
+    "usage": "Glyph or 8px tag dot on grape-tint or ink-0 (at least 3:1)."
+   },
+   {
+    "name": "plum-solid",
+    "value": {
+     "light": "#9f2f7e",
+     "dark": "#ed85c8"
+    },
+    "usage": "Full-strength block: domain tile ground, cover block, marketing band, chart series. Pair with plum-on-solid."
+   },
+   {
+    "name": "plum-on-solid",
+    "value": {
+     "light": "#ffffff",
+     "dark": "#321227"
+    },
+    "usage": "Text and glyphs on plum-solid (at least 4.5:1 in both themes)."
+   },
+   {
+    "name": "plum-tint",
+    "value": {
+     "light": "#fdf3f9",
+     "dark": "#2a1523"
+    },
+    "usage": "Tag and tile ground, selected nav item in this domain, record-header wash."
+   },
+   {
+    "name": "plum-edge",
+    "value": {
+     "light": "#fecbe9",
+     "dark": "#671e51"
+    },
+    "usage": "1px border around a plum-tint surface."
+   },
+   {
+    "name": "plum-text",
+    "value": {
+     "light": "#87236a",
+     "dark": "#fda8dd"
+    },
+    "usage": "Words on plum-tint (tag labels, domain nav label). At least 4.5:1 on plum-tint and ink-0."
+   },
+   {
+    "name": "plum-icon",
+    "value": {
+     "light": "#c953a3",
+     "dark": "#ed85c8"
+    },
+    "usage": "Glyph or 8px tag dot on plum-tint or ink-0 (at least 3:1)."
+   },
+   {
+    "name": "slate-solid",
+    "value": {
+     "light": "#3d4149",
+     "dark": "#c8ccd2"
+    },
+    "usage": "Full-strength block: domain tile ground, cover block, marketing band, chart series. Pair with slate-on-solid."
+   },
+   {
+    "name": "slate-on-solid",
+    "value": {
+     "light": "#ffffff",
+     "dark": "#16181b"
+    },
+    "usage": "Text and glyphs on slate-solid (at least 4.5:1 in both themes)."
+   },
+   {
+    "name": "slate-tint",
+    "value": {
+     "light": "#f0f1f3",
+     "dark": "#1f2226"
+    },
+    "usage": "Tag and tile ground, selected nav item in this domain, record-header wash."
+   },
+   {
+    "name": "slate-edge",
+    "value": {
+     "light": "#e3e5e8",
+     "dark": "#3a3f46"
+    },
+    "usage": "1px border around a slate-tint surface."
+   },
+   {
+    "name": "slate-text",
+    "value": {
+     "light": "#3d4149",
+     "dark": "#c8ccd2"
+    },
+    "usage": "Words on slate-tint (tag labels, domain nav label). At least 4.5:1 on slate-tint and ink-0."
+   },
+   {
+    "name": "slate-icon",
+    "value": {
+     "light": "#6c717b",
+     "dark": "#8a9099"
+    },
+    "usage": "Glyph or 8px tag dot on slate-tint or ink-0 (at least 3:1)."
+   },
+   {
+    "name": "status-stable-bg",
+    "value": {
+     "light": "#dcfce7",
+     "dark": "#052e16"
+    },
+    "usage": "Clinical signal, carried unchanged from MedSync (CSO-owned). Patient stable, vitals normal. Badge/pill background; pair with status-stable-fg and always a word."
+   },
+   {
+    "name": "status-stable-fg",
+    "value": {
+     "light": "#15803d",
+     "dark": "#4ade80"
+    },
+    "usage": "Clinical signal, carried unchanged from MedSync (CSO-owned). Patient stable, vitals normal. Text on status-stable-bg. 4.6:1 light, 8.6:1 dark."
+   },
+   {
+    "name": "status-critical-bg",
+    "value": {
+     "light": "#fee2e2",
+     "dark": "#450a0a"
+    },
+    "usage": "Clinical signal, carried unchanged from MedSync (CSO-owned). Emergency, critical vitals, alerts — the only red state. Badge/pill background; pair with status-critical-fg and always a word."
+   },
+   {
+    "name": "status-critical-fg",
+    "value": {
+     "light": "#dc2626",
+     "dark": "#fca5a5"
+    },
+    "usage": "Clinical signal, carried unchanged from MedSync (CSO-owned). Emergency, critical vitals, alerts — the only red state. Text on status-critical-bg. 3.95:1 light at 11px badge text — below AA, flagged, kept exact; 8.5:1 dark."
+   },
+   {
+    "name": "status-caution-bg",
+    "value": {
+     "light": "#fef3c7",
+     "dark": "#451a03"
+    },
+    "usage": "Clinical signal, carried unchanged from MedSync (CSO-owned). Warning, borderline vitals. Badge/pill background; pair with status-caution-fg and always a word."
+   },
+   {
+    "name": "status-caution-fg",
+    "value": {
+     "light": "#d97706",
+     "dark": "#fcd34d"
+    },
+    "usage": "Clinical signal, carried unchanged from MedSync (CSO-owned). Warning, borderline vitals. Text on status-caution-bg. 2.9:1 light — below AA, flagged, kept exact; 10.4:1 dark."
+   },
+   {
+    "name": "status-admitted-bg",
+    "value": {
+     "light": "#ccfbf1",
+     "dark": "#042f2e"
+    },
+    "usage": "Clinical signal, carried unchanged from MedSync (CSO-owned). Currently admitted patients. Badge/pill background; pair with status-admitted-fg and always a word."
+   },
+   {
+    "name": "status-admitted-fg",
+    "value": {
+     "light": "#0f766e",
+     "dark": "#5eead4"
+    },
+    "usage": "Clinical signal, carried unchanged from MedSync (CSO-owned). Currently admitted patients. Text on status-admitted-bg. 4.9:1 light, 9.8:1 dark."
+   },
+   {
+    "name": "status-discharged-bg",
+    "value": {
+     "light": "#f3e8ff",
+     "dark": "#2e1065"
+    },
+    "usage": "Clinical signal, carried unchanged from MedSync (CSO-owned). Discharged patients. Badge/pill background; pair with status-discharged-fg and always a word."
+   },
+   {
+    "name": "status-discharged-fg",
+    "value": {
+     "light": "#7c3aed",
+     "dark": "#c4b5fd"
+    },
+    "usage": "Clinical signal, carried unchanged from MedSync (CSO-owned). Discharged patients. Text on status-discharged-bg. 4.8:1 light, 8.3:1 dark."
+   },
+   {
+    "name": "status-pending-bg",
+    "value": {
+     "light": "#f5f5f5",
+     "dark": "#262626"
+    },
+    "usage": "Clinical signal, carried unchanged from MedSync (CSO-owned). Awaiting action, unconfirmed. Badge/pill background; pair with status-pending-fg and always a word."
+   },
+   {
+    "name": "status-pending-fg",
+    "value": {
+     "light": "#525252",
+     "dark": "#a3a3a3"
+    },
+    "usage": "Clinical signal, carried unchanged from MedSync (CSO-owned). Awaiting action, unconfirmed. Text on status-pending-bg. 7.2:1 light, 6.0:1 dark."
+   },
+   {
+    "name": "alert-bg",
+    "value": {
+     "light": "#fef2f2",
+     "dark": "rgba(0, 0, 0, 0)"
+    },
+    "usage": "Clinical signal, carried unchanged from MedSync (CSO-owned). Alert button/field fill. Dark is transparent (outline style); source writes `transparent`."
+   },
+   {
+    "name": "alert-border",
+    "value": {
+     "light": "#fee2e2",
+     "dark": "#7f1d1d"
+    },
+    "usage": "Clinical signal, carried unchanged from MedSync (CSO-owned). Alert button border; invalid-input border in dark."
+   },
+   {
+    "name": "alert-fg",
+    "value": {
+     "light": "#dc2626",
+     "dark": "#fca5a5"
+    },
+    "usage": "Clinical signal, carried unchanged from MedSync (CSO-owned). Alert text. 4.4:1 on alert-bg in light (just under AA); 10.4:1 on dark background."
+   },
+   {
+    "name": "red-600",
+    "value": {
+     "light": "#dc2626",
+     "dark": "#dc2626"
+    },
+    "usage": "Emergency button fill in both themes. Clinical emergencies only (safety property)."
+   },
+   {
+    "name": "red-700",
+    "value": {
+     "light": "#b91c1c",
+     "dark": "#b91c1c"
+    },
+    "usage": "Emergency button hover."
+   },
+   {
+    "name": "status-critical-fg-aa",
+    "value": {
+     "light": "#b91c1c",
+     "dark": "#fca5a5"
+    },
+    "usage": "PROPOSED, needs CSO sign-off: critical chip text at 5.9:1 on status-critical-bg (the carried #dc2626 is 3.95:1). The red-600 fill is unchanged."
+   },
+   {
+    "name": "status-caution-fg-aa",
+    "value": {
+     "light": "#92400e",
+     "dark": "#fcd34d"
+    },
+    "usage": "PROPOSED, needs CSO sign-off: caution chip text at AA on status-caution-bg (the carried #d97706 is 2.9:1)."
+   },
+   {
+    "name": "background",
+    "value": {
+     "light": "#ffffff",
+     "dark": "#0f1012"
+    },
+    "usage": "Page ground."
+   },
+   {
+    "name": "foreground",
+    "value": "{ink-900}",
+    "usage": "Primary text on background, card, muted and every tint."
+   },
+   {
+    "name": "card",
+    "value": "{ink-0}",
+    "usage": "Cards, panels, table body, inputs."
+   },
+   {
+    "name": "card-foreground",
+    "value": "{ink-900}",
+    "usage": "Text on card."
+   },
+   {
+    "name": "popover",
+    "value": {
+     "light": "#ffffff",
+     "dark": "#1c1e22"
+    },
+    "usage": "Menus, dialogs, the command bar."
+   },
+   {
+    "name": "popover-foreground",
+    "value": "{ink-900}",
+    "usage": "Text on popover."
+   },
+   {
+    "name": "primary",
+    "value": "{teal-solid}",
+    "usage": "The one primary action per view. Light fills with teal-700 (white text 5.5:1)."
+   },
+   {
+    "name": "primary-foreground",
+    "value": "{teal-on-solid}",
+    "usage": "Text on primary."
+   },
+   {
+    "name": "primary-hover",
+    "value": {
+     "light": "#115e59",
+     "dark": "#5eead4"
+    },
+    "usage": "Primary hover."
+   },
+   {
+    "name": "secondary",
+    "value": "{ink-0}",
+    "usage": "Secondary button fill (with ink-300 edge and shadow-control)."
+   },
+   {
+    "name": "secondary-foreground",
+    "value": "{ink-900}",
+    "usage": "Secondary button text."
+   },
+   {
+    "name": "muted",
+    "value": "{ink-25}",
+    "usage": "Sidebar, table header, dialog footer."
+   },
+   {
+    "name": "muted-foreground",
+    "value": "{ink-500}",
+    "usage": "Tertiary text on background, card and muted."
+   },
+   {
+    "name": "accent",
+    "value": "{teal-tint}",
+    "usage": "Selected row, checked option ground."
+   },
+   {
+    "name": "accent-foreground",
+    "value": "{teal-text}",
+    "usage": "Text on accent."
+   },
+   {
+    "name": "destructive",
+    "value": {
+     "light": "#dc2626",
+     "dark": "#f87171"
+    },
+    "usage": "Failed action and clinical emergency text or icon only."
+   },
+   {
+    "name": "destructive-foreground",
+    "value": {
+     "light": "#ffffff",
+     "dark": "#1a0606"
+    },
+    "usage": "Text on a destructive fill."
+   },
+   {
+    "name": "border",
+    "value": "{ink-200}",
+    "usage": "Every default 1px edge."
+   },
+   {
+    "name": "input",
+    "value": "{ink-300}",
+    "usage": "Input edge at rest."
+   },
+   {
+    "name": "ring",
+    "value": {
+     "light": "#0d9488",
+     "dark": "#2dd4bf"
+    },
+    "usage": "Focus ring, solid 2px: 3.7:1 on white, 8.9:1 on the dark ground. Replaces #14b8a6 (2.5:1)."
+   },
+   {
+    "name": "sidebar",
+    "value": "{ink-25}",
+    "usage": "Sidebar ground."
+   },
+   {
+    "name": "sidebar-foreground",
+    "value": "{ink-700}",
+    "usage": "Sidebar item text at rest."
+   },
+   {
+    "name": "sidebar-border",
+    "value": "{ink-200}",
+    "usage": "Sidebar right edge."
+   },
+   {
+    "name": "sidebar-accent",
+    "value": "{ink-100}",
+    "usage": "Active item in a neutral area (Home, Inbox). Domain areas use their own <hue>-tint."
+   },
+   {
+    "name": "sidebar-accent-foreground",
+    "value": "{ink-900}",
+    "usage": "Active item text in a neutral area."
+   },
+   {
+    "name": "chart-1",
+    "value": "{teal-icon}",
+    "usage": "Series 1 and every single-series clinical trend."
+   },
+   {
+    "name": "chart-2",
+    "value": "{sky-icon}",
+    "usage": "Series 2."
+   },
+   {
+    "name": "chart-3",
+    "value": "{iris-icon}",
+    "usage": "Series 3."
+   },
+   {
+    "name": "chart-4",
+    "value": "{grape-icon}",
+    "usage": "Series 4."
+   },
+   {
+    "name": "chart-5",
+    "value": "{plum-icon}",
+    "usage": "Series 5."
+   }
+  ]
+ },
+ "type": {
+  "fonts": [],
+  "families": {
+   "display": "\"Bricolage Grotesque\", Geist, ui-sans-serif, system-ui, sans-serif",
+   "sans": "Geist, ui-sans-serif, system-ui, \"Segoe UI\", sans-serif",
+   "mono": "\"Geist Mono\", ui-monospace, \"SF Mono\", Menlo, Consolas, monospace"
+  },
+  "groups": [
+   {
+    "name": "Display",
+    "family": "display",
+    "styles": [
+     {
+      "name": "display-xl",
+      "fontSize": "72px",
+      "lineHeight": 0.98,
+      "letterSpacing": "-0.045em",
+      "fontWeight": 600,
+      "opticalSize": 96,
+      "usage": "Landing hero only.",
+      "sample": "The ward, in colour."
+     },
+     {
+      "name": "display-l",
+      "fontSize": "56px",
+      "lineHeight": 1.02,
+      "letterSpacing": "-0.04em",
+      "fontWeight": 600,
+      "opticalSize": 72,
+      "usage": "Landing section heads.",
+      "sample": "Every patient, placed."
+     },
+     {
+      "name": "display-m",
+      "fontSize": "40px",
+      "lineHeight": 1.08,
+      "letterSpacing": "-0.035em",
+      "fontWeight": 600,
+      "opticalSize": 48,
+      "usage": "Marketing band heads; phone hero.",
+      "sample": "Follow them home"
+     },
+     {
+      "name": "display-s",
+      "fontSize": "30px",
+      "lineHeight": 1.12,
+      "letterSpacing": "-0.03em",
+      "fontWeight": 600,
+      "opticalSize": 36,
+      "usage": "Workspace page titles (Ward 4B, Pharmacy).",
+      "sample": "Ward 4B"
+     }
+    ]
+   },
+   {
+    "name": "Heading",
+    "family": "sans",
+    "styles": [
+     {
+      "name": "heading-l",
+      "fontSize": "22px",
+      "lineHeight": 1.25,
+      "letterSpacing": "-0.02em",
+      "fontWeight": 600,
+      "usage": "Record title (the patient header).",
+      "sample": "MRN-2026-00184"
+     },
+     {
+      "name": "heading-m",
+      "fontSize": "17px",
+      "lineHeight": 1.35,
+      "letterSpacing": "-0.015em",
+      "fontWeight": 600,
+      "usage": "Dialog and panel titles.",
+      "sample": "Admit patient"
+     },
+     {
+      "name": "heading-s",
+      "fontSize": "14px",
+      "lineHeight": 1.4,
+      "letterSpacing": "-0.01em",
+      "fontWeight": 600,
+      "usage": "Card titles, sidebar section names, table key column.",
+      "sample": "Awaiting review"
+     }
+    ]
+   },
+   {
+    "name": "Body",
+    "family": "sans",
+    "styles": [
+     {
+      "name": "body-l",
+      "fontSize": "16px",
+      "lineHeight": 1.6,
+      "letterSpacing": "-0.006em",
+      "fontWeight": 400,
+      "usage": "Lead paragraphs, patient-app body.",
+      "sample": "Your care team saw your readings this morning."
+     },
+     {
+      "name": "body-m",
+      "fontSize": "14px",
+      "lineHeight": 1.5,
+      "letterSpacing": "-0.004em",
+      "fontWeight": 400,
+      "usage": "Default staff UI text.",
+      "sample": "3 of the last 5 fasting readings above target"
+     },
+     {
+      "name": "body-s",
+      "fontSize": "13px",
+      "lineHeight": 1.45,
+      "letterSpacing": "0",
+      "fontWeight": 400,
+      "usage": "Table cells, inputs, buttons, tags.",
+      "sample": "Acknowledged by the on-call doctor · 07:40"
+     },
+     {
+      "name": "label",
+      "fontSize": "13px",
+      "lineHeight": 1.4,
+      "letterSpacing": "-0.003em",
+      "fontWeight": 500,
+      "usage": "Button labels, nav items, field labels.",
+      "sample": "Add finding"
+     },
+     {
+      "name": "caption",
+      "fontSize": "12px",
+      "lineHeight": 1.35,
+      "letterSpacing": "0.005em",
+      "fontWeight": 500,
+      "usage": "Attribute labels, hints, chip text at 12px.",
+      "sample": "Last reviewed"
+     },
+     {
+      "name": "overline",
+      "fontSize": "11px",
+      "lineHeight": 1.3,
+      "letterSpacing": "0.06em",
+      "fontWeight": 600,
+      "usage": "ALL-CAPS group labels and vital labels.",
+      "sample": "FASTING GLUCOSE"
+     }
+    ]
+   },
+   {
+    "name": "Clinical data",
+    "family": "mono",
+    "styles": [
+     {
+      "name": "stat",
+      "fontSize": "28px",
+      "lineHeight": 1.1,
+      "letterSpacing": "-0.02em",
+      "fontWeight": 500,
+      "usage": "StatCard number, tabular-nums.",
+      "sample": "41 / 48"
+     },
+     {
+      "name": "vital",
+      "fontSize": "22px",
+      "lineHeight": 1.2,
+      "letterSpacing": "-0.01em",
+      "fontWeight": 500,
+      "usage": "Vital values, tabular-nums. Out of range: 700 in status-critical-fg with an icon.",
+      "sample": "14.2"
+     },
+     {
+      "name": "mono-s",
+      "fontSize": "12px",
+      "lineHeight": 1.4,
+      "letterSpacing": "0.02em",
+      "fontWeight": 400,
+      "usage": "MRNs, bed codes, timestamps in tables.",
+      "sample": "MRN-2026-00184"
+     },
+     {
+      "name": "kbd",
+      "fontSize": "11px",
+      "lineHeight": 1,
+      "letterSpacing": "0",
+      "fontWeight": 500,
+      "usage": "Keyboard hints (⌘K, Esc).",
+      "sample": "⌘K"
+     }
+    ]
+   }
+  ]
+ },
+ "spacing": {
+  "note": "4px base grid (--spacing: 0.25rem). Names follow the Tailwind utility (spacing-6 = p-6 = 24px).",
+  "tokens": [
+   {
+    "name": "spacing-0",
+    "value": "0",
+    "usage": "Tailwind p-0."
+   },
+   {
+    "name": "spacing-0.5",
+    "value": "2px",
+    "usage": "Badge vertical padding."
+   },
+   {
+    "name": "spacing-1",
+    "value": "4px",
+    "usage": "Base grid unit; label-to-field gap."
+   },
+   {
+    "name": "spacing-1.5",
+    "value": "6px",
+    "usage": "Inline gaps in paths and small buttons."
+   },
+   {
+    "name": "spacing-2",
+    "value": "8px",
+    "usage": "Input vertical padding."
+   },
+   {
+    "name": "spacing-2.5",
+    "value": "10px",
+    "usage": "Input / badge horizontal padding."
+   },
+   {
+    "name": "spacing-3",
+    "value": "12px",
+    "usage": "Vitals gap; stat-card gap."
+   },
+   {
+    "name": "spacing-4",
+    "value": "16px",
+    "usage": "Default grid gap; mobile page padding; card gap."
+   },
+   {
+    "name": "spacing-5",
+    "value": "20px",
+    "usage": "Tailwind p-5."
+   },
+   {
+    "name": "spacing-6",
+    "value": "24px",
+    "usage": "Card padding."
+   },
+   {
+    "name": "spacing-8",
+    "value": "32px",
+    "usage": "Desktop page padding."
+   },
+   {
+    "name": "spacing-10",
+    "value": "40px",
+    "usage": "Tailwind p-10."
+   },
+   {
+    "name": "spacing-12",
+    "value": "48px",
+    "usage": "Tailwind p-12."
+   },
+   {
+    "name": "spacing-14",
+    "value": "56px",
+    "usage": "Tailwind p-14."
+   },
+   {
+    "name": "spacing-16",
+    "value": "64px",
+    "usage": "Module gap."
+   },
+   {
+    "name": "spacing-20",
+    "value": "80px",
+    "usage": "Tailwind p-20."
+   },
+   {
+    "name": "spacing-24",
+    "value": "96px",
+    "usage": "Tailwind p-24."
+   },
+   {
+    "name": "spacing-30",
+    "value": "120px",
+    "usage": "Non-standard step: p-30 or p-[120px]."
+   },
+   {
+    "name": "spacing-40",
+    "value": "160px",
+    "usage": "Tailwind p-40."
+   }
+  ]
+ },
+ "layout": {
+  "note": "Layout constants.",
+  "tokens": [
+   {
+    "name": "sidebar-width",
+    "value": "248px",
+    "usage": "Expanded sidebar."
+   },
+   {
+    "name": "sidebar-collapsed",
+    "value": "56px",
+    "usage": "Collapsed rail."
+   },
+   {
+    "name": "content-max",
+    "value": "1280px",
+    "usage": "Content max-width on record and list pages."
+   },
+   {
+    "name": "topbar-height",
+    "value": "48px",
+    "usage": "Workspace top bar (breadcrumb, view switcher, actions)."
+   },
+   {
+    "name": "row-table",
+    "value": "38px",
+    "usage": "Record table row on desktop (pointer)."
+   },
+   {
+    "name": "row-touch",
+    "value": "44px",
+    "usage": "Minimum touch target; table rows on tablets and phones."
+   },
+   {
+    "name": "tile-sm",
+    "value": "20px",
+    "usage": "Domain tile in the sidebar and table headers."
+   },
+   {
+    "name": "tile-md",
+    "value": "28px",
+    "usage": "Domain tile in record headers and the command bar."
+   },
+   {
+    "name": "tile-lg",
+    "value": "40px",
+    "usage": "Domain tile on the home launcher."
+   },
+   {
+    "name": "page-pad-desktop",
+    "value": "32px",
+    "usage": "Page padding, desktop."
+   },
+   {
+    "name": "page-pad-mobile",
+    "value": "16px",
+    "usage": "Page padding, phones."
+   },
+   {
+    "name": "grid-gap",
+    "value": "16px",
+    "usage": "Default grid gap."
+   }
+  ]
+ },
+ "radius": {
+  "tokens": [
+   {
+    "name": "radius-xs",
+    "value": "4px",
+    "usage": "Kbd, count discs on small controls, the 8px tag dot container."
+   },
+   {
+    "name": "radius-sm",
+    "value": "6px",
+    "usage": "Tags, status pills, inputs, small buttons, domain tiles at 20px."
+   },
+   {
+    "name": "radius-md",
+    "value": "8px",
+    "usage": "Buttons, nav items, domain tiles at 28px, menus items."
+   },
+   {
+    "name": "radius-lg",
+    "value": "12px",
+    "usage": "Cards, panels, tables, domain tiles at 40px, cover blocks."
+   },
+   {
+    "name": "radius-xl",
+    "value": "16px",
+    "usage": "Dialogs and the command bar."
+   },
+   {
+    "name": "radius-2xl",
+    "value": "24px",
+    "usage": "Marketing bands and hero media."
+   },
+   {
+    "name": "radius-full",
+    "value": "9999px",
+    "usage": "Avatars, the tag dot, switches."
+   }
+  ]
+ },
+ "shadow": {
+  "note": "Crisp and layered: a 1px ring plus a short soft drop. Dark adds a faint top highlight instead of more blur.",
+  "tokens": [
+   {
+    "name": "shadow-xs",
+    "value": {
+     "light": "0 1px 2px rgba(16, 18, 22, 0.05)",
+     "dark": "0 1px 2px rgba(0, 0, 0, 0.4)"
+    },
+    "usage": "Panels, stat cards."
+   },
+   {
+    "name": "shadow-control",
+    "value": {
+     "light": "0 1px 2px rgba(16, 18, 22, 0.06), inset 0 -1px 0 rgba(16, 18, 22, 0.04)",
+     "dark": "0 1px 2px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05)"
+    },
+    "usage": "Secondary buttons, segmented control thumb, inputs on hover."
+   },
+   {
+    "name": "shadow-primary",
+    "value": {
+     "light": "inset 0 1px 0 rgba(255, 255, 255, 0.16), 0 1px 2px rgba(15, 118, 110, 0.3)",
+     "dark": "inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 1px 2px rgba(0, 0, 0, 0.5)"
+    },
+    "usage": "Primary button: a top highlight and a teal-tinted drop."
+   },
+   {
+    "name": "shadow-card",
+    "value": {
+     "light": "0 0 0 1px rgba(16, 18, 22, 0.06), 0 1px 3px rgba(16, 18, 22, 0.05)",
+     "dark": "0 0 0 1px rgba(255, 255, 255, 0.06), 0 1px 3px rgba(0, 0, 0, 0.5)"
+    },
+    "usage": "Standard card."
+   },
+   {
+    "name": "shadow-popover",
+    "value": {
+     "light": "0 0 0 1px rgba(16, 18, 22, 0.08), 0 4px 8px -2px rgba(16, 18, 22, 0.06), 0 16px 32px -8px rgba(16, 18, 22, 0.16)",
+     "dark": "0 0 0 1px rgba(255, 255, 255, 0.08), 0 4px 8px -2px rgba(0, 0, 0, 0.5), 0 16px 32px -8px rgba(0, 0, 0, 0.7)"
+    },
+    "usage": "Menus, dialogs, command bar. The heaviest allowed."
+   },
+   {
+    "name": "shadow-focus",
+    "value": {
+     "light": "0 0 0 1px #ffffff, 0 0 0 3px #0d9488",
+     "dark": "0 0 0 1px #0f1012, 0 0 0 3px #2dd4bf"
+    },
+    "usage": "Keyboard focus on buttons and tiles: a ground gap and a solid 2px ring."
+   }
+  ]
+ },
+ "duration": {
+  "tokens": [
+   {
+    "name": "duration-fast",
+    "value": "100ms",
+    "usage": "Hover, focus, vitals refresh."
+   },
+   {
+    "name": "duration-normal",
+    "value": "150ms",
+    "usage": "Buttons, inputs, badges."
+   },
+   {
+    "name": "duration-slow",
+    "value": "250ms",
+    "usage": "Panels, modals."
+   },
+   {
+    "name": "duration-reveal",
+    "value": "400ms",
+    "usage": "Dashboard reveal; stagger 40ms between siblings."
+   }
+  ]
+ },
+ "easing": {
+  "tokens": [
+   {
+    "name": "ease-expo-out",
+    "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+    "usage": "Every transition by default."
+   },
+   {
+    "name": "ease-symmetric",
+    "value": "cubic-bezier(0.45, 0, 0.55, 1)",
+    "usage": "Looping or reversible motion (ECG loader, pulse dot)."
+   },
+   {
+    "name": "ease-spring",
+    "value": "cubic-bezier(0.34, 1.56, 0.64, 1)",
+    "usage": "Only scale-in on chips/badges — never on layout size."
+   }
+  ]
+ }
+}

@@ -21,7 +21,8 @@ import {
 } from "@/lib/clerking/answers";
 import { isRestricted } from "@/lib/clerking/catalogue";
 import { occupationByLabel, OCCUPATIONS } from "@/lib/clerking/pick-lists";
-import { Chip, YesNoRow } from "./controls";
+import { cn } from "@/lib/utils";
+import { Chip, PANEL, PANEL_HEAD, YesNoRow } from "./controls";
 import { PickAllDialog } from "./pick-all-dialog";
 
 /**
@@ -49,30 +50,46 @@ export function FamilyBody({ cat, history, onHistory, editable }: HistoryBodyPro
     onHistory((h) => ({ ...h, family: fn(h.family) }));
   const yes = list.filter((c) => history.family[c.id]?.answer === "yes");
   return (
-    <div className="flex flex-col gap-4">
-      <h3 className="text-body-s text-foreground font-medium">In a parent, sibling or child</h3>
-      <div className="grid gap-x-8 sm:grid-cols-2">
-        {list.map((c) => (
-          <YesNoRow
-            key={c.id}
-            label={c.label}
-            value={history.family[c.id]?.answer}
-            restricted={isRestricted(c.sensitivity)}
-            disabled={!editable}
-            onAnswer={(a) => put((f) => toggleEntry(f, c.id, a))}
-          />
-        ))}
-      </div>
+    <div className="flex flex-col gap-4 max-sm:gap-3">
+      <section aria-labelledby="clerking-fh-head" className={cn(PANEL, "max-sm:gap-1")}>
+        <h3
+          id="clerking-fh-head"
+          className={cn("text-body-s text-foreground font-medium", PANEL_HEAD)}
+        >
+          In a parent, sibling or child
+        </h3>
+        <div className="max-sm:divide-border grid gap-x-8 max-sm:divide-y sm:grid-cols-2">
+          {list.map((c) => (
+            <YesNoRow
+              key={c.id}
+              label={c.label}
+              value={history.family[c.id]?.answer}
+              restricted={isRestricted(c.sensitivity)}
+              disabled={!editable}
+              onAnswer={(a) => put((f) => toggleEntry(f, c.id, a))}
+            />
+          ))}
+        </div>
+      </section>
       {yes.map((c) => {
         const who = history.family[c.id]?.relations ?? [];
         return (
           <div
             key={c.id}
             data-family={c.id}
-            className="bg-muted/40 border-border flex flex-wrap items-center gap-x-4 gap-y-2 rounded-md border p-3"
+            className={cn(
+              "bg-muted/40 border-border flex flex-wrap items-center gap-x-4 gap-y-2 rounded-md border p-3 max-sm:border-0",
+              PANEL,
+            )}
           >
-            <span className="text-body-s text-foreground font-medium">{`${c.label}: who`}</span>
-            <div role="group" aria-label={`${c.label}: who`} className="flex flex-wrap gap-1.5">
+            <span className={cn("text-body-s text-foreground font-medium", PANEL_HEAD)}>
+              {`${c.label}: who`}
+            </span>
+            <div
+              role="group"
+              aria-label={`${c.label}: who`}
+              className="flex flex-wrap gap-1.5 max-sm:gap-2"
+            >
               {rel.map((o) => (
                 <Chip
                   key={o.id}
@@ -103,10 +120,16 @@ export function FamilyBody({ cat, history, onHistory, editable }: HistoryBodyPro
 /* ─── [06] Social ───────────────────────────────────────────────── */
 
 /** A label column (110 px, as the prototype) and its controls. */
+/** One social-history group: a label column and its controls; on the phone, one panel (M6). */
 function Row({ label, lock, children }: { label: string; lock?: boolean; children: ReactNode }) {
   return (
-    <div className="flex flex-col gap-1.5 sm:flex-row sm:items-start sm:gap-4">
-      <span className="text-caption text-muted-foreground inline-flex items-center gap-1 sm:w-[110px] sm:shrink-0 sm:pt-2">
+    <div className={cn("flex flex-col gap-1.5 sm:flex-row sm:items-start sm:gap-4", PANEL)}>
+      <span
+        className={cn(
+          "text-caption text-muted-foreground inline-flex items-center gap-1 sm:w-[110px] sm:shrink-0 sm:pt-2",
+          PANEL_HEAD,
+        )}
+      >
         {label}
         {lock ? <Lock /> : null}
       </span>
@@ -129,7 +152,7 @@ function Chips({
   disabled: boolean;
 }) {
   return (
-    <div role="group" aria-label={label} className="flex flex-wrap gap-1.5">
+    <div role="group" aria-label={label} className="flex flex-wrap gap-1.5 max-sm:gap-2">
       {options.map((o) => (
         <Chip
           key={o.id}
@@ -266,7 +289,7 @@ export function SocialBody({ cat, history, onHistory, editable }: HistoryBodyPro
   const drinks = !!so.alcohol && so.alcohol !== "none";
   const substancesLocked = isRestricted(sh.other_substances.sensitivity);
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 max-sm:gap-3">
       <Row label="Tobacco">
         <Chips
           label="Tobacco"
@@ -306,7 +329,11 @@ export function SocialBody({ cat, history, onHistory, editable }: HistoryBodyPro
                 {py !== null ? `= ${py} pack-years` : "= – pack-years"}
               </output>
             </div>
-            <div role="group" aria-label="A day" className="flex flex-wrap items-center gap-1.5">
+            <div
+              role="group"
+              aria-label="A day"
+              className="flex flex-wrap items-center gap-1.5 max-sm:gap-2"
+            >
               {DAY_PICKS.map(([n, label]) => (
                 <Chip
                   key={n}
@@ -356,7 +383,7 @@ export function SocialBody({ cat, history, onHistory, editable }: HistoryBodyPro
             />
             <section
               aria-labelledby="clerking-cage"
-              className="border-border flex flex-col rounded-md border px-3 py-2"
+              className="border-border flex flex-col rounded-md border px-3 py-2 max-sm:rounded-none max-sm:border-0 max-sm:border-t max-sm:px-0 max-sm:pt-3 max-sm:pb-0"
             >
               <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
                 <h4 id="clerking-cage" className="text-body-s text-foreground font-medium">
@@ -403,27 +430,40 @@ export function SocialBody({ cat, history, onHistory, editable }: HistoryBodyPro
           disabled={off}
         />
       </Row>
-      <Row label="Lives">
-        <Chips
-          label="Lives"
-          options={sh.living}
-          selected={(id) => so.living === id}
-          onPress={(id) => one("living", id)}
-          disabled={off}
-        />
-      </Row>
-      <Row label="Activity">
-        <Chips
-          label="Activity"
-          options={sh.activity}
-          selected={(id) => so.activity === id}
-          onPress={(id) => one("activity", id)}
-          disabled={off}
-        />
-      </Row>
+      {/* Phone: Lives and Activity share one panel, "Home and activity" (§4.10). */}
+      <div
+        className={cn(
+          "contents",
+          "max-sm:bg-card max-sm:ring-border max-sm:flex max-sm:flex-col max-sm:gap-3 max-sm:rounded-2xl max-sm:p-3.5 max-sm:shadow-xs max-sm:ring-1 max-sm:[&>div]:bg-transparent max-sm:[&>div]:p-0 max-sm:[&>div]:shadow-none max-sm:[&>div]:ring-0",
+        )}
+      >
+        <span className={cn("sm:hidden", PANEL_HEAD)}>Home and activity</span>
+        <Row label="Lives">
+          <Chips
+            label="Lives"
+            options={sh.living}
+            selected={(id) => so.living === id}
+            onPress={(id) => one("living", id)}
+            disabled={off}
+          />
+        </Row>
+        <Row label="Activity">
+          <Chips
+            label="Activity"
+            options={sh.activity}
+            selected={(id) => so.activity === id}
+            onPress={(id) => one("activity", id)}
+            disabled={off}
+          />
+        </Row>
+      </div>
       <Row label="Occupation">
         <OccupationField value={so.occupation ?? ""} disabled={off} onChange={setOccupation} />
-        <div role="group" aria-label="Occupation hints" className="flex flex-wrap gap-1.5">
+        <div
+          role="group"
+          aria-label="Occupation hints"
+          className="flex flex-wrap gap-1.5 max-sm:gap-2"
+        >
           {sh.occupation.hints.map((hint) => (
             <Chip
               key={hint}
