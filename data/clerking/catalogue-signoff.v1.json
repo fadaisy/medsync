@@ -1,0 +1,13 @@
+{
+  "catalogue": "MS-EMR-CLERK-CAT-001",
+  "catalogueVersion": "1.0.0-draft",
+  "catalogueSha256": "66a0486cc165b86786a7132c483b60d558dea1e402a7d457bc411ee92931b888",
+  "signedBy": "Fadhul (owner and CSO)",
+  "signedOn": "2026-09-27",
+  "gate": "GATE A, clerking desk v2 (docs/emr/clerking-v2/gate-a-proposal.md)",
+  "decisions": "D-CV-01 to D-CV-16 as recommended; D-CV-11: build on today's tokens, Chroma ships separately; H1 to H12 including migration 0076",
+  "flagRules": "all",
+  "referenceEntries": "all",
+  "note": "Signed as drafted, with the D-CV-04 corrections already in the catalogue. To switch a rule or value off, list its id under 'withheld'; a rule whose reference is withheld does not fire (Law 7).",
+  "withheld": []
+}

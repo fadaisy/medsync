@@ -39,3 +39,14 @@ Gate record for PROMPT-CLERKING-DESK-V2 on `feat/clerking-v2` (cut from `release
 **Failing tests:** `tests/clerking/baseline.test.ts` covers C2, C3 and C6: 3 of 3 expected to fail. They are `it.fails`, so the suite stays green and each flips when fixed.
 
 **Proposal for GATE A:** `gate-a-proposal.md`, with harmonisations H1–H12 and appendices A–C generated from the catalogue.
+
+## STOP 1 — GATE A signed (2026-09-27)
+
+Fadhul (owner and CSO) signed in session, as recommended:
+
+- D-CV-01 to D-CV-16;
+- D-CV-11 as **build on today's tokens; Chroma ships as its own release**;
+- H1–H12, including migration 0076 (GATED);
+- **all 75 flag rules and 19 reference values as drafted.**
+
+The signature is recorded in `data/clerking/catalogue-signoff.v1.json`, pinned to the catalogue's SHA-256. The engine fires a rule only if it is signed there, and never if its reference is withheld (Law 7). The runtime catalogue is `data/clerking/clerking-history-catalogue.v1.json`, byte-identical to the handoff copy; a test holds them equal.

@@ -212,7 +212,7 @@ interface NoteContentV2 {
 - **Alternative:** build v2 on today's tokens. The layout, interaction and behaviour are identical; the display face and the indigo "current step" wait for Chroma, where they arrive as a token swap.
 - **Recommendation:** build on today's tokens now, and let Chroma land as its own release.
 
-**Signature:** _______________________ (Fadhul, owner and CSO) Date: ___________
+**Signature:** signed as recommended by Fadhul (owner and CSO), 27 Sep 2026, in session: D-CV-01 to D-CV-16, D-CV-11 as "today's tokens, Chroma later", H1–H12 including migration 0076, and all 75 flag rules and 19 reference values as drafted. Recorded in `data/clerking/catalogue-signoff.v1.json`.
 
 ---
 
