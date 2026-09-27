@@ -317,6 +317,8 @@ describe.skipIf(!laneOn)("clerking desk v2 (PGlite lane)", () => {
       outbreakMode: false,
     });
     expect(on.clerking!.medicines.map((m) => m.name)).toContain("Amlodipine");
+    // A typed medicine is named in the chart too, not "Medicine not named".
+    expect(on.context.medicines.map((m) => m.display)).toContain("Amlodipine");
     expect(on.clerking).toMatchObject({ sex: "male", ageYears: expect.any(Number) });
     expect(on.clerking!.catalogueUrl).toMatch(/^\/api\/clerking\/catalogue\?v=[0-9a-f]{16}$/);
   });

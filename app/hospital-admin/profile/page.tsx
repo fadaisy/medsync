@@ -1,9 +1,13 @@
 import type { Metadata } from "next";
+import { eq } from "drizzle-orm";
 
 import { Panel, SectionRule } from "@/components/medsync/panel";
+import { db } from "@/db";
+import { hospitalClinicalSettings } from "@/db/schema/clerking";
 import { fetchEmergencySettings } from "@/lib/emergency/queries";
 import { requireHospitalAdminScope } from "@/lib/hospital-admin/scope";
 import { EmergencySettingsForm } from "./_components/emergency-settings-form";
+import { OutbreakModeForm } from "./_components/outbreak-mode-form";
 
 export const metadata: Metadata = { title: "Profile · Hospital admin · MedSync" };
 export const dynamic = "force-dynamic";
@@ -26,6 +30,16 @@ const LEVEL_LABEL: Record<string, string> = {
 export default async function ProfilePage() {
   const scope = await requireHospitalAdminScope();
   const settings = await fetchEmergencySettings(scope.hospitalId);
+  // Before migration 0076 the table does not exist: the panel says so (null).
+  const outbreak = await db
+    .select({
+      on: hospitalClinicalSettings.outbreakMode,
+      reason: hospitalClinicalSettings.outbreakReason,
+    })
+    .from(hospitalClinicalSettings)
+    .where(eq(hospitalClinicalSettings.hospitalId, scope.hospitalId))
+    .then((r) => r[0] ?? { on: false, reason: null })
+    .catch(() => null);
 
   const identity: [string, string][] = [
     ["Name", scope.hospitalName],
@@ -69,6 +83,10 @@ export default async function ProfilePage() {
               tell the superadmin.
             </p>
           )}
+        </Panel>
+
+        <Panel title="Outbreak mode">
+          <OutbreakModeForm on={outbreak?.on ?? null} reason={outbreak?.reason ?? null} />
         </Panel>
       </div>
     </div>

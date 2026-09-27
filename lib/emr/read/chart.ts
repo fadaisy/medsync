@@ -376,6 +376,25 @@ export async function loadChartFor(
   const names: Record<string, string> = {};
   for (const r of nameRows) if (r.name) names[r.id] = r.name;
 
+  // Typed (uncoded) medicines: their names are ciphertext, never facts. Decrypt only the rows the
+  // reader has already been shown (the snapshot), so access stays the reader's decision.
+  const uncoded = rec.snapshot.facts
+    .filter((f) => f.kind === "medication" && !f.drug)
+    .map((f) => f.provenance.rowId);
+  const medicineNames: Record<string, string> = {};
+  if (uncoded.length)
+    for (const r of await conn
+      .select({ id: medicationStatements.id, text: medicationStatements.drugTextCiphertext })
+      .from(medicationStatements)
+      .where(inArray(medicationStatements.id, uncoded))) {
+      if (!r.text) continue;
+      try {
+        medicineNames[r.id] = decrypt(r.text);
+      } catch {
+        /* a row that will not decrypt keeps "Medicine not named" */
+      }
+    }
+
   const orders: ChartOrderInput[] = [];
   const orderOut: ChartOrderRow[] = [];
   for (const o of rec.orderRows) {
@@ -452,6 +471,7 @@ export async function loadChartFor(
     results,
     notes: rec.notes,
     noteEvents,
+    medicineNames,
     eieReasons: Object.fromEntries(
       rec.eieRows.map((r) => [r.id, { code: r.code, text: r.text ? decrypt(r.text) : null }]),
     ),

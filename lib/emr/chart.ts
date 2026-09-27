@@ -119,6 +119,9 @@ export interface ChartInput {
   /** Entered-in-error reasons by source row id (provenance.rowId), decrypted when the reader may
    *  see them. The snapshot carries the voided facts themselves (loadFactSnapshot keepEnteredInError). */
   eieReasons?: Readonly<Record<string, { code: string | null; text: string | null }>>;
+  /** A typed (uncoded) medicine's name by source row id, decrypted by the loader: the projection
+   *  keeps ciphertext out of facts, so the chart names it here. */
+  medicineNames?: Readonly<Record<string, string>>;
   timeZone?: string;
   /** Test seams; production reads the shipped (pending) entries. */
   criticalRefs?: readonly CriticalRef[];
@@ -670,7 +673,7 @@ function enteredInErrorList(input: ChartInput): EnteredInErrorItem[] {
             : f.kind === "medication"
               ? f.drug
                 ? humanise(f.drug)
-                : "Medicine not named"
+                : (input.medicineNames?.[f.provenance.rowId] ?? "Medicine not named")
               : f.kind === "pregnancy"
                 ? "Pregnancy record"
                 : display(f.concept),
@@ -738,7 +741,9 @@ export function buildChartPayload(input: ChartInput): ChartPayload {
     .map((f) => ({
       id: f.id,
       restricted: isRestricted(f.sensitivity),
-      display: f.drug ? humanise(f.drug) : "Medicine not named",
+      display: f.drug
+        ? humanise(f.drug)
+        : (input.medicineNames?.[f.provenance.rowId] ?? "Medicine not named"),
       status: humanise(f.medicationStatus),
     }));
 
