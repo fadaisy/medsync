@@ -106,3 +106,62 @@ The signature is recorded in `data/clerking/catalogue-signoff.v1.json`, pinned t
 - properties a symptom adds carry their label ("last episode now");
 - a symptom in two systems is written once;
 - "(for example …)" hints are dropped from running text.
+
+## Data and server layer (before any screen, Law 1) — 2026-09-27
+
+**Built:**
+
+- **Migration 0076 (GATED):**
+  - medicine details (H1);
+  - `hospital_clinical_settings` with RLS, audit and outbreak mode (H6);
+  - 17 shared tokens (H10).
+- **`tpl.clerking.adult_v2`** in its own signed file (H11), with the `history_complaint_present` check.
+- **Payload v2** validated at the action boundary.
+- **Signing commits:**
+  - complaints and review-of-systems answers, with catalogue qualifiers;
+  - `soc.tobacco`;
+  - family history, one condition per relative, never `self`, written at signing (H13, a documented change from "at once").
+- **`convertDraftToV2`,** for "Continue in the new format".
+- **The `CLERKING_V2` flag.** The loader picks the v2 form and adds the record block (vitals for NEWS2, medicines with H1 fields, allergies mapped to catalogue reactions, outbreak mode).
+- **The cached catalogue route.**
+- **Outbreak mode** on the hospital admin's profile page, with a required reason, audited.
+
+**Lane:** `tests/emr-db/clerking-v2.test.ts`, 6 of 6. Also green: scenarios, write-notes and drizzle-parity (170).
+
+**Found and fixed on the way (pre-existing):**
+
+- `deathsFor` ignored the lane database.
+- Typed (uncoded) medicines read "Medicine not named" on the chart and the desk; the loader now decrypts names for rows the reader was shown.
+
+**Charting:** 12 of 96 symptoms chart as facts, because the CFC has 35 finding concepts. The rest are kept in the signed note with their ids.
+
+- **Proposed:** a CFC v1.2 addendum of 84 finding concepts plus `soc.tobacco_pack_years` and `soc.alcohol_pattern` (`cfc-v1.2-addendum.md`, `cfc-v1.2-proposal.json`), for your signature.
+
+## STOP 3–4 — Shell, Complaint and History (2026-09-27, commit 815ca47)
+
+**Built in `components/clerking/`:**
+
+- the shell: safety bar with a NEWS2 chip, the section bar with statuses, the centre card with Previous/Next, and the left rail (NEWS2 per row, the score-3 message, missing inputs, "Record a new set");
+- the Flags panel: octagon or triangle, "urgent" / "needs attention" names, merged badges, links to sections;
+- the note pane: composer blocks, the current block marked, the edit lock;
+- the sign bar;
+- Complaint: historian, language and interpreter, cards, search over synonyms and local terms, quick picks, uncatalogued text;
+- the PropertyEditor (every kind; exclusive options; tap again clears; the 0–10 strip in caution from the signed reference);
+- History: the story and the also-asked rows;
+- keys `[` `]` `1`–`0` `y` `n` `d` `/` `?` (with `j`/`k` kept);
+- tablet and phone pop-ups (ADR 0161, no sheets);
+- the "Continue in the new format" notice for v1 drafts.
+
+**With the flag off,** the v1 `DeskView` path is unchanged (test).
+
+**Tests:** 370 of 370 across tests/clerking, tests/emr/ui and tests/design.
+
+- The C2, C3 and C6 baselines now pass; their `it.fails` markers are removed.
+- Red scarcity: in the clerking components, red is allowed only in the Flags panel's urgent constant and the rail's NEWS2 score-3 constants, each paired with an octagon or a number.
+
+**Budget:** the back-pain complaint takes **18 taps**, against a budget of 20.
+
+**Open for Phase 7:**
+
+- the browser check (no page scroll at 1440×900, screenshots against the prototype, axe);
+- the sign dialog's count of v2 findings and step-status truncation (both handed to Phases 5–6).
