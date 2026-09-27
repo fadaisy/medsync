@@ -35,6 +35,7 @@ A role-based digital-hospital platform for Ugandan hospitals (IM-first, Mulago b
 Scope helpers (`requireDoctorScope`, `requireNurseScope`, `requireClinicianScope`) gate every workspace.
 
 The EMR (ADRs 0130–0139, `docs/emr/`): `emr` (the record — pure engines `encounter`/`notes`/`allergy`/`orders`/`results`/`chart`/`fhir`, `db.ts` with `asClinicalReader`/`asClinicalWriter`, `write/` transactions, `read/`, `actions/`, `sync/`, `reference/` = `pending_cso` `RefEntry` files with no numbers) · `facts` (Clinical Fact Contract: types, generated catalogue, `loadFactSnapshot`, `project/` legacy projections) · `units` (canonical units and conversions). Flags in `lib/emr/feature.ts`: `EMR_V1` (`1` or hospital ids; needs `ENCOUNTER_ENGINE_LIVE`) and `EMR_PRESCRIBING` (Phase 7, only where `EMR_V1` is on); off, every page is unchanged.
+Clerking desk v2 (ADRs 0163–0168, `docs/emr/clerking-v2/`): `lib/clerking` (pure engines over the signed catalogue in `data/clerking/`: catalogue, answers, linkage, flags, compose, status, commit) and `components/clerking` (the v2 desk), behind `CLERKING_V2` (per hospital, needs `EMR_V1` and migration 0076). `npm run clerking:catalogue-check` validates the catalogue and its sign-off hash.
 
 ### `components/`
 

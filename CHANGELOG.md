@@ -5,6 +5,24 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Clerking desk v2: a tap-first history, dark behind `CLERKING_V2` — 2026-09-27
+
+[ADR 0163](docs/adr/0163-clerking-desk-v2-tap-first-history.md), [0164](docs/adr/0164-clerking-catalogue-as-data.md), [0165](docs/adr/0165-clerking-flag-engine.md), [0166](docs/adr/0166-flags-panel-red-amendment.md), [0167](docs/adr/0167-draft-payload-v2.md), [0168](docs/adr/0168-outbreak-mode.md). Gate record: `docs/emr/clerking-v2/STOP-REPORTS.md`.
+
+- **The history half of the clerking desk, rebuilt from the signed catalogue** (MS-EMR-CLERK-CAT-001, `data/clerking/`):
+  - a section bar, one section at a time;
+  - properties for every complaint, and for every positive system symptom in a centred pop-up;
+  - medicines and allergies inside Past history, written to the record at once;
+  - a Flags panel (75 signed rules, NEWS2 from the triage engine);
+  - a note that writes itself by fixed rules.
+- **Fixes:**
+  - a man is no longer asked about periods;
+  - the complaint answers the review of systems;
+  - a NEWS2 parameter scoring 3 is marked;
+  - typed medicines are named in the chart;
+  - the page no longer scrolls at 1440 × 900.
+- **Migration 0076 (GATED):** medicine details, `hospital_clinical_settings` (outbreak mode), and 17 shared finding tokens. Apply it **before** deploying.
+
 ### Added — The EMR: one clinical record, dark behind `EMR_V1` — 2026-09-26
 
 [ADR 0130](docs/adr/0130-clinical-fact-store-and-cfc-adoption.md), [0131](docs/adr/0131-rls-identity-propagation.md), [0132](docs/adr/0132-encryption-boundary-and-note-hmac-key.md), [0133](docs/adr/0133-database-runtime-and-the-pglite-lane.md), [0134](docs/adr/0134-the-note-model.md), [0135](docs/adr/0135-allergy-record-single-source.md), [0136](docs/adr/0136-results-acknowledgement-and-critical-results.md), [0137](docs/adr/0137-coding-and-terminology-licensing.md), [0138](docs/adr/0138-fhir-r4-projection.md), [0139](docs/adr/0139-encounter-completion-and-administrative-closure.md) (owner and CSO signed every GATE A decision as recommended, 2026-09-26; harmonisations `docs/emr/HARMONISATION.md`; reports `docs/emr/STOP-REPORTS.md`). **Three GATED migrations**, additive, no UPDATE or DELETE of an existing row: `0071_emr_record_spine.sql` (21 tables, 5 views, the evolved encounters / observations / orders / co-sign requests, the `private` access rule, a non-owner reader role, FORCED RLS, the allergy backfill), `0072_emr_reference_seed.sql` (generated), `0073_emr_realtime.sql` (PHI-free chart broadcasts, reader grants). **Two Edge Functions change:** `ha-start-encounter`, `ha-complete-encounter`. **New env var:** `MEDSYNC_NOTE_HMAC_KEY`. Owner path, in order: `docs/emr/OWNER-RUNBOOK.md` — the dev project (O-1) → the HMAC key (O-2) → `npm run db:migrate` (0071–0073) **before** deploying the branch → `npx supabase functions deploy <name> --use-api` for each of the two functions → `npx vercel deploy --prod --yes` → `EMR_V1` (hospital ids first, then `1`). Flags off, every existing page is unchanged (`tests/emr/ui/flag-off.test.ts`).
