@@ -49,6 +49,11 @@ function history(): History {
     ros: { "sym.fatigue": "no", "sym.abdominal_pain": "yes", "sym.low_mood": "yes" },
     rosDetail: { "sym.abdominal_pain": { props: { site: "epigastric", severity: 4 }, flags: {} } },
     social: { tobacco: "former", perDay: 10, years: 20 },
+    family: {
+      hypertension: { answer: "yes", relations: ["mother", "grandparent"] },
+      mental_illness: { answer: "yes", relations: ["father"] },
+      diabetes: { answer: "no" },
+    },
   };
 }
 
@@ -275,6 +280,22 @@ describe.skipIf(!laneOn)("clerking desk v2 (PGlite lane)", () => {
       qualifiers: { site: "epigastric", severity: 4 },
     });
     expect(by.get("soc.tobacco")).toMatchObject({ value_code: "former" });
+    // Family history: one condition per relative, never self; a restricted item stays restricted.
+    const fam = await lane.pg.query<{ subject_relation: string; sensitivity: string }>(
+      `SELECT subject_relation, sensitivity FROM public.conditions
+        WHERE patient_user_id = $1 AND subject_relation <> 'self' ORDER BY subject_relation`,
+      [p],
+    );
+    expect(fam.rows).toEqual([
+      { subject_relation: "father", sensitivity: "restricted" },
+      { subject_relation: "mother", sensitivity: "standard" },
+      { subject_relation: "second_degree", sensitivity: "standard" },
+    ]);
+    const self = await lane.pg.query(
+      `SELECT 1 FROM public.conditions WHERE patient_user_id = $1 AND subject_relation = 'self'`,
+      [p],
+    );
+    expect(self.rows).toHaveLength(0);
   });
 
   it("the desk loader: v2 off gives the v1 form; on gives the v2 form and the record block", async () => {

@@ -700,6 +700,8 @@ export interface ConditionInput {
   assertedBy?: ConditionInsert["assertedBy"];
   onset?: Record<string, unknown>;
   effectiveAt?: Date;
+  /** Restrict the row whatever the term says (clerking v2: a restricted catalogue item). */
+  restricted?: boolean;
 }
 
 /** Term codes and sensitivity at insert: a restricted term or concept, or a pregnancy term for a
@@ -721,7 +723,7 @@ async function conditionColumns(
       termId: null,
       conceptId: null,
       textCiphertext: encrypt(text),
-      sensitivity: "standard",
+      sensitivity: input.restricted ? "restricted" : "standard",
     };
   }
   const [term] = await ctx.tx
@@ -742,7 +744,7 @@ async function conditionColumns(
     textCiphertext: text ? encrypt(text) : null,
     icd11Code: term.icd11Code,
     cielId: term.cielId,
-    sensitivity: restricted ? "restricted" : "standard",
+    sensitivity: restricted || input.restricted ? "restricted" : "standard",
   };
 }
 

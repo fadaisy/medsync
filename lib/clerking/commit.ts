@@ -4,6 +4,7 @@ import type { Catalogue, PatientSex } from "./catalogue";
 import { durationDays } from "./answers";
 import { isRestricted, rosSystemsFor } from "./catalogue";
 import { linkedAnswers, rosAnswer } from "./linkage";
+import { RELATION_TO_SUBJECT } from "./record-map";
 
 /**
  * What a signed v2 note commits (gate-a §5, D-EMR-01), as observation lines for
@@ -100,4 +101,31 @@ export function v2CommitLines(
     });
 
   return { lines, unmapped };
+}
+
+/** Family history answered yes, one line per relative (H3: never `self`; H13: written at signing). */
+export function familyConditions(cat: Catalogue, history: History) {
+  const out: {
+    condition: string;
+    label: string;
+    relation: string;
+    subject: (typeof RELATION_TO_SUBJECT)[string];
+    restricted: boolean;
+  }[] = [];
+  for (const c of cat.data.family_history.conditions) {
+    const a = history.family[c.id];
+    if (a?.answer !== "yes") continue;
+    for (const r of a.relations?.length ? a.relations : ["other_relative"]) {
+      const subject = RELATION_TO_SUBJECT[r];
+      if (subject)
+        out.push({
+          condition: c.id,
+          label: c.label,
+          relation: r,
+          subject,
+          restricted: isRestricted(c.sensitivity),
+        });
+    }
+  }
+  return out;
 }

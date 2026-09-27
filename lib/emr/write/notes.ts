@@ -14,7 +14,7 @@ import { clinicalNoteEvents, clinicalNotes, medicationStatements } from "@/db/sc
 import { clinicalObservations } from "@/db/schema/nurse-workspace";
 import { patientProfiles } from "@/db/schema/patient-profiles";
 import { encounters } from "@/db/schema/scheduling";
-import { v2CommitLines } from "@/lib/clerking/commit";
+import { familyConditions, v2CommitLines } from "@/lib/clerking/commit";
 import { convertV1Draft } from "@/lib/clerking/convert";
 import { CLERKING_CATALOGUE, CLERKING_TOKEN_MAP } from "@/lib/clerking/load";
 import { isOpen } from "@/lib/emr/encounter";
@@ -36,6 +36,7 @@ import { captureFromNote, factsFromCapture } from "@/lib/ncd/cfc-map";
 import { EmrWriteError, stampActivity } from "./context";
 import {
   insertObservations,
+  recordProblem,
   requireAuthorOrSupervisor,
   SENIOR_CADRES,
   voidObservation,
@@ -459,6 +460,19 @@ export async function signNote(ctx: WriteCtx, input: SignNoteInput): Promise<Wri
     );
     lines.push(...v2.lines.map((l) => ({ ...l, effectiveAt: note.effectiveAt })));
     unmapped += v2.unmapped;
+    // Family history (H3, H13): one condition per relative answered yes, never `self`, written at
+    // signing so relation-chip taps never version the record. Idempotent on the note's keys.
+    for (const f of familyConditions(CLERKING_CATALOGUE, content.history as unknown as History))
+      await recordProblem(ctx, {
+        patientUserId: note.patientUserId,
+        encounterId: note.encounterId,
+        clientKey: `${note.id}:fh:${f.condition}:${f.relation}`,
+        text: f.label,
+        subjectRelation: f.subject,
+        assertedBy: "patient_reported",
+        restricted: f.restricted,
+        effectiveAt: note.effectiveAt,
+      });
   }
   const ncd = captureFromNote(content);
   if (ncd)
