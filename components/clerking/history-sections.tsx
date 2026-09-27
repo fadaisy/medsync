@@ -355,12 +355,12 @@ function AllComplaints({
             Nothing matches. Close this and add it as typed from the search.
           </p>
         ) : (
-          <div className="grid gap-x-8 gap-y-5 md:grid-cols-2">
+          <div className="gap-x-8 md:columns-2">
             {shown.map((g) => (
               <section
                 key={g.id}
                 aria-labelledby={`all-cc-${g.id}`}
-                className="flex flex-col gap-2"
+                className="mb-5 flex break-inside-avoid flex-col gap-2"
               >
                 <h3 id={`all-cc-${g.id}`} className="text-body-s text-foreground font-medium">
                   {g.label}
