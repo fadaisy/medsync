@@ -367,7 +367,11 @@ export async function loadChartFor(
           .from(users)
           .where(inArray(users.id, [...nameIds]))
       : [],
-    deathsFor(actor.hospitalId, [patientUserId]),
+    deathsFor(
+      actor.hospitalId,
+      [patientUserId],
+      conn as unknown as Parameters<typeof deathsFor>[2],
+    ),
   ]);
   const names: Record<string, string> = {};
   for (const r of nameRows) if (r.name) names[r.id] = r.name;

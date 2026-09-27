@@ -37,10 +37,12 @@ import { resusEpisodes } from "@/db/schema/resus";
 import { encounters } from "@/db/schema/scheduling";
 import { triageRecords } from "@/db/schema/triage";
 import { computeAgeYears } from "@/lib/age";
+import { clerkingData } from "@/lib/clerking/desk-load";
 import { requireEmrActor } from "@/lib/emr/actor";
 import { carryMedicines, carryProblems, triagePrefill } from "@/lib/emr/carry-forward";
 import { asClinicalReader, asClinicalWriter } from "@/lib/emr/db";
 import { completionWarnings, isOpen } from "@/lib/emr/encounter";
+import { clerkingV2LiveFor } from "@/lib/emr/feature";
 import { getTemplate, noteStatus } from "@/lib/emr/notes";
 import { orderStatusText } from "@/lib/emr/orders";
 import { loadChartFor } from "@/lib/emr/read/chart";
@@ -123,11 +125,17 @@ const TOP_ACUITY = Math.min(...ACUITY_TIERS.map((t) => t.level));
  * came through resus (an episode linked to this encounter or its triage record) or was triaged at the
  * top acuity level; every other visit, whatever its type, gets the full clerkship (§2.1).
  */
-export function defaultClerkingId(e: { resusLinked: boolean; triageLevel: number | null }) {
-  return e.resusLinked || e.triageLevel === TOP_ACUITY
-    ? "tpl.clerking.emergency"
-    : "tpl.clerking.adult_opd";
+export function defaultClerkingId(e: {
+  resusLinked: boolean;
+  triageLevel: number | null;
+  clerkingV2?: boolean;
+}) {
+  if (e.resusLinked || e.triageLevel === TOP_ACUITY) return "tpl.clerking.emergency";
+  return e.clerkingV2 ? CLERKING_V2_TEMPLATE_ID : "tpl.clerking.adult_opd";
 }
+
+/** Clerking desk v2's template (data/clerking/note-template.adult-v2.json). */
+export const CLERKING_V2_TEMPLATE_ID = "tpl.clerking.adult_v2";
 
 const templateOr = (id: string | null | undefined) => {
   if (!id) return null;
@@ -149,10 +157,15 @@ export function templateFor(e: {
   chosen?: string | null;
   resusLinked: boolean;
   triageLevel: number | null;
+  clerkingV2?: boolean;
 }) {
   const base = templateOr(e.templateId) ?? getTemplate(defaultClerkingId(e));
+  // The switch offers the full form this hospital uses (v1 or v2) and the emergency form.
+  const full = e.clerkingV2 ? CLERKING_V2_TEMPLATE_ID : "tpl.clerking.adult_opd";
   const clerking = (id: string | null | undefined) =>
-    CLERKING_FORMS.some((f) => f.value === id) ? templateOr(id) : null;
+    CLERKING_FORMS.some((f) => f.value === id) && (id === full || id === "tpl.clerking.emergency")
+      ? templateOr(id)
+      : null;
   return templateOr(e.ownTemplateId) ?? (clerking(base.id) ? clerking(e.chosen) : null) ?? base;
 }
 
@@ -191,10 +204,11 @@ export async function loadDesk(
 export async function loadDeskFor(
   actor: EmrActor,
   encounterId: string,
-  opts: { database?: EmrDb; now?: Date; template?: string | null } = {},
+  opts: { database?: EmrDb; now?: Date; template?: string | null; clerkingV2?: boolean } = {},
 ): Promise<DeskLoad | null> {
   const scope = { userId: actor.userId, hospitalId: actor.hospitalId };
   const now = opts.now ?? new Date();
+  const v2Live = opts.clerkingV2 ?? clerkingV2LiveFor(actor.hospitalId);
 
   // 1. The encounter.
   const [enc] = await asClinicalReader(
@@ -298,6 +312,11 @@ export async function loadDeskFor(
           reconciliation: medicationStatements.reconciliation,
           drugCode: medicationStatements.drugCode,
           drugTextCiphertext: medicationStatements.drugTextCiphertext,
+          sensitivity: medicationStatements.sensitivity,
+          doseTextCiphertext: medicationStatements.doseTextCiphertext,
+          frequencyCode: medicationStatements.frequencyCode,
+          adherence: medicationStatements.adherence,
+          informant: medicationStatements.informant,
         })
         .from(medicationStatements)
         .where(eq(medicationStatements.patientUserId, enc.patientUserId));
@@ -435,6 +454,7 @@ export async function loadDeskFor(
     chosen: opts.template,
     resusLinked: side.resusLinked,
     triageLevel: rec.triage?.assignedLevel ?? null,
+    clerkingV2: v2Live,
   });
   const ros = template.sections.flatMap((s) =>
     s.items
@@ -604,9 +624,11 @@ export async function loadDeskFor(
     .filter((m) => carriedIds.has(m.id) || (m.encounterId === enc.id && m.reconciliation))
     .map((m) => ({
       id: m.id,
+      // A typed (uncoded) medicine's name is ciphertext: the chart's projection cannot name it
+      // ("Medicine not named"), so the desk decrypts it first.
       display:
-        chartMedicine.get(m.id)?.display ??
         safeDecrypt(m.drugTextCiphertext) ??
+        chartMedicine.get(m.id)?.display ??
         m.drugCode?.replace(/_/g, " ") ??
         "Medicine",
       answer:
@@ -661,6 +683,32 @@ export async function loadDeskFor(
       };
     });
 
+  // Clerking v2: what the new desk reads from the record (never copied into the note).
+  const clerking =
+    template.id === CLERKING_V2_TEMPLATE_ID
+      ? await clerkingData({
+          scope,
+          database: opts.database,
+          patientUserId: enc.patientUserId,
+          encounterId: enc.id,
+          sex: side.profile?.sex ?? null,
+          ageYears: computeAgeYears(side.profile?.dob ?? null, now),
+          rows: payload.flowsheet.rows,
+          medicines: medicines.map((m) => {
+            const row = currentMeds.find((x) => x.id === m.id)!;
+            return {
+              statementId: m.id,
+              name: m.display,
+              doseText: safeDecrypt(row.doseTextCiphertext),
+              frequencyCode: row.frequencyCode,
+              adherence: row.adherence,
+              informant: row.informant,
+              restricted: row.sensitivity === "restricted",
+            };
+          }),
+        })
+      : undefined;
+
   const draftContent = draft?.content ?? { sections: {} };
   const deferred = Object.values(draftContent.sections).some((s) =>
     (s.items ?? []).some((i) => i.kind === "diagnosis_deferred"),
@@ -693,6 +741,8 @@ export async function loadDeskFor(
   return {
     patientSex: side.profile?.sex ?? null,
     payload: {
+      ...(clerking ? { clerking } : {}),
+      fullForm: v2Live ? CLERKING_V2_TEMPLATE_ID : "tpl.clerking.adult_opd",
       encounter: {
         id: enc.id,
         patientUserId: enc.patientUserId,

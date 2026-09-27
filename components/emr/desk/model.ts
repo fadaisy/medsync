@@ -147,6 +147,10 @@ export interface DeskNoteRow {
 }
 
 export interface DeskPayload {
+  /** Clerking desk v2 only (CLERKING_V2 on and the v2 template in use). */
+  clerking?: import("@/lib/clerking/desk-data").ClerkingDeskData;
+  /** The full clerking form this hospital uses (v2 where CLERKING_V2 is on). */
+  fullForm?: string;
   encounter: {
     id: string;
     patientUserId: string;
@@ -405,8 +409,13 @@ export function initialContent(
 /** The two clerking forms the desk switches between (clinical reference §2.1, §2.2). */
 export const CLERKING_FORMS = [
   { value: "tpl.clerking.adult_opd", label: "Full clerking" },
+  { value: "tpl.clerking.adult_v2", label: "Full clerking" },
   { value: "tpl.clerking.emergency", label: "Emergency clerking" },
 ] as const;
+
+/** The two forms the switch offers: this hospital's full form (v1 or v2) and the emergency form. */
+export const clerkingFormsFor = (full: string) =>
+  CLERKING_FORMS.filter((f) => f.value === full || f.value === "tpl.clerking.emergency");
 
 /** Nothing the author wrote yet: at most what the desk seeded (the triage complaint). */
 export function blankNote(c: NoteContent): boolean {

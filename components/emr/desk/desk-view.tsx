@@ -19,6 +19,7 @@ import { ContextRailView } from "./context-rail";
 import {
   blankNote,
   CLERKING_FORMS,
+  clerkingFormsFor,
   deskIndex,
   deskValidation,
   hasContent,
@@ -204,7 +205,7 @@ export function DeskView(props: DeskViewProps) {
                 onValueChange={on.onTemplate}
                 stackOnMobile={false}
                 className="w-auto [&>label]:transition-none max-sm:[&>label]:py-3"
-                options={CLERKING_FORMS.map((f) => ({
+                options={clerkingFormsFor(p.fullForm ?? "tpl.clerking.adult_opd").map((f) => ({
                   value: f.value,
                   label: (
                     <span className="inline-flex items-center gap-1.5">

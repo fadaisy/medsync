@@ -520,10 +520,14 @@ export async function triageAuthorityFor(hospitalId: string, cadreCode: string) 
  * disposition says. Corrections stay in those records, so nothing here can
  * drift from them. Two reads, in parallel.
  */
-export async function deathsFor(hospitalId: string, patientIds: string[]): Promise<FlowDeath[]> {
+export async function deathsFor(
+  hospitalId: string,
+  patientIds: string[],
+  conn: Pick<typeof db, "select"> = db,
+): Promise<FlowDeath[]> {
   if (patientIds.length === 0) return [];
   const [resus, encounterRows] = await Promise.all([
-    db
+    conn
       .select({
         id: resusEpisodes.id,
         patientUserId: resusEpisodes.patientUserId,
@@ -544,7 +548,7 @@ export async function deathsFor(hospitalId: string, patientIds: string[]): Promi
           ),
         ),
       ),
-    db
+    conn
       .select({
         id: encounters.id,
         patientUserId: encounters.patientUserId,

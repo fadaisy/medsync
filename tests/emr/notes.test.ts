@@ -75,6 +75,8 @@ function satisfy(rule: SignRule): { sections: Record<string, NoteSection>; ctx: 
       return { sections: {}, ctx: { allergyStatus: "no_known_drug_allergies" } };
     case "medicines_reconciled":
       return { sections: {}, ctx: { medicinesReconciled: true } };
+    case "history_complaint_present": // clerking v2 only (tests/clerking)
+      return { sections: {}, ctx: {} };
   }
 }
 

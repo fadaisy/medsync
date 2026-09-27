@@ -145,6 +145,15 @@ const UpdateProblemStatus = z.object({
 });
 
 const date = z.iso.date();
+/** Clerking v2 (0076): the patient's account; the lists are the catalogue's option ids. */
+const MedicineDetails = {
+  doseText: z.string().trim().max(200).optional(),
+  frequencyCode: z.enum(["od", "bd", "tds", "nocte", "weekly", "prn", "unknown"]).nullish(),
+  adherence: z.enum(["as_prescribed", "sometimes_misses", "stopped"]).nullish(),
+  informant: z
+    .enum(["patient", "carer", "medicine_card", "referral_letter", "dispensing_record"])
+    .nullish(),
+};
 const MedicationLine = z.object({
   drugCode: z.string().trim().max(80).optional(),
   drugText: z.string().trim().max(200).optional(),
@@ -161,6 +170,7 @@ const MedicationLine = z.object({
     "patient_reported",
     "external_record",
   ]),
+  ...MedicineDetails,
 });
 const RecordMedicationStatements = z.object({
   ...base,
@@ -248,6 +258,17 @@ export async function recordEncounterDiagnosis(raw: unknown) {
 }
 export async function recordMedicationStatements(raw: unknown) {
   return runEmrWrite(RecordMedicationStatements, raw, facts.recordMedicationStatements);
+}
+const UpdateMedicineDetails = z.object({
+  ...base,
+  clientKey,
+  encounterId,
+  statementId: uuid,
+  ...MedicineDetails,
+  doseText: z.string().trim().max(200).nullish(),
+});
+export async function updateMedicineDetails(raw: unknown) {
+  return runEmrWrite(UpdateMedicineDetails, raw, facts.updateMedicineDetails);
 }
 export async function confirmCurrentMedicines(raw: unknown) {
   return runEmrWrite(ConfirmCurrentMedicines, raw, facts.confirmCurrentMedicines);

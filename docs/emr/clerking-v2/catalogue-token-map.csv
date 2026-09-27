@@ -3,7 +3,7 @@ sym.fever,Fever,symptom_catalog,fever,matched
 sym.night_sweats,Night sweats,symptom_catalog,night_sweats,matched
 sym.weight_loss,Weight loss,symptom_catalog,weight_loss,matched
 sym.weight_gain,Weight gain,symptom_catalog,weight_change,broader
-sym.fatigue,Tiredness,symptom_catalog,fatigue,matched
+sym.fatigue,Tiredness,clinical_concepts,sx.fatigue,matched
 sym.loss_of_appetite,Loss of appetite,symptom_catalog,appetite_change,broader
 sym.hiccups,Hiccups,,,propose
 sym.chest_pain,Chest pain,symptom_catalog,chest_pain,matched
@@ -11,9 +11,9 @@ sym.palpitations,Palpitations,symptom_catalog,palpitations,matched
 sym.breathless_exertion,Breathless on exertion,symptom_catalog,exertional_dyspnoea,broader
 sym.orthopnoea,Breathless lying flat,symptom_catalog,orthopnoea,matched
 sym.pnd,Waking breathless at night,symptom_catalog,paroxysmal_nocturnal_dyspnoea,broader
-sym.leg_swelling,Leg swelling,symptom_catalog,oedema,matched
+sym.leg_swelling,Leg swelling,clinical_concepts,sign.oedema,matched
 sym.fainting,Fainting or blackout,symptom_catalog,syncope,matched
-sym.claudication,Leg pain on walking,symptom_catalog,intermittent_claudication,broader
+sym.claudication,Leg pain on walking,clinical_concepts,sx.claudication,matched
 sym.cough,Cough,symptom_catalog,cough,matched
 sym.sputum,Sputum,symptom_catalog,sputum,matched
 sym.coughing_blood,Coughing blood,symptom_catalog,haemoptysis,matched
@@ -21,8 +21,8 @@ sym.breathlessness,Breathlessness,symptom_catalog,dyspnoea,matched
 sym.wheeze,Wheeze,symptom_catalog,wheeze,matched
 sym.noisy_breathing,Noisy breathing (stridor),,,propose
 sym.snoring,Loud snoring or pauses in breathing,,,propose
-sym.abdominal_pain,Abdominal pain,symptom_catalog,abdominal_pain,matched
-sym.nausea_vomiting,Nausea or vomiting,symptom_catalog,vomiting,matched
+sym.abdominal_pain,Abdominal pain,clinical_concepts,sx.abdominal_pain,matched
+sym.nausea_vomiting,Nausea or vomiting,clinical_concepts,sx.vomiting,matched
 sym.vomiting_blood,Vomiting blood,symptom_catalog,haematemesis,matched
 sym.diarrhoea,Diarrhoea,symptom_catalog,diarrhoea,matched
 sym.constipation,Constipation,,,propose
@@ -32,9 +32,9 @@ sym.black_stools,"Black, tarry stools",symptom_catalog,rectal_bleeding,matched
 sym.difficulty_swallowing,Difficulty swallowing,symptom_catalog,dysphagia,matched
 sym.heartburn,Heartburn or indigestion,symptom_catalog,heartburn_indigestion,broader
 sym.abdominal_swelling,Swelling of the abdomen,symptom_catalog,abdominal_distension,broader
-sym.jaundice,Yellow eyes or skin,symptom_catalog,jaundice,matched
-sym.polyuria,Passing a lot of urine,symptom_catalog,urinary_frequency,matched
-sym.nocturia,Waking at night to pass urine,symptom_catalog,nocturia,matched
+sym.jaundice,Yellow eyes or skin,clinical_concepts,sign.jaundice,matched
+sym.polyuria,Passing a lot of urine,clinical_concepts,sx.polyuria,matched
+sym.nocturia,Waking at night to pass urine,clinical_concepts,sx.nocturia,matched
 sym.frequency,Going to pass urine often,symptom_catalog,urinary_frequency,broader
 sym.dysuria,Pain passing urine,symptom_catalog,dysuria,matched
 sym.haematuria,Blood in urine,symptom_catalog,haematuria,matched
@@ -82,7 +82,7 @@ sym.itch,Itch,symptom_catalog,pruritus,matched
 sym.face_swelling,"Swelling of lips, tongue or face",,,propose
 sym.skin_lesion,New or changing skin lesion,symptom_catalog,new_changing_lesion_mole,broader
 sym.hair_loss,Hair loss,symptom_catalog,hair_nail_change,broader
-sym.polydipsia,Excessive thirst,symptom_catalog,polyuria_polydipsia,broader
+sym.polydipsia,Excessive thirst,clinical_concepts,sx.polydipsia,matched
 sym.heat_intolerance,Heat intolerance,symptom_catalog,heat_cold_intolerance,broader
 sym.cold_intolerance,Cold intolerance,symptom_catalog,heat_cold_intolerance,broader
 sym.neck_swelling,Neck swelling (goitre),symptom_catalog,neck_swelling_thyroid,matched

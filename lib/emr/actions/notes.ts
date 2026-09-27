@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 
+import { ContentV2Keys } from "@/lib/clerking/payload";
 import * as notes from "@/lib/emr/write/notes";
 import { runEmrWrite } from "@/lib/emr/write/orders";
 
@@ -33,6 +34,7 @@ const Section = z.object({
 const Content = z.object({
   header: z.record(z.string(), z.unknown()).optional(),
   sections: z.record(z.string().max(40), Section),
+  ...ContentV2Keys,
 });
 
 const SaveNoteDraft = z.object({
@@ -46,6 +48,7 @@ const SaveNoteDraft = z.object({
   effectiveAt: z.coerce.date().optional(),
   restricted: z.boolean().optional(),
 });
+const ConvertDraft = z.object({ ...base, noteId: uuid, revision: z.number().int().min(0) });
 const SignNote = z.object({
   ...base,
   noteId: uuid,
@@ -68,6 +71,10 @@ const MarkNoteEnteredInError = NoteAct.extend({
 
 export async function saveNoteDraft(raw: unknown) {
   return runEmrWrite(SaveNoteDraft, raw, notes.saveNoteDraft);
+}
+/** Clerking v2: "Continue in the new format" for the author's own v1 clerking draft. */
+export async function convertDraftToV2(raw: unknown) {
+  return runEmrWrite(ConvertDraft, raw, notes.convertDraftToV2);
 }
 export async function signNote(raw: unknown) {
   return runEmrWrite(SignNote, raw, notes.signNote);

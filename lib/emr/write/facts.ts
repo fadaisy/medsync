@@ -990,6 +990,11 @@ export interface MedicationStatementLine {
   periodEnd?: string;
   route?: MedicationInsert["route"];
   medicationSource: MedicationInsert["medicationSource"];
+  /** Clerking v2 (0076): what the patient says, never a suggestion. */
+  doseText?: string;
+  frequencyCode?: MedicationInsert["frequencyCode"];
+  adherence?: MedicationInsert["adherence"];
+  informant?: MedicationInsert["informant"];
 }
 
 const restrictedTag = (tag: string) =>
@@ -1046,12 +1051,48 @@ export async function recordMedicationStatements(
       periodEnd: s.periodEnd ?? null,
       route: s.route ?? null,
       medicationSource: s.medicationSource,
+      doseTextCiphertext: s.doseText?.trim() ? encrypt(s.doseText.trim()) : null,
+      frequencyCode: s.frequencyCode ?? null,
+      adherence: s.adherence ?? null,
+      informant: s.informant ?? null,
       clientKey,
     });
     ids.push(id);
   }
   await stampActivity(ctx, encounterId);
   return { id: ids[0]!, ids };
+}
+
+/** Clerking v2: the patient's account of a current medicine (dose as stated, how often, whether they
+ *  take it, who said so) as the statement's next version. A field left out keeps its value; null
+ *  clears it. Replay-safe on the key. */
+export async function updateMedicineDetails(
+  ctx: WriteCtx,
+  input: {
+    patientUserId: string;
+    encounterId?: string | null;
+    clientKey: string;
+    statementId: string;
+    doseText?: string | null;
+    frequencyCode?: MedicationInsert["frequencyCode"];
+    adherence?: MedicationInsert["adherence"];
+    informant?: MedicationInsert["informant"];
+  },
+): Promise<WriteResult> {
+  requireCadre(ctx, RECORDING_CADRES, "record medicines");
+  const replay = await replayed(ctx.tx, medicationStatements, input.clientKey, input.patientUserId);
+  if (replay) return { id: replay };
+  const encounterId = await linkEncounter(ctx, input.patientUserId, input.encounterId);
+  const prev = await currentVersion(ctx, "medication", input.statementId, input.patientUserId);
+  const patch: Partial<MedicationInsert> = { encounterId, effectiveAt: ctx.now };
+  if (input.doseText !== undefined)
+    patch.doseTextCiphertext = input.doseText?.trim() ? encrypt(input.doseText.trim()) : null;
+  if (input.frequencyCode !== undefined) patch.frequencyCode = input.frequencyCode;
+  if (input.adherence !== undefined) patch.adherence = input.adherence;
+  if (input.informant !== undefined) patch.informant = input.informant;
+  const id = await insertNextVersion(ctx, "medication", prev, patch, input.clientKey);
+  await stampActivity(ctx, encounterId);
+  return { id };
 }
 
 /** "Confirm current medicines" (WHO solution 6): each current statement continued, stopped (with a

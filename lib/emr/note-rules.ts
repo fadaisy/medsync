@@ -11,7 +11,8 @@ export type SignCheck =
   | "field_present"
   | "item_true"
   | "allergy_status_recorded"
-  | "medicines_reconciled";
+  | "medicines_reconciled"
+  | "history_complaint_present";
 
 /** Structurally the zod-parsed rule of note-templates.v1.json (notes.ts SignRule). */
 export interface SignRule {
@@ -44,6 +45,14 @@ export interface NoteSection {
 export interface NoteContent {
   header?: Record<string, unknown>;
   sections: Record<string, NoteSection>;
+  /** Clerking desk v2 (payload schema 2): the catalogue-driven history (lib/clerking/answers). */
+  schema?: 2;
+  catalogueVersion?: string;
+  history?: { complaints?: unknown[] } & Record<string, unknown>;
+  /** Composer blocks the clinician edited (edit lock). */
+  edited?: Record<string, string>;
+  /** The Flags panel as the clinician saw it, written just before signing (D-CV-05). */
+  flags?: unknown[];
 }
 
 export interface SignContext {
@@ -94,6 +103,8 @@ export function checkRule(rule: SignRule, content: NoteContent, ctx: SignContext
       return !!ctx.allergyStatus && ctx.allergyStatus !== "not_recorded";
     case "medicines_reconciled":
       return ctx.medicinesReconciled === true;
+    case "history_complaint_present":
+      return (content.history?.complaints?.length ?? 0) > 0;
   }
 }
 

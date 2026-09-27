@@ -3,6 +3,7 @@ import type { NoteContent, NoteItem, SignContext, SignValidation } from "./note-
 import type { ClinicalNote, ClinicalNoteEvent } from "@/db/schema/emr";
 import { z } from "zod";
 
+import rawClerkingV2 from "@/data/clerking/note-template.adult-v2.json";
 import rawTemplates from "@/data/emr/note-templates.v1.json";
 import { validateForSigning } from "./note-rules";
 
@@ -23,6 +24,7 @@ const CHECKS = [
   "item_true",
   "allergy_status_recorded",
   "medicines_reconciled",
+  "history_complaint_present",
 ] as const;
 
 const ruleSchema = z.object({
@@ -122,7 +124,11 @@ export function parseTemplateCatalogue(raw: unknown): NoteTemplateCatalogue {
 
 export const NOTE_TEMPLATES: NoteTemplateCatalogue = parseTemplateCatalogue(rawTemplates);
 
+/** Clerking desk v2's template (GATE A H11): its own signed file, so the v1 catalogue is untouched. */
+export const CLERKING_V2_TEMPLATE: NoteTemplate = templateSchema.parse(rawClerkingV2.template);
+
 export function getTemplate(id: string): NoteTemplate {
+  if (id === CLERKING_V2_TEMPLATE.id) return CLERKING_V2_TEMPLATE;
   const t = NOTE_TEMPLATES.templates.find((x) => x.id === id);
   if (!t) throw new Error(`unknown note template ${id}`);
   return t;

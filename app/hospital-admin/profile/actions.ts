@@ -56,3 +56,42 @@ function numberOrNull(v: FormDataEntryValue | null): number | null | undefined {
   const n = Number(v);
   return Number.isFinite(n) ? n : undefined;
 }
+
+/* ─── Outbreak mode (clerking desk v2, D-CV-06) ────────────────────── */
+
+export type OutbreakModeState = { ok?: boolean; error?: string };
+
+const OutbreakSchema = z.object({
+  on: z.boolean(),
+  reason: z
+    .string()
+    .trim()
+    .min(8, "Give a reason of at least 8 characters — this change is audited."),
+});
+
+/** Turns the outbreak VHF screen on or off for this hospital, with an audited reason. */
+export async function setOutbreakModeAction(
+  _prev: OutbreakModeState,
+  formData: FormData,
+): Promise<OutbreakModeState> {
+  const parsed = OutbreakSchema.safeParse({
+    on: formData.get("on") === "true",
+    reason: formData.get("reason"),
+  });
+  if (!parsed.success) {
+    const first = Object.values(parsed.error.flatten().fieldErrors).flat().find(Boolean);
+    return { error: first ?? "Please check the values." };
+  }
+  const scope = await requireHospitalAdminScope();
+  const { writeOutbreakMode } = await import("@/lib/clerking/outbreak");
+  try {
+    await writeOutbreakMode({ userId: scope.userId, hospitalId: scope.hospitalId }, parsed.data);
+  } catch {
+    return {
+      error:
+        "Couldn't save outbreak mode. It needs migration 0076; try again or tell the superadmin.",
+    };
+  }
+  revalidatePath("/hospital-admin/profile");
+  return { ok: true };
+}

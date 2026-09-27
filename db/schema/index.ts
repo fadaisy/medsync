@@ -116,3 +116,6 @@ export * from "./tester-feedback";
 
 // ─── EMR record spine (migration 0071 — GATED, HARMONISATION §3) ────────
 export * from "./emr";
+
+// ─── Clerking desk v2 (migration 0076 — GATED) ──────────────────────────
+export * from "./clerking";

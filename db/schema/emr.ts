@@ -734,6 +734,12 @@ export const medicationStatements = pgTable(
     route: text("route"),
     medicationSource: text("medication_source").notNull(),
     reconciliation: text("reconciliation"),
+    /** 0076 (clerking v2): the dose as the patient or packet states it, encrypted. */
+    doseTextCiphertext: text("dose_text_ciphertext"),
+    frequencyCode: text("frequency_code"),
+    adherence: text("adherence"),
+    /** Who told us: patient, carer, medicine card, referral letter, dispensing record. */
+    informant: text("informant"),
   },
   (t) => [
     ...factEnvelopeExtras("medication_statements", t),
@@ -758,6 +764,18 @@ export const medicationStatements = pgTable(
       sql`${t.reconciliation} IS NULL OR ${t.reconciliation} IN ('continued','stopped','changed')`,
     ),
     check("ms_drug", sql`${t.drugCode} IS NOT NULL OR ${t.drugTextCiphertext} IS NOT NULL`),
+    check(
+      "medication_statements_frequency_code_check",
+      sql`${t.frequencyCode} IS NULL OR ${t.frequencyCode} IN ('od','bd','tds','nocte','weekly','prn','unknown')`,
+    ),
+    check(
+      "medication_statements_adherence_check",
+      sql`${t.adherence} IS NULL OR ${t.adherence} IN ('as_prescribed','sometimes_misses','stopped')`,
+    ),
+    check(
+      "medication_statements_informant_check",
+      sql`${t.informant} IS NULL OR ${t.informant} IN ('patient','carer','medicine_card','referral_letter','dispensing_record')`,
+    ),
     check(
       "ms_stop_reason",
       sql`${t.reconciliation} IS DISTINCT FROM 'stopped' OR ${t.reasonCode} IS NOT NULL OR ${t.reasonCiphertext} IS NOT NULL`,

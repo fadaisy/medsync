@@ -256,6 +256,10 @@ export function medicationRow(over: Partial<MedicationRow> = {}): MedicationRow 
     route: "oral",
     medicationSource: "patient_reported",
     reconciliation: null,
+    doseTextCiphertext: null,
+    frequencyCode: null,
+    adherence: null,
+    informant: null,
     ...over,
   };
 }

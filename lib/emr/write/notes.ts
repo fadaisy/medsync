@@ -5,13 +5,18 @@ import type { WriteCtx } from "./context";
 import type { ObservationInput } from "./facts";
 import type { WriteResult } from "./orders";
 import type { ClinicalNote } from "@/db/schema/emr";
+import type { History } from "@/lib/clerking/answers";
 import type { NoteContent, NoteItem, SignContext } from "@/lib/emr/notes";
 import { and, desc, eq, inArray, like, notInArray, sql } from "drizzle-orm";
 
 import { clinicalCosignRequests } from "@/db/schema/doctor-workspace";
 import { clinicalNoteEvents, clinicalNotes, medicationStatements } from "@/db/schema/emr";
 import { clinicalObservations } from "@/db/schema/nurse-workspace";
+import { patientProfiles } from "@/db/schema/patient-profiles";
 import { encounters } from "@/db/schema/scheduling";
+import { v2CommitLines } from "@/lib/clerking/commit";
+import { convertV1Draft } from "@/lib/clerking/convert";
+import { CLERKING_CATALOGUE, CLERKING_TOKEN_MAP } from "@/lib/clerking/load";
 import { isOpen } from "@/lib/emr/encounter";
 import {
   applyNoteEvent,
@@ -214,6 +219,46 @@ export async function saveNoteDraft(
   return n!;
 }
 
+/**
+ * "Continue in the new format" (clerking v2, gate-a §4): the author's own unsigned v1 clerking draft
+ * becomes a v2 draft, content mapped by lib/clerking/convert (only what maps). The one exception
+ * to "a draft keeps its template", and only in this direction; audited like every draft change.
+ */
+export async function convertDraftToV2(
+  ctx: WriteCtx,
+  input: { patientUserId: string; noteId: string; revision: number },
+): Promise<WriteResult & { revision: number }> {
+  const note = await loadNote(ctx, input.patientUserId, input.noteId);
+  if (note.authorUserId !== ctx.actor.userId)
+    throw new EmrWriteError("forbidden", "Only the author continues a draft.");
+  if (note.state !== "draft") throw new EmrWriteError("conflict", "The note is signed.");
+  if (note.templateId !== "tpl.clerking.adult_opd")
+    throw invalid("Only a full clerking draft in the previous format can continue in the new one.");
+  if (note.revision !== input.revision)
+    throw new EmrWriteError("conflict", "This note was changed elsewhere. Reload first.");
+  const v2 = getTemplate("tpl.clerking.adult_v2");
+  const content = convertV1Draft(CLERKING_CATALOGUE, CLERKING_TOKEN_MAP, readContent(note));
+  const [u] = await ctx.tx
+    .update(clinicalNotes)
+    .set({
+      templateId: v2.id,
+      templateVersion: v2.version,
+      contentCiphertext: encrypt(JSON.stringify(content)),
+      revision: note.revision + 1,
+    })
+    .where(
+      and(
+        eq(clinicalNotes.id, note.id),
+        eq(clinicalNotes.state, "draft"),
+        eq(clinicalNotes.revision, note.revision),
+      ),
+    )
+    .returning({ id: clinicalNotes.id, revision: clinicalNotes.revision });
+  if (!u) throw new EmrWriteError("conflict", "The note changed while converting. Reload.");
+  await stampActivity(ctx, note.encounterId);
+  return u;
+}
+
 function getTemplateOr(id: string) {
   try {
     return getTemplate(id);
@@ -231,7 +276,7 @@ const CONCEPT_BY_SYMPTOM = new Map(
     .map(([id, c]) => [c.symptomCode!, id]),
 );
 
-function conceptForToken(token: unknown): string | null {
+export function conceptForToken(token: unknown): string | null {
   if (typeof token !== "string") return null;
   const def = conceptDef(token);
   if (def && (def.kind === "finding" || def.kind === "observation")) return token;
@@ -397,6 +442,23 @@ export async function signNote(ctx: WriteCtx, input: SignNoteInput): Promise<Wri
     const r = findingLines(item, note.effectiveAt);
     lines.push(...r.lines);
     unmapped += r.unmapped;
+  }
+  // Clerking v2 (payload schema 2): the catalogue history's findings and tobacco status.
+  if (content.schema === 2 && content.history) {
+    const [profile] = await ctx.tx
+      .select({ sex: patientProfiles.sex })
+      .from(patientProfiles)
+      .where(eq(patientProfiles.id, note.patientUserId));
+    const sex = profile?.sex === "female" || profile?.sex === "male" ? profile.sex : null;
+    const v2 = v2CommitLines(
+      CLERKING_CATALOGUE,
+      CLERKING_TOKEN_MAP,
+      conceptForToken,
+      content.history as unknown as History,
+      sex,
+    );
+    lines.push(...v2.lines.map((l) => ({ ...l, effectiveAt: note.effectiveAt })));
+    unmapped += v2.unmapped;
   }
   const ncd = captureFromNote(content);
   if (ncd)

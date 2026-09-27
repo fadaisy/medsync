@@ -35,6 +35,8 @@ export interface History {
     conditions: Record<string, { answer: YesNo; since?: string }>;
     operations?: "none" | { text: string; year?: number; where?: string }[];
     transfusions?: "none" | { when?: string; reaction?: string }[];
+    /** "Still true today": the listed allergies were confirmed at this visit (note only). */
+    allergiesConfirmed?: boolean;
   };
   family: Record<string, { answer: YesNo; relations?: string[] }>;
   social: {

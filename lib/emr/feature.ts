@@ -32,3 +32,14 @@ export function emrPrescribingLive(hospitalId?: string): boolean {
   if (process.env.EMR_PRESCRIBING?.trim() !== "1") return false;
   return hospitalId === undefined ? emrV1Live() : emrV1LiveFor(hospitalId);
 }
+
+/**
+ * Clerking desk v2 (PROMPT-CLERKING-DESK-V2 Law 12), per hospital, off by default:
+ * `CLERKING_V2=1` or a comma list of hospital ids, and only where EMR v1 is on. Needs migration
+ * 0076. Off, the v1 desk is unchanged.
+ */
+export function clerkingV2LiveFor(hospitalId: string): boolean {
+  const value = process.env.CLERKING_V2?.trim();
+  if (!value || !emrV1LiveFor(hospitalId)) return false;
+  return value === "1" || value.split(",").some((id) => id.trim() === hospitalId);
+}
