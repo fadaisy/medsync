@@ -111,11 +111,16 @@ describe("catalogue", () => {
         .items.map((i) => i.id),
     ).toContain("sym.test_new");
   });
-  it("the runtime catalogue is the handed-over one, and the signature is pinned to it", () => {
+  it("the runtime catalogue is the handed-over one plus the signed amendments, pinned by hash", () => {
     const a = readFileSync("data/clerking/clerking-history-catalogue.v1.json");
-    expect(a.equals(readFileSync("docs/emr/clerking-v2/clerking-history-catalogue.v1.json"))).toBe(
-      true,
+    const handoff = JSON.parse(
+      readFileSync("docs/emr/clerking-v2/clerking-history-catalogue.v1.json", "utf8"),
     );
+    // Exam GATE A, TM2: scrotal findings are restricted in both catalogues.
+    handoff.symptoms.find((s: { id: string }) => s.id === "sym.scrotal").sensitivity =
+      "sexual_reproductive_health";
+    expect(JSON.parse(a.toString("utf8"))).toEqual(handoff);
+    expect(signoff.amendments).toHaveLength(1);
     expect(createHash("sha256").update(a).digest("hex")).toBe(signoff.catalogueSha256);
   });
   it("rejects a malformed catalogue", () => {

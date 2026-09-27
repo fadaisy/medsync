@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { ExamSchema } from "./exam/payload";
+
 /**
  * Payload v2 at the trust boundary (saveNoteDraft): the shape of lib/clerking/answers `History`,
  * with bounds. Ids are short tokens; free text is bounded; nothing unknown passes.
@@ -95,6 +97,8 @@ export const ContentV2Keys = {
   schema: z.literal(2).optional(),
   catalogueVersion: text(40).optional(),
   history: HistorySchema.optional(),
+  /** Step 07, the structured examination (PROMPT-CLERKING-EXAM-V2 §8). */
+  exam: ExamSchema.optional(),
   edited: z.record(id, text(20_000)).optional(),
   flags: z.array(BadgeSnapshot).max(100).optional(),
 };
