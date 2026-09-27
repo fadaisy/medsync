@@ -3,8 +3,9 @@
 import type { History, HistoryHeader } from "@/lib/clerking/answers";
 import type { Catalogue, PatientSex } from "@/lib/clerking/catalogue";
 import { useMemo, useState } from "react";
-import { PlusIcon, SearchIcon, XIcon } from "lucide-react";
+import { CheckIcon, LayoutGridIcon, LockIcon, PlusIcon, SearchIcon, XIcon } from "lucide-react";
 
+import { EmrDialog } from "@/components/emr/emr-dialog";
 import { StatusWord } from "@/components/emr/status-word";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,10 +15,12 @@ import {
   toggleAnswer,
   updateComplaint,
 } from "@/lib/clerking/answers";
+import { isRestricted } from "@/lib/clerking/catalogue";
 import { lc } from "@/lib/clerking/compose";
 import { Chip, Segmented, YesNoRow } from "./controls";
 import {
   alsoAskedGroups,
+  complaintGroups,
   complaintIndex,
   entrySummary,
   searchComplaints,
@@ -60,6 +63,7 @@ export function ComplaintBody(props: HistoryBodyProps) {
     () => props.openKey ?? history.complaints.at(-1)?.key ?? null,
   );
   const [q, setQ] = useState("");
+  const [showAll, setShowAll] = useState(false);
   const index = useMemo(() => complaintIndex(cat), [cat]);
   const hits = q.trim() ? searchComplaints(index, q) : [];
 
@@ -189,24 +193,36 @@ export function ComplaintBody(props: HistoryBodyProps) {
           <label htmlFor="clerking-complaint-search" className="text-caption text-muted-foreground">
             Add a complaint
           </label>
-          <span className="border-input bg-card focus-within:shadow-focus flex min-h-9 items-center gap-2 rounded-sm border px-2.5 pointer-coarse:min-h-11">
-            <SearchIcon aria-hidden className="text-muted-foreground size-4 shrink-0" />
-            <input
-              id="clerking-complaint-search"
-              value={q}
-              autoComplete="off"
-              placeholder="Type a symptom, a synonym or the local term"
-              aria-keyshortcuts="/"
-              onChange={(e) => setQ(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Escape") setQ("");
-                if (e.key !== "Enter" || !q.trim()) return;
-                e.preventDefault();
-                add(hits[0]?.symptom.id ?? null, hits[0] ? undefined : q);
-              }}
-              className="text-body-s text-foreground min-w-0 flex-1 bg-transparent outline-none"
-            />
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="border-input bg-card focus-within:shadow-focus flex min-h-9 flex-1 items-center gap-2 rounded-sm border px-2.5 pointer-coarse:min-h-11">
+              <SearchIcon aria-hidden className="text-muted-foreground size-4 shrink-0" />
+              <input
+                id="clerking-complaint-search"
+                value={q}
+                autoComplete="off"
+                placeholder="Type a symptom, a synonym or the local term"
+                aria-keyshortcuts="/"
+                onChange={(e) => setQ(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") setQ("");
+                  if (e.key !== "Enter" || !q.trim()) return;
+                  e.preventDefault();
+                  add(hits[0]?.symptom.id ?? null, hits[0] ? undefined : q);
+                }}
+                className="text-body-s text-foreground min-w-0 flex-1 bg-transparent outline-none"
+              />
+            </span>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              className="shrink-0 pointer-coarse:min-h-11"
+              onClick={() => setShowAll(true)}
+            >
+              <LayoutGridIcon aria-hidden />
+              Show all
+            </Button>
+          </div>
           {q.trim() ? (
             <ul
               aria-label="Matching symptoms"
@@ -257,7 +273,123 @@ export function ComplaintBody(props: HistoryBodyProps) {
           ) : null}
         </div>
       ) : null}
+      {editable ? (
+        <AllComplaints
+          open={showAll}
+          onOpenChange={setShowAll}
+          cat={cat}
+          sex={props.sex ?? null}
+          added={new Set(history.complaints.flatMap((c) => (c.symptom ? [c.symptom] : [])))}
+          onPick={(id) => add(id)}
+        />
+      ) : null}
     </div>
+  );
+}
+
+/**
+ * "Show all": every complaint the catalogue offers, by body system, in the same badges as the
+ * Common picks. A tap adds it (the pop-up stays open, so several can be added); one already added
+ * shows a tick and opens its card. A filter narrows the list by name or synonym.
+ */
+function AllComplaints({
+  open,
+  onOpenChange,
+  cat,
+  sex,
+  added,
+  onPick,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  cat: Catalogue;
+  sex: PatientSex;
+  added: ReadonlySet<string>;
+  onPick: (symptomId: string) => void;
+}) {
+  const [filter, setFilter] = useState("");
+  const groups = useMemo(() => complaintGroups(cat, sex), [cat, sex]);
+  const f = filter.trim().toLowerCase();
+  const shown = f
+    ? groups
+        .map((g) => ({
+          ...g,
+          symptoms: g.symptoms.filter((s) =>
+            [s.label, ...s.synonyms, ...s.local_terms].some((x) => x.toLowerCase().includes(f)),
+          ),
+        }))
+        .filter((g) => g.symptoms.length)
+    : groups;
+  const total = groups.reduce((n, g) => n + g.symptoms.length, 0);
+  return (
+    <EmrDialog
+      open={open}
+      onOpenChange={(o) => {
+        onOpenChange(o);
+        if (!o) setFilter("");
+      }}
+      width="wide"
+      kicker="Presenting complaint"
+      title="All complaints"
+      description={`${total} complaints in the catalogue, by body system. Tap to add; the list stays open.`}
+      footer={
+        <Button type="button" variant="primary" onClick={() => onOpenChange(false)}>
+          Done
+        </Button>
+      }
+    >
+      <div className="flex flex-col gap-5">
+        <label className="border-input bg-card focus-within:shadow-focus flex min-h-9 items-center gap-2 rounded-sm border px-2.5 pointer-coarse:min-h-11">
+          <SearchIcon aria-hidden className="text-muted-foreground size-4 shrink-0" />
+          <span className="sr-only">Filter complaints</span>
+          <input
+            value={filter}
+            autoComplete="off"
+            placeholder="Filter by name or synonym"
+            onChange={(e) => setFilter(e.target.value)}
+            className="text-body-s text-foreground min-w-0 flex-1 bg-transparent outline-none"
+          />
+        </label>
+        {shown.length === 0 ? (
+          <p className="text-body-s text-muted-foreground">
+            Nothing matches. Close this and add it as typed from the search.
+          </p>
+        ) : (
+          <div className="grid gap-x-8 gap-y-5 md:grid-cols-2">
+            {shown.map((g) => (
+              <section
+                key={g.id}
+                aria-labelledby={`all-cc-${g.id}`}
+                className="flex flex-col gap-2"
+              >
+                <h3 id={`all-cc-${g.id}`} className="text-body-s text-foreground font-medium">
+                  {g.label}
+                </h3>
+                <div className="flex flex-wrap gap-1.5">
+                  {g.symptoms.map((s) => {
+                    const on = added.has(s.id);
+                    return (
+                      <Chip key={s.id} dashed={!on} selected={on} onPress={() => onPick(s.id)}>
+                        {on ? (
+                          <CheckIcon aria-hidden className="size-3.5" />
+                        ) : (
+                          <PlusIcon aria-hidden className="size-3.5" />
+                        )}
+                        {s.label}
+                        {isRestricted(s.sensitivity) ? (
+                          <LockIcon aria-label="Restricted" className="size-3" />
+                        ) : null}
+                        {on ? <span className="sr-only">(added)</span> : null}
+                      </Chip>
+                    );
+                  })}
+                </div>
+              </section>
+            ))}
+          </div>
+        )}
+      </div>
+    </EmrDialog>
   );
 }
 

@@ -11,6 +11,7 @@ import type { AdultVitals, News2Result } from "@/lib/triage/types";
 import { deskValidation, hasContent, itemsOf, itemWords } from "@/components/emr/desk/model";
 import { rank } from "@/components/emr/desk/search";
 import { durationText, emptyHistory } from "@/lib/clerking/answers";
+import { appliesTo, rosSystemsFor } from "@/lib/clerking/catalogue";
 import { familyConditions, v2CommitLines } from "@/lib/clerking/commit";
 import { compose, lc, list } from "@/lib/clerking/compose";
 import { evaluateFlags, toBadges } from "@/lib/clerking/flags";
@@ -535,3 +536,41 @@ export const CLERKING_KEY_HELP: readonly [string, string][] = [
   ["Ctrl or ⌘ + Enter", "Sign note"],
   ["?", "Show these keys"],
 ];
+
+/* ─── "Show all" complaints (Complaint quality of life) ──────────── */
+
+export interface ComplaintGroup {
+  id: string;
+  label: string;
+  symptoms: Symptom[];
+}
+
+/**
+ * Every symptom the catalogue offers as a complaint, for this patient's sex, grouped by body system
+ * in the catalogue's review-of-systems order (its own groups and placements). Each symptom appears
+ * once: in the first group that lists it, else under its first system, else "Other". Pure.
+ */
+export function complaintGroups(cat: Catalogue, sex: PatientSex): ComplaintGroup[] {
+  const offered = cat.symptoms.filter(
+    (s) => s.offer_as_complaint && appliesTo(s.applies_to_sex, sex),
+  );
+  const systems = rosSystemsFor(cat, sex);
+  const labelOf = new Map(cat.data.review_of_systems.systems.map((s) => [s.id, s.label]));
+  const placed = new Map<string, string>();
+  for (const sys of systems)
+    for (const s of sys.items) if (!placed.has(s.id)) placed.set(s.id, sys.id);
+  const groups = new Map<string, ComplaintGroup>(
+    systems.map((s) => [s.id, { id: s.id, label: s.label, symptoms: [] }]),
+  );
+  for (const s of offered) {
+    const id = placed.get(s.id) ?? s.systems.find((x) => groups.has(x)) ?? "other";
+    if (!groups.has(id)) groups.set(id, { id, label: labelOf.get(id) ?? "Other", symptoms: [] });
+    groups.get(id)!.symptoms.push(s);
+  }
+  return [...groups.values()]
+    .map((g) => ({
+      ...g,
+      symptoms: [...g.symptoms].sort((a, b) => a.label.localeCompare(b.label)),
+    }))
+    .filter((g) => g.symptoms.length > 0);
+}
