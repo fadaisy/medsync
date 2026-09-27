@@ -10,6 +10,8 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 A role-based digital-hospital platform for Ugandan hospitals (IM-first, Mulago beachhead). Clinical workflows: triage → encounter/clerkship → resus → prescribing, with hospital-admin, reception, nurse, doctor, patient, and super-admin surfaces.
 
+**New session without the previous one's memory (cloud, new machine)?** Read `docs/CLAUDE-HANDOFF.md`: owner rules, what is built and signed, migrations awaiting the owner, and how to run the checks.
+
 ## Tech stack
 
 - **Next.js 16** App Router (React Server Components, Server Actions). Request interception is **`proxy.ts`** at the repo root (Next 16's replacement for `middleware.ts`) — auth gating, public-prefix + AAL2 (MFA) enforcement.
