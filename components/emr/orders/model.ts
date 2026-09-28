@@ -38,6 +38,7 @@ export const PRIORITY_WORD: Record<string, string> = {
   routine: "Routine",
   urgent: "Urgent",
   immediate: "Immediate",
+  emergency: "Emergency",
 };
 
 /** The test words on a specimen label: a restricted test is printed only when added by hand, like

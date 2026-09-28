@@ -50,6 +50,9 @@ const CLINICAL = [
   "diagnostic_reports",
   "result_acknowledgements",
   "critical_result_communications",
+  // 0089 (ADR 0189)
+  "fluid_balance_entries",
+  "monitoring_charts",
 ];
 const VIEWS = [
   "clinical_observations_current",
@@ -406,9 +409,10 @@ describe.skipIf(!laneOn)("EMR access matrix (PGlite lane)", () => {
     const restricted = (
       await pg.query<{ id: string }>(
         `INSERT INTO public.encounter_orders (encounter_id, patient_user_id, kind, text, authored_by_user_id, lifecycle,
-           hospital_id, priority, performer, intent_source, requester_cadre, effective_at, reason_text_ciphertext, sensitivity)
+           hospital_id, priority, frequency, performer, intent_source, requester_cadre, effective_at, reason_text_ciphertext,
+           sensitivity)
          SELECT encounter_id, patient_user_id, kind, 'Restricted test', authored_by_user_id, lifecycle, hospital_id,
-           priority, performer, intent_source, requester_cadre, effective_at, reason_text_ciphertext, 'restricted'
+           priority, frequency, performer, intent_source, requester_cadre, effective_at, reason_text_ciphertext, 'restricted'
            FROM public.encounter_orders WHERE id = $1 RETURNING id`,
         [standard],
       )

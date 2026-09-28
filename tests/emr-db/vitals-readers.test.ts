@@ -129,8 +129,8 @@ describe.skipIf(!laneOn)("legacy vitals readers see CFC rows (PGlite lane)", () 
       (await lane.pg.query<{ id: string }>(sql, params)).rows[0]!.id;
     const order = await one(
       `INSERT INTO public.encounter_orders (encounter_id, patient_user_id, kind, text, authored_by_user_id, lifecycle,
-         hospital_id, priority, performer, intent_source, requester_cadre, effective_at, reason_text_ciphertext)
-       VALUES ($1, $2, 'ecg', 'x', $3, 'events', $4, 'routine', 'in_house', 'clinician', 'MEDICAL_OFFICER', now(),
+         hospital_id, priority, frequency, performer, intent_source, requester_cadre, effective_at, reason_text_ciphertext)
+       VALUES ($1, $2, 'ecg', 'x', $3, 'events', $4, 'routine', 'once', 'in_house', 'clinician', 'MEDICAL_OFFICER', now(),
          'iv:tag:ct') RETURNING id`,
       [enc, q, nurse, h],
     );

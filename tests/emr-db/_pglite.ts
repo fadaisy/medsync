@@ -452,6 +452,8 @@ export const RECORD_KEYS = [
   "diagnostic_reports",
   "result_acknowledgements",
   "critical_result_communications",
+  "fluid_balance_entries",
+  "monitoring_charts",
   "clinical_observations_current",
   "conditions_current",
   "medication_statements_current",
@@ -516,8 +518,8 @@ export async function seedRecord(
   );
   const order = await id(
     `INSERT INTO public.encounter_orders (encounter_id, patient_user_id, kind, text, authored_by_user_id, lifecycle, hospital_id,
-       priority, performer, intent_source, requester_cadre, effective_at, reason_text_ciphertext)
-     VALUES ($3, $2, 'ecg', 'ECG', $4, 'events', $1, 'routine', 'in_house', 'clinician', 'MEDICAL_OFFICER', now(), 'iv:tag:ct')
+       priority, frequency, performer, intent_source, requester_cadre, effective_at, reason_text_ciphertext)
+     VALUES ($3, $2, 'ecg', 'ECG', $4, 'events', $1, 'routine', 'once', 'in_house', 'clinician', 'MEDICAL_OFFICER', now(), 'iv:tag:ct')
      RETURNING id`,
   );
   const legacyOrder = await id(
@@ -608,6 +610,16 @@ export async function seedRecord(
     `INSERT INTO public.encounter_results (order_id, value) VALUES ($1, '5.0') RETURNING id`,
     [legacyOrder],
   );
+  // 0089: the chart registry and one fluid entry (urine, not measured: no volume, never 0).
+  const chart = await id(
+    `INSERT INTO public.monitoring_charts (hospital_id, patient_user_id, encounter_id, kind, opened_by, opened_by_user_id)
+     VALUES ($1, $2, $3, 'fluid_balance', '{"rule":"fluid.iv","label":"lane","items":[]}', $4) RETURNING id`,
+  );
+  const fluid = await id(
+    `INSERT INTO public.fluid_balance_entries (hospital_id, patient_user_id, encounter_id, kind, measured, effective_at,
+       recorded_by_user_id)
+     VALUES ($1, $2, $3, 'urine_out', false, now(), $4) RETURNING id`,
+  );
 
   return {
     clinical_notes: [note],
@@ -624,6 +636,8 @@ export async function seedRecord(
     diagnostic_reports: [report],
     result_acknowledgements: [ack],
     critical_result_communications: [crit],
+    fluid_balance_entries: [fluid],
+    monitoring_charts: [chart],
     clinical_observations_current: [observation],
     conditions_current: [condition],
     medication_statements_current: [medication],

@@ -109,8 +109,8 @@ describe.skipIf(!laneOn)("encounter completion planning (PGlite lane)", () => {
     );
     await lane.pg.query(
       `INSERT INTO public.encounter_orders (encounter_id, patient_user_id, kind, text, authored_by_user_id, lifecycle, hospital_id,
-         priority, performer, intent_source, requester_cadre, effective_at, reason_text_ciphertext, test_id)
-       VALUES ($1, $2, 'lab', 'mRDT', $3, 'events', $4, 'routine', 'in_house', 'clinician', 'MEDICAL_OFFICER', now(), 'iv:tag:ct',
+         priority, frequency, performer, intent_source, requester_cadre, effective_at, reason_text_ciphertext, test_id)
+       VALUES ($1, $2, 'lab', 'mRDT', $3, 'events', $4, 'routine', 'once', 'in_house', 'clinician', 'MEDICAL_OFFICER', now(), 'iv:tag:ct',
                (SELECT id FROM public.test_catalogue WHERE kind = 'lab' LIMIT 1))`,
       [e, p, mo.userId, h],
     );

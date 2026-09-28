@@ -155,3 +155,33 @@ ADRs written, numbered after PR #188's 0183:
 
 One conflict resolved by the design system: the prompt says headings are weight 500; `DESIGN-medsync.md` gives them
 600 from the type token, and wins.
+
+---
+
+## STOP 2: data, reference and the write path
+
+**GATED migrations written, not applied** (apply in order, before deploying this branch: the Drizzle schema names
+the new columns):
+
+| Migration                                  | What                                                                                                                                                                                                                                                           |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `0087_orders_emergency_frequency`          | priority `emergency`; `encounter_orders.frequency` (`once / daily / 12h / 6h`); a BEFORE INSERT trigger refuses a routine order with no frequency                                                                                                              |
+| `0088_prescriptions_plan`                  | 15 prescription columns (method, infusion over, diluent, PRN, regimen, edits, problem, start, kind, fluid purpose, volume, time, giving set, warmed, answered checks) with their checks; reconciliation `held` needs a reason; the MAR's `emr_prescription_id` |
+| `0089_fluid_balance_and_monitoring_charts` | `fluid_balance_entries` (append-only; correction and entered in error by a new row) and `monitoring_charts` (one open per kind per visit; never deleted), RLS forced, reader policy, write revokes, audit triggers                                             |
+
+**The formulary.** `data/prescribing/drug-catalogue.v0.json` (byte-identical to the pack) →
+`scripts/prescribing/gen-formulary.ts` → `lib/prescribing/reference/general-formulary.ts`. The signed emergency
+regimens are laid over four catalogue drugs by `formulary-regimens.ts`, which reads every quote from
+`emergency-drug-catalog.ts` at load (glucose 10%: adult 150 mL, child 2 mL/kg; glucagon: adult 1 mg, child 500 µg
+or 1 mg by "<8 yr or <25 kg"; sodium chloride 0.9% and Ringer's lactate: adult 250–500 mL, child 10–20 mL/kg).
+
+**The write path.** `lib/emr/write/plan.ts` `placePlan`: orders (with frequency), prescriptions (the checks re-run
+from the record: allergy, kidney, weight, child, duplicate, indication, cultures, interactions, stock, co-sign,
+controlled; a non-overrideable stop and an unanswered check refuse; the answers encrypted with the reason; edits
+recomputed against the regimen with the record's weight), then the charts the rule table opens. Signing a v2 note
+where the Plan is on waits for "plan done" (`planSignBlocks`).
+
+**Tests.** `tests/prescribing/general-formulary.test.ts` (the validator and the dose-content guard),
+`formulary-regimens.test.ts`, `plan-prescribing.test.ts`, `tests/emr/plan-charts.test.ts`,
+`tests/clerking/plan.test.ts`; on the PGlite lane `write-plan.test.ts` and the RLS matrix with the two new tables.
+Full suite: 7,758 passed; lane: parity, migrations, RLS matrix and the Plan writes pass.

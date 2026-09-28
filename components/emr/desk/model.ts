@@ -128,7 +128,7 @@ export interface CarriedProblem {
   answer: ProblemAnswer;
 }
 
-export type MedicineAnswer = "pending" | "continued" | "stopped" | "changed";
+export type MedicineAnswer = "pending" | "continued" | "stopped" | "changed" | "held";
 export interface CarriedMedicine {
   /** medication_statements.id of the current version. */
   id: string;

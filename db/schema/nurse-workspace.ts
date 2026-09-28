@@ -20,6 +20,7 @@ import { authUsers } from "./_auth";
 import { hospitalDepartments } from "./hospital-departments";
 import { hospitalWards } from "./hospital-wards";
 import { hospitals } from "./hospitals";
+import { prescriptions } from "./prescribing";
 import { encounters } from "./scheduling";
 
 /**
@@ -316,6 +317,10 @@ export const medicationAdministrationRecords = pgTable(
     cosignedByUserId: uuid("cosigned_by_user_id").references(() => authUsers.id),
 
     prescriptionId: text("prescription_id"),
+    /** The prescription, as a real foreign key (migration 0088; the text seam above stays). */
+    emrPrescriptionId: uuid("emr_prescription_id").references(() => prescriptions.id, {
+      onDelete: "restrict",
+    }),
     drugName: text("drug_name").notNull(),
     dose: text("dose").notNull(),
     route: text("route").notNull(),
@@ -342,6 +347,9 @@ export const medicationAdministrationRecords = pgTable(
     ),
     index("mar_patient_idx").on(t.patientUserId, t.administeredAt),
     index("mar_administered_by_idx").on(t.administeredByUserId, t.administeredAt),
+    index("mar_emr_prescription_idx")
+      .on(t.emrPrescriptionId, t.scheduledFor)
+      .where(sql`${t.emrPrescriptionId} IS NOT NULL`),
   ],
 );
 

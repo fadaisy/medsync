@@ -3,7 +3,7 @@ import "server-only";
 import type { ActionResult, WriteCtx } from "./context";
 import type { EmrSurface } from "@/lib/emr/actor";
 import type { EmrTx } from "@/lib/emr/db";
-import type { OrderRecords, OrderStatus } from "@/lib/emr/orders";
+import type { OrderFrequency, OrderPriority, OrderRecords, OrderStatus } from "@/lib/emr/orders";
 import type { FactConcept } from "@/lib/facts/types";
 import type { AnyPgColumn, PgTable } from "drizzle-orm/pg-core";
 import type { z } from "zod";
@@ -24,7 +24,7 @@ import { encounters } from "@/db/schema/scheduling";
 import { requireEmrActor } from "@/lib/emr/actor";
 import { isOpen } from "@/lib/emr/encounter";
 import { emrV1LiveFor } from "@/lib/emr/feature";
-import { deriveOrderStatus, orderStatusText } from "@/lib/emr/orders";
+import { deriveOrderStatus, orderFrequencyFor, orderStatusText } from "@/lib/emr/orders";
 import { CLERKING_CADRE_CODES } from "@/lib/encounter/access";
 import { encrypt } from "@/lib/encryption";
 import { sensitivityFor } from "@/lib/facts/project/shared";
@@ -200,7 +200,9 @@ export interface OrderLine {
   /** Idempotency key for this line: a replay returns the order it already placed. */
   clientKey: string;
   testId: string;
-  priority: "routine" | "urgent" | "immediate";
+  priority: OrderPriority;
+  /** Required for routine by migration 0087; `orderFrequencyFor` defaults it to `once`. */
+  frequency?: OrderFrequency;
   reasonConditionIds?: string[];
   reasonText?: string;
   intentSource?: IntentSource;
@@ -306,6 +308,7 @@ export async function placeOrders(
         hospitalId: actor.hospitalId,
         testId: test.id,
         priority: line.priority,
+        frequency: orderFrequencyFor(line.priority, line.frequency),
         reasonConditionIds: reasonIds,
         reasonTextCiphertext: reasonText ? encrypt(reasonText) : null,
         fastingRequired: test.fastingRequired,

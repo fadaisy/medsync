@@ -21,9 +21,9 @@ an admitted patient is usually repeated (daily U&E, 6-hourly glucose); today not
    priorities may carry one or none.
 3. **Enforced on insert, not by CHECK.** A BEFORE INSERT trigger refuses a routine order with no frequency. A CHECK
    would also bind every later status update of the routine rows already stored without one.
-4. **Every caller sends a frequency for routine.** The order sheet and Impression's "Add to plan" send `once` unless
-   the clinician chose otherwise; the triage and resus-handover proposals are not routine. The write path defaults a
-   routine line with no frequency to `once` so an older client keeps working, and the database trigger backs it up.
+4. **Every routine line carries a frequency.** The Plan sends the one chosen. The write path (`orderFrequencyFor`)
+   gives a routine line with none `once`, so the order sheet, Impression's "Add to plan", the triage suggestion and
+   the resus handover (routine lines) keep working unchanged; the database trigger backs it up.
 
 ## Consequences
 

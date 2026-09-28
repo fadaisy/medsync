@@ -21,7 +21,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 import { authUsers } from "./_auth";
-import { medicationStatements } from "./emr";
+import { conditions, medicationStatements } from "./emr";
 import { hospitalDepartments } from "./hospital-departments";
 import { hospitals } from "./hospitals";
 import { resusEpisodes } from "./resus";
@@ -98,6 +98,29 @@ export const prescriptions = pgTable(
       () => medicationStatements.id,
       { onDelete: "restrict" },
     ),
+    // Prescribing from the Plan (migration 0088, GATED; ADR 0186). Course is `duration` above.
+    method: text("method"),
+    infusionOver: text("infusion_over"),
+    diluent: text("diluent"),
+    prn: boolean("prn").notNull().default(false),
+    /** The signed formulary regimen the dose came from; `edits` are the changes made to it. */
+    regimenId: text("regimen_id"),
+    edits: jsonb("edits")
+      .notNull()
+      .default(sql`'[]'::jsonb`),
+    /** The problem: a conditions version id, as encounter_orders.reason_condition_ids. */
+    conditionId: uuid("condition_id").references(() => conditions.id, { onDelete: "restrict" }),
+    start: text("start"),
+    kind: text("kind").notNull().default("drug"),
+    fluidPurpose: text("fluid_purpose"),
+    volumeMl: numeric("volume_ml"),
+    overMinutes: integer("over_minutes"),
+    givingSetDropsPerMl: integer("giving_set_drops_per_ml"),
+    warmed: boolean("warmed"),
+    /** The checks that needed an answer, with the answer chosen: [{code, answer}]. */
+    checkAnswers: jsonb("check_answers")
+      .notNull()
+      .default(sql`'[]'::jsonb`),
   },
   (t) => [
     check(
@@ -109,11 +132,41 @@ export const prescriptions = pgTable(
       "prescriptions_confirm_reason",
       sql`${t.confirmedFlags} = '[]'::jsonb OR ${t.confirmReasonCiphertext} IS NOT NULL`,
     ),
+    check(
+      "prescriptions_start_check",
+      sql`${t.start} IS NULL OR ${t.start} IN ('now','next_round')`,
+    ),
+    check("prescriptions_kind_check", sql`${t.kind} IN ('drug','fluid')`),
+    check(
+      "prescriptions_fluid_purpose_check",
+      sql`${t.fluidPurpose} IS NULL OR ${t.fluidPurpose} IN ('bolus','maintenance','replacement')`,
+    ),
+    check(
+      "prescriptions_giving_set_check",
+      sql`${t.givingSetDropsPerMl} IS NULL OR ${t.givingSetDropsPerMl} IN (20, 60)`,
+    ),
+    check(
+      "prescriptions_fluid_amounts",
+      sql`(${t.volumeMl} IS NULL OR ${t.volumeMl} > 0) AND (${t.overMinutes} IS NULL OR ${t.overMinutes} > 0)`,
+    ),
+    check(
+      "prescriptions_fluid_shape",
+      sql`(${t.kind} = 'fluid' AND ${t.fluidPurpose} IS NOT NULL AND ${t.volumeMl} IS NOT NULL AND ${t.overMinutes} IS NOT NULL)
+      OR (${t.kind} = 'drug' AND ${t.fluidPurpose} IS NULL AND ${t.volumeMl} IS NULL AND ${t.overMinutes} IS NULL
+          AND ${t.givingSetDropsPerMl} IS NULL AND ${t.warmed} IS NULL)`,
+    ),
+    check(
+      "prescriptions_answer_reason",
+      sql`${t.checkAnswers} = '[]'::jsonb OR ${t.confirmReasonCiphertext} IS NOT NULL`,
+    ),
     uniqueIndex("prescriptions_client_key")
       .on(t.clientKey)
       .where(sql`${t.clientKey} IS NOT NULL`),
     index("prescriptions_patient_idx").on(t.patientUserId, t.createdAt),
     index("prescriptions_encounter_idx").on(t.encounterId),
+    index("prescriptions_condition_idx")
+      .on(t.conditionId)
+      .where(sql`${t.conditionId} IS NOT NULL`),
   ],
 );
 

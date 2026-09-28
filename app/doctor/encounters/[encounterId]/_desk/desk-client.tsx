@@ -620,8 +620,9 @@ export function DeskClient({
       ),
     onMedicine: (
       id: string,
-      reconciliation: "continued" | "stopped" | "changed",
+      reconciliation: "continued" | "stopped" | "changed" | "held",
       reasonCode?: string,
+      reasonText?: string,
     ) =>
       run(
         `med:${id}`,
@@ -630,10 +631,17 @@ export function DeskClient({
             ...base,
             clientKey,
             encounterId,
-            items: [{ id, reconciliation, ...(reasonCode ? { reasonCode } : {}) }],
+            items: [
+              {
+                id,
+                reconciliation,
+                ...(reasonCode ? { reasonCode } : {}),
+                ...(reasonText ? { reasonText } : {}),
+              },
+            ],
           }),
         reconciliation === "continued" ? "Medicine continued" : `Medicine ${reconciliation}`,
-        [reconciliation, reasonCode],
+        [reconciliation, reasonCode, reasonText],
       ).then((r) => r.ok),
     onAddMedicine: (text: string) =>
       void run(

@@ -119,3 +119,6 @@ export * from "./emr";
 
 // ─── Clerking desk v2 (migration 0076 — GATED) ──────────────────────────
 export * from "./clerking";
+
+// ─── Monitoring charts opened by the plan (migration 0089 — GATED, ADR 0189)
+export * from "./monitoring";
