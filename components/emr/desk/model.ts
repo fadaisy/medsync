@@ -95,6 +95,9 @@ export interface DeskOrder {
   statusText: string;
   at: string;
   open: boolean;
+  /** The test_catalogue row, and the diagnoses it was placed for ("In plan", §5.3). */
+  testId?: string | null;
+  reasonConditionIds?: string[];
 }
 
 /** One current diagnosis on this visit (lib/emr/diagnoses encounterDiagnoses; D-SI-19). */

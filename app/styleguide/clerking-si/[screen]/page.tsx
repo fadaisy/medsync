@@ -34,6 +34,9 @@ export default async function Page({ params }: { params: Promise<{ screen: strin
         code: null,
         verification: "provisional",
         rank: "primary",
+        restricted: false,
+        onProblemList: false,
+        cosignPending: false,
         ...{
           logicalId: "00000000-0000-4000-8000-0000000000a1",
           termId: dxTermUuid("dx.dm_type_unknown"),
@@ -45,6 +48,9 @@ export default async function Page({ params }: { params: Promise<{ screen: strin
         code: null,
         verification: "differential",
         rank: "secondary",
+        restricted: false,
+        onProblemList: false,
+        cosignPending: false,
         ...{ logicalId: "00000000-0000-4000-8000-0000000000a2", termId: dxTermUuid("dx.sepsis") },
       },
     ];

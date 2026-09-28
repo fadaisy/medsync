@@ -674,6 +674,8 @@ export async function loadDeskFor(
       statusText: o.statusText,
       at: o.orderedAt,
       open: o.open,
+      testId: o.testId,
+      reasonConditionIds: o.reasonConditionIds,
     }));
 
   // Context rail vitals: the newest reading per vital concept, triage ones marked (projected).

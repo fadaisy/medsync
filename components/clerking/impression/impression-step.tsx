@@ -311,6 +311,7 @@ export function ImpressionStep(props: ImpressionStepProps) {
             },
           }
         : { typed: g.display };
+    if (duplicateOf(si.recorded, "term" in pick ? { termId: pick.term.id } : pick)) return;
     // Added from the box as Possible (§5.3); the likelihood waits in the draft for its condition.
     if (!asLeading)
       props.onImpression((d) => ({
@@ -757,7 +758,7 @@ export function ImpressionStep(props: ImpressionStepProps) {
               <li key={g.dxId}>
                 <button
                   type="button"
-                  disabled={!canWrite || !props.on.onDiagnosis}
+                  disabled={!canWrite || !props.on.onDiagnosis || props.busy === "dx"}
                   title={g.why.join("; ")}
                   aria-describedby={`sugg-why-${g.dxId}`}
                   onClick={() => addSuggestion(g)}

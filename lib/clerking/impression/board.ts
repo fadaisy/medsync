@@ -128,6 +128,12 @@ export function buildBoard(i: BoardInput): Board {
     const reason = i.draft.reasons[d.logicalId] ?? "";
     const mnm = !!profile?.must_not_miss;
     const slot = slotOf(d);
+    // SI5: it leaves the top only when marked Unlikely with a reason (D-DX-06).
+    const reasonMissing =
+      slot === "differential" &&
+      mnm &&
+      likelihood === "unlikely" &&
+      words(reason) < REASON_MIN_WORDS;
     return {
       dx: d,
       slot,
@@ -135,14 +141,10 @@ export function buildBoard(i: BoardInput): Board {
       awaitingSignoff: !!p && !signed,
       mustNotMiss: mnm,
       timeCritical: !!profile?.time_critical,
-      pinned: slot === "differential" && mnm && likelihood !== "unlikely",
+      pinned: slot === "differential" && mnm && (likelihood !== "unlikely" || reasonMissing),
       likelihood,
       reason,
-      reasonMissing:
-        slot === "differential" &&
-        mnm &&
-        likelihood === "unlikely" &&
-        words(reason) < REASON_MIN_WORDS,
+      reasonMissing,
       position: 0,
     };
   };

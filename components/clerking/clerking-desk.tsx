@@ -7,10 +7,9 @@ import type { HistoryBodyProps } from "./history-sections";
 import type { ImpressionHandlers } from "./impression/impression-step";
 import type { Derived, VitalsView } from "./model";
 import type { PastHistoryHandlers } from "./past-history-body";
-import type { DeskDx } from "./si-model";
 import type { DxData } from "./use-catalogue";
 import type { DeskViewHandlers, DeskViewProps } from "@/components/emr/desk/desk-view";
-import type { DeskOrder, DeskPayload } from "@/components/emr/desk/model";
+import type { DeskPayload } from "@/components/emr/desk/model";
 import type { SectionCtx } from "@/components/emr/desk/sections";
 import type { HistoryHeader } from "@/lib/clerking/answers";
 import type { Catalogue } from "@/lib/clerking/catalogue";
@@ -376,6 +375,7 @@ function SectionBar({
 function SignBar({
   required,
   ready,
+  blocks = [],
   canSign,
   signing,
   complete,
@@ -384,13 +384,18 @@ function SignBar({
 }: {
   required: { met: number; of: number };
   ready: boolean;
+  /** What else holds signing, beyond the template's rules (a must-not-miss reason, SI5). */
+  blocks?: readonly string[];
   canSign: boolean;
   signing?: boolean;
   complete: boolean;
   onSign?: () => void;
   onComplete?: () => void;
 }) {
-  const words = `Required ${required.met} of ${required.of}`;
+  const words = [
+    `Required ${required.met} of ${required.of}`,
+    ...(blocks.length === 1 ? blocks : blocks.length ? [`${blocks.length} reasons needed`] : []),
+  ].join(" · ");
   return (
     <div
       data-slot="desk-actions"
@@ -476,9 +481,9 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
     [props.dx],
   );
   const inPlan = (logicalId: string): ReadonlySet<string> => {
-    const version = (p.diagnoses as DeskDx[]).find((d) => (d.logicalId ?? d.id) === logicalId)?.id;
+    const version = p.diagnoses.find((d) => d.logicalId === logicalId)?.id;
     return new Set(
-      (p.orders as (DeskOrder & { testId?: string; reasonConditionIds?: string[] })[])
+      p.orders
         .filter((o) => o.testId && version && o.reasonConditionIds?.includes(version))
         .map((o) => testIdOf.get(o.testId!) ?? o.testId!),
     );
@@ -829,6 +834,7 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
     <SignBar
       required={required}
       ready={ready}
+      blocks={imp?.signBlocks ?? []}
       canSign={editable}
       signing={props.signing}
       complete={p.encounter.open}

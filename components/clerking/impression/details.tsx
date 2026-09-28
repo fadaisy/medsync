@@ -10,6 +10,7 @@ import type { CellState, Column } from "@/lib/clerking/impression/evidence";
 import type { Finding } from "@/lib/clerking/impression/facts";
 import type { SectionId } from "@/lib/clerking/status";
 import type { ReactNode } from "react";
+import { useId } from "react";
 import { ChevronLeftIcon, ClockIcon, ShieldAlertIcon } from "lucide-react";
 
 import { PRESS } from "@/components/emr/orders/choice-chips";
@@ -48,12 +49,24 @@ export function subLine(row: BoardRow, dx: DxData | null): string {
   return n && !n.coded ? "As typed · not coded" : "Not coded";
 }
 
-function Group({ id, title, children }: { id: string; title: string; children: ReactNode }) {
+function Group({
+  id,
+  title,
+  level,
+  children,
+}: {
+  id: string;
+  title: string;
+  /** Under the name's h3 in place; under the dialog's own title in the dialog. */
+  level: "h3" | "h4";
+  children: ReactNode;
+}) {
+  const H = level;
   return (
     <section aria-labelledby={id} className="flex flex-col gap-2">
-      <h4 id={id} className="text-caption text-muted-foreground tracking-[0.06em] uppercase">
+      <H id={id} className="text-caption text-muted-foreground tracking-[0.06em] uppercase">
         {title}
-      </h4>
+      </H>
       {children}
     </section>
   );
@@ -142,6 +155,7 @@ export function DetailsBody(props: DetailsProps) {
   const onsets = p?.onset.allowed ?? (["acute", "chronic", "acute_on_chronic"] as OnsetId[]);
   const unlikelyMnm = row.mustNotMiss && row.likelihood === "unlikely";
   const asks = v.asksFor(id);
+  const level = props.inPlace ? "h4" : "h3";
 
   const chipList = (list: Finding[], state: "for" | "against" | "suggested") =>
     list.length ? (
@@ -193,7 +207,10 @@ export function DetailsBody(props: DetailsProps) {
         <span className="text-caption text-muted-foreground tracking-[0.06em] uppercase">
           {roleOf(row)}
         </span>
-        <h3 className="text-heading-s text-foreground">{row.dx.display}</h3>
+        {/* In the dialog its title already names it. */}
+        {props.inPlace ? (
+          <h3 className="text-heading-s text-foreground">{row.dx.display}</h3>
+        ) : null}
         <span className="text-caption text-muted-foreground">{subLine(row, dx)}</span>
         <span className="flex flex-wrap gap-1.5 pt-1">
           {row.mustNotMiss ? (
@@ -214,7 +231,7 @@ export function DetailsBody(props: DetailsProps) {
         <p className="text-body-s text-muted-foreground">Reasoning aids awaiting sign-off</p>
       ) : null}
 
-      <Group id={`dx-ev-${id}`} title="Evidence">
+      <Group level={level} id={`dx-ev-${id}`} title="Evidence">
         {props.lists ? (
           <>
             <span className="text-caption text-muted-foreground">Suggested</span>
@@ -252,7 +269,7 @@ export function DetailsBody(props: DetailsProps) {
         />
       ) : null}
 
-      <Group id={`dx-onset-${id}`} title="Onset">
+      <Group level={level} id={`dx-onset-${id}`} title="Onset">
         <Radios
           label="Onset"
           disabled={!editable}
@@ -263,7 +280,7 @@ export function DetailsBody(props: DetailsProps) {
       </Group>
 
       {p && p.severity.kind !== "none" ? (
-        <Group id={`dx-sev-${id}`} title="Severity">
+        <Group level={level} id={`dx-sev-${id}`} title="Severity">
           <Severity
             row={row}
             si={si}
@@ -279,7 +296,7 @@ export function DetailsBody(props: DetailsProps) {
       ) : null}
 
       {p?.tests_to_decide.length ? (
-        <Group id={`dx-tests-${id}`} title="Tests that would help decide">
+        <Group level={level} id={`dx-tests-${id}`} title="Tests that would help decide">
           <ul className="flex flex-col gap-1">
             {p.tests_to_decide.map((t) => {
               const name = dx?.tests[t];
@@ -317,7 +334,7 @@ export function DetailsBody(props: DetailsProps) {
         <ReasonField row={row} editable={editable} onImpression={onImpression} />
       ) : null}
 
-      <Group id={`dx-reason-${id}`} title="Your reasoning">
+      <Group level={level} id={`dx-reason-${id}`} title="Your reasoning">
         <textarea
           aria-label={`Your reasoning, ${row.dx.display}`}
           value={meta.reasoning ?? ""}
@@ -419,7 +436,8 @@ export function ReasonField({
   editable: boolean;
   onImpression: (fn: (d: ImpressionDraft) => ImpressionDraft) => void;
 }) {
-  const id = `dx-why-${row.dx.logicalId}`;
+  // The list and Details can both show it at once: one id each.
+  const id = useId();
   const short = words(row.reason) < REASON_MIN_WORDS;
   return (
     <div className="flex flex-col gap-1.5">

@@ -677,9 +677,10 @@ export function NotAsked({
   title?: string;
 }) {
   const answer = (r: AskRow, a: YesNo | string) => onHistory((h) => answerAsk(h, r.target, a));
+  const id = useId();
   return (
-    <section aria-labelledby="summary-not-asked" className="flex flex-col gap-2">
-      <Label id="summary-not-asked">{title}</Label>
+    <section aria-labelledby={id} className="flex flex-col gap-2">
+      <Label id={id}>{title}</Label>
       <p className="text-caption text-muted-foreground">
         It goes into the history step and the summary. Examination items open the examination.
       </p>

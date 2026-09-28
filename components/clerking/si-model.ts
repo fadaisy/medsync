@@ -1,5 +1,5 @@
 import type { DxData } from "./use-catalogue";
-import type { DeskDiagnosis, DeskPayload } from "@/components/emr/desk/model";
+import type { DeskPayload } from "@/components/emr/desk/model";
 import type { History } from "@/lib/clerking/answers";
 import type { Catalogue } from "@/lib/clerking/catalogue";
 import type { ExamCatalogue } from "@/lib/clerking/exam/catalogue";
@@ -22,7 +22,7 @@ import type { News2Result } from "@/lib/triage/types";
 import { NO_VITALS } from "@/lib/clerking/exam/context";
 import { emptyExam } from "@/lib/clerking/exam/payload";
 import { asks } from "@/lib/clerking/impression/ask";
-import { buildBoard, EMPTY_IMPRESSION } from "@/lib/clerking/impression/board";
+import { buildBoard, EMPTY_IMPRESSION, normaliseTyped } from "@/lib/clerking/impression/board";
 import { dxLive } from "@/lib/clerking/impression/catalogue";
 import { columns } from "@/lib/clerking/impression/evidence";
 import { atomRef, CLINICAL_VIEWER, NO_CLASSES } from "@/lib/clerking/impression/facts";
@@ -86,25 +86,36 @@ export function withImpression(
 
 /* ─── The visit's diagnoses ──────────────────────────────────────── */
 
-/** DeskDiagnosis with the fields the desk read adds for this build (D-SI-19); older payloads lack
- *  them and fall back to the version id. */
-export type DeskDx = DeskDiagnosis &
-  Partial<{
-    logicalId: string;
-    termId: string | null;
-    restricted: boolean;
-    onProblemList: boolean;
-    cosignPending: boolean;
-  }>;
+// A profile's name, normalised, to its id: a term not yet seeded is added as typed words
+// (D-SI-26) and must still read as that profile, or its suggestion would stay offered.
+const NAMES = new WeakMap<DxData, ReadonlyMap<string, string>>();
+function profileByName(dx: DxData): ReadonlyMap<string, string> {
+  let m = NAMES.get(dx);
+  if (!m) {
+    m = new Map(
+      Object.values(dx.termIds).flatMap((id) => {
+        const n = dx.names[id]?.display;
+        return n ? [[normaliseTyped(n), id] as const] : [];
+      }),
+    );
+    NAMES.set(dx, m);
+  }
+  return m;
+}
 
+/** The visit's diagnoses as the board reads them, each matched to its profile by term or by name. */
 export function recordedOf(p: DeskPayload, dx: DxData | null): RecordedDx[] {
-  return (p.diagnoses as DeskDx[]).map((d) => {
-    const dxId = d.termId && dx ? (dx.termIds[d.termId] ?? null) : null;
+  return p.diagnoses.map((d) => {
+    const dxId = !dx
+      ? null
+      : d.termId
+        ? (dx.termIds[d.termId] ?? null)
+        : (profileByName(dx).get(normaliseTyped(d.display)) ?? null);
     const cls = dxId ? (dx!.cat.profile(dxId)?.restricted_class ?? null) : null;
     return {
-      logicalId: d.logicalId ?? d.id,
+      logicalId: d.logicalId,
       versionId: d.id,
-      termId: d.termId ?? null,
+      termId: d.termId,
       dxId,
       display: d.display,
       code: d.code,
@@ -112,9 +123,9 @@ export function recordedOf(p: DeskPayload, dx: DxData | null): RecordedDx[] {
       rank: d.rank === "primary" ? "primary" : "secondary",
       verification: d.verification,
       restrictedClass: cls,
-      restricted: d.restricted ?? !!cls,
-      onProblemList: d.onProblemList ?? false,
-      cosignPending: d.cosignPending ?? false,
+      restricted: d.restricted || !!cls,
+      onProblemList: d.onProblemList,
+      cosignPending: d.cosignPending,
     };
   });
 }

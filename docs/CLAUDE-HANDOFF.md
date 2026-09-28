@@ -30,8 +30,9 @@ For a Claude Code session picking this repo up without the previous session's lo
 | CFC addendum v1.4 (three history findings)  | **awaiting the CSO's signature**; nothing built                                                                                  | `docs/emr/cfc/cfc-v1.4-proposal.md`                               |
 | MedSync Chroma (design system)              | merged into this branch 2026-09-28; the clerking desk and chart restyled to it (iris for place, heading weights from the tokens) | ADR 0162, `tests/design/clinical-chroma.test.ts`                  |
 | Operations, occupations and CAGE pick lists | built; data files are drafts awaiting CSO review                                                                                 | `data/clerking/{operations,occupations,cage}.v1.json`             |
+| Summary (08) and Impression (09)            | GATE A signed 2026-09-28; built behind `CLERKING_V2` (Phases 0–4 of 7); migrations 0084, 0085                                    | `docs/emr/clerking-v2/summary-impression/STOP-REPORTS.md`         |
 
-**Migrations to apply, in order (owner):** 0076 → 0082 → 0083. `npm run db:migrate` applies whatever is pending in file order. Signing charts only concepts already seeded, so deploying before the migrations is safe.
+**Migrations to apply, in order (owner):** 0076 → 0082 → 0083 (applied), then 0084 → 0085 (GATED: the `confirm_diagnosis` co-sign kind, and the 187 REF-DX-TERMS v1.1 terms seeded uncoded). `npm run db:migrate` applies whatever is pending in file order. Signing charts only concepts already seeded, so deploying before the migrations is safe, **except 0084**: apply it before deploying this branch, or a junior's "Final (senior)" fails instead of going for co-signature (v1 and v2 desks alike).
 
 **Open for the owner:** the clinician trial (protocol `docs/emr/clerking-v2/clinician-trial.md`); real-device timing on a mid-range Android; production counts listed in the exam STOP 0; symptom codes promoted in production through the 0044 governance (`origin='approved'`), which the legacy conversion table cannot see and carries as text until they get rows.
 
@@ -43,7 +44,7 @@ npm run typecheck
 npm run lint                 # 2 warnings predate this work
 npm run clerking:catalogue-check
 SKIP_ENV_VALIDATION=1 EMR_PGLITE=1 npx vitest run    # full suite incl. the PGlite database lane (no real DB)
-npx tsx scripts/emr/gen-seed.ts                       # regenerates 0072/0082/0083 + lib/facts/catalogue.generated.ts
+npx tsx scripts/emr/gen-seed.ts                       # regenerates 0072/0082/0083/0085 + lib/facts/catalogue.generated.ts
 ```
 
 - `tests/emr/seed.test.ts` fails if a generated file drifts from its data.

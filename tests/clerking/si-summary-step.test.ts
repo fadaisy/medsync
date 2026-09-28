@@ -48,6 +48,9 @@ function payload(): DeskPayload {
       code: null,
       verification: "differential",
       rank: "secondary",
+      restricted: false,
+      onProblemList: false,
+      cosignPending: false,
       ...{ logicalId: "00000000-0000-4000-8000-0000000000a1", termId: dxTermUuid("dx.sepsis") },
     },
   ];

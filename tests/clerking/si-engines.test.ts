@@ -237,7 +237,7 @@ describe("the diagnosis atoms", () => {
 describe("the board", () => {
   const draftWith = (d: Partial<ImpressionDraft>) => ({ ...EMPTY_IMPRESSION, ...d });
 
-  it("pins must-not-miss above the rest until marked unlikely, and needs a reason then", () => {
+  it("pins must-not-miss above the rest until marked unlikely with a reason (SI5)", () => {
     const flu = recorded("dx.influenza");
     const sepsis = recorded("dx.sepsis");
     let d = draftWith({ order: [flu.logicalId, sepsis.logicalId] });
@@ -248,11 +248,17 @@ describe("the board", () => {
     expect(canMove(b, sepsis.logicalId, 1)).toBe(false);
     d = withLikelihood(d, sepsis.logicalId, "unlikely");
     b = board([flu, sepsis], d);
-    expect(b.differential.map((r) => r.dx.dxId)).toEqual(["dx.influenza", "dx.sepsis"]);
-    expect(b.differential[1]!.reasonMissing).toBe(true);
+    // Unlikely alone does not release it: it stays on top and asks for its reason.
+    expect(b.differential.map((r) => r.dx.dxId)).toEqual(["dx.sepsis", "dx.influenza"]);
+    expect(b.differential[0]!.pinned).toBe(true);
+    expect(b.differential[0]!.reasonMissing).toBe(true);
     expect(signBlocks(b)).toHaveLength(1);
+    d = { ...d, reasons: { [sepsis.logicalId]: "too short" } };
+    expect(board([flu, sepsis], d).differential[0]!.pinned).toBe(true);
     d = { ...d, reasons: { [sepsis.logicalId]: "no source, afebrile, lactate normal" } };
     b = board([flu, sepsis], d);
+    expect(b.differential.map((r) => r.dx.dxId)).toEqual(["dx.influenza", "dx.sepsis"]);
+    expect(b.differential[1]!.pinned).toBe(false);
     expect(b.differential[1]!.reasonMissing).toBe(false);
     expect(signBlocks(b)).toEqual([]);
   });
