@@ -22,6 +22,7 @@ import {
   sectionWith,
   unitWords,
 } from "@/components/emr/desk/model";
+import { clinicalCosignRequests } from "@/db/schema/doctor-workspace";
 import {
   clinicalNoteEvents,
   clinicalNotes,
@@ -41,6 +42,7 @@ import { clerkingData } from "@/lib/clerking/desk-load";
 import { requireEmrActor } from "@/lib/emr/actor";
 import { carryMedicines, carryProblems, triagePrefill } from "@/lib/emr/carry-forward";
 import { asClinicalReader, asClinicalWriter } from "@/lib/emr/db";
+import { encounterDiagnoses, pendingCosignIds } from "@/lib/emr/diagnoses";
 import { completionWarnings, isOpen } from "@/lib/emr/encounter";
 import { clerkingV2LiveFor } from "@/lib/emr/feature";
 import { getTemplate, noteStatus } from "@/lib/emr/notes";
@@ -298,6 +300,7 @@ export async function loadDeskFor(
           termId: conditions.termId,
           textCiphertext: conditions.textCiphertext,
           icd11Code: conditions.icd11Code,
+          sensitivity: conditions.sensitivity,
         })
         .from(conditions)
         .where(eq(conditions.patientUserId, enc.patientUserId));
@@ -323,10 +326,26 @@ export async function loadDeskFor(
       const termIds = [...new Set(conditionRows.flatMap((c) => (c.termId ? [c.termId] : [])))];
       const terms = termIds.length
         ? await tx
-            .select({ id: diagnosisTerms.id, display: diagnosisTerms.display })
+            .select({
+              id: diagnosisTerms.id,
+              display: diagnosisTerms.display,
+              icd11Code: diagnosisTerms.icd11Code,
+              verifiedOn: diagnosisTerms.verifiedOn,
+            })
             .from(diagnosisTerms)
             .where(inArray(diagnosisTerms.id, termIds))
         : [];
+      // A junior's Final awaiting a senior (D-SI-09): the open confirm_diagnosis requests.
+      const cosign = await tx
+        .select({ payload: clinicalCosignRequests.actionPayload })
+        .from(clinicalCosignRequests)
+        .where(
+          and(
+            eq(clinicalCosignRequests.patientUserId, enc.patientUserId),
+            eq(clinicalCosignRequests.actionKind, "confirm_diagnosis"),
+            eq(clinicalCosignRequests.state, "pending_review"),
+          ),
+        );
       const suggested = await tx
         .select({ sourceIntentId: encounterOrders.sourceIntentId })
         .from(encounterOrders)
@@ -375,6 +394,7 @@ export async function loadDeskFor(
         conditionRows,
         medicineRows,
         terms,
+        cosign,
         suggested,
         handover,
         triage,
@@ -637,24 +657,15 @@ export async function loadDeskFor(
           : "pending",
     }));
 
-  // This visit's diagnoses and orders.
-  const diagnoses: DeskDiagnosis[] = newest(rec.conditionRows)
-    .filter(
-      (c) =>
-        c.category === "encounter_diagnosis" &&
-        c.encounterId === enc.id &&
-        c.status !== "entered_in_error" &&
-        c.status !== "cancelled" &&
-        c.verification !== "refuted",
-    )
-    .map((c) => ({
-      id: c.id,
-      display: conditionName(c),
-      code: c.icd11Code,
-      verification: c.verification,
-      rank: c.rank,
-    }))
-    .sort((a, b) => (a.rank === "primary" ? -1 : b.rank === "primary" ? 1 : 0));
+  // This visit's diagnoses (current versions, with their logical ids: D-SI-19) and orders.
+  const diagnoses: DeskDiagnosis[] = encounterDiagnoses({
+    rows: rec.conditionRows,
+    encounterId: enc.id,
+    terms: new Map(rec.terms.map((t) => [t.id, t])),
+    textOf: (c) => safeDecrypt(c.textCiphertext),
+    displayOf: conditionName,
+    cosignPending: pendingCosignIds(rec.cosign.map((r) => r.payload)),
+  });
   const orders = chart.orders
     .filter((o) => o.encounterId === enc.id)
     .map((o) => ({

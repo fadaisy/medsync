@@ -169,7 +169,7 @@ export const SummarySchema = z.object({
   text: text(40_000).optional(),
 });
 
-const SignedDiagnosis = z.object({
+const SignedDiagnosisSchema = z.object({
   logicalId: uuid,
   versionId: uuid,
   display: text(300),
@@ -195,9 +195,13 @@ export const ImpressionSchema = z.object({
   ),
   catalogueVersion: text(40),
   /** The diagnoses as they stood at signing (D-SI-20). */
-  snapshot: z.array(SignedDiagnosis).max(60).optional(),
+  snapshot: z.array(SignedDiagnosisSchema).max(60).optional(),
   text: text(40_000).optional(),
 });
+
+/** One diagnosis as it stood when the note was signed (`impression.snapshot`, D-SI-20). */
+export type SignedDiagnosis = z.infer<typeof SignedDiagnosisSchema>;
+export type ImpressionContent = z.infer<typeof ImpressionSchema>;
 
 /** The v2-only keys of NoteContent. */
 export const ContentV2Keys = {
