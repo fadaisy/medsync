@@ -32,7 +32,7 @@ For a Claude Code session picking this repo up without the previous session's lo
 | Operations, occupations and CAGE pick lists | built; data files are drafts awaiting CSO review                                                                                 | `data/clerking/{operations,occupations,cage}.v1.json`             |
 | Summary (08) and Impression (09)            | GATE A signed 2026-09-28; built behind `CLERKING_V2`, all 7 phases; clinician trial the owner's                                  | `docs/emr/clerking-v2/summary-impression/STOP-REPORTS.md`         |
 
-**Migrations to apply, in order (owner):** 0076 → 0082 → 0083 (applied), then 0084 → 0085 (GATED: the `confirm_diagnosis` co-sign kind, and the 187 REF-DX-TERMS v1.1 terms seeded uncoded). `npm run db:migrate` applies whatever is pending in file order. Signing charts only concepts already seeded, so deploying before the migrations is safe, **except 0084**: apply it before deploying this branch, or a junior's "Final (senior)" fails instead of going for co-signature (v1 and v2 desks alike).
+**Migrations (owner):** 0076 → 0082 → 0083 → 0084 → 0085, all applied by the owner (0084 and 0085 on 2026-09-28: the `confirm_diagnosis` co-sign kind, and the 187 REF-DX-TERMS v1.1 terms seeded uncoded). `npm run db:migrate` applies whatever is pending in file order; the next migration is 0086.
 
 **Open for the owner:** the clinician trial (protocol `docs/emr/clerking-v2/clinician-trial.md`); real-device timing on a mid-range Android; production counts listed in the exam STOP 0; symptom codes promoted in production through the 0044 governance (`origin='approved'`), which the legacy conversion table cannot see and carries as text until they get rows.
 
