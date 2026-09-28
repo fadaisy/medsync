@@ -272,3 +272,51 @@ See "disagreements" 1–2 above. NEWS2 comes from `scoreNews2` (`lib/triage/scor
 - Details at 1280 px and up replaces the note column as a region with "Back to the note", not a `role="dialog"` drawer over it (D-SI-16 as signed).
 - `setLeadingDiagnosis` keeps a Final diagnosis Final when it is promoted; the spec says promote as Working, which would quietly take away a senior's Final.
 - For the CSO: `dx.ectopic_pregnancy` in the addendum is `standard`, outside the rule that restricts pregnancy terms for patients under 18 (D-CFC-09). It is seeded as the data says.
+
+## STOP 5: evidence, suggestions, asks
+
+**Built in this phase** (the matrix, Details evidence and the suggestion box shipped with step 09 at STOP 4; this phase proves them on the prompt's patients and fixes what the walks found):
+
+- The fixture route serves the prompt's patients 1 to 4 (`/styleguide/clerking-si/impression-f1` … `-f4`, and `summary-…`), built from the engine fixtures as whole desk payloads (`tests/clerking/si-desk-fixtures.ts`); `-noaccess` is the same patient for a viewer without restricted access.
+- "Not asked yet" merges a symptom's own question with a red flag that needs the symptom first: fixture 1 showed "Fever" twice (myxoedema coma asks fever; sepsis asks fever's confusion). One row now names both; a Yes turns it into the red flag's question for sepsis alone.
+- A score in the evidence carries its value: "GCS 14/15", "AMTS 7/10", "GCS-P 12" (it read "GCS").
+- Fixture 4's tenderness zone was "ruq", not a zone of the abdomen map ("Right hypochondrium"); the note read "in the ruq". The fixture is corrected; no rule in the diagnosis catalogue reads zones.
+- Performance: the matrix's rows are memoised (a tap re-renders the one row it changed; one delegated click handler), the columns are built once per change and shared by the summary and step 09, and "Show all recorded findings" is built only when asked for.
+
+**End to end, patients 1 to 4** (Playwright on the production build, 1440×900; leading from search, three differentials from the suggestions, the first ask answered No on the Summary step, the leading diagnosis's suggested evidence accepted in the matrix):
+
+| Patient                 | Leading (taps) | Three differentials (taps)                                            | Ask answered and routed                                       | Accept column (taps) | Impression block after accepting                                                                                                              |
+| ----------------------- | -------------- | --------------------------------------------------------------------- | ------------------------------------------------------------- | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 Hypothermia           | 2              | 3: sepsis, myxoedema coma, hypoglycaemia (diabetes)                   | "Falls or unsteadiness" → Systems review; gone from the list  | 1                    | "Hypothermia, cause not yet known (primary; working). For: temperature 32.5 °C. Differential: 1. Sepsis (must not miss), possible. …"         |
+| 2 Chest pain            | 2              | 3: aortic dissection, PE, pneumothorax                                | "Fainting (with chest pain)" → the complaint's red flag       | 1                    | "Acute coronary syndrome (primary; working). For: chest pain (2 hours), sweating and brought on by exertion. … Not yet explained: pulse 104." |
+| 3 Fever, neck stiffness | 2              | 4 (one "Show more"): cryptococcal and TB meningitis, cerebral malaria | "Neck stiffness (with headache)" → the complaint's red flag   | 1                    | "Bacterial meningitis (primary; working). For: neck stiffness, GCS 14/15 and temperature 38.9 °C. …"                                          |
+| 4 Jaundice with fever   | 2              | 4 (one "Show more"): sepsis, severe malaria, liver abscess            | "Fever (with yellow eyes or skin)" → the complaint's red flag | 1                    | "Acute cholangitis (primary; working). For: jaundice, temperature 38.6 °C and tenderness, in the right hypochondrium. …"                      |
+
+Asks as expected by the prompt: patient 2 "BP difference between arms", "Calves" and "Coughing blood" (engine test); patient 4 "Abdominal pain · for Acute cholangitis, Sepsis, Liver abscess" among them. Add to plan, walked on patient 4: Details → "Add to plan" on abdominal ultrasound → "In plan", the Plan block holds it, and the leading card reads "1 test in plan".
+
+**Restricted filtering, two viewers** (patient 3, HIV on antiretrovirals; the same page with and without restricted access):
+
+| Surface                 | With access                       | Without                                                                                                                                                              |
+| ----------------------- | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Suggestions             | 57                                | 50: pulmonary TB, acute HIV infection, TB meningitis, cryptococcal meningitis, cerebral toxoplasmosis, alcohol withdrawal and alcohol intoxication are never offered |
+| Matrix rows (all shown) | —                                 | "HIV" and "Antiretrovirals" absent                                                                                                                                   |
+| Summary                 | "A 34-year-old woman with HIV, …" | "A 34-year-old woman, …"                                                                                                                                             |
+| Anything only without   | —                                 | nothing                                                                                                                                                              |
+
+In production the desk opens only for a viewer with an EMR access basis, who holds every class (D-SI-18); the second viewer here proves the filter that patient-facing and unscoped surfaces rely on.
+
+**Matrix performance** (production build, headless Chromium on this machine; "script" is render and commit, "frame" adds style, layout and headless software paint):
+
+| Measure (12 diagnoses × 39 findings, Patient Three-3)                            | 1×: script median / p95 | 4× throttle: script median / p95 | Budget        |
+| -------------------------------------------------------------------------------- | ----------------------- | -------------------------------- | ------------- |
+| Open the matrix                                                                  | 12.3 / 15.2 ms          | 66 / 82 ms                       | < 50 ms p95   |
+| A tap on a cell (the whole desk updates)                                         | 11.5 / 14.8 ms          | 64 / 88 ms                       | —             |
+| Engine recompute after a tap (summary, board, columns, unexplained, suggestions) | about 2.4 ms in Node    | about 10 ms                      | < 16 ms at 4× |
+
+The matrix meets its budget at 1× and not at 4×: opening it builds about 470 cells at once. Before the memoised rows a tap took 82 ms of script at 4×; the matrix's share of a tap fell from 54 ms to 7 ms in the profile. What remains is the whole desk rendering again on each change (rail, step bar, note, flags); memoising those is Phase 7 hardening. Paint is not reported against the budget: headless Chromium paints in software, a phone paints on its GPU.
+
+**Screenshots:** `screens/09-f1-matrix-1440-light.png` … `09-f4-matrix-1440-light.png`, with `09-impression-matrix-*` and `09-impression-details-*` from STOP 4.
+
+**For the owner and the CSO (D-SI-12)**
+
+Suggestions follow signed rule order: rules fired by a red flag, a vital sign or an examination finding first, in catalogue order, then complaint-only rules. On patients 3 and 4 the specific rule's diagnoses sit behind the general fever rule's 18: cryptococcal meningitis is 34th and cholangitis 19th, behind "Show more", while sepsis and severe malaria lead. Recommendation for a GATE decision: order fired rules by how many findings they need (a combination rule such as DDX-FEVER-JAUNDICE or DDX-FEVER-NEURO before a single-finding one), still never by likelihood (SI2). Not changed here: it is a signed decision.

@@ -3,11 +3,13 @@ import { notFound } from "next/navigation";
 
 import { DX_CATALOGUE, DX_SIGNOFF, dxTermUuid } from "@/lib/clerking/impression/load";
 import { v2Payload } from "@/tests/clerking/fixtures";
+import { SI_PATIENTS, siPatientPayload } from "@/tests/clerking/si-desk-fixtures";
 import { FixtureDesk } from "../_components/fixture-desk";
 
 /**
  * Development fixture (D-SI-29): the v2 clerking desk on steps 08 and 09 from the synthetic test
- * fixtures, for screenshots, axe and Playwright. Off unless MEDSYNC_FIXTURES=1; no database, no
+ * fixtures, for screenshots, axe and Playwright: `summary`, `impression` (Patient Three-3 with two
+ * diagnoses), `-empty`, and `-f1` … `-f4` for the prompt's patients. Off unless MEDSYNC_FIXTURES=1; no database, no
  * patient data (Patient Three-3 is synthetic).
  */
 export const metadata: Metadata = { title: "Clerking fixture", robots: { index: false } };
@@ -17,16 +19,20 @@ const SCREENS = ["summary", "impression"] as const;
 export default async function Page({ params }: { params: Promise<{ screen: string }> }) {
   if (process.env.MEDSYNC_FIXTURES !== "1") notFound();
   const { screen } = await params;
-  const step = SCREENS.find((s) => s === screen.split("-")[0]);
+  const parts = screen.split("-");
+  const step = SCREENS.find((s) => s === parts[0]);
   if (!step) notFound();
-  const p = v2Payload();
+  // `-f1` … `-f4`: the prompt's patients 1 to 4, no diagnoses yet; `-noaccess`: a viewer without
+  // restricted access (D-SI-18).
+  const patient = parts.find((x): x is keyof typeof SI_PATIENTS => Object.hasOwn(SI_PATIENTS, x));
+  const p = patient ? siPatientPayload(patient, !parts.includes("noaccess")) : v2Payload();
   p.clerking!.dx = {
     catalogueUrl: "/api/clerking/dx-catalogue?v=fixture",
     catalogueVersion: DX_CATALOGUE.version,
     signoff: DX_SIGNOFF,
   };
-  p.diagnoses = [];
-  if (!screen.endsWith("empty"))
+  if (!patient) p.diagnoses = [];
+  if (!patient && !parts.includes("empty"))
     p.diagnoses = [
       {
         id: "00000000-0000-4000-8000-000000000001",

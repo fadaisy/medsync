@@ -8,7 +8,7 @@ import type { Suggestion } from "@/lib/clerking/impression/suggest";
 
 import { basisLine } from "@/lib/clerking/impression/basis";
 import { onBoard, signBlocks } from "@/lib/clerking/impression/board";
-import { columns, counts, matrix, unexplained } from "@/lib/clerking/impression/evidence";
+import { counts, matrix, unexplained } from "@/lib/clerking/impression/evidence";
 import { recordedFindings } from "@/lib/clerking/impression/facts";
 import { suggestions } from "@/lib/clerking/impression/suggest";
 
@@ -54,12 +54,13 @@ export function deriveImpression(
   extras: ImpressionExtras,
 ): ImpressionView {
   const ctx = { x: si.x, board: si.board, draft: si.impression, live: si.live, viewer: si.viewer };
-  const cols = dx ? columns(ctx) : [];
+  const cols = dx ? si.cols : [];
   const byId = new Map(cols.map((c) => [c.row.dx.logicalId, c]));
-  const m = matrix(ctx);
-  const all = matrix(ctx, true);
+  const m = matrix(ctx, false, cols);
+  // Every recorded finding, and the synthetic ones a mark names (always among the rows shown).
   const findings = new Map<FindingRef, Finding>(recordedFindings(si.x).map((f) => [f.ref, f]));
-  for (const f of all.rows) if (!findings.has(f.ref)) findings.set(f.ref, f);
+  for (const f of m.rows) if (!findings.has(f.ref)) findings.set(f.ref, f);
+  let all: Matrix | null = null;
   const sugg: NamedSuggestion[] = dx
     ? suggestions({ x: si.x, dx: dx.cat, live: si.live, viewer: si.viewer, board: si.board }).map(
         (g) => {
@@ -84,7 +85,10 @@ export function deriveImpression(
     cols,
     col: (id) => byId.get(id),
     matrix: m,
-    matrixAll: all,
+    // Built only when "Show all recorded findings" or Details asks for it.
+    get matrixAll() {
+      return (all ??= matrix(ctx, true, cols));
+    },
     findings,
     unexplained: loose.filter((f) => byText.get(f.text.toLowerCase())![0] === f.ref),
     sameAs: (ref) => byText.get(textOf.get(ref) ?? "") ?? [ref],

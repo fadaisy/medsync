@@ -27,7 +27,12 @@ import {
   unexplained,
   withMark,
 } from "@/lib/clerking/impression/evidence";
-import { CLINICAL_VIEWER, NO_CLASSES, recordedFindings } from "@/lib/clerking/impression/facts";
+import {
+  CLINICAL_VIEWER,
+  NO_CLASSES,
+  recordedFindings,
+  syntheticFinding,
+} from "@/lib/clerking/impression/facts";
 import { suggestions } from "@/lib/clerking/impression/suggest";
 import { composeSummary } from "@/lib/clerking/summary/compose";
 import {
@@ -299,6 +304,11 @@ describe("the board", () => {
 /* ─── Evidence ──────────────────────────────────────────────────── */
 
 describe("evidence", () => {
+  it("names a score with its value (fixture 3: GCS 14/15)", () => {
+    expect(syntheticFinding("sc:gcs_total", ctx(feverNeck()))?.text).toBe("GCS 14/15");
+    expect(syntheticFinding("sc:gcs_total", ctx(hypothermia()))?.text).toBe("GCS");
+  });
+
   const x = ctx(hypothermia());
   const lead = recorded("dx.hypothermia_unexplained", { slot: "leading" });
   // The signed catalogue has no "against: glucose" atom on hypoglycaemia (the prompt's fixture
@@ -449,6 +459,26 @@ describe("not asked yet", () => {
     expect(first.length).toBeGreaterThan(0);
     for (const r of first)
       if (r.target.kind === "red_flag") expect(complaints.has(r.target.symptom)).toBe(false);
+  });
+
+  it("asks a symptom once when one diagnosis wants it and another wants its red flag", () => {
+    // Myxoedema coma asks "fever"; sepsis asks fever's "confusion", which needs fever first.
+    const s = hypothermia();
+    const b = board([
+      recorded("dx.hypothermia_unexplained", { slot: "leading" }),
+      recorded("dx.sepsis"),
+      recorded("dx.myxoedema_coma"),
+    ]);
+    const fever = asks({ x: ctx(s), dx, board: b, viewer: CLINICAL_VIEWER }).filter(
+      (a) => a.label === "Fever",
+    );
+    expect(fever).toHaveLength(1);
+    expect(fever[0]!.for).toEqual(expect.arrayContaining(["Sepsis", "Myxoedema coma"]));
+    // A Yes turns it into the red flag's own question, for sepsis alone.
+    s.history.ros["sym.fever"] = "yes";
+    const after = asks({ x: ctx(s), dx, board: b, viewer: CLINICAL_VIEWER });
+    expect(after.some((a) => a.label === "Fever")).toBe(false);
+    expect(after.find((a) => /with fever/.test(a.label))?.for).toEqual(["Sepsis"]);
   });
 });
 

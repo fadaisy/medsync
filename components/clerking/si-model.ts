@@ -7,6 +7,7 @@ import type { ExamContext } from "@/lib/clerking/exam/context";
 import type { AskRow } from "@/lib/clerking/impression/ask";
 import type { Board, ImpressionDraft, RecordedDx } from "@/lib/clerking/impression/board";
 import type { DxLive, DxSignoff } from "@/lib/clerking/impression/catalogue";
+import type { Column } from "@/lib/clerking/impression/evidence";
 import type { FindingRef, Viewer } from "@/lib/clerking/impression/facts";
 import type { Linked } from "@/lib/clerking/linkage";
 import type { SummaryView } from "@/lib/clerking/summary/compose";
@@ -160,6 +161,8 @@ export interface SiView {
   viewer: Viewer;
   recorded: RecordedDx[];
   board: Board;
+  /** The board's evidence columns (empty until the diagnosis catalogue has loaded). */
+  cols: Column[];
   impression: ImpressionDraft;
   summaryDraft: SummaryDraft & { legacy?: boolean };
   summary: SummaryView;
@@ -230,23 +233,22 @@ export function deriveSi(i: SiInput): SiView | null {
   // What the board names (pertinent negatives) and marks (D-SI-25), from signed profiles only.
   const named = new Set<FindingRef>();
   const marked = new Set<FindingRef>();
-  if (dx)
-    for (const col of columns({ x, board, draft: impression, live, viewer })) {
-      for (const r of col.suggested.keys()) marked.add(r);
-      for (const e of [
-        ...(col.row.profile?.suggest_for ?? []),
-        ...(col.row.profile?.suggest_against ?? []),
-      ]) {
-        const r = atomRef(e.atom);
-        if (r) named.add(r);
-      }
-      for (const t of col.row.profile?.ask ?? [])
-        named.add(
-          t.kind === "red_flag"
-            ? `sym:${t.symptom}#${t.red_flag}`
-            : `${ASK_PREFIX[t.kind]}:${t.id}`,
-        );
+  // Built once per change; step 09's view model reuses them.
+  const cols = dx ? columns({ x, board, draft: impression, live, viewer }) : [];
+  for (const col of cols) {
+    for (const r of col.suggested.keys()) marked.add(r);
+    for (const e of [
+      ...(col.row.profile?.suggest_for ?? []),
+      ...(col.row.profile?.suggest_against ?? []),
+    ]) {
+      const r = atomRef(e.atom);
+      if (r) named.add(r);
     }
+    for (const t of col.row.profile?.ask ?? [])
+      named.add(
+        t.kind === "red_flag" ? `sym:${t.symptom}#${t.red_flag}` : `${ASK_PREFIX[t.kind]}:${t.id}`,
+      );
+  }
 
   const summaryDraft = summaryDraftOf(i.content);
   const summary = composeSummary({
@@ -281,6 +283,7 @@ export function deriveSi(i: SiInput): SiView | null {
     viewer,
     recorded,
     board,
+    cols,
     impression,
     summaryDraft,
     summary,

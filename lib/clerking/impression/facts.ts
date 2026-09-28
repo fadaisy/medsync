@@ -15,6 +15,7 @@ import { lc } from "../compose";
 import { entryOf } from "../exam/answers";
 import { itemSummary } from "../exam/compose";
 import { symptomAnswer, symptomEntry } from "../exam/context";
+import { amts, gcsP, gcsTotal } from "../exam/scores";
 import { RESTRICTED_CLASSES } from "./catalogue";
 
 /**
@@ -401,7 +402,7 @@ export function syntheticFinding(ref: FindingRef, x: ExamContext): Finding | nul
     const r = x.results?.get(rest) as { result: string | null; text?: string } | undefined;
     return r?.result ? { ...base, kind: "classifier", text: r.text ?? r.result } : null;
   }
-  if (kind === "sc") return { ...base, kind: "score", text: scoreLabel(rest) };
+  if (kind === "sc") return { ...base, kind: "score", text: scoreText(rest, x) };
   if (kind === "gr")
     return {
       ...base,
@@ -413,5 +414,19 @@ export function syntheticFinding(ref: FindingRef, x: ExamContext): Finding | nul
   return null;
 }
 
-const scoreLabel = (id: string) =>
-  id === "gcs_total" ? "GCS" : id === "amts" ? "AMTS" : id === "gcs_p" ? "GCS-P" : id;
+/** A score with its value, as the examination writes it ("GCS 14/15", "AMTS 7/10"). */
+function scoreText(id: string, x: ExamContext): string {
+  if (id === "gcs_total") {
+    const t = gcsTotal(x.exam.blocks.consciousness);
+    return t === null ? "GCS" : `GCS ${t}/15`;
+  }
+  if (id === "gcs_p") {
+    const p = gcsP(x.exam);
+    return p ? `GCS-P ${p.value}` : "GCS-P";
+  }
+  if (id === "amts") {
+    const a = amts(x.exam);
+    return a ? `AMTS ${a.score}/10` : "AMTS";
+  }
+  return id;
+}

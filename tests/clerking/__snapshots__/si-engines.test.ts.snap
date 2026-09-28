@@ -11,4 +11,4 @@ exports[`the summary composer > fixture 1, composed 1`] = `"A 76-year-old man wi
 
 exports[`the summary composer > fixtures 2 and 4, composed 1`] = `"A 58-year-old man, with an acute 2-hour illness. He reports chest pain for 2 hours. Red flags present: sweating and brought on by exertion. Pulse 104 ↑. Allergy status not recorded."`;
 
-exports[`the summary composer > fixtures 2 and 4, composed 2`] = `"A 45-year-old man. He reports yellow eyes or skin and fever. On examination, jaundice and tenderness, in the ruq. Temperature 38.6 °C ↑, pulse 118 ↑. Allergy status not recorded."`;
+exports[`the summary composer > fixtures 2 and 4, composed 2`] = `"A 45-year-old man. He reports yellow eyes or skin and fever. On examination, jaundice and tenderness, in the right hypochondrium. Temperature 38.6 °C ↑, pulse 118 ↑. Allergy status not recorded."`;

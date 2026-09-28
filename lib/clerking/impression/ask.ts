@@ -236,10 +236,17 @@ export function asks(i: AskInput): AskRow[] {
   for (const r of board) {
     if (!r.profile) continue; // unsigned reasoning is inert (SI10)
     for (const t of r.profile.ask) {
-      const key = askKey(t);
       const ref = refOfTarget(t);
       if (ref && !canSee(i.viewer, refClass(ref, i.x))) continue; // SI9
       if (answered(t, i.x)) continue;
+      const d = describe(t, i.x);
+      if (!d) continue;
+      // Until its symptom is answered, a red flag's ask is the symptom's own question: one row
+      // for every diagnosis that asks either (its red flag follows a Yes).
+      const key =
+        t.kind === "red_flag" && d.mode === "symptom_first"
+          ? askKey({ kind: "symptom", id: t.symptom })
+          : askKey(t);
       const had = rows.get(key);
       if (had) {
         if (!had.forIds.includes(r.dx.logicalId)) {
@@ -248,8 +255,7 @@ export function asks(i: AskInput): AskRow[] {
         }
         continue;
       }
-      const d = describe(t, i.x);
-      if (d) rows.set(key, { key, target: t, for: [r.dx.display], forIds: [r.dx.logicalId], ...d });
+      rows.set(key, { key, target: t, for: [r.dx.display], forIds: [r.dx.logicalId], ...d });
     }
   }
   // History first (in step order), then examination.

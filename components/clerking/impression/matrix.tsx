@@ -5,7 +5,8 @@ import type { ImpressionView } from "./model";
 import type { BoardRow } from "@/lib/clerking/impression/board";
 import type { CellState, Column } from "@/lib/clerking/impression/evidence";
 import type { Finding } from "@/lib/clerking/impression/facts";
-import type { KeyboardEvent } from "react";
+import type { KeyboardEvent, MouseEvent } from "react";
+import { memo } from "react";
 import { ShieldAlertIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -46,19 +47,91 @@ function CellFace({ s }: { s: CellState }) {
   );
 }
 
-const CELL: Record<CellState, string> = {
+const STATE: Record<CellState, string> = {
   blank: "hover:bg-muted",
   suggested_for: "border border-dashed border-ink-400 text-foreground hover:bg-muted",
   suggested_against: "border border-dashed border-ink-400 text-foreground hover:bg-muted",
   for: "bg-ink-100 text-foreground dark:bg-ink-700",
   against: "bg-card text-foreground ring-1 ring-inset ring-ink-300",
 };
+// Merged once, not per cell: 12 columns × 30 rows would otherwise run tailwind-merge 360 times
+// a render (§4 budget: the matrix renders in under 50 ms at 4× throttle).
+const CELL = Object.fromEntries(
+  (Object.keys(STATE) as CellState[]).map((s) => [
+    s,
+    cn(
+      "text-caption focus-visible:shadow-focus inline-flex min-h-7 w-full min-w-[104px] items-center justify-center rounded-sm px-1.5 outline-none pointer-coarse:min-h-11",
+      "ease-expo-out transition-[background-color,box-shadow] duration-150 motion-reduce:transition-none",
+      STATE[s],
+    ),
+  ]),
+) as Record<CellState, string>;
 
 function header(row: BoardRow): { tag: string; mnm: boolean } {
   if (row.slot === "leading") return { tag: "Leading", mnm: false };
   if (row.slot === "also") return { tag: "Also", mnm: false };
   return { tag: `#${row.position}`, mnm: row.mustNotMiss };
 }
+
+interface RowProps {
+  f: Finding;
+  r: number;
+  states: CellState[];
+  names: string[];
+  editable: boolean;
+  news2: SiView["x"]["news2Latest"];
+}
+
+const points = (n: RowProps["news2"]) => n?.parameters.map((p) => p.points).join() ?? "";
+
+/** One finding's row. A tap changes one cell, so only that row renders again (§4: the matrix
+ *  renders within budget at 12 × 30). */
+const MatrixRow = memo(
+  function MatrixRow({ f, r, states, names, editable, news2 }: RowProps) {
+    return (
+      <tr>
+        <th
+          scope="row"
+          className="bg-card border-border sticky left-0 z-10 border-b px-3 py-1.5 text-left font-normal"
+        >
+          <span className="flex items-baseline justify-between gap-3">
+            <span className={f.positive ? undefined : "text-muted-foreground"}>
+              <FindingText item={f} news2={news2} />
+            </span>
+            <span className="text-caption text-muted-foreground font-mono tabular-nums">
+              {f.step}
+            </span>
+          </span>
+        </th>
+        {states.map((s, ci) => (
+          <td key={ci} className="border-border border-b border-l p-1">
+            <button
+              type="button"
+              data-cell={`${r},${ci}`}
+              data-col={ci}
+              disabled={!editable}
+              aria-label={`${f.text} for ${names[ci]}: ${WORD[s]}. Select to change.`}
+              className={CELL[s]}
+            >
+              <CellFace s={s} />
+            </button>
+          </td>
+        ))}
+      </tr>
+    );
+  },
+  (a, b) =>
+    a.r === b.r &&
+    a.editable === b.editable &&
+    a.f.ref === b.f.ref &&
+    a.f.text === b.f.text &&
+    a.f.positive === b.f.positive &&
+    a.f.step === b.f.step &&
+    a.f.out === b.f.out &&
+    a.states.join() === b.states.join() &&
+    a.names.join("\u0000") === b.names.join("\u0000") &&
+    (a.news2 === b.news2 || points(a.news2) === points(b.news2)),
+);
 
 export interface MatrixProps {
   si: SiView;
@@ -89,6 +162,16 @@ export function EvidenceMatrix({
         Nothing recorded to weigh yet. Record the history and examination first.
       </p>
     );
+  const names = cols.map((c) => c.row.dx.display);
+  // One handler for every cell (rows are memoised and carry no callbacks).
+  const onClick = (e: MouseEvent<HTMLTableElement>) => {
+    const cell = (e.target as HTMLElement).closest<HTMLButtonElement>("[data-cell]");
+    if (!cell || cell.disabled) return;
+    const [r, c] = cell.dataset.cell!.split(",").map(Number) as [number, number];
+    const col = cols[c];
+    const f = m.rows[r];
+    if (col && f) onCycle(col, f);
+  };
   const onKey = (e: KeyboardEvent<HTMLTableElement>) => {
     const cell = (e.target as HTMLElement).closest<HTMLElement>("[data-cell]");
     if (!cell) return;
@@ -119,6 +202,7 @@ export function EvidenceMatrix({
       >
         <table
           onKeyDown={onKey}
+          onClick={onClick}
           className="text-body-s w-max min-w-full border-separate border-spacing-0"
         >
           <caption className="sr-only">
@@ -171,43 +255,15 @@ export function EvidenceMatrix({
           </thead>
           <tbody>
             {m.rows.map((f, r) => (
-              <tr key={f.ref}>
-                <th
-                  scope="row"
-                  className="bg-card border-border sticky left-0 z-10 border-b px-3 py-1.5 text-left font-normal"
-                >
-                  <span className="flex items-baseline justify-between gap-3">
-                    <span className={cn(!f.positive && "text-muted-foreground")}>
-                      <FindingText item={f} news2={si.x.news2Latest} />
-                    </span>
-                    <span className="text-caption text-muted-foreground font-mono tabular-nums">
-                      {f.step}
-                    </span>
-                  </span>
-                </th>
-                {cols.map((c, ci) => {
-                  const s = cellState(c, f.ref);
-                  return (
-                    <td key={c.row.dx.logicalId} className="border-border border-b border-l p-1">
-                      <button
-                        type="button"
-                        data-cell={`${r},${ci}`}
-                        data-col={ci}
-                        disabled={!editable}
-                        aria-label={`${f.text} for ${c.row.dx.display}: ${WORD[s]}. Select to change.`}
-                        onClick={() => onCycle(c, f)}
-                        className={cn(
-                          "text-caption focus-visible:shadow-focus inline-flex min-h-7 w-full min-w-[104px] items-center justify-center rounded-sm px-1.5 outline-none pointer-coarse:min-h-11",
-                          "ease-expo-out transition-[background-color,box-shadow] duration-150 motion-reduce:transition-none",
-                          CELL[s],
-                        )}
-                      >
-                        <CellFace s={s} />
-                      </button>
-                    </td>
-                  );
-                })}
-              </tr>
+              <MatrixRow
+                key={f.ref}
+                f={f}
+                r={r}
+                states={cols.map((c) => cellState(c, f.ref))}
+                names={names}
+                editable={editable}
+                news2={si.x.news2Latest}
+              />
             ))}
           </tbody>
           <tfoot>

@@ -134,8 +134,7 @@ export interface Matrix {
  * to 30), plus any finding a live atom marks; then pertinent negatives a profile on the board
  * references; restricted rows only for viewers with the class. `all` lists everything recorded.
  */
-export function matrix(i: EvidenceInput, all = false): Matrix {
-  const cols = columns(i);
+export function matrix(i: EvidenceInput, all = false, cols: Column[] = columns(i)): Matrix {
   const recorded = recordedFindings(i.x).filter((f) => canSee(i.viewer, f.cls));
   const byRef = new Map(recorded.map((f) => [f.ref, f]));
   const marked = new Set<FindingRef>();

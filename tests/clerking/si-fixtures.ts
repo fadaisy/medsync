@@ -393,7 +393,7 @@ export function jaundiceFever(): Scenario {
   complain(s, "sym.jaundice");
   complain(s, "sym.fever");
   positive(s, "ex.general.jaundice");
-  positive(s, "ex.abdomen.tenderness", { where: ["ruq"] });
+  positive(s, "ex.abdomen.tenderness", { where: ["Right hypochondrium"] });
   Object.assign(s.vitals, { pulse: 118, temp: 38.6 });
   return s;
 }
