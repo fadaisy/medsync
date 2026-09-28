@@ -1,6 +1,6 @@
 # Claude Code handoff
 
-For a Claude Code session picking this repo up without the previous session's local memory (a cloud session at claude.ai/code, or a new machine). Read `AGENTS.md` first, then this. Updated 2026-09-28.
+For a Claude Code session picking this repo up without the previous session's local memory (a cloud session at claude.ai/code, or a new machine). Read `AGENTS.md` first, then this. Updated 2026-09-28 (ICD-11 codes, ADR 0183).
 
 ## Who decides
 
@@ -20,19 +20,20 @@ For a Claude Code session picking this repo up without the previous session's lo
 
 ## Where things are (branch `feat/clerking-exam-v2`)
 
-| Work                                        | State                                                                                                                            | Record                                                            |
-| ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| Clerking desk v2 (history)                  | done, behind `CLERKING_V2`; migration 0076                                                                                       | `docs/emr/clerking-v2/STOP-REPORTS.md`, ADRs 0163–0168            |
-| v2 on a phone                               | done                                                                                                                             | `docs/emr/clerking-v2/mobile/STOP-REPORT.md`, ADR 0169            |
-| Examination v2 (step 07)                    | done, all 8 gates                                                                                                                | `docs/emr/clerking-v2/exam/STOP-REPORTS.md`, ADRs 0170–0175       |
-| CFC addenda v1.2 / v1.3                     | signed and built                                                                                                                 | `docs/emr/cfc/cfc-migrations-proposal.md`, ADR 0176               |
-| Legacy symptom conversion                   | signed and built (no migration)                                                                                                  | `docs/emr/clerking-v2/legacy-conversion-proposal.md` §7, ADR 0177 |
-| CFC addendum v1.4 (three history findings)  | **awaiting the CSO's signature**; nothing built                                                                                  | `docs/emr/cfc/cfc-v1.4-proposal.md`                               |
-| MedSync Chroma (design system)              | merged into this branch 2026-09-28; the clerking desk and chart restyled to it (iris for place, heading weights from the tokens) | ADR 0162, `tests/design/clinical-chroma.test.ts`                  |
-| Operations, occupations and CAGE pick lists | built; data files are drafts awaiting CSO review                                                                                 | `data/clerking/{operations,occupations,cage}.v1.json`             |
-| Summary (08) and Impression (09)            | GATE A signed 2026-09-28; built behind `CLERKING_V2`, all 7 phases; clinician trial the owner's                                  | `docs/emr/clerking-v2/summary-impression/STOP-REPORTS.md`         |
+| Work                                        | State                                                                                                                            | Record                                                               |
+| ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| Clerking desk v2 (history)                  | done, behind `CLERKING_V2`; migration 0076                                                                                       | `docs/emr/clerking-v2/STOP-REPORTS.md`, ADRs 0163–0168               |
+| v2 on a phone                               | done                                                                                                                             | `docs/emr/clerking-v2/mobile/STOP-REPORT.md`, ADR 0169               |
+| Examination v2 (step 07)                    | done, all 8 gates                                                                                                                | `docs/emr/clerking-v2/exam/STOP-REPORTS.md`, ADRs 0170–0175          |
+| CFC addenda v1.2 / v1.3                     | signed and built                                                                                                                 | `docs/emr/cfc/cfc-migrations-proposal.md`, ADR 0176                  |
+| Legacy symptom conversion                   | signed and built (no migration)                                                                                                  | `docs/emr/clerking-v2/legacy-conversion-proposal.md` §7, ADR 0177    |
+| CFC addendum v1.4 (three history findings)  | **awaiting the CSO's signature**; nothing built                                                                                  | `docs/emr/cfc/cfc-v1.4-proposal.md`                                  |
+| MedSync Chroma (design system)              | merged into this branch 2026-09-28; the clerking desk and chart restyled to it (iris for place, heading weights from the tokens) | ADR 0162, `tests/design/clinical-chroma.test.ts`                     |
+| Operations, occupations and CAGE pick lists | built; data files are drafts awaiting CSO review                                                                                 | `data/clerking/{operations,occupations,cage}.v1.json`                |
+| Summary (08) and Impression (09)            | GATE A signed 2026-09-28; built behind `CLERKING_V2`, all 7 phases; clinician trial the owner's                                  | `docs/emr/clerking-v2/summary-impression/STOP-REPORTS.md`            |
+| ICD-11 codes for the v1.1 terms             | 177 read on the WHO API (MMS 2026-01) and signed; 10 held uncoded; migration 0086 awaits the owner                               | `docs/emr/clerking-v2/summary-impression/icd11-signoff.md`, ADR 0183 |
 
-**Migrations (owner):** 0076 → 0082 → 0083 → 0084 → 0085, all applied by the owner (0084 and 0085 on 2026-09-28: the `confirm_diagnosis` co-sign kind, and the 187 REF-DX-TERMS v1.1 terms seeded uncoded). `npm run db:migrate` applies whatever is pending in file order; the next migration is 0086.
+**Migrations (owner):** 0076 → 0082 → 0083 → 0084 → 0085, all applied by the owner (0084 and 0085 on 2026-09-28: the `confirm_diagnosis` co-sign kind, and the 187 REF-DX-TERMS v1.1 terms seeded uncoded). **0086 awaits the owner**: the signed ICD-11 codes for 177 of those terms (ADR 0183), after 0085. `npm run db:migrate` applies whatever is pending in file order; the next migration is 0087.
 
 **Open for the owner:** the clinician trial (protocol `docs/emr/clerking-v2/clinician-trial.md`); real-device timing on a mid-range Android; production counts listed in the exam STOP 0; symptom codes promoted in production through the 0044 governance (`origin='approved'`), which the legacy conversion table cannot see and carries as text until they get rows.
 
@@ -55,6 +56,7 @@ npx tsx scripts/emr/gen-seed.ts                       # regenerates 0072/0082/00
 
 - `.claude/settings.json` runs `npm ci` at session start, only when `CLAUDE_CODE_REMOTE=true` and `node_modules` is missing; it does nothing locally.
 - On the cloud image's npm 10, `npm ci` fails ("package.json and package-lock.json … not in sync", `esbuild@0.28.2`), so the hook leaves no `node_modules`. `npx -y npm@11 ci` (the npm that ships with Node 24) installs cleanly without touching the lock file.
+- The WHO ICD-11 API is reachable from the cloud environment (`icdaccessmanagement.who.int`, `id.who.int`, `icd.who.int` allowed; credentials in `ICD_CLIENT_ID` / `ICD_CLIENT_SECRET`, never printed). Codes are read there, never from a mirror or memory (ADR 0183).
 - The cloud environment sets `SKIP_ENV_VALIDATION=1` and holds **no production keys**. Work that needs a real database (migrations, production counts) stays with the owner.
 - `.nvmrc` pins Node 24; the cloud image defaults to Node 22. If a check behaves differently, say so rather than working around it.
 - Pushing a branch from the cloud is fine; pushes to `main` and deploys are the owner's.

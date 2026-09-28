@@ -5,6 +5,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — ICD-11 codes for the REF-DX-TERMS v1.1 terms, read on the WHO API — 2026-09-28
+
+- 177 of the 187 terms seeded uncoded by 0085 now carry an ICD-11 code, each resolved on the WHO ICD-11 API (MMS 2026-01) and signed by the CSO ([ADR 0183](docs/adr/0183-icd11-codes-for-the-v1-1-terms.md); record `docs/emr/clerking-v2/summary-impression/icd11-signoff.md`). They show their code on the desk and in the chart.
+- 10 terms with no single honest code stay "As typed · not coded" (advanced HIV, suspected malignancy, the "or" terms whose halves have different codes, and others).
+- **Migration (GATED, owner):** `0086_ref_dx_terms_v1_1_icd11`, after 0085. Generated from `data/emr/diagnosis-terms.v1.1-icd11.json`; it fills in only rows still uncoded, so a re-run changes nothing.
+
 ### Added — Clerking v2: Summary (step 08) and Impression (step 09), behind `CLERKING_V2` — 2026-09-28
 
 - **Summary** is composed from the record: a one-liner with the syndrome in the clinician's words, the history, examination and vital signs that matter, pertinent negatives and allergies. "Mark as reviewed" is one tap; any change asks for review again, with the difference ([ADR 0178](docs/adr/0178-summary-composed-from-the-record.md)). The note gets its own Summary block. An old free-text summary opens in "In my words".

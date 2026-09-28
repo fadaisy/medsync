@@ -1,0 +1,1710 @@
+{
+  "catalogue": "medsync.diagnosis-terms",
+  "reference": "REF-DX-TERMS",
+  "codes_for": "docs/emr/clerking-v2/summary-impression/diagnosis-terms.v1.1-addendum.json (1.1.0-draft-proposal; seeded uncoded by migration 0085, D-SI-26)",
+  "classification": {
+    "system": "ICD-11 MMS",
+    "release": "2026-01",
+    "licence": "CC BY-ND 3.0 IGO. Codes and titles are carried unmodified and attributed to WHO.",
+    "verification": "verified: each code resolved on the WHO ICD-11 API (id.who.int, codeinfo then the entity) in release 2026-01 on 2026-09-28; title and uri are WHO's own. No code was typed from memory or a mirror."
+  },
+  "verified_on": "2026-09-28",
+  "signed": {
+    "by": "Usama Fadhul, CSO",
+    "on": "2026-09-28",
+    "record": "docs/emr/clerking-v2/summary-impression/icd11-signoff.md",
+    "scope": "Groups A (138), B (34) and C (5, each as recommended) coded; group D (10) held uncoded; source rewritten to cite WHO."
+  },
+  "codes": [
+    {
+      "id": "dx.aaa_rupture",
+      "display": "Ruptured abdominal aortic aneurysm",
+      "code": "BD50.41",
+      "title": "Abdominal aortic aneurysm with rupture",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/926729140",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.acs",
+      "display": "Acute coronary syndrome",
+      "code": "BA4Z",
+      "title": "Acute ischaemic heart disease, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1829545371/unspecified",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.acute_bronchitis",
+      "display": "Acute bronchitis",
+      "code": "CA42.Z",
+      "title": "Acute bronchitis, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/727572936/unspecified",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.acute_limb_ischaemia",
+      "display": "Acute limb ischaemia",
+      "code": "BD30.Z",
+      "title": "Acute arterial occlusion, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1999156089/unspecified",
+      "group": "B",
+      "match": "near",
+      "note": "Unspecified site. Lower limb is BD30.2, upper limb BD30.0."
+    },
+    {
+      "id": "dx.acute_liver_failure",
+      "display": "Acute liver failure",
+      "code": "DB91.Z",
+      "title": "Acute or subacute hepatic failure, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1973223737/unspecified",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.adrenal_insufficiency",
+      "display": "Adrenal insufficiency",
+      "code": "5A74.Z",
+      "title": "Adrenocortical insufficiency, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/733056203/unspecified",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.af",
+      "display": "Atrial fibrillation",
+      "code": "BC81.3Z",
+      "title": "Atrial fibrillation, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/171698302/unspecified",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.alcohol_intoxication",
+      "display": "Alcohol intoxication",
+      "code": "6C40.3",
+      "title": "Alcohol intoxication",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1339202943",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.alcoholic_hepatitis",
+      "display": "Alcohol-related hepatitis",
+      "code": "DB94.1Z",
+      "title": "Alcoholic hepatitis, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/229221394/unspecified",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.anaphylaxis",
+      "display": "Anaphylaxis",
+      "code": "4A84.Z",
+      "title": "Anaphylaxis, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1868068711/unspecified",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.angina_stable",
+      "display": "Stable angina",
+      "code": "BA40.1",
+      "title": "Stable angina",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/216789527",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.anxiety_disorder",
+      "display": "Anxiety disorder",
+      "code": "6B0Z",
+      "title": "Anxiety or fear-related disorders, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1336943699/unspecified",
+      "group": "B",
+      "match": "nearest",
+      "note": "The addendum's 6B00 (generalised anxiety disorder) is one disorder; the search's top hit 6E63 (secondary anxiety) is wrong. 6B0Z is the unspecified residual of the anxiety block."
+    },
+    {
+      "id": "dx.aortic_dissection",
+      "display": "Aortic dissection",
+      "code": "BD50.Z",
+      "title": "Aortic aneurysm or dissection, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1674517934/unspecified",
+      "group": "B",
+      "match": "near",
+      "note": "No 'dissection, unspecified' code: BD50.Z is 'aneurysm or dissection, unspecified'. Site codes (BD50.0/.1/.2) once imaged."
+    },
+    {
+      "id": "dx.aortic_stenosis",
+      "display": "Aortic stenosis",
+      "code": "BB70.Z",
+      "title": "Aortic valve stenosis, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/956813047/unspecified",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.appendicitis",
+      "display": "Acute appendicitis",
+      "code": "DB10.02",
+      "title": "Acute appendicitis without localised or generalised peritonitis",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/752235",
+      "group": "B",
+      "match": "index",
+      "note": "WHO index maps 'acute appendicitis NOS' to 'without localised or generalised peritonitis'. DB10.0 has no 'unspecified' child."
+    },
+    {
+      "id": "dx.ascites_unexplained",
+      "display": "Ascites, cause not yet known",
+      "code": "ME04.Z",
+      "title": "Ascites, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1133729855/unspecified",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.aspiration_pneumonia",
+      "display": "Aspiration pneumonia",
+      "code": "CA71.0",
+      "title": "Pneumonitis due to inhalation of food or vomit",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1975993872",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.back_pain_red_flags",
+      "display": "Back pain with red flags, cause not yet known",
+      "code": "ME84.Z",
+      "title": "Spinal pain, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/2051065876/unspecified",
+      "group": "B",
+      "match": "index",
+      "note": "WHO index: 'back pain NOS'. The red flags themselves are not codable. The search's primary query found nothing; this came from the synonym search."
+    },
+    {
+      "id": "dx.bells_palsy",
+      "display": "Bell's palsy",
+      "code": "8B88.0",
+      "title": "Bell palsy",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/2004402146",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.bipolar",
+      "display": "Bipolar disorder",
+      "code": "6A60.Z",
+      "title": "Bipolar type I disorder, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1456478153/unspecified",
+      "group": "B",
+      "match": "index",
+      "note": "WHO index maps 'Bipolar disorder NOS' to type I; 6A6Z is 'bipolar or related disorders, unspecified'."
+    },
+    {
+      "id": "dx.bladder_cancer",
+      "display": "Bladder cancer",
+      "code": "2C94.Z",
+      "title": "Malignant neoplasms of bladder, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1244512758/unspecified",
+      "group": "A",
+      "match": "near"
+    },
+    {
+      "id": "dx.bowel_obstruction",
+      "display": "Intestinal obstruction",
+      "code": "DB30.Y",
+      "title": "Other specified obstruction of large intestine",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/320939116/other",
+      "group": "B",
+      "match": "near",
+      "note": "WHO index maps 'unspecified intestinal obstruction' here, a large-intestine code. Small-bowel obstruction is DA91.Z."
+    },
+    {
+      "id": "dx.bph",
+      "display": "Benign prostatic enlargement",
+      "code": "GA90",
+      "title": "Hyperplasia of prostate",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/978159279",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.bppv",
+      "display": "Benign paroxysmal positional vertigo",
+      "code": "AB31.2",
+      "title": "Benign positional paroxysmal vertigo",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1300772836",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.breast_cancer",
+      "display": "Breast cancer",
+      "code": "2C6Z",
+      "title": "Malignant neoplasms of breast, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1047754165/unspecified",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.breathlessness_unexplained",
+      "display": "Breathlessness, cause not yet known",
+      "code": "MD11.5",
+      "title": "Dyspnoea",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/960305085",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.bronchiectasis",
+      "display": "Bronchiectasis",
+      "code": "CA24",
+      "title": "Bronchiectasis",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1935524933",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.cardiac_tamponade",
+      "display": "Cardiac tamponade",
+      "code": "BB23",
+      "title": "Cardiac tamponade",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/216782575",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.cardiogenic_shock",
+      "display": "Cardiogenic shock",
+      "code": "MG40.0",
+      "title": "Cardiogenic shock",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1974956233",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.cardiomyopathy",
+      "display": "Cardiomyopathy",
+      "code": "BC43.Z",
+      "title": "Cardiomyopathy, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/282225286/unspecified",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.cerebral_toxoplasmosis",
+      "display": "Cerebral toxoplasmosis",
+      "code": "1F57.1",
+      "title": "Meningoencephalitis due to Toxoplasma gondii",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/540652293",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.chest_pain_unexplained",
+      "display": "Chest pain, cause not yet known",
+      "code": "MD30.Z",
+      "title": "Chest pain, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1765737830/unspecified",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.cholangitis",
+      "display": "Acute cholangitis",
+      "code": "DC13",
+      "title": "Cholangitis",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1712178777",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.cholecystitis",
+      "display": "Acute cholecystitis",
+      "code": "DC12.0Z",
+      "title": "Acute cholecystitis, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/2071113448/unspecified",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.cholera",
+      "display": "Cholera",
+      "code": "1A00",
+      "title": "Cholera",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/257068234",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.chronic_pulmonary_aspergillosis",
+      "display": "Chronic pulmonary aspergillosis",
+      "code": "1F20.12",
+      "title": "Chronic pulmonary aspergillosis",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/86747759",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.colorectal_cancer",
+      "display": "Colorectal cancer",
+      "code": "2B93.Z",
+      "title": "Malignant neoplasms of large intestine, site and type unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/642412809/unspecified",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.confusion_unexplained",
+      "display": "Acute confusion, cause not yet known",
+      "code": "MB21.4",
+      "title": "Disorientation",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1110239801",
+      "group": "B",
+      "match": "title",
+      "note": "WHO index maps 'mental confusion NOS' to Disorientation. If the picture is delirium, the Delirium term (6D70.Z) applies."
+    },
+    {
+      "id": "dx.covid19",
+      "display": "COVID-19",
+      "code": "RA01",
+      "title": "COVID-19",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1730556128",
+      "group": "C",
+      "match": "title",
+      "note": "Parent category. Its children are RA01.0 'virus identified' and RA01.1 'virus not identified', with no 'unspecified'. The parent avoids asserting a test result; the alternative is to split the term the way TB and malaria are split in v1.0."
+    },
+    {
+      "id": "dx.cvst",
+      "display": "Cerebral venous sinus thrombosis",
+      "code": "8B22.1",
+      "title": "Cerebral venous thrombosis",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1655658429",
+      "group": "A",
+      "match": "near"
+    },
+    {
+      "id": "dx.delirium",
+      "display": "Delirium",
+      "code": "6D70.Z",
+      "title": "Delirium, unspecified or unknown cause",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/897917531/unspecified",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.dementia",
+      "display": "Dementia",
+      "code": "6D8Z",
+      "title": "Dementia, unknown or unspecified cause",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/546689346/unspecified",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.diabetic_foot",
+      "display": "Diabetic foot ulcer or infection",
+      "code": "BD54",
+      "title": "Diabetic foot ulcer",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/74527684",
+      "group": "B",
+      "match": "title",
+      "note": "Codes the ulcer; a diabetic foot infection without an ulcer is not covered."
+    },
+    {
+      "id": "dx.dic",
+      "display": "Disseminated intravascular coagulation",
+      "code": "3B20",
+      "title": "Disseminated intravascular coagulation",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1622289887",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.drug_induced_liver_injury",
+      "display": "Drug-induced liver injury",
+      "code": "DB95.Z",
+      "title": "Drug-induced or toxic liver disease, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/2125493521/unspecified",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.drug_rash",
+      "display": "Drug eruption, not severe",
+      "code": "EH6Z",
+      "title": "Drug eruption of unspecified type",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/923546127/unspecified",
+      "group": "A",
+      "match": "near"
+    },
+    {
+      "id": "dx.dvt",
+      "display": "Deep vein thrombosis",
+      "code": "BD71.4",
+      "title": "Lower limb deep vein thrombosis",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/615253204",
+      "group": "B",
+      "match": "index",
+      "note": "WHO index maps 'deep vein thrombosis NOS' to lower limb; BD71 has no 'unspecified' child."
+    },
+    {
+      "id": "dx.dysentery",
+      "display": "Dysentery (bloody diarrhoea)",
+      "code": "1A40.Z",
+      "title": "Infectious gastroenteritis or colitis without specification of infectious agent",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1688127370/unspecified",
+      "group": "B",
+      "match": "index",
+      "note": "WHO index: 'dysentery' NOS. Search's top hit 1A02 (Shigella) rejected: the synonyms include amoebic dysentery (1A36.00)."
+    },
+    {
+      "id": "dx.dyslipidaemia",
+      "display": "Dyslipidaemia",
+      "code": "5C8Z",
+      "title": "Unspecified disorders of lipoprotein metabolism or lipidaemias",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1191191920/unspecified",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.ectopic_pregnancy",
+      "display": "Ectopic pregnancy",
+      "code": "JA01.Z",
+      "title": "Ectopic pregnancy, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1563334645/unspecified",
+      "group": "A",
+      "match": "title",
+      "note": "Code is clean. Separately, ADR 0182 flags that this term is 'standard', not restricted."
+    },
+    {
+      "id": "dx.encephalitis",
+      "display": "Encephalitis",
+      "code": "1D00.Z",
+      "title": "Infectious encephalitis, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/62637936/unspecified",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.fatigue_unexplained",
+      "display": "Fatigue, cause not yet known",
+      "code": "MG22",
+      "title": "Fatigue",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1109546957",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.febrile_neutropenia",
+      "display": "Febrile neutropenia",
+      "code": "4B00.0Z",
+      "title": "Neutropaenia, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/926492960/unspecified",
+      "group": "B",
+      "match": "nearest",
+      "note": "ICD-11 has no febrile neutropenia concept; this codes the neutropenia, and the fever is lost. Search's top hit (a neonatal code) rejected."
+    },
+    {
+      "id": "dx.gastric_cancer",
+      "display": "Gastric cancer",
+      "code": "2B72.Z",
+      "title": "Malignant neoplasms of stomach, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1397617262/unspecified",
+      "group": "A",
+      "match": "near"
+    },
+    {
+      "id": "dx.gbs",
+      "display": "Guillain-Barré syndrome",
+      "code": "8C01.0",
+      "title": "Acute inflammatory demyelinating polyneuropathy",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1196874419",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.gi_bleed_unexplained",
+      "display": "Gastrointestinal bleeding, source not yet known",
+      "code": "ME24.9Z",
+      "title": "Gastrointestinal bleeding, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/2044414353/unspecified",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.giant_cell_arteritis",
+      "display": "Giant cell arteritis",
+      "code": "4A44.2",
+      "title": "Giant cell arteritis",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1929970386",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.gord",
+      "display": "Gastro-oesophageal reflux disease",
+      "code": "DA22.Z",
+      "title": "Gastro-oesophageal reflux disease, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1391387859/unspecified",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.gout",
+      "display": "Gout",
+      "code": "FA25.2Z",
+      "title": "Gout, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/526468865/unspecified",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.haemoptysis_unexplained",
+      "display": "Haemoptysis, cause not yet known",
+      "code": "MD22",
+      "title": "Haemoptysis",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/899998313",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.hcc",
+      "display": "Hepatocellular carcinoma",
+      "code": "2C12.02",
+      "title": "Hepatocellular carcinoma of liver",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1294035808",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.heart_block",
+      "display": "Complete heart block",
+      "code": "BC63.2Z",
+      "title": "Complete atrioventricular block, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1147105932/unspecified",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.heart_failure_acute",
+      "display": "Acute decompensated heart failure",
+      "code": "BD1Z",
+      "title": "Heart failure, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1458683894/unspecified",
+      "group": "B",
+      "match": "near",
+      "note": "WHO's exact match is the cluster BD1Z&XT5R 'Acute heart failure'; stem only."
+    },
+    {
+      "id": "dx.heat_stroke",
+      "display": "Heat stroke",
+      "code": "NF01.0",
+      "title": "Heat stroke",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/965393145",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.hepatic_encephalopathy",
+      "display": "Hepatic encephalopathy",
+      "code": "DB99.5",
+      "title": "Hepatic encephalopathy",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1769383160",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.hepatitis_acute_viral",
+      "display": "Acute viral hepatitis",
+      "code": "1E50.Z",
+      "title": "Acute viral hepatitis, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1154736543/unspecified",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.hepatitis_c_chronic",
+      "display": "Chronic hepatitis C",
+      "code": "1E51.1",
+      "title": "Chronic hepatitis C",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1615937473",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.herpes_zoster",
+      "display": "Herpes zoster",
+      "code": "1E91.Z",
+      "title": "Zoster, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/523481501/unspecified",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.hiv_acute",
+      "display": "Acute HIV infection",
+      "code": "1C62.0",
+      "title": "HIV disease clinical stage 1 without mention of tuberculosis or malaria",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/574153866",
+      "group": "B",
+      "match": "index",
+      "note": "WHO index 'acute HIV infection syndrome' maps to stage 1, 'without mention of TB or malaria'."
+    },
+    {
+      "id": "dx.hookworm_helminth",
+      "display": "Intestinal helminth infection",
+      "code": "1F90.2",
+      "title": "Intestinal helminthiasis, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1979821488",
+      "group": "A",
+      "match": "title",
+      "note": "Search's top hit 1F90.0 'Mixed intestinal helminthiases' rejected. Hookworm alone is 1F68.Z."
+    },
+    {
+      "id": "dx.hypercalcaemia",
+      "display": "Hypercalcaemia",
+      "code": "5B91.0",
+      "title": "Hypercalcaemia",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/885246206",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.hyperkalaemia",
+      "display": "Hyperkalaemia",
+      "code": "5C76",
+      "title": "Hyperkalaemia",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/707162903",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.hypernatraemia",
+      "display": "Hypernatraemia",
+      "code": "5C71",
+      "title": "Hyperosmolality or hypernatraemia",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1211006442",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.hypokalaemia",
+      "display": "Hypokalaemia",
+      "code": "5C77",
+      "title": "Hypokalaemia",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1586177000",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.hyponatraemia",
+      "display": "Hyponatraemia",
+      "code": "5C72",
+      "title": "Hypo-osmolality or hyponatraemia",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/761639036",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.hypothermia_accidental",
+      "display": "Accidental hypothermia",
+      "code": "NF02",
+      "title": "Hypothermia",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/406396914",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.hypothermia_unexplained",
+      "display": "Hypothermia, cause not yet known",
+      "code": "MG28",
+      "title": "Hypothermia, not associated with low environmental temperature",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/186500648",
+      "group": "C",
+      "match": "nearest",
+      "note": "Alternative NF02 'Hypothermia', WHO's index target for plain 'hypothermia'; it sits in the injury chapter (environmental cause) and is already the code for 'Accidental hypothermia'. MG28 keeps this symptom-level term in the symptoms chapter, but its title asserts a non-environmental cause."
+    },
+    {
+      "id": "dx.hypothyroidism",
+      "display": "Hypothyroidism",
+      "code": "5A00.Z",
+      "title": "Hypothyroidism, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1722092627/unspecified",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.hypovolaemic_shock",
+      "display": "Hypovolaemic shock",
+      "code": "MG40.1",
+      "title": "Hypovolaemic shock",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/284999005",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.infective_endocarditis",
+      "display": "Infective endocarditis",
+      "code": "BB40",
+      "title": "Acute or subacute infectious endocarditis",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/512128824",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.influenza",
+      "display": "Influenza",
+      "code": "1E32",
+      "title": "Influenza, virus not identified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1235618695",
+      "group": "B",
+      "match": "index",
+      "note": "WHO index 'flu' goes to 'virus not identified'; identified viruses are 1E30/1E31."
+    },
+    {
+      "id": "dx.interstitial_lung_disease",
+      "display": "Interstitial lung disease",
+      "code": "CB0Z",
+      "title": "Respiratory diseases principally affecting the lung interstitium, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/111658096/unspecified",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.iron_deficiency_anaemia",
+      "display": "Iron-deficiency anaemia",
+      "code": "3A00.Z",
+      "title": "Iron deficiency anaemia, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1577750667/unspecified",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.jaundice_unexplained",
+      "display": "Jaundice, cause not yet known",
+      "code": "ME10.1",
+      "title": "Unspecified jaundice",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1056591229",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.kaposi_sarcoma",
+      "display": "Kaposi sarcoma",
+      "code": "2B57.Z",
+      "title": "Kaposi sarcoma of unspecified primary site",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/2131977134/unspecified",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.leptospirosis",
+      "display": "Leptospirosis",
+      "code": "1B91",
+      "title": "Leptospirosis",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/751399056",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.leukaemia",
+      "display": "Leukaemia",
+      "code": "2B33.4",
+      "title": "Leukaemia, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1385484871",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.liver_abscess",
+      "display": "Liver abscess",
+      "code": "DB90.0",
+      "title": "Abscess of liver",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1323593849",
+      "group": "B",
+      "match": "near",
+      "note": "Excludes amoebic liver abscess (1A36.10)."
+    },
+    {
+      "id": "dx.lung_cancer",
+      "display": "Lung cancer",
+      "code": "2C25.Z",
+      "title": "Malignant neoplasms of bronchus or lung, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/316539081/unspecified",
+      "group": "A",
+      "match": "near"
+    },
+    {
+      "id": "dx.lymphadenopathy_unexplained",
+      "display": "Lymphadenopathy, cause not yet known",
+      "code": "MA01.Z",
+      "title": "Enlarged lymph nodes, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1564691570/unspecified",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.lymphatic_filariasis",
+      "display": "Lymphatic filariasis (lymphoedema)",
+      "code": "1F66.3Z",
+      "title": "Lymphatic filariasis, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/247221550/unspecified",
+      "group": "B",
+      "match": "title",
+      "note": "Aetiology code (what the NTD programme counts). The search's top hit BD93.13 is the lymphoedema manifestation code."
+    },
+    {
+      "id": "dx.lymphoma",
+      "display": "Lymphoma",
+      "code": "2B33.5",
+      "title": "Malignant lymphoma, not elsewhere classified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/474972159",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.methanol_poisoning",
+      "display": "Methanol poisoning",
+      "code": "NE61",
+      "title": "Harmful effects of or exposure to noxious substances, chiefly nonmedicinal as to source, not elsewhere classified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1119330136",
+      "group": "B",
+      "match": "near",
+      "note": "WHO's exact match is the cluster NE61&XM7KD9 (methanol); stem only, shared with organophosphate."
+    },
+    {
+      "id": "dx.migraine",
+      "display": "Migraine",
+      "code": "8A80.Z",
+      "title": "Migraine, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/669367341/unspecified",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.mpox",
+      "display": "Mpox",
+      "code": "1E71",
+      "title": "Mpox",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/160886685",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.msk_chest_pain",
+      "display": "Musculoskeletal chest pain",
+      "code": "ME81.Z",
+      "title": "Musculoskeletal chest pain, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1556080152/unspecified",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.myasthenia",
+      "display": "Myasthenia gravis",
+      "code": "8C60.Z",
+      "title": "Myasthenia gravis, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1270100227/unspecified",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.myeloma",
+      "display": "Multiple myeloma",
+      "code": "2A83.1",
+      "title": "Plasma cell myeloma",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/526287100",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.myxoedema_coma",
+      "display": "Myxoedema coma",
+      "code": "5A00.21",
+      "title": "Myxoedema coma",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1878410271",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.necrotising_soft_tissue",
+      "display": "Necrotising soft-tissue infection",
+      "code": "1B71.Z",
+      "title": "Necrotising fasciitis, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/522973276/unspecified",
+      "group": "B",
+      "match": "title",
+      "note": "WHO title is necrotising fasciitis; gas gangrene is separate (1C16)."
+    },
+    {
+      "id": "dx.nephritic_syndrome",
+      "display": "Acute nephritic syndrome",
+      "code": "GB40",
+      "title": "Nephritic syndrome",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1783829886",
+      "group": "B",
+      "match": "near",
+      "note": "WHO's exact match is the cluster GB40&XT5R 'Acute nephritic syndrome'; stem only."
+    },
+    {
+      "id": "dx.nephrotic_syndrome",
+      "display": "Nephrotic syndrome",
+      "code": "GB41",
+      "title": "Nephrotic syndrome",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1184209951",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.neurocysticercosis",
+      "display": "Neurocysticercosis",
+      "code": "1F70.0Z",
+      "title": "Cysticercosis of central nervous system, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/487162814/unspecified",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.obesity",
+      "display": "Obesity",
+      "code": "5B81.Z",
+      "title": "Obesity, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/149403041/unspecified",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.obstructive_uropathy",
+      "display": "Obstructive uropathy",
+      "code": "GB56.Z",
+      "title": "Obstructive or reflux nephropathy, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1656637330/unspecified",
+      "group": "A",
+      "match": "near"
+    },
+    {
+      "id": "dx.oedema_unexplained",
+      "display": "Oedema, cause not yet known",
+      "code": "MG29.Z",
+      "title": "Oedema, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/826220775/unspecified",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.oesophageal_cancer",
+      "display": "Oesophageal cancer",
+      "code": "2B70.Z",
+      "title": "Malignant neoplasms of oesophagus, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/669033105/unspecified",
+      "group": "A",
+      "match": "near"
+    },
+    {
+      "id": "dx.oesophageal_candidiasis",
+      "display": "Oesophageal candidiasis",
+      "code": "1F23.2",
+      "title": "Candidosis of gastrointestinal tract",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1229869827",
+      "group": "B",
+      "match": "near",
+      "note": "WHO's exact match is the cluster 1F23.2&XA0828 'Oesophageal candidosis'; stem only (GI tract candidosis)."
+    },
+    {
+      "id": "dx.opioid_sedative_toxicity",
+      "display": "Opioid or sedative toxicity",
+      "code": "NE60",
+      "title": "Harmful effects of drugs, medicaments or biological substances, not elsewhere classified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1868408442",
+      "group": "B",
+      "match": "nearest",
+      "note": "Harmful effects of drugs NEC, which covers both halves. Search's top hit PC91 'Intentional self-harm…' rejected: it asserts intent. Stem only."
+    },
+    {
+      "id": "dx.oral_candidiasis",
+      "display": "Oral candidiasis",
+      "code": "1F23.0",
+      "title": "Candidosis of lips or oral mucous membranes",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/520566646",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.organophosphate_poisoning",
+      "display": "Organophosphate or carbamate poisoning",
+      "code": "NE61",
+      "title": "Harmful effects of or exposure to noxious substances, chiefly nonmedicinal as to source, not elsewhere classified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1119330136",
+      "group": "B",
+      "match": "index",
+      "note": "Stem only. ICD-11 puts the substance in an extension code (XM…) and the intent in an external-cause code; the column holds neither. It shares NE61 with methanol, so HMIS cannot tell them apart."
+    },
+    {
+      "id": "dx.orthostatic_hypotension",
+      "display": "Orthostatic hypotension",
+      "code": "BA21",
+      "title": "Orthostatic hypotension",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/56009591",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.osteomyelitis",
+      "display": "Osteomyelitis",
+      "code": "FB84.Z",
+      "title": "Osteomyelitis or osteitis, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/2058491071/unspecified",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.pad",
+      "display": "Peripheral arterial disease",
+      "code": "BD4Z",
+      "title": "Chronic arterial occlusive disease, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1821859817/unspecified",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.pancreatitis_acute",
+      "display": "Acute pancreatitis",
+      "code": "DC31.Z",
+      "title": "Acute pancreatitis, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/698285441/unspecified",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.paracetamol_overdose",
+      "display": "Paracetamol overdose",
+      "code": "NE60",
+      "title": "Harmful effects of drugs, medicaments or biological substances, not elsewhere classified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1868408442",
+      "group": "B",
+      "match": "index",
+      "note": "WHO index: 'paracetamol poisoning'. Search's top hit PC94 'Intentional self-harm…' rejected: it asserts intent. Stem only (substance extension not held)."
+    },
+    {
+      "id": "dx.parkinsonism",
+      "display": "Parkinson's disease or parkinsonism",
+      "code": "8A00.Z",
+      "title": "Parkinsonism, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/2024168133/unspecified",
+      "group": "B",
+      "match": "title",
+      "note": "Parent 'Parkinsonism' covers both halves of the term; Parkinson disease alone is 8A00.0Z."
+    },
+    {
+      "id": "dx.pcp",
+      "display": "Pneumocystis pneumonia",
+      "code": "CA40.20",
+      "title": "Pneumonia due to pneumocystis",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1229452918",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.perforated_viscus",
+      "display": "Perforated viscus",
+      "code": "ME24.3Z",
+      "title": "Digestive system perforation of unspecified site",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1472717853/unspecified",
+      "group": "A",
+      "match": "index",
+      "note": "WHO synonym 'gastrointestinal tract perforation NOS'. Search's top hit DC50.Z (peritonitis) rejected."
+    },
+    {
+      "id": "dx.pericardial_effusion",
+      "display": "Pericardial effusion",
+      "code": "BB25",
+      "title": "Pericardial effusion",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/2002014072",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.pericarditis",
+      "display": "Acute pericarditis",
+      "code": "BB20.Z",
+      "title": "Acute pericarditis, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/2099186145/unspecified",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.peripheral_neuropathy",
+      "display": "Peripheral neuropathy",
+      "code": "8C0Z",
+      "title": "Polyneuropathy, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/58868923/unspecified",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.pleural_effusion",
+      "display": "Pleural effusion",
+      "code": "CB27",
+      "title": "Pleural effusion",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/11236328",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.pneumothorax",
+      "display": "Pneumothorax",
+      "code": "CB21.Z",
+      "title": "Pneumothorax, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1946559257/unspecified",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.post_tb_lung_disease",
+      "display": "Post-tuberculosis lung disease",
+      "code": "1G80",
+      "title": "Sequelae of tuberculosis",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1968623900",
+      "group": "B",
+      "match": "nearest",
+      "note": "Sequelae of tuberculosis (any site, not lung-specific). The search's primary query found nothing."
+    },
+    {
+      "id": "dx.pressure_injury",
+      "display": "Pressure injury",
+      "code": "EH90.Z",
+      "title": "Pressure ulcer of unspecified grade",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/455330172/unspecified",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.prostate_cancer",
+      "display": "Prostate cancer",
+      "code": "2C82.Z",
+      "title": "Malignant neoplasms of prostate, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1552457716/unspecified",
+      "group": "A",
+      "match": "near"
+    },
+    {
+      "id": "dx.pulmonary_embolism",
+      "display": "Pulmonary embolism",
+      "code": "BB00.Z",
+      "title": "Pulmonary thromboembolism, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1014964218/unspecified",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.pulmonary_hypertension",
+      "display": "Pulmonary hypertension",
+      "code": "BB01.Z",
+      "title": "Pulmonary hypertension, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1496633964/unspecified",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.pyelonephritis",
+      "display": "Acute pyelonephritis",
+      "code": "GB51",
+      "title": "Acute pyelonephritis",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/441183088",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.pyomyositis",
+      "display": "Pyomyositis",
+      "code": "FB30",
+      "title": "Infectious myositis",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/82568660",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.rabies",
+      "display": "Rabies (clinical)",
+      "code": "1C82",
+      "title": "Rabies",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/854762584",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.reduced_consciousness_unexplained",
+      "display": "Reduced consciousness, cause not yet known",
+      "code": "8E2Z",
+      "title": "Disorders of consciousness, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/81068077/unspecified",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.respiratory_failure",
+      "display": "Acute respiratory failure",
+      "code": "CB41.0Z",
+      "title": "Acute respiratory failure, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/875272781/unspecified",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.rhabdomyolysis",
+      "display": "Rhabdomyolysis",
+      "code": "FB32.20",
+      "title": "Idiopathic rhabdomyolysis",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/2029533852",
+      "group": "C",
+      "match": "index",
+      "note": "WHO index maps 'rhabdomyolysis NOS' to FB32.20 'Idiopathic rhabdomyolysis'. Alternative 8C84 'Secondary rhabdomyolysis', which fits most medical-ward causes (drugs, sepsis, trauma, heat, seizures)."
+    },
+    {
+      "id": "dx.rheumatic_fever",
+      "display": "Acute rheumatic fever",
+      "code": "1B40.Z",
+      "title": "Acute rheumatic fever without mention of heart involvement, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/2058300982/unspecified",
+      "group": "B",
+      "match": "near",
+      "note": "WHO title says 'without mention of heart involvement'; with carditis is 1B41."
+    },
+    {
+      "id": "dx.rheumatic_heart_disease",
+      "display": "Rheumatic heart disease",
+      "code": "BC20.Z",
+      "title": "Chronic rheumatic heart disease, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/291726710/unspecified",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.rheumatoid_arthritis",
+      "display": "Rheumatoid arthritis",
+      "code": "FA20.Z",
+      "title": "Rheumatoid arthritis, serology unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/576319925/unspecified",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.rickettsial",
+      "display": "Rickettsial infection",
+      "code": "1C3Z",
+      "title": "Rickettsioses, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1981846/unspecified",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.sah",
+      "display": "Subarachnoid haemorrhage",
+      "code": "8B01.2",
+      "title": "Subarachnoid haemorrhage not known if aneurysmal or non-aneurysmal",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/133091217",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.sbp",
+      "display": "Spontaneous bacterial peritonitis",
+      "code": "DC50.00",
+      "title": "Spontaneous bacterial peritonitis",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/217517519",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.septic_arthritis",
+      "display": "Septic arthritis",
+      "code": "FA10.Z",
+      "title": "Direct infections of joint, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/622473950/unspecified",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.shock_unexplained",
+      "display": "Shock, cause not yet known",
+      "code": "MG40.Z",
+      "title": "Shock, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1164022950/unspecified",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.sjs_ten",
+      "display": "Stevens-Johnson syndrome or toxic epidermal necrolysis",
+      "code": "EB13",
+      "title": "Stevens-Johnson syndrome or toxic epidermal necrolysis",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/195467267",
+      "group": "A",
+      "match": "title",
+      "note": "WHO title is the term. When a drug caused it, EH63 is the drug-specific code."
+    },
+    {
+      "id": "dx.sle",
+      "display": "Systemic lupus erythematosus",
+      "code": "4A40.0Z",
+      "title": "Systemic lupus erythematosus, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/749596428/unspecified",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.space_occupying_lesion",
+      "display": "Intracranial space-occupying lesion",
+      "code": "MB71.0",
+      "title": "Intracranial space-occupying lesion",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1904765755",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.splenomegaly_unexplained",
+      "display": "Splenomegaly, cause not yet known",
+      "code": "ME10.01",
+      "title": "Splenomegaly, not elsewhere classified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1282210072",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.stroke_haemorrhagic",
+      "display": "Intracerebral haemorrhage",
+      "code": "8B00.Z",
+      "title": "Intracerebral haemorrhage, site unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/873092535/unspecified",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.stroke_ischaemic",
+      "display": "Ischaemic stroke",
+      "code": "8B11.5Z",
+      "title": "Cerebral ischaemic stroke, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1614716959/unspecified",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.subdural_haematoma",
+      "display": "Subdural haematoma",
+      "code": "NA07.6Z",
+      "title": "Traumatic subdural haemorrhage, unspecified whether acute or chronic",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1268920167/unspecified",
+      "group": "C",
+      "match": "index",
+      "note": "WHO index maps 'subdural haematoma NOS' to traumatic. Alternative 8B02 'Nontraumatic subdural haemorrhage'. Many chronic subdurals follow a fall the patient does not recall."
+    },
+    {
+      "id": "dx.substance_psychosis",
+      "display": "Substance-induced psychosis",
+      "code": "6C4G.6",
+      "title": "Psychotic disorder induced by unknown or unspecified psychoactive substance",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1155529213",
+      "group": "A",
+      "match": "near"
+    },
+    {
+      "id": "dx.svt",
+      "display": "Supraventricular tachycardia",
+      "code": "BC81.Z",
+      "title": "Supraventricular tachyarrhythmia, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/113146812/unspecified",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.syncope_unexplained",
+      "display": "Syncope or collapse, cause not yet known",
+      "code": "MG45.Z",
+      "title": "Syncope or collapse, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1418136013/unspecified",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.tb_extrapulmonary",
+      "display": "Extrapulmonary tuberculosis",
+      "code": "1B12",
+      "title": "Tuberculosis of other systems or organs",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/746680558",
+      "group": "B",
+      "match": "nearest",
+      "note": "Parent category (it has no 'unspecified' child). It covers lymph node, abdominal, bone, pericardial and other organ TB; it excludes CNS TB (own term, 1B11.0) and miliary TB (1B13). Search's top hit 1B12.6 (TB lymphadenopathy only) rejected as too narrow."
+    },
+    {
+      "id": "dx.tb_meningitis",
+      "display": "Tuberculous meningitis",
+      "code": "1B11.0",
+      "title": "Tuberculous meningitis",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1820468614",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.tb_pericarditis",
+      "display": "Tuberculous pericarditis",
+      "code": "1B12.0",
+      "title": "Tuberculosis of heart",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/271545608",
+      "group": "B",
+      "match": "near",
+      "note": "WHO's exact match is the cluster 1B12.0&XA2XU0 'Tuberculosis of pericardium'; the column holds one code, so the stem (TB of heart) goes in."
+    },
+    {
+      "id": "dx.tb_spine",
+      "display": "Tuberculosis of the spine",
+      "code": "1B12.40",
+      "title": "Tuberculosis of bones or joints",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/570881596",
+      "group": "B",
+      "match": "nearest",
+      "note": "No spine-specific code. WHO's index sends 'Pott's disease' to 8B4Y (a spinal cord disorder, i.e. the neurological complication), and the search's top hit 1B11.Y is TB of the nervous system. 1B12.40 codes the TB itself."
+    },
+    {
+      "id": "dx.tension_headache",
+      "display": "Tension-type headache",
+      "code": "8A81.Z",
+      "title": "Tension-type headache, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1410019257/unspecified",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.tetanus",
+      "display": "Tetanus",
+      "code": "1C13",
+      "title": "Tetanus",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1793762788",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.thrombocytopenia",
+      "display": "Thrombocytopenia",
+      "code": "3B64.Z",
+      "title": "Thrombocytopenia, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/683583694/unspecified",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.thyroid_storm",
+      "display": "Thyroid storm",
+      "code": "5A02.5",
+      "title": "Thyroid crisis",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1215823328",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.thyrotoxicosis",
+      "display": "Thyrotoxicosis",
+      "code": "5A02.Z",
+      "title": "Thyrotoxicosis, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1470387017/unspecified",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.tia",
+      "display": "Transient ischaemic attack",
+      "code": "8B10.Z",
+      "title": "Transient ischaemic attack, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/826335789/unspecified",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.trypanosomiasis",
+      "display": "Human African trypanosomiasis",
+      "code": "1F51.Z",
+      "title": "African trypanosomiasis, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/875488052/unspecified",
+      "group": "A",
+      "match": "title",
+      "note": "Search's top hit 1F51.1Z (rhodesiense only) rejected: Uganda has both gambiense (north-west) and rhodesiense (south-east)."
+    },
+    {
+      "id": "dx.upper_airway_obstruction",
+      "display": "Upper airway obstruction",
+      "code": "CB40.Y",
+      "title": "Other specified diseases of the respiratory system",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/850824593/other",
+      "group": "B",
+      "match": "index",
+      "note": "WHO index 'Airway obstruction' sits in 'Other specified diseases of the respiratory system'. Search's top hit MD11.B 'Stridor' (the sign) rejected."
+    },
+    {
+      "id": "dx.urinary_retention",
+      "display": "Acute urinary retention",
+      "code": "MF50.3",
+      "title": "Retention of urine",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1775034842",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.urolithiasis",
+      "display": "Urinary tract stone",
+      "code": "GB7Z",
+      "title": "Urolithiasis, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1746821938/unspecified",
+      "group": "A",
+      "match": "near",
+      "note": "Search's top hit GB70.0Z (kidney only) rejected: the term is any urinary tract stone."
+    },
+    {
+      "id": "dx.variceal_bleed",
+      "display": "Variceal bleeding",
+      "code": "DA26.00",
+      "title": "Oesophageal varices with bleeding",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/949012083",
+      "group": "B",
+      "match": "near",
+      "note": "Oesophageal varices only; gastric varices are DA43.0."
+    },
+    {
+      "id": "dx.vasovagal_syncope",
+      "display": "Vasovagal syncope",
+      "code": "8D89.0",
+      "title": "Reflex syncope",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/952365682",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.ventricular_arrhythmia",
+      "display": "Ventricular tachycardia or other malignant arrhythmia",
+      "code": "BC71.Z",
+      "title": "Ventricular tachyarrhythmia, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1612630748/unspecified",
+      "group": "B",
+      "match": "nearest",
+      "note": "'Ventricular tachyarrhythmia, unspecified' covers VT and VF; 'other malignant arrhythmia' beyond ventricular is not covered."
+    },
+    {
+      "id": "dx.vestibular_neuritis",
+      "display": "Vestibular neuritis or labyrinthitis",
+      "code": "AB30.Z",
+      "title": "Acute vestibular syndrome, unspecified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1462112221/unspecified",
+      "group": "B",
+      "match": "nearest",
+      "note": "'Acute vestibular syndrome, unspecified': the parent covers both neuritis (AB30.0) and labyrinthitis (AB30.1)."
+    },
+    {
+      "id": "dx.vhf_suspected",
+      "display": "Viral haemorrhagic fever, suspected",
+      "code": "1D86",
+      "title": "Viral haemorrhagic fever, not elsewhere classified",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/555874229",
+      "group": "C",
+      "match": "index",
+      "note": "WHO synonym 'Viral haemorrhagic fever, not otherwise specified'. The term is 'suspected': coding it counts suspects as VHF (IDSR reports suspects anyway). Alternative: hold uncoded. Search's top hit 1D60.02 (Sudan virus disease) rejected as too specific."
+    },
+    {
+      "id": "dx.viral_illness_nonspecific",
+      "display": "Viral febrile illness, self-limiting",
+      "code": "1E1Z",
+      "title": "Unspecified viral disease",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1136802325/unspecified",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.visceral_leishmaniasis",
+      "display": "Visceral leishmaniasis",
+      "code": "1F54.0",
+      "title": "Visceral leishmaniasis",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1646564717",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.weight_loss_unexplained",
+      "display": "Weight loss, cause not yet known",
+      "code": "MG43.5",
+      "title": "Excessive weight loss",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/2015627151",
+      "group": "A",
+      "match": "index"
+    },
+    {
+      "id": "dx.wernicke",
+      "display": "Wernicke encephalopathy",
+      "code": "5B5A.10",
+      "title": "Wernicke encephalopathy",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/1360335041",
+      "group": "A",
+      "match": "title"
+    },
+    {
+      "id": "dx.yellow_fever",
+      "display": "Yellow fever",
+      "code": "1D47",
+      "title": "Yellow fever",
+      "uri": "http://id.who.int/icd/release/11/2026-01/mms/383352795",
+      "group": "A",
+      "match": "title"
+    }
+  ],
+  "held": [
+    {
+      "id": "dx.angioedema",
+      "display": "Angioedema",
+      "reason": "WHO's index maps 'angioedema NOS' to two codes (EB04 idiopathic, EB01.Z inducible), and the term's own synonym, ACE-inhibitor angioedema, is a third (EH61.1)."
+    },
+    {
+      "id": "dx.cancer_suspected",
+      "display": "Malignancy suspected, primary not yet known",
+      "reason": "'Suspected'. 2D4Z / 2D44 would record a confirmed cancer of unknown primary and count it; a suspicion is not a diagnosis."
+    },
+    {
+      "id": "dx.cord_compression",
+      "display": "Spinal cord or cauda equina compression",
+      "reason": "Cord compression is 8B42 'Myelopathy' (WHO synonym 'spinal cord compression'); cauda equina syndrome is 8B40. The only code covering both is 8B4Z 'Spinal cord disorders excluding trauma, unspecified', too vague to be useful."
+    },
+    {
+      "id": "dx.haemolytic_anaemia",
+      "display": "Haemolytic anaemia",
+      "reason": "No 'haemolytic anaemia NOS': acquired (3A2Z) and hereditary (3A10.Z, where sickle cell sits) are separate blocks. 3A2Z would assert acquired."
+    },
+    {
+      "id": "dx.hiv_advanced",
+      "display": "Advanced HIV disease",
+      "reason": "ICD-11 codes HIV by WHO clinical stage and by TB/malaria co-infection (1C60, 1C61, 1C62.0-.3). Advanced HIV spans stages 3 and 4 (or CD4 < 200) with or without TB, so no one code is true. Search's top hit (5A00.0Y, via the acronym AHDS) is unrelated."
+    },
+    {
+      "id": "dx.lung_abscess_empyema",
+      "display": "Lung abscess or empyema",
+      "reason": "Two different WHO categories: lung abscess (CA43.2 / CA43.Z) and pyothorax (CA44). No parent covers both. Could be split into two terms."
+    },
+    {
+      "id": "dx.megaloblastic_anaemia",
+      "display": "Megaloblastic anaemia",
+      "reason": "No 'megaloblastic anaemia NOS' in ICD-11: B12 (3A01.Z) and folate (3A02.Z) are separate. Search's top hit 3A01.Y rejected."
+    },
+    {
+      "id": "dx.pancreatic_biliary_cancer",
+      "display": "Pancreatic or biliary cancer",
+      "reason": "Pancreas (2C10.Z) and the biliary tract (2C15 distal bile duct, 2C17 other or unspecified parts, among others) are separate categories. Could be split into two terms."
+    },
+    {
+      "id": "dx.suicidal_ideation",
+      "display": "Suicidal thoughts or self-harm",
+      "reason": "Suicidal ideation is a symptom code (MB26.A); a self-harm act is an external-cause code (PD3Z). No code covers both. Could be split."
+    },
+    {
+      "id": "dx.tumour_lysis_or_hypercalcaemia_malignancy",
+      "display": "Oncological emergency, suspected",
+      "reason": "Covers tumour lysis, hypercalcaemia of malignancy, SVC obstruction and cord compression, each coded separately. Search's top hit (BE1D, SVC obstruction by a foreign body) is wrong."
+    }
+  ]
+}

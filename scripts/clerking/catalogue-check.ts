@@ -200,6 +200,16 @@ const summaryRef = JSON.parse(readFileSync("data/clerking/summary-reference.v1.j
 const onset = summaryRef.reference_entries["REF-SI-ONSET"]?.value;
 if (!onset || !(onset.acute_lt_days < onset.chronic_gt_days))
   problems.push("REF-SI-ONSET missing or inverted");
+// The addendum stays as 0085 seeded it; its ICD-11 codes live in their own signed file (0086, ADR 0183).
+const addCodes = JSON.parse(readFileSync("data/emr/diagnosis-terms.v1.1-icd11.json", "utf8")) as {
+  classification: { release: string };
+  codes: { id: string }[];
+  held: { id: string }[];
+};
+const codedIds = [...addCodes.codes, ...addCodes.held].map((t) => t.id).sort();
+const addIds = addTerms.map((t) => t.id).sort();
+if (codedIds.join() !== addIds.join())
+  problems.push("ICD-11 codes file: coded + held is not exactly the v1.1 addendum");
 const dxProfiles = dx.profiles;
 const byCategory = dxProfiles.reduce<Record<string, number>>(
   (m, p) => ((m[p.category] = (m[p.category] ?? 0) + 1), m),
@@ -217,7 +227,7 @@ process.stdout.write(
     `evidence atoms ${dxProfiles.reduce((n, p) => n + p.suggest_for.length, 0)} for / ${dxProfiles.reduce((n, p) => n + p.suggest_against.length, 0)} against, ask targets ${dxProfiles.reduce((n, p) => n + p.ask.length, 0)}`,
     `differential rules ${dx.rules.length}, reference entries ${Object.keys(dx.data.reference_entries).length}, named scales ${Object.keys(dx.data.named_scales).length}`,
     `tests referenced ${dxCheck.testsExisting.size + dxCheck.testsProposed.size} (${dxCheck.testsExisting.size} on the menu, ${dxCheck.testsProposed.size} proposed)`,
-    `terms: REF-DX-TERMS ${baseTerms.length}, v1.1 addendum ${addTerms.length} (ICD-11 verified ${addTerms.filter((t) => (t as { icd11?: { status?: string } }).icd11?.status === "verified").length})`,
+    `terms: REF-DX-TERMS ${baseTerms.length}, v1.1 addendum ${addTerms.length} (ICD-11 verified ${addCodes.codes.length} on MMS ${addCodes.classification.release}, held uncoded ${addCodes.held.length})`,
   ].join("\n") + "\n",
 );
 
