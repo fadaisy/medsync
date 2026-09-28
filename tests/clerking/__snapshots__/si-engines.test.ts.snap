@@ -1,0 +1,14 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`the impression composer > fixture 1: leading, numbered differential with reasons, also, not yet explained 1`] = `
+"Hypothermia, cause not yet known (primary; working; acute). For: temperature 32.5 °C and cool or mottled, cool peripheries.
+Differential: 1. Sepsis (must not miss), likely [1 for, 0 against]. 2. Myxoedema coma (must not miss), possible. 3. Hypoglycaemia in a person with diabetes (must not miss), unlikely (glucose 5.8 mmol/L on arrival, no insulin taken) [0 for, 1 against].
+Also this visit: Diabetes, type not yet determined, working, on problem list.
+Not yet explained: cold intolerance (3 days), tiredness (3 days), loss of appetite (2 days), capillary refill delayed, time 3 seconds, BP 110/73 and SpO₂ 95 %."
+`;
+
+exports[`the summary composer > fixture 1, composed 1`] = `"A 76-year-old man with diabetes, with an acute 3-day illness: hypothermia with bradycardia. He reports cold intolerance for 3 days, getting worse, tiredness for 3 days and loss of appetite for 2 days. On examination he is alert, with cool or mottled, cool peripheries and capillary refill delayed, time 3 seconds. Temperature 32.5 °C ↓, BP 110/73 ↓, SpO₂ 95 % ↓. NEWS2 5. Allergies: cephalosporins, uncoded."`;
+
+exports[`the summary composer > fixtures 2 and 4, composed 1`] = `"A 58-year-old man, with an acute 2-hour illness. He reports chest pain for 2 hours. Red flags present: sweating and brought on by exertion. Pulse 104 ↑. Allergy status not recorded."`;
+
+exports[`the summary composer > fixtures 2 and 4, composed 2`] = `"A 45-year-old man. He reports yellow eyes or skin and fever. On examination, jaundice and tenderness, in the ruq. Temperature 38.6 °C ↑, pulse 118 ↑. Allergy status not recorded."`;

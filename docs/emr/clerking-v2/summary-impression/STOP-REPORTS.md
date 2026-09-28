@@ -138,3 +138,56 @@ See "disagreements" 1–2 above. NEWS2 comes from `scoreNews2` (`lib/triage/scor
 - `EMR_PGLITE=1 npx vitest run tests/emr-db/summary-impression.test.ts`: 2 expected failures (S-3, S-4).
 - Tap counts in the current UI (from the code paths): record a leading diagnosis = pick status (1) + search result (1) = 2 taps, but only as a flat list; three differentials = 6 taps with no likelihood possible; reviewing a summary is not possible (nothing to review).
 - Screenshots of the current steps 08 and 09 need the running app with production-like data; not available in the cloud session (see above).
+
+---
+
+## STOP 1: GATE A
+
+- **Signed** 28 Sep 2026 by the CSO (Usama Fadhul): every decision in `gate-a-proposal.md` §8 as recommended, the composer wording and the catalogue (272 profiles, 100 rules, 14 REF-DX entries, 10 named scales). Recorded in `data/clerking/dx-signoff.v1.json` in Phase 2.
+- **Build from the written specification:** Prototype 2, the test addendum and `catalogue-build/` were not received.
+- **ICD-11:** not verified (WHO hosts blocked); the 187 terms ship uncoded (D-SI-26).
+
+---
+
+## STOP 2: catalogue and engines
+
+**Built (pure, no I/O):**
+
+- `data/clerking/clerking-diagnosis-catalogue.v1.json` 1.0.1-draft: the pack's 1.0.0 plus the signed D-SI-30 amendment (areflexia on GBS, absent foot pulses on acute limb ischaemia and PAD, inter-arm difference on aortic dissection). `data/clerking/dx-signoff.v1.json` (all signed, none withheld) and `data/clerking/summary-reference.v1.json` (`REF-SI-ONSET`, D-SI-02).
+- `lib/clerking/impression/`: `catalogue` (Zod, indexes, the SI10 gate), `facts` (typed finding refs, recorded findings, restricted-class gating, `canSee`), `board`, `evidence`, `suggest`, `ask`, `compose`, `basis`, `check` (the cross-catalogue check), `load` (loader, term map, served payload).
+- `lib/clerking/summary/`: `compose` (one-liner, sentences with step tags, inclusion defaults, gaps) and `review` (hash, snapshot, diff).
+- `lib/clerking/exam/context.ts` `evalCond` extended, not duplicated: red flag with no answer (213 uses), item without attribute (26), vital `part` (39), `family_condition`, `medicine`, `social`, `news2_total`, `patient age_lt` (found by the atom coverage test: 1 use that never fired), grid `all_cells`, and REF-DX / REF-FLAG resolution. All 547 existing clerking tests still pass.
+- Draft schemas: `summary` and `impression` added to `ContentV2Keys` (they would otherwise be stripped at the trust boundary).
+- `/api/clerking/dx-catalogue` serves the catalogue and the term map, immutable by hash.
+- `npm run clerking:catalogue-check` now validates all three catalogues, the REF-DX-TERMS addendum and the test menu, enforces the restricted-fact rule, and runs in CI.
+
+**Numbers**
+
+| Measure                                                    | Result                                                                                                                                                         |
+| ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| New tests                                                  | 243 (`si-rules` 202, `si-engines` 37, `si-check` 4), all green; full suite 7,644 passed                                                                        |
+| Rule coverage                                              | 100 of 100 rules fire on every `any` branch and suggest their diagnoses; silent on an empty record and on every near miss                                      |
+| Atom coverage                                              | 1,910 of 1,910 evidence atoms can be made true and are false when unrecorded (age and sex excepted: always on the record)                                      |
+| Property tests                                             | pinning never violated (200 seeded move sequences); never two leading diagnoses; accepted marks ⊆ matrix cells; the summary never contains an unincluded vital |
+| Catalogue check                                            | 0 problems; 97 tests referenced (35 on the menu, 62 proposed); ICD-11 verified 0 of 187                                                                        |
+| Catalogue size                                             | 862 KB raw; served minified 116 KB gzipped                                                                                                                     |
+| Recompute (summary + unexplained + suggestions, fixture 1) | median 0.54 ms, p95 0.76 ms in Node (about 2–3 ms at 4× throttle; budget 16 ms)                                                                                |
+| Matrix, 12 diagnoses, all rows                             | median 0.28 ms, p95 0.50 ms (budget 50 ms)                                                                                                                     |
+
+**Fixture snapshots** (`tests/clerking/__snapshots__/si-engines.test.ts.snap`):
+
+- Fixture 1 summary: "A 76-year-old man with diabetes, with an acute 3-day illness: hypothermia with bradycardia. He reports cold intolerance for 3 days, getting worse, tiredness for 3 days and loss of appetite for 2 days. On examination he is alert, with cool or mottled, cool peripheries and capillary refill delayed, time 3 seconds. Temperature 32.5 °C ↓, BP 110/73 ↓, SpO₂ 95 % ↓. NEWS2 5. Allergies: cephalosporins, uncoded."
+- Fixture 1 impression: "Hypothermia, cause not yet known (primary; working; acute). For: temperature 32.5 °C and cool or mottled, cool peripheries. Differential: 1. Sepsis (must not miss), likely [1 for, 0 against]. 2. Myxoedema coma (must not miss), possible. 3. Hypoglycaemia in a person with diabetes (must not miss), unlikely (glucose 5.8 mmol/L on arrival, no insulin taken) [0 for, 1 against]. Also this visit: Diabetes, type not yet determined, working, on problem list. Not yet explained: …"
+- Fixture 1 suggestions (first eight): sepsis, myxoedema coma, hypoglycaemia (with and without diabetes), accidental hypothermia, adrenal insufficiency, opioid or sedative toxicity, Wernicke; hypothyroidism follows; "Hypothermia, cause not yet known" is offered for the leading slot only.
+- Fixture 2: ACS, aortic dissection, PE and pneumothorax suggested as must-not-miss; asks include "BP difference between arms", "Calves" and "Coughing blood".
+- Fixture 3: cryptococcal and TB meningitis suggested only to a viewer with access; the patient-facing summary drops HIV and antiretrovirals.
+- Fixture 4: cholangitis, severe malaria and liver abscess suggested.
+- Fixture 5: "Diagnosis deferred: awaiting the blood film."; an intern's Final reads "(primary; final, awaiting senior co-signature; acute)".
+
+**Differences from the gate-a-proposal wording (reported, not hidden):**
+
+1. **Hypoglycaemia "against: glucose 5.8"** (prompt fixture 1) is not produced: the signed catalogue has no glucose atom against hypoglycaemia (the review removed low-glucose atoms elsewhere). The catalogue wins on content; adding one is a catalogue change for the CSO.
+2. **Pulse 54** is in the NEWS2 zero band, so it enters the summary only when a profile on the board marks it (D-SI-25), as signed.
+3. **"Dry mucous membranes"** is not in the examination catalogue (no such finding or option); fixture 1 records the rest. An examination-catalogue gap for the next addendum.
+4. **Examination clauses** are the examination composer's own ("cool or mottled, cool peripheries", "capillary refill delayed, time 3 seconds"), as SI4 requires; the summary does not rewrite them.
+5. **Chest pain (fixture 2):** DDX-BP-RAISED (a vital-sign rule) fires before DDX-CHEST-PAIN (a complaint rule), so hypertension leads the chips; within the first eight chips all four chest-pain must-not-miss diagnoses still appear. This is the signed ordering (D-SI-12).

@@ -1,6 +1,6 @@
 # GATE A (Summary and Impression): proposal for the CSO
 
-**Status:** awaiting signatures. Nothing clinical runs until signed (SI10).
+**Status:** **signed** 28 Sep 2026 by the CSO, all decisions as recommended (§9). Migrations 0084 and 0085 stay GATED for the owner to apply.
 
 **Read with:**
 
@@ -230,6 +230,6 @@ As listed in `signoff-pack.md` §8, each with the catalogue's recommendation: ad
 
 ## 9. Signatures
 
-| Signed by  | Role | Date | Scope |
-| ---------- | ---- | ---- | ----- |
-| _awaiting_ | CSO  |      |       |
+| Signed by    | Role | Date        | Scope                                                                                                                                                                                                                                                                                                                                               |
+| ------------ | ---- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Usama Fadhul | CSO  | 28 Sep 2026 | Every decision in §8 as recommended (D-SI-01 to 30, D-DX-01 to 10, R-1 to R-6); the composer wording (§5); MS-EMR-DX-CAT-001 1.0.0: 272 profiles, 100 rules, 14 REF-DX entries, 10 named scales; the 187 terms uncoded (D-SI-26). Build from the written specification (Prototype 2 not received). Signed in the cloud session, recorded by Claude. |
