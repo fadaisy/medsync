@@ -91,7 +91,7 @@ export function FeedbackForm() {
       <div className="flex flex-col gap-8">
         <FormHeader kicker="Tester feedback" title={C.title} lead={C.lead} />
         <section className="border-border bg-card shadow-card rounded-lg border p-5 sm:p-6">
-          <h2 className="text-heading-s text-foreground mb-5 font-medium">{C.whoTitle}</h2>
+          <h2 className="text-heading-s text-foreground mb-5">{C.whoTitle}</h2>
           <SegmentedControl
             name="respondent"
             ariaLabel={C.whoTitle}
@@ -109,7 +109,7 @@ export function FeedbackForm() {
   return (
     <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-1.5">
-        <h1 className="font-display text-foreground text-heading-l font-medium">{C.title}</h1>
+        <h1 className="font-display text-display-s text-foreground">{C.title}</h1>
         <p className="text-body-s text-muted-foreground">
           {C.answeringAs} <span className="text-foreground font-medium">{who.name}</span>.{" "}
           <button
@@ -183,7 +183,7 @@ export function FeedbackForm() {
               </p>
               <StatusLabel status={status} />
             </div>
-            <h2 id="fb-title" className="text-heading-s text-foreground font-medium">
+            <h2 id="fb-title" className="text-heading-s text-foreground">
               {section.title}
             </h2>
             <p className="text-body-s text-muted-foreground">
@@ -304,8 +304,7 @@ function Question({
           className={cn(
             "border-input bg-card text-foreground text-body-s w-full resize-y rounded-sm border px-2.5 py-2 outline-none",
             "ease-expo-out transition-all duration-150 placeholder:text-gray-400",
-            "focus-visible:border-brand-500 focus-visible:shadow-[0_0_0_2px_rgba(20,184,166,0.15)]",
-            "dark:focus-visible:border-brand-400",
+            "focus-visible:border-ring focus-visible:shadow-[0_0_0_3px_var(--teal-tint),0_0_0_1px_var(--ring)]",
           )}
         />
       </div>

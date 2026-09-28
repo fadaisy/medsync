@@ -51,9 +51,7 @@ export default async function FeedbackAdminPage() {
     <div className="flex flex-col">
       <header className="border-border border-b px-4 py-6 sm:px-8 sm:py-8">
         <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-1">
-          <h1 className="font-display text-foreground sm:text-heading-l text-[24px] leading-tight font-medium tracking-[-0.018em]">
-            Tester feedback
-          </h1>
+          <h1 className="font-display text-display-s text-foreground">Tester feedback</h1>
           <p className="text-muted-foreground text-[13.5px]">
             From the public form at{" "}
             <Link
@@ -112,7 +110,7 @@ export default async function FeedbackAdminPage() {
                   aria-labelledby={`fa-${s.id}`}
                   className="border-border bg-card shadow-card rounded-lg border p-5 sm:p-6"
                 >
-                  <h2 id={`fa-${s.id}`} className="text-heading-s text-foreground mb-4 font-medium">
+                  <h2 id={`fa-${s.id}`} className="text-heading-s text-foreground mb-4">
                     {s.title}
                   </h2>
 

@@ -18,7 +18,7 @@ export default function FeedbackPage() {
         <div className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between px-4 sm:px-8">
           <Link
             href="/"
-            className="font-display text-foreground text-[16px] tracking-tight transition-opacity hover:opacity-80"
+            className="font-display text-foreground text-heading-s font-semibold transition-opacity hover:opacity-80"
           >
             MedSync
           </Link>
