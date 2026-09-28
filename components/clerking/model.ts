@@ -16,6 +16,7 @@ import { durationText, emptyHistory } from "@/lib/clerking/answers";
 import { appliesTo, rosSystemsFor } from "@/lib/clerking/catalogue";
 import { familyConditions, v2CommitLines } from "@/lib/clerking/commit";
 import { compose, lc, list } from "@/lib/clerking/compose";
+import { conversionFlags } from "@/lib/clerking/convert";
 import { evaluateFlags, toBadges } from "@/lib/clerking/flags";
 import { linkedAnswers } from "@/lib/clerking/linkage";
 import { doneCount, SECTIONS, sectionStatuses } from "@/lib/clerking/status";
@@ -197,7 +198,9 @@ export function deriveDesk(
     },
     news2,
     signoff: k.signoff,
-  }).concat(exam?.flags ?? []);
+  })
+    .concat(conversionFlags(cat, k.conversionFlags ?? {}, history))
+    .concat(exam?.flags ?? []);
   const allergiesConfirmed = k.allergies.touchedThisVisit || !!history.past.allergiesConfirmed;
   const blocks = compose({
     cat,

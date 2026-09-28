@@ -63,6 +63,73 @@ export interface History {
     travelDetail?: string;
     diet?: string;
   };
+  /** Set once, by "Continue in the new format" (lib/clerking/convert). */
+  converted?: Conversion;
+}
+
+/* ─── A v1 draft continued in the new format (legacy-conversion.v1.json) ─── */
+
+/** What became of one v1 answer: the review list shows every line, once. */
+export type ConversionResult =
+  | "converted"
+  | "choose"
+  | "text"
+  | "not_asked"
+  | "left_out"
+  | "wrong_sex"
+  | "proposed"
+  | "contradiction";
+
+export interface ConversionLine {
+  token: string;
+  /** The v1 label as the draft held it. */
+  label: string;
+  answer: YesNo;
+  from: "complaint" | "ros";
+  result: ConversionResult;
+  /** The symptom ids it became. */
+  to?: string[];
+  /** Needs the clinician's review (risk), and the conversion flag it raises until then. */
+  review?: boolean;
+  flag?: string;
+  /** Property ids left unanswered that the review list prompts for. */
+  ask?: string[];
+}
+
+/** A conversion the clinician finishes: counts as not asked until then (decision #6). */
+export interface PendingChoice {
+  id: string;
+  token: string;
+  label: string;
+  answer: YesNo;
+  from: "complaint" | "ros";
+  /** symptom: pick targets; property: pick options of `symptom.property`; activity: social
+   *  history activity; pregnancy / lnmp: recorded in the pregnancy record, then marked done. */
+  kind: "symptom" | "property" | "activity" | "pregnancy" | "lnmp";
+  options: string[];
+  symptom?: string;
+  property?: string;
+  preset?: Record<string, PropValue>;
+  /** "Keep as text" is offered. */
+  text?: boolean;
+  /** The text complaint that holds the place of a complaint until the pick. */
+  complaintKey?: string;
+  /** The option proposed for confirmation (never set without it). */
+  propose?: string;
+  /** A conversion flag raised while this is open. */
+  flag?: string;
+  restricted?: boolean;
+}
+
+export interface Conversion {
+  /** The table and version used ("MS-EMR-CLERK-LEGACY-001 1.0.0"). */
+  table: string;
+  /** The clinician has been through the review list. */
+  reviewed?: boolean;
+  lines: ConversionLine[];
+  pending: PendingChoice[];
+  /** Carried as systems-review text from the previous format. */
+  text: { label: string; answer: YesNo; restricted?: boolean }[];
 }
 
 export interface HistoryHeader {

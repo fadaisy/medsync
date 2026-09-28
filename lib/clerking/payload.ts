@@ -81,6 +81,60 @@ export const HistorySchema = z.object({
     travelDetail: text(500).optional(),
     diet: id.optional(),
   }),
+  converted: z
+    .object({
+      table: text(80),
+      reviewed: z.boolean().optional(),
+      lines: z
+        .array(
+          z.object({
+            token: id,
+            label: text(200),
+            answer: yn,
+            from: z.enum(["complaint", "ros"]),
+            result: z.enum([
+              "converted",
+              "choose",
+              "text",
+              "not_asked",
+              "left_out",
+              "wrong_sex",
+              "proposed",
+              "contradiction",
+            ]),
+            to: z.array(id).max(10).optional(),
+            review: z.boolean().optional(),
+            flag: id.optional(),
+            ask: z.array(id).max(10).optional(),
+          }),
+        )
+        .max(300),
+      pending: z
+        .array(
+          z.object({
+            id: text(20),
+            token: id,
+            label: text(200),
+            answer: yn,
+            from: z.enum(["complaint", "ros"]),
+            kind: z.enum(["symptom", "property", "activity", "pregnancy", "lnmp"]),
+            options: z.array(id).max(10),
+            symptom: id.optional(),
+            property: id.optional(),
+            preset: z.record(id, propValue).optional(),
+            text: z.boolean().optional(),
+            complaintKey: text(40).optional(),
+            propose: id.optional(),
+            flag: id.optional(),
+            restricted: z.boolean().optional(),
+          }),
+        )
+        .max(100),
+      text: z
+        .array(z.object({ label: text(200), answer: yn, restricted: z.boolean().optional() }))
+        .max(300),
+    })
+    .optional(),
 });
 
 const BadgeSnapshot = z.object({

@@ -1,5 +1,6 @@
 "use client";
 
+import type { ConversionHandlers } from "./conversion-dialog";
 import type { ExamPlace } from "./exam/exam-step";
 import type { SaveSet } from "./exam/model";
 import type { HistoryBodyProps } from "./history-sections";
@@ -34,6 +35,7 @@ import { ruleTarget } from "@/lib/clerking/exam/flags";
 import { emptyExam } from "@/lib/clerking/exam/payload";
 import { SECTIONS } from "@/lib/clerking/status";
 import { cn } from "@/lib/utils";
+import { ConversionDialog, ConversionStrip } from "./conversion-dialog";
 import { ExamStep } from "./exam/exam-step";
 import { examOf, previousFormat, VITALS, withExam } from "./exam/model";
 import { FamilyBody, SocialBody } from "./family-social";
@@ -89,7 +91,7 @@ export interface ClerkingDeskProps {
   save: DeskViewProps["save"];
   clockWarning?: boolean;
   announce?: DeskViewProps["announce"];
-  on: DeskViewHandlers & PastHistoryHandlers;
+  on: DeskViewHandlers & PastHistoryHandlers & ConversionHandlers;
   loaders: DeskViewProps["loaders"];
   busy?: string | null;
   signing?: boolean;
@@ -458,6 +460,10 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
   };
 
   const history = historyOf(view);
+  // A draft continued from the previous format: the review list opens the first time (#12).
+  const [convOpen, setConvOpen] = useState(
+    () => editable && !!history.converted && !history.converted.reviewed,
+  );
   const onHistory: HistoryBodyProps["onHistory"] = (fn) =>
     on.onContent?.(withHistory(content, fn(historyOf(content)), k.catalogueVersion));
   const onHeader = (h: HistoryHeader) =>
@@ -801,6 +807,23 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
             ) : null}
             {!p.encounter.open ? (
               <p className="text-body-s text-muted-foreground">This visit is closed.</p>
+            ) : null}
+            {cat &&
+            history.converted &&
+            (history.converted.pending.length || !history.converted.reviewed) ? (
+              <>
+                <ConversionStrip conv={history.converted} onOpen={() => setConvOpen(true)} />
+                <ConversionDialog
+                  cat={cat}
+                  history={history}
+                  editable={editable}
+                  act={act}
+                  open={convOpen}
+                  onOpenChange={setConvOpen}
+                  onHistory={onHistory}
+                  on={on}
+                />
+              </>
             ) : null}
             <section
               id={`desk-${cur.id}`}

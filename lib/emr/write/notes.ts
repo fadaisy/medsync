@@ -28,7 +28,7 @@ import { examCommitLines } from "@/lib/clerking/exam/commit";
 import { NO_VITALS } from "@/lib/clerking/exam/context";
 import { EXAM_CATALOGUE } from "@/lib/clerking/exam/load";
 import { linkedAnswers } from "@/lib/clerking/linkage";
-import { CLERKING_CATALOGUE, CLERKING_TOKEN_MAP } from "@/lib/clerking/load";
+import { CLERKING_CATALOGUE, CLERKING_LEGACY, CLERKING_TOKEN_MAP } from "@/lib/clerking/load";
 import { isOpen } from "@/lib/emr/encounter";
 import {
   applyNoteEvent,
@@ -234,7 +234,8 @@ export async function saveNoteDraft(
 
 /**
  * "Continue in the new format" (clerking v2, gate-a §4): the author's own unsigned v1 clerking draft
- * becomes a v2 draft, content mapped by lib/clerking/convert (only what maps). The one exception
+ * becomes a v2 draft, converted by lib/clerking/convert from the signed table (legacy-conversion.v1.json;
+ * sex-specific answers need the patient's sex, D14). The one exception
  * to "a draft keeps its template", and only in this direction; audited like every draft change.
  */
 export async function convertDraftToV2(
@@ -250,7 +251,12 @@ export async function convertDraftToV2(
   if (note.revision !== input.revision)
     throw new EmrWriteError("conflict", "This note was changed elsewhere. Reload first.");
   const v2 = getTemplate("tpl.clerking.adult_v2");
-  const content = convertV1Draft(CLERKING_CATALOGUE, CLERKING_TOKEN_MAP, readContent(note));
+  const [profile] = await ctx.tx
+    .select({ sex: patientProfiles.sex })
+    .from(patientProfiles)
+    .where(eq(patientProfiles.id, note.patientUserId));
+  const sex = profile?.sex === "female" || profile?.sex === "male" ? profile.sex : null;
+  const content = convertV1Draft(CLERKING_CATALOGUE, CLERKING_LEGACY, readContent(note), sex);
   const [u] = await ctx.tx
     .update(clinicalNotes)
     .set({

@@ -263,10 +263,35 @@ export function compose(i: ComposeInput): Block[] {
     else if (own.length && !sys.items.some((s) => linked.has(s.id)))
       notReviewed.push(lc(sys.label));
   }
+  // Answers outside this patient's systems list: only a converted v1 answer (D9).
+  const otherYes: string[] = [];
+  const otherNo: string[] = [];
+  for (const [id, a] of Object.entries(h.ros)) {
+    const s = cat.symptom(id);
+    if (!s || written.has(id) || linked.has(id) || hide(s.sensitivity)) continue;
+    if (s.applies_to_sex && patient.sex && s.applies_to_sex !== patient.sex) continue;
+    const d = h.rosDetail[id];
+    if (a === "yes")
+      otherYes.push(d && Object.keys(d.props).length ? symptomClause(cat, s, d) : lc(s.label));
+    else otherNo.push(lc(s.label));
+  }
+  const conv = h.converted;
+  const carried = (conv?.text ?? [])
+    .filter((t) => !(i.audience === "patient" && t.restricted))
+    .map((t) => `${t.label}${t.answer === "yes" ? "" : " (absent)"}`);
+  const open = (conv?.pending ?? [])
+    .filter((p) => p.from === "ros" && p.answer === "yes")
+    .filter((p) => p.kind === "symptom" || p.kind === "property" || p.kind === "activity")
+    .filter((p) => !(i.audience === "patient" && p.restricted))
+    .map((p) => p.label);
   const rt = [...pos];
+  if (otherYes.length) rt.push(`Also: ${otherYes.join("; ")}.`);
   if (allNo.length) rt.push(`No ${list(allNo, "or")} symptoms.`);
   rt.push(...partial);
+  if (otherNo.length) rt.push(`No ${list(otherNo, "or")}.`);
   if (notReviewed.length) rt.push(`Not reviewed: ${notReviewed.join("; ")}.`);
+  if (carried.length) rt.push(`From the previous format: ${carried.join("; ")}.`);
+  if (open.length) rt.push(`From the previous format, not yet specified: ${open.join("; ")}.`);
   blocks.push({ key: "systems", head: "Systems review", text: rt.join(" ") });
 
   // Past history, medicines, allergies

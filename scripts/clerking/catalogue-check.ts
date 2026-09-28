@@ -8,6 +8,7 @@ import { readFileSync } from "node:fs";
 
 import { parseCatalogue } from "../../lib/clerking/catalogue";
 import { parseExamCatalogue } from "../../lib/clerking/exam/catalogue";
+import { legacyTableProblems, parseLegacyTable } from "../../lib/clerking/legacy";
 
 const path = "data/clerking/clerking-history-catalogue.v1.json";
 const bytes = readFileSync(path);
@@ -129,6 +130,30 @@ process.stdout.write(
     `flag rules ${ed.flag_rules.length} (${ed.flag_rules.filter((r) => r.level === "urgent").length} urgent, ${ed.flag_rules.filter((r) => r.restricted).length} restricted)`,
     `suggestion rules ${ed.suggestion_rules.rules.length}, shared facts ${ed.shared_facts.length}, mirrors ${exam.mirrors.length}`,
     `not-examined reasons ${ed.not_examined.reasons.length}, gates ${Object.keys(ed.gates).length}`,
+  ].join("\n") + "\n",
+);
+
+/* ─── The legacy conversion table (MS-EMR-CLERK-LEGACY-001) ─────── */
+
+const legacyBytes = readFileSync("data/clerking/legacy-conversion.v1.json");
+const legacy = parseLegacyTable(JSON.parse(legacyBytes.toString("utf8")));
+const legacySignoff = JSON.parse(
+  readFileSync("data/clerking/legacy-conversion-signoff.v1.json", "utf8"),
+) as { tableSha256: string };
+const legacyHash = createHash("sha256").update(legacyBytes).digest("hex");
+if (legacyHash !== legacySignoff.tableSha256)
+  problems.push(`legacy conversion table changed since sign-off (sha256 ${legacyHash})`);
+problems.push(...legacyTableProblems(legacy, cat).map((p) => `legacy ${p}`));
+const outcomes = [...Object.values(legacy.codes), ...Object.values(legacy.concepts)].reduce<
+  Record<string, number>
+>((m, r) => ((m[r.outcome] = (m[r.outcome] ?? 0) + 1), m), {});
+process.stdout.write(
+  [
+    `table ${legacy.ref} (sha256 ${legacyHash.slice(0, 12)}…)`,
+    `codes ${Object.keys(legacy.codes).length}, concepts ${Object.keys(legacy.concepts).length}`,
+    `by outcome ${Object.entries(outcomes)
+      .map(([k, v]) => `${k} ${v}`)
+      .join(", ")}`,
   ].join("\n") + "\n",
 );
 

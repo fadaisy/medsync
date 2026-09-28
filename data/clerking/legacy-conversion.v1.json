@@ -1,0 +1,2581 @@
+{
+  "id": "MS-EMR-CLERK-LEGACY-001",
+  "version": "1.0.0",
+  "catalogue": "MS-EMR-CLERK-CAT-001",
+  "catalogueVersion": "1.0.0-draft",
+  "proposal": "docs/emr/clerking-v2/legacy-conversion-proposal.md",
+  "note": "v1 clerking answers → payload v2 (\"Continue in the new format\"). Keyed by the v1 finding token: a symptom_catalog code (the 89 of 0042/0045, the 17 of 0076) or a CFC finding concept id. yes = complaint or ROS present; no = ROS absent; null = cannot occur (complaint-only). A token with no row is carried as text. 'Not asked' carries across as not asked.",
+  "flags": {
+    "CONV-RISK": {
+      "level": "urgent",
+      "badge": "Risk from previous format: assess now",
+      "reason": "Risk was recorded as present in the previous format, with no timing, plan or action recorded",
+      "restricted": true
+    },
+    "CONV-PR-BLEED": {
+      "level": "caution",
+      "badge": "Rectal bleeding: needs detail",
+      "reason": "Rectal bleeding or melaena was recorded in the previous format without saying which",
+      "restricted": false
+    }
+  },
+  "codes": {
+    "fever": {
+      "label": "Fever",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.fever"
+      },
+      "no": {
+        "set": [
+          "sym.fever"
+        ]
+      }
+    },
+    "night_sweats": {
+      "label": "Night sweats",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.night_sweats"
+      },
+      "no": {
+        "set": [
+          "sym.night_sweats"
+        ]
+      }
+    },
+    "weight_change": {
+      "label": "Weight change",
+      "outcome": "needs_choice",
+      "yes": {
+        "choose": [
+          "sym.weight_loss",
+          "sym.weight_gain"
+        ]
+      },
+      "no": {
+        "set": [
+          "sym.weight_loss",
+          "sym.weight_gain"
+        ]
+      }
+    },
+    "appetite_change": {
+      "label": "Appetite change",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.loss_of_appetite"
+      },
+      "no": {
+        "set": [
+          "sym.loss_of_appetite"
+        ]
+      }
+    },
+    "fatigue_malaise": {
+      "label": "Fatigue/malaise",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.fatigue"
+      },
+      "no": {
+        "set": [
+          "sym.fatigue"
+        ]
+      }
+    },
+    "sleep_disturbance": {
+      "label": "Sleep disturbance",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.poor_sleep"
+      },
+      "no": {
+        "set": [
+          "sym.poor_sleep"
+        ]
+      }
+    },
+    "lumps_swellings": {
+      "label": "Lumps/swellings",
+      "outcome": "needs_choice",
+      "yes": {
+        "choose": [
+          "sym.lumps_lymph",
+          "sym.neck_swelling",
+          "sym.breast_lump",
+          "sym.skin_lesion"
+        ]
+      },
+      "no": {
+        "set": [
+          "sym.lumps_lymph",
+          "sym.neck_swelling",
+          "sym.breast_lump"
+        ]
+      }
+    },
+    "itch_generalised": {
+      "label": "Itch generalised",
+      "outcome": "convert_with_preset",
+      "yes": {
+        "set": "sym.itch",
+        "preset": {
+          "where": "generalised"
+        }
+      },
+      "no": {
+        "notAsked": true
+      }
+    },
+    "dyspnoea": {
+      "label": "Breathlessness",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.breathlessness"
+      },
+      "no": null
+    },
+    "oedema": {
+      "label": "Leg swelling",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.leg_swelling"
+      },
+      "no": null
+    },
+    "weight_loss": {
+      "label": "Weight loss",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.weight_loss"
+      },
+      "no": null
+    },
+    "dizziness": {
+      "label": "Dizziness",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.dizziness"
+      },
+      "no": null
+    },
+    "vomiting": {
+      "label": "Vomiting",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.nausea_vomiting"
+      },
+      "no": null
+    },
+    "diarrhoea": {
+      "label": "Diarrhoea",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.diarrhoea"
+      },
+      "no": null
+    },
+    "fatigue": {
+      "label": "Fatigue",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.fatigue"
+      },
+      "no": null
+    },
+    "syncope": {
+      "label": "Blackout / fainting",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.fainting"
+      },
+      "no": null
+    },
+    "chest_pain": {
+      "label": "Chest pain",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.chest_pain"
+      },
+      "no": {
+        "set": [
+          "sym.chest_pain"
+        ]
+      }
+    },
+    "exertional_dyspnoea": {
+      "label": "Exertional dyspnoea",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.breathless_exertion"
+      },
+      "no": {
+        "set": [
+          "sym.breathless_exertion"
+        ]
+      }
+    },
+    "orthopnoea": {
+      "label": "Orthopnoea",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.orthopnoea"
+      },
+      "no": {
+        "set": [
+          "sym.orthopnoea"
+        ]
+      }
+    },
+    "paroxysmal_nocturnal_dyspnoea": {
+      "label": "Paroxysmal nocturnal dyspnoea",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.pnd"
+      },
+      "no": {
+        "set": [
+          "sym.pnd"
+        ]
+      }
+    },
+    "palpitations": {
+      "label": "Palpitations",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.palpitations"
+      },
+      "no": {
+        "set": [
+          "sym.palpitations"
+        ]
+      }
+    },
+    "ankle_leg_swelling": {
+      "label": "Ankle/leg swelling",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.leg_swelling"
+      },
+      "no": {
+        "set": [
+          "sym.leg_swelling"
+        ]
+      }
+    },
+    "intermittent_claudication": {
+      "label": "Intermittent claudication",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.claudication"
+      },
+      "no": {
+        "set": [
+          "sym.claudication"
+        ]
+      }
+    },
+    "syncope_presyncope": {
+      "label": "Syncope/presyncope",
+      "outcome": "needs_choice",
+      "yes": {
+        "choose": [
+          "sym.fainting",
+          "sym.dizziness"
+        ]
+      },
+      "no": {
+        "set": [
+          "sym.fainting"
+        ]
+      }
+    },
+    "cough": {
+      "label": "Cough",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.cough"
+      },
+      "no": {
+        "set": [
+          "sym.cough"
+        ]
+      }
+    },
+    "sputum": {
+      "label": "Sputum",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.sputum"
+      },
+      "no": {
+        "set": [
+          "sym.sputum"
+        ]
+      }
+    },
+    "haemoptysis": {
+      "label": "Coughing up blood",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.coughing_blood"
+      },
+      "no": {
+        "set": [
+          "sym.coughing_blood"
+        ]
+      }
+    },
+    "dyspnoea_respiratory": {
+      "label": "Dyspnoea (respiratory)",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.breathlessness"
+      },
+      "no": {
+        "set": [
+          "sym.breathlessness"
+        ]
+      }
+    },
+    "wheeze": {
+      "label": "Wheeze",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.wheeze"
+      },
+      "no": {
+        "set": [
+          "sym.wheeze"
+        ]
+      }
+    },
+    "pleuritic_chest_pain": {
+      "label": "Pleuritic chest pain",
+      "outcome": "convert_with_preset",
+      "yes": {
+        "set": "sym.chest_pain",
+        "preset": {
+          "aggravation": [
+            "breathing_in"
+          ]
+        }
+      },
+      "no": {
+        "notAsked": true
+      }
+    },
+    "dysphagia": {
+      "label": "Dysphagia",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.difficulty_swallowing"
+      },
+      "no": {
+        "set": [
+          "sym.difficulty_swallowing"
+        ]
+      }
+    },
+    "nausea_vomiting": {
+      "label": "Nausea/vomiting",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.nausea_vomiting"
+      },
+      "no": {
+        "set": [
+          "sym.nausea_vomiting"
+        ]
+      }
+    },
+    "haematemesis": {
+      "label": "Haematemesis",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.vomiting_blood"
+      },
+      "no": {
+        "set": [
+          "sym.vomiting_blood"
+        ]
+      }
+    },
+    "heartburn_indigestion": {
+      "label": "Heartburn/indigestion",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.heartburn"
+      },
+      "no": {
+        "set": [
+          "sym.heartburn"
+        ]
+      }
+    },
+    "abdominal_pain": {
+      "label": "Abdominal pain",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.abdominal_pain"
+      },
+      "no": {
+        "set": [
+          "sym.abdominal_pain"
+        ]
+      }
+    },
+    "abdominal_distension": {
+      "label": "Abdominal distension/bloating",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.abdominal_swelling"
+      },
+      "no": {
+        "set": [
+          "sym.abdominal_swelling"
+        ]
+      }
+    },
+    "change_bowel_habit": {
+      "label": "Change in bowel habit",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.bowel_change"
+      },
+      "no": {
+        "set": [
+          "sym.bowel_change"
+        ]
+      }
+    },
+    "rectal_bleeding": {
+      "label": "Rectal bleeding/melaena",
+      "outcome": "needs_choice",
+      "yes": {
+        "choose": [
+          "sym.rectal_bleeding",
+          "sym.black_stools"
+        ],
+        "flag": "CONV-PR-BLEED"
+      },
+      "no": {
+        "set": [
+          "sym.rectal_bleeding",
+          "sym.black_stools"
+        ]
+      }
+    },
+    "jaundice": {
+      "label": "Yellow eyes / skin",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.jaundice"
+      },
+      "no": {
+        "set": [
+          "sym.jaundice"
+        ]
+      }
+    },
+    "dysuria": {
+      "label": "Dysuria",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.dysuria"
+      },
+      "no": {
+        "set": [
+          "sym.dysuria"
+        ]
+      }
+    },
+    "urinary_frequency": {
+      "label": "Urinary frequency",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.frequency"
+      },
+      "no": {
+        "set": [
+          "sym.frequency"
+        ]
+      }
+    },
+    "nocturia": {
+      "label": "Nocturia",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.nocturia"
+      },
+      "no": {
+        "set": [
+          "sym.nocturia"
+        ]
+      }
+    },
+    "urgency": {
+      "label": "Urgency",
+      "outcome": "needs_choice",
+      "yes": {
+        "choose": [
+          "sym.frequency",
+          "sym.nocturia",
+          "sym.voiding_symptoms",
+          "sym.incontinence"
+        ],
+        "preset": {
+          "storage": [
+            "urgency"
+          ]
+        },
+        "text": true
+      },
+      "no": {
+        "omit": true
+      }
+    },
+    "voiding_symptoms": {
+      "label": "Voiding symptoms",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.voiding_symptoms"
+      },
+      "no": {
+        "set": [
+          "sym.voiding_symptoms"
+        ]
+      }
+    },
+    "haematuria": {
+      "label": "Haematuria",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.haematuria"
+      },
+      "no": {
+        "set": [
+          "sym.haematuria"
+        ]
+      }
+    },
+    "incontinence": {
+      "label": "Incontinence",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.incontinence"
+      },
+      "no": {
+        "set": [
+          "sym.incontinence"
+        ]
+      }
+    },
+    "urethral_vaginal_discharge": {
+      "label": "Urethral/vaginal discharge",
+      "outcome": "split_by_sex",
+      "yes": {
+        "bySex": {
+          "male": "sym.urethral_discharge",
+          "female": "sym.vaginal_discharge"
+        }
+      },
+      "no": {
+        "bySex": {
+          "male": "sym.urethral_discharge",
+          "female": "sym.vaginal_discharge"
+        }
+      }
+    },
+    "lmp": {
+      "label": "Last menstrual period",
+      "outcome": "route",
+      "yes": {
+        "route": "lnmp"
+      },
+      "no": {
+        "omit": true
+      }
+    },
+    "menstrual_cycle": {
+      "label": "Menstrual cycle",
+      "outcome": "needs_choice",
+      "yes": {
+        "property": {
+          "symptom": "sym.periods_change",
+          "property": "change"
+        }
+      },
+      "no": {
+        "omit": true
+      }
+    },
+    "menstrual_flow": {
+      "label": "Menstrual flow",
+      "outcome": "needs_choice",
+      "yes": {
+        "property": {
+          "symptom": "sym.periods_change",
+          "property": "change"
+        }
+      },
+      "no": {
+        "omit": true
+      }
+    },
+    "dysmenorrhoea": {
+      "label": "Dysmenorrhoea",
+      "outcome": "convert_with_preset",
+      "yes": {
+        "set": "sym.periods_change",
+        "preset": {
+          "change": [
+            "painful"
+          ]
+        }
+      },
+      "no": {
+        "notAsked": true
+      }
+    },
+    "intermenstrual_bleeding": {
+      "label": "Intermenstrual bleeding",
+      "outcome": "convert_with_preset",
+      "yes": {
+        "set": "sym.vaginal_bleeding",
+        "preset": {
+          "type": "between_periods"
+        }
+      },
+      "no": {
+        "notAsked": true
+      }
+    },
+    "postcoital_bleeding": {
+      "label": "Postcoital bleeding",
+      "outcome": "convert_with_preset",
+      "yes": {
+        "set": "sym.vaginal_bleeding",
+        "preset": {
+          "type": "after_sex"
+        }
+      },
+      "no": {
+        "notAsked": true
+      }
+    },
+    "postmenopausal_bleeding": {
+      "label": "Postmenopausal bleeding",
+      "outcome": "convert_with_preset",
+      "yes": {
+        "set": "sym.vaginal_bleeding",
+        "preset": {
+          "type": "after_menopause"
+        }
+      },
+      "no": {
+        "notAsked": true
+      }
+    },
+    "pregnancy_status": {
+      "label": "Pregnancy status",
+      "outcome": "route",
+      "yes": {
+        "route": "pregnancy",
+        "propose": "pregnant"
+      },
+      "no": {
+        "route": "pregnancy",
+        "propose": "not_pregnant"
+      }
+    },
+    "headache": {
+      "label": "Headache",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.headache"
+      },
+      "no": {
+        "set": [
+          "sym.headache"
+        ]
+      }
+    },
+    "seizures_fits": {
+      "label": "Seizures/fits",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.fits"
+      },
+      "no": {
+        "set": [
+          "sym.fits"
+        ]
+      }
+    },
+    "dizziness_vertigo": {
+      "label": "Dizziness/vertigo",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.dizziness"
+      },
+      "no": {
+        "set": [
+          "sym.dizziness"
+        ]
+      }
+    },
+    "weakness": {
+      "label": "Weakness",
+      "outcome": "needs_choice",
+      "yes": {
+        "choose": [
+          "sym.fatigue",
+          "sym.muscle_weakness",
+          "sym.focal_weakness"
+        ]
+      },
+      "no": {
+        "set": [
+          "sym.muscle_weakness",
+          "sym.focal_weakness"
+        ]
+      }
+    },
+    "numbness_paraesthesia": {
+      "label": "Numbness/paraesthesia",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.numbness"
+      },
+      "no": {
+        "set": [
+          "sym.numbness"
+        ]
+      }
+    },
+    "tremor": {
+      "label": "Tremor",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.tremor"
+      },
+      "no": {
+        "set": [
+          "sym.tremor"
+        ]
+      }
+    },
+    "visual_disturbance": {
+      "label": "Visual disturbance",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.blurred_vision"
+      },
+      "no": {
+        "set": [
+          "sym.blurred_vision"
+        ]
+      }
+    },
+    "speech_swallowing_disturbance": {
+      "label": "Speech/swallowing disturbance",
+      "outcome": "needs_choice",
+      "yes": {
+        "choose": [
+          "sym.speech_change",
+          "sym.difficulty_swallowing"
+        ]
+      },
+      "no": {
+        "set": [
+          "sym.speech_change",
+          "sym.difficulty_swallowing"
+        ]
+      }
+    },
+    "memory_cognitive_change": {
+      "label": "Memory/cognitive change",
+      "outcome": "needs_choice",
+      "yes": {
+        "choose": [
+          "sym.memory_loss",
+          "sym.confusion"
+        ]
+      },
+      "no": {
+        "set": [
+          "sym.memory_loss",
+          "sym.confusion"
+        ]
+      }
+    },
+    "gait_disturbance": {
+      "label": "Gait disturbance",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.falls"
+      },
+      "no": {
+        "notAsked": true
+      }
+    },
+    "joint_pain": {
+      "label": "Joint pain",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.joint_pain"
+      },
+      "no": {
+        "set": [
+          "sym.joint_pain"
+        ]
+      }
+    },
+    "joint_swelling": {
+      "label": "Joint swelling",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.joint_swelling"
+      },
+      "no": {
+        "set": [
+          "sym.joint_swelling"
+        ]
+      }
+    },
+    "back_pain": {
+      "label": "Back pain",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.back_pain"
+      },
+      "no": {
+        "set": [
+          "sym.back_pain"
+        ]
+      }
+    },
+    "muscle_pain_weakness": {
+      "label": "Muscle pain/weakness",
+      "outcome": "needs_choice",
+      "yes": {
+        "choose": [
+          "sym.muscle_pain",
+          "sym.muscle_weakness"
+        ]
+      },
+      "no": {
+        "set": [
+          "sym.muscle_pain",
+          "sym.muscle_weakness"
+        ]
+      }
+    },
+    "functional_limitation": {
+      "label": "Functional limitation",
+      "outcome": "needs_choice",
+      "yes": {
+        "activity": [
+          "limited",
+          "needs_help",
+          "bedbound"
+        ]
+      },
+      "no": {
+        "activity": [
+          "fully_active"
+        ]
+      }
+    },
+    "heat_cold_intolerance": {
+      "label": "Heat/cold intolerance",
+      "outcome": "needs_choice",
+      "yes": {
+        "choose": [
+          "sym.heat_intolerance",
+          "sym.cold_intolerance"
+        ]
+      },
+      "no": {
+        "set": [
+          "sym.heat_intolerance",
+          "sym.cold_intolerance"
+        ]
+      }
+    },
+    "polyuria_polydipsia": {
+      "label": "Polyuria/polydipsia",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.polyuria",
+        "prompt": "thirst"
+      },
+      "no": {
+        "set": [
+          "sym.polyuria",
+          "sym.polydipsia"
+        ]
+      }
+    },
+    "neck_swelling_thyroid": {
+      "label": "Neck swelling (thyroid)",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.neck_swelling"
+      },
+      "no": {
+        "set": [
+          "sym.neck_swelling"
+        ]
+      }
+    },
+    "skin_hair_sweating_change": {
+      "label": "Skin/hair/sweating change",
+      "outcome": "needs_choice",
+      "yes": {
+        "choose": [
+          "sym.excess_sweating",
+          "sym.hair_loss"
+        ],
+        "text": true
+      },
+      "no": {
+        "set": [
+          "sym.excess_sweating",
+          "sym.hair_loss"
+        ]
+      }
+    },
+    "rash": {
+      "label": "Rash",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.rash"
+      },
+      "no": {
+        "set": [
+          "sym.rash"
+        ]
+      }
+    },
+    "pruritus": {
+      "label": "Pruritus (itch)",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.itch"
+      },
+      "no": {
+        "set": [
+          "sym.itch"
+        ]
+      }
+    },
+    "new_changing_lesion_mole": {
+      "label": "New/changing lesion or mole",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.skin_lesion"
+      },
+      "no": {
+        "set": [
+          "sym.skin_lesion"
+        ]
+      }
+    },
+    "hair_nail_change": {
+      "label": "Hair/nail change",
+      "outcome": "needs_choice",
+      "yes": {
+        "choose": [
+          "sym.hair_loss"
+        ],
+        "text": true
+      },
+      "no": {
+        "set": [
+          "sym.hair_loss"
+        ]
+      }
+    },
+    "easy_bruising_bleeding": {
+      "label": "Easy bruising/bleeding",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.bleeding_tendency"
+      },
+      "no": {
+        "set": [
+          "sym.bleeding_tendency"
+        ]
+      }
+    },
+    "recurrent_infections": {
+      "label": "Recurrent infections",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.recurrent_infections"
+      },
+      "no": {
+        "set": [
+          "sym.recurrent_infections"
+        ]
+      }
+    },
+    "lymphadenopathy_lumps": {
+      "label": "Lymphadenopathy/lumps",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.lumps_lymph"
+      },
+      "no": {
+        "set": [
+          "sym.lumps_lymph"
+        ]
+      }
+    },
+    "pallor_anaemia_symptoms": {
+      "label": "Pallor/anaemia symptoms",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": {
+        "omit": true
+      }
+    },
+    "low_mood": {
+      "label": "Low mood",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.low_mood"
+      },
+      "no": {
+        "set": [
+          "sym.low_mood"
+        ]
+      }
+    },
+    "anxiety": {
+      "label": "Anxiety",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.anxiety"
+      },
+      "no": {
+        "set": [
+          "sym.anxiety"
+        ]
+      }
+    },
+    "risk": {
+      "label": "Risk",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.self_harm_thoughts",
+        "review": true,
+        "flag": "CONV-RISK"
+      },
+      "no": {
+        "set": [
+          "sym.self_harm_thoughts"
+        ]
+      }
+    },
+    "hearing_loss_tinnitus": {
+      "label": "Hearing loss/tinnitus",
+      "outcome": "needs_choice",
+      "yes": {
+        "choose": [
+          "sym.hearing_loss",
+          "sym.tinnitus"
+        ]
+      },
+      "no": {
+        "set": [
+          "sym.hearing_loss",
+          "sym.tinnitus"
+        ]
+      }
+    },
+    "nasal_symptoms": {
+      "label": "Nasal symptoms",
+      "outcome": "needs_choice",
+      "yes": {
+        "choose": [
+          "sym.nasal",
+          "sym.nosebleed"
+        ]
+      },
+      "no": {
+        "set": [
+          "sym.nasal",
+          "sym.nosebleed"
+        ]
+      }
+    },
+    "sore_throat_hoarseness": {
+      "label": "Sore throat/hoarseness",
+      "outcome": "needs_choice",
+      "yes": {
+        "choose": [
+          "sym.sore_throat",
+          "sym.hoarse_voice"
+        ]
+      },
+      "no": {
+        "set": [
+          "sym.sore_throat",
+          "sym.hoarse_voice"
+        ]
+      }
+    },
+    "eye_symptoms": {
+      "label": "Eye symptoms",
+      "outcome": "needs_choice",
+      "yes": {
+        "choose": [
+          "sym.red_eye",
+          "sym.blurred_vision"
+        ],
+        "text": true
+      },
+      "no": {
+        "set": [
+          "sym.red_eye",
+          "sym.blurred_vision"
+        ]
+      }
+    },
+    "hiccups": {
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.hiccups"
+      },
+      "no": {
+        "set": [
+          "sym.hiccups"
+        ]
+      }
+    },
+    "noisy_breathing": {
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.noisy_breathing"
+      },
+      "no": {
+        "set": [
+          "sym.noisy_breathing"
+        ]
+      }
+    },
+    "snoring": {
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.snoring"
+      },
+      "no": {
+        "set": [
+          "sym.snoring"
+        ]
+      }
+    },
+    "constipation": {
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.constipation"
+      },
+      "no": {
+        "set": [
+          "sym.constipation"
+        ]
+      }
+    },
+    "urine_output_low": {
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.urine_output_low"
+      },
+      "no": {
+        "set": [
+          "sym.urine_output_low"
+        ]
+      }
+    },
+    "loin_pain": {
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.loin_pain"
+      },
+      "no": {
+        "set": [
+          "sym.loin_pain"
+        ]
+      }
+    },
+    "genital_sore": {
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.genital_sore"
+      },
+      "no": {
+        "set": [
+          "sym.genital_sore"
+        ]
+      }
+    },
+    "scrotal": {
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.scrotal"
+      },
+      "no": {
+        "set": [
+          "sym.scrotal"
+        ]
+      }
+    },
+    "pelvic_pain": {
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.pelvic_pain"
+      },
+      "no": {
+        "set": [
+          "sym.pelvic_pain"
+        ]
+      }
+    },
+    "confusion": {
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.confusion"
+      },
+      "no": {
+        "set": [
+          "sym.confusion"
+        ]
+      }
+    },
+    "ear_pain": {
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.ear_pain"
+      },
+      "no": {
+        "set": [
+          "sym.ear_pain"
+        ]
+      }
+    },
+    "mouth_ulcers": {
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.mouth_ulcers"
+      },
+      "no": {
+        "set": [
+          "sym.mouth_ulcers"
+        ]
+      }
+    },
+    "neck_pain": {
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.neck_pain"
+      },
+      "no": {
+        "set": [
+          "sym.neck_pain"
+        ]
+      }
+    },
+    "bone_pain": {
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.bone_pain"
+      },
+      "no": {
+        "set": [
+          "sym.bone_pain"
+        ]
+      }
+    },
+    "face_swelling": {
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.face_swelling"
+      },
+      "no": {
+        "set": [
+          "sym.face_swelling"
+        ]
+      }
+    },
+    "unusual_experiences": {
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.unusual_experiences"
+      },
+      "no": {
+        "set": [
+          "sym.unusual_experiences"
+        ]
+      }
+    },
+    "self_harm_thoughts": {
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.self_harm_thoughts"
+      },
+      "no": {
+        "set": [
+          "sym.self_harm_thoughts"
+        ]
+      }
+    }
+  },
+  "concepts": {
+    "dev.cardiac_implanted_device": {
+      "label": "Pacemaker or implanted cardiac device",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "dev.chest_drain": {
+      "label": "Chest drain in situ",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "dev.drain_stoma_splint": {
+      "label": "Drain, dressing, stoma, splint or traction in situ",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "dev.enteral_tube": {
+      "label": "Feeding or gastric tube in situ",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "dev.oxygen_delivery": {
+      "label": "Oxygen or ventilatory support in place",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "dev.prosthetic_heart_valve": {
+      "label": "Mechanical heart valve (clicks heard)",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "dev.stoma": {
+      "label": "Stoma in situ",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "dev.urinary_catheter": {
+      "label": "Urinary catheter in situ",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "dev.vascular_access": {
+      "label": "Vascular access device in situ",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "hist.childhood_undernutrition": {
+      "label": "Undernutrition in childhood (history)",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "hist.eskd_or_dialysis": {
+      "label": "End-stage kidney disease or dialysis (history)",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "hist.foot_ulcer": {
+      "label": "Previous foot ulcer (history)",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "hist.high_glucose_ever": {
+      "label": "Ever told of high blood glucose, including in pregnancy",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.abdomen_not_moving_with_respiration": {
+      "label": "Abdomen does not move with respiration",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.abdominal_distension": {
+      "label": "Abdominal distension on examination",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.abdominal_mass": {
+      "label": "Abdominal mass",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.abdominal_tenderness": {
+      "label": "Abdominal tenderness",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.abdominal_wall_findings": {
+      "label": "Abdominal wall findings",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.abnormal_odour": {
+      "label": "Abnormal odour",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.acanthosis_nigricans": {
+      "label": "Acanthosis nigricans",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.added_heart_sounds": {
+      "label": "Added heart sounds",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.angular_cheilitis": {
+      "label": "Angular cheilitis",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.ankle_clonus": {
+      "label": "Ankle clonus",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.ascites": {
+      "label": "Ascites",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.asterixis": {
+      "label": "Asterixis",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.audible_breath_sounds": {
+      "label": "Audible breath sounds",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.bleeding": {
+      "label": "Bleeding signs",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.blood_in_gastric_aspirate": {
+      "label": "Blood or coffee grounds in gastric aspirate",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.brudzinski": {
+      "label": "Brudzinski's sign",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.bruising": {
+      "label": "Bruising or ecchymoses",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.bruit": {
+      "label": "Bruit",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.cardiac_peripheral_stigmata": {
+      "label": "Peripheral stigmata of cardiac disease",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.characteristic_facies": {
+      "label": "Characteristic facies",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.chest_crackles": {
+      "label": "Crackles on auscultation",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.chronic_liver_disease_stigmata": {
+      "label": "Stigmata of chronic liver disease",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.clubbing": {
+      "label": "Finger clubbing",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.cyanosis": {
+      "label": "Cyanosis",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.dehydration": {
+      "label": "Dehydration",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.diabetic_retinopathy": {
+      "label": "Diabetic retinopathy seen (ungraded)",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.distress": {
+      "label": "Distress",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.dupuytrens_contracture": {
+      "label": "Dupuytren's contracture",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.dysdiadochokinesia": {
+      "label": "Dysdiadochokinesia",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.expansile_abdominal_mass": {
+      "label": "Expansile abdominal mass",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.expansile_aorta": {
+      "label": "Expansile abdominal aorta",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.femoral_stretch": {
+      "label": "Positive femoral stretch test",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.fetor_hepaticus": {
+      "label": "Fetor hepaticus",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.foot_callus": {
+      "label": "Foot callus",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.foot_deformity": {
+      "label": "Foot deformity",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.foot_infection": {
+      "label": "Signs of foot infection",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.foot_ulcer": {
+      "label": "Foot ulcer (active)",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.fresh_blood_per_rectum": {
+      "label": "Fresh blood per rectum on examination",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.frothy_pink_sputum": {
+      "label": "Frothy pink sputum",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.fungal_nail_infection": {
+      "label": "Fungal nail infection",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.gangrene": {
+      "label": "Gangrene",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.hand_nail_signs": {
+      "label": "Hand and nail signs",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.heart_murmur": {
+      "label": "Heart murmur",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.heave_or_thrill": {
+      "label": "Heave or thrill",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.hernia": {
+      "label": "Hernia",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.herpes_zoster_scars": {
+      "label": "Herpes zoster scars",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.hiv_associated_signs": {
+      "label": "HIV-associated signs",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.hoffmann": {
+      "label": "Hoffmann's sign",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.increased_cardiac_dullness": {
+      "label": "Increased area of cardiac dullness",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.increased_work_of_breathing": {
+      "label": "Increased work of breathing",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.irreducible_hernia": {
+      "label": "Irreducible hernia",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.irregular_pulse": {
+      "label": "Irregular pulse",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.kaposi_like_lesion": {
+      "label": "Kaposi-like lesion",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.kernig": {
+      "label": "Kernig's sign",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.ketotic_breath": {
+      "label": "Ketotic (fruity) breath odour",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.kussmaul_breathing": {
+      "label": "Kussmaul (deep, laboured) breathing",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.leukonychia": {
+      "label": "Leukonychia",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.lymphadenopathy": {
+      "label": "Lymphadenopathy",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.lumps_lymph"
+      },
+      "no": null
+    },
+    "sign.malar_flush": {
+      "label": "Malar flush",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.motor_inspection_findings": {
+      "label": "Wasting, fasciculation or involuntary movements",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.muffled_heart_sounds": {
+      "label": "Muffled heart sounds",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.neck_stiffness": {
+      "label": "Neck stiffness",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.non_blanching_rash": {
+      "label": "Non-blanching rash",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.oral_candidiasis": {
+      "label": "Oral candidiasis",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.pallor": {
+      "label": "Pallor",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.palmar_erythema": {
+      "label": "Palmar erythema",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.palpable_bladder": {
+      "label": "Palpable bladder",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.palpable_liver": {
+      "label": "Palpable liver",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.papilloedema": {
+      "label": "Papilloedema",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.paraspinal_spasm_or_tenderness": {
+      "label": "Paraspinal spasm or tenderness",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.peritonism": {
+      "label": "Peritonism (guarding, rigidity or rebound)",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.petechiae_purpura": {
+      "label": "Petechiae or purpura",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.pleural_rub": {
+      "label": "Pleural rub",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.pressure_injury": {
+      "label": "Pressure injury",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.pronator_drift": {
+      "label": "Pronator drift",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.pulsus_paradoxus": {
+      "label": "Pulsus paradoxus",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.raised_jvp": {
+      "label": "Raised jugular venous pressure",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.rectal_mass": {
+      "label": "Rectal mass",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.red_eye": {
+      "label": "Red eye",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.reduced_anal_tone": {
+      "label": "Reduced anal tone",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.reduced_chest_expansion": {
+      "label": "Reduced chest expansion",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.reduced_skin_turgor": {
+      "label": "Reduced skin turgor (skin pinch)",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.romberg": {
+      "label": "Romberg's sign",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.saddle_anaesthesia": {
+      "label": "Reduced saddle sensation",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.skin_lesions": {
+      "label": "Skin lesions",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.spinal_step_deformity": {
+      "label": "Spinal step deformity",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.spinal_tenderness": {
+      "label": "Spinal tenderness",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.splenomegaly": {
+      "label": "Splenomegaly",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.splinter_haemorrhages": {
+      "label": "Splinter haemorrhages",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.straight_leg_raise": {
+      "label": "Positive straight leg raise",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.stridor": {
+      "label": "Stridor",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.subcutaneous_emphysema": {
+      "label": "Subcutaneous emphysema",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.succussion_splash": {
+      "label": "Succussion splash",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.sunken_eyes": {
+      "label": "Sunken eyes",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.tracheal_deviation": {
+      "label": "Tracheal deviation",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sign.visual_field_defect": {
+      "label": "Visual field defect",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sx.abdominal_swelling": {
+      "label": "Swelling of the abdomen",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.abdominal_swelling"
+      },
+      "no": null
+    },
+    "sx.black_stools": {
+      "label": "Black, tarry stools",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.black_stools"
+      },
+      "no": null
+    },
+    "sx.bleeding_tendency": {
+      "label": "Easy bruising or bleeding",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.bleeding_tendency"
+      },
+      "no": null
+    },
+    "sx.blurred_vision": {
+      "label": "Blurred vision",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.blurred_vision"
+      },
+      "no": null
+    },
+    "sx.breast_lump": {
+      "label": "Breast lump or change",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.breast_lump"
+      },
+      "no": null
+    },
+    "sx.breathless_exertion": {
+      "label": "Breathless on exertion",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.breathless_exertion"
+      },
+      "no": null
+    },
+    "sx.cold_intolerance": {
+      "label": "Cold intolerance",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.cold_intolerance"
+      },
+      "no": null
+    },
+    "sx.erectile_dysfunction": {
+      "label": "Erectile dysfunction",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sx.excess_sweating": {
+      "label": "Excessive sweating",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.excess_sweating"
+      },
+      "no": null
+    },
+    "sx.falls": {
+      "label": "Falls or unsteadiness",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.falls"
+      },
+      "no": null
+    },
+    "sx.fits": {
+      "label": "Fits or seizures",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.fits"
+      },
+      "no": null
+    },
+    "sx.focal_weakness": {
+      "label": "Weakness of a limb or face",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.focal_weakness"
+      },
+      "no": null
+    },
+    "sx.foot_numbness_burning": {
+      "label": "Numbness, tingling or burning in the feet",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sx.frequency": {
+      "label": "Going to pass urine often",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.frequency"
+      },
+      "no": null
+    },
+    "sx.genital_itch_discharge": {
+      "label": "Genital itch or discharge (vulvovaginal candidiasis, balanitis)",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sx.hair_loss": {
+      "label": "Hair loss",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.hair_loss"
+      },
+      "no": null
+    },
+    "sx.hearing_loss": {
+      "label": "Hearing loss",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.hearing_loss"
+      },
+      "no": null
+    },
+    "sx.heartburn": {
+      "label": "Heartburn or indigestion",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.heartburn"
+      },
+      "no": null
+    },
+    "sx.heat_intolerance": {
+      "label": "Heat intolerance",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.heat_intolerance"
+      },
+      "no": null
+    },
+    "sx.hoarse_voice": {
+      "label": "Hoarse voice",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.hoarse_voice"
+      },
+      "no": null
+    },
+    "sx.hypoglycaemia_symptoms": {
+      "label": "Symptoms of low glucose (sweating, tremor, palpitations, hunger, confusion)",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sx.loss_of_appetite": {
+      "label": "Loss of appetite",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.loss_of_appetite"
+      },
+      "no": null
+    },
+    "sx.memory_loss": {
+      "label": "Memory problems",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.memory_loss"
+      },
+      "no": null
+    },
+    "sx.muscle_pain": {
+      "label": "Muscle aches",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.muscle_pain"
+      },
+      "no": null
+    },
+    "sx.muscle_weakness": {
+      "label": "Muscle weakness",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.muscle_weakness"
+      },
+      "no": null
+    },
+    "sx.nasal": {
+      "label": "Blocked or runny nose",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.nasal"
+      },
+      "no": null
+    },
+    "sx.nosebleed": {
+      "label": "Nosebleed",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.nosebleed"
+      },
+      "no": null
+    },
+    "sx.numbness": {
+      "label": "Numbness or tingling",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.numbness"
+      },
+      "no": null
+    },
+    "sx.periods_change": {
+      "label": "Change in periods",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.periods_change"
+      },
+      "no": null
+    },
+    "sx.pnd": {
+      "label": "Waking breathless at night",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.pnd"
+      },
+      "no": null
+    },
+    "sx.polydipsia": {
+      "label": "Polydipsia (excessive thirst)",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.polydipsia"
+      },
+      "no": null
+    },
+    "sx.polyphagia": {
+      "label": "Polyphagia (excessive hunger)",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sx.polyuria": {
+      "label": "Polyuria (passing large volumes of urine)",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.polyuria"
+      },
+      "no": null
+    },
+    "sx.poor_sleep": {
+      "label": "Poor sleep",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.poor_sleep"
+      },
+      "no": null
+    },
+    "sx.rectal_bleeding": {
+      "label": "Bleeding from the back passage",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.rectal_bleeding"
+      },
+      "no": null
+    },
+    "sx.recurrent_skin_infection": {
+      "label": "Recurrent skin infections (boils, abscesses)",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sx.secondary_enuresis": {
+      "label": "Secondary enuresis (child previously dry)",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sx.skin_lesion": {
+      "label": "New or changing skin lesion",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.skin_lesion"
+      },
+      "no": null
+    },
+    "sx.slow_healing_wound": {
+      "label": "Slow-healing wound",
+      "outcome": "text",
+      "yes": {
+        "text": true
+      },
+      "no": null
+    },
+    "sx.sore_throat": {
+      "label": "Sore throat",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.sore_throat"
+      },
+      "no": null
+    },
+    "sx.speech_change": {
+      "label": "Speech difficulty",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.speech_change"
+      },
+      "no": null
+    },
+    "sx.tinnitus": {
+      "label": "Ringing in the ears",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.tinnitus"
+      },
+      "no": null
+    },
+    "sx.urethral_discharge": {
+      "label": "Urethral discharge",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.urethral_discharge"
+      },
+      "no": null
+    },
+    "sx.vaginal_bleeding": {
+      "label": "Abnormal vaginal bleeding",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.vaginal_bleeding"
+      },
+      "no": null
+    },
+    "sx.vaginal_discharge": {
+      "label": "Vaginal discharge",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.vaginal_discharge"
+      },
+      "no": null
+    },
+    "sx.weight_gain": {
+      "label": "Weight gain",
+      "outcome": "convert",
+      "yes": {
+        "set": "sym.weight_gain"
+      },
+      "no": null
+    }
+  }
+}

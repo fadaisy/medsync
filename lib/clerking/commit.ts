@@ -10,7 +10,8 @@ import { RELATION_TO_SUBJECT } from "./record-map";
  * What a signed v2 note commits (gate-a §5, D-EMR-01), as observation lines for
  * insertObservations, in the note's transaction:
  *   - every catalogued complaint: a present finding, with its catalogue qualifiers;
- *   - every review-of-systems answer (the clinician's own and the linked ones): present or absent;
+ *   - every review-of-systems answer (the clinician's own and the linked ones): present or absent,
+ *     including a converted v1 answer on a symptom the Systems step does not list (D9);
  *   - tobacco status as `soc.tobacco` (H4). Pack-years and the rest of social history stay in the
  *     note until the CFC v1.2 addendum is signed.
  * Findings map to the shared vocabulary through data/clerking/token-map.v1.json; a token with no
@@ -79,6 +80,12 @@ export function v2CommitLines(
       const a = rosAnswer(history, linked, s.id);
       if (a) add(s.id, a === "yes" ? "present" : "absent", history.rosDetail[s.id], false);
     }
+  // An answer on a symptom outside this patient's systems list: only a converted v1 answer (D9).
+  for (const [id, a] of Object.entries(history.ros)) {
+    const want = cat.symptom(id)?.applies_to_sex;
+    if (!seen.has(id) && cat.symptom(id) && !(want && sex && want !== sex))
+      add(id, a === "yes" ? "present" : "absent", history.rosDetail[id], false);
+  }
 
   const t = history.social;
   const smokeless = (t.otherForms ?? []).some((f) => f === "snuff" || f === "chewed");

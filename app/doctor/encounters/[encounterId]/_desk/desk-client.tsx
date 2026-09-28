@@ -1,6 +1,7 @@
 "use client";
 
 import type { NcdSeed } from "./ncd-section";
+import type { PregnancyWrite } from "@/components/clerking/conversion-dialog";
 import type {
   AllergyWrite,
   MedicineAdd,
@@ -75,6 +76,7 @@ import {
   recordEncounterDiagnosis,
   recordMedicationStatements,
   recordObservations,
+  recordPregnancy,
   recordProblem,
   updateMedicineDetails,
   updateProblemStatus,
@@ -493,6 +495,13 @@ export function DeskClient({
       setCoding({ id, name });
       setSheet("allergy");
     },
+    onRecordPregnancy: (w: PregnancyWrite) =>
+      run(
+        `pregnancy:${w.pregnancyState}:${w.lnmp ?? ""}`,
+        (clientKey) => recordPregnancy({ ...base, clientKey, encounterId, ...w }),
+        w.lnmp ? "Last menstrual period recorded" : "Pregnancy status recorded",
+        w,
+      ).then((r) => r.ok),
     onAssertAllergy: (assertion: "no_known_drug_allergies") =>
       void run(
         "allergy:status",

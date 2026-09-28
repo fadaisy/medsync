@@ -17,7 +17,7 @@ import { asClinicalReader } from "@/lib/emr/db";
 import { loadAllergyInput } from "@/lib/emr/read/allergies";
 import { conceptForToken } from "@/lib/emr/write/notes";
 import { EXAM_CATALOGUE, EXAM_SIGNOFF } from "./exam/load";
-import { CLERKING_CATALOGUE, CLERKING_SIGNOFF, CLERKING_TOKEN_MAP } from "./load";
+import { CLERKING_CATALOGUE, CLERKING_LEGACY, CLERKING_SIGNOFF, CLERKING_TOKEN_MAP } from "./load";
 import { readOutbreakMode } from "./outbreak";
 import { INFORMANT_TO_ALLERGY_SOURCE, MANIFESTATION_TO_REACTION } from "./record-map";
 
@@ -332,6 +332,7 @@ export async function clerkingData(i: {
       set: examSet,
       pregnant,
     },
+    conversionFlags: CLERKING_LEGACY.flags,
     signoff: {
       flagRules: CLERKING_SIGNOFF.flagRules,
       referenceEntries: CLERKING_SIGNOFF.referenceEntries,

@@ -5,6 +5,14 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Changed — Continuing a v1 clerking draft in the new format follows the signed conversion table — 2026-09-28
+
+- "Continue in the new format" now reads only `data/clerking/legacy-conversion.v1.json`, signed by the CSO and hash-pinned ([ADR 0177](docs/adr/0177-legacy-conversion-table.md)). It covers the 89 old codes, the 17 of 0076 and every CFC finding concept a v1 complaint could hold.
+- The v1 review of systems is converted too, not only complaints.
+- A broad old code is never narrowed silently: the clinician chooses (weakness, lumps, eye symptoms and others), and until then it counts as not asked. Pregnancy status, the LMP and activity are proposed, and written only once confirmed.
+- A review list opens the first time the converted draft opens and shows what became of every old answer. Two conversion flags carry signed wording: "Risk from previous format: assess now" (urgent) and "Rectal bleeding: needs detail" (caution).
+- Behind `CLERKING_V2`; no migration.
+
 ### Added — CFC addenda v1.2 and v1.3: clerking findings chart as facts — 2026-09-28
 
 - Two GATED seed migrations, generated from signed data like 0072 (ADR 0176): `0082` (86 history concepts) and `0083` (165 examination concepts, and ACVPU C as `new_confusion` on `obs.avpu`). Apply after 0076, in that order.

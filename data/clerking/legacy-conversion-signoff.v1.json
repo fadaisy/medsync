@@ -1,0 +1,14 @@
+{
+  "table": "MS-EMR-CLERK-LEGACY-001",
+  "tableVersion": "1.0.0",
+  "tableSha256": "1d466d6354106c992d836e7cc9bce14e394cbf6b6f9425944319763cca8eab58",
+  "catalogue": "MS-EMR-CLERK-CAT-001",
+  "catalogueVersion": "1.0.0-draft",
+  "signedBy": "Fadhul (owner and CSO)",
+  "signedOn": "2026-09-28",
+  "gate": "Legacy symptom conversion (docs/emr/clerking-v2/legacy-conversion-proposal.md §7)",
+  "decisions": "Table §2 as proposed; §3 both missing codes as proposed; D3, D4, D5 (CONV-RISK urgent), D6, D7, D8 (drop sym.fatigue and sym.skin_lesion from the no set), D9, D10 (CONV-PR-BLEED caution), D11, D14 and the merge rule as recommended; rows 8, 43 and 72 as proposed; D15: cover the 17 codes of 0076 and the CFC finding concepts; §5: new concepts in a CFC addendum (proposal to follow); §6: catalogue v1.1 later, as its own gate",
+  "flags": ["CONV-RISK", "CONV-PR-BLEED"],
+  "openForOwner": "Symptom codes promoted in production through the 0044 governance (origin 'approved') are not visible from the repo; until they have rows they carry across as text.",
+  "withheld": []
+}
