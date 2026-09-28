@@ -44,10 +44,11 @@ import { carryMedicines, carryProblems, triagePrefill } from "@/lib/emr/carry-fo
 import { asClinicalReader, asClinicalWriter } from "@/lib/emr/db";
 import { encounterDiagnoses, pendingCosignIds } from "@/lib/emr/diagnoses";
 import { completionWarnings, isOpen } from "@/lib/emr/encounter";
-import { clerkingV2LiveFor } from "@/lib/emr/feature";
+import { clerkingPlanV2LiveFor, clerkingV2LiveFor } from "@/lib/emr/feature";
 import { getTemplate, noteStatus } from "@/lib/emr/notes";
 import { orderStatusText } from "@/lib/emr/orders";
 import { loadChartFor } from "@/lib/emr/read/chart";
+import { loadPlanPayload } from "@/lib/emr/read/plan";
 import { deskTemplateOf, generalSigns, loadRosScreen, vitalConcepts } from "@/lib/emr/read/terms";
 import { EMR_SETTINGS_DEFAULTS } from "@/lib/emr/settings";
 import { SENIOR_CADRES } from "@/lib/emr/write/facts";
@@ -206,7 +207,14 @@ export async function loadDesk(
 export async function loadDeskFor(
   actor: EmrActor,
   encounterId: string,
-  opts: { database?: EmrDb; now?: Date; template?: string | null; clerkingV2?: boolean } = {},
+  opts: {
+    database?: EmrDb;
+    now?: Date;
+    template?: string | null;
+    clerkingV2?: boolean;
+    /** The Plan by problem (CLERKING_PLAN_V2); tests pass it, the page reads the flag. */
+    planV2?: boolean;
+  } = {},
 ): Promise<DeskLoad | null> {
   const scope = { userId: actor.userId, hospitalId: actor.hospitalId };
   const now = opts.now ?? new Date();
@@ -724,6 +732,18 @@ export async function loadDeskFor(
             }),
         })
       : undefined;
+  // Step 10 by problem (ADR 0184), only on the v2 form where CLERKING_PLAN_V2 is on.
+  const plan =
+    clerking && (opts.planV2 ?? clerkingPlanV2LiveFor(actor.hospitalId))
+      ? await loadPlanPayload(actor, {
+          patientUserId: enc.patientUserId,
+          encounterId: enc.id,
+          orders,
+          medicines,
+          database: opts.database,
+          now,
+        })
+      : undefined;
 
   const draftContent = draft?.content ?? { sections: {} };
   const deferred = Object.values(draftContent.sections).some((s) =>
@@ -758,6 +778,7 @@ export async function loadDeskFor(
     patientSex: side.profile?.sex ?? null,
     payload: {
       ...(clerking ? { clerking } : {}),
+      ...(plan ? { plan } : {}),
       fullForm: v2Live ? CLERKING_V2_TEMPLATE_ID : "tpl.clerking.adult_opd",
       encounter: {
         id: enc.id,

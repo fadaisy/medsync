@@ -269,3 +269,46 @@ export function needsFastingChip(
     (test?.components ?? []).some(needsFasting)
   );
 }
+
+/* ─── Priority and frequency (ADR 0185, migration 0087) ───────────── */
+
+export const ORDER_PRIORITIES = ["routine", "urgent", "immediate", "emergency"] as const;
+export type OrderPriority = (typeof ORDER_PRIORITIES)[number];
+export const ORDER_FREQUENCIES = ["once", "daily", "12h", "6h"] as const;
+export type OrderFrequency = (typeof ORDER_FREQUENCIES)[number];
+
+export const ORDER_PRIORITY_WORD: Record<OrderPriority, string> = {
+  routine: "Routine",
+  urgent: "Urgent",
+  immediate: "Immediate",
+  emergency: "Emergency",
+};
+
+/** Proposed wording (ADR 0185): each lab sets its own times. Shown labelled as proposed. */
+export const ORDER_PRIORITY_DEFINITION: Record<OrderPriority, string> = {
+  routine: "Collected on the next round; resulted in the lab's routine time.",
+  urgent: "Collected and processed ahead of routine work.",
+  immediate: "Collected now; the lab processes it as soon as it arrives.",
+  emergency: "Life-threatening: collected at the bedside now, result phoned through.",
+};
+
+export const ORDER_FREQUENCY_WORD: Record<OrderFrequency, string> = {
+  once: "Once",
+  daily: "Daily",
+  "12h": "12-hourly",
+  "6h": "6-hourly",
+};
+
+/**
+ * The frequency stored with an order line. A routine test always carries one (migration 0087 stores
+ * a routine insert without one as `once`, as here); a caller that sends none gets `once`, so the
+ * order sheet, the triage suggestion and the resus handover keep working. Other priorities keep what
+ * they were given.
+ */
+export function orderFrequencyFor(
+  priority: OrderPriority,
+  frequency: OrderFrequency | null | undefined,
+): OrderFrequency | null {
+  if (frequency) return frequency;
+  return priority === "routine" ? "once" : null;
+}

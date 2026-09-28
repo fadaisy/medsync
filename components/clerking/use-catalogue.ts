@@ -74,6 +74,8 @@ export interface DxData {
   tests: Readonly<Record<string, string>>;
   /** Test id → the test_catalogue uuid an order names. */
   testIds: Readonly<Record<string, string>>;
+  /** Test id → its specimen type (the default menu), for the Plan's test rows. */
+  specimens?: Readonly<Record<string, string>>;
 }
 
 const parseDx = (json: unknown): DxData => {
@@ -84,6 +86,7 @@ const parseDx = (json: unknown): DxData => {
     names: j.names ?? {},
     tests: j.tests ?? {},
     testIds: j.testIds ?? {},
+    specimens: j.specimens ?? {},
   };
 };
 

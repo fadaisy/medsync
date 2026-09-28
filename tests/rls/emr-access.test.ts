@@ -16,7 +16,7 @@ import { cleanup, createTestUser, RLS_TESTS_ENABLED, serviceSql } from "./_helpe
  *   hospitals (STOP 1). `private.patient_access_basis` is probed directly the same way.
  *
  * SKIPS unless MEDSYNC_ALLOW_RLS_DB_WRITES=1 and the four env vars point at a TEST project with
- * 0071–0074 applied. EMR rows are append-only with RESTRICT keys, so this suite's fixture
+ * 0071–0074 applied (and 0089 for the Plan's chart tables). EMR rows are append-only with RESTRICT keys, so this suite's fixture
  * hospitals persist (upserted by slug) and its users stay behind, as in resus-v2-tables.
  */
 describe.skipIf(!RLS_TESTS_ENABLED)("RLS: EMR record access (hosted twin)", () => {
@@ -196,6 +196,23 @@ describe.skipIf(!RLS_TESTS_ENABLED)("RLS: EMR record access (hosted twin)", () =
         const { data } = await user.client.from(table).select("id").eq("id", ids[key]);
         expect(data ?? [], `${table} via ${user.email}`).toHaveLength(0);
       }
+  });
+
+  test("client path: the Plan's chart tables (0089) are never read or written from a client", async () => {
+    for (const user of [treating, otherHosp, reception, pt])
+      for (const table of ["fluid_balance_entries", "monitoring_charts"]) {
+        const { data } = await user.client.from(table).select("id").eq("patient_user_id", pt.id);
+        expect(data ?? [], `${table} via ${user.email}`).toHaveLength(0);
+      }
+    const { error } = await treating.client.from("fluid_balance_entries").insert({
+      hospital_id: H1,
+      patient_user_id: pt.id,
+      kind: "urine_out",
+      measured: false,
+      effective_at: new Date().toISOString(),
+      recorded_by_user_id: treating.id,
+    });
+    expect(error).not.toBeNull();
   });
 
   test("client path: the patient reads no CFC observation of their own", async () => {

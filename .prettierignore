@@ -40,3 +40,9 @@ docs/emr/clerking-v2/ds/
 
 # The Summary/Impression pack as delivered (byte-identical to the catalogue build)
 docs/emr/clerking-v2/summary-impression/*.json
+# The Plan pack as delivered (byte-identical); STOP-REPORTS.md is ours and formatted
+docs/emr/clerking-v2/plan/PROMPT-CLERKING-PLAN.md
+docs/emr/clerking-v2/plan/MONITORING-CHARTS.md
+docs/emr/clerking-v2/plan/README.md
+docs/emr/clerking-v2/plan/drug-catalogue-README.md
+docs/emr/clerking-v2/plan/drug-catalogue.v0.json

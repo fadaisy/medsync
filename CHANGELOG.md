@@ -5,6 +5,24 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Clerking v2 step 10: the Plan by problem, prescribing and monitoring charts, dark behind `CLERKING_PLAN_V2` — 2026-09-28
+
+- **The Plan** answers four questions in order: where and how closely (disposition, observations against the signed NEWS2 response, senior review); one card per Impression problem (tests with Emergency priority and routine frequency, must not miss, suggested care, treatment by class, a note); medicines (Continue, Hold or Stop with a reason; new this visit with answered checks and edits); and a checklist before signing. Tests and prescriptions wait in one basket and are placed in one action; the server re-checks. Mark plan done; any change reopens it; signing waits for it.
+- **The prescribing dialog**: three columns (what, how, check). A dose is pre-set only from a signed, verified regimen (glucose 10%, glucagon and the crystalloid bolus, carried unchanged from the emergency formulary); every other dose is typed. Edits are struck through and recorded; checks (allergy groups, kidney function, weight, child, duplicates, indication, cultures before antibiotics, interactions not checked, stock, co-sign, controlled witness) need an answer, and are marked proposed. Fluids show mL/h and drops/min, arithmetic only.
+- **General formulary MS-RX-CAT-001**: 182 generic drugs in 69 classes as data with a generator, a drift test and the dose-content guard. No doses.
+- **Monitoring charts opened by the plan**: observations and NEWS2, temperature, fluid balance, capillary glucose and the MAR, drawn as SVG over tables; reference lines labelled and never flagged; blank is never zero. Nurses record fluid balance, append-only.
+- **Migrations (GATED, applied by the owner on 2026-09-28):** `0087` (Emergency priority, routine frequency), `0088` (prescription columns, held reconciliation, the MAR link), `0089` (fluid balance entries, the chart registry, the MAR reader policy).
+
+### Decided — Clerking v2 step 10 Plan: by problem, prescribing, fluids and monitoring charts (ADRs 0184–0190) — 2026-09-28
+
+- **Plan by problem** ([ADR 0184](docs/adr/0184-plan-by-problem.md)): where and how closely, one card per problem in Impression order, medicines, and a computed checklist before signing. One basket and one Place action; the server re-checks. Behind `CLERKING_PLAN_V2`. Suggested care stays empty until a signed list exists.
+- **Emergency priority and routine frequency** ([ADR 0185](docs/adr/0185-test-priority-emergency-and-routine-frequency.md)): a routine test needs Once, Daily, 12-hourly or 6-hourly. Priority definitions are proposed wording.
+- **EMR prescribing follows the resus dialog** ([ADR 0186](docs/adr/0186-emr-prescribing-follows-the-resus-dialog.md)): a dose is pre-set only from a signed, verified regimen; edits are struck through and recorded; new checks are marked proposed.
+- **General formulary MS-RX-CAT-001** ([ADR 0187](docs/adr/0187-general-formulary-ms-rx-cat-001.md)): 182 generic drugs in 69 classes, no doses; the three signed emergency entries are carried unchanged.
+- **Weight from the vitals** ([ADR 0188](docs/adr/0188-weight-from-the-vitals.md)): no weight, no per-kg arithmetic.
+- **Monitoring charts opened by the plan** ([ADR 0189](docs/adr/0189-monitoring-charts-opened-by-the-plan.md)): proposed triggers off until signed; the chart day starts at midnight; reference lines never flag.
+- **Pharmacy seam** ([ADR 0190](docs/adr/0190-pharmacy-seam.md)): always "not linked" today.
+
 ### Added — Clerking v2: Summary (step 08) and Impression (step 09), behind `CLERKING_V2` — 2026-09-28
 
 - **Summary** is composed from the record: a one-liner with the syndrome in the clinician's words, the history, examination and vital signs that matter, pertinent negatives and allergies. "Mark as reviewed" is one tap; any change asks for review again, with the difference ([ADR 0178](docs/adr/0178-summary-composed-from-the-record.md)). The note gets its own Summary block. An old free-text summary opens in "In my words".

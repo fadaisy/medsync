@@ -761,7 +761,7 @@ export const medicationStatements = pgTable(
     ),
     check(
       "medication_statements_reconciliation_check",
-      sql`${t.reconciliation} IS NULL OR ${t.reconciliation} IN ('continued','stopped','changed')`,
+      sql`${t.reconciliation} IS NULL OR ${t.reconciliation} IN ('continued','stopped','changed','held')`,
     ),
     check("ms_drug", sql`${t.drugCode} IS NOT NULL OR ${t.drugTextCiphertext} IS NOT NULL`),
     check(
@@ -779,6 +779,10 @@ export const medicationStatements = pgTable(
     check(
       "ms_stop_reason",
       sql`${t.reconciliation} IS DISTINCT FROM 'stopped' OR ${t.reasonCode} IS NOT NULL OR ${t.reasonCiphertext} IS NOT NULL`,
+    ),
+    check(
+      "ms_hold_reason",
+      sql`${t.reconciliation} IS DISTINCT FROM 'held' OR ${t.reasonCode} IS NOT NULL OR ${t.reasonCiphertext} IS NOT NULL`,
     ),
   ],
 );

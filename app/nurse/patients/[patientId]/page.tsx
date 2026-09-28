@@ -15,6 +15,7 @@ import { loadCfcVitals } from "@/lib/emr/read/vitals";
 import { toEncounterScope } from "@/lib/encounter/workspace-scope";
 import { fetchNursePatientSummaryAudited } from "@/lib/nurse/patient-access";
 import { requireNurseScope } from "@/lib/nurse/scope";
+import { NurseMonitoring } from "./_components/nurse-monitoring";
 import { NurseOrders } from "./_orders/nurse-orders";
 
 export const metadata: Metadata = { title: "Patient · Nurse · MedSync" };
@@ -66,7 +67,19 @@ export default async function NursePatientSummaryPage({ params }: PageProps) {
     const orders = chart.openEncounterId ? (
       <NurseOrders encounterId={chart.openEncounterId} />
     ) : null;
-    return <EmrChart chart={chart} surface="nurse" orders={orders} />;
+    // The open visit's monitoring charts and the fluid balance entry (ADR 0189).
+    return (
+      <>
+        <EmrChart chart={chart} surface="nurse" orders={orders} />
+        {chart.openEncounterId ? (
+          <NurseMonitoring
+            patientUserId={chart.patientUserId}
+            encounterId={chart.openEncounterId}
+            actionsAllowed={chart.payload.safetyBar.actionsAllowed}
+          />
+        ) : null}
+      </>
+    );
   }
 
   const summary = await fetchNursePatientSummaryAudited({

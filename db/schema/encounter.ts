@@ -226,6 +226,8 @@ export const encounterOrders = pgTable(
     // FK to test_catalogue enforced in SQL: emr.ts imports this file.
     testId: uuid("test_id"),
     priority: text("priority"),
+    /** How often a routine test repeats (migration 0087, ADR 0185); a routine insert without one is `once`. */
+    frequency: text("frequency"),
     reasonConditionIds: uuid("reason_condition_ids")
       .array()
       .notNull()
@@ -255,7 +257,11 @@ export const encounterOrders = pgTable(
     check("enc_order_lifecycle_check", sql`${t.lifecycle} IN ('legacy','events')`),
     check(
       "enc_order_priority_check",
-      sql`${t.priority} IS NULL OR ${t.priority} IN ('routine','urgent','immediate')`,
+      sql`${t.priority} IS NULL OR ${t.priority} IN ('routine','urgent','immediate','emergency')`,
+    ),
+    check(
+      "enc_order_frequency_check",
+      sql`${t.frequency} IS NULL OR ${t.frequency} IN ('once','daily','12h','6h')`,
     ),
     check(
       "enc_order_performer_check",

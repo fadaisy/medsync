@@ -53,7 +53,7 @@ export function EmrDialog({
   description?: ReactNode;
   trigger?: ReactNode;
   footer?: ReactNode;
-  width?: "wide" | "medium";
+  width?: "xl" | "wide" | "medium";
   /** Below 640 px: a bottom sheet (`tall`: full height under the app bar). */
   sheet?: boolean | "tall";
   children: ReactNode;

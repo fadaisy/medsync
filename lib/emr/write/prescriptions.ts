@@ -74,9 +74,12 @@ export async function loadPrescribePatient(
 /* ─── Co-sign policy (clinical_cosign_policies; fail closed like lib/doctor/capabilities.ts,
  *     which imports the database client and so cannot run inside this transaction) ─── */
 
-type Requirement = "allowed" | "cosign_required" | "blocked";
+export type Requirement = "allowed" | "cosign_required" | "blocked";
 
-async function prescribeRequirement(ctx: WriteCtx, controlled: boolean): Promise<Requirement> {
+export async function prescribeRequirement(
+  ctx: WriteCtx,
+  controlled: boolean,
+): Promise<Requirement> {
   const { actor } = ctx;
   const rows = await ctx.tx
     .select({
@@ -130,7 +133,7 @@ export interface PrescribeInput {
 }
 
 /** The medication_statements route words (CFC), from the formulary's routes. */
-function statementRoute(route: AdminRoute) {
+export function statementRoute(route: AdminRoute) {
   switch (route) {
     case "oral":
     case "iv":

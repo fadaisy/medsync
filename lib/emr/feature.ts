@@ -43,3 +43,14 @@ export function clerkingV2LiveFor(hospitalId: string): boolean {
   if (!value || !emrV1LiveFor(hospitalId)) return false;
   return value === "1" || value.split(",").some((id) => id.trim() === hospitalId);
 }
+
+/**
+ * Step 10 Plan by problem (ADR 0184), per hospital, off by default: `CLERKING_PLAN_V2=1` or a
+ * comma list of hospital ids, and only where CLERKING_V2 is on. Needs migrations 0087–0089.
+ * Prescribing from the Plan also needs EMR_PRESCRIBING. Off, step 10 is the v1 Plan unchanged.
+ */
+export function clerkingPlanV2LiveFor(hospitalId: string): boolean {
+  const value = process.env.CLERKING_PLAN_V2?.trim();
+  if (!value || !clerkingV2LiveFor(hospitalId)) return false;
+  return value === "1" || value.split(",").some((id) => id.trim() === hospitalId);
+}

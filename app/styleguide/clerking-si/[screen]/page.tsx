@@ -3,18 +3,19 @@ import { notFound } from "next/navigation";
 
 import { DX_CATALOGUE, DX_SIGNOFF, dxTermUuid } from "@/lib/clerking/impression/load";
 import { v2Payload } from "@/tests/clerking/fixtures";
+import { withPlanFixture } from "@/tests/clerking/plan-fixtures";
 import { SI_PATIENTS, siPatientPayload } from "@/tests/clerking/si-desk-fixtures";
 import { FixtureDesk } from "../_components/fixture-desk";
 
 /**
  * Development fixture (D-SI-29): the v2 clerking desk on steps 08 and 09 from the synthetic test
- * fixtures, for screenshots, axe and Playwright: `summary`, `impression` (Patient Three-3 with two
+ * fixtures, for screenshots, axe and Playwright: `summary`, `impression`, `plan` (Patient Three-3 with two
  * diagnoses), `-empty`, and `-f1` … `-f4` for the prompt's patients. Off unless MEDSYNC_FIXTURES=1; no database, no
  * patient data (Patient Three-3 is synthetic).
  */
 export const metadata: Metadata = { title: "Clerking fixture", robots: { index: false } };
 
-const SCREENS = ["summary", "impression"] as const;
+const SCREENS = ["summary", "impression", "plan"] as const;
 
 export default async function Page({ params }: { params: Promise<{ screen: string }> }) {
   if (process.env.MEDSYNC_FIXTURES !== "1") notFound();
@@ -31,6 +32,18 @@ export default async function Page({ params }: { params: Promise<{ screen: strin
     catalogueVersion: DX_CATALOGUE.version,
     signoff: DX_SIGNOFF,
   };
+  // `plan`: step 10 by problem (ADR 0184); `-allergy` a cephalosporin allergy, `-placed` a blood
+  // culture already placed.
+  if (step === "plan")
+    return (
+      <FixtureDesk
+        p={withPlanFixture(p, {
+          allergy: parts.includes("allergy"),
+          placed: parts.includes("placed"),
+        })}
+        step={step}
+      />
+    );
   if (!patient) p.diagnoses = [];
   if (!patient && !parts.includes("empty"))
     p.diagnoses = [

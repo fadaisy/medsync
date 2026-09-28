@@ -59,6 +59,8 @@ export interface NoteContent {
   summary?: Record<string, unknown>;
   /** Step 09 (lib/clerking/impression/board ImpressionDraft, plus the signing snapshot). */
   impression?: Record<string, unknown>;
+  /** Step 10 (lib/clerking/plan/draft PlanDraft; ADR 0184). */
+  plan?: Record<string, unknown>;
 }
 
 export interface SignContext {
@@ -101,6 +103,11 @@ function examRecorded(c: NoteContent): boolean {
   );
 }
 
+function planMarkedDone(c: NoteContent): boolean {
+  const p = c.plan as { done?: { hash?: string } } | undefined;
+  return !!p?.done?.hash;
+}
+
 export function checkRule(rule: SignRule, content: NoteContent, ctx: SignContext): boolean {
   const section = rule.section ? content.sections[rule.section] : undefined;
   const kinds = new Set(rule.itemKinds ?? []);
@@ -108,6 +115,8 @@ export function checkRule(rule: SignRule, content: NoteContent, ctx: SignContext
     case "section_has_any":
       // The structured examination (exam v2) never writes v1's s11: its record counts for s11.
       if (rule.section === "s11" && examRecorded(content)) return true;
+      // The Plan by problem (ADR 0184) never writes v1's s14: a plan marked done counts for it.
+      if (rule.section === "s14" && planMarkedDone(content)) return true;
       return (section?.items ?? []).some((i) => kinds.has(i.kind) && itemCounts(i));
     case "section_has_content":
       return sectionHasContent(section);
