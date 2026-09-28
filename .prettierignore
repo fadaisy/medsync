@@ -37,6 +37,11 @@ docs/emr/clerking-v2/README.md
 docs/emr/clerking-v2/clerking-history-catalogue.v1.json
 docs/emr/clerking-v2/prototype/
 docs/emr/clerking-v2/ds/
+# The examination pack as handed over, the CFC v1.2 proposal and the signed GATE A record: byte-identical.
+docs/emr/clerking-v2/exam/prototype/
+docs/emr/clerking-v2/exam/clerking-exam-catalogue.v1.json
+docs/emr/clerking-v2/cfc-v1.2-proposal.json
+docs/emr/clerking-v2/gate-a-proposal.md
 
 # The Summary/Impression pack as delivered (byte-identical to the catalogue build)
 docs/emr/clerking-v2/summary-impression/*.json
