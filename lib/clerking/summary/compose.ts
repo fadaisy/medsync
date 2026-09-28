@@ -3,7 +3,7 @@ import type { ExamContext } from "../exam/context";
 import type { Finding, FindingRef, StepTag, Viewer } from "../impression/facts";
 
 import REF from "@/data/clerking/summary-reference.v1.json";
-import { durationDays } from "../answers";
+import { durationDays, durationText } from "../answers";
 import { rosSystemsFor } from "../catalogue";
 import { cap, lc, list } from "../compose";
 import { acvpuOf, gcsTotal } from "../exam/scores";
@@ -40,7 +40,8 @@ export interface OneLiner {
   who: string | null;
   ageMissing: boolean;
   sexMissing: boolean;
-  onset: { band: OnsetBand; duration: string } | null;
+  /** duration: the adjective ("3-day"); words: as a chip says it ("3 days"). */
+  onset: { band: OnsetBand; duration: string; words: string } | null;
   /** The complaint's course label ("Getting worse"), or null: "Not recorded". */
   course: string | null;
   syndrome: string;
@@ -174,6 +175,7 @@ export function composeSummary(i: SummaryInput): SummaryView {
     ? {
         band: onsetBand(longest.d),
         duration: `${longest.c.duration!.value}-${UNIT[longest.c.duration!.unit]}`,
+        words: durationText(longest.c.duration),
       }
     : null;
   const courseOf = (c: (typeof complaints)[number]) => {
@@ -184,8 +186,9 @@ export function composeSummary(i: SummaryInput): SummaryView {
   const course = complaints.map(courseOf).find(Boolean) ?? null;
   const age = x.patient.ageYears;
   const noun = sex === "male" ? "man" : sex === "female" ? "woman" : "person";
+  // Background is what the patient has: a "no" answer is a pertinent negative, never background.
   const background = inc
-    .filter((f) => f.kind === "past" && f.ref !== ALLERGY_REF)
+    .filter((f) => f.kind === "past" && f.positive && f.ref !== ALLERGY_REF)
     .map((f) => lc(f.text));
   const meds = inc.filter((f) => f.kind === "medicine").map((f) => lc(f.text));
   const bg = [

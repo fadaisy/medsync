@@ -1,8 +1,19 @@
+import type { History, YesNo } from "../answers";
 import type { ExamContext } from "../exam/context";
 import type { Board, BoardRow } from "./board";
 import type { AskTarget, DxCatalogue } from "./catalogue";
 import type { StepTag, Viewer } from "./facts";
 
+import {
+  setAlcohol,
+  setFlag,
+  setRos,
+  setTobacco,
+  toggleEntry,
+  toggleIn,
+  updateComplaint,
+  updateRosDetail,
+} from "../answers";
 import { lc } from "../compose";
 import { entryOf } from "../exam/answers";
 import { symptomAnswer, symptomEntry } from "../exam/context";
@@ -243,4 +254,39 @@ export function asks(i: AskInput): AskRow[] {
   }
   // History first (in step order), then examination.
   return [...rows.values()].sort((a, b) => a.step.localeCompare(b.step));
+}
+
+/* ─── Answering in place (SI4: through the history step's own updaters) ─── */
+
+/** Write an answer to its owner: the history draft. Examination, vital, classifier and medicine
+ *  targets are never answered here (they navigate). */
+export function answerAsk(h: History, t: AskTarget, answer: YesNo | string): History {
+  switch (t.kind) {
+    case "symptom":
+      return setRos(h, t.id, answer as YesNo);
+    case "red_flag": {
+      const c = h.complaints.find((x) => x.symptom === t.symptom);
+      if (c) return updateComplaint(h, c.key, (e) => setFlag(e, t.red_flag, answer as YesNo));
+      if (h.ros[t.symptom] !== "yes") return setRos(h, t.symptom, answer as YesNo); // symptom first
+      return updateRosDetail(h, t.symptom, (e) => setFlag(e, t.red_flag, answer as YesNo));
+    }
+    case "past_condition":
+      return {
+        ...h,
+        past: { ...h.past, conditions: toggleEntry(h.past.conditions, t.id, answer as YesNo) },
+      };
+    case "family_condition":
+      return { ...h, family: toggleEntry(h.family, t.id, answer as YesNo) };
+    case "social": {
+      const s = h.social;
+      if (t.id === "tobacco") return { ...h, social: setTobacco(s, answer) };
+      if (t.id === "alcohol") return { ...h, social: setAlcohol(s, answer) };
+      if (t.id === "substances")
+        return { ...h, social: { ...s, substances: toggleIn(s.substances, answer, ["none"]) } };
+      const cur = (s as Record<string, unknown>)[t.id];
+      return { ...h, social: { ...s, [t.id]: cur === answer ? undefined : answer } };
+    }
+    default:
+      return h;
+  }
 }

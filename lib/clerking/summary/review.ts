@@ -28,6 +28,8 @@ export interface SummaryReview {
 export interface SummaryDraft {
   mode: SummaryMode;
   words?: string;
+  /** The composed text's hash when the clinician switched to their words ("Compare"). */
+  wordsBase?: string;
   syndrome?: string;
   include?: Record<FindingRef, boolean>;
   review?: SummaryReview;

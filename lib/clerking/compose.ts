@@ -21,6 +21,7 @@ export type BlockKey =
   | "fh"
   | "social"
   | "exam"
+  | "summary"
   | "impression"
   | "plan";
 
@@ -59,7 +60,7 @@ export interface ComposeInput {
     }[];
   };
   /** Examination, impression and plan, as the v1 section bodies write them. */
-  sectionText: Partial<Record<"exam" | "impression" | "plan", string>>;
+  sectionText: Partial<Record<"exam" | "summary" | "impression" | "plan", string>>;
   edited: Readonly<Record<string, string>>;
   audience: "clinical" | "patient";
 }
@@ -441,6 +442,7 @@ export function compose(i: ComposeInput): Block[] {
   });
 
   blocks.push({ key: "exam", head: "Examination", text: i.sectionText.exam ?? "" });
+  blocks.push({ key: "summary", head: "Summary", text: i.sectionText.summary ?? "" });
   blocks.push({ key: "impression", head: "Impression", text: i.sectionText.impression ?? "" });
   blocks.push({ key: "plan", head: "Plan", text: i.sectionText.plan ?? "" });
 
@@ -462,7 +464,7 @@ export const SECTION_BLOCK: Record<string, BlockKey> = {
   fh: "fh",
   social: "social",
   exam: "exam",
-  summary: "exam",
+  summary: "summary",
   impression: "impression",
   plan: "plan",
 };

@@ -163,6 +163,7 @@ const SummarySnapshotSchema = z.object({
 export const SummarySchema = z.object({
   mode: z.enum(["composed", "words"]),
   words: text(20_000).optional(),
+  wordsBase: text(40).optional(),
   syndrome: text(120).optional(),
   include: z.record(ref, z.boolean()).optional(),
   review: z.object({ ...stamp, inputsHash: text(40), snapshot: SummarySnapshotSchema }).optional(),

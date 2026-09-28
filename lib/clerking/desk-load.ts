@@ -17,6 +17,7 @@ import { asClinicalReader } from "@/lib/emr/db";
 import { loadAllergyInput } from "@/lib/emr/read/allergies";
 import { conceptForToken } from "@/lib/emr/write/notes";
 import { EXAM_CATALOGUE, EXAM_SIGNOFF } from "./exam/load";
+import { DX_CATALOGUE, DX_SIGNOFF } from "./impression/load";
 import { CLERKING_CATALOGUE, CLERKING_LEGACY, CLERKING_SIGNOFF, CLERKING_TOKEN_MAP } from "./load";
 import { readOutbreakMode } from "./outbreak";
 import { INFORMANT_TO_ALLERGY_SOURCE, MANIFESTATION_TO_REACTION } from "./record-map";
@@ -308,6 +309,17 @@ export async function clerkingData(i: {
     chartable: CHARTABLE,
     outbreakMode,
     canSeeRestricted: true, // the treating clinician, with an access basis (the desk's gate)
+    dx: {
+      catalogueUrl: `/api/clerking/dx-catalogue?v=${DX_SIGNOFF.catalogueSha256.slice(0, 16)}`,
+      catalogueVersion: DX_CATALOGUE.version,
+      signoff: {
+        profiles: DX_SIGNOFF.profiles,
+        rules: DX_SIGNOFF.rules,
+        referenceEntries: DX_SIGNOFF.referenceEntries,
+        namedScales: DX_SIGNOFF.namedScales,
+        withheld: DX_SIGNOFF.withheld,
+      },
+    },
     exam: {
       catalogueUrl: `/api/clerking/exam-catalogue?v=${EXAM_SIGNOFF.catalogueSha256.slice(0, 16)}`,
       catalogueVersion: EXAM_CATALOGUE.version,

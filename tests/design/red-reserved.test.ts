@@ -345,12 +345,14 @@ describe("red is reserved — clerking desk v2", () => {
 
   /**
    * Red in the new desk, and nowhere else: an urgent badge in the Flags panel (critical tint,
-   * octagon, "urgent" in its name) and a NEWS2 score of 3 on the rail (its badge, value and arrow,
-   * with the number). Each file keeps its red in named constants so the rule can be read here.
+   * octagon, "urgent" in its name) and a NEWS2 score of 3 on the rail and in the Summary's list
+   * (its value and arrow, with the number). Each file keeps its red in named constants so the rule can be read here.
    */
   const RED_ALLOWED: Record<string, readonly string[]> = {
     "components/clerking/flags-panel.tsx": ["URGENT"],
     "components/clerking/rail.tsx": ["SCORE3", "SCORE3_TEXT"],
+    // Step 08: a vital carried from the examination that scores 3 in NEWS2 (SI §10), as on the rail.
+    "components/clerking/summary/summary-step.tsx": ["SCORE3_TEXT"],
   };
 
   it("the allowlist is real — each file exists and paints red", () => {
@@ -387,6 +389,12 @@ describe("red is reserved — clerking desk v2", () => {
     expect(rail).toMatch(/three \? SCORE3 : SCORE12/);
     expect(rail).toMatch(/title=\{`NEWS2 score \$\{r\.points\}`\}/);
     expect(rail).toMatch(/const three = r\.points === 3;/);
+    const summary = readFileSync(
+      resolve(ROOT, "components/clerking/summary/summary-step.tsx"),
+      "utf8",
+    );
+    expect(summary).toMatch(/points === 3 \? SCORE3_TEXT : AMBER_TEXT/);
+    expect(summary).toMatch(/<Arrow aria-hidden/);
   });
 });
 

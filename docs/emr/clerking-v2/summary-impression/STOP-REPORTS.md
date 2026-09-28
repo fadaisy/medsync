@@ -191,3 +191,37 @@ See "disagreements" 1–2 above. NEWS2 comes from `scoreNews2` (`lib/triage/scor
 3. **"Dry mucous membranes"** is not in the examination catalogue (no such finding or option); fixture 1 records the rest. An examination-catalogue gap for the next addendum.
 4. **Examination clauses** are the examination composer's own ("cool or mottled, cool peripheries", "capillary refill delayed, time 3 seconds"), as SI4 requires; the summary does not rewrite them.
 5. **Chest pain (fixture 2):** DDX-BP-RAISED (a vital-sign rule) fires before DDX-CHEST-PAIN (a complaint rule), so hypertension leads the chips; within the first eight chips all four chest-pain must-not-miss diagnoses still appear. This is the signed ordering (D-SI-12).
+
+---
+
+## STOP 3: Summary (step 08, behind `CLERKING_V2`)
+
+**Built:**
+
+- `components/clerking/summary/summary-step.tsx`: the status pill in the step header ("Composed, not reviewed", "Reviewed by you", "Changed since review"); "Changed since your review at HH:MM" with Added, Left out and Edited; the one-liner (Who, Onset from `REF-SI-ONSET`, Course or a dashed "Not recorded" that opens the complaint, the syndrome in the clinician's words, at most 120 characters); Composed or In my words (the first switch copies the composed text; "Compare" when the composed text has moved on; an old s12 narrative opens here with "Continue in the composed format"); the paragraph with mono step tags that open the inspector under it (its tickboxes are the same inclusion state); What goes in (three columns, "n of m", the allergy row locked "always in"); Not asked yet (answered in place through the history step's own updaters, examination targets open the examination at the item); Not recorded, so not stated; Reset to composed; Mark as reviewed / Review again (`r` on this step).
+- `components/clerking/si-model.ts`: the drafts' `summary` and `impression` sections, the visit's diagnoses as the board reads them, and the review state (pure).
+- The note: a Summary block between Examination and Impression, highlighted on step 08; the old "Summary: …" line has left the examination block. A signed note shows its signed summary text (or its old narrative), never a recomposition.
+- The section bar: "Composed", "Reviewed" or "Changed" on step 08; "Not reviewed", "Reviewed" or "Changed" elsewhere. "Auto" is gone.
+- The desk payload gains the diagnosis catalogue's URL and sign-off; the client fetches it once, like the other two.
+- A development-only fixture route, `/styleguide/clerking-si/[screen]` (off unless `MEDSYNC_FIXTURES=1`; synthetic Patient Three-3; no database), for screenshots and axe (D-SI-29).
+
+**Checks**
+
+| Check                                     | Result                                                                                                                                                                                                                               |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| S-1 tests (`summary-impression-baseline`) | 3 of 3 now pass (were `it.fails`)                                                                                                                                                                                                    |
+| Step 08 interaction tests (jsdom)         | 6 of 6: composed on screen and in the note; reviewed in 1 tap; any change invalidates and lists it; allergy locked; the syndrome is the clinician's; Not asked yet writes `ros`; an old narrative opens in In my words with no write |
+| Review-invalidation matrix (engine)       | inclusion, syndrome, mode and words each flip Reviewed to Changed; no change keeps it; the diff is exact                                                                                                                             |
+| Red scarcity                              | extended: step 08 may paint red only for a vital scoring 3 in NEWS2, in one named constant, with its arrow (as the rail)                                                                                                             |
+| axe (1440 light, 1440 dark, 390 light)    | 0 violations after renaming a duplicate region name (one moderate, fixed)                                                                                                                                                            |
+| Page scroll at 1440×900                   | none; the centre card scrolls inside its column                                                                                                                                                                                      |
+| Tap budget, review a composed summary     | 1                                                                                                                                                                                                                                    |
+| Flag off                                  | unchanged: the v1 desk renders from `components/emr/desk`, which this phase does not touch; its UI tests pass (`tests/emr/ui`)                                                                                                       |
+
+**Screenshots:** `screens/08-summary-1440-light.png`, `08-summary-1440-dark.png`, `08-summary-390-light.png`. They are compared against the written specification; Prototype 2 was not received.
+
+**Notes**
+
+- The screenshots found and fixed one defect: a "no" answer named by a diagnosis reached the one-liner's background ("with hypertension and no diabetes"); background now takes only what the patient has.
+- The inspector stays inline on the phone rather than becoming a bottom sheet: it already sits under the paragraph and never covers it (C8, ADR 0161).
+- The cloud environment holds real Supabase credentials. The dev server for screenshots ran with them replaced by dead local values, so nothing touched the project.

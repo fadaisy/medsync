@@ -6,6 +6,7 @@ import type { SaveSet } from "./exam/model";
 import type { HistoryBodyProps } from "./history-sections";
 import type { Derived, VitalsView } from "./model";
 import type { PastHistoryHandlers } from "./past-history-body";
+import type { DxData } from "./use-catalogue";
 import type { DeskViewHandlers, DeskViewProps } from "@/components/emr/desk/desk-view";
 import type { DeskPayload } from "@/components/emr/desk/model";
 import type { SectionCtx } from "@/components/emr/desk/sections";
@@ -16,6 +17,7 @@ import type { ExamCatalogue } from "@/lib/clerking/exam/catalogue";
 import type { ExamDraft } from "@/lib/clerking/exam/payload";
 import type { DeskSection } from "@/lib/clerking/flags";
 import type { SectionId, SectionStatus } from "@/lib/clerking/status";
+import type { SummaryDraft } from "@/lib/clerking/summary/review";
 import type { NoteContent } from "@/lib/emr/note-rules";
 import type { ReactNode } from "react";
 import { Fragment, useEffect, useRef, useState } from "react";
@@ -61,6 +63,8 @@ import {
   useScrolledPast,
 } from "./phone-shell";
 import { ClerkingRail } from "./rail";
+import { summaryDraftOf, withSummary } from "./si-model";
+import { SummaryStatusPill, SummaryStep } from "./summary/summary-step";
 import { SystemsBody } from "./systems-body";
 
 /**
@@ -80,6 +84,9 @@ export interface ClerkingDeskProps {
   catalogueFailed?: boolean;
   /** The examination catalogue (null while it loads). */
   ecat?: ExamCatalogue | null;
+  /** The diagnosis reasoning catalogue and its term map (null while it loads). */
+  dx?: DxData | null;
+  dxFailed?: boolean;
   /** "Save as a new set" (one batch through recordObservations). */
   onSaveSet?: SaveSet;
   /** Who is signed in (the intimate gate's record). */
@@ -434,8 +441,27 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
 
   const [examPlace, setExamPlace] = useState<ExamPlace>(props.examPlace ?? { system: VITALS });
   const derived: Derived | null = cat
-    ? deriveDesk(cat, p, view, props.ecat ?? null, fmt.time)
+    ? deriveDesk(cat, p, view, props.ecat ?? null, fmt.time, props.dx ?? null)
     : null;
+  const si = derived?.si ?? null;
+  // Step 08 on screen says what it is doing: Composed, Reviewed or Changed (§5.1).
+  const statuses =
+    derived && si && props.current === "summary"
+      ? {
+          ...derived.statuses,
+          summary: {
+            ...derived.statuses.summary,
+            text:
+              si.review === "reviewed"
+                ? "Reviewed"
+                : si.review === "changed"
+                  ? "Changed"
+                  : "Composed",
+          },
+        }
+      : (derived?.statuses ?? null);
+  const onSummary = (fn: (d: SummaryDraft) => SummaryDraft) =>
+    on.onContent?.(withSummary(content, fn(summaryDraftOf(content)), k.catalogueVersion));
   const onExam = (fn: (d: ExamDraft) => ExamDraft) =>
     on.onContent?.(
       withExam(content, fn(examOf(content, props.ecat?.version ?? "")), k.catalogueVersion),
@@ -454,6 +480,12 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
     setDialog(null);
     if (id !== "complaint") setOpenComplaint(null);
     on.onSection?.(id);
+  };
+  /** Open an owner step; an examination item opens where it sits (Not asked yet, §5.2). */
+  const goTo = (id: string, item?: string) => {
+    const at = item ? derived?.exam?.ecat.placeOf(item) : undefined;
+    if (at) setExamPlace({ system: at.system.id, part: at.part.id });
+    go(id);
   };
 
   const history = historyOf(view);
@@ -490,6 +522,28 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
   };
 
   const body = (() => {
+    if (cur.id === "summary") {
+      if (!si)
+        return (
+          <p role="status" className="text-body-s text-muted-foreground">
+            {props.catalogueFailed
+              ? "The clerking catalogue did not load. Reload the page to try again."
+              : "Composing the summary…"}
+          </p>
+        );
+      return (
+        <SummaryStep
+          si={si}
+          editable={editable}
+          actor={props.actor ?? "clinician"}
+          time={fmt.time}
+          dxLoading={!props.dx && !props.dxFailed}
+          onSummary={onSummary}
+          onHistory={onHistory}
+          onGo={goTo}
+        />
+      );
+    }
     if (cur.id === "exam" && !previousFormat(view)) {
       if (!derived?.exam)
         return (
@@ -754,7 +808,7 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
         onNote={() => setDialog("note")}
       />
       <SectionBar
-        statuses={derived?.statuses ?? null}
+        statuses={statuses}
         current={cur.id}
         done={derived?.done ?? null}
         onSection={go}
@@ -846,10 +900,15 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
                     {BLURB[cur.id]}
                   </p>
                 </div>
-                {/* One step label on the phone: the step bar's (§3 rule 3). */}
-                <span className="text-caption text-muted-foreground shrink-0 pt-1 font-mono whitespace-nowrap tabular-nums max-sm:hidden">
-                  {`Step ${at + 1} of ${SECTIONS.length}`}
-                </span>
+                <div className="flex shrink-0 items-center gap-3 pt-0.5">
+                  {cur.id === "summary" && si ? (
+                    <SummaryStatusPill si={si} time={fmt.time} />
+                  ) : null}
+                  {/* One step label on the phone: the step bar's (§3 rule 3). */}
+                  <span className="text-caption text-muted-foreground font-mono whitespace-nowrap tabular-nums max-sm:hidden">
+                    {`Step ${at + 1} of ${SECTIONS.length}`}
+                  </span>
+                </div>
               </header>
               <div className="px-5 py-5 max-sm:p-0">{body}</div>
             </section>

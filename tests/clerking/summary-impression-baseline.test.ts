@@ -7,8 +7,8 @@ import { sectionStatuses } from "@/lib/clerking/status";
 import { allergies, cat, header, medicines, patient, patientThree3 } from "./fixtures";
 
 /**
- * PROMPT-CLERKING-SUMMARY-IMPRESSION §3, the defects found in production (28 Sep 2026), as tests
- * that fail today (`it.fails`). Each flips to `it` in the phase that fixes it.
+ * PROMPT-CLERKING-SUMMARY-IMPRESSION §3, the defects found in production (28 Sep 2026). They
+ * failed at Phase 0 (`it.fails`) and pass since Phase 3 fixed them.
  */
 
 const blocks = (h: History) =>
@@ -20,23 +20,23 @@ const blocks = (h: History) =>
     patient,
     medicines,
     allergies,
-    sectionText: { exam: "Temperature 32.5 °C." },
+    sectionText: { exam: "Temperature 32.5 °C.", summary: "A 76-year-old man." },
     edited: {},
     audience: "clinical",
   });
 
 describe("S-1: the Summary step composes nothing", () => {
-  it.fails("the note has a Summary block between Examination and Impression", () => {
+  it("the note has a Summary block between Examination and Impression", () => {
     const keys: string[] = blocks(patientThree3()).map((b) => b.key);
     expect(keys).toContain("summary");
     expect(keys.indexOf("summary")).toBe(keys.indexOf("exam") + 1);
   });
 
-  it.fails("Summary highlights its own block, not the examination's", () => {
+  it("Summary highlights its own block, not the examination's", () => {
     expect(SECTION_BLOCK.summary as string).toBe("summary");
   });
 
-  it.fails("the section bar does not claim 'Auto' when nothing is composed", () => {
+  it("the section bar does not claim 'Auto' when nothing is composed", () => {
     const h = patientThree3();
     const s = sectionStatuses({
       cat,

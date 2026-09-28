@@ -27,7 +27,11 @@ import {
   v2CommittedWords,
   withConditionOnList,
 } from "@/components/clerking/model";
-import { useCatalogue, useExamCatalogue } from "@/components/clerking/use-catalogue";
+import {
+  useCatalogue,
+  useDxCatalogue,
+  useExamCatalogue,
+} from "@/components/clerking/use-catalogue";
 import { AllergyEditorView, substanceOf } from "@/components/emr/desk/allergy-editor";
 import { CompleteVisitView } from "@/components/emr/desk/complete";
 import { ContextRailView } from "@/components/emr/desk/context-rail";
@@ -136,6 +140,7 @@ export function DeskClient({
   const v2 = !!p.clerking;
   const { cat, failed: catalogueFailed } = useCatalogue(p.clerking?.catalogueUrl);
   const { cat: ecat, failed: examFailed } = useExamCatalogue(p.clerking?.exam.catalogueUrl);
+  const { cat: dx, failed: dxFailed } = useDxCatalogue(p.clerking?.dx?.catalogueUrl);
   const [current, setCurrent] = useState(() => (v2 ? SECTIONS[0].id : (index[0]?.id ?? "")));
   const [announce, setAnnounce] = useState<Msg>(null);
   const [busy, setBusy] = useState<string | null>(null);
@@ -919,6 +924,8 @@ export function DeskClient({
           cat={cat}
           catalogueFailed={catalogueFailed || examFailed}
           ecat={ecat}
+          dx={dx}
+          dxFailed={dxFailed}
           actor={p.viewer.cadreWord}
           onSaveSet={(lines, readingSetId, fields) => {
             const send = () =>
