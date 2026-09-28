@@ -1246,7 +1246,8 @@ export async function confirmCurrentMedicines(
     clientKey: string;
     items: {
       id: string;
-      reconciliation: "continued" | "stopped" | "changed";
+      /** `held` (migration 0088, ADR 0186): kept, not given this admission; needs a reason. */
+      reconciliation: "continued" | "stopped" | "changed" | "held";
       reasonCode?: string;
       reasonText?: string;
     }[];
@@ -1265,6 +1266,8 @@ export async function confirmCurrentMedicines(
     }
     if (item.reconciliation === "stopped")
       requireReason(item.reasonCode, item.reasonText, "stop a medicine");
+    if (item.reconciliation === "held")
+      requireReason(item.reasonCode, item.reasonText, "hold a medicine");
     const prev = await currentVersion(ctx, "medication", item.id, input.patientUserId);
     ids.push(
       await insertNextVersion(
@@ -1280,7 +1283,9 @@ export async function confirmCurrentMedicines(
                 medicationStatus: "stopped" as const,
                 periodEnd: ctx.now.toISOString().slice(0, 10),
               }
-            : {}),
+            : item.reconciliation === "held"
+              ? { medicationStatus: "on_hold" as const }
+              : {}),
           ...reasonCols(item.reasonCode, item.reasonText),
         },
         clientKey,

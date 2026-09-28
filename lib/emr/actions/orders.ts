@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 
+import { ORDER_FREQUENCIES, ORDER_PRIORITIES } from "@/lib/emr/orders";
 import * as orders from "@/lib/emr/write/orders";
 import { runEmrWrite } from "@/lib/emr/write/orders";
 import * as specimens from "@/lib/emr/write/specimens";
@@ -20,7 +21,8 @@ const base = { surface, patientUserId: uuid };
 const OrderLine = z.object({
   clientKey,
   testId: uuid,
-  priority: z.enum(["routine", "urgent", "immediate"]),
+  priority: z.enum(ORDER_PRIORITIES),
+  frequency: z.enum(ORDER_FREQUENCIES).optional(),
   reasonConditionIds: z.array(uuid).max(10).optional(),
   reasonText: z.string().trim().max(500).optional(),
 });

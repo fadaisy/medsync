@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { ExamSchema } from "./exam/payload";
+import { PlanSchema } from "./plan/draft";
 
 /**
  * Payload v2 at the trust boundary (saveNoteDraft): the shape of lib/clerking/answers `History`,
@@ -219,4 +220,6 @@ export const ContentV2Keys = {
   summary: SummarySchema.optional(),
   /** Step 09, the reasoning around the visit's diagnoses (the diagnoses stay conditions rows). */
   impression: ImpressionSchema.optional(),
+  /** Step 10, the Plan by problem (ADR 0184); placed items live in the record. */
+  plan: PlanSchema.optional(),
 };

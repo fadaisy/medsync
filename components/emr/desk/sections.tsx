@@ -83,6 +83,7 @@ export interface SectionHandlers {
     id: string,
     answer: Exclude<MedicineAnswer, "pending">,
     reasonCode?: string,
+    reasonText?: string,
   ) => void | Promise<boolean>;
   onAddMedicine?: (text: string) => void;
   onVitals?: (entries: VitalEntry[]) => void;
@@ -453,6 +454,7 @@ const MED_WORDS: Record<Exclude<MedicineAnswer, "pending">, string> = {
   continued: "Continued",
   stopped: "Stopped",
   changed: "Changed",
+  held: "Held",
 };
 
 function MedicinesBody({ ctx }: { ctx: SectionCtx }) {

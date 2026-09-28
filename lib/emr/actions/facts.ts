@@ -189,7 +189,7 @@ const ConfirmCurrentMedicines = z.object({
     .array(
       z.object({
         id: uuid,
-        reconciliation: z.enum(["continued", "stopped", "changed"]),
+        reconciliation: z.enum(["continued", "stopped", "changed", "held"]),
         ...reason,
       }),
     )

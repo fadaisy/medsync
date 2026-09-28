@@ -72,6 +72,11 @@ export const TEST_UUIDS: Readonly<Record<string, string>> = Object.fromEntries(
   TEST_MENU.tests.map((t) => [t.id, uuidV5(`test_catalogue:${t.id}`)]),
 );
 
+/** Test id → specimen type (the default menu), for the Plan's test rows. */
+export const TEST_SPECIMENS: Readonly<Record<string, string>> = Object.fromEntries(
+  TEST_MENU.tests.flatMap((t) => (t.specimenType ? [[t.id, t.specimenType]] : [])),
+);
+
 /** What `/api/clerking/dx-catalogue` serves: the catalogue as signed, the term map and names. */
 export const DX_SERVED = {
   catalogue: raw,
@@ -79,4 +84,5 @@ export const DX_SERVED = {
   names: DX_NAMES,
   tests: TEST_NAMES,
   testIds: TEST_UUIDS,
+  specimens: TEST_SPECIMENS,
 };

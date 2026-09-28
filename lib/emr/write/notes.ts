@@ -33,7 +33,9 @@ import { DX_INDEX, DX_SIGNOFF } from "@/lib/clerking/impression/load";
 import { impressionSignBlocks } from "@/lib/clerking/impression/sign";
 import { linkedAnswers } from "@/lib/clerking/linkage";
 import { CLERKING_CATALOGUE, CLERKING_LEGACY, CLERKING_TOKEN_MAP } from "@/lib/clerking/load";
+import { planSignBlocks } from "@/lib/clerking/plan/sign";
 import { isOpen } from "@/lib/emr/encounter";
+import { clerkingPlanV2LiveFor } from "@/lib/emr/feature";
 import {
   applyNoteEvent,
   getTemplate,
@@ -451,6 +453,11 @@ export async function signNote(ctx: WriteCtx, input: SignNoteInput): Promise<Wri
       ...content,
       impression: { ...content.impression, snapshot: signingSnapshot(dx) },
     };
+  }
+  // ADR 0184 §5: where the Plan by problem is on, signing waits for "plan done".
+  if (content.schema === 2 && clerkingPlanV2LiveFor(note.hospitalId)) {
+    const blocks = planSignBlocks(content.plan);
+    if (blocks.length) throw invalid(`Not ready to sign: ${blocks.join("; ")}.`);
   }
   const signCtx: SignContext = {
     allergyStatus: (await loadAllergyInput(ctx.tx, input.patientUserId)).status.kind,

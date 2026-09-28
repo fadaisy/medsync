@@ -1,6 +1,7 @@
 "use client";
 
 import type { ImpressionHandlers } from "@/components/clerking/impression/impression-step";
+import type { PlacePlanRequest, PlanHandlers } from "@/components/clerking/plan/plan-step";
 import type { DeskDiagnosis, DeskPayload } from "@/components/emr/desk/model";
 import type { DxPick } from "@/components/emr/desk/pickers";
 import type { DxOptions } from "@/components/emr/desk/sections";
@@ -14,6 +15,9 @@ import {
   useExamCatalogue,
 } from "@/components/clerking/use-catalogue";
 import { syncRecorded } from "@/components/emr/desk/model";
+import { chartsToOpen } from "@/lib/emr/charts/rules";
+import { drugById } from "@/lib/prescribing/formulary";
+import { willRead } from "@/lib/prescribing/plan-rx";
 
 /**
  * The desk over local state: every write stays in the page (a fixture, D-SI-29). Diagnoses and
@@ -25,6 +29,7 @@ export function FixtureDesk({ p, step }: { p: DeskPayload; step: string }) {
   const [current, setCurrent] = useState(step);
   const [diagnoses, setDiagnoses] = useState<DeskDiagnosis[]>(p.diagnoses);
   const [orders, setOrders] = useState(p.orders);
+  const [plan, setPlan] = useState(p.plan);
   const seq = useRef(10);
   const { cat } = useCatalogue(p.clerking?.catalogueUrl);
   const { cat: ecat } = useExamCatalogue(p.clerking?.exam.catalogueUrl);
@@ -58,7 +63,100 @@ export function FixtureDesk({ p, step }: { p: DeskPayload; step: string }) {
       row,
     ]);
   };
-  const on: ImpressionHandlers & { onContent: typeof setContent; onSection: typeof setCurrent } = {
+  // Step 10 (ADR 0184): placing moves the basket into the record, as the server would.
+  const clock = "2026-09-27T20:16:00.000Z";
+  const onPlacePlan = async (r: PlacePlanRequest) => {
+    setPlan((x) =>
+      x
+        ? {
+            ...x,
+            record: {
+              ...x.record,
+              orders: [
+                ...x.record.orders,
+                ...r.orders.map((o) => ({
+                  id: nextId(),
+                  display: o.display,
+                  testKey: o.testKey,
+                  testId: o.testId,
+                  priority: o.priority,
+                  frequency: o.frequency,
+                  reasonConditionIds: o.reasonConditionIds,
+                  at: clock,
+                  statusText: o.testKey === "test.ecg" ? "To do" : "To collect",
+                  open: true,
+                })),
+              ],
+              prescriptions: [
+                ...x.record.prescriptions,
+                ...r.prescriptions.map((rx) => {
+                  const drug = drugById(rx.drugId)!;
+                  return {
+                    id: nextId(),
+                    drugId: rx.drugId,
+                    drugName: drug.generic,
+                    display: willRead(rx, drug),
+                    conditionId: rx.conditionId,
+                    kind: rx.kind,
+                    state: "active",
+                    awaitingCosign: drug.flags.controlled,
+                    cosignWithheld: false,
+                    answered: [],
+                    edits: [],
+                    at: clock,
+                  };
+                }),
+              ],
+              charts: [
+                ...x.record.charts,
+                ...chartsToOpen({
+                  observationFrequency: r.observationFrequency,
+                  problems: [],
+                  items: r.prescriptions.map((rx) => ({
+                    type: "prescription" as const,
+                    id: rx.clientKey,
+                    drugId: rx.drugId,
+                    classId: drugById(rx.drugId)?.class ?? "",
+                    kind: rx.kind,
+                    label: drugById(rx.drugId)?.generic ?? rx.drugId,
+                  })),
+                  news2AtClerking: null,
+                })
+                  .filter((o) => !x.record.charts.some((c) => c.kind === o.kind))
+                  .map((o) => ({
+                    id: nextId(),
+                    kind: o.kind,
+                    frequency: o.frequency,
+                    measureUrine: r.measureUrine,
+                    openedByLabel: o.label,
+                  })),
+              ],
+            },
+          }
+        : x,
+    );
+    return true;
+  };
+  const on: ImpressionHandlers &
+    Omit<PlanHandlers, "onMedicine"> & {
+      onContent: typeof setContent;
+      onSection: typeof setCurrent;
+      onMedicine: (id: string, answer: "continued" | "stopped" | "changed" | "held") => void;
+    } = {
+    onPlacePlan,
+    onSyncCharts: async () => true,
+    onMedicine: (id, answer) =>
+      setPlan((x) =>
+        x
+          ? {
+              ...x,
+              record: {
+                ...x.record,
+                medicines: x.record.medicines.map((m) => (m.id === id ? { ...m, answer } : m)),
+              },
+            }
+          : x,
+      ),
     onContent: setContent,
     onSection: setCurrent,
     onDiagnosis,
@@ -97,7 +195,10 @@ export function FixtureDesk({ p, step }: { p: DeskPayload; step: string }) {
   };
 
   // The note mirrors what is recorded, as the live desk does after each refresh.
-  const payload = useMemo(() => ({ ...p, diagnoses, orders }), [p, diagnoses, orders]);
+  const payload = useMemo(
+    () => ({ ...p, diagnoses, orders, ...(plan ? { plan } : {}) }),
+    [p, diagnoses, orders, plan],
+  );
   const shown = useMemo(() => syncRecorded(content, payload), [content, payload]);
 
   return (
