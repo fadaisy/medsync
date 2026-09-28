@@ -467,6 +467,7 @@ export const RECORD_KEYS = [
   "encounter_orders",
   "encounter_diagnoses",
   "encounter_results",
+  "medication_administration_records",
 ] as const;
 export type RecordKey = (typeof RECORD_KEYS)[number];
 /** Row ids per table/view; encounter_orders is [events order, legacy order]. */
@@ -610,6 +611,12 @@ export async function seedRecord(
     `INSERT INTO public.encounter_results (order_id, value) VALUES ($1, '5.0') RETURNING id`,
     [legacyOrder],
   );
+  // 0089 gives the MAR (0031) a reader policy: one administration row.
+  const mar = await id(
+    `INSERT INTO public.medication_administration_records (hospital_id, patient_user_id, encounter_id,
+       administered_by_user_id, drug_name, dose, route, state)
+     VALUES ($1, $2, $3, $4, 'lane drug', '1 mg', 'oral', 'administered') RETURNING id`,
+  );
   // 0089: the chart registry and one fluid entry (urine, not measured: no volume, never 0).
   const chart = await id(
     `INSERT INTO public.monitoring_charts (hospital_id, patient_user_id, encounter_id, kind, opened_by, opened_by_user_id)
@@ -651,5 +658,6 @@ export async function seedRecord(
     encounter_orders: [order, legacyOrder],
     encounter_diagnoses: [diagnosis],
     encounter_results: [result],
+    medication_administration_records: [mar],
   };
 }

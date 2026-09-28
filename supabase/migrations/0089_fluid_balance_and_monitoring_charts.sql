@@ -12,6 +12,9 @@
 --      Closing and a changed frequency are updates, kept by the audit trigger; a row is never deleted.
 --   3. both: RLS forced, the clinical reader's scoped SELECT, writes revoked from anon and
 --      authenticated (the server writes as the owner, as every EMR table), audit triggers.
+--   4. medication_administration_records (0031) gains the clinical reader's scoped SELECT, as 0071
+--      gave the legacy clinical tables, so the MAR chart reads it under RLS. Its 0031 policies for
+--      authenticated are untouched.
 --
 -- Re-runnable: CREATE TABLE / INDEX IF NOT EXISTS, DROP-then-CREATE for triggers and policies.
 --
@@ -124,3 +127,11 @@ CREATE POLICY monitoring_charts_select_clinical ON public.monitoring_charts FOR 
          AND patient_user_id IN (SELECT private.accessible_patient_ids()));
 REVOKE INSERT, UPDATE, DELETE, TRUNCATE ON public.monitoring_charts FROM anon, authenticated;
 GRANT SELECT ON public.monitoring_charts TO medsync_clinical_reader;
+
+
+-- ─── 4. the MAR, for the clinical reader ─────────────────────────────
+DROP POLICY IF EXISTS mar_select_clinical ON public.medication_administration_records;
+CREATE POLICY mar_select_clinical ON public.medication_administration_records FOR SELECT TO medsync_clinical_reader
+  USING (hospital_id = (SELECT private.current_hospital_id())
+         AND patient_user_id IN (SELECT private.accessible_patient_ids()));
+GRANT SELECT ON public.medication_administration_records TO medsync_clinical_reader;

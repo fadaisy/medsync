@@ -115,7 +115,10 @@ export function composePlanLines(i: ComposeInput): string[] {
   const basket = basketOf(plan);
   cards.forEach((c, n) => {
     const parts: string[] = [];
-    const ordered = record.orders.filter((o) => o.reasonConditionIds.includes(c.versionId));
+    const linked = new Set(plan.problems?.[c.logicalId]?.linked ?? []);
+    const ordered = record.orders.filter(
+      (o) => o.reasonConditionIds.includes(c.versionId) || linked.has(o.id),
+    );
     const notYet = basket.orders.filter((o) => o.reasonConditionIds.includes(c.versionId));
     if (ordered.length) parts.push(`ordered ${ordered.map(orderWords).join(", ")}`);
     if (notYet.length) parts.push(`not yet ordered ${notYet.map(orderWords).join(", ")}`);

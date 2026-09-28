@@ -20,8 +20,9 @@ export function EditorDialog({
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** `wide` seats three columns; `medium` two. */
-  width?: "wide" | "medium";
+  /** `wide` seats three columns; `medium` two; `xl` (about 1240 px) the prescribing dialog's
+   *  three working columns (ADR 0186). */
+  width?: "xl" | "wide" | "medium";
   /** A `DialogTrigger`, so the opener carries the dialog's ARIA and gets focus back on close. */
   trigger?: ReactNode;
   className?: string;
@@ -35,7 +36,11 @@ export function EditorDialog({
         className={cn(
           // The editor is one flex column: header, a body that scrolls, footer.
           "flex max-h-[88svh] flex-col gap-0 overflow-hidden p-0",
-          width === "wide" ? "sm:max-w-5xl" : "sm:max-w-3xl",
+          width === "xl"
+            ? "sm:max-h-[min(800px,92svh)] sm:max-w-[min(1240px,calc(100vw-2rem))]"
+            : width === "wide"
+              ? "sm:max-w-5xl"
+              : "sm:max-w-3xl",
           className,
         )}
       >

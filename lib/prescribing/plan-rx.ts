@@ -179,7 +179,8 @@ export function willRead(rx: PlanRx, drug: Pick<Drug, "generic">): string {
     return `${parts.join(" ")}, ${tail.filter(Boolean).join(", ")}${rx.start === "next_round" ? ", from the next round" : ""}`;
   }
   const dose = rx.doseNum != null ? `${num(rx.doseNum)} ${rx.unit}` : `[dose] ${rx.unit}`;
-  const strength = rx.strength ? ` of ${rx.strength}` : "";
+  // "Glucose 10% 150 mL", not "… of 10%" when the name already carries the strength.
+  const strength = rx.strength && !drug.generic.includes(rx.strength) ? ` of ${rx.strength}` : "";
   const how = [
     rx.method ? rx.method.toLowerCase() : null,
     rx.infusionOver ? `over ${rx.infusionOver}` : null,

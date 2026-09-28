@@ -48,6 +48,18 @@ export const SPECIMEN_WORD: Record<string, string> = {
   sputum: "Sputum",
 };
 
+const WORD_CASE: Record<string, string> = { crag: "CrAg" };
+
+/** A test not on the default menu has no display name: its id in words ("test.ct_head" → "CT head"). */
+export function testWords(key: string): string {
+  const w = key
+    .replace(/^test\./, "")
+    .split("_")
+    .map((t) => WORD_CASE[t] ?? (t.length <= 3 ? t.toUpperCase() : t));
+  const out = w.join(" ");
+  return out.charAt(0).toUpperCase() + out.slice(1);
+}
+
 function card(row: BoardRow, marker: string, tests: TestIndex): ProblemCard {
   const profile = row.profile;
   const link = profile ? diagnosisLink(profile.id) : undefined;
@@ -62,7 +74,7 @@ function card(row: BoardRow, marker: string, tests: TestIndex): ProblemCard {
     timeCritical: row.timeCritical,
     tests: (profile?.tests_to_decide ?? []).map((key) => ({
       key,
-      display: tests.names[key] ?? key,
+      display: tests.names[key] ?? testWords(key),
       specimen: tests.specimens?.[key] ? (SPECIMEN_WORD[tests.specimens[key]!] ?? null) : null,
       testId: tests.uuids[key] ?? null,
     })),

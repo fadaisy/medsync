@@ -7,10 +7,12 @@ import type {
   MedicineAdd,
   MedicinePatch,
 } from "@/components/clerking/past-history-body";
+import type { PlacePlanRequest } from "@/components/clerking/plan/plan-step";
 import type { DeskPayload } from "@/components/emr/desk/model";
 import type { DxPick } from "@/components/emr/desk/pickers";
 import type { DxOptions, VitalEntry } from "@/components/emr/desk/sections";
 import type { BoardRow } from "@/lib/clerking/impression/board";
+import type { ObsFrequency } from "@/lib/emr/charts/rules";
 import type { NoteContent } from "@/lib/emr/note-rules";
 import type { ActionResult } from "@/lib/emr/write/context";
 import type { CaptureMap } from "@/lib/ncd/engine/evaluate";
@@ -101,6 +103,7 @@ import {
   signNote,
 } from "@/lib/emr/actions/notes";
 import { placeOrders } from "@/lib/emr/actions/orders";
+import { placePlan, syncPlanCharts } from "@/lib/emr/actions/plan";
 import { clockWarning, correctedNow, initialClock, observe } from "@/lib/emr/sync/clock";
 import { attachToWindow, createWriteQueue } from "@/lib/emr/sync/queue";
 import { deskFindingIndex, deskTermIndex, deskTermSearch } from "./actions";
@@ -320,6 +323,10 @@ export function DeskClient({
                 text: text("impression") ?? "",
               },
             }
+          : {}),
+        // ADR 0184: the Plan block as composed goes into the note with it.
+        ...(d.plan
+          ? { plan: { ...(contentRef.current.plan ?? {}), text: text("plan") ?? "" } }
           : {}),
       });
     }
@@ -791,6 +798,7 @@ export function DeskClient({
                 clientKey: `${clientKey}:1`,
                 testId: uuid,
                 priority: "routine",
+                frequency: "once",
                 reasonConditionIds: [row.dx.versionId],
               },
             ],
@@ -798,6 +806,21 @@ export function DeskClient({
         "Added to the plan",
       );
     },
+    // Step 10 by problem (ADR 0184): the basket in one action; the charts the plan opens.
+    onPlacePlan: (r: PlacePlanRequest) =>
+      run(
+        "plan:place",
+        () => placePlan({ ...base, encounterId, ...r }),
+        `Placed ${r.orders.length} ${r.orders.length === 1 ? "order" : "orders"} and ${r.prescriptions.length} ${r.prescriptions.length === 1 ? "prescription" : "prescriptions"}`,
+        r,
+      ).then((x) => x.ok),
+    onSyncCharts: (r: { observationFrequency: ObsFrequency | null; measureUrine: boolean }) =>
+      run(
+        "plan:charts",
+        () => syncPlanCharts({ ...base, encounterId, ...r }),
+        "Monitoring charts updated",
+        r,
+      ).then((x) => x.ok),
     onSuggestion: (key: string, a: { accept: string } | { dismiss: true }) => {
       const s = p.suggestions.find((x) => x.key === key);
       if (s?.source === "resus_handover") {

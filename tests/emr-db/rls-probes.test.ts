@@ -80,6 +80,8 @@ const EVOLVED = [
   "encounter_orders",
   "encounter_diagnoses",
   "encounter_results",
+  // 0089: the MAR chart reads it under RLS (ADR 0189)
+  "medication_administration_records",
 ];
 /** STOP 1: readable with a basis at the reader's own hospital, wherever the row was recorded. */
 const CROSS_HOSPITAL = new Set(["allergies", "allergy_status_assertions", "allergies_current"]);

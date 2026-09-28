@@ -42,8 +42,9 @@ export function problemAddressed(
 ): { test: boolean; care: boolean; treatment: boolean } {
   const basket = basketOf(plan);
   const id = card.versionId;
+  const linked = new Set(plan.problems?.[card.logicalId]?.linked ?? []);
   const test =
-    record.orders.some((o) => o.reasonConditionIds.includes(id)) ||
+    record.orders.some((o) => o.reasonConditionIds.includes(id) || linked.has(o.id)) ||
     basket.orders.some((o) => o.reasonConditionIds.includes(id));
   const treatment =
     record.prescriptions.some((r) => standing(r) && r.conditionId === id) ||

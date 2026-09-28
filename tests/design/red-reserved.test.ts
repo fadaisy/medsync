@@ -300,7 +300,12 @@ describe("red is reserved — the EMR chart and printouts", () => {
    * always beside the word. Awaiting acknowledgement, not recorded and offline are amber; Died and
    * record states are neutral words.
    */
-  const RED_ALLOWED: readonly string[] = ["components/emr/status-word.tsx"];
+  const RED_ALLOWED: readonly string[] = [
+    "components/emr/status-word.tsx",
+    // ADR 0189: the NEWS2 graph's 7+ emergency-response band (RCP 2017, CO-NEWS-01), always with
+    // its label; the red lives in two named constants.
+    "components/emr/chart/graphs/news2-graph.tsx",
+  ];
 
   it("the allowlist is real — the file exists and paints red", () => {
     for (const p of RED_ALLOWED)
@@ -353,6 +358,8 @@ describe("red is reserved — clerking desk v2", () => {
     "components/clerking/rail.tsx": ["SCORE3", "SCORE3_TEXT"],
     // Step 08: a vital carried from the examination that scores 3 in NEWS2 (SI §10), as on the rail.
     "components/clerking/summary/summary-step.tsx": ["SCORE3_TEXT"],
+    // Step 10 (ADR 0185): the Emergency test priority, always with its word.
+    "components/clerking/plan/parts.tsx": ["EMERGENCY_TONE"],
   };
 
   it("the allowlist is real — each file exists and paints red", () => {
@@ -369,7 +376,7 @@ describe("red is reserved — clerking desk v2", () => {
     }
   });
 
-  it("in the two allowed files red lives only in its named constants", () => {
+  it("in the allowed files red lives only in its named constants", () => {
     for (const [p, names] of Object.entries(RED_ALLOWED)) {
       const src = stripComments(readFileSync(resolve(ROOT, p), "utf8"));
       for (const line of src.split("\n").filter((l) => WEB_RED_FILL.test(l)))

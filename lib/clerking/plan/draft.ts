@@ -69,6 +69,8 @@ export const PlanSchema = z.object({
         mnmReason: text(1_000).optional(),
         /** Suggested care ticked (by signed item id; the list is empty until signed). */
         care: z.record(id, z.boolean()).optional(),
+        /** Orders already placed for another problem, linked to this one ("Link to this"). */
+        linked: z.array(uuid).max(20).optional(),
       }),
     )
     .optional(),

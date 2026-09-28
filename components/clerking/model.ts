@@ -1,5 +1,6 @@
 import type { ExamView } from "./exam/model";
 import type { ImpressionView } from "./impression/model";
+import type { PlanView } from "./plan/model";
 import type { SiView } from "./si-model";
 import type { DxData } from "./use-catalogue";
 import type { DeskPayload, KeyInput } from "@/components/emr/desk/model";
@@ -34,6 +35,7 @@ import {
 import { scoreNews2 } from "@/lib/triage/scoring/news2";
 import { deriveExam, previousFormat } from "./exam/model";
 import { deriveImpression } from "./impression/model";
+import { derivePlan } from "./plan/model";
 import { deriveSi } from "./si-model";
 
 /**
@@ -116,6 +118,8 @@ export function sectionText(
   summaryBody?: string,
   /** The Impression block (step 09), composed by `composer.impression`. */
   impressionBody?: string,
+  /** The Plan block (step 10 by problem, ADR 0184), composed by `composePlanLines`. */
+  planBody?: string,
 ): Partial<Record<"exam" | "summary" | "impression" | "plan", string>> {
   const exam: string[] = [];
   if (examBody !== undefined) {
@@ -140,7 +144,12 @@ export function sectionText(
   for (const o of p.orders) if (!mirroredOrders.has(o.id)) plan.push(o.display);
 
   const join = (a: string[]) => a.join("\n");
-  return { exam: join(exam), summary, impression: impressionBody ?? join(dx), plan: join(plan) };
+  return {
+    exam: join(exam),
+    summary,
+    impression: impressionBody ?? join(dx),
+    plan: planBody ?? join(plan),
+  };
 }
 
 /** Examination's status for the section bar, from the v1 body's content. */
@@ -200,6 +209,8 @@ export interface Derived {
   validation: SignValidation;
   /** Steps 08 and 09 (null while the examination catalogue loads). */
   si: SiView | null;
+  /** Step 10 by problem (null where CLERKING_PLAN_V2 is off, or while 08–09 load). */
+  plan: PlanView | null;
 }
 
 export function deriveDesk(
@@ -249,6 +260,12 @@ export function deriveDesk(
     signed: p.draft === null && !!p.signed,
   });
   const imp = si ? deriveImpression(si, dx, { inPlan: () => new Set() }) : null;
+  const plan =
+    si && p.plan
+      ? derivePlan({ p, content: c, board: si.board, dx, news2: exam?.news2Latest ?? news2 })
+      : null;
+  const signedPlan =
+    p.draft === null && p.signed ? (c.plan as { text?: string } | undefined)?.text : undefined;
   const blocks = compose({
     cat,
     header,
@@ -274,6 +291,7 @@ export function deriveDesk(
       exam ? exam.text : undefined,
       si?.noteText,
       impressionText(p, c, si, imp),
+      signedPlan ?? plan?.lines.join("\n"),
     ),
     edited: c.edited ?? {},
     audience: "clinical",
@@ -282,9 +300,15 @@ export function deriveDesk(
   // reason blocks, by name; an unreviewed summary is a prompt only.
   const base = deskValidation(p, c);
   const siBlocks = imp?.signBlocks ?? [];
+  // ADR 0184 §5: signing waits for "plan done".
+  const planBlocks = plan && plan.status.kind !== "done" ? ["Mark the plan done"] : [];
   const validation: SignValidation = {
-    canSign: base.canSign && siBlocks.length === 0,
-    missing: [...base.missing, ...siBlocks.map((message) => ({ id: "si.mnm_reason", message }))],
+    canSign: base.canSign && siBlocks.length === 0 && planBlocks.length === 0,
+    missing: [
+      ...base.missing,
+      ...siBlocks.map((message) => ({ id: "si.mnm_reason", message })),
+      ...planBlocks.map((message) => ({ id: "plan.done", message })),
+    ],
     warnings: [
       ...base.warnings,
       ...(si && si.review !== "reviewed"
@@ -292,7 +316,7 @@ export function deriveDesk(
         : []),
     ],
   };
-  const statuses = sectionStatuses({
+  const baseStatuses = sectionStatuses({
     cat,
     history,
     linked,
@@ -302,6 +326,17 @@ export function deriveDesk(
     summary: si?.review ?? null,
     missing: validation.missing.map((m) => m.id),
   });
+  const statuses = plan
+    ? {
+        ...baseStatuses,
+        plan:
+          plan.status.kind === "done"
+            ? { text: "Done", tone: "done" as const }
+            : plan.status.kind === "ready"
+              ? { text: "Ready", tone: "partial" as const }
+              : { text: `${plan.status.count} to do`, tone: "required" as const },
+      }
+    : baseStatuses;
   return {
     exam,
     history,
@@ -315,6 +350,7 @@ export function deriveDesk(
     done: doneCount(statuses),
     validation,
     si,
+    plan,
   };
 }
 

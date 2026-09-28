@@ -7,6 +7,7 @@ import type { HistoryBodyProps } from "./history-sections";
 import type { ImpressionHandlers } from "./impression/impression-step";
 import type { Derived, VitalsView } from "./model";
 import type { PastHistoryHandlers } from "./past-history-body";
+import type { PlanHandlers } from "./plan/plan-step";
 import type { DxData } from "./use-catalogue";
 import type { DeskViewHandlers, DeskViewProps } from "@/components/emr/desk/desk-view";
 import type { DeskPayload } from "@/components/emr/desk/model";
@@ -18,6 +19,7 @@ import type { ExamCatalogue } from "@/lib/clerking/exam/catalogue";
 import type { ExamDraft } from "@/lib/clerking/exam/payload";
 import type { DeskSection } from "@/lib/clerking/flags";
 import type { ImpressionDraft } from "@/lib/clerking/impression/board";
+import type { PlanDraft } from "@/lib/clerking/plan/draft";
 import type { SectionId, SectionStatus } from "@/lib/clerking/status";
 import type { SummaryDraft } from "@/lib/clerking/summary/review";
 import type { NoteContent } from "@/lib/emr/note-rules";
@@ -69,6 +71,8 @@ import {
   usePhone,
   useScrolledPast,
 } from "./phone-shell";
+import { planDraftOf, withPlan } from "./plan/model";
+import { PlanStatusPill, PlanStep } from "./plan/plan-step";
 import { ClerkingRail } from "./rail";
 import { impressionDraftOf, summaryDraftOf, withImpression, withSummary } from "./si-model";
 import { SummaryStatusPill, SummaryStep } from "./summary/summary-step";
@@ -105,7 +109,11 @@ export interface ClerkingDeskProps {
   save: DeskViewProps["save"];
   clockWarning?: boolean;
   announce?: DeskViewProps["announce"];
-  on: DeskViewHandlers & PastHistoryHandlers & ConversionHandlers & ImpressionHandlers;
+  on: DeskViewHandlers &
+    PastHistoryHandlers &
+    ConversionHandlers &
+    ImpressionHandlers &
+    Omit<PlanHandlers, "onMedicine">;
   loaders: DeskViewProps["loaders"];
   busy?: string | null;
   signing?: boolean;
@@ -646,7 +654,39 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
         )
       : null;
 
+  const onPlan = (fn: (d: PlanDraft) => PlanDraft) =>
+    on.onContent?.(withPlan(content, fn(planDraftOf(content)), k.catalogueVersion));
+
   const body = (() => {
+    // Step 10 by problem (ADR 0184), where CLERKING_PLAN_V2 is on.
+    if (cur.id === "plan" && p.plan) {
+      if (!derived?.plan)
+        return (
+          <p role="status" className="text-body-s text-muted-foreground">
+            {props.catalogueFailed
+              ? "The clerking catalogue did not load. Reload the page to try again."
+              : "Loading the plan…"}
+          </p>
+        );
+      return (
+        <PlanStep
+          v={derived.plan}
+          allergies={k.allergies}
+          editable={editable}
+          act={act}
+          actor={props.actor ?? "clinician"}
+          busy={props.busy ?? null}
+          onPlan={onPlan}
+          on={{
+            onPlacePlan: on.onPlacePlan,
+            onSyncCharts: on.onSyncCharts,
+            onMedicine: (id, answer, code, text) => on.onMedicine?.(id, answer, code, text),
+          }}
+          time={fmt.time}
+          onBack={() => go("impression")}
+        />
+      );
+    }
     if (cur.id === "impression" && si && imp) {
       return (
         <ImpressionStep
@@ -1054,6 +1094,7 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
                   {cur.id === "summary" && si ? (
                     <SummaryStatusPill si={si} time={fmt.time} />
                   ) : null}
+                  {cur.id === "plan" && derived?.plan ? <PlanStatusPill v={derived.plan} /> : null}
                   {/* One step label on the phone: the step bar's (§3 rule 3). */}
                   <span className="text-caption text-muted-foreground font-mono whitespace-nowrap tabular-nums max-sm:hidden">
                     {`Step ${at + 1} of ${SECTIONS.length}`}

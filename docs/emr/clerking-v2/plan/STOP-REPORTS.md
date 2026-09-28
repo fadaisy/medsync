@@ -185,3 +185,59 @@ where the Plan is on waits for "plan done" (`planSignBlocks`).
 `formulary-regimens.test.ts`, `plan-prescribing.test.ts`, `tests/emr/plan-charts.test.ts`,
 `tests/clerking/plan.test.ts`; on the PGlite lane `write-plan.test.ts` and the RLS matrix with the two new tables.
 Full suite: 7,758 passed; lane: parity, migrations, RLS matrix and the Plan writes pass.
+
+---
+
+## STOP 3: the Plan page
+
+Built behind `CLERKING_PLAN_V2` (needs `CLERKING_V2`): `components/clerking/plan/` (`plan-step.tsx`,
+`problem-card.tsx`, `medicines.tsx`, `parts.tsx`, `model.ts`) over the pure engines in `lib/clerking/plan/`, and the
+desk's payload `p.plan` (`lib/emr/read/plan.ts`). With the flag off, step 10 renders the v1 Plan unchanged.
+
+In page order: the header pill ("n to do before signing" / "Ready to mark done" / "Plan done"); disposition (ward
+chips from the hospital's ward list, or a field when none is set up), observations against the signed NEWS2 response
+(the RCP 2017 line for 5–6, a reason when less often), senior review; one card per problem in Impression order with
+tests (4-segment priority, routine frequency, the definition marked proposed wording, Add / In basket / Also for this
+/ Link to this, Add all), the must-not-miss box, suggested care (empty: no signed list), treatment by class ("Draft
+map, not CSO-signed"), supportive IV fluids, and a plan note; medicines (the allergy line, fact chips, Continue /
+Hold / Stop with a reason, new this visit with answered checks and struck-through edits); monitoring charts; talked
+through (draft wording) and, on discharge, follow-up; the checklist; the basket with one Place action; the footer
+with Mark plan done. The note's Plan block is composed by `composePlanLines`, and signing waits for "plan done" on
+screen and on the server.
+
+Screenshots (`screenshots/`, from the fixture `/styleguide/clerking-si/plan`, `MEDSYNC_FIXTURES=1`): P01 1440 light,
+P02 medicines and checklist, P03 1440 dark with a placed Emergency blood culture, P04–P05 390 px.
+
+## STOP 4: the prescribing dialog
+
+`components/clerking/plan/prescribe-dialog.tsx`: `EmrDialog` gains an `xl` width (about 1240 × 800); three columns
+(what 300 px, how, check 360 px, sticky on wide screens) that stack on a narrow screen. Glucose 10% is a drug when
+chosen from the list (the signed hypoglycaemia regimen) and a fluid when chosen from the fluid chips.
+
+- R01/R02: ceftriaxone with a recorded cephalosporin allergy: "Stop and check", the override chips, cultures before
+  antibiotics, "Override and add", the disabled reason in words.
+- R03/R04: glucose 10% for an older adult: the signed adult regimen ("the source gives no separate older-adult
+  dose"), then 200 mL typed: "Dose: ~~150 mL~~ → 200 mL", and the glucose-above-4.0 check.
+- R05: Ringer's lactate 1000 mL over 8 h on a 20-drop gravity set: 125 mL/h, 42 drops/min, "arithmetic only".
+
+## STOP 5: fluids and monitoring charts
+
+Built by one agent on its own files, reviewed and integrated here: `lib/emr/charts/{scale,payload,build}.ts`,
+`lib/emr/read/monitoring.ts`, the SVG graphs in `components/emr/chart/graphs/`, `MonitoringChartsView`, the nurse's
+fluid balance entry (`lib/emr/write/fluid-balance.ts`, append-only, correction and entered in error by a new row) on
+`/nurse/patients/[patientId]`, and the fixture `/styleguide/monitoring`. The nurse surface and its actions are
+behind `CLERKING_PLAN_V2` too.
+
+Changed on integration: the MAR was read by switching to the owner role inside the reader transaction; 0089 (not
+applied) now gives `medication_administration_records` the clinical reader's scoped SELECT, the read is under RLS,
+and the MAR joins the RLS matrix's reader-path tables.
+
+Screenshots: C01 fluid balance (gap marker, "Not measured", the 29 mL/h line "to verify", no flag), C02 NEWS2 over
+the RCP bands (red only for the 7+ band, with its label; the clerking value an ink dot), C03 temperature, C04
+glucose, C05 MAR, C06 dark.
+
+For the CSO (chosen in the build, all visible in code and tests): "core" temperature is rectal, oesophageal or bladder
+(the exam catalogue offers rectal only); a value is "at clerking" when it came from triage or before the chart opened;
+NEWS2 is drawn only for complete sets; a MAR dose is "Delayed" once its due time passes with nothing recorded (no
+grace period), due times start from the first dose, and a next-round prescription has none until one is given;
+entered-in-error reasons (wrong patient, recorded twice, wrong kind, other); a 10,000 mL guard on an entry.
