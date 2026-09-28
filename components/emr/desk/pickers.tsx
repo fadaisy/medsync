@@ -114,6 +114,10 @@ export function DiagnosisPicker({
   onHighlight,
   disabled,
   initialQuery = "",
+  already,
+  alreadyTyped,
+  typedRow,
+  placeholder = "Type a diagnosis, symptom or synonym",
 }: {
   id: string;
   label: string;
@@ -126,6 +130,14 @@ export function DiagnosisPicker({
   disabled?: boolean;
   /** Words to start the search with (a past condition confirmed on the problem list). */
   initialQuery?: string;
+  /** A term already on this visit: shown, disabled, "Already on this visit" (S-3). */
+  already?: (t: DxTerm) => boolean;
+  /** The typed words are already on this visit (as typed). */
+  alreadyTyped?: (words: string) => boolean;
+  /** Offer "Add "…" as typed, not coded" as a row, and let Enter take the first available
+   *  result or the typed words (clerking v2, §5.3). */
+  typedRow?: boolean;
+  placeholder?: string;
 }) {
   const { index, failed, start } = useIndex(load);
   const [q, setQ] = useState(initialQuery);
@@ -162,10 +174,11 @@ export function DiagnosisPicker({
         onInputValueChange={setQ}
         value={null}
         onValueChange={(t) => {
-          if (!t) return;
+          if (!t || already?.(t)) return;
           onPick({ term: t });
           setQ("");
         }}
+        isItemEqualToValue={(a, b) => a.id === b.id}
         onItemHighlighted={(t) => onHighlight?.(t ?? null)}
         itemToStringLabel={(t) => t.display}
         itemToStringValue={(t) => t.id}
@@ -174,11 +187,12 @@ export function DiagnosisPicker({
       >
         <Combobox.Input
           id={id}
-          placeholder="Type a diagnosis, symptom or synonym"
+          placeholder={placeholder}
           onFocus={start}
           onKeyDown={(e) => {
-            // Nothing matched: Enter records the words as typed (never HMIS-counted).
-            if (e.key === "Enter" && results.length === 0 && typed.length > 1) {
+            // Nothing available: Enter records the words as typed (never HMIS-counted).
+            const none = typedRow ? results.every((t) => already?.(t)) : results.length === 0;
+            if (e.key === "Enter" && none && typed.length > 1 && !alreadyTyped?.(typed)) {
               e.preventDefault();
               onPick({ typed });
               setQ("");
@@ -196,12 +210,40 @@ export function DiagnosisPicker({
               </Combobox.Status>
               <Combobox.List>
                 {(t: DxTerm) => (
-                  <Combobox.Item key={t.id} value={t} className={ROW}>
+                  <Combobox.Item
+                    key={t.id}
+                    value={t}
+                    disabled={already?.(t)}
+                    className={cn(ROW, "data-[disabled]:opacity-60")}
+                  >
                     <TermRow term={t} />
+                    {already?.(t) ? (
+                      <span className="text-caption text-muted-foreground">
+                        Already on this visit
+                      </span>
+                    ) : null}
                   </Combobox.Item>
                 )}
               </Combobox.List>
-              {typed.length > 1 ? (
+              {typedRow && typed.length > 1 ? (
+                alreadyTyped?.(typed) ? (
+                  <p className="text-caption text-muted-foreground border-border mt-1 border-t px-3 py-2">
+                    {`“${typed}” is already on this visit.`}
+                  </p>
+                ) : (
+                  <button
+                    type="button"
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => {
+                      onPick({ typed });
+                      setQ("");
+                    }}
+                    className="text-body-s text-foreground hover:bg-muted focus-visible:shadow-focus border-border mt-1 w-full border-t px-3 py-2 text-left outline-none"
+                  >
+                    {`Add “${typed}” as typed, not coded`}
+                  </button>
+                )
+              ) : typed.length > 1 ? (
                 <p className="text-caption text-muted-foreground border-border mt-1 border-t px-3 py-2">
                   Not in the list? Press Enter with no match to record it as typed (not counted for
                   HMIS).

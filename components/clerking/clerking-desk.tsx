@@ -4,11 +4,13 @@ import type { ConversionHandlers } from "./conversion-dialog";
 import type { ExamPlace } from "./exam/exam-step";
 import type { SaveSet } from "./exam/model";
 import type { HistoryBodyProps } from "./history-sections";
+import type { ImpressionHandlers } from "./impression/impression-step";
 import type { Derived, VitalsView } from "./model";
 import type { PastHistoryHandlers } from "./past-history-body";
+import type { DeskDx } from "./si-model";
 import type { DxData } from "./use-catalogue";
 import type { DeskViewHandlers, DeskViewProps } from "@/components/emr/desk/desk-view";
-import type { DeskPayload } from "@/components/emr/desk/model";
+import type { DeskOrder, DeskPayload } from "@/components/emr/desk/model";
 import type { SectionCtx } from "@/components/emr/desk/sections";
 import type { HistoryHeader } from "@/lib/clerking/answers";
 import type { Catalogue } from "@/lib/clerking/catalogue";
@@ -16,15 +18,16 @@ import type { BlockKey } from "@/lib/clerking/compose";
 import type { ExamCatalogue } from "@/lib/clerking/exam/catalogue";
 import type { ExamDraft } from "@/lib/clerking/exam/payload";
 import type { DeskSection } from "@/lib/clerking/flags";
+import type { ImpressionDraft } from "@/lib/clerking/impression/board";
 import type { SectionId, SectionStatus } from "@/lib/clerking/status";
 import type { SummaryDraft } from "@/lib/clerking/summary/review";
 import type { NoteContent } from "@/lib/emr/note-rules";
 import type { ReactNode } from "react";
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { CheckIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 
 import { RestrictedMark } from "@/components/emr/chips";
-import { deskValidation, requiredCount } from "@/components/emr/desk/model";
+import { deskValidation, putItem, requiredCount } from "@/components/emr/desk/model";
 import { SectionBody } from "@/components/emr/desk/sections";
 import { NoteRowsView } from "@/components/emr/desk/sign";
 import { EmrDialog } from "@/components/emr/emr-dialog";
@@ -35,6 +38,7 @@ import { Button } from "@/components/ui/button";
 import { SECTION_BLOCK } from "@/lib/clerking/compose";
 import { ruleTarget } from "@/lib/clerking/exam/flags";
 import { emptyExam } from "@/lib/clerking/exam/payload";
+import { acceptColumn, cellState, nextState, withMark } from "@/lib/clerking/impression/evidence";
 import { SECTIONS } from "@/lib/clerking/status";
 import { cn } from "@/lib/utils";
 import { ConversionDialog, ConversionStrip } from "./conversion-dialog";
@@ -43,6 +47,9 @@ import { examOf, previousFormat, VITALS, withExam } from "./exam/model";
 import { FamilyBody, SocialBody } from "./family-social";
 import { FlagsPanel } from "./flags-panel";
 import { ComplaintBody, HistoryBody } from "./history-sections";
+import { DetailsBody } from "./impression/details";
+import { ImpressionStep } from "./impression/impression-step";
+import { deriveImpression } from "./impression/model";
 import {
   BLURB,
   deriveDesk,
@@ -59,11 +66,12 @@ import {
   PhoneBottomBar,
   PhoneHeader,
   PhoneStepBar,
+  useMedia,
   usePhone,
   useScrolledPast,
 } from "./phone-shell";
 import { ClerkingRail } from "./rail";
-import { summaryDraftOf, withSummary } from "./si-model";
+import { impressionDraftOf, summaryDraftOf, withImpression, withSummary } from "./si-model";
 import { SummaryStatusPill, SummaryStep } from "./summary/summary-step";
 import { SystemsBody } from "./systems-body";
 
@@ -98,7 +106,7 @@ export interface ClerkingDeskProps {
   save: DeskViewProps["save"];
   clockWarning?: boolean;
   announce?: DeskViewProps["announce"];
-  on: DeskViewHandlers & PastHistoryHandlers & ConversionHandlers;
+  on: DeskViewHandlers & PastHistoryHandlers & ConversionHandlers & ImpressionHandlers;
   loaders: DeskViewProps["loaders"];
   busy?: string | null;
   signing?: boolean;
@@ -460,6 +468,49 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
           },
         }
       : (derived?.statuses ?? null);
+  /** Test ids ordered at this visit for a diagnosis ("In plan"); the payload's orders carry
+   *  their reason conditions (§8 "Orders"). */
+  // Orders carry the test_catalogue row's uuid; the catalogue speaks in test ids.
+  const testIdOf = useMemo(
+    () => new Map(Object.entries(props.dx?.testIds ?? {}).map(([id, uuid]) => [uuid, id])),
+    [props.dx],
+  );
+  const inPlan = (logicalId: string): ReadonlySet<string> => {
+    const version = (p.diagnoses as DeskDx[]).find((d) => (d.logicalId ?? d.id) === logicalId)?.id;
+    return new Set(
+      (p.orders as (DeskOrder & { testId?: string; reasonConditionIds?: string[] })[])
+        .filter((o) => o.testId && version && o.reasonConditionIds?.includes(version))
+        .map((o) => testIdOf.get(o.testId!) ?? o.testId!),
+    );
+  };
+  const wide = useMedia("(min-width: 834px)");
+  const xl = useMedia("(min-width: 1280px)");
+  const [details, setDetails] = useState<string | null>(null);
+  const imp =
+    si && props.dx !== undefined ? deriveImpression(si, props.dx ?? null, { inPlan }) : null;
+  const detailsRow =
+    details && si
+      ? [si.board.leading, ...si.board.differential, ...si.board.also].find(
+          (r) => r?.dx.logicalId === details,
+        )
+      : null;
+  const onImpression = (fn: (d: ImpressionDraft) => ImpressionDraft) =>
+    on.onContent?.(
+      withImpression(
+        content,
+        fn(impressionDraftOf(content, props.dx?.cat.version ?? "")),
+        k.catalogueVersion,
+      ),
+    );
+  const onDeferral = (reason: string | null) =>
+    on.onContent?.(
+      putItem(
+        content,
+        "s13",
+        (i) => i.kind === "diagnosis_deferred",
+        reason === null ? null : { kind: "diagnosis_deferred", reason },
+      ),
+    );
   const onSummary = (fn: (d: SummaryDraft) => SummaryDraft) =>
     on.onContent?.(withSummary(content, fn(summaryDraftOf(content)), k.catalogueVersion));
   const onExam = (fn: (d: ExamDraft) => ExamDraft) =>
@@ -521,7 +572,73 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
     slots: { orders: slots.orders },
   };
 
+  const detailsBody =
+    detailsRow && si && imp
+      ? (inPlace: boolean) => (
+          <DetailsBody
+            si={si}
+            v={imp}
+            row={detailsRow}
+            dx={props.dx ?? null}
+            editable={editable && act}
+            lists={!wide}
+            inPlan={inPlan(detailsRow.dx.logicalId)}
+            orderable={(t) => !!props.dx?.tests[t]}
+            onImpression={onImpression}
+            onHistory={onHistory}
+            onGo={(step, item) => {
+              setDetails(null);
+              goTo(step, item);
+            }}
+            onCycle={(col, f) =>
+              onImpression((d) =>
+                withMark(d, col.row.dx.logicalId, f.ref, nextState(cellState(col, f.ref)), {
+                  by: props.actor ?? "clinician",
+                  at: new Date().toISOString(),
+                }),
+              )
+            }
+            onAccept={(col) =>
+              onImpression((d) =>
+                acceptColumn(d, col, {
+                  by: props.actor ?? "clinician",
+                  at: new Date().toISOString(),
+                }),
+              )
+            }
+            onAddToPlan={on.onAddToPlan}
+            onMakeLeading={on.onLeading}
+            onDone={() => setDetails(null)}
+            inPlace={inPlace}
+          />
+        )
+      : null;
+
   const body = (() => {
+    if (cur.id === "impression" && si && imp) {
+      return (
+        <ImpressionStep
+          si={si}
+          v={imp}
+          dx={props.dx ?? null}
+          dxLoading={!props.dx && !props.dxFailed}
+          editable={editable}
+          act={act}
+          canFinal={p.viewer.canFinalDiagnosis}
+          actor={props.actor ?? "clinician"}
+          busy={props.busy ?? null}
+          loaders={{ terms: props.loaders.terms, searchTerms: props.loaders.searchTerms }}
+          on={on}
+          onImpression={onImpression}
+          onDeferral={onDeferral}
+          onHistory={onHistory}
+          onGo={goTo}
+          onDetails={setDetails}
+          wide={wide}
+          inPlan={inPlan}
+        />
+      );
+    }
     if (cur.id === "summary") {
       if (!si)
         return (
@@ -939,7 +1056,19 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
           aria-label="Flags and note"
           className="border-border relative hidden w-[392px] shrink-0 flex-col border-l xl:flex xl:min-h-0"
         >
-          <div className="min-h-0 flex-1 overflow-y-auto">{noteAndFlags(false)}</div>
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            {detailsRow && xl && detailsBody ? (
+              <div
+                role="region"
+                aria-label={`Details, ${detailsRow.dx.display}`}
+                className="px-5 py-4"
+              >
+                {detailsBody(true)}
+              </div>
+            ) : (
+              noteAndFlags(false)
+            )}
+          </div>
           {signBar}
         </aside>
         <div className="max-sm:hidden xl:hidden">{signBar}</div>
@@ -994,6 +1123,16 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
         sheet
       >
         {rail}
+      </EmrDialog>
+      <EmrDialog
+        open={!!detailsRow && !xl}
+        onOpenChange={(o) => !o && setDetails(null)}
+        title={detailsRow?.dx.display ?? "Details"}
+        description={who}
+        width="wide"
+        sheet="tall"
+      >
+        {detailsRow && !xl && detailsBody ? detailsBody(false) : null}
       </EmrDialog>
       <EmrDialog
         open={dialog === "note"}

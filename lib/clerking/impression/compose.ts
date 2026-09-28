@@ -96,7 +96,7 @@ export function composeImpression(i: ImpressionComposeInput): string {
         .join("; ")}.`,
     );
 
-  const left = i.unexplained.filter((f) => !hideF(f)).map((f) => lc(f.text));
+  const left = [...new Set(i.unexplained.filter((f) => !hideF(f)).map((f) => lc(f.text)))];
   if ((lead || also.length) && left.length) out.push(`Not yet explained: ${list(left)}.`);
   return out.join("\n");
 }

@@ -5,7 +5,15 @@ import { act, createElement as h, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { DX_CATALOGUE, DX_SIGNOFF, DX_TERM_IDS, dxTermUuid } from "@/lib/clerking/impression/load";
+import {
+  DX_CATALOGUE,
+  DX_NAMES,
+  DX_SIGNOFF,
+  DX_TERM_IDS,
+  dxTermUuid,
+  TEST_NAMES,
+  TEST_UUIDS,
+} from "@/lib/clerking/impression/load";
 import { ecat } from "./exam-fixtures";
 import { cat, v2Payload } from "./fixtures";
 
@@ -18,7 +26,13 @@ import { cat, v2Payload } from "./fixtures";
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh() {}, push() {} }) }));
 const { ClerkingDesk } = await import("@/components/clerking/clerking-desk");
 
-const dx = { cat: DX_CATALOGUE, termIds: DX_TERM_IDS };
+const dx = {
+  cat: DX_CATALOGUE,
+  termIds: DX_TERM_IDS,
+  names: DX_NAMES,
+  tests: TEST_NAMES,
+  testIds: TEST_UUIDS,
+};
 
 function payload(): DeskPayload {
   const p = v2Payload();

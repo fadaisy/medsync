@@ -1,4 +1,5 @@
 import type { ExamView } from "./exam/model";
+import type { ImpressionView } from "./impression/model";
 import type { SiView } from "./si-model";
 import type { DxData } from "./use-catalogue";
 import type { DeskPayload, KeyInput } from "@/components/emr/desk/model";
@@ -20,6 +21,7 @@ import { familyConditions, v2CommitLines } from "@/lib/clerking/commit";
 import { compose, lc, list } from "@/lib/clerking/compose";
 import { conversionFlags } from "@/lib/clerking/convert";
 import { evaluateFlags, toBadges } from "@/lib/clerking/flags";
+import { composeImpression } from "@/lib/clerking/impression/compose";
 import { linkedAnswers } from "@/lib/clerking/linkage";
 import { doneCount, SECTIONS, sectionStatuses } from "@/lib/clerking/status";
 import {
@@ -31,6 +33,7 @@ import {
 } from "@/lib/triage/constants";
 import { scoreNews2 } from "@/lib/triage/scoring/news2";
 import { deriveExam, previousFormat } from "./exam/model";
+import { deriveImpression } from "./impression/model";
 import { deriveSi } from "./si-model";
 
 /**
@@ -111,6 +114,8 @@ export function sectionText(
   examBody?: string,
   /** The Summary block (step 08): composed, the clinician's words, or as signed. */
   summaryBody?: string,
+  /** The Impression block (step 09), composed by `composer.impression`. */
+  impressionBody?: string,
 ): Partial<Record<"exam" | "summary" | "impression" | "plan", string>> {
   const exam: string[] = [];
   if (examBody !== undefined) {
@@ -135,7 +140,7 @@ export function sectionText(
   for (const o of p.orders) if (!mirroredOrders.has(o.id)) plan.push(o.display);
 
   const join = (a: string[]) => a.join("\n");
-  return { exam: join(exam), summary, impression: join(dx), plan: join(plan) };
+  return { exam: join(exam), summary, impression: impressionBody ?? join(dx), plan: join(plan) };
 }
 
 /** Examination's status for the section bar, from the v1 body's content. */
@@ -155,6 +160,27 @@ export function examViewTone(e: ExamView): Tone {
   const vitals = !!e.exam.vitalsSavedAt || e.news2Latest !== null;
   const system = e.ecat.systems.some((s) => s.id !== "general" && e.systems[s.id]!.tone !== "open");
   return general && vitals && system ? "done" : "partial";
+}
+
+/** The Impression block: composed from the board (steps 09), or as signed (D-SI-20). A draft
+ *  with nothing on the board and no deferral keeps the v1 words (old drafts, §8). */
+function impressionText(
+  p: DeskPayload,
+  c: NoteContent,
+  si: SiView | null,
+  imp: ImpressionView | null,
+): string | undefined {
+  const signed = (c.impression as { text?: string } | undefined)?.text;
+  if (p.draft === null && p.signed) return signed;
+  if (!si || !imp) return undefined;
+  if (!si.recorded.length && !si.board.deferred) return undefined;
+  return composeImpression({
+    board: si.board,
+    draft: si.impression,
+    findings: imp.findings,
+    unexplained: imp.unexplained,
+    audience: "clinical",
+  });
 }
 
 /* ─── Everything the shell derives, in one pure pass ─────────────── */
@@ -222,6 +248,7 @@ export function deriveDesk(
     dx,
     signed: p.draft === null && !!p.signed,
   });
+  const imp = si ? deriveImpression(si, dx, { inPlan: () => new Set() }) : null;
   const blocks = compose({
     cat,
     header,
@@ -241,11 +268,30 @@ export function deriveDesk(
       confirmedThisVisit: allergiesConfirmed,
       items: k.allergies.items,
     },
-    sectionText: sectionText(p, c, exam ? exam.text : undefined, si?.noteText),
+    sectionText: sectionText(
+      p,
+      c,
+      exam ? exam.text : undefined,
+      si?.noteText,
+      impressionText(p, c, si, imp),
+    ),
     edited: c.edited ?? {},
     audience: "clinical",
   });
-  const validation = deskValidation(p, c);
+  // Steps 08 and 09 at signing (D-SI-06, D-SI-08): a must-not-miss marked unlikely without its
+  // reason blocks, by name; an unreviewed summary is a prompt only.
+  const base = deskValidation(p, c);
+  const siBlocks = imp?.signBlocks ?? [];
+  const validation: SignValidation = {
+    canSign: base.canSign && siBlocks.length === 0,
+    missing: [...base.missing, ...siBlocks.map((message) => ({ id: "si.mnm_reason", message }))],
+    warnings: [
+      ...base.warnings,
+      ...(si && si.review !== "reviewed"
+        ? [{ id: "si.summary_review", message: "Summary not reviewed" }]
+        : []),
+    ],
+  };
   const statuses = sectionStatuses({
     cat,
     history,

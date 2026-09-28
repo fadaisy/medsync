@@ -134,7 +134,15 @@ function Label({ children, id }: { children: ReactNode; id?: string }) {
   );
 }
 
-function ValueText({ item, news2 }: { item: SummaryItem; news2: SiView["x"]["news2Latest"] }) {
+/** A finding's text; a vital outside the NEWS2 zero band is bold with its arrow (red only when the
+ *  reading scores 3, as on the rail). Shared by the Summary and the Impression's matrix. */
+export function FindingText({
+  item,
+  news2,
+}: {
+  item: Pick<SummaryItem, "text" | "out" | "ref">;
+  news2: SiView["x"]["news2Latest"];
+}) {
   if (!item.out) return <>{item.text}</>;
   const points = news2?.parameters.find((p) => p.parameter === NEWS2_PARAM[item.ref])?.points ?? 0;
   const Arrow = item.out === "low" ? ArrowDownIcon : ArrowUpIcon;
@@ -178,7 +186,7 @@ function IncludeRow({
         className="focus-visible:shadow-focus mt-1 size-4 shrink-0 accent-teal-700 outline-none"
       />
       <label htmlFor={id} className="text-body-s text-foreground min-w-0 flex-1">
-        <ValueText item={item} news2={news2} />
+        <FindingText item={item} news2={news2} />
         {item.cls ? (
           <LockIcon aria-label="Restricted" className="text-muted-foreground ml-1 inline size-3" />
         ) : null}

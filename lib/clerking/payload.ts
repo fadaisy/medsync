@@ -183,7 +183,9 @@ const SignedDiagnosis = z.object({
 
 export const ImpressionSchema = z.object({
   order: z.array(uuid).max(60),
-  likelihood: z.record(uuid, z.enum(["likely", "possible", "unlikely"])),
+  /** By logical id; "term:<uuid>" or "typed:<words>" holds a suggestion's likelihood until the
+   *  condition it creates arrives. */
+  likelihood: z.record(z.string().max(160), z.enum(["likely", "possible", "unlikely"])),
   reasons: z.record(uuid, text(2_000)),
   evidence: z.record(uuid, z.record(ref, z.object({ w: z.enum(["for", "against"]), ...stamp }))),
   meta: z.record(

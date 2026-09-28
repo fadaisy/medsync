@@ -68,11 +68,23 @@ export function useExamCatalogue(url: string | undefined): {
 export interface DxData {
   cat: DxCatalogue;
   termIds: Readonly<Record<string, string>>;
+  /** `dx.*` → display (REF-DX-TERMS and the addendum; `coded`: seeded in the database). */
+  names: Readonly<Record<string, { display: string; restricted: boolean; coded: boolean }>>;
+  /** Test id → display (the default menu). */
+  tests: Readonly<Record<string, string>>;
+  /** Test id → the test_catalogue uuid an order names. */
+  testIds: Readonly<Record<string, string>>;
 }
 
 const parseDx = (json: unknown): DxData => {
-  const j = json as { catalogue: unknown; termIds: Record<string, string> };
-  return { cat: parseDxCatalogue(j.catalogue), termIds: j.termIds };
+  const j = json as Omit<DxData, "cat"> & { catalogue: unknown };
+  return {
+    cat: parseDxCatalogue(j.catalogue),
+    termIds: j.termIds,
+    names: j.names ?? {},
+    tests: j.tests ?? {},
+    testIds: j.testIds ?? {},
+  };
 };
 
 export function useDxCatalogue(url: string | undefined): { cat: DxData | null; failed: boolean } {

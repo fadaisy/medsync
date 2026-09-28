@@ -10,6 +10,7 @@ import type {
 import type { DeskPayload } from "@/components/emr/desk/model";
 import type { DxPick } from "@/components/emr/desk/pickers";
 import type { DxOptions, VitalEntry } from "@/components/emr/desk/sections";
+import type { BoardRow } from "@/lib/clerking/impression/board";
 import type { NoteContent } from "@/lib/emr/note-rules";
 import type { ActionResult } from "@/lib/emr/write/context";
 import type { CaptureMap } from "@/lib/ncd/engine/evaluate";
@@ -94,6 +95,7 @@ import {
   saveNoteDraft,
   signNote,
 } from "@/lib/emr/actions/notes";
+import { placeOrders } from "@/lib/emr/actions/orders";
 import { clockWarning, correctedNow, initialClock, observe } from "@/lib/emr/sync/clock";
 import { attachToWindow, createWriteQueue } from "@/lib/emr/sync/queue";
 import { deskFindingIndex, deskTermIndex, deskTermSearch } from "./actions";
@@ -116,6 +118,14 @@ const NcdSection = dynamic(() => import("./ncd-section"), {
 });
 
 type Msg = { ok: boolean; text: string } | null;
+
+/** The words of a removal reason (D-SI-13) when the clinician chose one with no text. */
+const REMOVE_WORD: Record<string, string> = {
+  added_by_mistake: "Added by mistake",
+  duplicate: "Duplicate",
+  ruled_out: "Ruled out",
+  other: "Other",
+};
 
 export function DeskClient({
   p,
@@ -267,7 +277,12 @@ export function DeskClient({
     [router, encounterId],
   );
 
-  const validation = deskValidation(p, content);
+  // v2: the desk's own validation, with steps 08 and 09 (D-SI-06 blocks, D-SI-08 prompts).
+  const v2Derived = useMemo(
+    () => (p.clerking && cat ? deriveDesk(cat, p, content, ecat, undefined, dx) : null),
+    [p, cat, ecat, dx, content],
+  );
+  const validation = v2Derived?.validation ?? deskValidation(p, content);
   const editable = p.draft !== null;
   const openSign = useCallback(() => {
     if (!editable) return;
@@ -282,7 +297,26 @@ export function DeskClient({
         setSheetMsg({ ok: false, text: "The clerking catalogue is still loading. Try again." });
         return;
       }
-      change({ ...contentRef.current, flags: deriveDesk(cat, p, contentRef.current).badges });
+      // D-SI-20: the Summary and Impression as written go into the note with it, so the signed note
+      // never recomposes when the record changes.
+      const d = deriveDesk(cat, p, contentRef.current, ecat, undefined, dx);
+      const text = (key: string) => d.blocks.find((b) => b.key === key)?.text;
+      change({
+        ...contentRef.current,
+        flags: d.badges,
+        ...(d.si
+          ? {
+              summary: {
+                ...(contentRef.current.summary ?? { mode: "composed" }),
+                text: text("summary") ?? "",
+              },
+              impression: {
+                ...(contentRef.current.impression ?? d.si.impression),
+                text: text("impression") ?? "",
+              },
+            }
+          : {}),
+      });
     }
     setSigning(true);
     const r = await signFlow({
@@ -297,7 +331,7 @@ export function DeskClient({
     setSheet(null);
     setAnnounce({ ok: true, text: [r.message, ...r.warnings].join(" ") });
     router.refresh();
-  }, [autosave, patientUserId, router, p, cat, change]);
+  }, [autosave, patientUserId, router, p, cat, ecat, dx, change]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -665,6 +699,69 @@ export function DeskClient({
         "Diagnosis added",
         [pick, o],
       ),
+    // Step 09 (PROMPT-CLERKING-SUMMARY-IMPRESSION §5.3): every write through an existing action.
+    onDxStatus: (row: BoardRow, to: "working" | "final") =>
+      void run(
+        `dx-status:${row.dx.logicalId}`,
+        (clientKey) =>
+          updateProblemStatus({
+            ...base,
+            clientKey,
+            id: row.dx.versionId,
+            verification: to === "final" ? "confirmed" : "provisional",
+          }),
+        to === "final" ? "Recorded as final" : "Recorded as working",
+        to,
+      ),
+    onToDifferential: (row: BoardRow) =>
+      void run(
+        `dx-move:${row.dx.logicalId}`,
+        (clientKey) =>
+          updateProblemStatus({
+            ...base,
+            clientKey,
+            id: row.dx.versionId,
+            rank: "secondary",
+            verification: "differential",
+          }),
+        "Moved to the differential",
+      ),
+    onRemove: (row: BoardRow, why: { code: string; text?: string }) =>
+      void run(
+        `dx-remove:${row.dx.logicalId}`,
+        (clientKey) =>
+          markFactEnteredInError({
+            ...base,
+            clientKey,
+            kind: "condition",
+            id: row.dx.versionId,
+            reasonCode: why.code,
+            reasonText: why.text ?? REMOVE_WORD[why.code] ?? why.code,
+          }),
+        "Removed, entered in error",
+      ),
+    onAddToPlan: (testId: string, row: BoardRow) => {
+      const uuid = dx?.testIds[testId];
+      if (!uuid) return;
+      void run(
+        `plan:${testId}:${row.dx.logicalId}`,
+        (clientKey) =>
+          placeOrders({
+            ...base,
+            clientKey,
+            encounterId,
+            orders: [
+              {
+                clientKey: `${clientKey}:1`,
+                testId: uuid,
+                priority: "routine",
+                reasonConditionIds: [row.dx.versionId],
+              },
+            ],
+          }),
+        "Added to the plan",
+      );
+    },
     onSuggestion: (key: string, a: { accept: string } | { dismiss: true }) => {
       const s = p.suggestions.find((x) => x.key === key);
       if (s?.source === "resus_handover") {

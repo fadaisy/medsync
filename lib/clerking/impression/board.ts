@@ -94,6 +94,11 @@ export interface Board {
 export const words = (s: string) => s.trim().split(/\s+/).filter(Boolean).length;
 export const REASON_MIN_WORDS = 3;
 
+/** The draft key that holds a likelihood chosen before the condition existed (a suggestion added
+ *  as Possible, §5.3). */
+export const pendingKey = (d: Pick<RecordedDx, "termId" | "display">) =>
+  d.termId ? `term:${d.termId}` : `typed:${normaliseTyped(d.display)}`;
+
 export const slotOf = (d: Pick<RecordedDx, "rank" | "verification">): Slot =>
   d.rank === "primary" ? "leading" : d.verification === "differential" ? "differential" : "also";
 
@@ -119,7 +124,7 @@ export function buildBoard(i: BoardInput): Board {
     const p = d.dxId ? (i.dx?.profile(d.dxId) ?? null) : null;
     const signed = !!p && i.live.profile(p.id);
     const profile = signed ? p : null;
-    const likelihood = i.draft.likelihood[d.logicalId] ?? null;
+    const likelihood = i.draft.likelihood[d.logicalId] ?? i.draft.likelihood[pendingKey(d)] ?? null;
     const reason = i.draft.reasons[d.logicalId] ?? "";
     const mnm = !!profile?.must_not_miss;
     const slot = slotOf(d);

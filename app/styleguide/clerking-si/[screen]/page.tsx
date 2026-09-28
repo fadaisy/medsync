@@ -25,6 +25,7 @@ export default async function Page({ params }: { params: Promise<{ screen: strin
     catalogueVersion: DX_CATALOGUE.version,
     signoff: DX_SIGNOFF,
   };
+  p.diagnoses = [];
   if (!screen.endsWith("empty"))
     p.diagnoses = [
       {

@@ -523,8 +523,10 @@ export function committedWords(c: NoteContent): string | null {
 
 /** "Required 2/3": how many required rules are met. */
 export function requiredCount(p: DeskPayload, v: SignValidation): { met: number; of: number } {
-  const of = p.template.minimumToSign.required.length;
-  return { met: of - v.missing.length, of };
+  const rules = p.template.minimumToSign.required;
+  const of = rules.length;
+  // Only the template's rules count here; a step's own block (clerking v2) is said in words.
+  return { met: of - v.missing.filter((m) => rules.some((r) => r.id === m.id)).length, of };
 }
 
 /* ─── The section index ───────────────────────────────────────────── */
