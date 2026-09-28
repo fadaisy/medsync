@@ -1,0 +1,15 @@
+{
+ "catalogue": "MS-EMR-DX-CAT-001",
+ "catalogueVersion": "1.0.1-draft",
+ "catalogueSha256": "abddf5db2ff8f2a804751f852208b9df018171df5936f466828feb82e968f58a",
+ "signedBy": "Fadhul (owner and CSO)",
+ "signedOn": "2026-09-28",
+ "gate": "GATE A, Summary and Impression (docs/emr/clerking-v2/summary-impression/gate-a-proposal.md)",
+ "decisions": "D-SI-01 to D-SI-30, D-DX-01 to D-DX-10 and R-1 to R-6 as recommended; the composer wording (gate-a-proposal.md §5); 1.0.0-draft as delivered plus the D-SI-30 amendment (1.0.1-draft change_log)",
+ "profiles": "all",
+ "rules": "all",
+ "referenceEntries": "all",
+ "namedScales": "all",
+ "note": "Signed as drafted. To switch a profile, rule, reference entry or named scale off, list its id under 'withheld': a withheld profile keeps working as a record but shows 'Reasoning aids awaiting sign-off'; a rule or evidence atom that reads a withheld reference does not fire.",
+ "withheld": []
+}

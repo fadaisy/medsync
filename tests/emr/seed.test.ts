@@ -15,12 +15,13 @@ const root = process.cwd();
 const src = readSeedSources(root);
 const committed = (rel: string) => readFileSync(join(root, rel), "utf8");
 
-describe("EMR reference seed (0072, 0082, 0083 + catalogue.generated.ts)", () => {
+describe("EMR reference seed (0072, 0082, 0083, 0085 + catalogue.generated.ts)", () => {
   it("regenerating from the data reproduces the committed files byte-for-byte", async () => {
-    const { sql, ts, sql12, sql13 } = await generateSeed(root);
+    const { sql, ts, sql12, sql13, sql85 } = await generateSeed(root);
     expect(sql).toBe(committed(SEED_OUTPUTS.sql));
     expect(sql12).toBe(committed(SEED_OUTPUTS.sql12));
     expect(sql13).toBe(committed(SEED_OUTPUTS.sql13));
+    expect(sql85).toBe(committed(SEED_OUTPUTS.sql85));
     expect(ts).toBe(committed(SEED_OUTPUTS.ts));
   });
 
@@ -137,5 +138,51 @@ describe("EMR reference seed (0072, 0082, 0083 + catalogue.generated.ts)", () =>
         .sort(),
     );
     expect(DRUG_CLASS_TAGS.systemic_glucocorticoid.routeFilter).toEqual(["oral", "iv", "im"]);
+  });
+});
+
+describe("0085: the REF-DX-TERMS v1.1 addendum, uncoded (D-SI-26)", () => {
+  type Term = {
+    id: string;
+    display: string;
+    sensitivity: string;
+    icd11: { code: string | null; status: string } | null;
+  };
+  const add: Term[] = src.terms11.terms;
+  const sql = committed(SEED_OUTPUTS.sql85);
+  const rows = sql.split("\n").filter((l) => l.startsWith("  ("));
+
+  it("seeds all 187 terms, keyed in 0072's namespace, none colliding with REF-DX-TERMS v1", () => {
+    expect(add).toHaveLength(187);
+    expect(rows).toHaveLength(187);
+    const v1 = new Set(src.terms.terms.map((t: { id: string }) => t.id));
+    for (const t of add) {
+      expect(v1.has(t.id), t.id).toBe(false);
+      expect(sql, t.id).toContain(`('${uuidV5(`diagnosis_terms:${t.id}`)}', `);
+    }
+    const uuids = [...v1, ...add.map((t) => t.id)].map((id) => uuidV5(`diagnosis_terms:${id}`));
+    expect(new Set(uuids).size).toBe(uuids.length);
+  });
+
+  it("writes no ICD-11 code: every row NULL, and no proposed code appears anywhere", () => {
+    for (const r of rows)
+      expect(r).toMatch(/^ {2}\('[0-9a-f-]{36}', '(?:[^']|'')*', (?:ARRAY\[.*\]|'\{\}'), NULL, /);
+    for (const r of rows) expect(r.endsWith(", NULL),") || r.endsWith(", NULL)")).toBe(true);
+    const proposed = add.flatMap((t) => (t.icd11?.code ? [t.icd11.code] : []));
+    expect(proposed.length).toBeGreaterThan(0); // the addendum proposes 37, all unverified
+    for (const code of proposed) expect(sql, code).not.toContain(`'${code}'`);
+    expect(sql).not.toContain("icd10_who_code");
+  });
+
+  it("keeps restricted terms restricted, and is additive and GATED", () => {
+    const restricted = add.filter((t) => t.sensitivity === "restricted");
+    expect(restricted).toHaveLength(15);
+    for (const t of restricted) {
+      const row = rows.find((r) => r.includes(`'${uuidV5(`diagnosis_terms:${t.id}`)}'`))!;
+      expect(row, t.id).toContain(", 'restricted', 'draft', ");
+    }
+    expect(sql).toMatch(/^-- GATED: owner-applied/m);
+    expect(sql).not.toMatch(/\b(DELETE|DROP|TRUNCATE|ALTER|UPDATE)\b/);
+    expect(sql).toMatch(/ON CONFLICT DO NOTHING;/);
   });
 });

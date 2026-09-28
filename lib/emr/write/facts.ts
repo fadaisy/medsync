@@ -9,8 +9,9 @@ import type { IdsrClasses } from "@/lib/emr/reference/idsr";
 import type { DateOfBirth } from "@/lib/facts/project/shared";
 import type { FactConcept } from "@/lib/facts/types";
 import type { RefEntry } from "@/lib/resus/reference/ref";
-import { and, eq, gte, inArray, lte, notInArray, sql } from "drizzle-orm";
+import { and, eq, gte, inArray, isNull, lte, notInArray, sql } from "drizzle-orm";
 
+import { clinicalCosignRequests } from "@/db/schema/doctor-workspace";
 import {
   allergies,
   allergyStatusAssertions,
@@ -25,12 +26,13 @@ import { encounterEvents } from "@/db/schema/encounter";
 import { clinicalObservations } from "@/db/schema/nurse-workspace";
 import { patientProfiles } from "@/db/schema/patient-profiles";
 import { encounters } from "@/db/schema/scheduling";
+import { normaliseTyped } from "@/lib/clerking/impression/board";
 import { currentAllergies, isActiveAllergy, NAME_ONLY_LABEL } from "@/lib/emr/allergy";
 import { idsrClass } from "@/lib/emr/hmis";
 import { REF_IDSR_CLASSES } from "@/lib/emr/reference/idsr";
 import { checkPlausibility } from "@/lib/emr/reference/plausibility";
 import { clerkshipWriteAuthority } from "@/lib/encounter/access";
-import { encrypt } from "@/lib/encryption";
+import { decrypt, encrypt } from "@/lib/encryption";
 import {
   DIAGNOSIS_TERMS_RESTRICTED_FOR_MINORS,
   DRUG_CLASS_TAGS,
@@ -74,7 +76,7 @@ export const SENIOR_CADRES: readonly string[] = [
 /** Observations, medicines, pregnancy, procedures: the clerkers and nursing. */
 const RECORDING_CADRES: readonly string[] = [...ORDERING_CADRES, ...NURSE_CADRES];
 
-function authority(ctx: WriteCtx) {
+export function authority(ctx: WriteCtx) {
   return clerkshipWriteAuthority(ctx.actor.cadreCode, ctx.actor.isClinical);
 }
 
@@ -147,7 +149,7 @@ type InsertOf<K extends VersionedKind> = (typeof VERSIONED)[K]["$inferInsert"];
 const asEnvelope = (t: VersionedTable) => t as typeof conditions;
 
 /** The row `id` if it is this patient's CURRENT version (nothing supersedes it). */
-async function currentVersion<K extends VersionedKind>(
+export async function currentVersion<K extends VersionedKind>(
   ctx: WriteCtx,
   kind: K,
   id: string,
@@ -174,7 +176,7 @@ async function currentVersion<K extends VersionedKind>(
 }
 
 /** The next version of a logical item: same logical id and concept, this author, this clock. */
-async function insertNextVersion<K extends VersionedKind>(
+export async function insertNextVersion<K extends VersionedKind>(
   ctx: WriteCtx,
   kind: K,
   prev: RowOf<K>,
@@ -807,7 +809,7 @@ export async function recordProblem(ctx: WriteCtx, input: ConditionInput): Promi
 }
 
 /** The visit's encounters, locked, so two diagnoses racing for "primary" serialise. */
-async function lockVisit(ctx: WriteCtx, encounterId: string): Promise<string[]> {
+export async function lockVisit(ctx: WriteCtx, encounterId: string): Promise<string[]> {
   const [e] = await ctx.tx
     .select({ visitId: encounters.visitId })
     .from(encounters)
@@ -822,7 +824,11 @@ async function lockVisit(ctx: WriteCtx, encounterId: string): Promise<string[]> 
   return rows.map((r) => r.id);
 }
 
-async function currentPrimary(ctx: WriteCtx, encounterIds: string[], exceptLogicalId?: string) {
+export async function currentPrimary(
+  ctx: WriteCtx,
+  encounterIds: string[],
+  exceptLogicalId?: string,
+) {
   const rows = await ctx.tx
     .select({ id: conditions.id, logicalId: conditions.logicalId })
     .from(conditions)
@@ -839,6 +845,81 @@ async function currentPrimary(ctx: WriteCtx, encounterIds: string[], exceptLogic
   return rows.find((r) => r.logicalId !== exceptLogicalId) ?? null;
 }
 
+/** S-3: the same diagnosis twice on one visit (PROMPT-CLERKING-SUMMARY-IMPRESSION §5.3). */
+export const ALREADY_ON_VISIT = "Already on this visit";
+/** D-SI-09: what a junior's Final reads as until a senior co-signs it. */
+export const FINAL_AWAITING_COSIGN = "Final · awaiting senior co-signature";
+/** D-SI-21: a Final is only demoted or moved by someone allowed to write one. */
+export const DEMOTE_FINAL = "A senior demotes or moves a final diagnosis.";
+
+/**
+ * A current, not voided, not refuted condition in `scope` with the same term, or with the same
+ * typed words (normalised as the picker does: lib/clerking/impression/board normaliseTyped). Typed
+ * words are ciphertext with a random IV, so they are decrypted here: a handful of rows.
+ */
+async function sameDiagnosis(
+  ctx: WriteCtx,
+  scope: ReturnType<typeof and>,
+  input: Pick<ConditionInput, "termId" | "text">,
+): Promise<boolean> {
+  const rows = await ctx.tx
+    .select({ textCiphertext: conditions.textCiphertext })
+    .from(conditions)
+    .where(
+      and(
+        scope,
+        notInArray(conditions.status, ["entered_in_error", "cancelled"]),
+        sql`${conditions.verification} <> 'refuted'`,
+        sql`NOT EXISTS (SELECT 1 FROM public.conditions s WHERE s.supersedes_id = ${conditions.id})`,
+        input.termId ? eq(conditions.termId, input.termId) : isNull(conditions.termId),
+      ),
+    );
+  if (input.termId) return rows.length > 0;
+  const words = normaliseTyped(input.text ?? "");
+  return (
+    words !== "" &&
+    rows.some((r) => r.textCiphertext && normaliseTyped(decrypt(r.textCiphertext)) === words)
+  );
+}
+
+/**
+ * D-SI-09: a junior's Final is a confirm_diagnosis co-signature request (migration 0084), with a
+ * PHI-free payload (the condition's logical id and its visit) and no note. One open request per
+ * diagnosis: an open one is returned, not doubled.
+ */
+export async function openDiagnosisCosign(
+  ctx: WriteCtx,
+  c: { patientUserId: string; logicalId: string; encounterId: string | null },
+): Promise<string> {
+  const [open] = await ctx.tx
+    .select({ id: clinicalCosignRequests.id })
+    .from(clinicalCosignRequests)
+    .where(
+      and(
+        eq(clinicalCosignRequests.patientUserId, c.patientUserId),
+        eq(clinicalCosignRequests.actionKind, "confirm_diagnosis"),
+        eq(clinicalCosignRequests.state, "pending_review"),
+        sql`${clinicalCosignRequests.actionPayload}->>'conditionLogicalId' = ${c.logicalId}`,
+      ),
+    )
+    .limit(1);
+  if (open) return open.id;
+  const [req] = await ctx.tx
+    .insert(clinicalCosignRequests)
+    .values({
+      hospitalId: ctx.actor.hospitalId,
+      patientUserId: c.patientUserId,
+      requestedByUserId: ctx.actor.userId,
+      requestedByAffiliationId: ctx.actor.affiliationId,
+      requestedByCadreCode: ctx.actor.cadreCode,
+      actionKind: "confirm_diagnosis",
+      actionPayload: { conditionLogicalId: c.logicalId, encounterId: c.encounterId },
+      noteId: null,
+    })
+    .returning({ id: clinicalCosignRequests.id });
+  return req!.id;
+}
+
 export interface EncounterDiagnosisInput extends ConditionInput {
   encounterId: string;
   verification?: "provisional" | "confirmed" | "differential";
@@ -853,6 +934,10 @@ export const IPC_PROMPT =
 
 /**
  * One primary diagnosis per visit (HMIS counts it): a second primary is refused, not replaced.
+ * One of each diagnosis per visit (S-3): the same term, or the same typed words, current on the
+ * visit is `conflict` "Already on this visit"; the problem-list copy is skipped when the problem
+ * list already holds it. A junior's Final (D-SI-09) is stored Working and raises a
+ * confirm_diagnosis co-signature request in this transaction (`cosignRequestId`).
  * A notifiable term (D-EMR-11; a signed REF-IDSR-CLASSES entry only) never blocks: the diagnosis is
  * recorded, a pending notification intent lands on the visit timeline (the notifications engine is
  * not built), and the class with its signed action text and the IPC prompt are returned for the
@@ -862,17 +947,30 @@ export async function recordEncounterDiagnosis(
   ctx: WriteCtx,
   input: EncounterDiagnosisInput,
   idsrRef: RefEntry & { data?: IdsrClasses } = REF_IDSR_CLASSES,
-): Promise<WriteResult & { notifiable?: IdsrClass }> {
+): Promise<WriteResult & { notifiable?: IdsrClass; cosignRequestId?: string }> {
   requireCadre(ctx, ORDERING_CADRES, "record a diagnosis");
   const replay = await replayed(ctx.tx, conditions, input.clientKey, input.patientUserId);
   if (replay) return { id: replay };
   const encounter = await openEncounter(ctx, input.patientUserId, input.encounterId);
   const visit = await lockVisit(ctx, encounter.id);
+  if (
+    await sameDiagnosis(
+      ctx,
+      and(
+        inArray(conditions.encounterId, visit),
+        eq(conditions.patientUserId, input.patientUserId),
+        eq(conditions.category, "encounter_diagnosis"),
+      ),
+      input,
+    )
+  )
+    throw new EmrWriteError("conflict", ALREADY_ON_VISIT);
   const warnings: string[] = [];
   let verification = input.verification ?? "provisional";
-  if (verification === "confirmed" && !authority(ctx).canWriteFinalDiagnosis) {
+  const needsCosign = verification === "confirmed" && !authority(ctx).canWriteFinalDiagnosis;
+  if (needsCosign) {
     verification = "provisional";
-    warnings.push("Recorded as working: a senior confirms the final diagnosis.");
+    warnings.push(FINAL_AWAITING_COSIGN);
   }
   const primary = await currentPrimary(ctx, visit);
   if (input.rank === "primary" && primary)
@@ -896,7 +994,21 @@ export async function recordEncounterDiagnosis(
     : [];
   if (input.addToProblemList ?? term?.chronic ?? false) {
     const problemKey = `${input.clientKey}:problem`;
-    if (!(await replayed(ctx.tx, conditions, problemKey, input.patientUserId)))
+    if (
+      !(await replayed(ctx.tx, conditions, problemKey, input.patientUserId)) &&
+      // S-3: never a second copy of what the patient's problem list here already holds.
+      !(await sameDiagnosis(
+        ctx,
+        and(
+          eq(conditions.patientUserId, input.patientUserId),
+          eq(conditions.hospitalId, ctx.actor.hospitalId),
+          eq(conditions.category, "problem_list_item"),
+          eq(conditions.subjectRelation, "self"),
+          sql`${conditions.clinicalStatus} <> 'resolved'`,
+        ),
+        input,
+      ))
+    )
       await insertCondition(
         ctx,
         {
@@ -920,8 +1032,20 @@ export async function recordEncounterDiagnosis(
     });
     warnings.push(`Notifiable (${notifiable.label}): ${notifiable.actionText}`, IPC_PROMPT);
   }
+  const cosignRequestId = needsCosign
+    ? await openDiagnosisCosign(ctx, {
+        patientUserId: input.patientUserId,
+        logicalId: id,
+        encounterId: encounter.id,
+      })
+    : undefined;
   await stampActivity(ctx, encounter.id);
-  return { id, warnings, ...(notifiable ? { notifiable } : {}) };
+  return {
+    id,
+    warnings,
+    ...(notifiable ? { notifiable } : {}),
+    ...(cosignRequestId ? { cosignRequestId } : {}),
+  };
 }
 
 export interface UpdateConditionInput {
@@ -938,7 +1062,9 @@ export interface UpdateConditionInput {
 }
 
 /** A problem's (or an encounter diagnosis's) status change is its next version. Resolving or
- *  refuting takes a reason and a clinician allowed a final diagnosis. */
+ *  refuting takes a reason and a clinician allowed a final diagnosis; so does taking a Final away
+ *  (a verification other than confirmed, or a confirmed primary made secondary: D-SI-21). A junior
+ *  asks for a Final with requestDiagnosisCosign (lib/emr/write/diagnoses.ts). */
 export async function updateProblemStatus(
   ctx: WriteCtx,
   input: UpdateConditionInput,
@@ -952,6 +1078,12 @@ export async function updateProblemStatus(
     if (!authority(ctx).canWriteFinalDiagnosis)
       throw new EmrWriteError("forbidden", "A senior confirms, resolves or refutes a diagnosis.");
   }
+  const demotingFinal =
+    prev.verification === "confirmed" &&
+    ((input.verification !== undefined && input.verification !== "confirmed") ||
+      (input.rank === "secondary" && prev.rank === "primary"));
+  if (demotingFinal && !authority(ctx).canWriteFinalDiagnosis)
+    throw new EmrWriteError("forbidden", DEMOTE_FINAL);
   if (closing) requireReason(input.reasonCode, input.reasonText, "resolve or refute");
   if (input.rank && prev.category !== "encounter_diagnosis")
     throw invalid("Only an encounter diagnosis has a rank.");
@@ -1385,6 +1517,19 @@ export async function markFactEnteredInError(
     { status: "entered_in_error", ...reasonCols(input.reasonCode, input.reasonText) },
     input.clientKey,
   );
+  // A voided diagnosis leaves the co-signature inbox with it (D-SI-09).
+  if (input.kind === "condition")
+    await ctx.tx
+      .update(clinicalCosignRequests)
+      .set({ state: "cancelled", reviewedAt: now })
+      .where(
+        and(
+          eq(clinicalCosignRequests.patientUserId, input.patientUserId),
+          eq(clinicalCosignRequests.actionKind, "confirm_diagnosis"),
+          eq(clinicalCosignRequests.state, "pending_review"),
+          sql`${clinicalCosignRequests.actionPayload}->>'conditionLogicalId' = ${prev.logicalId}`,
+        ),
+      );
   await stampActivity(ctx, prev.encounterId);
   return { id };
 }

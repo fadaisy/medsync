@@ -136,6 +136,93 @@ describe("content edits", () => {
   });
 });
 
+describe("the s13 mirror follows logical ids (S-10, D-SI-19)", () => {
+  const dxItems = (c: NoteContent) =>
+    (c.sections.s13?.items ?? []).filter((i) => i.kind === "encounter_diagnosis");
+  const required = (p: ReturnType<typeof standardVisitMidway>, c: NoteContent) =>
+    requiredCount(p, deskValidation(p, c));
+
+  it("a new version replaces its item: one item, the current version, the new status", () => {
+    const p = standardVisitMidway();
+    const before = p.draft!.content;
+    expect(syncRecorded(before, p)).toBe(before); // mirrored already, nothing new
+    const d = p.diagnoses[0]!;
+    p.diagnoses = [{ ...d, id: crypto.randomUUID(), verification: "confirmed" }];
+    const c = syncRecorded(before, p);
+    expect(dxItems(c)).toEqual([
+      expect.objectContaining({
+        conditionId: p.diagnoses[0]!.id,
+        logicalId: d.logicalId,
+        verification: "confirmed",
+      }),
+    ]);
+    expect(syncRecorded(c, p)).toBe(c);
+    expect(required(p, c)).toEqual({ met: 3, of: 3 });
+  });
+
+  it("an entered-in-error diagnosis loses its item, and Required counts the Impression as missing", () => {
+    const p = standardVisitMidway();
+    p.diagnoses = [];
+    const c = syncRecorded(p.draft!.content, p);
+    expect(dxItems(c)).toEqual([]);
+    expect(required(p, c)).toEqual({ met: 2, of: 3 });
+    expect(deskValidation(p, c).missing.map((m) => m.id)).toEqual(["req.impression"]);
+  });
+
+  it("a swap re-mirrors both diagnoses under their new versions, never doubling either", () => {
+    const p = standardVisitMidway();
+    const a = p.diagnoses[0]!;
+    const b = { ...a, id: crypto.randomUUID(), logicalId: crypto.randomUUID(), display: "Typhoid" };
+    p.diagnoses = [a, { ...b, rank: "secondary", verification: "differential" }];
+    const first = syncRecorded(p.draft!.content, p);
+    expect(dxItems(first)).toHaveLength(2);
+    p.diagnoses = [
+      { ...b, id: crypto.randomUUID(), rank: "primary", verification: "provisional" },
+      { ...a, id: crypto.randomUUID(), rank: "secondary", verification: "differential" },
+    ];
+    const swapped = syncRecorded(first, p);
+    expect(dxItems(swapped).map((i) => [i.logicalId, i.conditionId, i.rank])).toEqual(
+      expect.arrayContaining([
+        [b.logicalId, p.diagnoses[0]!.id, "primary"],
+        [a.logicalId, p.diagnoses[1]!.id, "secondary"],
+      ]),
+    );
+    expect(dxItems(swapped)).toHaveLength(2);
+  });
+
+  it("items mirrored before logical ids: kept through their current version, dropped when stale", () => {
+    const p = standardVisitMidway();
+    const d = p.diagnoses[0]!;
+    const legacy = (conditionId: string): NoteContent => ({
+      sections: {
+        ...p.draft!.content.sections,
+        s13: {
+          items: [
+            {
+              kind: "encounter_diagnosis",
+              conditionId,
+              display: d.display,
+              code: d.code,
+              verification: d.verification,
+              rank: d.rank,
+            },
+          ],
+        },
+      },
+    });
+    // Current: upgraded in place with its logical id.
+    const kept = syncRecorded(legacy(d.id), p);
+    expect(dxItems(kept)).toEqual([
+      expect.objectContaining({ conditionId: d.id, logicalId: d.logicalId }),
+    ]);
+    // Stale (an older version, or a voided diagnosis): dropped, and the current one mirrored once.
+    const stale = syncRecorded(legacy(crypto.randomUUID()), p);
+    expect(dxItems(stale)).toEqual([
+      expect.objectContaining({ conditionId: d.id, logicalId: d.logicalId }),
+    ]);
+  });
+});
+
 describe("signing check and the index", () => {
   it("the standard visit midway is signable: required 3/3, allergy status recorded", () => {
     const p = standardVisitMidway();

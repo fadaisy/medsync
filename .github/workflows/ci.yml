@@ -58,6 +58,8 @@ jobs:
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run format:check
+      # The three clerking catalogues, their sign-off hashes and every id that crosses between them.
+      - run: npm run clerking:catalogue-check
       # Build before test: tests/a11y reads the pre-rendered HTML in .next and
       # skips (with a printed reason) when there is none.
       - run: npm run build

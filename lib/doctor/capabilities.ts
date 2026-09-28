@@ -84,12 +84,15 @@ export async function resolveCapabilities(args: {
   return result;
 }
 
-export const ACTION_LABEL: Record<CosignActionKind, string> = {
+/** The review queue's heading per request kind: the policy kinds, and confirm_diagnosis (0084, a
+ *  junior's Final; raised by the EMR itself, never by a policy row). */
+export const ACTION_LABEL: Record<CosignActionKind | "confirm_diagnosis", string> = {
   prescription_routine: "Routine prescription",
   prescription_controlled: "Controlled-substance prescription",
   order_high_cost_imaging: "High-cost imaging order (CT / MRI)",
   admit_patient: "Admit patient",
   discharge_patient: "Discharge patient",
+  confirm_diagnosis: "Final diagnosis",
 };
 
 export const REQUIREMENT_LABEL: Record<Requirement, string> = {

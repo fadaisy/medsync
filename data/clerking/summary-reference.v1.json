@@ -1,0 +1,18 @@
+{
+ "id": "MS-EMR-SI-REF-001",
+ "title": "Summary step reference values",
+ "version": "1.0.0",
+ "status": "signed-gate-a",
+ "signedBy": "Fadhul (owner and CSO)",
+ "signedOn": "2026-09-28",
+ "gate": "GATE A, Summary and Impression, D-SI-02",
+ "reference_entries": {
+  "REF-SI-ONSET": {
+   "value": { "acute_lt_days": 21, "chronic_gt_days": 84 },
+   "unit": "days",
+   "meaning": "The one-liner's onset word from the longest recorded complaint duration: Acute under 3 weeks, Subacute from 3 to 12 weeks, Chronic over 12 weeks. Never inferred from free text.",
+   "source": "DRAFT-MEDSYNC",
+   "status": "signed"
+  }
+ }
+}

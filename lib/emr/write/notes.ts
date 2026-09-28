@@ -8,6 +8,8 @@ import type { ClinicalNote } from "@/db/schema/emr";
 import type { History } from "@/lib/clerking/answers";
 import type { ExamContext } from "@/lib/clerking/exam/context";
 import type { ExamDraft } from "@/lib/clerking/exam/payload";
+import type { SignedDiagnosis } from "@/lib/clerking/payload";
+import type { EncounterDiagnosisView } from "@/lib/emr/diagnoses";
 import type { NoteContent, NoteItem, SignContext } from "@/lib/emr/notes";
 import { and, desc, eq, inArray, like, notInArray, sql } from "drizzle-orm";
 
@@ -27,6 +29,8 @@ import { convertV1Draft } from "@/lib/clerking/convert";
 import { examCommitLines } from "@/lib/clerking/exam/commit";
 import { NO_VITALS } from "@/lib/clerking/exam/context";
 import { EXAM_CATALOGUE } from "@/lib/clerking/exam/load";
+import { DX_INDEX, DX_SIGNOFF } from "@/lib/clerking/impression/load";
+import { impressionSignBlocks } from "@/lib/clerking/impression/sign";
 import { linkedAnswers } from "@/lib/clerking/linkage";
 import { CLERKING_CATALOGUE, CLERKING_LEGACY, CLERKING_TOKEN_MAP } from "@/lib/clerking/load";
 import { isOpen } from "@/lib/emr/encounter";
@@ -46,6 +50,7 @@ import { CONCEPTS } from "@/lib/facts/catalogue.generated";
 import { conceptDef } from "@/lib/facts/project/shared";
 import { captureFromNote, factsFromCapture } from "@/lib/ncd/cfc-map";
 import { EmrWriteError, stampActivity } from "./context";
+import { loadEncounterDiagnoses } from "./diagnoses";
 import {
   insertObservations,
   recordProblem,
@@ -396,6 +401,20 @@ async function medicinesReconciled(ctx: WriteCtx, patientUserId: string, encount
     .every((r) => reconciledHere.has(r.logicalId));
 }
 
+/** `impression.snapshot` (D-SI-20): the note's visit's current diagnoses, in the signed shape. */
+function signingSnapshot(dx: readonly EncounterDiagnosisView[]): SignedDiagnosis[] {
+  return dx.map((d) => ({
+    logicalId: d.logicalId,
+    versionId: d.id,
+    display: d.display,
+    code: d.code,
+    rank: d.rank,
+    verification: d.verification,
+    restricted: d.restricted,
+    cosignPending: d.cosignPending,
+  }));
+}
+
 export interface SignNoteInput {
   patientUserId: string;
   noteId: string;
@@ -412,7 +431,27 @@ export async function signNote(ctx: WriteCtx, input: SignNoteInput): Promise<Wri
   if (input.revision !== undefined && input.revision !== note.revision)
     throw new EmrWriteError("conflict", "This note was changed elsewhere. Reload before signing.");
   const key = hmacKey();
-  const content = readContent(note);
+  let content = readContent(note);
+  // D-SI-20: a v2 note's Impression is signed with the visit's diagnoses as they stand now (logical
+  // and version id, display, code, rank, status, sensitivity, co-signature), written into the
+  // content before it is canonicalised and HMACed, so the signed note never changes when the
+  // record does.
+  const snapshotted =
+    content.schema === 2 && typeof content.impression === "object" && content.impression !== null;
+  if (snapshotted) {
+    const dx = await loadEncounterDiagnoses(ctx.tx, {
+      hospitalId: note.hospitalId,
+      patientUserId: note.patientUserId,
+      encounterId: note.encounterId,
+    });
+    // D-SI-06: a must-not-miss marked unlikely holds the signature until it has its reason.
+    const blocks = impressionSignBlocks(dx, content.impression, DX_INDEX, DX_SIGNOFF);
+    if (blocks.length) throw invalid(`Not ready to sign: ${blocks.join("; ")}.`);
+    content = {
+      ...content,
+      impression: { ...content.impression, snapshot: signingSnapshot(dx) },
+    };
+  }
   const signCtx: SignContext = {
     allergyStatus: (await loadAllergyInput(ctx.tx, input.patientUserId)).status.kind,
     medicinesReconciled: await medicinesReconciled(ctx, input.patientUserId, note.encounterId),
@@ -442,6 +481,8 @@ export async function signNote(ctx: WriteCtx, input: SignNoteInput): Promise<Wri
       contentHmac: plan.contentHmac,
       hmacKeyId: plan.hmacKeyId,
       lateEntry: plan.lateEntry,
+      // The content the HMAC covers, snapshot included (the last change to a draft).
+      ...(snapshotted ? { contentCiphertext: encrypt(JSON.stringify(content)) } : {}),
     })
     .where(
       and(

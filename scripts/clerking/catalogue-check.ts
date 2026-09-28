@@ -1,13 +1,16 @@
 /**
- * npm run clerking:catalogue-check — validates the clerking catalogues (history and examination)
- * against their schemas and sign-offs, checks the ids that cross between them, and prints their
- * counts. Exits non-zero on any problem (CI runs it).
+ * npm run clerking:catalogue-check — validates the clerking catalogues (history, examination and
+ * diagnosis reasoning) against their schemas and sign-offs, checks the ids that cross between them
+ * (including the REF-DX-TERMS v1.1 addendum and the test menu), enforces the restricted-fact rule,
+ * and prints their counts. Exits non-zero on any problem (CI runs it).
  */
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 
 import { parseCatalogue } from "../../lib/clerking/catalogue";
 import { parseExamCatalogue } from "../../lib/clerking/exam/catalogue";
+import { parseDxCatalogue } from "../../lib/clerking/impression/catalogue";
+import { dxCatalogueProblems } from "../../lib/clerking/impression/check";
 import { legacyTableProblems, parseLegacyTable } from "../../lib/clerking/legacy";
 
 const path = "data/clerking/clerking-history-catalogue.v1.json";
@@ -154,6 +157,67 @@ process.stdout.write(
     `by outcome ${Object.entries(outcomes)
       .map(([k, v]) => `${k} ${v}`)
       .join(", ")}`,
+  ].join("\n") + "\n",
+);
+
+/* ─── The diagnosis reasoning catalogue (MS-EMR-DX-CAT-001) ──────── */
+
+const dxBytes = readFileSync("data/clerking/clerking-diagnosis-catalogue.v1.json");
+const dx = parseDxCatalogue(JSON.parse(dxBytes.toString("utf8")));
+const dxSignoff = JSON.parse(readFileSync("data/clerking/dx-signoff.v1.json", "utf8")) as {
+  catalogueSha256: string;
+  catalogueVersion: string;
+};
+const dxHash = createHash("sha256").update(dxBytes).digest("hex");
+if (dxHash !== dxSignoff.catalogueSha256)
+  problems.push(`diagnosis catalogue changed since sign-off (sha256 ${dxHash})`);
+if (dx.version !== dxSignoff.catalogueVersion)
+  problems.push(`diagnosis catalogue ${dx.version} ≠ signed ${dxSignoff.catalogueVersion}`);
+type Term = { id: string; sensitivity: string; restricted_class?: string | null };
+const readTerms = (f: string) => (JSON.parse(readFileSync(f, "utf8")) as { terms: Term[] }).terms;
+const baseTerms = readTerms("data/emr/diagnosis-terms.v1.json");
+const addTerms = readTerms(
+  "docs/emr/clerking-v2/summary-impression/diagnosis-terms.v1.1-addendum.json",
+);
+for (const t of addTerms)
+  if (baseTerms.some((b) => b.id === t.id))
+    problems.push(`addendum term ${t.id} already in REF-DX-TERMS`);
+const menu = JSON.parse(readFileSync("data/emr/test-catalogue.v1.json", "utf8")) as {
+  tests: { id: string }[];
+};
+const dxCheck = dxCatalogueProblems({
+  dx,
+  cat,
+  exam,
+  terms: [...baseTerms, ...addTerms],
+  tests: new Set(menu.tests.map((t) => t.id)),
+  otherSources: new Set([...Object.keys(cat.data.sources), ...Object.keys(ed.sources)]),
+});
+problems.push(...dxCheck.problems);
+const summaryRef = JSON.parse(readFileSync("data/clerking/summary-reference.v1.json", "utf8")) as {
+  reference_entries: Record<string, { value: { acute_lt_days: number; chronic_gt_days: number } }>;
+};
+const onset = summaryRef.reference_entries["REF-SI-ONSET"]?.value;
+if (!onset || !(onset.acute_lt_days < onset.chronic_gt_days))
+  problems.push("REF-SI-ONSET missing or inverted");
+const dxProfiles = dx.profiles;
+const byCategory = dxProfiles.reduce<Record<string, number>>(
+  (m, p) => ((m[p.category] = (m[p.category] ?? 0) + 1), m),
+  {},
+);
+process.stdout.write(
+  [
+    `catalogue ${dx.data.id} ${dx.version} (sha256 ${dxHash.slice(0, 12)}…, ${Math.round(dxBytes.length / 1024)} KB)`,
+    `profiles ${dxProfiles.length} (${dxProfiles.filter((p) => baseTerms.some((t) => t.id === p.id)).length} on REF-DX-TERMS, ${dxProfiles.filter((p) => addTerms.some((t) => t.id === p.id)).length} on the v1.1 addendum)`,
+    `by category ${Object.entries(byCategory)
+      .sort((a, b) => b[1] - a[1])
+      .map(([k, v]) => `${k} ${v}`)
+      .join(", ")}`,
+    `must-not-miss ${dxProfiles.filter((p) => p.must_not_miss).length}, time-critical ${dxProfiles.filter((p) => p.time_critical).length}, restricted ${dxProfiles.filter((p) => p.restricted_class).length}`,
+    `evidence atoms ${dxProfiles.reduce((n, p) => n + p.suggest_for.length, 0)} for / ${dxProfiles.reduce((n, p) => n + p.suggest_against.length, 0)} against, ask targets ${dxProfiles.reduce((n, p) => n + p.ask.length, 0)}`,
+    `differential rules ${dx.rules.length}, reference entries ${Object.keys(dx.data.reference_entries).length}, named scales ${Object.keys(dx.data.named_scales).length}`,
+    `tests referenced ${dxCheck.testsExisting.size + dxCheck.testsProposed.size} (${dxCheck.testsExisting.size} on the menu, ${dxCheck.testsProposed.size} proposed)`,
+    `terms: REF-DX-TERMS ${baseTerms.length}, v1.1 addendum ${addTerms.length} (ICD-11 verified ${addTerms.filter((t) => (t as { icd11?: { status?: string } }).icd11?.status === "verified").length})`,
   ].join("\n") + "\n",
 );
 

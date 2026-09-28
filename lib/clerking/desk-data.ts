@@ -1,5 +1,6 @@
 import type { PatientSex } from "./catalogue";
 import type { Signoff } from "./flags";
+import type { DxSignoff } from "./impression/catalogue";
 import type { ConversionFlagDefs } from "./legacy";
 import type { AdultVitals } from "@/lib/triage/types";
 
@@ -51,6 +52,9 @@ export interface ClerkingDeskData {
   signoff: Signoff;
   /** The signed wording of the conversion flags (a v1 draft continued in the new format). */
   conversionFlags?: ConversionFlagDefs;
+  /** The diagnosis reasoning catalogue's immutable URL (keyed by its hash) and its signature
+   *  (Summary and Impression, steps 08 and 09). */
+  dx?: { catalogueUrl: string; catalogueVersion: string; signoff: DxSignoff };
   /** The examination catalogue's immutable URL (keyed by its hash) and its signature. */
   exam: {
     catalogueUrl: string;

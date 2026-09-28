@@ -146,6 +146,66 @@ const BadgeSnapshot = z.object({
   restricted: z.boolean(),
 });
 
+/* ─── Steps 08 and 09 (PROMPT-CLERKING-SUMMARY-IMPRESSION §8) ─────── */
+
+const ref = z.string().max(160); // a typed finding ref, never a label
+const uuid = z.string().uuid();
+const stamp = { by: z.string().max(80), at: z.string().max(40) };
+
+const SummarySnapshotSchema = z.object({
+  items: z.array(z.object({ ref, text: text(500), included: z.boolean() })).max(600),
+  syndrome: text(120),
+  mode: z.enum(["composed", "words"]),
+  words: text(20_000),
+  text: text(20_000),
+});
+
+export const SummarySchema = z.object({
+  mode: z.enum(["composed", "words"]),
+  words: text(20_000).optional(),
+  wordsBase: text(40).optional(),
+  syndrome: text(120).optional(),
+  include: z.record(ref, z.boolean()).optional(),
+  review: z.object({ ...stamp, inputsHash: text(40), snapshot: SummarySnapshotSchema }).optional(),
+  text: text(40_000).optional(),
+});
+
+const SignedDiagnosisSchema = z.object({
+  logicalId: uuid,
+  versionId: uuid,
+  display: text(300),
+  code: text(20).nullable(),
+  rank: z.enum(["primary", "secondary"]),
+  verification: id,
+  restricted: z.boolean(),
+  cosignPending: z.boolean(),
+});
+
+export const ImpressionSchema = z.object({
+  order: z.array(uuid).max(60),
+  /** By logical id; "term:<uuid>" or "typed:<words>" holds a suggestion's likelihood until the
+   *  condition it creates arrives. */
+  likelihood: z.record(z.string().max(160), z.enum(["likely", "possible", "unlikely"])),
+  reasons: z.record(uuid, text(2_000)),
+  evidence: z.record(uuid, z.record(ref, z.object({ w: z.enum(["for", "against"]), ...stamp }))),
+  meta: z.record(
+    uuid,
+    z.object({
+      onset: z.enum(["acute", "chronic", "acute_on_chronic", "recurrent"]).optional(),
+      severity: text(120).optional(),
+      reasoning: text(10_000).optional(),
+    }),
+  ),
+  catalogueVersion: text(40),
+  /** The diagnoses as they stood at signing (D-SI-20). */
+  snapshot: z.array(SignedDiagnosisSchema).max(60).optional(),
+  text: text(40_000).optional(),
+});
+
+/** One diagnosis as it stood when the note was signed (`impression.snapshot`, D-SI-20). */
+export type SignedDiagnosis = z.infer<typeof SignedDiagnosisSchema>;
+export type ImpressionContent = z.infer<typeof ImpressionSchema>;
+
 /** The v2-only keys of NoteContent. */
 export const ContentV2Keys = {
   schema: z.literal(2).optional(),
@@ -155,4 +215,8 @@ export const ContentV2Keys = {
   exam: ExamSchema.optional(),
   edited: z.record(id, text(20_000)).optional(),
   flags: z.array(BadgeSnapshot).max(100).optional(),
+  /** Step 08, the composed summary (PROMPT-CLERKING-SUMMARY-IMPRESSION §8). */
+  summary: SummarySchema.optional(),
+  /** Step 09, the reasoning around the visit's diagnoses (the diagnoses stay conditions rows). */
+  impression: ImpressionSchema.optional(),
 };

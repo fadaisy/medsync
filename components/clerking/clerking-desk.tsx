@@ -4,8 +4,10 @@ import type { ConversionHandlers } from "./conversion-dialog";
 import type { ExamPlace } from "./exam/exam-step";
 import type { SaveSet } from "./exam/model";
 import type { HistoryBodyProps } from "./history-sections";
+import type { ImpressionHandlers } from "./impression/impression-step";
 import type { Derived, VitalsView } from "./model";
 import type { PastHistoryHandlers } from "./past-history-body";
+import type { DxData } from "./use-catalogue";
 import type { DeskViewHandlers, DeskViewProps } from "@/components/emr/desk/desk-view";
 import type { DeskPayload } from "@/components/emr/desk/model";
 import type { SectionCtx } from "@/components/emr/desk/sections";
@@ -15,14 +17,16 @@ import type { BlockKey } from "@/lib/clerking/compose";
 import type { ExamCatalogue } from "@/lib/clerking/exam/catalogue";
 import type { ExamDraft } from "@/lib/clerking/exam/payload";
 import type { DeskSection } from "@/lib/clerking/flags";
+import type { ImpressionDraft } from "@/lib/clerking/impression/board";
 import type { SectionId, SectionStatus } from "@/lib/clerking/status";
+import type { SummaryDraft } from "@/lib/clerking/summary/review";
 import type { NoteContent } from "@/lib/emr/note-rules";
 import type { ReactNode } from "react";
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CheckIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 
 import { RestrictedMark } from "@/components/emr/chips";
-import { deskValidation, requiredCount } from "@/components/emr/desk/model";
+import { deskValidation, putItem, requiredCount } from "@/components/emr/desk/model";
 import { SectionBody } from "@/components/emr/desk/sections";
 import { NoteRowsView } from "@/components/emr/desk/sign";
 import { EmrDialog } from "@/components/emr/emr-dialog";
@@ -33,6 +37,7 @@ import { Button } from "@/components/ui/button";
 import { SECTION_BLOCK } from "@/lib/clerking/compose";
 import { ruleTarget } from "@/lib/clerking/exam/flags";
 import { emptyExam } from "@/lib/clerking/exam/payload";
+import { acceptColumn, cellState, nextState, withMark } from "@/lib/clerking/impression/evidence";
 import { SECTIONS } from "@/lib/clerking/status";
 import { cn } from "@/lib/utils";
 import { ConversionDialog, ConversionStrip } from "./conversion-dialog";
@@ -41,6 +46,9 @@ import { examOf, previousFormat, VITALS, withExam } from "./exam/model";
 import { FamilyBody, SocialBody } from "./family-social";
 import { FlagsPanel } from "./flags-panel";
 import { ComplaintBody, HistoryBody } from "./history-sections";
+import { DetailsBody } from "./impression/details";
+import { ImpressionStep } from "./impression/impression-step";
+import { deriveImpression } from "./impression/model";
 import {
   BLURB,
   deriveDesk,
@@ -57,10 +65,13 @@ import {
   PhoneBottomBar,
   PhoneHeader,
   PhoneStepBar,
+  useMedia,
   usePhone,
   useScrolledPast,
 } from "./phone-shell";
 import { ClerkingRail } from "./rail";
+import { impressionDraftOf, summaryDraftOf, withImpression, withSummary } from "./si-model";
+import { SummaryStatusPill, SummaryStep } from "./summary/summary-step";
 import { SystemsBody } from "./systems-body";
 
 /**
@@ -80,6 +91,9 @@ export interface ClerkingDeskProps {
   catalogueFailed?: boolean;
   /** The examination catalogue (null while it loads). */
   ecat?: ExamCatalogue | null;
+  /** The diagnosis reasoning catalogue and its term map (null while it loads). */
+  dx?: DxData | null;
+  dxFailed?: boolean;
   /** "Save as a new set" (one batch through recordObservations). */
   onSaveSet?: SaveSet;
   /** Who is signed in (the intimate gate's record). */
@@ -91,7 +105,7 @@ export interface ClerkingDeskProps {
   save: DeskViewProps["save"];
   clockWarning?: boolean;
   announce?: DeskViewProps["announce"];
-  on: DeskViewHandlers & PastHistoryHandlers & ConversionHandlers;
+  on: DeskViewHandlers & PastHistoryHandlers & ConversionHandlers & ImpressionHandlers;
   loaders: DeskViewProps["loaders"];
   busy?: string | null;
   signing?: boolean;
@@ -361,6 +375,7 @@ function SectionBar({
 function SignBar({
   required,
   ready,
+  blocks = [],
   canSign,
   signing,
   complete,
@@ -369,13 +384,18 @@ function SignBar({
 }: {
   required: { met: number; of: number };
   ready: boolean;
+  /** What else holds signing, beyond the template's rules (a must-not-miss reason, SI5). */
+  blocks?: readonly string[];
   canSign: boolean;
   signing?: boolean;
   complete: boolean;
   onSign?: () => void;
   onComplete?: () => void;
 }) {
-  const words = `Required ${required.met} of ${required.of}`;
+  const words = [
+    `Required ${required.met} of ${required.of}`,
+    ...(blocks.length === 1 ? blocks : blocks.length ? [`${blocks.length} reasons needed`] : []),
+  ].join(" · ");
   return (
     <div
       data-slot="desk-actions"
@@ -425,7 +445,7 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
   const headerGone = useScrolledPast(headerRef);
   // A linked answer in Systems opens its complaint card in Complaint (D-CV-08).
   const [openComplaint, setOpenComplaint] = useState<string | null>(null);
-  const fmt = formatters(p.timeZone);
+  const fmt = useMemo(() => formatters(p.timeZone), [p.timeZone]);
   const k = p.clerking!;
   const signedNote = p.draft === null ? p.signed : null;
   const view = signedNote ? signedNote.content : content;
@@ -433,9 +453,98 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
   const act = p.flags.actionsAllowed && editable;
 
   const [examPlace, setExamPlace] = useState<ExamPlace>(props.examPlace ?? { system: VITALS });
-  const derived: Derived | null = cat
-    ? deriveDesk(cat, p, view, props.ecat ?? null, fmt.time)
-    : null;
+  // Derived once per change of what it reads: opening Details or a dialog does not recompute.
+  const ecat = props.ecat ?? null;
+  const dxData = props.dx ?? null;
+  const derived: Derived | null = useMemo(
+    () => (cat ? deriveDesk(cat, p, view, ecat, fmt.time, dxData) : null),
+    [cat, p, view, ecat, fmt, dxData],
+  );
+  const si = derived?.si ?? null;
+  // Step 08 on screen says what it is doing: Composed, Reviewed or Changed (§5.1).
+  const statuses =
+    derived && si && props.current === "summary"
+      ? {
+          ...derived.statuses,
+          summary: {
+            ...derived.statuses.summary,
+            text:
+              si.review === "reviewed"
+                ? "Reviewed"
+                : si.review === "changed"
+                  ? "Changed"
+                  : "Composed",
+          },
+        }
+      : (derived?.statuses ?? null);
+  /** Test ids ordered at this visit for a diagnosis ("In plan"); the payload's orders carry
+   *  their reason conditions (§8 "Orders"). */
+  // Orders carry the test_catalogue row's uuid; the catalogue speaks in test ids.
+  const testIdOf = useMemo(
+    () => new Map(Object.entries(props.dx?.testIds ?? {}).map(([id, uuid]) => [uuid, id])),
+    [props.dx],
+  );
+  const { diagnoses, orders } = p;
+  const inPlan = useCallback(
+    (logicalId: string): ReadonlySet<string> => {
+      const version = diagnoses.find((d) => d.logicalId === logicalId)?.id;
+      return new Set(
+        orders
+          .filter((o) => o.testId && version && o.reasonConditionIds?.includes(version))
+          .map((o) => testIdOf.get(o.testId!) ?? o.testId!),
+      );
+    },
+    [diagnoses, orders, testIdOf],
+  );
+  const wide = useMedia("(min-width: 834px)");
+  const xl = useMedia("(min-width: 1280px)");
+  const [details, setDetailsId] = useState<string | null>(null);
+  // Details returns focus to the control that opened it (§5.7), in place and in the dialog.
+  const detailsFrom = useRef<HTMLElement | null>(null);
+  const detailsPanel = useRef<HTMLDivElement | null>(null);
+  const setDetails = (id: string | null) => {
+    if (id && !details) detailsFrom.current = document.activeElement as HTMLElement | null;
+    setDetailsId(id);
+    if (id) return;
+    const from = detailsFrom.current;
+    detailsFrom.current = null;
+    requestAnimationFrame(() => from?.isConnected && from.focus());
+  };
+  const dxLoaded = props.dx !== undefined;
+  const imp = useMemo(
+    () => (si && dxLoaded ? deriveImpression(si, dxData, { inPlan }) : null),
+    [si, dxLoaded, dxData, inPlan],
+  );
+  const detailsRow =
+    details && si
+      ? [si.board.leading, ...si.board.differential, ...si.board.also].find(
+          (r) => r?.dx.logicalId === details,
+        )
+      : null;
+  // In place (1280 px and up), focus moves into Details as it opens.
+  const detailsInPlace = !!detailsRow && xl;
+  useEffect(() => {
+    if (detailsInPlace) detailsPanel.current?.focus();
+  }, [detailsInPlace, details]);
+  const onImpression = (fn: (d: ImpressionDraft) => ImpressionDraft) =>
+    on.onContent?.(
+      withImpression(
+        content,
+        fn(impressionDraftOf(content, props.dx?.cat.version ?? "")),
+        k.catalogueVersion,
+      ),
+    );
+  const onDeferral = (reason: string | null) =>
+    on.onContent?.(
+      putItem(
+        content,
+        "s13",
+        (i) => i.kind === "diagnosis_deferred",
+        reason === null ? null : { kind: "diagnosis_deferred", reason },
+      ),
+    );
+  const onSummary = (fn: (d: SummaryDraft) => SummaryDraft) =>
+    on.onContent?.(withSummary(content, fn(summaryDraftOf(content)), k.catalogueVersion));
   const onExam = (fn: (d: ExamDraft) => ExamDraft) =>
     on.onContent?.(
       withExam(content, fn(examOf(content, props.ecat?.version ?? "")), k.catalogueVersion),
@@ -454,6 +563,12 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
     setDialog(null);
     if (id !== "complaint") setOpenComplaint(null);
     on.onSection?.(id);
+  };
+  /** Open an owner step; an examination item opens where it sits (Not asked yet, §5.2). */
+  const goTo = (id: string, item?: string) => {
+    const at = item ? derived?.exam?.ecat.placeOf(item) : undefined;
+    if (at) setExamPlace({ system: at.system.id, part: at.part.id });
+    go(id);
   };
 
   const history = historyOf(view);
@@ -489,7 +604,95 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
     slots: { orders: slots.orders },
   };
 
+  const detailsBody =
+    detailsRow && si && imp
+      ? (inPlace: boolean) => (
+          <DetailsBody
+            si={si}
+            v={imp}
+            row={detailsRow}
+            dx={props.dx ?? null}
+            editable={editable && act}
+            lists={!wide}
+            inPlan={inPlan(detailsRow.dx.logicalId)}
+            orderable={(t) => !!props.dx?.tests[t]}
+            onImpression={onImpression}
+            onHistory={onHistory}
+            onGo={(step, item) => {
+              setDetails(null);
+              goTo(step, item);
+            }}
+            onCycle={(col, f) =>
+              onImpression((d) =>
+                withMark(d, col.row.dx.logicalId, f.ref, nextState(cellState(col, f.ref)), {
+                  by: props.actor ?? "clinician",
+                  at: new Date().toISOString(),
+                }),
+              )
+            }
+            onAccept={(col) =>
+              onImpression((d) =>
+                acceptColumn(d, col, {
+                  by: props.actor ?? "clinician",
+                  at: new Date().toISOString(),
+                }),
+              )
+            }
+            onAddToPlan={on.onAddToPlan}
+            onMakeLeading={on.onLeading}
+            onDone={() => setDetails(null)}
+            inPlace={inPlace}
+          />
+        )
+      : null;
+
   const body = (() => {
+    if (cur.id === "impression" && si && imp) {
+      return (
+        <ImpressionStep
+          si={si}
+          v={imp}
+          dx={props.dx ?? null}
+          dxLoading={!props.dx && !props.dxFailed}
+          editable={editable}
+          act={act}
+          canFinal={p.viewer.canFinalDiagnosis}
+          actor={props.actor ?? "clinician"}
+          busy={props.busy ?? null}
+          loaders={{ terms: props.loaders.terms, searchTerms: props.loaders.searchTerms }}
+          on={on}
+          onImpression={onImpression}
+          onDeferral={onDeferral}
+          onHistory={onHistory}
+          onGo={goTo}
+          onDetails={setDetails}
+          wide={wide}
+          inPlan={inPlan}
+        />
+      );
+    }
+    if (cur.id === "summary") {
+      if (!si)
+        return (
+          <p role="status" className="text-body-s text-muted-foreground">
+            {props.catalogueFailed
+              ? "The clerking catalogue did not load. Reload the page to try again."
+              : "Composing the summary…"}
+          </p>
+        );
+      return (
+        <SummaryStep
+          si={si}
+          editable={editable}
+          actor={props.actor ?? "clinician"}
+          time={fmt.time}
+          dxLoading={!props.dx && !props.dxFailed}
+          onSummary={onSummary}
+          onHistory={onHistory}
+          onGo={goTo}
+        />
+      );
+    }
     if (cur.id === "exam" && !previousFormat(view)) {
       if (!derived?.exam)
         return (
@@ -658,6 +861,7 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
     <SignBar
       required={required}
       ready={ready}
+      blocks={imp?.signBlocks ?? []}
       canSign={editable}
       signing={props.signing}
       complete={p.encounter.open}
@@ -754,7 +958,7 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
         onNote={() => setDialog("note")}
       />
       <SectionBar
-        statuses={derived?.statuses ?? null}
+        statuses={statuses}
         current={cur.id}
         done={derived?.done ?? null}
         onSection={go}
@@ -846,10 +1050,15 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
                     {BLURB[cur.id]}
                   </p>
                 </div>
-                {/* One step label on the phone: the step bar's (§3 rule 3). */}
-                <span className="text-caption text-muted-foreground shrink-0 pt-1 font-mono whitespace-nowrap tabular-nums max-sm:hidden">
-                  {`Step ${at + 1} of ${SECTIONS.length}`}
-                </span>
+                <div className="flex shrink-0 items-center gap-3 pt-0.5">
+                  {cur.id === "summary" && si ? (
+                    <SummaryStatusPill si={si} time={fmt.time} />
+                  ) : null}
+                  {/* One step label on the phone: the step bar's (§3 rule 3). */}
+                  <span className="text-caption text-muted-foreground font-mono whitespace-nowrap tabular-nums max-sm:hidden">
+                    {`Step ${at + 1} of ${SECTIONS.length}`}
+                  </span>
+                </div>
               </header>
               <div className="px-5 py-5 max-sm:p-0">{body}</div>
             </section>
@@ -880,7 +1089,26 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
           aria-label="Flags and note"
           className="border-border relative hidden w-[392px] shrink-0 flex-col border-l xl:flex xl:min-h-0"
         >
-          <div className="min-h-0 flex-1 overflow-y-auto">{noteAndFlags(false)}</div>
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            {detailsRow && xl && detailsBody ? (
+              <div
+                ref={detailsPanel}
+                role="region"
+                tabIndex={-1}
+                aria-label={`Details, ${detailsRow.dx.display}`}
+                onKeyDown={(e) => {
+                  if (e.key !== "Escape" || e.defaultPrevented) return;
+                  e.preventDefault();
+                  setDetails(null);
+                }}
+                className="px-5 py-4 outline-none"
+              >
+                {detailsBody(true)}
+              </div>
+            ) : (
+              noteAndFlags(false)
+            )}
+          </div>
           {signBar}
         </aside>
         <div className="max-sm:hidden xl:hidden">{signBar}</div>
@@ -935,6 +1163,16 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
         sheet
       >
         {rail}
+      </EmrDialog>
+      <EmrDialog
+        open={!!detailsRow && !xl}
+        onOpenChange={(o) => !o && setDetails(null)}
+        title={detailsRow?.dx.display ?? "Details"}
+        description={who}
+        width="wide"
+        sheet="tall"
+      >
+        {detailsRow && !xl && detailsBody ? detailsBody(false) : null}
       </EmrDialog>
       <EmrDialog
         open={dialog === "note"}

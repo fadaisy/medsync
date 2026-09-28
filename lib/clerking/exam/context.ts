@@ -13,8 +13,9 @@ import { acvpuOf, amts, gcsP, gcsTotal, mrcNumber, orientation } from "./scores"
  * What the examination engines read, and the condition language of the catalogue
  * (`flag_rule_language`): examination atoms (finding, item/attribute, classifier, score, grid,
  * vital, panel, derived, orientation, acvpu_not) and history atoms (symptom, red flag, past
- * condition, patient, setting, medicine group). Pure. An atom this engine does not know never
- * fires; "not asked" is never "no".
+ * condition, patient, setting, medicine group), and the diagnosis catalogue's atoms (family
+ * condition, medicine, social, NEWS2 total, vital part; MS-EMR-DX-CAT-001). Pure. An atom this
+ * engine does not know never fires; "not asked" is never "no".
  */
 
 /** One vital-sign set as numbers: the draft ("Now") where typed, else the latest saved set. */
@@ -59,6 +60,9 @@ export interface ExamContext {
   latestSetTime?: string | null;
   /** Classifier results by id, filled by the classifier pass (flags read them). */
   results?: ReadonlyMap<string, { result: string | null }>;
+  /** The diagnosis catalogue's REF-DX values, signed ones only (a withheld value reads as
+   *  missing, so nothing that reads it fires; SI10). */
+  dxRefs?: { refValue(id: string): unknown };
 }
 
 type Cond = Record<string, unknown>;
@@ -93,8 +97,18 @@ export function redFlagsYes(x: ExamContext, symptom: string, kind = "danger"): s
 
 const has = (v: unknown, o: string) => (Array.isArray(v) ? v.includes(o) : v === o);
 
+/** A reference value by id: the examination catalogue, then the diagnosis catalogue (REF-DX),
+ *  then the history catalogue (REF-FLAG). */
+function refAny(x: ExamContext, id: string): unknown {
+  if (id.startsWith("REF-DX-")) return x.dxRefs?.refValue(id);
+  if (id.startsWith("REF-FLAG-")) return x.history.cat.refValue(id);
+  // A path ("REF-EX-PEF-BANDS.life_threatening_lt") reads one limb of an object value.
+  return id.includes(".") ? (x.cat.refNumber(id) ?? undefined) : x.cat.refValue(id);
+}
+
 function ref(x: ExamContext, id: unknown): number | null {
-  return x.cat.refNumber(String(id));
+  const v = refAny(x, String(id));
+  return typeof v === "number" ? v : null;
 }
 
 function compare(v: number | null, c: Cond, x: ExamContext): boolean {
@@ -152,17 +166,51 @@ function gridAtom(c: Cond, x: ExamContext): boolean {
         cell.L !== undefined &&
         cellNumber(grid, cell.R) !== cellNumber(grid, cell.L),
     );
+  const all = c.all_cells as Cond | undefined;
+  if (all) {
+    // Every recorded cell matches, and at least one is recorded (areflexia).
+    const cellsOf = list.flatMap((cell) => [cell.R, cell.L].filter((v) => v !== undefined));
+    return cellsOf.length > 0 && cellsOf.every((v) => cellMatches(grid, v, all, x));
+  }
   const any = c.any_cell as Cond | undefined;
   if (!any) return false;
   return list.some((cell) =>
     (["R", "L"] as const).some((side) => {
       const v = cell[side];
-      if (v === undefined) return false;
-      if ("equals" in any)
-        return String(v).toLowerCase() === String(any.equals).toLowerCase().replace(/ /g, "_");
-      return compare(cellNumber(grid, v), any, x);
+      return v !== undefined && cellMatches(grid, v, any, x);
     }),
   );
+}
+
+function cellMatches(grid: string, v: unknown, m: Cond, x: ExamContext): boolean {
+  if ("equals" in m)
+    return String(v).toLowerCase() === String(m.equals).toLowerCase().replace(/ /g, "_");
+  return compare(cellNumber(grid, v), m, x);
+}
+
+/** A quick pick (history catalogue `medicines.quick_picks`) against the recorded medicines.
+ *  "not_taking" needs "takes none, including herbal": a list without the medicine is not asked. */
+function medicineAtom(x: ExamContext, id: string, answer: unknown): boolean {
+  const picks = x.history.cat.data.medicines.quick_picks as readonly {
+    id: string;
+    label: string;
+  }[];
+  const pick = picks.find((p) => p.id === id);
+  const words = (s: string) =>
+    s
+      .toLowerCase()
+      .replace(/\([^)]*\)/g, "")
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim();
+  const want = [words(pick?.label ?? ""), words(id.replace(/_/g, " "))].filter(Boolean);
+  const taking = x.medicines.some((m) => {
+    const n = words(m.name);
+    return want.some((w) => n === w || n.startsWith(`${w} `) || n.includes(` ${w}`));
+  });
+  if (answer === "taking") return taking;
+  if (answer === "not_taking")
+    return !taking && x.history.answers.past.medicinesNone === true && x.medicines.length === 0;
+  return false;
 }
 
 /** The value a `vital` atom reads. */
@@ -213,17 +261,33 @@ export function evalCond(c: Cond, x: ExamContext, derived?: DerivedReader): bool
     const sym = String(c.symptom);
     if ("red_flag" in c) {
       const e = symptomEntry(x, sym);
-      return !!e && e.flags[String(c.red_flag)] === c.answer;
+      // No `answer`: the red flag answered yes (the diagnosis catalogue's shorthand).
+      return !!e && e.flags[String(c.red_flag)] === (c.answer ?? "yes");
     }
     if ("any_red_flag" in c) return redFlagsYes(x, sym, String(c.any_red_flag)).length > 0;
     return symptomAnswer(x, sym) === c.answer;
   }
   if ("past_condition" in c)
     return x.history.answers.past.conditions[String(c.past_condition)]?.answer === c.answer;
+  if ("family_condition" in c)
+    return x.history.answers.family[String(c.family_condition)]?.answer === c.answer;
+  if ("medicine" in c) return medicineAtom(x, String(c.medicine), c.answer);
+  if ("social" in c) {
+    const v = (x.history.answers.social as Record<string, unknown>)[String(c.social)];
+    if (v === undefined) return false;
+    return (c.any_of as string[]).some((o) => has(v, o));
+  }
+  if ("news2_total" in c) {
+    const n = x.news2Latest;
+    const limit = ref(x, c.ref);
+    if (!n || limit === null) return false;
+    return c.news2_total === "gte_ref" && n.total >= limit;
+  }
   if ("patient" in c) {
-    if (c.patient === "age_gte") {
+    if (c.patient === "age_gte" || c.patient === "age_lt") {
       const n = "value_ref" in c ? ref(x, c.value_ref) : Number(c.value);
-      return n !== null && x.patient.ageYears !== null && x.patient.ageYears >= n;
+      if (n === null || x.patient.ageYears === null) return false;
+      return c.patient === "age_gte" ? x.patient.ageYears >= n : x.patient.ageYears < n;
     }
     if (c.patient === "sex") return x.patient.sex === c.equals;
     return false;
@@ -261,6 +325,11 @@ export function evalCond(c: Cond, x: ExamContext, derived?: DerivedReader): bool
     }
     return compare(typeof v === "number" ? v : null, c, x);
   }
+  if ("item" in c && "any_of" in c) {
+    // The item's own answer: a choice item's option.
+    const e = entryOf(x.cat, x.exam, String(c.item));
+    return !!e?.choice && (c.any_of as string[]).includes(e.choice);
+  }
   if ("classifier" in c) {
     const r = x.results?.get(String(c.classifier))?.result ?? null;
     return r !== null && (c.any_of as string[]).includes(r);
@@ -290,9 +359,24 @@ export function evalCond(c: Cond, x: ExamContext, derived?: DerivedReader): bool
   if ("grid" in c) return gridAtom(c, x);
   if ("vital" in c) {
     if ("systolic_lt_ref" in c) return compare(x.vitals.sbp, { lt_ref: c.systolic_lt_ref }, x);
+    if (c.vital === "vs.bp" && (c.part === "systolic" || c.part === "diastolic")) {
+      // One limb of a BP reference: a number, or the object's systolic_gte / diastolic_gte.
+      const v = c.part === "systolic" ? x.vitals.sbp : x.vitals.dbp;
+      const key = "gte_ref" in c ? "gte_ref" : "lt_ref" in c ? "lt_ref" : null;
+      if (!key) return compare(v, c, x);
+      const r = refAny(x, String(c[key]));
+      const n =
+        typeof r === "number"
+          ? r
+          : r && typeof r === "object"
+            ? (r as Record<string, number>)[`${c.part}_gte`]
+            : undefined;
+      if (v === null || typeof n !== "number") return false;
+      return key === "gte_ref" ? v >= n : v < n;
+    }
     if (c.vital === "vs.bp" && "gte_ref" in c) {
       // A BP reference holds both limits: systolic or diastolic at or above (NICE NG136).
-      const lim = x.cat.refValue(String(c.gte_ref)) as
+      const lim = refAny(x, String(c.gte_ref)) as
         | { systolic_gte?: number; diastolic_gte?: number }
         | undefined;
       const { sbp, dbp } = x.vitals;

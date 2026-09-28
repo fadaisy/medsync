@@ -95,15 +95,29 @@ export interface DeskOrder {
   statusText: string;
   at: string;
   open: boolean;
+  /** The test_catalogue row, and the diagnoses it was placed for ("In plan", §5.3). */
+  testId?: string | null;
+  reasonConditionIds?: string[];
 }
 
+/** One current diagnosis on this visit (lib/emr/diagnoses encounterDiagnoses; D-SI-19). */
 export interface DeskDiagnosis {
   /** The condition row (current version). */
   id: string;
+  /** The condition's logical id: the same across its versions, so the draft keys on it. */
+  logicalId: string;
+  termId: string | null;
   display: string;
+  /** ICD-11, only when the term's code is verified; a typed or uncoded diagnosis has none. */
   code: string | null;
   verification: string;
-  rank: string | null;
+  rank: "primary" | "secondary";
+  /** Sensitivity restricted (HIV, TB, mental health, sexual and reproductive health). */
+  restricted: boolean;
+  /** The patient's own problem list holds the same term or words. */
+  onProblemList: boolean;
+  /** A confirm_diagnosis co-signature request is open: "Final · awaiting senior co-signature". */
+  cosignPending: boolean;
 }
 
 export type ProblemAnswer = "pending" | "confirmed" | "resolved";
@@ -457,25 +471,49 @@ export function answerProblem(
   });
 }
 
+const MIRRORED_DX = ["conditionId", "logicalId", "display", "code", "verification", "rank"];
+
 /**
  * What the chart already holds for this visit, mirrored into the note so the note says what was
- * done: diagnoses (Impression) and orders (Plan). Chart actions committed at once (D-EMR-01); the
- * mirror only adds, never removes, and leaves the content untouched when nothing is new.
+ * done: diagnoses (Impression) and orders (Plan). Chart actions committed at once (D-EMR-01), and
+ * the content is left untouched when nothing changed.
+ *
+ * Diagnoses mirror by LOGICAL id (S-10, D-SI-19): a new version (a status or rank change, a swap)
+ * replaces its item, and a diagnosis entered in error or ruled out loses its item, so "Required n
+ * of 3" counts what the record holds. An item mirrored before logical ids names only its version:
+ * it is matched through that version while it is current, and otherwise dropped (its diagnosis is
+ * re-added under its current version). Orders only add.
  */
 export function syncRecorded(c: NoteContent, p: DeskPayload): NoteContent {
   let next = c;
   const dx = sectionWith(p.template, "encounter_diagnosis");
-  if (dx)
-    for (const d of p.diagnoses)
-      if (!itemsOf(next, dx, "encounter_diagnosis").some((i) => i.conditionId === d.id))
-        next = putItem(next, dx, () => false, {
-          kind: "encounter_diagnosis",
-          conditionId: d.id,
-          display: d.display,
-          code: d.code,
-          verification: d.verification,
-          rank: d.rank,
-        });
+  if (dx) {
+    const current = new Set(p.diagnoses.map((d) => d.logicalId));
+    const byVersion = new Map(p.diagnoses.map((d) => [d.id, d.logicalId]));
+    const logicalOf = (i: NoteItem): string | undefined =>
+      typeof i.logicalId === "string" ? i.logicalId : byVersion.get(String(i.conditionId));
+    for (const i of itemsOf(next, dx, "encounter_diagnosis")) {
+      const l = logicalOf(i);
+      if (!l || !current.has(l)) next = putItem(next, dx, (x) => x === i, null);
+    }
+    for (const d of p.diagnoses) {
+      const item: NoteItem = {
+        kind: "encounter_diagnosis",
+        conditionId: d.id,
+        logicalId: d.logicalId,
+        display: d.display,
+        code: d.code,
+        verification: d.verification,
+        rank: d.rank,
+      };
+      const had = itemsOf(next, dx, "encounter_diagnosis").find(
+        (i) => logicalOf(i) === d.logicalId,
+      );
+      if (!had) next = putItem(next, dx, () => false, item);
+      else if (MIRRORED_DX.some((k) => had[k] !== item[k]))
+        next = putItem(next, dx, (x) => x === had, item);
+    }
+  }
   const plan = sectionWith(p.template, "order");
   if (plan)
     for (const o of p.orders)
@@ -523,8 +561,10 @@ export function committedWords(c: NoteContent): string | null {
 
 /** "Required 2/3": how many required rules are met. */
 export function requiredCount(p: DeskPayload, v: SignValidation): { met: number; of: number } {
-  const of = p.template.minimumToSign.required.length;
-  return { met: of - v.missing.length, of };
+  const rules = p.template.minimumToSign.required;
+  const of = rules.length;
+  // Only the template's rules count here; a step's own block (clerking v2) is said in words.
+  return { met: of - v.missing.filter((m) => rules.some((r) => r.id === m.id)).length, of };
 }
 
 /* ─── The section index ───────────────────────────────────────────── */

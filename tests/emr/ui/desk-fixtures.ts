@@ -231,6 +231,7 @@ export function standardVisitContent(dxId: string, orderId: string): NoteContent
           {
             kind: "encounter_diagnosis",
             conditionId: dxId,
+            logicalId: dxId,
             display: "Malaria, uncomplicated",
             code: "1F4Z",
             verification: "provisional",
@@ -260,10 +261,15 @@ export function standardVisitMidway(): DeskPayload {
     diagnoses: [
       {
         id: dxId,
+        logicalId: dxId,
+        termId: null,
         display: "Malaria, uncomplicated",
         code: "1F4Z",
         verification: "provisional",
         rank: "primary",
+        restricted: false,
+        onProblemList: false,
+        cosignPending: false,
       },
     ],
     orders: [

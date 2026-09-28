@@ -1,4 +1,7 @@
 import type { ExamView } from "./exam/model";
+import type { ImpressionView } from "./impression/model";
+import type { SiView } from "./si-model";
+import type { DxData } from "./use-catalogue";
 import type { DeskPayload, KeyInput } from "@/components/emr/desk/model";
 import type { History, HistoryHeader, SymptomEntry, YesNo } from "@/lib/clerking/answers";
 import type { Catalogue, PatientSex, Symptom } from "@/lib/clerking/catalogue";
@@ -18,6 +21,7 @@ import { familyConditions, v2CommitLines } from "@/lib/clerking/commit";
 import { compose, lc, list } from "@/lib/clerking/compose";
 import { conversionFlags } from "@/lib/clerking/convert";
 import { evaluateFlags, toBadges } from "@/lib/clerking/flags";
+import { composeImpression } from "@/lib/clerking/impression/compose";
 import { linkedAnswers } from "@/lib/clerking/linkage";
 import { doneCount, SECTIONS, sectionStatuses } from "@/lib/clerking/status";
 import {
@@ -29,6 +33,8 @@ import {
 } from "@/lib/triage/constants";
 import { scoreNews2 } from "@/lib/triage/scoring/news2";
 import { deriveExam, previousFormat } from "./exam/model";
+import { deriveImpression } from "./impression/model";
+import { deriveSi } from "./si-model";
 
 /**
  * Clerking desk v2's pure view model (PROMPT-CLERKING-DESK-V2 §5): no React, no I/O. What the shell
@@ -46,15 +52,14 @@ export const BLURB: Record<SectionId, string> = {
   fh: "Conditions in parents, siblings and children.",
   social: "Tobacco, alcohol, home, activity and work.",
   exam: "Vital signs, general examination and systems.",
-  summary: "Drafted from your entries.",
-  impression: "Working, final and differential diagnoses.",
+  summary: "The case in one paragraph, composed from your entries as you change them.",
+  impression: "Your leading diagnosis, what supports it, and what else it could be.",
   plan: "Tests and actions, ordered as you tap.",
 };
 
-/** The v2 template's sections (Examination and plan keep the v1 bodies, §5.11). */
+/** The v2 template's sections that still render a v1 body (Summary is v2's own step 08). */
 export const V1_SECTION: Partial<Record<SectionId, string>> = {
   exam: "s11",
-  summary: "s12",
   impression: "s13",
   plan: "s14",
 };
@@ -107,7 +112,11 @@ export function sectionText(
   c: NoteContent,
   /** The structured examination's paragraph (exam v2); replaces v1's s11 words. */
   examBody?: string,
-): Partial<Record<"exam" | "impression" | "plan", string>> {
+  /** The Summary block (step 08): composed, the clinician's words, or as signed. */
+  summaryBody?: string,
+  /** The Impression block (step 09), composed by `composer.impression`. */
+  impressionBody?: string,
+): Partial<Record<"exam" | "summary" | "impression" | "plan", string>> {
   const exam: string[] = [];
   if (examBody !== undefined) {
     if (examBody) exam.push(examBody);
@@ -118,8 +127,9 @@ export function sectionText(
       );
     exam.push(...sectionWords(c, "s11"));
   }
-  const summary = sectionWords(c, "s12");
-  if (summary.length) exam.push(`Summary: ${summary.join(" ")}`);
+  // Step 08 writes its own block (S-1); an old draft's s12 words reach it through the summary
+  // model ("In my words"), never the examination block.
+  const summary = summaryBody ?? sectionWords(c, "s12").join(" ");
 
   const dx = sectionWords(c, "s13");
   const mirroredDx = new Set(itemsOf(c, "s13", "encounter_diagnosis").map((i) => i.conditionId));
@@ -130,7 +140,7 @@ export function sectionText(
   for (const o of p.orders) if (!mirroredOrders.has(o.id)) plan.push(o.display);
 
   const join = (a: string[]) => a.join("\n");
-  return { exam: join(exam), impression: join(dx), plan: join(plan) };
+  return { exam: join(exam), summary, impression: impressionBody ?? join(dx), plan: join(plan) };
 }
 
 /** Examination's status for the section bar, from the v1 body's content. */
@@ -152,6 +162,27 @@ export function examViewTone(e: ExamView): Tone {
   return general && vitals && system ? "done" : "partial";
 }
 
+/** The Impression block: composed from the board (steps 09), or as signed (D-SI-20). A draft
+ *  with nothing on the board and no deferral keeps the v1 words (old drafts, §8). */
+function impressionText(
+  p: DeskPayload,
+  c: NoteContent,
+  si: SiView | null,
+  imp: ImpressionView | null,
+): string | undefined {
+  const signed = (c.impression as { text?: string } | undefined)?.text;
+  if (p.draft === null && p.signed) return signed;
+  if (!si || !imp) return undefined;
+  if (!si.recorded.length && !si.board.deferred) return undefined;
+  return composeImpression({
+    board: si.board,
+    draft: si.impression,
+    findings: imp.findings,
+    unexplained: imp.unexplained,
+    audience: "clinical",
+  });
+}
+
 /* ─── Everything the shell derives, in one pure pass ─────────────── */
 
 export interface Derived {
@@ -167,6 +198,8 @@ export interface Derived {
   statuses: Record<SectionId, SectionStatus>;
   done: number;
   validation: SignValidation;
+  /** Steps 08 and 09 (null while the examination catalogue loads). */
+  si: SiView | null;
 }
 
 export function deriveDesk(
@@ -175,6 +208,7 @@ export function deriveDesk(
   c: NoteContent,
   ecat: ExamCatalogue | null = null,
   timeOf?: (iso: string) => string,
+  dx: DxData | null = null,
 ): Derived {
   const k = p.clerking!;
   const history = historyOf(c);
@@ -202,6 +236,19 @@ export function deriveDesk(
     .concat(conversionFlags(cat, k.conversionFlags ?? {}, history))
     .concat(exam?.flags ?? []);
   const allergiesConfirmed = k.allergies.touchedThisVisit || !!history.past.allergiesConfirmed;
+  const si = deriveSi({
+    p,
+    content: c,
+    cat,
+    ecat,
+    history,
+    linked,
+    examX: exam?.x ?? null,
+    news2,
+    dx,
+    signed: p.draft === null && !!p.signed,
+  });
+  const imp = si ? deriveImpression(si, dx, { inPlan: () => new Set() }) : null;
   const blocks = compose({
     cat,
     header,
@@ -221,11 +268,30 @@ export function deriveDesk(
       confirmedThisVisit: allergiesConfirmed,
       items: k.allergies.items,
     },
-    sectionText: sectionText(p, c, exam ? exam.text : undefined),
+    sectionText: sectionText(
+      p,
+      c,
+      exam ? exam.text : undefined,
+      si?.noteText,
+      impressionText(p, c, si, imp),
+    ),
     edited: c.edited ?? {},
     audience: "clinical",
   });
-  const validation = deskValidation(p, c);
+  // Steps 08 and 09 at signing (D-SI-06, D-SI-08): a must-not-miss marked unlikely without its
+  // reason blocks, by name; an unreviewed summary is a prompt only.
+  const base = deskValidation(p, c);
+  const siBlocks = imp?.signBlocks ?? [];
+  const validation: SignValidation = {
+    canSign: base.canSign && siBlocks.length === 0,
+    missing: [...base.missing, ...siBlocks.map((message) => ({ id: "si.mnm_reason", message }))],
+    warnings: [
+      ...base.warnings,
+      ...(si && si.review !== "reviewed"
+        ? [{ id: "si.summary_review", message: "Summary not reviewed" }]
+        : []),
+    ],
+  };
   const statuses = sectionStatuses({
     cat,
     history,
@@ -233,6 +299,7 @@ export function deriveDesk(
     sex: k.sex,
     allergyConfirmedThisVisit: allergiesConfirmed,
     exam: exam ? examViewTone(exam) : examTone(p, c),
+    summary: si?.review ?? null,
     missing: validation.missing.map((m) => m.id),
   });
   return {
@@ -247,6 +314,7 @@ export function deriveDesk(
     statuses,
     done: doneCount(statuses),
     validation,
+    si,
   };
 }
 
@@ -577,6 +645,16 @@ export const CLERKING_KEY_HELP: readonly [string, string][] = [
   ["Examination: e", "Everything else normal (asks first)"],
   ["Examination: x", "Not examined"],
   ["Examination: g", "Go to consciousness (GCS)"],
+  ["Summary: r", "Mark as reviewed"],
+  ["Impression: /", "Add a diagnosis"],
+  ["Impression: m", "List or evidence matrix"],
+  ["Impression: l / p / u", "Likely, possible or unlikely on the focused row"],
+  ["Impression: Alt + ↑ / ↓", "Move the focused row"],
+  ["Impression: d", "Details of the focused row"],
+  ["Matrix: arrow keys", "Move between cells"],
+  ["Matrix: Space", "Change the focused cell"],
+  ["Matrix: a", "Accept the focused column's suggestions"],
+  ["Esc", "Close Details (focus returns to where it opened)"],
 ];
 
 /* ─── "Show all" complaints (Complaint quality of life) ──────────── */

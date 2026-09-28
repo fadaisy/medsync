@@ -48,6 +48,19 @@ export function usePhone(): boolean {
   );
 }
 
+/** A media query as state (false on the server and in the first client render). */
+export function useMedia(query: string): boolean {
+  return useSyncExternalStore(
+    (cb) => {
+      const m = window.matchMedia(query);
+      m.addEventListener("change", cb);
+      return () => m.removeEventListener("change", cb);
+    },
+    () => window.matchMedia(query).matches,
+    () => false,
+  );
+}
+
 /** Whether the element has scrolled up out of view (under the app bar). */
 export function useScrolledPast(ref: RefObject<HTMLElement | null>): boolean {
   const [past, setPast] = useState(false);

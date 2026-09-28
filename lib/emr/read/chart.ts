@@ -82,6 +82,8 @@ export interface ChartOrderRow {
   requisitionNo: string | null;
   fastingRequired: boolean | null;
   testId: string | null;
+  /** The diagnoses (condition version ids) the order was placed for. */
+  reasonConditionIds: string[];
   requesterName: string | null;
   requesterCadre: string | null;
   orderedAt: string;
@@ -248,6 +250,7 @@ export async function loadChartFor(
           requisitionNo: encounterOrders.requisitionNo,
           fastingRequired: encounterOrders.fastingRequired,
           testId: encounterOrders.testId,
+          reasonConditionIds: encounterOrders.reasonConditionIds,
           authoredByUserId: encounterOrders.authoredByUserId,
           requesterCadre: encounterOrders.requesterCadre,
           createdAt: encounterOrders.createdAt,
@@ -416,6 +419,7 @@ export async function loadChartFor(
       requisitionNo: o.requisitionNo,
       fastingRequired: o.fastingRequired,
       testId: o.testId,
+      reasonConditionIds: o.reasonConditionIds ?? [],
       requesterName: o.authoredByUserId ? (names[o.authoredByUserId] ?? null) : null,
       requesterCadre: o.requesterCadre,
       orderedAt: o.createdAt.toISOString(),

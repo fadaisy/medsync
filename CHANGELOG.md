@@ -5,6 +5,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Clerking v2: Summary (step 08) and Impression (step 09), behind `CLERKING_V2` — 2026-09-28
+
+- **Summary** is composed from the record: a one-liner with the syndrome in the clinician's words, the history, examination and vital signs that matter, pertinent negatives and allergies. "Mark as reviewed" is one tap; any change asks for review again, with the difference ([ADR 0178](docs/adr/0178-summary-composed-from-the-record.md)). The note gets its own Summary block. An old free-text summary opens in "In my words".
+- **Impression**: a leading diagnosis (the visit's primary), a differential with Likely, Possible or Unlikely, "Also this visit", and add with "Already on this visit" refused ([ADR 0180](docs/adr/0180-leading-diagnosis-and-the-differential.md)). A must-not-miss stays on top until it is marked Unlikely with a reason; signing waits for it, on screen and on the server.
+- **Decision support from a signed catalogue** (272 profiles, 100 rules; [ADR 0179](docs/adr/0179-reasoning-catalogue-data-not-code.md)): "Also considered with these findings", the evidence matrix from 834 px, Details with tests to add to the plan, and "Not asked yet" answered in place. Suggested evidence is never stored until accepted; nothing is ranked by likelihood; restricted content is shown only to viewers with access.
+- **A junior's Final** is stored Working with a senior co-signature request, shown as "Final · awaiting senior co-signature" ([ADR 0181](docs/adr/0181-diagnosis-cosignature.md)).
+- **Signing** writes the summary text and a snapshot of the visit's diagnoses into the signed content, so the note never changes when the record does.
+- **Migrations (GATED, owner):** `0084` (the `confirm_diagnosis` co-sign kind; apply before deploying) and `0085` (187 REF-DX-TERMS v1.1 terms, uncoded; [ADR 0182](docs/adr/0182-dx-terms-and-test-addenda.md)). The history catalogue gains the shared course options in 48 families (D-SI-24).
+- `npm run emr:si-counts`: the baseline counts, read only.
+
 ### Changed — The clerking desk and the chart follow MedSync Chroma — 2026-09-28
 
 - Chroma (ADR 0162) is merged into the clerking v2 line. The current step, section and note block are marked in the Clinical place hue (iris) instead of plum, which now means Operations. Step numbers are neutral ink.

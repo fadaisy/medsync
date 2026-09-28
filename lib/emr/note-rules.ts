@@ -55,6 +55,10 @@ export interface NoteContent {
   edited?: Record<string, string>;
   /** The Flags panel as the clinician saw it, written just before signing (D-CV-05). */
   flags?: unknown[];
+  /** Step 08 (lib/clerking/summary/review SummaryDraft). */
+  summary?: Record<string, unknown>;
+  /** Step 09 (lib/clerking/impression/board ImpressionDraft, plus the signing snapshot). */
+  impression?: Record<string, unknown>;
 }
 
 export interface SignContext {

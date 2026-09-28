@@ -134,10 +134,11 @@ export const clinicalCosignRequests = pgTable(
       "cosign_state_check",
       sql`${t.state} IN ('pending_review','approved','returned','cancelled','expired')`,
     ),
-    // 0036's kinds (this list had drifted at 0030's five) + 0071's sign_note.
+    // 0036's kinds (this list had drifted at 0030's five) + 0071's sign_note + 0084's
+    // confirm_diagnosis (a junior's Final, D-SI-09).
     check(
       "cosign_action_kind_check",
-      sql`${t.actionKind} IN ('prescription_routine','prescription_controlled','order_high_cost_imaging','admit_patient','discharge_patient','high_alert_med_administration','independent_complex_procedure','triage_patient','triage_downgrade','sign_note')`,
+      sql`${t.actionKind} IN ('prescription_routine','prescription_controlled','order_high_cost_imaging','admit_patient','discharge_patient','high_alert_med_administration','independent_complex_procedure','triage_patient','triage_downgrade','sign_note','confirm_diagnosis')`,
     ),
     check("cosign_note_link", sql`(${t.actionKind} = 'sign_note') = (${t.noteId} IS NOT NULL)`),
     index("cosign_requester_idx").on(t.requestedByUserId, t.createdAt),

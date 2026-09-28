@@ -87,6 +87,8 @@ export interface StatusInput {
   allergyConfirmedThisVisit: boolean;
   /** From the v1 section bodies inside the new shell. */
   exam: Tone;
+  /** Step 08's review (SI8); null while it cannot be composed yet. */
+  summary?: "not_reviewed" | "reviewed" | "changed" | null;
   /** Required sign rules still unmet (validateForSigning). */
   missing: readonly string[];
 }
@@ -126,8 +128,17 @@ export function sectionStatuses(i: StatusInput): Record<SectionId, SectionStatus
       text: i.exam === "done" ? "Done" : i.exam === "partial" ? "Partly" : "Open",
       tone: i.exam,
     },
-    summary: { text: "Auto", tone: "open" },
-    impression: rule("req.impression", "Done"),
+    // Optional for signing (§5.1): reviewed is done; not reviewed and changed stay open.
+    summary:
+      i.summary === "reviewed"
+        ? { text: "Reviewed", tone: "done" }
+        : i.summary === "changed"
+          ? { text: "Changed", tone: "open" }
+          : { text: "Not reviewed", tone: "open" },
+    // SI5: a must-not-miss marked unlikely holds signing until it has its reason.
+    impression: i.missing.includes("si.mnm_reason")
+      ? { text: "Reason needed", tone: "required" }
+      : rule("req.impression", "Done"),
     plan: rule("req.plan", "Done"),
   };
 }

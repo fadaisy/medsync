@@ -119,8 +119,24 @@ describe("catalogue", () => {
     // Exam GATE A, TM2: scrotal findings are restricted in both catalogues.
     handoff.symptoms.find((s: { id: string }) => s.id === "sym.scrotal").sensitivity =
       "sexual_reproductive_health";
+    // Summary and Impression GATE A, D-SI-24 (history v1.3 addendum): the shared course, after
+    // onset, in every property family that lacked one.
+    type Prop = { id: string };
+    let added = 0;
+    for (const f of Object.values(handoff.property_families) as { properties: Prop[] }[]) {
+      if (f.properties.some((x) => x.id === "course")) continue;
+      const at = f.properties.findIndex((x) => x.id === "onset") + 1;
+      f.properties.splice(at, 0, {
+        id: "course",
+        label: "Course",
+        kind: "one",
+        options_ref: "course",
+      } as Prop);
+      added++;
+    }
+    expect(added).toBe(48);
     expect(JSON.parse(a.toString("utf8"))).toEqual(handoff);
-    expect(signoff.amendments).toHaveLength(1);
+    expect(signoff.amendments).toHaveLength(2);
     expect(createHash("sha256").update(a).digest("hex")).toBe(signoff.catalogueSha256);
   });
   it("rejects a malformed catalogue", () => {
