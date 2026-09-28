@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 
 /**
  * A section index (gate-a E.2): a `<nav>` of anchors, the current one marked with `aria-current`
- * and plum — a fill and a dot, never a left bar (plum = place, ADR 0097). Switching is instant:
+ * and the Clinical place hue, iris — a fill and a dot, never a left bar (ADR 0162). Switching is instant:
  * a section switch is a keyboard-reachable navigation, and navigation never animates here.
  * `badge` carries a count or a marker with its words (never colour alone).
  */
@@ -42,7 +42,7 @@ export function SectionIndexView({
                 className={cn(
                   "text-body-s focus-visible:shadow-focus flex min-h-11 items-center gap-2 rounded-md px-3 outline-none md:min-h-9",
                   on
-                    ? "bg-plum-50 text-plum-800 font-medium"
+                    ? "bg-iris-tint text-iris-text font-medium"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground",
                 )}
               >
@@ -50,7 +50,7 @@ export function SectionIndexView({
                   aria-hidden
                   className={cn(
                     "size-1.5 shrink-0 rounded-full",
-                    on ? "bg-plum-500" : "bg-transparent",
+                    on ? "bg-iris-icon" : "bg-transparent",
                   )}
                 />
                 <span className="flex-1">{it.label}</span>

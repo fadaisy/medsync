@@ -171,15 +171,15 @@ describe("safety bar", () => {
 /* ─── Section index ──────────────────────────────────────────────── */
 
 describe("chart index", () => {
-  it("marks the current section with aria-current and plum; the others are plain", () => {
+  it("marks the current section with aria-current and the Clinical place hue (iris, ADR 0162); the others are plain", () => {
     const m = html(h(ChartView, { payload: knownType2Diabetes().payload, section: "results" }));
     const current = m.match(/<a[^>]*aria-current="page"[^>]*>/g) ?? [];
     expect(current.length).toBeGreaterThan(0);
     for (const a of current) {
       expect(a).toContain('href="#chart-results"');
-      expect(a).toContain("bg-plum-50");
+      expect(a).toContain("bg-iris-tint");
     }
-    expect(m).not.toMatch(/<a[^>]*href="#chart-notes"[^>]*bg-plum-50/);
+    expect(m).not.toMatch(/<a[^>]*href="#chart-notes"[^>]*bg-iris-tint/);
   });
 
   it("renders every section, only the chosen one visible", () => {
@@ -198,7 +198,7 @@ describe("chart index", () => {
     expect(d).toContain('<span class="sr-only">1 critical result awaiting acknowledgement</span>');
   });
 
-  it("the index is a nav of links, plum a fill and a dot (never a border)", () => {
+  it("the index is a nav of links, iris a fill and a dot (never a border)", () => {
     const m = html(
       h(SectionIndexView, {
         label: "Chart sections",
@@ -210,8 +210,8 @@ describe("chart index", () => {
       }),
     );
     expect(m).toMatch(/^<nav aria-label="Chart sections"/);
-    expect(m).toContain("bg-plum-500");
-    expect(m).not.toMatch(/border-l|border-plum/);
+    expect(m).toContain("bg-iris-icon");
+    expect(m).not.toMatch(/border-l|border-iris|plum/);
   });
 });
 

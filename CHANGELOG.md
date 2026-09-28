@@ -5,6 +5,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Changed — The clerking desk and the chart follow MedSync Chroma — 2026-09-28
+
+- Chroma (ADR 0162) is merged into the clerking v2 line. The current step, section and note block are marked in the Clinical place hue (iris) instead of plum, which now means Operations. Step numbers are neutral ink.
+- Headings take their 600 weight from the type token; small headings use the `label` style. `tests/design/clinical-chroma.test.ts` holds both rules for `components/clerking` and `components/emr`.
+
 ### Changed — Continuing a v1 clerking draft in the new format follows the signed conversion table — 2026-09-28
 
 - "Continue in the new format" now reads only `data/clerking/legacy-conversion.v1.json`, signed by the CSO and hash-pinned ([ADR 0177](docs/adr/0177-legacy-conversion-table.md)). It covers the 89 old codes, the 17 of 0076 and every CFC finding concept a v1 complaint could hold.

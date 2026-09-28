@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 
 /**
  * The note (§5.10): blocks the composer writes from the answers by fixed rules, the block of the
- * current section marked in the place colour (plum, a tint and a ring; never a left bar). "Edit
+ * current section marked in the Clinical place colour (iris, a tint and a ring; never a left bar; ADR 0162). "Edit
  * text" copies the current block into `content.edited[key]`: from then on it is the clinician's
  * text, a textarea marked "Edited, will not update", and "Undo edits" hands it back to the
  * composer. Hook-free; the desk owns the content.
@@ -35,7 +35,7 @@ export function NotePane({
   return (
     <section aria-labelledby="clerking-note-heading" className="flex flex-col gap-3 px-5 py-4">
       <div className="flex items-center justify-between gap-3">
-        <h2 id="clerking-note-heading" className="text-body-m text-foreground font-medium">
+        <h2 id="clerking-note-heading" className="text-heading-s text-foreground">
           Note
         </h2>
         <Button
@@ -63,13 +63,13 @@ export function NotePane({
               aria-current={here ? "true" : undefined}
               className={cn(
                 "-mx-2 flex flex-col gap-1 rounded-md px-2 py-2",
-                here && "bg-plum-50 ring-plum-200 ring-1",
+                here && "bg-iris-tint ring-iris-edge ring-1",
               )}
             >
               <h3
                 className={cn(
                   "text-caption tracking-[0.06em] uppercase",
-                  here ? "text-plum-800" : "text-muted-foreground",
+                  here ? "text-iris-text" : "text-muted-foreground",
                 )}
               >
                 {b.head}

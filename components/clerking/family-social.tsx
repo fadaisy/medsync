@@ -52,10 +52,7 @@ export function FamilyBody({ cat, history, onHistory, editable }: HistoryBodyPro
   return (
     <div className="flex flex-col gap-4 max-sm:gap-3">
       <section aria-labelledby="clerking-fh-head" className={cn(PANEL, "max-sm:gap-1")}>
-        <h3
-          id="clerking-fh-head"
-          className={cn("text-body-s text-foreground font-medium", PANEL_HEAD)}
-        >
+        <h3 id="clerking-fh-head" className={cn("text-label text-foreground", PANEL_HEAD)}>
           In a parent, sibling or child
         </h3>
         <div className="max-sm:divide-border grid gap-x-8 max-sm:divide-y sm:grid-cols-2">
@@ -386,7 +383,7 @@ export function SocialBody({ cat, history, onHistory, editable }: HistoryBodyPro
               className="border-border flex flex-col rounded-md border px-3 py-2 max-sm:rounded-none max-sm:border-0 max-sm:border-t max-sm:px-0 max-sm:pt-3 max-sm:pb-0"
             >
               <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-                <h4 id="clerking-cage" className="text-body-s text-foreground font-medium">
+                <h4 id="clerking-cage" className="text-label text-foreground">
                   CAGE
                 </h4>
                 <output aria-live="polite" className="text-caption inline-flex items-center gap-2">

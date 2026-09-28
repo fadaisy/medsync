@@ -78,7 +78,7 @@ export function ResultEntryView({
   return (
     <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-1">
-        <h1 className="text-heading-s font-medium">
+        <h1 className="text-heading-s">
           {phase === "amend"
             ? "Amend result"
             : phase === "released"

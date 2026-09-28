@@ -92,7 +92,7 @@ export function PickAllDialog({
                 aria-labelledby={`pick-all-${g.id}`}
                 className="mb-5 flex break-inside-avoid flex-col gap-2"
               >
-                <h3 id={`pick-all-${g.id}`} className="text-body-s text-foreground font-medium">
+                <h3 id={`pick-all-${g.id}`} className="text-label text-foreground">
                   {g.label}
                 </h3>
                 <div className="flex flex-wrap gap-1.5 max-sm:gap-2">

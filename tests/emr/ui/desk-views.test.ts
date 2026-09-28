@@ -91,14 +91,14 @@ describe("the desk, standard visit midway (gate-a E.3)", () => {
     expect(numbers).toContain("14");
   });
 
-  it("plum marks the current section only (place), with aria-current", () => {
+  it("the Clinical place hue (iris, ADR 0162) marks the current section only, with aria-current", () => {
     const current = [...m.matchAll(/<a[^>]*aria-current="page"[^>]*>/g)].map((x) => x[0]);
     expect(current.length).toBeGreaterThan(0);
-    for (const a of current) expect(a).toMatch(/bg-plum-50/);
+    for (const a of current) expect(a).toMatch(/bg-iris-tint/);
     expect(m).toMatch(
       /data-current="true"[^>]*id="desk-s01"|id="desk-s01"[^>]*data-current="true"/,
     );
-    expect((m.match(/bg-plum-50 text-plum-800/g) ?? []).length).toBe(current.length);
+    expect((m.match(/bg-iris-tint text-iris-text/g) ?? []).length).toBe(current.length);
   });
 
   it("complaints are chips with the duration in words and a source mark", () => {

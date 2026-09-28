@@ -19,7 +19,7 @@ export function SectionHeading({
 }) {
   return (
     <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-      <h2 id={id} tabIndex={-1} className="text-heading-s text-foreground font-medium outline-none">
+      <h2 id={id} tabIndex={-1} className="text-heading-s text-foreground outline-none">
         {children}
       </h2>
       {right}
@@ -28,7 +28,7 @@ export function SectionHeading({
 }
 
 export function SubHeading({ children }: { children: ReactNode }) {
-  return <h3 className="text-body-s text-muted-foreground font-medium">{children}</h3>;
+  return <h3 className="text-label text-muted-foreground">{children}</h3>;
 }
 
 /** An instant in the hospital's zone, 24-hour, mono. */

@@ -39,7 +39,7 @@ export function CriticalCommView({
   const issues = commIssues(draft);
   return (
     <section aria-labelledby="crit-comm" className="flex flex-col gap-4 border-t pt-5">
-      <h2 id="crit-comm" className="text-heading-s font-medium">
+      <h2 id="crit-comm" className="text-heading-s">
         Record critical communication
       </h2>
       <p className="text-body-s flex flex-wrap gap-x-3">

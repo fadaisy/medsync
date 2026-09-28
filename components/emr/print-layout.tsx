@@ -74,7 +74,7 @@ export function PrintLayout({
         <header className="flex flex-col gap-1 border-b border-gray-300 pb-3">
           <div className="flex flex-wrap items-baseline justify-between gap-x-6">
             <span className="font-medium">{hospital}</span>
-            <h1 className="text-heading-s font-medium">{title}</h1>
+            <h1 className="text-heading-s">{title}</h1>
           </div>
           <p className="flex flex-wrap gap-x-4">
             <span className="font-medium">{patient.name}</span>

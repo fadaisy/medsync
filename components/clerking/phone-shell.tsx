@@ -172,7 +172,7 @@ export function PhoneHeader({
       <div className="flex items-center gap-2.5">
         <h1
           id="phone-patient-name"
-          className="font-display text-heading-m text-foreground min-w-0 flex-1 leading-tight font-medium"
+          className="font-display text-heading-m text-foreground min-w-0 flex-1 leading-tight"
         >
           {bar.name}
         </h1>
@@ -272,10 +272,10 @@ export function PhoneStepBar({
               <span className="text-foreground shrink-0 font-mono">{identity.mrn}</span>
             </span>
           ) : null}
-          <span className="text-body-s text-plum-800 font-mono leading-tight">
+          <span className="text-body-s text-ink-700 font-mono leading-tight">
             {`Step ${at + 1} of ${SECTIONS.length}`}
           </span>
-          <span className="text-heading-s text-foreground flex max-w-full items-center gap-1 leading-tight font-medium">
+          <span className="text-heading-s text-foreground flex max-w-full items-center gap-1 leading-tight">
             <span className="min-w-0">{cur.title.length > 26 ? cur.short : cur.title}</span>
             <ChevronDownIcon aria-hidden className="text-muted-foreground size-4.5 shrink-0" />
           </span>
@@ -304,7 +304,7 @@ export function PhoneStepBar({
               className={cn(
                 "h-[3px] rounded-full",
                 i === at
-                  ? "bg-plum-600"
+                  ? "bg-iris-solid"
                   : tone === "done"
                     ? "bg-teal-500"
                     : tone === "required"

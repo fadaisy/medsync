@@ -599,7 +599,7 @@ export function VitalsCard(p: VitalsCardProps): JSX.Element {
         className="border-border bg-card rounded-lg border max-sm:rounded-2xl"
       >
         <header className="border-border bg-muted/40 border-b px-4 py-3 max-sm:px-3.5">
-          <h3 id={`${uid}-h`} className="text-heading-s text-foreground font-medium">
+          <h3 id={`${uid}-h`} className="text-heading-s text-foreground">
             Vital signs
           </h3>
         </header>
@@ -929,7 +929,7 @@ export function VitalsCard(p: VitalsCardProps): JSX.Element {
         aria-labelledby={`${uid}-a`}
         className="border-border bg-card flex flex-col gap-3 rounded-lg border px-4 py-3 max-sm:rounded-2xl max-sm:px-3.5"
       >
-        <h3 id={`${uid}-a`} className="text-body-m text-foreground font-medium">
+        <h3 id={`${uid}-a`} className="text-heading-s text-foreground">
           Anthropometry
         </h3>
         {(["weight", "height"] as const).map((f) => {

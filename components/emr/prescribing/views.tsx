@@ -60,7 +60,7 @@ export function PrescriptionsView({
   return (
     <section aria-labelledby="encounter-prescriptions" className="flex flex-col gap-3 pt-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 id="encounter-prescriptions" className="text-heading-s font-medium">
+        <h2 id="encounter-prescriptions" className="text-heading-s">
           Prescriptions
           <span className="sr-only">
             {" "}

@@ -99,7 +99,7 @@ function Lock() {
 function Heading({ children, aside }: { children: ReactNode; aside?: ReactNode }) {
   return (
     <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-      <h3 className={cn("text-body-s text-foreground font-medium", PANEL_HEAD)}>{children}</h3>
+      <h3 className={cn("text-label text-foreground", PANEL_HEAD)}>{children}</h3>
       {aside ? <span className="text-caption text-muted-foreground">{aside}</span> : null}
     </div>
   );
@@ -831,10 +831,7 @@ function Allergies({
       className={cn("flex flex-col gap-2 max-sm:order-1", PANEL)}
     >
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-        <h3
-          id="clerking-pmh-allergies"
-          className={cn("text-body-s text-foreground font-medium", PANEL_HEAD)}
-        >
+        <h3 id="clerking-pmh-allergies" className={cn("text-label text-foreground", PANEL_HEAD)}>
           Allergies
         </h3>
         <span aria-live="polite">

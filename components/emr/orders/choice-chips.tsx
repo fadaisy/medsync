@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 /**
  * A short single choice as a row of chips (priority, fasting, entry status, read-back): native
  * radios in a radiogroup, so arrow keys move and the choice is announced. Selected is the teal
- * checked state (DESIGN: checked controls are teal, never plum). Keyboard changes are instant; a
+ * checked state (DESIGN: checked controls are teal, never a place hue). Keyboard changes are instant; a
  * pointer press gets scale(0.97) for 100 ms. Targets are 44 px on touch.
  */
 export const PRESS =

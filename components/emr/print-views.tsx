@@ -131,7 +131,7 @@ export function ReferralPrint({
       <PrintField label="Clinician">{encounter.clinicianName ?? undefined}</PrintField>
       <PrintField label="Cadre and council registration number" />
       <div className="flex break-inside-avoid flex-col gap-3 border-t border-gray-300 pt-3">
-        <h2 className="font-medium">Return feedback</h2>
+        <h2 className="">Return feedback</h2>
         <PrintField label="Findings" />
         <PrintField label="Treatment" />
         <PrintField label="Recommendations" />

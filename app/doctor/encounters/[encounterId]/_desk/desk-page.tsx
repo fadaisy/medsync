@@ -41,7 +41,7 @@ export async function DeskPage({
     return (
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-4 py-8 md:px-8">
         <BackLink {...back} />
-        <h1 className="text-heading-m text-foreground font-medium">Encounter unavailable</h1>
+        <h1 className="text-heading-m text-foreground">Encounter unavailable</h1>
         <p className="text-body-s text-muted-foreground">
           It is not at your hospital, or you have no clinical relationship with this patient. Open
           it from the Workspace, or ask the clinician responsible.

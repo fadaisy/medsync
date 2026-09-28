@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 /**
  * The tap-first controls of clerking desk v2 (§5.4, §10), hook-free so the tests can press them:
  * toggle chips, a segmented control, a stepper, a yes/no row and the 0–10 strip. Teal is the
- * checked state and the focus ring; amber is caution; plum never appears here (place only).
+ * checked state and the focus ring; amber is caution; a place hue never appears here (ADR 0162).
  * Targets are 30 px on a fine pointer and 44 px on touch (`pointer-coarse`).
  */
 

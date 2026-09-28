@@ -92,9 +92,7 @@ export function CompleteVisitView({
           ) : null}
         </fieldset>
         <div className="flex flex-col gap-2">
-          <h3 className="text-body-s text-foreground font-medium">
-            Before you complete — warnings, not blocks
-          </h3>
+          <h3 className="text-label text-foreground">Before you complete — warnings, not blocks</h3>
           {p.completionWarnings.length ? (
             <ul className="flex flex-col gap-1.5">
               {p.completionWarnings.map((w) => (

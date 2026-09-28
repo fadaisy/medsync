@@ -27,7 +27,7 @@ function Block({ title, at, children }: { title: string; at?: ReactNode; childre
   return (
     <section className="border-border flex flex-col gap-2 border-b px-4 py-3.5">
       <div className="flex items-baseline justify-between gap-3">
-        <h2 className="text-body-s text-foreground font-medium">{title}</h2>
+        <h2 className="text-label text-foreground">{title}</h2>
         {at}
       </div>
       {children}

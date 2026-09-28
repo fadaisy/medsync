@@ -98,7 +98,7 @@ export function AllergyEditorView({
         <span>{patient.name}</span> <span className="font-mono tabular-nums">{patient.mrn}</span>
       </p>
       <section className="flex flex-col gap-3" aria-labelledby="allergy-status">
-        <h3 id="allergy-status" className="text-body-s text-foreground font-medium">
+        <h3 id="allergy-status" className="text-label text-foreground">
           Status
         </h3>
         {line.state === "listed" ? (
@@ -149,7 +149,7 @@ export function AllergyEditorView({
           if (d.text.trim()) onSave?.(d);
         }}
       >
-        <h3 className="text-body-s text-foreground font-medium">Add an allergy</h3>
+        <h3 className="text-label text-foreground">Add an allergy</h3>
         <div className="flex flex-col gap-1.5">
           <label htmlFor="allergy-substance" className="text-caption text-muted-foreground">
             Substance

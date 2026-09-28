@@ -110,7 +110,7 @@ function Bracket({ n }: { n: string }) {
   return (
     <span
       aria-hidden
-      className="bg-plum-50 text-plum-700 border-plum-100 text-body-s inline-flex items-center rounded-xs border px-2 py-0.5 font-mono leading-none font-semibold tabular-nums"
+      className="bg-ink-50 text-ink-700 border-ink-200 text-body-s inline-flex items-center rounded-xs border px-2 py-0.5 font-mono leading-none font-semibold tabular-nums"
     >
       [{n}]
     </span>
@@ -196,7 +196,7 @@ export function DeskView(props: DeskViewProps) {
       >
         <div className="border-border flex flex-col gap-3 border-b px-4 py-4 md:px-8">
           <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-            <h2 className="text-heading-m text-foreground font-medium">{p.template.title}</h2>
+            <h2 className="text-heading-m text-foreground">{p.template.title}</h2>
             {canSwitch ? (
               <SegmentedControl
                 name="desk-form"
@@ -302,7 +302,7 @@ export function DeskView(props: DeskViewProps) {
               className={cn(
                 "text-body-s focus-visible:shadow-focus inline-flex min-h-11 min-w-11 items-center justify-center rounded-md px-2 font-mono tabular-nums outline-none",
                 e.id === current
-                  ? "bg-plum-50 text-plum-800 font-medium"
+                  ? "bg-iris-tint text-iris-text font-medium"
                   : "text-muted-foreground hover:bg-muted",
               )}
             >
@@ -345,7 +345,7 @@ export function DeskView(props: DeskViewProps) {
                     id={`desk-${s.id}-heading`}
                     tabIndex={-1}
                     className={cn(
-                      "text-foreground flex items-center gap-3 font-medium outline-none",
+                      "text-foreground flex items-center gap-3 outline-none",
                       collapsed ? "text-body-m" : "text-heading-s",
                     )}
                   >
@@ -385,7 +385,7 @@ export function DeskView(props: DeskViewProps) {
 
         {p.notes.length ? (
           <section aria-labelledby="desk-notes-heading" className="px-4 py-6 md:px-8">
-            <h2 id="desk-notes-heading" className="text-heading-s text-foreground font-medium">
+            <h2 id="desk-notes-heading" className="text-heading-s text-foreground">
               Signed notes this visit
             </h2>
             <NoteRowsView notes={p.notes} fmt={fmt} on={on} busy={props.busy} />

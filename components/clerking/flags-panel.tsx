@@ -35,7 +35,7 @@ export function FlagsPanel({
   return (
     <section aria-labelledby="clerking-flags-heading" className="flex flex-col gap-3 px-5 py-4">
       <div className="flex items-center justify-between gap-3">
-        <h2 id="clerking-flags-heading" className="text-body-m text-foreground font-medium">
+        <h2 id="clerking-flags-heading" className="text-heading-s text-foreground">
           Flags
         </h2>
         {badges.length ? (

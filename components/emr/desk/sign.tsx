@@ -131,7 +131,7 @@ export function SignCheckView({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-2">
-        <h3 className="text-body-s text-foreground font-medium">Required</h3>
+        <h3 className="text-label text-foreground">Required</h3>
         <ul className="flex flex-col gap-1.5">
           {requiredMessages.map((r) =>
             missing.has(r.id) ? (
@@ -152,7 +152,7 @@ export function SignCheckView({
       </div>
       {validation.warnings.length ? (
         <div className="flex flex-col gap-2">
-          <h3 className="text-body-s text-foreground font-medium">Warnings — you can still sign</h3>
+          <h3 className="text-label text-foreground">Warnings — you can still sign</h3>
           <ul className="flex flex-col gap-1.5">
             {validation.warnings.map((w) => (
               <li key={w.id}>

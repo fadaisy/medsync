@@ -36,7 +36,7 @@ export function EncounterOrdersView({
   return (
     <section aria-labelledby="encounter-orders" className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 id="encounter-orders" className="text-heading-s font-medium">
+        <h2 id="encounter-orders" className="text-heading-s">
           Orders
           <span className="sr-only">
             {" "}

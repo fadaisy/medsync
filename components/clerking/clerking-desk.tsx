@@ -69,7 +69,7 @@ import { SystemsBody } from "./systems-body";
  * column (392 px: Flags, the note, Sign/Complete at its foot) scroll inside themselves. Below xl the
  * rail and the right column open as centred dialogs ("Context", "Note and flags"; ADR 0161) and the
  * section bar scrolls sideways; on a phone the bar folds to "Step 3 of 10 · Systems" and nothing is
- * fixed over the narrative (C8). Plum marks place only (current step, current note block); teal is
+ * fixed over the narrative (C8). Clinical iris marks place only (current step, current note block; ADR 0162); teal is
  * done and every button; amber is caution; red only as the Flags panel and the rail allow.
  */
 
@@ -142,10 +142,7 @@ function SafetyBar({
         {bar.accessibleSummary}
       </p>
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-        <h1
-          id="safety-bar-name"
-          className="font-display text-heading-m text-foreground font-medium"
-        >
+        <h1 id="safety-bar-name" className="font-display text-heading-m text-foreground">
           {bar.name}
         </h1>
         <span className="text-body-s text-muted-foreground flex flex-wrap gap-x-3 tabular-nums">
@@ -241,7 +238,7 @@ function StepButton({
         "focus-visible:shadow-focus flex min-h-11 items-center gap-1.5 rounded-md py-1 pr-1.5 pl-1 text-left outline-none",
         wide ? "w-full" : "shrink-0",
         current
-          ? "bg-plum-50 text-plum-800 ring-plum-200 ring-1"
+          ? "bg-iris-tint text-iris-text ring-iris-edge ring-1"
           : "text-foreground hover:bg-muted",
       )}
     >
@@ -250,7 +247,7 @@ function StepButton({
         className={cn(
           "text-caption inline-flex size-[22px] shrink-0 items-center justify-center rounded-full font-mono font-semibold",
           current
-            ? "bg-plum-800 text-plum-50"
+            ? "bg-iris-solid text-iris-on-solid"
             : done
               ? "bg-teal-600 text-white"
               : required
@@ -271,7 +268,7 @@ function StepButton({
               // On the current step the status takes the step's own (place) colour: the tokens
               // invert in dark, so no dark: override is needed.
               current
-                ? "text-plum-800"
+                ? "text-iris-text"
                 : required
                   ? "dark:text-status-caution-fg text-amber-800"
                   : done
@@ -649,7 +646,7 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
       )}
       {p.notes.length && !inDialog ? (
         <section aria-labelledby="clerking-notes-heading" className="px-5 py-4">
-          <h2 id="clerking-notes-heading" className="text-body-m text-foreground font-medium">
+          <h2 id="clerking-notes-heading" className="text-heading-s text-foreground">
             Signed notes this visit
           </h2>
           <NoteRowsView notes={p.notes} fmt={fmt} on={on} busy={props.busy} />
@@ -834,16 +831,13 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
               <header className="border-border flex items-start justify-between gap-4 border-b px-5 py-4 max-sm:border-0 max-sm:px-0.5 max-sm:pt-0 max-sm:pb-3">
                 <div className="flex flex-col gap-0.5">
                   <div className="flex items-baseline gap-2.5">
-                    <span
-                      aria-hidden
-                      className="text-caption text-plum-700 font-mono max-sm:hidden"
-                    >
+                    <span aria-hidden className="text-caption text-ink-700 font-mono max-sm:hidden">
                       {`[${cur.num}]`}
                     </span>
                     <h2
                       id={`desk-${cur.id}-heading`}
                       tabIndex={-1}
-                      className="text-heading-s text-foreground max-sm:text-heading-m font-medium outline-none"
+                      className="text-heading-s text-foreground max-sm:text-heading-m outline-none"
                     >
                       {cur.title}
                     </h2>

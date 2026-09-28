@@ -526,7 +526,7 @@ export function HistoryBody({ cat, history, onHistory, editable }: HistoryBodyPr
           aria-label={`Also asked, because of ${lc(g.symptom.label)}`}
           className={cn(PANEL, "max-sm:gap-0")}
         >
-          <h3 className={cn("text-body-s text-foreground pb-1 font-medium", PANEL_HEAD)}>
+          <h3 className={cn("text-label text-foreground pb-1", PANEL_HEAD)}>
             {`Also asked, because of ${lc(g.symptom.label)}`}
           </h3>
           <div className="grid gap-x-8 sm:grid-cols-2">

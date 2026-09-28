@@ -243,7 +243,7 @@ export function PrescribeSheetView({
 
       {flags.length ? (
         <section aria-labelledby="rx-checks" className="flex flex-col gap-2">
-          <h3 id="rx-checks" className="text-body-s font-medium">
+          <h3 id="rx-checks" className="text-label">
             Prescribing checks
           </h3>
           <ul className="flex flex-col gap-2">

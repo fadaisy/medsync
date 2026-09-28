@@ -139,10 +139,7 @@ export function SafetyBarView({
       </p>
       <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-2 px-4 py-3 md:px-8">
         <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
-          <Heading
-            id="safety-bar-name"
-            className="font-display text-heading-m text-foreground font-medium"
-          >
+          <Heading id="safety-bar-name" className="font-display text-heading-m text-foreground">
             {bar.name}
           </Heading>
           <span className="text-body-s text-muted-foreground flex flex-wrap gap-x-3 tabular-nums">

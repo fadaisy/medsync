@@ -182,7 +182,7 @@ function SystemsGrid({
               className={cn(
                 "flex min-h-11 w-full flex-col items-start gap-0.5 rounded-md border px-2.5 py-1.5 text-left",
                 FOCUS,
-                on ? "border-plum-300 bg-plum-50" : "border-border bg-card hover:bg-muted",
+                on ? "border-iris-edge bg-iris-tint" : "border-border bg-card hover:bg-muted",
               )}
             >
               <span className="text-body-s text-foreground inline-flex max-w-full min-w-0 items-center gap-1.5 font-medium">
@@ -211,7 +211,7 @@ function SystemsGrid({
                   s.suggested && s.tone === "open"
                     ? "text-indigo-700 dark:text-indigo-300"
                     : on
-                      ? "text-foreground" // the plum tint takes muted text below AA
+                      ? "text-foreground" // the iris tint takes muted text below AA
                       : "text-muted-foreground",
                 )}
               >
@@ -371,7 +371,7 @@ function IntimateGate({
     >
       <h4
         id="exam-gate-heading"
-        className="text-body-m text-foreground inline-flex items-center gap-1.5 font-medium"
+        className="text-heading-s text-foreground inline-flex items-center gap-1.5"
       >
         <LockIcon aria-hidden className="size-4" />
         Before this examination
@@ -499,7 +499,7 @@ function Panels({
   const r = (id: string) => v.results.get(id);
   const panel = (title: string, body: ReactNode) => (
     <section aria-label={title} className="border-border flex flex-col gap-2 rounded-md border p-3">
-      <h4 className="text-body-s text-foreground font-medium">{title}</h4>
+      <h4 className="text-label text-foreground">{title}</h4>
       {body}
     </section>
   );
@@ -771,7 +771,7 @@ export function ExamStep(p: ExamStepProps) {
               <h3
                 id="exam-system-heading"
                 tabIndex={-1}
-                className="text-heading-s text-foreground font-medium outline-none"
+                className="text-heading-s text-foreground outline-none"
               >
                 {system.name}
               </h3>

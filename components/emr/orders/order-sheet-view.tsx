@@ -76,7 +76,7 @@ export function OrderSheetView({
       </p>
 
       <section aria-labelledby="order-favourites" className="flex flex-col gap-2">
-        <h3 id="order-favourites" className="text-body-s font-medium">
+        <h3 id="order-favourites" className="text-label">
           Favourites
         </h3>
         {favourites.length ? (
@@ -136,7 +136,7 @@ export function OrderSheetView({
 
       {n ? (
         <section aria-labelledby="order-lines" className="flex flex-col gap-4">
-          <h3 id="order-lines" className="text-body-s font-medium">
+          <h3 id="order-lines" className="text-label">
             To order
           </h3>
           <ul className="divide-border flex flex-col divide-y">

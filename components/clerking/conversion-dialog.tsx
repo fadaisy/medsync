@@ -111,7 +111,7 @@ export function ConversionDialog({
       <div className="flex flex-col gap-6">
         {conv.pending.length ? (
           <section aria-labelledby="conv-open" className="flex flex-col gap-3">
-            <h3 id="conv-open" className="text-body-m text-foreground font-medium">
+            <h3 id="conv-open" className="text-heading-s text-foreground">
               {`To finish (${conv.pending.length})`}
             </h3>
             <ul className="flex flex-col gap-3">
@@ -133,7 +133,7 @@ export function ConversionDialog({
           </section>
         ) : null}
         <section aria-labelledby="conv-lines" className="flex flex-col gap-2">
-          <h3 id="conv-lines" className="text-body-m text-foreground font-medium">
+          <h3 id="conv-lines" className="text-heading-s text-foreground">
             {`Every answer from the previous format (${conv.lines.length})`}
           </h3>
           <ul className="divide-border flex flex-col divide-y">
