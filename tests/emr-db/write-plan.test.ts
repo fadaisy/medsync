@@ -2,7 +2,7 @@
  * Placing the Plan (ADRs 0184–0189) on the PGlite lane: 0087–0089 replayed, the basket's orders
  * and prescriptions in one transaction with the problem, the server's own checks and answers, the
  * edits against a signed regimen, the charts the rule table opens, and the database's own rules
- * (a routine order names its frequency, a held medicine its reason, fluid entries are append-only).
+ * (a routine order carries its frequency, fluid entries are append-only).
  * Runs only with EMR_PGLITE=1.
  */
 import { randomUUID } from "node:crypto";
@@ -370,7 +370,7 @@ describe.skipIf(!laneOn)("placing the Plan (PGlite lane)", () => {
     );
   });
 
-  it("the database's own rules: routine names a frequency; held names a reason; fluid entries are append-only", async () => {
+  it("the database's own rules: routine carries a frequency; fluid entries are append-only", async () => {
     const v = await visit();
     await expect(
       q(
@@ -379,7 +379,13 @@ describe.skipIf(!laneOn)("placing the Plan (PGlite lane)", () => {
          VALUES ($1, $2, 'ecg', 'ECG', $3, 'events', $4, 'routine', 'in_house', 'clinician', 'MEDICAL_OFFICER', now(), 'x')`,
         [v.e, v.p, mo.userId, h],
       ),
-    ).rejects.toThrow(/routine order needs a frequency/);
+    ).resolves.toBeDefined();
+    const [legacy] = await q<{ frequency: string }>(
+      `SELECT frequency FROM encounter_orders WHERE encounter_id = $1 AND priority = 'routine' AND frequency IS NOT NULL`,
+      [v.e],
+    );
+    // What the code deployed before 0087 writes is kept, as a one-off.
+    expect(legacy).toEqual({ frequency: "once" });
     await expect(
       q(
         `INSERT INTO encounter_orders (encounter_id, patient_user_id, kind, text, authored_by_user_id, lifecycle, hospital_id,

@@ -300,9 +300,10 @@ export const ORDER_FREQUENCY_WORD: Record<OrderFrequency, string> = {
 };
 
 /**
- * The frequency stored with an order line. A routine test needs one (migration 0087 refuses a
- * routine insert without it); a caller that sends none gets `once`, so the order sheet, the triage
- * suggestion and the resus handover keep working. Other priorities keep what they were given.
+ * The frequency stored with an order line. A routine test always carries one (migration 0087 stores
+ * a routine insert without one as `once`, as here); a caller that sends none gets `once`, so the
+ * order sheet, the triage suggestion and the resus handover keep working. Other priorities keep what
+ * they were given.
  */
 export function orderFrequencyFor(
   priority: OrderPriority,

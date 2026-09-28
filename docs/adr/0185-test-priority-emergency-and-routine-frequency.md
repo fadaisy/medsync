@@ -19,8 +19,10 @@ an admitted patient is usually repeated (daily U&E, 6-hourly glucose); today not
    - Emergency: "Life-threatening: collected at the bedside now, result phoned through."
 2. **Frequency:** `encounter_orders.frequency` in `once | daily | 12h | 6h`. A routine order needs one; other
    priorities may carry one or none.
-3. **Enforced on insert, not by CHECK.** A BEFORE INSERT trigger refuses a routine order with no frequency. A CHECK
-   would also bind every later status update of the routine rows already stored without one.
+3. **Enforced on insert, not by CHECK.** A BEFORE INSERT trigger stores a routine order with no frequency as `once`,
+   which is what every routine order meant before this. A CHECK would also bind every later status update of the
+   routine rows already stored without one; a refusal would break the code deployed before this change the moment the
+   migration ran.
 4. **Every routine line carries a frequency.** The Plan sends the one chosen. The write path (`orderFrequencyFor`)
    gives a routine line with none `once`, so the order sheet, Impression's "Add to plan", the triage suggestion and
    the resus handover (routine lines) keep working unchanged; the database trigger backs it up.

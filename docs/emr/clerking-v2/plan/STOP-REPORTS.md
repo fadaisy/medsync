@@ -165,7 +165,7 @@ the new columns):
 
 | Migration                                  | What                                                                                                                                                                                                                                                           |
 | ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `0087_orders_emergency_frequency`          | priority `emergency`; `encounter_orders.frequency` (`once / daily / 12h / 6h`); a BEFORE INSERT trigger refuses a routine order with no frequency                                                                                                              |
+| `0087_orders_emergency_frequency`          | priority `emergency`; `encounter_orders.frequency` (`once / daily / 12h / 6h`); a BEFORE INSERT trigger stores a routine order with no frequency as `once`                                                                                                     |
 | `0088_prescriptions_plan`                  | 15 prescription columns (method, infusion over, diluent, PRN, regimen, edits, problem, start, kind, fluid purpose, volume, time, giving set, warmed, answered checks) with their checks; reconciliation `held` needs a reason; the MAR's `emr_prescription_id` |
 | `0089_fluid_balance_and_monitoring_charts` | `fluid_balance_entries` (append-only; correction and entered in error by a new row) and `monitoring_charts` (one open per kind per visit; never deleted), RLS forced, reader policy, write revokes, audit triggers                                             |
 
@@ -284,3 +284,14 @@ sends back: ADRs 0184–0190, the priority definitions, the reason-chip wording,
 checks (all marked proposed), the diagnosis → class map, the chart rules marked proposed (off), the reference lines
 (35 °C, 0.5 mL/kg/h) and the choices listed under STOP 5. Dose verification (Appendix A) waits for access to Medscape,
 UCG 2023 and BNF.
+
+---
+
+## After STOP 7: 0087 made safe to apply first (28 Sep 2026)
+
+Asked for the commands to apply the migrations: as written, 0087's trigger refused a routine order with no
+frequency, and the code on `main` places routine orders without one, so applying 0087 before this branch is deployed
+would have stopped routine test orders wherever `EMR_V1` is on. The trigger now stores such an order as `once` (what
+every routine order meant before), ADR 0185 §3 says so, and the lane test checks it. 0088 and 0089 only add columns
+with defaults, new tables and a reader policy. All three can be applied while `main` is still deployed; this branch
+must not be deployed before them.
