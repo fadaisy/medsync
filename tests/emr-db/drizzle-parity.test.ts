@@ -3,7 +3,8 @@
  * migrations column for column (name, SQL type, nullability) and carry only CHECKs that exist.
  * The migrations are the source of truth; this catches a Drizzle file that drifted from them
  * (the etco2 / urine_output / cosign-kind drift that 0071 fixed would each have failed here).
- * It also loads 0072 for real: the seed must land in 0071's registries in full and re-run to no-op.
+ * It also loads 0072 and 0085 for real: the seeds must land in 0071's registries in full and re-run to
+ * no-op. The cosign_action_kind_check pair covers 0084 (confirm_diagnosis).
  * Runs only with EMR_PGLITE=1 (see _pglite.ts).
  */
 import type { Lane } from "./_pglite";
@@ -138,7 +139,7 @@ describe.skipIf(!laneOn)("Drizzle schema matches the replayed migrations", () =>
   });
 });
 
-describe.skipIf(!laneOn)("0072 seed on the 0071 registries", () => {
+describe.skipIf(!laneOn)("0072 and 0085 seeds on the 0071 registries", () => {
   const REGISTRIES = [
     "clinical_concepts",
     "drug_class_tags",
@@ -169,8 +170,14 @@ describe.skipIf(!laneOn)("0072 seed on the 0071 registries", () => {
     expect([...(await ids("drug_class_tags"))].sort()).toEqual(Object.keys(DRUG_CLASS_TAGS).sort());
     expect([...(await ids("capabilities"))].sort()).toEqual([...CAPABILITY_IDS].sort());
     const before = await counts(lane);
-    expect(before).toMatchObject({ test_catalogue: 35, diagnosis_terms: 85 });
+    // 0072's 85 terms plus 0085's 187 (REF-DX-TERMS v1.1, uncoded: D-SI-26).
+    expect(before).toMatchObject({ test_catalogue: 35, diagnosis_terms: 85 + 187 });
+    const uncoded = await lane.pg.query<{ n: number }>(
+      `SELECT count(*)::int AS n FROM public.diagnosis_terms WHERE icd11_code IS NULL AND verified_on IS NULL`,
+    );
+    expect(uncoded.rows[0]!.n).toBe(187);
     await lane.pg.exec(readMigration("0072_emr_reference_seed.sql"));
+    await lane.pg.exec(readMigration("0085_ref_dx_terms_v1_1.sql"));
     expect(await counts(lane)).toEqual(before);
   }, 180_000);
 });
