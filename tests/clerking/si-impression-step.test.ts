@@ -2,6 +2,7 @@
 import type { ImpressionHandlers } from "@/components/clerking/impression/impression-step";
 import type { DeskDiagnosis, DeskPayload } from "@/components/emr/desk/model";
 import type { DxPick } from "@/components/emr/desk/pickers";
+import type { DxTerm } from "@/components/emr/desk/search";
 import type { DxOptions } from "@/components/emr/desk/sections";
 import type { ImpressionDraft } from "@/lib/clerking/impression/board";
 import type { NoteContent } from "@/lib/emr/note-rules";
@@ -84,6 +85,20 @@ let latest: NoteContent;
 let calls: { name: string; args: unknown[] }[] = [];
 let taps = 0;
 
+/** The term index as the server returns it, for "Show all" (one loader per test: it is cached). */
+const TERMS: DxTerm[] = Object.entries(DX_NAMES).map(([id, n]) => ({
+  id: dxTermUuid(id),
+  display: n.display,
+  synonyms: id === "dx.sepsis" ? ["septicaemia"] : [],
+  icd11: id === "dx.sepsis" ? "1G40" : null,
+  verified: id === "dx.sepsis",
+  chronic: false,
+  symptomLevel: false,
+  restricted: n.restricted,
+  notifiable: false,
+}));
+let termsLoader: () => Promise<DxTerm[]> = async () => [];
+
 function Harness({ p }: { p: DeskPayload }) {
   const [content, setContent] = useState(p.draft!.content);
   const [diagnoses, setDiagnoses] = useState(p.diagnoses);
@@ -142,7 +157,7 @@ function Harness({ p }: { p: DeskPayload }) {
     save: { tone: "neutral", text: "Saved 08:19" },
     actor: "u-1",
     on,
-    loaders: { findings: async () => [], terms: async () => [] },
+    loaders: { findings: async () => [], terms: termsLoader },
   });
 }
 
@@ -165,6 +180,7 @@ beforeEach(() => {
   calls = [];
   taps = 0;
   width = 1440;
+  termsLoader = async () => [];
 });
 afterEach(() => {
   act(() => root.unmount());
@@ -343,5 +359,84 @@ describe("step 09, Impression", () => {
         `button[aria-label="${text}: link it to Diabetes, type not yet determined"]`,
       ),
     ).toBeNull();
+  });
+});
+
+describe('step 09, "Show all" diagnoses', () => {
+  const dialog = () => document.querySelector('[role="dialog"]') as HTMLElement;
+  const row = (name: string) =>
+    [...dialog().querySelectorAll("li button")].find((b) =>
+      b.textContent?.startsWith(name),
+    ) as HTMLButtonElement;
+  const open = async (p: DeskPayload) => {
+    termsLoader = async () => TERMS;
+    mount(p);
+    tap(button("Show all diagnoses"));
+    await act(async () => {});
+  };
+
+  it("opens every diagnosis in a centred pop-up, grouped by the catalogue's categories", async () => {
+    await open(payload([DIABETES()]));
+    expect(dialog().textContent).toContain("All diagnoses");
+    expect(dialog().querySelectorAll("li button")).toHaveLength(TERMS.length);
+    const headings = [...dialog().querySelectorAll("h3")].map((h3) => h3.textContent ?? "");
+    expect(headings[0]).toMatch(/^Symptom-level terms\d+ diagnoses$/);
+    expect(headings).toContainEqual(expect.stringMatching(/^Heart and vessels\d+ diagnoses$/));
+    expect(headings).toHaveLength(Object.keys(DX_CATALOGUE.data.categories).length);
+    // Coded, not coded, restricted and already on this visit, each in words.
+    expect(row("Sepsis").textContent).toContain("1G40");
+    expect(row("Cholera").textContent).toContain("Not coded");
+    expect(row("Advanced HIV disease").querySelector('[aria-label="Restricted"]')).toBeTruthy();
+    const diabetes = row("Diabetes, type not yet determined");
+    expect(diabetes.disabled).toBe(true);
+    expect(diabetes.textContent).toContain("Already on this visit");
+  });
+
+  it("adds a tap as the Add as choice shows, and stays open for the next", async () => {
+    await open(payload([DIABETES()]));
+    tap(row("Sepsis"));
+    expect(calls.filter((c) => c.name === "onDiagnosis").map((c) => c.args)).toEqual([
+      [
+        { term: expect.objectContaining({ display: "Sepsis" }) },
+        { verification: "differential", primary: false, addToProblemList: null },
+      ],
+    ]);
+    expect(dialog()).toBeTruthy();
+    expect(row("Sepsis").disabled).toBe(true);
+    const also = [...dialog().querySelectorAll('[role="radiogroup"][aria-label="Add as"] button')];
+    tap(also.find((b) => b.textContent === "Also this visit"));
+    tap(row("Cholera"));
+    expect(calls.filter((c) => c.name === "onDiagnosis")[1]!.args[1]).toEqual({
+      verification: "provisional",
+      primary: false,
+      addToProblemList: null,
+    });
+    expect(all()).toMatch(/Differential \(1\)/);
+  });
+
+  it("makes the first pick the leading diagnosis when there is none, then differentials", async () => {
+    await open(payload([]));
+    tap(row("Sepsis"));
+    tap(row("Cholera"));
+    const adds = calls.filter((c) => c.name === "onDiagnosis").map((c) => c.args[1]);
+    expect(adds).toEqual([
+      { verification: "provisional", primary: true, addToProblemList: null },
+      { verification: "differential", primary: false, addToProblemList: null },
+    ]);
+  });
+
+  it("filters by name, synonym or code, as the search does", async () => {
+    await open(payload([]));
+    const filter = dialog().querySelector('input[placeholder^="Filter"]') as HTMLInputElement;
+    type(filter, "septic");
+    expect(dialog().textContent).toContain("Septic arthritis");
+    type(filter, "septicaemia");
+    expect([...dialog().querySelectorAll("li button")].map((b) => b.textContent)).toEqual([
+      expect.stringMatching(/^Sepsis/),
+    ]);
+    type(filter, "1G4");
+    expect(dialog().querySelectorAll("li button")).toHaveLength(1);
+    type(filter, "zzzz");
+    expect(dialog().textContent).toContain("Nothing matches");
   });
 });

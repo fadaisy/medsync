@@ -5,6 +5,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — Impression: "Show all" diagnoses in a centred pop-up — 2026-09-28
+
+- Step 09's "Add a diagnosis" has a **Show all** button beside the search. It opens every diagnosis term in a centred pop-up, grouped by the 18 categories of the signed diagnosis catalogue (symptom-level terms first, A to Z within each group), with a filter by name, synonym or code.
+- A tap adds the term as the "Add as" choice shows (Leading, Differential or Also this visit, available inside the pop-up too), and the list stays open to add the next. Each row shows its ICD-11 code or "Not coded" and a lock when restricted; a term already on this visit is ticked and disabled.
+- Behind `CLERKING_V2`; no migration.
+
 ### Added — Clerking v2: Summary (step 08) and Impression (step 09), behind `CLERKING_V2` — 2026-09-28
 
 - **Summary** is composed from the record: a one-liner with the syndrome in the clinician's words, the history, examination and vital signs that matter, pertinent negatives and allergies. "Mark as reviewed" is one tap; any change asks for review again, with the difference ([ADR 0178](docs/adr/0178-summary-composed-from-the-record.md)). The note gets its own Summary block. An old free-text summary opens in "In my words".
