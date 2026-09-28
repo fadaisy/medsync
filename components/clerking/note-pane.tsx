@@ -1,4 +1,5 @@
 import type { Block, BlockKey } from "@/lib/clerking/compose";
+import { useState } from "react";
 import { PencilIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,7 @@ import { cn } from "@/lib/utils";
  * current section marked in the Clinical place colour (iris, a tint and a ring; never a left bar; ADR 0162). "Edit
  * text" copies the current block into `content.edited[key]`: from then on it is the clinician's
  * text, a textarea marked "Edited, will not update", and "Undo edits" hands it back to the
- * composer. Hook-free; the desk owns the content.
+ * composer. The desk owns the content; only the Summary's "Show all" on step 09 keeps its own state.
  */
 export function NotePane({
   blocks,
@@ -97,6 +98,8 @@ export function NotePane({
                     ) : null}
                   </span>
                 </>
+              ) : b.key === "summary" && current === "impression" && b.text.length > CLAMP_AT ? (
+                <Clamped text={b.text} />
               ) : (
                 <p className="text-body-s text-foreground leading-relaxed whitespace-pre-wrap">
                   {b.text}
@@ -107,5 +110,33 @@ export function NotePane({
         })}
       </div>
     </section>
+  );
+}
+
+// About three lines of the note column.
+const CLAMP_AT = 180;
+
+/** The Summary on step 09: three lines, then "Show all" (§5.5), so the Impression stays in view. */
+function Clamped({ text }: { text: string }) {
+  const [all, setAll] = useState(false);
+  return (
+    <>
+      <p
+        className={cn(
+          "text-body-s text-foreground leading-relaxed whitespace-pre-wrap",
+          !all && "line-clamp-3",
+        )}
+      >
+        {text}
+      </p>
+      <button
+        type="button"
+        aria-expanded={all}
+        onClick={() => setAll(!all)}
+        className="text-caption focus-visible:shadow-focus self-start rounded-xs font-medium text-teal-700 outline-none hover:underline dark:text-teal-300"
+      >
+        {all ? "Show less" : "Show all"}
+      </button>
+    </>
   );
 }

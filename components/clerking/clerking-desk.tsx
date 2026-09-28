@@ -22,7 +22,7 @@ import type { SectionId, SectionStatus } from "@/lib/clerking/status";
 import type { SummaryDraft } from "@/lib/clerking/summary/review";
 import type { NoteContent } from "@/lib/emr/note-rules";
 import type { ReactNode } from "react";
-import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CheckIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 
 import { RestrictedMark } from "@/components/emr/chips";
@@ -445,7 +445,7 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
   const headerGone = useScrolledPast(headerRef);
   // A linked answer in Systems opens its complaint card in Complaint (D-CV-08).
   const [openComplaint, setOpenComplaint] = useState<string | null>(null);
-  const fmt = formatters(p.timeZone);
+  const fmt = useMemo(() => formatters(p.timeZone), [p.timeZone]);
   const k = p.clerking!;
   const signedNote = p.draft === null ? p.signed : null;
   const view = signedNote ? signedNote.content : content;
@@ -453,9 +453,13 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
   const act = p.flags.actionsAllowed && editable;
 
   const [examPlace, setExamPlace] = useState<ExamPlace>(props.examPlace ?? { system: VITALS });
-  const derived: Derived | null = cat
-    ? deriveDesk(cat, p, view, props.ecat ?? null, fmt.time, props.dx ?? null)
-    : null;
+  // Derived once per change of what it reads: opening Details or a dialog does not recompute.
+  const ecat = props.ecat ?? null;
+  const dxData = props.dx ?? null;
+  const derived: Derived | null = useMemo(
+    () => (cat ? deriveDesk(cat, p, view, ecat, fmt.time, dxData) : null),
+    [cat, p, view, ecat, fmt, dxData],
+  );
   const si = derived?.si ?? null;
   // Step 08 on screen says what it is doing: Composed, Reviewed or Changed (§5.1).
   const statuses =
@@ -480,25 +484,48 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
     () => new Map(Object.entries(props.dx?.testIds ?? {}).map(([id, uuid]) => [uuid, id])),
     [props.dx],
   );
-  const inPlan = (logicalId: string): ReadonlySet<string> => {
-    const version = p.diagnoses.find((d) => d.logicalId === logicalId)?.id;
-    return new Set(
-      p.orders
-        .filter((o) => o.testId && version && o.reasonConditionIds?.includes(version))
-        .map((o) => testIdOf.get(o.testId!) ?? o.testId!),
-    );
-  };
+  const { diagnoses, orders } = p;
+  const inPlan = useCallback(
+    (logicalId: string): ReadonlySet<string> => {
+      const version = diagnoses.find((d) => d.logicalId === logicalId)?.id;
+      return new Set(
+        orders
+          .filter((o) => o.testId && version && o.reasonConditionIds?.includes(version))
+          .map((o) => testIdOf.get(o.testId!) ?? o.testId!),
+      );
+    },
+    [diagnoses, orders, testIdOf],
+  );
   const wide = useMedia("(min-width: 834px)");
   const xl = useMedia("(min-width: 1280px)");
-  const [details, setDetails] = useState<string | null>(null);
-  const imp =
-    si && props.dx !== undefined ? deriveImpression(si, props.dx ?? null, { inPlan }) : null;
+  const [details, setDetailsId] = useState<string | null>(null);
+  // Details returns focus to the control that opened it (§5.7), in place and in the dialog.
+  const detailsFrom = useRef<HTMLElement | null>(null);
+  const detailsPanel = useRef<HTMLDivElement | null>(null);
+  const setDetails = (id: string | null) => {
+    if (id && !details) detailsFrom.current = document.activeElement as HTMLElement | null;
+    setDetailsId(id);
+    if (id) return;
+    const from = detailsFrom.current;
+    detailsFrom.current = null;
+    requestAnimationFrame(() => from?.isConnected && from.focus());
+  };
+  const dxLoaded = props.dx !== undefined;
+  const imp = useMemo(
+    () => (si && dxLoaded ? deriveImpression(si, dxData, { inPlan }) : null),
+    [si, dxLoaded, dxData, inPlan],
+  );
   const detailsRow =
     details && si
       ? [si.board.leading, ...si.board.differential, ...si.board.also].find(
           (r) => r?.dx.logicalId === details,
         )
       : null;
+  // In place (1280 px and up), focus moves into Details as it opens.
+  const detailsInPlace = !!detailsRow && xl;
+  useEffect(() => {
+    if (detailsInPlace) detailsPanel.current?.focus();
+  }, [detailsInPlace, details]);
   const onImpression = (fn: (d: ImpressionDraft) => ImpressionDraft) =>
     on.onContent?.(
       withImpression(
@@ -1065,9 +1092,16 @@ export function ClerkingDesk(props: ClerkingDeskProps) {
           <div className="min-h-0 flex-1 overflow-y-auto">
             {detailsRow && xl && detailsBody ? (
               <div
+                ref={detailsPanel}
                 role="region"
+                tabIndex={-1}
                 aria-label={`Details, ${detailsRow.dx.display}`}
-                className="px-5 py-4"
+                onKeyDown={(e) => {
+                  if (e.key !== "Escape" || e.defaultPrevented) return;
+                  e.preventDefault();
+                  setDetails(null);
+                }}
+                className="px-5 py-4 outline-none"
               >
                 {detailsBody(true)}
               </div>

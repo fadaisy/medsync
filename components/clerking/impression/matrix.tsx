@@ -30,25 +30,18 @@ const WORD: Record<CellState, string> = {
   against: "against",
 };
 
-function CellFace({ s }: { s: CellState }) {
-  if (s === "blank")
-    return (
-      <span aria-hidden className="text-muted-foreground">
-        ·
-      </span>
-    );
-  const suggested = s === "suggested_for" || s === "suggested_against";
-  const plus = s === "for" || s === "suggested_for";
-  return (
-    <span aria-hidden className="inline-flex items-center gap-1 whitespace-nowrap">
-      <span className="font-mono">{plus ? "+" : "−"}</span>
-      {suggested ? "Suggested" : plus ? "For" : "Against"}
-    </span>
-  );
-}
+// Plain text, no inner elements: 12 × 30 cells mount at once (§4 budget). The button's label
+// names the state; the face is its visible sign and word.
+const FACE: Record<CellState, string> = {
+  blank: "·",
+  suggested_for: "+ Suggested",
+  suggested_against: "− Suggested",
+  for: "+ For",
+  against: "− Against",
+};
 
 const STATE: Record<CellState, string> = {
-  blank: "hover:bg-muted",
+  blank: "text-muted-foreground hover:bg-muted",
   suggested_for: "border border-dashed border-ink-400 text-foreground hover:bg-muted",
   suggested_against: "border border-dashed border-ink-400 text-foreground hover:bg-muted",
   for: "bg-ink-100 text-foreground dark:bg-ink-700",
@@ -60,7 +53,7 @@ const CELL = Object.fromEntries(
   (Object.keys(STATE) as CellState[]).map((s) => [
     s,
     cn(
-      "text-caption focus-visible:shadow-focus inline-flex min-h-7 w-full min-w-[104px] items-center justify-center rounded-sm px-1.5 outline-none pointer-coarse:min-h-11",
+      "text-caption focus-visible:shadow-focus inline-flex min-h-7 w-full min-w-[104px] items-center justify-center rounded-sm px-1.5 whitespace-nowrap outline-none pointer-coarse:min-h-11",
       "ease-expo-out transition-[background-color,box-shadow] duration-150 motion-reduce:transition-none",
       STATE[s],
     ),
@@ -113,7 +106,7 @@ const MatrixRow = memo(
               aria-label={`${f.text} for ${names[ci]}: ${WORD[s]}. Select to change.`}
               className={CELL[s]}
             >
-              <CellFace s={s} />
+              {FACE[s]}
             </button>
           </td>
         ))}

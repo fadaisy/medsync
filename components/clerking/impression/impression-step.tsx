@@ -145,6 +145,12 @@ function Seg<V extends string>({
   );
 }
 
+const ADD_AS = (hasLeading: boolean) => [
+  { id: "leading" as const, label: "Leading", disabled: hasLeading },
+  { id: "differential" as const, label: "Differential" },
+  { id: "also" as const, label: "Also this visit" },
+];
+
 function MnmPill({ unlikely }: { unlikely?: boolean }) {
   return (
     <span className="text-caption bg-status-caution-bg dark:text-status-caution-fg inline-flex items-center gap-1 rounded px-2 py-0.5 font-medium text-amber-800">
@@ -861,16 +867,24 @@ export function ImpressionStep(props: ImpressionStepProps) {
       {/* Add a diagnosis (§5.3) */}
       {canWrite && props.on.onDiagnosis ? (
         <Section id="impression-add-heading" title="Add a diagnosis">
-          <Seg
-            label="Add as"
-            options={[
-              { id: "leading" as const, label: "Leading", disabled: !!lead },
-              { id: "differential" as const, label: "Differential" },
-              { id: "also" as const, label: "Also this visit" },
-            ]}
-            value={slot}
-            onPick={setAddAs}
-          />
+          {/* A phone takes the three choices as a select above the picker (§5.6). */}
+          <div className="max-sm:hidden">
+            <Seg label="Add as" options={ADD_AS(!!lead)} value={slot} onPick={setAddAs} />
+          </div>
+          <label className="text-caption text-muted-foreground flex flex-col gap-1 sm:hidden">
+            Add as
+            <select
+              value={slot}
+              onChange={(e) => setAddAs(e.target.value as typeof slot)}
+              className="border-input bg-card text-body-s text-foreground focus-visible:shadow-focus min-h-11 rounded-sm border px-2 outline-none"
+            >
+              {ADD_AS(!!lead).map((o) => (
+                <option key={o.id} value={o.id} disabled={o.disabled}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </label>
           <DiagnosisPicker
             id="impression-add"
             label="Diagnosis"

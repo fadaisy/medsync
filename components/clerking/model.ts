@@ -645,6 +645,16 @@ export const CLERKING_KEY_HELP: readonly [string, string][] = [
   ["Examination: e", "Everything else normal (asks first)"],
   ["Examination: x", "Not examined"],
   ["Examination: g", "Go to consciousness (GCS)"],
+  ["Summary: r", "Mark as reviewed"],
+  ["Impression: /", "Add a diagnosis"],
+  ["Impression: m", "List or evidence matrix"],
+  ["Impression: l / p / u", "Likely, possible or unlikely on the focused row"],
+  ["Impression: Alt + ↑ / ↓", "Move the focused row"],
+  ["Impression: d", "Details of the focused row"],
+  ["Matrix: arrow keys", "Move between cells"],
+  ["Matrix: Space", "Change the focused cell"],
+  ["Matrix: a", "Accept the focused column's suggestions"],
+  ["Esc", "Close Details (focus returns to where it opened)"],
 ];
 
 /* ─── "Show all" complaints (Complaint quality of life) ──────────── */

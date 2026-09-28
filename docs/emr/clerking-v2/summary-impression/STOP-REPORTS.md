@@ -342,3 +342,57 @@ Suggestions follow signed rule order: rules fired by a red flag, a vital sign or
 **Audit** (PGlite, §12): one visit's adds, swap, removal with its reason, co-signature request and approval, and two draft saves (a review; an accepted mark) leave audit rows on `conditions` (7 or more inserts), `clinical_cosign_requests` (insert and update) and `clinical_notes` (insert and update). Every row names its actor; the three clinicians appear. The review and accepted evidence are draft content, audited with each save.
 
 **Checks:** unit suite 7,674 passed; PGlite lane 364 of 364 (three new: D-SI-06 on the server, the audit rows, the counts script); `clerking:catalogue-check` ok on all three catalogues.
+
+## STOP 7 (final): hardening and the numbers
+
+**Hardening in this phase**
+
+- **Performance.** The desk's derivations are memoised (opening Details or a dialog no longer recomputes the desk), the formatters are built once per time zone, the matrix's cells are plain text in a memoised row, and the matrix's column build is shared.
+- **Keyboard (§5.7).** The key help lists the new keys (`r`; `/`, `m`, `l p u`, Alt+↑/↓, `d`; arrows, Space and `a` in the matrix; Esc). Details moves focus in as it opens, closes with Esc in place as in the dialog, and returns focus to the control that opened it (checked in the browser at 1440 and 1024 px).
+- **The note (§5.5).** On step 09 a long Summary block is clamped to three lines with "Show all".
+- **Phone (§5.6).** "Add as" is a three-option select above the picker below 640 px.
+- **Every profile renders** (`tests/clerking/si-profiles-render.test.ts`): all 272, as the differential and as also this visit at once, then each as the leading diagnosis with its Details, with no console error.
+- ADRs 0178–0182; CHANGELOG; the handoff lists 0084 and 0085 (0084 before deploying).
+
+**§14, filled in**
+
+| Metric                                                                          | Baseline | Target                | Result                                                                                                                       |
+| ------------------------------------------------------------------------------- | -------- | --------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| Duplicate encounter diagnoses possible                                          | P0       | 0                     | 0: refused on the server ("Already on this visit", S-3 green) and disabled in the picker; a suggestion cannot be added twice |
+| Junior "Final" recorded without a visible pending state                         | P0       | 0                     | 0: stored Working with a `confirm_diagnosis` request and "Final · awaiting senior co-signature" (S-4 green)                  |
+| Summary steps showing "Auto" with nothing composed                              | P0       | 0                     | 0 (S-1 green)                                                                                                                |
+| Must-not-miss diagnoses left the differential without a reason                  | —        | 0                     | 0: pinned until Unlikely has three words; signing held on screen and refused on the server                                   |
+| Suggested evidence written to the note without acceptance                       | —        | 0                     | 0: the note and "Not yet explained" read accepted marks only (engine and screen tests)                                       |
+| Unrecorded or excluded items in the composed summary                            | —        | 0                     | 0: property test over random inclusions                                                                                      |
+| Profiles and rules live on unsigned content                                     | —        | 0                     | 0: all signed; a withheld id is inert (tested)                                                                               |
+| Restricted suggestions shown to a viewer without access                         | —        | 0                     | 0: engine tests, and patient 3 with two viewers (7 restricted suggestions and the HIV rows absent)                           |
+| Rules with positive and negative fixtures                                       | —        | 100 of 100            | 100 of 100                                                                                                                   |
+| Profiles rendering (leading, differential, also, drawer)                        | —        | 272 of 272            | 272 of 272                                                                                                                   |
+| Proposed terms with a verified ICD-11 code, or explicitly uncoded               | —        | 187 of 187            | 187 of 187, all explicitly uncoded (migration 0085); 0 verified while the WHO browser is unreachable (D-SI-26)               |
+| Taps to review a summary / record a leading diagnosis / add three differentials | P0       | 1 / ≤ 3 / ≤ 6         | 1 / 2 / 3 (4 when one sits behind "Show more"; patients 1 to 4)                                                              |
+| Recompute after a tap (4× throttle)                                             | —        | < 16 ms               | engines about 10 ms (2.4 ms in Node); the whole desk's render and commit after a tap 10.8 ms at 1×, 64 ms at 4×              |
+| Matrix render, 12 diagnoses × 30 findings                                       | —        | < 50 ms p95           | at 12 × 39: 11.7 / 19.2 ms (median / p95) at 1×; 53 / 92 ms at 4×. Not met at 4×: the first mount of about 470 cells         |
+| Details open                                                                    | —        | < 100 ms              | 13 / 19 ms at 1×; 65 / 92 ms at 4× (script); met                                                                             |
+| axe serious or critical                                                         | P0       | 0                     | 0 (390, 834, 1024 and 1440 px; light and dark; list, matrix and Details)                                                     |
+| JS added / catalogue gzipped                                                    | —        | ≤ 40 KB / report      | 25.7 KB for the 17 new client modules (small edits to shared ones on top) / 116 KB, fetched once per session                 |
+| Clinician trial: median time for 08 + 09, old and new                           | P0       | report the difference | Not run: the owner's (`docs/emr/clerking-v2/clinician-trial.md`, fixtures 1, 2 and 4 are on the fixture route)               |
+| Clinician trial: must-not-miss considered versus missed                         | P0       | report                | Not run: the owner's                                                                                                         |
+
+Timings are headless Chromium on the build machine, production build; paint is left out (software raster). A phone's real numbers need the owner's device run, as for the other steps.
+
+**Definition of Done**
+
+- [x] S-1 to S-10 resolved: S-1 composed Summary; S-2 add first, status after; S-3 duplicates refused; S-4 junior's Final co-signed; S-5 order, likelihood, removal and leading change; S-6 evidence stored on acceptance; S-7 must-not-miss from the catalogue; S-8 "Not asked yet" for history and examination targets; S-9 deferral whenever there is no leading diagnosis, with Undo; S-10 the mirror by logical id and "Required" counting template rules only.
+- [x] Both steps built to the written specification within the design system (Prototype 2 was not received); the empty and intern states are covered.
+- [x] Duplicates impossible; a junior's Final visibly pending with a request; a must-not-miss never leaves without a reason.
+- [x] Suggested evidence never stored or written until accepted; the composed summary holds only included, recorded facts.
+- [x] 272 profiles and 100 rules load, validate across the three catalogues, and are inert until signed; every rule tested both ways.
+- [x] 187 proposed terms explicitly uncoded; no unverified code anywhere.
+- [x] Restricted content filtered for suggestions, evidence, asks and patient-facing text.
+- [x] axe clean; red scarcity green; reduced motion honoured (every transition carries `motion-reduce`); keyboard complete; tablet and phone per §5.6, with D-SI-16's centred dialog in place of the side sheet (ADR 0161).
+- [x] With `CLERKING_V2` off the desk is unchanged (its UI tests pass); old drafts open.
+- [ ] The clinician trial: the owner's. The rest: ADRs written, the table filled in, the diff on `claude/amazing-goodall-s0b6rz` (D-SI-28).
+
+**Differences from the prompt, kept deliberately:** Details in place or as a centred dialog, not a 480 px side sheet (D-SI-16); the Summary inspector stays inline on the phone (ADR 0161); "Not asked yet" answers read Yes then No like every history row; offline, the reasoning saves with the draft's queue and diagnosis writes need a connection (retried idempotently with the same key), as on the rest of the desk.
+
+**Open for the owner:** apply 0084 (before deploying) and 0085; run `npm run emr:si-counts` on production; the clinician trial; ICD-11 codes for the 187 terms once `icd.who.int` and `id.who.int` are reachable; the D-SI-12 ordering question (STOP 5); `dx.ectopic_pregnancy` sensitivity (STOP 4).
