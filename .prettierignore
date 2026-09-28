@@ -37,3 +37,6 @@ docs/emr/clerking-v2/README.md
 docs/emr/clerking-v2/clerking-history-catalogue.v1.json
 docs/emr/clerking-v2/prototype/
 docs/emr/clerking-v2/ds/
+
+# The Summary/Impression pack as delivered (byte-identical to the catalogue build)
+docs/emr/clerking-v2/summary-impression/*.json

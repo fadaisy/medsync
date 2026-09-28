@@ -1,0 +1,5182 @@
+{
+ "catalogue": "medsync.diagnosis-terms",
+ "addendum_to": "data/emr/diagnosis-terms.v1.json (REF-DX-TERMS 1.0.0-draft)",
+ "version": "1.1.0-draft-proposal",
+ "status": "PROPOSAL. Merge into REF-DX-TERMS only after ICD-11 verification and CSO signature.",
+ "icd11_note": "Every code here is unverified-proposed or null. Verify each on the WHO ICD-11 MMS browser (release in force) and record the exact title, then set status to verified. Never ship an unverified code in an export.",
+ "terms": [
+  {
+   "id": "dx.hypothermia_unexplained",
+   "display": "Hypothermia, cause not yet known",
+   "synonyms": [
+    "low temperature",
+    "feeling cold",
+    "hypothermia"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "MG28",
+     "title": "Hypothermia, not associated with low environmental temperature",
+     "url": "https://www.findacode.com/icd-11/code-186500648.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.breathlessness_unexplained",
+   "display": "Breathlessness, cause not yet known",
+   "synonyms": [
+    "shortness of breath",
+    "dyspnoea",
+    "difficulty in breathing"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": "MD11.5",
+    "title": null,
+    "status": "unverified-proposed",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "MD11.5",
+     "title": "Dyspnoea",
+     "url": "https://www.findacode.com/icd-11/code-960305085.html",
+     "vs_proposed": "index_title_matches_proposed",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.chest_pain_unexplained",
+   "display": "Chest pain, cause not yet known",
+   "synonyms": [
+    "chest pain",
+    "pain in the chest"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": "MD30.Z",
+    "title": null,
+    "status": "unverified-proposed",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "MD30.Z",
+     "title": "Chest pain, unspecified",
+     "url": "https://www.findacode.com/icd-11/code-1765737830/unspecified.html",
+     "vs_proposed": "index_title_matches_proposed",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.syncope_unexplained",
+   "display": "Syncope or collapse, cause not yet known",
+   "synonyms": [
+    "fainting",
+    "blackout",
+    "collapse"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": "MG45",
+    "title": null,
+    "status": "unverified-proposed",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "MG45.Z",
+     "title": "Syncope or collapse, unspecified",
+     "url": "https://www.findacode.com/icd-11/code-1418136013/unspecified.html",
+     "vs_proposed": "index_title_differs_from_proposed",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.reduced_consciousness_unexplained",
+   "display": "Reduced consciousness, cause not yet known",
+   "synonyms": [
+    "unconscious",
+    "coma",
+    "drowsy",
+    "not waking"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": null
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.confusion_unexplained",
+   "display": "Acute confusion, cause not yet known",
+   "synonyms": [
+    "confusion",
+    "disorientation",
+    "acting strangely"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": null
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.weight_loss_unexplained",
+   "display": "Weight loss, cause not yet known",
+   "synonyms": [
+    "losing weight",
+    "slimming",
+    "wasting"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "MG43.5",
+     "title": "Excessive weight loss",
+     "url": "https://www.findacode.com/icd-11/code-2015627151.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.jaundice_unexplained",
+   "display": "Jaundice, cause not yet known",
+   "synonyms": [
+    "yellow eyes",
+    "yellowness",
+    "jaundice"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "ME10.1",
+     "title": "Unspecified jaundice",
+     "url": "https://www.findacode.com/icd-11/code-1056591229.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.oedema_unexplained",
+   "display": "Oedema, cause not yet known",
+   "synonyms": [
+    "swelling of the legs",
+    "body swelling",
+    "oedema"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": "MG29",
+    "title": null,
+    "status": "unverified-proposed",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "MG29.Z",
+     "title": "Oedema, unspecified",
+     "url": "https://www.findacode.com/icd-11/code-826220775/unspecified.html",
+     "vs_proposed": "index_title_differs_from_proposed",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.ascites_unexplained",
+   "display": "Ascites, cause not yet known",
+   "synonyms": [
+    "abdominal swelling",
+    "fluid in the abdomen"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": "ME04",
+    "title": null,
+    "status": "unverified-proposed",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "ME04",
+     "title": "Ascites",
+     "url": "https://www.findacode.com/icd-11/code-1133729855.html",
+     "vs_proposed": "index_title_matches_proposed",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.haemoptysis_unexplained",
+   "display": "Haemoptysis, cause not yet known",
+   "synonyms": [
+    "coughing blood"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": "MD22",
+    "title": null,
+    "status": "unverified-proposed",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "MD22",
+     "title": "Haemoptysis",
+     "url": "https://www.findacode.com/icd-11/code-899998313.html",
+     "vs_proposed": "index_title_matches_proposed",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.gi_bleed_unexplained",
+   "display": "Gastrointestinal bleeding, source not yet known",
+   "synonyms": [
+    "vomiting blood",
+    "black stool",
+    "melaena",
+    "haematemesis",
+    "passing blood"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "ME24.9Z",
+     "title": "Gastrointestinal bleeding, unspecified",
+     "url": "https://www.findacode.com/icd-11/code-2044414353/unspecified.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.lymphadenopathy_unexplained",
+   "display": "Lymphadenopathy, cause not yet known",
+   "synonyms": [
+    "swollen glands",
+    "lumps in the neck",
+    "enlarged lymph nodes"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": "MA01.Z",
+    "title": null,
+    "status": "unverified-proposed",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "MA01.Z",
+     "title": "Enlarged lymph nodes, unspecified",
+     "url": "https://www.findacode.com/icd-11/code-1564691570/unspecified.html",
+     "vs_proposed": "index_title_matches_proposed",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.splenomegaly_unexplained",
+   "display": "Splenomegaly, cause not yet known",
+   "synonyms": [
+    "big spleen",
+    "enlarged spleen"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "ME10.01",
+     "title": "Splenomegaly, not elsewhere classified",
+     "url": "https://www.findacode.com/icd-11/code-1282210072.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.shock_unexplained",
+   "display": "Shock, cause not yet known",
+   "synonyms": [
+    "circulatory failure",
+    "low blood pressure with poor perfusion"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": "MG40.Z",
+    "title": null,
+    "status": "unverified-proposed",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "MG40.Z",
+     "title": "Shock, unspecified",
+     "url": "https://www.findacode.com/icd-11/code-1164022950/unspecified.html",
+     "vs_proposed": "index_title_matches_proposed",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.fatigue_unexplained",
+   "display": "Fatigue, cause not yet known",
+   "synonyms": [
+    "tiredness",
+    "weakness of the body",
+    "fatigue"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": "MG22",
+    "title": null,
+    "status": "unverified-proposed",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "MG22",
+     "title": "Fatigue",
+     "url": "https://www.findacode.com/icd-11/code-1109546957.html",
+     "vs_proposed": "index_title_matches_proposed",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.back_pain_red_flags",
+   "display": "Back pain with red flags, cause not yet known",
+   "synonyms": [
+    "back pain with weakness",
+    "back pain with fever"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "ME84.Z",
+     "title": "Spinal pain, unspecified",
+     "url": "https://www.findacode.com/icd-11/code-2051065876/unspecified.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.tb_extrapulmonary",
+   "display": "Extrapulmonary tuberculosis",
+   "synonyms": [
+    "TB lymphadenitis",
+    "abdominal TB",
+    "TB outside the lungs"
+   ],
+   "chronic": true,
+   "sensitivity": "restricted",
+   "restricted_class": "tb",
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": null
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.tb_meningitis",
+   "display": "Tuberculous meningitis",
+   "synonyms": [
+    "TB meningitis"
+   ],
+   "chronic": false,
+   "sensitivity": "restricted",
+   "restricted_class": "tb",
+   "icd11": {
+    "code": "1B11.0",
+    "title": null,
+    "status": "unverified-proposed",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "1B11.0",
+     "title": "Tuberculous meningitis",
+     "url": "https://www.findacode.com/icd-11/code-1820468614.html",
+     "vs_proposed": "index_title_matches_proposed",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.tb_pericarditis",
+   "display": "Tuberculous pericarditis",
+   "synonyms": [
+    "TB pericardial effusion"
+   ],
+   "chronic": false,
+   "sensitivity": "restricted",
+   "restricted_class": "tb",
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": null
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.tb_spine",
+   "display": "Tuberculosis of the spine",
+   "synonyms": [
+    "Pott's disease",
+    "spinal TB"
+   ],
+   "chronic": false,
+   "sensitivity": "restricted",
+   "restricted_class": "tb",
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "1B12.40",
+     "title": "Tuberculosis of bones or joints",
+     "url": "https://www.findacode.com/icd-11/code-570881596.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.hiv_advanced",
+   "display": "Advanced HIV disease",
+   "synonyms": [
+    "AHD",
+    "late-stage HIV",
+    "AIDS"
+   ],
+   "chronic": true,
+   "sensitivity": "restricted",
+   "restricted_class": "hiv",
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "1C62.3",
+     "title": "HIV disease clinical stage 4 without mention of tuberculosis or malaria",
+     "url": "https://www.findacode.com/icd-11/code-1858812010.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.pcp",
+   "display": "Pneumocystis pneumonia",
+   "synonyms": [
+    "PCP",
+    "PJP"
+   ],
+   "chronic": false,
+   "sensitivity": "restricted",
+   "restricted_class": "hiv",
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "CA40.20",
+     "title": "Pneumonia due to pneumocystis",
+     "url": "https://www.findacode.com/icd-11/code-1229452918.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.cerebral_toxoplasmosis",
+   "display": "Cerebral toxoplasmosis",
+   "synonyms": [
+    "toxoplasma encephalitis"
+   ],
+   "chronic": false,
+   "sensitivity": "restricted",
+   "restricted_class": "hiv",
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "1F57.1",
+     "title": "Meningoencephalitis due to Toxoplasma gondii",
+     "url": "https://www.findacode.com/icd-11/code-540652293.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.kaposi_sarcoma",
+   "display": "Kaposi sarcoma",
+   "synonyms": [
+    "KS"
+   ],
+   "chronic": true,
+   "sensitivity": "restricted",
+   "restricted_class": "hiv",
+   "icd11": {
+    "code": "2B57.Z",
+    "title": null,
+    "status": "unverified-proposed",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": null
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.oral_candidiasis",
+   "display": "Oral candidiasis",
+   "synonyms": [
+    "oral thrush"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": "1F23.0",
+    "title": null,
+    "status": "unverified-proposed",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "1F23.0",
+     "title": "Candidosis of lips or oral mucous membranes",
+     "url": "https://www.findacode.com/icd-11/code-520566646.html",
+     "vs_proposed": "index_title_matches_proposed",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.oesophageal_candidiasis",
+   "display": "Oesophageal candidiasis",
+   "synonyms": [
+    "candida oesophagitis"
+   ],
+   "chronic": false,
+   "sensitivity": "restricted",
+   "restricted_class": "hiv",
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "1F23.2",
+     "title": "Candidosis of gastrointestinal tract",
+     "url": "https://www.findacode.com/icd-11/code-1229869827.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.herpes_zoster",
+   "display": "Herpes zoster",
+   "synonyms": [
+    "shingles",
+    "kisipi"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": "1E91.Z",
+    "title": null,
+    "status": "unverified-proposed",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "1E91",
+     "title": "Zoster",
+     "url": "https://www.findacode.com/icd-11/code-523481501.html",
+     "vs_proposed": "index_title_differs_from_proposed",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.pyelonephritis",
+   "display": "Acute pyelonephritis",
+   "synonyms": [
+    "kidney infection",
+    "upper urinary tract infection"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": "GB51",
+    "title": null,
+    "status": "unverified-proposed",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "GB51",
+     "title": "Acute pyelonephritis",
+     "url": "https://www.findacode.com/icd-11/code-441183088.html",
+     "vs_proposed": "index_title_matches_proposed",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.septic_arthritis",
+   "display": "Septic arthritis",
+   "synonyms": [
+    "infected joint",
+    "pyogenic arthritis"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "FA10.0",
+     "title": "Bacterial infection of joint",
+     "url": "https://www.findacode.com/icd-11/code-216184590.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.osteomyelitis",
+   "display": "Osteomyelitis",
+   "synonyms": [
+    "bone infection"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "FB84",
+     "title": "Osteomyelitis or osteitis",
+     "url": "https://www.findacode.com/icd-11/code-2058491071.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.pyomyositis",
+   "display": "Pyomyositis",
+   "synonyms": [
+    "muscle abscess"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "FB30",
+     "title": "Infectious myositis",
+     "url": "https://www.findacode.com/icd-11/code-82568660.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.necrotising_soft_tissue",
+   "display": "Necrotising soft-tissue infection",
+   "synonyms": [
+    "necrotising fasciitis",
+    "gas gangrene"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "1B71.Z",
+     "title": "Necrotising fasciitis, unspecified",
+     "url": "https://www.findacode.com/icd-11/code-522973276/unspecified.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.infective_endocarditis",
+   "display": "Infective endocarditis",
+   "synonyms": [
+    "endocarditis"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": "BB40.Z",
+    "title": null,
+    "status": "unverified-proposed",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "BB40",
+     "title": "Acute or subacute infectious endocarditis",
+     "url": "https://www.findacode.com/icd-11/code-512128824.html",
+     "vs_proposed": "index_title_differs_from_proposed",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.lung_abscess_empyema",
+   "display": "Lung abscess or empyema",
+   "synonyms": [
+    "empyema",
+    "pus in the chest",
+    "lung abscess"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "CA43",
+     "title": "Abscess of lung or mediastinum",
+     "url": "https://www.findacode.com/icd-11/code-895890688.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.cholera",
+   "display": "Cholera",
+   "synonyms": [
+    "rice-water diarrhoea"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": "1A00",
+    "title": null,
+    "status": "unverified-proposed",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "1A00",
+     "title": "Cholera",
+     "url": "https://www.findacode.com/icd-11/code-257068234.html",
+     "vs_proposed": "index_title_matches_proposed",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.dysentery",
+   "display": "Dysentery (bloody diarrhoea)",
+   "synonyms": [
+    "bloody diarrhoea",
+    "shigellosis",
+    "amoebic dysentery"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "1A02",
+     "title": "Intestinal infections due to Shigella",
+     "url": "https://www.findacode.com/icd-11/code-2080365623.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.liver_abscess",
+   "display": "Liver abscess",
+   "synonyms": [
+    "amoebic liver abscess",
+    "pyogenic liver abscess"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "DB90.0",
+     "title": "Abscess of liver",
+     "url": "https://www.findacode.com/icd-11/code-1323593849.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.hepatitis_acute_viral",
+   "display": "Acute viral hepatitis",
+   "synonyms": [
+    "acute hepatitis",
+    "hepatitis A",
+    "hepatitis E"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "1E50.Z",
+     "title": "Acute viral hepatitis, unspecified",
+     "url": "https://www.findacode.com/icd-11/code-1154736543/unspecified.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.hepatitis_c_chronic",
+   "display": "Chronic hepatitis C",
+   "synonyms": [
+    "hepatitis C"
+   ],
+   "chronic": true,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": "1E51.1",
+    "title": null,
+    "status": "unverified-proposed",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "1E51.1",
+     "title": "Chronic hepatitis C",
+     "url": "https://www.findacode.com/icd-11/code-1615937473.html",
+     "vs_proposed": "index_title_matches_proposed",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.vhf_suspected",
+   "display": "Viral haemorrhagic fever, suspected",
+   "synonyms": [
+    "Ebola",
+    "Marburg",
+    "Sudan virus disease",
+    "Bundibugyo",
+    "VHF",
+    "CCHF",
+    "Rift Valley fever"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "1D86",
+     "title": "Viral haemorrhagic fever, not elsewhere classified",
+     "url": "https://www.findacode.com/icd-11/code-555874229.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.mpox",
+   "display": "Mpox",
+   "synonyms": [
+    "monkeypox"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": "1E71",
+    "title": null,
+    "status": "unverified-proposed",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "1E71",
+     "title": "Mpox",
+     "url": "https://www.findacode.com/icd-11/code-160886685.html",
+     "vs_proposed": "index_title_matches_proposed",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.covid19",
+   "display": "COVID-19",
+   "synonyms": [
+    "coronavirus disease",
+    "SARS-CoV-2"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": "RA01.0",
+    "title": null,
+    "status": "unverified-proposed",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "RA01.0",
+     "title": "COVID-19, virus identified",
+     "url": "https://www.findacode.com/icd-11/code-1790791774.html",
+     "vs_proposed": "index_title_matches_proposed",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.influenza",
+   "display": "Influenza",
+   "synonyms": [
+    "flu"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "1E32",
+     "title": "Influenza, virus not identified",
+     "url": "https://www.findacode.com/icd-11/code-1235618695.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.tetanus",
+   "display": "Tetanus",
+   "synonyms": [
+    "lockjaw"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": "1C13",
+    "title": null,
+    "status": "unverified-proposed",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "1C13",
+     "title": "Tetanus",
+     "url": "https://www.findacode.com/icd-11/code-1793762788.html",
+     "vs_proposed": "index_title_matches_proposed",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.rabies",
+   "display": "Rabies (clinical)",
+   "synonyms": [
+    "hydrophobia"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": "1C82",
+    "title": null,
+    "status": "unverified-proposed",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "1C82",
+     "title": "Rabies",
+     "url": "https://www.findacode.com/icd-11/code-854762584.html",
+     "vs_proposed": "index_title_matches_proposed",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.encephalitis",
+   "display": "Encephalitis",
+   "synonyms": [
+    "brain infection",
+    "viral encephalitis"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "1C80",
+     "title": "Viral encephalitis, not elsewhere classified",
+     "url": "https://www.findacode.com/icd-11/code-956664712.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.trypanosomiasis",
+   "display": "Human African trypanosomiasis",
+   "synonyms": [
+    "sleeping sickness",
+    "HAT"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": null
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.visceral_leishmaniasis",
+   "display": "Visceral leishmaniasis",
+   "synonyms": [
+    "kala-azar"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": "1F54.0",
+    "title": null,
+    "status": "unverified-proposed",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": null
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.aspiration_pneumonia",
+   "display": "Aspiration pneumonia",
+   "synonyms": [
+    "aspiration"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "CA71.0",
+     "title": "Pneumonitis due to inhalation of food or vomit",
+     "url": "https://www.findacode.com/icd-11/code-1975993872.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.febrile_neutropenia",
+   "display": "Febrile neutropenia",
+   "synonyms": [
+    "neutropenic sepsis"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": null
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.acs",
+   "display": "Acute coronary syndrome",
+   "synonyms": [
+    "heart attack",
+    "ACS",
+    "myocardial infarction",
+    "unstable angina",
+    "STEMI",
+    "NSTEMI"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "BA4Z",
+     "title": "Acute ischaemic heart disease, unspecified",
+     "url": "https://www.findacode.com/icd-11/code-1829545371/unspecified.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.angina_stable",
+   "display": "Stable angina",
+   "synonyms": [
+    "angina",
+    "exertional chest pain"
+   ],
+   "chronic": true,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "BA40.1",
+     "title": "Stable angina",
+     "url": "https://www.findacode.com/icd-11/code-216789527.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.heart_failure_acute",
+   "display": "Acute decompensated heart failure",
+   "synonyms": [
+    "acute heart failure",
+    "pulmonary oedema",
+    "decompensated heart failure"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "BD1Z",
+     "title": "Heart failure, unspecified",
+     "url": "https://www.findacode.com/icd-11/code-1458683894/unspecified.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.rheumatic_heart_disease",
+   "display": "Rheumatic heart disease",
+   "synonyms": [
+    "RHD",
+    "rheumatic valve disease",
+    "mitral stenosis"
+   ],
+   "chronic": true,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "BC20.1",
+     "title": "Rheumatic heart disease, unspecified",
+     "url": "https://www.findacode.com/icd-11/code-770085732.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.cardiomyopathy",
+   "display": "Cardiomyopathy",
+   "synonyms": [
+    "dilated cardiomyopathy",
+    "peripartum cardiomyopathy",
+    "endomyocardial fibrosis"
+   ],
+   "chronic": true,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "BC43.Z",
+     "title": "Cardiomyopathy, unspecified",
+     "url": "https://www.findacode.com/icd-11/code-282225286/unspecified.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.af",
+   "display": "Atrial fibrillation",
+   "synonyms": [
+    "AF",
+    "irregular heartbeat"
+   ],
+   "chronic": true,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": "BC81.3",
+    "title": null,
+    "status": "unverified-proposed",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "BC81.3",
+     "title": "Atrial fibrillation",
+     "url": "https://www.findacode.com/icd-11/code-171698302.html",
+     "vs_proposed": "index_title_matches_proposed",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.heart_block",
+   "display": "Complete heart block",
+   "synonyms": [
+    "third-degree AV block",
+    "complete AV block"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "BC63.2Z",
+     "title": "Complete atrioventricular block, unspecified",
+     "url": "https://www.findacode.com/icd-11/code-1147105932/unspecified.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.pericardial_effusion",
+   "display": "Pericardial effusion",
+   "synonyms": [
+    "fluid around the heart"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": null
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.cardiac_tamponade",
+   "display": "Cardiac tamponade",
+   "synonyms": [
+    "tamponade"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": null
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.pulmonary_embolism",
+   "display": "Pulmonary embolism",
+   "synonyms": [
+    "PE",
+    "clot in the lung"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": "BB00.Z",
+    "title": null,
+    "status": "unverified-proposed",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "BB00.0",
+     "title": "Acute pulmonary thromboembolism",
+     "url": "https://www.findacode.com/icd-11/code-74279006.html",
+     "vs_proposed": "index_title_differs_from_proposed",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.dvt",
+   "display": "Deep vein thrombosis",
+   "synonyms": [
+    "DVT",
+    "clot in the leg"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "BD71",
+     "title": "Deep vein thrombosis",
+     "url": "https://www.findacode.com/icd-11/code-925320484.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.aortic_dissection",
+   "display": "Aortic dissection",
+   "synonyms": [
+    "dissection"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "BD50.Z",
+     "title": "Aortic aneurysm or dissection, unspecified",
+     "url": "https://www.findacode.com/icd-11/code-1674517934/unspecified.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.acute_limb_ischaemia",
+   "display": "Acute limb ischaemia",
+   "synonyms": [
+    "cold painful leg",
+    "arterial occlusion"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "BD30.2",
+     "title": "Acute lower limb arterial occlusion",
+     "url": "https://www.findacode.com/icd-11/code-1050026394.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.pad",
+   "display": "Peripheral arterial disease",
+   "synonyms": [
+    "PAD",
+    "claudication"
+   ],
+   "chronic": true,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "BD40.0",
+     "title": "Lower limb atherosclerosis",
+     "url": "https://www.findacode.com/icd-11/code-897545836.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.pulmonary_hypertension",
+   "display": "Pulmonary hypertension",
+   "synonyms": [
+    "PH"
+   ],
+   "chronic": true,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "BB01",
+     "title": "Pulmonary hypertension",
+     "url": "https://www.findacode.com/icd-11/code-1496633964.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.cardiogenic_shock",
+   "display": "Cardiogenic shock",
+   "synonyms": [
+    "pump failure"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "MG40.0",
+     "title": "Cardiogenic shock",
+     "url": "https://www.findacode.com/icd-11/code-1974956233.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.hypovolaemic_shock",
+   "display": "Hypovolaemic shock",
+   "synonyms": [
+    "haemorrhagic shock",
+    "fluid-loss shock"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "MG40.1",
+     "title": "Hypovolaemic shock",
+     "url": "https://www.findacode.com/icd-11/code-284999005.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.pneumothorax",
+   "display": "Pneumothorax",
+   "synonyms": [
+    "collapsed lung",
+    "tension pneumothorax"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "CB21",
+     "title": "Pneumothorax",
+     "url": "https://www.findacode.com/icd-11/code-1946559257.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.pleural_effusion",
+   "display": "Pleural effusion",
+   "synonyms": [
+    "fluid on the lung"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": "CB27",
+    "title": null,
+    "status": "unverified-proposed",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "CB27",
+     "title": "Pleural effusion",
+     "url": "https://www.findacode.com/icd-11/code-11236328.html",
+     "vs_proposed": "index_title_matches_proposed",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.bronchiectasis",
+   "display": "Bronchiectasis",
+   "synonyms": [
+    "post-TB bronchiectasis"
+   ],
+   "chronic": true,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": "CA24",
+    "title": null,
+    "status": "unverified-proposed",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "CA24",
+     "title": "Bronchiectasis",
+     "url": "https://www.findacode.com/icd-11/code-1935524933.html",
+     "vs_proposed": "index_title_matches_proposed",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.post_tb_lung_disease",
+   "display": "Post-tuberculosis lung disease",
+   "synonyms": [
+    "post-TB lung damage",
+    "fibrocavitary sequelae"
+   ],
+   "chronic": true,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "1G80",
+     "title": "Sequelae of tuberculosis",
+     "url": "https://www.findacode.com/icd-11/code-1968623900.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.lung_cancer",
+   "display": "Lung cancer",
+   "synonyms": [
+    "bronchial carcinoma"
+   ],
+   "chronic": true,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": "2C25.Z",
+    "title": null,
+    "status": "unverified-proposed",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "2C25.Z",
+     "title": "Malignant neoplasms of bronchus or lung, unspecified",
+     "url": "https://www.findacode.com/icd-11/code-316539081/unspecified.html",
+     "vs_proposed": "index_title_matches_proposed",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.respiratory_failure",
+   "display": "Acute respiratory failure",
+   "synonyms": [
+    "respiratory failure",
+    "type 1 respiratory failure",
+    "type 2 respiratory failure"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "CB41.0",
+     "title": "Acute respiratory failure",
+     "url": "https://www.findacode.com/icd-11/code-875272781.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.interstitial_lung_disease",
+   "display": "Interstitial lung disease",
+   "synonyms": [
+    "pulmonary fibrosis",
+    "ILD"
+   ],
+   "chronic": true,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": null
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.hypothyroidism",
+   "display": "Hypothyroidism",
+   "synonyms": [
+    "underactive thyroid",
+    "myxoedema"
+   ],
+   "chronic": true,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "5A00.Z",
+     "title": "Hypothyroidism, unspecified",
+     "url": "https://www.findacode.com/icd-11/code-1722092627/unspecified.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.myxoedema_coma",
+   "display": "Myxoedema coma",
+   "synonyms": [
+    "severe hypothyroidism with reduced consciousness"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": null
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.thyrotoxicosis",
+   "display": "Thyrotoxicosis",
+   "synonyms": [
+    "overactive thyroid",
+    "hyperthyroidism",
+    "Graves' disease"
+   ],
+   "chronic": true,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "5A02",
+     "title": "Thyrotoxicosis",
+     "url": "https://www.findacode.com/icd-11/code-1470387017.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.thyroid_storm",
+   "display": "Thyroid storm",
+   "synonyms": [
+    "thyrotoxic crisis"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": null
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.adrenal_insufficiency",
+   "display": "Adrenal insufficiency",
+   "synonyms": [
+    "Addison's disease",
+    "adrenal crisis"
+   ],
+   "chronic": true,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "5A74",
+     "title": "Adrenocortical insufficiency",
+     "url": "https://www.findacode.com/icd-11/code-733056203.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.hyponatraemia",
+   "display": "Hyponatraemia",
+   "synonyms": [
+    "low sodium"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "5C72",
+     "title": "Hypo-osmolality or hyponatraemia",
+     "url": "https://www.findacode.com/icd-11/code-761639036.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.hypernatraemia",
+   "display": "Hypernatraemia",
+   "synonyms": [
+    "high sodium"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": null
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.hyperkalaemia",
+   "display": "Hyperkalaemia",
+   "synonyms": [
+    "high potassium"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "5C76",
+     "title": "Hyperkalaemia",
+     "url": "https://www.findacode.com/icd-11/code-707162903.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.hypokalaemia",
+   "display": "Hypokalaemia",
+   "synonyms": [
+    "low potassium"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "5C77",
+     "title": "Hypokalaemia",
+     "url": "https://www.findacode.com/icd-11/code-1586177000.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.hypercalcaemia",
+   "display": "Hypercalcaemia",
+   "synonyms": [
+    "high calcium"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "5B91.0",
+     "title": "Hypercalcaemia",
+     "url": "https://www.findacode.com/icd-11/code-885246206.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.obesity",
+   "display": "Obesity",
+   "synonyms": [
+    "overweight"
+   ],
+   "chronic": true,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": "5B81.Z",
+    "title": null,
+    "status": "unverified-proposed",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "5B81.Z",
+     "title": "Obesity, unspecified",
+     "url": "https://www.findacode.com/icd-11/code-149403041/unspecified.html",
+     "vs_proposed": "index_title_matches_proposed",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.dyslipidaemia",
+   "display": "Dyslipidaemia",
+   "synonyms": [
+    "high cholesterol"
+   ],
+   "chronic": true,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": null
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.diabetic_foot",
+   "display": "Diabetic foot ulcer or infection",
+   "synonyms": [
+    "diabetic foot",
+    "diabetic foot ulcer"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "BD54",
+     "title": "Diabetic foot ulcer",
+     "url": "https://www.findacode.com/icd-11/code-74527684.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.hypothermia_accidental",
+   "display": "Accidental hypothermia",
+   "synonyms": [
+    "cold exposure",
+    "exposure to cold"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": null
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.heat_stroke",
+   "display": "Heat stroke",
+   "synonyms": [
+    "heat illness",
+    "hyperthermia"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "NF01.0",
+     "title": "Heat stroke",
+     "url": "https://www.findacode.com/icd-11/code-965393145.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.nephrotic_syndrome",
+   "display": "Nephrotic syndrome",
+   "synonyms": [
+    "protein in the urine with swelling"
+   ],
+   "chronic": true,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "GB41",
+     "title": "Nephrotic syndrome",
+     "url": "https://www.findacode.com/icd-11/code-1184209951.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.nephritic_syndrome",
+   "display": "Acute nephritic syndrome",
+   "synonyms": [
+    "glomerulonephritis",
+    "blood and protein in urine"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "GB40",
+     "title": "Nephritic syndrome",
+     "url": "https://www.findacode.com/icd-11/code-1783829886.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.urinary_retention",
+   "display": "Acute urinary retention",
+   "synonyms": [
+    "cannot pass urine",
+    "retention"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "MF50.3",
+     "title": "Retention of urine",
+     "url": "https://www.findacode.com/icd-11/code-1775034842.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.bph",
+   "display": "Benign prostatic enlargement",
+   "synonyms": [
+    "enlarged prostate",
+    "BPH"
+   ],
+   "chronic": true,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "GA90",
+     "title": "Hyperplasia of prostate",
+     "url": "https://www.findacode.com/icd-11/code-978159279.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.prostate_cancer",
+   "display": "Prostate cancer",
+   "synonyms": [
+    "cancer of the prostate"
+   ],
+   "chronic": true,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": "2C82.Z",
+    "title": null,
+    "status": "unverified-proposed",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "2C82.Z",
+     "title": "Malignant neoplasms of prostate, unspecified",
+     "url": "https://www.findacode.com/icd-11/code-1552457716/unspecified.html",
+     "vs_proposed": "index_title_matches_proposed",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.urolithiasis",
+   "display": "Urinary tract stone",
+   "synonyms": [
+    "kidney stone",
+    "renal colic"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "GB7Z",
+     "title": "Urolithiasis, unspecified",
+     "url": "https://www.findacode.com/icd-11/code-1746821938/unspecified.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.bladder_cancer",
+   "display": "Bladder cancer",
+   "synonyms": [
+    "cancer of the bladder"
+   ],
+   "chronic": true,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "2C94.Z",
+     "title": "Malignant neoplasms of bladder, unspecified",
+     "url": "https://www.findacode.com/icd-11/code-1244512758/unspecified.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.obstructive_uropathy",
+   "display": "Obstructive uropathy",
+   "synonyms": [
+    "hydronephrosis"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "GB56.Z",
+     "title": "Obstructive or reflux nephropathy, unspecified",
+     "url": "https://www.findacode.com/icd-11/code-1656637330/unspecified.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.variceal_bleed",
+   "display": "Variceal bleeding",
+   "synonyms": [
+    "bleeding varices",
+    "oesophageal varices"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "DA26.0",
+     "title": "Oesophageal varices",
+     "url": "https://www.findacode.com/icd-11/code-933570887.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.hepatic_encephalopathy",
+   "display": "Hepatic encephalopathy",
+   "synonyms": [
+    "liver coma"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "DB99.5",
+     "title": "Hepatic encephalopathy",
+     "url": "https://www.findacode.com/icd-11/code-1769383160.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.sbp",
+   "display": "Spontaneous bacterial peritonitis",
+   "synonyms": [
+    "SBP",
+    "infected ascites"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "DC50.00",
+     "title": "Spontaneous bacterial peritonitis",
+     "url": "https://www.findacode.com/icd-11/code-217517519.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.hcc",
+   "display": "Hepatocellular carcinoma",
+   "synonyms": [
+    "liver cancer",
+    "HCC"
+   ],
+   "chronic": true,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "2C12.02",
+     "title": "Hepatocellular carcinoma of liver",
+     "url": "https://www.findacode.com/icd-11/code-1294035808.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.oesophageal_cancer",
+   "display": "Oesophageal cancer",
+   "synonyms": [
+    "cancer of the gullet"
+   ],
+   "chronic": true,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "2B70.Z",
+     "title": "Malignant neoplasms of oesophagus, unspecified",
+     "url": "https://www.findacode.com/icd-11/code-669033105/unspecified.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.gastric_cancer",
+   "display": "Gastric cancer",
+   "synonyms": [
+    "stomach cancer"
+   ],
+   "chronic": true,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "2B72.Z",
+     "title": "Malignant neoplasms of stomach, unspecified",
+     "url": "https://www.findacode.com/icd-11/code-1397617262/unspecified.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.colorectal_cancer",
+   "display": "Colorectal cancer",
+   "synonyms": [
+    "bowel cancer",
+    "colon cancer"
+   ],
+   "chronic": true,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "2B90",
+     "title": "Malignant neoplasms of colon",
+     "url": "https://www.findacode.com/icd-11/code-1265576634.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.pancreatitis_acute",
+   "display": "Acute pancreatitis",
+   "synonyms": [
+    "pancreatitis"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "DC31.Z",
+     "title": "Acute pancreatitis, unspecified",
+     "url": "https://www.findacode.com/icd-11/code-698285441/unspecified.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.cholecystitis",
+   "display": "Acute cholecystitis",
+   "synonyms": [
+    "gallbladder infection",
+    "biliary colic"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "DC12.0",
+     "title": "Acute cholecystitis",
+     "url": "https://www.findacode.com/icd-11/code-2071113448.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.cholangitis",
+   "display": "Acute cholangitis",
+   "synonyms": [
+    "ascending cholangitis"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "DC13",
+     "title": "Cholangitis",
+     "url": "https://www.findacode.com/icd-11/code-1712178777.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.appendicitis",
+   "display": "Acute appendicitis",
+   "synonyms": [
+    "appendix"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "DB10.0",
+     "title": "Acute appendicitis",
+     "url": "https://www.findacode.com/icd-11/code-40398753.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.bowel_obstruction",
+   "display": "Intestinal obstruction",
+   "synonyms": [
+    "bowel obstruction",
+    "volvulus"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": null
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.perforated_viscus",
+   "display": "Perforated viscus",
+   "synonyms": [
+    "perforated ulcer",
+    "perforation",
+    "peritonitis"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": null
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.gord",
+   "display": "Gastro-oesophageal reflux disease",
+   "synonyms": [
+    "GORD",
+    "heartburn",
+    "reflux"
+   ],
+   "chronic": true,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "DA22",
+     "title": "Gastro-oesophageal reflux disease",
+     "url": "https://www.findacode.com/icd-11/code-1391387859.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.alcoholic_hepatitis",
+   "display": "Alcohol-related hepatitis",
+   "synonyms": [
+    "alcoholic hepatitis"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": null
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.drug_induced_liver_injury",
+   "display": "Drug-induced liver injury",
+   "synonyms": [
+    "DILI",
+    "anti-TB drug hepatitis",
+    "herbal medicine liver injury"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "DB95.Z",
+     "title": "Drug-induced or toxic liver disease, unspecified",
+     "url": "https://www.findacode.com/icd-11/code-2125493521/unspecified.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.iron_deficiency_anaemia",
+   "display": "Iron-deficiency anaemia",
+   "synonyms": [
+    "iron deficiency"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "3A00.Z",
+     "title": "Iron deficiency anaemia, unspecified",
+     "url": "https://www.findacode.com/icd-11/code-1577750667/unspecified.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.megaloblastic_anaemia",
+   "display": "Megaloblastic anaemia",
+   "synonyms": [
+    "B12 deficiency",
+    "folate deficiency"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": null
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.haemolytic_anaemia",
+   "display": "Haemolytic anaemia",
+   "synonyms": [
+    "haemolysis",
+    "G6PD deficiency"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": null
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.thrombocytopenia",
+   "display": "Thrombocytopenia",
+   "synonyms": [
+    "low platelets"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "3B64",
+     "title": "Thrombocytopenia",
+     "url": "https://www.findacode.com/icd-11/code-683583694.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.dic",
+   "display": "Disseminated intravascular coagulation",
+   "synonyms": [
+    "DIC"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "3B20",
+     "title": "Disseminated intravascular coagulation",
+     "url": "https://www.findacode.com/icd-11/code-1622289887.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.lymphoma",
+   "display": "Lymphoma",
+   "synonyms": [
+    "Hodgkin lymphoma",
+    "non-Hodgkin lymphoma",
+    "Burkitt lymphoma"
+   ],
+   "chronic": true,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": null
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.leukaemia",
+   "display": "Leukaemia",
+   "synonyms": [
+    "blood cancer",
+    "CML",
+    "CLL",
+    "acute leukaemia"
+   ],
+   "chronic": true,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": null
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.myeloma",
+   "display": "Multiple myeloma",
+   "synonyms": [
+    "myeloma"
+   ],
+   "chronic": true,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "2A83.1",
+     "title": "Plasma cell myeloma",
+     "url": "https://www.findacode.com/icd-11/code-526287100.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.breast_cancer",
+   "display": "Breast cancer",
+   "synonyms": [
+    "cancer of the breast"
+   ],
+   "chronic": true,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "2C6Z",
+     "title": "Malignant neoplasms of breast, unspecified",
+     "url": "https://www.findacode.com/icd-11/code-1047754165/unspecified.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.cancer_suspected",
+   "display": "Malignancy suspected, primary not yet known",
+   "synonyms": [
+    "cancer",
+    "tumour",
+    "metastases"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "2D44",
+     "title": "Malignant neoplasm, primary site unknown, so stated",
+     "url": "https://www.findacode.com/icd-11/code-483273481.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.tumour_lysis_or_hypercalcaemia_malignancy",
+   "display": "Oncological emergency, suspected",
+   "synonyms": [
+    "spinal cord compression from cancer",
+    "hypercalcaemia of malignancy",
+    "SVC obstruction"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": null
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.stroke_ischaemic",
+   "display": "Ischaemic stroke",
+   "synonyms": [
+    "cerebral infarction"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": "8B11.Z",
+    "title": null,
+    "status": "unverified-proposed",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "8B11.5Z",
+     "title": "Cerebral ischaemic stroke, unspecified",
+     "url": "https://www.findacode.com/icd-11/code-1614716959/unspecified.html",
+     "vs_proposed": "index_title_differs_from_proposed",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.stroke_haemorrhagic",
+   "display": "Intracerebral haemorrhage",
+   "synonyms": [
+    "haemorrhagic stroke",
+    "brain bleed"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": "8B00.Z",
+    "title": null,
+    "status": "unverified-proposed",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "8B00",
+     "title": "Intracerebral haemorrhage",
+     "url": "https://www.findacode.com/icd-11/code-873092535.html",
+     "vs_proposed": "index_title_differs_from_proposed",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.tia",
+   "display": "Transient ischaemic attack",
+   "synonyms": [
+    "TIA",
+    "mini-stroke"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": "8B10.Z",
+    "title": null,
+    "status": "unverified-proposed",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "8B10.Z",
+     "title": "Transient ischaemic attack, unspecified",
+     "url": "https://www.findacode.com/icd-11/code-826335789/unspecified.html",
+     "vs_proposed": "index_title_matches_proposed",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.sah",
+   "display": "Subarachnoid haemorrhage",
+   "synonyms": [
+    "SAH",
+    "thunderclap headache"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": "8B01.Z",
+    "title": null,
+    "status": "unverified-proposed",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "8B01.2",
+     "title": "Subarachnoid haemorrhage not known if aneurysmal or non-aneurysmal",
+     "url": "https://www.findacode.com/icd-11/code-133091217.html",
+     "vs_proposed": "index_title_differs_from_proposed",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.delirium",
+   "display": "Delirium",
+   "synonyms": [
+    "acute confusional state"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": "6D70.Z",
+    "title": null,
+    "status": "unverified-proposed",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "6D70.Z",
+     "title": "Delirium, unspecified or unknown cause",
+     "url": "https://www.findacode.com/icd-11/code-897917531/unspecified.html",
+     "vs_proposed": "index_title_matches_proposed",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.dementia",
+   "display": "Dementia",
+   "synonyms": [
+    "memory loss",
+    "cognitive decline"
+   ],
+   "chronic": true,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "6D8Z",
+     "title": "Dementia, unknown or unspecified cause",
+     "url": "https://www.findacode.com/icd-11/code-546689346/unspecified.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.peripheral_neuropathy",
+   "display": "Peripheral neuropathy",
+   "synonyms": [
+    "numb feet",
+    "diabetic neuropathy",
+    "HIV neuropathy"
+   ],
+   "chronic": true,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "8C0Z",
+     "title": "Polyneuropathy, unspecified",
+     "url": "https://www.findacode.com/icd-11/code-58868923/unspecified.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.gbs",
+   "display": "Guillain-Barré syndrome",
+   "synonyms": [
+    "GBS",
+    "acute flaccid paralysis"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "8C01.0",
+     "title": "Acute inflammatory demyelinating polyneuropathy",
+     "url": "https://www.findacode.com/icd-11/code-1196874419.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.cord_compression",
+   "display": "Spinal cord or cauda equina compression",
+   "synonyms": [
+    "cauda equina syndrome",
+    "cord compression",
+    "paraplegia"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "8B40",
+     "title": "Cauda equina syndrome",
+     "url": "https://www.findacode.com/icd-11/code-1490265028.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.migraine",
+   "display": "Migraine",
+   "synonyms": [
+    "migraine headache"
+   ],
+   "chronic": true,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": "8A80.Z",
+    "title": null,
+    "status": "unverified-proposed",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "8A80.Z",
+     "title": "Migraine, unspecified",
+     "url": "https://www.findacode.com/icd-11/code-669367341/unspecified.html",
+     "vs_proposed": "index_title_matches_proposed",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.tension_headache",
+   "display": "Tension-type headache",
+   "synonyms": [
+    "tension headache"
+   ],
+   "chronic": true,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": "8A81.Z",
+    "title": null,
+    "status": "unverified-proposed",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "8A81.Z",
+     "title": "Tension-type headache, unspecified",
+     "url": "https://www.findacode.com/icd-11/code-1410019257/unspecified.html",
+     "vs_proposed": "index_title_matches_proposed",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.bells_palsy",
+   "display": "Bell's palsy",
+   "synonyms": [
+    "facial palsy"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "8B88.0",
+     "title": "Bell palsy",
+     "url": "https://www.findacode.com/icd-11/code-2004402146.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.parkinsonism",
+   "display": "Parkinson's disease or parkinsonism",
+   "synonyms": [
+    "parkinsonism",
+    "shaking"
+   ],
+   "chronic": true,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "8A00",
+     "title": "Parkinsonism",
+     "url": "https://www.findacode.com/icd-11/code-2024168133.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.myasthenia",
+   "display": "Myasthenia gravis",
+   "synonyms": [
+    "myasthenia"
+   ],
+   "chronic": true,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "8C60.Z",
+     "title": "Myasthenia gravis, unspecified",
+     "url": "https://www.findacode.com/icd-11/code-1270100227/unspecified.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.wernicke",
+   "display": "Wernicke encephalopathy",
+   "synonyms": [
+    "thiamine deficiency"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "5B5A.10",
+     "title": "Wernicke encephalopathy",
+     "url": "https://www.findacode.com/icd-11/code-1360335041.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.gout",
+   "display": "Gout",
+   "synonyms": [
+    "gouty arthritis"
+   ],
+   "chronic": true,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "FA25",
+     "title": "Gout",
+     "url": "https://www.findacode.com/icd-11/code-395622227.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.rheumatoid_arthritis",
+   "display": "Rheumatoid arthritis",
+   "synonyms": [
+    "RA"
+   ],
+   "chronic": true,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": null
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.sle",
+   "display": "Systemic lupus erythematosus",
+   "synonyms": [
+    "lupus",
+    "SLE"
+   ],
+   "chronic": true,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "4A40.0Z",
+     "title": "Systemic lupus erythematosus, unspecified",
+     "url": "https://www.findacode.com/icd-11/code-749596428/unspecified.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.rhabdomyolysis",
+   "display": "Rhabdomyolysis",
+   "synonyms": [
+    "muscle breakdown"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": null
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.pressure_injury",
+   "display": "Pressure injury",
+   "synonyms": [
+    "bedsore",
+    "pressure ulcer"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "EH90.Z",
+     "title": "Pressure ulcer of unspecified grade",
+     "url": "https://www.findacode.com/icd-11/code-455330172/unspecified.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.sjs_ten",
+   "display": "Stevens-Johnson syndrome or toxic epidermal necrolysis",
+   "synonyms": [
+    "SJS",
+    "TEN",
+    "severe drug rash"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": null
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.drug_rash",
+   "display": "Drug eruption, not severe",
+   "synonyms": [
+    "drug rash",
+    "drug reaction"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": null
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.anaphylaxis",
+   "display": "Anaphylaxis",
+   "synonyms": [
+    "severe allergic reaction"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "4A84.Z",
+     "title": "Anaphylaxis, unspecified",
+     "url": "https://www.findacode.com/icd-11/code-1868068711/unspecified.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.organophosphate_poisoning",
+   "display": "Organophosphate or carbamate poisoning",
+   "synonyms": [
+    "pesticide poisoning",
+    "insecticide poisoning",
+    "rat poison"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "NE61",
+     "title": "Harmful effects of or exposure to noxious substances, chiefly nonmedicinal as to source, not elsewhere classified",
+     "url": "https://www.findacode.com/icd-11/code-1119330136.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.paracetamol_overdose",
+   "display": "Paracetamol overdose",
+   "synonyms": [
+    "acetaminophen overdose"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "NE60",
+     "title": "Harmful effects of drugs, medicaments or biological substances, not elsewhere classified",
+     "url": "https://www.findacode.com/icd-11/code-1868408442.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.opioid_sedative_toxicity",
+   "display": "Opioid or sedative toxicity",
+   "synonyms": [
+    "overdose of sedatives"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": null
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.methanol_poisoning",
+   "display": "Methanol poisoning",
+   "synonyms": [
+    "bad local spirit",
+    "toxic alcohol"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "NE61",
+     "title": "Harmful effects of or exposure to noxious substances, chiefly nonmedicinal as to source, not elsewhere classified",
+     "url": "https://www.findacode.com/icd-11/code-1119330136.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.aaa_rupture",
+   "display": "Ruptured abdominal aortic aneurysm",
+   "synonyms": [
+    "ruptured AAA",
+    "leaking aneurysm"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "BD50.41",
+     "title": "Abdominal aortic aneurysm with rupture",
+     "url": "https://www.findacode.com/icd-11/code-926729140.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.ectopic_pregnancy",
+   "display": "Ectopic pregnancy",
+   "synonyms": [
+    "tubal pregnancy"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "JA01",
+     "title": "Ectopic pregnancy",
+     "url": "https://www.findacode.com/icd-11/code-1563334645.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.space_occupying_lesion",
+   "display": "Intracranial space-occupying lesion",
+   "synonyms": [
+    "brain tumour",
+    "tuberculoma",
+    "raised intracranial pressure",
+    "brain abscess"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "MB71.0",
+     "title": "Intracranial space-occupying lesion",
+     "url": "https://www.findacode.com/icd-11/code-1904765755.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.subdural_haematoma",
+   "display": "Subdural haematoma",
+   "synonyms": [
+    "chronic subdural"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "8B02",
+     "title": "Nontraumatic subdural haemorrhage",
+     "url": "https://www.findacode.com/icd-11/code-1376522306.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.cvst",
+   "display": "Cerebral venous sinus thrombosis",
+   "synonyms": [
+    "CVST",
+    "venous stroke"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "8B22.1",
+     "title": "Cerebral venous thrombosis",
+     "url": "https://www.findacode.com/icd-11/code-1655658429.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.giant_cell_arteritis",
+   "display": "Giant cell arteritis",
+   "synonyms": [
+    "temporal arteritis"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "4A44.2",
+     "title": "Giant cell arteritis",
+     "url": "https://www.findacode.com/icd-11/code-1929970386.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.neurocysticercosis",
+   "display": "Neurocysticercosis",
+   "synonyms": [
+    "pork tapeworm cysts in the brain"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": null
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.leptospirosis",
+   "display": "Leptospirosis",
+   "synonyms": [
+    "Weil's disease"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "1B91",
+     "title": "Leptospirosis",
+     "url": "https://www.findacode.com/icd-11/code-751399056.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.yellow_fever",
+   "display": "Yellow fever",
+   "synonyms": [],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "1D47",
+     "title": "Yellow fever",
+     "url": "https://www.findacode.com/icd-11/code-383352795.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.rickettsial",
+   "display": "Rickettsial infection",
+   "synonyms": [
+    "tick-bite fever",
+    "typhus"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": null
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.viral_illness_nonspecific",
+   "display": "Viral febrile illness, self-limiting",
+   "synonyms": [
+    "viral fever",
+    "viral illness"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "1D9Z",
+     "title": "Unspecified viral infection of unspecified site",
+     "url": "https://www.findacode.com/icd-11/code-237422666/unspecified.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.hiv_acute",
+   "display": "Acute HIV infection",
+   "synonyms": [
+    "HIV seroconversion",
+    "acute retroviral syndrome"
+   ],
+   "chronic": false,
+   "sensitivity": "restricted",
+   "restricted_class": "hiv",
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": null
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.chronic_pulmonary_aspergillosis",
+   "display": "Chronic pulmonary aspergillosis",
+   "synonyms": [
+    "aspergilloma"
+   ],
+   "chronic": true,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "1F20.12",
+     "title": "Chronic pulmonary aspergillosis",
+     "url": "https://www.findacode.com/icd-11/code-86747759.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.upper_airway_obstruction",
+   "display": "Upper airway obstruction",
+   "synonyms": [
+    "stridor",
+    "airway obstruction"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": null
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.acute_bronchitis",
+   "display": "Acute bronchitis",
+   "synonyms": [
+    "chest cold"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "CA42.Z",
+     "title": "Acute bronchitis, unspecified",
+     "url": "https://www.findacode.com/icd-11/code-727572936/unspecified.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.acute_liver_failure",
+   "display": "Acute liver failure",
+   "synonyms": [
+    "fulminant hepatitis"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "DB91.Z",
+     "title": "Acute or subacute hepatic failure, unspecified",
+     "url": "https://www.findacode.com/icd-11/code-1973223737/unspecified.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.pancreatic_biliary_cancer",
+   "display": "Pancreatic or biliary cancer",
+   "synonyms": [
+    "cancer of the pancreas",
+    "cholangiocarcinoma"
+   ],
+   "chronic": true,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "2C10.Z",
+     "title": "Malignant neoplasm of pancreas, unspecified",
+     "url": "https://www.findacode.com/icd-11/code-542147910/unspecified.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.rheumatic_fever",
+   "display": "Acute rheumatic fever",
+   "synonyms": [
+    "rheumatic fever"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "1B40.Z",
+     "title": "Acute rheumatic fever without mention of heart involvement, unspecified",
+     "url": "https://www.findacode.com/icd-11/code-2058300982/unspecified.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.ventricular_arrhythmia",
+   "display": "Ventricular tachycardia or other malignant arrhythmia",
+   "synonyms": [
+    "VT",
+    "ventricular tachycardia"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "BC71",
+     "title": "Ventricular tachyarrhythmia",
+     "url": "https://www.findacode.com/icd-11/code-1612630748.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.svt",
+   "display": "Supraventricular tachycardia",
+   "synonyms": [
+    "SVT",
+    "racing heart"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "BC81.Z",
+     "title": "Supraventricular tachyarrhythmia, unspecified",
+     "url": "https://www.findacode.com/icd-11/code-113146812/unspecified.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.aortic_stenosis",
+   "display": "Aortic stenosis",
+   "synonyms": [
+    "narrow aortic valve"
+   ],
+   "chronic": true,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "BB70",
+     "title": "Aortic valve stenosis",
+     "url": "https://www.findacode.com/icd-11/code-956813047.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.pericarditis",
+   "display": "Acute pericarditis",
+   "synonyms": [
+    "pericarditis"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": null
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.vasovagal_syncope",
+   "display": "Vasovagal syncope",
+   "synonyms": [
+    "simple faint",
+    "reflex syncope"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": null
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.orthostatic_hypotension",
+   "display": "Orthostatic hypotension",
+   "synonyms": [
+    "postural hypotension",
+    "dizzy on standing"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "BA21",
+     "title": "Orthostatic hypotension",
+     "url": "https://www.findacode.com/icd-11/code-56009591.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.bppv",
+   "display": "Benign paroxysmal positional vertigo",
+   "synonyms": [
+    "BPPV",
+    "positional vertigo"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "AB31.2",
+     "title": "Benign positional paroxysmal vertigo",
+     "url": "https://www.findacode.com/icd-11/code-1300772836.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.vestibular_neuritis",
+   "display": "Vestibular neuritis or labyrinthitis",
+   "synonyms": [
+    "labyrinthitis"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "AB30.0",
+     "title": "Vestibular neuritis",
+     "url": "https://www.findacode.com/icd-11/code-958752541.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.msk_chest_pain",
+   "display": "Musculoskeletal chest pain",
+   "synonyms": [
+    "costochondritis",
+    "chest wall pain"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "ME81.Z",
+     "title": "Musculoskeletal chest pain, unspecified",
+     "url": "https://www.findacode.com/icd-11/code-1556080152/unspecified.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.angioedema",
+   "display": "Angioedema",
+   "synonyms": [
+    "swelling of the lips or tongue",
+    "ACE-inhibitor angioedema"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": null
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.lymphatic_filariasis",
+   "display": "Lymphatic filariasis (lymphoedema)",
+   "synonyms": [
+    "elephantiasis",
+    "filarial lymphoedema"
+   ],
+   "chronic": true,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "1F66.3Z",
+     "title": "Lymphatic filariasis, unspecified",
+     "url": "https://www.findacode.com/icd-11/code-247221550/unspecified.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.hookworm_helminth",
+   "display": "Intestinal helminth infection",
+   "synonyms": [
+    "hookworm",
+    "worms"
+   ],
+   "chronic": false,
+   "sensitivity": "standard",
+   "restricted_class": null,
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "1F90.2",
+     "title": "Intestinal helminthiasis, unspecified",
+     "url": "https://www.findacode.com/icd-11/code-1979821488.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.anxiety_disorder",
+   "display": "Anxiety disorder",
+   "synonyms": [
+    "anxiety",
+    "panic attacks"
+   ],
+   "chronic": true,
+   "sensitivity": "restricted",
+   "restricted_class": "mental_health",
+   "icd11": {
+    "code": "6B00",
+    "title": null,
+    "status": "unverified-proposed",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "6B0Z",
+     "title": "Anxiety or fear-related disorders, unspecified",
+     "url": "https://www.findacode.com/icd-11/code-1336943699/unspecified.html",
+     "vs_proposed": "index_title_differs_from_proposed",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.bipolar",
+   "display": "Bipolar disorder",
+   "synonyms": [
+    "mania",
+    "manic depression"
+   ],
+   "chronic": true,
+   "sensitivity": "restricted",
+   "restricted_class": "mental_health",
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "6A6Z",
+     "title": "Bipolar or related disorders, unspecified",
+     "url": "https://www.findacode.com/icd-11/code-613065957/unspecified.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.suicidal_ideation",
+   "display": "Suicidal thoughts or self-harm",
+   "synonyms": [
+    "suicidal ideation",
+    "self-harm"
+   ],
+   "chronic": false,
+   "sensitivity": "restricted",
+   "restricted_class": "mental_health",
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "MB26.A",
+     "title": "Suicidal ideation",
+     "url": "https://www.findacode.com/icd-11/code-778734771.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.alcohol_intoxication",
+   "display": "Alcohol intoxication",
+   "synonyms": [
+    "drunk"
+   ],
+   "chronic": false,
+   "sensitivity": "restricted",
+   "restricted_class": "mental_health",
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "6C40.3",
+     "title": "Alcohol intoxication",
+     "url": "https://www.findacode.com/icd-11/code-1339202943.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  },
+  {
+   "id": "dx.substance_psychosis",
+   "display": "Substance-induced psychosis",
+   "synonyms": [
+    "khat psychosis",
+    "cannabis psychosis"
+   ],
+   "chronic": false,
+   "sensitivity": "restricted",
+   "restricted_class": "mental_health",
+   "icd11": {
+    "code": null,
+    "title": null,
+    "status": "to-code",
+    "source": null,
+    "verifiedOn": null,
+    "search_hint": {
+     "code": "6C4G.6",
+     "title": "Psychotic disorder induced by unknown or unspecified psychoactive substance",
+     "url": "https://www.findacode.com/icd-11/code-1155529213.html",
+     "vs_proposed": "index_hint_for_null_proposal",
+     "provenance": "findacode page title seen in a web-search result index, 2026-09-28; page not fetched; UNVERIFIED"
+    }
+   },
+   "icd10_who": null,
+   "idsr_class": null,
+   "hmis_category_id": null,
+   "status": "draft"
+  }
+ ]
+}
