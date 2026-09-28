@@ -265,13 +265,32 @@ export async function placeOrders(
     );
     if (reasonIds.length) {
       const reasons = await tx
-        .select({ id: conditions.id, sensitivity: conditions.sensitivity })
+        .select({
+          id: conditions.id,
+          sensitivity: conditions.sensitivity,
+          status: conditions.status,
+        })
         .from(conditions)
         .where(
           and(inArray(conditions.id, reasonIds), eq(conditions.patientUserId, input.patientUserId)),
         );
       if (reasons.length !== reasonIds.length)
         throw new EmrWriteError("invalid", "A reason diagnosis is not on this patient's record.");
+      // Q10: a reason is the diagnosis as it stands (its current version, never entered in error);
+      // a differential is a reason like any other.
+      const [superseded] = await tx
+        .select({ id: conditions.id })
+        .from(conditions)
+        .where(inArray(conditions.supersedesId, reasonIds))
+        .limit(1);
+      if (
+        superseded ||
+        reasons.some((r) => r.status === "entered_in_error" || r.status === "cancelled")
+      )
+        throw new EmrWriteError(
+          "conflict",
+          "A reason diagnosis has changed or was entered in error: reload and choose it again.",
+        );
       restricted ||= reasons.some((r) => r.sensitivity === "restricted");
     }
 
