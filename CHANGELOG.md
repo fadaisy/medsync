@@ -5,6 +5,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Decided — Clerking v2 step 10 Plan: by problem, prescribing, fluids and monitoring charts (ADRs 0184–0190) — 2026-09-28
+
+- **Plan by problem** ([ADR 0184](docs/adr/0184-plan-by-problem.md)): where and how closely, one card per problem in Impression order, medicines, and a computed checklist before signing. One basket and one Place action; the server re-checks. Behind `CLERKING_PLAN_V2`. Suggested care stays empty until a signed list exists.
+- **Emergency priority and routine frequency** ([ADR 0185](docs/adr/0185-test-priority-emergency-and-routine-frequency.md)): a routine test needs Once, Daily, 12-hourly or 6-hourly. Priority definitions are proposed wording.
+- **EMR prescribing follows the resus dialog** ([ADR 0186](docs/adr/0186-emr-prescribing-follows-the-resus-dialog.md)): a dose is pre-set only from a signed, verified regimen; edits are struck through and recorded; new checks are marked proposed.
+- **General formulary MS-RX-CAT-001** ([ADR 0187](docs/adr/0187-general-formulary-ms-rx-cat-001.md)): 182 generic drugs in 69 classes, no doses; the three signed emergency entries are carried unchanged.
+- **Weight from the vitals** ([ADR 0188](docs/adr/0188-weight-from-the-vitals.md)): no weight, no per-kg arithmetic.
+- **Monitoring charts opened by the plan** ([ADR 0189](docs/adr/0189-monitoring-charts-opened-by-the-plan.md)): proposed triggers off until signed; the chart day starts at midnight; reference lines never flag.
+- **Pharmacy seam** ([ADR 0190](docs/adr/0190-pharmacy-seam.md)): always "not linked" today.
+
 ### Added — Clerking v2: Summary (step 08) and Impression (step 09), behind `CLERKING_V2` — 2026-09-28
 
 - **Summary** is composed from the record: a one-liner with the syndrome in the clinician's words, the history, examination and vital signs that matter, pertinent negatives and allergies. "Mark as reviewed" is one tap; any change asks for review again, with the difference ([ADR 0178](docs/adr/0178-summary-composed-from-the-record.md)). The note gets its own Summary block. An old free-text summary opens in "In my words".
