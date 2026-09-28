@@ -984,7 +984,9 @@ describe.skipIf(!laneOn)("Phase 4 scenarios A1–A9 (PGlite lane)", () => {
         clientKey: key(),
       }),
     );
-    expect(dx.warnings).toEqual([expect.stringMatching(/senior confirms/)]);
+    // D-SI-09: stored Working, "Final · awaiting senior co-signature", a confirm_diagnosis request.
+    expect(dx.warnings).toEqual(["Final · awaiting senior co-signature"]);
+    expect(dx.cosignRequestId).toBeDefined();
   });
 
   it("A8 a 30 s offline drop mid-typing loses nothing and the queue flushes in order", async () => {
