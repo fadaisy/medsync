@@ -241,3 +241,46 @@ For the CSO (chosen in the build, all visible in code and tests): "core" tempera
 NEWS2 is drawn only for complete sets; a MAR dose is "Delayed" once its due time passes with nothing recorded (no
 grace period), due times start from the first dose, and a next-round prescription has none until one is given;
 entered-in-error reasons (wrong patient, recorded twice, wrong kind, other); a 10,000 mL guard on an entry.
+
+---
+
+## STOP 6: tests
+
+| Suite                                                 | Covers                                                                                                                                                |
+| ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `tests/prescribing/general-formulary.test.ts`         | the pack's validator rules, the counts, the dose-content guard (and that it catches a planted dose), the generated module's drift                     |
+| `tests/prescribing/formulary-regimens.test.ts`        | every signed regimen's numbers appear in its verbatim quote; the glucose 20% option stays a quote; no older-adult row                                 |
+| `tests/prescribing/plan-prescribing.test.ts`          | bands; child glucose 2 mL/kg × 20 kg = 40 mL; glucagon "<8 yr or <25 kg"; blank weight, no arithmetic; the checks; override versus check; edits       |
+| `tests/clerking/plan.test.ts`                         | observations against CO-NEWS-01..05; routine needs a frequency; the checklist and "plan done"; the server's sign gate; the trust boundary; note lines |
+| `tests/emr/plan-charts.test.ts`, `tests/emr/charts/*` | mL/h from minutes and hours, drops/min for 20 and 60, 0.5 × 58 = 29, the chart day, the running balance with blanks, the rule table, scales, builders |
+| `tests/clerking/plan-step.test.ts`                    | the page in the four questions' order, a test to the basket, Emergency the one red, one Place, Mark plan done and reopening, the dialog's chips       |
+| `tests/emr-db/write-plan.test.ts` (lane)              | placePlan end to end; refusals; the allergy override encrypted; edits; charts once per kind; the database's own rules (0087–0089)                     |
+| `tests/emr-db/write-fluid-balance.test.ts` (lane)     | record, not measured, correction, entered in error, append-only, no open chart, read-back under RLS                                                   |
+| `tests/emr-db/rls-probes.test.ts` (lane)              | the access matrix with `fluid_balance_entries`, `monitoring_charts` (both paths) and the MAR (reader path)                                            |
+| `tests/rls/emr-access.test.ts` (hosted twin, skipped) | the two chart tables are never read or written from a client                                                                                          |
+
+## STOP 7: ship check
+
+| Check                                                | Result                                                                                   |
+| ---------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| `npm run typecheck`                                  | clean                                                                                    |
+| `npm run lint`                                       | 0 errors (the 2 warnings in `scripts/embed-bench.mjs` predate this work)                 |
+| `SKIP_ENV_VALIDATION=1 npx vitest run`               | 7,821 passed, 558 skipped                                                                |
+| `EMR_PGLITE=1 npx vitest run tests/emr-db`           | 25 files, 382 passed                                                                     |
+| `rm -rf .next && npm run build`                      | compiled                                                                                 |
+| `npm run clerking:catalogue-check`, `npm run budget` | ok                                                                                       |
+| `npm run format:check`                               | 23 files flagged, all predating this branch (the ones PR #190 adds to `.prettierignore`) |
+| `/styleguide`                                        | no token changed                                                                         |
+
+**Keyboard pass of the dialog** (Playwright, `/styleguide/clerking-si/plan`): opened from "Ceftriaxone" with Enter;
+with a human pace between Tabs focus never left the dialog over 120 Tabs (the same holds for the existing Details
+dialog; pressing Tab faster than one frame outruns the primitive's refocus in both); every chip is reached; all 33
+chips carry `aria-pressed` and the segmented controls `aria-checked`; Escape closes and focus returns to
+"Ceftriaxone".
+
+**For the owner:** apply 0087 → 0088 → 0089 (GATED; before deploying this branch), then turn on `CLERKING_PLAN_V2`
+(per hospital, where `CLERKING_V2` is on) and, for prescribing from the Plan, `EMR_PRESCRIBING`. The CSO signs, or
+sends back: ADRs 0184–0190, the priority definitions, the reason-chip wording, the talked-through items, the new
+checks (all marked proposed), the diagnosis → class map, the chart rules marked proposed (off), the reference lines
+(35 °C, 0.5 mL/kg/h) and the choices listed under STOP 5. Dose verification (Appendix A) waits for access to Medscape,
+UCG 2023 and BNF.

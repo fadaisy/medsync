@@ -20,19 +20,20 @@ For a Claude Code session picking this repo up without the previous session's lo
 
 ## Where things are (branch `feat/clerking-exam-v2`)
 
-| Work                                        | State                                                                                                                            | Record                                                            |
-| ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| Clerking desk v2 (history)                  | done, behind `CLERKING_V2`; migration 0076                                                                                       | `docs/emr/clerking-v2/STOP-REPORTS.md`, ADRs 0163–0168            |
-| v2 on a phone                               | done                                                                                                                             | `docs/emr/clerking-v2/mobile/STOP-REPORT.md`, ADR 0169            |
-| Examination v2 (step 07)                    | done, all 8 gates                                                                                                                | `docs/emr/clerking-v2/exam/STOP-REPORTS.md`, ADRs 0170–0175       |
-| CFC addenda v1.2 / v1.3                     | signed and built                                                                                                                 | `docs/emr/cfc/cfc-migrations-proposal.md`, ADR 0176               |
-| Legacy symptom conversion                   | signed and built (no migration)                                                                                                  | `docs/emr/clerking-v2/legacy-conversion-proposal.md` §7, ADR 0177 |
-| CFC addendum v1.4 (three history findings)  | **awaiting the CSO's signature**; nothing built                                                                                  | `docs/emr/cfc/cfc-v1.4-proposal.md`                               |
-| MedSync Chroma (design system)              | merged into this branch 2026-09-28; the clerking desk and chart restyled to it (iris for place, heading weights from the tokens) | ADR 0162, `tests/design/clinical-chroma.test.ts`                  |
-| Operations, occupations and CAGE pick lists | built; data files are drafts awaiting CSO review                                                                                 | `data/clerking/{operations,occupations,cage}.v1.json`             |
-| Summary (08) and Impression (09)            | GATE A signed 2026-09-28; built behind `CLERKING_V2`, all 7 phases; clinician trial the owner's                                  | `docs/emr/clerking-v2/summary-impression/STOP-REPORTS.md`         |
+| Work                                        | State                                                                                                                                   | Record                                                            |
+| ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| Clerking desk v2 (history)                  | done, behind `CLERKING_V2`; migration 0076                                                                                              | `docs/emr/clerking-v2/STOP-REPORTS.md`, ADRs 0163–0168            |
+| v2 on a phone                               | done                                                                                                                                    | `docs/emr/clerking-v2/mobile/STOP-REPORT.md`, ADR 0169            |
+| Examination v2 (step 07)                    | done, all 8 gates                                                                                                                       | `docs/emr/clerking-v2/exam/STOP-REPORTS.md`, ADRs 0170–0175       |
+| CFC addenda v1.2 / v1.3                     | signed and built                                                                                                                        | `docs/emr/cfc/cfc-migrations-proposal.md`, ADR 0176               |
+| Legacy symptom conversion                   | signed and built (no migration)                                                                                                         | `docs/emr/clerking-v2/legacy-conversion-proposal.md` §7, ADR 0177 |
+| CFC addendum v1.4 (three history findings)  | **awaiting the CSO's signature**; nothing built                                                                                         | `docs/emr/cfc/cfc-v1.4-proposal.md`                               |
+| MedSync Chroma (design system)              | merged into this branch 2026-09-28; the clerking desk and chart restyled to it (iris for place, heading weights from the tokens)        | ADR 0162, `tests/design/clinical-chroma.test.ts`                  |
+| Operations, occupations and CAGE pick lists | built; data files are drafts awaiting CSO review                                                                                        | `data/clerking/{operations,occupations,cage}.v1.json`             |
+| Summary (08) and Impression (09)            | GATE A signed 2026-09-28; built behind `CLERKING_V2`, all 7 phases; clinician trial the owner's                                         | `docs/emr/clerking-v2/summary-impression/STOP-REPORTS.md`         |
+| Plan (10) by problem, prescribing, charts   | built on `feat/clerking-plan-v2` behind `CLERKING_PLAN_V2`, all 7 phases; ADRs 0184–0190 proposed; migrations 0087–0089 **not applied** | `docs/emr/clerking-v2/plan/STOP-REPORTS.md`                       |
 
-**Migrations (owner):** 0076 → 0082 → 0083 → 0084 → 0085, all applied by the owner (0084 and 0085 on 2026-09-28: the `confirm_diagnosis` co-sign kind, and the 187 REF-DX-TERMS v1.1 terms seeded uncoded). `npm run db:migrate` applies whatever is pending in file order; the next migration is 0086.
+**Migrations (owner):** 0076 → 0082 → 0083 → 0084 → 0085, all applied by the owner (0084 and 0085 on 2026-09-28: the `confirm_diagnosis` co-sign kind, and the 187 REF-DX-TERMS v1.1 terms seeded uncoded). `npm run db:migrate` applies whatever is pending in file order. 0086 (ICD-11 codes) is on PR #188. The Plan's **0087 → 0088 → 0089** are GATED on `feat/clerking-plan-v2` and not applied: apply them before deploying that branch (its Drizzle schema names their columns); until then `CLERKING_PLAN_V2` stays off. The next new migration is 0090.
 
 **Open for the owner:** the clinician trial (protocol `docs/emr/clerking-v2/clinician-trial.md`); real-device timing on a mid-range Android; production counts listed in the exam STOP 0; symptom codes promoted in production through the 0044 governance (`origin='approved'`), which the legacy conversion table cannot see and carries as text until they get rows.
 
@@ -45,6 +46,7 @@ npm run lint                 # 2 warnings predate this work
 npm run clerking:catalogue-check
 SKIP_ENV_VALIDATION=1 EMR_PGLITE=1 npx vitest run    # full suite incl. the PGlite database lane (no real DB)
 npx tsx scripts/emr/gen-seed.ts                       # regenerates 0072/0082/0083/0085 + lib/facts/catalogue.generated.ts
+npx tsx scripts/prescribing/gen-formulary.ts         # regenerates lib/prescribing/reference/general-formulary.ts (MS-RX-CAT-001)
 ```
 
 - `tests/emr/seed.test.ts` fails if a generated file drifts from its data.
