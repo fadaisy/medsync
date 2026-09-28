@@ -59,6 +59,9 @@ export const DX_NAMES: Readonly<
   ]),
 ]);
 
+/** The catalogue with its term and name maps, as the board reads them (signing, D-SI-06). */
+export const DX_INDEX = { cat: DX_CATALOGUE, termIds: DX_TERM_IDS, names: DX_NAMES };
+
 /** The default test menu's names (the hospital's menu decides what can be ordered). */
 export const TEST_NAMES: Readonly<Record<string, string>> = Object.fromEntries(
   TEST_MENU.tests.map((t) => [t.id, t.display]),

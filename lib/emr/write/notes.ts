@@ -9,6 +9,7 @@ import type { History } from "@/lib/clerking/answers";
 import type { ExamContext } from "@/lib/clerking/exam/context";
 import type { ExamDraft } from "@/lib/clerking/exam/payload";
 import type { SignedDiagnosis } from "@/lib/clerking/payload";
+import type { EncounterDiagnosisView } from "@/lib/emr/diagnoses";
 import type { NoteContent, NoteItem, SignContext } from "@/lib/emr/notes";
 import { and, desc, eq, inArray, like, notInArray, sql } from "drizzle-orm";
 
@@ -28,6 +29,8 @@ import { convertV1Draft } from "@/lib/clerking/convert";
 import { examCommitLines } from "@/lib/clerking/exam/commit";
 import { NO_VITALS } from "@/lib/clerking/exam/context";
 import { EXAM_CATALOGUE } from "@/lib/clerking/exam/load";
+import { DX_INDEX, DX_SIGNOFF } from "@/lib/clerking/impression/load";
+import { impressionSignBlocks } from "@/lib/clerking/impression/sign";
 import { linkedAnswers } from "@/lib/clerking/linkage";
 import { CLERKING_CATALOGUE, CLERKING_LEGACY, CLERKING_TOKEN_MAP } from "@/lib/clerking/load";
 import { isOpen } from "@/lib/emr/encounter";
@@ -399,12 +402,7 @@ async function medicinesReconciled(ctx: WriteCtx, patientUserId: string, encount
 }
 
 /** `impression.snapshot` (D-SI-20): the note's visit's current diagnoses, in the signed shape. */
-async function signingSnapshot(ctx: WriteCtx, note: NoteRow): Promise<SignedDiagnosis[]> {
-  const dx = await loadEncounterDiagnoses(ctx.tx, {
-    hospitalId: note.hospitalId,
-    patientUserId: note.patientUserId,
-    encounterId: note.encounterId,
-  });
+function signingSnapshot(dx: readonly EncounterDiagnosisView[]): SignedDiagnosis[] {
   return dx.map((d) => ({
     logicalId: d.logicalId,
     versionId: d.id,
@@ -440,11 +438,20 @@ export async function signNote(ctx: WriteCtx, input: SignNoteInput): Promise<Wri
   // record does.
   const snapshotted =
     content.schema === 2 && typeof content.impression === "object" && content.impression !== null;
-  if (snapshotted)
+  if (snapshotted) {
+    const dx = await loadEncounterDiagnoses(ctx.tx, {
+      hospitalId: note.hospitalId,
+      patientUserId: note.patientUserId,
+      encounterId: note.encounterId,
+    });
+    // D-SI-06: a must-not-miss marked unlikely holds the signature until it has its reason.
+    const blocks = impressionSignBlocks(dx, content.impression, DX_INDEX, DX_SIGNOFF);
+    if (blocks.length) throw invalid(`Not ready to sign: ${blocks.join("; ")}.`);
     content = {
       ...content,
-      impression: { ...content.impression, snapshot: await signingSnapshot(ctx, note) },
+      impression: { ...content.impression, snapshot: signingSnapshot(dx) },
     };
+  }
   const signCtx: SignContext = {
     allergyStatus: (await loadAllergyInput(ctx.tx, input.patientUserId)).status.kind,
     medicinesReconciled: await medicinesReconciled(ctx, input.patientUserId, note.encounterId),

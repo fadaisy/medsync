@@ -22,6 +22,7 @@ import * as facts from "@/lib/emr/write/facts";
 import * as notes from "@/lib/emr/write/notes";
 import * as orders from "@/lib/emr/write/orders";
 import { decrypt, encrypt, generateKey } from "@/lib/encryption";
+import { siCounts } from "@/scripts/emr/si-counts";
 import {
   bootLane,
   department,
@@ -593,6 +594,223 @@ describe.skipIf(!laneOn)("Summary and Impression: the server (PGlite lane)", () 
   });
 
   /* ─── D-SI-20 ──────────────────────────────────────────────────── */
+
+  it("D-SI-06: the server refuses to sign while a must-not-miss is Unlikely without a reason", async () => {
+    const v = await newVisit();
+    const lead = await record(mo, v, { termId: diabetes, rank: "primary" });
+    const sepsis = await record(mo, v, {
+      termId: dxTermUuid("dx.sepsis"),
+      verification: "differential",
+    });
+    const content = (reasons: Record<string, string>): NoteContent => ({
+      schema: 2,
+      catalogueVersion: "1.0.0-draft",
+      header: { historian: "patient" },
+      history: {
+        ...emptyHistory(),
+        complaints: [{ key: "c", symptom: "sym.cough", props: {}, flags: {} }],
+      } as unknown as NoteContent["history"],
+      sections: {
+        s13: {
+          items: [
+            {
+              kind: "encounter_diagnosis",
+              conditionId: lead.id,
+              logicalId: lead.id,
+              display: "Diabetes",
+            },
+          ],
+        },
+        s14: { items: [{ kind: "plan_statement", text: "Review" }] },
+      },
+      // A client that skipped the sign bar: Unlikely, and a reason of two words.
+      impression: {
+        order: [sepsis.id],
+        likelihood: { [sepsis.id]: "unlikely" },
+        reasons,
+        evidence: {},
+        meta: {},
+        catalogueVersion: "1.0.1-draft",
+      },
+      edited: {},
+    });
+    const save = (c: NoteContent, at?: { id: string; revision: number }) =>
+      as(
+        mo,
+        (ctx) =>
+          notes.saveNoteDraft(ctx, {
+            patientUserId: v.q,
+            encounterId: v.e,
+            templateId: "tpl.clerking.adult_v2",
+            content: c,
+            clientKey: key(),
+            ...(at ? { noteId: at.id, revision: at.revision } : {}),
+          }),
+        v.q,
+      );
+    const draft = await save(content({ [sepsis.id]: "afebrile now" }));
+    await expect(
+      as(mo, (ctx) => notes.signNote(ctx, { patientUserId: v.q, noteId: draft.id }), v.q),
+    ).rejects.toMatchObject({
+      code: "invalid",
+      message: expect.stringMatching(/Sepsis: a must-not-miss marked unlikely needs a reason/),
+    });
+    const [still] = await rows<{ state: string }>(
+      "SELECT state FROM public.clinical_notes WHERE id = $1",
+      [draft.id],
+    );
+    expect(still!.state).toBe("draft");
+    // Three words release it.
+    await save(content({ [sepsis.id]: "afebrile, lactate normal" }), draft);
+    await as(mo, (ctx) => notes.signNote(ctx, { patientUserId: v.q, noteId: draft.id }), v.q);
+    const [signed] = await rows<{ state: string }>(
+      "SELECT state FROM public.clinical_notes WHERE id = $1",
+      [draft.id],
+    );
+    expect(signed!.state).toBe("signed");
+  });
+
+  it("scripts/emr/si-counts.ts: the §14 baseline counts run read only on this schema", async () => {
+    const out = await siCounts(lane.db);
+    expect(out.map((r) => r.tbl)).toEqual([
+      "duplicate_term_on_visit",
+      "visits_over_one_diagnosis_signed",
+      "v2_drafts_open",
+      "confirm_diagnosis_open",
+    ]);
+    expect(out.every((r) => Number.isInteger(r.count) && r.count >= 0)).toBe(true);
+    // The guard holds: no coded diagnosis is current twice on a visit; S-4 left a request open.
+    expect(out.find((r) => r.tbl === "duplicate_term_on_visit")!.count).toBe(0);
+    expect(out.find((r) => r.tbl === "confirm_diagnosis_open")!.count).toBeGreaterThan(0);
+  });
+
+  it("§12: every Summary and Impression write leaves an audit row with its actor", async () => {
+    const v = await newVisit();
+    const since = (
+      await rows<{ n: string }>("SELECT coalesce(max(id), 0)::text AS n FROM public.audit_log")
+    )[0]!.n;
+    // Add, swap, remove with a reason, a junior's Final and its decision.
+    await record(mo, v, { termId: diabetes, rank: "primary" });
+    const b = await record(intern, v, { text: "Thyrotoxicosis", verification: "differential" });
+    const swapped = await as(
+      mo,
+      (ctx) =>
+        dx.setLeadingDiagnosis(ctx, {
+          patientUserId: v.q,
+          encounterId: v.e,
+          id: b.id,
+          clientKey: key(),
+        }),
+      v.q,
+    );
+    const c = await record(intern, v, { text: "Anaemia", verification: "differential" });
+    await as(
+      intern,
+      (ctx) =>
+        facts.markFactEnteredInError(ctx, {
+          patientUserId: v.q,
+          kind: "condition",
+          id: c.id,
+          clientKey: key(),
+          reasonCode: "ruled_out",
+          reasonText: "haemoglobin normal",
+        }),
+      v.q,
+    );
+    const asked = await as(
+      intern,
+      (ctx) =>
+        dx.requestDiagnosisCosign(ctx, { patientUserId: v.q, id: swapped.id, clientKey: key() }),
+      v.q,
+    );
+    await as(
+      consultant,
+      (ctx) =>
+        dx.decideDiagnosisCosign(ctx, {
+          patientUserId: v.q,
+          requestId: asked.id,
+          decision: "approve",
+          clientKey: key(),
+        }),
+      v.q,
+    );
+    // The review and accepted evidence live in the draft: each save is an audited update.
+    const base: NoteContent = {
+      schema: 2,
+      catalogueVersion: "1.0.0-draft",
+      header: { historian: "patient" },
+      history: {
+        ...emptyHistory(),
+        complaints: [{ key: "c", symptom: "sym.cough", props: {}, flags: {} }],
+      } as unknown as NoteContent["history"],
+      sections: { s14: { items: [{ kind: "plan_statement", text: "Review" }] } },
+      edited: {},
+    };
+    const draft = await as(
+      mo,
+      (ctx) =>
+        notes.saveNoteDraft(ctx, {
+          patientUserId: v.q,
+          encounterId: v.e,
+          templateId: "tpl.clerking.adult_v2",
+          content: {
+            ...base,
+            summary: {
+              mode: "composed",
+              review: { by: mo.userId, at: "2026-09-28T08:00:00Z", hash: "x" },
+            },
+          },
+          clientKey: key(),
+        }),
+      v.q,
+    );
+    await as(
+      mo,
+      (ctx) =>
+        notes.saveNoteDraft(ctx, {
+          patientUserId: v.q,
+          encounterId: v.e,
+          templateId: "tpl.clerking.adult_v2",
+          noteId: draft.id,
+          revision: draft.revision,
+          content: {
+            ...base,
+            impression: {
+              order: [],
+              likelihood: {},
+              reasons: {},
+              evidence: {
+                [b.id]: {
+                  "sym:sym.cough": { w: "for", by: mo.userId, at: "2026-09-28T08:01:00Z" },
+                },
+              },
+              meta: {},
+              catalogueVersion: "1.0.1-draft",
+            },
+          },
+          clientKey: key(),
+        }),
+      v.q,
+    );
+    const audit = await rows<{ table_name: string; action: string; actor_id: string | null }>(
+      `SELECT table_name, action, actor_id FROM public.audit_log
+        WHERE id > $1 AND table_name IN ('conditions', 'clinical_cosign_requests', 'clinical_notes')
+        ORDER BY id`,
+      [since],
+    );
+    const by = (t: string, act?: string) =>
+      audit.filter((r) => r.table_name === t && (!act || r.action === act));
+    // Conditions: three added, the swap's two versions, the removal's and the approval's.
+    expect(by("conditions", "insert").length).toBeGreaterThanOrEqual(7);
+    expect(by("clinical_cosign_requests", "insert")).toHaveLength(1);
+    expect(by("clinical_cosign_requests", "update").length).toBeGreaterThanOrEqual(1);
+    expect(by("clinical_notes", "insert")).toHaveLength(1);
+    expect(by("clinical_notes", "update").length).toBeGreaterThanOrEqual(1);
+    // Every row names who did it.
+    expect(audit.every((r) => r.actor_id)).toBe(true);
+    const actors = new Set(audit.map((r) => r.actor_id));
+    for (const u of [mo, intern, consultant]) expect(actors).toContain(u.userId);
+  });
 
   it("D-SI-20: signing writes impression.snapshot before the HMAC; a later diagnosis does not change it", async () => {
     const v = await newVisit();

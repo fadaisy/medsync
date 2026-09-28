@@ -320,3 +320,25 @@ The matrix meets its budget at 1× and not at 4×: opening it builds about 470 c
 **For the owner and the CSO (D-SI-12)**
 
 Suggestions follow signed rule order: rules fired by a red flag, a vital sign or an examination finding first, in catalogue order, then complaint-only rules. On patients 3 and 4 the specific rule's diagnoses sit behind the general fever rule's 18: cryptococcal meningitis is 34th and cholangitis 19th, behind "Show more", while sepsis and severe malaria lead. Recommendation for a GATE decision: order fired rules by how many findings they need (a combination rule such as DDX-FEVER-JAUNDICE or DDX-FEVER-NEURO before a single-finding one), still never by likelihood (SI2). Not changed here: it is a signed decision.
+
+## STOP 6: note, signing, audit, old drafts
+
+**Built in this phase**
+
+- **D-SI-06 on the server.** `signNote` refuses a v2 note while a must-not-miss on the visit is Unlikely without a reason of three words: the same board and rule as the sign bar (`lib/clerking/impression/sign.ts`, with the profile matching moved to `lib/clerking/impression/recorded.ts` so the desk and the server share it). The message names the diagnosis: "Not ready to sign: Sepsis: a must-not-miss marked unlikely needs a reason."
+- **Problem-list offers.** "Also this visit"'s Problem list tick now writes: `recordProblem` with the term (or the words), provisional unless the diagnosis is already Final. Before this it rendered with no handler.
+- **D-SI-24, the history v1.3 addendum.** The shared course (Getting worse, No change, Getting better, Comes and goes) added after onset to the 48 property families that lacked it; `focal_neuro` and `confusion` keep their own. Recorded as an amendment in `data/clerking/catalogue-signoff.v1.json` with the new hash (`e2eb4601…`); the pinned-hash test applies it to the handed-over copy. The one-liner's Course now fills whenever a complaint records it.
+- **`scripts/emr/si-counts.ts`** (`npm run emr:si-counts`): the §14 baseline in a read-only transaction, counts only (duplicate coded diagnoses on a visit, visits with a signed v2 note and more than one diagnosis, open v2 drafts, open `confirm_diagnosis` requests). The owner runs it against production.
+- The fixture route's `-old` variant: a draft saved before this build (the old s12 words, neither new key).
+
+**The signed-note snapshot** (PGlite, D-SI-20): signing writes `impression.snapshot`, each diagnosis's logical and version id, display, code (verified only), rank, status, sensitivity and co-signature state, into the content before the HMAC. The HMAC verifies over it, and a diagnosis added after signing changes neither the content nor the HMAC. The client writes `summary.text` and `impression.text` into the content before it asks to sign.
+
+**Co-signature round trip** (PGlite): an intern's Final is stored Working with a `confirm_diagnosis` request (PHI-free payload: logical id and visit); asking again returns the open request; a senior asks nothing (they confirm directly). A clinical officer and the intern may not approve; the consultant's approval writes a Final version and closes the request; a retried approval replays and a second decision conflicts. Return needs a note and leaves the diagnosis Working; entered in error cancels an open request. The review queue shows "Final diagnosis" requests, and a restricted one reads "Restricted diagnosis: open the visit to read it".
+
+**Old drafts** (`screens/08-summary-old-draft-1440-light.png`, `09-impression-old-draft-1440-light.png`): the old words open in "In my words" under "Written in the previous format. Your words go into the note." with "Continue in the composed format"; nothing is migrated until the clinician chooses. The Impression builds its board from the record, with no reasoning yet. A signed note shows its signed text, never a recomposition.
+
+**Patient-facing** (`tests/clerking/si-patient-facing.test.ts`): no patient page and no print a patient takes home (visit summary, referral, prescription, lab request, label) reads a clinical note or a composer. The syndrome, likelihood, reasons, evidence and composed text cannot leave the clinical views, and those prints withhold a restricted problem unless the clinician includes it. Nothing in this build sends SMS or push. The patient audience of the composer drops restricted diagnoses and findings (patient 3: cryptococcal meningitis and HIV absent).
+
+**Audit** (PGlite, §12): one visit's adds, swap, removal with its reason, co-signature request and approval, and two draft saves (a review; an accepted mark) leave audit rows on `conditions` (7 or more inserts), `clinical_cosign_requests` (insert and update) and `clinical_notes` (insert and update). Every row names its actor; the three clinicians appear. The review and accepted evidence are draft content, audited with each save.
+
+**Checks:** unit suite 7,674 passed; PGlite lane 364 of 364 (three new: D-SI-06 on the server, the audit rows, the counts script); `clerking:catalogue-check` ok on all three catalogues.

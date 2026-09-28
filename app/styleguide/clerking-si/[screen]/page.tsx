@@ -60,5 +60,22 @@ export default async function Page({ params }: { params: Promise<{ screen: strin
         ...{ logicalId: "00000000-0000-4000-8000-0000000000a2", termId: dxTermUuid("dx.sepsis") },
       },
     ];
+  // `-old`: a draft saved before this build, with the old free-text summary (s12) and neither the
+  // summary nor the impression key; it opens in "In my words" and nothing is migrated on its own.
+  if (parts.includes("old")) {
+    const c = p.draft!.content;
+    p.draft = {
+      ...p.draft!,
+      content: {
+        ...c,
+        sections: {
+          ...c.sections,
+          s12: { narrative: "Elderly man, cold and slow. ?Sepsis ?hypothyroid." },
+        },
+        summary: undefined,
+        impression: undefined,
+      },
+    };
+  }
   return <FixtureDesk p={p} step={step} />;
 }

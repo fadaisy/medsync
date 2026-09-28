@@ -726,6 +726,20 @@ export function DeskClient({
           : "Recorded as working",
         to,
       ),
+    // "Also this visit": copy the diagnosis to the patient's problem list (§5.3).
+    onProblemList: (row: BoardRow) =>
+      void run(
+        `dx-problem:${row.dx.logicalId}`,
+        (clientKey) =>
+          recordProblem({
+            ...base,
+            clientKey,
+            encounterId,
+            ...(row.dx.termId ? { termId: row.dx.termId } : { text: row.dx.display }),
+            verification: row.dx.verification === "confirmed" ? "confirmed" : "provisional",
+          }),
+        `${row.dx.display} added to the problem list`,
+      ),
     // One action writes both versions: the old leading becomes a differential (D-SI-21).
     onLeading: (row: BoardRow) =>
       void run(

@@ -448,6 +448,12 @@
      }
     },
     {
+     "id": "course",
+     "label": "Course",
+     "kind": "one",
+     "options_ref": "course"
+    },
+    {
      "id": "character",
      "label": "Character",
      "kind": "one",
@@ -526,6 +532,12 @@
       "pre": "",
       "post": " onset"
      }
+    },
+    {
+     "id": "course",
+     "label": "Course",
+     "kind": "one",
+     "options_ref": "course"
     },
     {
      "id": "pattern",
@@ -634,6 +646,12 @@
      }
     },
     {
+     "id": "course",
+     "label": "Course",
+     "kind": "one",
+     "options_ref": "course"
+    },
+    {
      "id": "type",
      "label": "Type",
      "kind": "one",
@@ -715,6 +733,12 @@
    "label": "Sputum",
    "properties": [
     {
+     "id": "course",
+     "label": "Course",
+     "kind": "one",
+     "options_ref": "course"
+    },
+    {
      "id": "colour",
      "label": "Colour",
      "kind": "one",
@@ -793,6 +817,12 @@
       "pre": "",
       "post": " onset"
      }
+    },
+    {
+     "id": "course",
+     "label": "Course",
+     "kind": "one",
+     "options_ref": "course"
     },
     {
      "id": "amount",
@@ -1000,6 +1030,12 @@
      }
     },
     {
+     "id": "course",
+     "label": "Course",
+     "kind": "one",
+     "options_ref": "course"
+    },
+    {
      "id": "rhythm",
      "label": "Rhythm",
      "kind": "one",
@@ -1133,6 +1169,12 @@
      }
     },
     {
+     "id": "course",
+     "label": "Course",
+     "kind": "one",
+     "options_ref": "course"
+    },
+    {
      "id": "site",
      "label": "Where",
      "kind": "one",
@@ -1197,6 +1239,12 @@
   "blackout": {
    "label": "Blackout or faint",
    "properties": [
+    {
+     "id": "course",
+     "label": "Course",
+     "kind": "one",
+     "options_ref": "course"
+    },
     {
      "id": "count",
      "label": "How many",
@@ -1352,6 +1400,12 @@
      }
     },
     {
+     "id": "course",
+     "label": "Course",
+     "kind": "one",
+     "options_ref": "course"
+    },
+    {
      "id": "site",
      "label": "Where",
      "kind": "one",
@@ -1418,6 +1472,12 @@
       "pre": "",
       "post": " onset"
      }
+    },
+    {
+     "id": "course",
+     "label": "Course",
+     "kind": "one",
+     "options_ref": "course"
     },
     {
      "id": "times",
@@ -1521,6 +1581,12 @@
      }
     },
     {
+     "id": "course",
+     "label": "Course",
+     "kind": "one",
+     "options_ref": "course"
+    },
+    {
      "id": "type",
      "label": "Looks like",
      "kind": "one",
@@ -1578,6 +1644,12 @@
       "pre": "",
       "post": " onset"
      }
+    },
+    {
+     "id": "course",
+     "label": "Course",
+     "kind": "one",
+     "options_ref": "course"
     },
     {
      "id": "stools",
@@ -1680,6 +1752,12 @@
      }
     },
     {
+     "id": "course",
+     "label": "Course",
+     "kind": "one",
+     "options_ref": "course"
+    },
+    {
      "id": "last_stool",
      "label": "Last stool",
      "kind": "one",
@@ -1751,6 +1829,12 @@
      }
     },
     {
+     "id": "course",
+     "label": "Course",
+     "kind": "one",
+     "options_ref": "course"
+    },
+    {
      "id": "change",
      "label": "Change",
      "kind": "one",
@@ -1819,6 +1903,12 @@
       "pre": "",
       "post": " onset"
      }
+    },
+    {
+     "id": "course",
+     "label": "Course",
+     "kind": "one",
+     "options_ref": "course"
     },
     {
      "id": "type",
@@ -1964,6 +2054,12 @@
       "pre": "",
       "post": " onset"
      }
+    },
+    {
+     "id": "course",
+     "label": "Course",
+     "kind": "one",
+     "options_ref": "course"
     },
     {
      "id": "timing",
@@ -2352,6 +2448,12 @@
      }
     },
     {
+     "id": "course",
+     "label": "Course",
+     "kind": "one",
+     "options_ref": "course"
+    },
+    {
      "id": "timing",
      "label": "Pain",
      "kind": "one",
@@ -2429,6 +2531,12 @@
       "pre": "",
       "post": " onset"
      }
+    },
+    {
+     "id": "course",
+     "label": "Course",
+     "kind": "one",
+     "options_ref": "course"
     },
     {
      "id": "timing",
@@ -2511,6 +2619,12 @@
      }
     },
     {
+     "id": "course",
+     "label": "Course",
+     "kind": "one",
+     "options_ref": "course"
+    },
+    {
      "id": "amount",
      "label": "Now",
      "kind": "one",
@@ -2570,6 +2684,12 @@
       "pre": "",
       "post": " onset"
      }
+    },
+    {
+     "id": "course",
+     "label": "Course",
+     "kind": "one",
+     "options_ref": "course"
     },
     {
      "id": "colour",
@@ -2652,6 +2772,12 @@
      }
     },
     {
+     "id": "course",
+     "label": "Course",
+     "kind": "one",
+     "options_ref": "course"
+    },
+    {
      "id": "pain",
      "label": "Painful",
      "kind": "one",
@@ -2718,6 +2844,12 @@
       "pre": "",
       "post": " onset"
      }
+    },
+    {
+     "id": "course",
+     "label": "Course",
+     "kind": "one",
+     "options_ref": "course"
     },
     {
      "id": "side",
@@ -2789,6 +2921,12 @@
       "pre": "",
       "post": " onset"
      }
+    },
+    {
+     "id": "course",
+     "label": "Course",
+     "kind": "one",
+     "options_ref": "course"
     },
     {
      "id": "type",
@@ -2876,6 +3014,12 @@
    "label": "Periods",
    "properties": [
     {
+     "id": "course",
+     "label": "Course",
+     "kind": "one",
+     "options_ref": "course"
+    },
+    {
      "id": "change",
      "label": "Change",
      "kind": "many",
@@ -2918,6 +3062,12 @@
       "pre": "",
       "post": " onset"
      }
+    },
+    {
+     "id": "course",
+     "label": "Course",
+     "kind": "one",
+     "options_ref": "course"
     },
     {
      "id": "side",
@@ -2985,6 +3135,12 @@
    "label": "Headache extras",
    "properties": [
     {
+     "id": "course",
+     "label": "Course",
+     "kind": "one",
+     "options_ref": "course"
+    },
+    {
      "id": "peak",
      "label": "Reached its worst",
      "kind": "one",
@@ -3037,6 +3193,12 @@
   "seizure": {
    "label": "Fits",
    "properties": [
+    {
+     "id": "course",
+     "label": "Course",
+     "kind": "one",
+     "options_ref": "course"
+    },
     {
      "id": "type",
      "label": "Type",
@@ -3272,6 +3434,12 @@
      }
     },
     {
+     "id": "course",
+     "label": "Course",
+     "kind": "one",
+     "options_ref": "course"
+    },
+    {
      "id": "type",
      "label": "Feels like",
      "kind": "one",
@@ -3466,6 +3634,12 @@
      }
     },
     {
+     "id": "course",
+     "label": "Course",
+     "kind": "one",
+     "options_ref": "course"
+    },
+    {
      "id": "eye",
      "label": "Eye",
      "kind": "one",
@@ -3533,6 +3707,12 @@
      }
     },
     {
+     "id": "course",
+     "label": "Course",
+     "kind": "one",
+     "options_ref": "course"
+    },
+    {
      "id": "eye",
      "label": "Eye",
      "kind": "one",
@@ -3593,6 +3773,12 @@
      }
     },
     {
+     "id": "course",
+     "label": "Course",
+     "kind": "one",
+     "options_ref": "course"
+    },
+    {
      "id": "side",
      "label": "Side",
      "kind": "one",
@@ -3649,6 +3835,12 @@
      }
     },
     {
+     "id": "course",
+     "label": "Course",
+     "kind": "one",
+     "options_ref": "course"
+    },
+    {
      "id": "side",
      "label": "Side",
      "kind": "one",
@@ -3699,6 +3891,12 @@
       "pre": "",
       "post": " onset"
      }
+    },
+    {
+     "id": "course",
+     "label": "Course",
+     "kind": "one",
+     "options_ref": "course"
     },
     {
      "id": "with",
@@ -3795,6 +3993,12 @@
      }
     },
     {
+     "id": "course",
+     "label": "Course",
+     "kind": "one",
+     "options_ref": "course"
+    },
+    {
      "id": "type",
      "label": "Type",
      "kind": "many",
@@ -3837,6 +4041,12 @@
       "pre": "",
       "post": " onset"
      }
+    },
+    {
+     "id": "course",
+     "label": "Course",
+     "kind": "one",
+     "options_ref": "course"
     },
     {
      "id": "side",
@@ -3900,6 +4110,12 @@
      }
     },
     {
+     "id": "course",
+     "label": "Course",
+     "kind": "one",
+     "options_ref": "course"
+    },
+    {
      "id": "number",
      "label": "Number",
      "kind": "one",
@@ -3934,6 +4150,12 @@
   "joint": {
    "label": "Joint pattern",
    "properties": [
+    {
+     "id": "course",
+     "label": "Course",
+     "kind": "one",
+     "options_ref": "course"
+    },
     {
      "id": "joints",
      "label": "Which joints",
@@ -4117,6 +4339,12 @@
      }
     },
     {
+     "id": "course",
+     "label": "Course",
+     "kind": "one",
+     "options_ref": "course"
+    },
+    {
      "id": "site",
      "label": "Where",
      "kind": "many",
@@ -4236,6 +4464,12 @@
      }
     },
     {
+     "id": "course",
+     "label": "Course",
+     "kind": "one",
+     "options_ref": "course"
+    },
+    {
      "id": "where",
      "label": "Where",
      "kind": "one",
@@ -4302,6 +4536,12 @@
       "pre": "",
       "post": " onset"
      }
+    },
+    {
+     "id": "course",
+     "label": "Course",
+     "kind": "one",
+     "options_ref": "course"
     },
     {
      "id": "site",
@@ -4411,6 +4651,12 @@
      }
     },
     {
+     "id": "course",
+     "label": "Course",
+     "kind": "one",
+     "options_ref": "course"
+    },
+    {
      "id": "site",
      "label": "Where",
      "kind": "one",
@@ -4494,6 +4740,12 @@
      }
     },
     {
+     "id": "course",
+     "label": "Course",
+     "kind": "one",
+     "options_ref": "course"
+    },
+    {
      "id": "site",
      "label": "From",
      "kind": "many",
@@ -4560,6 +4812,12 @@
   "weight": {
    "label": "Weight change",
    "properties": [
+    {
+     "id": "course",
+     "label": "Course",
+     "kind": "one",
+     "options_ref": "course"
+    },
     {
      "id": "kg",
      "label": "How much",
@@ -4702,6 +4960,12 @@
      }
     },
     {
+     "id": "course",
+     "label": "Course",
+     "kind": "one",
+     "options_ref": "course"
+    },
+    {
      "id": "level",
      "label": "Appetite",
      "kind": "one",
@@ -4749,6 +5013,12 @@
       "pre": "",
       "post": " onset"
      }
+    },
+    {
+     "id": "course",
+     "label": "Course",
+     "kind": "one",
+     "options_ref": "course"
     },
     {
      "id": "type",
@@ -4949,6 +5219,12 @@
      }
     },
     {
+     "id": "course",
+     "label": "Course",
+     "kind": "one",
+     "options_ref": "course"
+    },
+    {
      "id": "problem",
      "label": "Problem",
      "kind": "many",
@@ -5036,6 +5312,12 @@
    "label": "Thoughts of self-harm",
    "properties": [
     {
+     "id": "course",
+     "label": "Course",
+     "kind": "one",
+     "options_ref": "course"
+    },
+    {
      "id": "timing",
      "label": "When",
      "kind": "one",
@@ -5098,6 +5380,12 @@
       "pre": "",
       "post": " onset"
      }
+    },
+    {
+     "id": "course",
+     "label": "Course",
+     "kind": "one",
+     "options_ref": "course"
     },
     {
      "id": "with",

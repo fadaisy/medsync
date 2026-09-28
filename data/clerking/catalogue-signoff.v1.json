@@ -1,7 +1,7 @@
 {
   "catalogue": "MS-EMR-CLERK-CAT-001",
   "catalogueVersion": "1.0.0-draft",
-  "catalogueSha256": "472d095d6f1e129ef083876876116fbaabbc28487b5ac359411bad8a378b2b0c",
+  "catalogueSha256": "e2eb46015e10dffca0a5c138b53c3bce786ee8b1564236e688c5f77f021288f5",
   "signedBy": "Fadhul (owner and CSO)",
   "signedOn": "2026-09-27",
   "gate": "GATE A, clerking desk v2 (docs/emr/clerking-v2/gate-a-proposal.md)",
@@ -15,6 +15,11 @@
       "date": "2026-09-27",
       "gate": "GATE A (examination), TM2, signed by Fadhul",
       "change": "sym.scrotal sensitivity standard → sexual_reproductive_health (scrotal findings restricted in both catalogues). The handoff copy in docs/emr/clerking-v2 is unchanged."
+    },
+    {
+      "date": "2026-09-28",
+      "gate": "GATE A (summary and impression), D-SI-24, signed by Fadhul",
+      "change": "History catalogue v1.3 addendum: the shared course property (options_ref course: Getting worse, No change, Getting better, Comes and goes) added after onset to the 48 property families that lacked it; focal_neuro and confusion keep their own course options. The handoff copy in docs/emr/clerking-v2 is unchanged."
     }
   ]
 }
