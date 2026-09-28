@@ -1,0 +1,1195 @@
+{
+ "addendum": "CFC v1.2 (clerking v2)",
+ "status": "proposed — CSO to sign",
+ "generatedFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+ "findings": [
+  {
+   "id": "sx.fever",
+   "kind": "finding",
+   "display": "Fever",
+   "valueType": "presence",
+   "synonyms": [
+    "Hotness of body",
+    "Feeling hot",
+    "Pyrexia"
+   ],
+   "symptomCode": "fever",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.night_sweats",
+   "kind": "finding",
+   "display": "Night sweats",
+   "valueType": "presence",
+   "synonyms": [],
+   "symptomCode": "night_sweats",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.weight_gain",
+   "kind": "finding",
+   "display": "Weight gain",
+   "valueType": "presence",
+   "synonyms": [],
+   "symptomCode": "weight_change",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.loss_of_appetite",
+   "kind": "finding",
+   "display": "Loss of appetite",
+   "valueType": "presence",
+   "synonyms": [
+    "Anorexia",
+    "Not eating"
+   ],
+   "symptomCode": "appetite_change",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.hiccups",
+   "kind": "finding",
+   "display": "Hiccups",
+   "valueType": "presence",
+   "synonyms": [],
+   "symptomCode": "hiccups",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.chest_pain",
+   "kind": "finding",
+   "display": "Chest pain",
+   "valueType": "presence",
+   "synonyms": [
+    "Heart pain",
+    "Chest tightness"
+   ],
+   "symptomCode": "chest_pain",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.palpitations",
+   "kind": "finding",
+   "display": "Palpitations",
+   "valueType": "presence",
+   "synonyms": [
+    "Heart beating fast",
+    "Racing heart"
+   ],
+   "symptomCode": "palpitations",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.breathless_exertion",
+   "kind": "finding",
+   "display": "Breathless on exertion",
+   "valueType": "presence",
+   "synonyms": [
+    "Shortness of breath on walking"
+   ],
+   "symptomCode": "exertional_dyspnoea",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.orthopnoea",
+   "kind": "finding",
+   "display": "Breathless lying flat",
+   "valueType": "presence",
+   "synonyms": [],
+   "symptomCode": "orthopnoea",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.pnd",
+   "kind": "finding",
+   "display": "Waking breathless at night",
+   "valueType": "presence",
+   "synonyms": [],
+   "symptomCode": "paroxysmal_nocturnal_dyspnoea",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.fainting",
+   "kind": "finding",
+   "display": "Fainting or blackout",
+   "valueType": "presence",
+   "synonyms": [
+    "Collapse",
+    "Blacking out",
+    "Loss of consciousness"
+   ],
+   "symptomCode": "syncope",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.cough",
+   "kind": "finding",
+   "display": "Cough",
+   "valueType": "presence",
+   "synonyms": [],
+   "symptomCode": "cough",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.sputum",
+   "kind": "finding",
+   "display": "Sputum",
+   "valueType": "presence",
+   "synonyms": [
+    "Phlegm",
+    "Coughing up mucus"
+   ],
+   "symptomCode": "sputum",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.coughing_blood",
+   "kind": "finding",
+   "display": "Coughing blood",
+   "valueType": "presence",
+   "synonyms": [
+    "Haemoptysis",
+    "Blood in sputum"
+   ],
+   "symptomCode": "haemoptysis",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.breathlessness",
+   "kind": "finding",
+   "display": "Breathlessness",
+   "valueType": "presence",
+   "synonyms": [
+    "Shortness of breath",
+    "Difficulty in breathing",
+    "Dyspnoea"
+   ],
+   "symptomCode": "dyspnoea",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.wheeze",
+   "kind": "finding",
+   "display": "Wheeze",
+   "valueType": "presence",
+   "synonyms": [
+    "Whistling in the chest"
+   ],
+   "symptomCode": "wheeze",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.noisy_breathing",
+   "kind": "finding",
+   "display": "Noisy breathing (stridor)",
+   "valueType": "presence",
+   "synonyms": [],
+   "symptomCode": "noisy_breathing",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.snoring",
+   "kind": "finding",
+   "display": "Loud snoring or pauses in breathing",
+   "valueType": "presence",
+   "synonyms": [],
+   "symptomCode": "snoring",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.vomiting_blood",
+   "kind": "finding",
+   "display": "Vomiting blood",
+   "valueType": "presence",
+   "synonyms": [
+    "Haematemesis",
+    "Coffee-ground vomit"
+   ],
+   "symptomCode": "haematemesis",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.diarrhoea",
+   "kind": "finding",
+   "display": "Diarrhoea",
+   "valueType": "presence",
+   "synonyms": [
+    "Running stomach",
+    "Loose stools"
+   ],
+   "symptomCode": "diarrhoea",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.constipation",
+   "kind": "finding",
+   "display": "Constipation",
+   "valueType": "presence",
+   "synonyms": [
+    "Hard stools",
+    "Not opening bowels"
+   ],
+   "symptomCode": "constipation",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.bowel_change",
+   "kind": "finding",
+   "display": "Change in bowel habit",
+   "valueType": "presence",
+   "synonyms": [],
+   "symptomCode": "change_bowel_habit",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.rectal_bleeding",
+   "kind": "finding",
+   "display": "Bleeding from the back passage",
+   "valueType": "presence",
+   "synonyms": [
+    "Blood in stool",
+    "Rectal bleeding"
+   ],
+   "symptomCode": "rectal_bleeding",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.black_stools",
+   "kind": "finding",
+   "display": "Black, tarry stools",
+   "valueType": "presence",
+   "synonyms": [
+    "Melaena"
+   ],
+   "symptomCode": "rectal_bleeding",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.difficulty_swallowing",
+   "kind": "finding",
+   "display": "Difficulty swallowing",
+   "valueType": "presence",
+   "synonyms": [
+    "Dysphagia",
+    "Food sticking"
+   ],
+   "symptomCode": "dysphagia",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.heartburn",
+   "kind": "finding",
+   "display": "Heartburn or indigestion",
+   "valueType": "presence",
+   "synonyms": [
+    "Dyspepsia",
+    "Burning in the chest",
+    "Acid"
+   ],
+   "symptomCode": "heartburn_indigestion",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.abdominal_swelling",
+   "kind": "finding",
+   "display": "Swelling of the abdomen",
+   "valueType": "presence",
+   "synonyms": [
+    "Distension",
+    "Big tummy",
+    "Ascites"
+   ],
+   "symptomCode": "abdominal_distension",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.frequency",
+   "kind": "finding",
+   "display": "Going to pass urine often",
+   "valueType": "presence",
+   "synonyms": [
+    "Frequency"
+   ],
+   "symptomCode": "urinary_frequency",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.dysuria",
+   "kind": "finding",
+   "display": "Pain passing urine",
+   "valueType": "presence",
+   "synonyms": [
+    "Burning urine",
+    "Dysuria"
+   ],
+   "symptomCode": "dysuria",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.haematuria",
+   "kind": "finding",
+   "display": "Blood in urine",
+   "valueType": "presence",
+   "synonyms": [
+    "Haematuria",
+    "Red urine"
+   ],
+   "symptomCode": "haematuria",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.urine_output_low",
+   "kind": "finding",
+   "display": "Passing less urine",
+   "valueType": "presence",
+   "synonyms": [
+    "Reduced urine",
+    "Oliguria"
+   ],
+   "symptomCode": "urine_output_low",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.voiding_symptoms",
+   "kind": "finding",
+   "display": "Poor stream or dribbling",
+   "valueType": "presence",
+   "synonyms": [
+    "Prostate symptoms",
+    "Hesitancy"
+   ],
+   "symptomCode": "voiding_symptoms",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.incontinence",
+   "kind": "finding",
+   "display": "Leaking urine",
+   "valueType": "presence",
+   "synonyms": [
+    "Incontinence"
+   ],
+   "symptomCode": "incontinence",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.loin_pain",
+   "kind": "finding",
+   "display": "Loin pain",
+   "valueType": "presence",
+   "synonyms": [
+    "Flank pain",
+    "Kidney pain"
+   ],
+   "symptomCode": "loin_pain",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.urethral_discharge",
+   "kind": "finding",
+   "display": "Urethral discharge",
+   "valueType": "presence",
+   "synonyms": [],
+   "symptomCode": "urethral_vaginal_discharge",
+   "sensitivity": "restricted",
+   "restrictedClass": "sexual_reproductive_health",
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.genital_sore",
+   "kind": "finding",
+   "display": "Genital sore",
+   "valueType": "presence",
+   "synonyms": [
+    "Genital ulcer"
+   ],
+   "symptomCode": "genital_sore",
+   "sensitivity": "restricted",
+   "restrictedClass": "sexual_reproductive_health",
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.scrotal",
+   "kind": "finding",
+   "display": "Scrotal pain or swelling",
+   "valueType": "presence",
+   "synonyms": [
+    "Testicular pain"
+   ],
+   "symptomCode": "scrotal",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.vaginal_bleeding",
+   "kind": "finding",
+   "display": "Abnormal vaginal bleeding",
+   "valueType": "presence",
+   "synonyms": [],
+   "symptomCode": "intermenstrual_bleeding",
+   "sensitivity": "restricted",
+   "restrictedClass": "sexual_reproductive_health",
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.periods_change",
+   "kind": "finding",
+   "display": "Change in periods",
+   "valueType": "presence",
+   "synonyms": [
+    "Heavy periods",
+    "Painful periods",
+    "Missed period"
+   ],
+   "symptomCode": "dysmenorrhoea",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.vaginal_discharge",
+   "kind": "finding",
+   "display": "Vaginal discharge",
+   "valueType": "presence",
+   "synonyms": [],
+   "symptomCode": "urethral_vaginal_discharge",
+   "sensitivity": "restricted",
+   "restrictedClass": "sexual_reproductive_health",
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.pelvic_pain",
+   "kind": "finding",
+   "display": "Lower abdominal or pelvic pain",
+   "valueType": "presence",
+   "synonyms": [],
+   "symptomCode": "pelvic_pain",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.breast_lump",
+   "kind": "finding",
+   "display": "Breast lump or change",
+   "valueType": "presence",
+   "synonyms": [
+    "Breast swelling"
+   ],
+   "symptomCode": "lumps_swellings",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.headache",
+   "kind": "finding",
+   "display": "Headache",
+   "valueType": "presence",
+   "synonyms": [
+    "Head pain",
+    "Headache"
+   ],
+   "symptomCode": "headache",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.fits",
+   "kind": "finding",
+   "display": "Fits or seizures",
+   "valueType": "presence",
+   "synonyms": [
+    "Convulsions",
+    "Epilepsy attack"
+   ],
+   "symptomCode": "seizures_fits",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.focal_weakness",
+   "kind": "finding",
+   "display": "Weakness of a limb or face",
+   "valueType": "presence",
+   "synonyms": [
+    "Paralysis",
+    "Stroke symptoms"
+   ],
+   "symptomCode": "weakness",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.numbness",
+   "kind": "finding",
+   "display": "Numbness or tingling",
+   "valueType": "presence",
+   "synonyms": [
+    "Pins and needles",
+    "Paraesthesia"
+   ],
+   "symptomCode": "numbness_paraesthesia",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.dizziness",
+   "kind": "finding",
+   "display": "Dizziness",
+   "valueType": "presence",
+   "synonyms": [
+    "Vertigo",
+    "Light-headedness"
+   ],
+   "symptomCode": "dizziness",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.confusion",
+   "kind": "finding",
+   "display": "Confusion",
+   "valueType": "presence",
+   "synonyms": [
+    "Disorientation",
+    "Not making sense"
+   ],
+   "symptomCode": "confusion",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.memory_loss",
+   "kind": "finding",
+   "display": "Memory problems",
+   "valueType": "presence",
+   "synonyms": [
+    "Forgetfulness"
+   ],
+   "symptomCode": "memory_cognitive_change",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.speech_change",
+   "kind": "finding",
+   "display": "Speech difficulty",
+   "valueType": "presence",
+   "synonyms": [
+    "Slurred speech",
+    "Word-finding difficulty"
+   ],
+   "symptomCode": "speech_swallowing_disturbance",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.tremor",
+   "kind": "finding",
+   "display": "Tremor",
+   "valueType": "presence",
+   "synonyms": [
+    "Shaking"
+   ],
+   "symptomCode": "tremor",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.falls",
+   "kind": "finding",
+   "display": "Falls or unsteadiness",
+   "valueType": "presence",
+   "synonyms": [
+    "Falling",
+    "Unsteady walking"
+   ],
+   "symptomCode": "gait_disturbance",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.red_eye",
+   "kind": "finding",
+   "display": "Red eye",
+   "valueType": "presence",
+   "synonyms": [],
+   "symptomCode": "eye_symptoms",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.ear_pain",
+   "kind": "finding",
+   "display": "Ear pain or discharge",
+   "valueType": "presence",
+   "synonyms": [
+    "Earache",
+    "Ear discharge"
+   ],
+   "symptomCode": "ear_pain",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.hearing_loss",
+   "kind": "finding",
+   "display": "Hearing loss",
+   "valueType": "presence",
+   "synonyms": [],
+   "symptomCode": "hearing_loss_tinnitus",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.tinnitus",
+   "kind": "finding",
+   "display": "Ringing in the ears",
+   "valueType": "presence",
+   "synonyms": [
+    "Tinnitus"
+   ],
+   "symptomCode": "hearing_loss_tinnitus",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.sore_throat",
+   "kind": "finding",
+   "display": "Sore throat",
+   "valueType": "presence",
+   "synonyms": [],
+   "symptomCode": "sore_throat_hoarseness",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.hoarse_voice",
+   "kind": "finding",
+   "display": "Hoarse voice",
+   "valueType": "presence",
+   "synonyms": [
+    "Hoarseness",
+    "Voice change"
+   ],
+   "symptomCode": "sore_throat_hoarseness",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.nasal",
+   "kind": "finding",
+   "display": "Blocked or runny nose",
+   "valueType": "presence",
+   "synonyms": [],
+   "symptomCode": "nasal_symptoms",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.nosebleed",
+   "kind": "finding",
+   "display": "Nosebleed",
+   "valueType": "presence",
+   "synonyms": [
+    "Epistaxis"
+   ],
+   "symptomCode": "nasal_symptoms",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.mouth_ulcers",
+   "kind": "finding",
+   "display": "Mouth ulcers or sores",
+   "valueType": "presence",
+   "synonyms": [],
+   "symptomCode": "mouth_ulcers",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.joint_pain",
+   "kind": "finding",
+   "display": "Joint pain",
+   "valueType": "presence",
+   "synonyms": [
+    "Arthralgia",
+    "Painful joints"
+   ],
+   "symptomCode": "joint_pain",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.joint_swelling",
+   "kind": "finding",
+   "display": "Joint swelling",
+   "valueType": "presence",
+   "synonyms": [],
+   "symptomCode": "joint_swelling",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.back_pain",
+   "kind": "finding",
+   "display": "Back pain",
+   "valueType": "presence",
+   "synonyms": [
+    "Waist pain",
+    "Lower back pain"
+   ],
+   "symptomCode": "back_pain",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.neck_pain",
+   "kind": "finding",
+   "display": "Neck pain",
+   "valueType": "presence",
+   "synonyms": [],
+   "symptomCode": "neck_pain",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.bone_pain",
+   "kind": "finding",
+   "display": "Bone pain",
+   "valueType": "presence",
+   "synonyms": [],
+   "symptomCode": "bone_pain",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.muscle_pain",
+   "kind": "finding",
+   "display": "Muscle aches",
+   "valueType": "presence",
+   "synonyms": [
+    "Myalgia",
+    "Body aches"
+   ],
+   "symptomCode": "muscle_pain_weakness",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.muscle_weakness",
+   "kind": "finding",
+   "display": "Muscle weakness",
+   "valueType": "presence",
+   "synonyms": [
+    "Weak limbs"
+   ],
+   "symptomCode": "muscle_pain_weakness",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.rash",
+   "kind": "finding",
+   "display": "Rash",
+   "valueType": "presence",
+   "synonyms": [
+    "Skin eruption"
+   ],
+   "symptomCode": "rash",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.itch",
+   "kind": "finding",
+   "display": "Itch",
+   "valueType": "presence",
+   "synonyms": [
+    "Itching",
+    "Pruritus"
+   ],
+   "symptomCode": "pruritus",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.face_swelling",
+   "kind": "finding",
+   "display": "Swelling of lips, tongue or face",
+   "valueType": "presence",
+   "synonyms": [
+    "Angioedema",
+    "Swollen lips"
+   ],
+   "symptomCode": "face_swelling",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.skin_lesion",
+   "kind": "finding",
+   "display": "New or changing skin lesion",
+   "valueType": "presence",
+   "synonyms": [
+    "Mole",
+    "Wound that won't heal",
+    "Skin ulcer"
+   ],
+   "symptomCode": "new_changing_lesion_mole",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.hair_loss",
+   "kind": "finding",
+   "display": "Hair loss",
+   "valueType": "presence",
+   "synonyms": [],
+   "symptomCode": "hair_nail_change",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.heat_intolerance",
+   "kind": "finding",
+   "display": "Heat intolerance",
+   "valueType": "presence",
+   "synonyms": [],
+   "symptomCode": "heat_cold_intolerance",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.cold_intolerance",
+   "kind": "finding",
+   "display": "Cold intolerance",
+   "valueType": "presence",
+   "synonyms": [],
+   "symptomCode": "heat_cold_intolerance",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.neck_swelling",
+   "kind": "finding",
+   "display": "Neck swelling (goitre)",
+   "valueType": "presence",
+   "synonyms": [
+    "Goitre"
+   ],
+   "symptomCode": "neck_swelling_thyroid",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.excess_sweating",
+   "kind": "finding",
+   "display": "Excessive sweating",
+   "valueType": "presence",
+   "synonyms": [],
+   "symptomCode": "skin_hair_sweating_change",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.bleeding_tendency",
+   "kind": "finding",
+   "display": "Easy bruising or bleeding",
+   "valueType": "presence",
+   "synonyms": [],
+   "symptomCode": "easy_bruising_bleeding",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.recurrent_infections",
+   "kind": "finding",
+   "display": "Frequent infections",
+   "valueType": "presence",
+   "synonyms": [],
+   "symptomCode": "recurrent_infections",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.low_mood",
+   "kind": "finding",
+   "display": "Low mood",
+   "valueType": "presence",
+   "synonyms": [
+    "Depression",
+    "Sadness"
+   ],
+   "symptomCode": "low_mood",
+   "sensitivity": "restricted",
+   "restrictedClass": "mental_health",
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.anxiety",
+   "kind": "finding",
+   "display": "Anxiety",
+   "valueType": "presence",
+   "synonyms": [
+    "Worry",
+    "Panic"
+   ],
+   "symptomCode": "anxiety",
+   "sensitivity": "restricted",
+   "restrictedClass": "mental_health",
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.poor_sleep",
+   "kind": "finding",
+   "display": "Poor sleep",
+   "valueType": "presence",
+   "synonyms": [
+    "Insomnia"
+   ],
+   "symptomCode": "sleep_disturbance",
+   "sensitivity": "standard",
+   "restrictedClass": null,
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.unusual_experiences",
+   "kind": "finding",
+   "display": "Hearing voices or unusual beliefs",
+   "valueType": "presence",
+   "synonyms": [],
+   "symptomCode": "unusual_experiences",
+   "sensitivity": "restricted",
+   "restrictedClass": "mental_health",
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  },
+  {
+   "id": "sx.self_harm_thoughts",
+   "kind": "finding",
+   "display": "Thoughts of self-harm",
+   "valueType": "presence",
+   "synonyms": [],
+   "symptomCode": "self_harm_thoughts",
+   "sensitivity": "restricted",
+   "restrictedClass": "mental_health",
+   "qualifiersFrom": "MS-EMR-CLERK-CAT-001 1.0.0-draft",
+   "status": "proposed"
+  }
+ ],
+ "social": [
+  {
+   "id": "soc.tobacco_pack_years",
+   "kind": "observation",
+   "display": "Tobacco pack-years",
+   "valueType": "quantity",
+   "canonicalUnit": "pack-year",
+   "derivation": "cigarettes a day ÷ 20 × years (never typed)",
+   "status": "proposed"
+  },
+  {
+   "id": "soc.alcohol_pattern",
+   "kind": "observation",
+   "display": "Alcohol drinking pattern",
+   "valueType": "coded",
+   "answers": [
+    "none",
+    "occasionally",
+    "weekends",
+    "daily"
+   ],
+   "status": "proposed"
+  }
+ ]
+}

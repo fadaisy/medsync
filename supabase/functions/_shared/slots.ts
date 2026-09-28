@@ -625,6 +625,15 @@ export interface SessionTemplateRow {
   durationMinutes: number;
   validFrom: string;
   validUntil: string | null;
+  /** CLN-3 (0080): every N weeks, counted from the first occurrence on/after validFrom. Default 1. */
+  repeatEveryWeeks?: number;
+  /** CLN-3 (0080): only the nth such weekday of the month (1–5), or −1 for the last. */
+  nthWeekday?: number | null;
+}
+
+/** "YYYY-MM-DD" for a UTC-midnight civil day counter. */
+function civilYmd(civil: number): string {
+  return new Date(civil).toISOString().slice(0, 10);
 }
 
 /**
@@ -644,6 +653,8 @@ export function expandSessionTemplate(
   rangeStart: Instant,
   rangeEnd: Instant,
   timeZone: string,
+  /** CLN-4 (0080): civil days to leave out — public holidays, closures. */
+  skip?: (ymd: string) => boolean,
 ): { startsAt: Date; endsAt: Date }[] {
   const out: { startsAt: Date; endsAt: Date }[] = [];
   if (t.weekday < 1 || t.weekday > 7 || t.durationMinutes <= 0) return out;
@@ -658,9 +669,16 @@ export function expandSessionTemplate(
   const untilMs = t.validUntil ? civilDate(t.validUntil, "validUntil") : Number.POSITIVE_INFINITY;
   let civil = Math.max(fromMs, civilMidnight(localParts(rangeStartMs - durationMs, timeZone)));
   civil += ((t.weekday - isoWeekday(civil) + 7) % 7) * DAY_MS;
+  // The first occurrence on/after validFrom anchors "every N weeks".
+  const every = Math.max(1, Math.trunc(t.repeatEveryWeeks ?? 1));
+  const anchor = fromMs + ((t.weekday - isoWeekday(fromMs) + 7) % 7) * DAY_MS;
+  const nth = t.nthWeekday ?? null;
 
   for (; civil <= untilMs; civil += 7 * DAY_MS) {
     const day = new Date(civil);
+    if (every > 1 && Math.round((civil - anchor) / (7 * DAY_MS)) % every !== 0) continue;
+    if (nth !== null && !isNthWeekday(day, nth)) continue;
+    if (skip?.(civilYmd(civil))) continue;
     const startMs = instantAtLocal(
       day.getUTCFullYear(),
       day.getUTCMonth() + 1,
@@ -673,6 +691,18 @@ export function expandSessionTemplate(
     if (endMs > rangeStartMs) out.push({ startsAt: new Date(startMs), endsAt: new Date(endMs) });
   }
   return out;
+}
+
+/** Is this civil day the nth (1–5) of its weekday in its month, or the last (−1)? */
+function isNthWeekday(day: Date, nth: number): boolean {
+  const date = day.getUTCDate();
+  if (nth === -1) {
+    const daysInMonth = new Date(
+      Date.UTC(day.getUTCFullYear(), day.getUTCMonth() + 1, 0),
+    ).getUTCDate();
+    return date + 7 > daysInMonth;
+  }
+  return Math.ceil(date / 7) === nth;
 }
 
 /** "2026-09-15" → that civil date as a UTC-midnight day counter. Throws on anything else. */

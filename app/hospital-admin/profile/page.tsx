@@ -1,9 +1,13 @@
 import type { Metadata } from "next";
+import { eq } from "drizzle-orm";
 
 import { Panel, SectionRule } from "@/components/medsync/panel";
+import { db } from "@/db";
+import { hospitalClinicalSettings } from "@/db/schema/clerking";
 import { fetchEmergencySettings } from "@/lib/emergency/queries";
 import { requireHospitalAdminScope } from "@/lib/hospital-admin/scope";
 import { EmergencySettingsForm } from "./_components/emergency-settings-form";
+import { OutbreakModeForm } from "./_components/outbreak-mode-form";
 
 export const metadata: Metadata = { title: "Profile · Hospital admin · MedSync" };
 export const dynamic = "force-dynamic";
@@ -26,6 +30,16 @@ const LEVEL_LABEL: Record<string, string> = {
 export default async function ProfilePage() {
   const scope = await requireHospitalAdminScope();
   const settings = await fetchEmergencySettings(scope.hospitalId);
+  // Before migration 0076 the table does not exist: the panel says so (null).
+  const outbreak = await db
+    .select({
+      on: hospitalClinicalSettings.outbreakMode,
+      reason: hospitalClinicalSettings.outbreakReason,
+    })
+    .from(hospitalClinicalSettings)
+    .where(eq(hospitalClinicalSettings.hospitalId, scope.hospitalId))
+    .then((r) => r[0] ?? { on: false, reason: null })
+    .catch(() => null);
 
   const identity: [string, string][] = [
     ["Name", scope.hospitalName],
@@ -39,7 +53,7 @@ export default async function ProfilePage() {
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-5 sm:px-6">
       <header className="flex flex-col gap-1">
         <span className="text-muted-foreground inline-flex w-fit items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
-          <span aria-hidden className="bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2" />
+          <span aria-hidden className="bg-slate-icon ring-slate-edge size-1 rounded-full ring-2" />
           {scope.hospitalName} · Profile
         </span>
         <SectionRule title="Hospital profile" />
@@ -69,6 +83,10 @@ export default async function ProfilePage() {
               tell the superadmin.
             </p>
           )}
+        </Panel>
+
+        <Panel title="Outbreak mode">
+          <OutbreakModeForm on={outbreak?.on ?? null} reason={outbreak?.reason ?? null} />
         </Panel>
       </div>
     </div>

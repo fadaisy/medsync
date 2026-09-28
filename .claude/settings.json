@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'if [ \"$CLAUDE_CODE_REMOTE\" != \"true\" ] || [ -d node_modules ]; then exit 0; fi; npm ci'",
+            "timeout": 600
+          }
+        ]
+      }
+    ]
+  }
+}

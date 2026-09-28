@@ -1,0 +1,123 @@
+{
+  "id": "MS-EMR-CLERK-OPS-001",
+  "title": "Past operations: pick list for past surgical history",
+  "version": "1.0.0-draft",
+  "status": "draft, awaiting Clinical Safety Officer review",
+  "note": "Names only, for recognition: no indications, no dates, no codes to external systems. Anything not here is typed as the patient names it. applies_to_sex hides an item only when the patient's sex is known and different; sensitivity follows the clerking catalogue (restricted items carry a lock and never appear in patient-facing text).",
+  "groups": [
+    {
+      "id": "general",
+      "label": "General and abdominal",
+      "items": [
+        { "id": "op.appendicectomy", "label": "Appendicectomy" },
+        { "id": "op.laparotomy", "label": "Laparotomy", "terms": ["exploratory laparotomy", "opened the abdomen"] },
+        { "id": "op.hernia_inguinal", "label": "Inguinal hernia repair", "terms": ["groin hernia", "herniorrhaphy"] },
+        { "id": "op.hernia_other", "label": "Other hernia repair", "terms": ["umbilical hernia", "incisional hernia"] },
+        { "id": "op.cholecystectomy", "label": "Gallbladder removal", "terms": ["cholecystectomy"] },
+        { "id": "op.bowel_resection", "label": "Bowel resection", "terms": ["colectomy", "bowel removed"] },
+        { "id": "op.stoma", "label": "Colostomy or ileostomy", "terms": ["stoma", "bag"] },
+        { "id": "op.ulcer_repair", "label": "Perforated ulcer repair", "terms": ["peptic ulcer surgery"] },
+        { "id": "op.splenectomy", "label": "Spleen removal", "terms": ["splenectomy"] },
+        { "id": "op.haemorrhoidectomy", "label": "Haemorrhoid surgery", "terms": ["piles", "haemorrhoidectomy"] },
+        { "id": "op.anal_fistula", "label": "Anal fistula or fissure surgery" },
+        { "id": "op.lump_excision", "label": "Removal of a lump", "terms": ["excision", "lipoma", "cyst"] },
+        { "id": "op.abscess_drainage", "label": "Abscess drainage", "terms": ["incision and drainage", "pus drained"] }
+      ]
+    },
+    {
+      "id": "obstetric_gynae",
+      "label": "Obstetric and gynaecological",
+      "items": [
+        { "id": "op.caesarean", "label": "Caesarean section", "terms": ["C-section", "operation for delivery"], "applies_to_sex": "female" },
+        { "id": "op.hysterectomy", "label": "Hysterectomy", "terms": ["womb removed"], "applies_to_sex": "female" },
+        { "id": "op.myomectomy", "label": "Fibroid removal", "terms": ["myomectomy"], "applies_to_sex": "female" },
+        { "id": "op.ovarian_cystectomy", "label": "Ovarian cyst surgery", "applies_to_sex": "female" },
+        { "id": "op.ectopic", "label": "Surgery for ectopic pregnancy", "applies_to_sex": "female", "sensitivity": "sexual_reproductive_health" },
+        { "id": "op.tubal_ligation", "label": "Tubal ligation", "terms": ["tubes tied", "sterilisation"], "applies_to_sex": "female", "sensitivity": "sexual_reproductive_health" },
+        { "id": "op.uterine_evacuation", "label": "Evacuation of the uterus", "terms": ["D&C", "MVA", "washout", "evacuation"], "applies_to_sex": "female", "sensitivity": "sexual_reproductive_health" },
+        { "id": "op.cerclage", "label": "Cervical stitch", "terms": ["cerclage"], "applies_to_sex": "female" },
+        { "id": "op.fistula_repair", "label": "Obstetric fistula repair", "terms": ["VVF", "RVF"], "applies_to_sex": "female" }
+      ]
+    },
+    {
+      "id": "urology",
+      "label": "Urology",
+      "items": [
+        { "id": "op.prostatectomy", "label": "Prostate surgery", "terms": ["prostatectomy", "TURP"], "applies_to_sex": "male" },
+        { "id": "op.hydrocelectomy", "label": "Hydrocele repair", "applies_to_sex": "male" },
+        { "id": "op.circumcision", "label": "Circumcision", "terms": ["SMC", "safe male circumcision"], "applies_to_sex": "male" },
+        { "id": "op.vasectomy", "label": "Vasectomy", "applies_to_sex": "male", "sensitivity": "sexual_reproductive_health" },
+        { "id": "op.orchidectomy", "label": "Testicle removal", "terms": ["orchidectomy"], "applies_to_sex": "male" },
+        { "id": "op.urethral_stricture", "label": "Urethral stricture surgery", "terms": ["urethroplasty", "urethrotomy"] },
+        { "id": "op.stone_removal", "label": "Kidney or bladder stone removal", "terms": ["lithotomy"] },
+        { "id": "op.nephrectomy", "label": "Kidney removal", "terms": ["nephrectomy"] },
+        { "id": "op.suprapubic_catheter", "label": "Suprapubic catheter" }
+      ]
+    },
+    {
+      "id": "orthopaedic",
+      "label": "Bones, joints and trauma",
+      "items": [
+        { "id": "op.fracture_fixation", "label": "Fracture fixation", "terms": ["ORIF", "plate", "nail", "metal in the bone"] },
+        { "id": "op.amputation", "label": "Amputation" },
+        { "id": "op.hip_replacement", "label": "Hip replacement" },
+        { "id": "op.knee_replacement", "label": "Knee replacement" },
+        { "id": "op.sequestrectomy", "label": "Surgery for bone infection", "terms": ["sequestrectomy", "osteomyelitis"] },
+        { "id": "op.spine", "label": "Spine surgery", "terms": ["back operation"] },
+        { "id": "op.debridement", "label": "Wound debridement", "terms": ["wound cleaned in theatre"] },
+        { "id": "op.skin_graft", "label": "Skin graft", "terms": ["burns surgery"] }
+      ]
+    },
+    {
+      "id": "head_neck_breast",
+      "label": "Head, neck and breast",
+      "items": [
+        { "id": "op.thyroidectomy", "label": "Thyroid surgery", "terms": ["thyroidectomy", "goitre operation"] },
+        { "id": "op.tonsillectomy", "label": "Tonsil or adenoid removal", "terms": ["tonsillectomy", "adenoidectomy"] },
+        { "id": "op.tracheostomy", "label": "Tracheostomy" },
+        { "id": "op.cleft_repair", "label": "Cleft lip or palate repair" },
+        { "id": "op.mastectomy", "label": "Mastectomy", "terms": ["breast removed"] },
+        { "id": "op.breast_lump", "label": "Breast lump removal", "terms": ["lumpectomy"] }
+      ]
+    },
+    {
+      "id": "chest_heart",
+      "label": "Chest and heart",
+      "items": [
+        { "id": "op.valve", "label": "Heart valve surgery" },
+        { "id": "op.cabg", "label": "Heart bypass", "terms": ["CABG"] },
+        { "id": "op.pacemaker", "label": "Pacemaker" },
+        { "id": "op.pericardial", "label": "Pericardial drainage or window", "terms": ["pericardiocentesis", "pericardiectomy"] },
+        { "id": "op.chest_drain", "label": "Chest drain", "terms": ["chest tube"] },
+        { "id": "op.thoracotomy", "label": "Thoracotomy", "terms": ["lung surgery"] }
+      ]
+    },
+    {
+      "id": "neuro",
+      "label": "Brain and nerves",
+      "items": [
+        { "id": "op.craniotomy", "label": "Craniotomy", "terms": ["brain surgery", "head operation"] },
+        { "id": "op.burr_hole", "label": "Burr hole", "terms": ["blood drained from the brain"] },
+        { "id": "op.vp_shunt", "label": "Shunt for hydrocephalus", "terms": ["VP shunt"] }
+      ]
+    },
+    {
+      "id": "eye",
+      "label": "Eye",
+      "items": [
+        { "id": "op.cataract", "label": "Cataract surgery" },
+        { "id": "op.glaucoma", "label": "Glaucoma surgery", "terms": ["trabeculectomy"] },
+        { "id": "op.trichiasis", "label": "Trichiasis surgery", "terms": ["eyelid surgery", "trachoma"] },
+        { "id": "op.eye_removal", "label": "Eye removal", "terms": ["enucleation", "evisceration"] }
+      ]
+    },
+    {
+      "id": "vascular_renal",
+      "label": "Vessels and dialysis access",
+      "items": [
+        { "id": "op.av_fistula", "label": "Fistula for dialysis", "terms": ["AV fistula"] },
+        { "id": "op.varicose_veins", "label": "Varicose vein surgery" }
+      ]
+    }
+  ]
+}

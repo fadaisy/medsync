@@ -1,0 +1,97 @@
+catalogue_symptom,label,vocabulary,token,status
+sym.fever,Fever,symptom_catalog,fever,matched
+sym.night_sweats,Night sweats,symptom_catalog,night_sweats,matched
+sym.weight_loss,Weight loss,symptom_catalog,weight_loss,matched
+sym.weight_gain,Weight gain,symptom_catalog,weight_change,broader
+sym.fatigue,Tiredness,clinical_concepts,sx.fatigue,matched
+sym.loss_of_appetite,Loss of appetite,symptom_catalog,appetite_change,broader
+sym.hiccups,Hiccups,,,propose
+sym.chest_pain,Chest pain,symptom_catalog,chest_pain,matched
+sym.palpitations,Palpitations,symptom_catalog,palpitations,matched
+sym.breathless_exertion,Breathless on exertion,symptom_catalog,exertional_dyspnoea,broader
+sym.orthopnoea,Breathless lying flat,symptom_catalog,orthopnoea,matched
+sym.pnd,Waking breathless at night,symptom_catalog,paroxysmal_nocturnal_dyspnoea,broader
+sym.leg_swelling,Leg swelling,clinical_concepts,sign.oedema,matched
+sym.fainting,Fainting or blackout,symptom_catalog,syncope,matched
+sym.claudication,Leg pain on walking,clinical_concepts,sx.claudication,matched
+sym.cough,Cough,symptom_catalog,cough,matched
+sym.sputum,Sputum,symptom_catalog,sputum,matched
+sym.coughing_blood,Coughing blood,symptom_catalog,haemoptysis,matched
+sym.breathlessness,Breathlessness,symptom_catalog,dyspnoea,matched
+sym.wheeze,Wheeze,symptom_catalog,wheeze,matched
+sym.noisy_breathing,Noisy breathing (stridor),,,propose
+sym.snoring,Loud snoring or pauses in breathing,,,propose
+sym.abdominal_pain,Abdominal pain,clinical_concepts,sx.abdominal_pain,matched
+sym.nausea_vomiting,Nausea or vomiting,clinical_concepts,sx.vomiting,matched
+sym.vomiting_blood,Vomiting blood,symptom_catalog,haematemesis,matched
+sym.diarrhoea,Diarrhoea,symptom_catalog,diarrhoea,matched
+sym.constipation,Constipation,,,propose
+sym.bowel_change,Change in bowel habit,symptom_catalog,change_bowel_habit,matched
+sym.rectal_bleeding,Bleeding from the back passage,symptom_catalog,rectal_bleeding,matched
+sym.black_stools,"Black, tarry stools",symptom_catalog,rectal_bleeding,matched
+sym.difficulty_swallowing,Difficulty swallowing,symptom_catalog,dysphagia,matched
+sym.heartburn,Heartburn or indigestion,symptom_catalog,heartburn_indigestion,broader
+sym.abdominal_swelling,Swelling of the abdomen,symptom_catalog,abdominal_distension,broader
+sym.jaundice,Yellow eyes or skin,clinical_concepts,sign.jaundice,matched
+sym.polyuria,Passing a lot of urine,clinical_concepts,sx.polyuria,matched
+sym.nocturia,Waking at night to pass urine,clinical_concepts,sx.nocturia,matched
+sym.frequency,Going to pass urine often,symptom_catalog,urinary_frequency,broader
+sym.dysuria,Pain passing urine,symptom_catalog,dysuria,matched
+sym.haematuria,Blood in urine,symptom_catalog,haematuria,matched
+sym.urine_output_low,Passing less urine,,,propose
+sym.voiding_symptoms,Poor stream or dribbling,symptom_catalog,voiding_symptoms,matched
+sym.incontinence,Leaking urine,symptom_catalog,incontinence,matched
+sym.loin_pain,Loin pain,,,propose
+sym.urethral_discharge,Urethral discharge,symptom_catalog,urethral_vaginal_discharge,matched
+sym.genital_sore,Genital sore,,,propose
+sym.scrotal,Scrotal pain or swelling,,,propose
+sym.vaginal_bleeding,Abnormal vaginal bleeding,symptom_catalog,intermenstrual_bleeding,broader
+sym.periods_change,Change in periods,symptom_catalog,dysmenorrhoea,matched
+sym.vaginal_discharge,Vaginal discharge,symptom_catalog,urethral_vaginal_discharge,matched
+sym.pelvic_pain,Lower abdominal or pelvic pain,,,propose
+sym.breast_lump,Breast lump or change,symptom_catalog,lumps_swellings,broader
+sym.headache,Headache,symptom_catalog,headache,matched
+sym.fits,Fits or seizures,symptom_catalog,seizures_fits,broader
+sym.focal_weakness,Weakness of a limb or face,symptom_catalog,weakness,broader
+sym.numbness,Numbness or tingling,symptom_catalog,numbness_paraesthesia,broader
+sym.dizziness,Dizziness,symptom_catalog,dizziness,matched
+sym.confusion,Confusion,,,propose
+sym.memory_loss,Memory problems,symptom_catalog,memory_cognitive_change,broader
+sym.speech_change,Speech difficulty,symptom_catalog,speech_swallowing_disturbance,broader
+sym.blurred_vision,Change in vision,clinical_concepts,sx.blurred_vision,matched
+sym.tremor,Tremor,symptom_catalog,tremor,matched
+sym.falls,Falls or unsteadiness,symptom_catalog,gait_disturbance,broader
+sym.red_eye,Red eye,symptom_catalog,eye_symptoms,matched
+sym.ear_pain,Ear pain or discharge,,,propose
+sym.hearing_loss,Hearing loss,symptom_catalog,hearing_loss_tinnitus,matched
+sym.tinnitus,Ringing in the ears,symptom_catalog,hearing_loss_tinnitus,matched
+sym.sore_throat,Sore throat,symptom_catalog,sore_throat_hoarseness,matched
+sym.hoarse_voice,Hoarse voice,symptom_catalog,sore_throat_hoarseness,matched
+sym.nasal,Blocked or runny nose,symptom_catalog,nasal_symptoms,broader
+sym.nosebleed,Nosebleed,symptom_catalog,nasal_symptoms,matched
+sym.mouth_ulcers,Mouth ulcers or sores,,,propose
+sym.joint_pain,Joint pain,symptom_catalog,joint_pain,matched
+sym.joint_swelling,Joint swelling,symptom_catalog,joint_swelling,matched
+sym.back_pain,Back pain,symptom_catalog,back_pain,matched
+sym.neck_pain,Neck pain,,,propose
+sym.bone_pain,Bone pain,,,propose
+sym.muscle_pain,Muscle aches,symptom_catalog,muscle_pain_weakness,matched
+sym.muscle_weakness,Muscle weakness,symptom_catalog,muscle_pain_weakness,matched
+sym.rash,Rash,symptom_catalog,rash,matched
+sym.itch,Itch,symptom_catalog,pruritus,matched
+sym.face_swelling,"Swelling of lips, tongue or face",,,propose
+sym.skin_lesion,New or changing skin lesion,symptom_catalog,new_changing_lesion_mole,broader
+sym.hair_loss,Hair loss,symptom_catalog,hair_nail_change,broader
+sym.polydipsia,Excessive thirst,clinical_concepts,sx.polydipsia,matched
+sym.heat_intolerance,Heat intolerance,symptom_catalog,heat_cold_intolerance,broader
+sym.cold_intolerance,Cold intolerance,symptom_catalog,heat_cold_intolerance,broader
+sym.neck_swelling,Neck swelling (goitre),symptom_catalog,neck_swelling_thyroid,matched
+sym.excess_sweating,Excessive sweating,symptom_catalog,skin_hair_sweating_change,broader
+sym.bleeding_tendency,Easy bruising or bleeding,symptom_catalog,easy_bruising_bleeding,broader
+sym.lumps_lymph,"Lumps in the neck, armpit or groin",clinical_concepts,sign.lymphadenopathy,matched
+sym.recurrent_infections,Frequent infections,symptom_catalog,recurrent_infections,matched
+sym.low_mood,Low mood,symptom_catalog,low_mood,matched
+sym.anxiety,Anxiety,symptom_catalog,anxiety,matched
+sym.poor_sleep,Poor sleep,symptom_catalog,sleep_disturbance,broader
+sym.unusual_experiences,Hearing voices or unusual beliefs,,,propose
+sym.self_harm_thoughts,Thoughts of self-harm,,,propose

@@ -1,0 +1,1183 @@
+"use client";
+
+import type { NcdSeed } from "./ncd-section";
+import type { PregnancyWrite } from "@/components/clerking/conversion-dialog";
+import type {
+  AllergyWrite,
+  MedicineAdd,
+  MedicinePatch,
+} from "@/components/clerking/past-history-body";
+import type { DeskPayload } from "@/components/emr/desk/model";
+import type { DxPick } from "@/components/emr/desk/pickers";
+import type { DxOptions, VitalEntry } from "@/components/emr/desk/sections";
+import type { NoteContent } from "@/lib/emr/note-rules";
+import type { ActionResult } from "@/lib/emr/write/context";
+import type { CaptureMap } from "@/lib/ncd/engine/evaluate";
+import type { ReactNode } from "react";
+import dynamic from "next/dynamic";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
+
+import { ClerkingDesk } from "@/components/clerking/clerking-desk";
+import { examOf, withExam } from "@/components/clerking/exam/model";
+import {
+  CLERKING_KEY_HELP,
+  clerkingKey,
+  deriveDesk,
+  v2CommittedWords,
+  withConditionOnList,
+} from "@/components/clerking/model";
+import { useCatalogue, useExamCatalogue } from "@/components/clerking/use-catalogue";
+import { AllergyEditorView, substanceOf } from "@/components/emr/desk/allergy-editor";
+import { CompleteVisitView } from "@/components/emr/desk/complete";
+import { ContextRailView } from "@/components/emr/desk/context-rail";
+import { DeskView } from "@/components/emr/desk/desk-view";
+import {
+  addendumFlow,
+  closeFlow,
+  completeFlow,
+  cosignFlow,
+  createAutosave,
+  createIntentKeys,
+  enteredInErrorFlow,
+  signFlow,
+  UNKNOWN_OUTCOME,
+} from "@/components/emr/desk/flows";
+import {
+  answerProblem,
+  atEmptyLineStart,
+  committedWords,
+  deskIndex,
+  deskKey,
+  deskValidation,
+  INSERT_TARGETS,
+  KEY_HELP,
+  putItem,
+  saveWords,
+  sectionPosition,
+  sectionWith,
+  syncRecorded,
+} from "@/components/emr/desk/model";
+import { SignCheckView } from "@/components/emr/desk/sign";
+import { EmrDialog } from "@/components/emr/emr-dialog";
+import { formatters } from "@/components/emr/format";
+import { SectionIndexView } from "@/components/emr/section-index";
+import { Button } from "@/components/ui/button";
+import { DialogTrigger } from "@/components/ui/dialog";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ALLERGY_SOURCE_TO_INFORMANT, medicationSourceFor } from "@/lib/clerking/record-map";
+import { SECTIONS } from "@/lib/clerking/status";
+import { closeEncounterAdministratively, completeEncounter } from "@/lib/emr/actions/encounter";
+import {
+  assertAllergyStatus,
+  confirmCurrentMedicines,
+  markFactEnteredInError,
+  recordAllergy,
+  recordEncounterDiagnosis,
+  recordMedicationStatements,
+  recordObservations,
+  recordPregnancy,
+  recordProblem,
+  updateMedicineDetails,
+  updateProblemStatus,
+} from "@/lib/emr/actions/facts";
+import { acceptSuggestedOrder, dismissSuggestedOrder } from "@/lib/emr/actions/intents";
+import {
+  addAddendum,
+  convertDraftToV2,
+  cosignNote,
+  markNoteEnteredInError,
+  saveNoteDraft,
+  signNote,
+} from "@/lib/emr/actions/notes";
+import { clockWarning, correctedNow, initialClock, observe } from "@/lib/emr/sync/clock";
+import { attachToWindow, createWriteQueue } from "@/lib/emr/sync/queue";
+import { deskFindingIndex, deskTermIndex, deskTermSearch } from "./actions";
+
+/**
+ * The clerking desk's one client island: it holds the note content, the current section and the
+ * write queue, and wires the pure DeskView to the server actions. Keys (UI-BRIEF §4) never
+ * animate; every pop-up is a centred dialog (EmrDialog, ADR 0161: 150 ms, centred origin, reduced
+ * motion drops movement).
+ * After a chart action lands, router.refresh() reloads the payload; the note content stays here.
+ */
+
+const surface = "doctor" as const;
+const EMPTY: readonly never[] = [];
+const newKey = () => crypto.randomUUID();
+
+const NcdSection = dynamic(() => import("./ncd-section"), {
+  ssr: false,
+  loading: () => <p className="text-body-s text-muted-foreground">Loading the NCD module…</p>,
+});
+
+type Msg = { ok: boolean; text: string } | null;
+
+export function DeskClient({
+  p,
+  rail,
+  ncdSeed,
+  orders,
+}: {
+  p: DeskPayload;
+  rail?: ReactNode;
+  ncdSeed?: NcdSeed | null;
+  orders?: ReactNode;
+}) {
+  const router = useRouter();
+  const fmt = useMemo(() => formatters(p.timeZone), [p.timeZone]);
+  const patientUserId = p.encounter.patientUserId;
+  const encounterId = p.encounter.id;
+
+  const [content, setContent] = useState<NoteContent>(() => p.draft?.content ?? { sections: {} });
+  const contentRef = useRef(content);
+  const index = useMemo(() => deskIndex(p, content), [p, content]);
+  // Clerking desk v2 (CLERKING_V2 on, the v2 template in use): its own shell and steps.
+  const v2 = !!p.clerking;
+  const { cat, failed: catalogueFailed } = useCatalogue(p.clerking?.catalogueUrl);
+  const { cat: ecat, failed: examFailed } = useExamCatalogue(p.clerking?.exam.catalogueUrl);
+  const [current, setCurrent] = useState(() => (v2 ? SECTIONS[0].id : (index[0]?.id ?? "")));
+  const [announce, setAnnounce] = useState<Msg>(null);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [signing, setSigning] = useState(false);
+  const [sheet, setSheet] = useState<
+    null | "allergy" | "complete" | "sign" | "help" | "index" | "context"
+  >(null);
+  const [insertOpen, setInsertOpen] = useState(false);
+  const [sheetMsg, setSheetMsg] = useState<Msg>(null);
+  // "Code it" (clerking v2): the allergy editor starts from this uncoded allergy, which is marked a
+  // duplicate once the coded one is saved.
+  const [coding, setCoding] = useState<{ id: string; name: string } | null>(null);
+  const [savedAt, setSavedAt] = useState<string | null>(null);
+  // The server-anchored clock: the queue reads the latest sample; the page shows its warning.
+  const [clock, setClock] = useState(() => initialClock(p.serverTime, Date.now()));
+  const [{ queue, latest }] = useState(() => {
+    const latest = { clock: initialClock(p.serverTime, Date.now()) };
+    return {
+      latest,
+      queue: createWriteQueue({ now: () => correctedNow(latest.clock, Date.now()) }),
+    };
+  });
+  const [, bump] = useState(0);
+
+  const entries = useSyncExternalStore(queue.subscribe, queue.getSnapshot, () => EMPTY);
+  const [online, setOnline] = useState(true);
+  const [autosave] = useState(() =>
+    createAutosave({
+      queue,
+      debounceMs: p.settings.autosaveDebounceMs,
+      initial: { noteId: p.draft?.noteId ?? null, revision: p.draft?.revision ?? null },
+      save: (i) =>
+        saveNoteDraft({
+          surface,
+          patientUserId,
+          encounterId,
+          templateId: p.template.id,
+          ...i,
+        }) as Promise<ActionResult<{ id: string; revision: number }>>,
+      onSaved: (r) => {
+        setSavedAt(r.serverTime);
+        latest.clock = observe(latest.clock, r);
+        setClock(latest.clock);
+      },
+      onChange: () => bump((n) => n + 1),
+    }),
+  );
+
+  useEffect(() => {
+    const detach = attachToWindow(queue, window);
+    const net = () => setOnline(navigator.onLine);
+    net();
+    window.addEventListener("online", net);
+    window.addEventListener("offline", net);
+    // Leaving the tab: send what is waiting now rather than after the debounce.
+    const hide = () => document.visibilityState === "hidden" && autosave.flush();
+    document.addEventListener("visibilitychange", hide);
+    // The debounce not yet sent also keeps the tab from closing silently.
+    const unload = (e: BeforeUnloadEvent) => {
+      if (!autosave.dirty()) return;
+      autosave.flush();
+      e.preventDefault();
+    };
+    window.addEventListener("beforeunload", unload);
+    return () => {
+      detach();
+      window.removeEventListener("online", net);
+      window.removeEventListener("offline", net);
+      document.removeEventListener("visibilitychange", hide);
+      window.removeEventListener("beforeunload", unload);
+      autosave.dispose();
+    };
+  }, [queue, autosave]);
+
+  const change = useCallback(
+    (next: NoteContent) => {
+      contentRef.current = next;
+      setContent(next);
+      autosave.change(next);
+    },
+    [autosave],
+  );
+
+  // A refreshed payload may hold new diagnoses or orders: mirror them into the note. A new draft
+  // that starts with the triage complaint is held (autosave.adopt) until the viewer's first edit
+  // or signing: opening someone's encounter to review it must not leave a draft in their name.
+  const firstSave = useRef(p.draft !== null && p.draft.noteId === null);
+  useEffect(() => {
+    if (p.draft === null) return;
+    const next = syncRecorded(contentRef.current, p);
+    if (next !== contentRef.current || (firstSave.current && Object.keys(next.sections).length)) {
+      firstSave.current = false;
+      contentRef.current = next;
+      setContent(next);
+      autosave.adopt(next);
+    }
+  }, [p, autosave]);
+
+  /* ─── Sections and keys (instant, never animated) ──────────────── */
+
+  const go = useCallback(
+    (id: string, focus?: string) => {
+      autosave.flush();
+      setCurrent(id);
+      setSheet((s) => (s === "index" ? null : s));
+      requestAnimationFrame(() => {
+        document.getElementById(`desk-${id}`)?.scrollIntoView({ block: "start" });
+        const el =
+          (focus && document.getElementById(focus)) ||
+          document.getElementById(`desk-${id}-heading`);
+        el?.focus({ preventScroll: true });
+      });
+    },
+    [autosave],
+  );
+
+  // Another clerking form: the server renders the desk with it (the page keys this island by
+  // template), and the first autosave creates the draft with it.
+  const switchTemplate = useCallback(
+    (id: string) =>
+      router.replace(`/doctor/encounters/${encounterId}?template=${encodeURIComponent(id)}`, {
+        scroll: false,
+      }),
+    [router, encounterId],
+  );
+
+  const validation = deskValidation(p, content);
+  const editable = p.draft !== null;
+  const openSign = useCallback(() => {
+    if (!editable) return;
+    setSheetMsg(null);
+    setSheet("sign");
+  }, [editable]);
+
+  const doSign = useCallback(async () => {
+    if (p.clerking) {
+      // D-CV-05: the Flags panel as the clinician sees it goes into the note before signing.
+      if (!cat) {
+        setSheetMsg({ ok: false, text: "The clerking catalogue is still loading. Try again." });
+        return;
+      }
+      change({ ...contentRef.current, flags: deriveDesk(cat, p, contentRef.current).badges });
+    }
+    setSigning(true);
+    const r = await signFlow({
+      autosave,
+      sign: (i) => signNote({ surface, patientUserId, ...i }),
+    });
+    setSigning(false);
+    if (!r.ok) {
+      setSheetMsg({ ok: false, text: r.message });
+      return;
+    }
+    setSheet(null);
+    setAnnounce({ ok: true, text: [r.message, ...r.warnings].join(" ") });
+    router.refresh();
+  }, [autosave, patientUserId, router, p, cat, change]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      const inField = !!t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName));
+      const ta = t instanceof HTMLTextAreaElement ? t : null;
+      if (v2) {
+        // Examination (exam v2 §5.16): [ ] move parts, { } systems, a p e x g act on the step; the
+        // step's own listener handles them. j, k and the number keys still move steps.
+        if (
+          current === "exam" &&
+          !inField &&
+          !e.ctrlKey &&
+          !e.metaKey &&
+          !e.altKey &&
+          /^[[\]{}apexg]$/.test(e.key)
+        )
+          return;
+        // Inside a pop-up only the sign chord acts; y, n and d act on the focused yes/no row.
+        const row = t?.closest<HTMLElement>("[data-yesno]") ?? null;
+        const k = clerkingKey(
+          {
+            key: e.key,
+            ctrlKey: e.ctrlKey,
+            metaKey: e.metaKey,
+            altKey: e.altKey,
+            inField,
+            inYesNo: !!row,
+          },
+          {
+            current: Math.max(
+              0,
+              SECTIONS.findIndex((x) => x.id === current),
+            ),
+            count: SECTIONS.length,
+          },
+        );
+        if (!k || ((sheet || t?.closest('[role="dialog"]')) && k.type !== "sign")) return;
+        if (k.type === "sign" && sheet && sheet !== "sign") return;
+        e.preventDefault();
+        if (k.type === "section") go(SECTIONS[k.index]!.id);
+        else if (k.type === "search") go("complaint", "clerking-complaint-search");
+        else if (k.type === "help") setSheet("help");
+        else if (k.type === "answer")
+          row?.querySelector<HTMLButtonElement>(`[data-answer="${k.answer}"]`)?.click();
+        else if (k.type === "details")
+          row?.querySelector<HTMLButtonElement>("[data-details]")?.click();
+        else if (sheet !== "sign") openSign();
+        else if (validation.canSign) void doSign();
+        return;
+      }
+      const a = deskKey(
+        {
+          key: e.key,
+          ctrlKey: e.ctrlKey,
+          metaKey: e.metaKey,
+          altKey: e.altKey,
+          inField,
+          atEmptyLineStart:
+            !!ta &&
+            ta.selectionStart === ta.selectionEnd &&
+            atEmptyLineStart(ta.value, ta.selectionStart),
+        },
+        {
+          current: Math.max(
+            0,
+            index.findIndex((x) => x.id === current),
+          ),
+          count: index.length,
+        },
+      );
+      if (!a) return;
+      // Another sheet is open: only the sign chord inside the sign dialog acts.
+      if (sheet && !(sheet === "sign" && a.type === "sign")) return;
+      e.preventDefault();
+      if (a.type === "section") go(index[a.index]!.id);
+      else if (a.type === "insert") setInsertOpen(true);
+      else if (a.type === "help") setSheet("help");
+      else if (sheet !== "sign") openSign();
+      else if (validation.canSign) void doSign();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [v2, index, current, sheet, go, openSign, doSign, validation.canSign]);
+
+  /* ─── Chart actions (commit at once) ────────────────────────────── */
+
+  // One client key per intent (the entry as tapped), reused when a tap got no reply.
+  const [intents] = useState(() => createIntentKeys(newKey));
+  const run = useCallback(
+    async (
+      key: string,
+      act: (clientKey: string) => Promise<ActionResult<unknown>>,
+      words: string,
+      entry?: unknown,
+    ) => {
+      setBusy(key);
+      let r: ActionResult<unknown>;
+      try {
+        r = await intents.run(`${key}:${JSON.stringify(entry ?? null)}`, act);
+      } catch {
+        r = { ok: false, code: "conflict", error: UNKNOWN_OUTCOME };
+      }
+      setBusy(null);
+      if (r.ok) {
+        setAnnounce({ ok: true, text: [words, ...(r.warnings ?? [])].join(" ") });
+        router.refresh();
+      } else setAnnounce({ ok: false, text: r.error });
+      return r;
+    },
+    [router, intents],
+  );
+  const base = { surface, patientUserId };
+  const problemSection = sectionWith(p.template, "problem_list");
+  const vitalsSection = sectionWith(p.template, "vital_signs");
+  const primaryId = p.diagnoses.find((d) => d.rank === "primary")?.id;
+
+  const on = {
+    onContent: change,
+    onSection: (id: string) => go(id),
+    onFocusSection: (id: string) => setCurrent(id),
+    onSign: openSign,
+    onTemplate: autosave.ids().noteId ? undefined : switchTemplate,
+    onComplete: () => {
+      setSheetMsg(null);
+      setSheet("complete");
+    },
+    onAllergyEditor: () => {
+      setSheetMsg(null);
+      setCoding(null);
+      setSheet("allergy");
+    },
+    // Clerking v2 Past history: medicines and allergies write at once (D-CV-10).
+    onRecordMedicine: (m: MedicineAdd) =>
+      run(
+        "med:add",
+        (clientKey) =>
+          recordMedicationStatements({
+            ...base,
+            clientKey,
+            encounterId,
+            statements: [
+              {
+                drugText: m.drugText,
+                medicationStatus: "active",
+                medicationSource: medicationSourceFor(m.informant),
+                ...(m.informant ? { informant: m.informant } : {}),
+                ...(m.restricted ? { restricted: true } : {}),
+              },
+            ],
+          }),
+        "Medicine added",
+        m,
+      ).then((r) => r.ok),
+    onMedicineDetails: (statementId: string, patch: MedicinePatch) =>
+      void run(
+        `med:${statementId}`,
+        (clientKey) =>
+          updateMedicineDetails({ ...base, clientKey, encounterId, statementId, ...patch }),
+        "Medicine updated",
+        patch,
+      ),
+    onAllergy: (a: AllergyWrite) =>
+      run(
+        a.supersedesId ? `allergy:${a.supersedesId}` : "allergy:add",
+        (clientKey) =>
+          recordAllergy({
+            ...base,
+            clientKey,
+            encounterId,
+            ...(a.supersedesId
+              ? { supersedesId: a.supersedesId }
+              : { substance: substanceOf(a.substanceText ?? "", p.substances) }),
+            ...(a.manifestations ? { manifestations: a.manifestations } : {}),
+            ...(a.severity ? { severity: a.severity } : {}),
+            ...(a.informant ? { informant: ALLERGY_SOURCE_TO_INFORMANT[a.informant] } : {}),
+            ...(a.verification ? { verification: a.verification, reasonCode: a.reasonCode } : {}),
+          }),
+        a.verification === "refuted" ? "Recorded as not an allergy" : "Allergy saved",
+        a,
+      ).then((r) => r.ok),
+    // X on a medicine or allergy first recorded here by this clinician: void it, no questions.
+    onRemoveAddedHere: (kind: "medication" | "allergy", id: string) =>
+      run(
+        `${kind === "medication" ? "med" : "allergy"}:${id}`,
+        (clientKey) =>
+          markFactEnteredInError({
+            ...base,
+            clientKey,
+            kind,
+            id,
+            reasonCode: "recorded_in_error",
+            reasonText: "Removed at clerking, the visit it was added",
+          }),
+        "Removed",
+        [kind, id],
+      ).then((r) => r.ok),
+    onCodeAllergy: (id: string, name: string) => {
+      setSheetMsg(null);
+      setCoding({ id, name });
+      setSheet("allergy");
+    },
+    onRecordPregnancy: (w: PregnancyWrite) =>
+      run(
+        `pregnancy:${w.pregnancyState}:${w.lnmp ?? ""}`,
+        (clientKey) => recordPregnancy({ ...base, clientKey, encounterId, ...w }),
+        w.lnmp ? "Last menstrual period recorded" : "Pregnancy status recorded",
+        w,
+      ).then((r) => r.ok),
+    onAssertAllergy: (assertion: "no_known_drug_allergies") =>
+      void run(
+        "allergy:status",
+        (clientKey) => assertAllergyStatus({ ...base, clientKey, encounterId, assertion }),
+        "No known drug allergies recorded",
+        assertion,
+      ),
+    onConfirmCondition: (condition: string, pick: DxPick) =>
+      void run(
+        `problem:add:${condition}`,
+        (clientKey) =>
+          recordProblem({
+            ...base,
+            clientKey,
+            encounterId,
+            ...("term" in pick ? { termId: pick.term.id } : { text: pick.typed }),
+          }),
+        "Problem added",
+        pick,
+      ).then((r) => {
+        if (r.ok && p.clerking)
+          change(withConditionOnList(contentRef.current, condition, p.clerking.catalogueVersion));
+      }),
+    onProblem: (
+      id: string,
+      display: string,
+      answer: "confirmed" | "resolved",
+      reasonCode?: string,
+    ) => {
+      if (!problemSection) return;
+      if (answer === "confirmed")
+        return change(
+          answerProblem(contentRef.current, problemSection, { id, display }, "confirmed"),
+        );
+      void run(
+        `problem:${id}`,
+        (clientKey) =>
+          updateProblemStatus({
+            ...base,
+            clientKey,
+            id,
+            clinicalStatus: "resolved",
+            reasonCode,
+          }),
+        "Problem resolved",
+        reasonCode,
+      ).then((r) => {
+        if (r.ok)
+          change(
+            answerProblem(
+              contentRef.current,
+              problemSection,
+              { id, display },
+              "resolved",
+              reasonCode,
+            ),
+          );
+      });
+    },
+    onAddProblem: (pick: DxPick) =>
+      void run(
+        "problem:add",
+        (clientKey) =>
+          recordProblem({
+            ...base,
+            clientKey,
+            encounterId,
+            ...("term" in pick ? { termId: pick.term.id } : { text: pick.typed }),
+          }),
+        "Problem added",
+        pick,
+      ),
+    onMedicine: (
+      id: string,
+      reconciliation: "continued" | "stopped" | "changed",
+      reasonCode?: string,
+    ) =>
+      run(
+        `med:${id}`,
+        (clientKey) =>
+          confirmCurrentMedicines({
+            ...base,
+            clientKey,
+            encounterId,
+            items: [{ id, reconciliation, ...(reasonCode ? { reasonCode } : {}) }],
+          }),
+        reconciliation === "continued" ? "Medicine continued" : `Medicine ${reconciliation}`,
+        [reconciliation, reasonCode],
+      ).then((r) => r.ok),
+    onAddMedicine: (text: string) =>
+      void run(
+        "med:add",
+        (clientKey) =>
+          recordMedicationStatements({
+            ...base,
+            clientKey,
+            encounterId,
+            statements: [
+              { drugText: text, medicationStatus: "active", medicationSource: "patient_reported" },
+            ],
+          }),
+        "Medicine added",
+        text,
+      ),
+    onVitals: (list: VitalEntry[]) => {
+      void run(
+        "vitals",
+        // The reading set is the intent's key too, so a retried set is the same set.
+        (readingSetId) =>
+          recordObservations({
+            ...base,
+            clientKey: readingSetId,
+            encounterId,
+            observations: list.map((e) => {
+              const c = p.vitalConcepts.find((v) => v.conceptId === e.conceptId);
+              return {
+                conceptId: e.conceptId,
+                value: {
+                  type: "quantity" as const,
+                  value: e.value.trim(),
+                  ...(e.unit ? { unit: e.unit } : {}),
+                },
+                unitConfirmed: e.unitConfirmed,
+                ...(e.fastingState ? { fastingState: e.fastingState } : {}),
+                ...(c?.context?.specimen ? { specimen: c.context.specimen } : {}),
+                ...(c?.context?.pointOfCare ? { pointOfCare: true } : {}),
+                ...(e.conceptId.startsWith("obs.bp_") ? { context: { readingSetId } } : {}),
+              };
+            }),
+          }),
+        "Vital signs recorded",
+        list,
+      ).then((r) => {
+        if (r.ok && vitalsSection)
+          change(
+            putItem(contentRef.current, vitalsSection, (i) => i.kind === "vital_signs", {
+              kind: "vital_signs",
+              recordedHere: true,
+            }),
+          );
+      });
+    },
+    onDiagnosis: (pick: DxPick, o: DxOptions) =>
+      void run(
+        "dx",
+        (clientKey) =>
+          recordEncounterDiagnosis({
+            ...base,
+            clientKey,
+            encounterId,
+            ...("term" in pick ? { termId: pick.term.id } : { text: pick.typed }),
+            verification: o.verification,
+            rank: o.primary ? "primary" : "secondary",
+            addToProblemList: o.addToProblemList ?? false,
+          }),
+        "Diagnosis added",
+        [pick, o],
+      ),
+    onSuggestion: (key: string, a: { accept: string } | { dismiss: true }) => {
+      const s = p.suggestions.find((x) => x.key === key);
+      if (s?.source === "resus_handover") {
+        // Already a proposed order on this visit: accept places it, dismiss records it.
+        const proposal = { surface, patientUserId, encounterId, proposedOrderId: key };
+        return void run(
+          `suggestion:${key}`,
+          () => ("accept" in a ? acceptSuggestedOrder(proposal) : dismissSuggestedOrder(proposal)),
+          "accept" in a ? "Ordered" : "Suggestion dismissed",
+          a,
+        );
+      }
+      const triageRecordId = p.encounter.triageRecordId;
+      if (!triageRecordId) return;
+      const ref = { surface, patientUserId, encounterId, triageRecordId, recommendationKey: key };
+      void run(
+        `suggestion:${key}`,
+        (clientKey) =>
+          "accept" in a
+            ? acceptSuggestedOrder({
+                ...ref,
+                order: {
+                  clientKey,
+                  testId: a.accept,
+                  priority: "routine",
+                  ...(primaryId
+                    ? { reasonConditionIds: [primaryId] }
+                    : { reasonText: `Suggested by triage: ${s?.text ?? key}`.slice(0, 500) }),
+                },
+              })
+            : dismissSuggestedOrder(ref),
+        "accept" in a ? "Ordered" : "Suggestion dismissed",
+        a,
+      );
+    },
+    onCosign: (noteId: string, withAddendum?: { text: string; reason: string }) =>
+      void (async () => {
+        setBusy(`cosign:${noteId}`);
+        if (withAddendum) {
+          const a = await addendumFlow(
+            (i) =>
+              intents.run(`addendum:${noteId}:${JSON.stringify(i)}`, (clientKey) =>
+                addAddendum({ ...base, clientKey, parentNoteId: noteId, ...i }),
+              ),
+            withAddendum,
+          );
+          if (!a.ok) {
+            setBusy(null);
+            return setAnnounce({ ok: false, text: a.message });
+          }
+        }
+        const r = await cosignFlow(() =>
+          intents.run(`cosign:${noteId}`, (clientKey) =>
+            cosignNote({ ...base, noteId, clientKey }),
+          ),
+        );
+        setBusy(null);
+        setAnnounce({ ok: r.ok, text: r.message });
+        if (r.ok) router.refresh();
+      })(),
+    onAddendum: (noteId: string, text: string, reason: string) =>
+      void addendumFlow(
+        (i) =>
+          intents.run(`addendum:${noteId}:${JSON.stringify(i)}`, (clientKey) =>
+            addAddendum({ ...base, clientKey, parentNoteId: noteId, ...i }),
+          ),
+        { text, reason },
+      ).then((r) => {
+        setAnnounce({ ok: r.ok, text: r.message });
+        if (r.ok) router.refresh();
+      }),
+    onEnteredInError: (noteId: string, reasonCode: string | null, reasonText: string) =>
+      void enteredInErrorFlow(
+        (i) =>
+          intents.run(`eie:${noteId}:${JSON.stringify(i)}`, (clientKey) =>
+            markNoteEnteredInError({ ...base, noteId, clientKey, ...i }),
+          ),
+        { reasonCode, reasonText },
+      ).then((r) => {
+        setAnnounce({ ok: r.ok, text: r.message });
+        if (r.ok) router.refresh();
+      }),
+  };
+
+  /* ─── Slots ─────────────────────────────────────────────────────── */
+
+  const ncdSection = sectionWith(p.template, "ncd_capture");
+  const ncdValues = ncdSection
+    ? (content.sections[ncdSection]?.items?.find((i) => i.kind === "ncd_capture")?.values as
+        | CaptureMap
+        | undefined)
+    : undefined;
+  const ncd =
+    ncdSection && ncdSeed && editable && current === ncdSection ? (
+      <NcdSection
+        seed={{ ...ncdSeed, initialValues: { ...ncdSeed.initialValues, ...(ncdValues ?? {}) } }}
+        onChange={(values) =>
+          change(
+            putItem(contentRef.current, ncdSection, (i) => i.kind === "ncd_capture", {
+              kind: "ncd_capture",
+              values,
+              // What was pre-filled from the record: signing projects it, never copies it.
+              ...(ncdSeed.pulled ? { pulled: ncdSeed.pulled.values } : {}),
+            }),
+          )
+        }
+      />
+    ) : ncdSection ? (
+      <Button variant="secondary" className="w-fit" onClick={() => go(ncdSection)}>
+        Open the NCD module
+      </Button>
+    ) : null;
+
+  const at = index.findIndex((e) => e.id === current);
+  const save = saveWords(
+    {
+      online,
+      waiting: entries.length,
+      failed: entries.find((e) => e.status === "failed")?.error ?? null,
+      savedAt,
+      dirty: autosave.dirty(),
+    },
+    fmt.time,
+  );
+
+  const tools = (
+    <span className="inline-flex items-center gap-1">
+      <Popover open={insertOpen} onOpenChange={setInsertOpen}>
+        <PopoverTrigger
+          render={<Button variant="ghost" size="sm" aria-keyshortcuts="/" disabled={!editable} />}
+        >
+          Insert <kbd className="font-mono">/</kbd>
+        </PopoverTrigger>
+        <PopoverContent className="w-56 p-1" align="end">
+          <ul role="menu" aria-label="Insert">
+            {INSERT_TARGETS.map((t) => {
+              const sid = sectionWith(p.template, t.kind);
+              return sid ? (
+                <li key={t.id} role="none">
+                  <button
+                    role="menuitem"
+                    type="button"
+                    className="text-body-s hover:bg-muted focus-visible:bg-muted flex min-h-11 w-full items-center rounded-md px-3 text-left outline-none sm:min-h-9"
+                    onClick={() => {
+                      setInsertOpen(false);
+                      go(sid, t.focus);
+                    }}
+                  >
+                    {t.label}
+                  </button>
+                </li>
+              ) : null;
+            })}
+          </ul>
+        </PopoverContent>
+      </Popover>
+      <Button variant="ghost" size="sm" aria-keyshortcuts="?" onClick={() => setSheet("help")}>
+        Keys <kbd className="font-mono">?</kbd>
+      </Button>
+    </span>
+  );
+
+  const indexDialog = (
+    <EmrDialog
+      open={sheet === "index"}
+      onOpenChange={(o) => setSheet(o ? "index" : null)}
+      title="This note"
+      trigger={
+        <DialogTrigger className="border-border text-body-s focus-visible:shadow-focus inline-flex min-h-11 w-full items-center justify-between rounded-md border px-3 outline-none">
+          <span className="text-muted-foreground font-mono tabular-nums">
+            {sectionPosition(index, current)}
+          </span>
+          <span className="text-foreground font-medium">{index[at]?.title}</span>
+        </DialogTrigger>
+      }
+    >
+      <SectionIndexView
+        label="Note sections"
+        items={index.map((e) => ({
+          id: e.id,
+          label: `${e.number} ${e.title}`,
+          href: `#desk-${e.id}`,
+        }))}
+        current={current}
+        onSelect={(id, e) => {
+          e.preventDefault();
+          go(id);
+        }}
+      />
+    </EmrDialog>
+  );
+
+  const contextDialog = (
+    <EmrDialog
+      open={sheet === "context"}
+      onOpenChange={(o) => setSheet(o ? "context" : null)}
+      title="Context"
+      description={
+        <>
+          <span>{p.patient.name}</span>{" "}
+          <span className="font-mono tabular-nums">{p.patient.mrn}</span>
+        </>
+      }
+      trigger={
+        <DialogTrigger render={<Button variant="secondary" size="sm" />}>Context</DialogTrigger>
+      }
+    >
+      <ContextRailView p={p} fmt={fmt} />
+    </EmrDialog>
+  );
+
+  // A v1 draft on a hospital whose full form is now v2: the old desk as before, plus a way over.
+  // Never automatic (payload v2, v1 coexistence).
+  const convertible =
+    !v2 &&
+    p.template.id === "tpl.clerking.adult_opd" &&
+    p.fullForm === "tpl.clerking.adult_v2" &&
+    !!p.draft?.noteId;
+  const convert = async () => {
+    setBusy("convert");
+    autosave.flush();
+    try {
+      await autosave.idle();
+    } catch {
+      /* the conversion answers with the revision conflict itself */
+    }
+    const { noteId, revision } = autosave.ids();
+    const r = noteId
+      ? await convertDraftToV2({ surface, patientUserId, noteId, revision: revision ?? 0 })
+      : null;
+    setBusy(null);
+    if (r && !r.ok) setAnnounce({ ok: false, text: r.error });
+    else router.refresh();
+  };
+  const loaders = { findings: deskFindingIndex, terms: deskTermIndex, searchTerms: deskTermSearch };
+
+  return (
+    <>
+      {convertible ? (
+        <div className="border-border bg-card flex flex-wrap items-center gap-x-4 gap-y-2 border-b px-4 py-3 md:px-8">
+          <p className="text-body-s text-foreground">
+            This draft was started in the previous format.
+          </p>
+          <Button
+            variant="secondary"
+            size="sm"
+            disabled={busy === "convert"}
+            onClick={() => void convert()}
+          >
+            Continue in the new format
+          </Button>
+        </div>
+      ) : null}
+      {v2 ? (
+        <ClerkingDesk
+          p={p}
+          cat={cat}
+          catalogueFailed={catalogueFailed || examFailed}
+          ecat={ecat}
+          actor={p.viewer.cadreWord}
+          onSaveSet={(lines, readingSetId, fields) => {
+            const send = () =>
+              recordObservations({
+                ...base,
+                // One set, one batch: the reading-set id is the batch key, so a resend is the same set.
+                clientKey: readingSetId,
+                encounterId,
+                observations: lines,
+              });
+            if (typeof navigator !== "undefined" && !navigator.onLine) {
+              // Offline (exam v2 §11 Phase 7): the desk's write queue sends it when back online.
+              queue.submit({
+                label: "Vital signs",
+                run: async () => (await send()) as ActionResult<{ id: string }>,
+                onSaved: () => {
+                  const exam = examOf(contentRef.current, ecat?.version ?? "");
+                  change(
+                    withExam(
+                      contentRef.current,
+                      {
+                        ...exam,
+                        vitalsDraft: undefined,
+                        vitalsSavedAt: new Date().toISOString(),
+                        vitalsSavedFields: fields,
+                      },
+                      p.clerking!.catalogueVersion,
+                    ),
+                  );
+                  router.refresh();
+                },
+              });
+              return Promise.resolve("queued" as const);
+            }
+            return run("vitals", send, "Vital signs saved as a new set", readingSetId).then(
+              (r) => r.ok,
+            );
+          }}
+          content={content}
+          current={current}
+          save={save}
+          clockWarning={clockWarning(clock)}
+          announce={announce}
+          on={on}
+          busy={busy}
+          signing={signing}
+          loaders={loaders}
+          slots={{
+            orders,
+            tools: (
+              <Button
+                variant="ghost"
+                size="sm"
+                aria-keyshortcuts="?"
+                onClick={() => setSheet("help")}
+              >
+                Keys <kbd className="font-mono">?</kbd>
+              </Button>
+            ),
+          }}
+        />
+      ) : (
+        <DeskView
+          p={p}
+          content={content}
+          current={current}
+          save={save}
+          clockWarning={clockWarning(clock)}
+          announce={announce}
+          on={on}
+          busy={busy}
+          signing={signing}
+          loaders={loaders}
+          slots={{ rail, ncd, orders, indexDialog, contextDialog, tools }}
+        />
+      )}
+
+      <EmrDialog
+        open={sheet === "sign"}
+        onOpenChange={(o) => setSheet(o ? "sign" : null)}
+        title="Sign note"
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setSheet(null)}>
+              Cancel
+            </Button>
+            <Button onClick={() => void doSign()} disabled={!validation.canSign || signing}>
+              Sign note
+            </Button>
+          </>
+        }
+      >
+        <div className="flex flex-col gap-4">
+          <SignCheckView
+            validation={validation}
+            requiredMessages={p.template.minimumToSign.required.map((r) => ({
+              id: r.id,
+              message: r.message,
+            }))}
+            committed={
+              p.clerking && cat
+                ? v2CommittedWords(cat, p.clerking, content, committedWords(content))
+                : committedWords(content)
+            }
+            mustCosign={p.viewer.mustCosign}
+          />
+          {sheetMsg && !sheetMsg.ok ? (
+            <p role="status" className="text-body-s text-foreground">
+              {sheetMsg.text}
+            </p>
+          ) : null}
+        </div>
+      </EmrDialog>
+
+      <EmrDialog
+        open={sheet === "help"}
+        onOpenChange={(o) => setSheet(o ? "help" : null)}
+        title="Keys on the clerking desk"
+      >
+        <div className="flex flex-col gap-4">
+          <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2">
+            {(v2 ? CLERKING_KEY_HELP : KEY_HELP).map(([k, what]) => (
+              <div key={k} className="contents">
+                <dt className="text-body-s font-mono">{k}</dt>
+                <dd className="text-body-s text-muted-foreground">{what}</dd>
+              </div>
+            ))}
+          </dl>
+          <p className="text-caption text-muted-foreground">
+            {v2
+              ? "Off inside text fields, except the sign keys."
+              : "Off inside text fields, except the sign keys and / at the start of an empty line."}
+          </p>
+        </div>
+      </EmrDialog>
+
+      <EmrDialog
+        open={sheet === "allergy"}
+        onOpenChange={(o) => {
+          setSheet(o ? "allergy" : null);
+          if (!o) setCoding(null);
+        }}
+        title="Allergies"
+      >
+        <AllergyEditorView
+          key={coding?.id ?? "new"}
+          initialText={coding?.name}
+          line={p.safetyBar.allergy}
+          patient={p.patient}
+          substances={p.substances}
+          pending={busy === "allergy"}
+          message={sheetMsg}
+          onAssert={(assertion) =>
+            void run(
+              "allergy",
+              (clientKey) => assertAllergyStatus({ ...base, clientKey, encounterId, assertion }),
+              assertion === "no_known_drug_allergies"
+                ? "No known drug allergies recorded"
+                : "Unable to assess recorded",
+              assertion,
+            ).then((r) =>
+              setSheetMsg(
+                r.ok ? { ok: true, text: "Allergy status saved" } : { ok: false, text: r.error },
+              ),
+            )
+          }
+          onSave={(d) =>
+            void run(
+              "allergy",
+              (clientKey) =>
+                recordAllergy({
+                  ...base,
+                  clientKey,
+                  encounterId,
+                  substance: substanceOf(d.text, p.substances),
+                  category: d.category,
+                  allergyType: d.allergyType,
+                  manifestations: d.manifestations,
+                  ...(d.severity ? { severity: d.severity } : {}),
+                  ...(d.criticality ? { criticality: d.criticality } : {}),
+                  verification: d.verification,
+                  informant: d.informant,
+                }),
+              "Allergy saved",
+              d,
+            ).then(async (r) => {
+              // Coded from an uncoded entry: that entry is now a duplicate of this one. Saved first,
+              // voided second, so a failure leaves both listed, never neither.
+              if (r.ok && coding) {
+                const was = coding;
+                setCoding(null);
+                await run(
+                  `allergy:${was.id}`,
+                  (clientKey) =>
+                    markFactEnteredInError({
+                      ...base,
+                      clientKey,
+                      kind: "allergy",
+                      id: was.id,
+                      reasonCode: "duplicate",
+                      reasonText: `Recorded again, coded: ${d.text.trim()}`.slice(0, 1000),
+                    }),
+                  "Allergy coded",
+                  was,
+                );
+              }
+              setSheetMsg(
+                r.ok ? { ok: true, text: "Allergy saved" } : { ok: false, text: r.error },
+              );
+            })
+          }
+        />
+      </EmrDialog>
+
+      <EmrDialog
+        open={sheet === "complete"}
+        onOpenChange={(o) => setSheet(o ? "complete" : null)}
+        title="Complete visit"
+        description={
+          <>
+            <span>{p.patient.name}</span>{" "}
+            <span className="font-mono tabular-nums">{p.patient.mrn}</span>
+          </>
+        }
+      >
+        <CompleteVisitView
+          p={p}
+          pending={busy === "complete"}
+          message={sheetMsg}
+          onComplete={(input) =>
+            void (async () => {
+              autosave.flush();
+              setBusy("complete");
+              const r = await completeFlow(
+                (i) => completeEncounter({ ...base, encounterId, ...i }),
+                input,
+              );
+              setBusy(null);
+              setSheetMsg({
+                ok: r.ok,
+                text: r.ok ? [r.message, ...r.warnings].join(" ") : r.message,
+              });
+              if (r.ok) router.refresh();
+            })()
+          }
+          onClose={(input) =>
+            void (async () => {
+              setBusy("complete");
+              const r = await closeFlow(
+                (i) => closeEncounterAdministratively({ ...base, encounterId, ...i }),
+                input,
+              );
+              setBusy(null);
+              setSheetMsg({ ok: r.ok, text: r.message });
+              if (r.ok) router.refresh();
+            })()
+          }
+        />
+      </EmrDialog>
+    </>
+  );
+}

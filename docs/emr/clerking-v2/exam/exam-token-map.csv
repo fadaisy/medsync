@@ -1,0 +1,271 @@
+exam_id,label,response_type,cfc_concept,status,note
+ex.general.appearance,General appearance,choice,exam.general_appearance,propose,Choice; answers are the option ids; looks_well is the expected answer
+ex.general.facies,Facies,presence,sign.characteristic_facies,propose,Types are qualifiers. periorbital_puffiness overlaps ex.general.oedema extent=periorbital (undeclared)
+ex.general.facies:type=malar_flush,Facies: Malar flush,presence/option,sign.malar_flush,propose,Also ex.cardiovascular.peripheral_stigmata:seen=malar_flush with no mirror declared
+ex.general.distress,Distress,presence,sign.distress,propose,distress_severity result -> FindingFact.severity (mild|moderate|severe)
+ex.general.distress:type=respiratory,Distress: Respiratory,presence/option,sign.increased_work_of_breathing,propose,Shared attribute: owner ex.respiratory.work_of_breathing writes the one fact
+ex.general.distress:pain_nrs,Distress: Pain score,presence/attribute,obs.pain_score,vital,"context scale=nrs_0_10 (qualifiers.scale, as the legacy projection does)"
+ex.general.distress:rass,Distress: RASS,presence/attribute,obs.rass,propose,No CFC concept for RASS
+ex.general.build,Body build,choice,exam.body_build,propose,Clinician impression; BMI class is a derived classifier result from derived.bmi
+ex.general.posture,Posture,choice,exam.posture,propose,"Three expected options (lying/sitting comfortably, walking about)"
+ex.general.odour,Odour,presence,sign.abnormal_odour,propose,Smell ids as qualifiers
+ex.general.odour:smells=ketones_fruity,Odour: Ketones (fruity),presence/option,sign.ketotic_breath,matched,Existing CFC sign; urgent flag with high glucose
+ex.general.odour:smells=fetor_hepaticus,Odour: Fetor hepaticus,presence/option,sign.fetor_hepaticus,propose,Mirrored by ex.abdomen.liver_stigmata
+ex.general.oxygen,Oxygen,choice,dev.oxygen_delivery,device,"room_air = absent. Also obs.spo2 context: oxygenSupport (room_air|supplemental_oxygen), oxygenDevice <- modality, oxygenFlowLpm <- flow_*. FiO2, PEEP, target (88-92%) and NEWS2 scale have no CFC context key. ETT/tracheostomy exist only as modalities: no airway item"
+ex.general.vascular_access,Vascular access,device,dev.vascular_access,device,No device concepts in the CFC. VIP score (phlebitis flag) and infusions running stay qualifiers
+ex.general.urinary_catheter,Urinary catheter,device,dev.urinary_catheter,device,in_the_bag (ml) has no time base: not urine output
+ex.general.urinary_catheter:urine=blood_stained,Urinary catheter: Blood-stained,device/option,sx.haematuria,propose,"Visible haematuria. CFC v1.2 proposal (history), not yet generated; reuse it with elicitedBy=examination (one token, one identity), no new exam concept (symptomCode haematuria)"
+ex.general.enteral_tube,Feeding or gastric tube,device,dev.enteral_tube,device,Position (unconfirmed flag) stays a qualifier
+ex.general.enteral_tube:aspirate=coffee_grounds,Feeding or gastric tube: Coffee grounds,device/option,sign.blood_in_gastric_aspirate,propose,Urgent flag
+ex.general.enteral_tube:aspirate=fresh_blood,Feeding or gastric tube: Fresh blood,device/option,sign.blood_in_gastric_aspirate,propose,Urgent flag; kind of blood as qualifier
+ex.general.drains_stomas_splints,"Drains, stomas, splints",device,dev.drain_stoma_splint,device,Group; device kinds as qualifiers
+ex.general.drains_stomas_splints:what=chest_drain,"Drains, stomas, splints: Chest drain",device/option,dev.chest_drain,device,"Also ex.respiratory.chest_shape:seen=chest_drain (duplicate, no mirror)"
+ex.general.drains_stomas_splints:what=stoma_bag,"Drains, stomas, splints: Stoma bag",device/option,dev.stoma,device,"Also ex.abdomen.wall_findings:seen=stoma (duplicate, no mirror)"
+ex.general.mobility,Mobility,choice,exam.mobility,propose,"Function, not a sign; walking aids are not devices in situ"
+ex.general.pallor,Pallor,presence,sign.pallor,matched,"degree -> FindingFact.severity (mild|moderate|severe), projected; sites are qualifiers"
+ex.general.jaundice,Jaundice,presence,sign.jaundice,matched,Same token as the symptom jaundice (symptomCode); elicitedBy=examination separates them. degree ids are not the severity enum: qualifier
+ex.general.cyanosis,Cyanosis,presence,sign.cyanosis,matched,
+ex.general.cyanosis:type=central_tongue_lips,"Cyanosis: Central (tongue, lips)",presence/option,sign.cyanosis,broader,"site=central carried as a qualifier on the item's fact (no second fact). FindingFact has no site, so engines cannot read 'central' (v1.1 lists site as optional context; the schema drops it)"
+ex.general.cyanosis:type=peripheral_fingers_toes,"Cyanosis: Peripheral (fingers, toes)",presence/option,sign.cyanosis,broader,site=peripheral carried as a qualifier on the item's fact (no second fact)
+ex.general.clubbing,Finger clubbing,presence,sign.clubbing,matched,Grade and Schamroth as qualifiers
+ex.general.lymph_nodes,Lymphadenopathy,presence,sign.lymphadenopathy,matched,"side -> laterality (both -> bilateral); sites, size, consistency as qualifiers"
+ex.general.lymph_nodes:where=generalised,Lymphadenopathy: Generalised,presence/option,sign.lymphadenopathy,broader,Mirrored by HIV-associated signs; carried as a qualifier on the item's fact (no second fact)
+ex.general.bleeding_signs,Bleeding signs,presence,sign.bleeding,propose,Sites as qualifiers
+ex.general.bleeding_signs:seen=bruising_or_ecchymoses,Bleeding signs: Bruising or ecchymoses,presence/option,sign.bruising,propose,Also ex.abdomen.liver_stigmata:seen=bruising (no mirror)
+ex.general.bleeding_signs:seen=blood_in_urine_catheter,Bleeding signs: Blood in urine (catheter),presence/option,sx.haematuria,propose,"Also ex.general.urinary_catheter:urine=blood_stained (no mirror). CFC v1.2 proposal (history), not yet generated; reuse it with elicitedBy=examination (one token, one identity), no new exam concept"
+ex.general.bleeding_signs:seen=blood_from_the_rectum_on_examination,Bleeding signs: Blood from the rectum on examination,presence/option,sign.fresh_blood_per_rectum,propose,Also ex.rectal_genital.glove:found=fresh_blood (no mirror)
+ex.general.oedema,Oedema,presence,sign.oedema,matched,"Same token as the symptom oedema. side -> laterality; type, grade, extent as qualifiers"
+ex.general.hand_signs,Hand and nail signs,presence,sign.hand_nail_signs,propose,"koilonychia, small-muscle wasting stay qualifiers"
+ex.general.hand_signs:signs=asterixis_flap,Hand and nail signs: Asterixis (flap),presence/option,sign.asterixis,propose,Urgent flag; mirrored by liver stigmata
+ex.general.hand_signs:signs=palmar_erythema,Hand and nail signs: Palmar erythema,presence/option,sign.palmar_erythema,propose,Mirrored by liver stigmata
+ex.general.hand_signs:signs=leukonychia,Hand and nail signs: Leukonychia,presence/option,sign.leukonychia,propose,Mirrored by liver stigmata
+ex.general.hand_signs:signs=dupuytrens_contracture,Hand and nail signs: Dupuytren's contracture,presence/option,sign.dupuytrens_contracture,propose,Mirrored by liver stigmata
+ex.general.hand_signs:signs=splinter_haemorrhages,Hand and nail signs: Splinter haemorrhages,presence/option,sign.splinter_haemorrhages,propose,Also in cardiac peripheral stigmata (no mirror)
+ex.general.hand_signs:signs=fine_tremor,Hand and nail signs: Fine tremor,presence/option,sx.tremor,propose,"CFC v1.2 proposal (history), not yet generated; reuse it with elicitedBy=examination (one token, one identity), no new exam concept (symptomCode tremor)"
+ex.general.mouth,Mouth,state,exam.mouth,propose,"Other signs (glossitis, gum hypertrophy, dentition, tongue bite) as qualifiers"
+ex.general.mouth:signs=oral_thrush,Mouth: Oral thrush,state/option,sign.oral_candidiasis,propose,Flag; owner of the HIV-signs mirror
+ex.general.mouth:signs=purple_kaposi_like_lesion,Mouth: Purple (Kaposi-like) lesion,state/option,sign.kaposi_like_lesion,propose,Flag; owner of the HIV-signs mirror. Sensitivity: see summary
+ex.general.mouth:signs=angular_cheilitis,Mouth: Angular cheilitis,state/option,sign.angular_cheilitis,propose,Owner of the HIV-signs mirror
+ex.general.mouth:signs=ulcers,Mouth: Ulcers,state/option,sx.mouth_ulcers,propose,"CFC v1.2 proposal (history), not yet generated; reuse it with elicitedBy=examination (one token, one identity), no new exam concept (symptomCode mouth_ulcers)"
+ex.general.hiv_associated_signs,HIV-associated signs,presence,sign.hiv_associated_signs,propose,"RESTRICTED (hiv). Non-mirrored signs (hairy leukoplakia, seborrhoeic dermatitis, PPE, active zoster, gingivitis, severe wasting) stay qualifiers of this restricted fact"
+ex.general.hiv_associated_signs:seen=oral_candidiasis,HIV-associated signs: Oral candidiasis,presence/option,sign.oral_candidiasis,propose,Mirror: the mouth item owns the one (standard) fact; the WHO stage hint must not travel into it
+ex.general.hiv_associated_signs:seen=kaposi_sarcoma_lesions,HIV-associated signs: Kaposi sarcoma lesions,presence/option,sign.kaposi_like_lesion,propose,Mirror of mouth and skin lesions (owners)
+ex.general.hiv_associated_signs:seen=herpes_zoster_scars,HIV-associated signs: Herpes zoster scars,presence/option,sign.herpes_zoster_scars,propose,Mirror: skin lesions owns the fact
+ex.general.hiv_associated_signs:seen=angular_cheilitis,HIV-associated signs: Angular cheilitis,presence/option,sign.angular_cheilitis,propose,Mirror: mouth owns the fact
+ex.general.hiv_associated_signs:seen=generalised_lymphadenopathy,HIV-associated signs: Generalised lymphadenopathy,presence/option,sign.lymphadenopathy,broader,Mirror: lymph nodes owns the fact (site=generalised)
+ex.general.hiv_associated_signs:seen=recurrent_oral_ulcers,HIV-associated signs: Recurrent oral ulcers,presence/option,sx.mouth_ulcers,propose,"Near-duplicate of mouth:ulcers (no mirror); written restricted from here. CFC v1.2 proposal (history), not yet generated; reuse it with elicitedBy=examination (one token, one identity), no new exam concept"
+ex.general.hiv_associated_signs:seen=fungal_nail_infection,HIV-associated signs: Fungal nail infection,presence/option,sign.fungal_nail_infection,propose,Also ex.feet.skin_nails:seen=fungal_nails (no mirror); written restricted from here
+ex.general.hydration,Hydration (GTFCC),classified,sign.dehydration,matched,"Derived (GTFCC classifier, stored with inputs and rule version): severe/some/none -> the ordinal answers. below_threshold and 'not graded' (no diarrhoea or vomiting) have no answer: write no fact, never 'none'"
+ex.general.hydration:signs_present=sunken_eyes,Hydration (GTFCC): Sunken eyes,classified/option,sign.sunken_eyes,propose,Otherwise lost from the chart when not graded
+ex.general.hydration:signs_present=skin_pinch_goes_back_slowly,Hydration (GTFCC): Skin pinch goes back slowly,classified/option,sign.reduced_skin_turgor,propose,Owner of the Skin 'turgor' link
+ex.general.hydration:signs_present=skin_pinch_goes_back_very_slowly,Hydration (GTFCC): Skin pinch goes back very slowly (over 2 s),classified/option,sign.reduced_skin_turgor,propose,Owner of the Skin 'turgor' link
+ex.general.nutrition,Nutrition,measured,obs.muac,vital,"MUAC (cm). IMAM result (sam/mam/normal) is a derived classifier fact; cond.undernutrition_current is a condition, not written from a band. Wasting signs stay qualifiers"
+ex.general.nutrition:signs=bilateral_pitting_oedema_of_the_feet,Nutrition: Bilateral pitting oedema of the feet,measured/option,sign.oedema,broader,"Same fact as ex.general.oedema (pitting, both legs) with no mirror declared: risk of two sign.oedema facts"
+ex.general.nutrition:pregnant_or_lactating=yes,Nutrition: Yes,measured/option,,not_a_finding,Classifier context. preg.status is kind pregnancy; 'pregnant or lactating' cannot be written to it without choosing one
+ex.general.nutrition:oedema_cause=nutritional,Nutrition: Nutritional (other causes excluded),measured/option,,not_a_finding,Clinician attribution for the IMAM oedema rule
+ex.cardiovascular.precordium,Precordium,state,exam.precordium,propose,
+ex.cardiovascular.precordium:seen=pacemaker_or_device,Precordium: Pacemaker or device,state/option,dev.cardiac_implanted_device,device,Device option inside an inspection item
+ex.cardiovascular.peripheral_stigmata,Peripheral stigmata,presence,sign.cardiac_peripheral_stigmata,propose,"Janeway, Osler, xanthelasma, arcus as qualifiers"
+ex.cardiovascular.peripheral_stigmata:seen=splinter_haemorrhages,Peripheral stigmata: Splinter haemorrhages,presence/option,sign.splinter_haemorrhages,propose,Also in hand signs (no mirror)
+ex.cardiovascular.peripheral_stigmata:seen=malar_flush,Peripheral stigmata: Malar flush,presence/option,sign.malar_flush,propose,Also in facies (no mirror)
+ex.cardiovascular.link_cyanosis_clubbing,"Cyanosis, clubbing",link,,not_a_finding,Link to ex.general.clubbing and ex.general.cyanosis
+ex.cardiovascular.radial_pulse,Radial pulse,state,exam.radial_pulse,propose,Rate is obs.heart_rate (vs.pulse)
+ex.cardiovascular.radial_pulse:rhythm=irregularly_irregular,Radial pulse: Irregularly irregular,state/option,sign.irregular_pulse,propose,vs.pulse also records rhythm: one fact
+ex.cardiovascular.radial_pulse:rhythm=regularly_irregular,Radial pulse: Regularly irregular,state/option,sign.irregular_pulse,propose,Pattern as qualifier
+ex.cardiovascular.radial_pulse:character=pulsus_paradoxus,Radial pulse: Pulsus paradoxus,state/option,sign.pulsus_paradoxus,propose,Tamponade flag
+ex.cardiovascular.jvp,Jugular venous pressure,state,sign.raised_jvp,propose,Height (cm) and waves as qualifiers
+ex.cardiovascular.apex_beat,Apex beat,state,exam.apex_beat,propose,
+ex.cardiovascular.heaves_thrills,Heaves and thrills,presence,sign.heave_or_thrill,propose,
+ex.cardiovascular.capillary_refill,Capillary refill,state,obs.capillary_refill,vital,Quantity (s) from the time attribute. contextRequired site: the item has no site (hint: fingertip) -> supply it or the fact is non-interpretable (C2). 'Delayed' with no time has no home
+ex.cardiovascular.calves,Calves,state,exam.calves,propose,
+ex.cardiovascular.link_oedema,Oedema,link,,not_a_finding,Link to ex.general.oedema
+ex.cardiovascular.cardiac_dullness,Cardiac dullness,state,sign.increased_cardiac_dullness,propose,"'likely' (cardiomegaly, effusion) is an interpretation: qualifier only"
+ex.cardiovascular.heart_sounds,Heart sounds,state,exam.heart_sounds,propose,
+ex.cardiovascular.heart_sounds:heard=muffled_sounds,Heart sounds: Muffled sounds,state/option,sign.muffled_heart_sounds,propose,Tamponade flag
+ex.cardiovascular.heart_sounds:heard=mechanical_valve_clicks,Heart sounds: Mechanical valve clicks,state/option,dev.prosthetic_heart_valve,device,A heard sign that implies a device
+ex.cardiovascular.added_sounds,Added sounds,presence,sign.added_heart_sounds,propose,
+ex.cardiovascular.murmurs,Murmurs,presence,sign.heart_murmur,propose,
+ex.cardiovascular.bruits,Bruits,presence,sign.bruit,propose,Shared with ex.abdomen.bruits (renal in both). Commit must merge per concept: present if any site present
+ex.respiratory.work_of_breathing,Work of breathing,state,sign.increased_work_of_breathing,propose,Owner of the shared signs; the 11 signs are classifier inputs kept as qualifiers; severity from respiratory_distress_severity. tachypnoea duplicates vs.rr
+ex.respiratory.breathing_pattern,Breathing pattern,state,exam.breathing_pattern,propose,
+ex.respiratory.breathing_pattern:pattern=kussmaul_deep_sighing,"Breathing pattern: Kussmaul (deep, sighing)",state/option,sign.kussmaul_breathing,matched,Existing CFC sign; urgent flag with glucose
+ex.respiratory.chest_shape,Chest shape,state,exam.chest_shape,propose,
+ex.respiratory.chest_shape:seen=chest_drain,Chest shape: Chest drain,state/option,dev.chest_drain,device,Duplicate of drains:what=chest_drain (no mirror)
+ex.respiratory.audible_sounds,Audible sounds,presence,sign.audible_breath_sounds,propose,
+ex.respiratory.audible_sounds:heard=stridor,Audible sounds: Stridor,presence/option,sign.stridor,propose,"Urgent flag. noisy_breathing (0076) is the broader reported token, not this one"
+ex.respiratory.audible_sounds:heard=audible_wheeze,Audible sounds: Audible wheeze,presence/option,sx.wheeze,propose,"Same token as ex.respiratory.wheeze. CFC v1.2 proposal (history), not yet generated; reuse it with elicitedBy=examination (one token, one identity), no new exam concept (symptomCode wheeze)"
+ex.respiratory.sputum,Sputum,presence,sx.sputum,propose,"Sputum seen is the same entity as the symptom token sputum. CFC v1.2 proposal (history), not yet generated; reuse it with elicitedBy=examination (one token, one identity), no new exam concept"
+ex.respiratory.sputum:looks=blood_stained,Sputum: Blood-stained,presence/option,sx.coughing_blood,propose,"Haemoptysis seen. CFC v1.2 proposal (history), not yet generated; reuse it with elicitedBy=examination (one token, one identity), no new exam concept (symptomCode haemoptysis)"
+ex.respiratory.sputum:looks=frothy_pink,Sputum: Frothy pink,presence/option,sign.frothy_pink_sputum,propose,Urgent flag
+ex.respiratory.trachea,Trachea,state,sign.tracheal_deviation,propose,Side as qualifier
+ex.respiratory.expansion,Chest expansion,state,sign.reduced_chest_expansion,propose,left/right/both_sides -> laterality
+ex.respiratory.tactile_fremitus,Tactile vocal fremitus,state,exam.tactile_vocal_fremitus,propose,
+ex.respiratory.surgical_emphysema,Subcutaneous emphysema,presence,sign.subcutaneous_emphysema,propose,
+ex.respiratory.percussion_note,Percussion note,state,exam.chest_percussion_note,propose,
+ex.respiratory.breath_sounds,Breath sounds,state,exam.breath_sounds,propose,
+ex.respiratory.crackles,Crackles,presence,sign.chest_crackles,propose,"Type, timing, zones as qualifiers"
+ex.respiratory.wheeze,Wheeze,presence,sx.wheeze,propose,"Auscultated wheeze = the symptom token wheeze (sign.jaundice precedent). CFC v1.2 proposal (history), not yet generated; reuse it with elicitedBy=examination (one token, one identity), no new exam concept"
+ex.respiratory.pleural_rub,Pleural rub,presence,sign.pleural_rub,propose,
+ex.respiratory.vocal_resonance,Vocal resonance,state,exam.vocal_resonance,propose,
+ex.abdomen.contour,Contour,state,exam.abdominal_contour,propose,
+ex.abdomen.contour:shape=distended,Contour: Distended,state/option,sign.abdominal_distension,propose,"Flag (distended, silent abdomen). abdominal_distension (Abdominal distension/bloating) is the broader reported token"
+ex.abdomen.moves_with_breathing,Movement with breathing,state,sign.abdomen_not_moving_with_respiration,propose,
+ex.abdomen.wall_findings,Wall findings,presence,sign.abdominal_wall_findings,propose,
+ex.abdomen.wall_findings:seen=stoma,Wall findings: Stoma,presence/option,dev.stoma,device,Duplicate of drains:what=stoma_bag (no mirror)
+ex.abdomen.liver_stigmata,Stigmata of chronic liver disease,presence,sign.chronic_liver_disease_stigmata,propose,testicular_atrophy is a genital finding in a standard item (see summary). West Haven grade is a clinician grade: qualifier
+ex.abdomen.liver_stigmata:seen=palmar_erythema,Stigmata of chronic liver disease: Palmar erythema,presence/option,sign.palmar_erythema,propose,Mirror: the General item owns the fact
+ex.abdomen.liver_stigmata:seen=leuconychia,Stigmata of chronic liver disease: Leuconychia,presence/option,sign.leukonychia,propose,Mirror: the General item owns the fact
+ex.abdomen.liver_stigmata:seen=dupuytrens_contracture,Stigmata of chronic liver disease: Dupuytren's contracture,presence/option,sign.dupuytrens_contracture,propose,Mirror: the General item owns the fact
+ex.abdomen.liver_stigmata:seen=asterixis_flapping_tremor,Stigmata of chronic liver disease: Asterixis (flapping tremor),presence/option,sign.asterixis,propose,Mirror: the General item owns the fact
+ex.abdomen.liver_stigmata:seen=fetor_hepaticus,Stigmata of chronic liver disease: Fetor hepaticus,presence/option,sign.fetor_hepaticus,propose,Mirror: the General item owns the fact
+ex.abdomen.liver_stigmata:seen=bruising,Stigmata of chronic liver disease: Bruising,presence/option,sign.bruising,propose,Also bleeding_signs:bruising_or_ecchymoses (no mirror)
+ex.abdomen.umbilicus,Umbilicus,state,exam.umbilicus,propose,
+ex.abdomen.hernias,Hernias,presence,sign.hernia,propose,
+ex.abdomen.hernias:cough_impulse=irreducible,Hernias: Irreducible,presence/option,sign.irreducible_hernia,propose,Urgent flag
+ex.abdomen.tenderness,Tenderness,state,sign.abdominal_tenderness,propose,degree -> FindingFact.severity; zones and Murphy/Rovsing/psoas/obturator as qualifiers
+ex.abdomen.tenderness:with=guarding,Tenderness: Guarding,state/option,sign.peritonism,propose,Urgent flag; sign kind as qualifier
+ex.abdomen.tenderness:with=rigidity,Tenderness: Rigidity,state/option,sign.peritonism,propose,Urgent flag; sign kind as qualifier
+ex.abdomen.tenderness:with=rebound_tenderness,Tenderness: Rebound tenderness,state/option,sign.peritonism,propose,Urgent flag; sign kind as qualifier
+ex.abdomen.masses,Masses,presence,sign.abdominal_mass,propose,
+ex.abdomen.masses:features=expansile,Masses: Expansile,presence/option,sign.expansile_abdominal_mass,propose,Flag. Not sign.expansile_aorta (narrower)
+ex.abdomen.liver,Liver,state,sign.palpable_liver,propose,
+ex.abdomen.spleen,Spleen,state,sign.splenomegaly,propose,
+ex.abdomen.kidneys,Kidneys,state,exam.kidneys,propose,Renal-angle tenderness is not loin_pain (reported)
+ex.abdomen.bladder,Bladder,state,sign.palpable_bladder,propose,Tender (painful retention flag) as qualifier
+ex.abdomen.aorta,Aorta,state,sign.expansile_aorta,propose,Width (cm) as qualifier
+ex.abdomen.liver_span,Liver span,state,exam.liver_span,propose,
+ex.abdomen.ascites,Ascites,presence,sign.ascites,propose,
+ex.abdomen.percussion_note,Percussion note,state,exam.abdominal_percussion_note,propose,
+ex.abdomen.bowel_sounds,Bowel sounds,state,exam.bowel_sounds,propose,
+ex.abdomen.bruits,Bruits,presence,sign.bruit,propose,Shared with ex.cardiovascular.bruits
+ex.abdomen.succussion_splash,Succussion splash,presence,sign.succussion_splash,propose,
+ex.nervous.link_consciousness,Consciousness and orientation,link,,not_a_finding,Link to the consciousness block
+ex.nervous.behaviour,Behaviour,state,exam.behaviour,propose,
+ex.nervous.behaviour:seen=responding_to_unseen_stimuli,Behaviour: Responding to unseen stimuli,state/option,sx.unusual_experiences,propose,"Observed hallucination. v1.2 concept is RESTRICTED (mental_health) but this item is standard: see summary. CFC v1.2 proposal (history), not yet generated; reuse it with elicitedBy=examination (one token, one identity), no new exam concept"
+ex.nervous.speech,Speech,state,exam.speech,propose,speech_swallowing_disturbance is the broader reported token
+ex.nervous.memory,Memory,state,exam.memory,propose,memory_cognitive_change is the broader reported token
+ex.nervous.visual_fields,Visual fields (confrontation),state,sign.visual_field_defect,propose,
+ex.nervous.neck_stiffness,Neck stiffness,presence,sign.neck_stiffness,matched,Existing CFC sign
+ex.nervous.kernig,Kernig's sign,test,sign.kernig,propose,Test: positive = present
+ex.nervous.brudzinski,Brudzinski's sign,test,sign.brudzinski,propose,Test: positive = present
+ex.nervous.cn_i,I · Olfactory,state,exam.cn_i,propose,
+ex.nervous.cn_ii,II · Optic,state,exam.cn_ii,propose,
+ex.nervous.cn_ii:found=papilloedema,II · Optic: Papilloedema,state/option,sign.papilloedema,propose,Also fundoscopy:seen=papilloedema (no mirror)
+ex.nervous.cn_ii:found=field_defect,II · Optic: Field defect,state/option,sign.visual_field_defect,propose,Duplicates ex.nervous.visual_fields (no mirror)
+ex.nervous.pupils,Pupils,state,exam.pupils,propose,
+ex.nervous.cn_iii_iv_vi,"III, IV, VI · Eye movements",state,exam.cn_iii_iv_vi,propose,
+ex.nervous.cn_v,V · Trigeminal,state,exam.cn_v,propose,
+ex.nervous.cn_vii,VII · Facial,state,exam.cn_vii,propose,
+ex.nervous.cn_viii,VIII · Vestibulocochlear,state,exam.cn_viii,propose,hearing_loss_tinnitus is the broader reported token
+ex.nervous.cn_ix_x,"IX, X · Palate and gag",state,exam.cn_ix_x,propose,
+ex.nervous.cn_xi,XI · Accessory,state,exam.cn_xi,propose,
+ex.nervous.cn_xii,XII · Hypoglossal,state,exam.cn_xii,propose,
+ex.nervous.wasting_involuntary,Wasting and involuntary movements,presence,sign.motor_inspection_findings,propose,
+ex.nervous.wasting_involuntary:seen=resting_tremor,Wasting and involuntary movements: Resting tremor,presence/option,sx.tremor,propose,"CFC v1.2 proposal (history), not yet generated; reuse it with elicitedBy=examination (one token, one identity), no new exam concept"
+ex.nervous.wasting_involuntary:seen=postural_tremor,Wasting and involuntary movements: Postural tremor,presence/option,sx.tremor,propose,"CFC v1.2 proposal (history), not yet generated; reuse it with elicitedBy=examination (one token, one identity), no new exam concept"
+ex.nervous.tone,Tone,state,exam.tone,propose,
+ex.nervous.ankle_clonus,Ankle clonus,presence,sign.ankle_clonus,propose,
+ex.nervous.pronator_drift,Pronator drift,presence,sign.pronator_drift,propose,
+ex.nervous.hoffmann,Hoffmann's sign,test,sign.hoffmann,propose,
+ex.nervous.light_touch,Light touch,state,exam.light_touch,propose,
+ex.nervous.pinprick,Pinprick,state,exam.pinprick,propose,
+ex.nervous.vibration,Vibration,state,exam.vibration_sense,propose,exam.vibration_128hz is narrower (great-toe screen); ex.feet.vibration_128 feeds it
+ex.nervous.joint_position,Joint position,state,exam.joint_position_sense,propose,
+ex.nervous.saddle_sensation,Saddle sensation,state,sign.saddle_anaesthesia,propose,
+ex.nervous.romberg,Romberg's test,test,sign.romberg,propose,
+ex.nervous.finger_nose,Finger–nose,state,exam.finger_nose,propose,
+ex.nervous.heel_shin,Heel–shin,state,exam.heel_shin,propose,
+ex.nervous.dysdiadochokinesia,Dysdiadochokinesia,presence,sign.dysdiadochokinesia,propose,
+ex.nervous.gait,Gait,state,exam.gait,propose,
+ex.nervous.tandem_gait,Tandem walking,state,exam.tandem_gait,propose,
+ex.spine_joints.curvature,Posture and curvature,state,exam.spinal_curvature,propose,
+ex.spine_joints.skin_over_spine,Skin over the spine,state,exam.skin_over_spine,propose,
+ex.spine_joints.spinal_tenderness,Spinal tenderness,state,sign.spinal_tenderness,propose,
+ex.spine_joints.paraspinal,Paraspinal spasm or tenderness,presence,sign.paraspinal_spasm_or_tenderness,propose,
+ex.spine_joints.step_deformity,Step deformity,presence,sign.spinal_step_deformity,propose,
+ex.spine_joints.range_of_movement,Range of movement,state,exam.spinal_range_of_movement,propose,
+ex.spine_joints.straight_leg_raise,Straight leg raise,test,sign.straight_leg_raise,propose,
+ex.spine_joints.femoral_stretch,Femoral stretch,test,sign.femoral_stretch,propose,
+ex.spine_joints.gals_screen,Joints (GALS screen),state,exam.joints_gals,propose,
+ex.spine_joints.gals_screen:signs=swelling,Joints (GALS screen): Swelling,state/option,sx.joint_swelling,propose,"CFC v1.2 proposal (history), not yet generated; reuse it with elicitedBy=examination (one token, one identity), no new exam concept (symptomCode joint_swelling)"
+ex.skin.rash,Rash,presence,sx.rash,propose,"Rash seen = the symptom token rash. Target lesions/mucosa (urgent flag) stay qualifiers. CFC v1.2 proposal (history), not yet generated; reuse it with elicitedBy=examination (one token, one identity), no new exam concept"
+ex.skin.petechiae_purpura,Petechiae or purpura,presence,sign.petechiae_purpura,propose,
+ex.skin.petechiae_purpura:blanching=non_blanching,Petechiae or purpura: Non-blanching,presence/option,sign.non_blanching_rash,propose,Urgent flag
+ex.skin.pressure_injury,Pressure injury,presence,sign.pressure_injury,propose,"Stage, site, cause as qualifiers"
+ex.skin.lesions,Skin lesions,presence,sign.skin_lesions,propose,
+ex.skin.lesions:type=purple_plaque_or_nodule,Skin lesions: Purple plaque or nodule (Kaposi-like),presence/option,sign.kaposi_like_lesion,propose,Owner of the HIV-signs mirror
+ex.skin.lesions:type=scars_of_old_herpes_zoster,Skin lesions: Scars of old herpes zoster,presence/option,sign.herpes_zoster_scars,propose,Owner of the HIV-signs mirror
+ex.skin.temperature,Skin temperature,state,exam.skin_temperature,propose,
+ex.skin.link_turgor,Turgor,link,,not_a_finding,Link to ex.general.hydration
+ex.eyes_ent_neck.link_conjunctivae_sclera,Conjunctivae and sclera,link,,not_a_finding,Link to pallor and jaundice
+ex.eyes_ent_neck.link_pupils,Pupils,link,,not_a_finding,Link to ex.nervous.pupils
+ex.eyes_ent_neck.red_eye,Red eye,presence,sign.red_eye,propose,
+ex.eyes_ent_neck.fundoscopy,Fundoscopy,state,exam.fundoscopy,propose,
+ex.eyes_ent_neck.fundoscopy:seen=papilloedema,Fundoscopy: Papilloedema,state/option,sign.papilloedema,propose,Also CN II (no mirror)
+ex.eyes_ent_neck.fundoscopy:seen=diabetic_retinopathy,Fundoscopy: Diabetic retinopathy,state/option,sign.diabetic_retinopathy,propose,"Not exam.retinopathy_grade: it needs a grade (+ method, gradingScale); an ungraded sighting cannot be written there without inventing one. Alternative: add a grade attribute here, then map there"
+ex.eyes_ent_neck.fundoscopy:seen=not_visualised,Fundoscopy: Not visualised,state/option,,not_a_finding,"An examination limitation, not a finding: belongs in not_examined (equipment or view)"
+ex.eyes_ent_neck.otoscopy,Otoscopy,state,exam.otoscopy,propose,
+ex.eyes_ent_neck.nose,Nose,state,exam.nose,propose,
+ex.eyes_ent_neck.throat,Throat,state,exam.throat,propose,
+ex.eyes_ent_neck.link_mouth,Mouth,link,,not_a_finding,Link to ex.general.mouth
+ex.eyes_ent_neck.goitre,Goitre,presence,sx.neck_swelling,propose,"Goitre = symptom token neck_swelling_thyroid (synonym 'goitre'). CFC v1.2 proposal (history), not yet generated; reuse it with elicitedBy=examination (one token, one identity), no new exam concept"
+ex.eyes_ent_neck.link_lymph_nodes,Lymph nodes,link,,not_a_finding,Link to ex.general.lymph_nodes
+ex.rectal_genital.perianal,Perianal area,state,exam.perianal,propose,
+ex.rectal_genital.anal_tone,Anal tone,state,sign.reduced_anal_tone,propose,
+ex.rectal_genital.rectal_mass,Rectal mass,presence,sign.rectal_mass,propose,
+ex.rectal_genital.prostate,Prostate,state,exam.prostate,propose,Male only; standard (not a sexual-health class item)
+ex.rectal_genital.glove,On the glove,state,exam.rectal_glove,propose,
+ex.rectal_genital.glove:found=fresh_blood,On the glove: Fresh blood,state/option,sign.fresh_blood_per_rectum,propose,Also bleeding_signs (no mirror)
+ex.rectal_genital.external_genitalia,External genitalia,state,exam.external_genitalia,propose,RESTRICTED (sexual_reproductive_health)
+ex.rectal_genital.external_genitalia:seen=ulcer,External genitalia: Ulcer,state/option,sx.genital_sore,propose,"v1.2 concept restricted (srh): consistent. CFC v1.2 proposal (history), not yet generated; reuse it with elicitedBy=examination (one token, one identity), no new exam concept"
+ex.rectal_genital.external_genitalia:seen=urethral_discharge,External genitalia: Urethral discharge,state/option,sx.urethral_discharge,propose,"v1.2 restricted (srh): consistent; but its symptomCode is shared with sx.vaginal_discharge (unique index). CFC v1.2 proposal (history), not yet generated; reuse it with elicitedBy=examination (one token, one identity), no new exam concept"
+ex.rectal_genital.scrotum_testes,Scrotum and testes,state,exam.scrotum_testes,propose,"RESTRICTED (sexual_reproductive_health). Torsion signs and mass as projected qualifiers. Not sx.scrotal (reported, broader, and standard)"
+ex.feet.ulcer,Foot ulcer,presence,sign.foot_ulcer,matched,laterality required: side -> left|right|bilateral. Not cond.dm_foot_ulcer (asserts diabetes)
+ex.feet.ulcer:infection_signs,Foot ulcer: Infection signs,presence/attribute,sign.foot_infection,matched,"Derived: written from the dfi_iwgdf_idsa result (grade 2-4 present, 1 absent), never from one ticked sign (IWGDF needs 2 or more)"
+ex.feet.gangrene,Gangrene,presence,sign.gangrene,matched,laterality required
+ex.feet.deformity,Deformity,presence,sign.foot_deformity,matched,laterality required; Charcot and toe deformities as qualifiers
+ex.feet.deformity:seen=minor_amputation,Deformity: Minor amputation (toe or forefoot),presence/option,cond.amputation_history,broader,"Kind condition: written through the problem-list path (assertedBy clinician), not conceptForToken (findings only)"
+ex.feet.deformity:seen=major_amputation,Deformity: Major amputation (below or above the knee),presence/option,cond.amputation_history,broader,As minor_amputation
+ex.feet.skin_nails,Skin and nails,state,exam.foot_skin_nails,propose,
+ex.feet.skin_nails:seen=callus,Skin and nails: Callus,state/option,sign.foot_callus,matched,"laterality REQUIRED by the concept but the item has no side attribute: add one, or the fact is non-interpretable (C2)"
+ex.feet.skin_nails:seen=fungal_nails,Skin and nails: Fungal nails,state/option,sign.fungal_nail_infection,propose,Also HIV-associated signs (no mirror)
+ex.feet.link_foot_pulses,Dorsalis pedis and posterior tibial pulses,link,,not_a_finding,Link to the pulses grid (exam.pedal_pulses)
+ex.feet.foot_temperature,Temperature,state,exam.foot_temperature,propose,
+ex.feet.monofilament,10 g monofilament,state,exam.monofilament,matched,"One fact per foot: laterality, sitesTested=3, sitesInsensate=sites_not_felt_*; 0 -> normal, >=1 -> abnormal"
+ex.feet.vibration_128,"Vibration (128 Hz fork, great toe)",state,exam.vibration_128hz,matched,"Felt -> normal, not felt -> absent ('reduced' unused); side -> laterality"
+ex.feet.ipswich_touch,Ipswich touch test (if no monofilament or fork),state,exam.ipswich_touch_test,propose,
+ex.feet.foot_risk_history,Foot risk history,state,,not_a_finding,"History group, not an exam sign; its options chart as history facts. 'None' writes each option absent (the negative phrase names all three)"
+ex.feet.foot_risk_history:history=previous_foot_ulcer,Foot risk history: Previous foot ulcer,state/option,hist.foot_ulcer,propose,
+ex.feet.foot_risk_history:history=previous_amputation,Foot risk history: Previous amputation,state/option,cond.amputation_history,matched,"Kind condition: problem-list path, not conceptForToken"
+ex.feet.foot_risk_history:history=end_stage_kidney_disease_or_dialysis,Foot risk history: End-stage kidney disease or dialysis,state/option,hist.eskd_or_dialysis,propose,"Not cond.ckd: dialysis can be for AKI, so cond.ckd is narrower than the option"
+ex.general.consciousness,Consciousness (GCS),block,obs.gcs,vital,"Total only when E, V and M are all scored (never with NT)"
+ex.general.consciousness:gcs=eye,GCS eye,block,obs.gcs_eye,propose,"NT with reason, never 1"
+ex.general.consciousness:gcs=verbal,GCS verbal,block,obs.gcs_verbal,propose,
+ex.general.consciousness:gcs=motor,GCS motor,block,obs.gcs_motor,propose,
+ex.general.consciousness:acvpu,ACVPU,block,obs.avpu,vital,"A/V/P/U match; C (new confusion) has NO answer: extend obs.avpu answers with new_confusion (answer-set change, not a new concept)"
+ex.general.consciousness:orientation,Orientation,block,exam.orientation,propose,'Not assessable' writes nothing
+ex.nervous.amts,AMTS,block,obs.amts,propose,
+ex.nervous.motor_grids:power,Muscle power (MRC grid),block,exam.muscle_power,propose,One fact per movement and side
+ex.nervous.motor_grids:reflex=ankle,Ankle reflex (NINDS),block,exam.ankle_reflex,broader,"NINDS 0 -> absent, 1 -> reduced, 2-4 -> present; the grade rides as a qualifier (CFC's 3 answers are the broader side)"
+ex.nervous.motor_grids:reflex=biceps|supinator|triceps|knee,Other tendon reflexes (NINDS),block,exam.tendon_reflex,propose,
+ex.nervous.motor_grids:plantar,Plantar response,block,exam.plantar_response,propose,
+ex.cardiovascular.pulses_grid:row=dorsalis_pedis,Dorsalis pedis pulse,block,exam.pedal_pulses,broader,Artery as qualifier; bounding -> present + qualifier
+ex.cardiovascular.pulses_grid:row=posterior_tibial,Posterior tibial pulse,block,exam.pedal_pulses,broader,As dorsalis pedis. SINBAD/IWGDF need both arteries apart: keep the artery qualifier
+ex.cardiovascular.pulses_grid:row=carotid|brachial|radial|femoral|popliteal,Other peripheral pulses,block,exam.peripheral_pulse,propose,
+vs.bp,Blood pressure,vital_sign,obs.bp_systolic + obs.bp_diastolic,vital,"Two facts from one field. position lying -> supine; cuff standard_adult -> adult, small_adult_or_child is ambiguous (CFC splits small_adult | child); device, setting, readingSetId, readingIndex also required"
+vs.pulse,Pulse,vital_sign,obs.heart_rate,vital,rhythm and method have no context key (qualifiers); irregular rhythm -> sign.irregular_pulse; apex-radial deficit has no concept
+vs.rr,Respiratory rate,vital_sign,obs.resp_rate,vital,
+vs.spo2,SpO2,vital_sign,obs.spo2,vital,oxygenSupport required (from ex.general.oxygen); NEWS2 scale 1/2 has no context key
+vs.temp,Temperature,vital_sign,obs.temperature,vital,"site (axillary, oral, tympanic, rectal, temporal) has no context key: qualifier"
+vs.consciousness,Consciousness,vital_sign,obs.avpu + obs.gcs,vital,From the consciousness block; obs.avpu lacks new_confusion
+vs.air_or_oxygen,Air or oxygen,vital_sign,obs.spo2,vital,"Context oxygenSupport on obs.spo2, not a fact of its own"
+vs.glucose,Capillary glucose,vital_sign,obs.glucose,vital,"specimen=capillary_whole_blood; random -> non_fasting, fasting -> fasting, two_hours_after_food -> non_fasting + challenge meal 120 min; calibration/deviceId from the meter"
+vs.weight,Weight,vital_sign,obs.weight,vital,stated -> measurement reported
+vs.height,Height,vital_sign,obs.height,vital,measurement required: stated -> reported
+vs.bmi,BMI,vital_sign,derived.bmi,vital,Derived; formula context
+vs.waist,Waist circumference,vital_sign,obs.waist,vital,protocol REQUIRED and not captured: supply it or the fact is non-interpretable
+vs.whtr,Waist-to-height ratio,vital_sign,derived.whtr,vital,Derived
+vs.muac,MUAC,vital_sign,obs.muac,vital,Owned by ex.general.nutrition
+vs.postural,Lying and standing BP,vital_panel,obs.bp_systolic + obs.bp_diastolic,vital,"position supine/standing, one readingSetId; minutes after standing and symptoms have no context key; orthostatic result is a derived classifier fact"
+vs.both_arms,BP in both arms,vital_panel,obs.bp_systolic + obs.bp_diastolic,vital,arm context; the difference is derived
+vs.pef,Peak expiratory flow,vital_panel,obs.peak_flow,propose,No CFC concept; % of best or predicted and basis as context

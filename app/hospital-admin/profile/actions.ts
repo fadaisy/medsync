@@ -7,25 +7,15 @@ import { requireHospitalAdminScope } from "@/lib/hospital-admin/scope";
 import { callEdge } from "@/lib/supabase/edge";
 
 /**
- * Server Action proxying to ha-set-hospital-emergency-settings (ADR 0098
- * ruling 5; PRD Phase 5 "Hospital admin settings"). The scope is resolved
- * here — the form never sends a hospital_id — and the Edge Function owns the
- * role check, the audit row, the number formats and the ambulance contact.
- * Its error text comes back verbatim.
- *
- * The form always shows every current value, so every field is sent: an
- * emptied field is `null` (cleared), never absent (untouched).
+ * Server Action proxying to ha-set-hospital-emergency-settings (ADR 0098 ruling 5). Since ADR 0158
+ * (CAP-5) it sends only the facility's coordinates: the routing values change in Departments &
+ * services, where a second admin verifies them, and the function refuses them from here. Absent
+ * fields are untouched; the scope is resolved here and the form never sends a hospital_id.
  */
 
 export type EmergencySettingsState = { ok?: boolean; error?: string };
 
 const Schema = z.object({
-  emergency_capability: z.enum(["none", "daytime", "24h"]),
-  pre_alert_enabled: z.boolean(),
-  board_owner_note: z.string().trim().max(240).nullable(),
-  emergency_entrance_directions: z.string().trim().max(500).nullable(),
-  emergency_sms_number: z.string().trim().max(20).nullable(),
-  ambulance_number: z.string().trim().max(20).nullable(),
   latitude: z.number().nullable(),
   longitude: z.number().nullable(),
   reason: z.string().trim().min(8, "Audit note ≥ 8 characters — this write is audited."),
@@ -43,27 +33,10 @@ export async function setEmergencySettingsAction(
   if ((latitude === null) !== (longitude === null)) {
     return { error: "Enter latitude and longitude together, or clear both." };
   }
-
-  const parsed = Schema.safeParse({
-    emergency_capability: formData.get("emergency_capability"),
-    pre_alert_enabled: formData.get("pre_alert_enabled") === "on",
-    board_owner_note: stringOrNull(formData.get("board_owner_note")),
-    emergency_entrance_directions: stringOrNull(formData.get("emergency_entrance_directions")),
-    emergency_sms_number: stringOrNull(formData.get("emergency_sms_number")),
-    ambulance_number: stringOrNull(formData.get("ambulance_number")),
-    latitude,
-    longitude,
-    reason: formData.get("reason"),
-  });
+  const parsed = Schema.safeParse({ latitude, longitude, reason: formData.get("reason") });
   if (!parsed.success) {
     const first = Object.values(parsed.error.flatten().fieldErrors).flat().find(Boolean);
     return { error: first ?? "Please check the values." };
-  }
-  if (parsed.data.pre_alert_enabled && !parsed.data.board_owner_note) {
-    return {
-      error:
-        "Name who owns the Incoming board each shift before enabling pre-alerts — a board nobody owns is a board nobody watches.",
-    };
   }
 
   const scope = await requireHospitalAdminScope();
@@ -78,15 +51,47 @@ export async function setEmergencySettingsAction(
   return { ok: true };
 }
 
-function stringOrNull(v: FormDataEntryValue | null): string | null {
-  if (typeof v !== "string") return null;
-  const t = v.trim();
-  return t.length ? t : null;
-}
-
-/** Empty → null (clear). Not a number → undefined (refuse). */
 function numberOrNull(v: FormDataEntryValue | null): number | null | undefined {
   if (typeof v !== "string" || v.trim() === "") return null;
   const n = Number(v);
   return Number.isFinite(n) ? n : undefined;
+}
+
+/* ─── Outbreak mode (clerking desk v2, D-CV-06) ────────────────────── */
+
+export type OutbreakModeState = { ok?: boolean; error?: string };
+
+const OutbreakSchema = z.object({
+  on: z.boolean(),
+  reason: z
+    .string()
+    .trim()
+    .min(8, "Give a reason of at least 8 characters — this change is audited."),
+});
+
+/** Turns the outbreak VHF screen on or off for this hospital, with an audited reason. */
+export async function setOutbreakModeAction(
+  _prev: OutbreakModeState,
+  formData: FormData,
+): Promise<OutbreakModeState> {
+  const parsed = OutbreakSchema.safeParse({
+    on: formData.get("on") === "true",
+    reason: formData.get("reason"),
+  });
+  if (!parsed.success) {
+    const first = Object.values(parsed.error.flatten().fieldErrors).flat().find(Boolean);
+    return { error: first ?? "Please check the values." };
+  }
+  const scope = await requireHospitalAdminScope();
+  const { writeOutbreakMode } = await import("@/lib/clerking/outbreak");
+  try {
+    await writeOutbreakMode({ userId: scope.userId, hospitalId: scope.hospitalId }, parsed.data);
+  } catch {
+    return {
+      error:
+        "Couldn't save outbreak mode. It needs migration 0076; try again or tell the superadmin.",
+    };
+  }
+  revalidatePath("/hospital-admin/profile");
+  return { ok: true };
 }

@@ -1,0 +1,2856 @@
+{
+  "catalogue": "MS-EMR-CFC",
+  "version": "1.3.0",
+  "extends": "1.2.0",
+  "status": "signed",
+  "signedBy": "Fadhul (owner and CSO)",
+  "signedAt": "2026-09-28",
+  "signature": "docs/emr/cfc/cfc-migrations-proposal.md (M1–M5 as recommended)",
+  "source": "docs/emr/clerking-v2/exam/exam-token-map.csv and exam-token-map-summary.md (MS-EMR-EXAM-CAT-001)",
+  "answerExtensions": {
+    "obs.avpu": [
+      "new_confusion"
+    ]
+  },
+  "concepts": [
+    {
+      "id": "sign.characteristic_facies",
+      "display": "Characteristic facies",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Group sign; facies types as qualifiers"
+    },
+    {
+      "id": "sign.distress",
+      "display": "Distress",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Severity from the distress classifier fits FindingFact.severity"
+    },
+    {
+      "id": "sign.abnormal_odour",
+      "display": "Abnormal odour",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Group sign; smell as qualifier"
+    },
+    {
+      "id": "sign.bleeding",
+      "display": "Bleeding signs",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Observed bleeding; read by FLAG-EX-FEVER-BLEEDING. Not the symptom token easy_bruising_bleeding (a reported tendency)"
+    },
+    {
+      "id": "sign.hand_nail_signs",
+      "display": "Hand and nail signs",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Group sign; the no-signs negative must be storable (C3)"
+    },
+    {
+      "id": "sign.cardiac_peripheral_stigmata",
+      "display": "Peripheral stigmata of cardiac disease",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Group sign"
+    },
+    {
+      "id": "sign.raised_jvp",
+      "display": "Raised jugular venous pressure",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Heart failure, tamponade flag"
+    },
+    {
+      "id": "sign.heave_or_thrill",
+      "display": "Heave or thrill",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Group sign"
+    },
+    {
+      "id": "sign.increased_cardiac_dullness",
+      "display": "Increased area of cardiac dullness",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Named sign"
+    },
+    {
+      "id": "sign.added_heart_sounds",
+      "display": "Added heart sounds",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Group sign (S3, S4, snap, click, rub)"
+    },
+    {
+      "id": "sign.heart_murmur",
+      "display": "Heart murmur",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Named sign; timing, grade as qualifiers"
+    },
+    {
+      "id": "sign.bruit",
+      "display": "Bruit",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "One sign for carotid, renal, femoral, aortic and hepatic bruits (two items); site as qualifier"
+    },
+    {
+      "id": "sign.increased_work_of_breathing",
+      "display": "Increased work of breathing",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Owner of the shared respiratory-distress signs; severity from its classifier"
+    },
+    {
+      "id": "sign.audible_breath_sounds",
+      "display": "Audible breath sounds",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Group sign (stridor, audible wheeze, rattling)"
+    },
+    {
+      "id": "sign.stridor",
+      "display": "Stridor",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Urgent flag. Not sym noisy_breathing: that reported token is broader"
+    },
+    {
+      "id": "sign.frothy_pink_sputum",
+      "display": "Frothy pink sputum",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Urgent flag (pulmonary oedema)"
+    },
+    {
+      "id": "sign.tracheal_deviation",
+      "display": "Tracheal deviation",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Tension flag"
+    },
+    {
+      "id": "sign.reduced_chest_expansion",
+      "display": "Reduced chest expansion",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Named sign; laterality"
+    },
+    {
+      "id": "sign.subcutaneous_emphysema",
+      "display": "Subcutaneous emphysema",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Flag"
+    },
+    {
+      "id": "sign.chest_crackles",
+      "display": "Crackles on auscultation",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "CRB65 applicability; zone map as qualifier"
+    },
+    {
+      "id": "sign.pleural_rub",
+      "display": "Pleural rub",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Named sign"
+    },
+    {
+      "id": "sign.abdomen_not_moving_with_respiration",
+      "display": "Abdomen does not move with respiration",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Peritonism sign"
+    },
+    {
+      "id": "sign.abdominal_wall_findings",
+      "display": "Abdominal wall findings",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Group sign"
+    },
+    {
+      "id": "sign.chronic_liver_disease_stigmata",
+      "display": "Stigmata of chronic liver disease",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Group sign"
+    },
+    {
+      "id": "sign.hernia",
+      "display": "Hernia",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Named sign"
+    },
+    {
+      "id": "sign.irreducible_hernia",
+      "display": "Irreducible hernia",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Urgent flag; a presence sign cannot carry it (qualifiers are not projected)"
+    },
+    {
+      "id": "sign.abdominal_tenderness",
+      "display": "Abdominal tenderness",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Degree fits FindingFact.severity"
+    },
+    {
+      "id": "sign.peritonism",
+      "display": "Peritonism (guarding, rigidity or rebound)",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Urgent flag; sign kind as qualifier"
+    },
+    {
+      "id": "sign.abdominal_mass",
+      "display": "Abdominal mass",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Named sign"
+    },
+    {
+      "id": "sign.expansile_abdominal_mass",
+      "display": "Expansile abdominal mass",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Flag. Not sign.expansile_aorta: an expansile mass is not always aortic"
+    },
+    {
+      "id": "sign.palpable_liver",
+      "display": "Palpable liver",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Exact meaning of the item; the composer writes 'hepatomegaly', which needs the span"
+    },
+    {
+      "id": "sign.splenomegaly",
+      "display": "Splenomegaly",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Named sign; Hackett grade as qualifier"
+    },
+    {
+      "id": "sign.palpable_bladder",
+      "display": "Palpable bladder",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Retention flag"
+    },
+    {
+      "id": "sign.expansile_aorta",
+      "display": "Expansile abdominal aorta",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "AAA sign"
+    },
+    {
+      "id": "sign.ascites",
+      "display": "Ascites",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Named sign. Not abdominal_distension (a broader reported token)"
+    },
+    {
+      "id": "sign.succussion_splash",
+      "display": "Succussion splash",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Named sign"
+    },
+    {
+      "id": "sign.visual_field_defect",
+      "display": "Visual field defect",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Named sign; also CN II option field_defect (one token)"
+    },
+    {
+      "id": "sign.kernig",
+      "display": "Kernig's sign",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Meningism test"
+    },
+    {
+      "id": "sign.brudzinski",
+      "display": "Brudzinski's sign",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Meningism test"
+    },
+    {
+      "id": "sign.motor_inspection_findings",
+      "display": "Wasting, fasciculation or involuntary movements",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Group sign"
+    },
+    {
+      "id": "sign.ankle_clonus",
+      "display": "Ankle clonus",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "UMN sign; laterality"
+    },
+    {
+      "id": "sign.pronator_drift",
+      "display": "Pronator drift",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "ROSIER applicability; laterality"
+    },
+    {
+      "id": "sign.hoffmann",
+      "display": "Hoffmann's sign",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "UMN sign"
+    },
+    {
+      "id": "sign.saddle_anaesthesia",
+      "display": "Reduced saddle sensation",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Cauda equina flag"
+    },
+    {
+      "id": "sign.romberg",
+      "display": "Romberg's sign",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Sensory ataxia test"
+    },
+    {
+      "id": "sign.dysdiadochokinesia",
+      "display": "Dysdiadochokinesia",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Cerebellar sign"
+    },
+    {
+      "id": "sign.spinal_tenderness",
+      "display": "Spinal tenderness",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Flag; levels as qualifier"
+    },
+    {
+      "id": "sign.paraspinal_spasm_or_tenderness",
+      "display": "Paraspinal spasm or tenderness",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Named sign"
+    },
+    {
+      "id": "sign.spinal_step_deformity",
+      "display": "Spinal step deformity",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Flag"
+    },
+    {
+      "id": "sign.straight_leg_raise",
+      "display": "Positive straight leg raise",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Radiculopathy test"
+    },
+    {
+      "id": "sign.femoral_stretch",
+      "display": "Positive femoral stretch test",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Radiculopathy test"
+    },
+    {
+      "id": "sign.petechiae_purpura",
+      "display": "Petechiae or purpura",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Named sign. Not easy_bruising_bleeding (reported, broader)"
+    },
+    {
+      "id": "sign.non_blanching_rash",
+      "display": "Non-blanching rash",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Urgent meningococcal flag; a presence sign cannot carry 'non-blanching'"
+    },
+    {
+      "id": "sign.pressure_injury",
+      "display": "Pressure injury",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Named sign; NPIAP stage as qualifier"
+    },
+    {
+      "id": "sign.skin_lesions",
+      "display": "Skin lesions",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Group sign"
+    },
+    {
+      "id": "sign.red_eye",
+      "display": "Red eye",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Named sign. Not eye_symptoms (a broader ROS token)"
+    },
+    {
+      "id": "sign.reduced_anal_tone",
+      "display": "Reduced anal tone",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Cauda equina flag"
+    },
+    {
+      "id": "sign.rectal_mass",
+      "display": "Rectal mass",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Flag"
+    },
+    {
+      "id": "sign.hiv_associated_signs",
+      "display": "HIV-associated signs",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "restricted",
+      "restrictedClass": "hiv",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Restricted group sign; WHO stage hints stay with it"
+    },
+    {
+      "id": "sign.malar_flush",
+      "display": "Malar flush",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Recorded in two items (facies, peripheral stigmata): one token"
+    },
+    {
+      "id": "sign.fetor_hepaticus",
+      "display": "Fetor hepaticus",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Mirrored by liver stigmata: one token"
+    },
+    {
+      "id": "sign.blood_in_gastric_aspirate",
+      "display": "Blood or coffee grounds in gastric aspirate",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Urgent flag; not haematemesis (not vomited)"
+    },
+    {
+      "id": "sign.asterixis",
+      "display": "Asterixis",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Urgent flag; mirrored by liver stigmata"
+    },
+    {
+      "id": "sign.palmar_erythema",
+      "display": "Palmar erythema",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Mirrored by liver stigmata"
+    },
+    {
+      "id": "sign.leukonychia",
+      "display": "Leukonychia",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Mirrored by liver stigmata"
+    },
+    {
+      "id": "sign.dupuytrens_contracture",
+      "display": "Dupuytren's contracture",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Mirrored by liver stigmata"
+    },
+    {
+      "id": "sign.splinter_haemorrhages",
+      "display": "Splinter haemorrhages",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Recorded in two items (hand signs, cardiac stigmata), no mirror declared: one token"
+    },
+    {
+      "id": "sign.oral_candidiasis",
+      "display": "Oral candidiasis",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Flag; mirrored by HIV-associated signs"
+    },
+    {
+      "id": "sign.angular_cheilitis",
+      "display": "Angular cheilitis",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Mirrored by HIV-associated signs"
+    },
+    {
+      "id": "sign.herpes_zoster_scars",
+      "display": "Herpes zoster scars",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Mirrored by HIV-associated signs"
+    },
+    {
+      "id": "sign.fungal_nail_infection",
+      "display": "Fungal nail infection",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Recorded in two items (feet, HIV signs), no mirror declared: one token"
+    },
+    {
+      "id": "sign.bruising",
+      "display": "Bruising or ecchymoses",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Recorded in two items (bleeding signs, liver stigmata): one token"
+    },
+    {
+      "id": "sign.fresh_blood_per_rectum",
+      "display": "Fresh blood per rectum on examination",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Recorded in two items (bleeding signs, glove): one token. Not rectal_bleeding (reported, includes melaena)"
+    },
+    {
+      "id": "sign.sunken_eyes",
+      "display": "Sunken eyes",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "GTFCC sign; charts even when dehydration is not graded"
+    },
+    {
+      "id": "sign.papilloedema",
+      "display": "Papilloedema",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Urgent flag; recorded in two items (CN II, fundoscopy): one token"
+    },
+    {
+      "id": "sign.diabetic_retinopathy",
+      "display": "Diabetic retinopathy seen (ungraded)",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "exam.retinopathy_grade needs a grade; withdraw if the option gains a grade attribute"
+    },
+    {
+      "id": "sign.pulsus_paradoxus",
+      "display": "Pulsus paradoxus",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Tamponade flag; exam.radial_pulse carries it as a qualifier too"
+    },
+    {
+      "id": "sign.irregular_pulse",
+      "display": "Irregular pulse",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Recorded twice (vs.pulse rhythm, radial pulse rhythm): one token; pattern as qualifier"
+    },
+    {
+      "id": "sign.muffled_heart_sounds",
+      "display": "Muffled heart sounds",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Tamponade flag"
+    },
+    {
+      "id": "sign.abdominal_distension",
+      "display": "Abdominal distension on examination",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Not abdominal_distension/bloating (reported, broader)"
+    },
+    {
+      "id": "sign.kaposi_like_lesion",
+      "display": "Kaposi-like lesion",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "restricted",
+      "restrictedClass": "hiv",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Flag; mirrored across mouth, skin and HIV signs. A near-proxy for HIV in Uganda, but recorded from two standard items"
+    },
+    {
+      "id": "sign.reduced_skin_turgor",
+      "display": "Reduced skin turgor (skin pinch)",
+      "kind": "finding",
+      "group": "sign",
+      "valueType": "ordinal",
+      "answers": [
+        "normal",
+        "slow",
+        "very_slow"
+      ],
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "GTFCC sign; linked from Skin (turgor); charts when dehydration is not graded"
+    },
+    {
+      "id": "exam.general_appearance",
+      "display": "General appearance",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "looks_well",
+        "mildly_ill",
+        "moderately_ill",
+        "severely_ill",
+        "toxic_looking"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Choice item; clinician's overall impression"
+    },
+    {
+      "id": "exam.body_build",
+      "display": "Body build (impression)",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal_build",
+        "thin",
+        "wasted_cachectic",
+        "overweight",
+        "obese"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Choice item; BMI (derived.bmi) is the measured counterpart"
+    },
+    {
+      "id": "exam.posture",
+      "display": "Posture",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "lying_comfortably",
+        "sitting_comfortably",
+        "walking_about",
+        "propped_up",
+        "sitting_forward",
+        "lying_very_still",
+        "restless_cannot_settle",
+        "curled_up",
+        "neck_or_back_arched"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Choice item"
+    },
+    {
+      "id": "exam.mobility",
+      "display": "Mobility",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "walks_unaided",
+        "walking_stick",
+        "crutches",
+        "walking_frame",
+        "wheelchair",
+        "bedbound"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Choice item; function, feeds pressure and falls risk"
+    },
+    {
+      "id": "exam.mouth",
+      "display": "Mouth",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Region state"
+    },
+    {
+      "id": "exam.precordium",
+      "display": "Precordium (inspection)",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Region state"
+    },
+    {
+      "id": "exam.radial_pulse",
+      "display": "Radial pulse (rhythm, volume, character)",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Region state"
+    },
+    {
+      "id": "exam.apex_beat",
+      "display": "Apex beat",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Region state; position and character as qualifiers"
+    },
+    {
+      "id": "exam.calves",
+      "display": "Calves",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Region state; swollen/tender/warm are projected qualifiers (DVT flag)"
+    },
+    {
+      "id": "exam.heart_sounds",
+      "display": "Heart sounds",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Region state"
+    },
+    {
+      "id": "exam.breathing_pattern",
+      "display": "Breathing pattern",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Region state"
+    },
+    {
+      "id": "exam.chest_shape",
+      "display": "Chest shape",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Region state"
+    },
+    {
+      "id": "exam.tactile_vocal_fremitus",
+      "display": "Tactile vocal fremitus",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Region state; change and zones as qualifiers"
+    },
+    {
+      "id": "exam.chest_percussion_note",
+      "display": "Percussion note (chest)",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Region state; dull and hyper-resonant as projected qualifiers (CRB65, tension flag)"
+    },
+    {
+      "id": "exam.breath_sounds",
+      "display": "Breath sounds",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Region state; bronchial/reduced/absent as projected qualifiers"
+    },
+    {
+      "id": "exam.vocal_resonance",
+      "display": "Vocal resonance",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Region state"
+    },
+    {
+      "id": "exam.abdominal_contour",
+      "display": "Abdominal contour",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Region state"
+    },
+    {
+      "id": "exam.umbilicus",
+      "display": "Umbilicus",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Region state"
+    },
+    {
+      "id": "exam.kidneys",
+      "display": "Kidneys and renal angles",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Region state"
+    },
+    {
+      "id": "exam.liver_span",
+      "display": "Liver span",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "State with a measured span (cm) qualifier"
+    },
+    {
+      "id": "exam.abdominal_percussion_note",
+      "display": "Percussion note (abdomen)",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Region state"
+    },
+    {
+      "id": "exam.bowel_sounds",
+      "display": "Bowel sounds",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Region state; tinkling/absent as projected qualifiers"
+    },
+    {
+      "id": "exam.behaviour",
+      "display": "Behaviour",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Region state"
+    },
+    {
+      "id": "exam.speech",
+      "display": "Speech",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Region state; dysarthria/dysphasia as projected qualifiers (ROSIER)"
+    },
+    {
+      "id": "exam.memory",
+      "display": "Memory",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Region state"
+    },
+    {
+      "id": "exam.cn_i",
+      "display": "Olfactory nerve (I)",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Cranial nerve state"
+    },
+    {
+      "id": "exam.cn_ii",
+      "display": "Optic nerve (II)",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Cranial nerve state"
+    },
+    {
+      "id": "exam.pupils",
+      "display": "Pupils",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Sizes and reactions as projected qualifiers (GCS-P, flag)"
+    },
+    {
+      "id": "exam.cn_iii_iv_vi",
+      "display": "Eye movements (III, IV, VI)",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Cranial nerve state"
+    },
+    {
+      "id": "exam.cn_v",
+      "display": "Trigeminal nerve (V)",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Cranial nerve state"
+    },
+    {
+      "id": "exam.cn_vii",
+      "display": "Facial nerve (VII)",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Cranial nerve state; UMN/LMN as a projected qualifier (ROSIER)"
+    },
+    {
+      "id": "exam.cn_viii",
+      "display": "Vestibulocochlear nerve (VIII)",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Cranial nerve state"
+    },
+    {
+      "id": "exam.cn_ix_x",
+      "display": "Palate and gag (IX, X)",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Cranial nerve state; unsafe swallow as a projected qualifier"
+    },
+    {
+      "id": "exam.cn_xi",
+      "display": "Accessory nerve (XI)",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Cranial nerve state"
+    },
+    {
+      "id": "exam.cn_xii",
+      "display": "Hypoglossal nerve (XII)",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Cranial nerve state"
+    },
+    {
+      "id": "exam.tone",
+      "display": "Muscle tone",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Region state"
+    },
+    {
+      "id": "exam.light_touch",
+      "display": "Light touch sensation",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Sensory state; sensory level as a projected qualifier"
+    },
+    {
+      "id": "exam.pinprick",
+      "display": "Pinprick sensation",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Sensory state"
+    },
+    {
+      "id": "exam.vibration_sense",
+      "display": "Vibration sense (neurological level)",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Not exam.vibration_128hz: that concept is the great-toe screen, narrower than 'lost up to the knees'"
+    },
+    {
+      "id": "exam.joint_position_sense",
+      "display": "Joint position sense",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Sensory state"
+    },
+    {
+      "id": "exam.finger_nose",
+      "display": "Finger-nose test",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Cerebellar state"
+    },
+    {
+      "id": "exam.heel_shin",
+      "display": "Heel-shin test",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Cerebellar state"
+    },
+    {
+      "id": "exam.gait",
+      "display": "Gait",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Not gait_disturbance (reported, broader: falls, unsteadiness)"
+    },
+    {
+      "id": "exam.tandem_gait",
+      "display": "Tandem gait",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Cerebellar state"
+    },
+    {
+      "id": "exam.spinal_curvature",
+      "display": "Spinal posture and curvature",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Gibbus as a projected qualifier (flag)"
+    },
+    {
+      "id": "exam.skin_over_spine",
+      "display": "Skin over the spine",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Region state"
+    },
+    {
+      "id": "exam.spinal_range_of_movement",
+      "display": "Spinal range of movement",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Region state"
+    },
+    {
+      "id": "exam.joints_gals",
+      "display": "Joints (GALS screen)",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Region state; hot swollen joint as projected qualifiers"
+    },
+    {
+      "id": "exam.skin_temperature",
+      "display": "Skin temperature and perfusion",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Cool peripheries and mottling as projected qualifiers (shock flag)"
+    },
+    {
+      "id": "exam.fundoscopy",
+      "display": "Fundoscopy",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Region state"
+    },
+    {
+      "id": "exam.otoscopy",
+      "display": "Otoscopy",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Region state"
+    },
+    {
+      "id": "exam.nose",
+      "display": "Nose",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Region state"
+    },
+    {
+      "id": "exam.throat",
+      "display": "Throat",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Membrane and peritonsillar swelling as projected qualifiers (urgent flags)"
+    },
+    {
+      "id": "exam.perianal",
+      "display": "Perianal area",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Region state"
+    },
+    {
+      "id": "exam.prostate",
+      "display": "Prostate",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Region state; hard/nodular/sulcus as projected qualifiers"
+    },
+    {
+      "id": "exam.rectal_glove",
+      "display": "Stool on the glove",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Melaena and fresh blood as projected qualifiers"
+    },
+    {
+      "id": "exam.foot_skin_nails",
+      "display": "Foot skin and nails",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Region state"
+    },
+    {
+      "id": "exam.foot_temperature",
+      "display": "Foot temperature",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "equal",
+        "different"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Charcot and ischaemia flags read the qualifiers"
+    },
+    {
+      "id": "exam.ipswich_touch_test",
+      "display": "Ipswich touch test",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Not exam.monofilament: a different test"
+    },
+    {
+      "id": "exam.external_genitalia",
+      "display": "External genitalia",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "restricted",
+      "restrictedClass": "sexual_reproductive_health",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Region state in a restricted class"
+    },
+    {
+      "id": "exam.scrotum_testes",
+      "display": "Scrotum and testes",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "normal",
+        "abnormal"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "restricted",
+      "restrictedClass": "sexual_reproductive_health",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Region state in a restricted class"
+    },
+    {
+      "id": "dev.oxygen_delivery",
+      "display": "Oxygen or ventilatory support in place",
+      "kind": "finding",
+      "group": "device",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Device in situ; modality and settings as qualifiers; also feeds obs.spo2 context"
+    },
+    {
+      "id": "dev.vascular_access",
+      "display": "Vascular access device in situ",
+      "kind": "finding",
+      "group": "device",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Device in situ; type, site, gauge, VIP as qualifiers"
+    },
+    {
+      "id": "dev.urinary_catheter",
+      "display": "Urinary catheter in situ",
+      "kind": "finding",
+      "group": "device",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Device in situ"
+    },
+    {
+      "id": "dev.enteral_tube",
+      "display": "Feeding or gastric tube in situ",
+      "kind": "finding",
+      "group": "device",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Device in situ"
+    },
+    {
+      "id": "dev.drain_stoma_splint",
+      "display": "Drain, dressing, stoma, splint or traction in situ",
+      "kind": "finding",
+      "group": "device",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Device group; the none answer must be storable"
+    },
+    {
+      "id": "dev.chest_drain",
+      "display": "Chest drain in situ",
+      "kind": "finding",
+      "group": "device",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Recorded in two items (drains, chest shape): one token"
+    },
+    {
+      "id": "dev.stoma",
+      "display": "Stoma in situ",
+      "kind": "finding",
+      "group": "device",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Recorded in two items (drains, abdominal wall): one token"
+    },
+    {
+      "id": "dev.cardiac_implanted_device",
+      "display": "Pacemaker or implanted cardiac device",
+      "kind": "finding",
+      "group": "device",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Device option inside the precordium item"
+    },
+    {
+      "id": "dev.prosthetic_heart_valve",
+      "display": "Mechanical heart valve (clicks heard)",
+      "kind": "finding",
+      "group": "device",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Device implied by a heart-sound option"
+    },
+    {
+      "id": "obs.rass",
+      "display": "Richmond Agitation-Sedation Scale",
+      "kind": "observation",
+      "group": "neuro",
+      "valueType": "ordinal",
+      "answers": [
+        "-5",
+        "-4",
+        "-3",
+        "-2",
+        "-1",
+        "0",
+        "+1",
+        "+2",
+        "+3",
+        "+4"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Distress (agitation) records RASS +1 to +4"
+    },
+    {
+      "id": "obs.gcs_eye",
+      "display": "GCS eye response",
+      "kind": "observation",
+      "group": "neuro",
+      "valueType": "ordinal",
+      "answers": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "not_testable"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Components are written (E3 VNT M6); NT must never be 1 (C3); GCS-P and ACVPU hints read them"
+    },
+    {
+      "id": "obs.gcs_verbal",
+      "display": "GCS verbal response",
+      "kind": "observation",
+      "group": "neuro",
+      "valueType": "ordinal",
+      "answers": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "not_testable"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "As obs.gcs_eye"
+    },
+    {
+      "id": "obs.gcs_motor",
+      "display": "GCS motor response",
+      "kind": "observation",
+      "group": "neuro",
+      "valueType": "ordinal",
+      "answers": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6",
+        "not_testable"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "As obs.gcs_eye"
+    },
+    {
+      "id": "exam.orientation",
+      "display": "Orientation (time, place, person)",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "oriented",
+        "disoriented"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "CRB65 confusion; domains as qualifiers; not the reported token 'confusion'"
+    },
+    {
+      "id": "obs.amts",
+      "display": "Abbreviated Mental Test Score",
+      "kind": "observation",
+      "group": "neuro",
+      "valueType": "quantity",
+      "canonicalUnit": "{score}",
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "CRB65 and the AMTS flag"
+    },
+    {
+      "id": "exam.muscle_power",
+      "display": "Muscle power (MRC)",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "ordinal",
+      "answers": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4",
+        "5"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Weakness flags, UMN/LMN hint; movement and root as qualifiers, laterality"
+    },
+    {
+      "id": "exam.tendon_reflex",
+      "display": "Tendon reflex (NINDS)",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "ordinal",
+      "answers": [
+        "0",
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Biceps, supinator, triceps, knee; the ankle keeps exam.ankle_reflex"
+    },
+    {
+      "id": "exam.plantar_response",
+      "display": "Plantar response",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "flexor",
+        "extensor",
+        "equivocal",
+        "no_response"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "UMN sign; laterality"
+    },
+    {
+      "id": "exam.peripheral_pulse",
+      "display": "Peripheral pulse",
+      "kind": "observation",
+      "group": "exam",
+      "valueType": "coded",
+      "answers": [
+        "present",
+        "reduced",
+        "absent",
+        "bounding"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Carotid to popliteal; artery as qualifier; pedal pulses keep exam.pedal_pulses"
+    },
+    {
+      "id": "obs.peak_flow",
+      "display": "Peak expiratory flow",
+      "kind": "observation",
+      "group": "respiratory",
+      "valueType": "quantity",
+      "canonicalUnit": "L/min",
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "Acute asthma severity (PEF % of best or predicted); basis as context"
+    },
+    {
+      "id": "hist.foot_ulcer",
+      "display": "Previous foot ulcer (history)",
+      "kind": "finding",
+      "group": "history",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "IWGDF risk 3. Not cond.dm_foot_ulcer: that asserts diabetes"
+    },
+    {
+      "id": "hist.eskd_or_dialysis",
+      "display": "End-stage kidney disease or dialysis (history)",
+      "kind": "finding",
+      "group": "history",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.3",
+      "symptomCode": null,
+      "notes": "IWGDF risk factor. Withdraw if the option is split: ESKD -> cond.ckd, dialysis -> proc.dialysis"
+    }
+  ],
+  "counts": {
+    "concepts": 165,
+    "restricted": 4
+  }
+}

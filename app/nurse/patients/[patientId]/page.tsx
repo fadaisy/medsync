@@ -1,15 +1,21 @@
+import type { EmrDb } from "@/lib/emr/db";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { and, desc, eq } from "drizzle-orm";
 import { ArrowLeftIcon, HeartPulseIcon, PhoneIcon, PillIcon, ShieldAlertIcon } from "lucide-react";
 
+import { EmrChart } from "@/components/emr/chart/emr-chart";
 import { PatientClinicalRecordPanel } from "@/components/encounter/patient-clinical-record-panel";
 import { Button } from "@/components/ui/button";
 import { db } from "@/db";
 import { clinicalObservations, medicationAdministrationRecords } from "@/db/schema/nurse-workspace";
+import { emrV1Live, emrV1LiveFor } from "@/lib/emr/feature";
+import { loadChart } from "@/lib/emr/read/chart";
+import { loadCfcVitals } from "@/lib/emr/read/vitals";
 import { toEncounterScope } from "@/lib/encounter/workspace-scope";
 import { fetchNursePatientSummaryAudited } from "@/lib/nurse/patient-access";
 import { requireNurseScope } from "@/lib/nurse/scope";
+import { NurseOrders } from "./_orders/nurse-orders";
 
 export const metadata: Metadata = { title: "Patient · Nurse · MedSync" };
 export const dynamic = "force-dynamic";
@@ -52,6 +58,17 @@ export default async function NursePatientSummaryPage({ params }: PageProps) {
   const { patientId } = await params;
   const scope = await requireNurseScope();
 
+  // EMR v1 (gate-a E.2): the chart. Flag off, everything below renders exactly as before.
+  if (emrV1LiveFor(scope.hospitalId)) {
+    const chart = await loadChart("nurse", patientId);
+    if (!chart) return <NoAccessScreen />;
+    // The open visit's orders: collect the specimen, print the label (no ordering here).
+    const orders = chart.openEncounterId ? (
+      <NurseOrders encounterId={chart.openEncounterId} />
+    ) : null;
+    return <EmrChart chart={chart} surface="nurse" orders={orders} />;
+  }
+
   const summary = await fetchNursePatientSummaryAudited({
     nurse: {
       userId: scope.userId,
@@ -69,7 +86,7 @@ export default async function NursePatientSummaryPage({ params }: PageProps) {
   // Pull recent obs + MAR in parallel (read-side; both tables have
   // broad-clinical SELECT policies so we can read with the user-context
   // db without extra audit — the AUDITED PHI read happened above).
-  const [recentObs, recentMar] = await Promise.all([
+  const [legacyObs, cfcObs, recentMar] = await Promise.all([
     db
       .select({
         id: clinicalObservations.id,
@@ -89,6 +106,10 @@ export default async function NursePatientSummaryPage({ params }: PageProps) {
       )
       .orderBy(desc(clinicalObservations.recordedAt))
       .limit(10),
+    // EMR v1: CFC vital-sign rows join the list (STOP 2), so one series shows everywhere.
+    emrV1Live()
+      ? loadCfcVitals(db as unknown as EmrDb, summary.patientUserId, { limit: 10 })
+      : Promise.resolve([]),
     db
       .select({
         id: medicationAdministrationRecords.id,
@@ -104,6 +125,21 @@ export default async function NursePatientSummaryPage({ params }: PageProps) {
       .orderBy(desc(medicationAdministrationRecords.administeredAt))
       .limit(10),
   ]);
+
+  const recentObs = [
+    ...legacyObs,
+    ...cfcObs.map((v) => ({
+      id: v.id,
+      kind: v.kind,
+      recordedAt: v.recordedAt,
+      numericValue1: v.value1 === null ? null : String(v.value1),
+      numericValue2: v.value2 === null ? null : String(v.value2),
+      unit: v.unit,
+      notes: null,
+    })),
+  ]
+    .sort((a, b) => b.recordedAt.getTime() - a.recordedAt.getTime())
+    .slice(0, 10);
 
   const ageYears = computeAgeYears(summary.dateOfBirth);
 
@@ -122,11 +158,11 @@ export default async function NursePatientSummaryPage({ params }: PageProps) {
 
       <header className="flex flex-col gap-2">
         <span className="text-muted-foreground inline-flex items-center gap-1.5 font-mono text-[10px] tracking-[0.16em] uppercase">
-          <span aria-hidden className="bg-brand-500 ring-brand-500/20 size-1 rounded-full ring-2" />
+          <span aria-hidden className="bg-iris-icon ring-iris-edge size-1 rounded-full ring-2" />
           Patient summary
         </span>
         <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1">
-          <h1 className="font-display text-foreground text-heading-l leading-[1.1] font-medium tracking-[-0.015em]">
+          <h1 className="font-display text-display-s text-foreground">
             {summary.firstName} {summary.surname}
           </h1>
           <span className="text-muted-foreground font-mono text-[12px] tabular-nums">
@@ -140,7 +176,7 @@ export default async function NursePatientSummaryPage({ params }: PageProps) {
         </p>
       </header>
 
-      <div className="border-border bg-card ring-brand-500/5 flex items-center gap-3 rounded-xl border px-4 py-2.5 ring-1">
+      <div className="border-border bg-card ring-brand-500/5 flex items-center gap-3 rounded-lg border px-4 py-2.5 ring-1">
         <ShieldAlertIcon
           className="text-brand-600 dark:text-brand-400 size-4 shrink-0"
           aria-hidden
@@ -156,7 +192,7 @@ export default async function NursePatientSummaryPage({ params }: PageProps) {
       </div>
 
       <div className="grid gap-4 lg:grid-cols-3">
-        <section className="border-border bg-card flex flex-col gap-3 rounded-xl border p-4 lg:col-span-1">
+        <section className="border-border bg-card flex flex-col gap-3 rounded-lg border p-4 lg:col-span-1">
           <h2 className="text-muted-foreground font-mono text-[10.5px] tracking-[0.14em] uppercase">
             Contact
           </h2>
@@ -165,7 +201,7 @@ export default async function NursePatientSummaryPage({ params }: PageProps) {
           <Field label="Preferred language" value={summary.preferredLanguage ?? "—"} />
         </section>
 
-        <section className="border-border bg-card flex flex-col gap-3 rounded-xl border p-4 lg:col-span-2">
+        <section className="border-border bg-card flex flex-col gap-3 rounded-lg border p-4 lg:col-span-2">
           <h2 className="text-muted-foreground font-mono text-[10.5px] tracking-[0.14em] uppercase">
             Known conditions
           </h2>
@@ -186,7 +222,7 @@ export default async function NursePatientSummaryPage({ params }: PageProps) {
         </section>
 
         {/* Recent observations */}
-        <section className="border-border bg-card flex flex-col gap-3 rounded-xl border p-4 lg:col-span-2">
+        <section className="border-border bg-card flex flex-col gap-3 rounded-lg border p-4 lg:col-span-2">
           <div className="flex items-baseline justify-between gap-2">
             <h2 className="text-muted-foreground font-mono text-[10.5px] tracking-[0.14em] uppercase">
               Recent vitals
@@ -232,7 +268,7 @@ export default async function NursePatientSummaryPage({ params }: PageProps) {
         </section>
 
         {/* Recent MAR */}
-        <section className="border-border bg-card flex flex-col gap-3 rounded-xl border p-4 lg:col-span-1">
+        <section className="border-border bg-card flex flex-col gap-3 rounded-lg border p-4 lg:col-span-1">
           <div className="flex items-baseline justify-between gap-2">
             <h2 className="text-muted-foreground font-mono text-[10.5px] tracking-[0.14em] uppercase">
               Recent meds
@@ -332,7 +368,7 @@ function NoAccessScreen() {
         Patient panel
       </Link>
 
-      <div className="border-border bg-card reveal-up flex flex-col items-start gap-3 rounded-xl border p-6">
+      <div className="border-border bg-card reveal-up flex flex-col items-start gap-3 rounded-lg border p-6">
         <span
           aria-hidden
           className="scale-in inline-flex size-10 items-center justify-center rounded-full bg-amber-50 text-amber-700 ring-1 ring-amber-200/70 dark:bg-amber-950/40 dark:text-amber-300 dark:ring-amber-800/40"

@@ -1,0 +1,2100 @@
+{
+  "catalogue": "MS-EMR-CFC",
+  "version": "1.2.0",
+  "extends": "1.1.0",
+  "status": "signed",
+  "signedBy": "Fadhul (owner and CSO)",
+  "signedAt": "2026-09-28",
+  "signature": "docs/emr/cfc/cfc-migrations-proposal.md (M1–M5 as recommended)",
+  "source": "docs/emr/clerking-v2/cfc-v1.2-proposal.json, with M1 (docs/emr/cfc/cfc-migrations-proposal.md)",
+  "symptomCodeRule": "A concept carries a symptom_catalog code only when the code means exactly that finding (M1). A broader screen, a code covering two symptoms, or a narrower code is not the same token: it is listed in broaderRosScreens and the concept carries none.",
+  "broaderRosScreens": {
+    "sx.weight_gain": "weight_change",
+    "sx.loss_of_appetite": "appetite_change",
+    "sx.breathless_exertion": "exertional_dyspnoea",
+    "sx.pnd": "paroxysmal_nocturnal_dyspnoea",
+    "sx.rectal_bleeding": "rectal_bleeding",
+    "sx.black_stools": "rectal_bleeding",
+    "sx.heartburn": "heartburn_indigestion",
+    "sx.abdominal_swelling": "abdominal_distension",
+    "sx.frequency": "urinary_frequency",
+    "sx.urethral_discharge": "urethral_vaginal_discharge",
+    "sx.vaginal_bleeding": "intermenstrual_bleeding",
+    "sx.periods_change": "dysmenorrhoea",
+    "sx.vaginal_discharge": "urethral_vaginal_discharge",
+    "sx.breast_lump": "lumps_swellings",
+    "sx.fits": "seizures_fits",
+    "sx.focal_weakness": "weakness",
+    "sx.numbness": "numbness_paraesthesia",
+    "sx.memory_loss": "memory_cognitive_change",
+    "sx.speech_change": "speech_swallowing_disturbance",
+    "sx.falls": "gait_disturbance",
+    "sx.hearing_loss": "hearing_loss_tinnitus",
+    "sx.tinnitus": "hearing_loss_tinnitus",
+    "sx.sore_throat": "sore_throat_hoarseness",
+    "sx.hoarse_voice": "sore_throat_hoarseness",
+    "sx.nasal": "nasal_symptoms",
+    "sx.nosebleed": "nasal_symptoms",
+    "sx.muscle_pain": "muscle_pain_weakness",
+    "sx.muscle_weakness": "muscle_pain_weakness",
+    "sx.skin_lesion": "new_changing_lesion_mole",
+    "sx.hair_loss": "hair_nail_change",
+    "sx.heat_intolerance": "heat_cold_intolerance",
+    "sx.cold_intolerance": "heat_cold_intolerance",
+    "sx.excess_sweating": "skin_hair_sweating_change",
+    "sx.bleeding_tendency": "easy_bruising_bleeding",
+    "sx.poor_sleep": "sleep_disturbance"
+  },
+  "concepts": [
+    {
+      "id": "sx.fever",
+      "display": "Fever",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": "fever",
+      "synonyms": [
+        "Hotness of body",
+        "Feeling hot",
+        "Pyrexia"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.night_sweats",
+      "display": "Night sweats",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": "night_sweats",
+      "synonyms": [],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.weight_gain",
+      "display": "Weight gain",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": null,
+      "synonyms": [],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.loss_of_appetite",
+      "display": "Loss of appetite",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": null,
+      "synonyms": [
+        "Anorexia",
+        "Not eating"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.hiccups",
+      "display": "Hiccups",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": "hiccups",
+      "synonyms": [],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.chest_pain",
+      "display": "Chest pain",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": "chest_pain",
+      "synonyms": [
+        "Heart pain",
+        "Chest tightness"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.palpitations",
+      "display": "Palpitations",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": "palpitations",
+      "synonyms": [
+        "Heart beating fast",
+        "Racing heart"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.breathless_exertion",
+      "display": "Breathless on exertion",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": null,
+      "synonyms": [
+        "Shortness of breath on walking"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.orthopnoea",
+      "display": "Breathless lying flat",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": "orthopnoea",
+      "synonyms": [],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.pnd",
+      "display": "Waking breathless at night",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": null,
+      "synonyms": [],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.fainting",
+      "display": "Fainting or blackout",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": "syncope",
+      "synonyms": [
+        "Collapse",
+        "Blacking out",
+        "Loss of consciousness"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.cough",
+      "display": "Cough",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": "cough",
+      "synonyms": [],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.sputum",
+      "display": "Sputum",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": "sputum",
+      "synonyms": [
+        "Phlegm",
+        "Coughing up mucus"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.coughing_blood",
+      "display": "Coughing blood",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": "haemoptysis",
+      "synonyms": [
+        "Haemoptysis",
+        "Blood in sputum"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.breathlessness",
+      "display": "Breathlessness",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": "dyspnoea",
+      "synonyms": [
+        "Shortness of breath",
+        "Difficulty in breathing",
+        "Dyspnoea"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.wheeze",
+      "display": "Wheeze",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": "wheeze",
+      "synonyms": [
+        "Whistling in the chest"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.noisy_breathing",
+      "display": "Noisy breathing (stridor)",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": "noisy_breathing",
+      "synonyms": [],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.snoring",
+      "display": "Loud snoring or pauses in breathing",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": "snoring",
+      "synonyms": [],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.vomiting_blood",
+      "display": "Vomiting blood",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": "haematemesis",
+      "synonyms": [
+        "Haematemesis",
+        "Coffee-ground vomit"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.diarrhoea",
+      "display": "Diarrhoea",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": "diarrhoea",
+      "synonyms": [
+        "Running stomach",
+        "Loose stools"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.constipation",
+      "display": "Constipation",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": "constipation",
+      "synonyms": [
+        "Hard stools",
+        "Not opening bowels"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.bowel_change",
+      "display": "Change in bowel habit",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": "change_bowel_habit",
+      "synonyms": [],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.rectal_bleeding",
+      "display": "Bleeding from the back passage",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": null,
+      "synonyms": [
+        "Blood in stool",
+        "Rectal bleeding"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.black_stools",
+      "display": "Black, tarry stools",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": null,
+      "synonyms": [
+        "Melaena"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.difficulty_swallowing",
+      "display": "Difficulty swallowing",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": "dysphagia",
+      "synonyms": [
+        "Dysphagia",
+        "Food sticking"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.heartburn",
+      "display": "Heartburn or indigestion",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": null,
+      "synonyms": [
+        "Dyspepsia",
+        "Burning in the chest",
+        "Acid"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.abdominal_swelling",
+      "display": "Swelling of the abdomen",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": null,
+      "synonyms": [
+        "Distension",
+        "Big tummy",
+        "Ascites"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.frequency",
+      "display": "Going to pass urine often",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": null,
+      "synonyms": [
+        "Frequency"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.dysuria",
+      "display": "Pain passing urine",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": "dysuria",
+      "synonyms": [
+        "Burning urine",
+        "Dysuria"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.haematuria",
+      "display": "Blood in urine",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": "haematuria",
+      "synonyms": [
+        "Haematuria",
+        "Red urine"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.urine_output_low",
+      "display": "Passing less urine",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": "urine_output_low",
+      "synonyms": [
+        "Reduced urine",
+        "Oliguria"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.voiding_symptoms",
+      "display": "Poor stream or dribbling",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": "voiding_symptoms",
+      "synonyms": [
+        "Prostate symptoms",
+        "Hesitancy"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.incontinence",
+      "display": "Leaking urine",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": "incontinence",
+      "synonyms": [
+        "Incontinence"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.loin_pain",
+      "display": "Loin pain",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": "loin_pain",
+      "synonyms": [
+        "Flank pain",
+        "Kidney pain"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.urethral_discharge",
+      "display": "Urethral discharge",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "restricted",
+      "restrictedClass": "restricted",
+      "phase": "v1.2",
+      "symptomCode": null,
+      "synonyms": [],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.genital_sore",
+      "display": "Genital sore",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "restricted",
+      "restrictedClass": "restricted",
+      "phase": "v1.2",
+      "symptomCode": "genital_sore",
+      "synonyms": [
+        "Genital ulcer"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.scrotal",
+      "display": "Scrotal pain or swelling",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": "scrotal",
+      "synonyms": [
+        "Testicular pain"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.vaginal_bleeding",
+      "display": "Abnormal vaginal bleeding",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "restricted",
+      "restrictedClass": "restricted",
+      "phase": "v1.2",
+      "symptomCode": null,
+      "synonyms": [],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.periods_change",
+      "display": "Change in periods",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": null,
+      "synonyms": [
+        "Heavy periods",
+        "Painful periods",
+        "Missed period"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.vaginal_discharge",
+      "display": "Vaginal discharge",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "restricted",
+      "restrictedClass": "restricted",
+      "phase": "v1.2",
+      "symptomCode": null,
+      "synonyms": [],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.pelvic_pain",
+      "display": "Lower abdominal or pelvic pain",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": "pelvic_pain",
+      "synonyms": [],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.breast_lump",
+      "display": "Breast lump or change",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": null,
+      "synonyms": [
+        "Breast swelling"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.headache",
+      "display": "Headache",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": "headache",
+      "synonyms": [
+        "Head pain",
+        "Headache"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.fits",
+      "display": "Fits or seizures",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": null,
+      "synonyms": [
+        "Convulsions",
+        "Epilepsy attack"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.focal_weakness",
+      "display": "Weakness of a limb or face",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": null,
+      "synonyms": [
+        "Paralysis",
+        "Stroke symptoms"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.numbness",
+      "display": "Numbness or tingling",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": null,
+      "synonyms": [
+        "Pins and needles",
+        "Paraesthesia"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.dizziness",
+      "display": "Dizziness",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": "dizziness",
+      "synonyms": [
+        "Vertigo",
+        "Light-headedness"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.confusion",
+      "display": "Confusion",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": "confusion",
+      "synonyms": [
+        "Disorientation",
+        "Not making sense"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.memory_loss",
+      "display": "Memory problems",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": null,
+      "synonyms": [
+        "Forgetfulness"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.speech_change",
+      "display": "Speech difficulty",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": null,
+      "synonyms": [
+        "Slurred speech",
+        "Word-finding difficulty"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.tremor",
+      "display": "Tremor",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": "tremor",
+      "synonyms": [
+        "Shaking"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.falls",
+      "display": "Falls or unsteadiness",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": null,
+      "synonyms": [
+        "Falling",
+        "Unsteady walking"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.red_eye",
+      "display": "Red eye",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": "eye_symptoms",
+      "synonyms": [],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.ear_pain",
+      "display": "Ear pain or discharge",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": "ear_pain",
+      "synonyms": [
+        "Earache",
+        "Ear discharge"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.hearing_loss",
+      "display": "Hearing loss",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": null,
+      "synonyms": [],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.tinnitus",
+      "display": "Ringing in the ears",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": null,
+      "synonyms": [
+        "Tinnitus"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.sore_throat",
+      "display": "Sore throat",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": null,
+      "synonyms": [],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.hoarse_voice",
+      "display": "Hoarse voice",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": null,
+      "synonyms": [
+        "Hoarseness",
+        "Voice change"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.nasal",
+      "display": "Blocked or runny nose",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": null,
+      "synonyms": [],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.nosebleed",
+      "display": "Nosebleed",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": null,
+      "synonyms": [
+        "Epistaxis"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.mouth_ulcers",
+      "display": "Mouth ulcers or sores",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": "mouth_ulcers",
+      "synonyms": [],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.joint_pain",
+      "display": "Joint pain",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": "joint_pain",
+      "synonyms": [
+        "Arthralgia",
+        "Painful joints"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.joint_swelling",
+      "display": "Joint swelling",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": "joint_swelling",
+      "synonyms": [],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.back_pain",
+      "display": "Back pain",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": "back_pain",
+      "synonyms": [
+        "Waist pain",
+        "Lower back pain"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.neck_pain",
+      "display": "Neck pain",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": "neck_pain",
+      "synonyms": [],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.bone_pain",
+      "display": "Bone pain",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": "bone_pain",
+      "synonyms": [],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.muscle_pain",
+      "display": "Muscle aches",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": null,
+      "synonyms": [
+        "Myalgia",
+        "Body aches"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.muscle_weakness",
+      "display": "Muscle weakness",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": null,
+      "synonyms": [
+        "Weak limbs"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.rash",
+      "display": "Rash",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": "rash",
+      "synonyms": [
+        "Skin eruption"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.itch",
+      "display": "Itch",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": "pruritus",
+      "synonyms": [
+        "Itching",
+        "Pruritus"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.face_swelling",
+      "display": "Swelling of lips, tongue or face",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": "face_swelling",
+      "synonyms": [
+        "Angioedema",
+        "Swollen lips"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.skin_lesion",
+      "display": "New or changing skin lesion",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": null,
+      "synonyms": [
+        "Mole",
+        "Wound that won't heal",
+        "Skin ulcer"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.hair_loss",
+      "display": "Hair loss",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": null,
+      "synonyms": [],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.heat_intolerance",
+      "display": "Heat intolerance",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": null,
+      "synonyms": [],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.cold_intolerance",
+      "display": "Cold intolerance",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": null,
+      "synonyms": [],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.neck_swelling",
+      "display": "Neck swelling (goitre)",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": "neck_swelling_thyroid",
+      "synonyms": [
+        "Goitre"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.excess_sweating",
+      "display": "Excessive sweating",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": null,
+      "synonyms": [],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.bleeding_tendency",
+      "display": "Easy bruising or bleeding",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": null,
+      "synonyms": [],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.recurrent_infections",
+      "display": "Frequent infections",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": "recurrent_infections",
+      "synonyms": [],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.low_mood",
+      "display": "Low mood",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "restricted",
+      "restrictedClass": "restricted",
+      "phase": "v1.2",
+      "symptomCode": "low_mood",
+      "synonyms": [
+        "Depression",
+        "Sadness"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.anxiety",
+      "display": "Anxiety",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "restricted",
+      "restrictedClass": "restricted",
+      "phase": "v1.2",
+      "symptomCode": "anxiety",
+      "synonyms": [
+        "Worry",
+        "Panic"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.poor_sleep",
+      "display": "Poor sleep",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "symptomCode": null,
+      "synonyms": [
+        "Insomnia"
+      ],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.unusual_experiences",
+      "display": "Hearing voices or unusual beliefs",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "restricted",
+      "restrictedClass": "restricted",
+      "phase": "v1.2",
+      "symptomCode": "unusual_experiences",
+      "synonyms": [],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "sx.self_harm_thoughts",
+      "display": "Thoughts of self-harm",
+      "kind": "finding",
+      "group": "symptom",
+      "valueType": "presence",
+      "contextRequired": [
+        "elicitedBy"
+      ],
+      "contextOptional": [
+        "onset",
+        "durationDays",
+        "severity"
+      ],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "restricted",
+      "restrictedClass": "restricted",
+      "phase": "v1.2",
+      "symptomCode": "self_harm_thoughts",
+      "synonyms": [],
+      "notes": "Clerking v2 history finding (MS-EMR-CLERK-CAT-001); qualifiers are the catalogue's option ids."
+    },
+    {
+      "id": "soc.tobacco_pack_years",
+      "display": "Tobacco pack-years",
+      "kind": "observation",
+      "group": "social",
+      "valueType": "quantity",
+      "canonicalUnit": "pack-year",
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "notes": "Derived: cigarettes a day ÷ 20 × years; never typed."
+    },
+    {
+      "id": "soc.alcohol_pattern",
+      "display": "Alcohol drinking pattern",
+      "kind": "observation",
+      "group": "social",
+      "valueType": "coded",
+      "answers": [
+        "none",
+        "occasionally",
+        "weekends",
+        "daily"
+      ],
+      "contextRequired": [],
+      "codes": [],
+      "lanes": [],
+      "sensitivity": "standard",
+      "phase": "v1.2",
+      "notes": "The catalogue's pattern ids; soc.alcohol (units) is not used because the form does not ask for units."
+    }
+  ],
+  "counts": {
+    "findings": 84,
+    "social": 2,
+    "withSymptomCode": 49
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "catalogue": "MS-EMR-EXAM-CAT-001",
+  "catalogueVersion": "1.0.1-draft",
+  "catalogueSha256": "b1aec36f72e87e1bf79b135fbff26c6c6592f1716206df84c22788c782e389ae",
+  "signedBy": "Fadhul (owner and CSO)",
+  "signedOn": "2026-09-27",
+  "gate": "GATE A, clerking examination v2 (docs/emr/clerking-v2/exam/gate-a-proposal.md)",
+  "decisions": "D-EX-01 to D-EX-22 as recommended; HX1 to HX14; SC1 to SC8 (SC1: below 3.0 urgent for everyone, 3.0 to 3.8 urgent with diabetes, caution otherwise); TM1 to TM6; AMTS cut-off 6 with the Uganda wording as drafted",
+  "flagRules": "all",
+  "referenceEntries": "all",
+  "classifiers": "all",
+  "note": "Signed as drafted with the SC and TM changes applied in 1.0.1-draft (see the catalogue's change_log). To switch a rule, classifier or value off, list its id under 'withheld': a rule or classifier whose reference is withheld does not fire and shows 'Awaiting sign-off'.",
+  "withheld": []
+}

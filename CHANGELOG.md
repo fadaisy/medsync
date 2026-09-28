@@ -5,6 +5,147 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Changed — The clerking desk and the chart follow MedSync Chroma — 2026-09-28
+
+- Chroma (ADR 0162) is merged into the clerking v2 line. The current step, section and note block are marked in the Clinical place hue (iris) instead of plum, which now means Operations. Step numbers are neutral ink.
+- Headings take their 600 weight from the type token; small headings use the `label` style. `tests/design/clinical-chroma.test.ts` holds both rules for `components/clerking` and `components/emr`.
+
+### Changed — Continuing a v1 clerking draft in the new format follows the signed conversion table — 2026-09-28
+
+- "Continue in the new format" now reads only `data/clerking/legacy-conversion.v1.json`, signed by the CSO and hash-pinned ([ADR 0177](docs/adr/0177-legacy-conversion-table.md)). It covers the 89 old codes, the 17 of 0076 and every CFC finding concept a v1 complaint could hold.
+- The v1 review of systems is converted too, not only complaints.
+- A broad old code is never narrowed silently: the clinician chooses (weakness, lumps, eye symptoms and others), and until then it counts as not asked. Pregnancy status, the LMP and activity are proposed, and written only once confirmed.
+- A review list opens the first time the converted draft opens and shows what became of every old answer. Two conversion flags carry signed wording: "Risk from previous format: assess now" (urgent) and "Rectal bleeding: needs detail" (caution).
+- Behind `CLERKING_V2`; no migration.
+
+### Added — CFC addenda v1.2 and v1.3: clerking findings chart as facts — 2026-09-28
+
+- Two GATED seed migrations, generated from signed data like 0072 (ADR 0176): `0082` (86 history concepts) and `0083` (165 examination concepts, and ACVPU C as `new_confusion` on `obs.avpu`). Apply after 0076, in that order.
+- One code, one meaning: a concept carries a symptom-catalogue code only when the code means exactly that finding; the seven duplicate codes are gone and 35 symptoms map to their own concept.
+- Findings expose their qualifiers to the engines. Signing charts only concepts already seeded, so deploying before the migrations is safe.
+
+### Added — Clerking desk v2: a structured examination, dark behind `CLERKING_V2` — 2026-09-28
+
+- Step 07 is rebuilt from the examination catalogue (MS-EMR-EXAM-CAT-001, GATE A signed; ADRs 0170–0175):
+  - vital signs typed in clinical order with one-field BP, glucose with a required context, and air or oxygen and consciousness read from General, saved at once as a new observation set, so NEWS2 is no longer "incomplete" for lack of them;
+  - General with GCS or ACVPU, attachments (11 oxygen modalities, lines, catheters, tubes), graded signs, GTFCC hydration and Uganda IMAM nutrition;
+  - eight systems and a new IWGDF foot screen, each finding in its own words, with body maps, power, reflex and pulse grids, and classifiers shown with their inputs;
+  - an intimate-examination gate (reason, consent, chaperone) before rectal and genital items;
+  - suggestions from the history, examination flags in the Flags panel, and the examination paragraph in the note.
+- Signing charts the findings that have a CFC concept; the rest stay in the note until the CFC examination addendum.
+- With the flag off the desk is pixel-identical to before.
+
+### Added — Clerking desk v2 on a phone — 2026-09-27
+
+- Below 640 px the v2 desk is laid out for a phone (ADR 0169, D-CM-01 to D-CM-07):
+  - a 50 px top bar with Emergency and an account menu;
+  - a patient header with four context tiles;
+  - a sticky step bar that shows the step once and carries name and MRN when the header has scrolled away;
+  - one panel per form group;
+  - a fixed Previous / Next bar;
+  - bottom sheets for everything that opens.
+- The review of systems shows every status in full. History from wraps as chips. Social has one panel per group.
+- Tablet and desktop are unchanged. The v1 desk keeps its old top bar.
+
+### Added — Clerking desk v2: a tap-first history, dark behind `CLERKING_V2` — 2026-09-27
+
+[ADR 0163](docs/adr/0163-clerking-desk-v2-tap-first-history.md), [0164](docs/adr/0164-clerking-catalogue-as-data.md), [0165](docs/adr/0165-clerking-flag-engine.md), [0166](docs/adr/0166-flags-panel-red-amendment.md), [0167](docs/adr/0167-draft-payload-v2.md), [0168](docs/adr/0168-outbreak-mode.md). Gate record: `docs/emr/clerking-v2/STOP-REPORTS.md`.
+
+- **The history half of the clerking desk, rebuilt from the signed catalogue** (MS-EMR-CLERK-CAT-001, `data/clerking/`):
+  - a section bar, one section at a time;
+  - properties for every complaint, and for every positive system symptom in a centred pop-up;
+  - medicines and allergies inside Past history, written to the record at once;
+  - a Flags panel (75 signed rules, NEWS2 from the triage engine);
+  - a note that writes itself by fixed rules.
+- **Fixes:**
+  - a man is no longer asked about periods;
+  - the complaint answers the review of systems;
+  - a NEWS2 parameter scoring 3 is marked;
+  - typed medicines are named in the chart;
+  - the page no longer scrolls at 1440 × 900.
+- **Migration 0076 (GATED):** medicine details, `hospital_clinical_settings` (outbreak mode), and 17 shared finding tokens. Apply it **before** deploying.
+
+### Added — The EMR: one clinical record, dark behind `EMR_V1` — 2026-09-26
+
+[ADR 0130](docs/adr/0130-clinical-fact-store-and-cfc-adoption.md), [0131](docs/adr/0131-rls-identity-propagation.md), [0132](docs/adr/0132-encryption-boundary-and-note-hmac-key.md), [0133](docs/adr/0133-database-runtime-and-the-pglite-lane.md), [0134](docs/adr/0134-the-note-model.md), [0135](docs/adr/0135-allergy-record-single-source.md), [0136](docs/adr/0136-results-acknowledgement-and-critical-results.md), [0137](docs/adr/0137-coding-and-terminology-licensing.md), [0138](docs/adr/0138-fhir-r4-projection.md), [0139](docs/adr/0139-encounter-completion-and-administrative-closure.md) (owner and CSO signed every GATE A decision as recommended, 2026-09-26; harmonisations `docs/emr/HARMONISATION.md`; reports `docs/emr/STOP-REPORTS.md`). **Three GATED migrations**, additive, no UPDATE or DELETE of an existing row: `0071_emr_record_spine.sql` (21 tables, 5 views, the evolved encounters / observations / orders / co-sign requests, the `private` access rule, a non-owner reader role, FORCED RLS, the allergy backfill), `0072_emr_reference_seed.sql` (generated), `0073_emr_realtime.sql` (PHI-free chart broadcasts, reader grants). **Two Edge Functions change:** `ha-start-encounter`, `ha-complete-encounter`. **New env var:** `MEDSYNC_NOTE_HMAC_KEY`. Owner path, in order: `docs/emr/OWNER-RUNBOOK.md` — the dev project (O-1) → the HMAC key (O-2) → `npm run db:migrate` (0071–0073) **before** deploying the branch → `npx supabase functions deploy <name> --use-api` for each of the two functions → `npx vercel deploy --prod --yes` → `EMR_V1` (hospital ids first, then `1`). Flags off, every existing page is unchanged (`tests/emr/ui/flag-off.test.ts`).
+
+- **The fact store** (`lib/facts`, `lib/units`): the Clinical Fact Contract with its v1.1 addendum; engines read `loadFactSnapshot` only. Legacy observations, triage vitals, problems, diagnoses, medicines and lab results are **projected**, never copied or altered; new fact rows are immutable and versioned. 145 concepts, 21 drug-class tags, 29 capabilities, a 35-test menu and 85 draft ICD-11 terms seeded; no clinical number ships — critical limits, plausibility, HMIS, IDSR, pregnancy age and the fasting definition are `pending_cso` reference entries that show nothing until signed.
+- **One access rule, in the database:** `private.patient_access_basis`, hospital-scoped; EMR reads run as `medsync_clinical_reader` with the identity set per transaction. Patient, reception, other-hospital and anonymous reads are denied by RLS.
+- **The chart** at `/doctor/patients/[id]` and `/nurse/patients/[id]`: the safety bar, summary, timeline, results flowsheet (sparklines with tables), notes, orders, medicines, problems and allergies, value provenance, live updates on `chart:<patient>` with a 15 s poll behind them.
+- **The clerking desk** at `/doctor/encounters/[id]`: template sections, tri-state finding chips, the ROS grid, "still true?" carry-forward, medicines reconciliation, the allergy editor, vitals with the unit prompt, the diagnosis picker (85 terms in ≤ 4 keystrokes), Plan with orders and triage suggestions, the NCD section (its values reach the record at signing through `lib/ncd/cfc-map.ts`), autosave, sign / co-sign / addendum / entered in error, and completion with a disposition or an administrative closure.
+- **Orders → specimens → results → acknowledgement:** the order sheet, specimen collection with two identifiers and the fasting chip, labels, the `/lab` worklist (preliminary, final, amend, reject — each one transaction), `/doctor/results` batch acknowledgement, the critical-call record. Three new Workspace lanes: Critical results, Results to review, To co-sign (keys 8, 9, 0).
+- **One allergy record:** every prescribe path reads it, resus AMPLE writes through to it, and the server re-checks on emergency administration. Uncoded text is still matched by name.
+- **Fixed at the root:** resus allergies were invisible to the next episode; `ha-start-encounter` could open a second encounter for one visit; End visit wrote no disposition; lab release and `recordClerkshipVersion` were not transactional; NCD drafts were plaintext and could be written to completed encounters. Found and fixed at the gates: a critical value lost its alarm when its context was incomplete; migrated allergies showed "substance not named"; the 0031/0033 policy would have exposed a patient's own restricted fact rows; 20 screenshot defects.
+- **Numbers:** 2,400 RLS probes, 0 mismatches; scenarios A1–A9 10/10 (A5 partial: the resus close-out has no structured action list); 3,084 EMR tests on the PGlite lane (`npm run test:emr-db`), 284/284 lane tests at STOP 5–6; 40/40 audit rows name the acting user; axe serious/critical 0 over 39 screens × 4 viewport/theme pairs; 234 screenshots; clerking route +89.7 KB gz (budget 90), chart +58.2 KB, `/lab` +1.7 KB.
+- **Open, recorded:** loader p95 91 ms on PGlite against a 60 ms Postgres budget and a 1.4 MB payload against 1 MB (measure on the dev project); the desk is still imported unconditionally on the flag-off page; design-system tokens fail WCAG AA product-wide (teal-600 text 3.7:1, caution 2.8:1, critical 3.9:1 — fixed in EMR files only, owner decides in `DESIGN-medsync.md`); drain legacy in-flight lab orders before switching `/lab`; ICD-10 is present but unlicensed and unused (`THIRD-PARTY-NOTICES.md`, O-3). `EMR_PRESCRIBING` exists as a flag; prescribing from the encounter is Phase 7.
+
+### Changed — MedSync Chroma is the design system — 2026-09-26
+
+[ADR 0162](docs/adr/0162-medsync-chroma-design-system.md). No migration, no Edge Function. `DESIGN-medsync.md` is rewritten for Chroma; `/styleguide` is the new visual contract.
+
+- **Colour that places.** Cool `ink-*` ground; teal the one action colour; one hue per hospital domain (Patients sky, Clinical iris, Pharmacy & lab grape, Operations plum, Admin slate) on tiles, sidebar items, tags, avatars and record bands; red, amber and green for the patient's clinical state only. Tokens generated from the Chroma `tokens.json`; `gray`/`brand`/`mint` remain as aliases.
+- **Type.** Bricolage Grotesque replaces Fraunces for marketing headlines, page titles and the wordmark; Geist carries every product heading at 600; a denser scale.
+- **Components.** New DomainTile, Tag, StatusPill, Avatar, Kbd, CommandBar (⌘K in every workspace), ViewSwitcher, RecordHeader, AttributeList, VitalStrip, ChromaBand; Button, Input, Card, Dialog, DataTable, StatCard, Panel, VitalStat rebuilt; every workspace sidebar rebuilt on one shared Chroma sidebar.
+- **Workflow states are tags.** Invitation, staff, clinic-session and appointment states render as square tags in cool hues, never red, amber or green. Critical and caution chip text use the AA pair (approved by the owner/CSO with Chroma).
+- **Mobile (Expo patient app):** Chroma ink, teal and sky tokens; Bricolage Grotesque replaces Fraunces (`@expo-google-fonts/bricolage-grotesque`); the mint CTA becomes the teal primary; appointment chips are tags; rating stars are ink.
+- **Removed:** gradient tokens, the plum glow, decorative pulsing dots, the italic headline accent.
+
+### Fixed — Departments set up in the hub reach staff sign-up; every pop-up is a centred card — 2026-09-26
+
+[ADR 0161](docs/adr/0161-pop-ups-are-centred-landscape-dialogs.md). No migration. Deploy the `ha-services-hub` Edge Function **before** the app (it gains the ops the new buttons call), then `npx vercel deploy --prod --yes`.
+
+- **Why clinician sign-up said "no departments set up".** Two causes:
+  - `listDepartments` sat in the hour-long reference-data cache that nothing clears, so sign-up missed departments for up to an hour after the hub changed them. It is no longer cached.
+  - Departments added in the hub started as Not on MedSync yet, which sign-up hides.
+- **What changed for departments:**
+  - **Add departments** now adds them live by default, with a "Live on MedSync now" choice. The first live department becomes the start department.
+  - The Departments tab says when any aren't live, with **Set all N live** (new op `set_departments_live`).
+  - Sign-up now says a hospital has no departments _open on MedSync yet_, and says so separately when the lookup fails, instead of blaming the hospital.
+- **Pop-ups are centred landscape cards, never side sheets (owner rule).**
+  - Every Departments & services panel opens as the console's `EditorDialog`.
+  - The department, clinic and ward panels put their settings and their related lists side by side. Add departments shows its catalogue in three columns.
+  - The rule is in ADR 0161, `DESIGN-medsync.md` and `AGENTS.md`.
+- **Also fixed:** "Archive department:not possible" was missing its space.
+- **Checks:**
+  - Vitest 3,853 passed;
+  - all 31 ops run end to end (65/65), with a stand-in that now fills missing keys with NULL the way PostgREST does;
+  - axe clean on 27 scans.
+
+### Added — Departments & services: one place for what a hospital runs, where and when — 2026-09-26
+
+[ADR 0150](docs/adr/0150-services-hub-single-editor.md), [0151](docs/adr/0151-services-hub-reuse-map.md), [0152](docs/adr/0152-department-kinds-and-live-status.md), [0153](docs/adr/0153-effective-dated-heads-and-in-charges.md), [0154](docs/adr/0154-clinics-days-holidays-closures.md), [0155](docs/adr/0155-confidential-clinics-in-messages.md), [0156](docs/adr/0156-test-menu-overlay.md), [0157](docs/adr/0157-availability-events.md), [0158](docs/adr/0158-four-eyes-routing-capabilities.md), [0159](docs/adr/0159-capability-profile.md), [0160](docs/adr/0160-level-presets.md). Gate record: `docs/hospital-services/STOP-REPORTS.md`.
+
+Migration `0080_hospital_services_hub.sql` (GATED, additive: every existing department is backfilled live, so no reader changes on apply). Edge Functions: `ha-services-hub` (new), `ha-upsert-session-template` and `ha-set-hospital-emergency-settings` (changed).
+
+- **`/hospital-admin/departments` becomes Departments & services**, with seven tabs: Departments, Wards & beds, Clinics, Diagnostics, Emergency & support, Availability, Hours & places. Every write goes through `ha-services-hub` (30 ops), and the audit row is written first.
+- **Departments:**
+  - four kinds, with units;
+  - a "Live on MedSync" switch: only live departments reach sign-up, queues, intake, booking and USSD;
+  - one start department;
+  - effective-dated heads and acting heads;
+  - archive instead of delete.
+- **Wards & beds:** type, sex and age group; an optional bed register; in-charges and acting in-charges (reusing 0031); temporary closures. ICU, HDU, isolation and NICU counts are derived from wards.
+- **Clinics are the booking engine's services.** Clinic days are its templates, which now support every N weeks, the nth weekday, and public holidays (seeded 2026–27, with their source).
+  - Closures preview the affected sessions and bookings, then run the existing cancel flow.
+  - The timetable prints on one A4 landscape page.
+  - HIV/ART, TB, mental health, family planning and SRH clinics are confidential by default.
+- **Diagnostics:** a per-hospital overlay on the ordering catalogue: in-house or referred, hours, stated turnaround. Plus imaging and other tests.
+- **Emergency & support:** typed capability values. **Routing values need a second admin to verify them**, and the profile's emergency form no longer edits them (CAP-5).
+- **Availability:** an append-only problem log. A problem turns "unconfirmed" after its expected-back date. It informs ordering and booking and never blocks them.
+- **Presets:** five level presets (MoH 2016, signed) and a one-time import of the application's answers. Both add items as Planned only.
+- **Also:**
+  - a capability profile for three audiences, with no personal data;
+  - ⌘K groups for departments, wards, clinics and tests;
+  - an amber "unavailable" badge on the nav item;
+  - the onboarding checklist links into the hub.
+- **Numbers:**
+  - tab switch p95 33 ms;
+  - 6–14 KB gz of JS per tab;
+  - axe clean on 27 scans;
+  - 95/95 RLS probes;
+  - all 30 ops run end to end against PGlite, 60/60 checks.
+- **Not met:** the ≥ 70 % preset interaction target, which is met for the structure a preset adds (72 %) but not for the whole setup (~14 %). See STOP 7.
+
 ### Fixed — Signing out on one device no longer signs you out everywhere — 2026-09-25
 
 No migration. Deploy: `npx vercel deploy --prod --yes`; the phone change ships with the next app build.

@@ -1,0 +1,23 @@
+{
+  "id": "MS-EMR-CLERK-CAGE-001",
+  "title": "CAGE questionnaire (alcohol)",
+  "version": "1.0.0-draft",
+  "status": "draft, awaiting Clinical Safety Officer review",
+  "sources": [
+    "Mayfield D, McLeod G, Hall P. The CAGE questionnaire: validation of a new alcoholism screening instrument. Am J Psychiatry 1974;131:1121-3.",
+    "Ewing JA. Detecting alcoholism: the CAGE questionnaire. JAMA 1984;252:1905-7."
+  ],
+  "note": "Lifetime questions, asked of anyone who drinks. One point per yes. A screen, not a diagnosis: a positive score is a reason to ask more (for example AUDIT), never a label on its own.",
+  "items": [
+    { "id": "cut_down", "letter": "C", "question": "Have you ever felt you should cut down on your drinking?" },
+    { "id": "annoyed", "letter": "A", "question": "Have people annoyed you by criticising your drinking?" },
+    { "id": "guilty", "letter": "G", "question": "Have you ever felt bad or guilty about your drinking?" },
+    {
+      "id": "eye_opener",
+      "letter": "E",
+      "question": "Have you ever had a drink first thing in the morning to steady your nerves or get rid of a hangover?"
+    }
+  ],
+  "positive_from": 2,
+  "positive_text": "2 or more is clinically significant: ask more about drinking"
+}

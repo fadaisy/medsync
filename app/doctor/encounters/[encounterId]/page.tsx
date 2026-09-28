@@ -1,6 +1,7 @@
 import type { PatientSummary } from "@/lib/doctor/patient-access";
 import type { CaptureMap } from "@/lib/ncd/engine/evaluate";
 import type { Metadata } from "next";
+import lazy from "next/dynamic";
 import Link from "next/link";
 import { Suspense } from "react";
 import { eq } from "drizzle-orm";
@@ -10,6 +11,7 @@ import { db } from "@/db";
 import { encounters } from "@/db/schema/scheduling";
 import { fetchPatientSummaryAudited } from "@/lib/doctor/patient-access";
 import { requireDoctorScope } from "@/lib/doctor/scope";
+import { emrV1LiveFor } from "@/lib/emr/feature";
 import { encounterEngineLive, ncdClerkshipLive } from "@/lib/encounter/feature";
 import { loadEncounterRecord } from "@/lib/encounter/record";
 import { toEncounterScope } from "@/lib/encounter/workspace-scope";
@@ -22,16 +24,34 @@ import { NcdClerkship } from "./_components/ncd-clerkship";
 import { VisitStatus } from "./_components/visit-status";
 import { saveNcdDraftAction } from "./actions";
 
+// The clerking desk loads only under EMR v1: next/dynamic keeps it (and its client island) out of
+// this route's static graph, so a flag-off visit downloads nothing new (lazy-loading guide,
+// "Importing Server Components"; tests/emr/ui/flag-off.test.ts walks the graph).
+const EmrDesk = lazy(() => import("./_desk/desk-page").then((m) => m.DeskPage));
+
 export const metadata: Metadata = { title: "Encounter · Doctor · MedSync" };
 export const dynamic = "force-dynamic";
 
 interface PageProps {
   params: Promise<{ encounterId: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
-export default async function DoctorEncounterPage({ params }: PageProps) {
+export default async function DoctorEncounterPage({ params, searchParams }: PageProps) {
   const { encounterId } = await params;
   const scope = await requireDoctorScope();
+
+  // EMR v1 (flag per hospital): the clerking desk. Off, everything below renders as before.
+  if (emrV1LiveFor(scope.hospitalId)) {
+    const { template } = await searchParams;
+    return (
+      <EmrDesk
+        encounterId={encounterId}
+        scope={scope}
+        template={typeof template === "string" ? template : undefined}
+      />
+    );
+  }
 
   if (!encounterEngineLive()) {
     return (
@@ -166,7 +186,7 @@ export default async function DoctorEncounterPage({ params }: PageProps) {
               Clinical documentation
             </span>
             <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-              <h1 className="font-display text-foreground text-heading-m leading-[1.1] font-medium tracking-[-0.015em]">
+              <h1 className="font-display text-display-s text-foreground">
                 {enc.encounterType} · {enc.state}
               </h1>
               <p className="text-muted-foreground text-caption font-mono tabular-nums">
@@ -217,11 +237,11 @@ export default async function DoctorEncounterPage({ params }: PageProps) {
               }
             />
           ) : (
-            <section className="border-border bg-card flex flex-col gap-2 rounded-xl border p-5 shadow-xs">
+            <section className="border-border bg-card flex flex-col gap-2 rounded-lg border p-5 shadow-xs">
               <span className="text-muted-foreground/80 font-mono text-[10px] tracking-[0.18em] uppercase">
                 Clerkship
               </span>
-              <h2 className="font-display text-foreground text-heading-s leading-[1.3] font-medium tracking-[-0.01em]">
+              <h2 className="text-foreground text-heading-s leading-[1.3] tracking-[-0.01em]">
                 Being rebuilt for NCD care
               </h2>
               <p className="text-muted-foreground text-body-s max-w-prose leading-relaxed">
@@ -292,7 +312,7 @@ function WorkspaceTopBar({
         <span className="text-muted-foreground hidden items-center gap-1.5 font-mono text-[10px] tracking-[0.14em] uppercase lg:inline-flex">
           <span
             aria-hidden
-            className="bg-brand-500 ring-brand-500/20 size-1.5 shrink-0 rounded-full ring-2"
+            className="bg-iris-icon ring-iris-edge size-1.5 shrink-0 rounded-full ring-2"
           />
           <span className="max-w-[180px] truncate" title={scope.hospitalName}>
             {scope.hospitalName}
@@ -339,7 +359,7 @@ function Wrap({ children }: { children: React.ReactNode }) {
 
 function Note({ title, body }: { title: string; body: string }) {
   return (
-    <div className="border-border bg-card/40 text-muted-foreground reveal-up rounded-xl border border-dashed p-6">
+    <div className="border-border bg-card/40 text-muted-foreground reveal-up rounded-lg border border-dashed p-6">
       <span className="text-foreground/80 text-[14px] font-medium">{title}</span>
       <p className="mt-1 text-[12px] leading-relaxed">{body}</p>
     </div>
@@ -367,9 +387,9 @@ function PatientHeader({
   const age = computeAgeYears(patient.dateOfBirth);
   const anaphylaxis = allergies.some((a) => a.severity === "anaphylaxis");
   return (
-    <div className="border-border bg-card flex flex-col gap-2 rounded-xl border p-4 shadow-xs">
+    <div className="border-border bg-card flex flex-col gap-2 rounded-lg border p-4 shadow-xs">
       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-        <span className="font-display text-foreground text-[16px] font-medium tracking-[-0.01em]">
+        <span className="text-foreground text-heading-s tracking-[-0.01em]">
           {patient.firstName} {patient.surname}
         </span>
         <span className="text-muted-foreground font-mono text-[11.5px] tabular-nums">

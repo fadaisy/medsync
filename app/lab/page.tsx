@@ -1,9 +1,11 @@
 import { FlaskConicalIcon } from "lucide-react";
 
+import { emrV1LiveFor } from "@/lib/emr/feature";
 import { labResultsLive } from "@/lib/encounter/feature";
 import { requireLabTechScope } from "@/lib/lab-tech/scope";
 import { loadLabWorklist, summariseWorklist, worklistAgeLabel } from "@/lib/lab-tech/worklist";
 import { cn } from "@/lib/utils";
+import { EmrLabWorklist } from "./_components/emr-worklist";
 import { ResultRowActions } from "./_components/result-row-actions";
 
 export const dynamic = "force-dynamic";
@@ -16,6 +18,8 @@ export const dynamic = "force-dynamic";
  */
 export default async function LabWorklistPage() {
   const scope = await requireLabTechScope();
+  // EMR v1: the record's worklist. Flag off, everything below renders exactly as before.
+  if (emrV1LiveFor(scope.hospitalId)) return <EmrLabWorklist scope={scope} />;
   const items = await loadLabWorklist(scope.hospitalId);
   const summary = summariseWorklist(items);
   const live = labResultsLive();
@@ -25,7 +29,7 @@ export default async function LabWorklistPage() {
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-5 px-4 py-6 sm:px-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div className="flex flex-col gap-1">
-          <h1 className="font-display text-foreground text-heading-s inline-flex items-center gap-2 font-medium tracking-[-0.01em]">
+          <h1 className="font-display text-display-s text-foreground inline-flex items-center gap-2">
             <FlaskConicalIcon className="text-brand-600 dark:text-brand-400 size-5" aria-hidden />
             Incoming worklist
           </h1>
@@ -54,7 +58,7 @@ export default async function LabWorklistPage() {
           No orders awaiting the lab right now. New orders from clinicians appear here.
         </div>
       ) : (
-        <div className="border-border bg-card overflow-hidden rounded-xl border shadow-sm">
+        <div className="border-border bg-card overflow-hidden rounded-lg border shadow-sm">
           <table className="w-full border-collapse text-left">
             <thead>
               <tr className="border-border text-muted-foreground border-b text-[10.5px] font-semibold tracking-wide uppercase">

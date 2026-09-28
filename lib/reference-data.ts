@@ -30,7 +30,7 @@ import type {
   Subcounty,
 } from "@/db/schema/reference-data";
 import { unstable_cache } from "next/cache";
-import { and, asc, eq, isNull } from "drizzle-orm";
+import { and, asc, eq, isNotNull, isNull } from "drizzle-orm";
 
 import { db } from "@/db";
 import { hospitalDepartments } from "@/db/schema/hospital-departments";
@@ -192,18 +192,24 @@ export const listHospitals = cached(
  * `parent_id` (Phase 0.11 seeded e.g. Cardiology under Internal
  * Medicine at Mulago). For the affiliation form we surface the
  * top-level only and let the role combobox carry the sub-specialty.
+ *
+ * Not cached, unlike the reference tables above: departments are per-hospital data an admin
+ * edits in Departments & services, and sign-up must see a department the moment it goes live.
+ * One indexed query per hospital pick, behind the lookup's rate limit.
  */
-export const listDepartments = cached(
-  "listDepartments",
-  async (opts: { hospitalId: string }): Promise<HospitalDepartment[]> =>
-    db
-      .select()
-      .from(hospitalDepartments)
-      .where(
-        and(
-          eq(hospitalDepartments.hospitalId, opts.hospitalId),
-          isNull(hospitalDepartments.parentId),
-        ),
-      )
-      .orderBy(asc(hospitalDepartments.name)),
-);
+export async function listDepartments(opts: { hospitalId: string }): Promise<HospitalDepartment[]> {
+  return db
+    .select()
+    .from(hospitalDepartments)
+    .where(
+      and(
+        eq(hospitalDepartments.hospitalId, opts.hospitalId),
+        isNull(hospitalDepartments.parentId),
+        // D-SVC-02: only departments live on MedSync, of every kind (reception gets
+        // Reception & front desk once it's live); archived ones never.
+        isNotNull(hospitalDepartments.medsyncLiveAt),
+        isNull(hospitalDepartments.archivedAt),
+      ),
+    )
+    .orderBy(asc(hospitalDepartments.name));
+}

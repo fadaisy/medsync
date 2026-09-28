@@ -68,6 +68,12 @@ export const sessionTemplates = pgTable(
     validFrom: date("valid_from").notNull(),
     validUntil: date("valid_until"),
     active: boolean("active").notNull().default(true),
+    /** 0080 (CLN-3): every N weeks from the first occurrence; or the nth weekday (−1 = last). */
+    repeatEveryWeeks: smallint("repeat_every_weeks").notNull().default(1),
+    nthWeekday: smallint("nth_weekday"),
+    /** 0080 (CLN-4): skip public holidays unless true. Closures always win. */
+    runsOnHolidays: boolean("runs_on_holidays").notNull().default(false),
+    placeId: uuid("place_id"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },

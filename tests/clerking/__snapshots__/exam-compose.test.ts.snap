@@ -1,0 +1,96 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`the seven fixtures > asthma: note and badges 1`] = `
+{
+  "badges": [
+    "urgent: Asthma (SIGN 158): PEF 30% of best or predicted, SpO₂ 91%",
+  ],
+  "note": "Vital signs: BP 124/76 (right arm, sitting), pulse 118 regular, RR 28, SpO₂ 91% on room air, temperature 36.8 °C (axillary).
+General: GCS 15/15 (E4 V5 M6), oriented to time, place and person. On room air.
+Respiratory: Increased work of breathing, speaks in words only and accessory muscles. Wheeze. Life-threatening asthma (PEF 30% of best or predicted, SpO₂ 91%).",
+}
+`;
+
+exports[`the seven fixtures > chestPain: note and badges 1`] = `
+{
+  "badges": [
+    "urgent: BP differs between arms",
+    "urgent: Absent left radial and left femoral pulse",
+  ],
+  "note": "Vital signs: BP 162/94 (right arm, sitting), pulse 96 regular, RR 18, SpO₂ 97% on room air, temperature 36.7 °C (axillary).
+General: GCS 15/15 (E4 V5 M6), oriented to time, place and person. On room air.
+Cardiovascular: Pulses: absent left radial, absent left femoral.",
+}
+`;
+
+exports[`the seven fixtures > diabeticFoot: note and badges 1`] = `
+{
+  "badges": [
+    "caution: Absent left dorsalis pedis pulse",
+    "caution: Glucose 14.2",
+    "urgent: Foot ulcer, IWGDF/IDSA grade 3",
+    "urgent: Foot ulcer with absent pulses",
+    "caution: Foot ulcer",
+  ],
+  "note": "Vital signs: BP 134/82 (right arm, sitting), pulse 84 regular, RR 16, SpO₂ 98% on room air, temperature 36.9 °C (axillary), glucose 14.2 mmol/L (random).
+Cardiovascular: Pulses: absent left dorsalis pedis.
+Feet: Foot ulcer, forefoot (toes, metatarsal heads), left, area 2.5 cm², skin or subcutaneous only, local warmth and redness 2 cm or more from the edge. Monofilament not felt, sites not felt, left 2 of 3, sites not felt, right 0 of 3. Foot risk history, history of previous foot ulcer. IWGDF risk 3 (loss of protective sensation, PAD sign (absent foot pulse) and history: previous foot ulcer). Infection grade 3 (moderate) (local warmth and redness 2 cm or more from the edge). SINBAD 3 (site 0, ischaemia 0, neuropathy 1, bacterial infection 1, area 1, depth 0).",
+}
+`;
+
+exports[`the seven fixtures > meningococcal: note and badges 1`] = `
+{
+  "badges": [
+    "urgent: Neck stiffness",
+    "urgent: Non-blanching rash",
+  ],
+  "note": "Vital signs: BP 102/64 (right arm, sitting), pulse 124 regular, RR 24, SpO₂ 96% on room air, temperature 39.4 °C (axillary).
+General: GCS 15/15 (E4 V5 M6), oriented to time, place and person. On room air.
+Nervous system: Neck stiffness. Kernig's sign negative; Brudzinski's sign negative.
+Skin: Petechiae or purpura, non-blanching.",
+}
+`;
+
+exports[`the seven fixtures > pneumonia: note and badges 1`] = `
+{
+  "badges": [
+    "urgent: GCS 14",
+    "urgent: ACVPU C",
+    "urgent: CRB65 4",
+  ],
+  "note": "Vital signs: BP 88/58 (right arm, sitting), pulse 112 regular, RR 32, SpO₂ 93% on room air, temperature 38.9 °C (axillary).
+General: GCS 14/15 (E4 V4 M6), not oriented to time. On room air.
+Respiratory: Crackles, coarse, in the right lower zone and right lower zone (back). CRB65 4 (Confusion (AMTS 8 or less, or new disorientation): yes; Respiratory rate 30 or more: yes; Systolic below 90 or diastolic 60 or less: yes; Age 65 or over: yes).",
+}
+`;
+
+exports[`the seven fixtures > stroke: note and badges 1`] = `
+{
+  "badges": [
+    "urgent: ROSIER +3",
+  ],
+  "note": "Vital signs: BP 172/96 (right arm, sitting), pulse 88 regular, RR 16, SpO₂ 97% on room air, temperature 36.6 °C (axillary), glucose 6.2 mmol/L (random).
+General: GCS 15/15 (E4 V5 M6), oriented to time, place and person. On room air.
+Nervous system: Speech disorder, expressive dysphasia. Facial weakness, upper motor neuron (forehead spared), right. Pronator drift, right. ROSIER +3 (Asymmetric facial weakness +1, Asymmetric arm weakness +1, Speech disturbance +1).",
+}
+`;
+
+exports[`the seven fixtures > three3: note and badges 1`] = `
+{
+  "badges": [
+    "urgent: GCS 13",
+    "urgent: ACVPU C",
+    "urgent: GTFCC: severe dehydration",
+    "urgent: CPAP",
+    "caution: Spinal tenderness L3",
+  ],
+  "note": "Vital signs: BP 110/70 (right arm, sitting), pulse 54 regular, RR 22, SpO₂ 95% on oxygen (CPAP), temperature 35.8 °C (axillary), glucose 6.1 mmol/L.
+General: GCS 13/15 (E3 V4 M6), not oriented to time. In moderate distress (respiratory, moderate; pain 6/10, moderate). On supplemental oxygen (CPAP, CPAP / PEEP 8 cmH₂O, full-face mask, FiO₂ 40%). Urinary catheter, urethral, 16 Fr, 2-way Foley, concentrated. Severe dehydration (GTFCC: lethargic or unconscious, sunken eyes, drinks poorly or not able to drink).
+Cardiovascular: Murmur, pansystolic, loudest at mitral area (apex), grade 3/6, radiates to axilla. First and second heart sounds normal.
+Respiratory: Increased work of breathing, accessory muscles. Crackles, fine, late inspiratory, in the right lower zone (back) and left lower zone (back). Trachea central.
+Abdomen: Tenderness, in the right iliac fossa, mild. Mass, in the epigastrium, firm, fixed.
+Nervous system: Facial weakness, lower motor neuron (forehead involved), left. Acuity, fields and fundi normal.
+Spine and joints: Spinal tenderness, at L3, elicited on percussion.
+Chaperone: Sr N. Akello, nurse. Verbal consent. Rectal and genital: Prostate abnormal, moderately enlarged, firm, smooth, median sulcus felt. Anal tone normal.",
+}
+`;

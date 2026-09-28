@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 
 import { requireHospitalAdminScope } from "@/lib/hospital-admin/scope";
+import { availabilityCount } from "@/lib/services/data";
 import { HospitalShell } from "./_components/hospital-shell";
 import { getHospitalPendingStaffCount } from "./_lib/staff-pending-count";
 
@@ -40,7 +41,10 @@ export default async function HospitalAdminLayout({ children }: { children: Reac
 
   // Live staff-pending count for the sidebar badge. Best-effort —
   // failure resolves to 0 so a flaky DB never blocks chrome render.
-  const staffPendingCount = await getHospitalPendingStaffCount(scope.hospitalId);
+  const [staffPendingCount, servicesProblemCount] = await Promise.all([
+    getHospitalPendingStaffCount(scope.hospitalId),
+    availabilityCount(scope.hospitalId),
+  ]);
 
   return (
     <HospitalShell
@@ -55,6 +59,7 @@ export default async function HospitalAdminLayout({ children }: { children: Reac
       adminEmail={scope.userEmail}
       mfaActive
       staffPendingCount={staffPendingCount}
+      servicesProblemCount={servicesProblemCount}
     >
       {children}
     </HospitalShell>

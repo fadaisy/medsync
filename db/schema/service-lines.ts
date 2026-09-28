@@ -58,6 +58,14 @@ export const serviceLines = pgTable(
     /** The Appendix A reasons this line accepts (⊆ PATIENT_REASON_CODES + 'other'). */
     reasonCodes: text("reason_codes").array().notNull().default([]),
     isDefault: boolean("is_default").notNull().default(false),
+    /** 0080: the hub's clinic catalogue code (A.2), null for a custom clinic. */
+    catalogueCode: text("catalogue_code"),
+    /** 0080: 'patients' | 'referral' | 'staff' — who can book (§5.5). */
+    audience: text("audience").notNull().default("patients"),
+    placeId: uuid("place_id"),
+    unitId: uuid("unit_id"),
+    /** 0080: Planned = !active && !archivedAt; Live = active; Archived = archivedAt. */
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
     active: boolean("active").notNull().default(true),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),

@@ -1,0 +1,23 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`composer > Patient Three-3 (house style snapshot, D-CV-16) 1`] = `
+"PATIENT
+Patient Three-3, a 76-year-old man. History from the patient, in Luganda.
+
+HISTORY
+Passing a lot of urine for 3 weeks, gradual onset and getting worse. Passing large volumes; up 4 times a night; with weight loss and change in vision. Back pain for 2 months, gradual onset. Lower back; dull, aching; does not radiate; constant and worse at night; eased by rest; severity 6 out of 10. Red flags present: pain at night or at rest; weight loss. Absent: difficulty starting or feeling urine flow; leg weakness; fever; history of cancer; TB contact or past TB. No diuretics, steroids or lithium. Noticed about three weeks ago that he was passing far more urine and always thirsty; now wakes four times a night. His wife says his clothes have become loose. The back pain began before this and keeps him awake.
+
+SYSTEMS REVIEW
+General: loss of appetite. Gastrointestinal: change in bowel habit for 3 weeks, gradual onset; harder or less often. Bones and joints: bone pain for 2 months; ribs; dull, aching; constant and worse at night; severity 7 out of 10. Cardiovascular: no chest pain, palpitations, breathless on exertion, breathless lying flat, leg swelling or fainting or blackout. Respiratory: no cough, sputum, coughing blood or wheeze. Genitourinary: no pain passing urine or blood in urine. Endocrine: no heat intolerance or neck swelling (goitre). Not reviewed: ear, nose, throat and eyes; skin; blood and lymph; mood and sleep.
+
+PAST HISTORY, MEDICINES, ALLERGIES
+Hypertension (over 5 years). No diabetes, kidney disease, tuberculosis or cancer. No operations. Medicines: amlodipine once daily, sometimes misses (medicine card or book); herbal medicine once daily, as prescribed (patient). Allergies: cold, uncoded, reaction not recorded.
+
+FAMILY HISTORY
+Family history of hypertension (mother). No family history of diabetes, heart disease, stroke or cancer.
+
+SOCIAL HISTORY
+Former smoker, 10 pack-years; drinks alcohol occasionally (local brew); lives with family; activity: limited by symptoms; occupation: Retired teacher."
+`;
+
+exports[`composer > the chest-pain variant (snapshot) 1`] = `"General: loss of appetite. Cardiovascular: chest pain for 2 hours, sudden onset; central; tight, pressing; radiates to the left arm and jaw or neck; constant; nothing eases it; severity 10 out of 10; last episode now; red flags present: sweating, breathlessness, brought on by exertion; absent: fainting, coughing blood. Gastrointestinal: change in bowel habit for 3 weeks, gradual onset; harder or less often. Bones and joints: bone pain for 2 months; ribs; dull, aching; constant and worse at night; severity 7 out of 10. Respiratory: no cough, sputum, coughing blood or wheeze. Genitourinary: no pain passing urine or blood in urine. Endocrine: no heat intolerance or neck swelling (goitre). Not reviewed: ear, nose, throat and eyes; skin; blood and lymph; mood and sleep."`;

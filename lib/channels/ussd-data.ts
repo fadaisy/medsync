@@ -96,6 +96,11 @@ export async function loadLines(hospitalId: string): Promise<LineOptionUssd[]> {
         eq(serviceLines.hospitalId, hospitalId),
         eq(serviceLines.active, true),
         inArray(serviceLines.capacityMode, ["session", "slot"]),
+        // D-SVC-08: a confidential clinic is never named on a shared channel; §5.5 audience.
+        eq(serviceLines.confidential, false),
+        eq(serviceLines.audience, "patients"),
+        sql`${serviceLines.departmentId} IN (SELECT id FROM public.hospital_departments
+              WHERE medsync_live_at IS NOT NULL AND archived_at IS NULL)`,
       ),
     )
     .orderBy(asc(serviceLines.name));

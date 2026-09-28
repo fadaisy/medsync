@@ -1,0 +1,192 @@
+{
+  "catalogue": "medsync.clerking.note-template",
+  "status": "cso_signed",
+  "signedBy": "Fadhul (owner and CSO)",
+  "signedAt": "2026-09-27",
+  "source": "docs/emr/clerking-v2/gate-a-proposal.md (H11): the v1 adult clerking's Examination, Summary, Impression and Plan unchanged; the history half is the clerking catalogue (payload v2).",
+  "template": {
+    "id": "tpl.clerking.adult_v2",
+    "version": "2.0.0",
+    "noteType": "clerking",
+    "title": "Adult clerking",
+    "reference": "2.1",
+    "sections": [
+      {
+        "id": "s11",
+        "number": "11",
+        "title": "Examination",
+        "kind": "mixed",
+        "items": [
+          {
+            "kind": "exam_finding",
+            "group": "general",
+            "concepts": [
+              "sign.pallor",
+              "sign.jaundice",
+              "sign.cyanosis",
+              "sign.clubbing",
+              "sign.lymphadenopathy",
+              "sign.oedema",
+              "sign.dehydration"
+            ],
+            "notes": "each present, absent or not examined; sign.dehydration present = some or severe"
+          },
+          {
+            "kind": "vital_signs",
+            "concepts": [
+              "obs.bp_systolic",
+              "obs.bp_diastolic",
+              "obs.heart_rate",
+              "obs.resp_rate",
+              "obs.temperature",
+              "obs.spo2"
+            ]
+          },
+          {
+            "kind": "anthropometry",
+            "concepts": [
+              "obs.weight",
+              "obs.height",
+              "obs.waist",
+              "obs.muac"
+            ]
+          },
+          {
+            "kind": "exam_finding",
+            "group": "systems",
+            "systems": [
+              "cardiovascular",
+              "respiratory",
+              "abdomen",
+              "neurological",
+              "musculoskeletal",
+              "skin",
+              "ent_and_eyes",
+              "breasts",
+              "genitourinary",
+              "rectal",
+              "vaginal"
+            ],
+            "notes": "narrative per system plus optional finding chips; vaginal applies when sex at birth is female"
+          },
+          {
+            "kind": "chaperone",
+            "requiredWhen": {
+              "systemsExamined": [
+                "rectal",
+                "vaginal"
+              ]
+            },
+            "notes": "principle 7: offered for any intimate examination; recorded for rectal and vaginal examination"
+          }
+        ],
+        "optional": true
+      },
+      {
+        "id": "s12",
+        "number": "12",
+        "title": "Summary",
+        "kind": "narrative",
+        "items": [],
+        "optional": true
+      },
+      {
+        "id": "s13",
+        "number": "13",
+        "title": "Impression",
+        "kind": "structured",
+        "items": [
+          {
+            "kind": "encounter_diagnosis"
+          },
+          {
+            "kind": "diagnosis_deferred"
+          }
+        ],
+        "optional": false
+      },
+      {
+        "id": "s14",
+        "number": "14",
+        "title": "Plan",
+        "kind": "mixed",
+        "items": [
+          {
+            "kind": "order"
+          },
+          {
+            "kind": "prescription"
+          },
+          {
+            "kind": "procedure_plan"
+          },
+          {
+            "kind": "counselling"
+          },
+          {
+            "kind": "referral"
+          },
+          {
+            "kind": "follow_up"
+          },
+          {
+            "kind": "plan_statement"
+          }
+        ],
+        "optional": false
+      }
+    ],
+    "minimumToSign": {
+      "required": [
+        {
+          "id": "req.complaint",
+          "check": "history_complaint_present",
+          "message": "Add the presenting complaint."
+        },
+        {
+          "id": "req.impression",
+          "check": "section_has_any",
+          "message": "Add at least one diagnosis, or 'diagnosis deferred' with a reason.",
+          "section": "s13",
+          "itemKinds": [
+            "encounter_diagnosis",
+            "diagnosis_deferred"
+          ]
+        },
+        {
+          "id": "req.plan",
+          "check": "section_has_any",
+          "message": "Add at least one plan item or a plan statement.",
+          "section": "s14",
+          "itemKinds": [
+            "order",
+            "prescription",
+            "procedure_plan",
+            "counselling",
+            "referral",
+            "follow_up",
+            "plan_statement"
+          ]
+        }
+      ],
+      "prompted": [
+        {
+          "id": "warn.allergy_status",
+          "check": "allergy_status_recorded",
+          "message": "Allergy status not recorded."
+        },
+        {
+          "id": "warn.examination",
+          "check": "section_has_any",
+          "message": "No examination recorded.",
+          "section": "s11",
+          "itemKinds": [
+            "exam_finding",
+            "vital_signs",
+            "anthropometry"
+          ]
+        }
+      ]
+    }
+  }
+}

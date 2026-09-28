@@ -1,0 +1,100 @@
+{
+  "id": "MS-EMR-CLERK-OCC-001",
+  "title": "Occupation: pick list for social history",
+  "version": "1.0.0-draft",
+  "status": "draft, awaiting Clinical Safety Officer review",
+  "note": "Names only, grouped by the kind of work, because the work shapes exposure (fishing and schistosomiasis, mining and TB or silicosis, health work and VHF, driving and injury). Anything not here is typed as the patient says it.",
+  "groups": [
+    {
+      "id": "land_water_animals",
+      "label": "Farming, fishing and animals",
+      "items": [
+        { "id": "occ.farmer", "label": "Farmer", "terms": ["peasant farmer", "cultivator", "crops"] },
+        { "id": "occ.farm_labourer", "label": "Farm or plantation labourer", "terms": ["tea estate", "sugar cane", "casual labourer"] },
+        { "id": "occ.livestock", "label": "Livestock keeper or herder", "terms": ["cattle keeper", "pastoralist", "goats"] },
+        { "id": "occ.poultry", "label": "Poultry farmer", "terms": ["chickens"] },
+        { "id": "occ.fisher", "label": "Fisher", "terms": ["fisherman", "fishing", "landing site"] },
+        { "id": "occ.fish_trader", "label": "Fish trader or processor", "terms": ["fish smoking", "fish drying"] },
+        { "id": "occ.butcher", "label": "Butcher or abattoir worker", "terms": ["slaughter", "meat"] },
+        { "id": "occ.charcoal", "label": "Charcoal burner or forestry worker", "terms": ["timber", "logging"] }
+      ]
+    },
+    {
+      "id": "building_industry",
+      "label": "Mining, building and industry",
+      "items": [
+        { "id": "occ.miner", "label": "Miner", "terms": ["gold mining", "artisanal mining"] },
+        { "id": "occ.quarry", "label": "Stone quarry worker", "terms": ["stone crusher", "aggregate"] },
+        { "id": "occ.builder", "label": "Builder or construction worker", "terms": ["mason", "porter", "kyekyo"] },
+        { "id": "occ.brick_maker", "label": "Brick maker" },
+        { "id": "occ.carpenter", "label": "Carpenter" },
+        { "id": "occ.welder", "label": "Welder or metal worker", "terms": ["fabricator"] },
+        { "id": "occ.mechanic", "label": "Mechanic", "terms": ["garage"] },
+        { "id": "occ.electrician", "label": "Electrician" },
+        { "id": "occ.painter", "label": "Painter", "terms": ["spray painter"] },
+        { "id": "occ.factory", "label": "Factory worker" }
+      ]
+    },
+    {
+      "id": "transport",
+      "label": "Transport",
+      "items": [
+        { "id": "occ.boda", "label": "Boda boda rider", "terms": ["motorcycle taxi"] },
+        { "id": "occ.taxi_driver", "label": "Taxi or bus driver", "terms": ["matatu", "conductor"] },
+        { "id": "occ.truck_driver", "label": "Long-distance truck driver", "terms": ["lorry", "trucker"] },
+        { "id": "occ.driver", "label": "Driver (other)", "terms": ["special hire", "chauffeur"] }
+      ]
+    },
+    {
+      "id": "trade_services",
+      "label": "Trade and services",
+      "items": [
+        { "id": "occ.trader", "label": "Trader", "terms": ["business", "market vendor", "hawker"] },
+        { "id": "occ.shopkeeper", "label": "Shopkeeper" },
+        { "id": "occ.hairdresser", "label": "Hairdresser or salon worker", "terms": ["barber"] },
+        { "id": "occ.tailor", "label": "Tailor" },
+        { "id": "occ.food_worker", "label": "Cook or restaurant worker", "terms": ["hotel", "food vendor"] },
+        { "id": "occ.bar_worker", "label": "Bar worker" },
+        { "id": "occ.security", "label": "Security guard", "terms": ["askari"] },
+        { "id": "occ.cleaner", "label": "Cleaner" },
+        { "id": "occ.domestic", "label": "Domestic worker", "terms": ["housemaid", "house help"] }
+      ]
+    },
+    {
+      "id": "health",
+      "label": "Health and care",
+      "items": [
+        { "id": "occ.doctor", "label": "Doctor" },
+        { "id": "occ.nurse", "label": "Nurse or midwife" },
+        { "id": "occ.clinical_officer", "label": "Clinical officer" },
+        { "id": "occ.lab_worker", "label": "Laboratory worker" },
+        { "id": "occ.health_worker_other", "label": "Health worker (other)", "terms": ["health worker", "pharmacy", "hospital cleaner", "mortuary"] },
+        { "id": "occ.vht", "label": "Village health team member", "terms": ["VHT", "community health worker"] },
+        { "id": "occ.traditional_healer", "label": "Traditional healer or herbalist" }
+      ]
+    },
+    {
+      "id": "office_public",
+      "label": "Education, office and public service",
+      "items": [
+        { "id": "occ.teacher", "label": "Teacher", "terms": ["lecturer", "tutor"] },
+        { "id": "occ.office", "label": "Office worker", "terms": ["civil servant", "accountant", "banker", "clerk"] },
+        { "id": "occ.police", "label": "Police officer" },
+        { "id": "occ.soldier", "label": "Soldier", "terms": ["UPDF", "army"] },
+        { "id": "occ.prison", "label": "Prison officer" },
+        { "id": "occ.religious", "label": "Religious leader", "terms": ["pastor", "priest", "sheikh", "imam"] }
+      ]
+    },
+    {
+      "id": "not_working",
+      "label": "Not in paid work",
+      "items": [
+        { "id": "occ.student", "label": "Student", "terms": ["pupil", "school"] },
+        { "id": "occ.homemaker", "label": "Homemaker", "terms": ["housewife", "stays at home"] },
+        { "id": "occ.unemployed", "label": "Unemployed", "terms": ["no job", "looking for work"] },
+        { "id": "occ.retired", "label": "Retired" },
+        { "id": "occ.unable", "label": "Unable to work (illness or disability)" }
+      ]
+    }
+  ]
+}

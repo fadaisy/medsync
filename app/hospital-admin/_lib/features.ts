@@ -78,10 +78,10 @@ export const FEATURE_AREAS: ReadonlyArray<FeatureArea> = [
   },
   {
     slug: "departments",
-    label: "Departments",
-    hint: "Departments · HODs · wards · beds · occupancy",
+    label: "Departments & services",
+    hint: "Departments · heads · wards & beds · clinics · tests · emergency & support · availability",
     iconKey: "departments",
-    placeholder: true,
+    placeholder: false,
   },
   {
     slug: "scheduling",

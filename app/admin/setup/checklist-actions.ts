@@ -8,13 +8,9 @@ import { z } from "zod";
 import {
   BED_CAPACITY_BANDS,
   CONNECTIVITY_CHOICES,
-  DIAGNOSTIC_CHOICES,
   EMR_CHOICES,
   POWER_CHOICES,
-  SERVICE_OFFERED_CHOICES,
-  SPECIALISED_CLINIC_CHOICES,
   STAFF_BANDS,
-  SUPPORT_SERVICE_CHOICES,
 } from "@/app/signup/hospital/_lib/catalog";
 import { SETUP } from "@/content/onboarding";
 import { CHECKLIST, OPD_BANDS_V2 } from "@/content/onboarding-setup";
@@ -39,7 +35,6 @@ const has = (list: Codes) => {
   const set = new Set(list.map((c) => c.code));
   return (v: string) => set.has(v);
 };
-const many = (list: Codes) => z.array(z.string().refine(has(list))).max(list.length);
 /** One band or blank (blank clears it). */
 const one = (list: Codes) =>
   z
@@ -67,40 +62,12 @@ async function writeApplication(
   return { ok: true };
 }
 
-const all = (fd: FormData, k: string) =>
-  fd.getAll(k).filter((v): v is string => typeof v === "string");
 const text = (fd: FormData, k: string) => {
   const v = fd.get(k);
   return typeof v === "string" ? v : "";
 };
 
 /* ─── Emergency and services ─────────────────────────────────────── */
-
-const ServicesSchema = z.object({
-  hospital_id: z.string().regex(UUID_RE),
-  services_offered: many(SERVICE_OFFERED_CHOICES),
-  specialised_clinics: many(SPECIALISED_CLINIC_CHOICES),
-  diagnostic_services: many(DIAGNOSTIC_CHOICES),
-  support_services: many(SUPPORT_SERVICE_CHOICES),
-  has_onsite_pharmacy: z.enum(["yes", "no", ""]),
-});
-
-export async function saveServicesAction(_prev: StepState, fd: FormData): Promise<StepState> {
-  const parsed = ServicesSchema.safeParse({
-    hospital_id: fd.get("hospital_id"),
-    services_offered: all(fd, "services_offered"),
-    specialised_clinics: all(fd, "specialised_clinics"),
-    diagnostic_services: all(fd, "diagnostic_services"),
-    support_services: all(fd, "support_services"),
-    has_onsite_pharmacy: text(fd, "has_onsite_pharmacy"),
-  });
-  if (!parsed.success) return { error: CHECKLIST.saveFailed };
-  const { hospital_id, has_onsite_pharmacy, ...lists } = parsed.data;
-  return writeApplication(hospital_id, {
-    ...lists,
-    has_onsite_pharmacy: has_onsite_pharmacy === "" ? null : has_onsite_pharmacy === "yes",
-  });
-}
 
 /* ─── Operating profile ──────────────────────────────────────────── */
 

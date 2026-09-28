@@ -1,7 +1,7 @@
 import type { DepartmentOption } from "./_components/declare-intake-form";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { and, asc, eq, gte, inArray, isNull, lt } from "drizzle-orm";
+import { and, asc, eq, gte, inArray, isNull, lt, sql } from "drizzle-orm";
 
 import { db } from "@/db";
 import { hospitalDepartments } from "@/db/schema/hospital-departments";
@@ -107,7 +107,13 @@ export default async function PatientQueuePage({
         eq(departmentSchedulingPolicy.departmentId, hospitalDepartments.id),
       )
       .where(
-        and(eq(hospitalDepartments.hospitalId, hospitalId), isNull(hospitalDepartments.parentId)),
+        and(
+          eq(hospitalDepartments.hospitalId, hospitalId),
+          isNull(hospitalDepartments.parentId),
+          // D-SVC-02: live departments only.
+          sql`${hospitalDepartments.medsyncLiveAt} IS NOT NULL`,
+          isNull(hospitalDepartments.archivedAt),
+        ),
       )
       .orderBy(asc(hospitalDepartments.name)),
     db

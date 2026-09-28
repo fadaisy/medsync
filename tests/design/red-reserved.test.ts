@@ -58,6 +58,9 @@ const WEB = tree(
   // red only in the allowlist below, and never on the calm routes.
   "app/emergency",
   "components/emergency",
+  // ADR 0150: the Departments & services hub — amber for what's down, never red.
+  "app/hospital-admin/departments",
+  "lib/services",
 );
 const MOBILE = tree("mobile/src");
 
@@ -110,7 +113,8 @@ const WEB_RED_FILL = new RegExp(
     String.raw`destructive-foreground`,
     // A red Button or Badge variant, literal or inside a ternary.
     String.raw`variant=(?:["'](?:${RED_BUTTON_VARIANTS.join("|")}|destructive)["']|\{[^}]*["'](?:${RED_BUTTON_VARIANTS.join("|")}|destructive)["'])`,
-    String.raw`["']critical["']`,
+    // A tone literal; a lane's `short:`/`label:` word ("Critical") is copy, not a tone.
+    String.raw`(?<!(?:short|label):\s*)["']critical["']`,
     String.raw`\b(?:bg|text|border(?:-[lrtbxyse])?|ring|fill|stroke|from|to|via|outline|shadow|decoration)-(?:red|rose)-\d`,
     String.raw`(?:bg|border|text)-alert-(?:bg|border|fg)`,
     String.raw`#(?:${RED_ROSE_HEX})\b`,
@@ -285,6 +289,107 @@ describe("red is reserved — the doctor workspace", () => {
   });
 });
 
+// ─── The EMR chart (UI-BRIEF §2) ─────────────────────────────────────────────
+
+describe("red is reserved — the EMR chart and printouts", () => {
+  const EMR = tree("components/emr", "app/doctor/encounters/[encounterId]/print");
+
+  /**
+   * The one file that may name the critical token: status-word.tsx, whose ResultValueText paints a
+   * result value critical only when the payload says so (a signed REF-CRIT entry; none today),
+   * always beside the word. Awaiting acknowledgement, not recorded and offline are amber; Died and
+   * record states are neutral words.
+   */
+  const RED_ALLOWED: readonly string[] = ["components/emr/status-word.tsx"];
+
+  it("the allowlist is real — the file exists and paints red", () => {
+    for (const p of RED_ALLOWED)
+      expect(stripComments(readFileSync(resolve(ROOT, p), "utf8")), p).toMatch(WEB_RED_FILL);
+  });
+
+  it("no other EMR file names the critical token, a red class or a red hex", () => {
+    expect(EMR.length).toBeGreaterThan(15);
+    for (const [path, src] of EMR) {
+      if (RED_ALLOWED.includes(path)) continue;
+      const m = WEB_RED_FILL.exec(src);
+      expect(m, `${path}: ${m?.[0]}`).toBeNull();
+    }
+  });
+
+  it("the critical value always carries the word and an icon", () => {
+    const src = readFileSync(resolve(ROOT, "components/emr/status-word.tsx"), "utf8");
+    expect(src).toMatch(/<StatusWord tone="critical">Critical<\/StatusWord>/);
+    expect(src).toMatch(/critical: OctagonAlertIcon/);
+  });
+
+  it("the safety bar's critical-results line is amber, not red (gate-a E.1 ⑦)", () => {
+    const bar = readFileSync(resolve(ROOT, "components/emr/safety-bar.tsx"), "utf8");
+    expect(bar).toMatch(/<StatusWord tone="caution">\{bar\.criticalText\}<\/StatusWord>/);
+  });
+
+  it("every StatusWord carries words", () => {
+    for (const [path, src] of EMR) {
+      for (const i of each(src, /<StatusWord\b/g)) {
+        const el = elementAt(src, i);
+        expect(el.selfClosing, `${path}: self-closing ${el.tag}`).toBe(false);
+        expect(el.children, `${path}: empty ${el.tag}`).not.toBe("");
+      }
+    }
+  });
+});
+
+// ─── Clerking desk v2 (Law 8 as amended by D-CV-03) ──────────────────────────
+
+describe("red is reserved — clerking desk v2", () => {
+  const CLERKING = tree("components/clerking", "app/doctor/encounters/[encounterId]/_desk");
+
+  /**
+   * Red in the new desk, and nowhere else: an urgent badge in the Flags panel (critical tint,
+   * octagon, "urgent" in its name) and a NEWS2 score of 3 on the rail (its badge, value and arrow,
+   * with the number). Each file keeps its red in named constants so the rule can be read here.
+   */
+  const RED_ALLOWED: Record<string, readonly string[]> = {
+    "components/clerking/flags-panel.tsx": ["URGENT"],
+    "components/clerking/rail.tsx": ["SCORE3", "SCORE3_TEXT"],
+  };
+
+  it("the allowlist is real — each file exists and paints red", () => {
+    for (const p of Object.keys(RED_ALLOWED))
+      expect(stripComments(readFileSync(resolve(ROOT, p), "utf8")), p).toMatch(WEB_RED_FILL);
+  });
+
+  it("no other clerking file (or the desk island) names the critical token, a red class or hex", () => {
+    expect(CLERKING.length).toBeGreaterThan(8);
+    for (const [path, src] of CLERKING) {
+      if (path in RED_ALLOWED) continue;
+      const m = WEB_RED_FILL.exec(src);
+      expect(m, `${path}: ${m?.[0]}`).toBeNull();
+    }
+  });
+
+  it("in the two allowed files red lives only in its named constants", () => {
+    for (const [p, names] of Object.entries(RED_ALLOWED)) {
+      const src = stripComments(readFileSync(resolve(ROOT, p), "utf8"));
+      for (const line of src.split("\n").filter((l) => WEB_RED_FILL.test(l)))
+        expect(
+          names.some((n) => line.startsWith(`const ${n} =`)),
+          `${p}: ${line}`,
+        ).toBe(true);
+    }
+  });
+
+  it("an urgent badge always travels with the octagon and the word; a score of 3 with its number", () => {
+    const flags = readFileSync(resolve(ROOT, "components/clerking/flags-panel.tsx"), "utf8");
+    expect(flags).toMatch(/b\.level === "urgent" \? OctagonAlertIcon : TriangleAlertIcon/);
+    expect(flags).toMatch(/b\.level === "urgent" \? "urgent" : "needs attention"/);
+    expect(flags).toMatch(/b\.level === "urgent" \? URGENT : CAUTION/);
+    const rail = readFileSync(resolve(ROOT, "components/clerking/rail.tsx"), "utf8");
+    expect(rail).toMatch(/three \? SCORE3 : SCORE12/);
+    expect(rail).toMatch(/title=\{`NEWS2 score \$\{r\.points\}`\}/);
+    expect(rail).toMatch(/const three = r\.points === 3;/);
+  });
+});
+
 describe("never colour alone — web status indicators carry a word", () => {
   it("every Pill / Badge / ClinicalBadge has visible children and is not aria-hidden", () => {
     for (const [path, src] of WEB) {
@@ -338,7 +443,8 @@ describe("red is reserved — the Expo app", () => {
       String.raw`critical(?:Bg|Fg)\b`,
       String.raw`status\.critical`,
       String.raw`tone=["']critical["']`,
-      String.raw`["']critical["']`,
+      // A tone literal; a lane's `short:`/`label:` word ("Critical") is copy, not a tone.
+      String.raw`(?<!(?:short|label):\s*)["']critical["']`,
       String.raw`#(?:${RED_ROSE_HEX})\b`,
       // A named colour is a raw colour too.
       String.raw`["'](?:red|crimson|firebrick|darkred|tomato)["']`,
@@ -381,10 +487,14 @@ describe("red is reserved — the Expo app", () => {
     }
   });
 
+  // ADR 0162 (MedSync Chroma): a booking state is not a clinical state, so the
+  // chip is a tag in cool hues only — no red, and no amber or green either.
   it("the appointment Pill has no red tone at all", () => {
     const pill = MOBILE.find(([p]) => p === "mobile/src/components/ui/pill.tsx")?.[1] ?? "";
-    expect(pill).not.toMatch(/critical/);
-    expect(pill).toMatch(/type Tone = "stable" \| "caution" \| "pending" \| "neutral"/);
+    expect(pill).not.toMatch(/critical|status\./);
+    const hues = [...pill.matchAll(/\{ hue: "(\w+)", word: "[^"]*" \}/g)].map((m) => m[1]);
+    expect(hues.length).toBeGreaterThanOrEqual(10);
+    for (const h of hues) expect(["teal", "sky", "iris", "slate"]).toContain(h);
   });
 });
 
@@ -406,7 +516,7 @@ describe("never colour alone — the Expo app", () => {
       }
     }
     const pill = MOBILE.find(([p]) => p === "mobile/src/components/ui/pill.tsx")?.[1] ?? "";
-    const entries = [...pill.matchAll(/\{ tone: "(\w+)", word: "([^"]*)" \}/g)];
+    const entries = [...pill.matchAll(/\{ hue: "(\w+)", word: "([^"]*)" \}/g)];
     expect(entries.length).toBeGreaterThanOrEqual(10); // the ten appointments.status values
     for (const [, tone, word] of entries) {
       expect((word ?? "").trim(), `tone ${tone} without a word`).not.toBe("");

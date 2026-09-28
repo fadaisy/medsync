@@ -215,7 +215,14 @@ export async function listHospitalDepartments(
   return db
     .select({ id: hospitalDepartments.id, name: hospitalDepartments.name })
     .from(hospitalDepartments)
-    .where(eq(hospitalDepartments.hospitalId, hospitalId))
+    .where(
+      and(
+        eq(hospitalDepartments.hospitalId, hospitalId),
+        // D-SVC-02: live on MedSync and not archived.
+        sql`${hospitalDepartments.medsyncLiveAt} IS NOT NULL`,
+        sql`${hospitalDepartments.archivedAt} IS NULL`,
+      ),
+    )
     .orderBy(asc(hospitalDepartments.name));
 }
 

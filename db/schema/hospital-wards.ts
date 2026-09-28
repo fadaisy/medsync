@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import {
   check,
+  date,
   index,
   integer,
   pgTable,
@@ -33,6 +34,15 @@ export const hospitalWards = pgTable(
     slug: text("slug").notNull(),
     bedCount: integer("bed_count").notNull().default(0),
     state: text("state").notNull().default("active"),
+    /** 0080 (§5.4): A.5 ward type, sex, age group, place, temporary closure, archive. */
+    wardType: text("ward_type"),
+    sex: text("sex"),
+    ageGroup: text("age_group"),
+    placeId: uuid("place_id"),
+    closedAt: timestamp("closed_at", { withTimezone: true }),
+    closedReason: text("closed_reason"),
+    expectedReopenOn: date("expected_reopen_on"), // 0080: a date column; string mode
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
