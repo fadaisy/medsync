@@ -8,9 +8,11 @@ import { ACTION_LABEL } from "@/lib/doctor/capabilities";
 import { listPendingCosignRequests } from "@/lib/doctor/cosign";
 import { requireDoctorScope } from "@/lib/doctor/scope";
 import { asClinicalWriter } from "@/lib/emr/db";
+import { diagnosesForCosign } from "@/lib/emr/write/diagnoses";
 import { prescriptionsForCosign } from "@/lib/emr/write/prescriptions";
 import { DoctorEmptyState } from "../_components/empty-state";
 import { CosignNoteForm } from "./_components/cosign-note-form";
+import { DiagnosisCosignForm } from "./_components/diagnosis-cosign-form";
 import { ReviewForm } from "./_components/review-form";
 
 /** EMR note co-signatures (sign_note) carry a PHI-free payload: the note's id, type and visit. */
@@ -25,6 +27,16 @@ const noteRequest = (r: { actionKind: string; actionPayload: Record<string, unkn
           typeof r.actionPayload.noteType === "string"
             ? `${r.actionPayload.noteType.charAt(0).toUpperCase()}${r.actionPayload.noteType.slice(1).replace(/_/g, " ")} note`
             : "Note",
+      }
+    : null;
+
+/** A junior's Final (confirm_diagnosis, 0084): the PHI-free payload names the condition and visit. */
+const diagnosisRequest = (r: { actionKind: string; actionPayload: Record<string, unknown> }) =>
+  r.actionKind === "confirm_diagnosis" && typeof r.actionPayload.conditionLogicalId === "string"
+    ? {
+        logicalId: r.actionPayload.conditionLogicalId,
+        encounterId:
+          typeof r.actionPayload.encounterId === "string" ? r.actionPayload.encounterId : null,
       }
     : null;
 
@@ -51,7 +63,30 @@ export default async function DoctorCosignQueuePage() {
         prescriptionsForCosign(tx, scope.hospitalId, rxIds),
       )
     : new Map();
-  const shown = (payload: Record<string, unknown>): Record<string, unknown> => {
+  // confirm_diagnosis requests name only the condition: resolve the diagnosis to review.
+  const dxIds = queue.flatMap((r) => diagnosisRequest(r)?.logicalId ?? []);
+  const dx = dxIds.length
+    ? await asClinicalWriter({ userId: scope.userId, hospitalId: scope.hospitalId }, (tx) =>
+        diagnosesForCosign(tx, scope.hospitalId, dxIds),
+      )
+    : new Map<string, { display: string; restricted: boolean }>();
+  const shown = (r: {
+    actionKind: string;
+    actionPayload: Record<string, unknown>;
+  }): Record<string, unknown> => {
+    const payload = r.actionPayload;
+    const d = diagnosisRequest(r);
+    if (d) {
+      const row = dx.get(d.logicalId);
+      // A restricted diagnosis is read on the visit, never named in the hospital-wide queue.
+      return {
+        diagnosis: !row
+          ? "Diagnosis"
+          : row.restricted
+            ? "Restricted diagnosis: open the visit to read it"
+            : row.display,
+      };
+    }
     const p = typeof payload.prescriptionId === "string" ? rx.get(payload.prescriptionId) : null;
     return p
       ? {
@@ -119,7 +154,7 @@ export default async function DoctorCosignQueuePage() {
 
               {/* Action payload — readable JSON snapshot */}
               <dl className="border-border/60 bg-muted/20 grid grid-cols-2 gap-x-4 gap-y-1.5 rounded-md border px-3 py-2 text-[12px] sm:grid-cols-3">
-                {payloadFields(shown(r.actionPayload)).map(([k, v]) => (
+                {payloadFields(shown(r)).map(([k, v]) => (
                   <div key={k} className="flex flex-col">
                     <dt className="text-muted-foreground/80 font-mono text-[9.5px] tracking-[0.12em] uppercase">
                       {k}
@@ -137,6 +172,12 @@ export default async function DoctorCosignQueuePage() {
                     encounterId={noteRequest(r)!.encounterId}
                   />
                 ) : null
+              ) : r.actionKind === "confirm_diagnosis" ? (
+                <DiagnosisCosignForm
+                  requestId={r.id}
+                  patientUserId={r.patientUserId}
+                  encounterId={diagnosisRequest(r)?.encounterId ?? null}
+                />
               ) : (
                 <ReviewForm cosignRequestId={r.id} />
               )}
@@ -156,6 +197,8 @@ function payloadFields(payload: Record<string, unknown>): Array<[string, string]
     ["Frequency", payload.frequency],
     ["Duration", payload.duration],
     ["Reason", payload.reason],
+    // confirm_diagnosis: the diagnosis in words (resolved on this page, never in the payload).
+    ["Diagnosis", payload.diagnosis],
     // sign_note: the note's type in words (its content is read on the visit, never copied here).
     ["Note", typeof payload.noteType === "string" ? payload.noteType.replace(/_/g, " ") : null],
   ];

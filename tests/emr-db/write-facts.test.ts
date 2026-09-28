@@ -371,8 +371,11 @@ describe.skipIf(!laneOn)("fact writes (PGlite lane)", () => {
       );
 
     const first = await dx(mo);
-    const second = await dx(intern, { verification: "confirmed" });
-    expect(second.warnings).toEqual([expect.stringMatching(/working/)]);
+    // An intern's Final is stored Working and raises a co-signature request (D-SI-09); the same
+    // words twice on one visit would be refused (S-3), so this one is another diagnosis.
+    const second = await dx(intern, { text: "Malaria", verification: "confirmed" });
+    expect(second.warnings).toEqual([facts.FINAL_AWAITING_COSIGN]);
+    expect(second.cosignRequestId).toBeDefined();
     await expect(dx(mo, { rank: "primary" })).rejects.toMatchObject({ code: "conflict" });
     const { rows } = await lane.pg.query(
       `SELECT id, rank, verification FROM public.conditions WHERE encounter_id = $1 ORDER BY recorded_at, rank`,
