@@ -295,3 +295,6 @@ would have stopped routine test orders wherever `EMR_V1` is on. The trigger now 
 every routine order meant before), ADR 0185 §3 says so, and the lane test checks it. 0088 and 0089 only add columns
 with defaults, new tables and a reader policy. All three can be applied while `main` is still deployed; this branch
 must not be deployed before them.
+
+**Applied (28 Sep 2026):** the owner applied 0087 → 0088 → 0089 with `npm run db:migrate` from a worktree of this
+branch. Next: deploy the branch, then turn on `CLERKING_PLAN_V2` (and `EMR_PRESCRIBING` for prescribing).

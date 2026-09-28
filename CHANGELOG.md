@@ -11,7 +11,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 - **The prescribing dialog**: three columns (what, how, check). A dose is pre-set only from a signed, verified regimen (glucose 10%, glucagon and the crystalloid bolus, carried unchanged from the emergency formulary); every other dose is typed. Edits are struck through and recorded; checks (allergy groups, kidney function, weight, child, duplicates, indication, cultures before antibiotics, interactions not checked, stock, co-sign, controlled witness) need an answer, and are marked proposed. Fluids show mL/h and drops/min, arithmetic only.
 - **General formulary MS-RX-CAT-001**: 182 generic drugs in 69 classes as data with a generator, a drift test and the dose-content guard. No doses.
 - **Monitoring charts opened by the plan**: observations and NEWS2, temperature, fluid balance, capillary glucose and the MAR, drawn as SVG over tables; reference lines labelled and never flagged; blank is never zero. Nurses record fluid balance, append-only.
-- **Migrations (GATED, owner, not applied):** `0087` (Emergency priority, routine frequency), `0088` (prescription columns, held reconciliation, the MAR link), `0089` (fluid balance entries, the chart registry, the MAR reader policy). Apply before deploying the branch.
+- **Migrations (GATED, applied by the owner on 2026-09-28):** `0087` (Emergency priority, routine frequency), `0088` (prescription columns, held reconciliation, the MAR link), `0089` (fluid balance entries, the chart registry, the MAR reader policy).
 
 ### Decided — Clerking v2 step 10 Plan: by problem, prescribing, fluids and monitoring charts (ADRs 0184–0190) — 2026-09-28
 
