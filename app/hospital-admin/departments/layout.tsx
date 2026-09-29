@@ -4,6 +4,7 @@ import { AlertTriangleIcon } from "lucide-react";
 
 import { requireHospitalAdminScope } from "@/lib/hospital-admin/scope";
 import { availabilityCount, hubSummary } from "@/lib/services/data";
+import { HubFrame } from "./_components/hub-frame";
 import { HubTabs } from "./_components/hub-tabs";
 
 /**
@@ -21,8 +22,8 @@ export default async function ServicesHubLayout({ children }: { children: ReactN
       <span className="text-foreground font-mono tabular-nums">{v}</span> {v === 1 ? one : many}
     </span>
   );
-  return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-5 px-4 py-6 sm:px-6 sm:py-8">
+  const chrome = (
+    <>
       <header className="flex flex-col gap-2">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <h1 className="font-display text-display-s text-foreground">
@@ -62,7 +63,7 @@ export default async function ServicesHubLayout({ children }: { children: ReactN
         </p>
       </header>
       <HubTabs />
-      {children}
-    </div>
+    </>
   );
+  return <HubFrame chrome={chrome}>{children}</HubFrame>;
 }

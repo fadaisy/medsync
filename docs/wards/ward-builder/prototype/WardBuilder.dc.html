@@ -1,0 +1,911 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<title>Ward builder</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500&amp;display=swap">
+<style>body{margin:0;background:#fbfbfc}button:focus-visible,input:focus-visible,select:focus-visible,[tabindex]:focus-visible{outline:2px solid #0d9488;outline-offset:2px}</style>
+</helmet>
+<div onKeyDown="{{onRootKey}}" style="width: 1440px; height: 960px; display: flex; flex-direction: column; background: #fbfbfc; font-family: Geist, ui-sans-serif, system-ui, sans-serif; color: #17191d">
+
+  <!-- Header: where we are, which ward -->
+  <header style="height: 64px; flex-shrink: 0; box-sizing: border-box; padding: 0 20px; border-bottom: 1px solid #e3e5e8; background: #ffffff; display: flex; align-items: center; gap: 16px">
+    <div style="display: flex; flex-direction: column; gap: 2px; min-width: 0">
+      <span style="font-size: 12px; color: #6c717b">Hospital admin › Departments &amp; wards › {{ward.name}}</span>
+      <h1 style="margin: 0; font-size: 18px; font-weight: 500">{{pageTitle}}</h1>
+    </div>
+    <div role="radiogroup" aria-label="Mode" style="display: inline-flex; padding: 2px; border-radius: 8px; background: #f0f1f3; gap: 2px">
+      <sc-for list="{{modeSeg}}" as="s" hint-placeholder-count="2"><button type="button" role="radio" aria-checked="{{s.on}}" onClick="{{s.pick}}" style="{{s.style}}">{{s.label}}</button></sc-for>
+    </div>
+    <nav aria-label="Wards" style="margin-left: 24px; display: flex; gap: 4px; flex-grow: 1; min-width: 0">
+      <sc-for list="{{wardTabs}}" as="t" hint-placeholder-count="4">
+        <button type="button" onClick="{{t.pick}}" aria-current="{{t.current}}" style="{{t.style}}"><span style="font-weight: 500">{{t.name}}</span><span style="font-size: 11px; color: #6c717b">{{t.sub}}</span></button>
+      </sc-for>
+      <button type="button" onClick="{{newWard}}" style="height: 40px; padding: 0 12px; border-radius: 8px; border: 1px dashed #d0d3d9; background: #ffffff; color: #3d4149; font-family: inherit; font-size: 13px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; cursor: pointer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>New ward</button>
+    </nav>
+    <span style="font-size: 12px; color: #545963">{{saveNote}}</span>
+    <button type="button" onClick="{{saveDraft}}" style="height: 36px; padding: 0 14px; border-radius: 8px; border: 1px solid #d0d3d9; background: #ffffff; color: #17191d; font-family: inherit; font-size: 13px; font-weight: 500; cursor: pointer">Save draft</button>
+    <button type="button" onClick="{{publish}}" style="height: 36px; padding: 0 14px; border-radius: 8px; border: 1px solid #0f766e; background: #0f766e; color: #ffffff; font-family: inherit; font-size: 13px; font-weight: 500; box-shadow: inset 0 1px 0 rgba(255,255,255,0.16), 0 1px 2px rgba(15,118,110,0.3); cursor: pointer">Publish layout</button>
+  </header>
+
+  <div style="flex-grow: 1; min-height: 0; display: flex">
+
+    <!-- Palette -->
+    <aside aria-label="Palette" style="width: 248px; flex-shrink: 0; border-right: 1px solid #e3e5e8; background: #ffffff; overflow-y: auto; padding: 12px; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px">
+      <sc-if value="{{isBuild}}" hint-placeholder-val="{{true}}">
+      <button type="button" onClick="{{toSelect}}" aria-pressed="{{selectOn}}" style="{{selectStyle}}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.04 4.04 10.5 20l2.2-6.8L19.5 11z"></path></svg>Select and move</button>
+      <sc-for list="{{palette}}" as="g" hint-placeholder-count="5">
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #6c717b">{{g.name}}</span>
+          <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px">
+            <sc-for list="{{g.items}}" as="p" hint-placeholder-count="4">
+              <button type="button" onClick="{{p.arm}}" aria-pressed="{{p.on}}" title="{{p.hint}}" style="{{p.style}}">
+                <span style="{{p.glyph}}"></span>
+                <span style="font-size: 12px; font-weight: 500; line-height: 1.2">{{p.label}}</span>
+              </button>
+            </sc-for>
+          </div>
+        </div>
+      </sc-for>
+      <sc-if value="{{rowArmed}}" hint-placeholder-val="{{false}}">
+        <div style="display: flex; flex-direction: column; gap: 8px; padding: 10px; border: 1px solid #99f6e4; border-radius: 10px; background: #f0fdfa">
+          <span style="font-size: 12px; font-weight: 600; color: #115e59">Row of beds</span>
+          <sc-for list="{{rowSteppers}}" as="z" hint-placeholder-count="2">
+            <div style="display: flex; align-items: center; gap: 6px">
+              <span style="font-size: 12px; color: #3d4149; width: 52px">{{z.label}}</span>
+              <button type="button" onClick="{{z.minus}}" aria-label="{{z.minusLabel}}" style="{{iconBtn}}">−</button>
+              <span style="font-family: 'Geist Mono', ui-monospace, monospace; font-size: 13px; width: 48px; text-align: center">{{z.value}}</span>
+              <button type="button" onClick="{{z.plus}}" aria-label="{{z.plusLabel}}" style="{{iconBtn}}">+</button>
+            </div>
+          </sc-for>
+          <span style="font-size: 12px; color: #3d4149">Heads against</span>
+          <div style="display: flex; flex-wrap: wrap; gap: 4px"><sc-for list="{{rowFaces}}" as="c" hint-placeholder-count="4"><button type="button" aria-pressed="{{c.on}}" onClick="{{c.pick}}" style="{{c.style}}">{{c.label}}</button></sc-for></div>
+          <div style="display: flex; flex-wrap: wrap; gap: 4px"><sc-for list="{{rowToggles}}" as="c" hint-placeholder-count="2"><button type="button" aria-pressed="{{c.on}}" onClick="{{c.pick}}" style="{{c.style}}">{{c.label}}</button></sc-for></div>
+          <span style="font-size: 11px; color: #3d4149">Click the plan where the first bed goes.</span>
+        </div>
+      </sc-if>
+      <div style="display: flex; flex-direction: column; gap: 6px">
+        <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #6c717b">Start from a layout</span>
+        <sc-for list="{{presets}}" as="p" hint-placeholder-count="3">
+          <button type="button" onClick="{{p.apply}}" style="min-height: 36px; padding: 6px 10px; border-radius: 8px; border: 1px solid #e3e5e8; background: #fbfbfc; color: #17191d; font-family: inherit; font-size: 12px; text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 1px"><span style="font-weight: 500">{{p.name}}</span><span style="font-size: 11px; color: #6c717b">{{p.sub}}</span></button>
+        </sc-for>
+      </div>
+      </sc-if>
+      <sc-if value="{{isLive}}" hint-placeholder-val="{{false}}">
+        <div style="display: flex; flex-direction: column; gap: 10px">
+          <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #6c717b">Bed state</span>
+          <sc-for list="{{legend}}" as="l" hint-placeholder-count="5">
+            <div style="display: flex; align-items: center; gap: 10px; font-size: 13px"><span style="{{l.swatch}}">{{l.short}}</span><span style="flex-grow: 1">{{l.label}}</span><span style="font-family: 'Geist Mono', ui-monospace, monospace">{{l.count}}</span></div>
+          </sc-for>
+          <span style="font-size: 11px; color: #6c717b; line-height: 1.45">Demo states. In the product they come from admissions, transfers and discharges; nurses set cleaning and reserved.</span>
+          <button type="button" onClick="{{toBuild}}" style="height: 34px; border-radius: 8px; border: 1px solid #d0d3d9; background: #ffffff; color: #17191d; font-family: inherit; font-size: 13px; font-weight: 500; cursor: pointer">Edit the layout</button>
+        </div>
+      </sc-if>
+    </aside>
+
+    <!-- Plan -->
+    <main style="flex-grow: 1; min-width: 0; display: flex; flex-direction: column">
+      <div style="height: 48px; flex-shrink: 0; box-sizing: border-box; padding: 0 16px; border-bottom: 1px solid #e3e5e8; background: #ffffff; display: flex; align-items: center; gap: 8px">
+        <span style="font-size: 12px; color: #545963; min-width: 0; flex-grow: 1">{{hint}}</span>
+        <span style="font-size: 12px; color: #6c717b">Show</span>
+        <div role="radiogroup" aria-label="Highlight on the plan" style="display: inline-flex; padding: 2px; border-radius: 8px; background: #f0f1f3; gap: 2px">
+          <sc-for list="{{lenses}}" as="s" hint-placeholder-count="5"><button type="button" role="radio" aria-checked="{{s.on}}" onClick="{{s.pick}}" style="{{s.style}}">{{s.label}}</button></sc-for>
+        </div>
+        <span style="width: 8px"></span>
+        <button type="button" onClick="{{undo}}" disabled="{{undoDisabled}}" aria-label="Undo" title="{{undoTitle}}" style="{{iconBtn}}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"></path><path d="M4 9h11a5 5 0 0 1 0 10h-3"></path></svg></button>
+        <button type="button" onClick="{{redo}}" disabled="{{redoDisabled}}" aria-label="Redo" title="{{redoTitle}}" style="{{iconBtn}}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 14 5-5-5-5"></path><path d="M20 9H9a5 5 0 0 0 0 10h3"></path></svg></button>
+        <button type="button" onClick="{{toggleGrid}}" aria-pressed="{{gridOn}}" aria-label="Grid" style="{{iconBtn}}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M3 9h18"></path><path d="M3 15h18"></path><path d="M9 3v18"></path><path d="M15 3v18"></path></svg></button>
+      </div>
+
+      <div style="flex-grow: 1; min-height: 0; overflow: auto; display: flex; align-items: flex-start; justify-content: center; padding: 20px 16px 8px; box-sizing: border-box; background: #f0f1f3">
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <div tabindex="0" aria-label="{{planLabel}}" onPointerMove="{{onMove}}" onPointerUp="{{onUp}}" onPointerLeave="{{onUp}}" onClick="{{onPlanClick}}" onKeyDown="{{onKey}}" style="{{planStyle}}">
+            <sc-for list="{{rooms}}" as="r" hint-placeholder-count="2">
+              <div onPointerDown="{{r.down}}" onClick="{{r.click}}" style="{{r.style}}">
+                <span style="{{r.labelStyle}}">{{r.name}}</span>
+                <span style="{{r.doorStyle}}"></span>
+              </div>
+            </sc-for>
+            <sc-for list="{{fixtures}}" as="f" hint-placeholder-count="2">
+              <div onPointerDown="{{f.down}}" onClick="{{f.click}}" style="{{f.style}}"><span style="font-size: 10px; line-height: 1.1; text-align: center; padding: 0 2px">{{f.label}}</span></div>
+            </sc-for>
+            <sc-for list="{{lines}}" as="l" hint-placeholder-count="4">
+              <div onPointerDown="{{l.down}}" onClick="{{l.click}}" style="{{l.hit}}"><span style="{{l.style}}"></span></div>
+            </sc-for>
+            <sc-for list="{{doors}}" as="d" hint-placeholder-count="1">
+              <div onPointerDown="{{d.down}}" onClick="{{d.click}}" style="{{d.box}}"><span style="{{d.gap}}"></span><span style="{{d.leaf}}"></span><span style="{{d.arc}}"></span></div>
+            </sc-for>
+            <sc-for list="{{beds}}" as="b" hint-placeholder-count="6">
+              <div onPointerDown="{{b.down}}" onClick="{{b.click}}" title="{{b.title}}" style="{{b.style}}">
+                <span style="{{b.head}}"></span>
+                <span style="{{b.pillow}}"></span>
+                <span style="{{b.labelStyle}}">{{b.label}}</span>
+                <span style="{{b.glyphStyle}}">{{b.glyphs}}</span>
+                <sc-if value="{{b.out}}" hint-placeholder-val="{{false}}"><span style="{{b.outStyle}}">Out</span></sc-if>
+                <sc-if value="{{b.showState}}" hint-placeholder-val="{{false}}"><span style="{{b.stateStyle}}">{{b.stateWord}}</span></sc-if>
+              </div>
+            </sc-for>
+            <sc-if value="{{hasGhost}}" hint-placeholder-val="{{false}}"><sc-for list="{{ghosts}}" as="g" hint-placeholder-count="1"><span style="{{g}}"></span></sc-for></sc-if>
+            <sc-for list="{{handles}}" as="h" hint-placeholder-count="0"><span onPointerDown="{{h.down}}" onClick="{{h.click}}" title="{{h.title}}" style="{{h.style}}"></span></sc-for>
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 11px; color: #6c717b">
+            <span>1 square = 0.5 m · the floor is {{floorSize}}</span>
+            <span>Drag to move · R rotates · Delete removes · arrows nudge · {{undoKeys}} undoes</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="height: 56px; flex-shrink: 0; box-sizing: border-box; padding: 0 16px; border-top: 1px solid #e3e5e8; background: #ffffff; display: flex; align-items: center; gap: 18px">
+        <sc-for list="{{stats}}" as="s" hint-placeholder-count="5">
+          <span style="display: flex; flex-direction: column; gap: 1px"><span style="font-family: 'Geist Mono', ui-monospace, monospace; font-size: 15px; font-weight: 500">{{s.value}}</span><span style="font-size: 11px; color: #6c717b">{{s.label}}</span></span>
+        </sc-for>
+        <sc-if value="{{countMismatch}}" hint-placeholder-val="{{false}}">
+          <span style="margin-left: auto; display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 8px; background: #fef3c7; color: #92400e; font-size: 12px"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>{{mismatchText}}</span>
+        </sc-if>
+      </div>
+    </main>
+
+    <!-- Inspector -->
+    <aside aria-label="Inspector" style="width: 320px; flex-shrink: 0; border-left: 1px solid #e3e5e8; background: #ffffff; overflow-y: auto; padding: 16px; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px">
+
+      <sc-if value="{{liveNoSel}}" hint-placeholder-val="{{false}}">
+        <div style="display: flex; flex-direction: column; gap: 12px">
+          <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #6c717b">Free beds, by what the patient needs</span>
+          <sc-for list="{{freeBy}}" as="f" hint-placeholder-count="5">
+            <div style="display: flex; flex-direction: column; gap: 4px; padding-bottom: 8px; border-bottom: 1px solid #e9eaed">
+              <div style="display: flex; justify-content: space-between; font-size: 13px"><span style="font-weight: 500">{{f.label}}</span><span style="font-family: 'Geist Mono', ui-monospace, monospace">{{f.count}}</span></div>
+              <div style="display: flex; flex-wrap: wrap; gap: 4px"><sc-for list="{{f.beds}}" as="b" hint-placeholder-count="3"><button type="button" onClick="{{b.pick}}" style="height: 24px; padding: 0 8px; border-radius: 6px; border: 1px solid #d0d3d9; background: #ffffff; color: #17191d; font-family: 'Geist Mono', ui-monospace, monospace; font-size: 12px; cursor: pointer">{{b.label}}</button></sc-for><sc-if value="{{f.none}}" hint-placeholder-val="{{false}}"><span style="font-size: 12px; color: #92400e">None free</span></sc-if></div>
+            </div>
+          </sc-for>
+          <span style="font-size: 11px; color: #6c717b; line-height: 1.45">This is why the layout records services per bed: a patient on oxygen is matched to a free bed that has it.</span>
+        </div>
+      </sc-if>
+      <sc-if value="{{liveSel}}" hint-placeholder-val="{{false}}">
+        <div style="display: flex; flex-direction: column; gap: 12px">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+            <div style="display: flex; flex-direction: column; gap: 2px"><span style="font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #6c717b">Bed</span><span style="font-size: 17px; font-weight: 500">{{live.title}}</span><span style="font-size: 12px; color: #6c717b">{{live.where}}</span></div>
+            <button type="button" onClick="{{deselect}}" aria-label="Close" style="width: 32px; height: 32px; border: 0; border-radius: 8px; background: transparent; color: #545963; display: inline-flex; align-items: center; justify-content: center; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; color: #545963">State</span><div style="display: flex; flex-wrap: wrap; gap: 6px"><sc-for list="{{live.states}}" as="c" hint-placeholder-count="4"><button type="button" aria-pressed="{{c.on}}" onClick="{{c.pick}}" style="{{c.style}}">{{c.label}}</button></sc-for></div></div>
+          <div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; color: #545963">Services at this bed</span><div style="display: flex; flex-wrap: wrap; gap: 6px"><sc-for list="{{live.services}}" as="a" hint-placeholder-count="4"><span style="height: 26px; padding: 0 8px; border-radius: 6px; background: #f0f1f3; font-size: 12px; display: inline-flex; align-items: center">{{a}}</span></sc-for><sc-if value="{{live.noServices}}" hint-placeholder-val="{{false}}"><span style="font-size: 12px; color: #6c717b">None recorded</span></sc-if></div></div>
+          <span style="font-size: 12px; color: #6c717b; line-height: 1.45">Patient details come from admissions and are not shown in this prototype.</span>
+        </div>
+      </sc-if>
+      <sc-if value="{{noSel}}" hint-placeholder-val="{{true}}">
+        <div style="display: flex; flex-direction: column; gap: 12px">
+          <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #6c717b">Ward</span>
+          <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #545963">Name
+            <input value="{{ward.name}}" onChange="{{onWardName}}" style="height: 34px; box-sizing: border-box; padding: 0 10px; border: 1px solid #d0d3d9; border-radius: 8px; font-family: inherit; font-size: 13px; color: #17191d">
+          </label>
+          <div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; color: #545963">Department</span><div style="display: flex; flex-wrap: wrap; gap: 6px"><sc-for list="{{deptChips}}" as="c" hint-placeholder-count="3"><button type="button" aria-pressed="{{c.on}}" onClick="{{c.pick}}" style="{{c.style}}">{{c.label}}</button></sc-for></div></div>
+          <div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; color: #545963">Admits</span><div style="display: flex; flex-wrap: wrap; gap: 6px"><sc-for list="{{sexChips}}" as="c" hint-placeholder-count="3"><button type="button" aria-pressed="{{c.on}}" onClick="{{c.pick}}" style="{{c.style}}">{{c.label}}</button></sc-for></div></div>
+          <div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; color: #545963">Level of care</span><div style="display: flex; flex-wrap: wrap; gap: 6px"><sc-for list="{{careChips}}" as="c" hint-placeholder-count="3"><button type="button" aria-pressed="{{c.on}}" onClick="{{c.pick}}" style="{{c.style}}">{{c.label}}</button></sc-for></div></div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #6c717b">Bedside services</span>
+          <sc-for list="{{coverage}}" as="c" hint-placeholder-count="5">
+            <div style="display: flex; flex-direction: column; gap: 3px">
+              <div style="display: flex; justify-content: space-between; font-size: 12px"><span>{{c.label}}</span><span style="font-family: 'Geist Mono', ui-monospace, monospace">{{c.count}}</span></div>
+              <div style="height: 6px; border-radius: 999px; background: #f0f1f3; overflow: hidden"><span style="{{c.bar}}"></span></div>
+            </div>
+          </sc-for>
+          <span style="font-size: 11px; color: #6c717b">Of the beds in service. Choose a bed to add or remove its services.</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px">
+          <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #6c717b">Before you publish</span>
+          <sc-for list="{{checks}}" as="k" hint-placeholder-count="4">
+            <div style="display: flex; align-items: flex-start; gap: 8px; font-size: 12px; line-height: 1.45">
+              <sc-if value="{{k.ok}}" hint-placeholder-val="{{true}}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0f766e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0; margin-top: 2px"><path d="M20 6 9 17l-5-5"></path></svg></sc-if>
+              <sc-if value="{{k.bad}}" hint-placeholder-val="{{false}}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#b45309" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="flex-shrink: 0; margin-top: 2px"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg></sc-if>
+              <span>{{k.text}}</span>
+            </div>
+          </sc-for>
+          <span style="font-size: 11px; color: #6c717b">Proposed checks, not signed standards. Publishing still works; the warnings are recorded.</span>
+        </div>
+        <button type="button" onClick="{{renumber}}" style="height: 34px; border-radius: 8px; border: 1px solid #d0d3d9; background: #ffffff; color: #17191d; font-family: inherit; font-size: 13px; font-weight: 500; cursor: pointer">Renumber beds, left to right</button>
+      </sc-if>
+
+      <sc-if value="{{hasSel}}" hint-placeholder-val="{{false}}">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px">
+          <div style="display: flex; flex-direction: column; gap: 2px">
+            <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #6c717b">{{sel.kind}}</span>
+            <span style="font-size: 17px; font-weight: 500">{{sel.title}}</span>
+            <span style="font-size: 12px; color: #6c717b">{{sel.where}}</span>
+          </div>
+          <button type="button" onClick="{{deselect}}" aria-label="Close" style="width: 32px; height: 32px; border: 0; border-radius: 8px; background: transparent; color: #545963; display: inline-flex; align-items: center; justify-content: center; cursor: pointer"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button>
+        </div>
+        <div style="display: flex; gap: 6px; flex-wrap: wrap">
+          <button type="button" onClick="{{rotate}}" style="{{actBtn}}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path></svg>Rotate</button>
+          <button type="button" onClick="{{duplicate}}" style="{{actBtn}}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="8" width="13" height="13" rx="2"></rect><path d="M4 16V5a1 1 0 0 1 1-1h11"></path></svg>Duplicate</button>
+          <button type="button" onClick="{{remove}}" style="{{actBtn}}"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"></path><path d="M8 6V4h8v2"></path><path d="M19 6l-1 14H6L5 6"></path></svg>Delete</button>
+        </div>
+        <div style="display: flex; align-items: center; gap: 6px">
+          <span style="font-size: 12px; color: #545963; width: 56px">Nudge</span>
+          <sc-for list="{{nudges}}" as="n" hint-placeholder-count="4"><button type="button" onClick="{{n.go}}" aria-label="{{n.label}}" style="{{iconBtn}}"><span style="font-size: 13px">{{n.glyph}}</span></button></sc-for>
+        </div>
+
+        <sc-if value="{{sel.isBed}}" hint-placeholder-val="{{true}}">
+          <div style="display: flex; flex-direction: column; gap: 12px">
+            <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #545963">Bed number
+              <input value="{{sel.label}}" onChange="{{sel.onLabel}}" style="height: 34px; box-sizing: border-box; padding: 0 10px; border: 1px solid #d0d3d9; border-radius: 8px; font-family: 'Geist Mono', ui-monospace, monospace; font-size: 13px; color: #17191d">
+            </label>
+            <div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; color: #545963">Type</span><div style="display: flex; flex-wrap: wrap; gap: 6px"><sc-for list="{{sel.types}}" as="c" hint-placeholder-count="4"><button type="button" aria-pressed="{{c.on}}" onClick="{{c.pick}}" style="{{c.style}}">{{c.label}}</button></sc-for></div></div>
+            <div style="display: flex; flex-direction: column; gap: 6px">
+              <span style="font-size: 12px; color: #545963">Services and equipment at this bed</span>
+              <sc-for list="{{sel.accGroups}}" as="g" hint-placeholder-count="3">
+                <div style="display: flex; flex-direction: column; gap: 4px">
+                  <span style="font-size: 11px; color: #6c717b">{{g.name}}</span>
+                  <div style="display: flex; flex-wrap: wrap; gap: 6px"><sc-for list="{{g.items}}" as="a" hint-placeholder-count="4"><button type="button" aria-pressed="{{a.on}}" onClick="{{a.toggle}}" style="{{a.style}}"><span style="{{a.tagStyle}}">{{a.tag}}</span>{{a.label}}</button></sc-for></div>
+                </div>
+              </sc-for>
+              <button type="button" onClick="{{sel.applyAll}}" style="align-self: flex-start; height: 28px; padding: 0; border: 0; background: transparent; color: #0f766e; font-family: inherit; font-size: 12px; font-weight: 500; cursor: pointer">{{sel.applyAllLabel}}</button>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px">
+              <span style="font-size: 12px; color: #545963">Status</span>
+              <div role="radiogroup" aria-label="Bed status" style="align-self: flex-start; display: inline-flex; padding: 2px; border-radius: 8px; background: #f0f1f3; gap: 2px"><sc-for list="{{sel.statusSeg}}" as="s" hint-placeholder-count="2"><button type="button" role="radio" aria-checked="{{s.on}}" onClick="{{s.pick}}" style="{{s.style}}">{{s.label}}</button></sc-for></div>
+              <sc-if value="{{sel.isOut}}" hint-placeholder-val="{{false}}"><div style="display: flex; flex-wrap: wrap; gap: 6px"><sc-for list="{{sel.outReasons}}" as="c" hint-placeholder-count="3"><button type="button" aria-pressed="{{c.on}}" onClick="{{c.pick}}" style="{{c.style}}">{{c.label}}</button></sc-for></div></sc-if>
+            </div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{sel.isRoom}}" hint-placeholder-val="{{false}}">
+          <div style="display: flex; flex-direction: column; gap: 12px">
+            <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #545963">Name
+              <input value="{{sel.label}}" onChange="{{sel.onLabel}}" style="height: 34px; box-sizing: border-box; padding: 0 10px; border: 1px solid #d0d3d9; border-radius: 8px; font-family: inherit; font-size: 13px; color: #17191d">
+            </label>
+            <div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; color: #545963">Kind</span><div style="display: flex; flex-wrap: wrap; gap: 6px"><sc-for list="{{sel.rtypes}}" as="c" hint-placeholder-count="4"><button type="button" aria-pressed="{{c.on}}" onClick="{{c.pick}}" style="{{c.style}}">{{c.label}}</button></sc-for></div></div>
+            <sc-for list="{{sel.sizes}}" as="z" hint-placeholder-count="2">
+              <div style="display: flex; align-items: center; gap: 8px">
+                <span style="font-size: 12px; color: #545963; width: 56px">{{z.label}}</span>
+                <button type="button" onClick="{{z.minus}}" aria-label="{{z.minusLabel}}" style="{{iconBtn}}">−</button>
+                <span style="font-family: 'Geist Mono', ui-monospace, monospace; font-size: 13px; width: 64px; text-align: center">{{z.value}}</span>
+                <button type="button" onClick="{{z.plus}}" aria-label="{{z.plusLabel}}" style="{{iconBtn}}">+</button>
+              </div>
+            </sc-for>
+            <div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; color: #545963">Door on</span><div style="display: flex; flex-wrap: wrap; gap: 6px"><sc-for list="{{sel.doorSides}}" as="c" hint-placeholder-count="4"><button type="button" aria-pressed="{{c.on}}" onClick="{{c.pick}}" style="{{c.style}}">{{c.label}}</button></sc-for></div></div>
+            <div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; color: #545963">In the room</span><div style="display: flex; flex-wrap: wrap; gap: 6px"><sc-for list="{{sel.roomFeatures}}" as="a" hint-placeholder-count="3"><button type="button" aria-pressed="{{a.on}}" onClick="{{a.toggle}}" style="{{a.style}}">{{a.label}}</button></sc-for></div></div>
+            <span style="font-size: 12px; color: #545963">{{sel.roomBeds}}</span>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{sel.isLine}}" hint-placeholder-val="{{false}}">
+          <div style="display: flex; flex-direction: column; gap: 12px">
+            <div style="display: flex; flex-direction: column; gap: 6px"><span style="font-size: 12px; color: #545963">Kind</span><div style="display: flex; flex-wrap: wrap; gap: 6px"><sc-for list="{{sel.ltypes}}" as="c" hint-placeholder-count="4"><button type="button" aria-pressed="{{c.on}}" onClick="{{c.pick}}" style="{{c.style}}">{{c.label}}</button></sc-for></div></div>
+            <sc-for list="{{sel.sizes}}" as="z" hint-placeholder-count="1">
+              <div style="display: flex; align-items: center; gap: 8px">
+                <span style="font-size: 12px; color: #545963; width: 56px">{{z.label}}</span>
+                <button type="button" onClick="{{z.minus}}" aria-label="{{z.minusLabel}}" style="{{iconBtn}}">−</button>
+                <span style="font-family: 'Geist Mono', ui-monospace, monospace; font-size: 13px; width: 64px; text-align: center">{{z.value}}</span>
+                <button type="button" onClick="{{z.plus}}" aria-label="{{z.plusLabel}}" style="{{iconBtn}}">+</button>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{sel.isFixture}}" hint-placeholder-val="{{false}}">
+          <label style="display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: #545963">Label
+            <input value="{{sel.label}}" onChange="{{sel.onLabel}}" style="height: 34px; box-sizing: border-box; padding: 0 10px; border: 1px solid #d0d3d9; border-radius: 8px; font-family: inherit; font-size: 13px; color: #17191d">
+          </label>
+        </sc-if>
+      </sc-if>
+    </aside>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":960}}'>
+/* A prototype. Sizes, spacing and the proposed checks are illustrative, not standards. */
+const CELL = 20; const COLS = 42; const ROWS = 32;
+const PW = COLS * CELL; const PH = ROWS * CELL;
+const BEDS = {
+  standard: { label: 'Standard bed', w: 2, h: 4 },
+  icu: { label: 'ICU bed', w: 3, h: 4 },
+  cot: { label: 'Cot', w: 2, h: 3 },
+  couch: { label: 'Couch or trolley', w: 2, h: 4 },
+};
+const LINES = {
+  wall: { label: 'Wall', style: (w) => 'background: #3d4149' , thick: 6 },
+  curtain: { label: 'Curtain', thick: 3 },
+  glass: { label: 'Glass partition', thick: 4 },
+  window: { label: 'Window', thick: 6 },
+};
+const FIX = {
+  station: { label: 'Nurses’ station', w: 6, h: 3 },
+  sink: { label: 'Hand-wash', w: 1, h: 1 },
+  toilet: { label: 'Toilet / shower', w: 3, h: 3 },
+  store: { label: 'Store', w: 4, h: 3 },
+  sluice: { label: 'Sluice', w: 3, h: 3 },
+  trolley: { label: 'Resus trolley', w: 2, h: 2 },
+};
+const RTYPES = { Private: 'Private room', Isolation: 'Isolation room', Side: 'Side room', Bay: 'Bay' };
+const ACC = [
+  { group: 'Piped services', items: [['o2', 'Wall oxygen', 'O₂'], ['suction', 'Wall suction', 'S'], ['air', 'Medical air', 'Air']] },
+  { group: 'Monitoring and call', items: [['monitor', 'Cardiac monitor', 'M'], ['bell', 'Nurse call', 'C'], ['power', 'Power sockets', 'Pw']] },
+  { group: 'At the bedside', items: [['pump', 'Infusion pump', 'P'], ['pole', 'IV pole', 'IV'], ['locker', 'Locker', 'L'], ['table', 'Overbed table', 'T'], ['mattress', 'Pressure-relief mattress', 'PR'], ['screen', 'Privacy curtain track', 'Cu']] },
+];
+const ACC_ALL = []; ACC.forEach((g) => g.items.forEach((a) => ACC_ALL.push(a)));
+const PLAN_GLYPHS = ['o2', 'suction', 'monitor'];
+const STATES = {
+  occupied: { label: 'Occupied', short: 'Occ', fill: '#e6f4f1', text: '#115e59', border: '#0f766e' },
+  free: { label: 'Free', short: 'Free', fill: '#ffffff', text: '#17191d', border: '#3d4149' },
+  cleaning: { label: 'Cleaning', short: 'Clean', fill: '#fef3c7', text: '#92400e', border: '#b45309' },
+  reserved: { label: 'Reserved', short: 'Res', fill: '#f0f1f3', text: '#3d4149', border: '#545963' },
+  out: { label: 'Out of service', short: 'Out', fill: '#f0f1f3', text: '#92400e', border: '#a8adb7' },
+};
+const PIPED = ['o2', 'suction', 'air'];
+const LENSES = [['none', 'Plan'], ['o2', 'Oxygen'], ['suction', 'Suction'], ['monitor', 'Monitors'], ['out', 'Out of service']];
+const DEPTS = ['Internal Medicine', 'Surgery', 'Paediatrics', 'Obstetrics'];
+const SEXES = ['Male', 'Female', 'Mixed'];
+const CARES = ['General', 'High dependency', 'Intensive care'];
+const OUT_REASONS = ['Broken', 'Awaiting repair', 'Closed for cleaning'];
+const ROOM_FEATURES = [['ensuite', 'Toilet / shower'], ['sink', 'Hand-wash'], ['anteroom', 'Anteroom'], ['negative', 'Negative pressure']];
+
+let SEQ = 1;
+const nid = () => 'i' + (SEQ++);
+const bed = (x, y, rot, label, acc, type) => ({ id: nid(), kind: 'bed', type: type || 'standard', x, y, rot: rot || 0, label, acc: Object.assign({ bell: true, locker: true, screen: true }, acc || {}), status: 'in', outReason: '' });
+const line = (lt, x1, y1, x2, y2) => ({ id: nid(), kind: 'line', lt, x1, y1, x2, y2 });
+const room = (x, y, w, h, name, rtype, door, feats) => ({ id: nid(), kind: 'room', x, y, w, h, label: name, rtype, door: door || 'bottom', feats: feats || {} });
+const fix = (ft, x, y, label, rot) => ({ id: nid(), kind: 'fix', ft, x, y, rot: rot || 0, label: label || FIX[ft].label });
+const door = (x, y, orient) => ({ id: nid(), kind: 'door', x, y, orient: orient || 'h' });
+const shell = () => [line('wall', 1, 1, 41, 1), line('wall', 41, 1, 41, 31), line('wall', 41, 31, 1, 31), line('wall', 1, 31, 1, 1)];
+
+function nightingale() {
+  const items = shell();
+  for (let i = 0; i < 9; i++) {
+    const x = 3 + i * 4;
+    const o2 = i % 3 !== 2;
+    items.push(bed(x, 2, 0, 'B' + (i + 1), { o2, suction: i % 3 === 0 }));
+    items.push(bed(x, 27, 180, 'B' + (18 - i), { o2, suction: i % 3 === 0 }));
+    if (i < 8) { items.push(line('curtain', x + 3, 1, x + 3, 7)); items.push(line('curtain', x + 3, 31, x + 3, 26)); }
+  }
+  items.push(line('window', 6, 1, 12, 1), line('window', 22, 1, 28, 1));
+  items.push(fix('station', 18, 14, 'Nurses’ station'), fix('trolley', 26, 14), fix('sink', 2, 14), fix('sink', 39, 14));
+  items.push(fix('store', 3, 13), fix('sluice', 36, 13));
+  items.push(door(41, 15, 'v'));
+  const b = items.find((x) => x.label === 'B17'); if (b) { b.status = 'out'; b.outReason = 'Awaiting repair'; }
+  return items;
+}
+function baysAndRooms() {
+  const items = shell();
+  items.push(line('wall', 1, 12, 10, 12), line('wall', 14, 12, 23, 12), line('wall', 27, 12, 28, 12));
+  [[2, 'Bay A'], [15, 'Bay B']].forEach(([bx, name], k) => {
+    items.push(room(bx, 1, 12, 11, name, 'Bay', 'bottom'));
+    items.push(bed(bx + 1, 2, 0, 'B' + (k * 4 + 1), { o2: true, suction: true }), bed(bx + 5, 2, 0, 'B' + (k * 4 + 2), { o2: true }));
+    items.push(bed(bx + 1, 7, 180, 'B' + (k * 4 + 3), { o2: true }), bed(bx + 5, 7, 180, 'B' + (k * 4 + 4), { o2: k === 0 }));
+    items.push(line('curtain', bx + 4, 2, bx + 4, 6), line('curtain', bx + 4, 7, bx + 4, 11));
+  });
+  [0, 1, 2, 3].forEach((i) => {
+    const x = 2 + i * 7;
+    items.push(room(x, 22, 7, 9, 'Private ' + (i + 1), i === 3 ? 'Isolation' : 'Private', 'top', { ensuite: true, sink: true, anteroom: i === 3 }));
+    items.push(bed(x + 2, 27, 180, 'P' + (i + 1), { o2: true, suction: i === 3, monitor: i === 3 }));
+    items.push(fix('sink', x + 5, 23));
+  });
+  items.push(fix('station', 18, 16, 'Nurses’ station'), fix('trolley', 25, 16), fix('store', 32, 3), fix('sluice', 32, 8), fix('toilet', 37, 3, 'Toilets'));
+  items.push(door(41, 16, 'v'));
+  return items;
+}
+function hdu() {
+  const items = shell();
+  for (let i = 0; i < 6; i++) {
+    const x = 3 + i * 6;
+    items.push(bed(x, 2, 0, 'H' + (i + 1), { o2: true, suction: true, air: true, monitor: true, pump: true, pole: true, power: true, mattress: true }, 'icu'));
+    if (i < 5) items.push(line('glass', x + 5, 1, x + 5, 8));
+  }
+  items.push(fix('station', 16, 14, 'Central station'), fix('trolley', 24, 14), fix('sink', 2, 12), fix('sink', 39, 12), fix('store', 3, 24), fix('sluice', 35, 24));
+  items.push(door(1, 18, 'v'));
+  return items;
+}
+const WARDS0 = () => ({
+  mw1: { name: 'Medical Ward 1', dept: 'Internal Medicine', sex: 'Male', care: 'General', registered: 20, items: nightingale() },
+  mw2: { name: 'Medical Ward 2', dept: 'Internal Medicine', sex: 'Female', care: 'General', registered: 12, items: baysAndRooms() },
+  hdu: { name: 'Medical HDU', dept: 'Internal Medicine', sex: 'Mixed', care: 'High dependency', registered: 6, items: hdu() },
+});
+const clone = (a) => JSON.parse(JSON.stringify(a));
+
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = { wards: WARDS0(), wardId: 'mw1', tool: 'select', sel: null, drag: null, anchor: null, hover: null, lens: 'none', grid: true, history: [], future: [], saved: 'Draft saved 07:58', wardSeq: 1, mode: 'build', live: {}, row: { n: 6, gap: 2, face: 'top', curtains: true, o2: true } };
+  }
+
+  renderVals() {
+    const st = this.state;
+    const W = st.wards[st.wardId];
+    const items = W.items;
+    const setItems = (fn, keepHistory) => this.setState((s) => {
+      const w = s.wards[s.wardId];
+      const next = fn(clone(w.items));
+      const wards = Object.assign({}, s.wards, { [s.wardId]: Object.assign({}, w, { items: next }) });
+      return { wards, history: keepHistory ? s.history : s.history.concat([w.items]).slice(-40), future: keepHistory ? s.future : [], saved: 'Unsaved changes' };
+    });
+    const patchWard = (patch) => this.setState((s) => ({ wards: Object.assign({}, s.wards, { [s.wardId]: Object.assign({}, s.wards[s.wardId], patch) }), saved: 'Unsaved changes' }));
+    const patchItem = (id, patch) => setItems((arr) => arr.map((it) => (it.id === id ? Object.assign(it, typeof patch === 'function' ? patch(it) : patch) : it)));
+    const tag = 'display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border-radius: 6px; font-size: 12px; font-weight: 500; ';
+    const chip = (on) => 'height: 30px; padding: 0 11px; border-radius: 8px; font-family: inherit; font-size: 12px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; ' + (on ? 'border: 1px solid #0f766e; background: #f0fdfa; color: #0f766e' : 'border: 1px solid #d0d3d9; background: #ffffff; color: #3d4149');
+    const chipsOf = (list, cur, pick) => list.map((v) => { const val = Array.isArray(v) ? v[0] : v; const l = Array.isArray(v) ? v[1] : v; return { label: l, on: String(cur === val), pick: () => pick(val), style: chip(cur === val) }; });
+    const segBase = 'border: 0; font-family: inherit; font-weight: 500; cursor: pointer; height: 28px; padding: 0 10px; border-radius: 6px; font-size: 12px; ';
+    const seg = (opts, cur, pick) => opts.map(([v, l]) => ({ label: l, on: String(cur === v), pick: () => pick(v), style: segBase + (cur === v ? 'background: #ffffff; color: #17191d; box-shadow: 0 1px 2px rgba(16,18,22,0.08)' : 'background: transparent; color: #545963') }));
+
+    /* geometry */
+    const dims = (it) => {
+      if (it.kind === 'bed') { const b = BEDS[it.type]; return it.rot % 180 === 0 ? [b.w, b.h] : [b.h, b.w]; }
+      if (it.kind === 'fix') { const f = FIX[it.ft]; return it.rot % 180 === 0 ? [f.w, f.h] : [f.h, f.w]; }
+      if (it.kind === 'room') return [it.w, it.h];
+      return [0, 0];
+    };
+    const cellAt = (e, el) => {
+      const r = el.getBoundingClientRect(); const scale = r.width / PW || 1;
+      return { fx: (e.clientX - r.left) / scale / CELL, fy: (e.clientY - r.top) / scale / CELL };
+    };
+    const clampXY = (it, x, y) => { const [w, h] = dims(it); return [Math.max(0, Math.min(COLS - w, x)), Math.max(0, Math.min(ROWS - h, y))]; };
+    const inside = (b, r) => { const [w, h] = dims(b); const cx = b.x + w / 2; const cy = b.y + h / 2; return cx > r.x && cx < r.x + r.w && cy > r.y && cy < r.y + r.h; };
+    const roomOf = (b) => items.filter((r) => r.kind === 'room').find((r) => inside(b, r));
+
+    /* pointer: drag an item, or place the armed tool */
+    const live = st.mode === 'live';
+    const startDrag = (it) => (e) => {
+      if (live) { e.stopPropagation(); if (it.kind === 'bed') this.setState({ sel: it.id }); return; }
+      if (st.tool !== 'select') return;
+      e.stopPropagation();
+      const layer = e.currentTarget.parentElement; const p = cellAt(e, layer);
+      const ox = it.kind === 'line' ? p.fx - Math.min(it.x1, it.x2) : p.fx - it.x; const oy = it.kind === 'line' ? p.fy - Math.min(it.y1, it.y2) : p.fy - it.y;
+      this.setState((s) => ({ sel: it.id, drag: { id: it.id, ox, oy, moved: false, before: s.wards[s.wardId].items } }));
+    };
+    const stopClick = (e) => { if (st.tool === 'select' || live) e.stopPropagation(); };
+    const startHandle = (it, mode, end) => (e) => {
+      e.stopPropagation();
+      this.setState((s) => ({ sel: it.id, drag: { id: it.id, mode, end, moved: false, before: s.wards[s.wardId].items } }));
+    };
+    const onMove = (e) => {
+      const p = cellAt(e, e.currentTarget);
+      if (st.drag) {
+        const d = st.drag;
+        this.setState((s) => {
+          const w = s.wards[s.wardId];
+          const arr = w.items.map((it) => {
+            if (it.id !== d.id) return it;
+            const n = Object.assign({}, it);
+            if (d.mode === 'resize') { n.w = Math.max(3, Math.min(COLS - it.x, Math.round(p.fx) - it.x)); n.h = Math.max(3, Math.min(ROWS - it.y, Math.round(p.fy) - it.y)); return n; }
+            if (d.mode === 'end') {
+              const horiz = it.y1 === it.y2; const gx = Math.max(0, Math.min(COLS, Math.round(p.fx))); const gy = Math.max(0, Math.min(ROWS, Math.round(p.fy)));
+              if (horiz) { if (d.end === 1) n.x1 = gx; else n.x2 = gx; if (n.x1 === n.x2) return it; }
+              else { if (d.end === 1) n.y1 = gy; else n.y2 = gy; if (n.y1 === n.y2) return it; }
+              return n;
+            }
+            if (it.kind === 'line') {
+              const dx = Math.round(p.fx - d.ox) - Math.min(it.x1, it.x2); const dy = Math.round(p.fy - d.oy) - Math.min(it.y1, it.y2);
+              n.x1 += dx; n.x2 += dx; n.y1 += dy; n.y2 += dy;
+            } else if (it.kind === 'door') { n.x = Math.round(p.fx); n.y = Math.round(p.fy); }
+            else { const xy = clampXY(it, Math.round(p.fx - d.ox), Math.round(p.fy - d.oy)); n.x = xy[0]; n.y = xy[1]; }
+            return n;
+          });
+          return { wards: Object.assign({}, s.wards, { [s.wardId]: Object.assign({}, w, { items: arr }) }), drag: Object.assign({}, d, { moved: true }) };
+        });
+      } else if (st.tool !== 'select') {
+        const hx = Math.floor(p.fx); const hy = Math.floor(p.fy); const gx = Math.round(p.fx); const gy = Math.round(p.fy);
+        if (!st.hover || st.hover.x !== hx || st.hover.y !== hy || st.hover.gx !== gx || st.hover.gy !== gy) this.setState({ hover: { x: hx, y: hy, gx, gy } });
+      }
+    };
+    const onUp = () => {
+      if (!st.drag) return;
+      const d = st.drag;
+      this.setState((s) => ({ drag: null, history: d.moved ? s.history.concat([d.before]).slice(-40) : s.history, future: d.moved ? [] : s.future, saved: d.moved ? 'Unsaved changes' : s.saved }));
+    };
+    const place = (tool, p) => {
+      const [kind, sub] = tool.split(':');
+      const gx = Math.round(p.fx); const gy = Math.round(p.fy); const cx = Math.floor(p.fx); const cy = Math.floor(p.fy);
+      if (kind === 'line') {
+        if (!st.anchor) { this.setState({ anchor: { x: gx, y: gy } }); return; }
+        const a = st.anchor; const horiz = Math.abs(gx - a.x) >= Math.abs(gy - a.y);
+        const l = line(sub, a.x, a.y, horiz ? gx : a.x, horiz ? a.y : gy);
+        this.setState({ anchor: null });
+        if (l.x1 === l.x2 && l.y1 === l.y2) return;
+        setItems((arr) => arr.concat(l));
+        this.setState({ sel: l.id });
+        return;
+      }
+      if (kind === 'row') {
+        const R0 = st.row; const along = R0.face === 'top' || R0.face === 'bottom';
+        const rot = { top: 0, bottom: 180, left: 270, right: 90 }[R0.face];
+        const nums = items.filter((x) => x.kind === 'bed').map((b) => parseInt(String(b.label).replace(/\D/g, ''), 10) || 0);
+        let next = (nums.length ? Math.max.apply(null, nums) : 0) + 1;
+        const add = [];
+        for (let i = 0; i < R0.n; i++) {
+          const bx = along ? cx + i * (2 + R0.gap) : cx; const by = along ? cy : cy + i * (2 + R0.gap);
+          const b = bed(bx, by, rot, 'B' + (next++), R0.o2 ? { o2: true } : {});
+          const [bw, bh] = dims(b); if (bx + bw > COLS || by + bh > ROWS) break;
+          add.push(b);
+          if (R0.curtains && i < R0.n - 1 && R0.gap > 0) {
+            const off = 2 + Math.floor(R0.gap / 2);
+            if (along) add.push(line('curtain', bx + off, by, bx + off, by + 4)); else add.push(line('curtain', bx, by + off, bx + 4, by + off));
+          }
+        }
+        if (add.length) setItems((arr) => arr.concat(add));
+        this.setState({ tool: 'select', hover: null });
+        return;
+      }
+      let it;
+      if (kind === 'bed') { const n = items.filter((x) => x.kind === 'bed').length + 1; it = bed(cx, cy, 0, 'B' + n, {}, sub); }
+      else if (kind === 'fix') it = fix(sub, cx, cy);
+      else if (kind === 'door') it = door(gx, gy, 'h');
+      else if (kind === 'room') {
+        const n = items.filter((x) => x.kind === 'room').length + 1;
+        if (sub === 'Bay') it = room(cx, cy, 12, 10, 'Bay ' + String.fromCharCode(64 + n), 'Bay', 'bottom');
+        else it = room(cx, cy, 7, 9, (sub === 'Isolation' ? 'Isolation ' : 'Private ') + n, sub, 'bottom', { ensuite: true, sink: true, anteroom: sub === 'Isolation' });
+      }
+      if (!it) return;
+      if (it.kind !== 'door') { const xy = clampXY(it, it.x, it.y); it.x = xy[0]; it.y = xy[1]; }
+      const extra = [];
+      if (it.kind === 'room' && it.rtype !== 'Bay') { const b = bed(it.x + 2, it.y, 0, 'P' + (items.filter((x) => x.kind === 'room').length + 1), { o2: true }); extra.push(b); }
+      setItems((arr) => arr.concat([it]).concat(extra));
+      this.setState({ sel: it.id });
+    };
+    const onPlanClick = (e) => {
+      if (live) { this.setState({ sel: null }); return; }
+      if (st.tool === 'select') { if (!st.drag) this.setState({ sel: null }); return; }
+      place(st.tool, cellAt(e, e.currentTarget));
+    };
+
+    /* selection actions */
+    const selIt = items.find((x) => x.id === st.sel) || null;
+    const rotate = () => { if (!selIt) return; if (selIt.kind === 'line') { patchItem(selIt.id, (it) => { const len = Math.abs(it.x2 - it.x1) + Math.abs(it.y2 - it.y1); return it.y1 === it.y2 ? { x2: it.x1, y2: it.y1 + len } : { y2: it.y1, x2: it.x1 + len }; }); return; }
+      if (selIt.kind === 'door') { patchItem(selIt.id, { orient: selIt.orient === 'h' ? 'v' : 'h' }); return; }
+      if (selIt.kind === 'room') { patchItem(selIt.id, { w: selIt.h, h: selIt.w }); return; }
+      patchItem(selIt.id, (it) => { const n = Object.assign({}, it, { rot: (it.rot + 90) % 360 }); const xy = clampXY(n, n.x, n.y); return { rot: n.rot, x: xy[0], y: xy[1] }; }); };
+    const remove = () => { if (!selIt) return; setItems((arr) => arr.filter((x) => x.id !== selIt.id)); this.setState({ sel: null }); };
+    const duplicate = () => {
+      if (!selIt) return;
+      const c = clone(selIt); c.id = nid();
+      if (c.kind === 'line') { c.x1 += 1; c.x2 += 1; c.y1 += 1; c.y2 += 1; } else { c.x += 1; c.y += 1; }
+      if (c.kind === 'bed') c.label = 'B' + (items.filter((x) => x.kind === 'bed').length + 1);
+      setItems((arr) => arr.concat(c)); this.setState({ sel: c.id });
+    };
+    const nudge = (dx, dy) => () => { if (!selIt) return; patchItem(selIt.id, (it) => (it.kind === 'line' ? { x1: it.x1 + dx, x2: it.x2 + dx, y1: it.y1 + dy, y2: it.y2 + dy } : it.kind === 'door' ? { x: it.x + dx, y: it.y + dy } : (() => { const xy = clampXY(it, it.x + dx, it.y + dy); return { x: xy[0], y: xy[1] }; })())); };
+    const onKey = (e) => {
+      const k = e.key;
+      if (k === 'Escape') { this.setState({ tool: 'select', anchor: null, hover: null, sel: null }); return; }
+      if (!selIt) return;
+      if (k === 'r' || k === 'R') { e.preventDefault(); rotate(); }
+      else if (k === 'Delete' || k === 'Backspace') { e.preventDefault(); remove(); }
+      else if (k === 'ArrowLeft') { e.preventDefault(); nudge(-1, 0)(); }
+      else if (k === 'ArrowRight') { e.preventDefault(); nudge(1, 0)(); }
+      else if (k === 'ArrowUp') { e.preventDefault(); nudge(0, -1)(); }
+      else if (k === 'ArrowDown') { e.preventDefault(); nudge(0, 1)(); }
+    };
+    const undo = () => this.setState((s) => { if (!s.history.length) return {}; const prev = s.history[s.history.length - 1]; const w = s.wards[s.wardId];
+      return { wards: Object.assign({}, s.wards, { [s.wardId]: Object.assign({}, w, { items: prev }) }), history: s.history.slice(0, -1), future: s.future.concat([w.items]).slice(-40), sel: null, saved: 'Unsaved changes' }; });
+    const redo = () => this.setState((s) => { if (!s.future.length) return {}; const next = s.future[s.future.length - 1]; const w = s.wards[s.wardId];
+      return { wards: Object.assign({}, s.wards, { [s.wardId]: Object.assign({}, w, { items: next }) }), future: s.future.slice(0, -1), history: s.history.concat([w.items]).slice(-40), sel: null, saved: 'Unsaved changes' }; });
+    /* Cmd+Z / Ctrl+Z undo, Shift+Cmd+Z / Ctrl+Y redo: on the board's own root, never a global listener. Text fields keep their own undo. */
+    const mac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent || '');
+    const onRootKey = (e) => {
+      const t = e.target; const tag = t && t.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || (t && t.isContentEditable)) return;
+      if (!(e.metaKey || e.ctrlKey) || st.mode === 'live') return;
+      const k = String(e.key).toLowerCase();
+      if (k === 'z' && !e.shiftKey) { e.preventDefault(); undo(); }
+      else if ((k === 'z' && e.shiftKey) || k === 'y') { e.preventDefault(); redo(); }
+    };
+    const renumber = () => setItems((arr) => {
+      const bs = arr.filter((x) => x.kind === 'bed' && !arr.some((r) => r.kind === 'room' && r.rtype !== 'Bay' && inside(x, r))).sort((a, b) => (Math.round(a.y / 8) - Math.round(b.y / 8)) || (a.x - b.x));
+      bs.forEach((b, i) => { b.label = 'B' + (i + 1); });
+      return arr;
+    });
+
+    /* palette */
+    const glyph = (w, h, extra) => 'display: block; width: ' + w + 'px; height: ' + h + 'px; box-sizing: border-box; ' + extra;
+    const pal = (tool, label, g, hint) => ({ label, hint: hint || '', on: String(st.tool === tool), arm: () => this.setState({ tool: st.tool === tool ? 'select' : tool, anchor: null, sel: null }),
+      glyph: g, style: 'min-height: 58px; padding: 8px; border-radius: 8px; font-family: inherit; color: #17191d; text-align: left; cursor: pointer; display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; gap: 6px; ' + (st.tool === tool ? 'border: 1px solid #0f766e; background: #f0fdfa' : 'border: 1px solid #e3e5e8; background: #ffffff') });
+    const palette = [
+      { name: 'Beds', items: [
+        pal('bed:standard', 'Standard', glyph(12, 22, 'border: 1.5px solid #3d4149; border-top-width: 5px; border-radius: 2px; background: #ffffff')),
+        pal('bed:icu', 'ICU bed', glyph(17, 22, 'border: 1.5px solid #3d4149; border-top-width: 5px; border-radius: 2px; background: #f0fdfa')),
+        pal('bed:cot', 'Cot', glyph(12, 16, 'border: 1.5px solid #3d4149; border-top-width: 4px; border-radius: 4px; background: #ffffff')),
+        pal('bed:couch', 'Couch or trolley', glyph(12, 22, 'border: 1.5px dashed #3d4149; border-radius: 2px; background: #ffffff')),
+      ] },
+      { name: 'Quick', items: [
+        pal('row', 'Row of beds', glyph(30, 14, 'border-left: 8px solid #3d4149; border-right: 8px solid #3d4149; background: repeating-linear-gradient(90deg, transparent 0 4px, #a8adb7 4px 5px)'), 'Place several beds at once'),
+      ] },
+      { name: 'Dividers · click start, click end', items: [
+        pal('line:wall', 'Wall', glyph(30, 5, 'background: #3d4149; border-radius: 1px')),
+        pal('line:curtain', 'Curtain', glyph(30, 3, 'border-top: 3px dashed #6c717b')),
+        pal('line:glass', 'Glass', glyph(30, 5, 'border-top: 1.5px solid #5b8fb0; border-bottom: 1.5px solid #5b8fb0')),
+        pal('line:window', 'Window', glyph(30, 6, 'background: #dbeaf5; border: 1.5px solid #3d4149')),
+        pal('door', 'Door', glyph(16, 16, 'border-top: 2px solid #3d4149; border-right: 1.5px dashed #6c717b; border-top-right-radius: 16px')),
+      ] },
+      { name: 'Rooms', items: [
+        pal('room:Private', 'Private room', glyph(22, 22, 'border: 3px solid #3d4149; background: #f6f7f8')),
+        pal('room:Isolation', 'Isolation room', glyph(22, 22, 'border: 3px double #3d4149; background: #fef3c7')),
+        pal('room:Bay', 'Bay', glyph(26, 20, 'border: 2px dashed #6c717b; background: #ffffff')),
+      ] },
+      { name: 'Fixtures', items: Object.keys(FIX).map((k) => pal('fix:' + k, FIX[k].label, glyph(k === 'sink' ? 12 : 22, k === 'sink' ? 12 : 14, 'border: 1.5px solid #a8adb7; border-radius: 3px; background: #f0f1f3'))) },
+    ];
+    const presets = [
+      { name: 'Open ward, 18 beds', sub: 'Two rows, curtains between beds', fn: nightingale },
+      { name: 'Bays and private rooms', sub: '2 four-bed bays, 4 private rooms', fn: baysAndRooms },
+      { name: 'High dependency, 6 beds', sub: 'Glass partitions, full services', fn: hdu },
+      { name: 'Empty floor', sub: 'Outer walls only', fn: shell },
+    ].map((p) => ({ name: p.name, sub: p.sub, apply: () => { setItems(() => p.fn()); this.setState({ sel: null }); } }));
+
+    /* draw: rooms */
+    const lensOn = st.lens !== 'none';
+    const rooms = items.filter((x) => x.kind === 'room').map((r) => {
+      const sel = st.sel === r.id; const bay = r.rtype === 'Bay'; const iso = r.rtype === 'Isolation';
+      const border = bay ? '2px dashed #6c717b' : iso ? '5px double #3d4149' : '5px solid #3d4149';
+      const ds = r.door; const dw = 2 * CELL;
+      const doorStyle = bay ? 'display: none' : 'position: absolute; background: #ffffff; ' + (ds === 'bottom' ? 'bottom: -5px; left: ' + CELL + 'px; width: ' + dw + 'px; height: 5px' : ds === 'top' ? 'top: -5px; left: ' + CELL + 'px; width: ' + dw + 'px; height: 5px' : ds === 'left' ? 'left: -5px; top: ' + CELL + 'px; height: ' + dw + 'px; width: 5px' : 'right: -5px; top: ' + CELL + 'px; height: ' + dw + 'px; width: 5px');
+      return { name: r.label + (r.rtype !== 'Bay' ? ' · ' + RTYPES[r.rtype].toLowerCase() : ''), down: startDrag(r), click: stopClick,
+        style: 'position: absolute; box-sizing: border-box; left: ' + r.x * CELL + 'px; top: ' + r.y * CELL + 'px; width: ' + r.w * CELL + 'px; height: ' + r.h * CELL + 'px; border: ' + border + '; background: ' + (bay ? 'rgba(255,255,255,0.4)' : iso ? '#fffbeb' : '#f6f7f8') + '; ' + (sel ? 'box-shadow: 0 0 0 2px #0d9488; ' : '') + (st.tool === 'select' ? 'cursor: move' : ''),
+        labelStyle: 'position: absolute; left: 4px; ' + (r.door === 'top' ? 'bottom: 2px' : 'top: 2px') + '; font-size: 10px; font-weight: 600; color: #545963; white-space: nowrap; pointer-events: none',
+        doorStyle };
+    });
+    /* fixtures */
+    const fixtures = items.filter((x) => x.kind === 'fix').map((f) => {
+      const [w, h] = dims(f); const sel = st.sel === f.id;
+      return { label: f.ft === 'sink' ? 'HW' : f.label, down: startDrag(f), click: stopClick,
+        style: 'position: absolute; box-sizing: border-box; left: ' + f.x * CELL + 'px; top: ' + f.y * CELL + 'px; width: ' + w * CELL + 'px; height: ' + h * CELL + 'px; border: 1px solid #a8adb7; border-radius: ' + (f.ft === 'sink' ? '999px' : '4px') + '; background: ' + (f.ft === 'station' ? '#e6f4f1' : '#f0f1f3') + '; color: #3d4149; display: flex; align-items: center; justify-content: center; overflow: hidden; ' + (sel ? 'box-shadow: 0 0 0 2px #0d9488; ' : '') + (lensOn ? 'opacity: 0.5; ' : '') + (st.tool === 'select' ? 'cursor: move' : '') };
+    });
+    /* lines */
+    const lineStyle = (lt, horiz) => {
+      if (lt === 'wall') return 'background: #3d4149';
+      if (lt === 'curtain') return horiz ? 'border-top: 3px dashed #6c717b' : 'border-left: 3px dashed #6c717b';
+      if (lt === 'glass') return horiz ? 'border-top: 1.5px solid #5b8fb0; border-bottom: 1.5px solid #5b8fb0; background: rgba(219,234,245,0.6)' : 'border-left: 1.5px solid #5b8fb0; border-right: 1.5px solid #5b8fb0; background: rgba(219,234,245,0.6)';
+      return horiz ? 'background: #dbeaf5; border-top: 1.5px solid #3d4149; border-bottom: 1.5px solid #3d4149' : 'background: #dbeaf5; border-left: 1.5px solid #3d4149; border-right: 1.5px solid #3d4149';
+    };
+    const lines = items.filter((x) => x.kind === 'line').map((l) => {
+      const horiz = l.y1 === l.y2; const t = LINES[l.lt].thick; const hitT = 12;
+      const x = Math.min(l.x1, l.x2) * CELL; const y = Math.min(l.y1, l.y2) * CELL; const len = (horiz ? Math.abs(l.x2 - l.x1) : Math.abs(l.y2 - l.y1)) * CELL;
+      const sel = st.sel === l.id;
+      return { down: startDrag(l), click: stopClick,
+        hit: 'position: absolute; display: flex; align-items: center; justify-content: center; ' + (horiz ? 'left: ' + (x - 3) + 'px; top: ' + (y - hitT / 2) + 'px; width: ' + (len + 6) + 'px; height: ' + hitT + 'px' : 'left: ' + (x - hitT / 2) + 'px; top: ' + (y - 3) + 'px; width: ' + hitT + 'px; height: ' + (len + 6) + 'px') + '; ' + (sel ? 'background: rgba(13,148,136,0.18); border-radius: 4px; ' : '') + (st.tool === 'select' ? 'cursor: move' : ''),
+        style: 'display: block; box-sizing: border-box; ' + (horiz ? 'width: ' + (len + (l.lt === 'wall' ? t : 0)) + 'px; height: ' + t + 'px' : 'height: ' + (len + (l.lt === 'wall' ? t : 0)) + 'px; width: ' + t + 'px') + '; ' + lineStyle(l.lt, horiz) };
+    });
+    /* doors */
+    const doors = items.filter((x) => x.kind === 'door').map((d) => {
+      const L = 2 * CELL; const h = d.orient === 'h'; const sel = st.sel === d.id;
+      return { down: startDrag(d), click: stopClick,
+        box: 'position: absolute; left: ' + (d.x * CELL - (h ? 0 : L)) + 'px; top: ' + (d.y * CELL - (h ? 0 : 0)) + 'px; width: ' + L + 'px; height: ' + L + 'px; ' + (sel ? 'background: rgba(13,148,136,0.14); border-radius: 4px; ' : '') + (st.tool === 'select' ? 'cursor: move' : ''),
+        gap: 'position: absolute; background: #ffffff; ' + (h ? 'left: 0; top: -4px; width: ' + L + 'px; height: 8px' : 'right: -4px; top: 0; width: 8px; height: ' + L + 'px'),
+        leaf: 'position: absolute; background: #3d4149; ' + (h ? 'left: 0; top: 0; width: 2px; height: ' + L + 'px' : 'right: 0; top: 0; width: ' + L + 'px; height: 2px'),
+        arc: 'position: absolute; box-sizing: border-box; width: ' + L + 'px; height: ' + L + 'px; left: 0; top: 0; border: 1.5px dashed #a8adb7; ' + (h ? 'border-left: 0; border-bottom: 0; border-top-right-radius: ' + L + 'px; transform: scaleY(-1) translateY(0)' : 'border-right: 0; border-top: 0; border-bottom-left-radius: ' + L + 'px') };
+    });
+    /* live bed state (demo): deterministic default, nurses can change it */
+    const bedIdx = {}; items.filter((x) => x.kind === 'bed').forEach((b, i) => { bedIdx[b.id] = i; });
+    const stateOf = (b) => {
+      if (b.status === 'out') return 'out';
+      const key = st.wardId + ':' + b.id; if (st.live[key]) return st.live[key];
+      const i = bedIdx[b.id] || 0; return i % 5 === 1 ? 'free' : i % 7 === 3 ? 'cleaning' : i % 11 === 6 ? 'reserved' : i % 9 === 4 ? 'free' : 'occupied';
+    };
+    /* beds */
+    const has = (b, k) => (k === 'out' ? b.status === 'out' : !!b.acc[k]);
+    const beds = items.filter((x) => x.kind === 'bed').map((b) => {
+      const [w, h] = dims(b); const sel = st.sel === b.id; const out = b.status === 'out';
+      const lit = lensOn && has(b, st.lens); const dim = lensOn && !lit;
+      const headSide = { 0: 'top', 90: 'right', 180: 'bottom', 270: 'left' }[b.rot];
+      const hs = 7;
+      const head = 'position: absolute; background: #3d4149; ' + (headSide === 'top' ? 'left: 0; right: 0; top: 0; height: ' + hs + 'px' : headSide === 'bottom' ? 'left: 0; right: 0; bottom: 0; height: ' + hs + 'px' : headSide === 'left' ? 'top: 0; bottom: 0; left: 0; width: ' + hs + 'px' : 'top: 0; bottom: 0; right: 0; width: ' + hs + 'px');
+      const pil = 'position: absolute; border-radius: 3px; background: #e3e5e8; ' + (headSide === 'top' ? 'left: 5px; right: 5px; top: 10px; height: 9px' : headSide === 'bottom' ? 'left: 5px; right: 5px; bottom: 10px; height: 9px' : headSide === 'left' ? 'top: 5px; bottom: 5px; left: 10px; width: 9px' : 'top: 5px; bottom: 5px; right: 10px; width: 9px');
+      const glyphs = PLAN_GLYPHS.filter((k) => b.acc[k]).map((k) => ACC_ALL.find((a) => a[0] === k)[2]).join(' ');
+      const r = roomOf(b);
+      const stt = live ? stateOf(b) : null; const S = stt ? STATES[stt] : null;
+      return { label: b.label, glyphs: live ? '' : glyphs, out: out && !live, down: startDrag(b), click: stopClick,
+        showState: live, stateWord: S ? S.short : '',
+        stateStyle: 'position: absolute; left: 0; right: 0; ' + (headSide === 'bottom' ? 'top: 4px' : 'bottom: 4px') + '; text-align: center; font-size: 9px; font-weight: 600; color: ' + (S ? S.text : '#17191d') + '; pointer-events: none',
+        title: b.label + ' · ' + BEDS[b.type].label + (r ? ' · ' + r.label : '') + (out ? ' · out of service' : '') + ' · ' + (ACC_ALL.filter((a) => b.acc[a[0]]).map((a) => a[1]).join(', ') || 'no services recorded'),
+        style: 'position: absolute; box-sizing: border-box; left: ' + b.x * CELL + 'px; top: ' + b.y * CELL + 'px; width: ' + w * CELL + 'px; height: ' + h * CELL + 'px; border: 1.5px ' + (b.type === 'couch' ? 'dashed' : 'solid') + ' #3d4149; border-radius: ' + (b.type === 'cot' ? '8px' : '3px') + '; overflow: hidden; background: ' + (S && stt !== 'out' ? S.fill : out ? 'repeating-linear-gradient(45deg, #ffffff 0 5px, #f0f1f3 5px 10px)' : lit ? '#ccfbf1' : b.type === 'icu' ? '#f0fdfa' : '#ffffff') + '; ' + (sel ? 'box-shadow: 0 0 0 3px #0d9488; ' : lit ? 'box-shadow: 0 0 0 2px #0f766e; ' : '') + (dim ? 'opacity: 0.45; ' : '') + (live ? 'cursor: pointer; border-color: ' + S.border + '; ' + (stt === 'reserved' ? 'border-style: dashed; ' : '') : st.tool === 'select' ? 'cursor: move' : ''),
+        head, pillow: pil,
+        labelStyle: 'position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%); text-align: center; font-family: "Geist Mono", ui-monospace, monospace; font-size: 11px; font-weight: 600; color: #17191d; pointer-events: none',
+        glyphStyle: 'position: absolute; left: 0; right: 0; ' + (headSide === 'bottom' ? 'top: 3px' : 'bottom: 3px') + '; text-align: center; font-size: 8px; font-weight: 600; color: #0f766e; line-height: 1; pointer-events: none; white-space: nowrap',
+        outStyle: 'position: absolute; left: 0; right: 0; ' + (headSide === 'bottom' ? 'bottom: 12px' : 'top: 12px') + '; text-align: center; font-size: 9px; font-weight: 600; color: #92400e' };
+    });
+
+    /* ghost for the armed tool */
+    let ghost = ''; let hasGhost = false; let ghosts = [];
+    if (st.tool === 'row' && st.hover && !live) {
+      const R0 = st.row; const along = R0.face === 'top' || R0.face === 'bottom'; const hv = st.hover;
+      const bw = along ? 2 : 4; const bh = along ? 4 : 2;
+      for (let i = 0; i < R0.n; i++) {
+        const bx = along ? hv.x + i * (2 + R0.gap) : hv.x; const by = along ? hv.y : hv.y + i * (2 + R0.gap);
+        if (bx + bw > COLS || by + bh > ROWS) break;
+        ghosts.push('position: absolute; pointer-events: none; left: ' + bx * CELL + 'px; top: ' + by * CELL + 'px; width: ' + bw * CELL + 'px; height: ' + bh * CELL + 'px; box-sizing: border-box; border: 2px dashed #0d9488; background: rgba(13,148,136,0.08); border-radius: 3px; ' + ({ top: 'border-top: 6px solid #0d9488', bottom: 'border-bottom: 6px solid #0d9488', left: 'border-left: 6px solid #0d9488', right: 'border-right: 6px solid #0d9488' }[R0.face]));
+      }
+      hasGhost = ghosts.length > 0;
+    } else if (st.tool !== 'select' && st.hover && !live) {
+      const [kind, sub] = st.tool.split(':'); const hv = st.hover;
+      hasGhost = true;
+      if (kind === 'line' && st.anchor) {
+        const a = st.anchor; const horiz = Math.abs(hv.gx - a.x) >= Math.abs(hv.gy - a.y);
+        const x2 = horiz ? hv.gx : a.x; const y2 = horiz ? a.y : hv.gy;
+        const x = Math.min(a.x, x2) * CELL; const y = Math.min(a.y, y2) * CELL; const len = Math.max(Math.abs(x2 - a.x), Math.abs(y2 - a.y)) * CELL;
+        ghost = 'position: absolute; pointer-events: none; opacity: 0.7; ' + (horiz ? 'left: ' + x + 'px; top: ' + (y - 2) + 'px; width: ' + len + 'px; height: 5px' : 'left: ' + (x - 2) + 'px; top: ' + y + 'px; width: 5px; height: ' + len + 'px') + '; background: #0d9488';
+      } else if (kind === 'line' || kind === 'door') {
+        ghost = 'position: absolute; pointer-events: none; left: ' + (hv.gx * CELL - 5) + 'px; top: ' + (hv.gy * CELL - 5) + 'px; width: 10px; height: 10px; border-radius: 999px; background: #0d9488';
+      } else {
+        const w = kind === 'bed' ? BEDS[sub].w : kind === 'fix' ? FIX[sub].w : sub === 'Bay' ? 12 : 7;
+        const h = kind === 'bed' ? BEDS[sub].h : kind === 'fix' ? FIX[sub].h : sub === 'Bay' ? 10 : 9;
+        ghost = 'position: absolute; pointer-events: none; left: ' + hv.x * CELL + 'px; top: ' + hv.y * CELL + 'px; width: ' + w * CELL + 'px; height: ' + h * CELL + 'px; box-sizing: border-box; border: 2px dashed #0d9488; background: rgba(13,148,136,0.08); border-radius: 3px';
+      }
+    }
+
+    if (ghost) ghosts = [ghost];
+
+    /* handles on the selection: resize a room, stretch a divider */
+    const handles = [];
+    const hBox = (x, y, cursor, title, down) => ({ title, down, click: (e) => e.stopPropagation(), style: 'position: absolute; left: ' + (x - 7) + 'px; top: ' + (y - 7) + 'px; width: 14px; height: 14px; box-sizing: border-box; border: 2px solid #0d9488; background: #ffffff; border-radius: 3px; cursor: ' + cursor + '; z-index: 3' });
+    const selNow = !live && st.tool === 'select' ? items.find((x) => x.id === st.sel) : null;
+    if (selNow && selNow.kind === 'room') handles.push(hBox((selNow.x + selNow.w) * CELL, (selNow.y + selNow.h) * CELL, 'nwse-resize', 'Drag to resize', startHandle(selNow, 'resize')));
+    if (selNow && selNow.kind === 'line') {
+      const horiz = selNow.y1 === selNow.y2;
+      handles.push(hBox(selNow.x1 * CELL, selNow.y1 * CELL, horiz ? 'ew-resize' : 'ns-resize', 'Drag to stretch', startHandle(selNow, 'end', 1)));
+      handles.push(hBox(selNow.x2 * CELL, selNow.y2 * CELL, horiz ? 'ew-resize' : 'ns-resize', 'Drag to stretch', startHandle(selNow, 'end', 2)));
+    }
+
+    /* stats, coverage, checks */
+    const allBeds = items.filter((x) => x.kind === 'bed');
+    const inService = allBeds.filter((b) => b.status !== 'out');
+    const roomsList = items.filter((x) => x.kind === 'room');
+    const cov = (k) => inService.filter((b) => b.acc[k]).length;
+    const pct = (n) => (inService.length ? Math.round(100 * n / inService.length) : 0);
+    const coverage = [['o2', 'Wall oxygen'], ['suction', 'Wall suction'], ['monitor', 'Cardiac monitor'], ['bell', 'Nurse call'], ['air', 'Medical air']].map(([k, l]) => ({ label: l, count: cov(k) + ' of ' + inService.length,
+      bar: 'display: block; height: 6px; width: ' + pct(cov(k)) + '%; background: ' + (pct(cov(k)) === 100 ? '#0f766e' : '#5eead4') }));
+    const isHdu = W.care !== 'General';
+    const checks = [];
+    const noBell = inService.filter((b) => !b.acc.bell);
+    checks.push({ ok: noBell.length === 0, text: noBell.length ? noBell.length + ' bed(s) without a nurse call: ' + noBell.map((b) => b.label).join(', ') : 'Every bed in service has a nurse call' });
+    const noO2 = inService.filter((b) => !b.acc.o2);
+    checks.push({ ok: noO2.length === 0, text: noO2.length ? noO2.length + ' bed(s) without wall oxygen' + (isHdu ? ' in a ' + W.care.toLowerCase() + ' ward' : '') + ': ' + noO2.slice(0, 6).map((b) => b.label).join(', ') + (noO2.length > 6 ? '…' : '') : 'Every bed in service has wall oxygen' });
+    if (isHdu) { const noMon = inService.filter((b) => !b.acc.monitor); checks.push({ ok: noMon.length === 0, text: noMon.length ? noMon.length + ' bed(s) without a monitor in ' + W.care.toLowerCase() : 'Every bed has a monitor' }); }
+    const isoNoSink = roomsList.filter((r) => r.rtype === 'Isolation' && !r.feats.sink);
+    if (roomsList.some((r) => r.rtype === 'Isolation')) checks.push({ ok: isoNoSink.length === 0, text: isoNoSink.length ? 'Isolation room without hand-wash: ' + isoNoSink.map((r) => r.label).join(', ') : 'Isolation rooms have hand-wash' });
+    const hasStation = items.some((x) => x.kind === 'fix' && x.ft === 'station');
+    checks.push({ ok: hasStation, text: hasStation ? 'Nurses’ station placed' : 'No nurses’ station on the plan' });
+    const hasTrolley = items.some((x) => x.kind === 'fix' && x.ft === 'trolley');
+    checks.push({ ok: hasTrolley, text: hasTrolley ? 'Resus trolley placed' : 'No resus trolley on the plan' });
+    const rect = (it) => { const [w, h] = dims(it); return { x: it.x, y: it.y, w, h }; };
+    const hit = (a, b) => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+    const solids = items.filter((x) => x.kind === 'bed' || x.kind === 'fix');
+    const clashes = [];
+    for (let i = 0; i < solids.length; i++) for (let j = i + 1; j < solids.length; j++) if (hit(rect(solids[i]), rect(solids[j]))) clashes.push(solids[i].label + ' and ' + solids[j].label);
+    const hard = items.filter((x) => x.kind === 'line' && x.lt !== 'curtain');
+    const crosses = allBeds.filter((b) => { const r0 = rect(b); return hard.some((l) => (l.y1 === l.y2 ? (l.y1 > r0.y && l.y1 < r0.y + r0.h && Math.max(l.x1, l.x2) > r0.x && Math.min(l.x1, l.x2) < r0.x + r0.w) : (l.x1 > r0.x && l.x1 < r0.x + r0.w && Math.max(l.y1, l.y2) > r0.y && Math.min(l.y1, l.y2) < r0.y + r0.h))); });
+    clashes.push.apply(clashes, crosses.map((b) => b.label + ' and a wall'));
+    checks.push({ ok: clashes.length === 0, text: clashes.length ? 'Overlapping: ' + clashes.slice(0, 4).join('; ') + (clashes.length > 4 ? '…' : '') : 'Nothing overlaps' });
+    const wallSegs = items.filter((x) => x.kind === 'line' && x.lt === 'wall').map((l) => ({ h: l.y1 === l.y2, c: l.y1 === l.y2 ? l.y1 : l.x1, a: Math.min(l.y1 === l.y2 ? l.x1 : l.y1, l.y1 === l.y2 ? l.x2 : l.y2), b: Math.max(l.y1 === l.y2 ? l.x1 : l.y1, l.y1 === l.y2 ? l.x2 : l.y2) }));
+    items.filter((x) => x.kind === 'room' && x.rtype !== 'Bay').forEach((r) => { wallSegs.push({ h: true, c: r.y, a: r.x, b: r.x + r.w }, { h: true, c: r.y + r.h, a: r.x, b: r.x + r.w }, { h: false, c: r.x, a: r.y, b: r.y + r.h }, { h: false, c: r.x + r.w, a: r.y, b: r.y + r.h }); });
+    const headOnWall = (b) => {
+      const r0 = rect(b); const side = { 0: 'top', 90: 'right', 180: 'bottom', 270: 'left' }[b.rot];
+      const h = side === 'top' || side === 'bottom'; const c = side === 'top' ? r0.y : side === 'bottom' ? r0.y + r0.h : side === 'left' ? r0.x : r0.x + r0.w;
+      const a = h ? r0.x : r0.y; const e = h ? r0.x + r0.w : r0.y + r0.h;
+      return wallSegs.some((w) => w.h === h && Math.abs(w.c - c) <= 1 && w.a < e && w.b > a);
+    };
+    const offWall = inService.filter((b) => PIPED.some((k) => b.acc[k]) && !headOnWall(b));
+    checks.push({ ok: offWall.length === 0, text: offWall.length ? 'Piped services set, but the bed head is not at a wall: ' + offWall.map((b) => b.label).join(', ') : 'Beds with piped services have their heads at a wall' });
+    const labels = allBeds.map((b) => b.label); const dup = labels.filter((l, i) => labels.indexOf(l) !== i);
+    checks.push({ ok: dup.length === 0, text: dup.length ? 'Duplicate bed numbers: ' + Array.from(new Set(dup)).join(', ') : 'Bed numbers are unique' });
+    const checkRows = checks.map((k) => ({ ok: k.ok, bad: !k.ok, text: k.text }));
+
+    const occ = allBeds.filter((b) => stateOf(b) === 'occupied').length;
+    const stats = live ? [
+      { value: occ + '/' + inService.length, label: 'occupied' },
+      { value: String(allBeds.filter((b) => stateOf(b) === 'free').length), label: 'free' },
+      { value: String(allBeds.filter((b) => stateOf(b) === 'cleaning').length), label: 'cleaning' },
+      { value: String(allBeds.filter((b) => stateOf(b) === 'reserved').length), label: 'reserved' },
+      { value: String(allBeds.length - inService.length), label: 'out of service' },
+    ] : [
+      { value: String(allBeds.length), label: 'beds on the plan' },
+      { value: String(inService.length), label: 'in service' },
+      { value: String(roomsList.filter((r) => r.rtype !== 'Bay').length), label: 'single rooms' },
+      { value: cov('o2') + '/' + inService.length, label: 'with wall oxygen' },
+      { value: cov('suction') + '/' + inService.length, label: 'with suction' },
+    ];
+
+    /* inspector for a selection */
+    let sel = { kind: '', title: '', where: '' };
+    if (selIt) {
+      const onLabel = (e) => { const v = e.target.value; patchItem(selIt.id, { label: v }); };
+      if (selIt.kind === 'bed') {
+        const r = roomOf(selIt);
+        const accToggle = (k) => () => patchItem(selIt.id, (it) => ({ acc: Object.assign({}, it.acc, { [k]: !it.acc[k] }) }));
+        sel = { kind: 'Bed', title: selIt.label, where: BEDS[selIt.type].label + (r ? ' · in ' + r.label : ' · open ward') + ' · ' + ['head to the top', 'head to the right', 'head to the bottom', 'head to the left'][selIt.rot / 90],
+          isBed: true, label: selIt.label, onLabel,
+          types: Object.keys(BEDS).map((k) => ({ label: BEDS[k].label, on: String(selIt.type === k), pick: () => patchItem(selIt.id, (it) => { const n = Object.assign({}, it, { type: k }); const xy = clampXY(n, n.x, n.y); return { type: k, x: xy[0], y: xy[1] }; }), style: chip(selIt.type === k) })),
+          accGroups: ACC.map((g) => ({ name: g.group, items: g.items.map(([k, l, t]) => ({ label: l, tag: t, on: String(!!selIt.acc[k]), toggle: accToggle(k), style: chip(!!selIt.acc[k]),
+            tagStyle: 'display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 16px; padding: 0 3px; border-radius: 4px; font-size: 9px; font-weight: 600; ' + (selIt.acc[k] ? 'background: #0f766e; color: #ffffff' : 'background: #f0f1f3; color: #545963') })) })),
+          applyAllLabel: 'Copy these services to every bed' + (r ? ' in ' + r.label : ' in the open ward'),
+          applyAll: () => setItems((arr) => arr.map((it) => { if (it.kind === 'bed' && it.id !== selIt.id && ((r && roomOf(it) && roomOf(it).id === r.id) || (!r && !roomOf(it)))) it.acc = Object.assign({}, selIt.acc); return it; })),
+          statusSeg: seg([['in', 'In service'], ['out', 'Out of service']], selIt.status, (v) => patchItem(selIt.id, { status: v, outReason: v === 'out' ? (selIt.outReason || 'Broken') : '' })),
+          isOut: selIt.status === 'out', outReasons: chipsOf(OUT_REASONS, selIt.outReason, (v) => patchItem(selIt.id, { outReason: v })) };
+      } else if (selIt.kind === 'room') {
+        const inRoom = allBeds.filter((b) => inside(b, selIt));
+        const size = (key, label) => ({ label, value: (selIt[key] / 2) + ' m', minus: () => patchItem(selIt.id, (it) => ({ [key]: Math.max(3, it[key] - 1) })), plus: () => patchItem(selIt.id, (it) => ({ [key]: Math.min(key === 'w' ? COLS - it.x : ROWS - it.y, it[key] + 1) })), minusLabel: 'Smaller ' + label.toLowerCase(), plusLabel: 'Larger ' + label.toLowerCase() });
+        sel = { kind: 'Room', title: selIt.label, where: RTYPES[selIt.rtype] + ' · ' + (selIt.w / 2) + ' × ' + (selIt.h / 2) + ' m', isRoom: true, label: selIt.label, onLabel,
+          rtypes: Object.keys(RTYPES).map((k) => ({ label: RTYPES[k], on: String(selIt.rtype === k), pick: () => patchItem(selIt.id, { rtype: k }), style: chip(selIt.rtype === k) })),
+          sizes: [size('w', 'Width'), size('h', 'Depth')],
+          doorSides: chipsOf([['top', 'Top'], ['right', 'Right'], ['bottom', 'Bottom'], ['left', 'Left']], selIt.door, (v) => patchItem(selIt.id, { door: v })),
+          roomFeatures: ROOM_FEATURES.map(([k, l]) => ({ label: l, on: String(!!selIt.feats[k]), toggle: () => patchItem(selIt.id, (it) => ({ feats: Object.assign({}, it.feats, { [k]: !it.feats[k] }) })), style: chip(!!selIt.feats[k]) })),
+          roomBeds: inRoom.length ? 'Beds in this room: ' + inRoom.map((b) => b.label).join(', ') : 'No bed in this room yet. Place one from the palette.' };
+      } else if (selIt.kind === 'line') {
+        const horiz = selIt.y1 === selIt.y2; const len = Math.abs(selIt.x2 - selIt.x1) + Math.abs(selIt.y2 - selIt.y1);
+        const setLen = (n) => patchItem(selIt.id, (it) => (horiz ? { x2: it.x1 + Math.sign(it.x2 - it.x1 || 1) * n } : { y2: it.y1 + Math.sign(it.y2 - it.y1 || 1) * n }));
+        sel = { kind: 'Divider', title: LINES[selIt.lt].label, where: (len / 2) + ' m · ' + (horiz ? 'across' : 'down'), isLine: true,
+          ltypes: Object.keys(LINES).map((k) => ({ label: LINES[k].label, on: String(selIt.lt === k), pick: () => patchItem(selIt.id, { lt: k }), style: chip(selIt.lt === k) })),
+          sizes: [{ label: 'Length', value: (len / 2) + ' m', minus: () => setLen(Math.max(1, len - 1)), plus: () => setLen(len + 1), minusLabel: 'Shorter', plusLabel: 'Longer' }] };
+      } else if (selIt.kind === 'fix') {
+        sel = { kind: 'Fixture', title: selIt.label, where: FIX[selIt.ft].label, isFixture: true, label: selIt.label, onLabel };
+      } else if (selIt.kind === 'door') {
+        sel = { kind: 'Door', title: 'Door', where: '1 m · ' + (selIt.orient === 'h' ? 'in a wall across' : 'in a wall down') };
+      }
+    }
+
+    const toolWord = st.tool === 'select' ? '' : st.tool.split(':')[0];
+    const hint = live ? 'Choose a bed to see its services or change its state. The layout is locked here; switch to Build to edit it.' : st.tool === 'select'
+      ? (selIt ? 'Drag to move. Rotate, duplicate or delete from the right. Escape clears.' : 'Choose something on the plan to edit it, or pick from the palette to place.')
+      : st.tool === 'row' ? 'Set the row on the left, then click where the first bed goes.'
+      : toolWord === 'line' ? (st.anchor ? 'Click where the divider ends. It snaps straight across or down.' : 'Click where the divider starts, on a grid line.')
+      : 'Click the plan to place. Escape, or Select, to stop placing.';
+    const wardIds = Object.keys(st.wards);
+    const iconBtn = 'width: 32px; height: 32px; border-radius: 8px; border: 1px solid #d0d3d9; background: #ffffff; color: #3d4149; font-family: inherit; display: inline-flex; align-items: center; justify-content: center; cursor: pointer';
+    const bedCount = allBeds.length;
+
+    return {
+      ward: W, isBuild: !live, isLive: live, pageTitle: live ? 'Bed board' : 'Ward layout',
+      modeSeg: seg([['build', 'Build'], ['live', 'Live bed board']], st.mode, (v) => this.setState({ mode: v, tool: 'select', anchor: null, hover: null, sel: null })),
+      toBuild: () => this.setState({ mode: 'build', sel: null }),
+      rowArmed: st.tool === 'row',
+      rowSteppers: [
+        { label: 'Beds', value: String(st.row.n), minus: () => this.setState((s) => ({ row: Object.assign({}, s.row, { n: Math.max(2, s.row.n - 1) }) })), plus: () => this.setState((s) => ({ row: Object.assign({}, s.row, { n: Math.min(14, s.row.n + 1) }) })), minusLabel: 'Fewer beds', plusLabel: 'More beds' },
+        { label: 'Gap', value: (st.row.gap / 2) + ' m', minus: () => this.setState((s) => ({ row: Object.assign({}, s.row, { gap: Math.max(0, s.row.gap - 1) }) })), plus: () => this.setState((s) => ({ row: Object.assign({}, s.row, { gap: Math.min(6, s.row.gap + 1) }) })), minusLabel: 'Smaller gap', plusLabel: 'Larger gap' },
+      ],
+      rowFaces: chipsOf([['top', 'Top'], ['bottom', 'Bottom'], ['left', 'Left'], ['right', 'Right']], st.row.face, (v) => this.setState((s) => ({ row: Object.assign({}, s.row, { face: v }) }))),
+      rowToggles: [['curtains', 'Curtains between'], ['o2', 'Wall oxygen']].map(([k, l]) => ({ label: l, on: String(!!st.row[k]), pick: () => this.setState((s) => ({ row: Object.assign({}, s.row, { [k]: !s.row[k] }) })), style: chip(!!st.row[k]) })),
+      ghosts, handles,
+      legend: Object.keys(STATES).map((k) => ({ label: STATES[k].label, short: STATES[k].short, count: String(allBeds.filter((b) => stateOf(b) === k).length),
+        swatch: 'display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 22px; border-radius: 4px; font-size: 10px; font-weight: 600; box-sizing: border-box; background: ' + (k === 'out' ? 'repeating-linear-gradient(45deg, #ffffff 0 4px, #f0f1f3 4px 8px)' : STATES[k].fill) + '; color: ' + STATES[k].text + '; border: 1.5px ' + (k === 'reserved' ? 'dashed' : 'solid') + ' ' + STATES[k].border })),
+      liveNoSel: live && !selIt, liveSel: live && !!selIt && selIt.kind === 'bed',
+      live: selIt && selIt.kind === 'bed' ? (() => { const r = roomOf(selIt); const cur = stateOf(selIt);
+        return { title: selIt.label, where: BEDS[selIt.type].label + (r ? ' · ' + r.label : ' · open ward') + ' · ' + STATES[cur].label.toLowerCase(),
+          states: (cur === 'out' ? [] : ['occupied', 'free', 'cleaning', 'reserved']).map((k) => ({ label: STATES[k].label, on: String(cur === k), pick: () => this.setState((s) => ({ live: Object.assign({}, s.live, { [s.wardId + ':' + selIt.id]: k }) })), style: chip(cur === k) })),
+          services: ACC_ALL.filter((a) => selIt.acc[a[0]]).map((a) => a[1]), noServices: !ACC_ALL.some((a) => selIt.acc[a[0]]) }; })() : { title: '', where: '', states: [], services: [], noServices: true },
+      freeBy: [['any', 'Any free bed'], ['o2', 'With wall oxygen'], ['suction', 'With wall suction'], ['monitor', 'With a monitor'], ['single', 'Single room']].map(([k, l]) => {
+        const free = allBeds.filter((b) => stateOf(b) === 'free' && (k === 'any' ? true : k === 'single' ? (roomOf(b) && roomOf(b).rtype !== 'Bay') : b.acc[k]));
+        return { label: l, count: String(free.length), none: free.length === 0, beds: free.map((b) => ({ label: b.label, pick: () => this.setState({ sel: b.id }) })) };
+      }),
+      wardTabs: wardIds.map((id) => { const w = st.wards[id]; const on = id === st.wardId;
+        return { name: w.name, sub: w.sex + ' · ' + w.items.filter((x) => x.kind === 'bed').length + ' beds', current: on ? 'page' : 'false', pick: () => this.setState({ wardId: id, sel: null, history: [], future: [], tool: 'select', anchor: null }),
+          style: 'height: 40px; padding: 0 12px; border-radius: 8px; font-family: inherit; font-size: 13px; color: #17191d; display: inline-flex; flex-direction: column; align-items: flex-start; justify-content: center; cursor: pointer; ' + (on ? 'border: 1px solid #0f766e; background: #f0fdfa' : 'border: 1px solid transparent; background: transparent') }; }),
+      newWard: () => this.setState((s) => { const id = 'new' + s.wardSeq; return { wards: Object.assign({}, s.wards, { [id]: { name: 'New ward ' + s.wardSeq, dept: 'Internal Medicine', sex: 'Mixed', care: 'General', registered: 0, items: shell() } }), wardId: id, wardSeq: s.wardSeq + 1, sel: null, history: [], saved: 'Not saved yet' }; }),
+      saveNote: st.saved,
+      saveDraft: () => this.setState({ saved: 'Draft saved just now' }),
+      publish: () => { patchWard({ registered: bedCount }); this.setState({ saved: 'Published just now · bed count ' + bedCount + ' · demo' }); },
+      toSelect: () => this.setState({ tool: 'select', anchor: null, hover: null }), selectOn: String(st.tool === 'select'),
+      selectStyle: 'height: 38px; padding: 0 12px; border-radius: 8px; font-family: inherit; font-size: 13px; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; cursor: pointer; ' + (st.tool === 'select' ? 'border: 1px solid #0f766e; background: #f0fdfa; color: #0f766e' : 'border: 1px solid #d0d3d9; background: #ffffff; color: #17191d'),
+      palette, presets,
+      hint, lenses: seg(LENSES, st.lens, (v) => this.setState({ lens: v })),
+      undo, undoDisabled: st.history.length === 0, redo, redoDisabled: st.future.length === 0, onRootKey,
+      undoTitle: 'Undo (' + (mac ? '⌘Z' : 'Ctrl+Z') + ')', redoTitle: 'Redo (' + (mac ? '⇧⌘Z' : 'Ctrl+Y') + ')', undoKeys: mac ? '⌘Z' : 'Ctrl+Z', toggleGrid: () => this.setState({ grid: !st.grid }), gridOn: String(st.grid), iconBtn,
+      planLabel: 'Floor plan of ' + W.name + ', ' + bedCount + ' beds. Use the palette to place; arrow keys nudge the selection.',
+      planStyle: 'position: relative; width: ' + PW + 'px; height: ' + PH + 'px; background-color: #ffffff; ' + (st.grid ? 'background-image: linear-gradient(#eef0f2 1px, transparent 1px), linear-gradient(90deg, #eef0f2 1px, transparent 1px); background-size: ' + CELL + 'px ' + CELL + 'px; ' : '') + 'box-shadow: 0 1px 2px rgba(16,18,22,0.06); border: 1px solid #e3e5e8; outline-offset: 3px; touch-action: none; user-select: none; ' + (st.tool !== 'select' ? 'cursor: crosshair' : ''),
+      onMove, onUp, onPlanClick, onKey,
+      rooms, fixtures, lines, doors, beds, hasGhost, ghost,
+      floorSize: (COLS / 2) + ' × ' + (ROWS / 2) + ' m',
+      stats, countMismatch: !live && W.registered !== bedCount,
+      mismatchText: 'The plan has ' + bedCount + ' beds; the ward is registered with ' + W.registered + '. Publishing updates the registered count.',
+      noSel: !live && !selIt, hasSel: !live && !!selIt, sel, deselect: () => this.setState({ sel: null }),
+      rotate, duplicate, remove,
+      actBtn: 'height: 32px; padding: 0 10px; border-radius: 8px; border: 1px solid #d0d3d9; background: #ffffff; color: #17191d; font-family: inherit; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; cursor: pointer',
+      nudges: [['←', 'Nudge left', -1, 0], ['↑', 'Nudge up', 0, -1], ['↓', 'Nudge down', 0, 1], ['→', 'Nudge right', 1, 0]].map(([g, l, dx, dy]) => ({ glyph: g, label: l, go: nudge(dx, dy) })),
+      onWardName: (e) => { const v = e.target.value; patchWard({ name: v }); },
+      deptChips: chipsOf(DEPTS, W.dept, (v) => patchWard({ dept: v })),
+      sexChips: chipsOf(SEXES, W.sex, (v) => patchWard({ sex: v })),
+      careChips: chipsOf(CARES, W.care, (v) => patchWard({ care: v })),
+      coverage, checks: checkRows, renumber,
+    };
+  }
+}
+</script>
+</body>
+</html>

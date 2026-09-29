@@ -10,7 +10,8 @@
  *
  * Who: a hospital_admin of THIS hospital (scope-checked: provisioning or active) or a superadmin.
  * D-SVC-16: the current head of a department may run the head-scoped ops on their own department
- * (and report availability at their hospital) — `headScoped` below.
+ * (and report availability at their hospital) — `headScoped` below. ADR 0194: the live bed ops also
+ * let a ward's in-charge and its assigned nurses act (ops-wards checks the ward).
  *
  * Clinic days are NOT here: they go through the booking engine's ha-upsert-session-template.
  */
@@ -34,12 +35,13 @@ import { networkContext, recordSaAudit } from "../_shared/sa-audit.ts";
 import { HubError } from "./common.ts";
 import { SERVICE_OPS, ServiceOpSchema } from "./ops-services.ts";
 import { STRUCTURE_OPS, StructureOpSchema } from "./ops-structure.ts";
+import { WARD_OPS, WARD_STAFF_OPS, WardOpSchema } from "./ops-wards.ts";
 
 const log = makeLogger("ha-services-hub");
 
 const InputSchema = z
   .object({ hospital_id: z.string().uuid() })
-  .and(z.union([StructureOpSchema, ServiceOpSchema]));
+  .and(z.union([StructureOpSchema, ServiceOpSchema, WardOpSchema]));
 
 type Input = z.infer<typeof InputSchema>;
 
@@ -85,13 +87,15 @@ Deno.serve(async (request: Request) => {
       role = "hospital_admin";
     } else if (HEAD_OPS.has(input.op)) {
       role = "head";
+    } else if (WARD_STAFF_OPS.has(input.op)) {
+      role = "ward_staff";
     } else {
       return forbidden(init, "hospital_admin required for this hospital");
     }
   }
 
   const ctx: Ctx = { sb, hospitalId: input.hospital_id, callerId: caller.id, role, requestId };
-  const handler = STRUCTURE_OPS[input.op] ?? SERVICE_OPS[input.op];
+  const handler = STRUCTURE_OPS[input.op] ?? SERVICE_OPS[input.op] ?? WARD_OPS[input.op];
   if (!handler) return badRequest(`Unknown op: ${input.op}`, init);
 
   let plan: OpPlan;

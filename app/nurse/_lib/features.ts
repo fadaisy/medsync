@@ -26,6 +26,7 @@ export type NurseIconKey =
   | "tasks"
   | "handover"
   | "assignment_board"
+  | "beds"
   | "supervisees"
   | "cosign_queue";
 
@@ -42,6 +43,7 @@ export type NurseFeatureSlug =
   | "tasks"
   | "handover"
   | "assignments"
+  | "beds"
   | "supervisees"
   | "cosign-queue";
 
@@ -52,6 +54,8 @@ export interface NurseFeatureArea {
   iconKey: NurseIconKey;
   placeholder: boolean;
   visibleTo?: "all" | "registered+" | "in_charge";
+  /** Shown only when this feature flag is on for the nurse's hospital. */
+  flag?: "ward_builder";
 }
 
 export const NURSE_FEATURE_AREAS: ReadonlyArray<NurseFeatureArea> = [
@@ -142,6 +146,15 @@ export const NURSE_FEATURE_AREAS: ReadonlyArray<NurseFeatureArea> = [
     iconKey: "handover",
     placeholder: false,
     visibleTo: "all",
+  },
+  {
+    slug: "beds",
+    label: "Bed board",
+    hint: "Your ward's beds: free, cleaning, reserved, occupied",
+    iconKey: "beds",
+    placeholder: false,
+    visibleTo: "all",
+    flag: "ward_builder",
   },
   {
     slug: "assignments",

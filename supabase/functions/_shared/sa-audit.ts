@@ -163,7 +163,13 @@ export type SaAuditAction =
   | "add_closure"
   | "lift_closure"
   | "apply_service_preset"
-  | "import_legacy_services";
+  | "import_legacy_services"
+  // 0090: the ward builder and the bed board (ADRs 0191–0196)
+  | "save_ward_layout"
+  | "publish_ward_layout"
+  | "set_bed_state"
+  | "assign_bed"
+  | "release_bed";
 
 export type SaAuditTargetKind =
   | "staff_affiliation"

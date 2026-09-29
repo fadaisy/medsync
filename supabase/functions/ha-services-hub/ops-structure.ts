@@ -19,6 +19,7 @@ import {
   startChange,
 } from "../_shared/services-hub.ts";
 import { assertHeadOf, HubError, loadDepartment, must, reasonOr, slugify } from "./common.ts";
+import { hasPublishedLayout, occupiedBedCount } from "./ops-wards.ts";
 
 const uuid = z.string().uuid();
 const reason = z.string().trim().max(500).optional();
@@ -656,6 +657,11 @@ const archive: OpHandler = async (ctx, i) => {
     const all = await allDepartments(ctx);
     extraIds = all.filter((x) => x.parent_id === d.id && !x.archived_at).map((x) => x.id);
     inUse = await departmentInUse(ctx, [d.id, ...extraIds]);
+  } else if (i.target === "ward") {
+    // ADR 0194: a ward with a patient in a bed can't be archived.
+    inUse.occupiedBeds = await occupiedBedCount(ctx, { wardIds: [i.id] });
+  } else if (i.target === "bed") {
+    inUse.occupiedBeds = await occupiedBedCount(ctx, { bedIds: [i.id] });
   } else if (i.target === "clinic") {
     const r = await ctx.sb
       .from("clinic_sessions")
@@ -715,6 +721,17 @@ const unarchive: OpHandler = async (ctx, i) => {
   ) as { id: string; archived_at: string | null } | null;
   if (!row) throw new HubError("Not found at this hospital.");
   if (!row.archived_at) throw new HubError("It isn't archived.", 409);
+  if (i.target === "bed") {
+    const bed = must(
+      await ctx.sb.from("hospital_beds").select("ward_id").eq("id", i.id).maybeSingle(),
+      "bed ward",
+    ) as { ward_id: string } | null;
+    if (bed && (await hasPublishedLayout(ctx, bed.ward_id)))
+      throw new HubError(
+        "This ward's beds come from its layout. Put the bed back on the plan.",
+        409,
+      );
+  }
   return {
     audit: {
       action: "unarchive_structure",
@@ -755,6 +772,7 @@ const upsertWard: OpHandler = async (ctx, i) => {
   if (clash && clash.id !== i.id)
     throw new HubError(`A ward called ${i.name} already exists.`, 409);
   let before: Record<string, unknown> | undefined;
+  let bedCount: number = i.bed_count;
   if (i.id) {
     const w = must(
       await ctx.sb
@@ -764,19 +782,24 @@ const upsertWard: OpHandler = async (ctx, i) => {
         .eq("hospital_id", ctx.hospitalId)
         .maybeSingle(),
       "ward",
-    ) as Record<string, unknown> | null;
+    ) as (Record<string, unknown> & { bed_count: number }) | null;
     if (!w) throw new HubError("Ward not found at this hospital.");
     before = w;
-    const beds = await ctx.sb
-      .from("hospital_beds")
-      .select("id", { count: "exact", head: true })
-      .eq("ward_id", i.id)
-      .is("archived_at", null);
-    if ((beds.count ?? 0) > i.bed_count) {
-      throw new HubError(
-        `The register holds ${beds.count} beds. Archive some before lowering the count.`,
-        409,
-      );
+    if (await hasPublishedLayout(ctx, i.id)) {
+      // ADR 0192 §6: a laid-out ward's count is its published layout's; the form can't change it.
+      bedCount = w.bed_count;
+    } else {
+      const beds = await ctx.sb
+        .from("hospital_beds")
+        .select("id", { count: "exact", head: true })
+        .eq("ward_id", i.id)
+        .is("archived_at", null);
+      if ((beds.count ?? 0) > i.bed_count) {
+        throw new HubError(
+          `The register holds ${beds.count} beds. Archive some before lowering the count.`,
+          409,
+        );
+      }
     }
   }
   const row = {
@@ -788,7 +811,7 @@ const upsertWard: OpHandler = async (ctx, i) => {
     sex: i.sex ?? null,
     age_group: i.age_group ?? null,
     place_id: i.place_id ?? null,
-    bed_count: i.bed_count,
+    bed_count: bedCount,
   };
   return {
     audit: {
@@ -856,6 +879,8 @@ const setWardClosure: OpHandler = async (ctx, i) => {
 
 const generateBeds: OpHandler = async (ctx, i) => {
   const w = await loadWard(ctx, i.ward_id);
+  if (await hasPublishedLayout(ctx, w.id))
+    throw new HubError("This ward's beds come from its layout. Add beds on the plan.", 409);
   const beds = must(
     await ctx.sb.from("hospital_beds").select("label, archived_at").eq("ward_id", w.id),
     "beds",
@@ -902,6 +927,8 @@ const setBed: OpHandler = async (ctx, i) => {
   if (i.label !== undefined) patch.label = i.label;
   if (i.closed === true) {
     if (!i.closed_reason) throw new HubError("Say why the bed is closed.");
+    if ((await occupiedBedCount(ctx, { bedIds: [b.id] })) > 0)
+      throw new HubError(`Bed ${b.label} has a patient in it. Release the patient first.`, 409);
     patch.closed_at = nowIso();
     patch.closed_reason = i.closed_reason;
   } else if (i.closed === false) {
