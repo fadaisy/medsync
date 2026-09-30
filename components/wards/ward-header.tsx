@@ -25,6 +25,7 @@ export function WardHeader({
   mode,
   buildHref,
   liveHref,
+  liveWaits,
   tabs,
   newWardHref,
   right,
@@ -36,6 +37,8 @@ export function WardHeader({
   /** Null when the viewer can't open the other mode (a nurse has no Build). */
   buildHref: string | null;
   liveHref: string | null;
+  /** Why Live can't open yet (no published layout): shown dimmed with the reason, not hidden. */
+  liveWaits?: string;
   tabs: WardTabLink[];
   newWardHref?: string;
   right?: ReactNode;
@@ -64,7 +67,8 @@ export function WardHeader({
           </nav>
           <h1 className="font-display text-display-s text-foreground">{title}</h1>
         </div>
-        {buildHref || liveHref ? (
+        {/* Both modes, or none: a lone segment switches nowhere (a nurse only has Live). */}
+        {buildHref && (liveHref || liveWaits) ? (
           <nav aria-label="Mode" className="bg-ink-100 inline-flex gap-0.5 rounded-md p-0.5">
             {(
               [
@@ -87,7 +91,17 @@ export function WardHeader({
                 >
                   {label}
                 </Link>
-              ) : null,
+              ) : (
+                <span
+                  key={m}
+                  aria-disabled="true"
+                  title={liveWaits}
+                  className="text-caption text-ink-400 inline-flex h-[26px] cursor-not-allowed items-center rounded-sm px-2.5 font-medium"
+                >
+                  {label}
+                  <span className="sr-only">{`: ${liveWaits}`}</span>
+                </span>
+              ),
             )}
           </nav>
         ) : null}

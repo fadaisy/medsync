@@ -211,7 +211,7 @@ export function BedBoard({
                 {links.layout ? "; switch to Build to edit it." : "."}
               </p>
             </div>
-            <div className="bg-ink-100 flex min-h-0 flex-1 flex-col p-3">
+            <div className="bg-ink-100 flex min-h-[280px] flex-1 flex-col p-3">
               <PlanView
                 doc={data.doc}
                 mode="live"
@@ -244,7 +244,7 @@ export function BedBoard({
 
           <aside
             aria-label="Bed"
-            className="border-border bg-card order-2 overflow-y-auto border-t p-4 xl:order-3 xl:border-t-0 xl:border-l"
+            className="border-border bg-card order-2 overflow-y-auto border-t p-4 xl:order-3 xl:border-t-0 xl:border-l xl:pb-24"
           >
             {selected ? (
               <BedPanel
