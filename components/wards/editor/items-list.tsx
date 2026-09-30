@@ -69,14 +69,17 @@ function CoordInput({
  */
 export function ItemsList({
   doc,
-  selected,
+  selection,
   onChange,
   onSelect,
+  onToggle,
 }: {
   doc: WardLayout;
-  selected: ItemRef | null;
+  /** What is selected; a row's name selects it alone, or with Shift adds it or takes it out. */
+  selection: ItemRef[];
   onChange: (d: WardLayout) => void;
   onSelect: (r: ItemRef | null) => void;
+  onToggle: (r: ItemRef) => void;
 }) {
   const rows = itemsOf(doc);
   const detail = (r: (typeof rows)[number]) => {
@@ -125,7 +128,8 @@ export function ItemsList({
         </thead>
         <tbody>
           {rows.map((r) => {
-            const on = sameRef(selected, r.ref);
+            const on = selection.some((x) => sameRef(x, r.ref));
+            const only = on && selection.length === 1;
             const name = r.name;
             // "Door (2 of 4)" already says what it is; "Divider Window" needs the kind word.
             const kind = name.startsWith(KIND_WORD[r.ref.kind]) ? "" : `${KIND_WORD[r.ref.kind]} `;
@@ -137,7 +141,7 @@ export function ItemsList({
                 <th scope="row" className="px-3 py-1.5 text-left font-normal">
                   <button
                     type="button"
-                    onClick={() => onSelect(on ? null : r.ref)}
+                    onClick={(e) => (e.shiftKey ? onToggle(r.ref) : onSelect(only ? null : r.ref))}
                     aria-pressed={on}
                     className="text-foreground hover:text-teal-text focus-visible:shadow-focus rounded-sm text-left outline-none"
                   >
@@ -180,7 +184,7 @@ export function ItemsList({
                       aria-label={`Delete ${kind.toLowerCase()}${name}`}
                       onClick={() => {
                         onChange(remove(doc, r.ref));
-                        if (on) onSelect(null);
+                        if (on) onToggle(r.ref);
                       }}
                     >
                       <Trash2Icon aria-hidden />

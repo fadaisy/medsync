@@ -5,6 +5,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Changed — Ward builder: select several items at once — 2026-09-30
+
+- **A box across empty floor** selects what it touches: beds, fixtures and doors; rooms and walls only when wholly inside it, so a box drawn inside a bay picks its beds, not the bay. **Shift+click** adds an item or takes it out, **Shift+drag** adds a box to the selection, **Ctrl/⌘+A** selects everything and **Escape** clears. The Items list takes Shift+click too.
+- **A group** moves together when you drag any of it (at the floor's edge the whole group stops, keeping its gaps); the arrows nudge it, **R** rotates each item, **Delete** removes them all, and each is one undo step. With beds in the group, a bedside service (wall oxygen, suction, a monitor…) goes on or off every selected bed at once; one only some of them have shows as "some".
+
 ### Changed — Ward builder: rotate with the pointer — 2026-09-30
 
 - A selected bed or fixture has a **rotate handle** past its foot (the side facing into the room). Drag it round and the item turns a quarter at a time about its middle, by how far you sweep; one drag is one undo step, and it works at any zoom. **R**, **Rotate** and the Items list's rotate now also turn about the middle rather than the top-left corner.

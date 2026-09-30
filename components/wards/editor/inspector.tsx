@@ -1,7 +1,7 @@
 "use client";
 
 import type { LayoutCheck } from "@/lib/wards/checks";
-import type { ItemRef } from "@/lib/wards/editor";
+import type { ItemKind, ItemRef } from "@/lib/wards/editor";
 import type {
   LayoutBed,
   LayoutDivider,
@@ -35,6 +35,7 @@ import {
   dividerLabel,
   duplicate,
   findItem,
+  moveMany,
   nudge,
   patchBed,
   patchDivider,
@@ -42,11 +43,15 @@ import {
   patchFixture,
   patchRoom,
   remove,
+  removeMany,
   resizeRoom,
   rotate,
+  rotateEach,
+  serviceAcross,
   setBedType,
   setDividerLength,
   setFloor,
+  setServiceOn,
   toggleService,
 } from "@/lib/wards/editor";
 import { WARD_SEXES, WARD_TYPES } from "@/supabase/functions/_shared/services-hub";
@@ -774,6 +779,140 @@ export function SelectionInspector({
       <SelectionHead {...head} onClose={close} />
       <Actions doc={doc} selected={selected} onChange={onChange} onSelect={onSelect} />
       {body}
+    </div>
+  );
+}
+
+const KIND_WORDS: Record<ItemKind, [string, string]> = {
+  bed: ["bed", "beds"],
+  room: ["room", "rooms"],
+  divider: ["divider", "dividers"],
+  door: ["door", "doors"],
+  fixture: ["fixture", "fixtures"],
+};
+
+/**
+ * Several items selected (a box across the floor, Shift+click, or Ctrl/Cmd+A): what they are, and
+ * what a group can do: rotate each, delete them, nudge them together, and set a bedside service on
+ * every selected bed at once. `onChange(doc, keep)` keeps the selection unless it's a delete.
+ */
+export function GroupInspector({
+  doc,
+  selection,
+  onChange,
+  onClear,
+}: {
+  doc: WardLayout;
+  selection: ItemRef[];
+  onChange: (d: WardLayout, keepSelection: boolean) => void;
+  onClear: () => void;
+}) {
+  const kinds: ItemKind[] = ["bed", "room", "divider", "door", "fixture"];
+  const what = kinds
+    .map((k) => [k, selection.filter((r) => r.kind === k).length] as const)
+    .filter(([, n]) => n > 0)
+    .map(([k, n]) => `${n} ${KIND_WORDS[k][n === 1 ? 0 : 1]}`)
+    .join(" · ");
+  const bedKeys = selection.filter((r) => r.kind === "bed").map((r) => r.key);
+  const nudges: [ReactNode, string, number, number][] = [
+    [<ArrowLeftIcon key="l" aria-hidden />, "Nudge left", -1, 0],
+    [<ArrowUpIcon key="u" aria-hidden />, "Nudge up", 0, -1],
+    [<ArrowDownIcon key="d" aria-hidden />, "Nudge down", 0, 1],
+    [<ArrowRightIcon key="r" aria-hidden />, "Nudge right", 1, 0],
+  ];
+  return (
+    <div className="flex flex-col gap-4">
+      <SelectionHead
+        kind="Selection"
+        title={`${selection.length} items`}
+        where={what}
+        onClose={onClear}
+      />
+      <div className="flex flex-col gap-2">
+        <div className="flex flex-wrap gap-1.5">
+          <Button
+            variant="secondary"
+            size="sm"
+            title="R"
+            onClick={() => onChange(rotateEach(doc, selection), true)}
+          >
+            <RotateCwIcon aria-hidden />
+            Rotate each
+          </Button>
+          <Button
+            variant="secondary"
+            size="sm"
+            title="Delete"
+            onClick={() => onChange(removeMany(doc, selection), false)}
+          >
+            <Trash2Icon aria-hidden />
+            Delete {selection.length}
+          </Button>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-caption text-ink-600 w-14">Nudge</span>
+          {nudges.map(([icon, label, dx, dy]) => (
+            <Button
+              key={label}
+              variant="secondary"
+              size="icon"
+              aria-label={`${label}, all ${selection.length}`}
+              onClick={() => onChange(moveMany(doc, selection, dx, dy), true)}
+            >
+              {icon}
+            </Button>
+          ))}
+        </div>
+        <p className="text-caption text-muted-foreground font-normal">
+          Drag any of them on the plan to move them together.
+        </p>
+      </div>
+      {bedKeys.length ? (
+        <div className="flex flex-col gap-2">
+          <span className="text-caption text-ink-700">
+            Services at these {bedKeys.length} {bedKeys.length === 1 ? "bed" : "beds"}
+          </span>
+          <span className="text-caption text-muted-foreground font-normal">
+            &ldquo;Some&rdquo; means only some of them have it; choosing it puts it on all of them.
+          </span>
+          {SERVICE_GROUPS.map((g) => (
+            <div key={g} role="group" aria-label={g} className="flex flex-col gap-1">
+              <span className="text-caption text-muted-foreground font-normal">{g}</span>
+              <div className="flex flex-wrap gap-1.5">
+                {SERVICES.filter((s) => s.group === g).map((s) => {
+                  const across = serviceAcross(doc, bedKeys, s.code);
+                  return (
+                    <Chip
+                      key={s.code}
+                      on={across === "all"}
+                      mixed={across === "some"}
+                      onClick={() =>
+                        onChange(setServiceOn(doc, bedKeys, s.code, across !== "all"), true)
+                      }
+                    >
+                      <span
+                        aria-hidden
+                        className={cn(
+                          "inline-flex h-4 min-w-[18px] items-center justify-center rounded-xs px-0.5 text-[9px] font-semibold",
+                          across === "all"
+                            ? "bg-teal-solid text-teal-on-solid"
+                            : "bg-ink-100 text-ink-600",
+                        )}
+                      >
+                        {s.glyph}
+                      </span>
+                      {s.label}
+                      {across === "some" ? (
+                        <span className="text-muted-foreground font-normal">· some</span>
+                      ) : null}
+                    </Chip>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }

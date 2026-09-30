@@ -612,3 +612,140 @@ export function ghostRect(
 function bedTypeSize(t: BedType) {
   return bedRect({ x: 0, y: 0, rot: 0, type: t });
 }
+
+/* ─── several at once: a box, Shift+click, and what a group can do ─── */
+
+/** An item's extent on the floor, in cells (a door or divider is a line: one side is 0). */
+export function extentOf(d: WardLayout, ref: ItemRef): Rect | null {
+  switch (ref.kind) {
+    case "bed": {
+      const b = findBed(d, ref.key);
+      return b ? bedRect(b) : null;
+    }
+    case "fixture": {
+      const f = findFixture(d, ref.key);
+      return f ? fixtureRect(f) : null;
+    }
+    case "room": {
+      const r = findRoom(d, ref.key);
+      return r ? roomRect(r) : null;
+    }
+    case "door": {
+      const o = findDoor(d, ref.key);
+      if (!o) return null;
+      return o.orient === "h"
+        ? { x: o.x, y: o.y, w: DOOR_CELLS, h: 0 }
+        : { x: o.x, y: o.y, w: 0, h: DOOR_CELLS };
+    }
+    case "divider": {
+      const l = findDivider(d, ref.key);
+      if (!l) return null;
+      const x = Math.min(l.x1, l.x2);
+      const y = Math.min(l.y1, l.y2);
+      return { x, y, w: Math.abs(l.x2 - l.x1), h: Math.abs(l.y2 - l.y1) };
+    }
+  }
+}
+
+const allRefs = (d: WardLayout): ItemRef[] => [
+  ...d.beds.map((b) => ({ kind: "bed" as const, key: b.key })),
+  ...d.fixtures.map((f) => ({ kind: "fixture" as const, key: f.key })),
+  ...d.doors.map((o) => ({ kind: "door" as const, key: o.key })),
+  ...d.dividers.map((l) => ({ kind: "divider" as const, key: l.key })),
+  ...d.rooms.map((r) => ({ kind: "room" as const, key: r.key })),
+];
+
+/** Everything on the plan (Ctrl/Cmd+A). */
+export const selectAll = allRefs;
+
+/**
+ * What a box drawn across the plan catches: beds, fixtures and doors it touches; rooms and dividers
+ * only when wholly inside it, so a box drawn inside a bay picks its beds, not the bay and its walls.
+ */
+export function itemsInBox(d: WardLayout, box: Rect): ItemRef[] {
+  const x1 = box.x + box.w;
+  const y1 = box.y + box.h;
+  return allRefs(d).filter((ref) => {
+    const r = extentOf(d, ref);
+    if (!r) return false;
+    if (ref.kind === "room" || ref.kind === "divider")
+      return r.x >= box.x && r.y >= box.y && r.x + r.w <= x1 && r.y + r.h <= y1;
+    return r.x <= x1 && box.x <= r.x + r.w && r.y <= y1 && box.y <= r.y + r.h;
+  });
+}
+
+/**
+ * Moves items together by (dx, dy) cells as one group: at the floor's edge the whole group stops,
+ * rather than the items nearest the edge bunching up. The same document when nothing moves.
+ */
+export function moveMany(d: WardLayout, refs: ItemRef[], dx: number, dy: number): WardLayout {
+  const rects = refs.map((r) => extentOf(d, r)).filter((r): r is Rect => !!r);
+  if (!rects.length) return d;
+  const lo = (v: number[]) => Math.max(...v);
+  const hi = (v: number[]) => Math.min(...v);
+  const ddx = Math.min(
+    hi(rects.map((r) => d.floor.w - r.x - r.w)),
+    Math.max(lo(rects.map((r) => -r.x)), dx),
+  );
+  const ddy = Math.min(
+    hi(rects.map((r) => d.floor.h - r.y - r.h)),
+    Math.max(lo(rects.map((r) => -r.y)), dy),
+  );
+  if (!ddx && !ddy) return d;
+  let next = d;
+  for (const ref of refs) {
+    if (ref.kind === "divider") {
+      next = mapList(next, "divider", ref.key, (l: LayoutDivider) => ({
+        ...l,
+        x1: l.x1 + ddx,
+        x2: l.x2 + ddx,
+        y1: l.y1 + ddy,
+        y2: l.y2 + ddy,
+      }));
+    } else {
+      next = mapList(next, ref.kind, ref.key, (it: { x: number; y: number }) => ({
+        ...it,
+        x: it.x + ddx,
+        y: it.y + ddy,
+      }));
+    }
+  }
+  return next;
+}
+
+export const removeMany = (d: WardLayout, refs: ItemRef[]) => refs.reduce(remove, d);
+export const rotateEach = (d: WardLayout, refs: ItemRef[]) => refs.reduce(rotate, d);
+
+/** Whether every, some or none of these beds has a service. */
+export function serviceAcross(d: WardLayout, keys: string[], code: ServiceCode) {
+  const beds = keys.map((k) => findBed(d, k)).filter((b): b is LayoutBed => !!b);
+  const n = beds.filter((b) => b.services.includes(code)).length;
+  return n === 0 ? "none" : n === beds.length ? "all" : "some";
+}
+
+/** A service on every one of these beds, or off every one. */
+export function setServiceOn(d: WardLayout, keys: string[], code: ServiceCode, on: boolean) {
+  let next = d;
+  for (const key of keys)
+    next = mapList(next, "bed", key, (b: LayoutBed) =>
+      b.services.includes(code) === on
+        ? b
+        : {
+            ...b,
+            services: on
+              ? SERVICE_CODES.filter((c) => c === code || b.services.includes(c))
+              : b.services.filter((s) => s !== code),
+          },
+    );
+  return next;
+}
+
+/** Shift+click: in the selection, or not. */
+export function toggleRef(refs: ItemRef[], ref: ItemRef): ItemRef[] {
+  return refs.some((r) => sameRef(r, ref)) ? refs.filter((r) => !sameRef(r, ref)) : [...refs, ref];
+}
+
+/** Two selections together, each item once. */
+export function unionRefs(a: ItemRef[], b: ItemRef[]): ItemRef[] {
+  return [...a, ...b.filter((r) => !a.some((x) => sameRef(x, r)))];
+}
