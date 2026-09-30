@@ -5,6 +5,7 @@ import type { Domain } from "@/lib/design/domains";
 import type { LucideIcon } from "lucide-react";
 import {
   ActivityIcon,
+  BedDoubleIcon,
   CalendarClockIcon,
   CheckSquareIcon,
   ClipboardPenIcon,
@@ -36,6 +37,7 @@ const ICONS: Record<NurseIconKey, LucideIcon> = {
   tasks: CheckSquareIcon,
   handover: ScrollTextIcon,
   assignment_board: ClipboardPenIcon,
+  beds: BedDoubleIcon,
   supervisees: GraduationCapIcon,
   cosign_queue: ListChecksIcon,
 };

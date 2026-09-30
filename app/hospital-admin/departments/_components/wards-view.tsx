@@ -1,11 +1,12 @@
 "use client";
 
 import type { WardRow } from "@/lib/services/data";
-import { useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { PlusIcon } from "lucide-react";
+import { LayoutGridIcon, PlusIcon } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { WARD_AGE_GROUPS, WARD_SEXES, WARD_TYPES } from "@/supabase/functions/_shared/services-hub";
 import {
@@ -26,6 +27,8 @@ import {
 
 type Option = { id: string; name: string };
 type Nurse = { userId: string; name: string; cadre: string | null };
+/** Per ward: a published layout and/or a draft. Null when the ward builder is off. */
+type Layouts = Record<string, { published: boolean; draft: boolean }> | null;
 
 const label = (list: ReadonlyArray<{ code: string; label: string }>, code: string | null) =>
   list.find((x) => x.code === code)?.label ?? null;
@@ -35,15 +38,17 @@ export function WardsView({
   departments,
   nurses,
   places,
+  layouts = null,
 }: {
   wards: WardRow[];
   departments: Option[];
   nurses: Nurse[];
   places: Option[];
+  layouts?: Layouts;
 }) {
   const params = useSearchParams();
   const [openId, setOpenId] = useState<string | null>(() => params.get("open"));
-  const [adding, setAdding] = useState(false);
+  const [adding, setAdding] = useState(() => params.get("new") === "1");
   const [showArchived, setShowArchived] = useState(false);
   const deptName = (id: string | null) => departments.find((d) => d.id === id)?.name ?? "—";
   const visible = wards.filter((w) => showArchived || !w.archived);
@@ -54,7 +59,9 @@ export function WardsView({
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <HonestLine>
-          Occupancy arrives with the inpatient module. Bed counts here are the denominator.
+          {layouts
+            ? "Bed counts here are the denominator. Occupancy shows on each ward's live bed board once its layout is published."
+            : "Occupancy arrives with the inpatient module. Bed counts here are the denominator."}
         </HonestLine>
         <Button size="sm" onClick={() => setAdding(true)} disabled={departments.length === 0}>
           <PlusIcon aria-hidden /> Add ward
@@ -163,6 +170,7 @@ export function WardsView({
           departments={departments}
           nurses={nurses}
           places={places}
+          layout={layouts ? (layouts[open.id] ?? { published: false, draft: false }) : null}
           onClose={() => setOpenId(null)}
         />
       ) : null}
@@ -175,15 +183,19 @@ function WardPanel({
   departments,
   nurses,
   places,
+  layout = null,
   onClose,
 }: {
   ward: WardRow | null;
   departments: Option[];
   nurses: Nurse[];
   places: Option[];
+  /** The ward's layout state; null when the ward builder is off. */
+  layout?: { published: boolean; draft: boolean } | null;
   onClose: () => void;
 }) {
   const hub = useHub();
+  const laidOut = !!layout?.published;
   const [form, setForm] = useState({
     name: ward?.name ?? "",
     department_id: ward?.departmentId ?? departments[0]?.id ?? "",
@@ -240,11 +252,20 @@ function WardPanel({
             options={WARD_TYPES.map((t) => ({ value: t.code, label: t.label }))}
           />
         </Field>
-        <Field label="Beds" hint="The total; closed beds still count.">
+        <Field
+          label="Beds"
+          hint={
+            laidOut
+              ? "Set by the published layout (ADR 0192). Change the beds on the plan."
+              : "The total; closed beds still count."
+          }
+        >
           <input
             className={cn(inputClass, "font-mono")}
             inputMode="numeric"
             value={form.bed_count}
+            readOnly={laidOut}
+            aria-readonly={laidOut || undefined}
             onChange={(e) => set("bed_count")(e.target.value.replace(/\D/g, ""))}
           />
         </Field>
@@ -321,8 +342,9 @@ function WardPanel({
           }
           right={
             <>
+              {layout ? <LayoutEntry ward={ward} layout={layout} /> : null}
               <InCharge ward={ward} nurses={nurses} />
-              <BedRegister ward={ward} />
+              <BedRegister ward={ward} laidOut={laidOut} />
             </>
           }
         />
@@ -449,7 +471,70 @@ function InCharge({ ward, nurses }: { ward: WardRow; nurses: Nurse[] }) {
   );
 }
 
-function BedRegister({ ward }: { ward: WardRow }) {
+/**
+ * The way into the ward builder (ADR 0191): the layout, and once published the live bed board. A ward
+ * with a register but no layout can start from the register, so no bed is lost.
+ */
+function LayoutEntry({
+  ward,
+  layout,
+}: {
+  ward: WardRow;
+  layout: { published: boolean; draft: boolean };
+}) {
+  const hub = useHub();
+  const router = useRouter();
+  const base = `/hospital-admin/departments/wards/${ward.id}`;
+  const registered = ward.beds.filter((b) => !b.archived).length;
+  return (
+    <section className="flex flex-col gap-2">
+      <h3 className="text-foreground text-body-s font-medium">Layout</h3>
+      <ErrorLine error={hub.error} />
+      <p className="text-body-s text-muted-foreground">
+        {layout.published
+          ? `Published${layout.draft ? ", with a draft in progress" : ""}. Its beds are this ward's register.`
+          : layout.draft
+            ? "A draft is in progress; nothing is published yet."
+            : "No layout yet. Lay the ward out on a floor plan: beds, rooms and what is at each bed."}
+      </p>
+      <div className="flex flex-wrap gap-2">
+        {!layout.published && !layout.draft && registered > 0 ? (
+          <Button
+            size="sm"
+            disabled={hub.pending}
+            onClick={() =>
+              hub.run({ op: "start_layout_from_register", ward_id: ward.id }, () =>
+                router.push(`${base}/layout`),
+              )
+            }
+          >
+            Start from the register
+          </Button>
+        ) : null}
+        {/* Navigations: links wearing the button's classes (a Button would stamp role="button"). */}
+        <Link
+          href={`${base}/layout`}
+          className={buttonVariants({
+            size: "sm",
+            variant: !layout.published && !layout.draft && registered > 0 ? "secondary" : "primary",
+          })}
+        >
+          <LayoutGridIcon aria-hidden /> Layout
+        </Link>
+        {layout.published ? (
+          <Link
+            href={`${base}/board`}
+            className={buttonVariants({ size: "sm", variant: "secondary" })}
+          >
+            Live bed board
+          </Link>
+        ) : null}
+      </div>
+    </section>
+  );
+}
+
+function BedRegister({ ward, laidOut = false }: { ward: WardRow; laidOut?: boolean }) {
   const hub = useHub();
   const [closing, setClosing] = useState<string | null>(null);
   const [why, setWhy] = useState("");
@@ -460,7 +545,7 @@ function BedRegister({ ward }: { ward: WardRow }) {
         <h3 className="text-foreground text-body-s font-medium">
           Bed register <span className="text-muted-foreground font-normal">(optional)</span>
         </h3>
-        {active.length < ward.bedCount ? (
+        {!laidOut && active.length < ward.bedCount ? (
           <Button
             variant="secondary"
             size="sm"

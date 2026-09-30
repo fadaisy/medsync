@@ -264,8 +264,16 @@ export async function loadWards(hospitalId: string): Promise<WardRow[]> {
       .from(hospitalWards)
       .where(eq(hospitalWards.hospitalId, hospitalId))
       .orderBy(asc(hospitalWards.name)),
+    // Named columns: 0090's layout columns may not exist yet (ADR 0191 §6).
     db
-      .select()
+      .select({
+        id: hospitalBeds.id,
+        wardId: hospitalBeds.wardId,
+        label: hospitalBeds.label,
+        closedAt: hospitalBeds.closedAt,
+        closedReason: hospitalBeds.closedReason,
+        archivedAt: hospitalBeds.archivedAt,
+      })
       .from(hospitalBeds)
       .where(eq(hospitalBeds.hospitalId, hospitalId))
       .orderBy(asc(hospitalBeds.createdAt)),
