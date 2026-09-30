@@ -7,7 +7,14 @@ import type { LayoutEditorData } from "@/lib/wards/data";
 import type { ItemKind, ItemRef, Tool } from "@/lib/wards/editor";
 import type { History } from "@/lib/wards/history";
 import type { Preset } from "@/lib/wards/presets";
-import type { DividerKind, WardLayout } from "@/supabase/functions/_shared/ward-layout";
+import type {
+  DividerKind,
+  LayoutBed,
+  LayoutFixture,
+  Rect,
+  Rotation,
+  WardLayout,
+} from "@/supabase/functions/_shared/ward-layout";
 import type { KeyboardEvent, MouseEvent, PointerEvent } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -43,14 +50,24 @@ import {
   findItem,
   findRoom,
   ghostRect,
+  itemsInBox,
+  moveMany,
   moveTo,
   nudge,
   place,
   positionOf,
   remove,
+  removeMany,
   resizeRoom,
   rotate,
+  rotateEach,
+  rotateTo,
+  rotationFromDrag,
+  sameRef,
+  selectAll,
   setDividerEnd,
+  toggleRef,
+  unionRefs,
 } from "@/lib/wards/editor";
 import {
   canRedo,
@@ -68,13 +85,14 @@ import { reconcile } from "@/lib/wards/reconcile";
 import {
   bedRect,
   emptyLayout,
+  fixtureRect,
   FLOOR_DEFAULT,
   renumberBeds,
   rowOfBeds,
   snapDivider,
 } from "@/supabase/functions/_shared/ward-layout";
 import { CautionNote } from "../ui";
-import { SelectionInspector, WardInspector } from "./inspector";
+import { GroupInspector, SelectionInspector, WardInspector } from "./inspector";
 import { ItemsList } from "./items-list";
 import { Palette } from "./palette";
 import { PublishDialog } from "./publish-dialog";
@@ -129,7 +147,8 @@ export const AUTOSAVE_MS = 2000;
 
 interface State {
   h: History<WardLayout> | null;
-  selected: ItemRef | null;
+  /** What is selected: one item, several (a box or Shift+click), or none. */
+  sel: ItemRef[];
   tool: Tool;
   anchor: { x: number; y: number } | null;
   hover: { fx: number; fy: number } | null;
@@ -140,13 +159,15 @@ interface State {
 }
 
 type Action =
-  | { type: "edit"; doc: WardLayout; select?: ItemRef | null }
+  | { type: "edit"; doc: WardLayout; select?: ItemRef | ItemRef[] | null }
   | { type: "transient"; doc: WardLayout }
   | { type: "settle"; before: WardLayout }
   | { type: "undo" }
   | { type: "redo" }
   | { type: "reset"; doc: WardLayout | null }
   | { type: "select"; ref: ItemRef | null }
+  | { type: "selectMany"; refs: ItemRef[] }
+  | { type: "toggle"; ref: ItemRef }
   | { type: "tool"; tool: Tool }
   | { type: "anchor"; at: { x: number; y: number } | null }
   | { type: "hover"; at: { fx: number; fy: number } | null }
@@ -155,6 +176,8 @@ type Action =
   | { type: "view"; view: "plan" | "items" }
   | { type: "row"; row: RowSettings };
 
+const asSel = (x: ItemRef | ItemRef[] | null): ItemRef[] => (!x ? [] : Array.isArray(x) ? x : [x]);
+
 function reducer(s: State, a: Action): State {
   switch (a.type) {
     case "edit":
@@ -162,34 +185,38 @@ function reducer(s: State, a: Action): State {
       return {
         ...s,
         h: commit(s.h, a.doc),
-        selected: a.select === undefined ? s.selected : a.select,
+        sel: a.select === undefined ? s.sel : asSel(a.select),
       };
     case "transient":
       return s.h ? { ...s, h: replace(s.h, a.doc) } : s;
     case "settle":
       return s.h ? { ...s, h: settle(s.h, a.before) } : s;
     case "undo":
-      return s.h && canUndo(s.h) ? { ...s, h: undo(s.h), selected: null } : s;
+      return s.h && canUndo(s.h) ? { ...s, h: undo(s.h), sel: [] } : s;
     case "redo":
-      return s.h && canRedo(s.h) ? { ...s, h: redo(s.h), selected: null } : s;
+      return s.h && canRedo(s.h) ? { ...s, h: redo(s.h), sel: [] } : s;
     case "reset":
       return {
         ...s,
         h: a.doc ? historyInit(a.doc) : null,
-        selected: null,
+        sel: [],
         tool: "select",
         anchor: null,
         hover: null,
       };
     case "select":
-      return { ...s, selected: a.ref };
+      return { ...s, sel: asSel(a.ref) };
+    case "selectMany":
+      return { ...s, sel: a.refs };
+    case "toggle":
+      return { ...s, sel: toggleRef(s.sel, a.ref) };
     case "tool":
       return {
         ...s,
         tool: a.tool,
         anchor: null,
         hover: null,
-        selected: a.tool === "select" ? s.selected : null,
+        sel: a.tool === "select" ? s.sel : [],
       };
     case "anchor":
       return { ...s, anchor: a.at };
@@ -249,7 +276,7 @@ export function WardEditor({
     data.doc,
     (doc): State => ({
       h: doc ? historyInit(doc) : null,
-      selected: initial?.selected ?? null,
+      sel: asSel(initial?.selected ?? null),
       tool: initial?.tool ?? "select",
       anchor: null,
       hover: null,
@@ -260,7 +287,9 @@ export function WardEditor({
     }),
   );
   const doc = state.h?.present ?? null;
-  const selected = state.selected && doc && findItem(doc, state.selected) ? state.selected : null;
+  // Only what still exists (an undo can take an item away); one item is "selected", with handles.
+  const selection = doc ? state.sel.filter((r) => findItem(doc, r)) : [];
+  const selected = selection.length === 1 ? selection[0]! : null;
 
   /* ── saving: what renders comes from state; the refs only serve the async save ── */
   const [savedDoc, setSavedDoc] = useState<WardLayout | null>(data.doc);
@@ -349,12 +378,19 @@ export function WardEditor({
   const zoom = usePlanZoom();
   const drag = useRef<{
     ref: ItemRef;
-    mode: "move" | "resize" | "end1" | "end2";
+    mode: "move" | "resize" | "end1" | "end2" | "rotate" | "group";
     ox: number;
     oy: number;
     before: WardLayout;
     moved: boolean;
+    /** Rotate: the item's middle (cells), the pointer's angle about it, and its rotation, at the start. */
+    pivot?: { cx: number; cy: number; a0: number; rot0: Rotation };
+    /** Group: everything that moves together. */
+    refs?: ItemRef[];
   } | null>(null);
+  /** A box being drawn across empty floor, and what was selected before it (Shift adds to it). */
+  const boxDrag = useRef<{ x0: number; y0: number; base: ItemRef[] } | null>(null);
+  const [box, setBox] = useState<Rect | null>(null);
 
   const toCell = (e: { clientX: number; clientY: number }) => {
     const svg = svgRef.current;
@@ -402,22 +438,58 @@ export function WardEditor({
     const el = e.target as Element;
     const handle = el.closest("[data-handle]")?.getAttribute("data-handle");
     if (handle && selected && state.tool === "select") {
+      let pivot: NonNullable<typeof drag.current>["pivot"];
+      if (handle === "rotate") {
+        const item =
+          selected.kind === "bed"
+            ? doc.beds.find((b) => b.key === selected.key)
+            : doc.fixtures.find((f) => f.key === selected.key);
+        if (!item) return;
+        const r =
+          selected.kind === "bed" ? bedRect(item as LayoutBed) : fixtureRect(item as LayoutFixture);
+        const cx = r.x + r.w / 2;
+        const cy = r.y + r.h / 2;
+        pivot = { cx, cy, a0: Math.atan2(p.fy - cy, p.fx - cx), rot0: item.rot };
+      }
       drag.current = {
         ref: selected,
-        mode: handle as "resize" | "end1" | "end2",
+        mode: handle as "resize" | "end1" | "end2" | "rotate",
         ox: 0,
         oy: 0,
         before: doc,
         moved: false,
+        pivot,
       };
       e.currentTarget.setPointerCapture(e.pointerId);
       return;
     }
     if (state.tool === "select") {
       const raw = el.closest("[data-ref]")?.getAttribute("data-ref");
-      if (!raw) return dispatch({ type: "select", ref: null });
+      if (!raw) {
+        // Empty floor: draw a box. Shift keeps what is selected and adds to it.
+        boxDrag.current = { x0: p.fx, y0: p.fy, base: e.shiftKey ? selection : [] };
+        if (!e.shiftKey) dispatch({ type: "select", ref: null });
+        e.currentTarget.setPointerCapture(e.pointerId);
+        return;
+      }
       const [kind, key] = raw.split(":") as [ItemKind, string];
       const ref = { kind, key };
+      // Shift+click adds the item to the selection, or takes it out.
+      if (e.shiftKey) return dispatch({ type: "toggle", ref });
+      // Dragging one of several selected items moves them all.
+      if (selection.length > 1 && selection.some((r) => sameRef(r, ref))) {
+        drag.current = {
+          ref,
+          mode: "group",
+          ox: p.fx,
+          oy: p.fy,
+          before: doc,
+          moved: false,
+          refs: selection,
+        };
+        e.currentTarget.setPointerCapture(e.pointerId);
+        return;
+      }
       dispatch({ type: "select", ref });
       const pos = positionOf(doc, ref)!;
       drag.current = {
@@ -440,12 +512,31 @@ export function WardEditor({
   const onPointerMove = (e: PointerEvent<SVGSVGElement>) => {
     const p = toCell(e);
     if (!p || !doc) return;
+    const b = boxDrag.current;
+    if (b) {
+      // A box only once the pointer has really moved (a click on empty floor just clears).
+      if (Math.abs(p.fx - b.x0) < 0.25 && Math.abs(p.fy - b.y0) < 0.25 && !box) return;
+      const r = {
+        x: Math.min(b.x0, p.fx),
+        y: Math.min(b.y0, p.fy),
+        w: Math.abs(p.fx - b.x0),
+        h: Math.abs(p.fy - b.y0),
+      };
+      setBox(r);
+      dispatch({ type: "selectMany", refs: unionRefs(b.base, itemsInBox(doc, r)) });
+      return;
+    }
     const d = drag.current;
     if (d) {
       let next: WardLayout;
       if (d.mode === "move")
         next = moveTo(d.before, d.ref, Math.round(p.fx - d.ox), Math.round(p.fy - d.oy));
-      else if (d.mode === "resize") {
+      else if (d.mode === "group" && d.refs)
+        next = moveMany(d.before, d.refs, Math.round(p.fx - d.ox), Math.round(p.fy - d.oy));
+      else if (d.mode === "rotate" && d.pivot) {
+        const a = Math.atan2(p.fy - d.pivot.cy, p.fx - d.pivot.cx);
+        next = rotateTo(d.before, d.ref, rotationFromDrag(d.pivot.rot0, d.pivot.a0, a));
+      } else if (d.mode === "resize") {
         const r = findRoom(d.before, d.ref.key)!;
         next = resizeRoom(d.before, d.ref.key, Math.round(p.fx) - r.x, Math.round(p.fy) - r.y);
       } else
@@ -471,6 +562,13 @@ export function WardEditor({
   };
 
   const onPointerUp = (e: PointerEvent<SVGSVGElement>) => {
+    if (boxDrag.current) {
+      boxDrag.current = null;
+      setBox(null);
+      if (e.currentTarget.hasPointerCapture(e.pointerId))
+        e.currentTarget.releasePointerCapture(e.pointerId);
+      return;
+    }
     const d = drag.current;
     if (!d) return;
     drag.current = null;
@@ -498,7 +596,7 @@ export function WardEditor({
     if (!doc) return;
     const act = planKeyAction(e, {
       live: false,
-      selected: !!selected,
+      selected: selection.length > 0,
       armed: state.tool !== "select",
     });
     if (!act) return;
@@ -525,10 +623,17 @@ export function WardEditor({
       else placeAt({ x: cx - 1, y: cy - 2 }, { x: cx, y: cy });
       return;
     }
-    if (!selected) return;
-    if (act.type === "rotate") edit(rotate(doc, selected));
-    else if (act.type === "remove") edit(remove(doc, selected), null);
-    else edit(nudge(doc, selected, act.dx, act.dy));
+    if (act.type === "selectAll") return dispatch({ type: "selectMany", refs: selectAll(doc) });
+    if (!selection.length) return;
+    if (selected) {
+      if (act.type === "rotate") edit(rotate(doc, selected));
+      else if (act.type === "remove") edit(remove(doc, selected), null);
+      else edit(nudge(doc, selected, act.dx, act.dy));
+      return;
+    }
+    if (act.type === "rotate") edit(rotateEach(doc, selection));
+    else if (act.type === "remove") edit(removeMany(doc, selection), null);
+    else edit(moveMany(doc, selection, act.dx, act.dy));
   };
 
   /* ── derived ── */
@@ -655,9 +760,11 @@ export function WardEditor({
   const selectedItem = selected && doc ? findItem(doc, selected) : null;
   const hint =
     state.tool === "select"
-      ? selectedItem
-        ? "Drag to move. Rotate, duplicate or delete from the right. Escape clears."
-        : "Choose something on the plan to edit it, or pick from the palette to place."
+      ? selection.length > 1
+        ? `${selection.length} items selected: drag one to move them together, or act on them from the right. Shift+click adds or removes; Escape clears.`
+        : selectedItem
+          ? "Drag to move, or its round handle to rotate. Shift+click to select more; Escape clears."
+          : "Choose something to edit it, drag across empty floor to select several, or pick from the palette to place."
       : state.tool === "row"
         ? "Set the row on the left, then click where the first bed goes."
         : state.tool.startsWith("divider:")
@@ -835,6 +942,8 @@ export function WardEditor({
                       grid={state.grid}
                       lens={state.lens}
                       selected={selected}
+                      selection={selection}
+                      marquee={box}
                       ghost={ghost}
                       handles={state.tool === "select"}
                       placing={state.tool !== "select"}
@@ -861,9 +970,10 @@ export function WardEditor({
               <div className="bg-ink-100 min-h-0 flex-1 overflow-auto p-3">
                 <ItemsList
                   doc={doc}
-                  selected={selected}
+                  selection={selection}
                   onChange={(d) => edit(d)}
                   onSelect={(ref) => dispatch({ type: "select", ref })}
+                  onToggle={(ref) => dispatch({ type: "toggle", ref })}
                 />
               </div>
             )}
@@ -893,7 +1003,14 @@ export function WardEditor({
             aria-label="Inspector"
             className="border-border bg-card order-2 overflow-y-auto border-t p-3 xl:order-3 xl:border-t-0 xl:border-l xl:pb-24"
           >
-            {selected ? (
+            {selection.length > 1 ? (
+              <GroupInspector
+                doc={doc}
+                selection={selection}
+                onChange={(d, keep) => edit(d, keep ? undefined : null)}
+                onClear={() => dispatch({ type: "select", ref: null })}
+              />
+            ) : selected ? (
               <SelectionInspector
                 doc={doc}
                 selected={selected}

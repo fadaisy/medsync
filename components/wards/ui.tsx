@@ -42,6 +42,7 @@ export function Section({
 /** A toggle chip: aria-pressed, teal only when on. */
 export function Chip({
   on,
+  mixed = false,
   onClick,
   children,
   disabled,
@@ -49,6 +50,8 @@ export function Chip({
   className,
 }: {
   on: boolean;
+  /** Some of several have it (a group of beds): a dashed edge, and "mixed" for screen readers. */
+  mixed?: boolean;
   onClick: () => void;
   children: ReactNode;
   disabled?: boolean;
@@ -58,7 +61,7 @@ export function Chip({
   return (
     <button
       type="button"
-      aria-pressed={on}
+      aria-pressed={mixed ? "mixed" : on}
       disabled={disabled}
       title={title}
       onClick={onClick}
@@ -67,7 +70,9 @@ export function Chip({
         "focus-visible:shadow-focus outline-none disabled:opacity-45",
         on
           ? "bg-teal-tint text-teal-text border-teal-600"
-          : "border-ink-300 bg-card text-ink-700 hover:bg-ink-50",
+          : mixed
+            ? "bg-card text-teal-text hover:bg-ink-50 border-dashed border-teal-600"
+            : "border-ink-300 bg-card text-ink-700 hover:bg-ink-50",
         className,
       )}
     >

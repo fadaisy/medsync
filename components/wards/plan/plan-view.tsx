@@ -51,6 +51,10 @@ export interface PlanViewProps {
   grid?: boolean;
   lens?: Lens;
   selected?: ItemRef | null;
+  /** Everything selected (a box or Shift+click); `selected` alone gets the handles. */
+  selection?: ItemRef[];
+  /** A box being drawn across the floor, in cells. */
+  marquee?: Rect | null;
   /** Live mode: each bed's state, by bed key. */
   states?: Record<string, BedState>;
   ghost?: PlanGhost | null;
@@ -80,6 +84,8 @@ export function PlanView({
   grid = true,
   lens = "none",
   selected = null,
+  selection,
+  marquee = null,
   states,
   ghost,
   handles = false,
@@ -96,7 +102,8 @@ export function PlanView({
   const H = doc.floor.h * CELL;
   const live = mode === "live";
   const lensOn = !live && lens !== "none";
-  const isSel = (r: ItemRef) => !!selected && refKey(selected) === refKey(r);
+  const selKeys = new Set((selection ?? (selected ? [selected] : [])).map(refKey));
+  const isSel = (r: ItemRef) => selKeys.has(refKey(r));
   const hatch = `ward-hatch-${uid}`;
   const gridId = `ward-grid-${uid}`;
   const interactive = !live && !placing;
@@ -193,6 +200,17 @@ export function PlanView({
 
       {ghost ? <Ghost ghost={ghost} /> : null}
       {handles && selected ? <Handles doc={doc} selected={selected} /> : null}
+      {marquee ? (
+        <rect
+          x={marquee.x * CELL}
+          y={marquee.y * CELL}
+          width={marquee.w * CELL}
+          height={marquee.h * CELL}
+          className="pointer-events-none fill-teal-600/10 stroke-teal-600"
+          strokeWidth="1.5"
+          strokeDasharray="5 3"
+        />
+      ) : null}
     </svg>
   );
 }
@@ -764,6 +782,16 @@ function Handles({ doc, selected }: { doc: WardLayout; selected: ItemRef }) {
       </g>
     );
   }
+  if (selected.kind === "bed" || selected.kind === "fixture") {
+    const item =
+      selected.kind === "bed"
+        ? doc.beds.find((x) => x.key === selected.key)
+        : doc.fixtures.find((x) => x.key === selected.key);
+    if (!item) return null;
+    const r =
+      selected.kind === "bed" ? bedRect(item as LayoutBed) : fixtureRect(item as LayoutFixture);
+    return <Rotator rect={r} rot={item.rot} floor={doc.floor} />;
+  }
   if (selected.kind === "divider") {
     const l = doc.dividers.find((x) => x.key === selected.key);
     if (!l) return null;
@@ -776,4 +804,58 @@ function Handles({ doc, selected }: { doc: WardLayout; selected: ItemRef }) {
     );
   }
   return null;
+}
+
+/** The way the foot points, for each rotation (the head is at the top at 0°). */
+const FOOT: Record<number, [number, number]> = {
+  0: [0, 1],
+  90: [-1, 0],
+  180: [0, -1],
+  270: [1, 0],
+};
+
+/**
+ * The rotate handle of a selected bed or fixture: a round grip past its foot, which faces into the
+ * room (the head is at the wall), kept on the floor. Dragging it turns the item a quarter at a time
+ * about its middle, by how far the pointer sweeps around it (the editor reads `data-handle`).
+ */
+function Rotator({
+  rect,
+  rot,
+  floor,
+}: {
+  rect: Rect;
+  rot: number;
+  floor: { w: number; h: number };
+}) {
+  const [dx, dy] = FOOT[rot] ?? [0, 1];
+  const cx = rect.x + rect.w / 2;
+  const cy = rect.y + rect.h / 2;
+  const ex = cx + (dx * rect.w) / 2;
+  const ey = cy + (dy * rect.h) / 2;
+  const clamp = (v: number, hi: number) => Math.min(hi - 0.6, Math.max(0.6, v));
+  const hx = clamp(ex + dx * 1.4, floor.w) * CELL;
+  const hy = clamp(ey + dy * 1.4, floor.h) * CELL;
+  return (
+    <g data-handle="rotate" style={{ cursor: "grab" }}>
+      <title>Drag to rotate</title>
+      <line
+        x1={ex * CELL}
+        y1={ey * CELL}
+        x2={hx}
+        y2={hy}
+        className="stroke-teal-600"
+        strokeWidth="1.5"
+        strokeDasharray="3 2"
+      />
+      <circle cx={hx} cy={hy} r="15" fill="transparent" />
+      <circle cx={hx} cy={hy} r="8" className="fill-card stroke-teal-600" strokeWidth="2" />
+      <path
+        d={`M ${hx + 4} ${hy} A 4 4 0 1 1 ${hx} ${hy - 4} M ${hx + 1.8} ${hy - 4} L ${hx - 0.4} ${hy - 5.8} M ${hx + 1.8} ${hy - 4} L ${hx - 0.4} ${hy - 2.2}`}
+        className="fill-none stroke-teal-700"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+      />
+    </g>
+  );
 }

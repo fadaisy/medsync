@@ -43,7 +43,9 @@ export type PlanKeyAction =
   /** In (1), out (-1), or back to the whole floor (0). */
   | { type: "zoom"; dir: 1 | -1 | 0 }
   /** With nothing selected, the arrows move the view instead. */
-  | { type: "pan"; dx: number; dy: number };
+  | { type: "pan"; dx: number; dy: number }
+  /** Ctrl or Cmd + A: everything on the plan. */
+  | { type: "selectAll" };
 
 const NUDGE: Record<string, [number, number]> = {
   ArrowLeft: [-1, 0],
@@ -57,14 +59,18 @@ const ZOOM_KEYS: Record<string, 1 | -1 | 0> = { "+": 1, "=": 1, "-": -1, _: -1, 
 /**
  * On the plan (focused): R rotates, Delete / Backspace removes, the arrows nudge (or, with nothing
  * selected, move the view), + and - zoom and 0 shows the whole floor, Escape stops placing and clears
- * the selection, Enter places the armed item at the plan's centre. Modified keys are left alone
- * (Cmd+R reloads the page; Cmd+Z is the root's; Cmd+plus is the browser's own zoom).
+ * the selection, Enter places the armed item at the plan's centre, Ctrl or Cmd + A selects everything.
+ * Other modified keys are left alone (Cmd+R reloads the page; Cmd+Z is the root's; Cmd+plus is the
+ * browser's own zoom).
  */
 export function planKeyAction(
   e: KeyLike,
   opts: { live: boolean; selected: boolean; armed: boolean },
 ): PlanKeyAction | null {
-  if (opts.live || isTextTarget(e.target) || e.metaKey || e.ctrlKey || e.altKey) return null;
+  if (opts.live || isTextTarget(e.target)) return null;
+  if ((e.metaKey || e.ctrlKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === "a")
+    return { type: "selectAll" };
+  if (e.metaKey || e.ctrlKey || e.altKey) return null;
   if (e.key === "Escape") return { type: "escape" };
   if (e.key === "Enter" && opts.armed) return { type: "place" };
   const zoom = ZOOM_KEYS[e.key];
