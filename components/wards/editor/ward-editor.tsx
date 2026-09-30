@@ -7,7 +7,13 @@ import type { LayoutEditorData } from "@/lib/wards/data";
 import type { ItemKind, ItemRef, Tool } from "@/lib/wards/editor";
 import type { History } from "@/lib/wards/history";
 import type { Preset } from "@/lib/wards/presets";
-import type { DividerKind, WardLayout } from "@/supabase/functions/_shared/ward-layout";
+import type {
+  DividerKind,
+  LayoutBed,
+  LayoutFixture,
+  Rotation,
+  WardLayout,
+} from "@/supabase/functions/_shared/ward-layout";
 import type { KeyboardEvent, MouseEvent, PointerEvent } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -50,6 +56,8 @@ import {
   remove,
   resizeRoom,
   rotate,
+  rotateTo,
+  rotationFromDrag,
   setDividerEnd,
 } from "@/lib/wards/editor";
 import {
@@ -68,6 +76,7 @@ import { reconcile } from "@/lib/wards/reconcile";
 import {
   bedRect,
   emptyLayout,
+  fixtureRect,
   FLOOR_DEFAULT,
   renumberBeds,
   rowOfBeds,
@@ -349,11 +358,13 @@ export function WardEditor({
   const zoom = usePlanZoom();
   const drag = useRef<{
     ref: ItemRef;
-    mode: "move" | "resize" | "end1" | "end2";
+    mode: "move" | "resize" | "end1" | "end2" | "rotate";
     ox: number;
     oy: number;
     before: WardLayout;
     moved: boolean;
+    /** Rotate: the item's middle (cells), the pointer's angle about it, and its rotation, at the start. */
+    pivot?: { cx: number; cy: number; a0: number; rot0: Rotation };
   } | null>(null);
 
   const toCell = (e: { clientX: number; clientY: number }) => {
@@ -402,13 +413,27 @@ export function WardEditor({
     const el = e.target as Element;
     const handle = el.closest("[data-handle]")?.getAttribute("data-handle");
     if (handle && selected && state.tool === "select") {
+      let pivot: NonNullable<typeof drag.current>["pivot"];
+      if (handle === "rotate") {
+        const item =
+          selected.kind === "bed"
+            ? doc.beds.find((b) => b.key === selected.key)
+            : doc.fixtures.find((f) => f.key === selected.key);
+        if (!item) return;
+        const r =
+          selected.kind === "bed" ? bedRect(item as LayoutBed) : fixtureRect(item as LayoutFixture);
+        const cx = r.x + r.w / 2;
+        const cy = r.y + r.h / 2;
+        pivot = { cx, cy, a0: Math.atan2(p.fy - cy, p.fx - cx), rot0: item.rot };
+      }
       drag.current = {
         ref: selected,
-        mode: handle as "resize" | "end1" | "end2",
+        mode: handle as "resize" | "end1" | "end2" | "rotate",
         ox: 0,
         oy: 0,
         before: doc,
         moved: false,
+        pivot,
       };
       e.currentTarget.setPointerCapture(e.pointerId);
       return;
@@ -445,7 +470,10 @@ export function WardEditor({
       let next: WardLayout;
       if (d.mode === "move")
         next = moveTo(d.before, d.ref, Math.round(p.fx - d.ox), Math.round(p.fy - d.oy));
-      else if (d.mode === "resize") {
+      else if (d.mode === "rotate" && d.pivot) {
+        const a = Math.atan2(p.fy - d.pivot.cy, p.fx - d.pivot.cx);
+        next = rotateTo(d.before, d.ref, rotationFromDrag(d.pivot.rot0, d.pivot.a0, a));
+      } else if (d.mode === "resize") {
         const r = findRoom(d.before, d.ref.key)!;
         next = resizeRoom(d.before, d.ref.key, Math.round(p.fx) - r.x, Math.round(p.fy) - r.y);
       } else

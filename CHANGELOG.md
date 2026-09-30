@@ -5,6 +5,10 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Changed — Ward builder: rotate with the pointer — 2026-09-30
+
+- A selected bed or fixture has a **rotate handle** past its foot (the side facing into the room). Drag it round and the item turns a quarter at a time about its middle, by how far you sweep; one drag is one undo step, and it works at any zoom. **R**, **Rotate** and the Items list's rotate now also turn about the middle rather than the top-left corner.
+
 ### Changed — Ward builder: a larger plan, and zoom — 2026-09-30
 
 - **More room for the plan.** The palette and the inspector are narrower (200 px and 264 px, a little wider on very large screens), and so are the bed board's side panels. The editor's hint shares the toolbar instead of taking its own line, and the counts under the plan sit on one line.
