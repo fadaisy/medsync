@@ -39,7 +39,11 @@ export type PlanKeyAction =
   | { type: "remove" }
   | { type: "nudge"; dx: number; dy: number }
   | { type: "escape" }
-  | { type: "place" };
+  | { type: "place" }
+  /** In (1), out (-1), or back to the whole floor (0). */
+  | { type: "zoom"; dir: 1 | -1 | 0 }
+  /** With nothing selected, the arrows move the view instead. */
+  | { type: "pan"; dx: number; dy: number };
 
 const NUDGE: Record<string, [number, number]> = {
   ArrowLeft: [-1, 0],
@@ -48,10 +52,13 @@ const NUDGE: Record<string, [number, number]> = {
   ArrowDown: [0, 1],
 };
 
+const ZOOM_KEYS: Record<string, 1 | -1 | 0> = { "+": 1, "=": 1, "-": -1, _: -1, "0": 0 };
+
 /**
- * On the plan (focused): R rotates, Delete / Backspace removes, the arrows nudge, Escape stops placing
- * and clears the selection, Enter places the armed item at the plan's centre. Modified keys are left
- * alone (Cmd+R reloads the page; Cmd+Z is the root's).
+ * On the plan (focused): R rotates, Delete / Backspace removes, the arrows nudge (or, with nothing
+ * selected, move the view), + and - zoom and 0 shows the whole floor, Escape stops placing and clears
+ * the selection, Enter places the armed item at the plan's centre. Modified keys are left alone
+ * (Cmd+R reloads the page; Cmd+Z is the root's; Cmd+plus is the browser's own zoom).
  */
 export function planKeyAction(
   e: KeyLike,
@@ -60,7 +67,12 @@ export function planKeyAction(
   if (opts.live || isTextTarget(e.target) || e.metaKey || e.ctrlKey || e.altKey) return null;
   if (e.key === "Escape") return { type: "escape" };
   if (e.key === "Enter" && opts.armed) return { type: "place" };
-  if (!opts.selected) return null;
+  const zoom = ZOOM_KEYS[e.key];
+  if (zoom !== undefined) return { type: "zoom", dir: zoom };
+  if (!opts.selected) {
+    const p = NUDGE[e.key];
+    return p ? { type: "pan", dx: p[0], dy: p[1] } : null;
+  }
   if (e.key === "r" || e.key === "R") return { type: "rotate" };
   if (e.key === "Delete" || e.key === "Backspace") return { type: "remove" };
   const n = NUDGE[e.key];
@@ -72,6 +84,18 @@ export const isMacPlatform = (platform: string) => /Mac|iPhone|iPad/.test(platfo
 /** The words the undo and redo buttons show, per platform. */
 export function shortcutWords(mac: boolean) {
   return mac
-    ? { undo: "⌘Z", redo: "⇧⌘Z", undoTitle: "Undo (⌘Z)", redoTitle: "Redo (⇧⌘Z)" }
-    : { undo: "Ctrl+Z", redo: "Ctrl+Y", undoTitle: "Undo (Ctrl+Z)", redoTitle: "Redo (Ctrl+Y)" };
+    ? {
+        undo: "⌘Z",
+        redo: "⇧⌘Z",
+        undoTitle: "Undo (⌘Z)",
+        redoTitle: "Redo (⇧⌘Z)",
+        zoomWheel: "⌘ + scroll",
+      }
+    : {
+        undo: "Ctrl+Z",
+        redo: "Ctrl+Y",
+        undoTitle: "Undo (Ctrl+Z)",
+        redoTitle: "Redo (Ctrl+Y)",
+        zoomWheel: "Ctrl + scroll",
+      };
 }

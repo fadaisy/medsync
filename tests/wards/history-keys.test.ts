@@ -146,11 +146,27 @@ describe("the plan's keys", () => {
     expect(planKeyAction(key("Enter"), { live: false, selected: true, armed: false })).toBeNull();
   });
 
-  it("with nothing selected, only Escape and Enter mean anything", () => {
+  it("with nothing selected, R and Delete mean nothing and the arrows move the view", () => {
     const none = { live: false, selected: false, armed: false };
     expect(planKeyAction(key("r"), none)).toBeNull();
     expect(planKeyAction(key("Delete"), none)).toBeNull();
     expect(planKeyAction(key("Escape"), none)).toEqual({ type: "escape" });
+    expect(planKeyAction(key("ArrowRight"), none)).toEqual({ type: "pan", dx: 1, dy: 0 });
+    expect(planKeyAction(key("ArrowUp"), none)).toEqual({ type: "pan", dx: 0, dy: -1 });
+  });
+
+  it("+ and - zoom and 0 shows the whole floor, selected or not; Cmd+plus stays the browser's", () => {
+    for (const selected of [false, true]) {
+      const o = { live: false, selected, armed: false };
+      expect(planKeyAction(key("+"), o)).toEqual({ type: "zoom", dir: 1 });
+      expect(planKeyAction(key("="), o)).toEqual({ type: "zoom", dir: 1 });
+      expect(planKeyAction(key("-"), o)).toEqual({ type: "zoom", dir: -1 });
+      expect(planKeyAction(key("0"), o)).toEqual({ type: "zoom", dir: 0 });
+    }
+    expect(planKeyAction(key("=", { meta: true }), sel)).toBeNull();
+    expect(planKeyAction(key("-", { ctrl: true }), sel)).toBeNull();
+    expect(planKeyAction(key("+", {}, { tagName: "INPUT" }), sel)).toBeNull();
+    expect(planKeyAction(key("+"), { ...sel, live: true })).toBeNull();
   });
 
   it("leaves modified keys (Cmd+R reloads) and live mode alone", () => {

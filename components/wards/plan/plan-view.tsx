@@ -29,6 +29,10 @@ import {
 /** SVG units per grid cell (0.5 m). The plan scales with its viewBox, so text sizes are in these units. */
 export const CELL = 20;
 
+/** The plan's width over its height, margins included: what a frame needs to fit it whole. */
+export const planAspect = (floor: { w: number; h: number }) =>
+  (floor.w * CELL + 12) / (floor.h * CELL + 12);
+
 export type Lens = "none" | "o2" | "suction" | "monitor" | "out";
 
 export interface PlanGhost {
