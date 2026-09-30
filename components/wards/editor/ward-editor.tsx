@@ -693,6 +693,7 @@ export function WardEditor({
         mode="build"
         buildHref={links.layout(wardId)}
         liveHref={data.published ? links.board(wardId) : null}
+        liveWaits="Publish the layout first"
         tabs={tabs}
         newWardHref={links.newWard}
         onNavigate={onNavigate}
@@ -734,7 +735,7 @@ export function WardEditor({
         <div className="grid min-h-0 flex-1 grid-cols-1 overflow-y-auto xl:grid-cols-[236px_minmax(0,1fr)_312px] xl:overflow-hidden">
           <aside
             aria-label="Palette"
-            className="border-border bg-card order-3 overflow-y-auto border-t p-3 xl:order-1 xl:border-t-0 xl:border-r"
+            className="border-border bg-card order-3 overflow-y-auto border-t p-3 pb-24 xl:order-1 xl:border-t-0 xl:border-r"
           >
             <Palette
               tool={state.tool}
@@ -747,8 +748,7 @@ export function WardEditor({
           </aside>
 
           <main className="order-1 flex min-h-[520px] min-w-0 flex-col xl:order-2 xl:min-h-0">
-            <div className="border-border bg-card flex min-h-12 flex-wrap items-center gap-2 border-b px-3 py-1.5">
-              <p className="text-caption text-ink-600 min-w-0 flex-1 font-normal">{hint}</p>
+            <div className="border-border bg-card flex min-h-12 flex-wrap items-center gap-x-3 gap-y-1.5 border-b px-3 py-1.5">
               <ViewSwitcher
                 label="Plan or items"
                 value={state.view}
@@ -759,7 +759,7 @@ export function WardEditor({
                 ]}
               />
               {state.view === "plan" ? (
-                <>
+                <span className="flex items-center gap-2">
                   <span className="text-caption text-muted-foreground font-normal">Show</span>
                   <ViewSwitcher
                     label="Highlight on the plan"
@@ -767,48 +767,53 @@ export function WardEditor({
                     onChange={(lens) => dispatch({ type: "lens", lens })}
                     options={LENSES}
                   />
-                </>
+                </span>
               ) : null}
-              <Button
-                variant="secondary"
-                size="icon"
-                aria-label="Undo"
-                title={words.undoTitle}
-                disabled={!state.h || !canUndo(state.h)}
-                onClick={() => dispatch({ type: "undo" })}
-              >
-                <Undo2Icon aria-hidden />
-              </Button>
-              <Button
-                variant="secondary"
-                size="icon"
-                aria-label="Redo"
-                title={words.redoTitle}
-                disabled={!state.h || !canRedo(state.h)}
-                onClick={() => dispatch({ type: "redo" })}
-              >
-                <Redo2Icon aria-hidden />
-              </Button>
-              <Button
-                variant="secondary"
-                size="icon"
-                aria-label="Grid"
-                aria-pressed={state.grid}
-                title="Grid"
-                onClick={() => dispatch({ type: "grid" })}
-              >
-                <Grid3x3Icon aria-hidden />
-              </Button>
+              <span className="ml-auto flex items-center gap-1.5">
+                <Button
+                  variant="secondary"
+                  size="icon"
+                  aria-label="Undo"
+                  title={words.undoTitle}
+                  disabled={!state.h || !canUndo(state.h)}
+                  onClick={() => dispatch({ type: "undo" })}
+                >
+                  <Undo2Icon aria-hidden />
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="icon"
+                  aria-label="Redo"
+                  title={words.redoTitle}
+                  disabled={!state.h || !canRedo(state.h)}
+                  onClick={() => dispatch({ type: "redo" })}
+                >
+                  <Redo2Icon aria-hidden />
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="icon"
+                  aria-label="Grid"
+                  aria-pressed={state.grid}
+                  title="Grid"
+                  onClick={() => dispatch({ type: "grid" })}
+                >
+                  <Grid3x3Icon aria-hidden />
+                </Button>
+              </span>
             </div>
 
             {state.view === "plan" ? (
               <div className="bg-ink-100 flex min-h-0 flex-1 flex-col gap-1.5 p-3">
+                <p className="text-caption text-ink-600 font-normal" aria-live="polite">
+                  {hint}
+                </p>
                 <div
                   ref={planRef}
                   tabIndex={0}
                   onKeyDown={onPlanKey}
                   aria-label={`Floor plan of ${data.ward.name}, ${doc.beds.length} ${doc.beds.length === 1 ? "bed" : "beds"}. Arrow keys nudge the selection; R rotates; Delete removes; Enter places the item chosen in the palette.`}
-                  className="focus-visible:outline-ring min-h-0 flex-1 rounded-md outline-offset-2 focus-visible:outline-2"
+                  className="focus-visible:outline-ring min-h-[280px] flex-1 rounded-md outline-offset-2 focus-visible:outline-2"
                 >
                   <PlanView
                     doc={doc}
@@ -872,7 +877,7 @@ export function WardEditor({
 
           <aside
             aria-label="Inspector"
-            className="border-border bg-card order-2 overflow-y-auto border-t p-4 xl:order-3 xl:border-t-0 xl:border-l"
+            className="border-border bg-card order-2 overflow-y-auto border-t p-4 xl:order-3 xl:border-t-0 xl:border-l xl:pb-24"
           >
             {selected ? (
               <SelectionInspector
