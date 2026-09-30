@@ -184,18 +184,49 @@ const turn = (r: Rotation): Rotation => ((r + 90) % 360) as Rotation;
  * Rotate by 90°: beds and fixtures turn in place (kept on the floor); a room swaps width and depth; a
  * divider turns about its first end; a door switches between a wall across and a wall down.
  */
+/**
+ * A bed or fixture turned to `rot` about its middle (to the nearest cell), kept on the floor: what
+ * dragging the rotate handle does, and what R and Rotate do a quarter turn at a time. The same
+ * rotation hands back the same document, so a drag that ends where it began adds no undo step.
+ */
+export function rotateTo(d: WardLayout, ref: ItemRef, rot: Rotation): WardLayout {
+  const about = <T extends { x: number; y: number; rot: Rotation }>(
+    item: T,
+    rectOf: (t: T) => Rect,
+  ): T => {
+    if (item.rot === rot) return item;
+    const was = rectOf(item);
+    const n = { ...item, rot };
+    const size = rectOf({ ...n, x: 0, y: 0 });
+    const x = Math.round(was.x + was.w / 2 - size.w / 2);
+    const y = Math.round(was.y + was.h / 2 - size.h / 2);
+    return { ...n, ...clampRect({ x, y, w: size.w, h: size.h }, d.floor) };
+  };
+  if (ref.kind === "bed") return mapList(d, "bed", ref.key, (b: LayoutBed) => about(b, bedRect));
+  if (ref.kind === "fixture")
+    return mapList(d, "fixture", ref.key, (f: LayoutFixture) => about(f, fixtureRect));
+  return d;
+}
+
+/** The rotation a drag of the rotate handle asks for: where it started, plus the quarter turns
+ *  the pointer has swept about the item's middle (angles in radians, screen y down). */
+export function rotationFromDrag(start: Rotation, fromAngle: number, toAngle: number): Rotation {
+  let delta = ((toAngle - fromAngle) * 180) / Math.PI;
+  delta = (((delta % 360) + 540) % 360) - 180;
+  const quarters = Math.round(delta / 90);
+  return ((((start + quarters * 90) % 360) + 360) % 360) as Rotation;
+}
+
 export function rotate(d: WardLayout, ref: ItemRef): WardLayout {
   switch (ref.kind) {
-    case "bed":
-      return mapList(d, "bed", ref.key, (b: LayoutBed) => {
-        const n = { ...b, rot: turn(b.rot) };
-        return { ...n, ...clampRect(bedRect(n), d.floor) };
-      });
-    case "fixture":
-      return mapList(d, "fixture", ref.key, (f: LayoutFixture) => {
-        const n = { ...f, rot: turn(f.rot) };
-        return { ...n, ...clampRect(fixtureRect(n), d.floor) };
-      });
+    case "bed": {
+      const b = d.beds.find((x) => x.key === ref.key);
+      return b ? rotateTo(d, ref, turn(b.rot)) : d;
+    }
+    case "fixture": {
+      const f = d.fixtures.find((x) => x.key === ref.key);
+      return f ? rotateTo(d, ref, turn(f.rot)) : d;
+    }
     case "room":
       return mapList(d, "room", ref.key, (r: LayoutRoom) => {
         const w = Math.min(r.h, d.floor.w);

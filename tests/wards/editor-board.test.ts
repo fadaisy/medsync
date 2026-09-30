@@ -13,6 +13,8 @@ import {
   remove,
   resizeRoom,
   rotate,
+  rotateTo,
+  rotationFromDrag,
   setDividerEnd,
   setDividerLength,
   setFloor,
@@ -69,10 +71,43 @@ describe("editing", () => {
     d = nudge(d, ref, 1, 1);
     expect(d.beds[0]).toMatchObject({ x: 40, y: 28 });
     d = rotate(d, ref);
-    expect(d.beds[0]).toMatchObject({ rot: 90, x: 38, y: 28 });
+    // About its middle (41, 30): 4 × 2 at (39, 29), then back onto the floor.
+    expect(d.beds[0]).toMatchObject({ rot: 90, x: 38, y: 29 });
     let r = place(emptyLayout(floor), "room:bay", { x: 0, y: 0 }, { x: 0, y: 0 }).doc;
     r = rotate(r, { kind: "room", key: "r1" });
     expect(r.rooms[0]).toMatchObject({ w: 10, h: 12 });
+  });
+
+  it("rotating turns a bed about its middle, kept on the floor; the same turn changes nothing", () => {
+    let d = place(emptyLayout(floor), "bed:standard", { x: 10, y: 10 }, { x: 10, y: 10 }).doc;
+    const ref = { kind: "bed" as const, key: "b1" };
+    const at = d.beds[0]!;
+    // A 2 × 4 bed at (at.x, at.y) turned a quarter becomes 4 × 2 about the same middle.
+    d = rotateTo(d, ref, 90);
+    expect(d.beds[0]).toMatchObject({ rot: 90, x: at.x - 1, y: at.y + 1 });
+    d = rotateTo(d, ref, 180);
+    expect(d.beds[0]).toMatchObject({ rot: 180, x: at.x, y: at.y });
+    expect(rotateTo(d, ref, 180)).toBe(d);
+    // In a corner it stays on the floor.
+    let c = place(emptyLayout(floor), "bed:standard", { x: 0, y: 0 }, { x: 0, y: 0 }).doc;
+    c = rotateTo(c, ref, 270);
+    expect(c.beds[0]!.x).toBeGreaterThanOrEqual(0);
+    expect(c.beds[0]!.y).toBeGreaterThanOrEqual(0);
+    // Rooms, doors and dividers aren't turned this way.
+    expect(rotateTo(d, { kind: "room", key: "r1" }, 90)).toBe(d);
+  });
+
+  it("a drag of the rotate handle turns by the quarters the pointer sweeps, with no jump on grab", () => {
+    const deg = (a: number) => (a * Math.PI) / 180;
+    expect(rotationFromDrag(0, deg(90), deg(90))).toBe(0);
+    expect(rotationFromDrag(0, deg(90), deg(130))).toBe(0);
+    expect(rotationFromDrag(0, deg(90), deg(180))).toBe(90);
+    expect(rotationFromDrag(0, deg(90), deg(-90))).toBe(180);
+    expect(rotationFromDrag(0, deg(90), deg(0))).toBe(270);
+    // Across the ±180° seam, and from any start.
+    expect(rotationFromDrag(270, deg(170), deg(-170))).toBe(270);
+    expect(rotationFromDrag(270, deg(170), deg(-100))).toBe(0);
+    expect(rotationFromDrag(90, deg(0), deg(-90))).toBe(0);
   });
 
   it("duplicates one cell down and right; a bed gets the next number and no register id", () => {
