@@ -45,7 +45,8 @@ vi.mock("@/lib/encounter/feature", () => ({
 }));
 vi.mock("server-only", () => ({}));
 
-process.env.MEDSYNC_PHI_KEY ??= (await import("@/lib/encryption")).generateKey();
+// `||=`, not `??=`: CI passes absent secrets as empty strings, and an empty key cannot encrypt.
+process.env.MEDSYNC_PHI_KEY ||= (await import("@/lib/encryption")).generateKey();
 const { decrypt } = await import("@/lib/encryption");
 const { loadNcdDraft, saveNcdDraft } = await import("@/lib/ncd/draft");
 const { DIABETES_CATALOG } = await import("@/lib/ncd/catalog/diabetes");

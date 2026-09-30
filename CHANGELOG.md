@@ -5,6 +5,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Changed — Ward builder: a larger plan, and zoom — 2026-09-30
+
+- **More room for the plan.** The palette and the inspector are narrower (200 px and 264 px, a little wider on very large screens), and so are the bed board's side panels. The editor's hint shares the toolbar instead of taking its own line, and the counts under the plan sit on one line.
+- **Zoom** on the layout editor and the bed board: −, the zoom and + with **Fit**, from the whole floor (100 %) to 400 %. Ctrl or ⌘ with the wheel, or a trackpad pinch, zooms about the pointer; scrolling pans. On the editor's focused plan, + and − zoom, 0 shows the whole floor, and the arrows pan when nothing is selected. Dragging, placing and drawing stay exact at any zoom.
+
 ### Added — Ward builder and the live bed board, dark behind `WARD_BUILDER` — 2026-09-29
 
 - **The ward builder** (hospital admin, `/hospital-admin/departments/wards/[wardId]/layout`): a floor plan on a 0.5 m grid with a palette (a row of beds, four bed types, walls, curtains, glass, windows, doors, rooms, fixtures, four templates built for the ward's floor), an inspector (the ward, a bed's number, type, services and service status, a room's size and features), an Items list with x and y in metres so drag is never the only way, undo and redo with keys scoped to the editor, autosave of the draft with the revision it started from, and a publish dialog that says what will change first. A ward with no layout starts from its register or a template.

@@ -10,7 +10,8 @@ import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { XIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { PlanView } from "@/components/wards/plan/plan-view";
+import { planAspect, PlanView } from "@/components/wards/plan/plan-view";
+import { PlanZoomControls, PlanZoomFrame, usePlanZoom } from "@/components/wards/plan/plan-zoom";
 import { WardHeader } from "@/components/wards/ward-header";
 import { cn } from "@/lib/utils";
 import { useBedBoardLive } from "@/lib/wards/use-board-live";
@@ -103,6 +104,7 @@ export function BedBoard({
   live?: boolean;
 }) {
   const router = useRouter();
+  const zoom = usePlanZoom();
   const live = useBedBoardLive(hospitalId, data.ward.id, liveOn);
   const [selectedKey, setSelectedKey] = useState<string | null>(initialSelected);
   // A bed chosen from a list or a chip takes focus to its panel (the button that was pressed is
@@ -174,7 +176,7 @@ export function BedBoard({
           </div>
         </div>
       ) : (
-        <div className="grid min-h-0 flex-1 grid-cols-1 overflow-y-auto xl:grid-cols-[236px_minmax(0,1fr)_320px] xl:overflow-hidden">
+        <div className="grid min-h-0 flex-1 grid-cols-1 overflow-y-auto xl:grid-cols-[200px_minmax(0,1fr)_272px] xl:overflow-hidden 2xl:grid-cols-[216px_minmax(0,1fr)_296px]">
           <aside
             aria-label="Bed states"
             className="border-border bg-card order-3 flex flex-col gap-3 overflow-y-auto border-t p-3 xl:order-1 xl:border-t-0 xl:border-r"
@@ -205,24 +207,27 @@ export function BedBoard({
           </aside>
 
           <main className="order-1 flex min-h-[520px] min-w-0 flex-col xl:order-2 xl:min-h-0">
-            <div className="border-border bg-card flex min-h-12 items-center border-b px-3 py-1.5">
-              <p className="text-caption text-ink-600 font-normal">
+            <div className="border-border bg-card flex min-h-12 flex-wrap items-center gap-x-3 gap-y-1.5 border-b px-3 py-1.5">
+              <p className="text-caption text-ink-600 min-w-48 flex-1 basis-60 font-normal">
                 Choose a bed to see its services or change its state. The layout is locked here
                 {links.layout ? "; switch to Build to edit it." : "."}
               </p>
+              <PlanZoomControls z={zoom} />
             </div>
             <div className="bg-ink-100 flex min-h-[280px] flex-1 flex-col p-3">
-              <PlanView
-                doc={data.doc}
-                mode="live"
-                label={`Bed board of ${data.ward.name}: ${counts.occupied} of ${inService} beds occupied, ${counts.free} free`}
-                states={states}
-                selected={selected ? { kind: "bed", key: selected.key } : null}
-                className="h-full w-full"
-                onPointerDown={onPointerDown}
-              />
+              <PlanZoomFrame z={zoom} aspect={planAspect(data.doc.floor)} className="flex-1">
+                <PlanView
+                  doc={data.doc}
+                  mode="live"
+                  label={`Bed board of ${data.ward.name}: ${counts.occupied} of ${inService} beds occupied, ${counts.free} free`}
+                  states={states}
+                  selected={selected ? { kind: "bed", key: selected.key } : null}
+                  className="h-full w-full"
+                  onPointerDown={onPointerDown}
+                />
+              </PlanZoomFrame>
             </div>
-            <div className="border-border bg-card flex min-h-14 flex-wrap items-center gap-x-5 gap-y-2 border-t px-4 py-2">
+            <div className="border-border bg-card flex min-h-10 flex-wrap items-center gap-x-5 gap-y-1.5 border-t px-3 py-1.5">
               {(
                 [
                   [`${counts.occupied}/${inService}`, "occupied"],
@@ -232,11 +237,14 @@ export function BedBoard({
                   [String(counts.out), "out of service"],
                 ] as const
               ).map(([v, l]) => (
-                <span key={l} className="flex flex-col">
-                  <span className="text-foreground font-mono text-[15px] font-medium tabular-nums">
+                <span
+                  key={l}
+                  className="text-caption text-muted-foreground inline-flex items-baseline gap-1.5 font-normal"
+                >
+                  <span className="text-foreground font-mono text-[14px] font-medium tabular-nums">
                     {v}
                   </span>
-                  <span className="text-caption text-muted-foreground font-normal">{l}</span>
+                  {l}
                 </span>
               ))}
             </div>
