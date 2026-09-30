@@ -1,6 +1,8 @@
+import { sql } from "drizzle-orm";
 import {
   bigint,
   boolean,
+  check,
   date,
   integer,
   jsonb,
@@ -58,23 +60,46 @@ export const departmentHeads = pgTable("department_heads", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
-/** STR-5: optional register; never more unarchived beds than the ward's count. */
-export const hospitalBeds = pgTable("hospital_beds", {
-  id: uuid("id").primaryKey().defaultRandom(),
-  hospitalId: uuid("hospital_id")
-    .notNull()
-    .references(() => hospitals.id, { onDelete: "cascade" }),
-  wardId: uuid("ward_id")
-    .notNull()
-    .references(() => hospitalWards.id, { onDelete: "cascade" }),
-  label: text("label").notNull(),
-  bedType: text("bed_type"),
-  closedAt: timestamp("closed_at", { withTimezone: true }),
-  closedReason: text("closed_reason"),
-  archivedAt: timestamp("archived_at", { withTimezone: true }),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
-});
+/**
+ * STR-5: optional register; never more unarchived beds than the ward's count. 0090 (ADR 0192): where
+ * each bed stands on the published layout, and `bed_type` checked to the ward builder's four types
+ * (NOT VALID in SQL, so a value written before 0090 stays valid). For a laid-out ward, publishing the
+ * layout writes these rows.
+ */
+export const hospitalBeds = pgTable(
+  "hospital_beds",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    hospitalId: uuid("hospital_id")
+      .notNull()
+      .references(() => hospitals.id, { onDelete: "cascade" }),
+    wardId: uuid("ward_id")
+      .notNull()
+      .references(() => hospitalWards.id, { onDelete: "cascade" }),
+    label: text("label").notNull(),
+    bedType: text("bed_type"),
+    closedAt: timestamp("closed_at", { withTimezone: true }),
+    closedReason: text("closed_reason"),
+    archivedAt: timestamp("archived_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    /** 0090: top-left cell on the plan, rotation, and the room (a key in the layout document). */
+    layoutX: integer("layout_x"),
+    layoutY: integer("layout_y"),
+    rotation: integer("rotation"),
+    roomKey: text("room_key"),
+  },
+  (t) => [
+    check(
+      "hospital_beds_rotation_check",
+      sql`${t.rotation} IS NULL OR ${t.rotation} IN (0, 90, 180, 270)`,
+    ),
+    check(
+      "hospital_beds_bed_type_check",
+      sql`${t.bedType} IS NULL OR ${t.bedType} IN ('standard', 'icu', 'cot', 'couch')`,
+    ),
+  ],
+);
 
 /** DX-1, DX-3: the facility overlay on the ordering catalogue (lab = LOINC code; imaging = A.4). */
 export const diagnosticOfferings = pgTable(

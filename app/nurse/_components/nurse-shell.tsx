@@ -41,8 +41,18 @@ const LEVEL_LABEL: Record<string, string> = {
  *   - 'in_charge'    visible only when scope.isInCharge
  *   - 'registered+'  visible when scope.isRegistered || scope.isSpecialist
  */
-export function NurseShell({ scope, children }: { scope: NurseScope; children: ReactNode }) {
+export function NurseShell({
+  scope,
+  flags = { wardBuilder: false },
+  children,
+}: {
+  scope: NurseScope;
+  /** Feature flags for this hospital (the Bed board is behind WARD_BUILDER). */
+  flags?: { wardBuilder: boolean };
+  children: ReactNode;
+}) {
   const navItems = NURSE_FEATURE_AREAS.filter((f) => {
+    if (f.flag === "ward_builder" && !flags.wardBuilder) return false;
     if (f.visibleTo === "in_charge") return scope.isInCharge;
     if (f.visibleTo === "registered+") return scope.isRegistered || scope.isSpecialist;
     return true;

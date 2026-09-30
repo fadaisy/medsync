@@ -1,6 +1,6 @@
 # Claude Code handoff
 
-For a Claude Code session picking this repo up without the previous session's local memory (a cloud session at claude.ai/code, or a new machine). Read `AGENTS.md` first, then this. Updated 2026-09-28.
+For a Claude Code session picking this repo up without the previous session's local memory (a cloud session at claude.ai/code, or a new machine). Read `AGENTS.md` first, then this. Updated 2026-09-29.
 
 ## Who decides
 
@@ -32,8 +32,9 @@ For a Claude Code session picking this repo up without the previous session's lo
 | Operations, occupations and CAGE pick lists | built; data files are drafts awaiting CSO review                                                                                             | `data/clerking/{operations,occupations,cage}.v1.json`             |
 | Summary (08) and Impression (09)            | GATE A signed 2026-09-28; built behind `CLERKING_V2`, all 7 phases; clinician trial the owner's                                              | `docs/emr/clerking-v2/summary-impression/STOP-REPORTS.md`         |
 | Plan (10) by problem, prescribing, charts   | built on `feat/clerking-plan-v2` behind `CLERKING_PLAN_V2`, all 7 phases; ADRs 0184–0190 proposed; migrations 0087–0089 applied by the owner | `docs/emr/clerking-v2/plan/STOP-REPORTS.md`                       |
+| Ward builder and the live bed board         | built on `feat/ward-builder` behind `WARD_BUILDER`, all 7 phases; ADRs 0191–0196 proposed; migration 0090 applied by the owner 2026-09-30    | `docs/wards/ward-builder/STOP-REPORTS.md`                         |
 
-**Migrations (owner):** 0076 → 0082 → 0083 → 0084 → 0085, all applied by the owner (0084 and 0085 on 2026-09-28: the `confirm_diagnosis` co-sign kind, and the 187 REF-DX-TERMS v1.1 terms seeded uncoded). `npm run db:migrate` applies whatever is pending in file order. 0086 (ICD-11 codes) is on PR #188. The Plan's **0087 → 0088 → 0089** (GATED, on `feat/clerking-plan-v2`) were applied by the owner on 2026-09-28 from a worktree of that branch; they are safe while `main` is deployed. `CLERKING_PLAN_V2` stays off until the branch is deployed and the owner turns it on. The next new migration is 0090.
+**Migrations (owner):** 0076 → 0082 → 0083 → 0084 → 0085, all applied by the owner (0084 and 0085 on 2026-09-28: the `confirm_diagnosis` co-sign kind, and the 187 REF-DX-TERMS v1.1 terms seeded uncoded). `npm run db:migrate` applies whatever is pending in file order. 0086 (ICD-11 codes) is on PR #188. The Plan's **0087 → 0088 → 0089** (GATED, on `feat/clerking-plan-v2`) were applied by the owner on 2026-09-28 from a worktree of that branch; they are safe while `main` is deployed. `CLERKING_PLAN_V2` stays off until the branch is deployed and the owner turns it on. The ward builder's **0090** (GATED, on `feat/ward-builder`) was applied by the owner on 2026-09-30 by fetching that one file into the main folder (whose checkout is older and holds uncommitted calendar work), and the owner ran the ward builder on localhost from a worktree of the branch with `WARD_BUILDER=1`. It only adds tables, columns and a function, so it is safe while `main` is deployed; `WARD_BUILDER` stays off in Vercel until the branch is merged and deployed. The next new migration is 0091.
 
 **Open for the owner:** the clinician trial (protocol `docs/emr/clerking-v2/clinician-trial.md`); real-device timing on a mid-range Android; production counts listed in the exam STOP 0; symptom codes promoted in production through the 0044 governance (`origin='approved'`), which the legacy conversion table cannot see and carries as text until they get rows.
 
@@ -51,6 +52,7 @@ npx tsx scripts/prescribing/gen-formulary.ts         # regenerates lib/prescribi
 
 - `tests/emr/seed.test.ts` fails if a generated file drifts from its data.
 - The Next build needs more heap on small machines: `NODE_OPTIONS=--max-old-space-size=6144`.
+- The ward builder's screens render from synthetic fixtures at `/styleguide/ward-builder/[screen]` (in the repo, off unless `MEDSYNC_FIXTURES=1`; data in `tests/wards/fixtures.ts`).
 - Screenshots were taken with a local CDP harness outside the repo (a fixture route at `/styleguide/emr-fixture/[screen]` mounting the real desk with `tests/clerking/fixtures.ts` and `tests/clerking/exam-patients.ts`). It is not in the repo; recreate it if screenshots are needed.
 
 ## Cloud sessions

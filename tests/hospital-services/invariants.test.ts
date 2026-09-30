@@ -23,7 +23,9 @@ const walk = (dir: string, out: string[] = []): string[] => {
 
 const HUB = "supabase/functions/ha-services-hub";
 const index = strip(read(`${HUB}/index.ts`));
-const ops = strip(read(`${HUB}/ops-structure.ts`) + read(`${HUB}/ops-services.ts`));
+const ops = strip(
+  read(`${HUB}/ops-structure.ts`) + read(`${HUB}/ops-services.ts`) + read(`${HUB}/ops-wards.ts`),
+);
 
 describe("ha-services-hub — the contract's action pattern (Law 10)", () => {
   it("audit FIRST, then the mutation; a failed audit returns before apply()", () => {
@@ -72,7 +74,8 @@ describe("ha-services-hub — the contract's action pattern (Law 10)", () => {
     const handled = [...maps.matchAll(/^\s*([a-z_]+)(?::\s*[a-zA-Z]+)?,$/gm)]
       .map((m) => m[1])
       .sort();
-    expect(declared.length).toBe(31);
+    // 31 hub ops + the ward builder's 7 (ADRs 0191–0196).
+    expect(declared.length).toBe(38);
     expect(handled).toEqual(declared);
   });
 });
@@ -196,6 +199,12 @@ describe("CLN-5 — a confidential clinic is never named in a patient message", 
 });
 
 describe("H10 — honest numbers: no occupancy figure without its engine", () => {
+  it("the engine is the bed board (ADR 0194): bed_assignments, read in lib/wards", () => {
+    expect(read("supabase/migrations/0090_ward_builder.sql")).toMatch(
+      /CREATE TABLE IF NOT EXISTS public\.bed_assignments/,
+    );
+    expect(strip(read("lib/wards/board.ts"))).toMatch(/bedAssignments/);
+  });
   it("no hub route or reader computes occupancy", () => {
     const files = [...walk("app/hospital-admin/departments"), ...walk("lib/services")];
     for (const p of files) {
