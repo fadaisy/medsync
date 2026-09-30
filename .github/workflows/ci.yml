@@ -48,6 +48,10 @@ jobs:
     timeout-minutes: 30
     env:
       SKIP_ENV_VALIDATION: "1"
+      # A cold, full `tsc --noEmit` needs about 2.3 GB of heap; Node's default on the runner is
+      # about 2 GB, so typecheck died out of memory before any later step ran. Dev machines pass
+      # only because `incremental` keeps a tsconfig.tsbuildinfo. The build fits in the same 4 GB.
+      NODE_OPTIONS: --max-old-space-size=4096
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
