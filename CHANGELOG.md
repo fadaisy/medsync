@@ -5,6 +5,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — "Show all" medicines in the prescribing dialog — 2026-09-30
+
+- **Every medicine by class.** The Plan's prescribing dialog has a **Show all** beside the search. It opens every medicine of the general formulary MS-RX-CAT-001 (182 medicines in 68 classes) in a centred pop-up, under its body system and class as the catalogue classifies them. Medicines are A to Z within a class, never ranked, with their routes; the four with a signed regimen say so. Choosing one prescribes it. The filter matches the generic name, the class or the body system, as the search does; the body systems are jump links (one scrolling row on a phone).
+- No clinical content changed and no dose added: every other dose is still typed until it is verified and CSO-signed (ADR 0186).
+
 ### Added — Clerking v2 step 10: the Plan by problem, prescribing and monitoring charts, dark behind `CLERKING_PLAN_V2` — 2026-09-28
 
 - **The Plan** answers four questions in order: where and how closely (disposition, observations against the signed NEWS2 response, senior review); one card per Impression problem (tests with Emergency priority and routine frequency, must not miss, suggested care, treatment by class, a note); medicines (Continue, Hold or Stop with a reason; new this visit with answered checks and edits); and a checklist before signing. Tests and prescriptions wait in one basket and are placed in one action; the server re-checks. Mark plan done; any change reopens it; signing waits for it.

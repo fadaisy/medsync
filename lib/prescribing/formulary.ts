@@ -62,15 +62,65 @@ export function drugsInClass(classId: string): Drug[] {
   return [...own, ...children.flatMap((c) => drugsInClass(c.id))];
 }
 
+/** A drug's generic name, class and system, lower-cased: what the search and the filter match. */
+const HAY = new Map(
+  DRUGS.map((d) => {
+    const cls = classById(d.class);
+    return [
+      d.id,
+      [d.generic, cls?.name ?? "", systemName(cls?.system ?? "")].join(" ").toLowerCase(),
+    ];
+  }),
+);
+const wordsOf = (query: string) => query.toLowerCase().split(/\s+/).filter(Boolean);
+const matches = (d: Drug, words: string[]) => words.every((w) => HAY.get(d.id)!.includes(w));
+
 /** Drugs whose generic name, class or system matches every word typed. */
 export function searchDrugs(query: string, limit = 30): Drug[] {
-  const words = query.toLowerCase().split(/\s+/).filter(Boolean);
+  const words = wordsOf(query);
   if (!words.length) return [];
-  return DRUGS.filter((d) => {
-    const cls = classById(d.class);
-    const hay = [d.generic, cls?.name ?? "", systemName(cls?.system ?? "")].join(" ").toLowerCase();
-    return words.every((w) => hay.includes(w));
-  }).slice(0, limit);
+  return DRUGS.filter((d) => matches(d, words)).slice(0, limit);
+}
+
+export interface BrowseClass {
+  id: string;
+  name: string;
+  drugs: Drug[];
+}
+export interface BrowseSystem {
+  id: string;
+  name: string;
+  classes: BrowseClass[];
+  /** Drugs shown in this system. */
+  count: number;
+}
+
+/**
+ * Every drug for "Show all medicines": the catalogue's systems in its order, each system's classes
+ * in catalogue order, drugs A to Z within a class (an order, never a ranking). A class with no drug
+ * of its own (Cephalosporins, whose drugs sit in its generations) is not a heading. The filter is
+ * the search's: every word typed must match the generic name, the class or the system; empty
+ * groups drop out.
+ */
+export function formularyBrowse(query = ""): BrowseSystem[] {
+  const words = wordsOf(query);
+  const byName = (a: Drug, b: Drug) =>
+    a.generic.localeCompare(b.generic, "en", { sensitivity: "base" });
+  return DRUG_SYSTEMS.map((s) => {
+    const classes = DRUG_CLASSES.filter((c) => c.system === s.id)
+      .map((c) => ({
+        id: c.id,
+        name: c.name,
+        drugs: DRUGS.filter((d) => d.class === c.id && matches(d, words)).sort(byName),
+      }))
+      .filter((c) => c.drugs.length > 0);
+    return {
+      id: s.id,
+      name: s.name,
+      classes,
+      count: classes.reduce((n, c) => n + c.drugs.length, 0),
+    };
+  }).filter((s) => s.count > 0);
 }
 
 /** Supportive items a diagnosis links to, with their classes. */

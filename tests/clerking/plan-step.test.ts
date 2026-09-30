@@ -317,6 +317,49 @@ describe("step 10, Plan by problem", () => {
     ]);
   });
 
+  it("Show all medicines: every class by body system; choosing one prescribes it", async () => {
+    mount(payload());
+    await act(async () => {});
+    tap(button("Ceftriaxone", host));
+    const rx = document.querySelector('[role="dialog"]')!;
+    const showAll = [...rx.querySelectorAll("button")].find(
+      (b) => b.textContent === "Show all medicines",
+    )!;
+    expect(showAll.getAttribute("aria-haspopup")).toBe("dialog");
+    tap(showAll);
+    const all = [...document.querySelectorAll('[role="dialog"]')].find((d) =>
+      /All medicines/.test(d.textContent ?? ""),
+    )!;
+    expect(all).toBeTruthy();
+    expect(all.textContent).toMatch(/182 medicines in \d+ classes, by body system/);
+    const systems = [...all.querySelectorAll("h3")].map((x) => x.firstChild?.textContent);
+    expect(systems[0]).toBe("Anti-infectives");
+    expect(systems).toContain("Cardiovascular");
+    const classes = [...all.querySelectorAll("h4")].map((x) => x.firstChild?.textContent);
+    expect(classes).toContain("Penicillins");
+    expect(classes).toContain("Cephalosporins, third generation");
+    // The medicine the dialog is on is ticked.
+    const ceftriaxone = [...all.querySelectorAll("button[aria-pressed]")].find((b) =>
+      /^Ceftriaxone/.test(b.textContent ?? ""),
+    )!;
+    expect(ceftriaxone.getAttribute("aria-pressed")).toBe("true");
+    // The filter narrows to the class typed, and says how many match.
+    type(all.querySelector('input[placeholder^="Name, class"]'), "penicillin");
+    const rows = [...all.querySelectorAll("button[aria-pressed]")].map((b) => b.textContent);
+    expect(rows.some((t) => /^Amoxicillin/.test(t ?? ""))).toBe(true);
+    expect(rows.some((t) => /^Ceftriaxone/.test(t ?? ""))).toBe(false);
+    expect(all.textContent).toMatch(/\d+ medicines match/);
+    tap(
+      [...all.querySelectorAll("button[aria-pressed]")].find((b) =>
+        /^Amoxicillin(?!–)/.test(b.textContent ?? ""),
+      ),
+    );
+    await act(async () => {});
+    const open = [...document.querySelectorAll('[role="dialog"]')];
+    expect(open.some((d) => /All medicines/.test(d.textContent ?? ""))).toBe(false);
+    expect(open[0]!.textContent).toMatch(/Amoxicillin · Penicillins/);
+  });
+
   it("off (no Plan payload), step 10 is the v1 Plan", async () => {
     mount(payload(false));
     await act(async () => {});
