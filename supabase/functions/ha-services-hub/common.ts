@@ -5,7 +5,8 @@ export interface Ctx {
   sb: SupabaseClient;
   hospitalId: string;
   callerId: string;
-  role: "hospital_admin" | "superadmin" | "head";
+  /** "ward_staff": a nurse running a live bed op; ops-wards checks the ward (ADR 0194 §3). */
+  role: "hospital_admin" | "superadmin" | "head" | "ward_staff";
   requestId: string;
 }
 

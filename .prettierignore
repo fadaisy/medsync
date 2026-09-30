@@ -51,3 +51,7 @@ docs/emr/clerking-v2/plan/MONITORING-CHARTS.md
 docs/emr/clerking-v2/plan/README.md
 docs/emr/clerking-v2/plan/drug-catalogue-README.md
 docs/emr/clerking-v2/plan/drug-catalogue.v0.json
+# The ward builder pack as delivered (byte-identical); STOP-REPORTS.md is ours and formatted
+docs/wards/ward-builder/PROMPT-WARD-BUILDER.md
+docs/wards/ward-builder/README.md
+docs/wards/ward-builder/prototype/
