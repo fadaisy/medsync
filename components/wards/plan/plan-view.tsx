@@ -51,6 +51,10 @@ export interface PlanViewProps {
   grid?: boolean;
   lens?: Lens;
   selected?: ItemRef | null;
+  /** Everything selected (a box or Shift+click); `selected` alone gets the handles. */
+  selection?: ItemRef[];
+  /** A box being drawn across the floor, in cells. */
+  marquee?: Rect | null;
   /** Live mode: each bed's state, by bed key. */
   states?: Record<string, BedState>;
   ghost?: PlanGhost | null;
@@ -80,6 +84,8 @@ export function PlanView({
   grid = true,
   lens = "none",
   selected = null,
+  selection,
+  marquee = null,
   states,
   ghost,
   handles = false,
@@ -96,7 +102,8 @@ export function PlanView({
   const H = doc.floor.h * CELL;
   const live = mode === "live";
   const lensOn = !live && lens !== "none";
-  const isSel = (r: ItemRef) => !!selected && refKey(selected) === refKey(r);
+  const selKeys = new Set((selection ?? (selected ? [selected] : [])).map(refKey));
+  const isSel = (r: ItemRef) => selKeys.has(refKey(r));
   const hatch = `ward-hatch-${uid}`;
   const gridId = `ward-grid-${uid}`;
   const interactive = !live && !placing;
@@ -193,6 +200,17 @@ export function PlanView({
 
       {ghost ? <Ghost ghost={ghost} /> : null}
       {handles && selected ? <Handles doc={doc} selected={selected} /> : null}
+      {marquee ? (
+        <rect
+          x={marquee.x * CELL}
+          y={marquee.y * CELL}
+          width={marquee.w * CELL}
+          height={marquee.h * CELL}
+          className="pointer-events-none fill-teal-600/10 stroke-teal-600"
+          strokeWidth="1.5"
+          strokeDasharray="5 3"
+        />
+      ) : null}
     </svg>
   );
 }
