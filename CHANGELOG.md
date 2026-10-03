@@ -5,6 +5,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — "Show all" medicines in the prescribing dialog — 2026-09-30
+
+- **Every medicine by class.** The Plan's prescribing dialog has a **Show all** beside the search. It opens every medicine of the general formulary MS-RX-CAT-001 (182 medicines in 68 classes) in a centred pop-up, under its body system and class as the catalogue classifies them. Medicines are A to Z within a class, never ranked, with their routes; the four with a signed regimen say so. Choosing one prescribes it. The filter matches the generic name, the class or the body system, as the search does; the body systems are jump links (one scrolling row on a phone).
+- No clinical content changed and no dose added: every other dose is still typed until it is verified and CSO-signed (ADR 0186).
+
 ### Changed — Ward builder: select several items at once — 2026-09-30
 
 - **A box across empty floor** selects what it touches: beds, fixtures and doors; rooms and walls only when wholly inside it, so a box drawn inside a bay picks its beds, not the bay. **Shift+click** adds an item or takes it out, **Shift+drag** adds a box to the selection, **Ctrl/⌘+A** selects everything and **Escape** clears. The Items list takes Shift+click too.

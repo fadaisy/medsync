@@ -14,7 +14,7 @@ import type {
   RxFrequency,
 } from "@/lib/prescribing/reference/formulary-types";
 import { useId, useMemo, useState } from "react";
-import { SearchIcon } from "lucide-react";
+import { LayoutGridIcon, SearchIcon } from "lucide-react";
 
 import { EmrDialog } from "@/components/emr/emr-dialog";
 import { Button } from "@/components/ui/button";
@@ -63,6 +63,7 @@ import {
 } from "@/lib/prescribing/reference/formulary-types";
 import { cn } from "@/lib/utils";
 import { FactChips } from "./medicines";
+import { MedicinesBrowseDialog } from "./medicines-browse-dialog";
 import { Caution, DraftLabel, FOCUS, inputClass, Seg, Tag, Toggle } from "./parts";
 
 /**
@@ -289,6 +290,7 @@ export function PlanPrescribeDialog({
 }) {
   const [s, setS] = useState<State>(() => initial(target));
   const [query, setQuery] = useState("");
+  const [browsing, setBrowsing] = useState(false);
   const [byAge, setByAge] = useState(false);
   const [more, setMore] = useState(false);
   const searchId = useId();
@@ -485,9 +487,31 @@ export function PlanPrescribeDialog({
             </div>
           </Field>
           <div className="flex flex-col gap-1">
-            <label htmlFor={searchId} className="text-caption text-muted-foreground">
-              Search all classes
-            </label>
+            <div className="flex items-center justify-between gap-2">
+              <label htmlFor={searchId} className="text-caption text-muted-foreground">
+                Search all classes
+              </label>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                aria-haspopup="dialog"
+                className="pointer-coarse:min-h-11"
+                onClick={() => setBrowsing(true)}
+              >
+                <LayoutGridIcon aria-hidden />
+                Show all<span className="sr-only"> medicines</span>
+              </Button>
+            </div>
+            <MedicinesBrowseDialog
+              open={browsing}
+              onOpenChange={setBrowsing}
+              current={s.drugId}
+              onPick={(d) => {
+                pickDrug(d, "list");
+                setQuery("");
+              }}
+            />
             <div className="relative">
               <SearchIcon
                 aria-hidden
