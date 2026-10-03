@@ -8,6 +8,7 @@
  * Input:
  *   - hospital_id, idempotency_key (16–128 chars, one per submission),
  *     channel 'desk', reason (Appendix A's 13 + 'other'), note?,
+ *     origin? 'reception' (default) | 'clinician' (a follow-up booked at the close, ADR 0202),
  *     symptoms? (ADR 0095: the caller's own words, each with a duration —
  *     stored as said, never routed on)
  *   - EXACTLY ONE of slot { … } | session { session_id }  — as pt-request-appointment
@@ -125,6 +126,7 @@ const InputSchema = z
     hospital_id: z.string().uuid(),
     idempotency_key: z.string().min(16).max(128),
     channel: z.literal("desk"),
+    origin: z.enum(["reception", "clinician"]).default("reception"),
     reason: z.enum([...PATIENT_REASON_CODES, "other"]),
     note: z.string().max(500).nullable().optional(),
     symptoms: z
@@ -248,7 +250,7 @@ Deno.serve(async (request: Request) => {
     {
       patient,
       actorId: caller.id,
-      origin: "reception",
+      origin: input.origin,
       channel: "desk",
       hospitalId: input.hospital_id,
       reason: input.reason,
@@ -264,9 +266,12 @@ Deno.serve(async (request: Request) => {
       },
       audit: {
         action: "book_on_behalf",
-        reason: input.note?.trim()
-          ? `Desk booked on behalf: ${input.note.slice(0, 200)}`
-          : `Desk booked on behalf (${input.reason}).`,
+        reason:
+          input.origin === "clinician"
+            ? `Follow-up booked by the clinician at the close (${input.reason}).`
+            : input.note?.trim()
+              ? `Desk booked on behalf: ${input.note.slice(0, 200)}`
+              : `Desk booked on behalf (${input.reason}).`,
         requestId,
         ipAddress,
         userAgent,

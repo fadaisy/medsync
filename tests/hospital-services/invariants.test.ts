@@ -74,8 +74,8 @@ describe("ha-services-hub — the contract's action pattern (Law 10)", () => {
     const handled = [...maps.matchAll(/^\s*([a-z_]+)(?::\s*[a-zA-Z]+)?,$/gm)]
       .map((m) => m[1])
       .sort();
-    // 31 hub ops + the ward builder's 7 (ADRs 0191–0196).
-    expect(declared.length).toBe(38);
+    // 31 hub ops + the ward builder's 7 (ADRs 0191–0196) + the admission's 3 (ADRs 0199–0200).
+    expect(declared.length).toBe(41);
     expect(handled).toEqual(declared);
   });
 });
