@@ -136,6 +136,8 @@ export async function openAssignments(hospitalId: string, wardId: string) {
       bedId: bedAssignments.bedId,
       patientUserId: bedAssignments.patientUserId,
       startedAt: bedAssignments.startedAt,
+      admissionId: bedAssignments.admissionId,
+      arrivedAt: bedAssignments.arrivedAt,
     })
     .from(bedAssignments)
     .where(

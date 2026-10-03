@@ -8,15 +8,16 @@ import type { ChartFrequency, ChartKind } from "@/lib/emr/charts/rules";
 import type { EmrDb } from "@/lib/emr/db";
 import type { OrderFrequency, OrderPriority } from "@/lib/emr/orders";
 import type { PlanRx, RxEdit } from "@/lib/prescribing/plan-rx";
-import { and, asc, eq, inArray, isNull } from "drizzle-orm";
+import { and, eq, inArray, isNull } from "drizzle-orm";
 
 import { medicationStatements, specimens } from "@/db/schema/emr";
 import { encounterOrders } from "@/db/schema/encounter";
-import { hospitalWards } from "@/db/schema/hospital-wards";
 import { monitoringCharts } from "@/db/schema/monitoring";
 import { TEST_UUIDS } from "@/lib/clerking/impression/load";
+import { countsWords } from "@/lib/emr/closure";
 import { asClinicalReader, asClinicalWriter } from "@/lib/emr/db";
 import { emrPrescribingLive } from "@/lib/emr/feature";
+import { admittingWards } from "@/lib/emr/read/close";
 import { loadMonitoring } from "@/lib/emr/read/monitoring";
 import { loadPlanFacts } from "@/lib/emr/write/plan";
 import { encounterPrescriptions, prescribeRequirement } from "@/lib/emr/write/prescriptions";
@@ -133,11 +134,7 @@ export async function loadPlanPayload(
         patientUserId: input.patientUserId,
         encounterId: input.encounterId,
       });
-      const wards = await tx
-        .select({ name: hospitalWards.name })
-        .from(hospitalWards)
-        .where(eq(hospitalWards.hospitalId, actor.hospitalId))
-        .orderBy(asc(hospitalWards.name));
+      const wards = await admittingWards(tx, actor.hospitalId);
       const ctx = { tx, actor, now: input.now } as Parameters<typeof prescribeRequirement>[0];
       const cosign = {
         routine: await prescribeRequirement(ctx, false),
@@ -158,7 +155,13 @@ export async function loadPlanPayload(
               ),
             )
         : [];
-      return { facts, rx, wards: wards.map((w) => w.name), cosign, reasons };
+      return {
+        facts,
+        rx,
+        wards: wards.map((w) => ({ id: w.id, name: w.name, counts: countsWords(w.counts) })),
+        cosign,
+        reasons,
+      };
     },
     input.database,
   );

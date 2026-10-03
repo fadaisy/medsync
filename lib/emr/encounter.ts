@@ -120,7 +120,9 @@ export type FollowUp =
   | { kind: "none" }
   | { kind: "as_needed" }
   /** A scheduling intent; ISO date (yyyy-mm-dd). */
-  | { kind: "review_date"; date: string };
+  | { kind: "review_date"; date: string }
+  /** A follow-up booked at the close (ADR 0202): the appointment and its day. */
+  | { kind: "booked"; date: string; appointmentId: string };
 
 /* ─── Transitions ─────────────────────────────────────────────────── */
 

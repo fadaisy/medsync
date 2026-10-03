@@ -15,7 +15,8 @@ export interface PlanPayload {
   prescribing: boolean;
   record: PlanRecord;
   /** The hospital's ward names, for Admit. */
-  wards: string[];
+  /** The wards that take admissions; counts (words) with WARD_BUILDER on (ADR 0197 §5). */
+  wards: { id: string; name: string; counts: string | null }[];
   /** The viewer is an intern: discharging with NEWS2 of 5 or more needs a senior to agree. */
   intern: boolean;
   facts: {

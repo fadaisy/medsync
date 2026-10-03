@@ -44,10 +44,15 @@ import { carryMedicines, carryProblems, triagePrefill } from "@/lib/emr/carry-fo
 import { asClinicalReader, asClinicalWriter } from "@/lib/emr/db";
 import { encounterDiagnoses, pendingCosignIds } from "@/lib/emr/diagnoses";
 import { completionWarnings, isOpen } from "@/lib/emr/encounter";
-import { clerkingPlanV2LiveFor, clerkingV2LiveFor } from "@/lib/emr/feature";
+import {
+  clerkingPlanV2LiveFor,
+  clerkingV2LiveFor,
+  encounterCloseV2LiveFor,
+} from "@/lib/emr/feature";
 import { getTemplate, noteStatus } from "@/lib/emr/notes";
 import { orderStatusText } from "@/lib/emr/orders";
 import { loadChartFor } from "@/lib/emr/read/chart";
+import { loadCloseContext } from "@/lib/emr/read/close";
 import { loadPlanPayload } from "@/lib/emr/read/plan";
 import { deskTemplateOf, generalSigns, loadRosScreen, vitalConcepts } from "@/lib/emr/read/terms";
 import { EMR_SETTINGS_DEFAULTS } from "@/lib/emr/settings";
@@ -745,6 +750,15 @@ export async function loadDeskFor(
         })
       : undefined;
 
+  // Closing the encounter (ADRs 0197–0203).
+  const close = encounterCloseV2LiveFor(actor.hospitalId)
+    ? await loadCloseContext(actor, {
+        patientUserId: enc.patientUserId,
+        encounterId: enc.id,
+        database: opts.database,
+      })
+    : undefined;
+
   const draftContent = draft?.content ?? { sections: {} };
   const deferred = Object.values(draftContent.sections).some((s) =>
     (s.items ?? []).some((i) => i.kind === "diagnosis_deferred"),
@@ -779,6 +793,7 @@ export async function loadDeskFor(
     payload: {
       ...(clerking ? { clerking } : {}),
       ...(plan ? { plan } : {}),
+      ...(close ? { close } : {}),
       fullForm: v2Live ? CLERKING_V2_TEMPLATE_ID : "tpl.clerking.adult_opd",
       encounter: {
         id: enc.id,
@@ -849,6 +864,7 @@ export async function loadDeskFor(
           summary: `${base}/print/summary`,
           referral: `${base}/print/referral`,
           labRequest: `${base}/print/lab-request`,
+          patientCopy: `${base}/print/patient-copy`,
         },
       },
       settings: {

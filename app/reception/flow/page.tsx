@@ -123,7 +123,7 @@ export default async function ReceptionFlowPage() {
                     </td>
                     <td className="px-4 py-2.5">
                       <Pill {...(STAGE_PILL[r.stage] ?? {})}>
-                        {STAGE_LABEL[r.stage] ?? r.stage}
+                        {(r.stage === "seen" && r.admitted) || (STAGE_LABEL[r.stage] ?? r.stage)}
                       </Pill>
                     </td>
                     <td className="text-muted-foreground text-body-s px-4 py-2.5">

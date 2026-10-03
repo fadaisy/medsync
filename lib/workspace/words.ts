@@ -23,3 +23,26 @@ export const COLOUR_WORD = {
   4: "Green",
   5: "Blue",
 } as const;
+
+/**
+ * A visit closed as admitted (ADR 0200), from `encounters.disposition_detail` (`ward`, and `bed`: the
+ * bed's label or the word "waiting"): "Admitted · Medical Ward 1 · Bed 12", or "… · waiting for a bed".
+ * Null for any other disposition or a detail without a ward.
+ */
+export function admittedLabel(
+  disposition: string | null | undefined,
+  detail: unknown,
+): string | null {
+  if (disposition !== "admitted" || !detail || typeof detail !== "object") return null;
+  const { ward, bed } = detail as { ward?: unknown; bed?: unknown };
+  if (typeof ward !== "string" || !ward) return "Admitted";
+  const where =
+    bed === "waiting"
+      ? "waiting for a bed"
+      : typeof bed === "string" && bed
+        ? /^bed\b/i.test(bed)
+          ? bed
+          : `Bed ${bed}`
+        : null;
+  return ["Admitted", ward, where].filter(Boolean).join(" · ");
+}
