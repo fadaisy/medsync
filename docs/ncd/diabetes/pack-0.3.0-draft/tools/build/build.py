@@ -11,11 +11,11 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
 import lib
 from lib import REFS, FEATURES, CLAIMS, USED_CLAIMS, preds_of, strip_refs, dose_hits, walk_strings
-import k_refs, k_features, k_dx, k_strat, k_act, k_review, k_r4, k_wire, k_clerk, k_r5, k_r6, k_r7, k_r8, k_r9, k_vignettes, k_r4_vignettes, k_r5_vignettes, k_r6_vignettes, k_r7_vignettes, k_r8_vignettes, k_r9_vignettes, k_decisions, k_grid
+import k_refs, k_features, k_dx, k_strat, k_act, k_review, k_r4, k_wire, k_clerk, k_r5, k_r6, k_r7, k_r8, k_r9, k_r10, k_vignettes, k_r4_vignettes, k_r5_vignettes, k_r6_vignettes, k_r7_vignettes, k_r8_vignettes, k_r9_vignettes, k_r10_vignettes, k_decisions, k_grid
 from k_model import REG
 
 OUT = os.path.join(lib.ROOT, "out", "medsync-ncd-diabetes")
-PACK = {"id": "MS-NCD-DM-PACK-001", "version": "0.3.6-draft", "generated": "2026-10-05", "condition": "diabetes",
+PACK = {"id": "MS-NCD-DM-PACK-001", "version": "0.3.7-draft", "generated": "2026-10-05", "condition": "diabetes",
         "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)", "dossier": "MS-NCD-DM-DOSSIER-001 (draft content for Gate 2)",
         "briefingCommit": "8e45d34"}
 errors, warnings = [], []
@@ -333,6 +333,7 @@ def run_vignette(v):
     if isinstance(_age, (int, float)):      # ninth review, U12: the effective band follows a recorded numeric age
         if _age < 16 and band in ("adult", "older_adult"): band = "adolescent" if _age >= 10 else "child"
         elif _age >= 16 and band in ("child", "adolescent"): band = "adult"
+        elif 10 <= _age < 16 and band == "child": band = "adolescent"      # tenth review, V16
     adult = band in ("adult", "older_adult")      # eighth/ninth review, T20, U12: the band is already effective by numeric age
     met_cav = [c for c in REG["validityCaveats"] if ev_crit(c["when"], vals, site) == MET
                and not any(ev_crit(k, vals, site) == MET for k in c["x"].get("notWhen", []))]      # eighth review, T16: a caveat can be lifted
@@ -486,10 +487,12 @@ def run_vignette(v):
         if not applies(t["x"]): continue
         if t.get("when") and ev_pred(t["when"], vals, site) != MET: continue
         if t["feature"] in blocked_any: res["bands_blocked"].append(t["id"]); continue   # never 'at target' on a value that is not valid
-        if t["x"].get("forTarget") and t["x"]["forTarget"] not in res["targets"]: continue      # eighth review, T06: read against the target shown
+        no_target = t["x"].get("forTarget") and t["x"]["forTarget"] not in res["targets"]      # eighth review, T06: 'at' or 'above target' only against a target shown
         x = vals[t["feature"]]
         for b in t["bands"]:
-            if (b.get("from") is None or x >= b["from"]) and (b.get("to") is None or x < b["to"]): res["bands"][t["id"]] = b["code"]; break
+            if (b.get("from") is None or x >= b["from"]) and (b.get("to") is None or x < b["to"]):
+                if not no_target or b["code"] == "low" or b["tone"] == "low": res["bands"][t["id"]] = b["code"]      # tenth review: a low band is a safety signal and always shows
+                break
     return res
 
 def check_vignettes():
@@ -699,7 +702,7 @@ def emit(vresults):
          "featureToConcept": cfc_map, "conceptsToPropose": k_wire.CFC_PROPOSE, "qualifiersNeeded": k_wire.CFC_QUALIFIERS, "diagnosisTermToConcept": k_wire.CONDITION_CONCEPTS})
     # review log: every finding of the two reviews with what was done about it
     log = []
-    for fname in ("R1-clinical.json", "R2-clerking.json", "R3-recheck.json", "R4-review.json", "R5-review.json", "R6-review.json", "R7-review.json", "R8-review.json", "R9-review.json"):
+    for fname in ("R1-clinical.json", "R2-clerking.json", "R3-recheck.json", "R4-review.json", "R5-review.json", "R6-review.json", "R7-review.json", "R8-review.json", "R9-review.json", "R10-review.json"):
         for f in json.load(open(os.path.join(lib.ROOT, "review", fname), encoding="utf-8")):
             st, what = k_review.DISPOSITION[f["id"]]
             log.append({"id": f["id"], "review": fname[:2], "severity": f["severity"], "where": f["where"], "finding": f["finding"], "why": f["why"], "reviewerFix": f["fix"], "status": st, "done": what})

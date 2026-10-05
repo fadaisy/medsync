@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.6-draft",
+  "version": "0.3.7-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -13,7 +13,7 @@
  "counts": {
   "reuse": 50,
   "reconcile": 45,
-  "new": 100
+  "new": 99
  },
  "features": [
   {
@@ -2669,7 +2669,7 @@
   },
   {
    "code": "hypertensive_organ_damage",
-   "display": "With the raised pressure: confusion, seizures, blurred or lost vision; breathlessness with crackles; little or no urine; or tearing chest or back pain",
+   "display": "Confusion, seizures, blurred or lost vision; breathlessness with crackles; little or no urine; or tearing chest or back pain (beside a raised pressure, or in pregnancy or after birth)",
    "kind": "sign",
    "valueType": "boolean",
    "section": "cardiovascular",
@@ -2687,17 +2687,6 @@
    "x": {
     "status": "new",
     "note": "Lifts the variant caveats when the method is documented as unaffected (NGSP; eighth review, T16)."
-   }
-  },
-  {
-   "code": "acute_kidney_injury",
-   "display": "Acute kidney injury (a rise in creatinine of 26.5 µmol/L or more in 48 hours, or to 1.5 times baseline, or low urine output)",
-   "kind": "investigation",
-   "valueType": "boolean",
-   "section": "kidney",
-   "x": {
-    "status": "new",
-    "note": "KDIGO's definition (research claim A6-55); recorded by the clinician, not computed here (ninth review, U16)."
    }
   }
  ]

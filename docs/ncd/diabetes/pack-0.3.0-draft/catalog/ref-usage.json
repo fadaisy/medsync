@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.6-draft",
+  "version": "0.3.7-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -848,7 +848,20 @@
   "sus_paed_fcap": [
    "REF-DM-DX-FPG"
   ],
+  "sus_paed_fcap_r03": [
+   "REF-DM-ACU-PAED-GLU",
+   "REF-DM-ACU-PAED-GLU",
+   "REF-DM-ACU-PAED-GLU",
+   "REF-DM-ACU-PAED-GLU",
+   "REF-DM-ACU-PAED-GLU",
+   "REF-DM-ACU-PAED-GLU"
+  ],
+  "acu_insulin_sick_review_signs": [
+   "REF-DM-ACU-KETONE-RISK"
+  ],
   "tgt_hba1c_general_relaxed_applies": [
+   "REF-DM-HYPO-IAH",
+   "REF-DM-HYPO-IAH",
    "REF-DM-HYPO-IAH",
    "REF-DM-HYPO-IAH"
   ],

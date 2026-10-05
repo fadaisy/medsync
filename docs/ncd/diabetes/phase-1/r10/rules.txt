@@ -1,0 +1,453 @@
+
+### DM-SUS-SYMP-01 lane=suspect urg=same_day run=not_established ages=['adult', 'older_adult'] preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Thirst, passing a lot of urine or unexplained weight loss: test glucose today
+  W: ANY[polyuria present; polydipsia present; unexplained_weight_loss present]
+  NOT[symp_01_done]: ANY[capillary_glucose recorded; random_pg recorded; fasting_pg recorded; postprandial_pg recorded; ogtt_1h_pg recorded; ogtt_2h_pg recorded; glucose_meter_extreme recorded]
+
+### DM-SUS-SYMP-02 lane=suspect urg=routine run=not_established ages=['adult', 'older_adult'] preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Blurred vision, recurrent infections, a slow-healing wound or numb, burning feet: test glucose
+  W: ANY[blurred_vision present; recurrent_infections present; slow_healing_wound present; foot_numbness_burning present]
+  NOT[symp_02_done]: ANY[capillary_glucose recorded; random_pg recorded; fasting_pg recorded; postprandial_pg recorded; ogtt_1h_pg recorded; ogtt_2h_pg recorded; glucose_meter_extreme recorded]
+
+### DM-SUS-RISK-01 lane=suspect urg=routine run=not_established ages=['adult', 'older_adult'] preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Aged 40 or over and overweight, never tested or not tested for 3 years: offer a fasting glucose
+  W: ALL[age_years >= 40; bmi >= 25] & ANY[never_glucose_tested present; months_since_glucose_test >= 36]
+
+### DM-SUS-RISK-02 lane=suspect urg=routine run=not_established ages=['adult', 'older_adult'] preg=None unlessCap=None reqCap=lab.glucose enabled=None pUC=None uU=None
+  D: Overweight with another risk factor: offer testing at any adult age
+  W: ALL[bmi >= 25] & ANY[first_degree_relative_diabetes present; hypertension_known present; cvd_established present; pcos present; physically_inactive present; acanthosis_nigricans present]
+
+### DM-SUS-RISK-03 lane=suspect urg=routine run=not_established ages=['adult', 'older_adult'] preg=None unlessCap=None reqCap=None enabled=False pUC=None uU=None
+  D: Aged 35 or over and never tested, or not tested for 3 years: offer testing
+  W: ALL[age_years >= 35] & ANY[never_glucose_tested present; months_since_glucose_test >= 36]
+
+### DM-SUS-RISK-04 lane=suspect urg=routine run=not_established ages=['adult', 'older_adult'] preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Borderline glucose before: re-test every year
+  W: ALL[prior_intermediate_hyperglycaemia present] & ANY[never_glucose_tested present; months_since_glucose_test >= 12]
+
+### DM-SUS-RISK-05 lane=suspect urg=routine run=not_established ages=['adult', 'older_adult'] preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Gestational diabetes in the past: test for diabetes at least every 3 years
+  W: ALL[prior_gdm present] & ANY[never_glucose_tested present; months_since_glucose_test >= 36]
+
+### DM-SUS-PREG-02 lane=suspect urg=routine run=not_established ages=None preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Gestational diabetes in the pregnancy just ended: re-test 6 to 12 weeks after the birth
+  W: ALL[prior_gdm present; postpartum_weeks >= 6]
+  NOT[sus_pp_done]: ALL[glucose_tested_since_birth present]
+
+### DM-SUS-INCID-01 lane=suspect urg=routine run=not_established ages=['adult', 'older_adult'] preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Glucose 11.1 mmol/L or more on a random sample or a meter: diagnostic with symptoms; without them, repeat on another day and do not leave it
+  W: ANY[random_pg >= 11.1; capillary_glucose >= 11.1; glucose_meter_extreme == hi]
+  NOT[incid_01_preg]: ALL[pregnant present]
+
+### DM-SUS-INPT-01 lane=suspect urg=routine run=not_established ages=['adult', 'older_adult'] preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Glucose above 7.8 mmol/L in hospital: check HbA1c if valid, and follow up after recovery
+  W: ALL[care_setting in ['emergency', 'inpatient']] & ANY[random_pg > 7.8; capillary_glucose > 7.8]
+
+### DM-SUS-POP-HIV-01 lane=suspect urg=routine run=not_established ages=['adult', 'older_adult'] preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Living with HIV on ART: fasting glucose every year
+  W: ALL[hiv_on_art present] & ANY[never_glucose_tested present; months_since_glucose_test >= 12]
+
+### DM-SUS-POP-DTG-01 lane=suspect urg=same_day run=not_established ages=['adult', 'older_adult'] preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: On dolutegravir with thirst, polyuria or weight loss: check glucose today
+  W: ALL[art_regimen in ['tdf_3tc_dtg', 'taf_ftc_dtg', 'abc_3tc_dtg', 'azt_3tc_dtg']] & ANY[polyuria present; polydipsia present; unexplained_weight_loss present]
+
+### DM-SUS-POP-TB-01 lane=suspect urg=routine run=not_established ages=['adult', 'older_adult'] preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: TB: offer a diabetes test to everyone who does not know their status
+  W: ALL[tb_current present] & ANY[never_glucose_tested present; months_since_glucose_test >= 12]
+
+### DM-SUS-POP-STEROID-01 lane=suspect urg=routine run=not_established ages=['adult', 'older_adult'] preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: On systemic steroids: check glucose after a meal, not fasting
+  W: ALL[on_glucocorticoid present]
+
+### DM-SUS-POP-ANTIPSYCH-01 lane=suspect urg=routine run=not_established ages=['adult', 'older_adult'] preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: On a second-generation antipsychotic for 12 weeks or more with no glucose test since it was started: check glucose
+  W: ALL[on_second_gen_antipsychotic present; weeks_since_antipsychotic_start >= 12; glucose_test_since_antipsychotic_start absent]
+
+### DM-SUS-POP-PANC-01 lane=suspect urg=routine run=not_established ages=['adult', 'older_adult'] preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: After pancreatitis: test for diabetes
+  W: ALL[pancreatitis_history in ['acute', 'chronic']] & ANY[never_glucose_tested present; months_since_glucose_test >= 12]
+
+### DM-SUS-PREG-01 lane=suspect urg=routine run=not_established ages=None preg=None unlessCap=None reqCap=None enabled=False pUC=None uU=None
+  D: 24 weeks or more pregnant: offer a 75 g OGTT
+  W: ALL[pregnant present; gestation_weeks >= 24]
+  NOT[sus_preg_done]: ALL[ogtt_done_this_pregnancy present]
+
+### DM-CON-PREG-01 lane=confirm urg=same_day run=not_established ages=None preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Pregnant with a glucose in the WHO gestational range
+  W: ALL[pregnant present] & ANY[fasting_pg >= 5.1; ogtt_1h_pg >= 10.0; ogtt_2h_pg >= 8.5]
+
+### DM-CON-PREG-02 lane=confirm urg=same_day run=not_established ages=None preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Pregnant with a glucose in the diabetes range: diabetes in pregnancy
+  W: ALL[pregnant present] & ANY[fasting_pg >= 7.0; ogtt_2h_pg >= 11.1]
+
+### DM-SUS-PAED-01 lane=suspect urg=immediate run=not_established ages=['child', 'adolescent'] preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: A child who is thirsty, passing a lot of urine or wetting the bed again: capillary glucose now
+  W: ANY[polyuria present; polydipsia present; secondary_enuresis present]
+  NOT[sus_paed_done]: ANY[capillary_glucose recorded; random_pg recorded; fasting_pg recorded; postprandial_pg recorded; ogtt_1h_pg recorded; ogtt_2h_pg recorded; glucose_meter_extreme recorded]
+
+### DM-CLS-T1-01 lane=classify urg=same_day run=always ages=None preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Ketones 2+ with a raised glucose: features of insulin deficiency. Do not assume type 2; consider type 1 and review the type
+  W: ALL[urine_ketones in ['2plus', '3plus']] & ATLEAST1[glucose_meter_extreme == hi; capillary_glucose >= 11.1; random_pg >= 11.1; fasting_pg >= 11.1; postprandial_pg >= 11.1; ogtt_1h_pg >= 11.1; ogtt_2h_pg >= 11.1]
+  NOT[cls_ketosis_sglt2]: ALL[glucose_lowering_therapy == sglt2_inhibitor]
+
+### DM-CLS-T1-02 lane=classify urg=routine run=established ages=['adult', 'older_adult'] preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Recorded as type 2, with two or more features of insulin deficiency: review the type
+  W: ALL[dm_type_recorded == type_2] & ATLEAST2[age_at_diagnosis < 35; bmi < 25; unexplained_weight_loss present; glucose_at_presentation > 20]
+
+### DM-CLS-ATYP-01 lane=classify urg=routine run=established_or_met ages=['adult', 'older_adult'] preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Lean and young at onset: flag as atypical and ask for specialist review
+  W: ALL[bmi < 18.5; age_at_diagnosis < 30]
+
+### DM-CLS-PANC-01 lane=classify urg=routine run=established ages=['adult', 'older_adult'] preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Pancreatic disease with diabetes: consider a pancreatic cause
+  W: ANY[pancreatitis_history in ['acute', 'chronic']; pancreatic_calcification present]
+
+### DM-CLS-MODY-01 lane=classify urg=routine run=established ages=['adult', 'older_adult'] preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Young onset with an affected parent and no obesity: consider monogenic diabetes
+  W: ALL[age_at_diagnosis < 35; parent_with_diabetes present; bmi < 25]
+
+### DM-CLS-DRUG-01 lane=classify urg=routine run=not_established ages=None preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: A raised glucose in a person on steroids with no diabetes on record: consider medicine-associated hyperglycaemia
+  W: ALL[on_glucocorticoid present] & ANY[random_pg >= 11.1; capillary_glucose >= 11.1; postprandial_pg >= 11.1; glucose_meter_extreme == hi]
+
+### DM-STR-NEURO-01 lane=stratify urg=routine run=established ages=['adult', 'older_adult'] preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Neuropathy in diabetes: exclude the other causes before calling it diabetic
+  W: ANY[foot_numbness_burning present; monofilament_10g in ['one_foot', 'both_feet']; vibration_128hz in ['absent_one', 'absent_both']; pinprick_feet == reduced; ipswich_sites_missed >= 2]
+
+### DM-STR-NEURO-02 lane=stratify urg=same_day run=established ages=None preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Atypical neuropathy: refer
+  W: ALL[neuropathy_atypical present]
+
+### DM-STR-NEURO-03 lane=stratify urg=routine run=established ages=['adult', 'older_adult'] preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: A postural fall in blood pressure or a fast resting pulse: consider autonomic neuropathy after the commoner causes
+  W: ANY[postural_sbp_fall > 20; postural_dbp_fall > 10; pulse > 100] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride; glucose_lowering_therapy == insulin; glucose_lowering_therapy == sglt2_inhibitor; glucose_lowering_therapy == pioglitazone; glucose_lowering_therapy == dpp4_inhibitor; glucose_lowering_therapy == glp1_ra]
+
+### DM-STR-CKD-01 lane=stratify urg=urgent run=established ages=None preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: A nephrotic picture, red cell casts or rapidly rising albumin: this may not be diabetic kidney disease. Refer
+  W: ANY[non_diabetic_kidney_clue present; nephrotic_or_active_sediment present]
+
+### DM-ACU-ROUTE-01 lane=acute_route urg=same_day run=always ages=None preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Glucose 18 mmol/L or more (or a meter reading HI): test urine ketones today
+  W: ANY[capillary_glucose >= 18; random_pg >= 18; fasting_pg >= 18; postprandial_pg >= 18; ogtt_1h_pg >= 18; ogtt_2h_pg >= 18; glucose_meter_extreme == hi]
+  NOT[acu_glu18_done]: ANY[urine_ketones recorded; bohb recorded]
+  NOT[acu_glu18_signs]: ANY[deep_rapid_breathing present; acetone_breath present; dehydration present; mental_status in ['drowsy', 'stupor', 'coma']]
+
+### DM-ACU-ROUTE-02 lane=acute_route urg=immediate run=always ages=None preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Ketones 2+ (or 3.0 mmol/L or more) in diabetes or with a raised glucose: suspected ketoacidosis. Route now
+  W: ANY[urine_ketones in ['2plus', '3plus']; bohb >= 3.0] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride; glucose_lowering_therapy == insulin; glucose_lowering_therapy == sglt2_inhibitor; glucose_lowering_therapy == pioglitazone; glucose_lowering_therapy == dpp4_inhibitor; glucose_lowering_therapy == glp1_ra; capillary_glucose >= 11.1; random_pg >= 11.1; fasting_pg >= 11.1; postprandial_pg >= 11.1; ogtt_1h_pg >= 11.1; ogtt_2h_pg >= 11.1; glucose_meter_extreme == hi]
+
+### DM-ACU-ROUTE-03 lane=acute_route urg=immediate run=always ages=None preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: On an SGLT2 inhibitor and unwell (acute illness, vomiting, pain, deep breathing, dehydration or drowsiness): ketoacidosis can occur at any glucose. Route now; blood ketones now
+  W: ALL[glucose_lowering_therapy == sglt2_inhibitor] & ANY[vomiting present; abdominal_pain present; deep_rapid_breathing present; acute_illness_current present; dehydration present; mental_status in ['drowsy', 'stupor', 'coma']]
+  NOT[acu_edka_bohb_normal]: ALL[bohb < 0.6]
+  NOT[acu_edka_r02]: ANY[urine_ketones in ['2plus', '3plus']; bohb >= 3.0]
+
+### DM-ACU-ROUTE-04 lane=acute_route urg=immediate run=always ages=['child', 'adolescent'] preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: A child who is vomiting, in pain, breathing deeply, smelling of acetone, dehydrated or drowsy, with features of diabetes or a glucose above 11: suspected ketoacidosis. Route now
+  W: ANY[vomiting present; abdominal_pain present; deep_rapid_breathing present; dehydration present; mental_status in ['drowsy', 'stupor', 'coma']; acetone_breath present] & ATLEAST1[polyuria present; polydipsia present; unexplained_weight_loss present; secondary_enuresis present; glucose_meter_extreme == hi; capillary_glucose > 11; random_pg > 11; fasting_pg > 11; postprandial_pg > 11; ogtt_1h_pg > 11; ogtt_2h_pg > 11]
+
+### DM-ACU-ROUTE-05 lane=acute_route urg=immediate run=always ages=None preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Potassium 6.5 mmol/L or more: immediate assessment and ECG monitoring
+  W: ALL[potassium >= 6.5]
+
+### DM-ACU-ROUTE-06 lane=acute_route urg=immediate run=always ages=None preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Glucose below 3.0 mmol/L, a meter reading LO, or a low that is not resolving: hypoglycaemia. Act now
+  W: ANY[capillary_glucose < 3.0; random_pg < 3.0; fasting_pg < 3.0; postprandial_pg < 3.0; ogtt_1h_pg < 3.0; ogtt_2h_pg < 3.0; glucose_meter_extreme == lo; hypoglycaemia_not_resolving present]
+
+### DM-ACU-ROUTE-07 lane=acute_route urg=immediate run=always ages=None preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Glucose below 3.9 mmol/L in diabetes: hypoglycaemia. Treat now; on insulin or a sulfonylurea, or if the medicines or type are not recorded, it can come back
+  W: ANY[capillary_glucose < 3.9; random_pg < 3.9; fasting_pg < 3.9; postprandial_pg < 3.9; ogtt_1h_pg < 3.9; ogtt_2h_pg < 3.9] & ATLEAST1[glucose_lowering_therapy == insulin; glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride; dm_type_recorded == type_1; dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride; glucose_lowering_therapy == insulin; glucose_lowering_therapy == sglt2_inhibitor; glucose_lowering_therapy == pioglitazone; glucose_lowering_therapy == dpp4_inhibitor; glucose_lowering_therapy == glp1_ra]
+  NOT[acu_hypo_l1_l2]: ANY[capillary_glucose < 3.0; random_pg < 3.0; fasting_pg < 3.0; postprandial_pg < 3.0; ogtt_1h_pg < 3.0; ogtt_2h_pg < 3.0; glucose_meter_extreme == lo]
+  NOT[acu_hypo_l1_list_clear]: ALL[glucose_lowering_therapy != insulin; glucose_lowering_therapy != glibenclamide; glucose_lowering_therapy != gliclazide; glucose_lowering_therapy != glimepiride; dm_type_recorded in ['type_2', 'gestational', 'other']]
+
+### DM-ACU-ROUTE-11 lane=acute_route urg=immediate run=always ages=['adult', 'older_adult'] preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Raised glucose with deep breathing, acetone on the breath, dehydration or drowsiness: suspected ketoacidosis or hyperosmolar state. Route now; do not wait for ketones
+  W: ANY[deep_rapid_breathing present; acetone_breath present; dehydration present; mental_status in ['drowsy', 'stupor', 'coma']] & ATLEAST1[capillary_glucose >= 11.1; random_pg >= 11.1; fasting_pg >= 11.1; postprandial_pg >= 11.1; ogtt_1h_pg >= 11.1; ogtt_2h_pg >= 11.1; glucose_meter_extreme == hi]
+  NOT[acu_picture_hhs]: ANY[capillary_glucose >= 33.3; random_pg >= 33.3; fasting_pg >= 33.3; postprandial_pg >= 33.3; ogtt_1h_pg >= 33.3; ogtt_2h_pg >= 33.3; glucose_meter_extreme == hi]
+  NOT[acu_picture_r02]: ANY[urine_ketones in ['2plus', '3plus']; bohb >= 3.0]
+
+### DM-ACU-ROUTE-13 lane=acute_route urg=same_day run=always ages=['adult', 'older_adult'] preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Diabetes with vomiting, abdominal pain or dehydration, and no glucose on record: capillary glucose today, and ketones if it is raised
+  W: ANY[vomiting present; abdominal_pain present; dehydration present] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride; glucose_lowering_therapy == insulin; glucose_lowering_therapy == sglt2_inhibitor; glucose_lowering_therapy == pioglitazone; glucose_lowering_therapy == dpp4_inhibitor; glucose_lowering_therapy == glp1_ra]
+  NOT[acu_known_unwell_done]: ANY[capillary_glucose recorded; random_pg recorded; fasting_pg recorded; postprandial_pg recorded; ogtt_1h_pg recorded; ogtt_2h_pg recorded; glucose_meter_extreme recorded]
+
+### DM-ACU-ROUTE-14 lane=acute_route urg=immediate run=always ages=None preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Glucose 33.3 mmol/L or more, or a meter reading HI: suspect a hyperosmolar state whatever the ketones
+  W: ANY[capillary_glucose >= 33.3; random_pg >= 33.3; fasting_pg >= 33.3; postprandial_pg >= 33.3; ogtt_1h_pg >= 33.3; ogtt_2h_pg >= 33.3; glucose_meter_extreme == hi]
+
+### DM-ACU-ROUTE-15 lane=acute_route urg=immediate run=always ages=None preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Deep breathing or drowsiness, with no glucose on record: capillary glucose now
+  W: ANY[deep_rapid_breathing present; mental_status in ['drowsy', 'stupor', 'coma']]
+  NOT[acu_paed_glucose_done]: ANY[capillary_glucose recorded; random_pg recorded; fasting_pg recorded; postprandial_pg recorded; ogtt_1h_pg recorded; ogtt_2h_pg recorded; glucose_meter_extreme recorded]
+  NOT[acu_glucose_now_dm]: ANY[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride; glucose_lowering_therapy == insulin; glucose_lowering_therapy == sglt2_inhibitor; glucose_lowering_therapy == pioglitazone; glucose_lowering_therapy == dpp4_inhibitor; glucose_lowering_therapy == glp1_ra]
+
+### DM-SUS-PAED-02 lane=suspect urg=same_day run=not_established ages=['child', 'adolescent'] preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: A child losing weight: include a capillary glucose in the work-up today
+  W: ALL[unexplained_weight_loss present]
+
+### DM-CON-PREG-03 lane=confirm urg=same_day run=not_established ages=None preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Pregnant with a glucose of 11.1 mmol/L or more on any sample, meter included: refer today for specialised antenatal care
+  W: ALL[pregnant present] & ANY[capillary_glucose >= 11.1; random_pg >= 11.1; ogtt_2h_pg >= 11.1; glucose_meter_extreme == hi]
+
+### DM-CON-PREG-04 lane=confirm urg=urgent run=not_established ages=None preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Pregnant with a fasting meter glucose of 5.1 mmol/L or more: send a laboratory glucose
+  W: ALL[pregnant present; capillary_glucose_context == fasting; capillary_glucose >= 5.1]
+  NOT[con_preg_fcap_high]: ALL[capillary_glucose_context == fasting; capillary_glucose >= 7.0]
+
+### DM-ACU-ROUTE-09 lane=acute_route urg=same_day run=always ages=None preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Type 1 diabetes and no insulin on the medicine list: confirm they are taking it. If not, check glucose and ketones today and find out why
+  W: ALL[dm_type_recorded == type_1]
+  NOT[acu_t1_on_insulin]: ALL[glucose_lowering_therapy == insulin]
+
+### DM-ACU-ROUTE-10 lane=acute_route urg=same_day run=always ages=None preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Insulin stopped, missed or run out: check glucose and ketones today
+  W: ALL[insulin_omitted present]
+
+### DM-SUS-POP-ANTIPSYCH-02 lane=suspect urg=routine run=not_established ages=['adult', 'older_adult'] preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: On a second-generation antipsychotic: glucose at baseline and every year
+  W: ALL[on_second_gen_antipsychotic present] & ANY[never_glucose_tested present; months_since_glucose_test >= 12]
+  NOT[sus_antipsychotic_12w_owns]: ALL[weeks_since_antipsychotic_start >= 12; glucose_test_since_antipsychotic_start absent]
+
+### DM-SUS-INCID-02 lane=suspect urg=routine run=not_established ages=['adult', 'older_adult'] preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: One result in the diabetes range: with symptoms it is diagnostic; without them, repeat on another day and do not leave it
+  W: ANY[fasting_pg >= 7.0; hba1c >= 6.5; ogtt_2h_pg >= 11.1]
+  NOT[sus_single_repeated]: ALL[repeat_abnormal_result present]
+  NOT[incid_02_preg]: ALL[pregnant present]
+
+### DM-CLS-T1-03 lane=classify urg=routine run=established ages=None preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Ketosis at first presentation and the type never settled: review the type
+  W: ALL[ketosis_at_presentation present]
+  NOT[cls_ketosis_settled]: ANY[insulin_stopped_without_relapse present; dm_type_recorded in ['type_1', 'type_2', 'gestational', 'other']]
+
+### DM-CLS-T1-05 lane=classify urg=same_day run=established ages=['adult', 'older_adult'] preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: No type recorded, not on insulin, and two or more features of insulin deficiency: check ketones today
+  W: ATLEAST2[age_at_diagnosis < 35; bmi < 25; unexplained_weight_loss present; glucose_at_presentation > 20]
+  NOT[cls_t1_typed]: ALL[dm_type_recorded in ['type_1', 'type_2', 'gestational', 'other']]
+  NOT[cls_t1_on_insulin]: ALL[glucose_lowering_therapy == insulin]
+
+### DM-CLS-T1-04 lane=classify urg=same_day run=not_established ages=['adult', 'older_adult'] preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: A glucose in the diabetes range and two or more of: under 35, BMI below 25, unexplained weight loss. Check ketones now and do not assume type 2
+  W: ANY[capillary_glucose >= 11.1; random_pg >= 11.1; fasting_pg >= 11.1; postprandial_pg >= 11.1; ogtt_1h_pg >= 11.1; ogtt_2h_pg >= 11.1; glucose_meter_extreme == hi] & ATLEAST2[age_years < 35; bmi < 25; unexplained_weight_loss present]
+
+### DM-ACU-ROUTE-08 lane=acute_route urg=same_day run=always ages=['adult', 'older_adult'] preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Glucose 15 mmol/L or more with thirst, polyuria or weight loss: test urine ketones today
+  W: ANY[polyuria present; polydipsia present; unexplained_weight_loss present] & ATLEAST1[fasting_pg >= 15; random_pg >= 15; capillary_glucose >= 15]
+  NOT[acu_glu15_over18]: ANY[capillary_glucose >= 18; random_pg >= 18; fasting_pg >= 18; postprandial_pg >= 18; ogtt_1h_pg >= 18; ogtt_2h_pg >= 18]
+  NOT[acu_glu15_ketones_done]: ANY[urine_ketones recorded; bohb recorded]
+
+### DM-STR-STEROID-01 lane=stratify urg=routine run=established ages=['adult', 'older_adult'] preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Known diabetes and on steroids: expect glucose to rise; monitor after meals
+  W: ALL[on_glucocorticoid present] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride; glucose_lowering_therapy == insulin; glucose_lowering_therapy == sglt2_inhibitor; glucose_lowering_therapy == pioglitazone; glucose_lowering_therapy == dpp4_inhibitor; glucose_lowering_therapy == glp1_ra]
+
+### DM-CLS-WTLOSS-01 lane=classify urg=same_day run=established ages=None preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Unexplained weight loss in a person with diabetes: check glucose and ketones, and look for TB, HIV and cancer
+  W: ALL[unexplained_weight_loss present] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride; glucose_lowering_therapy == insulin; glucose_lowering_therapy == sglt2_inhibitor; glucose_lowering_therapy == pioglitazone; glucose_lowering_therapy == dpp4_inhibitor; glucose_lowering_therapy == glp1_ra]
+
+### DM-CLS-PANC-02 lane=classify urg=routine run=established ages=['adult', 'older_adult'] preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Fatty stools with recurrent upper abdominal pain in a person with diabetes: consider a pancreatic cause
+  W: ALL[steatorrhoea present; recurrent_abdominal_pain present]
+
+### DM-ACU-ROUTE-16 lane=acute_route urg=same_day run=always ages=None preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Potassium 6.0 to 6.4 mmol/L: repeat within 24 hours; if unwell or kidney function has fallen, assess in hospital
+  W: ALL[potassium >= 6.0; potassium < 6.5]
+
+### DM-ACU-ROUTE-17 lane=acute_route urg=immediate run=always ages=None preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Chest pain, or sudden weakness, speech or facial change: possible heart attack or stroke. Route now
+  W: ALL[chest_pain_or_stroke_symptoms present]
+
+### DM-SUS-PAED-03 lane=suspect urg=same_day run=always ages=['child', 'adolescent'] preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: A child with a glucose above 11 mmol/L, or a meter reading HI: refer today as suspected diabetes, whatever the symptoms
+  W: ANY[capillary_glucose > 11; random_pg > 11; fasting_pg > 11; postprandial_pg > 11; ogtt_1h_pg > 11; ogtt_2h_pg > 11; glucose_meter_extreme == hi]
+  NOT[sus_paed_known]: ALL[dm_status == known]
+  NOT[sus_paed_dm_any]: ANY[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride; glucose_lowering_therapy == insulin; glucose_lowering_therapy == sglt2_inhibitor; glucose_lowering_therapy == pioglitazone; glucose_lowering_therapy == dpp4_inhibitor; glucose_lowering_therapy == glp1_ra]
+
+### DM-ACU-ROUTE-18 lane=acute_route urg=same_day run=always ages=['child', 'adolescent'] preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: A child who is dehydrated, or has ketones in the urine, with no glucose on record: capillary glucose today
+  W: ANY[dehydration present; urine_ketones in ['2plus', '3plus']; bohb >= 3.0]
+  NOT[acu_paed_soft_done]: ANY[capillary_glucose recorded; random_pg recorded; fasting_pg recorded; postprandial_pg recorded; ogtt_1h_pg recorded; ogtt_2h_pg recorded; glucose_meter_extreme recorded]
+
+### DM-ACU-ROUTE-19 lane=acute_route urg=same_day run=always ages=['adult', 'older_adult'] preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Raised glucose with vomiting or abdominal pain: test ketones today. A second sign or ketones of 2+ makes it an emergency
+  W: ANY[vomiting present; abdominal_pain present] & ATLEAST1[capillary_glucose >= 11.1; random_pg >= 11.1; fasting_pg >= 11.1; postprandial_pg >= 11.1; ogtt_1h_pg >= 11.1; ogtt_2h_pg >= 11.1; glucose_meter_extreme == hi]
+  NOT[acu_mild_signs]: ANY[deep_rapid_breathing present; acetone_breath present; dehydration present; mental_status in ['drowsy', 'stupor', 'coma']]
+  NOT[acu_mild_ketones_done]: ANY[urine_ketones recorded; bohb recorded]
+
+### DM-ACU-ROUTE-20 lane=acute_route urg=immediate run=always ages=None preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Diabetes and drowsy or worse, with no glucose on record: capillary glucose now
+  W: ALL[mental_status in ['drowsy', 'stupor', 'coma']] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride; glucose_lowering_therapy == insulin; glucose_lowering_therapy == sglt2_inhibitor; glucose_lowering_therapy == pioglitazone; glucose_lowering_therapy == dpp4_inhibitor; glucose_lowering_therapy == glp1_ra]
+  NOT[acu_drowsy_done]: ANY[capillary_glucose recorded; random_pg recorded; fasting_pg recorded; postprandial_pg recorded; ogtt_1h_pg recorded; ogtt_2h_pg recorded; glucose_meter_extreme recorded]
+
+### DM-SUS-INCID-03 lane=suspect urg=routine run=not_established ages=['adult', 'older_adult'] preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: A fasting meter reading of 7.0 mmol/L or more: with symptoms it is diagnostic; without them, repeat on another day and do not leave it
+  W: ALL[capillary_glucose_context == fasting; capillary_glucose >= 7.0]
+  NOT[sus_fmeter_repeated]: ALL[repeat_abnormal_result present]
+  NOT[sus_fmeter_preg]: ALL[pregnant present]
+
+### DM-CON-PREG-05 lane=confirm urg=same_day run=not_established ages=None preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Pregnant with a fasting meter glucose of 7.0 mmol/L or more: refer today for specialised antenatal care
+  W: ALL[pregnant present; capillary_glucose_context == fasting; capillary_glucose >= 7.0]
+
+### DM-ACU-ROUTE-24 lane=acute_route urg=immediate run=always ages=['adult', 'older_adult'] preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Diabetes with deep breathing or drowsiness: route now, whatever the glucose. Glucose and ketones now
+  W: ANY[deep_rapid_breathing present; mental_status in ['drowsy', 'stupor', 'coma']] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride; glucose_lowering_therapy == insulin; glucose_lowering_therapy == sglt2_inhibitor; glucose_lowering_therapy == pioglitazone; glucose_lowering_therapy == dpp4_inhibitor; glucose_lowering_therapy == glp1_ra]
+  NOT[acu_known_kussmaul_r11]: ANY[capillary_glucose >= 11.1; random_pg >= 11.1; fasting_pg >= 11.1; postprandial_pg >= 11.1; ogtt_1h_pg >= 11.1; ogtt_2h_pg >= 11.1; glucose_meter_extreme == hi]
+  NOT[acu_known_kussmaul_r02]: ANY[urine_ketones in ['2plus', '3plus']; bohb >= 3.0]
+  NOT[acu_known_kussmaul_hypo]: ANY[capillary_glucose < 3.0; random_pg < 3.0; fasting_pg < 3.0; postprandial_pg < 3.0; ogtt_1h_pg < 3.0; ogtt_2h_pg < 3.0; glucose_meter_extreme == lo]
+
+### DM-ACU-ROUTE-21 lane=acute_route urg=same_day run=always ages=None preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Urine ketones trace or 1+ in diabetes, when unwell or with glucose 18 or more: blood ketones or a repeat strip within 2 hours, and contact the diabetes team today
+  W: ALL[urine_ketones in ['trace', '1plus']] & ANY[vomiting present; abdominal_pain present; acute_illness_current present; dehydration present; capillary_glucose >= 18; random_pg >= 18; fasting_pg >= 18; postprandial_pg >= 18; ogtt_1h_pg >= 18; ogtt_2h_pg >= 18; glucose_meter_extreme == hi; acetone_breath present] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride; glucose_lowering_therapy == insulin; glucose_lowering_therapy == sglt2_inhibitor; glucose_lowering_therapy == pioglitazone; glucose_lowering_therapy == dpp4_inhibitor; glucose_lowering_therapy == glp1_ra; capillary_glucose >= 11.1; random_pg >= 11.1; fasting_pg >= 11.1; postprandial_pg >= 11.1; ogtt_1h_pg >= 11.1; ogtt_2h_pg >= 11.1; glucose_meter_extreme == hi]
+  NOT[acu_ketones_mid_bohb_normal]: ALL[bohb < 0.6]
+  NOT[acu_ketones_mid_bohb_high]: ALL[bohb >= 0.6]
+  NOT[-21_interrupt_signs]: ANY[deep_rapid_breathing present; mental_status in ['drowsy', 'stupor', 'coma']]
+
+### DM-ACU-ROUTE-22 lane=acute_route urg=same_day run=always ages=None preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Blood ketones 1.6 to below 3.0 mmol/L in diabetes or with a raised glucose: at risk of ketoacidosis. Contact the diabetes team today and recheck within 2 hours
+  W: ALL[bohb >= 1.6; bohb < 3.0] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride; glucose_lowering_therapy == insulin; glucose_lowering_therapy == sglt2_inhibitor; glucose_lowering_therapy == pioglitazone; glucose_lowering_therapy == dpp4_inhibitor; glucose_lowering_therapy == glp1_ra; capillary_glucose >= 11.1; random_pg >= 11.1; fasting_pg >= 11.1; postprandial_pg >= 11.1; ogtt_1h_pg >= 11.1; ogtt_2h_pg >= 11.1; glucose_meter_extreme == hi]
+  NOT[acu_ketones_risk_vomit]: ALL[vomiting present]
+
+### DM-ACU-ROUTE-23 lane=acute_route urg=same_day run=always ages=None preg=None unlessCap=None reqCap=lab.ketones_blood enabled=None pUC=None uU=None
+  D: Type 1 diabetes or on insulin, with vomiting or abdominal pain: check blood ketones today (a urine strip can miss early ketoacidosis), whatever the glucose
+  W: ANY[vomiting present; abdominal_pain present] & ATLEAST1[dm_type_recorded == type_1; glucose_lowering_therapy == insulin]
+  NOT[acu_insulin_sick_bohb]: ALL[bohb < 0.6]
+  NOT[acu_insulin_sick_raised]: ANY[bohb >= 0.6; urine_ketones in ['2plus', '3plus']]
+  NOT[acu_insulin_sick_kussmaul]: ANY[deep_rapid_breathing present; acetone_breath present]
+
+### DM-ACU-ROUTE-25 lane=acute_route urg=immediate run=always ages=['child', 'adolescent'] preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: A child with diabetes and deep breathing or drowsiness: suspected ketoacidosis. Route now
+  W: ANY[deep_rapid_breathing present; mental_status in ['drowsy', 'stupor', 'coma']] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride; glucose_lowering_therapy == insulin; glucose_lowering_therapy == sglt2_inhibitor; glucose_lowering_therapy == pioglitazone; glucose_lowering_therapy == dpp4_inhibitor; glucose_lowering_therapy == glp1_ra]
+  NOT[acu_paed_known_signs_r04]: ANY[capillary_glucose > 11; random_pg > 11; fasting_pg > 11; postprandial_pg > 11; ogtt_1h_pg > 11; ogtt_2h_pg > 11; glucose_meter_extreme == hi]
+  NOT[acu_paed_known_signs_hypo]: ANY[capillary_glucose < 3.0; random_pg < 3.0; fasting_pg < 3.0; postprandial_pg < 3.0; ogtt_1h_pg < 3.0; ogtt_2h_pg < 3.0; glucose_meter_extreme == lo]
+
+### DM-ACU-ROUTE-26 lane=acute_route urg=same_day run=always ages=None preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Glucose below 3.9 mmol/L in diabetes, not on insulin or a sulfonylurea: recheck today and look for another cause
+  W: ALL[dm_type_recorded in ['type_2', 'gestational', 'other']; glucose_lowering_therapy != insulin; glucose_lowering_therapy != glibenclamide; glucose_lowering_therapy != gliclazide; glucose_lowering_therapy != glimepiride] & ANY[capillary_glucose < 3.9; random_pg < 3.9; fasting_pg < 3.9; postprandial_pg < 3.9; ogtt_1h_pg < 3.9; ogtt_2h_pg < 3.9] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride; glucose_lowering_therapy == insulin; glucose_lowering_therapy == sglt2_inhibitor; glucose_lowering_therapy == pioglitazone; glucose_lowering_therapy == dpp4_inhibitor; glucose_lowering_therapy == glp1_ra]
+  NOT[acu_hypo_other_l2]: ANY[capillary_glucose < 3.0; random_pg < 3.0; fasting_pg < 3.0; postprandial_pg < 3.0; ogtt_1h_pg < 3.0; ogtt_2h_pg < 3.0; glucose_meter_extreme == lo]
+  NOT[acu_hypo_other_drowsy]: ALL[mental_status in ['drowsy', 'stupor', 'coma']]
+
+### DM-ACU-ROUTE-27 lane=acute_route urg=same_day run=always ages=None preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Pregnant or within 6 weeks of birth, with blood pressure 140/90 or more: urine protein today
+  W: ANY[bp_systolic >= 140; bp_diastolic >= 90] & ATLEAST1[pregnant present; postpartum_weeks <= 6]
+  NOT[acu_preg_bp_severe]: ANY[bp_systolic >= 160; bp_diastolic >= 110]
+  NOT[acu_preg_bp_protein_done]: ANY[urine_protein_strip recorded]
+  NOT[-27_sympt]: ANY[hypertensive_symptoms present; hypertensive_organ_damage present]
+
+### DM-ACU-ROUTE-28 lane=acute_route urg=immediate run=always ages=None preg=None unlessCap=None reqCap=None enabled=None pUC=True uU=same_day
+  D: Pregnant or within 6 weeks of birth, with blood pressure 160/110 or more: acute severe hypertension. Route now; refer to hospital
+  W: ANY[bp_systolic >= 160; bp_diastolic >= 110] & ATLEAST1[pregnant present; postpartum_weeks <= 6]
+
+### DM-SUS-INCID-04 lane=suspect urg=routine run=not_established ages=['adult', 'older_adult'] preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: A fasting capillary glucose of 6.1 to below 7.0 mmol/L: repeat fasting on another day, and offer a 2-hour OGTT where one can be done
+  W: ALL[capillary_glucose_context == fasting; capillary_glucose >= 6.1; capillary_glucose < 7.0]
+  NOT[sus_fcap_ifg_preg]: ALL[pregnant present]
+
+### DM-ACU-ROUTE-29 lane=acute_route urg=immediate run=always ages=None preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Blood pressure above 180/110 with drowsiness, organ-damage signs, chest pain or stroke signs: hypertensive emergency. Route now
+  W: ANY[bp_systolic > 180; bp_diastolic > 110] & ATLEAST1[mental_status in ['drowsy', 'stupor', 'coma']; chest_pain_or_stroke_symptoms present; hypertensive_organ_damage present]
+  NOT[acu_htn_emerg_r17]: ALL[chest_pain_or_stroke_symptoms present]
+  NOT[acu_htn_emerg_r28]: ALL[pregnant present]
+
+### DM-ACU-ROUTE-30 lane=acute_route urg=immediate run=always ages=None preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Blood ketones 1.6 to below 3.0 mmol/L with vomiting, in diabetes: ketoacidosis is developing and fluids cannot be kept down. Route now
+  W: ALL[bohb >= 1.6; bohb < 3.0; vomiting present] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride; glucose_lowering_therapy == insulin; glucose_lowering_therapy == sglt2_inhibitor; glucose_lowering_therapy == pioglitazone; glucose_lowering_therapy == dpp4_inhibitor; glucose_lowering_therapy == glp1_ra; capillary_glucose >= 11.1; random_pg >= 11.1; fasting_pg >= 11.1; postprandial_pg >= 11.1; ogtt_1h_pg >= 11.1; ogtt_2h_pg >= 11.1; glucose_meter_extreme == hi]
+
+### DM-ACU-ROUTE-31 lane=acute_route urg=immediate run=always ages=None preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Glucose below 3.9 mmol/L with drowsiness or worse: severe hypoglycaemia until proved otherwise. Route now
+  W: ALL[mental_status in ['drowsy', 'stupor', 'coma']] & ANY[capillary_glucose < 3.9; random_pg < 3.9; fasting_pg < 3.9; postprandial_pg < 3.9; ogtt_1h_pg < 3.9; ogtt_2h_pg < 3.9]
+  NOT[acu_hypo_drowsy_r06]: ANY[capillary_glucose < 3.0; random_pg < 3.0; fasting_pg < 3.0; postprandial_pg < 3.0; ogtt_1h_pg < 3.0; ogtt_2h_pg < 3.0; glucose_meter_extreme == lo]
+  NOT[acu_hypo_drowsy_r07]: ANY[glucose_lowering_therapy == insulin; glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride; dm_type_recorded == type_1]
+
+### DM-ACU-ROUTE-32 lane=acute_route urg=immediate run=always ages=['child', 'adolescent'] preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: A child with diabetes or on insulin, vomiting or with abdominal pain, and no glucose on record: capillary glucose now
+  W: ANY[vomiting present; abdominal_pain present] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride; glucose_lowering_therapy == insulin; glucose_lowering_therapy == sglt2_inhibitor; glucose_lowering_therapy == pioglitazone; glucose_lowering_therapy == dpp4_inhibitor; glucose_lowering_therapy == glp1_ra]
+  NOT[acu_paed_known_sick_done]: ANY[capillary_glucose recorded; random_pg recorded; fasting_pg recorded; postprandial_pg recorded; ogtt_1h_pg recorded; ogtt_2h_pg recorded; glucose_meter_extreme recorded]
+
+### DM-ACU-ROUTE-21B lane=acute_route urg=same_day run=always ages=None preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Blood ketones 0.6 to below 1.6 mmol/L in diabetes, when unwell or with glucose 18 or more: recheck within 2 hours and contact the diabetes team today
+  W: ALL[bohb >= 0.6; bohb < 1.6] & ANY[vomiting present; abdominal_pain present; acute_illness_current present; dehydration present; capillary_glucose >= 18; random_pg >= 18; fasting_pg >= 18; postprandial_pg >= 18; ogtt_1h_pg >= 18; ogtt_2h_pg >= 18; glucose_meter_extreme == hi; acetone_breath present] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride; glucose_lowering_therapy == insulin; glucose_lowering_therapy == sglt2_inhibitor; glucose_lowering_therapy == pioglitazone; glucose_lowering_therapy == dpp4_inhibitor; glucose_lowering_therapy == glp1_ra; capillary_glucose >= 11.1; random_pg >= 11.1; fasting_pg >= 11.1; postprandial_pg >= 11.1; ogtt_1h_pg >= 11.1; ogtt_2h_pg >= 11.1; glucose_meter_extreme == hi]
+  NOT[21b_interrupt_signs]: ANY[deep_rapid_breathing present; mental_status in ['drowsy', 'stupor', 'coma']]
+
+### DM-ACU-ROUTE-28B lane=acute_route urg=immediate run=always ages=None preg=None unlessCap=None reqCap=None enabled=None pUC=True uU=None
+  D: Pregnant or within 6 weeks of birth, with organ-damage signs beside a raised pressure: severe pre-eclampsia whatever the number. Route now
+  W: ALL[hypertensive_organ_damage present] & ANY[bp_systolic >= 140; bp_diastolic >= 90] & ATLEAST1[pregnant present; postpartum_weeks <= 6]
+
+### DM-ACU-ROUTE-28C lane=acute_route urg=immediate run=always ages=None preg=None unlessCap=None reqCap=None enabled=None pUC=True uU=None
+  D: Pregnant or within 6 weeks of birth, drowsy, with blood pressure 140/90 or more: severe pre-eclampsia or eclampsia until proved otherwise. Route now
+  W: ALL[mental_status in ['drowsy', 'stupor', 'coma']] & ANY[bp_systolic >= 140; bp_diastolic >= 90] & ATLEAST1[pregnant present; postpartum_weeks <= 6]
+
+### DM-ACU-ROUTE-27B lane=acute_route urg=same_day run=always ages=None preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Raised blood pressure in pregnancy or after birth, urine protein negative: gestational or chronic hypertension. Review the blood-pressure plan today and aim below 140/90
+  W: ALL[urine_protein_strip in ['neg', 'trace']] & ANY[bp_systolic >= 140; bp_diastolic >= 90] & ATLEAST1[pregnant present; postpartum_weeks <= 6]
+  NOT[27b_severe]: ANY[bp_systolic >= 160; bp_diastolic >= 110]
+  NOT[acu_preg_bp_neg_sympt]: ANY[hypertensive_symptoms present; hypertensive_organ_damage present]
+
+### DM-ACU-ROUTE-27C lane=acute_route urg=same_day run=always ages=None preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Raised blood pressure in pregnancy or after birth with urine protein 1+ or more: pre-eclampsia. Refer to hospital today
+  W: ALL[urine_protein_strip in ['1plus', '2plus', '3plus']] & ANY[bp_systolic >= 140; bp_diastolic >= 90] & ATLEAST1[pregnant present; postpartum_weeks <= 6]
+  NOT[27c_severe]: ANY[bp_systolic >= 160; bp_diastolic >= 110]
+  NOT[27c_sympt]: ANY[hypertensive_symptoms present; hypertensive_organ_damage present]
+
+### DM-ACU-ROUTE-34 lane=acute_route urg=same_day run=always ages=None preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Diabetes, vomiting, glucose 18 or more: medicines may not be kept down and the hyperosmolar state can develop. Same-day review; test ketones if not done
+  W: ALL[vomiting present] & ANY[capillary_glucose >= 18; random_pg >= 18; fasting_pg >= 18; postprandial_pg >= 18; ogtt_1h_pg >= 18; ogtt_2h_pg >= 18; glucose_meter_extreme == hi] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride; glucose_lowering_therapy == insulin; glucose_lowering_therapy == sglt2_inhibitor; glucose_lowering_therapy == pioglitazone; glucose_lowering_therapy == dpp4_inhibitor; glucose_lowering_therapy == glp1_ra]
+  NOT[acu_vomit_high_ket]: ANY[bohb >= 0.6; urine_ketones in ['2plus', '3plus']; deep_rapid_breathing present; acetone_breath present; dehydration present; mental_status in ['drowsy', 'stupor', 'coma']]
+
+### DM-ACU-ROUTE-28D lane=acute_route urg=immediate run=always ages=None preg=None unlessCap=None reqCap=None enabled=None pUC=True uU=None
+  D: Pregnant or within 6 weeks of birth and drowsy: route now. Blood pressure and glucose now if not already recorded (eclampsia, hypoglycaemia)
+  W: ALL[mental_status in ['drowsy', 'stupor', 'coma']] & ATLEAST1[pregnant present; postpartum_weeks <= 6]
+
+### DM-ACU-ROUTE-27D lane=acute_route urg=immediate run=always ages=None preg=None unlessCap=None reqCap=None enabled=None pUC=True uU=None
+  D: Raised blood pressure in pregnancy or after birth with headache or vomiting: features of severe pre-eclampsia. Route now; refer to hospital
+  W: ALL[hypertensive_symptoms present] & ANY[bp_systolic >= 140; bp_diastolic >= 90] & ATLEAST1[pregnant present; postpartum_weeks <= 6]
+  NOT[acu_preg_bp_sympt_organ]: ALL[hypertensive_organ_damage present]
+
+### DM-ACU-ROUTE-24B lane=acute_route urg=immediate run=always ages=['adult', 'older_adult'] preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Diabetes on insulin or an SGLT2 inhibitor, type 1 or unclassified, or medicines or type not recorded, with acetone on the breath or dehydration: suspected ketoacidosis at any glucose. Route now; ketones now
+  W: ANY[acetone_breath present; dehydration present] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride; glucose_lowering_therapy == insulin; glucose_lowering_therapy == sglt2_inhibitor; glucose_lowering_therapy == pioglitazone; glucose_lowering_therapy == dpp4_inhibitor; glucose_lowering_therapy == glp1_ra]
+  NOT[acu_t1_acetone_bohb_normal]: ALL[bohb < 0.6]
+  NOT[acu_t1_acetone_list_clear]: ALL[glucose_lowering_therapy != insulin; glucose_lowering_therapy != sglt2_inhibitor; dm_type_recorded in ['type_2', 'gestational', 'other']]
+
+### DM-ACU-ROUTE-25B lane=acute_route urg=immediate run=always ages=['child', 'adolescent'] preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: A child with diabetes and acetone on the breath or dehydration: suspected ketoacidosis. Route now
+  W: ANY[acetone_breath present; dehydration present] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride; glucose_lowering_therapy == insulin; glucose_lowering_therapy == sglt2_inhibitor; glucose_lowering_therapy == pioglitazone; glucose_lowering_therapy == dpp4_inhibitor; glucose_lowering_therapy == glp1_ra]
+  NOT[acu_paed_acetone_bohb_normal]: ALL[bohb < 0.6]
+  NOT[acu_paed_acetone_r04]: ANY[capillary_glucose > 11; random_pg > 11; fasting_pg > 11; postprandial_pg > 11; ogtt_1h_pg > 11; ogtt_2h_pg > 11; glucose_meter_extreme == hi]
+
+### DM-ACU-ROUTE-23D lane=acute_route urg=same_day run=always ages=None preg=None unlessCap=lab.ketones_blood reqCap=None enabled=None pUC=None uU=None
+  D: Type 1 or on insulin, vomiting or abdominal pain, at a site with no blood ketone test: urine ketones now and again in 2 hours (a negative strip can miss early ketoacidosis); refer if vomiting continues or ketones rise
+  W: ANY[vomiting present; abdominal_pain present] & ATLEAST1[dm_type_recorded == type_1; glucose_lowering_therapy == insulin]
+  NOT[acu_insulin_sick_district_raised]: ANY[urine_ketones in ['2plus', '3plus']; deep_rapid_breathing present; acetone_breath present; dehydration present; mental_status in ['drowsy', 'stupor', 'coma']]
+
+### DM-ACU-ROUTE-34B lane=acute_route urg=same_day run=always ages=None preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Diabetes, acutely unwell, glucose 18 or more: same-day review (the hyperosmolar state can develop without vomiting)
+  W: ALL[acute_illness_current present] & ANY[capillary_glucose >= 18; random_pg >= 18; fasting_pg >= 18; postprandial_pg >= 18; ogtt_1h_pg >= 18; ogtt_2h_pg >= 18; glucose_meter_extreme == hi] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride; glucose_lowering_therapy == insulin; glucose_lowering_therapy == sglt2_inhibitor; glucose_lowering_therapy == pioglitazone; glucose_lowering_therapy == dpp4_inhibitor; glucose_lowering_therapy == glp1_ra]
+  NOT[acu_ill_high_vomit]: ANY[vomiting present; bohb >= 0.6; urine_ketones in ['2plus', '3plus']; deep_rapid_breathing present; acetone_breath present; dehydration present; mental_status in ['drowsy', 'stupor', 'coma']]
+
+### DM-ACU-ROUTE-28E lane=acute_route urg=immediate run=always ages=None preg=None unlessCap=None reqCap=None enabled=None pUC=True uU=None
+  D: Pregnant or within 6 weeks of birth, with confusion, seizures, visual loss, breathlessness or little urine: route now; measure blood pressure
+  W: ALL[hypertensive_organ_damage present] & ATLEAST1[pregnant present; postpartum_weeks <= 6]
+  NOT[acu_preg_organ_r28b]: ANY[bp_systolic >= 140; bp_diastolic >= 90]
+
+### DM-ACU-ROUTE-13B lane=acute_route urg=same_day run=always ages=None preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: Diabetes with acetone on the breath or dehydration: blood ketones today; a urine strip or a ketone below 1.6 does not settle it unless blood ketones are below 0.6
+  W: ANY[acetone_breath present; dehydration present] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride; glucose_lowering_therapy == insulin; glucose_lowering_therapy == sglt2_inhibitor; glucose_lowering_therapy == pioglitazone; glucose_lowering_therapy == dpp4_inhibitor; glucose_lowering_therapy == glp1_ra]
+  NOT[acu_dm_acetone_bohb_normal]: ALL[bohb < 0.6]
+  NOT[acu_dm_acetone_raised]: ANY[bohb >= 1.6; urine_ketones in ['2plus', '3plus']; deep_rapid_breathing present; mental_status in ['drowsy', 'stupor', 'coma']]
+
+### DM-ACU-ROUTE-25C lane=acute_route urg=same_day run=always ages=['child', 'adolescent'] preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: A child with diabetes, dehydrated or smelling of acetone, with normal blood ketones: same-day review by the paediatric or diabetes team; recheck ketones if it persists
+  W: ALL[bohb < 0.6] & ANY[acetone_breath present; dehydration present] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride; glucose_lowering_therapy == insulin; glucose_lowering_therapy == sglt2_inhibitor; glucose_lowering_therapy == pioglitazone; glucose_lowering_therapy == dpp4_inhibitor; glucose_lowering_therapy == glp1_ra]
+
+### DM-SUS-PAED-04 lane=suspect urg=same_day run=always ages=['child', 'adolescent'] preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: A child with a fasting glucose of 7.0 or more, a 2-hour value of 11.1 or more, or an HbA1c of 6.5% or more: refer today as suspected diabetes
+  W: ANY[fasting_pg >= 7.0; ogtt_2h_pg >= 11.1; hba1c >= 6.5]
+  NOT[sus_paed_range_known]: ANY[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride; glucose_lowering_therapy == insulin; glucose_lowering_therapy == sglt2_inhibitor; glucose_lowering_therapy == pioglitazone; glucose_lowering_therapy == dpp4_inhibitor; glucose_lowering_therapy == glp1_ra]
+
+### DM-SUS-PAED-05 lane=suspect urg=same_day run=always ages=['child', 'adolescent'] preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: A child with a fasting capillary glucose of 7.0 or more: refer today as suspected diabetes
+  W: ALL[capillary_glucose_context == fasting; capillary_glucose >= 7.0]
+  NOT[sus_paed_fcap_known]: ANY[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride; glucose_lowering_therapy == insulin; glucose_lowering_therapy == sglt2_inhibitor; glucose_lowering_therapy == pioglitazone; glucose_lowering_therapy == dpp4_inhibitor; glucose_lowering_therapy == glp1_ra]
+
+### DM-ACU-ROUTE-32B lane=acute_route urg=same_day run=always ages=['child', 'adolescent'] preg=None unlessCap=None reqCap=None enabled=None pUC=None uU=None
+  D: A child with diabetes who is vomiting: sick-day review today, even with a normal glucose and ketones
+  W: ALL[vomiting present] & ATLEAST1[dm_status == known; dm_type_recorded in ['type_1', 'type_2', 'unclassified', 'other', 'gestational']; glucose_lowering_therapy == metformin; glucose_lowering_therapy == glibenclamide; glucose_lowering_therapy == gliclazide; glucose_lowering_therapy == glimepiride; glucose_lowering_therapy == insulin; glucose_lowering_therapy == sglt2_inhibitor; glucose_lowering_therapy == pioglitazone; glucose_lowering_therapy == dpp4_inhibitor; glucose_lowering_therapy == glp1_ra]

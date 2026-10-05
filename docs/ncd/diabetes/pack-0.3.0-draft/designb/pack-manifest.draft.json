@@ -1,6 +1,6 @@
 {
  "id": "diabetes",
- "version": "0.3.6-draft",
+ "version": "0.3.7-draft",
  "status": "draft",
  "semantics": {
   "recorded": "The `recorded` operator and every 'a result is already recorded' stop condition mean recorded AT THIS ENCOUNTER. A glucose from last month does not stand down the coma interrupt. Design B carries the time scope; the catalog grammar assumes the encounter's capture (fourth review, J19).",
@@ -48,7 +48,7 @@
   "bands": "An HbA1c control band is read only against a target that is actually proposed (`forTarget`), so a band never contradicts the target beside it (eighth review, T06).",
   "caveatsEverywhere": "A blocking caveat acts by direction on every rule and step outside the acute lane, on routine (not same-day or urgent) referrals and on targets; a value hidden by it is named as a gap only where it changed a met result. Acute rules and referrals for danger are never suppressed (N8; ninth review, U11).",
   "riskModels": "A risk model runs only when every feature in `mustHave` is recorded, and not when its `notWhen` holds; a missing input is never 'baseline' (eighth review, T13, T14).",
-  "adult": "Age bands are effective bands: where a numeric age is recorded, under 16 is never 'adult' or 'older_adult' and 16 or over is never 'child' or 'adolescent', for rules, steps, flags and targets alike. A therapy flag shown under 16 shows its `under16Action` (refer; do not change the medicine here) instead of its action (ninth review, U07, U12)."
+  "adult": "Age bands are effective bands: where a numeric age is recorded, under 16 is never 'adult' or 'older_adult' and 16 or over is never 'child' or 'adolescent', for rules, steps, flags and targets alike. A therapy flag shown under 16 shows its `under16Action` (refer; do not change the medicine here) instead of its action (ninth review, U07, U12). A recorded age of 10 to 15 is 'adolescent' even if the band says 'child' (tenth review, V16)."
  },
  "criteriaSets": [
   "who_hearts_d_2020",
@@ -70,7 +70,7 @@
   "DM-ACT-TARGET": 1,
   "DM-ACT-TEST": 3,
   "DM-ACT-THERAPY": 35,
-  "DM-ACU-ROUTE": 48,
+  "DM-ACU-ROUTE": 49,
   "DM-CLS-ATYP": 2,
   "DM-CLS-DRUG": 1,
   "DM-CLS-PANC": 2,
@@ -101,7 +101,7 @@
   "confirm": 42,
   "classify": 11,
   "stratify": 12,
-  "acute_route": 48,
+  "acute_route": 49,
   "act": 84
  },
  "rules": [
@@ -2166,6 +2166,7 @@
     "sx.vomiting",
     "sx.abdominal_pain",
     "sign.dehydration",
+    "ncd.acute_illness_current (no CFC concept yet)",
     "ncd.dm_status (no CFC concept yet)",
     "ncd.dm_type_recorded (no CFC concept yet)",
     "ncd.glucose_lowering_therapy (no CFC concept yet)"
@@ -2626,7 +2627,7 @@
    "id": "DM-SUS-INCID-02",
    "family": "DM-SUS-INCID",
    "lane": "suspect",
-   "title": "One result in the diabetes range: with symptoms it is diagnostic; without them, repeat on another day and do not leave it",
+   "title": "One result in the diabetes range: confirm it. Repeat on another day (or, with symptoms, check a glucose today); do not leave it",
    "appliesTo": {
     "ageBands": [
      "adult",
@@ -3664,6 +3665,7 @@
    "reads": [
     "sx.vomiting",
     "sx.abdominal_pain",
+    "ncd.acute_illness_current (no CFC concept yet)",
     "ncd.dm_type_recorded (no CFC concept yet)",
     "ncd.glucose_lowering_therapy (no CFC concept yet)"
    ],
@@ -4148,7 +4150,7 @@
    "id": "DM-ACU-ROUTE-32",
    "family": "DM-ACU-ROUTE",
    "lane": "acute_route",
-   "title": "A child with diabetes or on insulin, vomiting or with abdominal pain, and no glucose on record: capillary glucose now",
+   "title": "A child with diabetes or on insulin, vomiting, in pain or acutely unwell, and no glucose on record: capillary glucose now",
    "appliesTo": {
     "ageBands": [
      "child",
@@ -4159,6 +4161,7 @@
    "reads": [
     "sx.vomiting",
     "sx.abdominal_pain",
+    "ncd.acute_illness_current (no CFC concept yet)",
     "ncd.dm_status (no CFC concept yet)",
     "ncd.dm_type_recorded (no CFC concept yet)",
     "ncd.glucose_lowering_therapy (no CFC concept yet)"
@@ -4772,6 +4775,7 @@
    "reads": [
     "sx.vomiting",
     "sx.abdominal_pain",
+    "ncd.acute_illness_current (no CFC concept yet)",
     "ncd.dm_type_recorded (no CFC concept yet)",
     "ncd.glucose_lowering_therapy (no CFC concept yet)"
    ],
@@ -4921,7 +4925,7 @@
    "id": "DM-ACU-ROUTE-13B",
    "family": "DM-ACU-ROUTE",
    "lane": "acute_route",
-   "title": "Diabetes with acetone on the breath or dehydration: blood ketones today; a urine strip or a ketone below 1.6 does not settle it unless blood ketones are below 0.6",
+   "title": "Diabetes with acetone on the breath or dehydration: ketones today. Blood ketones where the site has them; otherwise a urine strip now and again in 2 hours, and refer today if either is raised or the person is unwell",
    "appliesTo": {
     "ageBands": null,
     "pregnancy": "any"
@@ -5134,7 +5138,8 @@
     "requiresCapability": null,
     "unlessCapability": null,
     "notWhen": [
-     "sus_paed_fcap_known"
+     "sus_paed_fcap_known",
+     "sus_paed_fcap_r03"
     ]
    }
   },
@@ -5142,7 +5147,7 @@
    "id": "DM-ACU-ROUTE-32B",
    "family": "DM-ACU-ROUTE",
    "lane": "acute_route",
-   "title": "A child with diabetes who is vomiting: sick-day review today, even with a normal glucose and ketones",
+   "title": "A child with diabetes who is vomiting or acutely unwell: sick-day review today, even with a normal glucose and ketones",
    "appliesTo": {
     "ageBands": [
      "child",
@@ -5152,6 +5157,7 @@
    },
    "reads": [
     "sx.vomiting",
+    "ncd.acute_illness_current (no CFC concept yet)",
     "ncd.dm_status (no CFC concept yet)",
     "ncd.dm_type_recorded (no CFC concept yet)",
     "ncd.glucose_lowering_therapy (no CFC concept yet)"
@@ -5188,6 +5194,60 @@
     "requiresCapability": null,
     "unlessCapability": null,
     "notWhen": []
+   }
+  },
+  {
+   "id": "DM-ACU-ROUTE-23R",
+   "family": "DM-ACU-ROUTE",
+   "lane": "acute_route",
+   "title": "Type 1 or on insulin, vomiting or acutely unwell: sick-day review today, even with normal ketones (glucose and ketones every 1 to 2 hours; never stop insulin)",
+   "appliesTo": {
+    "ageBands": [
+     "adult",
+     "older_adult"
+    ],
+    "pregnancy": "any"
+   },
+   "reads": [
+    "sx.vomiting",
+    "ncd.acute_illness_current (no CFC concept yet)",
+    "ncd.dm_type_recorded (no CFC concept yet)",
+    "ncd.glucose_lowering_therapy (no CFC concept yet)"
+   ],
+   "predicate": "catalog.rule:acu_insulin_sick_review",
+   "params": {},
+   "minTrust": 1,
+   "emits": [
+    "acute_signal"
+   ],
+   "citations": [
+    {
+     "source": "ISPAD Clinical Practice Consensus Guidelines 2022: Sick day management in children and adolescents with diabetes (Chapter 13)",
+     "section": "Executive summary / key principles",
+     "url": "https://www.ispad.org/asset/6551D05A-156C-4772-A32A6D663FCFC2D4/",
+     "verifiedOn": "2026-10-03",
+     "claim": "A9-49"
+    }
+   ],
+   "status": "draft",
+   "x": {
+    "proposal": {
+     "kind": "review",
+     "to": "clinician",
+     "tier": "today"
+    },
+    "neutralProposal": null,
+    "urgency": "same_day",
+    "posterior": "moderate",
+    "restrictedClasses": [],
+    "interruptRank": null,
+    "pregnancyUnknownCounts": false,
+    "unknownDisplay": null,
+    "requiresCapability": null,
+    "unlessCapability": null,
+    "notWhen": [
+     "acu_insulin_sick_review_signs"
+    ]
    }
   },
   {
@@ -8390,7 +8450,7 @@
     "ncd.acute_illness_current (no CFC concept yet)",
     "sx.vomiting",
     "sign.dehydration",
-    "ncd.acute_kidney_injury (no CFC concept yet)"
+    "ncd.creatinine_unstable (no CFC concept yet)"
    ],
    "predicate": "catalog.therapyFlag:metformin_during_acute_illness",
    "params": {},
@@ -8570,7 +8630,7 @@
     "sx.vomiting",
     "sx.abdominal_pain",
     "sign.dehydration",
-    "ncd.acute_kidney_injury (no CFC concept yet)"
+    "ncd.creatinine_unstable (no CFC concept yet)"
    ],
    "predicate": "catalog.therapyFlag:sglt2_during_acute_illness",
    "params": {},

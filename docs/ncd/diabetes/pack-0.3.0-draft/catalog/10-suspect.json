@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.6-draft",
+  "version": "0.3.7-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -2612,7 +2612,7 @@
   },
   {
    "id": "DM-SUS-INCID-02",
-   "display": "One result in the diabetes range: with symptoms it is diagnostic; without them, repeat on another day and do not leave it",
+   "display": "One result in the diabetes range: confirm it. Repeat on another day (or, with symptoms, check a glucose today); do not leave it",
    "condition": "diabetes_undiagnosed",
    "when": {
     "id": "sus_single_abnormal",
@@ -3490,7 +3490,8 @@
      "tier": "today"
     },
     "review": [
-     "U04"
+     "U04",
+     "V15"
     ],
     "notWhen": [
      {
@@ -3573,6 +3574,69 @@
         "bodyProposed": "NICE",
         "verified": true,
         "ref": "REF-DM-SUS-PAED-SAMEDAY"
+       }
+      }
+     },
+     {
+      "id": "sus_paed_fcap_r03",
+      "label": "Any glucose above 11 mmol/L or HI (rule PAED-03 applies)",
+      "any": [
+       {
+        "feature": "capillary_glucose",
+        "op": ">",
+        "value": 11,
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "random_pg",
+        "op": ">",
+        "value": 11,
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "fasting_pg",
+        "op": ">",
+        "value": 11,
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "postprandial_pg",
+        "op": ">",
+        "value": 11,
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "ogtt_1h_pg",
+        "op": ">",
+        "value": 11,
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "ogtt_2h_pg",
+        "op": ">",
+        "value": 11,
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "glucose_meter_extreme",
+        "op": "==",
+        "value": "hi"
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "NG18, Bookshelf copy last updated 11 May 2023",
+       "title": "Diabetes (type 1 and type 2) in children and young people: diagnosis and management (NICE guideline NG18)",
+       "url": "https://www.ncbi.nlm.nih.gov/books/NBK555102/",
+       "quote": "increased thirst, polyuria, recent unexplained weight loss or excessive tiredness [...] nausea, vomiting, abdominal pain, hyperventilation, dehydration or reduced level of consciousness [...] Immediately send them to a hospital with acute paediatric facilities",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A9-31",
+        "section": "Recognition of DKA - recs 1.4.1-1.4.2 (numbers as returned)",
+        "bodyProposed": "NICE",
+        "verified": true,
+        "ref": "REF-DM-ACU-PAED-GLU"
        }
       }
      }

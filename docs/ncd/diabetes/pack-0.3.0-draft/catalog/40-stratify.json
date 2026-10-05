@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.6-draft",
+  "version": "0.3.7-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -1780,7 +1780,7 @@
      "severity": "low",
      "when": {
       "id": "hypo_base",
-      "label": "On insulin or a sulfonylurea, no lows in the last year, and none of the factors above",
+      "label": "On insulin or a sulfonylurea, no lows in the last year, kidney function recorded, and none of the factors above",
       "any": [
        {
         "feature": "glucose_lowering_therapy",
@@ -1824,6 +1824,10 @@
         "feature": "hypo_worst_12m",
         "op": "==",
         "value": "none"
+       },
+       {
+        "feature": "egfr",
+        "op": "recorded"
        }
       ]
      }
@@ -2105,12 +2109,14 @@
      "F36",
      "F04",
      "H06",
-     "U10"
+     "U10",
+     "V02"
     ],
     "ages": "adult",
     "appliesTo": {
      "pregnancy": "not_pregnant"
-    }
+    },
+    "forTarget": "tgt_fpg_surrogate"
    }
   },
   {
@@ -2176,12 +2182,14 @@
      "F36",
      "F04",
      "H06",
-     "U10"
+     "U10",
+     "V02"
     ],
     "ages": "adult",
     "appliesTo": {
      "pregnancy": "not_pregnant"
-    }
+    },
+    "forTarget": "tgt_ppg_surrogate"
    },
    "note": "WHO's surrogate where HbA1c is unavailable or unreliable. A value below 3.9 mmol/L is shown as LOW, never as 'at target'. WHO's clinical target is 'at or below' this value and its programme indicator is 'below' it; the band uses 'below' until D-DM-13 is decided. Not shown in pregnancy: targets there are set by the specialist antenatal team and are tighter. A low value still fires the hypoglycaemia rules."
   },
@@ -2367,12 +2375,14 @@
      "F21",
      "F07",
      "F04",
-     "H06"
+     "H06",
+     "V02"
     ],
     "ages": "adult",
     "appliesTo": {
      "pregnancy": "not_pregnant"
-    }
+    },
+    "forTarget": "tgt_fpg_surrogate"
    }
   },
   {
@@ -2443,12 +2453,14 @@
      "F21",
      "F07",
      "F04",
-     "H06"
+     "H06",
+     "V02"
     ],
     "ages": "adult",
     "appliesTo": {
      "pregnancy": "not_pregnant"
-    }
+    },
+    "forTarget": "tgt_ppg_surrogate"
    }
   },
   {
@@ -2514,16 +2526,9 @@
    "version": "2020 (WHO/UCN/NCD/20.1)",
    "bands": [
     {
-     "code": "below_range",
-     "display": "Below KDIGO's individualised range: review for over-treatment and lows",
-     "tone": "intermediate",
-     "to": 6.5
-    },
-    {
      "code": "in_range",
-     "display": "Within KDIGO's individualised range (individualise within it)",
+     "display": "Within KDIGO's individualised range (below 8.0%; individualise within it)",
      "tone": "normal",
-     "from": 6.5,
      "to": 8.0
     },
     {
@@ -2557,13 +2562,13 @@
     "lane": "stratify",
     "family": "DM-STR-CTRL",
     "refs": [
-     "REF-DM-CTRL-CKD-LOW",
      "REF-DM-CTRL-CKD-HIGH"
     ],
     "status": "new",
     "review": [
      "T06",
-     "U14"
+     "U14",
+     "V08"
     ],
     "ages": "adult",
     "appliesTo": {
@@ -3307,14 +3312,13 @@
      },
      {
       "id": "tier_not_general",
-      "label": "A different glycaemic target tier has already been agreed",
+      "label": "A relaxed or 'avoid symptoms' tier has been agreed",
       "all": [
        {
         "feature": "glycaemic_target_tier",
         "op": "in",
         "value": [
          "relaxed",
-         "tight",
          "avoid_symptoms"
         ]
        }
@@ -3337,8 +3341,67 @@
       }
      },
      {
-      "id": "tgt_general_su_low",
-      "label": "On insulin or a sulfonylurea with a significant low in the last year (the relaxed target applies)",
+      "id": "tgt_hba1c_general_avoid",
+      "label": "'Avoid symptoms' agreed (no HbA1c target by design)",
+      "all": [
+       {
+        "feature": "glycaemic_target_tier",
+        "op": "==",
+        "value": "avoid_symptoms"
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "2020 (WHO/UCN/NCD/20.1)",
+       "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+       "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+       "quote": "Patients with a short life expectancy and those with advanced complications or serious comorbidities are unlikely to benefit from efforts to achieve near-normal glycaemia. [...] The HbA1c target can be relaxed (e.g. to <8% or <64 mmol/mol) in people with frequent severe hypoglycaemia, advanced complications or low life-expectancy.",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A2-29",
+        "section": "Section 'Targets for glycaemic control' (p.17); Fig. 2 footnote (p.25)",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-CTRL-HBA1C-RELAXED"
+       }
+      }
+     },
+     {
+      "id": "tgt_general_tight",
+      "label": "A tight tier agreed and not on insulin (the tight target applies)",
+      "all": [
+       {
+        "feature": "glycaemic_target_tier",
+        "op": "==",
+        "value": "tight"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "!=",
+        "value": "insulin"
+       }
+      ],
+      "citation": {
+       "standard": "ADA",
+       "version": "Standards of Care in Diabetes—2026",
+       "title": "6. Glycemic Goals, Hypoglycemia, and Hyperglycemic Crises: Standards of Care in Diabetes—2026 (Diabetes Care 2026;49(Suppl 1):S132–S149; doi 10.2337/dc26-S006)",
+       "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178/?report=classic",
+       "quote": "Lower A1C goals (e.g., <6.5% [<48 mmol/mol]) may be appropriate for individuals with diabetes with good health and function and low treatment risks (e.g., hypoglycemia) and burdens (see Fig. 6.1). B",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A4-04",
+        "section": "Recommendation 6.4; Figure 6.1",
+        "bodyProposed": "ADA",
+        "verified": true,
+        "ref": "REF-DM-CTRL-HBA1C-TIGHT"
+       }
+      }
+     },
+     {
+      "id": "tgt_general_su_low2",
+      "label": "On insulin or a sulfonylurea with a significant low in the last year, and no tier agreed (the relaxed target applies)",
       "all": [
        {
         "feature": "hypo_worst_12m",
@@ -3370,33 +3433,6 @@
         "feature": "glucose_lowering_therapy",
         "op": "==",
         "value": "glimepiride"
-       }
-      ],
-      "citation": {
-       "standard": "WHO",
-       "version": "2020 (WHO/UCN/NCD/20.1)",
-       "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
-       "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
-       "quote": "Patients with a short life expectancy and those with advanced complications or serious comorbidities are unlikely to benefit from efforts to achieve near-normal glycaemia. [...] The HbA1c target can be relaxed (e.g. to <8% or <64 mmol/mol) in people with frequent severe hypoglycaemia, advanced complications or low life-expectancy.",
-       "retrieved": "2026-10-03",
-       "csoSigned": false,
-       "x": {
-        "claim": "A2-29",
-        "section": "Section 'Targets for glycaemic control' (p.17); Fig. 2 footnote (p.25)",
-        "bodyProposed": "WHO",
-        "verified": true,
-        "ref": "REF-DM-CTRL-HBA1C-RELAXED"
-       }
-      }
-     },
-     {
-      "id": "tgt_hba1c_general_avoid",
-      "label": "'Avoid symptoms' agreed (no HbA1c target by design)",
-      "all": [
-       {
-        "feature": "glycaemic_target_tier",
-        "op": "==",
-        "value": "avoid_symptoms"
        }
       ],
       "citation": {
@@ -3457,6 +3493,15 @@
       "feature": "glycaemic_target_tier",
       "op": "==",
       "value": "relaxed"
+     },
+     {
+      "feature": "hypo_worst_12m",
+      "op": "in",
+      "value": [
+       "needed_help",
+       "measured_below_3",
+       "repeated"
+      ]
      }
     ],
     "citation": {
@@ -4232,12 +4277,13 @@
      },
      {
       "id": "tgt_hba1c_ckd_tier",
-      "label": "A tier other than 'general' is already agreed (the agreed target applies)",
+      "label": "A tier is already agreed (the agreed target applies)",
       "all": [
        {
         "feature": "glycaemic_target_tier",
         "op": "in",
         "value": [
+         "general",
          "relaxed",
          "tight",
          "avoid_symptoms"
@@ -4392,9 +4438,140 @@
     },
     "review": [
      "F04",
-     "T10"
+     "T10",
+     "V02"
     ],
     "ages": "adult",
+    "notWhen": [
+     {
+      "id": "tgt_hba1c_general_relaxed_applies",
+      "label": "A reason to relax the target is recorded (the relaxed target is proposed instead; Gold score 4 or more counts)",
+      "any": [
+       {
+        "feature": "frailty_or_limited_life_expectancy",
+        "op": "present"
+       },
+       {
+        "feature": "cognitive_impairment",
+        "op": "present"
+       },
+       {
+        "feature": "hypo_worst_12m",
+        "op": "in",
+        "value": [
+         "needed_help",
+         "measured_below_3",
+         "repeated"
+        ]
+       },
+       {
+        "feature": "hypo_awareness_score",
+        "op": ">=",
+        "value": 4,
+        "unit": "score"
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "2020 (WHO/UCN/NCD/20.1)",
+       "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+       "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+       "quote": "Patients with a short life expectancy and those with advanced complications or serious comorbidities are unlikely to benefit from efforts to achieve near-normal glycaemia. [...] The HbA1c target can be relaxed (e.g. to <8% or <64 mmol/mol) in people with frequent severe hypoglycaemia, advanced complications or low life-expectancy.",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A2-29",
+        "section": "Section 'Targets for glycaemic control' (p.17); Fig. 2 footnote (p.25)",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-CTRL-HBA1C-RELAXED"
+       }
+      }
+     },
+     {
+      "id": "tgt_general_su_low",
+      "label": "On insulin or a sulfonylurea with a significant low in the last year (the relaxed target applies)",
+      "all": [
+       {
+        "feature": "hypo_worst_12m",
+        "op": "in",
+        "value": [
+         "needed_help",
+         "measured_below_3",
+         "repeated"
+        ]
+       }
+      ],
+      "any": [
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "insulin"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glibenclamide"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "gliclazide"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glimepiride"
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "2020 (WHO/UCN/NCD/20.1)",
+       "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+       "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+       "quote": "Patients with a short life expectancy and those with advanced complications or serious comorbidities are unlikely to benefit from efforts to achieve near-normal glycaemia. [...] The HbA1c target can be relaxed (e.g. to <8% or <64 mmol/mol) in people with frequent severe hypoglycaemia, advanced complications or low life-expectancy.",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A2-29",
+        "section": "Section 'Targets for glycaemic control' (p.17); Fig. 2 footnote (p.25)",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-CTRL-HBA1C-RELAXED"
+       }
+      }
+     },
+     {
+      "id": "tgt_fpg_surrogate_tier",
+      "label": "A relaxed or 'avoid symptoms' plan is agreed (a relaxed glucose goal needs a signed source: D-DM-40)",
+      "all": [
+       {
+        "feature": "glycaemic_target_tier",
+        "op": "in",
+        "value": [
+         "relaxed",
+         "avoid_symptoms"
+        ]
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "2020 (WHO/UCN/NCD/20.1)",
+       "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+       "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+       "quote": "Patients with a short life expectancy and those with advanced complications or serious comorbidities are unlikely to benefit from efforts to achieve near-normal glycaemia. [...] The HbA1c target can be relaxed (e.g. to <8% or <64 mmol/mol) in people with frequent severe hypoglycaemia, advanced complications or low life-expectancy.",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A2-29",
+        "section": "Section 'Targets for glycaemic control' (p.17); Fig. 2 footnote (p.25)",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-CTRL-HBA1C-RELAXED"
+       }
+      }
+     }
+    ],
     "restrictedClasses": []
    }
   },
@@ -4518,9 +4695,140 @@
     },
     "review": [
      "F04",
-     "T10"
+     "T10",
+     "V02"
     ],
     "ages": "adult",
+    "notWhen": [
+     {
+      "id": "tgt_hba1c_general_relaxed_applies",
+      "label": "A reason to relax the target is recorded (the relaxed target is proposed instead; Gold score 4 or more counts)",
+      "any": [
+       {
+        "feature": "frailty_or_limited_life_expectancy",
+        "op": "present"
+       },
+       {
+        "feature": "cognitive_impairment",
+        "op": "present"
+       },
+       {
+        "feature": "hypo_worst_12m",
+        "op": "in",
+        "value": [
+         "needed_help",
+         "measured_below_3",
+         "repeated"
+        ]
+       },
+       {
+        "feature": "hypo_awareness_score",
+        "op": ">=",
+        "value": 4,
+        "unit": "score"
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "2020 (WHO/UCN/NCD/20.1)",
+       "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+       "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+       "quote": "Patients with a short life expectancy and those with advanced complications or serious comorbidities are unlikely to benefit from efforts to achieve near-normal glycaemia. [...] The HbA1c target can be relaxed (e.g. to <8% or <64 mmol/mol) in people with frequent severe hypoglycaemia, advanced complications or low life-expectancy.",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A2-29",
+        "section": "Section 'Targets for glycaemic control' (p.17); Fig. 2 footnote (p.25)",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-CTRL-HBA1C-RELAXED"
+       }
+      }
+     },
+     {
+      "id": "tgt_general_su_low",
+      "label": "On insulin or a sulfonylurea with a significant low in the last year (the relaxed target applies)",
+      "all": [
+       {
+        "feature": "hypo_worst_12m",
+        "op": "in",
+        "value": [
+         "needed_help",
+         "measured_below_3",
+         "repeated"
+        ]
+       }
+      ],
+      "any": [
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "insulin"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glibenclamide"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "gliclazide"
+       },
+       {
+        "feature": "glucose_lowering_therapy",
+        "op": "==",
+        "value": "glimepiride"
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "2020 (WHO/UCN/NCD/20.1)",
+       "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+       "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+       "quote": "Patients with a short life expectancy and those with advanced complications or serious comorbidities are unlikely to benefit from efforts to achieve near-normal glycaemia. [...] The HbA1c target can be relaxed (e.g. to <8% or <64 mmol/mol) in people with frequent severe hypoglycaemia, advanced complications or low life-expectancy.",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A2-29",
+        "section": "Section 'Targets for glycaemic control' (p.17); Fig. 2 footnote (p.25)",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-CTRL-HBA1C-RELAXED"
+       }
+      }
+     },
+     {
+      "id": "tgt_ppg_surrogate_tier",
+      "label": "A relaxed or 'avoid symptoms' plan is agreed (a relaxed glucose goal needs a signed source: D-DM-40)",
+      "all": [
+       {
+        "feature": "glycaemic_target_tier",
+        "op": "in",
+        "value": [
+         "relaxed",
+         "avoid_symptoms"
+        ]
+       }
+      ],
+      "citation": {
+       "standard": "WHO",
+       "version": "2020 (WHO/UCN/NCD/20.1)",
+       "title": "Diagnosis and management of type 2 diabetes (HEARTS-D)",
+       "url": "https://knowledge-action-portal.com/sites/default/files/who-ucn-ncd-20.1-eng.pdf",
+       "quote": "Patients with a short life expectancy and those with advanced complications or serious comorbidities are unlikely to benefit from efforts to achieve near-normal glycaemia. [...] The HbA1c target can be relaxed (e.g. to <8% or <64 mmol/mol) in people with frequent severe hypoglycaemia, advanced complications or low life-expectancy.",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A2-29",
+        "section": "Section 'Targets for glycaemic control' (p.17); Fig. 2 footnote (p.25)",
+        "bodyProposed": "WHO",
+        "verified": true,
+        "ref": "REF-DM-CTRL-HBA1C-RELAXED"
+       }
+      }
+     }
+    ],
     "restrictedClasses": []
    }
   },
@@ -4664,6 +4972,11 @@
       "feature": "glycaemic_target_tier",
       "op": "==",
       "value": "tight"
+     },
+     {
+      "feature": "glucose_lowering_therapy",
+      "op": "!=",
+      "value": "insulin"
      }
     ],
     "citation": {
@@ -4780,7 +5093,8 @@
      "L09",
      "Q11",
      "T10",
-     "U06"
+     "U06",
+     "V13"
     ],
     "ages": "adult",
     "notWhen": [
@@ -4826,48 +5140,6 @@
         "bodyProposed": "WHO",
         "verified": true,
         "ref": "REF-DM-CTRL-HBA1C-RELAXED"
-       }
-      }
-     },
-     {
-      "id": "tgt_tight_su_ins",
-      "label": "On insulin or a sulfonylurea (ADA: a lower goal only where treatment carries little risk of lows)",
-      "any": [
-       {
-        "feature": "glucose_lowering_therapy",
-        "op": "==",
-        "value": "insulin"
-       },
-       {
-        "feature": "glucose_lowering_therapy",
-        "op": "==",
-        "value": "glibenclamide"
-       },
-       {
-        "feature": "glucose_lowering_therapy",
-        "op": "==",
-        "value": "gliclazide"
-       },
-       {
-        "feature": "glucose_lowering_therapy",
-        "op": "==",
-        "value": "glimepiride"
-       }
-      ],
-      "citation": {
-       "standard": "ADA",
-       "version": "Standards of Care in Diabetes—2026",
-       "title": "6. Glycemic Goals, Hypoglycemia, and Hyperglycemic Crises: Standards of Care in Diabetes—2026 (Diabetes Care 2026;49(Suppl 1):S132–S149; doi 10.2337/dc26-S006)",
-       "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178/?report=classic",
-       "quote": "Lower A1C goals (e.g., <6.5% [<48 mmol/mol]) may be appropriate for individuals with diabetes with good health and function and low treatment risks (e.g., hypoglycemia) and burdens (see Fig. 6.1). B",
-       "retrieved": "2026-10-03",
-       "csoSigned": false,
-       "x": {
-        "claim": "A4-04",
-        "section": "Recommendation 6.4; Figure 6.1",
-        "bodyProposed": "ADA",
-        "verified": true,
-        "ref": "REF-DM-CTRL-HBA1C-TIGHT"
        }
       }
      },

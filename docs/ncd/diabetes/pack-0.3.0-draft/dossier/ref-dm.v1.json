@@ -1,7 +1,7 @@
 {
  "id": "MS-NCD-DM-DOSSIER-001",
  "title": "Diabetes reference catalogue (REF-DM)",
- "version": "0.3.6-draft",
+ "version": "0.3.7-draft",
  "status": "draft",
  "shape": "RefEntry of MS-NCD-ENG-001 [04], plus x for provenance",
  "count": 342,
@@ -5207,6 +5207,7 @@
     "usedByCriteria": [
      "acu_bohb_mid",
      "acu_dm_acetone_raised",
+     "acu_insulin_sick_review_signs",
      "acu_ketones_risk",
      "acu_ketones_risk_vomiting",
      "ref_glu18_pen_ket"
@@ -10604,6 +10605,7 @@
      "acu_paed",
      "acu_paed_acetone_r04",
      "acu_paed_known_signs_r04",
+     "sus_paed_fcap_r03",
      "sus_paed_glucose"
     ]
    }

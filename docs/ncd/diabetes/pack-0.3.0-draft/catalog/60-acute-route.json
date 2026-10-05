@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.6-draft",
+  "version": "0.3.7-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -1493,7 +1493,7 @@
    "condition": "hyperglycaemic_crisis",
    "when": {
     "id": "acu_known_unwell",
-    "label": "Diabetes (known diabetes, a recorded type, or any glucose-lowering medicine); with any of: vomiting, abdominal pain, dehydration",
+    "label": "Diabetes (known diabetes, a recorded type, or any glucose-lowering medicine); with any of: vomiting, abdominal pain, dehydration, acute illness",
     "any": [
      {
       "feature": "vomiting",
@@ -1505,6 +1505,10 @@
      },
      {
       "feature": "dehydration",
+      "op": "present"
+     },
+     {
+      "feature": "acute_illness_current",
       "op": "present"
      }
     ],
@@ -1640,7 +1644,8 @@
      "H18",
      "J01",
      "L01",
-     "L04"
+     "L04",
+     "V01"
     ],
     "notWhen": [
      {
@@ -3996,7 +4001,7 @@
    "condition": "dka",
    "when": {
     "id": "acu_insulin_sick",
-    "label": "Type 1 diabetes recorded, or on insulin; with vomiting or abdominal pain",
+    "label": "Type 1 diabetes recorded, or on insulin; with vomiting, abdominal pain or acute illness",
     "any": [
      {
       "feature": "vomiting",
@@ -4004,6 +4009,10 @@
      },
      {
       "feature": "abdominal_pain",
+      "op": "present"
+     },
+     {
+      "feature": "acute_illness_current",
       "op": "present"
      }
     ],
@@ -4078,7 +4087,8 @@
      "K05",
      "K21",
      "L04",
-     "L05"
+     "L05",
+     "V01"
     ],
     "notWhen": [
      {
@@ -5649,11 +5659,11 @@
   },
   {
    "id": "DM-ACU-ROUTE-32",
-   "display": "A child with diabetes or on insulin, vomiting or with abdominal pain, and no glucose on record: capillary glucose now",
+   "display": "A child with diabetes or on insulin, vomiting, in pain or acutely unwell, and no glucose on record: capillary glucose now",
    "condition": "dka",
    "when": {
     "id": "acu_paed_known_sick",
-    "label": "A child with diabetes (known diabetes, a recorded type, or any glucose-lowering medicine); with vomiting or abdominal pain",
+    "label": "A child with diabetes (known diabetes, a recorded type, or any glucose-lowering medicine); with vomiting, abdominal pain or acute illness",
     "any": [
      {
       "feature": "vomiting",
@@ -5661,6 +5671,10 @@
      },
      {
       "feature": "abdominal_pain",
+      "op": "present"
+     },
+     {
+      "feature": "acute_illness_current",
       "op": "present"
      }
     ],
@@ -5791,7 +5805,8 @@
     },
     "review": [
      "K05",
-     "L22"
+     "L22",
+     "V01"
     ],
     "notWhen": [
      {
@@ -7655,7 +7670,7 @@
    "condition": "dka",
    "when": {
     "id": "acu_insulin_sick_district",
-    "label": "Type 1 recorded, or on insulin; with vomiting or abdominal pain",
+    "label": "Type 1 recorded, or on insulin; with vomiting, abdominal pain or acute illness",
     "any": [
      {
       "feature": "vomiting",
@@ -7663,6 +7678,10 @@
      },
      {
       "feature": "abdominal_pain",
+      "op": "present"
+     },
+     {
+      "feature": "acute_illness_current",
       "op": "present"
      }
     ],
@@ -7733,7 +7752,8 @@
     },
     "review": [
      "Q12",
-     "U02"
+     "U02",
+     "V01"
     ],
     "unlessCapability": "lab.ketones_blood",
     "notWhen": [
@@ -8171,7 +8191,7 @@
   },
   {
    "id": "DM-ACU-ROUTE-13B",
-   "display": "Diabetes with acetone on the breath or dehydration: blood ketones today; a urine strip or a ketone below 1.6 does not settle it unless blood ketones are below 0.6",
+   "display": "Diabetes with acetone on the breath or dehydration: ketones today. Blood ketones where the site has them; otherwise a urine strip now and again in 2 hours, and refer today if either is raised or the person is unwell",
    "condition": "dka",
    "when": {
     "id": "acu_dm_acetone_test",
@@ -8543,17 +8563,12 @@
   },
   {
    "id": "DM-ACU-ROUTE-32B",
-   "display": "A child with diabetes who is vomiting: sick-day review today, even with a normal glucose and ketones",
+   "display": "A child with diabetes who is vomiting or acutely unwell: sick-day review today, even with a normal glucose and ketones",
    "condition": "dka",
    "when": {
     "id": "acu_paed_vomit_review",
-    "label": "A child with diabetes (known diabetes, a recorded type, or any glucose-lowering medicine), vomiting",
-    "all": [
-     {
-      "feature": "vomiting",
-      "op": "present"
-     }
-    ],
+    "label": "A child with diabetes (known diabetes, a recorded type, or any glucose-lowering medicine), vomiting or acutely unwell",
+    "all": [],
     "atLeast": {
      "n": 1,
      "of": [
@@ -8635,7 +8650,17 @@
       "verified": true,
       "ref": "REF-DM-ACU-SICKDAY-INSULIN"
      }
-    }
+    },
+    "any": [
+     {
+      "feature": "vomiting",
+      "op": "present"
+     },
+     {
+      "feature": "acute_illness_current",
+      "op": "present"
+     }
+    ]
    },
    "posterior": "moderate",
    "urgency": "same_day",
@@ -8675,7 +8700,161 @@
      "tier": "today"
     },
     "review": [
-     "U08"
+     "U08",
+     "V01"
+    ],
+    "restrictedClasses": [],
+    "runWhen": "always"
+   }
+  },
+  {
+   "id": "DM-ACU-ROUTE-23R",
+   "display": "Type 1 or on insulin, vomiting or acutely unwell: sick-day review today, even with normal ketones (glucose and ketones every 1 to 2 hours; never stop insulin)",
+   "condition": "dka",
+   "when": {
+    "id": "acu_insulin_sick_review",
+    "label": "Type 1 recorded, or on insulin; vomiting or acutely unwell",
+    "any": [
+     {
+      "feature": "vomiting",
+      "op": "present"
+     },
+     {
+      "feature": "acute_illness_current",
+      "op": "present"
+     }
+    ],
+    "atLeast": {
+     "n": 1,
+     "of": [
+      {
+       "feature": "dm_type_recorded",
+       "op": "==",
+       "value": "type_1"
+      },
+      {
+       "feature": "glucose_lowering_therapy",
+       "op": "==",
+       "value": "insulin"
+      }
+     ]
+    },
+    "citation": {
+     "standard": "local",
+     "version": "2022 (Phelan H et al.)",
+     "title": "ISPAD Clinical Practice Consensus Guidelines 2022: Sick day management in children and adolescents with diabetes (Chapter 13)",
+     "url": "https://www.ispad.org/asset/6551D05A-156C-4772-A32A6D663FCFC2D4/",
+     "quote": "Never completely stop insulin! [...] Always monitor glucose, defined as either blood or interstitial glucose, and ketone levels at least every 1–2 h. [...] Maintain hydration and seek urgent medical advice if the child is unable to drink [...] Monitoring blood ketones is preferred over urine ketones.",
+     "retrieved": "2026-10-03",
+     "csoSigned": false,
+     "x": {
+      "claim": "A9-49",
+      "section": "Executive summary / key principles",
+      "bodyProposed": "ISPAD",
+      "verified": true,
+      "ref": "REF-DM-ACU-SICKDAY-INSULIN"
+     }
+    }
+   },
+   "posterior": "moderate",
+   "urgency": "same_day",
+   "confirmWith": [
+    "capillary_glucose",
+    "bohb"
+   ],
+   "mimicsToExclude": [
+    "Gastroenteritis",
+    "Infection"
+   ],
+   "citation": {
+    "standard": "local",
+    "version": "2022 (Phelan H et al.)",
+    "title": "ISPAD Clinical Practice Consensus Guidelines 2022: Sick day management in children and adolescents with diabetes (Chapter 13)",
+    "url": "https://www.ispad.org/asset/6551D05A-156C-4772-A32A6D663FCFC2D4/",
+    "quote": "Never completely stop insulin! [...] Always monitor glucose, defined as either blood or interstitial glucose, and ketone levels at least every 1–2 h. [...] Maintain hydration and seek urgent medical advice if the child is unable to drink [...] Monitoring blood ketones is preferred over urine ketones.",
+    "retrieved": "2026-10-03",
+    "csoSigned": false,
+    "x": {
+     "claim": "A9-49",
+     "section": "Executive summary / key principles",
+     "bodyProposed": "ISPAD",
+     "verified": true
+    }
+   },
+   "ageBands": [
+    "adult",
+    "older_adult"
+   ],
+   "notes": "ISPAD 2022 sick-day rules: glucose and ketones every 1 to 2 hours, never stop insulin completely, keep hydrated, seek advice early. Applies at every site.",
+   "x": {
+    "lane": "acute_route",
+    "family": "DM-ACU-ROUTE",
+    "proposal": {
+     "kind": "review",
+     "to": "clinician",
+     "tier": "today"
+    },
+    "review": [
+     "V04"
+    ],
+    "notWhen": [
+     {
+      "id": "acu_insulin_sick_review_signs",
+      "label": "Ketones 1.6 mmol/L or more, urine 2+, or a sign (an interrupting rule applies)",
+      "any": [
+       {
+        "feature": "bohb",
+        "op": ">=",
+        "value": 1.6,
+        "unit": "mmol/L"
+       },
+       {
+        "feature": "urine_ketones",
+        "op": "in",
+        "value": [
+         "2plus",
+         "3plus"
+        ]
+       },
+       {
+        "feature": "deep_rapid_breathing",
+        "op": "present"
+       },
+       {
+        "feature": "acetone_breath",
+        "op": "present"
+       },
+       {
+        "feature": "dehydration",
+        "op": "present"
+       },
+       {
+        "feature": "mental_status",
+        "op": "in",
+        "value": [
+         "drowsy",
+         "stupor",
+         "coma"
+        ]
+       }
+      ],
+      "citation": {
+       "standard": "local",
+       "version": "March 2020",
+       "title": "Type 1 diabetes: what to do when you are ill (TREND-UK leaflet)",
+       "url": "https://trenddiabetes.online/wp-content/uploads/2020/03/A5_T1Illness_TREND_FINAL.pdf",
+       "quote": "DON'T STOP TAKING YOUR INSULIN EVEN IF YOU ARE UNABLE TO EAT [...] 1.6 to 2.9 mmol/L means you are at risk of DKA and should contact your diabetes team or GP as soon as possible [...] 3 mmol/L or higher means you have a very high risk of DKA and should get emergency help as soon as possible",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A9-51",
+        "section": "Whole leaflet",
+        "bodyProposed": "OTHER",
+        "verified": true,
+        "ref": "REF-DM-ACU-KETONE-RISK"
+       }
+      }
+     }
     ],
     "restrictedClasses": [],
     "runWhen": "always"

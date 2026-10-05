@@ -19,7 +19,7 @@ PROFILES = {
     "T1_nostatus": ({"dm_type_recorded": "type_1"}, True),
 }
 STATES = {"well": {}, "vomit": {"vomiting": True}, "kussmaul": {"deep_rapid_breathing": True}, "drowsy": {"mental_status": "drowsy"},
-          "acetone": {"acetone_breath": True}, "dehydrated": {"dehydration": True}}
+          "acetone": {"acetone_breath": True}, "dehydrated": {"dehydration": True}, "ill": {"acute_illness_current": True}}
 GLUCOSE = {"none": {}, "3.5": {"capillary_glucose": 3.5}, "7": {"capillary_glucose": 7.0}, "15": {"capillary_glucose": 15.0}, "28": {"capillary_glucose": 28.0},
            "HI": {"glucose_meter_extreme": "hi"}, "LO": {"glucose_meter_extreme": "lo"}}
 KETONES = {"none": {}, "u_neg": {"urine_ketones": "neg"}, "u_trace": {"urine_ketones": "trace"}, "u_1+": {"urine_ketones": "1plus"},
@@ -41,7 +41,7 @@ def floor(band, prof, state, glu, ket):
             or (state in ("acetone", "dehydrated") and (glu in HIGH or ((prof in INSULINISH or prof == "blanklist" or (child and dm)) and ket != "b0.3")))
             or (glu == "3.5" and prof in INSULIN_OR_SU_OR_UNKNOWN)
             or (prof == "SGLT2" and state in ("vomit", "kussmaul", "dehydrated", "drowsy") and ket != "b0.3")
-            or (child and dm and state == "vomit" and glu == "none")):
+            or (child and dm and state in ("vomit", "ill") and glu == "none")):
         return "immediate"
     if ((state == "vomit" and glu in HIGH and ket in ("none", "u_trace", "u_1+", "b1.0"))
             or (glu == "3.5" and dm)
@@ -50,7 +50,9 @@ def floor(band, prof, state, glu, ket):
             or (prof in ("T1_ins", "ins_nostatus", "T1_nostatus") and state == "vomit" and ket == "none")
             or (glu == "28" and ket == "none")
             or (dm and state in ("acetone", "dehydrated") and ket != "b0.3")
-            or (child and dm and state == "vomit")
+            or (child and dm and state in ("vomit", "ill"))
+            or (dm and state == "ill" and glu == "none")
+            or (prof in ("T1_ins", "ins_nostatus", "T1_nostatus") and state in ("vomit", "ill"))
             or (child and dm and state in ("acetone", "dehydrated") and ket == "b0.3")):
         return "same_day"
     return None

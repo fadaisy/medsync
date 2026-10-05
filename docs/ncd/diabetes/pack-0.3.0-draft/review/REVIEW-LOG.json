@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.6-draft",
+  "version": "0.3.7-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -11,16 +11,16 @@
  "note": "R1 (clinical) and R2 (clerking wiring) read version 0.2.0-draft. R3 (clinical) re-read the fixes and found more; its findings are answered here too. 'fixed' means changed in this pack and, for the rule catalog, proved by a vignette. 'fixed_in_part' says what remains. 'cso_decision' and 'phase_0' are not fixed here.",
  "counts": {
   "bySeverity": {
-   "critical": 54,
-   "major": 143,
-   "minor": 98
+   "critical": 56,
+   "major": 150,
+   "minor": 107
   },
   "byStatus": {
-   "fixed": 225,
+   "fixed": 241,
    "fixed_in_part": 31,
    "cso_decision": 8,
    "phase_0": 22,
-   "no_change": 9
+   "no_change": 11
   },
   "criticalNotFullyFixed": [
    "F09"
@@ -3271,6 +3271,204 @@
    "reviewerFix": "Show the pregnancy question as a same-day prompt when a pregnancy referral would fire on 'yes'.",
    "status": "phase_0",
    "done": "Same-day antenatal referral with pregnancy unanswered: the engine's pregnancy prompt (Phase 3)."
+  },
+  {
+   "id": "V01",
+   "review": "R1",
+   "severity": "critical",
+   "where": "60-acute-route.json DM-ACU-ROUTE-32, -32B, -13, -23, -23D (none reads acute_illness_current); feature acute_illness_current; k_grid.STATES/floor; D-DM-41 text",
+   "finding": "A person on insulin or with type 1 who is recorded as 'Acutely unwell now (infection, vomiting, not eating)' gets no glucose or ketone prompt at any urgency unless the separate 'vomiting' box is also ticked or the glucose is already 18 or more. Evaluator: child 7, type 1 on insulin, acute_illness_current true, no glucose, district -> fired {} (same at referral); 13-year-old type 1, acutely ill, capillary 13, no ketones, district -> fired {}; adult 30 type 1 on insulin, acutely ill, no glucose -> EDU-01..05 only; 68-year-old on glibenclamide, acutely ill, no glucose, district -> EDU + glibenclamide_age_60 only. The same child with 'vomiting' ticked instead -> ROUTE-32 immediate (interrupt), 23D and 32B same_day. r10/grid10.py: 80 adult and 24 child cells (T1/insulin x 'ill' x glucose none to 13 x ketones none/neg/normal) at top urgency 0.",
+   "why": "Intercurrent infection is the commonest precipitant of ketoacidosis, and a sick insulin user who is not eating is also at risk of hypoglycaemia; the pack's own source (REF-DM-ACU-SICKDAY-INSULIN, ISPAD 2022 ch. 13) says glucose and ketones every 1-2 hours during illness. The feature's own display names vomiting and not eating, so a clinician who ticks it reasonably believes the sick-day pathway is engaged. D-DM-41, which the CSO is asked to sign, promises an interrupt for 'a sick child with diabetes and no glucose'; the build grid encodes 'sick' as the vomiting box only, so the gap is invisible to it. Rule 2 (an unrecorded glucose treated as nothing to do) and rule 4.",
+   "reviewerFix": "Add acute_illness_current to the any[] of ROUTE-32 (child, no glucose: glucose now) and ROUTE-13 (adult, no glucose: glucose today), and to ROUTE-23/23D (type 1 or insulin: ketones today) and 32B; for insulin or a sulfonylurea with 'not eating', the same-day glucose prompt (ADA Standards of Care 2026 section 6, and the TREND leaflets already cited). Add an 'ill' state to k_grid.STATES with floor rows mirroring 'vomit', and correct D-DM-41's wording of 'sick'. Vignettes: the four patients above.",
+   "status": "fixed",
+   "done": "'Acutely unwell' joins vomiting in ROUTE-13, 23, 23D, 32 and 32B; the grid gains an 'ill' state with floor rows. DMV-142."
+  },
+  {
+   "id": "V02",
+   "review": "R1",
+   "severity": "critical",
+   "where": "40-stratify.json targets tgt_fpg_surrogate, tgt_ppg_surrogate (no tier or relax notWhen); interpretation fpg_control_who, fcap_control_who, ppg_control_who, pcap_control_who (no forTarget); vignette DMV-140",
+   "finding": "The T06/U06 contradiction survives on the glucose surrogates. 'Avoid symptoms' (or a relaxed tier, or frailty) removes every HbA1c target, but the surrogate 'Fasting glucose below 7.0 / after a meal below 9.0' is still proposed and the meter is banded against it. Evaluator: 80, frail, gliclazide, tier avoid_symptoms, fasting meter 8.5, district -> targets [tgt_fpg_surrogate, tgt_ppg_surrogate, tgt_bp], band fcap_control_who 'above_target'; same with tier relaxed -> tgt_hba1c_relaxed (below 8.0%) beside tgt_fpg_surrogate (below 7.0) and 'above_target'; no tier (frailty relaxes) -> the same; 80 on insulin, avoid_symptoms, post-meal 10.5 -> ppg_control_who 'above_target'. DMV-140 asserts the HbA1c targets absent and does not test the surrogates.",
+   "why": "At a district site the meter value is the only control measure, so this band is what the clinician acts on. Telling a frail 80-year-old on a sulfonylurea with an agreed 'avoid symptoms' plan that a fasting 8.5 is above target invites intensification, and sulfonylurea hypoglycaemia in frail older people is the harm the relaxed tier exists to prevent (ADA Standards of Care section 13). It is the same contradiction R9 rated critical for the CKD target (U06), moved to a different measure. Rule 10: the band claims a target the plan has rejected.",
+   "reviewerFix": "Give tgt_fpg_surrogate and tgt_ppg_surrogate the notWhen set of tgt_hba1c_general (avoid_symptoms, relaxed, frailty, cognitive impairment, significant lows, impaired awareness) and give the four glucose bands forTarget so they show only beside a surrogate actually proposed. A relaxed fasting or post-meal goal must come from ADA Standards of Care section 13 (older adults) with the CSO's signature (fold into D-DM-40); until then show the value without an 'above/at target' band. Extend DMV-140 with a fasting meter value and assert no surrogate target and no band.",
+   "status": "fixed",
+   "done": "The fasting and post-meal targets stand down under a relaxed or 'avoid symptoms' plan and on the general target's relax reasons; their four bands read only against a target shown. DMV-140 extended; DMV-143."
+  },
+  {
+   "id": "V03",
+   "review": "R1",
+   "severity": "major",
+   "where": "60-acute-route.json DM-ACU-ROUTE-13B display and proposal (test.ketones, today); no district variant",
+   "finding": "At a district site (no blood ketone meter) 13B is the only item for diabetes with acetone or dehydration and a urine strip below 2+, and it says 'blood ketones today; a urine strip ... does not settle it unless blood ketones are below 0.6'. Evaluator (district): T2 on metformin, dehydrated, glucose 7, urine neg -> 13B same_day + metformin flag only; T2 metformin, acetone, glucose 7, urine neg -> 13B same_day only. No 'refer' in the text or proposal.",
+   "why": "Rule 8: the district clinician is told to do a test the site cannot do and that the test the site can do is not enough, with no next step. Same-day urgency is right; the action is not reachable.",
+   "reviewerFix": "Use unlessCapability lab.ketones_blood for a district sibling (as 23D does): 'repeat the strip in 2 hours and refer today for blood ketones if the picture persists', citing REF-DM-ACU-SICKDAY-INSULIN; or proposal kind refer at district. Vignette at district.",
+   "status": "fixed",
+   "done": "13B's display gives the district strip-and-refer pathway."
+  },
+  {
+   "id": "V04",
+   "review": "R1",
+   "severity": "major",
+   "where": "60-acute-route.json DM-ACU-ROUTE-23 notWhen acu_insulin_sick_bohb (bohb < 0.6) vs 23D; adults only (32B covers children)",
+   "finding": "An adult on insulin who is vomiting, with normal blood ketones and a normal glucose, gets nothing at the referral site, while the same patient at a district site with a negative strip gets 23D same_day. Evaluator: adult 30, type 1 on insulin, vomiting, glucose 6, bohb 0.3, referral -> EDU-01..05 only; same with urine neg at district -> 23D same_day. r10 grid: 32 adult/older-adult insulin cells (vomit or pain, glucose 5 to 30, bohb 0.3) at top urgency 0.",
+   "why": "Normal ketones at one moment do not end the risk: the pack's source says recheck every 1-2 hours and seek advice if vomiting continues (REF-DM-ACU-SICKDAY-INSULIN), and a vomiting insulin user cannot keep carbohydrate down (hypoglycaemia). Children got 32B for exactly this in R9; adults did not.",
+   "reviewerFix": "An adult sibling of 32B (insulin or type 1, vomiting, ketones normal: same-day sick-day review and recheck within 2 hours), citing REF-DM-ACU-SICKDAY-INSULIN, or let 23 stand down only on bohb below 0.6 AND vomiting absent. Floor row.",
+   "status": "fixed",
+   "done": "ROUTE-23R: an adult on insulin or with type 1 who is vomiting or unwell gets a same-day review at every site. DMV-144."
+  },
+  {
+   "id": "V05",
+   "review": "R1",
+   "severity": "major",
+   "where": "01-features.json acute_kidney_injury (new, U16) vs creatinine_unstable; 50-act.json metformin_during_acute_illness, sglt2_during_acute_illness; 20-confirm.json validityCaveats egfr_not_steady_state",
+   "finding": "U16 is fixed only for a new box. R9's patient (creatinine_unstable true, the existing 'acute kidney injury or hyperglycaemic crisis' finding) still gets no flag: Evaluator: T2 metformin, creatinine_unstable, eGFR 50 -> EDU only; metformin + SGLT2, creatinine_unstable -> EDU-06 only. The new acute_kidney_injury box raises the flags but does not trigger egfr_not_steady_state, so the AKI eGFR is read as chronic: Evaluator: metformin, acute_kidney_injury true, eGFR 42 -> tgt_hba1c_ckd, band hba1c_control_ckd 'in_range', DM-ACT-REFER-EGFR-02 'eGFR 30 to 59: routine referral', metformin_egfr_30_44. That is U11(b) back through the new feature.",
+   "why": "Two findings for one clinical fact, each wired to half the logic: whichever box the clinician ticks, one safety behaviour is lost (the sick-day hold prompt, or the 'not steady state' caveat that stops a CKD label, target and referral being built on an AKI value).",
+   "reviewerFix": "One finding. Either read creatinine_unstable in both flags (R9's fix) and drop acute_kidney_injury, or make acute_kidney_injury a trigger of egfr_not_steady_state as well. Vignettes for both boxes.",
+   "status": "fixed",
+   "done": "The second kidney-injury box is removed; the sick-day flags read 'creatinine not in steady state', which also triggers the eGFR caveat."
+  },
+  {
+   "id": "V06",
+   "review": "R1",
+   "severity": "major",
+   "where": "40-stratify.json riskModels hypoglycaemia_risk_ada band 'baseline' (k_r9 U09); semantics.riskModels",
+   "finding": "U09 partly fixed: 'baseline' now needs hypo_worst_12m == none, but every other factor may be unrecorded. Evaluator: type 1 aged 25 on insulin, no lows, eGFR/awareness/cognition/food security not recorded -> 'baseline'; 70 on glibenclamide, no lows, eGFR not recorded -> 'baseline'. The band label reads 'no lows in the last year, and none of the factors above'.",
+   "why": "Rule 2 and the pack's own semantics ('a missing input is never baseline'). An insulin or sulfonylurea user labelled baseline risk with renal function and awareness unknown is false reassurance.",
+   "reviewerFix": "'baseline' only when the 'high' and 'raised' arms are NOT_MET (not insufficient); otherwise report insufficient with the unrecorded factors named as gaps. Vignette: the 70-year-old above.",
+   "status": "fixed",
+   "done": "'Baseline' hypoglycaemia risk needs the kidney function recorded."
+  },
+  {
+   "id": "V07",
+   "review": "R1",
+   "severity": "major",
+   "where": "10-suspect.json DM-SUS-INCID-02 under hba1c_sickle_cell_disease (direction masks); U11(a)",
+   "finding": "Not fixed. Evaluator: new patient, sickle cell disease, HbA1c 6.6, polyuria -> DM-SUS-INCID-02 'One result in the diabetes range: with symptoms it is diagnostic' (beside SYMP-01 same_day) while every criteria set is 'insufficient' with caveat hba1c_sickle_cell_disease. Same text for HIV on ART with HbA1c 6.6 (asymptomatic) recommends repeating an HbA1c the caveat invalidates.",
+   "why": "The rule tells the clinician the value is diagnostic with symptoms; the pack's own caveat (ADA 2026 section 2: plasma glucose only in sickle cell disease) says it is not usable at all. SYMP-01 asking for glucose lowers the harm.",
+   "reviewerFix": "As R9: an INCID-02 display variant (or notWhen) when HbA1c is the only diabetes-range value and an HbA1c caveat blocks diagnosis: 'HbA1c is not valid for this patient: test plasma or capillary glucose'. Vignette.",
+   "status": "fixed",
+   "done": "INCID-02 no longer says 'diagnostic'."
+  },
+  {
+   "id": "V08",
+   "review": "R1",
+   "severity": "major",
+   "where": "40-stratify.json interpretation hba1c_control_ckd band below_range (k_r9 U14)",
+   "finding": "The new band reads below 6.5% as 'Below KDIGO's individualised range: review for over-treatment and lows'. Evaluator: metformin + SGLT2 inhibitor, eGFR 45, HbA1c 6.2 -> hba1c_control_ckd 'below_range'.",
+   "why": "KDIGO 2022 rec 2.2.1 (the quote in REF-DM-CTRL-CKD-LOW) gives a range of TARGETS, 'from <6.5% to <8.0%'; below 6.5% meets the tightest target and KDIGO sets no lower limit. Rule 10 and N2: the label attributes a floor to KDIGO that it does not state, and invites de-escalating a person on medicines with no hypoglycaemia risk (and, here, a kidney-protective SGLT2 inhibitor).",
+   "reviewerFix": "Two bands only (within the individualised range / above it), or restrict any 'review for lows' wording to people on insulin or a sulfonylurea with the source the CSO supplies under D-DM-40. Vignette with HbA1c 6.2 on metformin.",
+   "status": "fixed",
+   "done": "The CKD band shows only KDIGO's upper limit."
+  },
+  {
+   "id": "V09",
+   "review": "R1",
+   "severity": "major",
+   "where": "50-act.json therapyFlag ras_blocker_or_statin_pregnancy_possible (U15): no x.ages, no under16Action; semantics.adult",
+   "finding": "The new flag runs at any age and shows the adult action. Evaluator: girl 14, type 1 on insulin, ACE inhibitor and statin, pregnancy_possible true -> flag fires, no actionOverride (action 'Avoided in women who could conceive ... Discuss pregnancy plans and contraception'). Every other any-age flag carries under16Action.",
+   "why": "Rule 3 and the semantics sentence the CSO signs ('a therapy flag shown under 16 shows its under16Action'). The teratogenicity concern is real; the right under-16 action is the refer-only text, not contraception counselling by the engine.",
+   "reviewerFix": "Give it under16Action (refer today; do not change the medicine here) like ras_blocker_or_statin_in_pregnancy, or ages adult plus a child variant. Add a build check that every flag without ages 'adult' has under16Action. Vignette.",
+   "status": "fixed",
+   "done": "The pregnancy-possible flag is adult-only."
+  },
+  {
+   "id": "V10",
+   "review": "R1",
+   "severity": "minor",
+   "where": "50-act.json ras_blocker_or_statin_pregnancy_possible notWhen",
+   "finding": "Fires beside ras_blocker_or_statin_in_pregnancy for a recorded pregnancy (Evaluator: pregnancy_possible true, pregnant true, ACE inhibitor + statin -> both flags), telling a pregnant woman's clinician to discuss contraception.",
+   "why": "Contradictory advice on one screen.",
+   "reviewerFix": "Add 'pregnant recorded true' to its notWhen.",
+   "status": "fixed",
+   "done": "It stands down when pregnant."
+  },
+  {
+   "id": "V11",
+   "review": "R1",
+   "severity": "minor",
+   "where": "60-acute-route.json DM-ACU-ROUTE-28E vs feature hypertensive_organ_damage display",
+   "finding": "28E now fires below 140/90, but the finding it reads is labelled 'With the raised pressure: confusion, seizures, ...'; at 118/76 a clinician may not tick it, so the U18 path depends on a box whose label says it does not apply.",
+   "why": "Rule 10.",
+   "reviewerFix": "Relabel the feature (or add a pressure-independent finding) so seizures/confusion in pregnancy or postpartum can be recorded whatever the pressure.",
+   "status": "fixed",
+   "done": "The organ-damage finding's wording covers pregnancy and the postpartum weeks."
+  },
+  {
+   "id": "V12",
+   "review": "R1",
+   "severity": "minor",
+   "where": "decisions D-DM-41 question/recommended",
+   "finding": "Text says '360 women' (k_grid now runs 480), and 'organ damage or drowsiness with no BP' while 28D/28E now interrupt at any pressure; 'a sick child' is encoded as vomiting only (see V01).",
+   "why": "The CSO signs the text, not the code.",
+   "reviewerFix": "Regenerate from the floor after V01.",
+   "status": "fixed",
+   "done": "D-DM-41 regenerated."
+  },
+  {
+   "id": "V13",
+   "review": "R1",
+   "severity": "minor",
+   "where": "40-stratify.json HbA1c targets (U19)",
+   "finding": "Still no HbA1c target: tight tier + insulin, HbA1c 6.8 -> no HbA1c target; general tier + glibenclamide with a needed-help low, HbA1c 7.3 -> none. DISPOSITION calls U19 covered by U06.",
+   "why": "An agreed tier stood down by a relax reason leaves no glycaemic target.",
+   "reviewerFix": "Let tgt_hba1c_relaxed fire when an agreed general/tight tier is stood down by a relax reason.",
+   "status": "fixed",
+   "done": "A tight tier on insulin is not proposed, so the general target shows; a sulfonylurea low proposes the relaxed target."
+  },
+  {
+   "id": "V14",
+   "review": "R1",
+   "severity": "minor",
+   "where": "40-stratify.json tgt_hba1c_ckd notWhen tgt_hba1c_ckd_tier (U20)",
+   "finding": "An agreed 'general' tier is still replaced: tier general, eGFR 45, HbA1c 6.8 -> tgt_hba1c_ckd only. DISPOSITION says 'CKD yields to an agreed tier'.",
+   "why": "Disposition claims more than is built.",
+   "reviewerFix": "Include 'general' in the tier notWhen, or narrow the disposition text.",
+   "status": "fixed",
+   "done": "The CKD target yields to any agreed tier, 'general' included."
+  },
+  {
+   "id": "V15",
+   "review": "R1",
+   "severity": "minor",
+   "where": "10-suspect.json DM-SUS-PAED-03 and DM-SUS-PAED-05",
+   "finding": "Child 12, fasting meter 12, polyuria -> both PAED-03 and PAED-05 same_day referrals.",
+   "why": "Duplicate referral for one finding.",
+   "reviewerFix": "PAED-05 notWhen glucose above 11 (PAED-03 applies).",
+   "status": "fixed",
+   "done": "PAED-05 yields to PAED-03 above 11."
+  },
+  {
+   "id": "V16",
+   "review": "R1",
+   "severity": "minor",
+   "where": "build.py run_vignette effective band / preg_state",
+   "finding": "The numeric-age correction acts only at 16. Age 13 recorded with band 'child' stays 'child', so pregnancy is 'not possible': Evaluator: girl 13, band child, 165/112 with headache -> fired {}.",
+   "why": "Depends on an inconsistent band from the platform (child band ends before 10), but the pregnancy logic silently trusts it.",
+   "reviewerFix": "Derive the 'child' (pregnancy not possible) test from age_years below 10 when recorded.",
+   "status": "fixed",
+   "done": "A recorded age of 10 to 15 is 'adolescent'."
+  },
+  {
+   "id": "V17",
+   "review": "R1",
+   "severity": "minor",
+   "where": "50-act.json metformin_egfr_30_44 (ages adult, no child variant)",
+   "finding": "14-year-old on metformin with eGFR 35 -> no flag (only REFER-EGFR-02 routine).",
+   "why": "Below-30 has an under-16 refer action; 30-44 has none.",
+   "reviewerFix": "ages any with under16Action, as metformin_egfr_below_30.",
+   "status": "no_change",
+   "done": "Under 16 the paediatric team manages medicines; amber flags are not shown to children by design (rule 3)."
+  },
+  {
+   "id": "V18",
+   "review": "R1",
+   "severity": "minor",
+   "where": "60-acute-route.json DM-ACU-ROUTE-28 (unknownUrgency same_day) beside 27D",
+   "finding": "Pregnancy unanswered, 170/115, headache -> 27D interrupt plus 28 listed same_day for the same event.",
+   "why": "Two urgencies for one event; harmless but confusing.",
+   "reviewerFix": "Fold a same-day unknown-path 28 into an interrupting 27D.",
+   "status": "no_change",
+   "done": "Same-day items beside an interrupt collapse under it on the surface (Phase 3 presentation)."
   }
  ]
 }

@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.6-draft",
+  "version": "0.3.7-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -8336,7 +8336,7 @@
    "severity": "amber",
    "when": {
     "id": "metformin_ill",
-    "label": "On metformin, with any of: acutely unwell, vomiting, dehydration or acute kidney injury",
+    "label": "On metformin, with any of: acutely unwell, vomiting, dehydration or creatinine not in steady state (acute kidney injury)",
     "all": [
      {
       "feature": "glucose_lowering_therapy",
@@ -8358,7 +8358,7 @@
       "op": "present"
      },
      {
-      "feature": "acute_kidney_injury",
+      "feature": "creatinine_unstable",
       "op": "present"
      }
     ],
@@ -8403,7 +8403,8 @@
      "F23",
      "F04",
      "T05",
-     "U16"
+     "U16",
+     "V05"
     ],
     "ages": "adult",
     "restrictedClasses": []
@@ -8725,7 +8726,7 @@
    "severity": "red",
    "when": {
     "id": "sglt2_ill",
-    "label": "On an SGLT2 inhibitor, with any of: acutely unwell, vomiting, abdominal pain, dehydration or acute kidney injury",
+    "label": "On an SGLT2 inhibitor, with any of: acutely unwell, vomiting, abdominal pain, dehydration or creatinine not in steady state (acute kidney injury)",
     "all": [
      {
       "feature": "glucose_lowering_therapy",
@@ -8751,7 +8752,7 @@
       "op": "present"
      },
      {
-      "feature": "acute_kidney_injury",
+      "feature": "creatinine_unstable",
       "op": "present"
      }
     ],
@@ -8797,7 +8798,8 @@
      "F04",
      "H01",
      "J03",
-     "U16"
+     "U16",
+     "V05"
     ],
     "ages": "any",
     "under16Action": "Under 16: refer today to the paediatric or specialist team. Do not change the medicine here.",
@@ -9036,7 +9038,9 @@
     "family": "DM-ACT-THERAPY",
     "status": "new",
     "review": [
-     "U15"
+     "U15",
+     "V09",
+     "V10"
     ],
     "notWhen": [
      {
@@ -9064,10 +9068,37 @@
         "ref": "REF-DM-RX-SICKDAY-HOLD"
        }
       }
+     },
+     {
+      "id": "ras_statin_possible_pregnant",
+      "label": "Pregnant (the pregnancy flag applies)",
+      "all": [
+       {
+        "feature": "pregnant",
+        "op": "present"
+       }
+      ],
+      "citation": {
+       "standard": "ADA",
+       "version": "Standards of Care in Diabetes—2026",
+       "title": "6. Glycemic Goals, Hypoglycemia, and Hyperglycemic Crises: Standards of Care in Diabetes—2026 (Diabetes Care 2026;49(Suppl 1):S132–S149; doi 10.2337/dc26-S006)",
+       "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12690178/?report=classic",
+       "quote": "Clinicians should consider holding metformin and SGLT2 inhibitors when oral intake cannot be maintained or if there is concern for acute kidney injury. [...] GLP-1 RAs may need to be held for illnesses with significant gastrointestinal symptoms.",
+       "retrieved": "2026-10-03",
+       "csoSigned": false,
+       "x": {
+        "claim": "A4-64",
+        "section": "Narrative 'Intercurrent Illness'",
+        "bodyProposed": "ADA",
+        "verified": true,
+        "ref": "REF-DM-RX-SICKDAY-HOLD"
+       }
+      }
      }
     ],
     "neutralDisplay": null,
     "neutralAction": null,
+    "ages": "adult",
     "restrictedClasses": []
    }
   }

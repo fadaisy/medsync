@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.3.6-draft",
+  "version": "0.3.7-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -19,7 +19,7 @@
   "features": {
    "reuse": 50,
    "reconcile": 45,
-   "new": 100
+   "new": 99
   },
   "catalog": {
    "capabilities": 25,
@@ -36,12 +36,12 @@
    "orderables": 19,
    "management": 60,
    "conditions": 23,
-   "rules": 94,
+   "rules": 95,
    "designb_extra": 23,
    "targets": 9
   },
-  "criteria": 386,
-  "designBRules": 228,
+  "criteria": 396,
+  "designBRules": 229,
   "designBFamilies": 32,
   "clerking": {
    "profiles": 15,
@@ -82,19 +82,19 @@
    "vignettes": 34
   },
   "review": {
-   "findings": 295,
+   "findings": 313,
    "byStatus": {
-    "fixed": 225,
+    "fixed": 241,
     "fixed_in_part": 31,
     "cso_decision": 8,
     "phase_0": 22,
-    "no_change": 9
+    "no_change": 11
    }
   },
   "refsUsedByARule": 123,
-  "vignettes": 141,
+  "vignettes": 144,
   "acuteGrid": {
-   "men": 21504,
+   "men": 25088,
    "women": 480,
    "silent": 0,
    "noisy": 0,
