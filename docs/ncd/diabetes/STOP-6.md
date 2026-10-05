@@ -1,14 +1,14 @@
 # STOP 6 (final): the diabetes pack, phases 0 to 6
 
-MS-NCD-DM-PACK-001 0.4.0-draft on `feat/ncd-diabetes-pack` (worktree `medsync-ncd`), 2026-10-05. Signed at GATE A for the **shadow build only** (`gate-a-signoff.json`): computed and logged, shown to nobody. Not pushed, not deployed; migration 0092 not applied.
+MS-NCD-DM-PACK-001 0.5.0-draft on `feat/ncd-diabetes-pack` (worktree `medsync-ncd`), 2026-10-05. Signed at GATE A for the **shadow build only** (`gate-a-signoff.json`): computed and logged, shown to nobody. Not pushed, not deployed; migration 0092 not applied.
 
 ## Section 5 table
 
 | Measure                                                    | Target                                  | Result                                                                                                                                                                                                                                                                                                             |
 | ---------------------------------------------------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Vignette parity with `computed`                            | 83 of 83                                | **165 of 165** (the review rounds and the mutation test added 82 patients), field by field, TypeScript engine against the reference evaluator                                                                                                                                                                      |
+| Vignette parity with `computed`                            | 83 of 83                                | **197 of 197** (the review rounds, the mutation test, the sources review and the 2026 guideline added 114 patients), field by field, TypeScript engine against the reference evaluator                                                                                                                             |
 | Numeric predicates with no reference entry                 | 0                                       | **0**                                                                                                                                                                                                                                                                                                              |
-| Reference numbers not found in their claim                 | 0                                       | **0 on a switched-on item.** The second reader could not find 8 values in the pages that could be read and could not open 2 sources; each is marked needs-CSO (18 entries in all), and no switched-on rule, step or flag reads one                                                                                 |
+| Reference numbers not found in their claim                 | 0                                       | **0 on a switched-on item.** The second reader could not find 8 values in the pages that could be read and could not open 2 sources; each is marked needs-CSO (16 entries in all, after the sources review signed the two C-peptide values), and no switched-on rule, step or flag reads one                       |
 | Strings that look like a dose                              | 0                                       | **0** (pack, clerking amendments); every new formulary entry `to-verify`                                                                                                                                                                                                                                           |
 | Items reading a restricted fact with no neutral display    | 0                                       | **0**; no leak of a restricted word in neutral text; the clerking patient-facing board shows none                                                                                                                                                                                                                  |
 | Rules or flags live on an unsigned reference               | 0                                       | **0 live**: everything is shadow. All 351 references are status `draft`: GATE A signed the content for shadow, not each reference. Clinical go-live needs reference-level signing and the four-eyes reviewer                                                                                                       |
@@ -43,6 +43,12 @@ Without a `.env.local` this worktree needs `SKIP_ENV_VALIDATION=1` for 15 test f
 | 4: Design B                                                                      | skipped (owner)                             | the manifest stays the seam                                    |
 | 5: clerking desk (`CLERKING_V2`)                                                 | 0e7da3a                                     | `phase-5/STOP-5.md`, `phase-5/amend-diff.md`                   |
 | 6: CFC v1.5 + gated 0092, test menu, formulary, shadow report, ADRs 0204 to 0207 | 1d96aaa, 8cf2639, c8c1af1, 4fd5ea3, 1173208 | `phase-6/shadow-report.md`                                     |
+
+## After STOP 6 (2026-10-05)
+
+- STOP 5 answers signed (`phase-5/stop5-signoff.json`); REF-PREG-AGE 12 to 50 platform-wide.
+- Sources review signed (`sources-review.md`): C-peptide, EMHSLU 2023 levels, insulin storage, DKA in pregnancy.
+- The 2026 Uganda diabetes guideline (summarised) read in full and signed item by item (`ug2026-vs-pack.md`, `ug2026-signoff.json`): pack 0.5.0-draft. Narrower implementations are listed in the sign-off.
 
 ## For the owner
 
