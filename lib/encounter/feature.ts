@@ -88,6 +88,15 @@ export function ncdPackShadowLive(): boolean {
   return process.env.NCD_DM_PACK_SHADOW === "1" && ncdClerkshipLive();
 }
 
+/**
+ * The diabetes pack replaces the v0.1.0 engine on the live NCD clerkship (go-live; ADRs 0204 to 0207). The form adds
+ * the pack's own questions and the decision panel shows the pack's results. Owner-set; clinical use also needs the
+ * four-eyes second reviewer (D-NCD-17), which the panel states until it is signed.
+ */
+export function ncdPackLive(): boolean {
+  return process.env.NCD_DM_PACK_LIVE === "1" && ncdClerkshipLive();
+}
+
 /*
  * `clerkshipAgentLive()` / `clerkshipAgentConfig()` were removed with the v1
  * clerkship engine (ADR 0081) — they resolved the CSO-signed pack flags for a

@@ -5,6 +5,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); version
 
 ## [Unreleased]
 
+### Added — The diabetes pack on the NCD clerkship, behind `NCD_DM_PACK_LIVE` (off) — 2026-10-05
+
+- **Switch-over built, not switched on.** With `NCD_DM_PACK_LIVE=1` the NCD diabetes section asks the pack's own questions (8 sections, 113 fields added to the live form) and shows the pack's decision panel: one interrupt carrying every action, today's items, medicines to review, the diagnosis by criteria set, the care plan, targets and the questions still open. Off, the section is unchanged. ADR 0208.
+- **All 381 reference numbers signed by the CSO** on the sign-off page; abdominal pain on insulin now starts the same-day sick-day review; round R11's 23 findings fixed (pack 0.5.3-draft).
+
 ### Changed — Diabetes pack follows the 2026 Uganda diabetes guideline (shadow) — 2026-10-05
 
 - **Pack 0.5.0-draft**, still shadow only. The 2026 Integrated Diabetes Management Guideline (summarised, MoH June 2026) is the default diagnostic set ("≥", eight symptoms, two different tests on one day); every pregnant woman is screened; two medicines from HbA1c 7.5% at diagnosis; the second medicine by age and BMI, with where EMHSLU 2023 stocks it; pregnancy targets; HbA1c below 8% from 60 in the 2026 profile; HHS suspected from glucose 30; health centre III starts IV fluids before transfer; hospital, surgery, HIV and TB items; the Ugandan plate. 46 items signed (UG-01 to UG-46), five kept as the pack had them (two-antibody rule, two agents before insulin, ketone triage, dolutegravir, BP in PAD). The sources review (C-peptide, EMHSLU, insulin storage, DKA in pregnancy, older-adult glucose floor) is in too.

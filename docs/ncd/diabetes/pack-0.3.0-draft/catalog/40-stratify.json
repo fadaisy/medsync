@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.5.2-draft",
+  "version": "0.5.3-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -2054,7 +2054,7 @@
     {
      "code": "low",
      "display": "Low: hypoglycaemia range",
-     "tone": "diagnostic",
+     "tone": "low",
      "to": 3.9,
      "alert": {
       "title": "Glucose below 3.9 mmol/L",
@@ -2118,7 +2118,8 @@
     "appliesTo": {
      "pregnancy": "not_pregnant"
     },
-    "forTarget": "tgt_fpg_surrogate"
+    "forTarget": "tgt_fpg_surrogate",
+    "signed": "P0-14 (GATE A 2026-10-05)"
    }
   },
   {
@@ -2130,7 +2131,7 @@
     {
      "code": "low",
      "display": "Low: hypoglycaemia range",
-     "tone": "diagnostic",
+     "tone": "low",
      "to": 3.9,
      "alert": {
       "title": "Glucose below 3.9 mmol/L",
@@ -2194,7 +2195,7 @@
      "pregnancy": "not_pregnant"
     },
     "forTarget": "tgt_ppg_surrogate",
-    "signed": "D-DM-13 signed at GATE A 2026-10-05"
+    "signed": "P0-14 (GATE A 2026-10-05)"
    },
    "note": "WHO's surrogate where HbA1c is unavailable or unreliable. A value below 3.9 mmol/L is shown as LOW, never as 'at target'. WHO's clinical target is 'at or below' this value and its programme indicator is 'below' it; the band uses 'below' until D-DM-13 is decided. Not shown in pregnancy: targets there are set by the specialist antenatal team and are tighter. A low value still fires the hypoglycaemia rules."
   },
@@ -2321,7 +2322,7 @@
     {
      "code": "low",
      "display": "Low: hypoglycaemia range",
-     "tone": "diagnostic",
+     "tone": "low",
      "to": 3.9,
      "alert": {
       "title": "Glucose below 3.9 mmol/L",
@@ -2389,7 +2390,8 @@
     "appliesTo": {
      "pregnancy": "not_pregnant"
     },
-    "forTarget": "tgt_fpg_surrogate"
+    "forTarget": "tgt_fpg_surrogate",
+    "signed": "P0-14 (GATE A 2026-10-05)"
    }
   },
   {
@@ -2401,7 +2403,7 @@
     {
      "code": "low",
      "display": "Low: hypoglycaemia range",
-     "tone": "diagnostic",
+     "tone": "low",
      "to": 3.9,
      "alert": {
       "title": "Glucose below 3.9 mmol/L",
@@ -2470,7 +2472,7 @@
      "pregnancy": "not_pregnant"
     },
     "forTarget": "tgt_ppg_surrogate",
-    "signed": "D-DM-13 signed at GATE A 2026-10-05"
+    "signed": "P0-14 (GATE A 2026-10-05)"
    }
   },
   {

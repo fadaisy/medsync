@@ -24,6 +24,16 @@ import type { AgeBand } from "@/lib/ncd/catalog/schema";
  * band leaves everything in scope, and a wrong band silently narrows an
  * examination — so the failure is deliberately the loud, harmless one.
  */
+/** Whole years from a date of birth; undefined for a missing, unparseable or future date (never a guess). */
+export function ageYearsFromDob(dob: string, now: Date = new Date()): number | undefined {
+  const born = new Date(dob);
+  if (Number.isNaN(born.getTime()) || born > now) return undefined;
+  let years = now.getUTCFullYear() - born.getUTCFullYear();
+  const monthDelta = now.getUTCMonth() - born.getUTCMonth();
+  if (monthDelta < 0 || (monthDelta === 0 && now.getUTCDate() < born.getUTCDate())) years--;
+  return years;
+}
+
 export function ageBandFromDob(dob: string, now: Date = new Date()): AgeBand | undefined {
   const born = new Date(dob);
   if (Number.isNaN(born.getTime())) return undefined;

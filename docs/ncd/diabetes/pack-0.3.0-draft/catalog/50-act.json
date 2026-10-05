@@ -1,7 +1,7 @@
 {
  "pack": {
   "id": "MS-NCD-DM-PACK-001",
-  "version": "0.5.2-draft",
+  "version": "0.5.3-draft",
   "generated": "2026-10-05",
   "condition": "diabetes",
   "extends": "DIABETES_CATALOG v0.1.0 (lib/ncd/catalog/diabetes)",
@@ -11054,7 +11054,7 @@
   {
    "id": "metformin_egfr_below_30",
    "display": "Metformin with an eGFR below 30",
-   "severity": "red",
+   "severity": "amber",
    "when": {
     "id": "tf_met30",
     "label": "On metformin, eGFR below 30",
@@ -11115,6 +11115,7 @@
     ],
     "ages": "any",
     "under16Action": "Under 16: refer today to the paediatric or specialist team. Do not change the medicine here.",
+    "signed": "P0-06 (GATE A 2026-10-05)",
     "restrictedClasses": []
    }
   },

@@ -26,17 +26,25 @@ describe("translateCapture", () => {
       bp_systolic: 142,
     });
   });
-  it("never maps a broader live field, and reads nothing from a not-assessed one", () => {
+  it("maps a broader live field only in the safe direction, and reads nothing from a not-assessed one", () => {
     const v = translateCapture({
       reduced_urine_output: recorded(true),
       treatment_omission: recorded(true),
       visual_symptoms: recorded(true),
       polyuria: { state: "not_assessed" },
     });
-    expect(v).toEqual({});
+    // 'Much less urine' reads as anuria (a referral) and vision problems as blurred vision (a test);
+    // a missed treatment is never 'insulin omitted' unless insulin is on the list (no false emergency).
+    expect(v).toEqual({ anuria: true, blurred_vision: true });
+    expect(
+      translateCapture({
+        treatment_omission: recorded(true),
+        glucose_lowering_therapy: recorded(["insulin"]),
+      }),
+    ).toMatchObject({ insulin_omitted: true });
   });
-  it("a 'none' diabetes status is not 'known'", () => {
-    expect(translateCapture({ dm_status: recorded("none") })).toEqual({});
+  it("a 'none' diabetes status is 'not known', never 'known'", () => {
+    expect(translateCapture({ dm_status: recorded("none") })).toEqual({ dm_status: "not_known" });
   });
 });
 

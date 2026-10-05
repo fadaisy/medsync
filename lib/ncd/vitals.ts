@@ -13,7 +13,7 @@ import { emrV1Live } from "@/lib/emr/feature";
 import { loadCfcVitals } from "@/lib/emr/read/vitals";
 import { encounterEngineLive } from "@/lib/encounter/feature";
 import { logger } from "@/lib/logger";
-import { ageBandFromDob } from "@/lib/ncd/age";
+import { ageBandFromDob, ageYearsFromDob } from "@/lib/ncd/age";
 
 /**
  * Vitals already on the record, carried into the clerkship rather than re-asked.
@@ -301,6 +301,8 @@ export interface PatientDemographics {
    * unparseable — and absent means EVERYTHING stays in scope, never a guess.
    */
   ageBand?: AgeBand;
+  /** Whole years, for rules that read a number (P0-01); absent like the band. */
+  ageYears?: number;
 }
 
 export async function loadPatientDemographics(patientUserId: string): Promise<PatientDemographics> {
@@ -317,6 +319,7 @@ export async function loadPatientDemographics(patientUserId: string): Promise<Pa
       // plaintext columns, and neither can be taken down by a decryption
       // failure on a name.
       ageBand: row.dateOfBirth ? ageBandFromDob(String(row.dateOfBirth)) : undefined,
+      ageYears: row.dateOfBirth ? ageYearsFromDob(String(row.dateOfBirth)) : undefined,
     };
   } catch (error) {
     // An absent demographic is a valid state: the scale says it cannot classify

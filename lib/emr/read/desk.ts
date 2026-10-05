@@ -788,6 +788,7 @@ export async function loadDeskFor(
         patientUserId: enc.patientUserId,
         state: enc.state,
         open,
+        encounterType: enc.encounterType,
         typeWord: TYPE_WORDS[enc.encounterType] ?? enc.encounterType,
         startedAt: enc.startedAt.toISOString(),
         triageRecordId: rec.triage?.id ?? null,

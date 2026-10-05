@@ -101,6 +101,8 @@ export interface PackFlag {
 export interface PackCaveat {
   id: string;
   feature: string;
+  label?: string;
+  alternative?: string;
   when: PackCriterion;
   direction: "masks" | "manufactures" | "unpredictable";
   blocksDiagnosis: boolean;
@@ -109,7 +111,11 @@ export interface PackCaveat {
 export interface PackCriteriaSet {
   id: string;
   anyOf: PackCriterion[];
-  x: PackX & { appliesTo: { pregnancy?: string; runWhen: string } };
+  x: PackX & {
+    appliesTo: { pregnancy?: string; runWhen: string };
+    default?: boolean;
+    verdict?: string;
+  };
 }
 export interface PackStage {
   code: string;
@@ -125,11 +131,13 @@ export interface PackComplication {
 export interface PackTarget {
   id: string;
   measure: string;
+  display?: string;
   when: PackCriterion;
   x: PackX;
 }
 export interface PackClassification {
   code: string;
+  display?: string;
   supportedBy: PackCriterion[];
   x: PackX;
 }
@@ -140,6 +148,7 @@ export interface PackRiskModel {
 }
 export interface PackBand {
   code: string;
+  display?: string;
   tone: string;
   from?: number;
   to?: number;

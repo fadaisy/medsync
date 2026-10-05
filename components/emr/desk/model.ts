@@ -174,6 +174,8 @@ export interface DeskPayload {
     patientUserId: string;
     state: string;
     open: boolean;
+    /** The encounter's type code (opd, inpatient, emergency…): the pack reads the care setting from it. */
+    encounterType: string;
     typeWord: string;
     startedAt: string;
     triageRecordId: string | null;

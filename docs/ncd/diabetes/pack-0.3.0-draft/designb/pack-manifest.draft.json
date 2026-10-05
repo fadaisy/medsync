@@ -1,6 +1,6 @@
 {
  "id": "diabetes",
- "version": "0.5.2-draft",
+ "version": "0.5.3-draft",
  "status": "draft",
  "semantics": {
   "recorded": "The `recorded` operator and every 'a result is already recorded' stop condition mean recorded AT THIS ENCOUNTER. A glucose from last month does not stand down the coma interrupt. Design B carries the time scope; the catalog grammar assumes the encounter's capture (fourth review, J19).",
@@ -10004,7 +10004,7 @@
    ],
    "status": "draft",
    "x": {
-    "severity": "red",
+    "severity": "amber",
     "action": "WHO: metformin is contraindicated below this eGFR. ADA: it should be stopped. Review today with the prescriber.",
     "restrictedClasses": []
    }
