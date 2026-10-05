@@ -3,8 +3,9 @@
  * migrations column for column (name, SQL type, nullability) and carry only CHECKs that exist.
  * The migrations are the source of truth; this catches a Drizzle file that drifted from them
  * (the etco2 / urine_output / cosign-kind drift that 0071 fixed would each have failed here).
- * It also loads 0072 and 0085 for real: the seeds must land in 0071's registries in full and re-run to
- * no-op. The cosign_action_kind_check pair covers 0084 (confirm_diagnosis).
+ * It also loads 0072, 0085 and 0086 for real: the seeds must land in 0071's registries in full, 0086's
+ * signed codes on exactly its terms, and a re-run of any of them must be a no-op. The
+ * cosign_action_kind_check pair covers 0084 (confirm_diagnosis).
  * Runs only with EMR_PGLITE=1 (see _pglite.ts).
  */
 import type { Lane } from "./_pglite";
@@ -14,7 +15,10 @@ import { beforeAll, describe, expect, it } from "vitest";
 
 import * as schema from "@/db/schema";
 import { CAPABILITY_IDS, CONCEPTS, DRUG_CLASS_TAGS } from "@/lib/facts/catalogue.generated";
+import { readSeedSources, uuidV5 } from "@/scripts/emr/gen-seed";
 import { bootLane, laneOn, readMigration } from "./_pglite";
+
+const src = readSeedSources(process.cwd());
 
 type DbColumn = { column_name: string; is_nullable: "YES" | "NO"; sql_type: string };
 
@@ -139,7 +143,7 @@ describe.skipIf(!laneOn)("Drizzle schema matches the replayed migrations", () =>
   });
 });
 
-describe.skipIf(!laneOn)("0072 and 0085 seeds on the 0071 registries", () => {
+describe.skipIf(!laneOn)("0072, 0085 and 0086 seeds on the 0071 registries", () => {
   const REGISTRIES = [
     "clinical_concepts",
     "drug_class_tags",
@@ -170,19 +174,40 @@ describe.skipIf(!laneOn)("0072 and 0085 seeds on the 0071 registries", () => {
     expect([...(await ids("drug_class_tags"))].sort()).toEqual(Object.keys(DRUG_CLASS_TAGS).sort());
     expect([...(await ids("capabilities"))].sort()).toEqual([...CAPABILITY_IDS].sort());
     const before = await counts(lane);
-    // 0072's 85 terms plus 0085's 187 (REF-DX-TERMS v1.1, uncoded: D-SI-26) plus 0092's 8 (CFC v1.5, uncoded).
+    // 0072's 85 terms plus 0085's 187 (REF-DX-TERMS v1.1, seeded uncoded: D-SI-26), of which 0086
+    // codes the 177 the CSO signed and leaves the 10 held terms "As typed, not coded"; plus 0092's 8
+    // (CFC v1.5, uncoded).
     expect(before).toMatchObject({ test_catalogue: 35 + 9, diagnosis_terms: 85 + 187 + 8 });
-    const uncoded = await lane.pg.query<{ n: number }>(
-      `SELECT count(*)::int AS n FROM public.diagnosis_terms WHERE icd11_code IS NULL AND verified_on IS NULL`,
+    const coding = async () =>
+      (
+        await lane.pg.query<{ id: string; icd11_code: string | null; verified_on: string | null }>(
+          `SELECT id, icd11_code, verified_on::text FROM public.diagnosis_terms ORDER BY id`,
+        )
+      ).rows;
+    const coded = await coding();
+    const uncoded = coded.filter((r) => r.icd11_code === null && r.verified_on === null);
+    expect(uncoded.map((r) => r.id).sort()).toEqual(
+      [...src.codes11.held, ...src.v15.termsAdd]
+        .map((h: { id: string }) => uuidV5(`diagnosis_terms:${h.id}`))
+        .sort(),
     );
-    expect(uncoded.rows[0]!.n).toBe(187 + 8);
+    for (const c of src.codes11.codes as { id: string; code: string }[])
+      expect(
+        coded.find((r) => r.id === uuidV5(`diagnosis_terms:${c.id}`)),
+        c.id,
+      ).toMatchObject({
+        icd11_code: c.code,
+        verified_on: "2026-09-28",
+      });
     const linked = await lane.pg.query<{ n: number }>(
       `SELECT count(*)::int AS n FROM public.diagnosis_terms WHERE concept_id IS NOT NULL`,
     );
     expect(linked.rows[0]!.n).toBe(16); // 0092's term → condition links
     await lane.pg.exec(readMigration("0072_emr_reference_seed.sql"));
     await lane.pg.exec(readMigration("0085_ref_dx_terms_v1_1.sql"));
+    await lane.pg.exec(readMigration("0086_ref_dx_terms_v1_1_icd11.sql"));
     await lane.pg.exec(readMigration("0092_cfc_v1_5_ncd_diabetes.sql"));
     expect(await counts(lane)).toEqual(before);
+    expect(await coding()).toEqual(coded);
   }, 180_000);
 });

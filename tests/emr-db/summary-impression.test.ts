@@ -543,11 +543,11 @@ describe.skipIf(!laneOn)("Summary and Impression: the server (PGlite lane)", () 
       addToProblemList: true,
     });
     const uncoded = await record(mo, v, {
-      termId: dxTermUuid("dx.hypothermia_unexplained"), // 0085: as typed, not coded
+      termId: dxTermUuid("dx.megaloblastic_anaemia"), // held uncoded by 0086: as typed, not coded
       verification: "differential",
     });
     const restricted = await record(mo, v, {
-      termId: dxTermUuid("dx.tb_extrapulmonary"),
+      termId: dxTermUuid("dx.hiv_advanced"), // restricted, and held uncoded by 0086
       verification: "differential",
     });
     const pending = await record(intern, v, { text: "Anaemia", verification: "confirmed" });
@@ -578,7 +578,7 @@ describe.skipIf(!laneOn)("Summary and Impression: the server (PGlite lane)", () 
     });
     expect(by.get(uncoded.id)).toMatchObject({
       id: changed.id, // the current version; the logical id is the first
-      display: "Hypothermia, cause not yet known",
+      display: "Megaloblastic anaemia",
       code: null,
       verification: "provisional",
       onProblemList: false,
